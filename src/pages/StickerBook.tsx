@@ -18,6 +18,7 @@ import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import StickerBookSaveModal from '../components/stickerBook/StickerBookSaveModal';
 import StickerBookToast from '../components/stickerBook/StickerBookToast';
 import { t } from 'i18next';
+import NewBackButton from '../components/common/NewBackButton';
 import {
   fetchStickerBookSvgText,
   resolveStickerBookSvgUrl,
@@ -318,6 +319,23 @@ const StickerBook: React.FC = () => {
                 onPaint={onPaint}
                 onSave={onSave}
               />
+            )}
+            {!isLoading && !selectedBook && (
+              <div className="sticker-book-fallback">
+                <div className="sticker-book-fallback-back">
+                  <NewBackButton onClick={onBack} />
+                </div>
+                <div className="sticker-book-fallback-loading" role="status">
+                  <img
+                    src="assets/loading.gif"
+                    alt="loading"
+                    className="sticker-book-fallback-loading-img"
+                  />
+                  <div className="sticker-book-fallback-loading-text">
+                    {t('Loading sticker book...')}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
