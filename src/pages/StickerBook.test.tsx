@@ -462,6 +462,33 @@ describe('StickerBook page', () => {
     expect(mockStickerBookBoard).not.toHaveBeenCalled();
   });
 
+  test('shows fallback back button and loading indicator when no sticker book is available', async () => {
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      apiHandler: {
+        getAllStickerBooks: jest.fn().mockResolvedValue([]),
+        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue(null),
+        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        getUserStickerBook: jest.fn().mockResolvedValue([]),
+        markStciekercolledasTrue: jest.fn().mockResolvedValue(undefined),
+        updateRewardAsSeen: jest.fn(),
+      },
+    });
+
+    render(<StickerBook />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Back')).toBeInTheDocument();
+      expect(
+        document.querySelector('.sticker-book-fallback-loading'),
+      ).toBeInTheDocument();
+      expect(
+        document.querySelector('.sticker-book-fallback-loading-img'),
+      ).toBeInTheDocument();
+    });
+
+    expect(mockStickerBookBoard).not.toHaveBeenCalled();
+  });
+
   test('fetches svg correctly', async () => {
     const book = makeBook({ svg_url: 'assets/books/rel.svg' });
 
