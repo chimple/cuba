@@ -169,7 +169,8 @@ const JoinClass: FC<{
       // window.location.reload();
     } catch (error) {
       logger.error('Join class failed:', error);
-      if (error instanceof Object) setError(getErrorMessage(error));
+      if (error instanceof Object)
+        setError('Something went wrong. Please try again.');
     } finally {
       setJoiningClass(false);
     }
