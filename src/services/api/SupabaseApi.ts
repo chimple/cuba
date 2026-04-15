@@ -11874,6 +11874,12 @@ export class SupabaseApi implements ServiceApi {
     const langId = student.language_id ?? null;
 
     try {
+      type ResultStatusRow = {
+        lesson_id: string | null;
+        status: string | null;
+        created_at: string | null;
+      };
+
       /* ==========================================
        * 1️⃣ Fetch ALL available set_numbers
        * ========================================== */
@@ -11925,9 +11931,9 @@ export class SupabaseApi implements ServiceApi {
       /* -----------------------------------------
         Keep latest result per unique lesson
       ------------------------------------------ */
-      const uniqueMap = new Map<string, any>();
+      const uniqueMap = new Map<string, ResultStatusRow>();
 
-      for (const row of data) {
+      for (const row of data as ResultStatusRow[]) {
         if (!row.lesson_id) continue;
         if (!uniqueMap.has(row.lesson_id)) {
           uniqueMap.set(row.lesson_id, row);
@@ -11966,11 +11972,25 @@ export class SupabaseApi implements ServiceApi {
       if (lessonError || !lessons?.length)
         return {} as TableTypes<'subject_lesson'>;
 
+      const matchedLessons = lessons.filter(
+        (lesson) => lesson.language_id === langId,
+      );
+      const fallbackLessons = lessons.filter(
+        (lesson) => lesson.language_id == null,
+      );
+      const candidateLessons = matchedLessons.length
+        ? matchedLessons
+        : fallbackLessons;
+
+      if (!candidateLessons.length) {
+        return {} as TableTypes<'subject_lesson'>;
+      }
+
       /* ==========================================
        * 4️⃣ Remove completed lessons
        * (assignment_id IS NULL only)
        * ========================================== */
-      const lessonIds = lessons.map((l) => l.lesson_id);
+      const lessonIds = candidateLessons.map((lesson) => lesson.lesson_id);
 
       const { data: results } = await this.supabase
         .from('result')
@@ -11984,22 +12004,13 @@ export class SupabaseApi implements ServiceApi {
         (results ?? []).map((r) => r.lesson_id),
       );
 
-      const pendingLessons = lessons.filter(
-        (l) => !completedLessonIds.has(l.lesson_id),
+      const pendingLessons = candidateLessons.filter(
+        (lesson) => !completedLessonIds.has(lesson.lesson_id),
       );
 
-      const matchedLessons = pendingLessons.filter(
-        (lesson) => lesson.language_id === langId,
-      );
-      const fallbackLessons = pendingLessons.filter(
-        (lesson) => lesson.language_id == null,
-      );
-
-      return matchedLessons.length
-        ? matchedLessons[0]
-        : fallbackLessons.length
-          ? fallbackLessons[0]
-          : ({} as TableTypes<'subject_lesson'>);
+      return pendingLessons.length
+        ? pendingLessons[0]
+        : ({} as TableTypes<'subject_lesson'>);
     } catch (error) {
       logger.error(
         '❌ Error fetching subject lessons by subject (Supabase):',
