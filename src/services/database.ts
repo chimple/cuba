@@ -5529,6 +5529,21 @@ export type Database = {
         Args: { invite_code: number; student_id: string };
         Returns: boolean;
       };
+      new_link_student: {
+        Args: { invite_code: number; student_id: string };
+        Returns: {
+          class_id: string;
+          created_at: string | null;
+          id: string;
+          is_deleted: boolean | null;
+          is_firebase: boolean | null;
+          is_ops: boolean | null;
+          ops_created_by: string | null;
+          role: Database['public']['Enums']['role'];
+          updated_at: string | null;
+          user_id: string;
+        }[];
+      };
       read_group_assignment_queue_v2: {
         Args: { qty: number; queue_name: string; vt: number };
         Returns: {
