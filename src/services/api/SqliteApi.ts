@@ -930,6 +930,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
+    await this.ensureInitialized();
     const cachedColumns = this._tableColumnsCache.get(tableName);
     if (cachedColumns?.length) {
       return cachedColumns;
@@ -1066,6 +1067,7 @@ export class SqliteApi implements ServiceApi {
     refreshTables: TABLES[] = [],
     isFirstSync?: boolean,
   ) {
+    await this.ensureInitialized();
     if (!this._db) return;
     // 🔒 LOCK
     if (this._syncInProgress) {
@@ -1566,6 +1568,7 @@ export class SqliteApi implements ServiceApi {
   async getExistingSchoolRequest(
     requested_by: string,
   ): Promise<TableTypes<'ops_requests'> | null> {
+    await this.ensureInitialized();
     const query = `
       SELECT *
       FROM ${TABLES.OpsRequests}
@@ -1579,6 +1582,7 @@ export class SqliteApi implements ServiceApi {
     school_id?: string,
     class_id?: string,
   ): Promise<void> {
+    await this.ensureInitialized();
     if (!this._db) return;
 
     const query1 = `
@@ -1746,6 +1750,7 @@ export class SqliteApi implements ServiceApi {
     schoolId: string,
     selectedCourseIds: string[],
   ): Promise<void> {
+    await this.ensureInitialized();
     const currentDate = new Date().toISOString();
 
     for (let idx = 0; idx < selectedCourseIds.length; idx++) {
@@ -1825,6 +1830,7 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     selectedCourseIds: string[],
   ): Promise<void> {
+    await this.ensureInitialized();
     const currentDate = new Date().toISOString();
     for (let idx = 0; idx < selectedCourseIds.length; idx++) {
       const courseId = selectedCourseIds[idx];
@@ -1900,6 +1906,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async deleteProfile(studentId: string) {
+    await this.ensureInitialized();
     if (!this._db) return;
     try {
       const authHandler = ServiceConfig.getI()?.authHandler;
@@ -2040,6 +2047,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getAllCurriculums(): Promise<TableTypes<'curriculum'>[]> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `SELECT * FROM ${TABLES.Curriculum} ORDER BY name ASC`,
     );
@@ -2047,11 +2055,13 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
   async getAllGrades(): Promise<TableTypes<'grade'>[]> {
+    await this.ensureInitialized();
     const res = await this._db?.query('select * from ' + TABLES.Grade);
     return res?.values ?? [];
   }
 
   async getGradeById(id: string): Promise<TableTypes<'grade'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Grade} where id = "${id}"`,
     );
@@ -2059,6 +2069,7 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
   async getGradesByIds(gradeIds: string[]): Promise<TableTypes<'grade'>[]> {
+    await this.ensureInitialized();
     if (!gradeIds || gradeIds.length === 0) {
       return [];
     }
@@ -2079,6 +2090,7 @@ export class SqliteApi implements ServiceApi {
   async getCurriculumById(
     id: string,
   ): Promise<TableTypes<'curriculum'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Curriculum} where id = "${id}"`,
     );
@@ -2088,6 +2100,7 @@ export class SqliteApi implements ServiceApi {
   async getCurriculumsByIds(
     ids: string[],
   ): Promise<TableTypes<'curriculum'>[]> {
+    await this.ensureInitialized();
     if (!ids || ids.length === 0) {
       return [];
     }
@@ -2109,6 +2122,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getAllLanguages(): Promise<TableTypes<'language'>[]> {
+    await this.ensureInitialized();
     const res = await this._db?.query('select * from ' + TABLES.Language);
     logger.info('🚀 ~ SqliteApi ~ getAllLanguages ~ res:', res);
     return res?.values ?? [];
@@ -2132,6 +2146,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getParentStudentProfiles(): Promise<TableTypes<'user'>[]> {
+    await this.ensureInitialized();
     if (!this._db) throw 'Db is not initialized';
     const authHandler = ServiceConfig.getI()?.authHandler;
     const currentUser = await authHandler?.getCurrentUser();
@@ -2251,6 +2266,7 @@ export class SqliteApi implements ServiceApi {
   async getLanguageWithId(
     id: string,
   ): Promise<TableTypes<'language'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Language} where id = "${id}"`,
     );
@@ -2261,6 +2277,7 @@ export class SqliteApi implements ServiceApi {
   async getLessonWithCocosLessonId(
     lessonId: string,
   ): Promise<TableTypes<'lesson'> | null> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `
         select *
@@ -2282,6 +2299,7 @@ export class SqliteApi implements ServiceApi {
   async getCoursesForParentsStudent(
     studentId: string,
   ): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT *
     FROM ${TABLES.UserCourse} AS uc
@@ -2295,6 +2313,7 @@ export class SqliteApi implements ServiceApi {
   async getAdditionalCourses(
     studentId: string,
   ): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     const res = await this._db?.query(`
     SELECT c.*
     FROM ${TABLES.Course} c
@@ -2307,6 +2326,7 @@ export class SqliteApi implements ServiceApi {
   async getCoursesForClassStudent(
     classId: string,
   ): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     const query = `
       SELECT course.*
       FROM ${TABLES.ClassCourse} AS cc
@@ -2319,6 +2339,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getLesson(id: string): Promise<TableTypes<'lesson'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Lesson} where id = "${id}" and is_deleted = 0`,
     );
@@ -2326,6 +2347,7 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
   async getChapterById(id: string): Promise<TableTypes<'chapter'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Chapter} where id = "${id}" and is_deleted = 0`,
     );
@@ -2336,6 +2358,7 @@ export class SqliteApi implements ServiceApi {
   async getLessonsForChapter(
     chapterId: string,
   ): Promise<TableTypes<'lesson'>[]> {
+    await this.ensureInitialized();
     const student = this.currentStudent;
     const langId = student?.language_id;
     const localeId = student?.locale_id;
@@ -2374,6 +2397,7 @@ export class SqliteApi implements ServiceApi {
     grades: TableTypes<'grade'>[];
     courses: TableTypes<'course'>[];
   }> {
+    await this.ensureInitialized();
     const query = `
     SELECT c.*,
     JSON_OBJECT(
@@ -2433,6 +2457,7 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     studentId: string,
   ): Promise<TableTypes<'assignment'>[]> {
+    await this.ensureInitialized();
     const now = new Date().toISOString();
     const query = `
     SELECT a.*
@@ -2461,6 +2486,7 @@ export class SqliteApi implements ServiceApi {
     studentId: string,
     lessonId: string,
   ): Promise<TableTypes<'favorite_lesson'>> {
+    await this.ensureInitialized();
     const favoriteId = uuidv4();
     var favoriteLesson: TableTypes<'favorite_lesson'>;
     const isExist = await this._db?.query(
@@ -3183,6 +3209,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getSubject(id: string): Promise<TableTypes<'subject'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Subject} where id = "${id}"`,
     );
@@ -3191,6 +3218,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getCourse(id: string): Promise<TableTypes<'course'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Course} where id = "${id}" and is_deleted = 0`,
     );
@@ -3198,6 +3226,7 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
   async getCourses(courseIds: string[]): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     if (!courseIds || courseIds.length === 0) {
       return [];
     }
@@ -3220,6 +3249,7 @@ export class SqliteApi implements ServiceApi {
     subjectId: string,
     frameworkId: string,
   ): Promise<TableTypes<'domain'>[]> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Domain} where subject_id = ? and framework_id = ? and (is_deleted = 0)`,
       [subjectId, frameworkId],
@@ -3230,6 +3260,7 @@ export class SqliteApi implements ServiceApi {
   async getCompetenciesByDomainIds(
     domainIds: string[],
   ): Promise<TableTypes<'competency'>[]> {
+    await this.ensureInitialized();
     if (!domainIds || domainIds.length === 0) return [];
     const placeholders = domainIds.map(() => '?').join(',');
     const res = await this._db?.query(
@@ -3242,6 +3273,7 @@ export class SqliteApi implements ServiceApi {
   async getOutcomesByCompetencyIds(
     competencyIds: string[],
   ): Promise<TableTypes<'outcome'>[]> {
+    await this.ensureInitialized();
     if (!competencyIds || competencyIds.length === 0) return [];
     const placeholders = competencyIds.map(() => '?').join(',');
     const res = await this._db?.query(
@@ -3254,6 +3286,7 @@ export class SqliteApi implements ServiceApi {
   async getSkillsByOutcomeIds(
     outcomeIds: string[],
   ): Promise<TableTypes<'skill'>[]> {
+    await this.ensureInitialized();
     if (!outcomeIds || outcomeIds.length === 0) return [];
     const placeholders = outcomeIds.map(() => '?').join(',');
     const res = await this._db?.query(
@@ -3267,6 +3300,7 @@ export class SqliteApi implements ServiceApi {
     studentId: string,
     skillIds: string[],
   ): Promise<TableTypes<'result'>[]> {
+    await this.ensureInitialized();
     if (!skillIds || skillIds.length === 0) return [];
     const placeholders = skillIds.map(() => '?').join(',');
     const res = await this._db?.query(
@@ -3279,6 +3313,7 @@ export class SqliteApi implements ServiceApi {
   async getSkillLessonsBySkillIds(
     skillIds: string[],
   ): Promise<TableTypes<'skill_lesson'>[]> {
+    await this.ensureInitialized();
     if (!skillIds || skillIds.length === 0) return [];
 
     const student = this.currentStudent;
@@ -3319,6 +3354,7 @@ export class SqliteApi implements ServiceApi {
   async getSkillRelationsByTargetIds(
     targetSkillIds: string[],
   ): Promise<TableTypes<'skill_relation'>[]> {
+    await this.ensureInitialized();
     if (!targetSkillIds || targetSkillIds.length === 0) return [];
     const placeholders = targetSkillIds.map(() => '?').join(',');
     const res = await this._db?.query(
@@ -3332,6 +3368,7 @@ export class SqliteApi implements ServiceApi {
     studentId: string,
     fromCache?: boolean,
   ): Promise<TableTypes<'result'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT * FROM ${TABLES.Result}
     where student_id = '${studentId}'
@@ -3343,6 +3380,7 @@ export class SqliteApi implements ServiceApi {
   async getStudentResultInMap(
     studentId: string,
   ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }> {
+    await this.ensureInitialized();
     const query = `
     SELECT *
     FROM ${TABLES.Result}
@@ -3365,6 +3403,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getClassById(id: string): Promise<TableTypes<'class'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Class} where id = "${id}"`,
     );
@@ -3373,6 +3412,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getSchoolById(id: string): Promise<TableTypes<'school'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.School} where id = "${id}"`,
     );
@@ -3404,6 +3444,7 @@ export class SqliteApi implements ServiceApi {
     studentId: string,
     fromCache: boolean,
   ): Promise<boolean> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.ClassUser}
       where user_id = "${studentId}"
@@ -3417,6 +3458,7 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     studentId: string,
   ): Promise<TableTypes<'assignment'>[]> {
+    await this.ensureInitialized();
     const nowIso = new Date().toISOString();
 
     const query = `
@@ -3449,6 +3491,7 @@ export class SqliteApi implements ServiceApi {
   async getSchoolsForUser(
     userId: string,
   ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
+    await this.ensureInitialized();
     const finalData: { school: TableTypes<'school'>; role: RoleType }[] = [];
     const schoolIds: Set<string> = new Set();
     let query = `
@@ -3566,6 +3609,7 @@ export class SqliteApi implements ServiceApi {
     schoolId: string,
     userId: string,
   ): Promise<TableTypes<'class'>[]> {
+    await this.ensureInitialized();
     let query = `
     SELECT DISTINCT cu.class_id, cu.role, c.*
     FROM ${TABLES.ClassUser} cu
@@ -3611,6 +3655,7 @@ export class SqliteApi implements ServiceApi {
   async getCoursesByClassId(
     classId: string,
   ): Promise<TableTypes<'class_course'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT *
     FROM ${TABLES.ClassCourse}
@@ -3622,6 +3667,7 @@ export class SqliteApi implements ServiceApi {
   async getCoursesBySchoolId(
     schoolId: string,
   ): Promise<TableTypes<'school_course'>[]> {
+    await this.ensureInitialized();
     const query = `
       SELECT *
       FROM ${TABLES.SchoolCourse}
@@ -3721,6 +3767,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getStudentsForClass(classId: string): Promise<TableTypes<'user'>[]> {
+    await this.ensureInitialized();
     const query = `
       SELECT user.*
       FROM ${TABLES.ClassUser} AS cu
@@ -3791,6 +3838,7 @@ export class SqliteApi implements ServiceApi {
     return newClass;
   }
   async deleteClass(classId: string) {
+    await this.ensureInitialized();
     try {
       // Update is_deleted to true for all class_user records where role is teacher
       await this.executeQuery(
@@ -3934,6 +3982,7 @@ export class SqliteApi implements ServiceApi {
   async getLeaderboardStudentResultFromB2CCollection(
     studentId: string,
   ): Promise<LeaderboardInfo | undefined> {
+    await this.ensureInitialized();
     try {
       // Ensure the database instance is initialized
       if (!this._db) throw new Error('Database is not initialized');
@@ -4036,6 +4085,7 @@ export class SqliteApi implements ServiceApi {
   async getAllLessonsForCourse(
     courseId: string,
   ): Promise<TableTypes<'lesson'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT l.* FROM ${TABLES.Chapter} as c
     JOIN ${TABLES.ChapterLesson} cl ON cl.chapter_id = c.id
@@ -4060,6 +4110,7 @@ export class SqliteApi implements ServiceApi {
     lesson: TableTypes<'lesson'>[];
     course: TableTypes<'course'>[];
   }> {
+    await this.ensureInitialized();
     const data: {
       lesson: TableTypes<'lesson'>[];
       course: TableTypes<'course'>[];
@@ -4096,6 +4147,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     try {
       const gradeCoursesRes = await this._db?.query(
         `SELECT * FROM ${TABLES.Course} WHERE grade_id = "${gradeDocId}" AND is_deleted = 0`,
@@ -4117,6 +4169,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getAllCourses(): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Course} ORDER BY sort_index ASC`,
     );
@@ -4129,6 +4182,7 @@ export class SqliteApi implements ServiceApi {
   async getCoursesFromLesson(
     lessonId: string,
   ): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT co.* FROM ${TABLES.Lesson} as l
     JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
@@ -4261,6 +4315,7 @@ export class SqliteApi implements ServiceApi {
   async getAssignmentById(
     id: string,
   ): Promise<TableTypes<'assignment'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Assignment} where id = "${id}"`,
     );
@@ -4270,6 +4325,7 @@ export class SqliteApi implements ServiceApi {
   async getAssignmentsByIds(
     ids: string[],
   ): Promise<TableTypes<'assignment'>[]> {
+    await this.ensureInitialized();
     if (!ids.length) return [];
 
     const idslst = ids.map(() => '?').join(', ');
@@ -4287,6 +4343,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getBadgesByIds(ids: string[]): Promise<TableTypes<'badge'>[]> {
+    await this.ensureInitialized();
     if (ids.length === 0) return [];
 
     const quotedIds = ids.map((id) => `"${id}"`).join(', ');
@@ -4304,6 +4361,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getStickersByIds(ids: string[]): Promise<TableTypes<'sticker'>[]> {
+    await this.ensureInitialized();
     if (ids.length === 0) return [];
 
     const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
@@ -4319,6 +4377,7 @@ export class SqliteApi implements ServiceApi {
     }
   }
   async getBonusesByIds(ids: string[]): Promise<TableTypes<'lesson'>[]> {
+    await this.ensureInitialized();
     if (ids.length === 0) return [];
 
     const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
@@ -4337,6 +4396,7 @@ export class SqliteApi implements ServiceApi {
     id: number,
     periodType: string,
   ): Promise<TableTypes<'reward'> | undefined> {
+    await this.ensureInitialized();
     try {
       const query = `SELECT ${periodType} FROM ${TABLES.Reward} WHERE year = ${id}`;
       const data = await this._db?.query(query);
@@ -4358,6 +4418,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getUserSticker(userId: string): Promise<TableTypes<'user_sticker'>[]> {
+    await this.ensureInitialized();
     try {
       const query = `select * from ${TABLES.UserSticker} where user_id = "${userId}"`;
       const data = await this._db?.query(query);
@@ -4378,6 +4439,7 @@ export class SqliteApi implements ServiceApi {
   async getUserStickerBook(
     userId: string,
   ): Promise<TableTypes<'user_sticker_book'>[]> {
+    await this.ensureInitialized();
     try {
       const query = `select * from ${TABLES.UserStickerBook} where user_id = "${userId}" AND is_deleted = 0`;
       const data = await this._db?.query(query);
@@ -4395,6 +4457,7 @@ export class SqliteApi implements ServiceApi {
     }
   }
   async getUserBadge(userId: string): Promise<TableTypes<'user_badge'>[]> {
+    await this.ensureInitialized();
     try {
       const query = `select * from ${TABLES.UserBadge} where user_id = "${userId}"`;
       const data = await this._db?.query(query);
@@ -4413,6 +4476,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getUserBonus(userId: string): Promise<TableTypes<'user_bonus'>[]> {
+    await this.ensureInitialized();
     try {
       const query = `select * from ${TABLES.UserBonus} where user_id = "${userId}"`;
       const data = await this._db?.query(query);
@@ -4431,6 +4495,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async updateRewardAsSeen(studentId: string): Promise<void> {
+    await this.ensureInitialized();
     try {
       const query = `UPDATE ${TABLES.UserSticker} SET is_seen = true WHERE user_id = "${studentId}" AND is_seen = false`;
       await this._db?.query(query);
@@ -4441,6 +4506,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async markStciekercolledasTrue(userId: string): Promise<void> {
+    await this.ensureInitialized();
     try {
       const updatedAt = new Date().toISOString();
 
@@ -4481,6 +4547,7 @@ export class SqliteApi implements ServiceApi {
   async getUserByDocId(
     studentId: string,
   ): Promise<TableTypes<'user'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.User} where id = "${studentId}"`,
     );
@@ -4525,6 +4592,7 @@ export class SqliteApi implements ServiceApi {
   async getChaptersForCourse(
     courseId: string,
   ): Promise<TableTypes<'chapter'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT * FROM ${TABLES.Chapter}
     WHERE course_id = "${courseId}" AND is_deleted = 0
@@ -4538,6 +4606,7 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     studentId: string,
   ): Promise<TableTypes<'assignment'> | undefined> {
+    await this.ensureInitialized();
     const query = `
     SELECT a.*
     FROM ${TABLES.Assignment} a
@@ -4552,6 +4621,7 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
   async getFavouriteLessons(userId: string): Promise<TableTypes<'lesson'>[]> {
+    await this.ensureInitialized();
     const query = `
       SELECT DISTINCT l.*
       FROM ${TABLES.FavoriteLesson} fl
@@ -4569,6 +4639,7 @@ export class SqliteApi implements ServiceApi {
     classes: TableTypes<'class'>[];
     schools: TableTypes<'school'>[];
   }> {
+    await this.ensureInitialized();
     const data: {
       classes: TableTypes<'class'>[];
       schools: TableTypes<'school'>[];
@@ -4809,6 +4880,7 @@ export class SqliteApi implements ServiceApi {
       })[]
     >
   > {
+    await this.ensureInitialized();
     const query = `
       SELECT r.*, l.name AS lesson_name, c.course_id AS course_id, c.name AS chapter_name
       FROM ${TABLES.Result} r
@@ -4842,6 +4914,7 @@ export class SqliteApi implements ServiceApi {
     studentId: string,
     classId?: string,
   ): Promise<TableTypes<'lesson'>[]> {
+    await this.ensureInitialized();
     // This Query will give last played lessons
     const lastPlayedLessonsQuery = `
   WITH
@@ -5085,6 +5158,7 @@ order by
   }
 
   async searchLessons(searchString: string): Promise<TableTypes<'lesson'>[]> {
+    await this.ensureInitialized();
     if (!this._db) return [];
     const res: TableTypes<'lesson'>[] = [];
 
@@ -5130,6 +5204,7 @@ order by
     classId?: string,
     userId?: string,
   ): Promise<String | undefined> {
+    await this.ensureInitialized();
     try {
       const class_course = classId
         ? await this.getCoursesForClassStudent(classId)
@@ -5158,6 +5233,7 @@ order by
   async getResultByAssignmentIds(
     assignmentIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'result'>[] | undefined> {
+    await this.ensureInitialized();
     if (!assignmentIds || assignmentIds.length === 0) return;
 
     const placeholders = assignmentIds.map(() => '?').join(', ');
@@ -5175,6 +5251,7 @@ order by
     assignmentIds: string[],
     classId: string,
   ): Promise<TableTypes<'result'>[] | undefined> {
+    await this.ensureInitialized();
     if (!assignmentIds || assignmentIds.length === 0) return;
 
     const placeholders = assignmentIds.map(() => '?').join(', ');
@@ -5197,6 +5274,7 @@ order by
   async getAssignmentUserByAssignmentIds(
     assignmentIds: string[],
   ): Promise<TableTypes<'assignment_user'>[]> {
+    await this.ensureInitialized();
     // If there are no assignment IDs, return an empty array immediately.
     if (!assignmentIds || assignmentIds.length === 0) {
       return [];
@@ -5226,6 +5304,7 @@ order by
   async getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {
+    await this.ensureInitialized();
     if (!lessonIds || lessonIds.length === 0) return;
 
     const placeholders = lessonIds.map(() => '?').join(', ');
@@ -5245,6 +5324,7 @@ order by
     assignmentIds: string[],
     classId: string,
   ): Promise<TableTypes<'result'>[]> {
+    await this.ensureInitialized();
     const assignmentholders = assignmentIds.map(() => '?').join(', ');
     const courseholders = courseIds.map(() => '?').join(', ');
     const res = await this._db?.query(
@@ -5329,6 +5409,7 @@ order by
     isLiveQuiz: boolean,
     allAssignments: boolean,
   ): Promise<TableTypes<'assignment'>[] | undefined> {
+    await this.ensureInitialized();
     const courseholders = courseIds.map(() => '?').join(', ');
     let query = `SELECT * FROM ${TABLES.Assignment}
              WHERE class_id = ?
@@ -5359,6 +5440,7 @@ order by
     endDate: string,
     classId: string,
   ): Promise<TableTypes<'result'>[] | undefined> {
+    await this.ensureInitialized();
     const courseholders = courseIds.map(() => '?').join(', ');
 
     const query = `
@@ -5382,6 +5464,7 @@ order by
     studentId: string,
     classId: string,
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
+    await this.ensureInitialized();
     const query = `
       SELECT created_at
       FROM ${TABLES.Result}
@@ -5405,6 +5488,7 @@ order by
   async getLastAssignmentsForRecommendations(
     classId: string,
   ): Promise<TableTypes<'assignment'>[] | undefined> {
+    await this.ensureInitialized();
     const query = `WITH RankedAssignments AS (
     SELECT *,
            ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at DESC) AS rn
@@ -5425,6 +5509,7 @@ order by
   async getTeachersForClass(
     classId: string,
   ): Promise<TableTypes<'user'>[] | undefined> {
+    await this.ensureInitialized();
     const query = `
     SELECT user.*
     FROM ${TABLES.ClassUser} AS cu
@@ -5611,6 +5696,7 @@ order by
     classWiseAssignments: TableTypes<'assignment'>[];
     individualAssignments: TableTypes<'assignment'>[];
   }> {
+    await this.ensureInitialized();
     const query = `
       SELECT *
       FROM ${TABLES.Assignment}
@@ -5637,6 +5723,7 @@ order by
     userId: string,
     classId: string,
   ): Promise<TableTypes<'class_user'> | undefined> {
+    await this.ensureInitialized();
     const query = `
     SELECT *
     FROM ${TABLES.ClassUser}
@@ -5658,6 +5745,7 @@ order by
     return undefined;
   }
   async getAssignedStudents(assignmentId: string): Promise<string[]> {
+    await this.ensureInitialized();
     //getting the student ids for the individual assignments
     const query = `
     SELECT user_id
@@ -5680,6 +5768,7 @@ order by
     }
   }
   async deleteTeacher(classId: string, teacherId: string) {
+    await this.ensureInitialized();
     try {
       const query = `
       SELECT *
@@ -5710,6 +5799,7 @@ order by
     }
   }
   async getClassCodeById(class_id: string): Promise<number | undefined> {
+    await this.ensureInitialized();
     if (!class_id) return;
     const currentDate = new Date().toISOString(); // Convert to a proper format for SQL (ISO 8601)
     const query = `SELECT code
@@ -5750,6 +5840,7 @@ order by
     endDate: string,
     classId: string,
   ): Promise<TableTypes<'result'>[] | undefined> {
+    await this.ensureInitialized();
     const query = `SELECT *
        FROM ${TABLES.Result}
        WHERE chapter_id = '${chapter_id}'
@@ -5769,6 +5860,7 @@ order by
     courseId: string,
     chapterIdOrIds: string | string[],
   ): Promise<string[]> {
+    await this.ensureInitialized();
     const chapterIds = Array.isArray(chapterIdOrIds)
       ? chapterIdOrIds.filter(Boolean)
       : [chapterIdOrIds].filter(Boolean);
@@ -5801,6 +5893,7 @@ order by
     schoolIds: string[],
     userId: string,
   ): Promise<TableTypes<'school'>[] | undefined> {
+    await this.ensureInitialized();
     // Escape schoolIds array for use in the SQL query
     const placeholders = schoolIds.map(() => '?').join(', '); // Generates ?, ?, ? for query placeholders
     const query = `
@@ -5819,6 +5912,7 @@ order by
   async getPrincipalsForSchool(
     schoolId: string,
   ): Promise<TableTypes<'user'>[] | undefined> {
+    await this.ensureInitialized();
     const query = `
     SELECT user.*
     FROM ${TABLES.SchoolUser} AS su
@@ -5834,6 +5928,7 @@ order by
     page: number = 1,
     limit: number = 20,
   ): Promise<PrincipalAPIResponse> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('SQLite DB not initialized.');
       return { data: [], total: 0 };
@@ -5891,6 +5986,7 @@ order by
     };
   }
   async getClassesBySchoolId(schoolId: string): Promise<TableTypes<'class'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT *
     FROM ${TABLES.Class}
@@ -5936,6 +6032,7 @@ order by
   async getCoordinatorsForSchool(
     schoolId: string,
   ): Promise<TableTypes<'user'>[] | undefined> {
+    await this.ensureInitialized();
     const query = `
     SELECT user.*
     FROM ${TABLES.SchoolUser} AS su
@@ -5951,6 +6048,7 @@ order by
     page: number = 1,
     limit: number = 20,
   ): Promise<CoordinatorAPIResponse> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('SQLite DB not initialized.');
       return { data: [], total: 0 };
@@ -6009,6 +6107,7 @@ order by
   async getSponsorsForSchool(
     schoolId: string,
   ): Promise<TableTypes<'user'>[] | undefined> {
+    await this.ensureInitialized();
     const query = `
     SELECT user.*
     FROM ${TABLES.SchoolUser} AS su
@@ -6101,6 +6200,7 @@ order by
     userId: string,
     role: RoleType,
   ): Promise<{ success: boolean; message: string }> {
+    await this.ensureInitialized();
     try {
       const query = `
       SELECT *
@@ -6355,6 +6455,7 @@ order by
   async getCoursesForPathway(
     studentId: string,
   ): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     const query = `
       SELECT *
       FROM ${TABLES.UserCourse} AS uc
@@ -6399,6 +6500,7 @@ order by
   async getClassByUserId(
     userId: string,
   ): Promise<TableTypes<'class'> | undefined> {
+    await this.ensureInitialized();
     // Step 1: Get class_id from class_user
     const classUserRes = await this._db?.query(
       `SELECT class_id FROM ${TABLES.ClassUser} WHERE user_id = "${userId}" AND is_deleted = false`,
@@ -6416,6 +6518,7 @@ order by
     return classRes.values[0];
   }
   async countAllPendingPushes(): Promise<number> {
+    await this.ensureInitialized();
     if (!this._db) return 0;
     const tableNames = Object.values(TABLES);
     const tables = "'" + tableNames.join("', '") + "'";
@@ -6627,6 +6730,7 @@ order by
   async getChapterIdbyQrLink(
     link: string,
   ): Promise<TableTypes<'chapter_links'> | undefined> {
+    await this.ensureInitialized();
     if (!link) return;
     try {
       const res = await this._db?.query(
@@ -6728,6 +6832,7 @@ order by
     page: number = 1,
     limit: number = 20,
   ): Promise<TeacherAPIResponse> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('SQLite DB not initialized.');
       return { data: [], total: 0 };
@@ -6833,6 +6938,7 @@ order by
     page: number = 1,
     limit: number = 20,
   ): Promise<StudentAPIResponse> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('Database not initialized, cannot fetch student info.');
       return { data: [], total: 0 };
@@ -6946,6 +7052,7 @@ order by
     page: number = 1,
     limit: number = 20,
   ): Promise<StudentAPIResponse> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('Database not initialized, cannot fetch student info.');
       return { data: [], total: 0 };
@@ -7057,6 +7164,7 @@ order by
   async getStudentAndParentByStudentId(
     studentId: string,
   ): Promise<{ user: any; parents: any[] }> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('Database not initialized.');
       return { user: null, parents: [] };
@@ -7101,6 +7209,7 @@ order by
   async getParentsByStudentId(
     studentId: string,
   ): Promise<TableTypes<'user'>[]> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('Database not initialized.');
       return [];
@@ -7132,6 +7241,7 @@ order by
     requestId?: string,
     respondedBy?: string,
   ): Promise<{ success: boolean; message: string }> {
+    await this.ensureInitialized();
     if (!this._db) {
       return { success: false, message: 'SQLite DB not initialized.' };
     }
@@ -7585,6 +7695,7 @@ order by
     limit: number,
     classId?: string,
   ): Promise<{ data: any[]; total: number }> {
+    await this.ensureInitialized();
     if (!this._db) return { data: [], total: 0 };
     let whereClause = `
     cu.role = 'student'
@@ -7653,6 +7764,7 @@ order by
     page: number = 1,
     limit: number = 20,
   ): Promise<{ data: any[]; total: number }> {
+    await this.ensureInitialized();
     if (!this._db) return { data: [], total: 0 };
     let whereClause = `cu.role = 'teacher' AND cu.is_deleted = 0 AND c.school_id = ?`;
     let params: any[] = [schoolId];
@@ -7727,6 +7839,7 @@ order by
     );
   }
   async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
+    await this.ensureInitialized();
     if (!this._db) return;
     const query = `PRAGMA foreign_keys=OFF;`;
     const result = await this._db?.query(query);
@@ -8422,6 +8535,7 @@ order by
   async getSkillById(
     skillId: string,
   ): Promise<TableTypes<'skill'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `
       SELECT *
@@ -8446,6 +8560,7 @@ order by
     student: TableTypes<'user'>,
     courseId?: string,
   ): Promise<TableTypes<'assignment'>[]> {
+    await this.ensureInitialized();
     const nowIso = new Date().toISOString();
     const studentId = student.id;
     const langId = student.language_id;
@@ -8708,6 +8823,7 @@ order by
     classId: string,
     lessonIds: string[],
   ): Promise<string[]> {
+    await this.ensureInitialized();
     if (!lessonIds?.length) return [];
 
     const placeholders = lessonIds.map(() => '?').join(', ');
@@ -8734,6 +8850,7 @@ order by
   // ================================
 
   async getAllStickerBooks(): Promise<StickerBook[]> {
+    await this.ensureInitialized();
     if (!this._db) return [];
 
     try {
@@ -8756,6 +8873,7 @@ order by
     book: StickerBook;
     progress: UserStickerProgress | null;
   } | null> {
+    await this.ensureInitialized();
     if (!this._db) return null;
 
     try {
@@ -8824,6 +8942,7 @@ order by
   }
 
   async getUserWonStickerBooks(userId: string): Promise<StickerBook[]> {
+    await this.ensureInitialized();
     if (!this._db) return [];
 
     try {
@@ -8858,6 +8977,7 @@ order by
     stickerBookId: string,
     userId?: string,
   ): Promise<string | null> {
+    await this.ensureInitialized();
     if (!this._db) return null;
 
     const resolvedUserId = userId?.trim();
@@ -8906,6 +9026,7 @@ order by
     stickerId: string,
     userId?: string,
   ): Promise<void> {
+    await this.ensureInitialized();
     if (!this._db) return;
 
     const resolvedUserId = userId?.trim();
@@ -9163,6 +9284,7 @@ order by
     chapterId: string,
     lessonId: string,
   ): Promise<boolean> {
+    await this.ensureInitialized();
     try {
       const res = await this._db?.query(
         `
