@@ -10,9 +10,6 @@ import RewardRive from './RewardRive';
 import StickerBookPreviewModal, {
   StickerBookModalData,
 } from './StickerBookPreviewModal';
-import SkeltonLoading, {
-  PATHWAY_STRUCTURE_SKELETON_HEADER,
-} from '../SkeltonLoading';
 
 import { useHistory } from 'react-router';
 import { usePathwayData } from '../../hooks/usePathwayData';
@@ -45,7 +42,6 @@ const STICKER_REWARD_BOX_CLOSE_CLASS =
 const STICKER_REWARD_BOX_TILT_CLASS =
   'PathwayStructure-end-reward-box--sticker-clicked';
 const CROWD_CHEER_AUDIO_URL = '/assets/audios/common/crowd_cheer.mp3';
-const PATHWAY_LOADING_DELAY_MS = 1200;
 
 const getStickerCollectMascotAudioPath = (languageCode?: string) => {
   const normalizedLanguageCode = languageCode?.toLowerCase().split('-')[0];
@@ -55,8 +51,6 @@ const getStickerCollectMascotAudioPath = (languageCode?: string) => {
 
 const PathwayStructure: React.FC = () => {
   const history = useHistory();
-  const [isPathwaySvgLoading, setIsPathwaySvgLoading] =
-    React.useState<boolean>(false);
   const [stickerPreviewData, setStickerPreviewData] =
     React.useState<StickerBookModalData | null>(null);
   const [isStickerPreviewOpen, setIsStickerPreviewOpen] =
@@ -102,11 +96,6 @@ const PathwayStructure: React.FC = () => {
     token: 0,
   });
   const currentMascotStateValueRef = React.useRef<number>(1);
-  const pathwayLoadingDelayRef = React.useRef<{
-    timerId: number | null;
-  }>({
-    timerId: null,
-  });
 
   const {
     // refs
@@ -167,34 +156,6 @@ const PathwayStructure: React.FC = () => {
   React.useEffect(() => {
     currentMascotStateValueRef.current = mascotProps.stateValue;
   }, [mascotProps.stateValue]);
-
-  React.useEffect(() => {
-    return () => {
-      if (pathwayLoadingDelayRef.current.timerId !== null) {
-        window.clearTimeout(pathwayLoadingDelayRef.current.timerId);
-        pathwayLoadingDelayRef.current.timerId = null;
-      }
-    };
-  }, []);
-
-  const handlePathwayLoadingChange = React.useCallback((isLoading: boolean) => {
-    if (isLoading) {
-      if (pathwayLoadingDelayRef.current.timerId !== null) {
-        return;
-      }
-      pathwayLoadingDelayRef.current.timerId = window.setTimeout(() => {
-        pathwayLoadingDelayRef.current.timerId = null;
-        setIsPathwaySvgLoading(true);
-      }, PATHWAY_LOADING_DELAY_MS);
-      return;
-    }
-
-    if (pathwayLoadingDelayRef.current.timerId !== null) {
-      window.clearTimeout(pathwayLoadingDelayRef.current.timerId);
-      pathwayLoadingDelayRef.current.timerId = null;
-    }
-    setIsPathwaySvgLoading(false);
-  }, []);
 
   const openStickerCompletion = React.useCallback(
     (data: StickerBookModalData) => {
@@ -773,7 +734,6 @@ const PathwayStructure: React.FC = () => {
     checkAndUpdateReward,
     onStickerPreviewReady: handleStickerPreviewReady,
     onStickerCompletionReady: handleStickerCompletionReadyInternal,
-    setPathwayLoading: handlePathwayLoadingChange,
   });
 
   const closeStickerPreview = React.useCallback(
@@ -949,17 +909,7 @@ const PathwayStructure: React.FC = () => {
         />
       )}
       {/* SVG Root Container */}
-      <div
-        className="PathwayStructure-div"
-        ref={containerRef}
-        style={{
-          opacity: isPathwaySvgLoading ? 0 : 1,
-        }}
-      />
-      <SkeltonLoading
-        isLoading={isPathwaySvgLoading}
-        header={PATHWAY_STRUCTURE_SKELETON_HEADER}
-      />
+      <div className="PathwayStructure-div" ref={containerRef} />
 
       {/* Chimple Mascot */}
       {riveContainer &&

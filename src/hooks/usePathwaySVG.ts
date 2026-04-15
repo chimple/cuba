@@ -54,7 +54,6 @@ interface UsePathwaySVGParams {
   setCurrentChapter: (chapter: any) => void;
   setIsRewardPathLoaded: (b: boolean) => void;
   isRewardPathLoaded: boolean;
-  setPathwayLoading?: (isLoading: boolean) => void;
   onStickerPreviewReady: (
     data: StickerBookModalData,
     trigger: 'sticker_click' | 'pathway_completion_auto',
@@ -184,7 +183,6 @@ export function usePathwaySVG({
   setCurrentChapter,
   setIsRewardPathLoaded,
   isRewardPathLoaded,
-  setPathwayLoading,
   onStickerPreviewReady,
   onStickerCompletionReady,
 }: UsePathwaySVGParams) {
@@ -250,21 +248,13 @@ export function usePathwaySVG({
   ]);
 
   const loadSVG = useCallback(async () => {
-    const stopPathwayLoading = () => setPathwayLoading?.(false);
-    if (!containerRef.current) {
-      stopPathwayLoading();
-      return;
-    }
-    setPathwayLoading?.(true);
+    if (!containerRef.current) return;
 
     try {
       const startTime = performance.now();
 
       const currentStudent = Util.getCurrentStudent();
-      if (!currentStudent) {
-        stopPathwayLoading();
-        return;
-      }
+      if (!currentStudent) return;
 
       const rewardLearningPath = sessionStorage.getItem(REWARD_LEARNING_PATH);
 
@@ -277,23 +267,16 @@ export function usePathwaySVG({
         learningPath = pathToParse ? JSON.parse(pathToParse) : null;
       } else {
         logger.warn('No learning path found for current student');
-        stopPathwayLoading();
         return;
       }
 
       const currentCourseIndex = learningPath.courses.currentCourseIndex;
       const course = learningPath.courses.courseList[currentCourseIndex];
-      if (!course) {
-        stopPathwayLoading();
-        return;
-      }
+      if (!course) return;
       const pathItem =
         course.path.find((p: LessonNode) => p && p.isPlayed === false) ??
         course.path[course.path.length - 1];
-      if (!pathItem) {
-        stopPathwayLoading();
-        return;
-      }
+      if (!pathItem) return;
       const isAssessment = pathItem?.is_assessment;
       const assessmentId = pathItem?.assignment_id;
       const activeIndex = course.path.findIndex(
@@ -516,26 +499,17 @@ export function usePathwaySVG({
 
       // Build SVG in next frame to keep main thread responsive
       requestAnimationFrame(async () => {
-        if (!containerRef.current) {
-          stopPathwayLoading();
-          return;
-        }
+        if (!containerRef.current) return;
 
         containerRef.current.innerHTML = pathwaySVG;
         const svg = containerRef.current.querySelector('svg') as SVGSVGElement;
-        if (!svg) {
-          stopPathwayLoading();
-          return;
-        }
+        if (!svg) return;
         svg.style.overflow = 'visible';
 
         const paths = Array.from(
           svg.querySelectorAll('g > path'),
         ) as SVGPathElement[];
-        if (!paths.length) {
-          stopPathwayLoading();
-          return;
-        }
+        if (!paths.length) return;
 
         const startPoint = paths[0].getPointAtLength(0);
         const xValues = [27, 155, 276, 387, 496];
@@ -1035,11 +1009,9 @@ export function usePathwaySVG({
 
         const endTime = performance.now();
         logger.info(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
-        stopPathwayLoading();
       });
     } catch (error) {
       logger.error('Failed to load SVG:', error);
-      stopPathwayLoading();
     }
   }, [
     api,
@@ -1058,7 +1030,6 @@ export function usePathwaySVG({
     setCurrentCourse,
     setHasTodayReward,
     setIsRewardPathLoaded,
-    setPathwayLoading,
     setModalOpen,
     setModalText,
     setRewardRiveContainer,
