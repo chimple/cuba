@@ -3165,56 +3165,54 @@ export class Util {
           sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
           sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
         }
-        if (typeof navigator !== 'undefined' && navigator.onLine) {
-          if (
-            stickerAwardResult.completed &&
-            stickerAwardResult.awardedStickerId
-          ) {
-            sessionStorage.setItem(
-              AUTO_OPEN_STICKER_PREVIEW_KEY,
-              JSON.stringify({
-                studentId: currentStudent.id,
-                createdAt: new Date().toISOString(),
-                awardedStickerId: stickerAwardResult.awardedStickerId,
-                preAwardCollectedStickerIds,
-                stickerBookId: stickerAwardResult.stickerBookId,
-                stickerBookTitle:
-                  stickerAwardResult.payload?.stickerBookTitle ?? null,
-                stickerBookSvgUrl:
-                  stickerAwardResult.payload?.stickerBookSvgUrl ?? null,
+        if (
+          stickerAwardResult.completed &&
+          stickerAwardResult.awardedStickerId
+        ) {
+          sessionStorage.setItem(
+            AUTO_OPEN_STICKER_PREVIEW_KEY,
+            JSON.stringify({
+              studentId: currentStudent.id,
+              createdAt: new Date().toISOString(),
+              awardedStickerId: stickerAwardResult.awardedStickerId,
+              preAwardCollectedStickerIds,
+              stickerBookId: stickerAwardResult.stickerBookId,
+              stickerBookTitle:
+                stickerAwardResult.payload?.stickerBookTitle ?? null,
+              stickerBookSvgUrl:
+                stickerAwardResult.payload?.stickerBookSvgUrl ?? null,
+            }),
+          );
+          sessionStorage.setItem(
+            AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+            JSON.stringify({
+              studentId: currentStudent.id,
+              stickerBookId: stickerAwardResult.stickerBookId,
+              createdAt: new Date().toISOString(),
+              payload: stickerAwardResult.payload,
+            }),
+          );
+          if (stickerAwardResult.payload) {
+            window.dispatchEvent(
+              new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+                detail: stickerAwardResult.payload,
               }),
             );
-            sessionStorage.setItem(
-              AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
-              JSON.stringify({
-                studentId: currentStudent.id,
-                stickerBookId: stickerAwardResult.stickerBookId,
-                createdAt: new Date().toISOString(),
-                payload: stickerAwardResult.payload,
-              }),
-            );
-            if (stickerAwardResult.payload) {
-              window.dispatchEvent(
-                new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
-                  detail: stickerAwardResult.payload,
-                }),
-              );
-            }
-          } else if (stickerAwardResult.awardedStickerId) {
-            sessionStorage.setItem(
-              AUTO_OPEN_STICKER_PREVIEW_KEY,
-              JSON.stringify({
-                studentId: currentStudent.id,
-                awardedStickerId: stickerAwardResult.awardedStickerId,
-                preAwardCollectedStickerIds,
-                createdAt: new Date().toISOString(),
-              }),
-            );
-          } else {
-            sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
-            sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
-            sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
           }
+        } else if (stickerAwardResult.awardedStickerId) {
+          sessionStorage.setItem(
+            AUTO_OPEN_STICKER_PREVIEW_KEY,
+            JSON.stringify({
+              studentId: currentStudent.id,
+              awardedStickerId: stickerAwardResult.awardedStickerId,
+              preAwardCollectedStickerIds,
+              createdAt: new Date().toISOString(),
+            }),
+          );
+        } else {
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+          sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
         }
         if (courseIndex >= courses.courseList.length) {
           courseIndex = 0;
