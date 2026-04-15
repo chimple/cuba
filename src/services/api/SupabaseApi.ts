@@ -4811,25 +4811,35 @@ export class SupabaseApi implements ServiceApi {
   async getDataByInviteCodeNew(
     inviteCode: number,
   ): Promise<JoinClassInviteLookupResult> {
-    const inviteData = await this.getDataByInviteCode(inviteCode);
-    const [classData, schoolData] = await Promise.all([
-      this.getClassById(inviteData.class_id),
-      this.getSchoolById(inviteData.school_id),
-    ]);
+    try {
+      const rpcRes = await this.supabase?.rpc('getDataByInviteCodeNew', {
+        invite_code: inviteCode,
+      });
 
-    if (!classData) {
-      throw new Error('Class data could not be fetched.');
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        throw rpcRes?.error ?? '';
+      }
+
+      const { inviteData, classData, schoolData } =
+        rpcRes.data as JoinClassInviteLookupResult;
+
+      if (!classData) {
+        throw new Error('Class data could not be fetched.');
+      }
+
+      if (!schoolData) {
+        throw new Error('School data could not be fetched.');
+      }
+
+      return {
+        inviteData,
+        classData,
+        schoolData,
+      };
+    } catch (error) {
+      logger.error('Error in getDataByInviteCodeNew', error);
+      throw new Error('Invalid inviteCode');
     }
-
-    if (!schoolData) {
-      throw new Error('School data could not be fetched.');
-    }
-
-    return {
-      inviteData,
-      classData,
-      schoolData,
-    };
   }
 
   async storeJoinClassLookupDataLocally(

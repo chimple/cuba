@@ -5306,6 +5306,10 @@ export type Database = {
         };
       };
       getDataByInviteCode: { Args: { invite_code: number }; Returns: Json };
+      getDataByInviteCodeNew: {
+        Args: { invite_code: number };
+        Returns: Json;
+      };
       getfiltered_schools: {
         Args: { filters: Json };
         Returns: {

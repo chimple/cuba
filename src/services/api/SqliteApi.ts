@@ -3739,11 +3739,8 @@ export class SqliteApi implements ServiceApi {
   async getDataByInviteCodeNew(
     inviteCode: number,
   ): Promise<JoinClassInviteLookupResult> {
-    const inviteData = await this._serverApi.getDataByInviteCode(inviteCode);
-    const [classData, schoolData] = await Promise.all([
-      this._serverApi.getClassById(inviteData.class_id),
-      this._serverApi.getSchoolById(inviteData.school_id),
-    ]);
+    const { inviteData, classData, schoolData } =
+      await this._serverApi.getDataByInviteCodeNew(inviteCode);
 
     if (!classData) {
       throw new Error('Class data could not be fetched.');
