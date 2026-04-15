@@ -14,7 +14,11 @@ import Class from '../../models/class';
 import CurriculumController from '../../models/curriculumController';
 import Result from '../../models/result';
 import User from '../../models/user';
-import { LeaderboardInfo, ServiceApi } from './ServiceApi';
+import {
+  JoinClassInviteLookupResult,
+  LeaderboardInfo,
+  ServiceApi,
+} from './ServiceApi';
 // import { Chapter } from "../../common/courseConstants";
 import Course from '../../models/course';
 import Lesson from '../../models/lesson';
@@ -252,6 +256,17 @@ export class OneRosterApi implements ServiceApi {
     throw new Error('Method not implemented.');
   }
   getDataByInviteCode(inviteCode: number): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
+  getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult> {
+    throw new Error('Method not implemented.');
+  }
+  storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void> {
     throw new Error('Method not implemented.');
   }
   linkStudent(inviteCode: number, studentId: string): Promise<any> {

@@ -55,11 +55,11 @@ jest.mock('@capacitor/keyboard', () => ({
 /* ======================= API MOCK ======================= */
 
 const mockApi = {
-  getDataByInviteCode: jest.fn(),
+  getDataByInviteCodeNew: jest.fn(),
   isSyncInProgress: jest.fn(),
   linkStudent: jest.fn(),
   updateStudent: jest.fn(),
-  getClassById: jest.fn(),
+  storeJoinClassLookupDataLocally: jest.fn(),
   updateSchoolLastModified: jest.fn(),
   updateClassLastModified: jest.fn(),
   updateUserLastModified: jest.fn(),
@@ -122,11 +122,15 @@ describe('JoinClass – basic rendering', () => {
 
 describe('JoinClass – invite code lookup', () => {
   test('fetches class info when valid code entered', async () => {
-    mockApi.getDataByInviteCode.mockResolvedValue({
-      class_id: 'class-1',
-      school_id: 'school-1',
-      school_name: 'ABC School',
-      class_name: '5A',
+    mockApi.getDataByInviteCodeNew.mockResolvedValue({
+      inviteData: {
+        class_id: 'class-1',
+        school_id: 'school-1',
+        school_name: 'ABC School',
+        class_name: '5A',
+      },
+      classData: { id: 'class-1', school_id: 'school-1', name: '5A' },
+      schoolData: { id: 'school-1', name: 'ABC School' },
     });
 
     render(
@@ -141,7 +145,7 @@ describe('JoinClass – invite code lookup', () => {
     );
 
     await waitFor(() => {
-      expect(mockApi.getDataByInviteCode).toHaveBeenCalledWith(123456);
+      expect(mockApi.getDataByInviteCodeNew).toHaveBeenCalledWith(123456);
     });
 
     expect(
@@ -150,7 +154,7 @@ describe('JoinClass – invite code lookup', () => {
   });
 
   test('shows error when invite code is invalid', async () => {
-    mockApi.getDataByInviteCode.mockRejectedValue(
+    mockApi.getDataByInviteCodeNew.mockRejectedValue(
       new Error('Invalid inviteCode'),
     );
 
@@ -184,7 +188,7 @@ describe('JoinClass – invite code lookup', () => {
       '123',
     );
 
-    expect(mockApi.getDataByInviteCode).not.toHaveBeenCalled();
+    expect(mockApi.getDataByInviteCodeNew).not.toHaveBeenCalled();
   });
 
   test('only numeric values are accepted in invite code input', async () => {
@@ -207,15 +211,19 @@ describe('JoinClass – invite code lookup', () => {
 describe('JoinClass – join flow', () => {
   test('join class calls linkStudent and callbacks', async () => {
     const onClassJoin = jest.fn();
+    const classData = { id: 'class-1', school_id: 'school-1', name: '5A' };
+    const schoolData = { id: 'school-1', name: 'ABC School' };
 
-    mockApi.getDataByInviteCode.mockResolvedValue({
-      class_id: 'class-1',
-      school_id: 'school-1',
-      school_name: 'ABC School',
-      class_name: '5A',
+    mockApi.getDataByInviteCodeNew.mockResolvedValue({
+      inviteData: {
+        class_id: 'class-1',
+        school_id: 'school-1',
+        school_name: 'ABC School',
+        class_name: '5A',
+      },
+      classData,
+      schoolData,
     });
-
-    mockApi.getClassById.mockResolvedValue({ id: 'class-1' });
 
     render(
       <MemoryRouter>
@@ -235,6 +243,10 @@ describe('JoinClass – join flow', () => {
 
     await waitFor(() => {
       expect(mockApi.linkStudent).toHaveBeenCalledWith(123456, 'student-1');
+      expect(mockApi.storeJoinClassLookupDataLocally).toHaveBeenCalledWith(
+        classData,
+        schoolData,
+      );
       expect(onClassJoin).toHaveBeenCalled();
     });
   });
@@ -245,14 +257,16 @@ describe('JoinClass – join flow', () => {
       name: '',
     });
 
-    mockApi.getDataByInviteCode.mockResolvedValue({
-      class_id: 'class-1',
-      school_id: 'school-1',
-      school_name: 'ABC School',
-      class_name: '5A',
+    mockApi.getDataByInviteCodeNew.mockResolvedValue({
+      inviteData: {
+        class_id: 'class-1',
+        school_id: 'school-1',
+        school_name: 'ABC School',
+        class_name: '5A',
+      },
+      classData: { id: 'class-1', school_id: 'school-1', name: '5A' },
+      schoolData: { id: 'school-1', name: 'ABC School' },
     });
-
-    mockApi.getClassById.mockResolvedValue({ id: 'class-1' });
 
     render(
       <MemoryRouter>
@@ -278,11 +292,15 @@ describe('JoinClass – join flow', () => {
   });
 
   test('shows the real join conflict message instead of invalid invite code', async () => {
-    mockApi.getDataByInviteCode.mockResolvedValue({
-      class_id: 'class-1',
-      school_id: 'school-1',
-      school_name: 'ABC School',
-      class_name: '5A',
+    mockApi.getDataByInviteCodeNew.mockResolvedValue({
+      inviteData: {
+        class_id: 'class-1',
+        school_id: 'school-1',
+        school_name: 'ABC School',
+        class_name: '5A',
+      },
+      classData: { id: 'class-1', school_id: 'school-1', name: '5A' },
+      schoolData: { id: 'school-1', name: 'ABC School' },
     });
     mockApi.linkStudent.mockRejectedValue(
       new Error('Student is already linked to this class.'),
@@ -313,13 +331,16 @@ describe('JoinClass – join flow', () => {
     let syncInProgress = true;
 
     mockApi.isSyncInProgress.mockImplementation(() => syncInProgress);
-    mockApi.getDataByInviteCode.mockResolvedValue({
-      class_id: 'class-1',
-      school_id: 'school-1',
-      school_name: 'ABC School',
-      class_name: '5A',
+    mockApi.getDataByInviteCodeNew.mockResolvedValue({
+      inviteData: {
+        class_id: 'class-1',
+        school_id: 'school-1',
+        school_name: 'ABC School',
+        class_name: '5A',
+      },
+      classData: { id: 'class-1', school_id: 'school-1', name: '5A' },
+      schoolData: { id: 'school-1', name: 'ABC School' },
     });
-    mockApi.getClassById.mockResolvedValue({ id: 'class-1' });
     mockApi.linkStudent.mockImplementation(async () => {
       window.setTimeout(() => {
         syncInProgress = false;
@@ -353,11 +374,15 @@ describe('JoinClass – join flow', () => {
 
 describe('JoinClass – URL params', () => {
   test('auto-fetches class when classCode param exists', async () => {
-    mockApi.getDataByInviteCode.mockResolvedValue({
-      class_id: 'class-1',
-      school_id: 'school-1',
-      school_name: 'Auto School',
-      class_name: 'Auto Class',
+    mockApi.getDataByInviteCodeNew.mockResolvedValue({
+      inviteData: {
+        class_id: 'class-1',
+        school_id: 'school-1',
+        school_name: 'Auto School',
+        class_name: 'Auto Class',
+      },
+      classData: { id: 'class-1', school_id: 'school-1', name: 'Auto Class' },
+      schoolData: { id: 'school-1', name: 'Auto School' },
     });
 
     render(
@@ -369,7 +394,7 @@ describe('JoinClass – URL params', () => {
     );
 
     await waitFor(() => {
-      expect(mockApi.getDataByInviteCode).toHaveBeenCalledWith(123456);
+      expect(mockApi.getDataByInviteCodeNew).toHaveBeenCalledWith(123456);
     });
 
     expect(
@@ -386,7 +411,7 @@ describe('JoinClass – URL params', () => {
       </MemoryRouter>,
     );
 
-    expect(mockApi.getDataByInviteCode).not.toHaveBeenCalled();
+    expect(mockApi.getDataByInviteCodeNew).not.toHaveBeenCalled();
   });
 });
 

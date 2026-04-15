@@ -62,6 +62,7 @@ import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
+  JoinClassInviteLookupResult,
   LeaderboardInfo,
   SchoolProgramAccessResponse,
   ServiceApi,
@@ -3734,6 +3735,72 @@ export class SqliteApi implements ServiceApi {
     let inviteData = await this._serverApi.getDataByInviteCode(inviteCode);
     return inviteData;
   }
+
+  async getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult> {
+    const inviteData = await this._serverApi.getDataByInviteCode(inviteCode);
+    const [classData, schoolData] = await Promise.all([
+      this._serverApi.getClassById(inviteData.class_id),
+      this._serverApi.getSchoolById(inviteData.school_id),
+    ]);
+
+    if (!classData) {
+      throw new Error('Class data could not be fetched.');
+    }
+
+    if (!schoolData) {
+      throw new Error('School data could not be fetched.');
+    }
+
+    return {
+      inviteData,
+      classData,
+      schoolData,
+    };
+  }
+
+  private async upsertJoinLookupRow(
+    tableName: TABLES.Class | TABLES.School,
+    row: TableTypes<'class'> | TableTypes<'school'>,
+  ): Promise<void> {
+    const existingColumns = await this.getTableColumns(tableName);
+    if (!existingColumns?.length) {
+      return;
+    }
+
+    const rowData = row as Record<string, unknown>;
+    const columns = existingColumns.filter((column) =>
+      Object.prototype.hasOwnProperty.call(rowData, column),
+    );
+
+    if (!columns.length) {
+      return;
+    }
+
+    const placeholders = columns.map(() => '?').join(', ');
+    const updates = columns
+      .filter((column) => column !== 'id')
+      .map((column) => `${column} = excluded.${column}`)
+      .join(', ');
+    const statement = `
+      INSERT INTO ${tableName} (${columns.join(', ')})
+      VALUES (${placeholders})
+      ON CONFLICT(id) DO UPDATE SET ${updates};
+    `;
+    const values = columns.map((column) => rowData[column]);
+
+    await this.executeQuery(statement, values);
+  }
+
+  async storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void> {
+    await this.upsertJoinLookupRow(TABLES.School, schoolData);
+    await this.upsertJoinLookupRow(TABLES.Class, classData);
+  }
+
   async createClass(
     schoolId: string,
     className: string,
