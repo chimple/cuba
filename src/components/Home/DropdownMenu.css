@@ -46,6 +46,13 @@
   overflow-y: auto;
 }
 
+.dropdownmenu-dropdown-container.dropdownmenu-expanded
+  .dropdownmenu-dropdown-items {
+  width: 100%;
+  flex: 1 1 auto;
+  align-self: stretch;
+}
+
 .dropdownmenu-dropdown-left {
   background-color: #fff9cf;
   display: flex;
@@ -127,6 +134,10 @@
 
 .dropdownmenu-open-item-icon-wrapper {
   margin-bottom: 1px;
+}
+
+.dropdownmenu-open-item-icon-autofit {
+  width: auto;
 }
 
 .menu-ItemIcon {

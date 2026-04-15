@@ -11,7 +11,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { LessonNode } from '../../hooks/useLearningPath';
 import logger from '../../utility/logger';
-import { downloadCourseIconToDevice } from '../../utility/courseIconDeviceCache';
+import { downloadMissingCourseIcons } from '../../utility/courseIconDeviceCache';
 
 interface CourseDetails {
   course: TableTypes<'course'>;
@@ -324,7 +324,10 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
     // Download online icons in background into the same localSrc path for offline reuse.
     const preloadTasks: Promise<unknown>[] = [];
     const processedSources = new Set<string>();
-    const processedDeviceDownloads = new Set<string>();
+    const missingIconDownloadTargets: {
+      localRelativePath: string;
+      remoteUrl: string;
+    }[] = [];
 
     courseDetails.forEach((detail) => {
       const localSrc = `courses/chapter_icons/${detail.course.id}.webp`;
@@ -339,12 +342,15 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         preloadTasks.push(preloadImage(onlineSrc));
       }
 
-      if (onlineSrc && !processedDeviceDownloads.has(localSrc)) {
-        processedDeviceDownloads.add(localSrc);
-        preloadTasks.push(downloadCourseIconToDevice(localSrc, onlineSrc));
+      if (onlineSrc) {
+        missingIconDownloadTargets.push({
+          localRelativePath: localSrc,
+          remoteUrl: onlineSrc,
+        });
       }
     });
 
+    preloadTasks.push(downloadMissingCourseIcons(missingIconDownloadTargets));
     void Promise.allSettled(preloadTasks);
   }, [courseDetails]);
 
@@ -391,6 +397,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                     getCachedImageUrl(selected.course) ||
                     'assets/icons/DefaultIcon.png'
                   }
+                  enableOfflineDownload={true}
                   disableLoader={true}
                   imageWidth="10vh"
                   imageHeight="auto"
@@ -416,20 +423,23 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                 key={detail.course.id}
                 onClick={() => handleSelect(detail, index)}
               >
-                <div className="dropdownmenu-open-item-icon-wrapper">
-                  <SelectIconImage
-                    key={detail.course.id}
-                    localSrc={`courses/chapter_icons/${detail.course.id}.webp`}
-                    defaultSrc="assets/icons/DefaultIcon.png"
-                    webSrc={
-                      getCachedImageUrl(detail.course) ||
-                      'assets/icons/DefaultIcon.png'
-                    }
-                    showLoaderFromStart={true}
-                    minimumLoaderVisibleMs={250}
-                    imageWidth="30px"
-                    imageHeight="30px"
-                  />
+                <div className="dropdownmenu-open-item-icon-autofit">
+                  <div className="dropdownmenu-open-item-icon-wrapper">
+                    <SelectIconImage
+                      key={detail.course.id}
+                      localSrc={`courses/chapter_icons/${detail.course.id}.webp`}
+                      defaultSrc="assets/icons/DefaultIcon.png"
+                      webSrc={
+                        getCachedImageUrl(detail.course) ||
+                        'assets/icons/DefaultIcon.png'
+                      }
+                      enableOfflineDownload={true}
+                      showLoaderFromStart={true}
+                      minimumLoaderVisibleMs={250}
+                      imageWidth="30px"
+                      imageHeight="30px"
+                    />
+                  </div>
                 </div>
                 <div className="dropdownmenu-truncate-style">
                   {truncateName(detail.course.name)}

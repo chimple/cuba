@@ -93,21 +93,26 @@ export const getCachedCourseIconUri = async (
 export const downloadCourseIconToDevice = async (
   localRelativePath?: string,
   remoteUrl?: string,
-): Promise<void> => {
+  forceReplaceExisting: boolean = false,
+): Promise<string | null> => {
   if (!localRelativePath || !remoteUrl || !isNativeFilesystemPlatform()) {
-    return;
+    return null;
   }
 
+  let existingUri: string | null = null;
+
   try {
-    const existingUri = await resolveLocalIconUri(localRelativePath);
-    if (existingUri) {
-      return;
+    existingUri = await resolveLocalIconUri(localRelativePath);
+    if (existingUri && !forceReplaceExisting) {
+      return existingUri;
     }
 
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-      return;
+      return existingUri;
     }
 
+    // Force refresh: re-download into same local path so stale icons get replaced.
+    deviceCourseIconUriCache.delete(localRelativePath);
     await ensureParentDirectory(localRelativePath);
 
     await Filesystem.downloadFile({
@@ -119,11 +124,50 @@ export const downloadCourseIconToDevice = async (
       readTimeout: 10000,
     });
 
-    await resolveLocalIconUri(localRelativePath);
+    const updatedUri = await resolveLocalIconUri(localRelativePath);
+    return updatedUri ?? existingUri;
   } catch (error) {
     logger.warn(
       '[CourseIconCache] Failed to download course icon to device',
       error,
     );
+    return existingUri;
   }
+};
+
+interface CourseIconDownloadTarget {
+  localRelativePath: string;
+  remoteUrl: string;
+}
+
+export const downloadMissingCourseIcons = async (
+  targets: CourseIconDownloadTarget[],
+): Promise<void> => {
+  if (!targets.length || !isNativeFilesystemPlatform()) {
+    return;
+  }
+
+  const uniqueByLocalPath = new Map<string, string>();
+  targets.forEach((target) => {
+    if (!target.localRelativePath || !target.remoteUrl) {
+      return;
+    }
+
+    if (!uniqueByLocalPath.has(target.localRelativePath)) {
+      uniqueByLocalPath.set(target.localRelativePath, target.remoteUrl);
+    }
+  });
+
+  const tasks = Array.from(uniqueByLocalPath.entries()).map(
+    async ([localRelativePath, remoteUrl]) => {
+      const cachedUri = await getCachedCourseIconUri(localRelativePath);
+      if (cachedUri) {
+        return;
+      }
+
+      await downloadCourseIconToDevice(localRelativePath, remoteUrl, false);
+    },
+  );
+
+  await Promise.allSettled(tasks);
 };
