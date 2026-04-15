@@ -3118,17 +3118,17 @@ export class Util {
       /* 5️⃣ Move course index if path completed */
       if (pathCompleted) {
         let preAwardCollectedStickerIds: string[] = [];
-        if (typeof navigator !== 'undefined' && navigator.onLine) {
-          try {
-            const currentBookWithProgress =
-              await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
-                currentStudent.id,
-              );
-            preAwardCollectedStickerIds =
-              currentBookWithProgress?.progress?.stickers_collected ?? [];
-          } catch {
-            preAwardCollectedStickerIds = [];
-          }
+        try {
+          // The active API handler already resolves to sqlite while offline,
+          // so use it for the drag-popup seed data in both modes.
+          const currentBookWithProgress =
+            await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+              currentStudent.id,
+            );
+          preAwardCollectedStickerIds =
+            currentBookWithProgress?.progress?.stickers_collected ?? [];
+        } catch {
+          preAwardCollectedStickerIds = [];
         }
         const newpathId = uuidv4();
         course.path_id = newpathId;
