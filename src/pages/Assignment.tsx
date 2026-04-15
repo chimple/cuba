@@ -68,6 +68,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   }>({});
   const [showHomeworkCompleteModal, setShowHomeworkCompleteModal] =
     useState(false);
+  const [assignmentRefreshToken, setAssignmentRefreshToken] = useState(0);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(true);
   const { gbUpdated, setGbUpdated } = useGbContext();
@@ -202,6 +203,9 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     }
     debounceTimer.current = setTimeout(() => {
       if (isMounted.current) {
+        // One debounced refresh token is enough to tell HomeworkPathway to
+        // re-read the current assignments without triggering duplicate reloads.
+        setAssignmentRefreshToken((prev) => prev + 1);
         init();
       }
     }, 1000);
@@ -549,7 +553,10 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
                   // <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
                   assignments.length > 0 ? (
-                    <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
+                    <HomeworkPathway
+                      onPlayMoreHomework={onPlayMoreHomework}
+                      refreshToken={assignmentRefreshToken}
+                    />
                   ) : (
                     <div className="pending-assignment">
                       {showHomeworkCompleteModal && (
