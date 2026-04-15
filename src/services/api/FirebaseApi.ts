@@ -23,6 +23,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 import {
+  JoinClassInviteLookupResult,
   LeaderboardInfo,
   ServiceApi,
   StudentLeaderboardInfo,
@@ -1080,6 +1081,37 @@ export class FirebaseApi implements ServiceApi {
       inviteCode: inviteCode,
     });
     return result.data;
+  }
+
+  async getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult> {
+    const inviteData = await this.getDataByInviteCode(inviteCode);
+    const [classData, schoolData] = await Promise.all([
+      this.getClassById(inviteData.class_id),
+      this.getSchoolById(inviteData.school_id),
+    ]);
+
+    if (!classData) {
+      throw new Error('Class data could not be fetched.');
+    }
+
+    if (!schoolData) {
+      throw new Error('School data could not be fetched.');
+    }
+
+    return {
+      inviteData,
+      classData,
+      schoolData,
+    };
+  }
+
+  async storeJoinClassLookupDataLocally(
+    _classData: TableTypes<'class'>,
+    _schoolData: TableTypes<'school'>,
+  ): Promise<void> {
+    return;
   }
 
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {

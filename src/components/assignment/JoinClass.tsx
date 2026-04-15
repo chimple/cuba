@@ -11,6 +11,7 @@ import { schoolUtil } from '../../utility/schoolUtil';
 import InputWithIcons from '../common/InputWithIcons';
 import Loading from '../Loading';
 import logger from '../../utility/logger';
+import { JoinClassInviteLookupResult } from '../../services/api/ServiceApi';
 const urlClassCode: any = {};
 
 const JoinClass: FC<{
@@ -20,7 +21,9 @@ const JoinClass: FC<{
   const [joiningClass, setJoiningClass] = useState(false);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
-  const [codeResult, setCodeResult] = useState();
+  const [codeResult, setCodeResult] = useState<
+    JoinClassInviteLookupResult | undefined
+  >();
   const [error, setError] = useState('');
   const [schoolName, setSchoolName] = useState<string>();
   const scrollToRef = useRef<null | HTMLDivElement>(null);
@@ -66,7 +69,7 @@ const JoinClass: FC<{
       setLoading(true);
       try {
         const codeToVerify = urlClassCode.inviteCode || inviteCode;
-        const result = await api.getDataByInviteCode(
+        const result = await api.getDataByInviteCodeNew(
           parseInt(codeToVerify, 10),
         );
         setCodeResult(result);
@@ -143,19 +146,20 @@ const JoinClass: FC<{
       const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
       localStorage.setItem(RESET_ON_JOIN_KEY, 'true');
       if (!!codeResult) {
+        const { inviteData, classData, schoolData } = codeResult;
         Util.subscribeToClassTopic(
-          codeResult['class_id'],
-          codeResult['school_id'],
+          inviteData['class_id'],
+          inviteData['school_id'],
         );
-        const currClass = await api.getClassById(codeResult['class_id']);
-        if (currClass) {
-          await schoolUtil.setCurrentClass(currClass);
-        } else {
+        if (!classData || !schoolData) {
           logger.error('Class data not found.');
           throw new Error('Class data could not be fetched.');
         }
-        await api.updateSchoolLastModified(codeResult['school_id']);
-        await api.updateClassLastModified(codeResult['class_id']);
+        await api.storeJoinClassLookupDataLocally(classData, schoolData);
+        await schoolUtil.setCurrentSchool(schoolData);
+        await schoolUtil.setCurrentClass(classData);
+        await api.updateSchoolLastModified(inviteData['school_id']);
+        await api.updateClassLastModified(inviteData['class_id']);
         await api.updateUserLastModified(student.id);
       }
       onClassJoin();
@@ -286,8 +290,8 @@ const JoinClass: FC<{
 
         <div className="join-class-message">
           {codeResult && !error && error == '' && inviteCode?.length === 6
-            ? `${t('School')}: ${codeResult['school_name']}, ${t('Class')}: ${
-                codeResult['class_name']
+            ? `${t('School')}: ${codeResult.inviteData['school_name']}, ${t('Class')}: ${
+                codeResult.inviteData['class_name']
               }`
             : error && inviteCode?.length === 6
               ? error

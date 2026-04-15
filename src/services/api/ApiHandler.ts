@@ -443,6 +443,18 @@ export class ApiHandler implements ServiceApi {
   public async getDataByInviteCode(inviteCode: number): Promise<any> {
     return await this.s.getDataByInviteCode(inviteCode);
   }
+
+  public async getDataByInviteCodeNew(inviteCode: number): Promise<any> {
+    return await this.s.getDataByInviteCodeNew(inviteCode);
+  }
+
+  public async storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void> {
+    return await this.s.storeJoinClassLookupDataLocally(classData, schoolData);
+  }
+
   public async linkStudent(
     inviteCode: number,
     studentId: string,

@@ -60,6 +60,7 @@ import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
+  JoinClassInviteLookupResult,
   LeaderboardInfo,
   SchoolProgramAccessResponse,
   SchoolProgramAccessRow,
@@ -4806,6 +4807,48 @@ export class SupabaseApi implements ServiceApi {
       throw new Error('Invalid inviteCode');
     }
   }
+
+  async getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult> {
+    try {
+      const rpcRes = await this.supabase?.rpc('getDataByInviteCodeNew', {
+        invite_code: inviteCode,
+      });
+
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        throw rpcRes?.error ?? '';
+      }
+
+      const { inviteData, classData, schoolData } =
+        rpcRes.data as JoinClassInviteLookupResult;
+
+      if (!classData) {
+        throw new Error('Class data could not be fetched.');
+      }
+
+      if (!schoolData) {
+        throw new Error('School data could not be fetched.');
+      }
+
+      return {
+        inviteData,
+        classData,
+        schoolData,
+      };
+    } catch (error) {
+      logger.error('Error in getDataByInviteCodeNew', error);
+      throw new Error('Invalid inviteCode');
+    }
+  }
+
+  async storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void> {
+    return;
+  }
+
   async createClass(
     schoolId: string,
     className: string,
