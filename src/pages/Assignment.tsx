@@ -13,6 +13,7 @@ import {
   TableTypes,
 } from '../common/constants';
 import { useHistory } from 'react-router';
+import { App } from '@capacitor/app';
 import LessonSlider from '../components/LessonSlider';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { t } from 'i18next';
@@ -210,6 +211,33 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       }
     }, 1000);
   }, [init]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    const appStateListener = App.addListener(
+      'appStateChange',
+      async ({ isActive }) => {
+        if (!isActive || !isMounted.current) return;
+
+        try {
+          await api.syncDB([TABLES.Assignment]);
+          setAssignmentRefreshToken((prev) => prev + 1);
+          await init(false, true);
+        } catch {
+          // Ignore resume sync failures and let the next refresh retry.
+        }
+      },
+    );
+
+    return () => {
+      void Promise.resolve(appStateListener).then((listener) =>
+        listener?.remove?.(),
+      );
+    };
+  }, [api, init]);
 
   const refreshAssignmentPageAfterJoin = useCallback(async () => {
     const student = Util.getCurrentStudent();
