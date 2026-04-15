@@ -65,11 +65,7 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
     if (webSrc) {
       sources.push(webSrc);
     }
-    if (
-      isLocalLookupResolved &&
-      localSrc &&
-      localSrc !== downloadedLocalSrc
-    ) {
+    if (isLocalLookupResolved && localSrc && localSrc !== downloadedLocalSrc) {
       sources.push(localSrc);
     }
     if (defaultSrc) {
@@ -243,13 +239,15 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
     }
 
     if (enableOfflineDownload && webSrc && localSrc && activeSrc === webSrc) {
-      void downloadCourseIconToDevice(localSrc, webSrc).then((downloadedUri) => {
-        if (!downloadedUri) {
-          return;
-        }
+      void downloadCourseIconToDevice(localSrc, webSrc).then(
+        (downloadedUri) => {
+          if (!downloadedUri) {
+            return;
+          }
 
-        setDownloadedLocalSrc(downloadedUri);
-      });
+          setDownloadedLocalSrc(downloadedUri);
+        },
+      );
     }
 
     finalizeLoading();
