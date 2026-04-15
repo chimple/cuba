@@ -8448,6 +8448,13 @@ order by
     const langId = student.language_id ?? null;
 
     try {
+      type SubjectLessonSetRow = { set_number: number };
+      type ResultStatusRow = {
+        lesson_id: string | null;
+        status: string | null;
+      };
+      type ResultLessonRow = { lesson_id: string | null };
+
       // 1️⃣ Fetch ALL available set_numbers
       const setQuery = `
       SELECT DISTINCT set_number
@@ -8457,7 +8464,8 @@ order by
         AND set_number IS NOT NULL;
     `;
       const setRes = await this.executeQuery(setQuery, [subjectId]);
-      const setRows = (setRes as any)?.values ?? [];
+      const setRows = ((setRes as DBSQLiteValues | undefined)?.values ??
+        []) as SubjectLessonSetRow[];
 
       if (!setRows.length) {
         return {} as TableTypes<'subject_lesson'>;
@@ -8494,28 +8502,23 @@ order by
         subjectId,
       ]);
 
-      const lastTwo = (abortRes as any)?.values ?? [];
+      const lastTwo = ((abortRes as DBSQLiteValues | undefined)?.values ??
+        []) as ResultStatusRow[];
 
       const isAborted =
         lastTwo.length === 2 &&
-        lastTwo.every((r: any) => r.status === 'system_exit');
+        lastTwo.every((r) => r.status === 'system_exit');
 
       if (isAborted) {
         return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
       }
 
       /* ==========================================
-       * 4️⃣ Fetch ONLY pending lessons from set
+       * 4️⃣ Fetch all candidate lessons from set
        * ========================================== */
       const lessonQuery = `
         SELECT sl.*
         FROM subject_lesson sl
-        LEFT JOIN result r
-          ON r.lesson_id = sl.lesson_id
-          AND r.student_id = ?
-          AND r.assignment_id IS NULL
-          AND r.is_deleted = 0
-
         WHERE sl.subject_id = ?
           AND sl.set_number = ?
           AND sl.is_deleted = 0
@@ -8523,7 +8526,6 @@ order by
             sl.language_id = ?
             OR sl.language_id IS NULL
           )
-          AND r.lesson_id IS NULL
 
         ORDER BY
           sl.set_number ASC,
@@ -8531,13 +8533,54 @@ order by
       `;
 
       const lessonRes = await this.executeQuery(lessonQuery, [
-        studentId,
         subjectId,
         setNumber,
         langId,
       ]);
 
-      const pendingLessons = (lessonRes as any)?.values ?? [];
+      const allLessons = ((lessonRes as DBSQLiteValues | undefined)?.values ??
+        []) as TableTypes<'subject_lesson'>[];
+      const matchedLessons = allLessons.filter(
+        (lesson) => lesson.language_id === langId,
+      );
+      const fallbackLessons = allLessons.filter(
+        (lesson) => lesson.language_id == null,
+      );
+      const candidateLessons = matchedLessons.length
+        ? matchedLessons
+        : fallbackLessons;
+
+      if (!candidateLessons.length) {
+        return {} as TableTypes<'subject_lesson'>;
+      }
+
+      const lessonIds = candidateLessons.map((lesson) => lesson.lesson_id);
+      const resultPlaceholders = lessonIds.map(() => '?').join(', ');
+      const resultQuery = `
+        SELECT DISTINCT lesson_id
+        FROM result
+        WHERE student_id = ?
+          AND subject_id = ?
+          AND assignment_id IS NULL
+          AND is_deleted = 0
+          AND lesson_id IN (${resultPlaceholders});
+      `;
+      const resultRes = await this.executeQuery(resultQuery, [
+        studentId,
+        subjectId,
+        ...lessonIds,
+      ]);
+      const completedLessons = ((resultRes as DBSQLiteValues | undefined)
+        ?.values ?? []) as ResultLessonRow[];
+      const completedLessonIds = new Set(
+        completedLessons
+          .map((result) => result.lesson_id)
+          .filter((lessonId): lessonId is string => !!lessonId),
+      );
+      const pendingLessons = candidateLessons.filter(
+        (lesson) => !completedLessonIds.has(lesson.lesson_id),
+      );
+
       return pendingLessons.length
         ? pendingLessons[0]
         : ({} as TableTypes<'subject_lesson'>);
