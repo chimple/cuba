@@ -32,9 +32,12 @@ interface HomeworkPath {
 const areStringArraysEqual = (
   left: string[] = [],
   right: string[] = [],
-): boolean =>
-  left.length === right.length &&
-  left.every((value, index) => value === right[index]);
+): boolean => {
+  if (left.length !== right.length) return false;
+  const sortedLeft = [...left].sort();
+  const sortedRight = [...right].sort();
+  return sortedLeft.every((value, index) => value === sortedRight[index]);
+};
 interface HomeworkPathwayProps {
   onPlayMoreHomework?: () => void; // ✅ NEW
   refreshToken?: number;
@@ -248,12 +251,15 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         : allPendingAssignments;
 
       const currentPendingAssignmentIds = pendingAssignmentsForCurrentView
-        .map((assignment) => String(assignment.id))
-        .filter(Boolean);
+        .map((assignment) => assignment.id)
+        .filter((id): id is string => !!id)
+        .map(String);
       const cachedPendingAssignmentIds = Array.isArray(
         existingPath?.pendingAssignmentIds,
       )
-        ? (existingPath?.pendingAssignmentIds ?? []).map((id) => String(id))
+        ? (existingPath?.pendingAssignmentIds ?? [])
+            .filter((id): id is string => !!id)
+            .map(String)
         : null;
       const hasCachedPendingAssignmentIds = cachedPendingAssignmentIds !== null;
       const canReuseExistingPath =
