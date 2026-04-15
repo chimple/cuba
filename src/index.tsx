@@ -25,7 +25,7 @@ import { APIMode, ServiceConfig } from './services/ServiceConfig';
 import { defineCustomElements as jeepSqlite } from 'jeep-sqlite/loader';
 import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
 import { SqliteApi } from './services/api/SqliteApi';
-import { SocialLogin } from '@capgo/capacitor-social-login';
+import { ensureSocialLoginInitialized } from './services/auth/SocialLoginInit';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Capacitor } from '@capacitor/core';
@@ -86,20 +86,22 @@ persistor.subscribe(() => {
 
 const isNativePlatform = Capacitor.isNativePlatform();
 // This function checks if the native version has changed, sets new version in preferences and resets the hot update bundle.
-if (isNativePlatform) {
+async function checkNativeVersionAndReset() {
+  const { versionName } = await LiveUpdate.getVersionName();
+  const { value: storedVersion } = await Preferences.get({
+    key: VERSION_KEY,
+  });
+  if (versionName !== storedVersion) {
+    // reset the hot update bundle
+    await LiveUpdate.reset();
+    // store new version
+    await Preferences.set({ key: VERSION_KEY, value: versionName });
+  }
+}
+
+const startNativeInit = async () => {
+  if (!isNativePlatform) return;
   try {
-    async function checkNativeVersionAndReset() {
-      const { versionName } = await LiveUpdate.getVersionName();
-      const { value: storedVersion } = await Preferences.get({
-        key: VERSION_KEY,
-      });
-      if (versionName !== storedVersion) {
-        // reset the hot update bundle
-        await LiveUpdate.reset();
-        // store new version
-        await Preferences.set({ key: VERSION_KEY, value: versionName });
-      }
-    }
     await checkNativeVersionAndReset();
     await LiveUpdate.ready();
   } catch (error) {
@@ -108,7 +110,7 @@ if (isNativePlatform) {
       error,
     );
   }
-}
+};
 
 // Extend React's JSX namespace to include Stencil components
 declare global {
@@ -128,9 +130,6 @@ if (typeof window !== 'undefined') {
   if (!(window as any).SpeechSynthesisUtterance) {
     (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
   }
-}
-if (Capacitor.isNativePlatform()) {
-  await ScreenOrientation.lock({ orientation: 'landscape' });
 }
 jeepSqlite(window);
 
@@ -153,11 +152,6 @@ const root = createRoot(container!, {
   onCaughtError: SentryReact.reactErrorHandler(),
   // Callback called when React automatically recovers from errors.
   onRecoverableError: SentryReact.reactErrorHandler(),
-});
-await SocialLogin.initialize({
-  google: {
-    webClientId: process.env.REACT_APP_CLIENT_ID,
-  },
 });
 
 const gb = new GrowthBook({
@@ -206,12 +200,25 @@ const renderApp = () => {
     </Provider>,
   );
   SplashScreen.hide();
+  if (isNativePlatform) {
+    void ScreenOrientation.lock({ orientation: 'landscape' }).catch((error) => {
+      logger.error('ScreenOrientation lock failed', error);
+    });
+  }
   setTimeout(() => {
     if (isNativePlatform && userData) {
       checkForUpdate();
     }
   }, 60000);
 };
+
+// Kick off non-critical native/social initialization without blocking render.
+if (isNativePlatform) {
+  void startNativeInit();
+  void ensureSocialLoginInitialized().catch((error) => {
+    logger.error('SocialLogin initialize failed', error);
+  });
+}
 
 async function checkForUpdate() {
   let majorVersion = '0';
@@ -360,6 +367,19 @@ const bootstrapAndRender = async () => {
     return;
   }
 
+  if (isNativePlatform) {
+    // Render immediately on mobile to avoid blocking first paint on slow devices.
+    serviceInstance.switchMode(APIMode.SQLITE);
+    renderApp();
+
+    // Keep SQLite init in the background for native apps.
+    void SqliteApi.getInstance().catch((error) => {
+      logger.error('Sqlite init failed during bootstrap', error);
+    });
+    return;
+  }
+
+  // Preserve web startup flow.
   await SqliteApi.getInstance();
   serviceInstance.switchMode(APIMode.SQLITE);
   renderApp();
@@ -380,6 +400,9 @@ if (persistor.getState().bootstrapped) {
 // Learn more about service workers: https://cra.link/PWA
 serviceWorkerRegistration.unregister();
 
+function renderbootloading() {
+  throw new Error('Function not implemented.');
+}
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(logger.info))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
