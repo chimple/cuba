@@ -400,9 +400,6 @@ if (persistor.getState().bootstrapped) {
 // Learn more about service workers: https://cra.link/PWA
 serviceWorkerRegistration.unregister();
 
-function renderbootloading() {
-  throw new Error('Function not implemented.');
-}
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(logger.info))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
