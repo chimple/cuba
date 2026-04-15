@@ -81,7 +81,7 @@ const JoinClass: FC<{
           let eMsg: string =
             rawMessage === 'Invalid inviteCode'
               ? t('Invalid code. Please check and Try again.')
-              : rawMessage;
+              : t('Something went wrong. Please try again.');
           setError(eMsg);
         }
       }
