@@ -102,6 +102,12 @@ export type SchoolProgramAccessResponse = {
   total_pages: number;
 };
 
+export type JoinClassInviteLookupResult = {
+  inviteData: any;
+  classData?: TableTypes<'class'>;
+  schoolData?: TableTypes<'school'>;
+};
+
 type OpsRequestsResponse = {
   data: Array<TableTypes<'ops_requests'> | Record<string, Json>>;
   total: number;
@@ -900,6 +906,29 @@ export interface ServiceApi {
    * @returns A promise that resolves to the data.
    */
   getDataByInviteCode(inviteCode: number): Promise<any>;
+
+  /**
+   * This function gets invite, class, and school data by invite code
+   * for the join-class flow without changing the legacy lookup method.
+   *
+   * @param {number} inviteCode The invite code.
+   * @returns A promise that resolves to the invite, class, and school data.
+   */
+  getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult>;
+
+  /**
+   * Stores join-class school and class data directly in the local database.
+   * Non-SQLite implementations can safely no-op.
+   *
+   * @param classData The class data fetched during invite lookup.
+   * @param schoolData The school data fetched during invite lookup.
+   */
+  storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void>;
 
   /**
    * This function links a student to a class.
