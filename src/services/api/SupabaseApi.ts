@@ -5007,7 +5007,7 @@ export class SupabaseApi implements ServiceApi {
       if (!studentId) {
         throw Error('Student Not Found');
       }
-      const rpcRes = await this.supabase?.rpc('linkStudent', {
+      const rpcRes = await this.supabase?.rpc('new_link_student', {
         invite_code: inviteCode,
         student_id: studentId,
       });

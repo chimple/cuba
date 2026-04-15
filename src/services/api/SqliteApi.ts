@@ -3809,8 +3809,8 @@ export class SqliteApi implements ServiceApi {
   }
 
   private async upsertJoinLookupRow(
-    tableName: TABLES.Class | TABLES.School,
-    row: TableTypes<'class'> | TableTypes<'school'>,
+    tableName: TABLES.Class | TABLES.School | TABLES.ClassUser,
+    row: TableTypes<'class'> | TableTypes<'school'> | TableTypes<'class_user'>,
   ): Promise<void> {
     const existingColumns = await this.getTableColumns(tableName);
     if (!existingColumns?.length) {
@@ -4010,6 +4010,13 @@ export class SqliteApi implements ServiceApi {
   }
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     let linkData = await this._serverApi.linkStudent(inviteCode, studentId);
+
+    if (Array.isArray(linkData) && linkData.length > 0) {
+      for (const row of linkData as TableTypes<'class_user'>[]) {
+        await this.upsertJoinLookupRow(TABLES.ClassUser, row);
+      }
+    }
+
     await this.syncDbNow(Object.values(TABLES), [
       TABLES.Assignment,
       TABLES.Class,
