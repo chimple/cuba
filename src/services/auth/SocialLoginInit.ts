@@ -8,6 +8,10 @@ export function ensureSocialLoginInitialized(): Promise<void> {
       google: {
         webClientId: process.env.REACT_APP_CLIENT_ID,
       },
+    }).catch((error) => {
+      // Reset promise on failure to allow retries on subsequent calls.
+      initPromise = null;
+      throw error;
     });
   }
   return initPromise;
