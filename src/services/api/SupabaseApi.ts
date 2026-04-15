@@ -11988,9 +11988,18 @@ export class SupabaseApi implements ServiceApi {
         (l) => !completedLessonIds.has(l.lesson_id),
       );
 
-      return pendingLessons.length
-        ? (pendingLessons[0] as TableTypes<'subject_lesson'>)
-        : ({} as TableTypes<'subject_lesson'>);
+      const matchedLessons = pendingLessons.filter(
+        (lesson) => lesson.language_id === langId,
+      );
+      const fallbackLessons = pendingLessons.filter(
+        (lesson) => lesson.language_id == null,
+      );
+
+      return matchedLessons.length
+        ? matchedLessons[0]
+        : fallbackLessons.length
+          ? fallbackLessons[0]
+          : ({} as TableTypes<'subject_lesson'>);
     } catch (error) {
       logger.error(
         '❌ Error fetching subject lessons by subject (Supabase):',
