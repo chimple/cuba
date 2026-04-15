@@ -357,19 +357,26 @@ describe('HomeworkPathway – pathway logic', () => {
     ).toBeInTheDocument();
   });
 
-  test('reuses existing pathway even if assignments change', async () => {
+  test('rebuilds existing pathway when pending assignments change', async () => {
     (useFeatureIsOn as jest.Mock).mockReturnValue(true);
 
     const oldPathway = {
       path_id: 'old-path',
       lessons: [{ lesson: { id: 'l1' } }],
       currentIndex: 0,
+      pendingAssignmentIds: ['a-old'],
     };
     localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(oldPathway));
 
     mockApi.getPendingAssignments.mockResolvedValue([
       { id: 'a-new', type: 'HOMEWORK', lesson_id: 'l-new', course_id: 's-new' },
     ]);
+    mockApi.getLesson.mockResolvedValue({
+      id: 'l-new',
+      subject_id: 's-new',
+      name: 'Lesson new',
+      chapter_id: 'c-new',
+    });
 
     render(
       <MemoryRouter>
@@ -379,7 +386,197 @@ describe('HomeworkPathway – pathway logic', () => {
 
     await waitFor(() => {
       const pathway = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
-      expect(pathway.path_id).toBe('old-path');
+      expect(pathway.path_id).not.toBe('old-path');
+      expect(pathway.pendingAssignmentIds).toEqual(['a-new']);
+    });
+  });
+
+  test('migrates legacy cached pathways without pending ids', async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    const legacyPathway = {
+      path_id: 'legacy-path',
+      lessons: [{ lesson: { id: 'l1' } }],
+      currentIndex: 0,
+    };
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(legacyPathway));
+
+    mockApi.getPendingAssignments.mockResolvedValue([
+      { id: 'a-1', type: 'HOMEWORK', lesson_id: 'l-1', course_id: 's-1' },
+    ]);
+    mockApi.getLesson.mockResolvedValue({
+      id: 'l-1',
+      subject_id: 's-1',
+      name: 'Lesson 1',
+      chapter_id: 'c-1',
+    });
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const pathway = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(pathway.path_id).toBe('legacy-path');
+      expect(pathway.pendingAssignmentIds).toEqual(['a-1']);
+    });
+  });
+
+  test('keeps the current subject when assignments refresh', async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    const currentPathway = {
+      path_id: 'math-path',
+      lessons: [{ lesson: { id: 'math-1' }, course_id: 'math' }],
+      currentIndex: 0,
+      pendingAssignmentIds: ['math-1'],
+    };
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(currentPathway));
+
+    mockApi.getPendingAssignments
+      .mockResolvedValueOnce([
+        {
+          id: 'math-1',
+          type: 'HOMEWORK',
+          lesson_id: 'math-1',
+          course_id: 'math',
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 'math-2',
+          type: 'HOMEWORK',
+          lesson_id: 'math-2',
+          course_id: 'math',
+        },
+        {
+          id: 'science-1',
+          type: 'HOMEWORK',
+          lesson_id: 'science-1',
+          course_id: 'science',
+        },
+        {
+          id: 'science-2',
+          type: 'HOMEWORK',
+          lesson_id: 'science-2',
+          course_id: 'science',
+        },
+      ]);
+    mockApi.getLesson.mockImplementation((id: string) =>
+      Promise.resolve({
+        id,
+        subject_id: id.startsWith('math') ? 'math' : 'science',
+        name: `Lesson ${id}`,
+        chapter_id: 'c-1',
+      }),
+    );
+    mockApi.getChapterById.mockResolvedValue({ id: 'c-1', name: 'Chapter 1' });
+
+    const { rerender } = render(
+      <MemoryRouter>
+        <HomeworkPathway refreshToken={0} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const pathway = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(pathway.lessons[0].course_id).toBe('math');
+    });
+
+    rerender(
+      <MemoryRouter>
+        <HomeworkPathway refreshToken={1} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const pathway = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(
+        pathway.lessons.every((lesson: any) => lesson.course_id === 'math'),
+      ).toBe(true);
+    });
+  });
+
+  test('does not jump to english or math when digital skills is the active path', async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    const currentPathway = {
+      path_id: 'digital-path',
+      lessons: [{ lesson: { id: 'digital-1' }, course_id: 'digital-skills' }],
+      currentIndex: 0,
+      pendingAssignmentIds: ['digital-1'],
+    };
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(currentPathway));
+
+    mockApi.getPendingAssignments
+      .mockResolvedValueOnce([
+        {
+          id: 'digital-1',
+          type: 'HOMEWORK',
+          lesson_id: 'digital-1',
+          course_id: 'digital-skills',
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 'digital-2',
+          type: 'HOMEWORK',
+          lesson_id: 'digital-2',
+          course_id: 'digital-skills',
+        },
+        {
+          id: 'english-1',
+          type: 'HOMEWORK',
+          lesson_id: 'english-1',
+          course_id: 'english',
+        },
+        {
+          id: 'math-1',
+          type: 'HOMEWORK',
+          lesson_id: 'math-1',
+          course_id: 'math',
+        },
+      ]);
+    mockApi.getLesson.mockImplementation((id: string) =>
+      Promise.resolve({
+        id,
+        subject_id: id.startsWith('digital')
+          ? 'digital-skills'
+          : id.startsWith('english')
+            ? 'english'
+            : 'math',
+        name: `Lesson ${id}`,
+        chapter_id: 'c-1',
+      }),
+    );
+    mockApi.getChapterById.mockResolvedValue({ id: 'c-1', name: 'Chapter 1' });
+
+    const { rerender } = render(
+      <MemoryRouter>
+        <HomeworkPathway refreshToken={0} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const pathway = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(pathway.lessons[0].course_id).toBe('digital-skills');
+    });
+
+    rerender(
+      <MemoryRouter>
+        <HomeworkPathway refreshToken={1} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const pathway = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(
+        pathway.lessons.every(
+          (lesson: any) => lesson.course_id === 'digital-skills',
+        ),
+      ).toBe(true);
     });
   });
 
