@@ -3790,6 +3790,12 @@ export class SqliteApi implements ServiceApi {
   async getDataByInviteCodeNew(
     inviteCode: number,
   ): Promise<JoinClassInviteLookupResult> {
+    logger.warn('Join class lookup requested through SQLite API', {
+      file_name: 'SqliteApi.ts',
+      function_name: 'getDataByInviteCodeNew',
+      inviteCode,
+      syncInProgress: this._syncInProgress,
+    });
     const { inviteData, classData, schoolData } =
       await this._serverApi.getDataByInviteCodeNew(inviteCode);
 
@@ -3845,8 +3851,20 @@ export class SqliteApi implements ServiceApi {
     classData: TableTypes<'class'>,
     schoolData: TableTypes<'school'>,
   ): Promise<void> {
+    logger.warn('Storing join lookup data in local SQLite', {
+      file_name: 'SqliteApi.ts',
+      function_name: 'storeJoinClassLookupDataLocally',
+      classId: classData.id,
+      schoolId: schoolData.id,
+    });
     await this.upsertJoinLookupRow(TABLES.School, schoolData);
     await this.upsertJoinLookupRow(TABLES.Class, classData);
+    logger.warn('Stored join lookup data in local SQLite successfully', {
+      file_name: 'SqliteApi.ts',
+      function_name: 'storeJoinClassLookupDataLocally',
+      classId: classData.id,
+      schoolId: schoolData.id,
+    });
   }
 
   async createClass(
@@ -4009,21 +4027,69 @@ export class SqliteApi implements ServiceApi {
     this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, updatedData);
   }
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
-    let linkData = await this._serverApi.linkStudent(inviteCode, studentId);
+    logger.warn('Join class link requested through SQLite API', {
+      file_name: 'SqliteApi.ts',
+      function_name: 'linkStudent',
+      inviteCode,
+      studentId,
+      syncInProgress: this._syncInProgress,
+    });
 
-    if (Array.isArray(linkData) && linkData.length > 0) {
-      for (const row of linkData as TableTypes<'class_user'>[]) {
-        await this.upsertJoinLookupRow(TABLES.ClassUser, row);
+    try {
+      const linkData = await this._serverApi.linkStudent(inviteCode, studentId);
+
+      logger.warn('Join class link completed on server API', {
+        file_name: 'SqliteApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+        responseType: Array.isArray(linkData) ? 'array' : typeof linkData,
+        responseCount: Array.isArray(linkData) ? linkData.length : undefined,
+      });
+
+      if (Array.isArray(linkData) && linkData.length > 0) {
+        for (const row of linkData as TableTypes<'class_user'>[]) {
+          await this.upsertJoinLookupRow(TABLES.ClassUser, row);
+        }
+        logger.warn('Stored returned class_user rows in local SQLite', {
+          file_name: 'SqliteApi.ts',
+          function_name: 'linkStudent',
+          inviteCode,
+          studentId,
+          rowCount: linkData.length,
+        });
       }
-    }
 
-    await this.syncDbNow(Object.values(TABLES), [
-      TABLES.Assignment,
-      TABLES.Class,
-      TABLES.School,
-      TABLES.ClassCourse,
-    ]);
-    return linkData;
+      logger.warn('Starting SQLite sync after join class', {
+        file_name: 'SqliteApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+      });
+      await this.syncDbNow(Object.values(TABLES), [
+        TABLES.Assignment,
+        TABLES.Class,
+        TABLES.School,
+        TABLES.ClassCourse,
+      ]);
+      logger.warn('Completed SQLite sync after join class', {
+        file_name: 'SqliteApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+      });
+      return linkData;
+    } catch (error) {
+      logger.warn('Join class link failed through SQLite API', {
+        file_name: 'SqliteApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+        syncInProgress: this._syncInProgress,
+        rawError: error,
+      });
+      throw error;
+    }
   }
 
   async getLeaderboardResults(

@@ -4812,11 +4812,23 @@ export class SupabaseApi implements ServiceApi {
     inviteCode: number,
   ): Promise<JoinClassInviteLookupResult> {
     try {
+      logger.warn('Join class lookup RPC started', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'getDataByInviteCodeNew',
+        inviteCode,
+      });
       const rpcRes = await this.supabase?.rpc('getDataByInviteCodeNew', {
         invite_code: inviteCode,
       });
 
       if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        logger.warn('Join class lookup RPC returned empty/error response', {
+          file_name: 'SupabaseApi.ts',
+          function_name: 'getDataByInviteCodeNew',
+          inviteCode,
+          rpcError: rpcRes?.error ?? null,
+          hasData: !!rpcRes?.data,
+        });
         throw rpcRes?.error ?? '';
       }
 
@@ -4831,12 +4843,28 @@ export class SupabaseApi implements ServiceApi {
         throw new Error('School data could not be fetched.');
       }
 
+      logger.warn('Join class lookup RPC succeeded', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'getDataByInviteCodeNew',
+        inviteCode,
+        classId: inviteData?.class_id,
+        schoolId: inviteData?.school_id,
+        className: inviteData?.class_name,
+        schoolName: inviteData?.school_name,
+      });
+
       return {
         inviteData,
         classData,
         schoolData,
       };
     } catch (error) {
+      logger.warn('Join class lookup RPC failed', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'getDataByInviteCodeNew',
+        inviteCode,
+        rawError: error,
+      });
       logger.error('Error in getDataByInviteCodeNew', error);
       throw new Error('Invalid inviteCode');
     }
@@ -5007,13 +5035,39 @@ export class SupabaseApi implements ServiceApi {
       if (!studentId) {
         throw Error('Student Not Found');
       }
+      logger.warn('Join class link RPC started', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+      });
       const rpcRes = await this.supabase?.rpc('new_link_student', {
         invite_code: inviteCode,
         student_id: studentId,
       });
       if (rpcRes == null || rpcRes.error || !rpcRes.data) {
         const error = rpcRes?.error;
+        logger.warn('Join class link RPC returned empty/error response', {
+          file_name: 'SupabaseApi.ts',
+          function_name: 'linkStudent',
+          inviteCode,
+          studentId,
+          rpcError: error ?? null,
+          hasData: !!rpcRes?.data,
+        });
         if (error) {
+          if (error.code === '23503') {
+            logger.warn('Join class link RPC detected missing backend user', {
+              file_name: 'SupabaseApi.ts',
+              function_name: 'linkStudent',
+              inviteCode,
+              studentId,
+              errorCode: error.code,
+              errorMessage: error.message,
+              errorDetails: error.details,
+              errorHint: error.hint,
+            });
+          }
           const normalizedMessage = [error.details, error.message, error.hint]
             .map((value) => (typeof value === 'string' ? value.trim() : ''))
             .find(Boolean);
@@ -5026,8 +5080,23 @@ export class SupabaseApi implements ServiceApi {
         throw new Error('Failed to join class.');
       }
       const data = rpcRes.data;
+      logger.warn('Join class link RPC succeeded', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+        responseType: Array.isArray(data) ? 'array' : typeof data,
+        responseCount: Array.isArray(data) ? data.length : undefined,
+      });
       return data;
     } catch (e) {
+      logger.warn('Join class link RPC failed', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+        rawError: e,
+      });
       if (e instanceof Error) {
         throw e;
       }
