@@ -1,6 +1,14 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import GenericPopup from './GenericPopUp';
+import { AudioUtil } from '../../utility/AudioUtil';
+
+jest.mock('../../utility/AudioUtil', () => ({
+  AudioUtil: {
+    playAudioOrTts: jest.fn(),
+    stopAudioUrlOrTtsPlayback: jest.fn(),
+  },
+}));
 
 describe('GenericPopup', () => {
   const baseProps = {
@@ -34,6 +42,89 @@ describe('GenericPopup', () => {
     const background = document.getElementById('generic-popup-bg-image');
     expect(thumbnail).toHaveAttribute('src', '/assets/thumb.png');
     expect(background).toHaveAttribute('src', '/assets/bg.png');
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        audioUrl: '/assets/audios/common/generic_popup_sound_effect.mp3',
+        delayMs: 300,
+        onComplete: expect.any(Function),
+        onCompleteDelayMs: 1000,
+      }),
+    );
+  });
+
+  it('plays popup fallback narration line-by-line after the sound effect completes', () => {
+    render(<GenericPopup {...baseProps} />);
+
+    const firstCall = (AudioUtil.playAudioOrTts as jest.Mock).mock
+      .calls[0]?.[0];
+    firstCall.onComplete();
+
+    expect(AudioUtil.playAudioOrTts).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        text: 'Main heading',
+        onCompleteDelayMs: 1000,
+        onComplete: expect.any(Function),
+      }),
+    );
+
+    const secondLineCall = (AudioUtil.playAudioOrTts as jest.Mock).mock
+      .calls[1]?.[0];
+    secondLineCall.onComplete();
+
+    expect(AudioUtil.playAudioOrTts).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({
+        text: 'Sub heading',
+        onCompleteDelayMs: 1000,
+        onComplete: expect.any(Function),
+      }),
+    );
+
+    const thirdLineCall = (AudioUtil.playAudioOrTts as jest.Mock).mock
+      .calls[2]?.[0];
+    thirdLineCall.onComplete();
+
+    expect(AudioUtil.playAudioOrTts).toHaveBeenNthCalledWith(
+      4,
+      expect.objectContaining({
+        text: 'Detail A',
+        onCompleteDelayMs: 1000,
+        onComplete: expect.any(Function),
+      }),
+    );
+
+    const fourthLineCall = (AudioUtil.playAudioOrTts as jest.Mock).mock
+      .calls[3]?.[0];
+    fourthLineCall.onComplete();
+
+    expect(AudioUtil.playAudioOrTts).toHaveBeenNthCalledWith(
+      5,
+      expect.objectContaining({
+        text: 'Detail B',
+      }),
+    );
+
+    const lastLineCall = (AudioUtil.playAudioOrTts as jest.Mock).mock
+      .calls[4]?.[0];
+    expect(lastLineCall.onComplete).toBeUndefined();
+    expect(lastLineCall.onCompleteDelayMs).toBeUndefined();
+  });
+
+  it('plays provided popup audio as a single clip after sound effect', () => {
+    render(<GenericPopup {...baseProps} audioUrl="/assets/popup-voice.mp3" />);
+
+    const firstCall = (AudioUtil.playAudioOrTts as jest.Mock).mock
+      .calls[0]?.[0];
+    firstCall.onComplete();
+
+    expect(AudioUtil.playAudioOrTts).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        audioUrl: '/assets/popup-voice.mp3',
+        text: 'Main heading Sub heading Detail A Detail B',
+      }),
+    );
   });
 
   // Covers: omits optional subheading and details when absent
@@ -68,6 +159,7 @@ describe('GenericPopup', () => {
 
     expect(baseProps.onClose).toHaveBeenCalledTimes(1);
     expect(baseProps.onAction).not.toHaveBeenCalled();
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
   });
 
   // Covers: calls onAction when CTA is clicked
@@ -79,6 +171,21 @@ describe('GenericPopup', () => {
 
     expect(baseProps.onAction).toHaveBeenCalledTimes(1);
     expect(baseProps.onClose).not.toHaveBeenCalled();
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
+  });
+
+  it('replays audio when the speaker button is clicked', () => {
+    render(<GenericPopup {...baseProps} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Play audio' }));
+
+    expect(AudioUtil.playAudioOrTts).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        text: 'Main heading',
+        onCompleteDelayMs: 1000,
+        onComplete: expect.any(Function),
+      }),
+    );
   });
 
   // Covers: handles rapid CTA clicks without dropping events

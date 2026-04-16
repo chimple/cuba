@@ -62,7 +62,7 @@ jest.mock('../coloring/SVGScene', () => ({
 
 jest.mock('../../assets/images/camera.svg', () => 'camera.svg');
 
-jest.mock('../../assets/icons/PaintBucket.svg', () => 'paint.svg');
+jest.mock('../../assets/icons/PaintbrushIconForButton.svg', () => 'paint.svg');
 
 const renderBoard = async (
   props: Partial<React.ComponentProps<typeof StickerBookBoard>> = {},

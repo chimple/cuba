@@ -4,6 +4,8 @@ import {
   BackgroundWorkerTask,
   BuildXlsxFilePayload,
   ChecksumFile,
+  DownloadRemoteAudioPayload,
+  DownloadStickerBookSvgPayload,
   GrowthBookAttributesPayload,
   ParseXlsxSheetsPayload,
   PlanHotUpdatePayload,
@@ -49,41 +51,108 @@ const normalizeSqliteValue = (value: unknown): unknown => {
   return value;
 };
 
+const MAX_SQLITE_BIND_PARAMS = 900;
+
+const getRowFieldNames = (
+  row: Record<string, unknown>,
+  existingColumns: string[],
+): string[] =>
+  existingColumns.filter((columnName) =>
+    Object.prototype.hasOwnProperty.call(row, columnName),
+  );
+
+const buildUpsertStatement = (
+  tableName: string,
+  fieldNames: string[],
+  rowValuesList: unknown[][],
+): SqlStatement => {
+  const placeholdersPerRow = `(${fieldNames.map(() => '?').join(', ')})`;
+  const valuesPlaceholders = rowValuesList
+    .map(() => placeholdersPerRow)
+    .join(', ');
+  const values = rowValuesList.flat();
+  const updateColumns = fieldNames.filter((name) => name !== 'id');
+  const updateSetClause = updateColumns
+    .map((name) => `${name} = excluded.${name}`)
+    .join(', ');
+  const onConflictClause = updateSetClause
+    ? `ON CONFLICT(id) DO UPDATE SET ${updateSetClause} WHERE excluded.updated_at > ${tableName}.updated_at`
+    : 'ON CONFLICT(id) DO NOTHING';
+
+  return {
+    statement: `
+          INSERT INTO ${tableName} (${fieldNames.join(', ')})
+          VALUES ${valuesPlaceholders}
+          ${onConflictClause};
+        `,
+    values,
+  };
+};
+
 const buildStatementsForRows = (
   tableName: string,
   rows: Record<string, unknown>[],
   existingColumns: string[],
-): SqlStatement[] => {
+): { statements: SqlStatement[]; rowCount: number } => {
   const resolvedTableName = safeTableName(tableName);
   const statementsForTable: SqlStatement[] = [];
-  for (const row of rows) {
-    const fieldNames = Object.keys(row).filter((key) =>
-      existingColumns.includes(key),
+  let validRowCount = 0;
+  let currentFieldNames: string[] | null = null;
+  let currentRowValuesList: unknown[][] = [];
+
+  const flushCurrentGroup = () => {
+    if (!currentFieldNames || currentRowValuesList.length === 0) {
+      return;
+    }
+    statementsForTable.push(
+      buildUpsertStatement(
+        resolvedTableName,
+        currentFieldNames,
+        currentRowValuesList,
+      ),
     );
+    currentFieldNames = null;
+    currentRowValuesList = [];
+  };
+
+  for (const row of rows) {
+    const fieldNames = getRowFieldNames(row, existingColumns);
     if (!fieldNames.length) {
       continue;
     }
-    const placeholders = fieldNames.map(() => '?').join(', ');
     const values = fieldNames.map((name) => normalizeSqliteValue(row[name]));
-    const updateColumns = fieldNames.filter((name) => name !== 'id');
-    const updateSetClause = updateColumns
-      .map((name) => `${name} = excluded.${name}`)
-      .join(', ');
+    const maxRowsPerStatement = Math.max(
+      Math.floor(MAX_SQLITE_BIND_PARAMS / fieldNames.length),
+      1,
+    );
+    const fieldSignature = fieldNames.join('|');
+    const currentSignature = currentFieldNames?.join('|');
 
-    const onConflictClause = updateSetClause
-      ? `ON CONFLICT(id) DO UPDATE SET ${updateSetClause} WHERE excluded.updated_at > ${resolvedTableName}.updated_at`
-      : 'ON CONFLICT(id) DO NOTHING';
+    if (
+      currentFieldNames &&
+      (currentSignature !== fieldSignature ||
+        currentRowValuesList.length >= maxRowsPerStatement)
+    ) {
+      flushCurrentGroup();
+    }
 
-    statementsForTable.push({
-      statement: `
-          INSERT INTO ${resolvedTableName} (${fieldNames.join(', ')})
-          VALUES (${placeholders})
-          ${onConflictClause};
-        `,
-      values,
-    });
+    if (!currentFieldNames) {
+      currentFieldNames = fieldNames;
+    }
+
+    currentRowValuesList.push(values);
+    validRowCount += 1;
+
+    if (currentRowValuesList.length >= maxRowsPerStatement) {
+      flushCurrentGroup();
+    }
   }
-  return statementsForTable;
+  flushCurrentGroup();
+
+  return {
+    statements: statementsForTable,
+    rowCount: validRowCount,
+  };
 };
 
 const buildSyncBatches = (
@@ -110,7 +179,7 @@ const buildSyncBatches = (
       continue;
     }
 
-    const statementsForTable = buildStatementsForRows(
+    const { statements: statementsForTable, rowCount } = buildStatementsForRows(
       resolvedTableName,
       rows,
       existingColumns,
@@ -129,7 +198,7 @@ const buildSyncBatches = (
     }
 
     tableBatches[resolvedTableName] = chunked;
-    rowCountByTable[resolvedTableName] = statementsForTable.length;
+    rowCountByTable[resolvedTableName] = rowCount;
   }
 
   const payloadSizeBytes = payload.includePayloadSizeBytes
@@ -512,6 +581,47 @@ const buildXlsxFile = async (
   };
 };
 
+const downloadStickerBookSvg = async (
+  payload: DownloadStickerBookSvgPayload,
+): Promise<{
+  svgText: string;
+}> => {
+  const response = await fetch(payload.url);
+  if (response.ok === false) {
+    throw new Error(`Failed to download sticker book svg: ${response.status}`);
+  }
+
+  return {
+    svgText: await response.text(),
+  };
+};
+
+const bytesToBase64 = (bytes: Uint8Array): string => {
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+  return btoa(binary);
+};
+
+const downloadRemoteAudio = async (
+  payload: DownloadRemoteAudioPayload,
+): Promise<{
+  base64Data: string;
+}> => {
+  const response = await fetch(payload.url);
+  if (response.ok === false) {
+    throw new Error(`Failed to download remote audio: ${response.status}`);
+  }
+
+  const audioBuffer = await response.arrayBuffer();
+  return {
+    base64Data: bytesToBase64(new Uint8Array(audioBuffer)),
+  };
+};
+
 const handlers: {
   [K in BackgroundWorkerTask]: (
     payload: WorkerRequest<K>['payload'],
@@ -525,6 +635,8 @@ const handlers: {
   PREPARE_BULK_UPLOAD_PAYLOAD: (payload) => buildBulkUploadPayload(payload),
   PARSE_XLSX_SHEETS: (payload) => parseXlsxSheets(payload),
   BUILD_XLSX_FILE: (payload) => buildXlsxFile(payload),
+  DOWNLOAD_STICKER_BOOK_SVG: (payload) => downloadStickerBookSvg(payload),
+  DOWNLOAD_REMOTE_AUDIO: (payload) => downloadRemoteAudio(payload),
 };
 
 const waitForAck = (id: string): Promise<void> =>
@@ -564,7 +676,7 @@ const streamSyncBatches = async (request: WorkerStreamRequest) => {
 
     for (let i = 0; i < rows.length; i += rowsPerChunk) {
       const rowChunk = rows.slice(i, i + rowsPerChunk);
-      const statements = buildStatementsForRows(
+      const { statements } = buildStatementsForRows(
         resolvedTableName,
         rowChunk,
         existingColumns,

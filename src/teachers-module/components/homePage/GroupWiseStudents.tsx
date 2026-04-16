@@ -12,7 +12,6 @@ interface GroupWiseStudentsProps {
   color: string;
   studentsProgress?: StudentProgressData[];
   studentLength: string;
-  onClickCallBack: Function;
   onStudentClick?: (student: TableTypes<'user'>) => void;
 }
 
@@ -20,19 +19,12 @@ const GroupWiseStudents: React.FC<GroupWiseStudentsProps> = ({
   color,
   studentsProgress,
   studentLength,
-  onClickCallBack,
   onStudentClick,
 }) => {
   const groupTitle = getBandTitleByColor(color, t as (key: string) => string);
 
   return (
-    <div
-      className="group-wise-container"
-      style={{ borderColor: color }}
-      onClick={() => {
-        onClickCallBack();
-      }}
-    >
+    <div className="group-wise-container" style={{ borderColor: color }}>
       <div className="group-wise-header" style={{ backgroundColor: color }}>
         <span>{groupTitle}</span>
         <span className="group-wise-count">

@@ -18,6 +18,7 @@ import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import StickerBookSaveModal from '../components/stickerBook/StickerBookSaveModal';
 import StickerBookToast from '../components/stickerBook/StickerBookToast';
 import { t } from 'i18next';
+import NewBackButton from '../components/common/NewBackButton';
 import {
   fetchStickerBookSvgText,
   resolveStickerBookSvgUrl,
@@ -71,7 +72,20 @@ const StickerBook: React.FC = () => {
 
     try {
       if (currentStudent?.id) {
-        await api.updateRewardAsSeen(currentStudent.id);
+        const userStickers = await api.getUserStickerBook(currentStudent.id);
+        const unseenStickers = userStickers.filter(
+          (sticker) => !sticker.is_seen,
+        );
+        if (unseenStickers.length > 0) {
+          await api.markStciekercolledasTrue(currentStudent.id);
+          logger.info('[StickerBook] Marked sticker books as seen', {
+            user_id: currentStudent.id,
+          });
+        } else {
+          logger.info('[StickerBook] No unseen sticker books to mark', {
+            user_id: currentStudent.id,
+          });
+        }
       }
       const [allBooks, currentBookResult, completedBooks] = await Promise.all([
         api.getAllStickerBooks(),
@@ -305,6 +319,23 @@ const StickerBook: React.FC = () => {
                 onPaint={onPaint}
                 onSave={onSave}
               />
+            )}
+            {!isLoading && !selectedBook && (
+              <div className="sticker-book-fallback">
+                <div className="sticker-book-fallback-back">
+                  <NewBackButton onClick={onBack} />
+                </div>
+                <div className="sticker-book-fallback-loading" role="status">
+                  <img
+                    src="assets/loading.gif"
+                    alt="loading"
+                    className="sticker-book-fallback-loading-img"
+                  />
+                  <div className="sticker-book-fallback-loading-text">
+                    {t('Loading sticker book...')}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>

@@ -43,9 +43,13 @@
 
 .pending-assignment {
   display: flex;
-  position: relative;
-  height: 100vh;
-  top: 14vh;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 70vh;
+  padding: clamp(1rem, 3vh, 2rem) clamp(1rem, 3vw, 2rem);
+  box-sizing: border-box;
+  transform: translateY(clamp(-1.5rem, -3vh, -0.5rem));
 }
 
 .school-class-header {

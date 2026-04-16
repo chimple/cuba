@@ -23,6 +23,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 import {
+  JoinClassInviteLookupResult,
   LeaderboardInfo,
   ServiceApi,
   StudentLeaderboardInfo,
@@ -1082,6 +1083,37 @@ export class FirebaseApi implements ServiceApi {
     return result.data;
   }
 
+  async getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult> {
+    const inviteData = await this.getDataByInviteCode(inviteCode);
+    const [classData, schoolData] = await Promise.all([
+      this.getClassById(inviteData.class_id),
+      this.getSchoolById(inviteData.school_id),
+    ]);
+
+    if (!classData) {
+      throw new Error('Class data could not be fetched.');
+    }
+
+    if (!schoolData) {
+      throw new Error('School data could not be fetched.');
+    }
+
+    return {
+      inviteData,
+      classData,
+      schoolData,
+    };
+  }
+
+  async storeJoinClassLookupDataLocally(
+    _classData: TableTypes<'class'>,
+    _schoolData: TableTypes<'school'>,
+  ): Promise<void> {
+    return;
+  }
+
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     const functions = getFunctions();
     const generateInviteCode = httpsCallable(functions, 'LinkStudent');
@@ -1090,6 +1122,10 @@ export class FirebaseApi implements ServiceApi {
       studentId: this._currentStudent?.docId,
     });
     return result.data;
+  }
+
+  isSyncInProgress(): boolean {
+    return false;
   }
 
   async getStudentResult(
@@ -1840,6 +1876,9 @@ export class FirebaseApi implements ServiceApi {
     await updateDoc(studentDocRef, {
       rewards: finalRewards,
     });
+  }
+  public async markStciekercolledasTrue(userId: string): Promise<void> {
+    return this.updateRewardAsSeen(userId);
   }
   async removeCoursesFromClass(ids: string[]): Promise<void> {
     throw new Error('Failed to remove courses from class');

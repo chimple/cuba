@@ -106,46 +106,24 @@ const DashBoard: React.FC = ({}) => {
           studentsProgress={studentProgress?.get(BANDS.GREENGROUP)}
           studentLength={students?.length.toString() ?? ''}
           onStudentClick={handleStudentReportNavigation}
-          onClickCallBack={() => {
-            history.replace(PAGES.DASHBOARD_DETAILS, {
-              studentProgress: studentProgress?.get(BANDS.GREENGROUP),
-              bandcolor: BANDWISECOLOR.GREEN,
-              studentLength: students?.length.toString() ?? '',
-            });
-          }}
         />
         <GroupWiseStudents
           color={BANDWISECOLOR.YELLOW}
           studentsProgress={studentProgress?.get(BANDS.YELLOWGROUP)}
           studentLength={students?.length.toString() ?? ''}
           onStudentClick={handleStudentReportNavigation}
-          onClickCallBack={() => {
-            history.replace(PAGES.DASHBOARD_DETAILS, {
-              studentProgress: studentProgress?.get(BANDS.YELLOWGROUP),
-              bandcolor: BANDWISECOLOR.YELLOW,
-              studentLength: students?.length.toString() ?? '',
-            });
-          }}
         />
         <GroupWiseStudents
           color={BANDWISECOLOR.RED}
           studentsProgress={studentProgress?.get(BANDS.REDGROUP)}
           studentLength={students?.length.toString() ?? ''}
           onStudentClick={handleStudentReportNavigation}
-          onClickCallBack={() => {
-            history.replace(PAGES.DASHBOARD_DETAILS, {
-              studentProgress: studentProgress?.get(BANDS.REDGROUP),
-              bandcolor: BANDWISECOLOR.RED,
-              studentLength: students?.length.toString() ?? '',
-            });
-          }}
         />
         <GroupWiseStudents
           color={BANDWISECOLOR.GREY}
           studentsProgress={studentProgress?.get(BANDS.GREYGROUP)}
           studentLength={students?.length.toString() ?? ''}
           onStudentClick={handleStudentReportNavigation}
-          onClickCallBack={() => {}}
         />
       </main>
     </IonContent>

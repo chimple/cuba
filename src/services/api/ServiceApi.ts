@@ -102,6 +102,12 @@ export type SchoolProgramAccessResponse = {
   total_pages: number;
 };
 
+export type JoinClassInviteLookupResult = {
+  inviteData: any;
+  classData?: TableTypes<'class'>;
+  schoolData?: TableTypes<'school'>;
+};
+
 type OpsRequestsResponse = {
   data: Array<TableTypes<'ops_requests'> | Record<string, Json>>;
   total: number;
@@ -832,6 +838,19 @@ export interface ServiceApi {
     userId: string,
     options?: { page?: number; page_size?: number; search?: string },
   ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]>;
+  /**
+   * Gets schools for a user by a search term from backend search API.
+   * Intended for server-side search use-cases where matching schools may not
+   * be available in the currently paginated client list.
+   *
+   * @param {string} userId - User's unique ID
+   * @param {string} searchTerm - Search text to match school names
+   * @returns {Promise<{ school: TableTypes<"school">; role: RoleType }[]>}
+   */
+  getSchoolsForUserBySearchTerm?(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]>;
 
   /**
    * Get a user's role for a given school.
@@ -887,6 +906,29 @@ export interface ServiceApi {
    * @returns A promise that resolves to the data.
    */
   getDataByInviteCode(inviteCode: number): Promise<any>;
+
+  /**
+   * This function gets invite, class, and school data by invite code
+   * for the join-class flow without changing the legacy lookup method.
+   *
+   * @param {number} inviteCode The invite code.
+   * @returns A promise that resolves to the invite, class, and school data.
+   */
+  getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult>;
+
+  /**
+   * Stores join-class school and class data directly in the local database.
+   * Non-SQLite implementations can safely no-op.
+   *
+   * @param classData The class data fetched during invite lookup.
+   * @param schoolData The school data fetched during invite lookup.
+   */
+  storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void>;
 
   /**
    * This function links a student to a class.
@@ -1108,6 +1150,10 @@ export interface ServiceApi {
    */
   getUserSticker(userId: string): Promise<TableTypes<'user_sticker'>[]>;
 
+  getUserStickerBook(
+    userId: string,
+  ): Promise<TableTypes<'user_sticker_book'>[]>;
+
   /**
    * Retrieves all bonuses associated with a specified user.
    * @param userId The unique identifier of the user whose bonuses are to be retrieved.
@@ -1125,6 +1171,13 @@ export interface ServiceApi {
    * Note: If the user has no badges, the returned Promise resolves to an empty array.
    */
   getUserBadge(userId: string): Promise<TableTypes<'user_badge'>[]>;
+
+  /**
+   * Marks all user stickers as seen.
+   * @param userId - The ID of the user whose stickers should be marked as seen.
+   * @returns A Promise that resolves with void when the update is complete.
+   */
+  markStciekercolledasTrue(userId: string): Promise<void>;
 
   /**
    * Updates the rewards of a student, marking all rewards as seen.
@@ -1212,6 +1265,8 @@ export interface ServiceApi {
     refreshTables: TABLES[],
     isFirstSync?: boolean,
   ): Promise<boolean>;
+
+  isSyncInProgress(): boolean;
 
   /**
    * Function to get Recommended Lessons.

@@ -62,6 +62,7 @@ import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
+  JoinClassInviteLookupResult,
   LeaderboardInfo,
   SchoolProgramAccessResponse,
   ServiceApi,
@@ -97,6 +98,7 @@ import {
   writeAssignmentCartToStorage,
 } from '../../teachers-module/pages/AssignmentCartStorage';
 import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorkerClient';
+import type { SqlStatement } from '../../workers/background.worker.types';
 import { store } from '../../redux/store';
 import { Json } from '../database';
 import logger from '../../utility/logger';
@@ -117,6 +119,14 @@ export class SqliteApi implements ServiceApi {
     | undefined;
   private _syncTableData: Record<string, string> = {};
   private _tablesNeedingFullSync = new Set<string>();
+  private _tableColumnsCache = new Map<string, string[]>();
+  private _initPromise: Promise<void> | null = null;
+
+  private _syncInProgress: boolean = false;
+  private _syncRequestedAgain: boolean = false;
+  private _retryRefreshTables: TABLES[] = [];
+
+  private _cachedRewards: TableTypes<'rive_reward'>[] | undefined;
 
   public static getI(): SqliteApi {
     if (!SqliteApi.i) {
@@ -125,22 +135,27 @@ export class SqliteApi implements ServiceApi {
     }
     return SqliteApi.i;
   }
-
-  private _syncInProgress: boolean = false;
-  private _syncRequestedAgain: boolean = false;
-  private _retryRefreshTables: TABLES[] = [];
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
       SqliteApi.i = new SqliteApi();
       SqliteApi.i._serverApi = SupabaseApi.getInstance();
     }
-    if (!SqliteApi.i._db) {
-      await SqliteApi.i.init();
-    }
+    await SqliteApi.i.ensureInitialized();
     return SqliteApi.i;
   }
 
-  private async init() {
+  private async ensureInitialized(): Promise<void> {
+    if (this._db && this._sqlite) return;
+    if (!this._initPromise) {
+      this._initPromise = this.init().catch((error) => {
+        this._initPromise = null;
+        throw error;
+      });
+    }
+    await this._initPromise;
+  }
+
+  private async init(): Promise<void> {
     SupabaseApi.getInstance();
     const platform = Capacitor.getPlatform();
     this._sqlite = new SQLiteConnection(CapacitorSQLite);
@@ -199,8 +214,10 @@ export class SqliteApi implements ServiceApi {
                 const tableName = match[1];
                 // Mark this table for full sync (will use old timestamp)
                 this._tablesNeedingFullSync.add(tableName);
-                logger.info(
-                  `🚀 ~ Auto-detected schema change for table: ${tableName}. Will force full sync.`,
+                logger.warn(
+                  'setUpDatabase: Auto-detected schema change for table: ' +
+                    tableName +
+                    '. Will force full sync.',
                 );
               }
             }
@@ -261,7 +278,6 @@ export class SqliteApi implements ServiceApi {
       logger.error('🚀 ~ SqliteApi ~ init ~ err:', err);
     }
     await this.setUpDatabase();
-    return this._db;
   }
 
   private async setUpDatabase() {
@@ -299,8 +315,11 @@ export class SqliteApi implements ServiceApi {
           );
           logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:', resImport);
 
-          window.location.replace(BASE_NAME || '/');
-          return;
+          // Keep current web behavior; avoid native full page reload on first import.
+          if (!Capacitor.isNativePlatform()) {
+            window.location.replace(BASE_NAME || '/');
+            return;
+          }
         } catch (error) {
           logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
         }
@@ -343,17 +362,19 @@ export class SqliteApi implements ServiceApi {
       const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
 
       if (isUserLoggedIn) {
-        logger.info('syncing');
+        logger.warn('checkAndSyncData: User logged in, triggering sync');
         const user = await config.authHandler.getCurrentUser();
 
         if (!user) {
           await this.syncDbNow();
+          logger.warn('checkAndSyncData: No user, syncDbNow awaited');
         } else {
           this.syncDbNow();
+          logger.warn('checkAndSyncData: User exists, syncDbNow called');
         }
       }
     } catch (error) {
-      logger.info('🚀 ~ SqliteApi ~ checkAndSyncData ~ error:', error);
+      logger.warn('checkAndSyncData: Error during sync check: ' + error);
     }
   }
 
@@ -362,6 +383,7 @@ export class SqliteApi implements ServiceApi {
     values?: any[] | undefined,
     isSQL92?: boolean | undefined,
   ) {
+    await this.ensureInitialized();
     if (!this._db || !this._sqlite) return;
     const res = await this._db.query(statement, values, isSQL92);
     if (!Capacitor.isNativePlatform())
@@ -380,6 +402,72 @@ export class SqliteApi implements ServiceApi {
       return JSON.stringify(value);
     }
     return value;
+  }
+
+  private isWebPlatform(): boolean {
+    return Capacitor.getPlatform() === 'web';
+  }
+
+  private getSyncWriteTuning(): {
+    defaultBatchSize: number;
+    userTableBatchSize: number;
+    rowsPerChunk: number;
+  } {
+    const nav =
+      typeof navigator !== 'undefined'
+        ? (navigator as Navigator & {
+            deviceMemory?: number;
+            hardwareConcurrency?: number;
+          })
+        : undefined;
+    const deviceMemory =
+      typeof nav?.deviceMemory === 'number' ? nav.deviceMemory : undefined;
+    const hardwareConcurrency =
+      typeof nav?.hardwareConcurrency === 'number'
+        ? nav.hardwareConcurrency
+        : undefined;
+    const hasDeviceHints =
+      typeof deviceMemory === 'number' ||
+      typeof hardwareConcurrency === 'number';
+
+    const isLowEndDevice =
+      !hasDeviceHints ||
+      (typeof deviceMemory === 'number' && deviceMemory <= 3) ||
+      (typeof hardwareConcurrency === 'number' && hardwareConcurrency <= 4);
+    const isMidRangeDevice =
+      !isLowEndDevice &&
+      ((typeof deviceMemory === 'number' && deviceMemory <= 6) ||
+        (typeof hardwareConcurrency === 'number' && hardwareConcurrency <= 6));
+
+    if (isLowEndDevice) {
+      return {
+        defaultBatchSize: 60,
+        userTableBatchSize: 120,
+        rowsPerChunk: 120,
+      };
+    }
+
+    if (isMidRangeDevice) {
+      return {
+        defaultBatchSize: 100,
+        userTableBatchSize: 200,
+        rowsPerChunk: 180,
+      };
+    }
+
+    return {
+      defaultBatchSize: 140,
+      userTableBatchSize: 280,
+      rowsPerChunk: 260,
+    };
+  }
+
+  private async executeSqlStatementBatch(
+    batch: SqlStatement[],
+    useImplicitTransaction = true,
+  ) {
+    if (!this._db || batch.length === 0) return;
+    await this._db.executeSet(batch as any, useImplicitTransaction);
   }
 
   private async showToastWithRetry(
@@ -490,12 +578,17 @@ export class SqliteApi implements ServiceApi {
 
     // Update pull_sync_info table with old timestamp for tables needing full sync
     const FORCE_FULL_SYNC_DATE = '2024-01-01T00:00:00.000Z';
+    const LESSON_FORCE_FULL_SYNC_DATE = '2026-04-10T00:00:00.000Z';
     if (this._tablesNeedingFullSync.size > 0) {
       for (const tableName of this._tablesNeedingFullSync) {
         if (tableNames.includes(tableName as TABLES)) {
+          const fullSyncDate =
+            tableName === TABLES.Lesson
+              ? LESSON_FORCE_FULL_SYNC_DATE
+              : FORCE_FULL_SYNC_DATE;
           await this.executeQuery(
             `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
-            [tableName, FORCE_FULL_SYNC_DATE],
+            [tableName, fullSyncDate],
           );
           logger.info(`Forcing full sync for table: ${tableName}`);
         }
@@ -573,110 +666,196 @@ export class SqliteApi implements ServiceApi {
         isInitialFetch,
       );
     }
+
     const lastPulled = new Date().toISOString();
-    const DEFAULT_DB_BATCH_SIZE = 100;
-    const SAFE_USER_BATCH_SIZE = 250;
-    const STREAM_ROWS_CHUNK = 200;
+    const syncWriteTuning = this.getSyncWriteTuning();
+    const DEFAULT_DB_BATCH_SIZE = syncWriteTuning.defaultBatchSize;
+    const SAFE_USER_BATCH_SIZE = syncWriteTuning.userTableBatchSize;
+    const STREAM_ROWS_CHUNK = syncWriteTuning.rowsPerChunk;
     const tablesForWorker: Record<string, any[]> = {};
     const tableColumnsByName: Record<string, string[]> = {};
     const tablesWritten = new Set<string>();
-    for (const tableName of orderedTableNames) {
+    const tableColumnEntries = await Promise.all(
+      orderedTableNames.map(
+        async (tableName) =>
+          [tableName, await this.getTableColumns(tableName)] as const,
+      ),
+    );
+    for (const [tableName, existingColumns] of tableColumnEntries) {
       const tableData = data.get(tableName) ?? [];
       if (tableData.length === 0) continue;
-      const existingColumns = await this.getTableColumns(tableName);
       if (!existingColumns || existingColumns.length === 0) continue;
       tablesForWorker[tableName] = tableData;
       tableColumnsByName[tableName] = existingColumns;
       tablesWritten.add(tableName);
     }
 
+    const pullSyncStatements: SqlStatement[] = orderedTableNames.map(
+      (tableName) => ({
+        statement:
+          'INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)',
+        values: [tableName, lastPulled],
+      }),
+    );
+    const isWebPlatform = this.isWebPlatform();
+    let syncWriteTransactionOpen = false;
+    let webStoreDirty = false;
+
+    const beginSyncWriteTransaction = async () => {
+      if (!this._db || syncWriteTransactionOpen) return;
+      await this._db.beginTransaction();
+      syncWriteTransactionOpen = true;
+    };
+
+    const commitSyncWriteTransaction = async () => {
+      if (!this._db || !syncWriteTransactionOpen) return;
+      await this._db.commitTransaction();
+      syncWriteTransactionOpen = false;
+      if (isWebPlatform && webStoreDirty) {
+        await this._sqlite?.saveToStore(this.DB_NAME);
+        webStoreDirty = false;
+      }
+    };
+
+    const rollbackSyncWriteTransaction = async () => {
+      if (!this._db || !syncWriteTransactionOpen) return;
+      try {
+        await this._db.rollbackTransaction();
+      } finally {
+        syncWriteTransactionOpen = false;
+        webStoreDirty = false;
+      }
+    };
+
+    const writeSyncBatch = async (batch: SqlStatement[]) => {
+      if (!batch.length) return;
+      await this.executeSqlStatementBatch(batch, !syncWriteTransactionOpen);
+      if (isWebPlatform) {
+        webStoreDirty = true;
+      }
+    };
+
     try {
-      await runBackgroundWorkerStreamingSync(
-        {
-          tables: tablesForWorker,
-          tableColumns: tableColumnsByName,
-          defaultBatchSize: DEFAULT_DB_BATCH_SIZE,
-          userTableName: TABLES.User,
-          userTableBatchSize: SAFE_USER_BATCH_SIZE,
-          rowsPerChunk: STREAM_ROWS_CHUNK,
-        },
-        async (batch) => {
-          if (!batch.length) return;
-          if (Capacitor.getPlatform() === 'web') {
-            for (const q of batch) {
-              await this._db!.run(q.statement, q.values);
+      await beginSyncWriteTransaction();
+      try {
+        await runBackgroundWorkerStreamingSync(
+          {
+            tables: tablesForWorker,
+            tableColumns: tableColumnsByName,
+            defaultBatchSize: DEFAULT_DB_BATCH_SIZE,
+            userTableName: TABLES.User,
+            userTableBatchSize: SAFE_USER_BATCH_SIZE,
+            rowsPerChunk: STREAM_ROWS_CHUNK,
+          },
+          async (batch) => {
+            await writeSyncBatch(batch);
+          },
+        );
+      } catch (workerError) {
+        logger.warn(
+          'Falling back to main-thread sync batch generation after worker failure:',
+          workerError,
+        );
+        await rollbackSyncWriteTransaction();
+        await beginSyncWriteTransaction();
+
+        for (const tableName of Object.keys(tablesForWorker)) {
+          const existingColumns = tableColumnsByName[tableName] ?? [];
+          const tableData = tablesForWorker[tableName] ?? [];
+          if (!existingColumns.length || !tableData.length) continue;
+          const isUserTable = tableName === TABLES.User;
+          const batchSize = isUserTable
+            ? SAFE_USER_BATCH_SIZE
+            : DEFAULT_DB_BATCH_SIZE;
+          let batchQueries: SqlStatement[] = [];
+          let currentFieldNames: string[] | null = null;
+          let currentRows: unknown[][] = [];
+
+          const flushBatchRows = async () => {
+            if (!currentFieldNames || currentRows.length === 0) {
+              return;
             }
-            await this._sqlite?.saveToStore(this.DB_NAME);
-          } else {
-            await this._db!.executeSet(batch);
-          }
-        },
-      );
-    } catch (workerError) {
-      logger.warn(
-        'Falling back to main-thread sync batch generation after worker failure:',
-        workerError,
-      );
-      for (const tableName of Object.keys(tablesForWorker)) {
-        const existingColumns = tableColumnsByName[tableName] ?? [];
-        const tableData = tablesForWorker[tableName] ?? [];
-        if (!existingColumns.length || !tableData.length) continue;
-        const isUserTable = tableName === TABLES.User;
-        const batchSize = isUserTable
-          ? SAFE_USER_BATCH_SIZE
-          : DEFAULT_DB_BATCH_SIZE;
-        let batchQueries: { statement: string; values: any[] }[] = [];
-        for (const row of tableData) {
-          const fieldNames = Object.keys(row).filter((f) =>
-            existingColumns.includes(f),
-          );
-          if (fieldNames.length === 0) continue;
-          const fieldValues = fieldNames.map((f) =>
-            this.normalizeSqliteValue(row[f]),
-          );
-          const placeholders = fieldNames.map(() => '?').join(', ');
-          const updateSetClause = fieldNames
-            .filter((f) => f !== 'id')
-            .map((f) => `${f} = excluded.${f}`)
-            .join(', ');
-          const stmt = `
-            INSERT INTO ${tableName} (${fieldNames.join(', ')})
-            VALUES (${placeholders})
+            const placeholdersPerRow = `(${currentFieldNames
+              .map(() => '?')
+              .join(', ')})`;
+            const valuesPlaceholders = currentRows
+              .map(() => placeholdersPerRow)
+              .join(', ');
+            const updateSetClause = currentFieldNames
+              .filter((f) => f !== 'id')
+              .map((f) => `${f} = excluded.${f}`)
+              .join(', ');
+            const statement = updateSetClause
+              ? `
+            INSERT INTO ${tableName} (${currentFieldNames.join(', ')})
+            VALUES ${valuesPlaceholders}
             ON CONFLICT(id) DO UPDATE SET
             ${updateSetClause}
             WHERE excluded.updated_at > ${tableName}.updated_at;
+            `
+              : `
+            INSERT INTO ${tableName} (${currentFieldNames.join(', ')})
+            VALUES ${valuesPlaceholders}
+            ON CONFLICT(id) DO NOTHING;
             `;
-          batchQueries.push({ statement: stmt, values: fieldValues });
-          if (batchQueries.length >= batchSize) {
-            if (Capacitor.getPlatform() === 'web') {
-              for (const q of batchQueries) {
-                await this._db!.run(q.statement, q.values);
-              }
-              await this._sqlite?.saveToStore(this.DB_NAME);
-            } else {
-              await this._db!.executeSet(batchQueries);
+            batchQueries.push({
+              statement,
+              values: currentRows.flat(),
+            });
+            currentFieldNames = null;
+            currentRows = [];
+
+            if (batchQueries.length >= batchSize) {
+              await writeSyncBatch(batchQueries);
+              batchQueries = [];
             }
-            batchQueries = [];
+          };
+
+          for (const row of tableData) {
+            const fieldNames = existingColumns.filter((columnName) =>
+              Object.prototype.hasOwnProperty.call(row, columnName),
+            );
+            if (fieldNames.length === 0) continue;
+            const fieldValues = fieldNames.map((f) =>
+              this.normalizeSqliteValue(row[f]),
+            );
+            const maxRowsPerStatement = Math.max(
+              Math.floor(900 / fieldNames.length),
+              1,
+            );
+            const fieldSignature = fieldNames.join('|');
+            const currentSignature = currentFieldNames?.join('|');
+
+            if (
+              currentFieldNames &&
+              (currentSignature !== fieldSignature ||
+                currentRows.length >= maxRowsPerStatement)
+            ) {
+              await flushBatchRows();
+            }
+
+            if (!currentFieldNames) {
+              currentFieldNames = fieldNames;
+            }
+
+            currentRows.push(fieldValues);
+
+            if (currentRows.length >= maxRowsPerStatement) {
+              await flushBatchRows();
+            }
           }
-        }
-        if (batchQueries.length > 0) {
-          if (Capacitor.getPlatform() === 'web') {
-            for (const q of batchQueries) {
-              await this._db!.run(q.statement, q.values);
-            }
-            await this._sqlite?.saveToStore(this.DB_NAME);
-          } else {
-            await this._db!.executeSet(batchQueries);
+          await flushBatchRows();
+          if (batchQueries.length > 0) {
+            await writeSyncBatch(batchQueries);
           }
         }
       }
-    }
 
-    for (const tableName of tablesWritten) {
-      await this.executeQuery(
-        `INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)`,
-        [tableName, lastPulled],
-      );
+      await writeSyncBatch(pullSyncStatements);
+      await commitSyncWriteTransaction();
+    } catch (error) {
+      await rollbackSyncWriteTransaction();
+      throw error;
     }
 
     // Update debug info (avoid expensive full JSON serialization on hot path).
@@ -688,6 +867,10 @@ export class SqliteApi implements ServiceApi {
     }
     const pulledRowsSizeInBytes = totalpulledRows * 128;
     this.updateDebugInfo(0, totalpulledRows, pulledRowsSizeInBytes);
+
+    if (tablesWritten.has(TABLES.RiveReward)) {
+      this._cachedRewards = undefined;
+    }
 
     if (!isInitialFetch) {
       const new_school = data.get(TABLES.School);
@@ -748,9 +931,20 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getTableColumns(tableName: string): Promise<string[] | undefined> {
+    await this.ensureInitialized();
+    const cachedColumns = this._tableColumnsCache.get(tableName);
+    if (cachedColumns?.length) {
+      return cachedColumns;
+    }
     const query = `PRAGMA table_info(${tableName})`;
     const result = await this._db?.query(query);
-    return result?.values?.map((row: any) => row.name);
+    const columns = result?.values
+      ?.map((row: any) => row.name)
+      .filter((name): name is string => Boolean(name));
+    if (columns?.length) {
+      this._tableColumnsCache.set(tableName, columns);
+    }
+    return columns;
   }
 
   private async reconcileCurrentClassSelection() {
@@ -806,6 +1000,7 @@ export class SqliteApi implements ServiceApi {
           newData,
           newData.id,
         );
+        let networkError = false;
         let isPermissionDenied = false;
         if (!mutate || mutate.error) {
           const _currentUser =
@@ -829,7 +1024,22 @@ export class SqliteApi implements ServiceApi {
             mutateMessage.includes('row-level security') ||
             mutateMessage.includes('violates row-level security') ||
             mutateMessage.includes('unauthorized');
+          networkError =
+            mutateStatus === 0 ||
+            mutateStatus >= 500 ||
+            mutateMessage.includes('network error') ||
+            mutateMessage.includes('failed to fetch');
 
+          if (networkError) {
+            logger.warn(
+              '🔁 Network error during push, will retry in next sync',
+              {
+                user_id: _currentUser?.id,
+                ...mutate?.error,
+              },
+            );
+            return false;
+          }
           if (isDuplicateConflict || !isPermissionDenied) {
             logger.info('🟢 Duplicate key ignored (already exists on server)');
           } else {
@@ -858,10 +1068,10 @@ export class SqliteApi implements ServiceApi {
     refreshTables: TABLES[] = [],
     isFirstSync?: boolean,
   ) {
+    await this.ensureInitialized();
     if (!this._db) return;
     // 🔒 LOCK
     if (this._syncInProgress) {
-      logger.info('🟡 Sync already running → scheduling another run');
       if (refreshTables && refreshTables.length > 0) {
         this._retryRefreshTables.push(...refreshTables);
       }
@@ -870,22 +1080,21 @@ export class SqliteApi implements ServiceApi {
     }
     this._syncInProgress = true;
     try {
-      const refresh_tables = "'" + refreshTables.join("', '") + "'";
-      logger.info(
-        'logs to check synced tables',
-        JSON.stringify(refresh_tables),
-      );
-      await this.executeQuery(
-        `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
-      );
-      const tablePullSync = await this.executeQuery(
-        `SELECT * FROM pull_sync_info WHERE table_name = '${TABLES.User}';`,
-      );
-      const lastUserUpdatedStr =
-        tablePullSync?.values?.[0]?.last_pulled ?? '2024-01-01 00:00:00';
-
+      if (refreshTables.length > 0) {
+        const refresh_tables = "'" + refreshTables.join("', '") + "'";
+        logger.info(
+          'logs to check synced tables',
+          JSON.stringify(refresh_tables),
+        );
+        await this.executeQuery(
+          `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
+        );
+      }
       await this.pullChanges(tableNames, isFirstSync);
-      await this.prefetchStickerBookAssetsAfterSync();
+      Promise.allSettled([
+        this.prefetchStickerBookAssetsAfterSync(),
+        this.prefetchLidoCommonAudioAfterSync(),
+      ]);
       const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
       // logger.info("logs to check synced tables1", JSON.stringify(tables));
@@ -1360,6 +1569,7 @@ export class SqliteApi implements ServiceApi {
   async getExistingSchoolRequest(
     requested_by: string,
   ): Promise<TableTypes<'ops_requests'> | null> {
+    await this.ensureInitialized();
     const query = `
       SELECT *
       FROM ${TABLES.OpsRequests}
@@ -1373,6 +1583,7 @@ export class SqliteApi implements ServiceApi {
     school_id?: string,
     class_id?: string,
   ): Promise<void> {
+    await this.ensureInitialized();
     if (!this._db) return;
 
     const query1 = `
@@ -1540,6 +1751,7 @@ export class SqliteApi implements ServiceApi {
     schoolId: string,
     selectedCourseIds: string[],
   ): Promise<void> {
+    await this.ensureInitialized();
     const currentDate = new Date().toISOString();
 
     for (let idx = 0; idx < selectedCourseIds.length; idx++) {
@@ -1619,6 +1831,7 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     selectedCourseIds: string[],
   ): Promise<void> {
+    await this.ensureInitialized();
     const currentDate = new Date().toISOString();
     for (let idx = 0; idx < selectedCourseIds.length; idx++) {
       const courseId = selectedCourseIds[idx];
@@ -1694,6 +1907,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async deleteProfile(studentId: string) {
+    await this.ensureInitialized();
     if (!this._db) return;
     try {
       const authHandler = ServiceConfig.getI()?.authHandler;
@@ -1757,6 +1971,9 @@ export class SqliteApi implements ServiceApi {
         `UPDATE parent_user SET is_deleted = 1, updated_at = ? WHERE student_id = ? AND parent_id = ? AND is_deleted = 0`,
         [timestamp, studentId, localParentId],
       );
+
+      // Clear only this student's cached latest pathway snapshot.
+      localStorage.removeItem(`${LATEST_LEARNING_PATH}:${studentId}`);
     } catch (error) {
       logger.error('🚀 ~ SqliteApi ~ deleteProfile ~ error:', error);
     }
@@ -1831,6 +2048,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getAllCurriculums(): Promise<TableTypes<'curriculum'>[]> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `SELECT * FROM ${TABLES.Curriculum} ORDER BY name ASC`,
     );
@@ -1838,11 +2056,13 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
   async getAllGrades(): Promise<TableTypes<'grade'>[]> {
+    await this.ensureInitialized();
     const res = await this._db?.query('select * from ' + TABLES.Grade);
     return res?.values ?? [];
   }
 
   async getGradeById(id: string): Promise<TableTypes<'grade'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Grade} where id = "${id}"`,
     );
@@ -1850,6 +2070,7 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
   async getGradesByIds(gradeIds: string[]): Promise<TableTypes<'grade'>[]> {
+    await this.ensureInitialized();
     if (!gradeIds || gradeIds.length === 0) {
       return [];
     }
@@ -1870,6 +2091,7 @@ export class SqliteApi implements ServiceApi {
   async getCurriculumById(
     id: string,
   ): Promise<TableTypes<'curriculum'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Curriculum} where id = "${id}"`,
     );
@@ -1879,6 +2101,7 @@ export class SqliteApi implements ServiceApi {
   async getCurriculumsByIds(
     ids: string[],
   ): Promise<TableTypes<'curriculum'>[]> {
+    await this.ensureInitialized();
     if (!ids || ids.length === 0) {
       return [];
     }
@@ -1900,6 +2123,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getAllLanguages(): Promise<TableTypes<'language'>[]> {
+    await this.ensureInitialized();
     const res = await this._db?.query('select * from ' + TABLES.Language);
     logger.info('🚀 ~ SqliteApi ~ getAllLanguages ~ res:', res);
     return res?.values ?? [];
@@ -1923,6 +2147,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getParentStudentProfiles(): Promise<TableTypes<'user'>[]> {
+    await this.ensureInitialized();
     if (!this._db) throw 'Db is not initialized';
     const authHandler = ServiceConfig.getI()?.authHandler;
     const currentUser = await authHandler?.getCurrentUser();
@@ -2042,6 +2267,7 @@ export class SqliteApi implements ServiceApi {
   async getLanguageWithId(
     id: string,
   ): Promise<TableTypes<'language'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Language} where id = "${id}"`,
     );
@@ -2052,8 +2278,20 @@ export class SqliteApi implements ServiceApi {
   async getLessonWithCocosLessonId(
     lessonId: string,
   ): Promise<TableTypes<'lesson'> | null> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
-      `select * from ${TABLES.Lesson} where cocos_lesson_id = "${lessonId}" and is_deleted = 0`,
+      `
+        select *
+        from ${TABLES.Lesson}
+        where cocos_lesson_id = ?
+          and is_deleted = 0
+        order by
+          coalesce(datetime(updated_at), datetime(created_at)) desc,
+          updated_at desc,
+          created_at desc
+        limit 1
+      `,
+      [lessonId],
     );
     if (!res || !res.values || res.values.length < 1) return null;
     return res.values[0];
@@ -2062,6 +2300,7 @@ export class SqliteApi implements ServiceApi {
   async getCoursesForParentsStudent(
     studentId: string,
   ): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT *
     FROM ${TABLES.UserCourse} AS uc
@@ -2075,6 +2314,7 @@ export class SqliteApi implements ServiceApi {
   async getAdditionalCourses(
     studentId: string,
   ): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     const res = await this._db?.query(`
     SELECT c.*
     FROM ${TABLES.Course} c
@@ -2087,6 +2327,7 @@ export class SqliteApi implements ServiceApi {
   async getCoursesForClassStudent(
     classId: string,
   ): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     const query = `
       SELECT course.*
       FROM ${TABLES.ClassCourse} AS cc
@@ -2099,6 +2340,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getLesson(id: string): Promise<TableTypes<'lesson'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Lesson} where id = "${id}" and is_deleted = 0`,
     );
@@ -2106,6 +2348,7 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
   async getChapterById(id: string): Promise<TableTypes<'chapter'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Chapter} where id = "${id}" and is_deleted = 0`,
     );
@@ -2116,6 +2359,7 @@ export class SqliteApi implements ServiceApi {
   async getLessonsForChapter(
     chapterId: string,
   ): Promise<TableTypes<'lesson'>[]> {
+    await this.ensureInitialized();
     const student = this.currentStudent;
     const langId = student?.language_id;
     const localeId = student?.locale_id;
@@ -2154,6 +2398,7 @@ export class SqliteApi implements ServiceApi {
     grades: TableTypes<'grade'>[];
     courses: TableTypes<'course'>[];
   }> {
+    await this.ensureInitialized();
     const query = `
     SELECT c.*,
     JSON_OBJECT(
@@ -2213,6 +2458,7 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     studentId: string,
   ): Promise<TableTypes<'assignment'>[]> {
+    await this.ensureInitialized();
     const now = new Date().toISOString();
     const query = `
     SELECT a.*
@@ -2241,6 +2487,7 @@ export class SqliteApi implements ServiceApi {
     studentId: string,
     lessonId: string,
   ): Promise<TableTypes<'favorite_lesson'>> {
+    await this.ensureInitialized();
     const favoriteId = uuidv4();
     var favoriteLesson: TableTypes<'favorite_lesson'>;
     const isExist = await this._db?.query(
@@ -2727,16 +2974,19 @@ export class SqliteApi implements ServiceApi {
     params.push(student.id);
     await this.executeQuery(updateUserQuery, params);
 
-    student.name = name;
-    student.age = age;
-    student.gender = gender;
-    student.avatar = avatar;
-    student.image = image ?? null;
-    student.curriculum_id = boardDocId ?? null;
-    student.grade_id = gradeDocId ?? null;
-    student.language_id = languageDocId;
-    student.locale_id = localeId;
-    student.updated_at = now;
+    const updatedStudent: TableTypes<'user'> = {
+      ...student,
+      name,
+      age,
+      gender,
+      avatar,
+      image: image ?? null,
+      curriculum_id: boardDocId ?? null,
+      grade_id: gradeDocId ?? null,
+      language_id: languageDocId,
+      locale_id: localeId,
+      updated_at: now,
+    };
 
     await this.assignCoursesToStudent(
       student.id,
@@ -2758,7 +3008,7 @@ export class SqliteApi implements ServiceApi {
       locale_id: localeId,
       updated_at: now,
     });
-    return student;
+    return updatedStudent;
   }
   async getCurrentClassIdForStudent(studentId: string): Promise<string | null> {
     const query = `
@@ -2841,21 +3091,23 @@ export class SqliteApi implements ServiceApi {
 
       await this.executeQuery(updateUserQuery, params);
 
-      // Update local object
-      student.name = name;
-      student.age = age;
-      student.gender = gender;
-      student.avatar = avatar;
-      student.image = image ?? null;
-      student.curriculum_id = boardDocId;
-      student.grade_id = gradeDocId;
-      student.language_id = languageDocId;
-      student.student_id = student_id;
-      student.locale_id = localeId;
-      student.updated_at = now;
+      const updatedStudent: TableTypes<'user'> = {
+        ...student,
+        name,
+        age,
+        gender,
+        avatar,
+        image: image ?? null,
+        curriculum_id: boardDocId,
+        grade_id: gradeDocId,
+        language_id: languageDocId,
+        student_id,
+        locale_id: localeId,
+        updated_at: now,
+      };
 
       if (languageChanged) {
-        student.learning_path = JSON.stringify([]);
+        updatedStudent.learning_path = JSON.stringify([]);
       }
 
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
@@ -2950,7 +3202,7 @@ export class SqliteApi implements ServiceApi {
         );
         await this._serverApi.addParentToNewClass(newClassId, student.id);
       }
-      return student;
+      return updatedStudent;
     } catch (error) {
       logger.error('Error updating student:', error);
       throw error; // Rethrow error after logging
@@ -2958,6 +3210,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getSubject(id: string): Promise<TableTypes<'subject'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Subject} where id = "${id}"`,
     );
@@ -2966,6 +3219,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getCourse(id: string): Promise<TableTypes<'course'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Course} where id = "${id}" and is_deleted = 0`,
     );
@@ -2973,6 +3227,7 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
   async getCourses(courseIds: string[]): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     if (!courseIds || courseIds.length === 0) {
       return [];
     }
@@ -2995,6 +3250,7 @@ export class SqliteApi implements ServiceApi {
     subjectId: string,
     frameworkId: string,
   ): Promise<TableTypes<'domain'>[]> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Domain} where subject_id = ? and framework_id = ? and (is_deleted = 0)`,
       [subjectId, frameworkId],
@@ -3005,6 +3261,7 @@ export class SqliteApi implements ServiceApi {
   async getCompetenciesByDomainIds(
     domainIds: string[],
   ): Promise<TableTypes<'competency'>[]> {
+    await this.ensureInitialized();
     if (!domainIds || domainIds.length === 0) return [];
     const placeholders = domainIds.map(() => '?').join(',');
     const res = await this._db?.query(
@@ -3017,6 +3274,7 @@ export class SqliteApi implements ServiceApi {
   async getOutcomesByCompetencyIds(
     competencyIds: string[],
   ): Promise<TableTypes<'outcome'>[]> {
+    await this.ensureInitialized();
     if (!competencyIds || competencyIds.length === 0) return [];
     const placeholders = competencyIds.map(() => '?').join(',');
     const res = await this._db?.query(
@@ -3029,6 +3287,7 @@ export class SqliteApi implements ServiceApi {
   async getSkillsByOutcomeIds(
     outcomeIds: string[],
   ): Promise<TableTypes<'skill'>[]> {
+    await this.ensureInitialized();
     if (!outcomeIds || outcomeIds.length === 0) return [];
     const placeholders = outcomeIds.map(() => '?').join(',');
     const res = await this._db?.query(
@@ -3042,6 +3301,7 @@ export class SqliteApi implements ServiceApi {
     studentId: string,
     skillIds: string[],
   ): Promise<TableTypes<'result'>[]> {
+    await this.ensureInitialized();
     if (!skillIds || skillIds.length === 0) return [];
     const placeholders = skillIds.map(() => '?').join(',');
     const res = await this._db?.query(
@@ -3054,6 +3314,7 @@ export class SqliteApi implements ServiceApi {
   async getSkillLessonsBySkillIds(
     skillIds: string[],
   ): Promise<TableTypes<'skill_lesson'>[]> {
+    await this.ensureInitialized();
     if (!skillIds || skillIds.length === 0) return [];
 
     const student = this.currentStudent;
@@ -3094,6 +3355,7 @@ export class SqliteApi implements ServiceApi {
   async getSkillRelationsByTargetIds(
     targetSkillIds: string[],
   ): Promise<TableTypes<'skill_relation'>[]> {
+    await this.ensureInitialized();
     if (!targetSkillIds || targetSkillIds.length === 0) return [];
     const placeholders = targetSkillIds.map(() => '?').join(',');
     const res = await this._db?.query(
@@ -3107,6 +3369,7 @@ export class SqliteApi implements ServiceApi {
     studentId: string,
     fromCache?: boolean,
   ): Promise<TableTypes<'result'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT * FROM ${TABLES.Result}
     where student_id = '${studentId}'
@@ -3118,6 +3381,7 @@ export class SqliteApi implements ServiceApi {
   async getStudentResultInMap(
     studentId: string,
   ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }> {
+    await this.ensureInitialized();
     const query = `
     SELECT *
     FROM ${TABLES.Result}
@@ -3140,6 +3404,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getClassById(id: string): Promise<TableTypes<'class'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Class} where id = "${id}"`,
     );
@@ -3148,6 +3413,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getSchoolById(id: string): Promise<TableTypes<'school'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.School} where id = "${id}"`,
     );
@@ -3179,6 +3445,7 @@ export class SqliteApi implements ServiceApi {
     studentId: string,
     fromCache: boolean,
   ): Promise<boolean> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.ClassUser}
       where user_id = "${studentId}"
@@ -3192,6 +3459,7 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     studentId: string,
   ): Promise<TableTypes<'assignment'>[]> {
+    await this.ensureInitialized();
     const nowIso = new Date().toISOString();
 
     const query = `
@@ -3224,6 +3492,7 @@ export class SqliteApi implements ServiceApi {
   async getSchoolsForUser(
     userId: string,
   ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
+    await this.ensureInitialized();
     const finalData: { school: TableTypes<'school'>; role: RoleType }[] = [];
     const schoolIds: Set<string> = new Set();
     let query = `
@@ -3318,6 +3587,12 @@ export class SqliteApi implements ServiceApi {
     }
     return finalData;
   }
+  async getSchoolsForUserBySearchTerm(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
+    throw new Error('Method not implemented.');
+  }
 
   public get currentMode(): MODES {
     return this._currentMode;
@@ -3335,6 +3610,7 @@ export class SqliteApi implements ServiceApi {
     schoolId: string,
     userId: string,
   ): Promise<TableTypes<'class'>[]> {
+    await this.ensureInitialized();
     let query = `
     SELECT DISTINCT cu.class_id, cu.role, c.*
     FROM ${TABLES.ClassUser} cu
@@ -3380,6 +3656,7 @@ export class SqliteApi implements ServiceApi {
   async getCoursesByClassId(
     classId: string,
   ): Promise<TableTypes<'class_course'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT *
     FROM ${TABLES.ClassCourse}
@@ -3391,6 +3668,7 @@ export class SqliteApi implements ServiceApi {
   async getCoursesBySchoolId(
     schoolId: string,
   ): Promise<TableTypes<'school_course'>[]> {
+    await this.ensureInitialized();
     const query = `
       SELECT *
       FROM ${TABLES.SchoolCourse}
@@ -3490,6 +3768,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getStudentsForClass(classId: string): Promise<TableTypes<'user'>[]> {
+    await this.ensureInitialized();
     const query = `
       SELECT user.*
       FROM ${TABLES.ClassUser} AS cu
@@ -3507,6 +3786,69 @@ export class SqliteApi implements ServiceApi {
     let inviteData = await this._serverApi.getDataByInviteCode(inviteCode);
     return inviteData;
   }
+
+  async getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult> {
+    const { inviteData, classData, schoolData } =
+      await this._serverApi.getDataByInviteCodeNew(inviteCode);
+
+    if (!classData) {
+      throw new Error('Class data could not be fetched.');
+    }
+
+    if (!schoolData) {
+      throw new Error('School data could not be fetched.');
+    }
+
+    return {
+      inviteData,
+      classData,
+      schoolData,
+    };
+  }
+
+  private async upsertJoinLookupRow(
+    tableName: TABLES.Class | TABLES.School | TABLES.ClassUser,
+    row: TableTypes<'class'> | TableTypes<'school'> | TableTypes<'class_user'>,
+  ): Promise<void> {
+    const existingColumns = await this.getTableColumns(tableName);
+    if (!existingColumns?.length) {
+      return;
+    }
+
+    const rowData = row as Record<string, unknown>;
+    const columns = existingColumns.filter((column) =>
+      Object.prototype.hasOwnProperty.call(rowData, column),
+    );
+
+    if (!columns.length) {
+      return;
+    }
+
+    const placeholders = columns.map(() => '?').join(', ');
+    const updates = columns
+      .filter((column) => column !== 'id')
+      .map((column) => `${column} = excluded.${column}`)
+      .join(', ');
+    const statement = `
+      INSERT INTO ${tableName} (${columns.join(', ')})
+      VALUES (${placeholders})
+      ON CONFLICT(id) DO UPDATE SET ${updates};
+    `;
+    const values = columns.map((column) => rowData[column]);
+
+    await this.executeQuery(statement, values);
+  }
+
+  async storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void> {
+    await this.upsertJoinLookupRow(TABLES.School, schoolData);
+    await this.upsertJoinLookupRow(TABLES.Class, classData);
+  }
+
   async createClass(
     schoolId: string,
     className: string,
@@ -3560,6 +3902,7 @@ export class SqliteApi implements ServiceApi {
     return newClass;
   }
   async deleteClass(classId: string) {
+    await this.ensureInitialized();
     try {
       // Update is_deleted to true for all class_user records where role is teacher
       await this.executeQuery(
@@ -3667,6 +4010,13 @@ export class SqliteApi implements ServiceApi {
   }
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     let linkData = await this._serverApi.linkStudent(inviteCode, studentId);
+
+    if (Array.isArray(linkData) && linkData.length > 0) {
+      for (const row of linkData as TableTypes<'class_user'>[]) {
+        await this.upsertJoinLookupRow(TABLES.ClassUser, row);
+      }
+    }
+
     await this.syncDbNow(Object.values(TABLES), [
       TABLES.Assignment,
       TABLES.Class,
@@ -3689,8 +4039,10 @@ export class SqliteApi implements ServiceApi {
       return classLeaderboard;
     } else {
       // Getting Generic Leaderboard
-      let genericQueryResult =
-        await this._serverApi.getLeaderboardStudentResultFromB2CCollection();
+      let genericQueryResult = await this._serverApi.getLeaderboardResults(
+        '',
+        leaderboardDropdownType,
+      );
       if (!genericQueryResult) {
         return;
       }
@@ -3701,39 +4053,52 @@ export class SqliteApi implements ServiceApi {
   async getLeaderboardStudentResultFromB2CCollection(
     studentId: string,
   ): Promise<LeaderboardInfo | undefined> {
+    await this.ensureInitialized();
     try {
       // Ensure the database instance is initialized
       if (!this._db) throw new Error('Database is not initialized');
 
       // Define the query to fetch the leaderboard data for the given student
       const currentStudentQuery = `
-        SELECT 'allTime' as type, res.student_id, name,
+        SELECT 'allTime' as type, res.student_id, u.name,
                count(res.id) as lessons_played,
-               sum(score) as total_score,
-               sum(time_spent) as total_time_spent
+               sum(res.score) as total_score,
+               sum(res.time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
+        JOIN ${TABLES.Lesson} l ON l.id = res.lesson_id
         WHERE res.student_id = '${studentId}'
+          AND COALESCE(res.is_deleted, 0) = 0
+          AND COALESCE(u.is_deleted, 0) = 0
+          AND COALESCE(l.plugin_type, '') <> '${LIDO_ASSESSMENT}'
         GROUP BY res.student_id, u.name
         UNION ALL
         SELECT 'monthly' as type, res.student_id, u.name,
                count(res.id) as lessons_played,
-               sum(score) as total_score,
-               sum(time_spent) as total_time_spent
+               sum(res.score) as total_score,
+               sum(res.time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
+        JOIN ${TABLES.Lesson} l ON l.id = res.lesson_id
         WHERE res.student_id = '${studentId}'
-        AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
+          AND strftime('%m', res.created_at) = strftime('%m', datetime('now'))
+          AND COALESCE(res.is_deleted, 0) = 0
+          AND COALESCE(u.is_deleted, 0) = 0
+          AND COALESCE(l.plugin_type, '') <> '${LIDO_ASSESSMENT}'
         GROUP BY res.student_id, u.name
         UNION ALL
         SELECT 'weekly' as type, res.student_id, u.name,
                count(res.id) as lessons_played,
-               sum(score) as total_score,
-               sum(time_spent) as total_time_spent
+               sum(res.score) as total_score,
+               sum(res.time_spent) as total_time_spent
         FROM ${TABLES.Result} res
         JOIN ${TABLES.User} u ON u.id = res.student_id
+        JOIN ${TABLES.Lesson} l ON l.id = res.lesson_id
         WHERE res.student_id = '${studentId}'
-        AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
+          AND strftime('%W', res.created_at) = strftime('%W', datetime('now'))
+          AND COALESCE(res.is_deleted, 0) = 0
+          AND COALESCE(u.is_deleted, 0) = 0
+          AND COALESCE(l.plugin_type, '') <> '${LIDO_ASSESSMENT}'
         GROUP BY res.student_id, u.name
       `;
 
@@ -3791,6 +4156,7 @@ export class SqliteApi implements ServiceApi {
   async getAllLessonsForCourse(
     courseId: string,
   ): Promise<TableTypes<'lesson'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT l.* FROM ${TABLES.Chapter} as c
     JOIN ${TABLES.ChapterLesson} cl ON cl.chapter_id = c.id
@@ -3815,6 +4181,7 @@ export class SqliteApi implements ServiceApi {
     lesson: TableTypes<'lesson'>[];
     course: TableTypes<'course'>[];
   }> {
+    await this.ensureInitialized();
     const data: {
       lesson: TableTypes<'lesson'>[];
       course: TableTypes<'course'>[];
@@ -3851,6 +4218,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getCoursesByGrade(gradeDocId: any): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     try {
       const gradeCoursesRes = await this._db?.query(
         `SELECT * FROM ${TABLES.Course} WHERE grade_id = "${gradeDocId}" AND is_deleted = 0`,
@@ -3872,6 +4240,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getAllCourses(): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Course} ORDER BY sort_index ASC`,
     );
@@ -3884,6 +4253,7 @@ export class SqliteApi implements ServiceApi {
   async getCoursesFromLesson(
     lessonId: string,
   ): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT co.* FROM ${TABLES.Lesson} as l
     JOIN ${TABLES.ChapterLesson} cl ON l.id = cl.lesson_id
@@ -4016,6 +4386,7 @@ export class SqliteApi implements ServiceApi {
   async getAssignmentById(
     id: string,
   ): Promise<TableTypes<'assignment'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Assignment} where id = "${id}"`,
     );
@@ -4025,6 +4396,7 @@ export class SqliteApi implements ServiceApi {
   async getAssignmentsByIds(
     ids: string[],
   ): Promise<TableTypes<'assignment'>[]> {
+    await this.ensureInitialized();
     if (!ids.length) return [];
 
     const idslst = ids.map(() => '?').join(', ');
@@ -4042,6 +4414,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getBadgesByIds(ids: string[]): Promise<TableTypes<'badge'>[]> {
+    await this.ensureInitialized();
     if (ids.length === 0) return [];
 
     const quotedIds = ids.map((id) => `"${id}"`).join(', ');
@@ -4059,6 +4432,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getStickersByIds(ids: string[]): Promise<TableTypes<'sticker'>[]> {
+    await this.ensureInitialized();
     if (ids.length === 0) return [];
 
     const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
@@ -4074,6 +4448,7 @@ export class SqliteApi implements ServiceApi {
     }
   }
   async getBonusesByIds(ids: string[]): Promise<TableTypes<'lesson'>[]> {
+    await this.ensureInitialized();
     if (ids.length === 0) return [];
 
     const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
@@ -4092,6 +4467,7 @@ export class SqliteApi implements ServiceApi {
     id: number,
     periodType: string,
   ): Promise<TableTypes<'reward'> | undefined> {
+    await this.ensureInitialized();
     try {
       const query = `SELECT ${periodType} FROM ${TABLES.Reward} WHERE year = ${id}`;
       const data = await this._db?.query(query);
@@ -4113,6 +4489,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getUserSticker(userId: string): Promise<TableTypes<'user_sticker'>[]> {
+    await this.ensureInitialized();
     try {
       const query = `select * from ${TABLES.UserSticker} where user_id = "${userId}"`;
       const data = await this._db?.query(query);
@@ -4129,7 +4506,29 @@ export class SqliteApi implements ServiceApi {
       return [];
     }
   }
+
+  async getUserStickerBook(
+    userId: string,
+  ): Promise<TableTypes<'user_sticker_book'>[]> {
+    await this.ensureInitialized();
+    try {
+      const query = `select * from ${TABLES.UserStickerBook} where user_id = "${userId}" AND is_deleted = 0`;
+      const data = await this._db?.query(query);
+
+      if (!data || !data.values || data.values.length === 0) {
+        logger.warn('No sticker found for the given user id.');
+        return [];
+      }
+
+      const periodData = data.values;
+      return periodData;
+    } catch (error) {
+      logger.error('Error fetching sticker by user ID:', error);
+      return [];
+    }
+  }
   async getUserBadge(userId: string): Promise<TableTypes<'user_badge'>[]> {
+    await this.ensureInitialized();
     try {
       const query = `select * from ${TABLES.UserBadge} where user_id = "${userId}"`;
       const data = await this._db?.query(query);
@@ -4148,6 +4547,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async getUserBonus(userId: string): Promise<TableTypes<'user_bonus'>[]> {
+    await this.ensureInitialized();
     try {
       const query = `select * from ${TABLES.UserBonus} where user_id = "${userId}"`;
       const data = await this._db?.query(query);
@@ -4166,6 +4566,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   async updateRewardAsSeen(studentId: string): Promise<void> {
+    await this.ensureInitialized();
     try {
       const query = `UPDATE ${TABLES.UserSticker} SET is_seen = true WHERE user_id = "${studentId}" AND is_seen = false`;
       await this._db?.query(query);
@@ -4175,9 +4576,49 @@ export class SqliteApi implements ServiceApi {
     }
   }
 
+  async markStciekercolledasTrue(userId: string): Promise<void> {
+    await this.ensureInitialized();
+    try {
+      const updatedAt = new Date().toISOString();
+
+      const rowsToUpdateQuery = `SELECT id FROM ${TABLES.UserStickerBook}
+        WHERE user_id = ? AND is_deleted = 0 AND (is_seen = 0 OR is_seen IS NULL)`;
+      const rowsToUpdate = await this._db?.query(rowsToUpdateQuery, [userId]);
+      const rowIds =
+        rowsToUpdate?.values
+          ?.map((row: { id?: string }) => row.id)
+          .filter((id): id is string => Boolean(id)) ?? [];
+
+      if (!rowIds.length) {
+        return;
+      }
+
+      const query = `UPDATE ${TABLES.UserStickerBook}
+        SET is_seen = 1, updated_at = ?
+        WHERE user_id = ? AND is_deleted = 0 AND (is_seen = 0 OR is_seen IS NULL)`;
+      await this.executeQuery(query, [updatedAt, userId]);
+
+      for (const id of rowIds) {
+        await this.updatePushChanges(
+          TABLES.UserStickerBook,
+          MUTATE_TYPES.UPDATE,
+          {
+            id,
+            user_id: userId,
+            is_seen: true,
+            updated_at: updatedAt,
+          },
+        );
+      }
+    } catch (error) {
+      logger.warn('Failed to update stickers as seen on server:', error);
+    }
+  }
+
   async getUserByDocId(
     studentId: string,
   ): Promise<TableTypes<'user'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.User} where id = "${studentId}"`,
     );
@@ -4222,6 +4663,7 @@ export class SqliteApi implements ServiceApi {
   async getChaptersForCourse(
     courseId: string,
   ): Promise<TableTypes<'chapter'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT * FROM ${TABLES.Chapter}
     WHERE course_id = "${courseId}" AND is_deleted = 0
@@ -4235,6 +4677,7 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     studentId: string,
   ): Promise<TableTypes<'assignment'> | undefined> {
+    await this.ensureInitialized();
     const query = `
     SELECT a.*
     FROM ${TABLES.Assignment} a
@@ -4249,6 +4692,7 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
   async getFavouriteLessons(userId: string): Promise<TableTypes<'lesson'>[]> {
+    await this.ensureInitialized();
     const query = `
       SELECT DISTINCT l.*
       FROM ${TABLES.FavoriteLesson} fl
@@ -4266,6 +4710,7 @@ export class SqliteApi implements ServiceApi {
     classes: TableTypes<'class'>[];
     schools: TableTypes<'school'>[];
   }> {
+    await this.ensureInitialized();
     const data: {
       classes: TableTypes<'class'>[];
       schools: TableTypes<'school'>[];
@@ -4487,6 +4932,10 @@ export class SqliteApi implements ServiceApi {
       return false;
     }
   }
+
+  isSyncInProgress(): boolean {
+    return this._syncInProgress;
+  }
   async getUserAssignmentCart(
     userId: string,
   ): Promise<AssignmentCartData | undefined> {
@@ -4502,6 +4951,7 @@ export class SqliteApi implements ServiceApi {
       })[]
     >
   > {
+    await this.ensureInitialized();
     const query = `
       SELECT r.*, l.name AS lesson_name, c.course_id AS course_id, c.name AS chapter_name
       FROM ${TABLES.Result} r
@@ -4535,6 +4985,7 @@ export class SqliteApi implements ServiceApi {
     studentId: string,
     classId?: string,
   ): Promise<TableTypes<'lesson'>[]> {
+    await this.ensureInitialized();
     // This Query will give last played lessons
     const lastPlayedLessonsQuery = `
   WITH
@@ -4778,6 +5229,7 @@ order by
   }
 
   async searchLessons(searchString: string): Promise<TableTypes<'lesson'>[]> {
+    await this.ensureInitialized();
     if (!this._db) return [];
     const res: TableTypes<'lesson'>[] = [];
 
@@ -4823,6 +5275,7 @@ order by
     classId?: string,
     userId?: string,
   ): Promise<String | undefined> {
+    await this.ensureInitialized();
     try {
       const class_course = classId
         ? await this.getCoursesForClassStudent(classId)
@@ -4851,6 +5304,7 @@ order by
   async getResultByAssignmentIds(
     assignmentIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'result'>[] | undefined> {
+    await this.ensureInitialized();
     if (!assignmentIds || assignmentIds.length === 0) return;
 
     const placeholders = assignmentIds.map(() => '?').join(', ');
@@ -4868,6 +5322,7 @@ order by
     assignmentIds: string[],
     classId: string,
   ): Promise<TableTypes<'result'>[] | undefined> {
+    await this.ensureInitialized();
     if (!assignmentIds || assignmentIds.length === 0) return;
 
     const placeholders = assignmentIds.map(() => '?').join(', ');
@@ -4890,6 +5345,7 @@ order by
   async getAssignmentUserByAssignmentIds(
     assignmentIds: string[],
   ): Promise<TableTypes<'assignment_user'>[]> {
+    await this.ensureInitialized();
     // If there are no assignment IDs, return an empty array immediately.
     if (!assignmentIds || assignmentIds.length === 0) {
       return [];
@@ -4919,6 +5375,7 @@ order by
   async getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {
+    await this.ensureInitialized();
     if (!lessonIds || lessonIds.length === 0) return;
 
     const placeholders = lessonIds.map(() => '?').join(', ');
@@ -4938,6 +5395,7 @@ order by
     assignmentIds: string[],
     classId: string,
   ): Promise<TableTypes<'result'>[]> {
+    await this.ensureInitialized();
     const assignmentholders = assignmentIds.map(() => '?').join(', ');
     const courseholders = courseIds.map(() => '?').join(', ');
     const res = await this._db?.query(
@@ -5022,6 +5480,7 @@ order by
     isLiveQuiz: boolean,
     allAssignments: boolean,
   ): Promise<TableTypes<'assignment'>[] | undefined> {
+    await this.ensureInitialized();
     const courseholders = courseIds.map(() => '?').join(', ');
     let query = `SELECT * FROM ${TABLES.Assignment}
              WHERE class_id = ?
@@ -5052,6 +5511,7 @@ order by
     endDate: string,
     classId: string,
   ): Promise<TableTypes<'result'>[] | undefined> {
+    await this.ensureInitialized();
     const courseholders = courseIds.map(() => '?').join(', ');
 
     const query = `
@@ -5075,6 +5535,7 @@ order by
     studentId: string,
     classId: string,
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
+    await this.ensureInitialized();
     const query = `
       SELECT created_at
       FROM ${TABLES.Result}
@@ -5098,6 +5559,7 @@ order by
   async getLastAssignmentsForRecommendations(
     classId: string,
   ): Promise<TableTypes<'assignment'>[] | undefined> {
+    await this.ensureInitialized();
     const query = `WITH RankedAssignments AS (
     SELECT *,
            ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY created_at DESC) AS rn
@@ -5118,6 +5580,7 @@ order by
   async getTeachersForClass(
     classId: string,
   ): Promise<TableTypes<'user'>[] | undefined> {
+    await this.ensureInitialized();
     const query = `
     SELECT user.*
     FROM ${TABLES.ClassUser} AS cu
@@ -5304,6 +5767,7 @@ order by
     classWiseAssignments: TableTypes<'assignment'>[];
     individualAssignments: TableTypes<'assignment'>[];
   }> {
+    await this.ensureInitialized();
     const query = `
       SELECT *
       FROM ${TABLES.Assignment}
@@ -5330,6 +5794,7 @@ order by
     userId: string,
     classId: string,
   ): Promise<TableTypes<'class_user'> | undefined> {
+    await this.ensureInitialized();
     const query = `
     SELECT *
     FROM ${TABLES.ClassUser}
@@ -5351,6 +5816,7 @@ order by
     return undefined;
   }
   async getAssignedStudents(assignmentId: string): Promise<string[]> {
+    await this.ensureInitialized();
     //getting the student ids for the individual assignments
     const query = `
     SELECT user_id
@@ -5373,6 +5839,7 @@ order by
     }
   }
   async deleteTeacher(classId: string, teacherId: string) {
+    await this.ensureInitialized();
     try {
       const query = `
       SELECT *
@@ -5403,6 +5870,7 @@ order by
     }
   }
   async getClassCodeById(class_id: string): Promise<number | undefined> {
+    await this.ensureInitialized();
     if (!class_id) return;
     const currentDate = new Date().toISOString(); // Convert to a proper format for SQL (ISO 8601)
     const query = `SELECT code
@@ -5443,6 +5911,7 @@ order by
     endDate: string,
     classId: string,
   ): Promise<TableTypes<'result'>[] | undefined> {
+    await this.ensureInitialized();
     const query = `SELECT *
        FROM ${TABLES.Result}
        WHERE chapter_id = '${chapter_id}'
@@ -5462,6 +5931,7 @@ order by
     courseId: string,
     chapterIdOrIds: string | string[],
   ): Promise<string[]> {
+    await this.ensureInitialized();
     const chapterIds = Array.isArray(chapterIdOrIds)
       ? chapterIdOrIds.filter(Boolean)
       : [chapterIdOrIds].filter(Boolean);
@@ -5494,6 +5964,7 @@ order by
     schoolIds: string[],
     userId: string,
   ): Promise<TableTypes<'school'>[] | undefined> {
+    await this.ensureInitialized();
     // Escape schoolIds array for use in the SQL query
     const placeholders = schoolIds.map(() => '?').join(', '); // Generates ?, ?, ? for query placeholders
     const query = `
@@ -5512,6 +5983,7 @@ order by
   async getPrincipalsForSchool(
     schoolId: string,
   ): Promise<TableTypes<'user'>[] | undefined> {
+    await this.ensureInitialized();
     const query = `
     SELECT user.*
     FROM ${TABLES.SchoolUser} AS su
@@ -5527,6 +5999,7 @@ order by
     page: number = 1,
     limit: number = 20,
   ): Promise<PrincipalAPIResponse> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('SQLite DB not initialized.');
       return { data: [], total: 0 };
@@ -5584,6 +6057,7 @@ order by
     };
   }
   async getClassesBySchoolId(schoolId: string): Promise<TableTypes<'class'>[]> {
+    await this.ensureInitialized();
     const query = `
     SELECT *
     FROM ${TABLES.Class}
@@ -5629,6 +6103,7 @@ order by
   async getCoordinatorsForSchool(
     schoolId: string,
   ): Promise<TableTypes<'user'>[] | undefined> {
+    await this.ensureInitialized();
     const query = `
     SELECT user.*
     FROM ${TABLES.SchoolUser} AS su
@@ -5644,6 +6119,7 @@ order by
     page: number = 1,
     limit: number = 20,
   ): Promise<CoordinatorAPIResponse> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('SQLite DB not initialized.');
       return { data: [], total: 0 };
@@ -5702,6 +6178,7 @@ order by
   async getSponsorsForSchool(
     schoolId: string,
   ): Promise<TableTypes<'user'>[] | undefined> {
+    await this.ensureInitialized();
     const query = `
     SELECT user.*
     FROM ${TABLES.SchoolUser} AS su
@@ -5794,6 +6271,7 @@ order by
     userId: string,
     role: RoleType,
   ): Promise<{ success: boolean; message: string }> {
+    await this.ensureInitialized();
     try {
       const query = `
       SELECT *
@@ -6048,6 +6526,7 @@ order by
   async getCoursesForPathway(
     studentId: string,
   ): Promise<TableTypes<'course'>[]> {
+    await this.ensureInitialized();
     const query = `
       SELECT *
       FROM ${TABLES.UserCourse} AS uc
@@ -6062,13 +6541,14 @@ order by
     student: TableTypes<'user'>,
     learningPath: string,
   ): Promise<TableTypes<'user'>> {
+    let updatedStudent = student;
     try {
       const now = new Date().toISOString();
       const updateUserQuery = `UPDATE ${TABLES.User}
       SET learning_path = ?, updated_at = ?
       WHERE id = ?;`;
       await this.executeQuery(updateUserQuery, [learningPath, now, student.id]);
-      student.learning_path = learningPath;
+      updatedStudent = { ...student, learning_path: learningPath };
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         id: student.id,
         learning_path: learningPath,
@@ -6078,18 +6558,20 @@ order by
         learningPath,
         updated_at: new Date(Date.now() + 10000).toISOString(),
       };
-      sessionStorage.setItem(
-        LATEST_LEARNING_PATH,
+      const latestLearningPathKey = `${LATEST_LEARNING_PATH}:${student.id}`;
+      localStorage.setItem(
+        latestLearningPathKey,
         JSON.stringify(latestPathToSave),
       );
     } catch (error) {
       logger.error('Error updating learning path:', error);
     }
-    return student;
+    return updatedStudent;
   }
   async getClassByUserId(
     userId: string,
   ): Promise<TableTypes<'class'> | undefined> {
+    await this.ensureInitialized();
     // Step 1: Get class_id from class_user
     const classUserRes = await this._db?.query(
       `SELECT class_id FROM ${TABLES.ClassUser} WHERE user_id = "${userId}" AND is_deleted = false`,
@@ -6107,6 +6589,7 @@ order by
     return classRes.values[0];
   }
   async countAllPendingPushes(): Promise<number> {
+    await this.ensureInitialized();
     if (!this._db) return 0;
     const tableNames = Object.values(TABLES);
     const tables = "'" + tableNames.join("', '") + "'";
@@ -6318,6 +6801,7 @@ order by
   async getChapterIdbyQrLink(
     link: string,
   ): Promise<TableTypes<'chapter_links'> | undefined> {
+    await this.ensureInitialized();
     if (!link) return;
     try {
       const res = await this._db?.query(
@@ -6419,6 +6903,7 @@ order by
     page: number = 1,
     limit: number = 20,
   ): Promise<TeacherAPIResponse> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('SQLite DB not initialized.');
       return { data: [], total: 0 };
@@ -6524,6 +7009,7 @@ order by
     page: number = 1,
     limit: number = 20,
   ): Promise<StudentAPIResponse> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('Database not initialized, cannot fetch student info.');
       return { data: [], total: 0 };
@@ -6637,6 +7123,7 @@ order by
     page: number = 1,
     limit: number = 20,
   ): Promise<StudentAPIResponse> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('Database not initialized, cannot fetch student info.');
       return { data: [], total: 0 };
@@ -6748,6 +7235,7 @@ order by
   async getStudentAndParentByStudentId(
     studentId: string,
   ): Promise<{ user: any; parents: any[] }> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('Database not initialized.');
       return { user: null, parents: [] };
@@ -6792,6 +7280,7 @@ order by
   async getParentsByStudentId(
     studentId: string,
   ): Promise<TableTypes<'user'>[]> {
+    await this.ensureInitialized();
     if (!this._db) {
       logger.warn('Database not initialized.');
       return [];
@@ -6823,6 +7312,7 @@ order by
     requestId?: string,
     respondedBy?: string,
   ): Promise<{ success: boolean; message: string }> {
+    await this.ensureInitialized();
     if (!this._db) {
       return { success: false, message: 'SQLite DB not initialized.' };
     }
@@ -7276,6 +7766,7 @@ order by
     limit: number,
     classId?: string,
   ): Promise<{ data: any[]; total: number }> {
+    await this.ensureInitialized();
     if (!this._db) return { data: [], total: 0 };
     let whereClause = `
     cu.role = 'student'
@@ -7344,6 +7835,7 @@ order by
     page: number = 1,
     limit: number = 20,
   ): Promise<{ data: any[]; total: number }> {
+    await this.ensureInitialized();
     if (!this._db) return { data: [], total: 0 };
     let whereClause = `cu.role = 'teacher' AND cu.is_deleted = 0 AND c.school_id = ?`;
     let params: any[] = [schoolId];
@@ -7418,10 +7910,11 @@ order by
     );
   }
   async clearCacheData(tableNames: readonly CACHETABLES[]): Promise<void> {
+    await this.ensureInitialized();
     if (!this._db) return;
     const query = `PRAGMA foreign_keys=OFF;`;
     const result = await this._db?.query(query);
-    logger.info(result);
+    logger.warn(result);
     for (const table of tableNames) {
       const tableDel = `DELETE FROM "${table}";`;
       const res = await this._db.query(tableDel);
@@ -7544,6 +8037,10 @@ order by
   async getRewardById(
     rewardId: string,
   ): Promise<TableTypes<'rive_reward'> | undefined> {
+    if (this._cachedRewards) {
+      const r = this._cachedRewards.find((x) => x.id === rewardId);
+      if (r) return r;
+    }
     try {
       const query = `SELECT * FROM rive_reward WHERE id = ? AND is_deleted = 0;`;
       const res = await this.executeQuery(query, [rewardId]);
@@ -7558,6 +8055,7 @@ order by
     }
   }
   async getAllRewards(): Promise<TableTypes<'rive_reward'>[] | []> {
+    if (this._cachedRewards) return this._cachedRewards;
     try {
       const query = `SELECT * FROM rive_reward WHERE type='normal' AND is_deleted = 0 ORDER BY state_number_input ASC;`;
       const res = await this.executeQuery(query, []);
@@ -7565,7 +8063,8 @@ order by
         logger.warn(`No rewards found`);
         return [];
       }
-      return res.values as TableTypes<'rive_reward'>[];
+      this._cachedRewards = res.values as TableTypes<'rive_reward'>[];
+      return this._cachedRewards;
     } catch (error) {
       logger.error('Error fetching all rewards', error);
       return [];
@@ -7956,6 +8455,13 @@ order by
     const langId = student.language_id ?? null;
 
     try {
+      type SubjectLessonSetRow = { set_number: number };
+      type ResultStatusRow = {
+        lesson_id: string | null;
+        status: string | null;
+      };
+      type ResultLessonRow = { lesson_id: string | null };
+
       // 1️⃣ Fetch ALL available set_numbers
       const setQuery = `
       SELECT DISTINCT set_number
@@ -7965,7 +8471,8 @@ order by
         AND set_number IS NOT NULL;
     `;
       const setRes = await this.executeQuery(setQuery, [subjectId]);
-      const setRows = (setRes as any)?.values ?? [];
+      const setRows = ((setRes as DBSQLiteValues | undefined)?.values ??
+        []) as SubjectLessonSetRow[];
 
       if (!setRows.length) {
         return {} as TableTypes<'subject_lesson'>;
@@ -8002,28 +8509,23 @@ order by
         subjectId,
       ]);
 
-      const lastTwo = (abortRes as any)?.values ?? [];
+      const lastTwo = ((abortRes as DBSQLiteValues | undefined)?.values ??
+        []) as ResultStatusRow[];
 
       const isAborted =
         lastTwo.length === 2 &&
-        lastTwo.every((r: any) => r.status === 'system_exit');
+        lastTwo.every((r) => r.status === 'system_exit');
 
       if (isAborted) {
         return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
       }
 
       /* ==========================================
-       * 4️⃣ Fetch ONLY pending lessons from set
+       * 4️⃣ Fetch all candidate lessons from set
        * ========================================== */
       const lessonQuery = `
         SELECT sl.*
         FROM subject_lesson sl
-        LEFT JOIN result r
-          ON r.lesson_id = sl.lesson_id
-          AND r.student_id = ?
-          AND r.assignment_id IS NULL
-          AND r.is_deleted = 0
-
         WHERE sl.subject_id = ?
           AND sl.set_number = ?
           AND sl.is_deleted = 0
@@ -8031,7 +8533,6 @@ order by
             sl.language_id = ?
             OR sl.language_id IS NULL
           )
-          AND r.lesson_id IS NULL
 
         ORDER BY
           sl.set_number ASC,
@@ -8039,13 +8540,54 @@ order by
       `;
 
       const lessonRes = await this.executeQuery(lessonQuery, [
-        studentId,
         subjectId,
         setNumber,
         langId,
       ]);
 
-      const pendingLessons = (lessonRes as any)?.values ?? [];
+      const allLessons = ((lessonRes as DBSQLiteValues | undefined)?.values ??
+        []) as TableTypes<'subject_lesson'>[];
+      const matchedLessons = allLessons.filter(
+        (lesson) => lesson.language_id === langId,
+      );
+      const fallbackLessons = allLessons.filter(
+        (lesson) => lesson.language_id == null,
+      );
+      const candidateLessons = matchedLessons.length
+        ? matchedLessons
+        : fallbackLessons;
+
+      if (!candidateLessons.length) {
+        return {} as TableTypes<'subject_lesson'>;
+      }
+
+      const lessonIds = candidateLessons.map((lesson) => lesson.lesson_id);
+      const resultPlaceholders = lessonIds.map(() => '?').join(', ');
+      const resultQuery = `
+        SELECT DISTINCT lesson_id
+        FROM result
+        WHERE student_id = ?
+          AND subject_id = ?
+          AND assignment_id IS NULL
+          AND is_deleted = 0
+          AND lesson_id IN (${resultPlaceholders});
+      `;
+      const resultRes = await this.executeQuery(resultQuery, [
+        studentId,
+        subjectId,
+        ...lessonIds,
+      ]);
+      const completedLessons = ((resultRes as DBSQLiteValues | undefined)
+        ?.values ?? []) as ResultLessonRow[];
+      const completedLessonIds = new Set(
+        completedLessons
+          .map((result) => result.lesson_id)
+          .filter((lessonId): lessonId is string => !!lessonId),
+      );
+      const pendingLessons = candidateLessons.filter(
+        (lesson) => !completedLessonIds.has(lesson.lesson_id),
+      );
+
       return pendingLessons.length
         ? pendingLessons[0]
         : ({} as TableTypes<'subject_lesson'>);
@@ -8107,6 +8649,7 @@ order by
   async getSkillById(
     skillId: string,
   ): Promise<TableTypes<'skill'> | undefined> {
+    await this.ensureInitialized();
     const res = await this._db?.query(
       `
       SELECT *
@@ -8131,6 +8674,7 @@ order by
     student: TableTypes<'user'>,
     courseId?: string,
   ): Promise<TableTypes<'assignment'>[]> {
+    await this.ensureInitialized();
     const nowIso = new Date().toISOString();
     const studentId = student.id;
     const langId = student.language_id;
@@ -8393,6 +8937,7 @@ order by
     classId: string,
     lessonIds: string[],
   ): Promise<string[]> {
+    await this.ensureInitialized();
     if (!lessonIds?.length) return [];
 
     const placeholders = lessonIds.map(() => '?').join(', ');
@@ -8419,6 +8964,7 @@ order by
   // ================================
 
   async getAllStickerBooks(): Promise<StickerBook[]> {
+    await this.ensureInitialized();
     if (!this._db) return [];
 
     try {
@@ -8441,6 +8987,7 @@ order by
     book: StickerBook;
     progress: UserStickerProgress | null;
   } | null> {
+    await this.ensureInitialized();
     if (!this._db) return null;
 
     try {
@@ -8509,6 +9056,7 @@ order by
   }
 
   async getUserWonStickerBooks(userId: string): Promise<StickerBook[]> {
+    await this.ensureInitialized();
     if (!this._db) return [];
 
     try {
@@ -8543,6 +9091,7 @@ order by
     stickerBookId: string,
     userId?: string,
   ): Promise<string | null> {
+    await this.ensureInitialized();
     if (!this._db) return null;
 
     const resolvedUserId = userId?.trim();
@@ -8591,6 +9140,7 @@ order by
     stickerId: string,
     userId?: string,
   ): Promise<void> {
+    await this.ensureInitialized();
     if (!this._db) return;
 
     const resolvedUserId = userId?.trim();
@@ -8629,12 +9179,11 @@ order by
         const stickersCollected = [stickerId];
         const status = total === 1 ? 'completed' : 'in_progress';
         const createdAt = new Date().toISOString();
-        const userStickerId = uuidv4();
 
         await this.executeQuery(
           `INSERT INTO ${TABLES.UserStickerBook}
-            (id, user_id, sticker_book_id, stickers_collected, status, created_at, is_deleted)
-           VALUES (?, ?, ?, ?, ?, ?, 0)`,
+            (id, user_id, sticker_book_id, stickers_collected, status, created_at, is_seen, is_deleted)
+           VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
           [
             id,
             effectiveUserId,
@@ -8642,6 +9191,7 @@ order by
             JSON.stringify(stickersCollected),
             status,
             createdAt,
+            0,
           ],
         );
 
@@ -8655,25 +9205,10 @@ order by
             stickers_collected: stickersCollected,
             status,
             created_at: createdAt,
+            is_seen: false,
             is_deleted: false,
           },
         );
-
-        await this.executeQuery(
-          `INSERT INTO ${TABLES.UserSticker}
-            (id, user_id, sticker_id, created_at, is_deleted, is_seen)
-           VALUES (?, ?, ?, ?, 0, 0)`,
-          [userStickerId, effectiveUserId, stickerId, createdAt],
-        );
-
-        this.updatePushChanges(TABLES.UserSticker, MUTATE_TYPES.INSERT, {
-          id: userStickerId,
-          user_id: effectiveUserId,
-          sticker_id: stickerId,
-          created_at: createdAt,
-          is_deleted: false,
-          is_seen: false,
-        });
         return;
       }
 
@@ -8681,7 +9216,6 @@ order by
       const updated = currentCollected.includes(stickerId)
         ? currentCollected
         : [...currentCollected, stickerId];
-      const isNewSticker = updated.length !== currentCollected.length;
       const status =
         total > 0 && updated.length >= total ? 'completed' : progress.status;
 
@@ -8694,9 +9228,9 @@ order by
 
       await this.executeQuery(
         `UPDATE ${TABLES.UserStickerBook}
-         SET stickers_collected = ?, status = ?
+         SET stickers_collected = ?, status = ?, is_seen = ?
          WHERE id = ? AND is_deleted = 0`,
-        [JSON.stringify(updated), status, progress.id],
+        [JSON.stringify(updated), status, 0, progress.id],
       );
 
       await this.updatePushChanges(
@@ -8708,29 +9242,9 @@ order by
           sticker_book_id: progress.sticker_book_id,
           stickers_collected: updated,
           status,
+          is_seen: false,
         },
       );
-
-      if (isNewSticker) {
-        const userStickerId = uuidv4();
-        const createdAt = new Date().toISOString();
-
-        await this.executeQuery(
-          `INSERT INTO ${TABLES.UserSticker}
-            (id, user_id, sticker_id, created_at, is_deleted, is_seen)
-           VALUES (?, ?, ?, ?, 0, 0)`,
-          [userStickerId, effectiveUserId, stickerId, createdAt],
-        );
-
-        this.updatePushChanges(TABLES.UserSticker, MUTATE_TYPES.INSERT, {
-          id: userStickerId,
-          user_id: effectiveUserId,
-          sticker_id: stickerId,
-          created_at: createdAt,
-          is_deleted: false,
-          is_seen: false,
-        });
-      }
     } catch (error) {
       logger.error('Error updating sticker progress in sqlite:', error);
     }
@@ -8825,6 +9339,47 @@ order by
     }
   }
 
+  private async prefetchLidoCommonAudioAfterSync(): Promise<void> {
+    if (!this._db || !Capacitor.isNativePlatform()) return;
+
+    try {
+      const students = await this.getParentStudentProfiles();
+      if (!students?.length) return;
+
+      const studentsByLanguage = new Map<string, TableTypes<'user'>>();
+      for (const student of students) {
+        if (
+          !student?.language_id ||
+          studentsByLanguage.has(student.language_id)
+        ) {
+          continue;
+        }
+        studentsByLanguage.set(student.language_id, student);
+      }
+
+      for (const student of studentsByLanguage.values()) {
+        const audioConfig = await this.getLidoCommonAudioUrl(
+          student.language_id!,
+          student.locale_id ?? null,
+        );
+
+        if (!audioConfig?.lido_common_audio_url) {
+          continue;
+        }
+
+        await Util.downloadLidoCommonAudio(
+          audioConfig.lido_common_audio_url,
+          student.language_id!,
+        );
+      }
+    } catch (error) {
+      logger.warn(
+        '[LidoCommonAudio] Failed to prefetch common audio after sync',
+        error,
+      );
+    }
+  }
+
   private mapUserStickerBookRow(row: any): UserStickerProgress {
     return {
       id: row.id,
@@ -8843,6 +9398,7 @@ order by
     chapterId: string,
     lessonId: string,
   ): Promise<boolean> {
+    await this.ensureInitialized();
     try {
       const res = await this._db?.query(
         `

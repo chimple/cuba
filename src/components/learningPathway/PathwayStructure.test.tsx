@@ -10,18 +10,36 @@ import PathwayStructure from './PathwayStructure';
 import { usePathwayData } from '../../hooks/usePathwayData';
 import { usePathwaySVG } from '../../hooks/usePathwaySVG';
 import { Util } from '../../utility/util';
+import { AudioUtil } from '../../utility/AudioUtil';
 import {
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
+  COURSE_CHANGED,
   EVENTS,
+  PATHWAY_REWARD_AUDIO_READY_EVENT,
+  PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+  REWARD_LEARNING_PATH,
   STICKER_BOOK_COMPLETION_READY_EVENT,
 } from '../../common/constants';
 
 jest.mock('../../hooks/usePathwayData');
 jest.mock('../../hooks/usePathwaySVG');
+jest.mock('../../utility/AudioUtil', () => ({
+  AudioUtil: {
+    playAudioOrTts: jest.fn(() => Promise.resolve(true)),
+    stopAudioUrlOrTtsPlayback: jest.fn(() => Promise.resolve()),
+    getLocalizedAudioUrl: jest.fn(() =>
+      Promise.resolve('/assets/audios/dailyReward/en_reward.mp3'),
+    ),
+    getAudioLanguageCode: jest.fn(() => Promise.resolve('en')),
+  },
+}));
 jest.mock('../../utility/util', () => ({
   Util: {
     logEvent: jest.fn(),
     getCurrentStudent: jest.fn(() => ({ id: 'student-1' })),
+    getCurrentStudentLanguageCode: jest.fn(() => 'en'),
+    getCanShowAvatar: jest.fn(() => Promise.resolve(true)),
   },
 }));
 
@@ -124,6 +142,7 @@ describe('PathwayStructure', () => {
       getCachedLesson: jest.fn(),
       updateMascotToNormalState: jest.fn(),
       invokeMascotCelebration: jest.fn(),
+      playMascotAudioFromLocalPath: jest.fn(),
       setRewardRiveState: jest.fn(),
       setRiveContainer: jest.fn(),
       setRewardRiveContainer: jest.fn(),
@@ -174,6 +193,40 @@ describe('PathwayStructure', () => {
     expect(setModalOpen).toHaveBeenCalledWith(false);
   });
 
+  test('clears reward learning path and refreshes course after reward modal closes', () => {
+    jest.useFakeTimers();
+    sessionStorage.setItem(
+      REWARD_LEARNING_PATH,
+      JSON.stringify({ courses: { courseList: [], currentCourseIndex: 0 } }),
+    );
+    const dispatchSpy = jest.spyOn(window, 'dispatchEvent');
+
+    (usePathwayData as jest.Mock).mockReturnValue(
+      buildHookData({
+        modalOpen: true,
+        modalText: 'Complete these 5 lessons to earn rewards',
+      }),
+    );
+
+    render(<PathwayStructure />);
+
+    fireEvent.click(screen.getByAltText('close-icon'));
+    act(() => {
+      jest.runAllTimers();
+    });
+
+    expect(sessionStorage.getItem(REWARD_LEARNING_PATH)).toBeNull();
+    expect(dispatchSpy).toHaveBeenCalledWith(expect.any(CustomEvent));
+    expect(
+      dispatchSpy.mock.calls.some(
+        ([event]) => (event as CustomEvent).type === COURSE_CHANGED,
+      ),
+    ).toBe(true);
+
+    dispatchSpy.mockRestore();
+    jest.useRealTimers();
+  });
+
   test('renders reward box when reward is available and feature is on', () => {
     (usePathwayData as jest.Mock).mockReturnValue(
       buildHookData({ hasTodayReward: true, isRewardFeatureOn: true }),
@@ -209,6 +262,90 @@ describe('PathwayStructure', () => {
     );
     render(<PathwayStructure />);
     expect(screen.queryByTestId('daily-reward-modal')).not.toBeInTheDocument();
+  });
+
+  test('loads reward audio only after crowd cheer completes', async () => {
+    let crowdCheerOnComplete: (() => void) | undefined;
+
+    (AudioUtil.playAudioOrTts as jest.Mock).mockImplementation(
+      ({ onComplete }) => {
+        crowdCheerOnComplete = onComplete;
+        return Promise.resolve(true);
+      },
+    );
+    (usePathwayData as jest.Mock).mockReturnValue(buildHookData());
+
+    render(<PathwayStructure />);
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent(PATHWAY_REWARD_CELEBRATION_STARTED_EVENT, {
+          detail: { rewardId: 'reward-1' },
+        }),
+      );
+    });
+
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        audioUrl: '/assets/audios/common/crowd_cheer.mp3',
+      }),
+    );
+    expect(crowdCheerOnComplete).toBeDefined();
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
+          detail: { rewardId: 'reward-1' },
+        }),
+      );
+    });
+
+    expect(AudioUtil.getLocalizedAudioUrl).not.toHaveBeenCalled();
+
+    await act(async () => {
+      crowdCheerOnComplete?.();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenCalledWith(
+        'dailyReward',
+        'reward',
+      );
+    });
+  });
+
+  test('skips reward audio when stickerbook preview is pending', () => {
+    const playMascotAudioFromLocalPath = jest.fn();
+    (usePathwayData as jest.Mock).mockReturnValue(
+      buildHookData({ playMascotAudioFromLocalPath }),
+    );
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_PREVIEW_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        awardedStickerId: 'sticker-1',
+      }),
+    );
+
+    render(<PathwayStructure />);
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent(PATHWAY_REWARD_CELEBRATION_STARTED_EVENT, {
+          detail: { rewardId: 'reward-1' },
+        }),
+      );
+      window.dispatchEvent(
+        new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
+          detail: { rewardId: 'reward-1' },
+        }),
+      );
+    });
+
+    expect(AudioUtil.playAudioOrTts).not.toHaveBeenCalled();
+    expect(playMascotAudioFromLocalPath).not.toHaveBeenCalled();
   });
 
   test('calls usePathwaySVG with required callbacks and refs', () => {
@@ -454,7 +591,7 @@ describe('PathwayStructure', () => {
       screen.getByTestId('sticker-book-completion-title'),
     ).toHaveTextContent('Final Sticker Page');
     expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_OPENED,
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_OPEN,
       expect.objectContaining({
         user_id: 'student-1',
         sticker_book_id: 'book-6',
@@ -477,7 +614,7 @@ describe('PathwayStructure', () => {
       screen.queryByTestId('sticker-book-completion-popup'),
     ).not.toBeInTheDocument();
     expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE_CLICKED,
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE,
       expect.objectContaining({
         sticker_book_id: 'book-6',
         collected_count: 6,

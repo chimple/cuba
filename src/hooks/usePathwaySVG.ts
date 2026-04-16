@@ -6,6 +6,7 @@ import { useFeatureIsOn, useFeatureValue } from '@growthbook/growthbook-react';
 import { ServiceConfig } from '../services/ServiceConfig';
 import {
   REWARD_LEARNING_PATH,
+  COURSE_CHANGED,
   COCOS,
   LIVE_QUIZ,
   LIDO,
@@ -21,6 +22,9 @@ import {
   PATHWAY_END_REWARD_BOX_VARIANT,
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  PENDING_PATHWAY_STICKER_REWARD_KEY,
+  PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+  PATHWAY_REWARD_AUDIO_READY_EVENT,
 } from '../common/constants';
 import { Util } from '../utility/util';
 import { LessonNode } from './useLearningPath';
@@ -50,11 +54,19 @@ interface UsePathwaySVGParams {
   setCurrentChapter: (chapter: any) => void;
   setIsRewardPathLoaded: (b: boolean) => void;
   isRewardPathLoaded: boolean;
+  setPathwayLoading?: (isLoading: boolean) => void;
   onStickerPreviewReady: (
     data: StickerBookModalData,
     trigger: 'sticker_click' | 'pathway_completion_auto',
   ) => void;
   onStickerCompletionReady: (data: StickerBookModalData) => void;
+}
+
+interface PendingStickerReward {
+  studentId: string;
+  awardedStickerId: string;
+  stickerBookId: string | null;
+  createdAt: string;
 }
 
 // CACHES
@@ -65,6 +77,8 @@ const stickerDataUrlCache: Record<string, string> = {};
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 const PATH_SIZE = 5;
+const CHIMPLE_MOVE_DURATION_MS = 2000;
+const CHIMPLE_MOVE_FALLBACK_BUFFER_MS = 300;
 
 const fetchLocalFile = async (path: string): Promise<string> => {
   const file = await Filesystem.readFile({
@@ -170,6 +184,7 @@ export function usePathwaySVG({
   setCurrentChapter,
   setIsRewardPathLoaded,
   isRewardPathLoaded,
+  setPathwayLoading,
   onStickerPreviewReady,
   onStickerCompletionReady,
 }: UsePathwaySVGParams) {
@@ -235,13 +250,21 @@ export function usePathwaySVG({
   ]);
 
   const loadSVG = useCallback(async () => {
-    if (!containerRef.current) return;
+    const stopPathwayLoading = () => setPathwayLoading?.(false);
+    if (!containerRef.current) {
+      stopPathwayLoading();
+      return;
+    }
+    setPathwayLoading?.(true);
 
     try {
       const startTime = performance.now();
 
       const currentStudent = Util.getCurrentStudent();
-      if (!currentStudent) return;
+      if (!currentStudent) {
+        stopPathwayLoading();
+        return;
+      }
 
       const rewardLearningPath = sessionStorage.getItem(REWARD_LEARNING_PATH);
 
@@ -254,16 +277,23 @@ export function usePathwaySVG({
         learningPath = pathToParse ? JSON.parse(pathToParse) : null;
       } else {
         logger.warn('No learning path found for current student');
+        stopPathwayLoading();
         return;
       }
 
       const currentCourseIndex = learningPath.courses.currentCourseIndex;
       const course = learningPath.courses.courseList[currentCourseIndex];
-      if (!course) return;
+      if (!course) {
+        stopPathwayLoading();
+        return;
+      }
       const pathItem =
         course.path.find((p: LessonNode) => p && p.isPlayed === false) ??
         course.path[course.path.length - 1];
-      if (!pathItem) return;
+      if (!pathItem) {
+        stopPathwayLoading();
+        return;
+      }
       const isAssessment = pathItem?.is_assessment;
       const assessmentId = pathItem?.assignment_id;
       const activeIndex = course.path.findIndex(
@@ -296,6 +326,7 @@ export function usePathwaySVG({
 
       let overrideParsed: any = null;
       let completionOverrideParsed: any = null;
+      let pendingStickerRewardParsed: PendingStickerReward | null = null;
       if (isStickerBookPreviewOn) {
         const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
         if (raw) {
@@ -306,6 +337,16 @@ export function usePathwaySVG({
             }
           } catch (e) {}
         }
+      } else {
+        // Preview disabled: clear pending auto-open state and refresh to new path.
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+        if (sessionStorage.getItem(REWARD_LEARNING_PATH)) {
+          sessionStorage.removeItem(REWARD_LEARNING_PATH);
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+          }, 0);
+        }
       }
 
       const shouldOpenCelebrationPopup =
@@ -315,6 +356,13 @@ export function usePathwaySVG({
 
       if (overrideParsed && !shouldOpenCelebrationPopup) {
         sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+        if (sessionStorage.getItem(REWARD_LEARNING_PATH)) {
+          sessionStorage.removeItem(REWARD_LEARNING_PATH);
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+          }, 0);
+        }
       }
 
       const rawCompletionPopup = sessionStorage.getItem(
@@ -329,9 +377,21 @@ export function usePathwaySVG({
         } catch (e) {}
       }
 
-      const stickerPreviewPayload = isStickerBookPreviewOn
+      const rawPendingStickerReward = sessionStorage.getItem(
+        PENDING_PATHWAY_STICKER_REWARD_KEY,
+      );
+      if (rawPendingStickerReward) {
+        try {
+          const parsed = JSON.parse(rawPendingStickerReward);
+          if (parsed?.studentId && parsed.studentId === currentStudent.id) {
+            pendingStickerRewardParsed = parsed;
+          }
+        } catch (e) {}
+      }
+
+      const stickerPreviewPromise = isStickerBookPreviewOn
         ? overrideParsed
-          ? await getStickerPreviewPayload(
+          ? getStickerPreviewPayload(
               overrideParsed.awardedStickerId,
               Array.isArray(overrideParsed.preAwardCollectedStickerIds)
                 ? overrideParsed.preAwardCollectedStickerIds
@@ -342,16 +402,79 @@ export function usePathwaySVG({
                 stickerBookSvgUrl: overrideParsed.stickerBookSvgUrl,
               },
             )
-          : await getStickerPreviewPayload()
-        : null;
-      const stickerCompletionPayload = isStickerBookCompletionPopupOn
-        ? (getPersistedStickerCompletionPayload(completionOverrideParsed) ??
-          (await getStickerCompletionPayload()))
-        : null;
+          : getStickerPreviewPayload()
+        : Promise.resolve(null);
+
+      const stickerCompletionPromise = isStickerBookCompletionPopupOn
+        ? getPersistedStickerCompletionPayload(completionOverrideParsed)
+          ? Promise.resolve(
+              getPersistedStickerCompletionPayload(completionOverrideParsed),
+            )
+          : getStickerCompletionPayload()
+        : Promise.resolve(null);
       (window as any).__currentCourseForPathway__ = courseData;
       (window as any).__currentChapterForPathway__ = chapterData;
       setCurrentCourse(courseData);
       setCurrentChapter(chapterData);
+
+      const lessons = await Promise.all(
+        course.path
+          .slice(startIndex, pathEndIndex + 1)
+          .map((p: LessonNode) => getCachedLesson(p.lesson_id)),
+      );
+
+      // Preload icons/images for lessons (to reduce flicker)
+      preloadAllLessonImages(lessons);
+
+      const [
+        stickerPreviewPayload,
+        stickerCompletionPayload,
+        newRewardIdFromCheck,
+        pathwaySVG,
+        flowerActive,
+        flowerInactive,
+        playedLessonSVG,
+        mysteryBox1,
+        mysteryBox2,
+        mysteryBox3,
+        halo,
+      ] = await Promise.all([
+        stickerPreviewPromise,
+        stickerCompletionPromise,
+        checkAndUpdateReward(),
+        loadPathwayTemplate(),
+        loadGroupAsset(
+          'flowerActive',
+          'remoteAsset/FlowerActive.svg',
+          '/pathwayAssets/English/FlowerActive.svg',
+        ),
+        loadGroupAsset(
+          'flowerInactive',
+          'remoteAsset/FlowerInactive.svg',
+          '/pathwayAssets/FlowerInactive.svg',
+        ),
+        loadGroupAsset(
+          'playedLessonSVG',
+          'remoteAsset/PlayedLesson.svg',
+          '/pathwayAssets/English/PlayedLesson.svg',
+        ),
+        loadGroupAsset(
+          'mysteryBox1',
+          'remoteAsset/mysteryBox1.svg',
+          '/pathwayAssets/English/mysteryBox1.svg',
+        ),
+        loadGroupAsset(
+          'mysteryBox2',
+          'remoteAsset/mysteryBox2.svg',
+          '/pathwayAssets/English/mysteryBox2.svg',
+        ),
+        loadGroupAsset(
+          'mysteryBox3',
+          'remoteAsset/mysteryBox3.svg',
+          '/pathwayAssets/English/mysteryBox3.svg',
+        ),
+        loadHalo(),
+      ]);
 
       let didScheduleStickerCompletionPopup = false;
       if (rawCompletionPopup) {
@@ -391,72 +514,28 @@ export function usePathwaySVG({
         }
       }
 
-      const lessons = await Promise.all(
-        course.path
-          .slice(startIndex, pathEndIndex + 1)
-          .map((p: LessonNode) => getCachedLesson(p.lesson_id)),
-      );
-
-      // Preload icons/images for lessons (to reduce flicker)
-      preloadAllLessonImages(lessons);
-
-      const [
-        pathwaySVG,
-        flowerActive,
-        flowerInactive,
-        playedLessonSVG,
-        mysteryBox1,
-        mysteryBox2,
-        mysteryBox3,
-        halo,
-      ] = await Promise.all([
-        loadPathwayTemplate(),
-        loadGroupAsset(
-          'flowerActive',
-          'remoteAsset/FlowerActive.svg',
-          '/pathwayAssets/English/FlowerActive.svg',
-        ),
-        loadGroupAsset(
-          'flowerInactive',
-          'remoteAsset/FlowerInactive.svg',
-          '/pathwayAssets/FlowerInactive.svg',
-        ),
-        loadGroupAsset(
-          'playedLessonSVG',
-          'remoteAsset/PlayedLesson.svg',
-          '/pathwayAssets/English/PlayedLesson.svg',
-        ),
-        loadGroupAsset(
-          'mysteryBox1',
-          'remoteAsset/mysteryBox1.svg',
-          '/pathwayAssets/English/mysteryBox1.svg',
-        ),
-        loadGroupAsset(
-          'mysteryBox2',
-          'remoteAsset/mysteryBox2.svg',
-          '/pathwayAssets/English/mysteryBox2.svg',
-        ),
-        loadGroupAsset(
-          'mysteryBox3',
-          'remoteAsset/mysteryBox3.svg',
-          '/pathwayAssets/English/mysteryBox3.svg',
-        ),
-        loadHalo(),
-      ]);
-
       // Build SVG in next frame to keep main thread responsive
       requestAnimationFrame(async () => {
-        if (!containerRef.current) return;
+        if (!containerRef.current) {
+          stopPathwayLoading();
+          return;
+        }
 
         containerRef.current.innerHTML = pathwaySVG;
         const svg = containerRef.current.querySelector('svg') as SVGSVGElement;
-        if (!svg) return;
+        if (!svg) {
+          stopPathwayLoading();
+          return;
+        }
         svg.style.overflow = 'visible';
 
         const paths = Array.from(
           svg.querySelectorAll('g > path'),
         ) as SVGPathElement[];
-        if (!paths.length) return;
+        if (!paths.length) {
+          stopPathwayLoading();
+          return;
+        }
 
         const startPoint = paths[0].getPointAtLength(0);
         const xValues = [27, 155, 276, 387, 496];
@@ -618,7 +697,7 @@ export function usePathwaySVG({
           flower_Inactive.addEventListener('click', () => {
             setModalOpen(true);
             setModalText(
-              'This lesson is locked. Play the current active lesson.',
+              t('This lesson is locked. Play the current active lesson.'),
             );
           });
           flower_Inactive.setAttribute(
@@ -891,14 +970,32 @@ export function usePathwaySVG({
         );
         const xValuesForChimple = [-60, 66, 180, 295, 412];
 
-        const newRewardIdFromCheck = await checkAndUpdateReward();
-
         const isStringReward =
           newRewardIdFromCheck !== null &&
           typeof newRewardIdFromCheck === 'string';
 
-        // If there is a reward, run full reward animation flow
-        if (isStringReward && isRewardFeatureOn) {
+        // If a popup is about to open, defer reward animation
+        // so it plays after the pathway refresh (avoids animating behind the popup).
+        const willShowCelebration =
+          shouldOpenCelebrationPopup && !!stickerPreviewPayload;
+        const shouldSkipRewardAnimationForSticker =
+          isStringReward &&
+          isRewardFeatureOn &&
+          Boolean(pendingStickerRewardParsed?.awardedStickerId);
+        const shouldRunRewardAnimation =
+          isStringReward &&
+          isRewardFeatureOn &&
+          !shouldSkipRewardAnimationForSticker &&
+          !willShowCelebration &&
+          !didScheduleStickerCompletionPopup;
+
+        if (shouldSkipRewardAnimationForSticker) {
+          setHasTodayReward(false);
+          await updateMascotToNormalState(newRewardIdFromCheck as string);
+          await Util.updateUserReward();
+        }
+
+        if (shouldRunRewardAnimation) {
           runRewardAnimation(
             newRewardIdFromCheck as string,
             lessons,
@@ -915,7 +1012,7 @@ export function usePathwaySVG({
         // Attach chimple (mascot)
         if (chimple) {
           let baseX: number;
-          if (idx < 0 || !isStringReward || !isRewardFeatureOn) {
+          if (idx < 0 || !shouldRunRewardAnimation) {
             // default logic – same as original: next active lesson
             baseX = xValues[idx + 1] ?? xValues[0];
             chimple.setAttribute('x', `${baseX - 87}`);
@@ -938,9 +1035,11 @@ export function usePathwaySVG({
 
         const endTime = performance.now();
         logger.info(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
+        stopPathwayLoading();
       });
     } catch (error) {
       logger.error('Failed to load SVG:', error);
+      stopPathwayLoading();
     }
   }, [
     api,
@@ -959,6 +1058,7 @@ export function usePathwaySVG({
     setCurrentCourse,
     setHasTodayReward,
     setIsRewardPathLoaded,
+    setPathwayLoading,
     setModalOpen,
     setModalText,
     setRewardRiveContainer,
@@ -1241,6 +1341,7 @@ export function usePathwaySVG({
     const rewardRecord =
       await ServiceConfig.getI().apiHandler.getRewardById(newRewardId);
     if (!rewardRecord) return;
+    const rewardStateValue = rewardRecord.state_number_input || 1;
 
     setHasTodayReward(false);
 
@@ -1303,7 +1404,12 @@ export function usePathwaySVG({
       await delay(2000);
 
       // Step 1: set celebration state (we emulate via global mascot state)
-      await invokeMascotCelebration(rewardRecord.state_number_input || 1);
+      await invokeMascotCelebration(rewardStateValue);
+      window.dispatchEvent(
+        new CustomEvent(PATHWAY_REWARD_CELEBRATION_STARTED_EVENT, {
+          detail: { rewardId: newRewardId, stateValue: rewardStateValue },
+        }),
+      );
 
       await delay(500);
       rewardForeignObject.style.display = 'none';
@@ -1315,7 +1421,7 @@ export function usePathwaySVG({
       await delay(500);
 
       // Step 3: animate mascot movement
-      animateChimpleMovement(
+      await animateChimpleMovement(
         chimple,
         lessons,
         startIndex,
@@ -1323,6 +1429,11 @@ export function usePathwaySVG({
         xValues,
         startPoint,
         pathEndIndex,
+      );
+      window.dispatchEvent(
+        new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
+          detail: { rewardId: newRewardId, stateValue: rewardStateValue },
+        }),
       );
 
       await Util.updateUserReward();
@@ -1346,22 +1457,22 @@ export function usePathwaySVG({
     xValues: number[],
     startPoint: DOMPoint,
     pathEndIndex: number,
-  ) {
-    if (!chimple) return;
+  ): Promise<void> {
+    if (!chimple) return Promise.resolve();
 
     if (currentIndex > pathEndIndex) {
       sessionStorage.removeItem(REWARD_LEARNING_PATH);
       setIsRewardPathLoaded(true);
-      return;
+      return Promise.resolve();
     }
 
     const currentLessonIndex = lessons.findIndex(
       (_: any, idx: number) => startIndex + idx === currentIndex,
     );
-    if (currentLessonIndex < 0) return;
+    if (currentLessonIndex < 0) return Promise.resolve();
 
     const previousLessonIndex = currentLessonIndex - 1;
-    if (previousLessonIndex < 0) return;
+    if (previousLessonIndex < 0) return Promise.resolve();
 
     const fromX = xValues[previousLessonIndex] ?? 0;
     const toX = xValues[currentLessonIndex] ?? 0;
@@ -1380,10 +1491,30 @@ export function usePathwaySVG({
     chimple.style.transform = `translate(${fromTranslateX}px, 0px)`;
     void chimple.getBoundingClientRect();
 
-    requestAnimationFrame(() => {
-      chimple.style.transition =
-        'transform 2000ms cubic-bezier(0.22, 0.61, 0.36, 1)';
-      chimple.style.transform = 'translate(0px, 0px)';
+    return new Promise((resolve) => {
+      let hasResolved = false;
+      const finishMovement = () => {
+        if (hasResolved) return;
+        hasResolved = true;
+        window.clearTimeout(fallbackTimer);
+        chimple.removeEventListener('transitionend', handleTransitionEnd);
+        resolve();
+      };
+      const handleTransitionEnd = (event: TransitionEvent) => {
+        if (event.target === chimple && event.propertyName === 'transform') {
+          finishMovement();
+        }
+      };
+      const fallbackTimer = window.setTimeout(
+        finishMovement,
+        CHIMPLE_MOVE_DURATION_MS + CHIMPLE_MOVE_FALLBACK_BUFFER_MS,
+      );
+
+      chimple.addEventListener('transitionend', handleTransitionEnd);
+      requestAnimationFrame(() => {
+        chimple.style.transition = `transform ${CHIMPLE_MOVE_DURATION_MS}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
+        chimple.style.transform = 'translate(0px, 0px)';
+      });
     });
   }
 

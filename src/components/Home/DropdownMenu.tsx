@@ -11,6 +11,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { LessonNode } from '../../hooks/useLearningPath';
 import logger from '../../utility/logger';
+import { downloadMissingCourseIcons } from '../../utility/courseIconDeviceCache';
 
 interface CourseDetails {
   course: TableTypes<'course'>;
@@ -102,7 +103,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         const uniqueCourseIds: string[] = Array.from(
           new Set(
             pendingAssignments
-              .map((a: any) => a.course_id as string | undefined)
+              .map((assignment) => assignment.course_id)
               .filter((id): id is string => !!id),
           ),
         );
@@ -153,17 +154,13 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       }
 
       // 🔹 LEARNING PATHWAY MODE (original behaviour)
-      if (!currentStudent?.learning_path) {
+      const pathToParse = currentStudent
+        ? Util.getLatestLearningPathByUpdatedAt(currentStudent)
+        : null;
+      if (!pathToParse) {
         logger.error('No learning path found for the user');
         return;
       }
-
-      if (!currentStudent?.learning_path) {
-        logger.error('No learning path found for the user');
-        return;
-      }
-
-      const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
       let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
       if (!learningPath) return;
       const { courseList } = learningPath.courses;
@@ -315,8 +312,8 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
   };
 
   useEffect(() => {
-    const preloadImage = (src: string) => {
-      return new Promise((resolve) => {
+    const preloadImage = (src: string): Promise<boolean> => {
+      return new Promise<boolean>((resolve) => {
         const img = new Image();
         img.onload = () => resolve(true);
         img.onerror = () => resolve(false);
@@ -324,14 +321,37 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       });
     };
 
-    courseDetails.forEach(async (detail) => {
-      const sources = [
-        `courses/chapter_icons/${detail.course.code}.webp`,
-        detail.course.image || '',
-      ].filter(Boolean);
+    // Download online icons in background into the same localSrc path for offline reuse.
+    const preloadTasks: Promise<unknown>[] = [];
+    const processedSources = new Set<string>();
+    const missingIconDownloadTargets: {
+      localRelativePath: string;
+      remoteUrl: string;
+    }[] = [];
 
-      Promise.any(sources.map(preloadImage));
+    courseDetails.forEach((detail) => {
+      const localSrc = `courses/chapter_icons/${detail.course.id}.webp`;
+      if (!processedSources.has(localSrc)) {
+        processedSources.add(localSrc);
+        preloadTasks.push(preloadImage(localSrc));
+      }
+
+      const onlineSrc = detail.course.image?.trim() || '';
+      if (onlineSrc && !processedSources.has(onlineSrc)) {
+        processedSources.add(onlineSrc);
+        preloadTasks.push(preloadImage(onlineSrc));
+      }
+
+      if (onlineSrc) {
+        missingIconDownloadTargets.push({
+          localRelativePath: localSrc,
+          remoteUrl: onlineSrc,
+        });
+      }
     });
+
+    preloadTasks.push(downloadMissingCourseIcons(missingIconDownloadTargets));
+    void Promise.allSettled(preloadTasks);
   }, [courseDetails]);
 
   useEffect(() => {
@@ -342,7 +362,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
     });
   }, [expanded]);
 
-  const getCachedImageUrl = (course: any) => {
+  const getCachedImageUrl = (course: TableTypes<'course'>): string => {
     const key = course.id;
 
     // Already cached → return
@@ -364,16 +384,21 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         onClick={handleToggleExpand}
       >
         <div className="dropdownmenu-dropdown-left">
-          {!expanded && selected && (
-            <div className="dropdownmenu-menu-selected">
+          {/* Keep selected icon mounted to avoid reloading it after dropdown closes. */}
+          {selected && (
+            <div
+              className={`dropdownmenu-menu-selected ${expanded ? 'hide-icon' : ''}`}
+            >
               <div className="dropdownmenu-selected-icon">
                 <SelectIconImage
-                  localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
+                  localSrc={`courses/chapter_icons/${selected.course.id}.webp`}
                   defaultSrc={'assets/icons/DefaultIcon.png'}
                   webSrc={
                     getCachedImageUrl(selected.course) ||
                     'assets/icons/DefaultIcon.png'
                   }
+                  enableOfflineDownload={true}
+                  disableLoader={true}
                   imageWidth="10vh"
                   imageHeight="auto"
                 />
@@ -398,16 +423,24 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                 key={detail.course.id}
                 onClick={() => handleSelect(detail, index)}
               >
-                <SelectIconImage
-                  key={detail.course.id}
-                  localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
-                  defaultSrc="assets/icons/DefaultIcon.png"
-                  webSrc={
-                    getCachedImageUrl(detail.course) ||
-                    'assets/icons/DefaultIcon.png'
-                  }
-                  imageWidth="85%"
-                />
+                <div className="dropdownmenu-open-item-icon-autofit">
+                  <div className="dropdownmenu-open-item-icon-wrapper">
+                    <SelectIconImage
+                      key={detail.course.id}
+                      localSrc={`courses/chapter_icons/${detail.course.id}.webp`}
+                      defaultSrc="assets/icons/DefaultIcon.png"
+                      webSrc={
+                        getCachedImageUrl(detail.course) ||
+                        'assets/icons/DefaultIcon.png'
+                      }
+                      enableOfflineDownload={true}
+                      showLoaderFromStart={true}
+                      minimumLoaderVisibleMs={250}
+                      imageWidth="30px"
+                      imageHeight="30px"
+                    />
+                  </div>
+                </div>
                 <div className="dropdownmenu-truncate-style">
                   {truncateName(detail.course.name)}
                 </div>

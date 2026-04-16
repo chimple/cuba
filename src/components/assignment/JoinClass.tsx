@@ -9,16 +9,21 @@ import { useHistory, useLocation } from 'react-router';
 import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
 import { schoolUtil } from '../../utility/schoolUtil';
 import InputWithIcons from '../common/InputWithIcons';
+import Loading from '../Loading';
 import logger from '../../utility/logger';
+import { JoinClassInviteLookupResult } from '../../services/api/ServiceApi';
 const urlClassCode: any = {};
 
 const JoinClass: FC<{
   onClassJoin: () => void;
 }> = ({ onClassJoin }) => {
   const [loading, setLoading] = useState(false);
+  const [joiningClass, setJoiningClass] = useState(false);
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
-  const [codeResult, setCodeResult] = useState();
+  const [codeResult, setCodeResult] = useState<
+    JoinClassInviteLookupResult | undefined
+  >();
   const [error, setError] = useState('');
   const [schoolName, setSchoolName] = useState<string>();
   const scrollToRef = useRef<null | HTMLDivElement>(null);
@@ -26,9 +31,15 @@ const JoinClass: FC<{
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const [fullName, setFullName] = useState('');
   const [currStudent] = useState<any>(Util.getCurrentStudent());
+  const currentStudentName = currStudent?.name?.trim?.() ?? '';
+  const hasExistingStudentName = currentStudentName.length > 0;
 
   const api = ServiceConfig.getI().apiHandler;
   const containerRef = useRef<HTMLDivElement>(null);
+  const getErrorMessage = (error: unknown) => {
+    if (error instanceof Error) return error.message;
+    return String(error);
+  };
 
   const isNextButtonEnabled = () => {
     let tempInviteCode = urlClassCode.inviteCode
@@ -58,7 +69,7 @@ const JoinClass: FC<{
       setLoading(true);
       try {
         const codeToVerify = urlClassCode.inviteCode || inviteCode;
-        const result = await api.getDataByInviteCode(
+        const result = await api.getDataByInviteCodeNew(
           parseInt(codeToVerify, 10),
         );
         setCodeResult(result);
@@ -66,20 +77,50 @@ const JoinClass: FC<{
       } catch (error) {
         if (error instanceof Object) {
           logger.error('Error fetching class data:', error);
+          const rawMessage = getErrorMessage(error);
           let eMsg: string =
-            'Error: Invalid inviteCode' === error.toString()
+            rawMessage === 'Invalid inviteCode'
               ? t('Invalid code. Please check and Try again.')
-              : error.toString();
+              : t('Something went wrong. Please try again.');
           setError(eMsg);
         }
       }
       setLoading(false);
     }
   };
+
+  const waitForJoinSyncToSettle = async () => {
+    const pollIntervalMs = 100;
+    const settleDurationMs = 400;
+    const timeoutMs = 180000;
+    const startedAt = Date.now();
+    let syncIdleSince: number | null = null;
+
+    while (Date.now() - startedAt < timeoutMs) {
+      const syncing = api.isSyncInProgress();
+
+      if (syncing) {
+        syncIdleSince = null;
+      } else if (syncIdleSince === null) {
+        syncIdleSince = Date.now();
+      } else if (Date.now() - syncIdleSince >= settleDurationMs) {
+        return;
+      }
+
+      await new Promise((resolve) =>
+        window.setTimeout(resolve, pollIntervalMs),
+      );
+    }
+
+    logger.warn(
+      'Join class timed out while waiting for sync to settle. Continuing anyway.',
+    );
+  };
+
   const onJoin = async () => {
     // setShowDialogBox(false);
-    if (loading) return;
-    setLoading(true);
+    if (loading || joiningClass) return;
+    setJoiningClass(true);
 
     try {
       const student = Util.getCurrentStudent();
@@ -101,22 +142,24 @@ const JoinClass: FC<{
         );
       }
       await api.linkStudent(parseInt(inviteCode, 10), student.id);
+      await waitForJoinSyncToSettle();
       const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
       localStorage.setItem(RESET_ON_JOIN_KEY, 'true');
       if (!!codeResult) {
+        const { inviteData, classData, schoolData } = codeResult;
         Util.subscribeToClassTopic(
-          codeResult['class_id'],
-          codeResult['school_id'],
+          inviteData['class_id'],
+          inviteData['school_id'],
         );
-        const currClass = await api.getClassById(codeResult['class_id']);
-        if (currClass) {
-          await schoolUtil.setCurrentClass(currClass);
-        } else {
+        if (!classData || !schoolData) {
           logger.error('Class data not found.');
           throw new Error('Class data could not be fetched.');
         }
-        await api.updateSchoolLastModified(codeResult['school_id']);
-        await api.updateClassLastModified(codeResult['class_id']);
+        await api.storeJoinClassLookupDataLocally(classData, schoolData);
+        await schoolUtil.setCurrentSchool(schoolData);
+        await schoolUtil.setCurrentClass(classData);
+        await api.updateSchoolLastModified(inviteData['school_id']);
+        await api.updateClassLastModified(inviteData['class_id']);
         await api.updateUserLastModified(student.id);
       }
       onClassJoin();
@@ -126,9 +169,10 @@ const JoinClass: FC<{
       // window.location.reload();
     } catch (error) {
       logger.error('Join class failed:', error);
-      if (error instanceof Object) setError(error.toString());
+      if (error instanceof Object)
+        setError('Something went wrong. Please try again.');
     } finally {
-      setLoading(false);
+      setJoiningClass(false);
     }
   };
   const location = useLocation();
@@ -186,11 +230,12 @@ const JoinClass: FC<{
   const isFormValid =
     !!codeResult &&
     !error &&
-    (fullName.length >= 3 || fullName === currStudent.name) &&
+    (fullName.trim().length >= 3 || fullName === currentStudentName) &&
     inviteCode?.length === 6;
 
   return (
     <div className="join-class-parent-container">
+      {joiningClass && <Loading isLoading={true} msg="Joining class..." />}
       <div
         className={`assignment-join-class-container-scroll`}
         ref={containerRef}
@@ -203,10 +248,11 @@ const JoinClass: FC<{
             value={fullName}
             setValue={setFullName}
             icon="assets/icons/BusinessCard.svg"
-            readOnly={!!currStudent && fullName === currStudent.name}
+            readOnly={hasExistingStudentName && fullName === currentStudentName}
             statusIcon={
               fullName.length == 0 ? null : fullName &&
-                (fullName.length >= 3 || fullName === currStudent.name) ? (
+                (fullName.trim().length >= 3 ||
+                  fullName === currentStudentName) ? (
                 <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
               ) : (
                 <img src="assets/icons/Vector.svg" alt="Status icon" />
@@ -245,8 +291,8 @@ const JoinClass: FC<{
 
         <div className="join-class-message">
           {codeResult && !error && error == '' && inviteCode?.length === 6
-            ? `${t('School')}: ${codeResult['school_name']}, ${t('Class')}: ${
-                codeResult['class_name']
+            ? `${t('School')}: ${codeResult.inviteData['school_name']}, ${t('Class')}: ${
+                codeResult.inviteData['class_name']
               }`
             : error && inviteCode?.length === 6
               ? error
@@ -255,7 +301,7 @@ const JoinClass: FC<{
         <button
           className="join-class-confirm-button"
           onClick={onJoin}
-          disabled={loading || !isFormValid}
+          disabled={loading || joiningClass || !isFormValid}
         >
           <span className="join-class-confirm-text">{t('Confirm')}</span>
         </button>

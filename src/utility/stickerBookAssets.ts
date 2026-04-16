@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import logger from './logger';
+import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 
 const STICKER_BOOK_CACHE_DIR = 'stickerBookAssetCache';
 const STICKER_BOOK_CACHE_PREFIX = 'sb_';
@@ -115,6 +116,28 @@ async function cacheStickerBookSvg(
   }
 }
 
+async function downloadStickerBookSvgText(url: string): Promise<string> {
+  try {
+    const result = await runBackgroundWorkerTask('DOWNLOAD_STICKER_BOOK_SVG', {
+      url,
+    });
+    if (result?.svgText) {
+      return result.svgText;
+    }
+  } catch (error) {
+    logger.warn(
+      '[StickerBook] Worker download failed, falling back to main thread fetch',
+      error,
+    );
+  }
+
+  const response = await fetch(url);
+  if (response.ok === false) {
+    throw new Error(`Failed to download sticker book svg: ${response.status}`);
+  }
+  return await response.text();
+}
+
 export async function ensureLocalStickerBookSvgUri(
   url: string,
 ): Promise<string> {
@@ -133,12 +156,7 @@ export async function ensureLocalStickerBookSvgUri(
     return resolvedUrl;
   }
 
-  const response = await fetch(resolvedUrl);
-  if (response.ok === false) {
-    throw new Error(`Failed to download sticker book svg: ${response.status}`);
-  }
-
-  const svgText = await response.text();
+  const svgText = await downloadStickerBookSvgText(resolvedUrl);
   await cacheStickerBookSvg(url, svgText);
 
   const localUri = await readStickerBookAsset(url, 'uri');

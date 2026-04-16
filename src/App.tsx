@@ -834,6 +834,7 @@ const App: React.FC = () => {
         <GenericPopup
           thumbnailImageUrl={popupData.localized.thumbnailImageUrl}
           backgroundImageUrl={popupData.localized.backgroundImageUrl}
+          audioUrl={popupData.localized.audioUrl}
           heading={popupData.localized.heading}
           subHeading={popupData.localized.subHeading}
           details={popupData.localized.details}

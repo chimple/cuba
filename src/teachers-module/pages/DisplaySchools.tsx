@@ -273,6 +273,7 @@ const DisplaySchools: FC = () => {
         history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
       }
     }
+    void Util.validateCurrentSchoolContext();
     setLoading(false);
   }
 

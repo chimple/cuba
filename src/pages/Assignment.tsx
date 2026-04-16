@@ -13,6 +13,7 @@ import {
   TableTypes,
 } from '../common/constants';
 import { useHistory } from 'react-router';
+import { App } from '@capacitor/app';
 import LessonSlider from '../components/LessonSlider';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { t } from 'i18next';
@@ -27,6 +28,9 @@ import { useFeatureIsOn, useGrowthBook } from '@growthbook/growthbook-react';
 import HomeworkCompleteModal from '../components/assignment/HomeworkCompleteModal';
 import { useGbContext } from '../growthbook/Growthbook';
 import logger from '../utility/logger';
+
+const waitForJoinRefresh = (delayMs: number) =>
+  new Promise((resolve) => setTimeout(resolve, delayMs));
 
 // Extend props to accept a callback for new assignments.
 interface AssignmentPageProps {
@@ -65,6 +69,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   }>({});
   const [showHomeworkCompleteModal, setShowHomeworkCompleteModal] =
     useState(false);
+  const [assignmentRefreshToken, setAssignmentRefreshToken] = useState(0);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
   const isMounted = useRef(true);
   const { gbUpdated, setGbUpdated } = useGbContext();
@@ -199,10 +204,65 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
     }
     debounceTimer.current = setTimeout(() => {
       if (isMounted.current) {
+        // One debounced refresh token is enough to tell HomeworkPathway to
+        // re-read the current assignments without triggering duplicate reloads.
+        setAssignmentRefreshToken((prev) => prev + 1);
         init();
       }
     }, 1000);
   }, [init]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    const appStateListener = App.addListener(
+      'appStateChange',
+      async ({ isActive }) => {
+        if (!isActive || !isMounted.current) return;
+
+        try {
+          await api.syncDB([TABLES.Assignment]);
+          setAssignmentRefreshToken((prev) => prev + 1);
+          await init(false, true);
+        } catch {
+          // Ignore resume sync failures and let the next refresh retry.
+        }
+      },
+    );
+
+    return () => {
+      void Promise.resolve(appStateListener).then((listener) =>
+        listener?.remove?.(),
+      );
+    };
+  }, [api, init]);
+
+  const refreshAssignmentPageAfterJoin = useCallback(async () => {
+    const student = Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+
+    setLoading(true);
+
+    const retryDelays = [0, 500, 1000, 2000];
+    for (const delayMs of retryDelays) {
+      if (delayMs > 0) {
+        await waitForJoinRefresh(delayMs);
+      }
+
+      const linkedData = await api.getStudentClassesAndSchools(student.id);
+      if (linkedData?.classes?.length) {
+        await init(false, true);
+        return;
+      }
+    }
+
+    await init(false, true);
+  }, [api, history, init]);
 
   useEffect(() => {
     if (assignmentSyncDone && !loading) {
@@ -294,14 +354,21 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
   async function downloadAllHomeWork(lessons: TableTypes<'lesson'>[]) {
     setDownloadButtonLoading(true);
     localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
-    const allLessonIds = lessons.map((lesson) => lesson.cocos_lesson_id);
     try {
       const storedLessonIds = Util.getStoredLessonIds();
-      const filteredLessonIds: string[] = allLessonIds.filter(
-        (id): id is string => id !== null && !storedLessonIds.includes(id),
+      const filteredLessons = lessons.filter((lesson) => {
+        const lessonId = Util.getLessonBundleId(lesson);
+        return !!lessonId && !storedLessonIds.includes(lessonId);
+      });
+      const uniqueFilteredLessons = Array.from(
+        new Map(
+          filteredLessons.map((lesson) => [
+            Util.getLessonBundleId(lesson) ?? lesson.id,
+            lesson,
+          ]),
+        ).values(),
       );
-      const uniqueFilteredLessonIds = [...new Set(filteredLessonIds)];
-      await Util.downloadZipBundle(uniqueFilteredLessonIds);
+      await Util.downloadZipBundle(uniqueFilteredLessons);
 
       localStorage.setItem(
         DOWNLOAD_BUTTON_LOADING_STATUS,
@@ -357,14 +424,20 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       }
 
       // Build attributes (defensive)
+      // Read once so we preserve previously-set targeting attributes.
+      const existingAttributes = growthbook.getAttributes?.() ?? {};
       const attrs = {
         student_id: studentId,
         age: student?.age ?? null,
         grade_id: student?.grade_id ?? null,
       };
 
-      // Set attributes BEFORE evaluating
-      growthbook.setAttributes(attrs);
+      // Preserve existing targeting attributes (e.g. school_ids, parent_id)
+      // while updating student-scoped fields used here.
+      growthbook.setAttributes({
+        ...existingAttributes,
+        ...attrs,
+      });
 
       // Synchronously evaluate feature
       const val = (growthbook.getFeatureValue?.(
@@ -461,7 +534,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
               {!isLinked ? (
                 <JoinClass
                   onClassJoin={() => {
-                    init(false);
+                    refreshAssignmentPageAfterJoin();
                   }}
                 />
               ) : (
@@ -508,7 +581,10 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
                   // <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
                   assignments.length > 0 ? (
-                    <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
+                    <HomeworkPathway
+                      onPlayMoreHomework={onPlayMoreHomework}
+                      refreshToken={assignmentRefreshToken}
+                    />
                   ) : (
                     <div className="pending-assignment">
                       {showHomeworkCompleteModal && (

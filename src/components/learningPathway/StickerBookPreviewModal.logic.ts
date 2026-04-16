@@ -8,9 +8,14 @@ import {
   type ParsedSvg,
 } from '../common/SvgHelpers';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import { EVENTS, PAGES } from '../../common/constants';
+import {
+  EVENTS,
+  PAGES,
+  STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON,
+} from '../../common/constants';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
+import { AudioUtil } from '../../utility/AudioUtil';
 import { fetchStickerBookSvgText } from '../../utility/stickerBookAssets';
 import { useStickerBookSave } from '../../hooks/useStickerBookSave';
 import { resolveStickerBookSvgUrl } from '../../utility/stickerBookAssets';
@@ -40,6 +45,7 @@ interface StickerBookPreviewModalLogicParams {
 
 const fallbackStickerBookLayoutUrl =
   'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/sticker-books/newWhole_layout.svg';
+const STICKER_DROP_SUCCESS_AUDIO_URL = '/assets/audios/common/crowd_cheer.mp3';
 
 export const useStickerBookPreviewModalLogic = ({
   data,
@@ -191,6 +197,11 @@ export const useStickerBookPreviewModalLogic = ({
         ...saveAnalyticsPayload,
         file_name: fileName,
       });
+    },
+    onShareSettled: async () => {
+      if (!isCompletionMode) return;
+      closeSaveModal();
+      onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
     },
     onSaveSuccess: async (fileName: string) => {
       Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SAVED, {
@@ -447,9 +458,9 @@ export const useStickerBookPreviewModalLogic = ({
     const nextSize = Math.max(
       72,
       Math.min(
-        frame.clientWidth * 0.52,
-        frame.clientHeight * 0.52,
-        Math.max(slotRect.width, slotRect.height) * 1.14,
+        frame.clientWidth * 0.72,
+        frame.clientHeight * 0.72,
+        Math.max(slotRect.width, slotRect.height) * 1.12,
       ),
     );
     if (Math.abs(nextSize - dragStickerSize) < 1) return;
@@ -472,6 +483,7 @@ export const useStickerBookPreviewModalLogic = ({
     isDragging,
     isDropSuccessful,
     isLoading,
+    showDragSticker,
   ]);
 
   const computeDragPosition = (clientX: number, clientY: number) => {
@@ -481,10 +493,10 @@ export const useStickerBookPreviewModalLogic = ({
     const x = (clientX - frameRect.left) / scale - dragOffsetRef.current.x;
     const y = (clientY - frameRect.top) / scale - dragOffsetRef.current.y;
     const maxX = Math.max(0, frame.clientWidth - dragStickerSize);
-    const maxY = Math.max(0, frame.clientHeight - dragStickerSize);
+    const maxY = Math.max(0, frame.clientHeight - dragStickerSize * 0.52);
     return {
       x: Math.min(Math.max(0, x), maxX),
-      y: Math.min(Math.max(0, y), maxY),
+      y: Math.min(Math.max(-dragStickerSize * 0.48, y), maxY),
     };
   };
 
@@ -574,6 +586,10 @@ export const useStickerBookPreviewModalLogic = ({
     setIsDropSuccessful(true);
     setShowPointerHint(false);
     setShowDropConfetti(true);
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    void AudioUtil.playAudioOrTts({
+      audioUrl: STICKER_DROP_SUCCESS_AUDIO_URL,
+    });
 
     logDragEvent(EVENTS.STICKER_DRAG_DROPPED_SUCCESS);
     logDragEvent(EVENTS.STICKER_DRAG_CONFETTI_SHOWN, { stage: 'drop' });
@@ -588,13 +604,13 @@ export const useStickerBookPreviewModalLogic = ({
         logDragEvent(EVENTS.STICKER_DRAG_POPUP_TO_PROFILE);
       }, 2700);
       addTimer(() => {
-        onClose('acknowledge_button');
+        onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
       }, 2700 + popupFlyoutDurationMs);
     } else {
       // Skip flyout animation when completion popup is next.
       // Keep confetti visible, then close to trigger completion.
       addTimer(() => {
-        onClose('acknowledge_button');
+        onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
       }, 3200);
     }
   };
@@ -735,10 +751,7 @@ export const useStickerBookPreviewModalLogic = ({
   }, [sceneCollectedStickers, sceneNextStickerId, svgMarkup]);
 
   const handleSave = async () => {
-    Util.logEvent(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED,
-      analyticsPayload,
-    );
+    Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE, analyticsPayload);
     Util.logEvent(EVENTS.STICKER_BOOK_SAVE_CLICKED, saveAnalyticsPayload);
 
     const stickerBookSvg = bookSvgRef.current?.cloneNode(true);
@@ -751,10 +764,7 @@ export const useStickerBookPreviewModalLogic = ({
   };
 
   const handlePaint = () => {
-    Util.logEvent(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED,
-      analyticsPayload,
-    );
+    Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT, analyticsPayload);
     const svgRaw = bookSvgRef.current
       ? new XMLSerializer().serializeToString(bookSvgRef.current)
       : svgMarkup || undefined;
@@ -774,7 +784,7 @@ export const useStickerBookPreviewModalLogic = ({
   const closeCompletionSaveModal = () => {
     closeSaveModal();
     if (isCompletionMode) {
-      onClose('acknowledge_button');
+      onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
     }
   };
 

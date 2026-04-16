@@ -10,6 +10,7 @@ type useStickerBookSaveOptions = {
   shareText: string;
   backgroundColor?: string;
   onShareSuccess?: (fileName: string) => void | Promise<void>;
+  onShareSettled?: (fileName: string) => void | Promise<void>;
   onSaveSuccess?: (fileName: string) => void | Promise<void>;
 };
 
@@ -56,6 +57,7 @@ export function useStickerBookSave({
   shareText,
   backgroundColor = '#fffdee',
   onShareSuccess,
+  onShareSettled,
   onSaveSuccess,
 }: useStickerBookSaveOptions) {
   const [isSaving, setIsSaving] = useState(false);
@@ -140,6 +142,10 @@ export function useStickerBookSave({
       });
       if (!pngDataUrl) return;
 
+      // Close the PNG preview once we've captured the snapshot so the toast
+      // can remain visible on its own before the share sheet appears.
+      setShowSaveModal(false);
+
       fileName = `${sanitizeFileName(fileBaseName)}_${Date.now()}.png`;
       const blob = await fetch(pngDataUrl).then((response) => response.blob());
       const file = new File([blob], fileName, { type: 'image/png' });
@@ -182,6 +188,8 @@ export function useStickerBookSave({
         await onShareSuccess?.(fileName);
       } catch (error) {
         logger.error('Failed to share artwork snapshot:', error);
+      } finally {
+        await onShareSettled?.(fileName);
       }
     } catch (error) {
       logger.error('Failed to prepare artwork snapshot:', error);

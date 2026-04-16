@@ -172,6 +172,10 @@ export class ApiHandler implements ServiceApi {
     return await this.s.updateRewardAsSeen(studentId);
   }
 
+  public async markStciekercolledasTrue(userId: string): Promise<void> {
+    return await this.s.markStciekercolledasTrue(userId);
+  }
+
   public async getLeaderboardStudentResultFromB2CCollection(
     studentId: string,
   ): Promise<LeaderboardInfo | undefined> {
@@ -187,6 +191,11 @@ export class ApiHandler implements ServiceApi {
     userId: string,
   ): Promise<TableTypes<'user_sticker'>[]> {
     return this.s.getUserSticker(userId);
+  }
+  public async getUserStickerBook(
+    userId: string,
+  ): Promise<TableTypes<'user_sticker_book'>[]> {
+    return this.s.getUserStickerBook(userId);
   }
   public async getUserBonus(
     userId: string,
@@ -334,6 +343,12 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
     return await this.s.getSchoolsForUser(userId, options);
   }
+  public async getSchoolsForUserBySearchTerm(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
+    return await this.s.getSchoolsForUserBySearchTerm!(userId, searchTerm);
+  }
   public async getUserRoleForSchool(
     userId: string,
     schoolId: string,
@@ -428,6 +443,18 @@ export class ApiHandler implements ServiceApi {
   public async getDataByInviteCode(inviteCode: number): Promise<any> {
     return await this.s.getDataByInviteCode(inviteCode);
   }
+
+  public async getDataByInviteCodeNew(inviteCode: number): Promise<any> {
+    return await this.s.getDataByInviteCodeNew(inviteCode);
+  }
+
+  public async storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void> {
+    return await this.s.storeJoinClassLookupDataLocally(classData, schoolData);
+  }
+
   public async linkStudent(
     inviteCode: number,
     studentId: string,
@@ -976,6 +1003,10 @@ export class ApiHandler implements ServiceApi {
     isFirstSync?: boolean,
   ): Promise<boolean> {
     return this.s.syncDB(tableNames, refreshTables, isFirstSync);
+  }
+
+  isSyncInProgress(): boolean {
+    return this.s.isSyncInProgress();
   }
 
   async getRecommendedLessons(

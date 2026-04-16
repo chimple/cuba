@@ -127,42 +127,83 @@ export type Database = {
 
       user_sticker_book: {
         Row: {
+          created_at: string | null;
           id: string;
-          user_id: string;
-          sticker_book_id: string;
-          stickers_collected: string[];
+          is_deleted: boolean | null;
+          is_seen: boolean | null;
           status: string;
-          created_at: string;
-          is_deleted: boolean;
+          sticker_book_id: string;
+          stickers_collected: string[] | null;
+          updated_at: string | null;
+          user_id: string;
         };
         Insert: {
+          created_at?: string | null;
           id?: string;
-          user_id: string;
-          sticker_book_id: string;
-          stickers_collected?: string[];
+          is_deleted?: boolean | null;
+          is_seen?: boolean | null;
           status?: string;
-          created_at?: string;
-          is_deleted?: boolean;
+          sticker_book_id: string;
+          stickers_collected?: string[] | null;
+          updated_at?: string | null;
+          user_id: string;
         };
         Update: {
+          created_at?: string | null;
           id?: string;
-          user_id?: string;
-          sticker_book_id?: string;
-          stickers_collected?: string[];
+          is_deleted?: boolean | null;
+          is_seen?: boolean | null;
           status?: string;
-          created_at?: string;
-          is_deleted?: boolean;
+          sticker_book_id?: string;
+          stickers_collected?: string[] | null;
+          updated_at?: string | null;
+          user_id?: string;
         };
         Relationships: [
           {
             foreignKeyName: 'user_sticker_book_sticker_book_id_fkey';
             columns: ['sticker_book_id'];
+            isOneToOne: false;
             referencedRelation: 'sticker_book';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
             referencedColumns: ['id'];
           },
         ];
       };
-
       announcement: {
         Row: {
           created_at: string;
@@ -5306,6 +5347,10 @@ export type Database = {
         };
       };
       getDataByInviteCode: { Args: { invite_code: number }; Returns: Json };
+      getDataByInviteCodeNew: {
+        Args: { invite_code: number };
+        Returns: Json;
+      };
       getfiltered_schools: {
         Args: { filters: Json };
         Returns: {
@@ -5483,6 +5528,21 @@ export type Database = {
       linkStudent: {
         Args: { invite_code: number; student_id: string };
         Returns: boolean;
+      };
+      new_link_student: {
+        Args: { invite_code: number; student_id: string };
+        Returns: {
+          class_id: string;
+          created_at: string | null;
+          id: string;
+          is_deleted: boolean | null;
+          is_firebase: boolean | null;
+          is_ops: boolean | null;
+          ops_created_by: string | null;
+          role: Database['public']['Enums']['role'];
+          updated_at: string | null;
+          user_id: string;
+        }[];
       };
       read_group_assignment_queue_v2: {
         Args: { qty: number; queue_name: string; vt: number };

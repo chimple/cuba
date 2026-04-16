@@ -12,6 +12,7 @@ import {
   PAGES,
   STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
   TableTypes,
+  CURRENT_STUDENT_CHANGED_EVENT,
 } from '../../common/constants';
 import { useHistory } from 'react-router';
 import { Util } from '../../utility/util';
@@ -26,9 +27,7 @@ import {
   setCachedGrowthBookFeatureValue,
 } from '../../growthbook/Growthbook';
 import { schoolUtil } from '../../utility/schoolUtil';
-import i18n from '../../i18n';
 import { useAppSelector } from '../../redux/hooks';
-import { AuthState } from '../../redux/slices/auth/authSlice';
 import { RootState } from '../../redux/store';
 import logger from '../../utility/logger';
 
@@ -64,10 +63,6 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       ] as boolean) ?? liveIsStickerBookNotificationDotEnabled)
     : liveIsStickerBookNotificationDotEnabled;
 
-  const { user: reduxUser } = useAppSelector(
-    (state: RootState) => state.auth as AuthState,
-  );
-
   const currentMode = localStorage.getItem(CURRENT_MODE);
   const shouldShowStickerBookNotification =
     hasUnseenStickers && isStickerBookNotificationDotEnabled;
@@ -85,6 +80,21 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
 
   useEffect(() => {
     loadProfileData();
+
+    const handleStudentChange = (e: Event) => {
+      const customEvent = e as CustomEvent<TableTypes<'user'> | null>;
+      if (customEvent.detail) {
+        setStudent(customEvent.detail);
+      }
+    };
+
+    window.addEventListener(CURRENT_STUDENT_CHANGED_EVENT, handleStudentChange);
+    return () => {
+      window.removeEventListener(
+        CURRENT_STUDENT_CHANGED_EVENT,
+        handleStudentChange,
+      );
+    };
   }, []);
   const loadProfileData = async () => {
     try {
@@ -95,7 +105,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       setSchoolName(schoolName);
 
       if (currentStudent?.id) {
-        const userStickers = await api.getUserSticker(currentStudent.id);
+        const userStickers = await api.getUserStickerBook(currentStudent.id);
         const hasUnseen = userStickers.some((s) => !s.is_seen);
         setHasUnseenStickers(hasUnseen);
       }
@@ -103,20 +113,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       logger.error('Failed to load profile data:', error);
     }
   };
-  // Handles Edit action:
-  // 1. Fetches all available languages
-  // 2. Reads the logged-in user from localStorage
-  // 3. Finds the user's preferred language
-  // 4. Updates i18n language if different from current
-  // 5. Navigates to the Edit Student page
-  const onEdit = async () => {
-    const languages = await api.getAllLanguages();
-    const user = reduxUser;
-    if (!user) return;
-    const userLang = languages.find((lang) => lang.id === user.language_id);
-    if (userLang?.code && i18n.language !== userLang.code) {
-      i18n.changeLanguage(userLang.code);
-    }
+  const onEdit = () => {
     history.replace(PAGES.EDIT_STUDENT, { from: history.location.pathname });
   };
 
@@ -131,6 +128,14 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     });
     if (hasUnseenStickers) {
       setHasUnseenStickers(false);
+      if (student?.id) {
+        void api.markStciekercolledasTrue(student.id).catch((error) => {
+          logger.error('[ProfileMenu] Failed to mark sticker books as seen', {
+            user_id: student.id,
+            error,
+          });
+        });
+      }
     }
     history.push(PAGES.STICKER_BOOK, { from: history.location.pathname });
   };

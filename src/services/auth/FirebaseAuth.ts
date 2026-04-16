@@ -27,6 +27,7 @@ import { CollectionIds } from '../../common/courseConstants';
 import { ACTION, EVENTS, LANGUAGE, TableTypes } from '../../common/constants';
 import { ServiceConfig } from '../ServiceConfig';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { logAuthDebug } from '../../utility/authDebug';
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -412,6 +413,11 @@ export class FirebaseAuth implements ServiceAuth {
   }
 
   async logOut(): Promise<void> {
+    logAuthDebug('Executing firebase auth logout.', {
+      source: 'FirebaseAuth.logOut',
+      reason: 'explicit_or_upstream_logout',
+      has_current_user: !!this._currentUser,
+    });
     await FirebaseAuthentication.signOut();
     await this._auth.signOut();
     this._currentUser = undefined;
