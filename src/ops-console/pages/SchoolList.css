@@ -85,6 +85,72 @@
   justify-content: flex-end;
 }
 
+.school-list-actions-group {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.school-list-actions-button.MuiButton-root {
+  border: none !important;
+  border-radius: 20px !important;
+  background: #fff !important;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1) !important;
+  color: #121619 !important;
+  height: 36px !important;
+  padding: 6px 16px !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
+  min-width: 110px !important;
+}
+
+.school-list-actions-button.MuiButton-root:hover {
+  border: none !important;
+  background: #fff !important;
+}
+
+.school-list-actions-chevron {
+  color: #1a71f6;
+  transition: transform 0.2s ease;
+}
+
+.school-list-actions-chevron-open {
+  transform: rotate(180deg);
+}
+
+.school-list-actions-menu.MuiPaper-root {
+  margin-top: 8px;
+  border-radius: 12px;
+  min-width: 148px;
+  box-shadow: 0px 10px 24px rgba(18, 22, 25, 0.12);
+}
+
+.school-list-actions-menu-item {
+  min-height: 48px !important;
+  padding: 10px 16px !important;
+}
+
+.school-list-actions-menu-item-icon {
+  min-width: 30px !important;
+  color: #1a71f6;
+}
+
+.school-list-actions-menu-icon-image {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.school-list-actions-menu-item-label {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #121619 !important;
+}
+
+.school-list-actions-menu-divider {
+  margin: 0 !important;
+}
+
 .school-list-table-container {
   overflow-y: hidden;
   padding: 0 20px;
@@ -131,9 +197,14 @@
   }
 
   .school-list-button-and-search-filter {
-    justify-content: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
     padding-left: 4%;
     padding-right: 4%;
+  }
+
+  .school-list-actions-group {
+    margin-left: auto;
   }
 
   .school-list-tab-wrapper {
@@ -154,30 +225,6 @@
 
 .school-list-upload-text1 {
   color: black;
-}
-
-.school-list-migrate-button {
-  border-color: #1976d2 !important;
-  border: 1px solid #1976d2 !important;
-  background: white !important;
-  border-radius: 20px !important;
-  text-transform: none !important;
-  color: black !important;
-  height: 36px !important;
-  padding: 6px 16px !important;
-  font-weight: 500 !important;
-}
-
-.school-list-migrate-button:hover {
-  border-color: #1976d2 !important;
-  background-color: rgba(25, 118, 210, 0.04) !important;
-}
-
-.school-list-migrate-icon {
-  width: 20px;
-  height: 20px;
-  display: block;
-  filter: brightness(0.9);
 }
 
 .school-list-upload-text {
