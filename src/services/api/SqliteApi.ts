@@ -64,6 +64,7 @@ import {
   GetSchoolsWithProgramAccessParams,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
+  OpsStudentPerformanceBandRow,
   SchoolProgramAccessResponse,
   ServiceApi,
 } from './ServiceApi';
@@ -5621,7 +5622,11 @@ order by
 
     return { hasPlayed: true, lastPlayedAt: firstRow.created_at };
   }
-
+  async getOpsStudentPerformanceBands(): Promise<
+    OpsStudentPerformanceBandRow[]
+  > {
+    throw new Error('Method not implemented.');
+  }
   async getLastAssignmentsForRecommendations(
     classId: string,
   ): Promise<TableTypes<'assignment'>[] | undefined> {

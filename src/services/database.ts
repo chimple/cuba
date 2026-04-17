@@ -4659,6 +4659,17 @@ export type Database = {
           },
         ];
       };
+      student_performance_mv: {
+        Row: {
+          class_id: string | null;
+          class_name: string | null;
+          performance: string | null;
+          student_id: string | null;
+          student_name: string | null;
+          time_spent_seconds_7d: number | null;
+        };
+        Relationships: [];
+      };
       student_sorted_view: {
         Row: {
           class_id: string | null;

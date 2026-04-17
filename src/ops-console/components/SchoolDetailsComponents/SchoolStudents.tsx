@@ -28,9 +28,8 @@ import {
   GENDER,
   PerformanceLevel,
   StudentInfo,
-  BANDS,
   EnumType,
-  SupportLevelMap,
+  OpsSupportLevelMap,
   ContactTarget,
   AVATARS,
   WHATSAPP_GROUP_STATUS_KEYS,
@@ -46,7 +45,6 @@ import {
 import FormCard, { FieldConfig, MessageConfig } from './FormCard';
 import { normalizePhone10 } from '../../pages/NewUserPageOps';
 import { ClassRow, SchoolData } from './SchoolClass';
-import { ClassUtil } from '../../../utility/classUtil';
 import ActionMenu from './ActionMenu';
 import ChatBubbleOutlineOutlined from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import BorderColorIcon from '@mui/icons-material/BorderColor';
@@ -65,6 +63,16 @@ import {
 } from './ClassDetailsPageUtils';
 
 type ApiStudentData = StudentInfo;
+type StudentPerformanceBand =
+  | 'green_band'
+  | 'yellow_band'
+  | 'red_band'
+  | 'grey_band';
+type OpsPerformanceLabel =
+  | 'High Engagement'
+  | 'Medium Engagement'
+  | 'Not Active'
+  | 'Not Downloaded';
 
 // Keys used to select the WhatsApp status label + chip styling.
 type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
@@ -86,17 +94,14 @@ interface DisplayStudent {
 }
 
 const getPerformanceChipClass = (schstudents_performance: string): string => {
-  const normalizedPerf = schstudents_performance
-    .toLowerCase()
-    .replace(/ /g, '_');
-  switch (normalizedPerf) {
-    case PerformanceLevel.DOING_GOOD:
+  switch (schstudents_performance) {
+    case 'High Engagement':
       return 'performance-chip-doing-good';
-    case PerformanceLevel.NEED_HELP:
+    case 'Not Active':
       return 'performance-chip-need-help';
-    case PerformanceLevel.STILL_LEARNING:
+    case 'Medium Engagement':
       return 'performance-chip-still-learning';
-    case PerformanceLevel.NOT_TRACKED:
+    case 'Not Downloaded':
     default:
       return 'performance-chip-not-tracked';
   }
@@ -153,6 +158,40 @@ const normalizeWhatsappContactFlag = (value: unknown): 'yes' | 'no' | null => {
   if (normalized === 'yes' || normalized === 'true') return 'yes';
   if (normalized === 'no' || normalized === 'false') return 'no';
   return null;
+};
+
+const mapBandToOpsLabel = (band?: string | null): OpsPerformanceLabel => {
+  switch (band) {
+    case 'green_band':
+      return 'High Engagement';
+    case 'yellow_band':
+      return 'Medium Engagement';
+    case 'red_band':
+      return 'Not Active';
+    case 'grey_band':
+    default:
+      return 'Not Downloaded';
+  }
+};
+
+const mapOpsLabelToPerformanceLevel = (
+  label?: string | null,
+):
+  | PerformanceLevel.DOING_GOOD
+  | PerformanceLevel.STILL_LEARNING
+  | PerformanceLevel.NEED_HELP
+  | PerformanceLevel.NOT_TRACKED => {
+  switch (label) {
+    case 'High Engagement':
+      return PerformanceLevel.DOING_GOOD;
+    case 'Medium Engagement':
+      return PerformanceLevel.STILL_LEARNING;
+    case 'Not Active':
+      return PerformanceLevel.NEED_HELP;
+    case 'Not Downloaded':
+    default:
+      return PerformanceLevel.NOT_TRACKED;
+  }
 };
 
 interface SchoolStudentsProps {
@@ -251,7 +290,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     autoCloseSeconds: 0,
   });
 
-  let baseStudentData: StudentInfo[] = [];
   const api = ServiceConfig.getI().apiHandler;
   const isAtSchool = useMemo(() => {
     const raw = (data?.schoolData?.model ?? '').toString();
@@ -295,7 +333,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             currentPage,
             ROWS_PER_PAGE,
           );
-          baseStudentData = response.data;
           setStudents(response.data);
           setTotalCount(response.total);
         }
@@ -657,13 +694,28 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   useEffect(() => {
     const fetchStudentPerformance = async () => {
-      if (optionalGrade == null || optionalSection == null || issTotal) {
+      if (sortedStudents.length === 0) {
+        setStudentPerformanceMap(new Map());
         return;
       }
 
-      const currentClass = classDataRef;
-      const classId = currentClass?.id ?? '';
-      if (!classId || sortedStudents.length === 0) {
+      const studentIds = sortedStudents
+        .map((student) => student.user.id)
+        .filter(Boolean);
+      const classIds = Array.from(
+        new Set(
+          sortedStudents
+            .map((student) =>
+              issTotal
+                ? student.classWithidname?.id
+                : (classDataRef?.id ?? student.classWithidname?.id),
+            )
+            .filter((value): value is string => Boolean(value)),
+        ),
+      );
+
+      if (studentIds.length === 0 || classIds.length === 0) {
+        setStudentPerformanceMap(new Map());
         return;
       }
 
@@ -671,56 +723,40 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       const performanceMap = new Map<string, string>();
 
       try {
-        const courseIds =
-          currentClass?.courses?.map((course) => course.id) ?? [];
-        if (courseIds.length === 0) {
-          sortedStudents.forEach((student) => {
-            performanceMap.set(student.user.id, 'Not Tracked');
-          });
-          setStudentPerformanceMap(performanceMap);
-          return;
-        }
+        const mvRows = await api.getOpsStudentPerformanceBands({
+          classIds,
+          studentIds,
+        });
 
-        const _classUtil = new ClassUtil();
-        const groups = await _classUtil.divideStudents(classId, courseIds);
+        mvRows.forEach((row) => {
+          const rowStudentId = String(row?.student_id ?? '').trim();
+          const rowClassId = String(row?.class_id ?? '').trim();
+          const rawBand = (row?.performance ??
+            null) as StudentPerformanceBand | null;
 
-        const processGroup = (band: string, status: string) => {
-          const group = groups.get(band);
-          if (group && Array.isArray(group)) {
-            group.forEach((item: any) => {
-              const student = item.get('student');
-              if (student && student.id) {
-                performanceMap.set(student.id, status);
-              }
-            });
-          }
-        };
-
-        processGroup(BANDS.GREENGROUP, 'Doing Good');
-        processGroup(BANDS.YELLOWGROUP, 'Still Learning');
-        processGroup(BANDS.REDGROUP, 'Need Help');
-        processGroup(BANDS.GREYGROUP, 'Not Tracked');
+          if (!rowStudentId || !rowClassId) return;
+          performanceMap.set(
+            `${rowClassId}:${rowStudentId}`,
+            mapBandToOpsLabel(rawBand),
+          );
+        });
 
         setStudentPerformanceMap(performanceMap);
       } catch (error) {
         logger.error('Error fetching student performance data:', error);
-        sortedStudents.forEach((student) => {
-          performanceMap.set(student.user.id, 'Not Tracked');
-        });
         setStudentPerformanceMap(performanceMap);
       } finally {
         setIsPerformanceLoading(false);
       }
     };
     fetchStudentPerformance();
-  }, [studentIdsKey, optionalGrade, optionalSection, issTotal, classDataRef]);
+  }, [api, classDataRef?.id, issTotal, sortedStudents, studentIdsKey]);
   const getStudentInfoById = useCallback(
     (id: string): StudentInfo | null => {
-      if (!Array.isArray(baseStudentData)) return null;
-      const full = baseStudentData.find((x) => x.user.id === id);
-      return baseStudentData.find((stu) => stu.user?.id === id) || null;
+      if (!Array.isArray(students)) return null;
+      return students.find((stu) => stu.user?.id === id) || null;
     },
-    [baseStudentData],
+    [students],
   );
 
   const getDeleteTargetStudent = useCallback(
@@ -752,6 +788,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
     let filtered = sortedStudents.map((s_api): DisplayStudent => {
       const classNameFromStudent = getExactClassName(s_api.classWithidname);
+      const rowClassId = String(
+        issTotal
+          ? (s_api.classWithidname?.id ?? '')
+          : (classDataRef?.id ?? s_api.classWithidname?.id ?? ''),
+      ).trim();
       return {
         id: s_api.user.id,
         original: s_api,
@@ -767,7 +808,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           classNameFromStudent,
         ),
         schstudents_performance:
-          studentPerformanceMap.get(s_api.user.id) ?? 'Not Tracked',
+          studentPerformanceMap.get(`${rowClassId}:${s_api.user.id}`) ??
+          'Not Downloaded',
         // Status is derived from parent is_wa_contact + class group membership.
         whatsappGroupStatus: getWhatsappGroupStatus(s_api),
       };
@@ -775,14 +817,16 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     // Filter by performance if not "all"
     if (performanceFilter !== PerformanceLevel.ALL) {
       filtered = filtered.filter((student) => {
-        const perf = student.schstudents_performance
-          ?.toLowerCase()
-          .replace(' ', '_');
+        const perf = mapOpsLabelToPerformanceLevel(
+          student.schstudents_performance,
+        );
         return perf === performanceFilter;
       });
     }
     return filtered;
   }, [
+    classDataRef?.id,
+    issTotal,
     sortedStudents,
     performanceFilter,
     studentPerformanceMap,
@@ -823,6 +867,24 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const isNoStudentsState = !isLoading && !hasAnyStudents;
   const hideHeaderActions = isNoStudentsState;
   const hideFilterUI = isNoStudentsState;
+
+  const handleInteractClick = useCallback(
+    (student: DisplayStudent) => {
+      const fullStudent = getStudentInfoById(student.id) ?? student.original;
+      if (!fullStudent) return;
+
+      const mappedType = student.schstudents_performance
+        ? OpsSupportLevelMap[
+            student.schstudents_performance as keyof typeof OpsSupportLevelMap
+          ]
+        : null;
+
+      setStudentData(fullStudent);
+      setStudentStatus(mappedType!);
+      setOpenPopup(true);
+    },
+    [getStudentInfoById],
+  );
 
   const columns: Column<DisplayStudent>[] = useMemo(() => {
     const actionColumn: Column<DisplayStudent>[] = [
@@ -925,47 +987,32 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           </Typography>
         ),
       },
+      {
+        key: 'schstudents_interact',
+        label: t('Interact'),
+        sortable: false,
+        render: (s) => (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'left',
+              alignItems: 'left',
+            }}
+          >
+            <IconButton size="small" onClick={() => handleInteractClick(s)}>
+              <img
+                src="/assets/icons/Interact.svg"
+                alt="Interact"
+                style={{ width: 30, height: 30 }}
+              />
+            </IconButton>
+          </Box>
+        ),
+      },
     ];
     if (!issTotal) {
       return [
         ...commonColumns,
-        {
-          key: 'schstudents_interact',
-          label: t('Interact'),
-          sortable: false,
-          render: (s) => (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'left',
-                alignItems: 'left',
-              }}
-            >
-              <IconButton
-                size="small"
-                onClick={async () => {
-                  const fullStudent = getStudentInfoById(s.id);
-                  if (!fullStudent) return;
-                  const mappedType = s.schstudents_performance
-                    ? SupportLevelMap[
-                        s.schstudents_performance as keyof typeof SupportLevelMap
-                      ]
-                    : null;
-
-                  setStudentData(fullStudent);
-                  setStudentStatus(mappedType!);
-                  setOpenPopup(true);
-                }}
-              >
-                <img
-                  src="/assets/icons/Interact.svg"
-                  alt="Interact"
-                  style={{ width: 30, height: 30 }}
-                />
-              </IconButton>
-            </Box>
-          ),
-        },
         {
           key: 'gender',
           label: t('Gender'),
@@ -985,10 +1032,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           sortable: false,
           render: (s) => (
             <Chip
-              label={t(s.schstudents_performance || 'Not Tracked')}
+              label={t(s.schstudents_performance || 'Not Downloaded')}
               size="small"
               className={getPerformanceChipClass(
-                s.schstudents_performance || 'Not Tracked',
+                s.schstudents_performance || 'Not Downloaded',
               )}
               sx={{
                 fontWeight: 500,
@@ -1022,6 +1069,26 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             </Typography>
           ),
         },
+        {
+          key: 'schstudents_performance',
+          label: t('Performance'),
+          sortable: false,
+          render: (s) => (
+            <Chip
+              label={t(s.schstudents_performance || 'Not Downloaded')}
+              size="small"
+              className={getPerformanceChipClass(
+                s.schstudents_performance || 'Not Downloaded',
+              )}
+              sx={{
+                fontWeight: 500,
+                fontSize: '0.75rem',
+                height: 24,
+                borderRadius: '4px',
+              }}
+            />
+          ),
+        },
         // { key: "phoneNumber", label: t("Phone Number / Email") },
         { key: 'class', label: t('Class') },
         {
@@ -1033,7 +1100,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         ...actionColumn,
       ];
     }
-  }, [issTotal]);
+  }, [
+    getDeleteTargetStudent,
+    getStudentInfoById,
+    handleInteractClick,
+    issTotal,
+  ]);
 
   const classOptions = useMemo(() => {
     const classes = data.classData || (data as any).classdata || [];
@@ -1465,10 +1537,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   const performanceFilters = [
     { key: PerformanceLevel.ALL, label: t('All') },
-    { key: PerformanceLevel.NEED_HELP, label: t('Need Help') },
-    { key: PerformanceLevel.DOING_GOOD, label: t('Doing Good') },
-    { key: PerformanceLevel.STILL_LEARNING, label: t('Still Learning') },
-    { key: PerformanceLevel.NOT_TRACKED, label: t('Not Tracked') },
+    { key: PerformanceLevel.NEED_HELP, label: t('Not Active') },
+    { key: PerformanceLevel.DOING_GOOD, label: t('High Engagement') },
+    { key: PerformanceLevel.STILL_LEARNING, label: t('Medium Engagement') },
+    { key: PerformanceLevel.NOT_TRACKED, label: t('Not Downloaded') },
   ];
   async function handleMergeStudents(student: any): Promise<void> {
     try {

@@ -1267,6 +1267,13 @@ export enum SupportLevelMap {
   'Not Tracked' = 'not_tracked',
 }
 
+export enum OpsSupportLevelMap {
+  'High Engagement' = 'doing_good',
+  'Medium Engagement' = 'still_learning',
+  'Not Active' = 'need_help',
+  'Not Downloaded' = 'not_tracked',
+}
+
 export enum RECOMMENDATION_TYPE {
   FRAMEWORK = 'framework',
   CHAPTER = 'chapter',
