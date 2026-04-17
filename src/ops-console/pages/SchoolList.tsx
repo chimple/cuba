@@ -2,12 +2,17 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box,
   Button,
+  Divider,
   IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Tab,
   Tabs,
   Typography,
-  useMediaQuery,
 } from '@mui/material';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from '../../common/constants';
 import './SchoolList.css';
@@ -101,8 +106,9 @@ const SchoolList: React.FC = () => {
   const [orderBy, setOrderBy] = useState('');
   const [orderDir, setOrderDir] = useState<'asc' | 'desc'>('asc');
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
-
-  const isSmallScreen = useMediaQuery('(max-width: 900px)');
+  const [actionsAnchorEl, setActionsAnchorEl] = useState<null | HTMLElement>(
+    null,
+  );
   const [openDetails, setOpenDetails] = useState(false);
   const [visitId, setVisitId] = useState<string | null>(null);
   const { roles } = useAppSelector(
@@ -118,6 +124,7 @@ const SchoolList: React.FC = () => {
   const haveAccess = userRoles.some((role) =>
     rolesWithAccess.includes(role as RoleType),
   );
+  const isActionsMenuOpen = Boolean(actionsAnchorEl);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -285,6 +292,101 @@ const SchoolList: React.FC = () => {
     setShowUploadPage(false);
   }
 
+  const handleOpenActionsMenu = (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    setActionsAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseActionsMenu = () => {
+    setActionsAnchorEl(null);
+  };
+
+  const handleOpenUploadPage = () => {
+    setShowUploadPage(true);
+  };
+
+  const handleOpenAddSchoolPage = () => {
+    history.push({
+      pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
+    });
+  };
+
+  const handleOpenMigratePage = () => {
+    history.push(
+      `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`,
+    );
+  };
+
+  const actionItems = [
+    ...(haveAccess
+      ? [
+          {
+            key: 'migrate',
+            label: t('Migrate'),
+            icon: (
+              <img
+                id="school-list-actions-migrate-icon"
+                src="assets/icons/migrateArrow.svg"
+                alt=""
+                className="school-list-actions-menu-icon-image"
+              />
+            ),
+            onClick: handleOpenMigratePage,
+          },
+        ]
+      : []),
+    {
+      key: 'upload',
+      label: t('Upload'),
+      icon: <FileUploadOutlined className="school-list-upload-icon" />,
+      onClick: handleOpenUploadPage,
+    },
+    ...(haveAccess
+      ? [
+          {
+            key: 'add-school',
+            label: t('Add School'),
+            icon: <Add className="school-list-upload-icon" />,
+            onClick: handleOpenAddSchoolPage,
+          },
+        ]
+      : []),
+  ];
+  const actionMenuEntries = actionItems.flatMap((item, index) => {
+    const nodes = [
+      <MenuItem
+        key={item.key}
+        className="school-list-actions-menu-item"
+        onClick={() => {
+          handleCloseActionsMenu();
+          item.onClick();
+        }}
+      >
+        <ListItemIcon className="school-list-actions-menu-item-icon">
+          {item.icon}
+        </ListItemIcon>
+        <ListItemText
+          primary={item.label}
+          primaryTypographyProps={{
+            className: 'school-list-actions-menu-item-label',
+          }}
+        />
+      </MenuItem>,
+    ];
+
+    if (index < actionItems.length - 1) {
+      nodes.push(
+        <Divider
+          key={`${item.key}-divider`}
+          className="school-list-actions-menu-divider"
+        />,
+      );
+    }
+
+    return nodes;
+  });
+
   const handleCancelFilters = () => {
     const reset = {
       partner: [],
@@ -350,77 +452,6 @@ const SchoolList: React.FC = () => {
             </div>
 
             <div className="school-list-button-and-search-filter">
-              {haveAccess && (
-                <Button
-                  variant="outlined"
-                  id="school-list-migrate-button"
-                  className="school-list-migrate-button"
-                  onClick={() =>
-                    history.push(
-                      `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`,
-                    )
-                  }
-                  startIcon={
-                    <img
-                      id="school-list-migrate-icon"
-                      src="assets/icons/migrateArrow.svg"
-                      alt="migrate"
-                      className="school-list-migrate-icon"
-                    />
-                  }
-                >
-                  {t('Migrate')}
-                </Button>
-              )}
-              {haveAccess && (
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    history.push({
-                      pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
-                    });
-                  }}
-                  sx={{
-                    borderColor: '#e0e0e0',
-                    border: '1px solid',
-                    borderRadius: 20,
-                    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
-                    height: '36px',
-                    minWidth: isSmallScreen ? '48px' : 'auto',
-                    padding: isSmallScreen ? 0 : '6px 16px',
-                    textTransform: 'none',
-                  }}
-                >
-                  <Add className="school-list-upload-icon" />
-                  {!isSmallScreen && (
-                    <span className="school-list-upload-text1">
-                      {t('Add School')}
-                    </span>
-                  )}
-                </Button>
-              )}
-              <Button
-                variant="outlined"
-                onClick={() => setShowUploadPage(true)}
-                sx={{
-                  borderColor: '#e0e0e0',
-                  border: '1px solid',
-                  borderRadius: 20,
-                  boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
-                  height: '36px',
-                  minWidth: isSmallScreen ? '48px' : 'auto',
-                  padding: isSmallScreen ? 0 : '6px 16px',
-                  textTransform: 'none',
-                }}
-              >
-                <FileUploadOutlined className="school-list-upload-icon" />
-                {!isSmallScreen && (
-                  <span className="school-list-upload-text1">
-                    {t('Upload')}
-                  </span>
-                )}
-              </Button>
-
               <SearchAndFilter
                 searchTerm={searchTerm}
                 onSearchChange={(e) => {
@@ -431,6 +462,43 @@ const SchoolList: React.FC = () => {
                 onFilterClick={() => setIsFilterOpen(true)}
                 onClearFilters={handleCancelFilters}
               />
+              <div className="school-list-actions-group">
+                <Button
+                  variant="outlined"
+                  id="school-list-actions-button"
+                  className="school-list-actions-button"
+                  onClick={handleOpenActionsMenu}
+                  aria-controls={
+                    isActionsMenuOpen ? 'school-list-actions-menu' : undefined
+                  }
+                  aria-expanded={isActionsMenuOpen ? 'true' : undefined}
+                  aria-haspopup="menu"
+                  endIcon={
+                    <ArrowDropDownIcon
+                      className={`school-list-actions-chevron ${
+                        isActionsMenuOpen
+                          ? 'school-list-actions-chevron-open'
+                          : ''
+                      }`}
+                    />
+                  }
+                >
+                  {t('Actions')}
+                </Button>
+                <Menu
+                  id="school-list-actions-menu"
+                  anchorEl={actionsAnchorEl}
+                  open={isActionsMenuOpen}
+                  onClose={handleCloseActionsMenu}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  PaperProps={{
+                    className: 'school-list-actions-menu',
+                  }}
+                >
+                  {actionMenuEntries}
+                </Menu>
+              </div>
             </div>
           </div>
 
