@@ -6,9 +6,16 @@ import React, {
   useEffect,
 } from 'react';
 import { useGrowthBook } from '@growthbook/growthbook-react';
-import { GrowthBookAttributes, LANGUAGE } from '../common/constants';
+import { LANGUAGE } from '../common/constants';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import logger from '../utility/logger';
+import { useAppSelector } from '../redux/hooks';
+import { store } from '../redux/store';
+import { Util } from '../utility/util';
+import {
+  mergeGrowthbookAttributes,
+  setGrowthbookFeatureValue,
+} from '../redux/slices/growthbook/growthbookSlice';
 
 type GbContextType = {
   gbUpdated: boolean;
@@ -18,29 +25,49 @@ type GbContextType = {
 const GbContext = createContext<GbContextType | undefined>(undefined);
 
 export const updateLocalAttributes = (data: any) => {
-  const existingData = localStorage.getItem(GrowthBookAttributes);
-  const parsedData = existingData ? JSON.parse(existingData) : {};
-  const updatedData = {
-    ...parsedData,
+  const parentIdFromStudent = data?.studentDetails?.parent_id;
+  // Keep parent_id available as a top-level GrowthBook attribute for targeting rules.
+  const enriched = {
     ...data,
+    ...(parentIdFromStudent ? { parent_id: parentIdFromStudent } : {}),
   };
-  localStorage.setItem(GrowthBookAttributes, JSON.stringify(updatedData));
+  store.dispatch(mergeGrowthbookAttributes(enriched));
+};
+
+export const setCachedGrowthBookFeatureValue = (
+  featureKey: string,
+  value: any,
+) => {
+  store.dispatch(setGrowthbookFeatureValue({ key: featureKey, value }));
+};
+
+export const getCachedGrowthBookFeatureValue = <T,>(
+  featureKey: string,
+  fallback: T,
+): T => {
+  try {
+    const featureValues = store.getState().growthbook?.featureValues ?? {};
+    return featureKey in featureValues
+      ? (featureValues[featureKey] as T)
+      : fallback;
+  } catch {
+    return fallback;
+  }
 };
 
 export const GbProvider = ({ children }: { children: ReactNode }) => {
   const growthbook = useGrowthBook();
   const [gbUpdated, setGbUpdated] = useState(true);
+  const attributes = useAppSelector((state) => state.growthbook.attributes);
 
   useEffect(() => {
     if (!gbUpdated) return;
-    const storedAttributes = localStorage.getItem(GrowthBookAttributes);
-    if (!storedAttributes) {
+    if (!attributes || Object.keys(attributes).length === 0) {
       setGbUpdated(false);
       return;
     }
-    const attributes = JSON.parse(storedAttributes);
     setGrowthbookAttributes(attributes);
-  }, [gbUpdated]);
+  }, [gbUpdated, attributes]);
 
   const buildAttributesOnMainThread = (attributes: any) => {
     const {
@@ -143,7 +170,31 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       );
       return buildAttributesOnMainThread(attributes);
     });
-    growthbook.setAttributes(preparedAttributes);
+    // Merge instead of replace so attributes set by other screens are not lost.
+    const existingAttributes = growthbook.getAttributes?.() ?? {};
+    const normalizedSchoolIds = Array.from(
+      new Set([
+        ...Util.normalizeGrowthbookArrayAttribute(
+          existingAttributes?.school_ids,
+        ),
+        ...Util.normalizeGrowthbookArrayAttribute(
+          preparedAttributes?.school_ids,
+        ),
+      ]),
+    );
+    const mergedAttributes = {
+      ...existingAttributes,
+      ...preparedAttributes,
+      // Always resolve parent_id from newest known sources.
+      parent_id:
+        preparedAttributes?.parent_id ??
+        attributes?.parent_id ??
+        attributes?.studentDetails?.parent_id ??
+        existingAttributes?.parent_id ??
+        null,
+      school_ids: normalizedSchoolIds,
+    };
+    growthbook.setAttributes(mergedAttributes);
     setGbUpdated(false);
   };
 

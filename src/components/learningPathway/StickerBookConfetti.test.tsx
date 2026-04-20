@@ -18,7 +18,7 @@ describe('StickerBookConfetti', () => {
       screen.getByTestId('StickerBookPreviewModal-confetti'),
     ).toBeInTheDocument();
     expect(clouds.length).toBe(5);
-    expect(pieces.length).toBe(26);
+    expect(pieces.length).toBe(78);
   });
 
   test('adds drop modifier class when isDropConfetti is true', () => {
@@ -27,7 +27,11 @@ describe('StickerBookConfetti', () => {
     const confetti = container.querySelector(
       '.StickerBookPreviewModal-confetti',
     );
+    const clouds = container.querySelectorAll(
+      '.StickerBookPreviewModal-confetti-cloud',
+    );
     expect(confetti).toHaveClass('StickerBookPreviewModal-confetti--drop');
+    expect(clouds).toHaveLength(5);
   });
 
   test('does not add drop modifier class when isDropConfetti is false', () => {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import './Parent.css';
 import {
   CLASS,
+  DEFAULT_LANGUAGE_ID_EN,
   EDIT_STUDENTS_MAP,
   LANGUAGE,
   MAX_STUDENTS_ALLOWED,
@@ -138,8 +139,8 @@ const Parent: React.FC = () => {
       setLangDocIds(tempLangDocIds);
       setLangList(tempLangList);
 
-      // Get the user's language_id from their profile
-      const userLangId = parentUser.language_id;
+      // If the parent has no saved language, default to English.
+      const userLangId = parentUser.language_id ?? DEFAULT_LANGUAGE_ID_EN;
 
       // Find the language object from allLang using the language_id
       const element =
@@ -168,13 +169,14 @@ const Parent: React.FC = () => {
   function profileUI() {
     return (
       <div id="parent-page-profile">
-        {userProfile.map((element) => {
+        {userProfile.map((element, index) => {
           let studentUserType: boolean = true;
           if (element === undefined) {
             studentUserType = false;
           }
           return (
             <ProfileCard
+              key={element?.id ?? `empty-profile-${index}`}
               width={'27vw'}
               height={'50vh'}
               userType={studentUserType}

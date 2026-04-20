@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ColorPalette from './ColorPalette';
 
@@ -38,8 +38,10 @@ const COLORS = [
 /* ---------------- TEST HELPER ---------------- */
 
 const renderPalette = (selected = '', onSelect = jest.fn()) => {
-  render(<ColorPalette selected={selected} onSelect={onSelect} />);
-  return { onSelect };
+  const utils = render(
+    <ColorPalette selected={selected} onSelect={onSelect} />,
+  );
+  return { onSelect, ...utils };
 };
 
 /* ================================================= */
@@ -49,6 +51,9 @@ const renderPalette = (selected = '', onSelect = jest.fn()) => {
 describe('ColorPalette', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+  afterEach(() => {
+    cleanup();
   });
 
   /* ---------- RENDER ---------- */
@@ -108,17 +113,19 @@ describe('ColorPalette', () => {
   });
 
   test('only one color is selected', () => {
-    renderPalette('#FF2E88');
+    const { container } = renderPalette('#FF2E88');
 
-    const selected = document.querySelectorAll('.selected');
+    const selected = container.querySelectorAll(
+      'button.color-palette-swatch.selected',
+    );
 
     expect(selected.length).toBe(1);
   });
 
   test('no selected class if no color selected', () => {
-    renderPalette('');
+    const { container } = renderPalette('');
 
-    const selected = document.querySelectorAll('.selected');
+    const selected = container.querySelectorAll('.selected');
 
     expect(selected.length).toBe(0);
   });

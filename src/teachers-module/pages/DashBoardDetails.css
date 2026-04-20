@@ -14,9 +14,10 @@
 .dashboard-group-wise-header {
   font-weight: bold;
   font-size: 2.5vh;
-  padding-left: 30px;
+  padding: 0 30px;
   border-bottom: 1px solid #ddd;
   display: flex;
+  justify-content: space-between;
   align-items: center;
   height: 6vh;
   min-height: 50px;

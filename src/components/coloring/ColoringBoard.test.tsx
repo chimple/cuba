@@ -1,8 +1,15 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 // Changes: expanded ColoringBoard tests for loading, events, and navigation.
 import '@testing-library/jest-dom';
 import ColoringBoard from './ColoringBoard';
+import { Util } from '../../utility/util';
 
 /* -------------------- MOCK SVG -------------------- */
 
@@ -37,6 +44,8 @@ jest.mock('../../utility/util', () => ({
   Util: {
     logEvent: jest.fn(),
     getCurrentStudent: () => ({ id: 'student1' }),
+    sendContentToAndroidOrWebShare: jest.fn(),
+    saveImage: jest.fn(),
   },
 }));
 
@@ -49,12 +58,26 @@ jest.mock('../common/SvgHelpers', () => ({
   sanitizeSvg: (svg: string) => svg,
 }));
 
+jest.mock('../../utility/logger', () => ({
+  __esModule: true,
+  default: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+
 /* -------------------- MOCK CHILD COMPONENTS -------------------- */
 
 jest.mock('./SVGScene', () => ({
-  SVGScene: ({ children }: any) => (
-    <div data-testid="svg-scene">{children}</div>
-  ),
+  SVGScene: ({ children, svgRefExternal }: any) => {
+    const mockReact = require('react');
+    return (
+      <div data-testid="svg-scene">
+        {mockReact.cloneElement(children, { ref: svgRefExternal })}
+      </div>
+    );
+  },
 }));
 
 jest.mock('./ColorPalette', () => (props: any) => (
@@ -71,8 +94,9 @@ jest.mock(
   './PaintExitPopup',
   () => (props: any) =>
     props.isOpen ? (
-      <div data-testid="exit-popup">
+      <div data-testid="exit-popup" data-variant={props.variant ?? 'default'}>
         <button onClick={props.onExit}>confirm-exit</button>
+        <button onClick={props.onStay}>stay</button>
         <button onClick={props.onClose}>close</button>
       </div>
     ) : null,
@@ -83,6 +107,71 @@ jest.mock('./useSvgColoring', () => ({
     selectedColor: '#000',
     setSelectedColor: jest.fn(),
   }),
+}));
+
+const mockSaveModal = jest.fn();
+const mockToast = jest.fn();
+
+jest.mock('../stickerBook/StickerBookSaveModal', () => ({
+  __esModule: true,
+  default: (props: any) => {
+    mockSaveModal(props);
+    if (!props.open) return null;
+
+    return (
+      <div data-testid="sticker-book-save-modal">
+        <div id="sticker-book-save-modal-frame">
+          <div id="sticker-book-save-blink-overlay" />
+        </div>
+        <button onClick={props.onClose}>close modal</button>
+        <button onClick={props.onAnimationComplete}>finish animation</button>
+        <div data-testid="sticker-book-save-modal-markup">
+          {props.svgMarkup}
+        </div>
+      </div>
+    );
+  },
+}));
+
+jest.mock('../stickerBook/StickerBookToast', () => ({
+  __esModule: true,
+  default: (props: any) => {
+    mockToast(props);
+    return props.isOpen ? (
+      <div data-testid="sticker-book-toast">{props.text}</div>
+    ) : null;
+  },
+}));
+
+const mockOpenSaveModal = jest.fn();
+const mockCloseSaveModal = jest.fn();
+const mockCloseSaveToast = jest.fn();
+const mockHandleSaveAndShare = jest.fn();
+
+let mockHookState = {
+  showSaveModal: false,
+  showSaveToast: false,
+  savedSvgMarkup: null as string | null,
+  modalAriaLabel: 'Colored Sticker Book Saved',
+  isSaving: false,
+  openSaveModal: mockOpenSaveModal,
+  closeSaveModal: mockCloseSaveModal,
+  closeSaveToast: mockCloseSaveToast,
+  handleSaveAndShare: mockHandleSaveAndShare,
+};
+
+let lastUseStickerBookSaveOptions: any = null;
+
+jest.mock('../../hooks/useStickerBookSave', () => ({
+  useStickerBookSave: (options: any) => {
+    lastUseStickerBookSaveOptions = options;
+    return mockHookState;
+  },
+}));
+
+jest.mock('html-to-image', () => ({
+  toBlob: jest.fn(),
+  toPng: jest.fn(),
 }));
 
 /* -------------------- MOCK FETCH -------------------- */
@@ -102,6 +191,22 @@ const renderBoard = (state: any = undefined) => {
   return render(<ColoringBoard />);
 };
 
+const getLastModalProps = () => {
+  const calls = mockSaveModal.mock.calls;
+
+  if (!calls || calls.length === 0) return null;
+
+  return calls[calls.length - 1][0];
+};
+
+const getLastToastProps = () => {
+  const calls = mockToast.mock.calls;
+
+  if (!calls || calls.length === 0) return null;
+
+  return calls[calls.length - 1][0];
+};
+
 /* ===================================================== */
 /* ======================= TESTS ======================= */
 /* ===================================================== */
@@ -109,6 +214,45 @@ const renderBoard = (state: any = undefined) => {
 describe('ColoringBoard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      text: () => Promise.resolve('<svg></svg>'),
+    });
+    (Util.sendContentToAndroidOrWebShare as jest.Mock).mockResolvedValue(
+      undefined,
+    );
+    (Util.saveImage as jest.Mock).mockResolvedValue(undefined);
+
+    mockOpenSaveModal.mockImplementation((markup: string) => {
+      mockHookState = {
+        ...mockHookState,
+        showSaveModal: true,
+        savedSvgMarkup: markup,
+      };
+    });
+    mockCloseSaveModal.mockImplementation(() => {
+      mockHookState = {
+        ...mockHookState,
+        showSaveModal: false,
+        showSaveToast: true,
+      };
+    });
+    mockCloseSaveToast.mockImplementation(() => {
+      mockHookState = { ...mockHookState, showSaveToast: false };
+    });
+
+    mockHookState = {
+      showSaveModal: false,
+      showSaveToast: false,
+      savedSvgMarkup: null,
+      modalAriaLabel: 'Colored Sticker Book Saved',
+      isSaving: false,
+      openSaveModal: mockOpenSaveModal,
+      closeSaveModal: mockCloseSaveModal,
+      closeSaveToast: mockCloseSaveToast,
+      handleSaveAndShare: mockHandleSaveAndShare,
+    };
+    lastUseStickerBookSaveOptions = null;
 
     mockParseSvg.mockReturnValue({
       attrs: {},
@@ -184,6 +328,28 @@ describe('ColoringBoard', () => {
     fireEvent.click(screen.getByTestId('exit-btn'));
 
     expect(screen.getByTestId('exit-popup')).toBeInTheDocument();
+    expect(screen.getByTestId('exit-popup')).toHaveAttribute(
+      'data-variant',
+      'default',
+    );
+  });
+
+  test('uses post-save exit popup variant after a successful save', async () => {
+    renderBoard({
+      svgRaw: '<svg></svg>',
+      returnTo: '/sticker-book',
+    });
+
+    await act(async () => {
+      await lastUseStickerBookSaveOptions?.onSaveSuccess?.('colored-file.png');
+    });
+
+    fireEvent.click(screen.getByTestId('exit-btn'));
+
+    expect(screen.getByTestId('exit-popup')).toHaveAttribute(
+      'data-variant',
+      'post-save-exit',
+    );
   });
 
   /* ---------------- EXIT CONFIRM WITH RETURN ---------------- */
@@ -280,6 +446,44 @@ describe('ColoringBoard', () => {
     renderBoard();
 
     expect(screen.getByText('Save')).toBeInTheDocument();
+  });
+
+  test('save serializes the painted svg and calls openSaveModal', async () => {
+    renderBoard({
+      svgRaw: '<svg></svg>',
+      artworkTitle: 'Animals',
+    });
+
+    await screen.findByTestId('svg-scene');
+
+    fireEvent.click(screen.getByText('Save'));
+
+    expect(mockOpenSaveModal).toHaveBeenCalledWith(
+      expect.stringContaining('<svg'),
+    );
+  });
+
+  test('modal onAnimationComplete is wired to handleSaveAndShare', () => {
+    renderBoard({
+      svgRaw: '<svg></svg>',
+      artworkTitle: 'Animals',
+    });
+
+    const modalProps = getLastModalProps();
+    expect(modalProps?.onAnimationComplete).toBe(mockHandleSaveAndShare);
+  });
+
+  test('modal and toast callbacks are wired to the hook', () => {
+    renderBoard({
+      svgRaw: '<svg></svg>',
+      artworkTitle: 'Animals',
+    });
+
+    const modalProps = getLastModalProps();
+    expect(modalProps?.onClose).toBe(mockCloseSaveModal);
+
+    const toastProps = getLastToastProps();
+    expect(toastProps?.onClose).toBe(mockCloseSaveToast);
   });
 
   /* ---------------- SVG SCENE MODE ---------------- */

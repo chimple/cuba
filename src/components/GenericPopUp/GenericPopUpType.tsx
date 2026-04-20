@@ -24,6 +24,7 @@ export interface PopupConfig {
     {
       thumbnailImageUrl: string;
       backgroundImageUrl?: string;
+      audioUrl?: string;
 
       heading: string;
       subHeading?: string;

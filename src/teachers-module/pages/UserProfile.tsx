@@ -23,8 +23,12 @@ const UserProfile: React.FC = () => {
   const [languages, setLanguages] = useState<
     Array<{ label: string; value: string; id: string }>
   >([]);
-  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
-  const [currentSchool, setCurrentSchool] = useState<TableTypes<'school'>>();
+  const [currentClass, setCurrentClass] = useState<
+    TableTypes<'class'> | undefined
+  >(() => Util.getCurrentClass());
+  const [currentSchool, setCurrentSchool] = useState<
+    TableTypes<'school'> | undefined
+  >(() => Util.getCurrentSchool());
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const api = ServiceConfig.getI().apiHandler;
 
@@ -95,15 +99,26 @@ const UserProfile: React.FC = () => {
       if (!loginUser) {
         throw new Error('User is not logged in or user data is not available.');
       }
+      const selectedLanguageId =
+        languageid ||
+        languages.find((lang) => lang.value === language)?.id ||
+        loginUser.language_id ||
+        '';
       const profilePicValue = profilePic || undefined;
-      await api.updateUserProfile(
+      const updatedUser = await api.updateUserProfile(
         loginUser,
         fullName,
         email,
         phoneNum,
-        languageid,
+        selectedLanguageId,
         profilePicValue,
       );
+      setLoginUser(updatedUser);
+      setFullName(updatedUser.name || '');
+      setEmail(updatedUser.email || '');
+      setPhoneNum(updatedUser.phone || '');
+      setLanguageId(updatedUser.language_id || selectedLanguageId);
+      ServiceConfig.getI().authHandler.currentUser = updatedUser;
     } catch (error) {
       logger.error('Error adding student:', error);
     }
@@ -115,9 +130,9 @@ const UserProfile: React.FC = () => {
       (lang) => lang.value === languageCode,
     );
     if (selectedLanguage) {
-      await Util.updateUserLanguage(languageCode);
       setLanguage(selectedLanguage.value);
       setLanguageId(selectedLanguage.id);
+      await Util.updateUserLanguage(languageCode);
     }
   };
 

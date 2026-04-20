@@ -82,7 +82,7 @@ describe('StickerBookPreviewStage', () => {
     );
   });
 
-  test('renders draggable sticker and pointer hint for drag variant', () => {
+  test('renders draggable sticker and pointer hint for drag variant', async () => {
     render(
       <StickerBookPreviewStage
         isDragVariant={true}
@@ -99,6 +99,12 @@ describe('StickerBookPreviewStage', () => {
         sceneSvg={buildSvg()}
         bookSvgRef={React.createRef()}
         setFrameElement={jest.fn()}
+        getSlotRectInFrame={() => ({
+          x: 80,
+          y: 30,
+          width: 40,
+          height: 40,
+        })}
         onDragPointerDown={jest.fn()}
         onDragPointerMove={jest.fn()}
         onDragPointerUp={jest.fn()}
@@ -115,20 +121,178 @@ describe('StickerBookPreviewStage', () => {
     expect(draggable).toHaveStyle({
       width: '50px',
       height: '50px',
-      transform: 'translate(10px, 20px)',
+      transform: 'translate(10px, 20px) scale(1.06)',
+      '--sticker-drop-distance': '20px',
     });
 
-    expect(
-      screen.getByTestId('StickerBookPreviewModal-pointer-hint'),
-    ).toBeInTheDocument();
+    await screen.findByTestId('StickerBookPreviewModal-pointer-hint');
   });
 
-  test('shows confetti only for drag variant', () => {
-    const { rerender } = render(
+  test('does not render pointer hint until slot guide path is available', () => {
+    render(
       <StickerBookPreviewStage
         isDragVariant={true}
         isLoading={false}
         showIntroConfetti={false}
+        showDropConfetti={false}
+        showPointerHint={true}
+        isDragging={false}
+        isDropSuccessful={false}
+        dragStickerPos={{ x: 10, y: 20 }}
+        dragStickerSize={50}
+        nextStickerImage="https://example.com/sticker.png"
+        nextStickerName="Rocket"
+        sceneSvg={buildSvg()}
+        bookSvgRef={React.createRef()}
+        setFrameElement={jest.fn()}
+        getSlotRectInFrame={() => null}
+        onDragPointerDown={jest.fn()}
+        onDragPointerMove={jest.fn()}
+        onDragPointerUp={jest.fn()}
+        onDragPointerCancel={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId('StickerBookPreviewModal-pointer-hint'),
+    ).not.toBeInTheDocument();
+  });
+
+  test('uses the stabilized slot path instead of an early stale measurement', async () => {
+    let callCount = 0;
+
+    render(
+      <StickerBookPreviewStage
+        isDragVariant={true}
+        isLoading={false}
+        showIntroConfetti={false}
+        showDropConfetti={false}
+        showPointerHint={true}
+        isDragging={false}
+        isDropSuccessful={false}
+        dragStickerPos={{ x: 10, y: 20 }}
+        dragStickerSize={50}
+        nextStickerImage="https://example.com/sticker.png"
+        nextStickerName="Rocket"
+        sceneSvg={buildSvg()}
+        bookSvgRef={React.createRef()}
+        setFrameElement={jest.fn()}
+        getSlotRectInFrame={() => {
+          callCount += 1;
+          if (callCount === 1) {
+            return { x: 20, y: 20, width: 30, height: 30 };
+          }
+          return { x: 80, y: 30, width: 40, height: 40 };
+        }}
+        onDragPointerDown={jest.fn()}
+        onDragPointerMove={jest.fn()}
+        onDragPointerUp={jest.fn()}
+        onDragPointerCancel={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId('StickerBookPreviewModal-pointer-hint'),
+      ).toHaveStyle({
+        left: '18.439999999999998px',
+        top: '11.64px',
+        '--target-x': '48.2px',
+        '--target-y': '12.600000000000001px',
+      }),
+    );
+  });
+
+  test('keeps the downward hand pose while guiding to a sticker on the right', async () => {
+    render(
+      <StickerBookPreviewStage
+        isDragVariant={true}
+        isLoading={false}
+        showIntroConfetti={false}
+        showDropConfetti={false}
+        showPointerHint={true}
+        isDragging={false}
+        isDropSuccessful={false}
+        dragStickerPos={{ x: 90, y: 40 }}
+        dragStickerSize={50}
+        nextStickerImage="https://example.com/sticker.png"
+        nextStickerName="Rocket"
+        sceneSvg={buildSvg()}
+        bookSvgRef={React.createRef()}
+        setFrameElement={jest.fn()}
+        getSlotRectInFrame={() => ({
+          x: 20,
+          y: 20,
+          width: 40,
+          height: 40,
+        })}
+        onDragPointerDown={jest.fn()}
+        onDragPointerMove={jest.fn()}
+        onDragPointerUp={jest.fn()}
+        onDragPointerCancel={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId('StickerBookPreviewModal-pointer-hint'),
+      ).toHaveStyle({
+        left: '98.44px',
+        top: '31.64px',
+        '--target-x': '-58.2px',
+        '--target-y': '-17.4px',
+      }),
+    );
+  });
+
+  test('anchors from the top side when the draggable sticker overlaps a wide placeholder', async () => {
+    render(
+      <StickerBookPreviewStage
+        isDragVariant={true}
+        isLoading={false}
+        showIntroConfetti={false}
+        showDropConfetti={false}
+        showPointerHint={true}
+        isDragging={false}
+        isDropSuccessful={false}
+        dragStickerPos={{ x: 120, y: 20 }}
+        dragStickerSize={50}
+        nextStickerImage="https://example.com/sticker.png"
+        nextStickerName="Rocket"
+        sceneSvg={buildSvg()}
+        bookSvgRef={React.createRef()}
+        setFrameElement={jest.fn()}
+        getSlotRectInFrame={() => ({
+          x: 80,
+          y: 40,
+          width: 120,
+          height: 24,
+        })}
+        onDragPointerDown={jest.fn()}
+        onDragPointerMove={jest.fn()}
+        onDragPointerUp={jest.fn()}
+        onDragPointerCancel={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByTestId('StickerBookPreviewModal-pointer-hint'),
+      ).toHaveStyle({
+        left: '128.44px',
+        top: '11.64px',
+        '--target-x': '-5px',
+        '--target-y': '5.557600000000001px',
+      }),
+    );
+  });
+
+  test('shows intro and drop confetti only for drag variant', () => {
+    const { rerender } = render(
+      <StickerBookPreviewStage
+        isDragVariant={true}
+        isLoading={false}
+        showIntroConfetti={true}
         showDropConfetti={true}
         showPointerHint={false}
         isDragging={false}
@@ -146,8 +310,8 @@ describe('StickerBookPreviewStage', () => {
     );
 
     expect(
-      screen.getByTestId('StickerBookPreviewModal-confetti'),
-    ).toBeInTheDocument();
+      screen.getAllByTestId('StickerBookPreviewModal-confetti'),
+    ).toHaveLength(2);
 
     rerender(
       <StickerBookPreviewStage
@@ -173,6 +337,39 @@ describe('StickerBookPreviewStage', () => {
     expect(
       screen.queryByTestId('StickerBookPreviewModal-confetti'),
     ).not.toBeInTheDocument();
+  });
+
+  test('renders drop confetti after a successful drag', () => {
+    render(
+      <StickerBookPreviewStage
+        isDragVariant={true}
+        isLoading={false}
+        showIntroConfetti={false}
+        showDropConfetti={true}
+        showPointerHint={false}
+        isDragging={false}
+        isDropSuccessful={false}
+        dragStickerPos={{ x: 10, y: 20 }}
+        dragStickerSize={50}
+        sceneSvg={buildSvg()}
+        bookSvgRef={React.createRef()}
+        setFrameElement={jest.fn()}
+        onDragPointerDown={jest.fn()}
+        onDragPointerMove={jest.fn()}
+        onDragPointerUp={jest.fn()}
+        onDragPointerCancel={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('StickerBookPreviewModal-confetti'),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId('StickerBookPreviewModal-confetti')).toHaveStyle({
+      left: '-25px',
+      top: '-12.5px',
+      width: '120px',
+      height: '105px',
+    });
   });
 
   test('does not render draggable sticker after successful drop', () => {

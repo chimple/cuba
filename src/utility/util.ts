@@ -52,6 +52,7 @@ import {
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
   LOCAL_LESSON_BUNDLES_PATH,
   DAILY_USER_REWARD,
+  IS_REWARD_FEATURE_ON,
   REWARD_LEARNING_PATH,
   HOMEWORK_PATHWAY,
   STARS_COUNT,
@@ -66,7 +67,9 @@ import {
   LATEST_LEARNING_PATH,
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  PENDING_PATHWAY_STICKER_REWARD_KEY,
   STICKER_BOOK_COMPLETION_READY_EVENT,
+  CURRENT_STUDENT_CHANGED_EVENT,
 } from '../common/constants';
 import {
   Chapter as curriculamInterfaceChapter,
@@ -131,6 +134,15 @@ export class Util {
   public static port: PortPlugin;
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = 'lastModalShown';
+  // Normalize GrowthBook attributes that may come as a scalar or array into a consistent array.
+  public static normalizeGrowthbookArrayAttribute<T>(
+    value: T | T[] | null | undefined,
+  ): T[] {
+    if (Array.isArray(value)) {
+      return value;
+    }
+    return value ? [value] : [];
+  }
 
   public static async getNextLessonFromGivenChapter(
     chapters: curriculamInterfaceChapter[],
@@ -372,9 +384,14 @@ export class Util {
     logger.error('Lesson bundle not found :', lessonId);
     return null;
   }
+  public static getLessonBundleId(
+    lesson?: Pick<TableTypes<'lesson'>, 'cocos_lesson_id' | 'lido_lesson_id'>,
+  ): string | null {
+    return lesson?.lido_lesson_id ?? lesson?.cocos_lesson_id ?? null;
+  }
 
   public static async downloadZipBundle(
-    lessonIds: string[],
+    lessons: TableTypes<'lesson'>[],
     chapterId?: string,
     bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
   ): Promise<boolean> {
@@ -383,13 +400,20 @@ export class Util {
         return true;
       }
 
-      for (let i = 0; i < lessonIds.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
-        const lessonIdsChunk = lessonIds.slice(
-          i,
-          i + DOWNLOAD_LESSON_BATCH_SIZE,
-        );
+      logger.warn('Starting download for lessons:', lessons);
+      for (let i = 0; i < lessons.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
+        const lessonsChunk = lessons.slice(i, i + DOWNLOAD_LESSON_BATCH_SIZE);
         const results = await Promise.all(
-          lessonIdsChunk.map(async (lessonId) => {
+          lessonsChunk.map(async (lesson) => {
+            const lessonId = this.getLessonBundleId(lesson);
+            if (!lessonId) {
+              logger.error(
+                '[LessonDownloader] Missing bundle lesson id for lesson:',
+                lesson.id,
+              );
+              return false;
+            }
+
             try {
               let lessonDownloadSuccess = true;
               const fs = createFilesystem(Filesystem, {
@@ -397,41 +421,65 @@ export class Util {
                 directory: Directory.External,
               });
               const androidPath = await this.getAndroidBundlePath();
+              logger.warn('full lesson object for download:', lesson);
+              logger.warn('lesson version for download:', lesson.version);
+              // 🔥 GET DB VERSION ONCE
+              let dbVersion = Number(lesson.version ?? 1);
+              logger.warn(
+                `[Version] Using lesson version for ${lessonId}:`,
+                lesson.version,
+              );
+
+              let localVersion = 0;
+
+              // 🔥 EXISTENCE + VERSION CHECK (MAIN CHANGE)
               try {
-                const file = await Filesystem.readFile({
+                await Filesystem.readFile({
                   path: lessonId + '/config.json',
                   directory: Directory.External,
                 });
-                const decoded =
-                  typeof file.data === 'string'
-                    ? atob(file.data)
-                    : await this.blobToString(file.data as Blob);
-                this.setGameUrl(androidPath);
-                this.storeLessonIdToLocalStorage(
-                  lessonId,
-                  DOWNLOADED_LESSON_ID,
+
+                localVersion = await this.getLocalLessonVersion(lessonId);
+
+                logger.warn(
+                  `[Version] ${lessonId} → Local: ${localVersion}, DB: ${dbVersion}`,
                 );
-                return true;
+
+                if (localVersion >= dbVersion) {
+                  // ✅ UP-TO-DATE → SKIP
+                  this.setGameUrl(androidPath);
+                  this.storeLessonIdToLocalStorage(
+                    lessonId,
+                    DOWNLOADED_LESSON_ID,
+                  );
+                  return true;
+                }
+
+                logger.warn(`[Version] ${lessonId} outdated → updating`);
               } catch {
-                logger.error(
-                  `[LessonDownloader] Lesson ${lessonId} not found at Android path`,
-                );
+                logger.warn(`[Version] ${lessonId} not found → downloading`);
               }
+
+              // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
               const localBundlePath =
                 LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/config.json`;
+
               try {
                 const response = await fetch(localBundlePath);
-                if (response.ok) {
+                if (response.ok && localVersion === 0) {
                   this.setGameUrl(LOCAL_BUNDLES_PATH);
                   return true;
                 }
               } catch {
                 logger.error(
-                  `[LessonDownloader] Lesson ${lessonId} not found at local bundle path - Starting download...`,
+                  `[LessonDownloader] Local bundle not found, downloading...`,
                 );
               }
+
+              // 🔥 DOWNLOAD LOGIC (UNCHANGED)
               const bundleZipUrls: string[] =
                 await RemoteConfig.getJSON(bundleZipUrlsKey);
+
               if (!bundleZipUrls || bundleZipUrls.length < 1) {
                 logger.error('[LessonDownloader] No remote ZIP URLs found');
                 return false;
@@ -459,42 +507,24 @@ export class Util {
                       connectTimeout: 10000,
                     });
                     const timeoutPromise = new Promise((_, reject) =>
-                      setTimeout(
-                        () => reject(new Error('Download timeout after 20s')),
-                        10000,
-                      ),
+                      setTimeout(() => reject(new Error('Timeout')), 10000),
                     );
+
                     zip = await Promise.race([downloadPromise, timeoutPromise]);
+
                     if (zip && zip.data && zip.status === 200) {
-                      logger.info(
-                        `[LessonDownloader] Successfully downloaded ${lessonId} from ${zipUrl}`,
-                      );
                       downloadSuccessful = true;
                       break;
-                    } else {
-                      logger.warn(
-                        `[LessonDownloader] Download returned status ${zip?.status} for ${zipUrl}`,
-                      );
                     }
-                  } catch (err) {
-                    logger.error(
-                      `[LessonDownloader] Error downloading ${zipUrl}:`,
-                      err,
-                    );
-                  }
+                  } catch {}
                 }
+
                 if (!downloadSuccessful) {
                   downloadAttempts++;
-                  logger.warn(
-                    `[LessonDownloader] Attempt ${downloadAttempts}/${MAX_DOWNLOAD_LESSON_ATTEMPTS} failed for ${lessonId}`,
-                  );
                 }
               }
 
               if (!zip || !zip.data || zip.status !== 200) {
-                logger.error(
-                  `[LessonDownloader] Failed to download lesson ${lessonId}`,
-                );
                 return false;
               }
               const zipDataStr =
@@ -504,45 +534,87 @@ export class Util {
 
               const preparedZip = await runBackgroundWorkerTask(
                 'PREPARE_BINARY_FROM_BASE64',
-                {
-                  base64: zipDataStr,
-                },
-              ).catch((error) => {
-                logger.warn(
-                  `[LessonDownloader] Worker decode failed for lesson ${lessonId}, falling back to main thread decode.`,
-                  error,
-                );
-                const fallbackBuffer = Uint8Array.from(atob(zipDataStr), (c) =>
+                { base64: zipDataStr },
+              ).catch(() => {
+                const fallback = Uint8Array.from(atob(zipDataStr), (c) =>
                   c.charCodeAt(0),
                 );
                 return {
-                  byteLength: fallbackBuffer.byteLength,
+                  byteLength: fallback.byteLength,
                   sha256Hex: '',
-                  arrayBuffer: fallbackBuffer.buffer,
+                  arrayBuffer: fallback.buffer,
                 };
               });
               const buffer = new Uint8Array(preparedZip.arrayBuffer);
-              if (preparedZip.sha256Hex) {
-                logger.info(
-                  `[LessonDownloader] SHA-256 for ${lessonId}: ${preparedZip.sha256Hex}`,
-                );
-              }
+
+              // 🔥 SAFE UPDATE LOGIC
+              const isUpdate = localVersion < dbVersion;
+              const extractTo = isUpdate ? `${lessonId}_temp` : lessonId;
+
+              // clean temp
+              try {
+                await Filesystem.rmdir({
+                  path: `${lessonId}_temp`,
+                  directory: Directory.External,
+                  recursive: true,
+                });
+              } catch {}
 
               await unzip({
                 fs,
-                extractTo: lessonId,
+                extractTo,
                 filepaths: ['.'],
                 filter: (filepath) => !filepath.startsWith('dist/'),
-                onProgress: (event) =>
-                  logger.info(
-                    '[LessonDownloader] Unzipping progress:',
-                    event.filename,
-                    event.loaded,
-                    event.total,
-                  ),
                 data: buffer,
               });
 
+              // write version
+              await Filesystem.writeFile({
+                path: `${extractTo}/.version`,
+                directory: Directory.External,
+                data: btoa(String(dbVersion)),
+              });
+
+              // 🔥 ATOMIC SWAP
+              if (extractTo.includes('_temp')) {
+                const oldPath = lessonId;
+                const tempPath = `${lessonId}_temp`;
+                const backupPath = `${lessonId}_old`;
+
+                try {
+                  try {
+                    await Filesystem.rename({
+                      from: oldPath,
+                      to: backupPath,
+                      directory: Directory.External,
+                    });
+                  } catch {}
+
+                  await Filesystem.rename({
+                    from: tempPath,
+                    to: oldPath,
+                    directory: Directory.External,
+                  });
+
+                  try {
+                    await Filesystem.rmdir({
+                      path: backupPath,
+                      directory: Directory.External,
+                      recursive: true,
+                    });
+                  } catch {}
+                } catch {
+                  try {
+                    await Filesystem.rename({
+                      from: backupPath,
+                      to: oldPath,
+                      directory: Directory.External,
+                    });
+                  } catch {}
+                }
+              }
+
+              // ✅ KEEP ORIGINAL METADATA + EVENTS
               const lessonData = JSON.parse(
                 localStorage.getItem('downloaded_lessons_size') || '{}',
               );
@@ -556,6 +628,7 @@ export class Util {
               );
               this.setGameUrl(androidPath);
               this.storeLessonIdToLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
+
               window.dispatchEvent(
                 new CustomEvent(LESSON_DOWNLOAD_SUCCESS_EVENT, {
                   detail: { lessonId },
@@ -575,7 +648,9 @@ export class Util {
         if (!results.every((r) => r === true)) {
           logger.error(
             '[LessonDownloader] Some lessons in chunk failed to download:',
-            lessonIdsChunk,
+            lessonsChunk.map(
+              (lesson) => this.getLessonBundleId(lesson) ?? lesson.id,
+            ),
           );
           return false;
         }
@@ -586,15 +661,13 @@ export class Util {
           detail: { chapterId },
         }),
       );
-      if (chapterId)
+
+      if (chapterId) {
         this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
+      }
 
       return true;
-    } catch (err) {
-      logger.error(
-        '[LessonDownloader] Unexpected error in downloadZipBundle:',
-        err,
-      );
+    } catch {
       return false;
     }
   }
@@ -1295,6 +1368,9 @@ export class Util {
     api.currentStudent = student !== null ? student : undefined;
 
     localStorage.setItem(CURRENT_STUDENT, JSON.stringify(student));
+    window.dispatchEvent(
+      new CustomEvent(CURRENT_STUDENT_CHANGED_EVENT, { detail: student }),
+    );
 
     if (!languageCode && !!student?.language_id) {
       const langDoc = await api.getLanguageWithId(student.language_id);
@@ -1919,6 +1995,10 @@ export class Util {
   public static getCurrentSchool(): TableTypes<'school'> | undefined {
     const api = ServiceConfig.getI().apiHandler;
 
+    if (api.currentSchool) {
+      return api.currentSchool;
+    }
+
     const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
       const roles = store.getState()?.auth?.roles ?? [];
       const isOpsUser = store.getState()?.auth?.isOpsUser === true;
@@ -1971,45 +2051,6 @@ export class Util {
       }
     };
 
-    //  IF WE ALREADY HAVE A SCHOOL IN MEMORY CHECK IF NOT CONNECTED
-    if (!!api.currentSchool) {
-      const classes = Util.getCurrentClass();
-      const schoolId = api.currentSchool.id;
-      const classId = classes?.id ?? undefined;
-
-      // SCHOOL CHECK
-      isSchoolConnected(api.currentSchool.id).then((res) => {
-        if (!res) {
-          api.currentSchool = undefined;
-          localStorage.removeItem(SCHOOL);
-          localStorage.removeItem(CLASS);
-          return;
-        }
-
-        // CLASS CHECK
-
-        if (classId) {
-          isClassConnected(schoolId, classId).then((cls) => {
-            if (!cls) return;
-
-            const { classExists, classCount } = cls;
-
-            if (!classExists) {
-              localStorage.removeItem(CLASS);
-              // If only one class existed and that gets removed → remove school too
-              if (classCount === 1) {
-                api.currentSchool = undefined;
-                localStorage.removeItem(SCHOOL);
-              }
-            }
-          });
-        }
-      });
-
-      return api.currentSchool;
-    }
-
-    //  B) IF SCHOOL IS LOADED FROM LOCAL STORAGE CHECK IF NOT CONNECTED
     const temp = localStorage.getItem(SCHOOL);
     if (!temp) return;
 
@@ -2050,11 +2091,9 @@ export class Util {
           const { classExists, classCount } = cls;
 
           if (!classExists) {
-            logger.info('Class no longer connected → removing class');
             localStorage.removeItem(CLASS);
 
             if (classCount === 1) {
-              logger.info('Last class removed → removing school as well');
               api.currentSchool = undefined;
               localStorage.removeItem(SCHOOL);
             }
@@ -2094,6 +2133,91 @@ export class Util {
     }
   }
 
+  public static async validateCurrentSchoolContext(): Promise<void> {
+    const api = ServiceConfig.getI().apiHandler;
+    const currentSchool = Util.getCurrentSchool();
+    const currentClass = Util.getCurrentClass();
+
+    if (!currentSchool) {
+      return;
+    }
+
+    const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
+      const roles = store.getState()?.auth?.roles ?? [];
+      const isOpsUser = store.getState()?.auth?.isOpsUser === true;
+      if (
+        isOpsUser ||
+        [
+          RoleType.SUPER_ADMIN,
+          RoleType.FIELD_COORDINATOR,
+          RoleType.PROGRAM_MANAGER,
+          RoleType.OPERATIONAL_DIRECTOR,
+        ].some((role) => roles.includes(role))
+      ) {
+        return true;
+      }
+      try {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const currentUser = await authHandler.getCurrentUser();
+        if (!currentUser) return false;
+
+        const schools = await api.getSchoolsForUser(currentUser.id);
+        return schools.some((item) => item.school.id === schoolId);
+      } catch (error) {
+        logger.error('Error checking school via user:', error);
+        return false;
+      }
+    };
+
+    const isClassConnected = async (
+      schoolId: string,
+      classId: string,
+    ): Promise<{ classExists: boolean; classCount: number } | undefined> => {
+      try {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const currentUser = await authHandler.getCurrentUser();
+        if (!currentUser) return;
+
+        const classes = await api.getClassesForSchool(schoolId, currentUser.id);
+        return {
+          classExists: classes.some((cls) => cls.id === classId),
+          classCount: classes.length,
+        };
+      } catch (error) {
+        logger.error('Error checking class via user:', error);
+        return;
+      }
+    };
+
+    const schoolIsConnected = await isSchoolConnected(currentSchool.id);
+    if (!schoolIsConnected) {
+      api.currentSchool = undefined;
+      api.currentClass = undefined;
+      localStorage.removeItem(SCHOOL);
+      localStorage.removeItem(CLASS);
+      return;
+    }
+
+    if (!currentClass?.id) {
+      return;
+    }
+
+    const classCheck = await isClassConnected(
+      currentSchool.id,
+      currentClass.id,
+    );
+    if (!classCheck) return;
+
+    if (!classCheck.classExists) {
+      localStorage.removeItem(CLASS);
+      api.currentClass = undefined;
+      if (classCheck.classCount === 1) {
+        api.currentSchool = undefined;
+        localStorage.removeItem(SCHOOL);
+      }
+    }
+  }
+
   public static async sendContentToAndroidOrWebShare(
     text: string,
     title: string,
@@ -2129,27 +2253,21 @@ export class Util {
     }
   }
 
-  public static async saveFileToDownloads(file: File) {
-    // Native builds write through Capacitor Filesystem, while web falls back to
-    // a temporary download link because browsers cannot write directly to Downloads.
+  public static async saveImage(file: File) {
+    // Native builds save images to the public gallery via MediaStore.
     if (Capacitor.isNativePlatform()) {
       try {
         const base64Data = await Util.blobToString(file);
-        try {
-          // Attempt to save in public Downloads folder
-          await Filesystem.writeFile({
-            path: `Download/${file.name}`,
-            data: base64Data,
-            directory: Directory.ExternalStorage,
-          });
-        } catch (e) {
-          // Fallback to Documents folder which works on MediaStore safely
-          await Filesystem.writeFile({
-            path: file.name,
-            data: base64Data,
-            directory: Directory.Documents,
-          });
+
+        if (!Util.port) {
+          Util.port = registerPlugin<PortPlugin>('Port');
         }
+
+        await Util.port.saveImageToGallery({
+          fileData: base64Data,
+          fileName: file.name,
+          mimeType: file.type || 'image/png',
+        });
       } catch (error) {
         logger.error('Error saving file natively:', error);
         await Toast.show({ text: t('Failed to save image') });
@@ -2597,6 +2715,33 @@ export class Util {
       logger.error('Error fetching Chimple Rive config:', error);
     }
   }
+  public static async shouldGiveDailyReward(): Promise<boolean> {
+    try {
+      const isRewardFeatureOn =
+        localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
+      if (!isRewardFeatureOn) return false;
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent) return false;
+
+      const dailyUserReward = currentStudent.reward
+        ? JSON.parse(currentStudent.reward as string)
+        : {};
+      const todaysReward = await Util.fetchTodaysReward();
+      if (!todaysReward) return false;
+
+      const today = new Date().toISOString().split('T')[0];
+      const rewardDate = dailyUserReward.timestamp
+        ? new Date(dailyUserReward.timestamp).toISOString().split('T')[0]
+        : null;
+      const hasReceivedTodayReward =
+        todaysReward.id === dailyUserReward.reward_id && rewardDate === today;
+
+      return !hasReceivedTodayReward;
+    } catch (error) {
+      logger.error('Error checking daily reward eligibility:', error);
+      return false;
+    }
+  }
   public static async updateUserReward() {
     try {
       // Get daily user reward from localStorage
@@ -2887,7 +3032,6 @@ export class Util {
       await ServiceConfig.getI().apiHandler.updateLearningPath(
         currentStudent,
         JSON.stringify(learningPath),
-        false,
       );
 
       const updatedStudent =
@@ -2915,6 +3059,18 @@ export class Util {
       );
       const activeLesson =
         activeLessonIndex !== -1 ? course.path[activeLessonIndex] : null;
+      if (!activeLesson) {
+        logger.warn(
+          '[LearningPath] No active lesson found while updating pathway',
+          {
+            studentId: currentStudent.id,
+            courseId: course.course_id,
+            courseIndex,
+            pathLength: course.path?.length ?? 0,
+          },
+        );
+        return;
+      }
       const prevData = {
         pathId: course.path_id,
         courseId: course.course_id,
@@ -2922,13 +3078,14 @@ export class Util {
         chapterId: activeLesson.chapter_id,
         prevPath_id: course.path_id,
       };
-      if (!activeLesson) return;
 
       /* 2️⃣ Mark active lesson as played */
       course.path[activeLessonIndex] = {
         ...activeLesson,
         isPlayed: true,
       };
+
+      const completedPathwaySnapshot = JSON.stringify(learningPath);
 
       /* 3️⃣ Compute next active lesson */
       const nextLesson = await recommendNextLesson({
@@ -2961,23 +3118,17 @@ export class Util {
       /* 5️⃣ Move course index if path completed */
       if (pathCompleted) {
         let preAwardCollectedStickerIds: string[] = [];
-        if (typeof navigator !== 'undefined' && navigator.onLine) {
-          try {
-            const currentBookWithProgress =
-              await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
-                currentStudent.id,
-              );
-            preAwardCollectedStickerIds =
-              currentBookWithProgress?.progress?.stickers_collected ?? [];
-          } catch {
-            preAwardCollectedStickerIds = [];
-          }
-        }
-        if (isRewardLesson) {
-          sessionStorage.setItem(
-            REWARD_LEARNING_PATH,
-            JSON.stringify(learningPath),
-          );
+        try {
+          // The active API handler already resolves to sqlite while offline,
+          // so use it for the drag-popup seed data in both modes.
+          const currentBookWithProgress =
+            await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+              currentStudent.id,
+            );
+          preAwardCollectedStickerIds =
+            currentBookWithProgress?.progress?.stickers_collected ?? [];
+        } catch {
+          preAwardCollectedStickerIds = [];
         }
         const newpathId = uuidv4();
         course.path_id = newpathId;
@@ -2987,38 +3138,81 @@ export class Util {
         await ServiceConfig.getI().apiHandler.setStarsForStudents(
           currentStudent.id,
           10,
-          false,
         );
         // If stickers are available (and we're online), award the next sticker for completing this pathway.
         const stickerAwardResult =
           await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
-        if (typeof navigator !== 'undefined' && navigator.onLine) {
-          if (stickerAwardResult.completed) {
-            sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
-            sessionStorage.setItem(
-              AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
-              JSON.stringify({
-                studentId: currentStudent.id,
-                stickerBookId: stickerAwardResult.stickerBookId,
-                createdAt: new Date().toISOString(),
-              }),
-            );
-            if (stickerAwardResult.payload) {
-              window.dispatchEvent(
-                new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
-                  detail: stickerAwardResult.payload,
-                }),
-              );
-            }
-          } else {
-            sessionStorage.setItem(
-              AUTO_OPEN_STICKER_PREVIEW_KEY,
-              JSON.stringify({
-                studentId: currentStudent.id,
-                createdAt: new Date().toISOString(),
+        const shouldShowCompletedPathReward = Boolean(
+          stickerAwardResult.awardedStickerId,
+        );
+        if (shouldShowCompletedPathReward && completedPathwaySnapshot) {
+          sessionStorage.setItem(
+            REWARD_LEARNING_PATH,
+            completedPathwaySnapshot,
+          );
+          sessionStorage.setItem(
+            PENDING_PATHWAY_STICKER_REWARD_KEY,
+            JSON.stringify({
+              studentId: currentStudent.id,
+              awardedStickerId: stickerAwardResult.awardedStickerId,
+              stickerBookId: stickerAwardResult.stickerBookId,
+              createdAt: new Date().toISOString(),
+            }),
+          );
+        } else {
+          sessionStorage.removeItem(REWARD_LEARNING_PATH);
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+          sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+        }
+        if (
+          stickerAwardResult.completed &&
+          stickerAwardResult.awardedStickerId
+        ) {
+          sessionStorage.setItem(
+            AUTO_OPEN_STICKER_PREVIEW_KEY,
+            JSON.stringify({
+              studentId: currentStudent.id,
+              createdAt: new Date().toISOString(),
+              awardedStickerId: stickerAwardResult.awardedStickerId,
+              preAwardCollectedStickerIds,
+              stickerBookId: stickerAwardResult.stickerBookId,
+              stickerBookTitle:
+                stickerAwardResult.payload?.stickerBookTitle ?? null,
+              stickerBookSvgUrl:
+                stickerAwardResult.payload?.stickerBookSvgUrl ?? null,
+            }),
+          );
+          sessionStorage.setItem(
+            AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+            JSON.stringify({
+              studentId: currentStudent.id,
+              stickerBookId: stickerAwardResult.stickerBookId,
+              createdAt: new Date().toISOString(),
+              payload: stickerAwardResult.payload,
+            }),
+          );
+          if (stickerAwardResult.payload) {
+            window.dispatchEvent(
+              new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+                detail: stickerAwardResult.payload,
               }),
             );
           }
+        } else if (stickerAwardResult.awardedStickerId) {
+          sessionStorage.setItem(
+            AUTO_OPEN_STICKER_PREVIEW_KEY,
+            JSON.stringify({
+              studentId: currentStudent.id,
+              awardedStickerId: stickerAwardResult.awardedStickerId,
+              preAwardCollectedStickerIds,
+              createdAt: new Date().toISOString(),
+            }),
+          );
+        } else {
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+          sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
         }
         if (courseIndex >= courses.courseList.length) {
           courseIndex = 0;
@@ -3053,11 +3247,7 @@ export class Util {
 
       /* 7️⃣ Persist + log */
       await Promise.all([
-        api.updateLearningPath(
-          currentStudent,
-          JSON.stringify(learningPath),
-          false,
-        ),
+        api.updateLearningPath(currentStudent, JSON.stringify(learningPath)),
         ...events.map((e) => Util.logEvent(e, eventPayload)),
       ]);
 
@@ -3075,16 +3265,19 @@ export class Util {
   ): Promise<{
     completed: boolean;
     stickerBookId: string | null;
+    awardedStickerId: string | null;
     payload: StickerBookModalData | null;
   }> {
     try {
-      if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        return { completed: false, stickerBookId: null, payload: null };
-      }
       const api = ServiceConfig.getI().apiHandler;
       const current = await api.getCurrentStickerBookWithProgress(studentId);
       if (!current?.book?.id) {
-        return { completed: false, stickerBookId: null, payload: null };
+        return {
+          completed: false,
+          stickerBookId: null,
+          awardedStickerId: null,
+          payload: null,
+        };
       }
 
       const nextStickerId = await api.getNextWinnableSticker(
@@ -3095,6 +3288,7 @@ export class Util {
         return {
           completed: false,
           stickerBookId: current.book.id,
+          awardedStickerId: null,
           payload: null,
         };
       }
@@ -3114,11 +3308,12 @@ export class Util {
         totalStickerCount > 0 &&
         nextCollectedStickerIds.length >= totalStickerCount;
 
-      await api.updateStickerWon(current.book.id, nextStickerId);
+      await api.updateStickerWon(current.book.id, nextStickerId, studentId);
 
       return {
         completed,
         stickerBookId: current.book.id,
+        awardedStickerId: nextStickerId,
         payload: completed
           ? {
               source: 'learning_pathway',
@@ -3132,7 +3327,12 @@ export class Util {
       };
     } catch (error) {
       logger.warn('[StickerBook] Failed to award pathway sticker:', error);
-      return { completed: false, stickerBookId: null, payload: null };
+      return {
+        completed: false,
+        stickerBookId: null,
+        awardedStickerId: null,
+        payload: null,
+      };
     }
   }
 
@@ -3143,9 +3343,15 @@ export class Util {
     student: TableTypes<'user'>,
   ): string | null {
     try {
-      const sessionData = sessionStorage.getItem(LATEST_LEARNING_PATH);
+      const rewardLearningPath = sessionStorage.getItem(REWARD_LEARNING_PATH);
+      if (rewardLearningPath) {
+        return rewardLearningPath;
+      }
 
-      // If nothing in session storage, return DB value
+      const latestLearningPathKey = `${LATEST_LEARNING_PATH}:${student.id}`;
+      const sessionData = localStorage.getItem(latestLearningPathKey);
+
+      // If nothing in local storage, return DB value
       if (!sessionData) {
         return student?.learning_path ?? null;
       }
@@ -3747,6 +3953,40 @@ export class Util {
       }
     } catch (error) {
       logger.error('Session migration failed', error);
+    }
+  }
+
+  public static async getLocalLessonVersion(lessonId: string): Promise<number> {
+    try {
+      const file = await Filesystem.readFile({
+        path: `${lessonId}/.version`,
+        directory: Directory.External,
+      });
+
+      let versionStr: string;
+
+      if (typeof file.data === 'string') {
+        // 🔥 Try decode base64 safely
+        try {
+          versionStr = atob(file.data);
+        } catch {
+          versionStr = file.data; // fallback if already plain text
+        }
+      } else {
+        versionStr = await this.blobToString(file.data as Blob);
+      }
+
+      const cleaned = versionStr.trim(); // 🔥 IMPORTANT
+      const version = parseInt(cleaned, 10);
+
+      logger.warn(`[Version] Raw: "${versionStr}" Parsed: ${version}`);
+
+      return isNaN(version) ? 1 : version;
+    } catch (err) {
+      logger.warn(
+        `[Version] No .version file for ${lessonId}, defaulting to 1`,
+      );
+      return 1;
     }
   }
 }

@@ -452,6 +452,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       const lessons = lessonsToRender.map((item) => item.lesson);
 
       const [
+        newRewardId,
         svgContent,
         fruitActive,
         fruitInactive,
@@ -461,6 +462,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         giftSVG3,
         haloPath,
       ] = await Promise.all([
+        checkAndUpdateReward().catch((e) => {
+          logger.warn('Check Reward failed offline', e);
+          return null;
+        }),
         loadPathwayContent(
           'homeworkRemoteAsset/Pathway2.svg',
           '/pathwayAssets/English/Pathway2.svg',
@@ -477,18 +482,18 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           'playedLessonSVG',
         ),
         tryFetchSVG(
-          'homeworkRemoteAsset/mysteryBox1.svg',
-          '/pathwayAssets/English/mysteryBox1.svg',
+          'https://db-stage.chimple.net/storage/v1/object/public/homework-pathway-assets/HW_pathway_mysterbox_frame_1.svg',
+          '/pathwayAssets/English/HW_pathway_mysterbox_frame_1.svg',
           'giftSVG',
         ),
         tryFetchSVG(
-          'homeworkRemoteAsset/mysteryBox2.svg',
-          '/pathwayAssets/English/mysteryBox2.svg',
+          'https://db-stage.chimple.net/storage/v1/object/public/homework-pathway-assets/HW_pathway_mysterbox_frame_2.svg',
+          '/pathwayAssets/English/HW_pathway_mysterbox_frame_2.svg',
           'giftSVG2',
         ),
         tryFetchSVG(
-          'homeworkRemoteAsset/mysteryBox3.svg',
-          '/pathwayAssets/English/mysteryBox3.svg',
+          'https://db-stage.chimple.net/storage/v1/object/public/homework-pathway-assets/HW_pathway_mysterbox_frame_3.svg',
+          '/pathwayAssets/English/HW_pathway_mysterbox_frame_3.svg',
           'giftSVG3',
         ),
         loadHaloAnimation(
@@ -685,7 +690,23 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             activeGroup.setAttribute('style', 'cursor: pointer;');
 
             activeGroup.addEventListener('click', () => {
-              if (lesson.plugin_type === COCOS) {
+              const lidoLessonId =
+                lesson.lido_lesson_id ||
+                (lesson.plugin_type === LIDO ? lesson.cocos_lesson_id : null);
+
+              if (lidoLessonId) {
+                const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
+                history.push(PAGES.LIDO_PLAYER + params, {
+                  lessonId: lidoLessonId,
+                  courseDocId: fetchedCourse?.id,
+                  course: JSON.stringify(fetchedCourse),
+                  lesson: JSON.stringify(lesson),
+                  chapter: JSON.stringify(fetchedChapter),
+                  from: history.location.pathname + `?${CONTINUE}=true`,
+                  isHomework: true,
+                  homeworkIndex: lessonIdx,
+                });
+              } else if (lesson.plugin_type === COCOS) {
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
                 history.push(PAGES.GAME + params, {
                   url: 'chimple-lib/index.html' + params,
@@ -709,18 +730,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                     homeworkIndex: lessonIdx,
                   },
                 );
-              } else if (lesson.plugin_type === LIDO) {
-                const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-                history.push(PAGES.LIDO_PLAYER + params, {
-                  lessonId: lesson.cocos_lesson_id,
-                  courseDocId: fetchedCourse?.id,
-                  course: JSON.stringify(fetchedCourse),
-                  lesson: JSON.stringify(lesson),
-                  chapter: JSON.stringify(fetchedChapter),
-                  from: history.location.pathname + `?${CONTINUE}=true`,
-                  isHomework: true,
-                  homeworkIndex: lessonIdx,
-                });
               }
             });
             fragment.appendChild(activeGroup);
@@ -958,12 +967,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           }
         };
 
-        let newRewardId: string | null = null;
-        try {
-          newRewardId = await checkAndUpdateReward();
-        } catch (e) {
-          logger.warn('Check Reward failed offline', e);
-        }
+        // (newRewardId is already fetched in Promise.all above)
 
         if (
           newRewardId !== null &&
@@ -1114,7 +1118,23 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       if (!lesson) return;
 
-      if (lesson.plugin_type === COCOS) {
+      const lidoLessonId =
+        lesson.lido_lesson_id ||
+        (lesson.plugin_type === LIDO ? lesson.cocos_lesson_id : null);
+
+      if (lidoLessonId) {
+        const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
+        history.push(PAGES.LIDO_PLAYER + parmas, {
+          lessonId: lidoLessonId,
+          courseDocId: course.course_id,
+          course: JSON.stringify(currentCourse),
+          lesson: JSON.stringify(lesson),
+          chapter: JSON.stringify(currentChapter),
+          from: history.location.pathname + `?${CONTINUE}=true`,
+          isHomework: true,
+          reward: true,
+        });
+      } else if (lesson.plugin_type === COCOS) {
         const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
         history.push(PAGES.GAME + params, {
           url: 'chimple-lib/index.html' + params,
@@ -1138,18 +1158,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             reward: true,
           },
         );
-      } else if (lesson.plugin_type === LIDO) {
-        const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-        history.push(PAGES.LIDO_PLAYER + parmas, {
-          lessonId: lesson.cocos_lesson_id,
-          courseDocId: course.course_id,
-          course: JSON.stringify(currentCourse),
-          lesson: JSON.stringify(lesson),
-          chapter: JSON.stringify(currentChapter),
-          from: history.location.pathname + `?${CONTINUE}=true`,
-          isHomework: true,
-          reward: true,
-        });
       }
     } catch (error) {
       logger.error('Error in playLesson:', error);
@@ -1164,6 +1172,20 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           onClose={() => setModalOpen(false)}
           onConfirm={() => setModalOpen(false)}
           animate={shouldAnimate}
+          audioFolder={
+            modalText === inactiveText
+              ? 'lessonLocked'
+              : modalText === rewardText
+                ? 'completeLesson'
+                : undefined
+          }
+          audioClipName={
+            modalText === inactiveText
+              ? 'lesson_locked'
+              : modalText === rewardText
+                ? 'complete_lesson_to_get_reward'
+                : undefined
+          }
         />
       )}
       <div className="homeworkpathway-structure-div" ref={containerRef}></div>

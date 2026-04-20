@@ -4,13 +4,18 @@ import static android.content.Intent.getIntent;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
 import android.widget.Toast;
@@ -337,6 +342,81 @@ public void shareContentWithAndroidShare(PluginCall call) {
             call.resolve();
         } catch (IOException e) {
             call.reject("Error saving file: " + e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void saveImageToGallery(PluginCall call) {
+        String fileData = call.getString("fileData");
+        String fileName = call.getString("fileName");
+        String mimeType = call.getString("mimeType");
+
+        if (fileData == null || fileData.isEmpty()) {
+            call.reject("No file data provided");
+            return;
+        }
+
+        if (fileName == null || fileName.trim().isEmpty()) {
+            fileName = "image_" + System.currentTimeMillis() + ".png";
+        }
+
+        if (mimeType == null || mimeType.trim().isEmpty()) {
+            mimeType = "image/png";
+        }
+
+        ContentResolver resolver = getContext().getContentResolver();
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
+        values.put(MediaStore.Images.Media.MIME_TYPE, mimeType);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            values.put(
+                MediaStore.Images.Media.RELATIVE_PATH,
+                Environment.DIRECTORY_PICTURES + "/Chimple"
+            );
+            values.put(MediaStore.Images.Media.IS_PENDING, 1);
+        }
+
+        Uri collection = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+            ? MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        Uri imageUri = null;
+        try {
+            imageUri = resolver.insert(collection, values);
+            if (imageUri == null) {
+                call.reject("Failed to create gallery record");
+                return;
+            }
+
+            try (OutputStream outputStream = resolver.openOutputStream(imageUri)) {
+                if (outputStream == null) {
+                    call.reject("Failed to open gallery output stream");
+                    return;
+                }
+
+                byte[] fileBytes = Base64.decode(fileData, Base64.NO_WRAP);
+                outputStream.write(fileBytes);
+                outputStream.flush();
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContentValues completed = new ContentValues();
+                completed.put(MediaStore.Images.Media.IS_PENDING, 0);
+                resolver.update(imageUri, completed, null, null);
+            }
+
+            JSObject result = new JSObject();
+            result.put("uri", imageUri.toString());
+            call.resolve(result);
+        } catch (Exception e) {
+            if (imageUri != null) {
+                try {
+                    resolver.delete(imageUri, null, null);
+                } catch (Exception ignored) {
+                }
+            }
+            call.reject("Error saving image to gallery: " + e.getMessage());
         }
     }
 }

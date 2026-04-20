@@ -260,10 +260,12 @@ describe('Parent page', () => {
 
     await user.click(await screen.findByRole('button', { name: 'setting' }));
     await user.click(
-      screen.getByRole('button', { name: "Switch to Teacher's Mode" }),
+      await screen.findByRole('button', { name: "Switch to Teacher's Mode" }),
     );
 
-    expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.ADD_TEACHER_NAME);
+    await waitFor(() =>
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.ADD_TEACHER_NAME),
+    );
   });
 
   it('switches to teacher mode when name is present', async () => {
@@ -278,11 +280,13 @@ describe('Parent page', () => {
 
     await user.click(await screen.findByRole('button', { name: 'setting' }));
     await user.click(
-      screen.getByRole('button', { name: "Switch to Teacher's Mode" }),
+      await screen.findByRole('button', { name: "Switch to Teacher's Mode" }),
     );
 
-    expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
-    expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+    await waitFor(() => {
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+    });
   });
 
   it('updates language via dropdown selection', async () => {
@@ -619,15 +623,19 @@ describe('Parent page', () => {
     );
   });
 
-  it("init falls back to the first language when user's language_id is not found", async () => {
+  it('uses English when parent language_id is null', async () => {
     mockAuthHandler.getCurrentUser.mockResolvedValue({
       id: 'parent-1',
       name: 'Parent1',
-      language_id: 'missing-lang',
+      language_id: null,
     });
     mockApiHandler.getAllLanguages.mockResolvedValue([
-      { id: 'lang-1', name: 'English', code: 'en' },
       { id: 'lang-2', name: 'Hindi', code: 'hi' },
+      {
+        id: '7eaf3509-e44e-460f-80a1-7f6a13a8a883',
+        name: 'English',
+        code: 'en',
+      },
     ]);
 
     renderWithProviders(<Parent />);

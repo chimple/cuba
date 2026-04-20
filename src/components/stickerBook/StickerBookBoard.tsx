@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useId } from 'react';
 import { t } from 'i18next';
 import { EVENTS } from '../../common/constants';
 import { Util } from '../../utility/util';
@@ -7,6 +7,7 @@ import {
   ParsedSvg,
   parseSvg,
   ensureNavImage,
+  applyStickerVisibilityStrict,
   sanitizeSvg,
 } from '../common/SvgHelpers';
 import NewBackButton from '../common/NewBackButton';
@@ -17,11 +18,12 @@ import StickerBookActions from './StickerBookActions';
 type Props = {
   title: string;
   svgRaw: string | null;
+  svgUrl?: string;
   collectedStickers: string[];
   nextStickerId?: string;
   isLocked: boolean;
   canPaint?: boolean;
-  isStickerBookSaveEnabled: boolean;
+  canSave: boolean;
   onSave?: () => void;
   canGoPrev: boolean;
   canGoNext: boolean;
@@ -29,14 +31,19 @@ type Props = {
   onNext: () => void;
   onBack: () => void;
   onPaint?: () => void;
-  isBookCompleted: boolean;
 };
 
 // Renders raw SVG markup inline so we can manipulate the DOM later.
 const InlineSvg = React.forwardRef<
   SVGSVGElement,
-  { svg: ParsedSvg; className?: string }
->(({ svg, className }, ref) => {
+  {
+    svg: ParsedSvg;
+    className?: string;
+    style?: React.CSSProperties;
+    hideUntilReady?: boolean;
+    overrideAttrs?: Record<string, string>;
+  }
+>(({ svg, className, style, hideUntilReady, overrideAttrs }, ref) => {
   const localRef = useRef<SVGSVGElement | null>(null);
 
   // Expose the SVG element to parent components.
@@ -45,16 +52,28 @@ const InlineSvg = React.forwardRef<
   useEffect(() => {
     const el = localRef.current;
     if (!el) return;
+    // Apply base attrs, but allow overrides (and skip inline styles).
     if (className) el.setAttribute('class', className);
+    const overrideKeys = new Set(Object.keys(overrideAttrs ?? {}));
     Object.entries(svg.attrs).forEach(([name, value]) => {
+      if (name === 'style') return;
+      if (overrideKeys.has(name)) return;
       el.setAttribute(name, value);
     });
-  }, [svg]);
+    Object.entries(overrideAttrs ?? {}).forEach(([name, value]) => {
+      el.setAttribute(name, value);
+    });
+  }, [svg, className, overrideAttrs]);
   const safeSvg = sanitizeSvg(svg.inner);
+  // Allow the caller to temporarily hide the SVG until styling is applied.
+  const mergedStyle: React.CSSProperties = hideUntilReady
+    ? { visibility: 'hidden', ...style }
+    : style || {};
   return (
     <svg
       ref={localRef}
       className="sticker-book-svg"
+      style={mergedStyle}
       dangerouslySetInnerHTML={{ __html: safeSvg }}
     />
   );
@@ -65,11 +84,12 @@ InlineSvg.displayName = 'InlineSvg';
 const StickerBookBoard: React.FC<Props> = ({
   title,
   svgRaw,
+  svgUrl,
   collectedStickers,
   nextStickerId,
   isLocked,
   canPaint = false,
-  isStickerBookSaveEnabled,
+  canSave,
   onSave,
   canGoPrev,
   canGoNext,
@@ -77,12 +97,16 @@ const StickerBookBoard: React.FC<Props> = ({
   onNext,
   onBack,
   onPaint,
-  isBookCompleted,
 }) => {
   const svgRef = useRef<SVGSVGElement | null>(null);
   const boardSvgRef = useRef<SVGSVGElement | null>(null);
+  const clipPathId = useId();
   const [boardSvgRaw, setBoardSvgRaw] = useState<string | null>(null);
-
+  const [fallbackSvgRaw, setFallbackSvgRaw] = useState<string | null>(null);
+  const [showLockedSvg, setShowLockedSvg] = useState<boolean>(true);
+  const STICKER_BOOK_CLIP_PATH =
+    'M 587 57 C 590.314 57 593 59.6863 593 63 V 340.2 H 91 V 63 C 91 59.6863 93.6863 57 97 57 H 587 Z';
+  const TITLE_AREA_COORDS = { x: '68', y: '1', width: '547', height: '56' };
   const logPayload = {
     user_id: Util.getCurrentStudent()?.id ?? null,
     book_title: title,
@@ -131,15 +155,11 @@ const StickerBookBoard: React.FC<Props> = ({
     if (onSave) onSave();
   };
 
-  const parsedSvg = useMemo(() => {
-    if (!svgRaw) return null;
-    return parseSvg(svgRaw);
-  }, [svgRaw]);
-
   const parsedBoardSvg = useMemo(() => {
     if (!boardSvgRaw) return null;
     return parseSvg(boardSvgRaw);
   }, [boardSvgRaw]);
+  const boardViewBox = parsedBoardSvg?.attrs?.viewBox;
 
   // Load board frame SVG once.
   useEffect(() => {
@@ -154,6 +174,71 @@ const StickerBookBoard: React.FC<Props> = ({
       isMounted = false;
     };
   }, []);
+
+  // Reset any previous fallback SVG when the source changes to avoid flashing
+  // stale artwork while the next SVG loads.
+  useEffect(() => {
+    setFallbackSvgRaw(null);
+  }, [svgUrl, svgRaw]);
+
+  // Fallback: ensure we have an SVG for locked mode even if parent hasn't cached it yet.
+  useEffect(() => {
+    let isMounted = true;
+    if (isLocked || svgRaw || !svgUrl) return;
+    fetch(svgUrl)
+      .then((res) => res.text())
+      .then((text) => {
+        if (isMounted) setFallbackSvgRaw(text);
+      })
+      .catch((e) => logger.error('Failed to load sticker book svg:', e));
+    return () => {
+      isMounted = false;
+    };
+  }, [isLocked, svgRaw, svgUrl]);
+
+  // In locked mode, show SVG immediately once available.
+  useEffect(() => {
+    if (!isLocked) {
+      setShowLockedSvg(true);
+      return;
+    }
+    if (!svgRaw) {
+      setShowLockedSvg(false);
+      return;
+    }
+    setShowLockedSvg(true);
+  }, [isLocked, svgRaw]);
+
+  const preparedSvgRaw = useMemo(() => {
+    if (!svgRaw || isLocked) return svgRaw;
+
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svgRaw, 'image/svg+xml');
+      const svg = doc.querySelector('svg') as SVGSVGElement | null;
+      if (!svg) return svgRaw;
+
+      applyStickerVisibilityStrict(
+        svg,
+        collectedStickers,
+        nextStickerId,
+        true,
+        false,
+      );
+
+      return new XMLSerializer().serializeToString(svg);
+    } catch {
+      return svgRaw;
+    }
+  }, [collectedStickers, isLocked, nextStickerId, svgRaw]);
+
+  const unlockedSvgRaw = preparedSvgRaw ?? fallbackSvgRaw;
+
+  const parsedSvg = useMemo(() => {
+    const effectiveSvgRaw = isLocked ? (svgRaw ?? null) : unlockedSvgRaw;
+    if (!effectiveSvgRaw) return null;
+    return parseSvg(effectiveSvgRaw);
+  }, [isLocked, svgRaw, unlockedSvgRaw]);
 
   // Inject navigation arrows into the board SVG.
   useEffect(() => {
@@ -180,7 +265,7 @@ const StickerBookBoard: React.FC<Props> = ({
       canGoNext
         ? '/assets/icons/StickerBookForward.svg'
         : '/assets/icons/InactiveStickerBookForward.svg',
-      606,
+      609,
       180,
       48,
       48,
@@ -191,74 +276,104 @@ const StickerBookBoard: React.FC<Props> = ({
 
   return (
     <div id="sb-board-root" className="sticker-book-board-root">
-      <div id="sb-top-row" className="sticker-book-header">
-        <div className="sticker-book-header-left">
-          <NewBackButton onClick={handleBack} />
-        </div>
-        <div className="sticker-book-header-right">
-          <StickerBookActions
-            showPaint={canPaint}
-            onSave={handleSave}
-            onPaint={handlePaint}
-            saveDisabled={!onSave}
-            paintDisabled={!svgRaw || !onPaint}
-            isStickerBookSaveEnabled={isStickerBookSaveEnabled}
-            isBookCompleted={isBookCompleted}
-          />
-        </div>
+      <div className="sticker-book-col sticker-book-col-left">
+        <NewBackButton onClick={handleBack} />
       </div>
 
-      <div id="sb-frame" className="sticker-book-frame">
+      <div id="sb-frame" className="sticker-book-frame sticker-book-col-middle">
         <div id="sb-board" className="sticker-book-board">
           {parsedBoardSvg && (
-            <InlineSvg
-              svg={parsedBoardSvg}
+            <svg
               ref={boardSvgRef}
-              className="sticker-book-board-bg"
+              className="sticker-book-board-canvas"
+              viewBox={boardViewBox}
+              preserveAspectRatio="xMidYMid meet"
+            >
+              <g
+                className="sticker-book-board-bg"
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeSvg(parsedBoardSvg.inner),
+                }}
+              />
+              {/* Clip the sticker SVG to the board's inner window path. */}
+              <defs>
+                <clipPath id={clipPathId}>
+                  <path d={STICKER_BOOK_CLIP_PATH} />
+                </clipPath>
+              </defs>
+
+              {/* Locked skeleton placeholder when SVG is not yet available */}
+              {isLocked && (!parsedSvg || !showLockedSvg) && (
+                <g clipPath={`url(#${clipPathId})`}>
+                  <rect
+                    x="92"
+                    y="57.8"
+                    width="500"
+                    height="282.2"
+                    fill="rgba(255, 255, 255, 0.9)"
+                  />
+                </g>
+              )}
+
+              {/* Header/Title Area */}
+              <foreignObject {...TITLE_AREA_COORDS}>
+                <div id="sb-board-title" className="sticker-book-board-title">
+                  {t('STICKER BOOK')}: {title}
+                </div>
+              </foreignObject>
+
+              {/* Place the sticker SVG in the board's coordinate space. */}
+              {parsedSvg && (!isLocked || showLockedSvg) && (
+                <g clipPath={`url(#${clipPathId})`}>
+                  <SVGScene
+                    mode={isLocked ? 'color' : 'drag'}
+                    svgRefExternal={svgRef}
+                    collectedStickers={collectedStickers}
+                    nextStickerId={nextStickerId}
+                    isDragEnabled={false}
+                    stickerVisibilityMode="strict"
+                    stickerVisibilityUseFilters={false}
+                    colorModeUncolouredColor="#FFFFFF"
+                    colorModeUncolouredStyle="outline"
+                    lockedStickerOutline={isLocked}
+                    // Match locked overlay tone with the board background.
+                    lockedBackgroundColor={isLocked ? '#C0C0C0' : undefined}
+                    showUncollectedStickers={true}
+                  >
+                    <InlineSvg
+                      key={`${title}:${collectedStickers.join(',')}:${
+                        nextStickerId ?? 'nextStickerId'
+                      }:${isLocked ? 'locked' : 'open'}:${svgUrl ?? ''}`}
+                      svg={parsedSvg}
+                      overrideAttrs={{
+                        x: '92',
+                        y: '57.8',
+                        width: '500',
+                        height: '282.2',
+                        viewBox: '0 0 500 282.2',
+                        preserveAspectRatio: 'xMidYMid meet',
+                      }}
+                      style={{ background: '#FFF' }}
+                    />
+                  </SVGScene>
+                  {isLocked && (
+                    <path
+                      d={STICKER_BOOK_CLIP_PATH}
+                      fill="rgba(255, 255, 255, 0.7)"
+                      pointerEvents="none"
+                    />
+                  )}
+                </g>
+              )}
+            </svg>
+          )}
+
+          {isLocked && (
+            <div
+              id="sb-disabled-layer"
+              className="sticker-book-disabled-layer"
             />
           )}
-          <div id="sb-board-title" className="sticker-book-board-title">
-            {t('STICKER BOOK')}: {title}
-          </div>
-          <div
-            id="sb-board-content"
-            className={`sticker-book-board-content ${
-              isLocked ? 'sticker-book-board-content-disabled' : ''
-            }`}
-          >
-            {isLocked && (
-              <div
-                id="sb-disabled-layer"
-                className="sticker-book-disabled-layer"
-              />
-            )}
-            {parsedSvg && (
-              <SVGScene
-                mode={isLocked ? 'color' : 'drag'}
-                svgRefExternal={svgRef}
-                collectedStickers={
-                  isLocked
-                    ? collectedStickers
-                    : [...collectedStickers, nextStickerId].filter(
-                        (id): id is string => Boolean(id),
-                      )
-                }
-                nextStickerId={isLocked ? nextStickerId : undefined}
-                isDragEnabled={false}
-                stickerVisibilityMode={isLocked ? 'legacy' : 'strict'}
-                colorModeUncolouredColor="#FFFFFF"
-                colorModeUncolouredStyle="outline"
-                lockedStickerOutline={isLocked}
-                lockedBackgroundColor={isLocked ? '#C0C0C0' : undefined}
-                showUncollectedStickers={true}
-              >
-                <InlineSvg
-                  key={`${collectedStickers.join(',')}:${nextStickerId ?? ''}`}
-                  svg={parsedSvg}
-                />
-              </SVGScene>
-            )}
-          </div>
 
           {isLocked && (
             <div id="sb-lock-overlay" className="sticker-book-lock-overlay">
@@ -274,6 +389,17 @@ const StickerBookBoard: React.FC<Props> = ({
             </div>
           )}
         </div>
+      </div>
+
+      <div className="sticker-book-col sticker-book-col-right">
+        <StickerBookActions
+          showPaint={canPaint}
+          onSave={handleSave}
+          onPaint={handlePaint}
+          saveDisabled={!onSave}
+          paintDisabled={false}
+          canSave={canSave}
+        />
       </div>
     </div>
   );

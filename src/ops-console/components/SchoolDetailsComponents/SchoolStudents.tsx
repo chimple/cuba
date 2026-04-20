@@ -59,6 +59,10 @@ import verifiedIcon from '../../assets/icons/verifiedicon.svg';
 import ErrorIcon from '../../assets/icons/erroricon.svg';
 import DeleteIcon from '../../assets/icons/deleteicon.svg';
 import logger from '../../../utility/logger';
+import {
+  getClassDisplayLabel,
+  getExactClassName,
+} from './ClassDetailsPageUtils';
 
 type ApiStudentData = StudentInfo;
 
@@ -163,6 +167,7 @@ interface SchoolStudentsProps {
   isTotal?: boolean;
   isFilter?: boolean;
   customTitle?: string;
+  optionalClassId?: string;
   optionalGrade?: number | string;
   optionalSection?: string;
 }
@@ -184,6 +189,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   isTotal,
   isFilter,
   customTitle,
+  optionalClassId,
   optionalGrade,
   optionalSection,
 }) => {
@@ -365,6 +371,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   };
 
   const baseStudents = useMemo(() => {
+    const classOn =
+      optionalClassId !== undefined &&
+      optionalClassId !== null &&
+      String(optionalClassId).trim() !== '';
+    if (classOn) {
+      const targetClassId = String(optionalClassId).trim();
+      return students.filter((row: ApiStudentData) => {
+        const rowClassId = String(row.classWithidname?.id ?? '').trim();
+        return rowClassId !== '' && rowClassId === targetClassId;
+      });
+    }
+
     const gradeOn =
       optionalGrade !== undefined &&
       optionalGrade !== null &&
@@ -378,7 +396,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         !sectionOn || sameSection(row.classSection, optionalSection);
       return gradeOk && sectionOk;
     });
-  }, [students, optionalGrade, optionalSection]);
+  }, [students, optionalClassId, optionalGrade, optionalSection]);
 
   const normalizedStudents = useMemo(
     () =>
@@ -732,8 +750,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   );
 
   const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
-    let filtered = sortedStudents.map(
-      (s_api): DisplayStudent => ({
+    let filtered = sortedStudents.map((s_api): DisplayStudent => {
+      const classNameFromStudent = getExactClassName(s_api.classWithidname);
+      return {
         id: s_api.user.id,
         original: s_api,
         studentIdDisplay: s_api.user.student_id ?? 'N/A',
@@ -742,13 +761,17 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         grade: s_api.grade ?? 0,
         classSection: s_api.classSection ?? 'N/A',
         phoneNumber: s_api.parent?.phone || s_api.parent?.email || 'N/A', //here
-        class: (s_api.grade ?? 0) + (s_api.classSection ?? ''),
+        class: getClassDisplayLabel(
+          s_api.grade,
+          s_api.classSection,
+          classNameFromStudent,
+        ),
         schstudents_performance:
           studentPerformanceMap.get(s_api.user.id) ?? 'Not Tracked',
         // Status is derived from parent is_wa_contact + class group membership.
         whatsappGroupStatus: getWhatsappGroupStatus(s_api),
-      }),
-    );
+      };
+    });
     // Filter by performance if not "all"
     if (performanceFilter !== PerformanceLevel.ALL) {
       filtered = filtered.filter((student) => {

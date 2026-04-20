@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useEffect, useRef, useState } from 'react';
 // Changes: coordinated SVG mode/visibility helpers and locked-state styling.
 import {
   applyColorMode,
@@ -23,6 +23,7 @@ type Props = {
   lockedStickerOutline?: boolean;
   lockedBackgroundColor?: string;
   showUncollectedStickers?: boolean;
+  stickerVisibilityUseFilters?: boolean;
   sceneWidth?: number | string;
 };
 
@@ -39,19 +40,81 @@ export function SVGScene({
   lockedStickerOutline = false,
   lockedBackgroundColor,
   showUncollectedStickers = true,
+  stickerVisibilityUseFilters = true,
   sceneWidth = 560,
 }: Props) {
   const internalRef = useRef<SVGSVGElement | null>(null);
   const svgRef = svgRefExternal ?? internalRef;
 
   const colorModeApplied = useRef(false);
+  const [svgReadyToken, setSvgReadyToken] = useState(0);
+  const [isStyled, setIsStyled] = useState(false);
+  const lastChildCountRef = useRef<number>(0);
+  const pendingMutationRef = useRef<number | null>(null);
+
+  // Reset when SVG content or mode changes (prevents stale styling).
+  const currentChildSvg = (children as any).props.svg;
+  useLayoutEffect(() => {
+    setIsStyled(false);
+    colorModeApplied.current = false;
+  }, [currentChildSvg, mode]);
+
+  // If SVG content is injected or replaced async, wait until content exists before styling.
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
 
-    // IMPORTANT: wait until SVG slots exist
+    // Watch for any subtree mutations; re-run styling even if node count stays the same.
+    const observer = new MutationObserver(() => {
+      if (pendingMutationRef.current != null) return;
+      pendingMutationRef.current = window.requestAnimationFrame(() => {
+        pendingMutationRef.current = null;
+        const childCount = svg.childNodes.length;
+        if (childCount !== lastChildCountRef.current) {
+          lastChildCountRef.current = childCount;
+        }
+        setSvgReadyToken((token) => token + 1);
+      });
+    });
+
+    observer.observe(svg, { childList: true, subtree: true });
+    // Ensure at least one styling pass when content is already present.
+    const initialCount = svg.childNodes.length;
+    if (initialCount !== lastChildCountRef.current) {
+      lastChildCountRef.current = initialCount;
+      setSvgReadyToken((token) => token + 1);
+    }
+    return () => {
+      observer.disconnect();
+      if (pendingMutationRef.current != null) {
+        window.cancelAnimationFrame(pendingMutationRef.current);
+        pendingMutationRef.current = null;
+      }
+    };
+  }, [svgRef]);
+
+  // Hide until styled to avoid first-paint flashes in sticker book and color mode.
+  const shouldHideUntilStyled =
+    stickerVisibilityMode === 'strict' ||
+    lockedStickerOutline ||
+    mode === 'color';
+
+  useLayoutEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    // IMPORTANT: wait until SVG slots exist for slot-based rules.
     const slots = svg.querySelectorAll('[data-slot-id]');
-    if (!slots.length) return;
+    if (!slots.length) {
+      if (shouldHideUntilStyled) {
+        svg.style.visibility = 'hidden';
+      }
+      return;
+    }
+
+    if (!isStyled && shouldHideUntilStyled) {
+      svg.style.visibility = 'hidden';
+    }
 
     /* ---------------- COLOR MODE ---------------- */
     if (mode === 'color' && !colorModeApplied.current) {
@@ -87,6 +150,7 @@ export function SVGScene({
         collectedStickers,
         nextStickerId,
         showUncollectedStickers,
+        stickerVisibilityUseFilters,
       );
     }
 
@@ -97,6 +161,13 @@ export function SVGScene({
 
     if (lockedBackgroundColor) {
       applyLockedBackground(svg, lockedBackgroundColor);
+    }
+
+    if (!isStyled) {
+      setIsStyled(true);
+      if (shouldHideUntilStyled) {
+        svg.style.visibility = '';
+      }
     }
   }, [
     mode,
@@ -109,10 +180,29 @@ export function SVGScene({
     lockedStickerOutline,
     lockedBackgroundColor,
     showUncollectedStickers,
+    stickerVisibilityUseFilters,
+    svgReadyToken,
+    isStyled,
+    shouldHideUntilStyled,
   ]);
 
-  return React.cloneElement(children as React.ReactElement<any>, {
+  const child = children as React.ReactElement<any>;
+  const mergedStyle = {
+    ...(child.props?.style || {}),
+    ...(shouldHideUntilStyled && !isStyled ? { visibility: 'hidden' } : {}),
+  };
+
+  // If child SVG already declares sizing, don't override with sceneWidth.
+  const childHasSizing =
+    child.props?.width ||
+    child.props?.height ||
+    child.props?.x ||
+    child.props?.y;
+
+  return React.cloneElement(child, {
     ref: svgRef,
-    width: sceneWidth,
+    ...(childHasSizing ? {} : { width: sceneWidth }),
+    style: mergedStyle,
+    hideUntilReady: shouldHideUntilStyled && !isStyled,
   });
 }

@@ -1,12 +1,12 @@
-import { RefObject, useEffect } from 'react';
+import { RefObject, useCallback, useEffect } from 'react';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { useFeatureIsOn, useFeatureValue } from '@growthbook/growthbook-react';
-import { t } from 'i18next';
 
 import { ServiceConfig } from '../services/ServiceConfig';
 import {
   REWARD_LEARNING_PATH,
+  COURSE_CHANGED,
   COCOS,
   LIVE_QUIZ,
   LIDO,
@@ -17,16 +17,24 @@ import {
   LIDO_ASSESSMENT,
   EVENTS,
   STICKER_BOOK_PREVIEW_ENABLED,
+  STICKER_BOOK_CELEBRATION_POPUP_ENABLED,
   STICKER_BOOK_COMPLETION_POPUP,
   PATHWAY_END_REWARD_BOX_VARIANT,
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  PENDING_PATHWAY_STICKER_REWARD_KEY,
+  PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+  PATHWAY_REWARD_AUDIO_READY_EVENT,
 } from '../common/constants';
 import { Util } from '../utility/util';
 import { LessonNode } from './useLearningPath';
 import { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
 import { extractStickerSvg } from '../components/common/SvgHelpers';
 import logger from '../utility/logger';
+import { fetchStickerBookSvgText } from '../utility/stickerBookAssets';
+import { setCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
+import { useAppSelector } from '../redux/hooks';
+import { t } from 'i18next';
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -46,11 +54,19 @@ interface UsePathwaySVGParams {
   setCurrentChapter: (chapter: any) => void;
   setIsRewardPathLoaded: (b: boolean) => void;
   isRewardPathLoaded: boolean;
+  setPathwayLoading?: (isLoading: boolean) => void;
   onStickerPreviewReady: (
     data: StickerBookModalData,
     trigger: 'sticker_click' | 'pathway_completion_auto',
   ) => void;
   onStickerCompletionReady: (data: StickerBookModalData) => void;
+}
+
+interface PendingStickerReward {
+  studentId: string;
+  awardedStickerId: string;
+  stickerBookId: string | null;
+  createdAt: string;
 }
 
 // CACHES
@@ -61,6 +77,8 @@ const stickerDataUrlCache: Record<string, string> = {};
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 const PATH_SIZE = 5;
+const CHIMPLE_MOVE_DURATION_MS = 2000;
+const CHIMPLE_MOVE_FALLBACK_BUFFER_MS = 300;
 
 const fetchLocalFile = async (path: string): Promise<string> => {
   const file = await Filesystem.readFile({
@@ -108,8 +126,7 @@ const getStickerImageFallbackFromBookSvg = async (
   let stickerSvg: string | null = null;
   try {
     // Extract the requested sticker from the full book SVG and reuse it as an image.
-    const res = await fetch(stickerBookSvgUrl);
-    const text = await res.text();
+    const text = await fetchStickerBookSvgText(stickerBookSvgUrl);
     const wrapper = document.createElementNS(SVG_NS, 'g');
     wrapper.innerHTML = text;
     const svgNode = wrapper.querySelector('svg') as SVGSVGElement | null;
@@ -136,6 +153,7 @@ const createSVGImage = (
 ) => {
   const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
   img.setAttribute('href', href);
+  img.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
   if (width != null) img.setAttribute('width', String(width));
   if (height != null) img.setAttribute('height', String(height));
@@ -166,42 +184,87 @@ export function usePathwaySVG({
   setCurrentChapter,
   setIsRewardPathLoaded,
   isRewardPathLoaded,
+  setPathwayLoading,
   onStickerPreviewReady,
   onStickerCompletionReady,
 }: UsePathwaySVGParams) {
   const api = ServiceConfig.getI().apiHandler;
-  const isStickerBookPreviewOn = useFeatureIsOn(STICKER_BOOK_PREVIEW_ENABLED);
-  const isStickerBookCompletionPopupOn = useFeatureIsOn(
+  const liveIsStickerBookPreviewOn = useFeatureIsOn(
+    STICKER_BOOK_PREVIEW_ENABLED,
+  );
+  const liveIsStickerBookCelebrationPopupOn = useFeatureIsOn(
+    STICKER_BOOK_CELEBRATION_POPUP_ENABLED,
+  );
+  const liveIsStickerBookCompletionPopupOn = useFeatureIsOn(
     STICKER_BOOK_COMPLETION_POPUP,
   );
-  // Default to sticker rewards when the experiment value is missing.
-  const rewardBoxVariant = useFeatureValue(
+  // Default to mystery box rewards when the experiment value is missing.
+  const liveRewardBoxVariant = useFeatureValue(
     PATHWAY_END_REWARD_BOX_VARIANT,
-    'sticker',
+    'mystery_box',
   );
+  const cachedFeatureValues = useAppSelector(
+    (state) => state.growthbook.featureValues,
+  );
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+  const isStickerBookPreviewOn = isOffline
+    ? ((cachedFeatureValues?.[STICKER_BOOK_PREVIEW_ENABLED] as boolean) ??
+      liveIsStickerBookPreviewOn)
+    : liveIsStickerBookPreviewOn;
+  const isStickerBookCelebrationPopupOn = isOffline
+    ? ((cachedFeatureValues?.[
+        STICKER_BOOK_CELEBRATION_POPUP_ENABLED
+      ] as boolean) ?? liveIsStickerBookCelebrationPopupOn)
+    : liveIsStickerBookCelebrationPopupOn;
+  const isStickerBookCompletionPopupOn = isOffline
+    ? ((cachedFeatureValues?.[STICKER_BOOK_COMPLETION_POPUP] as boolean) ??
+      liveIsStickerBookCompletionPopupOn)
+    : liveIsStickerBookCompletionPopupOn;
+  const rewardBoxVariant = isOffline
+    ? ((cachedFeatureValues?.[PATHWAY_END_REWARD_BOX_VARIANT] as string) ??
+      liveRewardBoxVariant)
+    : liveRewardBoxVariant;
 
   useEffect(() => {
-    (window as any).__triggerPathwayReload__ = loadSVG;
-    loadSVG();
-
-    return () => {
-      delete (window as any).__triggerPathwayReload__;
-    };
+    setCachedGrowthBookFeatureValue(
+      STICKER_BOOK_PREVIEW_ENABLED,
+      liveIsStickerBookPreviewOn,
+    );
+    setCachedGrowthBookFeatureValue(
+      STICKER_BOOK_CELEBRATION_POPUP_ENABLED,
+      liveIsStickerBookCelebrationPopupOn,
+    );
+    setCachedGrowthBookFeatureValue(
+      STICKER_BOOK_COMPLETION_POPUP,
+      liveIsStickerBookCompletionPopupOn,
+    );
+    setCachedGrowthBookFeatureValue(
+      PATHWAY_END_REWARD_BOX_VARIANT,
+      liveRewardBoxVariant,
+    );
   }, [
-    isRewardPathLoaded,
-    isStickerBookPreviewOn,
-    isStickerBookCompletionPopupOn,
-    rewardBoxVariant,
+    liveIsStickerBookPreviewOn,
+    liveIsStickerBookCelebrationPopupOn,
+    liveIsStickerBookCompletionPopupOn,
+    liveRewardBoxVariant,
   ]);
 
-  async function loadSVG() {
-    if (!containerRef.current) return;
+  const loadSVG = useCallback(async () => {
+    const stopPathwayLoading = () => setPathwayLoading?.(false);
+    if (!containerRef.current) {
+      stopPathwayLoading();
+      return;
+    }
+    setPathwayLoading?.(true);
 
     try {
       const startTime = performance.now();
 
       const currentStudent = Util.getCurrentStudent();
-      if (!currentStudent) return;
+      if (!currentStudent) {
+        stopPathwayLoading();
+        return;
+      }
 
       const rewardLearningPath = sessionStorage.getItem(REWARD_LEARNING_PATH);
 
@@ -214,16 +277,23 @@ export function usePathwaySVG({
         learningPath = pathToParse ? JSON.parse(pathToParse) : null;
       } else {
         logger.warn('No learning path found for current student');
+        stopPathwayLoading();
         return;
       }
 
       const currentCourseIndex = learningPath.courses.currentCourseIndex;
       const course = learningPath.courses.courseList[currentCourseIndex];
-      if (!course) return;
-      const pathItem = course.path.find(
-        (p: LessonNode) => p && p.isPlayed === false,
-      );
-      if (!pathItem) return;
+      if (!course) {
+        stopPathwayLoading();
+        return;
+      }
+      const pathItem =
+        course.path.find((p: LessonNode) => p && p.isPlayed === false) ??
+        course.path[course.path.length - 1];
+      if (!pathItem) {
+        stopPathwayLoading();
+        return;
+      }
       const isAssessment = pathItem?.is_assessment;
       const assessmentId = pathItem?.assignment_id;
       const activeIndex = course.path.findIndex(
@@ -254,16 +324,46 @@ export function usePathwaySVG({
         chapterData = { id: pathItem.chapter_id, name: 'Chapter' };
       }
 
-      const stickerPreviewPayload = isStickerBookPreviewOn
-        ? await getStickerPreviewPayload()
-        : null;
-      const stickerCompletionPayload = isStickerBookCompletionPopupOn
-        ? await getStickerCompletionPayload()
-        : null;
-      (window as any).__currentCourseForPathway__ = courseData;
-      (window as any).__currentChapterForPathway__ = chapterData;
-      setCurrentCourse(courseData);
-      setCurrentChapter(chapterData);
+      let overrideParsed: any = null;
+      let completionOverrideParsed: any = null;
+      let pendingStickerRewardParsed: PendingStickerReward | null = null;
+      if (isStickerBookPreviewOn) {
+        const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed?.studentId && parsed.studentId === currentStudent.id) {
+              overrideParsed = parsed;
+            }
+          } catch (e) {}
+        }
+      } else {
+        // Preview disabled: clear pending auto-open state and refresh to new path.
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+        if (sessionStorage.getItem(REWARD_LEARNING_PATH)) {
+          sessionStorage.removeItem(REWARD_LEARNING_PATH);
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+          }, 0);
+        }
+      }
+
+      const shouldOpenCelebrationPopup =
+        isStickerBookPreviewOn &&
+        isStickerBookCelebrationPopupOn &&
+        Boolean(overrideParsed);
+
+      if (overrideParsed && !shouldOpenCelebrationPopup) {
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+        if (sessionStorage.getItem(REWARD_LEARNING_PATH)) {
+          sessionStorage.removeItem(REWARD_LEARNING_PATH);
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+          }, 0);
+        }
+      }
 
       const rawCompletionPopup = sessionStorage.getItem(
         AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
@@ -271,58 +371,51 @@ export function usePathwaySVG({
       if (rawCompletionPopup) {
         try {
           const parsed = JSON.parse(rawCompletionPopup);
-          const shouldOpenForStudent =
-            parsed?.studentId && parsed.studentId === currentStudent.id;
-          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
-          if (
-            shouldOpenForStudent &&
-            isStickerBookCompletionPopupOn &&
-            stickerCompletionPayload
-          ) {
-            setTimeout(
-              () => onStickerCompletionReady(stickerCompletionPayload),
-              0,
-            );
+          if (parsed?.studentId && parsed.studentId === currentStudent.id) {
+            completionOverrideParsed = parsed;
           }
-        } catch {
-          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
-        }
+        } catch (e) {}
       }
 
-      // Auto-open sticker preview after a pathway completes (set in Util.updateLearningPath).
-      if (isStickerBookPreviewOn) {
-        const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
-        if (raw) {
-          try {
-            const parsed = JSON.parse(raw);
-            const shouldOpenForStudent =
-              parsed?.studentId && parsed.studentId === currentStudent.id;
-            if (shouldOpenForStudent) {
-              sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
-              const autoPopupPayload =
-                (await getStickerPreviewPayload(
-                  parsed?.awardedStickerId,
-                  Array.isArray(parsed?.preAwardCollectedStickerIds)
-                    ? parsed.preAwardCollectedStickerIds
-                    : undefined,
-                )) ?? stickerPreviewPayload;
-              // Defer so the rest of the pathway UI can mount first.
-              if (autoPopupPayload) {
-                setTimeout(
-                  () =>
-                    onStickerPreviewReady(
-                      autoPopupPayload,
-                      'pathway_completion_auto',
-                    ),
-                  0,
-                );
-              }
-            }
-          } catch {
-            // Ignore malformed storage value
+      const rawPendingStickerReward = sessionStorage.getItem(
+        PENDING_PATHWAY_STICKER_REWARD_KEY,
+      );
+      if (rawPendingStickerReward) {
+        try {
+          const parsed = JSON.parse(rawPendingStickerReward);
+          if (parsed?.studentId && parsed.studentId === currentStudent.id) {
+            pendingStickerRewardParsed = parsed;
           }
-        }
+        } catch (e) {}
       }
+
+      const stickerPreviewPromise = isStickerBookPreviewOn
+        ? overrideParsed
+          ? getStickerPreviewPayload(
+              overrideParsed.awardedStickerId,
+              Array.isArray(overrideParsed.preAwardCollectedStickerIds)
+                ? overrideParsed.preAwardCollectedStickerIds
+                : undefined,
+              {
+                stickerBookId: overrideParsed.stickerBookId,
+                stickerBookTitle: overrideParsed.stickerBookTitle,
+                stickerBookSvgUrl: overrideParsed.stickerBookSvgUrl,
+              },
+            )
+          : getStickerPreviewPayload()
+        : Promise.resolve(null);
+
+      const stickerCompletionPromise = isStickerBookCompletionPopupOn
+        ? getPersistedStickerCompletionPayload(completionOverrideParsed)
+          ? Promise.resolve(
+              getPersistedStickerCompletionPayload(completionOverrideParsed),
+            )
+          : getStickerCompletionPayload()
+        : Promise.resolve(null);
+      (window as any).__currentCourseForPathway__ = courseData;
+      (window as any).__currentChapterForPathway__ = chapterData;
+      setCurrentCourse(courseData);
+      setCurrentChapter(chapterData);
 
       const lessons = await Promise.all(
         course.path
@@ -334,6 +427,9 @@ export function usePathwaySVG({
       preloadAllLessonImages(lessons);
 
       const [
+        stickerPreviewPayload,
+        stickerCompletionPayload,
+        newRewardIdFromCheck,
         pathwaySVG,
         flowerActive,
         flowerInactive,
@@ -343,6 +439,9 @@ export function usePathwaySVG({
         mysteryBox3,
         halo,
       ] = await Promise.all([
+        stickerPreviewPromise,
+        stickerCompletionPromise,
+        checkAndUpdateReward(),
         loadPathwayTemplate(),
         loadGroupAsset(
           'flowerActive',
@@ -377,19 +476,66 @@ export function usePathwaySVG({
         loadHalo(),
       ]);
 
+      let didScheduleStickerCompletionPopup = false;
+      if (rawCompletionPopup) {
+        try {
+          const parsed = JSON.parse(rawCompletionPopup);
+          const shouldOpenForStudent =
+            parsed?.studentId && parsed.studentId === currentStudent.id;
+          if (
+            shouldOpenForStudent &&
+            !shouldOpenCelebrationPopup &&
+            isStickerBookCompletionPopupOn &&
+            stickerCompletionPayload
+          ) {
+            sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+            didScheduleStickerCompletionPopup = true;
+            setTimeout(
+              () => onStickerCompletionReady(stickerCompletionPayload),
+              0,
+            );
+          }
+        } catch {
+          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+        }
+      }
+
+      // Auto-open sticker preview after a pathway completes (set in Util.updateLearningPath).
+      if (shouldOpenCelebrationPopup) {
+        if (stickerPreviewPayload && !didScheduleStickerCompletionPopup) {
+          setTimeout(
+            () =>
+              onStickerPreviewReady(
+                stickerPreviewPayload,
+                'pathway_completion_auto',
+              ),
+            0,
+          );
+        }
+      }
+
       // Build SVG in next frame to keep main thread responsive
       requestAnimationFrame(async () => {
-        if (!containerRef.current) return;
+        if (!containerRef.current) {
+          stopPathwayLoading();
+          return;
+        }
 
         containerRef.current.innerHTML = pathwaySVG;
         const svg = containerRef.current.querySelector('svg') as SVGSVGElement;
-        if (!svg) return;
+        if (!svg) {
+          stopPathwayLoading();
+          return;
+        }
         svg.style.overflow = 'visible';
 
         const paths = Array.from(
           svg.querySelectorAll('g > path'),
         ) as SVGPathElement[];
-        if (!paths.length) return;
+        if (!paths.length) {
+          stopPathwayLoading();
+          return;
+        }
 
         const startPoint = paths[0].getPointAtLength(0);
         const xValues = [27, 155, 276, 387, 496];
@@ -411,8 +557,10 @@ export function usePathwaySVG({
           const flowerX = point.x - 40;
           const flowerY = point.y - 40;
 
-          const isPlayed = startIndex + idx < currentIndex;
-          const isActive = startIndex + idx === currentIndex;
+          const isPlayed =
+            startIndex + idx < currentIndex || activeIndex === -1;
+          const isActive =
+            startIndex + idx === currentIndex && activeIndex !== -1;
 
           const isValidUrl =
             typeof lesson.image === 'string' &&
@@ -436,7 +584,7 @@ export function usePathwaySVG({
             },
           };
 
-          if (startIndex + idx < currentIndex) {
+          if (isPlayed) {
             // Played lesson
             const playedLesson = document.createElementNS(
               'http://www.w3.org/2000/svg',
@@ -453,7 +601,7 @@ export function usePathwaySVG({
               positionMappings.playedLesson.y[idx] ?? flowerY - 20,
             );
             fragment.appendChild(playedLesson);
-          } else if (startIndex + idx === currentIndex) {
+          } else if (isActive) {
             // Active lesson
             const activeGroup = document.createElementNS(
               'http://www.w3.org/2000/svg',
@@ -549,7 +697,7 @@ export function usePathwaySVG({
           flower_Inactive.addEventListener('click', () => {
             setModalOpen(true);
             setModalText(
-              'This lesson is locked. Play the current active lesson.',
+              t('This lesson is locked. Play the current active lesson.'),
             );
           });
           flower_Inactive.setAttribute(
@@ -586,7 +734,6 @@ export function usePathwaySVG({
         const isRewardFeatureOn =
           localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
 
-        const isOffline = !navigator.onLine;
         const normalizedVariant = String(rewardBoxVariant ?? '')
           .trim()
           .toLowerCase();
@@ -602,10 +749,7 @@ export function usePathwaySVG({
         const hasRenderableSticker = Boolean(nextStickerImageSrc);
         // Show the sticker reward only when a real sticker can be rendered.
         const rewardMode: 'sticker' | 'mystery_box' =
-          isOffline ||
-          !hasNextSticker ||
-          !hasRenderableSticker ||
-          gbWantsMystery
+          !hasNextSticker || !hasRenderableSticker || gbWantsMystery
             ? 'mystery_box'
             : 'sticker';
 
@@ -615,13 +759,37 @@ export function usePathwaySVG({
           rewardMode === 'sticker' ? 'Sticker reward' : 'Mystery box reward',
         );
 
+        // Base mobile width defaults to ~57px based on mockup
+        const width =
+          window.innerWidth >= 1024 ? 68 : window.innerWidth >= 768 ? 62 : 57;
+        // Mockup height is 44px for a 57.37px width (~0.767 ratio)
+        const height = Math.round(width * 0.767);
+
         const playRewardClickAnimation = (
           mode: 'sticker' | 'mystery_box',
         ): Promise<void> => {
+          if (mode === 'mystery_box') {
+            return Promise.resolve();
+          }
+
+          const willOpenPreview =
+            mode === 'sticker' &&
+            isStickerBookPreviewOn &&
+            stickerPreviewPayload;
+
+          if (willOpenPreview) {
+            rewardGroup.classList.remove(
+              'PathwayStructure-end-reward-box--sticker-close-anim',
+            );
+            void rewardGroup.getBoundingClientRect(); // force reflow
+            rewardGroup.classList.add(
+              'PathwayStructure-end-reward-box--sticker-open',
+            );
+            return new Promise((resolve) => setTimeout(resolve, 750));
+          }
+
           const animationClass =
-            mode === 'sticker'
-              ? 'PathwayStructure-end-reward-box--sticker-clicked'
-              : 'PathwayStructure-end-reward-box--clicked';
+            'PathwayStructure-end-reward-box--sticker-clicked';
 
           rewardGroup.classList.remove(
             'PathwayStructure-end-reward-box--sticker-clicked',
@@ -656,10 +824,6 @@ export function usePathwaySVG({
             'PathwayStructure-end-reward-box--sticker',
           );
 
-          const width =
-            window.innerWidth >= 1024 ? 78 : window.innerWidth >= 768 ? 72 : 64;
-          const height = Math.round(width * 0.82);
-
           const bg = document.createElementNS(
             'http://www.w3.org/2000/svg',
             'rect',
@@ -670,14 +834,12 @@ export function usePathwaySVG({
           bg.setAttribute('ry', String(Math.round(height * 0.24)));
           bg.setAttribute('fill', '#FFFDEE');
           bg.setAttribute('stroke', '#F55376');
-          bg.setAttribute('stroke-width', '4');
+          bg.setAttribute('stroke-width', '3');
 
-          const horizontalPadding = Math.round(width * 0.1);
-          const verticalPadding = Math.round(height * 0.06);
-          const contentSize = Math.min(
-            width - horizontalPadding * 2,
-            height - verticalPadding * 2,
-          );
+          const horizontalPadding = Math.round(width * 0.12);
+          const verticalPadding = Math.round(height * 0.12);
+          const contentWidth = width - horizontalPadding * 2;
+          const contentHeight = height - verticalPadding * 2;
 
           rewardGroup.appendChild(bg);
           // Reuse the same resolved sticker image that powers the preview modal.
@@ -685,10 +847,10 @@ export function usePathwaySVG({
             rewardGroup.appendChild(
               createSVGImage(
                 nextStickerImageSrc,
-                contentSize,
-                contentSize,
-                (width - contentSize) / 2,
-                (height - contentSize) / 2,
+                contentWidth,
+                contentHeight,
+                horizontalPadding,
+                verticalPadding,
                 'PathwayStructure-end-reward-sticker-image',
               ),
             );
@@ -725,8 +887,18 @@ export function usePathwaySVG({
             'PathwayStructure-end-reward-box',
             'PathwayStructure-end-reward-box--mystery',
           );
-          rewardGroup.appendChild(mysteryBox1.cloneNode(true));
-          placeElement(rewardWrapper, endPoint.x - 25, endPoint.y - 40 + 15);
+          const mysteryBoxClone = mysteryBox1.cloneNode(true) as SVGElement;
+          mysteryBoxClone.setAttribute('width', String(width));
+          mysteryBoxClone.setAttribute('height', String(height));
+          mysteryBoxClone.style.width = `${width}px`;
+          mysteryBoxClone.style.height = `${height}px`;
+          rewardGroup.appendChild(mysteryBoxClone);
+
+          placeElement(
+            rewardWrapper,
+            endPoint.x - width / 2,
+            endPoint.y - height / 2,
+          );
 
           if (currentIndex < pathEndIndex + 1) {
             rewardWrapper.addEventListener('click', async () => {
@@ -737,6 +909,10 @@ export function usePathwaySVG({
                 : hasNextSticker
                   ? 'experiment'
                   : 'stickers_exhausted';
+              const mysteryBoxModalText =
+                reason === 'stickers_exhausted'
+                  ? t('Complete these 5 lessons to earn rewards')
+                  : t('Complete these 5 lessons to earn 10 stars');
 
               void Util.logEvent(EVENTS.PATHWAY_MYSTERY_BOX_TAPPED, {
                 user_id: Util.getCurrentStudent()?.id ?? 'unknown',
@@ -752,7 +928,12 @@ export function usePathwaySVG({
                 while (rewardGroup.firstChild) {
                   rewardGroup.removeChild(rewardGroup.firstChild);
                 }
-                rewardGroup.appendChild(newContent.cloneNode(true));
+                const clone = newContent.cloneNode(true) as SVGElement;
+                clone.setAttribute('width', String(width));
+                clone.setAttribute('height', String(height));
+                clone.style.width = `${width}px`;
+                clone.style.height = `${height}px`;
+                rewardGroup.appendChild(clone);
               };
 
               const animationSequence = [
@@ -762,9 +943,7 @@ export function usePathwaySVG({
                 { content: mysteryBox3, delay: 900 },
                 {
                   callback: () => {
-                    setModalText(
-                      t('Complete these 5 lessons to earn 10 stars'),
-                    );
+                    setModalText(mysteryBoxModalText);
                     setModalOpen(true);
                     replaceContent(mysteryBox1);
                   },
@@ -791,14 +970,32 @@ export function usePathwaySVG({
         );
         const xValuesForChimple = [-60, 66, 180, 295, 412];
 
-        const newRewardIdFromCheck = await checkAndUpdateReward();
-
         const isStringReward =
           newRewardIdFromCheck !== null &&
           typeof newRewardIdFromCheck === 'string';
 
-        // If there is a reward, run full reward animation flow
-        if (isStringReward && isRewardFeatureOn) {
+        // If a popup is about to open, defer reward animation
+        // so it plays after the pathway refresh (avoids animating behind the popup).
+        const willShowCelebration =
+          shouldOpenCelebrationPopup && !!stickerPreviewPayload;
+        const shouldSkipRewardAnimationForSticker =
+          isStringReward &&
+          isRewardFeatureOn &&
+          Boolean(pendingStickerRewardParsed?.awardedStickerId);
+        const shouldRunRewardAnimation =
+          isStringReward &&
+          isRewardFeatureOn &&
+          !shouldSkipRewardAnimationForSticker &&
+          !willShowCelebration &&
+          !didScheduleStickerCompletionPopup;
+
+        if (shouldSkipRewardAnimationForSticker) {
+          setHasTodayReward(false);
+          await updateMascotToNormalState(newRewardIdFromCheck as string);
+          await Util.updateUserReward();
+        }
+
+        if (shouldRunRewardAnimation) {
           runRewardAnimation(
             newRewardIdFromCheck as string,
             lessons,
@@ -815,7 +1012,7 @@ export function usePathwaySVG({
         // Attach chimple (mascot)
         if (chimple) {
           let baseX: number;
-          if (idx < 0 || !isStringReward || !isRewardFeatureOn) {
+          if (idx < 0 || !shouldRunRewardAnimation) {
             // default logic – same as original: next active lesson
             baseX = xValues[idx + 1] ?? xValues[0];
             chimple.setAttribute('x', `${baseX - 87}`);
@@ -838,28 +1035,87 @@ export function usePathwaySVG({
 
         const endTime = performance.now();
         logger.info(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
+        stopPathwayLoading();
       });
     } catch (error) {
       logger.error('Failed to load SVG:', error);
+      stopPathwayLoading();
     }
-  }
+  }, [
+    api,
+    checkAndUpdateReward,
+    containerRef,
+    getCachedLesson,
+    history,
+    invokeMascotCelebration,
+    isRewardPathLoaded,
+    isStickerBookCompletionPopupOn,
+    isStickerBookPreviewOn,
+    onStickerCompletionReady,
+    onStickerPreviewReady,
+    rewardBoxVariant,
+    setCurrentChapter,
+    setCurrentCourse,
+    setHasTodayReward,
+    setIsRewardPathLoaded,
+    setPathwayLoading,
+    setModalOpen,
+    setModalText,
+    setRewardRiveContainer,
+    setRewardRiveState,
+    setRiveContainer,
+    updateMascotToNormalState,
+  ]);
+
+  useEffect(() => {
+    (window as any).__triggerPathwayReload__ = loadSVG;
+    loadSVG();
+
+    return () => {
+      delete (window as any).__triggerPathwayReload__;
+    };
+  }, [loadSVG]);
 
   // Fetches all data needed by StickerBookPreviewModal + end-path sticker icon.
   // This is the single place where we resolve next sticker image fallback.
   async function getStickerPreviewPayload(
     forcedStickerId?: string,
     preAwardCollectedStickerIds?: string[],
+    persistedBookContext?: {
+      stickerBookId?: string | null;
+      stickerBookTitle?: string | null;
+      stickerBookSvgUrl?: string | null;
+    } | null,
   ): Promise<StickerBookModalData | null> {
     try {
       const currentStudent = Util.getCurrentStudent();
       if (!currentStudent?.id) return null;
 
-      // Start from the active sticker book and the user's current progress.
-      const currentBookWithProgress =
-        await api.getCurrentStickerBookWithProgress(currentStudent.id);
-      if (!currentBookWithProgress?.book) return null;
+      let book: {
+        id: string;
+        title?: string | null;
+        svg_url?: string | null;
+      } | null = null;
+      let progress: { stickers_collected?: string[] | null } | null = null;
 
-      const { book, progress } = currentBookWithProgress;
+      if (
+        persistedBookContext?.stickerBookId &&
+        persistedBookContext.stickerBookSvgUrl
+      ) {
+        book = {
+          id: persistedBookContext.stickerBookId,
+          title: persistedBookContext.stickerBookTitle ?? 'Sticker Book',
+          svg_url: persistedBookContext.stickerBookSvgUrl,
+        };
+      } else {
+        // Start from the active sticker book and the user's current progress.
+        const currentBookWithProgress =
+          await api.getCurrentStickerBookWithProgress(currentStudent.id);
+        if (!currentBookWithProgress?.book) return null;
+        book = currentBookWithProgress.book;
+        progress = currentBookWithProgress.progress;
+      }
+
       const collectedStickerIds = Array.isArray(preAwardCollectedStickerIds)
         ? preAwardCollectedStickerIds
         : (progress?.stickers_collected ?? []);
@@ -943,6 +1199,33 @@ export function usePathwaySVG({
       return null;
     }
   }
+
+  function getPersistedStickerCompletionPayload(
+    parsed: any,
+  ): StickerBookModalData | null {
+    const payload = parsed?.payload;
+    if (
+      !payload ||
+      typeof payload !== 'object' ||
+      !payload.stickerBookId ||
+      !Array.isArray(payload.collectedStickerIds)
+    ) {
+      return null;
+    }
+
+    return {
+      source: payload.source ?? 'learning_pathway',
+      stickerBookId: payload.stickerBookId,
+      stickerBookTitle: payload.stickerBookTitle || 'Sticker Book',
+      stickerBookSvgUrl: payload.stickerBookSvgUrl || '',
+      collectedStickerIds: payload.collectedStickerIds,
+      totalStickerCount:
+        typeof payload.totalStickerCount === 'number'
+          ? payload.totalStickerCount
+          : payload.collectedStickerIds.length,
+    };
+  }
+
   async function loadPathwayTemplate(): Promise<string> {
     if (pathwayTemplateCache) return pathwayTemplateCache;
 
@@ -1058,6 +1341,7 @@ export function usePathwaySVG({
     const rewardRecord =
       await ServiceConfig.getI().apiHandler.getRewardById(newRewardId);
     if (!rewardRecord) return;
+    const rewardStateValue = rewardRecord.state_number_input || 1;
 
     setHasTodayReward(false);
 
@@ -1120,7 +1404,12 @@ export function usePathwaySVG({
       await delay(2000);
 
       // Step 1: set celebration state (we emulate via global mascot state)
-      await invokeMascotCelebration(rewardRecord.state_number_input || 1);
+      await invokeMascotCelebration(rewardStateValue);
+      window.dispatchEvent(
+        new CustomEvent(PATHWAY_REWARD_CELEBRATION_STARTED_EVENT, {
+          detail: { rewardId: newRewardId, stateValue: rewardStateValue },
+        }),
+      );
 
       await delay(500);
       rewardForeignObject.style.display = 'none';
@@ -1132,7 +1421,7 @@ export function usePathwaySVG({
       await delay(500);
 
       // Step 3: animate mascot movement
-      animateChimpleMovement(
+      await animateChimpleMovement(
         chimple,
         lessons,
         startIndex,
@@ -1140,6 +1429,11 @@ export function usePathwaySVG({
         xValues,
         startPoint,
         pathEndIndex,
+      );
+      window.dispatchEvent(
+        new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
+          detail: { rewardId: newRewardId, stateValue: rewardStateValue },
+        }),
       );
 
       await Util.updateUserReward();
@@ -1163,22 +1457,22 @@ export function usePathwaySVG({
     xValues: number[],
     startPoint: DOMPoint,
     pathEndIndex: number,
-  ) {
-    if (!chimple) return;
+  ): Promise<void> {
+    if (!chimple) return Promise.resolve();
 
     if (currentIndex > pathEndIndex) {
       sessionStorage.removeItem(REWARD_LEARNING_PATH);
       setIsRewardPathLoaded(true);
-      return;
+      return Promise.resolve();
     }
 
     const currentLessonIndex = lessons.findIndex(
       (_: any, idx: number) => startIndex + idx === currentIndex,
     );
-    if (currentLessonIndex < 0) return;
+    if (currentLessonIndex < 0) return Promise.resolve();
 
     const previousLessonIndex = currentLessonIndex - 1;
-    if (previousLessonIndex < 0) return;
+    if (previousLessonIndex < 0) return Promise.resolve();
 
     const fromX = xValues[previousLessonIndex] ?? 0;
     const toX = xValues[currentLessonIndex] ?? 0;
@@ -1197,10 +1491,30 @@ export function usePathwaySVG({
     chimple.style.transform = `translate(${fromTranslateX}px, 0px)`;
     void chimple.getBoundingClientRect();
 
-    requestAnimationFrame(() => {
-      chimple.style.transition =
-        'transform 2000ms cubic-bezier(0.22, 0.61, 0.36, 1)';
-      chimple.style.transform = 'translate(0px, 0px)';
+    return new Promise((resolve) => {
+      let hasResolved = false;
+      const finishMovement = () => {
+        if (hasResolved) return;
+        hasResolved = true;
+        window.clearTimeout(fallbackTimer);
+        chimple.removeEventListener('transitionend', handleTransitionEnd);
+        resolve();
+      };
+      const handleTransitionEnd = (event: TransitionEvent) => {
+        if (event.target === chimple && event.propertyName === 'transform') {
+          finishMovement();
+        }
+      };
+      const fallbackTimer = window.setTimeout(
+        finishMovement,
+        CHIMPLE_MOVE_DURATION_MS + CHIMPLE_MOVE_FALLBACK_BUFFER_MS,
+      );
+
+      chimple.addEventListener('transitionend', handleTransitionEnd);
+      requestAnimationFrame(() => {
+        chimple.style.transition = `transform ${CHIMPLE_MOVE_DURATION_MS}ms cubic-bezier(0.22, 0.61, 0.36, 1)`;
+        chimple.style.transform = 'translate(0px, 0px)';
+      });
     });
   }
 
@@ -1216,7 +1530,27 @@ export function usePathwaySVG({
     const currentCourse = (window as any).__currentCourseForPathway__;
     const currentChapter = (window as any).__currentChapterForPathway__;
 
-    if (lesson.plugin_type === COCOS) {
+    const lidoLessonId =
+      lesson.lido_lesson_id ||
+      (lesson.plugin_type === LIDO || lesson.plugin_type === LIDO_ASSESSMENT
+        ? lesson.cocos_lesson_id
+        : null);
+
+    if (lidoLessonId) {
+      const p = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
+      history.replace(PAGES.LIDO_PLAYER + p, {
+        lessonId: lidoLessonId,
+        courseDocId: course.course_id,
+        course: JSON.stringify(currentCourse),
+        lesson: JSON.stringify(lesson),
+        chapter: JSON.stringify(currentChapter),
+        from: history.location.pathname + `?${CONTINUE}=true`,
+        learning_path: true,
+        skillId: skillId,
+        is_assessment: is_assessment,
+        assessmentId: assessmentId,
+      });
+    } else if (lesson.plugin_type === COCOS) {
       const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
       history.replace(PAGES.GAME + params, {
         url: 'chimple-lib/index.html' + params,
@@ -1242,25 +1576,8 @@ export function usePathwaySVG({
           is_assessment: is_assessment,
         },
       );
-    } else if (
-      lesson.plugin_type === LIDO ||
-      lesson.plugin_type === LIDO_ASSESSMENT
-    ) {
-      const p = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-      history.replace(PAGES.LIDO_PLAYER + p, {
-        lessonId: lesson.cocos_lesson_id,
-        courseDocId: course.course_id,
-        course: JSON.stringify(currentCourse),
-        lesson: JSON.stringify(lesson),
-        chapter: JSON.stringify(currentChapter),
-        from: history.location.pathname + `?${CONTINUE}=true`,
-        learning_path: true,
-        skillId: skillId,
-        is_assessment: is_assessment,
-        assessmentId: assessmentId,
-      });
     }
   }
 
-  return null;
+  return {};
 }

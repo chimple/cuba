@@ -6,12 +6,12 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { toBlob } from 'html-to-image';
 import StickerBookPreviewModal, {
   StickerBookModalData,
 } from './StickerBookPreviewModal';
 import { Util } from '../../utility/util';
 import { EVENTS, PAGES } from '../../common/constants';
+import { AudioUtil } from '../../utility/AudioUtil';
 
 const originalFetch = global.fetch;
 const mockPush = jest.fn();
@@ -26,17 +26,72 @@ jest.mock('react-router', () => ({
   }),
 }));
 
-jest.mock('html-to-image', () => ({
-  toBlob: jest.fn(),
-}));
-
 jest.mock('../../assets/images/camera.svg', () => 'camera.svg');
 
 jest.mock('../../utility/util', () => ({
   Util: {
     logEvent: jest.fn(),
     getCurrentStudent: jest.fn(() => ({ id: 'student-1' })),
-    sendContentToAndroidOrWebShare: jest.fn(),
+  },
+}));
+
+const mockOpenSaveModal = jest.fn();
+const mockCloseSaveModal = jest.fn();
+const mockCloseSaveToast = jest.fn();
+const mockHandleSaveAndShare = jest.fn();
+
+let mockSaveHookState = {
+  isSaving: false,
+  showSaveModal: false,
+  showSaveToast: false,
+  savedSvgMarkup: null as string | null,
+  openSaveModal: mockOpenSaveModal,
+  closeSaveModal: mockCloseSaveModal,
+  closeSaveToast: mockCloseSaveToast,
+  handleSaveAndShare: mockHandleSaveAndShare,
+};
+
+jest.mock('../../hooks/useStickerBookSave', () => ({
+  useStickerBookSave: () => mockSaveHookState,
+}));
+
+jest.mock('../stickerBook/StickerBookSaveModal', () => ({
+  __esModule: true,
+  default: (props: any) =>
+    props.open ? (
+      <div data-testid="sticker-book-save-modal">
+        <button
+          data-testid="sticker-book-save-modal-close"
+          onClick={props.onClose}
+        >
+          close modal
+        </button>
+        <button
+          data-testid="sticker-book-save-modal-finish"
+          onClick={props.onAnimationComplete}
+        >
+          finish animation
+        </button>
+        <div data-testid="sticker-book-save-modal-markup">
+          {props.svgMarkup}
+        </div>
+      </div>
+    ) : null,
+}));
+
+jest.mock('../stickerBook/StickerBookToast', () => ({
+  __esModule: true,
+  default: (props: any) =>
+    props.isOpen ? (
+      <div data-testid="sticker-book-toast">{props.text}</div>
+    ) : null,
+}));
+
+jest.mock('../../utility/AudioUtil', () => ({
+  AudioUtil: {
+    playAudioOrTts: jest.fn().mockResolvedValue(true),
+    stopAudioUrlOrTtsPlayback: jest.fn().mockResolvedValue(undefined),
+    getLocalizedAudioUrl: jest.fn(),
   },
 }));
 
@@ -97,10 +152,21 @@ const svgWithoutSlots = `
 describe('StickerBookPreviewModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-1' });
-    (toBlob as jest.Mock).mockResolvedValue(
-      new Blob(['png'], { type: 'image/png' }),
+    (AudioUtil.getLocalizedAudioUrl as jest.Mock).mockImplementation(
+      async (folder: string, clipName: string) =>
+        `/assets/audios/${folder}/en_${clipName}.mp3`,
     );
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 'student-1' });
+    mockSaveHookState = {
+      isSaving: false,
+      showSaveModal: false,
+      showSaveToast: false,
+      savedSvgMarkup: null,
+      openSaveModal: mockOpenSaveModal,
+      closeSaveModal: mockCloseSaveModal,
+      closeSaveToast: mockCloseSaveToast,
+      handleSaveAndShare: mockHandleSaveAndShare,
+    };
   });
 
   afterEach(() => {
@@ -122,6 +188,28 @@ describe('StickerBookPreviewModal', () => {
     expect(
       screen.queryByTestId('StickerBookPreviewModal-loading'),
     ).not.toBeInTheDocument();
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
+      audioUrl: '/assets/audios/common/generic_sound_effect.mp3',
+      delayMs: 300,
+      onComplete: expect.any(Function),
+      onCompleteDelayMs: 300,
+    });
+
+    const firstCall = (AudioUtil.playAudioOrTts as jest.Mock).mock
+      .calls[0]?.[0];
+    await act(async () => {
+      await firstCall.onComplete();
+    });
+
+    expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenCalledWith(
+      'stickerbookFirstPopup',
+      'popup_current_sticker',
+    );
+    expect(AudioUtil.playAudioOrTts).toHaveBeenLastCalledWith({
+      audioUrl:
+        '/assets/audios/stickerbookFirstPopup/en_popup_current_sticker.mp3',
+      text: 'Finish the pathway & collect this Rocket.',
+    });
   });
 
   test('applies collected/next/locked styles to sticker slots', async () => {
@@ -146,10 +234,12 @@ describe('StickerBookPreviewModal', () => {
       '[data-slot-id="slot-locked"] rect',
     ) as SVGRectElement;
 
-    expect(collected.getAttribute('fill')).toBe('#FFFFFF');
-    expect(collected.getAttribute('stroke')).toBe('#FFFFFF');
-    expect(collected.style.fill).toBe('#FFFFFF');
-    expect(collected.style.stroke).toBe('#FFFFFF');
+    expect(collected.getAttribute('fill')).toBe('#111111');
+    expect(collected.getAttribute('stroke')).toBe('#222222');
+    expect(collected.getAttribute('fill-opacity')).toBe('0.3');
+    expect(collected.getAttribute('stroke-opacity')).toBe('0.3');
+    expect(collected.style.fill).toBe('');
+    expect(collected.style.stroke).toBe('');
     expect(next.getAttribute('fill')).toBe('#D1D2D4');
     expect(next.getAttribute('stroke')).toBe('#D1D2D4');
     expect(next.style.fill).toBe('#D1D2D4');
@@ -170,6 +260,7 @@ describe('StickerBookPreviewModal', () => {
     fireEvent.click(screen.getByTestId('StickerBookPreviewModal-close'));
 
     expect(onClose).toHaveBeenCalledWith('close_button');
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
   });
 
   test('closes with backdrop when overlay is clicked', async () => {
@@ -184,6 +275,31 @@ describe('StickerBookPreviewModal', () => {
     fireEvent.click(screen.getByTestId('StickerBookPreviewModal-overlay'));
 
     expect(onClose).toHaveBeenCalledWith('backdrop');
+    expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalled();
+  });
+
+  test('replays audio when speaker button is clicked', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    render(<StickerBookPreviewModal data={buildData()} onClose={jest.fn()} />);
+
+    await screen.findByTestId('StickerBookPreviewModal-book');
+    fireEvent.click(screen.getByRole('button', { name: 'Replay audio' }));
+
+    await waitFor(() =>
+      expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenLastCalledWith(
+        'stickerbookFirstPopup',
+        'popup_current_sticker',
+      ),
+    );
+    expect(AudioUtil.playAudioOrTts).toHaveBeenLastCalledWith({
+      audioUrl:
+        '/assets/audios/stickerbookFirstPopup/en_popup_current_sticker.mp3',
+      text: 'Finish the pathway & collect this Rocket.',
+    });
   });
 
   test('falls back to local layout when sticker book fetch fails', async () => {
@@ -315,9 +431,6 @@ describe('StickerBookPreviewModal', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByTestId('StickerBookPreviewModal-helper-text'),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId('StickerBookPreviewModal-next-name'),
     ).toBeInTheDocument();
   });
 
@@ -539,11 +652,47 @@ describe('StickerBookPreviewModal', () => {
       const updated = container.querySelector(
         '[data-slot-id="slot-collected"] rect',
       ) as SVGRectElement;
-      expect(updated.getAttribute('fill')).toBe('#FFFFFF');
-      expect(updated.getAttribute('stroke')).toBe('#FFFFFF');
-      expect(updated.style.fill).toBe('#FFFFFF');
-      expect(updated.style.stroke).toBe('#FFFFFF');
+      expect(updated.getAttribute('fill')).toBe('#111111');
+      expect(updated.getAttribute('stroke')).toBe('#222222');
+      expect(updated.getAttribute('fill-opacity')).toBe('0.3');
+      expect(updated.getAttribute('stroke-opacity')).toBe('0.3');
+      expect(updated.style.fill).toBe('');
+      expect(updated.style.stroke).toBe('');
     });
+  });
+
+  test('shows previously collected stickers in preview mode', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    const { container } = render(
+      <StickerBookPreviewModal
+        data={buildData({
+          collectedStickerIds: ['slot-collected'],
+          nextStickerId: 'slot-next',
+        })}
+        onClose={jest.fn()}
+      />,
+    );
+
+    await screen.findByTestId('StickerBookPreviewModal-book');
+
+    const collected = container.querySelector(
+      '[data-slot-id="slot-collected"] rect',
+    ) as SVGRectElement;
+    const next = container.querySelector(
+      '[data-slot-id="slot-next"] circle',
+    ) as SVGCircleElement;
+    const locked = container.querySelector(
+      '[data-slot-id="slot-locked"] rect',
+    ) as SVGRectElement;
+
+    expect(collected.getAttribute('fill')).toBe('#111111');
+    expect(collected.getAttribute('stroke')).toBe('#222222');
+    expect(next.getAttribute('fill')).toBe('#D1D2D4');
+    expect(locked.getAttribute('fill')).toBe('#FFFFFF');
   });
 
   test('keeps drag_collect slot state stable when collectedStickerIds mutates after open', async () => {
@@ -602,6 +751,54 @@ describe('StickerBookPreviewModal', () => {
       ) as SVGRectElement;
       expect(nextAfterMutation.getAttribute('fill')).toBe('#D1D2D4');
       expect(lockedAfterMutation.getAttribute('fill')).toBe('#FFFFFF');
+    });
+  });
+
+  test('updates drag_collect target slot when nextStickerId changes between opens', async () => {
+    jest.spyOn(Util, 'logEvent').mockResolvedValue(undefined as never);
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    const { rerender, container } = render(
+      <StickerBookPreviewModal
+        data={buildData({
+          collectedStickerIds: ['slot-collected'],
+          nextStickerId: 'slot-next',
+        })}
+        variant="drag_collect"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        container.querySelector('[data-slot-id="slot-next"] circle'),
+      ).toBeInTheDocument(),
+    );
+
+    rerender(
+      <StickerBookPreviewModal
+        data={buildData({
+          collectedStickerIds: ['slot-collected', 'slot-next'],
+          nextStickerId: 'slot-locked',
+        })}
+        variant="drag_collect"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      const previousNext = container.querySelector(
+        '[data-slot-id="slot-next"] circle',
+      ) as SVGCircleElement;
+      const newNext = container.querySelector(
+        '[data-slot-id="slot-locked"] rect',
+      ) as SVGRectElement;
+
+      expect(previousNext.getAttribute('fill')).toBe('#333333');
+      expect(newNext.getAttribute('fill')).toBe('#D1D2D4');
     });
   });
 
@@ -673,7 +870,7 @@ describe('StickerBookPreviewModal', () => {
       text: async () => svgWithSlots,
     } as Response);
 
-    render(
+    const { container } = render(
       <StickerBookPreviewModal
         data={buildCompletionData()}
         mode="completion"
@@ -681,12 +878,20 @@ describe('StickerBookPreviewModal', () => {
       />,
     );
 
-    await screen.findByTestId('StickerBookPreviewModal-book');
+    await waitFor(() =>
+      expect(
+        container.querySelector('.StickerBookCompletionModal-svg-area svg'),
+      ).toBeInTheDocument(),
+    );
     expect(
-      screen.getByTestId('StickerBookPreviewModal-save'),
+      screen.getByRole('button', {
+        name: /save/i,
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByTestId('StickerBookPreviewModal-paint'),
+      screen.getByRole('button', {
+        name: /paint/i,
+      }),
     ).toBeInTheDocument();
     expect(
       screen.queryByTestId('StickerBookPreviewModal-helper-text'),
@@ -699,7 +904,7 @@ describe('StickerBookPreviewModal', () => {
       text: async () => svgWithSlots,
     } as Response);
 
-    render(
+    const { container } = render(
       <StickerBookPreviewModal
         data={buildCompletionData()}
         mode="completion"
@@ -707,11 +912,114 @@ describe('StickerBookPreviewModal', () => {
       />,
     );
 
-    await screen.findByTestId('StickerBookPreviewModal-book');
+    await waitFor(() =>
+      expect(
+        container.querySelector('.StickerBookCompletionModal-svg-area svg'),
+      ).toBeInTheDocument(),
+    );
     expect(screen.getByTestId('StickerBookPreviewModal-close')).toHaveAttribute(
       'aria-label',
       'Close',
     );
+  });
+
+  test('renders audio button in completion mode', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    const { container } = render(
+      <StickerBookPreviewModal
+        data={buildCompletionData()}
+        mode="completion"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        container.querySelector('.StickerBookCompletionModal-svg-area svg'),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole('button', { name: 'Replay audio' }),
+    ).toBeInTheDocument();
+  });
+
+  test('replays completion audio when speaker button is clicked', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    const { container } = render(
+      <StickerBookPreviewModal
+        data={buildCompletionData()}
+        mode="completion"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        container.querySelector('.StickerBookCompletionModal-svg-area svg'),
+      ).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Replay audio' }));
+
+    await waitFor(() =>
+      expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenLastCalledWith(
+        'stickerbookThirdPopup',
+        'popup_all_stickers_collected',
+      ),
+    );
+    expect(AudioUtil.playAudioOrTts).toHaveBeenLastCalledWith({
+      audioUrl:
+        '/assets/audios/stickerbookThirdPopup/en_popup_all_stickers_collected.mp3',
+      text: 'Congratulations! Your Stickerbook Page is complete! You can either save & share this page with your family & friends or start coloring this page.',
+    });
+  });
+
+  test('plays drag_collect popup audio after the shared sound effect', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+
+    render(
+      <StickerBookPreviewModal
+        data={buildData()}
+        variant="drag_collect"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await screen.findByTestId('StickerBookPreviewModal-book');
+
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
+      audioUrl: '/assets/audios/common/generic_sound_effect.mp3',
+      delayMs: 300,
+      onComplete: expect.any(Function),
+      onCompleteDelayMs: 300,
+    });
+
+    const firstCall = (AudioUtil.playAudioOrTts as jest.Mock).mock
+      .calls[0]?.[0];
+    await act(async () => {
+      await firstCall.onComplete();
+    });
+
+    expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenCalledWith(
+      'stickerbookSecondPopup',
+      'popup_sticker_collected',
+    );
+    expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith({
+      audioUrl:
+        '/assets/audios/stickerbookSecondPopup/en_popup_sticker_collected.mp3',
+      text: 'Yay! You have earned a sticker!',
+    });
   });
 
   test('completion mode save and paint keep existing behavior', async () => {
@@ -720,6 +1028,58 @@ describe('StickerBookPreviewModal', () => {
       text: async () => svgWithSlots,
     } as Response);
 
+    const { container } = render(
+      <StickerBookPreviewModal
+        data={buildCompletionData()}
+        mode="completion"
+        onClose={jest.fn()}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(
+        container.querySelector('.StickerBookCompletionModal-svg-area svg'),
+      ).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: /save/i }));
+
+    await waitFor(() => expect(mockOpenSaveModal).toHaveBeenCalledTimes(1));
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE,
+      expect.objectContaining({
+        sticker_book_id: 'book-complete',
+        collected_count: 3,
+        total_stickers: 6,
+      }),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /paint/i }));
+    expect(Util.logEvent).toHaveBeenCalledWith(
+      EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT,
+      expect.objectContaining({
+        sticker_book_id: 'book-complete',
+      }),
+    );
+    expect(mockPush).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
+      svgRaw: expect.stringContaining('<svg'),
+      svgUrl: 'https://example.com/completed.svg',
+      artworkTitle: 'Completed Book',
+      returnTo: '/',
+    });
+  });
+
+  test('completion mode still renders the save modal and toast containers', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () => svgWithSlots,
+    } as Response);
+    mockSaveHookState = {
+      ...mockSaveHookState,
+      showSaveModal: true,
+      showSaveToast: true,
+      savedSvgMarkup: '<svg><rect width="10" height="10" /></svg>',
+    };
+
     render(
       <StickerBookPreviewModal
         data={buildCompletionData()}
@@ -728,32 +1088,12 @@ describe('StickerBookPreviewModal', () => {
       />,
     );
 
-    await screen.findByTestId('StickerBookPreviewModal-book');
-    fireEvent.click(screen.getByTestId('StickerBookPreviewModal-save'));
-
-    await waitFor(() =>
-      expect(Util.sendContentToAndroidOrWebShare).toHaveBeenCalledTimes(1),
-    );
-    expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED,
-      expect.objectContaining({
-        sticker_book_id: 'book-complete',
-        collected_count: 3,
-        total_stickers: 6,
-      }),
-    );
-
-    fireEvent.click(screen.getByTestId('StickerBookPreviewModal-paint'));
-    expect(Util.logEvent).toHaveBeenCalledWith(
-      EVENTS.STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED,
-      expect.objectContaining({
-        sticker_book_id: 'book-complete',
-      }),
-    );
-    expect(mockPush).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
-      stickerBookId: 'book-complete',
-      stickerBookSvgUrl: 'https://example.com/completed.svg',
-      collectedStickerIds: ['slot-collected', 'slot-next', 'slot-locked'],
-    });
+    expect(
+      await screen.findByTestId('sticker-book-save-modal'),
+    ).toBeInTheDocument();
+    expect(await screen.findByTestId('sticker-book-toast')).toBeInTheDocument();
+    expect(
+      document.querySelector('.StickerBookCompletionModal-overlay'),
+    ).not.toBeInTheDocument();
   });
 });

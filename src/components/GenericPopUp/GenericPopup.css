@@ -29,9 +29,9 @@
 }
 
 /* ================= CLOSE ================= */
+.generic-popup-audio-button,
 .generic-popup-close {
   position: absolute;
-  right: 1.3rem;
 
   width: 3.8rem;
   height: 4.8rem;
@@ -45,6 +45,15 @@
   font-size: 1rem;
   cursor: pointer;
   z-index: 10 !important;
+}
+
+.generic-popup-audio-button {
+  left: 1.3rem;
+  top: 0.2rem;
+}
+
+.generic-popup-close {
+  right: 1.3rem;
 }
 
 /* ================= BACKGROUND IMAGE ================= */

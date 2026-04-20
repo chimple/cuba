@@ -22,8 +22,7 @@ const renderActions = (props: any = {}) => {
     onPaint: jest.fn(),
     saveDisabled: false,
     paintDisabled: false,
-    isStickerBookSaveEnabled: true,
-    isBookCompleted: true,
+    canSave: true,
   };
 
   const merged = { ...defaultProps, ...props };
@@ -123,8 +122,8 @@ describe('StickerBookActions', () => {
     expect(btn).not.toBeDisabled();
   });
 
-  test('save button hidden when sticker book save feature is disabled', () => {
-    renderActions({ isStickerBookSaveEnabled: false });
+  test('save button hidden when canSave is false', () => {
+    renderActions({ canSave: false });
 
     expect(
       document.getElementById('sticker-book-actions-save'),
@@ -132,8 +131,8 @@ describe('StickerBookActions', () => {
     expect(screen.queryByText('Save')).not.toBeInTheDocument();
   });
 
-  test('save button hidden when book is not completed', () => {
-    renderActions({ isBookCompleted: false });
+  test('save button hidden when canSave is explicitly false', () => {
+    renderActions({ canSave: false });
 
     expect(
       document.getElementById('sticker-book-actions-save'),
@@ -247,7 +246,10 @@ describe('StickerBookActions', () => {
 
     const img = screen.getByRole('img', { name: 'Paint' });
 
-    expect(img).toHaveAttribute('src', '/assets/icons/PaintBucket.svg');
+    expect(img).toHaveAttribute(
+      'src',
+      '/assets/icons/PaintbrushIconForButton.svg',
+    );
   });
 
   /* ---------- BUTTON COUNT ---------- */
@@ -302,8 +304,7 @@ describe('StickerBookActions', () => {
         showPaint={false}
         onSave={() => {}}
         onPaint={() => {}}
-        isStickerBookSaveEnabled={true}
-        isBookCompleted={true}
+        canSave={true}
       />,
     );
 
@@ -312,8 +313,7 @@ describe('StickerBookActions', () => {
         showPaint={true}
         onSave={() => {}}
         onPaint={() => {}}
-        isStickerBookSaveEnabled={true}
-        isBookCompleted={true}
+        canSave={true}
       />,
     );
 
@@ -326,8 +326,7 @@ describe('StickerBookActions', () => {
         showPaint={true}
         onSave={() => {}}
         onPaint={() => {}}
-        isStickerBookSaveEnabled={true}
-        isBookCompleted={true}
+        canSave={true}
       />,
     );
 
@@ -336,8 +335,7 @@ describe('StickerBookActions', () => {
         showPaint={true}
         onSave={() => {}}
         onPaint={() => {}}
-        isStickerBookSaveEnabled={true}
-        isBookCompleted={true}
+        canSave={true}
       />,
     );
 

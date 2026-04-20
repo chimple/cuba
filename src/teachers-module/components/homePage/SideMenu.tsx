@@ -30,6 +30,7 @@ import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
 import logger from '../../../utility/logger';
+import { logAuthDebug } from '../../../utility/authDebug';
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
@@ -62,6 +63,7 @@ const SideMenu: React.FC<{
   const history = useHistory();
   const { setGbUpdated } = useGbContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [schoolSearchResetToken, setSchoolSearchResetToken] = useState(0);
   const { roles, isOpsUser } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
@@ -240,6 +242,7 @@ const SideMenu: React.FC<{
       const classCode = await getClassCodeById(firstClass.id);
       setClassCode(classCode);
       Util.dispatchClassOrSchoolChangeEvent();
+      void Util.validateCurrentSchoolContext();
     } catch (error) {
       logger.error('Error handling school selection:', error);
     }
@@ -289,19 +292,37 @@ const SideMenu: React.FC<{
       }
 
       Util.dispatchClassOrSchoolChangeEvent();
+      void Util.validateCurrentSchoolContext();
     } catch (error) {
       logger.error('Error handling class selection:', error);
     }
   };
 
   const [showDialogBox, setShowDialogBox] = useState(false);
+  const [openLogoutDialogAfterMenuClose, setOpenLogoutDialogAfterMenuClose] =
+    useState(false);
+
+  const handleLogoutClick = () => {
+    setOpenLogoutDialogAfterMenuClose(true);
+    menuRef.current?.close();
+  };
 
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
+    logAuthDebug('User initiated teacher side-menu logout.', {
+      source: 'TeacherSideMenu.onSignOut',
+      reason: 'teacher_logout_button',
+    });
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(CURRENT_MODE);
     await ClearCacheData();
+    logAuthDebug('Navigating to login after teacher side-menu logout.', {
+      source: 'TeacherSideMenu.onSignOut',
+      reason: 'logout_complete_navigate_login',
+      from_page: window.location.pathname,
+      to_page: PAGES.LOGIN,
+    });
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
@@ -314,7 +335,14 @@ const SideMenu: React.FC<{
         contentId="main-content"
         id="main-container"
         onIonDidOpen={() => setIsMenuOpen(true)}
-        onIonDidClose={() => setIsMenuOpen(false)}
+        onIonDidClose={() => {
+          setIsMenuOpen(false);
+          setSchoolSearchResetToken((prev) => prev + 1);
+          if (openLogoutDialogAfterMenuClose) {
+            setOpenLogoutDialogAfterMenuClose(false);
+            setShowDialogBox(true);
+          }
+        }}
       >
         <div aria-label={String(t('Menu'))} className="side-menu-container">
           <ProfileSection fullName={fullName} email={email} />
@@ -324,6 +352,7 @@ const SideMenu: React.FC<{
               currentSchoolDetail={currentSchoolDetail}
               handleSchoolSelect={handleSchoolSelect}
               handleManageSchoolClick={handleManageSchoolClick}
+              resetTrigger={schoolSearchResetToken}
             />
             <ClassSection
               classData={classData}
@@ -363,10 +392,7 @@ const SideMenu: React.FC<{
               </IonItem>
             </div>
           )}
-          <div
-            className="teacher-logout-btn"
-            onClick={() => setShowDialogBox(true)}
-          >
+          <div className="teacher-logout-btn" onClick={handleLogoutClick}>
             {t('Logout')}
           </div>
 

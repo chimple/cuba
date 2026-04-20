@@ -15,10 +15,12 @@ jest.mock('@testing-library/react', () => {
   return {
     ...originalModule,
     render: (ui: any, options: any = {}) => {
+      const growthbookReducer =
+        require('./redux/slices/growthbook/growthbookSlice').default;
       const store =
         options?.store ??
         configureStore({
-          reducer: { auth: authreducer },
+          reducer: { auth: authreducer, growthbook: growthbookReducer },
           middleware: (getDefaultMiddleware: any) =>
             getDefaultMiddleware({ serializableCheck: false }),
         });
@@ -76,6 +78,8 @@ jest.mock('./growthbook/Growthbook', () => ({
   GbProvider: ({ children }: any) => children,
   useGbContext: () => ({ gbUpdated: false, setGbUpdated: jest.fn() }),
   updateLocalAttributes: jest.fn(),
+  setCachedGrowthBookFeatureValue: jest.fn(),
+  getCachedGrowthBookFeatureValue: jest.fn(),
 }));
 
 // Jest runs in CommonJS mode and cannot parse import.meta.url worker constructors.
@@ -109,6 +113,16 @@ jest.mock('./workers/backgroundWorkerClient', () => {
           return { sheetNames: [], sheets: {} };
         case 'BUILD_XLSX_FILE':
           return { fileBuffer: new ArrayBuffer(0) };
+        case 'DOWNLOAD_STICKER_BOOK_SVG': {
+          const response = await fetch(payload?.url ?? '');
+          return {
+            svgText: await response.text(),
+          };
+        }
+        case 'DOWNLOAD_REMOTE_AUDIO':
+          return {
+            base64Data: 'd29ya2VyQXVkaW8=',
+          };
         default:
           return {};
       }

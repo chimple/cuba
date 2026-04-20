@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Box, Typography } from '@mui/material';
 import { t } from 'i18next';
 import { useHistory, useLocation } from 'react-router';
@@ -170,6 +176,7 @@ export const normalizeProgramModel = (value: any): string => {
 
 type MigratedMetricKey =
   | 'ukg_student_count'
+  | 'class_1_student_count'
   | 'class_2_student_count'
   | 'class_3_student_count'
   | 'class_4_student_count'
@@ -283,6 +290,7 @@ export const useMigrateSchoolsPageLogic = () => {
   const [isSuccessPopupOpen, setIsSuccessPopupOpen] = useState(false);
   const [isFailurePopupOpen, setIsFailurePopupOpen] = useState(false);
   const [isMigrating, setIsMigrating] = useState(false);
+  const latestFetchRequestIdRef = useRef(0);
 
   const isLoading = isFilterLoading || isDataLoading;
   const currentAcademicYear = useMemo(() => {
@@ -351,6 +359,8 @@ export const useMigrateSchoolsPageLogic = () => {
   }, [api]);
 
   const fetchData = useCallback(async () => {
+    const requestId = latestFetchRequestIdRef.current + 1;
+    latestFetchRequestIdRef.current = requestId;
     setIsDataLoading(true);
     try {
       const cleanedFilters = Object.fromEntries(
@@ -376,6 +386,8 @@ export const useMigrateSchoolsPageLogic = () => {
         search: searchTerm,
         includeMigratedCounts: activeTab === 'migrated',
       });
+
+      if (latestFetchRequestIdRef.current !== requestId) return;
 
       const data = response?.data || [];
       setTotal(response?.total || 0);
@@ -434,6 +446,13 @@ export const useMigrateSchoolsPageLogic = () => {
           migrationMetrics,
           ['ukg_student_count'],
         );
+        const class1 = resolveMigratedMetricValue(
+          row,
+          school,
+          program,
+          migrationMetrics,
+          ['class_1_student_count'],
+        );
         const class2 = resolveMigratedMetricValue(
           row,
           school,
@@ -484,6 +503,7 @@ export const useMigrateSchoolsPageLogic = () => {
           cluster: schoolCluster,
           block: schoolBlock,
           ukg,
+          class1,
           class2,
           class3,
           class4,
@@ -493,10 +513,12 @@ export const useMigrateSchoolsPageLogic = () => {
 
       setRows(formatted);
     } catch (error) {
+      if (latestFetchRequestIdRef.current !== requestId) return;
       logger.error('Failed to fetch migrate schools list', error);
       setRows([]);
       setTotal(0);
     } finally {
+      if (latestFetchRequestIdRef.current !== requestId) return;
       setIsDataLoading(false);
     }
   }, [
@@ -550,6 +572,12 @@ export const useMigrateSchoolsPageLogic = () => {
             {
               key: 'ukg',
               label: t('UKG'),
+              width: '8%',
+              sortable: false,
+            },
+            {
+              key: 'class1',
+              label: t('Class 1'),
               width: '8%',
               sortable: false,
             },

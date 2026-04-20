@@ -729,11 +729,7 @@ describe('StudentProgress', () => {
 
     render(<StudentProgress />);
 
-    await waitFor(() => {
-      expect(
-        screen.getByRole('button', { name: /course-1/i }),
-      ).toBeInTheDocument();
-    });
+    expect(await screen.findByTestId('tab-label-course-1')).toBeInTheDocument();
 
     expect(screen.getByText('No Data')).toBeInTheDocument();
     expect(mockApiHandler.getStudentProgress).toHaveBeenCalledWith(student.id);

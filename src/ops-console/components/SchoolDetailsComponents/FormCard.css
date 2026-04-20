@@ -365,6 +365,7 @@
   color: #9aa0a6;
 }
 
+/* Limits dropdown height and keeps vertical scrolling inside class option list. */
 .formcard-multiselect-dropdown {
   position: absolute;
   top: 100%;
@@ -374,8 +375,35 @@
   border: 1px solid #dadce0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 100;
-  max-height: 115px;
-  overflow-y: auto;
+  max-height: 140px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #c1c7d0 #f1f3f4;
+}
+
+/* Overrides global hidden-scrollbar rule so this dropdown scrollbar remains visible. */
+.formcard-multiselect-dropdown::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+/* Uses a light track to make the scrollbar boundary readable. */
+.formcard-multiselect-dropdown::-webkit-scrollbar-track {
+  background: #f1f3f4;
+  border-radius: 8px;
+}
+
+/* Uses a darker thumb for clear drag/scroll affordance in long class lists. */
+.formcard-multiselect-dropdown::-webkit-scrollbar-thumb {
+  background: #c1c7d0;
+  border-radius: 8px;
+}
+
+/* Improves hover contrast so scrollbar interaction is obvious. */
+.formcard-multiselect-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #98a2b3;
 }
 
 .formcard-multiselect-option {

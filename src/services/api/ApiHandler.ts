@@ -172,6 +172,10 @@ export class ApiHandler implements ServiceApi {
     return await this.s.updateRewardAsSeen(studentId);
   }
 
+  public async markStciekercolledasTrue(userId: string): Promise<void> {
+    return await this.s.markStciekercolledasTrue(userId);
+  }
+
   public async getLeaderboardStudentResultFromB2CCollection(
     studentId: string,
   ): Promise<LeaderboardInfo | undefined> {
@@ -187,6 +191,11 @@ export class ApiHandler implements ServiceApi {
     userId: string,
   ): Promise<TableTypes<'user_sticker'>[]> {
     return this.s.getUserSticker(userId);
+  }
+  public async getUserStickerBook(
+    userId: string,
+  ): Promise<TableTypes<'user_sticker_book'>[]> {
+    return this.s.getUserStickerBook(userId);
   }
   public async getUserBonus(
     userId: string,
@@ -334,6 +343,12 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
     return await this.s.getSchoolsForUser(userId, options);
   }
+  public async getSchoolsForUserBySearchTerm(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
+    return await this.s.getSchoolsForUserBySearchTerm!(userId, searchTerm);
+  }
   public async getUserRoleForSchool(
     userId: string,
     schoolId: string,
@@ -428,6 +443,18 @@ export class ApiHandler implements ServiceApi {
   public async getDataByInviteCode(inviteCode: number): Promise<any> {
     return await this.s.getDataByInviteCode(inviteCode);
   }
+
+  public async getDataByInviteCodeNew(inviteCode: number): Promise<any> {
+    return await this.s.getDataByInviteCodeNew(inviteCode);
+  }
+
+  public async storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void> {
+    return await this.s.storeJoinClassLookupDataLocally(classData, schoolData);
+  }
+
   public async linkStudent(
     inviteCode: number,
     studentId: string,
@@ -978,6 +1005,10 @@ export class ApiHandler implements ServiceApi {
     return this.s.syncDB(tableNames, refreshTables, isFirstSync);
   }
 
+  isSyncInProgress(): boolean {
+    return this.s.isSyncInProgress();
+  }
+
   async getRecommendedLessons(
     studentId: string,
     classId?: string,
@@ -1200,6 +1231,12 @@ export class ApiHandler implements ServiceApi {
       classId,
     );
   }
+  getStudentPlayStatus(
+    studentId: string,
+    classId: string,
+  ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
+    return this.s.getStudentPlayStatus(studentId, classId);
+  }
   getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {
@@ -1380,9 +1417,8 @@ export class ApiHandler implements ServiceApi {
   public async setStarsForStudents(
     studentId: string,
     starsCount: number,
-    is_immediate_sync?: boolean,
   ): Promise<void> {
-    return this.s.setStarsForStudents(studentId, starsCount, is_immediate_sync);
+    return this.s.setStarsForStudents(studentId, starsCount);
   }
   public async countAllPendingPushes(): Promise<number> {
     return this.s.countAllPendingPushes();
@@ -1403,13 +1439,8 @@ export class ApiHandler implements ServiceApi {
   public async updateLearningPath(
     student: TableTypes<'user'>,
     learning_path: string, // New parameter for learning_path
-    is_immediate_sync?: boolean,
   ): Promise<TableTypes<'user'>> {
-    return await this.s.updateLearningPath(
-      student,
-      learning_path,
-      is_immediate_sync,
-    );
+    return await this.s.updateLearningPath(student, learning_path);
   }
 
   public async getProgramFilterOptions(): Promise<Record<string, string[]>> {
@@ -1604,6 +1635,15 @@ export class ApiHandler implements ServiceApi {
     );
   }
 
+  public async updateFcUserFormsContactUserId(
+    oldStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    return await this.s.updateFcUserFormsContactUserId(
+      oldStudentId,
+      newStudentId,
+    );
+  }
   public async mergeUserPathway(
     existingStudentId: string,
     newStudentId: string,
@@ -1905,6 +1945,7 @@ export class ApiHandler implements ServiceApi {
   ): Promise<UserSchoolClassResult> {
     return await this.s.getOrcreateschooluser(params);
   }
+
   public async insertSchoolDetails(
     schoolId: string,
     schoolModel: string,
@@ -2212,8 +2253,9 @@ export class ApiHandler implements ServiceApi {
   public async updateStickerWon(
     stickerBookId: string,
     stickerId: string,
+    userId: string,
   ): Promise<void> {
-    return await this.s.updateStickerWon(stickerBookId, stickerId);
+    return await this.s.updateStickerWon(stickerBookId, stickerId, userId);
   }
   public async isAssignmentAlreadyAssigned(
     schoolId: string,

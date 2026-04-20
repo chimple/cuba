@@ -48,7 +48,11 @@ const StickerBookPreviewFooter: React.FC<StickerBookPreviewFooterProps> = ({
             onClick={onPaint}
             data-testid="StickerBookPreviewModal-paint"
           >
-            <img src="assets/icons/PaintBucket.svg" alt="" aria-hidden="true" />
+            <img
+              src="assets/icons/PaintbrushIconForButton.svg"
+              alt=""
+              aria-hidden="true"
+            />
             <span>{t('Paint')}</span>
           </button>
         </>
@@ -60,34 +64,48 @@ const StickerBookPreviewFooter: React.FC<StickerBookPreviewFooterProps> = ({
           >
             {isDragVariant ? (
               <>
-                <span className="StickerBookPreviewModal-celebration-icon">
-                  🎉
-                </span>
+                <img
+                  className="StickerBookPreviewModal-celebration-icon"
+                  src="assets/3starconfetti.svg"
+                  alt="celebrate"
+                  style={{
+                    width: '1.4em',
+                    height: '1.4em',
+                    verticalAlign: 'middle',
+                    display: 'inline-block',
+                  }}
+                />
                 {t('Yay! You have earned a sticker!')}
-                <span className="StickerBookPreviewModal-celebration-icon">
-                  🎉
-                </span>
+                <img
+                  className="StickerBookPreviewModal-celebration-icon"
+                  src="assets/3starconfetti.svg"
+                  alt="celebrate"
+                  style={{
+                    width: '1.4em',
+                    height: '1.4em',
+                    verticalAlign: 'middle',
+                    display: 'inline-block',
+                    transform: 'scaleX(-1)',
+                  }}
+                />
               </>
             ) : (
-              t('Finish the pathway & collect this')
+              t('Finish the pathway & collect this sticker.')
             )}
           </p>
 
           {!isDragVariant && (
-            <>
+            <div
+              className="StickerBookPreviewModal-next-image-frame"
+              data-testid="StickerBookPreviewModal-next-image-frame"
+            >
               <img
                 src={nextStickerImage || 'assets/icons/DefaultIcon.png'}
                 alt={nextStickerName || 'Sticker'}
                 className="StickerBookPreviewModal-next-image"
                 data-testid="StickerBookPreviewModal-next-image"
               />
-              <p
-                className="StickerBookPreviewModal-next-name"
-                data-testid="StickerBookPreviewModal-next-name"
-              >
-                {t('sticker')}.
-              </p>
-            </>
+            </div>
           )}
         </>
       )}

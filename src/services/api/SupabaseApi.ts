@@ -60,10 +60,12 @@ import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
+  JoinClassInviteLookupResult,
   LeaderboardInfo,
   SchoolProgramAccessResponse,
   SchoolProgramAccessRow,
   ServiceApi,
+  StudentLeaderboardInfo,
 } from './ServiceApi';
 import { Database, Json } from '../database';
 import {
@@ -78,6 +80,7 @@ import {
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
+import { sortBySchoolSearchRelevance } from '../../utility/schoolSearchUtil';
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
@@ -92,6 +95,50 @@ import {
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
 import logger from '../../utility/logger';
+
+const GENERIC_LEADERBOARD_LIMIT = 50;
+
+type LeaderboardDataType = 'weekly' | 'monthly' | 'allTime';
+
+const emptyLeaderboardInfo = (): LeaderboardInfo => ({
+  weekly: [],
+  allTime: [],
+  monthly: [],
+});
+
+const getLeaderboardDataType = (
+  leaderboardDropdownType: LeaderboardDropdownList,
+): LeaderboardDataType =>
+  leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
+    ? 'weekly'
+    : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+      ? 'monthly'
+      : 'allTime';
+
+const mapLeaderboardRow = (result: any): StudentLeaderboardInfo => ({
+  name: result.name || '',
+  score: result.total_score || 0,
+  timeSpent: result.total_time_spent || 0,
+  lessonsPlayed: result.lessons_played || 0,
+  userId: result.student_id || '',
+});
+
+const pushLeaderboardRow = (leaderBoardList: LeaderboardInfo, result: any) => {
+  const leaderboardEntry = mapLeaderboardRow(result);
+  switch (result.type) {
+    case 'allTime':
+      leaderBoardList.allTime.push(leaderboardEntry);
+      break;
+    case 'monthly':
+      leaderBoardList.monthly.push(leaderboardEntry);
+      break;
+    case 'weekly':
+      leaderBoardList.weekly.push(leaderboardEntry);
+      break;
+    default:
+      logger.warn('Unknown leaderboard type: ', result.type);
+  }
+};
 
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
@@ -310,6 +357,10 @@ export class SupabaseApi implements ServiceApi {
     refreshTables: TABLES[] = [],
   ): Promise<boolean> {
     return Promise.resolve(true);
+  }
+
+  isSyncInProgress(): boolean {
+    return false;
   }
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
@@ -1110,15 +1161,26 @@ export class SupabaseApi implements ServiceApi {
     class_id: string,
   ): Promise<boolean | void> {
     if (!this.supabase) return false;
-    const rpcRes = await this.supabase.rpc('delete_user_from_class', {
-      p_user_id: userId,
-      p_class_id: class_id,
-    });
 
-    if (!rpcRes || rpcRes.error) {
+    try {
+      const rpcRes = await this.supabase.rpc('delete_user_from_class', {
+        p_user_id: userId,
+        p_class_id: class_id,
+      });
+
+      if (!rpcRes || rpcRes.error) {
+        if (rpcRes?.error) {
+          logger.error('Error deleting user from class:', rpcRes.error);
+        }
+        return false;
+      }
+
+      await this.updateClassAndSchoolLastModified([class_id]);
+      return true;
+    } catch (error) {
+      logger.error('SupabaseApi ~ deleteUserFromClass ~ error:', error);
       return false;
     }
-    return true;
   }
 
   async createSchool(
@@ -1846,7 +1908,6 @@ export class SupabaseApi implements ServiceApi {
       return Promise.reject(error);
     }
   }
-  // not used, getting error when cocos_lesson_id is same for multiple lessons
   async getLessonWithCocosLessonId(
     lessonId: string,
   ): Promise<TableTypes<'lesson'> | null> {
@@ -1856,19 +1917,18 @@ export class SupabaseApi implements ServiceApi {
       .select('*')
       .eq('cocos_lesson_id', lessonId)
       .eq('is_deleted', false)
-      .single();
+      .order('updated_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false, nullsFirst: false })
+      .limit(1);
 
     if (error) {
       logger.error('Error fetching lesson:', error);
-      if (error.code === 'PGRST116') {
-        // No rows found
-        return null;
-      }
       throw new Error(
         `Failed to fetch lesson with cocos_lesson_id ${lessonId}: ${error.message}`,
       );
     }
-    return data;
+
+    return data?.[0] ?? null;
   }
   async getCoursesForParentsStudent(
     studentId: string,
@@ -2393,7 +2453,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     await this.supabase.from('user').update(updatedFields).eq('id', student.id);
-    Object.assign(student, updatedFields);
+    const updatedStudent = { ...student, ...updatedFields };
 
     const courses =
       gradeDocId && boardDocId
@@ -2433,7 +2493,7 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
-    return student;
+    return updatedStudent;
   }
   async updateStudentFromSchoolMode(
     student: TableTypes<'user'>,
@@ -2475,7 +2535,7 @@ export class SupabaseApi implements ServiceApi {
         .from(TABLES.User)
         .update(updatedFields)
         .eq('id', student.id);
-      Object.assign(student, updatedFields);
+      const updatedStudent = { ...student, ...updatedFields };
 
       // Get current class_user record (non-deleted)
       const { data: currentClassUser } = await this.supabase
@@ -2511,7 +2571,7 @@ export class SupabaseApi implements ServiceApi {
         await this.addParentToNewClass(newClassId, student.id);
       }
 
-      return student;
+      return updatedStudent;
     } catch (error) {
       logger.error('Error updating student in school mode:', error);
       throw error;
@@ -2565,9 +2625,8 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Error updating user profile:', error);
       throw error;
     }
-    Object.assign(user, updatedFields);
 
-    return user;
+    return { ...user, ...updatedFields };
   }
 
   async updateClassCourseSelection(
@@ -3046,19 +3105,19 @@ export class SupabaseApi implements ServiceApi {
     return data ?? undefined;
   }
 
-  // Parent WhatsApp Invitation: exact UDISE school lookup with minimal fields.
+  // Parent WhatsApp Invitation: UDISE school lookup with minimal fields.
   async getParentWhatsappSchoolByUdise(udiseCode: string): Promise<{
     id: string;
     name: string;
     whatsapp_bot_number?: string | null;
   } | null> {
     if (!this.supabase) return null;
-
+    const normalizedUdiseCode = udiseCode.trim();
     const { data, error } = await this.supabase
       .from(TABLES.School)
       .select('id, name, whatsapp_bot_number')
-      .eq('udise', udiseCode)
       .eq('is_deleted', false)
+      .eq('udise', normalizedUdiseCode)
       .limit(1)
       .maybeSingle();
 
@@ -3300,6 +3359,45 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return finalData;
+  }
+
+  public async getSchoolsForUserBySearchTerm(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
+    const query = searchTerm.trim();
+    if (!query) return [];
+
+    const pageSize = 100;
+    let page = 1;
+    const allResults: { school: TableTypes<'school'>; role: RoleType }[] = [];
+
+    while (true) {
+      const pageResults = await this.getSchoolsForUser(userId, {
+        page,
+        page_size: pageSize,
+        search: query,
+      });
+
+      allResults.push(...pageResults);
+
+      if (pageResults.length < pageSize) break;
+      page += 1;
+    }
+
+    const uniqueBySchool = new Map<
+      string,
+      { school: TableTypes<'school'>; role: RoleType }
+    >();
+    for (const item of allResults) {
+      uniqueBySchool.set(item.school.id, item);
+    }
+
+    return sortBySchoolSearchRelevance(
+      Array.from(uniqueBySchool.values()),
+      query,
+      (item) => item.school.name ?? '',
+    );
   }
 
   public set currentMode(value: MODES) {
@@ -3566,7 +3664,7 @@ export class SupabaseApi implements ServiceApi {
 
     const offset = (page - 1) * limit;
 
-    const { data, error, count } = await this.supabase
+    let query = this.supabase
       .from('class_user')
       .select(
         `
@@ -3587,7 +3685,9 @@ export class SupabaseApi implements ServiceApi {
       )
       .eq('role', 'student')
       .eq('is_deleted', false)
-      .eq('class_id', classId) // Filter by classId
+      .eq('class_id', classId); // Filter by classId
+
+    const { data, error, count } = await query
       .order('user(name)', { ascending: true })
       .range(offset, offset + limit - 1);
 
@@ -3690,6 +3790,9 @@ export class SupabaseApi implements ServiceApi {
       throw new Error('Supabase not initialized.');
     }
 
+    const AUTO_REJECT_REASON_TYPE = 'Verification Failed';
+    const AUTO_REJECT_REASON_DESCRIPTION =
+      'Auto-rejected because a duplicate student request was merged and approved.';
     const now = new Date().toISOString();
 
     // 1. Get destination student (record to keep)
@@ -3760,6 +3863,15 @@ export class SupabaseApi implements ServiceApi {
           `Failed to transfer results: ${resultTransferError.message}`,
         );
       }
+    }
+
+    // 4. Update active FC interactions to point to the merged student.
+    const fcFormsUpdateResult = await this.updateFcUserFormsContactUserId(
+      existingStudentId,
+      newStudentId,
+    );
+    if (!fcFormsUpdateResult.success) {
+      throw new Error(fcFormsUpdateResult.message);
     }
 
     // 5. Merge parents
@@ -3896,20 +4008,180 @@ export class SupabaseApi implements ServiceApi {
       );
     }
 
-    // 9. Update request
-    if (requestId && respondedBy) {
-      const { error: requestUpdateError } = await this.supabase
-        .from('ops_requests')
-        .update({
-          request_status: 'approved',
-          updated_at: now,
-          responded_by: respondedBy,
-        })
-        .eq('request_id', requestId);
+    // 9. Update related requests for merged profiles.
+    type MergeRequestStatusRow = {
+      id: string;
+      request_id: string | null;
+      requested_by: string | null;
+      school_id: string | null;
+      class_id: string | null;
+      request_type: EnumType<'ops_request_type'> | null;
+      created_at?: string | null;
+    };
+
+    let resolvedRespondedBy: string | null = respondedBy ?? null;
+    if (!resolvedRespondedBy) {
+      try {
+        const currentUser =
+          await ServiceConfig.getI().authHandler.getCurrentUser();
+        resolvedRespondedBy = currentUser?.id ?? null;
+      } catch (error) {
+        logger.warn(
+          'Unable to resolve current user while updating merge request statuses:',
+          error,
+        );
+      }
+    }
+
+    let approvedRequestRow: MergeRequestStatusRow | null = null;
+    if (requestId) {
+      const { data: updatedRequest, error: requestUpdateError } =
+        await this.supabase
+          .from('ops_requests')
+          .update({
+            request_status: STATUS.APPROVED,
+            updated_at: now,
+            responded_by: resolvedRespondedBy,
+          })
+          .eq('request_id', requestId)
+          .eq('is_deleted', false)
+          .select(
+            'id, request_id, requested_by, school_id, class_id, request_type',
+          )
+          .maybeSingle();
 
       if (requestUpdateError) {
         throw new Error(
           `Failed to update merge request: ${requestUpdateError.message}`,
+        );
+      }
+      if (!updatedRequest) {
+        throw new Error('Merge request not found while updating approval.');
+      }
+      approvedRequestRow = updatedRequest as MergeRequestStatusRow;
+    } else {
+      const { data: pendingMergeRequests, error: pendingMergeRequestsError } =
+        await this.supabase
+          .from('ops_requests')
+          .select(
+            'id, request_id, requested_by, school_id, class_id, request_type, created_at',
+          )
+          .eq('is_deleted', false)
+          .eq('request_status', STATUS.REQUESTED)
+          .eq('request_type', RequestTypes.STUDENT)
+          .in('requested_by', [existingStudentId, newStudentId])
+          .order('created_at', { ascending: false });
+
+      if (pendingMergeRequestsError) {
+        throw new Error(
+          `Failed to fetch pending merge requests: ${pendingMergeRequestsError.message}`,
+        );
+      }
+
+      const pendingRows = (pendingMergeRequests ??
+        []) as MergeRequestStatusRow[];
+      const pendingRequestForKeptProfile =
+        pendingRows.find((row) => row.requested_by === newStudentId) ?? null;
+
+      if (pendingRequestForKeptProfile) {
+        const { error: approveKeptProfileRequestError } = await this.supabase
+          .from('ops_requests')
+          .update({
+            request_status: STATUS.APPROVED,
+            responded_by: resolvedRespondedBy,
+            updated_at: now,
+          })
+          .eq('id', pendingRequestForKeptProfile.id)
+          .eq('is_deleted', false);
+
+        if (approveKeptProfileRequestError) {
+          throw new Error(
+            `Failed to approve kept profile request after merge: ${approveKeptProfileRequestError.message}`,
+          );
+        }
+
+        approvedRequestRow = pendingRequestForKeptProfile;
+      } else {
+        const { error: rejectMergedAwayRequestError } = await this.supabase
+          .from('ops_requests')
+          .update({
+            request_status: STATUS.REJECTED,
+            rejected_reason_type: AUTO_REJECT_REASON_TYPE,
+            rejected_reason_description: AUTO_REJECT_REASON_DESCRIPTION,
+            responded_by: resolvedRespondedBy,
+            updated_at: now,
+          })
+          .eq('is_deleted', false)
+          .eq('request_status', STATUS.REQUESTED)
+          .eq('request_type', RequestTypes.STUDENT)
+          .eq('requested_by', existingStudentId);
+
+        if (rejectMergedAwayRequestError) {
+          throw new Error(
+            `Failed to reject merged-away profile requests: ${rejectMergedAwayRequestError.message}`,
+          );
+        }
+      }
+    }
+
+    if (
+      approvedRequestRow?.request_type === RequestTypes.STUDENT &&
+      approvedRequestRow?.requested_by
+    ) {
+      const duplicateRequestedByIds = Array.from(
+        new Set(
+          [approvedRequestRow.requested_by, existingStudentId, newStudentId]
+            .map((value) => value?.trim())
+            .filter(
+              (value): value is string =>
+                typeof value === 'string' && value.length > 0,
+            ),
+        ),
+      );
+
+      if (duplicateRequestedByIds.length === 0) {
+        throw new Error(
+          'Missing duplicate request user ids while rejecting sibling requests.',
+        );
+      }
+
+      let siblingRequestsUpdate = this.supabase
+        .from('ops_requests')
+        .update({
+          request_status: STATUS.REJECTED,
+          rejected_reason_type: AUTO_REJECT_REASON_TYPE,
+          rejected_reason_description: AUTO_REJECT_REASON_DESCRIPTION,
+          responded_by: resolvedRespondedBy,
+          updated_at: now,
+        })
+        .eq('is_deleted', false)
+        .eq('request_status', STATUS.REQUESTED)
+        .eq('request_type', RequestTypes.STUDENT)
+        .in('requested_by', duplicateRequestedByIds)
+        .neq('id', approvedRequestRow.id);
+
+      if (approvedRequestRow.school_id) {
+        siblingRequestsUpdate = siblingRequestsUpdate.eq(
+          'school_id',
+          approvedRequestRow.school_id,
+        );
+      } else {
+        siblingRequestsUpdate = siblingRequestsUpdate.is('school_id', null);
+      }
+
+      if (approvedRequestRow.class_id) {
+        siblingRequestsUpdate = siblingRequestsUpdate.eq(
+          'class_id',
+          approvedRequestRow.class_id,
+        );
+      } else {
+        siblingRequestsUpdate = siblingRequestsUpdate.is('class_id', null);
+      }
+
+      const { error: siblingRequestsError } = await siblingRequestsUpdate;
+      if (siblingRequestsError) {
+        throw new Error(
+          `Failed to reject duplicate pending requests after merge: ${siblingRequestsError.message}`,
         );
       }
     }
@@ -3918,6 +4190,31 @@ export class SupabaseApi implements ServiceApi {
       success: true,
       message: 'Students merged successfully',
     };
+  }
+  async updateFcUserFormsContactUserId(
+    oldStudentId: string,
+    newStudentId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    if (!this.supabase) {
+      return { success: false, message: 'Supabase not initialized.' };
+    }
+    const now = new Date().toISOString();
+    const { error } = await this.supabase
+      .from(TABLES.FcUserForms)
+      .update({
+        contact_user_id: newStudentId,
+        updated_at: now,
+      })
+      .eq('contact_user_id', oldStudentId)
+      .eq('is_deleted', false);
+
+    if (error) {
+      return {
+        success: false,
+        message: `Failed to update fc_user_forms contact_user_id: ${error.message}`,
+      };
+    }
+    return { success: true, message: 'fc_user_forms updated successfully.' };
   }
   async mergeUserPathway(
     existingStudentId: string,
@@ -4510,6 +4807,76 @@ export class SupabaseApi implements ServiceApi {
       throw new Error('Invalid inviteCode');
     }
   }
+
+  async getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult> {
+    try {
+      logger.warn('Join class lookup RPC started', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'getDataByInviteCodeNew',
+        inviteCode,
+      });
+      const rpcRes = await this.supabase?.rpc('getDataByInviteCodeNew', {
+        invite_code: inviteCode,
+      });
+
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        logger.warn('Join class lookup RPC returned empty/error response', {
+          file_name: 'SupabaseApi.ts',
+          function_name: 'getDataByInviteCodeNew',
+          inviteCode,
+          rpcError: rpcRes?.error ?? null,
+          hasData: !!rpcRes?.data,
+        });
+        throw rpcRes?.error ?? '';
+      }
+
+      const { inviteData, classData, schoolData } =
+        rpcRes.data as JoinClassInviteLookupResult;
+
+      if (!classData) {
+        throw new Error('Class data could not be fetched.');
+      }
+
+      if (!schoolData) {
+        throw new Error('School data could not be fetched.');
+      }
+
+      logger.warn('Join class lookup RPC succeeded', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'getDataByInviteCodeNew',
+        inviteCode,
+        classId: inviteData?.class_id,
+        schoolId: inviteData?.school_id,
+        className: inviteData?.class_name,
+        schoolName: inviteData?.school_name,
+      });
+
+      return {
+        inviteData,
+        classData,
+        schoolData,
+      };
+    } catch (error) {
+      logger.warn('Join class lookup RPC failed', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'getDataByInviteCodeNew',
+        inviteCode,
+        rawError: error,
+      });
+      logger.error('Error in getDataByInviteCodeNew', error);
+      throw new Error('Invalid inviteCode');
+    }
+  }
+
+  async storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void> {
+    return;
+  }
+
   async createClass(
     schoolId: string,
     className: string,
@@ -4668,17 +5035,72 @@ export class SupabaseApi implements ServiceApi {
       if (!studentId) {
         throw Error('Student Not Found');
       }
-      const rpcRes = await this.supabase?.rpc('linkStudent', {
+      logger.warn('Join class link RPC started', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+      });
+      const rpcRes = await this.supabase?.rpc('new_link_student', {
         invite_code: inviteCode,
         student_id: studentId,
       });
       if (rpcRes == null || rpcRes.error || !rpcRes.data) {
-        throw rpcRes?.error ?? '';
+        const error = rpcRes?.error;
+        logger.warn('Join class link RPC returned empty/error response', {
+          file_name: 'SupabaseApi.ts',
+          function_name: 'linkStudent',
+          inviteCode,
+          studentId,
+          rpcError: error ?? null,
+          hasData: !!rpcRes?.data,
+        });
+        if (error) {
+          if (error.code === '23503') {
+            logger.warn('Join class link RPC detected missing backend user', {
+              file_name: 'SupabaseApi.ts',
+              function_name: 'linkStudent',
+              inviteCode,
+              studentId,
+              errorCode: error.code,
+              errorMessage: error.message,
+              errorDetails: error.details,
+              errorHint: error.hint,
+            });
+          }
+          const normalizedMessage = [error.details, error.message, error.hint]
+            .map((value) => (typeof value === 'string' ? value.trim() : ''))
+            .find(Boolean);
+
+          if (normalizedMessage) {
+            throw new Error(normalizedMessage);
+          }
+        }
+
+        throw new Error('Failed to join class.');
       }
       const data = rpcRes.data;
+      logger.warn('Join class link RPC succeeded', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+        responseType: Array.isArray(data) ? 'array' : typeof data,
+        responseCount: Array.isArray(data) ? data.length : undefined,
+      });
       return data;
     } catch (e) {
-      throw new Error('Invalid inviteCode');
+      logger.warn('Join class link RPC failed', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+        rawError: e,
+      });
+      if (e instanceof Error) {
+        throw e;
+      }
+      throw new Error('Failed to join class.');
     }
   }
   async getLeaderboardResults(
@@ -4689,7 +5111,27 @@ export class SupabaseApi implements ServiceApi {
       if (!this.supabase)
         throw new Error('Supabase instance is not initialized');
 
-      // Fetch leaderboard data using the Supabase RPC function
+      const leaderBoardList = emptyLeaderboardInfo();
+
+      if (!sectionId) {
+        const leaderboardType = getLeaderboardDataType(leaderboardDropdownType);
+        const { data, error } = await this.supabase
+          .from('get_leaderboard_generic_data')
+          .select(
+            'type, student_id, name, lessons_played, total_score, total_time_spent',
+          )
+          .eq('type', leaderboardType)
+          .order('total_score', { ascending: false, nullsFirst: false })
+          .limit(GENERIC_LEADERBOARD_LIMIT);
+
+        if (error) {
+          throw error;
+        }
+
+        data?.forEach((result) => pushLeaderboardRow(leaderBoardList, result));
+        return leaderBoardList;
+      }
+
       const rpcRes = await this.supabase.rpc('get_class_leaderboard', {
         current_class_id: sectionId,
       });
@@ -4701,76 +5143,48 @@ export class SupabaseApi implements ServiceApi {
 
       // Initialize the leaderboard structure
       const data: any = rpcRes.data;
-      let leaderBoardList: LeaderboardInfo = {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
 
       // Process the data and populate the leaderboard lists
       for (let i = 0; i < data.length; i++) {
         const result = data[i];
-        const leaderboardEntry = {
-          name: result.name || '',
-          score: result.total_score || 0,
-          timeSpent: result.total_time_spent || 0,
-          lessonsPlayed: result.lessons_played || 0,
-          userId: result.student_id || '',
-        };
-
-        switch (result.type) {
-          case 'allTime':
-            leaderBoardList.allTime.push(leaderboardEntry);
-            break;
-          case 'monthly':
-            leaderBoardList.monthly.push(leaderboardEntry);
-            break;
-          case 'weekly':
-            leaderBoardList.weekly.push(leaderboardEntry);
-            break;
-          default:
-            logger.warn('Unknown leaderboard type: ', result.type);
-        }
+        pushLeaderboardRow(leaderBoardList, result);
       }
 
       return leaderBoardList;
     } catch (e) {
       logger.error('Error in getLeaderboardResults: ', e);
       // Return an empty leaderboard structure in case of error
-      return {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
+      return emptyLeaderboardInfo();
     }
   }
 
-  async getLeaderboardStudentResultFromB2CCollection(): Promise<
-    LeaderboardInfo | undefined
-  > {
+  async getLeaderboardStudentResultFromB2CCollection(
+    studentId?: string,
+  ): Promise<LeaderboardInfo | undefined> {
     try {
       // Initialize leaderboard structure
-      let leaderBoardList: LeaderboardInfo = {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
-
-      // Define the query to fetch data from the view
-      const genericQuery = `
-      SELECT *
-      FROM get_leaderboard_generic_data
-    `;
+      let leaderBoardList = emptyLeaderboardInfo();
 
       if (!this.supabase) {
         logger.error('Supabase instance is not initialized');
         return;
       }
 
+      if (!studentId) {
+        logger.warn(
+          'getLeaderboardStudentResultFromB2CCollection called without studentId',
+        );
+        return leaderBoardList;
+      }
+
       // Execute the query
       const { data, error } = await this.supabase
         .from('get_leaderboard_generic_data')
-        .select();
+        .select(
+          'type, student_id, name, lessons_played, total_score, total_time_spent',
+        )
+        .eq('student_id', studentId)
+        .limit(3);
 
       // Handle errors in the query execution
       if (error) {
@@ -4787,28 +5201,7 @@ export class SupabaseApi implements ServiceApi {
       // Process the results
       data.forEach((result) => {
         if (!result) return;
-
-        const leaderboardEntry = {
-          name: result.name || '',
-          score: result.total_score || 0,
-          timeSpent: result.total_time_spent || 0,
-          lessonsPlayed: result.lessons_played || 0,
-          userId: result.student_id || '',
-        };
-
-        switch (result.type) {
-          case 'allTime':
-            leaderBoardList.allTime.push(leaderboardEntry);
-            break;
-          case 'monthly':
-            leaderBoardList.monthly.push(leaderboardEntry);
-            break;
-          case 'weekly':
-            leaderBoardList.weekly.push(leaderboardEntry);
-            break;
-          default:
-            logger.warn('Unknown leaderboard type: ', result.type);
-        }
+        pushLeaderboardRow(leaderBoardList, result);
       });
 
       return leaderBoardList;
@@ -5322,13 +5715,66 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (!data || data.length === 0) {
-        logger.error('No sticker found for the given user ID.');
+        logger.warn('No sticker found for the given user id.');
         return [];
       }
 
       return data;
     } catch (error) {
       logger.error('Unexpected error in getUserSticker:', error);
+      return [];
+    }
+  }
+
+  async getUserStickerBook(
+    userId: string,
+  ): Promise<TableTypes<'user_sticker_book'>[]> {
+    if (!this.supabase) return [];
+
+    try {
+      const { data, error } = await this.supabase
+        .from('user_sticker_book')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_deleted', false);
+
+      if (error) {
+        logger.error('Error fetching sticker books by user ID:', error);
+        return [];
+      }
+
+      if (!data || data.length === 0) {
+        logger.warn('No sticker book found for the given user id.');
+        return [];
+      }
+
+      return data.map((row) => {
+        const rawCollected = row.stickers_collected;
+        let stickersCollected: string[] = [];
+        if (Array.isArray(rawCollected)) {
+          stickersCollected = rawCollected.filter(
+            (value): value is string => typeof value === 'string',
+          );
+        } else if (typeof rawCollected === 'string') {
+          try {
+            const parsed = JSON.parse(rawCollected);
+            if (Array.isArray(parsed)) {
+              stickersCollected = parsed.filter(
+                (value): value is string => typeof value === 'string',
+              );
+            }
+          } catch {
+            stickersCollected = [];
+          }
+        }
+
+        return {
+          ...row,
+          stickers_collected: stickersCollected,
+        };
+      }) as TableTypes<'user_sticker_book'>[];
+    } catch (error) {
+      logger.error('Unexpected error in getUserStickerBook:', error);
       return [];
     }
   }
@@ -5384,6 +5830,32 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
   }
+
+  async markAllStickersAsSeen(userId: string): Promise<void> {
+    if (!this.supabase) return;
+
+    try {
+      const { error } = await this.supabase
+        .from(TABLES.UserStickerBook)
+        .update({ is_seen: true })
+        .eq('user_id', userId)
+        .eq('is_deleted', false)
+        .or('is_seen.eq.false,is_seen.is.null');
+
+      if (error) {
+        logger.error('Error updating stickers as seen:', error);
+        throw new Error('Error updating stickers as seen.');
+      }
+    } catch (err) {
+      logger.error('Unexpected error updating stickers as seen:', err);
+      throw new Error('Unexpected error updating stickers as seen.');
+    }
+  }
+
+  async markStciekercolledasTrue(userId: string): Promise<void> {
+    await this.markAllStickersAsSeen(userId);
+  }
+
   async updateRewardAsSeen(studentId: string): Promise<void> {
     if (!this.supabase) return;
 
@@ -6480,6 +6952,30 @@ export class SupabaseApi implements ServiceApi {
 
     return data ?? undefined;
   }
+  async getStudentPlayStatus(
+    studentId: string,
+    classId: string,
+  ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
+    if (!this.supabase) return { hasPlayed: false };
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Result)
+      .select('created_at')
+      .eq('student_id', studentId)
+      .eq('class_id', classId)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      logger.error('Error fetching student play status:', error);
+      return { hasPlayed: false };
+    }
+
+    if (!data || data.length === 0) return { hasPlayed: false };
+
+    return { hasPlayed: true, lastPlayedAt: data[0].created_at };
+  }
   async getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {
@@ -6534,9 +7030,55 @@ export class SupabaseApi implements ServiceApi {
         return;
       }
 
+      await this.updateClassAndSchoolLastModified([classId]);
+
       // No pushChanges needed
     } catch (error) {
       logger.error('SupabaseApi ~ deleteTeacher ~ error:', error);
+    }
+  }
+
+  async updateClassAndSchoolLastModified(
+    classIds: string[],
+    schoolId?: string,
+  ): Promise<void> {
+    if (!this.supabase) return;
+
+    const uniqueClassIds = Array.from(
+      new Set(classIds.map((classId) => classId.trim()).filter(Boolean)),
+    );
+    if (uniqueClassIds.length === 0) return;
+
+    await Promise.all(
+      uniqueClassIds.map(async (classId) => {
+        await this.updateClassLastModified(classId);
+      }),
+    );
+
+    if (schoolId && schoolId.trim().length > 0) {
+      await this.updateSchoolLastModified(schoolId);
+      return;
+    }
+
+    const { data: classRows, error: classFetchError } = await this.supabase
+      .from(TABLES.Class)
+      .select('school_id')
+      .in('id', uniqueClassIds)
+      .eq('is_deleted', false)
+      .order('updated_at', { ascending: false })
+      .limit(1);
+
+    if (classFetchError) {
+      logger.error(
+        'Error fetching class rows for school updated_at sync:',
+        classFetchError,
+      );
+      return;
+    }
+
+    const resolvedSchoolId = classRows?.[0]?.school_id;
+    if (resolvedSchoolId) {
+      await this.updateSchoolLastModified(resolvedSchoolId);
     }
   }
 
@@ -7539,12 +8081,12 @@ export class SupabaseApi implements ServiceApi {
       .update({ learning_path: learning_path })
       .eq('id', student.id)
       .single();
-    student.learning_path = learning_path;
+
     if (error) {
       logger.error('Error updating learning path:', error);
       throw error;
     }
-    return student;
+    return { ...student, learning_path: learning_path };
   }
 
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {
@@ -9184,7 +9726,6 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async getOpsRequests(
-    this: any,
     requestStatus: EnumType<'ops_request_status'>,
     page: number = 1,
     limit: number = 20,
@@ -9206,218 +9747,28 @@ export class SupabaseApi implements ServiceApi {
       if (!this.supabase)
         return { data: [], total: 0, totalPages: 0, page, limit };
 
-      const offset = Math.max(0, (page - 1) * limit);
-      const allowedOrderByDb = [
-        'created_at',
-        'updated_at',
-        'school(name)',
-      ] as const;
-      if (!allowedOrderByDb.includes(orderBy as any)) orderBy = 'created_at';
-      if (!['asc', 'desc'].includes(orderDir.toLowerCase())) orderDir = 'asc';
+      const { data, error } = await this.supabase.rpc('get_ops_requests', {
+        p_request_status: requestStatus,
+        p_page: page,
+        p_limit: limit,
+        p_order_by: orderBy,
+        p_order_dir: orderDir,
+        p_request_types: filters?.request_type?.length
+          ? filters.request_type
+          : null,
+        p_school_ids: filters?.school?.length ? filters.school : null,
+        p_search_term: searchTerm ?? null,
+      });
 
-      const trimmedSearchTerm = searchTerm?.trim();
-      const doTextSearch = !!trimmedSearchTerm && trimmedSearchTerm.length >= 3;
+      if (error) throw error;
 
-      let searchSchoolIds: string[] = [];
-      let searchUserIds: string[] = [];
-
-      if (doTextSearch) {
-        const [{ data: schoolData }, { data: userData }] = await Promise.all([
-          this.supabase
-            .from(TABLES.School)
-            .select('id')
-            .eq('is_deleted', false)
-            .ilike('name', `%${trimmedSearchTerm}%`),
-          this.supabase
-            .from(TABLES.User)
-            .select('id')
-            .eq('is_deleted', false)
-            .ilike('name', `%${trimmedSearchTerm}%`),
-        ]);
-        if (schoolData?.length)
-          searchSchoolIds = schoolData.map((s: any) => String(s.id));
-        if (userData?.length)
-          searchUserIds = userData.map((u: any) => String(u.id));
-      }
-
-      const applyFilters = (q: any) => {
-        q = q.eq('is_deleted', false);
-
-        const RS = Constants.public.Enums.ops_request_status;
-        const nowIso = new Date().toISOString();
-        const isComplexStatus =
-          requestStatus === RS[0] || requestStatus === RS[2];
-
-        if (isComplexStatus) {
-          if (requestStatus === RS[2]) {
-            q = q.or(
-              [
-                `request_status.eq.${requestStatus}`,
-                `and(request_status.eq.requested,request_type.eq.student,request_ends_at.lte.${nowIso})`,
-              ].join(','),
-            );
-          } else {
-            q = q.or(
-              [
-                `and(request_status.eq.requested,request_type.neq.student)`,
-                `and(request_status.eq.requested,request_type.eq.student,request_ends_at.gt.${nowIso})`,
-              ].join(','),
-            );
-          }
-        } else {
-          q = q.eq('request_status', requestStatus);
-        }
-
-        if (filters?.request_type?.length)
-          q = q.in('request_type', filters.request_type);
-
-        const schoolFilterIds: string[] | undefined = filters?.school?.filter(
-          (x: unknown): x is string => typeof x === 'string',
-        );
-        if (schoolFilterIds?.length) q = q.in('school_id', schoolFilterIds);
-
-        if (doTextSearch) {
-          const orConditions: string[] = [];
-
-          const allRequestTypes: string[] = Object.values(
-            RequestTypes,
-          ) as string[];
-          const st = trimmedSearchTerm!.toLowerCase();
-
-          const matchingRequestTypes = allRequestTypes.filter((rt) =>
-            rt.toLowerCase().includes(st),
-          );
-          if (matchingRequestTypes.length)
-            orConditions.push(
-              `request_type.in.(${matchingRequestTypes.join(',')})`,
-            );
-
-          if (trimmedSearchTerm.length) {
-            orConditions.push(`request_id.eq.${trimmedSearchTerm}`);
-          }
-
-          if (searchSchoolIds.length)
-            orConditions.push(`school_id.in.(${searchSchoolIds.join(',')})`);
-          if (searchUserIds.length) {
-            orConditions.push(
-              `requested_by.in.(${searchUserIds.join(',')})`,
-              `responded_by.in.(${searchUserIds.join(',')})`,
-            );
-          }
-
-          if (orConditions.length) q = q.or(orConditions.join(','));
-          else return { q, earlyEmpty: true };
-        }
-
-        return { q, earlyEmpty: false };
+      return {
+        data: data?.data ?? [],
+        total: data?.total ?? 0,
+        totalPages: data?.totalPages ?? 0,
+        page: data?.page ?? page,
+        limit: data?.limit ?? limit,
       };
-
-      let countQ = this.supabase
-        .from(TABLES.OpsRequests)
-        .select('id', { count: 'exact', head: true });
-      const { q: cq, earlyEmpty } = applyFilters(countQ);
-      if (earlyEmpty) return { data: [], total: 0, totalPages: 0, page, limit };
-      const { error: countErr, count: total } = await cq;
-      if (countErr) throw countErr;
-
-      let rowsQ = this.supabase
-        .from(TABLES.OpsRequests)
-        .select(
-          'id, request_id, request_status, request_type, request_ends_at, is_deleted, school_id, class_id, requested_by, responded_by, created_at, updated_at, rejected_reason_description, rejected_reason_type, school:school_id(*)',
-        );
-      const { q: rq } = applyFilters(rowsQ);
-
-      const { data: rows, error: rowsErr } = await rq
-        .order(orderBy, { ascending: orderDir === 'asc' })
-        .range(offset, offset + limit - 1);
-      if (rowsErr) throw rowsErr;
-
-      if (!rows?.length) {
-        const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
-        return { data: [], total: total ?? 0, totalPages, page, limit };
-      }
-
-      const schoolIds: string[] = Array.from(
-        new Set(
-          rows
-            .map((r: any) => r.school_id)
-            .filter((x: unknown): x is string => typeof x === 'string'),
-        ),
-      );
-      const userIds: string[] = Array.from(
-        new Set(
-          rows
-            .flatMap((r: any) => [r.requested_by, r.responded_by])
-            .filter((x: unknown): x is string => typeof x === 'string'),
-        ),
-      );
-      const classIds: string[] = Array.from(
-        new Set(
-          rows
-            .map((r: any) => r.class_id)
-            .filter((x: unknown): x is string => typeof x === 'string'),
-        ),
-      );
-
-      const [schoolsResp, usersResp, classesResp] = await Promise.all([
-        schoolIds.length
-          ? this.supabase
-              .from(TABLES.School)
-              .select('id, name, udise, group1,group2, group3, country')
-              .in('id', schoolIds)
-          : Promise.resolve({ data: [] as any[], error: null }),
-        userIds.length
-          ? this.supabase
-              .from(TABLES.User)
-              .select('id, name, email, phone, gender')
-              .in('id', userIds)
-          : Promise.resolve({ data: [] as any[], error: null }),
-        classIds.length
-          ? this.supabase
-              .from(TABLES.Class)
-              .select('id, name, school_id')
-              .in('id', classIds)
-          : Promise.resolve({ data: [] as any[], error: null }),
-      ]);
-      if (schoolsResp.error) throw schoolsResp.error;
-      if (usersResp.error) throw usersResp.error;
-      if (classesResp.error) throw classesResp.error;
-
-      const schoolMap = new Map(
-        (schoolsResp.data || []).map((s: any): [string, any] => [
-          s.id as string,
-          s,
-        ]),
-      );
-      const userMap = new Map(
-        (usersResp.data || []).map((u: any): [string, any] => [
-          u.id as string,
-          u,
-        ]),
-      );
-      const classMap = new Map(
-        (classesResp.data || []).map((c: any): [string, any] => [
-          c.id as string,
-          c,
-        ]),
-      );
-
-      const data = rows.map((r: any) => ({
-        ...r,
-        school: r.school_id
-          ? (schoolMap.get(r.school_id) ?? r.school ?? null)
-          : null,
-        requestedBy: r.requested_by
-          ? (userMap.get(r.requested_by) ?? null)
-          : null,
-        respondedBy: r.responded_by
-          ? (userMap.get(r.responded_by) ?? null)
-          : null,
-        classInfo: r.class_id ? (classMap.get(r.class_id) ?? null) : null,
-      }));
-
-      const totalPages = total ? Math.max(1, Math.ceil(total / limit)) : 0;
-      return { data, total: total ?? 0, totalPages, page, limit };
     } catch (err) {
       logger.error('Error in getOpsRequests:', err);
       return { data: [], total: 0, totalPages: 0, page, limit };
@@ -10622,6 +10973,10 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
+    if (classIds.length > 0) {
+      await this.updateClassAndSchoolLastModified(classIds, effectiveSchoolId);
+    }
+
     return { user, schoolUser, classUsers, isNewUser };
   }
 
@@ -11631,6 +11986,12 @@ export class SupabaseApi implements ServiceApi {
     const langId = student.language_id ?? null;
 
     try {
+      type ResultStatusRow = {
+        lesson_id: string | null;
+        status: string | null;
+        created_at: string | null;
+      };
+
       /* ==========================================
        * 1️⃣ Fetch ALL available set_numbers
        * ========================================== */
@@ -11682,9 +12043,9 @@ export class SupabaseApi implements ServiceApi {
       /* -----------------------------------------
         Keep latest result per unique lesson
       ------------------------------------------ */
-      const uniqueMap = new Map<string, any>();
+      const uniqueMap = new Map<string, ResultStatusRow>();
 
-      for (const row of data) {
+      for (const row of data as ResultStatusRow[]) {
         if (!row.lesson_id) continue;
         if (!uniqueMap.has(row.lesson_id)) {
           uniqueMap.set(row.lesson_id, row);
@@ -11723,11 +12084,25 @@ export class SupabaseApi implements ServiceApi {
       if (lessonError || !lessons?.length)
         return {} as TableTypes<'subject_lesson'>;
 
+      const matchedLessons = lessons.filter(
+        (lesson) => lesson.language_id === langId,
+      );
+      const fallbackLessons = lessons.filter(
+        (lesson) => lesson.language_id == null,
+      );
+      const candidateLessons = matchedLessons.length
+        ? matchedLessons
+        : fallbackLessons;
+
+      if (!candidateLessons.length) {
+        return {} as TableTypes<'subject_lesson'>;
+      }
+
       /* ==========================================
        * 4️⃣ Remove completed lessons
        * (assignment_id IS NULL only)
        * ========================================== */
-      const lessonIds = lessons.map((l) => l.lesson_id);
+      const lessonIds = candidateLessons.map((lesson) => lesson.lesson_id);
 
       const { data: results } = await this.supabase
         .from('result')
@@ -11741,12 +12116,12 @@ export class SupabaseApi implements ServiceApi {
         (results ?? []).map((r) => r.lesson_id),
       );
 
-      const pendingLessons = lessons.filter(
-        (l) => !completedLessonIds.has(l.lesson_id),
+      const pendingLessons = candidateLessons.filter(
+        (lesson) => !completedLessonIds.has(lesson.lesson_id),
       );
 
       return pendingLessons.length
-        ? (pendingLessons[0] as TableTypes<'subject_lesson'>)
+        ? pendingLessons[0]
         : ({} as TableTypes<'subject_lesson'>);
     } catch (error) {
       logger.error(
@@ -12313,7 +12688,7 @@ export class SupabaseApi implements ServiceApi {
       .select('*')
       .eq('user_id', userId)
       .eq('status', 'in_progress')
-      .eq('is_deleted', false)
+      .or('is_deleted.is.false,is_deleted.is.null')
       .maybeSingle();
 
     // 2️⃣ If user already has active progress
@@ -12339,7 +12714,7 @@ export class SupabaseApi implements ServiceApi {
       .select('sticker_book_id')
       .eq('user_id', userId)
       .eq('status', 'completed')
-      .eq('is_deleted', false);
+      .or('is_deleted.is.false,is_deleted.is.null');
 
     const completedBookIds = Array.from(
       new Set(
@@ -12391,7 +12766,7 @@ export class SupabaseApi implements ServiceApi {
       )
       .eq('user_id', userId)
       .eq('status', 'completed')
-      .eq('is_deleted', false)
+      .or('is_deleted.is.false,is_deleted.is.null')
       .eq('sticker_book.is_deleted', false);
 
     if (error) {
@@ -12430,7 +12805,7 @@ export class SupabaseApi implements ServiceApi {
       .select('*')
       .eq('user_id', effectiveUserId)
       .eq('sticker_book_id', stickerBookId)
-      .eq('is_deleted', false)
+      .or('is_deleted.is.false,is_deleted.is.null')
       .maybeSingle();
 
     const collected = progress?.stickers_collected ?? [];
@@ -12447,13 +12822,10 @@ export class SupabaseApi implements ServiceApi {
   async updateStickerWon(
     stickerBookId: string,
     stickerId: string,
+    userId: string,
   ): Promise<void> {
-    const user = await ServiceConfig.getI().authHandler.getCurrentUser();
-
-    if (!user?.id) return;
     if (!this.supabase) return;
-
-    const userId = user.id;
+    if (!userId?.trim()) return;
 
     // get book
     const { data: book } = await this.supabase
@@ -12472,7 +12844,7 @@ export class SupabaseApi implements ServiceApi {
       .select('*')
       .eq('user_id', userId)
       .eq('sticker_book_id', stickerBookId)
-      .eq('is_deleted', false)
+      .or('is_deleted.is.false,is_deleted.is.null')
       .maybeSingle();
 
     // create
@@ -12484,16 +12856,15 @@ export class SupabaseApi implements ServiceApi {
         sticker_book_id: stickerBookId,
         stickers_collected: [stickerId],
         status,
+        is_seen: false,
+        is_deleted: false,
       });
 
       return;
     }
 
     let updated = progress.stickers_collected ?? [];
-
-    if (!updated.includes(stickerId)) {
-      updated.push(stickerId);
-    }
+    updated = updated.includes(stickerId) ? updated : [...updated, stickerId];
 
     let status = progress.status;
 
@@ -12506,9 +12877,11 @@ export class SupabaseApi implements ServiceApi {
       .update({
         stickers_collected: updated,
         status,
+        is_seen: false,
+        is_deleted: false,
       })
       .eq('id', progress.id)
-      .eq('is_deleted', false);
+      .or('is_deleted.is.false,is_deleted.is.null');
   }
   async isAssignmentAlreadyAssigned(
     schoolId: string,

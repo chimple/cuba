@@ -38,6 +38,17 @@ export type ManualSendSummary = {
   failed: ParentWhatsappSendFailure[];
 };
 
+const MIN_WHATSAPP_PHONE_LIMIT = 1;
+const DEFAULT_WHATSAPP_PHONE_LIMIT = 1000;
+
+const normalizeWhatsappPhoneLimit = (rawLimit: number): number => {
+  if (!Number.isFinite(rawLimit)) {
+    return DEFAULT_WHATSAPP_PHONE_LIMIT;
+  }
+
+  return Math.max(MIN_WHATSAPP_PHONE_LIMIT, Math.floor(rawLimit));
+};
+
 // Returns today's date in YYYY-MM-DD for HTML date inputs.
 export const getTodayDateValue = (): string => {
   const today = new Date();
@@ -177,6 +188,8 @@ export type ParentWhatsappInvitationPageLogic = {
   isLoadingReport: boolean;
   phoneInput: string;
   setPhoneInput: React.Dispatch<React.SetStateAction<string>>;
+  whatsappPhoneLimit: number;
+  handleWhatsappPhoneLimitChange: (rawValue: string) => void;
   templateName: string;
   setTemplateName: React.Dispatch<React.SetStateAction<string>>;
   templateLang: string;
@@ -228,6 +241,9 @@ export const useParentWhatsappInvitationPageLogic =
     const [isLoadingReport, setIsLoadingReport] = useState(false);
 
     const [phoneInput, setPhoneInput] = useState('');
+    const [whatsappPhoneLimit, setWhatsappPhoneLimit] = useState(
+      DEFAULT_WHATSAPP_PHONE_LIMIT,
+    );
     const [templateName, setTemplateName] = useState('');
     const [templateLang, setTemplateLang] = useState('');
     const [messageType, setMessageType] = useState<'utility' | 'marketing'>(
@@ -397,6 +413,11 @@ export const useParentWhatsappInvitationPageLogic =
       setUploadedMedia(fileList?.[0] ?? null);
     };
 
+    const handleWhatsappPhoneLimitChange = (rawValue: string): void => {
+      const parsedLimit = Number.parseInt(rawValue, 10);
+      setWhatsappPhoneLimit(normalizeWhatsappPhoneLimit(parsedLimit));
+    };
+
     const handleSendWhatsapp = async (): Promise<void> => {
       if (isSendingWhatsapp) return;
       if (!api) {
@@ -426,11 +447,16 @@ export const useParentWhatsappInvitationPageLogic =
         return;
       }
 
-      if (parsedPhones.normalizedPhones.length > 1000) {
+      const phoneLimit = normalizeWhatsappPhoneLimit(whatsappPhoneLimit);
+
+      if (parsedPhones.normalizedPhones.length > phoneLimit) {
         setManualFeedback({
           severity: 'warning',
           text: t(
-            'A maximum of 1000 unique phone numbers can be sent in one run.',
+            'A maximum of {{limit}} unique phone numbers can be sent at once.',
+            {
+              limit: phoneLimit,
+            },
           ),
         });
         return;
@@ -569,6 +595,8 @@ export const useParentWhatsappInvitationPageLogic =
       isLoadingReport,
       phoneInput,
       setPhoneInput,
+      whatsappPhoneLimit,
+      handleWhatsappPhoneLimitChange,
       templateName,
       setTemplateName,
       templateLang,

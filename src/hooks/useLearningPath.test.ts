@@ -126,7 +126,12 @@ describe('useLearningPath features used by Home tab', () => {
       currentIndex: 1,
       path: [
         { lesson_id: 'l6', chapter_id: 'ch1', is_assessment: false },
-        { lesson_id: 'l7', chapter_id: 'ch1', is_assessment: false },
+        {
+          lesson_id: 'l7',
+          chapter_id: 'ch1',
+          assignment_id: 'assign-7',
+          is_assessment: false,
+        },
         { lesson_id: 'l8', chapter_id: 'ch2', is_assessment: true },
       ],
     });
@@ -142,6 +147,7 @@ describe('useLearningPath features used by Home tab', () => {
       {
         lesson_id: 'l7',
         chapter_id: 'ch1',
+        assignment_id: 'assign-7',
         isPlayed: false,
         is_assessment: false,
       },
@@ -170,7 +176,7 @@ describe('useLearningPath features used by Home tab', () => {
 
   test('resumes same teacher-assigned assessment after exit', async () => {
     mockApi.getLatestAssessmentGroup.mockResolvedValue([
-      { lesson_id: 'teacher-asmt-11' },
+      { id: 'assignment-11', lesson_id: 'teacher-asmt-11' },
     ]);
 
     const first = await recommendNextLesson({
@@ -187,7 +193,9 @@ describe('useLearningPath features used by Home tab', () => {
     });
 
     expect(first?.lesson_id).toBe('teacher-asmt-11');
+    expect(first?.assignment_id).toBe('assignment-11');
     expect(second?.lesson_id).toBe('teacher-asmt-11');
+    expect(second?.assignment_id).toBe('assignment-11');
   });
 
   test('course progression helper returns next assessment node after last played assessment', () => {

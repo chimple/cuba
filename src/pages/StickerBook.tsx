@@ -17,27 +17,18 @@ import logger from '../utility/logger';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import StickerBookSaveModal from '../components/stickerBook/StickerBookSaveModal';
 import StickerBookToast from '../components/stickerBook/StickerBookToast';
-import { toBlob } from 'html-to-image';
 import { t } from 'i18next';
-
-function sanitizeFileName(value: string): string {
-  return (
-    value.replace(/[^a-z0-9-_]+/gi, '_').replace(/^_+|_+$/g, '') ||
-    'sticker-book'
-  );
-}
+import NewBackButton from '../components/common/NewBackButton';
+import {
+  fetchStickerBookSvgText,
+  resolveStickerBookSvgUrl,
+} from '../utility/stickerBookAssets';
+import { useStickerBookSave } from '../hooks/useStickerBookSave';
 
 type CurrentProgress = {
   bookId: string;
   stickers: string[];
 };
-
-function resolveSvgUrl(url: string): string {
-  if (!url) return '/assets/icons/StickerBookBoard.svg';
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  if (url.startsWith('/')) return url;
-  return `/${url}`;
-}
 
 const StickerBook: React.FC = () => {
   const history = useHistory();
@@ -47,15 +38,12 @@ const StickerBook: React.FC = () => {
     ENABLE_SAVE_AND_SHARE_STICKER_BOOK,
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showSaveModal, setShowSaveModal] = useState(false);
-  const [showSaveToast, setShowSaveToast] = useState(false);
-  const [savedSvgMarkup, setSavedSvgMarkup] = useState<string | null>(null);
   const [books, setBooks] = useState<StickerBookType[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [currentProgress, setCurrentProgress] =
     useState<CurrentProgress | null>(null);
   const [svgCache, setSvgCache] = useState<Record<string, string>>({});
+  const [, setSaveRenderTick] = useState(0);
   const [completedBookIds, setCompletedBookIds] = useState<Set<string>>(
     () => new Set(),
   );
@@ -68,11 +56,12 @@ const StickerBook: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (isLoading) return;
     const book = books[selectedIndex];
     if (!book) return;
     if (svgCache[book.id]) return;
     fetchSvgForBook(book);
-  }, [books, selectedIndex, svgCache]);
+  }, [books, selectedIndex, svgCache, isLoading]);
 
   const init = async () => {
     const currentStudent = Util.getCurrentStudent();
@@ -83,7 +72,20 @@ const StickerBook: React.FC = () => {
 
     try {
       if (currentStudent?.id) {
-        await api.updateRewardAsSeen(currentStudent.id);
+        const userStickers = await api.getUserStickerBook(currentStudent.id);
+        const unseenStickers = userStickers.filter(
+          (sticker) => !sticker.is_seen,
+        );
+        if (unseenStickers.length > 0) {
+          await api.markStciekercolledasTrue(currentStudent.id);
+          logger.info('[StickerBook] Marked sticker books as seen', {
+            user_id: currentStudent.id,
+          });
+        } else {
+          logger.info('[StickerBook] No unseen sticker books to mark', {
+            user_id: currentStudent.id,
+          });
+        }
       }
       const [allBooks, currentBookResult, completedBooks] = await Promise.all([
         api.getAllStickerBooks(),
@@ -94,23 +96,35 @@ const StickerBook: React.FC = () => {
       const sortedBooks = [...(allBooks ?? [])].sort(
         (a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0),
       );
+      const activeBook = currentBookResult?.book
+        ? (sortedBooks.find((book) => book.id === currentBookResult.book.id) ??
+          sortedBooks[0] ??
+          null)
+        : (sortedBooks[0] ?? null);
+      const activeIndex = activeBook
+        ? sortedBooks.findIndex((book) => book.id === activeBook.id)
+        : -1;
+
       setBooks(sortedBooks);
       setCompletedBookIds(
         new Set((completedBooks ?? []).map((book) => book.id)),
       );
 
-      if (currentBookResult?.book) {
+      if (currentBookResult?.book && activeBook) {
         setCurrentProgress({
           bookId: currentBookResult.book.id,
           stickers: currentBookResult.progress?.stickers_collected ?? [],
         });
 
-        const activeIndex = sortedBooks.findIndex(
-          (b) => b.id === currentBookResult.book.id,
-        );
         setSelectedIndex(activeIndex >= 0 ? activeIndex : 0);
       } else {
         setSelectedIndex(0);
+      }
+
+      // Load the initial sticker book SVG before removing the page loader so the
+      // board can render in its final state on first open.
+      if (activeBook) {
+        await fetchSvgForBook(activeBook);
       }
     } catch (e) {
       logger.error('Failed to load sticker book data:', e);
@@ -120,10 +134,8 @@ const StickerBook: React.FC = () => {
   };
 
   const fetchSvgForBook = async (book: StickerBookType) => {
-    const svgUrl = resolveSvgUrl(book.svg_url ?? '');
     try {
-      const response = await fetch(svgUrl);
-      const svgText = await response.text();
+      const svgText = await fetchStickerBookSvgText(book.svg_url ?? '');
       setSvgCache((prev) => ({ ...prev, [book.id]: svgText }));
     } catch (e) {
       logger.error('Failed to load sticker book svg:', e);
@@ -183,6 +195,7 @@ const StickerBook: React.FC = () => {
   }, [selectedBook, isLocked, isBookCompleted, collectedFromProgress]);
 
   const svgRaw = selectedBook ? (svgCache[selectedBook.id] ?? null) : null;
+
   const saveAnalyticsPayload = useMemo(
     () => ({
       user_id: Util.getCurrentStudent()?.id ?? null,
@@ -194,6 +207,33 @@ const StickerBook: React.FC = () => {
     }),
     [selectedBook, collectedStickers.length, allStickerIds.length],
   );
+  const {
+    showSaveModal,
+    showSaveToast,
+    savedSvgMarkup,
+    openSaveModal,
+    closeSaveModal,
+    closeSaveToast,
+    handleSaveAndShare,
+  } = useStickerBookSave({
+    fileBaseName: selectedBook?.title
+      ? `${t('Sticker Book')} ${selectedBook.title}`
+      : t('Sticker Book'),
+    shareText: t('Sticker Book'),
+    backgroundColor: '#fffdee',
+    onShareSuccess: async (fileName: string) => {
+      Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SHARED, {
+        ...saveAnalyticsPayload,
+        file_name: fileName,
+      });
+    },
+    onSaveSuccess: async (fileName: string) => {
+      Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SAVED, {
+        ...saveAnalyticsPayload,
+        file_name: fileName,
+      });
+    },
+  });
 
   const onBack = () => {
     Util.setPathToBackButton(PAGES.HOME, history);
@@ -209,10 +249,11 @@ const StickerBook: React.FC = () => {
 
   const onPaint = () => {
     if (!selectedBook) return;
-    const svgUrl = resolveSvgUrl(selectedBook.svg_url ?? '');
+    const svgUrl = resolveStickerBookSvgUrl(selectedBook.svg_url ?? '');
     history.push(PAGES.COLORING_BOARD, {
       svgRaw: svgRaw ?? undefined,
       svgUrl,
+      artworkTitle: selectedBook.title ?? t('Sticker Book'),
       returnTo: PAGES.STICKER_BOOK,
     });
   };
@@ -225,75 +266,10 @@ const StickerBook: React.FC = () => {
       // Serialize the rendered board so the export includes the live sticker state,
       // not just the original source SVG fetched from the server.
       const stickerBookSvg = svgEl.cloneNode(true);
-      setSavedSvgMarkup(new XMLSerializer().serializeToString(stickerBookSvg));
-    }
-    setShowSaveModal(true);
-  };
-
-  const onSaveModalClose = () => {
-    setShowSaveModal(false);
-    setShowSaveToast(true);
-  };
-
-  // save and share sticker book
-  const handleSaveAndShare = async () => {
-    if (isSaving || !selectedBook) return;
-    setIsSaving(true);
-    try {
-      const shareTarget = document.getElementById(
-        'sticker-book-save-modal-frame',
-      );
-      if (!shareTarget) return;
-
-      // Capture the styled modal frame instead of the raw board so the saved image
-      // matches the branded share card shown to the user.
-      const blob = await toBlob(shareTarget, {
-        cacheBust: true,
-        backgroundColor: '#fffdee',
-        pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
-        filter: (node: HTMLElement) => {
-          return node.id !== 'sticker-book-save-blink-overlay';
-        },
-      });
-      if (!blob) return;
-
-      const timestamp = new Date()
-        .toLocaleString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
-        .replace(',', '')
-        .replace(/\s+/g, '_');
-
-      const baseName =
-        t('Sticker Book ') + selectedBook.title || t('Sticker Book');
-
-      // sanitize + convert to lowercase + underscores
-      const formattedName = sanitizeFileName(baseName);
-      const fileName = `${formattedName}_${timestamp}.png`;
-      const file = new File([blob], fileName, { type: 'image/png' });
-
-      await Util.sendContentToAndroidOrWebShare(
-        t('Sticker Book'),
-        fileName,
-        undefined,
-        [file],
-      );
-      Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SHARED, {
-        ...saveAnalyticsPayload,
-        file_name: fileName,
-      });
-      await Util.saveFileToDownloads(file);
-      Util.logEvent(EVENTS.STICKER_BOOK_IMAGE_SAVED, {
-        ...saveAnalyticsPayload,
-        file_name: fileName,
-      });
-    } catch (error) {
-      logger.error('Failed to share sticker book snapshot:', error);
-    } finally {
-      setIsSaving(false);
+      openSaveModal(new XMLSerializer().serializeToString(stickerBookSvg));
+      // Force a follow-up render so modal consumers observe the updated state
+      // immediately, even in mocked hook environments.
+      setSaveRenderTick((tick) => tick + 1);
     }
   };
 
@@ -329,11 +305,12 @@ const StickerBook: React.FC = () => {
               <StickerBookBoard
                 title={(selectedBook.title ?? '').toUpperCase()}
                 svgRaw={svgRaw}
+                svgUrl={resolveStickerBookSvgUrl(selectedBook.svg_url ?? '')}
                 collectedStickers={collectedStickers}
                 nextStickerId={nextStickerId}
                 isLocked={isLocked}
                 canPaint={isBookCompleted && isPaintModeEnabled}
-                isStickerBookSaveEnabled={isStickerBookSaveEnabled}
+                canSave={isBookCompleted && isStickerBookSaveEnabled}
                 canGoPrev={selectedIndex > 0}
                 canGoNext={selectedIndex < books.length - 1}
                 onPrev={onPrev}
@@ -341,15 +318,31 @@ const StickerBook: React.FC = () => {
                 onBack={onBack}
                 onPaint={onPaint}
                 onSave={onSave}
-                isBookCompleted={isBookCompleted}
               />
+            )}
+            {!isLoading && !selectedBook && (
+              <div className="sticker-book-fallback">
+                <div className="sticker-book-fallback-back">
+                  <NewBackButton onClick={onBack} />
+                </div>
+                <div className="sticker-book-fallback-loading" role="status">
+                  <img
+                    src="assets/loading.gif"
+                    alt="loading"
+                    className="sticker-book-fallback-loading-img"
+                  />
+                  <div className="sticker-book-fallback-loading-text">
+                    {t('Loading sticker book...')}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
         <StickerBookSaveModal
           open={showSaveModal}
           svgMarkup={savedSvgMarkup}
-          onClose={onSaveModalClose}
+          onClose={closeSaveModal}
           onAnimationComplete={handleSaveAndShare}
         />
         <StickerBookToast
@@ -357,7 +350,7 @@ const StickerBook: React.FC = () => {
           text={toastText}
           image="/assets/icons/Confirmation.svg"
           duration={4000}
-          onClose={() => setShowSaveToast(false)}
+          onClose={closeSaveToast}
         />
 
         <Loading isLoading={isLoading} />

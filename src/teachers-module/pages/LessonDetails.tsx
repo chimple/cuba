@@ -12,6 +12,7 @@ import {
   CONTINUE,
   CocosCourseIdentifier,
   LIDO,
+  LIDO_ASSESSMENT,
   LIVE_QUIZ,
   PAGES,
   TableTypes,
@@ -27,6 +28,8 @@ type LessonDetailsState = {
   course?: TableTypes<'course'>;
   lesson?: TableTypes<'lesson'>;
   fromCocos?: boolean;
+  fromLido?: boolean;
+  fromLiveQuiz?: boolean;
   chapterId?: string;
   selectedLesson?: Map<string, string> | Array<[string, string]>;
   chapterName?: string;
@@ -41,6 +44,8 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   const course: TableTypes<'course'> | undefined = state.course;
   const lesson: TableTypes<'lesson'> = state.lesson as TableTypes<'lesson'>;
   const fromCocos: boolean = Boolean(state.fromCocos);
+  const fromLido: boolean = Boolean(state.fromLido);
+  const fromLiveQuiz: boolean = Boolean(state.fromLiveQuiz);
   const [chapterId, setChapterId] = useState(state.chapterId ?? '');
   const [assignmentCount, setAssignmentCount] = useState<number>(0);
   const api = ServiceConfig.getI().apiHandler;
@@ -89,6 +94,15 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     }
     return subjectCode;
   };
+  const lessonDetailsReturnState: LessonDetailsState = {
+    course,
+    lesson,
+    chapterId,
+    selectedLesson: Array.from(selectedLessonMap.entries()),
+    chapterName,
+    gradeName,
+    from: state.from,
+  };
   const onPlayClick = async () => {
     // const baseUrl = "https://chimple.cc/microlink/";
     // const queryParams = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
@@ -100,7 +114,24 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     //   logger.error("Error opening in-app browser:", error);
     //   window.open(urlToOpen, '_blank');
     // }
-    if (lesson.plugin_type === COCOS) {
+    const lidoLessonId =
+      lesson.lido_lesson_id ||
+      (lesson.plugin_type === LIDO || lesson.plugin_type === LIDO_ASSESSMENT
+        ? lesson.cocos_lesson_id
+        : null);
+
+    if (lidoLessonId) {
+      const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
+      history.push(PAGES.LIDO_PLAYER + parmas, {
+        lessonId: lidoLessonId,
+        courseDocId: course?.id,
+        course: JSON.stringify(course!),
+        lesson: JSON.stringify(lesson),
+        selectedLesson: selectedLessonMap,
+        from: history.location.pathname + `?${CONTINUE}=true`,
+        returnState: lessonDetailsReturnState,
+      });
+    } else if (lesson.plugin_type === COCOS) {
       const courseId = getCourseIdFromCocosLesson(
         lesson.cocos_lesson_id,
         lesson.cocos_subject_code,
@@ -118,6 +149,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         chapterId: chapterId,
         selectedLesson: selectedLessonMap,
         from: history.location.pathname + `?${CONTINUE}=true`,
+        returnState: lessonDetailsReturnState,
       });
     } else if (
       // !!assignment?.id &&
@@ -145,18 +177,9 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
           lesson: JSON.stringify(lesson),
           selectedLesson: selectedLessonMap,
           from: history.location.pathname + `?${CONTINUE}=true`,
+          returnState: lessonDetailsReturnState,
         },
       );
-    } else if (lesson.plugin_type === LIDO) {
-      const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-      history.push(PAGES.LIDO_PLAYER + parmas, {
-        lessonId: lesson.cocos_lesson_id,
-        courseDocId: course?.id,
-        course: JSON.stringify(course!),
-        lesson: JSON.stringify(lesson),
-        selectedLesson: selectedLessonMap,
-        from: history.location.pathname + `?${CONTINUE}=true`,
-      });
     }
   };
   useEffect(() => {
@@ -200,10 +223,13 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   }, [classSelectedLesson]);
 
   const init = async () => {
+    if (
+      Capacitor.isNativePlatform() &&
+      (fromCocos || fromLido || fromLiveQuiz)
+    ) {
+      await ScreenOrientation.lock({ orientation: 'portrait' });
+    }
     if (fromCocos) {
-      if (Capacitor.isNativePlatform()) {
-        await ScreenOrientation.lock({ orientation: 'portrait' });
-      }
       setTimeout(() => {
         Util.killCocosGame();
       }, 1000);
@@ -320,9 +346,13 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
                 </div>
 
                 <SelectIconImage
-                  localSrc={''}
+                  localSrc={
+                    lesson?.id
+                      ? `teacher/lessons/icons/${lesson.id}.webp`
+                      : undefined
+                  }
                   defaultSrc={'assets/icons/DefaultIcon.png'}
-                  webSrc={`${lesson.image}`}
+                  webSrc={lesson.image ?? ''}
                 />
               </div>
 
@@ -418,7 +448,12 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
       <AssigmentCount
         assignments={assignmentCount}
         onClick={() => {
-          history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+          course
+            ? history.replace(PAGES.SHOW_CHAPTERS, {
+                course,
+                chapterId,
+              })
+            : history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
         }}
       />
     </div>

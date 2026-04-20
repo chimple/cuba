@@ -1,0 +1,11 @@
+.chimple-mascot-overlay {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.chimple-mascot-layer {
+  position: absolute;
+  inset: 0;
+}

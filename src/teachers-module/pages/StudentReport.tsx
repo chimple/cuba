@@ -18,6 +18,7 @@ type StudentReportLocationState = {
   student?: TableTypes<'user'>;
   classDoc?: TableTypes<'class'>;
   isStudentProfilePage?: boolean;
+  fromDashboardBand?: boolean;
   startDate?: string | Date;
   endDate?: string | Date;
   selectedType?: string;
@@ -40,6 +41,7 @@ const StudentReport: React.FC = () => {
   const student = locationState.student as TableTypes<'user'>;
   const tempClass = locationState.classDoc as TableTypes<'class'>;
   const isStudentProfilePage = Boolean(locationState.isStudentProfilePage);
+  const fromDashboardBand = Boolean(locationState.fromDashboardBand);
 
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
@@ -182,6 +184,8 @@ const StudentReport: React.FC = () => {
         studentId: student.id,
         classDoc: tempClass,
       });
+    } else if (fromDashboardBand) {
+      history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
     } else {
       history.replace(PAGES.HOME_PAGE, {
         tabValue: 3,

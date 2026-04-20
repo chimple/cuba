@@ -8,6 +8,7 @@ import {
   AssignmentSource,
   BANDS,
   BANDWISECOLOR,
+  getBandTitleByColor,
   PAGES,
   TableTypes,
 } from '../../../../common/constants';
@@ -147,26 +148,38 @@ const CreateSelectedAssignment = ({
       });
     });
     setGroupWiseStudents({
-      [BANDS.REDGROUP]: {
-        title: t('Need Help'),
-        isCollapsed: true,
-        color: BANDWISECOLOR.RED,
-        students: _studentList?.get(BANDS.REDGROUP) ?? [],
-      },
-      [BANDS.YELLOWGROUP]: {
-        title: t('Still Learning'),
-        isCollapsed: true,
-        color: BANDWISECOLOR.YELLOW,
-        students: _studentList?.get(BANDS.YELLOWGROUP) ?? [],
-      },
       [BANDS.GREENGROUP]: {
-        title: t('Doing Good'),
+        title: getBandTitleByColor(
+          BANDWISECOLOR.GREEN,
+          t as (key: string) => string,
+        ),
         isCollapsed: true,
         color: BANDWISECOLOR.GREEN,
         students: _studentList?.get(BANDS.GREENGROUP) ?? [],
       },
+      [BANDS.YELLOWGROUP]: {
+        title: getBandTitleByColor(
+          BANDWISECOLOR.YELLOW,
+          t as (key: string) => string,
+        ),
+        isCollapsed: true,
+        color: BANDWISECOLOR.YELLOW,
+        students: _studentList?.get(BANDS.YELLOWGROUP) ?? [],
+      },
+      [BANDS.REDGROUP]: {
+        title: getBandTitleByColor(
+          BANDWISECOLOR.RED,
+          t as (key: string) => string,
+        ),
+        isCollapsed: true,
+        color: BANDWISECOLOR.RED,
+        students: _studentList?.get(BANDS.REDGROUP) ?? [],
+      },
       [BANDS.GREYGROUP]: {
-        title: t('Not Tracked'),
+        title: getBandTitleByColor(
+          BANDWISECOLOR.GREY,
+          t as (key: string) => string,
+        ),
         isCollapsed: true,
         color: BANDWISECOLOR.GREY,
         students: _studentList?.get(BANDS.GREYGROUP) ?? [],

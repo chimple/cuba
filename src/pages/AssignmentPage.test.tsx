@@ -1,12 +1,19 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import AssignmentPage from './Assignment';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
-import { PAGES, LIVE_QUIZ } from '../common/constants';
+import { PAGES, LIVE_QUIZ, TABLES } from '../common/constants';
 
 /* ======================================================
    i18n MOCK (CHAINABLE – IMPORTANT)
@@ -47,6 +54,7 @@ jest.mock('@growthbook/growthbook-react', () => ({
   useFeatureIsOn: jest.fn(),
   useGrowthBook: () => ({
     setAttributes: jest.fn(),
+    getAttributes: jest.fn(() => ({})),
     getFeatureValue: mockGetFeatureValue,
   }),
 }));
@@ -122,6 +130,14 @@ jest.mock('../common/onlineOfflineErrorMessageHandler', () => ({
 jest.mock('@capacitor/core', () => ({
   Capacitor: {
     isNativePlatform: jest.fn(),
+  },
+}));
+
+jest.mock('@capacitor/app', () => ({
+  App: {
+    addListener: jest.fn((event: string, cb: (payload: any) => void) => {
+      return Promise.resolve({ remove: jest.fn() });
+    }),
   },
 }));
 
@@ -336,5 +352,49 @@ describe('AssignmentPage', () => {
     unmount();
 
     expect(mockApi.removeAssignmentChannel).toHaveBeenCalled();
+  });
+
+  test('resyncs assignments when the native app resumes', async () => {
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
+    (useFeatureIsOn as jest.Mock).mockReturnValue(false);
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 's1' });
+
+    mockApi.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [{ id: 'c1', school_id: 'sch1', name: 'Class A' }],
+      schools: [{ id: 'sch1', name: 'My School' }],
+    });
+
+    mockApi.getPendingAssignments.mockResolvedValue([
+      { id: 'a1', lesson_id: 'l1', type: 'HOMEWORK', course_id: 'math' },
+    ]);
+    mockApi.getLesson.mockResolvedValue({ id: 'l1', name: 'Math' });
+
+    render(
+      <MemoryRouter>
+        <AssignmentPage assignmentCount={assignmentCount} />
+      </MemoryRouter>,
+    );
+
+    await flush();
+    mockApi.syncDB.mockClear();
+    mockApi.getPendingAssignments.mockClear();
+
+    await waitFor(() =>
+      expect((App.addListener as jest.Mock).mock.calls.length).toBeGreaterThan(
+        0,
+      ),
+    );
+    const appStateChangeCallback = (
+      App.addListener as jest.Mock
+    ).mock.calls.find(([event]) => event === 'appStateChange')?.[1];
+    expect(appStateChangeCallback).toEqual(expect.any(Function));
+
+    await act(async () => {
+      appStateChangeCallback({ isActive: true });
+      await flush();
+    });
+
+    expect(mockApi.syncDB).toHaveBeenCalledWith([TABLES.Assignment]);
+    expect(mockApi.getPendingAssignments).toHaveBeenCalled();
   });
 });
