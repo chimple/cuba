@@ -8733,43 +8733,82 @@ export class SupabaseApi implements ServiceApi {
       return {};
     }
 
+    const emptyOptions: Record<string, string[]> = {
+      state: [],
+      district: [],
+      block: [],
+      programType: [],
+      partner: [],
+      programManager: [],
+      fieldCoordinator: [],
+      cluster: [],
+    };
+
     try {
-      const { data, error } = await this.supabase.rpc(
-        'get_school_filter_options',
-      );
+      const { data, error } = await this.supabase
+        .from('school_metrics')
+        .select(
+          'state, district, block, cluster, program_type, partners, program_managers, field_coordinators',
+        );
 
       if (error) {
-        logger.error('RPC error in getSchoolFilterOptions:', error);
-        return {};
+        logger.error('Error fetching school_metrics filter options:', error);
+        return emptyOptions;
       }
 
-      const parsed: Record<string, string[]> = {
-        state: [],
-        district: [],
-        block: [],
-        programType: [],
-        partner: [],
-        programManager: [],
-        fieldCoordinator: [],
-        cluster: [],
+      const parsed: Record<string, Set<string>> = {
+        state: new Set(),
+        district: new Set(),
+        block: new Set(),
+        programType: new Set(),
+        partner: new Set(),
+        programManager: new Set(),
+        fieldCoordinator: new Set(),
+        cluster: new Set(),
       };
 
-      if (data && typeof data === 'object' && !Array.isArray(data)) {
-        for (const key in parsed) {
-          const val = (data as Record<string, Json>)[key];
-          parsed[key] = Array.isArray(val)
-            ? val.filter(
-                (v): v is string =>
-                  typeof v === 'string' && v.trim() !== '' && v !== 'null',
-              )
-            : [];
+      for (const row of (data ?? []) as Array<{
+        state?: string | null;
+        district?: string | null;
+        block?: string | null;
+        cluster?: string | null;
+        program_type?: string | null;
+        partners?: Array<string | null> | string[] | null;
+        program_managers?: Array<string | null> | string[] | null;
+        field_coordinators?: Array<string | null> | string[] | null;
+      }>) {
+        if (row.state) parsed.state.add(row.state);
+        if (row.district) parsed.district.add(row.district);
+        if (row.block) parsed.block.add(row.block);
+        if (row.cluster) parsed.cluster.add(row.cluster);
+        if (row.program_type) parsed.programType.add(row.program_type);
+
+        for (const partner of row.partners ?? []) {
+          if (partner) parsed.partner.add(partner);
+        }
+        for (const manager of row.program_managers ?? []) {
+          if (manager) parsed.programManager.add(manager);
+        }
+        for (const coordinator of row.field_coordinators ?? []) {
+          if (coordinator) parsed.fieldCoordinator.add(coordinator);
         }
       }
 
-      return parsed;
+      const finalOptions: Record<string, string[]> = {
+        state: Array.from(parsed.state).sort(),
+        district: Array.from(parsed.district).sort(),
+        block: Array.from(parsed.block).sort(),
+        programType: Array.from(parsed.programType).sort(),
+        partner: Array.from(parsed.partner).sort(),
+        programManager: Array.from(parsed.programManager).sort(),
+        fieldCoordinator: Array.from(parsed.fieldCoordinator).sort(),
+        cluster: Array.from(parsed.cluster).sort(),
+      };
+
+      return finalOptions;
     } catch (err) {
       logger.error('Unexpected error in getSchoolFilterOptions:', err);
-      return {};
+      return emptyOptions;
     }
   }
 
@@ -8939,6 +8978,23 @@ export class SupabaseApi implements ServiceApi {
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
+    date_range?: string;
+  }): Promise<{
+    data: FilteredSchoolsForSchoolListingOps[];
+    total: number;
+  }> {
+    return await this.getSchoolMetricsForSchoolListing(params);
+  }
+
+  async getSchoolMetricsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
@@ -8948,51 +9004,281 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-    const { filters, programId, page, page_size, order_by, order_dir, search } =
-      params;
-    const payload: any = {};
+    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!currentUser) {
+      logger.error('Current user is not available for school metrics query');
+      return { data: [], total: 0 };
+    }
 
-    if (filters && Object.keys(filters).length > 0) payload.filters = filters;
-    if (programId) payload._program_id = programId;
-    if (page) payload.page = page;
-    if (page_size) payload.page_size = page_size;
-    if (order_by) payload.order_by = order_by;
-    if (order_dir) payload.order_dir = order_dir;
-    if (search) payload.search = search;
+    const {
+      filters,
+      programId,
+      page = 1,
+      page_size = 10,
+      order_by,
+      order_dir,
+      search,
+      date_range,
+    } = params;
+
+    const specialRoles = await this.getUserSpecialRoles(currentUser.id);
+    const isAdminOrDirector = specialRoles.some((role) =>
+      [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
+        role as RoleType,
+      ),
+    );
+    const isExternalUser = specialRoles.includes('external_user');
+    const isFieldCoordinator = specialRoles.includes('field_coordinator');
+    const shouldRestrictToSchoolLinks =
+      !isAdminOrDirector && (isExternalUser || isFieldCoordinator);
 
     try {
-      const { data, error } = await this.supabase.rpc(
-        'get_filtered_schools_with_optional_program',
-        payload,
-      );
-      if (error) {
-        logger.error(
-          'RPC error in get_filtered_schools_with_optional_program:',
-          error,
-        );
+      let accessibleSchoolIds: string[] | null = null;
+      if (!isAdminOrDirector) {
+        const schoolUserPromise = this.supabase
+          .from('school_user')
+          .select('school_id')
+          .eq('user_id', currentUser.id)
+          .eq('is_deleted', false);
+
+        const programUserPromise =
+          shouldRestrictToSchoolLinks ||
+          specialRoles.includes('program_manager')
+            ? this.supabase
+                .from('program_user')
+                .select('program_id')
+                .eq('user', currentUser.id)
+                .eq('role', RoleType.PROGRAM_MANAGER)
+                .eq('is_deleted', false)
+            : Promise.resolve({
+                data: [] as Array<{ program_id?: string | null }>,
+                error: null,
+              });
+
+        const [schoolUserResult, programUserResult] = await Promise.all([
+          schoolUserPromise,
+          programUserPromise,
+        ]);
+
+        if (schoolUserResult.error) {
+          logger.error(
+            'Error fetching school_user access list:',
+            schoolUserResult.error,
+          );
+          return { data: [], total: 0 };
+        }
+
+        const schoolIds = (schoolUserResult.data ?? [])
+          .map((row) => row.school_id)
+          .filter((id): id is string => !!id);
+
+        if (shouldRestrictToSchoolLinks) {
+          accessibleSchoolIds = schoolIds;
+        } else {
+          if (programUserResult?.error) {
+            logger.error(
+              'Error fetching program_user access list:',
+              programUserResult.error,
+            );
+            return { data: [], total: 0 };
+          }
+
+          const programIds = (
+            (programUserResult.data ?? []) as Array<{
+              program_id?: string | null;
+            }>
+          )
+            .map((row) => row.program_id)
+            .filter((id): id is string => !!id);
+
+          if (programIds.length > 0) {
+            const { data: linkedSchools, error: linkedError } =
+              await this.supabase
+                .from('school_metrics')
+                .select('school_id')
+                .in('program_id', programIds);
+            if (linkedError) {
+              logger.error(
+                'Error fetching program-linked schools from school_metrics:',
+                linkedError,
+              );
+              return { data: [], total: 0 };
+            }
+            const linkedSchoolIds = (
+              (linkedSchools ?? []) as Array<{
+                school_id: string | null;
+              }>
+            )
+              .map((row) => row.school_id)
+              .filter((id): id is string => !!id);
+            accessibleSchoolIds = Array.from(
+              new Set([...schoolIds, ...linkedSchoolIds]),
+            );
+          } else {
+            accessibleSchoolIds = schoolIds;
+          }
+        }
+      }
+
+      const selectedColumns = `
+        id,
+        school_id,
+        school_name,
+        udise,
+        school_performance,
+        state,
+        district,
+        block,
+        cluster,
+        school_model,
+        metric_window,
+        program_id,
+        program_name,
+        program_type,
+        partners,
+        program_managers,
+        field_coordinators,
+        onboarded_students,
+        activated_students,
+        active_students,
+        avg_time_spent,
+        active_teachers,
+        activities_assigned,
+        avg_assignments_completed,
+        avg_activities_completed
+      `;
+      const metricWindow =
+        date_range && date_range !== 'all_time'
+          ? date_range.trim().toLowerCase()
+          : null;
+
+      let query = this.supabase
+        .from('school_metrics')
+        .select(selectedColumns, { count: 'exact' });
+
+      if (metricWindow) {
+        query = query.eq('metric_window', metricWindow);
+      }
+
+      if (programId) {
+        query = query.eq('program_id', programId);
+      }
+
+      if (accessibleSchoolIds && accessibleSchoolIds.length > 0) {
+        query = query.in('school_id', accessibleSchoolIds);
+      } else if (accessibleSchoolIds && accessibleSchoolIds.length === 0) {
         return { data: [], total: 0 };
       }
 
-      if (
-        !data ||
-        typeof data !== 'object' ||
-        !('data' in data) ||
-        !('total' in data)
-      ) {
-        throw new Error(
-          'Supabase RPC did not return expected { data, total } shape',
+      const cleanedFilters = Object.fromEntries(
+        Object.entries(filters ?? {}).filter(
+          ([, values]) => Array.isArray(values) && values.length > 0,
+        ),
+      );
+
+      if (cleanedFilters.state?.length) {
+        query = query.in('state', cleanedFilters.state);
+      }
+      if (cleanedFilters.district?.length) {
+        query = query.in('district', cleanedFilters.district);
+      }
+      if (cleanedFilters.block?.length) {
+        query = query.in('block', cleanedFilters.block);
+      }
+      if (cleanedFilters.cluster?.length) {
+        query = query.in('cluster', cleanedFilters.cluster);
+      }
+      if (cleanedFilters.model?.length) {
+        query = query.in('school_model', cleanedFilters.model);
+      }
+      if (cleanedFilters.partner?.length) {
+        query = query.overlaps('partners', cleanedFilters.partner);
+      }
+      if (cleanedFilters.programManager?.length) {
+        query = query.overlaps(
+          'program_managers',
+          cleanedFilters.programManager,
+        );
+      }
+      if (cleanedFilters.fieldCoordinator?.length) {
+        query = query.overlaps(
+          'field_coordinators',
+          cleanedFilters.fieldCoordinator,
+        );
+      }
+      if (cleanedFilters.programType?.length) {
+        query = query.in('program_type', cleanedFilters.programType);
+      }
+
+      if (search) {
+        query = query.or(
+          [
+            `school_name.ilike.%${search}%`,
+            `udise.ilike.%${search}%`,
+            `district.ilike.%${search}%`,
+            `block.ilike.%${search}%`,
+            `cluster.ilike.%${search}%`,
+            `state.ilike.%${search}%`,
+          ].join(','),
         );
       }
 
+      const sortBy = order_by === 'name' ? 'school_name' : 'school_name';
+      const sortDir = order_dir === 'desc' ? false : true;
+      const from = Math.max(page - 1, 0) * page_size;
+      const to = from + page_size - 1;
+
+      const { data, count, error } = await query
+        .order(sortBy, { ascending: sortDir })
+        .range(from, to);
+
+      if (error) {
+        logger.error('Error fetching school_metrics listing:', error);
+        return { data: [], total: 0 };
+      }
+
+      const rows = (data ?? []) as Array<Record<string, unknown>>;
+
+      const schoolIds = rows
+        .map((row) => row.school_id)
+        .filter((id): id is string => !!id);
+
+      if (schoolIds.length > 0) {
+        // Intentionally no extra enrichment here. The listing should stay
+        // scoped to school_metrics only.
+      }
+
+      const mappedRows = rows.map((row: Record<string, unknown>) => ({
+        ...row,
+        school_name: typeof row.school_name === 'string' ? row.school_name : '',
+        udise: row.udise ?? null,
+        num_students:
+          typeof row.onboarded_students === 'number'
+            ? row.onboarded_students
+            : 0,
+        num_teachers:
+          typeof row.active_teachers === 'number' ? row.active_teachers : 0,
+        total_teachers: null,
+        onboarded_students: row.onboarded_students ?? null,
+        activated_students: row.activated_students ?? null,
+        active_students: row.active_students ?? null,
+        avg_time_spent: row.avg_time_spent ?? null,
+        active_teachers: row.active_teachers ?? null,
+        activities_assigned: row.activities_assigned ?? null,
+        avg_assignments_completed: row.avg_assignments_completed ?? null,
+        avg_activities_completed: row.avg_activities_completed ?? null,
+        program_managers: row.program_managers ?? [],
+        field_coordinators: row.field_coordinators ?? [],
+      })) as FilteredSchoolsForSchoolListingOps[];
+
       return {
-        data: (data.data ??
-          []) as unknown as FilteredSchoolsForSchoolListingOps[],
-        total: typeof data.total === 'number' ? data.total : 0,
+        data: mappedRows,
+        total: typeof count === 'number' ? count : 0,
       };
-    } catch (err) {
+    } catch (error) {
       logger.error(
-        'Unexpected error in get_filtered_schools_with_optional_program:',
-        err,
+        'Unexpected error in getSchoolMetricsForSchoolListing:',
+        error,
       );
       return { data: [], total: 0 };
     }

@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Box,
   Button,
+  Chip,
   Divider,
   IconButton,
   ListItemIcon,
@@ -14,7 +15,28 @@ import {
 } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from '../../common/constants';
+import {
+  PAGES,
+  PROGRAM_TAB,
+  FilteredSchoolsForSchoolListingOps,
+} from '../../common/constants';
+import {
+  DEFAULT_DATE_RANGE,
+  DATE_RANGE_OPTIONS,
+  DEFAULT_PAGE_SIZE,
+  filterConfigsForSchool,
+  INITIAL_FILTERS,
+  tabOptions,
+  type DateRangeValue,
+  type Filters,
+  pickFirstNumber,
+  getSchoolCoordinatorList,
+  resolvePerformanceStatus,
+  getStatusMeta,
+  buildSchoolSubtitle,
+  renderMetricCell,
+  renderMetricWithPercentCell,
+} from './SchoolList.helpers';
 import './SchoolList.css';
 import DataTablePagination from '../components/DataTablePagination';
 import DataTableBody, { Column } from '../components/DataTableBody';
@@ -23,6 +45,7 @@ import SearchAndFilter from '../components/SearchAndFilter';
 import FilterSlider from '../components/FilterSlider';
 import SelectedFilters from '../components/SelectedFilters';
 import FileUpload from '../components/FileUpload';
+import SchoolListDateRangeDropdown from '../components/SchoolListDateRangeDropdown';
 import { FileUploadOutlined, Add } from '@mui/icons-material';
 import { BsFillBellFill } from 'react-icons/bs';
 import { useLocation, useHistory } from 'react-router';
@@ -32,36 +55,39 @@ import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
 
-const filterConfigsForSchool = [
-  { key: 'partner', label: t('Select Partner') },
-  { key: 'programManager', label: t('Select Program Manager') },
-  { key: 'fieldCoordinator', label: t('Select Field Coordinator') },
-  { key: 'programType', label: t('Select Program Type') },
-  { key: 'state', label: t('Select State') },
-  { key: 'district', label: t('Select District') },
-  { key: 'block', label: t('Select Block') },
-  { key: 'cluster', label: t('Select Cluster') },
-];
-
-type Filters = Record<string, string[]>;
-
-const INITIAL_FILTERS: Filters = {
-  programType: [],
-  partner: [],
-  programManager: [],
-  fieldCoordinator: [],
-  state: [],
-  district: [],
-  block: [],
-  cluster: [],
+type SchoolMetricCell = {
+  value: unknown;
+  render: React.ReactNode;
 };
 
-const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([value, label]) => ({
-  label,
-  value: value as PROGRAM_TAB,
-}));
+const isSchoolMetricCell = (value: unknown): value is SchoolMetricCell =>
+  typeof value === 'object' &&
+  value !== null &&
+  'render' in value &&
+  'value' in value;
 
-const DEFAULT_PAGE_SIZE = 8;
+type SchoolListRow = FilteredSchoolsForSchoolListingOps & {
+  id: string | number;
+  sch_id?: string | number;
+  school_id?: string | number;
+  udise?: string;
+  total_students?: number;
+  average_time_spent_mins?: number;
+  avg_time_spent_minutes?: number;
+  total_activities_assigned?: number;
+  assignments_assigned?: number;
+  fieldCoordinators?: string;
+  name: SchoolMetricCell;
+  schoolPerformance: SchoolMetricCell;
+  onboardedStudents: SchoolMetricCell;
+  activatedStudents: SchoolMetricCell;
+  activeStudents: SchoolMetricCell;
+  avgTimeSpent: SchoolMetricCell;
+  activeTeachers: SchoolMetricCell;
+  activitiesAssigned: SchoolMetricCell;
+  avgAssignmentsCompleted: SchoolMetricCell;
+  avgActivitiesCompleted: SchoolMetricCell;
+};
 
 const SchoolList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -84,15 +110,26 @@ const SchoolList: React.FC = () => {
       : PROGRAM_TAB.ALL;
   });
   const [searchTerm, setSearchTerm] = useState(() => qs.get('search') || '');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(
+    () => qs.get('search') || '',
+  );
   const [filters, setFilters] = useState<Filters>(() =>
     parseJSONParam(qs.get('filters'), INITIAL_FILTERS),
+  );
+  const [selectedDateRange, setSelectedDateRange] = useState<DateRangeValue>(
+    () => {
+      const queryRange = qs.get('range');
+      return DATE_RANGE_OPTIONS.some((option) => option.value === queryRange)
+        ? (queryRange as DateRangeValue)
+        : DEFAULT_DATE_RANGE;
+    },
   );
   const [page, setPage] = useState(() => {
     const p = parseInt(qs.get('page') || '', 10);
     return isNaN(p) || p < 1 ? 1 : p;
   });
 
-  const [schools, setSchools] = useState<any[]>([]);
+  const [schools, setSchools] = useState<SchoolListRow[]>([]);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -111,6 +148,7 @@ const SchoolList: React.FC = () => {
   );
   const [openDetails, setOpenDetails] = useState(false);
   const [visitId, setVisitId] = useState<string | null>(null);
+  const skipNextAutoFetchRef = useRef(false);
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
@@ -127,14 +165,28 @@ const SchoolList: React.FC = () => {
   const isActionsMenuOpen = Boolean(actionsAnchorEl);
 
   useEffect(() => {
+    setTempFilters(filters);
+  }, [filters]);
+
+  useEffect(() => {
     const params = new URLSearchParams();
     if (selectedTab !== PROGRAM_TAB.ALL) params.set('tab', String(selectedTab));
     if (searchTerm) params.set('search', searchTerm);
     if (Object.values(filters).some((arr) => arr.length))
       params.set('filters', JSON.stringify(filters));
+    if (selectedDateRange !== DEFAULT_DATE_RANGE)
+      params.set('range', selectedDateRange);
     if (page !== 1) params.set('page', String(page));
     history.replace({ search: params.toString() });
-  }, [selectedTab, searchTerm, filters, page, history]);
+  }, [selectedTab, searchTerm, filters, selectedDateRange, page, history]);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      if (page !== 1) setPage(1);
+    }, 500);
+    return () => window.clearTimeout(handle);
+  }, [searchTerm]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -164,120 +216,290 @@ const SchoolList: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [selectedTab, filters, page, orderBy, orderDir, searchTerm]);
-
-  const fetchData = useCallback(async () => {
-    setIsDataLoading(true);
-    try {
-      const tabModelFilter = { model: [selectedTab] };
-      const cleanedFilters = Object.fromEntries(
-        Object.entries({ ...filters, ...tabModelFilter }).filter(
-          ([_, v]) => Array.isArray(v) && v.length > 0,
-        ),
-      );
-
-      let backendOrderBy = orderBy;
-      if (backendOrderBy === 'name') backendOrderBy = 'school_name';
-      if (backendOrderBy === 'students') backendOrderBy = 'num_students';
-      if (backendOrderBy === 'teachers') backendOrderBy = 'num_teachers';
-
-      const response = await api.getFilteredSchoolsForSchoolListing({
-        filters: cleanedFilters,
-        page,
-        page_size: pageSize,
-        order_by: backendOrderBy,
-        order_dir: orderDir,
-        search: searchTerm,
-      });
-      const data = response?.data || [];
-      setTotal(response?.total || 0);
-
-      const enrichedSchools = data.map((school: any) => ({
-        ...school,
-        id: school.sch_id,
-        students: school.num_students || 0,
-        teachers: school.num_teachers || 0,
-        programManagers:
-          school.program_managers?.join(', ') || t('not assigned yet'),
-        fieldCoordinators:
-          school.field_coordinators?.join(', ') || t('not assigned yet'),
-        name: {
-          value: school.school_name,
-          render: (
-            <Box display="flex" flexDirection="column" alignItems="flex-start">
-              <Typography variant="subtitle2">{school.school_name}</Typography>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                fontSize={'12px'}
-              >
-                {school.udise_code || school.district
-                  ? `${school.udise_code ?? ''} - ${
-                      school.district ?? ''
-                    }`.trim()
-                  : ''}
-              </Typography>
-            </Box>
-          ),
-        },
-      }));
-
-      setSchools(enrichedSchools);
-    } catch (error) {
-      logger.error('Failed to fetch filtered schools:', error);
-      setSchools([]);
-      setTotal(0);
-    } finally {
-      setIsDataLoading(false);
+    if (skipNextAutoFetchRef.current) {
+      skipNextAutoFetchRef.current = false;
+      return;
     }
+    fetchData();
   }, [
-    api,
+    selectedTab,
     filters,
     page,
-    pageSize,
     orderBy,
     orderDir,
-    searchTerm,
-    selectedTab,
+    debouncedSearchTerm,
+    selectedDateRange,
   ]);
 
-  const columns: Column<Record<string, any>>[] = [
+  const fetchData = useCallback(
+    async (overrides?: {
+      dateRange?: DateRangeValue;
+      page?: number;
+      searchTerm?: string;
+    }) => {
+      setIsDataLoading(true);
+      try {
+        const effectivePage = overrides?.page ?? page;
+        const effectiveDateRange = overrides?.dateRange ?? selectedDateRange;
+        const effectiveSearchTerm =
+          overrides?.searchTerm ?? debouncedSearchTerm;
+        const cleanedFilters = Object.fromEntries(
+          Object.entries(filters).filter(
+            ([_, v]) => Array.isArray(v) && v.length > 0,
+          ),
+        );
+        const tabModelFilter =
+          selectedTab !== PROGRAM_TAB.ALL
+            ? ({ model: [selectedTab] } as Filters)
+            : ({} as Filters);
+        const requestFilters = { ...cleanedFilters, ...tabModelFilter };
+
+        let backendOrderBy = orderBy;
+        const orderByMap: Record<string, string> = {
+          name: 'school_name',
+          schoolName: 'school_name',
+          onboardedStudents: 'onboarded_students',
+          activatedStudents: 'activated_students',
+          activeStudents: 'active_students',
+          avgTimeSpent: 'avg_time_spent',
+          activeTeachers: 'active_teachers',
+          activitiesAssigned: 'activities_assigned',
+          avgAssignmentsCompleted: 'avg_assignments_completed',
+          avgActivitiesCompleted: 'avg_activities_completed',
+        };
+        backendOrderBy = orderByMap[backendOrderBy] ?? backendOrderBy;
+
+        const getSchoolListing =
+          api.getSchoolMetricsForSchoolListing?.bind(api) ??
+          api.getFilteredSchoolsForSchoolListing?.bind(api);
+
+        if (!getSchoolListing) {
+          throw new Error('School listing API is not available');
+        }
+
+        const response = await getSchoolListing({
+          filters: requestFilters,
+          page: effectivePage,
+          page_size: pageSize,
+          order_by: backendOrderBy,
+          order_dir: orderDir,
+          search: effectiveSearchTerm,
+          date_range: effectiveDateRange,
+        });
+        const data = (response?.data || []) as SchoolListRow[];
+        setTotal(response?.total || 0);
+
+        const enrichedSchools: SchoolListRow[] = data.map((school) => {
+          const onboardedStudents = pickFirstNumber(
+            school.onboarded_students,
+            school.total_students,
+          );
+          const activatedStudents = pickFirstNumber(school.activated_students);
+          const activeStudents = pickFirstNumber(school.active_students);
+          const activeTeachers = pickFirstNumber(school.active_teachers);
+          const completionAssignments = pickFirstNumber(
+            school.avg_assignments_completed,
+          );
+          const completionActivities = pickFirstNumber(
+            school.avg_activities_completed,
+          );
+
+          return {
+            ...school,
+            id: school.sch_id ?? school.school_id ?? school.id ?? '',
+            fieldCoordinators:
+              getSchoolCoordinatorList(school).join(', ') ||
+              String(t('not assigned yet')),
+            name: {
+              value: school.school_name,
+              render: (
+                <Box
+                  display="flex"
+                  flexDirection="column"
+                  alignItems="flex-start"
+                >
+                  <Typography variant="subtitle2">
+                    {school.school_name}
+                  </Typography>
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    fontSize={'12px'}
+                  >
+                    {buildSchoolSubtitle(school)}
+                  </Typography>
+                </Box>
+              ),
+            },
+            schoolPerformance: (() => {
+              const status = resolvePerformanceStatus(school);
+              const meta = getStatusMeta(status);
+              return {
+                value: status || '--',
+                render: (
+                  <Chip
+                    label={status ? t(status) : '--'}
+                    size="small"
+                    sx={{
+                      backgroundColor: `${meta.bg} !important`,
+                      color: `${meta.color} !important`,
+                      border: 'none',
+                      fontWeight: 600,
+                      height: 24,
+                      '& .MuiChip-label': {
+                        px: 1,
+                        color: `${meta.color} !important`,
+                        fontWeight: 600,
+                      },
+                    }}
+                  />
+                ),
+              };
+            })(),
+            onboardedStudents: renderMetricCell(onboardedStudents),
+            activatedStudents: renderMetricWithPercentCell(
+              activatedStudents,
+              onboardedStudents && activatedStudents
+                ? (activatedStudents / onboardedStudents) * 100
+                : null,
+            ),
+            activeStudents: renderMetricWithPercentCell(
+              activeStudents,
+              activatedStudents && activeStudents
+                ? (activeStudents / activatedStudents) * 100
+                : null,
+            ),
+            avgTimeSpent: renderMetricCell(
+              pickFirstNumber(
+                school.avg_time_spent,
+                school.average_time_spent_mins,
+                school.avg_time_spent_minutes,
+              ),
+              'm',
+              { maxFractionDigits: 0 },
+            ),
+            activeTeachers: renderMetricWithPercentCell(
+              activeTeachers,
+              activeTeachers && activeTeachers > 0 ? 100 : null,
+            ),
+            activitiesAssigned: renderMetricCell(
+              pickFirstNumber(
+                school.activities_assigned,
+                school.total_activities_assigned,
+                school.assignments_assigned,
+              ),
+            ),
+            avgAssignmentsCompleted: renderMetricCell(completionAssignments),
+            avgActivitiesCompleted: renderMetricCell(completionActivities),
+          };
+        });
+
+        setSchools(enrichedSchools);
+      } catch (error) {
+        logger.error('Failed to fetch filtered schools:', error);
+        setSchools([]);
+        setTotal(0);
+      } finally {
+        setIsDataLoading(false);
+      }
+    },
+    [
+      api,
+      filters,
+      page,
+      pageSize,
+      orderBy,
+      orderDir,
+      debouncedSearchTerm,
+      selectedDateRange,
+      selectedTab,
+    ],
+  );
+
+  // Column widths are tuned for horizontal scrolling on smaller screens.
+  const columns: Column<SchoolListRow>[] = [
     {
       key: 'name',
-      label: t('Schools'),
-      width: '30%',
+      label: t('School Name'),
+      width: '20%',
       sortable: true,
       orderBy: 'name',
     },
     {
-      key: 'students',
-      label: t('No. of Students'),
-      width: 'fit-content',
-      sortable: true,
-      orderBy: 'students',
-    },
-    {
-      key: 'teachers',
-      label: t('No. of Teachers'),
-      width: 'fit-content',
-      sortable: true,
-      orderBy: 'teachers',
-    },
-    {
-      key: 'programManagers',
-      label: t('Program Manager'),
+      key: 'schoolPerformance',
+      label: t('School Performance'),
+      width: '7.78%',
+      align: 'center',
       sortable: false,
     },
     {
-      key: 'fieldCoordinators',
-      label: t('Field Coordinator'),
+      key: 'onboardedStudents',
+      label: t('Onboarded Students'),
+      width: '7.78%',
+      align: 'center',
       sortable: false,
+      orderBy: 'onboarded_students',
+    },
+    {
+      key: 'activatedStudents',
+      label: t('Activated Students'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'activated_students',
+    },
+    {
+      key: 'activeStudents',
+      label: t('Active Students'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'active_students',
+    },
+    {
+      key: 'avgTimeSpent',
+      label: t('Average Time Spent'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'avg_time_spent',
+    },
+    {
+      key: 'activeTeachers',
+      label: t('Active Teachers'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'active_teachers',
+    },
+    {
+      key: 'activitiesAssigned',
+      label: t('Activities Assigned'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'activities_assigned',
+    },
+    {
+      key: 'avgAssignmentsCompleted',
+      label: t('Avg Assignments Completed'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'avg_assignments_completed',
+    },
+    {
+      key: 'avgActivitiesCompleted',
+      label: t('Avg Activities Completed'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'avg_activities_completed',
     },
   ];
 
   const handleSort = (colKey: string) => {
-    const sortableKeys = ['name', 'students', 'teachers', 'district'];
+    const sortableKeys = ['name'];
     if (!sortableKeys.includes(colKey)) return;
     if (orderBy === colKey) {
       setOrderDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -300,6 +522,13 @@ const SchoolList: React.FC = () => {
 
   const handleCloseActionsMenu = () => {
     setActionsAnchorEl(null);
+  };
+
+  const handleSelectDateRange = (nextRange: DateRangeValue) => {
+    skipNextAutoFetchRef.current = true;
+    setSelectedDateRange(nextRange);
+    setPage(1);
+    void fetchData({ dateRange: nextRange, page: 1 });
   };
 
   const handleOpenUploadPage = () => {
@@ -400,6 +629,7 @@ const SchoolList: React.FC = () => {
     };
     setTempFilters(reset);
     setFilters(reset);
+    setSelectedDateRange(DEFAULT_DATE_RANGE);
     setIsFilterOpen(false);
     setPage(1);
   };
@@ -452,16 +682,22 @@ const SchoolList: React.FC = () => {
             </div>
 
             <div className="school-list-button-and-search-filter">
-              <SearchAndFilter
-                searchTerm={searchTerm}
-                onSearchChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setPage(1);
-                }}
-                filters={filters}
-                onFilterClick={() => setIsFilterOpen(true)}
-                onClearFilters={handleCancelFilters}
+              <SchoolListDateRangeDropdown
+                value={selectedDateRange}
+                onChange={handleSelectDateRange}
               />
+              <div className="school-list-search-control">
+                <SearchAndFilter
+                  searchTerm={searchTerm}
+                  onSearchChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setPage(1);
+                  }}
+                  filters={filters}
+                  onFilterClick={() => setIsFilterOpen(true)}
+                  onClearFilters={handleCancelFilters}
+                />
+              </div>
               <div className="school-list-actions-group">
                 <Button
                   variant="outlined"
@@ -565,6 +801,12 @@ const SchoolList: React.FC = () => {
               order={orderDir}
               onSort={handleSort}
               loading={isLoading}
+              // School listing needs the wider, scrollable table treatment only.
+              tableMinWidth={1700}
+              tableWidth="max-content"
+              headerClampLines={2}
+              headerNoEllipsis
+              headerAlign="center"
             />
           )}
 

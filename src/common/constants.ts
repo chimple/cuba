@@ -621,9 +621,29 @@ export interface SchoolWithRole {
   role: RoleType;
 }
 export interface FilteredSchoolsForSchoolListingOps {
+  school_id?: string;
+  metric_window?: string | null;
   school_name: string;
+  school_performance?: string | null;
+  state?: string | null;
+  district?: string | null;
+  block?: string | null;
+  cluster?: string | null;
+  udise?: string | null;
+  program_id?: string | null;
+  program_name?: string | null;
+  partners?: string[] | null;
+  total_teachers?: number | null;
   num_students: number;
   num_teachers: number;
+  onboarded_students?: number | null;
+  activated_students?: number | null;
+  active_students?: number | null;
+  avg_time_spent?: number | null;
+  active_teachers?: number | null;
+  activities_assigned?: number | null;
+  avg_assignments_completed?: number | null;
+  avg_activities_completed?: number | null;
   program_managers: string[];
   field_coordinators: string[];
 }
