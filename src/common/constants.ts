@@ -1149,6 +1149,7 @@ export const ROLE_PRIORITY: Record<string, number> = {
   operational_director: 2,
   program_manager: 3,
   field_coordinator: 4,
+  external_user: 5,
 };
 
 export enum AssignmentSource {
@@ -1257,6 +1258,7 @@ export const OPS_ROLES = [
   RoleType.OPERATIONAL_DIRECTOR,
   RoleType.PROGRAM_MANAGER,
   RoleType.FIELD_COORDINATOR,
+  RoleType.EXTERNAL_USER,
 ];
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
 export const VERSION_KEY = 'last_native_version';

@@ -6582,7 +6582,8 @@ export type Database = {
         | 'program_manager'
         | 'operational_director'
         | 'field_coordinator'
-        | 'super_admin';
+        | 'super_admin'
+        | 'external_user';
       school_visit_type:
         | 'teacher_training_meeting'
         | 'parents_teacher_meeting'
@@ -6591,7 +6592,8 @@ export type Database = {
         | 'super_admin'
         | 'operational_director'
         | 'program_manager'
-        | 'field_coordinator';
+        | 'field_coordinator'
+        | 'external_user';
       status: 'active' | 'rejected' | 'requested' | 'migrated';
     };
     CompositeTypes: {
@@ -6770,6 +6772,7 @@ export const Constants = {
         'operational_director',
         'field_coordinator',
         'super_admin',
+        'external_user',
       ],
       school_visit_type: [
         'teacher_training_meeting',
@@ -6781,6 +6784,7 @@ export const Constants = {
         'operational_director',
         'program_manager',
         'field_coordinator',
+        'external_user',
       ],
       status: ['active', 'rejected', 'requested', 'migrated'],
     },
