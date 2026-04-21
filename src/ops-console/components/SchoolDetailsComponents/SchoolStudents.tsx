@@ -885,7 +885,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         : null;
 
       setStudentData(fullStudent);
-      setStudentStatus(mappedType!);
+      setStudentStatus(mappedType ?? OpsSupportLevelMap['Not Downloaded']);
       setOpenPopup(true);
     },
     [getStudentInfoById],
@@ -1020,93 +1020,60 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         ),
       },
     ];
+    const genderColumn: Column<DisplayStudent> = {
+      key: 'gender',
+      label: t('Gender'),
+      sortable: !issTotal ? false : undefined,
+      render: (s) => (
+        <Typography variant="body2" className="student-name-data">
+          {s.gender
+            ? s.gender.charAt(0).toUpperCase() + s.gender.slice(1).toLowerCase()
+            : ''}
+        </Typography>
+      ),
+    };
+    const performanceColumn: Column<DisplayStudent> = {
+      key: 'schstudents_performance',
+      label: t('Performance'),
+      sortable: false,
+      render: (s) => (
+        <Chip
+          label={t(s.schstudents_performance || 'Not Downloaded')}
+          size="small"
+          className={getPerformanceChipClass(
+            s.schstudents_performance || 'Not Downloaded',
+          )}
+          sx={{
+            fontWeight: 500,
+            fontSize: '0.75rem',
+            height: 24,
+            borderRadius: '4px',
+          }}
+        />
+      ),
+    };
+    const whatsappGroupColumn: Column<DisplayStudent> = {
+      key: 'whatsappGroupStatus',
+      label: t('WhatsApp Group'),
+      sortable: false,
+      render: (s) => renderWhatsappGroupChip(s.whatsappGroupStatus),
+    };
     if (!issTotal) {
       return [
         ...commonColumns,
-        {
-          key: 'gender',
-          label: t('Gender'),
-          sortable: false,
-          render: (s) => (
-            <Typography variant="body2" className="student-name-data">
-              {s.gender
-                ? s.gender.charAt(0).toUpperCase() +
-                  s.gender.slice(1).toLowerCase()
-                : ''}
-            </Typography>
-          ),
-        },
-        {
-          key: 'schstudents_performance',
-          label: t('Performance'),
-          sortable: false,
-          render: (s) => (
-            <Chip
-              label={t(s.schstudents_performance || 'Not Downloaded')}
-              size="small"
-              className={getPerformanceChipClass(
-                s.schstudents_performance || 'Not Downloaded',
-              )}
-              sx={{
-                fontWeight: 500,
-                fontSize: '0.75rem',
-                height: 24,
-                borderRadius: '4px',
-              }}
-            />
-          ),
-        },
-        {
-          key: 'whatsappGroupStatus',
-          label: t('WhatsApp Group'),
-          sortable: false,
-          render: (s) => renderWhatsappGroupChip(s.whatsappGroupStatus),
-        },
+        genderColumn,
+        performanceColumn,
+        whatsappGroupColumn,
         ...actionColumn,
       ];
     } else {
       return [
         ...commonColumns,
-        {
-          key: 'gender',
-          label: t('Gender'),
-          render: (s) => (
-            <Typography variant="body2" className="student-name-data">
-              {s.gender
-                ? s.gender.charAt(0).toUpperCase() +
-                  s.gender.slice(1).toLowerCase()
-                : ''}
-            </Typography>
-          ),
-        },
-        {
-          key: 'schstudents_performance',
-          label: t('Performance'),
-          sortable: false,
-          render: (s) => (
-            <Chip
-              label={t(s.schstudents_performance || 'Not Downloaded')}
-              size="small"
-              className={getPerformanceChipClass(
-                s.schstudents_performance || 'Not Downloaded',
-              )}
-              sx={{
-                fontWeight: 500,
-                fontSize: '0.75rem',
-                height: 24,
-                borderRadius: '4px',
-              }}
-            />
-          ),
-        },
+        genderColumn,
+        performanceColumn,
         // { key: "phoneNumber", label: t("Phone Number / Email") },
         { key: 'class', label: t('Class') },
-        {
-          key: 'whatsappGroupStatus',
-          label: t('WhatsApp Group'),
-          sortable: false,
-          render: (s) => renderWhatsappGroupChip(s.whatsappGroupStatus),
-        },
+        whatsappGroupColumn,
         ...actionColumn,
       ];
     }
@@ -1115,7 +1082,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     getStudentInfoById,
     handleInteractClick,
     issTotal,
-    ,
     isExternalUser,
   ]);
 
