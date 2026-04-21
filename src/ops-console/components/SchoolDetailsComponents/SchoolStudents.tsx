@@ -182,13 +182,13 @@ const mapOpsLabelToPerformanceLevel = (
   | PerformanceLevel.NEED_HELP
   | PerformanceLevel.NOT_TRACKED => {
   switch (label) {
-    case 'High Engagement':
+    case OPS_PERFORMANCE_BANDS.HIGH:
       return PerformanceLevel.DOING_GOOD;
-    case 'Medium Engagement':
+    case OPS_PERFORMANCE_BANDS.MEDIUM:
       return PerformanceLevel.STILL_LEARNING;
-    case 'Not Active':
+    case OPS_PERFORMANCE_BANDS.NOT_ACTIVE:
       return PerformanceLevel.NEED_HELP;
-    case 'Not Downloaded':
+    case OPS_PERFORMANCE_BANDS.NOT_DOWNLOADED:
     default:
       return PerformanceLevel.NOT_TRACKED;
   }
@@ -814,7 +814,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         ),
         schstudents_performance:
           studentPerformanceMap.get(`${rowClassId}:${s_api.user.id}`) ??
-          'Not Downloaded',
+          OPS_PERFORMANCE_BANDS.NOT_DOWNLOADED,
         // Status is derived from parent is_wa_contact + class group membership.
         whatsappGroupStatus: getWhatsappGroupStatus(s_api),
       };
@@ -885,7 +885,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         : null;
 
       setStudentData(fullStudent);
-      setStudentStatus(mappedType ?? OpsSupportLevelMap['Not Downloaded']);
+      setStudentStatus(
+        mappedType ?? OpsSupportLevelMap[OPS_PERFORMANCE_BANDS.NOT_DOWNLOADED],
+      );
       setOpenPopup(true);
     },
     [getStudentInfoById],
@@ -1038,10 +1040,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       sortable: false,
       render: (s) => (
         <Chip
-          label={t(s.schstudents_performance || 'Not Downloaded')}
+          label={t(
+            s.schstudents_performance || OPS_PERFORMANCE_BANDS.NOT_DOWNLOADED,
+          )}
           size="small"
           className={getPerformanceChipClass(
-            s.schstudents_performance || 'Not Downloaded',
+            s.schstudents_performance || OPS_PERFORMANCE_BANDS.NOT_DOWNLOADED,
           )}
           sx={{
             fontWeight: 500,
