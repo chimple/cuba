@@ -340,7 +340,7 @@ function DataTableBodyInner<T extends object>(
               return (
                 <TableRow
                   id="data-tablebody-row"
-                  key={idx}
+                  key={String(rowId)}
                   hover
                   onClick={() => {
                     handleRowAction(row);

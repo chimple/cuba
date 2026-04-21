@@ -9253,15 +9253,6 @@ export class SupabaseApi implements ServiceApi {
 
       const rows = (data ?? []) as Array<Record<string, unknown>>;
 
-      const schoolIds = rows
-        .map((row) => row.school_id)
-        .filter((id): id is string => !!id);
-
-      if (schoolIds.length > 0) {
-        // Intentionally no extra enrichment here. The listing should stay
-        // scoped to school_metrics only.
-      }
-
       const mappedRows = rows.map((row: Record<string, unknown>) => ({
         ...row,
         school_name: typeof row.school_name === 'string' ? row.school_name : '',

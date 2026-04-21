@@ -9,6 +9,7 @@ import {
   ListItemText,
   Menu,
   MenuItem,
+  CircularProgress,
   Tab,
   Tabs,
   Typography,
@@ -798,6 +799,18 @@ const SchoolList: React.FC = () => {
             !isLoading && schools.length === 0 ? 'school-list-no-schools' : ''
           }`}
         >
+          {isLoading && (
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              minHeight={240}
+              width="100%"
+            >
+              <CircularProgress size={28} />
+            </Box>
+          )}
+
           {!isLoading && schools.length > 0 && (
             <DataTableBody
               columns={columns}
