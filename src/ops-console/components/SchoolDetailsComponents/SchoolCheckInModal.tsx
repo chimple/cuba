@@ -559,7 +559,9 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   const hasAddressLine1Data =
     Boolean(userAddress?.trim()) || Boolean(schoolAddress?.trim());
   const hasAddressLine2Data =
-    targetLocation.address2 === undefined || !isSchoolLocationMissing;
+    isSchoolLocationMissing ||
+    targetLocation.address2 === undefined ||
+    Boolean(targetLocation.address2);
   const isAddressInfoReady = hasAddressLine1Data && hasAddressLine2Data;
   const isLocationPending = isLoadingLocation && !isLocationLoadTimeoutReached;
   const isAddressPending =
