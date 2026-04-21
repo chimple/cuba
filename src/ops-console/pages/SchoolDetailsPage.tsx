@@ -10,7 +10,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import SchoolDetailsTabsComponent from '../components/SchoolDetailsComponents/SchoolDetailsTabsComponent';
-import { TableTypes } from '../../common/constants';
+import { PAGES, TableTypes } from '../../common/constants';
 import SchoolCheckInModal from '../components/SchoolDetailsComponents/SchoolCheckInModal';
 import {
   SchoolVisitAction,
@@ -21,9 +21,12 @@ import {
 import { Button, Menu, MenuItem, Divider } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddNoteModal from '../components/SchoolDetailsComponents/AddNoteModal';
-import { SchoolTabs } from '../../interface/modelInterfaces';
+import { RoleType, SchoolTabs } from '../../interface/modelInterfaces';
 import { NOTES_UPDATED_EVENT } from '../../common/constants';
 import logger from '../../utility/logger';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -85,6 +88,12 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const history = useHistory();
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+
   const [goToClassesTab, setGoToClassesTab] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
@@ -94,6 +103,11 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     text: string;
     mediaLinks?: string[] | null;
   }) => {
+    if (isExternalUser) {
+      setShowAddModal(false);
+      return;
+    }
+
     try {
       const api = ServiceConfig.getI().apiHandler;
       // call the API you added; classId = null for school-level note
@@ -182,6 +196,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const openMenu = Boolean(anchorEl);
 
   useEffect(() => {
+    if (isExternalUser) return;
     const fetchVisitStatus = async () => {
       const api = ServiceConfig.getI().apiHandler;
       const lastVisit = await api.getLastSchoolVisit(id);
@@ -192,7 +207,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       }
     };
     fetchVisitStatus();
-  }, [id]);
+  }, [id, isExternalUser]);
 
   const handleOpenCheckInMenu = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -439,22 +454,24 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       <div className="school-detail-header">
         {schoolName && <SchoolNameHeaderComponent schoolName={schoolName} />}
       </div>
-      <SchoolCheckInModal
-        open={isCheckInModalOpen}
-        onClose={() => setIsCheckInModalOpen(false)}
-        onConfirm={handleConfirmCheckInAction}
-        status={
-          checkInStatus === SchoolVisitStatus.CheckedIn
-            ? SchoolVisitAction.CheckOut
-            : SchoolVisitAction.CheckIn
-        }
-        schoolName={schoolName || t('Unknown School')}
-        isFirstTime={isFirstTimeCheckIn}
-        schoolLocation={schoolLocation}
-        schoolAddress={data.schoolData?.address}
-        schoolId={id}
-        onLocationUpdated={fetchAll}
-      />
+      {!isExternalUser && (
+        <SchoolCheckInModal
+          open={isCheckInModalOpen}
+          onClose={() => setIsCheckInModalOpen(false)}
+          onConfirm={handleConfirmCheckInAction}
+          status={
+            checkInStatus === SchoolVisitStatus.CheckedIn
+              ? SchoolVisitAction.CheckOut
+              : SchoolVisitAction.CheckIn
+          }
+          schoolName={schoolName || t('Unknown School')}
+          isFirstTime={isFirstTimeCheckIn}
+          schoolLocation={schoolLocation}
+          schoolAddress={data.schoolData?.address}
+          schoolId={id}
+          onLocationUpdated={fetchAll}
+        />
+      )}
       {!isMobile && schoolName && (
         <div className="school-detail-secondary-header">
           {/* Left Side: Breadcrumb */}
@@ -469,100 +486,112 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
               },
             ]}
             endActions={
-              <>
-                {activeTab === SchoolTabs.Overview && (
-                  <Button
-                    variant="outlined"
-                    onClick={() => setShowAddModal(true)}
-                    className="btn-add-notes"
-                  >
-                    + {t('Add Notes')}
-                  </Button>
-                )}
-                {checkInStatus === SchoolVisitStatus.CheckedOut ? (
-                  <>
+              isExternalUser ? null : (
+                <>
+                  {activeTab === SchoolTabs.Overview && (
+                    <Button
+                      variant="outlined"
+                      onClick={() => setShowAddModal(true)}
+                      className="btn-add-notes"
+                    >
+                      + {t('Add Notes')}
+                    </Button>
+                  )}
+                  {checkInStatus === SchoolVisitStatus.CheckedOut ? (
+                    <>
+                      <Button
+                        variant="contained"
+                        onClick={handleOpenCheckInMenu}
+                        endIcon={
+                          <ArrowDropDownIcon
+                            className={`check-in-icon ${openMenu ? 'check-in-icon-rotated' : ''}`}
+                          />
+                        }
+                        className="btn-check-in"
+                      >
+                        {t('Check In')}
+                      </Button>
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={openMenu}
+                        onClose={handleCloseMenu}
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'right',
+                        }}
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'right',
+                        }}
+                        classes={{
+                          paper: 'schooldetailspage check-in-menu-paper',
+                        }}
+                      >
+                        <MenuItem
+                          onClick={() =>
+                            handleSelectVisitType(SchoolVisitType.Regular)
+                          }
+                          className="check-in-menu-item"
+                        >
+                          {t(SchoolVisitTypeLabels[SchoolVisitType.Regular])}
+                        </MenuItem>
+                        <Divider className="check-in-menu-divider" />
+                        <MenuItem
+                          onClick={() =>
+                            handleSelectVisitType(
+                              SchoolVisitType.ParentsTeacherMeeting,
+                            )
+                          }
+                          className="check-in-menu-item"
+                        >
+                          {t(
+                            SchoolVisitTypeLabels[
+                              SchoolVisitType.ParentsTeacherMeeting
+                            ],
+                          )}
+                        </MenuItem>
+                        <Divider className="check-in-menu-divider" />
+                        <MenuItem
+                          onClick={() =>
+                            handleSelectVisitType(
+                              SchoolVisitType.TeacherTraining,
+                            )
+                          }
+                          className="check-in-menu-item"
+                        >
+                          {t(
+                            SchoolVisitTypeLabels[
+                              SchoolVisitType.TeacherTraining
+                            ],
+                          )}
+                        </MenuItem>
+                      </Menu>
+                    </>
+                  ) : (
                     <Button
                       variant="contained"
-                      onClick={handleOpenCheckInMenu}
-                      endIcon={
-                        <ArrowDropDownIcon
-                          className={`check-in-icon ${openMenu ? 'check-in-icon-rotated' : ''}`}
-                        />
-                      }
-                      className="btn-check-in"
+                      onClick={handleOpenCheckInModal}
+                      className="btn-check-out"
                     >
-                      {t('Check In')}
+                      {t('Check Out')}
                     </Button>
-                    <Menu
-                      anchorEl={anchorEl}
-                      open={openMenu}
-                      onClose={handleCloseMenu}
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                      classes={{
-                        paper: 'schooldetailspage check-in-menu-paper',
-                      }}
-                    >
-                      <MenuItem
-                        onClick={() =>
-                          handleSelectVisitType(SchoolVisitType.Regular)
-                        }
-                        className="check-in-menu-item"
-                      >
-                        {t(SchoolVisitTypeLabels[SchoolVisitType.Regular])}
-                      </MenuItem>
-                      <Divider className="check-in-menu-divider" />
-                      <MenuItem
-                        onClick={() =>
-                          handleSelectVisitType(
-                            SchoolVisitType.ParentsTeacherMeeting,
-                          )
-                        }
-                        className="check-in-menu-item"
-                      >
-                        {t(
-                          SchoolVisitTypeLabels[
-                            SchoolVisitType.ParentsTeacherMeeting
-                          ],
-                        )}
-                      </MenuItem>
-                      <Divider className="check-in-menu-divider" />
-                      <MenuItem
-                        onClick={() =>
-                          handleSelectVisitType(SchoolVisitType.TeacherTraining)
-                        }
-                        className="check-in-menu-item"
-                      >
-                        {t(
-                          SchoolVisitTypeLabels[
-                            SchoolVisitType.TeacherTraining
-                          ],
-                        )}
-                      </MenuItem>
-                    </Menu>
-                  </>
-                ) : (
-                  <Button
-                    variant="contained"
-                    onClick={handleOpenCheckInModal}
-                    className="btn-check-out"
-                  >
-                    {t('Check Out')}
-                  </Button>
-                )}
-              </>
+                  )}
+                </>
+              )
             }
           />
         </div>
       )}
       {/* Modal outside the header */}
-      <AddNoteModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSave={handleAddNoteHeader}
-        source="school"
-        schoolId={id}
-      />
+      {!isExternalUser && (
+        <AddNoteModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onSave={handleAddNoteHeader}
+          source="school"
+          schoolId={id}
+        />
+      )}
 
       <div className="school-detail-tertiary-gap" />
       <div className="school-detail-tertiary-header">

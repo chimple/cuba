@@ -63,6 +63,10 @@ import {
   getClassDisplayLabel,
   getExactClassName,
 } from './ClassDetailsPageUtils';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
 
 type ApiStudentData = StudentInfo;
 type StudentPerformanceBand =
@@ -230,6 +234,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 }) => {
   const [openPopup, setOpenPopup] = useState(false);
   const history = useHistory();
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
   const [students, setStudents] = useState<ApiStudentData[]>(
     data.students || [],
@@ -883,90 +892,95 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   );
 
   const columns: Column<DisplayStudent>[] = useMemo(() => {
-    const actionColumn: Column<DisplayStudent>[] = [
-      {
-        key: 'schstudents_actions',
-        label: '',
-        sortable: false,
-        render: (s) => (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <ActionMenu
-              items={[
-                {
-                  name: t('Send Message'),
-                  icon: (
-                    <ChatBubbleOutlineOutlined
-                      fontSize="small"
-                      sx={{ color: 'black' }}
-                    />
-                  ),
-                },
-                {
-                  name: t('Edit Details'),
-                  icon: (
-                    <BorderColorIcon fontSize="small" sx={{ color: 'black' }} />
-                  ),
-                  onClick: () => {
-                    const fullStudent = getStudentInfoById(s.id);
-                    if (!fullStudent) return;
-                    setEditStudentData(fullStudent);
-                    setIsEditStudentModalOpen(true);
-                  },
-                },
-                {
-                  name: t('Merge'),
-                  icon: (
-                    <MergeOutlinedIcon
-                      fontSize="small"
-                      sx={{ color: 'black' }}
-                      style={{ transform: 'rotate(90deg)' }}
-                    />
-                  ),
-                  onClick: () => {
-                    setMergePrimaryStudent(s);
-                    setIsMergeStudentModalOpen(true);
-                  },
-                },
-                {
-                  name: t('Delete'),
-                  icon: (
-                    <DeleteOutlineIcon
-                      fontSize="small"
-                      sx={{ color: 'black' }}
-                    />
-                  ),
-                  onClick: () => {
-                    setDeleteTargetStudent(getDeleteTargetStudent(s));
-                    setIsDeleteModalOpen(true);
-                  },
-                },
-              ]}
-              renderTrigger={(open) => (
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    open(e);
-                  }}
-                  sx={{
-                    color: '#6B7280',
-                    '&:hover': { bgcolor: '#F3F4F6' },
-                  }}
-                >
-                  <MoreHoriz sx={{ fontSize: 20, fontWeight: 800 }} />
-                </IconButton>
-              )}
-            />
-          </Box>
-        ),
-      },
-    ];
+    const actionColumn: Column<DisplayStudent>[] = isExternalUser
+      ? []
+      : [
+          {
+            key: 'schstudents_actions',
+            label: '',
+            sortable: false,
+            render: (s) => (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <ActionMenu
+                  items={[
+                    {
+                      name: t('Send Message'),
+                      icon: (
+                        <ChatBubbleOutlineOutlined
+                          fontSize="small"
+                          sx={{ color: 'black' }}
+                        />
+                      ),
+                    },
+                    {
+                      name: t('Edit Details'),
+                      icon: (
+                        <BorderColorIcon
+                          fontSize="small"
+                          sx={{ color: 'black' }}
+                        />
+                      ),
+                      onClick: () => {
+                        const fullStudent = getStudentInfoById(s.id);
+                        if (!fullStudent) return;
+                        setEditStudentData(fullStudent);
+                        setIsEditStudentModalOpen(true);
+                      },
+                    },
+                    {
+                      name: t('Merge'),
+                      icon: (
+                        <MergeOutlinedIcon
+                          fontSize="small"
+                          sx={{ color: 'black' }}
+                          style={{ transform: 'rotate(90deg)' }}
+                        />
+                      ),
+                      onClick: () => {
+                        setMergePrimaryStudent(s);
+                        setIsMergeStudentModalOpen(true);
+                      },
+                    },
+                    {
+                      name: t('Delete'),
+                      icon: (
+                        <DeleteOutlineIcon
+                          fontSize="small"
+                          sx={{ color: 'black' }}
+                        />
+                      ),
+                      onClick: () => {
+                        setDeleteTargetStudent(getDeleteTargetStudent(s));
+                        setIsDeleteModalOpen(true);
+                      },
+                    },
+                  ]}
+                  renderTrigger={(open) => (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        open(e);
+                      }}
+                      sx={{
+                        color: '#6B7280',
+                        '&:hover': { bgcolor: '#F3F4F6' },
+                      }}
+                    >
+                      <MoreHoriz sx={{ fontSize: 20, fontWeight: 800 }} />
+                    </IconButton>
+                  )}
+                />
+              </Box>
+            ),
+          },
+        ];
     const commonColumns: Column<DisplayStudent>[] = [
       {
         key: 'studentIdDisplay',
@@ -1101,6 +1115,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     getStudentInfoById,
     handleInteractClick,
     issTotal,
+    ,
+    isExternalUser,
   ]);
 
   const classOptions = useMemo(() => {
@@ -1812,14 +1828,16 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
         {/* Always show New Student + Search/Filter, even if no students match search/filter */}
         <Box className="schoolStudents-actionsGroup">
-          <MuiButton
-            variant="outlined"
-            onClick={handleAddNewStudent}
-            className="schoolStudents-newStudentButton-outlined"
-          >
-            <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
-            {!isSmallScreen && t('New Student')}
-          </MuiButton>
+          {!isExternalUser && (
+            <MuiButton
+              variant="outlined"
+              onClick={handleAddNewStudent}
+              className="schoolStudents-newStudentButton-outlined"
+            >
+              <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
+              {!isSmallScreen && t('New Student')}
+            </MuiButton>
+          )}
           <SearchAndFilter
             searchTerm={searchTerm}
             onSearchChange={handleSearchChange}

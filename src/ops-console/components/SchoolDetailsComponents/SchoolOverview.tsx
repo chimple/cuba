@@ -25,6 +25,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     (state: RootState) => state.auth as AuthState,
   );
   const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const programTabLabels = PROGRAM_TAB_LABELS as Record<string, string>;
   // school details
   const formatingSchoolModel = (raw: any) => {
@@ -137,7 +138,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
       className="interaction-card"
       hideDivider={true}
       headerAction={
-        !isMobile ? (
+        !isMobile && !isExternalUser ? (
           <Button
             size="small"
             variant="outlined"
@@ -173,7 +174,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
           </Grid>
         ))}
       </Grid>
-      {isMobile && (
+      {isMobile && !isExternalUser && (
         <Button
           fullWidth
           size="small"
@@ -246,15 +247,17 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 </Box>
               ))}
             </Box>
-            <Button
-              fullWidth
-              size="small"
-              className="full-width-button"
-              variant="outlined"
-              sx={{ mt: 2, textTransform: 'none' }}
-            >
-              {t('View Detailed Analytics')}
-            </Button>
+            {!isExternalUser && (
+              <Button
+                fullWidth
+                size="small"
+                className="full-width-button"
+                variant="outlined"
+                sx={{ mt: 2, textTransform: 'none' }}
+              >
+                {t('View Detailed Analytics')}
+              </Button>
+            )}
           </InfoCard>
           <InfoCard
             title={t('Key Contacts')}
@@ -297,7 +300,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             title={t('School Details')}
             className="school-detail-infocard school-card"
             items={schoolDetailsItems}
-            showEditIcon={haveAccess}
+            showEditIcon={isExternalUser ? false : haveAccess}
             onEditClick={() =>
               history.replace(
                 `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
@@ -372,15 +375,17 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                   </Box>
                 ))}
               </Box>
-              <Button
-                fullWidth
-                size="small"
-                className="full-width-button"
-                variant="outlined"
-                sx={{ mt: 2, textTransform: 'none' }}
-              >
-                {t('View Detailed Analytics')}
-              </Button>
+              {!isExternalUser && (
+                <Button
+                  fullWidth
+                  size="small"
+                  className="full-width-button"
+                  variant="outlined"
+                  sx={{ mt: 2, textTransform: 'none' }}
+                >
+                  {t('View Detailed Analytics')}
+                </Button>
+              )}
             </InfoCard>
           </Grid>
 
@@ -395,7 +400,7 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 title={t('School Details')}
                 className="school-detail-infocard school-card"
                 items={schoolDetailsItems}
-                showEditIcon={haveAccess}
+                showEditIcon={isExternalUser ? false : haveAccess}
                 onEditClick={() =>
                   history.replace(
                     `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
