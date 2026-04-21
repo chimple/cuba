@@ -9189,7 +9189,13 @@ export class SupabaseApi implements ServiceApi {
         query = query.in('cluster', cleanedFilters.cluster);
       }
       if (cleanedFilters.model?.length) {
-        query = query.in('school_model', cleanedFilters.model);
+        const schoolModelValues = cleanedFilters.model.filter(
+          (value): value is 'hybrid' | 'at_home' | 'at_school' =>
+            value === 'hybrid' || value === 'at_home' || value === 'at_school',
+        );
+        if (schoolModelValues.length) {
+          query = query.in('school_model', schoolModelValues);
+        }
       }
       if (cleanedFilters.partner?.length) {
         query = query.overlaps('partners', cleanedFilters.partner);
@@ -9207,7 +9213,15 @@ export class SupabaseApi implements ServiceApi {
         );
       }
       if (cleanedFilters.programType?.length) {
-        query = query.in('program_type', cleanedFilters.programType);
+        const programTypeValues = cleanedFilters.programType.filter(
+          (value): value is 'government' | 'private' | 'learning_centers' =>
+            value === 'government' ||
+            value === 'private' ||
+            value === 'learning_centers',
+        );
+        if (programTypeValues.length) {
+          query = query.in('program_type', programTypeValues);
+        }
       }
 
       if (search) {
