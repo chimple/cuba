@@ -1,6 +1,13 @@
 import { IonPage } from '@ionic/react';
 import React, { useEffect, useState } from 'react';
-import { Redirect, Switch, useParams, useRouteMatch } from 'react-router-dom';
+import {
+  Redirect,
+  Switch,
+  useParams,
+  useRouteMatch,
+  useHistory,
+  useLocation,
+} from 'react-router-dom';
 import { PAGES, TableTypes } from '../../common/constants';
 import ProtectedRoute from '../../ProtectedRoute';
 import { ServiceConfig } from '../../services/ServiceConfig';
@@ -32,6 +39,10 @@ import './SidebarPage.css';
 import StudentPendingRequest from './StudentPendingRequest';
 import UserDetailsPage from './UserDetailsPage';
 import UsersPage from './UsersPage';
+import { RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
 
 const SchoolDetailsRoute: React.FC = () => {
   const { school_id } = useParams<{ school_id: string }>();
@@ -50,14 +61,35 @@ const ProgramConnectedSchoolRoute: React.FC = () => {
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
-
+  const history = useHistory();
+  const location = useLocation();
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
     null,
   );
 
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (!isExternalUser) return;
+
+    const schoolListPath = `${path}${PAGES.SCHOOL_LIST}`;
+    const schoolDetailsPrefix = `${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/`;
+    const isAllowedPath =
+      location.pathname === schoolListPath ||
+      location.pathname.startsWith(schoolDetailsPrefix);
+
+    if (!isAllowedPath) {
+      history.replace(schoolListPath);
+    }
+  }, [history, isExternalUser, location.pathname, path]);
 
   const fetchData = async () => {
     try {
@@ -84,7 +116,12 @@ const SidebarPage: React.FC = () => {
         <div className="sidebarpage-render">
           <Switch>
             <ProtectedRoute exact path={path}>
-              <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+              <Redirect
+                to={`${
+                  path +
+                  (isExternalUser ? PAGES.SCHOOL_LIST : PAGES.PROGRAM_PAGE)
+                }`}
+              />
             </ProtectedRoute>
             {/* <ProtectedRoute
               path={`${path}${PAGES.ADMIN_DASHBOARD}`}
