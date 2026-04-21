@@ -93,21 +93,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
-  const [isAccessValidated, setIsAccessValidated] = useState(false);
-  const [hasSchoolAccess, setHasSchoolAccess] = useState(true);
-  const [schoolStats, setSchoolStats] = useState<SchoolStats>({
-    active_student_percentage: 0,
-    active_teacher_percentage: 0,
-    avg_weekly_time_minutes: 0,
-  });
-  const [interactionStats, setInteractionStats] = useState<FCSchoolStats>({
-    visits: 0,
-    calls_made: 0,
-    tech_issues: 0,
-    parents_interacted: 0,
-    students_interacted: 0,
-    teachers_interacted: 0,
-  });
+
   const [goToClassesTab, setGoToClassesTab] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
@@ -147,68 +133,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       // optional: show UI error (not added to keep changes minimal)
     }
   };
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const validateSchoolAccess = async () => {
-      if (!isExternalUser) {
-        if (!cancelled) {
-          setHasSchoolAccess(true);
-          setIsAccessValidated(true);
-        }
-        return;
-      }
-
-      setIsAccessValidated(false);
-      const api = ServiceConfig.getI().apiHandler;
-      const auth = ServiceConfig.getI().authHandler;
-
-      try {
-        const currentUser = await auth.getCurrentUser();
-        if (!currentUser?.id) {
-          if (!cancelled) {
-            setHasSchoolAccess(false);
-            setIsAccessValidated(true);
-            setLoading(false);
-          }
-          history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
-          return;
-        }
-
-        const mappedSchools = await api.getSchoolsForUser(currentUser.id);
-        const hasAccess = mappedSchools.some(
-          (entry) => entry?.school?.id === id,
-        );
-
-        if (!cancelled) {
-          setHasSchoolAccess(hasAccess);
-          setIsAccessValidated(true);
-          if (!hasAccess) {
-            setLoading(false);
-          }
-        }
-
-        if (!hasAccess) {
-          history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
-        }
-      } catch (error) {
-        logger.error('Failed to validate external_user school access:', error);
-        if (!cancelled) {
-          setHasSchoolAccess(false);
-          setIsAccessValidated(true);
-          setLoading(false);
-        }
-        history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
-      }
-    };
-
-    validateSchoolAccess();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [history, id, isExternalUser]);
 
   const [schoolLocation, setSchoolLocation] = useState<
     { lat: number; lng: number } | undefined
@@ -507,9 +431,9 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
 
   useEffect(() => {
     void fetchAll();
-  }, [fetchAll, isAccessValidated, hasSchoolAccess]);
+  }, [fetchAll]);
 
-  if (!isAccessValidated || loading) {
+  if (loading) {
     return (
       <Box
         display="flex"
@@ -520,10 +444,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         <CircularProgress />
       </Box>
     );
-  }
-
-  if (!isAccessValidated || !hasSchoolAccess) {
-    return null;
   }
 
   const schoolName = data.schoolData?.name;

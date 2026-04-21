@@ -466,28 +466,30 @@ const SchoolList: React.FC = () => {
                 onClearFilters={handleCancelFilters}
               />
               <div className="school-list-actions-group">
-                <Button
-                  variant="outlined"
-                  id="school-list-actions-button"
-                  className="school-list-actions-button"
-                  onClick={handleOpenActionsMenu}
-                  aria-controls={
-                    isActionsMenuOpen ? 'school-list-actions-menu' : undefined
-                  }
-                  aria-expanded={isActionsMenuOpen ? 'true' : undefined}
-                  aria-haspopup="menu"
-                  endIcon={
-                    <ArrowDropDownIcon
-                      className={`school-list-actions-chevron ${
-                        isActionsMenuOpen
-                          ? 'school-list-actions-chevron-open'
-                          : ''
-                      }`}
-                    />
-                  }
-                >
-                  {t('Actions')}
-                </Button>
+                {!isExternalUser && (
+                  <Button
+                    variant="outlined"
+                    id="school-list-actions-button"
+                    className="school-list-actions-button"
+                    onClick={handleOpenActionsMenu}
+                    aria-controls={
+                      isActionsMenuOpen ? 'school-list-actions-menu' : undefined
+                    }
+                    aria-expanded={isActionsMenuOpen ? 'true' : undefined}
+                    aria-haspopup="menu"
+                    endIcon={
+                      <ArrowDropDownIcon
+                        className={`school-list-actions-chevron ${
+                          isActionsMenuOpen
+                            ? 'school-list-actions-chevron-open'
+                            : ''
+                        }`}
+                      />
+                    }
+                  >
+                    {t('Actions')}
+                  </Button>
+                )}
                 <Menu
                   id="school-list-actions-menu"
                   anchorEl={actionsAnchorEl}
