@@ -3577,9 +3577,38 @@ export class Util {
         }),
       );
 
-      // 10. REBUILD: [Played ] + [New ] + [New ]
-      // Result: index 2 remains A, index 3 becomes C, index 4 becomes D.
-      const updatedLessons = [...history, ...newLessons];
+      // 10. REBUILD while preserving original path length.
+      // If DB doesn't return enough replacements, keep existing future lessons
+      // so UI index progression does not collapse back to 0.
+      type LessonWithAssignmentId = { assignment_id?: string | null };
+      const existingFutureLessons = originalLessons.slice(completedIndex + 1);
+      const usedAssignmentIds = new Set<string>(
+        [...history, ...newLessons]
+          .map((l) => (l as LessonWithAssignmentId)?.assignment_id)
+          .filter(
+            (id): id is string => typeof id === 'string' && id.length > 0,
+          ),
+      );
+      const fallbackFutureLessons = existingFutureLessons.filter(
+        (lesson: unknown) => {
+          const typedLesson = lesson as LessonWithAssignmentId;
+          const assignmentId = typedLesson.assignment_id;
+          return !assignmentId || !usedAssignmentIds.has(assignmentId);
+        },
+      );
+
+      const filledFutureLessons = [...newLessons];
+      if (filledFutureLessons.length < remainingSlotsCount) {
+        const missingCount = remainingSlotsCount - filledFutureLessons.length;
+        filledFutureLessons.push(
+          ...fallbackFutureLessons.slice(0, missingCount),
+        );
+      }
+
+      const updatedLessons = [
+        ...history,
+        ...filledFutureLessons.slice(0, remainingSlotsCount),
+      ];
 
       localStorage.setItem(
         HOMEWORK_PATHWAY,

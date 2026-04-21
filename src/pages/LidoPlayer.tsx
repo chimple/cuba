@@ -42,6 +42,8 @@ import {
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
 
+const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
+
 const LidoPlayer: FC = () => {
   const history = useHistory();
   const [present] = useIonToast();
@@ -624,7 +626,13 @@ const LidoPlayer: FC = () => {
         await Util.updateLearningPath(currentStudent, isReward);
       } else if (is_homework && homeworkIndex !== undefined) {
         // This handles our temporary homework path
-        Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex);
+        if (isReward) {
+          sessionStorage.setItem(
+            HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
+            String(homeworkIndex),
+          );
+        }
+        await Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex);
         await Util.updateHomeworkPath(homeworkIndex);
       }
 

@@ -34,6 +34,8 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { palUtil } from '../utility/palUtil';
 import logger from '../utility/logger';
 
+const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
+
 const CocosGame: React.FC = () => {
   const history = useHistory();
   const location = history.location.state as {
@@ -457,6 +459,12 @@ const CocosGame: React.FC = () => {
     if (learning_path) {
       await Util.updateLearningPath(currentStudent, isReward);
     } else if (is_homework && homeworkIndex !== undefined) {
+      if (isReward) {
+        sessionStorage.setItem(
+          HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
+          String(homeworkIndex),
+        );
+      }
       await Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex); // NEW
       await Util.updateHomeworkPath(homeworkIndex);
     }
