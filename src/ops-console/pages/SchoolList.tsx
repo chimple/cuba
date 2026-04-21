@@ -153,6 +153,7 @@ const SchoolList: React.FC = () => {
     (state: RootState) => state.auth as AuthState,
   );
   const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
 
   const rolesWithAccess = [
     RoleType.SUPER_ADMIN,
@@ -547,41 +548,43 @@ const SchoolList: React.FC = () => {
     );
   };
 
-  const actionItems = [
-    ...(haveAccess
-      ? [
-          {
-            key: 'migrate',
-            label: t('Migrate'),
-            icon: (
-              <img
-                id="school-list-actions-migrate-icon"
-                src="assets/icons/migrateArrow.svg"
-                alt=""
-                className="school-list-actions-menu-icon-image"
-              />
-            ),
-            onClick: handleOpenMigratePage,
-          },
-        ]
-      : []),
-    {
-      key: 'upload',
-      label: t('Upload'),
-      icon: <FileUploadOutlined className="school-list-upload-icon" />,
-      onClick: handleOpenUploadPage,
-    },
-    ...(haveAccess
-      ? [
-          {
-            key: 'add-school',
-            label: t('Add School'),
-            icon: <Add className="school-list-upload-icon" />,
-            onClick: handleOpenAddSchoolPage,
-          },
-        ]
-      : []),
-  ];
+  const actionItems = !isExternalUser
+    ? [
+        ...(haveAccess
+          ? [
+              {
+                key: 'migrate',
+                label: t('Migrate'),
+                icon: (
+                  <img
+                    id="school-list-actions-migrate-icon"
+                    src="assets/icons/migrateArrow.svg"
+                    alt=""
+                    className="school-list-actions-menu-icon-image"
+                  />
+                ),
+                onClick: handleOpenMigratePage,
+              },
+            ]
+          : []),
+        {
+          key: 'upload',
+          label: t('Upload'),
+          icon: <FileUploadOutlined className="school-list-upload-icon" />,
+          onClick: handleOpenUploadPage,
+        },
+        ...(haveAccess
+          ? [
+              {
+                key: 'add-school',
+                label: t('Add School'),
+                icon: <Add className="school-list-upload-icon" />,
+                onClick: handleOpenAddSchoolPage,
+              },
+            ]
+          : []),
+      ]
+    : [];
   const actionMenuEntries = actionItems.flatMap((item, index) => {
     const nodes = [
       <MenuItem
@@ -699,28 +702,30 @@ const SchoolList: React.FC = () => {
                 />
               </div>
               <div className="school-list-actions-group">
-                <Button
-                  variant="outlined"
-                  id="school-list-actions-button"
-                  className="school-list-actions-button"
-                  onClick={handleOpenActionsMenu}
-                  aria-controls={
-                    isActionsMenuOpen ? 'school-list-actions-menu' : undefined
-                  }
-                  aria-expanded={isActionsMenuOpen ? 'true' : undefined}
-                  aria-haspopup="menu"
-                  endIcon={
-                    <ArrowDropDownIcon
-                      className={`school-list-actions-chevron ${
-                        isActionsMenuOpen
-                          ? 'school-list-actions-chevron-open'
-                          : ''
-                      }`}
-                    />
-                  }
-                >
-                  {t('Actions')}
-                </Button>
+                {!isExternalUser && (
+                  <Button
+                    variant="outlined"
+                    id="school-list-actions-button"
+                    className="school-list-actions-button"
+                    onClick={handleOpenActionsMenu}
+                    aria-controls={
+                      isActionsMenuOpen ? 'school-list-actions-menu' : undefined
+                    }
+                    aria-expanded={isActionsMenuOpen ? 'true' : undefined}
+                    aria-haspopup="menu"
+                    endIcon={
+                      <ArrowDropDownIcon
+                        className={`school-list-actions-chevron ${
+                          isActionsMenuOpen
+                            ? 'school-list-actions-chevron-open'
+                            : ''
+                        }`}
+                      />
+                    }
+                  >
+                    {t('Actions')}
+                  </Button>
+                )}
                 <Menu
                   id="school-list-actions-menu"
                   anchorEl={actionsAnchorEl}

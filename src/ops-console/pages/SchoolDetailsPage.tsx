@@ -1,5 +1,5 @@
 // SchoolDetailsPage.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import './SchoolDetailsPage.css';
 import { Toast } from '@capacitor/toast';
 import { Box } from '@mui/material';
@@ -10,7 +10,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
 import Breadcrumb from '../components/Breadcrumb';
 import SchoolDetailsTabsComponent from '../components/SchoolDetailsComponents/SchoolDetailsTabsComponent';
-import { TableTypes } from '../../common/constants';
+import { PAGES, TableTypes } from '../../common/constants';
 import SchoolCheckInModal from '../components/SchoolDetailsComponents/SchoolCheckInModal';
 import {
   SchoolVisitAction,
@@ -21,9 +21,12 @@ import {
 import { Button, Menu, MenuItem, Divider } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddNoteModal from '../components/SchoolDetailsComponents/AddNoteModal';
-import { SchoolTabs } from '../../interface/modelInterfaces';
+import { RoleType, SchoolTabs } from '../../interface/modelInterfaces';
 import { NOTES_UPDATED_EVENT } from '../../common/constants';
 import logger from '../../utility/logger';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -85,19 +88,12 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const history = useHistory();
-  const [schoolStats, setSchoolStats] = useState<SchoolStats>({
-    active_student_percentage: 0,
-    active_teacher_percentage: 0,
-    avg_weekly_time_minutes: 0,
-  });
-  const [interactionStats, setInteractionStats] = useState<FCSchoolStats>({
-    visits: 0,
-    calls_made: 0,
-    tech_issues: 0,
-    parents_interacted: 0,
-    students_interacted: 0,
-    teachers_interacted: 0,
-  });
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+
   const [goToClassesTab, setGoToClassesTab] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
@@ -107,6 +103,11 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     text: string;
     mediaLinks?: string[] | null;
   }) => {
+    if (isExternalUser) {
+      setShowAddModal(false);
+      return;
+    }
+
     try {
       const api = ServiceConfig.getI().apiHandler;
       // call the API you added; classId = null for school-level note
@@ -195,6 +196,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const openMenu = Boolean(anchorEl);
 
   useEffect(() => {
+    if (isExternalUser) return;
     const fetchVisitStatus = async () => {
       const api = ServiceConfig.getI().apiHandler;
       const lastVisit = await api.getLastSchoolVisit(id);
@@ -205,7 +207,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       }
     };
     fetchVisitStatus();
-  }, [id]);
+  }, [id, isExternalUser]);
 
   const handleOpenCheckInMenu = (
     event: React.MouseEvent<HTMLButtonElement>,
@@ -236,7 +238,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     lng?: number,
     distance?: number,
   ) => {
-    setIsCheckInModalOpen(false);
     const api = ServiceConfig.getI().apiHandler;
     try {
       if (checkInStatus === SchoolVisitStatus.CheckedOut) {
@@ -252,6 +253,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           );
           if (res) {
             setCheckInStatus(SchoolVisitStatus.CheckedIn);
+            setIsCheckInModalOpen(false);
             await Toast.show({ text: t('Checked in successfully!') });
           }
         }
@@ -268,6 +270,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           );
           if (res) {
             setCheckInStatus(SchoolVisitStatus.CheckedOut);
+            setIsCheckInModalOpen(false);
             await Toast.show({ text: t('Checked out successfully!') });
           }
         }
@@ -281,11 +284,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     }
   };
 
-  useEffect(() => {
-    fetchAll();
-  }, [id]);
-
-  async function fetchAll() {
+  const fetchAll = useCallback(async () => {
     setLoading(true);
     const api = ServiceConfig.getI().apiHandler;
     const [
@@ -314,8 +313,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       active_teacher_percentage: result.active_teacher_percentage ?? 0,
       avg_weekly_time_minutes: result.avg_weekly_time_minutes ?? 0,
     };
-    const auth = ServiceConfig.getI().authHandler;
-    const currentUser = await auth.getCurrentUser();
     const interactionStat = await api.getSchoolStatsForSchool(id);
     const stats = Array.isArray(interactionStat)
       ? interactionStat[0]
@@ -329,8 +326,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       teachers_interacted: stats.teachers_interacted ?? 0,
     };
     // this must be called for all the class ids
-    setSchoolStats(newSchoolStats);
-    setInteractionStats(interStats);
     const studentsData = studentsResponse.data;
     const totalStudentCount = studentsResponse.total;
     const teachersData = teachersResponse.data;
@@ -432,7 +427,11 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       interactionStats: interStats,
     });
     setLoading(false);
-  }
+  }, [id]);
+
+  useEffect(() => {
+    void fetchAll();
+  }, [fetchAll]);
 
   if (loading) {
     return (
@@ -455,22 +454,24 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       <div className="school-detail-header">
         {schoolName && <SchoolNameHeaderComponent schoolName={schoolName} />}
       </div>
-      <SchoolCheckInModal
-        open={isCheckInModalOpen}
-        onClose={() => setIsCheckInModalOpen(false)}
-        onConfirm={handleConfirmCheckInAction}
-        status={
-          checkInStatus === SchoolVisitStatus.CheckedIn
-            ? SchoolVisitAction.CheckOut
-            : SchoolVisitAction.CheckIn
-        }
-        schoolName={schoolName || t('Unknown School')}
-        isFirstTime={isFirstTimeCheckIn}
-        schoolLocation={schoolLocation}
-        schoolAddress={data.schoolData?.address}
-        schoolId={id}
-        onLocationUpdated={fetchAll}
-      />
+      {!isExternalUser && (
+        <SchoolCheckInModal
+          open={isCheckInModalOpen}
+          onClose={() => setIsCheckInModalOpen(false)}
+          onConfirm={handleConfirmCheckInAction}
+          status={
+            checkInStatus === SchoolVisitStatus.CheckedIn
+              ? SchoolVisitAction.CheckOut
+              : SchoolVisitAction.CheckIn
+          }
+          schoolName={schoolName || t('Unknown School')}
+          isFirstTime={isFirstTimeCheckIn}
+          schoolLocation={schoolLocation}
+          schoolAddress={data.schoolData?.address}
+          schoolId={id}
+          onLocationUpdated={fetchAll}
+        />
+      )}
       {!isMobile && schoolName && (
         <div className="school-detail-secondary-header">
           {/* Left Side: Breadcrumb */}
@@ -485,100 +486,112 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
               },
             ]}
             endActions={
-              <>
-                {activeTab == SchoolTabs.Overview && (
-                  <Button
-                    variant="outlined"
-                    onClick={() => setShowAddModal(true)}
-                    className="btn-add-notes"
-                  >
-                    + {t('Add Notes')}
-                  </Button>
-                )}
-                {checkInStatus === SchoolVisitStatus.CheckedOut ? (
-                  <>
+              isExternalUser ? null : (
+                <>
+                  {activeTab === SchoolTabs.Overview && (
+                    <Button
+                      variant="outlined"
+                      onClick={() => setShowAddModal(true)}
+                      className="btn-add-notes"
+                    >
+                      + {t('Add Notes')}
+                    </Button>
+                  )}
+                  {checkInStatus === SchoolVisitStatus.CheckedOut ? (
+                    <>
+                      <Button
+                        variant="contained"
+                        onClick={handleOpenCheckInMenu}
+                        endIcon={
+                          <ArrowDropDownIcon
+                            className={`check-in-icon ${openMenu ? 'check-in-icon-rotated' : ''}`}
+                          />
+                        }
+                        className="btn-check-in"
+                      >
+                        {t('Check In')}
+                      </Button>
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={openMenu}
+                        onClose={handleCloseMenu}
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'right',
+                        }}
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'right',
+                        }}
+                        classes={{
+                          paper: 'schooldetailspage check-in-menu-paper',
+                        }}
+                      >
+                        <MenuItem
+                          onClick={() =>
+                            handleSelectVisitType(SchoolVisitType.Regular)
+                          }
+                          className="check-in-menu-item"
+                        >
+                          {t(SchoolVisitTypeLabels[SchoolVisitType.Regular])}
+                        </MenuItem>
+                        <Divider className="check-in-menu-divider" />
+                        <MenuItem
+                          onClick={() =>
+                            handleSelectVisitType(
+                              SchoolVisitType.ParentsTeacherMeeting,
+                            )
+                          }
+                          className="check-in-menu-item"
+                        >
+                          {t(
+                            SchoolVisitTypeLabels[
+                              SchoolVisitType.ParentsTeacherMeeting
+                            ],
+                          )}
+                        </MenuItem>
+                        <Divider className="check-in-menu-divider" />
+                        <MenuItem
+                          onClick={() =>
+                            handleSelectVisitType(
+                              SchoolVisitType.TeacherTraining,
+                            )
+                          }
+                          className="check-in-menu-item"
+                        >
+                          {t(
+                            SchoolVisitTypeLabels[
+                              SchoolVisitType.TeacherTraining
+                            ],
+                          )}
+                        </MenuItem>
+                      </Menu>
+                    </>
+                  ) : (
                     <Button
                       variant="contained"
-                      onClick={handleOpenCheckInMenu}
-                      endIcon={
-                        <ArrowDropDownIcon
-                          className={`check-in-icon ${openMenu ? 'check-in-icon-rotated' : ''}`}
-                        />
-                      }
-                      className="btn-check-in"
+                      onClick={handleOpenCheckInModal}
+                      className="btn-check-out"
                     >
-                      {t('Check In')}
+                      {t('Check Out')}
                     </Button>
-                    <Menu
-                      anchorEl={anchorEl}
-                      open={openMenu}
-                      onClose={handleCloseMenu}
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                      classes={{
-                        paper: 'schooldetailspage check-in-menu-paper',
-                      }}
-                    >
-                      <MenuItem
-                        onClick={() =>
-                          handleSelectVisitType(SchoolVisitType.Regular)
-                        }
-                        className="check-in-menu-item"
-                      >
-                        {t(SchoolVisitTypeLabels[SchoolVisitType.Regular])}
-                      </MenuItem>
-                      <Divider className="check-in-menu-divider" />
-                      <MenuItem
-                        onClick={() =>
-                          handleSelectVisitType(
-                            SchoolVisitType.ParentsTeacherMeeting,
-                          )
-                        }
-                        className="check-in-menu-item"
-                      >
-                        {t(
-                          SchoolVisitTypeLabels[
-                            SchoolVisitType.ParentsTeacherMeeting
-                          ],
-                        )}
-                      </MenuItem>
-                      <Divider className="check-in-menu-divider" />
-                      <MenuItem
-                        onClick={() =>
-                          handleSelectVisitType(SchoolVisitType.TeacherTraining)
-                        }
-                        className="check-in-menu-item"
-                      >
-                        {t(
-                          SchoolVisitTypeLabels[
-                            SchoolVisitType.TeacherTraining
-                          ],
-                        )}
-                      </MenuItem>
-                    </Menu>
-                  </>
-                ) : (
-                  <Button
-                    variant="contained"
-                    onClick={handleOpenCheckInModal}
-                    className="btn-check-out"
-                  >
-                    {t('Check Out')}
-                  </Button>
-                )}
-              </>
+                  )}
+                </>
+              )
             }
           />
         </div>
       )}
       {/* Modal outside the header */}
-      <AddNoteModal
-        isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
-        onSave={handleAddNoteHeader}
-        source="school"
-        schoolId={id}
-      />
+      {!isExternalUser && (
+        <AddNoteModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onSave={handleAddNoteHeader}
+          source="school"
+          schoolId={id}
+        />
+      )}
 
       <div className="school-detail-tertiary-gap" />
       <div className="school-detail-tertiary-header">
@@ -587,7 +600,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           isMobile={isMobile}
           schoolId={id}
           refreshClasses={() => {
-            fetchAll();
+            void fetchAll();
             setGoToClassesTab(true);
           }}
           goToClassesTab={goToClassesTab}

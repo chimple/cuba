@@ -9847,6 +9847,7 @@ export class SupabaseApi implements ServiceApi {
           RoleType.PROGRAM_MANAGER,
           RoleType.FIELD_COORDINATOR,
           RoleType.OPERATIONAL_DIRECTOR,
+          RoleType.EXTERNAL_USER,
         ])
         .eq('is_deleted', false);
 
