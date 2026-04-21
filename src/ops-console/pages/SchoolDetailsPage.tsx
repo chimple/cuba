@@ -1,5 +1,5 @@
 // SchoolDetailsPage.tsx
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import './SchoolDetailsPage.css';
 import { Toast } from '@capacitor/toast';
 import { Box } from '@mui/material';
@@ -85,19 +85,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const history = useHistory();
-  const [schoolStats, setSchoolStats] = useState<SchoolStats>({
-    active_student_percentage: 0,
-    active_teacher_percentage: 0,
-    avg_weekly_time_minutes: 0,
-  });
-  const [interactionStats, setInteractionStats] = useState<FCSchoolStats>({
-    visits: 0,
-    calls_made: 0,
-    tech_issues: 0,
-    parents_interacted: 0,
-    students_interacted: 0,
-    teachers_interacted: 0,
-  });
   const [goToClassesTab, setGoToClassesTab] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
@@ -236,7 +223,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     lng?: number,
     distance?: number,
   ) => {
-    setIsCheckInModalOpen(false);
     const api = ServiceConfig.getI().apiHandler;
     try {
       if (checkInStatus === SchoolVisitStatus.CheckedOut) {
@@ -252,6 +238,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           );
           if (res) {
             setCheckInStatus(SchoolVisitStatus.CheckedIn);
+            setIsCheckInModalOpen(false);
             await Toast.show({ text: t('Checked in successfully!') });
           }
         }
@@ -268,6 +255,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           );
           if (res) {
             setCheckInStatus(SchoolVisitStatus.CheckedOut);
+            setIsCheckInModalOpen(false);
             await Toast.show({ text: t('Checked out successfully!') });
           }
         }
@@ -281,11 +269,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     }
   };
 
-  useEffect(() => {
-    fetchAll();
-  }, [id]);
-
-  async function fetchAll() {
+  const fetchAll = useCallback(async () => {
     setLoading(true);
     const api = ServiceConfig.getI().apiHandler;
     const [
@@ -314,8 +298,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       active_teacher_percentage: result.active_teacher_percentage ?? 0,
       avg_weekly_time_minutes: result.avg_weekly_time_minutes ?? 0,
     };
-    const auth = ServiceConfig.getI().authHandler;
-    const currentUser = await auth.getCurrentUser();
     const interactionStat = await api.getSchoolStatsForSchool(id);
     const stats = Array.isArray(interactionStat)
       ? interactionStat[0]
@@ -329,8 +311,6 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       teachers_interacted: stats.teachers_interacted ?? 0,
     };
     // this must be called for all the class ids
-    setSchoolStats(newSchoolStats);
-    setInteractionStats(interStats);
     const studentsData = studentsResponse.data;
     const totalStudentCount = studentsResponse.total;
     const teachersData = teachersResponse.data;
@@ -432,7 +412,11 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       interactionStats: interStats,
     });
     setLoading(false);
-  }
+  }, [id]);
+
+  useEffect(() => {
+    void fetchAll();
+  }, [fetchAll]);
 
   if (loading) {
     return (
@@ -486,7 +470,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             ]}
             endActions={
               <>
-                {activeTab == SchoolTabs.Overview && (
+                {activeTab === SchoolTabs.Overview && (
                   <Button
                     variant="outlined"
                     onClick={() => setShowAddModal(true)}
@@ -587,7 +571,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           isMobile={isMobile}
           schoolId={id}
           refreshClasses={() => {
-            fetchAll();
+            void fetchAll();
             setGoToClassesTab(true);
           }}
           goToClassesTab={goToClassesTab}
