@@ -30,6 +30,8 @@ import {
   StudentInfo,
   EnumType,
   OpsSupportLevelMap,
+  OPS_PERFORMANCE_BANDS,
+  STUDENT_PERFORMANCE_BAND_KEYS,
   ContactTarget,
   AVATARS,
   WHATSAPP_GROUP_STATUS_KEYS,
@@ -64,15 +66,9 @@ import {
 
 type ApiStudentData = StudentInfo;
 type StudentPerformanceBand =
-  | 'green_band'
-  | 'yellow_band'
-  | 'red_band'
-  | 'grey_band';
+  (typeof STUDENT_PERFORMANCE_BAND_KEYS)[keyof typeof STUDENT_PERFORMANCE_BAND_KEYS];
 type OpsPerformanceLabel =
-  | 'High Engagement'
-  | 'Medium Engagement'
-  | 'Not Active'
-  | 'Not Downloaded';
+  (typeof OPS_PERFORMANCE_BANDS)[keyof typeof OPS_PERFORMANCE_BANDS];
 
 // Keys used to select the WhatsApp status label + chip styling.
 type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
@@ -95,13 +91,13 @@ interface DisplayStudent {
 
 const getPerformanceChipClass = (schstudents_performance: string): string => {
   switch (schstudents_performance) {
-    case 'High Engagement':
+    case OPS_PERFORMANCE_BANDS.HIGH:
       return 'performance-chip-doing-good';
-    case 'Not Active':
+    case OPS_PERFORMANCE_BANDS.NOT_ACTIVE:
       return 'performance-chip-need-help';
-    case 'Medium Engagement':
+    case OPS_PERFORMANCE_BANDS.MEDIUM:
       return 'performance-chip-still-learning';
-    case 'Not Downloaded':
+    case OPS_PERFORMANCE_BANDS.NOT_DOWNLOADED:
     default:
       return 'performance-chip-not-tracked';
   }
@@ -162,15 +158,15 @@ const normalizeWhatsappContactFlag = (value: unknown): 'yes' | 'no' | null => {
 
 const mapBandToOpsLabel = (band?: string | null): OpsPerformanceLabel => {
   switch (band) {
-    case 'green_band':
-      return 'High Engagement';
-    case 'yellow_band':
-      return 'Medium Engagement';
-    case 'red_band':
-      return 'Not Active';
-    case 'grey_band':
+    case STUDENT_PERFORMANCE_BAND_KEYS.GREEN:
+      return OPS_PERFORMANCE_BANDS.HIGH;
+    case STUDENT_PERFORMANCE_BAND_KEYS.YELLOW:
+      return OPS_PERFORMANCE_BANDS.MEDIUM;
+    case STUDENT_PERFORMANCE_BAND_KEYS.RED:
+      return OPS_PERFORMANCE_BANDS.NOT_ACTIVE;
+    case STUDENT_PERFORMANCE_BAND_KEYS.GREY:
     default:
-      return 'Not Downloaded';
+      return OPS_PERFORMANCE_BANDS.NOT_DOWNLOADED;
   }
 };
 
@@ -750,7 +746,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       }
     };
     fetchStudentPerformance();
-  }, [api, classDataRef?.id, issTotal, sortedStudents, studentIdsKey]);
+  }, [api, classDataRef?.id, issTotal, studentIdsKey]);
   const getStudentInfoById = useCallback(
     (id: string): StudentInfo | null => {
       if (!Array.isArray(students)) return null;
