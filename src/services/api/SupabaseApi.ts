@@ -62,6 +62,8 @@ import {
   GetSchoolsWithProgramAccessParams,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
+  OpsStudentPerformanceBandRow,
+  OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   SchoolProgramAccessRow,
   ServiceApi,
@@ -6975,6 +6977,38 @@ export class SupabaseApi implements ServiceApi {
     if (!data || data.length === 0) return { hasPlayed: false };
 
     return { hasPlayed: true, lastPlayedAt: data[0].created_at };
+  }
+  async getOpsStudentPerformanceBands(
+    params: OpsStudentPerformanceBandsParams,
+  ): Promise<OpsStudentPerformanceBandRow[]> {
+    if (!this.supabase) return [];
+
+    const classIds = (params.classIds ?? []).filter(Boolean);
+    const studentIds = (params.studentIds ?? []).filter(Boolean);
+
+    if (classIds.length === 0 && studentIds.length === 0) {
+      return [];
+    }
+
+    let query = this.supabase
+      .from('student_performance_mv')
+      .select('student_id,class_id,performance');
+
+    if (classIds.length > 0) {
+      query = query.in('class_id', classIds);
+    }
+    if (studentIds.length > 0) {
+      query = query.in('student_id', studentIds);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      logger.error('Error fetching student performance bands:', error);
+      return [];
+    }
+
+    return (data ?? []) as OpsStudentPerformanceBandRow[];
   }
   async getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings

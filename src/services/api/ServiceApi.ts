@@ -102,6 +102,17 @@ export type SchoolProgramAccessResponse = {
   total_pages: number;
 };
 
+export type OpsStudentPerformanceBandsParams = {
+  classIds?: string[];
+  studentIds?: string[];
+};
+
+export type OpsStudentPerformanceBandRow = {
+  student_id: string;
+  class_id: string | null;
+  performance?: string | null;
+};
+
 export type JoinClassInviteLookupResult = {
   inviteData: any;
   classData?: TableTypes<'class'>;
@@ -1568,6 +1579,10 @@ export interface ServiceApi {
     studentId: string,
     classId: string,
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }>;
+
+  getOpsStudentPerformanceBands?(
+    params: OpsStudentPerformanceBandsParams,
+  ): Promise<OpsStudentPerformanceBandRow[]>;
 
   /**
    * Get the Lessons with LessonIds

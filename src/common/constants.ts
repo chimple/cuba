@@ -1269,6 +1269,27 @@ export enum SupportLevelMap {
   'Not Tracked' = 'not_tracked',
 }
 
+export enum OpsSupportLevelMap {
+  'High Engagement' = 'doing_good',
+  'Medium Engagement' = 'still_learning',
+  'Not Active' = 'need_help',
+  'Not Downloaded' = 'not_tracked',
+}
+
+export const OPS_PERFORMANCE_BANDS = {
+  HIGH: 'High Engagement',
+  MEDIUM: 'Medium Engagement',
+  NOT_ACTIVE: 'Not Active',
+  NOT_DOWNLOADED: 'Not Downloaded',
+} as const;
+
+export const STUDENT_PERFORMANCE_BAND_KEYS = {
+  GREEN: 'green_band',
+  YELLOW: 'yellow_band',
+  RED: 'red_band',
+  GREY: 'grey_band',
+} as const;
+
 export enum RECOMMENDATION_TYPE {
   FRAMEWORK = 'framework',
   CHAPTER = 'chapter',
