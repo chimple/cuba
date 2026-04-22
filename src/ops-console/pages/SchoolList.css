@@ -117,6 +117,9 @@
   text-transform: none !important;
   font-weight: 500 !important;
   min-width: 110px !important;
+  position: relative;
+  overflow: hidden !important;
+  isolation: isolate;
 }
 
 .school-list-actions-button.MuiButton-root:hover {
@@ -124,8 +127,60 @@
   background: #fff !important;
 }
 
+.school-list-actions-button-close-shine.MuiButton-root::after {
+  content: '';
+  position: absolute;
+  inset: -55%;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(
+    circle at 38% 50%,
+    rgba(70, 63, 63, 0.34) 0%,
+    rgba(56, 51, 51, 0.3) 18%,
+    rgba(75, 76, 78, 0.2) 42%,
+    rgba(55, 57, 59, 0) 72%
+  );
+  transform-origin: 38% 50%;
+  transform: scale(0.18);
+  animation: school-list-actions-button-shine 0.65s
+    cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.school-list-actions-button-close-shine.MuiButton-root {
+  animation: school-list-actions-button-glow 0.65s ease-out;
+}
+
+@keyframes school-list-actions-button-shine {
+  0% {
+    transform: scale(0.18);
+    opacity: 0;
+  }
+  22% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.42);
+    opacity: 0;
+  }
+}
+
+@keyframes school-list-actions-button-glow {
+  0% {
+    filter: brightness(1);
+  }
+  45% {
+    filter: brightness(0.94);
+  }
+  100% {
+    filter: brightness(1);
+  }
+}
+
 .school-list-actions-chevron {
   color: #1a71f6;
+  transform: rotate(0deg);
+  transform-origin: center;
   transition: transform 0.2s ease;
 }
 
