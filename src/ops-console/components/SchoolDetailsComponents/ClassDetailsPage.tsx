@@ -14,6 +14,10 @@ import { NOTES_UPDATED_EVENT } from '../../../common/constants';
 import WhatsAppInfoCard from './WhatsAppInfoCard';
 import logger from '../../../utility/logger';
 import { parseGradeSection, toCommaString } from './ClassDetailsPageUtils';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
 
 type ApiStudent = StudentInfo;
 const ROWS_PER_PAGE = 20;
@@ -58,6 +62,12 @@ const ClassDetailsPage: React.FC<Props> = ({
     [classRow],
   );
 
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+
   const { grade: parsedGrade, section: parsedSection } = useMemo(
     () =>
       parseGradeSection(
@@ -77,6 +87,10 @@ const ClassDetailsPage: React.FC<Props> = ({
           1,
           ROWS_PER_PAGE,
         );
+        logger.info('Loaded class details:', {
+          students: res?.data,
+          total: res?.total,
+        });
         setInitialStudents(res?.data || []);
         setInitialTotal(res?.total || 0);
         const active = await api.getActiveStudentsCountByClass(classId);
@@ -152,14 +166,16 @@ const ClassDetailsPage: React.FC<Props> = ({
         </Button>
 
         {/* + Add Notes button on the right */}
-        <Button
-          variant="outlined"
-          onClick={() => setShowAddModal(true)}
-          className="classdetailspage-addnote-btn"
-          aria-label="+ Add Notes"
-        >
-          + {t('Add Notes')}
-        </Button>
+        {!isExternalUser && (
+          <Button
+            variant="outlined"
+            onClick={() => setShowAddModal(true)}
+            className="classdetailspage-addnote-btn"
+            aria-label="+ Add Notes"
+          >
+            + {t('Add Notes')}
+          </Button>
+        )}
       </Box>
 
       {/* AddNoteModal */}

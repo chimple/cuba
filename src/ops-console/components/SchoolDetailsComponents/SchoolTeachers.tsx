@@ -1472,7 +1472,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               ? t('No teachers found matching your criteria.')
               : t('No teachers data found for the selected school')}
           </Typography>
-          {!isFilteringOrSearching && (
+          {!isFilteringOrSearching && isExternalUser && (
             <MuiButton
               variant="text"
               onClick={handleAddNewTeacher}
