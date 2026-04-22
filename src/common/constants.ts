@@ -67,6 +67,7 @@ export enum TABLES {
   ProgramUser = 'program_user',
   SchoolCourse = 'school_course',
   SchoolUser = 'school_user',
+  SchoolMetrics = 'school_metrics',
   UserBadge = 'user_badge',
   UserBonus = 'user_bonus',
   UserCourse = 'user_course',

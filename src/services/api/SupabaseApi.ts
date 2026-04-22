@@ -51,6 +51,7 @@ import {
   DEFAULT_LOCALE_ID,
   RESULT_STATUS,
   LEARNING_PATHWAY_MODE,
+  ProgramType,
 } from '../../common/constants';
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
@@ -8780,10 +8781,11 @@ export class SupabaseApi implements ServiceApi {
 
     try {
       const { data, error } = await this.supabase
-        .from('school_metrics')
+        .from(TABLES.SchoolMetrics)
         .select(
           'state, district, block, cluster, program_type, partners, program_managers, field_coordinators',
-        );
+        )
+        .eq('is_deleted', false);
 
       if (error) {
         logger.error('Error fetching school_metrics filter options:', error);
@@ -8815,7 +8817,12 @@ export class SupabaseApi implements ServiceApi {
         if (row.district) parsed.district.add(row.district);
         if (row.block) parsed.block.add(row.block);
         if (row.cluster) parsed.cluster.add(row.cluster);
-        if (row.program_type) parsed.programType.add(row.program_type);
+        if (
+          row.program_type &&
+          Object.values(ProgramType).includes(row.program_type as ProgramType)
+        ) {
+          parsed.programType.add(row.program_type);
+        }
 
         for (const partner of row.partners ?? []) {
           if (partner) parsed.partner.add(partner);
@@ -9038,8 +9045,11 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (!currentUser) {
+    const {
+      data: { user: authUser },
+      error: authError,
+    } = await this.supabase.auth.getUser();
+    if (authError || !authUser) {
       logger.error('Current user is not available for school metrics query');
       return { data: [], total: 0 };
     }
@@ -9055,140 +9065,75 @@ export class SupabaseApi implements ServiceApi {
       date_range,
     } = params;
 
-    const specialRoles = await this.getUserSpecialRoles(currentUser.id);
+    const specialRoles = await this.getUserSpecialRoles(authUser.id);
     const isAdminOrDirector = specialRoles.some((role) =>
       [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
         role as RoleType,
       ),
     );
-    const isExternalUser = specialRoles.includes('external_user');
-    const isFieldCoordinator = specialRoles.includes('field_coordinator');
+    const isExternalUser = specialRoles.includes(RoleType.EXTERNAL_USER);
+    const isFieldCoordinator = specialRoles.includes(
+      RoleType.FIELD_COORDINATOR,
+    );
     const shouldRestrictToSchoolLinks =
       !isAdminOrDirector && (isExternalUser || isFieldCoordinator);
 
     try {
-      let accessibleSchoolIds: string[] | null = null;
-      if (!isAdminOrDirector) {
-        const schoolUserPromise = this.supabase
-          .from('school_user')
-          .select('school_id')
-          .eq('user_id', currentUser.id)
-          .eq('is_deleted', false);
+      const [schoolUserResult, programUserResult] = await Promise.all([
+        shouldRestrictToSchoolLinks || !isAdminOrDirector
+          ? this.supabase
+              .from(TABLES.SchoolUser)
+              .select('school_id')
+              .eq('user_id', authUser.id)
+              .eq('is_deleted', false)
+          : Promise.resolve({
+              data: [] as Array<{ school_id?: string | null }>,
+              error: null,
+            }),
+        !isAdminOrDirector && specialRoles.includes(RoleType.PROGRAM_MANAGER)
+          ? this.supabase
+              .from(TABLES.ProgramUser)
+              .select('program_id')
+              .eq('user', authUser.id)
+              .eq('role', RoleType.PROGRAM_MANAGER)
+              .eq('is_deleted', false)
+          : Promise.resolve({
+              data: [] as Array<{ program_id?: string | null }>,
+              error: null,
+            }),
+      ]);
 
-        const programUserPromise =
-          shouldRestrictToSchoolLinks ||
-          specialRoles.includes('program_manager')
-            ? this.supabase
-                .from('program_user')
-                .select('program_id')
-                .eq('user', currentUser.id)
-                .eq('role', RoleType.PROGRAM_MANAGER)
-                .eq('is_deleted', false)
-            : Promise.resolve({
-                data: [] as Array<{ program_id?: string | null }>,
-                error: null,
-              });
-
-        const [schoolUserResult, programUserResult] = await Promise.all([
-          schoolUserPromise,
-          programUserPromise,
-        ]);
-
-        if (schoolUserResult.error) {
-          logger.error(
-            'Error fetching school_user access list:',
-            schoolUserResult.error,
-          );
-          return { data: [], total: 0 };
-        }
-
-        const schoolIds = (schoolUserResult.data ?? [])
-          .map((row) => row.school_id)
-          .filter((id): id is string => !!id);
-
-        if (shouldRestrictToSchoolLinks) {
-          accessibleSchoolIds = schoolIds;
-        } else {
-          if (programUserResult?.error) {
-            logger.error(
-              'Error fetching program_user access list:',
-              programUserResult.error,
-            );
-            return { data: [], total: 0 };
-          }
-
-          const programIds = (
-            (programUserResult.data ?? []) as Array<{
-              program_id?: string | null;
-            }>
-          )
-            .map((row) => row.program_id)
-            .filter((id): id is string => !!id);
-
-          if (programIds.length > 0) {
-            const { data: linkedSchools, error: linkedError } =
-              await this.supabase
-                .from('school_metrics')
-                .select('school_id')
-                .in('program_id', programIds);
-            if (linkedError) {
-              logger.error(
-                'Error fetching program-linked schools from school_metrics:',
-                linkedError,
-              );
-              return { data: [], total: 0 };
-            }
-            const linkedSchoolIds = (
-              (linkedSchools ?? []) as Array<{
-                school_id: string | null;
-              }>
-            )
-              .map((row) => row.school_id)
-              .filter((id): id is string => !!id);
-            accessibleSchoolIds = Array.from(
-              new Set([...schoolIds, ...linkedSchoolIds]),
-            );
-          } else {
-            accessibleSchoolIds = schoolIds;
-          }
-        }
+      if (schoolUserResult?.error) {
+        logger.error(
+          'Error fetching school_user access list:',
+          schoolUserResult.error,
+        );
+        return { data: [], total: 0 };
+      }
+      if (programUserResult?.error) {
+        logger.error(
+          'Error fetching program_user access list:',
+          programUserResult.error,
+        );
+        return { data: [], total: 0 };
       }
 
-      const selectedColumns = `
-        id,
-        school_id,
-        school_name,
-        udise,
-        school_performance,
-        state,
-        district,
-        block,
-        cluster,
-        school_model,
-        metric_window,
-        program_id,
-        program_name,
-        program_type,
-        partners,
-        program_managers,
-        field_coordinators,
-        onboarded_students,
-        activated_students,
-        active_students,
-        avg_time_spent,
-        active_teachers,
-        activities_assigned,
-        avg_assignments_completed,
-        avg_activities_completed
-      `;
+      const schoolIds = (schoolUserResult.data ?? [])
+        .map((row) => row.school_id)
+        .filter((id): id is string => !!id);
+      const programIds = (programUserResult.data ?? [])
+        .map((row) => row.program_id)
+        .filter((id): id is string => !!id);
+
       const metricWindow =
         date_range && date_range !== 'all_time'
           ? date_range.trim().toLowerCase()
           : null;
 
       let query = this.supabase
-        .from('school_metrics')
-        .select(selectedColumns, { count: 'exact' });
+        .from(TABLES.SchoolMetrics)
+        .select('*', { count: 'exact' })
+        .eq('is_deleted', false);
 
       if (metricWindow) {
         query = query.eq('metric_window', metricWindow);
@@ -9198,9 +9143,25 @@ export class SupabaseApi implements ServiceApi {
         query = query.eq('program_id', programId);
       }
 
-      if (accessibleSchoolIds && accessibleSchoolIds.length > 0) {
-        query = query.in('school_id', accessibleSchoolIds);
-      } else if (accessibleSchoolIds && accessibleSchoolIds.length === 0) {
+      if (!isAdminOrDirector) {
+        if (schoolIds.length > 0 && programIds.length > 0) {
+          query = query.or(
+            `school_id.in.(${schoolIds.join(',')}),program_id.in.(${programIds.join(',')})`,
+          );
+        } else if (schoolIds.length > 0) {
+          query = query.in('school_id', schoolIds);
+        } else if (programIds.length > 0) {
+          query = query.in('program_id', programIds);
+        } else {
+          return { data: [], total: 0 };
+        }
+      }
+
+      if (
+        !isAdminOrDirector &&
+        schoolIds.length === 0 &&
+        programIds.length === 0
+      ) {
         return { data: [], total: 0 };
       }
 
@@ -9225,7 +9186,7 @@ export class SupabaseApi implements ServiceApi {
       if (cleanedFilters.model?.length) {
         const schoolModelValues = cleanedFilters.model.filter(
           (value): value is 'hybrid' | 'at_home' | 'at_school' =>
-            value === 'hybrid' || value === 'at_home' || value === 'at_school',
+            Object.values(PROGRAM_TAB).includes(value as PROGRAM_TAB),
         );
         if (schoolModelValues.length) {
           query = query.in('school_model', schoolModelValues);
@@ -9249,9 +9210,7 @@ export class SupabaseApi implements ServiceApi {
       if (cleanedFilters.programType?.length) {
         const programTypeValues = cleanedFilters.programType.filter(
           (value): value is 'government' | 'private' | 'learning_centers' =>
-            value === 'government' ||
-            value === 'private' ||
-            value === 'learning_centers',
+            Object.values(ProgramType).includes(value as ProgramType),
         );
         if (programTypeValues.length) {
           query = query.in('program_type', programTypeValues);
@@ -9578,7 +9537,7 @@ export class SupabaseApi implements ServiceApi {
       .from('program_user')
       .select('id')
       .eq('user', userId)
-      .in('role', ['program_manager', 'field_coordinator'])
+      .in('role', [RoleType.PROGRAM_MANAGER, RoleType.FIELD_COORDINATOR])
       .eq('is_deleted', false)
       .limit(1);
 

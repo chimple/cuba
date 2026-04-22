@@ -3582,6 +3582,7 @@ export type Database = {
           cluster: string | null;
           created_at: string | null;
           district: string | null;
+          is_deleted: boolean;
           field_coordinators: string[] | null;
           id: string;
           metric_window: string | null;
@@ -3611,6 +3612,7 @@ export type Database = {
           cluster?: string | null;
           created_at?: string | null;
           district?: string | null;
+          is_deleted?: boolean;
           field_coordinators?: string[] | null;
           id?: string;
           metric_window?: string | null;
@@ -3640,6 +3642,7 @@ export type Database = {
           cluster?: string | null;
           created_at?: string | null;
           district?: string | null;
+          is_deleted?: boolean;
           field_coordinators?: string[] | null;
           id?: string;
           metric_window?: string | null;

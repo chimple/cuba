@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -16,11 +16,7 @@ import {
 } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import {
-  PAGES,
-  PROGRAM_TAB,
-  FilteredSchoolsForSchoolListingOps,
-} from '../../common/constants';
+import { PAGES, PROGRAM_TAB } from '../../common/constants';
 import {
   DEFAULT_DATE_RANGE,
   DATE_RANGE_OPTIONS,
@@ -30,14 +26,9 @@ import {
   tabOptions,
   type DateRangeValue,
   type Filters,
-  pickFirstNumber,
-  getSchoolCoordinatorList,
-  resolvePerformanceStatus,
-  getStatusMeta,
-  buildSchoolSubtitle,
-  renderMetricCell,
-  renderMetricWithPercentCell,
 } from './SchoolList.helpers';
+import { SchoolListRow, useSchoolListData } from './SchoolList.fetcher';
+import { mapSchoolRowsToRenderRows } from './SchoolListRowRenderer';
 import './SchoolList.css';
 import DataTablePagination from '../components/DataTablePagination';
 import DataTableBody, { Column } from '../components/DataTableBody';
@@ -55,40 +46,6 @@ import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
-
-type SchoolMetricCell = {
-  value: unknown;
-  render: React.ReactNode;
-};
-
-const isSchoolMetricCell = (value: unknown): value is SchoolMetricCell =>
-  typeof value === 'object' &&
-  value !== null &&
-  'render' in value &&
-  'value' in value;
-
-type SchoolListRow = FilteredSchoolsForSchoolListingOps & {
-  id: string | number;
-  sch_id?: string | number;
-  school_id?: string | number;
-  udise?: string;
-  total_students?: number;
-  average_time_spent_mins?: number;
-  avg_time_spent_minutes?: number;
-  total_activities_assigned?: number;
-  assignments_assigned?: number;
-  fieldCoordinators?: string;
-  name: SchoolMetricCell;
-  schoolPerformance: SchoolMetricCell;
-  onboardedStudents: SchoolMetricCell;
-  activatedStudents: SchoolMetricCell;
-  activeStudents: SchoolMetricCell;
-  avgTimeSpent: SchoolMetricCell;
-  activeTeachers: SchoolMetricCell;
-  activitiesAssigned: SchoolMetricCell;
-  avgAssignmentsCompleted: SchoolMetricCell;
-  avgActivitiesCompleted: SchoolMetricCell;
-};
 
 const SchoolList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -111,9 +68,6 @@ const SchoolList: React.FC = () => {
       : PROGRAM_TAB.ALL;
   });
   const [searchTerm, setSearchTerm] = useState(() => qs.get('search') || '');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(
-    () => qs.get('search') || '',
-  );
   const [filters, setFilters] = useState<Filters>(() =>
     parseJSONParam(qs.get('filters'), INITIAL_FILTERS),
   );
@@ -130,12 +84,7 @@ const SchoolList: React.FC = () => {
     return isNaN(p) || p < 1 ? 1 : p;
   });
 
-  const [schools, setSchools] = useState<SchoolListRow[]>([]);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(false);
-  const [total, setTotal] = useState(0);
-
-  const isLoading = isFilterLoading || isDataLoading;
 
   const [showUploadPage, setShowUploadPage] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -149,7 +98,7 @@ const SchoolList: React.FC = () => {
   );
   const [openDetails, setOpenDetails] = useState(false);
   const [visitId, setVisitId] = useState<string | null>(null);
-  const skipNextAutoFetchRef = useRef(false);
+  const isFirstSearchRenderRef = useRef(true);
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
@@ -165,6 +114,23 @@ const SchoolList: React.FC = () => {
     rolesWithAccess.includes(role as RoleType),
   );
   const isActionsMenuOpen = Boolean(actionsAnchorEl);
+  const {
+    schools,
+    total,
+    isLoading: isDataLoading,
+  } = useSchoolListData({
+    api,
+    filters,
+    selectedTab,
+    page,
+    pageSize,
+    orderBy,
+    orderDir,
+    searchTerm,
+    selectedDateRange,
+  });
+  const renderedSchools = mapSchoolRowsToRenderRows(schools);
+  const isLoading = isFilterLoading || isDataLoading;
 
   useEffect(() => {
     setTempFilters(filters);
@@ -183,11 +149,11 @@ const SchoolList: React.FC = () => {
   }, [selectedTab, searchTerm, filters, selectedDateRange, page, history]);
 
   useEffect(() => {
-    const handle = window.setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-      if (page !== 1) setPage(1);
-    }, 500);
-    return () => window.clearTimeout(handle);
+    if (isFirstSearchRenderRef.current) {
+      isFirstSearchRenderRef.current = false;
+      return;
+    }
+    if (page !== 1) setPage(1);
   }, [searchTerm]);
 
   useEffect(() => {
@@ -216,207 +182,6 @@ const SchoolList: React.FC = () => {
 
     fetchFilterOptions();
   }, []);
-
-  useEffect(() => {
-    if (skipNextAutoFetchRef.current) {
-      skipNextAutoFetchRef.current = false;
-      return;
-    }
-    fetchData();
-  }, [
-    selectedTab,
-    filters,
-    page,
-    orderBy,
-    orderDir,
-    debouncedSearchTerm,
-    selectedDateRange,
-  ]);
-
-  const fetchData = useCallback(
-    async (overrides?: {
-      dateRange?: DateRangeValue;
-      page?: number;
-      searchTerm?: string;
-    }) => {
-      setIsDataLoading(true);
-      try {
-        const effectivePage = overrides?.page ?? page;
-        const effectiveDateRange = overrides?.dateRange ?? selectedDateRange;
-        const effectiveSearchTerm =
-          overrides?.searchTerm ?? debouncedSearchTerm;
-        const cleanedFilters = Object.fromEntries(
-          Object.entries(filters).filter(
-            ([_, v]) => Array.isArray(v) && v.length > 0,
-          ),
-        );
-        const tabModelFilter =
-          selectedTab !== PROGRAM_TAB.ALL
-            ? ({ model: [selectedTab] } as Filters)
-            : ({} as Filters);
-        const requestFilters = { ...cleanedFilters, ...tabModelFilter };
-
-        let backendOrderBy = orderBy;
-        const orderByMap: Record<string, string> = {
-          name: 'school_name',
-          schoolName: 'school_name',
-          onboardedStudents: 'onboarded_students',
-          activatedStudents: 'activated_students',
-          activeStudents: 'active_students',
-          avgTimeSpent: 'avg_time_spent',
-          activeTeachers: 'active_teachers',
-          activitiesAssigned: 'activities_assigned',
-          avgAssignmentsCompleted: 'avg_assignments_completed',
-          avgActivitiesCompleted: 'avg_activities_completed',
-        };
-        backendOrderBy = orderByMap[backendOrderBy] ?? backendOrderBy;
-
-        const getSchoolListing =
-          api.getSchoolMetricsForSchoolListing?.bind(api) ??
-          api.getFilteredSchoolsForSchoolListing?.bind(api);
-
-        if (!getSchoolListing) {
-          throw new Error('School listing API is not available');
-        }
-
-        const response = await getSchoolListing({
-          filters: requestFilters,
-          page: effectivePage,
-          page_size: pageSize,
-          order_by: backendOrderBy,
-          order_dir: orderDir,
-          search: effectiveSearchTerm,
-          date_range: effectiveDateRange,
-        });
-        const data = (response?.data || []) as SchoolListRow[];
-        setTotal(response?.total || 0);
-
-        const enrichedSchools: SchoolListRow[] = data.map((school) => {
-          const onboardedStudents = pickFirstNumber(
-            school.onboarded_students,
-            school.total_students,
-          );
-          const activatedStudents = pickFirstNumber(school.activated_students);
-          const activeStudents = pickFirstNumber(school.active_students);
-          const activeTeachers = pickFirstNumber(school.active_teachers);
-          const completionAssignments = pickFirstNumber(
-            school.avg_assignments_completed,
-          );
-          const completionActivities = pickFirstNumber(
-            school.avg_activities_completed,
-          );
-
-          return {
-            ...school,
-            id: school.sch_id ?? school.school_id ?? school.id ?? '',
-            fieldCoordinators:
-              getSchoolCoordinatorList(school).join(', ') ||
-              String(t('not assigned yet')),
-            name: {
-              value: school.school_name,
-              render: (
-                <Box
-                  display="flex"
-                  flexDirection="column"
-                  alignItems="flex-start"
-                >
-                  <Typography variant="subtitle2">
-                    {school.school_name}
-                  </Typography>
-                  <Typography
-                    variant="subtitle2"
-                    color="text.secondary"
-                    fontSize={'12px'}
-                  >
-                    {buildSchoolSubtitle(school)}
-                  </Typography>
-                </Box>
-              ),
-            },
-            schoolPerformance: (() => {
-              const status = resolvePerformanceStatus(school);
-              const meta = getStatusMeta(status);
-              return {
-                value: status || '--',
-                render: (
-                  <Chip
-                    label={status ? t(status) : '--'}
-                    size="small"
-                    sx={{
-                      backgroundColor: `${meta.bg} !important`,
-                      color: `${meta.color} !important`,
-                      border: 'none',
-                      fontWeight: 600,
-                      height: 24,
-                      '& .MuiChip-label': {
-                        px: 1,
-                        color: `${meta.color} !important`,
-                        fontWeight: 600,
-                      },
-                    }}
-                  />
-                ),
-              };
-            })(),
-            onboardedStudents: renderMetricCell(onboardedStudents),
-            activatedStudents: renderMetricWithPercentCell(
-              activatedStudents,
-              onboardedStudents && activatedStudents
-                ? (activatedStudents / onboardedStudents) * 100
-                : null,
-            ),
-            activeStudents: renderMetricWithPercentCell(
-              activeStudents,
-              activatedStudents && activeStudents
-                ? (activeStudents / activatedStudents) * 100
-                : null,
-            ),
-            avgTimeSpent: renderMetricCell(
-              pickFirstNumber(
-                school.avg_time_spent,
-                school.average_time_spent_mins,
-                school.avg_time_spent_minutes,
-              ),
-              'm',
-              { maxFractionDigits: 0 },
-            ),
-            activeTeachers: renderMetricWithPercentCell(
-              activeTeachers,
-              activeTeachers && activeTeachers > 0 ? 100 : null,
-            ),
-            activitiesAssigned: renderMetricCell(
-              pickFirstNumber(
-                school.activities_assigned,
-                school.total_activities_assigned,
-                school.assignments_assigned,
-              ),
-            ),
-            avgAssignmentsCompleted: renderMetricCell(completionAssignments),
-            avgActivitiesCompleted: renderMetricCell(completionActivities),
-          };
-        });
-
-        setSchools(enrichedSchools);
-      } catch (error) {
-        logger.error('Failed to fetch filtered schools:', error);
-        setSchools([]);
-        setTotal(0);
-      } finally {
-        setIsDataLoading(false);
-      }
-    },
-    [
-      api,
-      filters,
-      page,
-      pageSize,
-      orderBy,
-      orderDir,
-      debouncedSearchTerm,
-      selectedDateRange,
-      selectedTab,
-    ],
-  );
 
   // Column widths are tuned for horizontal scrolling on smaller screens.
   const columns: Column<SchoolListRow>[] = [
@@ -527,10 +292,8 @@ const SchoolList: React.FC = () => {
   };
 
   const handleSelectDateRange = (nextRange: DateRangeValue) => {
-    skipNextAutoFetchRef.current = true;
     setSelectedDateRange(nextRange);
     setPage(1);
-    void fetchData({ dateRange: nextRange, page: 1 });
   };
 
   const handleOpenUploadPage = () => {
@@ -796,7 +559,9 @@ const SchoolList: React.FC = () => {
         </div>
         <div
           className={`school-list-table-container ${
-            !isLoading && schools.length === 0 ? 'school-list-no-schools' : ''
+            !isLoading && renderedSchools.length === 0
+              ? 'school-list-no-schools'
+              : ''
           }`}
         >
           {isLoading && (
@@ -811,10 +576,10 @@ const SchoolList: React.FC = () => {
             </Box>
           )}
 
-          {!isLoading && schools.length > 0 && (
+          {!isLoading && renderedSchools.length > 0 && (
             <DataTableBody
               columns={columns}
-              rows={schools}
+              rows={renderedSchools}
               orderBy={orderBy}
               order={orderDir}
               onSort={handleSort}
@@ -828,10 +593,10 @@ const SchoolList: React.FC = () => {
             />
           )}
 
-          {!isLoading && schools.length === 0 && t('No schools found.')}
+          {!isLoading && renderedSchools.length === 0 && t('No schools found.')}
         </div>
 
-        {!isLoading && schools.length > 0 && (
+        {!isLoading && renderedSchools.length > 0 && (
           <div className="school-list-footer">
             <DataTablePagination
               pageCount={pageCount}
