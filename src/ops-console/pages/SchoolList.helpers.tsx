@@ -5,6 +5,7 @@ import {
   FilteredSchoolsForSchoolListingOps,
   PROGRAM_TAB,
   PROGRAM_TAB_LABELS,
+  SCHOOL_LISTING_STATUS_META,
 } from '../../common/constants';
 
 export type SchoolMetricRow = FilteredSchoolsForSchoolListingOps;
@@ -111,16 +112,9 @@ export const normalizeStatus = (value: unknown) => {
 };
 
 export const getStatusMeta = (status: string) => {
-  switch (status) {
-    case 'Performing Well':
-      return { bg: '#D1FAE5', color: '#2BA980' };
-    case 'Needs Attention':
-      return { bg: '#FEF3C7', color: '#E7A54E' };
-    case 'Needs Support':
-      return { bg: '#FCE8E6', color: '#D35451' };
-    default:
-      return { bg: '#EEF2F6', color: '#5B6472' };
-  }
+  return (
+    SCHOOL_LISTING_STATUS_META[status] ?? SCHOOL_LISTING_STATUS_META.default
+  );
 };
 
 export const resolvePerformanceStatus = (school: SchoolMetricRow) => {

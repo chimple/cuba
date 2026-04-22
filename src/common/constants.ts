@@ -1436,3 +1436,12 @@ export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
   'sticker-book-notification-dot-enabled';
 export const ENABLE_SAVE_AND_SHARE_STICKER_BOOK =
   'enable_save_and_share_sticker_book';
+export const SCHOOL_LISTING_STATUS_META: Record<
+  string,
+  { bg: string; color: string }
+> = {
+  'Performing Well': { bg: '#D1FAE5', color: '#2BA980' },
+  'Needs Attention': { bg: '#FEF3C7', color: '#E7A54E' },
+  'Needs Support': { bg: '#FCE8E6', color: '#D35451' },
+  default: { bg: '#EEF2F6', color: '#5B6472' },
+};
