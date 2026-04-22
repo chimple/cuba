@@ -47,6 +47,7 @@ export const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const roles = [
   { label: 'Program Manager', value: 'program_manager' },
   { label: 'Field Coordinator', value: 'field_coordinator' },
+  { label: 'External User', value: 'external_user' },
 ];
 
 export const normalizePhone10 = (raw: string): string => {

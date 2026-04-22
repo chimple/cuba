@@ -3569,6 +3569,114 @@ export type Database = {
         };
         Relationships: [];
       };
+      school_metrics: {
+        Row: {
+          activated_students: number | null;
+          active_students: number | null;
+          active_teachers: number | null;
+          activities_assigned: number | null;
+          avg_activities_completed: number | null;
+          avg_assignments_completed: number | null;
+          avg_time_spent: number | null;
+          block: string | null;
+          cluster: string | null;
+          created_at: string | null;
+          district: string | null;
+          is_deleted: boolean;
+          field_coordinators: string[] | null;
+          id: string;
+          metric_window: string | null;
+          onboarded_students: number | null;
+          partners: string[] | null;
+          program_id: string | null;
+          program_managers: string[] | null;
+          program_name: string | null;
+          program_type: Database['public']['Enums']['program_type'] | null;
+          school_id: string | null;
+          school_model: Database['public']['Enums']['program_model'] | null;
+          school_name: string | null;
+          school_performance: string | null;
+          state: string | null;
+          udise: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          activated_students?: number | null;
+          active_students?: number | null;
+          active_teachers?: number | null;
+          activities_assigned?: number | null;
+          avg_activities_completed?: number | null;
+          avg_assignments_completed?: number | null;
+          avg_time_spent?: number | null;
+          block?: string | null;
+          cluster?: string | null;
+          created_at?: string | null;
+          district?: string | null;
+          is_deleted?: boolean;
+          field_coordinators?: string[] | null;
+          id?: string;
+          metric_window?: string | null;
+          onboarded_students?: number | null;
+          partners?: string[] | null;
+          program_id?: string | null;
+          program_managers?: string[] | null;
+          program_name?: string | null;
+          program_type?: Database['public']['Enums']['program_type'] | null;
+          school_id?: string | null;
+          school_model?: Database['public']['Enums']['program_model'] | null;
+          school_name?: string | null;
+          school_performance?: string | null;
+          state?: string | null;
+          udise?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          activated_students?: number | null;
+          active_students?: number | null;
+          active_teachers?: number | null;
+          activities_assigned?: number | null;
+          avg_activities_completed?: number | null;
+          avg_assignments_completed?: number | null;
+          avg_time_spent?: number | null;
+          block?: string | null;
+          cluster?: string | null;
+          created_at?: string | null;
+          district?: string | null;
+          is_deleted?: boolean;
+          field_coordinators?: string[] | null;
+          id?: string;
+          metric_window?: string | null;
+          onboarded_students?: number | null;
+          partners?: string[] | null;
+          program_id?: string | null;
+          program_managers?: string[] | null;
+          program_name?: string | null;
+          program_type?: Database['public']['Enums']['program_type'] | null;
+          school_id?: string | null;
+          school_model?: Database['public']['Enums']['program_model'] | null;
+          school_name?: string | null;
+          school_performance?: string | null;
+          state?: string | null;
+          udise?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'school_metrics_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'school_metrics_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       school_user: {
         Row: {
           created_at: string;
@@ -4659,6 +4767,17 @@ export type Database = {
           },
         ];
       };
+      student_performance_mv: {
+        Row: {
+          class_id: string | null;
+          class_name: string | null;
+          performance: string | null;
+          student_id: string | null;
+          student_name: string | null;
+          time_spent_seconds_7d: number | null;
+        };
+        Relationships: [];
+      };
       student_sorted_view: {
         Row: {
           class_id: string | null;
@@ -5020,6 +5139,7 @@ export type Database = {
         Args: {
           _program_id?: string;
           filters?: Json;
+          date_range?: string;
           order_by?: string;
           order_dir?: string;
           page?: number;
@@ -6582,7 +6702,8 @@ export type Database = {
         | 'program_manager'
         | 'operational_director'
         | 'field_coordinator'
-        | 'super_admin';
+        | 'super_admin'
+        | 'external_user';
       school_visit_type:
         | 'teacher_training_meeting'
         | 'parents_teacher_meeting'
@@ -6591,7 +6712,8 @@ export type Database = {
         | 'super_admin'
         | 'operational_director'
         | 'program_manager'
-        | 'field_coordinator';
+        | 'field_coordinator'
+        | 'external_user';
       status: 'active' | 'rejected' | 'requested' | 'migrated';
     };
     CompositeTypes: {
@@ -6770,6 +6892,7 @@ export const Constants = {
         'operational_director',
         'field_coordinator',
         'super_admin',
+        'external_user',
       ],
       school_visit_type: [
         'teacher_training_meeting',
@@ -6781,6 +6904,7 @@ export const Constants = {
         'operational_director',
         'program_manager',
         'field_coordinator',
+        'external_user',
       ],
       status: ['active', 'rejected', 'requested', 'migrated'],
     },

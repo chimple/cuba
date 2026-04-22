@@ -102,6 +102,17 @@ export type SchoolProgramAccessResponse = {
   total_pages: number;
 };
 
+export type OpsStudentPerformanceBandsParams = {
+  classIds?: string[];
+  studentIds?: string[];
+};
+
+export type OpsStudentPerformanceBandRow = {
+  student_id: string;
+  class_id: string | null;
+  performance?: string | null;
+};
+
 export type JoinClassInviteLookupResult = {
   inviteData: any;
   classData?: TableTypes<'class'>;
@@ -1569,6 +1580,10 @@ export interface ServiceApi {
     classId: string,
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }>;
 
+  getOpsStudentPerformanceBands?(
+    params: OpsStudentPerformanceBandsParams,
+  ): Promise<OpsStudentPerformanceBandRow[]>;
+
   /**
    * Get the Lessons with LessonIds
    * @param lessonIds
@@ -2085,6 +2100,12 @@ export interface ServiceApi {
    * @returns Promise resolving to an object where keys are filter categories
    * and values are arrays of filter option strings.
    */
+  /**
+   * Fetch distinct filter values for the school listing from the same data
+   * source used by the listing rows.
+   *
+   * @returns Distinct filter options grouped by school listing filter key.
+   */
   getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
 
   /**
@@ -2103,9 +2124,15 @@ export interface ServiceApi {
   /**
    * Fetch a list of schools filtered by given criteria, with pagination, sorting, and search.
    *
-   * @param params - An object containing filters (keys as categories and values as selected options),
-   *   an optional programId, pagination, sorting, and search options.
-   * @returns Promise resolving to an object with the filtered list of schools and the total count.
+   * @param params.filters Optional multi-select filters keyed by listing category.
+   * @param params.programId Optional program scope for the listing.
+   * @param params.page Page number for the paginated result set.
+   * @param params.page_size Number of rows requested per page.
+   * @param params.order_by Requested sort column from the UI.
+   * @param params.order_dir Requested sort direction.
+   * @param params.search Free-text search term applied to school name and UDISE.
+   * @param params.date_range Metric window chosen from the school-list dropdown.
+   * @returns Promise resolving to the filtered rows and the exact total count.
    */
   getFilteredSchoolsForSchoolListing(params: {
     filters?: Record<string, string[]>;
@@ -2115,6 +2142,34 @@ export interface ServiceApi {
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
+    date_range?: string;
+  }): Promise<{
+    data: FilteredSchoolsForSchoolListingOps[];
+    total: number;
+  }>;
+
+  /**
+   * Fetch school listing rows directly from school_metrics.
+   *
+   * @param params.filters Optional multi-select filters keyed by listing category.
+   * @param params.programId Optional program scope for the listing.
+   * @param params.page Page number for the paginated result set.
+   * @param params.page_size Number of rows requested per page.
+   * @param params.order_by Requested sort column from the UI.
+   * @param params.order_dir Requested sort direction.
+   * @param params.search Free-text search term applied to school name and UDISE.
+   * @param params.date_range Metric window chosen from the school-list dropdown.
+   * @returns Promise resolving to the filtered rows and the exact total count.
+   */
+  getSchoolMetricsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;

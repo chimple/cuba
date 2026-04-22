@@ -67,6 +67,7 @@ export enum TABLES {
   ProgramUser = 'program_user',
   SchoolCourse = 'school_course',
   SchoolUser = 'school_user',
+  SchoolMetrics = 'school_metrics',
   UserBadge = 'user_badge',
   UserBonus = 'user_bonus',
   UserCourse = 'user_course',
@@ -621,9 +622,29 @@ export interface SchoolWithRole {
   role: RoleType;
 }
 export interface FilteredSchoolsForSchoolListingOps {
+  school_id?: string;
+  metric_window?: string | null;
   school_name: string;
+  school_performance?: string | null;
+  state?: string | null;
+  district?: string | null;
+  block?: string | null;
+  cluster?: string | null;
+  udise?: string | null;
+  program_id?: string | null;
+  program_name?: string | null;
+  partners?: string[] | null;
+  total_teachers?: number | null;
   num_students: number;
   num_teachers: number;
+  onboarded_students?: number | null;
+  activated_students?: number | null;
+  active_students?: number | null;
+  avg_time_spent?: number | null;
+  active_teachers?: number | null;
+  activities_assigned?: number | null;
+  avg_assignments_completed?: number | null;
+  avg_activities_completed?: number | null;
   program_managers: string[];
   field_coordinators: string[];
 }
@@ -1149,6 +1170,7 @@ export const ROLE_PRIORITY: Record<string, number> = {
   operational_director: 2,
   program_manager: 3,
   field_coordinator: 4,
+  external_user: 5,
 };
 
 export enum AssignmentSource {
@@ -1267,6 +1289,7 @@ export const OPS_ROLES = [
   RoleType.OPERATIONAL_DIRECTOR,
   RoleType.PROGRAM_MANAGER,
   RoleType.FIELD_COORDINATOR,
+  RoleType.EXTERNAL_USER,
 ];
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
 export const VERSION_KEY = 'last_native_version';
@@ -1276,6 +1299,27 @@ export enum SupportLevelMap {
   'Need Help' = 'need_help',
   'Not Tracked' = 'not_tracked',
 }
+
+export enum OpsSupportLevelMap {
+  'High Engagement' = 'doing_good',
+  'Medium Engagement' = 'still_learning',
+  'Not Active' = 'need_help',
+  'Not Downloaded' = 'not_tracked',
+}
+
+export const OPS_PERFORMANCE_BANDS = {
+  HIGH: 'High Engagement',
+  MEDIUM: 'Medium Engagement',
+  NOT_ACTIVE: 'Not Active',
+  NOT_DOWNLOADED: 'Not Downloaded',
+} as const;
+
+export const STUDENT_PERFORMANCE_BAND_KEYS = {
+  GREEN: 'green_band',
+  YELLOW: 'yellow_band',
+  RED: 'red_band',
+  GREY: 'grey_band',
+} as const;
 
 export enum RECOMMENDATION_TYPE {
   FRAMEWORK = 'framework',
@@ -1402,3 +1446,12 @@ export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
   'sticker-book-notification-dot-enabled';
 export const ENABLE_SAVE_AND_SHARE_STICKER_BOOK =
   'enable_save_and_share_sticker_book';
+export const SCHOOL_LISTING_STATUS_META: Record<
+  string,
+  { bg: string; color: string }
+> = {
+  'Performing Well': { bg: '#D1FAE5', color: '#2BA980' },
+  'Needs Attention': { bg: '#FEF3C7', color: '#E7A54E' },
+  'Needs Support': { bg: '#FCE8E6', color: '#D35451' },
+  default: { bg: '#EEF2F6', color: '#5B6472' },
+};

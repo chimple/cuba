@@ -2,6 +2,8 @@ import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
   LeaderboardInfo,
+  OpsStudentPerformanceBandRow,
+  OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
 } from './ServiceApi';
@@ -1237,6 +1239,15 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
     return this.s.getStudentPlayStatus(studentId, classId);
   }
+  getOpsStudentPerformanceBands(
+    params: OpsStudentPerformanceBandsParams,
+  ): Promise<OpsStudentPerformanceBandRow[]> {
+    if (!this.s.getOpsStudentPerformanceBands) {
+      return Promise.resolve([]);
+    }
+
+    return this.s.getOpsStudentPerformanceBands(params);
+  }
   getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {
@@ -1560,8 +1571,22 @@ export class ApiHandler implements ServiceApi {
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
+    date_range?: string;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this.s.getFilteredSchoolsForSchoolListing(params);
+  }
+
+  async getSchoolMetricsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+    return await this.s.getSchoolMetricsForSchoolListing(params);
   }
 
   async getSchoolsWithProgramAccess(

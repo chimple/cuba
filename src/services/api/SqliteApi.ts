@@ -64,6 +64,7 @@ import {
   GetSchoolsWithProgramAccessParams,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
+  OpsStudentPerformanceBandRow,
   SchoolProgramAccessResponse,
   ServiceApi,
 } from './ServiceApi';
@@ -5621,7 +5622,11 @@ order by
 
     return { hasPlayed: true, lastPlayedAt: firstRow.created_at };
   }
-
+  async getOpsStudentPerformanceBands(): Promise<
+    OpsStudentPerformanceBandRow[]
+  > {
+    throw new Error('Method not implemented.');
+  }
   async getLastAssignmentsForRecommendations(
     classId: string,
   ): Promise<TableTypes<'assignment'>[] | undefined> {
@@ -6940,8 +6945,22 @@ order by
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
+    date_range?: string;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
+  }
+
+  async getSchoolMetricsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+    return await this._serverApi.getSchoolMetricsForSchoolListing(params);
   }
 
   async getSchoolsWithProgramAccess(

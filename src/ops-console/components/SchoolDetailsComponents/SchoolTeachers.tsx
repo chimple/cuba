@@ -64,6 +64,9 @@ import {
   parseClassIdsFromCsv,
   toClassIdsCsv,
 } from './TeacherClassAssignmentUtils';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
 
 // Keys used to select the WhatsApp status label + chip styling.
 type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
@@ -177,6 +180,11 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 }) => {
   const history = useHistory();
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const [teachers, setTeachers] = useState<TeacherInfo[]>(data.teachers || []);
   const [totalCount, setTotalCount] = useState<number>(
     data.totalTeacherCount || 0,
@@ -1063,38 +1071,42 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         </Typography>
       ),
     },
-    {
-      key: 'interactData',
-      label: t('Interact'),
-      align: 'center',
-      width: 60,
-      sortable: false,
-      render: (row) => (
-        <Box className="schoolTeachers-interactCell">
-          <IconButton
-            size="small"
-            onClick={async () => {
-              setOpenPopup(true);
-              const currentTeacher = getTeacherInfo(row.id, row.classId);
-              if (currentTeacher) {
-                setcurrentTeachers(currentTeacher);
-              }
-              const performance =
-                teachersWithPerformance.find(
-                  (t) => t.id === row.id && t.classId === row.classId,
-                )?.performance ?? null;
-              if (performance) setTeacherStatus(performance);
-            }}
-          >
-            <img
-              src="/assets/icons/Interact.svg"
-              alt="Interact"
-              className="schoolTeachers-interactIcon"
-            />
-          </IconButton>
-        </Box>
-      ),
-    },
+    ...(!isExternalUser
+      ? [
+          {
+            key: 'interactData',
+            label: t('Interact'),
+            align: 'center',
+            width: 60,
+            sortable: false,
+            render: (row) => (
+              <Box className="schoolTeachers-interactCell">
+                <IconButton
+                  size="small"
+                  onClick={async () => {
+                    setOpenPopup(true);
+                    const currentTeacher = getTeacherInfo(row.id, row.classId);
+                    if (currentTeacher) {
+                      setcurrentTeachers(currentTeacher);
+                    }
+                    const performance =
+                      teachersWithPerformance.find(
+                        (t) => t.id === row.id && t.classId === row.classId,
+                      )?.performance ?? null;
+                    if (performance) setTeacherStatus(performance);
+                  }}
+                >
+                  <img
+                    src="/assets/icons/Interact.svg"
+                    alt="Interact"
+                    className="schoolTeachers-interactIcon"
+                  />
+                </IconButton>
+              </Box>
+            ),
+          } as Column<DisplayTeacher>,
+        ]
+      : []),
     {
       key: 'class',
       label: t('Class Name'),
@@ -1143,61 +1155,66 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         </Typography>
       ),
     },
-    {
-      key: 'teacher_actions',
-      label: '',
-      sortable: false,
-      render: (row) => (
-        <Box className="schoolTeachers-actionsCell">
-          <ActionMenu
-            items={[
-              {
-                // Opens assignment-only edit mode from the row action menu.
-                name: t('Edit Details'),
-                icon: (
-                  <BorderColorIcon
-                    fontSize="small"
-                    className="schoolTeachers-actionEditIcon"
-                  />
-                ),
-                onClick: () => {
-                  void handleOpenEditTeacherModal(row);
-                },
-              },
-              {
-                name: t('Delete'),
-                icon: (
-                  <DeleteOutlineIcon
-                    fontSize="small"
-                    className="schoolTeachers-actionDeleteIcon"
-                  />
-                ),
-                onClick: () => {
-                  const fullTeacher =
-                    row.interactPayload ?? getTeacherInfo(row.id, row.classId);
-                  if (!fullTeacher) return;
-                  setDeleteTargetTeacher(fullTeacher);
-                  setIsDeleteModalOpen(true);
-                },
-              },
-            ]}
-            renderTrigger={(open) => (
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  open(e);
-                }}
-                className="schoolTeachers-actionTrigger"
-                id={`schoolTeachers-actionTrigger-${row.id}-${row.classId}`}
-              >
-                <MoreHoriz className="schoolTeachers-actionTriggerIcon" />
-              </IconButton>
-            )}
-          />
-        </Box>
-      ),
-    },
+    ...(!isExternalUser
+      ? [
+          {
+            key: 'teacher_actions',
+            label: '',
+            sortable: false,
+            render: (row: DisplayTeacher) => (
+              <Box className="schoolTeachers-actionsCell">
+                <ActionMenu
+                  items={[
+                    {
+                      // Opens assignment-only edit mode from the row action menu.
+                      name: t('Edit Details'),
+                      icon: (
+                        <BorderColorIcon
+                          fontSize="small"
+                          className="schoolTeachers-actionEditIcon"
+                        />
+                      ),
+                      onClick: () => {
+                        void handleOpenEditTeacherModal(row);
+                      },
+                    },
+                    {
+                      name: t('Delete'),
+                      icon: (
+                        <DeleteOutlineIcon
+                          fontSize="small"
+                          className="schoolTeachers-actionDeleteIcon"
+                        />
+                      ),
+                      onClick: () => {
+                        const fullTeacher =
+                          row.interactPayload ??
+                          getTeacherInfo(row.id, row.classId);
+                        if (!fullTeacher) return;
+                        setDeleteTargetTeacher(fullTeacher);
+                        setIsDeleteModalOpen(true);
+                      },
+                    },
+                  ]}
+                  renderTrigger={(open) => (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        open(e);
+                      }}
+                      className="schoolTeachers-actionTrigger"
+                      id={`schoolTeachers-actionTrigger-${row.id}-${row.classId}`}
+                    >
+                      <MoreHoriz className="schoolTeachers-actionTriggerIcon" />
+                    </IconButton>
+                  )}
+                />
+              </Box>
+            ),
+          } as Column<DisplayTeacher>,
+        ]
+      : []),
   ];
 
   const handleClearFilters = useCallback(() => {
@@ -1365,14 +1382,16 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           </Typography>
         </Box>
         <Box className="schoolTeachers-actionsGroup">
-          <MuiButton
-            variant="outlined"
-            onClick={handleAddNewTeacher}
-            className="schoolTeachers-newTeacherButton-outlined"
-          >
-            <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
-            {!isSmallScreen && t('New Teacher')}
-          </MuiButton>
+          {!isExternalUser && (
+            <MuiButton
+              variant="outlined"
+              onClick={handleAddNewTeacher}
+              className="schoolTeachers-newTeacherButton-outlined"
+            >
+              <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
+              {!isSmallScreen && t('New Teacher')}
+            </MuiButton>
+          )}
 
           <SearchAndFilter
             searchTerm={searchTerm}
