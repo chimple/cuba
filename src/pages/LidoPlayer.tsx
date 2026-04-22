@@ -43,6 +43,8 @@ import {
 } from '../services/RemoteConfig';
 
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
+const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
+  'pending_homework_reward_transition';
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -238,10 +240,13 @@ const LidoPlayer: FC = () => {
         group.totalTimeSpent += record.timeSpent ?? 0;
       });
       const learning_path: boolean = state?.learning_path ?? false;
+      const is_homework: boolean = state?.isHomework ?? false;
       const isReward: boolean = state?.reward ?? false;
 
       const shouldGiveDailyReward =
-        isReward || (learning_path && (await Util.shouldGiveDailyReward()));
+        isReward ||
+        ((learning_path || is_homework) &&
+          (await Util.shouldGiveDailyReward()));
 
       if (isAssessmentLesson && shouldGiveDailyReward) {
         sessionStorage.setItem(REWARD_LESSON, 'true');
@@ -626,13 +631,25 @@ const LidoPlayer: FC = () => {
         await Util.updateLearningPath(currentStudent, isReward);
       } else if (is_homework && homeworkIndex !== undefined) {
         // This handles our temporary homework path
-        if (isReward) {
+        if (shouldGiveDailyReward) {
           sessionStorage.setItem(
             HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
             String(homeworkIndex),
           );
         }
         await Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex);
+        // Snapshot before advancing: final lesson may remove HOMEWORK_PATHWAY.
+        const pathBeforeAdvance = localStorage.getItem(HOMEWORK_PATHWAY);
+        if (shouldGiveDailyReward && pathBeforeAdvance) {
+          sessionStorage.setItem(
+            PENDING_HOMEWORK_REWARD_TRANSITION_KEY,
+            JSON.stringify({
+              completedIndex: homeworkIndex,
+              nextIndex: homeworkIndex + 1,
+              pathSnapshot: pathBeforeAdvance,
+            }),
+          );
+        }
         await Util.updateHomeworkPath(homeworkIndex);
       }
 
@@ -655,7 +672,6 @@ const LidoPlayer: FC = () => {
                 err,
               );
             }
-            localStorage.removeItem(HOMEWORK_PATHWAY);
           }
         } catch (err) {
           logger.error(

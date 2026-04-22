@@ -47,10 +47,18 @@ interface HomeworkPathLessonItem {
   raw_assignment?: TableTypes<'assignment'>;
 }
 
+interface PendingHomeworkRewardTransition {
+  completedIndex?: number;
+  nextIndex?: number;
+  pathSnapshot?: string;
+}
+
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 const CROWD_CHEER_AUDIO_URL = '/assets/audios/common/crowd_cheer.mp3';
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
-const MASCOT_X_OFFSET = -167;
+const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
+  'pending_homework_reward_transition';
+const MASCOT_X_OFFSET = -164;
 
 const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   selectedSubject,
@@ -403,6 +411,23 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     },
     [],
   );
+  // Reads the temporary transition payload used after finishing a homework
+  // lesson, so we can render reward flow even if path storage has advanced.
+  const getPendingRewardTransition = useCallback(() => {
+    const rawTransition = sessionStorage.getItem(
+      PENDING_HOMEWORK_REWARD_TRANSITION_KEY,
+    );
+    if (!rawTransition) return null;
+    try {
+      const parsed = JSON.parse(
+        rawTransition,
+      ) as PendingHomeworkRewardTransition;
+      if (typeof parsed.pathSnapshot !== 'string') return null;
+      return parsed;
+    } catch {
+      return null;
+    }
+  }, []);
 
   const fetchHomeworkLessons = useCallback(async () => {
     try {
@@ -412,6 +437,57 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       const hasPendingRewardTransition =
         rewardCompletedIndexRaw !== null &&
         /^-?\d+$/.test(rewardCompletedIndexRaw);
+      const pendingRewardTransition = getPendingRewardTransition();
+
+      const normalizeLessonShape = (
+        item: unknown,
+        fallbackLessons: unknown[],
+      ): HomeworkPathLessonItem => {
+        const typedItem = item as HomeworkPathLessonItem & {
+          lesson_id?: string;
+          subject_id?: string;
+          id?: string;
+        };
+        if (typedItem.lesson && typedItem.lesson.id) return typedItem;
+
+        return {
+          ...typedItem,
+          lesson: {
+            id: typedItem.lesson_id ?? '',
+            image: 'assets/icons/DefaultIcon.png',
+            subject_id:
+              typedItem.subject_id ||
+              (fallbackLessons[0] as HomeworkPathLessonItem | undefined)?.lesson
+                ?.subject_id ||
+              null,
+          },
+          assignment_id: typedItem.assignment_id ?? typedItem.id,
+          chapter_id: typedItem.chapter_id,
+          course_id: typedItem.course_id,
+          raw_assignment: typedItem.raw_assignment,
+        };
+      };
+
+      if (hasPendingRewardTransition && pendingRewardTransition?.pathSnapshot) {
+        try {
+          const snapshotPath = JSON.parse(
+            pendingRewardTransition.pathSnapshot,
+          ) as {
+            lessons?: unknown[];
+          };
+          const snapshotLessons = snapshotPath.lessons ?? [];
+          if (snapshotLessons.length > 0) {
+            setHomeworkLessons(
+              snapshotLessons.map((item) =>
+                normalizeLessonShape(item, snapshotLessons),
+              ),
+            );
+            return;
+          }
+        } catch (error) {
+          logger.warn('Invalid pending reward transition snapshot', error);
+        }
+      }
 
       const existingPathStr = localStorage.getItem(HOMEWORK_PATHWAY);
       if (existingPathStr) {
@@ -429,39 +505,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             existingPath.currentIndex < lessons.length;
 
           if (hasLessons && (notFinished || hasPendingRewardTransition)) {
-            // ✅ Use only if path is unfinished
-            // setHomeworkLessons(lessons);
-            // return;
-            const normalizeLessonShape = (
-              item: unknown,
-            ): HomeworkPathLessonItem => {
-              const typedItem = item as HomeworkPathLessonItem & {
-                lesson_id?: string;
-                subject_id?: string;
-                id?: string;
-              };
-              if (typedItem.lesson && typedItem.lesson.id) return typedItem;
-
-              // Full lesson shape for SVG rendering
-              return {
-                ...typedItem,
-                lesson: {
-                  id: typedItem.lesson_id ?? '',
-                  image: 'assets/icons/DefaultIcon.png', // 👈 CRITICAL for SVG
-                  subject_id:
-                    typedItem.subject_id ||
-                    (lessons[0] as HomeworkPathLessonItem | undefined)?.lesson
-                      ?.subject_id ||
-                    null,
-                },
-                assignment_id: typedItem.assignment_id ?? typedItem.id,
-                chapter_id: typedItem.chapter_id,
-                course_id: typedItem.course_id,
-                raw_assignment: typedItem.raw_assignment,
-              };
-            };
-
-            const normalizedLessons = lessons.map(normalizeLessonShape);
+            const normalizedLessons = lessons.map((item) =>
+              normalizeLessonShape(item, lessons),
+            );
             setHomeworkLessons(normalizedLessons);
             return;
           }
@@ -482,6 +528,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       }
 
       if (hasPendingRewardTransition) {
+        onHomeworkComplete?.();
         return;
       }
 
@@ -567,7 +614,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       logger.error('Failed to fetch homework lessons:', error);
       setHomeworkLessons([]);
     }
-  }, [api, getCachedLesson, onHomeworkComplete]);
+  }, [api, getCachedLesson, getPendingRewardTransition, onHomeworkComplete]);
 
   const updateMascotToNormalState = useCallback(
     async (rewardId: string) => {
@@ -622,7 +669,17 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     if (!containerRef.current) return;
 
     try {
-      let storedHomeworkPath = localStorage.getItem(HOMEWORK_PATHWAY);
+      const pendingRewardIndexRaw = sessionStorage.getItem(
+        HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
+      );
+      const hasPendingRewardTransition =
+        pendingRewardIndexRaw !== null && /^-?\d+$/.test(pendingRewardIndexRaw);
+      const pendingRewardTransition = hasPendingRewardTransition
+        ? getPendingRewardTransition()
+        : null;
+      const storedHomeworkPath =
+        pendingRewardTransition?.pathSnapshot ||
+        localStorage.getItem(HOMEWORK_PATHWAY);
 
       if (!storedHomeworkPath) {
         return;
@@ -632,7 +689,31 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         currentIndex: number;
       };
       const lessonsToRender: HomeworkPathLessonItem[] = homeworkPath.lessons;
-      const currentIndex = homeworkPath.currentIndex;
+      const pendingCompletedIndex =
+        typeof pendingRewardTransition?.completedIndex === 'number' &&
+        Number.isFinite(pendingRewardTransition.completedIndex)
+          ? pendingRewardTransition.completedIndex
+          : null;
+      const pendingNextIndex =
+        typeof pendingRewardTransition?.nextIndex === 'number' &&
+        Number.isFinite(pendingRewardTransition.nextIndex)
+          ? pendingRewardTransition.nextIndex
+          : null;
+      const isFinalRewardTransition =
+        pendingCompletedIndex !== null &&
+        pendingCompletedIndex + 1 >= lessonsToRender.length;
+      // `currentIndex` drives mascot/reward targeting.
+      // `visualCurrentIndex` drives node rendering (final reward shows all played).
+      const currentIndex =
+        !isFinalRewardTransition &&
+        pendingNextIndex !== null &&
+        pendingNextIndex >= 0 &&
+        pendingNextIndex < lessonsToRender.length
+          ? pendingNextIndex
+          : homeworkPath.currentIndex;
+      const visualCurrentIndex = isFinalRewardTransition
+        ? lessonsToRender.length
+        : currentIndex;
       const pathEndIndex = lessonsToRender.length - 1;
       const startIndex = 0;
 
@@ -749,10 +830,16 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         pendingRewardCompletedIndex >= 0 &&
         pendingRewardCompletedIndex < lessonsToRender.length
           ? pendingRewardCompletedIndex
-          : currentCompletedIndexFromPath;
+          : typeof pendingRewardTransition?.completedIndex === 'number' &&
+              Number.isFinite(pendingRewardTransition.completedIndex) &&
+              pendingRewardTransition.completedIndex >= 0 &&
+              pendingRewardTransition.completedIndex < lessonsToRender.length
+            ? pendingRewardTransition.completedIndex
+            : currentCompletedIndexFromPath;
 
       if (typeof newRewardId !== 'string') {
         sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
+        sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
       }
 
       preloadAllLessonImages(lessons);
@@ -849,8 +936,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           const lessonIdx = pathIndex - startIndexOffset;
           const { lesson } = lessonsToRender[lessonIdx];
 
-          const isPlayed = lessonIdx < currentIndex;
-          const isActive = lessonIdx === currentIndex;
+          const isPlayed = lessonIdx < visualCurrentIndex;
+          const isActive = lessonIdx === visualCurrentIndex;
 
           const isValidUrl =
             typeof lesson.image === 'string' &&
@@ -863,7 +950,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                 : 'assets/icons/DefaultIcon.png'
               : 'assets/icons/NextNodeIcon.svg';
 
-          if (lessonIdx < currentIndex) {
+          if (lessonIdx < visualCurrentIndex) {
             const playedLesson = document.createElementNS(
               'http://www.w3.org/2000/svg',
               'g',
@@ -889,7 +976,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
             placeElement(playedLesson as SVGGElement, xPos, yPos);
             fragment.appendChild(playedLesson);
-          } else if (lessonIdx === currentIndex) {
+          } else if (lessonIdx === visualCurrentIndex) {
             const activeGroup = document.createElementNS(
               'http://www.w3.org/2000/svg',
               'g',
@@ -1058,7 +1145,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           Gift_Svg.appendChild(giftSVG.cloneNode(true));
           placeElement(Gift_Svg, endPoint.x - 25, endPoint.y - 40 + 15);
 
-          if (currentIndex < pathEndIndex + 1) {
+          if (visualCurrentIndex < pathEndIndex + 1) {
             Gift_Svg.addEventListener('click', () => {
               const replaceGiftContent = (newContent: SVGElement) => {
                 while (Gift_Svg.firstChild) {
@@ -1185,8 +1272,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                   );
             if (completedLessonIndex < 0) {
               sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
+              sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
               return;
             }
+            const isFinalRewardTransition =
+              completedLessonIndex + 1 >= lessonsToRender.length;
 
             const completedLessonPathIndex =
               startIndexOffset + completedLessonIndex;
@@ -1267,8 +1357,14 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               await delay(1000);
               await updateMascotToNormalState(newRewardId);
               await delay(500);
-              await animateChimpleMovement();
               sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
+              sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
+              if (isFinalRewardTransition) {
+                localStorage.removeItem(HOMEWORK_PATHWAY);
+                onHomeworkComplete?.();
+              } else {
+                await animateChimpleMovement();
+              }
               window.dispatchEvent(
                 new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
                   detail: {
@@ -1283,7 +1379,14 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             rewardDiv.style.height = '100%';
             rewardForeignObject.appendChild(rewardDiv);
             svg.appendChild(rewardForeignObject);
+            setRewardRiveState(RewardBoxState.IDLE);
             setRewardRiveContainer(rewardDiv);
+            // Let React mount RewardRive into rewardDiv before flight starts.
+            await new Promise<void>((resolve) => {
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => resolve());
+              });
+            });
             requestAnimationFrame(animateBezier);
             await Util.updateUserReward();
           } catch (e) {
@@ -1299,17 +1402,25 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           const currentLessonIdx = lessons.findIndex(
             (_, idx) => startIndex + idx === currentIndex,
           );
+          const anchoredCurrentLessonIdx =
+            currentLessonIdx >= 0
+              ? currentLessonIdx
+              : Math.min(
+                  Math.max(currentIndex, 0),
+                  Math.max(lessons.length - 1, 0),
+                );
           const lastCompletedLessonIdx =
             typeof completedRewardIndex === 'number'
               ? completedRewardIndex
-              : currentLessonIdx - 1;
+              : anchoredCurrentLessonIdx - 1;
 
           if (
             lastCompletedLessonIdx < 0 ||
             newRewardId == null ||
             !isRewardFeatureOn
           ) {
-            const currentPathIndex = startIndexOffset + currentLessonIdx;
+            const currentPathIndex =
+              startIndexOffset + anchoredCurrentLessonIdx;
             const safePathIndex = Math.min(
               Math.max(currentPathIndex, 0),
               slotXValues.length - 1,
@@ -1382,6 +1493,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     setHasTodayReward,
     tryFetchSVG,
     updateMascotToNormalState,
+    getPendingRewardTransition,
+    onHomeworkComplete,
   ]);
 
   useEffect(() => {
