@@ -29,6 +29,8 @@ interface HomeworkPath {
   pendingAssignmentIds?: string[];
 }
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
+const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
+  'pending_homework_reward_transition';
 
 const areStringArraysEqual = (
   left: string[] = [],
@@ -194,9 +196,35 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     const rewardCompletedIndexRaw = sessionStorage.getItem(
       HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
     );
-    const hasPendingRewardTransition =
+    const rewardCompletedIndex =
       rewardCompletedIndexRaw !== null &&
       /^-?\d+$/.test(rewardCompletedIndexRaw);
+    const rawPendingRewardTransition = sessionStorage.getItem(
+      PENDING_HOMEWORK_REWARD_TRANSITION_KEY,
+    );
+    const pendingRewardTransition = (() => {
+      if (!rawPendingRewardTransition) return null;
+      try {
+        const parsed = JSON.parse(rawPendingRewardTransition) as {
+          completedIndex?: number;
+          pathSnapshot?: string;
+        };
+        if (
+          typeof parsed.completedIndex !== 'number' ||
+          !Number.isFinite(parsed.completedIndex)
+        )
+          return null;
+        if (typeof parsed.pathSnapshot !== 'string') return null;
+        return parsed;
+      } catch {
+        return null;
+      }
+    })();
+    const hasPendingRewardTransition =
+      rewardCompletedIndex &&
+      pendingRewardTransition !== null &&
+      Number(rewardCompletedIndexRaw) ===
+        pendingRewardTransition.completedIndex;
 
     // 0️⃣ Read existing path from localStorage (if any)
     const existingPathStr = localStorage.getItem(HOMEWORK_PATHWAY);

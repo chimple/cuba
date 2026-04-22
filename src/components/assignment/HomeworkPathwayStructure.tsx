@@ -58,7 +58,7 @@ const CROWD_CHEER_AUDIO_URL = '/assets/audios/common/crowd_cheer.mp3';
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
   'pending_homework_reward_transition';
-const MASCOT_X_OFFSET = -164;
+const MASCOT_X_OFFSET = -163;
 
 const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   selectedSubject,
@@ -434,10 +434,17 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       const rewardCompletedIndexRaw = sessionStorage.getItem(
         HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
       );
-      const hasPendingRewardTransition =
+      const hasValidRewardCompletedIndex =
         rewardCompletedIndexRaw !== null &&
         /^-?\d+$/.test(rewardCompletedIndexRaw);
       const pendingRewardTransition = getPendingRewardTransition();
+      const hasPendingRewardTransition =
+        hasValidRewardCompletedIndex &&
+        pendingRewardTransition !== null &&
+        typeof pendingRewardTransition.completedIndex === 'number' &&
+        Number.isFinite(pendingRewardTransition.completedIndex) &&
+        Number(rewardCompletedIndexRaw) ===
+          pendingRewardTransition.completedIndex;
 
       const normalizeLessonShape = (
         item: unknown,
