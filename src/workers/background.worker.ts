@@ -381,6 +381,8 @@ const buildBulkUploadPayload = (payload: {
             row['SCHOOL INSTRUCTION LANGUAGE']?.toString().trim() || '',
           student_login_type:
             row['STUDENT LOGIN TYPE']?.toString().trim() || '',
+          isWhatsappEnabled:
+            row['IS WHATSAPP ENABLED']?.toString().trim().toLowerCase() || '',
           whatsapp_bot_number:
             row['WHATSAPP BOT NUMBER']?.toString().trim() || null,
           academic_years: row['SCHOOL ACADEMIC YEAR']
