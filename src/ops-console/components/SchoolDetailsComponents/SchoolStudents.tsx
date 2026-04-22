@@ -999,28 +999,35 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           </Typography>
         ),
       },
-      {
-        key: 'schstudents_interact',
-        label: t('Interact'),
-        sortable: false,
-        render: (s) => (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'left',
-              alignItems: 'left',
-            }}
-          >
-            <IconButton size="small" onClick={() => handleInteractClick(s)}>
-              <img
-                src="/assets/icons/Interact.svg"
-                alt="Interact"
-                style={{ width: 30, height: 30 }}
-              />
-            </IconButton>
-          </Box>
-        ),
-      },
+      ...(!isExternalUser
+        ? ([
+            {
+              key: 'schstudents_interact',
+              label: t('Interact'),
+              sortable: false,
+              render: (s) => (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'left',
+                    alignItems: 'left',
+                  }}
+                >
+                  <IconButton
+                    size="small"
+                    onClick={() => handleInteractClick(s)}
+                  >
+                    <img
+                      src="/assets/icons/Interact.svg"
+                      alt="Interact"
+                      style={{ width: 30, height: 30 }}
+                    />
+                  </IconButton>
+                </Box>
+              ),
+            },
+          ] as Column<DisplayStudent>[])
+        : []),
     ];
     const genderColumn: Column<DisplayStudent> = {
       key: 'gender',
