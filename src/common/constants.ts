@@ -1195,6 +1195,16 @@ export interface CoordinatorAPIResponse {
   total: number;
 }
 export const CHIMPLE_RIVE_STATE_MACHINE_MAX = 'chimple_rive_state_machine_max';
+// Shared mascot Rive state machine/input identifiers.
+export const CHIMPLE_MASCOT_STATE_MACHINE_HOMEWORK_COMPLETE = 'State Machine 1';
+export const CHIMPLE_MASCOT_STATE_MACHINE_CELEBRATE = 'State Machine 2';
+export const CHIMPLE_MASCOT_STATE_MACHINE_NORMAL = 'State Machine 3';
+export const CHIMPLE_MASCOT_STATE_MACHINE_REWARD = 'State Machine 4';
+export const CHIMPLE_MASCOT_INPUT_CELEBRATE = 'Number 1';
+export const CHIMPLE_MASCOT_INPUT_NORMAL = 'Number 2';
+export const CHIMPLE_MASCOT_INPUT_REWARD = 'Number 3';
+export const CHIMPLE_MASCOT_ANIMATION_IDLE = 'id';
+export const CHIMPLE_MASCOT_ANIMATION_WIN = 'win';
 
 export interface GeoDataParams {
   p_country?: string;

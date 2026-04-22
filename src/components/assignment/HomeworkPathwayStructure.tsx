@@ -8,6 +8,13 @@ import { Capacitor } from '@capacitor/core';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import {
+  CHIMPLE_MASCOT_ANIMATION_IDLE,
+  CHIMPLE_MASCOT_INPUT_CELEBRATE,
+  CHIMPLE_MASCOT_INPUT_NORMAL,
+  CHIMPLE_MASCOT_INPUT_REWARD,
+  CHIMPLE_MASCOT_STATE_MACHINE_CELEBRATE,
+  CHIMPLE_MASCOT_STATE_MACHINE_NORMAL,
+  CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
   HOMEWORK_REMOTE_ASSETS_ENABLED,
   COCOS,
   CONTINUE,
@@ -80,13 +87,14 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   >(RewardBoxState.IDLE);
 
   const [chimpleRiveStateMachineName, setChimpleRiveStateMachineName] =
-    useState<string>('State Machine 3');
-  const [chimpleRiveInputName, setChimpleRiveInputName] =
-    useState<string>('Number 2');
+    useState<string>(CHIMPLE_MASCOT_STATE_MACHINE_NORMAL);
+  const [chimpleRiveInputName, setChimpleRiveInputName] = useState<string>(
+    CHIMPLE_MASCOT_INPUT_NORMAL,
+  );
   const [chimpleRiveStateValue, setChimpleRiveStateValue] = useState<number>(1);
   const [chimpleRiveAnimationName, setChimpleRiveAnimationName] = useState<
     string | undefined
-  >('id');
+  >(CHIMPLE_MASCOT_ANIMATION_IDLE);
   const [mascotKey, setMascotKey] = useState(0);
   const mascotStateRef = useRef<{
     stateMachine: string;
@@ -155,8 +163,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   };
 
   const invokeMascotCelebration = async (stateValue: number) => {
-    setChimpleRiveStateMachineName('State Machine 2');
-    setChimpleRiveInputName('Number 1');
+    setChimpleRiveStateMachineName(CHIMPLE_MASCOT_STATE_MACHINE_CELEBRATE);
+    setChimpleRiveInputName(CHIMPLE_MASCOT_INPUT_CELEBRATE);
     setChimpleRiveStateValue(stateValue || 1);
     setChimpleRiveAnimationName(undefined);
     setMascotKey((prev) => prev + 1);
@@ -232,8 +240,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       if (!localAudioPath) return;
 
       await playMascotAudioFromLocalPath(localAudioPath, {
-        stateMachine: 'State Machine 4',
-        inputName: 'Number 3',
+        stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
+        inputName: CHIMPLE_MASCOT_INPUT_REWARD,
         stateValue: stateValue ?? currentMascotStateValueRef.current ?? 1,
       });
     },
@@ -629,14 +637,16 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         const rewardRecord = await api.getRewardById(rewardId);
         if (rewardRecord && rewardRecord.type === 'normal') {
           setChimpleRiveStateMachineName(
-            rewardRecord.state_machine || 'State Machine 3',
+            rewardRecord.state_machine || CHIMPLE_MASCOT_STATE_MACHINE_NORMAL,
           );
-          setChimpleRiveInputName(rewardRecord.state_input_name || 'Number 2');
+          setChimpleRiveInputName(
+            rewardRecord.state_input_name || CHIMPLE_MASCOT_INPUT_NORMAL,
+          );
           setChimpleRiveStateValue(rewardRecord.state_number_input || 1);
           setChimpleRiveAnimationName(undefined);
           setMascotKey((prev) => prev + 1);
         } else {
-          setChimpleRiveAnimationName('id');
+          setChimpleRiveAnimationName(CHIMPLE_MASCOT_ANIMATION_IDLE);
           setMascotKey((prev) => prev + 1);
         }
       } catch (e) {
@@ -1797,7 +1807,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               stateValue={chimpleRiveStateValue}
               animationName={chimpleRiveAnimationName}
               overlayRules={[
-                { stateMachine: 'State Machine 4', inputName: 'Number 3' },
+                {
+                  stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
+                  inputName: CHIMPLE_MASCOT_INPUT_REWARD,
+                },
               ]}
             />
           </div>,
