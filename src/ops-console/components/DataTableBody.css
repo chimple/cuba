@@ -15,6 +15,7 @@
   font-size: 14px;
   padding: 16px 12px;
   height: 48px;
+  font-weight: 700 !important;
 }
 
 .data-tablebody-head-cell:first-child {
@@ -54,6 +55,17 @@
   font-size: 14px;
   padding: 12px 12px;
   height: 48px;
+  font-weight: 400 !important;
+}
+
+.data-tablebody-head-label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  white-space: normal;
+  line-height: 1.15;
+  font-weight: 700;
 }
 
 .data-tablebody-row {

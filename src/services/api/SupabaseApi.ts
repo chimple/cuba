@@ -51,6 +51,7 @@ import {
   DEFAULT_LOCALE_ID,
   RESULT_STATUS,
   LEARNING_PATHWAY_MODE,
+  ProgramType,
 } from '../../common/constants';
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
@@ -8767,43 +8768,88 @@ export class SupabaseApi implements ServiceApi {
       return {};
     }
 
+    const emptyOptions: Record<string, string[]> = {
+      state: [],
+      district: [],
+      block: [],
+      programType: [],
+      partner: [],
+      programManager: [],
+      fieldCoordinator: [],
+      cluster: [],
+    };
+
     try {
-      const { data, error } = await this.supabase.rpc(
-        'get_school_filter_options',
-      );
+      const { data, error } = await this.supabase
+        .from(TABLES.SchoolMetrics)
+        .select(
+          'state, district, block, cluster, program_type, partners, program_managers, field_coordinators',
+        )
+        .eq('is_deleted', false);
 
       if (error) {
-        logger.error('RPC error in getSchoolFilterOptions:', error);
-        return {};
+        logger.error('Error fetching school_metrics filter options:', error);
+        return emptyOptions;
       }
 
-      const parsed: Record<string, string[]> = {
-        state: [],
-        district: [],
-        block: [],
-        programType: [],
-        partner: [],
-        programManager: [],
-        fieldCoordinator: [],
-        cluster: [],
+      const parsed: Record<string, Set<string>> = {
+        state: new Set(),
+        district: new Set(),
+        block: new Set(),
+        programType: new Set(),
+        partner: new Set(),
+        programManager: new Set(),
+        fieldCoordinator: new Set(),
+        cluster: new Set(),
       };
 
-      if (data && typeof data === 'object' && !Array.isArray(data)) {
-        for (const key in parsed) {
-          const val = (data as Record<string, Json>)[key];
-          parsed[key] = Array.isArray(val)
-            ? val.filter(
-                (v): v is string =>
-                  typeof v === 'string' && v.trim() !== '' && v !== 'null',
-              )
-            : [];
+      for (const row of (data ?? []) as Array<{
+        state?: string | null;
+        district?: string | null;
+        block?: string | null;
+        cluster?: string | null;
+        program_type?: string | null;
+        partners?: Array<string | null> | string[] | null;
+        program_managers?: Array<string | null> | string[] | null;
+        field_coordinators?: Array<string | null> | string[] | null;
+      }>) {
+        if (row.state) parsed.state.add(row.state);
+        if (row.district) parsed.district.add(row.district);
+        if (row.block) parsed.block.add(row.block);
+        if (row.cluster) parsed.cluster.add(row.cluster);
+        if (
+          row.program_type &&
+          Object.values(ProgramType).includes(row.program_type as ProgramType)
+        ) {
+          parsed.programType.add(row.program_type);
+        }
+
+        for (const partner of row.partners ?? []) {
+          if (partner) parsed.partner.add(partner);
+        }
+        for (const manager of row.program_managers ?? []) {
+          if (manager) parsed.programManager.add(manager);
+        }
+        for (const coordinator of row.field_coordinators ?? []) {
+          if (coordinator) parsed.fieldCoordinator.add(coordinator);
         }
       }
 
-      return parsed;
+      const finalOptions: Record<string, string[]> = {
+        state: Array.from(parsed.state).sort(),
+        district: Array.from(parsed.district).sort(),
+        block: Array.from(parsed.block).sort(),
+        programType: Array.from(parsed.programType).sort(),
+        partner: Array.from(parsed.partner).sort(),
+        programManager: Array.from(parsed.programManager).sort(),
+        fieldCoordinator: Array.from(parsed.fieldCoordinator).sort(),
+        cluster: Array.from(parsed.cluster).sort(),
+      };
+
+      return finalOptions;
     } catch (err) {
       logger.error('Unexpected error in getSchoolFilterOptions:', err);
-      return {};
+      return emptyOptions;
     }
   }
 
@@ -8973,6 +9019,23 @@ export class SupabaseApi implements ServiceApi {
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
+    date_range?: string;
+  }): Promise<{
+    data: FilteredSchoolsForSchoolListingOps[];
+    total: number;
+  }> {
+    return await this.getSchoolMetricsForSchoolListing(params);
+  }
+
+  async getSchoolMetricsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
@@ -8982,51 +9045,238 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-    const { filters, programId, page, page_size, order_by, order_dir, search } =
-      params;
-    const payload: any = {};
+    const {
+      data: { user: authUser },
+      error: authError,
+    } = await this.supabase.auth.getUser();
+    if (authError || !authUser) {
+      logger.error('Current user is not available for school metrics query');
+      return { data: [], total: 0 };
+    }
 
-    if (filters && Object.keys(filters).length > 0) payload.filters = filters;
-    if (programId) payload._program_id = programId;
-    if (page) payload.page = page;
-    if (page_size) payload.page_size = page_size;
-    if (order_by) payload.order_by = order_by;
-    if (order_dir) payload.order_dir = order_dir;
-    if (search) payload.search = search;
+    const {
+      filters,
+      programId,
+      page = 1,
+      page_size = 10,
+      order_by,
+      order_dir,
+      search,
+      date_range,
+    } = params;
+
+    const specialRoles = await this.getUserSpecialRoles(authUser.id);
+    const isAdminOrDirector = specialRoles.some((role) =>
+      [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
+        role as RoleType,
+      ),
+    );
+    const isExternalUser = specialRoles.includes(RoleType.EXTERNAL_USER);
+    const isFieldCoordinator = specialRoles.includes(
+      RoleType.FIELD_COORDINATOR,
+    );
+    const shouldRestrictToSchoolLinks =
+      !isAdminOrDirector && (isExternalUser || isFieldCoordinator);
 
     try {
-      const { data, error } = await this.supabase.rpc(
-        'get_filtered_schools_with_optional_program',
-        payload,
-      );
-      if (error) {
+      const [schoolUserResult, programUserResult] = await Promise.all([
+        shouldRestrictToSchoolLinks || !isAdminOrDirector
+          ? this.supabase
+              .from(TABLES.SchoolUser)
+              .select('school_id')
+              .eq('user_id', authUser.id)
+              .eq('is_deleted', false)
+          : Promise.resolve({
+              data: [] as Array<{ school_id?: string | null }>,
+              error: null,
+            }),
+        !isAdminOrDirector && specialRoles.includes(RoleType.PROGRAM_MANAGER)
+          ? this.supabase
+              .from(TABLES.ProgramUser)
+              .select('program_id')
+              .eq('user', authUser.id)
+              .eq('role', RoleType.PROGRAM_MANAGER)
+              .eq('is_deleted', false)
+          : Promise.resolve({
+              data: [] as Array<{ program_id?: string | null }>,
+              error: null,
+            }),
+      ]);
+
+      if (schoolUserResult?.error) {
         logger.error(
-          'RPC error in get_filtered_schools_with_optional_program:',
-          error,
+          'Error fetching school_user access list:',
+          schoolUserResult.error,
+        );
+        return { data: [], total: 0 };
+      }
+      if (programUserResult?.error) {
+        logger.error(
+          'Error fetching program_user access list:',
+          programUserResult.error,
         );
         return { data: [], total: 0 };
       }
 
+      const schoolIds = (schoolUserResult.data ?? [])
+        .map((row) => row.school_id)
+        .filter((id): id is string => !!id);
+      const programIds = (programUserResult.data ?? [])
+        .map((row) => row.program_id)
+        .filter((id): id is string => !!id);
+
+      const metricWindow =
+        date_range && date_range !== 'all_time'
+          ? date_range.trim().toLowerCase()
+          : null;
+
+      let query = this.supabase
+        .from(TABLES.SchoolMetrics)
+        .select('*', { count: 'exact' })
+        .eq('is_deleted', false);
+
+      if (metricWindow) {
+        query = query.eq('metric_window', metricWindow);
+      }
+
+      if (programId) {
+        query = query.eq('program_id', programId);
+      }
+
+      if (!isAdminOrDirector) {
+        if (schoolIds.length > 0 && programIds.length > 0) {
+          query = query.or(
+            `school_id.in.(${schoolIds.join(',')}),program_id.in.(${programIds.join(',')})`,
+          );
+        } else if (schoolIds.length > 0) {
+          query = query.in('school_id', schoolIds);
+        } else if (programIds.length > 0) {
+          query = query.in('program_id', programIds);
+        } else {
+          return { data: [], total: 0 };
+        }
+      }
+
       if (
-        !data ||
-        typeof data !== 'object' ||
-        !('data' in data) ||
-        !('total' in data)
+        !isAdminOrDirector &&
+        schoolIds.length === 0 &&
+        programIds.length === 0
       ) {
-        throw new Error(
-          'Supabase RPC did not return expected { data, total } shape',
+        return { data: [], total: 0 };
+      }
+
+      const cleanedFilters = Object.fromEntries(
+        Object.entries(filters ?? {}).filter(
+          ([, values]) => Array.isArray(values) && values.length > 0,
+        ),
+      );
+
+      if (cleanedFilters.state?.length) {
+        query = query.in('state', cleanedFilters.state);
+      }
+      if (cleanedFilters.district?.length) {
+        query = query.in('district', cleanedFilters.district);
+      }
+      if (cleanedFilters.block?.length) {
+        query = query.in('block', cleanedFilters.block);
+      }
+      if (cleanedFilters.cluster?.length) {
+        query = query.in('cluster', cleanedFilters.cluster);
+      }
+      if (cleanedFilters.model?.length) {
+        const schoolModelValues = cleanedFilters.model.filter(
+          (value): value is 'hybrid' | 'at_home' | 'at_school' =>
+            Object.values(PROGRAM_TAB).includes(value as PROGRAM_TAB),
+        );
+        if (schoolModelValues.length) {
+          query = query.in('school_model', schoolModelValues);
+        }
+      }
+      if (cleanedFilters.partner?.length) {
+        query = query.overlaps('partners', cleanedFilters.partner);
+      }
+      if (cleanedFilters.programManager?.length) {
+        query = query.overlaps(
+          'program_managers',
+          cleanedFilters.programManager,
+        );
+      }
+      if (cleanedFilters.fieldCoordinator?.length) {
+        query = query.overlaps(
+          'field_coordinators',
+          cleanedFilters.fieldCoordinator,
+        );
+      }
+      if (cleanedFilters.programType?.length) {
+        const programTypeValues = cleanedFilters.programType.filter(
+          (value): value is 'government' | 'private' | 'learning_centers' =>
+            Object.values(ProgramType).includes(value as ProgramType),
+        );
+        if (programTypeValues.length) {
+          query = query.in('program_type', programTypeValues);
+        }
+      }
+
+      if (search) {
+        query = query.or(
+          [
+            `school_name.ilike.%${search}%`,
+            `udise.ilike.%${search}%`,
+            `district.ilike.%${search}%`,
+            `block.ilike.%${search}%`,
+            `cluster.ilike.%${search}%`,
+            `state.ilike.%${search}%`,
+          ].join(','),
         );
       }
 
+      const sortBy = order_by === 'name' ? 'school_name' : 'school_name';
+      const sortDir = order_dir === 'desc' ? false : true;
+      const from = Math.max(page - 1, 0) * page_size;
+      const to = from + page_size - 1;
+
+      const { data, count, error } = await query
+        .order(sortBy, { ascending: sortDir })
+        .range(from, to);
+
+      if (error) {
+        logger.error('Error fetching school_metrics listing:', error);
+        return { data: [], total: 0 };
+      }
+
+      const rows = (data ?? []) as Array<Record<string, unknown>>;
+
+      const mappedRows = rows.map((row: Record<string, unknown>) => ({
+        ...row,
+        school_name: typeof row.school_name === 'string' ? row.school_name : '',
+        udise: row.udise ?? null,
+        num_students:
+          typeof row.onboarded_students === 'number'
+            ? row.onboarded_students
+            : 0,
+        num_teachers:
+          typeof row.active_teachers === 'number' ? row.active_teachers : 0,
+        total_teachers: null,
+        onboarded_students: row.onboarded_students ?? null,
+        activated_students: row.activated_students ?? null,
+        active_students: row.active_students ?? null,
+        avg_time_spent: row.avg_time_spent ?? null,
+        active_teachers: row.active_teachers ?? null,
+        activities_assigned: row.activities_assigned ?? null,
+        avg_assignments_completed: row.avg_assignments_completed ?? null,
+        avg_activities_completed: row.avg_activities_completed ?? null,
+        program_managers: row.program_managers ?? [],
+        field_coordinators: row.field_coordinators ?? [],
+      })) as FilteredSchoolsForSchoolListingOps[];
+
       return {
-        data: (data.data ??
-          []) as unknown as FilteredSchoolsForSchoolListingOps[],
-        total: typeof data.total === 'number' ? data.total : 0,
+        data: mappedRows,
+        total: typeof count === 'number' ? count : 0,
       };
-    } catch (err) {
+    } catch (error) {
       logger.error(
-        'Unexpected error in get_filtered_schools_with_optional_program:',
-        err,
+        'Unexpected error in getSchoolMetricsForSchoolListing:',
+        error,
       );
       return { data: [], total: 0 };
     }
@@ -9287,7 +9537,7 @@ export class SupabaseApi implements ServiceApi {
       .from('program_user')
       .select('id')
       .eq('user', userId)
-      .in('role', ['program_manager', 'field_coordinator'])
+      .in('role', [RoleType.PROGRAM_MANAGER, RoleType.FIELD_COORDINATOR])
       .eq('is_deleted', false)
       .limit(1);
 

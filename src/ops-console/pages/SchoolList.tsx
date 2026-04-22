@@ -2,19 +2,33 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Box,
   Button,
+  Chip,
   Divider,
   IconButton,
   ListItemIcon,
   ListItemText,
   Menu,
   MenuItem,
+  CircularProgress,
   Tab,
   Tabs,
   Typography,
 } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from '../../common/constants';
+import { PAGES, PROGRAM_TAB } from '../../common/constants';
+import {
+  DEFAULT_DATE_RANGE,
+  DATE_RANGE_OPTIONS,
+  DEFAULT_PAGE_SIZE,
+  filterConfigsForSchool,
+  INITIAL_FILTERS,
+  tabOptions,
+  type DateRangeValue,
+  type Filters,
+} from './SchoolList.helpers';
+import { SchoolListRow, useSchoolListData } from './SchoolList.fetcher';
+import { mapSchoolRowsToRenderRows } from './SchoolListRowRenderer';
 import './SchoolList.css';
 import DataTablePagination from '../components/DataTablePagination';
 import DataTableBody, { Column } from '../components/DataTableBody';
@@ -23,6 +37,7 @@ import SearchAndFilter from '../components/SearchAndFilter';
 import FilterSlider from '../components/FilterSlider';
 import SelectedFilters from '../components/SelectedFilters';
 import FileUpload from '../components/FileUpload';
+import SchoolListDateRangeDropdown from '../components/SchoolListDateRangeDropdown';
 import { FileUploadOutlined, Add } from '@mui/icons-material';
 import { BsFillBellFill } from 'react-icons/bs';
 import { useLocation, useHistory } from 'react-router';
@@ -31,37 +46,6 @@ import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
-
-const filterConfigsForSchool = [
-  { key: 'partner', label: t('Select Partner') },
-  { key: 'programManager', label: t('Select Program Manager') },
-  { key: 'fieldCoordinator', label: t('Select Field Coordinator') },
-  { key: 'programType', label: t('Select Program Type') },
-  { key: 'state', label: t('Select State') },
-  { key: 'district', label: t('Select District') },
-  { key: 'block', label: t('Select Block') },
-  { key: 'cluster', label: t('Select Cluster') },
-];
-
-type Filters = Record<string, string[]>;
-
-const INITIAL_FILTERS: Filters = {
-  programType: [],
-  partner: [],
-  programManager: [],
-  fieldCoordinator: [],
-  state: [],
-  district: [],
-  block: [],
-  cluster: [],
-};
-
-const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([value, label]) => ({
-  label,
-  value: value as PROGRAM_TAB,
-}));
-
-const DEFAULT_PAGE_SIZE = 8;
 
 const SchoolList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -87,17 +71,20 @@ const SchoolList: React.FC = () => {
   const [filters, setFilters] = useState<Filters>(() =>
     parseJSONParam(qs.get('filters'), INITIAL_FILTERS),
   );
+  const [selectedDateRange, setSelectedDateRange] = useState<DateRangeValue>(
+    () => {
+      const queryRange = qs.get('range');
+      return DATE_RANGE_OPTIONS.some((option) => option.value === queryRange)
+        ? (queryRange as DateRangeValue)
+        : DEFAULT_DATE_RANGE;
+    },
+  );
   const [page, setPage] = useState(() => {
     const p = parseInt(qs.get('page') || '', 10);
     return isNaN(p) || p < 1 ? 1 : p;
   });
 
-  const [schools, setSchools] = useState<any[]>([]);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(false);
-  const [total, setTotal] = useState(0);
-
-  const isLoading = isFilterLoading || isDataLoading;
 
   const [showUploadPage, setShowUploadPage] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -115,6 +102,7 @@ const SchoolList: React.FC = () => {
   const actionsButtonCloseShineRafRef = useRef<number | null>(null);
   const [openDetails, setOpenDetails] = useState(false);
   const [visitId, setVisitId] = useState<string | null>(null);
+  const isFirstSearchRenderRef = useRef(true);
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
@@ -130,6 +118,27 @@ const SchoolList: React.FC = () => {
     rolesWithAccess.includes(role as RoleType),
   );
   const isActionsMenuOpen = Boolean(actionsAnchorEl);
+  const {
+    schools,
+    total,
+    isLoading: isDataLoading,
+  } = useSchoolListData({
+    api,
+    filters,
+    selectedTab,
+    page,
+    pageSize,
+    orderBy,
+    orderDir,
+    searchTerm,
+    selectedDateRange,
+  });
+  const renderedSchools = mapSchoolRowsToRenderRows(schools);
+  const isLoading = isFilterLoading || isDataLoading;
+
+  useEffect(() => {
+    setTempFilters(filters);
+  }, [filters]);
 
   const triggerActionsButtonCloseShine = useCallback(() => {
     setIsActionsButtonCloseShine(false);
@@ -167,9 +176,19 @@ const SchoolList: React.FC = () => {
     if (searchTerm) params.set('search', searchTerm);
     if (Object.values(filters).some((arr) => arr.length))
       params.set('filters', JSON.stringify(filters));
+    if (selectedDateRange !== DEFAULT_DATE_RANGE)
+      params.set('range', selectedDateRange);
     if (page !== 1) params.set('page', String(page));
     history.replace({ search: params.toString() });
-  }, [selectedTab, searchTerm, filters, page, history]);
+  }, [selectedTab, searchTerm, filters, selectedDateRange, page, history]);
+
+  useEffect(() => {
+    if (isFirstSearchRenderRef.current) {
+      isFirstSearchRenderRef.current = false;
+      return;
+    }
+    if (page !== 1) setPage(1);
+  }, [searchTerm]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -198,121 +217,90 @@ const SchoolList: React.FC = () => {
     fetchFilterOptions();
   }, []);
 
-  useEffect(() => {
-    fetchData();
-  }, [selectedTab, filters, page, orderBy, orderDir, searchTerm]);
-
-  const fetchData = useCallback(async () => {
-    setIsDataLoading(true);
-    try {
-      const tabModelFilter = { model: [selectedTab] };
-      const cleanedFilters = Object.fromEntries(
-        Object.entries({ ...filters, ...tabModelFilter }).filter(
-          ([_, v]) => Array.isArray(v) && v.length > 0,
-        ),
-      );
-
-      let backendOrderBy = orderBy;
-      if (backendOrderBy === 'name') backendOrderBy = 'school_name';
-      if (backendOrderBy === 'students') backendOrderBy = 'num_students';
-      if (backendOrderBy === 'teachers') backendOrderBy = 'num_teachers';
-
-      const response = await api.getFilteredSchoolsForSchoolListing({
-        filters: cleanedFilters,
-        page,
-        page_size: pageSize,
-        order_by: backendOrderBy,
-        order_dir: orderDir,
-        search: searchTerm,
-      });
-      const data = response?.data || [];
-      setTotal(response?.total || 0);
-
-      const enrichedSchools = data.map((school: any) => ({
-        ...school,
-        id: school.sch_id,
-        students: school.num_students || 0,
-        teachers: school.num_teachers || 0,
-        programManagers:
-          school.program_managers?.join(', ') || t('not assigned yet'),
-        fieldCoordinators:
-          school.field_coordinators?.join(', ') || t('not assigned yet'),
-        name: {
-          value: school.school_name,
-          render: (
-            <Box display="flex" flexDirection="column" alignItems="flex-start">
-              <Typography variant="subtitle2">{school.school_name}</Typography>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                fontSize={'12px'}
-              >
-                {school.udise_code || school.district
-                  ? `${school.udise_code ?? ''} - ${
-                      school.district ?? ''
-                    }`.trim()
-                  : ''}
-              </Typography>
-            </Box>
-          ),
-        },
-      }));
-
-      setSchools(enrichedSchools);
-    } catch (error) {
-      logger.error('Failed to fetch filtered schools:', error);
-      setSchools([]);
-      setTotal(0);
-    } finally {
-      setIsDataLoading(false);
-    }
-  }, [
-    api,
-    filters,
-    page,
-    pageSize,
-    orderBy,
-    orderDir,
-    searchTerm,
-    selectedTab,
-  ]);
-
-  const columns: Column<Record<string, any>>[] = [
+  // Column widths are tuned for horizontal scrolling on smaller screens.
+  const columns: Column<SchoolListRow>[] = [
     {
       key: 'name',
-      label: t('Schools'),
-      width: '30%',
+      label: t('School Name'),
+      width: '20%',
       sortable: true,
       orderBy: 'name',
     },
     {
-      key: 'students',
-      label: t('No. of Students'),
-      width: 'fit-content',
-      sortable: true,
-      orderBy: 'students',
-    },
-    {
-      key: 'teachers',
-      label: t('No. of Teachers'),
-      width: 'fit-content',
-      sortable: true,
-      orderBy: 'teachers',
-    },
-    {
-      key: 'programManagers',
-      label: t('Program Manager'),
+      key: 'schoolPerformance',
+      label: t('School Performance'),
+      width: '7.78%',
+      align: 'center',
       sortable: false,
     },
     {
-      key: 'fieldCoordinators',
-      label: t('Field Coordinator'),
+      key: 'onboardedStudents',
+      label: t('Onboarded Students'),
+      width: '7.78%',
+      align: 'center',
       sortable: false,
+      orderBy: 'onboarded_students',
+    },
+    {
+      key: 'activatedStudents',
+      label: t('Activated Students'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'activated_students',
+    },
+    {
+      key: 'activeStudents',
+      label: t('Active Students'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'active_students',
+    },
+    {
+      key: 'avgTimeSpent',
+      label: t('Average Time Spent'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'avg_time_spent',
+    },
+    {
+      key: 'activeTeachers',
+      label: t('Active Teachers'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'active_teachers',
+    },
+    {
+      key: 'activitiesAssigned',
+      label: t('Activities Assigned'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'activities_assigned',
+    },
+    {
+      key: 'avgAssignmentsCompleted',
+      label: t('Avg Assignments Completed'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'avg_assignments_completed',
+    },
+    {
+      key: 'avgActivitiesCompleted',
+      label: t('Avg Activities Completed'),
+      width: '7.78%',
+      align: 'center',
+      sortable: false,
+      orderBy: 'avg_activities_completed',
     },
   ];
 
   const handleSort = (colKey: string) => {
-    const sortableKeys = ['name', 'students', 'teachers', 'district'];
+    const sortableKeys = ['name'];
     if (!sortableKeys.includes(colKey)) return;
     if (orderBy === colKey) {
       setOrderDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -336,6 +324,11 @@ const SchoolList: React.FC = () => {
   const handleCloseActionsMenu = () => {
     setActionsAnchorEl(null);
     triggerActionsButtonCloseShine();
+  };
+
+  const handleSelectDateRange = (nextRange: DateRangeValue) => {
+    setSelectedDateRange(nextRange);
+    setPage(1);
   };
 
   const handleOpenUploadPage = () => {
@@ -438,6 +431,7 @@ const SchoolList: React.FC = () => {
     };
     setTempFilters(reset);
     setFilters(reset);
+    setSelectedDateRange(DEFAULT_DATE_RANGE);
     setIsFilterOpen(false);
     setPage(1);
   };
@@ -490,16 +484,22 @@ const SchoolList: React.FC = () => {
             </div>
 
             <div className="school-list-button-and-search-filter">
-              <SearchAndFilter
-                searchTerm={searchTerm}
-                onSearchChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setPage(1);
-                }}
-                filters={filters}
-                onFilterClick={() => setIsFilterOpen(true)}
-                onClearFilters={handleCancelFilters}
+              <SchoolListDateRangeDropdown
+                value={selectedDateRange}
+                onChange={handleSelectDateRange}
               />
+              <div className="school-list-search-control">
+                <SearchAndFilter
+                  searchTerm={searchTerm}
+                  onSearchChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setPage(1);
+                  }}
+                  filters={filters}
+                  onFilterClick={() => setIsFilterOpen(true)}
+                  onClearFilters={handleCancelFilters}
+                />
+              </div>
               <div className="school-list-actions-group">
                 {!isExternalUser && (
                   <Button
@@ -599,24 +599,44 @@ const SchoolList: React.FC = () => {
         </div>
         <div
           className={`school-list-table-container ${
-            !isLoading && schools.length === 0 ? 'school-list-no-schools' : ''
+            !isLoading && renderedSchools.length === 0
+              ? 'school-list-no-schools'
+              : ''
           }`}
         >
-          {!isLoading && schools.length > 0 && (
+          {isLoading && (
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              minHeight={240}
+              width="100%"
+            >
+              <CircularProgress size={28} />
+            </Box>
+          )}
+
+          {!isLoading && renderedSchools.length > 0 && (
             <DataTableBody
               columns={columns}
-              rows={schools}
+              rows={renderedSchools}
               orderBy={orderBy}
               order={orderDir}
               onSort={handleSort}
               loading={isLoading}
+              // School listing needs the wider, scrollable table treatment only.
+              tableMinWidth={1700}
+              tableWidth="max-content"
+              headerClampLines={2}
+              headerNoEllipsis
+              headerAlign="center"
             />
           )}
 
-          {!isLoading && schools.length === 0 && t('No schools found.')}
+          {!isLoading && renderedSchools.length === 0 && t('No schools found.')}
         </div>
 
-        {!isLoading && schools.length > 0 && (
+        {!isLoading && renderedSchools.length > 0 && (
           <div className="school-list-footer">
             <DataTablePagination
               pageCount={pageCount}

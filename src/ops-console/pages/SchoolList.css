@@ -78,17 +78,32 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 10px;
-  flex-wrap: nowrap;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.school-list-search-control {
+  display: flex;
   flex: 1 1 auto;
   min-width: 0;
   justify-content: flex-end;
+}
+
+.school-list-date-range-control {
+  flex-shrink: 0;
 }
 
 .school-list-actions-group {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+}
+
+/* Keep the date-range control visually aligned with the Actions menu button. */
+.school-list-date-range-button.MuiButton-root {
+  min-width: 140px !important;
 }
 
 .school-list-actions-button.MuiButton-root {
@@ -252,14 +267,31 @@
   }
 
   .school-list-button-and-search-filter {
-    justify-content: space-between;
+    justify-content: flex-end;
     flex-wrap: wrap;
     padding-left: 4%;
     padding-right: 4%;
+    padding-bottom: 2%;
+  }
+
+  .school-list-date-range-button.MuiButton-root {
+    min-width: 124px !important;
+  }
+
+  .school-list-search-control {
+    flex-basis: 100%;
+    order: 1;
+    justify-content: flex-start;
+  }
+
+  .school-list-date-range-button.MuiButton-root {
+    order: 2;
   }
 
   .school-list-actions-group {
     margin-left: auto;
+    flex-shrink: 0;
+    order: 3;
   }
 
   .school-list-tab-wrapper {
