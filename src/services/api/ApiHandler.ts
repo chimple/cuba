@@ -2,6 +2,8 @@ import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
   LeaderboardInfo,
+  OpsStudentPerformanceBandRow,
+  OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
 } from './ServiceApi';
@@ -1236,6 +1238,15 @@ export class ApiHandler implements ServiceApi {
     classId: string,
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
     return this.s.getStudentPlayStatus(studentId, classId);
+  }
+  getOpsStudentPerformanceBands(
+    params: OpsStudentPerformanceBandsParams,
+  ): Promise<OpsStudentPerformanceBandRow[]> {
+    if (!this.s.getOpsStudentPerformanceBands) {
+      return Promise.resolve([]);
+    }
+
+    return this.s.getOpsStudentPerformanceBands(params);
   }
   getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
