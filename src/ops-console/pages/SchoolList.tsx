@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Box,
   Button,
@@ -109,6 +109,10 @@ const SchoolList: React.FC = () => {
   const [actionsAnchorEl, setActionsAnchorEl] = useState<null | HTMLElement>(
     null,
   );
+  const [isActionsButtonCloseShine, setIsActionsButtonCloseShine] =
+    useState(false);
+  const actionsButtonCloseShineTimeoutRef = useRef<number | null>(null);
+  const actionsButtonCloseShineRafRef = useRef<number | null>(null);
   const [openDetails, setOpenDetails] = useState(false);
   const [visitId, setVisitId] = useState<string | null>(null);
   const { roles } = useAppSelector(
@@ -126,6 +130,36 @@ const SchoolList: React.FC = () => {
     rolesWithAccess.includes(role as RoleType),
   );
   const isActionsMenuOpen = Boolean(actionsAnchorEl);
+
+  const triggerActionsButtonCloseShine = useCallback(() => {
+    setIsActionsButtonCloseShine(false);
+
+    if (actionsButtonCloseShineRafRef.current !== null) {
+      window.cancelAnimationFrame(actionsButtonCloseShineRafRef.current);
+    }
+    actionsButtonCloseShineRafRef.current = window.requestAnimationFrame(() => {
+      setIsActionsButtonCloseShine(true);
+    });
+
+    if (actionsButtonCloseShineTimeoutRef.current !== null) {
+      window.clearTimeout(actionsButtonCloseShineTimeoutRef.current);
+    }
+    actionsButtonCloseShineTimeoutRef.current = window.setTimeout(() => {
+      setIsActionsButtonCloseShine(false);
+      actionsButtonCloseShineTimeoutRef.current = null;
+    }, 700);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (actionsButtonCloseShineTimeoutRef.current !== null) {
+        window.clearTimeout(actionsButtonCloseShineTimeoutRef.current);
+      }
+      if (actionsButtonCloseShineRafRef.current !== null) {
+        window.cancelAnimationFrame(actionsButtonCloseShineRafRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -301,6 +335,7 @@ const SchoolList: React.FC = () => {
 
   const handleCloseActionsMenu = () => {
     setActionsAnchorEl(null);
+    triggerActionsButtonCloseShine();
   };
 
   const handleOpenUploadPage = () => {
@@ -470,7 +505,11 @@ const SchoolList: React.FC = () => {
                   <Button
                     variant="outlined"
                     id="school-list-actions-button"
-                    className="school-list-actions-button"
+                    className={`school-list-actions-button${
+                      isActionsButtonCloseShine
+                        ? ' school-list-actions-button-close-shine'
+                        : ''
+                    }`}
                     onClick={handleOpenActionsMenu}
                     aria-controls={
                       isActionsMenuOpen ? 'school-list-actions-menu' : undefined
@@ -497,6 +536,7 @@ const SchoolList: React.FC = () => {
                   onClose={handleCloseActionsMenu}
                   anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                   transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  MenuListProps={{ disablePadding: true }}
                   PaperProps={{
                     className: 'school-list-actions-menu',
                   }}
