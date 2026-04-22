@@ -1903,6 +1903,9 @@ export interface ServiceApi {
     programManagerPhone: string,
     fieldCoordinatorPhone?: string,
   ): Promise<{ status: string; errors?: string[] }>;
+  validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }>;
   /**
    * setting a stars for the student
    * @param {string } studentId - student id

@@ -1425,6 +1425,11 @@ export class ApiHandler implements ServiceApi {
       fieldCoordinatorPhone,
     );
   }
+  async validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateWhatsappBotNumber(whatsappBotNumber);
+  }
   public async setStarsForStudents(
     studentId: string,
     starsCount: number,

@@ -1,63 +1,89 @@
 import {
-  SchoolVisitAction,
-  SchoolVisitType,
-  MODES,
-  LeaderboardDropdownList,
-  LeaderboardRewards,
-  TABLES,
-  TableTypes,
-  MUTATE_TYPES,
-  PROFILETYPE,
-  grade1,
-  belowGrade1,
-  grade2,
-  grade3,
-  aboveGrade3,
-  DEFAULT_SUBJECT_IDS,
-  OTHER_CURRICULUM,
-  LIVE_QUIZ,
-  STARS_COUNT,
-  EVENTS,
-  SchoolRoleMap,
-  FilteredSchoolsForSchoolListingOps,
-  COURSES,
+  PostgrestSingleResponse,
+  RealtimeChannel,
+  SupabaseClient,
+  createClient,
+} from '@supabase/supabase-js';
+import { v4 as uuidv4 } from 'uuid';
+import {
+  AVATARS,
+  CACHETABLES,
+  CHIMPLE_DIGITAL_SKILLS,
+  CHIMPLE_ENGLISH,
   CHIMPLE_HINDI,
+  CHIMPLE_MATHS,
+  COURSES,
+  CoordinatorAPIResponse,
+  CoordinatorInfo,
+  DEFAULT_LOCALE_ID,
+  DEFAULT_SUBJECT_IDS,
+  EVENTS,
+  EnumType,
+  FilteredSchoolsForSchoolListingOps,
   GRADE1_KANNADA,
   GRADE1_MARATHI,
-  CHIMPLE_ENGLISH,
-  CHIMPLE_MATHS,
-  CHIMPLE_DIGITAL_SKILLS,
-  TabType,
+  GeoDataParams,
+  LEARNING_PATHWAY_MODE,
+  LIVE_QUIZ,
+  LeaderboardDropdownList,
+  LeaderboardRewards,
+  MODES,
+  MUTATE_TYPES,
+  OPS_ROLES,
+  OTHER_CURRICULUM,
+  PROFILETYPE,
   PROGRAM_TAB,
-  AVATARS,
-  StudentAPIResponse,
-  StudentInfo,
-  TeacherAPIResponse,
-  TeacherInfo,
-  PrincipalInfo,
   PrincipalAPIResponse,
-  CoordinatorInfo,
-  CoordinatorAPIResponse,
+  PrincipalInfo,
+  RESULT_STATUS,
+  REWARD_LESSON,
   RequestTypes,
-  EnumType,
-  CACHETABLES,
+  STARS_COUNT,
   STATUS,
+  School,
+  SchoolRoleMap,
+  SchoolVisitAction,
+  SchoolVisitType,
   SearchSchoolsParams,
   SearchSchoolsResult,
-  GeoDataParams,
-  School,
-  REWARD_LESSON,
-  OPS_ROLES,
-  DEFAULT_LOCALE_ID,
-  RESULT_STATUS,
-  LEARNING_PATHWAY_MODE,
+  StudentAPIResponse,
+  StudentInfo,
+  TABLES,
+  TabType,
+  TableTypes,
+  TeacherAPIResponse,
+  TeacherInfo,
+  aboveGrade3,
+  belowGrade1,
+  grade1,
+  grade2,
+  grade3,
   ProgramType,
 } from '../../common/constants';
-import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
 import { AvatarObj } from '../../components/animation/Avatar';
+import {
+  RoleType,
+  StickerBook,
+  UserStickerProgress,
+} from '../../interface/modelInterfaces';
 import Course from '../../models/course';
 import Lesson from '../../models/lesson';
+import {
+  UserSchoolClassParams,
+  UserSchoolClassResult,
+} from '../../ops-console/pages/NewUserPageOps';
+import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
+import { store } from '../../redux/store';
+import {
+  readAssignmentCartFromStorage,
+  writeAssignmentCartToStorage,
+} from '../../teachers-module/pages/AssignmentCartStorage';
+import logger from '../../utility/logger';
+import { sortBySchoolSearchRelevance } from '../../utility/schoolSearchUtil';
+import { Util } from '../../utility/util';
+import { Database, Json } from '../database';
+import { ServiceConfig } from '../ServiceConfig';
 import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
@@ -70,34 +96,7 @@ import {
   ServiceApi,
   StudentLeaderboardInfo,
 } from './ServiceApi';
-import { Database, Json } from '../database';
-import {
-  PostgrestSingleResponse,
-  RealtimeChannel,
-  SupabaseClient,
-  createClient,
-} from '@supabase/supabase-js';
-import {
-  RoleType,
-  StickerBook,
-  UserStickerProgress,
-} from '../../interface/modelInterfaces';
-import { Util } from '../../utility/util';
-import { sortBySchoolSearchRelevance } from '../../utility/schoolSearchUtil';
-import { v4 as uuidv4 } from 'uuid';
-import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
-import {
-  readAssignmentCartFromStorage,
-  writeAssignmentCartToStorage,
-} from '../../teachers-module/pages/AssignmentCartStorage';
-import {
-  UserSchoolClassParams,
-  UserSchoolClassResult,
-} from '../../ops-console/pages/NewUserPageOps';
-import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
-import { store } from '../../redux/store';
-import logger from '../../utility/logger';
 
 const GENERIC_LEADERBOARD_LIMIT = 50;
 
@@ -7985,6 +7984,54 @@ export class SupabaseApi implements ServiceApi {
       }
 
       return data as { status: string; errors?: string[] };
+    } catch (err) {
+      return {
+        status: 'error',
+        errors: [String(err)],
+      };
+    }
+  }
+
+  async validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: 'error',
+        errors: ['Supabase client is not initialized'],
+      };
+    }
+    try {
+      const { data, error } = await this.supabase.functions.invoke(
+        'whatsapp-bot-check',
+        {
+          body: {
+            phone: whatsappBotNumber.trim(),
+          },
+        },
+      );
+      if (error) {
+        return {
+          status: 'error',
+          errors: [error.message || 'WHATSAPP BOT NUMBER validation failed.'],
+        };
+      }
+      if (data?.working === true) {
+        return { status: 'success' };
+      }
+      const stateInfo =
+        data?.wa_state || typeof data?.is_ready === 'boolean'
+          ? ` (wa_state: ${data?.wa_state ?? 'unknown'}, is_ready: ${String(
+              data?.is_ready,
+            )})`
+          : '';
+
+      return {
+        status: 'error',
+        errors: [
+          data?.error || `WHATSAPP BOT NUMBER is not active or connected.`,
+        ],
+      };
     } catch (err) {
       return {
         status: 'error',

@@ -152,6 +152,23 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     const phoneValidation = OpsUtil.validateAndFormatPhoneNumber(value, 'IN');
     return phoneValidation.valid;
   };
+
+  const normalizeWhatsappBotNumber = (value: unknown): string => {
+    const raw = value?.toString().trim() || '';
+    if (!raw) return '';
+    if (/^\d+$/.test(raw)) return raw;
+    if (/^\d+\.0+$/.test(raw)) {
+      return raw.replace(/\.0+$/, '');
+    }
+    if (/^\d+(\.\d+)?e[+-]?\d+$/i.test(raw)) {
+      const numericValue = Number(raw);
+      if (Number.isFinite(numericValue)) {
+        return Math.trunc(numericValue).toString();
+      }
+    }
+    return raw;
+  };
+
   const processFile = async () => {
     if (!fileBuffer) return;
     progressRef.current = 40;
@@ -433,7 +450,14 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               .trim();
             const isWhatsappEnabled = masterRow['IS WHATSAPP ENABLED']
               ?.toString()
-              .trim();
+              .trim()
+              .toLowerCase();
+            const whatsappBotNumber = normalizeWhatsappBotNumber(
+              masterRow['WHATSAPP BOT NUMBER'],
+            );
+            if (whatsappBotNumber) {
+              masterRow['WHATSAPP BOT NUMBER'] = whatsappBotNumber;
+            }
 
             if (schoolId) {
               // CASE: if school ID is provided, but school is not active. Check against `school_data`.
@@ -511,18 +535,41 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             }
 
             if (isWhatsappEnabled) {
-              const validIsWhatsappEnabled = ['YES', 'NO'];
-              if (
-                !validIsWhatsappEnabled.includes(
-                  isWhatsappEnabled.toUpperCase(),
-                )
-              ) {
+              const validIsWhatsappEnabled = ['yes', 'no'];
+              if (!validIsWhatsappEnabled.includes(isWhatsappEnabled)) {
                 groupLevelErrors.push(
-                  'Invalid "IS WHATSAPP ENABLED" value. Must be "YES" or "NO".',
+                  'Invalid "IS WHATSAPP ENABLED" value. Must be "yes" or "no" (case-insensitive).',
                 );
               }
             } else {
               groupLevelErrors.push('Missing IS WHATSAPP ENABLED information');
+            }
+
+            if (isWhatsappEnabled === 'yes') {
+              if (!whatsappBotNumber) {
+                groupLevelErrors.push('Missing WHATSAPP BOT NUMBER');
+              } else if (!/^\d{12}$/.test(whatsappBotNumber)) {
+                groupLevelErrors.push(
+                  'Invalid WHATSAPP BOT NUMBER. Must be a 12-digit number.',
+                );
+              } else {
+                const whatsappBotValidation =
+                  await api.validateWhatsappBotNumber(whatsappBotNumber);
+                if (whatsappBotValidation.status === 'error') {
+                  groupLevelErrors.push(
+                    ...(whatsappBotValidation.errors || [
+                      'WHATSAPP BOT NUMBER validation failed.',
+                    ]),
+                  );
+                }
+              }
+            } else if (
+              whatsappBotNumber &&
+              !/^\d{12}$/.test(whatsappBotNumber)
+            ) {
+              groupLevelErrors.push(
+                'Invalid WHATSAPP BOT NUMBER. Must be a 12-digit number.',
+              );
             }
 
             if (programModel?.toUpperCase() !== 'AT SCHOOL') {
@@ -611,6 +658,10 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const studentCount = row['STUDENTS COUNT IN CLASS']
             ?.toString()
             .trim();
+          const whatsappGroupId = row['WHATSAPP GROUP ID']?.toString().trim();
+          if (whatsappGroupId) {
+            row['WHATSAPP GROUP ID'] = whatsappGroupId;
+          }
 
           // --- ⬇️ GRADE VALIDATION ADDED HERE ⬇️ ---
           if (!grade) {

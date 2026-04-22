@@ -6562,6 +6562,19 @@ order by
     }
     return { status: 'success' };
   }
+  async validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    const response =
+      await this._serverApi.validateWhatsappBotNumber(whatsappBotNumber);
+    if (response.status === 'error') {
+      return {
+        status: 'error',
+        errors: response.errors || ['Invalid WHATSAPP BOT NUMBER'],
+      };
+    }
+    return { status: 'success' };
+  }
   async setStarsForStudents(
     studentId: string,
     starsCount: number,
