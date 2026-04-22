@@ -22,6 +22,8 @@ import { Util } from '../../utility/util';
 import {
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  CHIMPLE_MASCOT_INPUT_REWARD,
+  CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
   COURSE_CHANGED,
   CURRENT_STUDENT_CHANGED_EVENT,
   EVENTS,
@@ -169,10 +171,11 @@ const PathwayStructure: React.FC = () => {
   }, [mascotProps.stateValue]);
 
   React.useEffect(() => {
+    const loadingDelayState = pathwayLoadingDelayRef.current;
     return () => {
-      if (pathwayLoadingDelayRef.current.timerId !== null) {
-        window.clearTimeout(pathwayLoadingDelayRef.current.timerId);
-        pathwayLoadingDelayRef.current.timerId = null;
+      if (loadingDelayState.timerId !== null) {
+        window.clearTimeout(loadingDelayState.timerId);
+        loadingDelayState.timerId = null;
       }
     };
   }, []);
@@ -357,8 +360,8 @@ const PathwayStructure: React.FC = () => {
         const didStartPlayback = await playMascotAudioFromLocalPath(
           localAudioPath,
           {
-            stateMachine: 'State Machine 4',
-            inputName: 'Number 3',
+            stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
+            inputName: CHIMPLE_MASCOT_INPUT_REWARD,
           },
           { onPlaybackStop: () => setStickerCollectTiltActive(false) },
         );
@@ -427,8 +430,8 @@ const PathwayStructure: React.FC = () => {
       if (!localAudioPath) return;
 
       void playMascotAudioFromLocalPathRef.current(localAudioPath, {
-        stateMachine: 'State Machine 4',
-        inputName: 'Number 3',
+        stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
+        inputName: CHIMPLE_MASCOT_INPUT_REWARD,
         stateValue: stateValue ?? currentMascotStateValueRef.current ?? 1,
       });
     },
@@ -972,7 +975,10 @@ const PathwayStructure: React.FC = () => {
             animationName={mascotProps.animationName}
             onClick={handleMascotReplayClick}
             overlayRules={[
-              { stateMachine: 'State Machine 4', inputName: 'Number 3' },
+              {
+                stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
+                inputName: CHIMPLE_MASCOT_INPUT_REWARD,
+              },
             ]}
           />,
           riveContainer,

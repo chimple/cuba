@@ -8,6 +8,10 @@ import { MemoryRouter } from 'react-router';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import { HOMEWORK_PATHWAY, LIVE_QUIZ } from '../../common/constants';
 
+const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
+const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
+  'pending_homework_reward_transition';
+
 /* ======================= MOCKS ======================= */
 
 jest.mock('../../services/ServiceConfig');
@@ -95,6 +99,7 @@ jest.mock('./HomeworkCompleteModal', () => (props: any) => (
 const mockApi = {
   getPendingAssignments: jest.fn(),
   getLesson: jest.fn(),
+  getCourse: jest.fn(),
   getChapterById: jest.fn(),
   updateStudentStars: jest.fn(),
   getCompletedAssignmentsCountForSubjects: jest.fn(),
@@ -121,8 +126,10 @@ beforeEach(() => {
   (Util.pickFiveHomeworkLessons as jest.Mock).mockImplementation((a) =>
     a.slice(0, 5),
   );
+  mockApi.getCourse.mockResolvedValue({ id: 'course-1', name: 'Course 1' });
 
   localStorage.clear();
+  sessionStorage.clear();
 });
 
 /* ======================= BASIC RENDER ======================= */
@@ -577,6 +584,104 @@ describe('HomeworkPathway – pathway logic', () => {
           (lesson: any) => lesson.course_id === 'digital-skills',
         ),
       ).toBe(true);
+    });
+  });
+
+  test('rebuilds path when reward index key is stale and payload is missing', async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    const finishedPath = {
+      path_id: 'old-path',
+      lessons: [
+        {
+          assignment_id: 'a-old',
+          lesson_id: 'l-old',
+          chapter_id: 'c-old',
+          course_id: 's-old',
+          lesson: { id: 'l-old', subject_id: 's-old', chapter_id: 'c-old' },
+        },
+      ],
+      currentIndex: 1,
+      pendingAssignmentIds: ['a-old'],
+    };
+
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(finishedPath));
+    sessionStorage.setItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY, '0');
+
+    mockApi.getPendingAssignments.mockResolvedValue([
+      { id: 'a-new', type: 'HOMEWORK', lesson_id: 'l-new', course_id: 's-new' },
+    ]);
+    mockApi.getLesson.mockResolvedValue({
+      id: 'l-new',
+      subject_id: 's-new',
+      chapter_id: 'c-new',
+      name: 'Lesson new',
+    });
+    mockApi.getChapterById.mockResolvedValue({ id: 'c-new', name: 'Chapter' });
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const pathway = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(pathway.path_id).not.toBe('old-path');
+      expect(pathway.pendingAssignmentIds).toEqual(['a-new']);
+    });
+  });
+
+  test('preserves cached path with a valid pending reward transition payload', async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    const finishedPath = {
+      path_id: 'reward-transition-path',
+      lessons: [
+        {
+          assignment_id: 'a1',
+          lesson_id: 'l1',
+          chapter_id: 'c1',
+          course_id: 's1',
+          lesson: { id: 'l1', subject_id: 's1', chapter_id: 'c1' },
+        },
+      ],
+      currentIndex: 1,
+      pendingAssignmentIds: ['a1'],
+    };
+
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(finishedPath));
+    sessionStorage.setItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY, '0');
+    sessionStorage.setItem(
+      PENDING_HOMEWORK_REWARD_TRANSITION_KEY,
+      JSON.stringify({
+        completedIndex: 0,
+        pathSnapshot: JSON.stringify({
+          lessons: finishedPath.lessons,
+          currentIndex: 0,
+        }),
+      }),
+    );
+
+    mockApi.getPendingAssignments.mockResolvedValue([
+      {
+        id: 'a-different',
+        type: 'HOMEWORK',
+        lesson_id: 'l-different',
+        course_id: 's-different',
+      },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const pathway = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(pathway.path_id).toBe('reward-transition-path');
+      expect(pathway.pendingAssignmentIds).toEqual(['a1']);
     });
   });
 

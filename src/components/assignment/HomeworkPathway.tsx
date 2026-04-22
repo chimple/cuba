@@ -28,6 +28,9 @@ interface HomeworkPath {
   currentIndex: number;
   pendingAssignmentIds?: string[];
 }
+const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
+const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
+  'pending_homework_reward_transition';
 
 const areStringArraysEqual = (
   left: string[] = [],
@@ -190,6 +193,38 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     subjectId?: string,
   ): Promise<void> => {
     setLoading(true);
+    const rewardCompletedIndexRaw = sessionStorage.getItem(
+      HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
+    );
+    const rewardCompletedIndex =
+      rewardCompletedIndexRaw !== null &&
+      /^-?\d+$/.test(rewardCompletedIndexRaw);
+    const rawPendingRewardTransition = sessionStorage.getItem(
+      PENDING_HOMEWORK_REWARD_TRANSITION_KEY,
+    );
+    const pendingRewardTransition = (() => {
+      if (!rawPendingRewardTransition) return null;
+      try {
+        const parsed = JSON.parse(rawPendingRewardTransition) as {
+          completedIndex?: number;
+          pathSnapshot?: string;
+        };
+        if (
+          typeof parsed.completedIndex !== 'number' ||
+          !Number.isFinite(parsed.completedIndex)
+        )
+          return null;
+        if (typeof parsed.pathSnapshot !== 'string') return null;
+        return parsed;
+      } catch {
+        return null;
+      }
+    })();
+    const hasPendingRewardTransition =
+      rewardCompletedIndex &&
+      pendingRewardTransition !== null &&
+      Number(rewardCompletedIndexRaw) ===
+        pendingRewardTransition.completedIndex;
 
     // 0️⃣ Read existing path from localStorage (if any)
     const existingPathStr = localStorage.getItem(HOMEWORK_PATHWAY);
@@ -205,7 +240,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           typeof parsed.currentIndex === 'number' &&
           parsed.currentIndex < parsed.lessons.length;
 
-        if (hasLessons && notFinished) {
+        if (hasLessons && (notFinished || hasPendingRewardTransition)) {
           // ✅ active path → we can reuse
           existingPath = parsed;
         } else {
@@ -264,12 +299,13 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       const hasCachedPendingAssignmentIds = cachedPendingAssignmentIds !== null;
       const canReuseExistingPath =
         existingPath &&
-        pendingAssignmentsFetched &&
-        (!hasCachedPendingAssignmentIds ||
-          areStringArraysEqual(
-            cachedPendingAssignmentIds,
-            currentPendingAssignmentIds,
-          ));
+        (hasPendingRewardTransition ||
+          (pendingAssignmentsFetched &&
+            (!hasCachedPendingAssignmentIds ||
+              areStringArraysEqual(
+                cachedPendingAssignmentIds,
+                currentPendingAssignmentIds,
+              ))));
 
       // 1️⃣ If we could not refresh pending assignments, fall back to cache.
       if (!pendingAssignmentsFetched && existingPath) {
@@ -473,7 +509,8 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       if (
         pathData.lessons &&
         pathData.lessons.length > 0 &&
-        pathData.currentIndex >= pathData.lessons.length
+        pathData.currentIndex >= pathData.lessons.length &&
+        !hasPendingRewardTransition
       ) {
         localStorage.removeItem(HOMEWORK_PATHWAY);
       }
