@@ -313,9 +313,19 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       filters.section.length === 0;
 
     if (isInitial) {
-      setTeachers(data.teachers || []);
-      setTotalCount(data.totalTeacherCount || 0);
-      fetchTeachers(page, searchTerm, true);
+      const prefetchedTeachers = data.teachers || [];
+      const prefetchedTotal =
+        data.totalTeacherCount ?? prefetchedTeachers.length;
+
+      setTeachers(prefetchedTeachers);
+      setTotalCount(prefetchedTotal);
+
+      if (prefetchedTeachers.length > 0 || prefetchedTotal === 0) {
+        setIsLoading(false);
+      } else {
+        fetchTeachers(page, searchTerm, true);
+      }
+      return;
     } else {
       fetchTeachers(page, searchTerm);
     }
@@ -325,7 +335,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     data.teachers,
     data.totalTeacherCount,
     searchTerm,
-    filters,
+    filters.grade.length,
+    filters.section.length,
   ]);
 
   // Fold classId + group_id into one key so the fetch effect reruns on link changes.
