@@ -372,7 +372,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       setStudents(prefetchedStudents);
       setTotalCount(prefetchedTotal);
 
-      if (prefetchedStudents.length > 0 || prefetchedTotal > 0) {
+      if (prefetchedStudents.length > 0 || data.totalStudentCount === 0) {
         setIsLoading(false);
       } else {
         fetchStudents(page, debouncedSearchTerm, true);
