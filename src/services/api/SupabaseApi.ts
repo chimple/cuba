@@ -12269,6 +12269,7 @@ export class SupabaseApi implements ServiceApi {
 
     const studentId = student.id;
     const langId = student.language_id ?? null;
+    const localeId = student.locale_id ?? null;
 
     try {
       type ResultStatusRow = {
@@ -12278,11 +12279,11 @@ export class SupabaseApi implements ServiceApi {
       };
 
       /* ==========================================
-       * 1️⃣ Fetch ALL available set_numbers
+       * 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
        * ========================================== */
       const { data: setRows, error: setError } = await this.supabase
         .from('subject_lesson')
-        .select('set_number')
+        .select('set_number, language_id, locale_id')
         .eq('subject_id', subjectId)
         .eq('is_deleted', false)
         .not('set_number', 'is', null);
@@ -12300,8 +12301,40 @@ export class SupabaseApi implements ServiceApi {
 
       if (!uniqueSets.length) return {} as TableTypes<'subject_lesson'>;
 
-      const randomIndex = Math.floor(Math.random() * uniqueSets.length);
-      const setNumber = uniqueSets[randomIndex];
+      const preferredSets = langId
+        ? Array.from(
+            new Set(
+              (setRows ?? [])
+                .filter((r) =>
+                  localeId
+                    ? r.language_id === langId &&
+                      (r.locale_id === localeId || r.locale_id == null)
+                    : r.language_id === langId,
+                )
+                .map((r) => r.set_number)
+                .filter((n): n is number => n !== null),
+            ),
+          )
+        : localeId
+          ? Array.from(
+              new Set(
+                (setRows ?? [])
+                  .filter(
+                    (r) =>
+                      r.language_id == null &&
+                      (r.locale_id === localeId || r.locale_id == null),
+                  )
+                  .map((r) => r.set_number)
+                  .filter((n): n is number => n !== null),
+              ),
+            )
+          : [];
+
+      const candidateSets = preferredSets.length ? preferredSets : uniqueSets;
+      const randomIndex = Math.floor(Math.random() * candidateSets.length);
+      const setNumber = candidateSets[randomIndex];
+      const useStrictLanguageTrack =
+        !!langId && preferredSets.includes(setNumber);
 
       /* ==========================================
        * 2️⃣ Abort Check (assignment_id IS NULL)
@@ -12356,15 +12389,49 @@ export class SupabaseApi implements ServiceApi {
       /* ==========================================
        * 3️⃣ Fetch lessons from selected set
        * ========================================== */
-      const { data: lessons, error: lessonError } = await this.supabase
+      let lessonsQuery = this.supabase
         .from('subject_lesson')
         .select('*')
         .eq('subject_id', subjectId)
         .eq('set_number', setNumber)
         .eq('is_deleted', false)
-        .or(`language_id.eq.${langId},language_id.is.null`)
         .order('set_number', { ascending: true })
         .order('sort_index', { ascending: true });
+
+      if (useStrictLanguageTrack && langId) {
+        if (localeId) {
+          lessonsQuery = lessonsQuery.or(
+            `and(language_id.eq.${langId},locale_id.eq.${localeId}),and(language_id.eq.${langId},locale_id.is.null)`,
+          );
+        } else {
+          lessonsQuery = lessonsQuery.eq('language_id', langId);
+        }
+      } else if (langId) {
+        const orConditions: string[] = [];
+        if (localeId) {
+          orConditions.push(
+            `and(language_id.eq.${langId},locale_id.eq.${localeId})`,
+          );
+        }
+        orConditions.push(`and(language_id.eq.${langId},locale_id.is.null)`);
+        if (localeId) {
+          orConditions.push(
+            `and(language_id.is.null,locale_id.eq.${localeId})`,
+          );
+        }
+        orConditions.push(`and(language_id.is.null,locale_id.is.null)`);
+        lessonsQuery = lessonsQuery.or(orConditions.join(','));
+      } else if (localeId) {
+        lessonsQuery = lessonsQuery.or(
+          `and(language_id.is.null,locale_id.eq.${localeId}),and(language_id.is.null,locale_id.is.null)`,
+        );
+      } else {
+        lessonsQuery = lessonsQuery
+          .is('language_id', null)
+          .is('locale_id', null);
+      }
+
+      const { data: lessons, error: lessonError } = await lessonsQuery;
 
       if (lessonError || !lessons?.length)
         return {} as TableTypes<'subject_lesson'>;
@@ -12375,9 +12442,27 @@ export class SupabaseApi implements ServiceApi {
       const fallbackLessons = lessons.filter(
         (lesson) => lesson.language_id == null,
       );
-      const candidateLessons = matchedLessons.length
-        ? matchedLessons
-        : fallbackLessons;
+      let candidateLessons = useStrictLanguageTrack
+        ? lessons
+        : matchedLessons.length
+          ? matchedLessons
+          : fallbackLessons;
+
+      if (useStrictLanguageTrack && localeId) {
+        const localePriority = (lesson: TableTypes<'subject_lesson'>) => {
+          if (lesson.language_id === langId && lesson.locale_id === localeId)
+            return 1;
+          if (lesson.language_id === langId && lesson.locale_id == null)
+            return 2;
+          return 3;
+        };
+        candidateLessons = [...candidateLessons].sort((a, b) => {
+          if ((a.sort_index ?? 0) !== (b.sort_index ?? 0)) {
+            return (a.sort_index ?? 0) - (b.sort_index ?? 0);
+          }
+          return localePriority(a) - localePriority(b);
+        });
+      }
 
       if (!candidateLessons.length) {
         return {} as TableTypes<'subject_lesson'>;

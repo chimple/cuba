@@ -8554,18 +8554,23 @@ order by
     if (!student) return {} as TableTypes<'subject_lesson'>;
     const studentId = student.id;
     const langId = student.language_id ?? null;
+    const localeId = student.locale_id ?? null;
 
     try {
-      type SubjectLessonSetRow = { set_number: number };
+      type SubjectLessonSetRow = {
+        set_number: number;
+        language_id: string | null;
+        locale_id: string | null;
+      };
       type ResultStatusRow = {
         lesson_id: string | null;
         status: string | null;
       };
       type ResultLessonRow = { lesson_id: string | null };
 
-      // 1️⃣ Fetch ALL available set_numbers
+      // 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
       const setQuery = `
-      SELECT DISTINCT set_number
+      SELECT DISTINCT set_number, language_id, locale_id
       FROM subject_lesson
       WHERE subject_id = ?
         AND is_deleted = 0
@@ -8579,9 +8584,44 @@ order by
         return {} as TableTypes<'subject_lesson'>;
       }
 
-      // 2️⃣ Pick ANY ONE set randomly
-      const randomIndex = Math.floor(Math.random() * setRows.length);
-      const setNumber = setRows[randomIndex].set_number;
+      const uniqueSets = Array.from(new Set(setRows.map((r) => r.set_number)));
+      if (!uniqueSets.length) {
+        return {} as TableTypes<'subject_lesson'>;
+      }
+
+      // 2️⃣ Prefer sets that have student's language, fallback to all sets
+      const preferredSets = langId
+        ? Array.from(
+            new Set(
+              setRows
+                .filter((r) =>
+                  localeId
+                    ? r.language_id === langId &&
+                      (r.locale_id === localeId || r.locale_id == null)
+                    : r.language_id === langId,
+                )
+                .map((r) => r.set_number),
+            ),
+          )
+        : localeId
+          ? Array.from(
+              new Set(
+                setRows
+                  .filter(
+                    (r) =>
+                      r.language_id == null &&
+                      (r.locale_id === localeId || r.locale_id == null),
+                  )
+                  .map((r) => r.set_number),
+              ),
+            )
+          : [];
+
+      const candidateSets = preferredSets.length ? preferredSets : uniqueSets;
+      const randomIndex = Math.floor(Math.random() * candidateSets.length);
+      const setNumber = candidateSets[randomIndex];
+      const useStrictLanguageTrack =
+        !!langId && preferredSets.includes(setNumber);
 
       /* ==========================================
        * 3️⃣ Abort Check (with assignment_id IS NULL)
@@ -8624,27 +8664,52 @@ order by
       /* ==========================================
        * 4️⃣ Fetch all candidate lessons from set
        * ========================================== */
+      const lessonLanguageFilter = useStrictLanguageTrack
+        ? localeId
+          ? `(sl.language_id = ? AND (sl.locale_id = ? OR sl.locale_id IS NULL))`
+          : `sl.language_id = ?`
+        : langId
+          ? localeId
+            ? `(
+              (sl.language_id = ? AND sl.locale_id = ?)
+              OR (sl.language_id = ? AND sl.locale_id IS NULL)
+              OR (sl.language_id IS NULL AND sl.locale_id = ?)
+              OR (sl.language_id IS NULL AND sl.locale_id IS NULL)
+            )`
+            : `(sl.language_id = ? OR sl.language_id IS NULL)`
+          : localeId
+            ? `(
+              (sl.language_id IS NULL AND sl.locale_id = ?)
+              OR (sl.language_id IS NULL AND sl.locale_id IS NULL)
+            )`
+            : `(sl.language_id IS NULL AND sl.locale_id IS NULL)`;
+
       const lessonQuery = `
         SELECT sl.*
         FROM subject_lesson sl
         WHERE sl.subject_id = ?
           AND sl.set_number = ?
           AND sl.is_deleted = 0
-          AND (
-            sl.language_id = ?
-            OR sl.language_id IS NULL
-          )
+          AND ${lessonLanguageFilter}
 
         ORDER BY
           sl.set_number ASC,
           sl.sort_index ASC;
       `;
 
-      const lessonRes = await this.executeQuery(lessonQuery, [
-        subjectId,
-        setNumber,
-        langId,
-      ]);
+      const lessonParams = [subjectId, setNumber];
+      if (useStrictLanguageTrack && langId) {
+        lessonParams.push(langId);
+        if (localeId) lessonParams.push(localeId);
+      } else if (langId) {
+        lessonParams.push(langId);
+        if (localeId) {
+          lessonParams.push(localeId, langId, localeId);
+        }
+      } else if (localeId) {
+        lessonParams.push(localeId);
+      }
+      const lessonRes = await this.executeQuery(lessonQuery, lessonParams);
 
       const allLessons = ((lessonRes as DBSQLiteValues | undefined)?.values ??
         []) as TableTypes<'subject_lesson'>[];
@@ -8654,9 +8719,27 @@ order by
       const fallbackLessons = allLessons.filter(
         (lesson) => lesson.language_id == null,
       );
-      const candidateLessons = matchedLessons.length
-        ? matchedLessons
-        : fallbackLessons;
+      let candidateLessons = useStrictLanguageTrack
+        ? allLessons
+        : matchedLessons.length
+          ? matchedLessons
+          : fallbackLessons;
+
+      if (useStrictLanguageTrack && localeId) {
+        const localePriority = (lesson: TableTypes<'subject_lesson'>) => {
+          if (lesson.language_id === langId && lesson.locale_id === localeId)
+            return 1;
+          if (lesson.language_id === langId && lesson.locale_id == null)
+            return 2;
+          return 3;
+        };
+        candidateLessons = [...candidateLessons].sort((a, b) => {
+          if ((a.sort_index ?? 0) !== (b.sort_index ?? 0)) {
+            return (a.sort_index ?? 0) - (b.sort_index ?? 0);
+          }
+          return localePriority(a) - localePriority(b);
+        });
+      }
 
       if (!candidateLessons.length) {
         return {} as TableTypes<'subject_lesson'>;
