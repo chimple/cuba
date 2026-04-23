@@ -86,6 +86,7 @@ const ClassDetailsPage: React.FC<Props> = ({
           schoolId,
           1,
           ROWS_PER_PAGE,
+          classId,
         );
         logger.info('Loaded class details:', {
           students: res?.data,
@@ -210,7 +211,8 @@ const ClassDetailsPage: React.FC<Props> = ({
             schoolData: data?.schoolData,
             students: initialStudents,
             totalStudentCount: initialTotal,
-            classData: classRow ? [classRow] : undefined,
+            classData: [onlyClassRow].filter(Boolean) as ClassRow[],
+            totalCount: initialTotal,
           }}
           schoolId={schoolId}
           isMobile={isMobile}

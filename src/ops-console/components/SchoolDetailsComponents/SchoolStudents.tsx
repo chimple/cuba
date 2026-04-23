@@ -200,6 +200,7 @@ interface SchoolStudentsProps {
     students?: ApiStudentData[];
     totalStudentCount?: number;
     classData?: ClassRow[];
+    totalCount?: number;
   };
   isMobile: boolean;
   schoolId: string;
@@ -320,6 +321,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         setIsLoading(true);
       }
       const api = ServiceConfig.getI().apiHandler;
+      const scopedClassId = String(optionalClassId ?? '').trim() || undefined;
       try {
         let response;
         if (search && search.trim() !== '') {
@@ -328,7 +330,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             search,
             currentPage,
             ROWS_PER_PAGE,
-            currentClass?.id,
+            scopedClassId,
           );
           setStudents(response.data);
           setTotalCount(response.total);
@@ -337,6 +339,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             schoolId,
             currentPage,
             ROWS_PER_PAGE,
+            scopedClassId,
           );
           setStudents(response.data);
           setTotalCount(response.total);
@@ -347,17 +350,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         setIsLoading(false);
       }
     },
-    [schoolId],
+    [schoolId, optionalClassId],
   );
 
   const issTotal = isTotal ?? true;
   const issFilter = isFilter ?? true;
   const custoomTitle = customTitle ?? 'Students';
-
-  // Fetch fresh data when the component mounts
-  useEffect(() => {
-    fetchStudents(1, '', true);
-  }, [schoolId, fetchStudents, hasInitialStudents]); // Only re-run when schoolId changes
 
   useEffect(() => {
     const isInitial =
@@ -367,10 +365,19 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       filters.section.length === 0;
 
     if (isInitial) {
-      if (data.students && data.students.length > 0) {
-        setStudents(data.students);
-        setTotalCount(data.totalStudentCount || 0);
+      const prefetchedStudents = data.students || [];
+      const prefetchedTotal =
+        data.totalStudentCount ?? prefetchedStudents.length;
+
+      setStudents(prefetchedStudents);
+      setTotalCount(prefetchedTotal);
+
+      if (prefetchedStudents.length > 0 || prefetchedTotal > 0) {
+        setIsLoading(false);
+      } else {
+        fetchStudents(page, debouncedSearchTerm, true);
       }
+      return;
     } else {
       fetchStudents(page, debouncedSearchTerm);
     }
@@ -378,6 +385,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     page,
     debouncedSearchTerm,
     fetchStudents,
+    data.students,
+    data.totalStudentCount,
     filters.grade.length,
     filters.section.length,
   ]);
@@ -413,24 +422,46 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   };
 
   const baseStudents = useMemo(() => {
-    const classOn =
-      optionalClassId !== undefined &&
-      optionalClassId !== null &&
-      String(optionalClassId).trim() !== '';
-    if (classOn) {
-      const targetClassId = String(optionalClassId).trim();
-      return students.filter((row: ApiStudentData) => {
-        const rowClassId = String(row.classWithidname?.id ?? '').trim();
-        return rowClassId !== '' && rowClassId === targetClassId;
-      });
-    }
-
     const gradeOn =
       optionalGrade !== undefined &&
       optionalGrade !== null &&
       String(optionalGrade).trim() !== '';
     const sectionOn =
       optionalSection !== undefined && String(optionalSection).trim() !== '';
+
+    const classOn =
+      optionalClassId !== undefined &&
+      optionalClassId !== null &&
+      String(optionalClassId).trim() !== '';
+    if (classOn) {
+      const targetClassId = String(optionalClassId).trim();
+      const getRowClassId = (row: ApiStudentData) =>
+        String(row.classWithidname?.id ?? '').trim();
+
+      const matchedByClassId = students.filter((row: ApiStudentData) => {
+        const rowClassId = getRowClassId(row);
+        return rowClassId !== '' && rowClassId === targetClassId;
+      });
+
+      if (matchedByClassId.length > 0 || students.length === 0) {
+        return matchedByClassId;
+      }
+
+      // Fallback by grade/section if class ids are unavailable in row shape.
+      if (gradeOn || sectionOn) {
+        return students.filter((row: ApiStudentData) => {
+          const gradeOk =
+            !gradeOn || String(row.grade) === String(optionalGrade);
+          const sectionOk =
+            !sectionOn || sameSection(row.classSection, optionalSection);
+          return gradeOk && sectionOk;
+        });
+      }
+
+      // In class-scoped view, avoid showing school-wide students when class match fails.
+      return [];
+    }
+
     if (!gradeOn && !sectionOn) return students;
     return students.filter((row: any) => {
       const gradeOk = !gradeOn || String(row.grade) === String(optionalGrade);
@@ -1942,7 +1973,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
                   : t('No students data found for the selected school')}
           </Typography>
           {!isFilteringOrSearching &&
-            performanceFilter === PerformanceLevel.ALL && (
+            performanceFilter === PerformanceLevel.ALL &&
+            !isExternalUser && (
               <MuiButton
                 variant="text"
                 onClick={handleAddNewStudent}

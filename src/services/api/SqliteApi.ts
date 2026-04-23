@@ -7093,6 +7093,7 @@ order by
     schoolId: string,
     page: number = 1,
     limit: number = 20,
+    classId?: string,
   ): Promise<StudentAPIResponse> {
     await this.ensureInitialized();
     if (!this._db) {
@@ -7102,7 +7103,14 @@ order by
 
     const offset = (page - 1) * limit;
 
-    // Step 1: Get total count (Your query is perfect)
+    const classScopedId =
+      typeof classId === 'string' && classId.trim() !== ''
+        ? classId.trim()
+        : undefined;
+    const classScopeClause = classScopedId ? `AND cu.class_id = ?` : '';
+    const baseParams = classScopedId ? [schoolId, classScopedId] : [schoolId];
+
+    // Step 1: Get total count
     const countQuery = `
     SELECT COUNT(DISTINCT cu.user_id) as total
     FROM ${TABLES.ClassUser} cu
@@ -7110,9 +7118,10 @@ order by
     WHERE cu.role = 'student'
       AND cu.is_deleted = false
       AND c.school_id = ?
+      ${classScopeClause}
       AND c.is_deleted = false;
   `;
-    const countRes = await this._db.query(countQuery, [schoolId]);
+    const countRes = await this._db.query(countQuery, baseParams);
     const total = countRes?.values?.[0]?.total ?? 0;
 
     if (total === 0) {
@@ -7123,6 +7132,7 @@ order by
     const query = `
     SELECT
       u.*,
+      c.id as class_id,
       c.name as class_name,
       p.id as parent_id,
       p.name as parent_name,
@@ -7137,6 +7147,7 @@ order by
     WHERE cu.role = 'student'
       AND cu.is_deleted = false
       AND c.school_id = ?
+      ${classScopeClause}
       AND c.is_deleted = false
       AND u.is_deleted = false
     -- Important to group by student to avoid duplicates if a student is in multiple classes
@@ -7144,11 +7155,12 @@ order by
     ORDER BY u.name ASC
     LIMIT ? OFFSET ?;
   `;
-    const res = await this._db.query(query, [schoolId, limit, offset]);
+    const res = await this._db.query(query, [...baseParams, limit, offset]);
     const rows = res?.values ?? [];
 
     const studentInfoList: StudentInfo[] = rows.map((row: any) => {
       const {
+        class_id,
         class_name,
         parent_id,
         parent_name,
@@ -7195,6 +7207,10 @@ order by
         grade,
         classSection: section,
         parent: parentObject,
+        classWithidname: {
+          id: class_id,
+          class_name: class_name || '',
+        },
       };
     });
 
@@ -8466,7 +8482,21 @@ order by
     teacherId: string,
     classId: string,
   ): Promise<number | null> {
-    throw new Error('Method not implemented.');
+    logger.warn(
+      'getRecentAssignmentCountByTeacher is not supported in SQLite mode; delegating to server API',
+    );
+    try {
+      return await this._serverApi.getRecentAssignmentCountByTeacher(
+        teacherId,
+        classId,
+      );
+    } catch (error) {
+      logger.error(
+        '[SQLite] Failed to delegate getRecentAssignmentCountByTeacher:',
+        error,
+      );
+      return null;
+    }
   }
   public async getSchoolStatsForSchool(
     schoolId: string,
