@@ -5880,8 +5880,10 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
     studentLoginType: string;
     schoolModel: string;
+    whatsappBotNumber?: string;
   } | null> {
     if (!this.supabase) return null;
 
@@ -5889,7 +5891,7 @@ export class SupabaseApi implements ServiceApi {
       // Fetch student_login_type and program_model directly from school table
       const { data: schoolData, error } = await this.supabase
         .from('school')
-        .select('student_login_type, model')
+        .select('id, student_login_type, model, whatsapp_bot_number')
         .eq('udise', udiseCode)
         .eq('is_deleted', false)
         .single();
@@ -5898,11 +5900,13 @@ export class SupabaseApi implements ServiceApi {
         return null;
       }
 
-      const { student_login_type, model } = schoolData;
+      const { id, student_login_type, model, whatsapp_bot_number } = schoolData;
 
       return {
+        schoolId: id || '',
         studentLoginType: student_login_type || '',
         schoolModel: model || '',
+        whatsappBotNumber: whatsapp_bot_number || '',
       };
     } catch (err) {
       logger.error('Unexpected error in getSchoolDetailsByUdise:', err);
@@ -8032,6 +8036,51 @@ export class SupabaseApi implements ServiceApi {
         errors: [
           data?.error || `WHATSAPP BOT NUMBER is not active or connected.`,
         ],
+      };
+    } catch (err) {
+      return {
+        status: 'error',
+        errors: [String(err)],
+      };
+    }
+  }
+
+  async validateWhatsappGroupId(
+    whatsappBotNumber: string,
+    whatsappGroupId: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: 'error',
+        errors: ['Supabase client is not initialized'],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.functions.invoke(
+        'whatsapp-group-validate',
+        {
+          body: {
+            phone: whatsappBotNumber.trim(),
+            group_id: whatsappGroupId.trim(),
+          },
+        },
+      );
+
+      if (error) {
+        return {
+          status: 'error',
+          errors: [error.message || 'WHATSAPP GROUP ID validation failed.'],
+        };
+      }
+
+      if (data?.valid === true) {
+        return { status: 'success' };
+      }
+
+      return {
+        status: 'error',
+        errors: [data?.error || 'Invalid WHATSAPP GROUP ID.'],
       };
     } catch (err) {
       return {

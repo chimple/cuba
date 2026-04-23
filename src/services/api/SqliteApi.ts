@@ -6575,6 +6575,22 @@ order by
     }
     return { status: 'success' };
   }
+  async validateWhatsappGroupId(
+    whatsappBotNumber: string,
+    whatsappGroupId: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    const response = await this._serverApi.validateWhatsappGroupId(
+      whatsappBotNumber,
+      whatsappGroupId,
+    );
+    if (response.status === 'error') {
+      return {
+        status: 'error',
+        errors: response.errors || ['Invalid WHATSAPP GROUP ID'],
+      };
+    }
+    return { status: 'success' };
+  }
   async setStarsForStudents(
     studentId: string,
     starsCount: number,
@@ -7769,12 +7785,14 @@ order by
    * @returns An object with studentLoginType, programId, and programModel if found, else null
    */
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
     studentLoginType: string;
     schoolModel: string;
+    whatsappBotNumber?: string;
   } | null> {
     // Step 1: Get school info by UDISE code
     const schoolRes = await this.executeQuery(
-      `SELECT student_login_type, model FROM school WHERE udise = ? AND is_deleted = 0`,
+      `SELECT id, student_login_type, model, whatsapp_bot_number FROM school WHERE udise = ? AND is_deleted = 0`,
       [udiseCode],
     );
 
@@ -7782,11 +7800,14 @@ order by
       return null;
     }
 
-    const { student_login_type, model } = schoolRes.values[0];
+    const { id, student_login_type, model, whatsapp_bot_number } =
+      schoolRes.values[0];
 
     return {
+      schoolId: id || '',
       studentLoginType: student_login_type || '',
       schoolModel: model || '',
+      whatsappBotNumber: whatsapp_bot_number || '',
     };
   }
   async getSchoolDataByUdise(

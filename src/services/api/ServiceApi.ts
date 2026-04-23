@@ -1906,6 +1906,10 @@ export interface ServiceApi {
   validateWhatsappBotNumber(
     whatsappBotNumber: string,
   ): Promise<{ status: string; errors?: string[] }>;
+  validateWhatsappGroupId(
+    whatsappBotNumber: string,
+    whatsappGroupId: string,
+  ): Promise<{ status: string; errors?: string[] }>;
   /**
    * setting a stars for the student
    * @param {string } studentId - student id
@@ -2445,9 +2449,12 @@ export interface ServiceApi {
    * @param {string} udiseCode - UDISE code of the school.
    * @returns {Promise<{ studentLoginType: schoolModel: string } | null>}
    */
-  getSchoolDetailsByUdise(
-    udiseCode: string,
-  ): Promise<{ studentLoginType: string; schoolModel: string } | null>;
+  getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
+    studentLoginType: string;
+    schoolModel: string;
+    whatsappBotNumber?: string;
+  } | null>;
 
   /**
    * Fetch SchoolData by UDISE code.

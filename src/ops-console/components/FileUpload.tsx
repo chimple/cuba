@@ -206,6 +206,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     let newlyCreatedClasses: Set<string> = new Set();
     let validatedProgramNames = new Set<string>();
     let schoolProgramModelMap = new Map<string, string>();
+    let schoolWhatsappBotNumberMap = new Map<string, string>();
 
     const validatedSheets = {
       school: [] as any[],
@@ -579,6 +580,13 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                 );
               }
             }
+            if (
+              schoolId &&
+              isWhatsappEnabled === 'yes' &&
+              /^\d{12}$/.test(whatsappBotNumber)
+            ) {
+              schoolWhatsappBotNumberMap.set(schoolId, whatsappBotNumber);
+            }
             if (schoolId && programModel) {
               schoolProgramModelMap.set(schoolId, programModel.toUpperCase());
             }
@@ -647,6 +655,14 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       }
       // **Check if it's a Class Sheet**
       if (sheet.toLowerCase().includes('class')) {
+        const schoolWhatsappBotCache = new Map<string, string>();
+        const schoolUuidCache = new Map<string, string>();
+        const schoolClassGroupCache = new Map<
+          string,
+          Map<string, string | null>
+        >();
+        const normalizeClassNameKey = (value: string): string =>
+          value.replace(/\s+/g, '').trim().toLowerCase();
         for (let row of processedData) {
           let errors: string[] = [];
           const schoolId = row['SCHOOL ID']?.toString().trim();
@@ -659,8 +675,10 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             ?.toString()
             .trim();
           const whatsappGroupId = row['WHATSAPP GROUP ID']?.toString().trim();
+          const normalizedWhatsappGroupId =
+            whatsappGroupId?.toLowerCase() || '';
           if (whatsappGroupId) {
-            row['WHATSAPP GROUP ID'] = whatsappGroupId;
+            row['WHATSAPP GROUP ID'] = normalizedWhatsappGroupId;
           }
 
           // --- ⬇️ GRADE VALIDATION ADDED HERE ⬇️ ---
@@ -680,6 +698,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           }
 
           const className = `${grade}${classSection}`.trim();
+          const classNameKey = normalizeClassNameKey(className);
           if (schoolId && className) {
             const schoolClassKey = `${schoolId}_${className}`;
             if (!validatedSchoolClassPairs.has(schoolClassKey)) {
@@ -735,6 +754,126 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           if (validationResponse.status === 'error') {
             errors.push(...(validationResponse.errors || []));
           }
+
+          if (whatsappGroupId) {
+            if (!schoolId) {
+              errors.push(
+                'SCHOOL ID is required to validate WHATSAPP GROUP ID.',
+              );
+            } else {
+              let classGroupMap = schoolClassGroupCache.get(schoolId);
+
+              if (!classGroupMap) {
+                classGroupMap = new Map<string, string | null>();
+                try {
+                  let schoolUuid = schoolUuidCache.get(schoolId) || '';
+
+                  if (!schoolUuid) {
+                    const schoolDetails =
+                      await api.getSchoolDetailsByUdise(schoolId);
+                    schoolUuid =
+                      schoolDetails?.schoolId?.toString().trim() || '';
+                    const botFromSchoolDetails =
+                      schoolDetails?.whatsappBotNumber?.toString().trim() || '';
+
+                    if (schoolUuid) {
+                      schoolUuidCache.set(schoolId, schoolUuid);
+                    }
+                    if (botFromSchoolDetails) {
+                      schoolWhatsappBotCache.set(
+                        schoolId,
+                        botFromSchoolDetails,
+                      );
+                    }
+                  }
+
+                  if (schoolUuid) {
+                    const classes = await api.getClassesBySchoolId(schoolUuid);
+                    for (const cls of classes || []) {
+                      const dbClassName = cls?.name?.toString().trim();
+                      if (!dbClassName) continue;
+                      const dbGroupId =
+                        cls?.group_id?.toString().trim() || null;
+                      const dbClassKey = normalizeClassNameKey(dbClassName);
+                      const existingGroupId = classGroupMap.get(dbClassKey);
+
+                      if (!classGroupMap.has(dbClassKey)) {
+                        classGroupMap.set(dbClassKey, dbGroupId);
+                      } else if (!existingGroupId && dbGroupId) {
+                        classGroupMap.set(dbClassKey, dbGroupId);
+                      } else if (
+                        existingGroupId &&
+                        dbGroupId &&
+                        existingGroupId !== dbGroupId
+                      ) {
+                        logger.warn(
+                          `Multiple group IDs found for class ${dbClassName} in school ${schoolId}. Keeping ${existingGroupId} and ignoring ${dbGroupId}.`,
+                        );
+                      }
+                    }
+                  }
+                } catch (classFetchError) {
+                  logger.warn(
+                    `Failed to fetch class group IDs for school ${schoolId}`,
+                    classFetchError,
+                  );
+                }
+
+                schoolClassGroupCache.set(schoolId, classGroupMap);
+              }
+
+              const dbGroupId =
+                classGroupMap.get(classNameKey)?.toString().trim() || '';
+              const normalizedDbGroupId = dbGroupId.toLowerCase();
+
+              if (dbGroupId) {
+                if (normalizedDbGroupId !== normalizedWhatsappGroupId) {
+                  errors.push(
+                    `WHATSAPP GROUP ID mismatch for class "${className}". Sheet has "${whatsappGroupId}" but server has "${dbGroupId}".`,
+                  );
+                }
+              } else {
+                let whatsappBotNumber =
+                  schoolWhatsappBotNumberMap.get(schoolId);
+
+                if (!whatsappBotNumber) {
+                  if (schoolWhatsappBotCache.has(schoolId)) {
+                    whatsappBotNumber = schoolWhatsappBotCache.get(schoolId);
+                  } else {
+                    const schoolDetails =
+                      await api.getSchoolDetailsByUdise(schoolId);
+                    const schoolUuid =
+                      schoolDetails?.schoolId?.toString().trim() || '';
+                    whatsappBotNumber =
+                      schoolDetails?.whatsappBotNumber?.toString().trim() || '';
+                    if (schoolUuid) {
+                      schoolUuidCache.set(schoolId, schoolUuid);
+                    }
+                    schoolWhatsappBotCache.set(schoolId, whatsappBotNumber);
+                  }
+                }
+
+                if (!whatsappBotNumber) {
+                  errors.push(
+                    'WHATSAPP BOT NUMBER is not available for this school. Cannot validate WHATSAPP GROUP ID.',
+                  );
+                } else {
+                  const groupValidation = await api.validateWhatsappGroupId(
+                    whatsappBotNumber,
+                    normalizedWhatsappGroupId,
+                  );
+                  if (groupValidation.status === 'error') {
+                    errors.push(
+                      ...(groupValidation.errors || [
+                        'Invalid WHATSAPP GROUP ID.',
+                      ]),
+                    );
+                  }
+                }
+              }
+            }
+          }
+
           if (errors.length > 0) {
             row['Updated'] = createStyledCell(
               `❌ Errors: ${errors.join(', ')}`,

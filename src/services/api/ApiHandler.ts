@@ -1332,8 +1332,10 @@ export class ApiHandler implements ServiceApi {
     return this.s.addUserToSchool(schoolId, user, role);
   }
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
     studentLoginType: string;
     schoolModel: string;
+    whatsappBotNumber?: string;
   } | null> {
     return this.s.getSchoolDetailsByUdise(udiseCode);
   }
@@ -1429,6 +1431,12 @@ export class ApiHandler implements ServiceApi {
     whatsappBotNumber: string,
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateWhatsappBotNumber(whatsappBotNumber);
+  }
+  async validateWhatsappGroupId(
+    whatsappBotNumber: string,
+    whatsappGroupId: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateWhatsappGroupId(whatsappBotNumber, whatsappGroupId);
   }
   public async setStarsForStudents(
     studentId: string,
