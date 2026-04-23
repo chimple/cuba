@@ -8534,6 +8534,7 @@ order by
   async getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<'user'>,
+    courseId?: string,
   ): Promise<TableTypes<'subject_lesson'>> {
     if (!student) return {} as TableTypes<'subject_lesson'>;
     const studentId = student.id;
@@ -8570,6 +8571,7 @@ order by
       /* ==========================================
        * 3️⃣ Abort Check (with assignment_id IS NULL)
        * ========================================== */
+      const courseFilter = courseId ? ' AND course_id = ?' : '';
       const abortQuery = `
         SELECT lesson_id, status
         FROM (
@@ -8581,6 +8583,7 @@ order by
             FROM result
             WHERE student_id = ?
               AND subject_id = ?
+              ${courseFilter}
               AND assignment_id IS NULL
               AND is_deleted = 0
         ) t
@@ -8589,10 +8592,11 @@ order by
         LIMIT 2;
       `;
 
-      const abortRes = await this.executeQuery(abortQuery, [
-        studentId,
-        subjectId,
-      ]);
+      const abortParams: (string | null)[] = [studentId, subjectId];
+      if (courseId) {
+        abortParams.push(courseId);
+      }
+      const abortRes = await this.executeQuery(abortQuery, abortParams);
 
       const lastTwo = ((abortRes as DBSQLiteValues | undefined)?.values ??
         []) as ResultStatusRow[];
@@ -8653,15 +8657,17 @@ order by
         FROM result
         WHERE student_id = ?
           AND subject_id = ?
+          ${courseFilter}
           AND assignment_id IS NULL
           AND is_deleted = 0
           AND lesson_id IN (${resultPlaceholders});
       `;
-      const resultRes = await this.executeQuery(resultQuery, [
-        studentId,
-        subjectId,
-        ...lessonIds,
-      ]);
+      const resultParams: (string | null)[] = [studentId, subjectId];
+      if (courseId) {
+        resultParams.push(courseId);
+      }
+      resultParams.push(...lessonIds);
+      const resultRes = await this.executeQuery(resultQuery, resultParams);
       const completedLessons = ((resultRes as DBSQLiteValues | undefined)
         ?.values ?? []) as ResultLessonRow[];
       const completedLessonIds = new Set(

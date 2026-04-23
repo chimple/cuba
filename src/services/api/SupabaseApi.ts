@@ -12264,6 +12264,7 @@ export class SupabaseApi implements ServiceApi {
   async getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<'user'>,
+    courseId?: string,
   ): Promise<TableTypes<'subject_lesson'>> {
     if (!this.supabase || !student) return {} as TableTypes<'subject_lesson'>;
 
@@ -12306,7 +12307,7 @@ export class SupabaseApi implements ServiceApi {
       /* ==========================================
        * 2️⃣ Abort Check (assignment_id IS NULL)
        * ========================================== */
-      const { data, error } = await this.supabase
+      let abortQuery = this.supabase
         .from('result')
         .select('lesson_id, status, created_at')
         .eq('student_id', studentId)
@@ -12315,6 +12316,12 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false)
         .order('created_at', { ascending: false })
         .limit(50);
+
+      if (courseId) {
+        abortQuery = abortQuery.eq('course_id', courseId);
+      }
+
+      const { data, error } = await abortQuery;
 
       if (error) {
         logger.error('Abort query error:', error);
@@ -12389,13 +12396,19 @@ export class SupabaseApi implements ServiceApi {
        * ========================================== */
       const lessonIds = candidateLessons.map((lesson) => lesson.lesson_id);
 
-      const { data: results } = await this.supabase
+      let resultsQuery = this.supabase
         .from('result')
         .select('lesson_id')
         .in('lesson_id', lessonIds)
         .eq('student_id', studentId)
         .is('assignment_id', null)
         .eq('is_deleted', false);
+
+      if (courseId) {
+        resultsQuery = resultsQuery.eq('course_id', courseId);
+      }
+
+      const { data: results } = await resultsQuery;
 
       const completedLessonIds = new Set(
         (results ?? []).map((r) => r.lesson_id),
