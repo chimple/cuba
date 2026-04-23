@@ -3623,25 +3623,12 @@ export class SupabaseApi implements ServiceApi {
       (allStudentLinks || []) as Array<{ class_id: string; user_id: string }>
     ).forEach((row) => {
       const studentId = String(row?.user_id || '').trim();
-      const nextClassId = String(row?.class_id || '').trim();
-      if (!studentId || !nextClassId) return;
-
-      const existingClassId = primaryClassByStudent.get(studentId);
-      if (!existingClassId) {
-        primaryClassByStudent.set(studentId, nextClassId);
+      const classIdValue = String(row?.class_id || '').trim();
+      if (!studentId || !classIdValue || primaryClassByStudent.has(studentId)) {
         return;
       }
 
-      const existingClassName =
-        classMap.get(existingClassId) || existingClassId;
-      const nextClassName = classMap.get(nextClassId) || nextClassId;
-      if (
-        nextClassName.localeCompare(existingClassName, undefined, {
-          sensitivity: 'base',
-        }) < 0
-      ) {
-        primaryClassByStudent.set(studentId, nextClassId);
-      }
+      primaryClassByStudent.set(studentId, classIdValue);
     });
 
     const allStudentIds = Array.from(primaryClassByStudent.keys());
