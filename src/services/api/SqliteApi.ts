@@ -8482,21 +8482,7 @@ order by
     teacherId: string,
     classId: string,
   ): Promise<number | null> {
-    logger.warn(
-      'getRecentAssignmentCountByTeacher is not supported in SQLite mode; delegating to server API',
-    );
-    try {
-      return await this._serverApi.getRecentAssignmentCountByTeacher(
-        teacherId,
-        classId,
-      );
-    } catch (error) {
-      logger.error(
-        '[SQLite] Failed to delegate getRecentAssignmentCountByTeacher:',
-        error,
-      );
-      return null;
-    }
+    throw new Error('Method not implemented.');
   }
   public async getSchoolStatsForSchool(
     schoolId: string,

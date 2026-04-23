@@ -641,7 +641,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
           let perfLevel = PerformanceLevel.NOT_TRACKED;
           try {
-            const count = await api.getRecentAssignmentCountByTeacher(
+            const activeApi = ServiceConfig.getI().apiHandler;
+            const count = await activeApi.getRecentAssignmentCountByTeacher(
               teacherId,
               classId,
             );
