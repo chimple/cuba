@@ -1030,6 +1030,9 @@ export function usePathwaySVG({
           chimple.appendChild(riveDiv);
           svg.appendChild(chimple);
 
+          // Keep the reward node above the mascot during speaking/celebration
+          svg.appendChild(rewardWrapper);
+
           setRiveContainer(riveDiv);
         }
 

@@ -624,16 +624,18 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
           <Typography className="school-principals-empty-state-message">
             {t('No principals data found for the selected school')}
           </Typography>
-          <MuiButton
-            variant="text"
-            onClick={handleAddNewPrincipal}
-            className="school-principals-emptyStateAddButton"
-            startIcon={
-              <AddIcon className="school-principals-emptyStateAddButton-icon" />
-            }
-          >
-            {t('Add Principal')}
-          </MuiButton>
+          {!isExternalUser && (
+            <MuiButton
+              variant="text"
+              onClick={handleAddNewPrincipal}
+              className="school-principals-emptyStateAddButton"
+              startIcon={
+                <AddIcon className="school-principals-emptyStateAddButton-icon" />
+              }
+            >
+              {t('Add Principal')}
+            </MuiButton>
+          )}
         </Box>
       )}
 

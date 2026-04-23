@@ -1147,6 +1147,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           }
         }
 
+        let rewardNode: SVGGElement | null = null;
         const endPath = paths[paths.length - 1];
         if (endPath) {
           const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
@@ -1193,6 +1194,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             });
           }
           fragment.appendChild(Gift_Svg);
+          rewardNode = Gift_Svg;
         }
 
         const animateChimpleMovement = () => {
@@ -1479,6 +1481,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           riveWrapper.appendChild(riveDiv);
           chimple.appendChild(riveWrapper);
           svg.appendChild(chimple);
+
+          // Keep the reward node above the mascot during speaking/celebration
+          if (rewardNode) {
+            svg.appendChild(rewardNode);
+          }
 
           setRiveContainer(riveDiv);
         }
