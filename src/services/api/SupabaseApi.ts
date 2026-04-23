@@ -12278,11 +12278,11 @@ export class SupabaseApi implements ServiceApi {
       };
 
       /* ==========================================
-       * 1️⃣ Fetch ALL available set_numbers
+       * 1️⃣ Fetch all available set_numbers (+ language_id for in-memory preference)
        * ========================================== */
       const { data: setRows, error: setError } = await this.supabase
         .from('subject_lesson')
-        .select('set_number')
+        .select('set_number, language_id')
         .eq('subject_id', subjectId)
         .eq('is_deleted', false)
         .not('set_number', 'is', null);
@@ -12300,26 +12300,16 @@ export class SupabaseApi implements ServiceApi {
 
       if (!uniqueSets.length) return {} as TableTypes<'subject_lesson'>;
 
-      let preferredSets: number[] = [];
-      if (langId) {
-        const { data: preferredSetRows, error: preferredSetError } =
-          await this.supabase
-            .from('subject_lesson')
-            .select('set_number')
-            .eq('subject_id', subjectId)
-            .eq('is_deleted', false)
-            .eq('language_id', langId)
-            .not('set_number', 'is', null);
-        if (preferredSetError) throw preferredSetError;
-
-        preferredSets = Array.from(
-          new Set(
-            (preferredSetRows ?? [])
-              .map((r) => r.set_number)
-              .filter((n): n is number => n !== null),
-          ),
-        );
-      }
+      const preferredSets = langId
+        ? Array.from(
+            new Set(
+              (setRows ?? [])
+                .filter((r) => r.language_id === langId)
+                .map((r) => r.set_number)
+                .filter((n): n is number => n !== null),
+            ),
+          )
+        : [];
 
       const candidateSets = preferredSets.length ? preferredSets : uniqueSets;
       const randomIndex = Math.floor(Math.random() * candidateSets.length);

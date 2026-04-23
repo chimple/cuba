@@ -8540,16 +8540,19 @@ order by
     const langId = student.language_id ?? null;
 
     try {
-      type SubjectLessonSetRow = { set_number: number };
+      type SubjectLessonSetRow = {
+        set_number: number;
+        language_id: string | null;
+      };
       type ResultStatusRow = {
         lesson_id: string | null;
         status: string | null;
       };
       type ResultLessonRow = { lesson_id: string | null };
 
-      // 1️⃣ Fetch ALL available set_numbers
+      // 1️⃣ Fetch all available set_numbers (+ language_id for in-memory preference)
       const setQuery = `
-      SELECT DISTINCT set_number
+      SELECT DISTINCT set_number, language_id
       FROM subject_lesson
       WHERE subject_id = ?
         AND is_deleted = 0
@@ -8569,25 +8572,15 @@ order by
       }
 
       // 2️⃣ Prefer sets that have student's language, fallback to all sets
-      let preferredSets: number[] = [];
-      if (langId) {
-        const preferredSetQuery = `
-          SELECT DISTINCT set_number
-          FROM subject_lesson
-          WHERE subject_id = ?
-            AND is_deleted = 0
-            AND set_number IS NOT NULL
-            AND language_id = ?;
-        `;
-        const preferredSetRes = await this.executeQuery(preferredSetQuery, [
-          subjectId,
-          langId,
-        ]);
-        const preferredValues =
-          (preferredSetRes as DBSQLiteValues | undefined)?.values ?? [];
-        const preferredSetRows = preferredValues as SubjectLessonSetRow[];
-        preferredSets = preferredSetRows.map((r) => r.set_number);
-      }
+      const preferredSets = langId
+        ? Array.from(
+            new Set(
+              setRows
+                .filter((r) => r.language_id === langId)
+                .map((r) => r.set_number),
+            ),
+          )
+        : [];
 
       const candidateSets = preferredSets.length ? preferredSets : uniqueSets;
       const randomIndex = Math.floor(Math.random() * candidateSets.length);
