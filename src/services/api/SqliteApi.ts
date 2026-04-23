@@ -8563,9 +8563,37 @@ order by
         return {} as TableTypes<'subject_lesson'>;
       }
 
-      // 2️⃣ Pick ANY ONE set randomly
-      const randomIndex = Math.floor(Math.random() * setRows.length);
-      const setNumber = setRows[randomIndex].set_number;
+      const uniqueSets = Array.from(new Set(setRows.map((r) => r.set_number)));
+      if (!uniqueSets.length) {
+        return {} as TableTypes<'subject_lesson'>;
+      }
+
+      // 2️⃣ Prefer sets that have student's language, fallback to all sets
+      let preferredSets: number[] = [];
+      if (langId) {
+        const preferredSetQuery = `
+          SELECT DISTINCT set_number
+          FROM subject_lesson
+          WHERE subject_id = ?
+            AND is_deleted = 0
+            AND set_number IS NOT NULL
+            AND language_id = ?;
+        `;
+        const preferredSetRes = await this.executeQuery(preferredSetQuery, [
+          subjectId,
+          langId,
+        ]);
+        const preferredValues =
+          (preferredSetRes as DBSQLiteValues | undefined)?.values ?? [];
+        const preferredSetRows = preferredValues as SubjectLessonSetRow[];
+        preferredSets = preferredSetRows.map((r) => r.set_number);
+      }
+
+      const candidateSets = preferredSets.length ? preferredSets : uniqueSets;
+      const randomIndex = Math.floor(Math.random() * candidateSets.length);
+      const setNumber = candidateSets[randomIndex];
+      const useStrictLanguageTrack =
+        !!langId && preferredSets.includes(setNumber);
 
       /* ==========================================
        * 3️⃣ Abort Check (with assignment_id IS NULL)
@@ -8608,27 +8636,30 @@ order by
       /* ==========================================
        * 4️⃣ Fetch all candidate lessons from set
        * ========================================== */
+      const lessonLanguageFilter = useStrictLanguageTrack
+        ? `sl.language_id = ?`
+        : langId
+          ? `(sl.language_id = ? OR sl.language_id IS NULL)`
+          : `sl.language_id IS NULL`;
+
       const lessonQuery = `
         SELECT sl.*
         FROM subject_lesson sl
         WHERE sl.subject_id = ?
           AND sl.set_number = ?
           AND sl.is_deleted = 0
-          AND (
-            sl.language_id = ?
-            OR sl.language_id IS NULL
-          )
+          AND ${lessonLanguageFilter}
 
         ORDER BY
           sl.set_number ASC,
           sl.sort_index ASC;
       `;
 
-      const lessonRes = await this.executeQuery(lessonQuery, [
-        subjectId,
-        setNumber,
-        langId,
-      ]);
+      const lessonParams = [subjectId, setNumber];
+      if (useStrictLanguageTrack || langId) {
+        lessonParams.push(langId);
+      }
+      const lessonRes = await this.executeQuery(lessonQuery, lessonParams);
 
       const allLessons = ((lessonRes as DBSQLiteValues | undefined)?.values ??
         []) as TableTypes<'subject_lesson'>[];
@@ -8638,9 +8669,11 @@ order by
       const fallbackLessons = allLessons.filter(
         (lesson) => lesson.language_id == null,
       );
-      const candidateLessons = matchedLessons.length
-        ? matchedLessons
-        : fallbackLessons;
+      const candidateLessons = useStrictLanguageTrack
+        ? allLessons
+        : matchedLessons.length
+          ? matchedLessons
+          : fallbackLessons;
 
       if (!candidateLessons.length) {
         return {} as TableTypes<'subject_lesson'>;

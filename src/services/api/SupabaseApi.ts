@@ -12300,8 +12300,32 @@ export class SupabaseApi implements ServiceApi {
 
       if (!uniqueSets.length) return {} as TableTypes<'subject_lesson'>;
 
-      const randomIndex = Math.floor(Math.random() * uniqueSets.length);
-      const setNumber = uniqueSets[randomIndex];
+      let preferredSets: number[] = [];
+      if (langId) {
+        const { data: preferredSetRows, error: preferredSetError } =
+          await this.supabase
+            .from('subject_lesson')
+            .select('set_number')
+            .eq('subject_id', subjectId)
+            .eq('is_deleted', false)
+            .eq('language_id', langId)
+            .not('set_number', 'is', null);
+        if (preferredSetError) throw preferredSetError;
+
+        preferredSets = Array.from(
+          new Set(
+            (preferredSetRows ?? [])
+              .map((r) => r.set_number)
+              .filter((n): n is number => n !== null),
+          ),
+        );
+      }
+
+      const candidateSets = preferredSets.length ? preferredSets : uniqueSets;
+      const randomIndex = Math.floor(Math.random() * candidateSets.length);
+      const setNumber = candidateSets[randomIndex];
+      const useStrictLanguageTrack =
+        !!langId && preferredSets.includes(setNumber);
 
       /* ==========================================
        * 2️⃣ Abort Check (assignment_id IS NULL)
@@ -12356,15 +12380,26 @@ export class SupabaseApi implements ServiceApi {
       /* ==========================================
        * 3️⃣ Fetch lessons from selected set
        * ========================================== */
-      const { data: lessons, error: lessonError } = await this.supabase
+      let lessonsQuery = this.supabase
         .from('subject_lesson')
         .select('*')
         .eq('subject_id', subjectId)
         .eq('set_number', setNumber)
         .eq('is_deleted', false)
-        .or(`language_id.eq.${langId},language_id.is.null`)
         .order('set_number', { ascending: true })
         .order('sort_index', { ascending: true });
+
+      if (useStrictLanguageTrack && langId) {
+        lessonsQuery = lessonsQuery.eq('language_id', langId);
+      } else if (langId) {
+        lessonsQuery = lessonsQuery.or(
+          `language_id.eq.${langId},language_id.is.null`,
+        );
+      } else {
+        lessonsQuery = lessonsQuery.is('language_id', null);
+      }
+
+      const { data: lessons, error: lessonError } = await lessonsQuery;
 
       if (lessonError || !lessons?.length)
         return {} as TableTypes<'subject_lesson'>;
@@ -12375,9 +12410,11 @@ export class SupabaseApi implements ServiceApi {
       const fallbackLessons = lessons.filter(
         (lesson) => lesson.language_id == null,
       );
-      const candidateLessons = matchedLessons.length
-        ? matchedLessons
-        : fallbackLessons;
+      const candidateLessons = useStrictLanguageTrack
+        ? lessons
+        : matchedLessons.length
+          ? matchedLessons
+          : fallbackLessons;
 
       if (!candidateLessons.length) {
         return {} as TableTypes<'subject_lesson'>;
