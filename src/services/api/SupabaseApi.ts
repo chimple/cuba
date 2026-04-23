@@ -3573,7 +3573,7 @@ export class SupabaseApi implements ServiceApi {
 
     // Query classes first and filter class_user by class_id list.
     // This avoids expensive class_user -> class join scans that can timeout.
-    const { data: schoolClasses, error: classFetchError } = await this.supabase
+    const { data: schoolClasses, error: classFetchError } = await this.supabase // fetch classes for the school
       .from(TABLES.Class)
       .select('id, name')
       .eq('school_id', schoolId)
@@ -3588,13 +3588,13 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const classMap = new Map<string, string>(
-      (schoolClasses || []).map((c) => [String(c.id), String(c.name || '')]),
+      (schoolClasses || []).map((c) => [String(c.id), String(c.name || '')]), // store clsId and clsName in a map of that particular school
     );
     const allowedClassIds = classId
       ? classMap.has(classId)
         ? [classId]
         : []
-      : Array.from(classMap.keys());
+      : Array.from(classMap.keys()); // if classId is provided, use it only if it's valid for the school; otherwise use all class IDs for the school
 
     if (allowedClassIds.length === 0) {
       return { data: [], total: 0 };
@@ -3611,7 +3611,7 @@ export class SupabaseApi implements ServiceApi {
         )
         .eq('role', 'student')
         .eq('is_deleted', false)
-        .in('class_id', allowedClassIds);
+        .in('class_id', allowedClassIds); // for the collected clsIds fetch users of that class whose rols is student
 
     if (studentLinksError) {
       logger.error('Error fetching student info:', studentLinksError);
@@ -4859,7 +4859,9 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-    const offset = (page - 1) * limit;
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.max(1, limit);
+    const offset = (safePage - 1) * safeLimit;
 
     const { data: schoolClasses, error: classFetchError } = await this.supabase
       .from(TABLES.Class)
@@ -4875,9 +4877,12 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-    const classMap = new Map<string, string>(
-      (schoolClasses || []).map((c) => [String(c.id), String(c.name || '')]),
-    );
+    const classMap = new Map<string, string>();
+    (schoolClasses || []).forEach((schoolClass) => {
+      const classId = String(schoolClass?.id || '').trim();
+      if (!classId) return;
+      classMap.set(classId, String(schoolClass?.name || '').trim());
+    });
     const allowedClassIds = Array.from(classMap.keys());
 
     if (allowedClassIds.length === 0) {
@@ -4907,24 +4912,24 @@ export class SupabaseApi implements ServiceApi {
       (allTeacherLinks || []) as Array<{ class_id: string; user_id: string }>
     ).forEach((row) => {
       const teacherId = String(row?.user_id || '').trim();
-      const nextClassId = String(row?.class_id || '').trim();
-      if (!teacherId || !nextClassId) return;
+      const candidateClassId = String(row?.class_id || '').trim();
+      if (!teacherId || !candidateClassId) return;
 
-      const existingClassId = primaryClassByTeacher.get(teacherId);
-      if (!existingClassId) {
-        primaryClassByTeacher.set(teacherId, nextClassId);
+      const currentClassId = primaryClassByTeacher.get(teacherId);
+      if (!currentClassId) {
+        primaryClassByTeacher.set(teacherId, candidateClassId);
         return;
       }
 
-      const existingClassName =
-        classMap.get(existingClassId) || existingClassId;
-      const nextClassName = classMap.get(nextClassId) || nextClassId;
+      const currentClassName = classMap.get(currentClassId) || currentClassId;
+      const candidateClassName =
+        classMap.get(candidateClassId) || candidateClassId;
       if (
-        nextClassName.localeCompare(existingClassName, undefined, {
+        candidateClassName.localeCompare(currentClassName, undefined, {
           sensitivity: 'base',
         }) < 0
       ) {
-        primaryClassByTeacher.set(teacherId, nextClassId);
+        primaryClassByTeacher.set(teacherId, candidateClassId);
       }
     });
 
@@ -4936,73 +4941,45 @@ export class SupabaseApi implements ServiceApi {
       };
     }
 
-    const { data: teacherIdentities, error: identityError } =
-      await this.supabase
-        .from(TABLES.User)
-        .select('id, name')
-        .in('id', allTeacherIds)
-        .eq('is_deleted', false);
-
-    if (identityError) {
-      logger.error('Error fetching teacher identities:', identityError);
-      return { data: [], total: 0 };
-    }
-
-    const sortedIdentities = (teacherIdentities || [])
-      .map((teacherIdentity) => ({
-        id: String(teacherIdentity?.id || '').trim(),
-        name: String(teacherIdentity?.name || '').trim(),
-      }))
-      .filter((teacherIdentity) => teacherIdentity.id.length > 0)
-      .sort(
-        (a, b) =>
-          a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }) ||
-          a.id.localeCompare(b.id),
-      );
-
-    const totalTeachers = sortedIdentities.length;
-    const pagedTeacherIds = sortedIdentities
-      .slice(offset, offset + limit)
-      .map((teacherIdentity) => teacherIdentity.id);
-
-    if (pagedTeacherIds.length === 0) {
-      return {
-        data: [],
-        total: totalTeachers,
-      };
-    }
-
-    const { data: teacherUsers, error: userError } = await this.supabase
+    const {
+      data: teacherUsers,
+      error: userError,
+      count: totalTeachersRaw,
+    } = await this.supabase
       .from(TABLES.User)
-      .select('*')
-      .in('id', pagedTeacherIds)
-      .eq('is_deleted', false);
+      .select('*', { count: 'exact' })
+      .in('id', allTeacherIds)
+      .eq('is_deleted', false)
+      .order('name', { ascending: true })
+      .order('id', { ascending: true })
+      .range(offset, offset + safeLimit - 1);
+
+    const totalTeachers =
+      typeof totalTeachersRaw === 'number' ? totalTeachersRaw : 0;
 
     if (userError) {
       logger.error('Error fetching teacher user rows:', userError);
       return { data: [], total: totalTeachers };
     }
 
-    const teacherById = new Map(
-      (teacherUsers || []).map((teacherUser) => [
-        String(teacherUser?.id || ''),
-        teacherUser,
-      ]),
-    );
+    if (!teacherUsers?.length) {
+      return {
+        data: [],
+        total: totalTeachers,
+      };
+    }
 
-    const teacherInfoList: TeacherInfo[] = pagedTeacherIds
-      .map((teacherId) => {
+    const teacherInfoList: TeacherInfo[] = teacherUsers
+      .map((teacherUser) => {
+        const teacherId = String(teacherUser?.id || '').trim();
+        if (!teacherId) return null;
+
         const classIdValue = primaryClassByTeacher.get(teacherId) || '';
         const className = classMap.get(classIdValue) || '';
         const { grade, section } = this.parseClassName(className);
-        const user = teacherById.get(teacherId);
-
-        if (!user) {
-          return null;
-        }
 
         return {
-          user,
+          user: teacherUser,
           grade: grade,
           classSection: section,
           classWithidname: {
