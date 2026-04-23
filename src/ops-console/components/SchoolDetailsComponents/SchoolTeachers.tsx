@@ -480,16 +480,15 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     return set;
   }, [data.students]);
 
-  const filteredTeachers = useMemo(
-    () =>
-      filterBySearchAndFilters(
-        normalizedTeachers,
-        filters,
-        searchTerm,
-        'teacher',
-      ),
-    [normalizedTeachers, filters, searchTerm],
-  );
+  const filteredTeachers = useMemo(() => {
+    const result = filterBySearchAndFilters(
+      normalizedTeachers,
+      filters,
+      searchTerm,
+      'teacher',
+    );
+    return result;
+  }, [normalizedTeachers, filters, searchTerm]);
   const sortedTeachers = useMemo(() => {
     return [...filteredTeachers].sort((a, b) => {
       let aValue, bValue;
@@ -609,6 +608,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       setTeachersWithPerformance([]);
       return;
     }
+    let cancelled = false;
     async function loadPerformance() {
       const enriched: DisplayTeacher[] = await Promise.all(
         sortedTeachers.map(async (apiTeacher) => {
@@ -639,12 +639,21 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             };
           }
 
-          const count = await api.getRecentAssignmentCountByTeacher(
-            teacherId,
-            classId,
-          );
-
-          const perfLevel = mapCountToPerformance(count);
+          let perfLevel = PerformanceLevel.NOT_TRACKED;
+          try {
+            const activeApi = ServiceConfig.getI().apiHandler;
+            const count = await activeApi.getRecentAssignmentCountByTeacher(
+              teacherId,
+              classId,
+            );
+            perfLevel = mapCountToPerformance(count);
+          } catch (error) {
+            logger.error('Failed to load teacher performance count:', {
+              teacherId,
+              classId,
+              error,
+            });
+          }
 
           return {
             id: teacherId,
@@ -668,10 +677,15 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         }),
       );
 
-      setTeachersWithPerformance(enriched);
+      if (!cancelled) {
+        setTeachersWithPerformance(enriched);
+      }
     }
 
     loadPerformance();
+    return () => {
+      cancelled = true;
+    };
   }, [sortedTeachers]);
 
   // Add WhatsApp status to the rows used by the table.
@@ -685,7 +699,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   );
 
   const mapCountToPerformance = (count: number | null): PerformanceLevel => {
-    if (count === null || count === 0) return PerformanceLevel.NOT_ASSIGNING;
+    if (count === null) return PerformanceLevel.NOT_TRACKED;
+    if (count === 0) return PerformanceLevel.NOT_ASSIGNING;
     if (count >= 1 && count <= 2) return PerformanceLevel.ONE_TO_TWO_ASSIGNED;
     if (count >= 3 && count <= 4)
       return PerformanceLevel.THREE_TO_FOUR_ASSIGNED;
