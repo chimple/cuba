@@ -358,6 +358,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const custoomTitle = customTitle ?? 'Students';
 
   useEffect(() => {
+    fetchStudents(1, '', true);
+  }, [schoolId, fetchStudents, hasInitialStudents]); // Only re-run when schoolId changes
+
+  useEffect(() => {
     const isInitial =
       page === 1 &&
       !debouncedSearchTerm &&
