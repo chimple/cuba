@@ -2426,15 +2426,32 @@ export class SqliteApi implements ServiceApi {
     for (const data of res?.values ?? []) {
       const grade = JSON.parse(data.grade);
       delete data.grade;
-      const course = data;
-      const gradeAlreadyExists = gradeMap.grades.find(
+      const courseDoc = data;
+      const gradeAlreadyExistsIndex = gradeMap.grades.findIndex(
         (_grade) => _grade.id === grade.id,
       );
-      if (gradeAlreadyExists) continue;
-      gradeMap.courses.push(course);
+      if (gradeAlreadyExistsIndex >= 0) {
+        if (courseDoc.id === course.id) {
+          gradeMap.courses[gradeAlreadyExistsIndex] = courseDoc;
+        }
+        continue;
+      }
+      gradeMap.courses.push(courseDoc);
       gradeMap.grades.push(grade);
     }
 
+    if (!gradeMap.courses.some((_course) => _course.id === course.id)) {
+      gradeMap.courses.unshift(course);
+      if (
+        course.grade_id &&
+        !gradeMap.grades.some((g) => g.id === course.grade_id)
+      ) {
+        const courseGrade = await this.getGradeById(course.grade_id);
+        if (courseGrade) {
+          gradeMap.grades.unshift(courseGrade);
+        }
+      }
+    }
     gradeMap.grades.sort((a, b) => {
       //Number.MAX_SAFE_INTEGER is using when sortIndex is not found GRADES (i.e it gives default value)
       const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
