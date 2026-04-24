@@ -287,147 +287,242 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     const api = ServiceConfig.getI().apiHandler;
-    const [
-      school,
-      program,
-      programManagers,
-      principalsResponse,
-      coordinatorsResponse,
-      teachersResponse,
-      studentsResponse,
-      classResponse,
-    ] = await Promise.all([
-      api.getSchoolById(id),
-      api.getProgramForSchool(id),
-      api.getProgramManagersForSchool(id),
-      api.getPrincipalsForSchoolPaginated(id, 1, 20),
-      api.getCoordinatorsForSchoolPaginated(id, 1, 20),
-      api.getTeacherInfoBySchoolId(id, 1, 20),
-      api.getStudentInfoBySchoolId(id, 1, 20),
-      api.getClassesBySchoolId(id),
-    ]);
-    const res = await api.school_activity_stats(id);
-    const result = Array.isArray(res) ? res[0] : res;
-    const newSchoolStats = {
-      active_student_percentage: result.active_student_percentage ?? 0,
-      active_teacher_percentage: result.active_teacher_percentage ?? 0,
-      avg_weekly_time_minutes: result.avg_weekly_time_minutes ?? 0,
+    const resolveSettled = <T,>(
+      label: string,
+      settled: PromiseSettledResult<T>,
+      fallback: T,
+    ): T => {
+      if (settled.status === 'fulfilled') {
+        return settled.value;
+      }
+      logger.error(`SchoolDetailsPage fetch failed: ${label}`, settled.reason);
+      return fallback;
     };
-    const interactionStat = await api.getSchoolStatsForSchool(id);
-    const stats = Array.isArray(interactionStat)
-      ? interactionStat[0]
-      : interactionStat;
-    const interStats: FCSchoolStats = {
-      visits: stats.visits ?? 0,
-      calls_made: stats.calls_made ?? 0,
-      tech_issues: stats.tech_issues ?? stats.tech_issues_reported ?? 0,
-      parents_interacted: stats.parents_interacted ?? 0,
-      students_interacted: stats.students_interacted ?? 0,
-      teachers_interacted: stats.teachers_interacted ?? 0,
-    };
-    // this must be called for all the class ids
-    const studentsData = studentsResponse.data;
-    const totalStudentCount = studentsResponse.total;
-    const teachersData = teachersResponse.data;
-    const totalTeacherCount = teachersResponse.total;
-    const principalsData = principalsResponse.data;
-    const totalPrincipalCount = principalsResponse.total;
-    const coordinatorsData = coordinatorsResponse.data;
-    const totalCoordinatorCount = coordinatorsResponse.total;
 
-    const classData = classResponse;
-    const totalClassCount = classData.length;
-    const classDataWithDetails = await Promise.all(
-      (classData as any[]).map(async (clasS: any) => {
-        try {
-          let classwiseTotal = 0;
+    const emptyPaged = { data: [], total: 0 };
+    const emptySchoolActivityStats: SchoolStats = {
+      active_student_percentage: 0,
+      active_teacher_percentage: 0,
+      avg_weekly_time_minutes: 0,
+    };
+    const emptyInteractionStats: FCSchoolStats = {
+      visits: 0,
+      calls_made: 0,
+      tech_issues: 0,
+      parents_interacted: 0,
+      students_interacted: 0,
+      teachers_interacted: 0,
+    };
+
+    try {
+      const [
+        schoolSettled,
+        programSettled,
+        programManagersSettled,
+        principalsResponseSettled,
+        coordinatorsResponseSettled,
+        teachersResponseSettled,
+        studentsResponseSettled,
+        classResponseSettled,
+      ] = await Promise.allSettled([
+        api.getSchoolById(id),
+        api.getProgramForSchool(id),
+        api.getProgramManagersForSchool(id),
+        isExternalUser
+          ? Promise.resolve(emptyPaged)
+          : api.getPrincipalsForSchoolPaginated(id, 1, 20),
+        isExternalUser
+          ? Promise.resolve(emptyPaged)
+          : api.getCoordinatorsForSchoolPaginated(id, 1, 20),
+        api.getTeacherInfoBySchoolId(id, 1, 20),
+        api.getStudentInfoBySchoolId(id, 1, 20),
+        api.getClassesBySchoolId(id),
+      ]);
+
+      const school = resolveSettled('getSchoolById', schoolSettled, undefined);
+      const program = resolveSettled(
+        'getProgramForSchool',
+        programSettled,
+        undefined,
+      );
+      const programManagers = resolveSettled(
+        'getProgramManagersForSchool',
+        programManagersSettled,
+        [],
+      );
+      const principalsResponse = resolveSettled(
+        'getPrincipalsForSchoolPaginated',
+        principalsResponseSettled,
+        emptyPaged,
+      );
+      const coordinatorsResponse = resolveSettled(
+        'getCoordinatorsForSchoolPaginated',
+        coordinatorsResponseSettled,
+        emptyPaged,
+      );
+      const teachersResponse = resolveSettled(
+        'getTeacherInfoBySchoolId',
+        teachersResponseSettled,
+        emptyPaged,
+      );
+      const studentsResponse = resolveSettled(
+        'getStudentInfoBySchoolId',
+        studentsResponseSettled,
+        emptyPaged,
+      );
+      const classResponse = resolveSettled(
+        'getClassesBySchoolId',
+        classResponseSettled,
+        [],
+      );
+
+      const [schoolActivityStatsSettled, interactionStatsSettled] =
+        await Promise.allSettled([
+          api.school_activity_stats(id),
+          api.getSchoolStatsForSchool(id),
+        ]);
+
+      const res = resolveSettled(
+        'school_activity_stats',
+        schoolActivityStatsSettled,
+        emptySchoolActivityStats,
+      );
+      const result = Array.isArray(res) ? res[0] : res;
+      const newSchoolStats = {
+        active_student_percentage: result?.active_student_percentage ?? 0,
+        active_teacher_percentage: result?.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: result?.avg_weekly_time_minutes ?? 0,
+      };
+
+      const interactionStat = resolveSettled(
+        'getSchoolStatsForSchool',
+        interactionStatsSettled,
+        emptyInteractionStats,
+      );
+      const stats = Array.isArray(interactionStat)
+        ? interactionStat[0]
+        : interactionStat;
+      const interStats: FCSchoolStats = {
+        visits: stats?.visits ?? 0,
+        calls_made: stats?.calls_made ?? 0,
+        tech_issues: stats?.tech_issues ?? stats?.tech_issues_reported ?? 0,
+        parents_interacted: stats?.parents_interacted ?? 0,
+        students_interacted: stats?.students_interacted ?? 0,
+        teachers_interacted: stats?.teachers_interacted ?? 0,
+      };
+
+      const studentsData = studentsResponse?.data ?? [];
+      const totalStudentCount = studentsResponse?.total ?? 0;
+      const teachersData = teachersResponse?.data ?? [];
+      const totalTeacherCount = teachersResponse?.total ?? 0;
+      const principalsData = principalsResponse?.data ?? [];
+      const totalPrincipalCount = principalsResponse?.total ?? 0;
+      const coordinatorsData = coordinatorsResponse?.data ?? [];
+      const totalCoordinatorCount = coordinatorsResponse?.total ?? 0;
+
+      const classData = Array.isArray(classResponse) ? classResponse : [];
+      const totalClassCount = classData.length;
+      const classDataWithDetails = await Promise.all(
+        classData.map(async (clasS) => {
           try {
-            const raw = await api.getStudentsForClass(clasS.id);
-            const n = Number(raw.length);
-            classwiseTotal = Number.isFinite(n) ? n : 0;
-          } catch {
-            classwiseTotal = 0;
-          }
-          const links = (await api.getCoursesByClassId(clasS.id)) ?? [];
-          const detailArrays = await Promise.all(
-            links.map((ln: any) => api.getCourse(ln.course_id)),
-          );
-          const courses = detailArrays
-            .flatMap((arr: any) => (Array.isArray(arr) ? arr : [arr]))
-            .filter(Boolean);
-          const curIds = [
-            ...new Set(
-              courses
-                .map((cd: any) => cd?.curriculum_id)
-                .filter((id: any) => typeof id === 'string' && id),
-            ),
-          ];
-          let curriculum: any[] = [];
-          if (curIds.length > 0) {
-            const fetched = await api.getCurriculumsByIds(curIds);
-            const seen = new Set<string>();
-            for (const row of Array.isArray(fetched) ? fetched : []) {
-              const id = row?.id;
-              if (typeof id === 'string' && !seen.has(id)) {
-                seen.add(id);
-                curriculum.push(row);
+            let classwiseTotal = 0;
+            try {
+              const raw = await api.getStudentsForClass(clasS.id);
+              const n = Number(raw.length);
+              classwiseTotal = Number.isFinite(n) ? n : 0;
+            } catch {
+              classwiseTotal = 0;
+            }
+            const links = (await api.getCoursesByClassId(clasS.id)) ?? [];
+            const detailArrays = await Promise.all(
+              links.map((ln) =>
+                api.getCourse((ln as { course_id: string }).course_id),
+              ),
+            );
+            const courses = detailArrays
+              .flatMap((arr) => (Array.isArray(arr) ? arr : [arr]))
+              .filter(Boolean);
+            const curIds = [
+              ...new Set(
+                courses
+                  .map((cd) => cd?.curriculum_id)
+                  .filter(
+                    (courseId): courseId is string =>
+                      typeof courseId === 'string' && courseId.length > 0,
+                  ),
+              ),
+            ];
+            let curriculum: TableTypes<'curriculum'>[] = [];
+            if (curIds.length > 0) {
+              const fetched = await api.getCurriculumsByIds(curIds);
+              const seen = new Set<string>();
+              for (const row of Array.isArray(fetched) ? fetched : []) {
+                const curriculumId = row?.id;
+                if (
+                  typeof curriculumId === 'string' &&
+                  !seen.has(curriculumId)
+                ) {
+                  seen.add(curriculumId);
+                  curriculum.push(row);
+                }
               }
             }
+            const subjects = courses;
+            const subjectsNames = [
+              ...new Set(
+                courses
+                  .map((cd) =>
+                    typeof cd?.name === 'string' ? cd.name.trim() : '',
+                  )
+                  .filter((s: string) => s.length > 0),
+              ),
+            ].join(', ');
+            const curriculumNames = [
+              ...new Set(
+                curriculum
+                  .map((x) =>
+                    typeof x?.name === 'string' ? x.name.trim() : '',
+                  )
+                  .filter((n: string) => n.length > 0),
+              ),
+            ].join(', ');
+            return {
+              ...clasS,
+              subjects,
+              subjectsNames,
+              curriculumNames: curriculumNames,
+              course_links: links,
+              courses,
+              curriculum,
+              studentCount: classwiseTotal,
+            };
+          } catch {
+            return { ...clasS };
           }
-          const subjects = courses;
-          const subjectsNames = [
-            ...new Set(
-              courses
-                .map((cd: any) =>
-                  typeof cd?.name === 'string' ? cd.name.trim() : '',
-                )
-                .filter((s: string) => s.length > 0),
-            ),
-          ].join(', ');
-          const curriculumNames = [
-            ...new Set(
-              curriculum
-                .map((x: any) =>
-                  typeof x?.name === 'string' ? x.name.trim() : '',
-                )
-                .filter((n: string) => n.length > 0),
-            ),
-          ].join(', ');
-          return {
-            ...clasS,
-            subjects,
-            subjectsNames,
-            curriculumNames: curriculumNames,
-            course_links: links,
-            courses,
-            curriculum,
-            studentCount: classwiseTotal,
-          };
-        } catch {
-          return { ...clasS };
-        }
-      }),
-    );
+        }),
+      );
 
-    setData({
-      schoolData: school,
-      programData: program,
-      programManagers: programManagers,
-      principals: principalsData,
-      totalPrincipalCount: totalPrincipalCount,
-      coordinators: coordinatorsData,
-      totalCoordinatorCount: totalCoordinatorCount,
-      teachers: teachersData,
-      totalTeacherCount: totalTeacherCount,
-      students: studentsData,
-      totalStudentCount: totalStudentCount,
-      schoolStats: newSchoolStats,
-      classData: classDataWithDetails,
-      totalClassCount: totalClassCount,
-      interactionStats: interStats,
-    });
-    setLoading(false);
-  }, [id]);
+      setData({
+        schoolData: school,
+        programData: program,
+        programManagers: programManagers,
+        principals: principalsData,
+        totalPrincipalCount: totalPrincipalCount,
+        coordinators: coordinatorsData,
+        totalCoordinatorCount: totalCoordinatorCount,
+        teachers: teachersData,
+        totalTeacherCount: totalTeacherCount,
+        students: studentsData,
+        totalStudentCount: totalStudentCount,
+        schoolStats: newSchoolStats,
+        classData: classDataWithDetails,
+        totalClassCount: totalClassCount,
+        interactionStats: interStats,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [id, isExternalUser]);
 
   useEffect(() => {
     void fetchAll();
