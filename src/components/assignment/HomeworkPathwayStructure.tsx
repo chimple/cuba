@@ -1377,7 +1377,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             });
           }
           fragment.appendChild(Gift_Svg);
-          rewardNode = Gift_Svg;
         }
 
         const animateChimpleMovement = () => {
