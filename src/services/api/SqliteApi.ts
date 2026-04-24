@@ -2442,8 +2442,16 @@ export class SqliteApi implements ServiceApi {
 
     if (!gradeMap.courses.some((_course) => _course.id === course.id)) {
       gradeMap.courses.unshift(course);
+      if (
+        course.grade_id &&
+        !gradeMap.grades.some((g) => g.id === course.grade_id)
+      ) {
+        const courseGrade = await this.getGradeById(course.grade_id);
+        if (courseGrade) {
+          gradeMap.grades.unshift(courseGrade);
+        }
+      }
     }
-
     gradeMap.grades.sort((a, b) => {
       //Number.MAX_SAFE_INTEGER is using when sortIndex is not found GRADES (i.e it gives default value)
       const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;

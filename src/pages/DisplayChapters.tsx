@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState, useCallback } from 'react';
+import { FC, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useHistory, useLocation } from 'react-router';
 import { ServiceConfig } from '../services/ServiceConfig';
 import {
@@ -62,10 +62,12 @@ const DisplayChapters: FC<{}> = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const courseDocId = searchParams.get('courseDocId');
-  const getCourseByUrl =
-    localGradeMap?.courses.find((course) => courseDocId === course.id) ??
-    courses?.find((course) => courseDocId === course.id);
-
+  const getCourseByUrl = useMemo(
+    () =>
+      localGradeMap?.courses.find((course) => courseDocId === course.id) ??
+      courses?.find((course) => courseDocId === course.id),
+    [localGradeMap, courses, courseDocId],
+  );
   useEffect(() => {
     Util.loadBackgroundImage();
     init();
@@ -81,7 +83,8 @@ const DisplayChapters: FC<{}> = () => {
       try {
         const parsedCourse = JSON.parse(selectedCourse) as TableTypes<'course'>;
         return parsedCourse?.id === courseDocId ? parsedCourse : undefined;
-      } catch {
+      } catch (error) {
+        logger.error('Failed to parse stored course from localStorage', error);
         return;
       }
     })();
