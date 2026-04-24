@@ -4,6 +4,7 @@ import './HomeworkPathway.css';
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import {
+  COCOS,
   EVENTS,
   HOMEWORK_PATHWAY_DROPDOWN,
   HOMEWORK_PATHWAY,
@@ -21,12 +22,19 @@ import { t } from 'i18next';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import HomeworkCompleteModal from './HomeworkCompleteModal';
 import logger from '../../utility/logger';
+import {
+  clearPendingFinalHomeworkStickerFlow,
+  hasPendingHomeworkStickerFlow,
+  hasPendingHomeworkStickerSession,
+  setPendingFinalHomeworkStickerFlow,
+} from '../../utility/homeworkStickerFlow';
 // Make sure this interface is defined at the top of your component file
 interface HomeworkPath {
   path_id: string;
   lessons: any[];
   currentIndex: number;
   pendingAssignmentIds?: string[];
+  isPlaceholderSnapshot?: boolean;
 }
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
@@ -172,6 +180,48 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     // 3) Optional: re-run updateStarCount in case header / other logic depends on it
     await updateStarCount(student);
   }
+
+  const buildTemporaryStickerHomeworkPath = async (
+    currClassId: string,
+    preferredCourseId?: string,
+  ): Promise<HomeworkPath | null> => {
+    try {
+      const classCourses = await api.getCoursesForClassStudent(currClassId);
+      const selectedCourse =
+        classCourses.find((course) => course.id === preferredCourseId) ||
+        classCourses[0];
+
+      if (!selectedCourse?.id) return null;
+
+      const placeholderLessons = Array.from({ length: 5 }, (_, index) => ({
+        assignment_id: `sticker-placeholder-${index + 1}`,
+        lesson_id: `sticker-placeholder-${index + 1}`,
+        chapter_id: '',
+        course_id: selectedCourse.id,
+        lesson: {
+          id: `sticker-placeholder-${index + 1}`,
+          name: selectedCourse.name || 'Homework',
+          image: 'assets/icons/NextNodeIcon.svg',
+          plugin_type: COCOS,
+        } as TableTypes<'lesson'>,
+      }));
+
+      return {
+        path_id: uuidv4(),
+        lessons: placeholderLessons,
+        currentIndex: placeholderLessons.length,
+        pendingAssignmentIds: [],
+        isPlaceholderSnapshot: true,
+      };
+    } catch (error) {
+      logger.error(
+        '[HomeworkPathway] Failed to build temporary sticker homework path',
+        error,
+      );
+      return null;
+    }
+  };
+
   const normalizeAssignment = async (assignment: any) => {
     // if assignment already has .lesson, keep it; otherwise fetch
     const lesson =
@@ -193,6 +243,16 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     subjectId?: string,
   ): Promise<void> => {
     setLoading(true);
+    const syncPendingFinalHomeworkFlow = (
+      shouldKeepPendingFinalHomeworkFlow: boolean,
+    ) => {
+      if (shouldKeepPendingFinalHomeworkFlow) {
+        setPendingFinalHomeworkStickerFlow(student.id);
+        return;
+      }
+
+      clearPendingFinalHomeworkStickerFlow();
+    };
     const rewardCompletedIndexRaw = sessionStorage.getItem(
       HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
     );
@@ -239,12 +299,23 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         const notFinished =
           typeof parsed.currentIndex === 'number' &&
           parsed.currentIndex < parsed.lessons.length;
+        const isPlaceholderSnapshot = parsed.isPlaceholderSnapshot === true;
+        const shouldKeepCompletedSnapshot =
+          hasLessons && !notFinished && hasPendingHomeworkStickerFlow();
+        const shouldKeepPlaceholderSnapshot =
+          hasLessons &&
+          isPlaceholderSnapshot &&
+          hasPendingHomeworkStickerFlow();
 
-        if (hasLessons && (notFinished || hasPendingRewardTransition)) {
-          // ✅ active path → we can reuse
+        if (
+          hasLessons &&
+          ((notFinished && !isPlaceholderSnapshot) ||
+            hasPendingRewardTransition ||
+            shouldKeepCompletedSnapshot ||
+            shouldKeepPlaceholderSnapshot)
+        ) {
           existingPath = parsed;
         } else {
-          // ✅ finished or invalid path → drop it so we can rebuild
           localStorage.removeItem(HOMEWORK_PATHWAY);
         }
       } catch (err) {
@@ -254,6 +325,13 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     }
 
     let pathData: HomeworkPath | null = null;
+    const existingPathIsCompletedSnapshot = Boolean(
+      existingPath?.lessons?.length &&
+      typeof existingPath.currentIndex === 'number' &&
+      existingPath.currentIndex >= existingPath.lessons.length,
+    );
+    const shouldKeepCompletedSnapshot =
+      existingPathIsCompletedSnapshot && hasPendingHomeworkStickerFlow();
     const storedPathSubjectId =
       existingPath?.lessons?.[0]?.course_id != null
         ? String(existingPath.lessons[0].course_id)
@@ -264,6 +342,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     try {
       const currClass = Util.getCurrentClass();
       if (!currClass?.id) {
+        clearPendingFinalHomeworkStickerFlow();
         setLoading(false);
         return;
       }
@@ -289,6 +368,11 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         .map((assignment) => assignment.id)
         .filter((id): id is string => !!id)
         .map(String);
+      if (pendingAssignmentsFetched) {
+        syncPendingFinalHomeworkFlow(
+          allPendingAssignments.length === 0 && hasPendingHomeworkStickerFlow(),
+        );
+      }
       const cachedPendingAssignmentIds = Array.isArray(
         existingPath?.pendingAssignmentIds,
       )
@@ -331,14 +415,27 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           allPendingAssignments = pendingAssignmentsForCurrentView;
 
           if (!allPendingAssignments.length) {
-            // No assignments for this subject → reset selection & fall back to global path
-            setSelectedSubject(null);
-            activeSubjectRef.current = null;
+            if (
+              !shouldKeepCompletedSnapshot &&
+              !hasPendingHomeworkStickerFlow()
+            ) {
+              setSelectedSubject(null);
+              activeSubjectRef.current = null;
+            }
 
             if (existingPath) {
               pathData = existingPath;
+            } else if (hasPendingHomeworkStickerFlow()) {
+              const placeholderPath = await buildTemporaryStickerHomeworkPath(
+                currClass.id,
+                effectiveSubjectId,
+              );
+
+              if (placeholderPath) {
+                await saveHomeworkPath(student, placeholderPath);
+                pathData = placeholderPath;
+              }
             } else {
-              // No path yet, try global recompute
               await fetchHomeworkPathway(student);
               return;
             }
@@ -349,14 +446,42 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         if (!pathData) {
           if (!subjectId) {
             if (!allPendingAssignments.length) {
-              const emptyPath: HomeworkPath = {
-                path_id: uuidv4(),
-                lessons: [],
-                currentIndex: 0,
-                pendingAssignmentIds: currentPendingAssignmentIds,
-              };
-              await saveHomeworkPath(student, emptyPath);
-              pathData = emptyPath;
+              if (hasPendingHomeworkStickerFlow()) {
+                const placeholderPath = await buildTemporaryStickerHomeworkPath(
+                  currClass.id,
+                  effectiveSubjectId,
+                );
+
+                if (placeholderPath) {
+                  await saveHomeworkPath(student, placeholderPath);
+                  pathData = placeholderPath;
+                } else if (existingPath?.lessons?.length) {
+                  const preservedCompletedPath: HomeworkPath = {
+                    ...existingPath,
+                    pendingAssignmentIds: currentPendingAssignmentIds,
+                  };
+                  await saveHomeworkPath(student, preservedCompletedPath);
+                  pathData = preservedCompletedPath;
+                } else {
+                  const emptyPath: HomeworkPath = {
+                    path_id: uuidv4(),
+                    lessons: [],
+                    currentIndex: 0,
+                    pendingAssignmentIds: currentPendingAssignmentIds,
+                  };
+                  await saveHomeworkPath(student, emptyPath);
+                  pathData = emptyPath;
+                }
+              } else {
+                const emptyPath: HomeworkPath = {
+                  path_id: uuidv4(),
+                  lessons: [],
+                  currentIndex: 0,
+                  pendingAssignmentIds: currentPendingAssignmentIds,
+                };
+                await saveHomeworkPath(student, emptyPath);
+                pathData = emptyPath;
+              }
             } else {
               const assignmentsWithSubject: any[] = [];
               const pendingBySubject: { [key: string]: any[] } = {};
@@ -483,6 +608,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
 
       // ---- From here on, we just use pathData (from cache OR built) ----
       if (!pathData) {
+        clearPendingFinalHomeworkStickerFlow();
         setLoading(false);
         return;
       }
@@ -491,7 +617,11 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       if (pathData.lessons && pathData.lessons.length > 0) {
         const firstCourseId = String(pathData.lessons[0].course_id);
         activeSubjectRef.current = firstCourseId;
-        if (!subjectId || selectedSubject == null) {
+        if (
+          pathData.isPlaceholderSnapshot ||
+          !subjectId ||
+          selectedSubject == null
+        ) {
           setSelectedSubject(firstCourseId);
         }
       }
@@ -510,17 +640,20 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         pathData.lessons &&
         pathData.lessons.length > 0 &&
         pathData.currentIndex >= pathData.lessons.length &&
-        !hasPendingRewardTransition
+        !hasPendingRewardTransition &&
+        !hasPendingHomeworkStickerFlow()
       ) {
         localStorage.removeItem(HOMEWORK_PATHWAY);
       }
 
       // 7️⃣ Update chapter & lesson box info
       if (pathData.lessons && pathData.lessons.length > 0) {
-        const idx = Math.min(
-          pathData.currentIndex || 0,
-          pathData.lessons.length - 1,
-        );
+        const idx = pathData.isPlaceholderSnapshot
+          ? 0
+          : Math.min(
+              Math.max(pathData.currentIndex ?? 0, 0),
+              pathData.lessons.length - 1,
+            );
         const currentObj = pathData.lessons[idx];
 
         if (!currentObj) return;
@@ -707,9 +840,43 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
     }
   };
 
+  const handleFinalHomeworkStickerComplete = () => {
+    clearPendingFinalHomeworkStickerFlow();
+    localStorage.removeItem(HOMEWORK_PATHWAY);
+    setIsHomeworkComplete(true);
+    setRefreshKey((prev) => prev + 1);
+  };
+
   const handleHomeworkComplete = async () => {
     const student = Util.getCurrentStudent();
     if (!student) return;
+    const preferredSubjectId =
+      selectedSubject || activeSubjectRef.current || undefined;
+
+    const resolveHomeworkCompletionState = async () => {
+      await fetchHomeworkPathway(student);
+
+      const refreshedPathStr = localStorage.getItem(HOMEWORK_PATHWAY);
+      if (!refreshedPathStr) {
+        setIsHomeworkComplete(!hasPendingHomeworkStickerFlow());
+        return;
+      }
+
+      try {
+        const refreshedPath = JSON.parse(refreshedPathStr) as HomeworkPath;
+        const hasLessons =
+          Array.isArray(refreshedPath.lessons) &&
+          refreshedPath.lessons.length > 0;
+
+        setIsHomeworkComplete(!hasLessons && !hasPendingHomeworkStickerFlow());
+      } catch (error) {
+        logger.error(
+          'Failed to resolve refreshed homework completion state',
+          error,
+        );
+        setIsHomeworkComplete(!hasPendingHomeworkStickerFlow());
+      }
+    };
 
     const pathStr = localStorage.getItem(HOMEWORK_PATHWAY);
     if (pathStr) {
@@ -718,19 +885,27 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         const newIndex = (path.currentIndex || 0) + 1;
 
         if (newIndex >= path.lessons.length) {
-          setIsHomeworkComplete(true);
-          // Optional: Award stars or do other cleanup on final completion
+          const hasPendingStickerFlow = hasPendingHomeworkStickerSession();
+
+          if (hasPendingStickerFlow) {
+            path.currentIndex = newIndex;
+            await saveHomeworkPath(student, path);
+            await fetchHomeworkPathway(student, preferredSubjectId);
+          } else {
+            localStorage.removeItem(HOMEWORK_PATHWAY);
+            await resolveHomeworkCompletionState();
+          }
         } else {
           path.currentIndex = newIndex;
           await saveHomeworkPath(student, path); // Save the updated path
-          await fetchHomeworkPathway(student, selectedSubject || undefined); // Refetch to update UI
+          await fetchHomeworkPathway(student, preferredSubjectId); // Refetch to update UI
         }
       } catch (e) {
         logger.error('Failed to update homework progress', e);
-        setIsHomeworkComplete(true); // Failsafe
+        await resolveHomeworkCompletionState();
       }
     } else {
-      setIsHomeworkComplete(true); // No path found, assume complete
+      await resolveHomeworkCompletionState();
     }
   };
 
@@ -782,6 +957,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           key={refreshKey}
           selectedSubject={selectedSubject}
           onHomeworkComplete={handleHomeworkComplete}
+          onFinalHomeworkStickerComplete={handleFinalHomeworkStickerComplete}
         />
       </div>
 

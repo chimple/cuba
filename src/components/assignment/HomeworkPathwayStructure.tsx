@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 import './HomeworkPathwayStructure.css';
+import '../learningPathway/PathwayStructure.css';
 import { useHistory } from 'react-router';
 import { t } from 'i18next';
 import { Directory, Filesystem } from '@capacitor/filesystem';
@@ -22,14 +23,19 @@ import {
   IDLE_REWARD_ID,
   LIDO,
   LIVE_QUIZ,
+  EVENTS,
   PATHWAY_REWARD_AUDIO_READY_EVENT,
   PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
   PAGES,
   REWARD_LEARNING_PATH,
   REWARD_MODAL_SHOWN_DATE,
   RewardBoxState,
+  STICKER_BOOK_COMPLETION_READY_EVENT,
   TableTypes,
   IS_REWARD_FEATURE_ON,
+  AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  PENDING_PATHWAY_STICKER_REWARD_KEY,
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
 } from '../../common/constants';
 import { useReward } from '../../hooks/useReward';
 import { Util } from '../../utility/util';
@@ -38,12 +44,18 @@ import PathwayModal from '../learningPathway/PathwayModal';
 import ChimpleRiveMascot from '../learningPathway/ChimpleRiveMascot';
 import RewardBox from '../learningPathway/RewardBox';
 import DailyRewardModal from '../learningPathway/DailyRewardModal';
+import StickerBookPreviewModal, {
+  StickerBookModalData,
+} from '../learningPathway/StickerBookPreviewModal';
 import { AudioUtil } from '../../utility/AudioUtil';
+import { useHomeworkSticker } from '../../hooks/useHomeworkSticker';
 import logger from '../../utility/logger';
+import { hasPendingHomeworkStickerFlow } from '../../utility/homeworkStickerFlow';
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;
   onHomeworkComplete?: () => void;
+  onFinalHomeworkStickerComplete?: () => void;
 }
 
 interface HomeworkPathLessonItem {
@@ -70,6 +82,7 @@ const MASCOT_X_OFFSET = -163;
 const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   selectedSubject,
   onHomeworkComplete,
+  onFinalHomeworkStickerComplete,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
@@ -179,9 +192,15 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         stateValue?: number;
         animationName?: string;
       },
+      playbackOptions?: {
+        onPlaybackStop?: () => void;
+      },
     ): Promise<boolean> => {
       const normalizedPath = localAudioPath?.trim();
-      if (!normalizedPath) return false;
+      if (!normalizedPath) {
+        playbackOptions?.onPlaybackStop?.();
+        return false;
+      }
 
       const requestId = mascotSpeakRequestIdRef.current + 1;
       mascotSpeakRequestIdRef.current = requestId;
@@ -219,8 +238,14 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       return AudioUtil.playAudioOrTts({
         audioUrl: normalizedPath,
-        onStop: restoreState,
-        onComplete: restoreState,
+        onStop: () => {
+          restoreState();
+          playbackOptions?.onPlaybackStop?.();
+        },
+        onComplete: () => {
+          restoreState();
+          playbackOptions?.onPlaybackStop?.();
+        },
       });
     },
     [
@@ -439,6 +464,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
   const fetchHomeworkLessons = useCallback(async () => {
     try {
+      const hasPendingStickerFlow = hasPendingHomeworkStickerFlow();
       const rewardCompletedIndexRaw = sessionStorage.getItem(
         HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
       );
@@ -519,7 +545,12 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             typeof existingPath.currentIndex === 'number' &&
             existingPath.currentIndex < lessons.length;
 
-          if (hasLessons && (notFinished || hasPendingRewardTransition)) {
+          if (
+            hasLessons &&
+            (notFinished ||
+              hasPendingRewardTransition ||
+              (hasPendingStickerFlow && !notFinished))
+          ) {
             const normalizedLessons = lessons.map((item) =>
               normalizeLessonShape(item, lessons),
             );
@@ -527,7 +558,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             return;
           }
 
-          if (hasPendingRewardTransition) {
+          if (hasPendingRewardTransition || hasPendingStickerFlow) {
             return;
           }
 
@@ -560,7 +591,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       if (!pendingAssignments || pendingAssignments.length === 0) {
         setHomeworkLessons([]);
-        onHomeworkComplete?.();
+        if (!hasPendingStickerFlow) {
+          onHomeworkComplete?.();
+        }
         return;
       }
 
@@ -630,6 +663,60 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       setHomeworkLessons([]);
     }
   }, [api, getCachedLesson, getPendingRewardTransition, onHomeworkComplete]);
+
+  const reloadHomeworkPathway = useCallback(() => {
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+    }
+    setHomeworkLessons([]);
+    void fetchHomeworkLessons();
+  }, [fetchHomeworkLessons]);
+
+  const playRewardAudio = useCallback(
+    async (stateValue?: number) => {
+      const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
+        'dailyReward',
+        'reward',
+      );
+      if (!localAudioPath) return;
+
+      await playMascotAudioFromLocalPath(localAudioPath, {
+        stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
+        inputName: CHIMPLE_MASCOT_INPUT_REWARD,
+        stateValue: stateValue ?? currentMascotStateValueRef.current ?? 1,
+      });
+    },
+    [playMascotAudioFromLocalPath],
+  );
+
+  const {
+    closeStickerCompletion,
+    closeStickerPreview,
+    getPersistedStickerCompletionPayload,
+    getStickerPreviewPayload,
+    handleMascotReplayClick,
+    handleStickerPreviewReady,
+    isOffline,
+    isStickerBookCelebrationPopupOn,
+    isStickerBookCompletionPopupOn,
+    isStickerBookPreviewOn,
+    isStickerCompletionOpen,
+    isStickerPreviewOpen,
+    rewardBoxVariant,
+    stickerCompletionData,
+    stickerPreviewData,
+    stickerPreviewFlyoutMotion,
+    stickerPreviewLaunchMotion,
+    stickerPreviewTrigger,
+  } = useHomeworkSticker({
+    containerRef,
+    riveContainer,
+    currentMascotStateValue: chimpleRiveStateValue,
+    reloadHomeworkPathway,
+    onFinalHomeworkStickerComplete,
+    playMascotAudioFromLocalPath,
+    playRewardAudio,
+  });
 
   const updateMascotToNormalState = useCallback(
     async (rewardId: string) => {
@@ -704,8 +791,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       const homeworkPath = JSON.parse(storedHomeworkPath) as {
         lessons: HomeworkPathLessonItem[];
         currentIndex: number;
+        isPlaceholderSnapshot?: boolean;
       };
       const lessonsToRender: HomeworkPathLessonItem[] = homeworkPath.lessons;
+      const isPlaceholderSnapshot = homeworkPath.isPlaceholderSnapshot === true;
       const pendingCompletedIndex =
         typeof pendingRewardTransition?.completedIndex === 'number' &&
         Number.isFinite(pendingRewardTransition.completedIndex)
@@ -776,6 +865,86 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       setCurrentChapter(fetchedChapter);
 
       const lessons = lessonsToRender.map((item) => item.lesson);
+      const currentStudent = Util.getCurrentStudent();
+      let previewOverrideParsed: {
+        awardedStickerId?: string;
+        preAwardCollectedStickerIds?: string[];
+        stickerBookId?: string | null;
+        stickerBookTitle?: string | null;
+        stickerBookSvgUrl?: string | null;
+      } | null = null;
+      let pendingStickerRewardParsed: {
+        awardedStickerId?: string;
+      } | null = null;
+      let completionOverrideParsed: { payload?: StickerBookModalData } | null =
+        null;
+      let shouldOpenCelebrationPopup = false;
+
+      if (isStickerBookPreviewOn) {
+        const rawPreview = sessionStorage.getItem(
+          AUTO_OPEN_STICKER_PREVIEW_KEY,
+        );
+        if (rawPreview && currentStudent?.id) {
+          try {
+            const parsed = JSON.parse(rawPreview);
+            if (parsed?.studentId === currentStudent.id) {
+              previewOverrideParsed = parsed;
+              shouldOpenCelebrationPopup =
+                isStickerBookCelebrationPopupOn &&
+                Boolean(parsed?.awardedStickerId);
+            }
+          } catch {
+            previewOverrideParsed = null;
+          }
+        }
+      }
+
+      if (isStickerBookCompletionPopupOn) {
+        const rawCompletion = sessionStorage.getItem(
+          AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+        );
+        if (rawCompletion && currentStudent?.id) {
+          try {
+            const parsed = JSON.parse(rawCompletion);
+            if (parsed?.studentId === currentStudent.id) {
+              completionOverrideParsed = parsed;
+            }
+          } catch {
+            completionOverrideParsed = null;
+          }
+        }
+      }
+
+      const rawPendingStickerReward = sessionStorage.getItem(
+        PENDING_PATHWAY_STICKER_REWARD_KEY,
+      );
+      if (rawPendingStickerReward && currentStudent?.id) {
+        try {
+          const parsed = JSON.parse(rawPendingStickerReward);
+          if (parsed?.studentId === currentStudent.id) {
+            pendingStickerRewardParsed = parsed;
+          }
+        } catch {
+          pendingStickerRewardParsed = null;
+        }
+      }
+
+      const stickerPreviewPromise = isStickerBookPreviewOn
+        ? getStickerPreviewPayload(
+            previewOverrideParsed?.awardedStickerId,
+            previewOverrideParsed?.preAwardCollectedStickerIds,
+            previewOverrideParsed
+              ? {
+                  stickerBookId: previewOverrideParsed.stickerBookId,
+                  stickerBookTitle: previewOverrideParsed.stickerBookTitle,
+                  stickerBookSvgUrl: previewOverrideParsed.stickerBookSvgUrl,
+                }
+              : null,
+          )
+        : Promise.resolve(null);
+      const stickerCompletionPayload = completionOverrideParsed
+        ? getPersistedStickerCompletionPayload()
+        : null;
 
       const [
         newRewardId,
@@ -787,6 +956,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         giftSVG2,
         giftSVG3,
         haloPath,
+        stickerPreviewPayload,
       ] = await Promise.all([
         checkAndUpdateReward().catch((e) => {
           logger.warn('Check Reward failed offline', e);
@@ -826,7 +996,19 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           'homeworkRemoteAsset/halo.svg',
           '/pathwayAssets/English/halo.svg',
         ),
+        stickerPreviewPromise,
       ]);
+
+      let didScheduleStickerCompletionPopup = false;
+      if (
+        completionOverrideParsed &&
+        !shouldOpenCelebrationPopup &&
+        isStickerBookCompletionPopupOn &&
+        stickerCompletionPayload
+      ) {
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+        didScheduleStickerCompletionPopup = true;
+      }
 
       const currentCompletedIndexFromPath =
         Number.isFinite(currentIndex) && currentIndex > 0
@@ -967,16 +1149,18 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                 : 'assets/icons/DefaultIcon.png'
               : 'assets/icons/NextNodeIcon.svg';
 
-          if (lessonIdx < visualCurrentIndex) {
+          if (isPlaceholderSnapshot || lessonIdx < visualCurrentIndex) {
             const playedLesson = document.createElementNS(
               'http://www.w3.org/2000/svg',
               'g',
             );
-            const lessonImage = createSVGImage(lesson_image, 30, 30, 28, 30);
             playedLesson.appendChild(
               playedLessonSVG.cloneNode(true) as SVGGElement,
             );
-            playedLesson.appendChild(lessonImage);
+            if (!isPlaceholderSnapshot) {
+              const lessonImage = createSVGImage(lesson_image, 30, 30, 28, 30);
+              playedLesson.appendChild(lessonImage);
+            }
 
             let xPos =
               positionMappings.playedLesson.x[pathIndex] ?? flowerX - 20;
@@ -1151,50 +1335,243 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         const endPath = paths[paths.length - 1];
         if (endPath) {
           const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
-          const Gift_Svg = document.createElementNS(
+          const rewardWrapper = document.createElementNS(
             'http://www.w3.org/2000/svg',
             'g',
-          );
-          Gift_Svg.setAttribute('style', 'cursor: pointer;');
-          Gift_Svg.classList.add(
-            'PathwayStructure-end-reward-box',
-            'PathwayStructure-end-reward-box--mystery',
-          );
-          Gift_Svg.appendChild(giftSVG.cloneNode(true));
-          placeElement(Gift_Svg, endPoint.x - 25, endPoint.y - 40 + 15);
+          ) as SVGGElement;
+          rewardWrapper.setAttribute('style', 'cursor: pointer;');
 
-          if (visualCurrentIndex < pathEndIndex + 1) {
-            Gift_Svg.addEventListener('click', () => {
-              const replaceGiftContent = (newContent: SVGElement) => {
-                while (Gift_Svg.firstChild) {
-                  Gift_Svg.removeChild(Gift_Svg.firstChild);
-                }
-                Gift_Svg.appendChild(newContent.cloneNode(true));
+          const rewardGroup = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'g',
+          ) as SVGGElement;
+          rewardGroup.style.setProperty('transform-box', 'fill-box');
+          rewardGroup.style.transformOrigin = 'center';
+          rewardWrapper.appendChild(rewardGroup);
+
+          const normalizedVariant = String(rewardBoxVariant ?? '')
+            .trim()
+            .toLowerCase();
+          const gbWantsMystery =
+            normalizedVariant === 'mystery_3d' ||
+            normalizedVariant === 'mystery' ||
+            normalizedVariant === 'mysterybox' ||
+            normalizedVariant === 'mystery_box';
+          const hasNextSticker = Boolean(stickerPreviewPayload?.nextStickerId);
+          const nextStickerImageSrc = stickerPreviewPayload?.nextStickerImage;
+          const hasRenderableSticker = Boolean(nextStickerImageSrc);
+          const rewardMode: 'sticker' | 'mystery_box' =
+            !hasNextSticker || !hasRenderableSticker || gbWantsMystery
+              ? 'mystery_box'
+              : 'sticker';
+
+          rewardWrapper.setAttribute('data-reward-mode', rewardMode);
+
+          const width =
+            window.innerWidth >= 1024 ? 68 : window.innerWidth >= 768 ? 62 : 57;
+          const height = Math.round(width * 0.767);
+
+          const playRewardClickAnimation = (
+            mode: 'sticker' | 'mystery_box',
+          ): Promise<void> => {
+            if (mode === 'mystery_box') {
+              return Promise.resolve();
+            }
+
+            const willOpenPreview =
+              mode === 'sticker' &&
+              isStickerBookPreviewOn &&
+              stickerPreviewPayload;
+
+            if (willOpenPreview) {
+              rewardGroup.classList.remove(
+                'PathwayStructure-end-reward-box--sticker-close-anim',
+              );
+              void rewardGroup.getBoundingClientRect();
+              rewardGroup.classList.add(
+                'PathwayStructure-end-reward-box--sticker-open',
+              );
+              return new Promise((resolve) => setTimeout(resolve, 750));
+            }
+
+            rewardGroup.classList.remove(
+              'PathwayStructure-end-reward-box--sticker-clicked',
+              'PathwayStructure-end-reward-box--clicked',
+            );
+            void rewardGroup.getBoundingClientRect();
+            rewardGroup.classList.add(
+              'PathwayStructure-end-reward-box--sticker-clicked',
+            );
+
+            return new Promise((resolve) => {
+              let resolved = false;
+              const finish = () => {
+                if (resolved) return;
+                resolved = true;
+                rewardGroup.classList.remove(
+                  'PathwayStructure-end-reward-box--sticker-clicked',
+                );
+                resolve();
               };
-              const animationSequence = [
-                { content: giftSVG2, delay: 300 },
-                { content: giftSVG3, delay: 500 },
-                { content: giftSVG2, delay: 700 },
-                { content: giftSVG3, delay: 900 },
-                {
-                  callback: () => {
-                    setModalText(rewardText);
-                    setModalOpen(true);
-                    replaceGiftContent(giftSVG);
-                  },
-                  delay: 1100,
-                },
-              ];
-              animationSequence.forEach(({ content, callback, delay }) => {
-                setTimeout(() => {
-                  if (content) replaceGiftContent(content);
-                  if (callback) callback();
-                }, delay);
+
+              const onEnd = (event: AnimationEvent) => {
+                if (event.target === rewardGroup) finish();
+              };
+
+              rewardGroup.addEventListener('animationend', onEnd, {
+                once: true,
               });
+              window.setTimeout(finish, 1100);
             });
+          };
+
+          if (rewardMode === 'sticker') {
+            rewardGroup.classList.add(
+              'PathwayStructure-end-reward-box',
+              'PathwayStructure-end-reward-box--sticker',
+            );
+
+            const bg = document.createElementNS(
+              'http://www.w3.org/2000/svg',
+              'rect',
+            );
+            bg.setAttribute('width', String(width));
+            bg.setAttribute('height', String(height));
+            bg.setAttribute('rx', String(Math.round(height * 0.24)));
+            bg.setAttribute('ry', String(Math.round(height * 0.24)));
+            bg.setAttribute('fill', '#FFFDEE');
+            bg.setAttribute('stroke', '#F55376');
+            bg.setAttribute('stroke-width', '3');
+            rewardGroup.appendChild(bg);
+
+            if (nextStickerImageSrc) {
+              const horizontalPadding = Math.round(width * 0.12);
+              const verticalPadding = Math.round(height * 0.12);
+              const stickerImage = createSVGImage(
+                nextStickerImageSrc,
+                width - horizontalPadding * 2,
+                height - verticalPadding * 2,
+                horizontalPadding,
+                verticalPadding,
+              );
+              stickerImage.setAttribute(
+                'class',
+                'PathwayStructure-end-reward-sticker-image',
+              );
+              rewardGroup.appendChild(stickerImage);
+            }
+
+            placeElement(
+              rewardWrapper,
+              endPoint.x + 6 - width / 2,
+              endPoint.y - height / 2,
+            );
+
+            if (currentIndex < pathEndIndex + 1) {
+              rewardWrapper.addEventListener('click', async () => {
+                await playRewardClickAnimation(rewardMode);
+
+                void Util.logEvent(EVENTS.PATHWAY_STICKER_BOX_TAPPED, {
+                  user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+                  source: 'homework_pathway',
+                  sticker_book_id:
+                    stickerPreviewPayload?.stickerBookId ?? 'unknown',
+                  sticker_id: stickerPreviewPayload?.nextStickerId ?? 'unknown',
+                  gb_variant: normalizedVariant || 'sticker',
+                });
+
+                if (isStickerBookPreviewOn && stickerPreviewPayload) {
+                  handleStickerPreviewReady(
+                    stickerPreviewPayload,
+                    'sticker_click',
+                  );
+                } else {
+                  setModalText(rewardText);
+                  setModalOpen(true);
+                }
+              });
+            }
+          } else {
+            rewardGroup.classList.add(
+              'PathwayStructure-end-reward-box',
+              'PathwayStructure-end-reward-box--mystery',
+            );
+            const mysteryBoxClone = giftSVG.cloneNode(true) as SVGElement;
+            mysteryBoxClone.setAttribute('width', String(width));
+            mysteryBoxClone.setAttribute('height', String(height));
+            mysteryBoxClone.style.width = `${width}px`;
+            mysteryBoxClone.style.height = `${height}px`;
+            rewardGroup.appendChild(mysteryBoxClone);
+
+            placeElement(
+              rewardWrapper,
+              endPoint.x - width / 2,
+              endPoint.y - height / 2,
+            );
+
+            if (currentIndex < pathEndIndex + 1) {
+              rewardWrapper.addEventListener('click', async () => {
+                await playRewardClickAnimation(rewardMode);
+
+                const reason = isOffline
+                  ? 'offline'
+                  : hasNextSticker
+                    ? 'experiment'
+                    : 'stickers_exhausted';
+                const mysteryBoxModalText =
+                  reason === 'stickers_exhausted'
+                    ? rewardText
+                    : t('Complete these lessons to earn 10 stars');
+
+                void Util.logEvent(EVENTS.PATHWAY_MYSTERY_BOX_TAPPED, {
+                  user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+                  source: 'homework_pathway',
+                  reason,
+                  sticker_book_id:
+                    stickerPreviewPayload?.stickerBookId ?? 'unknown',
+                  sticker_id: stickerPreviewPayload?.nextStickerId ?? 'none',
+                  gb_variant: normalizedVariant || 'mystery_box',
+                });
+
+                const replaceGiftContent = (newContent: SVGElement) => {
+                  while (rewardGroup.firstChild) {
+                    rewardGroup.removeChild(rewardGroup.firstChild);
+                  }
+                  const clone = newContent.cloneNode(true) as SVGElement;
+                  clone.setAttribute('width', String(width));
+                  clone.setAttribute('height', String(height));
+                  clone.style.width = `${width}px`;
+                  clone.style.height = `${height}px`;
+                  rewardGroup.appendChild(clone);
+                };
+
+                const animationSequence = [
+                  { content: giftSVG2, delay: 300 },
+                  { content: giftSVG3, delay: 500 },
+                  { content: giftSVG2, delay: 700 },
+                  { content: giftSVG3, delay: 900 },
+                  {
+                    callback: () => {
+                      setModalText(mysteryBoxModalText);
+                      setModalOpen(true);
+                      replaceGiftContent(giftSVG);
+                    },
+                    delay: 1100,
+                  },
+                ];
+
+                animationSequence.forEach(({ content, callback, delay }) => {
+                  setTimeout(() => {
+                    if (content) replaceGiftContent(content);
+                    if (callback) callback();
+                  }, delay);
+                });
+              });
+            }
           }
-          fragment.appendChild(Gift_Svg);
-          rewardNode = Gift_Svg;
+
+          fragment.appendChild(rewardWrapper);
+          rewardNode = rewardWrapper;
         }
 
         const animateChimpleMovement = () => {
@@ -1380,7 +1757,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
               if (isFinalRewardTransition) {
                 localStorage.removeItem(HOMEWORK_PATHWAY);
-                onHomeworkComplete?.();
+                if (!hasPendingHomeworkStickerFlow()) {
+                  reloadHomeworkPathway();
+                }
               } else {
                 await animateChimpleMovement();
               }
@@ -1490,12 +1869,52 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           setRiveContainer(riveDiv);
         }
 
-        if (
-          newRewardId !== null &&
-          typeof newRewardId === 'string' &&
-          isRewardFeatureOn
-        ) {
+        const isStringReward =
+          newRewardId !== null && typeof newRewardId === 'string';
+        const willShowCelebration =
+          shouldOpenCelebrationPopup && !!stickerPreviewPayload;
+        const shouldSkipRewardAnimationForSticker =
+          isStringReward &&
+          isRewardFeatureOn &&
+          Boolean(pendingStickerRewardParsed?.awardedStickerId);
+        const shouldRunRewardAnimation =
+          !isPlaceholderSnapshot &&
+          isStringReward &&
+          isRewardFeatureOn &&
+          !shouldSkipRewardAnimationForSticker &&
+          !willShowCelebration &&
+          !didScheduleStickerCompletionPopup;
+
+        if (shouldSkipRewardAnimationForSticker) {
+          setHasTodayReward(false);
+          sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
+          sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
+          await updateMascotToNormalState(newRewardId as string);
+          await Util.updateUserReward();
+        }
+
+        if (shouldRunRewardAnimation) {
           runRewardAnimation(newRewardId);
+        }
+
+        if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
+          window.setTimeout(() => {
+            handleStickerPreviewReady(
+              stickerPreviewPayload,
+              'pathway_completion_auto',
+            );
+          }, 0);
+        } else if (
+          didScheduleStickerCompletionPopup &&
+          stickerCompletionPayload
+        ) {
+          window.setTimeout(() => {
+            window.dispatchEvent(
+              new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+                detail: stickerCompletionPayload,
+              }),
+            );
+          }, 0);
         }
       });
     } catch (error) {
@@ -1506,19 +1925,27 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     checkAndUpdateReward,
     history,
     fetchSVGGroup,
+    getPersistedStickerCompletionPayload,
+    getStickerPreviewPayload,
+    handleStickerPreviewReady,
     hasTodayReward,
     inactiveText,
+    isOffline,
     isRewardFeatureOn,
+    isStickerBookCelebrationPopupOn,
+    isStickerBookCompletionPopupOn,
+    isStickerBookPreviewOn,
     loadHaloAnimation,
     loadPathwayContent,
     placeElement,
     preloadAllLessonImages,
     rewardText,
+    rewardBoxVariant,
     setHasTodayReward,
     tryFetchSVG,
     updateMascotToNormalState,
     getPendingRewardTransition,
-    onHomeworkComplete,
+    reloadHomeworkPathway,
   ]);
 
   useEffect(() => {
@@ -1541,6 +1968,15 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   }, [initializeHomeworkRewardState, isRewardFeatureOn, isRewardPathLoaded]);
 
   useEffect(() => {
+    if (
+      isStickerPreviewOpen ||
+      isStickerCompletionOpen ||
+      hasPendingHomeworkStickerFlow()
+    ) {
+      setRewardModalOpen(false);
+      return;
+    }
+
     const showModalIfNeeded = async () => {
       try {
         const showModal = await shouldShowDailyRewardModal();
@@ -1552,115 +1988,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     if (isRewardFeatureOn) {
       showModalIfNeeded();
     }
-  }, [isRewardFeatureOn, shouldShowDailyRewardModal]);
-
-  useEffect(() => {
-    const playRewardAudioIfReady = (token: number, rewardId: string) => {
-      const rewardAudioSequence = rewardAudioSequenceRef.current;
-      if (
-        rewardAudioSequence.token !== token ||
-        rewardAudioSequence.rewardId !== rewardId ||
-        rewardAudioSequence.suppressed
-      ) {
-        return;
-      }
-
-      resetRewardAudioSequence();
-      void playRewardCollectMascotAudio(
-        rewardAudioSequence.stateValue ?? currentMascotStateValueRef.current,
-      );
-    };
-
-    const handleRewardCelebrationStarted = (event: Event) => {
-      const customEvent = event as CustomEvent<{
-        rewardId?: string;
-        stateValue?: number;
-      }>;
-      const rewardId = customEvent.detail?.rewardId;
-      if (!rewardId) return;
-
-      const nextToken = rewardAudioSequenceRef.current.token + 1;
-      rewardAudioSequenceRef.current = {
-        rewardId,
-        crowdComplete: false,
-        rewardReady: false,
-        suppressed: false,
-        stateValue:
-          customEvent.detail?.stateValue ?? currentMascotStateValueRef.current,
-        token: nextToken,
-      };
-
-      void AudioUtil.playAudioOrTts({
-        audioUrl: CROWD_CHEER_AUDIO_URL,
-        onComplete: () => {
-          const rewardAudioSequence = rewardAudioSequenceRef.current;
-          if (
-            rewardAudioSequence.token !== nextToken ||
-            rewardAudioSequence.rewardId !== rewardId ||
-            rewardAudioSequence.suppressed
-          ) {
-            return;
-          }
-
-          rewardAudioSequence.crowdComplete = true;
-          if (rewardAudioSequence.rewardReady) {
-            playRewardAudioIfReady(nextToken, rewardId);
-          }
-        },
-      });
-    };
-
-    const handleRewardAudioReady = (event: Event) => {
-      const customEvent = event as CustomEvent<{
-        rewardId?: string;
-        stateValue?: number;
-      }>;
-      const rewardId = customEvent.detail?.rewardId;
-      if (!rewardId) return;
-
-      const rewardAudioSequence = rewardAudioSequenceRef.current;
-      if (rewardAudioSequence.rewardId !== rewardId) return;
-
-      rewardAudioSequence.stateValue =
-        customEvent.detail?.stateValue ??
-        rewardAudioSequence.stateValue ??
-        currentMascotStateValueRef.current;
-
-      if (rewardAudioSequence.crowdComplete) {
-        playRewardAudioIfReady(rewardAudioSequence.token, rewardId);
-        return;
-      }
-
-      rewardAudioSequence.rewardReady = true;
-    };
-
-    window.addEventListener(
-      PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
-      handleRewardCelebrationStarted as EventListener,
-    );
-    window.addEventListener(
-      PATHWAY_REWARD_AUDIO_READY_EVENT,
-      handleRewardAudioReady as EventListener,
-    );
-
-    return () => {
-      window.removeEventListener(
-        PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
-        handleRewardCelebrationStarted as EventListener,
-      );
-      window.removeEventListener(
-        PATHWAY_REWARD_AUDIO_READY_EVENT,
-        handleRewardAudioReady as EventListener,
-      );
-      rewardAudioSequenceRef.current.token += 1;
-      resetRewardAudioSequence();
-    };
   }, [
-    chimpleRiveAnimationName,
-    chimpleRiveInputName,
-    chimpleRiveStateMachineName,
-    chimpleRiveStateValue,
-    playRewardCollectMascotAudio,
+    isRewardFeatureOn,
+    isStickerCompletionOpen,
+    isStickerPreviewOpen,
+    shouldShowDailyRewardModal,
   ]);
 
   const handleOpen = (e?: React.MouseEvent) => {
@@ -1813,6 +2145,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               inputName={chimpleRiveInputName}
               stateValue={chimpleRiveStateValue}
               animationName={chimpleRiveAnimationName}
+              onClick={handleMascotReplayClick}
               overlayRules={[
                 {
                   stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
@@ -1839,6 +2172,28 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           text={t('Play one lesson and collect your daily reward!')}
           onClose={handleClose}
           onPlay={handleOnPlay}
+        />
+      )}
+
+      {isStickerPreviewOpen && stickerPreviewData && (
+        <StickerBookPreviewModal
+          data={stickerPreviewData}
+          variant={stickerPreviewTrigger}
+          launchMotion={stickerPreviewLaunchMotion}
+          flyoutMotion={stickerPreviewFlyoutMotion}
+          onClose={closeStickerPreview}
+        />
+      )}
+
+      {isStickerCompletionOpen && stickerCompletionData && (
+        <StickerBookPreviewModal
+          data={stickerCompletionData}
+          mode="completion"
+          onClose={
+            closeStickerCompletion as (
+              reason: 'close_button' | 'backdrop' | 'acknowledge_button',
+            ) => void
+          }
         />
       )}
     </>

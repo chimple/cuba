@@ -14,6 +14,7 @@ jest.mock('../../utility/util');
 
 const mockApi = {
   getPendingAssignments: jest.fn(),
+  getCoursesForClassStudent: jest.fn(),
   getCourse: jest.fn(),
   getGradeById: jest.fn(),
   getCurriculumById: jest.fn(),
@@ -58,6 +59,7 @@ describe('DropdownMenu', () => {
     (Util.getCurrentClass as jest.Mock).mockReturnValue({ id: 'class-1' });
     (Util.setCurrentStudent as jest.Mock).mockResolvedValue(undefined);
     (Util.logEvent as jest.Mock).mockImplementation(() => {});
+    mockApi.getCoursesForClassStudent.mockResolvedValue([]);
     mockApi.getGradeById.mockResolvedValue({ id: 'g1', name: 'Grade 1' });
     mockApi.getCurriculumById.mockResolvedValue({ id: 'cur-1', name: 'CBSE' });
     mockApi.updateLearningPath.mockResolvedValue(undefined);
@@ -68,6 +70,10 @@ describe('DropdownMenu', () => {
       { course_id: 'c1', type: 'assignment', lesson_id: 'les-1' },
       { course_id: 'c2', type: 'assignment', lesson_id: 'les-2' },
       { course_id: 'quiz-course', type: LIVE_QUIZ, lesson_id: 'les-3' },
+    ]);
+    mockApi.getCoursesForClassStudent.mockResolvedValue([
+      { id: 'c1', name: 'Grade Math', code: 'MTH' },
+      { id: 'c2', name: 'Grade Science', code: 'SCI' },
     ]);
     mockApi.getCourse.mockImplementation((id: string) => {
       if (id === 'c1')
@@ -303,11 +309,33 @@ describe('DropdownMenu', () => {
 
   test('homework mode with no pending assignments renders empty dropdown state', async () => {
     mockApi.getPendingAssignments.mockResolvedValue([]);
+    mockApi.getCoursesForClassStudent.mockResolvedValue([]);
     const { container } = render(<DropdownMenu syncWithLearningPath={false} />);
     await waitFor(() => {
       expect(
         container.querySelector('.dropdownmenu-dropdown-label'),
       ).toBeNull();
+    });
+  });
+
+  test('homework mode falls back to class courses when no pending assignments remain', async () => {
+    mockApi.getPendingAssignments.mockResolvedValue([]);
+    mockApi.getCoursesForClassStudent.mockResolvedValue([
+      { id: 'c1', name: 'Grade Math', code: 'MTH' },
+      { id: 'c2', name: 'Grade Science', code: 'SCI' },
+    ]);
+    mockApi.getCourse.mockImplementation((id: string) => {
+      if (id === 'c1')
+        return Promise.resolve({ id, name: 'Grade Math', code: 'MTH' });
+      if (id === 'c2')
+        return Promise.resolve({ id, name: 'Grade Science', code: 'SCI' });
+      return Promise.resolve(null);
+    });
+
+    render(<DropdownMenu syncWithLearningPath={false} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Grade Math')).toBeInTheDocument();
     });
   });
 
