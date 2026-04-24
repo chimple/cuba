@@ -399,14 +399,14 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
       setTeachers(prefetchedTeachers);
       setTotalCount(prefetchedTotal);
+      teacherListCache.set(cacheKey, {
+        data: prefetchedTeachers,
+        total: prefetchedTotal,
+      });
 
-      if (prefetchedTeachers.length > 0 || prefetchedTotal === 0) {
+      if (prefetchedTeachers.length > 0 || data.totalTeacherCount === 0) {
         setIsLoading(false);
       } else {
-      teacherListCache.set(cacheKey, {
-        data: data.teachers || [],
-        total: data.totalTeacherCount || 0,
-      });
         fetchTeachers(page, searchTerm, true);
       }
       return;

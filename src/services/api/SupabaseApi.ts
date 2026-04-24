@@ -3599,7 +3599,11 @@ export class SupabaseApi implements ServiceApi {
       ? classMap.has(classId)
         ? [classId]
         : []
-      : Array.from(classMap.keys()); // if classId is provided, use it only if it's valid for the school; otherwise use all class IDs for the school
+      : classIds && classIds.length > 0
+        ? classIds
+            .map((classIdItem) => String(classIdItem).trim())
+            .filter((classIdItem) => classMap.has(classIdItem))
+        : Array.from(classMap.keys()); // if classId is provided, use it only if it's valid for the school; otherwise use all class IDs for the school
 
     if (allowedClassIds.length === 0) {
       return { data: [], total: 0 };
@@ -4858,7 +4862,12 @@ export class SupabaseApi implements ServiceApi {
       if (!classId) return;
       classMap.set(classId, String(schoolClass?.name || '').trim());
     });
-    const allowedClassIds = Array.from(classMap.keys());
+    const allowedClassIds =
+      classIds && classIds.length > 0
+        ? classIds
+            .map((classId) => String(classId).trim())
+            .filter((classId) => classMap.has(classId))
+        : Array.from(classMap.keys());
 
     if (allowedClassIds.length === 0) {
       return { data: [], total: 0 };
@@ -10614,7 +10623,7 @@ export class SupabaseApi implements ServiceApi {
     if (classIds && classIds.length === 0) return { data: [], total: 0 };
     try {
       // Step 1: Get all class ids for the school.
-      const { data: classData, error: classError } = await this.supabase
+      let classQuery = this.supabase
         .from(TABLES.Class)
         .select('id, name')
         .eq('school_id', schoolId)
@@ -10630,8 +10639,8 @@ export class SupabaseApi implements ServiceApi {
         logger.error('Error fetching classes for school:', classError);
         return { data: [], total: 0 };
       }
-      const classIds = classData.map((row) => row.id);
-      if (classIds.length === 0) return { data: [], total: 0 };
+      const schoolClassIds = classData.map((row) => row.id);
+      if (schoolClassIds.length === 0) return { data: [], total: 0 };
 
       const classNameById = new Map<string, string>(
         classData.map((row) => [
@@ -10645,7 +10654,7 @@ export class SupabaseApi implements ServiceApi {
         await this.supabase
           .from(TABLES.ClassUser)
           .select('class_id, user_id')
-          .in('class_id', classIds)
+          .in('class_id', schoolClassIds)
           .eq('role', 'teacher')
           .eq('is_deleted', false);
       if (classUserError || !classUserLinks) {
