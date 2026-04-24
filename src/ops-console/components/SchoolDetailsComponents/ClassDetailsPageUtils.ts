@@ -9,6 +9,7 @@ const MIN_GRADE = 1;
 const MAX_GRADE = 10;
 
 type ParsedClassName = { grade: number; section: string; structured: boolean };
+// Supports the different program class-scope payload shapes returned by APIs.
 type ProgramClassValue =
   | string
   | number
@@ -16,12 +17,14 @@ type ProgramClassValue =
   | undefined
   | (string | number | null | undefined)[];
 
+// Captures both legacy and corrected program class-scope field names.
 export type ProgramGradeScopeData = {
   handle_classess?: ProgramClassValue;
   handle_classes?: ProgramClassValue;
   classes?: ProgramClassValue;
 };
 
+// Allows shared grade filtering to work with class, student, and teacher rows.
 export type GradeSource = {
   name?: string | null;
   grade?: number | string | null;
@@ -172,6 +175,7 @@ function normalizeGradeToken(value?: number | string): string | null {
   return grade ? grade : null;
 }
 
+// Extracts only the grade portion from a configured program class token.
 function parseProgramGradePart(value: string | number): string | null {
   if (typeof value === 'number') {
     return Number.isInteger(value) ? normalizeGradeToken(value) : null;
@@ -184,6 +188,7 @@ function parseProgramGradePart(value: string | number): string | null {
   return normalizeGradeToken(parsed.grade);
 }
 
+// Parses raw program class-scope values from arrays, JSON strings, or text.
 function parseProgramGradeValue(value: unknown): string[] {
   if (value === null || value === undefined) return [];
 
@@ -217,6 +222,7 @@ function parseProgramGradeValue(value: unknown): string[] {
     .filter((grade): grade is string => grade !== null);
 }
 
+// Reads class scope from legacy typo, corrected field, or fallback field.
 function getProgramClassScopeValue(
   programData?: ProgramGradeScopeData | null,
 ): ProgramClassValue {
@@ -254,6 +260,7 @@ export function isProgramGradeAllowed(
   return grade !== null && allowedGrades.has(grade);
 }
 
+// Applies the configured program grade scope to any grade-bearing row list.
 export function filterByProgramGrades<T extends GradeSource>(
   rows: readonly T[] | undefined,
   allowedGrades: Set<string> | null,

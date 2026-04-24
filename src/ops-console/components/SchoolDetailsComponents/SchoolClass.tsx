@@ -158,6 +158,7 @@ const SchoolClasses: React.FC<Props> = ({
   }, [data]);
 
   const getAll = (): SchoolDetailsData => allDataRef.current;
+  // Limits the class tab to the grades configured on the current program.
   const allowedGrades = useMemo(
     () => getProgramAllowedGrades(data.programData),
     [data.programData],

@@ -1613,6 +1613,7 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     page: number,
     limit: number,
+    // Optional class scope lets program tabs fetch only visible teacher rows.
     classIds?: string[],
   ): Promise<TeacherAPIResponse> {
     return await this.s.getTeacherInfoBySchoolId(
@@ -1627,6 +1628,7 @@ export class ApiHandler implements ServiceApi {
     page: number,
     limit: number,
     classId?: string,
+    // Optional class scope lets program tabs fetch only visible student rows.
     classIds?: string[],
   ): Promise<StudentAPIResponse> {
     return await this.s.getStudentInfoBySchoolId(
@@ -1836,6 +1838,7 @@ export class ApiHandler implements ServiceApi {
     page: number = 1,
     limit: number = 20,
     classId?: string,
+    // Optional class scope keeps student search constrained to program classes.
     classIds?: string[],
   ): Promise<StudentAPIResponse> {
     return await this.s.searchStudentsInSchool(
@@ -1853,6 +1856,7 @@ export class ApiHandler implements ServiceApi {
     searchTerm: string,
     page: number = 1,
     limit: number = 20,
+    // Optional class scope keeps teacher search constrained to program classes.
     classIds?: string[],
   ): Promise<TeacherAPIResponse> {
     return await this.s.searchTeachersInSchool(

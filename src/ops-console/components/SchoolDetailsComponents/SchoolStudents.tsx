@@ -227,6 +227,7 @@ type StudentListCacheEntry = {
 // Keeps tab switches silent after the first scoped table load.
 const studentListCache = new Map<string, StudentListCacheEntry>();
 
+// Separates cached student lists by school, class detail, and program scope.
 const getStudentListCacheKey = (
   schoolId: string,
   optionalClassId: string | undefined,
@@ -266,6 +267,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
+  // Derives the active program grade scope before loading student rows.
   const allowedGrades = useMemo(
     () => getProgramAllowedGrades(data.programData),
     [data.programData],
@@ -274,6 +276,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     () => filterByProgramGrades(data.classData, allowedGrades),
     [data.classData, allowedGrades],
   );
+  // Converts scoped classes to IDs for server-side student filtering.
   const programScopedClassIds = useMemo(() => {
     if (!allowedGrades) return undefined;
     return programScopedClasses
@@ -380,6 +383,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         scopedClassIds,
       );
       const shouldCache = currentPage === 1 && search.trim() === '';
+      // Empty scoped class IDs mean the program intentionally has no student rows.
       if (scopedClassIds && scopedClassIds.length === 0) {
         setStudents([]);
         setTotalCount(0);
@@ -438,6 +442,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const issFilter = isFilter ?? true;
   const custoomTitle = customTitle ?? 'Students';
 
+  // Refreshes prefetched unscoped data without replacing scoped program results.
   useEffect(() => {
     if (allowedGrades || !hasInitialStudents) return;
     fetchStudents(1, '', true);
@@ -450,6 +455,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       filters.grade.length === 0 &&
       filters.section.length === 0;
 
+    // Reuses prefetched school students only when no program scope is active.
     if (isInitial && !allowedGrades && !optionalClassId) {
       const prefetchedStudents = data.students || [];
       const prefetchedTotal =
@@ -579,6 +585,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     });
   }, [students, optionalClassId, optionalGrade, optionalSection]);
 
+  // Applies client-side program filtering to prefetched or search result rows.
   const programFilteredStudents = useMemo(() => {
     if (!allowedGrades) return baseStudents;
     return baseStudents.filter((student) => {
@@ -723,6 +730,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   useEffect(() => {
     let cancelled = false;
     const bot = data?.schoolData?.whatsapp_bot_number;
+    // Uses program-scoped classes for the total view and the current class otherwise.
     const classes = issTotal
       ? programScopedClasses
       : classDataRef
@@ -1248,6 +1256,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     isExternalUser,
   ]);
 
+  // Shows only program-visible classes in add/edit student class pickers.
   const classOptions = useMemo(() => {
     if (programScopedClasses.length === 0) return [];
     return programScopedClasses
@@ -2042,6 +2051,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           onClose={() => setIsFilterSliderOpen(false)}
           filters={tempFilters}
           filterOptions={{
+            // Keeps grade filter options aligned with the current program scope.
             grade: getGradeOptions(programFilteredStudents),
           }}
           onFilterChange={handleSliderFilterChange}

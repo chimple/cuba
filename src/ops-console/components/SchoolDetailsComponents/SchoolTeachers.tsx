@@ -122,6 +122,7 @@ type TeacherListCacheEntry = {
 // Keeps tab switches silent after the first scoped table load.
 const teacherListCache = new Map<string, TeacherListCacheEntry>();
 
+// Separates cached teacher lists by school and active program class scope.
 const getTeacherListCacheKey = (
   schoolId: string,
   classIds: string[] | undefined,
@@ -205,6 +206,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  // Derives the active program grade scope before loading teacher rows.
   const allowedGrades = useMemo(
     () => getProgramAllowedGrades(data.programData),
     [data.programData],
@@ -213,6 +215,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     () => filterByProgramGrades(data.classData, allowedGrades),
     [data.classData, allowedGrades],
   );
+  // Converts scoped classes to IDs for server-side teacher filtering.
   const programScopedClassIds = useMemo(() => {
     if (!allowedGrades) return undefined;
     return programScopedClasses
@@ -314,6 +317,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           programScopedClassIds,
         );
         const shouldCache = currentPage === 1 && search.trim() === '';
+        // Empty scoped class IDs mean the program intentionally has no teacher rows.
         if (programScopedClassIds && programScopedClassIds.length === 0) {
           setTeachers([]);
           setTotalCount(0);
@@ -386,11 +390,9 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       filters.grade.length === 0 &&
       filters.section.length === 0;
 
+    // Reuses prefetched school teachers only when no program scope is active.
     if (isInitial && !allowedGrades) {
-      const cacheKey = getTeacherListCacheKey(
-        schoolId,
-        programScopedClassIds,
-      );
+      const cacheKey = getTeacherListCacheKey(schoolId, programScopedClassIds);
       setTeachers(data.teachers || []);
       setTotalCount(data.totalTeacherCount || 0);
       teacherListCache.set(cacheKey, {
@@ -399,10 +401,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       });
       fetchTeachers(page, searchTerm, true);
     } else {
-      const cacheKey = getTeacherListCacheKey(
-        schoolId,
-        programScopedClassIds,
-      );
+      const cacheKey = getTeacherListCacheKey(schoolId, programScopedClassIds);
       fetchTeachers(
         page,
         searchTerm,
@@ -429,6 +428,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       .join('|');
   }, [programScopedClasses]);
 
+  // Restricts WhatsApp group lookups to classes visible in the current program.
   const classGroupIdMap = useMemo(() => {
     const map = new Map<string, string>();
     programScopedClasses.forEach((row) => {
@@ -586,6 +586,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     return result;
   }, [normalizedTeachers, filters, searchTerm]);
 
+  // Applies client-side program filtering to prefetched or search result rows.
   const programFilteredTeachers = useMemo(() => {
     if (!allowedGrades) return filteredTeachers;
     return filteredTeachers.filter((teacher) => {
@@ -964,6 +965,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     [schoolId, fetchTeachers, api],
   );
 
+  // Shows only program-visible classes in add/edit teacher class pickers.
   const classOptions = useMemo(() => {
     if (programScopedClasses.length === 0) return [];
     return programScopedClasses
@@ -1543,6 +1545,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         onClose={() => setIsFilterSliderOpen(false)}
         filters={tempFilters}
         filterOptions={{
+          // Keeps grade filter options aligned with the current program scope.
           grade: getGradeOptions(programFilteredTeachers),
         }}
         onFilterChange={handleSliderFilterChange}

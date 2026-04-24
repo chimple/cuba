@@ -149,6 +149,7 @@ describe('ClassDetailsPageUtils', () => {
     });
   });
 
+  // Verifies the accepted program class-scope payload formats.
   describe('getProgramAllowedGrades', () => {
     it.each([
       [{ handle_classess: 1 }, ['1']],
@@ -171,6 +172,7 @@ describe('ClassDetailsPageUtils', () => {
     });
   });
 
+  // Verifies scoped grade filtering keeps all sections under allowed grades.
   describe('program grade filters', () => {
     const allowedGrades = getProgramAllowedGrades({
       handle_classess: '1 and 2',

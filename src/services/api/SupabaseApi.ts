@@ -3569,6 +3569,7 @@ export class SupabaseApi implements ServiceApi {
       logger.warn('Supabase not initialized.');
       return { data: [], total: 0 };
     }
+    // Empty program class scopes should return an empty page without querying.
     if (!classId && classIds && classIds.length === 0) {
       return { data: [], total: 0 };
     }
@@ -3626,6 +3627,7 @@ export class SupabaseApi implements ServiceApi {
     if (classId) {
       query = query.eq('class_id', classId);
     } else if (classIds && classIds.length > 0) {
+      // Applies program class scope while preserving the class-detail override.
       query = query.in('class_id', classIds);
     }
     const { data, error, count } = await query
@@ -4684,6 +4686,7 @@ export class SupabaseApi implements ServiceApi {
       logger.warn('Supabase not initialized.');
       return { data: [], total: 0 };
     }
+    // Empty program class scopes should return an empty page without querying.
     if (classIds && classIds.length === 0) {
       return { data: [], total: 0 };
     }
@@ -4707,11 +4710,14 @@ export class SupabaseApi implements ServiceApi {
       .eq('class.school_id', schoolId);
 
     if (classIds && classIds.length > 0) {
+      // Applies program class scope to the teacher list query.
       query = query.in('class_id', classIds);
     }
 
-    const { data, error, count } = await query
-      .range(offset, offset + limit - 1);
+    const { data, error, count } = await query.range(
+      offset,
+      offset + limit - 1,
+    );
 
     if (error) {
       logger.error('Error fetching teacher info:', error);
@@ -10145,6 +10151,7 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) {
       return { data: [], total: 0 };
     }
+    // Empty program class scopes should return an empty search result.
     if (!classId && classIds && classIds.length === 0) {
       return { data: [], total: 0 };
     }
@@ -10167,6 +10174,7 @@ export class SupabaseApi implements ServiceApi {
           if (classId) {
             classQuery = classQuery.eq('id', classId);
           } else if (classIds && classIds.length > 0) {
+            // Applies program class scope while preserving the class-detail override.
             classQuery = classQuery.in('id', classIds);
           }
 
@@ -10374,6 +10382,7 @@ export class SupabaseApi implements ServiceApi {
     classIds?: string[],
   ): Promise<{ data: any[]; total: number }> {
     if (!this.supabase) return { data: [], total: 0 };
+    // Empty program class scopes should return an empty search result.
     if (classIds && classIds.length === 0) return { data: [], total: 0 };
     try {
       // Step 1: Get all class_ids for the school
@@ -10384,6 +10393,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (classIds && classIds.length > 0) {
+        // Applies program class scope before searching teacher memberships.
         classQuery = classQuery.in('id', classIds);
       }
 
