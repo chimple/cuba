@@ -1554,10 +1554,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                   },
                 }),
               );
+              await delay(500);
+              rewardForeignObject.style.display = 'none';
               await delay(1000);
               await updateMascotToNormalState(newRewardId);
               await delay(500);
-              rewardForeignObject.style.display = 'none';
               sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
               sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
               if (isFinalRewardTransition) {

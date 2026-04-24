@@ -1411,13 +1411,14 @@ export function usePathwaySVG({
         }),
       );
 
+      await delay(500);
+      rewardForeignObject.style.display = 'none';
       await delay(1000);
 
       // Step 2: revert to new normal state
       await updateMascotToNormalState(newRewardId);
 
       await delay(500);
-      rewardForeignObject.style.display = 'none';
 
       // Step 3: animate mascot movement
       await animateChimpleMovement(
