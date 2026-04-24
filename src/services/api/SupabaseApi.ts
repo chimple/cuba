@@ -10629,7 +10629,7 @@ export class SupabaseApi implements ServiceApi {
     try {
       // Step 1: Get all class ids for the school.
       const { data: classData, error: classError } = await this.supabase
-        .from('class')
+        .from(TABLES.Class)
         .select('id, name')
         .eq('school_id', schoolId)
         .eq('is_deleted', false);
