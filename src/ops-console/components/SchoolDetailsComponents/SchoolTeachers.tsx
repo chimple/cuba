@@ -335,8 +335,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     data.teachers,
     data.totalTeacherCount,
     searchTerm,
-    filters.grade.length,
-    filters.section.length,
+    filters.grade,
+    filters.section,
   ]);
 
   // Fold classId + group_id into one key so the fetch effect reruns on link changes.
