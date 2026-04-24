@@ -3600,73 +3600,80 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-    const { data: allStudentLinks, error: studentLinksError } =
-      await this.supabase
-        .from(TABLES.ClassUser)
-        .select(
-          `
+    const {
+      data: pagedStudentRows,
+      error: pagedStudentsError,
+      count: totalStudentsRaw,
+    } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select(
+        `
       class_id,
-      user_id
+      user:user!class_user_user_id_fkey!inner (
+        age,
+        avatar,
+        created_at,
+        curriculum_id,
+        fcm_token,
+        firebase_id,
+        grade_id,
+        image,
+        is_deleted,
+        is_firebase,
+        is_ops,
+        language_id,
+        is_tc_accepted,
+        student_id,
+        reward,
+        updated_at,
+        learning_path,
+        id,
+        name,
+        phone,
+        gender,
+        email
+      )
     `,
-        )
-        .eq('role', 'student')
-        .eq('is_deleted', false)
-        .in('class_id', allowedClassIds); // for the collected clsIds fetch users of that class whose rols is student
+        { count: 'exact' },
+      )
+      .eq('role', 'student')
+      .eq('is_deleted', false)
+      .in('class_id', allowedClassIds)
+      .eq('user.is_deleted', false)
+      .order('name', { ascending: true, foreignTable: TABLES.User })
+      .order('id', { ascending: true, foreignTable: TABLES.User })
+      .range(offset, offset + limit - 1);
 
-    if (studentLinksError) {
-      logger.error('Error fetching student info:', studentLinksError);
-      return { data: [], total: 0 };
+    const totalStudents =
+      typeof totalStudentsRaw === 'number' ? totalStudentsRaw : 0;
+
+    if (pagedStudentsError) {
+      logger.error(
+        'Error fetching paged students for school:',
+        pagedStudentsError,
+      );
+      return { data: [], total: totalStudents };
     }
 
-    const primaryClassByStudent = new Map<string, string>();
-    (
-      (allStudentLinks || []) as Array<{ class_id: string; user_id: string }>
-    ).forEach((row) => {
-      const studentId = String(row?.user_id || '').trim();
+    const normalizedPagedRows = (
+      (pagedStudentRows || []) as Array<{
+        class_id?: string | null;
+        user?: TableTypes<'user'> | TableTypes<'user'>[] | null;
+      }>
+    ).map((row) => {
+      const user = Array.isArray(row?.user) ? row.user[0] : row?.user;
       const classIdValue = String(row?.class_id || '').trim();
-      if (!studentId || !classIdValue || primaryClassByStudent.has(studentId)) {
-        return;
-      }
-
-      primaryClassByStudent.set(studentId, classIdValue);
+      const studentId = String(user?.id || '').trim();
+      return {
+        classIdValue,
+        studentId,
+        user,
+      };
     });
 
-    const allStudentIds = Array.from(primaryClassByStudent.keys());
-    if (allStudentIds.length === 0) {
-      return {
-        data: [],
-        total: 0,
-      };
-    }
-
-    const { data: studentIdentities, error: identityError } =
-      await this.supabase
-        .from(TABLES.User)
-        .select('id, name')
-        .in('id', allStudentIds)
-        .eq('is_deleted', false);
-
-    if (identityError) {
-      logger.error('Error fetching student identities:', identityError);
-      return { data: [], total: 0 };
-    }
-
-    const sortedIdentities = (studentIdentities || [])
-      .map((studentIdentity) => ({
-        id: String(studentIdentity?.id || '').trim(),
-        name: String(studentIdentity?.name || '').trim(),
-      }))
-      .filter((studentIdentity) => studentIdentity.id.length > 0)
-      .sort(
-        (a, b) =>
-          a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }) ||
-          a.id.localeCompare(b.id),
-      );
-
-    const totalStudents = sortedIdentities.length;
-    const pagedStudentIds = sortedIdentities
-      .slice(offset, offset + limit)
-      .map((studentIdentity) => studentIdentity.id);
+    const pagedStudentIds = normalizedPagedRows
+      .map((row) => row.studentId)
+      .filter((studentId) => studentId.length > 0);
 
     if (pagedStudentIds.length === 0) {
       return {
@@ -3674,49 +3681,6 @@ export class SupabaseApi implements ServiceApi {
         total: totalStudents,
       };
     }
-
-    const { data: studentUsers, error: userError } = await this.supabase
-      .from(TABLES.User)
-      .select(
-        `
-      age,
-      avatar,
-      created_at,
-      curriculum_id,
-      fcm_token,
-      firebase_id,
-      grade_id,
-      image,
-      is_deleted,
-      is_firebase,
-      is_ops,
-      language_id,
-      is_tc_accepted,
-      student_id,
-      reward,
-      updated_at,
-      learning_path,
-      id,
-      name,
-      phone,
-      gender,
-      email
-    `,
-      )
-      .in('id', pagedStudentIds)
-      .eq('is_deleted', false);
-
-    if (userError) {
-      logger.error('Error fetching student user rows:', userError);
-      return { data: [], total: totalStudents };
-    }
-
-    const userById = new Map(
-      (studentUsers || []).map((studentUser) => [
-        String(studentUser?.id || ''),
-        studentUser,
-      ]),
-    );
 
     const parentByStudentId = new Map<
       string,
@@ -3803,15 +3767,16 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
-    const studentInfoList: StudentInfo[] = pagedStudentIds
-      .map((studentId) => {
-        const user = userById.get(studentId);
+    const studentInfoList: StudentInfo[] = normalizedPagedRows
+      .map((row) => {
+        const user = row.user;
         if (!user) return null;
 
-        const classIdValue = primaryClassByStudent.get(studentId) || '';
+        const studentId = row.studentId;
+        const classIdValue = row.classIdValue;
         const className = classMap.get(classIdValue) || '';
         const { grade, section } = this.parseClassName(className);
-        const parent = parentByStudentId.get(String(user?.id || '')) || null;
+        const parent = parentByStudentId.get(studentId) || null;
         const updatedUser = {
           ...user,
           phone: user?.phone || parent?.phone || '',
