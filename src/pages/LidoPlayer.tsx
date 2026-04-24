@@ -683,6 +683,7 @@ const LidoPlayer: FC = () => {
       Util.logEvent(EVENTS.LESSON_END, {
         user_id: parentUserId,
         student_id: studentId,
+        result_id: result?.id ?? null,
         // assignment_id: lesson.assignment?.id,
         chapter_id: data.chapterId,
         // chapter_name: ChapterDetail ? ChapterDetail.name : "",
