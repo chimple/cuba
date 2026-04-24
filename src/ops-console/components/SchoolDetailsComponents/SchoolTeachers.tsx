@@ -55,8 +55,12 @@ import OpsGenericPopup from '../../common/OpsGenericPopup';
 import DeleteIcon from '../../assets/icons/deleteicon.svg';
 import logger from '../../../utility/logger';
 import {
+  filterByProgramGrades,
   getClassDisplayLabel,
   getExactClassName,
+  getProgramAllowedGrades,
+  isProgramGradeAllowed,
+  ProgramGradeScopeData,
 } from './ClassDetailsPageUtils';
 import {
   getTeacherClassAssignmentDiff,
@@ -98,6 +102,7 @@ interface EditTeacherAssignmentState {
 interface SchoolTeachersProps {
   data: {
     schoolData?: SchoolData;
+    programData?: ProgramGradeScopeData;
     teachers?: TeacherInfo[];
     totalTeacherCount?: number;
     classData?: ClassRow[];
@@ -108,6 +113,21 @@ interface SchoolTeachersProps {
 }
 
 const ROWS_PER_PAGE = 20;
+
+type TeacherListCacheEntry = {
+  data: TeacherInfo[];
+  total: number;
+};
+
+// Keeps tab switches silent after the first scoped table load.
+const teacherListCache = new Map<string, TeacherListCacheEntry>();
+
+const getTeacherListCacheKey = (
+  schoolId: string,
+  classIds: string[] | undefined,
+): string => {
+  return `${schoolId}|classes:${classIds?.join(',') ?? 'all'}`;
+};
 
 // Map logical WhatsApp statuses to CSS chip classes.
 const getWhatsappChipClass = (status: WhatsappGroupStatusKey): string => {
@@ -185,11 +205,37 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
-  const [teachers, setTeachers] = useState<TeacherInfo[]>(data.teachers || []);
-  const [totalCount, setTotalCount] = useState<number>(
-    data.totalTeacherCount || 0,
+  const allowedGrades = useMemo(
+    () => getProgramAllowedGrades(data.programData),
+    [data.programData],
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const programScopedClasses = useMemo(
+    () => filterByProgramGrades(data.classData, allowedGrades),
+    [data.classData, allowedGrades],
+  );
+  const programScopedClassIds = useMemo(() => {
+    if (!allowedGrades) return undefined;
+    return programScopedClasses
+      .map((classRow) => String(classRow.id ?? '').trim())
+      .filter((classId) => classId !== '');
+  }, [allowedGrades, programScopedClasses]);
+  const hasProgramClassScope = allowedGrades !== null;
+  const initialTeacherCacheKey = getTeacherListCacheKey(
+    schoolId,
+    programScopedClassIds,
+  );
+  const cachedInitialTeachers = teacherListCache.get(initialTeacherCacheKey);
+  const [teachers, setTeachers] = useState<TeacherInfo[]>(
+    cachedInitialTeachers?.data ??
+      (hasProgramClassScope ? [] : data.teachers || []),
+  );
+  const [totalCount, setTotalCount] = useState<number>(
+    cachedInitialTeachers?.total ??
+      (hasProgramClassScope ? 0 : data.totalTeacherCount || 0),
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(
+    hasProgramClassScope && !cachedInitialTeachers,
+  );
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filters, setFilters] = useState<Record<string, string[]>>({
@@ -263,6 +309,20 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           setIsLoading(true);
         }
         const api = ServiceConfig.getI().apiHandler;
+        const cacheKey = getTeacherListCacheKey(
+          schoolId,
+          programScopedClassIds,
+        );
+        const shouldCache = currentPage === 1 && search.trim() === '';
+        if (programScopedClassIds && programScopedClassIds.length === 0) {
+          setTeachers([]);
+          setTotalCount(0);
+          if (shouldCache) {
+            teacherListCache.set(cacheKey, { data: [], total: 0 });
+          }
+          setIsLoading(false);
+          return;
+        }
         try {
           let response;
           if (search && search.trim() !== '') {
@@ -271,17 +331,31 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               search,
               currentPage,
               ROWS_PER_PAGE,
+              programScopedClassIds,
             );
             setTeachers(result.data);
             setTotalCount(result.total);
+            if (shouldCache) {
+              teacherListCache.set(cacheKey, {
+                data: result.data,
+                total: result.total,
+              });
+            }
           } else {
             response = await api.getTeacherInfoBySchoolId(
               schoolId,
               currentPage,
               ROWS_PER_PAGE,
+              programScopedClassIds,
             );
             setTeachers(response.data);
             setTotalCount(response.total);
+            if (shouldCache) {
+              teacherListCache.set(cacheKey, {
+                data: response.data,
+                total: response.total,
+              });
+            }
           }
         } catch (error) {
           logger.error('Failed to fetch teachers:', error);
@@ -290,7 +364,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         }
       }, 500);
     };
-  }, [schoolId]);
+  }, [schoolId, programScopedClassIds]);
 
   useEffect(() => {
     if (isAddTeacherModalOpen) {
@@ -312,12 +386,29 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       filters.grade.length === 0 &&
       filters.section.length === 0;
 
-    if (isInitial) {
+    if (isInitial && !allowedGrades) {
+      const cacheKey = getTeacherListCacheKey(
+        schoolId,
+        programScopedClassIds,
+      );
       setTeachers(data.teachers || []);
       setTotalCount(data.totalTeacherCount || 0);
+      teacherListCache.set(cacheKey, {
+        data: data.teachers || [],
+        total: data.totalTeacherCount || 0,
+      });
       fetchTeachers(page, searchTerm, true);
     } else {
-      fetchTeachers(page, searchTerm);
+      const cacheKey = getTeacherListCacheKey(
+        schoolId,
+        programScopedClassIds,
+      );
+      fetchTeachers(
+        page,
+        searchTerm,
+        (isInitial && teacherListCache.has(cacheKey)) ||
+          (isInitial && !allowedGrades),
+      );
     }
   }, [
     page,
@@ -326,30 +417,30 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     data.totalTeacherCount,
     searchTerm,
     filters,
+    allowedGrades,
+    programScopedClassIds,
+    schoolId,
   ]);
 
   // Fold classId + group_id into one key so the fetch effect reruns on link changes.
   const classGroupKey = useMemo(() => {
-    const classes = Array.isArray(data.classData) ? data.classData : [];
-    return classes
+    return programScopedClasses
       .map((row) => `${row?.id ?? ''}:${row?.group_id ?? ''}`)
       .join('|');
-  }, [data.classData]);
+  }, [programScopedClasses]);
 
   const classGroupIdMap = useMemo(() => {
     const map = new Map<string, string>();
-    const classes = Array.isArray(data.classData) ? data.classData : [];
-    classes.forEach((row) => {
+    programScopedClasses.forEach((row) => {
       if (row?.id) map.set(row.id, String(row?.group_id ?? '').trim());
     });
     return map;
-  }, [data.classData]);
+  }, [programScopedClasses]);
 
   useEffect(() => {
     let cancelled = false;
     const bot = data?.schoolData?.whatsapp_bot_number;
-    const classes = Array.isArray(data.classData) ? data.classData : [];
-    const groupTargets = classes.filter(
+    const groupTargets = programScopedClasses.filter(
       (row) => row?.id && row?.group_id && String(row.group_id).trim() !== '',
     );
 
@@ -407,7 +498,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [api, classGroupKey, data?.schoolData?.whatsapp_bot_number]);
+  }, [
+    api,
+    classGroupKey,
+    data?.schoolData?.whatsapp_bot_number,
+    programScopedClasses,
+  ]);
 
   const getGroupIdForClass = useCallback(
     (classId?: string) => {
@@ -489,8 +585,20 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     );
     return result;
   }, [normalizedTeachers, filters, searchTerm]);
+
+  const programFilteredTeachers = useMemo(() => {
+    if (!allowedGrades) return filteredTeachers;
+    return filteredTeachers.filter((teacher) => {
+      return isProgramGradeAllowed(allowedGrades, {
+        name: getExactClassName(teacher.classWithidname),
+        grade: teacher.grade,
+        section: teacher.classSection,
+      });
+    });
+  }, [filteredTeachers, allowedGrades]);
+
   const sortedTeachers = useMemo(() => {
-    return [...filteredTeachers].sort((a, b) => {
+    return [...programFilteredTeachers].sort((a, b) => {
       let aValue, bValue;
       switch (orderBy) {
         case 'name':
@@ -530,7 +638,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           return 0;
       }
     });
-  }, [filteredTeachers, orderBy, order]);
+  }, [programFilteredTeachers, orderBy, order]);
 
   // Compare the teacher's phone to the WhatsApp members set for the class.
   const isTeacherInWhatsappGroup = useCallback(
@@ -710,10 +818,10 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
   const pageCount = useMemo(() => {
     if (searchTerm || filters.grade.length > 0) {
-      return Math.ceil(filteredTeachers.length / ROWS_PER_PAGE);
+      return Math.ceil(programFilteredTeachers.length / ROWS_PER_PAGE);
     }
     return Math.ceil(totalCount / ROWS_PER_PAGE);
-  }, [totalCount, filters, searchTerm, filteredTeachers.length]);
+  }, [totalCount, filters, searchTerm, programFilteredTeachers.length]);
 
   const isDataPresent = teachersWithWhatsappStatus.length > 0;
   const isFilteringOrSearching =
@@ -857,11 +965,17 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   );
 
   const classOptions = useMemo(() => {
-    if (!data.classData || data.classData.length === 0) return [];
-    return data.classData
-      .map((c) => ({ value: c.id, label: c.name }))
+    if (programScopedClasses.length === 0) return [];
+    return programScopedClasses
+      .map((classRow) => ({
+        value: classRow.id,
+        label:
+          typeof classRow.name === 'string'
+            ? classRow.name
+            : String(classRow.name ?? ''),
+      }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [data.classData]);
+  }, [programScopedClasses]);
 
   const teacherFormFields: FieldConfig[] = useMemo(
     () => [
@@ -1429,7 +1543,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         onClose={() => setIsFilterSliderOpen(false)}
         filters={tempFilters}
         filterOptions={{
-          grade: getGradeOptions(teachers),
+          grade: getGradeOptions(programFilteredTeachers),
         }}
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}

@@ -60,8 +60,12 @@ import ErrorIcon from '../../assets/icons/erroricon.svg';
 import DeleteIcon from '../../assets/icons/deleteicon.svg';
 import logger from '../../../utility/logger';
 import {
+  filterByProgramGrades,
   getClassDisplayLabel,
   getExactClassName,
+  getProgramAllowedGrades,
+  isProgramGradeAllowed,
+  ProgramGradeScopeData,
 } from './ClassDetailsPageUtils';
 import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
@@ -197,6 +201,7 @@ const mapOpsLabelToPerformanceLevel = (
 interface SchoolStudentsProps {
   data: {
     schoolData?: SchoolData;
+    programData?: ProgramGradeScopeData;
     students?: ApiStudentData[];
     totalStudentCount?: number;
     classData?: ClassRow[];
@@ -213,6 +218,26 @@ interface SchoolStudentsProps {
 }
 
 const ROWS_PER_PAGE = 20;
+
+type StudentListCacheEntry = {
+  data: ApiStudentData[];
+  total: number;
+};
+
+// Keeps tab switches silent after the first scoped table load.
+const studentListCache = new Map<string, StudentListCacheEntry>();
+
+const getStudentListCacheKey = (
+  schoolId: string,
+  optionalClassId: string | undefined,
+  classIds: string[] | undefined,
+): string => {
+  const classScope =
+    optionalClassId && optionalClassId.trim() !== ''
+      ? `class:${optionalClassId.trim()}`
+      : `classes:${classIds?.join(',') ?? 'all'}`;
+  return `${schoolId}|${classScope}`;
+};
 
 const sameSection = (a?: string, b?: string) =>
   String(a ?? '')
@@ -241,14 +266,40 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
+  const allowedGrades = useMemo(
+    () => getProgramAllowedGrades(data.programData),
+    [data.programData],
+  );
+  const programScopedClasses = useMemo(
+    () => filterByProgramGrades(data.classData, allowedGrades),
+    [data.classData, allowedGrades],
+  );
+  const programScopedClassIds = useMemo(() => {
+    if (!allowedGrades) return undefined;
+    return programScopedClasses
+      .map((classRow) => String(classRow.id ?? '').trim())
+      .filter((classId) => classId !== '');
+  }, [allowedGrades, programScopedClasses]);
+  const hasProgramClassScope = allowedGrades !== null;
+  const initialStudentCacheKey = getStudentListCacheKey(
+    schoolId,
+    optionalClassId,
+    programScopedClassIds,
+  );
+  const cachedInitialStudents = studentListCache.get(initialStudentCacheKey);
   const [students, setStudents] = useState<ApiStudentData[]>(
-    data.students || [],
+    cachedInitialStudents?.data ??
+      (hasProgramClassScope ? [] : data.students || []),
   );
   const [totalCount, setTotalCount] = useState<number>(
-    data.totalStudentCount || 0,
+    cachedInitialStudents?.total ??
+      (hasProgramClassScope ? 0 : data.totalStudentCount || 0),
   );
   const hasInitialStudents =
-    Array.isArray(data?.students) && data.students.length > 0;
+    !!cachedInitialStudents ||
+    (!hasProgramClassScope &&
+      Array.isArray(data?.students) &&
+      data.students.length > 0);
   const [isLoading, setIsLoading] = useState<boolean>(!hasInitialStudents);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -322,6 +373,22 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       }
       const api = ServiceConfig.getI().apiHandler;
       const scopedClassId = String(optionalClassId ?? '').trim() || undefined;
+      const scopedClassIds = scopedClassId ? undefined : programScopedClassIds;
+      const cacheKey = getStudentListCacheKey(
+        schoolId,
+        scopedClassId,
+        scopedClassIds,
+      );
+      const shouldCache = currentPage === 1 && search.trim() === '';
+      if (scopedClassIds && scopedClassIds.length === 0) {
+        setStudents([]);
+        setTotalCount(0);
+        if (shouldCache) {
+          studentListCache.set(cacheKey, { data: [], total: 0 });
+        }
+        setIsLoading(false);
+        return;
+      }
       try {
         let response;
         if (search && search.trim() !== '') {
@@ -331,18 +398,32 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             currentPage,
             ROWS_PER_PAGE,
             scopedClassId,
+            scopedClassIds,
           );
           setStudents(response.data);
           setTotalCount(response.total);
+          if (shouldCache) {
+            studentListCache.set(cacheKey, {
+              data: response.data,
+              total: response.total,
+            });
+          }
         } else {
           response = await api.getStudentInfoBySchoolId(
             schoolId,
             currentPage,
             ROWS_PER_PAGE,
             scopedClassId,
+            scopedClassIds,
           );
           setStudents(response.data);
           setTotalCount(response.total);
+          if (shouldCache) {
+            studentListCache.set(cacheKey, {
+              data: response.data,
+              total: response.total,
+            });
+          }
         }
       } catch (error) {
         logger.error('Failed to fetch students:', error);
@@ -350,7 +431,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         setIsLoading(false);
       }
     },
-    [schoolId, optionalClassId],
+    [schoolId, optionalClassId, programScopedClassIds],
   );
 
   const issTotal = isTotal ?? true;
@@ -358,8 +439,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const custoomTitle = customTitle ?? 'Students';
 
   useEffect(() => {
+    if (allowedGrades || !hasInitialStudents) return;
     fetchStudents(1, '', true);
-  }, [schoolId, fetchStudents, hasInitialStudents]); // Only re-run when schoolId changes
+  }, [allowedGrades, schoolId, fetchStudents, hasInitialStudents]);
 
   useEffect(() => {
     const isInitial =
@@ -368,13 +450,22 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       filters.grade.length === 0 &&
       filters.section.length === 0;
 
-    if (isInitial) {
+    if (isInitial && !allowedGrades && !optionalClassId) {
       const prefetchedStudents = data.students || [];
       const prefetchedTotal =
         data.totalStudentCount ?? prefetchedStudents.length;
+      const cacheKey = getStudentListCacheKey(
+        schoolId,
+        optionalClassId,
+        programScopedClassIds,
+      );
 
       setStudents(prefetchedStudents);
       setTotalCount(prefetchedTotal);
+      studentListCache.set(cacheKey, {
+        data: prefetchedStudents,
+        total: prefetchedTotal,
+      });
 
       if (prefetchedStudents.length > 0 || data.totalStudentCount === 0) {
         setIsLoading(false);
@@ -382,9 +473,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         fetchStudents(page, debouncedSearchTerm, true);
       }
       return;
-    } else {
-      fetchStudents(page, debouncedSearchTerm);
     }
+    const cacheKey = getStudentListCacheKey(
+      schoolId,
+      optionalClassId,
+      programScopedClassIds,
+    );
+    fetchStudents(
+      page,
+      debouncedSearchTerm,
+      (isInitial && studentListCache.has(cacheKey)) ||
+        (isInitial && !allowedGrades),
+    );
   }, [
     page,
     debouncedSearchTerm,
@@ -393,6 +493,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     data.totalStudentCount,
     filters.grade.length,
     filters.section.length,
+    allowedGrades,
+    optionalClassId,
+    programScopedClassIds,
+    schoolId,
   ]);
 
   const handlePageChange = (newPage: number) => {
@@ -475,9 +579,20 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     });
   }, [students, optionalClassId, optionalGrade, optionalSection]);
 
+  const programFilteredStudents = useMemo(() => {
+    if (!allowedGrades) return baseStudents;
+    return baseStudents.filter((student) => {
+      return isProgramGradeAllowed(allowedGrades, {
+        name: getExactClassName(student.classWithidname),
+        grade: student.grade,
+        section: student.classSection,
+      });
+    });
+  }, [baseStudents, allowedGrades]);
+
   const normalizedStudents = useMemo(
     () =>
-      baseStudents.map((s: any) => {
+      programFilteredStudents.map((s: any) => {
         const user = s.user ?? s;
 
         return {
@@ -499,7 +614,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           },
         };
       }),
-    [baseStudents],
+    [programFilteredStudents],
   );
 
   const filteredStudents = useMemo(
@@ -587,28 +702,29 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   // Fold classId + group_id into one key so the fetch effect reruns on link changes.
   const classGroupKey = useMemo(() => {
     if (!issTotal) return '';
-    const classes = Array.isArray(data.classData) ? data.classData : [];
-    return classes
+    return programScopedClasses
       .map((row) => `${row?.id ?? ''}:${row?.group_id ?? ''}`)
       .join('|');
-  }, [data.classData, issTotal]);
+  }, [issTotal, programScopedClasses]);
 
   const classGroupIdMap = useMemo(() => {
     const map = new Map<string, string>();
-    const classes = Array.isArray(data.classData) ? data.classData : [];
+    const classes = issTotal
+      ? programScopedClasses
+      : Array.isArray(data.classData)
+        ? data.classData
+        : [];
     classes.forEach((row) => {
       if (row?.id) map.set(row.id, String(row?.group_id ?? '').trim());
     });
     return map;
-  }, [data.classData]);
+  }, [data.classData, issTotal, programScopedClasses]);
 
   useEffect(() => {
     let cancelled = false;
     const bot = data?.schoolData?.whatsapp_bot_number;
     const classes = issTotal
-      ? Array.isArray(data.classData)
-        ? data.classData
-        : []
+      ? programScopedClasses
       : classDataRef
         ? [classDataRef]
         : [];
@@ -677,6 +793,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     classGroupKey,
     data?.schoolData?.whatsapp_bot_number,
     issTotal,
+    programScopedClasses,
   ]);
 
   const getGroupIdForClass = useCallback(
@@ -1132,13 +1249,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   ]);
 
   const classOptions = useMemo(() => {
-    const classes = data.classData || (data as any).classdata || [];
-    if (!classes || classes.length === 0) return [];
-    return classes
-      .map((c: any) => ({ value: c.id, label: c.name }))
-      .filter((opt: any) => opt.value && opt.label)
-      .sort((a: any, b: any) => a.label.localeCompare(b.label));
-  }, [data.classData, (data as any).classdata]);
+    if (programScopedClasses.length === 0) return [];
+    return programScopedClasses
+      .map((classRow) => ({
+        value: classRow.id,
+        label:
+          typeof classRow.name === 'string'
+            ? classRow.name
+            : String(classRow.name ?? ''),
+      }))
+      .filter((option) => option.value && option.label)
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [programScopedClasses]);
 
   const currentClass = useMemo(() => {
     if (
@@ -1920,7 +2042,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           onClose={() => setIsFilterSliderOpen(false)}
           filters={tempFilters}
           filterOptions={{
-            grade: getGradeOptions(baseStudents),
+            grade: getGradeOptions(programFilteredStudents),
           }}
           onFilterChange={handleSliderFilterChange}
           onApply={handleApplyFilters}

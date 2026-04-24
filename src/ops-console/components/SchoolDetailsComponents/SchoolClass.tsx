@@ -26,10 +26,15 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
+import {
+  filterByProgramGrades,
+  getProgramAllowedGrades,
+  ProgramGradeScopeData,
+} from './ClassDetailsPageUtils';
 
 export type SchoolDetailsData = {
   schoolData?: SchoolData;
-  programData?: any;
+  programData?: ProgramGradeScopeData;
   programManagers?: any[];
   principals?: any[];
   totalPrincipalCount?: number;
@@ -153,9 +158,13 @@ const SchoolClasses: React.FC<Props> = ({
   }, [data]);
 
   const getAll = (): SchoolDetailsData => allDataRef.current;
-  const safeClasses: ClassRow[] = Array.isArray(getAll()?.classData)
-    ? getAll().classData!
-    : [];
+  const allowedGrades = useMemo(
+    () => getProgramAllowedGrades(data.programData),
+    [data.programData],
+  );
+  const safeClasses: ClassRow[] = useMemo(() => {
+    return filterByProgramGrades(data.classData, allowedGrades);
+  }, [data.classData, allowedGrades]);
 
   const bot = getAll()?.schoolData?.whatsapp_bot_number;
   const hasWhatsAppBot = typeof bot === 'string' && /^\d{12}$/.test(bot.trim());
@@ -640,10 +649,7 @@ const SchoolClasses: React.FC<Props> = ({
     return cols;
   }, [hasWhatsAppBot, isExternalUser]);
 
-  const totalCount =
-    typeof getAll()?.totalClassCount === 'number'
-      ? getAll().totalClassCount
-      : safeClasses.length;
+  const totalCount = safeClasses.length;
 
   return selectedClassId ? (
     <ClassDetailsPage

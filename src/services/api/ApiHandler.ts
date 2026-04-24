@@ -1613,20 +1613,28 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     page: number,
     limit: number,
+    classIds?: string[],
   ): Promise<TeacherAPIResponse> {
-    return await this.s.getTeacherInfoBySchoolId(schoolId, page, limit);
+    return await this.s.getTeacherInfoBySchoolId(
+      schoolId,
+      page,
+      limit,
+      classIds,
+    );
   }
   public async getStudentInfoBySchoolId(
     schoolId: string,
     page: number,
     limit: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse> {
     return await this.s.getStudentInfoBySchoolId(
       schoolId,
       page,
       limit,
       classId,
+      classIds,
     );
   }
   public async getStudentsAndParentsByClassId(
@@ -1828,6 +1836,7 @@ export class ApiHandler implements ServiceApi {
     page: number = 1,
     limit: number = 20,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse> {
     return await this.s.searchStudentsInSchool(
       schoolId,
@@ -1835,6 +1844,7 @@ export class ApiHandler implements ServiceApi {
       page,
       limit,
       classId,
+      classIds,
     );
   }
 
@@ -1843,12 +1853,14 @@ export class ApiHandler implements ServiceApi {
     searchTerm: string,
     page: number = 1,
     limit: number = 20,
+    classIds?: string[],
   ): Promise<TeacherAPIResponse> {
     return await this.s.searchTeachersInSchool(
       schoolId,
       searchTerm,
       page,
       limit,
+      classIds,
     );
   }
   public async respondToSchoolRequest(

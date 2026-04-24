@@ -3563,9 +3563,13 @@ export class SupabaseApi implements ServiceApi {
     page: number = 1,
     limit: number = 20,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse> {
     if (!this.supabase) {
       logger.warn('Supabase not initialized.');
+      return { data: [], total: 0 };
+    }
+    if (!classId && classIds && classIds.length === 0) {
       return { data: [], total: 0 };
     }
 
@@ -3621,6 +3625,8 @@ export class SupabaseApi implements ServiceApi {
 
     if (classId) {
       query = query.eq('class_id', classId);
+    } else if (classIds && classIds.length > 0) {
+      query = query.in('class_id', classIds);
     }
     const { data, error, count } = await query
       .order('user(name)', { ascending: true })
@@ -4672,15 +4678,19 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string,
     page: number = 1,
     limit: number = 20,
+    classIds?: string[],
   ): Promise<TeacherAPIResponse> {
     if (!this.supabase) {
       logger.warn('Supabase not initialized.');
       return { data: [], total: 0 };
     }
+    if (classIds && classIds.length === 0) {
+      return { data: [], total: 0 };
+    }
 
     const offset = (page - 1) * limit;
 
-    const { data, error, count } = await this.supabase
+    let query = this.supabase
       .from('class_user')
       .select(
         `
@@ -4694,7 +4704,13 @@ export class SupabaseApi implements ServiceApi {
       )
       .eq('role', 'teacher')
       .eq('is_deleted', false)
-      .eq('class.school_id', schoolId)
+      .eq('class.school_id', schoolId);
+
+    if (classIds && classIds.length > 0) {
+      query = query.in('class_id', classIds);
+    }
+
+    const { data, error, count } = await query
       .range(offset, offset + limit - 1);
 
     if (error) {
@@ -10124,8 +10140,12 @@ export class SupabaseApi implements ServiceApi {
     page: number,
     limit: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<{ data: any[]; total: number }> {
     if (!this.supabase) {
+      return { data: [], total: 0 };
+    }
+    if (!classId && classIds && classIds.length === 0) {
       return { data: [], total: 0 };
     }
 
@@ -10146,13 +10166,15 @@ export class SupabaseApi implements ServiceApi {
 
           if (classId) {
             classQuery = classQuery.eq('id', classId);
+          } else if (classIds && classIds.length > 0) {
+            classQuery = classQuery.in('id', classIds);
           }
 
           const { data: classData } = await classQuery;
 
-          const classIds = (classData ?? []).map((c: any) => c.id);
+          const schoolClassIds = (classData ?? []).map((c: any) => c.id);
 
-          if (classIds.length === 0) {
+          if (schoolClassIds.length === 0) {
             resolve({ data: [], total: 0 });
             return;
           }
@@ -10175,7 +10197,7 @@ export class SupabaseApi implements ServiceApi {
               )
             `,
             )
-            .in('class_id', classIds)
+            .in('class_id', schoolClassIds)
             .eq('role', 'student')
             .eq('is_deleted', false)
             .or(studentFilter, {
@@ -10195,7 +10217,7 @@ export class SupabaseApi implements ServiceApi {
               )
             `,
             )
-            .in('class_id', classIds)
+            .in('class_id', schoolClassIds)
             .eq('role', 'parent')
             .eq('is_deleted', false)
             .or(parentFilter, {
@@ -10249,7 +10271,7 @@ export class SupabaseApi implements ServiceApi {
                   )
                 `,
                 )
-                .in('class_id', classIds)
+                .in('class_id', schoolClassIds)
                 .eq('role', 'student')
                 .in('user_id', studentIds)
                 .eq('is_deleted', false);
@@ -10349,26 +10371,34 @@ export class SupabaseApi implements ServiceApi {
     searchTerm: string,
     page: number,
     limit: number,
+    classIds?: string[],
   ): Promise<{ data: any[]; total: number }> {
     if (!this.supabase) return { data: [], total: 0 };
+    if (classIds && classIds.length === 0) return { data: [], total: 0 };
     try {
       // Step 1: Get all class_ids for the school
-      const { data: classData, error: classError } = await this.supabase
+      let classQuery = this.supabase
         .from('class')
         .select('id, name')
         .eq('school_id', schoolId)
         .eq('is_deleted', false);
+
+      if (classIds && classIds.length > 0) {
+        classQuery = classQuery.in('id', classIds);
+      }
+
+      const { data: classData, error: classError } = await classQuery;
       if (classError || !classData) {
         logger.error('Error fetching classes for school:', classError);
         return { data: [], total: 0 };
       }
-      const classIds = classData.map((row: any) => row.id);
-      if (classIds.length === 0) return { data: [], total: 0 };
+      const schoolClassIds = classData.map((row: any) => row.id);
+      if (schoolClassIds.length === 0) return { data: [], total: 0 };
       // Step 2: Get all class_user rows for those classes and role teacher
       const { data: classUserData, error: classUserError } = await this.supabase
         .from('class_user')
         .select(`user:user_id (*), class_id`)
-        .in('class_id', classIds)
+        .in('class_id', schoolClassIds)
         .eq('role', 'teacher')
         .eq('is_deleted', false)
         .ilike('user.name', `%${searchTerm}%`)

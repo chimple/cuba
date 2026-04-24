@@ -2215,6 +2215,7 @@ export interface ServiceApi {
     schoolId: string,
     page: number,
     limit: number,
+    classIds?: string[],
   ): Promise<TeacherAPIResponse>;
 
   /**
@@ -2230,6 +2231,7 @@ export interface ServiceApi {
     page: number,
     limit: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse>;
 
   /**
@@ -2505,6 +2507,7 @@ export interface ServiceApi {
     searchTerm: string,
     page?: number,
     limit?: number,
+    classIds?: string[],
   ): Promise<{ data: any[]; total: number }>;
 
   /**
@@ -2520,6 +2523,7 @@ export interface ServiceApi {
     page?: number,
     limit?: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse>;
 
   approveOpsRequest(
