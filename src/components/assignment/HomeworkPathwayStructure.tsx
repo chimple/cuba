@@ -1147,7 +1147,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           }
         }
 
-        let rewardNode: SVGGElement | null = null;
         const endPath = paths[paths.length - 1];
         if (endPath) {
           const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
@@ -1194,7 +1193,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             });
           }
           fragment.appendChild(Gift_Svg);
-          rewardNode = Gift_Svg;
         }
 
         const animateChimpleMovement = () => {
@@ -1371,11 +1369,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                   },
                 }),
               );
-              await delay(500);
-              rewardForeignObject.style.display = 'none';
               await delay(1000);
               await updateMascotToNormalState(newRewardId);
               await delay(500);
+              rewardForeignObject.style.display = 'none';
               sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
               sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
               if (isFinalRewardTransition) {
@@ -1481,11 +1478,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           riveWrapper.appendChild(riveDiv);
           chimple.appendChild(riveWrapper);
           svg.appendChild(chimple);
-
-          // Keep the reward node above the mascot during speaking/celebration
-          if (rewardNode) {
-            svg.appendChild(rewardNode);
-          }
 
           setRiveContainer(riveDiv);
         }
