@@ -287,17 +287,16 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     const api = ServiceConfig.getI().apiHandler;
-    const safeCall = async <T,>(
+    const resolveSettled = <T,>(
       label: string,
-      request: Promise<T>,
+      settled: PromiseSettledResult<T>,
       fallback: T,
-    ): Promise<T> => {
-      try {
-        return await request;
-      } catch (error) {
-        logger.error(`SchoolDetailsPage fetch failed: ${label}`, error);
-        return fallback;
+    ): T => {
+      if (settled.status === 'fulfilled') {
+        return settled.value;
       }
+      logger.error(`SchoolDetailsPage fetch failed: ${label}`, settled.reason);
+      return fallback;
     };
 
     const emptyPaged = { data: [], total: 0 };
@@ -317,52 +316,75 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
 
     try {
       const [
-        school,
-        program,
-        programManagers,
-        principalsResponse,
-        coordinatorsResponse,
-        teachersResponse,
-        studentsResponse,
-        classResponse,
-      ] = await Promise.all([
-        safeCall('getSchoolById', api.getSchoolById(id), undefined),
-        safeCall('getProgramForSchool', api.getProgramForSchool(id), undefined),
-        safeCall(
-          'getProgramManagersForSchool',
-          api.getProgramManagersForSchool(id),
-          [],
-        ),
+        schoolSettled,
+        programSettled,
+        programManagersSettled,
+        principalsResponseSettled,
+        coordinatorsResponseSettled,
+        teachersResponseSettled,
+        studentsResponseSettled,
+        classResponseSettled,
+      ] = await Promise.allSettled([
+        api.getSchoolById(id),
+        api.getProgramForSchool(id),
+        api.getProgramManagersForSchool(id),
         isExternalUser
           ? Promise.resolve(emptyPaged)
-          : safeCall(
-              'getPrincipalsForSchoolPaginated',
-              api.getPrincipalsForSchoolPaginated(id, 1, 20),
-              emptyPaged,
-            ),
+          : api.getPrincipalsForSchoolPaginated(id, 1, 20),
         isExternalUser
           ? Promise.resolve(emptyPaged)
-          : safeCall(
-              'getCoordinatorsForSchoolPaginated',
-              api.getCoordinatorsForSchoolPaginated(id, 1, 20),
-              emptyPaged,
-            ),
-        safeCall(
-          'getTeacherInfoBySchoolId',
-          api.getTeacherInfoBySchoolId(id, 1, 20),
-          emptyPaged,
-        ),
-        safeCall(
-          'getStudentInfoBySchoolId',
-          api.getStudentInfoBySchoolId(id, 1, 20),
-          emptyPaged,
-        ),
-        safeCall('getClassesBySchoolId', api.getClassesBySchoolId(id), []),
+          : api.getCoordinatorsForSchoolPaginated(id, 1, 20),
+        api.getTeacherInfoBySchoolId(id, 1, 20),
+        api.getStudentInfoBySchoolId(id, 1, 20),
+        api.getClassesBySchoolId(id),
       ]);
 
-      const res = await safeCall(
+      const school = resolveSettled('getSchoolById', schoolSettled, undefined);
+      const program = resolveSettled(
+        'getProgramForSchool',
+        programSettled,
+        undefined,
+      );
+      const programManagers = resolveSettled(
+        'getProgramManagersForSchool',
+        programManagersSettled,
+        [],
+      );
+      const principalsResponse = resolveSettled(
+        'getPrincipalsForSchoolPaginated',
+        principalsResponseSettled,
+        emptyPaged,
+      );
+      const coordinatorsResponse = resolveSettled(
+        'getCoordinatorsForSchoolPaginated',
+        coordinatorsResponseSettled,
+        emptyPaged,
+      );
+      const teachersResponse = resolveSettled(
+        'getTeacherInfoBySchoolId',
+        teachersResponseSettled,
+        emptyPaged,
+      );
+      const studentsResponse = resolveSettled(
+        'getStudentInfoBySchoolId',
+        studentsResponseSettled,
+        emptyPaged,
+      );
+      const classResponse = resolveSettled(
+        'getClassesBySchoolId',
+        classResponseSettled,
+        [],
+      );
+
+      const [schoolActivityStatsSettled, interactionStatsSettled] =
+        await Promise.allSettled([
+          api.school_activity_stats(id),
+          api.getSchoolStatsForSchool(id),
+        ]);
+
+      const res = resolveSettled(
         'school_activity_stats',
-        api.school_activity_stats(id),
+        schoolActivityStatsSettled,
         emptySchoolActivityStats,
       );
       const result = Array.isArray(res) ? res[0] : res;
@@ -372,9 +394,9 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         avg_weekly_time_minutes: result?.avg_weekly_time_minutes ?? 0,
       };
 
-      const interactionStat = await safeCall(
+      const interactionStat = resolveSettled(
         'getSchoolStatsForSchool',
-        api.getSchoolStatsForSchool(id),
+        interactionStatsSettled,
         emptyInteractionStats,
       );
       const stats = Array.isArray(interactionStat)

@@ -10650,7 +10650,7 @@ export class SupabaseApi implements ServiceApi {
       // Step 2: Get class_user links for teacher membership in this school.
       const { data: classUserLinks, error: classUserError } =
         await this.supabase
-          .from('class_user')
+          .from(TABLES.ClassUser)
           .select('class_id, user_id')
           .in('class_id', classIds)
           .eq('role', 'teacher')
@@ -10691,7 +10691,7 @@ export class SupabaseApi implements ServiceApi {
       // Step 3: Load teacher users and apply name search on user table.
       const { data: matchedTeachers, error: teacherUsersError } =
         await this.supabase
-          .from('user')
+          .from(TABLES.User)
           .select('id, name, gender, email, phone')
           .in('id', allTeacherIds)
           .eq('is_deleted', false)
@@ -10736,7 +10736,7 @@ export class SupabaseApi implements ServiceApi {
       if (teacherIds.length > 0) {
         const { data: parentUserData, error: parentUserError } =
           await this.supabase
-            .from('parent_user')
+            .from(TABLES.ParentUser)
             .select('parent_id, student_id')
             .in('student_id', teacherIds)
             .eq('is_deleted', false);
@@ -10749,7 +10749,7 @@ export class SupabaseApi implements ServiceApi {
           if (parentIds.length > 0) {
             const { data: parentDetails, error: parentDetailsError } =
               await this.supabase
-                .from('user')
+                .from(TABLES.User)
                 .select('id, name, phone')
                 .in('id', parentIds)
                 .eq('is_deleted', false);
