@@ -393,13 +393,23 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     // Reuses prefetched school teachers only when no program scope is active.
     if (isInitial && !allowedGrades) {
       const cacheKey = getTeacherListCacheKey(schoolId, programScopedClassIds);
-      setTeachers(data.teachers || []);
-      setTotalCount(data.totalTeacherCount || 0);
+      const prefetchedTeachers = data.teachers || [];
+      const prefetchedTotal =
+        data.totalTeacherCount ?? prefetchedTeachers.length;
+
+      setTeachers(prefetchedTeachers);
+      setTotalCount(prefetchedTotal);
+
+      if (prefetchedTeachers.length > 0 || prefetchedTotal === 0) {
+        setIsLoading(false);
+      } else {
       teacherListCache.set(cacheKey, {
         data: data.teachers || [],
         total: data.totalTeacherCount || 0,
       });
-      fetchTeachers(page, searchTerm, true);
+        fetchTeachers(page, searchTerm, true);
+      }
+      return;
     } else {
       const cacheKey = getTeacherListCacheKey(schoolId, programScopedClassIds);
       fetchTeachers(
@@ -415,7 +425,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     data.teachers,
     data.totalTeacherCount,
     searchTerm,
-    filters,
+    filters.grade,
+    filters.section,
     allowedGrades,
     programScopedClassIds,
     schoolId,

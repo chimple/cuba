@@ -3576,15 +3576,45 @@ export class SupabaseApi implements ServiceApi {
 
     const offset = (page - 1) * limit;
 
-    let query = this.supabase
-      .from('class_user')
+    // Query classes first and filter class_user by class_id list.
+    // This avoids expensive class_user -> class join scans that can timeout.
+    const { data: schoolClasses, error: classFetchError } = await this.supabase // fetch classes for the school
+      .from(TABLES.Class)
+      .select('id, name')
+      .eq('school_id', schoolId)
+      .eq('is_deleted', false);
+
+    if (classFetchError) {
+      logger.error(
+        'Error fetching classes for school student query:',
+        classFetchError,
+      );
+      return { data: [], total: 0 };
+    }
+
+    const classMap = new Map<string, string>(
+      (schoolClasses || []).map((c) => [String(c.id), String(c.name || '')]), // store clsId and clsName in a map of that particular school
+    );
+    const allowedClassIds = classId
+      ? classMap.has(classId)
+        ? [classId]
+        : []
+      : Array.from(classMap.keys()); // if classId is provided, use it only if it's valid for the school; otherwise use all class IDs for the school
+
+    if (allowedClassIds.length === 0) {
+      return { data: [], total: 0 };
+    }
+
+    const {
+      data: pagedStudentRows,
+      error: pagedStudentsError,
+      count: totalStudentsRaw,
+    } = await this.supabase
+      .from(TABLES.ClassUser)
       .select(
         `
-      class:class_id!inner (
-        id,
-        class_name:name
-      ),
-      user:user_id!inner (
+      class_id,
+      user:user!class_user_user_id_fkey!inner (
         age,
         avatar,
         created_at,
@@ -3606,61 +3636,174 @@ export class SupabaseApi implements ServiceApi {
         name,
         phone,
         gender,
-        email,
-        parent_links:parent_user!student_id (
-          parent:parent_id (
-            id,
-            parent_name:name,
-            phone,
-            email,
-            is_wa_contact
-          )
-        )
+        email
       )
     `,
         { count: 'exact' },
       )
       .eq('role', 'student')
       .eq('is_deleted', false)
-      .eq('class.school_id', schoolId);
-
-    if (classId) {
-      query = query.eq('class_id', classId);
-    } else if (classIds && classIds.length > 0) {
-      // Applies program class scope while preserving the class-detail override.
-      query = query.in('class_id', classIds);
-    }
-    const { data, error, count } = await query
-      .order('user(name)', { ascending: true })
+      .in('class_id', allowedClassIds)
+      .eq('user.is_deleted', false)
+      .order('name', { ascending: true, foreignTable: TABLES.User })
+      .order('id', { ascending: true, foreignTable: TABLES.User })
       .range(offset, offset + limit - 1);
 
-    if (error) {
-      logger.error('Error fetching student info:', error);
-      return { data: [], total: 0 };
+    const totalStudents =
+      typeof totalStudentsRaw === 'number' ? totalStudentsRaw : 0;
+
+    if (pagedStudentsError) {
+      logger.error(
+        'Error fetching paged students for school:',
+        pagedStudentsError,
+      );
+      return { data: [], total: totalStudents };
     }
 
-    const studentInfoList: StudentInfo[] = (data || []).map((row: any) => {
-      const { user, class: cls } = row;
-      const className = cls?.class_name || '';
-      const { grade, section } = this.parseClassName(className);
-      const parent = user?.parent_links?.[0]?.parent || null;
-      const updatedUser = {
-        ...user,
-        phone: user?.phone || parent?.phone || '',
-        email: user?.email || parent?.email || '',
-      };
+    const normalizedPagedRows = (
+      (pagedStudentRows || []) as Array<{
+        class_id?: string | null;
+        user?: TableTypes<'user'> | TableTypes<'user'>[] | null;
+      }>
+    ).map((row) => {
+      const user = Array.isArray(row?.user) ? row.user[0] : row?.user;
+      const classIdValue = String(row?.class_id || '').trim();
+      const studentId = String(user?.id || '').trim();
       return {
-        user: updatedUser,
-        grade,
-        classSection: section,
-        parent,
-        classWithidname: cls,
+        classIdValue,
+        studentId,
+        user,
       };
     });
 
+    const pagedStudentIds = normalizedPagedRows
+      .map((row) => row.studentId)
+      .filter((studentId) => studentId.length > 0);
+
+    if (pagedStudentIds.length === 0) {
+      return {
+        data: [],
+        total: totalStudents,
+      };
+    }
+
+    const parentByStudentId = new Map<
+      string,
+      {
+        id?: string;
+        parent_name?: string;
+        phone?: string;
+        email?: string;
+        is_wa_contact?: string | boolean | null;
+      } | null
+    >();
+    if (pagedStudentIds.length > 0) {
+      const { data: parentLinks, error: parentError } = await this.supabase
+        .from(TABLES.ParentUser)
+        .select('student_id, parent_id')
+        .in('student_id', pagedStudentIds)
+        .eq('is_deleted', false);
+
+      if (parentError) {
+        logger.error('Error fetching parent links for students:', parentError);
+      } else {
+        const parentIds = [
+          ...new Set(
+            (parentLinks || [])
+              .map((link) => String(link?.parent_id || '').trim())
+              .filter((parentId) => parentId.length > 0),
+          ),
+        ];
+
+        const parentById = new Map<
+          string,
+          {
+            id?: string;
+            parent_name?: string;
+            phone?: string;
+            email?: string;
+            is_wa_contact?: string | boolean | null;
+          }
+        >();
+
+        if (parentIds.length > 0) {
+          const { data: parentUsers, error: parentUsersError } =
+            await this.supabase
+              .from(TABLES.User)
+              .select('id, name, phone, email')
+              .in('id', parentIds)
+              .eq('is_deleted', false);
+
+          if (parentUsersError) {
+            logger.error(
+              'Error fetching parent users for students:',
+              parentUsersError,
+            );
+          } else {
+            (parentUsers || []).forEach((parentUser) => {
+              const parentId = String(parentUser?.id || '').trim();
+              if (!parentId) return;
+
+              parentById.set(parentId, {
+                id: parentId,
+                parent_name:
+                  typeof parentUser?.name === 'string'
+                    ? parentUser.name
+                    : undefined,
+                phone:
+                  typeof parentUser?.phone === 'string'
+                    ? parentUser.phone
+                    : undefined,
+                email:
+                  typeof parentUser?.email === 'string'
+                    ? parentUser.email
+                    : undefined,
+              });
+            });
+          }
+        }
+
+        (parentLinks || []).forEach((link) => {
+          const sid = String(link?.student_id || '').trim();
+          const parentId = String(link?.parent_id || '').trim();
+          if (!sid || parentByStudentId.has(sid)) return;
+          parentByStudentId.set(sid, parentById.get(parentId) || null);
+        });
+      }
+    }
+
+    const studentInfoList: StudentInfo[] = normalizedPagedRows
+      .map((row) => {
+        const user = row.user;
+        if (!user) return null;
+
+        const studentId = row.studentId;
+        const classIdValue = row.classIdValue;
+        const className = classMap.get(classIdValue) || '';
+        const { grade, section } = this.parseClassName(className);
+        const parent = parentByStudentId.get(studentId) || null;
+        const updatedUser = {
+          ...user,
+          phone: user?.phone || parent?.phone || '',
+          email: user?.email || parent?.email || '',
+        };
+
+        return {
+          user: updatedUser,
+          grade,
+          classSection: section,
+          parent,
+          classWithidname: {
+            id: classIdValue,
+            class_name: className,
+          },
+        } as StudentInfo;
+      })
+      .filter((row): row is StudentInfo => row !== null);
+
     return {
       data: studentInfoList,
-      total: count ?? 0,
+      total: totalStudents,
     };
   }
   async getStudentsAndParentsByClassId(
@@ -4691,55 +4834,140 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-    const offset = (page - 1) * limit;
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.max(1, limit);
+    const offset = (safePage - 1) * safeLimit;
 
-    let query = this.supabase
-      .from('class_user')
-      .select(
-        `
-        user:user_id!inner(*),
-        class:class_id!inner(
-          id,
-          name
-        )
-      `,
-        { count: 'exact' },
-      )
-      .eq('role', 'teacher')
-      .eq('is_deleted', false)
-      .eq('class.school_id', schoolId);
+    const { data: schoolClasses, error: classFetchError } = await this.supabase
+      .from(TABLES.Class)
+      .select('id, name')
+      .eq('school_id', schoolId)
+      .eq('is_deleted', false);
 
-    if (classIds && classIds.length > 0) {
-      // Applies program class scope to the teacher list query.
-      query = query.in('class_id', classIds);
-    }
-
-    const { data, error, count } = await query.range(
-      offset,
-      offset + limit - 1,
-    );
-
-    if (error) {
-      logger.error('Error fetching teacher info:', error);
+    if (classFetchError) {
+      logger.error(
+        'Error fetching classes for school teacher query:',
+        classFetchError,
+      );
       return { data: [], total: 0 };
     }
 
-    const teacherInfoList: TeacherInfo[] = (data || []).map((row: any) => {
-      const { user, class: cls } = row;
-
-      const { grade, section } = this.parseClassName(cls?.name || '');
-
-      return {
-        user,
-        grade: grade,
-        classSection: section,
-        classWithidname: cls,
-      };
+    const classMap = new Map<string, string>();
+    (schoolClasses || []).forEach((schoolClass) => {
+      const classId = String(schoolClass?.id || '').trim();
+      if (!classId) return;
+      classMap.set(classId, String(schoolClass?.name || '').trim());
     });
+    const allowedClassIds = Array.from(classMap.keys());
+
+    if (allowedClassIds.length === 0) {
+      return { data: [], total: 0 };
+    }
+
+    const { data: allTeacherLinks, error: teacherLinksError } =
+      await this.supabase
+        .from(TABLES.ClassUser)
+        .select(
+          `
+      class_id,
+      user_id
+    `,
+        )
+        .eq('role', 'teacher')
+        .eq('is_deleted', false)
+        .in('class_id', allowedClassIds);
+
+    if (teacherLinksError) {
+      logger.error('Error fetching teacher info:', teacherLinksError);
+      return { data: [], total: 0 };
+    }
+
+    const primaryClassByTeacher = new Map<string, string>();
+    (
+      (allTeacherLinks || []) as Array<{ class_id: string; user_id: string }>
+    ).forEach((row) => {
+      const teacherId = String(row?.user_id || '').trim();
+      const candidateClassId = String(row?.class_id || '').trim();
+      if (!teacherId || !candidateClassId) return;
+
+      const currentClassId = primaryClassByTeacher.get(teacherId);
+      if (!currentClassId) {
+        primaryClassByTeacher.set(teacherId, candidateClassId);
+        return;
+      }
+
+      const currentClassName = classMap.get(currentClassId) || currentClassId;
+      const candidateClassName =
+        classMap.get(candidateClassId) || candidateClassId;
+      if (
+        candidateClassName.localeCompare(currentClassName, undefined, {
+          sensitivity: 'base',
+        }) < 0
+      ) {
+        primaryClassByTeacher.set(teacherId, candidateClassId);
+      }
+    });
+
+    const allTeacherIds = Array.from(primaryClassByTeacher.keys());
+    if (allTeacherIds.length === 0) {
+      return {
+        data: [],
+        total: 0,
+      };
+    }
+
+    const {
+      data: teacherUsers,
+      error: userError,
+      count: totalTeachersRaw,
+    } = await this.supabase
+      .from(TABLES.User)
+      .select('*', { count: 'exact' })
+      .in('id', allTeacherIds)
+      .eq('is_deleted', false)
+      .order('name', { ascending: true })
+      .order('id', { ascending: true })
+      .range(offset, offset + safeLimit - 1);
+
+    const totalTeachers =
+      typeof totalTeachersRaw === 'number' ? totalTeachersRaw : 0;
+
+    if (userError) {
+      logger.error('Error fetching teacher user rows:', userError);
+      return { data: [], total: totalTeachers };
+    }
+
+    if (!teacherUsers?.length) {
+      return {
+        data: [],
+        total: totalTeachers,
+      };
+    }
+
+    const teacherInfoList: TeacherInfo[] = teacherUsers
+      .map((teacherUser) => {
+        const teacherId = String(teacherUser?.id || '').trim();
+        if (!teacherId) return null;
+
+        const classIdValue = primaryClassByTeacher.get(teacherId) || '';
+        const className = classMap.get(classIdValue) || '';
+        const { grade, section } = this.parseClassName(className);
+
+        return {
+          user: teacherUser,
+          grade: grade,
+          classSection: section,
+          classWithidname: {
+            id: classIdValue,
+            name: className,
+          },
+        };
+      })
+      .filter((row): row is TeacherInfo => row !== null);
 
     return {
       data: teacherInfoList,
-      total: count ?? 0,
+      total: totalTeachers,
     };
   }
 
@@ -10385,9 +10613,9 @@ export class SupabaseApi implements ServiceApi {
     // Empty program class scopes should return an empty search result.
     if (classIds && classIds.length === 0) return { data: [], total: 0 };
     try {
-      // Step 1: Get all class_ids for the school
-      let classQuery = this.supabase
-        .from('class')
+      // Step 1: Get all class ids for the school.
+      const { data: classData, error: classError } = await this.supabase
+        .from(TABLES.Class)
         .select('id, name')
         .eq('school_id', schoolId)
         .eq('is_deleted', false);
@@ -10402,23 +10630,94 @@ export class SupabaseApi implements ServiceApi {
         logger.error('Error fetching classes for school:', classError);
         return { data: [], total: 0 };
       }
-      const schoolClassIds = classData.map((row: any) => row.id);
-      if (schoolClassIds.length === 0) return { data: [], total: 0 };
-      // Step 2: Get all class_user rows for those classes and role teacher
-      const { data: classUserData, error: classUserError } = await this.supabase
-        .from('class_user')
-        .select(`user:user_id (*), class_id`)
-        .in('class_id', schoolClassIds)
-        .eq('role', 'teacher')
-        .eq('is_deleted', false)
-        .ilike('user.name', `%${searchTerm}%`)
-        .not('user', 'is', null);
-      if (classUserError || !classUserData) {
+      const classIds = classData.map((row) => row.id);
+      if (classIds.length === 0) return { data: [], total: 0 };
+
+      const classNameById = new Map<string, string>(
+        classData.map((row) => [
+          String(row?.id ?? '').trim(),
+          String(row?.name ?? '').trim(),
+        ]),
+      );
+
+      // Step 2: Get class_user links for teacher membership in this school.
+      const { data: classUserLinks, error: classUserError } =
+        await this.supabase
+          .from(TABLES.ClassUser)
+          .select('class_id, user_id')
+          .in('class_id', classIds)
+          .eq('role', 'teacher')
+          .eq('is_deleted', false);
+      if (classUserError || !classUserLinks) {
         logger.error('Error fetching class_user rows:', classUserError);
         return { data: [], total: 0 };
       }
-      // Step 3: Get parent info for each teacher using an inner query
-      const teacherIds = classUserData.map((row: any) => row.user.id);
+
+      // Keep one stable class per teacher (alphabetically by class name).
+      const primaryClassByTeacher = new Map<string, string>();
+      for (const row of classUserLinks) {
+        const teacherId = String(row?.user_id ?? '').trim();
+        const nextClassId = String(row?.class_id ?? '').trim();
+        if (!teacherId || !nextClassId) continue;
+
+        const existingClassId = primaryClassByTeacher.get(teacherId);
+        if (!existingClassId) {
+          primaryClassByTeacher.set(teacherId, nextClassId);
+          continue;
+        }
+
+        const existingClassName =
+          classNameById.get(existingClassId) || existingClassId;
+        const nextClassName = classNameById.get(nextClassId) || nextClassId;
+        if (
+          nextClassName.localeCompare(existingClassName, undefined, {
+            sensitivity: 'base',
+          }) < 0
+        ) {
+          primaryClassByTeacher.set(teacherId, nextClassId);
+        }
+      }
+
+      const allTeacherIds = Array.from(primaryClassByTeacher.keys());
+      if (allTeacherIds.length === 0) return { data: [], total: 0 };
+
+      // Step 3: Load teacher users and apply name search on user table.
+      const { data: matchedTeachers, error: teacherUsersError } =
+        await this.supabase
+          .from(TABLES.User)
+          .select('id, name, gender, email, phone')
+          .in('id', allTeacherIds)
+          .eq('is_deleted', false)
+          .ilike('name', `%${searchTerm}%`);
+      if (teacherUsersError) {
+        logger.error(
+          'Error fetching teacher users for search:',
+          teacherUsersError,
+        );
+        return { data: [], total: 0 };
+      }
+
+      const sortedTeachers = (matchedTeachers || [])
+        .map((teacher) => ({
+          id: String(teacher?.id ?? '').trim(),
+          name: String(teacher?.name ?? '').trim(),
+          gender: teacher?.gender ?? null,
+          email: teacher?.email ?? null,
+          phone: teacher?.phone ?? null,
+        }))
+        .filter((teacher) => teacher.id.length > 0)
+        .sort(
+          (a, b) =>
+            a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }) ||
+            a.id.localeCompare(b.id),
+        );
+
+      const total = sortedTeachers.length;
+      const offset = (page - 1) * limit;
+      const pagedTeachers = sortedTeachers.slice(offset, offset + limit);
+      const teacherIds = pagedTeachers.map((teacher) => teacher.id);
+
+      // Step 4: Get parent info for paged teachers.
       let parentInfoMap: Record<
         string,
         {
@@ -10430,7 +10729,7 @@ export class SupabaseApi implements ServiceApi {
       if (teacherIds.length > 0) {
         const { data: parentUserData, error: parentUserError } =
           await this.supabase
-            .from('parent_user')
+            .from(TABLES.ParentUser)
             .select('parent_id, student_id')
             .in('student_id', teacherIds)
             .eq('is_deleted', false);
@@ -10443,7 +10742,7 @@ export class SupabaseApi implements ServiceApi {
           if (parentIds.length > 0) {
             const { data: parentDetails, error: parentDetailsError } =
               await this.supabase
-                .from('user')
+                .from(TABLES.User)
                 .select('id, name, phone')
                 .in('id', parentIds)
                 .eq('is_deleted', false);
@@ -10469,29 +10768,28 @@ export class SupabaseApi implements ServiceApi {
           }
         }
       }
-      // Step 4: Pagination
-      const offset = (page - 1) * limit;
-      const pagedRows = classUserData.slice(offset, offset + limit);
-      // Step 5: Build result objects (with parent info)
-      const result = pagedRows.map((row: any) => {
-        const classInfo = classData.find((c: any) => c.id === row.class_id);
-        const className = classInfo?.name ?? '';
+
+      // Step 5: Build result objects (with parent info).
+      const result = pagedTeachers.map((teacherUser) => {
+        const teacherId = teacherUser.id;
+        const classId = primaryClassByTeacher.get(teacherId) ?? '';
+        const className = classNameById.get(classId) ?? '';
         const { grade, section } = this.parseClassName(className);
-        const parentInfo = parentInfoMap[row.user.id] ?? null;
+        const parentInfo = parentInfoMap[teacherId] ?? null;
         return {
-          id: row.user.id,
-          name: row.user.name,
-          gender: row.user.gender ?? null,
-          email: row.user.email,
-          phone: row.user.phone,
-          class_id: row.class_id,
+          id: teacherId,
+          name: teacherUser.name,
+          gender: teacherUser.gender ?? null,
+          email: teacherUser.email,
+          phone: teacherUser.phone,
+          class_id: classId,
           class_name: className,
           grade,
           classSection: section,
           parent: parentInfo,
         };
       });
-      return { data: result, total: classUserData.length };
+      return { data: result, total };
     } catch (err) {
       logger.error('Error searching teachers in school:', err);
       return { data: [], total: 0 };
@@ -12304,11 +12602,13 @@ export class SupabaseApi implements ServiceApi {
   async getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<'user'>,
+    courseId?: string,
   ): Promise<TableTypes<'subject_lesson'>> {
     if (!this.supabase || !student) return {} as TableTypes<'subject_lesson'>;
 
     const studentId = student.id;
     const langId = student.language_id ?? null;
+    const localeId = student.locale_id ?? null;
 
     try {
       type ResultStatusRow = {
@@ -12318,11 +12618,11 @@ export class SupabaseApi implements ServiceApi {
       };
 
       /* ==========================================
-       * 1️⃣ Fetch ALL available set_numbers
+       * 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
        * ========================================== */
       const { data: setRows, error: setError } = await this.supabase
         .from('subject_lesson')
-        .select('set_number')
+        .select('set_number, language_id, locale_id')
         .eq('subject_id', subjectId)
         .eq('is_deleted', false)
         .not('set_number', 'is', null);
@@ -12340,13 +12640,45 @@ export class SupabaseApi implements ServiceApi {
 
       if (!uniqueSets.length) return {} as TableTypes<'subject_lesson'>;
 
-      const randomIndex = Math.floor(Math.random() * uniqueSets.length);
-      const setNumber = uniqueSets[randomIndex];
+      const preferredSets = langId
+        ? Array.from(
+            new Set(
+              (setRows ?? [])
+                .filter((r) =>
+                  localeId
+                    ? r.language_id === langId &&
+                      (r.locale_id === localeId || r.locale_id == null)
+                    : r.language_id === langId,
+                )
+                .map((r) => r.set_number)
+                .filter((n): n is number => n !== null),
+            ),
+          )
+        : localeId
+          ? Array.from(
+              new Set(
+                (setRows ?? [])
+                  .filter(
+                    (r) =>
+                      r.language_id == null &&
+                      (r.locale_id === localeId || r.locale_id == null),
+                  )
+                  .map((r) => r.set_number)
+                  .filter((n): n is number => n !== null),
+              ),
+            )
+          : [];
+
+      const candidateSets = preferredSets.length ? preferredSets : uniqueSets;
+      const randomIndex = Math.floor(Math.random() * candidateSets.length);
+      const setNumber = candidateSets[randomIndex];
+      const useStrictLanguageTrack =
+        !!langId && preferredSets.includes(setNumber);
 
       /* ==========================================
        * 2️⃣ Abort Check (assignment_id IS NULL)
        * ========================================== */
-      const { data, error } = await this.supabase
+      let abortQuery = this.supabase
         .from('result')
         .select('lesson_id, status, created_at')
         .eq('student_id', studentId)
@@ -12355,6 +12687,12 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false)
         .order('created_at', { ascending: false })
         .limit(50);
+
+      if (courseId) {
+        abortQuery = abortQuery.eq('course_id', courseId);
+      }
+
+      const { data, error } = await abortQuery;
 
       if (error) {
         logger.error('Abort query error:', error);
@@ -12396,15 +12734,49 @@ export class SupabaseApi implements ServiceApi {
       /* ==========================================
        * 3️⃣ Fetch lessons from selected set
        * ========================================== */
-      const { data: lessons, error: lessonError } = await this.supabase
+      let lessonsQuery = this.supabase
         .from('subject_lesson')
         .select('*')
         .eq('subject_id', subjectId)
         .eq('set_number', setNumber)
         .eq('is_deleted', false)
-        .or(`language_id.eq.${langId},language_id.is.null`)
         .order('set_number', { ascending: true })
         .order('sort_index', { ascending: true });
+
+      if (useStrictLanguageTrack && langId) {
+        if (localeId) {
+          lessonsQuery = lessonsQuery.or(
+            `and(language_id.eq.${langId},locale_id.eq.${localeId}),and(language_id.eq.${langId},locale_id.is.null)`,
+          );
+        } else {
+          lessonsQuery = lessonsQuery.eq('language_id', langId);
+        }
+      } else if (langId) {
+        const orConditions: string[] = [];
+        if (localeId) {
+          orConditions.push(
+            `and(language_id.eq.${langId},locale_id.eq.${localeId})`,
+          );
+        }
+        orConditions.push(`and(language_id.eq.${langId},locale_id.is.null)`);
+        if (localeId) {
+          orConditions.push(
+            `and(language_id.is.null,locale_id.eq.${localeId})`,
+          );
+        }
+        orConditions.push(`and(language_id.is.null,locale_id.is.null)`);
+        lessonsQuery = lessonsQuery.or(orConditions.join(','));
+      } else if (localeId) {
+        lessonsQuery = lessonsQuery.or(
+          `and(language_id.is.null,locale_id.eq.${localeId}),and(language_id.is.null,locale_id.is.null)`,
+        );
+      } else {
+        lessonsQuery = lessonsQuery
+          .is('language_id', null)
+          .is('locale_id', null);
+      }
+
+      const { data: lessons, error: lessonError } = await lessonsQuery;
 
       if (lessonError || !lessons?.length)
         return {} as TableTypes<'subject_lesson'>;
@@ -12415,9 +12787,27 @@ export class SupabaseApi implements ServiceApi {
       const fallbackLessons = lessons.filter(
         (lesson) => lesson.language_id == null,
       );
-      const candidateLessons = matchedLessons.length
-        ? matchedLessons
-        : fallbackLessons;
+      let candidateLessons = useStrictLanguageTrack
+        ? lessons
+        : matchedLessons.length
+          ? matchedLessons
+          : fallbackLessons;
+
+      if (useStrictLanguageTrack && localeId) {
+        const localePriority = (lesson: TableTypes<'subject_lesson'>) => {
+          if (lesson.language_id === langId && lesson.locale_id === localeId)
+            return 1;
+          if (lesson.language_id === langId && lesson.locale_id == null)
+            return 2;
+          return 3;
+        };
+        candidateLessons = [...candidateLessons].sort((a, b) => {
+          if ((a.sort_index ?? 0) !== (b.sort_index ?? 0)) {
+            return (a.sort_index ?? 0) - (b.sort_index ?? 0);
+          }
+          return localePriority(a) - localePriority(b);
+        });
+      }
 
       if (!candidateLessons.length) {
         return {} as TableTypes<'subject_lesson'>;
@@ -12429,13 +12819,19 @@ export class SupabaseApi implements ServiceApi {
        * ========================================== */
       const lessonIds = candidateLessons.map((lesson) => lesson.lesson_id);
 
-      const { data: results } = await this.supabase
+      let resultsQuery = this.supabase
         .from('result')
         .select('lesson_id')
         .in('lesson_id', lessonIds)
         .eq('student_id', studentId)
         .is('assignment_id', null)
         .eq('is_deleted', false);
+
+      if (courseId) {
+        resultsQuery = resultsQuery.eq('course_id', courseId);
+      }
+
+      const { data: results } = await resultsQuery;
 
       const completedLessonIds = new Set(
         (results ?? []).map((r) => r.lesson_id),
