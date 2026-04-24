@@ -391,8 +391,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     fetchStudents,
     data.students,
     data.totalStudentCount,
-    filters.grade.length,
-    filters.section.length,
+    filters.grade,
+    filters.section,
   ]);
 
   const handlePageChange = (newPage: number) => {
