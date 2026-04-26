@@ -67,6 +67,7 @@ export enum TABLES {
   ProgramUser = 'program_user',
   SchoolCourse = 'school_course',
   SchoolUser = 'school_user',
+  SchoolMetrics = 'school_metrics',
   UserBadge = 'user_badge',
   UserBonus = 'user_bonus',
   UserCourse = 'user_course',
@@ -625,9 +626,29 @@ export interface SchoolWithRole {
   role: RoleType;
 }
 export interface FilteredSchoolsForSchoolListingOps {
+  school_id?: string;
+  metric_window?: string | null;
   school_name: string;
+  school_performance?: string | null;
+  state?: string | null;
+  district?: string | null;
+  block?: string | null;
+  cluster?: string | null;
+  udise?: string | null;
+  program_id?: string | null;
+  program_name?: string | null;
+  partners?: string[] | null;
+  total_teachers?: number | null;
   num_students: number;
   num_teachers: number;
+  onboarded_students?: number | null;
+  activated_students?: number | null;
+  active_students?: number | null;
+  avg_time_spent?: number | null;
+  active_teachers?: number | null;
+  activities_assigned?: number | null;
+  avg_assignments_completed?: number | null;
+  avg_activities_completed?: number | null;
   program_managers: string[];
   field_coordinators: string[];
 }
@@ -1103,6 +1124,8 @@ export const AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY =
   'auto_open_sticker_completion_popup';
 export const PENDING_PATHWAY_STICKER_REWARD_KEY =
   'pending_pathway_sticker_reward';
+export const PENDING_FINAL_HOMEWORK_COMPLETE_AFTER_STICKER_FLOW_KEY =
+  'pending_final_homework_complete_after_sticker_flow';
 export const STICKER_BOOK_COMPLETION_READY_EVENT =
   'sticker_book_completion_ready';
 export const PATHWAY_REWARD_CELEBRATION_STARTED_EVENT =
@@ -1153,6 +1176,7 @@ export const ROLE_PRIORITY: Record<string, number> = {
   operational_director: 2,
   program_manager: 3,
   field_coordinator: 4,
+  external_user: 5,
 };
 
 export enum AssignmentSource {
@@ -1199,6 +1223,16 @@ export interface CoordinatorAPIResponse {
   total: number;
 }
 export const CHIMPLE_RIVE_STATE_MACHINE_MAX = 'chimple_rive_state_machine_max';
+// Shared mascot Rive state machine/input identifiers.
+export const CHIMPLE_MASCOT_STATE_MACHINE_HOMEWORK_COMPLETE = 'State Machine 1';
+export const CHIMPLE_MASCOT_STATE_MACHINE_CELEBRATE = 'State Machine 2';
+export const CHIMPLE_MASCOT_STATE_MACHINE_NORMAL = 'State Machine 3';
+export const CHIMPLE_MASCOT_STATE_MACHINE_REWARD = 'State Machine 4';
+export const CHIMPLE_MASCOT_INPUT_CELEBRATE = 'Number 1';
+export const CHIMPLE_MASCOT_INPUT_NORMAL = 'Number 2';
+export const CHIMPLE_MASCOT_INPUT_REWARD = 'Number 3';
+export const CHIMPLE_MASCOT_ANIMATION_IDLE = 'id';
+export const CHIMPLE_MASCOT_ANIMATION_WIN = 'win';
 
 export interface GeoDataParams {
   p_country?: string;
@@ -1261,6 +1295,7 @@ export const OPS_ROLES = [
   RoleType.OPERATIONAL_DIRECTOR,
   RoleType.PROGRAM_MANAGER,
   RoleType.FIELD_COORDINATOR,
+  RoleType.EXTERNAL_USER,
 ];
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
 export const VERSION_KEY = 'last_native_version';
@@ -1270,6 +1305,27 @@ export enum SupportLevelMap {
   'Need Help' = 'need_help',
   'Not Tracked' = 'not_tracked',
 }
+
+export enum OpsSupportLevelMap {
+  'High Engagement' = 'doing_good',
+  'Medium Engagement' = 'still_learning',
+  'Not Active' = 'need_help',
+  'Not Downloaded' = 'not_tracked',
+}
+
+export const OPS_PERFORMANCE_BANDS = {
+  HIGH: 'High Engagement',
+  MEDIUM: 'Medium Engagement',
+  NOT_ACTIVE: 'Not Active',
+  NOT_DOWNLOADED: 'Not Downloaded',
+} as const;
+
+export const STUDENT_PERFORMANCE_BAND_KEYS = {
+  GREEN: 'green_band',
+  YELLOW: 'yellow_band',
+  RED: 'red_band',
+  GREY: 'grey_band',
+} as const;
 
 export enum RECOMMENDATION_TYPE {
   FRAMEWORK = 'framework',
@@ -1396,3 +1452,12 @@ export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
   'sticker-book-notification-dot-enabled';
 export const ENABLE_SAVE_AND_SHARE_STICKER_BOOK =
   'enable_save_and_share_sticker_book';
+export const SCHOOL_LISTING_STATUS_META: Record<
+  string,
+  { bg: string; color: string }
+> = {
+  'Performing Well': { bg: '#D1FAE5', color: '#2BA980' },
+  'Needs Attention': { bg: '#FEF3C7', color: '#E7A54E' },
+  'Needs Support': { bg: '#FCE8E6', color: '#D35451' },
+  default: { bg: '#EEF2F6', color: '#5B6472' },
+};

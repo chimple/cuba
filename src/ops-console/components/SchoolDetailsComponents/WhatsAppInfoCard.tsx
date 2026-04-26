@@ -7,6 +7,11 @@ import { t } from 'i18next';
 import { ErrorOutlineOutlined } from '@mui/icons-material';
 import WhatsAppInviteLinkInput from './WhatsAppInviteLinkInput';
 import logger from '../../../utility/logger';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { isExternal } from 'util/types';
 
 type WhatsAppInfoCardProps = {
   classData?: TableTypes<'class'>;
@@ -37,13 +42,17 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   const [isChangingGroup, setIsChangingGroup] = useState(false);
   const [isDisconnectedGroup, setIsDisconnectedGroup] = useState(false);
   const [isStatusResolved, setIsStatusResolved] = useState(false);
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   useEffect(() => {
     let isMounted = true;
     if (!classData?.id) {
       setIsStatusResolved(true);
       return;
     }
-
     const init = async () => {
       setIsStatusResolved(false);
       try {
@@ -249,93 +258,95 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
               </Typography>
             </Box>
           )}
-          {isStatusResolved && !(isChangingGroup && isDisconnectedGroup) && (
-            <Box className="wa-section">
-              <Typography variant="caption" color="text.secondary">
-                {isChangingGroup ? t('Add an Invite Link') : t('Group Name')}
-              </Typography>
+          {isStatusResolved &&
+            !(isChangingGroup && isDisconnectedGroup) &&
+            !isExternalUser && (
+              <Box className="wa-section">
+                <Typography variant="caption" color="text.secondary">
+                  {isChangingGroup ? t('Add an Invite Link') : t('Group Name')}
+                </Typography>
 
-              <Box className="wa-input-row">
-                {isChangingGroup && (
-                  <WhatsAppInviteLinkInput
-                    inviteInput={inviteInput}
-                    setInviteInput={setInviteInput}
-                    error={error}
-                    loading={loading}
-                    groupId={groupId || classDoc?.group_id}
-                    onSubmit={handleInviteSubmit}
-                    onCancel={() => {
-                      const hasExistingGroupName =
-                        (groupName ?? '').trim().length > 0;
-                      setIsChangingGroup(!hasExistingGroupName);
-                      setInviteInput('');
-                      setError(null);
-                    }}
-                  />
-                )}
+                <Box className="wa-input-row">
+                  {isChangingGroup && (
+                    <WhatsAppInviteLinkInput
+                      inviteInput={inviteInput}
+                      setInviteInput={setInviteInput}
+                      error={error}
+                      loading={loading}
+                      groupId={groupId || classDoc?.group_id}
+                      onSubmit={handleInviteSubmit}
+                      onCancel={() => {
+                        const hasExistingGroupName =
+                          (groupName ?? '').trim().length > 0;
+                        setIsChangingGroup(!hasExistingGroupName);
+                        setInviteInput('');
+                        setError(null);
+                      }}
+                    />
+                  )}
 
-                {!isChangingGroup && isEditing && (
-                  <div
-                    className="wa-input-row-editing"
-                    id="wa-input-row-editing-id"
-                  >
-                    <Box className="wa-input-wrapper">
-                      <input
-                        className="wa-input"
-                        value={editedGroupName}
-                        autoFocus
-                        onChange={(e) => setEditedGroupName(e.target.value)}
-                      />
-                    </Box>
-
-                    <Box display="flex" gap={2}>
-                      <button
-                        className="wa-info-save-btn"
-                        onClick={handleSave}
-                        disabled={isSaving || !editedGroupName.trim()}
-                      >
-                        {isSaving ? t('Saving...') : t('Save')}
-                      </button>
-
-                      <button
-                        className="wa-info-cancel-btn"
-                        onClick={handleCancel}
-                        disabled={isSaving}
-                      >
-                        {t('Cancel')}
-                      </button>
-                    </Box>
-                  </div>
-                )}
-
-                {!isChangingGroup && !isEditing && (
-                  <>
-                    <Box className="wa-input-wrapper">
-                      <input
-                        className="wa-input"
-                        value={groupName ?? ''}
-                        disabled
-                      />
-
-                      <img
-                        src="/assets/icons/EditIcon2.svg"
-                        alt="Edit"
-                        className="wa-input-edit-icon"
-                        onClick={handleEdit}
-                      />
-                    </Box>
-
-                    <button
-                      className="wa-change-btn"
-                      onClick={openChangeGroupPopup}
+                  {!isChangingGroup && isEditing && (
+                    <div
+                      className="wa-input-row-editing"
+                      id="wa-input-row-editing-id"
                     >
-                      {t('Change')}
-                    </button>
-                  </>
-                )}
+                      <Box className="wa-input-wrapper">
+                        <input
+                          className="wa-input"
+                          value={editedGroupName}
+                          autoFocus
+                          onChange={(e) => setEditedGroupName(e.target.value)}
+                        />
+                      </Box>
+
+                      <Box display="flex" gap={2}>
+                        <button
+                          className="wa-info-save-btn"
+                          onClick={handleSave}
+                          disabled={isSaving || !editedGroupName.trim()}
+                        >
+                          {isSaving ? t('Saving...') : t('Save')}
+                        </button>
+
+                        <button
+                          className="wa-info-cancel-btn"
+                          onClick={handleCancel}
+                          disabled={isSaving}
+                        >
+                          {t('Cancel')}
+                        </button>
+                      </Box>
+                    </div>
+                  )}
+
+                  {!isChangingGroup && !isEditing && (
+                    <>
+                      <Box className="wa-input-wrapper">
+                        <input
+                          className="wa-input"
+                          value={groupName ?? ''}
+                          disabled
+                        />
+
+                        <img
+                          src="/assets/icons/EditIcon2.svg"
+                          alt="Edit"
+                          className="wa-input-edit-icon"
+                          onClick={handleEdit}
+                        />
+                      </Box>
+
+                      <button
+                        className="wa-change-btn"
+                        onClick={openChangeGroupPopup}
+                      >
+                        {t('Change')}
+                      </button>
+                    </>
+                  )}
+                </Box>
               </Box>
-            </Box>
-          )}
+            )}
 
           {isStatusResolved && !isChangingGroup && (
             <>

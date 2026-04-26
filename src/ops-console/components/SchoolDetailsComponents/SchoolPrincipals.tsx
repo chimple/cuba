@@ -30,6 +30,9 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import OpsGenericPopup from '../../common/OpsGenericPopup';
 import DeleteIcon from '../../assets/icons/deleteicon.svg';
 import logger from '../../../utility/logger';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
 
 interface DisplayPrincipal {
   id: string;
@@ -79,6 +82,11 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
     useState<PrincipalInfo | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const [popup, setPopup] = useState({
     open: false,
     image: '',
@@ -321,33 +329,37 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         </Typography>
       ),
     },
-    {
-      key: 'interactPayload',
-      label: t('Interact'),
-      align: 'center',
-      width: 60,
-      sortable: false,
-      render: (row) => (
-        <Box className="school-principals-interactCell">
-          <IconButton
-            size="small"
-            onClick={async () => {
-              setOpenPopup(true);
-              const currPrincipal = getPrincipalInfo(row.id);
-              if (currPrincipal) {
-                setCurrentPrincipal(currPrincipal);
-              }
-            }}
-          >
-            <img
-              src="/assets/icons/Interact.svg"
-              alt="Interact"
-              className="school-principals-interactIcon"
-            />
-          </IconButton>
-        </Box>
-      ),
-    },
+    ...(!isExternalUser
+      ? [
+          {
+            key: 'interactPayload',
+            label: t('Interact'),
+            align: 'center',
+            width: 60,
+            sortable: false,
+            render: (row) => (
+              <Box className="school-principals-interactCell">
+                <IconButton
+                  size="small"
+                  onClick={async () => {
+                    setOpenPopup(true);
+                    const currPrincipal = getPrincipalInfo(row.id);
+                    if (currPrincipal) {
+                      setCurrentPrincipal(currPrincipal);
+                    }
+                  }}
+                >
+                  <img
+                    src="/assets/icons/Interact.svg"
+                    alt="Interact"
+                    className="school-principals-interactIcon"
+                  />
+                </IconButton>
+              </Box>
+            ),
+          } as Column<DisplayPrincipal>,
+        ]
+      : []),
 
     {
       key: 'phoneEmailDisplay', // 🔹 use merged column
@@ -358,46 +370,50 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         </Typography>
       ),
     },
-    {
-      key: 'principal_actions',
-      label: '',
-      sortable: false,
-      render: (row) => (
-        <Box className="school-principals-actionsCell">
-          <ActionMenu
-            items={[
-              {
-                name: t('Delete'),
-                icon: (
-                  <DeleteOutlineIcon
-                    fontSize="small"
-                    className="school-principals-actionDeleteIcon"
-                  />
-                ),
-                onClick: () => {
-                  const fullPrincipal = getPrincipalInfo(row.id);
-                  if (!fullPrincipal) return;
-                  setDeleteTargetPrincipal(fullPrincipal);
-                  setIsDeleteModalOpen(true);
-                },
-              },
-            ]}
-            renderTrigger={(open) => (
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  open(e);
-                }}
-                className="school-principals-actionTrigger"
-              >
-                <MoreHoriz className="school-principals-actionTriggerIcon" />
-              </IconButton>
-            )}
-          />
-        </Box>
-      ),
-    },
+    ...(!isExternalUser
+      ? [
+          {
+            key: 'principal_actions',
+            label: '',
+            sortable: false,
+            render: (row) => (
+              <Box className="school-principals-actionsCell">
+                <ActionMenu
+                  items={[
+                    {
+                      name: t('Delete'),
+                      icon: (
+                        <DeleteOutlineIcon
+                          fontSize="small"
+                          className="school-principals-actionDeleteIcon"
+                        />
+                      ),
+                      onClick: () => {
+                        const fullPrincipal = getPrincipalInfo(row.id);
+                        if (!fullPrincipal) return;
+                        setDeleteTargetPrincipal(fullPrincipal);
+                        setIsDeleteModalOpen(true);
+                      },
+                    },
+                  ]}
+                  renderTrigger={(open) => (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        open(e);
+                      }}
+                      className="school-principals-actionTrigger"
+                    >
+                      <MoreHoriz className="school-principals-actionTriggerIcon" />
+                    </IconButton>
+                  )}
+                />
+              </Box>
+            ),
+          } as Column<DisplayPrincipal>,
+        ]
+      : []),
   ];
 
   const handleConfirmDelete = async () => {
@@ -546,7 +562,7 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
           </Typography>
         </Box>
         <Box className="school-principals-actionsGroup">
-          {!hideHeaderActions && (
+          {!hideHeaderActions && !isExternalUser && (
             <MuiButton
               variant="outlined"
               onClick={handleAddNewPrincipal}
@@ -608,16 +624,18 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
           <Typography className="school-principals-empty-state-message">
             {t('No principals data found for the selected school')}
           </Typography>
-          <MuiButton
-            variant="text"
-            onClick={handleAddNewPrincipal}
-            className="school-principals-emptyStateAddButton"
-            startIcon={
-              <AddIcon className="school-principals-emptyStateAddButton-icon" />
-            }
-          >
-            {t('Add Principal')}
-          </MuiButton>
+          {!isExternalUser && (
+            <MuiButton
+              variant="text"
+              onClick={handleAddNewPrincipal}
+              className="school-principals-emptyStateAddButton"
+              startIcon={
+                <AddIcon className="school-principals-emptyStateAddButton-icon" />
+              }
+            >
+              {t('Add Principal')}
+            </MuiButton>
+          )}
         </Box>
       )}
 

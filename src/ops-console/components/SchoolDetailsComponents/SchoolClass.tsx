@@ -22,10 +22,19 @@ import { ClassWithDetails, SchoolStats } from '../../pages/SchoolDetailsPage';
 import { TableTypes, AGE_OPTIONS, GENDER } from '../../../common/constants';
 import FormCard, { FieldConfig, MessageConfig } from './FormCard';
 import logger from '../../../utility/logger';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import {
+  filterByProgramGrades,
+  getProgramAllowedGrades,
+  ProgramGradeScopeData,
+} from './ClassDetailsPageUtils';
 
 export type SchoolDetailsData = {
   schoolData?: SchoolData;
-  programData?: any;
+  programData?: ProgramGradeScopeData;
   programManagers?: any[];
   principals?: any[];
   totalPrincipalCount?: number;
@@ -123,6 +132,11 @@ const SchoolClasses: React.FC<Props> = ({
 }) => {
   const isSmall = useMediaQuery('(max-width: 768px)');
   const api = ServiceConfig.getI().apiHandler;
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [mode, setMode] = useState<'create' | 'edit'>('edit');
   const [showForm, setShowForm] = useState<boolean>(false);
@@ -147,9 +161,14 @@ const SchoolClasses: React.FC<Props> = ({
   }, [data]);
 
   const getAll = (): SchoolDetailsData => allDataRef.current;
-  const safeClasses: ClassRow[] = Array.isArray(getAll()?.classData)
-    ? getAll().classData!
-    : [];
+  // Limits the class tab to the grades configured on the current program.
+  const allowedGrades = useMemo(
+    () => getProgramAllowedGrades(data.programData),
+    [data.programData],
+  );
+  const safeClasses: ClassRow[] = useMemo(() => {
+    return filterByProgramGrades(data.classData, allowedGrades);
+  }, [data.classData, allowedGrades]);
   const effectiveClasses = useMemo(
     () =>
       safeClasses.map((classRow) => {
@@ -288,6 +307,7 @@ const SchoolClasses: React.FC<Props> = ({
 
   const handleGenerateCode = async (classId: string) => {
     try {
+      if (isExternalUser) return;
       onGenerateCode?.(classId);
       setLoadingIds((s) => ({ ...s, [classId]: true }));
       const newCode = await api.createClassCode(classId);
@@ -483,31 +503,33 @@ const SchoolClasses: React.FC<Props> = ({
       const isLoading = !!loadingIds[c.id];
       const codeCell = hasCode
         ? codeVal
-        : {
-            render: (
-              <MuiButton
-                variant="outlined"
-                size="small"
-                disabled={isLoading}
-                sx={{
-                  borderRadius: '9999px',
-                  textTransform: 'none',
-                  px: 1.5,
-                  py: 0.25,
-                  height: 28,
-                  fontWeight: 700,
-                  boxShadow:
-                    '0 1px 1px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.06)',
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleGenerateCode(c.id);
-                }}
-              >
-                {isLoading ? t('Generating...') : t('Generate')}
-              </MuiButton>
-            ),
-          };
+        : isExternalUser
+          ? t('Not Generated')
+          : {
+              render: (
+                <MuiButton
+                  variant="outlined"
+                  size="small"
+                  disabled={isLoading}
+                  sx={{
+                    borderRadius: '9999px',
+                    textTransform: 'none',
+                    px: 1.5,
+                    py: 0.25,
+                    height: 28,
+                    fontWeight: 700,
+                    boxShadow:
+                      '0 1px 1px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.06)',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleGenerateCode(c.id);
+                  }}
+                >
+                  {isLoading ? t('Generating...') : t('Generate')}
+                </MuiButton>
+              ),
+            };
 
       const baseRow: TableRowData = {
         id: c.id,
@@ -518,7 +540,7 @@ const SchoolClasses: React.FC<Props> = ({
         curriculum: curriculumDisplay ?? '',
         studentCount: Number.isFinite(c.studentCount) ? c.studentCount : 0,
         actions: {
-          render: (
+          render: isExternalUser ? null : (
             <div
               onClick={(e) => e.stopPropagation()}
               style={{ display: 'flex', justifyContent: 'center' }}
@@ -593,6 +615,8 @@ const SchoolClasses: React.FC<Props> = ({
     });
   }, [
     effectiveClasses,
+    safeClasses,
+    isExternalUser,
     codes,
     loadingIds,
     hasWhatsAppBot,
@@ -653,19 +677,18 @@ const SchoolClasses: React.FC<Props> = ({
         sortable: false,
       });
     }
-    cols.push({
-      key: 'actions',
-      label: t('Actions'),
-      align: 'right',
-      sortable: false,
-    });
+    if (!isExternalUser) {
+      cols.push({
+        key: 'actions',
+        label: t('Actions'),
+        align: 'right',
+        sortable: false,
+      });
+    }
     return cols;
-  }, [hasWhatsAppBot]);
+  }, [hasWhatsAppBot, isExternalUser]);
 
-  const totalCount =
-    typeof getAll()?.totalClassCount === 'number'
-      ? getAll().totalClassCount
-      : safeClasses.length;
+  const totalCount = safeClasses.length;
 
   return selectedClassId ? (
     <ClassDetailsPage
@@ -692,19 +715,21 @@ const SchoolClasses: React.FC<Props> = ({
           </Typography>
         </Box>
 
-        <Box className="schoolclass-actionsGroup">
-          <MuiButton
-            variant="outlined"
-            onClick={() => {
-              setMode('create');
-              setShowForm(true);
-            }}
-            className="schoolclass-newStudentButton-outlined"
-          >
-            <AddIcon className="schoolclass-newStudentButton-outlined-icon" />
-            {!isSmall && t('New Class')}
-          </MuiButton>
-        </Box>
+        {!isExternalUser && (
+          <Box className="schoolclass-actionsGroup">
+            <MuiButton
+              variant="outlined"
+              onClick={() => {
+                setMode('create');
+                setShowForm(true);
+              }}
+              className="schoolclass-newStudentButton-outlined"
+            >
+              <AddIcon className="schoolclass-newStudentButton-outlined-icon" />
+              {!isSmall && t('New Class')}
+            </MuiButton>
+          </Box>
+        )}
       </Box>
 
       {showForm && (
