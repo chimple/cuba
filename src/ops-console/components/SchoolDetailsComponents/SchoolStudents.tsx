@@ -107,8 +107,12 @@ const getWhatsappChipClass = (status: WhatsappGroupStatusKey): string => {
   switch (status) {
     case WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP:
       return 'schoolstudents-whatsapp-chip-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP:
+      return 'schoolstudents-whatsapp-chip-in-group';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP:
       return 'schoolstudents-whatsapp-chip-not-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_AVAILABLE:
+      return 'schoolstudents-whatsapp-chip-not-on-whatsapp';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP:
       return 'schoolstudents-whatsapp-chip-not-on-whatsapp';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED:
@@ -153,6 +157,15 @@ const normalizeWhatsappContactFlag = (value: unknown): 'yes' | 'no' | null => {
   if (normalized === 'yes' || normalized === 'true') return 'yes';
   if (normalized === 'no' || normalized === 'false') return 'no';
   return null;
+};
+
+const getWhatsappAvailabilityStatus = (
+  waContactRaw: unknown,
+): WhatsappGroupStatusKey => {
+  const waContact = normalizeWhatsappContactFlag(waContactRaw);
+  if (waContact === 'yes') return WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP;
+  if (waContact === 'no') return WHATSAPP_GROUP_STATUS_KEYS.NOT_AVAILABLE;
+  return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
 };
 
 interface SchoolStudentsProps {
@@ -539,7 +552,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       (row) => row?.id && row?.group_id && String(row.group_id).trim() !== '',
     );
 
-    // No bot or no linked groups: clear cache so pills show "Not Checked".
+    // Fetch member lists only for classes that already have linked WhatsApp groups.
     if (!bot || !api?.getWhatsappGroupDetails || groupTargets.length === 0) {
       setWhatsappMembersByClass(new Map());
       return;
@@ -635,12 +648,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         ? student.classWithidname?.id
         : (classDataRef?.id ?? student.classWithidname?.id);
       if (!classId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
-      const groupId = getGroupIdForClass(classId);
-      if (!groupId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
 
       const waContactRaw =
         (student.parent as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
         null;
+      const groupId = getGroupIdForClass(classId);
+      // No class group: show user-level WhatsApp availability from is_wa_contact.
+      if (!groupId) return getWhatsappAvailabilityStatus(waContactRaw);
+
       const waContact = normalizeWhatsappContactFlag(waContactRaw);
       if (waContact === 'yes') {
         return isStudentInWhatsappGroup(student)

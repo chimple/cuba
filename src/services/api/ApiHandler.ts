@@ -2189,8 +2189,8 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getGroupIdByInvite(invite_link, bot);
   }
 
-  public async getPhoneDetailsByBotNum(bot: string) {
-    return await this.s.getPhoneDetailsByBotNum(bot);
+  public getPhoneDetailsByBotNum(bot?: string, groupId?: string | null) {
+    return this.s.getPhoneDetailsByBotNum(bot, groupId);
   }
   async updateWhatsAppGroupSettings(
     chatId: string,

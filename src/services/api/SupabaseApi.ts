@@ -12396,20 +12396,93 @@ export class SupabaseApi implements ServiceApi {
   }
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     if (!this.supabase) return [];
-    const { data, error } = await this.supabase.functions.invoke(
-      'get-whatsapp-group-details',
-      {
-        body: { groupId, bot },
-      },
-    );
+
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
+    const getNestedRecord = (
+      value: Json | JsonMap | null | undefined,
+      key: string,
+    ): JsonMap | null => getRecord(getRecord(value)?.[key]);
+
+    let data: Json | JsonMap | null = null;
+    let error: Error | null = null;
+    const getMaytapiErrorCode = (payload: Json | JsonMap | null): string =>
+      String(
+        getRecord(payload)?.code ??
+          getNestedRecord(payload, 'data')?.code ??
+          getNestedRecord(getNestedRecord(payload, 'data'), 'data')?.code ??
+          '',
+      )
+        .trim()
+        .toUpperCase();
+    const isMaytapiBusinessError = (payload: Json | JsonMap | null) => {
+      const code = getMaytapiErrorCode(payload);
+      const root = getRecord(payload);
+      const firstData = getNestedRecord(payload, 'data');
+      const secondData = getNestedRecord(firstData, 'data');
+
+      return Boolean(
+        root?.success === false ||
+        firstData?.success === false ||
+        secondData?.success === false ||
+        root?.type === 'error' ||
+        firstData?.type === 'error' ||
+        secondData?.type === 'error' ||
+        code === 'OA4',
+      );
+    };
+
+    try {
+      const maytapiRes = await this.supabase.functions.invoke(
+        'get-whatsapp-group-details-maytapi',
+        {
+          body: { groupId },
+        },
+      );
+      data = maytapiRes.data as Json | JsonMap | null;
+      error = maytapiRes.error;
+      if (!error && isMaytapiBusinessError(data)) {
+        const code = getMaytapiErrorCode(data);
+        error = new Error(
+          code ? `Maytapi business error: ${code}` : 'Maytapi business error',
+        );
+      }
+    } catch (invokeError) {
+      error =
+        invokeError instanceof Error
+          ? invokeError
+          : new Error(String(invokeError));
+    }
+
+    if (error) {
+      try {
+        const fallback = await this.supabase.functions.invoke(
+          'get-whatsapp-group-details',
+          {
+            body: { groupId, bot },
+          },
+        );
+        data = fallback.data as Json | JsonMap | null;
+        error = fallback.error;
+      } catch (fallbackError) {
+        error =
+          fallbackError instanceof Error
+            ? fallbackError
+            : new Error(String(fallbackError));
+      }
+    }
 
     if (error) {
       throw error;
     }
 
-    return data.data;
+    return getRecord(data)?.data ?? data;
   }
-
   async getParentWhatsappGroupDetails(groupId: string) {
     if (!this.supabase) return [];
     const { data, error } = await this.supabase.rpc(
@@ -12545,21 +12618,88 @@ export class SupabaseApi implements ServiceApi {
     return data;
   }
 
-  async getPhoneDetailsByBotNum(bot: string) {
+  async getPhoneDetailsByBotNum(bot?: string, groupId?: string | null) {
     if (!this.supabase) return [];
-    const { data, error } = await this.supabase.functions.invoke(
-      'get-phoneDetails-by-botNum',
-      {
-        body: { bot },
-      },
-    );
 
-    if (error) {
-      throw error;
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
+
+    let maytapiData: Json | JsonMap | null = null;
+    let maytapiError: Error | null = null;
+
+    try {
+      const maytapiRes = await this.supabase.functions.invoke(
+        'get-phoneDetails-by-botNum-maytapi',
+        {
+          body: { groupId },
+        },
+      );
+      maytapiData = maytapiRes.data as Json | JsonMap | null;
+      maytapiError = maytapiRes.error;
+    } catch (invokeError) {
+      maytapiError =
+        invokeError instanceof Error
+          ? invokeError
+          : new Error(String(invokeError));
     }
-    return data;
-  }
 
+    const parsedMaytapi = getRecord(maytapiData)?.data ?? maytapiData;
+    const maytapiState = String(
+      getRecord(getRecord(parsedMaytapi)?.phone)?.wa_state ?? '',
+    )
+      .trim()
+      .toUpperCase();
+    const maytapiSuccess = getRecord(maytapiData)?.success !== false;
+
+    if (!maytapiError && maytapiSuccess && maytapiState) {
+      logger.info(
+        'getPhoneDetailsByBotNum',
+        parsedMaytapi,
+        'source',
+        'maytapi',
+      );
+      return parsedMaytapi;
+    }
+
+    if (!bot) {
+      throw maytapiError ?? new Error('bot is required for fallback path');
+    }
+
+    let fallbackData: Json | JsonMap | null = null;
+    let fallbackError: Error | null = null;
+    try {
+      const fallback = await this.supabase.functions.invoke(
+        'get-phoneDetails-by-botNum',
+        {
+          body: { bot },
+        },
+      );
+      fallbackData = fallback.data as Json | JsonMap | null;
+      fallbackError = fallback.error;
+    } catch (invokeError) {
+      fallbackError =
+        invokeError instanceof Error
+          ? invokeError
+          : new Error(String(invokeError));
+    }
+
+    const parsedFallback = getRecord(fallbackData)?.data ?? fallbackData;
+    if (!fallbackError) {
+      logger.warn(
+        'getPhoneDetailsByBotNum',
+        parsedFallback,
+        'source',
+        'periskope',
+      );
+      return parsedFallback;
+    }
+    throw fallbackError ?? maytapiError;
+  }
   async updateWhatsAppGroupSettings(
     chatId: string,
     phone: string,
@@ -12570,21 +12710,75 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<boolean> {
     if (!this.supabase) return false;
 
-    const { data, error } = await this.supabase.functions.invoke(
-      'edit-whatsapp-group-details',
-      {
-        body: {
-          chatId,
-          phone,
-          name,
-          messagesAdminsOnly,
-          infoAdminsOnly,
-          addMembersAdminsOnly,
-        },
-      },
-    );
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
 
-    return Boolean(data?.success && !error);
+    let data: Json | JsonMap | null = null;
+    let error: Error | null = null;
+
+    const maytapiConfig: JsonMap = {
+      name: name ?? '',
+    };
+    if (typeof infoAdminsOnly === 'boolean') {
+      maytapiConfig.edit = infoAdminsOnly ? 'admins' : 'all';
+    }
+    if (typeof messagesAdminsOnly === 'boolean') {
+      maytapiConfig.send = messagesAdminsOnly ? 'admins' : 'all';
+    }
+    if (typeof addMembersAdminsOnly === 'boolean') {
+      maytapiConfig.membersCanAddMembers = !addMembersAdminsOnly;
+    }
+
+    try {
+      const maytapiRes = await this.supabase.functions.invoke(
+        'edit-whatsapp-group-details-maytapi',
+        {
+          body: {
+            conversation_id: chatId,
+            config: maytapiConfig,
+          },
+        },
+      );
+      data = maytapiRes.data as Json | JsonMap | null;
+      error = maytapiRes.error;
+    } catch (invokeError) {
+      error =
+        invokeError instanceof Error
+          ? invokeError
+          : new Error(String(invokeError));
+    }
+
+    if (error) {
+      try {
+        const fallback = await this.supabase.functions.invoke(
+          'edit-whatsapp-group-details',
+          {
+            body: {
+              chatId,
+              phone,
+              name,
+              messagesAdminsOnly,
+              infoAdminsOnly,
+              addMembersAdminsOnly,
+            },
+          },
+        );
+        data = fallback.data as Json | JsonMap | null;
+        error = fallback.error;
+      } catch (fallbackError) {
+        error =
+          fallbackError instanceof Error
+            ? fallbackError
+            : new Error(String(fallbackError));
+      }
+    }
+
+    return Boolean(getRecord(data)?.success && !error);
   }
   async getWhatsAppGroupByInviteLink(
     inviteLink: string,
@@ -12597,24 +12791,114 @@ export class SupabaseApi implements ServiceApi {
   } | null> {
     if (!this.supabase) return null;
 
-    const { data, error } = await this.supabase.functions.invoke(
-      'get-groupId-by-invite',
-      {
-        body: {
-          invite_link: inviteLink,
-          bot,
-        },
-      },
-    );
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
+    const getLookupPayload = (payload: Json | JsonMap | null): JsonMap | null =>
+      getRecord(getRecord(payload)?.data) ?? getRecord(payload);
 
-    if (error || !data?.success) {
+    const getGroupIdFromPayload = (payload: Json | JsonMap | null): string => {
+      const parsed = getLookupPayload(payload);
+      return String(
+        parsed?.group_id ?? parsed?.id ?? parsed?.conversation_id ?? '',
+      ).trim();
+    };
+
+    const getGroupNameFromPayload = (
+      payload: Json | JsonMap | null,
+    ): string => {
+      const parsed = getLookupPayload(payload);
+      return String(
+        parsed?.group_name ?? parsed?.name ?? parsed?.subject ?? '',
+      ).trim();
+    };
+
+    const getMembersCountFromPayload = (
+      payload: Json | JsonMap | null,
+    ): number => {
+      const parsed = getLookupPayload(payload);
+      const members = parsed?.members;
+      const participants = parsed?.participants;
+
+      if (Array.isArray(members)) return members.length;
+      if (Array.isArray(participants)) return participants.length;
+
+      const count = Number(
+        parsed?.members_count ?? members ?? parsed?.size ?? 0,
+      );
+      return Number.isFinite(count) ? count : 0;
+    };
+
+    const isLookupErrorPayload = (
+      payload: Json | JsonMap | null,
+      groupId: string,
+    ): boolean => {
+      const parsed = getLookupPayload(payload);
+      return Boolean(
+        !groupId ||
+        getRecord(payload)?.success === false ||
+        parsed?.success === false ||
+        getRecord(payload)?.type === 'error' ||
+        parsed?.type === 'error',
+      );
+    };
+
+    let data: Json | JsonMap | null = null;
+    let error: Error | null = null;
+
+    try {
+      const maytapiRes = await this.supabase.functions.invoke(
+        'get-groupId-by-invite-maytapi',
+        {
+          body: {
+            invite_link: inviteLink,
+          },
+        },
+      );
+      data = maytapiRes.data as Json | JsonMap | null;
+      error = maytapiRes.error;
+      const maytapiGroupId = getGroupIdFromPayload(data);
+      if (!error && isLookupErrorPayload(data, maytapiGroupId)) {
+        error = new Error('Maytapi invite lookup business error');
+      }
+    } catch (invokeError) {
+      error =
+        invokeError instanceof Error
+          ? invokeError
+          : new Error(String(invokeError));
+    }
+
+    if (error) {
+      try {
+        const fallback = await this.supabase.functions.invoke(
+          'get-groupId-by-invite',
+          {
+            body: {
+              invite_link: inviteLink,
+              bot,
+            },
+          },
+        );
+        data = fallback.data as Json | JsonMap | null;
+        error = fallback.error;
+      } catch (fallbackError) {
+        error =
+          fallbackError instanceof Error
+            ? fallbackError
+            : new Error(String(fallbackError));
+      }
+    }
+
+    const groupId = getGroupIdFromPayload(data);
+    if (error || isLookupErrorPayload(data, groupId)) {
       logger.error('Invite lookup failed', error || data);
       return null;
     }
 
-    const groupId = data.group_id;
-
-    // Update class table with group_id and updated_at
     const { error: updateError } = await this.supabase
       .from(TABLES.Class)
       .update({
@@ -12628,7 +12912,11 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
 
-    return data;
+    return {
+      group_id: groupId,
+      group_name: getGroupNameFromPayload(data),
+      members: getMembersCountFromPayload(data),
+    };
   }
   async getAssignmentInfoForLessonsPerClass(
     classId: string,

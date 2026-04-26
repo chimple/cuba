@@ -8968,8 +8968,8 @@ order by
   async getGroupIdByInvite(invite_link: string, bot: string) {
     return await this._serverApi.getGroupIdByInvite(invite_link, bot);
   }
-  async getPhoneDetailsByBotNum(bot: string) {
-    return await this._serverApi.getPhoneDetailsByBotNum(bot);
+  getPhoneDetailsByBotNum(bot?: string, groupId?: string | null) {
+    return this._serverApi.getPhoneDetailsByBotNum(bot, groupId);
   }
   async updateWhatsAppGroupSettings(
     chatId: string,
@@ -8979,7 +8979,14 @@ order by
     infoAdminsOnly?: boolean,
     addMembersAdminsOnly?: boolean,
   ): Promise<boolean> {
-    throw new Error('Method not implemented.');
+    return await this._serverApi.updateWhatsAppGroupSettings(
+      chatId,
+      phone,
+      name,
+      messagesAdminsOnly,
+      infoAdminsOnly,
+      addMembersAdminsOnly,
+    );
   }
   async getWhatsAppGroupByInviteLink(
     inviteLink: string,
@@ -8990,7 +8997,11 @@ order by
     group_name: string;
     members: number;
   } | null> {
-    throw new Error('Method not implemented.');
+    return await this._serverApi.getWhatsAppGroupByInviteLink(
+      inviteLink,
+      bot,
+      classId,
+    );
   }
 
   mergeUserPathway(

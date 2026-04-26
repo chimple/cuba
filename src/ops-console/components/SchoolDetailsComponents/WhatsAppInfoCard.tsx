@@ -11,11 +11,13 @@ import logger from '../../../utility/logger';
 type WhatsAppInfoCardProps = {
   classData?: TableTypes<'class'>;
   schoolData?: TableTypes<'school'>;
+  onGroupLinked?: (classId: string, groupId: string) => void;
 };
 
 const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   classData,
   schoolData,
+  onGroupLinked,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const groupId = classData?.group_id;
@@ -47,14 +49,12 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
       try {
         const updatedClass = await api.getClassById(classData.id);
         if (updatedClass) setClassDoc(updatedClass);
-
         if (!updatedClass?.group_id || !bot) {
           resetPopup();
           setIsChangingGroup(true);
           setIsDisconnectedGroup(false);
           return;
         }
-
         const group = await api.getWhatsappGroupDetails(
           updatedClass.group_id,
           bot,
@@ -109,7 +109,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [classData?.id, bot]);
+  }, []);
 
   const handleEdit = () => {
     setEditedGroupName(groupName ?? '');
@@ -122,11 +122,12 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   };
 
   const handleSave = async () => {
-    if (!groupId || !bot) return;
+    const targetGroupId = classDoc?.group_id ?? groupId ?? '';
+    if (!targetGroupId || !bot) return;
 
     setIsSaving(true);
     const success = await api.updateWhatsAppGroupSettings(
-      classDoc?.group_id ?? '',
+      targetGroupId,
       bot,
       editedGroupName,
     );
@@ -168,10 +169,11 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
     setError(null);
 
     try {
+      const linkedClassId = String(classDoc?.id ?? classData?.id ?? '').trim();
       const result = await api.getWhatsAppGroupByInviteLink(
         normalized,
         bot,
-        classDoc?.id!,
+        linkedClassId,
       );
       if (result) {
         setGroupName(result.group_name);
@@ -182,6 +184,9 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
         );
         setIsChangingGroup(false);
         setIsDisconnectedGroup(false);
+        if (linkedClassId) {
+          onGroupLinked?.(linkedClassId, result.group_id);
+        }
       } else {
         setError(t('No WhatsApp group found for this invite link'));
         return;

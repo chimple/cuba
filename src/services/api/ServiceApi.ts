@@ -2867,11 +2867,12 @@ export interface ServiceApi {
   getGroupIdByInvite(invite_link: string, bot: string): Promise<Json>;
 
   /**
-   * Fetch phone/botNum details using bot num.
-   * @param {string} bot - The WhatsApp bot phone number.
+   * Fetch phone/botNum details, optionally scoped by WhatsApp group id.
+   * @param {string} bot - The WhatsApp bot phone number (used for fallback path).
+   * @param {string | null} groupId - Optional WhatsApp group id for Maytapi group-based checks.
    * @returns Promise resolving to the phoneNum details
    */
-  getPhoneDetailsByBotNum(bot: string): Promise<Json>;
+  getPhoneDetailsByBotNum(bot?: string, groupId?: string | null): Promise<Json>;
   /**
    * Updates WhatsApp group settings such as name, admin-only permissions, etc.
    *
