@@ -116,8 +116,12 @@ const getWhatsappChipClass = (status: WhatsappGroupStatusKey): string => {
   switch (status) {
     case WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP:
       return 'schoolstudents-whatsapp-chip-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP:
+      return 'schoolstudents-whatsapp-chip-in-group';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP:
       return 'schoolstudents-whatsapp-chip-not-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_AVAILABLE:
+      return 'schoolstudents-whatsapp-chip-not-on-whatsapp';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP:
       return 'schoolstudents-whatsapp-chip-not-on-whatsapp';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED:
@@ -164,6 +168,14 @@ const normalizeWhatsappContactFlag = (value: unknown): 'yes' | 'no' | null => {
   return null;
 };
 
+const getWhatsappAvailabilityStatus = (
+  waContactRaw: unknown,
+): WhatsappGroupStatusKey => {
+  const waContact = normalizeWhatsappContactFlag(waContactRaw);
+  if (waContact === 'yes') return WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP;
+  if (waContact === 'no') return WHATSAPP_GROUP_STATUS_KEYS.NOT_AVAILABLE;
+  return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+};
 const mapBandToOpsLabel = (band?: string | null): OpsPerformanceLabel => {
   switch (band) {
     case STUDENT_PERFORMANCE_BAND_KEYS.GREEN:
@@ -597,46 +609,33 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     });
   }, [baseStudents, allowedGrades]);
 
-  const normalizedStudents = useMemo(
-    () =>
-      programFilteredStudents.map((s: any) => {
-        const user = s.user ?? s;
-
-        return {
-          ...s,
-          user: {
-            id: user.id,
-            name: user.name ?? undefined,
-            email: user.email ?? undefined,
-            student_id: user.student_id ?? undefined,
-            phone: user.phone ?? undefined,
-            gender: user.gender ?? 'N/A',
-          },
-          className: s.classSection ?? 'N/A',
-          parent: s.parent ?? {
-            id: s.parent_id ?? undefined,
-            name: s.parent_name ?? '',
-            phone: s.parent_phone ?? s.phone ?? undefined,
-            email: s.parent_email ?? s.email ?? undefined,
-          },
-        };
-      }),
+  const normalizedStudents = useMemo<ApiStudentData[]>(
+    () => programFilteredStudents,
     [programFilteredStudents],
   );
 
-  const filteredStudents = useMemo(
-    () =>
-      filterBySearchAndFilters(
-        normalizedStudents,
-        {
-          grade: filters.grade ?? [],
-          section: (filters.section ?? []).map((s) => String(s).trim()),
-        },
-        searchTerm,
-        'student',
-      ),
-    [normalizedStudents, filters, searchTerm],
-  );
+  const filteredStudents = useMemo(() => {
+    const searchableStudents = normalizedStudents.map((student, index) => ({
+      index,
+      user: {
+        name: student.user.name ?? undefined,
+        email: student.user.email ?? undefined,
+        student_id: student.user.student_id ?? undefined,
+      },
+      grade: student.grade,
+      classSection: student.classSection,
+    }));
+
+    return filterBySearchAndFilters(
+      searchableStudents,
+      {
+        grade: filters.grade ?? [],
+        section: (filters.section ?? []).map((s) => String(s).trim()),
+      },
+      searchTerm,
+      'student',
+    ).map((student) => normalizedStudents[student.index]);
+  }, [normalizedStudents, filters, searchTerm]);
 
   const sortedStudents = useMemo(() => {
     // Standard sorting for all columns
@@ -740,7 +739,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       (row) => row?.id && row?.group_id && String(row.group_id).trim() !== '',
     );
 
-    // No bot or no linked groups: clear cache so pills show "Not Checked".
+    // Fetch member lists only for classes that already have linked WhatsApp groups.
     if (!bot || !api?.getWhatsappGroupDetails || groupTargets.length === 0) {
       setWhatsappMembersByClass(new Map());
       return;
@@ -837,12 +836,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         ? student.classWithidname?.id
         : (classDataRef?.id ?? student.classWithidname?.id);
       if (!classId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
-      const groupId = getGroupIdForClass(classId);
-      if (!groupId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
 
       const waContactRaw =
         (student.parent as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
         null;
+      const groupId = getGroupIdForClass(classId);
+      // No class group: show user-level WhatsApp availability from is_wa_contact.
+      if (!groupId) return getWhatsappAvailabilityStatus(waContactRaw);
+
       const waContact = normalizeWhatsappContactFlag(waContactRaw);
       if (waContact === 'yes') {
         return isStudentInWhatsappGroup(student)
