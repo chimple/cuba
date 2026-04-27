@@ -1,5 +1,11 @@
 import logger from '../utility/logger';
 import {
+  applyFreezePanesToWorkbook,
+  XLSX_EXPORT_BORDER_COLOR,
+  XLSX_EXPORT_FONT_NAME,
+  XLSX_EXPORT_FONT_SIZE,
+} from '../utility/xlsxExportUtils';
+import {
   WorkerAckMessage,
   BackgroundWorkerTask,
   BuildXlsxFilePayload,
@@ -23,8 +29,6 @@ import {
 
 const workerScope = globalThis as unknown as DedicatedWorkerGlobalScope;
 let xlsxModulePromise: Promise<typeof import('xlsx-js-style')> | null = null;
-const EXPORT_FONT_NAME = 'Inter';
-const EXPORT_FONT_SIZE = 10;
 type XlsxModule = typeof import('xlsx-js-style');
 type XlsxSheetRow = Record<string, unknown>;
 type XlsxWorksheetStyle = {
@@ -42,24 +46,10 @@ type WritableWorksheet = Record<string, unknown> & {
   ['!rows']?: unknown;
   ['!merges']?: unknown;
 };
-type JsZipWorksheetFile = {
-  async: (type: 'string') => Promise<string>;
-};
-type JsZipWorkbook = {
-  file: {
-    (path: string): JsZipWorksheetFile | null;
-    (path: string, data: string): unknown;
-  };
-  generateAsync: (options: { type: 'arraybuffer' }) => Promise<ArrayBuffer>;
-};
-type JsZipStatic = {
-  loadAsync: (input: ArrayBuffer) => Promise<JsZipWorkbook>;
-};
 const getWrappedCellMaxLineLength = (value: string | number | undefined) =>
   String(value ?? '')
     .split('\n')
     .reduce((maxLength, line) => Math.max(maxLength, line.length), 0);
-const EXPORT_BORDER_COLOR = '7A8699';
 const getXlsx = async (): Promise<XlsxModule> => {
   if (!xlsxModulePromise) {
     xlsxModulePromise = import('xlsx-js-style');
@@ -621,7 +611,7 @@ const buildXlsxFile = async (
     const applyCellBorders = (
       rowCount: number,
       columnCount: number,
-      borderColor = EXPORT_BORDER_COLOR,
+      borderColor = XLSX_EXPORT_BORDER_COLOR,
     ) => {
       for (let rowIndex = 0; rowIndex < rowCount; rowIndex += 1) {
         for (let columnIndex = 0; columnIndex < columnCount; columnIndex += 1) {
@@ -635,8 +625,8 @@ const buildXlsxFile = async (
             ...cell.s,
             font: {
               ...(cell.s?.font ?? {}),
-              name: EXPORT_FONT_NAME,
-              sz: EXPORT_FONT_SIZE,
+              name: XLSX_EXPORT_FONT_NAME,
+              sz: XLSX_EXPORT_FONT_SIZE,
             },
             border: {
               top: { style: 'thin', color: { rgb: borderColor } },
@@ -660,8 +650,8 @@ const buildXlsxFile = async (
           ...cell.s,
           font: {
             ...(cell.s?.font ?? {}),
-            name: EXPORT_FONT_NAME,
-            sz: EXPORT_FONT_SIZE,
+            name: XLSX_EXPORT_FONT_NAME,
+            sz: XLSX_EXPORT_FONT_SIZE,
             bold: true,
             color: { rgb: 'FFFFFF' },
           },
@@ -767,7 +757,11 @@ const buildXlsxFile = async (
     type: 'array',
   });
   const outputBuffer = toArrayBuffer(output);
-  const frozenBuffer = await applyFreezePanesToWorkbook(outputBuffer, payload);
+  const frozenBuffer = await applyFreezePanesToWorkbook(
+    outputBuffer,
+    payload.sheetNames,
+    payload.sheetFreeze,
+  );
   return {
     fileBuffer: frozenBuffer,
   };
@@ -796,75 +790,6 @@ const bytesToBase64 = (bytes: Uint8Array): string => {
     binary += String.fromCharCode(...chunk);
   }
   return btoa(binary);
-};
-
-const FREEZE_PANE_REGEX = /<sheetViews>([\s\S]*?)<\/sheetViews>/;
-const SELF_CLOSING_SHEET_VIEW_REGEX = /<sheetView([^>]*)\/>/;
-const OPEN_SHEET_VIEW_REGEX = /<sheetView([^>]*)>/;
-const EXISTING_PANE_REGEX = /<pane[^>]*\/>/;
-const EXISTING_SELECTION_REGEX = /<selection[^>]*\/>/g;
-
-const injectFreezePaneXml = (
-  xml: string,
-  freeze: {
-    xSplit: number;
-    ySplit: number;
-    topLeftCell: string;
-    activePane: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
-    activeCell?: string;
-    sqref?: string;
-  },
-) => {
-  const paneXml = `<pane xSplit="${freeze.xSplit}" ySplit="${freeze.ySplit}" topLeftCell="${freeze.topLeftCell}" activePane="${freeze.activePane}" state="frozen"/>`;
-  const selectionXml = `<selection pane="${freeze.activePane}" activeCell="${freeze.activeCell ?? freeze.topLeftCell}" sqref="${freeze.sqref ?? freeze.topLeftCell}"/>`;
-
-  return xml.replace(FREEZE_PANE_REGEX, (sheetViewsXml) => {
-    if (SELF_CLOSING_SHEET_VIEW_REGEX.test(sheetViewsXml)) {
-      return sheetViewsXml.replace(
-        SELF_CLOSING_SHEET_VIEW_REGEX,
-        `<sheetView$1>${paneXml}${selectionXml}</sheetView>`,
-      );
-    }
-
-    if (OPEN_SHEET_VIEW_REGEX.test(sheetViewsXml)) {
-      const withoutPane = sheetViewsXml.replace(EXISTING_PANE_REGEX, '');
-      const withoutSelection = withoutPane.replace(
-        EXISTING_SELECTION_REGEX,
-        '',
-      );
-      return withoutSelection.replace(
-        OPEN_SHEET_VIEW_REGEX,
-        `<sheetView$1>${paneXml}${selectionXml}`,
-      );
-    }
-
-    return sheetViewsXml;
-  });
-};
-
-const applyFreezePanesToWorkbook = async (
-  fileBuffer: ArrayBuffer,
-  payload: BuildXlsxFilePayload,
-) => {
-  const freezeEntries = Object.entries(payload.sheetFreeze ?? {});
-  if (freezeEntries.length === 0) return fileBuffer;
-
-  const JSZip = (await import('jszip')).default as JsZipStatic;
-  const zip = await JSZip.loadAsync(fileBuffer);
-
-  for (const [sheetName, freeze] of freezeEntries) {
-    const sheetIndex = payload.sheetNames.indexOf(sheetName);
-    if (sheetIndex < 0) continue;
-
-    const worksheetPath = `xl/worksheets/sheet${sheetIndex + 1}.xml`;
-    const worksheetFile = zip.file(worksheetPath);
-    if (!worksheetFile) continue;
-
-    const worksheetXml = await worksheetFile.async('string');
-    zip.file(worksheetPath, injectFreezePaneXml(worksheetXml, freeze));
-  }
-
-  return zip.generateAsync({ type: 'arraybuffer' });
 };
 
 const downloadRemoteAudio = async (

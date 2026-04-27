@@ -7,38 +7,25 @@ import logger from '../../utility/logger';
 import { runBackgroundWorkerTask } from '../../workers/backgroundWorkerClient';
 import {
   fetchSchoolListPage,
-  type SchoolListRow,
   type SchoolListSourceRow,
 } from './SchoolList.fetcher';
+import { type DateRangeValue, type Filters } from './SchoolList.helpers';
+import { buildSchoolListExportSheetRows } from './SchoolList.export';
 import {
-  getSchoolListExportColumns,
-  type DateRangeValue,
-  type Filters,
-} from './SchoolList.helpers';
-import {
-  isSchoolMetricCell,
-  mapSchoolRowsToRenderRows,
-} from './SchoolListRowRenderer';
+  applyFreezePanesToWorkbook,
+  type FreezePaneConfig,
+  XLSX_EXPORT_BORDER_COLOR,
+  XLSX_EXPORT_FONT_NAME,
+  XLSX_EXPORT_FONT_SIZE,
+} from '../../utility/xlsxExportUtils';
 
 const EXPORT_SHEET_NAME = 'Schools';
 const EXPORT_FILE_NAME = 'SchoolMetrics.xlsx';
-const EXPORT_BORDER_COLOR = 'D0D7DE';
 const EXPORT_PAGE_SIZE = 500;
-const EXPORT_FONT_NAME = 'Inter';
-const EXPORT_FONT_SIZE = 10;
 type XlsxModule = typeof XLSXModule;
 type XlsxWorkSheet = XLSXModule.WorkSheet;
 
 let xlsxModulePromise: Promise<XlsxModule> | null = null;
-
-type FreezePaneConfig = {
-  xSplit: number;
-  ySplit: number;
-  topLeftCell: string;
-  activePane: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
-  activeCell?: string;
-  sqref?: string;
-};
 
 type UseSchoolListExportParams = {
   api: ServiceApi;
@@ -63,68 +50,6 @@ const getXlsx = async (): Promise<XlsxModule> => {
     xlsxModulePromise = import('xlsx-js-style');
   }
   return xlsxModulePromise;
-};
-
-const getExportCellText = (cellValue: unknown) => {
-  if (isSchoolMetricCell(cellValue)) {
-    return cellValue.text.trim().length > 0 ? cellValue.text : '--';
-  }
-
-  if (cellValue === null || cellValue === undefined || cellValue === '') {
-    return '--';
-  }
-
-  return String(cellValue);
-};
-
-// Converts row cells into the exact export-friendly value or paired % cell text.
-const getExportCellPartText = (
-  row: SchoolListRow,
-  key: keyof SchoolListRow,
-  part: 'value' | 'percent',
-) => {
-  if (key === 'name' && part === 'value') {
-    const schoolName =
-      row.name.exportValueText?.trim().length &&
-      row.name.exportValueText !== '--'
-        ? row.name.exportValueText
-        : getExportCellText(row.name);
-    const udiseLocation = getExportCellText(row.udiseLocation);
-    return udiseLocation === '--'
-      ? schoolName
-      : `${schoolName}\n${udiseLocation}`;
-  }
-
-  const cellValue = row[key];
-
-  if (isSchoolMetricCell(cellValue)) {
-    if (part === 'percent') {
-      return cellValue.exportPercentText?.trim().length
-        ? cellValue.exportPercentText
-        : '--';
-    }
-
-    return cellValue.exportValueText?.trim().length
-      ? cellValue.exportValueText
-      : cellValue.text.trim().length > 0
-        ? cellValue.text
-        : '--';
-  }
-
-  if (part === 'percent') return '--';
-  return getExportCellText(cellValue);
-};
-
-const buildExportSheetRows = (rows: SchoolListRow[]) => {
-  const exportColumns = getSchoolListExportColumns();
-  return [
-    exportColumns.map((column) => column.label),
-    ...rows.map((row) =>
-      exportColumns.map((column) =>
-        getExportCellPartText(row, column.key, column.part),
-      ),
-    ),
-  ];
 };
 
 // Adjacent duplicate headers are merged so value and % columns stay grouped.
@@ -204,14 +129,14 @@ const applyCellBorders = (
         ...cell.s,
         font: {
           ...(cell.s?.font ?? {}),
-          name: EXPORT_FONT_NAME,
-          sz: EXPORT_FONT_SIZE,
+          name: XLSX_EXPORT_FONT_NAME,
+          sz: XLSX_EXPORT_FONT_SIZE,
         },
         border: {
-          top: { style: 'thin', color: { rgb: EXPORT_BORDER_COLOR } },
-          bottom: { style: 'thin', color: { rgb: EXPORT_BORDER_COLOR } },
-          left: { style: 'thin', color: { rgb: EXPORT_BORDER_COLOR } },
-          right: { style: 'thin', color: { rgb: EXPORT_BORDER_COLOR } },
+          top: { style: 'thin', color: { rgb: XLSX_EXPORT_BORDER_COLOR } },
+          bottom: { style: 'thin', color: { rgb: XLSX_EXPORT_BORDER_COLOR } },
+          left: { style: 'thin', color: { rgb: XLSX_EXPORT_BORDER_COLOR } },
+          right: { style: 'thin', color: { rgb: XLSX_EXPORT_BORDER_COLOR } },
         },
       };
     }
@@ -232,8 +157,8 @@ const applyHeaderRowFormatting = (
       ...cell.s,
       font: {
         ...(cell.s?.font ?? {}),
-        name: EXPORT_FONT_NAME,
-        sz: EXPORT_FONT_SIZE,
+        name: XLSX_EXPORT_FONT_NAME,
+        sz: XLSX_EXPORT_FONT_SIZE,
         bold: true,
         color: { rgb: 'FFFFFF' },
       },
@@ -317,47 +242,17 @@ const applyMergedHeaderFormatting = (
   });
 };
 
-// Main-thread fallback still patches freeze panes so Excel opens in the right view.
-const applyFreezePanesToWorkbook = async (
-  fileBuffer: ArrayBuffer,
-  freeze: FreezePaneConfig,
-) => {
-  const { default: JSZip } = await import('jszip');
-  const zip = await JSZip.loadAsync(fileBuffer);
-  const worksheetPath = 'xl/worksheets/sheet1.xml';
-  const worksheetFile = zip.file(worksheetPath);
-  if (!worksheetFile) return fileBuffer;
-
-  const paneXml = `<pane xSplit="${freeze.xSplit}" ySplit="${freeze.ySplit}" topLeftCell="${freeze.topLeftCell}" activePane="${freeze.activePane}" state="frozen"/>`;
-  const selectionXml = `<selection pane="${freeze.activePane}" activeCell="${freeze.activeCell ?? freeze.topLeftCell}" sqref="${freeze.sqref ?? freeze.topLeftCell}"/>`;
-
-  const worksheetXml = await worksheetFile.async('string');
-  const updatedWorksheetXml = worksheetXml.replace(
-    /<sheetViews>([\s\S]*?)<\/sheetViews>/,
-    (sheetViewsXml) => {
-      if (/<sheetView([^>]*)\/>/.test(sheetViewsXml)) {
-        return sheetViewsXml.replace(
-          /<sheetView([^>]*)\/>/,
-          `<sheetView$1>${paneXml}${selectionXml}</sheetView>`,
-        );
-      }
-
-      const withoutPane = sheetViewsXml.replace(/<pane[^>]*\/>/, '');
-      const withoutSelection = withoutPane.replace(/<selection[^>]*\/>/g, '');
-      return withoutSelection.replace(
-        /<sheetView([^>]*)>/,
-        `<sheetView$1>${paneXml}${selectionXml}`,
-      );
-    },
-  );
-
-  zip.file(worksheetPath, updatedWorksheetXml);
-  return zip.generateAsync({ type: 'arraybuffer' });
-};
-
 const buildExportWorkbook = async (sheetRows: string[][]) => {
   const headers = sheetRows[0] ?? [];
   const headerMerges = buildHeaderMerges(headers);
+  const sheetFreeze = {
+    [EXPORT_SHEET_NAME]: {
+      xSplit: 1,
+      ySplit: 1,
+      topLeftCell: 'B2',
+      activePane: 'bottomRight',
+    } satisfies FreezePaneConfig,
+  };
 
   try {
     const builtWorkbook = await runBackgroundWorkerTask('BUILD_XLSX_FILE', {
@@ -371,14 +266,7 @@ const buildExportWorkbook = async (sheetRows: string[][]) => {
       sheetWrapColumns: {
         [EXPORT_SHEET_NAME]: [0],
       },
-      sheetFreeze: {
-        [EXPORT_SHEET_NAME]: {
-          xSplit: 1,
-          ySplit: 1,
-          topLeftCell: 'B2',
-          activePane: 'bottomRight',
-        },
-      },
+      sheetFreeze,
       sheetMerges: {
         [EXPORT_SHEET_NAME]: headerMerges,
       },
@@ -403,12 +291,7 @@ const buildExportWorkbook = async (sheetRows: string[][]) => {
       bookType: 'xlsx',
       type: 'array',
     }) as ArrayBuffer;
-    return applyFreezePanesToWorkbook(output, {
-      xSplit: 1,
-      ySplit: 1,
-      topLeftCell: 'B2',
-      activePane: 'bottomRight',
-    });
+    return applyFreezePanesToWorkbook(output, [EXPORT_SHEET_NAME], sheetFreeze);
   }
 };
 
@@ -487,9 +370,7 @@ export const useSchoolListExport = ({
         searchTerm,
         selectedDateRange,
       });
-      const exportSheetRows = buildExportSheetRows(
-        mapSchoolRowsToRenderRows(exportSchools),
-      );
+      const exportSheetRows = buildSchoolListExportSheetRows(exportSchools);
       const output = await buildExportWorkbook(exportSheetRows);
 
       const blob = new Blob([output], {
