@@ -159,6 +159,11 @@ const UserDetailsPage: React.FC = () => {
     (user.name === userData?.user?.name &&
       userRole === userData?.userRole &&
       previewUrl == null);
+  const editRoleOptions = availableEditRoles.includes(userRole as RoleType)
+    ? availableEditRoles
+    : userRole
+      ? [userRole as RoleType]
+      : availableEditRoles;
 
   return (
     <div className="user-details-page">
@@ -262,7 +267,7 @@ const UserDetailsPage: React.FC = () => {
             onChange={(e) => setUserRole(e.target.value)}
           >
             {isEdit
-              ? availableEditRoles.map((role: string) => (
+              ? editRoleOptions.map((role: string) => (
                   <option key={role} value={role}>
                     {RoleLabels[role as RoleType]}
                   </option>
