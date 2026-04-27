@@ -9039,73 +9039,46 @@ export class SupabaseApi implements ServiceApi {
     };
 
     try {
-      const { data, error } = await this.supabase
-        .from(TABLES.SchoolMetrics)
-        .select(
-          'state, district, block, cluster, program_type, partners, program_managers, field_coordinators',
-        )
-        .eq('is_deleted', false);
+      const { data, error } = await this.supabase.rpc(
+        'get_school_filter_options',
+      );
 
       if (error) {
-        logger.error('Error fetching school_metrics filter options:', error);
+        logger.error(
+          'RPC error in getSchoolFilterOptionsForSchoolListing:',
+          error,
+        );
         return emptyOptions;
       }
 
-      const parsed: Record<string, Set<string>> = {
-        state: new Set(),
-        district: new Set(),
-        block: new Set(),
-        programType: new Set(),
-        partner: new Set(),
-        programManager: new Set(),
-        fieldCoordinator: new Set(),
-        cluster: new Set(),
-      };
-
-      for (const row of (data ?? []) as Array<{
-        state?: string | null;
-        district?: string | null;
-        block?: string | null;
-        cluster?: string | null;
-        program_type?: string | null;
-        partners?: Array<string | null> | string[] | null;
-        program_managers?: Array<string | null> | string[] | null;
-        field_coordinators?: Array<string | null> | string[] | null;
-      }>) {
-        if (row.state) parsed.state.add(row.state);
-        if (row.district) parsed.district.add(row.district);
-        if (row.block) parsed.block.add(row.block);
-        if (row.cluster) parsed.cluster.add(row.cluster);
-        if (
-          row.program_type &&
-          Object.values(ProgramType).includes(row.program_type as ProgramType)
-        ) {
-          parsed.programType.add(row.program_type);
-        }
-
-        for (const partner of row.partners ?? []) {
-          if (partner) parsed.partner.add(partner);
-        }
-        for (const manager of row.program_managers ?? []) {
-          if (manager) parsed.programManager.add(manager);
-        }
-        for (const coordinator of row.field_coordinators ?? []) {
-          if (coordinator) parsed.fieldCoordinator.add(coordinator);
-        }
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        return emptyOptions;
       }
 
-      const finalOptions: Record<string, string[]> = {
-        state: Array.from(parsed.state).sort(),
-        district: Array.from(parsed.district).sort(),
-        block: Array.from(parsed.block).sort(),
-        programType: Array.from(parsed.programType).sort(),
-        partner: Array.from(parsed.partner).sort(),
-        programManager: Array.from(parsed.programManager).sort(),
-        fieldCoordinator: Array.from(parsed.fieldCoordinator).sort(),
-        cluster: Array.from(parsed.cluster).sort(),
-      };
+      const rpcData = data as Record<string, Json>;
 
-      return finalOptions;
+      return {
+        state: Array.isArray(rpcData.state) ? (rpcData.state as string[]) : [],
+        district: Array.isArray(rpcData.district)
+          ? (rpcData.district as string[])
+          : [],
+        block: Array.isArray(rpcData.block) ? (rpcData.block as string[]) : [],
+        programType: Array.isArray(rpcData.programType)
+          ? (rpcData.programType as string[])
+          : [],
+        partner: Array.isArray(rpcData.partner)
+          ? (rpcData.partner as string[])
+          : [],
+        programManager: Array.isArray(rpcData.programManager)
+          ? (rpcData.programManager as string[])
+          : [],
+        fieldCoordinator: Array.isArray(rpcData.fieldCoordinator)
+          ? (rpcData.fieldCoordinator as string[])
+          : [],
+        cluster: Array.isArray(rpcData.cluster)
+          ? (rpcData.cluster as string[])
+          : [],
+      };
     } catch (err) {
       logger.error('Unexpected error in getSchoolFilterOptions:', err);
       return emptyOptions;

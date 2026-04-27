@@ -60,9 +60,10 @@ const SchoolListDateRangeDropdown: React.FC<
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         PaperProps={{ className: 'school-list-actions-menu' }}
       >
-        {DATE_RANGE_OPTIONS.map((option, index) => (
-          <React.Fragment key={option.value}>
+        {DATE_RANGE_OPTIONS.flatMap((option, index) => {
+          const nodes = [
             <MenuItem
+              key={option.value}
               className="school-list-actions-menu-item"
               onClick={() => handleSelect(option.value)}
             >
@@ -72,12 +73,20 @@ const SchoolListDateRangeDropdown: React.FC<
                   className: 'school-list-actions-menu-item-label',
                 }}
               />
-            </MenuItem>
-            {index < DATE_RANGE_OPTIONS.length - 1 && (
-              <Divider className="school-list-actions-menu-divider" />
-            )}
-          </React.Fragment>
-        ))}
+            </MenuItem>,
+          ];
+
+          if (index < DATE_RANGE_OPTIONS.length - 1) {
+            nodes.push(
+              <Divider
+                key={`${option.value}-divider`}
+                className="school-list-actions-menu-divider"
+              />,
+            );
+          }
+
+          return nodes;
+        })}
       </Menu>
     </>
   );
