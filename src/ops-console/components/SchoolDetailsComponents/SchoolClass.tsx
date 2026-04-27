@@ -141,6 +141,9 @@ const SchoolClasses: React.FC<Props> = ({
   const [mode, setMode] = useState<'create' | 'edit'>('edit');
   const [showForm, setShowForm] = useState<boolean>(false);
   const [exitStatuses, setExitStatuses] = useState<Record<string, boolean>>({});
+  const [groupIdOverrides, setGroupIdOverrides] = useState<
+    Record<string, string>
+  >({});
   const [editingClass, setEditingClass] = useState<ClassRow | null>(null);
   const [waMetaLoading, setWaMetaLoading] = useState(true);
 
@@ -166,6 +169,17 @@ const SchoolClasses: React.FC<Props> = ({
   const safeClasses: ClassRow[] = useMemo(() => {
     return filterByProgramGrades(data.classData, allowedGrades);
   }, [data.classData, allowedGrades]);
+  const effectiveClasses = useMemo(
+    () =>
+      safeClasses.map((classRow) => {
+        const groupIdOverride = groupIdOverrides[classRow.id];
+        if (!groupIdOverride || groupIdOverride === classRow.group_id) {
+          return classRow;
+        }
+        return { ...classRow, group_id: groupIdOverride };
+      }),
+    [safeClasses, groupIdOverrides],
+  );
 
   const bot = getAll()?.schoolData?.whatsapp_bot_number;
   const hasWhatsAppBot = typeof bot === 'string' && /^\d{12}$/.test(bot.trim());
@@ -178,24 +192,23 @@ const SchoolClasses: React.FC<Props> = ({
     if (!bot) return; // 🚨 wait until bot exists
 
     let cancelled = false;
+    setWaMetaLoading(true);
 
     (async () => {
-      const promises = safeClasses
+      const promises = effectiveClasses
         .filter((c) => c.group_id)
         .map(async (c) => {
           try {
-            const res = await api.getWhatsappGroupDetails(c.group_id!, bot);
-            const parsed =
-              typeof res === 'object' && res !== null && !Array.isArray(res)
-                ? (res as { is_exited?: boolean })
-                : null;
-            return { classId: c.id, isExited: parsed?.is_exited ?? false };
+            await api.getWhatsappGroupDetails(c.group_id!, bot);
+            return { classId: c.id, isExited: false };
           } catch (err) {
             logger.error(
               `Failed to fetch WhatsApp group details for group ${c.group_id}:`,
               err,
             );
-            return null;
+            // If we cannot verify membership status for this group, treat it as
+            // disconnected to avoid showing a false connected state.
+            return { classId: c.id, isExited: true };
           }
         });
 
@@ -205,22 +218,25 @@ const SchoolClasses: React.FC<Props> = ({
         return;
       }
 
-      const newStatuses = results
-        .filter((r): r is { classId: string; isExited: boolean } => r !== null)
-        .reduce(
-          (acc, { classId, isExited }) => {
-            acc[classId] = isExited;
-            return acc;
-          },
-          {} as Record<string, boolean>,
-        );
+      const newStatuses = results.reduce(
+        (acc, { classId, isExited }) => {
+          acc[classId] = isExited;
+          return acc;
+        },
+        {} as Record<string, boolean>,
+      );
 
-      setExitStatuses((prev) => ({ ...prev, ...newStatuses }));
+      setExitStatuses(newStatuses);
     })();
 
     (async () => {
       try {
-        const details = await api.getPhoneDetailsByBotNum(String(bot));
+        const firstGroupId =
+          effectiveClasses.find((c) => Boolean(c.group_id))?.group_id ?? null;
+        const details = await api.getPhoneDetailsByBotNum(
+          String(bot),
+          firstGroupId,
+        );
         if (!cancelled) setPhoneDetails(details);
       } catch (e) {
         logger.error('getPhoneDetailsByBotNum failed', e);
@@ -232,9 +248,7 @@ const SchoolClasses: React.FC<Props> = ({
     return () => {
       cancelled = true;
     };
-  }, [bot]); // ✅ MUST depend on bot
-
-  logger.info('WhatsApp Phone Details value:', phoneDetails);
+  }, [api, bot, effectiveClasses, groupIdOverrides]);
 
   useEffect(() => {
     let cancelled = false;
@@ -451,20 +465,32 @@ const SchoolClasses: React.FC<Props> = ({
   };
 
   const rows = useMemo<TableRowData[]>(() => {
-    return safeClasses.map((c) => {
+    return effectiveClasses.map((c) => {
       const classLabel = typeof c.name === 'string' ? c.name.trim() : '';
 
       const subjectsDisplay = c.subjectsNames;
       const curriculumDisplay = c.curriculumNames;
       const isGroupConnected = hasValue(c.group_id ?? '');
+      const hasExitStatus = Object.prototype.hasOwnProperty.call(
+        exitStatuses,
+        c.id,
+      );
+      const botState = String(
+        phoneDetails?.phone?.wa_state ??
+          phoneDetails?.phone?.state ??
+          phoneDetails?.phone?.status ??
+          '',
+      )
+        .trim()
+        .toUpperCase();
       const isBotConnected =
-        phoneDetails?.phone.wa_state === 'CONNECTED' && !exitStatuses[c.id];
+        botState === 'CONNECTED' && hasExitStatus && !exitStatuses[c.id];
       let waStatus: 'connected' | 'disconnected' | 'not_connected' | 'loading';
 
-      if (waMetaLoading) {
-        waStatus = 'loading'; // ✅ don't guess yet
-      } else if (!isGroupConnected) {
+      if (!isGroupConnected) {
         waStatus = 'not_connected';
+      } else if (waMetaLoading || !hasExitStatus) {
+        waStatus = 'loading'; // Keep row loading until this class status is known.
       } else if (isBotConnected) {
         waStatus = 'connected';
       } else {
@@ -587,6 +613,7 @@ const SchoolClasses: React.FC<Props> = ({
       return baseRow;
     });
   }, [
+    effectiveClasses,
     safeClasses,
     isExternalUser,
     codes,
@@ -594,15 +621,25 @@ const SchoolClasses: React.FC<Props> = ({
     hasWhatsAppBot,
     phoneDetails,
     waMetaLoading,
+    exitStatuses,
   ]);
 
   const selectedRow = useMemo(
     () =>
       selectedClassId
-        ? (safeClasses.find((c) => c.id === selectedClassId) ?? null)
+        ? (effectiveClasses.find((c) => c.id === selectedClassId) ?? null)
         : null,
-    [selectedClassId, safeClasses],
+    [selectedClassId, effectiveClasses],
   );
+
+  const handleGroupLinked = (classId: string, groupId: string) => {
+    const classIdValue = String(classId ?? '').trim();
+    const groupIdValue = String(groupId ?? '').trim();
+    if (!classIdValue || !groupIdValue) return;
+
+    setGroupIdOverrides((prev) => ({ ...prev, [classIdValue]: groupIdValue }));
+    setExitStatuses((prev) => ({ ...prev, [classIdValue]: false }));
+  };
 
   const selectedClassCode = useMemo(() => {
     if (!selectedClassId) return undefined;
@@ -660,6 +697,7 @@ const SchoolClasses: React.FC<Props> = ({
       classRow={selectedRow}
       classCodeOverride={selectedClassCode}
       totalStudentsOverride={selectedTotalStudents}
+      onGroupLinked={handleGroupLinked}
       onBack={() => setSelectedClassId(null)}
     />
   ) : (

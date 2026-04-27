@@ -135,8 +135,12 @@ const getWhatsappChipClass = (status: WhatsappGroupStatusKey): string => {
   switch (status) {
     case WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP:
       return 'schoolteachers-whatsapp-chip-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP:
+      return 'schoolteachers-whatsapp-chip-in-group';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP:
       return 'schoolteachers-whatsapp-chip-not-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_AVAILABLE:
+      return 'schoolteachers-whatsapp-chip-not-on-whatsapp';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP:
       return 'schoolteachers-whatsapp-chip-not-on-whatsapp';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED:
@@ -192,6 +196,15 @@ const normalizeWhatsappContactFlag = (value: unknown): 'yes' | 'no' | null => {
   if (normalized === 'yes' || normalized === 'true') return 'yes';
   if (normalized === 'no' || normalized === 'false') return 'no';
   return null;
+};
+
+const getWhatsappAvailabilityStatus = (
+  waContactRaw: unknown,
+): WhatsappGroupStatusKey => {
+  const waContact = normalizeWhatsappContactFlag(waContactRaw);
+  if (waContact === 'yes') return WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP;
+  if (waContact === 'no') return WHATSAPP_GROUP_STATUS_KEYS.NOT_AVAILABLE;
+  return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
 };
 
 const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
@@ -455,7 +468,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       (row) => row?.id && row?.group_id && String(row.group_id).trim() !== '',
     );
 
-    // No bot or no linked groups: clear cache so pills show "Not Checked".
+    // Fetch member lists only for classes that already have linked WhatsApp groups.
     if (!bot || !api?.getWhatsappGroupDetails || groupTargets.length === 0) {
       setWhatsappMembersByClass(new Map());
       return;
@@ -670,8 +683,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     (teacher: TeacherInfo): WhatsappGroupStatusKey => {
       const classId = teacher.classWithidname?.id;
       if (!classId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+      const waContactRaw =
+        (teacher.user as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
+        null;
       const groupId = getGroupIdForClass(classId);
-      if (!groupId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
+      // No class group: show user-level WhatsApp availability from is_wa_contact.
+      if (!groupId) return getWhatsappAvailabilityStatus(waContactRaw);
 
       const teacherPhone = normalizePhone10(String(teacher.user?.phone ?? ''));
       if (teacherPhone && studentPhoneSet.has(teacherPhone)) {
@@ -679,9 +696,6 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
           : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
       }
-      const waContactRaw =
-        (teacher.user as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
-        null;
       const waContact = normalizeWhatsappContactFlag(waContactRaw);
       if (waContact === 'yes') {
         return isTeacherInWhatsappGroup(teacher)
