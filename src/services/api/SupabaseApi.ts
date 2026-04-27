@@ -8045,9 +8045,9 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async validateWhatsappGroupId(
+  async validateWhatsappGroupLink(
     whatsappBotNumber: string,
-    whatsappGroupId: string,
+    whatsappGroupLink: string,
   ): Promise<{ status: string; errors?: string[] }> {
     if (!this.supabase) {
       return {
@@ -8061,8 +8061,8 @@ export class SupabaseApi implements ServiceApi {
         'whatsapp-group-validate',
         {
           body: {
+            invite_link: whatsappGroupLink.trim(),
             phone: whatsappBotNumber.trim(),
-            group_id: whatsappGroupId.trim(),
           },
         },
       );
@@ -8070,7 +8070,7 @@ export class SupabaseApi implements ServiceApi {
       if (error) {
         return {
           status: 'error',
-          errors: [error.message || 'WHATSAPP GROUP ID validation failed.'],
+          errors: [error.message || 'WHATSAPP GROUP LINK validation failed.'],
         };
       }
 
@@ -8080,7 +8080,7 @@ export class SupabaseApi implements ServiceApi {
 
       return {
         status: 'error',
-        errors: [data?.error || 'Invalid WHATSAPP GROUP ID.'],
+        errors: [data?.error || 'Invalid WHATSAPP GROUP LINK.'],
       };
     } catch (err) {
       return {

@@ -1432,11 +1432,14 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ status: string; errors?: string[] }> {
     return this.s.validateWhatsappBotNumber(whatsappBotNumber);
   }
-  async validateWhatsappGroupId(
+  async validateWhatsappGroupLink(
     whatsappBotNumber: string,
-    whatsappGroupId: string,
+    whatsappGroupLink: string,
   ): Promise<{ status: string; errors?: string[] }> {
-    return this.s.validateWhatsappGroupId(whatsappBotNumber, whatsappGroupId);
+    return this.s.validateWhatsappGroupLink(
+      whatsappBotNumber,
+      whatsappGroupLink,
+    );
   }
   public async setStarsForStudents(
     studentId: string,

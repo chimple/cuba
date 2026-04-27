@@ -1906,9 +1906,9 @@ export interface ServiceApi {
   validateWhatsappBotNumber(
     whatsappBotNumber: string,
   ): Promise<{ status: string; errors?: string[] }>;
-  validateWhatsappGroupId(
+  validateWhatsappGroupLink(
     whatsappBotNumber: string,
-    whatsappGroupId: string,
+    whatsappGroupLink: string,
   ): Promise<{ status: string; errors?: string[] }>;
   /**
    * setting a stars for the student

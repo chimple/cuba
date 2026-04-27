@@ -657,7 +657,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       if (sheet.toLowerCase().includes('class')) {
         const schoolWhatsappBotCache = new Map<string, string>();
         const schoolUuidCache = new Map<string, string>();
-        const schoolClassGroupCache = new Map<
+        const schoolClassInviteLinkCache = new Map<
           string,
           Map<string, string | null>
         >();
@@ -674,11 +674,10 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const studentCount = row['STUDENTS COUNT IN CLASS']
             ?.toString()
             .trim();
-          const whatsappGroupId = row['WHATSAPP GROUP ID']?.toString().trim();
-          const normalizedWhatsappGroupId =
-            whatsappGroupId?.toLowerCase() || '';
-          if (whatsappGroupId) {
-            row['WHATSAPP GROUP ID'] = normalizedWhatsappGroupId;
+          const whatsappGroupLink =
+            row['WHATSAPP GROUP LINK']?.toString().trim() || '';
+          if (whatsappGroupLink) {
+            row['WHATSAPP GROUP LINK'] = whatsappGroupLink;
           }
 
           // --- ⬇️ GRADE VALIDATION ADDED HERE ⬇️ ---
@@ -755,16 +754,16 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             errors.push(...(validationResponse.errors || []));
           }
 
-          if (whatsappGroupId) {
+          if (whatsappGroupLink) {
             if (!schoolId) {
               errors.push(
-                'SCHOOL ID is required to validate WHATSAPP GROUP ID.',
+                'SCHOOL ID is required to validate WHATSAPP GROUP LINK.',
               );
             } else {
-              let classGroupMap = schoolClassGroupCache.get(schoolId);
+              let classInviteLinkMap = schoolClassInviteLinkCache.get(schoolId);
 
-              if (!classGroupMap) {
-                classGroupMap = new Map<string, string | null>();
+              if (!classInviteLinkMap) {
+                classInviteLinkMap = new Map<string, string | null>();
                 try {
                   let schoolUuid = schoolUuidCache.get(schoolId) || '';
 
@@ -792,44 +791,44 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                     for (const cls of classes || []) {
                       const dbClassName = cls?.name?.toString().trim();
                       if (!dbClassName) continue;
-                      const dbGroupId =
-                        cls?.group_id?.toString().trim() || null;
+                      const dbInviteLink =
+                        cls?.whatsapp_invite_link?.toString().trim() || null;
                       const dbClassKey = normalizeClassNameKey(dbClassName);
-                      const existingGroupId = classGroupMap.get(dbClassKey);
+                      const existingInviteLink =
+                        classInviteLinkMap.get(dbClassKey);
 
-                      if (!classGroupMap.has(dbClassKey)) {
-                        classGroupMap.set(dbClassKey, dbGroupId);
-                      } else if (!existingGroupId && dbGroupId) {
-                        classGroupMap.set(dbClassKey, dbGroupId);
+                      if (!classInviteLinkMap.has(dbClassKey)) {
+                        classInviteLinkMap.set(dbClassKey, dbInviteLink);
+                      } else if (!existingInviteLink && dbInviteLink) {
+                        classInviteLinkMap.set(dbClassKey, dbInviteLink);
                       } else if (
-                        existingGroupId &&
-                        dbGroupId &&
-                        existingGroupId !== dbGroupId
+                        existingInviteLink &&
+                        dbInviteLink &&
+                        existingInviteLink !== dbInviteLink
                       ) {
                         logger.warn(
-                          `Multiple group IDs found for class ${dbClassName} in school ${schoolId}. Keeping ${existingGroupId} and ignoring ${dbGroupId}.`,
+                          `Multiple invite links found for class ${dbClassName} in school ${schoolId}. Keeping ${existingInviteLink} and ignoring ${dbInviteLink}.`,
                         );
                       }
                     }
                   }
                 } catch (classFetchError) {
                   logger.warn(
-                    `Failed to fetch class group IDs for school ${schoolId}`,
+                    `Failed to fetch class invite links for school ${schoolId}`,
                     classFetchError,
                   );
                 }
 
-                schoolClassGroupCache.set(schoolId, classGroupMap);
+                schoolClassInviteLinkCache.set(schoolId, classInviteLinkMap);
               }
 
-              const dbGroupId =
-                classGroupMap.get(classNameKey)?.toString().trim() || '';
-              const normalizedDbGroupId = dbGroupId.toLowerCase();
+              const dbInviteLink =
+                classInviteLinkMap.get(classNameKey)?.toString().trim() || '';
 
-              if (dbGroupId) {
-                if (normalizedDbGroupId !== normalizedWhatsappGroupId) {
+              if (dbInviteLink) {
+                if (dbInviteLink !== whatsappGroupLink) {
                   errors.push(
-                    `WHATSAPP GROUP ID mismatch for class "${className}". Sheet has "${whatsappGroupId}" but server has "${dbGroupId}".`,
+                    `WHATSAPP GROUP LINK mismatch for class "${className}". Sheet has "${whatsappGroupLink}" but server has "${dbInviteLink}".`,
                   );
                 }
               } else {
@@ -855,17 +854,17 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
 
                 if (!whatsappBotNumber) {
                   errors.push(
-                    'WHATSAPP BOT NUMBER is not available for this school. Cannot validate WHATSAPP GROUP ID.',
+                    'WHATSAPP BOT NUMBER is not available for this school. Cannot validate WHATSAPP GROUP LINK.',
                   );
                 } else {
-                  const groupValidation = await api.validateWhatsappGroupId(
+                  const groupValidation = await api.validateWhatsappGroupLink(
                     whatsappBotNumber,
-                    normalizedWhatsappGroupId,
+                    whatsappGroupLink,
                   );
                   if (groupValidation.status === 'error') {
                     errors.push(
                       ...(groupValidation.errors || [
-                        'Invalid WHATSAPP GROUP ID.',
+                        'Invalid WHATSAPP GROUP LINK.',
                       ]),
                     );
                   }

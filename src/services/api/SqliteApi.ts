@@ -6575,18 +6575,18 @@ order by
     }
     return { status: 'success' };
   }
-  async validateWhatsappGroupId(
+  async validateWhatsappGroupLink(
     whatsappBotNumber: string,
-    whatsappGroupId: string,
+    whatsappGroupLink: string,
   ): Promise<{ status: string; errors?: string[] }> {
-    const response = await this._serverApi.validateWhatsappGroupId(
+    const response = await this._serverApi.validateWhatsappGroupLink(
       whatsappBotNumber,
-      whatsappGroupId,
+      whatsappGroupLink,
     );
     if (response.status === 'error') {
       return {
         status: 'error',
-        errors: response.errors || ['Invalid WHATSAPP GROUP ID'],
+        errors: response.errors || ['Invalid WHATSAPP GROUP LINK'],
       };
     }
     return { status: 'success' };
