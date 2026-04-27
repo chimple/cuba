@@ -1273,14 +1273,17 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [programScopedClasses]);
 
   const currentClass = useMemo(() => {
-    if (
-      !issTotal &&
-      optionalGrade !== undefined &&
-      optionalSection !== undefined
-    ) {
+    if (!issTotal) {
       const classDataArray = data.classData || [];
+      const scopedClassId = String(optionalClassId ?? '').trim();
       if (classDataArray.length > 0) {
-        const classFromData = classDataArray[0];
+        const classFromData =
+          (scopedClassId
+            ? classDataArray.find(
+                (classRow) =>
+                  String(classRow?.id ?? '').trim() === scopedClassId,
+              )
+            : classDataArray[0]) ?? null;
         if (classFromData?.id && classFromData?.name) {
           return { id: classFromData.id, name: classFromData.name };
         }
@@ -1288,8 +1291,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       const matchingStudent = baseStudents.find((student: any) => {
         const classInfo = student.classWithidname;
         return (
-          student.grade === optionalGrade &&
-          sameSection(student.classSection, optionalSection) &&
+          (!scopedClassId ||
+            String(classInfo?.id ?? '').trim() === scopedClassId ||
+            (student.grade === optionalGrade &&
+              sameSection(student.classSection, optionalSection))) &&
           classInfo?.id &&
           classInfo?.class_name
         );
@@ -1304,7 +1309,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       return null;
     }
     return null;
-  }, [issTotal, optionalGrade, optionalSection, baseStudents, data.classData]);
+  }, [
+    issTotal,
+    optionalClassId,
+    optionalGrade,
+    optionalSection,
+    baseStudents,
+    data.classData,
+  ]);
 
   const addStudentFields: FieldConfig[] = useMemo(() => {
     if (issTotal) {
