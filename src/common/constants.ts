@@ -1120,6 +1120,8 @@ export const AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY =
   'auto_open_sticker_completion_popup';
 export const PENDING_PATHWAY_STICKER_REWARD_KEY =
   'pending_pathway_sticker_reward';
+export const PENDING_FINAL_HOMEWORK_COMPLETE_AFTER_STICKER_FLOW_KEY =
+  'pending_final_homework_complete_after_sticker_flow';
 export const STICKER_BOOK_COMPLETION_READY_EVENT =
   'sticker_book_completion_ready';
 export const PATHWAY_REWARD_CELEBRATION_STARTED_EVENT =

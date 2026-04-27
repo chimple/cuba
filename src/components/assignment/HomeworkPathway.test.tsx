@@ -6,7 +6,11 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { MemoryRouter } from 'react-router';
 import { useFeatureIsOn } from '@growthbook/growthbook-react';
-import { HOMEWORK_PATHWAY, LIVE_QUIZ } from '../../common/constants';
+import {
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
+  HOMEWORK_PATHWAY,
+  LIVE_QUIZ,
+} from '../../common/constants';
 
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
@@ -100,6 +104,7 @@ const mockApi = {
   getPendingAssignments: jest.fn(),
   getLesson: jest.fn(),
   getCourse: jest.fn(),
+  getCoursesForClassStudent: jest.fn(),
   getChapterById: jest.fn(),
   updateStudentStars: jest.fn(),
   getCompletedAssignmentsCountForSubjects: jest.fn(),
@@ -700,6 +705,50 @@ describe('HomeworkPathway – pathway logic', () => {
       expect(screen.queryByTestId('pathway-structure')).not.toBeInTheDocument();
     });
   });
+
+  test('preserves completed sticker snapshot while sticker flow is pending', async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    const finishedPath = {
+      path_id: 'sticker-path',
+      lessons: [
+        {
+          assignment_id: 'a1',
+          lesson_id: 'l1',
+          chapter_id: 'c1',
+          course_id: 's1',
+          lesson: { id: 'l1', subject_id: 's1', chapter_id: 'c1' },
+        },
+      ],
+      currentIndex: 1,
+      pendingAssignmentIds: ['a1'],
+    };
+
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(finishedPath));
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_PREVIEW_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        awardedStickerId: 'sticker-1',
+      }),
+    );
+
+    mockApi.getPendingAssignments.mockResolvedValue([]);
+    mockApi.getChapterById.mockResolvedValue({ id: 'c1', name: 'Chapter 1' });
+    mockApi.getCourse.mockResolvedValue({ id: 's1', code: 'S1' });
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const pathway = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(pathway.path_id).toBe('sticker-path');
+      expect(pathway.currentIndex).toBe(1);
+    });
+  });
 });
 
 describe('HomeworkPathway – completion flow', () => {
@@ -731,16 +780,55 @@ describe('HomeworkPathway – completion flow', () => {
   test('completion modal appears when homework completes', async () => {
     (useFeatureIsOn as jest.Mock).mockReturnValue(true);
 
-    mockApi.getPendingAssignments.mockResolvedValue([
-      { id: 'a1', type: 'HOMEWORK', lesson_id: 'l1', course_id: 's1' },
-    ]);
-    mockApi.getLesson.mockResolvedValue({
-      id: 'l1',
-      subject_id: 's1',
-      name: 'Lesson 1',
-      chapter_id: 'c1',
+    const initialPathway = {
+      path_id: 'p1',
+      lessons: [
+        {
+          assignment_id: 'a1',
+          lesson_id: 'l1',
+          chapter_id: 'c1',
+          course_id: 's1',
+          lesson: { id: 'l1', subject_id: 's1', name: 'Lesson 1' },
+        },
+      ],
+      currentIndex: 0,
+      pendingAssignmentIds: ['a1'],
+    };
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(initialPathway));
+
+    mockApi.getPendingAssignments
+      .mockResolvedValueOnce([
+        { id: 'a1', type: 'HOMEWORK', lesson_id: 'l1', course_id: 's1' },
+      ])
+      .mockResolvedValue([
+        { id: 'a2', type: 'HOMEWORK', lesson_id: 'l2', course_id: 's2' },
+      ]);
+    mockApi.getLesson.mockImplementation(async (lessonId: string) => {
+      if (lessonId === 'l2') {
+        return {
+          id: 'l2',
+          subject_id: 's2',
+          name: 'Lesson 2',
+          chapter_id: 'c2',
+        };
+      }
+
+      return {
+        id: 'l1',
+        subject_id: 's1',
+        name: 'Lesson 1',
+        chapter_id: 'c1',
+      };
     });
-    mockApi.getChapterById.mockResolvedValue({ id: 'c1', name: 'Chapter 1' });
+    mockApi.getChapterById.mockImplementation(async (chapterId: string) => ({
+      id: chapterId,
+      name: `Chapter ${chapterId}`,
+    }));
+    mockApi.getCourse.mockImplementation(async (courseId: string) => ({
+      id: courseId,
+      code: courseId.toUpperCase(),
+      name: `Course ${courseId}`,
+    }));
 
     render(
       <MemoryRouter>
@@ -750,9 +838,51 @@ describe('HomeworkPathway – completion flow', () => {
 
     await userEvent.click(await screen.findByTestId('pathway-structure'));
 
-    expect(
-      await screen.findByTestId('homework-complete-modal'),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('homework-complete-modal'),
+      ).not.toBeInTheDocument();
+      const refreshedPath = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(refreshedPath.lessons[0].lesson_id).toBe('l2');
+    });
+  });
+
+  test('rebuilds homework instead of showing completion modal when no local path remains', async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    mockApi.getPendingAssignments.mockResolvedValue([
+      { id: 'a2', type: 'HOMEWORK', lesson_id: 'l2', course_id: 's2' },
+    ]);
+    mockApi.getLesson.mockResolvedValue({
+      id: 'l2',
+      subject_id: 's2',
+      name: 'Lesson 2',
+      chapter_id: 'c2',
+    });
+    mockApi.getChapterById.mockResolvedValue({ id: 'c2', name: 'Chapter 2' });
+    mockApi.getCourse.mockResolvedValue({
+      id: 's2',
+      code: 'S2',
+      name: 'Course s2',
+    });
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    localStorage.removeItem(HOMEWORK_PATHWAY);
+
+    await userEvent.click(await screen.findByTestId('pathway-structure'));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('homework-complete-modal'),
+      ).not.toBeInTheDocument();
+      const rebuiltPath = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(rebuiltPath.lessons[0].lesson_id).toBe('l2');
+    });
   });
 
   test('onPlayMoreHomework callback fires', async () => {
