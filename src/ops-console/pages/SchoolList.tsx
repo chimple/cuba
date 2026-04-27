@@ -145,7 +145,7 @@ const SchoolList: React.FC = () => {
     [schools],
   );
   const isLoading = isFilterLoading || isDataLoading;
-  const columns = getSchoolListColumns();
+  const columns = useMemo(() => getSchoolListColumns(), []);
   const { isExporting, isExportDisabled, handleExportSchools } =
     useSchoolListExport({
       api,
