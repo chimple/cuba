@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Chip, Typography } from '@mui/material';
 import { t } from 'i18next';
 import {
-  buildSchoolSubtitle,
+  buildSchoolUdiseLocationLabel,
   getSchoolCoordinatorList,
   getStatusMeta,
   resolvePerformanceStatus,
@@ -39,6 +39,8 @@ export const mapSchoolRowsToRenderRows = (
     const completionActivities = pickFirstNumber(
       school.avg_activities_completed,
     );
+    const udiseLocation = buildSchoolUdiseLocationLabel(school);
+    const performanceStatus = resolvePerformanceStatus(school);
 
     return {
       ...school,
@@ -48,27 +50,51 @@ export const mapSchoolRowsToRenderRows = (
         String(t('not assigned yet')),
       name: {
         value: school.school_name,
+        text: udiseLocation
+          ? `${school.school_name}\n${udiseLocation}`
+          : school.school_name,
+        exportValueText: school.school_name,
+        exportPercentText: '',
         render: (
           <Box display="flex" flexDirection="column" alignItems="flex-start">
             <Typography variant="subtitle2">{school.school_name}</Typography>
-            <Typography
-              variant="subtitle2"
-              color="text.secondary"
-              fontSize={'12px'}
-            >
-              {buildSchoolSubtitle(school)}
-            </Typography>
+            {udiseLocation && (
+              <Typography
+                variant="subtitle2"
+                color="text.secondary"
+                fontSize={'12px'}
+              >
+                {udiseLocation}
+              </Typography>
+            )}
           </Box>
         ),
       },
+      udiseLocation: {
+        value: udiseLocation,
+        text: udiseLocation || '--',
+        exportValueText: udiseLocation || '--',
+        exportPercentText: '',
+        render: (
+          <Typography
+            variant="subtitle2"
+            color="text.secondary"
+            fontSize={'12px'}
+          >
+            {udiseLocation || '--'}
+          </Typography>
+        ),
+      },
       schoolPerformance: (() => {
-        const status = resolvePerformanceStatus(school);
-        const meta = getStatusMeta(status);
+        const meta = getStatusMeta(performanceStatus);
         return {
-          value: status || '--',
+          value: performanceStatus || '--',
+          text: performanceStatus || '--',
+          exportValueText: performanceStatus || '--',
+          exportPercentText: '',
           render: (
             <Chip
-              label={status ? t(status) : '--'}
+              label={performanceStatus ? t(performanceStatus) : '--'}
               size="small"
               sx={{
                 backgroundColor: `${meta.bg} !important`,
