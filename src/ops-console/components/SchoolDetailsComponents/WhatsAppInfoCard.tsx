@@ -88,12 +88,10 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                 name?: string;
                 members?: string[];
                 inviteLink?: string;
-                is_exited?: boolean;
               })
             : null;
-        const isExited = parsedGroup?.is_exited === true;
 
-        if (isExited || parsedGroup === null) {
+        if (parsedGroup === null) {
           setGroupName(null);
           setEditedGroupName('');
           setMembers(null);
@@ -149,16 +147,23 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
     if (!targetGroupId || !bot) return;
 
     setIsSaving(true);
-    const success = await api.updateWhatsAppGroupSettings(
-      targetGroupId,
-      bot,
-      editedGroupName,
-    );
-    setIsSaving(false);
+    setError(null);
+    try {
+      const success = await api.updateWhatsAppGroupSettings(
+        targetGroupId,
+        bot,
+        editedGroupName,
+      );
 
-    if (success) {
-      setGroupName(editedGroupName);
-      setIsEditing(false);
+      if (success) {
+        setGroupName(editedGroupName);
+        setIsEditing(false);
+      }
+    } catch (err) {
+      logger.error('Failed to update WhatsApp group settings:', err);
+      setError(t('Something went wrong. Please try again.'));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -300,37 +305,45 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                   )}
 
                   {!isChangingGroup && isEditing && (
-                    <div
-                      className="wa-input-row-editing"
-                      id="wa-input-row-editing-id"
-                    >
-                      <Box className="wa-input-wrapper">
-                        <input
-                          className="wa-input"
-                          value={editedGroupName}
-                          autoFocus
-                          onChange={(e) => setEditedGroupName(e.target.value)}
-                        />
-                      </Box>
+                    <>
+                      <div
+                        className="wa-input-row-editing"
+                        id="wa-input-row-editing-id"
+                      >
+                        <Box className="wa-input-wrapper">
+                          <input
+                            className="wa-input"
+                            value={editedGroupName}
+                            autoFocus
+                            onChange={(e) => setEditedGroupName(e.target.value)}
+                          />
+                        </Box>
 
-                      <Box display="flex" gap={2}>
-                        <button
-                          className="wa-info-save-btn"
-                          onClick={handleSave}
-                          disabled={isSaving || !editedGroupName.trim()}
-                        >
-                          {isSaving ? t('Saving...') : t('Save')}
-                        </button>
+                        <Box display="flex" gap={2}>
+                          <button
+                            className="wa-info-save-btn"
+                            onClick={handleSave}
+                            disabled={isSaving || !editedGroupName.trim()}
+                          >
+                            {isSaving ? t('Saving...') : t('Save')}
+                          </button>
 
-                        <button
-                          className="wa-info-cancel-btn"
-                          onClick={handleCancel}
-                          disabled={isSaving}
-                        >
-                          {t('Cancel')}
-                        </button>
-                      </Box>
-                    </div>
+                          <button
+                            className="wa-info-cancel-btn"
+                            onClick={handleCancel}
+                            disabled={isSaving}
+                          >
+                            {t('Cancel')}
+                          </button>
+                        </Box>
+                      </div>
+
+                      {error && (
+                        <Typography color="error" variant="caption">
+                          {error}
+                        </Typography>
+                      )}
+                    </>
                   )}
 
                   {!isChangingGroup && !isEditing && (

@@ -192,22 +192,15 @@ const SchoolClasses: React.FC<Props> = ({
     if (!bot) return; // 🚨 wait until bot exists
 
     let cancelled = false;
+    setWaMetaLoading(true);
 
     (async () => {
       const promises = effectiveClasses
         .filter((c) => c.group_id)
         .map(async (c) => {
-          if (groupIdOverrides[c.id] === c.group_id) {
-            return { classId: c.id, isExited: false };
-          }
-
           try {
-            const res = await api.getWhatsappGroupDetails(c.group_id!, bot);
-            const parsed =
-              typeof res === 'object' && res !== null && !Array.isArray(res)
-                ? (res as { is_exited?: boolean })
-                : null;
-            return { classId: c.id, isExited: parsed?.is_exited ?? false };
+            await api.getWhatsappGroupDetails(c.group_id!, bot);
+            return { classId: c.id, isExited: false };
           } catch (err) {
             logger.error(
               `Failed to fetch WhatsApp group details for group ${c.group_id}:`,
@@ -233,7 +226,7 @@ const SchoolClasses: React.FC<Props> = ({
         {} as Record<string, boolean>,
       );
 
-      setExitStatuses((prev) => ({ ...prev, ...newStatuses }));
+      setExitStatuses(newStatuses);
     })();
 
     (async () => {
@@ -482,16 +475,22 @@ const SchoolClasses: React.FC<Props> = ({
         exitStatuses,
         c.id,
       );
+      const botState = String(
+        phoneDetails?.phone?.wa_state ??
+          phoneDetails?.phone?.state ??
+          phoneDetails?.phone?.status ??
+          '',
+      )
+        .trim()
+        .toUpperCase();
       const isBotConnected =
-        phoneDetails?.phone?.wa_state === 'CONNECTED' &&
-        hasExitStatus &&
-        !exitStatuses[c.id];
+        botState === 'CONNECTED' && hasExitStatus && !exitStatuses[c.id];
       let waStatus: 'connected' | 'disconnected' | 'not_connected' | 'loading';
 
-      if (waMetaLoading) {
-        waStatus = 'loading'; // ✅ don't guess yet
-      } else if (!isGroupConnected) {
+      if (!isGroupConnected) {
         waStatus = 'not_connected';
+      } else if (waMetaLoading || !hasExitStatus) {
+        waStatus = 'loading'; // Keep row loading until this class status is known.
       } else if (isBotConnected) {
         waStatus = 'connected';
       } else {
