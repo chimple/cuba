@@ -55,8 +55,12 @@ import OpsGenericPopup from '../../common/OpsGenericPopup';
 import DeleteIcon from '../../assets/icons/deleteicon.svg';
 import logger from '../../../utility/logger';
 import {
+  filterByProgramGrades,
   getClassDisplayLabel,
   getExactClassName,
+  getProgramAllowedGrades,
+  isProgramGradeAllowed,
+  ProgramGradeScopeData,
 } from './ClassDetailsPageUtils';
 import {
   getTeacherClassAssignmentDiff,
@@ -64,6 +68,9 @@ import {
   parseClassIdsFromCsv,
   toClassIdsCsv,
 } from './TeacherClassAssignmentUtils';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
 
 // Keys used to select the WhatsApp status label + chip styling.
 type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
@@ -95,6 +102,7 @@ interface EditTeacherAssignmentState {
 interface SchoolTeachersProps {
   data: {
     schoolData?: SchoolData;
+    programData?: ProgramGradeScopeData;
     teachers?: TeacherInfo[];
     totalTeacherCount?: number;
     classData?: ClassRow[];
@@ -106,13 +114,33 @@ interface SchoolTeachersProps {
 
 const ROWS_PER_PAGE = 20;
 
+type TeacherListCacheEntry = {
+  data: TeacherInfo[];
+  total: number;
+};
+
+// Keeps tab switches silent after the first scoped table load.
+const teacherListCache = new Map<string, TeacherListCacheEntry>();
+
+// Separates cached teacher lists by school and active program class scope.
+const getTeacherListCacheKey = (
+  schoolId: string,
+  classIds: string[] | undefined,
+): string => {
+  return `${schoolId}|classes:${classIds?.join(',') ?? 'all'}`;
+};
+
 // Map logical WhatsApp statuses to CSS chip classes.
 const getWhatsappChipClass = (status: WhatsappGroupStatusKey): string => {
   switch (status) {
     case WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP:
       return 'schoolteachers-whatsapp-chip-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP:
+      return 'schoolteachers-whatsapp-chip-in-group';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP:
       return 'schoolteachers-whatsapp-chip-not-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_AVAILABLE:
+      return 'schoolteachers-whatsapp-chip-not-on-whatsapp';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP:
       return 'schoolteachers-whatsapp-chip-not-on-whatsapp';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED:
@@ -170,6 +198,15 @@ const normalizeWhatsappContactFlag = (value: unknown): 'yes' | 'no' | null => {
   return null;
 };
 
+const getWhatsappAvailabilityStatus = (
+  waContactRaw: unknown,
+): WhatsappGroupStatusKey => {
+  const waContact = normalizeWhatsappContactFlag(waContactRaw);
+  if (waContact === 'yes') return WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP;
+  if (waContact === 'no') return WHATSAPP_GROUP_STATUS_KEYS.NOT_AVAILABLE;
+  return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+};
+
 const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   data,
   schoolId,
@@ -177,11 +214,44 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 }) => {
   const history = useHistory();
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
-  const [teachers, setTeachers] = useState<TeacherInfo[]>(data.teachers || []);
-  const [totalCount, setTotalCount] = useState<number>(
-    data.totalTeacherCount || 0,
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  // Derives the active program grade scope before loading teacher rows.
+  const allowedGrades = useMemo(
+    () => getProgramAllowedGrades(data.programData),
+    [data.programData],
+  );
+  const programScopedClasses = useMemo(
+    () => filterByProgramGrades(data.classData, allowedGrades),
+    [data.classData, allowedGrades],
+  );
+  // Converts scoped classes to IDs for server-side teacher filtering.
+  const programScopedClassIds = useMemo(() => {
+    if (!allowedGrades) return undefined;
+    return programScopedClasses
+      .map((classRow) => String(classRow.id ?? '').trim())
+      .filter((classId) => classId !== '');
+  }, [allowedGrades, programScopedClasses]);
+  const hasProgramClassScope = allowedGrades !== null;
+  const initialTeacherCacheKey = getTeacherListCacheKey(
+    schoolId,
+    programScopedClassIds,
+  );
+  const cachedInitialTeachers = teacherListCache.get(initialTeacherCacheKey);
+  const [teachers, setTeachers] = useState<TeacherInfo[]>(
+    cachedInitialTeachers?.data ??
+      (hasProgramClassScope ? [] : data.teachers || []),
+  );
+  const [totalCount, setTotalCount] = useState<number>(
+    cachedInitialTeachers?.total ??
+      (hasProgramClassScope ? 0 : data.totalTeacherCount || 0),
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(
+    hasProgramClassScope && !cachedInitialTeachers,
+  );
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filters, setFilters] = useState<Record<string, string[]>>({
@@ -255,6 +325,21 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           setIsLoading(true);
         }
         const api = ServiceConfig.getI().apiHandler;
+        const cacheKey = getTeacherListCacheKey(
+          schoolId,
+          programScopedClassIds,
+        );
+        const shouldCache = currentPage === 1 && search.trim() === '';
+        // Empty scoped class IDs mean the program intentionally has no teacher rows.
+        if (programScopedClassIds && programScopedClassIds.length === 0) {
+          setTeachers([]);
+          setTotalCount(0);
+          if (shouldCache) {
+            teacherListCache.set(cacheKey, { data: [], total: 0 });
+          }
+          setIsLoading(false);
+          return;
+        }
         try {
           let response;
           if (search && search.trim() !== '') {
@@ -263,17 +348,31 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               search,
               currentPage,
               ROWS_PER_PAGE,
+              programScopedClassIds,
             );
             setTeachers(result.data);
             setTotalCount(result.total);
+            if (shouldCache) {
+              teacherListCache.set(cacheKey, {
+                data: result.data,
+                total: result.total,
+              });
+            }
           } else {
             response = await api.getTeacherInfoBySchoolId(
               schoolId,
               currentPage,
               ROWS_PER_PAGE,
+              programScopedClassIds,
             );
             setTeachers(response.data);
             setTotalCount(response.total);
+            if (shouldCache) {
+              teacherListCache.set(cacheKey, {
+                data: response.data,
+                total: response.total,
+              });
+            }
           }
         } catch (error) {
           logger.error('Failed to fetch teachers:', error);
@@ -282,7 +381,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         }
       }, 500);
     };
-  }, [schoolId]);
+  }, [schoolId, programScopedClassIds]);
 
   useEffect(() => {
     if (isAddTeacherModalOpen) {
@@ -304,12 +403,34 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       filters.grade.length === 0 &&
       filters.section.length === 0;
 
-    if (isInitial) {
-      setTeachers(data.teachers || []);
-      setTotalCount(data.totalTeacherCount || 0);
-      fetchTeachers(page, searchTerm, true);
+    // Reuses prefetched school teachers only when no program scope is active.
+    if (isInitial && !allowedGrades) {
+      const cacheKey = getTeacherListCacheKey(schoolId, programScopedClassIds);
+      const prefetchedTeachers = data.teachers || [];
+      const prefetchedTotal =
+        data.totalTeacherCount ?? prefetchedTeachers.length;
+
+      setTeachers(prefetchedTeachers);
+      setTotalCount(prefetchedTotal);
+      teacherListCache.set(cacheKey, {
+        data: prefetchedTeachers,
+        total: prefetchedTotal,
+      });
+
+      if (prefetchedTeachers.length > 0 || data.totalTeacherCount === 0) {
+        setIsLoading(false);
+      } else {
+        fetchTeachers(page, searchTerm, true);
+      }
+      return;
     } else {
-      fetchTeachers(page, searchTerm);
+      const cacheKey = getTeacherListCacheKey(schoolId, programScopedClassIds);
+      fetchTeachers(
+        page,
+        searchTerm,
+        (isInitial && teacherListCache.has(cacheKey)) ||
+          (isInitial && !allowedGrades),
+      );
     }
   }, [
     page,
@@ -317,35 +438,37 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     data.teachers,
     data.totalTeacherCount,
     searchTerm,
-    filters,
+    filters.grade,
+    filters.section,
+    allowedGrades,
+    programScopedClassIds,
+    schoolId,
   ]);
 
   // Fold classId + group_id into one key so the fetch effect reruns on link changes.
   const classGroupKey = useMemo(() => {
-    const classes = Array.isArray(data.classData) ? data.classData : [];
-    return classes
+    return programScopedClasses
       .map((row) => `${row?.id ?? ''}:${row?.group_id ?? ''}`)
       .join('|');
-  }, [data.classData]);
+  }, [programScopedClasses]);
 
+  // Restricts WhatsApp group lookups to classes visible in the current program.
   const classGroupIdMap = useMemo(() => {
     const map = new Map<string, string>();
-    const classes = Array.isArray(data.classData) ? data.classData : [];
-    classes.forEach((row) => {
+    programScopedClasses.forEach((row) => {
       if (row?.id) map.set(row.id, String(row?.group_id ?? '').trim());
     });
     return map;
-  }, [data.classData]);
+  }, [programScopedClasses]);
 
   useEffect(() => {
     let cancelled = false;
     const bot = data?.schoolData?.whatsapp_bot_number;
-    const classes = Array.isArray(data.classData) ? data.classData : [];
-    const groupTargets = classes.filter(
+    const groupTargets = programScopedClasses.filter(
       (row) => row?.id && row?.group_id && String(row.group_id).trim() !== '',
     );
 
-    // No bot or no linked groups: clear cache so pills show "Not Checked".
+    // Fetch member lists only for classes that already have linked WhatsApp groups.
     if (!bot || !api?.getWhatsappGroupDetails || groupTargets.length === 0) {
       setWhatsappMembersByClass(new Map());
       return;
@@ -399,7 +522,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [api, classGroupKey, data?.schoolData?.whatsapp_bot_number]);
+  }, [
+    api,
+    classGroupKey,
+    data?.schoolData?.whatsapp_bot_number,
+    programScopedClasses,
+  ]);
 
   const getGroupIdForClass = useCallback(
     (classId?: string) => {
@@ -472,18 +600,30 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     return set;
   }, [data.students]);
 
-  const filteredTeachers = useMemo(
-    () =>
-      filterBySearchAndFilters(
-        normalizedTeachers,
-        filters,
-        searchTerm,
-        'teacher',
-      ),
-    [normalizedTeachers, filters, searchTerm],
-  );
+  const filteredTeachers = useMemo(() => {
+    const result = filterBySearchAndFilters(
+      normalizedTeachers,
+      filters,
+      searchTerm,
+      'teacher',
+    );
+    return result;
+  }, [normalizedTeachers, filters, searchTerm]);
+
+  // Applies client-side program filtering to prefetched or search result rows.
+  const programFilteredTeachers = useMemo(() => {
+    if (!allowedGrades) return filteredTeachers;
+    return filteredTeachers.filter((teacher) => {
+      return isProgramGradeAllowed(allowedGrades, {
+        name: getExactClassName(teacher.classWithidname),
+        grade: teacher.grade,
+        section: teacher.classSection,
+      });
+    });
+  }, [filteredTeachers, allowedGrades]);
+
   const sortedTeachers = useMemo(() => {
-    return [...filteredTeachers].sort((a, b) => {
+    return [...programFilteredTeachers].sort((a, b) => {
       let aValue, bValue;
       switch (orderBy) {
         case 'name':
@@ -523,7 +663,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           return 0;
       }
     });
-  }, [filteredTeachers, orderBy, order]);
+  }, [programFilteredTeachers, orderBy, order]);
 
   // Compare the teacher's phone to the WhatsApp members set for the class.
   const isTeacherInWhatsappGroup = useCallback(
@@ -543,8 +683,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     (teacher: TeacherInfo): WhatsappGroupStatusKey => {
       const classId = teacher.classWithidname?.id;
       if (!classId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+      const waContactRaw =
+        (teacher.user as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
+        null;
       const groupId = getGroupIdForClass(classId);
-      if (!groupId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
+      // No class group: show user-level WhatsApp availability from is_wa_contact.
+      if (!groupId) return getWhatsappAvailabilityStatus(waContactRaw);
 
       const teacherPhone = normalizePhone10(String(teacher.user?.phone ?? ''));
       if (teacherPhone && studentPhoneSet.has(teacherPhone)) {
@@ -552,9 +696,6 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
           : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
       }
-      const waContactRaw =
-        (teacher.user as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
-        null;
       const waContact = normalizeWhatsappContactFlag(waContactRaw);
       if (waContact === 'yes') {
         return isTeacherInWhatsappGroup(teacher)
@@ -601,6 +742,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       setTeachersWithPerformance([]);
       return;
     }
+    let cancelled = false;
     async function loadPerformance() {
       const enriched: DisplayTeacher[] = await Promise.all(
         sortedTeachers.map(async (apiTeacher) => {
@@ -631,12 +773,21 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             };
           }
 
-          const count = await api.getRecentAssignmentCountByTeacher(
-            teacherId,
-            classId,
-          );
-
-          const perfLevel = mapCountToPerformance(count);
+          let perfLevel = PerformanceLevel.NOT_TRACKED;
+          try {
+            const activeApi = ServiceConfig.getI().apiHandler;
+            const count = await activeApi.getRecentAssignmentCountByTeacher(
+              teacherId,
+              classId,
+            );
+            perfLevel = mapCountToPerformance(count);
+          } catch (error) {
+            logger.error('Failed to load teacher performance count:', {
+              teacherId,
+              classId,
+              error,
+            });
+          }
 
           return {
             id: teacherId,
@@ -660,10 +811,15 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         }),
       );
 
-      setTeachersWithPerformance(enriched);
+      if (!cancelled) {
+        setTeachersWithPerformance(enriched);
+      }
     }
 
     loadPerformance();
+    return () => {
+      cancelled = true;
+    };
   }, [sortedTeachers]);
 
   // Add WhatsApp status to the rows used by the table.
@@ -677,7 +833,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   );
 
   const mapCountToPerformance = (count: number | null): PerformanceLevel => {
-    if (count === null || count === 0) return PerformanceLevel.NOT_ASSIGNING;
+    if (count === null) return PerformanceLevel.NOT_TRACKED;
+    if (count === 0) return PerformanceLevel.NOT_ASSIGNING;
     if (count >= 1 && count <= 2) return PerformanceLevel.ONE_TO_TWO_ASSIGNED;
     if (count >= 3 && count <= 4)
       return PerformanceLevel.THREE_TO_FOUR_ASSIGNED;
@@ -687,10 +844,10 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
 
   const pageCount = useMemo(() => {
     if (searchTerm || filters.grade.length > 0) {
-      return Math.ceil(filteredTeachers.length / ROWS_PER_PAGE);
+      return Math.ceil(programFilteredTeachers.length / ROWS_PER_PAGE);
     }
     return Math.ceil(totalCount / ROWS_PER_PAGE);
-  }, [totalCount, filters, searchTerm, filteredTeachers.length]);
+  }, [totalCount, filters, searchTerm, programFilteredTeachers.length]);
 
   const isDataPresent = teachersWithWhatsappStatus.length > 0;
   const isFilteringOrSearching =
@@ -833,12 +990,19 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     [schoolId, fetchTeachers, api],
   );
 
+  // Shows only program-visible classes in add/edit teacher class pickers.
   const classOptions = useMemo(() => {
-    if (!data.classData || data.classData.length === 0) return [];
-    return data.classData
-      .map((c) => ({ value: c.id, label: c.name }))
+    if (programScopedClasses.length === 0) return [];
+    return programScopedClasses
+      .map((classRow) => ({
+        value: classRow.id,
+        label:
+          typeof classRow.name === 'string'
+            ? classRow.name
+            : String(classRow.name ?? ''),
+      }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [data.classData]);
+  }, [programScopedClasses]);
 
   const teacherFormFields: FieldConfig[] = useMemo(
     () => [
@@ -1063,38 +1227,42 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         </Typography>
       ),
     },
-    {
-      key: 'interactData',
-      label: t('Interact'),
-      align: 'center',
-      width: 60,
-      sortable: false,
-      render: (row) => (
-        <Box className="schoolTeachers-interactCell">
-          <IconButton
-            size="small"
-            onClick={async () => {
-              setOpenPopup(true);
-              const currentTeacher = getTeacherInfo(row.id, row.classId);
-              if (currentTeacher) {
-                setcurrentTeachers(currentTeacher);
-              }
-              const performance =
-                teachersWithPerformance.find(
-                  (t) => t.id === row.id && t.classId === row.classId,
-                )?.performance ?? null;
-              if (performance) setTeacherStatus(performance);
-            }}
-          >
-            <img
-              src="/assets/icons/Interact.svg"
-              alt="Interact"
-              className="schoolTeachers-interactIcon"
-            />
-          </IconButton>
-        </Box>
-      ),
-    },
+    ...(!isExternalUser
+      ? [
+          {
+            key: 'interactData',
+            label: t('Interact'),
+            align: 'center',
+            width: 60,
+            sortable: false,
+            render: (row) => (
+              <Box className="schoolTeachers-interactCell">
+                <IconButton
+                  size="small"
+                  onClick={async () => {
+                    setOpenPopup(true);
+                    const currentTeacher = getTeacherInfo(row.id, row.classId);
+                    if (currentTeacher) {
+                      setcurrentTeachers(currentTeacher);
+                    }
+                    const performance =
+                      teachersWithPerformance.find(
+                        (t) => t.id === row.id && t.classId === row.classId,
+                      )?.performance ?? null;
+                    if (performance) setTeacherStatus(performance);
+                  }}
+                >
+                  <img
+                    src="/assets/icons/Interact.svg"
+                    alt="Interact"
+                    className="schoolTeachers-interactIcon"
+                  />
+                </IconButton>
+              </Box>
+            ),
+          } as Column<DisplayTeacher>,
+        ]
+      : []),
     {
       key: 'class',
       label: t('Class Name'),
@@ -1133,71 +1301,79 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       sortable: false,
       render: (row) => renderWhatsappGroupChip(row.whatsappGroupStatus),
     },
-    // { key: "phoneNumber", label: t("Phone Number") },
-    {
-      key: 'phoneEmailDisplay', // 🔹 use merged column
-      label: t('Phone / Email'),
-      renderCell: (row: DisplayTeacher) => (
-        <Typography variant="body2" className="truncate-text">
-          {row.phoneEmailDisplay}
-        </Typography>
-      ),
-    },
-    {
-      key: 'teacher_actions',
-      label: '',
-      sortable: false,
-      render: (row) => (
-        <Box className="schoolTeachers-actionsCell">
-          <ActionMenu
-            items={[
-              {
-                // Opens assignment-only edit mode from the row action menu.
-                name: t('Edit Details'),
-                icon: (
-                  <BorderColorIcon
-                    fontSize="small"
-                    className="schoolTeachers-actionEditIcon"
-                  />
-                ),
-                onClick: () => {
-                  void handleOpenEditTeacherModal(row);
-                },
-              },
-              {
-                name: t('Delete'),
-                icon: (
-                  <DeleteOutlineIcon
-                    fontSize="small"
-                    className="schoolTeachers-actionDeleteIcon"
-                  />
-                ),
-                onClick: () => {
-                  const fullTeacher =
-                    row.interactPayload ?? getTeacherInfo(row.id, row.classId);
-                  if (!fullTeacher) return;
-                  setDeleteTargetTeacher(fullTeacher);
-                  setIsDeleteModalOpen(true);
-                },
-              },
-            ]}
-            renderTrigger={(open) => (
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  open(e);
-                }}
-                className="schoolTeachers-actionTrigger"
-                id={`schoolTeachers-actionTrigger-${row.id}-${row.classId}`}
-              >
-                <MoreHoriz className="schoolTeachers-actionTriggerIcon" />
-              </IconButton>
-            )}
-          />
-        </Box>
-      ),
-    },
+    ...(!isExternalUser
+      ? [
+          {
+            key: 'phoneEmailDisplay',
+            label: t('Phone / Email'),
+            renderCell: (row: DisplayTeacher) => (
+              <Typography variant="body2" className="truncate-text">
+                {row.phoneEmailDisplay}
+              </Typography>
+            ),
+          } as Column<DisplayTeacher>,
+        ]
+      : []),
+    ...(!isExternalUser
+      ? [
+          {
+            key: 'teacher_actions',
+            label: '',
+            sortable: false,
+            render: (row: DisplayTeacher) => (
+              <Box className="schoolTeachers-actionsCell">
+                <ActionMenu
+                  items={[
+                    {
+                      // Opens assignment-only edit mode from the row action menu.
+                      name: t('Edit Details'),
+                      icon: (
+                        <BorderColorIcon
+                          fontSize="small"
+                          className="schoolTeachers-actionEditIcon"
+                        />
+                      ),
+                      onClick: () => {
+                        void handleOpenEditTeacherModal(row);
+                      },
+                    },
+                    {
+                      name: t('Delete'),
+                      icon: (
+                        <DeleteOutlineIcon
+                          fontSize="small"
+                          className="schoolTeachers-actionDeleteIcon"
+                        />
+                      ),
+                      onClick: () => {
+                        const fullTeacher =
+                          row.interactPayload ??
+                          getTeacherInfo(row.id, row.classId);
+                        if (!fullTeacher) return;
+                        setDeleteTargetTeacher(fullTeacher);
+                        setIsDeleteModalOpen(true);
+                      },
+                    },
+                  ]}
+                  renderTrigger={(open) => (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        open(e);
+                      }}
+                      className="schoolTeachers-actionTrigger"
+                      id={`schoolTeachers-actionTrigger-${row.id}-${row.classId}`}
+                    >
+                      <MoreHoriz className="schoolTeachers-actionTriggerIcon" />
+                    </IconButton>
+                  )}
+                />
+              </Box>
+            ),
+          } as Column<DisplayTeacher>,
+        ]
+      : []),
   ];
 
   const handleClearFilters = useCallback(() => {
@@ -1365,14 +1541,16 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           </Typography>
         </Box>
         <Box className="schoolTeachers-actionsGroup">
-          <MuiButton
-            variant="outlined"
-            onClick={handleAddNewTeacher}
-            className="schoolTeachers-newTeacherButton-outlined"
-          >
-            <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
-            {!isSmallScreen && t('New Teacher')}
-          </MuiButton>
+          {!isExternalUser && (
+            <MuiButton
+              variant="outlined"
+              onClick={handleAddNewTeacher}
+              className="schoolTeachers-newTeacherButton-outlined"
+            >
+              <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
+              {!isSmallScreen && t('New Teacher')}
+            </MuiButton>
+          )}
 
           <SearchAndFilter
             searchTerm={searchTerm}
@@ -1395,7 +1573,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         onClose={() => setIsFilterSliderOpen(false)}
         filters={tempFilters}
         filterOptions={{
-          grade: getGradeOptions(teachers),
+          // Keeps grade filter options aligned with the current program scope.
+          grade: getGradeOptions(programFilteredTeachers),
         }}
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}
@@ -1453,7 +1632,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               ? t('No teachers found matching your criteria.')
               : t('No teachers data found for the selected school')}
           </Typography>
-          {!isFilteringOrSearching && (
+          {!isFilteringOrSearching && !isExternalUser && (
             <MuiButton
               variant="text"
               onClick={handleAddNewTeacher}

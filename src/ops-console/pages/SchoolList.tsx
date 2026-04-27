@@ -1,23 +1,52 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import {
   Box,
   Button,
+  Divider,
   IconButton,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
+  CircularProgress,
   Tab,
   Tabs,
-  Typography,
-  useMediaQuery,
 } from '@mui/material';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import { PAGES, PROGRAM_TAB, PROGRAM_TAB_LABELS } from '../../common/constants';
+import { PAGES, PROGRAM_TAB } from '../../common/constants';
+import {
+  createEmptySchoolFilters,
+  DEFAULT_DATE_RANGE,
+  DATE_RANGE_OPTIONS,
+  DEFAULT_PAGE_SIZE,
+  filterConfigsForSchool,
+  getSchoolListColumns,
+  hasSchoolListFilters,
+  mapSchoolListFilterOptions,
+  parseSchoolListJsonParam,
+  tabOptions,
+  type DateRangeValue,
+  type Filters,
+} from './SchoolList.helpers';
+import { useDebouncedValue, useSchoolListData } from './SchoolList.fetcher';
+import { mapSchoolRowsToRenderRows } from './SchoolListRowRenderer';
 import './SchoolList.css';
 import DataTablePagination from '../components/DataTablePagination';
-import DataTableBody, { Column } from '../components/DataTableBody';
+import DataTableBody from '../components/DataTableBody';
 import { t } from 'i18next';
 import SearchAndFilter from '../components/SearchAndFilter';
 import FilterSlider from '../components/FilterSlider';
 import SelectedFilters from '../components/SelectedFilters';
 import FileUpload from '../components/FileUpload';
+import SchoolListDateRangeDropdown from '../components/SchoolListDateRangeDropdown';
+import SchoolListExportButton from '../components/SchoolListExportButton';
 import { FileUploadOutlined, Add } from '@mui/icons-material';
 import { BsFillBellFill } from 'react-icons/bs';
 import { useLocation, useHistory } from 'react-router';
@@ -26,37 +55,7 @@ import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
-
-const filterConfigsForSchool = [
-  { key: 'partner', label: t('Select Partner') },
-  { key: 'programManager', label: t('Select Program Manager') },
-  { key: 'fieldCoordinator', label: t('Select Field Coordinator') },
-  { key: 'programType', label: t('Select Program Type') },
-  { key: 'state', label: t('Select State') },
-  { key: 'district', label: t('Select District') },
-  { key: 'block', label: t('Select Block') },
-  { key: 'cluster', label: t('Select Cluster') },
-];
-
-type Filters = Record<string, string[]>;
-
-const INITIAL_FILTERS: Filters = {
-  programType: [],
-  partner: [],
-  programManager: [],
-  fieldCoordinator: [],
-  state: [],
-  district: [],
-  block: [],
-  cluster: [],
-};
-
-const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(([value, label]) => ({
-  label,
-  value: value as PROGRAM_TAB,
-}));
-
-const DEFAULT_PAGE_SIZE = 8;
+import { useSchoolListExport } from './useSchoolListExport';
 
 const SchoolList: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -65,13 +64,6 @@ const SchoolList: React.FC = () => {
   const history = useHistory();
   const qs = new URLSearchParams(location.search);
 
-  function parseJSONParam<T>(param: string | null, fallback: T): T {
-    try {
-      return param ? (JSON.parse(param) as T) : fallback;
-    } catch {
-      return fallback;
-    }
-  }
   const [selectedTab, setSelectedTab] = useState(() => {
     const v = qs.get('tab') || PROGRAM_TAB.ALL;
     return Object.values(PROGRAM_TAB).includes(v as PROGRAM_TAB)
@@ -80,35 +72,49 @@ const SchoolList: React.FC = () => {
   });
   const [searchTerm, setSearchTerm] = useState(() => qs.get('search') || '');
   const [filters, setFilters] = useState<Filters>(() =>
-    parseJSONParam(qs.get('filters'), INITIAL_FILTERS),
+    parseSchoolListJsonParam(qs.get('filters'), createEmptySchoolFilters()),
+  );
+  const [selectedDateRange, setSelectedDateRange] = useState<DateRangeValue>(
+    () => {
+      const queryRange = qs.get('range');
+      return DATE_RANGE_OPTIONS.some((option) => option.value === queryRange)
+        ? (queryRange as DateRangeValue)
+        : DEFAULT_DATE_RANGE;
+    },
   );
   const [page, setPage] = useState(() => {
     const p = parseInt(qs.get('page') || '', 10);
     return isNaN(p) || p < 1 ? 1 : p;
   });
 
-  const [schools, setSchools] = useState<any[]>([]);
   const [isFilterLoading, setIsFilterLoading] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(false);
-  const [total, setTotal] = useState(0);
-
-  const isLoading = isFilterLoading || isDataLoading;
 
   const [showUploadPage, setShowUploadPage] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
-  const [filterOptions, setFilterOptions] = useState<Filters>(INITIAL_FILTERS);
+  const [tempFilters, setTempFilters] = useState<Filters>(() =>
+    createEmptySchoolFilters(),
+  );
+  const [filterOptions, setFilterOptions] = useState<Filters>(() =>
+    createEmptySchoolFilters(),
+  );
   const [orderBy, setOrderBy] = useState('');
   const [orderDir, setOrderDir] = useState<'asc' | 'desc'>('asc');
-  const [pageSize] = useState(DEFAULT_PAGE_SIZE);
-
-  const isSmallScreen = useMediaQuery('(max-width: 900px)');
-  const [openDetails, setOpenDetails] = useState(false);
-  const [visitId, setVisitId] = useState<string | null>(null);
+  const pageSize = DEFAULT_PAGE_SIZE;
+  const [actionsAnchorEl, setActionsAnchorEl] = useState<null | HTMLElement>(
+    null,
+  );
+  const [isActionsButtonCloseShine, setIsActionsButtonCloseShine] =
+    useState(false);
+  const actionsButtonCloseShineTimeoutRef = useRef<number | null>(null);
+  const actionsButtonCloseShineRafRef = useRef<number | null>(null);
+  const isFirstSearchRenderRef = useRef(true);
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
   const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 500);
+  const isSearchPending = searchTerm !== debouncedSearchTerm;
 
   const rolesWithAccess = [
     RoleType.SUPER_ADMIN,
@@ -118,16 +124,96 @@ const SchoolList: React.FC = () => {
   const haveAccess = userRoles.some((role) =>
     rolesWithAccess.includes(role as RoleType),
   );
+  const isActionsMenuOpen = Boolean(actionsAnchorEl);
+  const {
+    schools,
+    total,
+    isLoading: isDataLoading,
+  } = useSchoolListData({
+    api,
+    filters,
+    selectedTab,
+    page,
+    pageSize,
+    orderBy,
+    orderDir,
+    searchTerm: debouncedSearchTerm,
+    selectedDateRange,
+  });
+  const renderedSchools = useMemo(
+    () => mapSchoolRowsToRenderRows(schools),
+    [schools],
+  );
+  const isLoading = isFilterLoading || isDataLoading;
+  const columns = useMemo(() => getSchoolListColumns(), []);
+  const { isExporting, isExportDisabled, handleExportSchools } =
+    useSchoolListExport({
+      api,
+      filters,
+      selectedTab,
+      orderBy,
+      orderDir,
+      searchTerm: debouncedSearchTerm,
+      selectedDateRange,
+      total,
+      isLoading,
+      isSearchPending,
+    });
+
+  useEffect(() => {
+    setTempFilters(filters);
+  }, [filters]);
+
+  const triggerActionsButtonCloseShine = useCallback(() => {
+    setIsActionsButtonCloseShine(false);
+
+    if (actionsButtonCloseShineRafRef.current !== null) {
+      window.cancelAnimationFrame(actionsButtonCloseShineRafRef.current);
+    }
+    actionsButtonCloseShineRafRef.current = window.requestAnimationFrame(() => {
+      setIsActionsButtonCloseShine(true);
+    });
+
+    if (actionsButtonCloseShineTimeoutRef.current !== null) {
+      window.clearTimeout(actionsButtonCloseShineTimeoutRef.current);
+    }
+    actionsButtonCloseShineTimeoutRef.current = window.setTimeout(() => {
+      setIsActionsButtonCloseShine(false);
+      actionsButtonCloseShineTimeoutRef.current = null;
+    }, 700);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (actionsButtonCloseShineTimeoutRef.current !== null) {
+        window.clearTimeout(actionsButtonCloseShineTimeoutRef.current);
+      }
+      if (actionsButtonCloseShineRafRef.current !== null) {
+        window.cancelAnimationFrame(actionsButtonCloseShineRafRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (selectedTab !== PROGRAM_TAB.ALL) params.set('tab', String(selectedTab));
     if (searchTerm) params.set('search', searchTerm);
-    if (Object.values(filters).some((arr) => arr.length))
+    if (hasSchoolListFilters(filters)) {
       params.set('filters', JSON.stringify(filters));
+    }
+    if (selectedDateRange !== DEFAULT_DATE_RANGE)
+      params.set('range', selectedDateRange);
     if (page !== 1) params.set('page', String(page));
     history.replace({ search: params.toString() });
-  }, [selectedTab, searchTerm, filters, page, history]);
+  }, [selectedTab, searchTerm, filters, selectedDateRange, page, history]);
+
+  useEffect(() => {
+    if (isFirstSearchRenderRef.current) {
+      isFirstSearchRenderRef.current = false;
+      return;
+    }
+    if (page !== 1) setPage(1);
+  }, [searchTerm]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -135,16 +221,7 @@ const SchoolList: React.FC = () => {
       try {
         const data = await api.getSchoolFilterOptionsForSchoolListing();
         if (data) {
-          setFilterOptions({
-            programType: data.programType || [],
-            partner: data.partner || [],
-            programManager: data.programManager || [],
-            fieldCoordinator: data.fieldCoordinator || [],
-            state: data.state || [],
-            district: data.district || [],
-            block: data.block || [],
-            cluster: data.cluster || [],
-          });
+          setFilterOptions(mapSchoolListFilterOptions(data));
         }
       } catch (error) {
         logger.error('Failed to fetch filter options', error);
@@ -154,123 +231,10 @@ const SchoolList: React.FC = () => {
     };
 
     fetchFilterOptions();
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [selectedTab, filters, page, orderBy, orderDir, searchTerm]);
-
-  const fetchData = useCallback(async () => {
-    setIsDataLoading(true);
-    try {
-      const tabModelFilter = { model: [selectedTab] };
-      const cleanedFilters = Object.fromEntries(
-        Object.entries({ ...filters, ...tabModelFilter }).filter(
-          ([_, v]) => Array.isArray(v) && v.length > 0,
-        ),
-      );
-
-      let backendOrderBy = orderBy;
-      if (backendOrderBy === 'name') backendOrderBy = 'school_name';
-      if (backendOrderBy === 'students') backendOrderBy = 'num_students';
-      if (backendOrderBy === 'teachers') backendOrderBy = 'num_teachers';
-
-      const response = await api.getFilteredSchoolsForSchoolListing({
-        filters: cleanedFilters,
-        page,
-        page_size: pageSize,
-        order_by: backendOrderBy,
-        order_dir: orderDir,
-        search: searchTerm,
-      });
-      const data = response?.data || [];
-      setTotal(response?.total || 0);
-
-      const enrichedSchools = data.map((school: any) => ({
-        ...school,
-        id: school.sch_id,
-        students: school.num_students || 0,
-        teachers: school.num_teachers || 0,
-        programManagers:
-          school.program_managers?.join(', ') || t('not assigned yet'),
-        fieldCoordinators:
-          school.field_coordinators?.join(', ') || t('not assigned yet'),
-        name: {
-          value: school.school_name,
-          render: (
-            <Box display="flex" flexDirection="column" alignItems="flex-start">
-              <Typography variant="subtitle2">{school.school_name}</Typography>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                fontSize={'12px'}
-              >
-                {school.udise_code || school.district
-                  ? `${school.udise_code ?? ''} - ${
-                      school.district ?? ''
-                    }`.trim()
-                  : ''}
-              </Typography>
-            </Box>
-          ),
-        },
-      }));
-
-      setSchools(enrichedSchools);
-    } catch (error) {
-      logger.error('Failed to fetch filtered schools:', error);
-      setSchools([]);
-      setTotal(0);
-    } finally {
-      setIsDataLoading(false);
-    }
-  }, [
-    api,
-    filters,
-    page,
-    pageSize,
-    orderBy,
-    orderDir,
-    searchTerm,
-    selectedTab,
-  ]);
-
-  const columns: Column<Record<string, any>>[] = [
-    {
-      key: 'name',
-      label: t('Schools'),
-      width: '30%',
-      sortable: true,
-      orderBy: 'name',
-    },
-    {
-      key: 'students',
-      label: t('No. of Students'),
-      width: 'fit-content',
-      sortable: true,
-      orderBy: 'students',
-    },
-    {
-      key: 'teachers',
-      label: t('No. of Teachers'),
-      width: 'fit-content',
-      sortable: true,
-      orderBy: 'teachers',
-    },
-    {
-      key: 'programManagers',
-      label: t('Program Manager'),
-      sortable: false,
-    },
-    {
-      key: 'fieldCoordinators',
-      label: t('Field Coordinator'),
-      sortable: false,
-    },
-  ];
+  }, [api]);
 
   const handleSort = (colKey: string) => {
-    const sortableKeys = ['name', 'students', 'teachers', 'district'];
+    const sortableKeys = ['name'];
     if (!sortableKeys.includes(colKey)) return;
     if (orderBy === colKey) {
       setOrderDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -281,35 +245,135 @@ const SchoolList: React.FC = () => {
     setPage(1);
   };
 
-  function onCancleClick(): void {
+  const handleCloseUploadPage = useCallback((): void => {
     setShowUploadPage(false);
-  }
+  }, []);
 
-  const handleCancelFilters = () => {
-    const reset = {
-      partner: [],
-      programManager: [],
-      fieldCoordinator: [],
-      programType: [],
-      state: [],
-      district: [],
-      block: [],
-      cluster: [],
-    };
+  const handleOpenActionsMenu = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      setActionsAnchorEl(event.currentTarget);
+    },
+    [],
+  );
+
+  const handleCloseActionsMenu = useCallback(() => {
+    setActionsAnchorEl(null);
+    triggerActionsButtonCloseShine();
+  }, [triggerActionsButtonCloseShine]);
+
+  const handleSelectDateRange = useCallback((nextRange: DateRangeValue) => {
+    setSelectedDateRange(nextRange);
+    setPage(1);
+  }, []);
+
+  const handleOpenUploadPage = useCallback(() => {
+    setShowUploadPage(true);
+  }, []);
+
+  const handleOpenAddSchoolPage = useCallback(() => {
+    history.push({
+      pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
+    });
+  }, [history]);
+
+  const handleOpenMigratePage = useCallback(() => {
+    history.push(
+      `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`,
+    );
+  }, [history]);
+
+  // Centralized action metadata keeps the menu rendering compact and predictable.
+  const actionItems = !isExternalUser
+    ? [
+        ...(haveAccess
+          ? [
+              {
+                key: 'migrate',
+                label: t('Migrate'),
+                icon: (
+                  <img
+                    id="school-list-actions-migrate-icon"
+                    src="assets/icons/migrateArrow.svg"
+                    alt=""
+                    className="school-list-actions-menu-icon-image"
+                  />
+                ),
+                onClick: handleOpenMigratePage,
+              },
+            ]
+          : []),
+        {
+          key: 'upload',
+          label: t('Upload'),
+          icon: <FileUploadOutlined className="school-list-upload-icon" />,
+          onClick: handleOpenUploadPage,
+        },
+        ...(haveAccess
+          ? [
+              {
+                key: 'add-school',
+                label: t('Add School'),
+                icon: <Add className="school-list-upload-icon" />,
+                onClick: handleOpenAddSchoolPage,
+              },
+            ]
+          : []),
+      ]
+    : [];
+  const actionMenuEntries = actionItems.flatMap((item, index) => {
+    const nodes = [
+      <MenuItem
+        key={item.key}
+        className="school-list-actions-menu-item"
+        onClick={() => {
+          handleCloseActionsMenu();
+          item.onClick();
+        }}
+      >
+        <ListItemIcon className="school-list-actions-menu-item-icon">
+          {item.icon}
+        </ListItemIcon>
+        <ListItemText
+          primary={item.label}
+          primaryTypographyProps={{
+            className: 'school-list-actions-menu-item-label',
+          }}
+        />
+      </MenuItem>,
+    ];
+
+    if (index < actionItems.length - 1) {
+      nodes.push(
+        <Divider
+          key={`${item.key}-divider`}
+          className="school-list-actions-menu-divider"
+        />,
+      );
+    }
+
+    return nodes;
+  });
+
+  const handleCancelFilters = useCallback(() => {
+    const reset = createEmptySchoolFilters();
     setTempFilters(reset);
     setFilters(reset);
+    setSelectedDateRange(DEFAULT_DATE_RANGE);
     setIsFilterOpen(false);
     setPage(1);
-  };
+  }, []);
 
-  const pageCount = Math.ceil(total / pageSize);
+  const pageCount = useMemo(
+    () => Math.ceil(total / pageSize),
+    [pageSize, total],
+  );
 
   if (showUploadPage) {
     return (
       <div>
         <div className="school-list-upload-text">{t('Upload File')}</div>
         <div>
-          <FileUpload onCancleClick={onCancleClick} />
+          <FileUpload onCancleClick={handleCloseUploadPage} />
         </div>
       </div>
     );
@@ -350,87 +414,75 @@ const SchoolList: React.FC = () => {
             </div>
 
             <div className="school-list-button-and-search-filter">
-              {haveAccess && (
-                <Button
-                  variant="outlined"
-                  id="school-list-migrate-button"
-                  className="school-list-migrate-button"
-                  onClick={() =>
-                    history.push(
-                      `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`,
-                    )
-                  }
-                  startIcon={
-                    <img
-                      id="school-list-migrate-icon"
-                      src="assets/icons/migrateArrow.svg"
-                      alt="migrate"
-                      className="school-list-migrate-icon"
-                    />
-                  }
-                >
-                  {t('Migrate')}
-                </Button>
-              )}
-              {haveAccess && (
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    history.push({
-                      pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
-                    });
+              <div className="school-list-search-control">
+                <SearchAndFilter
+                  searchTerm={searchTerm}
+                  onSearchChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setPage(1);
                   }}
-                  sx={{
-                    borderColor: '#e0e0e0',
-                    border: '1px solid',
-                    borderRadius: 20,
-                    boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
-                    height: '36px',
-                    minWidth: isSmallScreen ? '48px' : 'auto',
-                    padding: isSmallScreen ? 0 : '6px 16px',
-                    textTransform: 'none',
-                  }}
-                >
-                  <Add className="school-list-upload-icon" />
-                  {!isSmallScreen && (
-                    <span className="school-list-upload-text1">
-                      {t('Add School')}
-                    </span>
-                  )}
-                </Button>
-              )}
-              <Button
-                variant="outlined"
-                onClick={() => setShowUploadPage(true)}
-                sx={{
-                  borderColor: '#e0e0e0',
-                  border: '1px solid',
-                  borderRadius: 20,
-                  boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)',
-                  height: '36px',
-                  minWidth: isSmallScreen ? '48px' : 'auto',
-                  padding: isSmallScreen ? 0 : '6px 16px',
-                  textTransform: 'none',
-                }}
-              >
-                <FileUploadOutlined className="school-list-upload-icon" />
-                {!isSmallScreen && (
-                  <span className="school-list-upload-text1">
-                    {t('Upload')}
-                  </span>
+                  filters={filters}
+                  onFilterClick={() => setIsFilterOpen(true)}
+                  onClearFilters={handleCancelFilters}
+                />
+              </div>
+              <div className="school-list-date-range-control">
+                <SchoolListDateRangeDropdown
+                  value={selectedDateRange}
+                  onChange={handleSelectDateRange}
+                />
+              </div>
+              <div className="school-list-export-control">
+                <SchoolListExportButton
+                  disabled={isExportDisabled}
+                  isExporting={isExporting}
+                  onClick={handleExportSchools}
+                />
+              </div>
+              <div className="school-list-actions-group">
+                {!isExternalUser && (
+                  <Button
+                    variant="outlined"
+                    id="school-list-actions-button"
+                    className={`school-list-actions-button${
+                      isActionsButtonCloseShine
+                        ? ' school-list-actions-button-close-shine'
+                        : ''
+                    }`}
+                    onClick={handleOpenActionsMenu}
+                    aria-controls={
+                      isActionsMenuOpen ? 'school-list-actions-menu' : undefined
+                    }
+                    aria-expanded={isActionsMenuOpen ? 'true' : undefined}
+                    aria-haspopup="menu"
+                    endIcon={
+                      <ArrowDropDownIcon
+                        className={`school-list-actions-chevron ${
+                          isActionsMenuOpen
+                            ? 'school-list-actions-chevron-open'
+                            : ''
+                        }`}
+                      />
+                    }
+                  >
+                    {t('Actions')}
+                  </Button>
                 )}
-              </Button>
-
-              <SearchAndFilter
-                searchTerm={searchTerm}
-                onSearchChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setPage(1);
-                }}
-                filters={filters}
-                onFilterClick={() => setIsFilterOpen(true)}
-                onClearFilters={handleCancelFilters}
-              />
+                <Menu
+                  id="school-list-actions-menu"
+                  anchorEl={actionsAnchorEl}
+                  open={isActionsMenuOpen}
+                  onClose={handleCloseActionsMenu}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  MenuListProps={{ disablePadding: true }}
+                  PaperProps={{
+                    className: 'school-list-actions-menu',
+                  }}
+                >
+                  {actionMenuEntries}
+                </Menu>
+              </div>
             </div>
           </div>
 
@@ -466,15 +518,7 @@ const SchoolList: React.FC = () => {
               setPage(1);
             }}
             onCancel={() => {
-              const empty = {
-                state: [],
-                district: [],
-                block: [],
-                programType: [],
-                partner: [],
-                programManager: [],
-                fieldCoordinator: [],
-              };
+              const empty = createEmptySchoolFilters();
               setTempFilters(empty);
               setFilters(empty);
               setIsFilterOpen(false);
@@ -486,24 +530,44 @@ const SchoolList: React.FC = () => {
         </div>
         <div
           className={`school-list-table-container ${
-            !isLoading && schools.length === 0 ? 'school-list-no-schools' : ''
+            !isLoading && renderedSchools.length === 0
+              ? 'school-list-no-schools'
+              : ''
           }`}
         >
-          {!isLoading && schools.length > 0 && (
+          {isLoading && (
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              minHeight={240}
+              width="100%"
+            >
+              <CircularProgress size={28} />
+            </Box>
+          )}
+
+          {!isLoading && renderedSchools.length > 0 && (
             <DataTableBody
               columns={columns}
-              rows={schools}
+              rows={renderedSchools}
               orderBy={orderBy}
               order={orderDir}
               onSort={handleSort}
               loading={isLoading}
+              // School listing needs the wider, scrollable table treatment only.
+              tableMinWidth={1700}
+              tableWidth="max-content"
+              headerClampLines={2}
+              headerNoEllipsis
+              headerAlign="center"
             />
           )}
 
-          {!isLoading && schools.length === 0 && t('No schools found.')}
+          {!isLoading && renderedSchools.length === 0 && t('No schools found.')}
         </div>
 
-        {!isLoading && schools.length > 0 && (
+        {!isLoading && renderedSchools.length > 0 && (
           <div className="school-list-footer">
             <DataTablePagination
               pageCount={pageCount}

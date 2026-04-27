@@ -2,6 +2,8 @@ import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
   LeaderboardInfo,
+  OpsStudentPerformanceBandRow,
+  OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
 } from './ServiceApi';
@@ -1237,6 +1239,15 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }> {
     return this.s.getStudentPlayStatus(studentId, classId);
   }
+  getOpsStudentPerformanceBands(
+    params: OpsStudentPerformanceBandsParams,
+  ): Promise<OpsStudentPerformanceBandRow[]> {
+    if (!this.s.getOpsStudentPerformanceBands) {
+      return Promise.resolve([]);
+    }
+
+    return this.s.getOpsStudentPerformanceBands(params);
+  }
   getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {
@@ -1560,8 +1571,22 @@ export class ApiHandler implements ServiceApi {
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
+    date_range?: string;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this.s.getFilteredSchoolsForSchoolListing(params);
+  }
+
+  async getSchoolMetricsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+    return await this.s.getSchoolMetricsForSchoolListing(params);
   }
 
   async getSchoolsWithProgramAccess(
@@ -1588,20 +1613,30 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     page: number,
     limit: number,
+    // Optional class scope lets program tabs fetch only visible teacher rows.
+    classIds?: string[],
   ): Promise<TeacherAPIResponse> {
-    return await this.s.getTeacherInfoBySchoolId(schoolId, page, limit);
+    return await this.s.getTeacherInfoBySchoolId(
+      schoolId,
+      page,
+      limit,
+      classIds,
+    );
   }
   public async getStudentInfoBySchoolId(
     schoolId: string,
     page: number,
     limit: number,
     classId?: string,
+    // Optional class scope lets program tabs fetch only visible student rows.
+    classIds?: string[],
   ): Promise<StudentAPIResponse> {
     return await this.s.getStudentInfoBySchoolId(
       schoolId,
       page,
       limit,
       classId,
+      classIds,
     );
   }
   public async getStudentsAndParentsByClassId(
@@ -1803,6 +1838,8 @@ export class ApiHandler implements ServiceApi {
     page: number = 1,
     limit: number = 20,
     classId?: string,
+    // Optional class scope keeps student search constrained to program classes.
+    classIds?: string[],
   ): Promise<StudentAPIResponse> {
     return await this.s.searchStudentsInSchool(
       schoolId,
@@ -1810,6 +1847,7 @@ export class ApiHandler implements ServiceApi {
       page,
       limit,
       classId,
+      classIds,
     );
   }
 
@@ -1818,12 +1856,15 @@ export class ApiHandler implements ServiceApi {
     searchTerm: string,
     page: number = 1,
     limit: number = 20,
+    // Optional class scope keeps teacher search constrained to program classes.
+    classIds?: string[],
   ): Promise<TeacherAPIResponse> {
     return await this.s.searchTeachersInSchool(
       schoolId,
       searchTerm,
       page,
       limit,
+      classIds,
     );
   }
   public async respondToSchoolRequest(
@@ -2092,8 +2133,13 @@ export class ApiHandler implements ServiceApi {
   public async getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<'user'>,
+    courseId?: string,
   ): Promise<TableTypes<'subject_lesson'> | null> {
-    return await this.s.getSubjectLessonsBySubjectId(subjectId, student);
+    return await this.s.getSubjectLessonsBySubjectId(
+      subjectId,
+      student,
+      courseId,
+    );
   }
   public async getSkillById(
     skillId: string,
@@ -2189,8 +2235,8 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getGroupIdByInvite(invite_link, bot);
   }
 
-  public async getPhoneDetailsByBotNum(bot: string) {
-    return await this.s.getPhoneDetailsByBotNum(bot);
+  public getPhoneDetailsByBotNum(bot?: string, groupId?: string | null) {
+    return this.s.getPhoneDetailsByBotNum(bot, groupId);
   }
   async updateWhatsAppGroupSettings(
     chatId: string,

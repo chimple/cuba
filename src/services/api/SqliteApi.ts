@@ -64,6 +64,7 @@ import {
   GetSchoolsWithProgramAccessParams,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
+  OpsStudentPerformanceBandRow,
   SchoolProgramAccessResponse,
   ServiceApi,
 } from './ServiceApi';
@@ -2425,15 +2426,32 @@ export class SqliteApi implements ServiceApi {
     for (const data of res?.values ?? []) {
       const grade = JSON.parse(data.grade);
       delete data.grade;
-      const course = data;
-      const gradeAlreadyExists = gradeMap.grades.find(
+      const courseDoc = data;
+      const gradeAlreadyExistsIndex = gradeMap.grades.findIndex(
         (_grade) => _grade.id === grade.id,
       );
-      if (gradeAlreadyExists) continue;
-      gradeMap.courses.push(course);
+      if (gradeAlreadyExistsIndex >= 0) {
+        if (courseDoc.id === course.id) {
+          gradeMap.courses[gradeAlreadyExistsIndex] = courseDoc;
+        }
+        continue;
+      }
+      gradeMap.courses.push(courseDoc);
       gradeMap.grades.push(grade);
     }
 
+    if (!gradeMap.courses.some((_course) => _course.id === course.id)) {
+      gradeMap.courses.unshift(course);
+      if (
+        course.grade_id &&
+        !gradeMap.grades.some((g) => g.id === course.grade_id)
+      ) {
+        const courseGrade = await this.getGradeById(course.grade_id);
+        if (courseGrade) {
+          gradeMap.grades.unshift(courseGrade);
+        }
+      }
+    }
     gradeMap.grades.sort((a, b) => {
       //Number.MAX_SAFE_INTEGER is using when sortIndex is not found GRADES (i.e it gives default value)
       const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
@@ -3790,6 +3808,12 @@ export class SqliteApi implements ServiceApi {
   async getDataByInviteCodeNew(
     inviteCode: number,
   ): Promise<JoinClassInviteLookupResult> {
+    logger.warn('Join class lookup requested through SQLite API', {
+      file_name: 'SqliteApi.ts',
+      function_name: 'getDataByInviteCodeNew',
+      inviteCode,
+      syncInProgress: this._syncInProgress,
+    });
     const { inviteData, classData, schoolData } =
       await this._serverApi.getDataByInviteCodeNew(inviteCode);
 
@@ -3845,8 +3869,20 @@ export class SqliteApi implements ServiceApi {
     classData: TableTypes<'class'>,
     schoolData: TableTypes<'school'>,
   ): Promise<void> {
+    logger.warn('Storing join lookup data in local SQLite', {
+      file_name: 'SqliteApi.ts',
+      function_name: 'storeJoinClassLookupDataLocally',
+      classId: classData.id,
+      schoolId: schoolData.id,
+    });
     await this.upsertJoinLookupRow(TABLES.School, schoolData);
     await this.upsertJoinLookupRow(TABLES.Class, classData);
+    logger.warn('Stored join lookup data in local SQLite successfully', {
+      file_name: 'SqliteApi.ts',
+      function_name: 'storeJoinClassLookupDataLocally',
+      classId: classData.id,
+      schoolId: schoolData.id,
+    });
   }
 
   async createClass(
@@ -4009,21 +4045,69 @@ export class SqliteApi implements ServiceApi {
     this.updatePushChanges(TABLES.Class, MUTATE_TYPES.UPDATE, updatedData);
   }
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
-    let linkData = await this._serverApi.linkStudent(inviteCode, studentId);
+    logger.warn('Join class link requested through SQLite API', {
+      file_name: 'SqliteApi.ts',
+      function_name: 'linkStudent',
+      inviteCode,
+      studentId,
+      syncInProgress: this._syncInProgress,
+    });
 
-    if (Array.isArray(linkData) && linkData.length > 0) {
-      for (const row of linkData as TableTypes<'class_user'>[]) {
-        await this.upsertJoinLookupRow(TABLES.ClassUser, row);
+    try {
+      const linkData = await this._serverApi.linkStudent(inviteCode, studentId);
+
+      logger.warn('Join class link completed on server API', {
+        file_name: 'SqliteApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+        responseType: Array.isArray(linkData) ? 'array' : typeof linkData,
+        responseCount: Array.isArray(linkData) ? linkData.length : undefined,
+      });
+
+      if (Array.isArray(linkData) && linkData.length > 0) {
+        for (const row of linkData as TableTypes<'class_user'>[]) {
+          await this.upsertJoinLookupRow(TABLES.ClassUser, row);
+        }
+        logger.warn('Stored returned class_user rows in local SQLite', {
+          file_name: 'SqliteApi.ts',
+          function_name: 'linkStudent',
+          inviteCode,
+          studentId,
+          rowCount: linkData.length,
+        });
       }
-    }
 
-    await this.syncDbNow(Object.values(TABLES), [
-      TABLES.Assignment,
-      TABLES.Class,
-      TABLES.School,
-      TABLES.ClassCourse,
-    ]);
-    return linkData;
+      logger.warn('Starting SQLite sync after join class', {
+        file_name: 'SqliteApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+      });
+      await this.syncDbNow(Object.values(TABLES), [
+        TABLES.Assignment,
+        TABLES.Class,
+        TABLES.School,
+        TABLES.ClassCourse,
+      ]);
+      logger.warn('Completed SQLite sync after join class', {
+        file_name: 'SqliteApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+      });
+      return linkData;
+    } catch (error) {
+      logger.warn('Join class link failed through SQLite API', {
+        file_name: 'SqliteApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+        syncInProgress: this._syncInProgress,
+        rawError: error,
+      });
+      throw error;
+    }
   }
 
   async getLeaderboardResults(
@@ -5555,7 +5639,11 @@ order by
 
     return { hasPlayed: true, lastPlayedAt: firstRow.created_at };
   }
-
+  async getOpsStudentPerformanceBands(): Promise<
+    OpsStudentPerformanceBandRow[]
+  > {
+    throw new Error('Method not implemented.');
+  }
   async getLastAssignmentsForRecommendations(
     classId: string,
   ): Promise<TableTypes<'assignment'>[] | undefined> {
@@ -6874,8 +6962,22 @@ order by
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
+    date_range?: string;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
+  }
+
+  async getSchoolMetricsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
+    return await this._serverApi.getSchoolMetricsForSchoolListing(params);
   }
 
   async getSchoolsWithProgramAccess(
@@ -6902,12 +7004,26 @@ order by
     schoolId: string,
     page: number = 1,
     limit: number = 20,
+    classIds?: string[],
   ): Promise<TeacherAPIResponse> {
     await this.ensureInitialized();
     if (!this._db) {
       logger.warn('SQLite DB not initialized.');
       return { data: [], total: 0 };
     }
+    // Empty program class scopes should return an empty page without querying.
+    if (classIds && classIds.length === 0) {
+      return { data: [], total: 0 };
+    }
+
+    // Applies program class scope to the teacher list queries.
+    const classScopePlaceholders = classIds?.map(() => '?').join(', ') ?? '';
+    const classScopeClause =
+      classIds && classIds.length > 0
+        ? `AND cu.class_id IN (${classScopePlaceholders})`
+        : '';
+    const baseParams =
+      classIds && classIds.length > 0 ? [schoolId, ...classIds] : [schoolId];
 
     // STEP 1: Get the total count of unique teachers for the school.
     const countQuery = `
@@ -6917,10 +7033,11 @@ order by
     WHERE c.school_id = ?
       AND cu.role = 'teacher'
       AND cu.is_deleted = false
+      ${classScopeClause}
       AND c.is_deleted = false;
   `;
 
-    const countRes = await this._db.query(countQuery, [schoolId]);
+    const countRes = await this._db.query(countQuery, baseParams);
     const total = countRes?.values?.[0]?.total || 0;
 
     if (total === 0) {
@@ -6940,6 +7057,7 @@ order by
     WHERE c.school_id = ?
       AND cu.role = 'teacher'
       AND cu.is_deleted = false
+      ${classScopeClause}
       AND c.is_deleted = false
       AND u.is_deleted = false
     -- Group by teacher to handle cases where a teacher has multiple classes,
@@ -6949,7 +7067,11 @@ order by
     LIMIT ? OFFSET ?;
   `;
 
-    const dataRes = await this._db.query(dataQuery, [schoolId, limit, offset]);
+    const dataRes = await this._db.query(dataQuery, [
+      ...baseParams,
+      limit,
+      offset,
+    ]);
     const rows = dataRes?.values ?? [];
 
     // STEP 3: Map the flat SQL result into the nested TeacherInfo structure.
@@ -7008,16 +7130,41 @@ order by
     schoolId: string,
     page: number = 1,
     limit: number = 20,
+    classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse> {
     await this.ensureInitialized();
     if (!this._db) {
       logger.warn('Database not initialized, cannot fetch student info.');
       return { data: [], total: 0 };
     }
+    // Empty program class scopes should return an empty page without querying.
+    if (!classId && classIds && classIds.length === 0) {
+      return { data: [], total: 0 };
+    }
 
     const offset = (page - 1) * limit;
 
-    // Step 1: Get total count (Your query is perfect)
+    const classScopedId =
+      typeof classId === 'string' && classId.trim() !== ''
+        ? classId.trim()
+        : undefined;
+    // Applies program class scope while preserving the class-detail override.
+    const scopedClassIds = !classScopedId && classIds ? classIds : undefined;
+    const classScopePlaceholders =
+      scopedClassIds?.map(() => '?').join(', ') ?? '';
+    const classScopeClause = classScopedId
+      ? `AND cu.class_id = ?`
+      : scopedClassIds && scopedClassIds.length > 0
+        ? `AND cu.class_id IN (${classScopePlaceholders})`
+        : '';
+    const baseParams = classScopedId
+      ? [schoolId, classScopedId]
+      : scopedClassIds && scopedClassIds.length > 0
+        ? [schoolId, ...scopedClassIds]
+        : [schoolId];
+
+    // Step 1: Get total count
     const countQuery = `
     SELECT COUNT(DISTINCT cu.user_id) as total
     FROM ${TABLES.ClassUser} cu
@@ -7025,9 +7172,10 @@ order by
     WHERE cu.role = 'student'
       AND cu.is_deleted = false
       AND c.school_id = ?
+      ${classScopeClause}
       AND c.is_deleted = false;
   `;
-    const countRes = await this._db.query(countQuery, [schoolId]);
+    const countRes = await this._db.query(countQuery, baseParams);
     const total = countRes?.values?.[0]?.total ?? 0;
 
     if (total === 0) {
@@ -7038,6 +7186,7 @@ order by
     const query = `
     SELECT
       u.*,
+      c.id as class_id,
       c.name as class_name,
       p.id as parent_id,
       p.name as parent_name,
@@ -7052,6 +7201,7 @@ order by
     WHERE cu.role = 'student'
       AND cu.is_deleted = false
       AND c.school_id = ?
+      ${classScopeClause}
       AND c.is_deleted = false
       AND u.is_deleted = false
     -- Important to group by student to avoid duplicates if a student is in multiple classes
@@ -7059,11 +7209,12 @@ order by
     ORDER BY u.name ASC
     LIMIT ? OFFSET ?;
   `;
-    const res = await this._db.query(query, [schoolId, limit, offset]);
+    const res = await this._db.query(query, [...baseParams, limit, offset]);
     const rows = res?.values ?? [];
 
     const studentInfoList: StudentInfo[] = rows.map((row: any) => {
       const {
+        class_id,
         class_name,
         parent_id,
         parent_name,
@@ -7110,6 +7261,10 @@ order by
         grade,
         classSection: section,
         parent: parentObject,
+        classWithidname: {
+          id: class_id,
+          class_name: class_name || '',
+        },
       };
     });
 
@@ -7765,19 +7920,28 @@ order by
     page: number,
     limit: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<{ data: any[]; total: number }> {
     await this.ensureInitialized();
     if (!this._db) return { data: [], total: 0 };
+    // Empty program class scopes should return an empty search result.
+    if (!classId && classIds && classIds.length === 0) {
+      return { data: [], total: 0 };
+    }
     let whereClause = `
     cu.role = 'student'
     AND cu.is_deleted = 0
     AND c.school_id = ?
   `;
     let params: any[] = [schoolId];
-    // ✅ ADD CLASS FILTER ONLY IF classId EXISTS
+    // Applies program class scope while preserving the class-detail override.
     if (classId) {
       whereClause += ` AND cu.class_id = ?`;
       params.push(classId);
+    } else if (classIds && classIds.length > 0) {
+      const classScopePlaceholders = classIds.map(() => '?').join(', ');
+      whereClause += ` AND cu.class_id IN (${classScopePlaceholders})`;
+      params.push(...classIds);
     }
     // ✅ SEARCH FILTER
     if (searchTerm && searchTerm.trim() !== '') {
@@ -7834,11 +7998,20 @@ order by
     searchTerm: string,
     page: number = 1,
     limit: number = 20,
+    classIds?: string[],
   ): Promise<{ data: any[]; total: number }> {
     await this.ensureInitialized();
     if (!this._db) return { data: [], total: 0 };
+    // Empty program class scopes should return an empty search result.
+    if (classIds && classIds.length === 0) return { data: [], total: 0 };
     let whereClause = `cu.role = 'teacher' AND cu.is_deleted = 0 AND c.school_id = ?`;
     let params: any[] = [schoolId];
+    // Applies program class scope before searching teacher memberships.
+    if (classIds && classIds.length > 0) {
+      const classScopePlaceholders = classIds.map(() => '?').join(', ');
+      whereClause += ` AND cu.class_id IN (${classScopePlaceholders})`;
+      params.push(...classIds);
+    }
     if (searchTerm && searchTerm.trim() !== '') {
       whereClause += ` AND (u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)`;
       const likeTerm = `%${searchTerm}%`;
@@ -8449,22 +8622,28 @@ order by
   async getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<'user'>,
+    courseId?: string,
   ): Promise<TableTypes<'subject_lesson'>> {
     if (!student) return {} as TableTypes<'subject_lesson'>;
     const studentId = student.id;
     const langId = student.language_id ?? null;
+    const localeId = student.locale_id ?? null;
 
     try {
-      type SubjectLessonSetRow = { set_number: number };
+      type SubjectLessonSetRow = {
+        set_number: number;
+        language_id: string | null;
+        locale_id: string | null;
+      };
       type ResultStatusRow = {
         lesson_id: string | null;
         status: string | null;
       };
       type ResultLessonRow = { lesson_id: string | null };
 
-      // 1️⃣ Fetch ALL available set_numbers
+      // 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
       const setQuery = `
-      SELECT DISTINCT set_number
+      SELECT DISTINCT set_number, language_id, locale_id
       FROM subject_lesson
       WHERE subject_id = ?
         AND is_deleted = 0
@@ -8478,13 +8657,49 @@ order by
         return {} as TableTypes<'subject_lesson'>;
       }
 
-      // 2️⃣ Pick ANY ONE set randomly
-      const randomIndex = Math.floor(Math.random() * setRows.length);
-      const setNumber = setRows[randomIndex].set_number;
+      const uniqueSets = Array.from(new Set(setRows.map((r) => r.set_number)));
+      if (!uniqueSets.length) {
+        return {} as TableTypes<'subject_lesson'>;
+      }
+
+      // 2️⃣ Prefer sets that have student's language, fallback to all sets
+      const preferredSets = langId
+        ? Array.from(
+            new Set(
+              setRows
+                .filter((r) =>
+                  localeId
+                    ? r.language_id === langId &&
+                      (r.locale_id === localeId || r.locale_id == null)
+                    : r.language_id === langId,
+                )
+                .map((r) => r.set_number),
+            ),
+          )
+        : localeId
+          ? Array.from(
+              new Set(
+                setRows
+                  .filter(
+                    (r) =>
+                      r.language_id == null &&
+                      (r.locale_id === localeId || r.locale_id == null),
+                  )
+                  .map((r) => r.set_number),
+              ),
+            )
+          : [];
+
+      const candidateSets = preferredSets.length ? preferredSets : uniqueSets;
+      const randomIndex = Math.floor(Math.random() * candidateSets.length);
+      const setNumber = candidateSets[randomIndex];
+      const useStrictLanguageTrack =
+        !!langId && preferredSets.includes(setNumber);
 
       /* ==========================================
        * 3️⃣ Abort Check (with assignment_id IS NULL)
        * ========================================== */
+      const courseFilter = courseId ? ' AND course_id = ?' : '';
       const abortQuery = `
         SELECT lesson_id, status
         FROM (
@@ -8496,6 +8711,7 @@ order by
             FROM result
             WHERE student_id = ?
               AND subject_id = ?
+              ${courseFilter}
               AND assignment_id IS NULL
               AND is_deleted = 0
         ) t
@@ -8504,10 +8720,11 @@ order by
         LIMIT 2;
       `;
 
-      const abortRes = await this.executeQuery(abortQuery, [
-        studentId,
-        subjectId,
-      ]);
+      const abortParams: (string | null)[] = [studentId, subjectId];
+      if (courseId) {
+        abortParams.push(courseId);
+      }
+      const abortRes = await this.executeQuery(abortQuery, abortParams);
 
       const lastTwo = ((abortRes as DBSQLiteValues | undefined)?.values ??
         []) as ResultStatusRow[];
@@ -8523,27 +8740,52 @@ order by
       /* ==========================================
        * 4️⃣ Fetch all candidate lessons from set
        * ========================================== */
+      const lessonLanguageFilter = useStrictLanguageTrack
+        ? localeId
+          ? `(sl.language_id = ? AND (sl.locale_id = ? OR sl.locale_id IS NULL))`
+          : `sl.language_id = ?`
+        : langId
+          ? localeId
+            ? `(
+              (sl.language_id = ? AND sl.locale_id = ?)
+              OR (sl.language_id = ? AND sl.locale_id IS NULL)
+              OR (sl.language_id IS NULL AND sl.locale_id = ?)
+              OR (sl.language_id IS NULL AND sl.locale_id IS NULL)
+            )`
+            : `(sl.language_id = ? OR sl.language_id IS NULL)`
+          : localeId
+            ? `(
+              (sl.language_id IS NULL AND sl.locale_id = ?)
+              OR (sl.language_id IS NULL AND sl.locale_id IS NULL)
+            )`
+            : `(sl.language_id IS NULL AND sl.locale_id IS NULL)`;
+
       const lessonQuery = `
         SELECT sl.*
         FROM subject_lesson sl
         WHERE sl.subject_id = ?
           AND sl.set_number = ?
           AND sl.is_deleted = 0
-          AND (
-            sl.language_id = ?
-            OR sl.language_id IS NULL
-          )
+          AND ${lessonLanguageFilter}
 
         ORDER BY
           sl.set_number ASC,
           sl.sort_index ASC;
       `;
 
-      const lessonRes = await this.executeQuery(lessonQuery, [
-        subjectId,
-        setNumber,
-        langId,
-      ]);
+      const lessonParams = [subjectId, setNumber];
+      if (useStrictLanguageTrack && langId) {
+        lessonParams.push(langId);
+        if (localeId) lessonParams.push(localeId);
+      } else if (langId) {
+        lessonParams.push(langId);
+        if (localeId) {
+          lessonParams.push(localeId, langId, localeId);
+        }
+      } else if (localeId) {
+        lessonParams.push(localeId);
+      }
+      const lessonRes = await this.executeQuery(lessonQuery, lessonParams);
 
       const allLessons = ((lessonRes as DBSQLiteValues | undefined)?.values ??
         []) as TableTypes<'subject_lesson'>[];
@@ -8553,9 +8795,27 @@ order by
       const fallbackLessons = allLessons.filter(
         (lesson) => lesson.language_id == null,
       );
-      const candidateLessons = matchedLessons.length
-        ? matchedLessons
-        : fallbackLessons;
+      let candidateLessons = useStrictLanguageTrack
+        ? allLessons
+        : matchedLessons.length
+          ? matchedLessons
+          : fallbackLessons;
+
+      if (useStrictLanguageTrack && localeId) {
+        const localePriority = (lesson: TableTypes<'subject_lesson'>) => {
+          if (lesson.language_id === langId && lesson.locale_id === localeId)
+            return 1;
+          if (lesson.language_id === langId && lesson.locale_id == null)
+            return 2;
+          return 3;
+        };
+        candidateLessons = [...candidateLessons].sort((a, b) => {
+          if ((a.sort_index ?? 0) !== (b.sort_index ?? 0)) {
+            return (a.sort_index ?? 0) - (b.sort_index ?? 0);
+          }
+          return localePriority(a) - localePriority(b);
+        });
+      }
 
       if (!candidateLessons.length) {
         return {} as TableTypes<'subject_lesson'>;
@@ -8568,15 +8828,17 @@ order by
         FROM result
         WHERE student_id = ?
           AND subject_id = ?
+          ${courseFilter}
           AND assignment_id IS NULL
           AND is_deleted = 0
           AND lesson_id IN (${resultPlaceholders});
       `;
-      const resultRes = await this.executeQuery(resultQuery, [
-        studentId,
-        subjectId,
-        ...lessonIds,
-      ]);
+      const resultParams: (string | null)[] = [studentId, subjectId];
+      if (courseId) {
+        resultParams.push(courseId);
+      }
+      resultParams.push(...lessonIds);
+      const resultRes = await this.executeQuery(resultQuery, resultParams);
       const completedLessons = ((resultRes as DBSQLiteValues | undefined)
         ?.values ?? []) as ResultLessonRow[];
       const completedLessonIds = new Set(
@@ -8902,8 +9164,8 @@ order by
   async getGroupIdByInvite(invite_link: string, bot: string) {
     return await this._serverApi.getGroupIdByInvite(invite_link, bot);
   }
-  async getPhoneDetailsByBotNum(bot: string) {
-    return await this._serverApi.getPhoneDetailsByBotNum(bot);
+  getPhoneDetailsByBotNum(bot?: string, groupId?: string | null) {
+    return this._serverApi.getPhoneDetailsByBotNum(bot, groupId);
   }
   async updateWhatsAppGroupSettings(
     chatId: string,
@@ -8913,7 +9175,14 @@ order by
     infoAdminsOnly?: boolean,
     addMembersAdminsOnly?: boolean,
   ): Promise<boolean> {
-    throw new Error('Method not implemented.');
+    return await this._serverApi.updateWhatsAppGroupSettings(
+      chatId,
+      phone,
+      name,
+      messagesAdminsOnly,
+      infoAdminsOnly,
+      addMembersAdminsOnly,
+    );
   }
   async getWhatsAppGroupByInviteLink(
     inviteLink: string,
@@ -8924,7 +9193,11 @@ order by
     group_name: string;
     members: number;
   } | null> {
-    throw new Error('Method not implemented.');
+    return await this._serverApi.getWhatsAppGroupByInviteLink(
+      inviteLink,
+      bot,
+      classId,
+    );
   }
 
   mergeUserPathway(

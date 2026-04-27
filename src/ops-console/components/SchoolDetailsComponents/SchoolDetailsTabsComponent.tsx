@@ -10,8 +10,10 @@ import SchoolPrincipals from './SchoolPrincipals';
 import SchoolCoordinators from './SchoolCoordinators';
 import SchoolClasses from './SchoolClass';
 import SchoolNotes from './SchoolNotes';
-
-const tabEnumValues = Object.values(SchoolTabs);
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RoleType } from '../../../interface/modelInterfaces';
 
 interface SchoolDetailsTabsComponentProps {
   data: any;
@@ -32,6 +34,18 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
 
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+
+  const tabEnumValues = Object.values(SchoolTabs).filter((tab) => {
+    if (isExternalUser && tab === SchoolTabs.Notes) {
+      return false; // hide restricted tabs for external users
+    }
+    return true;
+  });
   useEffect(() => {
     if (goToClassesTab) {
       setActiveTab(SchoolTabs.Classes);
@@ -98,7 +112,7 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
           />
         )}
 
-        {activeTab === SchoolTabs.Notes && <SchoolNotes />}
+        {activeTab === SchoolTabs.Notes && !isExternalUser && <SchoolNotes />}
       </div>
     </div>
   );

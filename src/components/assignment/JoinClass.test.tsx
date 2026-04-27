@@ -291,7 +291,7 @@ describe('JoinClass – join flow', () => {
     });
   });
 
-  test('shows the real join conflict message instead of invalid invite code', async () => {
+  test('shows a generic UI error while keeping join failure details in logs', async () => {
     mockApi.getDataByInviteCodeNew.mockResolvedValue({
       inviteData: {
         class_id: 'class-1',
@@ -322,7 +322,7 @@ describe('JoinClass – join flow', () => {
     await userEvent.click(confirmBtn);
 
     expect(
-      await screen.findByText('Student is already linked to this class.'),
+      await screen.findByText('Something went wrong. Please try again.'),
     ).toBeInTheDocument();
   });
 

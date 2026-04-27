@@ -7,15 +7,21 @@ import { t } from 'i18next';
 import { ErrorOutlineOutlined } from '@mui/icons-material';
 import WhatsAppInviteLinkInput from './WhatsAppInviteLinkInput';
 import logger from '../../../utility/logger';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
 
 type WhatsAppInfoCardProps = {
   classData?: TableTypes<'class'>;
   schoolData?: TableTypes<'school'>;
+  onGroupLinked?: (classId: string, groupId: string) => void;
 };
 
 const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   classData,
   schoolData,
+  onGroupLinked,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const groupId = classData?.group_id;
@@ -35,42 +41,57 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   const [isChangingGroup, setIsChangingGroup] = useState(false);
   const [isDisconnectedGroup, setIsDisconnectedGroup] = useState(false);
   const [isStatusResolved, setIsStatusResolved] = useState(false);
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   useEffect(() => {
     let isMounted = true;
     if (!classData?.id) {
+      setClassDoc(undefined);
+      setGroupName(null);
+      setEditedGroupName('');
+      setMembers(null);
+      setInviteLink(null);
+      setIsChangingGroup(true);
+      setIsDisconnectedGroup(false);
       setIsStatusResolved(true);
       return;
     }
-
     const init = async () => {
-      setIsStatusResolved(false);
+      if (isMounted) {
+        setIsStatusResolved(false);
+      }
       try {
         const updatedClass = await api.getClassById(classData.id);
-        if (updatedClass) setClassDoc(updatedClass);
+        if (!isMounted) return;
 
+        if (updatedClass) {
+          setClassDoc(updatedClass);
+        }
         if (!updatedClass?.group_id || !bot) {
           resetPopup();
           setIsChangingGroup(true);
           setIsDisconnectedGroup(false);
           return;
         }
-
         const group = await api.getWhatsappGroupDetails(
           updatedClass.group_id,
           bot,
         );
+        if (!isMounted) return;
+
         const parsedGroup =
           typeof group === 'object' && group !== null && !Array.isArray(group)
             ? (group as {
                 name?: string;
                 members?: string[];
                 inviteLink?: string;
-                is_exited?: boolean;
               })
             : null;
-        const isExited = parsedGroup?.is_exited === true;
 
-        if (isExited || parsedGroup === null) {
+        if (parsedGroup === null) {
           setGroupName(null);
           setEditedGroupName('');
           setMembers(null);
@@ -122,19 +143,27 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   };
 
   const handleSave = async () => {
-    if (!groupId || !bot) return;
+    const targetGroupId = classDoc?.group_id ?? groupId ?? '';
+    if (!targetGroupId || !bot) return;
 
     setIsSaving(true);
-    const success = await api.updateWhatsAppGroupSettings(
-      classDoc?.group_id ?? '',
-      bot,
-      editedGroupName,
-    );
-    setIsSaving(false);
+    setError(null);
+    try {
+      const success = await api.updateWhatsAppGroupSettings(
+        targetGroupId,
+        bot,
+        editedGroupName,
+      );
 
-    if (success) {
-      setGroupName(editedGroupName);
-      setIsEditing(false);
+      if (success) {
+        setGroupName(editedGroupName);
+        setIsEditing(false);
+      }
+    } catch (err) {
+      logger.error('Failed to update WhatsApp group settings:', err);
+      setError(t('Something went wrong. Please try again.'));
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -168,10 +197,11 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
     setError(null);
 
     try {
+      const linkedClassId = String(classDoc?.id ?? classData?.id ?? '').trim();
       const result = await api.getWhatsAppGroupByInviteLink(
         normalized,
         bot,
-        classDoc?.id!,
+        linkedClassId,
       );
       if (result) {
         setGroupName(result.group_name);
@@ -182,6 +212,9 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
         );
         setIsChangingGroup(false);
         setIsDisconnectedGroup(false);
+        if (linkedClassId) {
+          onGroupLinked?.(linkedClassId, result.group_id);
+        }
       } else {
         setError(t('No WhatsApp group found for this invite link'));
         return;
@@ -244,93 +277,103 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
               </Typography>
             </Box>
           )}
-          {isStatusResolved && !(isChangingGroup && isDisconnectedGroup) && (
-            <Box className="wa-section">
-              <Typography variant="caption" color="text.secondary">
-                {isChangingGroup ? t('Add an Invite Link') : t('Group Name')}
-              </Typography>
+          {isStatusResolved &&
+            !(isChangingGroup && isDisconnectedGroup) &&
+            !isExternalUser && (
+              <Box className="wa-section">
+                <Typography variant="caption" color="text.secondary">
+                  {isChangingGroup ? t('Add an Invite Link') : t('Group Name')}
+                </Typography>
 
-              <Box className="wa-input-row">
-                {isChangingGroup && (
-                  <WhatsAppInviteLinkInput
-                    inviteInput={inviteInput}
-                    setInviteInput={setInviteInput}
-                    error={error}
-                    loading={loading}
-                    groupId={groupId || classDoc?.group_id}
-                    onSubmit={handleInviteSubmit}
-                    onCancel={() => {
-                      const hasExistingGroupName =
-                        (groupName ?? '').trim().length > 0;
-                      setIsChangingGroup(!hasExistingGroupName);
-                      setInviteInput('');
-                      setError(null);
-                    }}
-                  />
-                )}
+                <Box className="wa-input-row">
+                  {isChangingGroup && (
+                    <WhatsAppInviteLinkInput
+                      inviteInput={inviteInput}
+                      setInviteInput={setInviteInput}
+                      error={error}
+                      loading={loading}
+                      groupId={groupId || classDoc?.group_id}
+                      onSubmit={handleInviteSubmit}
+                      onCancel={() => {
+                        const hasExistingGroupName =
+                          (groupName ?? '').trim().length > 0;
+                        setIsChangingGroup(!hasExistingGroupName);
+                        setInviteInput('');
+                        setError(null);
+                      }}
+                    />
+                  )}
 
-                {!isChangingGroup && isEditing && (
-                  <div
-                    className="wa-input-row-editing"
-                    id="wa-input-row-editing-id"
-                  >
-                    <Box className="wa-input-wrapper">
-                      <input
-                        className="wa-input"
-                        value={editedGroupName}
-                        autoFocus
-                        onChange={(e) => setEditedGroupName(e.target.value)}
-                      />
-                    </Box>
-
-                    <Box display="flex" gap={2}>
-                      <button
-                        className="wa-info-save-btn"
-                        onClick={handleSave}
-                        disabled={isSaving || !editedGroupName.trim()}
+                  {!isChangingGroup && isEditing && (
+                    <>
+                      <div
+                        className="wa-input-row-editing"
+                        id="wa-input-row-editing-id"
                       >
-                        {isSaving ? t('Saving...') : t('Save')}
-                      </button>
+                        <Box className="wa-input-wrapper">
+                          <input
+                            className="wa-input"
+                            value={editedGroupName}
+                            autoFocus
+                            onChange={(e) => setEditedGroupName(e.target.value)}
+                          />
+                        </Box>
+
+                        <Box display="flex" gap={2}>
+                          <button
+                            className="wa-info-save-btn"
+                            onClick={handleSave}
+                            disabled={isSaving || !editedGroupName.trim()}
+                          >
+                            {isSaving ? t('Saving...') : t('Save')}
+                          </button>
+
+                          <button
+                            className="wa-info-cancel-btn"
+                            onClick={handleCancel}
+                            disabled={isSaving}
+                          >
+                            {t('Cancel')}
+                          </button>
+                        </Box>
+                      </div>
+
+                      {error && (
+                        <Typography color="error" variant="caption">
+                          {error}
+                        </Typography>
+                      )}
+                    </>
+                  )}
+
+                  {!isChangingGroup && !isEditing && (
+                    <>
+                      <Box className="wa-input-wrapper">
+                        <input
+                          className="wa-input"
+                          value={groupName ?? ''}
+                          disabled
+                        />
+
+                        <img
+                          src="/assets/icons/EditIcon2.svg"
+                          alt="Edit"
+                          className="wa-input-edit-icon"
+                          onClick={handleEdit}
+                        />
+                      </Box>
 
                       <button
-                        className="wa-info-cancel-btn"
-                        onClick={handleCancel}
-                        disabled={isSaving}
+                        className="wa-change-btn"
+                        onClick={openChangeGroupPopup}
                       >
-                        {t('Cancel')}
+                        {t('Change')}
                       </button>
-                    </Box>
-                  </div>
-                )}
-
-                {!isChangingGroup && !isEditing && (
-                  <>
-                    <Box className="wa-input-wrapper">
-                      <input
-                        className="wa-input"
-                        value={groupName ?? ''}
-                        disabled
-                      />
-
-                      <img
-                        src="/assets/icons/EditIcon2.svg"
-                        alt="Edit"
-                        className="wa-input-edit-icon"
-                        onClick={handleEdit}
-                      />
-                    </Box>
-
-                    <button
-                      className="wa-change-btn"
-                      onClick={openChangeGroupPopup}
-                    >
-                      {t('Change')}
-                    </button>
-                  </>
-                )}
+                    </>
+                  )}
+                </Box>
               </Box>
-            </Box>
-          )}
+            )}
 
           {isStatusResolved && !isChangingGroup && (
             <>

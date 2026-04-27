@@ -102,6 +102,17 @@ export type SchoolProgramAccessResponse = {
   total_pages: number;
 };
 
+export type OpsStudentPerformanceBandsParams = {
+  classIds?: string[];
+  studentIds?: string[];
+};
+
+export type OpsStudentPerformanceBandRow = {
+  student_id: string;
+  class_id: string | null;
+  performance?: string | null;
+};
+
 export type JoinClassInviteLookupResult = {
   inviteData: any;
   classData?: TableTypes<'class'>;
@@ -1569,6 +1580,10 @@ export interface ServiceApi {
     classId: string,
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }>;
 
+  getOpsStudentPerformanceBands?(
+    params: OpsStudentPerformanceBandsParams,
+  ): Promise<OpsStudentPerformanceBandRow[]>;
+
   /**
    * Get the Lessons with LessonIds
    * @param lessonIds
@@ -2085,6 +2100,12 @@ export interface ServiceApi {
    * @returns Promise resolving to an object where keys are filter categories
    * and values are arrays of filter option strings.
    */
+  /**
+   * Fetch distinct filter values for the school listing from the same data
+   * source used by the listing rows.
+   *
+   * @returns Distinct filter options grouped by school listing filter key.
+   */
   getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
 
   /**
@@ -2103,9 +2124,15 @@ export interface ServiceApi {
   /**
    * Fetch a list of schools filtered by given criteria, with pagination, sorting, and search.
    *
-   * @param params - An object containing filters (keys as categories and values as selected options),
-   *   an optional programId, pagination, sorting, and search options.
-   * @returns Promise resolving to an object with the filtered list of schools and the total count.
+   * @param params.filters Optional multi-select filters keyed by listing category.
+   * @param params.programId Optional program scope for the listing.
+   * @param params.page Page number for the paginated result set.
+   * @param params.page_size Number of rows requested per page.
+   * @param params.order_by Requested sort column from the UI.
+   * @param params.order_dir Requested sort direction.
+   * @param params.search Free-text search term applied to school name and UDISE.
+   * @param params.date_range Metric window chosen from the school-list dropdown.
+   * @returns Promise resolving to the filtered rows and the exact total count.
    */
   getFilteredSchoolsForSchoolListing(params: {
     filters?: Record<string, string[]>;
@@ -2115,6 +2142,34 @@ export interface ServiceApi {
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
+    date_range?: string;
+  }): Promise<{
+    data: FilteredSchoolsForSchoolListingOps[];
+    total: number;
+  }>;
+
+  /**
+   * Fetch school listing rows directly from school_metrics.
+   *
+   * @param params.filters Optional multi-select filters keyed by listing category.
+   * @param params.programId Optional program scope for the listing.
+   * @param params.page Page number for the paginated result set.
+   * @param params.page_size Number of rows requested per page.
+   * @param params.order_by Requested sort column from the UI.
+   * @param params.order_dir Requested sort direction.
+   * @param params.search Free-text search term applied to school name and UDISE.
+   * @param params.date_range Metric window chosen from the school-list dropdown.
+   * @returns Promise resolving to the filtered rows and the exact total count.
+   */
+  getSchoolMetricsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
@@ -2154,12 +2209,14 @@ export interface ServiceApi {
    * @param {string} schoolId - The ID of the school to fetch.
    * @param {number} [page=1] - The page number to fetch.
    * @param {number} [limit=20] - The number of items per page.
+   * @param {string[]} [classIds] - Optional class scope for program-filtered tabs.
    * @returns Promise resolving to an object with teacher data and a total count.
    */
   getTeacherInfoBySchoolId(
     schoolId: string,
     page: number,
     limit: number,
+    classIds?: string[],
   ): Promise<TeacherAPIResponse>;
 
   /**
@@ -2168,6 +2225,7 @@ export interface ServiceApi {
    * @param {number} [page=1] - The page number to fetch.
    * @param {number} [limit=20] - The number of items per page.
    * @param {string} classId -The Id of the class
+   * @param {string[]} [classIds] - Optional class scope for program-filtered tabs.
    * @returns Promise resolving to an object with student data and a total count.
    */
   getStudentInfoBySchoolId(
@@ -2175,6 +2233,7 @@ export interface ServiceApi {
     page: number,
     limit: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse>;
 
   /**
@@ -2444,12 +2503,14 @@ export interface ServiceApi {
 
   /**
    * Search teachers in a school by name, email, or phone (paginated)
+   * @param classIds Optional class scope for program-filtered tabs.
    */
   searchTeachersInSchool(
     schoolId: string,
     searchTerm: string,
     page?: number,
     limit?: number,
+    classIds?: string[],
   ): Promise<{ data: any[]; total: number }>;
 
   /**
@@ -2458,6 +2519,7 @@ export interface ServiceApi {
    * @param searchTerm Search string
    * @param page Page number
    * @param limit Page size
+   * @param classIds Optional class scope for program-filtered tabs.
    */
   searchStudentsInSchool(
     schoolId: string,
@@ -2465,6 +2527,7 @@ export interface ServiceApi {
     page?: number,
     limit?: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse>;
 
   approveOpsRequest(
@@ -2806,6 +2869,7 @@ export interface ServiceApi {
   getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<'user'>,
+    courseId?: string,
   ): Promise<TableTypes<'subject_lesson'> | null>;
 
   getSkillById(skillId: string): Promise<TableTypes<'skill'> | undefined>;
@@ -2867,11 +2931,12 @@ export interface ServiceApi {
   getGroupIdByInvite(invite_link: string, bot: string): Promise<Json>;
 
   /**
-   * Fetch phone/botNum details using bot num.
-   * @param {string} bot - The WhatsApp bot phone number.
+   * Fetch phone/botNum details, optionally scoped by WhatsApp group id.
+   * @param {string} bot - The WhatsApp bot phone number (used for fallback path).
+   * @param {string | null} groupId - Optional WhatsApp group id for Maytapi group-based checks.
    * @returns Promise resolving to the phoneNum details
    */
-  getPhoneDetailsByBotNum(bot: string): Promise<Json>;
+  getPhoneDetailsByBotNum(bot?: string, groupId?: string | null): Promise<Json>;
   /**
    * Updates WhatsApp group settings such as name, admin-only permissions, etc.
    *

@@ -1,6 +1,9 @@
 import {
+  filterByProgramGrades,
   getExactClassName,
   getClassDisplayLabel,
+  getProgramAllowedGrades,
+  isProgramGradeAllowed,
   parseGradeSection,
   toCommaString,
 } from './ClassDetailsPageUtils';
@@ -143,6 +146,59 @@ describe('ClassDetailsPageUtils', () => {
 
     it('returns empty when no name fields exist', () => {
       expect(getExactClassName({})).toBe('');
+    });
+  });
+
+  // Verifies the accepted program class-scope payload formats.
+  describe('getProgramAllowedGrades', () => {
+    it.each([
+      [{ handle_classess: 1 }, ['1']],
+      [{ handle_classess: '1' }, ['1']],
+      [{ handle_classess: '1 and 2' }, ['1', '2']],
+      [{ handle_classess: '1,2' }, ['1', '2']],
+      [{ handle_classess: [1, 2] }, ['1', '2']],
+      [{ handle_classess: '["1","2"]' }, ['1', '2']],
+      [{ handle_classess: "['1','2']" }, ['1', '2']],
+    ])('parses program scope %p', (programData, expected) => {
+      expect(Array.from(getProgramAllowedGrades(programData) ?? [])).toEqual(
+        expected,
+      );
+    });
+
+    it('returns null for missing or empty program scope', () => {
+      expect(getProgramAllowedGrades(undefined)).toBeNull();
+      expect(getProgramAllowedGrades({ handle_classess: '' })).toBeNull();
+      expect(getProgramAllowedGrades({ handle_classess: [] })).toBeNull();
+    });
+  });
+
+  // Verifies scoped grade filtering keeps all sections under allowed grades.
+  describe('program grade filters', () => {
+    const allowedGrades = getProgramAllowedGrades({
+      handle_classess: '1 and 2',
+    });
+
+    it('allows every section under configured grades', () => {
+      expect(
+        filterByProgramGrades(
+          [
+            { name: '1A' },
+            { name: 'Class 1 B' },
+            { name: '2' },
+            { name: '3A' },
+          ],
+          allowedGrades,
+        ),
+      ).toEqual([{ name: '1A' }, { name: 'Class 1 B' }, { name: '2' }]);
+    });
+
+    it('uses fallback grade when class name is unavailable', () => {
+      expect(
+        isProgramGradeAllowed(allowedGrades, {
+          grade: 2,
+          section: 'A',
+        }),
+      ).toBe(true);
     });
   });
 });
