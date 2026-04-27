@@ -154,8 +154,14 @@ describe('ClassDetailsPageUtils', () => {
     it.each([
       [{ handle_classess: 1 }, ['1']],
       [{ handle_classess: '1' }, ['1']],
+      // Keeps backward compatibility with legacy KG scope encoded as grade "0".
+      [{ handle_classess: '0' }, ['0']],
       [{ handle_classess: '1 and 2' }, ['1', '2']],
       [{ handle_classess: '1,2' }, ['1', '2']],
+      // Ensures KG labels are stored as distinct tokens rather than collapsing both to 0.
+      [{ handle_classess: 'LKG' }, ['LKG']],
+      [{ handle_classess: 'ukg c' }, ['UKG']],
+      [{ handle_classess: 'LKG and UKG' }, ['LKG', 'UKG']],
       [{ handle_classess: [1, 2] }, ['1', '2']],
       [{ handle_classess: '["1","2"]' }, ['1', '2']],
       [{ handle_classess: "['1','2']" }, ['1', '2']],
@@ -199,6 +205,62 @@ describe('ClassDetailsPageUtils', () => {
           section: 'A',
         }),
       ).toBe(true);
+    });
+
+    // Validates LKG-only scope does not leak UKG rows.
+    it('shows only LKG when the program scope is LKG', () => {
+      const lkgOnly = getProgramAllowedGrades({
+        handle_classess: 'LKG',
+      });
+
+      expect(
+        filterByProgramGrades(
+          [{ name: 'LKG A' }, { name: 'UKG A' }, { name: '1A' }],
+          lkgOnly,
+        ),
+      ).toEqual([{ name: 'LKG A' }]);
+    });
+
+    // Validates UKG-only scope does not leak LKG rows.
+    it('shows only UKG when the program scope is UKG', () => {
+      const ukgOnly = getProgramAllowedGrades({
+        handle_classess: 'UKG',
+      });
+
+      expect(
+        filterByProgramGrades(
+          [{ name: 'LKG B' }, { name: 'UKG B' }, { name: '2A' }],
+          ukgOnly,
+        ),
+      ).toEqual([{ name: 'UKG B' }]);
+    });
+
+    // Validates dual KG scope includes both KG branches together.
+    it('shows both LKG and UKG when both are in program scope', () => {
+      const kgBoth = getProgramAllowedGrades({
+        handle_classess: 'LKG and UKG',
+      });
+
+      expect(
+        filterByProgramGrades(
+          [{ name: 'LKG C' }, { name: 'UKG C' }, { name: '3A' }],
+          kgBoth,
+        ),
+      ).toEqual([{ name: 'LKG C' }, { name: 'UKG C' }]);
+    });
+
+    // Guards existing installs where KG scope is configured as numeric 0.
+    it('keeps legacy grade 0 scopes matching both LKG and UKG', () => {
+      const legacyKg = getProgramAllowedGrades({
+        handle_classess: 0,
+      });
+
+      expect(
+        filterByProgramGrades(
+          [{ name: 'LKG A' }, { name: 'UKG A' }, { name: '1A' }],
+          legacyKg,
+        ),
+      ).toEqual([{ name: 'LKG A' }, { name: 'UKG A' }]);
     });
   });
 });
