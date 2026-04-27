@@ -41,12 +41,7 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
 
   const tabEnumValues = Object.values(SchoolTabs).filter((tab) => {
-    if (
-      isExternalUser &&
-      (tab === SchoolTabs.Notes ||
-        tab === SchoolTabs.Coordinators ||
-        tab === SchoolTabs.Principals)
-    ) {
+    if (isExternalUser && tab === SchoolTabs.Notes) {
       return false; // hide restricted tabs for external users
     }
     return true;
@@ -101,7 +96,7 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
           <SchoolTeachers data={data} isMobile={isMobile} schoolId={schoolId} />
         )}
 
-        {activeTab === SchoolTabs.Principals && !isExternalUser && (
+        {activeTab === SchoolTabs.Principals && (
           <SchoolPrincipals
             data={data}
             isMobile={isMobile}
@@ -109,7 +104,7 @@ const SchoolDetailsTabsComponent: React.FC<SchoolDetailsTabsComponentProps> = ({
           />
         )}
 
-        {activeTab === SchoolTabs.Coordinators && !isExternalUser && (
+        {activeTab === SchoolTabs.Coordinators && (
           <SchoolCoordinators
             data={data}
             isMobile={isMobile}

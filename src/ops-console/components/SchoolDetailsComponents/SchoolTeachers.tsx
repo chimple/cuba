@@ -1287,16 +1287,19 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       sortable: false,
       render: (row) => renderWhatsappGroupChip(row.whatsappGroupStatus),
     },
-    // { key: "phoneNumber", label: t("Phone Number") },
-    {
-      key: 'phoneEmailDisplay', // 🔹 use merged column
-      label: t('Phone / Email'),
-      renderCell: (row: DisplayTeacher) => (
-        <Typography variant="body2" className="truncate-text">
-          {row.phoneEmailDisplay}
-        </Typography>
-      ),
-    },
+    ...(!isExternalUser
+      ? [
+          {
+            key: 'phoneEmailDisplay',
+            label: t('Phone / Email'),
+            renderCell: (row: DisplayTeacher) => (
+              <Typography variant="body2" className="truncate-text">
+                {row.phoneEmailDisplay}
+              </Typography>
+            ),
+          } as Column<DisplayTeacher>,
+        ]
+      : []),
     ...(!isExternalUser
       ? [
           {
