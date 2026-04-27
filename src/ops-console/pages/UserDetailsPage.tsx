@@ -29,6 +29,7 @@ const UserDetailsPage: React.FC = () => {
   const [availableEditRoles] = useState([
     RoleType.PROGRAM_MANAGER,
     RoleType.FIELD_COORDINATOR,
+    RoleType.EXTERNAL_USER,
   ]);
 
   const history = useHistory();
@@ -162,7 +163,7 @@ const UserDetailsPage: React.FC = () => {
   const editRoleOptions = availableEditRoles.includes(userRole as RoleType)
     ? availableEditRoles
     : userRole
-      ? [userRole as RoleType]
+      ? [...availableEditRoles, userRole as RoleType]
       : availableEditRoles;
 
   return (
