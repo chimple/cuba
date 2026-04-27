@@ -361,15 +361,19 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
         ]
       : []),
 
-    {
-      key: 'phoneEmailDisplay', // 🔹 use merged column
-      label: t('Phone / Email'),
-      renderCell: (row: DisplayPrincipal) => (
-        <Typography variant="body2" className="truncate-text">
-          {row.phoneEmailDisplay}
-        </Typography>
-      ),
-    },
+    ...(!isExternalUser
+      ? [
+          {
+            key: 'phoneEmailDisplay',
+            label: t('Phone / Email'),
+            renderCell: (row: DisplayPrincipal) => (
+              <Typography variant="body2" className="truncate-text">
+                {row.phoneEmailDisplay}
+              </Typography>
+            ),
+          } as Column<DisplayPrincipal>,
+        ]
+      : []),
     ...(!isExternalUser
       ? [
           {

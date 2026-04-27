@@ -75,6 +75,38 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
     }
   }, [selectedSubject, courseDetails, syncWithLearningPath]);
 
+  const loadCourseDetails = async (
+    courseIds: string[],
+  ): Promise<CourseDetails[]> => {
+    const uniqueCourseIds = Array.from(new Set(courseIds.filter(Boolean)));
+    const coursePromises: Promise<CourseDetails | null>[] = uniqueCourseIds.map(
+      async (courseId) => {
+        try {
+          const course = await api.getCourse(courseId);
+          if (!course) return null;
+
+          const [gradeDoc, curriculumDoc] = await Promise.all([
+            course.grade_id
+              ? api.getGradeById(course.grade_id)
+              : Promise.resolve(null),
+            course.curriculum_id
+              ? api.getCurriculumById(course.curriculum_id)
+              : Promise.resolve(null),
+          ]);
+
+          return { course, grade: gradeDoc, curriculum: curriculumDoc };
+        } catch (err) {
+          logger.error('Failed to fetch homework course', err);
+          return null;
+        }
+      },
+    );
+
+    return (await Promise.all(coursePromises)).filter(
+      Boolean,
+    ) as CourseDetails[];
+  };
+
   const fetchLearningPathCourseDetails = async () => {
     try {
       const currentStudent = await Util.getCurrentStudent();
@@ -93,46 +125,18 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
           currentStudent.id,
         );
         const pendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
-
-        if (!pendingAssignments.length) {
-          setCourseDetails([]);
-          return;
-        }
-
-        // 👉 Collect unique course ids from pending assignments
-        const uniqueCourseIds: string[] = Array.from(
-          new Set(
-            pendingAssignments
-              .map((assignment) => assignment.course_id)
-              .filter((id): id is string => !!id),
-          ),
+        const pendingCourseIds = pendingAssignments
+          .map((assignment) => assignment.course_id)
+          .filter((id): id is string => !!id);
+        const fallbackCourses =
+          pendingCourseIds.length > 0
+            ? []
+            : await api.getCoursesForClassStudent(currClass.id);
+        const detailedCourses = await loadCourseDetails(
+          pendingCourseIds.length > 0
+            ? pendingCourseIds
+            : fallbackCourses.map((course) => String(course.id)),
         );
-
-        const coursePromises: Promise<CourseDetails | null>[] =
-          uniqueCourseIds.map(async (courseId) => {
-            try {
-              const course = await api.getCourse(courseId);
-              if (!course) return null;
-
-              const [gradeDoc, curriculumDoc] = await Promise.all([
-                course.grade_id
-                  ? api.getGradeById(course.grade_id)
-                  : Promise.resolve(null),
-                course.curriculum_id
-                  ? api.getCurriculumById(course.curriculum_id)
-                  : Promise.resolve(null),
-              ]);
-
-              return { course, grade: gradeDoc, curriculum: curriculumDoc };
-            } catch (err) {
-              logger.error('Failed to fetch homework course', err);
-              return null;
-            }
-          });
-
-        const detailedCourses = (await Promise.all(coursePromises)).filter(
-          Boolean,
-        ) as CourseDetails[];
 
         setCourseDetails(detailedCourses);
 

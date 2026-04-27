@@ -2209,12 +2209,14 @@ export interface ServiceApi {
    * @param {string} schoolId - The ID of the school to fetch.
    * @param {number} [page=1] - The page number to fetch.
    * @param {number} [limit=20] - The number of items per page.
+   * @param {string[]} [classIds] - Optional class scope for program-filtered tabs.
    * @returns Promise resolving to an object with teacher data and a total count.
    */
   getTeacherInfoBySchoolId(
     schoolId: string,
     page: number,
     limit: number,
+    classIds?: string[],
   ): Promise<TeacherAPIResponse>;
 
   /**
@@ -2223,6 +2225,7 @@ export interface ServiceApi {
    * @param {number} [page=1] - The page number to fetch.
    * @param {number} [limit=20] - The number of items per page.
    * @param {string} classId -The Id of the class
+   * @param {string[]} [classIds] - Optional class scope for program-filtered tabs.
    * @returns Promise resolving to an object with student data and a total count.
    */
   getStudentInfoBySchoolId(
@@ -2230,6 +2233,7 @@ export interface ServiceApi {
     page: number,
     limit: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse>;
 
   /**
@@ -2499,12 +2503,14 @@ export interface ServiceApi {
 
   /**
    * Search teachers in a school by name, email, or phone (paginated)
+   * @param classIds Optional class scope for program-filtered tabs.
    */
   searchTeachersInSchool(
     schoolId: string,
     searchTerm: string,
     page?: number,
     limit?: number,
+    classIds?: string[],
   ): Promise<{ data: any[]; total: number }>;
 
   /**
@@ -2513,6 +2519,7 @@ export interface ServiceApi {
    * @param searchTerm Search string
    * @param page Page number
    * @param limit Page size
+   * @param classIds Optional class scope for program-filtered tabs.
    */
   searchStudentsInSchool(
     schoolId: string,
@@ -2520,6 +2527,7 @@ export interface ServiceApi {
     page?: number,
     limit?: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse>;
 
   approveOpsRequest(

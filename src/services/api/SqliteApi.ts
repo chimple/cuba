@@ -7004,12 +7004,26 @@ order by
     schoolId: string,
     page: number = 1,
     limit: number = 20,
+    classIds?: string[],
   ): Promise<TeacherAPIResponse> {
     await this.ensureInitialized();
     if (!this._db) {
       logger.warn('SQLite DB not initialized.');
       return { data: [], total: 0 };
     }
+    // Empty program class scopes should return an empty page without querying.
+    if (classIds && classIds.length === 0) {
+      return { data: [], total: 0 };
+    }
+
+    // Applies program class scope to the teacher list queries.
+    const classScopePlaceholders = classIds?.map(() => '?').join(', ') ?? '';
+    const classScopeClause =
+      classIds && classIds.length > 0
+        ? `AND cu.class_id IN (${classScopePlaceholders})`
+        : '';
+    const baseParams =
+      classIds && classIds.length > 0 ? [schoolId, ...classIds] : [schoolId];
 
     // STEP 1: Get the total count of unique teachers for the school.
     const countQuery = `
@@ -7019,10 +7033,11 @@ order by
     WHERE c.school_id = ?
       AND cu.role = 'teacher'
       AND cu.is_deleted = false
+      ${classScopeClause}
       AND c.is_deleted = false;
   `;
 
-    const countRes = await this._db.query(countQuery, [schoolId]);
+    const countRes = await this._db.query(countQuery, baseParams);
     const total = countRes?.values?.[0]?.total || 0;
 
     if (total === 0) {
@@ -7042,6 +7057,7 @@ order by
     WHERE c.school_id = ?
       AND cu.role = 'teacher'
       AND cu.is_deleted = false
+      ${classScopeClause}
       AND c.is_deleted = false
       AND u.is_deleted = false
     -- Group by teacher to handle cases where a teacher has multiple classes,
@@ -7051,7 +7067,11 @@ order by
     LIMIT ? OFFSET ?;
   `;
 
-    const dataRes = await this._db.query(dataQuery, [schoolId, limit, offset]);
+    const dataRes = await this._db.query(dataQuery, [
+      ...baseParams,
+      limit,
+      offset,
+    ]);
     const rows = dataRes?.values ?? [];
 
     // STEP 3: Map the flat SQL result into the nested TeacherInfo structure.
@@ -7111,10 +7131,15 @@ order by
     page: number = 1,
     limit: number = 20,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse> {
     await this.ensureInitialized();
     if (!this._db) {
       logger.warn('Database not initialized, cannot fetch student info.');
+      return { data: [], total: 0 };
+    }
+    // Empty program class scopes should return an empty page without querying.
+    if (!classId && classIds && classIds.length === 0) {
       return { data: [], total: 0 };
     }
 
@@ -7124,8 +7149,20 @@ order by
       typeof classId === 'string' && classId.trim() !== ''
         ? classId.trim()
         : undefined;
-    const classScopeClause = classScopedId ? `AND cu.class_id = ?` : '';
-    const baseParams = classScopedId ? [schoolId, classScopedId] : [schoolId];
+    // Applies program class scope while preserving the class-detail override.
+    const scopedClassIds = !classScopedId && classIds ? classIds : undefined;
+    const classScopePlaceholders =
+      scopedClassIds?.map(() => '?').join(', ') ?? '';
+    const classScopeClause = classScopedId
+      ? `AND cu.class_id = ?`
+      : scopedClassIds && scopedClassIds.length > 0
+        ? `AND cu.class_id IN (${classScopePlaceholders})`
+        : '';
+    const baseParams = classScopedId
+      ? [schoolId, classScopedId]
+      : scopedClassIds && scopedClassIds.length > 0
+        ? [schoolId, ...scopedClassIds]
+        : [schoolId];
 
     // Step 1: Get total count
     const countQuery = `
@@ -7883,19 +7920,28 @@ order by
     page: number,
     limit: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<{ data: any[]; total: number }> {
     await this.ensureInitialized();
     if (!this._db) return { data: [], total: 0 };
+    // Empty program class scopes should return an empty search result.
+    if (!classId && classIds && classIds.length === 0) {
+      return { data: [], total: 0 };
+    }
     let whereClause = `
     cu.role = 'student'
     AND cu.is_deleted = 0
     AND c.school_id = ?
   `;
     let params: any[] = [schoolId];
-    // ✅ ADD CLASS FILTER ONLY IF classId EXISTS
+    // Applies program class scope while preserving the class-detail override.
     if (classId) {
       whereClause += ` AND cu.class_id = ?`;
       params.push(classId);
+    } else if (classIds && classIds.length > 0) {
+      const classScopePlaceholders = classIds.map(() => '?').join(', ');
+      whereClause += ` AND cu.class_id IN (${classScopePlaceholders})`;
+      params.push(...classIds);
     }
     // ✅ SEARCH FILTER
     if (searchTerm && searchTerm.trim() !== '') {
@@ -7952,11 +7998,20 @@ order by
     searchTerm: string,
     page: number = 1,
     limit: number = 20,
+    classIds?: string[],
   ): Promise<{ data: any[]; total: number }> {
     await this.ensureInitialized();
     if (!this._db) return { data: [], total: 0 };
+    // Empty program class scopes should return an empty search result.
+    if (classIds && classIds.length === 0) return { data: [], total: 0 };
     let whereClause = `cu.role = 'teacher' AND cu.is_deleted = 0 AND c.school_id = ?`;
     let params: any[] = [schoolId];
+    // Applies program class scope before searching teacher memberships.
+    if (classIds && classIds.length > 0) {
+      const classScopePlaceholders = classIds.map(() => '?').join(', ');
+      whereClause += ` AND cu.class_id IN (${classScopePlaceholders})`;
+      params.push(...classIds);
+    }
     if (searchTerm && searchTerm.trim() !== '') {
       whereClause += ` AND (u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ?)`;
       const likeTerm = `%${searchTerm}%`;

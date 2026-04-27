@@ -2878,6 +2878,33 @@ export class Util {
         const isNowComplete = newCurrentIndex >= lessonsLen;
 
         if (isNowComplete) {
+          if (studentId) {
+            let preAwardCollectedStickerIds: string[] = [];
+            try {
+              const currentBookWithProgress =
+                await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+                  studentId,
+                );
+              preAwardCollectedStickerIds =
+                currentBookWithProgress?.progress?.stickers_collected ?? [];
+            } catch {
+              preAwardCollectedStickerIds = [];
+            }
+
+            const stickerAwardResult =
+              await Util.tryAwardStickerForCompletedPathway(
+                studentId,
+                'homework_pathway',
+              );
+            Util.seedPathwayStickerRewardSession({
+              studentId,
+              stickerAwardResult,
+              preAwardCollectedStickerIds,
+            });
+          } else {
+            Util.clearPathwayStickerRewardSession();
+          }
+
           // Build and log pathway completed event (using snapshot)
           try {
             const prevIndex = Math.max(completedIndex, 0); // the lesson just completed
@@ -2932,6 +2959,33 @@ export class Util {
       const newCurrentIndexFallback = (homeworkPath.currentIndex ?? 0) + 1;
       if (newCurrentIndexFallback >= (homeworkPath.lessons?.length ?? 0)) {
         // path finished
+        if (studentId) {
+          let preAwardCollectedStickerIds: string[] = [];
+          try {
+            const currentBookWithProgress =
+              await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+                studentId,
+              );
+            preAwardCollectedStickerIds =
+              currentBookWithProgress?.progress?.stickers_collected ?? [];
+          } catch {
+            preAwardCollectedStickerIds = [];
+          }
+
+          const stickerAwardResult =
+            await Util.tryAwardStickerForCompletedPathway(
+              studentId,
+              'homework_pathway',
+            );
+          Util.seedPathwayStickerRewardSession({
+            studentId,
+            stickerAwardResult,
+            preAwardCollectedStickerIds,
+          });
+        } else {
+          Util.clearPathwayStickerRewardSession();
+        }
+
         try {
           // log completed event similar to above (best-effort)
           const lessons = homeworkPath.lessons ?? [];
@@ -3142,78 +3196,12 @@ export class Util {
         // If stickers are available (and we're online), award the next sticker for completing this pathway.
         const stickerAwardResult =
           await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
-        const shouldShowCompletedPathReward = Boolean(
-          stickerAwardResult.awardedStickerId,
-        );
-        if (shouldShowCompletedPathReward && completedPathwaySnapshot) {
-          sessionStorage.setItem(
-            REWARD_LEARNING_PATH,
-            completedPathwaySnapshot,
-          );
-          sessionStorage.setItem(
-            PENDING_PATHWAY_STICKER_REWARD_KEY,
-            JSON.stringify({
-              studentId: currentStudent.id,
-              awardedStickerId: stickerAwardResult.awardedStickerId,
-              stickerBookId: stickerAwardResult.stickerBookId,
-              createdAt: new Date().toISOString(),
-            }),
-          );
-        } else {
-          sessionStorage.removeItem(REWARD_LEARNING_PATH);
-          sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
-          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
-          sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
-        }
-        if (
-          stickerAwardResult.completed &&
-          stickerAwardResult.awardedStickerId
-        ) {
-          sessionStorage.setItem(
-            AUTO_OPEN_STICKER_PREVIEW_KEY,
-            JSON.stringify({
-              studentId: currentStudent.id,
-              createdAt: new Date().toISOString(),
-              awardedStickerId: stickerAwardResult.awardedStickerId,
-              preAwardCollectedStickerIds,
-              stickerBookId: stickerAwardResult.stickerBookId,
-              stickerBookTitle:
-                stickerAwardResult.payload?.stickerBookTitle ?? null,
-              stickerBookSvgUrl:
-                stickerAwardResult.payload?.stickerBookSvgUrl ?? null,
-            }),
-          );
-          sessionStorage.setItem(
-            AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
-            JSON.stringify({
-              studentId: currentStudent.id,
-              stickerBookId: stickerAwardResult.stickerBookId,
-              createdAt: new Date().toISOString(),
-              payload: stickerAwardResult.payload,
-            }),
-          );
-          if (stickerAwardResult.payload) {
-            window.dispatchEvent(
-              new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
-                detail: stickerAwardResult.payload,
-              }),
-            );
-          }
-        } else if (stickerAwardResult.awardedStickerId) {
-          sessionStorage.setItem(
-            AUTO_OPEN_STICKER_PREVIEW_KEY,
-            JSON.stringify({
-              studentId: currentStudent.id,
-              awardedStickerId: stickerAwardResult.awardedStickerId,
-              preAwardCollectedStickerIds,
-              createdAt: new Date().toISOString(),
-            }),
-          );
-        } else {
-          sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
-          sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
-          sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
-        }
+        Util.seedPathwayStickerRewardSession({
+          studentId: currentStudent.id,
+          stickerAwardResult,
+          preAwardCollectedStickerIds,
+          rewardLearningPathSnapshot: completedPathwaySnapshot,
+        });
         if (courseIndex >= courses.courseList.length) {
           courseIndex = 0;
         }
@@ -3260,8 +3248,106 @@ export class Util {
     }
   }
 
+  private static clearPathwayStickerRewardSession() {
+    sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+    sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+    sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+  }
+
+  private static seedPathwayStickerRewardSession({
+    studentId,
+    stickerAwardResult,
+    preAwardCollectedStickerIds,
+    rewardLearningPathSnapshot,
+  }: {
+    studentId: string;
+    stickerAwardResult: {
+      completed: boolean;
+      stickerBookId: string | null;
+      awardedStickerId: string | null;
+      payload: StickerBookModalData | null;
+    };
+    preAwardCollectedStickerIds: string[];
+    rewardLearningPathSnapshot?: string | null;
+  }) {
+    const awardedStickerId = stickerAwardResult.awardedStickerId;
+    const stickerBookId = stickerAwardResult.stickerBookId;
+    const createdAt = new Date().toISOString();
+
+    if (awardedStickerId && rewardLearningPathSnapshot) {
+      sessionStorage.setItem(REWARD_LEARNING_PATH, rewardLearningPathSnapshot);
+    } else {
+      sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    }
+
+    if (!awardedStickerId) {
+      sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+      sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+      sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+      return;
+    }
+
+    sessionStorage.setItem(
+      PENDING_PATHWAY_STICKER_REWARD_KEY,
+      JSON.stringify({
+        studentId,
+        awardedStickerId,
+        stickerBookId,
+        createdAt,
+      }),
+    );
+
+    if (stickerAwardResult.completed) {
+      sessionStorage.setItem(
+        AUTO_OPEN_STICKER_PREVIEW_KEY,
+        JSON.stringify({
+          studentId,
+          createdAt,
+          awardedStickerId,
+          preAwardCollectedStickerIds,
+          stickerBookId,
+          stickerBookTitle:
+            stickerAwardResult.payload?.stickerBookTitle ?? null,
+          stickerBookSvgUrl:
+            stickerAwardResult.payload?.stickerBookSvgUrl ?? null,
+        }),
+      );
+      sessionStorage.setItem(
+        AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+        JSON.stringify({
+          studentId,
+          stickerBookId,
+          createdAt,
+          payload: stickerAwardResult.payload,
+        }),
+      );
+
+      if (stickerAwardResult.payload) {
+        window.dispatchEvent(
+          new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+            detail: stickerAwardResult.payload,
+          }),
+        );
+      }
+      return;
+    }
+
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_PREVIEW_KEY,
+      JSON.stringify({
+        studentId,
+        awardedStickerId,
+        preAwardCollectedStickerIds,
+        createdAt,
+      }),
+    );
+    sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+  }
+
   private static async tryAwardStickerForCompletedPathway(
     studentId: string,
+    source: StickerBookModalData['source'] = 'learning_pathway',
   ): Promise<{
     completed: boolean;
     stickerBookId: string | null;
@@ -3316,7 +3402,7 @@ export class Util {
         awardedStickerId: nextStickerId,
         payload: completed
           ? {
-              source: 'learning_pathway',
+              source,
               stickerBookId: current.book.id,
               stickerBookTitle: current.book.title || 'Sticker Book',
               stickerBookSvgUrl: current.book.svg_url || '',
