@@ -6139,8 +6139,10 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
     studentLoginType: string;
     schoolModel: string;
+    whatsappBotNumber?: string;
   } | null> {
     if (!this.supabase) return null;
 
@@ -6148,7 +6150,7 @@ export class SupabaseApi implements ServiceApi {
       // Fetch student_login_type and program_model directly from school table
       const { data: schoolData, error } = await this.supabase
         .from('school')
-        .select('student_login_type, model')
+        .select('id, student_login_type, model, whatsapp_bot_number')
         .eq('udise', udiseCode)
         .eq('is_deleted', false)
         .single();
@@ -6157,11 +6159,13 @@ export class SupabaseApi implements ServiceApi {
         return null;
       }
 
-      const { student_login_type, model } = schoolData;
+      const { id, student_login_type, model, whatsapp_bot_number } = schoolData;
 
       return {
+        schoolId: id || '',
         studentLoginType: student_login_type || '',
         schoolModel: model || '',
+        whatsappBotNumber: whatsapp_bot_number || '',
       };
     } catch (err) {
       logger.error('Unexpected error in getSchoolDetailsByUdise:', err);
@@ -8244,6 +8248,99 @@ export class SupabaseApi implements ServiceApi {
       }
 
       return data as { status: string; errors?: string[] };
+    } catch (err) {
+      return {
+        status: 'error',
+        errors: [String(err)],
+      };
+    }
+  }
+
+  async validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: 'error',
+        errors: ['Supabase client is not initialized'],
+      };
+    }
+    try {
+      const { data, error } = await this.supabase.functions.invoke(
+        'whatsapp-bot-check',
+        {
+          body: {
+            phone: whatsappBotNumber.trim(),
+          },
+        },
+      );
+      if (error) {
+        return {
+          status: 'error',
+          errors: [error.message || 'WHATSAPP BOT NUMBER validation failed.'],
+        };
+      }
+      if (data?.working === true) {
+        return { status: 'success' };
+      }
+      const stateInfo =
+        data?.wa_state || typeof data?.is_ready === 'boolean'
+          ? ` (wa_state: ${data?.wa_state ?? 'unknown'}, is_ready: ${String(
+              data?.is_ready,
+            )})`
+          : '';
+
+      return {
+        status: 'error',
+        errors: [
+          data?.error || `WHATSAPP BOT NUMBER is not active or connected.`,
+        ],
+      };
+    } catch (err) {
+      return {
+        status: 'error',
+        errors: [String(err)],
+      };
+    }
+  }
+
+  async validateWhatsappGroupLink(
+    whatsappBotNumber: string,
+    whatsappGroupLink: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: 'error',
+        errors: ['Supabase client is not initialized'],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.functions.invoke(
+        'whatsapp-group-validate',
+        {
+          body: {
+            invite_link: whatsappGroupLink.trim(),
+            phone: whatsappBotNumber.trim(),
+          },
+        },
+      );
+
+      if (error) {
+        return {
+          status: 'error',
+          errors: [error.message || 'WHATSAPP GROUP LINK validation failed.'],
+        };
+      }
+
+      if (data?.valid === true) {
+        return { status: 'success' };
+      }
+
+      return {
+        status: 'error',
+        errors: [data?.error || 'Invalid WHATSAPP GROUP LINK.'],
+      };
     } catch (err) {
       return {
         status: 'error',
