@@ -9,6 +9,8 @@ import {
 } from '@chimple/palau-recommendation';
 import { TableTypes } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
+import logger from './logger';
+import { palExcelLogger } from './palExcelLogger';
 
 type AbilityKeys = 'skill' | 'outcome' | 'competency' | 'domain' | 'subject';
 
@@ -279,6 +281,20 @@ export class palUtil {
       subjectId,
     });
 
+    logger.info('graph: ', graph);
+    logger.info('abilityState: ', abilityState);
+    logger.info('Recommended Skill🚀🚀🚀: ', recommendation);
+
+    palExcelLogger
+      .logRecommendationDataToExcel({
+        studentId,
+        courseId,
+        graph,
+        abilityState,
+        recommendation,
+      })
+      .catch((e) => logger.error('Recommendation Excel Log Error', e));
+
     const skillId = recommendation?.candidateId;
     if (!skillId) {
       return { lesson: undefined, chapterId: undefined, recommendation };
@@ -461,6 +477,23 @@ export class palUtil {
         abilities: abilityState,
         events: outcomeEvents,
       });
+      logger.info('Graph🚀🚀🚀: ', graph);
+      logger.info('abilityState:🚀🚀🚀 ', abilityState);
+      logger.info('outcomeEvents:🚀🚀🚀 ', outcomeEvents);
+      logger.info('updated abilites🚀🚀🚀: ', updated);
+
+      // Async fire and forget logging to Excel
+      palExcelLogger
+        .logPalDataToExcel({
+          studentId,
+          courseId,
+          skillId,
+          graph,
+          abilityState,
+          outcomeEvents,
+          updated,
+        })
+        .catch((e) => logger.error('Excel Log Error', e));
 
       newAbilityState = updated?.abilities ?? abilityState;
       this.abilityGraphCache.set(cacheKey, {
