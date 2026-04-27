@@ -11,7 +11,6 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
-import { isExternal } from 'util/types';
 
 type WhatsAppInfoCardProps = {
   classData?: TableTypes<'class'>;
@@ -50,14 +49,27 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   useEffect(() => {
     let isMounted = true;
     if (!classData?.id) {
+      setClassDoc(undefined);
+      setGroupName(null);
+      setEditedGroupName('');
+      setMembers(null);
+      setInviteLink(null);
+      setIsChangingGroup(true);
+      setIsDisconnectedGroup(false);
       setIsStatusResolved(true);
       return;
     }
     const init = async () => {
-      setIsStatusResolved(false);
+      if (isMounted) {
+        setIsStatusResolved(false);
+      }
       try {
         const updatedClass = await api.getClassById(classData.id);
-        if (updatedClass) setClassDoc(updatedClass);
+        if (!isMounted) return;
+
+        if (updatedClass) {
+          setClassDoc(updatedClass);
+        }
         if (!updatedClass?.group_id || !bot) {
           resetPopup();
           setIsChangingGroup(true);
@@ -68,6 +80,8 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
           updatedClass.group_id,
           bot,
         );
+        if (!isMounted) return;
+
         const parsedGroup =
           typeof group === 'object' && group !== null && !Array.isArray(group)
             ? (group as {
@@ -118,7 +132,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [classData?.id, bot]);
 
   const handleEdit = () => {
     setEditedGroupName(groupName ?? '');

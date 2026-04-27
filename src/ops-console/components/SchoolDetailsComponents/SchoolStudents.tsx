@@ -609,46 +609,33 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     });
   }, [baseStudents, allowedGrades]);
 
-  const normalizedStudents = useMemo(
-    () =>
-      programFilteredStudents.map((s) => {
-        const user = s.user ?? s;
-
-        return {
-          ...s,
-          user: {
-            id: user.id,
-            name: user.name ?? undefined,
-            email: user.email ?? undefined,
-            student_id: user.student_id ?? undefined,
-            phone: user.phone ?? undefined,
-            gender: user.gender ?? 'N/A',
-          },
-          className: s.classSection ?? 'N/A',
-          parent: s.parent ?? {
-            id: s.parent_id ?? undefined,
-            name: s.parent_name ?? '',
-            phone: s.parent_phone ?? s.phone ?? undefined,
-            email: s.parent_email ?? s.email ?? undefined,
-          },
-        };
-      }),
+  const normalizedStudents = useMemo<ApiStudentData[]>(
+    () => programFilteredStudents,
     [programFilteredStudents],
   );
 
-  const filteredStudents = useMemo(
-    () =>
-      filterBySearchAndFilters(
-        normalizedStudents,
-        {
-          grade: filters.grade ?? [],
-          section: (filters.section ?? []).map((s) => String(s).trim()),
-        },
-        searchTerm,
-        'student',
-      ),
-    [normalizedStudents, filters, searchTerm],
-  );
+  const filteredStudents = useMemo(() => {
+    const searchableStudents = normalizedStudents.map((student, index) => ({
+      index,
+      user: {
+        name: student.user.name ?? undefined,
+        email: student.user.email ?? undefined,
+        student_id: student.user.student_id ?? undefined,
+      },
+      grade: student.grade,
+      classSection: student.classSection,
+    }));
+
+    return filterBySearchAndFilters(
+      searchableStudents,
+      {
+        grade: filters.grade ?? [],
+        section: (filters.section ?? []).map((s) => String(s).trim()),
+      },
+      searchTerm,
+      'student',
+    ).map((student) => normalizedStudents[student.index]);
+  }, [normalizedStudents, filters, searchTerm]);
 
   const sortedStudents = useMemo(() => {
     // Standard sorting for all columns
