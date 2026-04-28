@@ -6139,8 +6139,10 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
     studentLoginType: string;
     schoolModel: string;
+    whatsappBotNumber?: string;
   } | null> {
     if (!this.supabase) return null;
 
@@ -6148,7 +6150,7 @@ export class SupabaseApi implements ServiceApi {
       // Fetch student_login_type and program_model directly from school table
       const { data: schoolData, error } = await this.supabase
         .from('school')
-        .select('student_login_type, model')
+        .select('id, student_login_type, model, whatsapp_bot_number')
         .eq('udise', udiseCode)
         .eq('is_deleted', false)
         .single();
@@ -6157,11 +6159,13 @@ export class SupabaseApi implements ServiceApi {
         return null;
       }
 
-      const { student_login_type, model } = schoolData;
+      const { id, student_login_type, model, whatsapp_bot_number } = schoolData;
 
       return {
+        schoolId: id || '',
         studentLoginType: student_login_type || '',
         schoolModel: model || '',
+        whatsappBotNumber: whatsapp_bot_number || '',
       };
     } catch (err) {
       logger.error('Unexpected error in getSchoolDetailsByUdise:', err);
@@ -8252,6 +8256,99 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
+  async validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: 'error',
+        errors: ['Supabase client is not initialized'],
+      };
+    }
+    try {
+      const { data, error } = await this.supabase.functions.invoke(
+        'whatsapp-bot-check',
+        {
+          body: {
+            phone: whatsappBotNumber.trim(),
+          },
+        },
+      );
+      if (error) {
+        return {
+          status: 'error',
+          errors: [error.message || 'WHATSAPP BOT NUMBER validation failed.'],
+        };
+      }
+      if (data?.working === true) {
+        return { status: 'success' };
+      }
+      const stateInfo =
+        data?.wa_state || typeof data?.is_ready === 'boolean'
+          ? ` (wa_state: ${data?.wa_state ?? 'unknown'}, is_ready: ${String(
+              data?.is_ready,
+            )})`
+          : '';
+
+      return {
+        status: 'error',
+        errors: [
+          data?.error || `WHATSAPP BOT NUMBER is not active or connected.`,
+        ],
+      };
+    } catch (err) {
+      return {
+        status: 'error',
+        errors: [String(err)],
+      };
+    }
+  }
+
+  async validateWhatsappGroupLink(
+    whatsappBotNumber: string,
+    whatsappGroupLink: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: 'error',
+        errors: ['Supabase client is not initialized'],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.functions.invoke(
+        'whatsapp-group-validate',
+        {
+          body: {
+            invite_link: whatsappGroupLink.trim(),
+            phone: whatsappBotNumber.trim(),
+          },
+        },
+      );
+
+      if (error) {
+        return {
+          status: 'error',
+          errors: [error.message || 'WHATSAPP GROUP LINK validation failed.'],
+        };
+      }
+
+      if (data?.valid === true) {
+        return { status: 'success' };
+      }
+
+      return {
+        status: 'error',
+        errors: [data?.error || 'Invalid WHATSAPP GROUP LINK.'],
+      };
+    } catch (err) {
+      return {
+        status: 'error',
+        errors: [String(err)],
+      };
+    }
+  }
+
   async setStarsForStudents(
     studentId: string,
     starsCount: number,
@@ -9039,73 +9136,46 @@ export class SupabaseApi implements ServiceApi {
     };
 
     try {
-      const { data, error } = await this.supabase
-        .from(TABLES.SchoolMetrics)
-        .select(
-          'state, district, block, cluster, program_type, partners, program_managers, field_coordinators',
-        )
-        .eq('is_deleted', false);
+      const { data, error } = await this.supabase.rpc(
+        'get_school_filter_options',
+      );
 
       if (error) {
-        logger.error('Error fetching school_metrics filter options:', error);
+        logger.error(
+          'RPC error in getSchoolFilterOptionsForSchoolListing:',
+          error,
+        );
         return emptyOptions;
       }
 
-      const parsed: Record<string, Set<string>> = {
-        state: new Set(),
-        district: new Set(),
-        block: new Set(),
-        programType: new Set(),
-        partner: new Set(),
-        programManager: new Set(),
-        fieldCoordinator: new Set(),
-        cluster: new Set(),
-      };
-
-      for (const row of (data ?? []) as Array<{
-        state?: string | null;
-        district?: string | null;
-        block?: string | null;
-        cluster?: string | null;
-        program_type?: string | null;
-        partners?: Array<string | null> | string[] | null;
-        program_managers?: Array<string | null> | string[] | null;
-        field_coordinators?: Array<string | null> | string[] | null;
-      }>) {
-        if (row.state) parsed.state.add(row.state);
-        if (row.district) parsed.district.add(row.district);
-        if (row.block) parsed.block.add(row.block);
-        if (row.cluster) parsed.cluster.add(row.cluster);
-        if (
-          row.program_type &&
-          Object.values(ProgramType).includes(row.program_type as ProgramType)
-        ) {
-          parsed.programType.add(row.program_type);
-        }
-
-        for (const partner of row.partners ?? []) {
-          if (partner) parsed.partner.add(partner);
-        }
-        for (const manager of row.program_managers ?? []) {
-          if (manager) parsed.programManager.add(manager);
-        }
-        for (const coordinator of row.field_coordinators ?? []) {
-          if (coordinator) parsed.fieldCoordinator.add(coordinator);
-        }
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        return emptyOptions;
       }
 
-      const finalOptions: Record<string, string[]> = {
-        state: Array.from(parsed.state).sort(),
-        district: Array.from(parsed.district).sort(),
-        block: Array.from(parsed.block).sort(),
-        programType: Array.from(parsed.programType).sort(),
-        partner: Array.from(parsed.partner).sort(),
-        programManager: Array.from(parsed.programManager).sort(),
-        fieldCoordinator: Array.from(parsed.fieldCoordinator).sort(),
-        cluster: Array.from(parsed.cluster).sort(),
-      };
+      const rpcData = data as Record<string, Json>;
 
-      return finalOptions;
+      return {
+        state: Array.isArray(rpcData.state) ? (rpcData.state as string[]) : [],
+        district: Array.isArray(rpcData.district)
+          ? (rpcData.district as string[])
+          : [],
+        block: Array.isArray(rpcData.block) ? (rpcData.block as string[]) : [],
+        programType: Array.isArray(rpcData.programType)
+          ? (rpcData.programType as string[])
+          : [],
+        partner: Array.isArray(rpcData.partner)
+          ? (rpcData.partner as string[])
+          : [],
+        programManager: Array.isArray(rpcData.programManager)
+          ? (rpcData.programManager as string[])
+          : [],
+        fieldCoordinator: Array.isArray(rpcData.fieldCoordinator)
+          ? (rpcData.fieldCoordinator as string[])
+          : [],
+        cluster: Array.isArray(rpcData.cluster)
+          ? (rpcData.cluster as string[])
+          : [],
+      };
     } catch (err) {
       logger.error('Unexpected error in getSchoolFilterOptions:', err);
       return emptyOptions;
@@ -10417,7 +10487,9 @@ export class SupabaseApi implements ServiceApi {
 
           const { data: classData } = await classQuery;
 
-          const schoolClassIds = (classData ?? []).map((c: any) => c.id);
+          const schoolClassIds = (classData ?? []).map(
+            (classRow) => classRow.id,
+          );
 
           if (schoolClassIds.length === 0) {
             resolve({ data: [], total: 0 });
@@ -13126,20 +13198,44 @@ export class SupabaseApi implements ServiceApi {
   }
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     if (!this.supabase) return [];
+
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
     const { data, error } = await this.supabase.functions.invoke(
-      'get-whatsapp-group-details',
+      'get-whatsapp-group-details-v2',
       {
         body: { groupId, bot },
       },
     );
-
     if (error) {
       throw error;
     }
 
-    return data.data;
-  }
+    const payload = data as Json | JsonMap | null;
+    const record = getRecord(payload);
 
+    if (record?.success === false) {
+      const details = getRecord(record.details);
+      const primaryDetail = String(details?.maytapi ?? '').trim();
+      const secondaryDetail = String(details?.periskope ?? '').trim();
+      const detailSuffix =
+        primaryDetail || secondaryDetail
+          ? ` (Primary: ${primaryDetail || 'n/a'} | Secondary: ${
+              secondaryDetail || 'n/a'
+            })`
+          : '';
+      throw new Error(
+        `${String(record.error ?? 'Failed to fetch WhatsApp group')}${detailSuffix}`,
+      );
+    }
+
+    return record?.data ?? payload;
+  }
   async getParentWhatsappGroupDetails(groupId: string) {
     if (!this.supabase) return [];
     const { data, error } = await this.supabase.rpc(
@@ -13263,7 +13359,7 @@ export class SupabaseApi implements ServiceApi {
   async getGroupIdByInvite(invite_link: string, bot: string) {
     if (!this.supabase) return [];
     const { data, error } = await this.supabase.functions.invoke(
-      'get-groupId-by-invite',
+      'get-groupId-by-invite-v2',
       {
         body: { invite_link, bot },
       },
@@ -13275,21 +13371,39 @@ export class SupabaseApi implements ServiceApi {
     return data;
   }
 
-  async getPhoneDetailsByBotNum(bot: string) {
+  async getPhoneDetailsByBotNum(bot?: string, groupId?: string | null) {
     if (!this.supabase) return [];
+
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
     const { data, error } = await this.supabase.functions.invoke(
-      'get-phoneDetails-by-botNum',
+      'get-phoneDetails-by-botNum-v2',
       {
-        body: { bot },
+        body: { bot, groupId },
       },
     );
 
     if (error) {
       throw error;
     }
-    return data;
-  }
 
+    const payload = data as Json | JsonMap | null;
+    const record = getRecord(payload);
+
+    if (record?.success === false) {
+      throw new Error(
+        String(record.error ?? 'Failed to fetch WhatsApp phone details'),
+      );
+    }
+
+    const parsed = record?.data ?? payload;
+    return parsed;
+  }
   async updateWhatsAppGroupSettings(
     chatId: string,
     phone: string,
@@ -13300,8 +13414,15 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<boolean> {
     if (!this.supabase) return false;
 
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
     const { data, error } = await this.supabase.functions.invoke(
-      'edit-whatsapp-group-details',
+      'edit-whatsapp-group-details-v2',
       {
         body: {
           chatId,
@@ -13314,7 +13435,25 @@ export class SupabaseApi implements ServiceApi {
       },
     );
 
-    return Boolean(data?.success && !error);
+    if (error) {
+      throw error;
+    }
+
+    const payload = data as Json | JsonMap | null;
+    const record = getRecord(payload);
+    if (record?.success === false) {
+      const diagnostics = getRecord(record.diagnostics);
+      const winner = String(record.winner ?? '').trim();
+      const detailSuffix = diagnostics
+        ? ` (${JSON.stringify(diagnostics)})`
+        : '';
+      throw new Error(
+        `${String(record.error ?? 'Failed to update WhatsApp group')}${
+          winner ? ` [winner: ${winner}]` : ''
+        }${detailSuffix}`,
+      );
+    }
+    return record?.success === true;
   }
   async getWhatsAppGroupByInviteLink(
     inviteLink: string,
@@ -13327,8 +13466,64 @@ export class SupabaseApi implements ServiceApi {
   } | null> {
     if (!this.supabase) return null;
 
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
+    const getLookupPayload = (payload: Json | JsonMap | null): JsonMap | null =>
+      getRecord(getRecord(payload)?.data) ?? getRecord(payload);
+
+    const getGroupIdFromPayload = (payload: Json | JsonMap | null): string => {
+      const parsed = getLookupPayload(payload);
+      return String(
+        parsed?.group_id ?? parsed?.id ?? parsed?.conversation_id ?? '',
+      ).trim();
+    };
+
+    const getGroupNameFromPayload = (
+      payload: Json | JsonMap | null,
+    ): string => {
+      const parsed = getLookupPayload(payload);
+      return String(
+        parsed?.group_name ?? parsed?.name ?? parsed?.subject ?? '',
+      ).trim();
+    };
+
+    const getMembersCountFromPayload = (
+      payload: Json | JsonMap | null,
+    ): number => {
+      const parsed = getLookupPayload(payload);
+      const members = parsed?.members;
+      const participants = parsed?.participants;
+
+      if (Array.isArray(members)) return members.length;
+      if (Array.isArray(participants)) return participants.length;
+
+      const count = Number(
+        parsed?.members_count ?? members ?? parsed?.size ?? 0,
+      );
+      return Number.isFinite(count) ? count : 0;
+    };
+
+    const isLookupErrorPayload = (
+      payload: Json | JsonMap | null,
+      groupId: string,
+    ): boolean => {
+      const parsed = getLookupPayload(payload);
+      return Boolean(
+        !groupId ||
+        getRecord(payload)?.success === false ||
+        parsed?.success === false ||
+        getRecord(payload)?.type === 'error' ||
+        parsed?.type === 'error',
+      );
+    };
+
     const { data, error } = await this.supabase.functions.invoke(
-      'get-groupId-by-invite',
+      'get-groupId-by-invite-v2',
       {
         body: {
           invite_link: inviteLink,
@@ -13337,14 +13532,12 @@ export class SupabaseApi implements ServiceApi {
       },
     );
 
-    if (error || !data?.success) {
+    const groupId = getGroupIdFromPayload(data);
+    if (error || isLookupErrorPayload(data, groupId)) {
       logger.error('Invite lookup failed', error || data);
       return null;
     }
 
-    const groupId = data.group_id;
-
-    // Update class table with group_id and updated_at
     const { error: updateError } = await this.supabase
       .from(TABLES.Class)
       .update({
@@ -13358,7 +13551,11 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
 
-    return data;
+    return {
+      group_id: groupId,
+      group_name: getGroupNameFromPayload(data),
+      members: getMembersCountFromPayload(data),
+    };
   }
   async getAssignmentInfoForLessonsPerClass(
     classId: string,

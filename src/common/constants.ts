@@ -604,6 +604,8 @@ export const WHATSAPP_GROUP_STATUS_KEYS = {
   IN_GROUP: 'IN_GROUP',
   NOT_IN_GROUP: 'NOT_IN_GROUP',
   NOT_ON_WHATSAPP: 'NOT_ON_WHATSAPP',
+  ON_WHATSAPP: 'ON_WHATSAPP',
+  NOT_AVAILABLE: 'NOT_AVAILABLE',
   NOT_CHECKED: 'NOT_CHECKED',
 } as const;
 
@@ -611,6 +613,8 @@ export const WHATSAPP_GROUP_STATUS = {
   IN_GROUP: 'In Group',
   NOT_IN_GROUP: 'Not in Group',
   NOT_ON_WHATSAPP: 'Not on Whatsapp',
+  ON_WHATSAPP: 'On WhatsApp',
+  NOT_AVAILABLE: 'Not Available',
   NOT_CHECKED: 'Not Checked',
 };
 

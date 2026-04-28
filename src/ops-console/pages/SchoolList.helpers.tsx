@@ -7,6 +7,8 @@ import {
   PROGRAM_TAB_LABELS,
   SCHOOL_LISTING_STATUS_META,
 } from '../../common/constants';
+import type { Column } from '../components/DataTableBody';
+import type { SchoolListRow } from './SchoolList.fetcher';
 
 export type SchoolMetricRow = FilteredSchoolsForSchoolListingOps;
 
@@ -21,6 +23,11 @@ export const DATE_RANGE_OPTIONS = [
 export type DateRangeValue = (typeof DATE_RANGE_OPTIONS)[number]['value'];
 
 export type Filters = Record<string, string[]>;
+export type SchoolListExportColumn = {
+  key: keyof SchoolListRow;
+  label: string;
+  part: 'value' | 'percent';
+};
 
 // Shared filter metadata for the school listing drawer.
 export const filterConfigsForSchool = [
@@ -34,7 +41,8 @@ export const filterConfigsForSchool = [
   { key: 'cluster', label: t('Select Cluster') },
 ];
 
-export const INITIAL_FILTERS: Filters = {
+// Fresh filter objects keep reset flows predictable across the page.
+export const createEmptySchoolFilters = (): Filters => ({
   programType: [],
   partner: [],
   programManager: [],
@@ -43,7 +51,36 @@ export const INITIAL_FILTERS: Filters = {
   district: [],
   block: [],
   cluster: [],
+});
+
+// Query-string parsing stays defensive so broken URLs do not break the page.
+export const parseSchoolListJsonParam = <T,>(
+  param: string | null,
+  fallback: T,
+) => {
+  try {
+    return param ? (JSON.parse(param) as T) : fallback;
+  } catch {
+    return fallback;
+  }
 };
+
+export const hasSchoolListFilters = (filters: Filters) =>
+  Object.values(filters).some((values) => values.length > 0);
+
+// Normalizes API filter payloads back into the UI filter shape.
+export const mapSchoolListFilterOptions = (
+  data?: Record<string, string[]>,
+): Filters => ({
+  programType: data?.programType || [],
+  partner: data?.partner || [],
+  programManager: data?.programManager || [],
+  fieldCoordinator: data?.fieldCoordinator || [],
+  state: data?.state || [],
+  district: data?.district || [],
+  block: data?.block || [],
+  cluster: data?.cluster || [],
+});
 
 // Tabs shown across the top of the school listing.
 export const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(
@@ -54,6 +91,125 @@ export const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(
 );
 
 export const DEFAULT_PAGE_SIZE = 8;
+
+// Centralized column config keeps the page component focused on behavior.
+export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
+  {
+    key: 'name',
+    label: t('School Name'),
+    width: '20%',
+    sortable: true,
+    orderBy: 'name',
+  },
+  {
+    key: 'schoolPerformance',
+    label: t('School Performance'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+  },
+  {
+    key: 'onboardedStudents',
+    label: t('Onboarded Students'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+    orderBy: 'onboarded_students',
+  },
+  {
+    key: 'activatedStudents',
+    label: t('Activated Students'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+    orderBy: 'activated_students',
+  },
+  {
+    key: 'activeStudents',
+    label: t('Active Students'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+    orderBy: 'active_students',
+  },
+  {
+    key: 'avgTimeSpent',
+    label: t('Average Time Spent'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+    orderBy: 'avg_time_spent',
+  },
+  {
+    key: 'activeTeachers',
+    label: t('Active Teachers'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+    orderBy: 'active_teachers',
+  },
+  {
+    key: 'activitiesAssigned',
+    label: t('Activities Assigned'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+    orderBy: 'activities_assigned',
+  },
+  {
+    key: 'avgAssignmentsCompleted',
+    label: t('Avg Assignments Completed'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+    orderBy: 'avg_assignments_completed',
+  },
+  {
+    key: 'avgActivitiesCompleted',
+    label: t('Avg Activities Completed'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+    orderBy: 'avg_activities_completed',
+  },
+];
+
+// Export columns intentionally mirror the UI while keeping paired % columns.
+export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
+  { key: 'name', label: t('School Name'), part: 'value' },
+  {
+    key: 'schoolPerformance',
+    label: t('School Performance'),
+    part: 'value',
+  },
+  { key: 'onboardedStudents', label: t('Onboarded Students'), part: 'value' },
+  { key: 'activatedStudents', label: t('Activated Students'), part: 'value' },
+  {
+    key: 'activatedStudents',
+    label: t('Activated Students'),
+    part: 'percent',
+  },
+  { key: 'activeStudents', label: t('Active Students'), part: 'value' },
+  { key: 'activeStudents', label: t('Active Students'), part: 'percent' },
+  { key: 'avgTimeSpent', label: t('Average Time Spent'), part: 'value' },
+  { key: 'activeTeachers', label: t('Active Teachers'), part: 'value' },
+  { key: 'activeTeachers', label: t('Active Teachers'), part: 'percent' },
+  {
+    key: 'activitiesAssigned',
+    label: t('Activities Assigned'),
+    part: 'value',
+  },
+  {
+    key: 'avgAssignmentsCompleted',
+    label: t('Avg Assignments Completed'),
+    part: 'value',
+  },
+  {
+    key: 'avgActivitiesCompleted',
+    label: t('Avg Activities Completed'),
+    part: 'value',
+  },
+];
 
 export const formatCompactNumber = (
   value: unknown,
@@ -140,19 +296,18 @@ export const resolvePerformanceStatus = (school: SchoolMetricRow) => {
 
 // Kept for future table helpers that need a compact geographic breadcrumb.
 export const buildSchoolLocationLabel = (school: SchoolMetricRow) => {
-  const locationParts = [
-    getStringValue(school.state),
-    getStringValue(school.district),
-    getStringValue(school.block),
-    getStringValue(school.cluster),
-  ].filter((part) => part.length > 0);
-  return locationParts.join(' • ');
+  const locationParts = [getStringValue(school.district)].filter(
+    (part) => part.length > 0,
+  );
+  return locationParts.join(', ');
 };
 
-export const buildSchoolSubtitle = (school: SchoolMetricRow) => {
+export const buildSchoolUdiseLocationLabel = (school: SchoolMetricRow) => {
   const udise = getStringValue(school.udise);
-  const district = getStringValue(school.district);
-  return udise || district ? `${udise} - ${district}`.trim() : '';
+  const location = buildSchoolLocationLabel(school);
+
+  if (udise && location) return `${udise} - ${location}`;
+  return udise || location || '';
 };
 
 export const getSchoolCoordinatorList = (school: SchoolMetricRow) =>
@@ -170,6 +325,9 @@ export const renderMetricCell = (
       : `${formatCompactNumber(value, options)}${suffix}`;
   return {
     value,
+    text,
+    exportValueText: text,
+    exportPercentText: '',
     render: (
       <Typography
         variant="subtitle2"
@@ -212,9 +370,19 @@ export const renderMetricWithPercentCell = (
       ? '--'
       : formatCompactNumber(value, options);
   const percentLabel = percent === null ? null : formatPercent(percent);
+  const text = percentLabel
+    ? showValue
+      ? `${metricValue}${suffix} (${percentLabel})`
+      : percentLabel
+    : showValue
+      ? `${metricValue}${suffix}`
+      : '--';
 
   return {
     value,
+    text,
+    exportValueText: showValue ? `${metricValue}${suffix}` : '--',
+    exportPercentText: percentLabel ?? '--',
     render: (
       <Box display="flex" alignItems="center" gap={1} sx={{ minWidth: 0 }}>
         {showValue && (

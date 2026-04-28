@@ -65,6 +65,7 @@ import {
   JoinClassInviteLookupResult,
   LeaderboardInfo,
   OpsStudentPerformanceBandRow,
+  OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
 } from './ServiceApi';
@@ -5639,10 +5640,13 @@ order by
 
     return { hasPlayed: true, lastPlayedAt: firstRow.created_at };
   }
-  async getOpsStudentPerformanceBands(): Promise<
-    OpsStudentPerformanceBandRow[]
-  > {
-    throw new Error('Method not implemented.');
+  async getOpsStudentPerformanceBands(
+    params: OpsStudentPerformanceBandsParams,
+  ): Promise<OpsStudentPerformanceBandRow[]> {
+    logger.warn(
+      'getOpsStudentPerformanceBands is not supported in SQLite mode',
+    );
+    return this._serverApi.getOpsStudentPerformanceBands(params);
   }
   async getLastAssignmentsForRecommendations(
     classId: string,
@@ -6575,6 +6579,35 @@ order by
       return {
         status: 'error',
         errors: response.errors || ['Invalid user contacts'],
+      };
+    }
+    return { status: 'success' };
+  }
+  async validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    const response =
+      await this._serverApi.validateWhatsappBotNumber(whatsappBotNumber);
+    if (response.status === 'error') {
+      return {
+        status: 'error',
+        errors: response.errors || ['Invalid WHATSAPP BOT NUMBER'],
+      };
+    }
+    return { status: 'success' };
+  }
+  async validateWhatsappGroupLink(
+    whatsappBotNumber: string,
+    whatsappGroupLink: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    const response = await this._serverApi.validateWhatsappGroupLink(
+      whatsappBotNumber,
+      whatsappGroupLink,
+    );
+    if (response.status === 'error') {
+      return {
+        status: 'error',
+        errors: response.errors || ['Invalid WHATSAPP GROUP LINK'],
       };
     }
     return { status: 'success' };
@@ -7826,12 +7859,14 @@ order by
    * @returns An object with studentLoginType, programId, and programModel if found, else null
    */
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
     studentLoginType: string;
     schoolModel: string;
+    whatsappBotNumber?: string;
   } | null> {
     // Step 1: Get school info by UDISE code
     const schoolRes = await this.executeQuery(
-      `SELECT student_login_type, model FROM school WHERE udise = ? AND is_deleted = 0`,
+      `SELECT id, student_login_type, model, whatsapp_bot_number FROM school WHERE udise = ? AND is_deleted = 0`,
       [udiseCode],
     );
 
@@ -7839,11 +7874,14 @@ order by
       return null;
     }
 
-    const { student_login_type, model } = schoolRes.values[0];
+    const { id, student_login_type, model, whatsapp_bot_number } =
+      schoolRes.values[0];
 
     return {
+      schoolId: id || '',
       studentLoginType: student_login_type || '',
       schoolModel: model || '',
+      whatsappBotNumber: whatsapp_bot_number || '',
     };
   }
   async getSchoolDataByUdise(
@@ -8554,7 +8592,13 @@ order by
     teacherId: string,
     classId: string,
   ): Promise<number | null> {
-    throw new Error('Method not implemented.');
+    logger.warn(
+      'getRecentAssignmentCountByTeacher is not supported in SQLite mode',
+    );
+    return this._serverApi.getRecentAssignmentCountByTeacher(
+      teacherId,
+      classId,
+    );
   }
   public async getSchoolStatsForSchool(
     schoolId: string,
@@ -9164,8 +9208,8 @@ order by
   async getGroupIdByInvite(invite_link: string, bot: string) {
     return await this._serverApi.getGroupIdByInvite(invite_link, bot);
   }
-  async getPhoneDetailsByBotNum(bot: string) {
-    return await this._serverApi.getPhoneDetailsByBotNum(bot);
+  getPhoneDetailsByBotNum(bot?: string, groupId?: string | null) {
+    return this._serverApi.getPhoneDetailsByBotNum(bot, groupId);
   }
   async updateWhatsAppGroupSettings(
     chatId: string,
@@ -9175,7 +9219,14 @@ order by
     infoAdminsOnly?: boolean,
     addMembersAdminsOnly?: boolean,
   ): Promise<boolean> {
-    throw new Error('Method not implemented.');
+    return await this._serverApi.updateWhatsAppGroupSettings(
+      chatId,
+      phone,
+      name,
+      messagesAdminsOnly,
+      infoAdminsOnly,
+      addMembersAdminsOnly,
+    );
   }
   async getWhatsAppGroupByInviteLink(
     inviteLink: string,
@@ -9186,7 +9237,11 @@ order by
     group_name: string;
     members: number;
   } | null> {
-    throw new Error('Method not implemented.');
+    return await this._serverApi.getWhatsAppGroupByInviteLink(
+      inviteLink,
+      bot,
+      classId,
+    );
   }
 
   mergeUserPathway(
