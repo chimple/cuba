@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Breadcrumb from '../components/Breadcrumb';
 import { Box, Grid, Typography, FormLabel, TextField } from '@mui/material';
 import ContactFormSection from '../components/SchoolRequestComponents/ContactFormSection';
@@ -12,12 +12,18 @@ import DropdownField from '../components/DropdownField';
 import logger from '../../utility/logger';
 
 const DEFAULT_COUNTRY = 'INDIA';
+const UDISE_LENGTH = 11;
+const INVALID_UDISE_MESSAGE =
+  'Please enter a valid 11-digit UDISE code (use leading zeros if required).';
 
 const AddSchoolPage: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
   const editData: any = location.state;
   const api = ServiceConfig.getI().apiHandler;
+  const udiseValidationTimer = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [schoolName, setSchoolName] = useState('');
   const [udise, setUdise] = useState('');
@@ -218,7 +224,7 @@ const AddSchoolPage: React.FC = () => {
   const isSaveDisabled = () => {
     const isFormValid =
       !!schoolName &&
-      !!udise &&
+      udise.length === UDISE_LENGTH &&
       !!schoolModel &&
       !!address.state &&
       !!address.district &&
@@ -235,11 +241,21 @@ const AddSchoolPage: React.FC = () => {
   };
 
   const handleUdiseChange = async (value: string) => {
-    value = value.replace(/\D/g, '').slice(0, 11);
+    value = value.replace(/\D/g, '').slice(0, UDISE_LENGTH);
     setUdise(value);
+    if (udiseValidationTimer.current) {
+      clearTimeout(udiseValidationTimer.current);
+    }
     setErrorMessage('');
 
-    if (value.length === 11) {
+    if (value && value.length < UDISE_LENGTH) {
+      udiseValidationTimer.current = setTimeout(() => {
+        setErrorMessage(INVALID_UDISE_MESSAGE);
+      }, 1000);
+      return;
+    }
+
+    if (value.length === UDISE_LENGTH) {
       try {
         const exist = await api.getSchoolDetailsByUdise(value);
         if (exist && (!editData || editData.schoolData.udise !== value)) {
@@ -263,6 +279,14 @@ const AddSchoolPage: React.FC = () => {
       }
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (udiseValidationTimer.current) {
+        clearTimeout(udiseValidationTimer.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     async function init() {
@@ -361,6 +385,11 @@ const AddSchoolPage: React.FC = () => {
   }, [program]);
 
   async function handleApprove() {
+    if (udise.length !== UDISE_LENGTH) {
+      setErrorMessage(INVALID_UDISE_MESSAGE);
+      return;
+    }
+
     let keyContacts = contacts
       .map((c) => {
         const obj: any = {};
