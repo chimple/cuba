@@ -129,9 +129,17 @@
   box-sizing: border-box;
 }
 
+.detail-list-header-row.no-subjects {
+  grid-template-columns: 1fr 56px;
+}
+
 @media (max-width: 600px) {
   .detail-list-header-row {
     grid-template-columns: 1fr 41px 55px;
+  }
+
+  .detail-list-header-row.no-subjects {
+    grid-template-columns: 1fr 41px;
   }
 }
 
