@@ -7,9 +7,6 @@ import { TableTypes } from '../../common/constants';
 import { Util } from '../../utility/util';
 import { RoleType } from '../../interface/modelInterfaces';
 import logger from '../../utility/logger';
-import { useAppSelector } from '../../redux/hooks';
-import { RootState } from '../../redux/store';
-import { AuthState } from '../../redux/slices/auth/authSlice';
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
@@ -38,11 +35,6 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
   // State to track whether the last subject warning should be shown
   const [isLastSubjectAlertOpen, setIsLastSubjectAlertOpen] = useState(false);
   const [canModify, setCanModify] = useState(true);
-  const { roles } = useAppSelector(
-    (state: RootState) => state.auth as AuthState,
-  );
-  const userRoles = roles || [];
-  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
 
   useEffect(() => {
     const checkClassRole = async () => {
@@ -119,7 +111,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
                     />
                     <span> {t(course.name)}</span>
                   </div>
-                  {canModify && !isExternalUser && (
+                  {canModify && (
                     <IonIcon
                       icon={checkmarkCircle}
                       className="display-subIcon"
