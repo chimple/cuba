@@ -974,8 +974,14 @@ export function usePathwaySVG({
         svg.appendChild(fragment);
 
         // Setup chimple mascot initial position
+        const isFinalPathwayReward =
+          activeIndex === -1 && currentIndex === pathEndIndex;
+        const completedLessonIndexForReward = isFinalPathwayReward
+          ? currentIndex
+          : currentIndex - 1;
         const idx = lessons.findIndex(
-          (_: any, index: number) => startIndex + index === currentIndex - 1,
+          (_: unknown, index: number) =>
+            startIndex + index === completedLessonIndexForReward,
         );
         const xValuesForChimple = [-60, 66, 180, 295, 412];
 
@@ -1015,6 +1021,8 @@ export function usePathwaySVG({
             xValues,
             chimple,
             pathEndIndex,
+            completedLessonIndexForReward,
+            isFinalPathwayReward,
             () => {
               if (willShowCelebration && stickerPreviewPayload) {
                 setTimeout(
@@ -1369,6 +1377,8 @@ export function usePathwaySVG({
     xValues: number[],
     chimple: SVGForeignObjectElement,
     pathEndIndex: number,
+    completedLessonGlobalIndex: number,
+    shouldSkipMascotMovement: boolean,
     onComplete?: () => void,
   ) {
     const rewardRecord =
@@ -1378,9 +1388,10 @@ export function usePathwaySVG({
 
     setHasTodayReward(false);
 
-    // The reward flies to the completed lesson's position (currentIndex - 1)
+    // The reward flies to the completed lesson's position.
     const completedLessonIndex = lessons.findIndex(
-      (_: any, idx: number) => startIndex + idx === currentIndex - 1,
+      (_: unknown, idx: number) =>
+        startIndex + idx === completedLessonGlobalIndex,
     );
     const destinationX =
       xValues[completedLessonIndex >= 0 ? completedLessonIndex : 0] ?? 0;
@@ -1454,15 +1465,17 @@ export function usePathwaySVG({
       await delay(500);
 
       // Step 3: animate mascot movement
-      await animateChimpleMovement(
-        chimple,
-        lessons,
-        startIndex,
-        currentIndex,
-        xValues,
-        startPoint,
-        pathEndIndex,
-      );
+      if (!shouldSkipMascotMovement) {
+        await animateChimpleMovement(
+          chimple,
+          lessons,
+          startIndex,
+          currentIndex,
+          xValues,
+          startPoint,
+          pathEndIndex,
+        );
+      }
       window.dispatchEvent(
         new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
           detail: { rewardId: newRewardId, stateValue: rewardStateValue },
