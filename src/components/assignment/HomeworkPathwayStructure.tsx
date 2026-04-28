@@ -1963,6 +1963,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           sessionStorage.getItem(PENDING_PATHWAY_STICKER_REWARD_KEY) ??
             'no-pending-sticker-reward',
         ].join('::');
+        const lessonIds = homeworkLessons
+          .map((item) => item.lesson?.id || item.assignment_id || '')
+          .join('|');
 
         try {
           const path = storedHomeworkPath
@@ -1971,9 +1974,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                 currentIndex?: number;
               })
             : null;
-          const lessonIds = homeworkLessons
-            .map((item) => item.lesson?.id || item.assignment_id || '')
-            .join('|');
           return [
             path?.path_id ?? 'no-path-id',
             path?.currentIndex ?? 'no-index',
@@ -1983,12 +1983,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             lessonIds,
           ].join('::');
         } catch {
-          return [
-            visualConfigSignature,
-            homeworkLessons
-              .map((item) => item.lesson?.id || item.assignment_id || '')
-              .join('|'),
-          ].join('::');
+          return [visualConfigSignature, lessonIds].join('::');
         }
       })();
 

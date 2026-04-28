@@ -854,7 +854,7 @@ export function useHomeworkSticker({
         },
       ).then((didStartPlayback) => {
         if (didStartPlayback === false) {
-          window.setTimeout(stopRewardStickerTilt, 6000);
+          stopRewardStickerTilt();
         }
       });
     };
