@@ -770,6 +770,7 @@ export const useStickerBookPreviewModalLogic = ({
       : svgMarkup || undefined;
 
     history.push(PAGES.COLORING_BOARD, {
+      stickerBookId: data.stickerBookId,
       svgRaw,
       svgUrl: resolveStickerBookSvgUrl(data.stickerBookSvgUrl),
       artworkTitle: data.stickerBookTitle || t('Sticker Book'),

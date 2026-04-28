@@ -10,6 +10,11 @@ import {
 import '@testing-library/jest-dom';
 import ColoringBoard from './ColoringBoard';
 import { Util } from '../../utility/util';
+import { App } from '@capacitor/app';
+import {
+  loadPaintedStickerBook,
+  savePaintedStickerBook,
+} from '../../utility/stickerBookPaintStorage';
 
 /* -------------------- MOCK SVG -------------------- */
 
@@ -36,6 +41,14 @@ jest.mock('react-router-dom', () => ({
     goBack: mockGoBack,
   }),
   useLocation: () => mockLocation,
+}));
+
+jest.mock('@capacitor/app', () => ({
+  App: {
+    addListener: jest.fn(() => ({
+      remove: jest.fn(),
+    })),
+  },
 }));
 
 /* -------------------- MOCK UTIL -------------------- */
@@ -102,11 +115,20 @@ jest.mock(
     ) : null,
 );
 
+let mockColoringState = {
+  selectedColor: '#000',
+  setSelectedColor: jest.fn(),
+  coloredRegions: {} as Record<string, string>,
+};
+
 jest.mock('./useSvgColoring', () => ({
-  useSvgColoring: () => ({
-    selectedColor: '#000',
-    setSelectedColor: jest.fn(),
-  }),
+  useSvgColoring: () => mockColoringState,
+}));
+
+jest.mock('../../utility/stickerBookPaintStorage', () => ({
+  loadPaintedStickerBook: jest.fn(),
+  savePaintedStickerBook: jest.fn(),
+  deletePaintedStickerBook: jest.fn(),
 }));
 
 const mockSaveModal = jest.fn();
@@ -214,6 +236,7 @@ const getLastToastProps = () => {
 describe('ColoringBoard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
       text: () => Promise.resolve('<svg></svg>'),
@@ -253,6 +276,13 @@ describe('ColoringBoard', () => {
       handleSaveAndShare: mockHandleSaveAndShare,
     };
     lastUseStickerBookSaveOptions = null;
+    mockColoringState = {
+      selectedColor: '#000',
+      setSelectedColor: jest.fn(),
+      coloredRegions: {},
+    };
+    (loadPaintedStickerBook as jest.Mock).mockResolvedValue(null);
+    (savePaintedStickerBook as jest.Mock).mockResolvedValue(undefined);
 
     mockParseSvg.mockReturnValue({
       attrs: {},
@@ -290,6 +320,28 @@ describe('ColoringBoard', () => {
     });
   });
 
+  test('restores persisted svg before route state svg', async () => {
+    (loadPaintedStickerBook as jest.Mock).mockResolvedValueOnce(
+      '<svg><rect width="12" height="12" /></svg>',
+    );
+
+    renderBoard({
+      stickerBookId: 'book-1',
+      svgRaw: '<svg><circle /></svg>',
+      svgUrl: '/test.svg',
+    });
+
+    await waitFor(() => {
+      expect(loadPaintedStickerBook).toHaveBeenCalledWith('student1', 'book-1');
+    });
+
+    expect(fetch).not.toHaveBeenCalledWith('/test.svg');
+
+    await waitFor(() => {
+      expect(screen.getByTestId('svg-scene')).toBeInTheDocument();
+    });
+  });
+
   /* ---------------- SVG URL FETCH ---------------- */
 
   test('fetches svg when svgUrl provided', async () => {
@@ -304,6 +356,94 @@ describe('ColoringBoard', () => {
     await waitFor(() => {
       expect(screen.getByTestId('svg-scene')).toBeInTheDocument();
     });
+  });
+
+  test('debounced autosave persists painted svg for a sticker book', async () => {
+    jest.useFakeTimers();
+
+    const view = renderBoard({
+      stickerBookId: 'book-1',
+      svgRaw: '<svg></svg>',
+    });
+
+    await screen.findByTestId('svg-scene');
+
+    mockColoringState = {
+      ...mockColoringState,
+      coloredRegions: { region1: '#ff0000' },
+    };
+
+    view.rerender(<ColoringBoard />);
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    await waitFor(() => {
+      expect(savePaintedStickerBook).toHaveBeenCalledWith(
+        'student1',
+        'book-1',
+        expect.stringContaining('<svg'),
+      );
+    });
+  });
+
+  test('flushes painted svg when the app backgrounds', async () => {
+    const view = renderBoard({
+      stickerBookId: 'book-1',
+      svgRaw: '<svg></svg>',
+    });
+
+    await screen.findByTestId('svg-scene');
+
+    mockColoringState = {
+      ...mockColoringState,
+      coloredRegions: { region1: '#00ff00' },
+    };
+
+    view.rerender(<ColoringBoard />);
+
+    const appStateChangeHandler = (
+      App.addListener as jest.Mock
+    ).mock.calls.find(([eventName]) => eventName === 'appStateChange')?.[1];
+
+    expect(appStateChangeHandler).toEqual(expect.any(Function));
+
+    await act(async () => {
+      await appStateChangeHandler?.({ isActive: false });
+    });
+
+    await waitFor(() => {
+      expect(savePaintedStickerBook).toHaveBeenCalledWith(
+        'student1',
+        'book-1',
+        expect.stringContaining('<svg'),
+      );
+    });
+  });
+
+  test('does not persist when stickerBookId is missing', async () => {
+    jest.useFakeTimers();
+
+    const view = renderBoard({
+      svgRaw: '<svg></svg>',
+    });
+
+    await screen.findByTestId('svg-scene');
+
+    mockColoringState = {
+      ...mockColoringState,
+      coloredRegions: { region1: '#123456' },
+    };
+
+    view.rerender(<ColoringBoard />);
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(savePaintedStickerBook).not.toHaveBeenCalled();
+    expect(loadPaintedStickerBook).not.toHaveBeenCalled();
   });
 
   /* ---------------- EMPTY STATE ---------------- */
@@ -354,7 +494,7 @@ describe('ColoringBoard', () => {
 
   /* ---------------- EXIT CONFIRM WITH RETURN ---------------- */
 
-  test('exit confirm navigates using replace when returnTo exists', () => {
+  test('exit confirm navigates using replace when returnTo exists', async () => {
     renderBoard({
       returnTo: '/home',
     });
@@ -363,19 +503,23 @@ describe('ColoringBoard', () => {
 
     fireEvent.click(screen.getByText('confirm-exit'));
 
-    expect(mockReplace).toHaveBeenCalledWith('/home');
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/home');
+    });
   });
 
   /* ---------------- EXIT CONFIRM WITHOUT RETURN ---------------- */
 
-  test('exit confirm uses goBack when returnTo missing', () => {
+  test('exit confirm uses goBack when returnTo missing', async () => {
     renderBoard();
 
     fireEvent.click(screen.getByTestId('exit-btn'));
 
     fireEvent.click(screen.getByText('confirm-exit'));
 
-    expect(mockGoBack).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalled();
+    });
   });
   /* ---------------- COLOR TRAY ---------------- */
 
@@ -567,18 +711,20 @@ describe('ColoringBoard', () => {
 
   /* ---------------- EXIT WITHOUT STATE ---------------- */
 
-  test('exit works without location state', () => {
+  test('exit works without location state', async () => {
     renderBoard();
 
     fireEvent.click(screen.getByTestId('exit-btn'));
     fireEvent.click(screen.getByText('confirm-exit'));
 
-    expect(mockGoBack).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalled();
+    });
   });
 
   /* ---------------- EXIT WITH RETURN PATH ---------------- */
 
-  test('exit replaces path when returnTo provided', () => {
+  test('exit replaces path when returnTo provided', async () => {
     renderBoard({
       returnTo: '/dashboard',
     });
@@ -586,7 +732,9 @@ describe('ColoringBoard', () => {
     fireEvent.click(screen.getByTestId('exit-btn'));
     fireEvent.click(screen.getByText('confirm-exit'));
 
-    expect(mockReplace).toHaveBeenCalledWith('/dashboard');
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith('/dashboard');
+    });
   });
 
   /* ---------------- CAMERA ICON ALT TEXT ---------------- */

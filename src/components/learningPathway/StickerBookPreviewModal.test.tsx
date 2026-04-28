@@ -1061,6 +1061,7 @@ describe('StickerBookPreviewModal', () => {
       }),
     );
     expect(mockPush).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
+      stickerBookId: 'book-complete',
       svgRaw: expect.stringContaining('<svg'),
       svgUrl: 'https://example.com/completed.svg',
       artworkTitle: 'Completed Book',

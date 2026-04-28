@@ -1,6 +1,13 @@
 import './ColoringBoard.css';
 // Changes: added unique ids, prefixed svg frame class, localized UI strings.
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { App } from '@capacitor/app';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useSvgColoring } from './useSvgColoring';
 import { SVGScene } from './SVGScene';
@@ -10,15 +17,27 @@ import PaintTopBar from './PaintTopBar';
 import logger from '../../utility/logger';
 import { parseSvg, ParsedSvg, sanitizeSvg } from '../common/SvgHelpers';
 import { Util } from '../../utility/util';
-import { EVENTS, PAGES } from '../../common/constants';
+import {
+  ENABLE_SAVE_AND_SHARE_STICKER_BOOK,
+  EVENTS,
+  PAGES,
+} from '../../common/constants';
 import PaintExitPopup from './PaintExitPopup';
 import { t } from 'i18next';
 import StickerBookActions from '../stickerBook/StickerBookActions';
 import StickerBookSaveModal from '../stickerBook/StickerBookSaveModal';
 import StickerBookToast from '../stickerBook/StickerBookToast';
 import { useStickerBookSave } from '../../hooks/useStickerBookSave';
+import {
+  loadPaintedStickerBook,
+  savePaintedStickerBook,
+} from '../../utility/stickerBookPaintStorage';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
+
+const AUTOSAVE_DEBOUNCE_MS = 1000;
 
 type ColoringBoardRouteState = {
+  stickerBookId?: string;
   svgUrl?: string;
   svgRaw?: string;
   artworkTitle?: string;
@@ -70,8 +89,21 @@ const ColoringBoard: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [showExitConfirm, setShowExitConfirm] = useState<boolean>(false);
   const [hasSavedArtwork, setHasSavedArtwork] = useState<boolean>(false);
+  const autosaveTimeoutRef = useRef<number | null>(null);
+  const isSaveInFlightRef = useRef(false);
+  const pendingSerializedSvgRef = useRef<string | null>(null);
+  const saveQueuePromiseRef = useRef<Promise<void> | null>(null);
+  const hasPaintChangesRef = useRef(false);
+  const hasHydratedPersistenceRef = useRef(false);
+  const lastPersistedSvgRef = useRef<string | null>(null);
+  const isStickerBookSaveEnabled: boolean = useFeatureIsOn(
+    ENABLE_SAVE_AND_SHARE_STICKER_BOOK,
+  );
 
   const parsedSvg = useMemo(() => parseSvg(svgMarkup), [svgMarkup]);
+  const currentStudentId = Util.getCurrentStudent()?.id ?? null;
+  const stickerBookId = location.state?.stickerBookId ?? null;
+  const canPersistPaintState = !!currentStudentId && !!stickerBookId;
   const toastText = t(
     'Yay! Your creation is saved, share it with your family & friends!',
   );
@@ -108,6 +140,88 @@ const ColoringBoard: React.FC = () => {
     },
   });
 
+  const serializeLiveSvg = useCallback(() => {
+    const svgEl = svgRef.current;
+    if (!svgEl) return null;
+
+    const coloringSvg = svgEl.cloneNode(true) as SVGSVGElement;
+    return new XMLSerializer().serializeToString(coloringSvg);
+  }, []);
+
+  const drainPaintSaveQueue = useCallback(async () => {
+    if (!canPersistPaintState || !currentStudentId || !stickerBookId) return;
+    if (isSaveInFlightRef.current)
+      return saveQueuePromiseRef.current ?? undefined;
+
+    const processQueue = async () => {
+      while (pendingSerializedSvgRef.current) {
+        const nextSerializedSvg = pendingSerializedSvgRef.current;
+        pendingSerializedSvgRef.current = null;
+
+        if (
+          !nextSerializedSvg ||
+          nextSerializedSvg === lastPersistedSvgRef.current
+        ) {
+          continue;
+        }
+
+        isSaveInFlightRef.current = true;
+
+        try {
+          await savePaintedStickerBook(
+            currentStudentId,
+            stickerBookId,
+            nextSerializedSvg,
+          );
+          lastPersistedSvgRef.current = nextSerializedSvg;
+          hasPaintChangesRef.current = false;
+        } catch (error) {
+          logger.warn(
+            '[StickerBookPaint] Failed to persist painted sticker book.',
+            {
+              error,
+              userId: currentStudentId,
+              stickerBookId,
+            },
+          );
+        } finally {
+          isSaveInFlightRef.current = false;
+        }
+      }
+    };
+
+    const savePromise = processQueue().finally(() => {
+      saveQueuePromiseRef.current = null;
+    });
+
+    saveQueuePromiseRef.current = savePromise;
+    return savePromise;
+  }, [canPersistPaintState, currentStudentId, stickerBookId]);
+
+  const queuePaintSave = useCallback(
+    async (serializedSvg: string | null) => {
+      if (!serializedSvg || !canPersistPaintState) return;
+
+      pendingSerializedSvgRef.current = serializedSvg;
+      await drainPaintSaveQueue();
+    },
+    [canPersistPaintState, drainPaintSaveQueue],
+  );
+
+  const flushPaintSave = useCallback(async () => {
+    if (!canPersistPaintState || !hasPaintChangesRef.current) return;
+
+    const serializedSvg = serializeLiveSvg();
+    if (!serializedSvg) return;
+
+    if (autosaveTimeoutRef.current !== null) {
+      window.clearTimeout(autosaveTimeoutRef.current);
+      autosaveTimeoutRef.current = null;
+    }
+
+    await queuePaintSave(serializedSvg);
+  }, [canPersistPaintState, queuePaintSave, serializeLiveSvg]);
+
   useEffect(() => {
     let mounted = true;
     const state = location.state;
@@ -115,7 +229,26 @@ const ColoringBoard: React.FC = () => {
     const loadSvg = async () => {
       setIsLoading(true);
       try {
+        if (canPersistPaintState && currentStudentId && stickerBookId) {
+          const persistedSvg = await loadPaintedStickerBook(
+            currentStudentId,
+            stickerBookId,
+          );
+
+          if (persistedSvg) {
+            lastPersistedSvgRef.current = persistedSvg;
+            hasHydratedPersistenceRef.current = true;
+            hasPaintChangesRef.current = false;
+
+            if (mounted) setSvgMarkup(persistedSvg);
+            return;
+          }
+        }
+
         if (state?.svgRaw) {
+          lastPersistedSvgRef.current = state.svgRaw;
+          hasHydratedPersistenceRef.current = true;
+          hasPaintChangesRef.current = false;
           if (mounted) setSvgMarkup(state.svgRaw);
           return;
         }
@@ -126,6 +259,9 @@ const ColoringBoard: React.FC = () => {
             throw new Error(`Failed to fetch svg: ${res.status}`);
           }
           const text = await res.text();
+          lastPersistedSvgRef.current = text;
+          hasHydratedPersistenceRef.current = true;
+          hasPaintChangesRef.current = false;
           if (mounted) setSvgMarkup(text);
           return;
         }
@@ -141,7 +277,7 @@ const ColoringBoard: React.FC = () => {
     return () => {
       mounted = false;
     };
-  }, [location.state]);
+  }, [canPersistPaintState, currentStudentId, location.state, stickerBookId]);
 
   useEffect(() => {
     Util.logEvent(EVENTS.PAINT_MODE_PAGE_VIEW, {
@@ -151,7 +287,69 @@ const ColoringBoard: React.FC = () => {
     });
   }, [location.state]);
 
-  const handleExit = () => {
+  useEffect(() => {
+    if (!canPersistPaintState || !hasHydratedPersistenceRef.current) return;
+    if (!Object.keys(coloring.coloredRegions).length) return;
+
+    hasPaintChangesRef.current = true;
+
+    if (autosaveTimeoutRef.current !== null) {
+      window.clearTimeout(autosaveTimeoutRef.current);
+    }
+
+    autosaveTimeoutRef.current = window.setTimeout(() => {
+      autosaveTimeoutRef.current = null;
+      void flushPaintSave();
+    }, AUTOSAVE_DEBOUNCE_MS);
+  }, [canPersistPaintState, coloring.coloredRegions, flushPaintSave]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        void flushPaintSave();
+      }
+    };
+
+    const handlePageHide = () => {
+      void flushPaintSave();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handlePageHide);
+
+    const appStateListener = App.addListener(
+      'appStateChange',
+      ({ isActive }) => {
+        if (!isActive) {
+          void flushPaintSave();
+        }
+      },
+    );
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handlePageHide);
+
+      void Promise.resolve(appStateListener).then((listener) =>
+        listener?.remove?.(),
+      );
+    };
+  }, [flushPaintSave]);
+
+  useEffect(() => {
+    return () => {
+      if (autosaveTimeoutRef.current !== null) {
+        window.clearTimeout(autosaveTimeoutRef.current);
+        autosaveTimeoutRef.current = null;
+      }
+
+      void flushPaintSave();
+    };
+  }, [flushPaintSave]);
+
+  const handleExit = async () => {
+    await flushPaintSave();
+
     const returnTo = location.state?.returnTo;
     if (returnTo) {
       history.replace(returnTo);
@@ -178,11 +376,10 @@ const ColoringBoard: React.FC = () => {
     });
     logger.info('save');
 
-    const svgEl = svgRef.current;
-    if (!svgEl) return;
+    const serializedSvg = serializeLiveSvg();
+    if (!serializedSvg) return;
 
-    const coloringSvg = svgEl.cloneNode(true);
-    openSaveModal(new XMLSerializer().serializeToString(coloringSvg));
+    openSaveModal(serializedSvg);
   };
 
   return (
@@ -251,7 +448,7 @@ const ColoringBoard: React.FC = () => {
           onSave={handleSave}
           onPaint={() => {}}
           paintDisabled={true}
-          canSave={true}
+          canSave={isStickerBookSaveEnabled}
         />
 
         <div id="coloring-board-tray" className="coloring-board-tray">
@@ -284,7 +481,7 @@ const ColoringBoard: React.FC = () => {
             user_id: Util.getCurrentStudent()?.id ?? null,
             page_path: window.location.pathname,
           });
-          handleExit();
+          void handleExit();
         }}
       />
       <StickerBookSaveModal
