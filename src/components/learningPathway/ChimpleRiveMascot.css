@@ -9,3 +9,20 @@
   position: absolute;
   inset: 0;
 }
+
+#chimple-mascot-active-layer {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 40%,
+    black 45%,
+    black 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 40%,
+    black 45%,
+    black 100%
+  );
+}
