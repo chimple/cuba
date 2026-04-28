@@ -65,6 +65,7 @@ import {
   JoinClassInviteLookupResult,
   LeaderboardInfo,
   OpsStudentPerformanceBandRow,
+  OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
 } from './ServiceApi';
@@ -5639,10 +5640,13 @@ order by
 
     return { hasPlayed: true, lastPlayedAt: firstRow.created_at };
   }
-  async getOpsStudentPerformanceBands(): Promise<
-    OpsStudentPerformanceBandRow[]
-  > {
-    throw new Error('Method not implemented.');
+  async getOpsStudentPerformanceBands(
+    params: OpsStudentPerformanceBandsParams,
+  ): Promise<OpsStudentPerformanceBandRow[]> {
+    logger.warn(
+      'getOpsStudentPerformanceBands is not supported in SQLite mode',
+    );
+    return this._serverApi.getOpsStudentPerformanceBands(params);
   }
   async getLastAssignmentsForRecommendations(
     classId: string,
@@ -8588,7 +8592,13 @@ order by
     teacherId: string,
     classId: string,
   ): Promise<number | null> {
-    throw new Error('Method not implemented.');
+    logger.warn(
+      'getRecentAssignmentCountByTeacher is not supported in SQLite mode',
+    );
+    return this._serverApi.getRecentAssignmentCountByTeacher(
+      teacherId,
+      classId,
+    );
   }
   public async getSchoolStatsForSchool(
     schoolId: string,
