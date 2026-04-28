@@ -21,6 +21,10 @@ import { t } from 'i18next';
 import CustomDropdown from '../CustomDropdown';
 import { useHistory } from 'react-router';
 import ImageDropdown from '../imageDropdown';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
 
 interface ReportTableProps {
   handleButtonClick?: (isOpen: boolean) => void;
@@ -92,6 +96,11 @@ const ReportTable: React.FC<ReportTableProps> = ({
   const [headerData, setHeaderData] = useState<Map<string, AssignmentHeader>[]>(
     [],
   );
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
 
   const [reportData, setReportData] = useState<
     Map<string, { student: TableTypes<'user'>; results: Record<string, any[]> }>
@@ -605,12 +614,14 @@ const ReportTable: React.FC<ReportTableProps> = ({
                       'If you would like to assign assignments, please go to the',
                     )}{' '}
                   </div>
-                  <div
-                    onClick={() => handleButtonClick?.(true)}
-                    className="library-button"
-                  >
-                    {t('Library')}
-                  </div>
+                  {!isExternalUser && (
+                    <div
+                      onClick={() => handleButtonClick?.(true)}
+                      className="library-button"
+                    >
+                      {t('Library')}
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
