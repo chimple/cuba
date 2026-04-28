@@ -475,6 +475,10 @@ export function usePathwaySVG({
         ),
         loadHalo(),
       ]);
+      const isRewardFeatureEnabled =
+        localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
+      const shouldWaitForRewardAnimationBeforeSticker =
+        typeof newRewardIdFromCheck === 'string' && isRewardFeatureEnabled;
 
       let didScheduleStickerCompletionPopup = false;
       if (rawCompletionPopup) {
@@ -490,10 +494,12 @@ export function usePathwaySVG({
           ) {
             sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
             didScheduleStickerCompletionPopup = true;
-            setTimeout(
-              () => onStickerCompletionReady(stickerCompletionPayload),
-              0,
-            );
+            if (!shouldWaitForRewardAnimationBeforeSticker) {
+              setTimeout(
+                () => onStickerCompletionReady(stickerCompletionPayload),
+                0,
+              );
+            }
           }
         } catch {
           sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
@@ -501,7 +507,10 @@ export function usePathwaySVG({
       }
 
       // Auto-open sticker preview after a pathway completes (set in Util.updateLearningPath).
-      if (shouldOpenCelebrationPopup) {
+      if (
+        shouldOpenCelebrationPopup &&
+        !shouldWaitForRewardAnimationBeforeSticker
+      ) {
         if (stickerPreviewPayload && !didScheduleStickerCompletionPopup) {
           setTimeout(
             () =>
@@ -974,20 +983,20 @@ export function usePathwaySVG({
           newRewardIdFromCheck !== null &&
           typeof newRewardIdFromCheck === 'string';
 
-        // If a popup is about to open, defer reward animation
-        // so it plays after the pathway refresh (avoids animating behind the popup).
+        // If a sticker popup is pending, keep the daily reward animation first
+        // and open the popup from the reward animation completion callback.
         const willShowCelebration =
           shouldOpenCelebrationPopup && !!stickerPreviewPayload;
         const shouldSkipRewardAnimationForSticker =
           isStringReward &&
           isRewardFeatureOn &&
-          Boolean(pendingStickerRewardParsed?.awardedStickerId);
+          Boolean(pendingStickerRewardParsed?.awardedStickerId) &&
+          !willShowCelebration &&
+          !didScheduleStickerCompletionPopup;
         const shouldRunRewardAnimation =
           isStringReward &&
           isRewardFeatureOn &&
-          !shouldSkipRewardAnimationForSticker &&
-          !willShowCelebration &&
-          !didScheduleStickerCompletionPopup;
+          !shouldSkipRewardAnimationForSticker;
 
         if (shouldSkipRewardAnimationForSticker) {
           setHasTodayReward(false);
@@ -1006,6 +1015,26 @@ export function usePathwaySVG({
             xValues,
             chimple,
             pathEndIndex,
+            () => {
+              if (willShowCelebration && stickerPreviewPayload) {
+                setTimeout(
+                  () =>
+                    onStickerPreviewReady(
+                      stickerPreviewPayload,
+                      'pathway_completion_auto',
+                    ),
+                  0,
+                );
+              } else if (
+                didScheduleStickerCompletionPopup &&
+                stickerCompletionPayload
+              ) {
+                setTimeout(
+                  () => onStickerCompletionReady(stickerCompletionPayload),
+                  0,
+                );
+              }
+            },
           );
         }
 
@@ -1340,6 +1369,7 @@ export function usePathwaySVG({
     xValues: number[],
     chimple: SVGForeignObjectElement,
     pathEndIndex: number,
+    onComplete?: () => void,
   ) {
     const rewardRecord =
       await ServiceConfig.getI().apiHandler.getRewardById(newRewardId);
@@ -1440,6 +1470,7 @@ export function usePathwaySVG({
       );
 
       await Util.updateUserReward();
+      onComplete?.();
     };
 
     const rewardDiv = document.createElement('div');
