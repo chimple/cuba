@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Breadcrumb from '../components/Breadcrumb';
 import { Box, Grid, Typography, FormLabel, TextField } from '@mui/material';
 import ContactFormSection from '../components/SchoolRequestComponents/ContactFormSection';
@@ -21,9 +21,6 @@ const AddSchoolPage: React.FC = () => {
   const location = useLocation();
   const editData: any = location.state;
   const api = ServiceConfig.getI().apiHandler;
-  const udiseValidationTimer = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
   const [loading, setLoading] = useState(true);
   const [schoolName, setSchoolName] = useState('');
   const [udise, setUdise] = useState('');
@@ -243,17 +240,13 @@ const AddSchoolPage: React.FC = () => {
   const handleUdiseChange = async (value: string) => {
     value = value.replace(/\D/g, '').slice(0, UDISE_LENGTH);
     setUdise(value);
-    if (udiseValidationTimer.current) {
-      clearTimeout(udiseValidationTimer.current);
-    }
-    setErrorMessage('');
 
     if (value && value.length < UDISE_LENGTH) {
-      udiseValidationTimer.current = setTimeout(() => {
-        setErrorMessage(INVALID_UDISE_MESSAGE);
-      }, 1000);
+      setErrorMessage(INVALID_UDISE_MESSAGE);
       return;
     }
+
+    setErrorMessage('');
 
     if (value.length === UDISE_LENGTH) {
       try {
@@ -279,14 +272,6 @@ const AddSchoolPage: React.FC = () => {
       }
     }
   };
-
-  useEffect(() => {
-    return () => {
-      if (udiseValidationTimer.current) {
-        clearTimeout(udiseValidationTimer.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     async function init() {
