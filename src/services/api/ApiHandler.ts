@@ -2170,6 +2170,11 @@ export class ApiHandler implements ServiceApi {
     // Delegate to the actual API implementation (e.g., SupabaseApi)
     return this.s.updateSchoolProgram(schoolId, programId);
   }
+  public async computeSchoolMetricsForSchool(
+    schoolId: string,
+  ): Promise<boolean> {
+    return this.s.computeSchoolMetricsForSchool(schoolId);
+  }
   public async getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<'user'>,

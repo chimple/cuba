@@ -100,6 +100,7 @@ import { store } from '../../redux/store';
 import logger from '../../utility/logger';
 
 const GENERIC_LEADERBOARD_LIMIT = 50;
+const SCHOOL_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
 
 type LeaderboardDataType = 'weekly' | 'monthly' | 'allTime';
 
@@ -1254,6 +1255,7 @@ export class SupabaseApi implements ServiceApi {
         logger.error('Error inserting into school:', schoolError);
         throw schoolError;
       }
+      await this.computeSchoolMetricsForSchool(schoolId);
     }
 
     if (oSchoolUser) {
@@ -1281,6 +1283,40 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return newSchool ?? ({} as TableTypes<'school'>);
+  }
+
+  async computeSchoolMetricsForSchool(schoolId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+    if (!schoolId) {
+      logger.error(
+        'computeSchoolMetricsForSchool called without a valid schoolId',
+      );
+      return false;
+    }
+    try {
+      for (const dayWindow of SCHOOL_METRICS_DAY_WINDOWS) {
+        const { error } = await this.supabase.rpc('compute_school_metrics', {
+          p_days: dayWindow,
+          p_school_id: schoolId,
+        });
+
+        if (error) {
+          logger.error('Error computing school metrics:', {
+            schoolId,
+            dayWindow,
+            error,
+          });
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      logger.error('computeSchoolMetricsForSchool failed:', {
+        schoolId,
+        error,
+      });
+      return false;
+    }
   }
 
   async requestNewSchool(

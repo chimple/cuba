@@ -2885,6 +2885,7 @@ export interface ServiceApi {
   getSkillById(skillId: string): Promise<TableTypes<'skill'> | undefined>;
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
+  computeSchoolMetricsForSchool(schoolId: string): Promise<boolean>;
   getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<'user'>,
