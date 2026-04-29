@@ -234,6 +234,8 @@ const App: React.FC = () => {
   useEffect(() => {
     // this event listener is to remove the highlighted text(if exists) on a click
     const handleClick = () => {
+      if (document.body.classList.contains('ops-console')) return;
+
       const sel = window.getSelection();
       if (sel && !sel.isCollapsed) {
         sel.removeAllRanges();
