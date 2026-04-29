@@ -1318,6 +1318,19 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     data.classData,
   ]);
 
+  const mergeModalClassId = useMemo(() => {
+    const scopedClassId = String(optionalClassId ?? '').trim();
+    if (scopedClassId) return scopedClassId;
+
+    const primaryStudentClassId = String(
+      mergePrimaryStudent?.original?.classWithidname?.id ?? '',
+    ).trim();
+    if (primaryStudentClassId) return primaryStudentClassId;
+
+    const currentClassId = String(currentClass?.id ?? '').trim();
+    return currentClassId;
+  }, [optionalClassId, mergePrimaryStudent, currentClass?.id]);
+
   const addStudentFields: FieldConfig[] = useMemo(() => {
     if (issTotal) {
       const fields: FieldConfig[] = [
@@ -1839,7 +1852,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       <CardListModal
         open={isMergeStudentModalOpen}
         schoolId={schoolId}
-        classId={currentClass?.id}
+        classId={mergeModalClassId}
         primaryStudentId={mergePrimaryStudent?.id}
         onClose={() => setIsMergeStudentModalOpen(false)}
         onSubmit={handleMergeStudents}
