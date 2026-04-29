@@ -104,7 +104,7 @@ const UserProfile: React.FC<{
     <>
       <div className="first-content">
         <div className="profile-details-container">
-          {isEditing && !isExternalUser && (
+          {isEditing && (
             <span className="add-student-text">{t('Edit Student')}</span>
           )}
           <ProfileDetails
