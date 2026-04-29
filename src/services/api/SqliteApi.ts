@@ -8941,6 +8941,9 @@ order by
   ): Promise<boolean> {
     return this._serverApi.updateSchoolProgram(schoolId, programId);
   }
+  async computeSchoolMetricsForSchool(schoolId: string): Promise<boolean> {
+    return this._serverApi.computeSchoolMetricsForSchool(schoolId);
+  }
   async getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<'user'>,
