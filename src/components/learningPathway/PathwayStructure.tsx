@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Confetti from 'react-confetti';
 import './PathwayStructure.css';
 
 import PathwayModal from './PathwayModal';
@@ -59,6 +60,9 @@ const PathwayStructure: React.FC = () => {
   const history = useHistory();
   const [isPathwaySvgLoading, setIsPathwaySvgLoading] =
     React.useState<boolean>(false);
+  const [showRewardConfetti, setShowRewardConfetti] =
+    React.useState<boolean>(false);
+  const rewardConfettiTimerRef = React.useRef<number | null>(null);
   const [stickerPreviewData, setStickerPreviewData] =
     React.useState<StickerBookModalData | null>(null);
   const [isStickerPreviewOpen, setIsStickerPreviewOpen] =
@@ -510,6 +514,9 @@ const PathwayStructure: React.FC = () => {
     () => () => {
       rewardAudioSequenceRef.current.token += 1;
       resetRewardAudioSequence();
+      if (rewardConfettiTimerRef.current !== null) {
+        window.clearTimeout(rewardConfettiTimerRef.current);
+      }
     },
     [resetRewardAudioSequence],
   );
@@ -590,6 +597,13 @@ const PathwayStructure: React.FC = () => {
 
       const nextToken = rewardAudioSequenceRef.current.token + 1;
       const shouldSuppress = shouldSuppressRewardAudioForStickerBook();
+      setShowRewardConfetti(true);
+      if (rewardConfettiTimerRef.current !== null) {
+        window.clearTimeout(rewardConfettiTimerRef.current);
+      }
+      rewardConfettiTimerRef.current = window.setTimeout(() => {
+        setShowRewardConfetti(false);
+      }, 4500);
 
       rewardAudioSequenceRef.current = {
         rewardId,
@@ -986,6 +1000,22 @@ const PathwayStructure: React.FC = () => {
           <RewardRive rewardRiveState={rewardRiveState} />,
           rewardRiveContainer,
         )}
+
+      {showRewardConfetti && (
+        <Confetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={180}
+          gravity={0.28}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            pointerEvents: 'none',
+            zIndex: 10000,
+          }}
+        />
+      )}
 
       {/* Daily reward icon */}
       {hasTodayReward && isRewardFeatureOn && (

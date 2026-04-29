@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
+import Confetti from 'react-confetti';
 import './HomeworkPathwayStructure.css';
 import '../learningPathway/PathwayStructure.css';
 import { useHistory } from 'react-router';
@@ -94,6 +95,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   );
   const [rewardRiveContainer, setRewardRiveContainer] =
     useState<HTMLDivElement | null>(null);
+  const [showRewardConfetti, setShowRewardConfetti] = useState(false);
+  const rewardConfettiTimerRef = useRef<number | null>(null);
 
   const [rewardRiveState, setRewardRiveState] = useState<
     RewardBoxState.IDLE | RewardBoxState.SHAKING | RewardBoxState.BLAST
@@ -163,6 +166,33 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   useEffect(() => {
     currentMascotStateValueRef.current = chimpleRiveStateValue;
   }, [chimpleRiveStateValue]);
+
+  useEffect(() => {
+    const handleRewardCelebrationStarted = () => {
+      setShowRewardConfetti(true);
+      if (rewardConfettiTimerRef.current !== null) {
+        window.clearTimeout(rewardConfettiTimerRef.current);
+      }
+      rewardConfettiTimerRef.current = window.setTimeout(() => {
+        setShowRewardConfetti(false);
+      }, 4500);
+    };
+
+    window.addEventListener(
+      PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+      handleRewardCelebrationStarted,
+    );
+
+    return () => {
+      window.removeEventListener(
+        PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+        handleRewardCelebrationStarted,
+      );
+      if (rewardConfettiTimerRef.current !== null) {
+        window.clearTimeout(rewardConfettiTimerRef.current);
+      }
+    };
+  }, []);
 
   const resetRewardAudioSequence = () => {
     rewardAudioSequenceRef.current = {
@@ -2183,6 +2213,22 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           <RewardRive rewardRiveState={rewardRiveState} />,
           rewardRiveContainer,
         )}
+
+      {showRewardConfetti && (
+        <Confetti
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={180}
+          gravity={0.28}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            pointerEvents: 'none',
+            zIndex: 10000,
+          }}
+        />
+      )}
 
       {hasTodayReward && isRewardFeatureOn && (
         <RewardBox onRewardClick={handleOpen} />
