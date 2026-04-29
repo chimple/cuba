@@ -5,6 +5,10 @@ import { t } from 'i18next';
 import { useHistory } from 'react-router-dom';
 import ProfileDetails from '../library/ProfileDetails';
 import CustomDropdown from '../CustomDropdown';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RoleType } from '../../../interface/modelInterfaces';
 
 const UserProfile: React.FC<{
   student: TableTypes<'user'>;
@@ -32,7 +36,11 @@ const UserProfile: React.FC<{
   const history = useHistory();
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const handleEditClick = () => {
     setIsEditing(true);
   };
@@ -96,7 +104,7 @@ const UserProfile: React.FC<{
     <>
       <div className="first-content">
         <div className="profile-details-container">
-          {isEditing && (
+          {isEditing && !isExternalUser && (
             <span className="add-student-text">{t('Edit Student')}</span>
           )}
           <ProfileDetails
@@ -112,7 +120,7 @@ const UserProfile: React.FC<{
         </div>
         <div className="profile-info">
           <div className="student-name1">{isEditing ? '' : student.name}</div>
-          {!isEditing && (
+          {!isEditing && !isExternalUser && (
             <img
               src="assets/icons/editIcon.svg"
               alt="Edit_Icon"
