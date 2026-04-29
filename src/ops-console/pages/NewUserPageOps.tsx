@@ -93,12 +93,7 @@ const NewUserPage: React.FC = () => {
     };
 
   const handlePhoneChange = (value: string) => {
-    setForm((prev) => {
-      if (!prev.email) {
-        return { ...prev, phone: value };
-      }
-      return { ...prev, phone: '' };
-    });
+    setForm((prev) => ({ ...prev, phone: value }));
   };
 
   const handleRoleChange = (event: SelectChangeEvent<string>) => {
@@ -117,7 +112,9 @@ const NewUserPage: React.FC = () => {
     const hasEmail = !!email.trim();
     const chosenEmail = hasEmail ? email.trim().toLowerCase() : '';
     const normalizedPhone10 = normalizePhone10(phone);
-    const hasPhone = !hasEmail && !!normalizedPhone10;
+    const phoneDigits = (phone || '').replace(/\D/g, '');
+    const hasPhoneInput = phoneDigits.length > 2;
+    const hasPhone = hasPhoneInput && !!normalizedPhone10;
 
     if (!hasEmail && !hasPhone) {
       setShowAlert(true);
@@ -132,7 +129,9 @@ const NewUserPage: React.FC = () => {
         });
         return;
       }
-    } else {
+    }
+
+    if (hasPhoneInput) {
       if (normalizedPhone10.length !== 10) {
         setValidationDialog({
           open: true,
@@ -144,8 +143,8 @@ const NewUserPage: React.FC = () => {
     const payload = {
       name: name.trim(),
       role: role.trim(),
-      email: chosenEmail,
-      phone: normalizePhone10(phone),
+      email: chosenEmail || undefined,
+      phone: hasPhone ? normalizedPhone10 : undefined,
     };
 
     const { success, message } = await api.createOrAddUserOps(payload);
@@ -252,7 +251,6 @@ const NewUserPage: React.FC = () => {
                 disableCountryGuess
                 className="new-user-page-phone-input"
                 inputClassName="w-full"
-                disabled={!!form.email}
                 inputProps={{
                   onKeyDown: (e) => {
                     const input = e.currentTarget as HTMLInputElement;
