@@ -1,4 +1,9 @@
-import { IonContent, IonPage, useIonToast } from '@ionic/react';
+import {
+  IonContent,
+  IonPage,
+  useIonToast,
+  useIonViewWillLeave,
+} from '@ionic/react';
 import { useEffect, useState, useRef } from 'react';
 import { useHistory } from 'react-router';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
@@ -38,6 +43,13 @@ const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
   'pending_homework_reward_transition';
 
+type CocosGameListeners = {
+  lessonEnd?: EventListener;
+  problemEnd?: EventListener;
+  gameEnd?: EventListener;
+  gameExit?: EventListener;
+};
+
 const CocosGame: React.FC = () => {
   const history = useHistory();
   const location = history.location.state as {
@@ -61,6 +73,8 @@ const CocosGame: React.FC = () => {
   const prevWrongMovesRef = useRef<number>(0);
   const currentStudent = Util.getCurrentStudent();
   const savingPromiseRef = useRef<Promise<void> | null>(null);
+  const gameListenersRef = useRef<CocosGameListeners>({});
+  const gameExitTimeoutRef = useRef<number | null>(null);
   const courseDetail: TableTypes<'course'> = state.course
     ? JSON.parse(state.course)
     : undefined;
@@ -74,6 +88,39 @@ const CocosGame: React.FC = () => {
     : undefined;
 
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
+
+  const cleanupGameListeners = () => {
+    const listeners = gameListenersRef.current;
+
+    if (listeners.lessonEnd) {
+      document.body.removeEventListener(LESSON_END, listeners.lessonEnd);
+    }
+    if (listeners.problemEnd) {
+      document.body.removeEventListener(PROBLEM_END, listeners.problemEnd);
+    }
+    if (listeners.gameEnd) {
+      document.body.removeEventListener(GAME_END, listeners.gameEnd);
+    }
+    if (listeners.gameExit) {
+      document.body.removeEventListener(GAME_EXIT, listeners.gameExit);
+    }
+
+    gameListenersRef.current = {};
+
+    if (gameExitTimeoutRef.current !== null) {
+      window.clearTimeout(gameExitTimeoutRef.current);
+      gameExitTimeoutRef.current = null;
+    }
+  };
+
+  const cleanupGameRuntime = () => {
+    cleanupGameListeners();
+    Util.killCocosGame();
+  };
+
+  useIonViewWillLeave(() => {
+    cleanupGameRuntime();
+  });
 
   const presentToast = async () => {
     await present({
@@ -115,6 +162,7 @@ const CocosGame: React.FC = () => {
     return () => {
       disposed = true;
       appStateListener?.remove();
+      cleanupGameRuntime();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -128,7 +176,7 @@ const CocosGame: React.FC = () => {
   };
 
   const killGame = (e: any) => {
-    document.body.removeEventListener(LESSON_END, handleLessonEndListner);
+    cleanupGameListeners();
     setShowDialogBox(true);
     Util.killCocosGame();
     initialCount++;
@@ -219,9 +267,10 @@ const CocosGame: React.FC = () => {
       assignment_type: assignmentType,
     });
 
-    setTimeout(() => {
+    cleanupGameListeners();
+    gameExitTimeoutRef.current = window.setTimeout(() => {
+      gameExitTimeoutRef.current = null;
       killGame(e);
-      document.body.removeEventListener(LESSON_END, handleLessonEndListner);
       setShowDialogBox(false);
       push();
     }, 100);
@@ -255,6 +304,30 @@ const CocosGame: React.FC = () => {
     outcomesRef.current = [...outcomesRef.current, newOutcome];
   }
 
+  const registerGameListeners = () => {
+    cleanupGameListeners();
+
+    const listeners: CocosGameListeners = {
+      lessonEnd: handleLessonEndListner as EventListener,
+      problemEnd: handleProblemEnd as EventListener,
+      gameEnd: killGame as EventListener,
+      gameExit: gameExit as EventListener,
+    };
+
+    gameListenersRef.current = listeners;
+
+    document.body.addEventListener(LESSON_END, listeners.lessonEnd!, {
+      once: true,
+    });
+    document.body.addEventListener(PROBLEM_END, listeners.problemEnd!);
+    document.body.addEventListener(GAME_END, listeners.gameEnd!, {
+      once: true,
+    });
+    document.body.addEventListener(GAME_EXIT, listeners.gameExit!, {
+      once: true,
+    });
+  };
+
   async function init() {
     // Reset outcomes and move counters for new lesson
     setOutcomes([]);
@@ -278,13 +351,7 @@ const CocosGame: React.FC = () => {
     setIsLoading(false);
 
     Util.launchCocosGame();
-
-    document.body.addEventListener(LESSON_END, handleLessonEndListner, {
-      once: true,
-    });
-    document.body.addEventListener(PROBLEM_END, handleProblemEnd);
-    document.body.addEventListener(GAME_END, killGame, { once: true });
-    document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
+    registerGameListeners();
   }
 
   const currentStudentDocId: string = Util.getCurrentStudent()?.id || '';
