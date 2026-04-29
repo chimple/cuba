@@ -858,8 +858,6 @@ export function useHomeworkSticker({
         token: nextToken,
       };
 
-      if (shouldSuppress) return;
-
       void AudioUtil.playAudioOrTts({
         audioUrl: CROWD_CHEER_AUDIO_URL,
         onComplete: () => {
