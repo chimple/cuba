@@ -98,6 +98,7 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     key: 'name',
     label: t('School Name'),
     width: '20%',
+    headerAlign: 'left',
     sortable: true,
     orderBy: 'name',
   },

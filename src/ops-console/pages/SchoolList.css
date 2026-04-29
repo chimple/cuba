@@ -260,10 +260,6 @@
   box-sizing: border-box;
 }
 
-.school-list-table-container .data-tablebody-cell:first-child {
-  box-shadow: 8px 0 12px -12px rgba(18, 22, 25, 0.35);
-}
-
 @media (max-width: 768px) {
   /* Mobile keeps a fixed name column while every metric column remains individually scrollable. */
   .school-list-table-container .data-tablebody-head-cell:not(:first-child),
