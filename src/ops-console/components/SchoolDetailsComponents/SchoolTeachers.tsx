@@ -39,7 +39,6 @@ import {
   WHATSAPP_GROUP_TICK_ICON,
 } from '../../../common/constants';
 import {
-  getGradeOptions,
   filterBySearchAndFilters,
 } from '../../OpsUtility/SearchFilterUtility';
 import FormCard, { FieldConfig, MessageConfig } from './FormCard';
@@ -255,14 +254,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filters, setFilters] = useState<Record<string, string[]>>({
-    grade: [],
-    section: [],
+    class: [],
   });
   const [orderBy, setOrderBy] = useState<string | null>('name');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
   const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({
-    grade: [],
-    section: [],
+    class: [],
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
   const [isAddTeacherModalOpen, setIsAddTeacherModalOpen] = useState(false);
@@ -400,8 +397,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     const isInitial =
       page === 1 &&
       !searchTerm &&
-      filters.grade.length === 0 &&
-      filters.section.length === 0;
+      filters.class.length === 0;
 
     // Reuses prefetched school teachers only when no program scope is active.
     if (isInitial && !allowedGrades) {
@@ -438,8 +434,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     data.teachers,
     data.totalTeacherCount,
     searchTerm,
-    filters.grade,
-    filters.section,
+    filters.class,
     allowedGrades,
     programScopedClassIds,
     schoolId,
@@ -601,13 +596,30 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   }, [data.students]);
 
   const filteredTeachers = useMemo(() => {
-    const result = filterBySearchAndFilters(
-      normalizedTeachers,
-      filters,
+    const searchableTeachers = normalizedTeachers.map((teacher, index) => ({
+      ...teacher,
+      index,
+      class: getClassDisplayLabel(
+        teacher.grade,
+        teacher.classSection,
+        getExactClassName(teacher.classWithidname),
+      ),
+    }));
+
+    const searchFiltered = filterBySearchAndFilters(
+      searchableTeachers,
+      { grade: [], section: [] },
       searchTerm,
       'teacher',
     );
-    return result;
+
+    return searchFiltered
+      .filter((teacher) => {
+        const classFilters = filters.class ?? [];
+        if (classFilters.length === 0) return true;
+        return classFilters.includes(teacher.class);
+      })
+      .map((teacher) => normalizedTeachers[teacher.index]);
   }, [normalizedTeachers, filters, searchTerm]);
 
   // Applies client-side program filtering to prefetched or search result rows.
@@ -621,6 +633,19 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       });
     });
   }, [filteredTeachers, allowedGrades]);
+
+  const classFilterOptions = useMemo(() => {
+    const labels = new Set<string>();
+    programFilteredTeachers.forEach((teacher) => {
+      const classLabel = getClassDisplayLabel(
+        teacher.grade,
+        teacher.classSection,
+        getExactClassName(teacher.classWithidname),
+      );
+      if (String(classLabel).trim() !== '') labels.add(classLabel);
+    });
+    return Array.from(labels).sort((a, b) => a.localeCompare(b));
+  }, [programFilteredTeachers]);
 
   const sortedTeachers = useMemo(() => {
     return [...programFilteredTeachers].sort((a, b) => {
@@ -843,7 +868,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   };
 
   const pageCount = useMemo(() => {
-    if (searchTerm || filters.grade.length > 0) {
+    if (searchTerm || filters.class.length > 0) {
       return Math.ceil(programFilteredTeachers.length / ROWS_PER_PAGE);
     }
     return Math.ceil(totalCount / ROWS_PER_PAGE);
@@ -875,7 +900,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     }));
   }, []);
   const handleCancelFilters = useCallback(
-    () => setIsFilterSliderOpen(false),
+    () => {
+      setFilters({ class: [] });
+      setTempFilters({ class: [] });
+      setPage(1);
+      setIsFilterSliderOpen(false);
+    },
     [],
   );
 
@@ -1377,12 +1407,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   ];
 
   const handleClearFilters = useCallback(() => {
-    setFilters({ grade: [], section: [] });
-    setTempFilters({ grade: [], section: [] });
+    setFilters({ class: [] });
+    setTempFilters({ class: [] });
     setPage(1);
   }, []);
 
-  const filterConfigsForTeachers = [{ key: 'grade', label: 'Grade' }];
+  const filterConfigsForTeachers = [{ key: 'class', label: 'Class' }];
 
   const handleConfirmDelete = async () => {
     if (!deleteTargetTeacher) return;
@@ -1573,8 +1603,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         onClose={() => setIsFilterSliderOpen(false)}
         filters={tempFilters}
         filterOptions={{
-          // Keeps grade filter options aligned with the current program scope.
-          grade: getGradeOptions(programFilteredTeachers),
+          // Keeps class filter options aligned with the current program scope.
+          class: classFilterOptions,
         }}
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}
