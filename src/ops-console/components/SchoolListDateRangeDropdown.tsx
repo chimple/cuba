@@ -24,8 +24,12 @@ const SchoolListDateRangeDropdown: React.FC<
 > = ({ value, onChange }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isCloseShine, setIsCloseShine] = useState(false);
-  const closeShineTimeoutRef = useRef<number | null>(null);
-  const closeShineRafRef = useRef<number | null>(null);
+  const closeShineTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const closeShineRafRef = useRef<ReturnType<
+    typeof requestAnimationFrame
+  > | null>(null);
   const open = Boolean(anchorEl);
 
   const selectedLabel = useMemo(
@@ -37,16 +41,16 @@ const SchoolListDateRangeDropdown: React.FC<
     setIsCloseShine(false);
 
     if (closeShineRafRef.current !== null) {
-      window.cancelAnimationFrame(closeShineRafRef.current);
+      cancelAnimationFrame(closeShineRafRef.current);
     }
-    closeShineRafRef.current = window.requestAnimationFrame(() => {
+    closeShineRafRef.current = requestAnimationFrame(() => {
       setIsCloseShine(true);
     });
 
     if (closeShineTimeoutRef.current !== null) {
-      window.clearTimeout(closeShineTimeoutRef.current);
+      clearTimeout(closeShineTimeoutRef.current);
     }
-    closeShineTimeoutRef.current = window.setTimeout(() => {
+    closeShineTimeoutRef.current = setTimeout(() => {
       setIsCloseShine(false);
       closeShineTimeoutRef.current = null;
     }, 700);
@@ -64,10 +68,10 @@ const SchoolListDateRangeDropdown: React.FC<
   useEffect(() => {
     return () => {
       if (closeShineTimeoutRef.current !== null) {
-        window.clearTimeout(closeShineTimeoutRef.current);
+        clearTimeout(closeShineTimeoutRef.current);
       }
       if (closeShineRafRef.current !== null) {
-        window.cancelAnimationFrame(closeShineRafRef.current);
+        cancelAnimationFrame(closeShineRafRef.current);
       }
     };
   }, []);
