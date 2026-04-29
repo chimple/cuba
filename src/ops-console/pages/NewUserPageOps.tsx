@@ -65,6 +65,7 @@ const NewUserPage: React.FC = () => {
     email: '',
     role: '',
   });
+  const [phoneDialCode, setPhoneDialCode] = useState('91');
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -92,7 +93,11 @@ const NewUserPage: React.FC = () => {
       }));
     };
 
-  const handlePhoneChange = (value: string) => {
+  const handlePhoneChange = (
+    value: string,
+    meta?: { country?: { dialCode?: string } },
+  ) => {
+    setPhoneDialCode((current) => meta?.country?.dialCode || current);
     setForm((prev) => ({ ...prev, phone: value }));
   };
 
@@ -113,7 +118,7 @@ const NewUserPage: React.FC = () => {
     const chosenEmail = hasEmail ? email.trim().toLowerCase() : '';
     const normalizedPhone10 = normalizePhone10(phone);
     const phoneDigits = (phone || '').replace(/\D/g, '');
-    const hasPhoneInput = phoneDigits.length > 2;
+    const hasPhoneInput = phoneDigits.length > phoneDialCode.length;
     const hasPhone = hasPhoneInput && !!normalizedPhone10;
 
     if (!hasEmail && !hasPhone) {
