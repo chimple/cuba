@@ -81,8 +81,14 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
           <div key={id}>
             <div className="detail-container">
               <div
-                className="detail-section"
-                onClick={() => handleItemClick(item)}
+                className={`detail-section ${
+                  isExternalUser
+                    ? 'detail-section-disabled'
+                    : 'detail-section-clickable'
+                }`}
+                onClick={
+                  isExternalUser ? undefined : () => handleItemClick(item)
+                }
               >
                 {type === IconType.SCHOOL && (
                   <SchoolIcon className="list-icon" />

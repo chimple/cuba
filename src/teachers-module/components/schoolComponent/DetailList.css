@@ -93,6 +93,14 @@
   overflow: hidden;
 }
 
+.detail-section-clickable {
+  cursor: pointer;
+}
+
+.detail-section-disabled {
+  cursor: default;
+}
+
 .detail-school-name {
   color: #707070;
   font-size: 18px;
