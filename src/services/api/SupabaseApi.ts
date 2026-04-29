@@ -9287,14 +9287,65 @@ export class SupabaseApi implements ServiceApi {
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
-    date_range?: string;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
   }> {
-    return await this.getSchoolMetricsForSchoolListing(params);
-  }
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized');
+      return { data: [], total: 0 };
+    }
 
+    const { filters, programId, page, page_size, order_by, order_dir, search } =
+      params;
+    const payload: Database['public']['Functions']['get_filtered_schools_with_optional_program']['Args'] =
+      {};
+
+    if (filters && Object.keys(filters).length > 0) payload.filters = filters;
+    if (programId) payload._program_id = programId;
+    if (page) payload.page = page;
+    if (page_size) payload.page_size = page_size;
+    if (order_by) payload.order_by = order_by;
+    if (order_dir) payload.order_dir = order_dir;
+    if (search) payload.search = search;
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        'get_filtered_schools_with_optional_program',
+        payload,
+      );
+      if (error) {
+        logger.error(
+          'RPC error in get_filtered_schools_with_optional_program:',
+          error,
+        );
+        return { data: [], total: 0 };
+      }
+
+      if (
+        !data ||
+        typeof data !== 'object' ||
+        !('data' in data) ||
+        !('total' in data)
+      ) {
+        throw new Error(
+          'Supabase RPC did not return expected { data, total } shape',
+        );
+      }
+
+      return {
+        data: (data.data ??
+          []) as unknown as FilteredSchoolsForSchoolListingOps[],
+        total: typeof data.total === 'number' ? data.total : 0,
+      };
+    } catch (err) {
+      logger.error(
+        'Unexpected error in get_filtered_schools_with_optional_program:',
+        err,
+      );
+      return { data: [], total: 0 };
+    }
+  }
   async getSchoolMetricsForSchoolListing(params: {
     filters?: Record<string, string[]>;
     programId?: string;
