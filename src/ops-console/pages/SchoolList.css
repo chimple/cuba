@@ -374,19 +374,24 @@
 
   .school-list-date-range-button.MuiButton-root {
     white-space: nowrap;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
   }
 
   .school-list-export-button.MuiButton-root {
     max-width: 102px;
-    padding: 4px 6px !important;
+    padding: 4px 4px !important;
   }
 
   .school-list-date-range-button.MuiButton-root .MuiButton-endIcon,
+  .school-list-date-range-button.MuiButton-root .MuiButton-startIcon,
+  .school-list-export-button.MuiButton-root .MuiButton-endIcon,
+  .school-list-export-button.MuiButton-root .MuiButton-startIcon,
   .school-list-actions-group
     .school-list-actions-button.MuiButton-root
     .MuiButton-endIcon,
   .school-list-export-button.MuiButton-root .MuiButton-startIcon {
-    margin-left: 4px;
+    margin-left: 2px;
     margin-right: 0;
   }
 

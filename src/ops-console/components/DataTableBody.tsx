@@ -33,7 +33,7 @@ const getHeaderLabelSx = (
     return {
       display: 'block',
       overflow: 'visible',
-      whiteSpace: 'normal',
+      whiteSpace: 'pre-line',
       lineHeight: 1.15,
       fontWeight: 700,
     } as const;

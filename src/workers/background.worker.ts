@@ -657,8 +657,8 @@ const buildXlsxFile = async (
           },
           fill: {
             patternType: 'solid',
-            fgColor: { rgb: '1976D2' },
-            bgColor: { rgb: '1976D2' },
+            fgColor: { rgb: '1A71F6' },
+            bgColor: { rgb: '1A71F6' },
           },
           alignment: {
             ...(cell.s?.alignment ?? {}),

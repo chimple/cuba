@@ -1,4 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react';
 import { Button, Divider, ListItemText, Menu, MenuItem } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { t } from 'i18next';
@@ -17,6 +23,9 @@ const SchoolListDateRangeDropdown: React.FC<
   SchoolListDateRangeDropdownProps
 > = ({ value, onChange }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isCloseShine, setIsCloseShine] = useState(false);
+  const closeShineTimeoutRef = useRef<number | null>(null);
+  const closeShineRafRef = useRef<number | null>(null);
   const open = Boolean(anchorEl);
 
   const selectedLabel = useMemo(
@@ -24,7 +33,44 @@ const SchoolListDateRangeDropdown: React.FC<
     [value],
   );
 
-  const handleClose = () => setAnchorEl(null);
+  const triggerCloseShine = useCallback(() => {
+    setIsCloseShine(false);
+
+    if (closeShineRafRef.current !== null) {
+      window.cancelAnimationFrame(closeShineRafRef.current);
+    }
+    closeShineRafRef.current = window.requestAnimationFrame(() => {
+      setIsCloseShine(true);
+    });
+
+    if (closeShineTimeoutRef.current !== null) {
+      window.clearTimeout(closeShineTimeoutRef.current);
+    }
+    closeShineTimeoutRef.current = window.setTimeout(() => {
+      setIsCloseShine(false);
+      closeShineTimeoutRef.current = null;
+    }, 700);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setAnchorEl((currentAnchor) => {
+      if (currentAnchor) {
+        triggerCloseShine();
+      }
+      return null;
+    });
+  }, [triggerCloseShine]);
+
+  useEffect(() => {
+    return () => {
+      if (closeShineTimeoutRef.current !== null) {
+        window.clearTimeout(closeShineTimeoutRef.current);
+      }
+      if (closeShineRafRef.current !== null) {
+        window.cancelAnimationFrame(closeShineRafRef.current);
+      }
+    };
+  }, []);
 
   const handleSelect = (nextValue: DateRangeValue) => {
     handleClose();
@@ -36,8 +82,16 @@ const SchoolListDateRangeDropdown: React.FC<
       <Button
         variant="outlined"
         id="school-list-date-range-button"
-        className="school-list-actions-button school-list-date-range-button"
-        onClick={(event) => setAnchorEl(event.currentTarget)}
+        className={`school-list-actions-button school-list-date-range-button${
+          isCloseShine ? ' school-list-actions-button-close-shine' : ''
+        }`}
+        onClick={(event) => {
+          if (open) {
+            handleClose();
+            return;
+          }
+          setAnchorEl(event.currentTarget);
+        }}
         aria-controls={open ? 'school-list-date-range-menu' : undefined}
         aria-expanded={open ? 'true' : undefined}
         aria-haspopup="menu"
@@ -59,6 +113,7 @@ const SchoolListDateRangeDropdown: React.FC<
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         PaperProps={{ className: 'school-list-actions-menu' }}
+        slotProps={{ list: { disablePadding: true } }}
       >
         {DATE_RANGE_OPTIONS.flatMap((option, index) => {
           const nodes = [

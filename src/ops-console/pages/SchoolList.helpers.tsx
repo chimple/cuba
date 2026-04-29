@@ -134,7 +134,7 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
   },
   {
     key: 'avgTimeSpent',
-    label: t('Average Time Spent'),
+    label: t('Avg Time Spent'),
     width: '7.78%',
     align: 'center',
     sortable: false,
@@ -191,7 +191,7 @@ export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
   },
   { key: 'activeStudents', label: t('Active Students'), part: 'value' },
   { key: 'activeStudents', label: t('Active Students'), part: 'percent' },
-  { key: 'avgTimeSpent', label: t('Average Time Spent'), part: 'value' },
+  { key: 'avgTimeSpent', label: t('Avg Time Spent'), part: 'value' },
   { key: 'activeTeachers', label: t('Active Teachers'), part: 'value' },
   { key: 'activeTeachers', label: t('Active Teachers'), part: 'percent' },
   {
