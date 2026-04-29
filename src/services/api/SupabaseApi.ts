@@ -9251,7 +9251,6 @@ export class SupabaseApi implements ServiceApi {
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
-    date_range?: string;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
@@ -9261,18 +9260,11 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-    const {
-      filters,
-      programId,
-      page,
-      page_size,
-      order_by,
-      order_dir,
-      search,
-      date_range,
-    } = params;
+    const { filters, programId, page, page_size, order_by, order_dir, search } =
+      params;
     const payload: Database['public']['Functions']['get_filtered_schools_with_optional_program']['Args'] =
       {};
+
     if (filters && Object.keys(filters).length > 0) payload.filters = filters;
     if (programId) payload._program_id = programId;
     if (page) payload.page = page;
@@ -9280,34 +9272,44 @@ export class SupabaseApi implements ServiceApi {
     if (order_by) payload.order_by = order_by;
     if (order_dir) payload.order_dir = order_dir;
     if (search) payload.search = search;
-    if (date_range) payload.date_range = date_range;
-    const { data, error } = await this.supabase.rpc(
-      'get_filtered_schools_with_optional_program',
-      payload,
-    );
-    if (error) {
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        'get_filtered_schools_with_optional_program',
+        payload,
+      );
+      if (error) {
+        logger.error(
+          'RPC error in get_filtered_schools_with_optional_program:',
+          error,
+        );
+        return { data: [], total: 0 };
+      }
+
+      if (
+        !data ||
+        typeof data !== 'object' ||
+        !('data' in data) ||
+        !('total' in data)
+      ) {
+        throw new Error(
+          'Supabase RPC did not return expected { data, total } shape',
+        );
+      }
+
+      return {
+        data: (data.data ??
+          []) as unknown as FilteredSchoolsForSchoolListingOps[],
+        total: typeof data.total === 'number' ? data.total : 0,
+      };
+    } catch (err) {
       logger.error(
-        'RPC error in get_filtered_schools_with_optional_program:',
-        error,
+        'Unexpected error in get_filtered_schools_with_optional_program:',
+        err,
       );
       return { data: [], total: 0 };
     }
-
-    if (!data || typeof data !== 'object' || Array.isArray(data)) {
-      return { data: [], total: 0 };
-    }
-
-    const response = data as {
-      data?: FilteredSchoolsForSchoolListingOps[];
-      total?: number;
-    };
-
-    return {
-      data: Array.isArray(response.data) ? response.data : [],
-      total: typeof response.total === 'number' ? response.total : 0,
-    };
   }
-
   async getSchoolMetricsForSchoolListing(params: {
     filters?: Record<string, string[]>;
     programId?: string;
