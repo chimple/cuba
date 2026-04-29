@@ -38,9 +38,7 @@ import {
   WHATSAPP_GROUP_STATUS,
   WHATSAPP_GROUP_TICK_ICON,
 } from '../../../common/constants';
-import {
-  filterBySearchAndFilters,
-} from '../../OpsUtility/SearchFilterUtility';
+import { filterBySearchAndFilters } from '../../OpsUtility/SearchFilterUtility';
 import FormCard, { FieldConfig, MessageConfig } from './FormCard';
 import { RoleType } from '../../../interface/modelInterfaces';
 import { emailRegex, normalizePhone10 } from '../../pages/NewUserPageOps';
@@ -394,10 +392,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   }, [isAddTeacherModalOpen]);
 
   useEffect(() => {
-    const isInitial =
-      page === 1 &&
-      !searchTerm &&
-      filters.class.length === 0;
+    const isInitial = page === 1 && !searchTerm && filters.class.length === 0;
 
     // Reuses prefetched school teachers only when no program scope is active.
     if (isInitial && !allowedGrades) {
@@ -899,15 +894,12 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       [name]: Array.isArray(value) ? value : [value],
     }));
   }, []);
-  const handleCancelFilters = useCallback(
-    () => {
-      setFilters({ class: [] });
-      setTempFilters({ class: [] });
-      setPage(1);
-      setIsFilterSliderOpen(false);
-    },
-    [],
-  );
+  const handleCancelFilters = useCallback(() => {
+    setFilters({ class: [] });
+    setTempFilters({ class: [] });
+    setPage(1);
+    setIsFilterSliderOpen(false);
+  }, []);
 
   const handleCloseAddTeacherModal = () => {
     setIsAddTeacherModalOpen(false);

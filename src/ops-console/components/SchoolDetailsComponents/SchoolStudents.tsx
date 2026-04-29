@@ -40,9 +40,7 @@ import {
 } from '../../../common/constants';
 import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import {
-  filterBySearchAndFilters,
-} from '../../OpsUtility/SearchFilterUtility';
+import { filterBySearchAndFilters } from '../../OpsUtility/SearchFilterUtility';
 import FormCard, { FieldConfig, MessageConfig } from './FormCard';
 import { normalizePhone10 } from '../../pages/NewUserPageOps';
 import { ClassRow, SchoolData } from './SchoolClass';
@@ -459,9 +457,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   useEffect(() => {
     const isInitial =
-      page === 1 &&
-      !debouncedSearchTerm &&
-      filters.class.length === 0;
+      page === 1 && !debouncedSearchTerm && filters.class.length === 0;
 
     // Reuses prefetched school students only when no program scope is active.
     if (isInitial && !allowedGrades && !optionalClassId) {
