@@ -22,7 +22,12 @@ import {
 } from '../common/constants';
 import Loading from '../components/Loading';
 import ScoreCard from '../components/parent/ScoreCard';
-import { IonPage, useIonToast } from '@ionic/react';
+import {
+  IonPage,
+  useIonToast,
+  useIonViewWillEnter,
+  useIonViewWillLeave,
+} from '@ionic/react';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { ServiceConfig } from '../services/ServiceConfig';
@@ -45,6 +50,14 @@ import {
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
   'pending_homework_reward_transition';
+
+type LidoWindowListeners = {
+  gameExit?: EventListener;
+  nextContainer?: EventListener;
+  gameCompleted?: EventListener;
+  lessonEnd?: EventListener;
+  activityEnd?: EventListener;
+};
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -95,6 +108,8 @@ const LidoPlayer: FC = () => {
     isStudentLinked: false,
   });
   const isExitingRef = useRef(false);
+  const lidoPlayerRef = useRef<HTMLElement | null>(null);
+  const lidoWindowListenersRef = useRef<LidoWindowListeners>({});
 
   const resolveStudentContext = async (): Promise<{
     student: TableTypes<'user'> | undefined;
@@ -683,6 +698,7 @@ const LidoPlayer: FC = () => {
       Util.logEvent(EVENTS.LESSON_END, {
         user_id: parentUserId,
         student_id: studentId,
+        result_id: result?.id ?? null,
         // assignment_id: lesson.assignment?.id,
         chapter_id: data.chapterId,
         // chapter_name: ChapterDetail ? ChapterDetail.name : "",
@@ -774,6 +790,84 @@ const LidoPlayer: FC = () => {
     });
     push();
   };
+  const cleanupLidoPlayer = (resetState = true) => {
+    const player = lidoPlayerRef.current as
+      | (HTMLElement & {
+          destroy?: () => void;
+          dispose?: () => void;
+          stop?: () => void;
+          pause?: () => void;
+        })
+      | null;
+
+    player?.destroy?.();
+    player?.dispose?.();
+    player?.stop?.();
+    player?.pause?.();
+    lidoPlayerRef.current = null;
+
+    if (typeof window !== 'undefined') {
+      window.__LIDO_COMMON_AUDIO_PATH__ = undefined;
+    }
+
+    if (!resetState) return;
+    setIsReady(false);
+    setBasePath(undefined);
+    setXmlPath(undefined);
+    setCommonAudioPath(undefined);
+    setShowDialogBox(false);
+  };
+
+  const cleanupLidoWindowListeners = () => {
+    const listeners = lidoWindowListenersRef.current;
+
+    if (listeners.gameExit) {
+      window.removeEventListener(LidoGameExitKey, listeners.gameExit);
+    }
+    if (listeners.nextContainer) {
+      window.removeEventListener(LidoNextContainerKey, listeners.nextContainer);
+    }
+    if (listeners.gameCompleted) {
+      window.removeEventListener(LidoGameCompletedKey, listeners.gameCompleted);
+    }
+    if (listeners.lessonEnd) {
+      window.removeEventListener(LidoLessonEndKey, listeners.lessonEnd);
+    }
+    if (listeners.activityEnd) {
+      window.removeEventListener(LidoActivityEndKey, listeners.activityEnd);
+    }
+
+    lidoWindowListenersRef.current = {};
+  };
+
+  const registerLidoWindowListeners = () => {
+    cleanupLidoWindowListeners();
+
+    const listeners: LidoWindowListeners = {
+      gameExit: onGameExit as EventListener,
+      nextContainer: onNextContainer as EventListener,
+      gameCompleted: gameCompleted as EventListener,
+      lessonEnd: onLessonEnd as EventListener,
+      activityEnd: onActivityEnd as EventListener,
+    };
+
+    lidoWindowListenersRef.current = listeners;
+    window.addEventListener(LidoGameExitKey, listeners.gameExit!);
+    window.addEventListener(LidoNextContainerKey, listeners.nextContainer!);
+    window.addEventListener(LidoGameCompletedKey, listeners.gameCompleted!);
+    window.addEventListener(LidoLessonEndKey, listeners.lessonEnd!);
+    window.addEventListener(LidoActivityEndKey, listeners.activityEnd!);
+  };
+
+  useIonViewWillEnter(() => {
+    registerLidoWindowListeners();
+  });
+
+  useIonViewWillLeave(() => {
+    cleanupLidoWindowListeners();
+    cleanupLidoPlayer();
+  });
+
   useEffect(() => {
     // localStorage.removeItem(LIDO_SCORES_KEY);
     init();
@@ -785,17 +879,10 @@ const LidoPlayer: FC = () => {
         logger.warn('[LidoPlayer] Failed to lock initial orientation', error);
       });
     }
-    window.addEventListener(LidoGameExitKey, onGameExit);
-    window.addEventListener(LidoNextContainerKey, onNextContainer);
-    window.addEventListener(LidoGameCompletedKey, gameCompleted);
-    window.addEventListener(LidoLessonEndKey, onLessonEnd);
-    window.addEventListener(LidoActivityEndKey, onActivityEnd);
+    registerLidoWindowListeners();
     return () => {
-      window.removeEventListener(LidoGameExitKey, onGameExit);
-      window.removeEventListener(LidoNextContainerKey, onNextContainer);
-      window.removeEventListener(LidoGameCompletedKey, gameCompleted);
-      window.removeEventListener(LidoLessonEndKey, onLessonEnd);
-      window.removeEventListener(LidoActivityEndKey, onActivityEnd);
+      cleanupLidoWindowListeners();
+      cleanupLidoPlayer(false);
     };
   }, []);
 
@@ -836,7 +923,7 @@ const LidoPlayer: FC = () => {
     // This ensures that when the new player starts, it doesn't see the
     // path from the PREVIOUS student's language.
     if (typeof window !== 'undefined') {
-      (window as any).__LIDO_COMMON_AUDIO_PATH__ = undefined;
+      window.__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
     const urlSearchParams = new URLSearchParams(window.location.search);
     const lessonToDownload = lessonDetail;
@@ -932,6 +1019,7 @@ const LidoPlayer: FC = () => {
       )}
       {isReady && (xmlPath || basePath) && !showDialogBox
         ? React.createElement('lido-standalone', {
+            ref: lidoPlayerRef,
             'xml-path': xmlPath,
             'base-url': basePath,
             canplay: true,
