@@ -8979,7 +8979,8 @@ export class SupabaseApi implements ServiceApi {
         .from('program_user')
         .select('user')
         .eq('program_id', programId)
-        .eq('role', 'program_manager');
+        .eq('role', 'program_manager')
+        .eq('is_deleted', false);
 
       if (mappingsError) {
         logger.error('Error fetching program managers:', mappingsError);
