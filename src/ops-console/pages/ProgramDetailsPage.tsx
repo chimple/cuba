@@ -35,7 +35,12 @@ interface ProgramData {
   programDetails: { label: string; value: string }[];
   locationDetails: { label: string; value: string }[];
   partnerDetails: { label: string; value: string }[];
-  programManagers: { name: string; role: string; phone: string }[];
+  programManagers: {
+    name: string;
+    role: string;
+    phone: string;
+    email: string;
+  }[];
 }
 
 const formatProgramModel = (value: string) => {
@@ -108,7 +113,6 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
           return { ...item, value: formatProgramDate(item.value) };
         return item;
       });
-
       setData({ ...programData, programDetails: updatedProgramDetails });
       setLoading(false);
     };
@@ -214,7 +218,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
                         key={idx}
                         name={manager.name}
                         role={manager.role}
-                        phone={manager.phone}
+                        phone={manager.phone || manager.email || ''}
                       />
                     ))}
                   </Box>
