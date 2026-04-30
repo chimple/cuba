@@ -3767,12 +3767,21 @@ export class SupabaseApi implements ServiceApi {
         >();
 
         if (parentIds.length > 0) {
-          const { data: parentUsers, error: parentUsersError } =
-            await this.supabase
+          type ParentUserWithWhatsapp = {
+            id?: string | null;
+            name?: string | null;
+            phone?: string | null;
+            email?: string | null;
+            is_wa_contact?: string | boolean | null;
+          };
+          const { data: parentUsersRaw, error: parentUsersError } =
+            await (this.supabase
               .from(TABLES.User)
-              .select('id, name, phone, email')
+              .select('id, name, phone, email, is_wa_contact')
               .in('id', parentIds)
-              .eq('is_deleted', false);
+              .eq('is_deleted', false) as any);
+          const parentUsers = (parentUsersRaw ??
+            []) as ParentUserWithWhatsapp[];
 
           if (parentUsersError) {
             logger.error(
@@ -3780,7 +3789,7 @@ export class SupabaseApi implements ServiceApi {
               parentUsersError,
             );
           } else {
-            (parentUsers || []).forEach((parentUser) => {
+            parentUsers.forEach((parentUser) => {
               const parentId = String(parentUser?.id || '').trim();
               if (!parentId) return;
 
@@ -3798,6 +3807,11 @@ export class SupabaseApi implements ServiceApi {
                   typeof parentUser?.email === 'string'
                     ? parentUser.email
                     : undefined,
+                is_wa_contact:
+                  typeof parentUser?.is_wa_contact === 'string' ||
+                  typeof parentUser?.is_wa_contact === 'boolean'
+                    ? parentUser.is_wa_contact
+                    : null,
               });
             });
           }
@@ -10527,15 +10541,16 @@ export class SupabaseApi implements ServiceApi {
 
           const parentFilter = `phone.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`;
 
-          const { data: parentRows } = await supabase
+          const { data: parentRowsRaw } = await (supabase
             .from('class_user')
             .select(
               `
-              user:user_id!inner (
-                id,
-                phone,
-                email
-              )
+                user:user_id!inner (
+                  id,
+                  phone,
+                  email,
+                  is_wa_contact
+                )
             `,
             )
             .in('class_id', schoolClassIds)
@@ -10543,36 +10558,51 @@ export class SupabaseApi implements ServiceApi {
             .eq('is_deleted', false)
             .or(parentFilter, {
               foreignTable: 'user',
-            });
-          const parentIds = (parentRows ?? []).map((p: any) => p.user.id);
+            }) as any);
+          const parentRows = (parentRowsRaw ?? []) as Array<{
+            user?: { id?: string | null } | null;
+          }>;
+          const parentIds = parentRows
+            .map((row) => String(row?.user?.id ?? '').trim())
+            .filter((id) => id.length > 0);
 
           let parentLinkedStudents: any[] = [];
 
           const parentContactMap = new Map<string, any>();
 
           if (parentIds.length > 0) {
-            const { data: parentLinks } = await supabase
+            const { data: parentLinksRaw } = await (supabase
               .from('parent_user')
               .select(
                 `
                 student_id,
                 parent:parent_id (
                   phone,
-                  email
+                  email,
+                  is_wa_contact
                 )
               `,
               )
               .in('parent_id', parentIds)
-              .eq('is_deleted', false);
+              .eq('is_deleted', false) as any);
+            const parentLinks = (parentLinksRaw ?? []) as Array<{
+              student_id?: string | null;
+              parent?: {
+                phone?: string | null;
+                email?: string | null;
+                is_wa_contact?: string | boolean | null;
+              } | null;
+            }>;
 
-            const studentIds = (parentLinks ?? []).map(
-              (l: any) => l.student_id,
-            );
+            const studentIds = parentLinks
+              .map((link) => String(link?.student_id ?? '').trim())
+              .filter((id) => id.length > 0);
 
             (parentLinks ?? []).forEach((link: any) => {
               parentContactMap.set(link.student_id, {
                 phone: link.parent?.phone ?? null,
                 email: link.parent?.email ?? null,
+                is_wa_contact: link.parent?.is_wa_contact ?? null,
               });
             });
 
@@ -10613,26 +10643,41 @@ export class SupabaseApi implements ServiceApi {
           // ✅ GET ALL STUDENT IDS
           const allStudentIds = mergedRows.map((r: any) => r.user.id);
 
-          // ✅ FETCH THEIR PARENTS
-          if (allStudentIds.length > 0) {
-            const { data: allParentLinks } = await supabase
+          // Fetch parent contact only for students not already mapped.
+          const missingParentStudentIds = allStudentIds.filter(
+            (id: string) => !parentContactMap.has(id),
+          );
+          if (missingParentStudentIds.length > 0) {
+            const { data: allParentLinksRaw } = await (supabase
               .from('parent_user')
               .select(
                 `
         student_id,
         parent:parent_id (
           phone,
-          email
+          email,
+          is_wa_contact
         )
       `,
               )
-              .in('student_id', allStudentIds)
-              .eq('is_deleted', false);
+              .in('student_id', missingParentStudentIds)
+              .eq('is_deleted', false) as any);
+            const allParentLinks = (allParentLinksRaw ?? []) as Array<{
+              student_id?: string | null;
+              parent?: {
+                phone?: string | null;
+                email?: string | null;
+                is_wa_contact?: string | boolean | null;
+              } | null;
+            }>;
 
-            (allParentLinks ?? []).forEach((link: any) => {
-              parentContactMap.set(link.student_id, {
+            allParentLinks.forEach((link) => {
+              const studentId = String(link?.student_id ?? '').trim();
+              if (!studentId) return;
+              parentContactMap.set(studentId, {
                 phone: link.parent?.phone ?? null,
                 email: link.parent?.email ?? null,
+                is_wa_contact: link.parent?.is_wa_contact ?? null,
               });
             });
           }
@@ -10667,6 +10712,7 @@ export class SupabaseApi implements ServiceApi {
               parent: {
                 phone: parentContact.phone ?? null,
                 email: parentContact.email ?? null,
+                is_wa_contact: parentContact.is_wa_contact ?? null,
               },
 
               class_id: row.class_id,
