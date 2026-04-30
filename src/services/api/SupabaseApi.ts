@@ -10629,8 +10629,11 @@ export class SupabaseApi implements ServiceApi {
           // ✅ GET ALL STUDENT IDS
           const allStudentIds = mergedRows.map((r: any) => r.user.id);
 
-          // ✅ FETCH THEIR PARENTS
-          if (allStudentIds.length > 0) {
+          // Fetch parent contact only for students not already mapped.
+          const missingParentStudentIds = allStudentIds.filter(
+            (id: string) => !parentContactMap.has(id),
+          );
+          if (missingParentStudentIds.length > 0) {
             const { data: allParentLinksRaw } = await (supabase
               .from('parent_user')
               .select(
@@ -10643,7 +10646,7 @@ export class SupabaseApi implements ServiceApi {
         )
       `,
               )
-              .in('student_id', allStudentIds)
+              .in('student_id', missingParentStudentIds)
               .eq('is_deleted', false) as any);
             const allParentLinks = (allParentLinksRaw ?? []) as Array<{
               student_id?: string | null;
@@ -10654,8 +10657,10 @@ export class SupabaseApi implements ServiceApi {
               } | null;
             }>;
 
-            (allParentLinks ?? []).forEach((link: any) => {
-              parentContactMap.set(link.student_id, {
+            allParentLinks.forEach((link) => {
+              const studentId = String(link?.student_id ?? '').trim();
+              if (!studentId) return;
+              parentContactMap.set(studentId, {
                 phone: link.parent?.phone ?? null,
                 email: link.parent?.email ?? null,
                 is_wa_contact: link.parent?.is_wa_contact ?? null,
