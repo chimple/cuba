@@ -40,10 +40,7 @@ import {
 } from '../../../common/constants';
 import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import {
-  getGradeOptions,
-  filterBySearchAndFilters,
-} from '../../OpsUtility/SearchFilterUtility';
+import { filterBySearchAndFilters } from '../../OpsUtility/SearchFilterUtility';
 import FormCard, { FieldConfig, MessageConfig } from './FormCard';
 import { normalizePhone10 } from '../../pages/NewUserPageOps';
 import { ClassRow, SchoolData } from './SchoolClass';
@@ -319,14 +316,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filters, setFilters] = useState<Record<string, string[]>>({
-    grade: [],
-    section: [],
+    class: [],
   });
   const [orderBy, setOrderBy] = useState<string | null>('name');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
   const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({
-    grade: [],
-    section: [],
+    class: [],
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('');
@@ -462,10 +457,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   useEffect(() => {
     const isInitial =
-      page === 1 &&
-      !debouncedSearchTerm &&
-      filters.grade.length === 0 &&
-      filters.section.length === 0;
+      page === 1 && !debouncedSearchTerm && filters.class.length === 0;
 
     // Reuses prefetched school students only when no program scope is active.
     if (isInitial && !allowedGrades && !optionalClassId) {
@@ -509,8 +501,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     fetchStudents,
     data.students,
     data.totalStudentCount,
-    filters.grade,
-    filters.section,
+    filters.class,
     allowedGrades,
     optionalClassId,
     programScopedClassIds,
@@ -624,18 +615,44 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       },
       grade: student.grade,
       classSection: student.classSection,
+      class: getClassDisplayLabel(
+        student.grade,
+        student.classSection,
+        getExactClassName(student.classWithidname),
+      ),
     }));
 
-    return filterBySearchAndFilters(
+    const searchFiltered = filterBySearchAndFilters(
       searchableStudents,
       {
-        grade: filters.grade ?? [],
-        section: (filters.section ?? []).map((s) => String(s).trim()),
+        grade: [],
+        section: [],
       },
       searchTerm,
       'student',
-    ).map((student) => normalizedStudents[student.index]);
+    );
+
+    return searchFiltered
+      .filter((student) => {
+        const classFilters = filters.class ?? [];
+        if (classFilters.length === 0) return true;
+        return classFilters.includes(student.class);
+      })
+      .map((student) => normalizedStudents[student.index]);
   }, [normalizedStudents, filters, searchTerm]);
+
+  const classFilterOptions = useMemo(() => {
+    const labels = new Set<string>();
+    programFilteredStudents.forEach((student) => {
+      const classLabel = getClassDisplayLabel(
+        student.grade,
+        student.classSection,
+        getExactClassName(student.classWithidname),
+      );
+      if (String(classLabel).trim() !== '') labels.add(classLabel);
+    });
+    return Array.from(labels).sort((a, b) => a.localeCompare(b));
+  }, [programFilteredStudents]);
 
   const sortedStudents = useMemo(() => {
     // Standard sorting for all columns
@@ -1014,8 +1031,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [filters]);
 
   const handleClearFilters = useCallback(() => {
-    setFilters({ grade: [], section: [] });
-    setTempFilters({ grade: [], section: [] });
+    setFilters({ class: [] });
+    setTempFilters({ class: [] });
     setPage(1);
   }, []);
 
@@ -1026,6 +1043,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }));
   }, []);
   const handleCancelFilters = useCallback(() => {
+    setFilters({ class: [] });
+    setTempFilters({ class: [] });
+    setPage(1);
     setIsFilterSliderOpen(false);
   }, []);
 
@@ -1714,7 +1734,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }
   };
 
-  const filterConfigsForSchool = [{ key: 'grade', label: 'Grade' }];
+  const filterConfigsForSchool = [{ key: 'class', label: 'Class' }];
 
   const performanceFilters = [
     { key: PerformanceLevel.ALL, label: t('All') },
@@ -2077,8 +2097,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           onClose={() => setIsFilterSliderOpen(false)}
           filters={tempFilters}
           filterOptions={{
-            // Keeps grade filter options aligned with the current program scope.
-            grade: getGradeOptions(programFilteredStudents),
+            // Keeps class filter options aligned with the current program scope.
+            class: classFilterOptions,
           }}
           onFilterChange={handleSliderFilterChange}
           onApply={handleApplyFilters}

@@ -4927,33 +4927,25 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-    const primaryClassByTeacher = new Map<string, string>();
-    (
-      (allTeacherLinks || []) as Array<{ class_id: string; user_id: string }>
-    ).forEach((row) => {
+    const teacherClassLinks = new Map<
+      string,
+      { teacherId: string; classId: string }
+    >();
+    (allTeacherLinks || []).forEach((row) => {
       const teacherId = String(row?.user_id || '').trim();
       const candidateClassId = String(row?.class_id || '').trim();
       if (!teacherId || !candidateClassId) return;
 
-      const currentClassId = primaryClassByTeacher.get(teacherId);
-      if (!currentClassId) {
-        primaryClassByTeacher.set(teacherId, candidateClassId);
-        return;
-      }
-
-      const currentClassName = classMap.get(currentClassId) || currentClassId;
-      const candidateClassName =
-        classMap.get(candidateClassId) || candidateClassId;
-      if (
-        candidateClassName.localeCompare(currentClassName, undefined, {
-          sensitivity: 'base',
-        }) < 0
-      ) {
-        primaryClassByTeacher.set(teacherId, candidateClassId);
-      }
+      teacherClassLinks.set(`${teacherId}:${candidateClassId}`, {
+        teacherId,
+        classId: candidateClassId,
+      });
     });
 
-    const allTeacherIds = Array.from(primaryClassByTeacher.keys());
+    const teacherClassLinkList = Array.from(teacherClassLinks.values());
+    const allTeacherIds = Array.from(
+      new Set(teacherClassLinkList.map((link) => link.teacherId)),
+    );
     if (allTeacherIds.length === 0) {
       return {
         data: [],
@@ -4961,40 +4953,61 @@ export class SupabaseApi implements ServiceApi {
       };
     }
 
-    const {
-      data: teacherUsers,
-      error: userError,
-      count: totalTeachersRaw,
-    } = await this.supabase
+    const { data: teacherUsers, error: userError } = await this.supabase
       .from(TABLES.User)
-      .select('*', { count: 'exact' })
+      .select('*')
       .in('id', allTeacherIds)
       .eq('is_deleted', false)
       .order('name', { ascending: true })
-      .order('id', { ascending: true })
-      .range(offset, offset + safeLimit - 1);
-
-    const totalTeachers =
-      typeof totalTeachersRaw === 'number' ? totalTeachersRaw : 0;
+      .order('id', { ascending: true });
 
     if (userError) {
       logger.error('Error fetching teacher user rows:', userError);
-      return { data: [], total: totalTeachers };
+      return { data: [], total: 0 };
     }
 
     if (!teacherUsers?.length) {
       return {
         data: [],
-        total: totalTeachers,
+        total: 0,
       };
     }
 
-    const teacherInfoList: TeacherInfo[] = teacherUsers
-      .map((teacherUser) => {
-        const teacherId = String(teacherUser?.id || '').trim();
-        if (!teacherId) return null;
+    const teacherUserById = new Map(
+      teacherUsers.map((teacherUser) => [teacherUser.id, teacherUser]),
+    );
+    const sortedTeacherClassLinks = teacherClassLinkList
+      .filter((link) => teacherUserById.has(link.teacherId))
+      .sort((leftLink, rightLink) => {
+        const leftTeacher = teacherUserById.get(leftLink.teacherId);
+        const rightTeacher = teacherUserById.get(rightLink.teacherId);
+        const leftName = String(leftTeacher?.name || '');
+        const rightName = String(rightTeacher?.name || '');
+        const leftClassName =
+          classMap.get(leftLink.classId) || leftLink.classId;
+        const rightClassName =
+          classMap.get(rightLink.classId) || rightLink.classId;
 
-        const classIdValue = primaryClassByTeacher.get(teacherId) || '';
+        return (
+          leftName.localeCompare(rightName, undefined, {
+            sensitivity: 'base',
+          }) ||
+          leftLink.teacherId.localeCompare(rightLink.teacherId) ||
+          leftClassName.localeCompare(rightClassName, undefined, {
+            sensitivity: 'base',
+          }) ||
+          leftLink.classId.localeCompare(rightLink.classId)
+        );
+      });
+
+    const totalTeachers = sortedTeacherClassLinks.length;
+    const teacherInfoList: TeacherInfo[] = sortedTeacherClassLinks
+      .slice(offset, offset + safeLimit)
+      .map((teacherClassLink) => {
+        const teacherUser = teacherUserById.get(teacherClassLink.teacherId);
+        if (!teacherUser) return null;
+
+        const classIdValue = teacherClassLink.classId;
         const className = classMap.get(classIdValue) || '';
         const { grade, section } = this.parseClassName(className);
 
@@ -8966,7 +8979,8 @@ export class SupabaseApi implements ServiceApi {
         .from('program_user')
         .select('user')
         .eq('program_id', programId)
-        .eq('role', 'program_manager');
+        .eq('role', 'program_manager')
+        .eq('is_deleted', false);
 
       if (mappingsError) {
         logger.error('Error fetching program managers:', mappingsError);
