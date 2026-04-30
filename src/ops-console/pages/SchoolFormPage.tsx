@@ -211,6 +211,7 @@ const SchoolFormPage: React.FC = () => {
           STATUS.APPROVED,
         ),
       ]);
+      await api.computeSchoolMetricsForSchool(school.id);
 
       history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`);
     } catch (error) {
