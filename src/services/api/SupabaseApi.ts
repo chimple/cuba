@@ -8815,7 +8815,6 @@ export class SupabaseApi implements ServiceApi {
       .in('school_id', schoolIds.length ? schoolIds : [''])
       .eq('is_deleted', false)
       .eq('role', RoleType.PROGRAM_MANAGER);
-
     if (error || !data) {
       logger.error('Error fetching program managers:', error);
       return schoolIds.map((id) => ({ schoolId: id, users: [] }));
@@ -8956,7 +8955,12 @@ export class SupabaseApi implements ServiceApi {
     programDetails: { id: string; label: string; value: string }[];
     locationDetails: { id: string; label: string; value: string }[];
     partnerDetails: { id: string; label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programManagers: {
+      name: string;
+      role: string;
+      phone: string;
+      email: string;
+    }[];
   } | null> {
     if (!this.supabase) {
       logger.error('Supabase client not initialized.');
@@ -8993,7 +8997,7 @@ export class SupabaseApi implements ServiceApi {
 
       const { data: users, error: usersError } = await this.supabase
         .from('user')
-        .select('id, name, phone')
+        .select('*')
         .in('id', userIds);
       if (usersError) {
         logger.error('Error fetching user details:', usersError);
@@ -9051,11 +9055,11 @@ export class SupabaseApi implements ServiceApi {
           value: program.institute_partner ?? '',
         },
       ];
-
-      const programManagers = users.map((user) => ({
+      const programManagers = (users ?? []).map((user) => ({
         name: user.name ?? '',
         role: 'Program Manager',
         phone: user.phone ?? '',
+        email: user.email ?? '',
       }));
 
       return {
