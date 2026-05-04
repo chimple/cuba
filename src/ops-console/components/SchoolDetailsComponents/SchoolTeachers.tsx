@@ -679,6 +679,20 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
+        case 'phoneEmailDisplay': {
+          const aPhone = (a.user.phone || '').trim();
+          const bPhone = (b.user.phone || '').trim();
+          const phoneCompare = aPhone.localeCompare(bPhone);
+          if (phoneCompare !== 0) {
+            return order === 'asc' ? phoneCompare : -phoneCompare;
+          }
+
+          const aEmail = (a.user.email || '').trim();
+          const bEmail = (b.user.email || '').trim();
+          return order === 'asc'
+            ? aEmail.localeCompare(bEmail)
+            : bEmail.localeCompare(aEmail);
+        }
         default:
           return 0;
       }
@@ -1623,6 +1637,9 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               order={order}
               onSort={handleSort}
               onRowClick={() => {}}
+              getRowId={(row) =>
+                `${row.id}-${row.classId || row.interactPayload?.classWithidname?.id || 'unassigned'}`
+              }
             />
           </div>
           {openPopup && currentTeachers && (

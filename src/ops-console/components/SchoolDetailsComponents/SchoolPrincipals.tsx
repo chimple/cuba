@@ -172,6 +172,20 @@ const SchoolPrincipals: React.FC<SchoolPrincipalsProps> = ({
           return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
+        case 'phoneEmailDisplay': {
+          const aPhone = (a.phone || '').trim();
+          const bPhone = (b.phone || '').trim();
+          const phoneCompare = aPhone.localeCompare(bPhone);
+          if (phoneCompare !== 0) {
+            return order === 'asc' ? phoneCompare : -phoneCompare;
+          }
+
+          const aEmail = (a.email || '').trim();
+          const bEmail = (b.email || '').trim();
+          return order === 'asc'
+            ? aEmail.localeCompare(bEmail)
+            : bEmail.localeCompare(aEmail);
+        }
         default:
           return 0;
       }
