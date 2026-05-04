@@ -578,18 +578,6 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     [teachers],
   );
 
-  const studentPhoneSet = useMemo(() => {
-    const set = new Set<string>();
-    const students = Array.isArray(data.students) ? data.students : [];
-    students.forEach((student) => {
-      const parentPhone = normalizePhone10(String(student.parent?.phone ?? ''));
-      const userPhone = normalizePhone10(String(student.user?.phone ?? ''));
-      if (parentPhone) set.add(parentPhone);
-      if (userPhone) set.add(userPhone);
-    });
-    return set;
-  }, [data.students]);
-
   const filteredTeachers = useMemo(() => {
     const searchableTeachers = normalizedTeachers.map((teacher, index) => ({
       ...teacher,
@@ -724,24 +712,21 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       // No class group: show user-level WhatsApp availability from is_wa_contact.
       if (!groupId) return getWhatsappAvailabilityStatus(waContactRaw);
 
-      const teacherPhone = normalizePhone10(String(teacher.user?.phone ?? ''));
-      if (teacherPhone && studentPhoneSet.has(teacherPhone)) {
-        return isTeacherInWhatsappGroup(teacher)
-          ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
-          : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
+      // WhatsApp status rules: group linked + member match => In Group; group linked + no member match + is_wa_contact yes/no/null => Not in group/Not on whatsapp/Not Checked; no group + is_wa_contact yes/no/null => On Whatsapp/Not on whatsapp/Not Checked.
+      if (isTeacherInWhatsappGroup(teacher)) {
+        return WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP;
       }
+
       const waContact = normalizeWhatsappContactFlag(waContactRaw);
       if (waContact === 'yes') {
-        return isTeacherInWhatsappGroup(teacher)
-          ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
-          : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
+        return WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
       }
       if (waContact === 'no') {
         return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
       }
       return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
     },
-    [getGroupIdForClass, isTeacherInWhatsappGroup, studentPhoneSet],
+    [getGroupIdForClass, isTeacherInWhatsappGroup],
   );
 
   const displayTeachers = useMemo((): DisplayTeacher[] => {

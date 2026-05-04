@@ -861,11 +861,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       // No class group: show user-level WhatsApp availability from is_wa_contact.
       if (!groupId) return getWhatsappAvailabilityStatus(waContactRaw);
 
+      // WhatsApp status rules: group linked + member match => In Group; group linked + no member match + is_wa_contact yes/no/null => Not in group/Not on whatsapp/Not Checked; no group + is_wa_contact yes/no/null => On Whatsapp/Not on whatsapp/Not Checked.
+      if (isStudentInWhatsappGroup(student)) {
+        return WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP;
+      }
+
       const waContact = normalizeWhatsappContactFlag(waContactRaw);
       if (waContact === 'yes') {
-        return isStudentInWhatsappGroup(student)
-          ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
-          : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
+        return WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
       }
       if (waContact === 'no') {
         return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
