@@ -248,21 +248,15 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
           })}
         </ul>
 
-        {!isExternalUser && (
-          <div className="ops-side-menu-switch-user-toggle">
-            <IonItem className="ops-side-menu-ion-item-container">
-              <img
-                src="assets/icons/userSwitch.svg"
-                alt="OPS"
-                className="icon"
-              />
-              <CommonToggle
-                onChange={switchUserToTeacher}
-                label="Switch to Teacher's Mode"
-              />
-            </IonItem>
-          </div>
-        )}
+        <div className="ops-side-menu-switch-user-toggle">
+          <IonItem className="ops-side-menu-ion-item-container">
+            <img src="assets/icons/userSwitch.svg" alt="OPS" className="icon" />
+            <CommonToggle
+              onChange={switchUserToTeacher}
+              label="Switch to Teacher's Mode"
+            />
+          </IonItem>
+        </div>
 
         {isOpen && (
           <div

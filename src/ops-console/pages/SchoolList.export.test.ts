@@ -33,7 +33,7 @@ describe('buildSchoolListExportSheetRows', () => {
         'Activated Students',
         'Active Students',
         'Active Students',
-        'Average Time Spent',
+        'Avg Time Spent',
         'Active Teachers',
         'Active Teachers',
         'Activities Assigned',

@@ -105,9 +105,16 @@ const SidebarPage: React.FC = () => {
     }
   };
 
+  const preserveSelectedText = (event: React.MouseEvent<HTMLDivElement>) => {
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) {
+      event.stopPropagation();
+    }
+  };
+
   return (
     <IonPage>
-      <div className="sidebarpage-rightSide">
+      <div className="sidebarpage-rightSide" onClick={preserveSelectedText}>
         <Sidebar
           name={currentUser?.name || ''}
           email={currentUser?.email || ''}
