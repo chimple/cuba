@@ -331,9 +331,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         isExternalUser
           ? Promise.resolve(emptyPaged)
           : api.getPrincipalsForSchoolPaginated(id, 1, 20),
-        isExternalUser
-          ? Promise.resolve(emptyPaged)
-          : api.getCoordinatorsForSchoolPaginated(id, 1, 20),
+        api.getCoordinatorsForSchoolPaginated(id, 1, 20),
         api.getTeacherInfoBySchoolId(id, 1, 20),
         api.getStudentInfoBySchoolId(id, 1, 20),
         api.getClassesBySchoolId(id),

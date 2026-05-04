@@ -10,6 +10,7 @@ interface ClassSectionProps {
   currentClassDetail: { id: string | number; name: string };
   currentClassId: string;
   classCode: number | undefined;
+  isExternalUser: boolean;
   handleClassSelect: (school: { id: string | number; name: string }) => void;
   handleManageClassClick: () => void;
   setClassCode: (code: number | undefined) => void;
@@ -20,6 +21,7 @@ const ClassSection: React.FC<ClassSectionProps> = ({
   currentClassDetail,
   currentClassId,
   classCode,
+  isExternalUser,
   handleClassSelect,
   handleManageClassClick,
   setClassCode,
@@ -48,6 +50,7 @@ const ClassSection: React.FC<ClassSectionProps> = ({
         setClassCode={setClassCode}
         classCode={classCode}
         className={currentClassDetail.name}
+        isGenerateDisabled={isExternalUser}
       />
 
       <div className="divider-line">

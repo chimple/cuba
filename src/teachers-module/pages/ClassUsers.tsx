@@ -22,6 +22,8 @@ const ClassUsers: React.FC = () => {
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const currentRoles = roles || [];
   useEffect(() => {
     init();
@@ -101,13 +103,12 @@ const ClassUsers: React.FC = () => {
               />
             )}
           </div>
-          {selectedTab === CLASS_USERS.STUDENTS && (
+          {selectedTab === CLASS_USERS.STUDENTS && !isExternalUser && (
             <AddButton onClick={addStudent} />
           )}
           {selectedTab === CLASS_USERS.TEACHERS &&
-            !currentRoles.includes(RoleType.TEACHER) && (
-              <AddButton onClick={addTeacher} />
-            )}
+            !currentRoles.includes(RoleType.TEACHER) &&
+            !isExternalUser && <AddButton onClick={addTeacher} />}
         </div>
       )}
     </>
