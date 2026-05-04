@@ -1637,7 +1637,6 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               order={order}
               onSort={handleSort}
               onRowClick={() => {}}
-              // Teachers can appear in multiple classes, so row.id alone is not unique.
               getRowId={(row) =>
                 `${row.id}-${row.classId || row.interactPayload?.classWithidname?.id || 'unassigned'}`
               }
