@@ -45,6 +45,12 @@ type ColoringBoardRouteState = {
   returnTo?: string;
 };
 
+type PaintSavePayload = {
+  serializedSvg: string;
+  studentId: string;
+  stickerBookId: string;
+};
+
 const InlineSvg = React.forwardRef<
   SVGSVGElement,
   { svg: ParsedSvg; className?: string }
@@ -91,11 +97,11 @@ const ColoringBoard: React.FC = () => {
   const [hasSavedArtwork, setHasSavedArtwork] = useState<boolean>(false);
   const autosaveTimeoutRef = useRef<number | null>(null);
   const isSaveInFlightRef = useRef(false);
-  const pendingSerializedSvgRef = useRef<string | null>(null);
+  const pendingPaintSaveRef = useRef<PaintSavePayload | null>(null);
   const saveQueuePromiseRef = useRef<Promise<void> | null>(null);
   const hasPaintChangesRef = useRef(false);
   const hasHydratedPersistenceRef = useRef(false);
-  const lastPersistedSvgRef = useRef<string | null>(null);
+  const lastPersistedPaintSaveRef = useRef<PaintSavePayload | null>(null);
   const isStickerBookSaveEnabled: boolean = useFeatureIsOn(
     ENABLE_SAVE_AND_SHARE_STICKER_BOOK,
   );
@@ -149,19 +155,25 @@ const ColoringBoard: React.FC = () => {
   }, []);
 
   const drainPaintSaveQueue = useCallback(async () => {
-    if (!canPersistPaintState || !currentStudentId || !stickerBookId) return;
     if (isSaveInFlightRef.current)
       return saveQueuePromiseRef.current ?? undefined;
+    if (!pendingPaintSaveRef.current) return;
 
     const processQueue = async () => {
-      while (pendingSerializedSvgRef.current) {
-        const nextSerializedSvg = pendingSerializedSvgRef.current;
-        pendingSerializedSvgRef.current = null;
+      while (pendingPaintSaveRef.current) {
+        const nextPaintSave = pendingPaintSaveRef.current;
+        pendingPaintSaveRef.current = null;
 
-        if (
-          !nextSerializedSvg ||
-          nextSerializedSvg === lastPersistedSvgRef.current
-        ) {
+        const isDuplicateSave =
+          !!lastPersistedPaintSaveRef.current &&
+          nextPaintSave.studentId ===
+            lastPersistedPaintSaveRef.current.studentId &&
+          nextPaintSave.stickerBookId ===
+            lastPersistedPaintSaveRef.current.stickerBookId &&
+          nextPaintSave.serializedSvg ===
+            lastPersistedPaintSaveRef.current.serializedSvg;
+
+        if (isDuplicateSave) {
           continue;
         }
 
@@ -169,19 +181,19 @@ const ColoringBoard: React.FC = () => {
 
         try {
           await savePaintedStickerBook(
-            currentStudentId,
-            stickerBookId,
-            nextSerializedSvg,
+            nextPaintSave.studentId,
+            nextPaintSave.stickerBookId,
+            nextPaintSave.serializedSvg,
           );
-          lastPersistedSvgRef.current = nextSerializedSvg;
+          lastPersistedPaintSaveRef.current = nextPaintSave;
           hasPaintChangesRef.current = false;
         } catch (error) {
           logger.warn(
             '[StickerBookPaint] Failed to persist painted sticker book.',
             {
               error,
-              userId: currentStudentId,
-              stickerBookId,
+              userId: nextPaintSave.studentId,
+              stickerBookId: nextPaintSave.stickerBookId,
             },
           );
         } finally {
@@ -196,16 +208,20 @@ const ColoringBoard: React.FC = () => {
 
     saveQueuePromiseRef.current = savePromise;
     return savePromise;
-  }, [canPersistPaintState, currentStudentId, stickerBookId]);
+  }, []);
 
   const queuePaintSave = useCallback(
     async (serializedSvg: string | null) => {
-      if (!serializedSvg || !canPersistPaintState) return;
+      if (!serializedSvg || !currentStudentId || !stickerBookId) return;
 
-      pendingSerializedSvgRef.current = serializedSvg;
+      pendingPaintSaveRef.current = {
+        serializedSvg,
+        studentId: currentStudentId,
+        stickerBookId,
+      };
       await drainPaintSaveQueue();
     },
-    [canPersistPaintState, drainPaintSaveQueue],
+    [currentStudentId, drainPaintSaveQueue, stickerBookId],
   );
 
   const flushPaintSave = useCallback(async () => {
@@ -236,7 +252,11 @@ const ColoringBoard: React.FC = () => {
           );
 
           if (persistedSvg) {
-            lastPersistedSvgRef.current = persistedSvg;
+            lastPersistedPaintSaveRef.current = {
+              serializedSvg: persistedSvg,
+              studentId: currentStudentId,
+              stickerBookId,
+            };
             hasHydratedPersistenceRef.current = true;
             hasPaintChangesRef.current = false;
 
@@ -246,7 +266,14 @@ const ColoringBoard: React.FC = () => {
         }
 
         if (state?.svgRaw) {
-          lastPersistedSvgRef.current = state.svgRaw;
+          lastPersistedPaintSaveRef.current =
+            currentStudentId && stickerBookId
+              ? {
+                  serializedSvg: state.svgRaw,
+                  studentId: currentStudentId,
+                  stickerBookId,
+                }
+              : null;
           hasHydratedPersistenceRef.current = true;
           hasPaintChangesRef.current = false;
           if (mounted) setSvgMarkup(state.svgRaw);
@@ -259,7 +286,14 @@ const ColoringBoard: React.FC = () => {
             throw new Error(`Failed to fetch svg: ${res.status}`);
           }
           const text = await res.text();
-          lastPersistedSvgRef.current = text;
+          lastPersistedPaintSaveRef.current =
+            currentStudentId && stickerBookId
+              ? {
+                  serializedSvg: text,
+                  studentId: currentStudentId,
+                  stickerBookId,
+                }
+              : null;
           hasHydratedPersistenceRef.current = true;
           hasPaintChangesRef.current = false;
           if (mounted) setSvgMarkup(text);

@@ -260,6 +260,16 @@ const getLastToastProps = () => {
   return calls[calls.length - 1][0];
 };
 
+const createDeferred = () => {
+  let resolve!: () => void;
+
+  const promise = new Promise<void>((res) => {
+    resolve = res;
+  });
+
+  return { promise, resolve };
+};
+
 /* ===================================================== */
 /* ======================= TESTS ======================= */
 /* ===================================================== */
@@ -449,6 +459,89 @@ describe('ColoringBoard', () => {
         'student1',
         'book-1',
         expect.stringContaining('<svg'),
+      );
+    });
+  });
+
+  test('keeps queued saves tied to the sticker book that queued them', async () => {
+    jest.useFakeTimers();
+
+    mockParseSvg.mockImplementation((markup: string) => ({
+      attrs: {},
+      inner: markup.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, ''),
+    }));
+
+    const firstSave = createDeferred();
+    (savePaintedStickerBook as jest.Mock)
+      .mockImplementationOnce(() => firstSave.promise)
+      .mockResolvedValueOnce(undefined);
+
+    const view = renderBoard({
+      stickerBookId: 'book-1',
+      svgRaw: '<svg><rect id="book-1" /></svg>',
+    });
+
+    await screen.findByTestId('svg-scene');
+
+    mockColoringState = {
+      ...mockColoringState,
+      coloredRegions: { region1: '#ff0000' },
+    };
+
+    view.rerender(<ColoringBoard />);
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    await waitFor(() => {
+      expect(savePaintedStickerBook).toHaveBeenNthCalledWith(
+        1,
+        'student1',
+        'book-1',
+        expect.stringContaining('book-1'),
+      );
+    });
+
+    mockColoringState = {
+      ...mockColoringState,
+      coloredRegions: {},
+    };
+    mockLocation.state = {
+      stickerBookId: 'book-2',
+      svgRaw: '<svg><circle id="book-2" /></svg>',
+    };
+
+    view.rerender(<ColoringBoard />);
+
+    await waitFor(() => {
+      expect(loadPaintedStickerBook).toHaveBeenCalledWith('student1', 'book-2');
+    });
+
+    mockColoringState = {
+      ...mockColoringState,
+      coloredRegions: { region2: '#00ff00' },
+    };
+
+    view.rerender(<ColoringBoard />);
+
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(savePaintedStickerBook).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      firstSave.resolve();
+      await firstSave.promise;
+    });
+
+    await waitFor(() => {
+      expect(savePaintedStickerBook).toHaveBeenNthCalledWith(
+        2,
+        'student1',
+        'book-2',
+        expect.stringContaining('book-2'),
       );
     });
   });
