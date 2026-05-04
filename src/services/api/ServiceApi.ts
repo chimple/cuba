@@ -2095,7 +2095,12 @@ export interface ServiceApi {
     programDetails: { id: string; label: string; value: string }[];
     locationDetails: { id: string; label: string; value: string }[];
     partnerDetails: { id: string; label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programManagers: {
+      name: string;
+      role: string;
+      phone: string;
+      email: string;
+    }[];
   } | null>;
 
   /**
@@ -2885,6 +2890,7 @@ export interface ServiceApi {
   getSkillById(skillId: string): Promise<TableTypes<'skill'> | undefined>;
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
+  computeSchoolMetricsForSchool(schoolId: string): Promise<boolean>;
   getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<'user'>,

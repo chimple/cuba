@@ -38,6 +38,7 @@ import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
+import { RoleType } from '../../../src/interface/modelInterfaces';
 const HomePage: React.FC = () => {
   const history = useHistory();
   const location = useLocation<{
@@ -63,6 +64,11 @@ const HomePage: React.FC = () => {
   const [renderKey, setRenderKey] = useState(0);
   const PortPlugin = registerPlugin<any>('Port');
   const { setGbUpdated } = useGbContext();
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const { isOpsUser } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
@@ -294,22 +300,24 @@ const HomePage: React.FC = () => {
             }
           />
 
-          <BottomNavigationAction
-            value={2}
-            label={t('Assign')}
-            icon={
-              <img
-                className="footerIcons"
-                src={
-                  footerTabValue === 2
-                    ? 'assets/icons/assignmentSelected.png'
-                    : 'assets/icons/assignmentfooter.png'
-                }
-                alt=""
-              />
-            }
-            className="middle-action"
-          />
+          {!isExternalUser && (
+            <BottomNavigationAction
+              value={2}
+              label={t('Assign')}
+              icon={
+                <img
+                  className="footerIcons"
+                  src={
+                    footerTabValue === 2
+                      ? 'assets/icons/assignmentSelected.png'
+                      : 'assets/icons/assignmentfooter.png'
+                  }
+                  alt=""
+                />
+              }
+              className="middle-action"
+            />
+          )}
           <BottomNavigationAction
             value={3}
             label={t('Reports')}

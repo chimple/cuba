@@ -39,4 +39,7 @@
   flex: 1 1 0;
   min-width: 0;
   word-break: break-word;
+  align-self: center;
+  display: flex;
+  justify-content: center;
 }

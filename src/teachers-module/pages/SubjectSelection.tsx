@@ -83,7 +83,7 @@ const SubjectSelection: React.FC = () => {
     (state: RootState) => state.auth as AuthState,
   );
   const userRoles = roles || [];
-
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   useEffect(() => {
     const init = async () => {
       const cls = await Util.getCurrentClass();
@@ -623,7 +623,7 @@ const SubjectSelection: React.FC = () => {
         ]}
         cssClass="custom-alert-in-subject-selection-page"
       />
-      {!isSelecting && canModify && (
+      {!isSelecting && canModify && !isExternalUser && (
         <AddButton onClick={() => setIsSelecting(true)} />
       )}
     </div>

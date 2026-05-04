@@ -5018,6 +5018,10 @@ export type Database = {
           total_teachers: number;
         }[];
       };
+      compute_school_metrics: {
+        Args: { p_days: number; p_school_id?: string | null };
+        Returns: undefined;
+      };
       create_user: {
         Args: { phone_number: string };
         Returns: {

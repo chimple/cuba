@@ -57,7 +57,9 @@ export const mapSchoolRowsToRenderRows = (
         exportPercentText: '',
         render: (
           <Box display="flex" flexDirection="column" alignItems="flex-start">
-            <Typography variant="subtitle2">{school.school_name}</Typography>
+            <Typography variant="subtitle2" fontWeight={700} color="#121619">
+              {school.school_name}
+            </Typography>
             {udiseLocation && (
               <Typography
                 variant="subtitle2"

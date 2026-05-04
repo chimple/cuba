@@ -304,7 +304,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                     />
                   )}
 
-                  {!isChangingGroup && isEditing && (
+                  {!isChangingGroup && isEditing && !isExternalUser && (
                     <>
                       <div
                         className="wa-input-row-editing"
@@ -346,7 +346,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                     </>
                   )}
 
-                  {!isChangingGroup && !isEditing && (
+                  {!isChangingGroup && !isEditing && !isExternalUser && (
                     <>
                       <Box className="wa-input-wrapper">
                         <input

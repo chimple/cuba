@@ -28,6 +28,8 @@ import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
 import {
   filterByProgramGrades,
+  getClassDisplayLabel,
+  getExactClassName,
   getProgramAllowedGrades,
   ProgramGradeScopeData,
 } from './ClassDetailsPageUtils';
@@ -746,7 +748,11 @@ const SchoolClasses: React.FC<Props> = ({
         open={isAddStudentModalOpen}
         title={
           classForStudent
-            ? `${t('Add New Student')} - ${classForStudent.name}`
+            ? `${t('Add New Student')} - ${getClassDisplayLabel(
+                classForStudent.grade,
+                classForStudent.section,
+                getExactClassName(classForStudent),
+              )}`
             : t('Add New Student')
         }
         submitLabel={isStudentSubmitting ? t('Adding...') : t('Add Student')}
