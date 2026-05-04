@@ -51,6 +51,10 @@ jest.mock('@capacitor/app', () => ({
   },
 }));
 
+jest.mock('@growthbook/growthbook-react', () => ({
+  useFeatureIsOn: jest.fn(() => true),
+}));
+
 /* -------------------- MOCK UTIL -------------------- */
 
 jest.mock('../../utility/util', () => ({
@@ -96,6 +100,33 @@ jest.mock('./SVGScene', () => ({
 jest.mock('./ColorPalette', () => (props: any) => (
   <div data-testid="color-palette">ColorPalette</div>
 ));
+
+type StickerBookActionsMockProps = {
+  showPaint: boolean;
+  onSave: () => void;
+  onPaint: () => void;
+};
+
+jest.mock(
+  '../stickerBook/StickerBookActions',
+  () => (props: StickerBookActionsMockProps) => (
+    <div
+      data-testid="sticker-book-actions"
+      id="sticker-book-actions-root"
+      className="StickerBookActions-root"
+    >
+      <button type="button" onClick={props.onSave}>
+        <img src="camera.svg" alt="Save" />
+        Save
+      </button>
+      {props.showPaint ? (
+        <button type="button" onClick={props.onPaint}>
+          Paint
+        </button>
+      ) : null}
+    </div>
+  ),
+);
 
 jest.mock('./PaintTopBar', () => (props: any) => (
   <button data-testid="exit-btn" onClick={props.onExit}>
