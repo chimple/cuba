@@ -29,6 +29,7 @@ const UserDetailsPage: React.FC = () => {
   const [availableEditRoles] = useState([
     RoleType.PROGRAM_MANAGER,
     RoleType.FIELD_COORDINATOR,
+    RoleType.EXTERNAL_USER,
   ]);
 
   const history = useHistory();
@@ -159,6 +160,11 @@ const UserDetailsPage: React.FC = () => {
     (user.name === userData?.user?.name &&
       userRole === userData?.userRole &&
       previewUrl == null);
+  const editRoleOptions = availableEditRoles.includes(userRole as RoleType)
+    ? availableEditRoles
+    : userRole
+      ? [...availableEditRoles, userRole as RoleType]
+      : availableEditRoles;
 
   return (
     <div className="user-details-page">
@@ -262,7 +268,7 @@ const UserDetailsPage: React.FC = () => {
             onChange={(e) => setUserRole(e.target.value)}
           >
             {isEdit
-              ? availableEditRoles.map((role: string) => (
+              ? editRoleOptions.map((role: string) => (
                   <option key={role} value={role}>
                     {RoleLabels[role as RoleType]}
                   </option>

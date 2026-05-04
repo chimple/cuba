@@ -6965,7 +6965,12 @@ order by
     programDetails: { id: string; label: string; value: string }[];
     locationDetails: { id: string; label: string; value: string }[];
     partnerDetails: { id: string; label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programManagers: {
+      name: string;
+      role: string;
+      phone: string;
+      email: string;
+    }[];
   } | null> {
     return await this._serverApi.getProgramData(programId);
   }
@@ -8974,6 +8979,9 @@ order by
     programId: string,
   ): Promise<boolean> {
     return this._serverApi.updateSchoolProgram(schoolId, programId);
+  }
+  async computeSchoolMetricsForSchool(schoolId: string): Promise<boolean> {
+    return this._serverApi.computeSchoolMetricsForSchool(schoolId);
   }
   async getLatestAssessmentGroup(
     classId: string,

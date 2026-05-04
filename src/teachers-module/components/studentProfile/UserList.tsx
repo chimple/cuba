@@ -27,6 +27,8 @@ const UserList: React.FC<{
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const currentUserRoles = roles || [];
 
   useEffect(() => {
@@ -114,12 +116,14 @@ const UserList: React.FC<{
                   />
                 </div>
 
-                <div
-                  className="delete-button"
-                  onClick={() => handleDeleteClick(student)}
-                >
-                  <IonIcon icon={trashOutline} className="trash-icon" />
-                </div>
+                {!isExternalUser && (
+                  <div
+                    className="delete-button" //////
+                    onClick={() => handleDeleteClick(student)}
+                  >
+                    <IonIcon icon={trashOutline} className="trash-icon" />
+                  </div>
+                )}
               </div>
 
               <hr className="horizontal-line" />
@@ -142,7 +146,7 @@ const UserList: React.FC<{
                   />
                 </div>
 
-                {canDelete && (
+                {canDelete && !isExternalUser && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(teacher)}

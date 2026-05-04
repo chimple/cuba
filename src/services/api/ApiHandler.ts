@@ -1562,7 +1562,12 @@ export class ApiHandler implements ServiceApi {
     programDetails: { id: string; label: string; value: string }[];
     locationDetails: { id: string; label: string; value: string }[];
     partnerDetails: { id: string; label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programManagers: {
+      name: string;
+      role: string;
+      phone: string;
+      email: string;
+    }[];
   } | null> {
     return await this.s.getProgramData(programId);
   }
@@ -2169,6 +2174,11 @@ export class ApiHandler implements ServiceApi {
   ): Promise<boolean> {
     // Delegate to the actual API implementation (e.g., SupabaseApi)
     return this.s.updateSchoolProgram(schoolId, programId);
+  }
+  public async computeSchoolMetricsForSchool(
+    schoolId: string,
+  ): Promise<boolean> {
+    return this.s.computeSchoolMetricsForSchool(schoolId);
   }
   public async getLatestAssessmentGroup(
     classId: string,

@@ -162,12 +162,13 @@ const RequestList: React.FC = () => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [tempFilters, setTempFilters] = useState<Filters>(INITIAL_FILTERS);
   const [filterOptions, setFilterOptions] = useState(INITIAL_FILTER_OPTIONS);
-  const [schoolNameToIdMap, setSchoolNameToIdMap] = useState<
-    Map<string, string>
-  >(new Map());
+  const schoolNameToIdMapRef = React.useRef<Map<string, string>>(new Map());
+  const [isFilterOptionsLoaded, setIsFilterOptionsLoaded] = useState(false);
   const [orderBy, setOrderBy] = useState('requested_date');
   const [orderDir, setOrderDir] = useState<'desc' | 'asc'>('desc');
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
+  const isSchoolFilterReady =
+    filters.school.length === 0 || isFilterOptionsLoaded;
 
   const isSmallScreen = useMediaQuery('(max-width: 900px)');
 
@@ -214,11 +215,12 @@ const RequestList: React.FC = () => {
               nameToIdMap.set(school.name, school.id);
             },
           );
-          setSchoolNameToIdMap(nameToIdMap);
+          schoolNameToIdMapRef.current = nameToIdMap;
         }
       } catch (error) {
         logger.error('Failed to fetch filter options', error);
       } finally {
+        setIsFilterOptionsLoaded(true);
         setIsFilterLoading(false);
       }
     };
@@ -227,6 +229,8 @@ const RequestList: React.FC = () => {
   }, [api]);
 
   useEffect(() => {
+    if (!isSchoolFilterReady) return;
+
     const fetchData = async () => {
       setIsDataLoading(true);
       try {
@@ -251,7 +255,7 @@ const RequestList: React.FC = () => {
         const filtersWithSchoolIds = {
           ...filters,
           school: filters.school
-            .map((name) => schoolNameToIdMap.get(name) || name)
+            .map((name) => schoolNameToIdMapRef.current.get(name) || name)
             .filter(Boolean),
         };
 
@@ -378,7 +382,7 @@ const RequestList: React.FC = () => {
     orderDir,
     filters,
     debouncedSearchTerm,
-    schoolNameToIdMap,
+    isSchoolFilterReady,
   ]);
 
   const formatDateOnly = (dateStr?: string) => {
