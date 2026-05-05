@@ -22,13 +22,13 @@ const AssignedBadgeIcon: React.FC<AssignedBadgeIconProps> = ({
       title={title}
     >
       <img
-        src="assets/icons/assignmentSelectGreen.svg"
+        src="/assets/icons/assignmentSelectGreen.svg"
         alt=""
         className="assigned-badge-icon-sheet"
         aria-hidden="true"
       />
       <img
-        src="assets/icons/GreenSign.svg"
+        src="/assets/icons/GreenSign.svg"
         alt=""
         className="assigned-badge-icon-check"
         aria-hidden="true"
