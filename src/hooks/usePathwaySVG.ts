@@ -79,8 +79,8 @@ const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 const PATH_SIZE = 5;
 const CHIMPLE_MOVE_DURATION_MS = 2000;
 const CHIMPLE_MOVE_FALLBACK_BUFFER_MS = 300;
-const FINAL_PATHWAY_REWARD_AUDIO_DELAY_MS = 1500;
-const FINAL_PATHWAY_REWARD_AUDIO_TIMEOUT_MS = 5000;
+const FINAL_PATHWAY_REWARD_AUDIO_DELAY_MS = 4000;
+const FINAL_PATHWAY_REWARD_AUDIO_TIMEOUT_MS = 10000;
 
 const fetchLocalFile = async (path: string): Promise<string> => {
   const file = await Filesystem.readFile({
