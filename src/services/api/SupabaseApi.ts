@@ -1522,7 +1522,7 @@ export class SupabaseApi implements ServiceApi {
       const [englishCourse, mathsCourse, digitalSkillsCourse] =
         await Promise.all([
           this.getCourse(CHIMPLE_ENGLISH),
-          this.getCourse(CHIMPLE_MATHS),
+          this.resolveMathCourseByLanguage(languageDocId),
           this.getCourse(CHIMPLE_DIGITAL_SKILLS),
         ]);
       const language = await this.getLanguageWithId(languageDocId!);
@@ -2498,10 +2498,23 @@ export class SupabaseApi implements ServiceApi {
       gradeDocId && boardDocId
         ? await this.getCourseByUserGradeId(gradeDocId, boardDocId)
         : [];
+    const coursesToEnsure = [...courses];
+    if (student.language_id !== languageDocId) {
+      const languageMathCourse =
+        await this.resolveMathCourseByLanguage(languageDocId);
+      if (languageMathCourse) {
+        const hasMathCourse = coursesToEnsure.some(
+          (course) => course.id === languageMathCourse.id,
+        );
+        if (!hasMathCourse) {
+          coursesToEnsure.push(languageMathCourse);
+        }
+      }
+    }
 
-    if (courses && courses.length > 0) {
+    if (coursesToEnsure.length > 0) {
       // Batch fetch existing user_course entries for this student and these courses
-      const courseIds = courses.map((c) => c.id);
+      const courseIds = coursesToEnsure.map((c) => c.id);
       const { data: existingUserCourses, error } = await this.supabase
         .from('user_course')
         .select('course_id')
@@ -2515,7 +2528,7 @@ export class SupabaseApi implements ServiceApi {
 
       // Prepare inserts for only missing courses
       const now = new Date().toISOString();
-      const inserts = courses
+      const inserts = coursesToEnsure
         .filter((c) => !existingCourseIds.has(c.id))
         .map((c) => ({
           id: uuidv4(),
@@ -2608,6 +2621,49 @@ export class SupabaseApi implements ServiceApi {
 
         await this.supabase.from(TABLES.ClassUser).insert(newClassUser);
         await this.addParentToNewClass(newClassId, student.id);
+      }
+
+      const coursesToEnsure = await this.getCourseByUserGradeId(
+        gradeDocId,
+        boardDocId,
+      );
+      if (student.language_id !== languageDocId) {
+        const languageMathCourse =
+          await this.resolveMathCourseByLanguage(languageDocId);
+        if (
+          languageMathCourse &&
+          !coursesToEnsure.some((course) => course.id === languageMathCourse.id)
+        ) {
+          coursesToEnsure.push(languageMathCourse);
+        }
+      }
+
+      if (coursesToEnsure.length > 0) {
+        const courseIds = coursesToEnsure.map((c) => c.id);
+        const { data: existingUserCourses } = await this.supabase
+          .from('user_course')
+          .select('course_id')
+          .eq('user_id', student.id)
+          .in('course_id', courseIds)
+          .eq('is_deleted', false);
+
+        const existingCourseIds = new Set(
+          (existingUserCourses ?? []).map((uc) => uc.course_id),
+        );
+        const inserts = coursesToEnsure
+          .filter((c) => !existingCourseIds.has(c.id))
+          .map((c) => ({
+            id: uuidv4(),
+            user_id: student.id,
+            course_id: c.id,
+            created_at: now,
+            updated_at: now,
+            is_deleted: false,
+          }));
+
+        if (inserts.length > 0) {
+          await this.supabase.from('user_course').insert(inserts);
+        }
       }
 
       return updatedStudent;
@@ -2834,6 +2890,44 @@ export class SupabaseApi implements ServiceApi {
       return undefined;
     }
     return data ?? undefined;
+  }
+
+  async resolveMathCourseByLanguage(
+    languageDocId?: string | null,
+  ): Promise<TableTypes<'course'> | undefined> {
+    if (!this.supabase) return undefined;
+
+    const englishMathCourse = await this.getCourse(CHIMPLE_MATHS);
+    if (!englishMathCourse?.subject_id) return englishMathCourse;
+
+    if (!languageDocId) return englishMathCourse;
+
+    const language = await this.getLanguageWithId(languageDocId);
+    const languageCode = (language?.code ?? '').toLowerCase();
+    if (!languageCode || languageCode === COURSES.ENGLISH) {
+      return englishMathCourse;
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Course)
+      .select('*')
+      .eq('subject_id', englishMathCourse.subject_id)
+      .eq('code', `maths-${languageCode}`)
+      .eq('is_deleted', false);
+
+    if (error) {
+      logger.error('Error fetching language-specific math course:', error);
+      return englishMathCourse;
+    }
+
+    const matchingCourse =
+      (data ?? []).find(
+        (course) =>
+          course.curriculum_id === englishMathCourse.curriculum_id &&
+          course.grade_id === englishMathCourse.grade_id,
+      ) ?? data?.[0];
+
+    return matchingCourse ?? englishMathCourse;
   }
   async getCourses(ids: string[]): Promise<TableTypes<'course'>[]> {
     if (!this.supabase || !ids || ids.length === 0) return [];
@@ -9919,7 +10013,7 @@ export class SupabaseApi implements ServiceApi {
 
     // Find English, Maths, and language-dependent subject
     const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-    const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+    const mathsCourse = await this.resolveMathCourseByLanguage(languageDocId);
     const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
     const language = languageDocId
       ? await this.getLanguageWithId(languageDocId)

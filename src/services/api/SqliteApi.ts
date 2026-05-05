@@ -2868,7 +2868,7 @@ export class SqliteApi implements ServiceApi {
     // Fallback default courses
     else {
       const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-      const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+      const mathsCourse = await this.resolveMathCourseByLanguage(languageDocId);
       const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
 
       let langCourse: TableTypes<'course'> | undefined;
@@ -3221,6 +3221,13 @@ export class SqliteApi implements ServiceApi {
         );
         await this._serverApi.addParentToNewClass(newClassId, student.id);
       }
+
+      await this.assignCoursesToStudent(
+        student.id,
+        gradeDocId,
+        boardDocId,
+        languageDocId,
+      );
       return updatedStudent;
     } catch (error) {
       logger.error('Error updating student:', error);
@@ -3244,6 +3251,42 @@ export class SqliteApi implements ServiceApi {
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
+  }
+
+  async resolveMathCourseByLanguage(
+    languageDocId?: string | null,
+  ): Promise<TableTypes<'course'> | undefined> {
+    const englishMathCourse = await this.getCourse(CHIMPLE_MATHS);
+    if (!englishMathCourse?.subject_id) return englishMathCourse;
+
+    if (!languageDocId) return englishMathCourse;
+
+    const language = await this.getLanguageWithId(languageDocId);
+    const languageCode = (language?.code ?? '').toLowerCase();
+    if (!languageCode || languageCode === COURSES.ENGLISH) {
+      return englishMathCourse;
+    }
+
+    const mathCode = `maths-${languageCode}`;
+    const res = await this._db?.query(
+      `
+      SELECT *
+      FROM ${TABLES.Course}
+      WHERE subject_id = ?
+        AND code = ?
+        AND is_deleted = 0
+      `,
+      [englishMathCourse.subject_id, mathCode],
+    );
+
+    const matchingCourse =
+      (res?.values ?? []).find(
+        (course: TableTypes<'course'>) =>
+          course.curriculum_id === englishMathCourse.curriculum_id &&
+          course.grade_id === englishMathCourse.grade_id,
+      ) ?? res?.values?.[0];
+
+    return matchingCourse ?? englishMathCourse;
   }
   async getCourses(courseIds: string[]): Promise<TableTypes<'course'>[]> {
     await this.ensureInitialized();
@@ -7730,7 +7773,7 @@ order by
 
     // Find English, Maths, and language-dependent subject
     const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-    const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+    const mathsCourse = await this.resolveMathCourseByLanguage(languageDocId);
     const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
     const language = await this.getLanguageWithId(languageDocId!);
     let langCourse;
