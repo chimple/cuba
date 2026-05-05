@@ -2266,17 +2266,12 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       {showRewardConfetti && (
         <Confetti
+          className="HomeworkPathwayStructure-reward-confetti"
           width={window.innerWidth}
           height={window.innerHeight}
           recycle={false}
           numberOfPieces={180}
           gravity={0.28}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            pointerEvents: 'none',
-            zIndex: 10000,
-          }}
         />
       )}
 

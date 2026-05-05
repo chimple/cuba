@@ -1460,9 +1460,9 @@ export function usePathwaySVG({
             rewardId: newRewardId,
             stateValue: rewardStateValue,
             forceRewardAudio: shouldPlayFinalRewardAudioBeforeComplete,
-            rewardAudioClipName: shouldPlayFinalRewardAudioBeforeComplete
+            dailyRewardAudioClipName: shouldPlayFinalRewardAudioBeforeComplete
               ? 'reward_02'
-              : 'reward',
+              : 'reward_01',
           },
         }),
       );
@@ -1497,9 +1497,9 @@ export function usePathwaySVG({
             rewardId: newRewardId,
             stateValue: rewardStateValue,
             forceRewardAudio: shouldPlayFinalRewardAudioBeforeComplete,
-            rewardAudioClipName: shouldPlayFinalRewardAudioBeforeComplete
+            dailyRewardAudioClipName: shouldPlayFinalRewardAudioBeforeComplete
               ? 'reward_02'
-              : 'reward',
+              : 'reward_01',
             onRewardAudioComplete: shouldPlayFinalRewardAudioBeforeComplete
               ? finalRewardAudioWait?.resolve
               : undefined,

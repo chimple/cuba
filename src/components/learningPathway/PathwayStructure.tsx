@@ -49,6 +49,7 @@ const STICKER_REWARD_BOX_TILT_CLASS =
   'PathwayStructure-end-reward-box--sticker-clicked';
 const CROWD_CHEER_AUDIO_URL = '/assets/audios/common/crowd_cheer.mp3';
 const PATHWAY_LOADING_DELAY_MS = 1200;
+type DailyRewardAudioClipName = 'reward_01' | 'reward_02';
 
 const getStickerCollectMascotAudioPath = (languageCode?: string) => {
   const normalizedLanguageCode = languageCode?.toLowerCase().split('-')[0];
@@ -105,7 +106,7 @@ const PathwayStructure: React.FC = () => {
     rewardReady: false,
     suppressed: false,
     stateValue: null as number | null,
-    rewardAudioClipName: 'reward' as 'reward' | 'reward_02',
+    dailyRewardAudioClipName: 'reward_01' as DailyRewardAudioClipName,
     onRewardAudioComplete: null as (() => void) | null,
     token: 0,
   });
@@ -406,7 +407,7 @@ const PathwayStructure: React.FC = () => {
       rewardReady: false,
       suppressed: false,
       stateValue: null,
-      rewardAudioClipName: 'reward',
+      dailyRewardAudioClipName: 'reward_01',
       onRewardAudioComplete: null,
     };
   }, []);
@@ -467,7 +468,7 @@ const PathwayStructure: React.FC = () => {
     async (
       stateValue?: number,
       onPlaybackStop?: () => void,
-      clipName: 'reward' | 'reward_02' = 'reward',
+      clipName: DailyRewardAudioClipName = 'reward_01',
     ) => {
       const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
         'dailyReward',
@@ -615,7 +616,7 @@ const PathwayStructure: React.FC = () => {
       void playRewardAudio(
         rewardAudioSequence.stateValue ?? currentMascotStateValueRef.current,
         onRewardAudioComplete ?? undefined,
-        rewardAudioSequence.rewardAudioClipName,
+        rewardAudioSequence.dailyRewardAudioClipName,
       );
     };
 
@@ -624,7 +625,7 @@ const PathwayStructure: React.FC = () => {
         rewardId?: string;
         stateValue?: number;
         forceRewardAudio?: boolean;
-        rewardAudioClipName?: 'reward' | 'reward_02';
+        dailyRewardAudioClipName?: DailyRewardAudioClipName;
       }>;
       const rewardId = customEvent.detail?.rewardId;
       if (!rewardId) return;
@@ -649,8 +650,8 @@ const PathwayStructure: React.FC = () => {
         rewardReady: false,
         suppressed: shouldSuppress,
         stateValue: rewardStateValue,
-        rewardAudioClipName:
-          customEvent.detail?.rewardAudioClipName ?? 'reward',
+        dailyRewardAudioClipName:
+          customEvent.detail?.dailyRewardAudioClipName ?? 'reward_01',
         onRewardAudioComplete: null,
         token: nextToken,
       };
@@ -680,7 +681,7 @@ const PathwayStructure: React.FC = () => {
         rewardId?: string;
         stateValue?: number;
         forceRewardAudio?: boolean;
-        rewardAudioClipName?: 'reward' | 'reward_02';
+        dailyRewardAudioClipName?: DailyRewardAudioClipName;
         onRewardAudioComplete?: () => void;
       }>;
       const rewardId = customEvent.detail?.rewardId;
@@ -692,9 +693,9 @@ const PathwayStructure: React.FC = () => {
         customEvent.detail?.stateValue ??
         rewardAudioSequence.stateValue ??
         currentMascotStateValueRef.current;
-      rewardAudioSequence.rewardAudioClipName =
-        customEvent.detail?.rewardAudioClipName ??
-        rewardAudioSequence.rewardAudioClipName;
+      rewardAudioSequence.dailyRewardAudioClipName =
+        customEvent.detail?.dailyRewardAudioClipName ??
+        rewardAudioSequence.dailyRewardAudioClipName;
       rewardAudioSequence.onRewardAudioComplete =
         customEvent.detail?.onRewardAudioComplete ?? null;
 
@@ -1054,17 +1055,12 @@ const PathwayStructure: React.FC = () => {
 
       {showRewardConfetti && (
         <Confetti
+          className="PathwayStructure-reward-confetti"
           width={window.innerWidth}
           height={window.innerHeight}
           recycle={false}
           numberOfPieces={180}
           gravity={0.28}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            pointerEvents: 'none',
-            zIndex: 10000,
-          }}
         />
       )}
 

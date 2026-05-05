@@ -29,7 +29,7 @@ jest.mock('../../utility/AudioUtil', () => ({
     playAudioOrTts: jest.fn(() => Promise.resolve(true)),
     stopAudioUrlOrTtsPlayback: jest.fn(() => Promise.resolve()),
     getLocalizedAudioUrl: jest.fn(() =>
-      Promise.resolve('/assets/audios/dailyReward/en_reward.mp3'),
+      Promise.resolve('/assets/audios/dailyReward/en_reward_01.mp3'),
     ),
     getAudioLanguageCode: jest.fn(() => Promise.resolve('en')),
   },
@@ -312,7 +312,7 @@ describe('PathwayStructure', () => {
     await waitFor(() => {
       expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenCalledWith(
         'dailyReward',
-        'reward',
+        'reward_01',
       );
     });
   });
@@ -402,7 +402,7 @@ describe('PathwayStructure', () => {
             rewardId: 'reward-1',
             stateValue: 3,
             forceRewardAudio: true,
-            rewardAudioClipName: 'reward_02',
+            dailyRewardAudioClipName: 'reward_02',
           },
         }),
       );
@@ -412,7 +412,7 @@ describe('PathwayStructure', () => {
             rewardId: 'reward-1',
             stateValue: 3,
             forceRewardAudio: true,
-            rewardAudioClipName: 'reward_02',
+            dailyRewardAudioClipName: 'reward_02',
             onRewardAudioComplete,
           },
         }),
