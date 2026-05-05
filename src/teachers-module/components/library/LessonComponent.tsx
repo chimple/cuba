@@ -4,6 +4,7 @@ import { COURSES, TableTypes } from '../../../common/constants';
 import SelectIconImage from '../../../components/displaySubjects/SelectIconImage';
 import SelectIcon from '../SelectIcon';
 import { t } from 'i18next';
+import AssignedBadgeIcon from '../AssignedBadgeIcon';
 
 interface LessonComponentProps {
   lesson: TableTypes<'lesson'>;
@@ -87,20 +88,12 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
           />
         </div>
         {showAssignedBadge && isAssigned ? (
-          <span
+          <AssignedBadgeIcon
             id="lessoncomponent-lesson-assigned-badge"
             className="lessoncomponent-lesson-assigned-badge"
             title={t('Assigned') ?? ''}
-            aria-label={t('Assigned') ?? ''}
-          >
-            <img
-              src="/assets/hideassigned.png"
-              alt=""
-              onError={(event) => {
-                event.currentTarget.src = 'assets/icons/assignmentSelect.svg';
-              }}
-            />
-          </span>
+            ariaLabel={t('Assigned') ?? ''}
+          />
         ) : null}
       </div>
       <div
