@@ -5,8 +5,21 @@ import {
 } from '../../common/constants';
 import { ServiceApi } from '../../services/api/ServiceApi';
 
+type SchoolListApiRequest = {
+  filters: Record<string, string[]>;
+  page: number;
+  page_size: number;
+  order_by: string;
+  order_dir: 'asc' | 'desc';
+  search: string;
+  date_range: string;
+};
+
 export type SchoolMetricCell = {
   value: unknown;
+  text: string;
+  exportValueText?: string;
+  exportPercentText?: string;
   render: import('react').ReactNode;
 };
 
@@ -25,6 +38,7 @@ export type SchoolListRow = SchoolListSourceRow & {
   id: string | number;
   fieldCoordinators?: string;
   name: SchoolMetricCell;
+  udiseLocation: SchoolMetricCell;
   schoolPerformance: SchoolMetricCell;
   onboardedStudents: SchoolMetricCell;
   activatedStudents: SchoolMetricCell;
@@ -49,7 +63,7 @@ const ORDER_BY_MAP: Record<string, string> = {
   avgActivitiesCompleted: 'avg_activities_completed',
 };
 
-const useDebouncedValue = <T,>(value: T, delay: number) => {
+export const useDebouncedValue = <T,>(value: T, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
   useEffect(() => {
@@ -58,6 +72,89 @@ const useDebouncedValue = <T,>(value: T, delay: number) => {
   }, [value, delay]);
 
   return debouncedValue;
+};
+
+export const buildSchoolListRequest = ({
+  filters,
+  selectedTab,
+  page,
+  pageSize,
+  orderBy,
+  orderDir,
+  searchTerm,
+  selectedDateRange,
+}: {
+  filters: Record<string, string[]>;
+  selectedTab: PROGRAM_TAB;
+  page: number;
+  pageSize: number;
+  orderBy: string;
+  orderDir: 'asc' | 'desc';
+  searchTerm: string;
+  selectedDateRange: string;
+}): SchoolListApiRequest => {
+  const cleanedFilters = Object.fromEntries(
+    Object.entries(filters).filter(
+      ([_, value]) => Array.isArray(value) && value.length > 0,
+    ),
+  );
+  const tabModelFilter =
+    selectedTab !== PROGRAM_TAB.ALL
+      ? ({ model: [selectedTab] } as Record<string, string[]>)
+      : {};
+
+  return {
+    filters: { ...cleanedFilters, ...tabModelFilter },
+    page,
+    page_size: pageSize,
+    order_by: ORDER_BY_MAP[orderBy] ?? orderBy,
+    order_dir: orderDir,
+    search: searchTerm,
+    date_range: selectedDateRange,
+  };
+};
+
+export const fetchSchoolListPage = async ({
+  api,
+  filters,
+  selectedTab,
+  page,
+  pageSize,
+  orderBy,
+  orderDir,
+  searchTerm,
+  selectedDateRange,
+}: {
+  api: ServiceApi;
+  filters: Record<string, string[]>;
+  selectedTab: PROGRAM_TAB;
+  page: number;
+  pageSize: number;
+  orderBy: string;
+  orderDir: 'asc' | 'desc';
+  searchTerm: string;
+  selectedDateRange: string;
+}) => {
+  const getSchoolListing =
+    api.getSchoolMetricsForSchoolListing?.bind(api) ??
+    api.getFilteredSchoolsForSchoolListing?.bind(api);
+
+  if (!getSchoolListing) {
+    throw new Error('School listing API is not available');
+  }
+
+  return getSchoolListing(
+    buildSchoolListRequest({
+      filters,
+      selectedTab,
+      page,
+      pageSize,
+      orderBy,
+      orderDir,
+      searchTerm,
+      selectedDateRange,
+    }),
+  );
 };
 
 export const useSchoolListData = ({
@@ -84,7 +181,6 @@ export const useSchoolListData = ({
   const [schools, setSchools] = useState<SchoolListSourceRow[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const debouncedSearchTerm = useDebouncedValue(searchTerm, 500);
 
   useEffect(() => {
     let active = true;
@@ -92,33 +188,16 @@ export const useSchoolListData = ({
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const cleanedFilters = Object.fromEntries(
-          Object.entries(filters).filter(
-            ([_, v]) => Array.isArray(v) && v.length > 0,
-          ),
-        );
-        const tabModelFilter =
-          selectedTab !== PROGRAM_TAB.ALL
-            ? ({ model: [selectedTab] } as Record<string, string[]>)
-            : {};
-        const requestFilters = { ...cleanedFilters, ...tabModelFilter };
-        const backendOrderBy = ORDER_BY_MAP[orderBy] ?? orderBy;
-        const getSchoolListing =
-          api.getSchoolMetricsForSchoolListing?.bind(api) ??
-          api.getFilteredSchoolsForSchoolListing?.bind(api);
-
-        if (!getSchoolListing) {
-          throw new Error('School listing API is not available');
-        }
-
-        const response = await getSchoolListing({
-          filters: requestFilters,
+        const response = await fetchSchoolListPage({
+          api,
+          filters,
+          selectedTab,
           page,
-          page_size: pageSize,
-          order_by: backendOrderBy,
-          order_dir: orderDir,
-          search: debouncedSearchTerm,
-          date_range: selectedDateRange,
+          pageSize,
+          orderBy,
+          orderDir,
+          searchTerm,
+          selectedDateRange,
         });
 
         if (!active) return;
@@ -144,12 +223,12 @@ export const useSchoolListData = ({
     };
   }, [
     api,
-    debouncedSearchTerm,
     filters,
     orderBy,
     orderDir,
     page,
     pageSize,
+    searchTerm,
     selectedDateRange,
     selectedTab,
   ]);

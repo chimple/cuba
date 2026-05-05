@@ -117,6 +117,7 @@ declare global {
   interface Window {
     cc: any;
     _CCSettings: any;
+    __LIDO_COMMON_AUDIO_PATH__?: string;
   }
 }
 
@@ -949,6 +950,8 @@ export class Util {
           null,
           function (err: Error | null | undefined, scene: object) {
             if (!err) {
+              window.cc.game.resume?.();
+              window.cc.director?.resume?.();
               window.cc.director.runSceneImmediate(scene);
               if (window.cc.sys.isBrowser) {
                 Util.checkingIfGameCanvasAvailable();
@@ -988,10 +991,11 @@ export class Util {
       return;
     }
     window.cc.game.pause();
+    window.cc.director?.pause?.();
     window.cc.audioEngine.stopAll();
     const canvas = document.getElementById('GameCanvas');
     if (canvas) {
-      canvas.style.visibility = 'none';
+      canvas.style.visibility = 'hidden';
       canvas.style.display = 'none';
     }
     const container = document.getElementById('Cocos2dGameContainer');
@@ -1228,108 +1232,48 @@ export class Util {
           return false;
         }
 
-        // Helper function to create and validate shaders
-        const createAndValidateShader = (
-          type: GLenum,
-          source: string,
-        ): WebGLShader | null => {
-          const shader = gl.createShader(type);
-          if (!shader) {
-            logger.error('Failed to create shader.');
-            return null;
-          }
-          gl.shaderSource(shader, source);
-          gl.compileShader(shader);
+        if (!canvas.dataset.webglContextListenersAttached) {
+          canvas.dataset.webglContextListenersAttached = 'true';
 
-          // Check for shader compilation errors
-          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            logger.error(
-              `Error compiling shader: ${gl.getShaderInfoLog(shader)}`,
-            );
-            gl.deleteShader(shader);
-            return null;
-          }
+          canvas.addEventListener(
+            'webglcontextlost',
+            (event) => {
+              try {
+                logger.error('WebGL context lost detected.');
+                event.preventDefault();
+                const webglContext = canvas.getContext(
+                  'webgl',
+                ) as WebGLRenderingContext | null;
 
-          return shader;
-        };
+                if (webglContext) {
+                  const rest = webglContext.getExtension('WEBGL_lose_context');
 
-        // Example vertex and fragment shader source code
-        const vertexShaderSource = `
-          attribute vec4 position;
-          void main() {
-            gl_Position = position;
-          }
-        `;
-
-        const fragmentShaderSource = `
-          precision mediump float;
-          void main() {
-            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red color
-          }
-        `;
-
-        // Create and validate shaders
-        const vertexShader = createAndValidateShader(
-          gl.VERTEX_SHADER,
-          vertexShaderSource,
-        );
-        const fragmentShader = createAndValidateShader(
-          gl.FRAGMENT_SHADER,
-          fragmentShaderSource,
-        );
-
-        if (!vertexShader || !fragmentShader) {
-          logger.error('Shader creation or validation failed.');
-          return false;
-        }
-
-        // Handle WebGL context lost
-        canvas.addEventListener(
-          'webglcontextlost',
-          (event) => {
-            try {
-              logger.error('WebGL context lost detected.');
-              event.preventDefault(); // Prevent the browser from handling context loss
-              const webglContext = canvas.getContext(
-                'webgl',
-              ) as WebGLRenderingContext | null;
-
-              if (webglContext) {
-                const rest = webglContext.getExtension('WEBGL_lose_context');
-
-                // If the context cannot be restored, reload the page
-                if (!rest) {
-                  logger.error(
-                    'Unable to restore WebGL context. Reloading page...',
-                  );
-                  window.location.reload();
+                  if (!rest) {
+                    logger.error(
+                      'Unable to restore WebGL context. Reloading page...',
+                    );
+                    window.location.reload();
+                  }
                 }
+              } catch (error) {
+                logger.error('Error handling webglcontextlost:', error);
               }
-            } catch (error) {
-              logger.error('Error handling webglcontextlost:', error);
-            }
-          },
-          false,
-        );
+            },
+            false,
+          );
 
-        // Handle WebGL context restored
-        canvas.addEventListener(
-          'webglcontextrestored',
-          (event) => {
-            try {
-              event.preventDefault(); // Prevent the browser from restoring automatically
-              const webglContext = canvas.getContext(
-                'webgl',
-              ) as WebGLRenderingContext | null;
-
-              if (webglContext) {
+          canvas.addEventListener(
+            'webglcontextrestored',
+            (event) => {
+              try {
+                event.preventDefault();
+              } catch (error) {
+                logger.error('Error handling webglcontextrestored:', error);
               }
-            } catch (error) {
-              logger.error('Error handling webglcontextrestored:', error);
-            }
-          },
-          false,
-        );
+            },
+            false,
+          );
+        }
 
         return true; // Return true if canvas exists and WebGL is initialized
       } else {

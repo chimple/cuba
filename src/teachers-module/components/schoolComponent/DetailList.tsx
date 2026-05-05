@@ -8,6 +8,10 @@ import {
   TableTypes,
 } from '../../../common/constants';
 import { t } from 'i18next';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RoleType } from '../../../interface/modelInterfaces';
 import './DetailList.css';
 
 interface DetailListProps {
@@ -18,6 +22,11 @@ interface DetailListProps {
 
 const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
   const history = useHistory();
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
 
   if (data.length === 0) {
     return (
@@ -72,8 +81,14 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
           <div key={id}>
             <div className="detail-container">
               <div
-                className="detail-section"
-                onClick={() => handleItemClick(item)}
+                className={`detail-section ${
+                  isExternalUser
+                    ? 'detail-section-disabled'
+                    : 'detail-section-clickable'
+                }`}
+                onClick={
+                  isExternalUser ? undefined : () => handleItemClick(item)
+                }
               >
                 {type === IconType.SCHOOL && (
                   <SchoolIcon className="list-icon" />
@@ -88,12 +103,14 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
                   onClick={() => handleUserIconClick(item)}
                   className="class-user-icon"
                 />
-                <img
-                  src="assets/icons/subjectUserIcon.svg"
-                  alt="User_Subject"
-                  onClick={() => handleSubjectIconClick(item)}
-                  className="class-subjects-icon"
-                />
+                {!isExternalUser && (
+                  <img
+                    src="assets/icons/subjectUserIcon.svg"
+                    alt="User_Subject"
+                    onClick={() => handleSubjectIconClick(item)}
+                    className="class-subjects-icon"
+                  />
+                )}
               </div>
             </div>
             <hr className="detail-horizontal-line" />

@@ -17,6 +17,7 @@ import { t } from 'i18next';
 import ChapterWiseLessons from '../components/ChapterWiseLessons';
 import { readAssignmentCartFromStorage } from './AssignmentCartStorage';
 import logger from '../../utility/logger';
+import AssignedVisibilityToggle from '../components/AssignedVisibilityToggle';
 
 type LessonMeta = {
   chapterId: string | null;
@@ -70,6 +71,7 @@ const SearchLesson: React.FC = () => {
   const [assignedLessonIds, setAssignedLessonIds] = useState<Set<string>>(
     new Set(),
   );
+  const [showAssignedLessons, setShowAssignedLessons] = useState(true);
 
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -548,13 +550,17 @@ const SearchLesson: React.FC = () => {
     }
 
     const lowerTerm = searchTerm.trim().toLowerCase();
-    const filtered = lowerTerm
+    const matchedLessons = lowerTerm
       ? lessons.filter(
           (lesson) =>
             lesson.name?.toLowerCase().includes(lowerTerm) ||
             lesson.outcome?.toLowerCase().includes(lowerTerm),
         )
       : lessons;
+
+    const filtered = showAssignedLessons
+      ? matchedLessons
+      : matchedLessons.filter((lesson) => !assignedLessonIds.has(lesson.id));
 
     const courseMap = new Map<
       string,
@@ -635,7 +641,14 @@ const SearchLesson: React.FC = () => {
       .sort((a, b) => naturalSort(a.courseName, b.courseName));
 
     return { courseGroups };
-  }, [lessons, lessonMetaMap, searchTerm, isLoading]);
+  }, [
+    lessons,
+    lessonMetaMap,
+    searchTerm,
+    isLoading,
+    showAssignedLessons,
+    assignedLessonIds,
+  ]);
 
   return (
     <div id="search-lesson-container" className="search-lesson-container">
@@ -713,10 +726,19 @@ const SearchLesson: React.FC = () => {
 
         {!showHistory && searchTerm.trim() && (
           <div
-            id="search-lesson-result-text"
-            className="search-lesson-result-text"
+            id="search-lesson-result-row"
+            className="search-lesson-result-row"
           >
-            {t('Showing Results for')} "{searchTerm.trim()}"
+            <div
+              id="search-lesson-result-text"
+              className="search-lesson-result-text"
+            >
+              {t('Showing Results for')} "{searchTerm.trim()}"
+            </div>
+            <AssignedVisibilityToggle
+              showAssigned={showAssignedLessons}
+              onChange={setShowAssignedLessons}
+            />
           </div>
         )}
 

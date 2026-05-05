@@ -29,6 +29,7 @@ type Props = {
   classRow: ClassRow | null;
   classCodeOverride?: string;
   totalStudentsOverride?: number;
+  onGroupLinked?: (classId: string, groupId: string) => void;
   onBack?: () => void;
 };
 
@@ -39,6 +40,7 @@ const ClassDetailsPage: React.FC<Props> = ({
   classRow,
   classCodeOverride,
   totalStudentsOverride,
+  onGroupLinked,
   onBack,
 }) => {
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -201,6 +203,7 @@ const ClassDetailsPage: React.FC<Props> = ({
           <WhatsAppInfoCard
             classData={classRow}
             schoolData={data?.schoolData}
+            onGroupLinked={onGroupLinked}
           />
         )}
       </Box>

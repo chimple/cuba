@@ -417,6 +417,7 @@ describe('useStickerBookPreviewModalLogic', () => {
       }),
     );
     expect(mockPush).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
+      stickerBookId: 'book-1',
       svgRaw: expect.stringContaining('<svg'),
       svgUrl: '/sticker-book.svg',
       artworkTitle: 'My Book!!',

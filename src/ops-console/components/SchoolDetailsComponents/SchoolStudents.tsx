@@ -40,10 +40,7 @@ import {
 } from '../../../common/constants';
 import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import {
-  getGradeOptions,
-  filterBySearchAndFilters,
-} from '../../OpsUtility/SearchFilterUtility';
+import { filterBySearchAndFilters } from '../../OpsUtility/SearchFilterUtility';
 import FormCard, { FieldConfig, MessageConfig } from './FormCard';
 import { normalizePhone10 } from '../../pages/NewUserPageOps';
 import { ClassRow, SchoolData } from './SchoolClass';
@@ -116,8 +113,12 @@ const getWhatsappChipClass = (status: WhatsappGroupStatusKey): string => {
   switch (status) {
     case WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP:
       return 'schoolstudents-whatsapp-chip-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP:
+      return 'schoolstudents-whatsapp-chip-in-group';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP:
       return 'schoolstudents-whatsapp-chip-not-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_AVAILABLE:
+      return 'schoolstudents-whatsapp-chip-not-on-whatsapp';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP:
       return 'schoolstudents-whatsapp-chip-not-on-whatsapp';
     case WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED:
@@ -164,6 +165,14 @@ const normalizeWhatsappContactFlag = (value: unknown): 'yes' | 'no' | null => {
   return null;
 };
 
+const getWhatsappAvailabilityStatus = (
+  waContactRaw: unknown,
+): WhatsappGroupStatusKey => {
+  const waContact = normalizeWhatsappContactFlag(waContactRaw);
+  if (waContact === 'yes') return WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP;
+  if (waContact === 'no') return WHATSAPP_GROUP_STATUS_KEYS.NOT_AVAILABLE;
+  return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+};
 const mapBandToOpsLabel = (band?: string | null): OpsPerformanceLabel => {
   switch (band) {
     case STUDENT_PERFORMANCE_BAND_KEYS.GREEN:
@@ -307,14 +316,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [filters, setFilters] = useState<Record<string, string[]>>({
-    grade: [],
-    section: [],
+    class: [],
   });
   const [orderBy, setOrderBy] = useState<string | null>('name');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
   const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({
-    grade: [],
-    section: [],
+    class: [],
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState<string>('');
@@ -450,10 +457,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   useEffect(() => {
     const isInitial =
-      page === 1 &&
-      !debouncedSearchTerm &&
-      filters.grade.length === 0 &&
-      filters.section.length === 0;
+      page === 1 && !debouncedSearchTerm && filters.class.length === 0;
 
     // Reuses prefetched school students only when no program scope is active.
     if (isInitial && !allowedGrades && !optionalClassId) {
@@ -497,8 +501,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     fetchStudents,
     data.students,
     data.totalStudentCount,
-    filters.grade,
-    filters.section,
+    filters.class,
     allowedGrades,
     optionalClassId,
     programScopedClassIds,
@@ -597,46 +600,59 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     });
   }, [baseStudents, allowedGrades]);
 
-  const normalizedStudents = useMemo(
-    () =>
-      programFilteredStudents.map((s: any) => {
-        const user = s.user ?? s;
-
-        return {
-          ...s,
-          user: {
-            id: user.id,
-            name: user.name ?? undefined,
-            email: user.email ?? undefined,
-            student_id: user.student_id ?? undefined,
-            phone: user.phone ?? undefined,
-            gender: user.gender ?? 'N/A',
-          },
-          className: s.classSection ?? 'N/A',
-          parent: s.parent ?? {
-            id: s.parent_id ?? undefined,
-            name: s.parent_name ?? '',
-            phone: s.parent_phone ?? s.phone ?? undefined,
-            email: s.parent_email ?? s.email ?? undefined,
-          },
-        };
-      }),
+  const normalizedStudents = useMemo<ApiStudentData[]>(
+    () => programFilteredStudents,
     [programFilteredStudents],
   );
 
-  const filteredStudents = useMemo(
-    () =>
-      filterBySearchAndFilters(
-        normalizedStudents,
-        {
-          grade: filters.grade ?? [],
-          section: (filters.section ?? []).map((s) => String(s).trim()),
-        },
-        searchTerm,
-        'student',
+  const filteredStudents = useMemo(() => {
+    const searchableStudents = normalizedStudents.map((student, index) => ({
+      index,
+      user: {
+        name: student.user.name ?? undefined,
+        email: student.user.email ?? undefined,
+        student_id: student.user.student_id ?? undefined,
+      },
+      grade: student.grade,
+      classSection: student.classSection,
+      class: getClassDisplayLabel(
+        student.grade,
+        student.classSection,
+        getExactClassName(student.classWithidname),
       ),
-    [normalizedStudents, filters, searchTerm],
-  );
+    }));
+
+    const searchFiltered = filterBySearchAndFilters(
+      searchableStudents,
+      {
+        grade: [],
+        section: [],
+      },
+      searchTerm,
+      'student',
+    );
+
+    return searchFiltered
+      .filter((student) => {
+        const classFilters = filters.class ?? [];
+        if (classFilters.length === 0) return true;
+        return classFilters.includes(student.class);
+      })
+      .map((student) => normalizedStudents[student.index]);
+  }, [normalizedStudents, filters, searchTerm]);
+
+  const classFilterOptions = useMemo(() => {
+    const labels = new Set<string>();
+    programFilteredStudents.forEach((student) => {
+      const classLabel = getClassDisplayLabel(
+        student.grade,
+        student.classSection,
+        getExactClassName(student.classWithidname),
+      );
+      if (String(classLabel).trim() !== '') labels.add(classLabel);
+    });
+    return Array.from(labels).sort((a, b) => a.localeCompare(b));
+  }, [programFilteredStudents]);
 
   const sortedStudents = useMemo(() => {
     // Standard sorting for all columns
@@ -740,7 +756,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       (row) => row?.id && row?.group_id && String(row.group_id).trim() !== '',
     );
 
-    // No bot or no linked groups: clear cache so pills show "Not Checked".
+    // Fetch member lists only for classes that already have linked WhatsApp groups.
     if (!bot || !api?.getWhatsappGroupDetails || groupTargets.length === 0) {
       setWhatsappMembersByClass(new Map());
       return;
@@ -837,17 +853,22 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         ? student.classWithidname?.id
         : (classDataRef?.id ?? student.classWithidname?.id);
       if (!classId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
-      const groupId = getGroupIdForClass(classId);
-      if (!groupId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
 
       const waContactRaw =
         (student.parent as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
         null;
+      const groupId = getGroupIdForClass(classId);
+      // No class group: show user-level WhatsApp availability from is_wa_contact.
+      if (!groupId) return getWhatsappAvailabilityStatus(waContactRaw);
+
+      // WhatsApp status rules: group linked + member match => In Group; group linked + no member match + is_wa_contact yes/no/null => Not in group/Not on whatsapp/Not Checked; no group + is_wa_contact yes/no/null => On Whatsapp/Not on whatsapp/Not Checked.
+      if (isStudentInWhatsappGroup(student)) {
+        return WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP;
+      }
+
       const waContact = normalizeWhatsappContactFlag(waContactRaw);
       if (waContact === 'yes') {
-        return isStudentInWhatsappGroup(student)
-          ? WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP
-          : WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
+        return WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
       }
       if (waContact === 'no') {
         return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
@@ -1013,8 +1034,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [filters]);
 
   const handleClearFilters = useCallback(() => {
-    setFilters({ grade: [], section: [] });
-    setTempFilters({ grade: [], section: [] });
+    setFilters({ class: [] });
+    setTempFilters({ class: [] });
     setPage(1);
   }, []);
 
@@ -1025,6 +1046,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }));
   }, []);
   const handleCancelFilters = useCallback(() => {
+    setFilters({ class: [] });
+    setTempFilters({ class: [] });
+    setPage(1);
     setIsFilterSliderOpen(false);
   }, []);
 
@@ -1272,14 +1296,17 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [programScopedClasses]);
 
   const currentClass = useMemo(() => {
-    if (
-      !issTotal &&
-      optionalGrade !== undefined &&
-      optionalSection !== undefined
-    ) {
+    if (!issTotal) {
       const classDataArray = data.classData || [];
+      const scopedClassId = String(optionalClassId ?? '').trim();
       if (classDataArray.length > 0) {
-        const classFromData = classDataArray[0];
+        const classFromData =
+          (scopedClassId
+            ? classDataArray.find(
+                (classRow) =>
+                  String(classRow?.id ?? '').trim() === scopedClassId,
+              )
+            : classDataArray[0]) ?? null;
         if (classFromData?.id && classFromData?.name) {
           return { id: classFromData.id, name: classFromData.name };
         }
@@ -1287,8 +1314,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       const matchingStudent = baseStudents.find((student: any) => {
         const classInfo = student.classWithidname;
         return (
-          student.grade === optionalGrade &&
-          sameSection(student.classSection, optionalSection) &&
+          (!scopedClassId ||
+            String(classInfo?.id ?? '').trim() === scopedClassId ||
+            (student.grade === optionalGrade &&
+              sameSection(student.classSection, optionalSection))) &&
           classInfo?.id &&
           classInfo?.class_name
         );
@@ -1303,7 +1332,27 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       return null;
     }
     return null;
-  }, [issTotal, optionalGrade, optionalSection, baseStudents, data.classData]);
+  }, [
+    issTotal,
+    optionalClassId,
+    optionalGrade,
+    optionalSection,
+    baseStudents,
+    data.classData,
+  ]);
+
+  const mergeModalClassId = useMemo(() => {
+    const scopedClassId = String(optionalClassId ?? '').trim();
+    if (scopedClassId) return scopedClassId;
+
+    const primaryStudentClassId = String(
+      mergePrimaryStudent?.original?.classWithidname?.id ?? '',
+    ).trim();
+    if (primaryStudentClassId) return primaryStudentClassId;
+
+    const currentClassId = String(currentClass?.id ?? '').trim();
+    return currentClassId;
+  }, [optionalClassId, mergePrimaryStudent, currentClass?.id]);
 
   const addStudentFields: FieldConfig[] = useMemo(() => {
     if (issTotal) {
@@ -1688,7 +1737,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }
   };
 
-  const filterConfigsForSchool = [{ key: 'grade', label: 'Grade' }];
+  const filterConfigsForSchool = [{ key: 'class', label: 'Class' }];
 
   const performanceFilters = [
     { key: PerformanceLevel.ALL, label: t('All') },
@@ -1826,7 +1875,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       <CardListModal
         open={isMergeStudentModalOpen}
         schoolId={schoolId}
-        classId={currentClass?.id}
+        classId={mergeModalClassId}
         primaryStudentId={mergePrimaryStudent?.id}
         onClose={() => setIsMergeStudentModalOpen(false)}
         onSubmit={handleMergeStudents}
@@ -2051,8 +2100,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           onClose={() => setIsFilterSliderOpen(false)}
           filters={tempFilters}
           filterOptions={{
-            // Keeps grade filter options aligned with the current program scope.
-            grade: getGradeOptions(programFilteredStudents),
+            // Keeps class filter options aligned with the current program scope.
+            class: classFilterOptions,
           }}
           onFilterChange={handleSliderFilterChange}
           onApply={handleApplyFilters}

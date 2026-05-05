@@ -175,6 +175,15 @@ function normalizeGradeToken(value?: number | string): string | null {
   return grade ? grade : null;
 }
 
+// Separates LKG/UKG labels so KG filtering can be scoped precisely.
+function parseKgToken(value?: number | string): string | null {
+  if (value === null || value === undefined) return null;
+  const cleaned = String(value).replace(CLASS_PREFIX_REGEX, '').trim();
+  if (!cleaned) return null;
+  const kgMatch = cleaned.match(KG_REGEX);
+  return kgMatch ? kgMatch[1].toUpperCase() : null;
+}
+
 // Extracts only the grade portion from a configured program class token.
 function parseProgramGradePart(value: string | number): string | null {
   if (typeof value === 'number') {
@@ -184,7 +193,17 @@ function parseProgramGradePart(value: string | number): string | null {
   const cleaned = value.trim().replace(WRAPPING_QUOTES_REGEX, '').trim();
   if (!cleaned) return null;
 
+  const kgToken = parseKgToken(cleaned);
+  if (kgToken) return kgToken;
+  // Keeps legacy numeric scope payloads (including string "0") working as-is.
+  if (/^\d+$/.test(cleaned)) return normalizeGradeToken(cleaned);
+
   const parsed = parseGradeSection(cleaned);
+  // Converts KG-like class names (for example "UKG A") to explicit KG tokens.
+  if (parsed.grade === 0) {
+    const parsedKgToken = parseKgToken(parsed.section);
+    if (parsedKgToken) return parsedKgToken;
+  }
   return normalizeGradeToken(parsed.grade);
 }
 
@@ -251,13 +270,24 @@ export function isProgramGradeAllowed(
 ): boolean {
   if (!allowedGrades) return true;
 
-  const parsedGrade = parseGradeSection(
+  const parsed = parseGradeSection(
     source.name ?? undefined,
     source.grade ?? undefined,
     source.section ?? undefined,
-  ).grade;
-  const grade = normalizeGradeToken(parsedGrade);
-  return grade !== null && allowedGrades.has(grade);
+  );
+  const parsedGrade = normalizeGradeToken(parsed.grade);
+  if (parsedGrade === null) return false;
+  if (parsedGrade !== '0') return allowedGrades.has(parsedGrade);
+
+  // KG classes share grade 0, so we match LKG/UKG tokens to keep scope-specific filtering accurate.
+  const kgToken =
+    parseKgToken(source.name ?? undefined) ??
+    parseKgToken(parsed.section ?? undefined) ??
+    parseKgToken(source.section ?? undefined);
+  if (kgToken && allowedGrades.has(kgToken)) return true;
+
+  // Preserves compatibility with legacy program scopes configured as grade "0".
+  return allowedGrades.has('0');
 }
 
 // Applies the configured program grade scope to any grade-bearing row list.

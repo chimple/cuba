@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { t } from 'i18next';
 import { ReactComponent as AssignScreenArrowIcon } from '../../../assets/icons/assign-screen-arrow.svg';
 import './AssignScreen.css';
@@ -11,6 +11,7 @@ import { PAGES } from '../../../../common/constants';
 import { ServiceConfig } from '../../../../services/ServiceConfig';
 import { Toast } from '@capacitor/toast';
 import logger from '../../../../utility/logger';
+import AssignmentQrUnavailableAlert from './AssignmentQrUnavailableAlert';
 
 interface AssignScreenProps {
   onLibraryClick: () => void;
@@ -25,6 +26,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
+  const [showUnavailableQrAlert, setShowUnavailableQrAlert] = useState(false);
 
   const handleScanQr = async () => {
     try {
@@ -41,10 +43,7 @@ const AssignScreen: FC<AssignScreenProps> = ({
       }
       const response = await api.getChapterIdbyQrLink(scannedText);
       if (!response?.chapter_id) {
-        await Toast.show({
-          text: t('Chapter Not Found'),
-          duration: 'long',
-        });
+        setShowUnavailableQrAlert(true);
         return;
       }
       const lessons = await api.getLessonsForChapter(response.chapter_id);
@@ -72,6 +71,10 @@ const AssignScreen: FC<AssignScreenProps> = ({
   };
   return (
     <section className="assign-screen">
+      <AssignmentQrUnavailableAlert
+        isOpen={showUnavailableQrAlert}
+        onDismiss={() => setShowUnavailableQrAlert(false)}
+      />
       <div id="assign-screen-content" className="assign-screen-content">
         <h2 id="assign-screen-heading" className="assign-screen-heading">
           {t('Choose from the three options for assignments')}

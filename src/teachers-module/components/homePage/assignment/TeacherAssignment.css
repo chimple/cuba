@@ -102,6 +102,22 @@
   text-align: center;
 }
 
+.assignment-list-item-thumb {
+  width: 50px;
+  height: 40px;
+  border: 2px solid #f50;
+  border-radius: 4px;
+  background-color: #fff;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.assignment-list-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .collapse-button {
   background: none;
 }

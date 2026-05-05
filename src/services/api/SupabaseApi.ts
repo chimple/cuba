@@ -100,6 +100,7 @@ import { store } from '../../redux/store';
 import logger from '../../utility/logger';
 
 const GENERIC_LEADERBOARD_LIMIT = 50;
+const SCHOOL_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
 
 type LeaderboardDataType = 'weekly' | 'monthly' | 'allTime';
 
@@ -1254,6 +1255,7 @@ export class SupabaseApi implements ServiceApi {
         logger.error('Error inserting into school:', schoolError);
         throw schoolError;
       }
+      await this.computeSchoolMetricsForSchool(schoolId);
     }
 
     if (oSchoolUser) {
@@ -1281,6 +1283,40 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return newSchool ?? ({} as TableTypes<'school'>);
+  }
+
+  async computeSchoolMetricsForSchool(schoolId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+    if (!schoolId) {
+      logger.error(
+        'computeSchoolMetricsForSchool called without a valid schoolId',
+      );
+      return false;
+    }
+    try {
+      for (const dayWindow of SCHOOL_METRICS_DAY_WINDOWS) {
+        const { error } = await this.supabase.rpc('compute_school_metrics', {
+          p_days: dayWindow,
+          p_school_id: schoolId,
+        });
+
+        if (error) {
+          logger.error('Error computing school metrics:', {
+            schoolId,
+            dayWindow,
+            error,
+          });
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      logger.error('computeSchoolMetricsForSchool failed:', {
+        schoolId,
+        error,
+      });
+      return false;
+    }
   }
 
   async requestNewSchool(
@@ -3731,12 +3767,21 @@ export class SupabaseApi implements ServiceApi {
         >();
 
         if (parentIds.length > 0) {
-          const { data: parentUsers, error: parentUsersError } =
-            await this.supabase
+          type ParentUserWithWhatsapp = {
+            id?: string | null;
+            name?: string | null;
+            phone?: string | null;
+            email?: string | null;
+            is_wa_contact?: string | boolean | null;
+          };
+          const { data: parentUsersRaw, error: parentUsersError } =
+            await (this.supabase
               .from(TABLES.User)
-              .select('id, name, phone, email')
+              .select('id, name, phone, email, is_wa_contact')
               .in('id', parentIds)
-              .eq('is_deleted', false);
+              .eq('is_deleted', false) as any);
+          const parentUsers = (parentUsersRaw ??
+            []) as ParentUserWithWhatsapp[];
 
           if (parentUsersError) {
             logger.error(
@@ -3744,7 +3789,7 @@ export class SupabaseApi implements ServiceApi {
               parentUsersError,
             );
           } else {
-            (parentUsers || []).forEach((parentUser) => {
+            parentUsers.forEach((parentUser) => {
               const parentId = String(parentUser?.id || '').trim();
               if (!parentId) return;
 
@@ -3762,6 +3807,11 @@ export class SupabaseApi implements ServiceApi {
                   typeof parentUser?.email === 'string'
                     ? parentUser.email
                     : undefined,
+                is_wa_contact:
+                  typeof parentUser?.is_wa_contact === 'string' ||
+                  typeof parentUser?.is_wa_contact === 'boolean'
+                    ? parentUser.is_wa_contact
+                    : null,
               });
             });
           }
@@ -4891,33 +4941,25 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-    const primaryClassByTeacher = new Map<string, string>();
-    (
-      (allTeacherLinks || []) as Array<{ class_id: string; user_id: string }>
-    ).forEach((row) => {
+    const teacherClassLinks = new Map<
+      string,
+      { teacherId: string; classId: string }
+    >();
+    (allTeacherLinks || []).forEach((row) => {
       const teacherId = String(row?.user_id || '').trim();
       const candidateClassId = String(row?.class_id || '').trim();
       if (!teacherId || !candidateClassId) return;
 
-      const currentClassId = primaryClassByTeacher.get(teacherId);
-      if (!currentClassId) {
-        primaryClassByTeacher.set(teacherId, candidateClassId);
-        return;
-      }
-
-      const currentClassName = classMap.get(currentClassId) || currentClassId;
-      const candidateClassName =
-        classMap.get(candidateClassId) || candidateClassId;
-      if (
-        candidateClassName.localeCompare(currentClassName, undefined, {
-          sensitivity: 'base',
-        }) < 0
-      ) {
-        primaryClassByTeacher.set(teacherId, candidateClassId);
-      }
+      teacherClassLinks.set(`${teacherId}:${candidateClassId}`, {
+        teacherId,
+        classId: candidateClassId,
+      });
     });
 
-    const allTeacherIds = Array.from(primaryClassByTeacher.keys());
+    const teacherClassLinkList = Array.from(teacherClassLinks.values());
+    const allTeacherIds = Array.from(
+      new Set(teacherClassLinkList.map((link) => link.teacherId)),
+    );
     if (allTeacherIds.length === 0) {
       return {
         data: [],
@@ -4925,40 +4967,61 @@ export class SupabaseApi implements ServiceApi {
       };
     }
 
-    const {
-      data: teacherUsers,
-      error: userError,
-      count: totalTeachersRaw,
-    } = await this.supabase
+    const { data: teacherUsers, error: userError } = await this.supabase
       .from(TABLES.User)
-      .select('*', { count: 'exact' })
+      .select('*')
       .in('id', allTeacherIds)
       .eq('is_deleted', false)
       .order('name', { ascending: true })
-      .order('id', { ascending: true })
-      .range(offset, offset + safeLimit - 1);
-
-    const totalTeachers =
-      typeof totalTeachersRaw === 'number' ? totalTeachersRaw : 0;
+      .order('id', { ascending: true });
 
     if (userError) {
       logger.error('Error fetching teacher user rows:', userError);
-      return { data: [], total: totalTeachers };
+      return { data: [], total: 0 };
     }
 
     if (!teacherUsers?.length) {
       return {
         data: [],
-        total: totalTeachers,
+        total: 0,
       };
     }
 
-    const teacherInfoList: TeacherInfo[] = teacherUsers
-      .map((teacherUser) => {
-        const teacherId = String(teacherUser?.id || '').trim();
-        if (!teacherId) return null;
+    const teacherUserById = new Map(
+      teacherUsers.map((teacherUser) => [teacherUser.id, teacherUser]),
+    );
+    const sortedTeacherClassLinks = teacherClassLinkList
+      .filter((link) => teacherUserById.has(link.teacherId))
+      .sort((leftLink, rightLink) => {
+        const leftTeacher = teacherUserById.get(leftLink.teacherId);
+        const rightTeacher = teacherUserById.get(rightLink.teacherId);
+        const leftName = String(leftTeacher?.name || '');
+        const rightName = String(rightTeacher?.name || '');
+        const leftClassName =
+          classMap.get(leftLink.classId) || leftLink.classId;
+        const rightClassName =
+          classMap.get(rightLink.classId) || rightLink.classId;
 
-        const classIdValue = primaryClassByTeacher.get(teacherId) || '';
+        return (
+          leftName.localeCompare(rightName, undefined, {
+            sensitivity: 'base',
+          }) ||
+          leftLink.teacherId.localeCompare(rightLink.teacherId) ||
+          leftClassName.localeCompare(rightClassName, undefined, {
+            sensitivity: 'base',
+          }) ||
+          leftLink.classId.localeCompare(rightLink.classId)
+        );
+      });
+
+    const totalTeachers = sortedTeacherClassLinks.length;
+    const teacherInfoList: TeacherInfo[] = sortedTeacherClassLinks
+      .slice(offset, offset + safeLimit)
+      .map((teacherClassLink) => {
+        const teacherUser = teacherUserById.get(teacherClassLink.teacherId);
+        if (!teacherUser) return null;
+
+        const classIdValue = teacherClassLink.classId;
         const className = classMap.get(classIdValue) || '';
         const { grade, section } = this.parseClassName(className);
 
@@ -6139,8 +6202,10 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
     studentLoginType: string;
     schoolModel: string;
+    whatsappBotNumber?: string;
   } | null> {
     if (!this.supabase) return null;
 
@@ -6148,7 +6213,7 @@ export class SupabaseApi implements ServiceApi {
       // Fetch student_login_type and program_model directly from school table
       const { data: schoolData, error } = await this.supabase
         .from('school')
-        .select('student_login_type, model')
+        .select('id, student_login_type, model, whatsapp_bot_number')
         .eq('udise', udiseCode)
         .eq('is_deleted', false)
         .single();
@@ -6157,11 +6222,13 @@ export class SupabaseApi implements ServiceApi {
         return null;
       }
 
-      const { student_login_type, model } = schoolData;
+      const { id, student_login_type, model, whatsapp_bot_number } = schoolData;
 
       return {
+        schoolId: id || '',
         studentLoginType: student_login_type || '',
         schoolModel: model || '',
+        whatsappBotNumber: whatsapp_bot_number || '',
       };
     } catch (err) {
       logger.error('Unexpected error in getSchoolDetailsByUdise:', err);
@@ -8252,6 +8319,99 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
+  async validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: 'error',
+        errors: ['Supabase client is not initialized'],
+      };
+    }
+    try {
+      const { data, error } = await this.supabase.functions.invoke(
+        'whatsapp-bot-check',
+        {
+          body: {
+            phone: whatsappBotNumber.trim(),
+          },
+        },
+      );
+      if (error) {
+        return {
+          status: 'error',
+          errors: [error.message || 'WHATSAPP BOT NUMBER validation failed.'],
+        };
+      }
+      if (data?.working === true) {
+        return { status: 'success' };
+      }
+      const stateInfo =
+        data?.wa_state || typeof data?.is_ready === 'boolean'
+          ? ` (wa_state: ${data?.wa_state ?? 'unknown'}, is_ready: ${String(
+              data?.is_ready,
+            )})`
+          : '';
+
+      return {
+        status: 'error',
+        errors: [
+          data?.error || `WHATSAPP BOT NUMBER is not active or connected.`,
+        ],
+      };
+    } catch (err) {
+      return {
+        status: 'error',
+        errors: [String(err)],
+      };
+    }
+  }
+
+  async validateWhatsappGroupLink(
+    whatsappBotNumber: string,
+    whatsappGroupLink: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: 'error',
+        errors: ['Supabase client is not initialized'],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.functions.invoke(
+        'whatsapp-group-validate',
+        {
+          body: {
+            invite_link: whatsappGroupLink.trim(),
+            phone: whatsappBotNumber.trim(),
+          },
+        },
+      );
+
+      if (error) {
+        return {
+          status: 'error',
+          errors: [error.message || 'WHATSAPP GROUP LINK validation failed.'],
+        };
+      }
+
+      if (data?.valid === true) {
+        return { status: 'success' };
+      }
+
+      return {
+        status: 'error',
+        errors: [data?.error || 'Invalid WHATSAPP GROUP LINK.'],
+      };
+    } catch (err) {
+      return {
+        status: 'error',
+        errors: [String(err)],
+      };
+    }
+  }
+
   async setStarsForStudents(
     studentId: string,
     starsCount: number,
@@ -8766,7 +8926,6 @@ export class SupabaseApi implements ServiceApi {
       .in('school_id', schoolIds.length ? schoolIds : [''])
       .eq('is_deleted', false)
       .eq('role', RoleType.PROGRAM_MANAGER);
-
     if (error || !data) {
       logger.error('Error fetching program managers:', error);
       return schoolIds.map((id) => ({ schoolId: id, users: [] }));
@@ -8907,7 +9066,12 @@ export class SupabaseApi implements ServiceApi {
     programDetails: { id: string; label: string; value: string }[];
     locationDetails: { id: string; label: string; value: string }[];
     partnerDetails: { id: string; label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programManagers: {
+      name: string;
+      role: string;
+      phone: string;
+      email: string;
+    }[];
   } | null> {
     if (!this.supabase) {
       logger.error('Supabase client not initialized.');
@@ -8930,7 +9094,8 @@ export class SupabaseApi implements ServiceApi {
         .from('program_user')
         .select('user')
         .eq('program_id', programId)
-        .eq('role', 'program_manager');
+        .eq('role', 'program_manager')
+        .eq('is_deleted', false);
 
       if (mappingsError) {
         logger.error('Error fetching program managers:', mappingsError);
@@ -8943,7 +9108,7 @@ export class SupabaseApi implements ServiceApi {
 
       const { data: users, error: usersError } = await this.supabase
         .from('user')
-        .select('id, name, phone')
+        .select('*')
         .in('id', userIds);
       if (usersError) {
         logger.error('Error fetching user details:', usersError);
@@ -9001,11 +9166,11 @@ export class SupabaseApi implements ServiceApi {
           value: program.institute_partner ?? '',
         },
       ];
-
-      const programManagers = users.map((user) => ({
+      const programManagers = (users ?? []).map((user) => ({
         name: user.name ?? '',
         role: 'Program Manager',
         phone: user.phone ?? '',
+        email: user.email ?? '',
       }));
 
       return {
@@ -9039,73 +9204,46 @@ export class SupabaseApi implements ServiceApi {
     };
 
     try {
-      const { data, error } = await this.supabase
-        .from(TABLES.SchoolMetrics)
-        .select(
-          'state, district, block, cluster, program_type, partners, program_managers, field_coordinators',
-        )
-        .eq('is_deleted', false);
+      const { data, error } = await this.supabase.rpc(
+        'get_school_filter_options',
+      );
 
       if (error) {
-        logger.error('Error fetching school_metrics filter options:', error);
+        logger.error(
+          'RPC error in getSchoolFilterOptionsForSchoolListing:',
+          error,
+        );
         return emptyOptions;
       }
 
-      const parsed: Record<string, Set<string>> = {
-        state: new Set(),
-        district: new Set(),
-        block: new Set(),
-        programType: new Set(),
-        partner: new Set(),
-        programManager: new Set(),
-        fieldCoordinator: new Set(),
-        cluster: new Set(),
-      };
-
-      for (const row of (data ?? []) as Array<{
-        state?: string | null;
-        district?: string | null;
-        block?: string | null;
-        cluster?: string | null;
-        program_type?: string | null;
-        partners?: Array<string | null> | string[] | null;
-        program_managers?: Array<string | null> | string[] | null;
-        field_coordinators?: Array<string | null> | string[] | null;
-      }>) {
-        if (row.state) parsed.state.add(row.state);
-        if (row.district) parsed.district.add(row.district);
-        if (row.block) parsed.block.add(row.block);
-        if (row.cluster) parsed.cluster.add(row.cluster);
-        if (
-          row.program_type &&
-          Object.values(ProgramType).includes(row.program_type as ProgramType)
-        ) {
-          parsed.programType.add(row.program_type);
-        }
-
-        for (const partner of row.partners ?? []) {
-          if (partner) parsed.partner.add(partner);
-        }
-        for (const manager of row.program_managers ?? []) {
-          if (manager) parsed.programManager.add(manager);
-        }
-        for (const coordinator of row.field_coordinators ?? []) {
-          if (coordinator) parsed.fieldCoordinator.add(coordinator);
-        }
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        return emptyOptions;
       }
 
-      const finalOptions: Record<string, string[]> = {
-        state: Array.from(parsed.state).sort(),
-        district: Array.from(parsed.district).sort(),
-        block: Array.from(parsed.block).sort(),
-        programType: Array.from(parsed.programType).sort(),
-        partner: Array.from(parsed.partner).sort(),
-        programManager: Array.from(parsed.programManager).sort(),
-        fieldCoordinator: Array.from(parsed.fieldCoordinator).sort(),
-        cluster: Array.from(parsed.cluster).sort(),
-      };
+      const rpcData = data as Record<string, Json>;
 
-      return finalOptions;
+      return {
+        state: Array.isArray(rpcData.state) ? (rpcData.state as string[]) : [],
+        district: Array.isArray(rpcData.district)
+          ? (rpcData.district as string[])
+          : [],
+        block: Array.isArray(rpcData.block) ? (rpcData.block as string[]) : [],
+        programType: Array.isArray(rpcData.programType)
+          ? (rpcData.programType as string[])
+          : [],
+        partner: Array.isArray(rpcData.partner)
+          ? (rpcData.partner as string[])
+          : [],
+        programManager: Array.isArray(rpcData.programManager)
+          ? (rpcData.programManager as string[])
+          : [],
+        fieldCoordinator: Array.isArray(rpcData.fieldCoordinator)
+          ? (rpcData.fieldCoordinator as string[])
+          : [],
+        cluster: Array.isArray(rpcData.cluster)
+          ? (rpcData.cluster as string[])
+          : [],
+      };
     } catch (err) {
       logger.error('Unexpected error in getSchoolFilterOptions:', err);
       return emptyOptions;
@@ -9278,14 +9416,65 @@ export class SupabaseApi implements ServiceApi {
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
-    date_range?: string;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
   }> {
-    return await this.getSchoolMetricsForSchoolListing(params);
-  }
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized');
+      return { data: [], total: 0 };
+    }
 
+    const { filters, programId, page, page_size, order_by, order_dir, search } =
+      params;
+    const payload: Database['public']['Functions']['get_filtered_schools_with_optional_program']['Args'] =
+      {};
+
+    if (filters && Object.keys(filters).length > 0) payload.filters = filters;
+    if (programId) payload._program_id = programId;
+    if (page) payload.page = page;
+    if (page_size) payload.page_size = page_size;
+    if (order_by) payload.order_by = order_by;
+    if (order_dir) payload.order_dir = order_dir;
+    if (search) payload.search = search;
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        'get_filtered_schools_with_optional_program',
+        payload,
+      );
+      if (error) {
+        logger.error(
+          'RPC error in get_filtered_schools_with_optional_program:',
+          error,
+        );
+        return { data: [], total: 0 };
+      }
+
+      if (
+        !data ||
+        typeof data !== 'object' ||
+        !('data' in data) ||
+        !('total' in data)
+      ) {
+        throw new Error(
+          'Supabase RPC did not return expected { data, total } shape',
+        );
+      }
+
+      return {
+        data: (data.data ??
+          []) as unknown as FilteredSchoolsForSchoolListingOps[],
+        total: typeof data.total === 'number' ? data.total : 0,
+      };
+    } catch (err) {
+      logger.error(
+        'Unexpected error in get_filtered_schools_with_optional_program:',
+        err,
+      );
+      return { data: [], total: 0 };
+    }
+  }
   async getSchoolMetricsForSchoolListing(params: {
     filters?: Record<string, string[]>;
     programId?: string;
@@ -10417,7 +10606,9 @@ export class SupabaseApi implements ServiceApi {
 
           const { data: classData } = await classQuery;
 
-          const schoolClassIds = (classData ?? []).map((c: any) => c.id);
+          const schoolClassIds = (classData ?? []).map(
+            (classRow) => classRow.id,
+          );
 
           if (schoolClassIds.length === 0) {
             resolve({ data: [], total: 0 });
@@ -10451,15 +10642,16 @@ export class SupabaseApi implements ServiceApi {
 
           const parentFilter = `phone.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`;
 
-          const { data: parentRows } = await supabase
+          const { data: parentRowsRaw } = await (supabase
             .from('class_user')
             .select(
               `
-              user:user_id!inner (
-                id,
-                phone,
-                email
-              )
+                user:user_id!inner (
+                  id,
+                  phone,
+                  email,
+                  is_wa_contact
+                )
             `,
             )
             .in('class_id', schoolClassIds)
@@ -10467,36 +10659,51 @@ export class SupabaseApi implements ServiceApi {
             .eq('is_deleted', false)
             .or(parentFilter, {
               foreignTable: 'user',
-            });
-          const parentIds = (parentRows ?? []).map((p: any) => p.user.id);
+            }) as any);
+          const parentRows = (parentRowsRaw ?? []) as Array<{
+            user?: { id?: string | null } | null;
+          }>;
+          const parentIds = parentRows
+            .map((row) => String(row?.user?.id ?? '').trim())
+            .filter((id) => id.length > 0);
 
           let parentLinkedStudents: any[] = [];
 
           const parentContactMap = new Map<string, any>();
 
           if (parentIds.length > 0) {
-            const { data: parentLinks } = await supabase
+            const { data: parentLinksRaw } = await (supabase
               .from('parent_user')
               .select(
                 `
                 student_id,
                 parent:parent_id (
                   phone,
-                  email
+                  email,
+                  is_wa_contact
                 )
               `,
               )
               .in('parent_id', parentIds)
-              .eq('is_deleted', false);
+              .eq('is_deleted', false) as any);
+            const parentLinks = (parentLinksRaw ?? []) as Array<{
+              student_id?: string | null;
+              parent?: {
+                phone?: string | null;
+                email?: string | null;
+                is_wa_contact?: string | boolean | null;
+              } | null;
+            }>;
 
-            const studentIds = (parentLinks ?? []).map(
-              (l: any) => l.student_id,
-            );
+            const studentIds = parentLinks
+              .map((link) => String(link?.student_id ?? '').trim())
+              .filter((id) => id.length > 0);
 
             (parentLinks ?? []).forEach((link: any) => {
               parentContactMap.set(link.student_id, {
                 phone: link.parent?.phone ?? null,
                 email: link.parent?.email ?? null,
+                is_wa_contact: link.parent?.is_wa_contact ?? null,
               });
             });
 
@@ -10537,26 +10744,41 @@ export class SupabaseApi implements ServiceApi {
           // ✅ GET ALL STUDENT IDS
           const allStudentIds = mergedRows.map((r: any) => r.user.id);
 
-          // ✅ FETCH THEIR PARENTS
-          if (allStudentIds.length > 0) {
-            const { data: allParentLinks } = await supabase
+          // Fetch parent contact only for students not already mapped.
+          const missingParentStudentIds = allStudentIds.filter(
+            (id: string) => !parentContactMap.has(id),
+          );
+          if (missingParentStudentIds.length > 0) {
+            const { data: allParentLinksRaw } = await (supabase
               .from('parent_user')
               .select(
                 `
         student_id,
         parent:parent_id (
           phone,
-          email
+          email,
+          is_wa_contact
         )
       `,
               )
-              .in('student_id', allStudentIds)
-              .eq('is_deleted', false);
+              .in('student_id', missingParentStudentIds)
+              .eq('is_deleted', false) as any);
+            const allParentLinks = (allParentLinksRaw ?? []) as Array<{
+              student_id?: string | null;
+              parent?: {
+                phone?: string | null;
+                email?: string | null;
+                is_wa_contact?: string | boolean | null;
+              } | null;
+            }>;
 
-            (allParentLinks ?? []).forEach((link: any) => {
-              parentContactMap.set(link.student_id, {
+            allParentLinks.forEach((link) => {
+              const studentId = String(link?.student_id ?? '').trim();
+              if (!studentId) return;
+              parentContactMap.set(studentId, {
                 phone: link.parent?.phone ?? null,
                 email: link.parent?.email ?? null,
+                is_wa_contact: link.parent?.is_wa_contact ?? null,
               });
             });
           }
@@ -10591,6 +10813,7 @@ export class SupabaseApi implements ServiceApi {
               parent: {
                 phone: parentContact.phone ?? null,
                 email: parentContact.email ?? null,
+                is_wa_contact: parentContact.is_wa_contact ?? null,
               },
 
               class_id: row.class_id,
@@ -13126,20 +13349,44 @@ export class SupabaseApi implements ServiceApi {
   }
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     if (!this.supabase) return [];
+
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
     const { data, error } = await this.supabase.functions.invoke(
-      'get-whatsapp-group-details',
+      'get-whatsapp-group-details-v2',
       {
         body: { groupId, bot },
       },
     );
-
     if (error) {
       throw error;
     }
 
-    return data.data;
-  }
+    const payload = data as Json | JsonMap | null;
+    const record = getRecord(payload);
 
+    if (record?.success === false) {
+      const details = getRecord(record.details);
+      const primaryDetail = String(details?.maytapi ?? '').trim();
+      const secondaryDetail = String(details?.periskope ?? '').trim();
+      const detailSuffix =
+        primaryDetail || secondaryDetail
+          ? ` (Primary: ${primaryDetail || 'n/a'} | Secondary: ${
+              secondaryDetail || 'n/a'
+            })`
+          : '';
+      throw new Error(
+        `${String(record.error ?? 'Failed to fetch WhatsApp group')}${detailSuffix}`,
+      );
+    }
+
+    return record?.data ?? payload;
+  }
   async getParentWhatsappGroupDetails(groupId: string) {
     if (!this.supabase) return [];
     const { data, error } = await this.supabase.rpc(
@@ -13263,7 +13510,7 @@ export class SupabaseApi implements ServiceApi {
   async getGroupIdByInvite(invite_link: string, bot: string) {
     if (!this.supabase) return [];
     const { data, error } = await this.supabase.functions.invoke(
-      'get-groupId-by-invite',
+      'get-groupId-by-invite-v2',
       {
         body: { invite_link, bot },
       },
@@ -13275,21 +13522,39 @@ export class SupabaseApi implements ServiceApi {
     return data;
   }
 
-  async getPhoneDetailsByBotNum(bot: string) {
+  async getPhoneDetailsByBotNum(bot?: string, groupId?: string | null) {
     if (!this.supabase) return [];
+
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
     const { data, error } = await this.supabase.functions.invoke(
-      'get-phoneDetails-by-botNum',
+      'get-phoneDetails-by-botNum-v2',
       {
-        body: { bot },
+        body: { bot, groupId },
       },
     );
 
     if (error) {
       throw error;
     }
-    return data;
-  }
 
+    const payload = data as Json | JsonMap | null;
+    const record = getRecord(payload);
+
+    if (record?.success === false) {
+      throw new Error(
+        String(record.error ?? 'Failed to fetch WhatsApp phone details'),
+      );
+    }
+
+    const parsed = record?.data ?? payload;
+    return parsed;
+  }
   async updateWhatsAppGroupSettings(
     chatId: string,
     phone: string,
@@ -13300,8 +13565,15 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<boolean> {
     if (!this.supabase) return false;
 
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
     const { data, error } = await this.supabase.functions.invoke(
-      'edit-whatsapp-group-details',
+      'edit-whatsapp-group-details-v2',
       {
         body: {
           chatId,
@@ -13314,7 +13586,25 @@ export class SupabaseApi implements ServiceApi {
       },
     );
 
-    return Boolean(data?.success && !error);
+    if (error) {
+      throw error;
+    }
+
+    const payload = data as Json | JsonMap | null;
+    const record = getRecord(payload);
+    if (record?.success === false) {
+      const diagnostics = getRecord(record.diagnostics);
+      const winner = String(record.winner ?? '').trim();
+      const detailSuffix = diagnostics
+        ? ` (${JSON.stringify(diagnostics)})`
+        : '';
+      throw new Error(
+        `${String(record.error ?? 'Failed to update WhatsApp group')}${
+          winner ? ` [winner: ${winner}]` : ''
+        }${detailSuffix}`,
+      );
+    }
+    return record?.success === true;
   }
   async getWhatsAppGroupByInviteLink(
     inviteLink: string,
@@ -13327,8 +13617,64 @@ export class SupabaseApi implements ServiceApi {
   } | null> {
     if (!this.supabase) return null;
 
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
+    const getLookupPayload = (payload: Json | JsonMap | null): JsonMap | null =>
+      getRecord(getRecord(payload)?.data) ?? getRecord(payload);
+
+    const getGroupIdFromPayload = (payload: Json | JsonMap | null): string => {
+      const parsed = getLookupPayload(payload);
+      return String(
+        parsed?.group_id ?? parsed?.id ?? parsed?.conversation_id ?? '',
+      ).trim();
+    };
+
+    const getGroupNameFromPayload = (
+      payload: Json | JsonMap | null,
+    ): string => {
+      const parsed = getLookupPayload(payload);
+      return String(
+        parsed?.group_name ?? parsed?.name ?? parsed?.subject ?? '',
+      ).trim();
+    };
+
+    const getMembersCountFromPayload = (
+      payload: Json | JsonMap | null,
+    ): number => {
+      const parsed = getLookupPayload(payload);
+      const members = parsed?.members;
+      const participants = parsed?.participants;
+
+      if (Array.isArray(members)) return members.length;
+      if (Array.isArray(participants)) return participants.length;
+
+      const count = Number(
+        parsed?.members_count ?? members ?? parsed?.size ?? 0,
+      );
+      return Number.isFinite(count) ? count : 0;
+    };
+
+    const isLookupErrorPayload = (
+      payload: Json | JsonMap | null,
+      groupId: string,
+    ): boolean => {
+      const parsed = getLookupPayload(payload);
+      return Boolean(
+        !groupId ||
+        getRecord(payload)?.success === false ||
+        parsed?.success === false ||
+        getRecord(payload)?.type === 'error' ||
+        parsed?.type === 'error',
+      );
+    };
+
     const { data, error } = await this.supabase.functions.invoke(
-      'get-groupId-by-invite',
+      'get-groupId-by-invite-v2',
       {
         body: {
           invite_link: inviteLink,
@@ -13337,14 +13683,12 @@ export class SupabaseApi implements ServiceApi {
       },
     );
 
-    if (error || !data?.success) {
+    const groupId = getGroupIdFromPayload(data);
+    if (error || isLookupErrorPayload(data, groupId)) {
       logger.error('Invite lookup failed', error || data);
       return null;
     }
 
-    const groupId = data.group_id;
-
-    // Update class table with group_id and updated_at
     const { error: updateError } = await this.supabase
       .from(TABLES.Class)
       .update({
@@ -13358,7 +13702,11 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
 
-    return data;
+    return {
+      group_id: groupId,
+      group_name: getGroupNameFromPayload(data),
+      members: getMembersCountFromPayload(data),
+    };
   }
   async getAssignmentInfoForLessonsPerClass(
     classId: string,

@@ -1903,6 +1903,13 @@ export interface ServiceApi {
     programManagerPhone: string,
     fieldCoordinatorPhone?: string,
   ): Promise<{ status: string; errors?: string[] }>;
+  validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }>;
+  validateWhatsappGroupLink(
+    whatsappBotNumber: string,
+    whatsappGroupLink: string,
+  ): Promise<{ status: string; errors?: string[] }>;
   /**
    * setting a stars for the student
    * @param {string } studentId - student id
@@ -2088,7 +2095,12 @@ export interface ServiceApi {
     programDetails: { id: string; label: string; value: string }[];
     locationDetails: { id: string; label: string; value: string }[];
     partnerDetails: { id: string; label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programManagers: {
+      name: string;
+      role: string;
+      phone: string;
+      email: string;
+    }[];
   } | null>;
 
   /**
@@ -2446,9 +2458,12 @@ export interface ServiceApi {
    * @param {string} udiseCode - UDISE code of the school.
    * @returns {Promise<{ studentLoginType: schoolModel: string } | null>}
    */
-  getSchoolDetailsByUdise(
-    udiseCode: string,
-  ): Promise<{ studentLoginType: string; schoolModel: string } | null>;
+  getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
+    studentLoginType: string;
+    schoolModel: string;
+    whatsappBotNumber?: string;
+  } | null>;
 
   /**
    * Fetch SchoolData by UDISE code.
@@ -2875,6 +2890,7 @@ export interface ServiceApi {
   getSkillById(skillId: string): Promise<TableTypes<'skill'> | undefined>;
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
+  computeSchoolMetricsForSchool(schoolId: string): Promise<boolean>;
   getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<'user'>,
@@ -2931,11 +2947,12 @@ export interface ServiceApi {
   getGroupIdByInvite(invite_link: string, bot: string): Promise<Json>;
 
   /**
-   * Fetch phone/botNum details using bot num.
-   * @param {string} bot - The WhatsApp bot phone number.
+   * Fetch phone/botNum details, optionally scoped by WhatsApp group id.
+   * @param {string} bot - The WhatsApp bot phone number (used for fallback path).
+   * @param {string | null} groupId - Optional WhatsApp group id for Maytapi group-based checks.
    * @returns Promise resolving to the phoneNum details
    */
-  getPhoneDetailsByBotNum(bot: string): Promise<Json>;
+  getPhoneDetailsByBotNum(bot?: string, groupId?: string | null): Promise<Json>;
   /**
    * Updates WhatsApp group settings such as name, admin-only permissions, etc.
    *

@@ -69,7 +69,12 @@ interface UseHomeworkStickerParams {
       onPlaybackStop?: () => void;
     },
   ) => Promise<boolean>;
-  playRewardAudio: (stateValue?: number) => Promise<void>;
+  playRewardAudio: (
+    stateValue?: number,
+    playbackOptions?: {
+      onPlaybackStop?: () => void;
+    },
+  ) => Promise<boolean | void>;
 }
 
 const getStickerCollectMascotAudioPath = (languageCode?: string) => {
@@ -148,6 +153,7 @@ export function useHomeworkSticker({
   const hasCheckedStickerReplayEligibilityRef = useRef(false);
   const pendingCelebrationRiveContainerRef = useRef<Element | null>(null);
   const latestRiveContainerRef = useRef<Element | null>(null);
+  const rewardStickerTiltRequestIdRef = useRef(0);
   const rewardAudioSequenceRef = useRef({
     rewardId: null as string | null,
     crowdComplete: false,
@@ -832,10 +838,25 @@ export function useHomeworkSticker({
         return;
       }
 
+      const tiltRequestId = rewardStickerTiltRequestIdRef.current + 1;
+      rewardStickerTiltRequestIdRef.current = tiltRequestId;
+      const stopRewardStickerTilt = () => {
+        if (rewardStickerTiltRequestIdRef.current !== tiltRequestId) return;
+        setStickerCollectTiltActive(false);
+      };
+
       resetRewardAudioSequence();
+      setStickerCollectTiltActive(true);
       void playRewardAudio(
         rewardAudioSequence.stateValue ?? currentMascotStateValue,
-      );
+        {
+          onPlaybackStop: stopRewardStickerTilt,
+        },
+      ).then((didStartPlayback) => {
+        if (didStartPlayback === false) {
+          stopRewardStickerTilt();
+        }
+      });
     };
 
     const handleRewardCelebrationStarted = (event: Event) => {
@@ -933,6 +954,7 @@ export function useHomeworkSticker({
     currentMascotStateValue,
     playRewardAudio,
     resetRewardAudioSequence,
+    setStickerCollectTiltActive,
     shouldSuppressRewardAudioForStickerBook,
   ]);
 

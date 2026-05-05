@@ -251,6 +251,7 @@ const StickerBook: React.FC = () => {
     if (!selectedBook) return;
     const svgUrl = resolveStickerBookSvgUrl(selectedBook.svg_url ?? '');
     history.push(PAGES.COLORING_BOARD, {
+      stickerBookId: selectedBook.id,
       svgRaw: svgRaw ?? undefined,
       svgUrl,
       artworkTitle: selectedBook.title ?? t('Sticker Book'),

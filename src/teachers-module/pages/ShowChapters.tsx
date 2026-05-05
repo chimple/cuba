@@ -21,6 +21,7 @@ import {
   resolveVisibleChapterId,
 } from './ShowChaptersLogic';
 import logger from '../../utility/logger';
+import AssignedVisibilityToggle from '../components/AssignedVisibilityToggle';
 
 const ShowChapters: React.FC = () => {
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
@@ -325,17 +326,12 @@ const ShowChapters: React.FC = () => {
     }
   }, [isShowAssigned, loadAssignedLessonsForCourse]);
 
-  const handleShowAssignedClick = async () => {
-    const nextShowAssigned = !isShowAssigned;
+  const handleShowAssignedChange = async (nextShowAssigned: boolean) => {
     setIsShowAssigned(nextShowAssigned);
     if (!nextShowAssigned) {
       await loadAssignedLessonsForCourse();
     }
   };
-
-  const assignedToggleLabel = isShowAssigned
-    ? t('Hide Assigned')
-    : t('Show Assigned');
 
   const visibleChapters = (chapters ?? []).filter((chapter) => {
     const chapterLessons = lessons?.get(chapter.id) ?? [];
@@ -401,44 +397,12 @@ const ShowChapters: React.FC = () => {
           >
             {`${selectedCourseName} ${selectedCourseGrade}`}
           </div>
-          <button
-            id="showchapters-assigned-btn"
-            type="button"
-            className={`showchapters-assigned-btn${
-              isShowAssigned ? ' is-active' : ''
-            }`}
-            onClick={handleShowAssignedClick}
+          <AssignedVisibilityToggle
+            showAssigned={isShowAssigned}
+            onChange={handleShowAssignedChange}
             disabled={isLoadingAssignedLessons}
-          >
-            <span
-              id="showchapters-assigned-icon"
-              className={`showchapters-assigned-icon${
-                isShowAssigned ? ' is-hide' : ' is-show'
-              }`}
-              aria-hidden="true"
-            >
-              <img
-                src={
-                  isShowAssigned
-                    ? 'assets/hideassigned.png'
-                    : 'assets/showassigned.png'
-                }
-                alt=""
-                onError={(event) => {
-                  const absoluteSrc = isShowAssigned
-                    ? '/assets/hideassigned.png'
-                    : '/assets/showassigned.png';
-                  if (!event.currentTarget.dataset.retryAbsolute) {
-                    event.currentTarget.dataset.retryAbsolute = '1';
-                    event.currentTarget.src = absoluteSrc;
-                    return;
-                  }
-                  event.currentTarget.src = 'assets/icons/assignmentSelect.svg';
-                }}
-              />
-            </span>
-            {assignedToggleLabel}
-          </button>
+            className="showchapters-assigned-toggle"
+          />
         </div>
         <div id="showchapters-lesson-grid" className="showchapters-lesson-grid">
           {visibleChapters.map((chapter, index) => (

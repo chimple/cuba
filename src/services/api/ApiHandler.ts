@@ -1332,8 +1332,10 @@ export class ApiHandler implements ServiceApi {
     return this.s.addUserToSchool(schoolId, user, role);
   }
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
     studentLoginType: string;
     schoolModel: string;
+    whatsappBotNumber?: string;
   } | null> {
     return this.s.getSchoolDetailsByUdise(udiseCode);
   }
@@ -1423,6 +1425,20 @@ export class ApiHandler implements ServiceApi {
     return this.s.validateUserContacts(
       programManagerPhone,
       fieldCoordinatorPhone,
+    );
+  }
+  async validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateWhatsappBotNumber(whatsappBotNumber);
+  }
+  async validateWhatsappGroupLink(
+    whatsappBotNumber: string,
+    whatsappGroupLink: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateWhatsappGroupLink(
+      whatsappBotNumber,
+      whatsappGroupLink,
     );
   }
   public async setStarsForStudents(
@@ -1546,7 +1562,12 @@ export class ApiHandler implements ServiceApi {
     programDetails: { id: string; label: string; value: string }[];
     locationDetails: { id: string; label: string; value: string }[];
     partnerDetails: { id: string; label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programManagers: {
+      name: string;
+      role: string;
+      phone: string;
+      email: string;
+    }[];
   } | null> {
     return await this.s.getProgramData(programId);
   }
@@ -2154,6 +2175,11 @@ export class ApiHandler implements ServiceApi {
     // Delegate to the actual API implementation (e.g., SupabaseApi)
     return this.s.updateSchoolProgram(schoolId, programId);
   }
+  public async computeSchoolMetricsForSchool(
+    schoolId: string,
+  ): Promise<boolean> {
+    return this.s.computeSchoolMetricsForSchool(schoolId);
+  }
   public async getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<'user'>,
@@ -2235,8 +2261,8 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getGroupIdByInvite(invite_link, bot);
   }
 
-  public async getPhoneDetailsByBotNum(bot: string) {
-    return await this.s.getPhoneDetailsByBotNum(bot);
+  public getPhoneDetailsByBotNum(bot?: string, groupId?: string | null) {
+    return this.s.getPhoneDetailsByBotNum(bot, groupId);
   }
   async updateWhatsAppGroupSettings(
     chatId: string,

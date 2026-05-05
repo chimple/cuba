@@ -132,25 +132,8 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 1vw;
   padding: 1.4vh 4vw;
-  color: #7c5db0;
-  font-size: clamp(0.9rem, 2vh, 1.1rem);
-  font-weight: 600;
-  cursor: pointer;
   padding-right: 9vw;
-}
-
-.qrAssignments-toggle-icon {
-  width: clamp(1.7rem, 3vw, 1.6rem);
-  height: clamp(1.7rem, 3vw, 1.6rem);
-}
-
-.qrAssignments-toggle-text {
-  user-select: none;
-  font-size: clamp(1rem, 3.6vw, 1.4rem);
-  font-weight: 600;
-  color: #707070;
 }
 
 /* ───────── Count badge ───────── */
@@ -173,8 +156,10 @@
   position: relative;
   width: clamp(4rem, 10vw, 5.5rem);
   height: clamp(4rem, 10vw, 5.5rem);
-  border: 2px solid #ff5500;
+  border: 2px solid #f50;
   border-radius: 10px;
+  background-color: #fff;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,12 +168,13 @@
 }
 
 /* Assigned badge */
-.qrAssignments-assigned-badge {
+.qrAssignments-assigned-badge.assigned-badge-icon {
   position: absolute;
   top: -0.3rem;
   right: -0.3rem;
   width: clamp(1.5rem, 3vw, 1.4rem);
   height: clamp(1.5rem, 3vw, 1.4rem);
+  z-index: 2;
 }
 
 .qrAssignments-assignments-page .header-custom-text {

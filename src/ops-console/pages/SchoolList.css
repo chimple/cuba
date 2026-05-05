@@ -95,6 +95,10 @@
   flex-shrink: 0;
 }
 
+.school-list-export-control {
+  flex-shrink: 0;
+}
+
 .school-list-actions-group {
   display: flex;
   align-items: center;
@@ -125,6 +129,17 @@
 .school-list-actions-button.MuiButton-root:hover {
   border: none !important;
   background: #fff !important;
+}
+
+.school-list-actions-button.MuiButton-root.Mui-disabled {
+  background: #fff !important;
+  color: rgba(18, 22, 25, 0.45) !important;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.08) !important;
+}
+
+.school-list-actions-button.MuiButton-root.Mui-disabled
+  .school-list-upload-icon {
+  color: rgba(18, 22, 25, 0.45) !important;
 }
 
 .school-list-actions-button-close-shine.MuiButton-root::after {
@@ -230,6 +245,39 @@
   display: flex;
   flex-direction: column;
 }
+
+/* School List keeps the name column pinned while the metric columns scroll beside it. */
+.school-list-table-container .data-tablebody-container {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+}
+
+.school-list-table-container .data-tablebody-head-cell:first-child,
+.school-list-table-container .data-tablebody-cell:first-child {
+  min-width: 220px;
+  max-width: 220px;
+  width: 220px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  /* Mobile keeps a fixed name column while every metric column remains individually scrollable. */
+  .school-list-table-container .data-tablebody-head-cell:not(:first-child),
+  .school-list-table-container .data-tablebody-cell:not(:first-child) {
+    min-width: 128px;
+    max-width: 128px;
+    width: 128px;
+    box-sizing: border-box;
+  }
+
+  .school-list-table-container .data-tablebody-head-cell:first-child,
+  .school-list-table-container .data-tablebody-cell:first-child {
+    min-width: 168px;
+    max-width: 168px;
+    width: 168px;
+  }
+}
+
 @media (max-width: 768px) and (orientation: portrait) {
   .school-list-page-header {
     position: relative;
@@ -267,36 +315,82 @@
   }
 
   .school-list-button-and-search-filter {
-    justify-content: flex-end;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(88px, 0.82fr) minmax(
+        0,
+        0.98fr
+      );
+    align-items: center;
+    justify-content: stretch;
     padding-left: 4%;
     padding-right: 4%;
-    padding-bottom: 2%;
-  }
-
-  .school-list-date-range-button.MuiButton-root {
-    min-width: 124px !important;
+    padding-bottom: 1.5%;
+    gap: 6px;
   }
 
   .school-list-search-control {
-    flex-basis: 100%;
-    order: 1;
-    justify-content: flex-start;
+    grid-column: 1 / -1;
+    justify-content: stretch;
   }
 
-  .school-list-date-range-button.MuiButton-root {
-    order: 2;
+  .school-list-search-control > * {
+    width: 100%;
+  }
+
+  .school-list-export-control {
+    min-width: 0;
+    display: flex;
+    justify-content: center;
   }
 
   .school-list-actions-group {
-    margin-left: auto;
-    flex-shrink: 0;
-    order: 3;
+    margin-left: 0;
+    min-width: 0;
+    width: 100%;
   }
 
   .school-list-tab-wrapper {
     width: 100%;
   }
+
+  .school-list-date-range-control,
+  .school-list-export-control {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .school-list-date-range-button.MuiButton-root,
+  .school-list-export-button.MuiButton-root,
+  .school-list-actions-group .school-list-actions-button.MuiButton-root {
+    min-width: 0 !important;
+    width: 100%;
+    padding: 4px 8px !important;
+    height: 34px !important;
+  }
+
+  .school-list-date-range-button.MuiButton-root {
+    white-space: nowrap;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  .school-list-export-button.MuiButton-root {
+    max-width: 102px;
+    padding: 4px 4px !important;
+  }
+
+  .school-list-date-range-button.MuiButton-root .MuiButton-endIcon,
+  .school-list-date-range-button.MuiButton-root .MuiButton-startIcon,
+  .school-list-export-button.MuiButton-root .MuiButton-endIcon,
+  .school-list-export-button.MuiButton-root .MuiButton-startIcon,
+  .school-list-actions-group
+    .school-list-actions-button.MuiButton-root
+    .MuiButton-endIcon,
+  .school-list-export-button.MuiButton-root .MuiButton-startIcon {
+    margin-left: 2px;
+    margin-right: 0;
+  }
+
   .school-list-footer {
     overflow-x: auto;
     justify-content: center;
