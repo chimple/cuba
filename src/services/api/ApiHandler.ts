@@ -1046,12 +1046,16 @@ export class ApiHandler implements ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>> {
     return this.s.createClass(
       schoolId,
       className,
       groupId,
       whatsapp_invite_link,
+      gradeId,
+      standard,
     );
   }
   updateClass(

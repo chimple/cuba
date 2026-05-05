@@ -1377,6 +1377,8 @@ export interface ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>>;
   /**
    * Updates a class name for given classId

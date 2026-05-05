@@ -5245,6 +5245,8 @@ export class SupabaseApi implements ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>> {
     if (!this.supabase) throw new Error('Supabase instance is not initialized');
 
@@ -5260,6 +5262,7 @@ export class SupabaseApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
+      grade_id: gradeId ?? null,
       group_id: groupId ?? null,
       created_at: timestamp,
       updated_at: timestamp,
@@ -5269,7 +5272,7 @@ export class SupabaseApi implements ServiceApi {
       is_firebase: null,
       is_ops: null,
       ops_created_by: null,
-      standard: null,
+      standard: standard ?? null,
       status: null,
       whatsapp_invite_link: whatsapp_invite_link ?? null,
     };

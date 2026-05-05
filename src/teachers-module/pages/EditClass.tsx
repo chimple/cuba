@@ -14,6 +14,10 @@ import { Util } from '../../utility/util';
 import './EditClass.css';
 import { t } from 'i18next';
 import logger from '../../utility/logger';
+import {
+  getGradeNameFromStandard,
+  getStandardFromClassName,
+} from '../../utility/classGradeMapper';
 
 type LocationState = {
   school?: TableTypes<'school'>;
@@ -63,7 +67,35 @@ const EditClass: FC = () => {
     try {
       if (currentSchool) {
         setIsSaving(true);
-        const newClass = await api.createClass(currentSchool.id, className);
+        const standard = getStandardFromClassName(className);
+        const gradeName = getGradeNameFromStandard(standard);
+        let gradeId: string | undefined;
+        if (gradeName) {
+          try {
+            const grades = await api.getAllGrades();
+            gradeId = grades.find((g) => g.name === gradeName)?.id;
+            if (!gradeId) {
+              logger.warn('Grade not found for class mapping', {
+                className,
+                gradeName,
+              });
+            }
+          } catch (error) {
+            logger.warn('Failed to resolve grade for class mapping', {
+              className,
+              gradeName,
+              error,
+            });
+          }
+        }
+        const newClass = await api.createClass(
+          currentSchool.id,
+          className,
+          undefined,
+          undefined,
+          gradeId,
+          standard,
+        );
         setIsSaving(false);
         Util.setNavigationState(School_Creation_Stages.CLASS_COURSE);
         history.replace(PAGES.SUBJECTS_PAGE, {

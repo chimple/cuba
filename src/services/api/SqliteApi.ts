@@ -3928,6 +3928,8 @@ export class SqliteApi implements ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -3939,6 +3941,7 @@ export class SqliteApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
+      grade_id: gradeId ?? null,
       group_id: groupId ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -3949,21 +3952,23 @@ export class SqliteApi implements ServiceApi {
       is_firebase: null,
       is_ops: null,
       ops_created_by: null,
-      standard: null,
+      standard: standard ?? null,
       status: null,
       whatsapp_invite_link: whatsapp_invite_link ?? null,
     };
 
     await this.executeQuery(
       `
-      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted, group_id, whatsapp_invite_link)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO class (id, name , image, school_id, grade_id, standard, created_at, updated_at, is_deleted, group_id, whatsapp_invite_link)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newClass.id,
         newClass.name,
         newClass.image,
         newClass.school_id,
+        newClass.grade_id,
+        newClass.standard,
         newClass.created_at,
         newClass.updated_at,
         newClass.is_deleted,
