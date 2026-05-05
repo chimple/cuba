@@ -2498,23 +2498,10 @@ export class SupabaseApi implements ServiceApi {
       gradeDocId && boardDocId
         ? await this.getCourseByUserGradeId(gradeDocId, boardDocId)
         : [];
-    const coursesToEnsure = [...courses];
-    if (student.language_id !== languageDocId) {
-      const languageMathCourse =
-        await this.resolveMathCourseByLanguage(languageDocId);
-      if (languageMathCourse) {
-        const hasMathCourse = coursesToEnsure.some(
-          (course) => course.id === languageMathCourse.id,
-        );
-        if (!hasMathCourse) {
-          coursesToEnsure.push(languageMathCourse);
-        }
-      }
-    }
 
-    if (coursesToEnsure.length > 0) {
+    if (courses && courses.length > 0) {
       // Batch fetch existing user_course entries for this student and these courses
-      const courseIds = coursesToEnsure.map((c) => c.id);
+      const courseIds = courses.map((c) => c.id);
       const { data: existingUserCourses, error } = await this.supabase
         .from('user_course')
         .select('course_id')
@@ -2528,7 +2515,7 @@ export class SupabaseApi implements ServiceApi {
 
       // Prepare inserts for only missing courses
       const now = new Date().toISOString();
-      const inserts = coursesToEnsure
+      const inserts = courses
         .filter((c) => !existingCourseIds.has(c.id))
         .map((c) => ({
           id: uuidv4(),
@@ -2621,49 +2608,6 @@ export class SupabaseApi implements ServiceApi {
 
         await this.supabase.from(TABLES.ClassUser).insert(newClassUser);
         await this.addParentToNewClass(newClassId, student.id);
-      }
-
-      const coursesToEnsure = await this.getCourseByUserGradeId(
-        gradeDocId,
-        boardDocId,
-      );
-      if (student.language_id !== languageDocId) {
-        const languageMathCourse =
-          await this.resolveMathCourseByLanguage(languageDocId);
-        if (
-          languageMathCourse &&
-          !coursesToEnsure.some((course) => course.id === languageMathCourse.id)
-        ) {
-          coursesToEnsure.push(languageMathCourse);
-        }
-      }
-
-      if (coursesToEnsure.length > 0) {
-        const courseIds = coursesToEnsure.map((c) => c.id);
-        const { data: existingUserCourses } = await this.supabase
-          .from('user_course')
-          .select('course_id')
-          .eq('user_id', student.id)
-          .in('course_id', courseIds)
-          .eq('is_deleted', false);
-
-        const existingCourseIds = new Set(
-          (existingUserCourses ?? []).map((uc) => uc.course_id),
-        );
-        const inserts = coursesToEnsure
-          .filter((c) => !existingCourseIds.has(c.id))
-          .map((c) => ({
-            id: uuidv4(),
-            user_id: student.id,
-            course_id: c.id,
-            created_at: now,
-            updated_at: now,
-            is_deleted: false,
-          }));
-
-        if (inserts.length > 0) {
-          await this.supabase.from('user_course').insert(inserts);
-        }
       }
 
       return updatedStudent;
