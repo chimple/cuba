@@ -1522,7 +1522,7 @@ export class SupabaseApi implements ServiceApi {
       const [englishCourse, mathsCourse, digitalSkillsCourse] =
         await Promise.all([
           this.getCourse(CHIMPLE_ENGLISH),
-          this.getCourse(CHIMPLE_MATHS),
+          this.resolveMathCourseByLanguage(languageDocId),
           this.getCourse(CHIMPLE_DIGITAL_SKILLS),
         ]);
       const language = await this.getLanguageWithId(languageDocId!);
@@ -2834,6 +2834,44 @@ export class SupabaseApi implements ServiceApi {
       return undefined;
     }
     return data ?? undefined;
+  }
+
+  async resolveMathCourseByLanguage(
+    languageDocId?: string | null,
+  ): Promise<TableTypes<'course'> | undefined> {
+    if (!this.supabase) return undefined;
+
+    const englishMathCourse = await this.getCourse(CHIMPLE_MATHS);
+    if (!englishMathCourse?.subject_id) return englishMathCourse;
+
+    if (!languageDocId) return englishMathCourse;
+
+    const language = await this.getLanguageWithId(languageDocId);
+    const languageCode = (language?.code ?? '').toLowerCase();
+    if (!languageCode || languageCode === COURSES.ENGLISH) {
+      return englishMathCourse;
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Course)
+      .select('*')
+      .eq('subject_id', englishMathCourse.subject_id)
+      .eq('code', `maths-${languageCode}`)
+      .eq('is_deleted', false);
+
+    if (error) {
+      logger.error('Error fetching language-specific math course:', error);
+      return englishMathCourse;
+    }
+
+    const matchingCourse =
+      (data ?? []).find(
+        (course) =>
+          course.curriculum_id === englishMathCourse.curriculum_id &&
+          course.grade_id === englishMathCourse.grade_id,
+      ) ?? data?.[0];
+
+    return matchingCourse ?? englishMathCourse;
   }
   async getCourses(ids: string[]): Promise<TableTypes<'course'>[]> {
     if (!this.supabase || !ids || ids.length === 0) return [];
@@ -9919,7 +9957,7 @@ export class SupabaseApi implements ServiceApi {
 
     // Find English, Maths, and language-dependent subject
     const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-    const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+    const mathsCourse = await this.resolveMathCourseByLanguage(languageDocId);
     const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
     const language = languageDocId
       ? await this.getLanguageWithId(languageDocId)
