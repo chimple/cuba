@@ -139,7 +139,7 @@
 }
 
 .chaptercontainer-grid-container {
-  --chapter-grid-row-height: clamp(190px, 32vw, 250px);
+  --chapter-grid-row-height: clamp(180px, 22vw, 210px);
   --chapter-grid-row-gap: 12px;
   display: grid;
   grid-template-columns: repeat(
@@ -221,8 +221,9 @@
   border-radius: 8px;
   position: relative;
   overflow: visible;
-  background-color: transparent !important;
-  border: 2px solid #ff5500;
+  background-color: #fff !important;
+  border: 2px solid #f50;
+  box-sizing: border-box;
 }
 
 .chaptercontainer-collapsable-container
@@ -257,6 +258,7 @@
 .chaptercontainer-collapsable-container
   .lessoncomponent-image-container
   .lessoncomponent-lesson-assigned-badge {
+  position: absolute;
   top: 0;
   right: 0;
   width: 20px;
@@ -270,7 +272,17 @@
 .chaptercontainer-collapsable-container
   .lessoncomponent-image-container
   .lessoncomponent-lesson-assigned-badge
-  img {
+  .assigned-badge-icon-sheet {
+  width: 74%;
+  height: 74%;
+  object-fit: contain;
+  display: block;
+}
+
+.chaptercontainer-collapsable-container
+  .lessoncomponent-image-container
+  .lessoncomponent-lesson-assigned-badge
+  .assigned-badge-icon-check {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -282,7 +294,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   gap: 0;
   width: 100%;
   min-width: 0;
@@ -291,8 +303,8 @@
 
 .chaptercontainer-collapsable-container .lessoncomponent-lesson-details {
   color: #5b5b5b;
-  margin: 6px 0 4px;
-  min-height: 28px;
+  margin: 4px 0 2px;
+  min-height: 26px;
   width: 100%;
   font-size: clamp(16px, 1.6vh, 24px);
   font-weight: 500;
@@ -304,29 +316,25 @@
 }
 
 .chaptercontainer-collapsable-container .select-icon-container {
-  width: 100%;
+  width: 70%;
+  max-width: calc(clamp(110px, 28vw, 200px) * 0.9);
   display: flex;
   justify-content: center;
-  margin-top: 3px;
+  margin-top: 0;
   flex-shrink: 0;
 }
 
 .chaptercontainer-collapsable-container .select-Assignmenticon {
-  width: 80px;
+  width: 100%;
+  max-width: 100%;
   height: 25px;
   border: 1px solid #8e6cc6;
   border-radius: 6px;
   gap: 3px;
 }
 
-.chaptercontainer-collapsable-container .select-Assignmenticon img {
-  width: 10px;
-  height: 10px;
-}
-
 .chaptercontainer-collapsable-container .select-text {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
 }
 
 @media (max-width: 480px) {

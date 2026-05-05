@@ -5,6 +5,7 @@ import { PAGES } from '../../common/constants';
 import { t } from 'i18next';
 import SelectIconImage from '../../components/displaySubjects/SelectIconImage';
 import SelectIcon from './SelectIcon';
+import AssignedBadgeIcon from './AssignedBadgeIcon';
 import './ChapterWiseLessons.css';
 
 type ChapterGroup = {
@@ -172,25 +173,12 @@ const ChapterWiseLessons: React.FC<Props> = ({
                         />
                       </div>
                       {isAssignedLesson(lesson.id) ? (
-                        <span
+                        <AssignedBadgeIcon
                           id="chapter-wise-assigned-badge"
                           className="chapter-wise-assigned-badge"
-                        >
-                          <img
-                            src="assets/hideassigned.png"
-                            alt=""
-                            onError={(event) => {
-                              if (!event.currentTarget.dataset.retryAbsolute) {
-                                event.currentTarget.dataset.retryAbsolute = '1';
-                                event.currentTarget.src =
-                                  '/assets/hideassigned.png';
-                                return;
-                              }
-                              event.currentTarget.src =
-                                'assets/icons/assignmentSelect.svg';
-                            }}
-                          />
-                        </span>
+                          ariaLabel={t('Assigned') ?? ''}
+                          title={t('Assigned') ?? ''}
+                        />
                       ) : null}
                     </div>
 

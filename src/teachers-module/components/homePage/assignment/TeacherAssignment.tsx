@@ -22,6 +22,7 @@ import Loading from '../../../../components/Loading';
 import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
 import logger from '../../../../utility/logger';
+import AssignmentQrUnavailableAlert from './AssignmentQrUnavailableAlert';
 
 declare global {
   interface Window {
@@ -82,6 +83,7 @@ const TeacherAssignment: FC<{
       [TeacherAssignmentPageType.MANUAL]: { count: 0 },
       [TeacherAssignmentPageType.RECOMMENDED]: { count: 0 },
     });
+  const [showUnavailableQrAlert, setShowUnavailableQrAlert] = useState(false);
   const auth = ServiceConfig.getI().authHandler;
 
   useEffect(() => {
@@ -482,17 +484,19 @@ const TeacherAssignment: FC<{
                 const courseCode = assignments[subjectId]?.courseCode;
                 return (
                   <div key={index} className="assignment-list-item">
-                    <SelectIconImage
-                      localSrc={
-                        assignment?.id
-                          ? `teacher/lessons/icons/${assignment.id}.webp`
-                          : undefined
-                      }
-                      defaultSrc={'assets/icons/DefaultIcon.png'}
-                      webSrc={assignment?.image ?? ''}
-                      imageWidth="100px"
-                      imageHeight="100px"
-                    />
+                    <span className="assignment-list-item-thumb">
+                      <SelectIconImage
+                        localSrc={
+                          assignment?.id
+                            ? `teacher/lessons/icons/${assignment.id}.webp`
+                            : undefined
+                        }
+                        defaultSrc={'assets/icons/DefaultIcon.png'}
+                        webSrc={assignment?.image ?? ''}
+                        imageWidth="100%"
+                        imageHeight="100%"
+                      />
+                    </span>
                     <span className="assignment-list-item-name">
                       {courseCode === COURSES.ENGLISH
                         ? (assignment?.name ?? '')
@@ -553,7 +557,7 @@ const TeacherAssignment: FC<{
 
       const result = await api.getChapterIdbyQrLink(processedText);
       if (!result?.chapter_id) {
-        Toast.show({ text: t('Chapter Not Found') });
+        setShowUnavailableQrAlert(true);
         return;
       }
       const lessonList = await api.getLessonsForChapter(result?.chapter_id);
@@ -643,6 +647,10 @@ const TeacherAssignment: FC<{
         <Loading isLoading={loading} />
       ) : (
         <div className="teacher-assignments-page">
+          <AssignmentQrUnavailableAlert
+            isOpen={showUnavailableQrAlert}
+            onDismiss={() => setShowUnavailableQrAlert(false)}
+          />
           <p id="assignment-page-heading">{t('Assignments')}</p>
           <div className="manual-assignments">
             <div

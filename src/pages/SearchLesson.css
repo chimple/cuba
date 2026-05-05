@@ -19,6 +19,32 @@
   justify-content: space-between;
 }
 
+.search-container #lesson-card-image {
+  width: min(58%, 360px);
+  aspect-ratio: 16 / 10;
+  justify-self: center;
+  align-self: center;
+  background-color: #fff;
+  border: 2px solid #f50;
+  border-radius: 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.search-container #lesson-card-image > div {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.search-container #lesson-card-image .select-icon-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+
 .search-bottom {
   height: 6vh;
 }
