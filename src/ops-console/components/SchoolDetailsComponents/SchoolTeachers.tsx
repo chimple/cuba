@@ -200,7 +200,7 @@ const getWhatsappAvailabilityStatus = (
 ): WhatsappGroupStatusKey => {
   const waContact = normalizeWhatsappContactFlag(waContactRaw);
   if (waContact === 'yes') return WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP;
-  if (waContact === 'no') return WHATSAPP_GROUP_STATUS_KEYS.NOT_AVAILABLE;
+  if (waContact === 'no') return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
   return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
 };
 
