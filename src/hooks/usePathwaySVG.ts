@@ -79,6 +79,8 @@ const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 const PATH_SIZE = 5;
 const CHIMPLE_MOVE_DURATION_MS = 2000;
 const CHIMPLE_MOVE_FALLBACK_BUFFER_MS = 300;
+const FINAL_PATHWAY_REWARD_AUDIO_DELAY_MS = 1500;
+const FINAL_PATHWAY_REWARD_AUDIO_TIMEOUT_MS = 5000;
 
 const fetchLocalFile = async (path: string): Promise<string> => {
   const file = await Filesystem.readFile({
@@ -1023,6 +1025,8 @@ export function usePathwaySVG({
             pathEndIndex,
             completedLessonIndexForReward,
             isFinalPathwayReward,
+            isFinalPathwayReward &&
+              (willShowCelebration || didScheduleStickerCompletionPopup),
             () => {
               if (willShowCelebration && stickerPreviewPayload) {
                 setTimeout(
@@ -1379,6 +1383,7 @@ export function usePathwaySVG({
     pathEndIndex: number,
     completedLessonGlobalIndex: number,
     shouldSkipMascotMovement: boolean,
+    shouldPlayFinalRewardAudioBeforeComplete: boolean,
     onComplete?: () => void,
   ) {
     const rewardRecord =
@@ -1451,7 +1456,14 @@ export function usePathwaySVG({
       await invokeMascotCelebration(rewardStateValue);
       window.dispatchEvent(
         new CustomEvent(PATHWAY_REWARD_CELEBRATION_STARTED_EVENT, {
-          detail: { rewardId: newRewardId, stateValue: rewardStateValue },
+          detail: {
+            rewardId: newRewardId,
+            stateValue: rewardStateValue,
+            forceRewardAudio: shouldPlayFinalRewardAudioBeforeComplete,
+            rewardAudioClipName: shouldPlayFinalRewardAudioBeforeComplete
+              ? 'reward_02'
+              : 'reward',
+          },
         }),
       );
 
@@ -1476,13 +1488,30 @@ export function usePathwaySVG({
           pathEndIndex,
         );
       }
+      const finalRewardAudioWait = shouldPlayFinalRewardAudioBeforeComplete
+        ? waitForFinalPathwayRewardAudio()
+        : null;
       window.dispatchEvent(
         new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
-          detail: { rewardId: newRewardId, stateValue: rewardStateValue },
+          detail: {
+            rewardId: newRewardId,
+            stateValue: rewardStateValue,
+            forceRewardAudio: shouldPlayFinalRewardAudioBeforeComplete,
+            rewardAudioClipName: shouldPlayFinalRewardAudioBeforeComplete
+              ? 'reward_02'
+              : 'reward',
+            onRewardAudioComplete: shouldPlayFinalRewardAudioBeforeComplete
+              ? finalRewardAudioWait?.resolve
+              : undefined,
+          },
         }),
       );
 
       await Util.updateUserReward();
+      if (finalRewardAudioWait) {
+        await finalRewardAudioWait.promise;
+        await delay(FINAL_PATHWAY_REWARD_AUDIO_DELAY_MS);
+      }
       onComplete?.();
     };
 
@@ -1494,6 +1523,29 @@ export function usePathwaySVG({
     setRewardRiveContainer(rewardDiv);
 
     requestAnimationFrame(animateBezier);
+  }
+
+  function waitForFinalPathwayRewardAudio(): {
+    promise: Promise<void>;
+    resolve: () => void;
+  } {
+    let didResolve = false;
+    let resolveAudio = () => {};
+
+    const resolve = () => {
+      if (didResolve) return;
+      didResolve = true;
+      resolveAudio();
+    };
+
+    const promise = Promise.race([
+      new Promise<void>((resolvePromise) => {
+        resolveAudio = resolvePromise;
+      }),
+      delay(FINAL_PATHWAY_REWARD_AUDIO_TIMEOUT_MS).then(() => undefined),
+    ]);
+
+    return { promise, resolve };
   }
 
   function animateChimpleMovement(
