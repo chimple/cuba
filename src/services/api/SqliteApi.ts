@@ -3222,12 +3222,6 @@ export class SqliteApi implements ServiceApi {
         await this._serverApi.addParentToNewClass(newClassId, student.id);
       }
 
-      await this.assignCoursesToStudent(
-        student.id,
-        gradeDocId,
-        boardDocId,
-        languageDocId,
-      );
       return updatedStudent;
     } catch (error) {
       logger.error('Error updating student:', error);
