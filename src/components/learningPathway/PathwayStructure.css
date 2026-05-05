@@ -116,3 +116,10 @@
     animation: none;
   }
 }
+
+.PathwayStructure-reward-confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10000;
+}

@@ -29,7 +29,7 @@ jest.mock('../../utility/AudioUtil', () => ({
     playAudioOrTts: jest.fn(() => Promise.resolve(true)),
     stopAudioUrlOrTtsPlayback: jest.fn(() => Promise.resolve()),
     getLocalizedAudioUrl: jest.fn(() =>
-      Promise.resolve('/assets/audios/dailyReward/en_reward.mp3'),
+      Promise.resolve('/assets/audios/dailyReward/en_reward_01.mp3'),
     ),
     getAudioLanguageCode: jest.fn(() => Promise.resolve('en')),
   },
@@ -42,6 +42,7 @@ jest.mock('../../utility/util', () => ({
     getCanShowAvatar: jest.fn(() => Promise.resolve(true)),
   },
 }));
+jest.mock('react-confetti', () => () => <div data-testid="reward-confetti" />);
 
 jest.mock('./ChimpleRiveMascot', () => () => (
   <div data-testid="chimple-mascot" />
@@ -311,7 +312,7 @@ describe('PathwayStructure', () => {
     await waitFor(() => {
       expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenCalledWith(
         'dailyReward',
-        'reward',
+        'reward_01',
       );
     });
   });
@@ -344,8 +345,109 @@ describe('PathwayStructure', () => {
       );
     });
 
-    expect(AudioUtil.playAudioOrTts).not.toHaveBeenCalled();
+    expect(AudioUtil.getLocalizedAudioUrl).not.toHaveBeenCalled();
     expect(playMascotAudioFromLocalPath).not.toHaveBeenCalled();
+  });
+
+  test('forced final-node reward audio uses normal daily reward flow before continuing', async () => {
+    let crowdCheerOnComplete: (() => void) | undefined;
+    let rewardAudioComplete: (() => void) | undefined;
+    const onRewardAudioComplete = jest.fn();
+    const playMascotAudioFromLocalPath = jest.fn(
+      (
+        _localAudioPath: string,
+        _stateConfig: unknown,
+        playbackOptions?: { onPlaybackStop?: () => void },
+      ) => {
+        rewardAudioComplete = playbackOptions?.onPlaybackStop;
+        return Promise.resolve(true);
+      },
+    );
+
+    (AudioUtil.getLocalizedAudioUrl as jest.Mock).mockResolvedValue(
+      '/assets/audios/dailyReward/en_reward_02.mp3',
+    );
+    (AudioUtil.playAudioOrTts as jest.Mock).mockImplementation(
+      ({
+        audioUrl,
+        onComplete,
+      }: {
+        audioUrl?: string;
+        onComplete?: () => void;
+      }) => {
+        if (audioUrl !== '/assets/audios/common/crowd_cheer.mp3') {
+          return Promise.resolve(true);
+        }
+        crowdCheerOnComplete = onComplete;
+        return Promise.resolve(true);
+      },
+    );
+    (usePathwayData as jest.Mock).mockReturnValue(
+      buildHookData({ playMascotAudioFromLocalPath }),
+    );
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_PREVIEW_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        awardedStickerId: 'sticker-1',
+      }),
+    );
+
+    render(<PathwayStructure />);
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent(PATHWAY_REWARD_CELEBRATION_STARTED_EVENT, {
+          detail: {
+            rewardId: 'reward-1',
+            stateValue: 3,
+            forceRewardAudio: true,
+            dailyRewardAudioClipName: 'reward_02',
+          },
+        }),
+      );
+      window.dispatchEvent(
+        new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
+          detail: {
+            rewardId: 'reward-1',
+            stateValue: 3,
+            forceRewardAudio: true,
+            dailyRewardAudioClipName: 'reward_02',
+            onRewardAudioComplete,
+          },
+        }),
+      );
+    });
+
+    expect(onRewardAudioComplete).not.toHaveBeenCalled();
+
+    await act(async () => {
+      crowdCheerOnComplete?.();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(AudioUtil.getLocalizedAudioUrl).toHaveBeenCalledWith(
+        'dailyReward',
+        'reward_02',
+      );
+    });
+    await waitFor(() => {
+      expect(playMascotAudioFromLocalPath).toHaveBeenCalled();
+    });
+    expect(playMascotAudioFromLocalPath).toHaveBeenCalledWith(
+      '/assets/audios/dailyReward/en_reward_02.mp3',
+      expect.objectContaining({ stateValue: 3 }),
+      expect.objectContaining({ onPlaybackStop: expect.any(Function) }),
+    );
+    expect(onRewardAudioComplete).not.toHaveBeenCalled();
+
+    act(() => {
+      rewardAudioComplete?.();
+    });
+
+    expect(onRewardAudioComplete).toHaveBeenCalledTimes(1);
   });
 
   test('calls usePathwaySVG with required callbacks and refs', () => {

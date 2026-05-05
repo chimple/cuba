@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
+import Confetti from 'react-confetti';
 import './HomeworkPathwayStructure.css';
 import '../learningPathway/PathwayStructure.css';
 import { useHistory } from 'react-router';
@@ -94,6 +95,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   );
   const [rewardRiveContainer, setRewardRiveContainer] =
     useState<HTMLDivElement | null>(null);
+  const [showRewardConfetti, setShowRewardConfetti] = useState(false);
+  const rewardConfettiTimerRef = useRef<number | null>(null);
 
   const [rewardRiveState, setRewardRiveState] = useState<
     RewardBoxState.IDLE | RewardBoxState.SHAKING | RewardBoxState.BLAST
@@ -158,6 +161,33 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   useEffect(() => {
     currentMascotStateValueRef.current = chimpleRiveStateValue;
   }, [chimpleRiveStateValue]);
+
+  useEffect(() => {
+    const handleRewardCelebrationStarted = () => {
+      setShowRewardConfetti(true);
+      if (rewardConfettiTimerRef.current !== null) {
+        window.clearTimeout(rewardConfettiTimerRef.current);
+      }
+      rewardConfettiTimerRef.current = window.setTimeout(() => {
+        setShowRewardConfetti(false);
+      }, 4500);
+    };
+
+    window.addEventListener(
+      PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+      handleRewardCelebrationStarted,
+    );
+
+    return () => {
+      window.removeEventListener(
+        PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+        handleRewardCelebrationStarted,
+      );
+      if (rewardConfettiTimerRef.current !== null) {
+        window.clearTimeout(rewardConfettiTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     hasTodayRewardRef.current = hasTodayReward;
@@ -984,7 +1014,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         ),
         stickerPreviewPromise,
       ]);
-
       let didScheduleStickerCompletionPopup = false;
       if (
         completionOverrideParsed &&
@@ -1640,7 +1669,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           });
         };
 
-        const runRewardAnimation = async (newRewardId: string) => {
+        const runRewardAnimation = async (
+          newRewardId: string,
+          onComplete?: () => void,
+        ) => {
           // If offline, this might fail, wrap in try/catch or skip if no internet
           try {
             const rewardRecord = await api.getRewardById(newRewardId);
@@ -1756,6 +1788,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                   },
                 }),
               );
+              onComplete?.();
             };
             const rewardDiv = document.createElement('div');
             rewardDiv.style.width = '100%';
@@ -1861,14 +1894,14 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         const shouldSkipRewardAnimationForSticker =
           isStringReward &&
           isRewardFeatureOn &&
-          Boolean(pendingStickerRewardParsed?.awardedStickerId);
+          Boolean(pendingStickerRewardParsed?.awardedStickerId) &&
+          !willShowCelebration &&
+          !didScheduleStickerCompletionPopup;
         const shouldRunRewardAnimation =
           !isPlaceholderSnapshot &&
           isStringReward &&
           isRewardFeatureOn &&
-          !shouldSkipRewardAnimationForSticker &&
-          !willShowCelebration &&
-          !didScheduleStickerCompletionPopup;
+          !shouldSkipRewardAnimationForSticker;
 
         if (shouldSkipRewardAnimationForSticker) {
           setHasTodayReward(false);
@@ -1879,10 +1912,28 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         }
 
         if (shouldRunRewardAnimation) {
-          runRewardAnimation(newRewardId);
-        }
-
-        if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
+          runRewardAnimation(newRewardId, () => {
+            if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
+              window.setTimeout(() => {
+                handleStickerPreviewReady(
+                  stickerPreviewPayload,
+                  'pathway_completion_auto',
+                );
+              }, 0);
+            } else if (
+              didScheduleStickerCompletionPopup &&
+              stickerCompletionPayload
+            ) {
+              window.setTimeout(() => {
+                window.dispatchEvent(
+                  new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+                    detail: stickerCompletionPayload,
+                  }),
+                );
+              }, 0);
+            }
+          });
+        } else if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
           window.setTimeout(() => {
             handleStickerPreviewReady(
               stickerPreviewPayload,
@@ -2212,6 +2263,17 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           <RewardRive rewardRiveState={rewardRiveState} />,
           rewardRiveContainer,
         )}
+
+      {showRewardConfetti && (
+        <Confetti
+          className="HomeworkPathwayStructure-reward-confetti"
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={180}
+          gravity={0.28}
+        />
+      )}
 
       {hasTodayReward && isRewardFeatureOn && (
         <RewardBox onRewardClick={handleOpen} />
