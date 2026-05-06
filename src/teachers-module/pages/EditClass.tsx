@@ -72,8 +72,8 @@ const EditClass: FC = () => {
         let gradeId: string | undefined;
         if (gradeName) {
           try {
-            const grades = await api.getAllGrades();
-            gradeId = grades.find((g) => g.name === gradeName)?.id;
+            const grade = await api.getGradeByName(gradeName);
+            gradeId = grade?.id;
             if (!gradeId) {
               logger.warn('Grade not found for class mapping', {
                 className,

@@ -4,9 +4,9 @@ export const getStandardFromClassName = (
   const normalized = className.trim().toUpperCase();
   if (!normalized) return undefined;
 
-  if (normalized.startsWith('NURSERY')) return 'NURSERY';
-  if (normalized.startsWith('LKG')) return 'LKG';
-  if (normalized.startsWith('UKG')) return 'UKG';
+  if (normalized.includes('NURSERY')) return 'NURSERY';
+  if (normalized.includes('LKG')) return 'LKG';
+  if (normalized.includes('UKG')) return 'UKG';
 
   const numberPrefix = normalized.match(/^(\d+)/);
   if (numberPrefix?.[1]) {

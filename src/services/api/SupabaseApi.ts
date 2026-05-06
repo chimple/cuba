@@ -6336,6 +6336,29 @@ export class SupabaseApi implements ServiceApi {
       return;
     }
   }
+  async getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined> {
+    if (!this.supabase) return;
+
+    try {
+      const { data, error } = await this.supabase
+        .from('grade')
+        .select('*')
+        .eq('name', name)
+        .eq('is_deleted', false)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        logger.error('Error fetching grade by name:', error);
+        return;
+      }
+
+      return data ?? undefined;
+    } catch (err) {
+      logger.error('Unexpected error fetching grade by name:', err);
+      return;
+    }
+  }
   async getGradesByIds(ids: string[]): Promise<TableTypes<'grade'>[]> {
     if (!this.supabase || !ids || ids.length === 0) {
       return [];

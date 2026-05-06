@@ -426,6 +426,11 @@ export interface ServiceApi {
    */
   getGradeById(id: string): Promise<TableTypes<'grade'> | undefined>;
   /**
+   * @param name - The exact name of the grade.
+   * @returns {TableTypes<"grade">} or `undefined` if it could not find the grade with given `name`
+   */
+  getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined>;
+  /**
    * @param ids - IDs of the grades.
    * @returns {TableTypes<"grade">} or `[]` if it could not find the grade with given `ids`
    */

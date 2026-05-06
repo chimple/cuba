@@ -110,7 +110,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = 'db_issue10';
-  private DB_VERSION = 13;
+  private DB_VERSION = 14;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<'user'> | undefined;
@@ -2067,6 +2067,15 @@ export class SqliteApi implements ServiceApi {
     await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Grade} where id = "${id}"`,
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+  async getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined> {
+    await this.ensureInitialized();
+    const escapedName = name.replace(/'/g, "''");
+    const res = await this._db?.query(
+      `SELECT * FROM ${TABLES.Grade} WHERE name = '${escapedName}' AND is_deleted = 0 LIMIT 1`,
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
