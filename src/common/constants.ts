@@ -259,8 +259,9 @@ export const grade3 = 'd8cf7700-e00c-4bf8-a082-222b1ecfe1f7';
 export const aboveGrade3 = 'd05cb75a-adc2-4365-8548-30b2ac65b321';
 export const getDisplayGradeNumber = (gradeId?: string | null): string => {
   if (gradeId === belowGrade1 || gradeId === grade1) return '1';
+  if (gradeId === grade2) return '2';
   if (gradeId === grade3 || gradeId === aboveGrade3) return '3';
-  return '2';
+  return '';
 };
 export const CONTINUE = 'continue';
 
