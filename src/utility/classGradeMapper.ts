@@ -1,12 +1,23 @@
+import {
+  LOWER_GRADE_MAPPING,
+  LOWER_GRADE_STANDARDS,
+} from '../common/constants';
+
 export const getStandardFromClassName = (
   className: string,
 ): string | undefined => {
   const normalized = className.trim().toUpperCase();
   if (!normalized) return undefined;
 
-  if (normalized.includes('NURSERY')) return 'NURSERY';
-  if (normalized.includes('LKG')) return 'LKG';
-  if (normalized.includes('UKG')) return 'UKG';
+  if (normalized.includes(LOWER_GRADE_STANDARDS.NURSERY)) {
+    return LOWER_GRADE_STANDARDS.NURSERY;
+  }
+  if (normalized.includes(LOWER_GRADE_STANDARDS.LKG)) {
+    return LOWER_GRADE_STANDARDS.LKG;
+  }
+  if (normalized.includes(LOWER_GRADE_STANDARDS.UKG)) {
+    return LOWER_GRADE_STANDARDS.UKG;
+  }
 
   const numberPrefix = normalized.match(/^(\d+)/);
   if (numberPrefix?.[1]) {
@@ -23,9 +34,10 @@ export const getGradeNameFromStandard = (
   standard: string | undefined,
 ): string | undefined => {
   if (!standard) return undefined;
-  if (standard === 'NURSERY') return 'Preschool 1';
-  if (standard === 'LKG') return 'Preschool 2';
-  if (standard === 'UKG') return 'Preschool 3';
+
+  if (standard in LOWER_GRADE_MAPPING) {
+    return LOWER_GRADE_MAPPING[standard as keyof typeof LOWER_GRADE_MAPPING];
+  }
 
   const num = Number(standard);
   if (Number.isInteger(num) && num >= 1 && num <= 10) {

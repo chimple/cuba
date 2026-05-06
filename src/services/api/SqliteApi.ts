@@ -2072,10 +2072,9 @@ export class SqliteApi implements ServiceApi {
     return res.values[0];
   }
   async getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined> {
-    await this.ensureInitialized();
-    const escapedName = name.replace(/'/g, "''");
     const res = await this._db?.query(
-      `SELECT * FROM ${TABLES.Grade} WHERE name = '${escapedName}' AND is_deleted = 0 LIMIT 1`,
+      `SELECT * FROM ${TABLES.Grade} WHERE name = ? AND is_deleted = 0 LIMIT 1`,
+      [name],
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
