@@ -9,11 +9,6 @@ import {
   CURRENT_SQLITE_VERSION,
   DEFAULT_SUBJECT_IDS,
   OTHER_CURRICULUM,
-  grade1,
-  aboveGrade3,
-  belowGrade1,
-  grade2,
-  grade3,
   PROFILETYPE,
   LATEST_STARS,
   SchoolRoleMap,
@@ -1993,23 +1988,7 @@ export class SqliteApi implements ServiceApi {
     }
 
     let courseIds: TableTypes<'course'>[] = [];
-    let isGrade1: boolean = false;
-    let isGrade2: boolean = false;
-
-    if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
-      isGrade1 = true;
-    } else if (
-      gradeDocId === grade2 ||
-      gradeDocId === grade3 ||
-      gradeDocId === aboveGrade3
-    ) {
-      isGrade2 = true;
-    } else {
-      isGrade2 = true;
-    }
-
-    const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
-    const gradeCourses = await this.getCoursesByGrade(gradeLevel);
+    const gradeCourses = await this.getCoursesByGrade(gradeDocId);
     const curriculumCourses = gradeCourses.filter(
       (course: TableTypes<'course'>) => {
         return course.curriculum_id === boardDocId;
@@ -2034,12 +2013,11 @@ export class SqliteApi implements ServiceApi {
     remainingSubjects.forEach((subjectId) => {
       const courses = gradeCourses.filter((course) => {
         const subjectRef = course.subject_id;
-        if (
+        return (
           !!subjectRef &&
           subjectRef === subjectId &&
           course.curriculum_id === OTHER_CURRICULUM
-        )
-          return true;
+        );
       });
       courses.forEach((course) => {
         courseIds.push(course);

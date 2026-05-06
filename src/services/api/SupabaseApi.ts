@@ -8,11 +8,6 @@ import {
   TableTypes,
   MUTATE_TYPES,
   PROFILETYPE,
-  grade1,
-  belowGrade1,
-  grade2,
-  grade3,
-  aboveGrade3,
   DEFAULT_SUBJECT_IDS,
   OTHER_CURRICULUM,
   LIVE_QUIZ,
@@ -1759,24 +1754,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     let courseIds: TableTypes<'course'>[] = [];
-    let isGrade1 = false;
-    let isGrade2 = false;
-
-    if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
-      isGrade1 = true;
-    } else if (
-      gradeDocId === grade2 ||
-      gradeDocId === grade3 ||
-      gradeDocId === aboveGrade3
-    ) {
-      isGrade2 = true;
-    } else {
-      isGrade2 = true;
-    }
-
-    const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
-
-    const gradeCourses = await this.getCoursesByGrade(gradeLevel);
+    const gradeCourses = await this.getCoursesByGrade(gradeDocId);
     const curriculumCourses = gradeCourses.filter(
       (course) => course.curriculum_id === boardDocId,
     );

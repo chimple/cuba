@@ -7,7 +7,6 @@ import {
   COURSES,
   PAGES,
   TableTypes,
-  getDisplayGradeNumber,
 } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import ChapterContainer from '../components/library/ChapterContainer';
@@ -30,9 +29,13 @@ const ShowChapters: React.FC = () => {
   const locationState = (history.location.state ?? {}) as {
     course: TableTypes<'course'>;
     chapterId?: string;
+    gradeName?: string;
   };
   const course: TableTypes<'course'> = locationState.course;
   const routeChapterId = locationState.chapterId;
+  const [gradeName, setGradeName] = useState<string>(
+    locationState.gradeName ?? '',
+  );
   const [lessons, setLessons] = useState<Map<string, TableTypes<'lesson'>[]>>();
   const [chapters, setChapters] = useState<TableTypes<'chapter'>[]>();
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'>>();
@@ -61,15 +64,12 @@ const ShowChapters: React.FC = () => {
   const auth = ServiceConfig.getI().authHandler;
   const api = ServiceConfig.getI().apiHandler;
   const current_class = Util.getCurrentClass();
-  const displayGradeNumber = getDisplayGradeNumber(course.grade_id);
   const selectedCourseName =
     course.code === COURSES.ENGLISH
       ? (course.name ?? '')
       : t(course.name ?? '');
   const selectedCourseGrade =
-    course.code === COURSES.ENGLISH
-      ? `Grade ${displayGradeNumber}`
-      : `${t('Grade')} ${displayGradeNumber}`;
+    course.code === COURSES.ENGLISH ? gradeName : t(gradeName);
 
   useEffect(() => {
     const fetchClassDetails = async () => {
@@ -83,6 +83,15 @@ const ShowChapters: React.FC = () => {
     };
     fetchClassDetails();
   }, []);
+
+  useEffect(() => {
+    const fetchGradeName = async () => {
+      if (gradeName || !course.grade_id) return;
+      const grade = await api.getGradeById(course.grade_id);
+      setGradeName(grade?.name ?? '');
+    };
+    fetchGradeName();
+  }, [api, course.grade_id, gradeName]);
 
   const syncSelectedLesson = async (lesson: string): Promise<void> => {
     if (currentUser?.id)
