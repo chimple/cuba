@@ -7,8 +7,7 @@ import {
   COURSES,
   PAGES,
   TableTypes,
-  belowGrade1,
-  grade1,
+  getDisplayGradeNumber,
 } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import ChapterContainer from '../components/library/ChapterContainer';
@@ -62,16 +61,15 @@ const ShowChapters: React.FC = () => {
   const auth = ServiceConfig.getI().authHandler;
   const api = ServiceConfig.getI().apiHandler;
   const current_class = Util.getCurrentClass();
-  const isGrade1 =
-    course.grade_id === grade1 || course.grade_id === belowGrade1;
+  const displayGradeNumber = getDisplayGradeNumber(course.grade_id);
   const selectedCourseName =
     course.code === COURSES.ENGLISH
       ? (course.name ?? '')
       : t(course.name ?? '');
   const selectedCourseGrade =
     course.code === COURSES.ENGLISH
-      ? `Grade ${isGrade1 ? '1' : '2'}`
-      : `${t('Grade')} ${isGrade1 ? '1' : '2'}`;
+      ? `Grade ${displayGradeNumber}`
+      : `${t('Grade')} ${displayGradeNumber}`;
 
   useEffect(() => {
     const fetchClassDetails = async () => {

@@ -4,8 +4,7 @@ import './CourseComponent.css';
 import {
   COURSES,
   TableTypes,
-  belowGrade1,
-  grade1,
+  getDisplayGradeNumber,
 } from '../../../common/constants';
 import SelectIconImage from '../../../components/displaySubjects/SelectIconImage';
 
@@ -18,9 +17,7 @@ const CourseComponent: React.FC<CourseComponentProps> = ({
   course,
   handleCourseCLick,
 }) => {
-  // Determine if it's Grade 1 based on the grade_id
-  const isGrade1 =
-    course.grade_id === grade1 || course.grade_id === belowGrade1;
+  const displayGradeNumber = getDisplayGradeNumber(course.grade_id);
 
   return (
     <div onClick={handleCourseCLick} className="course-button">
@@ -37,8 +34,8 @@ const CourseComponent: React.FC<CourseComponentProps> = ({
 
         <div className="grade-name">
           {course.code === COURSES.ENGLISH
-            ? `Grade ${isGrade1 ? '1' : '2'}`
-            : `${t('Grade')} ${isGrade1 ? '1' : '2'}`}
+            ? `Grade ${displayGradeNumber}`
+            : `${t('Grade')} ${displayGradeNumber}`}
         </div>
       </div>
     </div>
