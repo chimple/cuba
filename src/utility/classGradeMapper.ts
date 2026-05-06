@@ -9,14 +9,12 @@ export const getStandardFromClassName = (
   const normalized = className.trim().toUpperCase();
   if (!normalized) return undefined;
 
-  if (normalized.includes(LOWER_GRADE_STANDARDS.NURSERY)) {
-    return LOWER_GRADE_STANDARDS.NURSERY;
-  }
-  if (normalized.includes(LOWER_GRADE_STANDARDS.LKG)) {
-    return LOWER_GRADE_STANDARDS.LKG;
-  }
-  if (normalized.includes(LOWER_GRADE_STANDARDS.UKG)) {
-    return LOWER_GRADE_STANDARDS.UKG;
+  const matchedLowerStandard = (
+    Object.values(LOWER_GRADE_STANDARDS) as string[]
+  ).find((standard) => normalized.includes(standard));
+
+  if (matchedLowerStandard) {
+    return matchedLowerStandard;
   }
 
   const numberPrefix = normalized.match(/^(\d+)/);
