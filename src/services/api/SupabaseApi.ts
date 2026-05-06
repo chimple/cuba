@@ -2212,7 +2212,45 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Error fetching grades:', gradeError);
       return { grades: [], courses };
     }
-    return { grades, courses };
+
+    const gradeMap: {
+      grades: TableTypes<'grade'>[];
+      courses: TableTypes<'course'>[];
+    } = { grades: [], courses: [] };
+
+    for (const courseDoc of courses) {
+      if (!gradeMap.courses.some((_course) => _course.id === courseDoc.id)) {
+        gradeMap.courses.push(courseDoc);
+      }
+    }
+
+    for (const grade of grades) {
+      if (!gradeMap.grades.some((_grade) => _grade.id === grade.id)) {
+        gradeMap.grades.push(grade);
+      }
+    }
+
+    if (!gradeMap.courses.some((_course) => _course.id === course.id)) {
+      gradeMap.courses.unshift(course);
+      if (
+        course.grade_id &&
+        !gradeMap.grades.some((grade) => grade.id === course.grade_id)
+      ) {
+        const courseGrade = await this.getGradeById(course.grade_id);
+        if (courseGrade) {
+          gradeMap.grades.unshift(courseGrade);
+        }
+      }
+    }
+
+    gradeMap.grades.sort((a, b) => {
+      const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
+      const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
+
+      return sortIndexA - sortIndexB;
+    });
+
+    return gradeMap;
   }
   getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error('Method not implemented.');
