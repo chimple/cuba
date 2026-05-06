@@ -223,5 +223,9 @@
       "ALTER TABLE lesson ADD COLUMN lido_lesson_id TEXT;",
       "ALTER TABLE lesson ADD COLUMN version INTEGER DEFAULT 1;"
     ]
+  },
+  "14": {
+    "toVersion": 14,
+    "statements": ["ALTER TABLE class ADD COLUMN grade_id TEXT;"]
   }
 }

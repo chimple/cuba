@@ -808,6 +808,7 @@ export type Database = {
           academic_year: string | null;
           created_at: string;
           firebase_id: string | null;
+          grade_id: string | null;
           group_id: string | null;
           id: string;
           image: string | null;
@@ -826,6 +827,7 @@ export type Database = {
           academic_year?: string | null;
           created_at?: string;
           firebase_id?: string | null;
+          grade_id?: string | null;
           group_id?: string | null;
           id?: string;
           image?: string | null;
@@ -844,6 +846,7 @@ export type Database = {
           academic_year?: string | null;
           created_at?: string;
           firebase_id?: string | null;
+          grade_id?: string | null;
           group_id?: string | null;
           id?: string;
           image?: string | null;
@@ -5118,6 +5121,7 @@ export type Database = {
           created_at: string;
           firebase_id: string | null;
           group_id: string | null;
+          grade_id: string | null;
           id: string;
           image: string | null;
           is_deleted: boolean | null;
