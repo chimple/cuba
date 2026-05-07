@@ -80,7 +80,7 @@ const PATH_SIZE = 5;
 const CHIMPLE_MOVE_DURATION_MS = 2000;
 const CHIMPLE_MOVE_FALLBACK_BUFFER_MS = 300;
 const FINAL_PATHWAY_REWARD_AUDIO_DELAY_MS = 4000;
-const FINAL_PATHWAY_REWARD_AUDIO_TIMEOUT_MS = 10000;
+const FINAL_PATHWAY_REWARD_AUDIO_TIMEOUT_MS = 6000;
 
 const fetchLocalFile = async (path: string): Promise<string> => {
   const file = await Filesystem.readFile({
@@ -391,6 +391,9 @@ export function usePathwaySVG({
         } catch (e) {}
       }
 
+      const isRewardFeatureEnabled =
+        localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
+
       const stickerPreviewPromise = isStickerBookPreviewOn
         ? overrideParsed
           ? getStickerPreviewPayload(
@@ -443,7 +446,7 @@ export function usePathwaySVG({
       ] = await Promise.all([
         stickerPreviewPromise,
         stickerCompletionPromise,
-        checkAndUpdateReward(),
+        isRewardFeatureEnabled ? checkAndUpdateReward() : Promise.resolve(null),
         loadPathwayTemplate(),
         loadGroupAsset(
           'flowerActive',
@@ -477,8 +480,6 @@ export function usePathwaySVG({
         ),
         loadHalo(),
       ]);
-      const isRewardFeatureEnabled =
-        localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
       const shouldWaitForRewardAnimationBeforeSticker =
         typeof newRewardIdFromCheck === 'string' && isRewardFeatureEnabled;
 
