@@ -127,7 +127,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
               id="chaptercontainer-chapter-name"
               className="chaptercontainer-chapter-name"
             >
-              {courseCode === COURSES.ENGLISH || COURSES.MATHS
+              {courseCode === COURSES.ENGLISH || courseCode === COURSES.MATHS
                 ? chapter.name
                 : t(chapter.name ?? '')}
             </div>

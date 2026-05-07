@@ -55,7 +55,8 @@ const SelectChapter: FC<{
                   />
                 </div>
                 <div className="selectchapter-title">
-                  {course?.code === COURSES.ENGLISH || COURSES.MATHS
+                  {course?.code === COURSES.ENGLISH ||
+                  course?.code === COURSES.MATHS
                     ? chapter?.name
                     : t(chapter?.name ?? '')}
                 </div>
