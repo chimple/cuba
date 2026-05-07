@@ -2414,17 +2414,14 @@ export class SqliteApi implements ServiceApi {
       const grade = JSON.parse(data.grade);
       delete data.grade;
       const courseDoc = data;
-      const gradeAlreadyExistsIndex = gradeMap.grades.findIndex(
-        (_grade) => _grade.id === grade.id,
-      );
-      if (gradeAlreadyExistsIndex >= 0) {
-        if (courseDoc.id === course.id) {
-          gradeMap.courses[gradeAlreadyExistsIndex] = courseDoc;
-        }
-        continue;
+
+      if (!gradeMap.courses.some((_course) => _course.id === courseDoc.id)) {
+        gradeMap.courses.push(courseDoc);
       }
-      gradeMap.courses.push(courseDoc);
-      gradeMap.grades.push(grade);
+
+      if (!gradeMap.grades.some((_grade) => _grade.id === grade.id)) {
+        gradeMap.grades.push(grade);
+      }
     }
 
     if (!gradeMap.courses.some((_course) => _course.id === course.id)) {
