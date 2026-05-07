@@ -9,11 +9,6 @@ import {
   CURRENT_SQLITE_VERSION,
   DEFAULT_SUBJECT_IDS,
   OTHER_CURRICULUM,
-  grade1,
-  aboveGrade3,
-  belowGrade1,
-  grade2,
-  grade3,
   PROFILETYPE,
   LATEST_STARS,
   SchoolRoleMap,
@@ -110,7 +105,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = 'db_issue10';
-  private DB_VERSION = 13;
+  private DB_VERSION = 14;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<'user'> | undefined;
@@ -1993,23 +1988,7 @@ export class SqliteApi implements ServiceApi {
     }
 
     let courseIds: TableTypes<'course'>[] = [];
-    let isGrade1: boolean = false;
-    let isGrade2: boolean = false;
-
-    if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
-      isGrade1 = true;
-    } else if (
-      gradeDocId === grade2 ||
-      gradeDocId === grade3 ||
-      gradeDocId === aboveGrade3
-    ) {
-      isGrade2 = true;
-    } else {
-      isGrade2 = true;
-    }
-
-    const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
-    const gradeCourses = await this.getCoursesByGrade(gradeLevel);
+    const gradeCourses = await this.getCoursesByGrade(gradeDocId);
     const curriculumCourses = gradeCourses.filter(
       (course: TableTypes<'course'>) => {
         return course.curriculum_id === boardDocId;
@@ -2034,12 +2013,11 @@ export class SqliteApi implements ServiceApi {
     remainingSubjects.forEach((subjectId) => {
       const courses = gradeCourses.filter((course) => {
         const subjectRef = course.subject_id;
-        if (
+        return (
           !!subjectRef &&
           subjectRef === subjectId &&
           course.curriculum_id === OTHER_CURRICULUM
-        )
-          return true;
+        );
       });
       courses.forEach((course) => {
         courseIds.push(course);
@@ -2067,6 +2045,14 @@ export class SqliteApi implements ServiceApi {
     await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Grade} where id = "${id}"`,
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+  async getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined> {
+    const res = await this._db?.query(
+      `SELECT * FROM ${TABLES.Grade} WHERE name = ? AND is_deleted = 0 LIMIT 1`,
+      [name],
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
@@ -3928,6 +3914,8 @@ export class SqliteApi implements ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -3939,6 +3927,7 @@ export class SqliteApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
+      grade_id: gradeId ?? null,
       group_id: groupId ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -3949,21 +3938,23 @@ export class SqliteApi implements ServiceApi {
       is_firebase: null,
       is_ops: null,
       ops_created_by: null,
-      standard: null,
+      standard: standard ?? null,
       status: null,
       whatsapp_invite_link: whatsapp_invite_link ?? null,
     };
 
     await this.executeQuery(
       `
-      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted, group_id, whatsapp_invite_link)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO class (id, name , image, school_id, grade_id, standard, created_at, updated_at, is_deleted, group_id, whatsapp_invite_link)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newClass.id,
         newClass.name,
         newClass.image,
         newClass.school_id,
+        newClass.grade_id,
+        newClass.standard,
         newClass.created_at,
         newClass.updated_at,
         newClass.is_deleted,

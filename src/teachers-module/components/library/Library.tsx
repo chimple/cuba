@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import './Library.css';
 import CourseComponent from './CourseComponent';
 import { useHistory } from 'react-router';
@@ -9,14 +9,11 @@ import { t } from 'i18next';
 
 const Library: React.FC = () => {
   const [courses, setCourses] = useState<TableTypes<'course'>[]>([]);
+  const [grades, setGrades] = useState<TableTypes<'grade'>[]>([]);
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
 
-  useEffect(() => {
-    init();
-  }, []);
-
-  const init = async () => {
+  const init = useCallback(async () => {
     const current_class = await Util.getCurrentClass();
     const course_res = await api.getCoursesForClassStudent(
       current_class?.id ?? '',
@@ -25,8 +22,14 @@ const Library: React.FC = () => {
     course_res.sort(
       (a, b) => (a.sort_index ?? Infinity) - (b.sort_index ?? Infinity),
     );
+    const grade_res = await api.getAllGrades();
+    setGrades(grade_res);
     setCourses(course_res);
-  };
+  }, [api]);
+
+  useEffect(() => {
+    init();
+  }, [init]);
 
   return (
     <div id="library-container" className="library-container">
@@ -35,15 +38,21 @@ const Library: React.FC = () => {
       </div>
       <div id="library-subtitle-divider" className="library-subtitle-divider" />
       <div id="library-course-grid" className="library-course-grid">
-        {courses.map((course) => (
-          <CourseComponent
-            key={course.id}
-            course={course}
-            handleCourseCLick={() => {
-              history.replace(PAGES.SHOW_CHAPTERS, { course });
-            }}
-          />
-        ))}
+        {courses.map((course) => {
+          const gradeName = grades.find(
+            (grade) => grade.id === course.grade_id,
+          )?.name;
+          return (
+            <CourseComponent
+              key={course.id}
+              course={course}
+              gradeName={gradeName}
+              handleCourseCLick={() => {
+                history.replace(PAGES.SHOW_CHAPTERS, { course, gradeName });
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );

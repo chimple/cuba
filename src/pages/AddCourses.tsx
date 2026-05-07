@@ -52,10 +52,6 @@ const AddCourses: React.FC = () => {
 
   const getCourses = async (): Promise<TableTypes<'course'>[]> => {
     setIsLoading(true);
-    let isGrade1: string | boolean = false;
-    let isGrade2: string | boolean = false;
-
-    // Check if gradeDocId matches any of the specified grades and assign the value to isGrade1 or isGrade2
     const currentStudent = await Util.getCurrentStudent();
     if (!currentStudent) {
       history.replace(PAGES.SELECT_MODE);

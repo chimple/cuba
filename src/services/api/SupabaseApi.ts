@@ -8,11 +8,6 @@ import {
   TableTypes,
   MUTATE_TYPES,
   PROFILETYPE,
-  grade1,
-  belowGrade1,
-  grade2,
-  grade3,
-  aboveGrade3,
   DEFAULT_SUBJECT_IDS,
   OTHER_CURRICULUM,
   LIVE_QUIZ,
@@ -1759,24 +1754,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     let courseIds: TableTypes<'course'>[] = [];
-    let isGrade1 = false;
-    let isGrade2 = false;
-
-    if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
-      isGrade1 = true;
-    } else if (
-      gradeDocId === grade2 ||
-      gradeDocId === grade3 ||
-      gradeDocId === aboveGrade3
-    ) {
-      isGrade2 = true;
-    } else {
-      isGrade2 = true;
-    }
-
-    const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
-
-    const gradeCourses = await this.getCoursesByGrade(gradeLevel);
+    const gradeCourses = await this.getCoursesByGrade(gradeDocId);
     const curriculumCourses = gradeCourses.filter(
       (course) => course.curriculum_id === boardDocId,
     );
@@ -5245,6 +5223,8 @@ export class SupabaseApi implements ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>> {
     if (!this.supabase) throw new Error('Supabase instance is not initialized');
 
@@ -5260,6 +5240,7 @@ export class SupabaseApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
+      grade_id: gradeId ?? null,
       group_id: groupId ?? null,
       created_at: timestamp,
       updated_at: timestamp,
@@ -5269,7 +5250,7 @@ export class SupabaseApi implements ServiceApi {
       is_firebase: null,
       is_ops: null,
       ops_created_by: null,
-      standard: null,
+      standard: standard ?? null,
       status: null,
       whatsapp_invite_link: whatsapp_invite_link ?? null,
     };
@@ -6330,6 +6311,29 @@ export class SupabaseApi implements ServiceApi {
       return data;
     } catch (err) {
       logger.error('Unexpected error fetching grade by ID:', err);
+      return;
+    }
+  }
+  async getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined> {
+    if (!this.supabase) return;
+
+    try {
+      const { data, error } = await this.supabase
+        .from('grade')
+        .select('*')
+        .eq('name', name)
+        .eq('is_deleted', false)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        logger.error('Error fetching grade by name:', error);
+        return;
+      }
+
+      return data ?? undefined;
+    } catch (err) {
+      logger.error('Unexpected error fetching grade by name:', err);
       return;
     }
   }

@@ -114,6 +114,18 @@ export enum SL_GRADES {
   GRADE2 = 'Grade 2',
 }
 
+export const LOWER_GRADE_STANDARDS = {
+  NURSERY: 'NURSERY',
+  LKG: 'LKG',
+  UKG: 'UKG',
+} as const;
+
+export const LOWER_GRADE_MAPPING = {
+  [LOWER_GRADE_STANDARDS.NURSERY]: 'Preschool 1',
+  [LOWER_GRADE_STANDARDS.LKG]: 'Preschool 2',
+  [LOWER_GRADE_STANDARDS.UKG]: 'Preschool 3',
+} as const;
+
 export enum PROGRAM_TAB {
   ALL = 'all',
   AT_SCHOOL = 'at_school',
