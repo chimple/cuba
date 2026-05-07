@@ -7,11 +7,13 @@ import Subjects from './Subjects';
 import { ServiceConfig } from '../services/ServiceConfig';
 import {
   CONTINUE,
+  COURSES,
   CURRENT_SELECTED_COURSE,
   GRADE_MAP,
   HOMEHEADERLIST,
   MODES,
   PAGES,
+  TableTypes,
 } from '../common/constants';
 
 const mockHistory = { replace: jest.fn(), push: jest.fn() };
@@ -71,20 +73,62 @@ jest.mock('../components/displaySubjects/SelectCourse', () => ({
 }));
 
 describe('Subjects', () => {
-  const student = { id: 'student-1', name: 'Student One' } as any;
-  const linkedClass = { id: 'class-1', name: 'Class One' } as any;
-  const grade1 = { id: 'g1', name: 'Grade 1' } as any;
-  const grade2 = { id: 'g2', name: 'Grade 2' } as any;
+  const student = {
+    id: 'student-1',
+    name: 'Student One',
+    language_id: 'lang-en',
+  } satisfies Partial<TableTypes<'user'>>;
+  const linkedClass = { id: 'class-1', name: 'Class One' };
+  const grade1 = { id: 'g1', name: 'Grade 1' };
+  const grade2 = { id: 'g2', name: 'Grade 2' };
+  const subjectMath = 'subject-math';
+  const curriculumId = 'curriculum-1';
+  const frameworkId = 'framework-1';
   const course1 = {
-    id: 'course-1',
+    id: 'course-math-base-g1',
     name: 'Mathematics',
+    code: 'maths',
     grade_id: 'g1',
-  } as any;
-  const course2 = {
-    id: 'course-2',
+    subject_id: subjectMath,
+    curriculum_id: curriculumId,
+    framework_id: frameworkId,
+  };
+  const englishGrade1 = {
+    id: 'course-en-g1',
     name: 'English',
+    code: 'en',
+    grade_id: 'g1',
+    subject_id: 'subject-en',
+    curriculum_id: curriculumId,
+    framework_id: frameworkId,
+  };
+  const course2 = {
+    id: 'course-en-g2',
+    name: 'English',
+    code: 'en',
     grade_id: 'g2',
-  } as any;
+    subject_id: 'subject-en',
+    curriculum_id: curriculumId,
+    framework_id: frameworkId,
+  };
+  const hindiMathGrade1 = {
+    id: 'course-math-hi-g1',
+    name: 'Mathematics-hi',
+    code: 'maths-hi',
+    grade_id: 'g1',
+    subject_id: subjectMath,
+    curriculum_id: curriculumId,
+    framework_id: frameworkId,
+  };
+  const englishMathGrade1 = {
+    id: 'course-math-en-g1',
+    name: 'Mathematics',
+    code: 'maths',
+    grade_id: 'g1',
+    subject_id: subjectMath,
+    curriculum_id: curriculumId,
+    framework_id: frameworkId,
+  };
 
   const mockApiHandler = {
     isStudentLinked: jest.fn(),
@@ -92,6 +136,8 @@ describe('Subjects', () => {
     getCoursesForClassStudent: jest.fn(),
     getCoursesForParentsStudent: jest.fn(),
     getDifferentGradesForCourse: jest.fn(),
+    getUserByDocId: jest.fn(),
+    getLanguageWithId: jest.fn(),
   };
 
   beforeEach(() => {
@@ -119,6 +165,11 @@ describe('Subjects', () => {
     mockApiHandler.getDifferentGradesForCourse.mockResolvedValue({
       grades: [grade1, grade2],
       courses: [course1, course2],
+    });
+    mockApiHandler.getUserByDocId.mockResolvedValue(student);
+    mockApiHandler.getLanguageWithId.mockResolvedValue({
+      id: 'lang-en',
+      code: COURSES.ENGLISH,
     });
 
     jest.spyOn(ServiceConfig, 'getI').mockReturnValue({
@@ -270,6 +321,88 @@ describe('Subjects', () => {
       expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toBeTruthy();
       expect(mockHistory.push).toHaveBeenCalledWith(
         `${PAGES.DISPLAY_CHAPTERS}?courseDocId=${course1.id}`,
+      );
+    });
+  });
+
+  it('navigates to the language-specific course when subject selection starts from the default course', async () => {
+    const user = userEvent.setup();
+    const hindiStudent = { ...student, language_id: 'lang-hi' };
+
+    mockGetCurrentStudent.mockReturnValue(hindiStudent);
+    mockApiHandler.getUserByDocId.mockResolvedValue(hindiStudent);
+    mockApiHandler.getLanguageWithId.mockResolvedValue({
+      id: 'lang-hi',
+      code: 'hi',
+    });
+    mockApiHandler.getDifferentGradesForCourse.mockResolvedValue({
+      grades: [grade1],
+      courses: [englishMathGrade1, hindiMathGrade1],
+    });
+
+    const view = render(<Subjects />);
+    await view.findByTestId('select-course');
+    await user.click(view.getByTestId(`course-${course1.id}`));
+
+    await eventually(() => {
+      expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toContain(
+        hindiMathGrade1.id,
+      );
+      expect(mockHistory.push).toHaveBeenCalledWith(
+        `${PAGES.DISPLAY_CHAPTERS}?courseDocId=${hindiMathGrade1.id}`,
+      );
+    });
+  });
+
+  it('falls back to the base English course when no language-specific course exists for the selected subject', async () => {
+    const user = userEvent.setup();
+    const kannadaStudent = { ...student, language_id: 'lang-kn' };
+
+    mockGetCurrentStudent.mockReturnValue(kannadaStudent);
+    mockApiHandler.getUserByDocId.mockResolvedValue(kannadaStudent);
+    mockApiHandler.getLanguageWithId.mockResolvedValue({
+      id: 'lang-kn',
+      code: 'kn',
+    });
+    mockApiHandler.getDifferentGradesForCourse.mockResolvedValue({
+      grades: [grade1],
+      courses: [englishMathGrade1],
+    });
+
+    const view = render(<Subjects />);
+    await view.findByTestId('select-course');
+    await user.click(view.getByTestId(`course-${course1.id}`));
+
+    await eventually(() => {
+      expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toContain(
+        englishMathGrade1.id,
+      );
+      expect(mockHistory.push).toHaveBeenCalledWith(
+        `${PAGES.DISPLAY_CHAPTERS}?courseDocId=${englishMathGrade1.id}`,
+      );
+    });
+  });
+
+  it('keeps non-maths subject selection on the selected course', async () => {
+    const user = userEvent.setup();
+    mockApiHandler.getCoursesForParentsStudent.mockResolvedValue([
+      englishGrade1,
+    ]);
+    mockApiHandler.getDifferentGradesForCourse.mockResolvedValue({
+      grades: [grade1, grade2],
+      courses: [englishGrade1, course2, hindiMathGrade1],
+    });
+
+    const view = render(<Subjects />);
+    await view.findByTestId('select-course');
+    await user.click(view.getByTestId(`course-${englishGrade1.id}`));
+
+    await eventually(() => {
+      expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toContain(
+        englishGrade1.id,
+      );
+      expect(mockHistory.push).toHaveBeenCalledWith(
+        `${PAGES.DISPLAY_CHAPTERS}?courseDocId=${englishGrade1.id}`,
       );
     });
   });
