@@ -16,7 +16,10 @@ type GrowthBookCacheRow = [string, GrowthBookCacheEntry];
 export const tryRestoreGrowthbookPayloadFromCache = async (
   gbInstance: GrowthBookLike,
   clientKey?: string,
+  apiHost: string = 'https://cdn.growthbook.io',
 ): Promise<boolean> => {
+  if (!clientKey) return false;
+
   try {
     // GrowthBook stores a cache map in localStorage under gbFeaturesCache.
     // We read that raw cache directly for offline recovery.
@@ -36,15 +39,11 @@ export const tryRestoreGrowthbookPayloadFromCache = async (
     });
     if (cacheRows.length === 0) return false;
 
-    const targetClientKey = clientKey ?? '';
-    const cacheKey = `https://cdn.growthbook.io||${targetClientKey}`;
+    const cacheKey = `${apiHost}||${clientKey}`;
     // Prefer exact key match; keep a contains fallback for legacy key shapes.
     const matched =
       cacheRows.find((entry) => entry[0] === cacheKey) ??
-      cacheRows.find(
-        (entry) =>
-          targetClientKey.length > 0 && entry[0].includes(targetClientKey),
-      ) ??
+      cacheRows.find((entry) => entry[0].includes(clientKey)) ??
       null;
 
     const payload = matched?.[1].data;

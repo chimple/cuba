@@ -87,6 +87,7 @@ persistor.subscribe(() => {
 });
 
 const isNativePlatform = Capacitor.isNativePlatform();
+const GB_API_HOST = 'https://cdn.growthbook.io';
 // GrowthBook cache tuning:
 // - staleTTL controls how quickly we revalidate when online.
 // - maxAge keeps last-known payload available for long offline windows.
@@ -162,7 +163,7 @@ const root = createRoot(container!, {
 });
 
 const gb = new GrowthBook({
-  apiHost: 'https://cdn.growthbook.io',
+  apiHost: GB_API_HOST,
   clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
   enableDevMode: true,
   trackingCallback: async (experiment, result) => {
@@ -205,6 +206,7 @@ void (async () => {
     await tryRestoreGrowthbookPayloadFromCache(
       gb,
       process.env.REACT_APP_GROWTHBOOK_ID,
+      GB_API_HOST,
     );
   }
 })();
