@@ -36,6 +36,7 @@ import {
   SpeechSynthesisUtterance,
 } from './utility/WindowsSpeech';
 import { GrowthBook, GrowthBookProvider } from '@growthbook/growthbook-react';
+import { configureCache } from '@growthbook/growthbook';
 import { Util } from './utility/util';
 import {
   CAN_HOT_UPDATE,
@@ -44,6 +45,7 @@ import {
   VERSION_KEY,
 } from './common/constants';
 import { GbProvider } from './growthbook/Growthbook';
+import { tryRestoreGrowthbookPayloadFromCache } from './growthbook/growthbookCacheRestore';
 import { initializeFireBase } from './services/Firebase';
 import * as Sentry from '@sentry/capacitor';
 import * as SentryReact from '@sentry/react';
@@ -85,6 +87,12 @@ persistor.subscribe(() => {
 });
 
 const isNativePlatform = Capacitor.isNativePlatform();
+const GB_API_HOST = 'https://cdn.growthbook.io';
+// GrowthBook cache tuning:
+// - staleTTL controls how quickly we revalidate when online.
+// - maxAge keeps last-known payload available for long offline windows.
+const GB_STALE_TTL_MS = 1000 * 60 * 5; // 5 minutes
+const GB_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 365; // 365 days
 // This function checks if the native version has changed, sets new version in preferences and resets the hot update bundle.
 async function checkNativeVersionAndReset() {
   const { versionName } = await LiveUpdate.getVersionName();
@@ -155,7 +163,7 @@ const root = createRoot(container!, {
 });
 
 const gb = new GrowthBook({
-  apiHost: 'https://cdn.growthbook.io',
+  apiHost: GB_API_HOST,
   clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
   enableDevMode: true,
   trackingCallback: async (experiment, result) => {
@@ -181,9 +189,27 @@ const gb = new GrowthBook({
     }
   },
 });
-gb.init({
-  streaming: true,
+// Keep cached feature payloads available for extended offline periods.
+// This improves startup resiliency when fetch fails on cold launch.
+configureCache({
+  staleTTL: GB_STALE_TTL_MS,
+  maxAge: GB_MAX_AGE_MS,
 });
+
+void (async () => {
+  const initResult = await gb.init({
+    streaming: true,
+  });
+  // Fallback path: if init cannot fetch from network, restore the most recent
+  // payload from local cache so feature evaluation can still work offline.
+  if (!initResult?.success) {
+    await tryRestoreGrowthbookPayloadFromCache(
+      gb,
+      process.env.REACT_APP_GROWTHBOOK_ID,
+      GB_API_HOST,
+    );
+  }
+})();
 const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 const renderApp = () => {
   root.render(
