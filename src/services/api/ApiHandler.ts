@@ -721,6 +721,9 @@ export class ApiHandler implements ServiceApi {
   async getGradeById(id: string): Promise<TableTypes<'grade'> | undefined> {
     return await this.s.getGradeById(id);
   }
+  async getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined> {
+    return await this.s.getGradeByName(name);
+  }
   async getGradesByIds(ids: string[]): Promise<TableTypes<'grade'>[]> {
     return await this.s.getGradesByIds(ids);
   }
@@ -1046,12 +1049,16 @@ export class ApiHandler implements ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>> {
     return this.s.createClass(
       schoolId,
       className,
       groupId,
       whatsapp_invite_link,
+      gradeId,
+      standard,
     );
   }
   updateClass(
