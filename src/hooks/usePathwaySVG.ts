@@ -391,6 +391,9 @@ export function usePathwaySVG({
         } catch (e) {}
       }
 
+      const isRewardFeatureEnabled =
+        localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
+
       const stickerPreviewPromise = isStickerBookPreviewOn
         ? overrideParsed
           ? getStickerPreviewPayload(
@@ -443,7 +446,7 @@ export function usePathwaySVG({
       ] = await Promise.all([
         stickerPreviewPromise,
         stickerCompletionPromise,
-        checkAndUpdateReward(),
+        isRewardFeatureEnabled ? checkAndUpdateReward() : Promise.resolve(null),
         loadPathwayTemplate(),
         loadGroupAsset(
           'flowerActive',
@@ -477,8 +480,6 @@ export function usePathwaySVG({
         ),
         loadHalo(),
       ]);
-      const isRewardFeatureEnabled =
-        localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
       const shouldWaitForRewardAnimationBeforeSticker =
         typeof newRewardIdFromCheck === 'string' && isRewardFeatureEnabled;
 
