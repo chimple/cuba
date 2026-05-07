@@ -93,6 +93,15 @@ describe('Subjects', () => {
     curriculum_id: curriculumId,
     framework_id: frameworkId,
   };
+  const englishGrade1 = {
+    id: 'course-en-g1',
+    name: 'English',
+    code: 'en',
+    grade_id: 'g1',
+    subject_id: 'subject-en',
+    curriculum_id: curriculumId,
+    framework_id: frameworkId,
+  };
   const course2 = {
     id: 'course-en-g2',
     name: 'English',
@@ -370,6 +379,30 @@ describe('Subjects', () => {
       );
       expect(mockHistory.push).toHaveBeenCalledWith(
         `${PAGES.DISPLAY_CHAPTERS}?courseDocId=${englishMathGrade1.id}`,
+      );
+    });
+  });
+
+  it('keeps non-maths subject selection on the selected course', async () => {
+    const user = userEvent.setup();
+    mockApiHandler.getCoursesForParentsStudent.mockResolvedValue([
+      englishGrade1,
+    ]);
+    mockApiHandler.getDifferentGradesForCourse.mockResolvedValue({
+      grades: [grade1, grade2],
+      courses: [englishGrade1, course2, hindiMathGrade1],
+    });
+
+    const view = render(<Subjects />);
+    await view.findByTestId('select-course');
+    await user.click(view.getByTestId(`course-${englishGrade1.id}`));
+
+    await eventually(() => {
+      expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toContain(
+        englishGrade1.id,
+      );
+      expect(mockHistory.push).toHaveBeenCalledWith(
+        `${PAGES.DISPLAY_CHAPTERS}?courseDocId=${englishGrade1.id}`,
       );
     });
   });

@@ -33,6 +33,9 @@ const getCourseCodeBase = (course?: TableTypes<'course'>) => {
   return matches?.[1] ?? normalizedCode;
 };
 
+const isMathCourse = (course?: TableTypes<'course'>) =>
+  getCourseCodeBase(course) === COURSES.MATHS;
+
 const isLanguageMatchedCourse = (
   course: TableTypes<'course'>,
   languageCode: string,
@@ -220,6 +223,8 @@ const Subjects: React.FC<{}> = ({}) => {
     );
 
     if (candidates.length === 0) return course;
+
+    if (!isMathCourse(course)) return course;
 
     const currentCourseCodeBase = getCourseCodeBase(course);
     const candidatesWithSameBaseCode = candidates.filter(

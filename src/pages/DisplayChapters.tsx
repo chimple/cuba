@@ -41,6 +41,9 @@ const getCourseCodeBase = (course?: TableTypes<'course'>) => {
   return matches?.[1] ?? normalizedCode;
 };
 
+const isMathCourse = (course?: TableTypes<'course'>) =>
+  getCourseCodeBase(course) === COURSES.MATHS;
+
 const isLanguageMatchedCourse = (
   course: TableTypes<'course'>,
   languageCode: string,
@@ -485,6 +488,10 @@ const DisplayChapters: FC<{}> = () => {
       return localGradeMap?.courses.find(
         (course) => course.grade_id === grade.id,
       );
+    }
+
+    if (!isMathCourse(currentCourse)) {
+      return candidates[0];
     }
 
     const currentCourseCodeBase = getCourseCodeBase(currentCourse);
