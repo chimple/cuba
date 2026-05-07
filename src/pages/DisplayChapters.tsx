@@ -97,6 +97,13 @@ const DisplayChapters: FC<{}> = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const courseDocId = searchParams.get('courseDocId');
+  const shouldTranslateCourseText =
+    currentCourse?.code !== COURSES.ENGLISH &&
+    currentCourse?.code !== COURSES.MATHS;
+  const getCourseBasedName = (name?: string | null) => {
+    if (!name) return '';
+    return shouldTranslateCourseText ? t(name) : name;
+  };
   const getCourseByUrl = useMemo(
     () =>
       localGradeMap?.courses.find((course) => courseDocId === course.id) ??
@@ -592,12 +599,8 @@ const DisplayChapters: FC<{}> = () => {
           <IonItem lines="none">
             <div className="chapter-name">
               {stage === STAGES.CHAPTERS
-                ? currentCourse
-                  ? t(currentCourse?.name)
-                  : ''
-                : currentChapter
-                  ? t(currentChapter.name ?? '')
-                  : ''}
+                ? getCourseBasedName(currentCourse?.name)
+                : getCourseBasedName(currentChapter?.name)}
             </div>
           </IonItem>
         </div>

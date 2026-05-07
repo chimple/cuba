@@ -2115,8 +2115,48 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return [];
 
     const student = this.currentStudent;
-    const langId = student?.language_id;
+    let langId = student?.language_id;
     const localeId = student?.locale_id;
+
+    const { data: chapterRows, error: chapterError } = await this.supabase
+      .from(TABLES.Chapter)
+      .select('course:course_id(code)')
+      .eq('id', chapterId)
+      .eq('is_deleted', false)
+      .limit(1);
+
+    if (chapterError) {
+      logger.error('Error fetching chapter course:', chapterError);
+    } else {
+      const courseCode = (
+        chapterRows?.[0]?.course as { code?: string | null } | null | undefined
+      )?.code
+        ?.trim()
+        .toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS_KANNADA
+          ? 'kn'
+          : courseCode === COURSES.MATHS_HINDI
+            ? 'hi'
+            : courseCode === COURSES.MATHS
+              ? 'en'
+              : null;
+
+      if (courseLanguageCode) {
+        const { data: languageRows, error: languageError } = await this.supabase
+          .from(TABLES.Language)
+          .select('id')
+          .ilike('code', courseLanguageCode)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (languageError) {
+          logger.error('Error fetching course language:', languageError);
+        } else if (languageRows?.[0]?.id) {
+          langId = languageRows[0].id;
+        }
+      }
+    }
 
     const orFilters: string[] = [];
     orFilters.push('language_id.is.null,locale_id.is.null');
@@ -12919,7 +12959,7 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase || !student) return {} as TableTypes<'subject_lesson'>;
 
     const studentId = student.id;
-    const langId = student.language_id ?? null;
+    let langId = student.language_id ?? null;
     const localeId = student.locale_id ?? null;
 
     try {
@@ -12928,6 +12968,48 @@ export class SupabaseApi implements ServiceApi {
         status: string | null;
         created_at: string | null;
       };
+
+      if (courseId) {
+        const { data: courseRows, error: courseError } = await this.supabase
+          .from('course')
+          .select('code')
+          .eq('id', courseId)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (courseError) {
+          logger.error('Error fetching subject lesson course:', courseError);
+        } else {
+          const courseCode = courseRows?.[0]?.code?.trim().toLowerCase();
+          const courseLanguageCode =
+            courseCode === COURSES.MATHS_KANNADA
+              ? 'kn'
+              : courseCode === COURSES.MATHS_HINDI
+                ? 'hi'
+                : courseCode === COURSES.MATHS
+                  ? 'en'
+                  : null;
+
+          if (courseLanguageCode) {
+            const { data: languageRows, error: languageError } =
+              await this.supabase
+                .from('language')
+                .select('id')
+                .ilike('code', courseLanguageCode)
+                .eq('is_deleted', false)
+                .limit(1);
+
+            if (languageError) {
+              logger.error(
+                'Error fetching subject lesson language:',
+                languageError,
+              );
+            } else if (languageRows?.[0]?.id) {
+              langId = languageRows[0].id;
+            }
+          }
+        }
+      }
 
       /* ==========================================
        * 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
@@ -13443,6 +13525,7 @@ export class SupabaseApi implements ServiceApi {
         body: { groupId, bot },
       },
     );
+    logger.info('getWhatsappGroupDetails response', data);
     if (error) {
       throw error;
     }
