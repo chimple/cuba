@@ -379,14 +379,14 @@ const LessonCard: React.FC<{
         <div>
           {showText ? (
             <p id={`lesson-card-name${isLoved ? '-fav-icon' : ''}`}>
-              {course?.code === COURSES.ENGLISH
+              {course?.code === COURSES.ENGLISH || COURSES.MATHS
                 ? lesson?.name
                 : t(lesson?.name ?? '')}
             </p>
           ) : null}
           {showChapterName && chapter?.name && (
             <div id={`chapter-title${isLoved ? '-fav-icon' : ''}`}>
-              {course?.code === COURSES.ENGLISH
+              {course?.code === COURSES.ENGLISH || COURSES.MATHS
                 ? chapter?.name
                 : t(chapter?.name)}
             </div>

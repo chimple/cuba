@@ -104,7 +104,7 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
           id="lessoncomponent-lesson-details"
           className="lessoncomponent-lesson-details"
         >
-          {courseCode === COURSES.ENGLISH
+          {courseCode === COURSES.ENGLISH || COURSES.MATHS
             ? lesson.name!.length > 15
               ? lesson.name?.substring(0, 15) + '...'
               : lesson.name

@@ -15,6 +15,11 @@ export enum COURSES {
   PUZZLE = 'puzzle',
   ENGLISH = 'en',
   MATHS = 'maths',
+  MATHS_HINDI = 'maths-hi',
+  MATHS_KANNADA = 'maths-kn',
+  KANNADA = 'kn',
+  HINDI = 'hi',
+  MARATHI = 'mr',
 }
 export enum CocosCourseIdentifier {
   maths = 'maths',

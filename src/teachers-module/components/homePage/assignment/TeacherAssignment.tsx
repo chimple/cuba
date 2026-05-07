@@ -498,7 +498,7 @@ const TeacherAssignment: FC<{
                       />
                     </span>
                     <span className="assignment-list-item-name">
-                      {courseCode === COURSES.ENGLISH
+                      {courseCode === COURSES.ENGLISH || COURSES.MATHS
                         ? (assignment?.name ?? '')
                         : t(assignment?.name ?? '')}
                     </span>

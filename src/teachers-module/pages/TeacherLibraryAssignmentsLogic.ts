@@ -243,7 +243,7 @@ export const useTeacherLibraryAssignmentsLogic = () => {
     group.lessons.filter((lesson) => lesson.selected).length;
 
   const getSubjectTitle = (group: AssignmentCourseGroup): string =>
-    group.courseCode === COURSES.ENGLISH
+    group.courseCode === COURSES.ENGLISH || COURSES.MATHS
       ? group.courseName
       : t(group.courseName ?? '');
 
@@ -251,13 +251,15 @@ export const useTeacherLibraryAssignmentsLogic = () => {
     group: AssignmentCourseGroup,
     lesson: AssignmentLessonItem,
   ): string =>
-    group.courseCode === COURSES.ENGLISH ? lesson.name : t(lesson.name ?? '');
+    group.courseCode === COURSES.ENGLISH || COURSES.MATHS
+      ? lesson.name
+      : t(lesson.name ?? '');
 
   const getChapterTitle = (
     group: AssignmentCourseGroup,
     lesson: AssignmentLessonItem,
   ): string =>
-    group.courseCode === COURSES.ENGLISH
+    group.courseCode === COURSES.ENGLISH || COURSES.MATHS
       ? lesson.chapterName
       : t(lesson.chapterName ?? '');
 
