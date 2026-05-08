@@ -261,9 +261,9 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 20px;
-  height: 20px;
-  transform: translate(40%, -40%);
+  width: 36px;
+  height: 36px;
+  transform: translate(22%, -22%);
   transform-origin: center;
   z-index: 3;
   pointer-events: none;
@@ -273,8 +273,8 @@
   .lessoncomponent-image-container
   .lessoncomponent-lesson-assigned-badge
   .assigned-badge-icon-sheet {
-  width: 74%;
-  height: 74%;
+  width: auto;
+  height: 100%;
   object-fit: contain;
   display: block;
 }

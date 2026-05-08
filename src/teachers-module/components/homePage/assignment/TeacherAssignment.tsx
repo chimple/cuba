@@ -22,7 +22,6 @@ import Loading from '../../../../components/Loading';
 import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
 import logger from '../../../../utility/logger';
-import AssignmentQrUnavailableAlert from './AssignmentQrUnavailableAlert';
 
 declare global {
   interface Window {
@@ -65,7 +64,8 @@ const TeacherAssignment: FC<{
   onLibraryClick: () => void;
   autoStartScan?: boolean;
   onScanHandled?: () => void;
-}> = ({ onLibraryClick, autoStartScan, onScanHandled }) => {
+  onUnavailableQr: () => void;
+}> = ({ onLibraryClick, autoStartScan, onScanHandled, onUnavailableQr }) => {
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
 
@@ -83,7 +83,6 @@ const TeacherAssignment: FC<{
       [TeacherAssignmentPageType.MANUAL]: { count: 0 },
       [TeacherAssignmentPageType.RECOMMENDED]: { count: 0 },
     });
-  const [showUnavailableQrAlert, setShowUnavailableQrAlert] = useState(false);
   const auth = ServiceConfig.getI().authHandler;
 
   useEffect(() => {
@@ -555,9 +554,14 @@ const TeacherAssignment: FC<{
         processedText = processedText.replace(/^http:\/\//, 'https://');
       }
 
-      const result = await api.getChapterIdbyQrLink(processedText);
+      const result = await api
+        .getChapterIdbyQrLink(processedText)
+        .catch((error) => {
+          logger.error('QR lookup failed:', error);
+          return undefined;
+        });
       if (!result?.chapter_id) {
-        setShowUnavailableQrAlert(true);
+        onUnavailableQr();
         return;
       }
       const lessonList = await api.getLessonsForChapter(result?.chapter_id);
@@ -647,10 +651,6 @@ const TeacherAssignment: FC<{
         <Loading isLoading={loading} />
       ) : (
         <div className="teacher-assignments-page">
-          <AssignmentQrUnavailableAlert
-            isOpen={showUnavailableQrAlert}
-            onDismiss={() => setShowUnavailableQrAlert(false)}
-          />
           <p id="assignment-page-heading">{t('Assignments')}</p>
           <div className="manual-assignments">
             <div
