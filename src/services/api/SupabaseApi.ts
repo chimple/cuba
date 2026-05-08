@@ -2190,7 +2190,64 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Error fetching grades:', gradeError);
       return { grades: [], courses };
     }
-    return { grades, courses };
+
+    const coursesByGradeId = new Map<string, TableTypes<'course'>[]>();
+    for (const courseDoc of courses) {
+      if (!courseDoc.grade_id) continue;
+      const currentGradeCourses =
+        coursesByGradeId.get(courseDoc.grade_id) ?? [];
+      currentGradeCourses.push(courseDoc);
+      coursesByGradeId.set(courseDoc.grade_id, currentGradeCourses);
+    }
+
+    if (course.grade_id) {
+      const currentGradeCourses = coursesByGradeId.get(course.grade_id) ?? [];
+      if (!currentGradeCourses.some((_course) => _course.id === course.id)) {
+        currentGradeCourses.push(course);
+        coursesByGradeId.set(course.grade_id, currentGradeCourses);
+      }
+    }
+
+    const currentCourseCode = course.code?.toLowerCase() ?? '';
+    const isMathCourse =
+      currentCourseCode === COURSES.MATHS ||
+      currentCourseCode.startsWith(`${COURSES.MATHS}-`);
+
+    const pickCourseForGrade = (gradeId: string) => {
+      const gradeCourses = coursesByGradeId.get(gradeId) ?? [];
+      if (gradeCourses.length === 0) return undefined;
+
+      if (course.grade_id === gradeId) {
+        const selectedCourse = gradeCourses.find(
+          (_course) => _course.id === course.id,
+        );
+        if (selectedCourse) return selectedCourse;
+      }
+
+      if (isMathCourse) {
+        const matchingMathVariant = gradeCourses.find(
+          (_course) => _course.code?.toLowerCase() === currentCourseCode,
+        );
+        if (matchingMathVariant) return matchingMathVariant;
+
+        const regularMathCourse = gradeCourses.find(
+          (_course) => _course.code?.toLowerCase() === COURSES.MATHS,
+        );
+        if (regularMathCourse) return regularMathCourse;
+      }
+
+      return gradeCourses[0];
+    };
+
+    return {
+      grades,
+      courses: grades
+        .map((grade) => pickCourseForGrade(grade.id))
+        .filter(
+          (mappedCourse): mappedCourse is TableTypes<'course'> =>
+            !!mappedCourse,
+        ),
+    };
   }
   getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error('Method not implemented.');

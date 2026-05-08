@@ -380,6 +380,58 @@ describe('DisplayChapters', () => {
     });
   });
 
+  it('keeps math language variant chapters when grade changes', async () => {
+    const user = userEvent.setup();
+    const mathKannadaGrade1 = {
+      id: 'math-kn-g1',
+      name: 'Maths-kannada',
+      grade_id: grade1.id,
+    };
+    const mathKannadaGrade2 = {
+      id: 'math-kn-g2',
+      name: 'Maths-kannada',
+      grade_id: grade2.id,
+    };
+
+    mockLocation.search = `?courseDocId=${mathKannadaGrade1.id}`;
+    mockApiHandler.getCoursesForClassStudent.mockResolvedValue([
+      mathKannadaGrade1,
+      mathKannadaGrade2,
+    ]);
+    mockApiHandler.getDifferentGradesForCourse.mockResolvedValue({
+      grades: [grade1, grade2],
+      courses: [mathKannadaGrade1, mathKannadaGrade2],
+    });
+    mockApiHandler.getChaptersForCourse.mockImplementation(
+      async (courseId: string) =>
+        courseId === mathKannadaGrade2.id
+          ? [{ id: 'chapter-kn-g2', name: 'Kannada Grade 2 Chapter' }]
+          : [{ id: 'chapter-kn-g1', name: 'Kannada Grade 1 Chapter' }],
+    );
+
+    const view = render(<DisplayChapters />);
+    await view.findByTestId('grade-dropdown');
+
+    await eventually(() => {
+      expect(view.getByTestId('chapter-chapter-kn-g1')).toBeInTheDocument();
+    });
+
+    await user.selectOptions(view.getByTestId('grade-dropdown'), grade2.id);
+
+    await eventually(() => {
+      expect(mockApiHandler.getChaptersForCourse).toHaveBeenCalledWith(
+        mathKannadaGrade2.id,
+      );
+      expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toContain(
+        mathKannadaGrade2.id,
+      );
+      expect(view.getByTestId('chapter-chapter-kn-g2')).toBeInTheDocument();
+      expect(
+        view.queryByTestId('chapter-chapter-kn-g1'),
+      ).not.toBeInTheDocument();
+    });
+  });
+
   it('selects chapter and opens lessons slider', async () => {
     const user = userEvent.setup();
     mockLocation.search = `?courseDocId=${course1.id}`;
