@@ -354,8 +354,9 @@ export const formatPercent = (value: unknown) => {
 
 // Percentage chip palette used by the listing metrics.
 export const getPercentMeta = (percent: number) => {
-  if (percent >= 80) return { bg: '#DFF7EB', color: '#2BA980' };
-  if (percent >= 60) return { bg: '#FEF3C7', color: '#E7A54E' };
+  const roundedPercent = Math.round(percent);
+  if (roundedPercent >= 70) return { bg: '#DFF7EB', color: '#2BA980' };
+  if (roundedPercent >= 31) return { bg: '#FEF3C7', color: '#E7A54E' };
   return { bg: '#FCE8E6', color: '#D35451' };
 };
 
