@@ -18,5 +18,6 @@ export const Default = () => (
     onLibraryClick={function (): void {
       throw new Error('Function not implemented.');
     }}
+    onUnavailableQr={() => {}}
   />
 );

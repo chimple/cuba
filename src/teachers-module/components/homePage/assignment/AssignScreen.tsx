@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC } from 'react';
 import { t } from 'i18next';
 import { ReactComponent as AssignScreenArrowIcon } from '../../../assets/icons/assign-screen-arrow.svg';
 import './AssignScreen.css';
@@ -11,22 +11,22 @@ import { PAGES } from '../../../../common/constants';
 import { ServiceConfig } from '../../../../services/ServiceConfig';
 import { Toast } from '@capacitor/toast';
 import logger from '../../../../utility/logger';
-import AssignmentQrUnavailableAlert from './AssignmentQrUnavailableAlert';
 
 interface AssignScreenProps {
   onLibraryClick: () => void;
   onScanQrClick: () => void;
   onRecommendedClick: () => void;
+  onUnavailableQr: () => void;
 }
 
 const AssignScreen: FC<AssignScreenProps> = ({
   onLibraryClick,
   onScanQrClick,
   onRecommendedClick,
+  onUnavailableQr,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  const [showUnavailableQrAlert, setShowUnavailableQrAlert] = useState(false);
 
   const handleScanQr = async () => {
     try {
@@ -41,9 +41,14 @@ const AssignScreen: FC<AssignScreenProps> = ({
       if (scannedText.startsWith('http://')) {
         scannedText = scannedText.replace(/^http:\/\//, 'https://');
       }
-      const response = await api.getChapterIdbyQrLink(scannedText);
+      const response = await api
+        .getChapterIdbyQrLink(scannedText)
+        .catch((error) => {
+          logger.error('QR lookup failed:', error);
+          return undefined;
+        });
       if (!response?.chapter_id) {
-        setShowUnavailableQrAlert(true);
+        onUnavailableQr();
         return;
       }
       const lessons = await api.getLessonsForChapter(response.chapter_id);
@@ -71,10 +76,6 @@ const AssignScreen: FC<AssignScreenProps> = ({
   };
   return (
     <section className="assign-screen">
-      <AssignmentQrUnavailableAlert
-        isOpen={showUnavailableQrAlert}
-        onDismiss={() => setShowUnavailableQrAlert(false)}
-      />
       <div id="assign-screen-content" className="assign-screen-content">
         <h2 id="assign-screen-heading" className="assign-screen-heading">
           {t('Choose from the three options for assignments')}

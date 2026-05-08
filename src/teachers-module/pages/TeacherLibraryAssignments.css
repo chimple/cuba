@@ -65,7 +65,7 @@
   justify-content: center;
   font-weight: 700;
   font-size: clamp(16px, 2.1vh, 20px);
-  padding: 0 6px;
+  padding: 0 8px;
 }
 
 .teacher-assignments-group-items {

@@ -11,13 +11,16 @@
 .assigned-badge-icon-sheet,
 .assigned-badge-icon-check {
   position: absolute;
+  top: 50%;
+  left: 50%;
   display: block;
   object-fit: contain;
+  transform: translate(-50%, -50%);
 }
 
 .assigned-badge-icon-sheet {
-  width: 74%;
-  height: 74%;
+  width: auto;
+  height: 100%;
   z-index: 1;
 }
 
