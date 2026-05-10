@@ -2373,13 +2373,11 @@ export class SqliteApi implements ServiceApi {
         ?.trim()
         .toLowerCase();
       const courseLanguageCode =
-        courseCode === COURSES.MATHS_KANNADA
-          ? 'kn'
-          : courseCode === COURSES.MATHS_HINDI
-            ? 'hi'
-            : courseCode === COURSES.MATHS
-              ? 'en'
-              : null;
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
 
       if (courseLanguageCode) {
         const languageRes = await this.executeQuery(
@@ -8829,13 +8827,11 @@ order by
             ?.trim()
             .toLowerCase();
           const courseLanguageCode =
-            courseCode === COURSES.MATHS_KANNADA
-              ? 'kn'
-              : courseCode === COURSES.MATHS_HINDI
-                ? 'hi'
-                : courseCode === COURSES.MATHS
-                  ? 'en'
-                  : null;
+            courseCode === COURSES.MATHS
+              ? COURSES.ENGLISH
+              : courseCode?.includes('-')
+                ? courseCode.split('-').pop()
+                : courseCode;
 
           if (courseLanguageCode) {
             const languageRes = await this.executeQuery(

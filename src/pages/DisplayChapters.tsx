@@ -3,6 +3,7 @@ import { useHistory, useLocation } from 'react-router';
 import { ServiceConfig } from '../services/ServiceConfig';
 import {
   CONTINUE,
+  COURSES,
   CURRENT_SELECTED_CHAPTER,
   CURRENT_SELECTED_COURSE,
   CURRENT_SELECTED_GRADE,
