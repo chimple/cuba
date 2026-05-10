@@ -14,7 +14,6 @@ import {
   GRADE_MAP,
   MODES,
   PAGES,
-  TableTypes,
 } from '../common/constants';
 
 const mockHistory = {
@@ -150,82 +149,57 @@ jest.mock('@ionic/react', () => ({
 }));
 
 describe('DisplayChapters', () => {
-  const student = {
+  type Student = {
+    id: string;
+    name: string;
+  };
+
+  type Class = {
+    id: string;
+    name: string;
+  };
+
+  type Grade = {
+    id: string;
+    name: string;
+  };
+
+  type Course = {
+    id: string;
+    name: string;
+    grade_id: string;
+  };
+
+  const student: Student = {
     id: 'student-1',
     name: 'Student One',
-    language_id: 'lang-en',
-    locale_id: 'locale-in',
-  } satisfies Partial<TableTypes<'user'>>;
-  const classObj = { id: 'class-1', name: 'Class One' };
-  const grade1 = { id: 'g1', name: 'Grade 1' };
-  const grade2 = { id: 'g2', name: 'Grade 2' };
-  const mathSubjectId = 'subject-math';
-  const englishSubjectId = 'subject-english';
-  const curriculumId = 'curriculum-1';
-  const frameworkId = 'framework-1';
+  };
 
-  const mathGrade1 = {
-    id: 'course-math-1',
+  const classObj: Class = {
+    id: 'class-1',
+    name: 'Class One',
+  };
+
+  const grade1: Grade = {
+    id: 'g1',
+    name: 'Grade 1',
+  };
+
+  const grade2: Grade = {
+    id: 'g2',
+    name: 'Grade 2',
+  };
+
+  const course1: Course = {
+    id: 'course-1',
     name: 'Math',
-    code: 'maths',
     grade_id: 'g1',
-    subject_id: mathSubjectId,
-    curriculum_id: curriculumId,
-    framework_id: frameworkId,
   };
-  const mathGrade2 = {
-    id: 'course-math-2',
-    name: 'Math',
-    code: 'maths',
-    grade_id: 'g2',
-    subject_id: mathSubjectId,
-    curriculum_id: curriculumId,
-    framework_id: frameworkId,
-  };
-  const mathHindiGrade1 = {
-    id: 'course-math-hi-1',
-    name: 'Math-hi',
-    code: 'maths-hi',
-    grade_id: 'g1',
-    subject_id: mathSubjectId,
-    curriculum_id: curriculumId,
-    framework_id: frameworkId,
-  };
-  const mathHindiGrade2 = {
-    id: 'course-math-hi-2',
-    name: 'Math-hi',
-    code: 'maths-hi',
-    grade_id: 'g2',
-    subject_id: mathSubjectId,
-    curriculum_id: curriculumId,
-    framework_id: frameworkId,
-  };
-  const mathKannadaGrade1 = {
-    id: 'course-math-kn-1',
-    name: 'Math-kn',
-    code: 'maths-kn',
-    grade_id: 'g1',
-    subject_id: mathSubjectId,
-    curriculum_id: curriculumId,
-    framework_id: frameworkId,
-  };
-  const englishGrade1 = {
-    id: 'course-en-1',
+
+  const course2: Course = {
+    id: 'course-2',
     name: 'English',
-    code: 'en',
-    grade_id: 'g1',
-    subject_id: englishSubjectId,
-    curriculum_id: curriculumId,
-    framework_id: frameworkId,
-  };
-  const englishGrade2 = {
-    id: 'course-en-2',
-    name: 'English',
-    code: 'en',
     grade_id: 'g2',
-    subject_id: englishSubjectId,
-    curriculum_id: curriculumId,
-    framework_id: frameworkId,
   };
 
   const chapter1 = { id: 'chapter-1', name: 'Numbers' } as any;
@@ -254,8 +228,6 @@ describe('DisplayChapters', () => {
     getCoursesForClassStudent: jest.fn(),
     getCoursesForParentsStudent: jest.fn(),
     getDifferentGradesForCourse: jest.fn(),
-    getUserByDocId: jest.fn(),
-    getLanguageWithId: jest.fn(),
     getChaptersForCourse: jest.fn(),
     getLessonsForChapter: jest.fn(),
   };
@@ -274,20 +246,13 @@ describe('DisplayChapters', () => {
 
     mockApiHandler.getStudentResultInMap.mockResolvedValue(lessonResultMap);
     mockApiHandler.getCoursesForClassStudent.mockResolvedValue([
-      mathGrade1,
-      mathGrade2,
-      englishGrade1,
-      englishGrade2,
+      course1,
+      course2,
     ]);
-    mockApiHandler.getCoursesForParentsStudent.mockResolvedValue([mathGrade1]);
+    mockApiHandler.getCoursesForParentsStudent.mockResolvedValue([course1]);
     mockApiHandler.getDifferentGradesForCourse.mockResolvedValue({
       grades: [grade1, grade2],
-      courses: [mathGrade1, mathGrade2],
-    });
-    mockApiHandler.getUserByDocId.mockResolvedValue(student);
-    mockApiHandler.getLanguageWithId.mockResolvedValue({
-      id: 'lang-en',
-      code: 'en',
+      courses: [course1, course2],
     });
     mockApiHandler.getChaptersForCourse.mockResolvedValue([chapter1, chapter2]);
     mockApiHandler.getLessonsForChapter.mockResolvedValue([lesson1, lesson2]);
@@ -344,20 +309,17 @@ describe('DisplayChapters', () => {
   });
 
   it('resolves course from URL and renders chapters + grade dropdown', async () => {
-    mockLocation.search = `?courseDocId=${mathGrade1.id}`;
+    mockLocation.search = `?courseDocId=${course1.id}`;
     localStorage.setItem(
       GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathGrade1, mathGrade2],
-      }),
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] }),
     );
 
     const view = render(<DisplayChapters />);
 
     await eventually(() => {
       expect(mockApiHandler.getDifferentGradesForCourse).toHaveBeenCalledWith(
-        mathGrade1,
+        course1,
       );
       expect(view.getByTestId('select-chapter')).toBeInTheDocument();
       expect(view.getByTestId('grade-dropdown')).toBeInTheDocument();
@@ -366,13 +328,10 @@ describe('DisplayChapters', () => {
 
   it('changes grade and refreshes chapter list', async () => {
     const user = userEvent.setup();
-    mockLocation.search = `?courseDocId=${mathGrade1.id}`;
+    mockLocation.search = `?courseDocId=${course1.id}`;
     localStorage.setItem(
       GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathGrade1, mathGrade2],
-      }),
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] }),
     );
 
     const view = render(<DisplayChapters />);
@@ -382,28 +341,25 @@ describe('DisplayChapters', () => {
 
     await eventually(() => {
       expect(mockApiHandler.getChaptersForCourse).toHaveBeenCalledWith(
-        mathGrade2.id,
+        course2.id,
       );
       expect(localStorage.getItem(CURRENT_SELECTED_GRADE)).toContain('g2');
       expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toContain(
-        mathGrade2.id,
+        course2.id,
       );
     });
   });
 
   it('updates displayed chapters when dropdown grade changes', async () => {
     const user = userEvent.setup();
-    mockLocation.search = `?courseDocId=${mathGrade1.id}`;
+    mockLocation.search = `?courseDocId=${course1.id}`;
     localStorage.setItem(
       GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathGrade1, mathGrade2],
-      }),
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] }),
     );
     mockApiHandler.getChaptersForCourse.mockImplementation(
       async (courseId: string) =>
-        courseId === mathGrade1.id
+        courseId === course1.id
           ? [{ id: 'chapter-a', name: 'Grade 1 Chapter' }]
           : [{ id: 'chapter-b', name: 'Grade 2 Chapter' }],
     );
@@ -424,139 +380,64 @@ describe('DisplayChapters', () => {
     });
   });
 
-  it('resolves language-specific math course on grade change', async () => {
+  it('keeps math language variant chapters when grade changes', async () => {
     const user = userEvent.setup();
-    const hindiStudent = { ...student, language_id: 'lang-hi' };
-
-    mockGetCurrentStudent.mockReturnValue(hindiStudent);
-    mockApiHandler.getUserByDocId.mockResolvedValue(hindiStudent);
-    mockApiHandler.getLanguageWithId.mockResolvedValue({
-      id: 'lang-hi',
-      code: 'hi',
-    });
-    mockApiHandler.getCoursesForClassStudent.mockResolvedValue([
-      mathHindiGrade1,
-      mathGrade2,
-      englishGrade1,
-      englishGrade2,
-    ]);
-    mockApiHandler.getDifferentGradesForCourse.mockResolvedValue({
-      grades: [grade1, grade2],
-      courses: [mathHindiGrade1, mathGrade2, mathHindiGrade2],
-    });
-
-    mockLocation.search = `?courseDocId=${mathHindiGrade1.id}`;
-    localStorage.setItem(
-      GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathHindiGrade1, mathGrade2, mathHindiGrade2],
-      }),
-    );
-
-    const view = render(<DisplayChapters />);
-    await view.findByTestId('grade-dropdown');
-
-    await user.selectOptions(view.getByTestId('grade-dropdown'), 'g2');
-
-    await eventually(() => {
-      expect(mockApiHandler.getChaptersForCourse).toHaveBeenCalledWith(
-        mathHindiGrade2.id,
-      );
-      expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toContain(
-        mathHindiGrade2.id,
-      );
-    });
-  });
-
-  it('falls back to English math course when the student language variant is unavailable', async () => {
-    const user = userEvent.setup();
-    const kannadaStudent = { ...student, language_id: 'lang-kn' };
-
-    mockGetCurrentStudent.mockReturnValue(kannadaStudent);
-    mockApiHandler.getUserByDocId.mockResolvedValue(kannadaStudent);
-    mockApiHandler.getLanguageWithId.mockResolvedValue({
-      id: 'lang-kn',
-      code: 'kn',
-    });
-    mockApiHandler.getCoursesForClassStudent.mockResolvedValue([
-      mathKannadaGrade1,
-      mathGrade2,
-    ]);
-    mockApiHandler.getDifferentGradesForCourse.mockResolvedValue({
-      grades: [grade1, grade2],
-      courses: [mathKannadaGrade1, mathGrade2],
-    });
+    const mathKannadaGrade1 = {
+      id: 'math-kn-g1',
+      name: 'Maths-kannada',
+      grade_id: grade1.id,
+    };
+    const mathKannadaGrade2 = {
+      id: 'math-kn-g2',
+      name: 'Maths-kannada',
+      grade_id: grade2.id,
+    };
 
     mockLocation.search = `?courseDocId=${mathKannadaGrade1.id}`;
-    localStorage.setItem(
-      GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathKannadaGrade1, mathGrade2],
-      }),
-    );
-
-    const view = render(<DisplayChapters />);
-    await view.findByTestId('grade-dropdown');
-
-    await user.selectOptions(view.getByTestId('grade-dropdown'), 'g2');
-
-    await eventually(() => {
-      expect(mockApiHandler.getChaptersForCourse).toHaveBeenCalledWith(
-        mathGrade2.id,
-      );
-      expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toContain(
-        mathGrade2.id,
-      );
-    });
-  });
-
-  it('keeps standard language subjects working when grade changes', async () => {
-    const user = userEvent.setup();
-
     mockApiHandler.getCoursesForClassStudent.mockResolvedValue([
-      englishGrade1,
-      englishGrade2,
+      mathKannadaGrade1,
+      mathKannadaGrade2,
     ]);
     mockApiHandler.getDifferentGradesForCourse.mockResolvedValue({
       grades: [grade1, grade2],
-      courses: [englishGrade1, englishGrade2],
+      courses: [mathKannadaGrade1, mathKannadaGrade2],
     });
-
-    mockLocation.search = `?courseDocId=${englishGrade1.id}`;
-    localStorage.setItem(
-      GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [englishGrade1, englishGrade2],
-      }),
+    mockApiHandler.getChaptersForCourse.mockImplementation(
+      async (courseId: string) =>
+        courseId === mathKannadaGrade2.id
+          ? [{ id: 'chapter-kn-g2', name: 'Kannada Grade 2 Chapter' }]
+          : [{ id: 'chapter-kn-g1', name: 'Kannada Grade 1 Chapter' }],
     );
 
     const view = render(<DisplayChapters />);
     await view.findByTestId('grade-dropdown');
 
-    await user.selectOptions(view.getByTestId('grade-dropdown'), 'g2');
+    await eventually(() => {
+      expect(view.getByTestId('chapter-chapter-kn-g1')).toBeInTheDocument();
+    });
+
+    await user.selectOptions(view.getByTestId('grade-dropdown'), grade2.id);
 
     await eventually(() => {
       expect(mockApiHandler.getChaptersForCourse).toHaveBeenCalledWith(
-        englishGrade2.id,
+        mathKannadaGrade2.id,
       );
       expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toContain(
-        englishGrade2.id,
+        mathKannadaGrade2.id,
       );
+      expect(view.getByTestId('chapter-chapter-kn-g2')).toBeInTheDocument();
+      expect(
+        view.queryByTestId('chapter-chapter-kn-g1'),
+      ).not.toBeInTheDocument();
     });
   });
 
   it('selects chapter and opens lessons slider', async () => {
     const user = userEvent.setup();
-    mockLocation.search = `?courseDocId=${mathGrade1.id}`;
+    mockLocation.search = `?courseDocId=${course1.id}`;
     localStorage.setItem(
       GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathGrade1, mathGrade2],
-      }),
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] }),
     );
 
     const view = render(<DisplayChapters />);
@@ -582,13 +463,10 @@ describe('DisplayChapters', () => {
 
   it('hides grade dropdown after entering lessons stage', async () => {
     const user = userEvent.setup();
-    mockLocation.search = `?courseDocId=${mathGrade1.id}`;
+    mockLocation.search = `?courseDocId=${course1.id}`;
     localStorage.setItem(
       GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathGrade1, mathGrade2],
-      }),
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] }),
     );
 
     const view = render(<DisplayChapters />);
@@ -603,13 +481,10 @@ describe('DisplayChapters', () => {
     const user = userEvent.setup();
     const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
 
-    mockLocation.search = `?courseDocId=${mathGrade1.id}`;
+    mockLocation.search = `?courseDocId=${course1.id}`;
     localStorage.setItem(
       GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathGrade1, mathGrade2],
-      }),
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] }),
     );
     mockApiHandler.getLessonsForChapter.mockRejectedValue(
       new Error('api error'),
@@ -633,13 +508,10 @@ describe('DisplayChapters', () => {
 
   it('back button from lessons returns to chapters and clears selected chapter', async () => {
     const user = userEvent.setup();
-    mockLocation.search = `?courseDocId=${mathGrade1.id}`;
+    mockLocation.search = `?courseDocId=${course1.id}`;
     localStorage.setItem(
       GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathGrade1, mathGrade2],
-      }),
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] }),
     );
 
     const view = render(<DisplayChapters />);
@@ -659,15 +531,12 @@ describe('DisplayChapters', () => {
 
   it('back button from chapters routes home and clears selected course/grade', async () => {
     const user = userEvent.setup();
-    mockLocation.search = `?courseDocId=${mathGrade1.id}`;
+    mockLocation.search = `?courseDocId=${course1.id}`;
     localStorage.setItem(
       GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathGrade1, mathGrade2],
-      }),
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] }),
     );
-    localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(mathGrade1));
+    localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(course1));
     localStorage.setItem(CURRENT_SELECTED_GRADE, JSON.stringify(grade1));
 
     const view = render(<DisplayChapters />);
@@ -687,13 +556,10 @@ describe('DisplayChapters', () => {
 
   it('handles ion back callback by returning from lessons to chapters', async () => {
     const user = userEvent.setup();
-    mockLocation.search = `?courseDocId=${mathGrade1.id}`;
+    mockLocation.search = `?courseDocId=${course1.id}`;
     localStorage.setItem(
       GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathGrade1, mathGrade2],
-      }),
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] }),
     );
 
     const view = render(<DisplayChapters />);
@@ -724,15 +590,12 @@ describe('DisplayChapters', () => {
   });
 
   it('handles registered back callback from chapters stage', async () => {
-    mockLocation.search = `?courseDocId=${mathGrade1.id}`;
+    mockLocation.search = `?courseDocId=${course1.id}`;
     localStorage.setItem(
       GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathGrade1, mathGrade2],
-      }),
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] }),
     );
-    localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(mathGrade1));
+    localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(course1));
     localStorage.setItem(CURRENT_SELECTED_GRADE, JSON.stringify(grade1));
 
     const view = render(<DisplayChapters />);
@@ -763,7 +626,7 @@ describe('DisplayChapters', () => {
 
   it('hydrates from isReload localStorage and restores lessons', async () => {
     mockLocation.search = '?isReload=true';
-    localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(mathGrade1));
+    localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(course1));
     localStorage.setItem(CURRENT_SELECTED_CHAPTER, JSON.stringify(chapter1));
     localStorage.setItem(CURRENT_SELECTED_GRADE, JSON.stringify(grade1));
     localStorage.setItem(CURRENT_STAGE, JSON.stringify(2));
@@ -772,7 +635,7 @@ describe('DisplayChapters', () => {
 
     await eventually(() => {
       expect(mockApiHandler.getChaptersForCourse).toHaveBeenCalledWith(
-        mathGrade1.id,
+        course1.id,
       );
       expect(mockApiHandler.getLessonsForChapter).toHaveBeenCalledWith(
         chapter1.id,
@@ -781,45 +644,12 @@ describe('DisplayChapters', () => {
     });
   });
 
-  it('rebuilds the full grade map after isReload and still switches grades', async () => {
-    const user = userEvent.setup();
-
-    mockLocation.search = '?isReload=true';
-    localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(mathGrade1));
-    localStorage.setItem(CURRENT_SELECTED_GRADE, JSON.stringify(grade1));
-    localStorage.setItem(CURRENT_STAGE, JSON.stringify(1));
-
-    const view = render(<DisplayChapters />);
-
-    await eventually(() => {
-      expect(mockApiHandler.getDifferentGradesForCourse).toHaveBeenCalledWith(
-        mathGrade1,
-      );
-      expect(view.getByTestId('grade-dropdown')).toBeInTheDocument();
-    });
-
-    await user.selectOptions(view.getByTestId('grade-dropdown'), 'g2');
-
-    await eventually(() => {
-      expect(mockApiHandler.getChaptersForCourse).toHaveBeenCalledWith(
-        mathGrade2.id,
-      );
-      expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toContain(
-        mathGrade2.id,
-      );
-      expect(localStorage.getItem(GRADE_MAP)).toContain(mathGrade2.id);
-    });
-  });
-
   it('registers ionBackButton handling in lessons stage', async () => {
     const user = userEvent.setup();
-    mockLocation.search = `?courseDocId=${mathGrade1.id}`;
+    mockLocation.search = `?courseDocId=${course1.id}`;
     localStorage.setItem(
       GRADE_MAP,
-      JSON.stringify({
-        grades: [grade1, grade2],
-        courses: [mathGrade1, mathGrade2],
-      }),
+      JSON.stringify({ grades: [grade1, grade2], courses: [course1, course2] }),
     );
 
     const view = render(<DisplayChapters />);

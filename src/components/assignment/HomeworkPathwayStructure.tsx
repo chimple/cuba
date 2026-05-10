@@ -79,6 +79,8 @@ const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
   'pending_homework_reward_transition';
 const MASCOT_X_OFFSET = -155;
 const REWARD_FLIGHT_TARGET_X_OFFSET = MASCOT_X_OFFSET + 84;
+const REWARD_FLIGHT_DURATION_MS = 4000;
+const REWARD_FLIGHT_ARC_Y_OFFSET = 150;
 
 const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   selectedSubject,
@@ -782,7 +784,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       logger.error('Error in initializeHomeworkRewardState:', err);
     }
   }, [checkAndUpdateReward, setHasTodayReward, updateMascotToNormalState]);
-
   const loadSVG = useCallback(async () => {
     if (!containerRef.current) return;
     const requestId = loadSvgRequestIdRef.current + 1;
@@ -1726,24 +1727,22 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             const toX = destinationX + REWARD_FLIGHT_TARGET_X_OFFSET,
               toY = startPoint.y - 69;
             const controlX = (fromX + toX) / 2,
-              controlY = Math.min(fromY, toY) - 110;
-            const duration = 3600;
+              controlY = Math.min(fromY, toY) - REWARD_FLIGHT_ARC_Y_OFFSET;
+            const duration = REWARD_FLIGHT_DURATION_MS;
             const start = performance.now();
+            const easeInOutCubic = (val: number) =>
+              val < 0.5
+                ? 4 * val * val * val
+                : 1 - Math.pow(-2 * val + 2, 3) / 2;
+            const bezier = (tVal: number, p0: number, p1: number, p2: number) =>
+              (1 - tVal) ** 2 * p0 +
+              2 * (1 - tVal) * tVal * p1 +
+              tVal ** 2 * p2;
             const animateBezier = (now: number) => {
               let t = (now - start) / duration;
               if (t > 1) t = 1;
-              const easeInOutSine = (val: number) =>
-                0.5 - Math.cos(Math.PI * val) / 2;
-              const bezier = (
-                tVal: number,
-                p0: number,
-                p1: number,
-                p2: number,
-              ) =>
-                (1 - tVal) ** 2 * p0 +
-                2 * (1 - tVal) * tVal * p1 +
-                tVal ** 2 * p2;
-              const easedT = easeInOutSine(t);
+
+              const easedT = easeInOutCubic(t);
               const x = bezier(easedT, fromX, controlX, toX);
               const y = bezier(easedT, fromY, controlY, toY);
               rewardForeignObject.style.transform = `translate3d(${x}px, ${y}px, 0)`;
@@ -1788,6 +1787,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                   },
                 }),
               );
+              await Util.updateUserReward();
               onComplete?.();
             };
             const rewardDiv = document.createElement('div');
@@ -1804,7 +1804,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               });
             });
             requestAnimationFrame(animateBezier);
-            await Util.updateUserReward();
           } catch (e) {
             logger.warn('Reward animation failed offline', e);
           }
