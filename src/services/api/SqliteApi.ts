@@ -2349,8 +2349,60 @@ export class SqliteApi implements ServiceApi {
   ): Promise<TableTypes<'lesson'>[]> {
     await this.ensureInitialized();
     const student = this.currentStudent;
-    const langId = student?.language_id;
+    let langId = student?.language_id;
     const localeId = student?.locale_id;
+
+    try {
+      const courseRes = await this.executeQuery(
+        `
+          SELECT course.code
+          FROM ${TABLES.Chapter} AS chapter
+          JOIN ${TABLES.Course} AS course ON chapter.course_id = course.id
+          WHERE chapter.id = ?
+            AND chapter.is_deleted = 0
+            AND course.is_deleted = 0
+          LIMIT 1;
+        `,
+        [chapterId],
+      );
+      const courseCode = (
+        ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
+          code?: string | null;
+        }
+      ).code
+        ?.trim()
+        .toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const languageRes = await this.executeQuery(
+          `
+            SELECT id
+            FROM ${TABLES.Language}
+            WHERE LOWER(code) = ?
+              AND is_deleted = 0
+            LIMIT 1;
+          `,
+          [courseLanguageCode],
+        );
+        const courseLanguageId = (
+          ((languageRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
+            id?: string | null;
+          }
+        ).id;
+
+        if (courseLanguageId) {
+          langId = courseLanguageId;
+        }
+      }
+    } catch (error) {
+      logger.error('Error resolving chapter course language:', error);
+    }
 
     const query = `
     SELECT *
@@ -2406,43 +2458,80 @@ export class SqliteApi implements ServiceApi {
 
   `;
     const res = await this._db?.query(query);
-    const gradeMap: {
-      grades: TableTypes<'grade'>[];
-      courses: TableTypes<'course'>[];
-    } = { grades: [], courses: [] };
+    const gradesById = new Map<string, TableTypes<'grade'>>();
+    const coursesByGradeId = new Map<string, TableTypes<'course'>[]>();
     for (const data of res?.values ?? []) {
       const grade = JSON.parse(data.grade);
       delete data.grade;
       const courseDoc = data;
-
-      if (!gradeMap.courses.some((_course) => _course.id === courseDoc.id)) {
-        gradeMap.courses.push(courseDoc);
-      }
-
-      if (!gradeMap.grades.some((_grade) => _grade.id === grade.id)) {
-        gradeMap.grades.push(grade);
-      }
+      gradesById.set(grade.id, grade);
+      const currentGradeCourses = coursesByGradeId.get(grade.id) ?? [];
+      currentGradeCourses.push(courseDoc);
+      coursesByGradeId.set(grade.id, currentGradeCourses);
     }
 
-    if (!gradeMap.courses.some((_course) => _course.id === course.id)) {
-      gradeMap.courses.unshift(course);
-      if (
-        course.grade_id &&
-        !gradeMap.grades.some((g) => g.id === course.grade_id)
-      ) {
+    if (course.grade_id) {
+      const currentGradeCourses = coursesByGradeId.get(course.grade_id) ?? [];
+      if (!currentGradeCourses.some((_course) => _course.id === course.id)) {
+        currentGradeCourses.push(course);
+        coursesByGradeId.set(course.grade_id, currentGradeCourses);
+      }
+
+      if (!gradesById.has(course.grade_id)) {
         const courseGrade = await this.getGradeById(course.grade_id);
         if (courseGrade) {
-          gradeMap.grades.unshift(courseGrade);
+          gradesById.set(course.grade_id, courseGrade);
         }
       }
     }
-    gradeMap.grades.sort((a, b) => {
+
+    const currentCourseCode = course.code?.toLowerCase() ?? '';
+    const isMathCourse =
+      currentCourseCode === COURSES.MATHS ||
+      currentCourseCode.startsWith(`${COURSES.MATHS}-`);
+
+    const pickCourseForGrade = (gradeId: string) => {
+      const gradeCourses = coursesByGradeId.get(gradeId) ?? [];
+      if (gradeCourses.length === 0) return undefined;
+
+      if (course.grade_id === gradeId) {
+        const selectedCourse = gradeCourses.find(
+          (_course) => _course.id === course.id,
+        );
+        if (selectedCourse) return selectedCourse;
+      }
+
+      if (isMathCourse) {
+        const matchingMathVariant = gradeCourses.find(
+          (_course) => _course.code?.toLowerCase() === currentCourseCode,
+        );
+        if (matchingMathVariant) return matchingMathVariant;
+
+        const regularMathCourse = gradeCourses.find(
+          (_course) => _course.code?.toLowerCase() === COURSES.MATHS,
+        );
+        if (regularMathCourse) return regularMathCourse;
+      }
+
+      return gradeCourses[0];
+    };
+
+    const grades = Array.from(gradesById.values()).sort((a, b) => {
       //Number.MAX_SAFE_INTEGER is using when sortIndex is not found GRADES (i.e it gives default value)
       const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
       const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
 
       return sortIndexA - sortIndexB;
     });
+    const gradeMap = {
+      grades,
+      courses: grades
+        .map((grade) => pickCourseForGrade(grade.id))
+        .filter(
+          (mappedCourse): mappedCourse is TableTypes<'course'> =>
+            !!mappedCourse,
+        ),
+    };
     return gradeMap as any;
   }
 
@@ -6062,7 +6151,7 @@ order by
       WHERE class_id = ?
         AND course_id = ?
         AND chapter_id IN (${idslst})
-        AND is_deleted = 0; 
+        AND is_deleted = 0;
     `;
 
     const res = await this._db?.query(query, [
@@ -6401,9 +6490,9 @@ order by
       const updatedAt = new Date().toISOString();
 
       await this.executeQuery(
-        `UPDATE school_user 
-       SET is_deleted = 1, updated_at = ? 
-       WHERE user_id = ? AND school_id = ? 
+        `UPDATE school_user
+       SET is_deleted = 1, updated_at = ?
+       WHERE user_id = ? AND school_id = ?
        AND role = '${role}' AND is_deleted = 0`,
         [updatedAt, userId, schoolId],
       );
@@ -7615,7 +7704,7 @@ order by
 
           if (!alreadyLinked) {
             await this._db.run(
-              `INSERT INTO parent_user 
+              `INSERT INTO parent_user
              (student_id, parent_id, is_deleted, created_at, updated_at)
              VALUES (?, ?, 0, ?, ?)`,
               [existingStudentId, parent.id, now, now],
@@ -7643,7 +7732,7 @@ order by
       // 7. Optional ops request update
       if (requestId) {
         await this._db.run(
-          `UPDATE ops_requests 
+          `UPDATE ops_requests
          SET status = 'approved', merged_to = ?, updated_at = ?, responded_by = ?
          WHERE request_id = ?`,
           [newStudentId, now, respondedBy ?? null, requestId],
@@ -8036,7 +8125,7 @@ order by
     const total = countResult?.values?.[0]?.total ?? 0;
     // ✅ DATA QUERY
     const query = `
-    SELECT 
+    SELECT
       u.id,
       u.name,
       u.student_id,
@@ -8048,10 +8137,10 @@ order by
     FROM class_user cu
     JOIN user u ON cu.user_id = u.id
     JOIN class c ON cu.class_id = c.id
-    LEFT JOIN parent_user pu 
-      ON pu.student_id = u.id 
+    LEFT JOIN parent_user pu
+      ON pu.student_id = u.id
       AND pu.is_deleted = 0
-    LEFT JOIN user p 
+    LEFT JOIN user p
       ON pu.parent_id = p.id
     WHERE ${whereClause}
     ORDER BY u.name
@@ -8700,10 +8789,14 @@ order by
   ): Promise<TableTypes<'subject_lesson'>> {
     if (!student) return {} as TableTypes<'subject_lesson'>;
     const studentId = student.id;
-    const langId = student.language_id ?? null;
+    let langId = student.language_id ?? null;
     const localeId = student.locale_id ?? null;
 
     try {
+      type CourseLanguageRow = {
+        code?: string | null;
+        id?: string | null;
+      };
       type SubjectLessonSetRow = {
         set_number: number;
         language_id: string | null;
@@ -8714,6 +8807,59 @@ order by
         status: string | null;
       };
       type ResultLessonRow = { lesson_id: string | null };
+
+      if (courseId) {
+        try {
+          const courseRes = await this.executeQuery(
+            `
+              SELECT code
+              FROM course
+              WHERE id = ?
+                AND is_deleted = 0
+              LIMIT 1;
+            `,
+            [courseId],
+          );
+          const courseCode = (
+            ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ??
+              {}) as CourseLanguageRow
+          ).code
+            ?.trim()
+            .toLowerCase();
+          const courseLanguageCode =
+            courseCode === COURSES.MATHS
+              ? COURSES.ENGLISH
+              : courseCode?.includes('-')
+                ? courseCode.split('-').pop()
+                : courseCode;
+
+          if (courseLanguageCode) {
+            const languageRes = await this.executeQuery(
+              `
+                SELECT id
+                FROM language
+                WHERE LOWER(code) = ?
+                  AND is_deleted = 0
+                LIMIT 1;
+              `,
+              [courseLanguageCode],
+            );
+            const courseLanguageId = (
+              ((languageRes as DBSQLiteValues | undefined)?.values?.[0] ??
+                {}) as CourseLanguageRow
+            ).id;
+
+            if (courseLanguageId) {
+              langId = courseLanguageId;
+            }
+          }
+        } catch (error) {
+          logger.error(
+            'Error resolving subject lesson course language:',
+            error,
+          );
+        }
+      }
 
       // 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
       const setQuery = `

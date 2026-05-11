@@ -8,9 +8,7 @@ import {
   CURRENT_SELECTED_COURSE,
   CURRENT_SELECTED_GRADE,
   CURRENT_STAGE,
-  DEFAULT_LANGUAGE_ID_EN,
   GRADE_MAP,
-  LANGUAGE,
   MODES,
   PAGES,
   TableTypes,
@@ -30,38 +28,6 @@ import { registerBackButtonHandler } from '../common/backButtonRegistry';
 import logger from '../utility/logger';
 
 const localData: any = {};
-const LANGUAGE_VARIANT_PATTERN = /^(.+?)-([a-z]{2,3})$/i;
-
-const normalizeCourseToken = (value?: string | null) =>
-  value?.trim().toLowerCase() ?? '';
-
-const getCourseCodeBase = (course?: TableTypes<'course'>) => {
-  const normalizedCode = normalizeCourseToken(course?.code);
-  const matches = normalizedCode.match(LANGUAGE_VARIANT_PATTERN);
-  return matches?.[1] ?? normalizedCode;
-};
-
-const isMathCourse = (course?: TableTypes<'course'>) =>
-  getCourseCodeBase(course) === COURSES.MATHS;
-
-const isLanguageMatchedCourse = (
-  course: TableTypes<'course'>,
-  languageCode: string,
-) => {
-  const normalizedCode = normalizeCourseToken(course.code);
-  const normalizedName = normalizeCourseToken(course.name);
-  const normalizedLanguageCode = normalizeCourseToken(languageCode);
-
-  if (!normalizedLanguageCode) return false;
-
-  return (
-    normalizedCode === normalizedLanguageCode ||
-    normalizedCode.endsWith(`-${normalizedLanguageCode}`) ||
-    normalizedName === normalizedLanguageCode ||
-    normalizedName.endsWith(`-${normalizedLanguageCode}`)
-  );
-};
-
 // let localStorageData: any = {};
 const DisplayChapters: FC<{}> = () => {
   enum STAGES {
@@ -97,6 +63,13 @@ const DisplayChapters: FC<{}> = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const courseDocId = searchParams.get('courseDocId');
+  const shouldTranslateCourseText =
+    currentCourse?.code !== COURSES.ENGLISH &&
+    currentCourse?.code !== COURSES.MATHS;
+  const getCourseBasedName = (name?: string | null) => {
+    if (!name) return '';
+    return shouldTranslateCourseText ? t(name) : name;
+  };
   const getCourseByUrl = useMemo(
     () =>
       localGradeMap?.courses.find((course) => courseDocId === course.id) ??
@@ -134,16 +107,11 @@ const DisplayChapters: FC<{}> = () => {
       if (currentCourse) {
         setIsLoading(true);
         const getLocalGradeMap = async () => {
-          const { grades, courses } =
+          const { grades } =
             await api.getDifferentGradesForCourse(currentCourse);
-          const nextGradeMap = {
-            grades,
-            courses: courses && courses.length > 0 ? courses : [currentCourse],
-          };
-          localData.gradesMap = nextGradeMap;
-          localStorage.setItem(GRADE_MAP, JSON.stringify(nextGradeMap));
+          localData.gradesMap = { grades, courses: [currentCourse] };
 
-          setLocalGradeMap(nextGradeMap);
+          setLocalGradeMap({ grades, courses: [currentCourse] });
           setIsLoading(false);
         };
         getLocalGradeMap();
@@ -415,125 +383,22 @@ const DisplayChapters: FC<{}> = () => {
     setStage(STAGES.CHAPTERS);
   };
 
-  const getActiveStudentProfile = async () => {
-    const currentStudent = Util.getCurrentStudent();
-
-    if (!currentStudent?.id) return currentStudent;
-
-    try {
-      return (await api.getUserByDocId(currentStudent.id)) ?? currentStudent;
-    } catch (error) {
-      logger.error('Failed to refresh student profile for grade change', error);
-      return currentStudent;
-    }
-  };
-
-  const getActiveStudentLanguageCode = async (
-    student?: TableTypes<'user'>,
-  ): Promise<string> => {
-    if (
-      !student?.language_id ||
-      student.language_id === DEFAULT_LANGUAGE_ID_EN
-    ) {
-      const storedLanguageCode = normalizeCourseToken(
-        localStorage.getItem(LANGUAGE),
-      );
-      return storedLanguageCode || COURSES.ENGLISH;
-    }
-
-    try {
-      const language = await api.getLanguageWithId(student.language_id);
-      return (
-        normalizeCourseToken(language?.code) ||
-        normalizeCourseToken(localStorage.getItem(LANGUAGE)) ||
-        COURSES.ENGLISH
-      );
-    } catch (error) {
-      logger.error(
-        'Failed to resolve student language for grade change',
-        error,
-      );
-      return (
-        normalizeCourseToken(localStorage.getItem(LANGUAGE)) || COURSES.ENGLISH
-      );
-    }
-  };
-
-  const resolveCourseForGrade = async (
-    grade: TableTypes<'grade'>,
-  ): Promise<TableTypes<'course'> | undefined> => {
-    if (!currentCourse) return;
-
-    const availableCourses = [
-      ...(courses ?? []),
-      ...(localData.courses ?? []),
-      ...(localGradeMap?.courses ?? []),
-    ];
-    const uniqueCourses = Array.from(
-      new Map(availableCourses.map((course) => [course.id, course])).values(),
-    );
-
-    let candidates = uniqueCourses.filter(
-      (course) =>
-        course.grade_id === grade.id &&
-        course.subject_id === currentCourse.subject_id &&
-        course.curriculum_id === currentCourse.curriculum_id &&
-        (currentCourse.framework_id
-          ? course.framework_id === currentCourse.framework_id
-          : true) &&
-        course.is_deleted !== true,
-    );
-
-    if (candidates.length === 0) {
-      return localGradeMap?.courses.find(
-        (course) => course.grade_id === grade.id,
-      );
-    }
-
-    if (!isMathCourse(currentCourse)) {
-      return candidates[0];
-    }
-
-    const currentCourseCodeBase = getCourseCodeBase(currentCourse);
-    const candidatesWithSameBaseCode = candidates.filter(
-      (course) => getCourseCodeBase(course) === currentCourseCodeBase,
-    );
-    if (candidatesWithSameBaseCode.length > 0) {
-      candidates = candidatesWithSameBaseCode;
-    }
-
-    const activeStudent = await getActiveStudentProfile();
-    const studentLanguageCode =
-      await getActiveStudentLanguageCode(activeStudent);
-
-    const languageMatchedCourse = candidates.find((course) =>
-      isLanguageMatchedCourse(course, studentLanguageCode),
-    );
-    if (languageMatchedCourse) return languageMatchedCourse;
-
-    const englishFallbackCourse = candidates.find(
-      (course) =>
-        isLanguageMatchedCourse(course, COURSES.ENGLISH) ||
-        normalizeCourseToken(course.code) === currentCourseCodeBase,
-    );
-    if (englishFallbackCourse) return englishFallbackCourse;
-
-    return candidates[0];
-  };
-
   const onGradeChanges = async (grade: TableTypes<'grade'>) => {
-    const resolvedCourse = await resolveCourseForGrade(grade);
+    let _localMap = getLocalGradeMap();
+    const currentCourse = _localMap?.courses.find(
+      (course) => course.grade_id === grade.id,
+    );
     localData.currentGrade = grade;
     setCurrentGrade(grade);
     addGradeToLocalStorage(grade);
-    const chapters = await api.getChaptersForCourse(resolvedCourse?.id ?? '');
+    const chapters = await api.getChaptersForCourse(currentCourse?.id ?? '');
     setChapters(chapters);
-    setCurrentCourse(resolvedCourse);
+    setCurrentCourse(currentCourse);
     localStorage.setItem(
       CURRENT_SELECTED_COURSE,
-      JSON.stringify(resolvedCourse),
+      JSON.stringify(currentCourse),
     );
-    localData.currentCourse = resolvedCourse;
+    localData.currentCourse = currentCourse;
   };
 
   const onChapterChange = async (chapter: TableTypes<'chapter'>) => {
@@ -592,12 +457,8 @@ const DisplayChapters: FC<{}> = () => {
           <IonItem lines="none">
             <div className="chapter-name">
               {stage === STAGES.CHAPTERS
-                ? currentCourse
-                  ? t(currentCourse?.name)
-                  : ''
-                : currentChapter
-                  ? t(currentChapter.name ?? '')
-                  : ''}
+                ? getCourseBasedName(currentCourse?.name)
+                : getCourseBasedName(currentChapter?.name)}
             </div>
           </IonItem>
         </div>

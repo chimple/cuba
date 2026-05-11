@@ -2115,8 +2115,46 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return [];
 
     const student = this.currentStudent;
-    const langId = student?.language_id;
+    let langId = student?.language_id;
     const localeId = student?.locale_id;
+
+    const { data: chapterRows, error: chapterError } = await this.supabase
+      .from(TABLES.Chapter)
+      .select('course:course_id(code)')
+      .eq('id', chapterId)
+      .eq('is_deleted', false)
+      .limit(1);
+
+    if (chapterError) {
+      logger.error('Error fetching chapter course:', chapterError);
+    } else {
+      const courseCode = (
+        chapterRows?.[0]?.course as { code?: string | null } | null | undefined
+      )?.code
+        ?.trim()
+        .toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const { data: languageRows, error: languageError } = await this.supabase
+          .from(TABLES.Language)
+          .select('id')
+          .ilike('code', courseLanguageCode)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (languageError) {
+          logger.error('Error fetching course language:', languageError);
+        } else if (languageRows?.[0]?.id) {
+          langId = languageRows[0].id;
+        }
+      }
+    }
 
     const orFilters: string[] = [];
     orFilters.push('language_id.is.null,locale_id.is.null');
@@ -2191,44 +2229,63 @@ export class SupabaseApi implements ServiceApi {
       return { grades: [], courses };
     }
 
-    const gradeMap: {
-      grades: TableTypes<'grade'>[];
-      courses: TableTypes<'course'>[];
-    } = { grades: [], courses: [] };
-
+    const coursesByGradeId = new Map<string, TableTypes<'course'>[]>();
     for (const courseDoc of courses) {
-      if (!gradeMap.courses.some((_course) => _course.id === courseDoc.id)) {
-        gradeMap.courses.push(courseDoc);
+      if (!courseDoc.grade_id) continue;
+      const currentGradeCourses =
+        coursesByGradeId.get(courseDoc.grade_id) ?? [];
+      currentGradeCourses.push(courseDoc);
+      coursesByGradeId.set(courseDoc.grade_id, currentGradeCourses);
+    }
+
+    if (course.grade_id) {
+      const currentGradeCourses = coursesByGradeId.get(course.grade_id) ?? [];
+      if (!currentGradeCourses.some((_course) => _course.id === course.id)) {
+        currentGradeCourses.push(course);
+        coursesByGradeId.set(course.grade_id, currentGradeCourses);
       }
     }
 
-    for (const grade of grades) {
-      if (!gradeMap.grades.some((_grade) => _grade.id === grade.id)) {
-        gradeMap.grades.push(grade);
+    const currentCourseCode = course.code?.toLowerCase() ?? '';
+    const isMathCourse =
+      currentCourseCode === COURSES.MATHS ||
+      currentCourseCode.startsWith(`${COURSES.MATHS}-`);
+
+    const pickCourseForGrade = (gradeId: string) => {
+      const gradeCourses = coursesByGradeId.get(gradeId) ?? [];
+      if (gradeCourses.length === 0) return undefined;
+
+      if (course.grade_id === gradeId) {
+        const selectedCourse = gradeCourses.find(
+          (_course) => _course.id === course.id,
+        );
+        if (selectedCourse) return selectedCourse;
       }
-    }
 
-    if (!gradeMap.courses.some((_course) => _course.id === course.id)) {
-      gradeMap.courses.unshift(course);
-      if (
-        course.grade_id &&
-        !gradeMap.grades.some((grade) => grade.id === course.grade_id)
-      ) {
-        const courseGrade = await this.getGradeById(course.grade_id);
-        if (courseGrade) {
-          gradeMap.grades.unshift(courseGrade);
-        }
+      if (isMathCourse) {
+        const matchingMathVariant = gradeCourses.find(
+          (_course) => _course.code?.toLowerCase() === currentCourseCode,
+        );
+        if (matchingMathVariant) return matchingMathVariant;
+
+        const regularMathCourse = gradeCourses.find(
+          (_course) => _course.code?.toLowerCase() === COURSES.MATHS,
+        );
+        if (regularMathCourse) return regularMathCourse;
       }
-    }
 
-    gradeMap.grades.sort((a, b) => {
-      const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
-      const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
+      return gradeCourses[0];
+    };
 
-      return sortIndexA - sortIndexB;
-    });
-
-    return gradeMap;
+    return {
+      grades,
+      courses: grades
+        .map((grade) => pickCourseForGrade(grade.id))
+        .filter(
+          (mappedCourse): mappedCourse is TableTypes<'course'> =>
+            !!mappedCourse,
+        ),
+    };
   }
   getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error('Method not implemented.');
@@ -12919,7 +12976,7 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase || !student) return {} as TableTypes<'subject_lesson'>;
 
     const studentId = student.id;
-    const langId = student.language_id ?? null;
+    let langId = student.language_id ?? null;
     const localeId = student.locale_id ?? null;
 
     try {
@@ -12928,6 +12985,46 @@ export class SupabaseApi implements ServiceApi {
         status: string | null;
         created_at: string | null;
       };
+
+      if (courseId) {
+        const { data: courseRows, error: courseError } = await this.supabase
+          .from('course')
+          .select('code')
+          .eq('id', courseId)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (courseError) {
+          logger.error('Error fetching subject lesson course:', courseError);
+        } else {
+          const courseCode = courseRows?.[0]?.code?.trim().toLowerCase();
+          const courseLanguageCode =
+            courseCode === COURSES.MATHS
+              ? COURSES.ENGLISH
+              : courseCode?.includes('-')
+                ? courseCode.split('-').pop()
+                : courseCode;
+
+          if (courseLanguageCode) {
+            const { data: languageRows, error: languageError } =
+              await this.supabase
+                .from('language')
+                .select('id')
+                .ilike('code', courseLanguageCode)
+                .eq('is_deleted', false)
+                .limit(1);
+
+            if (languageError) {
+              logger.error(
+                'Error fetching subject lesson language:',
+                languageError,
+              );
+            } else if (languageRows?.[0]?.id) {
+              langId = languageRows[0].id;
+            }
+          }
+        }
+      }
 
       /* ==========================================
        * 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
@@ -13443,6 +13540,7 @@ export class SupabaseApi implements ServiceApi {
         body: { groupId, bot },
       },
     );
+    logger.info('getWhatsappGroupDetails response', data);
     if (error) {
       throw error;
     }
