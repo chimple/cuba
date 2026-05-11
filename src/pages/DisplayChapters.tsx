@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef, useState, useCallback } from 'react';
+import { FC, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useHistory, useLocation } from 'react-router';
 import { ServiceConfig } from '../services/ServiceConfig';
 import {
@@ -62,8 +62,11 @@ const DisplayChapters: FC<{}> = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const courseDocId = searchParams.get('courseDocId');
-  const getCourseByUrl = localGradeMap?.courses.find(
-    (course) => courseDocId == course.id,
+  const getCourseByUrl = useMemo(
+    () =>
+      localGradeMap?.courses.find((course) => courseDocId === course.id) ??
+      courses?.find((course) => courseDocId === course.id),
+    [localGradeMap, courses, courseDocId],
   );
   useEffect(() => {
     Util.loadBackgroundImage();
@@ -71,9 +74,25 @@ const DisplayChapters: FC<{}> = () => {
     ScreenOrientation.lock({ orientation: 'landscape' });
   }, []);
   useEffect(() => {
-    if (getCourseByUrl && !currentCourse) {
+    const storedCourseByUrl = (() => {
+      if (getCourseByUrl || !courseDocId) return;
+
+      const selectedCourse = localStorage.getItem(CURRENT_SELECTED_COURSE);
+      if (!selectedCourse) return;
+
+      try {
+        const parsedCourse = JSON.parse(selectedCourse) as TableTypes<'course'>;
+        return parsedCourse?.id === courseDocId ? parsedCourse : undefined;
+      } catch (error) {
+        logger.error('Failed to parse stored course from localStorage', error);
+        return;
+      }
+    })();
+    const resolvedCourseByUrl = getCourseByUrl ?? storedCourseByUrl;
+
+    if (resolvedCourseByUrl && !currentCourse) {
       //as url params change(course.id) and currentCourse empty they we are using this
-      onCourseChanges(getCourseByUrl);
+      onCourseChanges(resolvedCourseByUrl);
     }
 
     if (!localGradeMap || !localGradeMap.grades) {
@@ -90,7 +109,7 @@ const DisplayChapters: FC<{}> = () => {
         getLocalGradeMap();
       }
     }
-  }, [getCourseByUrl, localGradeMap, currentCourse]);
+  }, [courseDocId, getCourseByUrl, localGradeMap, currentCourse]);
 
   const init = async () => {
     const urlParams = new URLSearchParams(location.search);
@@ -318,18 +337,35 @@ const DisplayChapters: FC<{}> = () => {
       grades: TableTypes<'grade'>[];
       courses: TableTypes<'course'>[];
     } = await api.getDifferentGradesForCourse(course);
-    const currentGrade = gradesMap.grades.find(
+    let currentGrade = gradesMap.grades.find(
       (grade) => grade.id === course.grade_id,
     );
+
+    if (!gradesMap.courses.some((_course) => _course.id === course.id)) {
+      gradesMap.courses.unshift(course);
+    }
+
+    if (!currentGrade && course.grade_id) {
+      const courseGrade = await api.getGradeById(course.grade_id);
+      if (courseGrade) {
+        currentGrade = courseGrade;
+
+        if (!gradesMap.grades.some((grade) => grade.id === courseGrade.id)) {
+          gradesMap.grades.unshift(courseGrade);
+        }
+      }
+    }
+
+    const selectedGrade = currentGrade ?? gradesMap.grades[0];
     localStorage.setItem(GRADE_MAP, JSON.stringify(gradesMap));
-    localData.currentGrade = currentGrade ?? gradesMap.grades[0];
+    localData.currentGrade = selectedGrade;
 
     localData.gradesMap = gradesMap;
 
     localData.currentCourse = course;
 
-    setCurrentGrade(currentGrade ?? gradesMap.grades[0]);
-    addGradeToLocalStorage(currentGrade ?? gradesMap.grades[0]);
+    setCurrentGrade(selectedGrade);
+    selectedGrade && addGradeToLocalStorage(selectedGrade);
     setLocalGradeMap(gradesMap);
     const chapters = await api.getChaptersForCourse(course.id);
     setChapters(chapters);

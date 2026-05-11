@@ -11,6 +11,7 @@ interface ClassCodeProps {
   setClassCode: (code: number | undefined) => void;
   classCode: number | undefined;
   className: string;
+  isGenerateDisabled?: boolean;
 }
 
 const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
@@ -18,13 +19,15 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
   currentClassId,
   setClassCode,
   className,
+  isGenerateDisabled = false,
 }) => {
   const api = ServiceConfig.getI()?.apiHandler;
   const generateClassCode = async (classId: string) => {
+    if (isGenerateDisabled) return;
     if (classId) {
-      classCode = await api.createClassCode(classId);
-      if (classCode) {
-        setClassCode(classCode);
+      const generatedClassCode = await api.createClassCode(classId);
+      if (generatedClassCode) {
+        setClassCode(generatedClassCode);
       }
     }
   };
@@ -70,6 +73,7 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
       {!classCode && (
         <IonButton
           className="generate-code-button"
+          disabled={isGenerateDisabled}
           onClick={async () => {
             await generateClassCode(currentClassId);
           }}

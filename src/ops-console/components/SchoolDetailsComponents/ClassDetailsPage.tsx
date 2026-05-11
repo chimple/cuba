@@ -14,6 +14,10 @@ import { NOTES_UPDATED_EVENT } from '../../../common/constants';
 import WhatsAppInfoCard from './WhatsAppInfoCard';
 import logger from '../../../utility/logger';
 import { parseGradeSection, toCommaString } from './ClassDetailsPageUtils';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
 
 type ApiStudent = StudentInfo;
 const ROWS_PER_PAGE = 20;
@@ -25,6 +29,7 @@ type Props = {
   classRow: ClassRow | null;
   classCodeOverride?: string;
   totalStudentsOverride?: number;
+  onGroupLinked?: (classId: string, groupId: string) => void;
   onBack?: () => void;
 };
 
@@ -35,6 +40,7 @@ const ClassDetailsPage: React.FC<Props> = ({
   classRow,
   classCodeOverride,
   totalStudentsOverride,
+  onGroupLinked,
   onBack,
 }) => {
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -58,6 +64,12 @@ const ClassDetailsPage: React.FC<Props> = ({
     [classRow],
   );
 
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+
   const { grade: parsedGrade, section: parsedSection } = useMemo(
     () =>
       parseGradeSection(
@@ -76,7 +88,12 @@ const ClassDetailsPage: React.FC<Props> = ({
           schoolId,
           1,
           ROWS_PER_PAGE,
+          classId,
         );
+        logger.info('Loaded class details:', {
+          students: res?.data,
+          total: res?.total,
+        });
         setInitialStudents(res?.data || []);
         setInitialTotal(res?.total || 0);
         const active = await api.getActiveStudentsCountByClass(classId);
@@ -152,14 +169,16 @@ const ClassDetailsPage: React.FC<Props> = ({
         </Button>
 
         {/* + Add Notes button on the right */}
-        <Button
-          variant="outlined"
-          onClick={() => setShowAddModal(true)}
-          className="classdetailspage-addnote-btn"
-          aria-label="+ Add Notes"
-        >
-          + {t('Add Notes')}
-        </Button>
+        {!isExternalUser && (
+          <Button
+            variant="outlined"
+            onClick={() => setShowAddModal(true)}
+            className="classdetailspage-addnote-btn"
+            aria-label="+ Add Notes"
+          >
+            + {t('Add Notes')}
+          </Button>
+        )}
       </Box>
 
       {/* AddNoteModal */}
@@ -184,6 +203,7 @@ const ClassDetailsPage: React.FC<Props> = ({
           <WhatsAppInfoCard
             classData={classRow}
             schoolData={data?.schoolData}
+            onGroupLinked={onGroupLinked}
           />
         )}
       </Box>
@@ -194,7 +214,8 @@ const ClassDetailsPage: React.FC<Props> = ({
             schoolData: data?.schoolData,
             students: initialStudents,
             totalStudentCount: initialTotal,
-            classData: classRow ? [classRow] : undefined,
+            classData: [onlyClassRow].filter(Boolean) as ClassRow[],
+            totalCount: initialTotal,
           }}
           schoolId={schoolId}
           isMobile={isMobile}

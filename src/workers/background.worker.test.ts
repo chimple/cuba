@@ -4,7 +4,12 @@ const mockRead = jest.fn();
 const mockSheetToJson = jest.fn();
 const mockBookNew = jest.fn();
 const mockJsonToSheet = jest.fn();
+const mockAoaToSheet = jest.fn();
 const mockBookAppendSheet = jest.fn();
+const mockEncodeCell = jest.fn(({ r, c }: { r: number; c: number }) => {
+  const column = String.fromCharCode(65 + c);
+  return `${column}${r + 1}`;
+});
 const mockWrite = jest.fn();
 
 jest.mock('xlsx-js-style', () => ({
@@ -14,6 +19,9 @@ jest.mock('xlsx-js-style', () => ({
     sheet_to_json: (...args: unknown[]) => mockSheetToJson(...args),
     book_new: (...args: unknown[]) => mockBookNew(...args),
     json_to_sheet: (...args: unknown[]) => mockJsonToSheet(...args),
+    aoa_to_sheet: (...args: unknown[]) => mockAoaToSheet(...args),
+    encode_cell: (arg: unknown) =>
+      mockEncodeCell(arg as { r: number; c: number }),
     book_append_sheet: (...args: unknown[]) => mockBookAppendSheet(...args),
   },
 }));
@@ -36,7 +44,9 @@ describe('background.worker', () => {
     });
     await import('./background.worker');
     return (
-      globalThis as unknown as { onmessage: (event: any) => Promise<void> }
+      globalThis as unknown as {
+        onmessage: (event: unknown) => Promise<void>;
+      }
     ).onmessage;
   };
 

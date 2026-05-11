@@ -108,6 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     (state: RootState) => state.auth as AuthState,
   );
   const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
   const switchUserToTeacher = async () => {
@@ -224,6 +225,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             const canAccessModulePage = userRoles.some((role) =>
               moduleRolesWithAccess.includes(role as RoleType),
             );
+            if (isExternalUser && item.label !== NavItems.SCHOOLS) return null;
             if (item.label === NavItems.USERS && !canAccessUsersPage)
               return null;
             if (item.label === NavItems.OpsMODULE && !canAccessModulePage)

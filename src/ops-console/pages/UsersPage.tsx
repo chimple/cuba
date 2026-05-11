@@ -30,7 +30,7 @@ interface User {
 
 const columns = [
   { key: 'fullName', label: 'Full Name', width: '30%' },
-  { key: 'role', label: 'Roles', width: '70%' },
+  { key: 'role', label: 'Roles', width: '70%', sortable: false },
 ];
 
 const ROWS_PER_PAGE = 8;

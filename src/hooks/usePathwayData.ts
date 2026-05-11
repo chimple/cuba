@@ -5,6 +5,11 @@ import { useFeatureIsOn } from '@growthbook/growthbook-react';
 
 import {
   CAN_ACCESS_REMOTE_ASSETS,
+  CHIMPLE_MASCOT_ANIMATION_IDLE,
+  CHIMPLE_MASCOT_INPUT_CELEBRATE,
+  CHIMPLE_MASCOT_INPUT_NORMAL,
+  CHIMPLE_MASCOT_STATE_MACHINE_CELEBRATE,
+  CHIMPLE_MASCOT_STATE_MACHINE_NORMAL,
   IDLE_REWARD_ID,
   IS_REWARD_FEATURE_ON,
   REWARD_MODAL_SHOWN_DATE,
@@ -83,13 +88,14 @@ export const usePathwayData = () => {
 
   // Mascot state
   const [chimpleRiveStateMachineName, setChimpleRiveStateMachineName] =
-    useState<string>('State Machine 3');
-  const [chimpleRiveInputName, setChimpleRiveInputName] =
-    useState<string>('Number 2');
+    useState<string>(CHIMPLE_MASCOT_STATE_MACHINE_NORMAL);
+  const [chimpleRiveInputName, setChimpleRiveInputName] = useState<string>(
+    CHIMPLE_MASCOT_INPUT_NORMAL,
+  );
   const [chimpleRiveStateValue, setChimpleRiveStateValue] = useState<number>(1);
   const [chimpleRiveAnimationName, setChimpleRiveAnimationName] = useState<
     string | undefined
-  >('id');
+  >(CHIMPLE_MASCOT_ANIMATION_IDLE);
 
   const [mascotKey, setMascotKey] = useState(0);
   const mascotStateRef = useRef<{
@@ -130,14 +136,16 @@ export const usePathwayData = () => {
       const rewardRecord = await api.getRewardById(rewardId);
       if (rewardRecord && rewardRecord.type === 'normal') {
         setChimpleRiveStateMachineName(
-          rewardRecord.state_machine || 'State Machine 3',
+          rewardRecord.state_machine || CHIMPLE_MASCOT_STATE_MACHINE_NORMAL,
         );
-        setChimpleRiveInputName(rewardRecord.state_input_name || 'Number 2');
+        setChimpleRiveInputName(
+          rewardRecord.state_input_name || CHIMPLE_MASCOT_INPUT_NORMAL,
+        );
         setChimpleRiveStateValue(rewardRecord.state_number_input || 1);
         setChimpleRiveAnimationName(undefined);
         setMascotKey((prev) => prev + 1);
       } else {
-        setChimpleRiveAnimationName('id');
+        setChimpleRiveAnimationName(CHIMPLE_MASCOT_ANIMATION_IDLE);
         setMascotKey((prev) => prev + 1);
       }
     },
@@ -147,8 +155,8 @@ export const usePathwayData = () => {
   //  MASCOT: CELEBRATION STATE
   const invokeMascotCelebration = useCallback(
     async (state_number_input: number) => {
-      setChimpleRiveStateMachineName('State Machine 2');
-      setChimpleRiveInputName('Number 1');
+      setChimpleRiveStateMachineName(CHIMPLE_MASCOT_STATE_MACHINE_CELEBRATE);
+      setChimpleRiveInputName(CHIMPLE_MASCOT_INPUT_CELEBRATE);
       setChimpleRiveStateValue(state_number_input || 1);
       setChimpleRiveAnimationName(undefined);
       setMascotKey((prev) => prev + 1);
@@ -270,6 +278,8 @@ export const usePathwayData = () => {
   }, [checkAndUpdateReward, updateMascotToNormalState, setHasTodayReward]);
 
   // 🟡 Decide campaign applicability per student
+  const currentStudentId = Util.getCurrentStudent()?.id;
+
   useEffect(() => {
     const student = Util.getCurrentStudent();
     const school = schoolUtil.getCurrentClass();
@@ -288,7 +298,7 @@ export const usePathwayData = () => {
 
     // Student has a school → wait for WinterCampaignPopupGating
     setIsCampaignFinished(false);
-  }, [Util.getCurrentStudent()?.id]);
+  }, [currentStudentId]);
 
   // COURSE CHANGE RELOAD
   useEffect(() => {

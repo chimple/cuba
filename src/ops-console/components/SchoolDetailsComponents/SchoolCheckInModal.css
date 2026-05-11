@@ -306,6 +306,11 @@
   cursor: not-allowed;
 }
 
+.schoolcheckinmodal .btn-confirm.btn-checkout.disabled {
+  background-color: #f1aeb5;
+  border-color: #f1aeb5;
+}
+
 /* Confirmation Section explicit styling */
 .schoolcheckinmodal .check-in-confirmation-section {
   margin-top: 16px;

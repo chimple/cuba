@@ -67,6 +67,8 @@ const SideMenu: React.FC<{
   const { roles, isOpsUser } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const isAuthorizedForOpsMode = useMemo(() => {
     const hasOpsRole = OPS_ROLES.some((role) => roles.includes(role));
     return isOpsUser || hasOpsRole;
@@ -359,6 +361,7 @@ const SideMenu: React.FC<{
               currentClassDetail={currentClassDetail}
               currentClassId={currentClassId}
               classCode={classCode}
+              isExternalUser={isExternalUser}
               handleClassSelect={handleClassSelect}
               handleManageClassClick={handleManageClassClick}
               setClassCode={setClassCode}

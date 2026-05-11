@@ -144,6 +144,7 @@ export async function recommendNextLesson({
     const res = await api.getSubjectLessonsBySubjectId(
       course.subject_id,
       student,
+      course.id,
     );
     if (res && res.id) {
       return {

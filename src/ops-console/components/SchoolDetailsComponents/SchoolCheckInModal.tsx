@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { t } from 'i18next';
+import { t, type DefaultTFuncReturn } from 'i18next';
 import './SchoolCheckInModal.css';
 import { IoClose } from 'react-icons/io5';
 import { IoLocationOutline, IoTimeOutline } from 'react-icons/io5';
@@ -42,7 +42,16 @@ interface SchoolCheckInModalProps {
   onLocationUpdated?: () => void;
 }
 
+interface TargetLocation {
+  lat: number;
+  lng: number;
+  address1: DefaultTFuncReturn;
+  address2?: DefaultTFuncReturn;
+  isMissing?: boolean;
+}
+
 const MAX_DISTANCE_METERS = 1000;
+const LOCATION_TIMEOUT_MS = 10000;
 
 const MapBoundsFitter = ({
   schoolLoc,
@@ -52,12 +61,14 @@ const MapBoundsFitter = ({
   userLoc: { lat: number; lng: number } | null;
 }) => {
   const map = useMap();
+  const userLat = userLoc?.lat;
+  const userLng = userLoc?.lng;
 
   useEffect(() => {
-    if (userLoc) {
+    if (userLat !== undefined && userLng !== undefined) {
       const bounds = L.latLngBounds([
         [schoolLoc.lat, schoolLoc.lng],
-        [userLoc.lat, userLoc.lng],
+        [userLat, userLng],
       ]);
       try {
         map.fitBounds(bounds, {
@@ -70,7 +81,7 @@ const MapBoundsFitter = ({
     } else {
       map.setView([schoolLoc.lat, schoolLoc.lng], 15);
     }
-  }, [schoolLoc.lat, schoolLoc.lng, userLoc?.lat, userLoc?.lng, map]);
+  }, [schoolLoc.lat, schoolLoc.lng, userLat, userLng, map]);
 
   return null;
 };
@@ -99,11 +110,15 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   const [isUpdatingLocation, setIsUpdatingLocation] = useState<boolean>(false);
   const [isPermissionDenied, setIsPermissionDenied] = useState<boolean>(false);
   const [retryTrigger, setRetryTrigger] = useState<number>(0);
+  const [isSubmittingAction, setIsSubmittingAction] = useState<boolean>(false);
 
   const [isConfirmedInSchool, setIsConfirmedInSchool] = useState<
     boolean | null
   >(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState<boolean>(true);
+  const [isLocationLoadTimeoutReached, setIsLocationLoadTimeoutReached] =
+    useState<boolean>(false);
+  const [locationLoadCycle, setLocationLoadCycle] = useState<number>(0);
   const [userAddress, setUserAddress] = useState<string | null>(null);
 
   useEffect(() => {
@@ -125,7 +140,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     fetchAddress();
   }, [userLocation]);
 
-  const targetLocation = useMemo(() => {
+  const targetLocation = useMemo<TargetLocation>(() => {
     if (
       schoolLocation &&
       (schoolLocation.lat || schoolLocation.lat === 0) &&
@@ -145,22 +160,23 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
       address2: t('Please set school location'),
       isMissing: true,
     };
-  }, [schoolLocation, userAddress]);
+  }, [schoolAddress, schoolLocation, userAddress]);
+
+  const isTargetLocationMissing = Boolean(targetLocation.isMissing);
 
   useEffect(() => {
-    if ((targetLocation as any).isMissing) {
-      setIsSchoolLocationMissing(true);
-    } else {
-      setIsSchoolLocationMissing(false);
-    }
-  }, [targetLocation]);
+    setIsSchoolLocationMissing(isTargetLocationMissing);
+  }, [isTargetLocationMissing]);
 
   useEffect(() => {
     if (open) {
       setIsLoadingLocation(true);
+      setIsLocationLoadTimeoutReached(false);
+      setLocationLoadCycle((prev) => prev + 1);
       const timer = setInterval(() => setCurrentDate(new Date()), 1000);
       let watcherId: string | number | null = null;
       let isMounted = true;
+      let hasReceivedLocation = false;
 
       const startWatching = async () => {
         if (!open) return;
@@ -192,6 +208,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
           const successHandler = (position: any) => {
             if (!isMounted) return;
+            hasReceivedLocation = true;
             setIsLoadingLocation(false);
             setLocationError(null);
 
@@ -200,7 +217,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
 
             setUserLocation({ lat: userLat, lng: userLng });
 
-            if ((targetLocation as any).isMissing) {
+            if (isTargetLocationMissing) {
               setDistance(0);
               setIsInsidePremises(true);
             } else {
@@ -251,7 +268,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                       setIsPermissionDenied(true);
                       setLocationError('Location permission denied.');
                     } else {
-                      if (isLoadingLocation) {
+                      if (!hasReceivedLocation) {
                         setLocationError(
                           'Could not retrieve location. Please check browser permissions or network.',
                         );
@@ -332,7 +349,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                           return;
                         }
 
-                        if (isLoadingLocation) {
+                        if (!hasReceivedLocation) {
                           setLocationError(
                             'Could not retrieve location. Please check GPS settings.',
                           );
@@ -389,10 +406,31 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
         }
       };
     }
-  }, [open, targetLocation.lat, targetLocation.lng, retryTrigger]);
+  }, [
+    open,
+    targetLocation.lat,
+    targetLocation.lng,
+    isTargetLocationMissing,
+    retryTrigger,
+  ]);
+
+  useEffect(() => {
+    if (!open) {
+      setIsLocationLoadTimeoutReached(false);
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      setIsLocationLoadTimeoutReached(true);
+    }, LOCATION_TIMEOUT_MS);
+
+    return () => clearTimeout(timeoutId);
+  }, [open, locationLoadCycle]);
 
   const handleRetryLocation = async () => {
     setIsLoadingLocation(true);
+    setIsLocationLoadTimeoutReached(false);
+    setLocationLoadCycle((prev) => prev + 1);
     setLocationError(null);
     setIsPermissionDenied(false);
     setUserLocation(null);
@@ -449,17 +487,26 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   };
 
   const onConfirmAction = async () => {
-    if (isSchoolLocationMissing) {
-      if (isConfirmedInSchool === true) {
-        const success = await handleUpdateSchoolLocation();
-        if (success) {
-          onConfirm(userLocation?.lat, userLocation?.lng, 0);
+    setIsSubmittingAction(true);
+    try {
+      if (isSchoolLocationMissing) {
+        if (isConfirmedInSchool === true) {
+          const success = await handleUpdateSchoolLocation();
+          if (success) {
+            await onConfirm(userLocation?.lat, userLocation?.lng, 0);
+          }
+        } else {
+          await onConfirm(userLocation?.lat, userLocation?.lng, undefined);
         }
       } else {
-        onConfirm(userLocation?.lat, userLocation?.lng, undefined);
+        await onConfirm(
+          userLocation?.lat,
+          userLocation?.lng,
+          distance ?? undefined,
+        );
       }
-    } else {
-      onConfirm(userLocation?.lat, userLocation?.lng, distance ?? undefined);
+    } finally {
+      setIsSubmittingAction(false);
     }
   };
 
@@ -505,6 +552,21 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   };
 
   const isCheckIn = status === SchoolVisitAction.CheckIn;
+  const hasValidCoordinates =
+    userLocation !== null &&
+    Number.isFinite(userLocation.lat) &&
+    Number.isFinite(userLocation.lng);
+  const hasAddressLine1Data =
+    Boolean(userAddress?.trim()) || Boolean(schoolAddress?.trim());
+  const hasAddressLine2Data =
+    isSchoolLocationMissing ||
+    targetLocation.address2 === undefined ||
+    Boolean(targetLocation.address2);
+  const isAddressInfoReady = hasAddressLine1Data && hasAddressLine2Data;
+  const isLocationPending = isLoadingLocation && !isLocationLoadTimeoutReached;
+  const isAddressPending =
+    hasValidCoordinates && !isLocationLoadTimeoutReached && !isAddressInfoReady;
+  const canDismissModal = !isSubmittingAction;
 
   // Disable confirm check-in if:
   // 1. Location is currently loading/updating
@@ -512,17 +574,19 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   // 3. Permission is explicitly denied
   // 4. User location failed to fetch (userLocation is null) AND not currently loading
   const isConfirmDisabled =
-    isLoadingLocation ||
+    isLocationPending ||
+    isAddressPending ||
     isUpdatingLocation ||
+    isSubmittingAction ||
     (isSchoolLocationMissing && isConfirmedInSchool === undefined) ||
     isPermissionDenied ||
-    (userLocation === null && !isLoadingLocation);
+    !hasValidCoordinates;
 
   return (
     <div
       id="check-in-modal-overlay"
       className="schoolcheckinmodal check-in-modal-overlay"
-      onClick={onClose}
+      onClick={canDismissModal ? onClose : undefined}
     >
       <div
         id="check-in-modal-container"
@@ -536,7 +600,8 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
           <button
             id="check-in-modal-close-btn"
             className="check-in-modal-close"
-            onClick={onClose}
+            onClick={canDismissModal ? onClose : undefined}
+            disabled={isSubmittingAction}
           >
             <IoClose />
           </button>
@@ -780,7 +845,8 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
           <button
             id="check-in-cancel-btn"
             className="check-in-btn btn-cancel"
-            onClick={onClose}
+            onClick={canDismissModal ? onClose : undefined}
+            disabled={isSubmittingAction}
           >
             {t('Cancel')}
           </button>

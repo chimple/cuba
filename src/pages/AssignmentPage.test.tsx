@@ -283,6 +283,32 @@ describe('AssignmentPage', () => {
     ).toBeInTheDocument();
   });
 
+  test('renders HomeworkPathway even when assignments are empty in pathway mode', async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+    mockGetFeatureValue.mockReturnValue(true);
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 's1' });
+
+    mockApi.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [{ id: 'c1', school_id: 'sch1' }],
+      schools: [{ id: 'sch1', name: 'My School' }],
+    });
+
+    mockApi.getPendingAssignments.mockResolvedValue([]);
+
+    render(
+      <MemoryRouter>
+        <AssignmentPage assignmentCount={assignmentCount} />
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByText('HomeworkPathway Component'),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText('Yay!! You have completed all the Homework!!'),
+    ).not.toBeInTheDocument();
+  });
+
   test('shows HomeworkCompleteModal when no assignments', async () => {
     (useFeatureIsOn as jest.Mock).mockReturnValue(false);
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 's1' });

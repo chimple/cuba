@@ -34,6 +34,10 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { palUtil } from '../utility/palUtil';
 import logger from '../utility/logger';
 
+const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
+const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
+  'pending_homework_reward_transition';
+
 const CocosGame: React.FC = () => {
   const history = useHistory();
   const location = history.location.state as {
@@ -346,7 +350,8 @@ const CocosGame: React.FC = () => {
     const isReward: boolean = state?.reward ?? false;
 
     const shouldGiveDailyReward =
-      isReward || (learning_path && (await Util.shouldGiveDailyReward()));
+      isReward ||
+      ((learning_path || is_homework) && (await Util.shouldGiveDailyReward()));
     if (shouldGiveDailyReward) {
       sessionStorage.setItem(REWARD_LESSON, 'true');
     }
@@ -457,7 +462,25 @@ const CocosGame: React.FC = () => {
     if (learning_path) {
       await Util.updateLearningPath(currentStudent, isReward);
     } else if (is_homework && homeworkIndex !== undefined) {
+      if (shouldGiveDailyReward) {
+        sessionStorage.setItem(
+          HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
+          String(homeworkIndex),
+        );
+      }
       await Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex); // NEW
+      // Snapshot before advancing: final lesson may remove HOMEWORK_PATHWAY.
+      const pathBeforeAdvance = localStorage.getItem(HOMEWORK_PATHWAY);
+      if (shouldGiveDailyReward && pathBeforeAdvance) {
+        sessionStorage.setItem(
+          PENDING_HOMEWORK_REWARD_TRANSITION_KEY,
+          JSON.stringify({
+            completedIndex: homeworkIndex,
+            nextIndex: homeworkIndex + 1,
+            pathSnapshot: pathBeforeAdvance,
+          }),
+        );
+      }
       await Util.updateHomeworkPath(homeworkIndex);
     }
 
@@ -483,7 +506,6 @@ const CocosGame: React.FC = () => {
               err,
             );
           }
-          localStorage.removeItem(HOMEWORK_PATHWAY);
         }
       } catch (err) {
         logger.error(
@@ -492,7 +514,6 @@ const CocosGame: React.FC = () => {
         );
       }
     }
-
     await Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.id,
       chapter_id: data.chapterId,

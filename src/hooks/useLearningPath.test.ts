@@ -172,6 +172,11 @@ describe('useLearningPath features used by Home tab', () => {
       is_assessment: true,
       isPlayed: false,
     });
+    expect(mockApi.getSubjectLessonsBySubjectId).toHaveBeenCalledWith(
+      's1',
+      { id: 'stu-1' },
+      'c1',
+    );
   });
 
   test('resumes same teacher-assigned assessment after exit', async () => {

@@ -36,9 +36,24 @@ const JoinClass: FC<{
 
   const api = ServiceConfig.getI().apiHandler;
   const containerRef = useRef<HTMLDivElement>(null);
+  const logJoinDebug = (
+    message: string,
+    functionName: string,
+    context?: Record<string, unknown>,
+  ) => {
+    logger.warn(message, {
+      file_name: 'JoinClass.tsx',
+      function_name: functionName,
+      ...(context ?? {}),
+    });
+  };
   const getErrorMessage = (error: unknown) => {
     if (error instanceof Error) return error.message;
     return String(error);
+  };
+  const getTranslatedText = (key: string) => {
+    const translatedText = t(key);
+    return typeof translatedText === 'string' ? translatedText : key;
   };
 
   const isNextButtonEnabled = () => {
@@ -69,19 +84,38 @@ const JoinClass: FC<{
       setLoading(true);
       try {
         const codeToVerify = urlClassCode.inviteCode || inviteCode;
+        logJoinDebug('Join class lookup started', 'getClassData', {
+          inviteCode: codeToVerify,
+          currentStudentId: currStudent?.id,
+          currentStudentNamePresent: !!currStudent?.name,
+          syncInProgress: api.isSyncInProgress(),
+        });
         const result = await api.getDataByInviteCodeNew(
           parseInt(codeToVerify, 10),
         );
+        logJoinDebug('Join class lookup succeeded', 'getClassData', {
+          inviteCode: codeToVerify,
+          classId: result?.inviteData?.['class_id'],
+          schoolId: result?.inviteData?.['school_id'],
+          className: result?.inviteData?.['class_name'],
+          schoolName: result?.inviteData?.['school_name'],
+        });
         setCodeResult(result);
         setShowDialogBox(true);
       } catch (error) {
         if (error instanceof Object) {
+          logJoinDebug('Join class lookup failed', 'getClassData', {
+            inviteCode: urlClassCode.inviteCode || inviteCode,
+            currentStudentId: currStudent?.id,
+            syncInProgress: api.isSyncInProgress(),
+            rawMessage: getErrorMessage(error),
+          });
           logger.error('Error fetching class data:', error);
           const rawMessage = getErrorMessage(error);
           let eMsg: string =
             rawMessage === 'Invalid inviteCode'
-              ? t('Invalid code. Please check and Try again.')
-              : t('Something went wrong. Please try again.');
+              ? getTranslatedText('Invalid code. Please check and Try again.')
+              : getTranslatedText('Something went wrong. Please try again.');
           setError(eMsg);
         }
       }
@@ -95,15 +129,53 @@ const JoinClass: FC<{
     const timeoutMs = 180000;
     const startedAt = Date.now();
     let syncIdleSince: number | null = null;
+    let sawSyncingState = false;
+    let sawIdleState = false;
+
+    logJoinDebug('Waiting for join sync to settle', 'waitForJoinSyncToSettle', {
+      timeoutMs,
+      pollIntervalMs,
+      settleDurationMs,
+      initialSyncInProgress: api.isSyncInProgress(),
+    });
 
     while (Date.now() - startedAt < timeoutMs) {
       const syncing = api.isSyncInProgress();
 
       if (syncing) {
+        if (!sawSyncingState) {
+          sawSyncingState = true;
+          logJoinDebug(
+            'Join sync wait observed sync in progress',
+            'waitForJoinSyncToSettle',
+            {
+              elapsedMs: Date.now() - startedAt,
+            },
+          );
+        }
         syncIdleSince = null;
       } else if (syncIdleSince === null) {
         syncIdleSince = Date.now();
+        if (!sawIdleState) {
+          sawIdleState = true;
+          logJoinDebug(
+            'Join sync wait observed idle state',
+            'waitForJoinSyncToSettle',
+            {
+              elapsedMs: Date.now() - startedAt,
+            },
+          );
+        }
       } else if (Date.now() - syncIdleSince >= settleDurationMs) {
+        logJoinDebug(
+          'Join sync settled successfully',
+          'waitForJoinSyncToSettle',
+          {
+            elapsedMs: Date.now() - startedAt,
+            sawSyncingState,
+            sawIdleState,
+          },
+        );
         return;
       }
 
@@ -115,6 +187,12 @@ const JoinClass: FC<{
     logger.warn(
       'Join class timed out while waiting for sync to settle. Continuing anyway.',
     );
+    logJoinDebug('Join sync wait timed out', 'waitForJoinSyncToSettle', {
+      elapsedMs: Date.now() - startedAt,
+      sawSyncingState,
+      sawIdleState,
+      finalSyncInProgress: api.isSyncInProgress(),
+    });
   };
 
   const onJoin = async () => {
@@ -124,11 +202,23 @@ const JoinClass: FC<{
 
     try {
       const student = Util.getCurrentStudent();
+      logJoinDebug('Join class flow started', 'onJoin', {
+        inviteCode,
+        studentId: student?.id,
+        studentNamePresent: !!student?.name,
+        currentStudentNamePresent: !!currStudent?.name,
+        codeLookupReady: !!codeResult,
+        syncInProgress: api.isSyncInProgress(),
+      });
 
       if (!student || inviteCode.length !== 6) {
         throw new Error('Student or invite code is missing.');
       }
       if (student.name == null || student.name === '') {
+        logJoinDebug('Updating blank student profile before join', 'onJoin', {
+          studentId: student.id,
+          fullName,
+        });
         await api.updateStudent(
           student,
           fullName,
@@ -140,13 +230,40 @@ const JoinClass: FC<{
           student.grade_id!,
           student.language_id!,
         );
+        logJoinDebug('Student profile update completed before join', 'onJoin', {
+          studentId: student.id,
+        });
       }
-      await api.linkStudent(parseInt(inviteCode, 10), student.id);
+      const parsedInviteCode = parseInt(inviteCode, 10);
+      logJoinDebug('Calling linkStudent RPC', 'onJoin', {
+        inviteCode: parsedInviteCode,
+        studentId: student.id,
+      });
+      const linkStudentResponse = await api.linkStudent(
+        parsedInviteCode,
+        student.id,
+      );
+      logJoinDebug('linkStudent RPC completed', 'onJoin', {
+        inviteCode: parsedInviteCode,
+        studentId: student.id,
+        responseCount: Array.isArray(linkStudentResponse)
+          ? linkStudentResponse.length
+          : undefined,
+        responseType: Array.isArray(linkStudentResponse)
+          ? 'array'
+          : typeof linkStudentResponse,
+      });
       await waitForJoinSyncToSettle();
       const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
       localStorage.setItem(RESET_ON_JOIN_KEY, 'true');
       if (!!codeResult) {
         const { inviteData, classData, schoolData } = codeResult;
+        logJoinDebug('Preparing local post-join updates', 'onJoin', {
+          inviteCode: parsedInviteCode,
+          studentId: student.id,
+          classId: inviteData['class_id'],
+          schoolId: inviteData['school_id'],
+        });
         Util.subscribeToClassTopic(
           inviteData['class_id'],
           inviteData['school_id'],
@@ -156,21 +273,41 @@ const JoinClass: FC<{
           throw new Error('Class data could not be fetched.');
         }
         await api.storeJoinClassLookupDataLocally(classData, schoolData);
+        logJoinDebug('Stored join lookup data locally', 'onJoin', {
+          classId: classData.id,
+          schoolId: schoolData.id,
+        });
         await schoolUtil.setCurrentSchool(schoolData);
         await schoolUtil.setCurrentClass(classData);
         await api.updateSchoolLastModified(inviteData['school_id']);
         await api.updateClassLastModified(inviteData['class_id']);
         await api.updateUserLastModified(student.id);
+        logJoinDebug('Completed post-join updates', 'onJoin', {
+          classId: classData.id,
+          schoolId: schoolData.id,
+          studentId: student.id,
+        });
       }
       onClassJoin();
+      logJoinDebug('Join class flow completed successfully', 'onJoin', {
+        inviteCode: parsedInviteCode,
+        studentId: student.id,
+      });
       const event = new CustomEvent('JoinClassListner', { detail: 'Joined' });
       window.dispatchEvent(event);
       // history.replace("/");
       // window.location.reload();
     } catch (error) {
+      logJoinDebug('Join class flow failed', 'onJoin', {
+        inviteCode,
+        currentStudentId: Util.getCurrentStudent()?.id,
+        codeLookupReady: !!codeResult,
+        syncInProgress: api.isSyncInProgress(),
+        rawMessage: getErrorMessage(error),
+      });
       logger.error('Join class failed:', error);
       if (error instanceof Object)
-        setError('Something went wrong. Please try again.');
+        setError(getTranslatedText('Something went wrong. Please try again.'));
     } finally {
       setJoiningClass(false);
     }

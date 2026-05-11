@@ -7,6 +7,7 @@ import {
   useStateMachineInput,
 } from '@rive-app/react-canvas';
 import {
+  CHIMPLE_MASCOT_INPUT_NORMAL,
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
   SHOULD_SHOW_REMOTE_ASSETS,
 } from '../../common/constants';
@@ -71,7 +72,7 @@ function RiveMascotCanvas({
       useOffscreenRenderer: false,
     },
   );
-  const stateInputName = inputName ? inputName : 'Number 2';
+  const stateInputName = inputName ? inputName : CHIMPLE_MASCOT_INPUT_NORMAL;
   const numberInput = useStateMachineInput(
     rive,
     stateMachine,
@@ -263,7 +264,7 @@ export default function ChimpleRiveMascot({
     return () => {
       document.removeEventListener('pointerdown', handlePointerDown, true);
     };
-  }, []); // ← empty deps, listener registered once only
+  }, [onClick]);
 
   if (!riveSrc) return null;
 

@@ -7,6 +7,10 @@ import './SchoolCoordinators.css';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { CoordinatorInfo } from '../../../common/constants';
 import logger from '../../../utility/logger';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RoleType } from '../../../interface/modelInterfaces';
 
 interface DisplayCoordinator {
   id: string;
@@ -41,7 +45,11 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
   const [page, setPage] = useState(1);
   const [orderBy, setOrderBy] = useState<string | null>('name');
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
-
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const fetchCoordinators = useCallback(
     async (currentPage: number) => {
       setIsLoading(true);
@@ -138,16 +146,20 @@ const SchoolCoordinators: React.FC<SchoolCoordinatorsProps> = ({
       ),
     },
     { key: 'gender', label: t('Gender') },
-    { key: 'phoneNumber', label: t('Phone Number') },
-    {
-      key: 'emailDisplay',
-      label: t('Email'),
-      renderCell: (c: DisplayCoordinator) => (
-        <Typography variant="body2" className="truncate-text">
-          {c.emailDisplay}
-        </Typography>
-      ),
-    },
+    ...(!isExternalUser
+      ? [
+          { key: 'phoneNumber', label: t('Phone Number') },
+          {
+            key: 'emailDisplay',
+            label: t('Email'),
+            renderCell: (c: DisplayCoordinator) => (
+              <Typography variant="body2" className="truncate-text">
+                {c.emailDisplay}
+              </Typography>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (

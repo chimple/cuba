@@ -40,6 +40,8 @@ const ManageClass: React.FC = () => {
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const storedRoles = roles || [];
 
   const init = async () => {
@@ -111,7 +113,7 @@ const ManageClass: React.FC = () => {
           school={currentSchool}
         />
       </div>
-      {canCreate && (
+      {canCreate && !isExternalUser && (
         <AddButton
           onClick={() => {
             history.replace(PAGES.ADD_CLASS, { origin: PAGES.MANAGE_CLASS });

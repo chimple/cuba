@@ -10,6 +10,9 @@ import CommonDialogBox from '../../../common/CommonDialogBox';
 import { t } from 'i18next';
 import { Util } from '../../../utility/util';
 import logger from '../../../utility/logger';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
 
 const SchoolUserList: React.FC<{
   schoolDoc: TableTypes<'school'>;
@@ -34,6 +37,11 @@ const SchoolUserList: React.FC<{
   const previousRoleRef = useRef<RoleType | undefined>(undefined);
   const hasBackedUpSelectionRef = useRef(false);
   const auth = ServiceConfig.getI()?.authHandler;
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
 
   useEffect(() => {
     init();
@@ -162,7 +170,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {canDelete && (
+                {canDelete && !isExternalUser && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(principal)}
@@ -190,7 +198,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {canDelete && (
+                {canDelete && !isExternalUser && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(coordinator)}
@@ -218,7 +226,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {canDelete && (
+                {canDelete && !isExternalUser && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(sponsor)}

@@ -73,7 +73,30 @@ export type ParseXlsxSheetsResult = {
 
 export type BuildXlsxFilePayload = {
   sheetNames: string[];
-  sheets: Record<string, Record<string, any>[]>;
+  sheets: Record<
+    string,
+    Record<string, unknown>[] | Array<Array<string | number>>
+  >;
+  sheetFormats?: Record<string, 'json' | 'aoa'>;
+  sheetWrapColumns?: Record<string, number[]>;
+  sheetFreeze?: Record<
+    string,
+    {
+      xSplit: number;
+      ySplit: number;
+      topLeftCell: string;
+      activePane: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+      activeCell?: string;
+      sqref?: string;
+    }
+  >;
+  sheetMerges?: Record<
+    string,
+    Array<{
+      s: { r: number; c: number };
+      e: { r: number; c: number };
+    }>
+  >;
 };
 
 export type BuildXlsxFileResult = {

@@ -577,32 +577,13 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                         )}
                       </div>
                     )
-                  ) : // ✅ Flag OFF → ALWAYS render HomeworkPathway, even if assignments[] is empty or API failed.
-
-                  // <HomeworkPathway onPlayMoreHomework={onPlayMoreHomework} />
-                  assignments.length > 0 ? (
+                  ) : (
+                    // ✅ Pathway mode: always render HomeworkPathway.
+                    // It handles reward-transition and completion modal internally.
                     <HomeworkPathway
                       onPlayMoreHomework={onPlayMoreHomework}
                       refreshToken={assignmentRefreshToken}
                     />
-                  ) : (
-                    <div className="pending-assignment">
-                      {showHomeworkCompleteModal && (
-                        <HomeworkCompleteModal
-                          text={t(
-                            'Yay!! You have completed all the Homework!!',
-                          )}
-                          borderImageSrc="/pathwayAssets/homeworkCelebration.svg"
-                          onClose={() => setShowHomeworkCompleteModal(false)}
-                          onPlayMore={() => {
-                            setShowHomeworkCompleteModal(false);
-                            if (onPlayMoreHomework) {
-                              onPlayMoreHomework();
-                            }
-                          }}
-                        />
-                      )}
-                    </div>
                   )}
 
                   {/* retained older commented logic in case you want to revert */}

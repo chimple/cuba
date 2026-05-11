@@ -133,6 +133,7 @@
     "lint:fix": "eslint src/**/*.{js,jsx,ts,tsx} --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,json,md}\"",
     "fix-staged": "lint-staged -c .lintstagedrc-fix.json --no-stash",
+    "check:new-any": "node scripts/check-new-explicit-any.js",
     "prepare": "husky"
   },
   "eslintConfig": {
@@ -211,7 +212,8 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint",
-      "prettier --check"
+      "prettier --check",
+      "npm run check:new-any"
     ],
     "*.{css,json,md}": [
       "prettier --check"

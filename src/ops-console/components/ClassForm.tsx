@@ -147,6 +147,20 @@ const ClassForm: React.FC<{
     return `https://chat.whatsapp.com/invite/${code}`;
   };
 
+  const extractGroupIdFromInviteResponse = (response: unknown): string => {
+    if (!response || typeof response !== 'object' || Array.isArray(response)) {
+      return '';
+    }
+    const inviteResponse = response as {
+      data?: { group_id?: string | null };
+    };
+    const nestedGroupId = inviteResponse.data?.group_id;
+    if (typeof nestedGroupId === 'string' && nestedGroupId.trim() !== '') {
+      return nestedGroupId.trim();
+    }
+    return '';
+  };
+
   const didInviteLinkChange =
     mode === 'edit' &&
     normalizeWhatsAppInviteLink(formValues.whatsapp_invite_link) !==
@@ -183,13 +197,7 @@ const ClassForm: React.FC<{
               normalizedInviteLink,
               whatspAppBotNumber || '',
             );
-            let resolvedGroupIdValue = '';
-            if (gId && typeof gId === 'object' && !Array.isArray(gId)) {
-              const groupId = (gId as { group_id?: string | null }).group_id;
-              if (typeof groupId === 'string') {
-                resolvedGroupIdValue = groupId;
-              }
-            }
+            const resolvedGroupIdValue = extractGroupIdFromInviteResponse(gId);
 
             if (!resolvedGroupIdValue) {
               setErrorMessage('Invalid WhatsApp Invite Link.');
@@ -225,13 +233,7 @@ const ClassForm: React.FC<{
               normalizedInviteLink,
               whatspAppBotNumber || '',
             );
-            let resolvedGroupIdValue = '';
-            if (gId && typeof gId === 'object' && !Array.isArray(gId)) {
-              const groupId = (gId as { group_id?: string | null }).group_id;
-              if (typeof groupId === 'string') {
-                resolvedGroupIdValue = groupId;
-              }
-            }
+            const resolvedGroupIdValue = extractGroupIdFromInviteResponse(gId);
 
             if (!resolvedGroupIdValue) {
               setErrorMessage('Invalid WhatsApp Invite Link.');

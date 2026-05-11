@@ -5,6 +5,11 @@ import { t } from 'i18next';
 import ChimpleRiveMascot from '../learningPathway/ChimpleRiveMascot';
 import AudioButton from '../common/AudioButton';
 import { AudioUtil } from '../../utility/AudioUtil';
+import {
+  CHIMPLE_MASCOT_ANIMATION_WIN,
+  CHIMPLE_MASCOT_INPUT_CELEBRATE,
+  CHIMPLE_MASCOT_STATE_MACHINE_HOMEWORK_COMPLETE,
+} from '../../common/constants';
 
 interface HomeworkCompleteModalProps {
   text: string;
@@ -80,10 +85,10 @@ const HomeworkCompleteModal: React.FC<HomeworkCompleteModalProps> = ({
             <div className="homework-completed-mascot homework-completed-mascot-rive">
               <ChimpleRiveMascot
                 // you can tweak these to use your “celebration” state
-                stateMachine="State Machine 1"
-                inputName="Number 1"
+                stateMachine={CHIMPLE_MASCOT_STATE_MACHINE_HOMEWORK_COMPLETE}
+                inputName={CHIMPLE_MASCOT_INPUT_CELEBRATE}
                 stateValue={1}
-                animationName={'win'}
+                animationName={CHIMPLE_MASCOT_ANIMATION_WIN}
               />
             </div>
           </div>
