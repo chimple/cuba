@@ -2349,8 +2349,60 @@ export class SqliteApi implements ServiceApi {
   ): Promise<TableTypes<'lesson'>[]> {
     await this.ensureInitialized();
     const student = this.currentStudent;
-    const langId = student?.language_id;
+    let langId = student?.language_id;
     const localeId = student?.locale_id;
+
+    try {
+      const courseRes = await this.executeQuery(
+        `
+          SELECT course.code
+          FROM ${TABLES.Chapter} AS chapter
+          JOIN ${TABLES.Course} AS course ON chapter.course_id = course.id
+          WHERE chapter.id = ?
+            AND chapter.is_deleted = 0
+            AND course.is_deleted = 0
+          LIMIT 1;
+        `,
+        [chapterId],
+      );
+      const courseCode = (
+        ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
+          code?: string | null;
+        }
+      ).code
+        ?.trim()
+        .toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const languageRes = await this.executeQuery(
+          `
+            SELECT id
+            FROM ${TABLES.Language}
+            WHERE LOWER(code) = ?
+              AND is_deleted = 0
+            LIMIT 1;
+          `,
+          [courseLanguageCode],
+        );
+        const courseLanguageId = (
+          ((languageRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
+            id?: string | null;
+          }
+        ).id;
+
+        if (courseLanguageId) {
+          langId = courseLanguageId;
+        }
+      }
+    } catch (error) {
+      logger.error('Error resolving chapter course language:', error);
+    }
 
     const query = `
     SELECT *
@@ -8737,10 +8789,14 @@ order by
   ): Promise<TableTypes<'subject_lesson'>> {
     if (!student) return {} as TableTypes<'subject_lesson'>;
     const studentId = student.id;
-    const langId = student.language_id ?? null;
+    let langId = student.language_id ?? null;
     const localeId = student.locale_id ?? null;
 
     try {
+      type CourseLanguageRow = {
+        code?: string | null;
+        id?: string | null;
+      };
       type SubjectLessonSetRow = {
         set_number: number;
         language_id: string | null;
@@ -8751,6 +8807,59 @@ order by
         status: string | null;
       };
       type ResultLessonRow = { lesson_id: string | null };
+
+      if (courseId) {
+        try {
+          const courseRes = await this.executeQuery(
+            `
+              SELECT code
+              FROM course
+              WHERE id = ?
+                AND is_deleted = 0
+              LIMIT 1;
+            `,
+            [courseId],
+          );
+          const courseCode = (
+            ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ??
+              {}) as CourseLanguageRow
+          ).code
+            ?.trim()
+            .toLowerCase();
+          const courseLanguageCode =
+            courseCode === COURSES.MATHS
+              ? COURSES.ENGLISH
+              : courseCode?.includes('-')
+                ? courseCode.split('-').pop()
+                : courseCode;
+
+          if (courseLanguageCode) {
+            const languageRes = await this.executeQuery(
+              `
+                SELECT id
+                FROM language
+                WHERE LOWER(code) = ?
+                  AND is_deleted = 0
+                LIMIT 1;
+              `,
+              [courseLanguageCode],
+            );
+            const courseLanguageId = (
+              ((languageRes as DBSQLiteValues | undefined)?.values?.[0] ??
+                {}) as CourseLanguageRow
+            ).id;
+
+            if (courseLanguageId) {
+              langId = courseLanguageId;
+            }
+          }
+        } catch (error) {
+          logger.error(
+            'Error resolving subject lesson course language:',
+            error,
+          );
+        }
+      }
 
       // 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
       const setQuery = `
