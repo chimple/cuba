@@ -25,10 +25,10 @@ const AddTeacherName: React.FC = () => {
     const updatedUser = await api.updateUserProfile(
       user,
       (firstName + ' ' + lastName).trim(),
-      user?.email!,
-      user?.phone!,
-      user?.language_id!,
-      user?.image!,
+      user.email ?? '',
+      user.phone ?? '',
+      user.language_id ?? '',
+      user.image ?? undefined,
     );
     auth.currentUser = updatedUser;
     history.replace(PAGES.DISPLAY_SCHOOLS);
