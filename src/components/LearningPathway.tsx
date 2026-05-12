@@ -110,7 +110,7 @@ const LearningPathway: React.FC = () => {
 
         const sortedCourses = await sortCoursesByStudentLanguage(
           courses,
-          student.language_id,
+          student,
         );
         const learningPath = student.learning_path
           ? JSON.parse(student.learning_path)

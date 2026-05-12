@@ -3,12 +3,18 @@ import {
   getLastPlayedLesson,
   getNextFromList,
   recommendNextLesson,
+  sortCoursesByStudentLanguage,
   useLearningPath,
 } from './useLearningPath';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import { schoolUtil } from '../utility/schoolUtil';
-import { EVENTS, LEARNING_PATHWAY_MODE } from '../common/constants';
+import {
+  EVENTS,
+  LANGUAGE,
+  LEARNING_PATHWAY_MODE,
+  TableTypes,
+} from '../common/constants';
 
 jest.mock('../utility/util');
 jest.mock('../utility/schoolUtil');
@@ -33,6 +39,7 @@ const mockApi = {
   getChaptersForCourse: jest.fn(),
   getLessonsForChapter: jest.fn(),
   updateLearningPath: jest.fn(),
+  getLanguageWithId: jest.fn(),
 };
 
 describe('useLearningPath features used by Home tab', () => {
@@ -60,6 +67,46 @@ describe('useLearningPath features used by Home tab', () => {
     mockApi.getChaptersForCourse.mockResolvedValue([]);
     mockApi.getLessonsForChapter.mockResolvedValue([]);
     mockApi.updateLearningPath.mockResolvedValue(undefined);
+    mockApi.getLanguageWithId.mockResolvedValue(undefined);
+    localStorage.clear();
+  });
+
+  test('prefers the student-language math course when old English math is still attached', async () => {
+    localStorage.setItem(LANGUAGE, 'hi');
+
+    const sorted = await sortCoursesByStudentLanguage(
+      [
+        { id: 'english', code: 'en', subject_id: 'english-subject' },
+        {
+          id: 'math-english',
+          code: 'maths',
+          subject_id: 'math-subject',
+          curriculum_id: 'curriculum-1',
+          grade_id: 'grade-1',
+        },
+        {
+          id: 'digital-skills',
+          code: 'digital',
+          subject_id: 'digital-subject',
+        },
+        {
+          id: 'math-hindi',
+          code: 'maths-hi',
+          subject_id: 'math-subject',
+          curriculum_id: 'curriculum-1',
+          grade_id: 'grade-1',
+        },
+        { id: 'hindi', code: 'hi', subject_id: 'hindi-subject' },
+      ] as TableTypes<'course'>[],
+      'lang-hi',
+    );
+
+    expect(sorted.map((course) => course.id)).toEqual([
+      'hindi',
+      'english',
+      'math-hindi',
+      'digital-skills',
+    ]);
   });
 
   test('pathway rebuild/sync after class-join style course list change preserves current course index', async () => {
