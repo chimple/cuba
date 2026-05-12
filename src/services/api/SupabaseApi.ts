@@ -47,6 +47,8 @@ import {
   RESULT_STATUS,
   LEARNING_PATHWAY_MODE,
   ProgramType,
+  LATEST_LEARNING_PATH,
+  REWARD_LEARNING_PATH,
 } from '../../common/constants';
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
@@ -2546,6 +2548,7 @@ export class SupabaseApi implements ServiceApi {
     localeId?: string,
   ): Promise<TableTypes<'user'>> {
     if (!this.supabase) return student;
+    const languageChanged = student.language_id !== languageDocId;
 
     const updatedFields: any = {
       name,
@@ -2558,19 +2561,26 @@ export class SupabaseApi implements ServiceApi {
       language_id: languageDocId,
     };
 
-    if (student.language_id !== languageDocId) {
+    if (languageChanged) {
       const countryCode = await this.getClientCountryCode();
       const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
       updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
+      updatedFields.learning_path = null;
     }
 
     await this.supabase.from('user').update(updatedFields).eq('id', student.id);
     const updatedStudent = { ...student, ...updatedFields };
+    if (languageChanged) {
+      localStorage.removeItem(`${LATEST_LEARNING_PATH}:${student.id}`);
+      sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    }
 
     const courses =
       gradeDocId && boardDocId
         ? await this.getCourseByUserGradeId(gradeDocId, boardDocId)
-        : [];
+        : languageChanged
+          ? await this.getDefaultCoursesForLanguage(languageDocId)
+          : [];
 
     if (courses && courses.length > 0) {
       // Batch fetch existing user_course entries for this student and these courses
@@ -2607,6 +2617,40 @@ export class SupabaseApi implements ServiceApi {
 
     return updatedStudent;
   }
+
+  private async getDefaultCoursesForLanguage(
+    languageDocId?: string | null,
+  ): Promise<TableTypes<'course'>[]> {
+    const [englishCourse, mathsCourse, digitalSkillsCourse] = await Promise.all(
+      [
+        this.getCourse(CHIMPLE_ENGLISH),
+        this.resolveMathCourseByLanguage(languageDocId),
+        this.getCourse(CHIMPLE_DIGITAL_SKILLS),
+      ],
+    );
+
+    const language = languageDocId
+      ? await this.getLanguageWithId(languageDocId)
+      : undefined;
+    let langCourse: TableTypes<'course'> | undefined;
+
+    if (language && language.code !== COURSES.ENGLISH) {
+      const thirdLanguageCourseMap: Record<string, string> = {
+        hi: CHIMPLE_HINDI,
+        kn: GRADE1_KANNADA,
+        mr: GRADE1_MARATHI,
+      };
+      const courseId = thirdLanguageCourseMap[language.code ?? ''];
+      if (courseId) {
+        langCourse = await this.getCourse(courseId);
+      }
+    }
+
+    return [englishCourse, mathsCourse, langCourse, digitalSkillsCourse].filter(
+      Boolean,
+    ) as TableTypes<'course'>[];
+  }
+
   async updateStudentFromSchoolMode(
     student: TableTypes<'user'>,
     name: string,

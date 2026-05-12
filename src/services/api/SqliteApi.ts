@@ -49,6 +49,7 @@ import {
   RESULT_STATUS,
   LIDO_ASSESSMENT,
   LATEST_LEARNING_PATH,
+  REWARD_LEARNING_PATH,
 } from '../../common/constants';
 import { StudentLessonResult } from '../../common/courseConstants';
 import { AvatarObj } from '../../components/animation/Avatar';
@@ -3048,6 +3049,7 @@ export class SqliteApi implements ServiceApi {
       language_id = ?,
       locale_id = ?,
       updated_at = ?
+      ${languageChanged ? ', learning_path = ?' : ''}
     WHERE id = ?;
   `;
     const params = [
@@ -3062,6 +3064,9 @@ export class SqliteApi implements ServiceApi {
       localeId,
       now,
     ];
+    if (languageChanged) {
+      params.push(null);
+    }
     params.push(student.id);
     await this.executeQuery(updateUserQuery, params);
 
@@ -3077,6 +3082,7 @@ export class SqliteApi implements ServiceApi {
       language_id: languageDocId,
       locale_id: localeId,
       updated_at: now,
+      ...(languageChanged && { learning_path: null }),
     };
 
     await this.assignCoursesToStudent(
@@ -3098,7 +3104,12 @@ export class SqliteApi implements ServiceApi {
       language_id: languageDocId,
       locale_id: localeId,
       updated_at: now,
+      ...(languageChanged && { learning_path: null }),
     });
+    if (languageChanged) {
+      localStorage.removeItem(`${LATEST_LEARNING_PATH}:${student.id}`);
+      sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    }
     return updatedStudent;
   }
   async getCurrentClassIdForStudent(studentId: string): Promise<string | null> {
