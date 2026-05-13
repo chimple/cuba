@@ -342,10 +342,18 @@ const preferStudentLanguageMathCourses = (
     }
 
     const groupKey = getMathCourseGroupKey(course);
-    if (emittedMathGroups.has(groupKey)) return;
+    const preferredCourse = preferredByGroup.get(groupKey) ?? course;
 
-    emittedMathGroups.add(groupKey);
-    resolvedCourses.push(preferredByGroup.get(groupKey) ?? course);
+    // Emit preferred course first
+    if (!emittedMathGroups.has(groupKey)) {
+      emittedMathGroups.add(groupKey);
+      resolvedCourses.push(preferredCourse);
+    }
+
+    // Allow additional variants too
+    if (course.id !== preferredCourse.id) {
+      resolvedCourses.push(course);
+    }
   });
 
   return resolvedCourses;
