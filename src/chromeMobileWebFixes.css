@@ -1,44 +1,44 @@
 /*
- * Scoped fixes for Android Chrome mobile web only.
+ * Scoped fixes for mobile web browsers only.
  * The class is applied at runtime in index.tsx and is not present in
  * Capacitor native apps, tablet app builds, or desktop/laptop browsers.
  */
-body.chrome-mobile-web {
+body.mobile-web-browser {
   overflow-x: hidden;
 }
 
-body.chrome-mobile-web *,
-body.chrome-mobile-web *::before,
-body.chrome-mobile-web *::after {
+body.mobile-web-browser *,
+body.mobile-web-browser *::before,
+body.mobile-web-browser *::after {
   box-sizing: border-box;
 }
 
 @media (max-width: 960px), (max-height: 560px) {
-  body.chrome-mobile-web {
+  body.mobile-web-browser {
     --text-size: clamp(13px, 2.4vmin, 16px);
     --text-sizeXL: clamp(16px, 4vmin, 22px);
     --margin: clamp(8px, 2vmin, 14px);
   }
 
-  body.chrome-mobile-web .add-course-subject-slider-content {
+  body.mobile-web-browser .add-course-subject-slider-content {
     overflow-x: auto;
     overflow-y: visible;
     padding-inline: max(16px, env(safe-area-inset-left));
     margin-bottom: 0;
   }
 
-  body.chrome-mobile-web .add-course-slide {
+  body.mobile-web-browser .add-course-slide {
     width: auto;
     max-width: fit-content;
   }
 
-  body.chrome-mobile-web .add-course-subject-button {
+  body.mobile-web-browser .add-course-subject-button {
     width: auto;
     margin: clamp(10px, 3vh, 18px);
     min-width: 0;
   }
 
-  body.chrome-mobile-web .add-course-course-icon {
+  body.mobile-web-browser .add-course-course-icon {
     width: clamp(26vh, 28vh, 37vh);
     height: clamp(13vh, 49vh, 71vh);
     max-width: 22vw;
@@ -46,7 +46,7 @@ body.chrome-mobile-web *::after {
     margin-top: 3vh;
   }
 
-  body.chrome-mobile-web #leaderboard-UI {
+  body.mobile-web-browser #leaderboard-UI {
     height: calc(100dvh - 80px);
     min-height: 0;
     padding: 0 12px 16px;
@@ -55,23 +55,23 @@ body.chrome-mobile-web *::after {
     gap: 10px;
   }
 
-  body.chrome-mobile-web #leaderboard-right-UI {
+  body.mobile-web-browser #leaderboard-right-UI {
     max-width: calc(100vw - 32vw);
     height: calc(100dvh - 115px);
     overflow: auto;
     border-radius: 14px;
   }
 
-  body.chrome-mobile-web #leaderboard-right-UI-content,
-  body.chrome-mobile-web #leaderboard-left-UI-content {
+  body.mobile-web-browser #leaderboard-right-UI-content,
+  body.mobile-web-browser #leaderboard-left-UI-content {
     font-size: clamp(11px, 2.2vmin, 14px) !important;
   }
 
-  body.chrome-mobile-web #leaderboard-left-note-message {
+  body.mobile-web-browser #leaderboard-left-note-message {
     display: none;
   }
 
-  body.chrome-mobile-web #parent-page-profile {
+  body.mobile-web-browser #parent-page-profile {
     justify-content: flex-start;
     overflow-x: auto;
     overflow-y: hidden;
@@ -82,46 +82,46 @@ body.chrome-mobile-web *::after {
     margin: 0;
   }
 
-  body.chrome-mobile-web #profile-card {
+  body.mobile-web-browser #profile-card {
     min-width: 190px;
   }
 
-  body.chrome-mobile-web .profile-menu {
+  body.mobile-web-browser .profile-menu {
     width: min(82vw, 300px);
     height: 100dvh;
   }
 
-  body.chrome-mobile-web .RewardModal-content,
-  body.chrome-mobile-web .generic-popup-card {
+  body.mobile-web-browser .RewardModal-content,
+  body.mobile-web-browser .generic-popup-card {
     width: min(92vw, 485px);
     min-width: 0;
     max-height: calc(100dvh - 24px);
   }
 
-  body.chrome-mobile-web .StickerBookPreviewModal-modal {
+  body.mobile-web-browser .StickerBookPreviewModal-modal {
     width: min(86vw, 52rem);
     margin-left: 0;
     margin-right: 0;
     max-height: calc(100dvh - 12px);
   }
 
-  body.chrome-mobile-web .StickerBookPreviewModal-overlay {
+  body.mobile-web-browser .StickerBookPreviewModal-overlay {
     align-items: center;
     justify-content: center;
     padding: 4px 12px;
   }
 
-  body.chrome-mobile-web .StickerBookPreviewModal-bottom-strip {
+  body.mobile-web-browser .StickerBookPreviewModal-bottom-strip {
     min-height: clamp(48px, 13dvh, 68px);
     padding-block: 4px;
   }
 
-  body.chrome-mobile-web .StickerBookPreviewModal-helper-text {
+  body.mobile-web-browser .StickerBookPreviewModal-helper-text {
     white-space: normal;
     font-size: clamp(14px, 3.5vmin, 20px);
   }
 
-  body.chrome-mobile-web .PathwayStructure-div {
+  body.mobile-web-browser .PathwayStructure-div {
     top: 40%;
     left: 16vw;
     width: 78vw;
@@ -131,93 +131,93 @@ body.chrome-mobile-web *::after {
     overflow: visible;
   }
 
-  body.chrome-mobile-web .PathwayStructure-div > svg {
+  body.mobile-web-browser .PathwayStructure-div > svg {
     width: 100% !important;
     max-width: none;
     height: auto;
     overflow: visible;
   }
 
-  body.chrome-mobile-web .learning-pathway-container {
+  body.mobile-web-browser .learning-pathway-container {
     min-height: calc(100dvh - 112px);
   }
 
-  body.chrome-mobile-web .dropdownmenu-dropdown-main {
+  body.mobile-web-browser .dropdownmenu-dropdown-main {
     top: 34%;
     left: 5%;
     z-index: 3;
   }
 
-  body.chrome-mobile-web .chapter-egg-container {
+  body.mobile-web-browser .chapter-egg-container {
     height: 20dvh;
     min-height: 64px;
     max-height: 80px;
   }
 
-  body.chrome-mobile-web .slider-content {
+  body.mobile-web-browser .slider-content {
     height: calc(100dvh - 112px);
     overflow: hidden;
   }
 
-  body.chrome-mobile-web .space-between {
+  body.mobile-web-browser .space-between {
     height: 100%;
     min-height: 0;
   }
 
-  body.chrome-mobile-web .assignment-main-join-class,
-  body.chrome-mobile-web .assignment-main {
+  body.mobile-web-browser .assignment-main-join-class,
+  body.mobile-web-browser .assignment-main {
     height: calc(100dvh - 112px);
     min-height: 0;
     overflow: auto;
   }
 
-  body.chrome-mobile-web .join-class-parent-container {
+  body.mobile-web-browser .join-class-parent-container {
     min-height: 100%;
     justify-content: flex-start;
     margin-top: 0;
     padding-bottom: 12px;
   }
 
-  body.chrome-mobile-web .assignment-join-class-container-scroll {
+  body.mobile-web-browser .assignment-join-class-container-scroll {
     overflow: visible;
     padding-bottom: 12px;
   }
 
-  body.chrome-mobile-web .join-class-parent-container h2 {
+  body.mobile-web-browser .join-class-parent-container h2 {
     font-size: clamp(17px, 3.6vmin, 26px);
     margin: 0 0 2px;
   }
 
-  body.chrome-mobile-web .join-class-container {
+  body.mobile-web-browser .join-class-container {
     width: min(78vw, 640px);
   }
 
-  body.chrome-mobile-web .join-class-container .with-icon-input-wrapper {
+  body.mobile-web-browser .join-class-container .with-icon-input-wrapper {
     margin: clamp(10px, 2.6dvh, 16px) auto;
   }
 
-  body.chrome-mobile-web .join-class-container .with-icon-input-box {
+  body.mobile-web-browser .join-class-container .with-icon-input-box {
     height: clamp(42px, 10dvh, 54px);
     padding-block: 6px;
   }
 
-  body.chrome-mobile-web .join-class-message {
+  body.mobile-web-browser .join-class-message {
     height: 16px;
     margin: -2px 0 2px;
     font-size: clamp(11px, 2.2vmin, 14px);
   }
 
-  body.chrome-mobile-web .join-class-confirm-button {
+  body.mobile-web-browser .join-class-confirm-button {
     width: clamp(160px, 22vw, 220px);
     height: clamp(40px, 8dvh, 52px);
     font-size: clamp(20px, 4vmin, 30px);
   }
 
-  body.chrome-mobile-web .join-class-confirm-text {
+  body.mobile-web-browser .join-class-confirm-text {
     line-height: clamp(40px, 8dvh, 52px);
   }
 
-  body.chrome-mobile-web .profiledetails-container {
+  body.mobile-web-browser .profiledetails-container {
     width: 100%;
     height: calc(100dvh - 2px);
     min-height: 0;
@@ -226,127 +226,129 @@ body.chrome-mobile-web *::after {
     padding: 8px 22px 12px 74px;
   }
 
-  body.chrome-mobile-web .profiledetails-back-button {
+  body.mobile-web-browser .profiledetails-back-button {
     top: 18px;
     left: 24px;
   }
 
-  body.chrome-mobile-web .profiledetails-avatar-form {
+  body.mobile-web-browser .profiledetails-avatar-form {
     width: min(86vw, 980px);
     gap: clamp(18px, 3vw, 32px);
     align-items: center;
   }
 
-  body.chrome-mobile-web .profiledetails-avatar-section {
+  body.mobile-web-browser .profiledetails-avatar-section {
     flex-basis: clamp(118px, 17vw, 150px);
   }
 
-  body.chrome-mobile-web .profiledetails-avatar-image {
+  body.mobile-web-browser .profiledetails-avatar-image {
     width: clamp(118px, 17vw, 150px);
     height: clamp(118px, 17vw, 150px);
   }
 
-  body.chrome-mobile-web .profiledetails-form-fields {
+  body.mobile-web-browser .profiledetails-form-fields {
     width: auto;
     min-width: 0;
   }
 
-  body.chrome-mobile-web .profiledetails-header-info {
+  body.mobile-web-browser .profiledetails-header-info {
     margin-bottom: 0;
     font-size: clamp(12px, 2vmin, 15px);
   }
 
-  body.chrome-mobile-web .profiledetails-full-name .with-icon-input-wrapper {
+  body.mobile-web-browser .profiledetails-full-name .with-icon-input-wrapper {
     margin: 2px auto 10px;
   }
 
-  body.chrome-mobile-web .profiledetails-full-name .with-icon-input-box {
+  body.mobile-web-browser .profiledetails-full-name .with-icon-input-box {
     height: clamp(46px, 10dvh, 55px);
   }
 
-  body.chrome-mobile-web .profiledetails-full-name .with-icon-text-input,
-  body.chrome-mobile-web
+  body.mobile-web-browser .profiledetails-full-name .with-icon-text-input,
+  body.mobile-web-browser
     .profiledetails-full-name
     .with-icon-text-input::placeholder {
     font-size: clamp(20px, 4vmin, 24px);
   }
 
-  body.chrome-mobile-web .profiledetails-row-group {
+  body.mobile-web-browser .profiledetails-row-group {
     gap: 12px;
   }
 
-  body.chrome-mobile-web
+  body.mobile-web-browser
     .profiledetails-row-group
     .select-with-icon-input-wrapper {
     margin: 0 auto 8px;
   }
 
-  body.chrome-mobile-web .profiledetails-row-group .select-with-icon-input-box {
+  body.mobile-web-browser
+    .profiledetails-row-group
+    .select-with-icon-input-box {
     min-height: clamp(46px, 10dvh, 55px);
     padding-block: 7px;
   }
 
-  body.chrome-mobile-web
+  body.mobile-web-browser
     .profiledetails-row-group
     .select-with-icon-selected-text {
     font-size: clamp(20px, 4vmin, 24px);
   }
 
-  body.chrome-mobile-web .profiledetails-gender-fieldset {
+  body.mobile-web-browser .profiledetails-gender-fieldset {
     height: clamp(64px, 14dvh, 78px);
     margin-top: 4px;
   }
 
-  body.chrome-mobile-web .profiledetails-gender-buttons {
+  body.mobile-web-browser .profiledetails-gender-buttons {
     height: clamp(38px, 8.5dvh, 45px);
     gap: 10px;
   }
 
-  body.chrome-mobile-web .profiledetails-gender-btn {
+  body.mobile-web-browser .profiledetails-gender-btn {
     height: clamp(36px, 8dvh, 45px);
     flex-basis: clamp(128px, 18vw, 150px);
     padding-inline: 10px;
     font-size: clamp(13px, 2.4vmin, 16px);
   }
 
-  body.chrome-mobile-web .profiledetails-button-group {
+  body.mobile-web-browser .profiledetails-button-group {
     margin-top: 8px;
     gap: 14px;
   }
 
-  body.chrome-mobile-web .profiledetails-save-button,
-  body.chrome-mobile-web .profiledetails-skip-button {
+  body.mobile-web-browser .profiledetails-save-button,
+  body.mobile-web-browser .profiledetails-skip-button {
     width: clamp(180px, 25vw, 220px);
     height: clamp(48px, 10dvh, 58px);
     font-size: clamp(24px, 5vmin, 32px);
   }
 
-  body.chrome-mobile-web .profiledetails-skip-button {
+  body.mobile-web-browser .profiledetails-skip-button {
     font-size: clamp(20px, 4vmin, 26px);
   }
 
-  body.chrome-mobile-web #parent-page-setting {
+  body.mobile-web-browser #parent-page-setting {
     margin: 5dvh 19vw 0;
   }
 
-  body.chrome-mobile-web #logout-delete-button {
+  body.mobile-web-browser #logout-delete-button {
     top: 10dvh;
     gap: clamp(14px, 4vw, 32px);
     padding-bottom: 24px;
   }
 
-  body.chrome-mobile-web #parent-page-help {
+  body.mobile-web-browser #parent-page-help {
     height: calc(100dvh - 104px);
     overflow: auto;
   }
 
-  body.chrome-mobile-web #faq-page {
+  body.mobile-web-browser #faq-page {
     margin-top: 10dvh;
     margin-bottom: 0;
   }
 
-  body.chrome-mobile-web .parent-logout-btn,
-  body.chrome-mobile-web .parent-delete-btn {
+  body.mobile-web-browser .parent-logout-btn,
+  body.mobile-web-browser .parent-delete-btn {
     width: 24vw;
     min-width: 220px;
     max-width: 260px;
@@ -355,30 +357,30 @@ body.chrome-mobile-web *::after {
     font-size: clamp(14px, 2.4vmin, 18px);
   }
 
-  body.chrome-mobile-web .parent-logout-btn > div,
-  body.chrome-mobile-web .parent-delete-btn > div {
+  body.mobile-web-browser .parent-logout-btn > div,
+  body.mobile-web-browser .parent-delete-btn > div {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  body.chrome-mobile-web .parent-teachermode-toggle {
+  body.mobile-web-browser .parent-teachermode-toggle {
     min-width: 240px;
     white-space: nowrap;
   }
 
-  body.chrome-mobile-web .parent-teachermode-toggle .toggle-text {
+  body.mobile-web-browser .parent-teachermode-toggle .toggle-text {
     white-space: nowrap;
     font-size: clamp(14px, 2.4vmin, 18px);
   }
 
-  body.chrome-mobile-web .coloring-board-paint-layout {
+  body.mobile-web-browser .coloring-board-paint-layout {
     width: 100%;
     height: 100dvh;
     padding: 8px;
   }
 
-  body.chrome-mobile-web .coloring-board-controls {
+  body.mobile-web-browser .coloring-board-controls {
     width: clamp(64px, 18vw, 96px);
   }
 }

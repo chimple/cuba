@@ -92,22 +92,18 @@ type NavigatorWithUserAgentData = Navigator & {
   };
 };
 
-const applyChromeMobileWebClass = () => {
+const applyMobileWebBrowserClass = () => {
   const userAgent = navigator.userAgent || '';
   const userAgentData = (navigator as NavigatorWithUserAgentData).userAgentData;
   const isMobileBrowser =
     userAgentData?.mobile === true || /\bMobile\b/i.test(userAgent);
-  const isAndroidChrome =
-    /Android/i.test(userAgent) &&
-    /Chrome\//i.test(userAgent) &&
-    !/EdgA|OPR|SamsungBrowser|Firefox/i.test(userAgent);
 
   document.body.classList.toggle(
-    'chrome-mobile-web',
-    !isNativePlatform && isMobileBrowser && isAndroidChrome,
+    'mobile-web-browser',
+    !isNativePlatform && isMobileBrowser,
   );
 };
-applyChromeMobileWebClass();
+applyMobileWebBrowserClass();
 // This function checks if the native version has changed, sets new version in preferences and resets the hot update bundle.
 async function checkNativeVersionAndReset() {
   const { versionName } = await LiveUpdate.getVersionName();
