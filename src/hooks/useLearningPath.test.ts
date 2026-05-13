@@ -105,6 +105,7 @@ describe('useLearningPath features used by Home tab', () => {
       'hindi',
       'english',
       'math-hindi',
+      'math-english',
       'digital-skills',
     ]);
   });
