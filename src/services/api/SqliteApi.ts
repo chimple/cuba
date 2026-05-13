@@ -2834,12 +2834,14 @@ export class SqliteApi implements ServiceApi {
       user.id,
     ]);
 
-    // Update the user object with new details
-    user.name = fullName;
-    user.email = email;
-    user.phone = phoneNum;
-    user.language_id = languageDocId;
-    user.image = profilePic ?? null;
+    const updatedUser: TableTypes<'user'> = {
+      ...user,
+      name: fullName,
+      email: email,
+      phone: phoneNum,
+      language_id: languageDocId,
+      image: profilePic ?? null,
+    };
 
     // Push changes for synchronization
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
@@ -2850,7 +2852,7 @@ export class SqliteApi implements ServiceApi {
       image: profilePic ?? null,
       id: user.id,
     });
-    return user;
+    return updatedUser;
   }
   private async assignCoursesToStudent(
     studentId: string,
