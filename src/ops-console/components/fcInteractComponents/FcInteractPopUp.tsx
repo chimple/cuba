@@ -17,6 +17,7 @@ import { ServiceConfig } from '../../../services/ServiceConfig';
 import { useMediaActions } from '../../common/mediaactions';
 import AttachMedia from '../../common/AttachMedia';
 import logger from '../../../utility/logger';
+import { getStudentContactEntries } from '../../utils/studentContactNumbers';
 
 type Q = { id: string; question: string };
 
@@ -98,6 +99,20 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   } else if (principalData) {
     userData = principalData;
   }
+
+  const contactEntries = studentData
+    ? getStudentContactEntries(studentData)
+    : getStudentContactEntries({ user: userData, parent: parentData });
+  const formatPhoneDisplay = (phone: string) => {
+    const digits = phone.replace(/\D/g, '');
+    return digits.length === 10 ? `+91 ${phone}` : phone;
+  };
+  const getContactDisplayValue = (type: 'phone' | 'email', value: string) =>
+    type === 'phone' ? formatPhoneDisplay(value) : value;
+  const handleContactClick = (type: 'phone' | 'email', value: string) => {
+    window.location.href =
+      type === 'phone' ? `tel:${value}` : `mailto:${value}`;
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -283,43 +298,31 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                 className="fc-interact-popup-contact"
                 id="fc-contact-section"
               >
-                {userData?.phone || parentData?.phone ? (
-                  <div
-                    className="fc-interact-popup-contact-line"
-                    id="fc-phone-line"
-                    onClick={() =>
-                      (window.location.href = `tel:${
-                        userData?.phone ?? parentData?.phone
-                      }`)
-                    }
-                  >
-                    <span
-                      className="fc-interact-popup-contact-text"
-                      id="fc-phone-text"
-                    >
-                      +91 {userData?.phone || parentData?.phone}
-                    </span>
-                    <LaunchRounded style={{ fontSize: 16 }} />
-                  </div>
-                ) : (
-                  <div
-                    className="fc-interact-popup-contact-line"
-                    id="fc-email-line"
-                    onClick={() =>
-                      (window.location.href = `mailto:${
-                        userData?.email ?? parentData?.email
-                      }`)
-                    }
-                  >
-                    <span
-                      className="fc-interact-popup-contact-text"
-                      id="fc-email-text"
-                    >
-                      {userData?.email ?? parentData?.email}
-                    </span>
-                    <EmailRounded style={{ fontSize: 16 }} />
-                  </div>
-                )}
+                {/* Show each available phone/email contact as its own action row. */}
+                {contactEntries.length > 0
+                  ? contactEntries.map((contact, index) => (
+                      <div
+                        key={`${contact.type}-${contact.value}-${index}`}
+                        className="fc-interact-popup-contact-line"
+                        id={`fc-contact-line-${index}`}
+                        onClick={() =>
+                          handleContactClick(contact.type, contact.value)
+                        }
+                      >
+                        <span
+                          className="fc-interact-popup-contact-text"
+                          id={`fc-contact-text-${index}`}
+                        >
+                          {getContactDisplayValue(contact.type, contact.value)}
+                        </span>
+                        {contact.type === 'phone' ? (
+                          <LaunchRounded style={{ fontSize: 16 }} />
+                        ) : (
+                          <EmailRounded style={{ fontSize: 16 }} />
+                        )}
+                      </div>
+                    ))
+                  : null}
               </div>
 
               <div className="fc-interact-popup-divider" id="fc-divider" />

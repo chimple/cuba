@@ -2266,9 +2266,18 @@ export interface ServiceApi {
   /**
    * Fetch  parent information even if the student is deleted.
    * @param {string} studentId - The ID of the student to fetch.
+   * @param {Object} [options] - Optional query controls for bulk lookup and filtering.
+   * @param {string[]} [options.studentIds] - When provided, fetches parents for all listed students.
+   * @param {boolean} [options.activeOnly] - When true, excludes deleted parent links.
    * @returns Promise resolving to an array of parents.
    */
-  getParentsByStudentId(studentId: string): Promise<TableTypes<'user'>[]>;
+  getParentsByStudentId(
+    studentId: string,
+    options?: {
+      studentIds?: string[];
+      activeOnly?: boolean;
+    },
+  ): Promise<TableTypes<'user'>[]>;
 
   /**
    * Merge a new student into an existing student record in SQLite.
