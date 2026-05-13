@@ -7135,6 +7135,44 @@ order by
     return { grade: 0, section: cleanedName };
   }
 
+  private async getParentsByStudentIds(
+    studentIds: string[],
+  ): Promise<Map<string, TableTypes<'user'>[]>> {
+    // Shared helper: fetch all active parent links for a student batch in one query.
+    const parentsByStudentId = new Map<string, TableTypes<'user'>[]>();
+    if (!this._db || studentIds.length === 0) return parentsByStudentId;
+
+    const parentPlaceholders = studentIds.map(() => '?').join(', ');
+    const parentRowsRes = await this._db.query(
+      `
+      SELECT pu.student_id as linked_student_id, p.*
+      FROM ${TABLES.ParentUser} pu
+      JOIN ${TABLES.User} p ON pu.parent_id = p.id
+      WHERE pu.student_id IN (${parentPlaceholders})
+        AND pu.is_deleted = false
+        AND p.is_deleted = false
+      `,
+      studentIds,
+    );
+
+    (parentRowsRes?.values ?? []).forEach((parentRow) => {
+      const row = parentRow as TableTypes<'user'> & {
+        linked_student_id?: string | null;
+      };
+      const linkedStudentId = String(row.linked_student_id ?? '').trim();
+      if (!linkedStudentId) return;
+
+      const { linked_student_id, ...parentUser } = row;
+      const currentParents = parentsByStudentId.get(linkedStudentId) ?? [];
+      parentsByStudentId.set(linkedStudentId, [
+        ...currentParents,
+        parentUser as TableTypes<'user'>,
+      ]);
+    });
+
+    return parentsByStudentId;
+  }
+
   async getStudentInfoBySchoolId(
     schoolId: string,
     page: number = 1,
@@ -7220,8 +7258,13 @@ order by
   `;
     const res = await this._db.query(query, [...baseParams, limit, offset]);
     const rows = res?.values ?? [];
+    const studentIds = rows
+      .map((row) => String((row as { id?: string | null })?.id ?? '').trim())
+      .filter((id): id is string => id.length > 0);
+    // Hydrate full parent contact list so UI can show merged phone/email entries.
+    const parentsByStudentId = await this.getParentsByStudentIds(studentIds);
 
-    const studentInfoList: StudentInfo[] = rows.map((row: any) => {
+    const studentInfoList: StudentInfo[] = rows.map((row) => {
       const {
         class_id,
         class_name,
@@ -7233,6 +7276,8 @@ order by
       } = row;
 
       const { grade, section } = this.parseClassName(class_name || '');
+      const parents =
+        parentsByStudentId.get(String(studentUser.id ?? '')) ?? [];
       const parentObject: TableTypes<'user'> | null = parent_id
         ? {
             id: parent_id,
@@ -7270,6 +7315,8 @@ order by
         grade,
         classSection: section,
         parent: parentObject,
+        parents:
+          parents.length > 0 ? parents : parentObject ? [parentObject] : [],
         classWithidname: {
           id: class_id,
           class_name: class_name || '',
@@ -7339,8 +7386,13 @@ order by
   `;
     const res = await this._db.query(query, [classId, limit, offset]);
     const rows = res?.values ?? [];
+    const studentIds = rows
+      .map((row) => String((row as { id?: string | null })?.id ?? '').trim())
+      .filter((id): id is string => id.length > 0);
+    // Hydrate full parent contact list so UI can show merged phone/email entries.
+    const parentsByStudentId = await this.getParentsByStudentIds(studentIds);
 
-    const studentInfoList: StudentInfo[] = rows.map((row: any) => {
+    const studentInfoList: StudentInfo[] = rows.map((row) => {
       const {
         class_name,
         parent_id,
@@ -7351,6 +7403,8 @@ order by
       } = row;
 
       const { grade, section } = this.parseClassName(class_name || '');
+      const parents =
+        parentsByStudentId.get(String(studentUser.id ?? '')) ?? [];
       const parentObject: TableTypes<'user'> | null = parent_id
         ? {
             id: parent_id,
@@ -7388,6 +7442,8 @@ order by
         grade,
         classSection: section,
         parent: parentObject,
+        parents:
+          parents.length > 0 ? parents : parentObject ? [parentObject] : [],
       };
     });
 

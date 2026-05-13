@@ -1190,6 +1190,8 @@ export interface StudentInfo {
   grade: number;
   classSection: string;
   parent: TableTypes<'user'> | null;
+  // Optional full parent list used when merged profiles carry multiple contacts.
+  parents?: TableTypes<'user'>[];
   classWithidname?: {
     id: string;
     class_name: string;

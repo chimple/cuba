@@ -6,6 +6,10 @@ import { CircularProgress } from '@mui/material';
 import './CardListModal.css';
 import { t } from 'i18next';
 import logger from '../../../utility/logger';
+import {
+  formatStudentContactList,
+  getStudentPrimaryContact,
+} from '../../utils/studentContactNumbers';
 
 interface StudentItem {
   user?: {
@@ -17,8 +21,18 @@ interface StudentItem {
     phone?: string | null;
   };
   phone?: string | null;
-  parent?: { phone?: string | null } | null;
+  parent?: { phone?: string | null; email?: string | null } | null;
+  parents?: { phone?: string | null; email?: string | null }[] | null;
 }
+
+type StudentSearchResponse = {
+  data?: StudentItem[];
+  total?: number;
+};
+
+type ProcessedStudentItem = Omit<StudentItem, 'user'> & {
+  user: NonNullable<StudentItem['user']>;
+};
 
 interface CardListModalProps {
   open: boolean;
@@ -56,7 +70,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
     const currentRequest = ++requestIdRef.current;
     setLoading(true);
     try {
-      let res;
+      let res: StudentSearchResponse;
       if (searchText.trim()) {
         res = await api.searchStudentsInSchool(
           schoolId,
@@ -77,7 +91,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
       if (currentRequest !== requestIdRef.current) return;
       if (!primaryStudentData && res.data) {
         const found = res.data.find(
-          (s: any) => s.user?.id === primaryStudentId,
+          (student) => student.user?.id === primaryStudentId,
         );
         if (found) setPrimaryStudentData(found);
       }
@@ -110,34 +124,42 @@ const CardListModal: React.FC<CardListModalProps> = ({
     }
   }, [open]);
 
-  const processedStudents = students
-    .map((s: any) => {
-      const user = s.user ?? s;
-      const phone = s.parent?.phone ?? s.phone ?? user?.phone ?? '';
-      return {
-        ...s,
+  const processedStudents = students.reduce<ProcessedStudentItem[]>(
+    (list, student) => {
+      if (!student.user || student.user.id === primaryStudentId) return list;
+
+      const user = student.user;
+      // Build display contact from merged parent/user sources.
+      const phone = getStudentPrimaryContact({
+        user,
+        parent: student.parent,
+        parents: student.parents,
+      });
+      list.push({
+        ...student,
         user: {
           ...user,
-          phone: String(phone).replace(/\D/g, ''),
+          phone: String(phone).replace(/\D/g, '') || user?.phone || '',
         },
         parent: {
-          phone: String(phone).replace(/\D/g, ''),
+          ...student.parent,
+          phone:
+            String(phone).replace(/\D/g, '') || student.parent?.phone || '',
         },
-      };
-    })
-    .filter((s) => s.user?.id !== primaryStudentId);
+      });
+
+      return list;
+    },
+    [],
+  );
   const selectedStudent = processedStudents.find(
-    (s) => s.user?.id === selectedId,
+    (s) => s.user.id === selectedId,
   );
   const pageCount = Math.ceil(total / ROWS_PER_PAGE);
   if (!open) return null;
 
   const primaryName = primaryStudentData?.user?.name || '';
-  const primaryContact =
-    primaryStudentData?.parent?.phone ||
-    primaryStudentData?.user?.phone ||
-    primaryStudentData?.user?.email ||
-    '';
+  const primaryContact = getStudentPrimaryContact(primaryStudentData);
   return (
     <div id="cardlist-backdrop" className="cardlist-modal-backdrop">
       <div id="cardlist-modal" className="cardlist-modal">
@@ -194,11 +216,11 @@ const CardListModal: React.FC<CardListModalProps> = ({
             </div>
           ) : (
             processedStudents.map((s) => {
-              const selected = selectedId === s.user?.id;
+              const selected = selectedId === s.user.id;
               return (
                 <label
                   id="cardlist-label"
-                  key={s.user?.id}
+                  key={s.user.id}
                   className={`cardlist-card ${
                     selected ? 'cardlist-card-selected' : ''
                   }`}
@@ -207,23 +229,23 @@ const CardListModal: React.FC<CardListModalProps> = ({
                     id="cardlist-input"
                     type="radio"
                     checked={selected}
-                    onChange={() => setSelectedId(s.user?.id!)}
+                    onChange={() => setSelectedId(s.user.id)}
                   />
 
                   <div id="cardlist-row" className="cardlist-row">
                     <span id="cardlist-col-id" className="cardlist-col-id">
-                      {s.user?.student_id || 'N/A'}
+                      {s.user.student_id || 'N/A'}
                     </span>
 
                     <span id="cardlist-col-name" className="cardlist-col-name">
-                      {s.user?.name || 'N/A'}
+                      {s.user.name || 'N/A'}
                     </span>
 
                     <span
                       id="cardlist-col-gender"
                       className="cardlist-col-gender"
                     >
-                      {s.user?.gender
+                      {s.user.gender
                         ? s.user.gender.toLowerCase() === 'male'
                           ? 'Male'
                           : s.user.gender.toLowerCase() === 'female'
@@ -235,10 +257,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
                       id="cardlist-col-phone"
                       className="cardlist-col-phone"
                     >
-                      {s.parent?.phone ||
-                        s.user?.phone ||
-                        s.user?.email ||
-                        'N/A'}
+                      {formatStudentContactList(s, 'N/A')}
                     </span>
                   </div>
                 </label>
