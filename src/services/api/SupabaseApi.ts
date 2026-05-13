@@ -4002,23 +4002,42 @@ export class SupabaseApi implements ServiceApi {
   }
   async getParentsByStudentId(
     studentId: string,
+    options?: {
+      studentIds?: string[];
+      activeOnly?: boolean;
+    },
   ): Promise<TableTypes<'user'>[]> {
     if (!this.supabase) {
       logger.warn('Supabase not initialized.');
       return [];
     }
 
-    const { data, error } = await this.supabase
-      .from('parent_user')
-      .select(
-        `
+    const requestedStudentIds =
+      options?.studentIds?.filter((id) => id.trim() !== '') ??
+      (studentId.trim() !== '' ? [studentId] : []);
+    if (requestedStudentIds.length === 0) {
+      return [];
+    }
+
+    let query = this.supabase.from('parent_user').select(
+      `
           parent:parent_id (
             *
           )
         `,
-      )
-      .eq('student_id', studentId);
-    // no is_deleted filter
+    );
+
+    if (requestedStudentIds.length === 1) {
+      query = query.eq('student_id', requestedStudentIds[0]);
+    } else {
+      query = query.in('student_id', requestedStudentIds);
+    }
+
+    if (options?.activeOnly) {
+      query = query.eq('is_deleted', false);
+    }
+
+    const { data, error } = await query;
 
     if (error || !data) {
       logger.error('Error fetching parents by student ID:', error);
