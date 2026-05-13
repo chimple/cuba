@@ -19,6 +19,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import './index.css';
+import './chromeMobileWebFixes.css';
 import 'leaflet/dist/leaflet.css';
 import './i18n';
 import { APIMode, ServiceConfig } from './services/ServiceConfig';
@@ -85,6 +86,24 @@ persistor.subscribe(() => {
 });
 
 const isNativePlatform = Capacitor.isNativePlatform();
+type NavigatorWithUserAgentData = Navigator & {
+  userAgentData?: {
+    mobile?: boolean;
+  };
+};
+
+const applyMobileWebBrowserClass = () => {
+  const userAgent = navigator.userAgent || '';
+  const userAgentData = (navigator as NavigatorWithUserAgentData).userAgentData;
+  const isMobileBrowser =
+    userAgentData?.mobile === true || /\bMobile\b/i.test(userAgent);
+
+  document.body.classList.toggle(
+    'mobile-web-browser',
+    !isNativePlatform && isMobileBrowser,
+  );
+};
+applyMobileWebBrowserClass();
 // This function checks if the native version has changed, sets new version in preferences and resets the hot update bundle.
 async function checkNativeVersionAndReset() {
   const { versionName } = await LiveUpdate.getVersionName();
