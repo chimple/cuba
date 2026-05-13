@@ -128,24 +128,9 @@ const CardListModal: React.FC<CardListModalProps> = ({
     (list, student) => {
       if (!student.user || student.user.id === primaryStudentId) return list;
 
-      const user = student.user;
-      // Build display contact from merged parent/user sources.
-      const phone = getStudentPrimaryContact({
-        user,
-        parent: student.parent,
-        parents: student.parents,
-      });
       list.push({
         ...student,
-        user: {
-          ...user,
-          phone: String(phone).replace(/\D/g, '') || user?.phone || '',
-        },
-        parent: {
-          ...student.parent,
-          phone:
-            String(phone).replace(/\D/g, '') || student.parent?.phone || '',
-        },
+        user: student.user as NonNullable<StudentItem['user']>,
       });
 
       return list;
