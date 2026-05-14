@@ -151,6 +151,7 @@ export function useHomeworkSticker({
   const isStickerCollectSpeakingRef = useRef(false);
   const hasCollectedStickerRef = useRef(false);
   const hasCheckedStickerReplayEligibilityRef = useRef(false);
+  const isFinishingFinalHomeworkStickerFlowRef = useRef(false);
   const pendingCelebrationRiveContainerRef = useRef<Element | null>(null);
   const latestRiveContainerRef = useRef<Element | null>(null);
   const rewardStickerTiltRequestIdRef = useRef(0);
@@ -365,6 +366,13 @@ export function useHomeworkSticker({
   );
 
   const playStickerAudioAndFinishHomework = useCallback(() => {
+    if (isFinishingFinalHomeworkStickerFlowRef.current) return;
+
+    isFinishingFinalHomeworkStickerFlowRef.current = true;
+    clearPendingFinalHomeworkStickerFlow();
+    hasCollectedStickerRef.current = true;
+    hasCheckedStickerReplayEligibilityRef.current = true;
+
     void playStickerAudioAndClearPending(() => {
       finishHomeworkAfterStickerFlow();
     });
@@ -668,10 +676,7 @@ export function useHomeworkSticker({
       }
 
       if (hasPendingFinalHomeworkStickerFlow()) {
-        playStickerAudioAfterReload();
-        window.setTimeout(() => {
-          reloadHomeworkPathway();
-        }, 0);
+        playStickerAudioAndFinishHomework();
         return;
       }
 
@@ -683,6 +688,7 @@ export function useHomeworkSticker({
     [
       getPersistedStickerCompletionPayload,
       playStickerAudioAfterReload,
+      playStickerAudioAndFinishHomework,
       reloadHomeworkPathway,
       stickerPreviewData,
       stickerPreviewTrigger,
@@ -705,10 +711,7 @@ export function useHomeworkSticker({
       setIsStickerCompletionOpen(false);
 
       if (hasPendingFinalHomeworkStickerFlow()) {
-        playStickerAudioAfterReload();
-        window.setTimeout(() => {
-          reloadHomeworkPathway();
-        }, 0);
+        playStickerAudioAndFinishHomework();
         return;
       }
 
@@ -738,6 +741,7 @@ export function useHomeworkSticker({
       hasPendingPathwayStickerReward,
       playStickerAudioAfterReload,
       playStickerAudioAndClearPending,
+      playStickerAudioAndFinishHomework,
       reloadHomeworkPathway,
       stickerCompletionData,
     ],
@@ -748,6 +752,7 @@ export function useHomeworkSticker({
     latestRiveContainerRef.current = null;
     hasCollectedStickerRef.current = false;
     hasCheckedStickerReplayEligibilityRef.current = false;
+    isFinishingFinalHomeworkStickerFlowRef.current = false;
     isStickerCollectSpeakingRef.current = false;
     setShouldCelebrateAfterPathwayReload(false);
     setStickerCollectTiltActive(false);
@@ -1031,6 +1036,7 @@ export function useHomeworkSticker({
     handleMascotReplayClick,
     handleStickerPreviewReady,
     hasPendingPathwayStickerReward,
+    finishFinalHomeworkStickerFlow: playStickerAudioAndFinishHomework,
     isOffline,
     isStickerBookCelebrationPopupOn,
     isStickerBookCompletionPopupOn,
