@@ -3,7 +3,10 @@ import { useHomeworkSticker } from './useHomeworkSticker';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import { AudioUtil } from '../utility/AudioUtil';
-import { setPendingFinalHomeworkStickerFlow } from '../utility/homeworkStickerFlow';
+import {
+  hasPendingFinalHomeworkStickerFlow,
+  setPendingFinalHomeworkStickerFlow,
+} from '../utility/homeworkStickerFlow';
 
 jest.mock('../services/ServiceConfig');
 jest.mock('../utility/util');
@@ -205,6 +208,62 @@ describe('useHomeworkSticker', () => {
     });
 
     expect(reloadHomeworkPathway).not.toHaveBeenCalled();
+    expect(playMascotAudioFromLocalPath).toHaveBeenCalledTimes(1);
+    expect(onFinalHomeworkStickerComplete).not.toHaveBeenCalled();
+
+    act(() => {
+      capturedPlaybackStop?.();
+    });
+
+    expect(onFinalHomeworkStickerComplete).toHaveBeenCalledTimes(1);
+  });
+
+  test('guards final homework sticker finish against duplicate triggers', async () => {
+    const container = document.createElement('div');
+    const onFinalHomeworkStickerComplete = jest.fn();
+    let capturedPlaybackStop: (() => void) | undefined;
+
+    const playMascotAudioFromLocalPath = jest.fn(
+      async (
+        _localAudioPath: string,
+        _stateConfig?: {
+          stateMachine?: string;
+          inputName?: string;
+          stateValue?: number;
+          animationName?: string;
+        },
+        playbackOptions?: {
+          onPlaybackStop?: () => void;
+        },
+      ) => {
+        capturedPlaybackStop = playbackOptions?.onPlaybackStop;
+        return true;
+      },
+    );
+
+    const { result } = renderHook(() =>
+      useHomeworkSticker({
+        containerRef: { current: container },
+        riveContainer: document.createElement('div'),
+        currentMascotStateValue: 1,
+        reloadHomeworkPathway: jest.fn(),
+        onFinalHomeworkStickerComplete,
+        playMascotAudioFromLocalPath,
+        playRewardAudio: jest.fn().mockResolvedValue(undefined),
+      }),
+    );
+
+    act(() => {
+      setPendingFinalHomeworkStickerFlow('student-1');
+      result.current.finishFinalHomeworkStickerFlow();
+      result.current.finishFinalHomeworkStickerFlow();
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(hasPendingFinalHomeworkStickerFlow()).toBe(false);
     expect(playMascotAudioFromLocalPath).toHaveBeenCalledTimes(1);
     expect(onFinalHomeworkStickerComplete).not.toHaveBeenCalled();
 
