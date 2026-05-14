@@ -715,7 +715,7 @@ describe('SelectMode page', () => {
 
     render(<SelectMode />);
 
-    await document.findById('school-mode-next-class-button');
+    await screen.findByText('Class 3');
 
     expect(
       document
