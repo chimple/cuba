@@ -19,7 +19,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import * as serviceWorkerRegistration from './serviceWorkerRegistration';
 import './index.css';
-import './chromeMobileWebFixes.css';
+import './mobileWebBrowserFixes.css';
 import 'leaflet/dist/leaflet.css';
 import './i18n';
 import { APIMode, ServiceConfig } from './services/ServiceConfig';

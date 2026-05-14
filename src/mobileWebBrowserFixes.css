@@ -24,7 +24,34 @@ body.mobile-web-browser *::after {
     overflow-x: auto;
     overflow-y: visible;
     padding-inline: max(16px, env(safe-area-inset-left));
+    padding-bottom: 0;
     margin-bottom: 0;
+  }
+
+  body.mobile-web-browser .add-course-subject-header {
+    background-color: transparent;
+    border-right: 0;
+    margin: 0 5px;
+    padding: 0 10px;
+  }
+
+  body.mobile-web-browser .add-subjects-content,
+  body.mobile-web-browser .add-courses-content {
+    height: calc(100dvh - 112px);
+    overflow-y: auto;
+    padding-bottom: 0;
+  }
+
+  body.mobile-web-browser #display-subjects-page,
+  body.mobile-web-browser .subjects-content {
+    height: auto !important;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  body.mobile-web-browser #home-page .slider-content,
+  body.mobile-web-browser #home-page .space-between {
+    overflow: visible;
   }
 
   body.mobile-web-browser .add-course-slide {
@@ -38,12 +65,53 @@ body.mobile-web-browser *::after {
     min-width: 0;
   }
 
+  body.mobile-web-browser .subject-button {
+    margin: clamp(6px, 2dvh, 12px) 3vh 0;
+  }
+
+  body.mobile-web-browser .course-icon {
+    height: clamp(160px, 51dvh, 190px);
+    margin-top: clamp(6px, 2dvh, 12px);
+  }
+
+  body.mobile-web-browser .course-title,
+  body.mobile-web-browser .course-curriculum {
+    line-height: 1.15;
+  }
+
   body.mobile-web-browser .add-course-course-icon {
     width: clamp(26vh, 28vh, 37vh);
-    height: clamp(13vh, 49vh, 71vh);
+    height: clamp(160px, 51dvh, 190px);
     max-width: 22vw;
     aspect-ratio: auto;
-    margin-top: 3vh;
+    margin-top: clamp(6px, 2dvh, 12px);
+  }
+
+  @media (max-height: 560px) {
+    body.mobile-web-browser #add-courses-subjects-page {
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+    }
+
+    body.mobile-web-browser .add-subjects-content,
+    body.mobile-web-browser .add-courses-content {
+      height: calc(100dvh - 64px);
+      overflow-y: auto;
+      background: transparent;
+      padding-bottom: 0;
+    }
+
+    body.mobile-web-browser .add-course-subject-slider-content {
+      background: transparent;
+      margin-top: 0;
+      padding-bottom: 0;
+    }
+
+    body.mobile-web-browser .add-course-subject-button {
+      margin-top: clamp(4px, 1.4dvh, 8px);
+      margin-bottom: 0;
+    }
   }
 
   body.mobile-web-browser #leaderboard-UI {
@@ -72,13 +140,13 @@ body.mobile-web-browser *::after {
   }
 
   body.mobile-web-browser #parent-page-profile {
-    justify-content: flex-start;
+    justify-content: center;
     overflow-x: auto;
     overflow-y: hidden;
     height: auto;
     min-height: calc(100dvh - 110px);
-    gap: 14px;
-    padding: 12px 16px 20px;
+    gap: clamp(16px, 3vw, 32px);
+    padding: 12px clamp(24px, 4vw, 56px) 20px;
     margin: 0;
   }
 
@@ -103,6 +171,7 @@ body.mobile-web-browser *::after {
     margin-left: 0;
     margin-right: 0;
     max-height: calc(100dvh - 12px);
+    transform: translateY(-3dvh);
   }
 
   body.mobile-web-browser .StickerBookPreviewModal-overlay {
@@ -123,8 +192,8 @@ body.mobile-web-browser *::after {
 
   body.mobile-web-browser .PathwayStructure-div {
     top: 40%;
-    left: 16vw;
-    width: 78vw;
+    left: 17vw;
+    width: 88vw;
     height: 50dvh;
     transform: none;
     transform-origin: center;
@@ -138,13 +207,30 @@ body.mobile-web-browser *::after {
     overflow: visible;
   }
 
+  body.mobile-web-browser .rewardBox-box-wrapper {
+    width: clamp(140px, 18vw, 220px);
+    height: clamp(140px, 20dvh, 220px);
+    min-width: 140px;
+    min-height: 140px;
+    max-width: 220px;
+    max-height: 220px;
+  }
+
+  body.mobile-web-browser .homeworkpathway-structure-div .fruitActive,
+  body.mobile-web-browser .homeworkpathway-structure-div .fruitInactive {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(0.82);
+  }
+
   body.mobile-web-browser .learning-pathway-container {
     min-height: calc(100dvh - 112px);
   }
 
   body.mobile-web-browser .dropdownmenu-dropdown-main {
-    top: 34%;
+    top: 50%;
     left: 5%;
+    transform: translateY(-50%);
     z-index: 3;
   }
 
@@ -152,6 +238,18 @@ body.mobile-web-browser *::after {
     height: 20dvh;
     min-height: 64px;
     max-height: 80px;
+  }
+
+  body.mobile-web-browser .chapter-lesson-box {
+    max-width: min(74vw, 800px);
+  }
+
+  body.mobile-web-browser .chapter-lesson-text {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   body.mobile-web-browser .slider-content {
@@ -188,7 +286,7 @@ body.mobile-web-browser *::after {
     margin: 0 0 2px;
   }
 
-  body.mobile-web-browser .join-class-container {
+  body.mobile-web-browser .assignment-join-class-container-scroll h2 {
     width: min(78vw, 640px);
   }
 
@@ -340,6 +438,90 @@ body.mobile-web-browser *::after {
   body.mobile-web-browser #parent-page-help {
     height: calc(100dvh - 104px);
     overflow: auto;
+    justify-content: flex-start;
+    row-gap: 0;
+    padding: 0 0 14px;
+  }
+
+  body.mobile-web-browser #parent-page-help-title {
+    margin: 0 0 4px;
+    line-height: 1.1;
+  }
+
+  body.mobile-web-browser #parent-page-help-title-container {
+    height: auto;
+  }
+
+  body.mobile-web-browser #parent-page-help-title-link {
+    row-gap: clamp(6px, 2dvh, 12px);
+    width: min(78vw, 760px);
+  }
+
+  body.mobile-web-browser #parent-page-help-title-e1 {
+    padding-top: 0;
+    margin: 0;
+  }
+
+  body.mobile-web-browser #parent-page-help-title-e2 {
+    width: min(52vw, 520px);
+    height: auto;
+    min-height: 0;
+    padding: 6px 10px 10px;
+  }
+
+  body.mobile-web-browser #parent-page-help-title-e2-video {
+    width: 100%;
+  }
+
+  body.mobile-web-browser #parent-page-help-title-e2-video-youtude {
+    height: clamp(118px, 28dvh, 190px);
+  }
+
+  body.mobile-web-browser #parent-page-help-title-e3 {
+    min-height: clamp(34px, 8dvh, 48px);
+    flex-shrink: 0;
+  }
+
+  @media (max-height: 560px) {
+    body.mobile-web-browser #parent-page-help {
+      height: calc(100dvh - 74px);
+      min-height: 0;
+      overflow-y: auto;
+      background: transparent;
+      padding-bottom: 0;
+    }
+
+    body.mobile-web-browser #parent-page-help-title {
+      margin: 0;
+      flex-shrink: 0;
+    }
+
+    body.mobile-web-browser #parent-page-help-title-container,
+    body.mobile-web-browser #parent-page-help-title-link {
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+      background: transparent;
+    }
+
+    body.mobile-web-browser #parent-page-help-title-link {
+      row-gap: clamp(4px, 1.4dvh, 8px);
+    }
+
+    body.mobile-web-browser #parent-page-help-title-e1,
+    body.mobile-web-browser #parent-page-help-title-e2,
+    body.mobile-web-browser #parent-page-help-title-e3 {
+      flex-shrink: 0;
+      background-clip: padding-box;
+    }
+
+    body.mobile-web-browser #parent-page-help-title-e2 {
+      padding: 4px 10px 8px;
+    }
+
+    body.mobile-web-browser #parent-page-help-title-e2-video-youtude {
+      height: clamp(96px, 25dvh, 138px);
+    }
   }
 
   body.mobile-web-browser #faq-page {
@@ -381,6 +563,17 @@ body.mobile-web-browser *::after {
   }
 
   body.mobile-web-browser .coloring-board-controls {
-    width: clamp(64px, 18vw, 96px);
+    width: clamp(140px, 18vw, 170px);
+  }
+
+  body.mobile-web-browser .coloring-board-controls .color-palette {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    overflow: hidden;
+  }
+
+  body.mobile-web-browser .color-palette-swatch {
+    width: clamp(40px, 10dvh, 48px);
+    height: clamp(40px, 10dvh, 48px);
   }
 }
