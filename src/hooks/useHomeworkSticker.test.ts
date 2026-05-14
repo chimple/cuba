@@ -94,7 +94,7 @@ describe('useHomeworkSticker', () => {
       },
     );
 
-    const { result, rerender } = renderHook(
+    const { result } = renderHook(
       ({ riveContainer }: { riveContainer: HTMLDivElement | null }) =>
         useHomeworkSticker({
           containerRef: { current: container },
@@ -124,22 +124,88 @@ describe('useHomeworkSticker', () => {
     });
 
     await act(async () => {
-      jest.runOnlyPendingTimers();
-    });
-
-    expect(reloadHomeworkPathway).toHaveBeenCalledTimes(1);
-
-    await act(async () => {
-      rerender({ riveContainer: document.createElement('div') });
       await Promise.resolve();
     });
 
+    expect(reloadHomeworkPathway).not.toHaveBeenCalled();
     expect(playMascotAudioFromLocalPath).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       jest.advanceTimersByTime(4000);
     });
 
+    expect(onFinalHomeworkStickerComplete).not.toHaveBeenCalled();
+
+    act(() => {
+      capturedPlaybackStop?.();
+    });
+
+    expect(onFinalHomeworkStickerComplete).toHaveBeenCalledTimes(1);
+  });
+
+  test('finishes final homework after collecting the sticker preview without pathway reload', async () => {
+    const container = document.createElement('div');
+    const reloadHomeworkPathway = jest.fn();
+    const onFinalHomeworkStickerComplete = jest.fn();
+    let capturedPlaybackStop: (() => void) | undefined;
+
+    const playMascotAudioFromLocalPath = jest.fn(
+      async (
+        _localAudioPath: string,
+        _stateConfig?: {
+          stateMachine?: string;
+          inputName?: string;
+          stateValue?: number;
+          animationName?: string;
+        },
+        playbackOptions?: {
+          onPlaybackStop?: () => void;
+        },
+      ) => {
+        capturedPlaybackStop = playbackOptions?.onPlaybackStop;
+        return true;
+      },
+    );
+
+    const { result } = renderHook(() =>
+      useHomeworkSticker({
+        containerRef: { current: container },
+        riveContainer: document.createElement('div'),
+        currentMascotStateValue: 1,
+        reloadHomeworkPathway,
+        onFinalHomeworkStickerComplete,
+        playMascotAudioFromLocalPath,
+        playRewardAudio: jest.fn().mockResolvedValue(undefined),
+      }),
+    );
+
+    act(() => {
+      setPendingFinalHomeworkStickerFlow('student-1');
+      result.current.handleStickerPreviewReady(
+        {
+          source: 'homework_pathway',
+          stickerBookId: 'book-1',
+          stickerBookTitle: 'Sticker Book',
+          stickerBookSvgUrl: '',
+          collectedStickerIds: [],
+          nextStickerId: 'sticker-1',
+          nextStickerName: 'Sticker 1',
+          nextStickerImage: 'sticker.png',
+        },
+        'pathway_completion_auto',
+      );
+    });
+
+    act(() => {
+      result.current.closeStickerPreview('acknowledge_button');
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(reloadHomeworkPathway).not.toHaveBeenCalled();
+    expect(playMascotAudioFromLocalPath).toHaveBeenCalledTimes(1);
     expect(onFinalHomeworkStickerComplete).not.toHaveBeenCalled();
 
     act(() => {

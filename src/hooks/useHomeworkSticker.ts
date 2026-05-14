@@ -668,10 +668,7 @@ export function useHomeworkSticker({
       }
 
       if (hasPendingFinalHomeworkStickerFlow()) {
-        playStickerAudioAfterReload();
-        window.setTimeout(() => {
-          reloadHomeworkPathway();
-        }, 0);
+        playStickerAudioAndFinishHomework();
         return;
       }
 
@@ -683,6 +680,7 @@ export function useHomeworkSticker({
     [
       getPersistedStickerCompletionPayload,
       playStickerAudioAfterReload,
+      playStickerAudioAndFinishHomework,
       reloadHomeworkPathway,
       stickerPreviewData,
       stickerPreviewTrigger,
@@ -705,10 +703,7 @@ export function useHomeworkSticker({
       setIsStickerCompletionOpen(false);
 
       if (hasPendingFinalHomeworkStickerFlow()) {
-        playStickerAudioAfterReload();
-        window.setTimeout(() => {
-          reloadHomeworkPathway();
-        }, 0);
+        playStickerAudioAndFinishHomework();
         return;
       }
 
@@ -738,6 +733,7 @@ export function useHomeworkSticker({
       hasPendingPathwayStickerReward,
       playStickerAudioAfterReload,
       playStickerAudioAndClearPending,
+      playStickerAudioAndFinishHomework,
       reloadHomeworkPathway,
       stickerCompletionData,
     ],
@@ -1031,6 +1027,7 @@ export function useHomeworkSticker({
     handleMascotReplayClick,
     handleStickerPreviewReady,
     hasPendingPathwayStickerReward,
+    finishFinalHomeworkStickerFlow: playStickerAudioAndFinishHomework,
     isOffline,
     isStickerBookCelebrationPopupOn,
     isStickerBookCompletionPopupOn,

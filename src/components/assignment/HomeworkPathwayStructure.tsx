@@ -51,7 +51,10 @@ import StickerBookPreviewModal, {
 import { AudioUtil } from '../../utility/AudioUtil';
 import { useHomeworkSticker } from '../../hooks/useHomeworkSticker';
 import logger from '../../utility/logger';
-import { hasPendingHomeworkStickerFlow } from '../../utility/homeworkStickerFlow';
+import {
+  hasPendingFinalHomeworkStickerFlow,
+  hasPendingHomeworkStickerFlow,
+} from '../../utility/homeworkStickerFlow';
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;
@@ -708,6 +711,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   const {
     closeStickerCompletion,
     closeStickerPreview,
+    finishFinalHomeworkStickerFlow,
     getPersistedStickerCompletionPayload,
     getStickerPreviewPayload,
     handleMascotReplayClick,
@@ -1908,6 +1912,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
           await updateMascotToNormalState(newRewardId as string);
           await Util.updateUserReward();
+          if (hasPendingFinalHomeworkStickerFlow()) {
+            finishFinalHomeworkStickerFlow();
+          }
         }
 
         if (shouldRunRewardAnimation) {
@@ -1960,6 +1967,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     checkAndUpdateReward,
     history,
     fetchSVGGroup,
+    finishFinalHomeworkStickerFlow,
     getPersistedStickerCompletionPayload,
     getStickerPreviewPayload,
     handleStickerPreviewReady,
