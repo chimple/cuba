@@ -482,6 +482,48 @@ body.mobile-web-browser *::after {
     flex-shrink: 0;
   }
 
+  @media (max-height: 560px) {
+    body.mobile-web-browser #parent-page-help {
+      height: calc(100dvh - 74px);
+      min-height: 0;
+      overflow-y: auto;
+      background: transparent;
+      padding-bottom: 0;
+    }
+
+    body.mobile-web-browser #parent-page-help-title {
+      margin: 0;
+      flex-shrink: 0;
+    }
+
+    body.mobile-web-browser #parent-page-help-title-container,
+    body.mobile-web-browser #parent-page-help-title-link {
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+      background: transparent;
+    }
+
+    body.mobile-web-browser #parent-page-help-title-link {
+      row-gap: clamp(4px, 1.4dvh, 8px);
+    }
+
+    body.mobile-web-browser #parent-page-help-title-e1,
+    body.mobile-web-browser #parent-page-help-title-e2,
+    body.mobile-web-browser #parent-page-help-title-e3 {
+      flex-shrink: 0;
+      background-clip: padding-box;
+    }
+
+    body.mobile-web-browser #parent-page-help-title-e2 {
+      padding: 4px 10px 8px;
+    }
+
+    body.mobile-web-browser #parent-page-help-title-e2-video-youtude {
+      height: clamp(96px, 25dvh, 138px);
+    }
+  }
+
   body.mobile-web-browser #faq-page {
     margin-top: 10dvh;
     margin-bottom: 0;
