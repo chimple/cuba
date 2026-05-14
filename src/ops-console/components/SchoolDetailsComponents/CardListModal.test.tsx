@@ -145,10 +145,10 @@ describe('CardListModal', () => {
 
   /* ================= PHONE FALLBACK ================= */
 
-  it('uses parent phone first', async () => {
+  it('shows parent phone first in the contact list', async () => {
     render(<CardListModal {...baseProps} />);
 
-    await screen.findByText('6666666666');
+    await screen.findByText('6666666666 / 7777777777');
   });
 
   it('falls back to email if no phone', async () => {

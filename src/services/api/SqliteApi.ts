@@ -2834,12 +2834,14 @@ export class SqliteApi implements ServiceApi {
       user.id,
     ]);
 
-    // Update the user object with new details
-    user.name = fullName;
-    user.email = email;
-    user.phone = phoneNum;
-    user.language_id = languageDocId;
-    user.image = profilePic ?? null;
+    const updatedUser: TableTypes<'user'> = {
+      ...user,
+      name: fullName,
+      email: email,
+      phone: phoneNum,
+      language_id: languageDocId,
+      image: profilePic ?? null,
+    };
 
     // Push changes for synchronization
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
@@ -2850,7 +2852,7 @@ export class SqliteApi implements ServiceApi {
       image: profilePic ?? null,
       id: user.id,
     });
-    return user;
+    return updatedUser;
   }
   private async assignCoursesToStudent(
     studentId: string,
@@ -7220,8 +7222,16 @@ order by
   `;
     const res = await this._db.query(query, [...baseParams, limit, offset]);
     const rows = res?.values ?? [];
+    const studentIds = rows
+      .map((row) => String((row as { id?: string | null })?.id ?? '').trim())
+      .filter((id): id is string => id.length > 0);
+    // Hydrate full parent contact list so UI can show merged phone/email entries.
+    const parentRows = (await this.getParentsByStudentId('', {
+      studentIds,
+      activeOnly: true,
+    })) as Array<TableTypes<'user'> & { linked_student_id?: string | null }>;
 
-    const studentInfoList: StudentInfo[] = rows.map((row: any) => {
+    const studentInfoList: StudentInfo[] = rows.map((row) => {
       const {
         class_id,
         class_name,
@@ -7233,6 +7243,16 @@ order by
       } = row;
 
       const { grade, section } = this.parseClassName(class_name || '');
+      const parents = parentRows
+        .filter(
+          (parent) =>
+            String(parent.linked_student_id ?? '').trim() ===
+            String(studentUser.id ?? '').trim(),
+        )
+        .map(({ linked_student_id, ...parentUser }) => {
+          void linked_student_id;
+          return parentUser as TableTypes<'user'>;
+        });
       const parentObject: TableTypes<'user'> | null = parent_id
         ? {
             id: parent_id,
@@ -7270,6 +7290,8 @@ order by
         grade,
         classSection: section,
         parent: parentObject,
+        parents:
+          parents.length > 0 ? parents : parentObject ? [parentObject] : [],
         classWithidname: {
           id: class_id,
           class_name: class_name || '',
@@ -7339,8 +7361,16 @@ order by
   `;
     const res = await this._db.query(query, [classId, limit, offset]);
     const rows = res?.values ?? [];
+    const studentIds = rows
+      .map((row) => String((row as { id?: string | null })?.id ?? '').trim())
+      .filter((id): id is string => id.length > 0);
+    // Hydrate full parent contact list so UI can show merged phone/email entries.
+    const parentRows = (await this.getParentsByStudentId('', {
+      studentIds,
+      activeOnly: true,
+    })) as Array<TableTypes<'user'> & { linked_student_id?: string | null }>;
 
-    const studentInfoList: StudentInfo[] = rows.map((row: any) => {
+    const studentInfoList: StudentInfo[] = rows.map((row) => {
       const {
         class_name,
         parent_id,
@@ -7351,6 +7381,16 @@ order by
       } = row;
 
       const { grade, section } = this.parseClassName(class_name || '');
+      const parents = parentRows
+        .filter(
+          (parent) =>
+            String(parent.linked_student_id ?? '').trim() ===
+            String(studentUser.id ?? '').trim(),
+        )
+        .map(({ linked_student_id, ...parentUser }) => {
+          void linked_student_id;
+          return parentUser as TableTypes<'user'>;
+        });
       const parentObject: TableTypes<'user'> | null = parent_id
         ? {
             id: parent_id,
@@ -7388,6 +7428,8 @@ order by
         grade,
         classSection: section,
         parent: parentObject,
+        parents:
+          parents.length > 0 ? parents : parentObject ? [parentObject] : [],
       };
     });
 
@@ -7443,6 +7485,10 @@ order by
   }
   async getParentsByStudentId(
     studentId: string,
+    options?: {
+      studentIds?: string[];
+      activeOnly?: boolean;
+    },
   ): Promise<TableTypes<'user'>[]> {
     await this.ensureInitialized();
     if (!this._db) {
@@ -7451,19 +7497,33 @@ order by
     }
 
     try {
+      const requestedStudentIds =
+        options?.studentIds?.filter((id) => id.trim() !== '') ??
+        (studentId.trim() !== '' ? [studentId] : []);
+      if (requestedStudentIds.length === 0) {
+        return [];
+      }
+
+      const parentPlaceholders = requestedStudentIds.map(() => '?').join(', ');
+      const activeOnlyClause =
+        options?.activeOnly === true
+          ? `
+          AND pu.is_deleted = false
+          AND p.is_deleted = false
+        `
+          : '';
       const parentRes = await this._db.query(
         `
-          SELECT p.*
+          SELECT pu.student_id as linked_student_id, p.*
           FROM parent_user pu
           JOIN user p ON pu.parent_id = p.id
-          WHERE pu.student_id = ?
+          WHERE pu.student_id IN (${parentPlaceholders})
+          ${activeOnlyClause}
         `,
-        // no is_deleted filter
-        [studentId],
+        requestedStudentIds,
       );
 
-      const parentRows = parentRes?.values ?? [];
-      return parentRows;
+      return (parentRes?.values ?? []) as TableTypes<'user'>[];
     } catch (error) {
       logger.error('Error fetching parents by student ID', error);
       return [];

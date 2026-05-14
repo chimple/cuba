@@ -1257,8 +1257,14 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     {
       key: 'name',
       label: t('Teacher Name'),
-      renderCell: (teacher: DisplayTeacher) => (
-        <Typography variant="body2" className="teacher-name-data">
+      align: 'left',
+      headerAlign: 'left',
+      width: 160,
+      render: (teacher: DisplayTeacher) => (
+        <Typography
+          variant="body2"
+          className="teacher-name-data schoolTeachers-firstColText"
+        >
           {teacher.name}
         </Typography>
       ),
