@@ -164,9 +164,9 @@ export enum LeaderboardDropdownList {
 
 export enum APP_LANGUAGES {
   en = 'English',
-  hi = 'हिन्दी',
-  kn = 'ಕನ್ನಡ',
-  mr = 'मराठी',
+  hi = 'Ã Â¤Â¹Ã Â¤Â¿Ã Â¤Â¨Ã Â¥ÂÃ Â¤Â¦Ã Â¥â‚¬',
+  kn = 'Ã Â²â€¢Ã Â²Â¨Ã Â³ÂÃ Â²Â¨Ã Â²Â¡',
+  mr = 'Ã Â¤Â®Ã Â¤Â°Ã Â¤Â¾Ã Â¤Â Ã Â¥â‚¬',
 }
 export enum HOMEHEADERLIST {
   SUGGESTIONS = 'SUGGESTIONS',
@@ -459,6 +459,7 @@ export enum PAGES {
   DISPLAY_SUBJECTS = '/display-subjects',
   DISPLAY_CHAPTERS = '/display-chapters',
   DISPLAY_SCHOOLS = '/display-schools',
+  KIDS_APP_LOCATION = '/kids-app-location',
   DISPLAY_CLASSES = '/display-classes',
   DASHBOARD_DETAILS = '/dashboard-details',
   HOME_PAGE = '/home-page',
@@ -895,6 +896,8 @@ export const INSTANT_SEARCH_INDEX_NAME =
 export enum MODES {
   PARENT = 'PARENT',
   SCHOOL = 'SCHOOL',
+  TEACHER_HOME = 'TEACHER_HOME',
+  TEACHER_SCHOOL = 'TEACHER_SCHOOL',
   TEACHER = 'TEACHER',
   OPS_CONSOLE = 'OPS_CONSOLE',
 }
@@ -978,6 +981,10 @@ export enum EVENTS {
   STICKER_BOOK_SAVE_CLICKED = 'sticker_book_save_clicked',
   STICKER_BOOK_IMAGE_SAVED = 'sticker_book_image_saved',
   STICKER_BOOK_IMAGE_SHARED = 'sticker_book_image_shared',
+  SWITCH_TO_KIDS_APP_CLICKED = 'switch_to_kids_app_clicked',
+  PROFILE_CARD_ACTION_CLICKED = 'profile_card_action_clicked',
+  PROFILE_DELETION_CONFIRMED = 'profile_deletion_confirmed',
+  PROFILE_DELETION_CANCELLED = 'profile_deletion_cancelled',
 }
 
 export const FCM_TOKENS = 'fcmTokens';
@@ -1249,6 +1256,7 @@ export const CHIMPLE_MASCOT_INPUT_CELEBRATE = 'Number 1';
 export const CHIMPLE_MASCOT_INPUT_NORMAL = 'Number 2';
 export const CHIMPLE_MASCOT_INPUT_REWARD = 'Number 3';
 export const CHIMPLE_MASCOT_ANIMATION_IDLE = 'id';
+export const CHIMPLE_MASCOT_ANIMATION_WAVY = 'wavy';
 export const CHIMPLE_MASCOT_ANIMATION_WIN = 'win';
 
 export interface GeoDataParams {
@@ -1443,7 +1451,7 @@ export const COURSE_CHANGED = 'courseChanged';
 export const NOTES_UPDATED_EVENT = 'notes:updated';
 export const ASSESSMENT_FAIL_KEY = 'assessment_failed_once';
 export const LIDO_SCORES_KEY = 'lido_scores';
-// 🔔 Custom Lido lifecycle events
+// Ã°Å¸â€â€ Custom Lido lifecycle events
 export const LIDO_ASSESSMENT_ABORTED = 'LIDO_ASSESSMENT_ABORTED';
 export const LIDO_ASSESSMENT_COMPLETED = 'LIDO_ASSESSMENT_COMPLETED';
 export const LIDO_LESSON_COMPLETED = 'LIDO_LESSON_COMPLETED';

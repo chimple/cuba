@@ -38,6 +38,11 @@ import { RoleType } from '../interface/modelInterfaces';
 import DeleteParentAccount from '../components/parent/DeleteParentAccount';
 import { setUser } from '../redux/slices/auth/authSlice';
 import { useAppDispatch } from '../redux/hooks';
+import TeacherAuthenticationPopup from '../components/parent/TeacherAuthenticationPopup';
+import {
+  requireTeacherModeAuth,
+  TeacherModeAuthResult,
+} from '../services/TeacherModeAuth';
 
 const Parent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -62,6 +67,7 @@ const Parent: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<
     TableTypes<'user'> | undefined
   >();
+  const [isTeacherAuthPopupOpen, setIsTeacherAuthPopupOpen] = useState(false);
   const [schools, setSchools] = useState<
     {
       school: TableTypes<'school'>;
@@ -85,6 +91,12 @@ const Parent: React.FC = () => {
   const [tabs, setTabs] = useState({});
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
+
+  const switchToTeacherMode = () => {
+    schoolUtil.setCurrMode(MODES.TEACHER);
+    history.replace(PAGES.DISPLAY_SCHOOLS);
+  };
+
   useEffect(() => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
@@ -177,8 +189,8 @@ const Parent: React.FC = () => {
           return (
             <ProfileCard
               key={element?.id ?? `empty-profile-${index}`}
-              width={'27vw'}
-              height={'50vh'}
+              width={'var(--profile-card-size)'}
+              height={'var(--profile-card-size)'}
               userType={studentUserType}
               user={element}
               showText={true}
@@ -290,8 +302,19 @@ const Parent: React.FC = () => {
                 if (!currentUser?.name || currentUser.name.trim() === '') {
                   history.replace(PAGES.ADD_TEACHER_NAME);
                 } else {
-                  schoolUtil.setCurrMode(MODES.TEACHER);
-                  history.replace(PAGES.DISPLAY_SCHOOLS);
+                  const teacherModeAuthResult = await requireTeacherModeAuth();
+
+                  if (teacherModeAuthResult === TeacherModeAuthResult.success) {
+                    switchToTeacherMode();
+                    return;
+                  }
+
+                  if (
+                    teacherModeAuthResult ===
+                    TeacherModeAuthResult.popupFallbackRequired
+                  ) {
+                    setIsTeacherAuthPopupOpen(true);
+                  }
                 }
               }}
             />
@@ -459,6 +482,14 @@ const Parent: React.FC = () => {
         {tabIndex === t('setting') && <div>{settingUI()}</div>}
         {tabIndex === t('help') && <div>{helpUI()}</div>}
         {tabIndex === t('faq') && <div>{faqUI()}</div>}
+        <TeacherAuthenticationPopup
+          isOpen={isTeacherAuthPopupOpen}
+          onClose={() => setIsTeacherAuthPopupOpen(false)}
+          onAuthenticated={() => {
+            setIsTeacherAuthPopupOpen(false);
+            switchToTeacherMode();
+          }}
+        />
       </div>
     </Box>
   );

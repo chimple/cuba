@@ -140,6 +140,16 @@ jest.mock('../components/parent/DeleteParentAccount', () => ({
   default: () => <div data-testid="delete-parent-account" />,
 }));
 
+const mockRequireTeacherModeAuth = jest.fn();
+jest.mock('../services/TeacherModeAuth', () => ({
+  TeacherModeAuthResult: {
+    success: 'success',
+    popupFallbackRequired: 'popupFallbackRequired',
+    cancelledOrFailed: 'cancelledOrFailed',
+  },
+  requireTeacherModeAuth: () => mockRequireTeacherModeAuth(),
+}));
+
 jest.mock('../components/studentProgress/CustomAppBar', () => ({
   __esModule: true,
   default: ({ tabs, onChange, handleBackButton }: any) => (
@@ -188,6 +198,7 @@ describe('Parent page', () => {
 
     localStorage.clear();
     sessionStorage.clear();
+    mockRequireTeacherModeAuth.mockResolvedValue('success');
     localStorage.setItem('school', JSON.stringify({ id: 'school-1' }));
     localStorage.setItem('class', JSON.stringify({ id: 'class-1' }));
     localStorage.setItem('language', 'en');

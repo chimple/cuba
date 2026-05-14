@@ -45,6 +45,12 @@ jest.mock('@capacitor/screen-orientation', () => ({
 jest.mock('i18next', () => ({
   t: (key: string) => key,
 }));
+jest.mock('./assets/brandLogoIcon.svg', () => ({
+  ReactComponent: (props: React.SVGProps<SVGSVGElement>) => <svg {...props} />,
+}));
+jest.mock('./assets/leftArrowIcon.svg', () => ({
+  ReactComponent: (props: React.SVGProps<SVGSVGElement>) => <svg {...props} />,
+}));
 
 const mockHistoryReplace = jest.fn();
 jest.mock('react-router', () => {
@@ -82,8 +88,10 @@ jest.mock('../utility/schoolUtil', () => ({
 const mockGetCurrentStudent = jest.fn();
 const mockEnsureLidoCommonAudioForStudent = jest.fn();
 const mockSetCurrentStudent = jest.fn();
+const mockLoadBackgroundImage = jest.fn();
 jest.mock('../utility/util', () => ({
   Util: {
+    loadBackgroundImage: () => mockLoadBackgroundImage(),
     getCurrentStudent: (...args: any[]) => mockGetCurrentStudent(...args),
     ensureLidoCommonAudioForStudent: (...args: any[]) =>
       mockEnsureLidoCommonAudioForStudent(...args),
@@ -205,6 +213,14 @@ describe('SelectMode page', () => {
     mockAuthHandler.getUser.mockResolvedValue({ data: { user: null } });
     mockGetCurrMode.mockResolvedValue(undefined);
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
+  });
+
+  it('loads the shared app background image', async () => {
+    mockGetCurrMode.mockResolvedValue(MODES.PARENT);
+
+    render(<SelectMode />);
+
+    await waitFor(() => expect(mockLoadBackgroundImage).toHaveBeenCalled());
   });
 
   it('redirects to HOME when mode is parent and current student exists', async () => {
@@ -493,7 +509,7 @@ describe('SelectMode page', () => {
     });
   });
 
-  it('handles back button in student stage', async () => {
+  it('does not render back button in student stage header', async () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
@@ -521,20 +537,10 @@ describe('SelectMode page', () => {
     await waitFor(() =>
       expect(document.querySelector('.class-container')).not.toBeNull(),
     );
-    // Click student
-    const studentDiv = Array.from(
-      document.querySelectorAll('.class-avatar'),
-    ).find((div) => div.textContent?.includes('Student 1'));
-    studentDiv && fireEvent.click(studentDiv);
     await waitFor(() =>
       expect(document.querySelector('.class-header')).not.toBeNull(),
     );
-    // Back button
-    const backBtn = document.querySelector('img[alt="BackButtonIcon"]');
-    backBtn && fireEvent.click(backBtn);
-    await waitFor(() =>
-      expect(document.querySelector('.class-main')).not.toBeNull(),
-    );
+    expect(document.querySelector('#back-button-in-school-Header')).toBeNull();
   });
 
   it('handles school dropdown disables Okay button when no school selected', async () => {
@@ -685,6 +691,89 @@ describe('SelectMode page', () => {
       expect(document.querySelector('.class-main')).not.toBeNull(),
     );
     expect(screen.getAllByText('Class 1')[0]).toBeInTheDocument();
+  });
+
+  it('slides the visible class window by one class when the next arrow is clicked', async () => {
+    const classes = [
+      { id: 'class-1', name: 'Class 1' },
+      { id: 'class-2', name: 'Class 2' },
+      { id: 'class-3', name: 'Class 3' },
+      { id: 'class-4', name: 'Class 4' },
+    ];
+    localStorage.setItem(CURRENT_SCHOOL_NAME, JSON.stringify('School 1'));
+    localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(classes[0]));
+    localStorage.setItem(SELECTED_CLASSES, JSON.stringify(classes));
+    mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue(classes);
+
+    render(<SelectMode />);
+
+    await document.findById('school-mode-next-class-button');
+
+    expect(
+      document
+        .getElementById('school-mode-next-class-button')
+        ?.classList.contains('school-mode-nav-button-active'),
+    ).toBe(true);
+    expect(
+      document
+        .getElementById('school-mode-prev-class-button')
+        ?.classList.contains('school-mode-nav-button-active'),
+    ).toBe(false);
+
+    fireEvent.click(
+      document.getElementById('school-mode-next-class-button') as HTMLElement,
+    );
+
+    await screen.findByText('Class 4');
+
+    expect(screen.queryByText('Class 1')).not.toBeInTheDocument();
+    expect(screen.getByText('Class 2')).toBeInTheDocument();
+    expect(screen.getByText('Class 3')).toBeInTheDocument();
+    expect(screen.getByText('Class 4')).toBeInTheDocument();
+  });
+
+  it('highlights the previous class arrow when the active class starts from the fourth class', async () => {
+    const classes = [
+      { id: 'class-1', name: 'Class 1' },
+      { id: 'class-2', name: 'Class 2' },
+      { id: 'class-3', name: 'Class 3' },
+      { id: 'class-4', name: 'Class 4' },
+    ];
+    localStorage.setItem(CURRENT_SCHOOL_NAME, JSON.stringify('School 1'));
+    localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(classes[3]));
+    localStorage.setItem(SELECTED_CLASSES, JSON.stringify(classes));
+    mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue(classes);
+
+    render(<SelectMode />);
+
+    await screen.findByText('Class 4');
+
+    expect(
+      document
+        .getElementById('school-mode-prev-class-button')
+        ?.classList.contains('school-mode-nav-button-active'),
+    ).toBe(true);
+    expect(
+      document
+        .getElementById('school-mode-next-class-button')
+        ?.classList.contains('school-mode-nav-button-active'),
+    ).toBe(false);
   });
 
   it('loads selectedStudents from localStorage when present', async () => {

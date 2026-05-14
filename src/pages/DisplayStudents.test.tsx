@@ -45,6 +45,10 @@ jest.mock('i18next', () => ({
   t: (k: string) => k,
 }));
 
+jest.mock('./assets/brandLogoIcon.svg', () => ({
+  ReactComponent: (props: React.SVGProps<SVGSVGElement>) => <svg {...props} />,
+}));
+
 jest.mock('../i18n', () => ({
   __esModule: true,
   default: {
@@ -189,8 +193,8 @@ describe('DisplayStudents', () => {
   test('renders welcome copy and student cards after loading', async () => {
     render(<DisplayStudents />);
 
-    expect(await screen.findByTestId('chimple-logo')).toBeInTheDocument();
-    expect(screen.getByText('Welcome to Chimple!')).toBeInTheDocument();
+    expect(await screen.findByText('Welcome to Chimple!')).toBeInTheDocument();
+    expect(screen.getByText("Select the child's profile")).toBeInTheDocument();
     expect(await screen.findByText('Student One')).toBeInTheDocument();
   });
 

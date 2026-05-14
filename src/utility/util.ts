@@ -99,6 +99,7 @@ import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
 import CryptoJS from 'crypto-js';
 import { InAppReview } from '@capacitor-community/in-app-review';
 import { ASSIGNMENT_COMPLETED_IDS } from '../common/courseConstants';
+import { buildGlobalEventBaseContext } from '../common/eventBaseContext';
 import { v4 as uuidv4 } from 'uuid';
 import { updateLocalAttributes } from '../growthbook/Growthbook';
 import { recommendNextLesson } from '../hooks/useLearningPath';
@@ -1099,26 +1100,31 @@ export class Util {
     },
   ) {
     try {
+      const baseContext = buildGlobalEventBaseContext();
+      const mergedParams = {
+        ...baseContext,
+        ...params,
+      };
       const normalizedParams: { [key: string]: string } = Object.fromEntries(
-        Object.entries(params).map(([key, value]) => [
+        Object.entries(mergedParams).map(([key, value]) => [
           key,
-          typeof value === 'number' ? value.toString() : String(value),
+          String(value),
         ]),
       );
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
-        userId: params.user_id,
+        userId: normalizedParams.user_id,
       });
       try {
         if (!Util.port) Util.port = registerPlugin<PortPlugin>('Port');
         await Promise.resolve(
-          Util.port.shareUserId({ userId: params.user_id }),
+          Util.port.shareUserId({ userId: normalizedParams.user_id }),
         );
       } catch (e) {
         logger.warn('Port.shareUserId skipped:', e);
       }
       await FirebaseCrashlytics.setUserId({
-        userId: params.user_id,
+        userId: normalizedParams.user_id,
       });
 
       await FirebaseAnalytics.setScreenName({
@@ -1128,7 +1134,7 @@ export class Util {
 
       await FirebaseAnalytics.logEvent({
         name: eventName,
-        params: params,
+        params: normalizedParams,
       });
     } catch (error) {
       logger.error(
