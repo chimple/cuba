@@ -46,6 +46,10 @@
   .classdetailspage-root {
     padding: 16px;
   }
+
+  .classdetailspage-students-sticky .schoolStudents-table-container {
+    overflow-x: auto;
+  }
 }
 
 /* Header */
