@@ -71,12 +71,12 @@ export class schoolUtil {
 
     if (!!api.currentMode) return api.currentMode;
     const currMode = localStorage.getItem(CURRENT_MODE);
-    const isOpsUser = store.getState()?.auth?.isOpsUser === true;
-    if (isOpsUser) {
-      this.setCurrMode(MODES.OPS_CONSOLE);
-      return MODES.OPS_CONSOLE;
-    }
     if (!currMode) {
+      const isOpsUser = store.getState()?.auth?.isOpsUser === true;
+      if (isOpsUser) {
+        this.setCurrMode(MODES.OPS_CONSOLE);
+        return MODES.OPS_CONSOLE;
+      }
       const currUser = await auth.getCurrentUser();
       if (!currUser) return undefined;
       const allSchool = await api.getSchoolsForUser(currUser.id);

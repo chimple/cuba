@@ -733,6 +733,8 @@ export const CURRENT_STUDENT_CHANGED_EVENT = 'currentStudentChanged';
 export const SHOW_GENERIC_POPUP = 'SHOW_GENERIC_POPUP';
 export const GENERIC_POPUP_INTERNAL_NAVIGATION = 'POPUP_INTERNAL_NAVIGATION';
 export const GENERIC_POP_UP = 'generic-pop-up';
+export const TC_HTML_URL = 'tc_html_url';
+export const LATEST_TC_VERSION = 'latest_tc_version';
 export enum GENERIC_POPUP_TRIGGER_CONDITION {
   APP_OPEN = 'APP_OPEN',
   GAME_COMPLETE = 'GAME_COMPLETE',
@@ -978,6 +980,8 @@ export enum EVENTS {
   STICKER_BOOK_SAVE_CLICKED = 'sticker_book_save_clicked',
   STICKER_BOOK_IMAGE_SAVED = 'sticker_book_image_saved',
   STICKER_BOOK_IMAGE_SHARED = 'sticker_book_image_shared',
+  TC_POPUP_VIEWED = 'tc_popup_viewed',
+  TC_AGREED = 'tc_agreed',
 }
 
 export const FCM_TOKENS = 'fcmTokens';

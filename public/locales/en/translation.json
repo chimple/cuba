@@ -1,6 +1,6 @@
 {
-  " OFF ": " OFF ",
-  " ON ": " ON ",
+  "OFF": "OFF",
+  "ON": "ON",
   " to choose and assign.": " to choose and assign.",
   "-": "-",
   "{{fromName}}\nhas been merged into {{toName}}'s profile": "{{fromName}}\nhas been merged into {{toName}}'s profile",
@@ -1279,6 +1279,7 @@
   "Sent {{successCount}} invites successfully.": "Sent {{successCount}} invites successfully.",
   "Sent the OTP": "Sent the OTP",
   "setting": "SETTING",
+  "settings": "SETTINGS",
   "Setup WhatsApp Group": "Setup WhatsApp Group",
   "Shadow Story": "Shadow Story",
   "Shape Order": "Shape Order",
@@ -1307,6 +1308,7 @@
   "Share": "Share",
   "Showing Results for": "Showing Results for",
   "Sign out as a Parent": "Sign out as a Parent",
+  "Sign out": "Sign out",
   "Sign Out": "Sign Out",
   "Simple": "Simple",
   "Skip 2's Backward": "Skip 2's Backward",
@@ -1631,5 +1633,15 @@
   "Your Profile": "Your Profile",
   "Your progress stays synced and consistent across all devices.": "Your progress stays synced and consistent across all devices.",
   "Zebra": "Zebra",
-  "Zoo Manners": "Zoo Manners"
+  "Zoo Manners": "Zoo Manners",
+  "Account": "Account",
+  "Agree as Parent": "Agree as Parent",
+  "Agree as Teacher": "Agree as Teacher",
+  "Agree as OPS User": "Agree as OPS User",
+  "Application": "Application",
+  "For Teachers": "For Teachers",
+  "Parent's Language": "Parent's Language",
+  "Teachers App": "Teachers App",
+  "To keep your data safe and comply with privacy regulations, please review and agree to continue.": "To keep your data safe and comply with privacy regulations, please review and agree to continue.",
+  "We have updated our <1>Terms & Conditions</1>.": "We have updated our <1>Terms & Conditions</1>."
 }

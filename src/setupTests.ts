@@ -3,7 +3,10 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
-import { mockAuthHandler } from './tests/__mocks__/serviceConfigMock';
+import {
+  mockApiHandler,
+  mockAuthHandler,
+} from './tests/__mocks__/serviceConfigMock';
 
 jest.mock('@testing-library/react', () => {
   const originalModule = jest.requireActual('@testing-library/react');
@@ -63,12 +66,12 @@ Object.defineProperty(window, 'matchMedia', {
 jest.mock('./services/ServiceConfig', () => ({
   ServiceConfig: {
     getI: () => ({
-      apiHandler: {},
+      apiHandler: mockApiHandler,
       authHandler: mockAuthHandler,
       switchMode: jest.fn(),
     }),
     getInstance: () => ({
-      apiHandler: {},
+      apiHandler: mockApiHandler,
       authHandler: mockAuthHandler,
     }),
   },

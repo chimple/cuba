@@ -6,9 +6,12 @@ export interface ServiceAuth {
   loginWithEmailAndPassword(
     email: string,
     password: string,
-  ): Promise<{ success: boolean; isSpl: boolean; userData?: any }>;
+    tcAgreedVersion?: number,
+  ): Promise<{ success: boolean; isSpl: boolean; userData?: unknown }>;
 
-  googleSign(): Promise<{ success: boolean; isSpl: boolean; userData?: any }>;
+  googleSign(
+    tcAgreedVersion?: number,
+  ): Promise<{ success: boolean; isSpl: boolean; userData?: unknown }>;
 
   getCurrentUser(): Promise<TableTypes<'user'> | undefined>;
 
@@ -19,20 +22,26 @@ export interface ServiceAuth {
   phoneNumberSignIn(
     phoneNumber: string,
     recaptchaVerifier: object,
-  ): Promise<any>;
+  ): Promise<unknown>;
 
   resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined>;
 
   generateOtp(
     phoneNumber: string,
     appName: string,
-  ): Promise<{ success: boolean; error?: any }>;
+  ): Promise<{ success: boolean; error?: unknown }>;
 
   proceedWithVerificationCode(
     verificationId: string,
     verificationCode: string,
+    tcAgreedVersion?: number,
   ): Promise<
-    | { user: any; isUserExist: boolean; isSpl: boolean; userData?: any }
+    | {
+        user: unknown;
+        isUserExist: boolean;
+        isSpl: boolean;
+        userData?: unknown;
+      }
     | undefined
   >;
 
@@ -51,7 +60,8 @@ export interface ServiceAuth {
   signInWithEmail(
     email: string,
     password: string,
-  ): Promise<{ success: boolean; isSpl: boolean; userData?: any }>;
+    tcAgreedVersion?: number,
+  ): Promise<{ success: boolean; isSpl: boolean; userData?: unknown }>;
   /**
    * Sends a password reset email to the given address.
    *
@@ -67,6 +77,6 @@ export interface ServiceAuth {
    */
   updateUser(attributes: UserAttributes): Promise<boolean>;
 
-  getUser(): Promise<{ data: { user: User | null }; error: any }>;
-  getSession(): Promise<{ data: { session: Session | null }; error: any }>;
+  getUser(): Promise<{ data: { user: User | null }; error: unknown }>;
+  getSession(): Promise<{ data: { session: Session | null }; error: unknown }>;
 }
