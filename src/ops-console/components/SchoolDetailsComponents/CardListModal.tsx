@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import SearchAndFilter from '../SearchAndFilter';
 import DataTablePagination from '../DataTablePagination';
 import { ServiceConfig } from '../../../services/ServiceConfig';
@@ -65,64 +65,69 @@ const CardListModal: React.FC<CardListModalProps> = ({
   const requestIdRef = React.useRef(0);
   const [primaryStudentData, setPrimaryStudentData] =
     useState<StudentItem | null>(null);
-  const fetchStudents = async (currentPage: number, searchText: string) => {
-    if (!open) return;
-    const currentRequest = ++requestIdRef.current;
-    setLoading(true);
-    try {
-      let res: StudentSearchResponse;
-      if (searchText.trim()) {
-        res = await api.searchStudentsInSchool(
-          schoolId,
-          searchText,
-          currentPage,
-          ROWS_PER_PAGE,
-          classId,
-        );
-      } else {
-        res = await api.getStudentInfoBySchoolId(
-          schoolId,
-          currentPage,
-          ROWS_PER_PAGE,
-          classId,
-        );
+  const fetchStudents = useCallback(
+    async (currentPage: number, searchText: string) => {
+      if (!open) return;
+      const currentRequest = ++requestIdRef.current;
+      setLoading(true);
+      try {
+        let res: StudentSearchResponse;
+        if (searchText.trim()) {
+          res = await api.searchStudentsInSchool(
+            schoolId,
+            searchText,
+            currentPage,
+            ROWS_PER_PAGE,
+            classId,
+          );
+        } else {
+          res = await api.getStudentInfoBySchoolId(
+            schoolId,
+            currentPage,
+            ROWS_PER_PAGE,
+            classId,
+          );
+        }
+        // Ignore old responses
+        if (currentRequest !== requestIdRef.current) return;
+        if (res.data) {
+          const found = res.data.find(
+            (student) => student.user?.id === primaryStudentId,
+          );
+          if (found) setPrimaryStudentData(found);
+        }
+        setStudents(res.data || []);
+        setTotal(res.total || 0);
+      } catch (e) {
+        logger.error(e);
+      } finally {
+        if (currentRequest === requestIdRef.current) {
+          setLoading(false);
+        }
       }
-      // Ignore old responses
-      if (currentRequest !== requestIdRef.current) return;
-      if (!primaryStudentData && res.data) {
-        const found = res.data.find(
-          (student) => student.user?.id === primaryStudentId,
-        );
-        if (found) setPrimaryStudentData(found);
-      }
-      setStudents(res.data || []);
-      setTotal(res.total || 0);
-    } catch (e) {
-      logger.error(e);
-    } finally {
-      if (currentRequest === requestIdRef.current) {
-        setLoading(false);
-      }
-    }
-  };
+    },
+    [api, classId, open, primaryStudentId, schoolId],
+  );
 
   useEffect(() => {
-    if (!open) return;
-    fetchStudents(1, '');
-  }, [open]);
+    if (!open) {
+      requestIdRef.current += 1;
+      setPrimaryStudentData(null);
+      setSelectedId(undefined);
+      return;
+    }
+
+    requestIdRef.current += 1;
+    setSearch('');
+    setPage(1);
+    setSelectedId(undefined);
+    setPrimaryStudentData(null);
+  }, [classId, open, primaryStudentId, schoolId]);
 
   useEffect(() => {
     if (!open) return;
     fetchStudents(page, search);
-  }, [page, search]);
-
-  useEffect(() => {
-    if (open) {
-      setSearch('');
-      setPage(1);
-      setSelectedId(undefined);
-    }
-  }, [open]);
+  }, [fetchStudents, open, page, search]);
 
   const processedStudents = students.reduce<ProcessedStudentItem[]>(
     (list, student) => {
