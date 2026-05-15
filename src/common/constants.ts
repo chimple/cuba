@@ -982,10 +982,31 @@ export enum EVENTS {
   STICKER_BOOK_IMAGE_SAVED = 'sticker_book_image_saved',
   STICKER_BOOK_IMAGE_SHARED = 'sticker_book_image_shared',
   SWITCH_TO_KIDS_APP_CLICKED = 'switch_to_kids_app_clicked',
+  KIDS_APP_LOCATION_SELECTED = 'kids_app_location_selected',
+  CLASS_TAB_CLASS_CHANGED = 'class_tab_class_changed',
+  PROFILE_CREATION_CLICKED = 'profile_creation_clicked',
   PROFILE_CARD_ACTION_CLICKED = 'profile_card_action_clicked',
   PROFILE_DELETION_CONFIRMED = 'profile_deletion_confirmed',
   PROFILE_DELETION_CANCELLED = 'profile_deletion_cancelled',
+  TEACHER_AUTH_GATE_VIEWED = 'teacher_auth_gate_viewed',
+  TEACHER_AUTH_GATE_ATTEMPTED = 'teacher_auth_gate_attempted',
 }
+
+export const KIDS_APP_LOCATION_SELECTIONS = {
+  HOME: 'home',
+  SCHOOL: 'school',
+} as const;
+
+export type KidsAppLocationSelection =
+  (typeof KIDS_APP_LOCATION_SELECTIONS)[keyof typeof KIDS_APP_LOCATION_SELECTIONS];
+
+export const TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS = {
+  SWITCH_PROFILE_BACK_BUTTON: 'switch_profile_back_button',
+  PARENT_SETTINGS_TAB: 'parent_settings_tab',
+} as const;
+
+export type TeacherAuthGateSourceEntryPoint =
+  (typeof TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS)[keyof typeof TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS];
 
 export const FCM_TOKENS = 'fcmTokens';
 export const IS_CONECTED = 'is_conected';

@@ -8,10 +8,17 @@ import {
   TeacherAuthenticationChallenge,
   generateTeacherAuthenticationChallenge,
 } from './teacherAuthenticationChallenge';
+import {
+  EVENTS,
+  TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS,
+  TeacherAuthGateSourceEntryPoint,
+} from '../../common/constants';
+import { Util } from '../../utility/util';
 import './TeacherAuthenticationPopup.css';
 
 const KEY_ZERO = '0';
 const SUBMIT_SUCCESS_FEEDBACK_MS = 160;
+const QUESTION_NUMBER_REGEX = /(\d+)\s*\+\s*(\d+)/;
 
 export interface TeacherAuthenticationPopupProps {
   isOpen: boolean;
@@ -20,6 +27,7 @@ export interface TeacherAuthenticationPopupProps {
   expectedAnswer?: string;
   answerLength?: number;
   questionText?: string;
+  sourceEntryPoint?: TeacherAuthGateSourceEntryPoint;
 }
 
 const getKeyLabel = (
@@ -58,6 +66,22 @@ const getKeyClassName = (
   return 'teacher-authentication-popup-key';
 };
 
+const getGeneratedProblem = (
+  challenge?: TeacherAuthenticationChallenge,
+  questionText?: string,
+): string => {
+  const questionNumbers = questionText?.match(QUESTION_NUMBER_REGEX);
+  if (questionNumbers) {
+    return `${questionNumbers[1]}+${questionNumbers[2]}`;
+  }
+
+  if (!challenge) {
+    return '';
+  }
+
+  return `${challenge.firstNumber}+${challenge.secondNumber}`;
+};
+
 const TeacherAuthenticationPopup: React.FC<TeacherAuthenticationPopupProps> = ({
   isOpen,
   onClose,
@@ -65,15 +89,19 @@ const TeacherAuthenticationPopup: React.FC<TeacherAuthenticationPopupProps> = ({
   expectedAnswer,
   answerLength,
   questionText,
+  sourceEntryPoint = TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS.PARENT_SETTINGS_TAB,
 }) => {
   const [openVersion, setOpenVersion] = useState<number>(0);
   const [isSubmitSuccessFeedbackActive, setIsSubmitSuccessFeedbackActive] =
+    useState<boolean>(false);
+  const [isSubmitAttemptInProgress, setIsSubmitAttemptInProgress] =
     useState<boolean>(false);
   const submitFeedbackTimerRef = useRef<number | undefined>(undefined);
   const [generatedChallenge, setGeneratedChallenge] =
     useState<TeacherAuthenticationChallenge>(
       generateTeacherAuthenticationChallenge,
     );
+  const attemptNumberRef = useRef<number>(0);
 
   useEffect(() => {
     if (!isOpen) {
@@ -82,14 +110,27 @@ const TeacherAuthenticationPopup: React.FC<TeacherAuthenticationPopupProps> = ({
         submitFeedbackTimerRef.current = undefined;
       }
       setIsSubmitSuccessFeedbackActive(false);
+      setIsSubmitAttemptInProgress(false);
       return;
     }
 
+    attemptNumberRef.current = 0;
     setOpenVersion((previousValue) => previousValue + 1);
     if (!expectedAnswer && !questionText) {
-      setGeneratedChallenge(generateTeacherAuthenticationChallenge());
+      const nextChallenge = generateTeacherAuthenticationChallenge();
+      setGeneratedChallenge(nextChallenge);
+      void Util.logEvent(EVENTS.TEACHER_AUTH_GATE_VIEWED, {
+        source_entry_point: sourceEntryPoint,
+        generated_problem: getGeneratedProblem(nextChallenge),
+      });
+      return;
     }
-  }, [isOpen, expectedAnswer, questionText]);
+
+    void Util.logEvent(EVENTS.TEACHER_AUTH_GATE_VIEWED, {
+      source_entry_point: sourceEntryPoint,
+      generated_problem: getGeneratedProblem(undefined, questionText),
+    });
+  }, [isOpen, expectedAnswer, questionText, sourceEntryPoint]);
 
   useEffect(() => {
     return () => {
@@ -135,8 +176,26 @@ const TeacherAuthenticationPopup: React.FC<TeacherAuthenticationPopupProps> = ({
       : ''
   }`;
 
-  const handleSubmitClick = (): void => {
-    const isAuthenticated = handleSubmit();
+  const handleSubmitClick = async (): Promise<void> => {
+    if (!canSubmit || isSubmitAttemptInProgress) {
+      return;
+    }
+
+    const userInput = enteredDigits.join('');
+    const isAuthenticated = userInput === resolvedExpectedAnswer;
+    const attemptNumber = attemptNumberRef.current + 1;
+    attemptNumberRef.current = attemptNumber;
+    setIsSubmitAttemptInProgress(true);
+
+    await Util.logEvent(EVENTS.TEACHER_AUTH_GATE_ATTEMPTED, {
+      success: isAuthenticated,
+      user_input: Number(userInput),
+      correct_answer: Number(resolvedExpectedAnswer),
+      attempt_number: attemptNumber,
+    });
+
+    handleSubmit();
+    setIsSubmitAttemptInProgress(false);
     setIsSubmitSuccessFeedbackActive(isAuthenticated);
     if (!isAuthenticated) {
       return;
@@ -220,7 +279,11 @@ const TeacherAuthenticationPopup: React.FC<TeacherAuthenticationPopupProps> = ({
                   className={submitButtonClassName}
                   type="button"
                   onClick={handleSubmitClick}
-                  disabled={!canSubmit && !isSubmitSuccessFeedbackActive}
+                  disabled={
+                    !canSubmit ||
+                    isSubmitSuccessFeedbackActive ||
+                    isSubmitAttemptInProgress
+                  }
                 >
                   {t('Submit')}
                 </button>

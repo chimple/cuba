@@ -11,6 +11,7 @@ import {
   PARENTHEADERLIST,
   SCHOOL,
   TableTypes,
+  TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS,
 } from '../common/constants';
 import ProfileCard from '../components/parent/ProfileCard';
 import ToggleButton from '../components/parent/ToggleButton';
@@ -484,6 +485,9 @@ const Parent: React.FC = () => {
         {tabIndex === t('faq') && <div>{faqUI()}</div>}
         <TeacherAuthenticationPopup
           isOpen={isTeacherAuthPopupOpen}
+          sourceEntryPoint={
+            TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS.PARENT_SETTINGS_TAB
+          }
           onClose={() => setIsTeacherAuthPopupOpen(false)}
           onAuthenticated={() => {
             setIsTeacherAuthPopupOpen(false);

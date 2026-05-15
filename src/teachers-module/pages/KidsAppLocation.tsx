@@ -1,28 +1,30 @@
-import { IonPage } from '@ionic/react';
-import { t } from 'i18next';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { IonPage } from '@ionic/react';
+import { t } from 'i18next';
 import { FC, useEffect } from 'react';
 import { useHistory } from 'react-router';
 import {
   CHIMPLE_MASCOT_ANIMATION_WAVY,
+  CLASS,
+  CURRENT_CLASS_NAME,
+  CURRENT_SCHOOL_NAME,
+  KIDS_APP_LOCATION_SELECTIONS,
   MODES,
   PAGES,
-  CURRENT_SCHOOL_NAME,
-  CURRENT_CLASS_NAME,
+  SCHOOL,
   SELECTED_CLASSES,
   SELECTED_STUDENTS,
   USER_SELECTION_STAGE,
-  SCHOOL,
-  CLASS,
 } from '../../common/constants';
 import ChimpleRiveMascot from '../../components/learningPathway/ChimpleRiveMascot';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import logger from '../../utility/logger';
 import { schoolUtil } from '../../utility/schoolUtil';
 import { ReactComponent as HomeLocationIcon } from '../assets/icons/homeLocationIcon.svg';
 import { ReactComponent as SchoolLocationIcon } from '../assets/icons/schoolLocationIcon.svg';
+import { logKidsAppLocationSelected } from '../utils/kidsAppLocationAnalytics';
 import './KidsAppLocation.css';
-import logger from '../../utility/logger';
-import { ServiceConfig } from '../../services/ServiceConfig';
 
 const KidsAppLocation: FC = () => {
   const history = useHistory();
@@ -57,13 +59,21 @@ const KidsAppLocation: FC = () => {
     }
   };
 
-  const onHomeClick = () => {
+  const onHomeClick = async (): Promise<void> => {
+    await logKidsAppLocationSelected(
+      KIDS_APP_LOCATION_SELECTIONS.HOME,
+      MODES.TEACHER_HOME,
+    );
     clearSchoolModeData(false);
     schoolUtil.setCurrMode(MODES.TEACHER_HOME);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
 
-  const onSchoolClick = () => {
+  const onSchoolClick = async (): Promise<void> => {
+    await logKidsAppLocationSelected(
+      KIDS_APP_LOCATION_SELECTIONS.SCHOOL,
+      MODES.TEACHER_SCHOOL,
+    );
     // Clear all school mode data for a completely fresh selection
     clearSchoolModeData(false);
     schoolUtil.setCurrMode(MODES.TEACHER_SCHOOL);

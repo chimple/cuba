@@ -17,6 +17,7 @@ import {
   SELECTED_STUDENTS,
   STAGES,
   TableTypes,
+  TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS,
   USER_SELECTION_STAGE,
 } from '../common/constants';
 import DropDown from '../components/DropDown';
@@ -44,6 +45,7 @@ import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
 import { ReactComponent as BrandLogoIcon } from './assets/brandLogoIcon.svg';
 import { ReactComponent as LeftArrowIcon } from './assets/leftArrowIcon.svg';
+import { logClassTabClassChanged } from './selectModeAnalytics';
 import './SelectMode.css';
 
 const VISIBLE_CLASS_COUNT = 3;
@@ -135,15 +137,19 @@ const SelectMode: FC = () => {
         0,
         currentClasses.length - VISIBLE_CLASS_COUNT,
       );
-      const visibleEndIndex = classWindowStartIndex + VISIBLE_CLASS_COUNT - 1;
+      setClassWindowStartIndex((currentStartIndex) => {
+        const visibleEndIndex = currentStartIndex + VISIBLE_CLASS_COUNT - 1;
 
-      if (classIndex < classWindowStartIndex) {
-        setClassWindowStartIndex(classIndex);
-      } else if (classIndex > visibleEndIndex) {
-        setClassWindowStartIndex(
-          Math.min(classIndex - VISIBLE_CLASS_COUNT + 1, maxStartIndex),
-        );
-      }
+        if (classIndex < currentStartIndex) {
+          return classIndex;
+        }
+
+        if (classIndex > visibleEndIndex) {
+          return Math.min(classIndex - VISIBLE_CLASS_COUNT + 1, maxStartIndex);
+        }
+
+        return currentStartIndex;
+      });
     }
     window.requestAnimationFrame(() => {
       document
@@ -154,7 +160,7 @@ const SelectMode: FC = () => {
           behavior: 'smooth',
         });
     });
-  }, [classWindowStartIndex, currClass?.id, currentClasses, stage]);
+  }, [currClass?.id, currentClasses, stage]);
   const applyOrientationForMode = async (mode?: string) => {
     if (!mode || !Capacitor.isNativePlatform()) return;
 
@@ -510,9 +516,11 @@ const SelectMode: FC = () => {
     selectedClass: TableTypes<'class'>,
     shouldMoveToStudentStage: boolean,
   ) => {
+    const previousClass = currClass;
     schoolUtil.setCurrentClass(selectedClass);
     setCurrClass(selectedClass);
     localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(selectedClass));
+    await logClassTabClassChanged(selectedClass, previousClass, stage);
     await displayStudents(selectedClass);
     if (shouldMoveToStudentStage) {
       setStage(STAGES.STUDENT);
@@ -555,6 +563,11 @@ const SelectMode: FC = () => {
         classWindowStartIndex + VISIBLE_CLASS_COUNT,
       )
     : currentClasses;
+  const classProfileSelectionText = currClass?.name
+    ? t("{{className}} - Select the child's profile", {
+        className: currClass.name,
+      })
+    : '';
   const highlightedClassNavDirection = shouldShowClassArrows
     ? classWindowStartIndex === 0
       ? 'next'
@@ -781,6 +794,11 @@ const SelectMode: FC = () => {
                       </button>
                     )}
                   </div>
+                  {shouldShowClassArrows && currClass?.name && (
+                    <p className="school-mode-class-profile-selection-text">
+                      {classProfileSelectionText}
+                    </p>
+                  )}
                   <div className="class-container school-mode-students-grid">
                     {currentStudents?.map((tempStudent) => (
                       <article
@@ -818,6 +836,9 @@ const SelectMode: FC = () => {
       <Loading isLoading={isLoading} />
       <TeacherAuthenticationPopup
         isOpen={isTeacherAuthPopupOpen}
+        sourceEntryPoint={
+          TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS.SWITCH_PROFILE_BACK_BUTTON
+        }
         onClose={() => setIsTeacherAuthPopupOpen(false)}
         onAuthenticated={() => {
           setIsTeacherAuthPopupOpen(false);

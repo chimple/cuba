@@ -3,28 +3,36 @@
   inset: 0;
   z-index: 1200;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 10px 20px;
+  box-sizing: border-box;
+  padding: clamp(8px, 2vmin, 20px);
   background: rgba(0, 0, 0, 0.5);
+  overflow: auto;
 }
 
 .teacher-authentication-popup {
   position: relative;
-  width: 100%;
-  height: calc(100vh - 20px);
-  height: calc(100dvh - 20px);
+  --teacher-auth-key-size: clamp(40px, 8vmin, 48px);
+  --teacher-auth-key-gap: clamp(18px, 3.8vmin, 34px) !important;
+
+  box-sizing: border-box;
+  width: min(820px, calc(100vw - 32px));
+  min-height: min(520px, calc(100dvh - 16px));
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
   border-radius: 18px;
   background: rgba(255, 253, 238, 1);
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
-  padding: 15px;
-  overflow-y: visible;
+  padding: clamp(18px, 3vmin, 30px);
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .teacher-authentication-popup-inner {
   width: 100%;
-  height: auto;
-  min-height: fit-content;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -54,24 +62,26 @@
 .teacher-authentication-popup-content {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 4vmin, 42px);
 }
 
 .teacher-authentication-popup-question-container {
-  flex: 1;
+  flex: 0 1 380px;
   min-width: 0;
-  transform: translateX(-30px);
+  transform: translateX(-14px);
 }
 
 .teacher-authentication-popup-keypad-container {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  min-width: 220px;
+  min-width: calc(
+    (var(--teacher-auth-key-size) * 3) + (var(--teacher-auth-key-gap) * 2)
+  );
   margin-left: 0;
-  margin-top: 45px;
+  margin-top: 0;
 }
 
 .teacher-authentication-popup-left-panel {
@@ -83,10 +93,10 @@
 }
 
 .teacher-authentication-popup-title {
-  margin: 41px 0 8px;
+  margin: clamp(12px, 2.5vmin, 24px) 0 8px;
   padding-left: 0;
   color: rgba(24, 42, 79, 1);
-  font-size: 26px;
+  font-size: clamp(20px, 4vmin, 26px);
   font-weight: 500;
   line-height: 1.15;
 }
@@ -94,7 +104,7 @@
 .teacher-authentication-popup-question {
   margin: 0 0 12px;
   color: rgba(24, 42, 79, 1);
-  font-size: 28px;
+  font-size: clamp(22px, 4.2vmin, 28px);
   font-weight: 500;
   line-height: 1.2;
 }
@@ -102,7 +112,7 @@
 .teacher-authentication-popup-help-text {
   margin: 0 0 12px;
   color: rgba(24, 42, 79, 1);
-  font-size: 20px;
+  font-size: clamp(16px, 3.2vmin, 20px);
   font-weight: 500;
 }
 
@@ -117,12 +127,12 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  width: 56px;
-  height: 56px;
+  width: clamp(46px, 8.5vmin, 56px);
+  height: clamp(46px, 8.5vmin, 56px);
   background: rgba(255, 255, 255, 1);
   border-radius: 4px;
   color: rgba(24, 42, 79, 1);
-  font-size: 32px;
+  font-size: clamp(26px, 5vmin, 32px);
   font-weight: 500;
   user-select: none;
 }
@@ -163,7 +173,7 @@
   border-radius: 12px;
   background: #ff5b00;
   color: #ffffff;
-  font-size: 24px;
+  font-size: clamp(20px, 4vmin, 24px);
   font-weight: 500;
   cursor: pointer;
   box-shadow: 0 4px 0 #ac3d00;
@@ -192,22 +202,21 @@
 .teacher-authentication-popup-keypad {
   width: max-content;
   display: grid;
-  grid-template-columns: repeat(3, 48px);
-  grid-auto-rows: 48px;
-  column-gap: 19px;
-  row-gap: 19px;
+  grid-template-columns: repeat(3, var(--teacher-auth-key-size));
+  grid-auto-rows: var(--teacher-auth-key-size);
+  column-gap: var(--teacher-auth-key-gap);
+  row-gap: var(--teacher-auth-key-gap);
   align-content: start;
-  transform: translate(-80px, 20px);
 }
 
 .teacher-authentication-popup-key {
-  width: 48px;
-  height: 48px;
+  width: var(--teacher-auth-key-size);
+  height: var(--teacher-auth-key-size);
   border: none;
   border-radius: 10px;
   background: #d7e5e6;
   color: rgba(24, 42, 79, 1);
-  font-size: 30px;
+  font-size: clamp(24px, 5vmin, 30px);
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 4px 0 #1f3d6f;
@@ -254,27 +263,41 @@
   height: 1em;
 }
 
-@media (min-width: 1024px) {
-  .teacher-authentication-popup-inner {
-    min-height: 100%;
-    justify-content: center;
+@media (max-width: 680px) {
+  .teacher-authentication-popup {
+    width: min(520px, calc(100vw - 16px));
   }
 
   .teacher-authentication-popup-content {
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
   }
 
   .teacher-authentication-popup-question-container {
+    flex-basis: auto;
+    width: 100%;
     transform: none;
-    flex: 0 1 auto;
+  }
+}
+
+@media (max-height: 430px) {
+  .teacher-authentication-popup {
+    --teacher-auth-key-size: clamp(34px, 10vh, 42px);
+    --teacher-auth-key-gap: clamp(8px, 2vh, 12px);
+    padding: 14px 18px;
   }
 
-  .teacher-authentication-popup-keypad-container {
-    align-items: center;
+  .teacher-authentication-popup-close-button,
+  .teacher-authentication-popup-close-icon {
+    width: 36px;
+    height: 36px;
   }
 
-  .teacher-authentication-popup-keypad {
-    transform: none;
+  .teacher-authentication-popup-title {
+    margin-top: 6px;
+  }
+
+  .teacher-authentication-popup-error {
+    margin: 8px 0;
+    min-height: 22px;
   }
 }

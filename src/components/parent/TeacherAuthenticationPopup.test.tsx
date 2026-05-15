@@ -1,6 +1,23 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import TeacherAuthenticationPopup from './TeacherAuthenticationPopup';
+import {
+  EVENTS,
+  TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS,
+} from '../../common/constants';
+import { Util } from '../../utility/util';
+
+jest.mock('../../utility/util', () => ({
+  Util: {
+    logEvent: jest.fn().mockResolvedValue(undefined),
+  },
+}));
 
 jest.mock('i18next', () => ({
   t: (value: string, options?: Record<string, string | number>) => {
@@ -12,6 +29,8 @@ jest.mock('i18next', () => ({
     );
   },
 }));
+
+const logEventMock = Util.logEvent as jest.MockedFunction<typeof Util.logEvent>;
 
 const renderPopup = (
   props?: Partial<React.ComponentProps<typeof TeacherAuthenticationPopup>>,
@@ -28,6 +47,10 @@ const renderPopup = (
 };
 
 describe('TeacherAuthenticationPopup', () => {
+  beforeEach(() => {
+    logEventMock.mockClear();
+  });
+
   test('does not render when isOpen is false', () => {
     renderPopup({ isOpen: false });
 
@@ -41,6 +64,21 @@ describe('TeacherAuthenticationPopup', () => {
     expect(
       screen.getByText('This question is for the Teacher:'),
     ).toBeInTheDocument();
+  });
+
+  test('logs teacher auth gate viewed when opened', async () => {
+    renderPopup();
+
+    await waitFor(() =>
+      expect(logEventMock).toHaveBeenCalledWith(
+        EVENTS.TEACHER_AUTH_GATE_VIEWED,
+        {
+          source_entry_point:
+            TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS.PARENT_SETTINGS_TAB,
+          generated_problem: '34+26',
+        },
+      ),
+    );
   });
 
   test('close button resets and calls onClose', () => {
@@ -78,7 +116,7 @@ describe('TeacherAuthenticationPopup', () => {
     expect(screen.getByRole('button', { name: 'Backspace' })).toBeEnabled();
   });
 
-  test('shows error for incorrect answer', () => {
+  test('shows error for incorrect answer', async () => {
     renderPopup();
 
     fireEvent.click(screen.getByRole('button', { name: 'Key 1' }));
@@ -86,11 +124,22 @@ describe('TeacherAuthenticationPopup', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
     expect(
-      screen.getByText('Wrong Answer, please try again.'),
+      await screen.findByText('Wrong Answer, please try again.'),
     ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(logEventMock).toHaveBeenCalledWith(
+        EVENTS.TEACHER_AUTH_GATE_ATTEMPTED,
+        {
+          success: false,
+          user_input: 12,
+          correct_answer: 60,
+          attempt_number: 1,
+        },
+      ),
+    );
   });
 
-  test('calls onAuthenticated for correct answer', () => {
+  test('calls onAuthenticated for correct answer', async () => {
     jest.useFakeTimers();
     const onAuthenticated = jest.fn();
     renderPopup({ onAuthenticated });
@@ -99,6 +148,17 @@ describe('TeacherAuthenticationPopup', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Key 0' }));
     fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
+    await waitFor(() =>
+      expect(logEventMock).toHaveBeenCalledWith(
+        EVENTS.TEACHER_AUTH_GATE_ATTEMPTED,
+        {
+          success: true,
+          user_input: 60,
+          correct_answer: 60,
+          attempt_number: 1,
+        },
+      ),
+    );
     expect(onAuthenticated).not.toHaveBeenCalled();
     act(() => {
       jest.runOnlyPendingTimers();

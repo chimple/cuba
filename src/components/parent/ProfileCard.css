@@ -107,17 +107,20 @@
   top: 50%;
   left: 50%;
   display: block;
-  width: 32%;
-  height: 1px;
   border-radius: 0;
   color: #f34d08;
-  background: #c63a00;
+  background: #f34d08;
   transform: translate(-50%, -50%);
-  stroke: #f34d08;
+}
+
+.profile-card-new-user-icon-horizontal {
+  width: 32%;
+  height: 2px;
 }
 
 .profile-card-new-user-icon-vertical {
-  transform: translate(-50%, -50%) rotate(90deg);
+  width: 2px;
+  height: 32%;
 }
 
 #profile-card-new-user p {
@@ -153,6 +156,7 @@
   font-weight: 600;
   line-height: normal;
   cursor: pointer;
+  transform: translateY(-8px);
   transition:
     transform 120ms ease,
     border-bottom-width 120ms ease,
@@ -164,7 +168,7 @@
 }
 
 #profile-card-image-report:active {
-  transform: translateY(2px);
+  transform: translateY(-5px);
   border-bottom-width: 3px;
 }
 

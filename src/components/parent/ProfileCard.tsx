@@ -188,6 +188,7 @@ const ProfileCard: React.FC<{
                 });
                 return;
               }
+              void Util.logEvent(EVENTS.PROFILE_CREATION_CLICKED, {});
               history.replace(PAGES.CREATE_STUDENT, {
                 showBackButton: !areProfilesAvailable,
               });

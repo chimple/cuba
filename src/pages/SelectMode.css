@@ -258,6 +258,15 @@
   font-size: clamp(18px, 1.5vw, 24px);
 }
 
+.school-mode-class-profile-selection-text {
+  margin: -0.8vh 0 0;
+  color: #1d315d;
+  font-size: clamp(18px, 1.7vw, 26px);
+  font-weight: 500;
+  line-height: normal;
+  text-align: center;
+}
+
 .class-container {
   width: min(1040px, 100%);
   margin: 0 auto;
