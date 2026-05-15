@@ -70,6 +70,7 @@ import {
   GENERIC_POP_UP,
   SEARCH_LESSON_CACHE_KEY,
   SEARCH_LESSON_HISTORY,
+  PAL_LEARNING_RATES_CONFIG,
 } from './common/constants';
 import { Util } from './utility/util';
 import Parent from './pages/Parent';
@@ -139,6 +140,7 @@ import ScanRedirect from './teachers-module/components/homePage/assignment/ScanR
 import GenericPopup from './components/GenericPopUp/GenericPopUp';
 import PopupManager from './components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
+import { setCachedGrowthBookFeatureValue } from './growthbook/Growthbook';
 import { HardwareBackButtonHandler } from './common/backButtonRegistry';
 import { logger } from './utility/logger';
 import {
@@ -249,6 +251,21 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (!growthbook) return;
+
+    const palLearningRatesConfig = growthbook.getFeatureValue(
+      PAL_LEARNING_RATES_CONFIG,
+      null,
+    );
+    if (
+      palLearningRatesConfig &&
+      typeof palLearningRatesConfig === 'object' &&
+      Object.keys(palLearningRatesConfig).length > 0
+    ) {
+      setCachedGrowthBookFeatureValue(
+        PAL_LEARNING_RATES_CONFIG,
+        palLearningRatesConfig,
+      );
+    }
 
     const popupConfig = growthbook.getFeatureValue(GENERIC_POP_UP, null) as any;
 
