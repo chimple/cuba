@@ -164,9 +164,9 @@ export enum LeaderboardDropdownList {
 
 export enum APP_LANGUAGES {
   en = 'English',
-  hi = 'Ã Â¤Â¹Ã Â¤Â¿Ã Â¤Â¨Ã Â¥ÂÃ Â¤Â¦Ã Â¥â‚¬',
-  kn = 'Ã Â²â€¢Ã Â²Â¨Ã Â³ÂÃ Â²Â¨Ã Â²Â¡',
-  mr = 'Ã Â¤Â®Ã Â¤Â°Ã Â¤Â¾Ã Â¤Â Ã Â¥â‚¬',
+  hi = 'हिन्दी',
+  kn = 'ಕನ್ನಡ',
+  mr = 'मराठी',
 }
 export enum HOMEHEADERLIST {
   SUGGESTIONS = 'SUGGESTIONS',
@@ -1472,7 +1472,7 @@ export const COURSE_CHANGED = 'courseChanged';
 export const NOTES_UPDATED_EVENT = 'notes:updated';
 export const ASSESSMENT_FAIL_KEY = 'assessment_failed_once';
 export const LIDO_SCORES_KEY = 'lido_scores';
-// Ã°Å¸â€â€ Custom Lido lifecycle events
+// 🔔 Custom Lido lifecycle events
 export const LIDO_ASSESSMENT_ABORTED = 'LIDO_ASSESSMENT_ABORTED';
 export const LIDO_ASSESSMENT_COMPLETED = 'LIDO_ASSESSMENT_COMPLETED';
 export const LIDO_LESSON_COMPLETED = 'LIDO_LESSON_COMPLETED';

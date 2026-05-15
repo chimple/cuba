@@ -8,6 +8,7 @@
     "@algolia/autocomplete-plugin-query-suggestions": "^1.19.4",
     "@algolia/autocomplete-plugin-recent-searches": "^1.19.4",
     "@algolia/autocomplete-theme-classic": "^1.19.4",
+    "@aparajita/capacitor-biometric-auth": "^9.1.2",
     "@awesome-cordova-plugins/background-mode": "^8.1.0",
     "@capacitor-community/firebase-analytics": "^7.0.1",
     "@capacitor-community/http": "^2.0.0-0",
