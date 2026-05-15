@@ -1,11 +1,14 @@
 import {
   AbilityState,
+  BlendWeights,
   DependencyGraph,
+  LayerWeightsInput,
+  LearningRates,
+  OutcomeEvent,
   RecommendationContext,
   createEmptyAbilityState,
   recommendNextSkill,
   updateAbilities,
-  OutcomeEvent,
 } from '@chimple/palau-recommendation';
 import { TableTypes } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
@@ -14,6 +17,34 @@ type AbilityKeys = 'skill' | 'outcome' | 'competency' | 'domain' | 'subject';
 
 type ResultAbilityMap = {
   [K in AbilityKeys]: Map<string, { ability: number; timestamp: number }>;
+};
+
+type PalConstants = {
+  blendWeights: LayerWeightsInput<BlendWeights>;
+  learningRates: LayerWeightsInput<LearningRates>;
+};
+
+const PAL_CONSTANTS: PalConstants = {
+  blendWeights: {
+    default: {
+      skill: 0.1,
+      outcome: 0.1,
+      competency: 0.6,
+      domain: 0.1,
+      subject: 0.1,
+    },
+    bySubject: {},
+  },
+  learningRates: {
+    default: {
+      skill: 0.5,
+      outcome: 0.8,
+      competency: 0.3,
+      domain: 0.5,
+      subject: 0.4,
+    },
+    bySubject: {},
+  },
 };
 
 export class palUtil {
@@ -277,6 +308,7 @@ export class palUtil {
       graph,
       abilities: abilityState,
       subjectId,
+      blendWeights: PAL_CONSTANTS.blendWeights,
     });
 
     const skillId = recommendation?.candidateId;
@@ -460,6 +492,8 @@ export class palUtil {
         graph,
         abilities: abilityState,
         events: outcomeEvents,
+        blendWeights: PAL_CONSTANTS.blendWeights,
+        learningRates: PAL_CONSTANTS.learningRates,
       });
 
       newAbilityState = updated?.abilities ?? abilityState;
