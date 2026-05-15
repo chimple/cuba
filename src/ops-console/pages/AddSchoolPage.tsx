@@ -437,6 +437,7 @@ const AddSchoolPage: React.FC = () => {
           address.block,
           address.cluster,
           null,
+          null,
           program.id,
           udise,
           address.address,

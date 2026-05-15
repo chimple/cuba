@@ -205,6 +205,7 @@ export interface ServiceApi {
     group2: string,
     group3: string,
     group4: string | null,
+    status: EnumType<'status'> | null,
     image: File | null,
     program_id: string | null,
     udise: string | null,
@@ -220,6 +221,7 @@ export interface ServiceApi {
    * @param {string} group1 - State of the school.
    * @param {string} group2 - District of the school.
    * @param {string} group3 - City of the school.
+   * @param {EnumType} status - School Status
    * @param {string | null} group4 - Additional grouping, if any.
    * @param {File | null} image - Optional image file for the school.
    * @param {string | null} program_id - Linked program ID if any.
