@@ -1881,7 +1881,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         schoolId={schoolId}
         classId={mergeModalClassId}
         primaryStudentId={mergePrimaryStudent?.id}
-        onClose={() => setIsMergeStudentModalOpen(false)}
+        onClose={() => {
+          setIsMergeStudentModalOpen(false);
+          setMergePrimaryStudent(null);
+        }}
         onSubmit={handleMergeStudents}
         isSubmitting={isMergingStudent}
       />
