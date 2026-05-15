@@ -228,6 +228,8 @@ body.mobile-web-browser *::after {
   }
 
   body.mobile-web-browser .dropdownmenu-dropdown-main {
+    top: 50%;
+    left: 5%;
     transform: translateY(-50%);
     z-index: 3;
   }
