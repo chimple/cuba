@@ -1012,7 +1012,7 @@ export const CAMPAIGN_SEQUENCE_FINISHED = 'CAMPAIGN_SEQUENCE_FINISHED';
 export const LIDO_COMMON_AUDIO_DIR = 'Lido-CommonAudios';
 export const LIDO_COMMON_AUDIO_LANG_KEY = 'lido_common_audio_language';
 export const HOT_UPDATE_STATE_KEY = 'hotUpdateState';
-
+export const PAL_LEARNING_RATES_CONFIG = 'pal_learning_rates_config';
 export type LeaderboardBadge = {
   id: string;
   seen: boolean;
