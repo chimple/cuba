@@ -234,6 +234,23 @@ body.mobile-web-browser *::after {
     z-index: 3;
   }
 
+  body.mobile-web-browser
+    .dropdownmenu-dropdown-container.dropdownmenu-expanded {
+    max-height: min(60dvh, 260px);
+  }
+
+  body.mobile-web-browser
+    .dropdownmenu-dropdown-container.dropdownmenu-expanded
+    .dropdownmenu-dropdown-left {
+    max-height: min(50dvh, 260px);
+    overflow-y: auto;
+  }
+
+  body.mobile-web-browser .dropdownmenu-dropdown-items.dropdownmenu-open {
+    max-height: min(50dvh, 190px);
+    overflow-y: auto;
+  }
+
   body.mobile-web-browser .chapter-egg-container {
     height: 20dvh;
     min-height: 64px;
@@ -242,6 +259,8 @@ body.mobile-web-browser *::after {
 
   body.mobile-web-browser .chapter-lesson-box {
     max-width: min(74vw, 800px);
+    z-index: 5;
+    padding: 2px;
   }
 
   body.mobile-web-browser .chapter-lesson-text {
@@ -250,6 +269,118 @@ body.mobile-web-browser *::after {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  body.mobile-web-browser .homeworkpathway-mascot-wrapper {
+    z-index: 1;
+  }
+
+  body.mobile-web-browser .ScoreCard-paper {
+    width: min(82vw, 346px) !important;
+    height: min(82dvh, 314px) !important;
+    padding: clamp(12px, 3dvh, 18px) 18px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .dialog-content-text {
+    margin: 0;
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .image-icon {
+    width: 58px;
+    height: 58px;
+    transform: translateY(10px);
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .stars-icon {
+    margin: 4px 0 0;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .star-icon-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .score-card-first-star {
+    width: 22px;
+    height: 21px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .score-card-middle-star {
+    width: 22px;
+    height: 21px;
+    transform: translateY(12px);
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .title-scoreCard {
+    margin-top: 8px;
+    gap: 4px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .title-scoreCard-icon {
+    min-width: 20px;
+    max-width: 20px;
+    min-height: 20px;
+    max-height: 20px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .title-scoreCard-icon-3star {
+    min-width: 22px;
+    max-width: 22px;
+    min-height: 30px;
+    max-height: 30px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .title-scoreCard span {
+    top: 2px;
+    font-size: 16px;
+    min-width: 90px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .score-card-content {
+    gap: 1px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .score-card-content-message,
+  body.mobile-web-browser .ScoreCard-Content .score-card-content-lesson-name {
+    font-size: 12px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Continue-Button-div {
+    flex: 0 0 auto;
+    margin-top: clamp(6px, 1.8dvh, 10px);
+  }
+
+  body.mobile-web-browser .dialog-box-button-style-score-card {
+    min-width: 160px;
+    min-height: 40px;
+    padding: 6px 16px;
+    font-size: 18px;
+    border-bottom-width: 4px;
   }
 
   body.mobile-web-browser .slider-content {
@@ -492,8 +623,9 @@ body.mobile-web-browser *::after {
     }
 
     body.mobile-web-browser #parent-page-help-title {
-      margin: 0;
+      margin: 10px;
       flex-shrink: 0;
+      font-size: 16px;
     }
 
     body.mobile-web-browser #parent-page-help-title-container,

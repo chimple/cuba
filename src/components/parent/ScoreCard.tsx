@@ -62,6 +62,7 @@ const ScoreCard: React.FC<{
         }}
         slotProps={{
           paper: {
+            className: 'ScoreCard-paper',
             sx: {
               backgroundColor: '#FFFDEE',
               width: '346px !important',
