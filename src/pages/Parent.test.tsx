@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MODES, PAGES } from '../common/constants';
 import { renderWithProviders } from '../tests/test-utils';
@@ -32,12 +32,14 @@ jest.mock('../i18n', () => ({
   },
 }));
 
+const mockHistoryPush = jest.fn();
 const mockHistoryReplace = jest.fn();
 jest.mock('react-router-dom', () => {
   const actual = jest.requireActual('react-router-dom');
   return {
     ...actual,
     useHistory: () => ({
+      push: mockHistoryPush,
       replace: mockHistoryReplace,
     }),
   };
@@ -140,6 +142,16 @@ jest.mock('../components/parent/DeleteParentAccount', () => ({
   default: () => <div data-testid="delete-parent-account" />,
 }));
 
+const mockRequireTeacherModeAuth = jest.fn();
+jest.mock('../services/TeacherModeAuth', () => ({
+  TeacherModeAuthResult: {
+    success: 'success',
+    popupFallbackRequired: 'popupFallbackRequired',
+    cancelledOrFailed: 'cancelledOrFailed',
+  },
+  requireTeacherModeAuth: () => mockRequireTeacherModeAuth(),
+}));
+
 jest.mock('../components/studentProgress/CustomAppBar', () => ({
   __esModule: true,
   default: ({ tabs, onChange, handleBackButton }: any) => (
@@ -181,6 +193,22 @@ jest.mock('../services/ServiceConfig', () => ({
 
 const Parent = require('./Parent').default;
 
+const parentUser = {
+  id: 'parent-1',
+  name: 'Parent1',
+  language_id: 'lang-1',
+};
+
+const openSettingsTab = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(await screen.findByRole('button', { name: 'settings' }));
+};
+
+const openLanguageMenu = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(
+    await screen.findByRole('button', { name: "Parent's Language" }),
+  );
+};
+
 describe('Parent page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -188,6 +216,7 @@ describe('Parent page', () => {
 
     localStorage.clear();
     sessionStorage.clear();
+    mockRequireTeacherModeAuth.mockResolvedValue('success');
     localStorage.setItem('school', JSON.stringify({ id: 'school-1' }));
     localStorage.setItem('class', JSON.stringify({ id: 'class-1' }));
     localStorage.setItem('language', 'en');
@@ -235,17 +264,22 @@ describe('Parent page', () => {
 
   it('switches to Setting tab via app bar', async () => {
     const user = userEvent.setup();
-    mockAuthHandler.getCurrentUser.mockResolvedValue({
-      id: 'parent-1',
-      name: 'Parent',
-      language_id: 'lang-1',
-    });
+    mockAuthHandler.getCurrentUser.mockResolvedValue(parentUser);
 
     renderWithProviders(<Parent />);
 
-    await user.click(await screen.findByRole('button', { name: 'setting' }));
-    expect(await screen.findByText('Language')).toBeInTheDocument();
-    expect(screen.getByLabelText('language-dropdown')).toBeInTheDocument();
+    await openSettingsTab(user);
+    expect(await screen.findByText('Application')).toBeInTheDocument();
+    expect(screen.getByText("Parent's Language")).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: "Parent's Language" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Teachers App' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Terms & Conditions' }),
+    ).toBeInTheDocument();
   });
 
   it('navigates to Add Teacher Name when switching to teacher mode and name is missing', async () => {
@@ -258,9 +292,9 @@ describe('Parent page', () => {
 
     renderWithProviders(<Parent />);
 
-    await user.click(await screen.findByRole('button', { name: 'setting' }));
+    await openSettingsTab(user);
     await user.click(
-      await screen.findByRole('button', { name: "Switch to Teacher's Mode" }),
+      await screen.findByRole('button', { name: 'Teachers App' }),
     );
 
     await waitFor(() =>
@@ -270,17 +304,13 @@ describe('Parent page', () => {
 
   it('switches to teacher mode when name is present', async () => {
     const user = userEvent.setup();
-    mockAuthHandler.getCurrentUser.mockResolvedValue({
-      id: 'parent-1',
-      name: 'Parent1',
-      language_id: 'lang-1',
-    });
+    mockAuthHandler.getCurrentUser.mockResolvedValue(parentUser);
 
     renderWithProviders(<Parent />);
 
-    await user.click(await screen.findByRole('button', { name: 'setting' }));
+    await openSettingsTab(user);
     await user.click(
-      await screen.findByRole('button', { name: "Switch to Teacher's Mode" }),
+      await screen.findByRole('button', { name: 'Teachers App' }),
     );
 
     await waitFor(() => {
@@ -291,20 +321,13 @@ describe('Parent page', () => {
 
   it('updates language via dropdown selection', async () => {
     const user = userEvent.setup();
-    mockAuthHandler.getCurrentUser.mockResolvedValue({
-      id: 'parent-1',
-      name: 'Parent1',
-      language_id: 'lang-1',
-    });
+    mockAuthHandler.getCurrentUser.mockResolvedValue(parentUser);
 
     renderWithProviders(<Parent />);
 
-    await user.click(await screen.findByRole('button', { name: 'setting' }));
-
-    await user.selectOptions(
-      screen.getByLabelText('language-dropdown'),
-      'lang-2',
-    );
+    await openSettingsTab(user);
+    await openLanguageMenu(user);
+    await user.click(screen.getByRole('option', { name: 'Hindi' }));
 
     await waitFor(() =>
       expect(mockApiHandler.updateLanguage).toHaveBeenCalledWith(
@@ -335,15 +358,11 @@ describe('Parent page', () => {
 
   it('toggles Sound and Music and updates flags', async () => {
     const user = userEvent.setup();
-    mockAuthHandler.getCurrentUser.mockResolvedValue({
-      id: 'parent-1',
-      name: 'Parent',
-      language_id: 'lang-1',
-    });
+    mockAuthHandler.getCurrentUser.mockResolvedValue(parentUser);
 
     renderWithProviders(<Parent />);
 
-    await user.click(await screen.findByRole('button', { name: 'setting' }));
+    await openSettingsTab(user);
 
     await user.click(screen.getByRole('button', { name: 'Sound' }));
     await waitFor(() => expect(mockSetCurrentSound).toHaveBeenCalledWith(0));
@@ -539,37 +558,42 @@ describe('Parent page', () => {
     expect(mockChangeLanguage).not.toHaveBeenCalled();
   });
 
-  it('language change: returns early when langDoc is not found, and skips updateLanguage when currentUser is null', async () => {
+  it('language change returns early when the selected language cannot be reloaded', async () => {
     const user = userEvent.setup();
 
-    mockAuthHandler.getCurrentUser.mockResolvedValueOnce({
-      id: 'parent-1',
-      name: 'Parent',
-      language_id: 'lang-1',
-    });
-    mockAuthHandler.getCurrentUser.mockResolvedValueOnce(null);
+    mockAuthHandler.getCurrentUser.mockResolvedValueOnce(parentUser);
 
     renderWithProviders(<Parent />);
-
-    await user.click(await screen.findByRole('button', { name: 'setting' }));
-
-    const select = screen.getByLabelText('language-dropdown');
-
-    mockApiHandler.getAllLanguages.mockResolvedValueOnce([
-      { id: 'lang-1', name: 'English', code: 'en' },
-    ]);
-    fireEvent.change(select, { target: { value: 'missing-lang' } });
-
+    await openSettingsTab(user);
     await waitFor(() =>
-      expect(mockApiHandler.updateLanguage).not.toHaveBeenCalled(),
+      expect(mockApiHandler.getAllLanguages).toHaveBeenCalled(),
     );
 
     mockApiHandler.getAllLanguages.mockResolvedValueOnce([
       { id: 'lang-1', name: 'English', code: 'en' },
-      { id: 'lang-2', name: 'Hindi', code: 'hi' },
     ]);
-    fireEvent.change(select, { target: { value: 'lang-2' } });
 
+    await openLanguageMenu(user);
+    await user.click(screen.getByRole('option', { name: 'Hindi' }));
+
+    await waitFor(() =>
+      expect(mockApiHandler.updateLanguage).not.toHaveBeenCalled(),
+    );
+  });
+
+  it('language change skips updateLanguage when currentUser is null', async () => {
+    const user = userEvent.setup();
+    mockAuthHandler.getCurrentUser
+      .mockResolvedValueOnce(parentUser)
+      .mockResolvedValueOnce(null);
+
+    renderWithProviders(<Parent />);
+
+    await openSettingsTab(user);
+    await openLanguageMenu(user);
+    await user.click(screen.getByRole('option', { name: 'Hindi' }));
+
+    await waitFor(() => expect(mockChangeLanguage).toHaveBeenCalledWith('hi'));
     await waitFor(() =>
       expect(mockApiHandler.updateLanguage).not.toHaveBeenCalled(),
     );
@@ -578,20 +602,12 @@ describe('Parent page', () => {
   it('Sound/Music toggles cover checked=false and currentUser=null branches', async () => {
     const user = userEvent.setup();
     mockAuthHandler.getCurrentUser
-      .mockResolvedValueOnce({
-        id: 'parent-1',
-        name: 'Parent',
-        language_id: 'lang-1',
-      })
+      .mockResolvedValueOnce(parentUser)
       .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce({
-        id: 'parent-1',
-        name: 'Parent1',
-        language_id: 'lang-1',
-      });
+      .mockResolvedValueOnce(parentUser);
 
     renderWithProviders(<Parent />);
-    await user.click(await screen.findByRole('button', { name: 'setting' }));
+    await openSettingsTab(user);
 
     await user.click(screen.getByRole('button', { name: 'Sound' }));
     await user.click(screen.getByRole('button', { name: 'Sound' }));
@@ -623,15 +639,19 @@ describe('Parent page', () => {
     );
   });
 
-  it("init falls back to the first language when user's language_id is not found", async () => {
+  it('uses English when parent language_id is null', async () => {
     mockAuthHandler.getCurrentUser.mockResolvedValue({
       id: 'parent-1',
       name: 'Parent1',
-      language_id: 'missing-lang',
+      language_id: null,
     });
     mockApiHandler.getAllLanguages.mockResolvedValue([
-      { id: 'lang-1', name: 'English', code: 'en' },
       { id: 'lang-2', name: 'Hindi', code: 'hi' },
+      {
+        id: '7eaf3509-e44e-460f-80a1-7f6a13a8a883',
+        name: 'English',
+        code: 'en',
+      },
     ]);
 
     renderWithProviders(<Parent />);
@@ -645,23 +665,16 @@ describe('Parent page', () => {
 
   it('language change covers nullish-coalescing when langDoc.code is undefined', async () => {
     const user = userEvent.setup();
-    mockAuthHandler.getCurrentUser.mockResolvedValue({
-      id: 'parent-1',
-      name: 'Parent1',
-      language_id: 'lang-1',
-    });
+    mockAuthHandler.getCurrentUser.mockResolvedValue(parentUser);
     mockApiHandler.getAllLanguages.mockResolvedValue([
       { id: 'lang-1', name: 'English', code: 'en' },
       { id: 'lang-3', name: 'NoCode', code: undefined },
     ] as any);
 
     renderWithProviders(<Parent />);
-    await user.click(await screen.findByRole('button', { name: 'setting' }));
-
-    await user.selectOptions(
-      screen.getByLabelText('language-dropdown'),
-      'lang-3',
-    );
+    await openSettingsTab(user);
+    await openLanguageMenu(user);
+    await user.click(screen.getByRole('option', { name: 'NoCode' }));
 
     await waitFor(() => expect(mockChangeLanguage).toHaveBeenCalledWith(''));
     expect(localStorage.getItem('language')).toBe('');
@@ -672,20 +685,33 @@ describe('Parent page', () => {
 
     mockAuthHandler.getCurrentUser
       // init user
-      .mockResolvedValueOnce({
-        id: 'parent-1',
-        name: 'Parent',
-        language_id: 'lang-1',
-      })
+      .mockResolvedValueOnce(parentUser)
       // music toggle user fetch
       .mockResolvedValueOnce(null);
 
     renderWithProviders(<Parent />);
 
-    await user.click(await screen.findByRole('button', { name: 'setting' }));
+    await openSettingsTab(user);
     await user.click(screen.getByRole('button', { name: 'Music' }));
 
     await waitFor(() => expect(mockSetCurrentMusic).toHaveBeenCalled());
     expect(mockApiHandler.updateMusicFlag).not.toHaveBeenCalled();
+  });
+
+  it('opens the terms page from the account section', async () => {
+    const user = userEvent.setup();
+    mockAuthHandler.getCurrentUser.mockResolvedValue(parentUser);
+
+    renderWithProviders(<Parent />);
+
+    await openSettingsTab(user);
+    await user.click(
+      screen.getByRole('button', { name: 'Terms & Conditions' }),
+    );
+
+    expect(mockHistoryPush).toHaveBeenCalledWith({
+      pathname: PAGES.TERMS_AND_CONDITIONS,
+      state: { from: window.location.pathname },
+    });
   });
 });

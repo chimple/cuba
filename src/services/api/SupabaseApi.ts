@@ -8,11 +8,6 @@ import {
   TableTypes,
   MUTATE_TYPES,
   PROFILETYPE,
-  grade1,
-  belowGrade1,
-  grade2,
-  grade3,
-  aboveGrade3,
   DEFAULT_SUBJECT_IDS,
   OTHER_CURRICULUM,
   LIVE_QUIZ,
@@ -51,6 +46,9 @@ import {
   DEFAULT_LOCALE_ID,
   RESULT_STATUS,
   LEARNING_PATHWAY_MODE,
+  ProgramType,
+  LATEST_LEARNING_PATH,
+  REWARD_LEARNING_PATH,
 } from '../../common/constants';
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
@@ -60,10 +58,14 @@ import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
   GetSchoolsWithProgramAccessParams,
+  JoinClassInviteLookupResult,
   LeaderboardInfo,
+  OpsStudentPerformanceBandRow,
+  OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   SchoolProgramAccessRow,
   ServiceApi,
+  StudentLeaderboardInfo,
 } from './ServiceApi';
 import { Database, Json } from '../database';
 import {
@@ -78,6 +80,7 @@ import {
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
+import { sortBySchoolSearchRelevance } from '../../utility/schoolSearchUtil';
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
@@ -92,6 +95,51 @@ import {
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
 import logger from '../../utility/logger';
+
+const GENERIC_LEADERBOARD_LIMIT = 50;
+const SCHOOL_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
+
+type LeaderboardDataType = 'weekly' | 'monthly' | 'allTime';
+
+const emptyLeaderboardInfo = (): LeaderboardInfo => ({
+  weekly: [],
+  allTime: [],
+  monthly: [],
+});
+
+const getLeaderboardDataType = (
+  leaderboardDropdownType: LeaderboardDropdownList,
+): LeaderboardDataType =>
+  leaderboardDropdownType === LeaderboardDropdownList.WEEKLY
+    ? 'weekly'
+    : leaderboardDropdownType === LeaderboardDropdownList.MONTHLY
+      ? 'monthly'
+      : 'allTime';
+
+const mapLeaderboardRow = (result: any): StudentLeaderboardInfo => ({
+  name: result.name || '',
+  score: result.total_score || 0,
+  timeSpent: result.total_time_spent || 0,
+  lessonsPlayed: result.lessons_played || 0,
+  userId: result.student_id || '',
+});
+
+const pushLeaderboardRow = (leaderBoardList: LeaderboardInfo, result: any) => {
+  const leaderboardEntry = mapLeaderboardRow(result);
+  switch (result.type) {
+    case 'allTime':
+      leaderBoardList.allTime.push(leaderboardEntry);
+      break;
+    case 'monthly':
+      leaderBoardList.monthly.push(leaderboardEntry);
+      break;
+    case 'weekly':
+      leaderBoardList.weekly.push(leaderboardEntry);
+      break;
+    default:
+      logger.warn('Unknown leaderboard type: ', result.type);
+  }
+};
 
 export class SupabaseApi implements ServiceApi {
   private _assignmetRealTime?: RealtimeChannel;
@@ -297,6 +345,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: user.curriculum_id,
       language_id: user.language_id,
       locale_id: localeId,
+      tc_agreed_version: user.tc_agreed_version,
     });
 
     if (error) {
@@ -310,6 +359,10 @@ export class SupabaseApi implements ServiceApi {
     refreshTables: TABLES[] = [],
   ): Promise<boolean> {
     return Promise.resolve(true);
+  }
+
+  isSyncInProgress(): boolean {
+    return false;
   }
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
@@ -1200,6 +1253,7 @@ export class SupabaseApi implements ServiceApi {
         logger.error('Error inserting into school:', schoolError);
         throw schoolError;
       }
+      await this.computeSchoolMetricsForSchool(schoolId);
     }
 
     if (oSchoolUser) {
@@ -1227,6 +1281,40 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return newSchool ?? ({} as TableTypes<'school'>);
+  }
+
+  async computeSchoolMetricsForSchool(schoolId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+    if (!schoolId) {
+      logger.error(
+        'computeSchoolMetricsForSchool called without a valid schoolId',
+      );
+      return false;
+    }
+    try {
+      for (const dayWindow of SCHOOL_METRICS_DAY_WINDOWS) {
+        const { error } = await this.supabase.rpc('compute_school_metrics', {
+          p_days: dayWindow,
+          p_school_id: schoolId,
+        });
+
+        if (error) {
+          logger.error('Error computing school metrics:', {
+            schoolId,
+            dayWindow,
+            error,
+          });
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      logger.error('computeSchoolMetricsForSchool failed:', {
+        schoolId,
+        error,
+      });
+      return false;
+    }
   }
 
   async requestNewSchool(
@@ -1338,6 +1426,7 @@ export class SupabaseApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     if (!this.supabase) throw new Error('Supabase instance is not initialized');
 
@@ -1365,6 +1454,7 @@ export class SupabaseApi implements ServiceApi {
       updated_at: now,
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -1432,7 +1522,7 @@ export class SupabaseApi implements ServiceApi {
       const [englishCourse, mathsCourse, digitalSkillsCourse] =
         await Promise.all([
           this.getCourse(CHIMPLE_ENGLISH),
-          this.getCourse(CHIMPLE_MATHS),
+          this.resolveMathCourseByLanguage(languageDocId),
           this.getCourse(CHIMPLE_DIGITAL_SKILLS),
         ]);
       const language = await this.getLanguageWithId(languageDocId!);
@@ -1486,6 +1576,7 @@ export class SupabaseApi implements ServiceApi {
     classId: string,
     role: RoleType.STUDENT,
     studentId: string,
+    tcVersion: number,
   ): Promise<TableTypes<TABLES.User>> {
     if (!this.supabase)
       return Promise.reject('Supabase client not initialized');
@@ -1517,6 +1608,7 @@ export class SupabaseApi implements ServiceApi {
       updated_at: timestamp,
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -1669,24 +1761,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     let courseIds: TableTypes<'course'>[] = [];
-    let isGrade1 = false;
-    let isGrade2 = false;
-
-    if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
-      isGrade1 = true;
-    } else if (
-      gradeDocId === grade2 ||
-      gradeDocId === grade3 ||
-      gradeDocId === aboveGrade3
-    ) {
-      isGrade2 = true;
-    } else {
-      isGrade2 = true;
-    }
-
-    const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
-
-    const gradeCourses = await this.getCoursesByGrade(gradeLevel);
+    const gradeCourses = await this.getCoursesByGrade(gradeDocId);
     const curriculumCourses = gradeCourses.filter(
       (course) => course.curriculum_id === boardDocId,
     );
@@ -1812,11 +1887,19 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async updateTcAccept(userId: string) {
+    return this.updateTcAgreedVersion(userId, 1);
+  }
+
+  async updateTcAgreedVersion(userId: string, version: number) {
     if (!this.supabase) return;
     try {
       const { error } = await this.supabase
         .from('user')
-        .update({ is_tc_accepted: true })
+        .update({
+          is_tc_accepted: true,
+          tc_agreed_version: version,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', userId);
 
       if (error) {
@@ -1827,6 +1910,7 @@ export class SupabaseApi implements ServiceApi {
       const currentUser = await auth.getCurrentUser();
       if (currentUser) {
         currentUser.is_tc_accepted = true;
+        currentUser.tc_agreed_version = version;
         auth.currentUser = currentUser;
       }
     } catch (error) {
@@ -1857,7 +1941,6 @@ export class SupabaseApi implements ServiceApi {
       return Promise.reject(error);
     }
   }
-  // not used, getting error when cocos_lesson_id is same for multiple lessons
   async getLessonWithCocosLessonId(
     lessonId: string,
   ): Promise<TableTypes<'lesson'> | null> {
@@ -1867,19 +1950,18 @@ export class SupabaseApi implements ServiceApi {
       .select('*')
       .eq('cocos_lesson_id', lessonId)
       .eq('is_deleted', false)
-      .single();
+      .order('updated_at', { ascending: false, nullsFirst: false })
+      .order('created_at', { ascending: false, nullsFirst: false })
+      .limit(1);
 
     if (error) {
       logger.error('Error fetching lesson:', error);
-      if (error.code === 'PGRST116') {
-        // No rows found
-        return null;
-      }
       throw new Error(
         `Failed to fetch lesson with cocos_lesson_id ${lessonId}: ${error.message}`,
       );
     }
-    return data;
+
+    return data?.[0] ?? null;
   }
   async getCoursesForParentsStudent(
     studentId: string,
@@ -2049,8 +2131,46 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return [];
 
     const student = this.currentStudent;
-    const langId = student?.language_id;
+    let langId = student?.language_id;
     const localeId = student?.locale_id;
+
+    const { data: chapterRows, error: chapterError } = await this.supabase
+      .from(TABLES.Chapter)
+      .select('course:course_id(code)')
+      .eq('id', chapterId)
+      .eq('is_deleted', false)
+      .limit(1);
+
+    if (chapterError) {
+      logger.error('Error fetching chapter course:', chapterError);
+    } else {
+      const courseCode = (
+        chapterRows?.[0]?.course as { code?: string | null } | null | undefined
+      )?.code
+        ?.trim()
+        .toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const { data: languageRows, error: languageError } = await this.supabase
+          .from(TABLES.Language)
+          .select('id')
+          .ilike('code', courseLanguageCode)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (languageError) {
+          logger.error('Error fetching course language:', languageError);
+        } else if (languageRows?.[0]?.id) {
+          langId = languageRows[0].id;
+        }
+      }
+    }
 
     const orFilters: string[] = [];
     orFilters.push('language_id.is.null,locale_id.is.null');
@@ -2124,7 +2244,64 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Error fetching grades:', gradeError);
       return { grades: [], courses };
     }
-    return { grades, courses };
+
+    const coursesByGradeId = new Map<string, TableTypes<'course'>[]>();
+    for (const courseDoc of courses) {
+      if (!courseDoc.grade_id) continue;
+      const currentGradeCourses =
+        coursesByGradeId.get(courseDoc.grade_id) ?? [];
+      currentGradeCourses.push(courseDoc);
+      coursesByGradeId.set(courseDoc.grade_id, currentGradeCourses);
+    }
+
+    if (course.grade_id) {
+      const currentGradeCourses = coursesByGradeId.get(course.grade_id) ?? [];
+      if (!currentGradeCourses.some((_course) => _course.id === course.id)) {
+        currentGradeCourses.push(course);
+        coursesByGradeId.set(course.grade_id, currentGradeCourses);
+      }
+    }
+
+    const currentCourseCode = course.code?.toLowerCase() ?? '';
+    const isMathCourse =
+      currentCourseCode === COURSES.MATHS ||
+      currentCourseCode.startsWith(`${COURSES.MATHS}-`);
+
+    const pickCourseForGrade = (gradeId: string) => {
+      const gradeCourses = coursesByGradeId.get(gradeId) ?? [];
+      if (gradeCourses.length === 0) return undefined;
+
+      if (course.grade_id === gradeId) {
+        const selectedCourse = gradeCourses.find(
+          (_course) => _course.id === course.id,
+        );
+        if (selectedCourse) return selectedCourse;
+      }
+
+      if (isMathCourse) {
+        const matchingMathVariant = gradeCourses.find(
+          (_course) => _course.code?.toLowerCase() === currentCourseCode,
+        );
+        if (matchingMathVariant) return matchingMathVariant;
+
+        const regularMathCourse = gradeCourses.find(
+          (_course) => _course.code?.toLowerCase() === COURSES.MATHS,
+        );
+        if (regularMathCourse) return regularMathCourse;
+      }
+
+      return gradeCourses[0];
+    };
+
+    return {
+      grades,
+      courses: grades
+        .map((grade) => pickCourseForGrade(grade.id))
+        .filter(
+          (mappedCourse): mappedCourse is TableTypes<'course'> =>
+            !!mappedCourse,
+        ),
+    };
   }
   getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error('Method not implemented.');
@@ -2385,6 +2562,7 @@ export class SupabaseApi implements ServiceApi {
     localeId?: string,
   ): Promise<TableTypes<'user'>> {
     if (!this.supabase) return student;
+    const languageChanged = student.language_id !== languageDocId;
 
     const updatedFields: any = {
       name,
@@ -2397,19 +2575,26 @@ export class SupabaseApi implements ServiceApi {
       language_id: languageDocId,
     };
 
-    if (student.language_id !== languageDocId) {
+    if (languageChanged) {
       const countryCode = await this.getClientCountryCode();
       const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
       updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
+      updatedFields.learning_path = null;
     }
 
     await this.supabase.from('user').update(updatedFields).eq('id', student.id);
-    Object.assign(student, updatedFields);
+    const updatedStudent = { ...student, ...updatedFields };
+    if (languageChanged) {
+      localStorage.removeItem(`${LATEST_LEARNING_PATH}:${student.id}`);
+      sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    }
 
     const courses =
       gradeDocId && boardDocId
         ? await this.getCourseByUserGradeId(gradeDocId, boardDocId)
-        : [];
+        : languageChanged
+          ? await this.getDefaultCoursesForLanguage(languageDocId)
+          : [];
 
     if (courses && courses.length > 0) {
       // Batch fetch existing user_course entries for this student and these courses
@@ -2444,8 +2629,42 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
-    return student;
+    return updatedStudent;
   }
+
+  private async getDefaultCoursesForLanguage(
+    languageDocId?: string | null,
+  ): Promise<TableTypes<'course'>[]> {
+    const [englishCourse, mathsCourse, digitalSkillsCourse] = await Promise.all(
+      [
+        this.getCourse(CHIMPLE_ENGLISH),
+        this.resolveMathCourseByLanguage(languageDocId),
+        this.getCourse(CHIMPLE_DIGITAL_SKILLS),
+      ],
+    );
+
+    const language = languageDocId
+      ? await this.getLanguageWithId(languageDocId)
+      : undefined;
+    let langCourse: TableTypes<'course'> | undefined;
+
+    if (language && language.code !== COURSES.ENGLISH) {
+      const thirdLanguageCourseMap: Record<string, string> = {
+        hi: CHIMPLE_HINDI,
+        kn: GRADE1_KANNADA,
+        mr: GRADE1_MARATHI,
+      };
+      const courseId = thirdLanguageCourseMap[language.code ?? ''];
+      if (courseId) {
+        langCourse = await this.getCourse(courseId);
+      }
+    }
+
+    return [englishCourse, mathsCourse, langCourse, digitalSkillsCourse].filter(
+      Boolean,
+    ) as TableTypes<'course'>[];
+  }
+
   async updateStudentFromSchoolMode(
     student: TableTypes<'user'>,
     name: string,
@@ -2486,7 +2705,7 @@ export class SupabaseApi implements ServiceApi {
         .from(TABLES.User)
         .update(updatedFields)
         .eq('id', student.id);
-      Object.assign(student, updatedFields);
+      const updatedStudent = { ...student, ...updatedFields };
 
       // Get current class_user record (non-deleted)
       const { data: currentClassUser } = await this.supabase
@@ -2522,7 +2741,7 @@ export class SupabaseApi implements ServiceApi {
         await this.addParentToNewClass(newClassId, student.id);
       }
 
-      return student;
+      return updatedStudent;
     } catch (error) {
       logger.error('Error updating student in school mode:', error);
       throw error;
@@ -2576,9 +2795,8 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Error updating user profile:', error);
       throw error;
     }
-    Object.assign(user, updatedFields);
 
-    return user;
+    return { ...user, ...updatedFields };
   }
 
   async updateClassCourseSelection(
@@ -2747,6 +2965,44 @@ export class SupabaseApi implements ServiceApi {
       return undefined;
     }
     return data ?? undefined;
+  }
+
+  async resolveMathCourseByLanguage(
+    languageDocId?: string | null,
+  ): Promise<TableTypes<'course'> | undefined> {
+    if (!this.supabase) return undefined;
+
+    const englishMathCourse = await this.getCourse(CHIMPLE_MATHS);
+    if (!englishMathCourse?.subject_id) return englishMathCourse;
+
+    if (!languageDocId) return englishMathCourse;
+
+    const language = await this.getLanguageWithId(languageDocId);
+    const languageCode = (language?.code ?? '').toLowerCase();
+    if (!languageCode || languageCode === COURSES.ENGLISH) {
+      return englishMathCourse;
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Course)
+      .select('*')
+      .eq('subject_id', englishMathCourse.subject_id)
+      .eq('code', `maths-${languageCode}`)
+      .eq('is_deleted', false);
+
+    if (error) {
+      logger.error('Error fetching language-specific math course:', error);
+      return englishMathCourse;
+    }
+
+    const matchingCourse =
+      (data ?? []).find(
+        (course) =>
+          course.curriculum_id === englishMathCourse.curriculum_id &&
+          course.grade_id === englishMathCourse.grade_id,
+      ) ?? data?.[0];
+
+    return matchingCourse ?? englishMathCourse;
   }
   async getCourses(ids: string[]): Promise<TableTypes<'course'>[]> {
     if (!this.supabase || !ids || ids.length === 0) return [];
@@ -3313,6 +3569,45 @@ export class SupabaseApi implements ServiceApi {
     return finalData;
   }
 
+  public async getSchoolsForUserBySearchTerm(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]> {
+    const query = searchTerm.trim();
+    if (!query) return [];
+
+    const pageSize = 100;
+    let page = 1;
+    const allResults: { school: TableTypes<'school'>; role: RoleType }[] = [];
+
+    while (true) {
+      const pageResults = await this.getSchoolsForUser(userId, {
+        page,
+        page_size: pageSize,
+        search: query,
+      });
+
+      allResults.push(...pageResults);
+
+      if (pageResults.length < pageSize) break;
+      page += 1;
+    }
+
+    const uniqueBySchool = new Map<
+      string,
+      { school: TableTypes<'school'>; role: RoleType }
+    >();
+    for (const item of allResults) {
+      uniqueBySchool.set(item.school.id, item);
+    }
+
+    return sortBySchoolSearchRelevance(
+      Array.from(uniqueBySchool.values()),
+      query,
+      (item) => item.school.name ?? '',
+    );
+  }
+
   public set currentMode(value: MODES) {
     this._currentMode = value;
   }
@@ -3473,23 +3768,62 @@ export class SupabaseApi implements ServiceApi {
     page: number = 1,
     limit: number = 20,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse> {
     if (!this.supabase) {
       logger.warn('Supabase not initialized.');
       return { data: [], total: 0 };
     }
+    // Empty program class scopes should return an empty page without querying.
+    if (!classId && classIds && classIds.length === 0) {
+      return { data: [], total: 0 };
+    }
 
     const offset = (page - 1) * limit;
 
-    let query = this.supabase
-      .from('class_user')
+    // Query classes first and filter class_user by class_id list.
+    // This avoids expensive class_user -> class join scans that can timeout.
+    const { data: schoolClasses, error: classFetchError } = await this.supabase // fetch classes for the school
+      .from(TABLES.Class)
+      .select('id, name')
+      .eq('school_id', schoolId)
+      .eq('is_deleted', false);
+
+    if (classFetchError) {
+      logger.error(
+        'Error fetching classes for school student query:',
+        classFetchError,
+      );
+      return { data: [], total: 0 };
+    }
+
+    const classMap = new Map<string, string>(
+      (schoolClasses || []).map((c) => [String(c.id), String(c.name || '')]), // store clsId and clsName in a map of that particular school
+    );
+    const allowedClassIds = classId
+      ? classMap.has(classId)
+        ? [classId]
+        : []
+      : classIds && classIds.length > 0
+        ? classIds
+            .map((classIdItem) => String(classIdItem).trim())
+            .filter((classIdItem) => classMap.has(classIdItem))
+        : Array.from(classMap.keys()); // if classId is provided, use it only if it's valid for the school; otherwise use all class IDs for the school
+
+    if (allowedClassIds.length === 0) {
+      return { data: [], total: 0 };
+    }
+
+    const {
+      data: pagedStudentRows,
+      error: pagedStudentsError,
+      count: totalStudentsRaw,
+    } = await this.supabase
+      .from(TABLES.ClassUser)
       .select(
         `
-      class:class_id!inner (
-        id,
-        class_name:name
-      ),
-      user:user_id!inner (
+      class_id,
+      user:user!class_user_user_id_fkey!inner (
         age,
         avatar,
         created_at,
@@ -3511,58 +3845,188 @@ export class SupabaseApi implements ServiceApi {
         name,
         phone,
         gender,
-        email,
-        parent_links:parent_user!student_id (
-          parent:parent_id (
-            id,
-            parent_name:name,
-            phone,
-            email,
-            is_wa_contact
-          )
-        )
+        email
       )
     `,
         { count: 'exact' },
       )
       .eq('role', 'student')
       .eq('is_deleted', false)
-      .eq('class.school_id', schoolId);
-
-    if (classId) {
-      query = query.eq('class_id', classId);
-    }
-    const { data, error, count } = await query
-      .order('user(name)', { ascending: true })
+      .in('class_id', allowedClassIds)
+      .eq('user.is_deleted', false)
+      .order('name', { ascending: true, foreignTable: TABLES.User })
+      .order('id', { ascending: true, foreignTable: TABLES.User })
       .range(offset, offset + limit - 1);
 
-    if (error) {
-      logger.error('Error fetching student info:', error);
-      return { data: [], total: 0 };
+    const totalStudents =
+      typeof totalStudentsRaw === 'number' ? totalStudentsRaw : 0;
+
+    if (pagedStudentsError) {
+      logger.error(
+        'Error fetching paged students for school:',
+        pagedStudentsError,
+      );
+      return { data: [], total: totalStudents };
     }
 
-    const studentInfoList: StudentInfo[] = (data || []).map((row: any) => {
-      const { user, class: cls } = row;
-      const className = cls?.class_name || '';
-      const { grade, section } = this.parseClassName(className);
-      const parent = user?.parent_links?.[0]?.parent || null;
-      const updatedUser = {
-        ...user,
-        phone: user?.phone || parent?.phone || '',
-        email: user?.email || parent?.email || '',
-      };
+    const normalizedPagedRows = (
+      (pagedStudentRows || []) as Array<{
+        class_id?: string | null;
+        user?: TableTypes<'user'> | TableTypes<'user'>[] | null;
+      }>
+    ).map((row) => {
+      const user = Array.isArray(row?.user) ? row.user[0] : row?.user;
+      const classIdValue = String(row?.class_id || '').trim();
+      const studentId = String(user?.id || '').trim();
       return {
-        user: updatedUser,
-        grade,
-        classSection: section,
-        parent,
-        classWithidname: cls,
+        classIdValue,
+        studentId,
+        user,
       };
     });
 
+    const pagedStudentIds = normalizedPagedRows
+      .map((row) => row.studentId)
+      .filter((studentId) => studentId.length > 0);
+
+    if (pagedStudentIds.length === 0) {
+      return {
+        data: [],
+        total: totalStudents,
+      };
+    }
+
+    const parentByStudentId = new Map<
+      string,
+      {
+        id?: string;
+        parent_name?: string;
+        phone?: string;
+        email?: string;
+        is_wa_contact?: string | boolean | null;
+      } | null
+    >();
+    if (pagedStudentIds.length > 0) {
+      const { data: parentLinks, error: parentError } = await this.supabase
+        .from(TABLES.ParentUser)
+        .select('student_id, parent_id')
+        .in('student_id', pagedStudentIds)
+        .eq('is_deleted', false);
+
+      if (parentError) {
+        logger.error('Error fetching parent links for students:', parentError);
+      } else {
+        const parentIds = [
+          ...new Set(
+            (parentLinks || [])
+              .map((link) => String(link?.parent_id || '').trim())
+              .filter((parentId) => parentId.length > 0),
+          ),
+        ];
+
+        const parentById = new Map<
+          string,
+          {
+            id?: string;
+            parent_name?: string;
+            phone?: string;
+            email?: string;
+            is_wa_contact?: string | boolean | null;
+          }
+        >();
+
+        if (parentIds.length > 0) {
+          type ParentUserWithWhatsapp = {
+            id?: string | null;
+            name?: string | null;
+            phone?: string | null;
+            email?: string | null;
+            is_wa_contact?: string | boolean | null;
+          };
+          const { data: parentUsersRaw, error: parentUsersError } =
+            await (this.supabase
+              .from(TABLES.User)
+              .select('id, name, phone, email, is_wa_contact')
+              .in('id', parentIds)
+              .eq('is_deleted', false) as any);
+          const parentUsers = (parentUsersRaw ??
+            []) as ParentUserWithWhatsapp[];
+
+          if (parentUsersError) {
+            logger.error(
+              'Error fetching parent users for students:',
+              parentUsersError,
+            );
+          } else {
+            parentUsers.forEach((parentUser) => {
+              const parentId = String(parentUser?.id || '').trim();
+              if (!parentId) return;
+
+              parentById.set(parentId, {
+                id: parentId,
+                parent_name:
+                  typeof parentUser?.name === 'string'
+                    ? parentUser.name
+                    : undefined,
+                phone:
+                  typeof parentUser?.phone === 'string'
+                    ? parentUser.phone
+                    : undefined,
+                email:
+                  typeof parentUser?.email === 'string'
+                    ? parentUser.email
+                    : undefined,
+                is_wa_contact:
+                  typeof parentUser?.is_wa_contact === 'string' ||
+                  typeof parentUser?.is_wa_contact === 'boolean'
+                    ? parentUser.is_wa_contact
+                    : null,
+              });
+            });
+          }
+        }
+
+        (parentLinks || []).forEach((link) => {
+          const sid = String(link?.student_id || '').trim();
+          const parentId = String(link?.parent_id || '').trim();
+          if (!sid || parentByStudentId.has(sid)) return;
+          parentByStudentId.set(sid, parentById.get(parentId) || null);
+        });
+      }
+    }
+
+    const studentInfoList: StudentInfo[] = normalizedPagedRows
+      .map((row) => {
+        const user = row.user;
+        if (!user) return null;
+
+        const studentId = row.studentId;
+        const classIdValue = row.classIdValue;
+        const className = classMap.get(classIdValue) || '';
+        const { grade, section } = this.parseClassName(className);
+        const parent = parentByStudentId.get(studentId) || null;
+        const updatedUser = {
+          ...user,
+          phone: user?.phone || parent?.phone || '',
+          email: user?.email || parent?.email || '',
+        };
+
+        return {
+          user: updatedUser,
+          grade,
+          classSection: section,
+          parent,
+          classWithidname: {
+            id: classIdValue,
+            class_name: className,
+          },
+        } as StudentInfo;
+      })
+      .filter((row): row is StudentInfo => row !== null);
+
     return {
       data: studentInfoList,
-      total: count ?? 0,
+      total: totalStudents,
     };
   }
   async getStudentsAndParentsByClassId(
@@ -4582,52 +5046,169 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string,
     page: number = 1,
     limit: number = 20,
+    classIds?: string[],
   ): Promise<TeacherAPIResponse> {
     if (!this.supabase) {
       logger.warn('Supabase not initialized.');
       return { data: [], total: 0 };
     }
-
-    const offset = (page - 1) * limit;
-
-    const { data, error, count } = await this.supabase
-      .from('class_user')
-      .select(
-        `
-        user:user_id!inner(*),
-        class:class_id!inner(
-          id,
-          name
-        )
-      `,
-        { count: 'exact' },
-      )
-      .eq('role', 'teacher')
-      .eq('is_deleted', false)
-      .eq('class.school_id', schoolId)
-      .range(offset, offset + limit - 1);
-
-    if (error) {
-      logger.error('Error fetching teacher info:', error);
+    // Empty program class scopes should return an empty page without querying.
+    if (classIds && classIds.length === 0) {
       return { data: [], total: 0 };
     }
 
-    const teacherInfoList: TeacherInfo[] = (data || []).map((row: any) => {
-      const { user, class: cls } = row;
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.max(1, limit);
+    const offset = (safePage - 1) * safeLimit;
 
-      const { grade, section } = this.parseClassName(cls?.name || '');
+    const { data: schoolClasses, error: classFetchError } = await this.supabase
+      .from(TABLES.Class)
+      .select('id, name')
+      .eq('school_id', schoolId)
+      .eq('is_deleted', false);
 
-      return {
-        user,
-        grade: grade,
-        classSection: section,
-        classWithidname: cls,
-      };
+    if (classFetchError) {
+      logger.error(
+        'Error fetching classes for school teacher query:',
+        classFetchError,
+      );
+      return { data: [], total: 0 };
+    }
+
+    const classMap = new Map<string, string>();
+    (schoolClasses || []).forEach((schoolClass) => {
+      const classId = String(schoolClass?.id || '').trim();
+      if (!classId) return;
+      classMap.set(classId, String(schoolClass?.name || '').trim());
     });
+    const allowedClassIds =
+      classIds && classIds.length > 0
+        ? classIds
+            .map((classId) => String(classId).trim())
+            .filter((classId) => classMap.has(classId))
+        : Array.from(classMap.keys());
+
+    if (allowedClassIds.length === 0) {
+      return { data: [], total: 0 };
+    }
+
+    const { data: allTeacherLinks, error: teacherLinksError } =
+      await this.supabase
+        .from(TABLES.ClassUser)
+        .select(
+          `
+      class_id,
+      user_id
+    `,
+        )
+        .eq('role', 'teacher')
+        .eq('is_deleted', false)
+        .in('class_id', allowedClassIds);
+
+    if (teacherLinksError) {
+      logger.error('Error fetching teacher info:', teacherLinksError);
+      return { data: [], total: 0 };
+    }
+
+    const teacherClassLinks = new Map<
+      string,
+      { teacherId: string; classId: string }
+    >();
+    (allTeacherLinks || []).forEach((row) => {
+      const teacherId = String(row?.user_id || '').trim();
+      const candidateClassId = String(row?.class_id || '').trim();
+      if (!teacherId || !candidateClassId) return;
+
+      teacherClassLinks.set(`${teacherId}:${candidateClassId}`, {
+        teacherId,
+        classId: candidateClassId,
+      });
+    });
+
+    const teacherClassLinkList = Array.from(teacherClassLinks.values());
+    const allTeacherIds = Array.from(
+      new Set(teacherClassLinkList.map((link) => link.teacherId)),
+    );
+    if (allTeacherIds.length === 0) {
+      return {
+        data: [],
+        total: 0,
+      };
+    }
+
+    const { data: teacherUsers, error: userError } = await this.supabase
+      .from(TABLES.User)
+      .select('*')
+      .in('id', allTeacherIds)
+      .eq('is_deleted', false)
+      .order('name', { ascending: true })
+      .order('id', { ascending: true });
+
+    if (userError) {
+      logger.error('Error fetching teacher user rows:', userError);
+      return { data: [], total: 0 };
+    }
+
+    if (!teacherUsers?.length) {
+      return {
+        data: [],
+        total: 0,
+      };
+    }
+
+    const teacherUserById = new Map(
+      teacherUsers.map((teacherUser) => [teacherUser.id, teacherUser]),
+    );
+    const sortedTeacherClassLinks = teacherClassLinkList
+      .filter((link) => teacherUserById.has(link.teacherId))
+      .sort((leftLink, rightLink) => {
+        const leftTeacher = teacherUserById.get(leftLink.teacherId);
+        const rightTeacher = teacherUserById.get(rightLink.teacherId);
+        const leftName = String(leftTeacher?.name || '');
+        const rightName = String(rightTeacher?.name || '');
+        const leftClassName =
+          classMap.get(leftLink.classId) || leftLink.classId;
+        const rightClassName =
+          classMap.get(rightLink.classId) || rightLink.classId;
+
+        return (
+          leftName.localeCompare(rightName, undefined, {
+            sensitivity: 'base',
+          }) ||
+          leftLink.teacherId.localeCompare(rightLink.teacherId) ||
+          leftClassName.localeCompare(rightClassName, undefined, {
+            sensitivity: 'base',
+          }) ||
+          leftLink.classId.localeCompare(rightLink.classId)
+        );
+      });
+
+    const totalTeachers = sortedTeacherClassLinks.length;
+    const teacherInfoList: TeacherInfo[] = sortedTeacherClassLinks
+      .slice(offset, offset + safeLimit)
+      .map((teacherClassLink) => {
+        const teacherUser = teacherUserById.get(teacherClassLink.teacherId);
+        if (!teacherUser) return null;
+
+        const classIdValue = teacherClassLink.classId;
+        const className = classMap.get(classIdValue) || '';
+        const { grade, section } = this.parseClassName(className);
+
+        return {
+          user: teacherUser,
+          grade: grade,
+          classSection: section,
+          classWithidname: {
+            id: classIdValue,
+            name: className,
+          },
+        };
+      })
+      .filter((row): row is TeacherInfo => row !== null);
 
     return {
       data: teacherInfoList,
-      total: count ?? 0,
+      total: totalTeachers,
     };
   }
 
@@ -4720,11 +5301,83 @@ export class SupabaseApi implements ServiceApi {
       throw new Error('Invalid inviteCode');
     }
   }
+
+  async getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult> {
+    try {
+      logger.warn('Join class lookup RPC started', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'getDataByInviteCodeNew',
+        inviteCode,
+      });
+      const rpcRes = await this.supabase?.rpc('getDataByInviteCodeNew', {
+        invite_code: inviteCode,
+      });
+
+      if (rpcRes == null || rpcRes.error || !rpcRes.data) {
+        logger.warn('Join class lookup RPC returned empty/error response', {
+          file_name: 'SupabaseApi.ts',
+          function_name: 'getDataByInviteCodeNew',
+          inviteCode,
+          rpcError: rpcRes?.error ?? null,
+          hasData: !!rpcRes?.data,
+        });
+        throw rpcRes?.error ?? '';
+      }
+
+      const { inviteData, classData, schoolData } =
+        rpcRes.data as JoinClassInviteLookupResult;
+
+      if (!classData) {
+        throw new Error('Class data could not be fetched.');
+      }
+
+      if (!schoolData) {
+        throw new Error('School data could not be fetched.');
+      }
+
+      logger.warn('Join class lookup RPC succeeded', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'getDataByInviteCodeNew',
+        inviteCode,
+        classId: inviteData?.class_id,
+        schoolId: inviteData?.school_id,
+        className: inviteData?.class_name,
+        schoolName: inviteData?.school_name,
+      });
+
+      return {
+        inviteData,
+        classData,
+        schoolData,
+      };
+    } catch (error) {
+      logger.warn('Join class lookup RPC failed', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'getDataByInviteCodeNew',
+        inviteCode,
+        rawError: error,
+      });
+      logger.error('Error in getDataByInviteCodeNew', error);
+      throw new Error('Invalid inviteCode');
+    }
+  }
+
+  async storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void> {
+    return;
+  }
+
   async createClass(
     schoolId: string,
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>> {
     if (!this.supabase) throw new Error('Supabase instance is not initialized');
 
@@ -4740,6 +5393,7 @@ export class SupabaseApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
+      grade_id: gradeId ?? null,
       group_id: groupId ?? null,
       created_at: timestamp,
       updated_at: timestamp,
@@ -4749,7 +5403,7 @@ export class SupabaseApi implements ServiceApi {
       is_firebase: null,
       is_ops: null,
       ops_created_by: null,
-      standard: null,
+      standard: standard ?? null,
       status: null,
       whatsapp_invite_link: whatsapp_invite_link ?? null,
     };
@@ -4878,17 +5532,72 @@ export class SupabaseApi implements ServiceApi {
       if (!studentId) {
         throw Error('Student Not Found');
       }
-      const rpcRes = await this.supabase?.rpc('linkStudent', {
+      logger.warn('Join class link RPC started', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+      });
+      const rpcRes = await this.supabase?.rpc('new_link_student', {
         invite_code: inviteCode,
         student_id: studentId,
       });
       if (rpcRes == null || rpcRes.error || !rpcRes.data) {
-        throw rpcRes?.error ?? '';
+        const error = rpcRes?.error;
+        logger.warn('Join class link RPC returned empty/error response', {
+          file_name: 'SupabaseApi.ts',
+          function_name: 'linkStudent',
+          inviteCode,
+          studentId,
+          rpcError: error ?? null,
+          hasData: !!rpcRes?.data,
+        });
+        if (error) {
+          if (error.code === '23503') {
+            logger.warn('Join class link RPC detected missing backend user', {
+              file_name: 'SupabaseApi.ts',
+              function_name: 'linkStudent',
+              inviteCode,
+              studentId,
+              errorCode: error.code,
+              errorMessage: error.message,
+              errorDetails: error.details,
+              errorHint: error.hint,
+            });
+          }
+          const normalizedMessage = [error.details, error.message, error.hint]
+            .map((value) => (typeof value === 'string' ? value.trim() : ''))
+            .find(Boolean);
+
+          if (normalizedMessage) {
+            throw new Error(normalizedMessage);
+          }
+        }
+
+        throw new Error('Failed to join class.');
       }
       const data = rpcRes.data;
+      logger.warn('Join class link RPC succeeded', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+        responseType: Array.isArray(data) ? 'array' : typeof data,
+        responseCount: Array.isArray(data) ? data.length : undefined,
+      });
       return data;
     } catch (e) {
-      throw new Error('Invalid inviteCode');
+      logger.warn('Join class link RPC failed', {
+        file_name: 'SupabaseApi.ts',
+        function_name: 'linkStudent',
+        inviteCode,
+        studentId,
+        rawError: e,
+      });
+      if (e instanceof Error) {
+        throw e;
+      }
+      throw new Error('Failed to join class.');
     }
   }
   async getLeaderboardResults(
@@ -4899,7 +5608,27 @@ export class SupabaseApi implements ServiceApi {
       if (!this.supabase)
         throw new Error('Supabase instance is not initialized');
 
-      // Fetch leaderboard data using the Supabase RPC function
+      const leaderBoardList = emptyLeaderboardInfo();
+
+      if (!sectionId) {
+        const leaderboardType = getLeaderboardDataType(leaderboardDropdownType);
+        const { data, error } = await this.supabase
+          .from('get_leaderboard_generic_data')
+          .select(
+            'type, student_id, name, lessons_played, total_score, total_time_spent',
+          )
+          .eq('type', leaderboardType)
+          .order('total_score', { ascending: false, nullsFirst: false })
+          .limit(GENERIC_LEADERBOARD_LIMIT);
+
+        if (error) {
+          throw error;
+        }
+
+        data?.forEach((result) => pushLeaderboardRow(leaderBoardList, result));
+        return leaderBoardList;
+      }
+
       const rpcRes = await this.supabase.rpc('get_class_leaderboard', {
         current_class_id: sectionId,
       });
@@ -4911,76 +5640,48 @@ export class SupabaseApi implements ServiceApi {
 
       // Initialize the leaderboard structure
       const data: any = rpcRes.data;
-      let leaderBoardList: LeaderboardInfo = {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
 
       // Process the data and populate the leaderboard lists
       for (let i = 0; i < data.length; i++) {
         const result = data[i];
-        const leaderboardEntry = {
-          name: result.name || '',
-          score: result.total_score || 0,
-          timeSpent: result.total_time_spent || 0,
-          lessonsPlayed: result.lessons_played || 0,
-          userId: result.student_id || '',
-        };
-
-        switch (result.type) {
-          case 'allTime':
-            leaderBoardList.allTime.push(leaderboardEntry);
-            break;
-          case 'monthly':
-            leaderBoardList.monthly.push(leaderboardEntry);
-            break;
-          case 'weekly':
-            leaderBoardList.weekly.push(leaderboardEntry);
-            break;
-          default:
-            logger.warn('Unknown leaderboard type: ', result.type);
-        }
+        pushLeaderboardRow(leaderBoardList, result);
       }
 
       return leaderBoardList;
     } catch (e) {
       logger.error('Error in getLeaderboardResults: ', e);
       // Return an empty leaderboard structure in case of error
-      return {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
+      return emptyLeaderboardInfo();
     }
   }
 
-  async getLeaderboardStudentResultFromB2CCollection(): Promise<
-    LeaderboardInfo | undefined
-  > {
+  async getLeaderboardStudentResultFromB2CCollection(
+    studentId?: string,
+  ): Promise<LeaderboardInfo | undefined> {
     try {
       // Initialize leaderboard structure
-      let leaderBoardList: LeaderboardInfo = {
-        weekly: [],
-        allTime: [],
-        monthly: [],
-      };
-
-      // Define the query to fetch data from the view
-      const genericQuery = `
-      SELECT *
-      FROM get_leaderboard_generic_data
-    `;
+      let leaderBoardList = emptyLeaderboardInfo();
 
       if (!this.supabase) {
         logger.error('Supabase instance is not initialized');
         return;
       }
 
+      if (!studentId) {
+        logger.warn(
+          'getLeaderboardStudentResultFromB2CCollection called without studentId',
+        );
+        return leaderBoardList;
+      }
+
       // Execute the query
       const { data, error } = await this.supabase
         .from('get_leaderboard_generic_data')
-        .select();
+        .select(
+          'type, student_id, name, lessons_played, total_score, total_time_spent',
+        )
+        .eq('student_id', studentId)
+        .limit(3);
 
       // Handle errors in the query execution
       if (error) {
@@ -4997,28 +5698,7 @@ export class SupabaseApi implements ServiceApi {
       // Process the results
       data.forEach((result) => {
         if (!result) return;
-
-        const leaderboardEntry = {
-          name: result.name || '',
-          score: result.total_score || 0,
-          timeSpent: result.total_time_spent || 0,
-          lessonsPlayed: result.lessons_played || 0,
-          userId: result.student_id || '',
-        };
-
-        switch (result.type) {
-          case 'allTime':
-            leaderBoardList.allTime.push(leaderboardEntry);
-            break;
-          case 'monthly':
-            leaderBoardList.monthly.push(leaderboardEntry);
-            break;
-          case 'weekly':
-            leaderBoardList.weekly.push(leaderboardEntry);
-            break;
-          default:
-            logger.warn('Unknown leaderboard type: ', result.type);
-        }
+        pushLeaderboardRow(leaderBoardList, result);
       });
 
       return leaderBoardList;
@@ -5542,6 +6222,59 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
   }
+
+  async getUserStickerBook(
+    userId: string,
+  ): Promise<TableTypes<'user_sticker_book'>[]> {
+    if (!this.supabase) return [];
+
+    try {
+      const { data, error } = await this.supabase
+        .from('user_sticker_book')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_deleted', false);
+
+      if (error) {
+        logger.error('Error fetching sticker books by user ID:', error);
+        return [];
+      }
+
+      if (!data || data.length === 0) {
+        logger.warn('No sticker book found for the given user id.');
+        return [];
+      }
+
+      return data.map((row) => {
+        const rawCollected = row.stickers_collected;
+        let stickersCollected: string[] = [];
+        if (Array.isArray(rawCollected)) {
+          stickersCollected = rawCollected.filter(
+            (value): value is string => typeof value === 'string',
+          );
+        } else if (typeof rawCollected === 'string') {
+          try {
+            const parsed = JSON.parse(rawCollected);
+            if (Array.isArray(parsed)) {
+              stickersCollected = parsed.filter(
+                (value): value is string => typeof value === 'string',
+              );
+            }
+          } catch {
+            stickersCollected = [];
+          }
+        }
+
+        return {
+          ...row,
+          stickers_collected: stickersCollected,
+        };
+      }) as TableTypes<'user_sticker_book'>[];
+    } catch (error) {
+      logger.error('Unexpected error in getUserStickerBook:', error);
+      return [];
+    }
+  }
   async getUserBadge(userId: string): Promise<TableTypes<'user_badge'>[]> {
     if (!this.supabase) return [];
 
@@ -5594,6 +6327,32 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
   }
+
+  async markAllStickersAsSeen(userId: string): Promise<void> {
+    if (!this.supabase) return;
+
+    try {
+      const { error } = await this.supabase
+        .from(TABLES.UserStickerBook)
+        .update({ is_seen: true })
+        .eq('user_id', userId)
+        .eq('is_deleted', false)
+        .or('is_seen.eq.false,is_seen.is.null');
+
+      if (error) {
+        logger.error('Error updating stickers as seen:', error);
+        throw new Error('Error updating stickers as seen.');
+      }
+    } catch (err) {
+      logger.error('Unexpected error updating stickers as seen:', err);
+      throw new Error('Unexpected error updating stickers as seen.');
+    }
+  }
+
+  async markStciekercolledasTrue(userId: string): Promise<void> {
+    await this.markAllStickersAsSeen(userId);
+  }
+
   async updateRewardAsSeen(studentId: string): Promise<void> {
     if (!this.supabase) return;
 
@@ -5615,8 +6374,10 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
     studentLoginType: string;
     schoolModel: string;
+    whatsappBotNumber?: string;
   } | null> {
     if (!this.supabase) return null;
 
@@ -5624,7 +6385,7 @@ export class SupabaseApi implements ServiceApi {
       // Fetch student_login_type and program_model directly from school table
       const { data: schoolData, error } = await this.supabase
         .from('school')
-        .select('student_login_type, model')
+        .select('id, student_login_type, model, whatsapp_bot_number')
         .eq('udise', udiseCode)
         .eq('is_deleted', false)
         .single();
@@ -5633,11 +6394,13 @@ export class SupabaseApi implements ServiceApi {
         return null;
       }
 
-      const { student_login_type, model } = schoolData;
+      const { id, student_login_type, model, whatsapp_bot_number } = schoolData;
 
       return {
+        schoolId: id || '',
         studentLoginType: student_login_type || '',
         schoolModel: model || '',
+        whatsappBotNumber: whatsapp_bot_number || '',
       };
     } catch (err) {
       logger.error('Unexpected error in getSchoolDetailsByUdise:', err);
@@ -5701,6 +6464,29 @@ export class SupabaseApi implements ServiceApi {
       return data;
     } catch (err) {
       logger.error('Unexpected error fetching grade by ID:', err);
+      return;
+    }
+  }
+  async getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined> {
+    if (!this.supabase) return;
+
+    try {
+      const { data, error } = await this.supabase
+        .from('grade')
+        .select('*')
+        .eq('name', name)
+        .eq('is_deleted', false)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        logger.error('Error fetching grade by name:', error);
+        return;
+      }
+
+      return data ?? undefined;
+    } catch (err) {
+      logger.error('Unexpected error fetching grade by name:', err);
       return;
     }
   }
@@ -6714,6 +7500,38 @@ export class SupabaseApi implements ServiceApi {
 
     return { hasPlayed: true, lastPlayedAt: data[0].created_at };
   }
+  async getOpsStudentPerformanceBands(
+    params: OpsStudentPerformanceBandsParams,
+  ): Promise<OpsStudentPerformanceBandRow[]> {
+    if (!this.supabase) return [];
+
+    const classIds = (params.classIds ?? []).filter(Boolean);
+    const studentIds = (params.studentIds ?? []).filter(Boolean);
+
+    if (classIds.length === 0 && studentIds.length === 0) {
+      return [];
+    }
+
+    let query = this.supabase
+      .from('student_performance_mv')
+      .select('student_id,class_id,performance');
+
+    if (classIds.length > 0) {
+      query = query.in('class_id', classIds);
+    }
+    if (studentIds.length > 0) {
+      query = query.in('student_id', studentIds);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      logger.error('Error fetching student performance bands:', error);
+      return [];
+    }
+
+    return (data ?? []) as OpsStudentPerformanceBandRow[];
+  }
   async getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {
@@ -7696,6 +8514,99 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
+  async validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: 'error',
+        errors: ['Supabase client is not initialized'],
+      };
+    }
+    try {
+      const { data, error } = await this.supabase.functions.invoke(
+        'whatsapp-bot-check',
+        {
+          body: {
+            phone: whatsappBotNumber.trim(),
+          },
+        },
+      );
+      if (error) {
+        return {
+          status: 'error',
+          errors: [error.message || 'WHATSAPP BOT NUMBER validation failed.'],
+        };
+      }
+      if (data?.working === true) {
+        return { status: 'success' };
+      }
+      const stateInfo =
+        data?.wa_state || typeof data?.is_ready === 'boolean'
+          ? ` (wa_state: ${data?.wa_state ?? 'unknown'}, is_ready: ${String(
+              data?.is_ready,
+            )})`
+          : '';
+
+      return {
+        status: 'error',
+        errors: [
+          data?.error || `WHATSAPP BOT NUMBER is not active or connected.`,
+        ],
+      };
+    } catch (err) {
+      return {
+        status: 'error',
+        errors: [String(err)],
+      };
+    }
+  }
+
+  async validateWhatsappGroupLink(
+    whatsappBotNumber: string,
+    whatsappGroupLink: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: 'error',
+        errors: ['Supabase client is not initialized'],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.functions.invoke(
+        'whatsapp-group-validate',
+        {
+          body: {
+            invite_link: whatsappGroupLink.trim(),
+            phone: whatsappBotNumber.trim(),
+          },
+        },
+      );
+
+      if (error) {
+        return {
+          status: 'error',
+          errors: [error.message || 'WHATSAPP GROUP LINK validation failed.'],
+        };
+      }
+
+      if (data?.valid === true) {
+        return { status: 'success' };
+      }
+
+      return {
+        status: 'error',
+        errors: [data?.error || 'Invalid WHATSAPP GROUP LINK.'],
+      };
+    } catch (err) {
+      return {
+        status: 'error',
+        errors: [String(err)],
+      };
+    }
+  }
+
   async setStarsForStudents(
     studentId: string,
     starsCount: number,
@@ -7819,12 +8730,12 @@ export class SupabaseApi implements ServiceApi {
       .update({ learning_path: learning_path })
       .eq('id', student.id)
       .single();
-    student.learning_path = learning_path;
+
     if (error) {
       logger.error('Error updating learning path:', error);
       throw error;
     }
-    return student;
+    return { ...student, learning_path: learning_path };
   }
 
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {
@@ -8210,7 +9121,6 @@ export class SupabaseApi implements ServiceApi {
       .in('school_id', schoolIds.length ? schoolIds : [''])
       .eq('is_deleted', false)
       .eq('role', RoleType.PROGRAM_MANAGER);
-
     if (error || !data) {
       logger.error('Error fetching program managers:', error);
       return schoolIds.map((id) => ({ schoolId: id, users: [] }));
@@ -8351,7 +9261,12 @@ export class SupabaseApi implements ServiceApi {
     programDetails: { id: string; label: string; value: string }[];
     locationDetails: { id: string; label: string; value: string }[];
     partnerDetails: { id: string; label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programManagers: {
+      name: string;
+      role: string;
+      phone: string;
+      email: string;
+    }[];
   } | null> {
     if (!this.supabase) {
       logger.error('Supabase client not initialized.');
@@ -8374,7 +9289,8 @@ export class SupabaseApi implements ServiceApi {
         .from('program_user')
         .select('user')
         .eq('program_id', programId)
-        .eq('role', 'program_manager');
+        .eq('role', 'program_manager')
+        .eq('is_deleted', false);
 
       if (mappingsError) {
         logger.error('Error fetching program managers:', mappingsError);
@@ -8387,7 +9303,7 @@ export class SupabaseApi implements ServiceApi {
 
       const { data: users, error: usersError } = await this.supabase
         .from('user')
-        .select('id, name, phone')
+        .select('*')
         .in('id', userIds);
       if (usersError) {
         logger.error('Error fetching user details:', usersError);
@@ -8445,11 +9361,11 @@ export class SupabaseApi implements ServiceApi {
           value: program.institute_partner ?? '',
         },
       ];
-
-      const programManagers = users.map((user) => ({
+      const programManagers = (users ?? []).map((user) => ({
         name: user.name ?? '',
         role: 'Program Manager',
         phone: user.phone ?? '',
+        email: user.email ?? '',
       }));
 
       return {
@@ -8471,43 +9387,61 @@ export class SupabaseApi implements ServiceApi {
       return {};
     }
 
+    const emptyOptions: Record<string, string[]> = {
+      state: [],
+      district: [],
+      block: [],
+      programType: [],
+      partner: [],
+      programManager: [],
+      fieldCoordinator: [],
+      cluster: [],
+    };
+
     try {
       const { data, error } = await this.supabase.rpc(
         'get_school_filter_options',
       );
 
       if (error) {
-        logger.error('RPC error in getSchoolFilterOptions:', error);
-        return {};
+        logger.error(
+          'RPC error in getSchoolFilterOptionsForSchoolListing:',
+          error,
+        );
+        return emptyOptions;
       }
 
-      const parsed: Record<string, string[]> = {
-        state: [],
-        district: [],
-        block: [],
-        programType: [],
-        partner: [],
-        programManager: [],
-        fieldCoordinator: [],
-        cluster: [],
+      if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        return emptyOptions;
+      }
+
+      const rpcData = data as Record<string, Json>;
+
+      return {
+        state: Array.isArray(rpcData.state) ? (rpcData.state as string[]) : [],
+        district: Array.isArray(rpcData.district)
+          ? (rpcData.district as string[])
+          : [],
+        block: Array.isArray(rpcData.block) ? (rpcData.block as string[]) : [],
+        programType: Array.isArray(rpcData.programType)
+          ? (rpcData.programType as string[])
+          : [],
+        partner: Array.isArray(rpcData.partner)
+          ? (rpcData.partner as string[])
+          : [],
+        programManager: Array.isArray(rpcData.programManager)
+          ? (rpcData.programManager as string[])
+          : [],
+        fieldCoordinator: Array.isArray(rpcData.fieldCoordinator)
+          ? (rpcData.fieldCoordinator as string[])
+          : [],
+        cluster: Array.isArray(rpcData.cluster)
+          ? (rpcData.cluster as string[])
+          : [],
       };
-
-      if (data && typeof data === 'object' && !Array.isArray(data)) {
-        for (const key in parsed) {
-          const val = (data as Record<string, Json>)[key];
-          parsed[key] = Array.isArray(val)
-            ? val.filter(
-                (v): v is string =>
-                  typeof v === 'string' && v.trim() !== '' && v !== 'null',
-              )
-            : [];
-        }
-      }
-
-      return parsed;
     } catch (err) {
       logger.error('Unexpected error in getSchoolFilterOptions:', err);
-      return {};
+      return emptyOptions;
     }
   }
 
@@ -8688,7 +9622,8 @@ export class SupabaseApi implements ServiceApi {
 
     const { filters, programId, page, page_size, order_by, order_dir, search } =
       params;
-    const payload: any = {};
+    const payload: Database['public']['Functions']['get_filtered_schools_with_optional_program']['Args'] =
+      {};
 
     if (filters && Object.keys(filters).length > 0) payload.filters = filters;
     if (programId) payload._program_id = programId;
@@ -8731,6 +9666,260 @@ export class SupabaseApi implements ServiceApi {
       logger.error(
         'Unexpected error in get_filtered_schools_with_optional_program:',
         err,
+      );
+      return { data: [], total: 0 };
+    }
+  }
+  async getSchoolMetricsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{
+    data: FilteredSchoolsForSchoolListingOps[];
+    total: number;
+  }> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized');
+      return { data: [], total: 0 };
+    }
+
+    const {
+      data: { user: authUser },
+      error: authError,
+    } = await this.supabase.auth.getUser();
+    if (authError || !authUser) {
+      logger.error('Current user is not available for school metrics query');
+      return { data: [], total: 0 };
+    }
+
+    const {
+      filters,
+      programId,
+      page = 1,
+      page_size = 10,
+      order_by,
+      order_dir,
+      search,
+      date_range,
+    } = params;
+
+    const specialRoles = await this.getUserSpecialRoles(authUser.id);
+    const isAdminOrDirector = specialRoles.some((role) =>
+      [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
+        role as RoleType,
+      ),
+    );
+    const isExternalUser = specialRoles.includes(RoleType.EXTERNAL_USER);
+    const isFieldCoordinator = specialRoles.includes(
+      RoleType.FIELD_COORDINATOR,
+    );
+    const shouldRestrictToSchoolLinks =
+      !isAdminOrDirector && (isExternalUser || isFieldCoordinator);
+
+    try {
+      const [schoolUserResult, programUserResult] = await Promise.all([
+        shouldRestrictToSchoolLinks || !isAdminOrDirector
+          ? this.supabase
+              .from(TABLES.SchoolUser)
+              .select('school_id')
+              .eq('user_id', authUser.id)
+              .eq('is_deleted', false)
+          : Promise.resolve({
+              data: [] as Array<{ school_id?: string | null }>,
+              error: null,
+            }),
+        !isAdminOrDirector && specialRoles.includes(RoleType.PROGRAM_MANAGER)
+          ? this.supabase
+              .from(TABLES.ProgramUser)
+              .select('program_id')
+              .eq('user', authUser.id)
+              .eq('role', RoleType.PROGRAM_MANAGER)
+              .eq('is_deleted', false)
+          : Promise.resolve({
+              data: [] as Array<{ program_id?: string | null }>,
+              error: null,
+            }),
+      ]);
+
+      if (schoolUserResult?.error) {
+        logger.error(
+          'Error fetching school_user access list:',
+          schoolUserResult.error,
+        );
+        return { data: [], total: 0 };
+      }
+      if (programUserResult?.error) {
+        logger.error(
+          'Error fetching program_user access list:',
+          programUserResult.error,
+        );
+        return { data: [], total: 0 };
+      }
+
+      const schoolIds = (schoolUserResult.data ?? [])
+        .map((row) => row.school_id)
+        .filter((id): id is string => !!id);
+      const programIds = (programUserResult.data ?? [])
+        .map((row) => row.program_id)
+        .filter((id): id is string => !!id);
+
+      const metricWindow =
+        date_range && date_range !== 'all_time'
+          ? date_range.trim().toLowerCase()
+          : null;
+
+      let query = this.supabase
+        .from(TABLES.SchoolMetrics)
+        .select('*', { count: 'exact' })
+        .eq('is_deleted', false);
+
+      if (metricWindow) {
+        query = query.eq('metric_window', metricWindow);
+      }
+
+      if (programId) {
+        query = query.eq('program_id', programId);
+      }
+
+      if (!isAdminOrDirector) {
+        if (schoolIds.length > 0 && programIds.length > 0) {
+          query = query.or(
+            `school_id.in.(${schoolIds.join(',')}),program_id.in.(${programIds.join(',')})`,
+          );
+        } else if (schoolIds.length > 0) {
+          query = query.in('school_id', schoolIds);
+        } else if (programIds.length > 0) {
+          query = query.in('program_id', programIds);
+        } else {
+          return { data: [], total: 0 };
+        }
+      }
+
+      if (
+        !isAdminOrDirector &&
+        schoolIds.length === 0 &&
+        programIds.length === 0
+      ) {
+        return { data: [], total: 0 };
+      }
+
+      const cleanedFilters = Object.fromEntries(
+        Object.entries(filters ?? {}).filter(
+          ([, values]) => Array.isArray(values) && values.length > 0,
+        ),
+      );
+
+      if (cleanedFilters.state?.length) {
+        query = query.in('state', cleanedFilters.state);
+      }
+      if (cleanedFilters.district?.length) {
+        query = query.in('district', cleanedFilters.district);
+      }
+      if (cleanedFilters.block?.length) {
+        query = query.in('block', cleanedFilters.block);
+      }
+      if (cleanedFilters.cluster?.length) {
+        query = query.in('cluster', cleanedFilters.cluster);
+      }
+      if (cleanedFilters.model?.length) {
+        const schoolModelValues = cleanedFilters.model.filter(
+          (value): value is 'hybrid' | 'at_home' | 'at_school' =>
+            Object.values(PROGRAM_TAB).includes(value as PROGRAM_TAB),
+        );
+        if (schoolModelValues.length) {
+          query = query.in('school_model', schoolModelValues);
+        }
+      }
+      if (cleanedFilters.partner?.length) {
+        query = query.overlaps('partners', cleanedFilters.partner);
+      }
+      if (cleanedFilters.programManager?.length) {
+        query = query.overlaps(
+          'program_managers',
+          cleanedFilters.programManager,
+        );
+      }
+      if (cleanedFilters.fieldCoordinator?.length) {
+        query = query.overlaps(
+          'field_coordinators',
+          cleanedFilters.fieldCoordinator,
+        );
+      }
+      if (cleanedFilters.programType?.length) {
+        const programTypeValues = cleanedFilters.programType.filter(
+          (value): value is 'government' | 'private' | 'learning_centers' =>
+            Object.values(ProgramType).includes(value as ProgramType),
+        );
+        if (programTypeValues.length) {
+          query = query.in('program_type', programTypeValues);
+        }
+      }
+
+      if (search) {
+        query = query.or(
+          [
+            `school_name.ilike.%${search}%`,
+            `udise.ilike.%${search}%`,
+            `district.ilike.%${search}%`,
+            `block.ilike.%${search}%`,
+            `cluster.ilike.%${search}%`,
+            `state.ilike.%${search}%`,
+          ].join(','),
+        );
+      }
+
+      const sortBy = order_by === 'name' ? 'school_name' : 'school_name';
+      const sortDir = order_dir === 'desc' ? false : true;
+      const from = Math.max(page - 1, 0) * page_size;
+      const to = from + page_size - 1;
+
+      const { data, count, error } = await query
+        .order(sortBy, { ascending: sortDir })
+        .range(from, to);
+
+      if (error) {
+        logger.error('Error fetching school_metrics listing:', error);
+        return { data: [], total: 0 };
+      }
+
+      const rows = (data ?? []) as Array<Record<string, unknown>>;
+
+      const mappedRows = rows.map((row: Record<string, unknown>) => ({
+        ...row,
+        school_name: typeof row.school_name === 'string' ? row.school_name : '',
+        udise: row.udise ?? null,
+        num_students:
+          typeof row.onboarded_students === 'number'
+            ? row.onboarded_students
+            : 0,
+        num_teachers:
+          typeof row.active_teachers === 'number' ? row.active_teachers : 0,
+        total_teachers: null,
+        onboarded_students: row.onboarded_students ?? null,
+        activated_students: row.activated_students ?? null,
+        active_students: row.active_students ?? null,
+        avg_time_spent: row.avg_time_spent ?? null,
+        active_teachers: row.active_teachers ?? null,
+        activities_assigned: row.activities_assigned ?? null,
+        avg_assignments_completed: row.avg_assignments_completed ?? null,
+        avg_activities_completed: row.avg_activities_completed ?? null,
+        program_managers: row.program_managers ?? [],
+        field_coordinators: row.field_coordinators ?? [],
+      })) as FilteredSchoolsForSchoolListingOps[];
+
+      return {
+        data: mappedRows,
+        total: typeof count === 'number' ? count : 0,
+      };
+    } catch (error) {
+      logger.error(
+        'Unexpected error in getSchoolMetricsForSchoolListing:',
+        error,
       );
       return { data: [], total: 0 };
     }
@@ -8847,6 +10036,7 @@ export class SupabaseApi implements ServiceApi {
 
   async createAutoProfile(
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     if (!this.supabase) throw new Error('Supabase instance is not initialized');
 
@@ -8875,6 +10065,7 @@ export class SupabaseApi implements ServiceApi {
       updated_at: now,
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -8925,7 +10116,7 @@ export class SupabaseApi implements ServiceApi {
 
     // Find English, Maths, and language-dependent subject
     const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-    const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+    const mathsCourse = await this.resolveMathCourseByLanguage(languageDocId);
     const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
     const language = languageDocId
       ? await this.getLanguageWithId(languageDocId)
@@ -8991,7 +10182,7 @@ export class SupabaseApi implements ServiceApi {
       .from('program_user')
       .select('id')
       .eq('user', userId)
-      .in('role', ['program_manager', 'field_coordinator'])
+      .in('role', [RoleType.PROGRAM_MANAGER, RoleType.FIELD_COORDINATOR])
       .eq('is_deleted', false)
       .limit(1);
 
@@ -9285,6 +10476,7 @@ export class SupabaseApi implements ServiceApi {
           RoleType.PROGRAM_MANAGER,
           RoleType.FIELD_COORDINATOR,
           RoleType.OPERATIONAL_DIRECTOR,
+          RoleType.EXTERNAL_USER,
         ])
         .eq('is_deleted', false);
 
@@ -9577,8 +10769,13 @@ export class SupabaseApi implements ServiceApi {
     page: number,
     limit: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<{ data: any[]; total: number }> {
     if (!this.supabase) {
+      return { data: [], total: 0 };
+    }
+    // Empty program class scopes should return an empty search result.
+    if (!classId && classIds && classIds.length === 0) {
       return { data: [], total: 0 };
     }
 
@@ -9599,13 +10796,18 @@ export class SupabaseApi implements ServiceApi {
 
           if (classId) {
             classQuery = classQuery.eq('id', classId);
+          } else if (classIds && classIds.length > 0) {
+            // Applies program class scope while preserving the class-detail override.
+            classQuery = classQuery.in('id', classIds);
           }
 
           const { data: classData } = await classQuery;
 
-          const classIds = (classData ?? []).map((c: any) => c.id);
+          const schoolClassIds = (classData ?? []).map(
+            (classRow) => classRow.id,
+          );
 
-          if (classIds.length === 0) {
+          if (schoolClassIds.length === 0) {
             resolve({ data: [], total: 0 });
             return;
           }
@@ -9628,7 +10830,7 @@ export class SupabaseApi implements ServiceApi {
               )
             `,
             )
-            .in('class_id', classIds)
+            .in('class_id', schoolClassIds)
             .eq('role', 'student')
             .eq('is_deleted', false)
             .or(studentFilter, {
@@ -9637,52 +10839,68 @@ export class SupabaseApi implements ServiceApi {
 
           const parentFilter = `phone.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`;
 
-          const { data: parentRows } = await supabase
+          const { data: parentRowsRaw } = await (supabase
             .from('class_user')
             .select(
               `
-              user:user_id!inner (
-                id,
-                phone,
-                email
-              )
+                user:user_id!inner (
+                  id,
+                  phone,
+                  email,
+                  is_wa_contact
+                )
             `,
             )
-            .in('class_id', classIds)
+            .in('class_id', schoolClassIds)
             .eq('role', 'parent')
             .eq('is_deleted', false)
             .or(parentFilter, {
               foreignTable: 'user',
-            });
-          const parentIds = (parentRows ?? []).map((p: any) => p.user.id);
+            }) as any);
+          const parentRows = (parentRowsRaw ?? []) as Array<{
+            user?: { id?: string | null } | null;
+          }>;
+          const parentIds = parentRows
+            .map((row) => String(row?.user?.id ?? '').trim())
+            .filter((id) => id.length > 0);
 
           let parentLinkedStudents: any[] = [];
 
           const parentContactMap = new Map<string, any>();
 
           if (parentIds.length > 0) {
-            const { data: parentLinks } = await supabase
+            const { data: parentLinksRaw } = await (supabase
               .from('parent_user')
               .select(
                 `
                 student_id,
                 parent:parent_id (
                   phone,
-                  email
+                  email,
+                  is_wa_contact
                 )
               `,
               )
               .in('parent_id', parentIds)
-              .eq('is_deleted', false);
+              .eq('is_deleted', false) as any);
+            const parentLinks = (parentLinksRaw ?? []) as Array<{
+              student_id?: string | null;
+              parent?: {
+                phone?: string | null;
+                email?: string | null;
+                is_wa_contact?: string | boolean | null;
+              } | null;
+            }>;
 
-            const studentIds = (parentLinks ?? []).map(
-              (l: any) => l.student_id,
-            );
+            const studentIds = parentLinks
+              .map((link) => String(link?.student_id ?? '').trim())
+              .filter((id) => id.length > 0);
 
             (parentLinks ?? []).forEach((link: any) => {
               parentContactMap.set(link.student_id, {
                 phone: link.parent?.phone ?? null,
                 email: link.parent?.email ?? null,
+                is_wa_contact: link.parent?.is_wa_contact ?? null,
               });
             });
 
@@ -9702,7 +10920,7 @@ export class SupabaseApi implements ServiceApi {
                   )
                 `,
                 )
-                .in('class_id', classIds)
+                .in('class_id', schoolClassIds)
                 .eq('role', 'student')
                 .in('user_id', studentIds)
                 .eq('is_deleted', false);
@@ -9723,26 +10941,41 @@ export class SupabaseApi implements ServiceApi {
           // ✅ GET ALL STUDENT IDS
           const allStudentIds = mergedRows.map((r: any) => r.user.id);
 
-          // ✅ FETCH THEIR PARENTS
-          if (allStudentIds.length > 0) {
-            const { data: allParentLinks } = await supabase
+          // Fetch parent contact only for students not already mapped.
+          const missingParentStudentIds = allStudentIds.filter(
+            (id: string) => !parentContactMap.has(id),
+          );
+          if (missingParentStudentIds.length > 0) {
+            const { data: allParentLinksRaw } = await (supabase
               .from('parent_user')
               .select(
                 `
         student_id,
         parent:parent_id (
           phone,
-          email
+          email,
+          is_wa_contact
         )
       `,
               )
-              .in('student_id', allStudentIds)
-              .eq('is_deleted', false);
+              .in('student_id', missingParentStudentIds)
+              .eq('is_deleted', false) as any);
+            const allParentLinks = (allParentLinksRaw ?? []) as Array<{
+              student_id?: string | null;
+              parent?: {
+                phone?: string | null;
+                email?: string | null;
+                is_wa_contact?: string | boolean | null;
+              } | null;
+            }>;
 
-            (allParentLinks ?? []).forEach((link: any) => {
-              parentContactMap.set(link.student_id, {
+            allParentLinks.forEach((link) => {
+              const studentId = String(link?.student_id ?? '').trim();
+              if (!studentId) return;
+              parentContactMap.set(studentId, {
                 phone: link.parent?.phone ?? null,
                 email: link.parent?.email ?? null,
+                is_wa_contact: link.parent?.is_wa_contact ?? null,
               });
             });
           }
@@ -9777,6 +11010,7 @@ export class SupabaseApi implements ServiceApi {
               parent: {
                 phone: parentContact.phone ?? null,
                 email: parentContact.email ?? null,
+                is_wa_contact: parentContact.is_wa_contact ?? null,
               },
 
               class_id: row.class_id,
@@ -9802,36 +11036,117 @@ export class SupabaseApi implements ServiceApi {
     searchTerm: string,
     page: number,
     limit: number,
+    classIds?: string[],
   ): Promise<{ data: any[]; total: number }> {
     if (!this.supabase) return { data: [], total: 0 };
+    // Empty program class scopes should return an empty search result.
+    if (classIds && classIds.length === 0) return { data: [], total: 0 };
     try {
-      // Step 1: Get all class_ids for the school
-      const { data: classData, error: classError } = await this.supabase
-        .from('class')
+      // Step 1: Get all class ids for the school.
+      let classQuery = this.supabase
+        .from(TABLES.Class)
         .select('id, name')
         .eq('school_id', schoolId)
         .eq('is_deleted', false);
+
+      if (classIds && classIds.length > 0) {
+        // Applies program class scope before searching teacher memberships.
+        classQuery = classQuery.in('id', classIds);
+      }
+
+      const { data: classData, error: classError } = await classQuery;
       if (classError || !classData) {
         logger.error('Error fetching classes for school:', classError);
         return { data: [], total: 0 };
       }
-      const classIds = classData.map((row: any) => row.id);
-      if (classIds.length === 0) return { data: [], total: 0 };
-      // Step 2: Get all class_user rows for those classes and role teacher
-      const { data: classUserData, error: classUserError } = await this.supabase
-        .from('class_user')
-        .select(`user:user_id (*), class_id`)
-        .in('class_id', classIds)
-        .eq('role', 'teacher')
-        .eq('is_deleted', false)
-        .ilike('user.name', `%${searchTerm}%`)
-        .not('user', 'is', null);
-      if (classUserError || !classUserData) {
+      const schoolClassIds = classData.map((row) => row.id);
+      if (schoolClassIds.length === 0) return { data: [], total: 0 };
+
+      const classNameById = new Map<string, string>(
+        classData.map((row) => [
+          String(row?.id ?? '').trim(),
+          String(row?.name ?? '').trim(),
+        ]),
+      );
+
+      // Step 2: Get class_user links for teacher membership in this school.
+      const { data: classUserLinks, error: classUserError } =
+        await this.supabase
+          .from(TABLES.ClassUser)
+          .select('class_id, user_id')
+          .in('class_id', schoolClassIds)
+          .eq('role', 'teacher')
+          .eq('is_deleted', false);
+      if (classUserError || !classUserLinks) {
         logger.error('Error fetching class_user rows:', classUserError);
         return { data: [], total: 0 };
       }
-      // Step 3: Get parent info for each teacher using an inner query
-      const teacherIds = classUserData.map((row: any) => row.user.id);
+
+      // Keep one stable class per teacher (alphabetically by class name).
+      const primaryClassByTeacher = new Map<string, string>();
+      for (const row of classUserLinks) {
+        const teacherId = String(row?.user_id ?? '').trim();
+        const nextClassId = String(row?.class_id ?? '').trim();
+        if (!teacherId || !nextClassId) continue;
+
+        const existingClassId = primaryClassByTeacher.get(teacherId);
+        if (!existingClassId) {
+          primaryClassByTeacher.set(teacherId, nextClassId);
+          continue;
+        }
+
+        const existingClassName =
+          classNameById.get(existingClassId) || existingClassId;
+        const nextClassName = classNameById.get(nextClassId) || nextClassId;
+        if (
+          nextClassName.localeCompare(existingClassName, undefined, {
+            sensitivity: 'base',
+          }) < 0
+        ) {
+          primaryClassByTeacher.set(teacherId, nextClassId);
+        }
+      }
+
+      const allTeacherIds = Array.from(primaryClassByTeacher.keys());
+      if (allTeacherIds.length === 0) return { data: [], total: 0 };
+
+      // Step 3: Load teacher users and apply name search on user table.
+      const { data: matchedTeachers, error: teacherUsersError } =
+        await this.supabase
+          .from(TABLES.User)
+          .select('id, name, gender, email, phone')
+          .in('id', allTeacherIds)
+          .eq('is_deleted', false)
+          .ilike('name', `%${searchTerm}%`);
+      if (teacherUsersError) {
+        logger.error(
+          'Error fetching teacher users for search:',
+          teacherUsersError,
+        );
+        return { data: [], total: 0 };
+      }
+
+      const sortedTeachers = (matchedTeachers || [])
+        .map((teacher) => ({
+          id: String(teacher?.id ?? '').trim(),
+          name: String(teacher?.name ?? '').trim(),
+          gender: teacher?.gender ?? null,
+          email: teacher?.email ?? null,
+          phone: teacher?.phone ?? null,
+        }))
+        .filter((teacher) => teacher.id.length > 0)
+        .sort(
+          (a, b) =>
+            a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }) ||
+            a.id.localeCompare(b.id),
+        );
+
+      const total = sortedTeachers.length;
+      const offset = (page - 1) * limit;
+      const pagedTeachers = sortedTeachers.slice(offset, offset + limit);
+      const teacherIds = pagedTeachers.map((teacher) => teacher.id);
+
+      // Step 4: Get parent info for paged teachers.
       let parentInfoMap: Record<
         string,
         {
@@ -9843,7 +11158,7 @@ export class SupabaseApi implements ServiceApi {
       if (teacherIds.length > 0) {
         const { data: parentUserData, error: parentUserError } =
           await this.supabase
-            .from('parent_user')
+            .from(TABLES.ParentUser)
             .select('parent_id, student_id')
             .in('student_id', teacherIds)
             .eq('is_deleted', false);
@@ -9856,7 +11171,7 @@ export class SupabaseApi implements ServiceApi {
           if (parentIds.length > 0) {
             const { data: parentDetails, error: parentDetailsError } =
               await this.supabase
-                .from('user')
+                .from(TABLES.User)
                 .select('id, name, phone')
                 .in('id', parentIds)
                 .eq('is_deleted', false);
@@ -9882,29 +11197,28 @@ export class SupabaseApi implements ServiceApi {
           }
         }
       }
-      // Step 4: Pagination
-      const offset = (page - 1) * limit;
-      const pagedRows = classUserData.slice(offset, offset + limit);
-      // Step 5: Build result objects (with parent info)
-      const result = pagedRows.map((row: any) => {
-        const classInfo = classData.find((c: any) => c.id === row.class_id);
-        const className = classInfo?.name ?? '';
+
+      // Step 5: Build result objects (with parent info).
+      const result = pagedTeachers.map((teacherUser) => {
+        const teacherId = teacherUser.id;
+        const classId = primaryClassByTeacher.get(teacherId) ?? '';
+        const className = classNameById.get(classId) ?? '';
         const { grade, section } = this.parseClassName(className);
-        const parentInfo = parentInfoMap[row.user.id] ?? null;
+        const parentInfo = parentInfoMap[teacherId] ?? null;
         return {
-          id: row.user.id,
-          name: row.user.name,
-          gender: row.user.gender ?? null,
-          email: row.user.email,
-          phone: row.user.phone,
-          class_id: row.class_id,
+          id: teacherId,
+          name: teacherUser.name,
+          gender: teacherUser.gender ?? null,
+          email: teacherUser.email,
+          phone: teacherUser.phone,
+          class_id: classId,
           class_name: className,
           grade,
           classSection: section,
           parent: parentInfo,
         };
       });
-      return { data: result, total: classUserData.length };
+      return { data: result, total };
     } catch (err) {
       logger.error('Error searching teachers in school:', err);
       return { data: [], total: 0 };
@@ -11717,19 +13031,67 @@ export class SupabaseApi implements ServiceApi {
   async getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<'user'>,
+    courseId?: string,
   ): Promise<TableTypes<'subject_lesson'>> {
     if (!this.supabase || !student) return {} as TableTypes<'subject_lesson'>;
 
     const studentId = student.id;
-    const langId = student.language_id ?? null;
+    let langId = student.language_id ?? null;
+    const localeId = student.locale_id ?? null;
 
     try {
+      type ResultStatusRow = {
+        lesson_id: string | null;
+        status: string | null;
+        created_at: string | null;
+      };
+
+      if (courseId) {
+        const { data: courseRows, error: courseError } = await this.supabase
+          .from('course')
+          .select('code')
+          .eq('id', courseId)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (courseError) {
+          logger.error('Error fetching subject lesson course:', courseError);
+        } else {
+          const courseCode = courseRows?.[0]?.code?.trim().toLowerCase();
+          const courseLanguageCode =
+            courseCode === COURSES.MATHS
+              ? COURSES.ENGLISH
+              : courseCode?.includes('-')
+                ? courseCode.split('-').pop()
+                : courseCode;
+
+          if (courseLanguageCode) {
+            const { data: languageRows, error: languageError } =
+              await this.supabase
+                .from('language')
+                .select('id')
+                .ilike('code', courseLanguageCode)
+                .eq('is_deleted', false)
+                .limit(1);
+
+            if (languageError) {
+              logger.error(
+                'Error fetching subject lesson language:',
+                languageError,
+              );
+            } else if (languageRows?.[0]?.id) {
+              langId = languageRows[0].id;
+            }
+          }
+        }
+      }
+
       /* ==========================================
-       * 1️⃣ Fetch ALL available set_numbers
+       * 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
        * ========================================== */
       const { data: setRows, error: setError } = await this.supabase
         .from('subject_lesson')
-        .select('set_number')
+        .select('set_number, language_id, locale_id')
         .eq('subject_id', subjectId)
         .eq('is_deleted', false)
         .not('set_number', 'is', null);
@@ -11747,13 +13109,45 @@ export class SupabaseApi implements ServiceApi {
 
       if (!uniqueSets.length) return {} as TableTypes<'subject_lesson'>;
 
-      const randomIndex = Math.floor(Math.random() * uniqueSets.length);
-      const setNumber = uniqueSets[randomIndex];
+      const preferredSets = langId
+        ? Array.from(
+            new Set(
+              (setRows ?? [])
+                .filter((r) =>
+                  localeId
+                    ? r.language_id === langId &&
+                      (r.locale_id === localeId || r.locale_id == null)
+                    : r.language_id === langId,
+                )
+                .map((r) => r.set_number)
+                .filter((n): n is number => n !== null),
+            ),
+          )
+        : localeId
+          ? Array.from(
+              new Set(
+                (setRows ?? [])
+                  .filter(
+                    (r) =>
+                      r.language_id == null &&
+                      (r.locale_id === localeId || r.locale_id == null),
+                  )
+                  .map((r) => r.set_number)
+                  .filter((n): n is number => n !== null),
+              ),
+            )
+          : [];
+
+      const candidateSets = preferredSets.length ? preferredSets : uniqueSets;
+      const randomIndex = Math.floor(Math.random() * candidateSets.length);
+      const setNumber = candidateSets[randomIndex];
+      const useStrictLanguageTrack =
+        !!langId && preferredSets.includes(setNumber);
 
       /* ==========================================
        * 2️⃣ Abort Check (assignment_id IS NULL)
        * ========================================== */
-      const { data, error } = await this.supabase
+      let abortQuery = this.supabase
         .from('result')
         .select('lesson_id, status, created_at')
         .eq('student_id', studentId)
@@ -11762,6 +13156,12 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false)
         .order('created_at', { ascending: false })
         .limit(50);
+
+      if (courseId) {
+        abortQuery = abortQuery.eq('course_id', courseId);
+      }
+
+      const { data, error } = await abortQuery;
 
       if (error) {
         logger.error('Abort query error:', error);
@@ -11775,9 +13175,9 @@ export class SupabaseApi implements ServiceApi {
       /* -----------------------------------------
         Keep latest result per unique lesson
       ------------------------------------------ */
-      const uniqueMap = new Map<string, any>();
+      const uniqueMap = new Map<string, ResultStatusRow>();
 
-      for (const row of data) {
+      for (const row of data as ResultStatusRow[]) {
         if (!row.lesson_id) continue;
         if (!uniqueMap.has(row.lesson_id)) {
           uniqueMap.set(row.lesson_id, row);
@@ -11803,26 +13203,92 @@ export class SupabaseApi implements ServiceApi {
       /* ==========================================
        * 3️⃣ Fetch lessons from selected set
        * ========================================== */
-      const { data: lessons, error: lessonError } = await this.supabase
+      let lessonsQuery = this.supabase
         .from('subject_lesson')
         .select('*')
         .eq('subject_id', subjectId)
         .eq('set_number', setNumber)
         .eq('is_deleted', false)
-        .or(`language_id.eq.${langId},language_id.is.null`)
         .order('set_number', { ascending: true })
         .order('sort_index', { ascending: true });
 
+      if (useStrictLanguageTrack && langId) {
+        if (localeId) {
+          lessonsQuery = lessonsQuery.or(
+            `and(language_id.eq.${langId},locale_id.eq.${localeId}),and(language_id.eq.${langId},locale_id.is.null)`,
+          );
+        } else {
+          lessonsQuery = lessonsQuery.eq('language_id', langId);
+        }
+      } else if (langId) {
+        const orConditions: string[] = [];
+        if (localeId) {
+          orConditions.push(
+            `and(language_id.eq.${langId},locale_id.eq.${localeId})`,
+          );
+        }
+        orConditions.push(`and(language_id.eq.${langId},locale_id.is.null)`);
+        if (localeId) {
+          orConditions.push(
+            `and(language_id.is.null,locale_id.eq.${localeId})`,
+          );
+        }
+        orConditions.push(`and(language_id.is.null,locale_id.is.null)`);
+        lessonsQuery = lessonsQuery.or(orConditions.join(','));
+      } else if (localeId) {
+        lessonsQuery = lessonsQuery.or(
+          `and(language_id.is.null,locale_id.eq.${localeId}),and(language_id.is.null,locale_id.is.null)`,
+        );
+      } else {
+        lessonsQuery = lessonsQuery
+          .is('language_id', null)
+          .is('locale_id', null);
+      }
+
+      const { data: lessons, error: lessonError } = await lessonsQuery;
+
       if (lessonError || !lessons?.length)
         return {} as TableTypes<'subject_lesson'>;
+
+      const matchedLessons = lessons.filter(
+        (lesson) => lesson.language_id === langId,
+      );
+      const fallbackLessons = lessons.filter(
+        (lesson) => lesson.language_id == null,
+      );
+      let candidateLessons = useStrictLanguageTrack
+        ? lessons
+        : matchedLessons.length
+          ? matchedLessons
+          : fallbackLessons;
+
+      if (useStrictLanguageTrack && localeId) {
+        const localePriority = (lesson: TableTypes<'subject_lesson'>) => {
+          if (lesson.language_id === langId && lesson.locale_id === localeId)
+            return 1;
+          if (lesson.language_id === langId && lesson.locale_id == null)
+            return 2;
+          return 3;
+        };
+        candidateLessons = [...candidateLessons].sort((a, b) => {
+          if ((a.sort_index ?? 0) !== (b.sort_index ?? 0)) {
+            return (a.sort_index ?? 0) - (b.sort_index ?? 0);
+          }
+          return localePriority(a) - localePriority(b);
+        });
+      }
+
+      if (!candidateLessons.length) {
+        return {} as TableTypes<'subject_lesson'>;
+      }
 
       /* ==========================================
        * 4️⃣ Remove completed lessons
        * (assignment_id IS NULL only)
        * ========================================== */
-      const lessonIds = lessons.map((l) => l.lesson_id);
+      const lessonIds = candidateLessons.map((lesson) => lesson.lesson_id);
 
-      const { data: results } = await this.supabase
+      let resultsQuery = this.supabase
         .from('result')
         .select('lesson_id')
         .in('lesson_id', lessonIds)
@@ -11830,16 +13296,22 @@ export class SupabaseApi implements ServiceApi {
         .is('assignment_id', null)
         .eq('is_deleted', false);
 
+      if (courseId) {
+        resultsQuery = resultsQuery.eq('course_id', courseId);
+      }
+
+      const { data: results } = await resultsQuery;
+
       const completedLessonIds = new Set(
         (results ?? []).map((r) => r.lesson_id),
       );
 
-      const pendingLessons = lessons.filter(
-        (l) => !completedLessonIds.has(l.lesson_id),
+      const pendingLessons = candidateLessons.filter(
+        (lesson) => !completedLessonIds.has(lesson.lesson_id),
       );
 
       return pendingLessons.length
-        ? (pendingLessons[0] as TableTypes<'subject_lesson'>)
+        ? pendingLessons[0]
         : ({} as TableTypes<'subject_lesson'>);
     } catch (error) {
       logger.error(
@@ -12114,20 +13586,45 @@ export class SupabaseApi implements ServiceApi {
   }
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     if (!this.supabase) return [];
+
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
     const { data, error } = await this.supabase.functions.invoke(
-      'get-whatsapp-group-details',
+      'get-whatsapp-group-details-v2',
       {
         body: { groupId, bot },
       },
     );
-
+    logger.info('getWhatsappGroupDetails response', data);
     if (error) {
       throw error;
     }
 
-    return data.data;
-  }
+    const payload = data as Json | JsonMap | null;
+    const record = getRecord(payload);
 
+    if (record?.success === false) {
+      const details = getRecord(record.details);
+      const primaryDetail = String(details?.maytapi ?? '').trim();
+      const secondaryDetail = String(details?.periskope ?? '').trim();
+      const detailSuffix =
+        primaryDetail || secondaryDetail
+          ? ` (Primary: ${primaryDetail || 'n/a'} | Secondary: ${
+              secondaryDetail || 'n/a'
+            })`
+          : '';
+      throw new Error(
+        `${String(record.error ?? 'Failed to fetch WhatsApp group')}${detailSuffix}`,
+      );
+    }
+
+    return record?.data ?? payload;
+  }
   async getParentWhatsappGroupDetails(groupId: string) {
     if (!this.supabase) return [];
     const { data, error } = await this.supabase.rpc(
@@ -12251,7 +13748,7 @@ export class SupabaseApi implements ServiceApi {
   async getGroupIdByInvite(invite_link: string, bot: string) {
     if (!this.supabase) return [];
     const { data, error } = await this.supabase.functions.invoke(
-      'get-groupId-by-invite',
+      'get-groupId-by-invite-v2',
       {
         body: { invite_link, bot },
       },
@@ -12263,21 +13760,39 @@ export class SupabaseApi implements ServiceApi {
     return data;
   }
 
-  async getPhoneDetailsByBotNum(bot: string) {
+  async getPhoneDetailsByBotNum(bot?: string, groupId?: string | null) {
     if (!this.supabase) return [];
+
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
     const { data, error } = await this.supabase.functions.invoke(
-      'get-phoneDetails-by-botNum',
+      'get-phoneDetails-by-botNum-v2',
       {
-        body: { bot },
+        body: { bot, groupId },
       },
     );
 
     if (error) {
       throw error;
     }
-    return data;
-  }
 
+    const payload = data as Json | JsonMap | null;
+    const record = getRecord(payload);
+
+    if (record?.success === false) {
+      throw new Error(
+        String(record.error ?? 'Failed to fetch WhatsApp phone details'),
+      );
+    }
+
+    const parsed = record?.data ?? payload;
+    return parsed;
+  }
   async updateWhatsAppGroupSettings(
     chatId: string,
     phone: string,
@@ -12288,8 +13803,15 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<boolean> {
     if (!this.supabase) return false;
 
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
     const { data, error } = await this.supabase.functions.invoke(
-      'edit-whatsapp-group-details',
+      'edit-whatsapp-group-details-v2',
       {
         body: {
           chatId,
@@ -12302,7 +13824,25 @@ export class SupabaseApi implements ServiceApi {
       },
     );
 
-    return Boolean(data?.success && !error);
+    if (error) {
+      throw error;
+    }
+
+    const payload = data as Json | JsonMap | null;
+    const record = getRecord(payload);
+    if (record?.success === false) {
+      const diagnostics = getRecord(record.diagnostics);
+      const winner = String(record.winner ?? '').trim();
+      const detailSuffix = diagnostics
+        ? ` (${JSON.stringify(diagnostics)})`
+        : '';
+      throw new Error(
+        `${String(record.error ?? 'Failed to update WhatsApp group')}${
+          winner ? ` [winner: ${winner}]` : ''
+        }${detailSuffix}`,
+      );
+    }
+    return record?.success === true;
   }
   async getWhatsAppGroupByInviteLink(
     inviteLink: string,
@@ -12315,8 +13855,64 @@ export class SupabaseApi implements ServiceApi {
   } | null> {
     if (!this.supabase) return null;
 
+    type JsonMap = Record<string, Json | undefined>;
+    const getRecord = (
+      value: Json | JsonMap | null | undefined,
+    ): JsonMap | null =>
+      typeof value === 'object' && value !== null && !Array.isArray(value)
+        ? (value as JsonMap)
+        : null;
+    const getLookupPayload = (payload: Json | JsonMap | null): JsonMap | null =>
+      getRecord(getRecord(payload)?.data) ?? getRecord(payload);
+
+    const getGroupIdFromPayload = (payload: Json | JsonMap | null): string => {
+      const parsed = getLookupPayload(payload);
+      return String(
+        parsed?.group_id ?? parsed?.id ?? parsed?.conversation_id ?? '',
+      ).trim();
+    };
+
+    const getGroupNameFromPayload = (
+      payload: Json | JsonMap | null,
+    ): string => {
+      const parsed = getLookupPayload(payload);
+      return String(
+        parsed?.group_name ?? parsed?.name ?? parsed?.subject ?? '',
+      ).trim();
+    };
+
+    const getMembersCountFromPayload = (
+      payload: Json | JsonMap | null,
+    ): number => {
+      const parsed = getLookupPayload(payload);
+      const members = parsed?.members;
+      const participants = parsed?.participants;
+
+      if (Array.isArray(members)) return members.length;
+      if (Array.isArray(participants)) return participants.length;
+
+      const count = Number(
+        parsed?.members_count ?? members ?? parsed?.size ?? 0,
+      );
+      return Number.isFinite(count) ? count : 0;
+    };
+
+    const isLookupErrorPayload = (
+      payload: Json | JsonMap | null,
+      groupId: string,
+    ): boolean => {
+      const parsed = getLookupPayload(payload);
+      return Boolean(
+        !groupId ||
+        getRecord(payload)?.success === false ||
+        parsed?.success === false ||
+        getRecord(payload)?.type === 'error' ||
+        parsed?.type === 'error',
+      );
+    };
+
     const { data, error } = await this.supabase.functions.invoke(
-      'get-groupId-by-invite',
+      'get-groupId-by-invite-v2',
       {
         body: {
           invite_link: inviteLink,
@@ -12325,14 +13921,12 @@ export class SupabaseApi implements ServiceApi {
       },
     );
 
-    if (error || !data?.success) {
+    const groupId = getGroupIdFromPayload(data);
+    if (error || isLookupErrorPayload(data, groupId)) {
       logger.error('Invite lookup failed', error || data);
       return null;
     }
 
-    const groupId = data.group_id;
-
-    // Update class table with group_id and updated_at
     const { error: updateError } = await this.supabase
       .from(TABLES.Class)
       .update({
@@ -12346,7 +13940,11 @@ export class SupabaseApi implements ServiceApi {
       return null;
     }
 
-    return data;
+    return {
+      group_id: groupId,
+      group_name: getGroupNameFromPayload(data),
+      members: getMembersCountFromPayload(data),
+    };
   }
   async getAssignmentInfoForLessonsPerClass(
     classId: string,
@@ -12574,16 +14172,8 @@ export class SupabaseApi implements ServiceApi {
         sticker_book_id: stickerBookId,
         stickers_collected: [stickerId],
         status,
-        is_deleted: false,
-      });
-
-      await this.supabase.from(TABLES.UserSticker).insert({
-        id: uuidv4(),
-        user_id: userId,
-        sticker_id: stickerId,
-        created_at: new Date().toISOString(),
-        is_deleted: false,
         is_seen: false,
+        is_deleted: false,
       });
 
       return;
@@ -12591,7 +14181,6 @@ export class SupabaseApi implements ServiceApi {
 
     let updated = progress.stickers_collected ?? [];
     updated = updated.includes(stickerId) ? updated : [...updated, stickerId];
-    const isNewSticker = updated.length !== progress.stickers_collected.length;
 
     let status = progress.status;
 
@@ -12604,21 +14193,11 @@ export class SupabaseApi implements ServiceApi {
       .update({
         stickers_collected: updated,
         status,
+        is_seen: false,
         is_deleted: false,
       })
       .eq('id', progress.id)
       .or('is_deleted.is.false,is_deleted.is.null');
-
-    if (isNewSticker) {
-      await this.supabase.from(TABLES.UserSticker).insert({
-        id: uuidv4(),
-        user_id: userId,
-        sticker_id: stickerId,
-        created_at: new Date().toISOString(),
-        is_deleted: false,
-        is_seen: false,
-      });
-    }
   }
   async isAssignmentAlreadyAssigned(
     schoolId: string,

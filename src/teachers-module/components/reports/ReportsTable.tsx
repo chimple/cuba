@@ -21,6 +21,10 @@ import { t } from 'i18next';
 import CustomDropdown from '../CustomDropdown';
 import { useHistory } from 'react-router';
 import ImageDropdown from '../imageDropdown';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
 
 interface ReportTableProps {
   handleButtonClick?: (isOpen: boolean) => void;
@@ -92,6 +96,11 @@ const ReportTable: React.FC<ReportTableProps> = ({
   const [headerData, setHeaderData] = useState<Map<string, AssignmentHeader>[]>(
     [],
   );
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
 
   const [reportData, setReportData] = useState<
     Map<string, { student: TableTypes<'user'>; results: Record<string, any[]> }>
@@ -115,6 +124,9 @@ const ReportTable: React.FC<ReportTableProps> = ({
   const [mappedChaptersOptions, setMappedChaptersOptions] = useState<
     { id: string; name: string }[]
   >([]);
+  const selectedTypeOption = Object.entries(TABLEDROPDOWN).find(
+    ([, value]) => value === selectedType,
+  );
   const [dateRange, setDateRange] = useState<DateRangeValue>({
     startDate:
       startDateProp ??
@@ -157,6 +169,13 @@ const ReportTable: React.FC<ReportTableProps> = ({
   }, [selectedType]);
 
   const initChapters = async () => {
+    if (!selectedSubject?.id || selectedSubject.id === ALL_SUBJECT.id) {
+      setMappedChaptersOptions([]);
+      setChapters([]);
+      setSelectedChapter(undefined);
+      return;
+    }
+
     const _chapters = await api.getChaptersForCourse(selectedSubject?.id ?? '');
     var _mappedChaptersOptions = _chapters?.map((option) => ({
       id: option.id,
@@ -164,7 +183,15 @@ const ReportTable: React.FC<ReportTableProps> = ({
     }));
     setMappedChaptersOptions(_mappedChaptersOptions);
     setChapters(_chapters);
-    setSelectedChapter(_chapters[0]);
+    setSelectedChapter((prev) => {
+      if (!prev) {
+        return _chapters[0];
+      }
+
+      return (
+        _chapters.find((chapter) => chapter.id === prev.id) ?? _chapters[0]
+      );
+    });
   };
   const initData = async () => {
     var current_class = Util.getCurrentClass();
@@ -332,12 +359,24 @@ const ReportTable: React.FC<ReportTableProps> = ({
   const handleTypeSelect = (type: { id: string | number; name: string }) => {
     if (type) {
       if (type.name === TABLEDROPDOWN.CHAPTER) {
-        api
-          .getChaptersForCourse(selectedSubject?.id ?? '')
-          .then((_chapters) => {
+        const chapterSubject =
+          selectedSubject?.id && selectedSubject.id !== ALL_SUBJECT.id
+            ? selectedSubject
+            : subjects?.[0];
+
+        if (chapterSubject) {
+          setSelectedSubject(chapterSubject);
+          api.getChaptersForCourse(chapterSubject.id).then((_chapters) => {
             setChapters(_chapters);
+            setMappedChaptersOptions(
+              _chapters.map((option) => ({
+                id: option.id,
+                name: option.name ?? '',
+              })),
+            );
             setSelectedChapter(_chapters[0]);
           });
+        }
       }
       setSelectedType(type.name as TABLEDROPDOWN);
     }
@@ -399,14 +438,14 @@ const ReportTable: React.FC<ReportTableProps> = ({
               onOptionSelect={handleTypeSelect}
               placeholder={t(selectedType) ?? ''}
               selectedValue={{
-                id: selectedType,
+                id: selectedTypeOption?.[0] ?? '',
                 name: selectedType,
               }}
             />
           </div>
 
           {selectedType === TABLEDROPDOWN.CHAPTER ? (
-            <div>
+            <div className="reports-chapter-dropdowns">
               <ImageDropdown
                 options={subjectOptionsWithAll}
                 selectedValue={{
@@ -433,8 +472,14 @@ const ReportTable: React.FC<ReportTableProps> = ({
                   options={mappedChaptersOptions ?? []}
                   onOptionSelect={handleSelectChapter}
                   selectedValue={{
-                    id: selectedChapter?.id ?? '',
-                    name: selectedChapter?.name ?? '',
+                    id:
+                      selectedChapter?.id ??
+                      mappedChaptersOptions?.[0]?.id ??
+                      '',
+                    name:
+                      selectedChapter?.name ??
+                      mappedChaptersOptions?.[0]?.name ??
+                      '',
                   }}
                 />
               </div>
@@ -569,12 +614,14 @@ const ReportTable: React.FC<ReportTableProps> = ({
                       'If you would like to assign assignments, please go to the',
                     )}{' '}
                   </div>
-                  <div
-                    onClick={() => handleButtonClick?.(true)}
-                    className="library-button"
-                  >
-                    {t('Library')}
-                  </div>
+                  {!isExternalUser && (
+                    <div
+                      onClick={() => handleButtonClick?.(true)}
+                      className="library-button"
+                    >
+                      {t('Library')}
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (

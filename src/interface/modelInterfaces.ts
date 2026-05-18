@@ -67,6 +67,7 @@ export enum RoleType {
   OPERATIONAL_DIRECTOR = 'operational_director',
   SUPER_ADMIN = 'super_admin',
   FIELD_COORDINATOR = 'field_coordinator',
+  EXTERNAL_USER = 'external_user',
 }
 
 export const RoleLabels: Record<RoleType, string> = {
@@ -81,6 +82,7 @@ export const RoleLabels: Record<RoleType, string> = {
   [RoleType.SPONSOR]: 'Sponsor',
   [RoleType.COORDINATOR]: 'Coordinator',
   [RoleType.AUTOUSER]: 'Autouser',
+  [RoleType.EXTERNAL_USER]: 'External User',
 };
 
 export enum SchoolTabs {

@@ -17,6 +17,7 @@ import { t } from 'i18next';
 import ChapterWiseLessons from '../components/ChapterWiseLessons';
 import { readAssignmentCartFromStorage } from './AssignmentCartStorage';
 import logger from '../../utility/logger';
+import AssignedVisibilityToggle from '../components/AssignedVisibilityToggle';
 
 type LessonMeta = {
   chapterId: string | null;
@@ -70,6 +71,7 @@ const SearchLesson: React.FC = () => {
   const [assignedLessonIds, setAssignedLessonIds] = useState<Set<string>>(
     new Set(),
   );
+  const [showAssignedLessons, setShowAssignedLessons] = useState(true);
 
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -548,13 +550,17 @@ const SearchLesson: React.FC = () => {
     }
 
     const lowerTerm = searchTerm.trim().toLowerCase();
-    const filtered = lowerTerm
+    const matchedLessons = lowerTerm
       ? lessons.filter(
           (lesson) =>
             lesson.name?.toLowerCase().includes(lowerTerm) ||
             lesson.outcome?.toLowerCase().includes(lowerTerm),
         )
       : lessons;
+
+    const filtered = showAssignedLessons
+      ? matchedLessons
+      : matchedLessons.filter((lesson) => !assignedLessonIds.has(lesson.id));
 
     const courseMap = new Map<
       string,
@@ -598,19 +604,51 @@ const SearchLesson: React.FC = () => {
       group.chapters.get(meta.chapterId)!.lessons.push(lesson);
     });
 
-    const courseGroups: CourseGroup[] = Array.from(courseMap.values()).map(
-      (group) => ({
+    const naturalSort = (a: string, b: string) => {
+      const numRegex = /(\d+)/g;
+      const aParts = a.split(numRegex);
+      const bParts = b.split(numRegex);
+      for (let i = 0; i < Math.max(aParts.length, bParts.length); i++) {
+        const aPart = aParts[i] ?? '';
+        const bPart = bParts[i] ?? '';
+        const aNum = parseInt(aPart, 10);
+        const bNum = parseInt(bPart, 10);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          if (aNum !== bNum) return aNum - bNum;
+        } else if (aPart !== bPart) {
+          return aPart.localeCompare(bPart);
+        }
+      }
+      return 0;
+    };
+
+    const courseGroups: CourseGroup[] = Array.from(courseMap.values())
+      .map((group) => ({
         courseId: group.courseId,
         courseName: group.courseName,
         gradeName: group.gradeName,
         course: group.course,
         courseTitle: `${group.courseName} - ${group.gradeName}`.trim(),
-        chapters: Array.from(group.chapters.values()),
-      }),
-    );
+        chapters: Array.from(group.chapters.values())
+          .map((ch) => ({
+            ...ch,
+            lessons: ch.lessons.sort((a, b) =>
+              naturalSort(a.name ?? '', b.name ?? ''),
+            ),
+          }))
+          .sort((a, b) => naturalSort(a.chapterName, b.chapterName)),
+      }))
+      .sort((a, b) => naturalSort(a.courseName, b.courseName));
 
     return { courseGroups };
-  }, [lessons, lessonMetaMap, searchTerm, isLoading]);
+  }, [
+    lessons,
+    lessonMetaMap,
+    searchTerm,
+    isLoading,
+    showAssignedLessons,
+    assignedLessonIds,
+  ]);
 
   return (
     <div id="search-lesson-container" className="search-lesson-container">
@@ -688,10 +726,19 @@ const SearchLesson: React.FC = () => {
 
         {!showHistory && searchTerm.trim() && (
           <div
-            id="search-lesson-result-text"
-            className="search-lesson-result-text"
+            id="search-lesson-result-row"
+            className="search-lesson-result-row"
           >
-            {t('Showing Results for')} "{searchTerm.trim()}"
+            <div
+              id="search-lesson-result-text"
+              className="search-lesson-result-text"
+            >
+              {t('Showing Results for')} "{searchTerm.trim()}"
+            </div>
+            <AssignedVisibilityToggle
+              showAssigned={showAssignedLessons}
+              onChange={setShowAssignedLessons}
+            />
           </div>
         )}
 

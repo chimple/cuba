@@ -11,6 +11,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { LessonNode } from '../../hooks/useLearningPath';
 import logger from '../../utility/logger';
+import { downloadMissingCourseIcons } from '../../utility/courseIconDeviceCache';
 
 interface CourseDetails {
   course: TableTypes<'course'>;
@@ -74,6 +75,38 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
     }
   }, [selectedSubject, courseDetails, syncWithLearningPath]);
 
+  const loadCourseDetails = async (
+    courseIds: string[],
+  ): Promise<CourseDetails[]> => {
+    const uniqueCourseIds = Array.from(new Set(courseIds.filter(Boolean)));
+    const coursePromises: Promise<CourseDetails | null>[] = uniqueCourseIds.map(
+      async (courseId) => {
+        try {
+          const course = await api.getCourse(courseId);
+          if (!course) return null;
+
+          const [gradeDoc, curriculumDoc] = await Promise.all([
+            course.grade_id
+              ? api.getGradeById(course.grade_id)
+              : Promise.resolve(null),
+            course.curriculum_id
+              ? api.getCurriculumById(course.curriculum_id)
+              : Promise.resolve(null),
+          ]);
+
+          return { course, grade: gradeDoc, curriculum: curriculumDoc };
+        } catch (err) {
+          logger.error('Failed to fetch homework course', err);
+          return null;
+        }
+      },
+    );
+
+    return (await Promise.all(coursePromises)).filter(
+      Boolean,
+    ) as CourseDetails[];
+  };
+
   const fetchLearningPathCourseDetails = async () => {
     try {
       const currentStudent = await Util.getCurrentStudent();
@@ -92,46 +125,18 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
           currentStudent.id,
         );
         const pendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
-
-        if (!pendingAssignments.length) {
-          setCourseDetails([]);
-          return;
-        }
-
-        // 👉 Collect unique course ids from pending assignments
-        const uniqueCourseIds: string[] = Array.from(
-          new Set(
-            pendingAssignments
-              .map((a: any) => a.course_id as string | undefined)
-              .filter((id): id is string => !!id),
-          ),
+        const pendingCourseIds = pendingAssignments
+          .map((assignment) => assignment.course_id)
+          .filter((id): id is string => !!id);
+        const fallbackCourses =
+          pendingCourseIds.length > 0
+            ? []
+            : await api.getCoursesForClassStudent(currClass.id);
+        const detailedCourses = await loadCourseDetails(
+          pendingCourseIds.length > 0
+            ? pendingCourseIds
+            : fallbackCourses.map((course) => String(course.id)),
         );
-
-        const coursePromises: Promise<CourseDetails | null>[] =
-          uniqueCourseIds.map(async (courseId) => {
-            try {
-              const course = await api.getCourse(courseId);
-              if (!course) return null;
-
-              const [gradeDoc, curriculumDoc] = await Promise.all([
-                course.grade_id
-                  ? api.getGradeById(course.grade_id)
-                  : Promise.resolve(null),
-                course.curriculum_id
-                  ? api.getCurriculumById(course.curriculum_id)
-                  : Promise.resolve(null),
-              ]);
-
-              return { course, grade: gradeDoc, curriculum: curriculumDoc };
-            } catch (err) {
-              logger.error('Failed to fetch homework course', err);
-              return null;
-            }
-          });
-
-        const detailedCourses = (await Promise.all(coursePromises)).filter(
-          Boolean,
-        ) as CourseDetails[];
 
         setCourseDetails(detailedCourses);
 
@@ -153,17 +158,13 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       }
 
       // 🔹 LEARNING PATHWAY MODE (original behaviour)
-      if (!currentStudent?.learning_path) {
+      const pathToParse = currentStudent
+        ? Util.getLatestLearningPathByUpdatedAt(currentStudent)
+        : null;
+      if (!pathToParse) {
         logger.error('No learning path found for the user');
         return;
       }
-
-      if (!currentStudent?.learning_path) {
-        logger.error('No learning path found for the user');
-        return;
-      }
-
-      const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
       let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
       if (!learningPath) return;
       const { courseList } = learningPath.courses;
@@ -315,8 +316,8 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
   };
 
   useEffect(() => {
-    const preloadImage = (src: string) => {
-      return new Promise((resolve) => {
+    const preloadImage = (src: string): Promise<boolean> => {
+      return new Promise<boolean>((resolve) => {
         const img = new Image();
         img.onload = () => resolve(true);
         img.onerror = () => resolve(false);
@@ -324,14 +325,37 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       });
     };
 
-    courseDetails.forEach(async (detail) => {
-      const sources = [
-        `courses/chapter_icons/${detail.course.code}.webp`,
-        detail.course.image || '',
-      ].filter(Boolean);
+    // Download online icons in background into the same localSrc path for offline reuse.
+    const preloadTasks: Promise<unknown>[] = [];
+    const processedSources = new Set<string>();
+    const missingIconDownloadTargets: {
+      localRelativePath: string;
+      remoteUrl: string;
+    }[] = [];
 
-      Promise.any(sources.map(preloadImage));
+    courseDetails.forEach((detail) => {
+      const localSrc = `courses/chapter_icons/${detail.course.id}.webp`;
+      if (!processedSources.has(localSrc)) {
+        processedSources.add(localSrc);
+        preloadTasks.push(preloadImage(localSrc));
+      }
+
+      const onlineSrc = detail.course.image?.trim() || '';
+      if (onlineSrc && !processedSources.has(onlineSrc)) {
+        processedSources.add(onlineSrc);
+        preloadTasks.push(preloadImage(onlineSrc));
+      }
+
+      if (onlineSrc) {
+        missingIconDownloadTargets.push({
+          localRelativePath: localSrc,
+          remoteUrl: onlineSrc,
+        });
+      }
     });
+
+    preloadTasks.push(downloadMissingCourseIcons(missingIconDownloadTargets));
+    void Promise.allSettled(preloadTasks);
   }, [courseDetails]);
 
   useEffect(() => {
@@ -342,7 +366,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
     });
   }, [expanded]);
 
-  const getCachedImageUrl = (course: any) => {
+  const getCachedImageUrl = (course: TableTypes<'course'>): string => {
     const key = course.id;
 
     // Already cached → return
@@ -364,16 +388,21 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         onClick={handleToggleExpand}
       >
         <div className="dropdownmenu-dropdown-left">
-          {!expanded && selected && (
-            <div className="dropdownmenu-menu-selected">
+          {/* Keep selected icon mounted to avoid reloading it after dropdown closes. */}
+          {selected && (
+            <div
+              className={`dropdownmenu-menu-selected ${expanded ? 'hide-icon' : ''}`}
+            >
               <div className="dropdownmenu-selected-icon">
                 <SelectIconImage
-                  localSrc={`courses/chapter_icons/${selected.course.code}.webp`}
+                  localSrc={`courses/chapter_icons/${selected.course.id}.webp`}
                   defaultSrc={'assets/icons/DefaultIcon.png'}
                   webSrc={
                     getCachedImageUrl(selected.course) ||
                     'assets/icons/DefaultIcon.png'
                   }
+                  enableOfflineDownload={true}
+                  disableLoader={true}
                   imageWidth="10vh"
                   imageHeight="auto"
                 />
@@ -398,16 +427,24 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                 key={detail.course.id}
                 onClick={() => handleSelect(detail, index)}
               >
-                <SelectIconImage
-                  key={detail.course.id}
-                  localSrc={`courses/chapter_icons/${detail.course.code}.webp`}
-                  defaultSrc="assets/icons/DefaultIcon.png"
-                  webSrc={
-                    getCachedImageUrl(detail.course) ||
-                    'assets/icons/DefaultIcon.png'
-                  }
-                  imageWidth="85%"
-                />
+                <div className="dropdownmenu-open-item-icon-autofit">
+                  <div className="dropdownmenu-open-item-icon-wrapper">
+                    <SelectIconImage
+                      key={detail.course.id}
+                      localSrc={`courses/chapter_icons/${detail.course.id}.webp`}
+                      defaultSrc="assets/icons/DefaultIcon.png"
+                      webSrc={
+                        getCachedImageUrl(detail.course) ||
+                        'assets/icons/DefaultIcon.png'
+                      }
+                      enableOfflineDownload={true}
+                      showLoaderFromStart={true}
+                      minimumLoaderVisibleMs={250}
+                      imageWidth="30px"
+                      imageHeight="30px"
+                    />
+                  </div>
+                </div>
                 <div className="dropdownmenu-truncate-style">
                   {truncateName(detail.course.name)}
                 </div>

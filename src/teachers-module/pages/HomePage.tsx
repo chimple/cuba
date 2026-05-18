@@ -12,6 +12,7 @@ import {
 } from '@capacitor/core';
 import TeacherAssignment from '../components/homePage/assignment/TeacherAssignment';
 import AssignScreen from '../components/homePage/assignment/AssignScreen';
+import AssignmentQrUnavailableAlert from '../components/homePage/assignment/AssignmentQrUnavailableAlert';
 import Library from '../components/library/Library';
 import ReportTable from '../components/reports/ReportsTable';
 import {
@@ -38,6 +39,7 @@ import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
+import { RoleType } from '../../../src/interface/modelInterfaces';
 const HomePage: React.FC = () => {
   const history = useHistory();
   const location = useLocation<{
@@ -53,6 +55,7 @@ const HomePage: React.FC = () => {
   const [tabValue, setTabValue] = useState<number>(initialTab);
   const [showAssignOptionsScreen, setShowAssignOptionsScreen] = useState(true);
   const [autoStartScan, setAutoStartScan] = useState(false);
+  const [showUnavailableQrAlert, setShowUnavailableQrAlert] = useState(false);
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
     null,
   );
@@ -63,6 +66,11 @@ const HomePage: React.FC = () => {
   const [renderKey, setRenderKey] = useState(0);
   const PortPlugin = registerPlugin<any>('Port');
   const { setGbUpdated } = useGbContext();
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const { isOpsUser } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
@@ -136,6 +144,10 @@ const HomePage: React.FC = () => {
     setShowAssignOptionsScreen(true);
     setTabValue(newValue);
   };
+  const showUnavailableQr = () => {
+    setTabValue(2);
+    setShowUnavailableQrAlert(true);
+  };
   const renderComponent = () => {
     const key = currentClass?.id || '';
     switch (tabValue) {
@@ -160,6 +172,7 @@ const HomePage: React.FC = () => {
                 history.replace(PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS);
                 setShowAssignOptionsScreen(false);
               }}
+              onUnavailableQr={showUnavailableQr}
             />
           );
         }
@@ -172,6 +185,7 @@ const HomePage: React.FC = () => {
               setShowAssignOptionsScreen(true);
               setTabValue(1);
             }}
+            onUnavailableQr={showUnavailableQr}
           />
         );
       case 3:
@@ -254,6 +268,10 @@ const HomePage: React.FC = () => {
   const footerTabValue = tabValue === 1 ? 2 : tabValue;
   return (
     <div className="main-container" key={renderKey}>
+      <AssignmentQrUnavailableAlert
+        isOpen={showUnavailableQrAlert}
+        onDismiss={() => setShowUnavailableQrAlert(false)}
+      />
       <Header
         isBackButton={isLibraryTab}
         showSchool={!isLibraryTab}
@@ -294,22 +312,24 @@ const HomePage: React.FC = () => {
             }
           />
 
-          <BottomNavigationAction
-            value={2}
-            label={t('Assign')}
-            icon={
-              <img
-                className="footerIcons"
-                src={
-                  footerTabValue === 2
-                    ? 'assets/icons/assignmentSelected.png'
-                    : 'assets/icons/assignmentfooter.png'
-                }
-                alt=""
-              />
-            }
-            className="middle-action"
-          />
+          {!isExternalUser && (
+            <BottomNavigationAction
+              value={2}
+              label={t('Assign')}
+              icon={
+                <img
+                  className="footerIcons"
+                  src={
+                    footerTabValue === 2
+                      ? 'assets/icons/assignmentSelected.png'
+                      : 'assets/icons/assignmentfooter.png'
+                  }
+                  alt=""
+                />
+              }
+              className="middle-action"
+            />
+          )}
           <BottomNavigationAction
             value={3}
             label={t('Reports')}

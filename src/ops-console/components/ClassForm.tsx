@@ -3,6 +3,10 @@ import './ClassForm.css';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { t } from 'i18next';
 import logger from '../../utility/logger';
+import {
+  getGradeNameFromStandard,
+  getStandardFromClassName,
+} from '../../utility/classGradeMapper';
 
 const ClassForm: React.FC<{
   onClose: () => void;
@@ -147,6 +151,20 @@ const ClassForm: React.FC<{
     return `https://chat.whatsapp.com/invite/${code}`;
   };
 
+  const extractGroupIdFromInviteResponse = (response: unknown): string => {
+    if (!response || typeof response !== 'object' || Array.isArray(response)) {
+      return '';
+    }
+    const inviteResponse = response as {
+      data?: { group_id?: string | null };
+    };
+    const nestedGroupId = inviteResponse.data?.group_id;
+    if (typeof nestedGroupId === 'string' && nestedGroupId.trim() !== '') {
+      return nestedGroupId.trim();
+    }
+    return '';
+  };
+
   const didInviteLinkChange =
     mode === 'edit' &&
     normalizeWhatsAppInviteLink(formValues.whatsapp_invite_link) !==
@@ -160,6 +178,27 @@ const ClassForm: React.FC<{
     try {
       let classId = classData?.id;
       const name = formValues.grade + formValues.section;
+      const standard = getStandardFromClassName(name);
+      const gradeName = getGradeNameFromStandard(standard);
+      let gradeId: string | undefined;
+      if (gradeName) {
+        try {
+          const grade = await api.getGradeByName(gradeName);
+          gradeId = grade?.id;
+          if (!gradeId) {
+            logger.warn('Grade not found for class mapping', {
+              className: name,
+              gradeName,
+            });
+          }
+        } catch (error) {
+          logger.warn('Failed to resolve grade for class mapping', {
+            className: name,
+            gradeName,
+            error,
+          });
+        }
+      }
       if (mode === 'create' || classData.name !== name) {
         const classes = await api.getClassesBySchoolId(schoolId);
         if (classes.find((c: any) => c.name === name)) {
@@ -183,13 +222,7 @@ const ClassForm: React.FC<{
               normalizedInviteLink,
               whatspAppBotNumber || '',
             );
-            let resolvedGroupIdValue = '';
-            if (gId && typeof gId === 'object' && !Array.isArray(gId)) {
-              const groupId = (gId as { group_id?: string | null }).group_id;
-              if (typeof groupId === 'string') {
-                resolvedGroupIdValue = groupId;
-              }
-            }
+            const resolvedGroupIdValue = extractGroupIdFromInviteResponse(gId);
 
             if (!resolvedGroupIdValue) {
               setErrorMessage('Invalid WhatsApp Invite Link.');
@@ -225,13 +258,7 @@ const ClassForm: React.FC<{
               normalizedInviteLink,
               whatspAppBotNumber || '',
             );
-            let resolvedGroupIdValue = '';
-            if (gId && typeof gId === 'object' && !Array.isArray(gId)) {
-              const groupId = (gId as { group_id?: string | null }).group_id;
-              if (typeof groupId === 'string') {
-                resolvedGroupIdValue = groupId;
-              }
-            }
+            const resolvedGroupIdValue = extractGroupIdFromInviteResponse(gId);
 
             if (!resolvedGroupIdValue) {
               setErrorMessage('Invalid WhatsApp Invite Link.');
@@ -254,6 +281,8 @@ const ClassForm: React.FC<{
           name,
           groupIdToStore, // ✅ now correct
           normalizedInviteLink, // ✅
+          gradeId,
+          standard,
         );
 
         classId = newClass.id;

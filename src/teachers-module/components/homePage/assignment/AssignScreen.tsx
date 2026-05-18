@@ -16,12 +16,14 @@ interface AssignScreenProps {
   onLibraryClick: () => void;
   onScanQrClick: () => void;
   onRecommendedClick: () => void;
+  onUnavailableQr: () => void;
 }
 
 const AssignScreen: FC<AssignScreenProps> = ({
   onLibraryClick,
   onScanQrClick,
   onRecommendedClick,
+  onUnavailableQr,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
@@ -39,12 +41,14 @@ const AssignScreen: FC<AssignScreenProps> = ({
       if (scannedText.startsWith('http://')) {
         scannedText = scannedText.replace(/^http:\/\//, 'https://');
       }
-      const response = await api.getChapterIdbyQrLink(scannedText);
-      if (!response?.chapter_id) {
-        await Toast.show({
-          text: t('Chapter Not Found'),
-          duration: 'long',
+      const response = await api
+        .getChapterIdbyQrLink(scannedText)
+        .catch((error) => {
+          logger.error('QR lookup failed:', error);
+          return undefined;
         });
+      if (!response?.chapter_id) {
+        onUnavailableQr();
         return;
       }
       const lessons = await api.getLessonsForChapter(response.chapter_id);

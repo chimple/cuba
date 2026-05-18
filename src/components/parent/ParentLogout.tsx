@@ -2,7 +2,7 @@ import { t } from 'i18next';
 import './ParentLogout.css';
 import { ImSwitch } from 'react-icons/im';
 import { useState } from 'react';
-import DialogBoxButtons from './DialogBoxButtons​';
+import DialogBoxButtons from './DialogBoxButtons';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { useHistory } from 'react-router';
 import {
@@ -15,12 +15,17 @@ import {
 import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';
 import { ClearCacheData } from './DataClear';
+import { logAuthDebug } from '../../utility/authDebug';
 
 const ParentLogout: React.FC<{}> = ({}) => {
   const [showDialogBox, setShowDialogBox] = useState(false);
   const history = useHistory();
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
+    logAuthDebug('User initiated parent logout.', {
+      source: 'ParentLogout.onSignOut',
+      reason: 'parent_logout_button',
+    });
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(SCHOOL);
@@ -28,6 +33,12 @@ const ParentLogout: React.FC<{}> = ({}) => {
     localStorage.removeItem(CURRENT_MODE);
     localStorage.removeItem(SCHOOL_LOGIN);
     await ClearCacheData();
+    logAuthDebug('Navigating to login after parent logout.', {
+      source: 'ParentLogout.onSignOut',
+      reason: 'logout_complete_navigate_login',
+      from_page: window.location.pathname,
+      to_page: PAGES.LOGIN,
+    });
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };

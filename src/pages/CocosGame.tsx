@@ -1,4 +1,9 @@
-import { IonContent, IonPage, useIonToast } from '@ionic/react';
+import {
+  IonContent,
+  IonPage,
+  useIonToast,
+  useIonViewWillLeave,
+} from '@ionic/react';
 import { useEffect, useState, useRef } from 'react';
 import { useHistory } from 'react-router';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
@@ -34,6 +39,17 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { palUtil } from '../utility/palUtil';
 import logger from '../utility/logger';
 
+const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
+const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
+  'pending_homework_reward_transition';
+
+type CocosGameListeners = {
+  lessonEnd?: EventListener;
+  problemEnd?: EventListener;
+  gameEnd?: EventListener;
+  gameExit?: EventListener;
+};
+
 const CocosGame: React.FC = () => {
   const history = useHistory();
   const location = history.location.state as {
@@ -57,6 +73,8 @@ const CocosGame: React.FC = () => {
   const prevWrongMovesRef = useRef<number>(0);
   const currentStudent = Util.getCurrentStudent();
   const savingPromiseRef = useRef<Promise<void> | null>(null);
+  const gameListenersRef = useRef<CocosGameListeners>({});
+  const gameExitTimeoutRef = useRef<number | null>(null);
   const courseDetail: TableTypes<'course'> = state.course
     ? JSON.parse(state.course)
     : undefined;
@@ -70,6 +88,39 @@ const CocosGame: React.FC = () => {
     : undefined;
 
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
+
+  const cleanupGameListeners = () => {
+    const listeners = gameListenersRef.current;
+
+    if (listeners.lessonEnd) {
+      document.body.removeEventListener(LESSON_END, listeners.lessonEnd);
+    }
+    if (listeners.problemEnd) {
+      document.body.removeEventListener(PROBLEM_END, listeners.problemEnd);
+    }
+    if (listeners.gameEnd) {
+      document.body.removeEventListener(GAME_END, listeners.gameEnd);
+    }
+    if (listeners.gameExit) {
+      document.body.removeEventListener(GAME_EXIT, listeners.gameExit);
+    }
+
+    gameListenersRef.current = {};
+
+    if (gameExitTimeoutRef.current !== null) {
+      window.clearTimeout(gameExitTimeoutRef.current);
+      gameExitTimeoutRef.current = null;
+    }
+  };
+
+  const cleanupGameRuntime = () => {
+    cleanupGameListeners();
+    Util.killCocosGame();
+  };
+
+  useIonViewWillLeave(() => {
+    cleanupGameRuntime();
+  });
 
   const presentToast = async () => {
     await present({
@@ -111,6 +162,7 @@ const CocosGame: React.FC = () => {
     return () => {
       disposed = true;
       appStateListener?.remove();
+      cleanupGameRuntime();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -124,7 +176,7 @@ const CocosGame: React.FC = () => {
   };
 
   const killGame = (e: any) => {
-    document.body.removeEventListener(LESSON_END, handleLessonEndListner);
+    cleanupGameListeners();
     setShowDialogBox(true);
     Util.killCocosGame();
     initialCount++;
@@ -134,22 +186,24 @@ const CocosGame: React.FC = () => {
   const push = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
+    const lessonDetailsState = state?.returnState ?? {
+      course: courseDetail,
+      lesson,
+      chapterId: chapterDetail?.id,
+      chapterName: chapterDetail?.name,
+      selectedLesson,
+      fromCocos: true,
+    };
 
     if (Capacitor.isNativePlatform()) {
       if (!!isDeviceAwake) {
         history.replace(fromPath + '&isReload=true', {
-          course: courseDetail,
-          lesson: lesson,
-          chapterId: chapterDetail?.id,
-          selectedLesson: selectedLesson,
+          ...lessonDetailsState,
           fromCocos: true,
         });
       } else {
         history.replace(fromPath + '&isReload=false', {
-          course: courseDetail,
-          lesson: lesson,
-          chapterId: chapterDetail?.id,
-          selectedLesson: selectedLesson,
+          ...lessonDetailsState,
           fromCocos: true,
         });
       }
@@ -158,27 +212,18 @@ const CocosGame: React.FC = () => {
       if (!!urlParams.get('isReload')) {
         if (fromPath.includes('?'))
           history.replace(fromPath + '&isReload=true', {
-            course: courseDetail,
-            lesson: lesson,
-            chapterId: chapterDetail?.id,
-            selectedLesson: selectedLesson,
+            ...lessonDetailsState,
             fromCocos: true,
           });
         else
           history.replace(fromPath + '?isReload=true', {
-            course: courseDetail,
-            lesson: lesson,
-            chapterId: chapterDetail?.id,
-            selectedLesson: selectedLesson,
+            ...lessonDetailsState,
             fromCocos: true,
           });
         window.location.reload();
       } else {
         history.replace(fromPath, {
-          course: courseDetail,
-          lesson: lesson,
-          chapterId: chapterDetail?.id,
-          selectedLesson: selectedLesson,
+          ...lessonDetailsState,
           fromCocos: true,
         });
       }
@@ -222,9 +267,10 @@ const CocosGame: React.FC = () => {
       assignment_type: assignmentType,
     });
 
-    setTimeout(() => {
+    cleanupGameListeners();
+    gameExitTimeoutRef.current = window.setTimeout(() => {
+      gameExitTimeoutRef.current = null;
       killGame(e);
-      document.body.removeEventListener(LESSON_END, handleLessonEndListner);
       setShowDialogBox(false);
       push();
     }, 100);
@@ -258,6 +304,30 @@ const CocosGame: React.FC = () => {
     outcomesRef.current = [...outcomesRef.current, newOutcome];
   }
 
+  const registerGameListeners = () => {
+    cleanupGameListeners();
+
+    const listeners: CocosGameListeners = {
+      lessonEnd: handleLessonEndListner as EventListener,
+      problemEnd: handleProblemEnd as EventListener,
+      gameEnd: killGame as EventListener,
+      gameExit: gameExit as EventListener,
+    };
+
+    gameListenersRef.current = listeners;
+
+    document.body.addEventListener(LESSON_END, listeners.lessonEnd!, {
+      once: true,
+    });
+    document.body.addEventListener(PROBLEM_END, listeners.problemEnd!);
+    document.body.addEventListener(GAME_END, listeners.gameEnd!, {
+      once: true,
+    });
+    document.body.addEventListener(GAME_EXIT, listeners.gameExit!, {
+      once: true,
+    });
+  };
+
   async function init() {
     // Reset outcomes and move counters for new lesson
     setOutcomes([]);
@@ -267,10 +337,12 @@ const CocosGame: React.FC = () => {
 
     const currentStudent = Util.getCurrentStudent();
     setIsLoading(true);
-    const lessonId: string = state.lessonId;
-    const lessonIds: string[] = [];
-    lessonIds.push(lessonId);
-    const dow = await Util.downloadZipBundle(lessonIds);
+    if (!lessonDetail) {
+      presentToast();
+      push();
+      return;
+    }
+    const dow = await Util.downloadZipBundle([lessonDetail]);
     if (!dow) {
       presentToast();
       push();
@@ -279,13 +351,7 @@ const CocosGame: React.FC = () => {
     setIsLoading(false);
 
     Util.launchCocosGame();
-
-    document.body.addEventListener(LESSON_END, handleLessonEndListner, {
-      once: true,
-    });
-    document.body.addEventListener(PROBLEM_END, handleProblemEnd);
-    document.body.addEventListener(GAME_END, killGame, { once: true });
-    document.body.addEventListener(GAME_EXIT, gameExit, { once: true });
+    registerGameListeners();
   }
 
   const currentStudentDocId: string = Util.getCurrentStudent()?.id || '';
@@ -350,7 +416,10 @@ const CocosGame: React.FC = () => {
     const homeworkIndex: number | undefined = state?.homeworkIndex;
     const isReward: boolean = state?.reward ?? false;
 
-    if (isReward === true) {
+    const shouldGiveDailyReward =
+      isReward ||
+      ((learning_path || is_homework) && (await Util.shouldGiveDailyReward()));
+    if (shouldGiveDailyReward) {
       sessionStorage.setItem(REWARD_LESSON, 'true');
     }
 
@@ -460,7 +529,25 @@ const CocosGame: React.FC = () => {
     if (learning_path) {
       await Util.updateLearningPath(currentStudent, isReward);
     } else if (is_homework && homeworkIndex !== undefined) {
+      if (shouldGiveDailyReward) {
+        sessionStorage.setItem(
+          HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
+          String(homeworkIndex),
+        );
+      }
       await Util.refreshHomeworkPathWithLatestAfterIndex(homeworkIndex); // NEW
+      // Snapshot before advancing: final lesson may remove HOMEWORK_PATHWAY.
+      const pathBeforeAdvance = localStorage.getItem(HOMEWORK_PATHWAY);
+      if (shouldGiveDailyReward && pathBeforeAdvance) {
+        sessionStorage.setItem(
+          PENDING_HOMEWORK_REWARD_TRANSITION_KEY,
+          JSON.stringify({
+            completedIndex: homeworkIndex,
+            nextIndex: homeworkIndex + 1,
+            pathSnapshot: pathBeforeAdvance,
+          }),
+        );
+      }
       await Util.updateHomeworkPath(homeworkIndex);
     }
 
@@ -486,7 +573,6 @@ const CocosGame: React.FC = () => {
               err,
             );
           }
-          localStorage.removeItem(HOMEWORK_PATHWAY);
         }
       } catch (err) {
         logger.error(
@@ -495,9 +581,9 @@ const CocosGame: React.FC = () => {
         );
       }
     }
-
     await Util.logEvent(EVENTS.LESSON_END, {
       user_id: currentStudent.id,
+      result_id: result?.id ?? null,
       chapter_id: data.chapterId,
       lesson_id: data.lessonId,
       lesson_type: data.lessonType,

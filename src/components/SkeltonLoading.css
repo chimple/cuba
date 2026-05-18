@@ -259,6 +259,27 @@
   gap: 12px;
 }
 
+.skeleton-pathway-wrapper {
+  position: absolute;
+  top: 40%;
+  left: 12%;
+  width: 100vw;
+  height: 51vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.skeleton-pathway-svg {
+  width: 95vw;
+  max-width: 95vw;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
 .skeleton-rectangle {
   height: 40px;
   background-color: #e0e0e0;

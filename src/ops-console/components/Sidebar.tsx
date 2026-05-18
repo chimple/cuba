@@ -28,10 +28,11 @@ import CommonToggle from '../../common/CommonToggle';
 import { Capacitor } from '@capacitor/core';
 import { IoGitPullRequestSharp } from 'react-icons/io5';
 import { t } from 'i18next';
-import DialogBoxButtons from '../../components/parent/DialogBoxButtons​';
+import DialogBoxButtons from '../../components/parent/DialogBoxButtons';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import { logAuthDebug } from '../../utility/authDebug';
 
 interface SidebarProps {
   name: string;
@@ -107,6 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     (state: RootState) => state.auth as AuthState,
   );
   const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
   const switchUserToTeacher = async () => {
@@ -160,11 +162,21 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
 
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
+    logAuthDebug('User initiated ops console logout.', {
+      source: 'OpsSidebar.onSignOut',
+      reason: 'ops_logout_button',
+    });
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.clear();
     const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
     serviceInstance.switchMode(APIMode.SQLITE);
+    logAuthDebug('Navigating to login after ops console logout.', {
+      source: 'OpsSidebar.onSignOut',
+      reason: 'logout_complete_navigate_login',
+      from_page: window.location.pathname,
+      to_page: PAGES.LOGIN,
+    });
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
@@ -213,6 +225,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             const canAccessModulePage = userRoles.some((role) =>
               moduleRolesWithAccess.includes(role as RoleType),
             );
+            if (isExternalUser && item.label !== NavItems.SCHOOLS) return null;
             if (item.label === NavItems.USERS && !canAccessUsersPage)
               return null;
             if (item.label === NavItems.OpsMODULE && !canAccessModulePage)

@@ -246,7 +246,10 @@ describe('StickerBookActions', () => {
 
     const img = screen.getByRole('img', { name: 'Paint' });
 
-    expect(img).toHaveAttribute('src', '/assets/icons/PaintBucket.svg');
+    expect(img).toHaveAttribute(
+      'src',
+      '/assets/icons/PaintbrushIconForButton.svg',
+    );
   });
 
   /* ---------- BUTTON COUNT ---------- */

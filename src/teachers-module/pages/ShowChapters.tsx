@@ -7,8 +7,6 @@ import {
   COURSES,
   PAGES,
   TableTypes,
-  belowGrade1,
-  grade1,
 } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import ChapterContainer from '../components/library/ChapterContainer';
@@ -21,6 +19,7 @@ import {
   resolveVisibleChapterId,
 } from './ShowChaptersLogic';
 import logger from '../../utility/logger';
+import AssignedVisibilityToggle from '../components/AssignedVisibilityToggle';
 
 const ShowChapters: React.FC = () => {
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
@@ -30,9 +29,13 @@ const ShowChapters: React.FC = () => {
   const locationState = (history.location.state ?? {}) as {
     course: TableTypes<'course'>;
     chapterId?: string;
+    gradeName?: string;
   };
   const course: TableTypes<'course'> = locationState.course;
   const routeChapterId = locationState.chapterId;
+  const [gradeName, setGradeName] = useState<string>(
+    locationState.gradeName ?? '',
+  );
   const [lessons, setLessons] = useState<Map<string, TableTypes<'lesson'>[]>>();
   const [chapters, setChapters] = useState<TableTypes<'chapter'>[]>();
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'>>();
@@ -61,16 +64,12 @@ const ShowChapters: React.FC = () => {
   const auth = ServiceConfig.getI().authHandler;
   const api = ServiceConfig.getI().apiHandler;
   const current_class = Util.getCurrentClass();
-  const isGrade1 =
-    course.grade_id === grade1 || course.grade_id === belowGrade1;
   const selectedCourseName =
     course.code === COURSES.ENGLISH
       ? (course.name ?? '')
       : t(course.name ?? '');
   const selectedCourseGrade =
-    course.code === COURSES.ENGLISH
-      ? `Grade ${isGrade1 ? '1' : '2'}`
-      : `${t('Grade')} ${isGrade1 ? '1' : '2'}`;
+    course.code === COURSES.ENGLISH ? gradeName : t(gradeName);
 
   useEffect(() => {
     const fetchClassDetails = async () => {
@@ -84,6 +83,15 @@ const ShowChapters: React.FC = () => {
     };
     fetchClassDetails();
   }, []);
+
+  useEffect(() => {
+    const fetchGradeName = async () => {
+      if (gradeName || !course.grade_id) return;
+      const grade = await api.getGradeById(course.grade_id);
+      setGradeName(grade?.name ?? '');
+    };
+    fetchGradeName();
+  }, [api, course.grade_id, gradeName]);
 
   const syncSelectedLesson = async (lesson: string): Promise<void> => {
     if (currentUser?.id)
@@ -173,6 +181,8 @@ const ShowChapters: React.FC = () => {
       lesson: lesson,
       chapterId: chapter.id,
       selectedLesson: selectedLesson,
+      chapterName: chapter.name,
+      gradeName: selectedCourseGrade,
       from: PAGES.SHOW_CHAPTERS,
     });
   };
@@ -323,17 +333,12 @@ const ShowChapters: React.FC = () => {
     }
   }, [isShowAssigned, loadAssignedLessonsForCourse]);
 
-  const handleShowAssignedClick = async () => {
-    const nextShowAssigned = !isShowAssigned;
+  const handleShowAssignedChange = async (nextShowAssigned: boolean) => {
     setIsShowAssigned(nextShowAssigned);
     if (!nextShowAssigned) {
       await loadAssignedLessonsForCourse();
     }
   };
-
-  const assignedToggleLabel = isShowAssigned
-    ? t('Hide Assigned')
-    : t('Show Assigned');
 
   const visibleChapters = (chapters ?? []).filter((chapter) => {
     const chapterLessons = lessons?.get(chapter.id) ?? [];
@@ -399,44 +404,12 @@ const ShowChapters: React.FC = () => {
           >
             {`${selectedCourseName} ${selectedCourseGrade}`}
           </div>
-          <button
-            id="showchapters-assigned-btn"
-            type="button"
-            className={`showchapters-assigned-btn${
-              isShowAssigned ? ' is-active' : ''
-            }`}
-            onClick={handleShowAssignedClick}
+          <AssignedVisibilityToggle
+            showAssigned={isShowAssigned}
+            onChange={handleShowAssignedChange}
             disabled={isLoadingAssignedLessons}
-          >
-            <span
-              id="showchapters-assigned-icon"
-              className={`showchapters-assigned-icon${
-                isShowAssigned ? ' is-hide' : ' is-show'
-              }`}
-              aria-hidden="true"
-            >
-              <img
-                src={
-                  isShowAssigned
-                    ? 'assets/hideassigned.png'
-                    : 'assets/showassigned.png'
-                }
-                alt=""
-                onError={(event) => {
-                  const absoluteSrc = isShowAssigned
-                    ? '/assets/hideassigned.png'
-                    : '/assets/showassigned.png';
-                  if (!event.currentTarget.dataset.retryAbsolute) {
-                    event.currentTarget.dataset.retryAbsolute = '1';
-                    event.currentTarget.src = absoluteSrc;
-                    return;
-                  }
-                  event.currentTarget.src = 'assets/icons/assignmentSelect.svg';
-                }}
-              />
-            </span>
-            {assignedToggleLabel}
-          </button>
+            className="showchapters-assigned-toggle"
+          />
         </div>
         <div id="showchapters-lesson-grid" className="showchapters-lesson-grid">
           {visibleChapters.map((chapter, index) => (

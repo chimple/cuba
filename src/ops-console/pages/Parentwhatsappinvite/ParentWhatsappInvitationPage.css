@@ -164,6 +164,14 @@
   border-color: #6ea8fe;
 }
 
+.parent-whatsapp-page-input .MuiOutlinedInput-root.Mui-error fieldset,
+.parent-whatsapp-page-input .MuiOutlinedInput-root.Mui-error:hover fieldset,
+.parent-whatsapp-page-input
+  .MuiOutlinedInput-root.Mui-error.Mui-focused
+  fieldset {
+  border-color: #ff8488;
+}
+
 .parent-whatsapp-page-input .MuiSvgIcon-root,
 .parent-whatsapp-page-input .MuiSelect-icon {
   color: #516079;

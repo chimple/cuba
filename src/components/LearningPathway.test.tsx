@@ -69,6 +69,10 @@ describe('LearningPathway', () => {
       stars: 5,
       language_id: 'en',
     });
+    // Util is fully mocked in this file, so we need an explicit implementation.
+    (Util.normalizeGrowthbookArrayAttribute as jest.Mock).mockImplementation(
+      (value: any) => (Array.isArray(value) ? value : value ? [value] : []),
+    );
     (Util.setCurrentStudent as jest.Mock).mockResolvedValue(undefined);
     (schoolUtil.getCurrentClass as jest.Mock).mockReturnValue({
       id: 'class-1',

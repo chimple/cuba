@@ -43,7 +43,10 @@ export default function StickerBookActions({
           onClick={onPaint}
           disabled={paintDisabled}
         >
-          <img src="/assets/icons/PaintBucket.svg" alt={t('Paint') || ''} />
+          <img
+            src="/assets/icons/PaintbrushIconForButton.svg"
+            alt={t('Paint') || ''}
+          />
           {t('Paint')}
         </button>
       )}

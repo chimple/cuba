@@ -4,6 +4,7 @@ import { COURSES, TableTypes } from '../../../common/constants';
 import SelectIconImage from '../../../components/displaySubjects/SelectIconImage';
 import SelectIcon from '../SelectIcon';
 import { t } from 'i18next';
+import AssignedBadgeIcon from '../AssignedBadgeIcon';
 
 interface LessonComponentProps {
   lesson: TableTypes<'lesson'>;
@@ -76,29 +77,23 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
           className="lessoncomponent-lesson-image"
         >
           <SelectIconImage
-            localSrc={`courses/en/icons/en00.webp`}
+            localSrc={
+              lesson.id ? `teacher/lessons/icons/${lesson.id}.webp` : undefined
+            }
             defaultSrc={'assets/icons/DefaultIcon.png'}
-            webSrc={`${lesson.image}`}
+            webSrc={lesson.image ?? ''}
             // imageWidth="100%"
             imageHeight="100%"
             webImageHeight="0px"
           />
         </div>
         {showAssignedBadge && isAssigned ? (
-          <span
+          <AssignedBadgeIcon
             id="lessoncomponent-lesson-assigned-badge"
             className="lessoncomponent-lesson-assigned-badge"
             title={t('Assigned') ?? ''}
-            aria-label={t('Assigned') ?? ''}
-          >
-            <img
-              src="/assets/hideassigned.png"
-              alt=""
-              onError={(event) => {
-                event.currentTarget.src = 'assets/icons/assignmentSelect.svg';
-              }}
-            />
-          </span>
+            ariaLabel={t('Assigned') ?? ''}
+          />
         ) : null}
       </div>
       <div
@@ -109,7 +104,7 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
           id="lessoncomponent-lesson-details"
           className="lessoncomponent-lesson-details"
         >
-          {courseCode === COURSES.ENGLISH
+          {courseCode === COURSES.ENGLISH || courseCode === COURSES.MATHS
             ? lesson.name!.length > 15
               ? lesson.name?.substring(0, 15) + '...'
               : lesson.name

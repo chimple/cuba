@@ -64,7 +64,8 @@ const TeacherAssignment: FC<{
   onLibraryClick: () => void;
   autoStartScan?: boolean;
   onScanHandled?: () => void;
-}> = ({ onLibraryClick, autoStartScan, onScanHandled }) => {
+  onUnavailableQr: () => void;
+}> = ({ onLibraryClick, autoStartScan, onScanHandled, onUnavailableQr }) => {
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
 
@@ -482,14 +483,22 @@ const TeacherAssignment: FC<{
                 const courseCode = assignments[subjectId]?.courseCode;
                 return (
                   <div key={index} className="assignment-list-item">
-                    <SelectIconImage
-                      defaultSrc={'assets/icons/DefaultIcon.png'}
-                      webSrc={assignment?.image}
-                      imageWidth="100px"
-                      imageHeight="100px"
-                    />
+                    <span className="assignment-list-item-thumb">
+                      <SelectIconImage
+                        localSrc={
+                          assignment?.id
+                            ? `teacher/lessons/icons/${assignment.id}.webp`
+                            : undefined
+                        }
+                        defaultSrc={'assets/icons/DefaultIcon.png'}
+                        webSrc={assignment?.image ?? ''}
+                        imageWidth="100%"
+                        imageHeight="100%"
+                      />
+                    </span>
                     <span className="assignment-list-item-name">
-                      {courseCode === COURSES.ENGLISH
+                      {courseCode === COURSES.ENGLISH ||
+                      courseCode === COURSES.MATHS
                         ? (assignment?.name ?? '')
                         : t(assignment?.name ?? '')}
                     </span>
@@ -546,9 +555,14 @@ const TeacherAssignment: FC<{
         processedText = processedText.replace(/^http:\/\//, 'https://');
       }
 
-      const result = await api.getChapterIdbyQrLink(processedText);
+      const result = await api
+        .getChapterIdbyQrLink(processedText)
+        .catch((error) => {
+          logger.error('QR lookup failed:', error);
+          return undefined;
+        });
       if (!result?.chapter_id) {
-        Toast.show({ text: t('Chapter Not Found') });
+        onUnavailableQr();
         return;
       }
       const lessonList = await api.getLessonsForChapter(result?.chapter_id);

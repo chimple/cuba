@@ -11,6 +11,8 @@ import Loading from '../../../../components/Loading';
 import { TeacherAssignmentPageType } from './TeacherAssignment';
 import AssigmentCount from '../../library/AssignmentCount';
 import logger from '../../../../utility/logger';
+import AssignedVisibilityToggle from '../../AssignedVisibilityToggle';
+import AssignedBadgeIcon from '../../AssignedBadgeIcon';
 
 type LessonUI = {
   id: string;
@@ -137,28 +139,14 @@ const QRAssignments: React.FC = () => {
             showSearchIcon={false}
           />
 
-          {/* Toggle row */}
           <div
             id={`${ID_PREFIX}-toggle-row`}
             className="qrAssignments-toggle-row"
-            onClick={() => setShowAssigned(!showAssigned)}
           >
-            <img
-              id={`${ID_PREFIX}-toggle-icon`}
-              src={
-                showAssigned
-                  ? '/assets/hideassigned.png'
-                  : '/assets/showassigned.png'
-              }
-              className="qrAssignments-toggle-icon"
-              alt=""
+            <AssignedVisibilityToggle
+              showAssigned={showAssigned}
+              onChange={setShowAssigned}
             />
-            <span
-              id={`${ID_PREFIX}-toggle-text`}
-              className="qrAssignments-toggle-text"
-            >
-              {showAssigned ? t('Hide Assigned') : t('Show Assigned')}
-            </span>
           </div>
 
           {/* Subject + Count row */}
@@ -199,18 +187,23 @@ const QRAssignments: React.FC = () => {
                     className="qrAssignments-lesson-image-wrapper"
                   >
                     <SelectIconImage
+                      localSrc={
+                        lesson.id
+                          ? `teacher/lessons/icons/${lesson.id}.webp`
+                          : undefined
+                      }
                       defaultSrc="assets/icons/DefaultIcon.png"
-                      webSrc={lesson.image}
+                      webSrc={lesson.image ?? ''}
                       imageWidth="80px"
                       imageHeight="80px"
                     />
 
                     {lesson.isAssigned && (
-                      <img
+                      <AssignedBadgeIcon
                         id={`${ID_PREFIX}-assigned-badge-${lesson.id}`}
-                        src="assets/hideassigned.png"
                         className="qrAssignments-assigned-badge"
-                        alt="assigned"
+                        ariaLabel={t('Assigned') ?? ''}
+                        title={t('Assigned') ?? ''}
                       />
                     )}
                   </div>

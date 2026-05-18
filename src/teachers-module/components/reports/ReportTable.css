@@ -54,6 +54,12 @@ tbody {
   /* gap: 8px; */
 }
 
+.reports-chapter-dropdowns {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
 .table-container-body {
   width: 100%;
   display: flex;

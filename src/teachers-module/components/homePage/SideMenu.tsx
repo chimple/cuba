@@ -5,7 +5,7 @@ import { Util } from '../../../utility/util';
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   CURRENT_MODE,
-  MODES,
+  EVENTS,
   OPS_ROLES,
   PAGES,
 } from '../../../common/constants';
@@ -15,10 +15,9 @@ import ClassSection from './ClassSection';
 import './SideMenu.css';
 import { RoleType } from '../../../interface/modelInterfaces';
 import { useHistory } from 'react-router';
-import { schoolUtil } from '../../../utility/schoolUtil';
 import CommonToggle from '../../../common/CommonToggle';
 import { Capacitor } from '@capacitor/core';
-import DialogBoxButtons from '../../../components/parent/DialogBoxButtons​';
+import DialogBoxButtons from '../../../components/parent/DialogBoxButtons';
 import { t } from 'i18next';
 import {
   updateLocalAttributes,
@@ -30,6 +29,15 @@ import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
 import logger from '../../../utility/logger';
+import { logAuthDebug } from '../../../utility/authDebug';
+
+const SWITCH_TO_KIDS_APP_SOURCE_SCREEN = {
+  TEACHER_DASHBOARD: 'teacher_dashboard',
+  OPS_CONSOLE: 'ops_console',
+} as const;
+
+type SwitchToKidsAppSourceScreen =
+  (typeof SWITCH_TO_KIDS_APP_SOURCE_SCREEN)[keyof typeof SWITCH_TO_KIDS_APP_SOURCE_SCREEN];
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
@@ -62,9 +70,12 @@ const SideMenu: React.FC<{
   const history = useHistory();
   const { setGbUpdated } = useGbContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [schoolSearchResetToken, setSchoolSearchResetToken] = useState(0);
   const { roles, isOpsUser } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const isAuthorizedForOpsMode = useMemo(() => {
     const hasOpsRole = OPS_ROLES.some((role) => roles.includes(role));
     return isOpsUser || hasOpsRole;
@@ -89,6 +100,13 @@ const SideMenu: React.FC<{
   }, []);
 
   const api = ServiceConfig.getI()?.apiHandler;
+  const getSwitchToKidsAppSourceScreen = (): SwitchToKidsAppSourceScreen => {
+    if (window.location.pathname.startsWith(PAGES.SIDEBAR_PAGE)) {
+      return SWITCH_TO_KIDS_APP_SOURCE_SCREEN.OPS_CONSOLE;
+    }
+    return SWITCH_TO_KIDS_APP_SOURCE_SCREEN.TEACHER_DASHBOARD;
+  };
+
   const fetchData = async () => {
     try {
       const currentUser =
@@ -172,11 +190,13 @@ const SideMenu: React.FC<{
     }
   };
   const switchUser = async () => {
-    schoolUtil.setCurrMode(MODES.PARENT);
+    await Util.logEvent(EVENTS.SWITCH_TO_KIDS_APP_CLICKED, {
+      source_screen: getSwitchToKidsAppSourceScreen(),
+    });
     setTimeout(() => {
       Util.killCocosGame();
     }, 1000);
-    history.replace(PAGES.DISPLAY_STUDENT);
+    history.replace(PAGES.KIDS_APP_LOCATION);
   };
 
   const getClassCodeById = async (class_id: string) => {
@@ -240,6 +260,7 @@ const SideMenu: React.FC<{
       const classCode = await getClassCodeById(firstClass.id);
       setClassCode(classCode);
       Util.dispatchClassOrSchoolChangeEvent();
+      void Util.validateCurrentSchoolContext();
     } catch (error) {
       logger.error('Error handling school selection:', error);
     }
@@ -289,19 +310,37 @@ const SideMenu: React.FC<{
       }
 
       Util.dispatchClassOrSchoolChangeEvent();
+      void Util.validateCurrentSchoolContext();
     } catch (error) {
       logger.error('Error handling class selection:', error);
     }
   };
 
   const [showDialogBox, setShowDialogBox] = useState(false);
+  const [openLogoutDialogAfterMenuClose, setOpenLogoutDialogAfterMenuClose] =
+    useState(false);
+
+  const handleLogoutClick = () => {
+    setOpenLogoutDialogAfterMenuClose(true);
+    menuRef.current?.close();
+  };
 
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
+    logAuthDebug('User initiated teacher side-menu logout.', {
+      source: 'TeacherSideMenu.onSignOut',
+      reason: 'teacher_logout_button',
+    });
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(CURRENT_MODE);
     await ClearCacheData();
+    logAuthDebug('Navigating to login after teacher side-menu logout.', {
+      source: 'TeacherSideMenu.onSignOut',
+      reason: 'logout_complete_navigate_login',
+      from_page: window.location.pathname,
+      to_page: PAGES.LOGIN,
+    });
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
@@ -314,7 +353,14 @@ const SideMenu: React.FC<{
         contentId="main-content"
         id="main-container"
         onIonDidOpen={() => setIsMenuOpen(true)}
-        onIonDidClose={() => setIsMenuOpen(false)}
+        onIonDidClose={() => {
+          setIsMenuOpen(false);
+          setSchoolSearchResetToken((prev) => prev + 1);
+          if (openLogoutDialogAfterMenuClose) {
+            setOpenLogoutDialogAfterMenuClose(false);
+            setShowDialogBox(true);
+          }
+        }}
       >
         <div aria-label={String(t('Menu'))} className="side-menu-container">
           <ProfileSection fullName={fullName} email={email} />
@@ -324,12 +370,14 @@ const SideMenu: React.FC<{
               currentSchoolDetail={currentSchoolDetail}
               handleSchoolSelect={handleSchoolSelect}
               handleManageSchoolClick={handleManageSchoolClick}
+              resetTrigger={schoolSearchResetToken}
             />
             <ClassSection
               classData={classData}
               currentClassDetail={currentClassDetail}
               currentClassId={currentClassId}
               classCode={classCode}
+              isExternalUser={isExternalUser}
               handleClassSelect={handleClassSelect}
               handleManageClassClick={handleManageClassClick}
               setClassCode={setClassCode}
@@ -342,10 +390,7 @@ const SideMenu: React.FC<{
                 alt="SCHOOL"
                 className="icon"
               />
-              <CommonToggle
-                onChange={switchUser}
-                label="Switch to Child's Mode"
-              />
+              <CommonToggle onChange={switchUser} label="Switch to Kids App" />
             </IonItem>
           </div>
           {isAuthorizedForOpsMode && (
@@ -363,10 +408,7 @@ const SideMenu: React.FC<{
               </IonItem>
             </div>
           )}
-          <div
-            className="teacher-logout-btn"
-            onClick={() => setShowDialogBox(true)}
-          >
+          <div className="teacher-logout-btn" onClick={handleLogoutClick}>
             {t('Logout')}
           </div>
 

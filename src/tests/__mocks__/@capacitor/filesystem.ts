@@ -4,6 +4,7 @@ export const Filesystem = {
   stat: jest.fn().mockResolvedValue({}),
   readFile: jest.fn().mockResolvedValue({ data: '' }),
   writeFile: jest.fn().mockResolvedValue({}),
+  deleteFile: jest.fn().mockResolvedValue({}),
 };
 
 export const Directory = {

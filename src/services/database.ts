@@ -127,42 +127,83 @@ export type Database = {
 
       user_sticker_book: {
         Row: {
+          created_at: string | null;
           id: string;
-          user_id: string;
-          sticker_book_id: string;
-          stickers_collected: string[];
+          is_deleted: boolean | null;
+          is_seen: boolean | null;
           status: string;
-          created_at: string;
-          is_deleted: boolean;
+          sticker_book_id: string;
+          stickers_collected: string[] | null;
+          updated_at: string | null;
+          user_id: string;
         };
         Insert: {
+          created_at?: string | null;
           id?: string;
-          user_id: string;
-          sticker_book_id: string;
-          stickers_collected?: string[];
+          is_deleted?: boolean | null;
+          is_seen?: boolean | null;
           status?: string;
-          created_at?: string;
-          is_deleted?: boolean;
+          sticker_book_id: string;
+          stickers_collected?: string[] | null;
+          updated_at?: string | null;
+          user_id: string;
         };
         Update: {
+          created_at?: string | null;
           id?: string;
-          user_id?: string;
-          sticker_book_id?: string;
-          stickers_collected?: string[];
+          is_deleted?: boolean | null;
+          is_seen?: boolean | null;
           status?: string;
-          created_at?: string;
-          is_deleted?: boolean;
+          sticker_book_id?: string;
+          stickers_collected?: string[] | null;
+          updated_at?: string | null;
+          user_id?: string;
         };
         Relationships: [
           {
             foreignKeyName: 'user_sticker_book_sticker_book_id_fkey';
             columns: ['sticker_book_id'];
+            isOneToOne: false;
             referencedRelation: 'sticker_book';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
             referencedColumns: ['id'];
           },
         ];
       };
-
       announcement: {
         Row: {
           created_at: string;
@@ -767,6 +808,7 @@ export type Database = {
           academic_year: string | null;
           created_at: string;
           firebase_id: string | null;
+          grade_id: string | null;
           group_id: string | null;
           id: string;
           image: string | null;
@@ -785,6 +827,7 @@ export type Database = {
           academic_year?: string | null;
           created_at?: string;
           firebase_id?: string | null;
+          grade_id?: string | null;
           group_id?: string | null;
           id?: string;
           image?: string | null;
@@ -803,6 +846,7 @@ export type Database = {
           academic_year?: string | null;
           created_at?: string;
           firebase_id?: string | null;
+          grade_id?: string | null;
           group_id?: string | null;
           id?: string;
           image?: string | null;
@@ -3528,6 +3572,114 @@ export type Database = {
         };
         Relationships: [];
       };
+      school_metrics: {
+        Row: {
+          activated_students: number | null;
+          active_students: number | null;
+          active_teachers: number | null;
+          activities_assigned: number | null;
+          avg_activities_completed: number | null;
+          avg_assignments_completed: number | null;
+          avg_time_spent: number | null;
+          block: string | null;
+          cluster: string | null;
+          created_at: string | null;
+          district: string | null;
+          is_deleted: boolean;
+          field_coordinators: string[] | null;
+          id: string;
+          metric_window: string | null;
+          onboarded_students: number | null;
+          partners: string[] | null;
+          program_id: string | null;
+          program_managers: string[] | null;
+          program_name: string | null;
+          program_type: Database['public']['Enums']['program_type'] | null;
+          school_id: string | null;
+          school_model: Database['public']['Enums']['program_model'] | null;
+          school_name: string | null;
+          school_performance: string | null;
+          state: string | null;
+          udise: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          activated_students?: number | null;
+          active_students?: number | null;
+          active_teachers?: number | null;
+          activities_assigned?: number | null;
+          avg_activities_completed?: number | null;
+          avg_assignments_completed?: number | null;
+          avg_time_spent?: number | null;
+          block?: string | null;
+          cluster?: string | null;
+          created_at?: string | null;
+          district?: string | null;
+          is_deleted?: boolean;
+          field_coordinators?: string[] | null;
+          id?: string;
+          metric_window?: string | null;
+          onboarded_students?: number | null;
+          partners?: string[] | null;
+          program_id?: string | null;
+          program_managers?: string[] | null;
+          program_name?: string | null;
+          program_type?: Database['public']['Enums']['program_type'] | null;
+          school_id?: string | null;
+          school_model?: Database['public']['Enums']['program_model'] | null;
+          school_name?: string | null;
+          school_performance?: string | null;
+          state?: string | null;
+          udise?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          activated_students?: number | null;
+          active_students?: number | null;
+          active_teachers?: number | null;
+          activities_assigned?: number | null;
+          avg_activities_completed?: number | null;
+          avg_assignments_completed?: number | null;
+          avg_time_spent?: number | null;
+          block?: string | null;
+          cluster?: string | null;
+          created_at?: string | null;
+          district?: string | null;
+          is_deleted?: boolean;
+          field_coordinators?: string[] | null;
+          id?: string;
+          metric_window?: string | null;
+          onboarded_students?: number | null;
+          partners?: string[] | null;
+          program_id?: string | null;
+          program_managers?: string[] | null;
+          program_name?: string | null;
+          program_type?: Database['public']['Enums']['program_type'] | null;
+          school_id?: string | null;
+          school_model?: Database['public']['Enums']['program_model'] | null;
+          school_name?: string | null;
+          school_performance?: string | null;
+          state?: string | null;
+          udise?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'school_metrics_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'school_metrics_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       school_user: {
         Row: {
           created_at: string;
@@ -4107,6 +4259,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          tc_agreed_version: number | null;
           language_id: string | null;
           learning_path: string | null;
           locale_id: string | null;
@@ -4136,6 +4289,7 @@ export type Database = {
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
           is_tc_accepted?: boolean | null;
+          tc_agreed_version?: number | null;
           language_id?: string | null;
           learning_path?: string | null;
           locale_id?: string | null;
@@ -4165,6 +4319,7 @@ export type Database = {
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
           is_tc_accepted?: boolean | null;
+          tc_agreed_version?: number | null;
           language_id?: string | null;
           learning_path?: string | null;
           locale_id?: string | null;
@@ -4618,6 +4773,17 @@ export type Database = {
           },
         ];
       };
+      student_performance_mv: {
+        Row: {
+          class_id: string | null;
+          class_name: string | null;
+          performance: string | null;
+          student_id: string | null;
+          student_name: string | null;
+          time_spent_seconds_7d: number | null;
+        };
+        Relationships: [];
+      };
       student_sorted_view: {
         Row: {
           class_id: string | null;
@@ -4858,6 +5024,10 @@ export type Database = {
           total_teachers: number;
         }[];
       };
+      compute_school_metrics: {
+        Args: { p_days: number; p_school_id?: string | null };
+        Returns: undefined;
+      };
       create_user: {
         Args: { phone_number: string };
         Returns: {
@@ -4954,6 +5124,7 @@ export type Database = {
           created_at: string;
           firebase_id: string | null;
           group_id: string | null;
+          grade_id: string | null;
           id: string;
           image: string | null;
           is_deleted: boolean | null;
@@ -4979,6 +5150,7 @@ export type Database = {
         Args: {
           _program_id?: string;
           filters?: Json;
+          date_range?: string;
           order_by?: string;
           order_dir?: string;
           page?: number;
@@ -5202,6 +5374,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          tc_agreed_version: number | null;
           language_id: string | null;
           learning_path: string | null;
           locale_id: string | null;
@@ -5247,6 +5420,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          tc_agreed_version: number | null;
           language_id: string | null;
           learning_path: string | null;
           locale_id: string | null;
@@ -5285,6 +5459,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          tc_agreed_version: number | null;
           language_id: string | null;
           learning_path: string | null;
           locale_id: string | null;
@@ -5306,6 +5481,10 @@ export type Database = {
         };
       };
       getDataByInviteCode: { Args: { invite_code: number }; Returns: Json };
+      getDataByInviteCodeNew: {
+        Args: { invite_code: number };
+        Returns: Json;
+      };
       getfiltered_schools: {
         Args: { filters: Json };
         Returns: {
@@ -5483,6 +5662,21 @@ export type Database = {
       linkStudent: {
         Args: { invite_code: number; student_id: string };
         Returns: boolean;
+      };
+      new_link_student: {
+        Args: { invite_code: number; student_id: string };
+        Returns: {
+          class_id: string;
+          created_at: string | null;
+          id: string;
+          is_deleted: boolean | null;
+          is_firebase: boolean | null;
+          is_ops: boolean | null;
+          ops_created_by: string | null;
+          role: Database['public']['Enums']['role'];
+          updated_at: string | null;
+          user_id: string;
+        }[];
       };
       read_group_assignment_queue_v2: {
         Args: { qty: number; queue_name: string; vt: number };
@@ -6292,6 +6486,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          tc_agreed_version: number | null;
           language_id: string | null;
           learning_path: string | null;
           locale_id: string | null;
@@ -6330,6 +6525,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          tc_agreed_version: number | null;
           language_id: string | null;
           learning_path: string | null;
           locale_id: string | null;
@@ -6522,7 +6718,8 @@ export type Database = {
         | 'program_manager'
         | 'operational_director'
         | 'field_coordinator'
-        | 'super_admin';
+        | 'super_admin'
+        | 'external_user';
       school_visit_type:
         | 'teacher_training_meeting'
         | 'parents_teacher_meeting'
@@ -6531,7 +6728,8 @@ export type Database = {
         | 'super_admin'
         | 'operational_director'
         | 'program_manager'
-        | 'field_coordinator';
+        | 'field_coordinator'
+        | 'external_user';
       status: 'active' | 'rejected' | 'requested' | 'migrated';
     };
     CompositeTypes: {
@@ -6710,6 +6908,7 @@ export const Constants = {
         'operational_director',
         'field_coordinator',
         'super_admin',
+        'external_user',
       ],
       school_visit_type: [
         'teacher_training_meeting',
@@ -6721,6 +6920,7 @@ export const Constants = {
         'operational_director',
         'program_manager',
         'field_coordinator',
+        'external_user',
       ],
       status: ['active', 'rejected', 'requested', 'migrated'],
     },

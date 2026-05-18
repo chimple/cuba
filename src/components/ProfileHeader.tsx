@@ -6,6 +6,7 @@ import {
   LANG,
   PAGES,
   TableTypes,
+  CURRENT_STUDENT_CHANGED_EVENT,
 } from '../common/constants';
 import IconButton from './IconButton';
 import './ProfileHeader.css';
@@ -33,6 +34,21 @@ const ProfileHeader: React.FC = () => {
 
   useEffect(() => {
     init();
+
+    const handleStudentChange = (e: Event) => {
+      const customEvent = e as CustomEvent<TableTypes<'user'> | null>;
+      if (customEvent.detail) {
+        setStudent(customEvent.detail);
+      }
+    };
+
+    window.addEventListener(CURRENT_STUDENT_CHANGED_EVENT, handleStudentChange);
+    return () => {
+      window.removeEventListener(
+        CURRENT_STUDENT_CHANGED_EVENT,
+        handleStudentChange,
+      );
+    };
   }, []);
 
   return (

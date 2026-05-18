@@ -1,26 +1,27 @@
-import { IonPage } from '@ionic/react';
-import { FC, useEffect, useState } from 'react';
-import ChimpleLogo from '../components/ChimpleLogo';
-import './DisplayStudents.css';
-import {
-  AVATARS,
-  PAGES,
-  MODES,
-  TableTypes,
-  EDIT_STUDENTS_MAP,
-} from '../common/constants';
-import { useHistory } from 'react-router';
-import { ServiceConfig } from '../services/ServiceConfig';
-import { t } from 'i18next';
-import { Util } from '../utility/util';
-import ParentalLock from '../components/parent/ParentalLock';
-import { schoolUtil } from '../utility/schoolUtil';
-import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
-import SkeltonLoading from '../components/SkeltonLoading';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { IonPage } from '@ionic/react';
+import { t } from 'i18next';
+import { FC, useEffect, useState } from 'react';
+import { useHistory } from 'react-router';
+import {
+  AVATARS,
+  EDIT_STUDENTS_MAP,
+  EVENTS,
+  MODES,
+  PAGES,
+  TableTypes,
+} from '../common/constants';
+import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
+import ParentalLock from '../components/parent/ParentalLock';
+import SkeltonLoading from '../components/SkeltonLoading';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
+import { ServiceConfig } from '../services/ServiceConfig';
 import logger from '../utility/logger';
+import { schoolUtil } from '../utility/schoolUtil';
+import { Util } from '../utility/util';
+import { ReactComponent as BrandLogoIcon } from './assets/brandLogoIcon.svg';
+import './DisplayStudents.css';
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<'user'>[]>();
@@ -30,6 +31,20 @@ const DisplayStudents: FC<{}> = () => {
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const { setGbUpdated } = useGbContext();
+  const getProfileCardPlayActionParams = (
+    student: TableTypes<'user'>,
+  ): Record<string, string> => {
+    const currentClass = Util.getCurrentClass();
+    return {
+      action_type: 'play',
+      target_student_id: student.id,
+      target_student_grade: student.grade_id ?? '',
+      ...(studentMode === MODES.TEACHER_SCHOOL && currentClass?.id
+        ? { class_id: currentClass.id }
+        : {}),
+    };
+  };
+
   useEffect(() => {
     Util.loadBackgroundImage();
     getStudents();
@@ -76,7 +91,9 @@ const DisplayStudents: FC<{}> = () => {
     // 3) Signal to GrowthBook context that attributes were updated
     setGbUpdated(true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
-    await Util.ensureLidoCommonAudioForStudent(student);
+    void Util.ensureLidoCommonAudioForStudent(student).catch((error) => {
+      logger.warn('Failed to prefetch Lido common audio in background.', error);
+    });
     if (linkedData.classes && linkedData.classes.length > 0) {
       const firstClass = linkedData.classes[0];
       const currClass = await api.getClassById(firstClass.id);
@@ -118,13 +135,17 @@ const DisplayStudents: FC<{}> = () => {
   };
   return (
     <IonPage id="display-students">
-      {/* <IonContent> */}
       <div id="display-students-chimple-logo">
         <div id="display-students-parent-icon"></div>
-        <ChimpleLogo
-          header={t('Welcome to Chimple!')}
-          msg={[t('Select the child’s profile')]}
-        />
+        <div className="display-students-title">
+          <div className="display-students-welcome-title">
+            <BrandLogoIcon className="display-students-brand-logo" />
+            <span>{t('Welcome to Chimple!')}</span>
+          </div>
+          <span className="display-students-subtitle">
+            {t("Select the child's profile")}
+          </span>
+        </div>
         <button
           id="display-students-parent-button"
           onClick={() => {
@@ -139,13 +160,12 @@ const DisplayStudents: FC<{}> = () => {
         <div className="display-student-content">
           <div className="avatar-container">
             {students.map((student) => (
-              <div
+              <article
                 key={student.id}
-                onClick={() => onStudentClick(student)}
-                className="display-students-avatar"
+                className="display-students-card display-students-avatar"
               >
                 <img
-                  className="avatar-img"
+                  className="avatar-img display-students-avatar-img"
                   src={
                     (studentMode === MODES.SCHOOL && student.image) ||
                     'assets/avatars/' + (student.avatar ?? AVATARS[0]) + '.png'
@@ -158,7 +178,21 @@ const DisplayStudents: FC<{}> = () => {
                 <span className="display-student-name">
                   {student.name ? student.name : '\u00A0'}
                 </span>
-              </div>
+                <button
+                  id={`display-students-play-${student.id}`}
+                  type="button"
+                  className="display-students-play-button"
+                  onClick={() => {
+                    void Util.logEvent(
+                      EVENTS.PROFILE_CARD_ACTION_CLICKED,
+                      getProfileCardPlayActionParams(student),
+                    );
+                    onStudentClick(student);
+                  }}
+                >
+                  {t('Play')}
+                </button>
+              </article>
             ))}
           </div>
 

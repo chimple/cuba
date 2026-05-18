@@ -91,6 +91,11 @@ const TeacherLibraryAssignments: React.FC = () => {
                               className="teacher-assignments-item-thumb"
                             >
                               <SelectIconImage
+                                localSrc={
+                                  lesson.id
+                                    ? `teacher/lessons/icons/${lesson.id}.webp`
+                                    : undefined
+                                }
                                 defaultSrc={'assets/icons/DefaultIcon.png'}
                                 webSrc={lesson.image ?? ''}
                                 imageWidth="100%"

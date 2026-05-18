@@ -1,35 +1,32 @@
-import { IonPage } from '@ionic/react';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { IonPage } from '@ionic/react';
+import { t } from 'i18next';
 import { FC, useEffect, useState } from 'react';
-import Loading from '../components/Loading';
-import { ServiceConfig } from '../services/ServiceConfig';
+import { GiTeacher } from 'react-icons/gi';
+import { IoMdPeople } from 'react-icons/io';
 import { useHistory } from 'react-router';
 import {
-  LANGUAGE,
   AVATARS,
+  CURRENT_CLASS_NAME,
+  CURRENT_SCHOOL_NAME,
+  LANGUAGE,
   MODES,
   PAGES,
-  TableTypes,
   SELECTED_CLASSES,
   SELECTED_STUDENTS,
-  CURRENT_SCHOOL_NAME,
-  CURRENT_CLASS_NAME,
-  USER_SELECTION_STAGE,
   STAGES,
-  CURRENT_CLASS,
+  TableTypes,
+  TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS,
+  USER_SELECTION_STAGE,
 } from '../common/constants';
-import SelectModeButton from '../components/selectMode/SelectModeButton';
-import { IoMdPeople } from 'react-icons/io';
-import { GiTeacher } from 'react-icons/gi';
-import { t } from 'i18next';
-import './SelectMode.css';
-import { Util } from '../utility/util';
-import { schoolUtil } from '../utility/schoolUtil';
-import i18n from '../i18n';
 import DropDown from '../components/DropDown';
+import Loading from '../components/Loading';
+import TeacherAuthenticationPopup from '../components/parent/TeacherAuthenticationPopup';
+import SelectModeButton from '../components/selectMode/SelectModeButton';
+import i18n from '../i18n';
+import { RoleType } from '../interface/modelInterfaces';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
-import { RootState } from '../redux/store';
 import {
   AuthState,
   setAuthUser,
@@ -37,7 +34,39 @@ import {
   setRoles,
   setUser,
 } from '../redux/slices/auth/authSlice';
+import { RootState } from '../redux/store';
+import { ServiceConfig } from '../services/ServiceConfig';
+import {
+  requireTeacherModeAuth,
+  TeacherModeAuthResult,
+} from '../services/TeacherModeAuth';
 import logger from '../utility/logger';
+import { schoolUtil } from '../utility/schoolUtil';
+import { Util } from '../utility/util';
+import { ReactComponent as BrandLogoIcon } from './assets/brandLogoIcon.svg';
+import { ReactComponent as LeftArrowIcon } from './assets/leftArrowIcon.svg';
+import { logClassTabClassChanged } from './selectModeAnalytics';
+import './SelectMode.css';
+
+const VISIBLE_CLASS_COUNT = 3;
+const isRole = (
+  roleValue: string | null | undefined,
+  roleToMatch: RoleType,
+): boolean => (roleValue ?? '').toLowerCase() === roleToMatch;
+
+const getInitialSelectedClass = (
+  classes: TableTypes<'class'>[],
+  selectedClass?: TableTypes<'class'>,
+): TableTypes<'class'> | undefined => {
+  if (
+    selectedClass &&
+    classes.some((classItem) => classItem.id === selectedClass.id)
+  ) {
+    return selectedClass;
+  }
+
+  return classes[0];
+};
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -57,6 +86,12 @@ const SelectMode: FC = () => {
     useState<TableTypes<'user'>[]>();
   const [currStudent, setCurrStudent] = useState<TableTypes<'user'>>();
   const [currClass, setCurrClass] = useState<TableTypes<'class'>>();
+  const [activeClassNavDirection, setActiveClassNavDirection] = useState<
+    'previous' | 'next' | null
+  >(null);
+  const [classWindowStartIndex, setClassWindowStartIndex] = useState(0);
+  const [isTeacherAuthPopupOpen, setIsTeacherAuthPopupOpen] = useState(false);
+  const [isAutoUser, setIsAutoUser] = useState<boolean>(false);
   let count = 1;
   const tempSchoolList: {
     id: string;
@@ -64,6 +99,7 @@ const SelectMode: FC = () => {
     school: TableTypes<'school'>;
   }[] = [];
   useEffect(() => {
+    Util.loadBackgroundImage();
     restoreAuth();
     init();
     changeLanguage();
@@ -89,6 +125,42 @@ const SelectMode: FC = () => {
       displayStudents(currClass);
     }
   }, [currClass, stage]);
+  useEffect(() => {
+    if (!currClass?.id) {
+      return;
+    }
+    const classIndex =
+      currentClasses?.findIndex((classItem) => classItem.id === currClass.id) ??
+      -1;
+    if (classIndex >= 0 && currentClasses) {
+      const maxStartIndex = Math.max(
+        0,
+        currentClasses.length - VISIBLE_CLASS_COUNT,
+      );
+      setClassWindowStartIndex((currentStartIndex) => {
+        const visibleEndIndex = currentStartIndex + VISIBLE_CLASS_COUNT - 1;
+
+        if (classIndex < currentStartIndex) {
+          return classIndex;
+        }
+
+        if (classIndex > visibleEndIndex) {
+          return Math.min(classIndex - VISIBLE_CLASS_COUNT + 1, maxStartIndex);
+        }
+
+        return currentStartIndex;
+      });
+    }
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(`school-mode-class-tab-${currClass.id}`)
+        ?.scrollIntoView?.({
+          block: 'nearest',
+          inline: 'nearest',
+          behavior: 'smooth',
+        });
+    });
+  }, [currClass?.id, currentClasses, stage]);
   const applyOrientationForMode = async (mode?: string) => {
     if (!mode || !Capacitor.isNativePlatform()) return;
 
@@ -126,7 +198,22 @@ const SelectMode: FC = () => {
     }
     const selectedClasses = localStorage.getItem(SELECTED_CLASSES);
     if (selectedClasses) {
-      setCurrentClasses(JSON.parse(selectedClasses));
+      const parsedClasses = JSON.parse(
+        selectedClasses,
+      ) as TableTypes<'class'>[];
+      const selectedClassName = localStorage.getItem(CURRENT_CLASS_NAME);
+      const savedSelectedClass = selectedClassName
+        ? (JSON.parse(selectedClassName) as TableTypes<'class'>)
+        : undefined;
+      setCurrentClasses(parsedClasses);
+      const selectedClass = getInitialSelectedClass(
+        parsedClasses,
+        savedSelectedClass,
+      );
+      if (selectedClass) {
+        setCurrClass(selectedClass);
+        localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(selectedClass));
+      }
     }
     const displayStudent = localStorage.getItem(SELECTED_STUDENTS);
     if (displayStudent) {
@@ -151,10 +238,8 @@ const SelectMode: FC = () => {
         if (selectedUser) {
           const parsedClass = JSON.parse(className);
           setCurrClass(parsedClass);
-          setStage(STAGES.STUDENT);
-        } else {
-          setStage(STAGES.CLASS);
         }
+        setStage(STAGES.STUDENT);
       } else {
         setStage(STAGES.MODE);
       }
@@ -168,17 +253,70 @@ const SelectMode: FC = () => {
     const currUser = await auth.getCurrentUser();
     if (!currUser) return;
     const allSchool = await api.getSchoolsForUser(currUser.id);
+    const hasAutoUserRoleFromSchoolEntries = allSchool.some((schoolEntry) =>
+      isRole(schoolEntry.role, RoleType.AUTOUSER),
+    );
     // Extract school IDs from schoolList
     const schoolIds = allSchool.map((school) => school.school.id);
     const filteredSchools = await api.getSchoolsWithRoleAutouser(
       schoolIds,
       currUser.id,
     );
+    const hasAutoUserRole =
+      hasAutoUserRoleFromSchoolEntries || (filteredSchools?.length ?? 0) > 0;
+    if (hasAutoUserRole) {
+      logger.info('This user is auto user: true');
+    }
+    setIsAutoUser(hasAutoUserRole);
     const filteredSchoolIds = filteredSchools?.map((school) => school.id) || [];
     // Filter allSchool to include only schools that are in filteredSchools
     const matchedSchools = allSchool.filter((entry) =>
       filteredSchoolIds.includes(entry.school.id),
     );
+
+    const teacherRoleEntries = allSchool.filter(
+      (entry) =>
+        isRole(entry.role, RoleType.TEACHER) ||
+        isRole(entry.role, RoleType.PRINCIPAL) ||
+        isRole(entry.role, RoleType.COORDINATOR),
+    );
+
+    const hasStudentsInSchool = async (schoolId: string, userId: string) => {
+      try {
+        const classes = await api.getClassesForSchool(schoolId, userId);
+        if (!classes || classes.length === 0) return false;
+
+        for (const classDoc of classes) {
+          const studentsInClass = await api.getStudentsForClass(classDoc.id);
+          if (studentsInClass && studentsInClass.length > 0) {
+            return true;
+          }
+        }
+
+        return false;
+      } catch (error) {
+        logger.error('Error checking school students:', error);
+        return false;
+      }
+    };
+
+    const teacherSchoolsWithStudentsChecks = await Promise.all(
+      teacherRoleEntries.map(async (entry) => ({
+        entry,
+        hasStudents: await hasStudentsInSchool(entry.school.id, currUser.id),
+      })),
+    );
+
+    const teacherSchoolsWithStudents = teacherSchoolsWithStudentsChecks
+      .filter((item) => item.hasStudents)
+      .map((item) => item.entry);
+
+    const schoolsForSchoolMode = [...matchedSchools];
+    teacherSchoolsWithStudents.forEach((ts) => {
+      if (!schoolsForSchoolMode.some((ms) => ms.school.id === ts.school.id)) {
+        schoolsForSchoolMode.push(ts);
+      }
+    });
 
     // If user is ops or program user
     if (isOpsUser) {
@@ -198,8 +336,8 @@ const SelectMode: FC = () => {
         } else history.replace(PAGES.DISPLAY_STUDENT);
         return;
       }
-      for (let i = 0; i < matchedSchools.length; i++) {
-        const element = matchedSchools[i];
+      for (let i = 0; i < schoolsForSchoolMode.length; i++) {
+        const element = schoolsForSchoolMode[i];
         tempSchoolList.push({
           id: element.school.id,
           displayName: element.school.name,
@@ -208,18 +346,44 @@ const SelectMode: FC = () => {
       }
       setCurrentUser(currUser);
       setSchoolList(tempSchoolList);
-      if (matchedSchools.length > 0) {
+      if (schoolsForSchoolMode.length > 0) {
         const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
         if (tempSchoolList.length === 1) {
           setCurrentSchool(tempSchoolList[0].school);
-          await displayClasses(tempSchoolList[0].school, currUser);
-          if (selectedUser) {
+          const selectedClass = await displayClasses(
+            tempSchoolList[0].school,
+            currUser,
+          );
+          if (selectedUser || selectedClass) {
             setStage(STAGES.STUDENT);
           } else {
             setStage(STAGES.CLASS);
           }
         } else {
-          if (selectedUser) {
+          // Multiple schools: check if one is already stored
+          const storedSchool = Util.getCurrentSchool();
+          const matchingEntry = storedSchool
+            ? tempSchoolList.find((s) => s.id === storedSchool.id)
+            : undefined;
+
+          if (matchingEntry) {
+            setCurrentSchool(matchingEntry.school);
+            schoolUtil.setCurrentSchool(matchingEntry.school);
+            localStorage.setItem(
+              CURRENT_SCHOOL_NAME,
+              JSON.stringify(matchingEntry.school.name),
+            );
+            setCurrentSchoolName(matchingEntry.school.name);
+            const selectedClass = await displayClasses(
+              matchingEntry.school,
+              currUser,
+            );
+            if (selectedUser || selectedClass) {
+              setStage(STAGES.STUDENT);
+            } else {
+              setStage(STAGES.CLASS);
+            }
+          } else if (selectedUser) {
             setStage(STAGES.STUDENT);
           } else {
             setStage(STAGES.SCHOOL);
@@ -285,23 +449,39 @@ const SelectMode: FC = () => {
     // setStage(STAGES.MODE);
   };
 
-  const onTeacherSelect = async () => {
+  const continueToTeacherMode = async () => {
     await applyOrientationForMode(MODES.SCHOOL);
     api.currentMode = MODES.SCHOOL;
-    // history.replace(PAGES.SELECT_SCHOOL);
-    // localStorage.setItem(CURRENT_MODE,JSON.stringify(MODES.SCHOOL));
     schoolUtil.setCurrMode(MODES.SCHOOL);
-    setStage(STAGES.SCHOOL);
+    setStage(STAGES.TEACHER);
+    history.replace(PAGES.HOME_PAGE);
+  };
+
+  const onTeacherSelect = async () => {
+    if (isAutoUser) {
+      logger.info('Teacher mode blocked for auto user: true');
+      return;
+    }
+    const teacherModeAuthResult = await requireTeacherModeAuth();
+
+    if (teacherModeAuthResult === TeacherModeAuthResult.success) {
+      await continueToTeacherMode();
+      return;
+    }
+
+    if (teacherModeAuthResult === TeacherModeAuthResult.popupFallbackRequired) {
+      setIsTeacherAuthPopupOpen(true);
+    }
   };
 
   const displayClasses = async (
     school?: TableTypes<'school'>,
     user?: TableTypes<'user'>,
-  ) => {
+  ): Promise<TableTypes<'class'> | undefined> => {
     const activeSchool = currentSchool ?? school;
     const activeUser = currentUser ?? user;
     if (!activeSchool || !activeUser) {
-      return;
+      return undefined;
     }
     try {
       const element = await api.getClassesForSchool(
@@ -309,12 +489,26 @@ const SelectMode: FC = () => {
         activeUser.id,
       );
       if (!element || element.length === 0) {
-        return;
+        return undefined;
       }
       setCurrentClasses(element);
+      const savedSelectedClassValue = localStorage.getItem(CURRENT_CLASS_NAME);
+      const savedSelectedClass = savedSelectedClassValue
+        ? (JSON.parse(savedSelectedClassValue) as TableTypes<'class'>)
+        : undefined;
+      const selectedClass = getInitialSelectedClass(
+        element,
+        currClass ?? savedSelectedClass,
+      );
+      if (selectedClass) {
+        setCurrClass(selectedClass);
+        localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(selectedClass));
+      }
       localStorage.setItem(SELECTED_CLASSES, JSON.stringify(element));
+      return selectedClass;
     } catch (error) {
       logger.error('Error fetching classes:', error);
+      return undefined;
     }
   };
   const displayStudents = async (curClass: TableTypes<'class'>) => {
@@ -330,12 +524,72 @@ const SelectMode: FC = () => {
     await Util.setCurrentStudent(student, undefined, true);
     history.replace(PAGES.HOME);
   };
+  const onClassSelect = async (
+    selectedClass: TableTypes<'class'>,
+    shouldMoveToStudentStage: boolean,
+  ) => {
+    const previousClass = currClass;
+    schoolUtil.setCurrentClass(selectedClass);
+    setCurrClass(selectedClass);
+    localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(selectedClass));
+    await logClassTabClassChanged(selectedClass, previousClass, stage);
+    await displayStudents(selectedClass);
+    if (shouldMoveToStudentStage) {
+      setStage(STAGES.STUDENT);
+    }
+  };
+  const onClassNavigation = (direction: 'previous' | 'next'): void => {
+    if (!currentClasses || currentClasses.length === 0) {
+      return;
+    }
+    const maxStartIndex = Math.max(
+      0,
+      currentClasses.length - VISIBLE_CLASS_COUNT,
+    );
+    const nextWindowStartIndex =
+      direction === 'previous'
+        ? Math.max(0, classWindowStartIndex - 1)
+        : Math.min(maxStartIndex, classWindowStartIndex + 1);
+    setClassWindowStartIndex(nextWindowStartIndex);
+    setActiveClassNavDirection(direction);
+  };
+  const getStudentAvatarSrc = (student: TableTypes<'user'>): string => {
+    if (student.image) {
+      return student.image;
+    }
+    return `assets/avatars/${student.avatar ?? AVATARS[randomValue()]}.png`;
+  };
+  const handleStudentSelect = (student: TableTypes<'user'>) => {
+    setCurrStudent(student);
+    localStorage.setItem(USER_SELECTION_STAGE, 'true');
+    void onStudentClick(student);
+  };
   function randomValue() {
     let random = Math.floor(Math.random() * 37);
     return random;
   }
+  const shouldShowClassArrows = (currentClasses?.length ?? 0) > 3;
+  const visibleClasses = shouldShowClassArrows
+    ? currentClasses?.slice(
+        classWindowStartIndex,
+        classWindowStartIndex + VISIBLE_CLASS_COUNT,
+      )
+    : currentClasses;
+  const classProfileSelectionText = currClass?.name
+    ? t("{{className}} - Select the child's profile", {
+        className: currClass.name,
+      })
+    : '';
+  const highlightedClassNavDirection = shouldShowClassArrows
+    ? classWindowStartIndex === 0
+      ? 'next'
+      : 'previous'
+    : activeClassNavDirection;
+  const classStripClassName = `school-mode-class-strip ${
+    shouldShowClassArrows ? '' : 'school-mode-class-strip-static'
+  }`;
   return (
-    <IonPage>
+    <IonPage className="select-mode-page">
       {!isLoading && (
         <div>
           <div>
@@ -349,12 +603,15 @@ const SelectMode: FC = () => {
                   text={t('Parent')}
                   icon={IoMdPeople}
                   onClick={onParentSelect}
+                  id="select-mode-parent-button"
                 />
 
                 <SelectModeButton
                   text={t('Teacher')}
                   icon={GiTeacher}
                   onClick={onTeacherSelect}
+                  disabled={isAutoUser}
+                  id="select-mode-teacher-button"
                 />
               </div>
             )}
@@ -397,8 +654,8 @@ const SelectMode: FC = () => {
                   }`}
                   onClick={async function () {
                     // history.replace(PAGES.SELECT_CLASS);
-                    await displayClasses();
-                    setStage(STAGES.CLASS);
+                    const selectedClass = await displayClasses();
+                    setStage(selectedClass ? STAGES.STUDENT : STAGES.CLASS);
                     return;
                   }}
                   disabled={isOkayButtonDisabled}
@@ -411,101 +668,180 @@ const SelectMode: FC = () => {
 
           <div>
             {stage === STAGES.CLASS && (
-              <div className="class-main">
-                <div className="class-header">
-                  <div></div>
-
-                  <div className="selectmode-schoolname-header">
-                    {currentSchool?.name}
+              <div className="class-main class-main-school-mode">
+                <div className="school-mode-header class-header">
+                  <div className="school-mode-welcome">
+                    <BrandLogoIcon className="school-mode-brand-logo" />
+                    <span>{t('Welcome to Chimple!')}</span>
                   </div>
-                  <div></div>
+                  <button
+                    type="button"
+                    className="school-mode-role-badge"
+                    onClick={onTeacherSelect}
+                  >
+                    <span>{t('Teacher')}</span>
+                    <img src="assets/icons/user.png" alt="" />
+                  </button>
                 </div>
-
-                <div className="class-container">
-                  {currentClasses?.map((tempClass) => (
-                    <div
-                      key={tempClass.id}
-                      onClick={async () => {
-                        if (!tempClass) return;
-
-                        schoolUtil.setCurrentClass(tempClass);
-                        setCurrClass(tempClass);
-                        localStorage.setItem(
-                          CURRENT_CLASS_NAME,
-                          JSON.stringify(tempClass),
-                        );
-                        await displayStudents(tempClass);
-                        setStage(STAGES.STUDENT);
-                      }}
-                      className="class-avatar"
+                <div className={classStripClassName}>
+                  {shouldShowClassArrows && (
+                    <button
+                      id="school-mode-prev-class-button"
+                      type="button"
+                      className={`school-mode-nav-button ${
+                        highlightedClassNavDirection === 'previous'
+                          ? 'school-mode-nav-button-active'
+                          : ''
+                      }`}
+                      onClick={() => onClassNavigation('previous')}
                     >
-                      <div className="class-avatar-counter">
+                      <LeftArrowIcon className="school-mode-nav-arrow" />
+                    </button>
+                  )}
+                  <div className="school-mode-class-tabs">
+                    {visibleClasses?.map((tempClass) => (
+                      <button
+                        key={tempClass.id}
+                        id={`school-mode-class-tab-${tempClass.id}`}
+                        type="button"
+                        onClick={() => {
+                          void onClassSelect(tempClass, true);
+                        }}
+                        className={`school-mode-class-tab class-avatar ${
+                          currClass?.id === tempClass.id
+                            ? 'school-mode-class-tab-active'
+                            : ''
+                        }`}
+                      >
                         {tempClass.name}
-                      </div>
-                      <span className="class-name">{tempClass.name}</span>
-                    </div>
-                  ))}
+                      </button>
+                    ))}
+                  </div>
+                  {shouldShowClassArrows && (
+                    <button
+                      id="school-mode-next-class-button"
+                      type="button"
+                      className={`school-mode-nav-button ${
+                        highlightedClassNavDirection === 'next'
+                          ? 'school-mode-nav-button-active'
+                          : ''
+                      }`}
+                      onClick={() => onClassNavigation('next')}
+                    >
+                      <LeftArrowIcon className="school-mode-nav-arrow school-mode-nav-arrow-right" />
+                    </button>
+                  )}
+                </div>
+                <div className="school-mode-empty-state">
+                  {currentSchool?.name ?? currentSchoolName}
                 </div>
               </div>
             )}
           </div>
 
-          <div className="class-main">
+          <div>
             {stage === STAGES.STUDENT && (
-              <div>
-                <div className="class-header">
-                  <div id="back-button-in-school-Header">
-                    <img
-                      src="/assets/icons/BackButtonIcon.svg"
-                      alt="BackButtonIcon"
-                      onClick={() => {
-                        localStorage.removeItem(SELECTED_STUDENTS);
-                        localStorage.removeItem(CURRENT_CLASS);
-                        localStorage.removeItem(CURRENT_CLASS_NAME);
-                        localStorage.removeItem(USER_SELECTION_STAGE);
-                        setStage(STAGES.CLASS);
-                      }}
-                    />
-                  </div>
-
-                  <div className="selectmode-schoolClassname-header">
-                    {currentSchool?.name + ', ' + currClass?.name}
-                  </div>
-                  <div></div>
-                </div>
-
-                <div className="class-container">
-                  {currentStudents?.map((tempStudent) => (
-                    <div
-                      key={tempStudent.id}
-                      onClick={() => {
-                        setCurrStudent(tempStudent);
-
-                        localStorage.setItem(USER_SELECTION_STAGE, 'true');
-                        onStudentClick(tempStudent);
-                      }}
-                      className="class-avatar"
-                    >
-                      {!!tempStudent.image ? (
-                        <img
-                          className="class-avatar-img"
-                          src={tempStudent.image}
-                          alt=""
-                        />
-                      ) : (
-                        <img
-                          className="class-avatar-img"
-                          src={
-                            'assets/avatars/' +
-                            (tempStudent.avatar ?? AVATARS[randomValue()]) +
-                            '.png'
-                          }
-                          alt=""
-                        />
-                      )}
-                      <span className="class-name">{tempStudent.name}</span>
+              <div className="class-main class-main-school-mode">
+                <div className="school-mode-student-stage">
+                  <div className="school-mode-header class-header">
+                    <div className="school-mode-welcome">
+                      <BrandLogoIcon className="school-mode-brand-logo" />
+                      <span>{t('Welcome to Chimple!')}</span>
                     </div>
-                  ))}
+                    <button
+                      type="button"
+                      className="school-mode-role-badge"
+                      onClick={onTeacherSelect}
+                    >
+                      <span>{t('Teacher')}</span>
+                      <img src="assets/icons/user.png" alt="" />
+                    </button>
+                  </div>
+                  <div className={classStripClassName}>
+                    {shouldShowClassArrows && (
+                      <button
+                        id="school-mode-prev-class-button"
+                        type="button"
+                        className={`school-mode-nav-button ${
+                          highlightedClassNavDirection === 'previous'
+                            ? 'school-mode-nav-button-active'
+                            : ''
+                        }`}
+                        onClick={() => onClassNavigation('previous')}
+                      >
+                        <LeftArrowIcon className="school-mode-nav-arrow" />
+                      </button>
+                    )}
+                    <div className="school-mode-class-tabs">
+                      {visibleClasses?.map((tempClass) => (
+                        <button
+                          key={tempClass.id}
+                          id={`school-mode-class-tab-${tempClass.id}`}
+                          type="button"
+                          onClick={() => {
+                            void onClassSelect(tempClass, false);
+                          }}
+                          className={`school-mode-class-tab class-avatar ${
+                            currClass?.id === tempClass.id
+                              ? 'school-mode-class-tab-active'
+                              : ''
+                          }`}
+                        >
+                          {tempClass.name}
+                        </button>
+                      ))}
+                    </div>
+                    {shouldShowClassArrows && (
+                      <button
+                        id="school-mode-next-class-button"
+                        type="button"
+                        className={`school-mode-nav-button ${
+                          highlightedClassNavDirection === 'next'
+                            ? 'school-mode-nav-button-active'
+                            : ''
+                        }`}
+                        onClick={() => onClassNavigation('next')}
+                      >
+                        <LeftArrowIcon className="school-mode-nav-arrow school-mode-nav-arrow-right" />
+                      </button>
+                    )}
+                  </div>
+                  {shouldShowClassArrows && currClass?.name && (
+                    <p className="school-mode-class-profile-selection-text">
+                      {classProfileSelectionText}
+                    </p>
+                  )}
+                  <div className="class-container school-mode-students-grid">
+                    {currentStudents?.map((tempStudent) => (
+                      <article
+                        key={tempStudent.id}
+                        className="school-mode-student-card class-avatar"
+                        onClick={() => {
+                          handleStudentSelect(tempStudent);
+                        }}
+                      >
+                        <img
+                          className="class-avatar-img school-mode-student-avatar"
+                          src={getStudentAvatarSrc(tempStudent)}
+                          alt=""
+                        />
+                        <span className="class-name school-mode-student-name">
+                          {tempStudent.name}
+                        </span>
+                        <button
+                          id={`school-mode-play-${tempStudent.id}`}
+                          type="button"
+                          className="school-mode-play-button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleStudentSelect(tempStudent);
+                          }}
+                        >
+                          {t('Play')}
+                        </button>
+                      </article>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -514,6 +850,17 @@ const SelectMode: FC = () => {
       )}
 
       <Loading isLoading={isLoading} />
+      <TeacherAuthenticationPopup
+        isOpen={isTeacherAuthPopupOpen}
+        sourceEntryPoint={
+          TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS.SWITCH_PROFILE_BACK_BUTTON
+        }
+        onClose={() => setIsTeacherAuthPopupOpen(false)}
+        onAuthenticated={() => {
+          setIsTeacherAuthPopupOpen(false);
+          void continueToTeacherMode();
+        }}
+      />
     </IonPage>
   );
 };

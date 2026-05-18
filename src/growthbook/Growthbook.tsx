@@ -11,6 +11,7 @@ import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import logger from '../utility/logger';
 import { useAppSelector } from '../redux/hooks';
 import { store } from '../redux/store';
+import { Util } from '../utility/util';
 import {
   mergeGrowthbookAttributes,
   setGrowthbookFeatureValue,
@@ -24,7 +25,13 @@ type GbContextType = {
 const GbContext = createContext<GbContextType | undefined>(undefined);
 
 export const updateLocalAttributes = (data: any) => {
-  store.dispatch(mergeGrowthbookAttributes(data));
+  const parentIdFromStudent = data?.studentDetails?.parent_id;
+  // Keep parent_id available as a top-level GrowthBook attribute for targeting rules.
+  const enriched = {
+    ...data,
+    ...(parentIdFromStudent ? { parent_id: parentIdFromStudent } : {}),
+  };
+  store.dispatch(mergeGrowthbookAttributes(enriched));
 };
 
 export const setCachedGrowthBookFeatureValue = (
@@ -163,7 +170,31 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       );
       return buildAttributesOnMainThread(attributes);
     });
-    growthbook.setAttributes(preparedAttributes);
+    // Merge instead of replace so attributes set by other screens are not lost.
+    const existingAttributes = growthbook.getAttributes?.() ?? {};
+    const normalizedSchoolIds = Array.from(
+      new Set([
+        ...Util.normalizeGrowthbookArrayAttribute(
+          existingAttributes?.school_ids,
+        ),
+        ...Util.normalizeGrowthbookArrayAttribute(
+          preparedAttributes?.school_ids,
+        ),
+      ]),
+    );
+    const mergedAttributes = {
+      ...existingAttributes,
+      ...preparedAttributes,
+      // Always resolve parent_id from newest known sources.
+      parent_id:
+        preparedAttributes?.parent_id ??
+        attributes?.parent_id ??
+        attributes?.studentDetails?.parent_id ??
+        existingAttributes?.parent_id ??
+        null,
+      school_ids: normalizedSchoolIds,
+    };
+    growthbook.setAttributes(mergedAttributes);
     setGbUpdated(false);
   };
 

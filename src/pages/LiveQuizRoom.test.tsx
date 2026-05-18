@@ -155,7 +155,14 @@ describe('LiveQuizRoom page', () => {
   test('downloads cocos lesson and enables join button', async () => {
     render(<LiveQuizRoom />);
     expect(await screen.findByText('Join Now')).toBeInTheDocument();
-    expect(Util.downloadZipBundle).toHaveBeenCalledWith(['cocos-1']);
+    expect(Util.downloadZipBundle).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: 'l-1',
+        cocos_lesson_id: 'cocos-1',
+        name: 'Lesson 1',
+        outcome: 'Outcome text',
+      }),
+    ]);
   });
 
   test('shows loader while download has not completed', async () => {

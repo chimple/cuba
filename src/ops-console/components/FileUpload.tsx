@@ -152,6 +152,23 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     const phoneValidation = OpsUtil.validateAndFormatPhoneNumber(value, 'IN');
     return phoneValidation.valid;
   };
+
+  const normalizeWhatsappBotNumber = (value: unknown): string => {
+    const raw = value?.toString().trim() || '';
+    if (!raw) return '';
+    if (/^\d+$/.test(raw)) return raw;
+    if (/^\d+\.0+$/.test(raw)) {
+      return raw.replace(/\.0+$/, '');
+    }
+    if (/^\d+(\.\d+)?e[+-]?\d+$/i.test(raw)) {
+      const numericValue = Number(raw);
+      if (Number.isFinite(numericValue)) {
+        return Math.trunc(numericValue).toString();
+      }
+    }
+    return raw;
+  };
+
   const processFile = async () => {
     if (!fileBuffer) return;
     progressRef.current = 40;
@@ -189,6 +206,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     let newlyCreatedClasses: Set<string> = new Set();
     let validatedProgramNames = new Set<string>();
     let schoolProgramModelMap = new Map<string, string>();
+    let schoolWhatsappBotNumberMap = new Map<string, string>();
 
     const validatedSheets = {
       school: [] as any[],
@@ -433,7 +451,14 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               .trim();
             const isWhatsappEnabled = masterRow['IS WHATSAPP ENABLED']
               ?.toString()
-              .trim();
+              .trim()
+              .toLowerCase();
+            const whatsappBotNumber = normalizeWhatsappBotNumber(
+              masterRow['WHATSAPP BOT NUMBER'],
+            );
+            if (whatsappBotNumber) {
+              masterRow['WHATSAPP BOT NUMBER'] = whatsappBotNumber;
+            }
 
             if (schoolId) {
               // CASE: if school ID is provided, but school is not active. Check against `school_data`.
@@ -511,18 +536,41 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             }
 
             if (isWhatsappEnabled) {
-              const validIsWhatsappEnabled = ['YES', 'NO'];
-              if (
-                !validIsWhatsappEnabled.includes(
-                  isWhatsappEnabled.toUpperCase(),
-                )
-              ) {
+              const validIsWhatsappEnabled = ['yes', 'no'];
+              if (!validIsWhatsappEnabled.includes(isWhatsappEnabled)) {
                 groupLevelErrors.push(
-                  'Invalid "IS WHATSAPP ENABLED" value. Must be "YES" or "NO".',
+                  'Invalid "IS WHATSAPP ENABLED" value. Must be "yes" or "no" (case-insensitive).',
                 );
               }
             } else {
               groupLevelErrors.push('Missing IS WHATSAPP ENABLED information');
+            }
+
+            if (isWhatsappEnabled === 'yes') {
+              if (!whatsappBotNumber) {
+                groupLevelErrors.push('Missing WHATSAPP BOT NUMBER');
+              } else if (!/^\d{12}$/.test(whatsappBotNumber)) {
+                groupLevelErrors.push(
+                  'Invalid WHATSAPP BOT NUMBER. Must be a 12-digit number.',
+                );
+              } else {
+                const whatsappBotValidation =
+                  await api.validateWhatsappBotNumber(whatsappBotNumber);
+                if (whatsappBotValidation.status === 'error') {
+                  groupLevelErrors.push(
+                    ...(whatsappBotValidation.errors || [
+                      'WHATSAPP BOT NUMBER validation failed.',
+                    ]),
+                  );
+                }
+              }
+            } else if (
+              whatsappBotNumber &&
+              !/^\d{12}$/.test(whatsappBotNumber)
+            ) {
+              groupLevelErrors.push(
+                'Invalid WHATSAPP BOT NUMBER. Must be a 12-digit number.',
+              );
             }
 
             if (programModel?.toUpperCase() !== 'AT SCHOOL') {
@@ -531,6 +579,13 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                   'Missing STUDENT LOGIN TYPE (Required for AT HOME/HYBRID models)',
                 );
               }
+            }
+            if (
+              schoolId &&
+              isWhatsappEnabled === 'yes' &&
+              /^\d{12}$/.test(whatsappBotNumber)
+            ) {
+              schoolWhatsappBotNumberMap.set(schoolId, whatsappBotNumber);
             }
             if (schoolId && programModel) {
               schoolProgramModelMap.set(schoolId, programModel.toUpperCase());
@@ -600,6 +655,14 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       }
       // **Check if it's a Class Sheet**
       if (sheet.toLowerCase().includes('class')) {
+        const schoolWhatsappBotCache = new Map<string, string>();
+        const schoolUuidCache = new Map<string, string>();
+        const schoolClassInviteLinkCache = new Map<
+          string,
+          Map<string, string | null>
+        >();
+        const normalizeClassNameKey = (value: string): string =>
+          value.replace(/\s+/g, '').trim().toLowerCase();
         for (let row of processedData) {
           let errors: string[] = [];
           const schoolId = row['SCHOOL ID']?.toString().trim();
@@ -611,6 +674,11 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const studentCount = row['STUDENTS COUNT IN CLASS']
             ?.toString()
             .trim();
+          const whatsappGroupLink =
+            row['WHATSAPP GROUP LINK']?.toString().trim() || '';
+          if (whatsappGroupLink) {
+            row['WHATSAPP GROUP LINK'] = whatsappGroupLink;
+          }
 
           // --- ⬇️ GRADE VALIDATION ADDED HERE ⬇️ ---
           if (!grade) {
@@ -629,6 +697,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           }
 
           const className = `${grade}${classSection}`.trim();
+          const classNameKey = normalizeClassNameKey(className);
           if (schoolId && className) {
             const schoolClassKey = `${schoolId}_${className}`;
             if (!validatedSchoolClassPairs.has(schoolClassKey)) {
@@ -684,6 +753,126 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           if (validationResponse.status === 'error') {
             errors.push(...(validationResponse.errors || []));
           }
+
+          if (whatsappGroupLink) {
+            if (!schoolId) {
+              errors.push(
+                'SCHOOL ID is required to validate WHATSAPP GROUP LINK.',
+              );
+            } else {
+              let classInviteLinkMap = schoolClassInviteLinkCache.get(schoolId);
+
+              if (!classInviteLinkMap) {
+                classInviteLinkMap = new Map<string, string | null>();
+                try {
+                  let schoolUuid = schoolUuidCache.get(schoolId) || '';
+
+                  if (!schoolUuid) {
+                    const schoolDetails =
+                      await api.getSchoolDetailsByUdise(schoolId);
+                    schoolUuid =
+                      schoolDetails?.schoolId?.toString().trim() || '';
+                    const botFromSchoolDetails =
+                      schoolDetails?.whatsappBotNumber?.toString().trim() || '';
+
+                    if (schoolUuid) {
+                      schoolUuidCache.set(schoolId, schoolUuid);
+                    }
+                    if (botFromSchoolDetails) {
+                      schoolWhatsappBotCache.set(
+                        schoolId,
+                        botFromSchoolDetails,
+                      );
+                    }
+                  }
+
+                  if (schoolUuid) {
+                    const classes = await api.getClassesBySchoolId(schoolUuid);
+                    for (const cls of classes || []) {
+                      const dbClassName = cls?.name?.toString().trim();
+                      if (!dbClassName) continue;
+                      const dbInviteLink =
+                        cls?.whatsapp_invite_link?.toString().trim() || null;
+                      const dbClassKey = normalizeClassNameKey(dbClassName);
+                      const existingInviteLink =
+                        classInviteLinkMap.get(dbClassKey);
+
+                      if (!classInviteLinkMap.has(dbClassKey)) {
+                        classInviteLinkMap.set(dbClassKey, dbInviteLink);
+                      } else if (!existingInviteLink && dbInviteLink) {
+                        classInviteLinkMap.set(dbClassKey, dbInviteLink);
+                      } else if (
+                        existingInviteLink &&
+                        dbInviteLink &&
+                        existingInviteLink !== dbInviteLink
+                      ) {
+                        logger.warn(
+                          `Multiple invite links found for class ${dbClassName} in school ${schoolId}. Keeping ${existingInviteLink} and ignoring ${dbInviteLink}.`,
+                        );
+                      }
+                    }
+                  }
+                } catch (classFetchError) {
+                  logger.warn(
+                    `Failed to fetch class invite links for school ${schoolId}`,
+                    classFetchError,
+                  );
+                }
+
+                schoolClassInviteLinkCache.set(schoolId, classInviteLinkMap);
+              }
+
+              const dbInviteLink =
+                classInviteLinkMap.get(classNameKey)?.toString().trim() || '';
+
+              if (dbInviteLink) {
+                if (dbInviteLink !== whatsappGroupLink) {
+                  errors.push(
+                    `WHATSAPP GROUP LINK mismatch for class "${className}". Sheet has "${whatsappGroupLink}" but server has "${dbInviteLink}".`,
+                  );
+                }
+              } else {
+                let whatsappBotNumber =
+                  schoolWhatsappBotNumberMap.get(schoolId);
+
+                if (!whatsappBotNumber) {
+                  if (schoolWhatsappBotCache.has(schoolId)) {
+                    whatsappBotNumber = schoolWhatsappBotCache.get(schoolId);
+                  } else {
+                    const schoolDetails =
+                      await api.getSchoolDetailsByUdise(schoolId);
+                    const schoolUuid =
+                      schoolDetails?.schoolId?.toString().trim() || '';
+                    whatsappBotNumber =
+                      schoolDetails?.whatsappBotNumber?.toString().trim() || '';
+                    if (schoolUuid) {
+                      schoolUuidCache.set(schoolId, schoolUuid);
+                    }
+                    schoolWhatsappBotCache.set(schoolId, whatsappBotNumber);
+                  }
+                }
+
+                if (!whatsappBotNumber) {
+                  errors.push(
+                    'WHATSAPP BOT NUMBER is not available for this school. Cannot validate WHATSAPP GROUP LINK.',
+                  );
+                } else {
+                  const groupValidation = await api.validateWhatsappGroupLink(
+                    whatsappBotNumber,
+                    whatsappGroupLink,
+                  );
+                  if (groupValidation.status === 'error') {
+                    errors.push(
+                      ...(groupValidation.errors || [
+                        'Invalid WHATSAPP GROUP LINK.',
+                      ]),
+                    );
+                  }
+                }
+              }
+            }
+          }
+
           if (errors.length > 0) {
             row['Updated'] = createStyledCell(
               `❌ Errors: ${errors.join(', ')}`,

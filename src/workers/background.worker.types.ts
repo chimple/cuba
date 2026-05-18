@@ -73,11 +73,50 @@ export type ParseXlsxSheetsResult = {
 
 export type BuildXlsxFilePayload = {
   sheetNames: string[];
-  sheets: Record<string, Record<string, any>[]>;
+  sheets: Record<
+    string,
+    Record<string, unknown>[] | Array<Array<string | number>>
+  >;
+  sheetFormats?: Record<string, 'json' | 'aoa'>;
+  sheetWrapColumns?: Record<string, number[]>;
+  sheetFreeze?: Record<
+    string,
+    {
+      xSplit: number;
+      ySplit: number;
+      topLeftCell: string;
+      activePane: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+      activeCell?: string;
+      sqref?: string;
+    }
+  >;
+  sheetMerges?: Record<
+    string,
+    Array<{
+      s: { r: number; c: number };
+      e: { r: number; c: number };
+    }>
+  >;
 };
 
 export type BuildXlsxFileResult = {
   fileBuffer: ArrayBuffer;
+};
+
+export type DownloadStickerBookSvgPayload = {
+  url: string;
+};
+
+export type DownloadStickerBookSvgResult = {
+  svgText: string;
+};
+
+export type DownloadRemoteAudioPayload = {
+  url: string;
+};
+
+export type DownloadRemoteAudioResult = {
+  base64Data: string;
 };
 
 export type StreamSyncBatchesPayload = {
@@ -97,6 +136,8 @@ export type WorkerTaskPayloadMap = {
   PREPARE_BULK_UPLOAD_PAYLOAD: PrepareBulkUploadPayloadPayload;
   PARSE_XLSX_SHEETS: ParseXlsxSheetsPayload;
   BUILD_XLSX_FILE: BuildXlsxFilePayload;
+  DOWNLOAD_STICKER_BOOK_SVG: DownloadStickerBookSvgPayload;
+  DOWNLOAD_REMOTE_AUDIO: DownloadRemoteAudioPayload;
 };
 
 export type WorkerTaskResultMap = {
@@ -107,6 +148,8 @@ export type WorkerTaskResultMap = {
   PREPARE_BULK_UPLOAD_PAYLOAD: PrepareBulkUploadPayloadResult;
   PARSE_XLSX_SHEETS: ParseXlsxSheetsResult;
   BUILD_XLSX_FILE: BuildXlsxFileResult;
+  DOWNLOAD_STICKER_BOOK_SVG: DownloadStickerBookSvgResult;
+  DOWNLOAD_REMOTE_AUDIO: DownloadRemoteAudioResult;
 };
 
 export type BackgroundWorkerTask = keyof WorkerTaskPayloadMap;

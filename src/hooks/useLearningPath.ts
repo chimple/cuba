@@ -9,6 +9,7 @@ import {
   LEARNING_PATHWAY_MODE,
   TableTypes,
   LANGUAGE,
+  COURSES,
 } from '../common/constants';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import logger from '../utility/logger';
@@ -144,6 +145,7 @@ export async function recommendNextLesson({
     const res = await api.getSubjectLessonsBySubjectId(
       course.subject_id,
       student,
+      course.id,
     );
     if (res && res.id) {
       return {
@@ -250,58 +252,182 @@ export function getNextFromList(
   };
 }
 
-export const sortCoursesByStudentLanguage = async (
-  courses: any[],
-  student: any,
+const LANGUAGE_VARIANT_PATTERN = /^(.+?)-([a-z]{2,3})$/i;
+
+const normalizeCourseToken = (value?: string | null) =>
+  value?.trim().toLowerCase() ?? '';
+
+const getCourseCodeBase = (course?: TableTypes<'course'>) => {
+  const normalizedCode = normalizeCourseToken(course?.code);
+  const matches = normalizedCode.match(LANGUAGE_VARIANT_PATTERN);
+  return matches?.[1] ?? normalizedCode;
+};
+
+const isMathCourse = (course?: TableTypes<'course'>) =>
+  getCourseCodeBase(course) === COURSES.MATHS;
+
+const isLanguageMatchedCourse = (
+  course: TableTypes<'course'>,
+  languageCode: string,
 ) => {
-  // 1. Try Local Storage first
-  const localLanguageCode = localStorage.getItem(LANGUAGE)?.toLowerCase();
-  if (localLanguageCode) {
-    const targetCourses = courses.filter(
-      (c) => c.code?.toLowerCase() === localLanguageCode,
+  const normalizedCode = normalizeCourseToken(course.code);
+  const normalizedName = normalizeCourseToken(course.name);
+  const normalizedLanguageCode = normalizeCourseToken(languageCode);
+
+  if (!normalizedLanguageCode) return false;
+
+  return (
+    normalizedCode === normalizedLanguageCode ||
+    normalizedCode.endsWith(`-${normalizedLanguageCode}`) ||
+    normalizedName === normalizedLanguageCode ||
+    normalizedName.endsWith(`-${normalizedLanguageCode}`)
+  );
+};
+
+const getMathCourseGroupKey = (course: TableTypes<'course'>) =>
+  [
+    course.subject_id ?? '',
+    course.curriculum_id ?? '',
+    course.grade_id ?? '',
+    course.framework_id ?? '',
+    getCourseCodeBase(course),
+  ].join('|');
+
+const getMathCoursePreferenceScore = (
+  course: TableTypes<'course'>,
+  languageCode: string,
+) => {
+  if (isLanguageMatchedCourse(course, languageCode)) return 0;
+  if (
+    isLanguageMatchedCourse(course, COURSES.ENGLISH) ||
+    normalizeCourseToken(course.code) === getCourseCodeBase(course)
+  ) {
+    return 1;
+  }
+  return 2;
+};
+
+const preferStudentLanguageMathCourses = (
+  courses: TableTypes<'course'>[],
+  languageCode: string,
+) => {
+  if (!languageCode) return courses;
+
+  const preferredByGroup = new Map<string, TableTypes<'course'>>();
+
+  courses.forEach((course) => {
+    if (!isMathCourse(course)) return;
+
+    const groupKey = getMathCourseGroupKey(course);
+    const current = preferredByGroup.get(groupKey);
+    if (!current) {
+      preferredByGroup.set(groupKey, course);
+      return;
+    }
+
+    const courseScore = getMathCoursePreferenceScore(course, languageCode);
+    const currentScore = getMathCoursePreferenceScore(current, languageCode);
+    if (courseScore < currentScore) {
+      preferredByGroup.set(groupKey, course);
+    }
+  });
+
+  const emittedMathGroups = new Set<string>();
+  const resolvedCourses: TableTypes<'course'>[] = [];
+
+  courses.forEach((course) => {
+    if (!isMathCourse(course)) {
+      resolvedCourses.push(course);
+      return;
+    }
+
+    const groupKey = getMathCourseGroupKey(course);
+    const preferredCourse = preferredByGroup.get(groupKey) ?? course;
+
+    // Emit preferred course first
+    if (!emittedMathGroups.has(groupKey)) {
+      emittedMathGroups.add(groupKey);
+      resolvedCourses.push(preferredCourse);
+    }
+
+    // Allow additional variants too
+    if (course.id !== preferredCourse.id) {
+      resolvedCourses.push(course);
+    }
+  });
+
+  return resolvedCourses;
+};
+
+const resolveStudentLanguageCode = async (
+  studentOrLanguageId?: TableTypes<'user'> | string | null,
+) => {
+  const localLanguageCode = normalizeCourseToken(
+    localStorage.getItem(LANGUAGE),
+  );
+  if (localLanguageCode) return localLanguageCode;
+
+  const languageId =
+    typeof studentOrLanguageId === 'string'
+      ? studentOrLanguageId
+      : studentOrLanguageId?.language_id;
+  if (!languageId) return '';
+
+  try {
+    const language =
+      await ServiceConfig.getI().apiHandler.getLanguageWithId(languageId);
+    return normalizeCourseToken(language?.code);
+  } catch (e) {
+    logger.error('Error resolving student language', e);
+    return '';
+  }
+};
+
+export const sortCoursesByStudentLanguage = async (
+  courses: TableTypes<'course'>[],
+  studentOrLanguageId?: TableTypes<'user'> | string | null,
+) => {
+  const languageCode = await resolveStudentLanguageCode(studentOrLanguageId);
+  const languagePreferredCourses = preferStudentLanguageMathCourses(
+    courses,
+    languageCode,
+  );
+
+  if (languageCode) {
+    const targetCourses = languagePreferredCourses.filter(
+      (c) => normalizeCourseToken(c.code) === languageCode,
     );
 
     if (targetCourses.length > 0) {
-      const otherCourses = courses.filter(
-        (c) => c.code?.toLowerCase() !== localLanguageCode,
+      const otherCourses = languagePreferredCourses.filter(
+        (c) => normalizeCourseToken(c.code) !== languageCode,
       );
       return [...targetCourses, ...otherCourses];
     }
   }
 
-  // 2. Fallback: API Call
-  if (!student?.language_id) return courses;
+  if (typeof studentOrLanguageId !== 'object' || !studentOrLanguageId) {
+    return languagePreferredCourses;
+  }
+  if (!studentOrLanguageId.language_id) {
+    return languagePreferredCourses;
+  }
 
   try {
     const language = await ServiceConfig.getI().apiHandler.getLanguageWithId(
-      student.language_id,
+      studentOrLanguageId.language_id,
     );
-    if (!language) return courses;
+    if (!language) return languagePreferredCourses;
 
-    const languageCode = language.code?.toLowerCase();
-    const languageName = language.name?.trim().toLowerCase();
+    const languageName = normalizeCourseToken(language.name);
 
-    // Priority 1: Match by Code
-    if (languageCode) {
-      const targetCourses = courses.filter(
-        (c) => c.code?.toLowerCase() === languageCode,
-      );
-      if (targetCourses.length > 0) {
-        const otherCourses = courses.filter(
-          (c) => c.code?.toLowerCase() !== languageCode,
-        );
-        return [...targetCourses, ...otherCourses];
-      }
-    }
-
-    // Priority 2: Match by Name (if code match failed)
     if (languageName) {
-      const targetCourses = courses.filter(
-        (c) => c.name?.trim().toLowerCase() === languageName,
+      const targetCourses = languagePreferredCourses.filter(
+        (c) => normalizeCourseToken(c.name) === languageName,
       );
       if (targetCourses.length > 0) {
-        const otherCourses = courses.filter(
-          (c) => c.name?.trim().toLowerCase() !== languageName,
+        const otherCourses = languagePreferredCourses.filter(
+          (c) => normalizeCourseToken(c.name) !== languageName,
         );
         return [...targetCourses, ...otherCourses];
       }
@@ -310,7 +436,7 @@ export const sortCoursesByStudentLanguage = async (
     logger.error('Error sorting courses by language', e);
   }
 
-  return courses;
+  return languagePreferredCourses;
 };
 
 export function getLastPlayedLesson(
@@ -348,10 +474,11 @@ export const useLearningPath = (opts?: {
     classId?: string;
   }) {
     let currentStudent = Util.getCurrentStudent();
-    if (!currentStudent) return;
+    if (!currentStudent) {
+      return;
+    }
     const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
     let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
-
     // check if learning path is empty, if empty build it
     if (!learningPath) {
       learningPath = await buildPath({
@@ -366,9 +493,13 @@ export const useLearningPath = (opts?: {
           learningPath.courses.currentCourseIndex
         ];
 
-      if (!currentCourse) return;
+      if (!currentCourse) {
+        return;
+      }
       const coursePath = currentCourse.path ?? [];
-      if (!coursePath.length) return;
+      if (!coursePath.length) {
+        return;
+      }
 
       const activeLesson = coursePath.find((l: any) => l.isPlayed === false);
       const lastPlayedLesson = [...coursePath]
@@ -392,6 +523,27 @@ export const useLearningPath = (opts?: {
 
     // check if learning path mode is different from current mode, if so rebuild it
     const pathMode = learningPath.pathMode;
+    if (!mode || !pathMode) {
+      // check if learning path has old structure, if so migrate it
+      if (learningPath?.courses?.courseList) {
+        const hasOldStructure = learningPath.courses.courseList.some(
+          (c: any) =>
+            c.currentIndex !== undefined ||
+            c.startIndex !== undefined ||
+            c.pathEndIndex !== undefined,
+        );
+        if (hasOldStructure) {
+          learningPath.courses.courseList = learningPath.courses.courseList.map(
+            (coursePath: any) => migrate(coursePath),
+          );
+          learningPath.pathMode = mode;
+          learningPath.updated_at = new Date().toISOString();
+          await saveLearningPath(currentStudent, learningPath);
+          return learningPath;
+        }
+      }
+      return learningPath;
+    }
     if (mode != pathMode) {
       learningPath = await buildPath({
         student: currentStudent,
@@ -405,9 +557,13 @@ export const useLearningPath = (opts?: {
           learningPath.courses.currentCourseIndex
         ];
 
-      if (!currentCourse) return;
+      if (!currentCourse) {
+        return;
+      }
       const coursePath = currentCourse.path ?? [];
-      if (!coursePath.length) return;
+      if (!coursePath.length) {
+        return;
+      }
 
       const activeLesson = coursePath.find((l: any) => l.isPlayed === false);
       const lastPlayedLesson = [...coursePath]
@@ -437,7 +593,6 @@ export const useLearningPath = (opts?: {
           c.startIndex !== undefined ||
           c.pathEndIndex !== undefined,
       );
-
       if (hasOldStructure) {
         learningPath.courses.courseList = learningPath.courses.courseList.map(
           (coursePath: any) => migrate(coursePath),
@@ -520,7 +675,6 @@ export const useLearningPath = (opts?: {
     oldCourseList.forEach((c: any) => existingMap.set(c.course_id, c));
 
     const newCourseList: any[] = [];
-
     for (const course of userCourses) {
       const existing = existingMap.get(course.id);
 

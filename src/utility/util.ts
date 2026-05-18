@@ -52,6 +52,7 @@ import {
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
   LOCAL_LESSON_BUNDLES_PATH,
   DAILY_USER_REWARD,
+  IS_REWARD_FEATURE_ON,
   REWARD_LEARNING_PATH,
   HOMEWORK_PATHWAY,
   STARS_COUNT,
@@ -66,7 +67,9 @@ import {
   LATEST_LEARNING_PATH,
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  PENDING_PATHWAY_STICKER_REWARD_KEY,
   STICKER_BOOK_COMPLETION_READY_EVENT,
+  CURRENT_STUDENT_CHANGED_EVENT,
 } from '../common/constants';
 import {
   Chapter as curriculamInterfaceChapter,
@@ -96,6 +99,7 @@ import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
 import CryptoJS from 'crypto-js';
 import { InAppReview } from '@capacitor-community/in-app-review';
 import { ASSIGNMENT_COMPLETED_IDS } from '../common/courseConstants';
+import { buildGlobalEventBaseContext } from '../common/eventBaseContext';
 import { v4 as uuidv4 } from 'uuid';
 import { updateLocalAttributes } from '../growthbook/Growthbook';
 import { recommendNextLesson } from '../hooks/useLearningPath';
@@ -114,6 +118,7 @@ declare global {
   interface Window {
     cc: any;
     _CCSettings: any;
+    __LIDO_COMMON_AUDIO_PATH__?: string;
   }
 }
 
@@ -131,17 +136,15 @@ export class Util {
   public static port: PortPlugin;
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = 'lastModalShown';
-  // Runtime-downloaded popup audio is stored in device app storage.
-  private static readonly COMMON_AUDIO_CACHE_DIR = 'commonAudioCache';
-  // Reuses resolved local file URIs after the first lookup.
-  private static cachedAudioUrlMap = new Map<string, string>();
-  // Deduplicates concurrent requests for the same remote audio URL.
-  private static cachedAudioPromiseMap = new Map<
-    string,
-    Promise<string | null>
-  >();
-  // Keeps the current HTML audio instance so replay/close can stop it cleanly.
-  private static activeCommonAudioPlayer: HTMLAudioElement | null = null;
+  // Normalize GrowthBook attributes that may come as a scalar or array into a consistent array.
+  public static normalizeGrowthbookArrayAttribute<T>(
+    value: T | T[] | null | undefined,
+  ): T[] {
+    if (Array.isArray(value)) {
+      return value;
+    }
+    return value ? [value] : [];
+  }
 
   public static async getNextLessonFromGivenChapter(
     chapters: curriculamInterfaceChapter[],
@@ -383,9 +386,14 @@ export class Util {
     logger.error('Lesson bundle not found :', lessonId);
     return null;
   }
+  public static getLessonBundleId(
+    lesson?: Pick<TableTypes<'lesson'>, 'cocos_lesson_id' | 'lido_lesson_id'>,
+  ): string | null {
+    return lesson?.lido_lesson_id ?? lesson?.cocos_lesson_id ?? null;
+  }
 
   public static async downloadZipBundle(
-    lessonIds: string[],
+    lessons: TableTypes<'lesson'>[],
     chapterId?: string,
     bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
   ): Promise<boolean> {
@@ -393,15 +401,21 @@ export class Util {
       if (!Capacitor.isNativePlatform()) {
         return true;
       }
-      const api = ServiceConfig.getI().apiHandler;
 
-      for (let i = 0; i < lessonIds.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
-        const lessonIdsChunk = lessonIds.slice(
-          i,
-          i + DOWNLOAD_LESSON_BATCH_SIZE,
-        );
+      logger.warn('Starting download for lessons:', lessons);
+      for (let i = 0; i < lessons.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
+        const lessonsChunk = lessons.slice(i, i + DOWNLOAD_LESSON_BATCH_SIZE);
         const results = await Promise.all(
-          lessonIdsChunk.map(async (lessonId) => {
+          lessonsChunk.map(async (lesson) => {
+            const lessonId = this.getLessonBundleId(lesson);
+            if (!lessonId) {
+              logger.error(
+                '[LessonDownloader] Missing bundle lesson id for lesson:',
+                lesson.id,
+              );
+              return false;
+            }
+
             try {
               let lessonDownloadSuccess = true;
               const fs = createFilesystem(Filesystem, {
@@ -409,19 +423,14 @@ export class Util {
                 directory: Directory.External,
               });
               const androidPath = await this.getAndroidBundlePath();
-
+              logger.warn('full lesson object for download:', lesson);
+              logger.warn('lesson version for download:', lesson.version);
               // 🔥 GET DB VERSION ONCE
-              let dbVersion = 1;
-              try {
-                const lesson = await api.getLessonWithCocosLessonId(lessonId);
-                logger.warn(
-                  `[Version] Fetched DB version for ${lessonId}:`,
-                  lesson?.version,
-                );
-                dbVersion = Number(lesson?.version ?? 1);
-              } catch {
-                logger.warn(`[Version] Failed to fetch DB version`);
-              }
+              let dbVersion = Number(lesson.version ?? 1);
+              logger.warn(
+                `[Version] Using lesson version for ${lessonId}:`,
+                lesson.version,
+              );
 
               let localVersion = 0;
 
@@ -641,7 +650,9 @@ export class Util {
         if (!results.every((r) => r === true)) {
           logger.error(
             '[LessonDownloader] Some lessons in chunk failed to download:',
-            lessonIdsChunk,
+            lessonsChunk.map(
+              (lesson) => this.getLessonBundleId(lesson) ?? lesson.id,
+            ),
           );
           return false;
         }
@@ -940,6 +951,8 @@ export class Util {
           null,
           function (err: Error | null | undefined, scene: object) {
             if (!err) {
+              window.cc.game.resume?.();
+              window.cc.director?.resume?.();
               window.cc.director.runSceneImmediate(scene);
               if (window.cc.sys.isBrowser) {
                 Util.checkingIfGameCanvasAvailable();
@@ -979,10 +992,11 @@ export class Util {
       return;
     }
     window.cc.game.pause();
+    window.cc.director?.pause?.();
     window.cc.audioEngine.stopAll();
     const canvas = document.getElementById('GameCanvas');
     if (canvas) {
-      canvas.style.visibility = 'none';
+      canvas.style.visibility = 'hidden';
       canvas.style.display = 'none';
     }
     const container = document.getElementById('Cocos2dGameContainer');
@@ -1086,26 +1100,31 @@ export class Util {
     },
   ) {
     try {
+      const baseContext = buildGlobalEventBaseContext();
+      const mergedParams = {
+        ...baseContext,
+        ...params,
+      };
       const normalizedParams: { [key: string]: string } = Object.fromEntries(
-        Object.entries(params).map(([key, value]) => [
+        Object.entries(mergedParams).map(([key, value]) => [
           key,
-          typeof value === 'number' ? value.toString() : String(value),
+          String(value),
         ]),
       );
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
-        userId: params.user_id,
+        userId: normalizedParams.user_id,
       });
       try {
         if (!Util.port) Util.port = registerPlugin<PortPlugin>('Port');
         await Promise.resolve(
-          Util.port.shareUserId({ userId: params.user_id }),
+          Util.port.shareUserId({ userId: normalizedParams.user_id }),
         );
       } catch (e) {
         logger.warn('Port.shareUserId skipped:', e);
       }
       await FirebaseCrashlytics.setUserId({
-        userId: params.user_id,
+        userId: normalizedParams.user_id,
       });
 
       await FirebaseAnalytics.setScreenName({
@@ -1115,7 +1134,7 @@ export class Util {
 
       await FirebaseAnalytics.logEvent({
         name: eventName,
-        params: params,
+        params: normalizedParams,
       });
     } catch (error) {
       logger.error(
@@ -1219,108 +1238,48 @@ export class Util {
           return false;
         }
 
-        // Helper function to create and validate shaders
-        const createAndValidateShader = (
-          type: GLenum,
-          source: string,
-        ): WebGLShader | null => {
-          const shader = gl.createShader(type);
-          if (!shader) {
-            logger.error('Failed to create shader.');
-            return null;
-          }
-          gl.shaderSource(shader, source);
-          gl.compileShader(shader);
+        if (!canvas.dataset.webglContextListenersAttached) {
+          canvas.dataset.webglContextListenersAttached = 'true';
 
-          // Check for shader compilation errors
-          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            logger.error(
-              `Error compiling shader: ${gl.getShaderInfoLog(shader)}`,
-            );
-            gl.deleteShader(shader);
-            return null;
-          }
+          canvas.addEventListener(
+            'webglcontextlost',
+            (event) => {
+              try {
+                logger.error('WebGL context lost detected.');
+                event.preventDefault();
+                const webglContext = canvas.getContext(
+                  'webgl',
+                ) as WebGLRenderingContext | null;
 
-          return shader;
-        };
+                if (webglContext) {
+                  const rest = webglContext.getExtension('WEBGL_lose_context');
 
-        // Example vertex and fragment shader source code
-        const vertexShaderSource = `
-          attribute vec4 position;
-          void main() {
-            gl_Position = position;
-          }
-        `;
-
-        const fragmentShaderSource = `
-          precision mediump float;
-          void main() {
-            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red color
-          }
-        `;
-
-        // Create and validate shaders
-        const vertexShader = createAndValidateShader(
-          gl.VERTEX_SHADER,
-          vertexShaderSource,
-        );
-        const fragmentShader = createAndValidateShader(
-          gl.FRAGMENT_SHADER,
-          fragmentShaderSource,
-        );
-
-        if (!vertexShader || !fragmentShader) {
-          logger.error('Shader creation or validation failed.');
-          return false;
-        }
-
-        // Handle WebGL context lost
-        canvas.addEventListener(
-          'webglcontextlost',
-          (event) => {
-            try {
-              logger.error('WebGL context lost detected.');
-              event.preventDefault(); // Prevent the browser from handling context loss
-              const webglContext = canvas.getContext(
-                'webgl',
-              ) as WebGLRenderingContext | null;
-
-              if (webglContext) {
-                const rest = webglContext.getExtension('WEBGL_lose_context');
-
-                // If the context cannot be restored, reload the page
-                if (!rest) {
-                  logger.error(
-                    'Unable to restore WebGL context. Reloading page...',
-                  );
-                  window.location.reload();
+                  if (!rest) {
+                    logger.error(
+                      'Unable to restore WebGL context. Reloading page...',
+                    );
+                    window.location.reload();
+                  }
                 }
+              } catch (error) {
+                logger.error('Error handling webglcontextlost:', error);
               }
-            } catch (error) {
-              logger.error('Error handling webglcontextlost:', error);
-            }
-          },
-          false,
-        );
+            },
+            false,
+          );
 
-        // Handle WebGL context restored
-        canvas.addEventListener(
-          'webglcontextrestored',
-          (event) => {
-            try {
-              event.preventDefault(); // Prevent the browser from restoring automatically
-              const webglContext = canvas.getContext(
-                'webgl',
-              ) as WebGLRenderingContext | null;
-
-              if (webglContext) {
+          canvas.addEventListener(
+            'webglcontextrestored',
+            (event) => {
+              try {
+                event.preventDefault();
+              } catch (error) {
+                logger.error('Error handling webglcontextrestored:', error);
               }
-            } catch (error) {
-              logger.error('Error handling webglcontextrestored:', error);
-            }
-          },
-          false,
-        );
+            },
+            false,
+          );
+        }
 
         return true; // Return true if canvas exists and WebGL is initialized
       } else {
@@ -1359,6 +1318,9 @@ export class Util {
     api.currentStudent = student !== null ? student : undefined;
 
     localStorage.setItem(CURRENT_STUDENT, JSON.stringify(student));
+    window.dispatchEvent(
+      new CustomEvent(CURRENT_STUDENT_CHANGED_EVENT, { detail: student }),
+    );
 
     if (!languageCode && !!student?.language_id) {
       const langDoc = await api.getLanguageWithId(student.language_id);
@@ -1983,6 +1945,10 @@ export class Util {
   public static getCurrentSchool(): TableTypes<'school'> | undefined {
     const api = ServiceConfig.getI().apiHandler;
 
+    if (api.currentSchool) {
+      return api.currentSchool;
+    }
+
     const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
       const roles = store.getState()?.auth?.roles ?? [];
       const isOpsUser = store.getState()?.auth?.isOpsUser === true;
@@ -2035,45 +2001,6 @@ export class Util {
       }
     };
 
-    //  IF WE ALREADY HAVE A SCHOOL IN MEMORY CHECK IF NOT CONNECTED
-    if (!!api.currentSchool) {
-      const classes = Util.getCurrentClass();
-      const schoolId = api.currentSchool.id;
-      const classId = classes?.id ?? undefined;
-
-      // SCHOOL CHECK
-      isSchoolConnected(api.currentSchool.id).then((res) => {
-        if (!res) {
-          api.currentSchool = undefined;
-          localStorage.removeItem(SCHOOL);
-          localStorage.removeItem(CLASS);
-          return;
-        }
-
-        // CLASS CHECK
-
-        if (classId) {
-          isClassConnected(schoolId, classId).then((cls) => {
-            if (!cls) return;
-
-            const { classExists, classCount } = cls;
-
-            if (!classExists) {
-              localStorage.removeItem(CLASS);
-              // If only one class existed and that gets removed → remove school too
-              if (classCount === 1) {
-                api.currentSchool = undefined;
-                localStorage.removeItem(SCHOOL);
-              }
-            }
-          });
-        }
-      });
-
-      return api.currentSchool;
-    }
-
-    //  B) IF SCHOOL IS LOADED FROM LOCAL STORAGE CHECK IF NOT CONNECTED
     const temp = localStorage.getItem(SCHOOL);
     if (!temp) return;
 
@@ -2114,11 +2041,9 @@ export class Util {
           const { classExists, classCount } = cls;
 
           if (!classExists) {
-            logger.info('Class no longer connected → removing class');
             localStorage.removeItem(CLASS);
 
             if (classCount === 1) {
-              logger.info('Last class removed → removing school as well');
               api.currentSchool = undefined;
               localStorage.removeItem(SCHOOL);
             }
@@ -2155,6 +2080,91 @@ export class Util {
     } catch (err) {
       logger.error('Failed to parse currentClass from localStorage', err);
       return;
+    }
+  }
+
+  public static async validateCurrentSchoolContext(): Promise<void> {
+    const api = ServiceConfig.getI().apiHandler;
+    const currentSchool = Util.getCurrentSchool();
+    const currentClass = Util.getCurrentClass();
+
+    if (!currentSchool) {
+      return;
+    }
+
+    const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
+      const roles = store.getState()?.auth?.roles ?? [];
+      const isOpsUser = store.getState()?.auth?.isOpsUser === true;
+      if (
+        isOpsUser ||
+        [
+          RoleType.SUPER_ADMIN,
+          RoleType.FIELD_COORDINATOR,
+          RoleType.PROGRAM_MANAGER,
+          RoleType.OPERATIONAL_DIRECTOR,
+        ].some((role) => roles.includes(role))
+      ) {
+        return true;
+      }
+      try {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const currentUser = await authHandler.getCurrentUser();
+        if (!currentUser) return false;
+
+        const schools = await api.getSchoolsForUser(currentUser.id);
+        return schools.some((item) => item.school.id === schoolId);
+      } catch (error) {
+        logger.error('Error checking school via user:', error);
+        return false;
+      }
+    };
+
+    const isClassConnected = async (
+      schoolId: string,
+      classId: string,
+    ): Promise<{ classExists: boolean; classCount: number } | undefined> => {
+      try {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const currentUser = await authHandler.getCurrentUser();
+        if (!currentUser) return;
+
+        const classes = await api.getClassesForSchool(schoolId, currentUser.id);
+        return {
+          classExists: classes.some((cls) => cls.id === classId),
+          classCount: classes.length,
+        };
+      } catch (error) {
+        logger.error('Error checking class via user:', error);
+        return;
+      }
+    };
+
+    const schoolIsConnected = await isSchoolConnected(currentSchool.id);
+    if (!schoolIsConnected) {
+      api.currentSchool = undefined;
+      api.currentClass = undefined;
+      localStorage.removeItem(SCHOOL);
+      localStorage.removeItem(CLASS);
+      return;
+    }
+
+    if (!currentClass?.id) {
+      return;
+    }
+
+    const classCheck = await isClassConnected(
+      currentSchool.id,
+      currentClass.id,
+    );
+    if (!classCheck) return;
+
+    if (!classCheck.classExists) {
+      localStorage.removeItem(CLASS);
+      api.currentClass = undefined;
+      if (classCheck.classCount === 1) {
+        api.currentSchool = undefined;
+        localStorage.removeItem(SCHOOL);
+      }
     }
   }
 
@@ -2655,6 +2665,33 @@ export class Util {
       logger.error('Error fetching Chimple Rive config:', error);
     }
   }
+  public static async shouldGiveDailyReward(): Promise<boolean> {
+    try {
+      const isRewardFeatureOn =
+        localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
+      if (!isRewardFeatureOn) return false;
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent) return false;
+
+      const dailyUserReward = currentStudent.reward
+        ? JSON.parse(currentStudent.reward as string)
+        : {};
+      const todaysReward = await Util.fetchTodaysReward();
+      if (!todaysReward) return false;
+
+      const today = new Date().toISOString().split('T')[0];
+      const rewardDate = dailyUserReward.timestamp
+        ? new Date(dailyUserReward.timestamp).toISOString().split('T')[0]
+        : null;
+      const hasReceivedTodayReward =
+        todaysReward.id === dailyUserReward.reward_id && rewardDate === today;
+
+      return !hasReceivedTodayReward;
+    } catch (error) {
+      logger.error('Error checking daily reward eligibility:', error);
+      return false;
+    }
+  }
   public static async updateUserReward() {
     try {
       // Get daily user reward from localStorage
@@ -2791,6 +2828,33 @@ export class Util {
         const isNowComplete = newCurrentIndex >= lessonsLen;
 
         if (isNowComplete) {
+          if (studentId) {
+            let preAwardCollectedStickerIds: string[] = [];
+            try {
+              const currentBookWithProgress =
+                await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+                  studentId,
+                );
+              preAwardCollectedStickerIds =
+                currentBookWithProgress?.progress?.stickers_collected ?? [];
+            } catch {
+              preAwardCollectedStickerIds = [];
+            }
+
+            const stickerAwardResult =
+              await Util.tryAwardStickerForCompletedPathway(
+                studentId,
+                'homework_pathway',
+              );
+            Util.seedPathwayStickerRewardSession({
+              studentId,
+              stickerAwardResult,
+              preAwardCollectedStickerIds,
+            });
+          } else {
+            Util.clearPathwayStickerRewardSession();
+          }
+
           // Build and log pathway completed event (using snapshot)
           try {
             const prevIndex = Math.max(completedIndex, 0); // the lesson just completed
@@ -2845,6 +2909,33 @@ export class Util {
       const newCurrentIndexFallback = (homeworkPath.currentIndex ?? 0) + 1;
       if (newCurrentIndexFallback >= (homeworkPath.lessons?.length ?? 0)) {
         // path finished
+        if (studentId) {
+          let preAwardCollectedStickerIds: string[] = [];
+          try {
+            const currentBookWithProgress =
+              await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+                studentId,
+              );
+            preAwardCollectedStickerIds =
+              currentBookWithProgress?.progress?.stickers_collected ?? [];
+          } catch {
+            preAwardCollectedStickerIds = [];
+          }
+
+          const stickerAwardResult =
+            await Util.tryAwardStickerForCompletedPathway(
+              studentId,
+              'homework_pathway',
+            );
+          Util.seedPathwayStickerRewardSession({
+            studentId,
+            stickerAwardResult,
+            preAwardCollectedStickerIds,
+          });
+        } else {
+          Util.clearPathwayStickerRewardSession();
+        }
+
         try {
           // log completed event similar to above (best-effort)
           const lessons = homeworkPath.lessons ?? [];
@@ -2972,6 +3063,18 @@ export class Util {
       );
       const activeLesson =
         activeLessonIndex !== -1 ? course.path[activeLessonIndex] : null;
+      if (!activeLesson) {
+        logger.warn(
+          '[LearningPath] No active lesson found while updating pathway',
+          {
+            studentId: currentStudent.id,
+            courseId: course.course_id,
+            courseIndex,
+            pathLength: course.path?.length ?? 0,
+          },
+        );
+        return;
+      }
       const prevData = {
         pathId: course.path_id,
         courseId: course.course_id,
@@ -2979,7 +3082,6 @@ export class Util {
         chapterId: activeLesson.chapter_id,
         prevPath_id: course.path_id,
       };
-      if (!activeLesson) return;
 
       /* 2️⃣ Mark active lesson as played */
       course.path[activeLessonIndex] = {
@@ -3020,23 +3122,17 @@ export class Util {
       /* 5️⃣ Move course index if path completed */
       if (pathCompleted) {
         let preAwardCollectedStickerIds: string[] = [];
-        if (typeof navigator !== 'undefined' && navigator.onLine) {
-          try {
-            const currentBookWithProgress =
-              await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
-                currentStudent.id,
-              );
-            preAwardCollectedStickerIds =
-              currentBookWithProgress?.progress?.stickers_collected ?? [];
-          } catch {
-            preAwardCollectedStickerIds = [];
-          }
-        }
-        if (completedPathwaySnapshot) {
-          sessionStorage.setItem(
-            REWARD_LEARNING_PATH,
-            completedPathwaySnapshot,
-          );
+        try {
+          // The active API handler already resolves to sqlite while offline,
+          // so use it for the drag-popup seed data in both modes.
+          const currentBookWithProgress =
+            await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+              currentStudent.id,
+            );
+          preAwardCollectedStickerIds =
+            currentBookWithProgress?.progress?.stickers_collected ?? [];
+        } catch {
+          preAwardCollectedStickerIds = [];
         }
         const newpathId = uuidv4();
         course.path_id = newpathId;
@@ -3050,50 +3146,12 @@ export class Util {
         // If stickers are available (and we're online), award the next sticker for completing this pathway.
         const stickerAwardResult =
           await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
-        if (typeof navigator !== 'undefined' && navigator.onLine) {
-          if (stickerAwardResult.completed) {
-            sessionStorage.setItem(
-              AUTO_OPEN_STICKER_PREVIEW_KEY,
-              JSON.stringify({
-                studentId: currentStudent.id,
-                createdAt: new Date().toISOString(),
-                awardedStickerId: stickerAwardResult.awardedStickerId,
-                preAwardCollectedStickerIds,
-                stickerBookId: stickerAwardResult.stickerBookId,
-                stickerBookTitle:
-                  stickerAwardResult.payload?.stickerBookTitle ?? null,
-                stickerBookSvgUrl:
-                  stickerAwardResult.payload?.stickerBookSvgUrl ?? null,
-              }),
-            );
-            sessionStorage.setItem(
-              AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
-              JSON.stringify({
-                studentId: currentStudent.id,
-                stickerBookId: stickerAwardResult.stickerBookId,
-                createdAt: new Date().toISOString(),
-                payload: stickerAwardResult.payload,
-              }),
-            );
-            if (stickerAwardResult.payload) {
-              window.dispatchEvent(
-                new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
-                  detail: stickerAwardResult.payload,
-                }),
-              );
-            }
-          } else {
-            sessionStorage.setItem(
-              AUTO_OPEN_STICKER_PREVIEW_KEY,
-              JSON.stringify({
-                studentId: currentStudent.id,
-                awardedStickerId: stickerAwardResult.awardedStickerId,
-                preAwardCollectedStickerIds,
-                createdAt: new Date().toISOString(),
-              }),
-            );
-          }
-        }
+        Util.seedPathwayStickerRewardSession({
+          studentId: currentStudent.id,
+          stickerAwardResult,
+          preAwardCollectedStickerIds,
+          rewardLearningPathSnapshot: completedPathwaySnapshot,
+        });
         if (courseIndex >= courses.courseList.length) {
           courseIndex = 0;
         }
@@ -3140,8 +3198,106 @@ export class Util {
     }
   }
 
+  private static clearPathwayStickerRewardSession() {
+    sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+    sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+    sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+  }
+
+  private static seedPathwayStickerRewardSession({
+    studentId,
+    stickerAwardResult,
+    preAwardCollectedStickerIds,
+    rewardLearningPathSnapshot,
+  }: {
+    studentId: string;
+    stickerAwardResult: {
+      completed: boolean;
+      stickerBookId: string | null;
+      awardedStickerId: string | null;
+      payload: StickerBookModalData | null;
+    };
+    preAwardCollectedStickerIds: string[];
+    rewardLearningPathSnapshot?: string | null;
+  }) {
+    const awardedStickerId = stickerAwardResult.awardedStickerId;
+    const stickerBookId = stickerAwardResult.stickerBookId;
+    const createdAt = new Date().toISOString();
+
+    if (awardedStickerId && rewardLearningPathSnapshot) {
+      sessionStorage.setItem(REWARD_LEARNING_PATH, rewardLearningPathSnapshot);
+    } else {
+      sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    }
+
+    if (!awardedStickerId) {
+      sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+      sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+      sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+      return;
+    }
+
+    sessionStorage.setItem(
+      PENDING_PATHWAY_STICKER_REWARD_KEY,
+      JSON.stringify({
+        studentId,
+        awardedStickerId,
+        stickerBookId,
+        createdAt,
+      }),
+    );
+
+    if (stickerAwardResult.completed) {
+      sessionStorage.setItem(
+        AUTO_OPEN_STICKER_PREVIEW_KEY,
+        JSON.stringify({
+          studentId,
+          createdAt,
+          awardedStickerId,
+          preAwardCollectedStickerIds,
+          stickerBookId,
+          stickerBookTitle:
+            stickerAwardResult.payload?.stickerBookTitle ?? null,
+          stickerBookSvgUrl:
+            stickerAwardResult.payload?.stickerBookSvgUrl ?? null,
+        }),
+      );
+      sessionStorage.setItem(
+        AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+        JSON.stringify({
+          studentId,
+          stickerBookId,
+          createdAt,
+          payload: stickerAwardResult.payload,
+        }),
+      );
+
+      if (stickerAwardResult.payload) {
+        window.dispatchEvent(
+          new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+            detail: stickerAwardResult.payload,
+          }),
+        );
+      }
+      return;
+    }
+
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_PREVIEW_KEY,
+      JSON.stringify({
+        studentId,
+        awardedStickerId,
+        preAwardCollectedStickerIds,
+        createdAt,
+      }),
+    );
+    sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+  }
+
   private static async tryAwardStickerForCompletedPathway(
     studentId: string,
+    source: StickerBookModalData['source'] = 'learning_pathway',
   ): Promise<{
     completed: boolean;
     stickerBookId: string | null;
@@ -3196,7 +3352,7 @@ export class Util {
         awardedStickerId: nextStickerId,
         payload: completed
           ? {
-              source: 'learning_pathway',
+              source,
               stickerBookId: current.book.id,
               stickerBookTitle: current.book.title || 'Sticker Book',
               stickerBookSvgUrl: current.book.svg_url || '',
@@ -3228,9 +3384,10 @@ export class Util {
         return rewardLearningPath;
       }
 
-      const sessionData = sessionStorage.getItem(LATEST_LEARNING_PATH);
+      const latestLearningPathKey = `${LATEST_LEARNING_PATH}:${student.id}`;
+      const sessionData = localStorage.getItem(latestLearningPathKey);
 
-      // If nothing in session storage, return DB value
+      // If nothing in local storage, return DB value
       if (!sessionData) {
         return student?.learning_path ?? null;
       }
@@ -3456,9 +3613,38 @@ export class Util {
         }),
       );
 
-      // 10. REBUILD: [Played ] + [New ] + [New ]
-      // Result: index 2 remains A, index 3 becomes C, index 4 becomes D.
-      const updatedLessons = [...history, ...newLessons];
+      // 10. REBUILD while preserving original path length.
+      // If DB doesn't return enough replacements, keep existing future lessons
+      // so UI index progression does not collapse back to 0.
+      type LessonWithAssignmentId = { assignment_id?: string | null };
+      const existingFutureLessons = originalLessons.slice(completedIndex + 1);
+      const usedAssignmentIds = new Set<string>(
+        [...history, ...newLessons]
+          .map((l) => (l as LessonWithAssignmentId)?.assignment_id)
+          .filter(
+            (id): id is string => typeof id === 'string' && id.length > 0,
+          ),
+      );
+      const fallbackFutureLessons = existingFutureLessons.filter(
+        (lesson: unknown) => {
+          const typedLesson = lesson as LessonWithAssignmentId;
+          const assignmentId = typedLesson.assignment_id;
+          return !assignmentId || !usedAssignmentIds.has(assignmentId);
+        },
+      );
+
+      const filledFutureLessons = [...newLessons];
+      if (filledFutureLessons.length < remainingSlotsCount) {
+        const missingCount = remainingSlotsCount - filledFutureLessons.length;
+        filledFutureLessons.push(
+          ...fallbackFutureLessons.slice(0, missingCount),
+        );
+      }
+
+      const updatedLessons = [
+        ...history,
+        ...filledFutureLessons.slice(0, remainingSlotsCount),
+      ];
 
       localStorage.setItem(
         HOMEWORK_PATHWAY,
@@ -3682,250 +3868,6 @@ export class Util {
       );
     } catch (err) {
       logger.error('[LidoCommonAudio] ensure failed:', err);
-    }
-  }
-
-  private static getAudioCacheFileName(audioUrl: string): string {
-    const fallbackExtension = 'mp3';
-
-    try {
-      const parsedUrl = new URL(audioUrl);
-      const extension =
-        parsedUrl.pathname.split('.').pop()?.toLowerCase() ?? fallbackExtension;
-      const sanitizedExtension = extension.replace(/[^a-z0-9]/g, '');
-
-      return `${CryptoJS.SHA256(audioUrl).toString()}.${
-        sanitizedExtension || fallbackExtension
-      }`;
-    } catch {
-      return `${CryptoJS.SHA256(audioUrl).toString()}.${fallbackExtension}`;
-    }
-  }
-
-  private static getCommonAudioCachePath(audioUrl: string): string {
-    return `${Util.COMMON_AUDIO_CACHE_DIR}/${Util.getAudioCacheFileName(audioUrl)}`;
-  }
-
-  private static isRemoteAudioUrl(audioUrl: string): boolean {
-    return /^https?:\/\//i.test(audioUrl);
-  }
-
-  private static resolveTtsLanguage(languageCode?: string | null): string {
-    const normalizedLanguage =
-      (
-        languageCode ||
-        localStorage.getItem(LANGUAGE) ||
-        navigator.language ||
-        'en'
-      )
-        .trim()
-        .toLowerCase() || 'en';
-
-    if (normalizedLanguage.includes('-')) {
-      return normalizedLanguage;
-    }
-
-    const ttsLocaleMap: Record<string, string> = {
-      en: 'en-IN',
-      hi: 'hi-IN',
-      kn: 'kn-IN',
-      mr: 'mr-IN',
-      pt: 'pt-PT',
-    };
-
-    return ttsLocaleMap[normalizedLanguage] || `${normalizedLanguage}-IN`;
-  }
-
-  // Stops whichever popup audio source is currently active before replay or close.
-  public static async stopAudioUrlOrTtsPlayback(): Promise<void> {
-    // Popup audio and popup TTS share a single playback lane.
-    try {
-      await TextToSpeech.stop();
-    } catch (error) {
-      logger.warn('[CommonAudio] Failed to stop TTS playback', error);
-    }
-
-    try {
-      if (Util.activeCommonAudioPlayer) {
-        Util.activeCommonAudioPlayer.pause();
-        Util.activeCommonAudioPlayer.currentTime = 0;
-        Util.activeCommonAudioPlayer = null;
-      }
-    } catch (error) {
-      logger.error('[CommonAudio] Failed to stop HTML audio playback', error);
-    }
-  }
-
-  // Resolves a remote audio URL to a reusable local device file on native platforms.
-  public static async getCachedAudioUrl(
-    audioUrl?: string | null,
-  ): Promise<string | null> {
-    const normalizedAudioUrl = audioUrl?.trim();
-    if (!normalizedAudioUrl) {
-      return null;
-    }
-
-    if (
-      !Capacitor.isNativePlatform() ||
-      !Util.isRemoteAudioUrl(normalizedAudioUrl)
-    ) {
-      return normalizedAudioUrl;
-    }
-
-    const cachedSrc = Util.cachedAudioUrlMap.get(normalizedAudioUrl);
-    if (cachedSrc) {
-      return cachedSrc;
-    }
-
-    const inFlightRequest = Util.cachedAudioPromiseMap.get(normalizedAudioUrl);
-    if (inFlightRequest) {
-      return inFlightRequest;
-    }
-
-    const downloadPromise = (async () => {
-      const path = Util.getCommonAudioCachePath(normalizedAudioUrl);
-
-      try {
-        // Reuse the local copy if this URL was already downloaded earlier.
-        await Filesystem.stat({
-          path,
-          directory: Directory.Data,
-        });
-      } catch {
-        try {
-          await Filesystem.mkdir({
-            path: Util.COMMON_AUDIO_CACHE_DIR,
-            directory: Directory.Data,
-            recursive: true,
-          });
-        } catch (error) {
-          logger.error('[CommonAudio] Cache directory creation skipped', error);
-        }
-
-        try {
-          // First use downloads the remote asset into app-local storage.
-          const response = await CapacitorHttp.get({
-            url: normalizedAudioUrl,
-            responseType: 'blob',
-            readTimeout: 15000,
-            connectTimeout: 15000,
-          });
-
-          if (!response?.data || response.status !== 200) {
-            logger.warn(
-              '[CommonAudio] Audio download failed with empty response',
-              normalizedAudioUrl,
-            );
-            return null;
-          }
-
-          const base64Audio =
-            typeof response.data === 'string'
-              ? response.data
-              : await Util.blobToString(response.data as Blob);
-
-          await Filesystem.writeFile({
-            path,
-            data: base64Audio,
-            directory: Directory.Data,
-            recursive: true,
-          });
-        } catch (error) {
-          logger.error('[CommonAudio] Failed to download audio', error);
-          return null;
-        }
-      }
-
-      try {
-        // Native file URIs must be converted before browser audio can play them.
-        const localAudioUri = await Filesystem.getUri({
-          path,
-          directory: Directory.Data,
-        });
-        const resolvedSrc = Capacitor.convertFileSrc(localAudioUri.uri);
-        Util.cachedAudioUrlMap.set(normalizedAudioUrl, resolvedSrc);
-        return resolvedSrc;
-      } catch (error) {
-        logger.error('[CommonAudio] Failed to resolve local audio uri', error);
-        return null;
-      }
-    })();
-
-    Util.cachedAudioPromiseMap.set(normalizedAudioUrl, downloadPromise);
-
-    try {
-      return await downloadPromise;
-    } finally {
-      Util.cachedAudioPromiseMap.delete(normalizedAudioUrl);
-    }
-  }
-
-  // Plays downloaded URL audio when available, otherwise falls back to TTS text.
-  public static async playAudioOrTts({
-    audioUrl,
-    text,
-    languageCode,
-    rate = 0.9,
-    pitch = 1,
-    volume = 1,
-  }: {
-    audioUrl?: string | null;
-    text?: string | null;
-    languageCode?: string | null;
-    rate?: number;
-    pitch?: number;
-    volume?: number;
-  }): Promise<boolean> {
-    // Replay always restarts from the beginning instead of overlapping audio.
-    await Util.stopAudioUrlOrTtsPlayback();
-
-    const resolvedAudioUrl = await Util.getCachedAudioUrl(audioUrl);
-
-    if (resolvedAudioUrl) {
-      try {
-        const audio = new Audio(resolvedAudioUrl);
-        audio.preload = 'auto';
-        audio.onended = () => {
-          if (Util.activeCommonAudioPlayer === audio) {
-            Util.activeCommonAudioPlayer = null;
-          }
-        };
-        audio.onerror = () => {
-          if (Util.activeCommonAudioPlayer === audio) {
-            Util.activeCommonAudioPlayer = null;
-          }
-        };
-
-        Util.activeCommonAudioPlayer = audio;
-        await audio.play();
-        return true;
-      } catch (error) {
-        logger.warn(
-          '[CommonAudio] Audio playback failed, falling back to TTS',
-          error,
-        );
-      }
-    }
-
-    const normalizedText = text?.trim();
-    if (!normalizedText) {
-      return false;
-    }
-
-    try {
-      // Text is only spoken when no playable audio URL is available.
-      await TextToSpeech.speak({
-        text: normalizedText,
-        lang: Util.resolveTtsLanguage(languageCode),
-        rate,
-        pitch,
-        volume,
-        category: 'ambient',
-      });
-      return true;
-    } catch (error) {
-      logger.error('[CommonAudio] TTS playback failed', error);
-      return false;
     }
   }
 

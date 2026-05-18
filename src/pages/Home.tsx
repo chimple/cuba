@@ -1,4 +1,4 @@
-import { IonPage, IonHeader } from '@ionic/react';
+import { IonPage, IonHeader, useIonViewWillEnter } from '@ionic/react';
 import { FC, useEffect, useState } from 'react';
 import {
   HOMEHEADERLIST,
@@ -129,17 +129,21 @@ const Home: FC = () => {
     const studentDetails = student;
     let parent;
     (async () => {
+      let updatedStudentDetails = { ...studentDetails };
       // Get Parent Info
-      if (!(studentDetails as any).parent_id) {
+      if (!(updatedStudentDetails as any).parent_id) {
         parent = await ServiceConfig.getI()?.authHandler.getCurrentUser();
-        (studentDetails as any).parent_id = parent?.id;
+        (updatedStudentDetails as any).parent_id = parent?.id;
       }
 
       // Get Device Info
       const device = await Util.logDeviceInfo();
 
       // Initial Update with Student and Device info
-      updateLocalAttributes({ studentDetails, ...device });
+      updateLocalAttributes({
+        studentDetails: updatedStudentDetails,
+        ...device,
+      });
       setGbUpdated(true);
     })();
 

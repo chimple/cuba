@@ -16,6 +16,7 @@ import {
 } from '@supabase/supabase-js';
 import { APIMode, ServiceConfig } from '../ServiceConfig';
 import { SocialLogin } from '@capgo/capacitor-social-login';
+import { ensureSocialLoginInitialized } from './SocialLoginInit';
 import { Util } from '../../utility/util';
 import { schoolUtil } from '../../utility/schoolUtil';
 import { Capacitor } from '@capacitor/core';
@@ -26,6 +27,8 @@ import {
   setRoles,
 } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
+import { logAuthDebug } from '../../utility/authDebug';
+import { normalizeTcVersion } from '../../utility/termsAndConditions';
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -42,6 +45,12 @@ export class SupabaseAuth implements ServiceAuth {
       SupabaseAuth.i._supabaseDb = SupabaseApi.getInstance().supabase;
       SupabaseAuth.i._auth = SupabaseAuth.i._supabaseDb?.auth;
       SupabaseAuth?.i?._auth?.onAuthStateChange((event, session) => {
+        logAuthDebug('Supabase auth state changed.', {
+          source: 'SupabaseAuth.onAuthStateChange',
+          event,
+          has_session: !!session,
+          has_refresh_token: !!session?.refresh_token,
+        });
         if (event === 'TOKEN_REFRESHED') {
           if (session?.refresh_token)
             Util.addRefreshTokenToStore(session?.refresh_token);
@@ -54,6 +63,7 @@ export class SupabaseAuth implements ServiceAuth {
   async loginWithEmailAndPassword(
     email: string,
     password: string,
+    _tcAgreedVersion?: number,
   ): Promise<{
     user?: User;
     success: boolean;
@@ -127,6 +137,7 @@ export class SupabaseAuth implements ServiceAuth {
   async signInWithEmail(
     email: string,
     password: string,
+    _tcAgreedVersion?: number,
   ): Promise<{
     user?: User;
     success: boolean;
@@ -202,7 +213,7 @@ export class SupabaseAuth implements ServiceAuth {
     return true;
   }
 
-  async googleSign(): Promise<{
+  async googleSign(tcAgreedVersion?: number): Promise<{
     user?: User;
     success: boolean;
     isSpl: boolean;
@@ -214,6 +225,7 @@ export class SupabaseAuth implements ServiceAuth {
       const api = ServiceConfig.getI().apiHandler;
       let response;
       if (Capacitor.isNativePlatform()) {
+        await ensureSocialLoginInitialized();
         response = await SocialLogin.login({
           provider: 'google',
           options: {
@@ -264,7 +276,10 @@ export class SupabaseAuth implements ServiceAuth {
       if (!data.session)
         return { success: false, isSpl: false, userData: null };
 
-      const initResult = await this.initializeUserRecord(data.session);
+      const initResult = await this.initializeUserRecord(
+        data.session,
+        tcAgreedVersion,
+      );
       const userData = await api.getUserByDocId(data.user?.id ?? '');
       return {
         user: data.user,
@@ -289,9 +304,19 @@ export class SupabaseAuth implements ServiceAuth {
       if (user) this._currentUser = user;
       return this._currentUser;
     } else {
-      // await this.doRefreshSession();
+      logger.info('Refreshing session');
+      // Recover session on cold app reopen before deciding user is logged out.
+      await this.doRefreshSession();
       const authData = await this._auth?.getSession();
-      if (!authData || !authData.data.session?.user?.id) return;
+      if (!authData || !authData.data.session?.user?.id) {
+        logAuthDebug('Unable to resolve current user from session.', {
+          source: 'SupabaseAuth.getCurrentUser',
+          reason: 'missing_session_or_user_id',
+          has_auth_data: !!authData,
+          has_session: !!authData?.data?.session,
+        });
+        return;
+      }
       const session = authData.data.session;
 
       const api = ServiceConfig.getI().apiHandler;
@@ -316,6 +341,11 @@ export class SupabaseAuth implements ServiceAuth {
           return this._currentUser;
         }
         // If still fails, sign out
+        logAuthDebug('Signing out because user record initialization failed.', {
+          source: 'SupabaseAuth.getCurrentUser',
+          reason: 'user_record_missing_after_initialize',
+          user_id: session?.user?.id,
+        });
         this._auth?.signOut();
         return;
       }
@@ -323,7 +353,10 @@ export class SupabaseAuth implements ServiceAuth {
   }
   async doRefreshSession(): Promise<void> {
     if (!navigator.onLine) {
-      logger.info('Device is offline. Skipping session refresh.');
+      logAuthDebug('Skipping session refresh while device is offline.', {
+        source: 'SupabaseAuth.doRefreshSession',
+        reason: 'offline',
+      });
       return;
     }
     // Read refresh token from Redux (preferred) with localStorage fallback
@@ -340,10 +373,14 @@ export class SupabaseAuth implements ServiceAuth {
       const daysDiff = Math.floor(
         (now.getTime() - savedAt.getTime()) / (1000 * 60 * 60 * 24),
       );
-      if (daysDiff < 1) {
-        logger.info(
-          `Refresh token is only ${daysDiff} day(s) old. No need to refresh.`,
-        );
+      const currentSession = await this._auth?.getSession();
+      const hasActiveSession = !!currentSession?.data?.session?.access_token;
+      if (daysDiff < 1 && hasActiveSession) {
+        logAuthDebug('Skipping session refresh because token is still fresh.', {
+          source: 'SupabaseAuth.doRefreshSession',
+          reason: 'token_recent',
+          token_age_days: daysDiff,
+        });
         return;
       }
 
@@ -358,10 +395,18 @@ export class SupabaseAuth implements ServiceAuth {
           const { access_token, refresh_token } = data.session;
           this._auth?.setSession({ access_token, refresh_token });
           Util.addRefreshTokenToStore(refresh_token);
+          logAuthDebug('Session refresh completed successfully.', {
+            source: 'SupabaseAuth.doRefreshSession',
+            reason: 'refresh_success',
+          });
         }
       }
     } catch (error) {
       logger.error('Unexpected error while refreshing session:', error);
+      logAuthDebug('Session refresh failed, attempting school relogin.', {
+        source: 'SupabaseAuth.doRefreshSession',
+        reason: 'refresh_failed_try_school_relogin',
+      });
 
       try {
         await schoolUtil.trySchoolRelogin();
@@ -389,6 +434,10 @@ export class SupabaseAuth implements ServiceAuth {
         return !!reduxUser;
       } catch (e) {
         logger.error('Error accessing Redux store for auth state:', e);
+        logAuthDebug('Logging out because auth state access failed offline.', {
+          source: 'SupabaseAuth.isUserLoggedIn',
+          reason: 'redux_auth_state_read_failed',
+        });
         await this.logOut();
         return false;
       }
@@ -481,6 +530,7 @@ export class SupabaseAuth implements ServiceAuth {
   async proceedWithVerificationCode(
     phoneNumber: string,
     verificationCode: string,
+    tcAgreedVersion?: number,
   ): Promise<
     | {
         user: User | null;
@@ -493,6 +543,7 @@ export class SupabaseAuth implements ServiceAuth {
     try {
       if (!this._auth) return;
       const api = ServiceConfig.getI().apiHandler;
+      const agreedVersion = normalizeTcVersion(tcAgreedVersion);
 
       const { data: user, error } = await this._auth.verifyOtp({
         phone: phoneNumber,
@@ -526,6 +577,7 @@ export class SupabaseAuth implements ServiceAuth {
           image: null,
           is_deleted: false,
           is_tc_accepted: true,
+          tc_agreed_version: agreedVersion,
           language_id: null,
           // locale_id: null,
           locale_id: null,
@@ -577,23 +629,46 @@ export class SupabaseAuth implements ServiceAuth {
       if (isUserExist) await api.subscribeToClassTopic();
 
       const userData = await api.getUserByDocId(user.user?.id ?? '');
+      // OTP verification is considered successful only when we can fully resolve
+      // the app-level user record. Otherwise we treat it as a failure to avoid
+      // partial auth/sync state leaking into the session.
+      if (!userData || !userData.id) {
+        throw new Error(
+          'OTP verification flow failed to resolve app user data',
+        );
+      }
       return {
         user: user.user ?? null,
         isUserExist: !!isUserExist,
         isSpl,
         userData,
       };
-    } catch (_err) {
+    } catch (err) {
+      logger.error(
+        'OTP verification flow failed. Rolling back session to prevent partial login state.',
+        err,
+      );
+      try {
+        // Ensure any partially established auth/session state is fully cleared.
+        await this.logOut();
+      } catch (logoutErr) {
+        logger.error(
+          'Failed to rollback auth session after OTP failure',
+          logoutErr,
+        );
+      }
       return { user: null, isUserExist: false, isSpl: false, userData: null };
     }
   }
 
   private async initializeUserRecord(
     session: Session,
+    tcAgreedVersion?: number,
   ): Promise<{ user: TableTypes<'user'>; isSpl: boolean } | null> {
     try {
       if (!this._supabaseDb || !session.user) return null;
       let api = ServiceConfig.getI().apiHandler;
+      const agreedVersion = normalizeTcVersion(tcAgreedVersion);
       const user = session.user;
       const email = user.email;
       const id = user.id;
@@ -624,6 +699,7 @@ export class SupabaseAuth implements ServiceAuth {
           image: avatarUrl,
           is_deleted: false,
           is_tc_accepted: true,
+          tc_agreed_version: agreedVersion,
           language_id: null,
           // locale_id: null,
           locale_id: null,
@@ -705,6 +781,11 @@ export class SupabaseAuth implements ServiceAuth {
   }
 
   async logOut(): Promise<void> {
+    logAuthDebug('Executing auth logout.', {
+      source: 'SupabaseAuth.logOut',
+      reason: 'explicit_or_upstream_logout',
+      has_current_user: !!this._currentUser,
+    });
     await this._auth?.signOut();
     // Clear redux store items related to auth and user data
     store.dispatch(logout());

@@ -3,7 +3,10 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
-import { mockAuthHandler } from './tests/__mocks__/serviceConfigMock';
+import {
+  mockApiHandler,
+  mockAuthHandler,
+} from './tests/__mocks__/serviceConfigMock';
 
 jest.mock('@testing-library/react', () => {
   const originalModule = jest.requireActual('@testing-library/react');
@@ -63,12 +66,12 @@ Object.defineProperty(window, 'matchMedia', {
 jest.mock('./services/ServiceConfig', () => ({
   ServiceConfig: {
     getI: () => ({
-      apiHandler: {},
+      apiHandler: mockApiHandler,
       authHandler: mockAuthHandler,
       switchMode: jest.fn(),
     }),
     getInstance: () => ({
-      apiHandler: {},
+      apiHandler: mockApiHandler,
       authHandler: mockAuthHandler,
     }),
   },
@@ -113,6 +116,16 @@ jest.mock('./workers/backgroundWorkerClient', () => {
           return { sheetNames: [], sheets: {} };
         case 'BUILD_XLSX_FILE':
           return { fileBuffer: new ArrayBuffer(0) };
+        case 'DOWNLOAD_STICKER_BOOK_SVG': {
+          const response = await fetch(payload?.url ?? '');
+          return {
+            svgText: await response.text(),
+          };
+        }
+        case 'DOWNLOAD_REMOTE_AUDIO':
+          return {
+            base64Data: 'd29ya2VyQXVkaW8=',
+          };
         default:
           return {};
       }

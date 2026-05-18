@@ -102,6 +102,23 @@ export type SchoolProgramAccessResponse = {
   total_pages: number;
 };
 
+export type OpsStudentPerformanceBandsParams = {
+  classIds?: string[];
+  studentIds?: string[];
+};
+
+export type OpsStudentPerformanceBandRow = {
+  student_id: string;
+  class_id: string | null;
+  performance?: string | null;
+};
+
+export type JoinClassInviteLookupResult = {
+  inviteData: any;
+  classData?: TableTypes<'class'>;
+  schoolData?: TableTypes<'school'>;
+};
+
 type OpsRequestsResponse = {
   data: Array<TableTypes<'ops_requests'> | Record<string, Json>>;
   total: number;
@@ -167,6 +184,7 @@ export interface ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>>;
   /**
    * Creates a new school and returns the created school object.
@@ -338,6 +356,7 @@ export interface ServiceApi {
     classId: string,
     role: string,
     studentId: string,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>>;
 
   updateClassCourseSelection(
@@ -409,6 +428,11 @@ export interface ServiceApi {
    */
   getGradeById(id: string): Promise<TableTypes<'grade'> | undefined>;
   /**
+   * @param name - The exact name of the grade.
+   * @returns {TableTypes<"grade">} or `undefined` if it could not find the grade with given `name`
+   */
+  getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined>;
+  /**
    * @param ids - IDs of the grades.
    * @returns {TableTypes<"grade">} or `[]` if it could not find the grade with given `ids`
    */
@@ -458,6 +482,7 @@ export interface ServiceApi {
   updateMusicFlag(userId: string, value: boolean): Promise<void>;
   updateLanguage(userId: string, value: string): Promise<void>;
   updateTcAccept(userId: string): Promise<void>;
+  updateTcAgreedVersion(userId: string, version: number): Promise<void>;
   updateFcmToken(userId: string): Promise<void>;
 
   /**
@@ -832,6 +857,19 @@ export interface ServiceApi {
     userId: string,
     options?: { page?: number; page_size?: number; search?: string },
   ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]>;
+  /**
+   * Gets schools for a user by a search term from backend search API.
+   * Intended for server-side search use-cases where matching schools may not
+   * be available in the currently paginated client list.
+   *
+   * @param {string} userId - User's unique ID
+   * @param {string} searchTerm - Search text to match school names
+   * @returns {Promise<{ school: TableTypes<"school">; role: RoleType }[]>}
+   */
+  getSchoolsForUserBySearchTerm?(
+    userId: string,
+    searchTerm: string,
+  ): Promise<{ school: TableTypes<'school'>; role: RoleType }[]>;
 
   /**
    * Get a user's role for a given school.
@@ -887,6 +925,29 @@ export interface ServiceApi {
    * @returns A promise that resolves to the data.
    */
   getDataByInviteCode(inviteCode: number): Promise<any>;
+
+  /**
+   * This function gets invite, class, and school data by invite code
+   * for the join-class flow without changing the legacy lookup method.
+   *
+   * @param {number} inviteCode The invite code.
+   * @returns A promise that resolves to the invite, class, and school data.
+   */
+  getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult>;
+
+  /**
+   * Stores join-class school and class data directly in the local database.
+   * Non-SQLite implementations can safely no-op.
+   *
+   * @param classData The class data fetched during invite lookup.
+   * @param schoolData The school data fetched during invite lookup.
+   */
+  storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void>;
 
   /**
    * This function links a student to a class.
@@ -1108,6 +1169,10 @@ export interface ServiceApi {
    */
   getUserSticker(userId: string): Promise<TableTypes<'user_sticker'>[]>;
 
+  getUserStickerBook(
+    userId: string,
+  ): Promise<TableTypes<'user_sticker_book'>[]>;
+
   /**
    * Retrieves all bonuses associated with a specified user.
    * @param userId The unique identifier of the user whose bonuses are to be retrieved.
@@ -1125,6 +1190,13 @@ export interface ServiceApi {
    * Note: If the user has no badges, the returned Promise resolves to an empty array.
    */
   getUserBadge(userId: string): Promise<TableTypes<'user_badge'>[]>;
+
+  /**
+   * Marks all user stickers as seen.
+   * @param userId - The ID of the user whose stickers should be marked as seen.
+   * @returns A Promise that resolves with void when the update is complete.
+   */
+  markStciekercolledasTrue(userId: string): Promise<void>;
 
   /**
    * Updates the rewards of a student, marking all rewards as seen.
@@ -1212,6 +1284,8 @@ export interface ServiceApi {
     refreshTables: TABLES[],
     isFirstSync?: boolean,
   ): Promise<boolean>;
+
+  isSyncInProgress(): boolean;
 
   /**
    * Function to get Recommended Lessons.
@@ -1311,6 +1385,8 @@ export interface ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>>;
   /**
    * Updates a class name for given classId
@@ -1513,6 +1589,10 @@ export interface ServiceApi {
     studentId: string,
     classId: string,
   ): Promise<{ hasPlayed: boolean; lastPlayedAt?: string }>;
+
+  getOpsStudentPerformanceBands?(
+    params: OpsStudentPerformanceBandsParams,
+  ): Promise<OpsStudentPerformanceBandRow[]>;
 
   /**
    * Get the Lessons with LessonIds
@@ -1833,6 +1913,13 @@ export interface ServiceApi {
     programManagerPhone: string,
     fieldCoordinatorPhone?: string,
   ): Promise<{ status: string; errors?: string[] }>;
+  validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }>;
+  validateWhatsappGroupLink(
+    whatsappBotNumber: string,
+    whatsappGroupLink: string,
+  ): Promise<{ status: string; errors?: string[] }>;
   /**
    * setting a stars for the student
    * @param {string } studentId - student id
@@ -2018,7 +2105,12 @@ export interface ServiceApi {
     programDetails: { id: string; label: string; value: string }[];
     locationDetails: { id: string; label: string; value: string }[];
     partnerDetails: { id: string; label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programManagers: {
+      name: string;
+      role: string;
+      phone: string;
+      email: string;
+    }[];
   } | null>;
 
   /**
@@ -2029,6 +2121,12 @@ export interface ServiceApi {
    *
    * @returns Promise resolving to an object where keys are filter categories
    * and values are arrays of filter option strings.
+   */
+  /**
+   * Fetch distinct filter values for the school listing from the same data
+   * source used by the listing rows.
+   *
+   * @returns Distinct filter options grouped by school listing filter key.
    */
   getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
 
@@ -2048,9 +2146,15 @@ export interface ServiceApi {
   /**
    * Fetch a list of schools filtered by given criteria, with pagination, sorting, and search.
    *
-   * @param params - An object containing filters (keys as categories and values as selected options),
-   *   an optional programId, pagination, sorting, and search options.
-   * @returns Promise resolving to an object with the filtered list of schools and the total count.
+   * @param params.filters Optional multi-select filters keyed by listing category.
+   * @param params.programId Optional program scope for the listing.
+   * @param params.page Page number for the paginated result set.
+   * @param params.page_size Number of rows requested per page.
+   * @param params.order_by Requested sort column from the UI.
+   * @param params.order_dir Requested sort direction.
+   * @param params.search Free-text search term applied to school name and UDISE.
+   * @param params.date_range Metric window chosen from the school-list dropdown.
+   * @returns Promise resolving to the filtered rows and the exact total count.
    */
   getFilteredSchoolsForSchoolListing(params: {
     filters?: Record<string, string[]>;
@@ -2060,6 +2164,34 @@ export interface ServiceApi {
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
+    date_range?: string;
+  }): Promise<{
+    data: FilteredSchoolsForSchoolListingOps[];
+    total: number;
+  }>;
+
+  /**
+   * Fetch school listing rows directly from school_metrics.
+   *
+   * @param params.filters Optional multi-select filters keyed by listing category.
+   * @param params.programId Optional program scope for the listing.
+   * @param params.page Page number for the paginated result set.
+   * @param params.page_size Number of rows requested per page.
+   * @param params.order_by Requested sort column from the UI.
+   * @param params.order_dir Requested sort direction.
+   * @param params.search Free-text search term applied to school name and UDISE.
+   * @param params.date_range Metric window chosen from the school-list dropdown.
+   * @returns Promise resolving to the filtered rows and the exact total count.
+   */
+  getSchoolMetricsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
@@ -2099,12 +2231,14 @@ export interface ServiceApi {
    * @param {string} schoolId - The ID of the school to fetch.
    * @param {number} [page=1] - The page number to fetch.
    * @param {number} [limit=20] - The number of items per page.
+   * @param {string[]} [classIds] - Optional class scope for program-filtered tabs.
    * @returns Promise resolving to an object with teacher data and a total count.
    */
   getTeacherInfoBySchoolId(
     schoolId: string,
     page: number,
     limit: number,
+    classIds?: string[],
   ): Promise<TeacherAPIResponse>;
 
   /**
@@ -2113,6 +2247,7 @@ export interface ServiceApi {
    * @param {number} [page=1] - The page number to fetch.
    * @param {number} [limit=20] - The number of items per page.
    * @param {string} classId -The Id of the class
+   * @param {string[]} [classIds] - Optional class scope for program-filtered tabs.
    * @returns Promise resolving to an object with student data and a total count.
    */
   getStudentInfoBySchoolId(
@@ -2120,6 +2255,7 @@ export interface ServiceApi {
     page: number,
     limit: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse>;
 
   /**
@@ -2212,6 +2348,7 @@ export interface ServiceApi {
    */
   createAutoProfile(
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>>;
 
   /**
@@ -2332,9 +2469,12 @@ export interface ServiceApi {
    * @param {string} udiseCode - UDISE code of the school.
    * @returns {Promise<{ studentLoginType: schoolModel: string } | null>}
    */
-  getSchoolDetailsByUdise(
-    udiseCode: string,
-  ): Promise<{ studentLoginType: string; schoolModel: string } | null>;
+  getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
+    studentLoginType: string;
+    schoolModel: string;
+    whatsappBotNumber?: string;
+  } | null>;
 
   /**
    * Fetch SchoolData by UDISE code.
@@ -2389,12 +2529,14 @@ export interface ServiceApi {
 
   /**
    * Search teachers in a school by name, email, or phone (paginated)
+   * @param classIds Optional class scope for program-filtered tabs.
    */
   searchTeachersInSchool(
     schoolId: string,
     searchTerm: string,
     page?: number,
     limit?: number,
+    classIds?: string[],
   ): Promise<{ data: any[]; total: number }>;
 
   /**
@@ -2403,6 +2545,7 @@ export interface ServiceApi {
    * @param searchTerm Search string
    * @param page Page number
    * @param limit Page size
+   * @param classIds Optional class scope for program-filtered tabs.
    */
   searchStudentsInSchool(
     schoolId: string,
@@ -2410,6 +2553,7 @@ export interface ServiceApi {
     page?: number,
     limit?: number,
     classId?: string,
+    classIds?: string[],
   ): Promise<StudentAPIResponse>;
 
   approveOpsRequest(
@@ -2751,11 +2895,13 @@ export interface ServiceApi {
   getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<'user'>,
+    courseId?: string,
   ): Promise<TableTypes<'subject_lesson'> | null>;
 
   getSkillById(skillId: string): Promise<TableTypes<'skill'> | undefined>;
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
+  computeSchoolMetricsForSchool(schoolId: string): Promise<boolean>;
   getLatestAssessmentGroup(
     classId: string,
     student: TableTypes<'user'>,
@@ -2812,11 +2958,12 @@ export interface ServiceApi {
   getGroupIdByInvite(invite_link: string, bot: string): Promise<Json>;
 
   /**
-   * Fetch phone/botNum details using bot num.
-   * @param {string} bot - The WhatsApp bot phone number.
+   * Fetch phone/botNum details, optionally scoped by WhatsApp group id.
+   * @param {string} bot - The WhatsApp bot phone number (used for fallback path).
+   * @param {string | null} groupId - Optional WhatsApp group id for Maytapi group-based checks.
    * @returns Promise resolving to the phoneNum details
    */
-  getPhoneDetailsByBotNum(bot: string): Promise<Json>;
+  getPhoneDetailsByBotNum(bot?: string, groupId?: string | null): Promise<Json>;
   /**
    * Updates WhatsApp group settings such as name, admin-only permissions, etc.
    *

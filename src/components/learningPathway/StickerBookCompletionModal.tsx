@@ -3,6 +3,7 @@ import './StickerBookCompletionModal.css';
 import '../stickerBook/StickerBookActions.css';
 import StickerBookCompletionFooter from './StickerBookCompletionFooter';
 import { t } from 'i18next';
+import AudioButton from '../common/AudioButton';
 
 interface Props {
   svgMarkup: string | null;
@@ -10,6 +11,7 @@ interface Props {
   bookSvgRef: React.MutableRefObject<SVGSVGElement | null>;
   onClose: () => void;
   onBackdropClose?: () => void;
+  onReplayAudio?: () => void;
   onSave: () => void;
   onPaint: () => void;
 }
@@ -20,6 +22,7 @@ export default function StickerBookCompletionModal({
   bookSvgRef,
   onClose,
   onBackdropClose,
+  onReplayAudio = () => {},
   onSave,
   onPaint,
 }: Props) {
@@ -45,6 +48,15 @@ export default function StickerBookCompletionModal({
         onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
       >
         <div className="StickerBookCompletionModal-container">
+          <div className="StickerBookCompletionModal-audio-button">
+            <AudioButton
+              className="StickerBookCompletionModal-audio-button-control"
+              backgroundColor="#ffffff"
+              onClick={onReplayAudio}
+              ariaLabel={t('Replay audio') || 'Replay audio'}
+              size="3rem"
+            />
+          </div>
           <button
             className="StickerBookCompletionModal-close"
             onClick={onClose}

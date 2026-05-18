@@ -7,6 +7,7 @@ import { Capacitor } from '@capacitor/core';
 import { useFeatureValue, useFeatureIsOn } from '@growthbook/growthbook-react';
 import { ServiceConfig } from '../services/ServiceConfig';
 import Loading from '../components/Loading';
+import { logAuthDebug } from '../utility/authDebug';
 
 const HotUpdate: FC<{}> = () => {
   const history = useHistory();
@@ -50,6 +51,12 @@ const HotUpdate: FC<{}> = () => {
     const appLang = localStorage.getItem(LANGUAGE);
 
     if (appLang == undefined) {
+      logAuthDebug('Navigating to login from hot update entry point.', {
+        source: 'HotUpdate.push',
+        reason: 'language_not_set',
+        from_page: window.location.pathname,
+        to_page: PAGES.LOGIN,
+      });
       history.replace(PAGES.LOGIN);
     } else {
       history.replace(PAGES.SELECT_MODE);

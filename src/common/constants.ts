@@ -6,6 +6,8 @@ import SelectIconImage from '../teachers-module/assets/icons/all_subject_icon.pn
 
 export const DEFAULT_LOCALE_ID = '6854a7ef-dcd3-4362-8488-0e8de869aacf'; //this is the default locale id for india
 export const DEFAULT_LANGUAGE_ID_EN = '7eaf3509-e44e-460f-80a1-7f6a13a8a883'; //this is the default language id for english
+export const STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON =
+  'acknowledge_button';
 
 export enum COURSES {
   SIERRA_LEONE_ENGLISH = 'sl-en',
@@ -13,6 +15,11 @@ export enum COURSES {
   PUZZLE = 'puzzle',
   ENGLISH = 'en',
   MATHS = 'maths',
+  MATHS_HINDI = 'maths-hi',
+  MATHS_KANNADA = 'maths-kn',
+  KANNADA = 'kn',
+  HINDI = 'hi',
+  MARATHI = 'mr',
 }
 export enum CocosCourseIdentifier {
   maths = 'maths',
@@ -65,6 +72,7 @@ export enum TABLES {
   ProgramUser = 'program_user',
   SchoolCourse = 'school_course',
   SchoolUser = 'school_user',
+  SchoolMetrics = 'school_metrics',
   UserBadge = 'user_badge',
   UserBonus = 'user_bonus',
   UserCourse = 'user_course',
@@ -110,6 +118,18 @@ export enum SL_GRADES {
   GRADE1 = 'Grade 1',
   GRADE2 = 'Grade 2',
 }
+
+export const LOWER_GRADE_STANDARDS = {
+  NURSERY: 'NURSERY',
+  LKG: 'LKG',
+  UKG: 'UKG',
+} as const;
+
+export const LOWER_GRADE_MAPPING = {
+  [LOWER_GRADE_STANDARDS.NURSERY]: 'Preschool 1',
+  [LOWER_GRADE_STANDARDS.LKG]: 'Preschool 2',
+  [LOWER_GRADE_STANDARDS.UKG]: 'Preschool 3',
+} as const;
 
 export enum PROGRAM_TAB {
   ALL = 'all',
@@ -439,6 +459,7 @@ export enum PAGES {
   DISPLAY_SUBJECTS = '/display-subjects',
   DISPLAY_CHAPTERS = '/display-chapters',
   DISPLAY_SCHOOLS = '/display-schools',
+  KIDS_APP_LOCATION = '/kids-app-location',
   DISPLAY_CLASSES = '/display-classes',
   DASHBOARD_DETAILS = '/dashboard-details',
   HOME_PAGE = '/home-page',
@@ -601,6 +622,8 @@ export const WHATSAPP_GROUP_STATUS_KEYS = {
   IN_GROUP: 'IN_GROUP',
   NOT_IN_GROUP: 'NOT_IN_GROUP',
   NOT_ON_WHATSAPP: 'NOT_ON_WHATSAPP',
+  ON_WHATSAPP: 'ON_WHATSAPP',
+  NOT_AVAILABLE: 'NOT_AVAILABLE',
   NOT_CHECKED: 'NOT_CHECKED',
 } as const;
 
@@ -608,6 +631,8 @@ export const WHATSAPP_GROUP_STATUS = {
   IN_GROUP: 'In Group',
   NOT_IN_GROUP: 'Not in Group',
   NOT_ON_WHATSAPP: 'Not on Whatsapp',
+  ON_WHATSAPP: 'On WhatsApp',
+  NOT_AVAILABLE: 'Not Available',
   NOT_CHECKED: 'Not Checked',
 };
 
@@ -619,9 +644,29 @@ export interface SchoolWithRole {
   role: RoleType;
 }
 export interface FilteredSchoolsForSchoolListingOps {
+  school_id?: string;
+  metric_window?: string | null;
   school_name: string;
+  school_performance?: string | null;
+  state?: string | null;
+  district?: string | null;
+  block?: string | null;
+  cluster?: string | null;
+  udise?: string | null;
+  program_id?: string | null;
+  program_name?: string | null;
+  partners?: string[] | null;
+  total_teachers?: number | null;
   num_students: number;
   num_teachers: number;
+  onboarded_students?: number | null;
+  activated_students?: number | null;
+  active_students?: number | null;
+  avg_time_spent?: number | null;
+  active_teachers?: number | null;
+  activities_assigned?: number | null;
+  avg_assignments_completed?: number | null;
+  avg_activities_completed?: number | null;
   program_managers: string[];
   field_coordinators: string[];
 }
@@ -685,9 +730,12 @@ export const STARS_COUNT = 'starsCount';
 export const LATEST_STARS = (studentId: string) => `latestStar_${studentId}`;
 export const IS_OPS_USER = 'isOpsUser';
 export const EDIT_STUDENTS_MAP = 'editStudentsMap';
+export const CURRENT_STUDENT_CHANGED_EVENT = 'currentStudentChanged';
 export const SHOW_GENERIC_POPUP = 'SHOW_GENERIC_POPUP';
 export const GENERIC_POPUP_INTERNAL_NAVIGATION = 'POPUP_INTERNAL_NAVIGATION';
 export const GENERIC_POP_UP = 'generic-pop-up';
+export const TC_HTML_URL = 'tc_html_url';
+export const LATEST_TC_VERSION = 'latest_tc_version';
 export enum GENERIC_POPUP_TRIGGER_CONDITION {
   APP_OPEN = 'APP_OPEN',
   GAME_COMPLETE = 'GAME_COMPLETE',
@@ -850,6 +898,8 @@ export const INSTANT_SEARCH_INDEX_NAME =
 export enum MODES {
   PARENT = 'PARENT',
   SCHOOL = 'SCHOOL',
+  TEACHER_HOME = 'TEACHER_HOME',
+  TEACHER_SCHOOL = 'TEACHER_SCHOOL',
   TEACHER = 'TEACHER',
   OPS_CONSOLE = 'OPS_CONSOLE',
 }
@@ -926,14 +976,41 @@ export enum EVENTS {
   STICKER_DRAG_POINTER_SHOWN = 'sticker_drag_pointer_shown',
   STICKER_DRAG_CONFETTI_SHOWN = 'sticker_drag_confetti_shown',
   STICKER_DRAG_POPUP_TO_PROFILE = 'sticker_drag_popup_to_profile',
-  STICKER_BOOK_COMPLETION_POPUP_OPENED = 'sticker_book_completion_popup_opened',
-  STICKER_BOOK_COMPLETION_POPUP_CLOSE_CLICKED = 'sticker_book_completion_popup_close_clicked',
-  STICKER_BOOK_COMPLETION_POPUP_SAVE_CLICKED = 'sticker_book_completion_popup_save_clicked',
-  STICKER_BOOK_COMPLETION_POPUP_PAINT_CLICKED = 'sticker_book_completion_popup_paint_clicked',
+  STICKER_BOOK_COMPLETION_POPUP_OPEN = 'sticker_book_completion_popup_open',
+  STICKER_BOOK_COMPLETION_POPUP_CLOSE = 'sticker_book_completion_popup_close',
+  STICKER_BOOK_COMPLETION_POPUP_SAVE = 'sticker_book_completion_popup_save',
+  STICKER_BOOK_COMPLETION_POPUP_PAINT = 'sticker_book_completion_popup_paint',
   STICKER_BOOK_SAVE_CLICKED = 'sticker_book_save_clicked',
   STICKER_BOOK_IMAGE_SAVED = 'sticker_book_image_saved',
   STICKER_BOOK_IMAGE_SHARED = 'sticker_book_image_shared',
+  TC_POPUP_VIEWED = 'tc_popup_viewed',
+  TC_AGREED = 'tc_agreed',
+  SWITCH_TO_KIDS_APP_CLICKED = 'switch_to_kids_app_clicked',
+  KIDS_APP_LOCATION_SELECTED = 'kids_app_location_selected',
+  CLASS_TAB_CLASS_CHANGED = 'class_tab_class_changed',
+  PROFILE_CREATION_CLICKED = 'profile_creation_clicked',
+  PROFILE_CARD_ACTION_CLICKED = 'profile_card_action_clicked',
+  PROFILE_DELETION_CONFIRMED = 'profile_deletion_confirmed',
+  PROFILE_DELETION_CANCELLED = 'profile_deletion_cancelled',
+  TEACHER_AUTH_GATE_VIEWED = 'teacher_auth_gate_viewed',
+  TEACHER_AUTH_GATE_ATTEMPTED = 'teacher_auth_gate_attempted',
 }
+
+export const KIDS_APP_LOCATION_SELECTIONS = {
+  HOME: 'home',
+  SCHOOL: 'school',
+} as const;
+
+export type KidsAppLocationSelection =
+  (typeof KIDS_APP_LOCATION_SELECTIONS)[keyof typeof KIDS_APP_LOCATION_SELECTIONS];
+
+export const TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS = {
+  SWITCH_PROFILE_BACK_BUTTON: 'switch_profile_back_button',
+  PARENT_SETTINGS_TAB: 'parent_settings_tab',
+} as const;
+
+export type TeacherAuthGateSourceEntryPoint =
+  (typeof TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS)[keyof typeof TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS];
 
 export const FCM_TOKENS = 'fcmTokens';
 export const IS_CONECTED = 'is_conected';
@@ -967,7 +1044,7 @@ export const CAMPAIGN_SEQUENCE_FINISHED = 'CAMPAIGN_SEQUENCE_FINISHED';
 export const LIDO_COMMON_AUDIO_DIR = 'Lido-CommonAudios';
 export const LIDO_COMMON_AUDIO_LANG_KEY = 'lido_common_audio_language';
 export const HOT_UPDATE_STATE_KEY = 'hotUpdateState';
-
+export const PAL_LEARNING_RATES_CONFIG = 'pal_learning_rates_config';
 export type LeaderboardBadge = {
   id: string;
   seen: boolean;
@@ -1078,6 +1155,7 @@ export const ALL_SUBJECT = {
 };
 export const CAN_ACCESS_REMOTE_ASSETS = 'can_access_remote_assets';
 export const HOMEWORK_REMOTE_ASSETS_ENABLED = 'homework_remote_assets_enabled';
+export const HOME_HEADER_SPECIALS_ENABLED = 'home-header-specials-enabled';
 export const STICKER_BOOK_PREVIEW_ENABLED = 'sticker-book-preview-enabled';
 export const STICKER_BOOK_CELEBRATION_POPUP_ENABLED =
   'sticker-book-celebration-popup-enabled';
@@ -1093,8 +1171,15 @@ export const HOMEWORK_PATHWAY = 'homework_pathway';
 export const AUTO_OPEN_STICKER_PREVIEW_KEY = 'auto_open_sticker_preview';
 export const AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY =
   'auto_open_sticker_completion_popup';
+export const PENDING_PATHWAY_STICKER_REWARD_KEY =
+  'pending_pathway_sticker_reward';
+export const PENDING_FINAL_HOMEWORK_COMPLETE_AFTER_STICKER_FLOW_KEY =
+  'pending_final_homework_complete_after_sticker_flow';
 export const STICKER_BOOK_COMPLETION_READY_EVENT =
   'sticker_book_completion_ready';
+export const PATHWAY_REWARD_CELEBRATION_STARTED_EVENT =
+  'pathway_reward_celebration_started';
+export const PATHWAY_REWARD_AUDIO_READY_EVENT = 'pathway_reward_audio_ready';
 export const ENABLE_PAINT_MODE = 'enable-paint-mode';
 export const CHIMPLE_ENGLISH = '63e40488-3c1a-47ab-aa8a-6f07ad21709f';
 export const CHIMPLE_MATHS = '9d2474bd-b9c6-43ea-8415-242668807ba0';
@@ -1140,6 +1225,7 @@ export const ROLE_PRIORITY: Record<string, number> = {
   operational_director: 2,
   program_manager: 3,
   field_coordinator: 4,
+  external_user: 5,
 };
 
 export enum AssignmentSource {
@@ -1186,6 +1272,17 @@ export interface CoordinatorAPIResponse {
   total: number;
 }
 export const CHIMPLE_RIVE_STATE_MACHINE_MAX = 'chimple_rive_state_machine_max';
+// Shared mascot Rive state machine/input identifiers.
+export const CHIMPLE_MASCOT_STATE_MACHINE_HOMEWORK_COMPLETE = 'State Machine 1';
+export const CHIMPLE_MASCOT_STATE_MACHINE_CELEBRATE = 'State Machine 2';
+export const CHIMPLE_MASCOT_STATE_MACHINE_NORMAL = 'State Machine 3';
+export const CHIMPLE_MASCOT_STATE_MACHINE_REWARD = 'State Machine 4';
+export const CHIMPLE_MASCOT_INPUT_CELEBRATE = 'Number 1';
+export const CHIMPLE_MASCOT_INPUT_NORMAL = 'Number 2';
+export const CHIMPLE_MASCOT_INPUT_REWARD = 'Number 3';
+export const CHIMPLE_MASCOT_ANIMATION_IDLE = 'id';
+export const CHIMPLE_MASCOT_ANIMATION_WAVY = 'wavy';
+export const CHIMPLE_MASCOT_ANIMATION_WIN = 'win';
 
 export interface GeoDataParams {
   p_country?: string;
@@ -1248,6 +1345,7 @@ export const OPS_ROLES = [
   RoleType.OPERATIONAL_DIRECTOR,
   RoleType.PROGRAM_MANAGER,
   RoleType.FIELD_COORDINATOR,
+  RoleType.EXTERNAL_USER,
 ];
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
 export const VERSION_KEY = 'last_native_version';
@@ -1257,6 +1355,27 @@ export enum SupportLevelMap {
   'Need Help' = 'need_help',
   'Not Tracked' = 'not_tracked',
 }
+
+export enum OpsSupportLevelMap {
+  'High Engagement' = 'doing_good',
+  'Medium Engagement' = 'still_learning',
+  'Not Active' = 'need_help',
+  'Not Downloaded' = 'not_tracked',
+}
+
+export const OPS_PERFORMANCE_BANDS = {
+  HIGH: 'High Engagement',
+  MEDIUM: 'Medium Engagement',
+  NOT_ACTIVE: 'Not Active',
+  NOT_DOWNLOADED: 'Not Downloaded',
+} as const;
+
+export const STUDENT_PERFORMANCE_BAND_KEYS = {
+  GREEN: 'green_band',
+  YELLOW: 'yellow_band',
+  RED: 'red_band',
+  GREY: 'grey_band',
+} as const;
 
 export enum RECOMMENDATION_TYPE {
   FRAMEWORK = 'framework',
@@ -1376,10 +1495,19 @@ export enum RESULT_STATUS {
   USER_EXIT = 'user_exit',
   SYSTEM_EXIT = 'system_exit',
 }
-// Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from session storage to solve sqlite updates late issue.
+// Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from localStorage to survive app relaunch.
 export const LATEST_LEARNING_PATH = 'latest_learning_path';
 export const ENABLE_STICKER_BOOK = 'enable-sticker-book';
 export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
   'sticker-book-notification-dot-enabled';
 export const ENABLE_SAVE_AND_SHARE_STICKER_BOOK =
   'enable_save_and_share_sticker_book';
+export const SCHOOL_LISTING_STATUS_META: Record<
+  string,
+  { bg: string; color: string }
+> = {
+  'Performing Well': { bg: '#D1FAE5', color: '#2BA980' },
+  'Needs Attention': { bg: '#FEF3C7', color: '#E7A54E' },
+  'Needs Support': { bg: '#FCE8E6', color: '#D35451' },
+  default: { bg: '#EEF2F6', color: '#5B6472' },
+};

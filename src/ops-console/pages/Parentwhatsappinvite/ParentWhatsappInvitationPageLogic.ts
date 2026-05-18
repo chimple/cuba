@@ -188,8 +188,11 @@ export type ParentWhatsappInvitationPageLogic = {
   isLoadingReport: boolean;
   phoneInput: string;
   setPhoneInput: React.Dispatch<React.SetStateAction<string>>;
-  whatsappPhoneLimit: number;
+  whatsappPhoneLimit: string;
+  isWhatsappPhoneLimitInvalid: boolean;
   handleWhatsappPhoneLimitChange: (rawValue: string) => void;
+  handleWhatsappPhoneLimitFocus: () => void;
+  handleWhatsappPhoneLimitBlur: () => void;
   templateName: string;
   setTemplateName: React.Dispatch<React.SetStateAction<string>>;
   templateLang: string;
@@ -242,8 +245,12 @@ export const useParentWhatsappInvitationPageLogic =
 
     const [phoneInput, setPhoneInput] = useState('');
     const [whatsappPhoneLimit, setWhatsappPhoneLimit] = useState(
-      DEFAULT_WHATSAPP_PHONE_LIMIT,
+      String(DEFAULT_WHATSAPP_PHONE_LIMIT),
     );
+    const [isWhatsappPhoneLimitTouched, setIsWhatsappPhoneLimitTouched] =
+      useState(false);
+    const [isWhatsappPhoneLimitFocused, setIsWhatsappPhoneLimitFocused] =
+      useState(false);
     const [templateName, setTemplateName] = useState('');
     const [templateLang, setTemplateLang] = useState('');
     const [messageType, setMessageType] = useState<'utility' | 'marketing'>(
@@ -265,6 +272,15 @@ export const useParentWhatsappInvitationPageLogic =
     useEffect(() => {
       setManualValidation(parseIndianPhoneInput(phoneInput));
     }, [phoneInput]);
+    const parsedWhatsappPhoneLimit = Number.parseInt(whatsappPhoneLimit, 10);
+    const isWhatsappPhoneLimitValueInvalid =
+      !whatsappPhoneLimit.trim() ||
+      !Number.isFinite(parsedWhatsappPhoneLimit) ||
+      parsedWhatsappPhoneLimit < MIN_WHATSAPP_PHONE_LIMIT;
+    const isWhatsappPhoneLimitInvalid =
+      isWhatsappPhoneLimitTouched &&
+      !isWhatsappPhoneLimitFocused &&
+      isWhatsappPhoneLimitValueInvalid;
 
     const handleAnalyze = async (): Promise<void> => {
       const parsedUdiseCodes = udiseInput
@@ -414,8 +430,16 @@ export const useParentWhatsappInvitationPageLogic =
     };
 
     const handleWhatsappPhoneLimitChange = (rawValue: string): void => {
-      const parsedLimit = Number.parseInt(rawValue, 10);
-      setWhatsappPhoneLimit(normalizeWhatsappPhoneLimit(parsedLimit));
+      setWhatsappPhoneLimit(rawValue);
+    };
+
+    const handleWhatsappPhoneLimitFocus = (): void => {
+      setIsWhatsappPhoneLimitFocused(true);
+    };
+
+    const handleWhatsappPhoneLimitBlur = (): void => {
+      setIsWhatsappPhoneLimitFocused(false);
+      setIsWhatsappPhoneLimitTouched(true);
     };
 
     const handleSendWhatsapp = async (): Promise<void> => {
@@ -447,7 +471,7 @@ export const useParentWhatsappInvitationPageLogic =
         return;
       }
 
-      const phoneLimit = normalizeWhatsappPhoneLimit(whatsappPhoneLimit);
+      const phoneLimit = normalizeWhatsappPhoneLimit(parsedWhatsappPhoneLimit);
 
       if (parsedPhones.normalizedPhones.length > phoneLimit) {
         setManualFeedback({
@@ -596,7 +620,10 @@ export const useParentWhatsappInvitationPageLogic =
       phoneInput,
       setPhoneInput,
       whatsappPhoneLimit,
+      isWhatsappPhoneLimitInvalid,
       handleWhatsappPhoneLimitChange,
+      handleWhatsappPhoneLimitFocus,
+      handleWhatsappPhoneLimitBlur,
       templateName,
       setTemplateName,
       templateLang,

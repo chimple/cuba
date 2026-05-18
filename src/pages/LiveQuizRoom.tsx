@@ -83,7 +83,7 @@ const LiveQuizRoom: React.FC = () => {
     if (!assignment?.lesson_id) return;
     setCurrentAssignment(assignment);
     if (tempLesson?.cocos_lesson_id) {
-      downloadQuiz(tempLesson?.cocos_lesson_id);
+      downloadQuiz(tempLesson);
     }
     const linked = await api.isStudentLinked(currentStudent.id, true);
     if (!linked) return;
@@ -143,8 +143,8 @@ const LiveQuizRoom: React.FC = () => {
     setIsLoading(false);
   };
 
-  const downloadQuiz = async (lessonId: string) => {
-    const dow = await Util.downloadZipBundle([lessonId]);
+  const downloadQuiz = async (lesson: TableTypes<'lesson'>) => {
+    const dow = await Util.downloadZipBundle([lesson]);
     setIsDownloaded(dow);
   };
   const joinQuiz = async (studentId: string, assignmentId: string) => {

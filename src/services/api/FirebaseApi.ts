@@ -23,6 +23,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 import {
+  JoinClassInviteLookupResult,
   LeaderboardInfo,
   ServiceApi,
   StudentLeaderboardInfo,
@@ -1082,6 +1083,37 @@ export class FirebaseApi implements ServiceApi {
     return result.data;
   }
 
+  async getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult> {
+    const inviteData = await this.getDataByInviteCode(inviteCode);
+    const [classData, schoolData] = await Promise.all([
+      this.getClassById(inviteData.class_id),
+      this.getSchoolById(inviteData.school_id),
+    ]);
+
+    if (!classData) {
+      throw new Error('Class data could not be fetched.');
+    }
+
+    if (!schoolData) {
+      throw new Error('School data could not be fetched.');
+    }
+
+    return {
+      inviteData,
+      classData,
+      schoolData,
+    };
+  }
+
+  async storeJoinClassLookupDataLocally(
+    _classData: TableTypes<'class'>,
+    _schoolData: TableTypes<'school'>,
+  ): Promise<void> {
+    return;
+  }
+
   async linkStudent(inviteCode: number, studentId: string): Promise<any> {
     const functions = getFunctions();
     const generateInviteCode = httpsCallable(functions, 'LinkStudent');
@@ -1090,6 +1122,10 @@ export class FirebaseApi implements ServiceApi {
       studentId: this._currentStudent?.docId,
     });
     return result.data;
+  }
+
+  isSyncInProgress(): boolean {
+    return false;
   }
 
   async getStudentResult(
@@ -1841,6 +1877,9 @@ export class FirebaseApi implements ServiceApi {
       rewards: finalRewards,
     });
   }
+  public async markStciekercolledasTrue(userId: string): Promise<void> {
+    return this.updateRewardAsSeen(userId);
+  }
   async removeCoursesFromClass(ids: string[]): Promise<void> {
     throw new Error('Failed to remove courses from class');
   }
@@ -1958,7 +1997,12 @@ export class FirebaseApi implements ServiceApi {
     programDetails: { id: string; label: string; value: string }[];
     locationDetails: { id: string; label: string; value: string }[];
     partnerDetails: { id: string; label: string; value: string }[];
-    programManagers: { name: string; role: string; phone: string }[];
+    programManagers: {
+      name: string;
+      role: string;
+      phone: string;
+      email: string;
+    }[];
   } | null> {
     throw new Error('Method not implemented.');
   }
@@ -1977,8 +2021,30 @@ export class FirebaseApi implements ServiceApi {
   async getFilteredSchoolsForSchoolListing(params: {
     filters?: Record<string, string[]>;
     programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
   }): Promise<FilteredSchoolsForSchoolListingOps[]> {
     throw new Error('getFilteredSchoolsForSchoolListing() is not implemented.');
+  }
+
+  async getSchoolMetricsForSchoolListing(params: {
+    filters?: Record<string, string[]>;
+    programId?: string;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{
+    data: FilteredSchoolsForSchoolListingOps[];
+    total: number;
+  }> {
+    throw new Error('getSchoolMetricsForSchoolListing() is not implemented.');
   }
 
   async createOrAddUserOps(payload: {

@@ -186,7 +186,10 @@ const ParentWhatsappInvitationPage: React.FC = () => {
     phoneInput,
     setPhoneInput,
     whatsappPhoneLimit,
+    isWhatsappPhoneLimitInvalid,
     handleWhatsappPhoneLimitChange,
+    handleWhatsappPhoneLimitFocus,
+    handleWhatsappPhoneLimitBlur,
     templateName,
     setTemplateName,
     templateLang,
@@ -298,13 +301,16 @@ const ParentWhatsappInvitationPage: React.FC = () => {
                 type="number"
                 fullWidth
                 value={whatsappPhoneLimit}
+                error={isWhatsappPhoneLimitInvalid}
                 onChange={(event) =>
                   handleWhatsappPhoneLimitChange(event.target.value)
                 }
+                onFocus={handleWhatsappPhoneLimitFocus}
+                onBlur={handleWhatsappPhoneLimitBlur}
                 id="parent-whatsapp-page-input"
                 className="parent-whatsapp-page-input"
                 inputProps={{
-                  min: 1,
+                  min: 0,
                 }}
               />
             </FieldBlock>

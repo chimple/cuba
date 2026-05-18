@@ -177,6 +177,11 @@ const RecommendedAssignments: React.FC<Props> = ({
                       id={`recommended-assignments-list-item-thumb-${subjectId}-${index}`}
                     >
                       <SelectIconImage
+                        localSrc={
+                          assignment.id
+                            ? `teacher/lessons/icons/${assignment.id}.webp`
+                            : undefined
+                        }
                         defaultSrc="assets/icons/DefaultIcon.png"
                         webSrc={assignment.image ?? ''}
                         imageWidth="100%"

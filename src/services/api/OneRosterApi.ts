@@ -14,7 +14,11 @@ import Class from '../../models/class';
 import CurriculumController from '../../models/curriculumController';
 import Result from '../../models/result';
 import User from '../../models/user';
-import { LeaderboardInfo, ServiceApi } from './ServiceApi';
+import {
+  JoinClassInviteLookupResult,
+  LeaderboardInfo,
+  ServiceApi,
+} from './ServiceApi';
 // import { Chapter } from "../../common/courseConstants";
 import Course from '../../models/course';
 import Lesson from '../../models/lesson';
@@ -173,6 +177,9 @@ export class OneRosterApi implements ServiceApi {
   updateRewardAsSeen(studentId: string): Promise<void> {
     throw new Error('Method not implemented.');
   }
+  markStciekercolledasTrue(userId: string): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
   getLeaderboardStudentResultFromB2CCollection(
     studentId: string,
   ): Promise<LeaderboardInfo | undefined> {
@@ -185,6 +192,11 @@ export class OneRosterApi implements ServiceApi {
     throw new Error('Method not implemented.');
   }
   getUserSticker(userId: string): Promise<TableTypes<'user_sticker'>[]> {
+    throw new Error('Method not implemented.');
+  }
+  getUserStickerBook(
+    userId: string,
+  ): Promise<TableTypes<'user_sticker_book'>[]> {
     throw new Error('Method not implemented.');
   }
   getUserBonus(userId: string): Promise<TableTypes<'user_bonus'>[]> {
@@ -254,8 +266,22 @@ export class OneRosterApi implements ServiceApi {
   getDataByInviteCode(inviteCode: number): Promise<any> {
     throw new Error('Method not implemented.');
   }
+  getDataByInviteCodeNew(
+    inviteCode: number,
+  ): Promise<JoinClassInviteLookupResult> {
+    throw new Error('Method not implemented.');
+  }
+  storeJoinClassLookupDataLocally(
+    classData: TableTypes<'class'>,
+    schoolData: TableTypes<'school'>,
+  ): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
   linkStudent(inviteCode: number, studentId: string): Promise<any> {
     throw new Error('Method not implemented.');
+  }
+  isSyncInProgress(): boolean {
+    return false;
   }
   getStudentResult(
     studentId: string,

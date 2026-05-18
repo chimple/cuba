@@ -136,18 +136,16 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
         await api.updateSchoolStatus(requestData.school.id, status);
       }
 
-      const targetTab =
-        status === STATUS.FLAGGED
-          ? REQUEST_TABS.FLAGGED
-          : REQUEST_TABS.REJECTED;
-      if (canSeeFlaggedTab) {
-        history.push(
-          `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${targetTab}`,
-        );
+      const requestListPath = `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}`;
+
+      // Rejected requests should always land on the Rejected tab.
+      if (status === STATUS.REJECTED) {
+        history.push(`${requestListPath}?tab=${REQUEST_TABS.REJECTED}`);
+      } else if (status === STATUS.FLAGGED && canSeeFlaggedTab) {
+        history.push(`${requestListPath}?tab=${REQUEST_TABS.FLAGGED}`);
       } else {
-        history.push(
-          `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${STATUS.ACTIVE}`,
-        );
+        // Fallback for roles that cannot access Flagged tab.
+        history.push(`${requestListPath}?tab=${REQUEST_TABS.PENDING}`);
       }
     } catch (err) {
       logger.error('Error processing request:', err);
