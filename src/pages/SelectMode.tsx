@@ -282,17 +282,22 @@ const SelectMode: FC = () => {
     );
 
     const hasStudentsInSchool = async (schoolId: string, userId: string) => {
-      const classes = await api.getClassesForSchool(schoolId, userId);
-      if (!classes || classes.length === 0) return false;
+      try {
+        const classes = await api.getClassesForSchool(schoolId, userId);
+        if (!classes || classes.length === 0) return false;
 
-      for (const classDoc of classes) {
-        const studentsInClass = await api.getStudentsForClass(classDoc.id);
-        if (studentsInClass && studentsInClass.length > 0) {
-          return true;
+        for (const classDoc of classes) {
+          const studentsInClass = await api.getStudentsForClass(classDoc.id);
+          if (studentsInClass && studentsInClass.length > 0) {
+            return true;
+          }
         }
-      }
 
-      return false;
+        return false;
+      } catch (error) {
+        logger.error('Error checking school students:', error);
+        return false;
+      }
     };
 
     const teacherSchoolsWithStudentsChecks = await Promise.all(
@@ -487,7 +492,14 @@ const SelectMode: FC = () => {
         return undefined;
       }
       setCurrentClasses(element);
-      const selectedClass = getInitialSelectedClass(element, currClass);
+      const savedSelectedClassValue = localStorage.getItem(CURRENT_CLASS_NAME);
+      const savedSelectedClass = savedSelectedClassValue
+        ? (JSON.parse(savedSelectedClassValue) as TableTypes<'class'>)
+        : undefined;
+      const selectedClass = getInitialSelectedClass(
+        element,
+        currClass ?? savedSelectedClass,
+      );
       if (selectedClass) {
         setCurrClass(selectedClass);
         localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(selectedClass));
@@ -804,6 +816,9 @@ const SelectMode: FC = () => {
                       <article
                         key={tempStudent.id}
                         className="school-mode-student-card class-avatar"
+                        onClick={() => {
+                          handleStudentSelect(tempStudent);
+                        }}
                       >
                         <img
                           className="class-avatar-img school-mode-student-avatar"
@@ -817,7 +832,8 @@ const SelectMode: FC = () => {
                           id={`school-mode-play-${tempStudent.id}`}
                           type="button"
                           className="school-mode-play-button"
-                          onClick={() => {
+                          onClick={(event) => {
+                            event.stopPropagation();
                             handleStudentSelect(tempStudent);
                           }}
                         >
