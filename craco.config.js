@@ -175,6 +175,8 @@ module.exports = {
 
       coverageDirectory: '<rootDir>/coverage',
 
+      coverageProvider: 'v8',
+
       coverageReporters: ['text', 'lcov', 'json-summary'],
 
       coverageThreshold: {
