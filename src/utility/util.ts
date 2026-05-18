@@ -3668,7 +3668,7 @@ export class Util {
     if (!pending.length) return [];
 
     // 2) Global FIFO sort (oldest first). This guarantees FIFO within buckets.
-    const pendingSorted = [...pending].sort((a, b) => getTs(a) - getTs(b));
+    const pendingSorted = [...pending].sort((a, b) => getTs(b) - getTs(a));
 
     // 3) Group by subject, maintaining FIFO order inside manual & other buckets
     const bySubject: {
