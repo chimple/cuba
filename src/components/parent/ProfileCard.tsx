@@ -15,11 +15,11 @@ import {
 import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
-import EditProfileIcon from '../icons/EditProfileIcon';
 import Loading from '../Loading';
 import DialogBoxButtons from './DialogBoxButtons';
 import './ProfileCard.css';
 
+const EDIT_PROFILE_ICON_SRC = '/assets/edit-profile-icon.svg';
 const EDIT_PROFILE_DIALOG_ICON_SRC =
   '/assets/profile-card-edit-dialog-icon.svg';
 const DELETE_PROFILE_DIALOG_ICON_SRC =
@@ -134,7 +134,7 @@ const ProfileCard: React.FC<{
               setShowDialogBox(true);
             }}
           >
-            <EditProfileIcon />
+            <img src={EDIT_PROFILE_ICON_SRC} alt="" aria-hidden="true" />
           </button>
         ) : (
           <p className="profile-card-empty-element">&#9679;</p>

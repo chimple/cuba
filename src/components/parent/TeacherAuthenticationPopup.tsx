@@ -19,6 +19,7 @@ import './TeacherAuthenticationPopup.css';
 const KEY_ZERO = '0';
 const SUBMIT_SUCCESS_FEEDBACK_MS = 160;
 const QUESTION_NUMBER_REGEX = /(\d+)\s*\+\s*(\d+)/;
+const BACKSPACE_ICON_SRC = '/assets/teacher-authentication-backspace.svg';
 
 export interface TeacherAuthenticationPopupProps {
   isOpen: boolean;
@@ -36,17 +37,13 @@ const getKeyLabel = (
 ): React.ReactNode => {
   if (key === backspaceKey) {
     return (
-      <svg
+      <img
+        src={BACKSPACE_ICON_SRC}
+        alt=""
         id="teacher-authentication-popup-backspace-icon"
         className="teacher-authentication-popup-backspace-icon"
-        viewBox="0 0 48 48"
         aria-hidden="true"
-      >
-        <path
-          fill="currentColor"
-          d="M18 8L3 23L18 38L22.2 33.8L14.4 26H43V20H14.4L22.2 12.2L18 8Z"
-        />
-      </svg>
+      />
     );
   }
   return key;

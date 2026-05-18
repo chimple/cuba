@@ -42,7 +42,7 @@ import {
   requireTeacherModeAuth,
   TeacherModeAuthResult,
 } from '../services/TeacherModeAuth';
-import DialogBoxButtons from '../components/parent/DialogBoxButtons​';
+import DialogBoxButtons from '../components/parent/DialogBoxButtons';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { ClearCacheData } from '../components/parent/DataClear';
@@ -305,9 +305,20 @@ const Parent: React.FC = () => {
     const handleTeachersAppClick = async () => {
       if (!currentUser?.name || currentUser.name.trim() === '') {
         history.replace(PAGES.ADD_TEACHER_NAME);
-      } else {
-        await schoolUtil.setCurrMode(MODES.TEACHER);
-        history.replace(PAGES.DISPLAY_SCHOOLS);
+        return;
+      }
+
+      const teacherModeAuthResult = await requireTeacherModeAuth();
+
+      if (teacherModeAuthResult === TeacherModeAuthResult.success) {
+        switchToTeacherMode();
+        return;
+      }
+
+      if (
+        teacherModeAuthResult === TeacherModeAuthResult.popupFallbackRequired
+      ) {
+        setIsTeacherAuthPopupOpen(true);
       }
     };
 
@@ -728,17 +739,17 @@ const Parent: React.FC = () => {
           {tabIndex === t('settings') && <div>{settingUI()}</div>}
           {tabIndex === t('help') && <div>{helpUI()}</div>}
           {tabIndex === t('faq') && <div>{faqUI()}</div>}
-        <TeacherAuthenticationPopup
-          isOpen={isTeacherAuthPopupOpen}
-          sourceEntryPoint={
-            TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS.PARENT_SETTINGS_TAB
-          }
-          onClose={() => setIsTeacherAuthPopupOpen(false)}
-          onAuthenticated={() => {
-            setIsTeacherAuthPopupOpen(false);
-            switchToTeacherMode();
-          }}
-        />
+          <TeacherAuthenticationPopup
+            isOpen={isTeacherAuthPopupOpen}
+            sourceEntryPoint={
+              TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS.PARENT_SETTINGS_TAB
+            }
+            onClose={() => setIsTeacherAuthPopupOpen(false)}
+            onAuthenticated={() => {
+              setIsTeacherAuthPopupOpen(false);
+              switchToTeacherMode();
+            }}
+          />
         </div>
       </div>
     </Box>

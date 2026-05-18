@@ -48,11 +48,6 @@ jest.mock('../../services/ServiceConfig', () => ({
   },
 }));
 
-jest.mock('../icons/EditProfileIcon', () => ({
-  __esModule: true,
-  default: () => <svg data-testid="edit-profile-icon" />,
-}));
-
 jest.mock('../Loading', () => ({
   __esModule: true,
   default: () => null,
