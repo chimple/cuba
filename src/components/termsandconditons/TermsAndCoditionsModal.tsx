@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 import {
@@ -13,6 +13,7 @@ interface TermsAndCoditionsModalProps {
   isSubmitting?: boolean;
   onAgree: () => void;
   onTermsClick: () => void;
+  onViewed?: () => void;
   onClose?: () => void;
 }
 
@@ -22,10 +23,26 @@ const TermsAndCoditionsModal: React.FC<TermsAndCoditionsModalProps> = ({
   isSubmitting = false,
   onAgree,
   onTermsClick,
+  onViewed,
 }) => {
   const { t } = useTranslation();
   const shouldRender = visible ?? isOpen;
   const appMode = getCurrentTermsAppMode();
+  const hasReportedViewRef = useRef(false);
+
+  useEffect(() => {
+    if (!shouldRender) {
+      hasReportedViewRef.current = false;
+      return;
+    }
+
+    if (hasReportedViewRef.current) {
+      return;
+    }
+
+    hasReportedViewRef.current = true;
+    onViewed?.();
+  }, [onViewed, shouldRender]);
 
   if (!shouldRender) {
     return null;

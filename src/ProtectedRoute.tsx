@@ -37,24 +37,6 @@ export default function ProtectedRoute({
     void checkAuth();
   }, []);
 
-  useEffect(() => {
-    if (!currentUser || !needsTermsAgreement(currentUser, requiredTcVersion)) {
-      return;
-    }
-
-    const eventKey = `${currentUser.id}:${requiredTcVersion}`;
-    if (viewedEventKeyRef.current === eventKey) {
-      return;
-    }
-
-    viewedEventKeyRef.current = eventKey;
-    void Util.logEvent(EVENTS.TC_POPUP_VIEWED, {
-      target_version: requiredTcVersion,
-      current_local_version: currentUser.tc_agreed_version ?? 0,
-      ...buildTcAnalyticsContext(currentUser),
-    });
-  }, [currentUser, requiredTcVersion]);
-
   const checkAuth = async () => {
     try {
       const authHandler = ServiceConfig.getI()?.authHandler;
@@ -91,15 +73,15 @@ export default function ProtectedRoute({
 
     setIsSubmitting(true);
     try {
-      void Util.logEvent(EVENTS.TC_AGREED, {
-        agreed_version: requiredTcVersion,
-        ...buildTcAnalyticsContext(currentUser),
-      });
-
       await ServiceConfig.getI().apiHandler.updateTcAgreedVersion(
         currentUser.id,
         requiredTcVersion,
       );
+
+      void Util.logEvent(EVENTS.TC_AGREED, {
+        agreed_version: requiredTcVersion,
+        ...buildTcAnalyticsContext(currentUser),
+      });
 
       setCurrentUser({
         ...currentUser,
@@ -118,6 +100,24 @@ export default function ProtectedRoute({
     });
   };
 
+  const handleTermsModalViewed = () => {
+    if (!currentUser || !needsTermsAgreement(currentUser, requiredTcVersion)) {
+      return;
+    }
+
+    const eventKey = `${currentUser.id}:${requiredTcVersion}`;
+    if (viewedEventKeyRef.current === eventKey) {
+      return;
+    }
+
+    viewedEventKeyRef.current = eventKey;
+    void Util.logEvent(EVENTS.TC_POPUP_VIEWED, {
+      target_version: requiredTcVersion,
+      current_local_version: currentUser.tc_agreed_version ?? 0,
+      ...buildTcAnalyticsContext(currentUser),
+    });
+  };
+
   if (isAuth == null) return <Loading isLoading />;
 
   return (
@@ -130,6 +130,7 @@ export default function ProtectedRoute({
               isSubmitting={isSubmitting}
               onAgree={handleAgree}
               onTermsClick={handleTermsClick}
+              onViewed={handleTermsModalViewed}
             />
           )}
         </>
