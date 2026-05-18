@@ -156,6 +156,7 @@ import PostSuccess from './teachers-module/pages/PostSuccess';
 import QRAssignments from './teachers-module/components/homePage/assignment/QRAssignments';
 import TeacherRecommendedAssignments from './teachers-module/components/homePage/assignment/TeacherRecommendedAssignments';
 import StickerBook from './pages/StickerBook';
+import KidsAppLocation from './teachers-module/pages/KidsAppLocation';
 
 setupIonicReact();
 interface ExtraData {
@@ -675,6 +676,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.DISPLAY_SCHOOLS} exact={true}>
               <DisplaySchools />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.KIDS_APP_LOCATION} exact={true}>
+              <KidsAppLocation />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.SEARCH_SCHOOL} exact={true}>
               <SearchSchool />

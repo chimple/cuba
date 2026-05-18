@@ -15,6 +15,13 @@ module.exports = {
         ];
       }
 
+      webpackConfig.module.rules.push({
+        test: /\.m?js$/,
+        resolve: {
+          fullySpecified: false,
+        },
+      });
+
       return webpackConfig;
     },
 
@@ -45,6 +52,9 @@ module.exports = {
 
         '^@algolia/autocomplete-theme-classic$':
           '<rootDir>/src/tests/__mocks__/@algolia/autocomplete-theme-classic.ts',
+
+        '^@aparajita/capacitor-biometric-auth$':
+          '<rootDir>/src/tests/__mocks__/@aparajita/capacitor-biometric-auth.ts',
 
         '^@capacitor/app$': '<rootDir>/src/tests/__mocks__/@capacitor/app.ts',
         '^@capacitor/core$': '<rootDir>/src/tests/__mocks__/@capacitor/core.ts',
@@ -164,6 +174,8 @@ module.exports = {
       ],
 
       coverageDirectory: '<rootDir>/coverage',
+
+      coverageProvider: 'v8',
 
       coverageReporters: ['text', 'lcov', 'json-summary'],
 

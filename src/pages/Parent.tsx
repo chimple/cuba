@@ -13,6 +13,7 @@ import {
   SCHOOL,
   SCHOOL_LOGIN,
   TableTypes,
+  TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS,
 } from '../common/constants';
 import ProfileCard from '../components/parent/ProfileCard';
 
@@ -36,7 +37,12 @@ import { schoolUtil } from '../utility/schoolUtil';
 import { RoleType } from '../interface/modelInterfaces';
 import { setUser } from '../redux/slices/auth/authSlice';
 import { useAppDispatch } from '../redux/hooks';
-import DialogBoxButtons from '../components/parent/DialogBoxButtons​';
+import TeacherAuthenticationPopup from '../components/parent/TeacherAuthenticationPopup';
+import {
+  requireTeacherModeAuth,
+  TeacherModeAuthResult,
+} from '../services/TeacherModeAuth';
+import DialogBoxButtons from '../components/parent/DialogBoxButtons';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { ClearCacheData } from '../components/parent/DataClear';
@@ -68,6 +74,7 @@ const Parent: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<
     TableTypes<'user'> | undefined
   >();
+  const [isTeacherAuthPopupOpen, setIsTeacherAuthPopupOpen] = useState(false);
   const [schools, setSchools] = useState<
     {
       school: TableTypes<'school'>;
@@ -92,6 +99,12 @@ const Parent: React.FC = () => {
   const [tabs, setTabs] = useState({});
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
+
+  const switchToTeacherMode = () => {
+    schoolUtil.setCurrMode(MODES.TEACHER);
+    history.replace(PAGES.DISPLAY_SCHOOLS);
+  };
+
   useEffect(() => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
@@ -209,8 +222,8 @@ const Parent: React.FC = () => {
           return (
             <ProfileCard
               key={element?.id ?? `empty-profile-${index}`}
-              width={'27vw'}
-              height={'50vh'}
+              width={'var(--profile-card-size)'}
+              height={'var(--profile-card-size)'}
               userType={studentUserType}
               user={element}
               showText={true}
@@ -292,9 +305,20 @@ const Parent: React.FC = () => {
     const handleTeachersAppClick = async () => {
       if (!currentUser?.name || currentUser.name.trim() === '') {
         history.replace(PAGES.ADD_TEACHER_NAME);
-      } else {
-        await schoolUtil.setCurrMode(MODES.TEACHER);
-        history.replace(PAGES.DISPLAY_SCHOOLS);
+        return;
+      }
+
+      const teacherModeAuthResult = await requireTeacherModeAuth();
+
+      if (teacherModeAuthResult === TeacherModeAuthResult.success) {
+        switchToTeacherMode();
+        return;
+      }
+
+      if (
+        teacherModeAuthResult === TeacherModeAuthResult.popupFallbackRequired
+      ) {
+        setIsTeacherAuthPopupOpen(true);
       }
     };
 
@@ -715,6 +739,17 @@ const Parent: React.FC = () => {
           {tabIndex === t('settings') && <div>{settingUI()}</div>}
           {tabIndex === t('help') && <div>{helpUI()}</div>}
           {tabIndex === t('faq') && <div>{faqUI()}</div>}
+          <TeacherAuthenticationPopup
+            isOpen={isTeacherAuthPopupOpen}
+            sourceEntryPoint={
+              TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS.PARENT_SETTINGS_TAB
+            }
+            onClose={() => setIsTeacherAuthPopupOpen(false)}
+            onAuthenticated={() => {
+              setIsTeacherAuthPopupOpen(false);
+              switchToTeacherMode();
+            }}
+          />
         </div>
       </div>
     </Box>

@@ -3,7 +3,7 @@ import { Util } from '../utility/util';
 import { ServiceConfig } from '../services/ServiceConfig';
 import './DownloadChapterAndLesson.css';
 import { t } from 'i18next';
-import DialogBoxButtons from './parent/DialogBoxButtons​';
+import DialogBoxButtons from './parent/DialogBoxButtons';
 import { TfiDownload, TfiTrash } from 'react-icons/tfi';
 import { Capacitor } from '@capacitor/core';
 import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';

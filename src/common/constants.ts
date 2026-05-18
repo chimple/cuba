@@ -459,6 +459,7 @@ export enum PAGES {
   DISPLAY_SUBJECTS = '/display-subjects',
   DISPLAY_CHAPTERS = '/display-chapters',
   DISPLAY_SCHOOLS = '/display-schools',
+  KIDS_APP_LOCATION = '/kids-app-location',
   DISPLAY_CLASSES = '/display-classes',
   DASHBOARD_DETAILS = '/dashboard-details',
   HOME_PAGE = '/home-page',
@@ -897,6 +898,8 @@ export const INSTANT_SEARCH_INDEX_NAME =
 export enum MODES {
   PARENT = 'PARENT',
   SCHOOL = 'SCHOOL',
+  TEACHER_HOME = 'TEACHER_HOME',
+  TEACHER_SCHOOL = 'TEACHER_SCHOOL',
   TEACHER = 'TEACHER',
   OPS_CONSOLE = 'OPS_CONSOLE',
 }
@@ -982,7 +985,32 @@ export enum EVENTS {
   STICKER_BOOK_IMAGE_SHARED = 'sticker_book_image_shared',
   TC_POPUP_VIEWED = 'tc_popup_viewed',
   TC_AGREED = 'tc_agreed',
+  SWITCH_TO_KIDS_APP_CLICKED = 'switch_to_kids_app_clicked',
+  KIDS_APP_LOCATION_SELECTED = 'kids_app_location_selected',
+  CLASS_TAB_CLASS_CHANGED = 'class_tab_class_changed',
+  PROFILE_CREATION_CLICKED = 'profile_creation_clicked',
+  PROFILE_CARD_ACTION_CLICKED = 'profile_card_action_clicked',
+  PROFILE_DELETION_CONFIRMED = 'profile_deletion_confirmed',
+  PROFILE_DELETION_CANCELLED = 'profile_deletion_cancelled',
+  TEACHER_AUTH_GATE_VIEWED = 'teacher_auth_gate_viewed',
+  TEACHER_AUTH_GATE_ATTEMPTED = 'teacher_auth_gate_attempted',
 }
+
+export const KIDS_APP_LOCATION_SELECTIONS = {
+  HOME: 'home',
+  SCHOOL: 'school',
+} as const;
+
+export type KidsAppLocationSelection =
+  (typeof KIDS_APP_LOCATION_SELECTIONS)[keyof typeof KIDS_APP_LOCATION_SELECTIONS];
+
+export const TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS = {
+  SWITCH_PROFILE_BACK_BUTTON: 'switch_profile_back_button',
+  PARENT_SETTINGS_TAB: 'parent_settings_tab',
+} as const;
+
+export type TeacherAuthGateSourceEntryPoint =
+  (typeof TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS)[keyof typeof TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS];
 
 export const FCM_TOKENS = 'fcmTokens';
 export const IS_CONECTED = 'is_conected';
@@ -1253,6 +1281,7 @@ export const CHIMPLE_MASCOT_INPUT_CELEBRATE = 'Number 1';
 export const CHIMPLE_MASCOT_INPUT_NORMAL = 'Number 2';
 export const CHIMPLE_MASCOT_INPUT_REWARD = 'Number 3';
 export const CHIMPLE_MASCOT_ANIMATION_IDLE = 'id';
+export const CHIMPLE_MASCOT_ANIMATION_WAVY = 'wavy';
 export const CHIMPLE_MASCOT_ANIMATION_WIN = 'win';
 
 export interface GeoDataParams {

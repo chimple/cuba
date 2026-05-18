@@ -1,5 +1,6 @@
 // Coverage: App-level GrowthBook popup routing by URL tab/screen, trigger payload variants, false-positive mismatch blocking, and malformed/null payload negatives.
-import { act, waitFor } from '@testing-library/react';
+import { waitFor } from '@testing-library/react';
+import { act } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { renderWithProviders } from './tests/test-utils';
 import App from './App';

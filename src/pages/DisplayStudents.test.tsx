@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { act } from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import DisplayStudents from './DisplayStudents';
 import { MODES, PAGES } from '../common/constants';
@@ -43,6 +43,10 @@ jest.mock('react-router', () => ({
 
 jest.mock('i18next', () => ({
   t: (k: string) => k,
+}));
+
+jest.mock('./assets/brandLogoIcon.svg', () => ({
+  ReactComponent: (props: React.SVGProps<SVGSVGElement>) => <svg {...props} />,
 }));
 
 jest.mock('../i18n', () => ({
@@ -177,6 +181,16 @@ describe('DisplayStudents', () => {
     mockApi.getClassById.mockResolvedValue({ id: 'class-1', name: 'Class 1' });
   });
 
+  const clickStudentOnePlayButton = async (): Promise<void> => {
+    await screen.findByText('Student One');
+    const playButton = document.getElementById('display-students-play-stu-1');
+    expect(playButton).not.toBeNull();
+
+    await act(async () => {
+      fireEvent.click(playButton as HTMLElement);
+    });
+  };
+
   test('loads background image and fetches student profiles on mount', async () => {
     render(<DisplayStudents />);
 
@@ -189,8 +203,8 @@ describe('DisplayStudents', () => {
   test('renders welcome copy and student cards after loading', async () => {
     render(<DisplayStudents />);
 
-    expect(await screen.findByTestId('chimple-logo')).toBeInTheDocument();
-    expect(screen.getByText('Welcome to Chimple!')).toBeInTheDocument();
+    expect(await screen.findByText('Welcome to Chimple!')).toBeInTheDocument();
+    expect(screen.getByText("Select the child's profile")).toBeInTheDocument();
     expect(await screen.findByText('Student One')).toBeInTheDocument();
   });
 
@@ -235,12 +249,17 @@ describe('DisplayStudents', () => {
 
     render(<DisplayStudents />);
 
-    fireEvent.click(await screen.findByText('Student One'));
+    await clickStudentOnePlayButton();
 
-    await waitFor(() => {
-      expect(schoolUtil.setCurrentClass).toHaveBeenCalledWith(undefined);
-      expect(warnSpy).toHaveBeenCalledWith('No classes found for the student.');
-    });
+    await waitFor(
+      () => {
+        expect(schoolUtil.setCurrentClass).toHaveBeenCalledWith(undefined);
+        expect(warnSpy).toHaveBeenCalledWith(
+          'No classes found for the student.',
+        );
+      },
+      { timeout: 3000 },
+    );
 
     warnSpy.mockRestore();
   });
@@ -248,7 +267,7 @@ describe('DisplayStudents', () => {
   test('ensures lido common audio when student profile is selected', async () => {
     render(<DisplayStudents />);
 
-    fireEvent.click(await screen.findByText('Student One'));
+    await clickStudentOnePlayButton();
 
     await waitFor(() => {
       expect(Util.ensureLidoCommonAudioForStudent).toHaveBeenCalledWith(
@@ -266,7 +285,7 @@ describe('DisplayStudents', () => {
 
     render(<DisplayStudents />);
 
-    fireEvent.click(await screen.findByText('Student One'));
+    await clickStudentOnePlayButton();
 
     await waitFor(() => {
       expect(mockHistoryReplace).toHaveBeenCalledWith(
