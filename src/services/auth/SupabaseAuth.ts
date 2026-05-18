@@ -28,6 +28,7 @@ import {
 } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
 import { logAuthDebug } from '../../utility/authDebug';
+import { normalizeTcVersion } from '../../utility/termsAndConditions';
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -62,6 +63,7 @@ export class SupabaseAuth implements ServiceAuth {
   async loginWithEmailAndPassword(
     email: string,
     password: string,
+    _tcAgreedVersion?: number,
   ): Promise<{
     user?: User;
     success: boolean;
@@ -135,6 +137,7 @@ export class SupabaseAuth implements ServiceAuth {
   async signInWithEmail(
     email: string,
     password: string,
+    _tcAgreedVersion?: number,
   ): Promise<{
     user?: User;
     success: boolean;
@@ -210,7 +213,7 @@ export class SupabaseAuth implements ServiceAuth {
     return true;
   }
 
-  async googleSign(): Promise<{
+  async googleSign(tcAgreedVersion?: number): Promise<{
     user?: User;
     success: boolean;
     isSpl: boolean;
@@ -273,7 +276,10 @@ export class SupabaseAuth implements ServiceAuth {
       if (!data.session)
         return { success: false, isSpl: false, userData: null };
 
-      const initResult = await this.initializeUserRecord(data.session);
+      const initResult = await this.initializeUserRecord(
+        data.session,
+        tcAgreedVersion,
+      );
       const userData = await api.getUserByDocId(data.user?.id ?? '');
       return {
         user: data.user,
@@ -524,6 +530,7 @@ export class SupabaseAuth implements ServiceAuth {
   async proceedWithVerificationCode(
     phoneNumber: string,
     verificationCode: string,
+    tcAgreedVersion?: number,
   ): Promise<
     | {
         user: User | null;
@@ -536,6 +543,7 @@ export class SupabaseAuth implements ServiceAuth {
     try {
       if (!this._auth) return;
       const api = ServiceConfig.getI().apiHandler;
+      const agreedVersion = normalizeTcVersion(tcAgreedVersion);
 
       const { data: user, error } = await this._auth.verifyOtp({
         phone: phoneNumber,
@@ -569,6 +577,7 @@ export class SupabaseAuth implements ServiceAuth {
           image: null,
           is_deleted: false,
           is_tc_accepted: true,
+          tc_agreed_version: agreedVersion,
           language_id: null,
           // locale_id: null,
           locale_id: null,
@@ -654,10 +663,12 @@ export class SupabaseAuth implements ServiceAuth {
 
   private async initializeUserRecord(
     session: Session,
+    tcAgreedVersion?: number,
   ): Promise<{ user: TableTypes<'user'>; isSpl: boolean } | null> {
     try {
       if (!this._supabaseDb || !session.user) return null;
       let api = ServiceConfig.getI().apiHandler;
+      const agreedVersion = normalizeTcVersion(tcAgreedVersion);
       const user = session.user;
       const email = user.email;
       const id = user.id;
@@ -688,6 +699,7 @@ export class SupabaseAuth implements ServiceAuth {
           image: avatarUrl,
           is_deleted: false,
           is_tc_accepted: true,
+          tc_agreed_version: agreedVersion,
           language_id: null,
           // locale_id: null,
           locale_id: null,

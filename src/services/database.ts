@@ -4259,6 +4259,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          tc_agreed_version: number | null;
           language_id: string | null;
           learning_path: string | null;
           locale_id: string | null;
@@ -4288,6 +4289,7 @@ export type Database = {
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
           is_tc_accepted?: boolean | null;
+          tc_agreed_version?: number | null;
           language_id?: string | null;
           learning_path?: string | null;
           locale_id?: string | null;
@@ -4317,6 +4319,7 @@ export type Database = {
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
           is_tc_accepted?: boolean | null;
+          tc_agreed_version?: number | null;
           language_id?: string | null;
           learning_path?: string | null;
           locale_id?: string | null;
@@ -5371,6 +5374,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          tc_agreed_version: number | null;
           language_id: string | null;
           learning_path: string | null;
           locale_id: string | null;
@@ -5416,6 +5420,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          tc_agreed_version: number | null;
           language_id: string | null;
           learning_path: string | null;
           locale_id: string | null;
@@ -5454,6 +5459,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          tc_agreed_version: number | null;
           language_id: string | null;
           learning_path: string | null;
           locale_id: string | null;
@@ -6480,6 +6486,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          tc_agreed_version: number | null;
           language_id: string | null;
           learning_path: string | null;
           locale_id: string | null;
@@ -6518,6 +6525,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          tc_agreed_version: number | null;
           language_id: string | null;
           learning_path: string | null;
           locale_id: string | null;

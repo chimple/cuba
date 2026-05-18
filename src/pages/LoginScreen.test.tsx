@@ -5,10 +5,21 @@ import { Capacitor, registerPlugin } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Toast } from '@capacitor/toast';
 import { createTestStore, renderWithProviders } from '../tests/test-utils';
+import {
+  __resetGrowthBookMock,
+  __setGrowthBookMock,
+} from '../tests/__mocks__/@growthbook/growthbook-react';
 
 import LoginScreen from './LoginScreen';
 import { ServiceConfig } from '../services/ServiceConfig';
-import { LANGUAGE, LOGIN_TYPES, MODES, PAGES } from '../common/constants';
+import {
+  LANGUAGE,
+  LATEST_TC_VERSION,
+  LOGIN_TYPES,
+  MODES,
+  PAGES,
+  TC_HTML_URL,
+} from '../common/constants';
 import { RoleType } from '../interface/modelInterfaces';
 import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
 
@@ -387,6 +398,7 @@ describe('LoginScreen', () => {
     jest.useRealTimers();
     localStorage.clear();
     jest.clearAllMocks();
+    __resetGrowthBookMock();
     mockMigrateSupabaseSession.mockReset();
     mockCurrentLanguage = 'en';
 
@@ -522,6 +534,13 @@ describe('LoginScreen', () => {
 
     // Terms & Conditions: when clicked should open the page
     it('opens Terms & Conditions page when clicked', async () => {
+      __setGrowthBookMock({
+        features: {
+          [TC_HTML_URL]: {
+            en: 'https://cdn.example.com/terms',
+          },
+        },
+      });
       const user = userEvent.setup();
       const { view } = await renderReady();
 
@@ -530,6 +549,10 @@ describe('LoginScreen', () => {
       ).not.toBeInTheDocument();
       await user.click(view.getByRole('button', { name: 'open-terms' }));
       await view.findByRole('button', { name: /close/i });
+      expect(view.getByTitle('Terms and Conditions')).toHaveAttribute(
+        'src',
+        'https://cdn.example.com/terms.en.html',
+      );
     });
 
     // Terms & Conditions: when clicked cross button should close the page
@@ -901,6 +924,9 @@ describe('LoginScreen', () => {
     });
 
     it('does not verify for less than 6 digits and verifies for exactly 6 digits', async () => {
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 3 },
+      });
       const user = userEvent.setup();
       const { view } = await renderReady();
 
@@ -919,11 +945,14 @@ describe('LoginScreen', () => {
       await eventually(() => {
         expect(
           mockAuthHandler.proceedWithVerificationCode,
-        ).toHaveBeenCalledWith('9876543210', '123456');
+        ).toHaveBeenCalledWith('9876543210', '123456', 3);
       });
     });
 
     it('auto picks OTP from plugin event and triggers verification', async () => {
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 4 },
+      });
       mockPortPlugin.otpRetrieve.mockResolvedValueOnce({ otp: '654321' });
       const addListenerSpy = jest.spyOn(document, 'addEventListener');
       const user = userEvent.setup();
@@ -945,13 +974,16 @@ describe('LoginScreen', () => {
       await eventually(() => {
         expect(
           mockAuthHandler.proceedWithVerificationCode,
-        ).toHaveBeenCalledWith('9876543210', '654321');
+        ).toHaveBeenCalledWith('9876543210', '654321', 4);
       });
       addListenerSpy.mockRestore();
     });
 
     // 5. OTP verification flow
     it('runs OTP verify success path and redirects', async () => {
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 5 },
+      });
       (
         mockAuthHandler.proceedWithVerificationCode as jest.Mock
       ).mockResolvedValue({
@@ -985,6 +1017,7 @@ describe('LoginScreen', () => {
       expect(mockAuthHandler.proceedWithVerificationCode).toHaveBeenCalledWith(
         '9876543210',
         '123456',
+        5,
       );
       expect(mockApiHandler.getSchoolsForUser).toHaveBeenCalledWith(
         'student-1',
@@ -1106,6 +1139,9 @@ describe('LoginScreen', () => {
     });
 
     it('handles successful native google sign in and redirects', async () => {
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 6 },
+      });
       jest.spyOn(Capacitor, 'isNativePlatform').mockReturnValue(true);
       (mockAuthHandler.googleSign as jest.Mock).mockResolvedValue({
         success: true,
@@ -1140,6 +1176,7 @@ describe('LoginScreen', () => {
       await eventually(() => {
         expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
       });
+      expect(mockAuthHandler.googleSign).toHaveBeenCalledWith(6);
       expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.SCHOOL);
       expect(ScreenOrientation.lock).toHaveBeenCalledWith({
         orientation: 'landscape',
@@ -1192,6 +1229,9 @@ describe('LoginScreen', () => {
 
     // Email Login: valid email format
     it('accepts valid email format and triggers email login', async () => {
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 7 },
+      });
       const user = userEvent.setup();
       const { view } = await renderReady();
       await user.click(view.getByRole('button', { name: 'switch-email' }));
@@ -1210,6 +1250,7 @@ describe('LoginScreen', () => {
         expect(mockAuthHandler.signInWithEmail).toHaveBeenCalledWith(
           'parent@example.com',
           'pass123',
+          7,
         );
       });
     });
@@ -1366,6 +1407,9 @@ describe('LoginScreen', () => {
     });
 
     it('submits student credentials format', async () => {
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 8 },
+      });
       const user = userEvent.setup();
       const { view } = await renderReady();
       await user.click(view.getByRole('button', { name: 'switch-student' }));
@@ -1383,6 +1427,7 @@ describe('LoginScreen', () => {
         expect(mockAuthHandler.loginWithEmailAndPassword).toHaveBeenCalledWith(
           'SCH001@chimple.net',
           'pass123',
+          8,
         );
       });
     });

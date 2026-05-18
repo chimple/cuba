@@ -8,6 +8,7 @@ import { Util } from '../../utility/util';
 import { MemoryRouter } from 'react-router';
 import { logProfileClick } from '../../analytics/profileClickUtil';
 import {
+  LATEST_TC_VERSION,
   PROFILE_DETAILS_GROWTHBOOK_VARIATION,
   PAGES,
   DEFAULT_LANGUAGE_ID_EN,
@@ -83,9 +84,29 @@ const localStorageMock = (() => {
 })();
 Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
+const mockProfileFeatureValues = (
+  variation = PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
+  latestTcVersion = 0,
+) => {
+  (useFeatureValue as jest.Mock).mockImplementation(
+    (key: string, fallback: unknown) => {
+      if (key === PROFILE_DETAILS_GROWTHBOOK_VARIATION.ONBOARDING) {
+        return variation;
+      }
+
+      if (key === LATEST_TC_VERSION) {
+        return latestTcVersion;
+      }
+
+      return fallback;
+    },
+  );
+};
+
 beforeEach(() => {
   jest.clearAllMocks();
   localStorageMock.clear();
+  mockProfileFeatureValues();
 
   jest.spyOn(ServiceConfig, 'getI').mockReturnValue({
     apiHandler: mockApi,
@@ -116,9 +137,7 @@ describe('ProfileDetails Component', () => {
   const getFullNameLabel = () => screen.findByText(/Full Name/i);
 
   test('renders full name input', async () => {
-    (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
-    );
+    mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL);
 
     render(
       <MemoryRouter>
@@ -130,9 +149,7 @@ describe('ProfileDetails Component', () => {
   });
 
   test('save button disabled initially', async () => {
-    (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
-    );
+    mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL);
 
     render(
       <MemoryRouter>
@@ -145,9 +162,7 @@ describe('ProfileDetails Component', () => {
   });
 
   test('save enabled when name entered in NAME_REQUIRED mode', async () => {
-    (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
-    );
+    mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2);
 
     render(
       <MemoryRouter>
@@ -164,9 +179,7 @@ describe('ProfileDetails Component', () => {
   });
 
   test('skip button visible in ALL_OPTIONAL mode', async () => {
-    (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_3,
-    );
+    mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_3);
 
     render(
       <MemoryRouter>
@@ -178,9 +191,7 @@ describe('ProfileDetails Component', () => {
   });
 
   test('createProfile called on save (create mode)', async () => {
-    (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
-    );
+    mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2);
     mockApi.createProfile.mockResolvedValue({ id: 'student-1' });
 
     render(
@@ -201,9 +212,7 @@ describe('ProfileDetails Component', () => {
   });
 
   test('updateStudent called in edit mode', async () => {
-    (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
-    );
+    mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2);
 
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({
       id: 'student-1',
@@ -234,9 +243,7 @@ describe('ProfileDetails Component', () => {
   });
 
   test('skip creates auto profile when no student exists', async () => {
-    (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_3,
-    );
+    mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_3);
     mockApi.createAutoProfile.mockResolvedValue({ id: 'auto-1' });
 
     render(
@@ -254,9 +261,7 @@ describe('ProfileDetails Component', () => {
   });
 
   test('loading spinner visible while saving', async () => {
-    (useFeatureValue as jest.Mock).mockReturnValue(
-      PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
-    );
+    mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2);
     mockApi.createProfile.mockImplementation(() => new Promise(() => {}));
 
     render(
@@ -299,9 +304,7 @@ describe('ProfileDetails Component - additional coverage', () => {
   test.each(nameRequiredEnableCases)(
     'NAME_REQUIRED enables save for name: %s',
     async (name) => {
-      (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
-      );
+      mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2);
 
       render(
         <MemoryRouter>
@@ -339,9 +342,7 @@ describe('ProfileDetails Component - additional coverage', () => {
   test.each(controlStillDisabledCases)(
     'ALL_REQUIRED keeps save disabled with only name: %s',
     async (name) => {
-      (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
-      );
+      mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL);
 
       render(
         <MemoryRouter>
@@ -379,9 +380,7 @@ describe('ProfileDetails Component - additional coverage', () => {
   test.each(trimCases)(
     'createProfile gets trimmed name for input "$typed"',
     async ({ typed, expected }) => {
-      (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
-      );
+      mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2);
       mockApi.createProfile.mockResolvedValue({ id: 'student-1' });
 
       render(
@@ -407,6 +406,7 @@ describe('ProfileDetails Component - additional coverage', () => {
         undefined,
         undefined,
         DEFAULT_LANGUAGE_ID_EN,
+        0,
       );
     },
   );
@@ -454,9 +454,7 @@ describe('ProfileDetails Component - 50 more test cases', () => {
   test.each(additionalNameRequiredEnableCases)(
     'NAME_REQUIRED enables save for additional name: %s',
     async (name) => {
-      (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
-      );
+      mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2);
 
       render(
         <MemoryRouter>
@@ -514,9 +512,7 @@ describe('ProfileDetails Component - 50 more test cases', () => {
   test.each(additionalTrimmedCreateCases)(
     'createProfile receives trimmed additional name for input "$typed"',
     async ({ typed, expected }) => {
-      (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
-      );
+      mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2);
       mockApi.createProfile.mockResolvedValue({ id: 'student-1' });
 
       render(
@@ -542,6 +538,7 @@ describe('ProfileDetails Component - 50 more test cases', () => {
         undefined,
         undefined,
         DEFAULT_LANGUAGE_ID_EN,
+        0,
       );
     },
   );
@@ -568,9 +565,7 @@ describe('ProfileDetails Component - add 27 more cases', () => {
   test.each(extraEnableCases)(
     'NAME_REQUIRED enables save for extra name: %s',
     async (name) => {
-      (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
-      );
+      mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2);
 
       render(
         <MemoryRouter>
@@ -606,9 +601,7 @@ describe('ProfileDetails Component - add 27 more cases', () => {
   test.each(extraTrimCases)(
     'createProfile receives trimmed extra name for input "$typed"',
     async ({ typed, expected }) => {
-      (useFeatureValue as jest.Mock).mockReturnValue(
-        PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2,
-      );
+      mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2);
       mockApi.createProfile.mockResolvedValue({ id: 'student-1' });
 
       render(
@@ -634,6 +627,7 @@ describe('ProfileDetails Component - add 27 more cases', () => {
         undefined,
         undefined,
         DEFAULT_LANGUAGE_ID_EN,
+        0,
       );
     },
   );
