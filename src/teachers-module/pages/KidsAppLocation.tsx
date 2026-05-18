@@ -23,12 +23,18 @@ import logger from '../../utility/logger';
 import { schoolUtil } from '../../utility/schoolUtil';
 import { ReactComponent as HomeLocationIcon } from '../assets/icons/homeLocationIcon.svg';
 import { ReactComponent as SchoolLocationIcon } from '../assets/icons/schoolLocationIcon.svg';
+import { useKidsAppLocationAccess } from '../hooks/useKidsAppLocationAccess';
 import { logKidsAppLocationSelected } from '../utils/kidsAppLocationAnalytics';
 import './KidsAppLocation.css';
 
 const KidsAppLocation: FC = () => {
   const history = useHistory();
+  const { isCheckingAccess, isAccessAllowed } = useKidsAppLocationAccess();
   useEffect(() => {
+    if (!isAccessAllowed) {
+      return;
+    }
+
     const lockOrientation = async () => {
       if (Capacitor.getPlatform() === 'android') {
         try {
@@ -39,7 +45,7 @@ const KidsAppLocation: FC = () => {
       }
     };
     lockOrientation();
-  }, []);
+  }, [isAccessAllowed]);
 
   const clearSchoolModeData = (clearSchool: boolean) => {
     // Clear class/student/selection data
@@ -80,30 +86,48 @@ const KidsAppLocation: FC = () => {
     history.replace(PAGES.SELECT_MODE);
   };
 
+  if (isCheckingAccess || !isAccessAllowed) {
+    return null;
+  }
+
   return (
-    <IonPage className="kids-app-location-page">
-      <div className="kids-app-location-container">
-        <div className="kids-app-location-avatar">
+    <IonPage id="kids-app-location-page" className="kids-app-location-page">
+      <div
+        id="kids-app-location-container"
+        className="kids-app-location-container"
+      >
+        <div id="kids-app-location-avatar" className="kids-app-location-avatar">
           <ChimpleRiveMascot animationName={CHIMPLE_MASCOT_ANIMATION_WAVY} />
         </div>
-        <h1 className="kids-app-location-title">
+        <h1 id="kids-app-location-title" className="kids-app-location-title">
           {t('Where are you using this app?')}
         </h1>
-        <div className="kids-app-location-actions">
+        <div
+          id="kids-app-location-actions"
+          className="kids-app-location-actions"
+        >
           <button
+            id="kids-app-location-btn kids-app-location-btn-home"
             type="button"
             className="kids-app-location-btn kids-app-location-btn-home"
             onClick={onHomeClick}
           >
-            <HomeLocationIcon className="kids-app-location-btn-icon" />
+            <HomeLocationIcon
+              id="kids-app-location-btn-icon"
+              className="kids-app-location-btn-icon"
+            />
             <span>{t('Home')}</span>
           </button>
           <button
+            id="kids-app-location-btn kids-app-location-btn-school"
             type="button"
             className="kids-app-location-btn kids-app-location-btn-school"
             onClick={onSchoolClick}
           >
-            <SchoolLocationIcon className="kids-app-location-btn-icon" />
+            <SchoolLocationIcon
+              id="kids-app-location-btn-icon"
+              className="kids-app-location-btn-icon"
+            />
             <span>{t('School')}</span>
           </button>
         </div>

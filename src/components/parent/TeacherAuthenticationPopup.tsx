@@ -37,6 +37,7 @@ const getKeyLabel = (
   if (key === backspaceKey) {
     return (
       <svg
+        id="teacher-authentication-popup-backspace-icon"
         className="teacher-authentication-popup-backspace-icon"
         viewBox="0 0 48 48"
         aria-hidden="true"
@@ -211,14 +212,21 @@ const TeacherAuthenticationPopup: React.FC<TeacherAuthenticationPopupProps> = ({
   };
 
   return (
-    <div className="teacher-authentication-popup-overlay">
+    <div
+      id="teacher-authentication-popup-overlay"
+      className="teacher-authentication-popup-overlay"
+    >
       <section
+        id="teacher-authentication-popup"
         className="teacher-authentication-popup"
         role="dialog"
         aria-modal="true"
         aria-labelledby="teacher-authentication-popup-title"
       >
-        <div className="teacher-authentication-popup-inner">
+        <div
+          id="teacher-authentication-popup-inner"
+          className="teacher-authentication-popup-inner"
+        >
           <button
             id="teacher-authentication-popup-close-button"
             className="teacher-authentication-popup-close-button"
@@ -232,29 +240,49 @@ const TeacherAuthenticationPopup: React.FC<TeacherAuthenticationPopupProps> = ({
             <img
               src="/assets/popup-close.svg"
               alt={String(t('Close') ?? '')}
+              id="teacher-authentication-popup-close-icon"
               className="teacher-authentication-popup-close-icon"
             />
           </button>
 
-          <div className="teacher-authentication-popup-content">
-            <div className="teacher-authentication-popup-question-container">
-              <div className="teacher-authentication-popup-left-panel">
+          <div
+            id="teacher-authentication-popup-content"
+            className="teacher-authentication-popup-content"
+          >
+            <div
+              id="teacher-authentication-popup-question-container"
+              className="teacher-authentication-popup-question-container"
+            >
+              <div
+                id="teacher-authentication-popup-left-panel"
+                className="teacher-authentication-popup-left-panel"
+              >
                 <h2
                   id="teacher-authentication-popup-title"
                   className="teacher-authentication-popup-title"
                 >
                   {t('This question is for the Teacher:')}
                 </h2>
-                <p className="teacher-authentication-popup-question">
+                <p
+                  id="teacher-authentication-popup-question"
+                  className="teacher-authentication-popup-question"
+                >
                   {displayedQuestionText}
                 </p>
-                <p className="teacher-authentication-popup-help-text">
+                <p
+                  id="teacher-authentication-popup-help-text"
+                  className="teacher-authentication-popup-help-text"
+                >
                   {t('Enter your Answer in the keypad :')}
                 </p>
-                <div className="teacher-authentication-popup-answer-slots">
+                <div
+                  id="teacher-authentication-popup-answer-slots"
+                  className="teacher-authentication-popup-answer-slots"
+                >
                   {Array.from({ length: expectedDigitCount }).map(
                     (_, index) => (
                       <span
+                        id="teacher-authentication-popup-answer-slot"
                         key={`answer-slot-${index}`}
                         className="teacher-authentication-popup-answer-slot"
                         aria-label={String(t('Answer digit slot') ?? '')}
@@ -265,6 +293,11 @@ const TeacherAuthenticationPopup: React.FC<TeacherAuthenticationPopupProps> = ({
                   )}
                 </div>
                 <p
+                  id={`teacher-authentication-popup-error ${
+                    showError
+                      ? 'teacher-authentication-popup-error-visible'
+                      : 'teacher-authentication-popup-error-hidden'
+                  }`}
                   className={`teacher-authentication-popup-error ${
                     showError
                       ? 'teacher-authentication-popup-error-visible'
@@ -275,7 +308,7 @@ const TeacherAuthenticationPopup: React.FC<TeacherAuthenticationPopupProps> = ({
                   {showError ? t('Wrong Answer, please try again.') : ''}
                 </p>
                 <button
-                  id="teacher-authentication-popup-submit-button"
+                  id={submitButtonClassName}
                   className={submitButtonClassName}
                   type="button"
                   onClick={handleSubmitClick}
@@ -290,8 +323,14 @@ const TeacherAuthenticationPopup: React.FC<TeacherAuthenticationPopupProps> = ({
               </div>
             </div>
 
-            <div className="teacher-authentication-popup-keypad-container">
-              <div className="teacher-authentication-popup-keypad">
+            <div
+              id="teacher-authentication-popup-keypad-container"
+              className="teacher-authentication-popup-keypad-container"
+            >
+              <div
+                id="teacher-authentication-popup-keypad"
+                className="teacher-authentication-popup-keypad"
+              >
                 {keypadKeys.map((key) => {
                   const isBackspaceKey = key === backspaceKey;
                   const isBackspaceDisabled =
@@ -300,6 +339,7 @@ const TeacherAuthenticationPopup: React.FC<TeacherAuthenticationPopupProps> = ({
                   if (isBackspaceDisabled) {
                     return (
                       <div
+                        id="teacher-authentication-popup-key teacher-authentication-popup-key-backspace teacher-authentication-popup-key-backspace-hidden"
                         key={`key-${key}`}
                         className="teacher-authentication-popup-key teacher-authentication-popup-key-backspace teacher-authentication-popup-key-backspace-hidden"
                         aria-hidden="true"
@@ -309,7 +349,7 @@ const TeacherAuthenticationPopup: React.FC<TeacherAuthenticationPopupProps> = ({
 
                   return (
                     <button
-                      id={`teacher-authentication-popup-key-${key}`}
+                      id={getKeyClassName(key, backspaceKey)}
                       key={`key-${key}`}
                       className={getKeyClassName(key, backspaceKey)}
                       type="button"

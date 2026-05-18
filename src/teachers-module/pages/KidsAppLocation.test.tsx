@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import KidsAppLocation from './KidsAppLocation';
 import {
   EVENTS,
   KIDS_APP_LOCATION_SELECTIONS,
@@ -9,6 +8,7 @@ import {
 } from '../../common/constants';
 import { schoolUtil } from '../../utility/schoolUtil';
 import { Util } from '../../utility/util';
+import { useKidsAppLocationAccess } from '../hooks/useKidsAppLocationAccess';
 
 const mockReplace = jest.fn();
 
@@ -56,6 +56,13 @@ jest.mock('../../utility/logger', () => ({
   warn: jest.fn(),
 }));
 
+jest.mock('../hooks/useKidsAppLocationAccess', () => ({
+  useKidsAppLocationAccess: jest.fn(() => ({
+    isCheckingAccess: false,
+    isAccessAllowed: true,
+  })),
+}));
+
 jest.mock('../../components/learningPathway/ChimpleRiveMascot', () => {
   const ReactModule = require('react');
   const MockChimpleRiveMascot = () =>
@@ -85,10 +92,19 @@ jest.mock('../assets/icons/schoolLocationIcon.svg', () => ({
 
 const logEventMock = Util.logEvent;
 const setCurrModeMock = schoolUtil.setCurrMode;
+const useKidsAppLocationAccessMock =
+  useKidsAppLocationAccess as jest.MockedFunction<
+    typeof useKidsAppLocationAccess
+  >;
+const KidsAppLocation = require('./KidsAppLocation').default;
 
 describe('KidsAppLocation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useKidsAppLocationAccessMock.mockReturnValue({
+      isCheckingAccess: false,
+      isAccessAllowed: true,
+    });
   });
 
   test('logs home selection before opening home kids app', async () => {
@@ -125,5 +141,21 @@ describe('KidsAppLocation', () => {
     );
     expect(setCurrModeMock).toHaveBeenCalledWith(MODES.TEACHER_SCHOOL);
     expect(mockReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
+  });
+
+  test('does not show location options when access is blocked', () => {
+    useKidsAppLocationAccessMock.mockReturnValue({
+      isCheckingAccess: false,
+      isAccessAllowed: false,
+    });
+
+    render(React.createElement(KidsAppLocation));
+
+    expect(
+      screen.queryByRole('button', { name: 'Home' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'School' }),
+    ).not.toBeInTheDocument();
   });
 });
