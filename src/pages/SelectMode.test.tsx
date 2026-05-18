@@ -128,6 +128,22 @@ jest.mock('../components/selectMode/SelectModeButton', () => ({
   ),
 }));
 
+jest.mock('../components/parent/TeacherAuthenticationPopup', () => ({
+  __esModule: true,
+  default: ({
+    isOpen,
+    onAuthenticated,
+  }: {
+    isOpen: boolean;
+    onAuthenticated: () => void;
+  }) =>
+    isOpen ? (
+      <button type="button" onClick={onAuthenticated}>
+        Math Auth Success
+      </button>
+    ) : null,
+}));
+
 jest.mock('../components/DropDown', () => ({
   __esModule: true,
   default: ({ optionList, currentValue, onValueChange }: any) => (
@@ -191,6 +207,16 @@ jest.mock('../services/ServiceConfig', () => ({
   },
 }));
 
+const mockRequireTeacherModeAuth = jest.fn();
+jest.mock('../services/TeacherModeAuth', () => ({
+  TeacherModeAuthResult: {
+    success: 'success',
+    popupFallbackRequired: 'popupFallbackRequired',
+    cancelledOrFailed: 'cancelledOrFailed',
+  },
+  requireTeacherModeAuth: () => mockRequireTeacherModeAuth(),
+}));
+
 const SelectMode = require('./SelectMode').default;
 
 // Import the mocked hooks
@@ -228,6 +254,7 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockGetCurrentSchool.mockReturnValue(undefined);
     mockLogEvent.mockResolvedValue(undefined);
+    mockRequireTeacherModeAuth.mockResolvedValue('popupFallbackRequired');
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
   });
 
@@ -367,7 +394,10 @@ describe('SelectMode page', () => {
       id: 'user-1',
     });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
 
@@ -522,6 +552,182 @@ describe('SelectMode page', () => {
       expect(mockEnsureLidoCommonAudioForStudent).toHaveBeenCalled();
       expect(mockSetCurrentStudent).toHaveBeenCalled();
       expect(mockHistoryReplace).toHaveBeenCalledWith('/home');
+    });
+  });
+
+  it('routes to teacher dashboard with TEACHER_SCHOOL mode after biometric authentication from class mode', async () => {
+    const user = userEvent.setup();
+
+    mockRequireTeacherModeAuth.mockResolvedValue('success');
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([
+      { id: 'class-1', name: 'Class 1' },
+    ]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    const teacherButton = await screen.findByRole('button', {
+      name: /teacher/i,
+    });
+    await user.click(teacherButton);
+
+    await waitFor(() => {
+      expect(mockRequireTeacherModeAuth).toHaveBeenCalled();
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_ENTRY_CLICKED,
+        {
+          user_role: 'auto_user',
+          auth_method_attempted: 'biometric',
+        },
+      );
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_AUTH_SUCCESS,
+        {
+          auth_method_used: 'biometric',
+        },
+      );
+      expect(mockSetCurrentSchool).toHaveBeenCalledWith({
+        id: 'school-1',
+        name: 'School 1',
+      });
+      expect(mockSetCurrentClass).toHaveBeenCalledWith({
+        id: 'class-1',
+        name: 'Class 1',
+      });
+      expect(mockApiHandler.currentMode).toBe(MODES.TEACHER_SCHOOL);
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER_SCHOOL);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
+    });
+  });
+
+  it('routes to teacher dashboard with TEACHER_SCHOOL mode after math auth fallback from class mode', async () => {
+    const user = userEvent.setup();
+
+    mockRequireTeacherModeAuth.mockResolvedValue('popupFallbackRequired');
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([
+      { id: 'class-1', name: 'Class 1' },
+    ]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    const teacherButton = await screen.findByRole('button', {
+      name: /teacher/i,
+    });
+    await user.click(teacherButton);
+
+    const mathAuthSuccessButton = await screen.findByRole('button', {
+      name: /math auth success/i,
+    });
+    await user.click(mathAuthSuccessButton);
+
+    await waitFor(() => {
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_ENTRY_CLICKED,
+        {
+          user_role: 'auto_user',
+          auth_method_attempted: 'math_gate',
+        },
+      );
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_AUTH_SUCCESS,
+        {
+          auth_method_used: 'math_gate',
+        },
+      );
+      expect(mockLogEvent).not.toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_ENTRY_CLICKED,
+        {
+          user_role: 'auto_user',
+          auth_method_attempted: 'biometric',
+        },
+      );
+      expect(mockSetCurrentSchool).toHaveBeenCalledWith({
+        id: 'school-1',
+        name: 'School 1',
+      });
+      expect(mockSetCurrentClass).toHaveBeenCalledWith({
+        id: 'class-1',
+        name: 'Class 1',
+      });
+      expect(mockApiHandler.currentMode).toBe(MODES.TEACHER_SCHOOL);
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER_SCHOOL);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
+    });
+  });
+
+  it('allows auto users to authenticate into teacher dashboard from class mode', async () => {
+    const user = userEvent.setup();
+
+    mockRequireTeacherModeAuth.mockResolvedValue('success');
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([
+      { id: 'class-1', name: 'Class 1' },
+    ]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    const teacherButton = await screen.findByRole('button', {
+      name: /teacher/i,
+    });
+    await user.click(teacherButton);
+
+    await waitFor(() => {
+      expect(mockRequireTeacherModeAuth).toHaveBeenCalled();
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_ENTRY_CLICKED,
+        {
+          user_role: 'auto_user',
+          auth_method_attempted: 'biometric',
+        },
+      );
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_AUTH_SUCCESS,
+        {
+          auth_method_used: 'biometric',
+        },
+      );
+      expect(mockSetCurrentSchool).toHaveBeenCalledWith({
+        id: 'school-1',
+        name: 'School 1',
+      });
+      expect(mockSetCurrentClass).toHaveBeenCalledWith({
+        id: 'class-1',
+        name: 'Class 1',
+      });
+      expect(mockApiHandler.currentMode).toBe(MODES.TEACHER_SCHOOL);
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER_SCHOOL);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
     });
   });
 

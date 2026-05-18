@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import Tabs from '../../common/Tabs';
-import Header from '../components/homePage/Header';
-import AddButton from '../../common/AddButton';
-import './ClassUsers.css';
-import { CLASS_USERS, PAGES, TableTypes } from '../../common/constants';
-import { Util } from '../../utility/util';
 import { useHistory, useLocation } from 'react-router-dom';
-import UserList from '../components/studentProfile/UserList';
+import AddButton from '../../common/AddButton';
+import {
+  AUTO_USER_ACTION_TYPES,
+  CLASS_USERS,
+  EVENTS,
+  PAGES,
+  TableTypes,
+} from '../../common/constants';
+import Tabs from '../../common/Tabs';
 import { RoleType } from '../../interface/modelInterfaces';
 import { useAppSelector } from '../../redux/hooks';
-import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import { RootState } from '../../redux/store';
+import { schoolUtil } from '../../utility/schoolUtil';
+import { Util } from '../../utility/util';
+import Header from '../components/homePage/Header';
+import UserList from '../components/studentProfile/UserList';
+import './ClassUsers.css';
 
 const ClassUsers: React.FC = () => {
   const history = useHistory();
@@ -25,6 +32,7 @@ const ClassUsers: React.FC = () => {
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const currentRoles = roles || [];
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
   useEffect(() => {
     init();
   }, []);
@@ -50,7 +58,12 @@ const ClassUsers: React.FC = () => {
     }
     setSelectedTab(CLASS_USERS.STUDENTS);
   };
-  const addStudent = () => {
+  const addStudent = async () => {
+    if (isTeacherSchoolMode) {
+      await Util.logEvent(EVENTS.AUTO_USER_ACTION_ATTEMPTED, {
+        action_type: AUTO_USER_ACTION_TYPES.ADD_STUDENT,
+      });
+    }
     history.replace(PAGES.ADD_STUDENT, {
       classDoc: classData,
       school: currentSchool,
@@ -108,7 +121,8 @@ const ClassUsers: React.FC = () => {
           )}
           {selectedTab === CLASS_USERS.TEACHERS &&
             !currentRoles.includes(RoleType.TEACHER) &&
-            !isExternalUser && <AddButton onClick={addTeacher} />}
+            !isExternalUser &&
+            !isTeacherSchoolMode && <AddButton onClick={addTeacher} />}
         </div>
       )}
     </>

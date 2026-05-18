@@ -10,6 +10,7 @@ import {
   AVATARS,
   CURRENT_CLASS_NAME,
   CURRENT_SCHOOL_NAME,
+  EVENTS,
   LANGUAGE,
   MODES,
   PAGES,
@@ -17,6 +18,8 @@ import {
   SELECTED_STUDENTS,
   STAGES,
   TableTypes,
+  TEACHER_APP_AUTH_METHODS,
+  TEACHER_APP_USER_ROLES,
   TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS,
   USER_SELECTION_STAGE,
 } from '../common/constants';
@@ -45,8 +48,8 @@ import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
 import { ReactComponent as BrandLogoIcon } from './assets/brandLogoIcon.svg';
 import { ReactComponent as LeftArrowIcon } from './assets/leftArrowIcon.svg';
-import { logClassTabClassChanged } from './selectModeAnalytics';
 import './SelectMode.css';
+import { logClassTabClassChanged } from './selectModeAnalytics';
 
 const VISIBLE_CLASS_COUNT = 3;
 const isRole = (
@@ -164,7 +167,11 @@ const SelectMode: FC = () => {
   const applyOrientationForMode = async (mode?: string) => {
     if (!mode || !Capacitor.isNativePlatform()) return;
 
-    if (mode === MODES.PARENT || mode === MODES.SCHOOL) {
+    if (
+      mode === MODES.PARENT ||
+      mode === MODES.SCHOOL ||
+      mode === MODES.TEACHER_SCHOOL
+    ) {
       await ScreenOrientation.lock({ orientation: 'landscape' });
       return;
     }
@@ -228,7 +235,10 @@ const SelectMode: FC = () => {
       }
       history.replace(PAGES.DISPLAY_STUDENT);
       return;
-    } else if (currentMode == MODES.SCHOOL) {
+    } else if (
+      currentMode === MODES.SCHOOL ||
+      currentMode === MODES.TEACHER_SCHOOL
+    ) {
       const schoolName = localStorage.getItem(CURRENT_SCHOOL_NAME);
       if (schoolName) setCurrentSchoolName(JSON.parse(schoolName));
       const className = localStorage.getItem(CURRENT_CLASS_NAME);
@@ -450,27 +460,52 @@ const SelectMode: FC = () => {
   };
 
   const continueToTeacherMode = async () => {
-    await applyOrientationForMode(MODES.SCHOOL);
-    api.currentMode = MODES.SCHOOL;
-    schoolUtil.setCurrMode(MODES.SCHOOL);
+    await applyOrientationForMode(MODES.TEACHER_SCHOOL);
+    if (currentSchool) {
+      await schoolUtil.setCurrentSchool(currentSchool);
+    }
+    if (currClass) {
+      await schoolUtil.setCurrentClass(currClass);
+    }
+    api.currentMode = MODES.TEACHER_SCHOOL;
+    schoolUtil.setCurrMode(MODES.TEACHER_SCHOOL);
     setStage(STAGES.TEACHER);
     history.replace(PAGES.HOME_PAGE);
   };
 
   const onTeacherSelect = async () => {
-    if (isAutoUser) {
-      logger.info('Teacher mode blocked for auto user: true');
-      return;
-    }
     const teacherModeAuthResult = await requireTeacherModeAuth();
 
     if (teacherModeAuthResult === TeacherModeAuthResult.success) {
+      if (isAutoUser) {
+        await Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
+          user_role: TEACHER_APP_USER_ROLES.AUTO_USER,
+          auth_method_attempted: TEACHER_APP_AUTH_METHODS.BIOMETRIC,
+        });
+      }
+      await Util.logEvent(EVENTS.TEACHER_APP_AUTH_SUCCESS, {
+        auth_method_used: TEACHER_APP_AUTH_METHODS.BIOMETRIC,
+      });
       await continueToTeacherMode();
       return;
     }
 
     if (teacherModeAuthResult === TeacherModeAuthResult.popupFallbackRequired) {
+      if (isAutoUser) {
+        await Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
+          user_role: TEACHER_APP_USER_ROLES.AUTO_USER,
+          auth_method_attempted: TEACHER_APP_AUTH_METHODS.MATH_GATE,
+        });
+      }
       setIsTeacherAuthPopupOpen(true);
+      return;
+    }
+
+    if (isAutoUser) {
+      await Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
+        user_role: TEACHER_APP_USER_ROLES.AUTO_USER,
+        auth_method_attempted: TEACHER_APP_AUTH_METHODS.BIOMETRIC,
+      });
     }
   };
 
@@ -610,7 +645,6 @@ const SelectMode: FC = () => {
                   text={t('Teacher')}
                   icon={GiTeacher}
                   onClick={onTeacherSelect}
-                  disabled={isAutoUser}
                   id="select-mode-teacher-button"
                 />
               </div>
@@ -856,9 +890,12 @@ const SelectMode: FC = () => {
           TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS.SWITCH_PROFILE_BACK_BUTTON
         }
         onClose={() => setIsTeacherAuthPopupOpen(false)}
-        onAuthenticated={() => {
+        onAuthenticated={async () => {
           setIsTeacherAuthPopupOpen(false);
-          void continueToTeacherMode();
+          await Util.logEvent(EVENTS.TEACHER_APP_AUTH_SUCCESS, {
+            auth_method_used: TEACHER_APP_AUTH_METHODS.MATH_GATE,
+          });
+          await continueToTeacherMode();
         }}
       />
     </IonPage>

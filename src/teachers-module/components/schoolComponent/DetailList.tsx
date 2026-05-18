@@ -1,17 +1,18 @@
+import SchoolIcon from '@mui/icons-material/School';
+import { t } from 'i18next';
 import React from 'react';
 import { useHistory } from 'react-router-dom';
-import SchoolIcon from '@mui/icons-material/School';
 import {
   IconType,
   PAGES,
   SchoolWithRole,
   TableTypes,
 } from '../../../common/constants';
-import { t } from 'i18next';
-import { useAppSelector } from '../../../redux/hooks';
-import { RootState } from '../../../redux/store';
-import { AuthState } from '../../../redux/slices/auth/authSlice';
 import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RootState } from '../../../redux/store';
+import { schoolUtil } from '../../../utility/schoolUtil';
 import './DetailList.css';
 
 interface DetailListProps {
@@ -27,6 +28,7 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
 
   if (data.length === 0) {
     return (
@@ -103,7 +105,7 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
                   onClick={() => handleUserIconClick(item)}
                   className="class-user-icon"
                 />
-                {!isExternalUser && (
+                {!isExternalUser && !isTeacherSchoolMode && (
                   <img
                     src="assets/icons/subjectUserIcon.svg"
                     alt="User_Subject"

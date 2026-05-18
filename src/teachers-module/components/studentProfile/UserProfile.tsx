@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
-import './UserProfile.css';
-import { TableTypes } from '../../../common/constants';
 import { t } from 'i18next';
+import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import ProfileDetails from '../library/ProfileDetails';
-import CustomDropdown from '../CustomDropdown';
-import { useAppSelector } from '../../../redux/hooks';
-import { RootState } from '../../../redux/store';
-import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { TableTypes } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RootState } from '../../../redux/store';
+import { schoolUtil } from '../../../utility/schoolUtil';
+import CustomDropdown from '../CustomDropdown';
+import ProfileDetails from '../library/ProfileDetails';
+import './UserProfile.css';
 
 const UserProfile: React.FC<{
   student: TableTypes<'user'>;
@@ -41,6 +42,7 @@ const UserProfile: React.FC<{
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
   const handleEditClick = () => {
     setIsEditing(true);
   };
@@ -120,7 +122,7 @@ const UserProfile: React.FC<{
         </div>
         <div className="profile-info">
           <div className="student-name1">{isEditing ? '' : student.name}</div>
-          {!isEditing && !isExternalUser && (
+          {!isEditing && !isExternalUser && !isTeacherSchoolMode && (
             <img
               src="assets/icons/editIcon.svg"
               alt="Edit_Icon"

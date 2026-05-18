@@ -242,10 +242,6 @@
   flex-basis: clamp(155px, 20vw, 220px);
 }
 
-.school-mode-class-strip-static .school-mode-class-tab:first-child {
-  border-left: 0;
-}
-
 .school-mode-class-tab-active {
   background: #fffdee;
   border-bottom: 3px solid #182a4f;
