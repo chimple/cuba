@@ -1,6 +1,6 @@
 {
-  " OFF ": " बंद ",
-  " ON ": " पर ",
+  "OFF": "बंद",
+  "ON": "चालू",
   " to choose and assign.": " चुनना और सौंपना।",
   "***Be among the top performers in your class to win an exciting reward": "***अपनी कक्षा में सर्वश्रेष्ठ प्रदर्शन करने वालों में शामिल होकर एक रोमांचक पुरस्कार जीतें।",
   "🎉Congratulations🎊": "🎉बधाई हो 🎊",
@@ -1129,6 +1129,7 @@
   "sending": "भेजा जा रहा है",
   "Sent the OTP": "OTP  भेज दिया",
   "setting": "सेटिंग",
+  "settings": "सेटिंग्स",
   "Setup WhatsApp Group": "व्हाट्सऐप समूह सेट करें",
   "Shadow Story (Togalu)": "कहानी परछाइयों से",
   "Shadow Story": "परछाई की कहानी",
@@ -1157,6 +1158,7 @@
   "Shapes": "आकार",
   "Share": "साझा करें",
   "Sign out as a Parent": "अभिभावक के रूप में साइन आउट करें",
+  "Sign out": "साइन आउट करें",
   "Sign Out": "साइन आउट",
   "Simple": "सरल",
   "Skip 2's Backward": "2 में पीछे जाएँ",
@@ -1627,5 +1629,9 @@
   "Keep going!\nFinish these lessons to choose another subject.": "आगे बढ़ते रहो!\nइन पाठों को पूरा करके कोई दूसरा विषय चुनो।।",
   "High Engagement 45+ minutes": "उच्च सहभागिता 45+ मिनट",
   "Medium Engagement <45 minutes": "मध्यम सहभागिता <45 मिनट",
-  "App not downloaded": "ऐप डाउनलोड नहीं किया गया"
+  "App not downloaded": "ऐप डाउनलोड नहीं किया गया",
+  "We have updated our <1>Terms & Conditions</1>.": "हमने अपने <1>नियम और शर्तों</1> में कुछ बदलाव किए हैं।",
+  "To keep your data safe and comply with privacy regulations, please review and agree to continue.": "अपने डेटा को सुरक्षित रखने और गोपनीयता नियमों का पालन करने के लिए, कृपया समीक्षा करें और आगे बढ़ने के लिए सहमति दें।",
+  "Agree as Parent": "अभिभावक के रूप में सहमत हों",
+  "Agree as Teacher": "शिक्षक के रूप में सहमत हों"
 }

@@ -1,19 +1,86 @@
 import {
   AbilityState,
+  BlendWeights,
   DependencyGraph,
+  LearningRates,
+  OutcomeEvent,
   RecommendationContext,
   createEmptyAbilityState,
   recommendNextSkill,
   updateAbilities,
-  OutcomeEvent,
 } from '@chimple/palau-recommendation';
-import { TableTypes } from '../common/constants';
+import { PAL_LEARNING_RATES_CONFIG, TableTypes } from '../common/constants';
+import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import { ServiceConfig } from '../services/ServiceConfig';
 
 type AbilityKeys = 'skill' | 'outcome' | 'competency' | 'domain' | 'subject';
 
 type ResultAbilityMap = {
   [K in AbilityKeys]: Map<string, { ability: number; timestamp: number }>;
+};
+
+type PalConstants = {
+  blendWeights: LayerWeightsInput<BlendWeights>;
+  learningRates: LayerWeightsInput<LearningRates>;
+};
+
+type LayerWeightsInput<T> = {
+  default: T;
+  bySubject: Record<string, T>;
+};
+
+type PalLearningRatesConfig = {
+  default?: Partial<LearningRates>;
+  subjects?: Record<string, Partial<LearningRates>>;
+};
+
+const LEARNING_RATE_KEYS: (keyof LearningRates)[] = [
+  'skill',
+  'outcome',
+  'competency',
+  'domain',
+  'subject',
+];
+
+const PAL_CONSTANTS: PalConstants = {
+  blendWeights: {
+    default: {
+      skill: 0.1,
+      outcome: 0.1,
+      competency: 0.6,
+      domain: 0.1,
+      subject: 0.1,
+    },
+    bySubject: {},
+  },
+  learningRates: {
+    default: {
+      skill: 0.5,
+      outcome: 0.8,
+      competency: 0.3,
+      domain: 0.5,
+      subject: 0.4,
+    },
+    bySubject: {},
+  },
+};
+
+const resolveRates = (
+  overrides: Partial<LearningRates> | undefined,
+  fallback: LearningRates,
+): LearningRates => {
+  const resolved = { ...fallback };
+
+  if (!overrides || typeof overrides !== 'object') return resolved;
+
+  LEARNING_RATE_KEYS.forEach((key) => {
+    const value = overrides[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      resolved[key] = value;
+    }
+  });
+
+  return resolved;
 };
 
 export class palUtil {
@@ -277,6 +344,7 @@ export class palUtil {
       graph,
       abilities: abilityState,
       subjectId,
+      blendWeights: this.getBlendWeightsForSubject(subjectId),
     });
 
     const skillId = recommendation?.candidateId;
@@ -420,6 +488,25 @@ export class palUtil {
     return record;
   }
 
+  private static getBlendWeightsForSubject(subjectId: string): BlendWeights {
+    return (
+      (subjectId && PAL_CONSTANTS.blendWeights.bySubject[subjectId]) ||
+      PAL_CONSTANTS.blendWeights.default
+    );
+  }
+
+  private static getLearningRatesForSubject(subjectId: string): LearningRates {
+    const config = getCachedGrowthBookFeatureValue<PalLearningRatesConfig>(
+      PAL_LEARNING_RATES_CONFIG,
+      {},
+    );
+    const localDefault = PAL_CONSTANTS.learningRates.default;
+    const defaultRates = resolveRates(config?.default, localDefault);
+    const subjectRates = subjectId ? config?.subjects?.[subjectId] : undefined;
+
+    return resolveRates(subjectRates, defaultRates);
+  }
+
   public static async updateAndGetAbilities(params: {
     studentId: string;
     courseId: string;
@@ -460,6 +547,8 @@ export class palUtil {
         graph,
         abilities: abilityState,
         events: outcomeEvents,
+        blendWeights: this.getBlendWeightsForSubject(subjectId),
+        learningRates: this.getLearningRatesForSubject(subjectId),
       });
 
       newAbilityState = updated?.abilities ?? abilityState;

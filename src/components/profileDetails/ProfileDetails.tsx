@@ -17,6 +17,7 @@ import {
   FORM_MODES,
   GENDER,
   LANGUAGE,
+  LATEST_TC_VERSION,
   PAGES,
   PROFILE_DETAILS_GROWTHBOOK_VARIATION,
   TableTypes,
@@ -79,6 +80,7 @@ const ProfileDetails = () => {
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.ONBOARDING,
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
   );
+  const latestTcVersion = useFeatureValue<number>(LATEST_TC_VERSION, 0);
   const mode = getModeFromFeature(variation);
   const randomIndex = Math.floor(Math.random() * AVATARS.length);
 
@@ -402,6 +404,7 @@ const ProfileDetails = () => {
         undefined,
         undefined,
         languageId || DEFAULT_LANGUAGE_ID_EN,
+        latestTcVersion,
       );
 
       Util.logEvent(EVENTS.PROFILE_CREATED, {
@@ -454,7 +457,10 @@ const ProfileDetails = () => {
         (lang) => lang.code === languageCode,
       );
 
-      const student = await api.createAutoProfile(selectedLanguage?.id);
+      const student = await api.createAutoProfile(
+        selectedLanguage?.id,
+        latestTcVersion,
+      );
 
       await Util.setCurrentStudent(
         student,

@@ -734,6 +734,8 @@ export const CURRENT_STUDENT_CHANGED_EVENT = 'currentStudentChanged';
 export const SHOW_GENERIC_POPUP = 'SHOW_GENERIC_POPUP';
 export const GENERIC_POPUP_INTERNAL_NAVIGATION = 'POPUP_INTERNAL_NAVIGATION';
 export const GENERIC_POP_UP = 'generic-pop-up';
+export const TC_HTML_URL = 'tc_html_url';
+export const LATEST_TC_VERSION = 'latest_tc_version';
 export enum GENERIC_POPUP_TRIGGER_CONDITION {
   APP_OPEN = 'APP_OPEN',
   GAME_COMPLETE = 'GAME_COMPLETE',
@@ -981,6 +983,8 @@ export enum EVENTS {
   STICKER_BOOK_SAVE_CLICKED = 'sticker_book_save_clicked',
   STICKER_BOOK_IMAGE_SAVED = 'sticker_book_image_saved',
   STICKER_BOOK_IMAGE_SHARED = 'sticker_book_image_shared',
+  TC_POPUP_VIEWED = 'tc_popup_viewed',
+  TC_AGREED = 'tc_agreed',
   SWITCH_TO_KIDS_APP_CLICKED = 'switch_to_kids_app_clicked',
   KIDS_APP_LOCATION_SELECTED = 'kids_app_location_selected',
   CLASS_TAB_CLASS_CHANGED = 'class_tab_class_changed',
@@ -1040,7 +1044,7 @@ export const CAMPAIGN_SEQUENCE_FINISHED = 'CAMPAIGN_SEQUENCE_FINISHED';
 export const LIDO_COMMON_AUDIO_DIR = 'Lido-CommonAudios';
 export const LIDO_COMMON_AUDIO_LANG_KEY = 'lido_common_audio_language';
 export const HOT_UPDATE_STATE_KEY = 'hotUpdateState';
-
+export const PAL_LEARNING_RATES_CONFIG = 'pal_learning_rates_config';
 export type LeaderboardBadge = {
   id: string;
   seen: boolean;

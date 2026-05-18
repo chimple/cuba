@@ -18,13 +18,13 @@ export class AuthHandler implements ServiceAuth {
     return AuthHandler.i;
   }
 
-  async googleSign(): Promise<{
+  async googleSign(tcAgreedVersion?: number): Promise<{
     user?: User;
     success: boolean;
     isSpl: boolean;
     userData?: TableTypes<'user'> | null;
   }> {
-    return await this.s.googleSign();
+    return await this.s.googleSign(tcAgreedVersion);
   }
 
   async getCurrentUser(): Promise<TableTypes<'user'> | undefined> {
@@ -60,18 +60,24 @@ export class AuthHandler implements ServiceAuth {
   public async loginWithEmailAndPassword(
     email: string,
     password: string,
+    tcAgreedVersion?: number,
   ): Promise<{
     user?: User;
     success: boolean;
     isSpl: boolean;
     userData?: TableTypes<'user'> | null;
   }> {
-    return await this.s.loginWithEmailAndPassword(email, password);
+    return await this.s.loginWithEmailAndPassword(
+      email,
+      password,
+      tcAgreedVersion,
+    );
   }
 
   public async proceedWithVerificationCode(
     verificationId: string,
     verificationCode: string,
+    tcAgreedVersion?: number,
   ): Promise<
     | {
         user: User | null;
@@ -84,6 +90,7 @@ export class AuthHandler implements ServiceAuth {
     return await this.s.proceedWithVerificationCode(
       verificationId,
       verificationCode,
+      tcAgreedVersion,
     );
   }
 
@@ -101,13 +108,14 @@ export class AuthHandler implements ServiceAuth {
   public async signInWithEmail(
     email: string,
     password: string,
+    tcAgreedVersion?: number,
   ): Promise<{
     user?: User;
     success: boolean;
     isSpl: boolean;
-    userData?: TableTypes<'user'>;
+    userData?: TableTypes<'user'> | null;
   }> {
-    return await this.s.signInWithEmail(email, password);
+    return await this.s.signInWithEmail(email, password, tcAgreedVersion);
   }
   public async sendResetPasswordEmail(email: string): Promise<boolean> {
     return await this.s.sendResetPasswordEmail(email);
