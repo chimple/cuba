@@ -81,13 +81,19 @@ const renderSelectionCount = (selected: unknown[], placeholder: string) => (
   </span>
 );
 
-export const CampaignSetupStepper: React.FC = () => (
+type CampaignSetupStepperProps = {
+  activeStep?: number;
+};
+
+export const CampaignSetupStepper: React.FC<CampaignSetupStepperProps> = ({
+  activeStep = 0,
+}) => (
   <Box className="campaign-setup-stepper" aria-label="Campaign steps">
     {['Setup', 'Assignments', 'Rewards', 'Messaging'].map((step, index) => (
       <React.Fragment key={step}>
         <Box
           className={`campaign-setup-step ${
-            index === 0 ? 'campaign-setup-step-active' : ''
+            index === activeStep ? 'campaign-setup-step-active' : ''
           }`}
         >
           <span>{index + 1}</span>

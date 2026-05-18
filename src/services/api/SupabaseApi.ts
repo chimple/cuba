@@ -108,6 +108,7 @@ import logger from '../../utility/logger';
 type CampaignQueryBuilder<T> = PromiseLike<PostgrestSingleResponse<T>> & {
   select: (columns?: string) => CampaignQueryBuilder<T>;
   insert: (values: unknown) => CampaignQueryBuilder<T>;
+  delete: () => CampaignQueryBuilder<T>;
   eq: (column: string, value: unknown) => CampaignQueryBuilder<T>;
   in: (column: string, values: readonly unknown[]) => CampaignQueryBuilder<T>;
   not: (
@@ -196,6 +197,14 @@ const getCampaignDbClient = (
 
 const firstOrSelf = <T>(value: T | T[] | null | undefined): T | null =>
   Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+
+const chunkArray = <T>(items: T[], chunkSize: number): T[][] => {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += chunkSize) {
+    chunks.push(items.slice(index, index + chunkSize));
+  }
+  return chunks;
+};
 
 const GENERIC_LEADERBOARD_LIMIT = 50;
 const SCHOOL_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
@@ -9057,19 +9066,24 @@ export class SupabaseApi implements ServiceApi {
     const classIds = Array.from(classGradeMap.keys());
     if (classIds.length === 0) return { totalStudents: 0, grades: [] };
 
-    const { data: classUserRows, error: classUserError } = await supabase
-      .from<CampaignClassUserRow[]>('class_user')
-      .select('class_id, user_id')
-      .in('class_id', classIds)
-      .eq('role', RoleType.STUDENT)
-      .eq('is_deleted', false);
+    const classUserRows: CampaignClassUserRow[] = [];
+    for (const classIdBatch of chunkArray(classIds, 500)) {
+      const { data, error: classUserError } = await supabase
+        .from<CampaignClassUserRow[]>('class_user')
+        .select('class_id, user_id')
+        .in('class_id', classIdBatch)
+        .eq('role', RoleType.STUDENT)
+        .eq('is_deleted', false);
 
-    if (classUserError) {
-      logger.error(
-        'Error fetching campaign summary class users:',
-        classUserError,
-      );
-      return { totalStudents: 0, grades: [] };
+      if (classUserError) {
+        logger.error(
+          'Error fetching campaign summary class users:',
+          classUserError,
+        );
+        return { totalStudents: 0, grades: [] };
+      }
+
+      classUserRows.push(...(data ?? []));
     }
 
     const studentsByGrade = new Map<string, Set<string>>();
@@ -9134,6 +9148,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const supabase = getCampaignDbClient(this.supabase);
+    const createdAudienceForCampaign = !payload.savedAudienceGroupId;
     const targetAudienceId =
       payload.savedAudienceGroupId ||
       (await this.insertCampaignTargetAudience(payload));
@@ -9159,6 +9174,9 @@ export class SupabaseApi implements ServiceApi {
 
     if (error) {
       logger.error('Error creating campaign setup:', error);
+      if (createdAudienceForCampaign) {
+        await this.deleteCampaignTargetAudience(targetAudienceId);
+      }
       throw error;
     }
 
@@ -9225,14 +9243,14 @@ export class SupabaseApi implements ServiceApi {
       });
     });
 
-    if (gradeMap.size === 0) {
+    for (const schoolIdBatch of chunkArray(schoolIds, 500)) {
       const { data: schoolCourseRows, error: schoolCourseError } =
         await supabase
           .from<CampaignSchoolCourseGradeRow[]>('school_course')
           .select(
             'course:course_id(grade_id, grade:grade_id(id, name, sort_index))',
           )
-          .in('school_id', schoolIds)
+          .in('school_id', schoolIdBatch)
           .eq('is_deleted', false);
 
       if (schoolCourseError) {
@@ -9240,6 +9258,7 @@ export class SupabaseApi implements ServiceApi {
           'Error fetching school course grades for campaign:',
           schoolCourseError,
         );
+        continue;
       }
 
       (schoolCourseRows ?? []).forEach((row) => {
@@ -9291,47 +9310,83 @@ export class SupabaseApi implements ServiceApi {
 
     const targetAudienceId = String(data.id);
 
-    if (!payload.isAllSchools && payload.schoolIds.length > 0) {
-      const { error: schoolInsertError } = await supabase
-        .from<
-          CampaignAudienceSchoolLinkRow[]
-        >('campaign_target_audience_school')
-        .insert(
-          payload.schoolIds.map((schoolId) => ({
-            target_audience_id: targetAudienceId,
-            school_id: schoolId,
-          })),
-        );
+    try {
+      if (!payload.isAllSchools && payload.schoolIds.length > 0) {
+        const { error: schoolInsertError } = await supabase
+          .from<
+            CampaignAudienceSchoolLinkRow[]
+          >('campaign_target_audience_school')
+          .insert(
+            payload.schoolIds.map((schoolId) => ({
+              target_audience_id: targetAudienceId,
+              school_id: schoolId,
+            })),
+          );
 
-      if (schoolInsertError) {
-        logger.error(
-          'Error creating campaign target audience schools:',
-          schoolInsertError,
-        );
-        throw schoolInsertError;
+        if (schoolInsertError) {
+          logger.error(
+            'Error creating campaign target audience schools:',
+            schoolInsertError,
+          );
+          throw schoolInsertError;
+        }
       }
-    }
 
-    if (!payload.isAllGrades && payload.gradeIds.length > 0) {
-      const { error: gradeInsertError } = await supabase
-        .from<CampaignAudienceGradeLinkRow[]>('campaign_target_audience_grade')
-        .insert(
-          payload.gradeIds.map((gradeId) => ({
-            target_audience_id: targetAudienceId,
-            grade_id: gradeId,
-          })),
-        );
+      if (!payload.isAllGrades && payload.gradeIds.length > 0) {
+        const { error: gradeInsertError } = await supabase
+          .from<
+            CampaignAudienceGradeLinkRow[]
+          >('campaign_target_audience_grade')
+          .insert(
+            payload.gradeIds.map((gradeId) => ({
+              target_audience_id: targetAudienceId,
+              grade_id: gradeId,
+            })),
+          );
 
-      if (gradeInsertError) {
-        logger.error(
-          'Error creating campaign target audience grades:',
-          gradeInsertError,
-        );
-        throw gradeInsertError;
+        if (gradeInsertError) {
+          logger.error(
+            'Error creating campaign target audience grades:',
+            gradeInsertError,
+          );
+          throw gradeInsertError;
+        }
       }
+    } catch (error) {
+      await this.deleteCampaignTargetAudience(targetAudienceId);
+      throw error;
     }
 
     return targetAudienceId;
+  }
+
+  private async deleteCampaignTargetAudience(targetAudienceId: string) {
+    if (!this.supabase) return;
+
+    const supabase = getCampaignDbClient(this.supabase);
+    const cleanupSteps = [
+      supabase
+        .from<
+          CampaignAudienceSchoolLinkRow[]
+        >('campaign_target_audience_school')
+        .delete()
+        .eq('target_audience_id', targetAudienceId),
+      supabase
+        .from<CampaignAudienceGradeLinkRow[]>('campaign_target_audience_grade')
+        .delete()
+        .eq('target_audience_id', targetAudienceId),
+      supabase
+        .from<CampaignInsertResultRow[]>('campaign_target_audience')
+        .delete()
+        .eq('id', targetAudienceId),
+    ];
+
+    for (const cleanupStep of cleanupSteps) {
+      const { error } = await cleanupStep;
+      if (error) {
+        logger.error('Error cleaning up campaign target audience:', error);
+      }
+    }
   }
 
   async getUniqueGeoData(): Promise<{

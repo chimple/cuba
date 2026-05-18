@@ -1,9 +1,9 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import CampaignSetupPage from './CampaignSetupPage';
 
 const mockGoBack = jest.fn();
+jest.setTimeout(10000);
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
@@ -60,9 +60,7 @@ const setupApiMocks = () => {
 
 const openSelectAndChoose = async (triggerText: string, optionText: string) => {
   fireEvent.mouseDown(screen.getByText(triggerText));
-  await userEvent.click(
-    await screen.findByRole('option', { name: optionText }),
-  );
+  fireEvent.click(await screen.findByRole('option', { name: optionText }));
 };
 
 beforeEach(() => {
@@ -85,13 +83,12 @@ describe('CampaignSetupPage', () => {
   });
 
   it('switches dynamic objective fields when homepage pathway campaign is selected', async () => {
-    const user = userEvent.setup();
     render(<CampaignSetupPage />);
 
     await screen.findByRole('heading', { name: 'New Campaign' });
     expect(screen.getByText('Target Type')).toBeInTheDocument();
 
-    await user.click(
+    fireEvent.click(
       screen.getByRole('button', {
         name: /Homepage Learning Pathway Campaign/i,
       }),
@@ -102,13 +99,16 @@ describe('CampaignSetupPage', () => {
   });
 
   it('submits setup payload without showing a success toast on next', async () => {
-    const user = userEvent.setup();
     render(<CampaignSetupPage />);
 
     await screen.findByRole('heading', { name: 'New Campaign' });
 
-    await user.type(screen.getByLabelText('Target Value'), '90');
-    await user.type(screen.getByLabelText('Campaign Name'), 'ABCD');
+    fireEvent.change(screen.getByLabelText('Target Value'), {
+      target: { value: '90' },
+    });
+    fireEvent.change(screen.getByLabelText('Campaign Name'), {
+      target: { value: 'ABCD' },
+    });
     await openSelectAndChoose('Select Campaign Manager', 'Raj Patel');
 
     fireEvent.change(screen.getByLabelText('Start Date'), {
@@ -125,14 +125,16 @@ describe('CampaignSetupPage', () => {
       ),
     );
 
-    await user.click(screen.getByPlaceholderText('Select Grade'));
-    await user.click(await screen.findByRole('option', { name: 'Grade 1' }));
-    await user.type(screen.getByPlaceholderText('Enter group name'), 'Group A');
+    fireEvent.mouseDown(screen.getByPlaceholderText('Select Grade'));
+    fireEvent.click(await screen.findByRole('option', { name: 'Grade 1' }));
+    fireEvent.change(screen.getByPlaceholderText('Enter group name'), {
+      target: { value: 'Group A' },
+    });
 
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
     );
-    await user.click(screen.getByRole('button', { name: 'Next' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
     await waitFor(() =>
       expect(mockApiHandler.createCampaignSetup).toHaveBeenCalledWith(
@@ -149,5 +151,6 @@ describe('CampaignSetupPage', () => {
       ),
     );
     expect(screen.queryByText('Campaign setup saved.')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
   });
 });

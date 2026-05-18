@@ -78,6 +78,8 @@ const CampaignSetupPage: React.FC = () => {
   const [loadingAudience, setLoadingAudience] = useState(false);
   const [savingGroup, setSavingGroup] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const [createdCampaignId, setCreatedCampaignId] = useState('');
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [message, setMessage] = useState<{
     type: 'success' | 'error';
@@ -435,7 +437,7 @@ const CampaignSetupPage: React.FC = () => {
     try {
       const savedAudienceGroupId =
         selectedSavedGroupId && !saveGroup ? selectedSavedGroupId : undefined;
-      await api.createCampaignSetup({
+      const result = await api.createCampaignSetup({
         ...buildAudiencePayload(),
         savedAudienceGroupId,
         campaignName: form.campaignName.trim(),
@@ -456,6 +458,8 @@ const CampaignSetupPage: React.FC = () => {
         startDate: form.startDate,
         endDate: form.endDate,
       });
+      setCreatedCampaignId(result.campaignId);
+      setActiveStep(1);
     } catch (error) {
       logger.error('Failed to create campaign setup:', error);
       setMessage({ type: 'error', text: 'Unable to save campaign setup.' });
@@ -509,7 +513,7 @@ const CampaignSetupPage: React.FC = () => {
         className="campaign-setup-form"
         onSubmit={handleSubmit}
       >
-        <CampaignSetupStepper />
+        <CampaignSetupStepper activeStep={activeStep} />
 
         <ObjectiveGoalSection
           form={form}
@@ -565,7 +569,7 @@ const CampaignSetupPage: React.FC = () => {
             type="submit"
             variant="contained"
             endIcon={submitting ? <CircularProgress size={18} /> : undefined}
-            disabled={!isFormValid || submitting}
+            disabled={!isFormValid || submitting || !!createdCampaignId}
           >
             Next
           </Button>
