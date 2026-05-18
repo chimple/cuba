@@ -57,6 +57,14 @@ import Course from '../../models/course';
 import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
+  CampaignAudienceOptions,
+  CampaignAudiencePayload,
+  CampaignAudienceSummary,
+  CampaignAudienceSummaryParams,
+  CampaignSavedAudienceGroup,
+  CampaignSetupOptions,
+  CreateCampaignSetupPayload,
+  CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
@@ -7000,6 +7008,34 @@ order by
 
   async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this._serverApi.getProgramManagers();
+  }
+
+  async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
+    return await this._serverApi.getCampaignSetupOptions();
+  }
+
+  async getCampaignAudienceOptions(
+    programId: string,
+  ): Promise<CampaignAudienceOptions> {
+    return await this._serverApi.getCampaignAudienceOptions(programId);
+  }
+
+  async getCampaignAudienceSummary(
+    params: CampaignAudienceSummaryParams,
+  ): Promise<CampaignAudienceSummary> {
+    return await this._serverApi.getCampaignAudienceSummary(params);
+  }
+
+  async createCampaignAudienceGroup(
+    payload: CampaignAudiencePayload,
+  ): Promise<CampaignSavedAudienceGroup> {
+    return await this._serverApi.createCampaignAudienceGroup(payload);
+  }
+
+  async createCampaignSetup(
+    payload: CreateCampaignSetupPayload,
+  ): Promise<CreateCampaignSetupResult> {
+    return await this._serverApi.createCampaignSetup(payload);
   }
 
   async getUniqueGeoData(): Promise<{
