@@ -113,7 +113,7 @@ export class AuthHandler implements ServiceAuth {
     user?: User;
     success: boolean;
     isSpl: boolean;
-    userData?: TableTypes<'user'>;
+    userData?: TableTypes<'user'> | null;
   }> {
     return await this.s.signInWithEmail(email, password, tcAgreedVersion);
   }

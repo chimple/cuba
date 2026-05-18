@@ -7,11 +7,19 @@ export interface ServiceAuth {
     email: string,
     password: string,
     tcAgreedVersion?: number,
-  ): Promise<{ success: boolean; isSpl: boolean; userData?: unknown }>;
+  ): Promise<{
+    user?: User;
+    success: boolean;
+    isSpl: boolean;
+    userData?: TableTypes<'user'> | null;
+  }>;
 
-  googleSign(
-    tcAgreedVersion?: number,
-  ): Promise<{ success: boolean; isSpl: boolean; userData?: unknown }>;
+  googleSign(tcAgreedVersion?: number): Promise<{
+    user?: User;
+    success: boolean;
+    isSpl: boolean;
+    userData?: TableTypes<'user'> | null;
+  }>;
 
   getCurrentUser(): Promise<TableTypes<'user'> | undefined>;
 
@@ -37,10 +45,10 @@ export interface ServiceAuth {
     tcAgreedVersion?: number,
   ): Promise<
     | {
-        user: unknown;
+        user: User | null;
         isUserExist: boolean;
         isSpl: boolean;
-        userData?: unknown;
+        userData?: TableTypes<'user'> | null;
       }
     | undefined
   >;
@@ -61,7 +69,12 @@ export interface ServiceAuth {
     email: string,
     password: string,
     tcAgreedVersion?: number,
-  ): Promise<{ success: boolean; isSpl: boolean; userData?: unknown }>;
+  ): Promise<{
+    user?: User;
+    success: boolean;
+    isSpl: boolean;
+    userData?: TableTypes<'user'> | null;
+  }>;
   /**
    * Sends a password reset email to the given address.
    *
