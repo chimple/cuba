@@ -42,7 +42,7 @@ const createWrapper = (roles: string[]): React.FC<HookWrapperProps> => {
 
   const HookWrapper: React.FC<HookWrapperProps> = ({
     children,
-  }): React.ReactElement => React.createElement(Provider, { store }, children);
+  }): React.ReactElement => React.createElement(Provider, { store, children });
 
   return HookWrapper;
 };
