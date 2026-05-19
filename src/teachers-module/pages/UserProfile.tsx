@@ -1,15 +1,16 @@
+import EditIcon from '@mui/icons-material/Edit';
+import { t } from 'i18next';
 import React, { useEffect, useState } from 'react';
-import './UserProfile.css';
-import Header from '../components/homePage/Header';
+import { useHistory } from 'react-router-dom';
 import { PAGES, TableTypes } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import { t } from 'i18next';
-import EditIcon from '@mui/icons-material/Edit';
-import UserProfileSection from '../components/UserProfileSection';
-import { Util } from '../../utility/util';
-import ProfileDetails from '../components/library/ProfileDetails';
-import { useHistory } from 'react-router-dom';
 import logger from '../../utility/logger';
+import { schoolUtil } from '../../utility/schoolUtil';
+import { Util } from '../../utility/util';
+import Header from '../components/homePage/Header';
+import ProfileDetails from '../components/library/ProfileDetails';
+import UserProfileSection from '../components/UserProfileSection';
+import './UserProfile.css';
 
 const UserProfile: React.FC = () => {
   const history = useHistory();
@@ -31,6 +32,7 @@ const UserProfile: React.FC = () => {
   >(() => Util.getCurrentSchool());
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const api = ServiceConfig.getI().apiHandler;
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
 
   const fetchLanguages = async () => {
     try {
@@ -173,7 +175,7 @@ const UserProfile: React.FC = () => {
       </div>
       <div className="profile-info">
         <div className="login-user-name">{fullName}</div>
-        {!isEditMode && (
+        {!isEditMode && !isTeacherSchoolMode && (
           <EditIcon
             aria-label={String(t('Edit'))}
             className="edit-icon"

@@ -6,12 +6,14 @@ import { Util } from '../../utility/util';
 import './ClassProfile.css';
 import { t } from 'i18next';
 import DeleteClassDialog from '../components/classComponents/DeleteClassDialog';
+import { schoolUtil } from '../../utility/schoolUtil';
 const ClassProfile: FC = () => {
   const history = useHistory();
   const location = useLocation();
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
   const { school: localSchool, classDoc: classData } = location.state as any;
   const currentSchool = localSchool ?? Util.getCurrentSchool();
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
 
   useEffect(() => {
     fetchClassDetails();
@@ -52,11 +54,13 @@ const ClassProfile: FC = () => {
       </div>
       <hr className="class-profile-horizontal-line" />
 
-      <div className="edit-delete-section">
-        <div onClick={handleEditClass}>{t('Edit')}</div>
-        <div className="vertical-line"></div>
-        <DeleteClassDialog classId={currentClass?.id!} />
-      </div>
+      {!isTeacherSchoolMode && (
+        <div className="edit-delete-section">
+          <div onClick={handleEditClass}>{t('Edit')}</div>
+          <div className="vertical-line"></div>
+          <DeleteClassDialog classId={currentClass?.id!} />
+        </div>
+      )}
     </div>
   );
 };

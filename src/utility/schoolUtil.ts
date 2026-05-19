@@ -1,3 +1,4 @@
+import { reinitializeHardwareBackButton } from '../common/backButtonRegistry';
 import {
   CURRENT_CLASS,
   CURRENT_MODE,
@@ -8,13 +9,12 @@ import {
   SCHOOL_LOGIN,
   TableTypes,
 } from '../common/constants';
-import { ServiceConfig } from '../services/ServiceConfig';
-import { Util } from './util';
-import { reinitializeHardwareBackButton } from '../common/backButtonRegistry';
-import { store } from '../redux/store';
 import { setAuthUser, setUser } from '../redux/slices/auth/authSlice';
-import logger from './logger';
+import { store } from '../redux/store';
+import { ServiceConfig } from '../services/ServiceConfig';
 import { logAuthDebug } from './authDebug';
+import logger from './logger';
+import { Util } from './util';
 
 export class schoolUtil {
   //   public static port: PortPlugin;
@@ -104,6 +104,22 @@ export class schoolUtil {
     if (modeChanged) {
       reinitializeHardwareBackButton();
     }
+  };
+
+  public static isTeacherSchoolMode = (): boolean => {
+    const api = ServiceConfig.getI().apiHandler;
+    if (api.currentMode) {
+      return api.currentMode === MODES.TEACHER_SCHOOL;
+    }
+
+    return localStorage.getItem(CURRENT_MODE) === MODES.TEACHER_SCHOOL;
+  };
+
+  public static restoreKidsModeFromTeacherSchool = async (): Promise<void> => {
+    const previousMode = localStorage.getItem(LAST_MODE);
+    await this.setCurrMode(
+      previousMode === MODES.SCHOOL ? MODES.SCHOOL : MODES.TEACHER_SCHOOL,
+    );
   };
 
   public static async trySchoolRelogin(): Promise<boolean> {

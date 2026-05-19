@@ -1,7 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { IonMenu, IonItem } from '@ionic/react';
-import { ServiceConfig } from '../../../services/ServiceConfig';
-import { Util } from '../../../utility/util';
+import { Capacitor } from '@capacitor/core';
+import { IonItem, IonMenu } from '@ionic/react';
+import { t } from 'i18next';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useHistory } from 'react-router';
+import { registerBackButtonHandler } from '../../../common/backButtonRegistry';
+import CommonToggle from '../../../common/CommonToggle';
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   CURRENT_MODE,
@@ -9,27 +12,25 @@ import {
   OPS_ROLES,
   PAGES,
 } from '../../../common/constants';
-import ProfileSection from './ProfileDetail';
-import SchoolSection from './SchoolSection';
-import ClassSection from './ClassSection';
-import './SideMenu.css';
-import { RoleType } from '../../../interface/modelInterfaces';
-import { useHistory } from 'react-router';
-import CommonToggle from '../../../common/CommonToggle';
-import { Capacitor } from '@capacitor/core';
+import { ClearCacheData } from '../../../components/parent/DataClear';
 import DialogBoxButtons from '../../../components/parent/DialogBoxButtons';
-import { t } from 'i18next';
 import {
   updateLocalAttributes,
   useGbContext,
 } from '../../../growthbook/Growthbook';
-import { ClearCacheData } from '../../../components/parent/DataClear';
-import { registerBackButtonHandler } from '../../../common/backButtonRegistry';
+import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
-import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
-import logger from '../../../utility/logger';
+import { RootState } from '../../../redux/store';
+import { ServiceConfig } from '../../../services/ServiceConfig';
 import { logAuthDebug } from '../../../utility/authDebug';
+import logger from '../../../utility/logger';
+import { schoolUtil } from '../../../utility/schoolUtil';
+import { Util } from '../../../utility/util';
+import ClassSection from './ClassSection';
+import ProfileSection from './ProfileDetail';
+import SchoolSection from './SchoolSection';
+import './SideMenu.css';
 
 const SWITCH_TO_KIDS_APP_SOURCE_SCREEN = {
   TEACHER_DASHBOARD: 'teacher_dashboard',
@@ -196,6 +197,11 @@ const SideMenu: React.FC<{
     setTimeout(() => {
       Util.killCocosGame();
     }, 1000);
+    if (schoolUtil.isTeacherSchoolMode()) {
+      await schoolUtil.restoreKidsModeFromTeacherSchool();
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
     history.replace(PAGES.KIDS_APP_LOCATION);
   };
 

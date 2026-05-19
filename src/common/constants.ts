@@ -994,6 +994,9 @@ export enum EVENTS {
   PROFILE_DELETION_CANCELLED = 'profile_deletion_cancelled',
   TEACHER_AUTH_GATE_VIEWED = 'teacher_auth_gate_viewed',
   TEACHER_AUTH_GATE_ATTEMPTED = 'teacher_auth_gate_attempted',
+  TEACHER_APP_ENTRY_CLICKED = 'teacher_app_entry_clicked',
+  TEACHER_APP_AUTH_SUCCESS = 'teacher_app_auth_success',
+  AUTO_USER_ACTION_ATTEMPTED = 'auto_user_action_attempted',
 }
 
 export const KIDS_APP_LOCATION_SELECTIONS = {
@@ -1011,6 +1014,19 @@ export const TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS = {
 
 export type TeacherAuthGateSourceEntryPoint =
   (typeof TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS)[keyof typeof TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS];
+
+export const TEACHER_APP_AUTH_METHODS = {
+  BIOMETRIC: 'biometric',
+  MATH_GATE: 'math_gate',
+} as const;
+
+export const TEACHER_APP_USER_ROLES = {
+  AUTO_USER: 'auto_user',
+} as const;
+
+export const AUTO_USER_ACTION_TYPES = {
+  ADD_STUDENT: 'add_student',
+} as const;
 
 export const FCM_TOKENS = 'fcmTokens';
 export const IS_CONECTED = 'is_conected';
