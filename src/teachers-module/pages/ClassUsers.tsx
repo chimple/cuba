@@ -60,7 +60,7 @@ const ClassUsers: React.FC = () => {
   };
   const addStudent = async () => {
     if (isTeacherSchoolMode) {
-      await Util.logEvent(EVENTS.AUTO_USER_ACTION_ATTEMPTED, {
+      Util.logEvent(EVENTS.AUTO_USER_ACTION_ATTEMPTED, {
         action_type: AUTO_USER_ACTION_TYPES.ADD_STUDENT,
       });
     }

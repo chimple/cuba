@@ -513,12 +513,12 @@ const SelectMode: FC = () => {
 
     if (teacherModeAuthResult === TeacherModeAuthResult.success) {
       if (isAutoUser) {
-        await Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
+        Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
           user_role: TEACHER_APP_USER_ROLES.AUTO_USER,
           auth_method_attempted: TEACHER_APP_AUTH_METHODS.BIOMETRIC,
         });
       }
-      await Util.logEvent(EVENTS.TEACHER_APP_AUTH_SUCCESS, {
+      Util.logEvent(EVENTS.TEACHER_APP_AUTH_SUCCESS, {
         auth_method_used: TEACHER_APP_AUTH_METHODS.BIOMETRIC,
       });
       await continueToTeacherMode();
@@ -527,7 +527,7 @@ const SelectMode: FC = () => {
 
     if (teacherModeAuthResult === TeacherModeAuthResult.popupFallbackRequired) {
       if (isAutoUser) {
-        await Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
+        Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
           user_role: TEACHER_APP_USER_ROLES.AUTO_USER,
           auth_method_attempted: TEACHER_APP_AUTH_METHODS.MATH_GATE,
         });
@@ -537,7 +537,7 @@ const SelectMode: FC = () => {
     }
 
     if (isAutoUser) {
-      await Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
+      Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
         user_role: TEACHER_APP_USER_ROLES.AUTO_USER,
         auth_method_attempted: TEACHER_APP_AUTH_METHODS.BIOMETRIC,
       });
@@ -932,7 +932,7 @@ const SelectMode: FC = () => {
         onClose={() => setIsTeacherAuthPopupOpen(false)}
         onAuthenticated={async () => {
           setIsTeacherAuthPopupOpen(false);
-          await Util.logEvent(EVENTS.TEACHER_APP_AUTH_SUCCESS, {
+          Util.logEvent(EVENTS.TEACHER_APP_AUTH_SUCCESS, {
             auth_method_used: TEACHER_APP_AUTH_METHODS.MATH_GATE,
           });
           await continueToTeacherMode();
