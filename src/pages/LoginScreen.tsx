@@ -2,6 +2,7 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Keyboard } from '@capacitor/keyboard';
 import { Toast } from '@capacitor/toast';
 import { Capacitor, registerPlugin } from '@capacitor/core';
+import { useFeatureValue } from '@growthbook/growthbook-react';
 import { IonText } from '@ionic/react';
 import { t } from 'i18next';
 import React, { useEffect, useRef, useState } from 'react';
@@ -24,10 +25,12 @@ import {
   ACTION,
   DOMAIN,
   EVENTS,
+  LATEST_TC_VERSION,
   LANGUAGE,
   MODES,
   PAGES,
   LOGIN_TYPES,
+  TC_HTML_URL,
 } from '../common/constants';
 import { APP_LANGUAGES } from '../common/constants';
 import './LoginScreen.css';
@@ -49,9 +52,17 @@ import {
   setUser,
 } from '../redux/slices/auth/authSlice';
 import logger from '../utility/logger';
+import {
+  buildTermsUrl,
+  normalizeTcVersion,
+  resolveTermsBaseUrl,
+} from '../utility/termsAndConditions';
 
 const LoginScreen: React.FC = () => {
   const history = useHistory();
+  const tcHtmlUrlFeature = useFeatureValue<string>(TC_HTML_URL, '');
+  const latestTcVersionFeature = useFeatureValue<number>(LATEST_TC_VERSION, 0);
+  const latestTcVersion = normalizeTcVersion(latestTcVersionFeature);
   const { setGbUpdated } = useGbContext();
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
@@ -102,6 +113,11 @@ const LoginScreen: React.FC = () => {
   const [initializing, setInitializing] = useState(true);
   const [showStudentCredentialLogin, setStudentCredentialLogin] =
     useState<boolean>(false);
+
+  const loginTermsBaseUrl = resolveTermsBaseUrl(tcHtmlUrlFeature);
+  const loginTermsUrl = loginTermsBaseUrl
+    ? buildTermsUrl(loginTermsBaseUrl, currentLang)
+    : 'assets/termsandconditions/TermsandConditionsofChimple.html';
 
   const loadingMessages = [
     t('Track your learning progress.'),
@@ -371,6 +387,7 @@ const LoginScreen: React.FC = () => {
       const res = await authInstance.proceedWithVerificationCode(
         phoneNumberWithCountryCode,
         otp.trim(),
+        latestTcVersion,
       );
 
       if (!res?.user || !res?.userData) {
@@ -494,7 +511,7 @@ const LoginScreen: React.FC = () => {
     }
     setAnimatedLoading(true);
     try {
-      const ok = await authInstance.googleSign();
+      const ok = await authInstance.googleSign(latestTcVersion);
       if (!ok.success) throw new Error('Google sign in failed');
       if (!Capacitor.isNativePlatform()) {
         return;
@@ -622,6 +639,7 @@ const LoginScreen: React.FC = () => {
       } = await authInstance.loginWithEmailAndPassword(
         schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
         studentPassword.trimEnd(),
+        latestTcVersion,
       );
       if (!authUser || !result || !userData || !userData.id) {
         setStudentCredentialLogin(true);
@@ -724,7 +742,7 @@ const LoginScreen: React.FC = () => {
         success: result,
         isSpl: isOpsUser,
         userData,
-      } = await authInstance.signInWithEmail(email, password);
+      } = await authInstance.signInWithEmail(email, password, latestTcVersion);
 
       if (authUser && result && userData && userData.id) {
         dispatch(setAuthLoading(false));
@@ -904,7 +922,7 @@ const LoginScreen: React.FC = () => {
             </div>
             <div className="Loginscreen-tc-content">
               <iframe
-                src="assets/termsandconditions/TermsandConditionsofChimple.html"
+                src={loginTermsUrl}
                 title="Terms and Conditions"
                 allowFullScreen={true}
                 style={{ height: '80vh', width: '100%', border: 'none' }}

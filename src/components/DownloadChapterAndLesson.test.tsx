@@ -33,7 +33,7 @@ jest.mock('i18next', () => ({
   t: (k: string) => k,
 }));
 
-jest.mock('./parent/DialogBoxButtons​', () => ({
+jest.mock('./parent/DialogBoxButtons', () => ({
   __esModule: true,
   default: ({ showDialogBox, onYesButtonClicked, onNoButtonClicked }: any) =>
     showDialogBox ? (

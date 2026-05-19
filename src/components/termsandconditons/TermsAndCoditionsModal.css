@@ -1,0 +1,370 @@
+.terms-update-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(20, 26, 35, 0.42);
+  box-sizing: border-box;
+}
+
+.terms-update-modal-card {
+  width: 75%;
+  max-width: 600px;
+  height: 80%;
+  max-height: 270px;
+  padding-top: clamp(24px, 5.5vw, 45px);
+  padding-bottom: clamp(24px, 4.5vw, 43px);
+  border-radius: 25px;
+  background: #fffdee;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.terms-update-modal-copy {
+  width: 100%;
+  text-align: center;
+}
+
+.terms-update-modal-title {
+  margin: 0;
+  color: #182a4f;
+  font-size: clamp(26px, 3.3vw, 28px);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.terms-update-modal-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 0.05em;
+  text-underline-offset: 0.12em;
+  cursor: pointer;
+}
+
+.terms-update-modal-body {
+  width: 88%;
+  margin: 12px auto 0;
+  color: #182a4f;
+  text-align: center;
+  font-size: clamp(16px, 18px, 20px);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.terms-update-modal-button {
+  width: 77%;
+  max-width: 391px;
+  height: 15vh;
+  min-height: 60px;
+  max-height: 65px;
+  margin-top: 20px;
+  border: none;
+  border-bottom: 5px solid #8a2901;
+  border-radius: 10px;
+  background: #f34d08;
+  color: #fff;
+  text-align: center;
+  font-size: clamp(24px, 26px, 28px);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
+  box-sizing: border-box;
+}
+
+.terms-update-modal-button:active:enabled {
+  transform: translateY(2px);
+  border-bottom: 2px solid #8a2901;
+}
+
+.terms-update-modal-button:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+
+@media screen and (max-width: 520px) and (orientation: portrait) {
+  .terms-update-modal-card {
+    width: min(84vw, 320px);
+    height: auto;
+    max-height: none;
+    padding: 24px 18px 22px;
+  }
+
+  .terms-update-modal-title {
+    font-size: 16px;
+    line-height: 1.28;
+  }
+
+  .terms-update-modal-body {
+    width: min(100%, 252px);
+    margin-top: 10px;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .terms-update-modal-button {
+    width: min(84%, 248px);
+    height: auto;
+    min-height: 48px;
+    max-height: none;
+    margin-top: 18px;
+    font-size: 15px;
+    line-height: 1.15;
+  }
+}
+
+.terms-update-modal-card-teacher {
+  width: 75%;
+  max-width: 600px;
+  height: 80%;
+  max-height: 270px;
+  padding-top: clamp(24px, 5.5vw, 45px);
+  padding-bottom: clamp(24px, 4.5vw, 43px);
+  border-radius: 25px;
+  background: #ffffff;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.terms-update-modal-copy-teacher {
+  width: 100%;
+  text-align: center;
+}
+
+.terms-update-modal-title-teacher {
+  margin: 0;
+  color: #4a4a4a;
+  font-size: clamp(26px, 3.3vw, 28px);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.terms-update-modal-link-teacher {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 0.05em;
+  text-underline-offset: 0.12em;
+  cursor: pointer;
+}
+
+.terms-update-modal-body-teacher {
+  width: 88%;
+  margin: 12px auto 0;
+  color: #4a4a4a;
+  text-align: center;
+  font-size: clamp(16px, 18px, 20px);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.terms-update-modal-button-teacher {
+  width: 77%;
+  max-width: 391px;
+  height: 15vh;
+  min-height: 60px;
+  max-height: 65px;
+  margin-top: 18px;
+  border: none;
+  border-bottom: 5px solid #5d4587;
+  border-radius: 10px;
+  background: #7c5db0;
+  color: #fff;
+  text-align: center;
+  font-size: clamp(24px, 26px, 28px);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
+  box-sizing: border-box;
+}
+
+.terms-update-modal-button-teacher:active:enabled {
+  transform: translateY(2px);
+  border-bottom: 2px solid #5d4587;
+}
+
+.terms-update-modal-button-teacher:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+
+.terms-update-modal-card-ops {
+  width: 75%;
+  max-width: 600px;
+  height: 80%;
+  max-height: 270px;
+  padding-top: clamp(24px, 5.5vw, 45px);
+  padding-bottom: clamp(24px, 4.5vw, 43px);
+  border-radius: 25px;
+  background: #ffffff;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.terms-update-modal-copy-ops {
+  width: 100%;
+  text-align: center;
+}
+
+.terms-update-modal-title-ops {
+  margin: 0;
+  color: #000000;
+  font-size: clamp(26px, 3.3vw, 28px);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.terms-update-modal-link-ops {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 0.05em;
+  text-underline-offset: 0.12em;
+  cursor: pointer;
+}
+
+.terms-update-modal-body-ops {
+  width: 88%;
+  margin: 12px auto 0;
+  color: #000000;
+  text-align: center;
+  font-size: clamp(16px, 18px, 20px);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.terms-update-modal-button-ops {
+  width: 77%;
+  max-width: 391px;
+  height: 15vh;
+  min-height: 60px;
+  max-height: 65px;
+  margin-top: 18px;
+  border: none;
+  border-bottom: 5px solid #1259a0;
+  border-radius: 10px;
+  background: #1976d2;
+  color: #fff;
+  text-align: center;
+  font-size: clamp(24px, 26px, 28px);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    opacity 120ms ease;
+  box-sizing: border-box;
+}
+
+.terms-update-modal-button-ops:active:enabled {
+  transform: translateY(2px);
+  border-bottom: 2px solid #1259a0;
+}
+
+.terms-update-modal-button-ops:disabled {
+  opacity: 0.72;
+  cursor: wait;
+}
+
+@media screen and (max-width: 520px) and (orientation: portrait) {
+  .terms-update-modal-card-teacher,
+  .terms-update-modal-card-ops {
+    width: min(84vw, 320px);
+    height: auto;
+    max-height: none;
+    padding: 24px 18px 22px;
+  }
+
+  .terms-update-modal-title-teacher,
+  .terms-update-modal-title-ops {
+    font-size: 16px;
+    line-height: 1.28;
+  }
+
+  .terms-update-modal-body-teacher,
+  .terms-update-modal-body-ops {
+    width: min(100%, 252px);
+    margin-top: 10px;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .terms-update-modal-button-teacher,
+  .terms-update-modal-button-ops {
+    width: min(84%, 248px);
+    height: auto;
+    min-height: 48px;
+    max-height: none;
+    margin-top: 18px;
+    font-size: 15px;
+    line-height: 1.15;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .terms-update-modal-overlay {
+    padding: 14px;
+  }
+
+  .terms-update-modal-card,
+  .terms-update-modal-card-teacher,
+  .terms-update-modal-card-ops {
+    width: min(86vw, 382px);
+    padding: 24px 18px 22px;
+  }
+
+  .terms-update-modal-body,
+  .terms-update-modal-body-teacher,
+  .terms-update-modal-body-ops {
+    width: min(100%, 292px);
+  }
+
+  .terms-update-modal-button,
+  .terms-update-modal-button-teacher,
+  .terms-update-modal-button-ops {
+    width: min(79%, 281px);
+  }
+}
+
+@media screen and (max-height: 540px) and (orientation: landscape) {
+  .terms-update-modal-overlay {
+    align-items: stretch;
+    overflow-y: auto;
+  }
+
+  .terms-update-modal-card,
+  .terms-update-modal-card-teacher,
+  .terms-update-modal-card-ops {
+    margin: auto;
+  }
+}

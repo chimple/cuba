@@ -64,6 +64,8 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     : liveIsStickerBookNotificationDotEnabled;
 
   const currentMode = localStorage.getItem(CURRENT_MODE);
+  const isSchoolKidsMode =
+    currentMode === MODES.SCHOOL || currentMode === MODES.TEACHER_SCHOOL;
   const shouldShowStickerBookNotification =
     hasUnseenStickers && isStickerBookNotificationDotEnabled;
 
@@ -202,12 +204,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     .filter((item) =>
       item.label === 'Sticker Book' ? isStickerBookEnabled : true,
     )
-    .filter(
-      (item) =>
-        !(currentMode === MODES.SCHOOL && HIDE_IN_SCHOOL.has(item.label)),
-    )
+    .filter((item) => !(isSchoolKidsMode && HIDE_IN_SCHOOL.has(item.label)))
     .map((item) =>
-      currentMode === MODES.SCHOOL && item.label === 'Switch Profile'
+      isSchoolKidsMode && item.label === 'Switch Profile'
         ? {
             ...item,
             onClick: () =>
@@ -239,7 +238,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
         <div
           className="profile-header-content"
           onClick={() => {
-            if (currentMode !== MODES.SCHOOL) onEdit();
+            if (!isSchoolKidsMode) onEdit();
           }}
         >
           {/* Profile Image with fixed gap */}

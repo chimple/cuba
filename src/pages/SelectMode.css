@@ -1,3 +1,7 @@
+.select-mode-page {
+  overflow-y: auto;
+}
+
 .select-mode-main {
   display: flex;
   flex-direction: column;
@@ -6,7 +10,6 @@
   justify-content: center;
   gap: 3vh;
   color: var(--text-color);
-  background: var(--ion-background-color);
 }
 
 .select-mode-text {
@@ -22,12 +25,13 @@
   justify-content: center;
   gap: 3vh;
   color: var(--text-color);
-  background: var(--ion-background-color);
 }
+
 .select-school-text {
   margin-bottom: 3vh;
   font-size: clamp(10px, 4vh, 30px);
 }
+
 .okay-btn {
   color: white !important;
   border-radius: var(--border-radius) !important;
@@ -48,32 +52,297 @@
 .class-main {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: #fffdee;
+  min-height: max-content;
 }
+
+.class-main-school-mode {
+  padding: 2.2vh 1vw 3vh;
+}
+
+.school-mode-student-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 2.2vh;
+  width: 100%;
+}
+
 .class-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-direction: row;
   justify-content: space-between;
-  margin: var(--margin);
-  color: var(--text-color);
+  color: #1e3555;
+}
+
+.school-mode-header {
+  margin: 0.4vh 0 0.2vh;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0.8vh 0.8vw;
+}
+
+.school-mode-welcome {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  column-gap: 0.6vw;
+  font-size: clamp(22px, 2.3vw, 36px);
+  font-weight: 700;
+  color: #1e3555;
+}
+
+.school-mode-brand-logo {
+  width: clamp(34px, 2.9vw, 44px);
+  height: clamp(34px, 2.9vw, 44px);
+  flex-shrink: 0;
+}
+
+.school-mode-role-badge {
+  grid-column: 3;
+  justify-self: end;
+  min-width: 108px;
+  height: 40px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1e3555;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px 0 14px;
+  font-size: 16px;
+  cursor: pointer;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.school-mode-role-badge:focus-visible {
+  outline: 2px solid #1e3555;
+  outline-offset: 3px;
+}
+
+.school-mode-role-badge img {
+  width: 16px;
+  height: 16px;
+}
+
+.school-mode-back-button {
+  height: 40px;
+  width: 40px;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.school-mode-back-button img {
+  width: 36px;
+  height: 36px;
+}
+
+.school-mode-class-strip {
+  width: max-content;
+  max-width: calc(100% - 240px);
+  box-sizing: border-box;
+  align-self: center;
+  border-radius: 12px;
+  background: #fffdee;
+  border: 0;
+  display: grid;
+  grid-template-columns: auto max-content auto;
+  align-items: stretch;
+  overflow: hidden;
+  height: 56px;
+}
+
+.school-mode-class-strip-static {
+  grid-template-columns: 1fr;
+  width: max-content;
+  max-width: calc(100% - 240px);
+}
+
+.school-mode-nav-button {
+  width: 64px;
+  border: 0;
+  background: #fffdee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 0;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.school-mode-nav-button-active {
+  box-shadow: none;
+}
+
+.school-mode-nav-button-active .left-arrow-icon-mark {
+  opacity: 1;
+}
+
+.school-mode-nav-button:last-child {
+  border-right: 0;
+}
+
+.school-mode-nav-arrow {
+  width: 56px;
+  height: 100%;
+  display: block;
+}
+
+.school-mode-nav-arrow-right {
+  transform: rotate(180deg);
+}
+
+.school-mode-class-tabs {
+  display: flex;
+  align-items: stretch;
+  overflow-x: hidden;
+  background: #fffdee;
+  width: max-content;
+  max-width: 100%;
+}
+
+.school-mode-class-strip-static .school-mode-class-tabs {
+  width: max-content;
+  max-width: 100%;
+  justify-content: center;
+}
+
+.school-mode-class-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.school-mode-class-tab {
+  border: 0;
+  border-left: 2px solid #182a4f;
+  background: #ffffff;
+  color: #213960;
+  font-size: clamp(24px, 3.2vh, 34px);
+  font-weight: 600;
+  flex: 0 0 clamp(155px, 20vw, 220px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.school-mode-class-tab:last-child {
+  border-right: 2px solid #182a4f;
+}
+
+.school-mode-class-strip-static .school-mode-class-tab {
+  flex-basis: clamp(155px, 20vw, 220px);
+}
+
+.school-mode-class-strip-static .school-mode-class-tab:first-child {
+  border-left: 0;
+}
+
+.school-mode-class-tab-active {
+  background: #fffdee;
+  border-bottom: 3px solid #182a4f;
+}
+
+.school-mode-empty-state {
+  align-self: center;
+  margin-top: 2vh;
+  color: #244167;
+  font-size: clamp(18px, 1.5vw, 24px);
+}
+
+.school-mode-class-profile-selection-text {
+  margin: -0.8vh 0 0;
+  color: #1d315d;
+  font-size: clamp(18px, 1.7vw, 26px);
+  font-weight: 500;
+  line-height: normal;
+  text-align: center;
 }
 
 .class-container {
-  width: 90%;
-  height: 80vh;
+  width: min(1040px, 100%);
   margin: 0 auto;
-  justify-items: center;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  /* flex-wrap: wrap; */
+  justify-items: center;
   justify-content: center;
-  overflow-y: scroll;
 }
+
 .class-container::-webkit-scrollbar {
   display: none;
+}
+
+.school-mode-students-grid {
+  width: 100%;
+  max-width: none;
+  margin-top: 0.6vh;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(clamp(170px, 22vw, 250px), 1fr)
+  );
+  gap: 1.8vw;
+  padding: 0 60px 1.2vh;
+}
+
+.school-mode-student-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-height: 246px;
+  border-radius: 20px;
+  background: #fffdee;
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 30px 18px;
+  margin: 0;
+}
+
+.school-mode-student-avatar {
+  width: 86px;
+  height: 86px;
+  border: 4px solid #fff;
+}
+
+.school-mode-student-name {
+  font-size: clamp(18px, 1.4vw, 24px);
+  color: #213960;
+  max-width: 92%;
+  text-align: center;
+}
+
+.school-mode-play-button {
+  box-sizing: border-box;
+  min-width: 94px;
+  height: 55px;
+  border: 0;
+  border-bottom: 5px solid #8a2901;
+  border-radius: 10px;
+  background: #f34d08;
+  color: #fff;
+  font-size: 19px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  padding: 12px 32px;
+  cursor: pointer;
+}
+
+.school-mode-play-button:active {
+  border-bottom: 2px solid #8a2901;
+  border-radius: 10px;
+  background: #f34d08;
+  transform: translateY(3px);
 }
 
 .class-avatar-counter {
@@ -84,13 +353,12 @@
   color: var(--text-color);
   border: 2px solid #f34d08;
   box-sizing: border-box;
-  /* font-weight: bold; */
   font-size: clamp(36px, 10vh, 56px);
   display: flex;
-
   justify-content: center;
   align-items: center;
 }
+
 .class-avatar {
   display: flex;
   flex-direction: column;
@@ -101,10 +369,19 @@
   margin: 5% 5%;
 }
 
+.school-mode-class-tab.class-avatar,
+.school-mode-student-card.class-avatar {
+  margin: 0 !important;
+}
+
+.school-mode-student-card.class-avatar {
+  cursor: default;
+}
+
 .class-name {
   white-space: nowrap;
   display: block;
-  max-width: 20vh;
+  max-width: 20ch;
   text-overflow: ellipsis;
   overflow: hidden;
 }
@@ -116,4 +393,74 @@
 .selectmode-schoolname-header,
 .selectmode-schoolClassname-header {
   font-weight: bold;
+}
+
+@media (max-width: 1100px) {
+  .school-mode-class-strip {
+    max-width: calc(100% - 32px);
+  }
+
+  .school-mode-nav-button {
+    width: 54px;
+  }
+
+  .school-mode-nav-arrow {
+    width: 46px;
+  }
+
+  .school-mode-class-tab,
+  .school-mode-class-strip-static .school-mode-class-tab {
+    flex-basis: clamp(130px, calc((100vw - 300px) / 3), 165px);
+  }
+}
+
+@media (max-width: 900px) {
+  .school-mode-header {
+    gap: 2vw;
+  }
+
+  .school-mode-welcome {
+    justify-content: flex-start;
+    font-size: clamp(20px, 4.8vw, 28px);
+  }
+
+  .school-mode-role-badge {
+    min-width: 94px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .school-mode-class-strip {
+    height: 56px;
+  }
+
+  .school-mode-class-tab,
+  .school-mode-class-strip-static .school-mode-class-tab {
+    flex-basis: clamp(120px, calc((100vw - 280px) / 3), 155px);
+    font-size: clamp(20px, 3.2vh, 28px);
+  }
+
+  .school-mode-students-grid {
+    grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+    gap: 3vw;
+    padding-left: 60px;
+    padding-right: 60px;
+  }
+
+  .school-mode-student-card {
+    min-height: 206px;
+    border-radius: 20px;
+    padding: 16px 30px 14px;
+  }
+
+  .school-mode-student-avatar {
+    width: 72px;
+    height: 72px;
+  }
+
+  .school-mode-play-button {
+    min-width: 84px;
+    min-height: 44px;
+    font-size: clamp(16px, 4.1vw, 20px);
+  }
 }

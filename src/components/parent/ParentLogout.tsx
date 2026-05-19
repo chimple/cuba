@@ -2,7 +2,7 @@ import { t } from 'i18next';
 import './ParentLogout.css';
 import { ImSwitch } from 'react-icons/im';
 import { useState } from 'react';
-import DialogBoxButtons from './DialogBoxButtons​';
+import DialogBoxButtons from './DialogBoxButtons';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { useHistory } from 'react-router';
 import {

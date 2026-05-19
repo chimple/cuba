@@ -421,6 +421,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: user.curriculum_id,
       language_id: user.language_id,
       locale_id: localeId,
+      tc_agreed_version: user.tc_agreed_version,
     });
 
     if (error) {
@@ -1504,6 +1505,7 @@ export class SupabaseApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     if (!this.supabase) throw new Error('Supabase instance is not initialized');
 
@@ -1531,6 +1533,7 @@ export class SupabaseApi implements ServiceApi {
       updated_at: now,
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -1654,6 +1657,7 @@ export class SupabaseApi implements ServiceApi {
     classId: string,
     role: RoleType.STUDENT,
     studentId: string,
+    tcVersion: number,
   ): Promise<TableTypes<TABLES.User>> {
     if (!this.supabase)
       return Promise.reject('Supabase client not initialized');
@@ -1685,6 +1689,7 @@ export class SupabaseApi implements ServiceApi {
       updated_at: timestamp,
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -1965,11 +1970,19 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async updateTcAccept(userId: string) {
+    return this.updateTcAgreedVersion(userId, 1);
+  }
+
+  async updateTcAgreedVersion(userId: string, version: number) {
     if (!this.supabase) return;
     try {
       const { error } = await this.supabase
         .from('user')
-        .update({ is_tc_accepted: true })
+        .update({
+          is_tc_accepted: true,
+          tc_agreed_version: version,
+          updated_at: new Date().toISOString(),
+        })
         .eq('id', userId);
 
       if (error) {
@@ -1980,6 +1993,7 @@ export class SupabaseApi implements ServiceApi {
       const currentUser = await auth.getCurrentUser();
       if (currentUser) {
         currentUser.is_tc_accepted = true;
+        currentUser.tc_agreed_version = version;
         auth.currentUser = currentUser;
       }
     } catch (error) {
@@ -10555,6 +10569,7 @@ export class SupabaseApi implements ServiceApi {
 
   async createAutoProfile(
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     if (!this.supabase) throw new Error('Supabase instance is not initialized');
 
@@ -10583,6 +10598,7 @@ export class SupabaseApi implements ServiceApi {
       updated_at: now,
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,

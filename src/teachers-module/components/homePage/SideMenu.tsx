@@ -5,7 +5,7 @@ import { Util } from '../../../utility/util';
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   CURRENT_MODE,
-  MODES,
+  EVENTS,
   OPS_ROLES,
   PAGES,
 } from '../../../common/constants';
@@ -15,10 +15,9 @@ import ClassSection from './ClassSection';
 import './SideMenu.css';
 import { RoleType } from '../../../interface/modelInterfaces';
 import { useHistory } from 'react-router';
-import { schoolUtil } from '../../../utility/schoolUtil';
 import CommonToggle from '../../../common/CommonToggle';
 import { Capacitor } from '@capacitor/core';
-import DialogBoxButtons from '../../../components/parent/DialogBoxButtons​';
+import DialogBoxButtons from '../../../components/parent/DialogBoxButtons';
 import { t } from 'i18next';
 import {
   updateLocalAttributes,
@@ -31,6 +30,14 @@ import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
 import logger from '../../../utility/logger';
 import { logAuthDebug } from '../../../utility/authDebug';
+
+const SWITCH_TO_KIDS_APP_SOURCE_SCREEN = {
+  TEACHER_DASHBOARD: 'teacher_dashboard',
+  OPS_CONSOLE: 'ops_console',
+} as const;
+
+type SwitchToKidsAppSourceScreen =
+  (typeof SWITCH_TO_KIDS_APP_SOURCE_SCREEN)[keyof typeof SWITCH_TO_KIDS_APP_SOURCE_SCREEN];
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
@@ -93,6 +100,13 @@ const SideMenu: React.FC<{
   }, []);
 
   const api = ServiceConfig.getI()?.apiHandler;
+  const getSwitchToKidsAppSourceScreen = (): SwitchToKidsAppSourceScreen => {
+    if (window.location.pathname.startsWith(PAGES.SIDEBAR_PAGE)) {
+      return SWITCH_TO_KIDS_APP_SOURCE_SCREEN.OPS_CONSOLE;
+    }
+    return SWITCH_TO_KIDS_APP_SOURCE_SCREEN.TEACHER_DASHBOARD;
+  };
+
   const fetchData = async () => {
     try {
       const currentUser =
@@ -176,11 +190,13 @@ const SideMenu: React.FC<{
     }
   };
   const switchUser = async () => {
-    schoolUtil.setCurrMode(MODES.PARENT);
+    await Util.logEvent(EVENTS.SWITCH_TO_KIDS_APP_CLICKED, {
+      source_screen: getSwitchToKidsAppSourceScreen(),
+    });
     setTimeout(() => {
       Util.killCocosGame();
     }, 1000);
-    history.replace(PAGES.DISPLAY_STUDENT);
+    history.replace(PAGES.KIDS_APP_LOCATION);
   };
 
   const getClassCodeById = async (class_id: string) => {
@@ -374,10 +390,7 @@ const SideMenu: React.FC<{
                 alt="SCHOOL"
                 className="icon"
               />
-              <CommonToggle
-                onChange={switchUser}
-                label="Switch to Child's Mode"
-              />
+              <CommonToggle onChange={switchUser} label="Switch to Kids App" />
             </IonItem>
           </div>
           {isAuthorizedForOpsMode && (

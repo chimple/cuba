@@ -247,8 +247,7 @@ const DisplaySchools: FC = () => {
   };
 
   const switchUser = () => {
-    schoolUtil.setCurrMode(MODES.PARENT);
-    history.replace(PAGES.DISPLAY_STUDENT);
+    history.replace(PAGES.KIDS_APP_LOCATION);
     setLoading(false);
   };
 
@@ -289,10 +288,7 @@ const DisplaySchools: FC = () => {
           <div className="display-user-switch-user-toggle">
             <div className="display-school-switch-text">
               <PiUserSwitchFill className="display-user-user-switch-icon" />
-              <CommonToggle
-                onChange={switchUser}
-                label="Switch to Child's Mode"
-              />
+              <CommonToggle onChange={switchUser} label="Switch to Kids App" />
             </div>
             {isAuthorizedForOpsMode && (
               <div className="display-schools-toggle-ops-switch-text">

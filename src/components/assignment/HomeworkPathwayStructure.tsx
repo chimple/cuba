@@ -64,10 +64,10 @@ interface HomeworkPathwayStructureProps {
 
 interface HomeworkPathLessonItem {
   lesson: Partial<TableTypes<'lesson'>>;
-  course_id: string;
-  chapter_id: string;
-  assignment_id?: string;
-  raw_assignment?: TableTypes<'assignment'>;
+  course_id: string | null;
+  chapter_id: string | null;
+  assignment_id?: string | null;
+  raw_assignment?: Partial<TableTypes<'assignment'>>;
 }
 
 interface PendingHomeworkRewardTransition {
@@ -75,6 +75,12 @@ interface PendingHomeworkRewardTransition {
   nextIndex?: number;
   pathSnapshot?: string;
 }
+
+type HomeworkStoredPathItem = HomeworkPathLessonItem & {
+  lesson_id?: string;
+  subject_id?: string;
+  id?: string;
+};
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
@@ -487,14 +493,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           pendingRewardTransition.completedIndex;
 
       const normalizeLessonShape = (
-        item: unknown,
-        fallbackLessons: unknown[],
+        item: HomeworkStoredPathItem,
+        fallbackLessons: HomeworkStoredPathItem[],
       ): HomeworkPathLessonItem => {
-        const typedItem = item as HomeworkPathLessonItem & {
-          lesson_id?: string;
-          subject_id?: string;
-          id?: string;
-        };
+        const typedItem = item;
         if (typedItem.lesson && typedItem.lesson.id) return typedItem;
 
         return {
@@ -520,7 +522,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           const snapshotPath = JSON.parse(
             pendingRewardTransition.pathSnapshot,
           ) as {
-            lessons?: unknown[];
+            lessons?: HomeworkStoredPathItem[];
           };
           const snapshotLessons = snapshotPath.lessons ?? [];
           if (snapshotLessons.length > 0) {
@@ -540,7 +542,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       if (existingPathStr) {
         try {
           const existingPath = JSON.parse(existingPathStr) as {
-            lessons?: unknown[];
+            lessons?: HomeworkStoredPathItem[];
             currentIndex?: number;
           };
 
@@ -854,6 +856,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       let fetchedChapter: TableTypes<'chapter'> | undefined;
 
       try {
+        if (!firstHomeworkItem.course_id || !firstHomeworkItem.chapter_id) {
+          throw new Error('Missing homework course/chapter identifiers');
+        }
         const [cData, chData] = await Promise.all([
           api.getCourse(firstHomeworkItem.course_id),
           api.getChapterById(firstHomeworkItem.chapter_id),
@@ -869,17 +874,21 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           id: firstHomeworkItem.course_id,
           name: 'Course',
           subject_id: 'unknown',
-        } as any;
+        } as TableTypes<'course'>;
         fetchedChapter = {
           id: firstHomeworkItem.chapter_id,
           name: 'Chapter',
-        } as any;
+        } as TableTypes<'chapter'>;
       }
 
       if (!fetchedCourse || !fetchedChapter) {
         logger.error('Could not determine course/chapter data.');
-        fetchedCourse = { id: firstHomeworkItem.course_id } as any;
-        fetchedChapter = { id: firstHomeworkItem.chapter_id } as any;
+        fetchedCourse = {
+          id: firstHomeworkItem.course_id,
+        } as TableTypes<'course'>;
+        fetchedChapter = {
+          id: firstHomeworkItem.chapter_id,
+        } as TableTypes<'chapter'>;
       }
 
       setCurrentCourse(fetchedCourse);
@@ -2142,6 +2151,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       const courseDocId = activeLessonItem.course_id;
       const chapterDocId = activeLessonItem.chapter_id;
+
+      if (!courseDocId || !chapterDocId) {
+        logger.warn(
+          'Skipping homework lesson launch because course/chapter identifiers are missing.',
+        );
+        return;
+      }
 
       if (!currentCourse || currentCourse.id !== courseDocId) {
         try {

@@ -1182,6 +1182,7 @@ export class SqliteApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -1206,6 +1207,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: now,
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -1658,6 +1660,7 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     role: 'student',
     studentId: string,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -1684,6 +1687,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -2243,14 +2247,20 @@ export class SqliteApi implements ServiceApi {
     });
   }
   async updateTcAccept(userId: string) {
+    return this.updateTcAgreedVersion(userId, 1);
+  }
+
+  async updateTcAgreedVersion(userId: string, version: number) {
     const query = `
     UPDATE "user"
-    SET is_tc_accepted = 1
+    SET is_tc_accepted = 1,
+        tc_agreed_version = ${version},
+        updated_at = "${new Date().toISOString()}"
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
     logger.info(
-      '🚀 ~ SqliteApi ~ updateTcAccept ~ res:',
+      '🚀 ~ SqliteApi ~ updateTcAgreedVersion ~ res:',
       res,
       ServiceConfig.getI().authHandler.currentUser,
     );
@@ -2258,10 +2268,12 @@ export class SqliteApi implements ServiceApi {
     const currentUser = await auth.getCurrentUser();
     if (currentUser) {
       currentUser.is_tc_accepted = true;
+      currentUser.tc_agreed_version = version;
       auth.currentUser = currentUser;
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       is_tc_accepted: 1,
+      tc_agreed_version: version,
       id: userId,
     });
   }
@@ -5122,8 +5134,8 @@ export class SqliteApi implements ServiceApi {
 
     await this.executeQuery(
       `
-      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id, locale_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id, locale_id, tc_agreed_version)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         user.id,
@@ -5135,6 +5147,7 @@ export class SqliteApi implements ServiceApi {
         user.curriculum_id,
         user.language_id,
         (user.locale_id = localeId),
+        user.tc_agreed_version,
       ],
     );
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
@@ -7447,6 +7460,7 @@ order by
             is_firebase: false,
             is_ops: false,
             is_tc_accepted: false,
+            tc_agreed_version: 0,
             language_id: null,
             learning_path: null,
             locale_id: null,
@@ -7567,6 +7581,7 @@ order by
             is_firebase: false,
             is_ops: false,
             is_tc_accepted: false,
+            tc_agreed_version: 0,
             language_id: null,
             learning_path: null,
             locale_id: null,
@@ -7825,6 +7840,7 @@ order by
 
   async createAutoProfile(
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -7848,6 +7864,7 @@ order by
       updated_at: new Date().toISOString(),
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,

@@ -2,7 +2,7 @@ import { t } from 'i18next';
 import './DeleteParentAccount.css';
 import { ImBin } from 'react-icons/im';
 import { useState } from 'react';
-import DialogBoxButtons from './DialogBoxButtons​';
+import DialogBoxButtons from './DialogBoxButtons';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { useHistory } from 'react-router';
 import { ACTION, EVENTS, PAGES } from '../../common/constants';

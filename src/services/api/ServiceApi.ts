@@ -264,6 +264,7 @@ export interface ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>>;
   /**
    * Creates a new school and returns the created school object.
@@ -435,6 +436,7 @@ export interface ServiceApi {
     classId: string,
     role: string,
     studentId: string,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>>;
 
   updateClassCourseSelection(
@@ -560,6 +562,7 @@ export interface ServiceApi {
   updateMusicFlag(userId: string, value: boolean): Promise<void>;
   updateLanguage(userId: string, value: string): Promise<void>;
   updateTcAccept(userId: string): Promise<void>;
+  updateTcAgreedVersion(userId: string, version: number): Promise<void>;
   updateFcmToken(userId: string): Promise<void>;
 
   /**
@@ -2443,6 +2446,7 @@ export interface ServiceApi {
    */
   createAutoProfile(
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>>;
 
   /**
