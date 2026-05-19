@@ -587,6 +587,8 @@ export class SupabaseAuth implements ServiceAuth {
           ops_created_by: null,
           reward: null,
           stars: null,
+          is_wa_contact: null,
+          tc_agreed_version: 0,
         });
         this._currentUser = createdUser;
       }
@@ -706,6 +708,8 @@ export class SupabaseAuth implements ServiceAuth {
           ops_created_by: null,
           reward: null,
           stars: null,
+          is_wa_contact: null,
+          tc_agreed_version: 0,
         });
       }
 

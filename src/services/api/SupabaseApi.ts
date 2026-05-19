@@ -86,6 +86,7 @@ import {
 import {
   RoleType,
   StickerBook,
+  StickerMeta,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
@@ -105,76 +106,38 @@ import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
 import logger from '../../utility/logger';
 
-type CampaignQueryBuilder<T> = PromiseLike<PostgrestSingleResponse<T>> & {
-  select: (columns?: string) => CampaignQueryBuilder<T>;
-  insert: (values: unknown) => CampaignQueryBuilder<T>;
-  delete: () => CampaignQueryBuilder<T>;
-  eq: (column: string, value: unknown) => CampaignQueryBuilder<T>;
-  in: (column: string, values: readonly unknown[]) => CampaignQueryBuilder<T>;
-  not: (
-    column: string,
-    operator: string,
-    value: unknown,
-  ) => CampaignQueryBuilder<T>;
-  order: (
-    column: string,
-    options?: { ascending?: boolean },
-  ) => CampaignQueryBuilder<T>;
-  single: () => PromiseLike<
-    PostgrestSingleResponse<T extends Array<infer Row> ? Row : T>
-  >;
-};
+type CampaignProgramRow = Pick<TableTypes<'program'>, 'id' | 'name'>;
 
-type CampaignDbClient = {
-  from: <T>(table: string) => CampaignQueryBuilder<T>;
-  auth: SupabaseClient<Database>['auth'];
-};
+type CampaignAudienceSchoolLinkRow = Pick<
+  TableTypes<'campaign_target_audience_school'>,
+  'school_id'
+>;
 
-type CampaignProgramRow = {
-  id?: string | null;
-  name?: string | null;
-};
+type CampaignAudienceGradeLinkRow = Pick<
+  TableTypes<'campaign_target_audience_grade'>,
+  'grade_id'
+>;
 
-type CampaignAudienceSchoolLinkRow = {
-  school_id?: string | null;
-};
-
-type CampaignAudienceGradeLinkRow = {
-  grade_id?: string | null;
-};
-
-type CampaignSavedAudienceGroupRow = {
-  id?: string | null;
-  name?: string | null;
-  program_id?: string | null;
-  is_all_schools?: boolean | null;
-  is_all_grades?: boolean | null;
+type CampaignSavedAudienceGroupRow = Pick<
+  TableTypes<'campaign_target_audience'>,
+  'id' | 'name' | 'program_id' | 'is_all_schools' | 'is_all_grades'
+> & {
   campaign_target_audience_school?: CampaignAudienceSchoolLinkRow[] | null;
   campaign_target_audience_grade?: CampaignAudienceGradeLinkRow[] | null;
 };
 
-type CampaignSchoolRow = {
-  id?: string | null;
-  name?: string | null;
-  group3?: string | null;
-};
+type CampaignSchoolRow = Pick<TableTypes<'school'>, 'id' | 'name' | 'group3'>;
 
-type CampaignGradeRow = {
-  id?: string | null;
-  name?: string | null;
-  sort_index?: number | null;
-};
+type CampaignGradeRow = Pick<TableTypes<'grade'>, 'id' | 'name' | 'sort_index'>;
 
-type CampaignClassGradeRow = {
-  id?: string | null;
-  grade_id?: string | null;
+type CampaignClassGradeRow = Pick<TableTypes<'class'>, 'id' | 'grade_id'> & {
   grade?: CampaignGradeRow | CampaignGradeRow[] | null;
 };
 
-type CampaignClassUserRow = {
-  class_id?: string | null;
-  user_id?: string | null;
-};
+type CampaignClassUserRow = Pick<
+  TableTypes<'class_user'>,
+  'class_id' | 'user_id'
+>;
 
 type CampaignSchoolCourseGradeRow = {
   course?:
@@ -187,14 +150,6 @@ type CampaignSchoolCourseGradeRow = {
     | null;
 };
 
-type CampaignInsertResultRow = {
-  id?: string | null;
-};
-
-const getCampaignDbClient = (
-  supabase: SupabaseClient<Database>,
-): CampaignDbClient => supabase as unknown as CampaignDbClient;
-
 const firstOrSelf = <T>(value: T | T[] | null | undefined): T | null =>
   Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
 
@@ -205,6 +160,17 @@ const chunkArray = <T>(items: T[], chunkSize: number): T[][] => {
   }
   return chunks;
 };
+
+const mapStickerBookRow = (book: TableTypes<'sticker_book'>): StickerBook => ({
+  id: book.id,
+  title: book.title,
+  svg_url: book.svg_url,
+  sort_index: book.sort_index,
+  stickers_metadata: Array.isArray(book.stickers_metadata)
+    ? (book.stickers_metadata as unknown as StickerMeta[])
+    : [],
+  total_stickers: book.total_stickers,
+});
 
 const GENERIC_LEADERBOARD_LIMIT = 50;
 const SCHOOL_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
@@ -995,7 +961,8 @@ export class SupabaseApi implements ServiceApi {
           check_in_lng: lng,
           type: visitType,
           is_deleted: false,
-          distance_from_school: distanceFromSchool ?? null,
+          distance_from_school:
+            distanceFromSchool == null ? null : String(distanceFromSchool),
         };
 
         const { data, error } = await this.supabase
@@ -1036,7 +1003,9 @@ export class SupabaseApi implements ServiceApi {
               check_out_lng: lng,
               updated_at: now,
               distance_from_school:
-                distanceFromSchool ?? visitToUpdate.distance_from_school,
+                distanceFromSchool == null
+                  ? visitToUpdate.distance_from_school
+                  : String(distanceFromSchool),
             })
             .eq('id', visitToUpdate.id)
             .select()
@@ -1575,6 +1544,8 @@ export class SupabaseApi implements ServiceApi {
       ops_created_by: null,
       reward: null,
       stars: null,
+      is_wa_contact: null,
+      tc_agreed_version: 0,
     };
 
     const { error: userInsertError } = await this.supabase
@@ -1727,6 +1698,8 @@ export class SupabaseApi implements ServiceApi {
       ops_created_by: null,
       reward: null,
       stars: null,
+      is_wa_contact: null,
+      tc_agreed_version: 0,
     };
 
     // Insert into user table
@@ -5502,6 +5475,7 @@ export class SupabaseApi implements ServiceApi {
       standard: standard ?? null,
       status: null,
       whatsapp_invite_link: whatsapp_invite_link ?? null,
+      migrated_count: 0,
     };
 
     const { error } = await this.supabase.from('class').insert(newClass);
@@ -8939,17 +8913,16 @@ export class SupabaseApi implements ServiceApi {
       return { programs: [], managers: [], savedGroups: [] };
     }
 
-    const supabase = getCampaignDbClient(this.supabase);
     const [programsResponse, managers, savedGroupsResponse] = await Promise.all(
       [
-        supabase
-          .from<CampaignProgramRow[]>('program')
+        this.supabase
+          .from('program')
           .select('id, name')
           .eq('is_deleted', false)
           .order('name', { ascending: true }),
         this.getProgramManagers(),
-        supabase
-          .from<CampaignSavedAudienceGroupRow[]>('campaign_target_audience')
+        this.supabase
+          .from('campaign_target_audience')
           .select(
             'id, name, program_id, is_all_schools, is_all_grades, campaign_target_audience_school(school_id), campaign_target_audience_grade(grade_id)',
           )
@@ -8970,14 +8943,16 @@ export class SupabaseApi implements ServiceApi {
       );
     }
 
-    const programs = (programsResponse.data ?? [])
+    const programs = ((programsResponse.data ?? []) as CampaignProgramRow[])
       .filter((program) => program.id && program.name)
       .map((program) => ({
         id: String(program.id),
         name: String(program.name),
       }));
 
-    const savedGroups = (savedGroupsResponse.data ?? [])
+    const savedGroups = (
+      (savedGroupsResponse.data ?? []) as CampaignSavedAudienceGroupRow[]
+    )
       .filter((group) => group.id && group.name && group.program_id)
       .map((group) => this.mapCampaignSavedAudienceGroup(group));
 
@@ -8995,9 +8970,8 @@ export class SupabaseApi implements ServiceApi {
       return { blocks: [], schools: [], grades: [] };
     }
 
-    const supabase = getCampaignDbClient(this.supabase);
-    const { data: schoolRows, error: schoolError } = await supabase
-      .from<CampaignSchoolRow[]>('school')
+    const { data: schoolRows, error: schoolError } = await this.supabase
+      .from('school')
       .select('id, name, group3')
       .eq('program_id', programId)
       .eq('is_deleted', false)
@@ -9008,7 +8982,9 @@ export class SupabaseApi implements ServiceApi {
       return { blocks: [], schools: [], grades: [] };
     }
 
-    const schools: CampaignSchoolOption[] = (schoolRows ?? [])
+    const schools: CampaignSchoolOption[] = (
+      (schoolRows ?? []) as CampaignSchoolRow[]
+    )
       .filter((school) => school.id && school.name)
       .map((school) => ({
         id: String(school.id),
@@ -9035,9 +9011,8 @@ export class SupabaseApi implements ServiceApi {
       return { totalStudents: 0, grades: [] };
     }
 
-    const supabase = getCampaignDbClient(this.supabase);
-    const { data: classRows, error: classError } = await supabase
-      .from<CampaignClassGradeRow[]>('class')
+    const { data: classRows, error: classError } = await this.supabase
+      .from('class')
       .select('id, grade_id, grade:grade_id(id, name, sort_index)')
       .in('school_id', schoolIds)
       .in('grade_id', gradeIds)
@@ -9053,7 +9028,7 @@ export class SupabaseApi implements ServiceApi {
       { gradeId: string; gradeName: string; sort: number }
     >();
 
-    (classRows ?? []).forEach((row) => {
+    ((classRows ?? []) as CampaignClassGradeRow[]).forEach((row) => {
       const grade = firstOrSelf(row.grade);
       if (!row.id || !row.grade_id || !grade?.name) return;
       classGradeMap.set(String(row.id), {
@@ -9068,8 +9043,8 @@ export class SupabaseApi implements ServiceApi {
 
     const classUserRows: CampaignClassUserRow[] = [];
     for (const classIdBatch of chunkArray(classIds, 500)) {
-      const { data, error: classUserError } = await supabase
-        .from<CampaignClassUserRow[]>('class_user')
+      const { data, error: classUserError } = await this.supabase
+        .from('class_user')
         .select('class_id, user_id')
         .in('class_id', classIdBatch)
         .eq('role', RoleType.STUDENT)
@@ -9083,7 +9058,7 @@ export class SupabaseApi implements ServiceApi {
         return { totalStudents: 0, grades: [] };
       }
 
-      classUserRows.push(...(data ?? []));
+      classUserRows.push(...((data ?? []) as CampaignClassUserRow[]));
     }
 
     const studentsByGrade = new Map<string, Set<string>>();
@@ -9147,7 +9122,6 @@ export class SupabaseApi implements ServiceApi {
       throw new Error('Supabase client is not initialized.');
     }
 
-    const supabase = getCampaignDbClient(this.supabase);
     const createdAudienceForCampaign = !payload.savedAudienceGroupId;
     const targetAudienceId =
       payload.savedAudienceGroupId ||
@@ -9166,8 +9140,8 @@ export class SupabaseApi implements ServiceApi {
       end_date: payload.endDate,
     };
 
-    const { data, error } = await supabase
-      .from<CampaignInsertResultRow[]>('campaign')
+    const { data, error } = await this.supabase
+      .from('campaign')
       .insert(campaignInsert)
       .select('id')
       .single();
@@ -9216,14 +9190,13 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<{ id: string; name: string }[]> {
     if (!this.supabase || schoolIds.length === 0) return [];
 
-    const supabase = getCampaignDbClient(this.supabase);
     const gradeMap = new Map<
       string,
       { id: string; name: string; sort: number }
     >();
 
-    const { data: classRows, error: classError } = await supabase
-      .from<CampaignClassGradeRow[]>('class')
+    const { data: classRows, error: classError } = await this.supabase
+      .from('class')
       .select('grade_id, grade:grade_id(id, name, sort_index)')
       .in('school_id', schoolIds)
       .eq('is_deleted', false)
@@ -9233,7 +9206,7 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Error fetching class grades for campaign:', classError);
     }
 
-    (classRows ?? []).forEach((row) => {
+    ((classRows ?? []) as CampaignClassGradeRow[]).forEach((row) => {
       const grade = firstOrSelf(row.grade);
       if (!grade?.id || !grade?.name) return;
       gradeMap.set(String(grade.id), {
@@ -9245,8 +9218,8 @@ export class SupabaseApi implements ServiceApi {
 
     for (const schoolIdBatch of chunkArray(schoolIds, 500)) {
       const { data: schoolCourseRows, error: schoolCourseError } =
-        await supabase
-          .from<CampaignSchoolCourseGradeRow[]>('school_course')
+        await this.supabase
+          .from('school_course')
           .select(
             'course:course_id(grade_id, grade:grade_id(id, name, sort_index))',
           )
@@ -9261,16 +9234,18 @@ export class SupabaseApi implements ServiceApi {
         continue;
       }
 
-      (schoolCourseRows ?? []).forEach((row) => {
-        const course = firstOrSelf(row.course);
-        const grade = firstOrSelf(course?.grade);
-        if (!grade?.id || !grade?.name) return;
-        gradeMap.set(String(grade.id), {
-          id: String(grade.id),
-          name: String(grade.name),
-          sort: Number(grade.sort_index ?? 9999),
-        });
-      });
+      ((schoolCourseRows ?? []) as CampaignSchoolCourseGradeRow[]).forEach(
+        (row) => {
+          const course = firstOrSelf(row.course);
+          const grade = firstOrSelf(course?.grade);
+          if (!grade?.id || !grade?.name) return;
+          gradeMap.set(String(grade.id), {
+            id: String(grade.id),
+            name: String(grade.name),
+            sort: Number(grade.sort_index ?? 9999),
+          });
+        },
+      );
     }
 
     return Array.from(gradeMap.values())
@@ -9285,13 +9260,12 @@ export class SupabaseApi implements ServiceApi {
       throw new Error('Supabase client is not initialized.');
     }
 
-    const supabase = getCampaignDbClient(this.supabase);
     const {
       data: { user },
     } = await this.supabase.auth.getUser();
 
-    const { data, error } = await supabase
-      .from<CampaignInsertResultRow[]>('campaign_target_audience')
+    const { data, error } = await this.supabase
+      .from('campaign_target_audience')
       .insert({
         name: payload.isSaved ? payload.name : null,
         program_id: payload.programId,
@@ -9312,10 +9286,8 @@ export class SupabaseApi implements ServiceApi {
 
     try {
       if (!payload.isAllSchools && payload.schoolIds.length > 0) {
-        const { error: schoolInsertError } = await supabase
-          .from<
-            CampaignAudienceSchoolLinkRow[]
-          >('campaign_target_audience_school')
+        const { error: schoolInsertError } = await this.supabase
+          .from('campaign_target_audience_school')
           .insert(
             payload.schoolIds.map((schoolId) => ({
               target_audience_id: targetAudienceId,
@@ -9333,10 +9305,8 @@ export class SupabaseApi implements ServiceApi {
       }
 
       if (!payload.isAllGrades && payload.gradeIds.length > 0) {
-        const { error: gradeInsertError } = await supabase
-          .from<
-            CampaignAudienceGradeLinkRow[]
-          >('campaign_target_audience_grade')
+        const { error: gradeInsertError } = await this.supabase
+          .from('campaign_target_audience_grade')
           .insert(
             payload.gradeIds.map((gradeId) => ({
               target_audience_id: targetAudienceId,
@@ -9363,20 +9333,17 @@ export class SupabaseApi implements ServiceApi {
   private async deleteCampaignTargetAudience(targetAudienceId: string) {
     if (!this.supabase) return;
 
-    const supabase = getCampaignDbClient(this.supabase);
     const cleanupSteps = [
-      supabase
-        .from<
-          CampaignAudienceSchoolLinkRow[]
-        >('campaign_target_audience_school')
+      this.supabase
+        .from('campaign_target_audience_school')
         .delete()
         .eq('target_audience_id', targetAudienceId),
-      supabase
-        .from<CampaignAudienceGradeLinkRow[]>('campaign_target_audience_grade')
+      this.supabase
+        .from('campaign_target_audience_grade')
         .delete()
         .eq('target_audience_id', targetAudienceId),
-      supabase
-        .from<CampaignInsertResultRow[]>('campaign_target_audience')
+      this.supabase
+        .from('campaign_target_audience')
         .delete()
         .eq('id', targetAudienceId),
     ];
@@ -10522,7 +10489,7 @@ export class SupabaseApi implements ServiceApi {
           _page_size: normalizedPageSize,
           _order_by: safeParams.orderBy ?? 'school_name',
           _order_dir: safeParams.orderDir ?? 'asc',
-          _search: safeParams.search?.trim() || null,
+          _search: safeParams.search?.trim() || undefined,
           _include_migrated_counts: safeParams.includeMigratedCounts ?? false,
         },
       );
@@ -10629,6 +10596,8 @@ export class SupabaseApi implements ServiceApi {
       ops_created_by: null,
       reward: null,
       stars: null,
+      is_wa_contact: null,
+      tc_agreed_version: 0,
     };
 
     // Insert user
@@ -11235,19 +11204,25 @@ export class SupabaseApi implements ServiceApi {
         p_order_dir: orderDir,
         p_request_types: filters?.request_type?.length
           ? filters.request_type
-          : null,
-        p_school_ids: filters?.school?.length ? filters.school : null,
-        p_search_term: searchTerm ?? null,
+          : undefined,
+        p_school_ids: filters?.school?.length ? filters.school : undefined,
+        p_search_term: searchTerm ?? undefined,
       });
 
       if (error) throw error;
 
+      const response =
+        data && typeof data === 'object' && !Array.isArray(data)
+          ? (data as Record<string, unknown>)
+          : {};
+
       return {
-        data: data?.data ?? [],
-        total: data?.total ?? 0,
-        totalPages: data?.totalPages ?? 0,
-        page: data?.page ?? page,
-        limit: data?.limit ?? limit,
+        data: Array.isArray(response.data) ? response.data : [],
+        total: typeof response.total === 'number' ? response.total : 0,
+        totalPages:
+          typeof response.totalPages === 'number' ? response.totalPages : 0,
+        page: typeof response.page === 'number' ? response.page : page,
+        limit: typeof response.limit === 'number' ? response.limit : limit,
       };
     } catch (err) {
       logger.error('Error in getOpsRequests:', err);
@@ -14539,7 +14514,7 @@ export class SupabaseApi implements ServiceApi {
       .order('sort_index', { ascending: true });
 
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []).map(mapStickerBookRow);
   }
 
   async getCurrentStickerBookWithProgress(userId: string): Promise<{
@@ -14569,7 +14544,7 @@ export class SupabaseApi implements ServiceApi {
       if (!book) return null;
 
       return {
-        book: book as StickerBook,
+        book: mapStickerBookRow(book),
         progress: progress as UserStickerProgress,
       };
     }
@@ -14610,7 +14585,7 @@ export class SupabaseApi implements ServiceApi {
 
     if (nextBook) {
       return {
-        book: nextBook as StickerBook,
+        book: mapStickerBookRow(nextBook),
         progress: null,
       };
     }
@@ -14640,7 +14615,14 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
 
-    return data?.map((r: any) => r.sticker_book as StickerBook) ?? [];
+    const rows = (data ?? []) as Array<{
+      sticker_book: TableTypes<'sticker_book'> | null;
+    }>;
+
+    return rows
+      .map((row) => row.sticker_book)
+      .filter((book): book is TableTypes<'sticker_book'> => Boolean(book))
+      .map(mapStickerBookRow);
   }
 
   async getNextWinnableSticker(
@@ -14676,8 +14658,8 @@ export class SupabaseApi implements ServiceApi {
 
     const collected = progress?.stickers_collected ?? [];
 
-    const sorted = [...book.stickers_metadata].sort(
-      (a: any, b: any) => a.sequence - b.sequence,
+    const sorted = [...mapStickerBookRow(book).stickers_metadata].sort(
+      (a: StickerMeta, b: StickerMeta) => a.sequence - b.sequence,
     );
 
     const next = sorted.find((s: any) => !collected.includes(s.id));

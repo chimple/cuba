@@ -1219,6 +1219,8 @@ export class SqliteApi implements ServiceApi {
       ops_created_by: null,
       reward: null,
       stars: null,
+      is_wa_contact: null,
+      tc_agreed_version: 0,
     };
 
     await this.executeQuery(
@@ -1695,6 +1697,8 @@ export class SqliteApi implements ServiceApi {
       ops_created_by: null,
       stars: null,
       reward: null,
+      is_wa_contact: null,
+      tc_agreed_version: 0,
     };
     // Insert into user table
     await this.executeQuery(
@@ -4046,6 +4050,7 @@ export class SqliteApi implements ServiceApi {
       standard: standard ?? null,
       status: null,
       whatsapp_invite_link: whatsapp_invite_link ?? null,
+      migrated_count: 0,
     };
 
     await this.executeQuery(
@@ -7450,6 +7455,8 @@ order by
             reward: null,
             sfx_off: false,
             stars: null,
+            is_wa_contact: null,
+            tc_agreed_version: 0,
             student_id: null,
             updated_at: null,
           }
@@ -7568,6 +7575,8 @@ order by
             reward: null,
             sfx_off: false,
             stars: null,
+            is_wa_contact: null,
+            tc_agreed_version: 0,
             student_id: null,
             updated_at: null,
           }
@@ -7852,6 +7861,8 @@ order by
       learning_path: null,
       ops_created_by: null,
       stars: null,
+      is_wa_contact: null,
+      tc_agreed_version: 0,
     };
 
     await this.executeQuery(
