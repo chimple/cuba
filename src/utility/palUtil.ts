@@ -20,19 +20,34 @@ type ResultAbilityMap = {
 };
 
 type PalConstants = {
-  blendWeights: LayerWeightsInput<BlendWeights>;
-  learningRates: LayerWeightsInput<LearningRates>;
+  blendWeights: PalLocalLayerConfig<BlendWeights>;
+  learningRates: PalLocalLayerConfig<LearningRates>;
 };
 
-type LayerWeightsInput<T> = {
+// Local config mirrors GrowthBook so the same resolution logic works offline.
+type PalLocalLayerConfig<T> = {
   default: T;
-  bySubject: Record<string, T>;
+  subjects: Record<string, T>;
 };
 
-type PalLearningRatesConfig = {
-  default?: Partial<LearningRates>;
-  subjects?: Record<string, Partial<LearningRates>>;
+type PalLayerConfig<T> = {
+  default?: Partial<T>;
+  subjects?: Record<string, Partial<T>>;
 };
+
+// GrowthBook stores both PAL knobs in one JSON feature, split by config type.
+type PalConfig = {
+  blendWeights?: PalLayerConfig<BlendWeights>;
+  learningRates?: PalLayerConfig<LearningRates>;
+};
+
+const BLEND_WEIGHT_KEYS: (keyof BlendWeights)[] = [
+  'skill',
+  'outcome',
+  'competency',
+  'domain',
+  'subject',
+];
 
 const LEARNING_RATE_KEYS: (keyof LearningRates)[] = [
   'skill',
@@ -42,26 +57,31 @@ const LEARNING_RATE_KEYS: (keyof LearningRates)[] = [
   'subject',
 ];
 
+const DEFAULT_BLEND_WEIGHTS: BlendWeights = {
+  skill: 0.1,
+  outcome: 0.1,
+  competency: 0.6,
+  domain: 0.1,
+  subject: 0.1,
+};
+
+const DEFAULT_LEARNING_RATES: LearningRates = {
+  skill: 0.5,
+  outcome: 0.8,
+  competency: 0.3,
+  domain: 0.5,
+  subject: 0.4,
+};
+
+// Local PAL defaults keep recommendations working when GrowthBook is unavailable.
 const PAL_CONSTANTS: PalConstants = {
   blendWeights: {
-    default: {
-      skill: 0.1,
-      outcome: 0.1,
-      competency: 0.6,
-      domain: 0.1,
-      subject: 0.1,
-    },
-    bySubject: {},
+    default: DEFAULT_BLEND_WEIGHTS,
+    subjects: {},
   },
   learningRates: {
-    default: {
-      skill: 0.5,
-      outcome: 0.8,
-      competency: 0.3,
-      domain: 0.5,
-      subject: 0.4,
-    },
-    bySubject: {},
+    default: DEFAULT_LEARNING_RATES,
+    subjects: {},
   },
 };
 
@@ -81,6 +101,65 @@ const resolveRates = (
   });
 
   return resolved;
+};
+
+// GrowthBook can send partial blend weights; merge valid values over fallback.
+const resolveBlendWeights = (
+  overrides: Partial<BlendWeights> | undefined,
+  fallback: BlendWeights,
+): BlendWeights => {
+  const resolved = { ...fallback };
+
+  if (!overrides || typeof overrides !== 'object') return resolved;
+
+  BLEND_WEIGHT_KEYS.forEach((key) => {
+    const value = overrides[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      resolved[key] = value;
+    }
+  });
+
+  return resolved;
+};
+
+// Merge only valid numeric keys so a bad GrowthBook value cannot break PAL.
+const resolvePalBlendWeightsForSubject = (
+  config: PalConfig | undefined,
+  subjectId: string,
+): BlendWeights => {
+  const localDefault = resolveBlendWeights(
+    subjectId ? PAL_CONSTANTS.blendWeights.subjects[subjectId] : undefined,
+    PAL_CONSTANTS.blendWeights.default,
+  );
+  const defaultWeights = resolveBlendWeights(
+    config?.blendWeights?.default,
+    localDefault,
+  );
+  const subjectWeights = subjectId
+    ? config?.blendWeights?.subjects?.[subjectId]
+    : undefined;
+
+  return resolveBlendWeights(subjectWeights, defaultWeights);
+};
+
+// Learning rates follow the same local/default/subject fallback order.
+const resolvePalLearningRatesForSubject = (
+  config: PalConfig | undefined,
+  subjectId: string,
+): LearningRates => {
+  const localDefault = resolveRates(
+    subjectId ? PAL_CONSTANTS.learningRates.subjects[subjectId] : undefined,
+    PAL_CONSTANTS.learningRates.default,
+  );
+  const defaultRates = resolveRates(
+    config?.learningRates?.default,
+    localDefault,
+  );
+  const subjectRates = subjectId
+    ? config?.learningRates?.subjects?.[subjectId]
+    : undefined;
+
+  return resolveRates(subjectRates, defaultRates);
 };
 
 export class palUtil {
@@ -489,22 +568,21 @@ export class palUtil {
   }
 
   private static getBlendWeightsForSubject(subjectId: string): BlendWeights {
-    return (
-      (subjectId && PAL_CONSTANTS.blendWeights.bySubject[subjectId]) ||
-      PAL_CONSTANTS.blendWeights.default
-    );
-  }
-
-  private static getLearningRatesForSubject(subjectId: string): LearningRates {
-    const config = getCachedGrowthBookFeatureValue<PalLearningRatesConfig>(
+    // One GrowthBook JSON now owns both blend weights and learning rates.
+    const config = getCachedGrowthBookFeatureValue<PalConfig>(
       PAL_LEARNING_RATES_CONFIG,
       {},
     );
-    const localDefault = PAL_CONSTANTS.learningRates.default;
-    const defaultRates = resolveRates(config?.default, localDefault);
-    const subjectRates = subjectId ? config?.subjects?.[subjectId] : undefined;
+    return resolvePalBlendWeightsForSubject(config, subjectId);
+  }
 
-    return resolveRates(subjectRates, defaultRates);
+  private static getLearningRatesForSubject(subjectId: string): LearningRates {
+    // Read the same cached payload so both PAL knobs stay in sync by subject.
+    const config = getCachedGrowthBookFeatureValue<PalConfig>(
+      PAL_LEARNING_RATES_CONFIG,
+      {},
+    );
+    return resolvePalLearningRatesForSubject(config, subjectId);
   }
 
   public static async updateAndGetAbilities(params: {
