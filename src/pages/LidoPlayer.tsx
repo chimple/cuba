@@ -859,11 +859,7 @@ const LidoPlayer: FC = () => {
       push();
       return;
     }
-    const lidoBaseUrl = getLidoBundleBaseUrlForEnv();
-    const directZipUrl =
-      urlSearchParams.get('zipUrl') ??
-      state?.zipUrl ??
-      `${lidoBaseUrl}${lessonId}.zip`;
+
     if (Capacitor.isNativePlatform()) {
       const path = await Util.getLessonPath({ lessonId: lessonId });
       if (path) {
@@ -907,7 +903,16 @@ const LidoPlayer: FC = () => {
         return;
       }
     } else {
+      const lidoBaseUrl = getLidoBundleBaseUrlForEnv();
+      const directZipUrl =
+        urlSearchParams.get('zipUrl') ??
+        state?.zipUrl ??
+        `${lidoBaseUrl}${lessonId}.zip`;
       setZipUrl(directZipUrl);
+      // const pathBase = `${lidoBaseUrl}${lessonId}/`;
+      // const pathXml = `${lidoBaseUrl}${lessonId}/index.xml`;
+      // setBasePath(pathBase);
+      // setXmlPath(pathXml);
     }
     setIsLoading(false);
     setIsReady(true); // ONLY NOW allow the Web Component to mount
