@@ -940,6 +940,7 @@ const LidoPlayer: FC = () => {
             canplay: true,
             'code-folder-path': '/Lido-player-code-versions',
             'common-audio-path': commonAudioPath ?? '/Lido-CommonAudios',
+            'zip-url': '',
           })
         : null}
     </IonPage>
