@@ -1,5 +1,13 @@
 import {
   AssignmentCartData,
+  CampaignAudienceOptions,
+  CampaignAudiencePayload,
+  CampaignAudienceSummary,
+  CampaignAudienceSummaryParams,
+  CampaignSavedAudienceGroup,
+  CampaignSetupOptions,
+  CreateCampaignSetupPayload,
+  CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
   LeaderboardInfo,
   OpsStudentPerformanceBandRow,
@@ -1507,6 +1515,35 @@ export class ApiHandler implements ServiceApi {
   public async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this.s.getProgramManagers();
   }
+
+  public async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
+    return await this.s.getCampaignSetupOptions();
+  }
+
+  public async getCampaignAudienceOptions(
+    programId: string,
+  ): Promise<CampaignAudienceOptions> {
+    return await this.s.getCampaignAudienceOptions(programId);
+  }
+
+  public async getCampaignAudienceSummary(
+    params: CampaignAudienceSummaryParams,
+  ): Promise<CampaignAudienceSummary> {
+    return await this.s.getCampaignAudienceSummary(params);
+  }
+
+  public async createCampaignAudienceGroup(
+    payload: CampaignAudiencePayload,
+  ): Promise<CampaignSavedAudienceGroup> {
+    return await this.s.createCampaignAudienceGroup(payload);
+  }
+
+  public async createCampaignSetup(
+    payload: CreateCampaignSetupPayload,
+  ): Promise<CreateCampaignSetupResult> {
+    return await this.s.createCampaignSetup(payload);
+  }
+
   public async getUniqueGeoData(): Promise<{
     Country: string[];
     State: string[];

@@ -57,6 +57,14 @@ import Course from '../../models/course';
 import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
+  CampaignAudienceOptions,
+  CampaignAudiencePayload,
+  CampaignAudienceSummary,
+  CampaignAudienceSummaryParams,
+  CampaignSavedAudienceGroup,
+  CampaignSetupOptions,
+  CreateCampaignSetupPayload,
+  CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
@@ -1213,6 +1221,7 @@ export class SqliteApi implements ServiceApi {
       ops_created_by: null,
       reward: null,
       stars: null,
+      is_wa_contact: null,
     };
 
     await this.executeQuery(
@@ -1691,6 +1700,7 @@ export class SqliteApi implements ServiceApi {
       ops_created_by: null,
       stars: null,
       reward: null,
+      is_wa_contact: null,
     };
     // Insert into user table
     await this.executeQuery(
@@ -4050,6 +4060,7 @@ export class SqliteApi implements ServiceApi {
       standard: standard ?? null,
       status: null,
       whatsapp_invite_link: whatsapp_invite_link ?? null,
+      migrated_count: 0,
     };
 
     await this.executeQuery(
@@ -7015,6 +7026,34 @@ order by
     return await this._serverApi.getProgramManagers();
   }
 
+  async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
+    return await this._serverApi.getCampaignSetupOptions();
+  }
+
+  async getCampaignAudienceOptions(
+    programId: string,
+  ): Promise<CampaignAudienceOptions> {
+    return await this._serverApi.getCampaignAudienceOptions(programId);
+  }
+
+  async getCampaignAudienceSummary(
+    params: CampaignAudienceSummaryParams,
+  ): Promise<CampaignAudienceSummary> {
+    return await this._serverApi.getCampaignAudienceSummary(params);
+  }
+
+  async createCampaignAudienceGroup(
+    payload: CampaignAudiencePayload,
+  ): Promise<CampaignSavedAudienceGroup> {
+    return await this._serverApi.createCampaignAudienceGroup(payload);
+  }
+
+  async createCampaignSetup(
+    payload: CreateCampaignSetupPayload,
+  ): Promise<CreateCampaignSetupResult> {
+    return await this._serverApi.createCampaignSetup(payload);
+  }
+
   async getUniqueGeoData(): Promise<{
     Country: string[];
     State: string[];
@@ -7428,6 +7467,7 @@ order by
             reward: null,
             sfx_off: false,
             stars: null,
+            is_wa_contact: null,
             student_id: null,
             updated_at: null,
           }
@@ -7547,6 +7587,7 @@ order by
             reward: null,
             sfx_off: false,
             stars: null,
+            is_wa_contact: null,
             student_id: null,
             updated_at: null,
           }
@@ -7833,6 +7874,7 @@ order by
       learning_path: null,
       ops_created_by: null,
       stars: null,
+      is_wa_contact: null,
     };
 
     await this.executeQuery(

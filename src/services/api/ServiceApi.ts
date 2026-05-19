@@ -147,6 +147,86 @@ type ActivitiesFilterOptions = {
   performance: Array<string | null>;
 };
 
+export type CampaignObjective =
+  | 'homework_campaign'
+  | 'homepage_learning_pathway_campaign';
+
+export type CampaignTargetType = 'percentage_completion' | 'number_of_lessons';
+
+export type CampaignOption = {
+  id: string;
+  name: string;
+};
+
+export type CampaignSchoolOption = CampaignOption & {
+  block: string;
+};
+
+export type CampaignSavedAudienceGroup = {
+  id: string;
+  name: string;
+  programId: string;
+  isAllSchools: boolean;
+  isAllGrades: boolean;
+  schoolIds: string[];
+  gradeIds: string[];
+};
+
+export type CampaignSetupOptions = {
+  programs: CampaignOption[];
+  managers: CampaignOption[];
+  savedGroups: CampaignSavedAudienceGroup[];
+};
+
+export type CampaignAudienceOptions = {
+  blocks: string[];
+  schools: CampaignSchoolOption[];
+  grades: CampaignOption[];
+};
+
+export type CampaignAudienceSummaryParams = {
+  schoolIds: string[];
+  gradeIds: string[];
+};
+
+export type CampaignAudienceSummaryGrade = {
+  gradeId: string;
+  gradeName: string;
+  studentCount: number;
+};
+
+export type CampaignAudienceSummary = {
+  totalStudents: number;
+  grades: CampaignAudienceSummaryGrade[];
+};
+
+export type CampaignAudiencePayload = {
+  programId: string;
+  schoolIds: string[];
+  gradeIds: string[];
+  isAllSchools: boolean;
+  isAllGrades: boolean;
+  isSaved: boolean;
+  name?: string;
+};
+
+export type CreateCampaignSetupPayload = CampaignAudiencePayload & {
+  campaignName: string;
+  objective: CampaignObjective;
+  targetType?: CampaignTargetType;
+  targetValue?: number;
+  learningPathCount?: number;
+  managerId: string;
+  startDate: string;
+  endDate: string;
+  savedAudienceGroupId?: string;
+};
+
+export type CreateCampaignSetupResult = {
+  campaignId: string;
+  targetAudienceId: string;
+};
+
 export interface ServiceApi {
   /**
    * Creates a AutoUser for at_school and hybrid school models when a new school is created
@@ -2000,6 +2080,51 @@ export interface ServiceApi {
    * Get all program managers
    */
   getProgramManagers(): Promise<{ name: string; id: string }[]>;
+
+  /**
+   * Loads setup dropdown data for campaign creation.
+   * Returns available programs, campaign managers, and saved audience groups.
+   */
+  getCampaignSetupOptions(): Promise<CampaignSetupOptions>;
+
+  /**
+   * Loads hierarchical audience options for a selected campaign program.
+   * Blocks and schools are scoped to the program, and grades are derived from
+   * the schools/classes/courses available under that program.
+   * @param {string} programId - Selected program ID.
+   */
+  getCampaignAudienceOptions(
+    programId: string,
+  ): Promise<CampaignAudienceOptions>;
+
+  /**
+   * Returns a grade-wise student count summary for the selected schools and grades.
+   * Used by the campaign setup audience summary box.
+   * @param {CampaignAudienceSummaryParams} params - School and grade IDs to summarize.
+   */
+  getCampaignAudienceSummary(
+    params: CampaignAudienceSummaryParams,
+  ): Promise<CampaignAudienceSummary>;
+
+  /**
+   * Saves a reusable campaign target audience group.
+   * Creates the audience record and school/grade link rows when the selection
+   * is not marked as all schools or all grades.
+   * @param {CampaignAudiencePayload} payload - Audience selection and saved-group metadata.
+   */
+  createCampaignAudienceGroup(
+    payload: CampaignAudiencePayload,
+  ): Promise<CampaignSavedAudienceGroup>;
+
+  /**
+   * Creates campaign setup data for step 1.
+   * Creates or reuses a target audience, then inserts the campaign objective,
+   * target, manager, and date fields.
+   * @param {CreateCampaignSetupPayload} payload - Complete campaign setup form payload.
+   */
+  createCampaignSetup(
+    payload: CreateCampaignSetupPayload,
+  ): Promise<CreateCampaignSetupResult>;
 
   /**
    * Get unique geo data
