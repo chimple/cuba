@@ -1548,7 +1548,6 @@ export class SupabaseApi implements ServiceApi {
       reward: null,
       stars: null,
       is_wa_contact: null,
-      tc_agreed_version: 0,
     };
 
     const { error: userInsertError } = await this.supabase
@@ -1704,7 +1703,6 @@ export class SupabaseApi implements ServiceApi {
       reward: null,
       stars: null,
       is_wa_contact: null,
-      tc_agreed_version: 0,
     };
 
     // Insert into user table
@@ -10613,7 +10611,6 @@ export class SupabaseApi implements ServiceApi {
       reward: null,
       stars: null,
       is_wa_contact: null,
-      tc_agreed_version: 0,
     };
 
     // Insert user

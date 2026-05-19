@@ -2081,20 +2081,47 @@ export interface ServiceApi {
    */
   getProgramManagers(): Promise<{ name: string; id: string }[]>;
 
+  /**
+   * Loads setup dropdown data for campaign creation.
+   * Returns available programs, campaign managers, and saved audience groups.
+   */
   getCampaignSetupOptions(): Promise<CampaignSetupOptions>;
 
+  /**
+   * Loads hierarchical audience options for a selected campaign program.
+   * Blocks and schools are scoped to the program, and grades are derived from
+   * the schools/classes/courses available under that program.
+   * @param {string} programId - Selected program ID.
+   */
   getCampaignAudienceOptions(
     programId: string,
   ): Promise<CampaignAudienceOptions>;
 
+  /**
+   * Returns a grade-wise student count summary for the selected schools and grades.
+   * Used by the campaign setup audience summary box.
+   * @param {CampaignAudienceSummaryParams} params - School and grade IDs to summarize.
+   */
   getCampaignAudienceSummary(
     params: CampaignAudienceSummaryParams,
   ): Promise<CampaignAudienceSummary>;
 
+  /**
+   * Saves a reusable campaign target audience group.
+   * Creates the audience record and school/grade link rows when the selection
+   * is not marked as all schools or all grades.
+   * @param {CampaignAudiencePayload} payload - Audience selection and saved-group metadata.
+   */
   createCampaignAudienceGroup(
     payload: CampaignAudiencePayload,
   ): Promise<CampaignSavedAudienceGroup>;
 
+  /**
+   * Creates campaign setup data for step 1.
+   * Creates or reuses a target audience, then inserts the campaign objective,
+   * target, manager, and date fields.
+   * @param {CreateCampaignSetupPayload} payload - Complete campaign setup form payload.
+   */
   createCampaignSetup(
     payload: CreateCampaignSetupPayload,
   ): Promise<CreateCampaignSetupResult>;

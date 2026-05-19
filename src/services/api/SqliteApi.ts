@@ -1222,7 +1222,6 @@ export class SqliteApi implements ServiceApi {
       reward: null,
       stars: null,
       is_wa_contact: null,
-      tc_agreed_version: 0,
     };
 
     await this.executeQuery(
@@ -1702,7 +1701,6 @@ export class SqliteApi implements ServiceApi {
       stars: null,
       reward: null,
       is_wa_contact: null,
-      tc_agreed_version: 0,
     };
     // Insert into user table
     await this.executeQuery(
@@ -7470,7 +7468,6 @@ order by
             sfx_off: false,
             stars: null,
             is_wa_contact: null,
-            tc_agreed_version: 0,
             student_id: null,
             updated_at: null,
           }
@@ -7591,7 +7588,6 @@ order by
             sfx_off: false,
             stars: null,
             is_wa_contact: null,
-            tc_agreed_version: 0,
             student_id: null,
             updated_at: null,
           }
@@ -7879,7 +7875,6 @@ order by
       ops_created_by: null,
       stars: null,
       is_wa_contact: null,
-      tc_agreed_version: 0,
     };
 
     await this.executeQuery(
