@@ -853,19 +853,18 @@ const LidoPlayer: FC = () => {
       push();
       return;
     }
+    const dow = await Util.downloadZipBundle([lessonToDownload]);
+    if (!dow) {
+      presentToast();
+      push();
+      return;
+    }
     const lidoBaseUrl = getLidoBundleBaseUrlForEnv();
     const directZipUrl =
       urlSearchParams.get('zipUrl') ??
       state?.zipUrl ??
       `${lidoBaseUrl}${lessonId}.zip`;
     if (Capacitor.isNativePlatform()) {
-      const dow = await Util.downloadZipBundle([lessonToDownload]);
-      if (!dow) {
-        presentToast();
-        push();
-        return;
-      }
-
       const path = await Util.getLessonPath({ lessonId: lessonId });
       if (path) {
         setBasePath(path);
