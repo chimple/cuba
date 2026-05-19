@@ -197,6 +197,7 @@ const SelectMode: FC = () => {
         if (className) {
           const parsedClass = JSON.parse(className);
           setCurrClass(parsedClass);
+          await schoolUtil.setCurrentClass(parsedClass);
           await displayStudents(parsedClass);
         }
       } else if (setTab === STAGES.CLASS) {
@@ -219,6 +220,7 @@ const SelectMode: FC = () => {
       );
       if (selectedClass) {
         setCurrClass(selectedClass);
+        await schoolUtil.setCurrentClass(selectedClass);
         localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(selectedClass));
       }
     }
@@ -242,12 +244,17 @@ const SelectMode: FC = () => {
       const schoolName = localStorage.getItem(CURRENT_SCHOOL_NAME);
       if (schoolName) setCurrentSchoolName(JSON.parse(schoolName));
       const className = localStorage.getItem(CURRENT_CLASS_NAME);
-      if (className) setCurrClass(JSON.parse(className));
+      if (className) {
+        const parsedClass = JSON.parse(className);
+        setCurrClass(parsedClass);
+        await schoolUtil.setCurrentClass(parsedClass);
+      }
       if (schoolName && className) {
         const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
         if (selectedUser) {
           const parsedClass = JSON.parse(className);
           setCurrClass(parsedClass);
+          await schoolUtil.setCurrentClass(parsedClass);
         }
         setStage(STAGES.STUDENT);
       } else {
@@ -459,6 +466,34 @@ const SelectMode: FC = () => {
     // setStage(STAGES.MODE);
   };
 
+  const onSchoolModeSelect = async (): Promise<void> => {
+    await applyOrientationForMode(MODES.SCHOOL);
+    api.currentMode = MODES.SCHOOL;
+    await schoolUtil.setCurrMode(MODES.SCHOOL);
+
+    if (currentSchool) {
+      const selectedClass = await displayClasses(currentSchool, currentUser);
+      setStage(selectedClass ? STAGES.STUDENT : STAGES.CLASS);
+      return;
+    }
+
+    if (schoolList.length === 1 && currentUser) {
+      const selectedSchool = schoolList[0].school;
+      setCurrentSchool(selectedSchool);
+      schoolUtil.setCurrentSchool(selectedSchool);
+      localStorage.setItem(
+        CURRENT_SCHOOL_NAME,
+        JSON.stringify(selectedSchool.name),
+      );
+      setCurrentSchoolName(selectedSchool.name);
+      const selectedClass = await displayClasses(selectedSchool, currentUser);
+      setStage(selectedClass ? STAGES.STUDENT : STAGES.CLASS);
+      return;
+    }
+
+    setStage(STAGES.SCHOOL);
+  };
+
   const continueToTeacherMode = async () => {
     await applyOrientationForMode(MODES.TEACHER_SCHOOL);
     if (currentSchool) {
@@ -537,6 +572,7 @@ const SelectMode: FC = () => {
       );
       if (selectedClass) {
         setCurrClass(selectedClass);
+        await schoolUtil.setCurrentClass(selectedClass);
         localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(selectedClass));
       }
       localStorage.setItem(SELECTED_CLASSES, JSON.stringify(element));
@@ -635,14 +671,18 @@ const SelectMode: FC = () => {
                 </span>
 
                 <SelectModeButton
-                  text={t('Parent')}
+                  text={isAutoUser ? t('School Mode') : t('Parent')}
                   icon={IoMdPeople}
-                  onClick={onParentSelect}
-                  id="select-mode-parent-button"
+                  onClick={isAutoUser ? onSchoolModeSelect : onParentSelect}
+                  id={
+                    isAutoUser
+                      ? 'select-mode-school-mode-button'
+                      : 'select-mode-parent-button'
+                  }
                 />
 
                 <SelectModeButton
-                  text={t('Teacher')}
+                  text={isAutoUser ? t('Teacher App') : t('Teacher')}
                   icon={GiTeacher}
                   onClick={onTeacherSelect}
                   id="select-mode-teacher-button"
