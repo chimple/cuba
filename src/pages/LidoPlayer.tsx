@@ -858,25 +858,19 @@ const LidoPlayer: FC = () => {
       urlSearchParams.get('zipUrl') ??
       state?.zipUrl ??
       `${lidoBaseUrl}${lessonId}.zip`;
-    const sendZipurl = true;
-    if (sendZipurl) {
-      setZipUrl(directZipUrl);
-    } else {
+    if (Capacitor.isNativePlatform()) {
       const dow = await Util.downloadZipBundle([lessonToDownload]);
       if (!dow) {
         presentToast();
         push();
         return;
       }
-    }
-    if (Capacitor.isNativePlatform()) {
-      if (!sendZipurl) {
-        const path = await Util.getLessonPath({ lessonId: lessonId });
-        if (path) {
-          setBasePath(path);
-        } else {
-          return;
-        }
+
+      const path = await Util.getLessonPath({ lessonId: lessonId });
+      if (path) {
+        setBasePath(path);
+      } else {
+        return;
       }
       try {
         const { student } = await resolveStudentContext();
@@ -914,13 +908,7 @@ const LidoPlayer: FC = () => {
         return;
       }
     } else {
-      if (!sendZipurl) {
-        const lidoBaseUrl = getLidoBundleBaseUrlForEnv();
-        const pathBase = `${lidoBaseUrl}${lessonId}/`;
-        const pathXml = `${lidoBaseUrl}${lessonId}/index.xml`;
-        setBasePath(pathBase);
-        setXmlPath(pathXml);
-      }
+      setZipUrl(directZipUrl);
     }
     setIsLoading(false);
     setIsReady(true); // ONLY NOW allow the Web Component to mount
