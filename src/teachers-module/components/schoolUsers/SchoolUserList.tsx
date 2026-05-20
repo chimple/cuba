@@ -1,18 +1,19 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import './SchoolUserList.css';
-import { ServiceConfig } from '../../../services/ServiceConfig';
-import { SCHOOL_USERS, TableTypes, OPS_ROLES } from '../../../common/constants';
 import { IonIcon } from '@ionic/react';
-import { RoleType } from '../../../interface/modelInterfaces';
-import SchoolUserDetail from './SchoolUserDetail';
-import { trashOutline } from 'ionicons/icons';
-import CommonDialogBox from '../../../common/CommonDialogBox';
 import { t } from 'i18next';
-import { Util } from '../../../utility/util';
-import logger from '../../../utility/logger';
+import { trashOutline } from 'ionicons/icons';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import CommonDialogBox from '../../../common/CommonDialogBox';
+import { OPS_ROLES, SCHOOL_USERS, TableTypes } from '../../../common/constants';
+import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
-import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RootState } from '../../../redux/store';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import logger from '../../../utility/logger';
+import { schoolUtil } from '../../../utility/schoolUtil';
+import { Util } from '../../../utility/util';
+import SchoolUserDetail from './SchoolUserDetail';
+import './SchoolUserList.css';
 
 const SchoolUserList: React.FC<{
   schoolDoc: TableTypes<'school'>;
@@ -42,6 +43,7 @@ const SchoolUserList: React.FC<{
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
 
   useEffect(() => {
     init();
@@ -170,7 +172,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {canDelete && !isExternalUser && (
+                {canDelete && !isExternalUser && !isTeacherSchoolMode && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(principal)}
@@ -198,7 +200,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {canDelete && !isExternalUser && (
+                {canDelete && !isExternalUser && !isTeacherSchoolMode && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(coordinator)}
@@ -226,7 +228,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {canDelete && !isExternalUser && (
+                {canDelete && !isExternalUser && !isTeacherSchoolMode && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(sponsor)}

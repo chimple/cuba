@@ -1,36 +1,44 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { IonMenu, IonItem } from '@ionic/react';
-import { ServiceConfig } from '../../../services/ServiceConfig';
-import { Util } from '../../../utility/util';
+import { Capacitor } from '@capacitor/core';
+import { IonItem, IonMenu } from '@ionic/react';
+import { t } from 'i18next';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useHistory } from 'react-router';
+import { registerBackButtonHandler } from '../../../common/backButtonRegistry';
+import CommonToggle from '../../../common/CommonToggle';
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   CURRENT_MODE,
-  MODES,
+  EVENTS,
   OPS_ROLES,
   PAGES,
 } from '../../../common/constants';
-import ProfileSection from './ProfileDetail';
-import SchoolSection from './SchoolSection';
-import ClassSection from './ClassSection';
-import './SideMenu.css';
-import { RoleType } from '../../../interface/modelInterfaces';
-import { useHistory } from 'react-router';
-import { schoolUtil } from '../../../utility/schoolUtil';
-import CommonToggle from '../../../common/CommonToggle';
-import { Capacitor } from '@capacitor/core';
-import DialogBoxButtons from '../../../components/parent/DialogBoxButtons​';
-import { t } from 'i18next';
+import { ClearCacheData } from '../../../components/parent/DataClear';
+import DialogBoxButtons from '../../../components/parent/DialogBoxButtons';
 import {
   updateLocalAttributes,
   useGbContext,
 } from '../../../growthbook/Growthbook';
-import { ClearCacheData } from '../../../components/parent/DataClear';
-import { registerBackButtonHandler } from '../../../common/backButtonRegistry';
+import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
-import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
-import logger from '../../../utility/logger';
+import { RootState } from '../../../redux/store';
+import { ServiceConfig } from '../../../services/ServiceConfig';
 import { logAuthDebug } from '../../../utility/authDebug';
+import logger from '../../../utility/logger';
+import { schoolUtil } from '../../../utility/schoolUtil';
+import { Util } from '../../../utility/util';
+import ClassSection from './ClassSection';
+import ProfileSection from './ProfileDetail';
+import SchoolSection from './SchoolSection';
+import './SideMenu.css';
+
+const SWITCH_TO_KIDS_APP_SOURCE_SCREEN = {
+  TEACHER_DASHBOARD: 'teacher_dashboard',
+  OPS_CONSOLE: 'ops_console',
+} as const;
+
+type SwitchToKidsAppSourceScreen =
+  (typeof SWITCH_TO_KIDS_APP_SOURCE_SCREEN)[keyof typeof SWITCH_TO_KIDS_APP_SOURCE_SCREEN];
 
 const SideMenu: React.FC<{
   handleManageSchoolClick: () => void;
@@ -93,6 +101,13 @@ const SideMenu: React.FC<{
   }, []);
 
   const api = ServiceConfig.getI()?.apiHandler;
+  const getSwitchToKidsAppSourceScreen = (): SwitchToKidsAppSourceScreen => {
+    if (window.location.pathname.startsWith(PAGES.SIDEBAR_PAGE)) {
+      return SWITCH_TO_KIDS_APP_SOURCE_SCREEN.OPS_CONSOLE;
+    }
+    return SWITCH_TO_KIDS_APP_SOURCE_SCREEN.TEACHER_DASHBOARD;
+  };
+
   const fetchData = async () => {
     try {
       const currentUser =
@@ -176,11 +191,18 @@ const SideMenu: React.FC<{
     }
   };
   const switchUser = async () => {
-    schoolUtil.setCurrMode(MODES.PARENT);
+    await Util.logEvent(EVENTS.SWITCH_TO_KIDS_APP_CLICKED, {
+      source_screen: getSwitchToKidsAppSourceScreen(),
+    });
     setTimeout(() => {
       Util.killCocosGame();
     }, 1000);
-    history.replace(PAGES.DISPLAY_STUDENT);
+    if (schoolUtil.isTeacherSchoolMode()) {
+      await schoolUtil.restoreKidsModeFromTeacherSchool();
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+    history.replace(PAGES.KIDS_APP_LOCATION);
   };
 
   const getClassCodeById = async (class_id: string) => {
@@ -374,10 +396,7 @@ const SideMenu: React.FC<{
                 alt="SCHOOL"
                 className="icon"
               />
-              <CommonToggle
-                onChange={switchUser}
-                label="Switch to Child's Mode"
-              />
+              <CommonToggle onChange={switchUser} label="Switch to Kids App" />
             </IonItem>
           </div>
           {isAuthorizedForOpsMode && (

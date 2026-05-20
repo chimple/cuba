@@ -226,6 +226,9 @@
   },
   "14": {
     "toVersion": 14,
-    "statements": ["ALTER TABLE class ADD COLUMN grade_id TEXT;"]
+    "statements": [
+      "ALTER TABLE class ADD COLUMN grade_id TEXT;",
+      "ALTER TABLE user ADD COLUMN tc_agreed_version NUMERIC;"
+    ]
   }
 }

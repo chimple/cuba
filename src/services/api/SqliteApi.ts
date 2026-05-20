@@ -57,6 +57,14 @@ import Course from '../../models/course';
 import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
+  CampaignAudienceOptions,
+  CampaignAudiencePayload,
+  CampaignAudienceSummary,
+  CampaignAudienceSummaryParams,
+  CampaignSavedAudienceGroup,
+  CampaignSetupOptions,
+  CreateCampaignSetupPayload,
+  CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
@@ -1174,6 +1182,7 @@ export class SqliteApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -1198,6 +1207,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: now,
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -1211,6 +1221,7 @@ export class SqliteApi implements ServiceApi {
       ops_created_by: null,
       reward: null,
       stars: null,
+      is_wa_contact: null,
     };
 
     await this.executeQuery(
@@ -1648,6 +1659,7 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     role: 'student',
     studentId: string,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -1674,6 +1686,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -1687,6 +1700,7 @@ export class SqliteApi implements ServiceApi {
       ops_created_by: null,
       stars: null,
       reward: null,
+      is_wa_contact: null,
     };
     // Insert into user table
     await this.executeQuery(
@@ -2231,14 +2245,20 @@ export class SqliteApi implements ServiceApi {
     });
   }
   async updateTcAccept(userId: string) {
+    return this.updateTcAgreedVersion(userId, 1);
+  }
+
+  async updateTcAgreedVersion(userId: string, version: number) {
     const query = `
     UPDATE "user"
-    SET is_tc_accepted = 1
+    SET is_tc_accepted = 1,
+        tc_agreed_version = ${version},
+        updated_at = "${new Date().toISOString()}"
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
     logger.info(
-      '🚀 ~ SqliteApi ~ updateTcAccept ~ res:',
+      '🚀 ~ SqliteApi ~ updateTcAgreedVersion ~ res:',
       res,
       ServiceConfig.getI().authHandler.currentUser,
     );
@@ -2246,10 +2266,12 @@ export class SqliteApi implements ServiceApi {
     const currentUser = await auth.getCurrentUser();
     if (currentUser) {
       currentUser.is_tc_accepted = true;
+      currentUser.tc_agreed_version = version;
       auth.currentUser = currentUser;
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       is_tc_accepted: 1,
+      tc_agreed_version: version,
       id: userId,
     });
   }
@@ -4038,6 +4060,7 @@ export class SqliteApi implements ServiceApi {
       standard: standard ?? null,
       status: null,
       whatsapp_invite_link: whatsapp_invite_link ?? null,
+      migrated_count: 0,
     };
 
     await this.executeQuery(
@@ -5109,8 +5132,8 @@ export class SqliteApi implements ServiceApi {
 
     await this.executeQuery(
       `
-      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id, locale_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id, locale_id, tc_agreed_version)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         user.id,
@@ -5122,6 +5145,7 @@ export class SqliteApi implements ServiceApi {
         user.curriculum_id,
         user.language_id,
         (user.locale_id = localeId),
+        user.tc_agreed_version,
       ],
     );
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
@@ -7002,6 +7026,34 @@ order by
     return await this._serverApi.getProgramManagers();
   }
 
+  async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
+    return await this._serverApi.getCampaignSetupOptions();
+  }
+
+  async getCampaignAudienceOptions(
+    programId: string,
+  ): Promise<CampaignAudienceOptions> {
+    return await this._serverApi.getCampaignAudienceOptions(programId);
+  }
+
+  async getCampaignAudienceSummary(
+    params: CampaignAudienceSummaryParams,
+  ): Promise<CampaignAudienceSummary> {
+    return await this._serverApi.getCampaignAudienceSummary(params);
+  }
+
+  async createCampaignAudienceGroup(
+    payload: CampaignAudiencePayload,
+  ): Promise<CampaignSavedAudienceGroup> {
+    return await this._serverApi.createCampaignAudienceGroup(payload);
+  }
+
+  async createCampaignSetup(
+    payload: CreateCampaignSetupPayload,
+  ): Promise<CreateCampaignSetupResult> {
+    return await this._serverApi.createCampaignSetup(payload);
+  }
+
   async getUniqueGeoData(): Promise<{
     Country: string[];
     State: string[];
@@ -7406,6 +7458,7 @@ order by
             is_firebase: false,
             is_ops: false,
             is_tc_accepted: false,
+            tc_agreed_version: 0,
             language_id: null,
             learning_path: null,
             locale_id: null,
@@ -7414,6 +7467,7 @@ order by
             reward: null,
             sfx_off: false,
             stars: null,
+            is_wa_contact: null,
             student_id: null,
             updated_at: null,
           }
@@ -7524,6 +7578,7 @@ order by
             is_firebase: false,
             is_ops: false,
             is_tc_accepted: false,
+            tc_agreed_version: 0,
             language_id: null,
             learning_path: null,
             locale_id: null,
@@ -7532,6 +7587,7 @@ order by
             reward: null,
             sfx_off: false,
             stars: null,
+            is_wa_contact: null,
             student_id: null,
             updated_at: null,
           }
@@ -7780,6 +7836,7 @@ order by
 
   async createAutoProfile(
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -7803,6 +7860,7 @@ order by
       updated_at: new Date().toISOString(),
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -7816,6 +7874,7 @@ order by
       learning_path: null,
       ops_created_by: null,
       stars: null,
+      is_wa_contact: null,
     };
 
     await this.executeQuery(

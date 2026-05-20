@@ -28,7 +28,7 @@ import CommonToggle from '../../common/CommonToggle';
 import { Capacitor } from '@capacitor/core';
 import { IoGitPullRequestSharp } from 'react-icons/io5';
 import { t } from 'i18next';
-import DialogBoxButtons from '../../components/parent/DialogBoxButtons​';
+import DialogBoxButtons from '../../components/parent/DialogBoxButtons';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';

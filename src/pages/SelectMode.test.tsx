@@ -13,6 +13,7 @@ import {
   SELECTED_STUDENTS,
   CURRENT_CLASS_NAME,
   CURRENT_SCHOOL_NAME,
+  EVENTS,
 } from '../common/constants';
 
 const originalStderrWrite = process.stderr.write.bind(process.stderr);
@@ -43,7 +44,21 @@ jest.mock('@capacitor/screen-orientation', () => ({
 }));
 
 jest.mock('i18next', () => ({
-  t: (key: string) => key,
+  t: (key: string, options?: Record<string, string | number>) => {
+    if (!options) {
+      return key;
+    }
+
+    return key.replace(/{{(\w+)}}/g, (_, optionKey: string) =>
+      String(options[optionKey] ?? `{{${optionKey}}}`),
+    );
+  },
+}));
+jest.mock('./assets/brandLogoIcon.svg', () => ({
+  ReactComponent: (props: React.SVGProps<SVGSVGElement>) => <svg {...props} />,
+}));
+jest.mock('./assets/leftArrowIcon.svg', () => ({
+  ReactComponent: (props: React.SVGProps<SVGSVGElement>) => <svg {...props} />,
 }));
 
 const mockHistoryReplace = jest.fn();
@@ -82,12 +97,19 @@ jest.mock('../utility/schoolUtil', () => ({
 const mockGetCurrentStudent = jest.fn();
 const mockEnsureLidoCommonAudioForStudent = jest.fn();
 const mockSetCurrentStudent = jest.fn();
+const mockLoadBackgroundImage = jest.fn();
+const mockGetCurrentSchool = jest.fn();
+const mockLogEvent = jest.fn();
 jest.mock('../utility/util', () => ({
   Util: {
+    loadBackgroundImage: () => mockLoadBackgroundImage(),
     getCurrentStudent: (...args: any[]) => mockGetCurrentStudent(...args),
+    getCurrentSchool: () => mockGetCurrentSchool(),
     ensureLidoCommonAudioForStudent: (...args: any[]) =>
       mockEnsureLidoCommonAudioForStudent(...args),
     setCurrentStudent: (...args: any[]) => mockSetCurrentStudent(...args),
+    logEvent: (eventName: string, eventParams?: Record<string, string>) =>
+      mockLogEvent(eventName, eventParams),
   },
 }));
 
@@ -104,6 +126,22 @@ jest.mock('../components/selectMode/SelectModeButton', () => ({
       {text}
     </button>
   ),
+}));
+
+jest.mock('../components/parent/TeacherAuthenticationPopup', () => ({
+  __esModule: true,
+  default: ({
+    isOpen,
+    onAuthenticated,
+  }: {
+    isOpen: boolean;
+    onAuthenticated: () => void;
+  }) =>
+    isOpen ? (
+      <button type="button" onClick={onAuthenticated}>
+        Math Auth Success
+      </button>
+    ) : null,
 }));
 
 jest.mock('../components/DropDown', () => ({
@@ -169,6 +207,16 @@ jest.mock('../services/ServiceConfig', () => ({
   },
 }));
 
+const mockRequireTeacherModeAuth = jest.fn();
+jest.mock('../services/TeacherModeAuth', () => ({
+  TeacherModeAuthResult: {
+    success: 'success',
+    popupFallbackRequired: 'popupFallbackRequired',
+    cancelledOrFailed: 'cancelledOrFailed',
+  },
+  requireTeacherModeAuth: () => mockRequireTeacherModeAuth(),
+}));
+
 const SelectMode = require('./SelectMode').default;
 
 // Import the mocked hooks
@@ -204,7 +252,18 @@ describe('SelectMode page', () => {
     mockAuthHandler.getCurrentUser.mockResolvedValue(null);
     mockAuthHandler.getUser.mockResolvedValue({ data: { user: null } });
     mockGetCurrMode.mockResolvedValue(undefined);
+    mockGetCurrentSchool.mockReturnValue(undefined);
+    mockLogEvent.mockResolvedValue(undefined);
+    mockRequireTeacherModeAuth.mockResolvedValue('popupFallbackRequired');
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
+  });
+
+  it('loads the shared app background image', async () => {
+    mockGetCurrMode.mockResolvedValue(MODES.PARENT);
+
+    render(<SelectMode />);
+
+    await waitFor(() => expect(mockLoadBackgroundImage).toHaveBeenCalled());
   });
 
   it('redirects to HOME when mode is parent and current student exists', async () => {
@@ -335,7 +394,10 @@ describe('SelectMode page', () => {
       id: 'user-1',
     });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
 
@@ -493,7 +555,183 @@ describe('SelectMode page', () => {
     });
   });
 
-  it('handles back button in student stage', async () => {
+  it('routes to teacher dashboard with TEACHER_SCHOOL mode after biometric authentication from class mode', async () => {
+    const user = userEvent.setup();
+
+    mockRequireTeacherModeAuth.mockResolvedValue('success');
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([
+      { id: 'class-1', name: 'Class 1' },
+    ]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    const teacherButton = await screen.findByRole('button', {
+      name: /teacher/i,
+    });
+    await user.click(teacherButton);
+
+    await waitFor(() => {
+      expect(mockRequireTeacherModeAuth).toHaveBeenCalled();
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_ENTRY_CLICKED,
+        {
+          user_role: 'auto_user',
+          auth_method_attempted: 'biometric',
+        },
+      );
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_AUTH_SUCCESS,
+        {
+          auth_method_used: 'biometric',
+        },
+      );
+      expect(mockSetCurrentSchool).toHaveBeenCalledWith({
+        id: 'school-1',
+        name: 'School 1',
+      });
+      expect(mockSetCurrentClass).toHaveBeenCalledWith({
+        id: 'class-1',
+        name: 'Class 1',
+      });
+      expect(mockApiHandler.currentMode).toBe(MODES.TEACHER_SCHOOL);
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER_SCHOOL);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
+    });
+  });
+
+  it('routes to teacher dashboard with TEACHER_SCHOOL mode after math auth fallback from class mode', async () => {
+    const user = userEvent.setup();
+
+    mockRequireTeacherModeAuth.mockResolvedValue('popupFallbackRequired');
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([
+      { id: 'class-1', name: 'Class 1' },
+    ]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    const teacherButton = await screen.findByRole('button', {
+      name: /teacher/i,
+    });
+    await user.click(teacherButton);
+
+    const mathAuthSuccessButton = await screen.findByRole('button', {
+      name: /math auth success/i,
+    });
+    await user.click(mathAuthSuccessButton);
+
+    await waitFor(() => {
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_ENTRY_CLICKED,
+        {
+          user_role: 'auto_user',
+          auth_method_attempted: 'math_gate',
+        },
+      );
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_AUTH_SUCCESS,
+        {
+          auth_method_used: 'math_gate',
+        },
+      );
+      expect(mockLogEvent).not.toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_ENTRY_CLICKED,
+        {
+          user_role: 'auto_user',
+          auth_method_attempted: 'biometric',
+        },
+      );
+      expect(mockSetCurrentSchool).toHaveBeenCalledWith({
+        id: 'school-1',
+        name: 'School 1',
+      });
+      expect(mockSetCurrentClass).toHaveBeenCalledWith({
+        id: 'class-1',
+        name: 'Class 1',
+      });
+      expect(mockApiHandler.currentMode).toBe(MODES.TEACHER_SCHOOL);
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER_SCHOOL);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
+    });
+  });
+
+  it('allows auto users to authenticate into teacher dashboard from class mode', async () => {
+    const user = userEvent.setup();
+
+    mockRequireTeacherModeAuth.mockResolvedValue('success');
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([
+      { id: 'class-1', name: 'Class 1' },
+    ]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    const teacherButton = await screen.findByRole('button', {
+      name: /teacher/i,
+    });
+    await user.click(teacherButton);
+
+    await waitFor(() => {
+      expect(mockRequireTeacherModeAuth).toHaveBeenCalled();
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_ENTRY_CLICKED,
+        {
+          user_role: 'auto_user',
+          auth_method_attempted: 'biometric',
+        },
+      );
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.TEACHER_APP_AUTH_SUCCESS,
+        {
+          auth_method_used: 'biometric',
+        },
+      );
+      expect(mockSetCurrentSchool).toHaveBeenCalledWith({
+        id: 'school-1',
+        name: 'School 1',
+      });
+      expect(mockSetCurrentClass).toHaveBeenCalledWith({
+        id: 'class-1',
+        name: 'Class 1',
+      });
+      expect(mockApiHandler.currentMode).toBe(MODES.TEACHER_SCHOOL);
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER_SCHOOL);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
+    });
+  });
+
+  it('does not render back button in student stage header', async () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
@@ -521,20 +759,10 @@ describe('SelectMode page', () => {
     await waitFor(() =>
       expect(document.querySelector('.class-container')).not.toBeNull(),
     );
-    // Click student
-    const studentDiv = Array.from(
-      document.querySelectorAll('.class-avatar'),
-    ).find((div) => div.textContent?.includes('Student 1'));
-    studentDiv && fireEvent.click(studentDiv);
     await waitFor(() =>
       expect(document.querySelector('.class-header')).not.toBeNull(),
     );
-    // Back button
-    const backBtn = document.querySelector('img[alt="BackButtonIcon"]');
-    backBtn && fireEvent.click(backBtn);
-    await waitFor(() =>
-      expect(document.querySelector('.class-main')).not.toBeNull(),
-    );
+    expect(document.querySelector('#back-button-in-school-Header')).toBeNull();
   });
 
   it('handles school dropdown disables Okay button when no school selected', async () => {
@@ -685,6 +913,89 @@ describe('SelectMode page', () => {
       expect(document.querySelector('.class-main')).not.toBeNull(),
     );
     expect(screen.getAllByText('Class 1')[0]).toBeInTheDocument();
+  });
+
+  it('slides the visible class window by one class when the next arrow is clicked', async () => {
+    const classes = [
+      { id: 'class-1', name: 'Class 1' },
+      { id: 'class-2', name: 'Class 2' },
+      { id: 'class-3', name: 'Class 3' },
+      { id: 'class-4', name: 'Class 4' },
+    ];
+    localStorage.setItem(CURRENT_SCHOOL_NAME, JSON.stringify('School 1'));
+    localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(classes[0]));
+    localStorage.setItem(SELECTED_CLASSES, JSON.stringify(classes));
+    mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue(classes);
+
+    render(<SelectMode />);
+
+    await screen.findByText('Class 3');
+
+    expect(
+      document
+        .getElementById('school-mode-next-class-button')
+        ?.classList.contains('school-mode-nav-button-active'),
+    ).toBe(true);
+    expect(
+      document
+        .getElementById('school-mode-prev-class-button')
+        ?.classList.contains('school-mode-nav-button-active'),
+    ).toBe(false);
+
+    fireEvent.click(
+      document.getElementById('school-mode-next-class-button') as HTMLElement,
+    );
+
+    await screen.findByText('Class 4');
+
+    expect(screen.queryByText('Class 1')).not.toBeInTheDocument();
+    expect(screen.getByText('Class 2')).toBeInTheDocument();
+    expect(screen.getByText('Class 3')).toBeInTheDocument();
+    expect(screen.getByText('Class 4')).toBeInTheDocument();
+  });
+
+  it('highlights the previous class arrow when the active class starts from the fourth class', async () => {
+    const classes = [
+      { id: 'class-1', name: 'Class 1' },
+      { id: 'class-2', name: 'Class 2' },
+      { id: 'class-3', name: 'Class 3' },
+      { id: 'class-4', name: 'Class 4' },
+    ];
+    localStorage.setItem(CURRENT_SCHOOL_NAME, JSON.stringify('School 1'));
+    localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(classes[3]));
+    localStorage.setItem(SELECTED_CLASSES, JSON.stringify(classes));
+    mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue(classes);
+
+    render(<SelectMode />);
+
+    await screen.findByText('Class 4');
+
+    expect(
+      document
+        .getElementById('school-mode-prev-class-button')
+        ?.classList.contains('school-mode-nav-button-active'),
+    ).toBe(true);
+    expect(
+      document
+        .getElementById('school-mode-next-class-button')
+        ?.classList.contains('school-mode-nav-button-active'),
+    ).toBe(false);
   });
 
   it('loads selectedStudents from localStorage when present', async () => {
@@ -977,6 +1288,100 @@ describe('SelectMode page', () => {
         ),
       { timeout: 3000 },
     );
+  });
+
+  it('logs class tab change when user selects a different class tab', async () => {
+    const user = userEvent.setup();
+    const firstClass = { id: 'class-1', name: 'Class 1' };
+    const secondClass = { id: 'class-2', name: 'Class 2' };
+    mockGetCurrMode.mockResolvedValue(undefined);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getParentStudentProfiles.mockResolvedValue([]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([
+      firstClass,
+      secondClass,
+    ]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    await screen.findByText('Class 2');
+    await user.click(screen.getByText('Class 2'));
+
+    await waitFor(() =>
+      expect(mockLogEvent).toHaveBeenCalledWith(
+        EVENTS.CLASS_TAB_CLASS_CHANGED,
+        {
+          selected_class_id: 'class-2',
+          selected_class_name: 'Class 2',
+          previous_class_id: 'class-1',
+          previous_class_name: 'Class 1',
+          selection_stage: 'student',
+        },
+      ),
+    );
+  });
+
+  it('shows selected class profile instruction only when class tabs are scrollable', async () => {
+    mockGetCurrMode.mockResolvedValue(undefined);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getParentStudentProfiles.mockResolvedValue([]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([
+      { id: 'class-1', name: 'Class 1' },
+      { id: 'class-2', name: 'Class 2' },
+      { id: 'class-3', name: 'Class 3' },
+      { id: 'class-4', name: 'Class 4' },
+    ]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    expect(
+      await screen.findByText("Class 1 - Select the child's profile"),
+    ).toBeInTheDocument();
+  });
+
+  it('hides selected class profile instruction when three or fewer classes exist', async () => {
+    mockGetCurrMode.mockResolvedValue(undefined);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getParentStudentProfiles.mockResolvedValue([]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([
+      { id: 'class-1', name: 'Class 1' },
+      { id: 'class-2', name: 'Class 2' },
+      { id: 'class-3', name: 'Class 3' },
+    ]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    await screen.findByText('Student 1');
+    expect(
+      screen.queryByText("Class 1 - Select the child's profile"),
+    ).not.toBeInTheDocument();
   });
 
   it('multi school without selectedUser shows stage SCHOOL', async () => {

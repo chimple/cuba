@@ -31,7 +31,7 @@ import SkeltonLoading from '../components/SkeltonLoading';
 import { AvatarObj } from '../components/animation/Avatar';
 import { App } from '@capacitor/app';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
-import DialogBoxButtons from '../components/parent/DialogBoxButtons​';
+import DialogBoxButtons from '../components/parent/DialogBoxButtons';
 import DebugMode from '../teachers-module/components/DebugMode';
 
 const emptyLeaderboardInfo = (): LeaderboardInfo => ({

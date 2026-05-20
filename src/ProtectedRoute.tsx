@@ -1,11 +1,19 @@
-import { useEffect, useState } from 'react';
-import { Redirect, Route } from 'react-router-dom';
-import { ServiceConfig } from './services/ServiceConfig';
-import { PAGES } from './common/constants';
+import { useFeatureValue } from '@growthbook/growthbook-react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
+import { Redirect, Route, RouteProps, useHistory } from 'react-router-dom';
+
+import { EVENTS, LATEST_TC_VERSION, PAGES } from './common/constants';
 import Loading from './components/Loading';
-import { RouteProps } from 'react-router-dom';
-import { ReactNode } from 'react';
+import TermsAndCoditionsModal from './components/termsandconditons/TermsAndCoditionsModal';
+import { TableTypes } from './common/constants';
+import { ServiceConfig } from './services/ServiceConfig';
 import { logAuthDebug } from './utility/authDebug';
+import {
+  buildTcAnalyticsContext,
+  needsTermsAgreement,
+  normalizeTcVersion,
+} from './utility/termsAndConditions';
+import { Util } from './utility/util';
 
 type ProtectedRouteProps = RouteProps & {
   children: ReactNode;
@@ -16,21 +24,32 @@ export default function ProtectedRoute({
   ...rest
 }: ProtectedRouteProps) {
   const [isAuth, setIsAuth] = useState<boolean | null>(null); // initially undefined
-  const [isTcAccept, setTcAccept] = useState<boolean | number>(false);
+  const history = useHistory();
+  const latestTcVersion = useFeatureValue<number>(LATEST_TC_VERSION, 0);
+  const requiredTcVersion = normalizeTcVersion(latestTcVersion);
+  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
+    null,
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const viewedEventKeyRef = useRef('');
+
   useEffect(() => {
-    checkAuth();
+    void checkAuth();
   }, []);
+
   const checkAuth = async () => {
     try {
       const authHandler = ServiceConfig.getI()?.authHandler;
       const isUserLoggedIn = await authHandler?.isUserLoggedIn();
-      const currentUser = await authHandler?.getCurrentUser();
-      setIsAuth(!!isUserLoggedIn);
-      setTcAccept(currentUser?.is_tc_accepted ?? false);
-      if (!isUserLoggedIn) {
+      const user = await authHandler?.getCurrentUser();
+      setCurrentUser(user ?? null);
+      setIsAuth(!!isUserLoggedIn && !!user);
+      if (!isUserLoggedIn || !user) {
         logAuthDebug('ProtectedRoute redirecting to login.', {
           source: 'ProtectedRoute.checkAuth',
-          reason: 'is_user_logged_in_false',
+          reason: !isUserLoggedIn
+            ? 'is_user_logged_in_false'
+            : 'current_user_missing',
           from_page: window.location.pathname,
           to_page: PAGES.LOGIN,
         });
@@ -42,23 +61,79 @@ export default function ProtectedRoute({
         from_page: window.location.pathname,
         to_page: PAGES.LOGIN,
       });
+      setCurrentUser(null);
       setIsAuth(false);
     }
   };
 
+  const handleAgree = async () => {
+    if (!currentUser || isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await ServiceConfig.getI().apiHandler.updateTcAgreedVersion(
+        currentUser.id,
+        requiredTcVersion,
+      );
+
+      void Util.logEvent(EVENTS.TC_AGREED, {
+        agreed_version: requiredTcVersion,
+        ...buildTcAnalyticsContext(currentUser),
+      });
+
+      setCurrentUser({
+        ...currentUser,
+        is_tc_accepted: true,
+        tc_agreed_version: requiredTcVersion,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleTermsClick = () => {
+    history.push({
+      pathname: PAGES.TERMS_AND_CONDITIONS,
+      state: { from: window.location.pathname },
+    });
+  };
+
+  const handleTermsModalViewed = () => {
+    if (!currentUser || !needsTermsAgreement(currentUser, requiredTcVersion)) {
+      return;
+    }
+
+    const eventKey = `${currentUser.id}:${requiredTcVersion}`;
+    if (viewedEventKeyRef.current === eventKey) {
+      return;
+    }
+
+    viewedEventKeyRef.current = eventKey;
+    void Util.logEvent(EVENTS.TC_POPUP_VIEWED, {
+      target_version: requiredTcVersion,
+      current_local_version: currentUser.tc_agreed_version ?? 0,
+      ...buildTcAnalyticsContext(currentUser),
+    });
+  };
+
   if (isAuth == null) return <Loading isLoading />;
+
   return (
     <Route {...rest}>
       {isAuth === true ? (
-        isTcAccept === true || isTcAccept === 1 ? (
-          children
-        ) : (
-          <Redirect
-            to={{
-              pathname: PAGES.TERMS_AND_CONDITIONS,
-            }}
-          />
-        )
+        <>
+          {children}
+          {needsTermsAgreement(currentUser, requiredTcVersion) && (
+            <TermsAndCoditionsModal
+              isSubmitting={isSubmitting}
+              onAgree={handleAgree}
+              onTermsClick={handleTermsClick}
+              onViewed={handleTermsModalViewed}
+            />
+          )}
+        </>
       ) : (
         <Redirect
           to={{

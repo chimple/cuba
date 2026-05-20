@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './Parent.css';
 import {
   CLASS,
+  CURRENT_MODE,
   DEFAULT_LANGUAGE_ID_EN,
   EDIT_STUDENTS_MAP,
   LANGUAGE,
@@ -10,10 +11,11 @@ import {
   PAGES,
   PARENTHEADERLIST,
   SCHOOL,
+  SCHOOL_LOGIN,
   TableTypes,
+  TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS,
 } from '../common/constants';
 import ProfileCard from '../components/parent/ProfileCard';
-import ToggleButton from '../components/parent/ToggleButton';
 
 import {
   EmailIcon,
@@ -27,17 +29,24 @@ import { t } from 'i18next';
 import { TfiWorld } from 'react-icons/tfi';
 import i18n from '../i18n';
 import { ServiceConfig } from '../services/ServiceConfig';
-import ParentLogout from '../components/parent/ParentLogout';
 import { Box } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 import CustomAppBar from '../components/studentProgress/CustomAppBar';
 import { Util } from '../utility/util';
 import { schoolUtil } from '../utility/schoolUtil';
-import DropDown from '../components/DropDown';
 import { RoleType } from '../interface/modelInterfaces';
-import DeleteParentAccount from '../components/parent/DeleteParentAccount';
 import { setUser } from '../redux/slices/auth/authSlice';
 import { useAppDispatch } from '../redux/hooks';
+import TeacherAuthenticationPopup from '../components/parent/TeacherAuthenticationPopup';
+import {
+  requireTeacherModeAuth,
+  TeacherModeAuthResult,
+} from '../services/TeacherModeAuth';
+import DialogBoxButtons from '../components/parent/DialogBoxButtons';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
+import { ClearCacheData } from '../components/parent/DataClear';
+import { logAuthDebug } from '../utility/authDebug';
 
 const Parent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -56,18 +65,23 @@ const Parent: React.FC = () => {
   >([]);
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
 
   const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [currentUser, setCurrentUser] = useState<
     TableTypes<'user'> | undefined
   >();
+  const [isTeacherAuthPopupOpen, setIsTeacherAuthPopupOpen] = useState(false);
   const [schools, setSchools] = useState<
     {
       school: TableTypes<'school'>;
       role: RoleType;
     }[]
   >();
+  const languageDropdownRef = useRef<HTMLDivElement | null>(null);
   let tempLangList: {
     id: string;
     displayName: string;
@@ -78,19 +92,50 @@ const Parent: React.FC = () => {
   const history = useHistory();
   const parentHeaderIconList = [
     { header: 'profile', displayName: 'Profile' },
-    { header: 'setting', displayName: 'Setting' },
+    { header: 'settings', displayName: 'Settings' },
     { header: 'help', displayName: 'Help' },
     { header: 'faq', displayName: 'FAQ' },
   ];
   const [tabs, setTabs] = useState({});
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
+
+  const switchToTeacherMode = () => {
+    schoolUtil.setCurrMode(MODES.TEACHER);
+    history.replace(PAGES.DISPLAY_SCHOOLS);
+  };
+
   useEffect(() => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
     init();
     getStudentProfile();
   }, [reloadProfiles]);
+
+  useEffect(() => {
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (
+        languageDropdownRef.current &&
+        !languageDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsLanguageMenuOpen(false);
+      }
+    };
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsLanguageMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleDocumentClick);
+    document.addEventListener('keydown', handleEscapeKey);
+
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentClick);
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, []);
 
   async function getStudentProfile() {
     const userProfilePromise: TableTypes<'user'>[] =
@@ -177,8 +222,8 @@ const Parent: React.FC = () => {
           return (
             <ProfileCard
               key={element?.id ?? `empty-profile-${index}`}
-              width={'27vw'}
-              height={'50vh'}
+              width={'var(--profile-card-size)'}
+              height={'var(--profile-card-size)'}
               userType={studentUserType}
               user={element}
               showText={true}
@@ -193,110 +238,344 @@ const Parent: React.FC = () => {
   }
 
   function settingUI() {
+    const soundEnabled = soundFlag === 0;
+    const musicEnabled = musicFlag === 0;
+    const selectedLanguage =
+      langList.find((lang) => lang.id === currentAppLang)?.displayName ?? '';
+
+    const handleLanguageSelect = async (
+      selectedLangDocId: string,
+    ): Promise<void> => {
+      const api = ServiceConfig.getI().apiHandler;
+      const auth = ServiceConfig.getI().authHandler;
+      const allLang = await api.getAllLanguages();
+
+      const langDoc = allLang.find((obj) => obj.id === selectedLangDocId);
+
+      if (!langDoc) return;
+      localStorage.setItem(LANGUAGE, langDoc.code ?? '');
+      await i18n.changeLanguage(langDoc.code ?? '');
+      const currentUser = await auth.getCurrentUser();
+      setTabIndex(t(parentHeaderIconList[1].header));
+
+      if (!currentUser || !currentUser.id) return;
+      if (selectedLangDocId) {
+        api.updateLanguage(currentUser.id, selectedLangDocId);
+      }
+      setCurrentAppLang(selectedLangDocId);
+      setIsLanguageMenuOpen(false);
+      const updatedUserData: TableTypes<'user'> = {
+        ...currentUser,
+        language_id: selectedLangDocId,
+      };
+      dispatch(setUser(updatedUserData));
+      auth.currentUser = updatedUserData;
+    };
+
+    const handleSoundToggle = async () => {
+      const nextEnabled = !soundEnabled;
+      const nextFlag = nextEnabled ? 0 : 1;
+      setSoundFlag(nextFlag);
+      const resolvedCurrentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+      Util.setCurrentSound(nextFlag);
+      if (resolvedCurrentUser) {
+        ServiceConfig.getI().apiHandler.updateSoundFlag(
+          resolvedCurrentUser.id,
+          nextEnabled,
+        );
+      }
+    };
+
+    const handleMusicToggle = async () => {
+      const nextEnabled = !musicEnabled;
+      const nextFlag = nextEnabled ? 0 : 1;
+      setMusicFlag(nextFlag);
+      const resolvedCurrentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+      Util.setCurrentMusic(nextFlag);
+      if (resolvedCurrentUser) {
+        ServiceConfig.getI().apiHandler.updateMusicFlag(
+          resolvedCurrentUser.id,
+          nextEnabled,
+        );
+      }
+    };
+
+    const handleTeachersAppClick = async () => {
+      if (!currentUser?.name || currentUser.name.trim() === '') {
+        history.replace(PAGES.ADD_TEACHER_NAME);
+        return;
+      }
+
+      const teacherModeAuthResult = await requireTeacherModeAuth();
+
+      if (teacherModeAuthResult === TeacherModeAuthResult.success) {
+        switchToTeacherMode();
+        return;
+      }
+
+      if (
+        teacherModeAuthResult === TeacherModeAuthResult.popupFallbackRequired
+      ) {
+        setIsTeacherAuthPopupOpen(true);
+      }
+    };
+
+    const handleTermsClick = () => {
+      history.push({
+        pathname: PAGES.TERMS_AND_CONDITIONS,
+        state: { from: window.location.pathname },
+      });
+    };
+
+    const handleSignOut = async () => {
+      const auth = ServiceConfig.getI().authHandler;
+      logAuthDebug('User initiated parent logout.', {
+        source: 'Parent.settingUI.handleSignOut',
+        reason: 'parent_logout_button',
+      });
+      await auth.logOut();
+      Util.unSubscribeToClassTopicForAllStudents();
+      localStorage.removeItem(SCHOOL);
+      localStorage.removeItem(CLASS);
+      localStorage.removeItem(CURRENT_MODE);
+      localStorage.removeItem(SCHOOL_LOGIN);
+      await ClearCacheData();
+      logAuthDebug('Navigating to login after parent logout.', {
+        source: 'Parent.settingUI.handleSignOut',
+        reason: 'logout_complete_navigate_login',
+        from_page: window.location.pathname,
+        to_page: PAGES.LOGIN,
+      });
+      history.replace(PAGES.LOGIN);
+      if (Capacitor.isNativePlatform()) {
+        window.location.reload();
+      }
+    };
+
+    const handleDeleteAccount = async () => {
+      await Browser.open({
+        url: 'https://docs.google.com/forms/d/e/1FAIpQLSd0q3StMO49k_MvBQ68F_Ygdytpmxv-vNuF5jqsk6dY-4N0BA/viewform?pli=1',
+      });
+    };
+
     return (
-      <div>
-        <div id="parent-page-setting">
-          <div id="parent-page-setting-div">
-            <p id="parent-page-setting-lang-text">{t('Language')}</p>
-            <DropDown
-              currentValue={currentAppLang}
-              optionList={langList}
-              placeholder=""
-              width="26vw"
-              onValueChange={async (selectedLangDocId) => {
-                // setIsLoading(true);
+      <div className="parent-settings-layout">
+        <div className="parent-settings-top-grid">
+          <section className="parent-settings-card parent-settings-application-card">
+            <h2 className="parent-settings-card-title">{t('Application')}</h2>
 
-                const api = ServiceConfig.getI().apiHandler;
-                const auth = ServiceConfig.getI().authHandler;
-                // api.deleteAllUserData
-                // const langDoc = await api.getLanguageWithId(selectedLangDocId);
-                const allLang = await api.getAllLanguages();
+            <div className="parent-settings-application-content">
+              <div className="parent-settings-language-block">
+                <label
+                  htmlFor="parent-language-select"
+                  className="parent-settings-field-label"
+                >
+                  {t("Parent's Language")}
+                </label>
+                <div
+                  ref={languageDropdownRef}
+                  className={`parent-settings-language-dropdown${
+                    isLanguageMenuOpen ? ' is-open' : ''
+                  }`}
+                >
+                  <button
+                    id="parent-language-select"
+                    type="button"
+                    className="parent-settings-language-trigger"
+                    aria-haspopup="listbox"
+                    aria-expanded={isLanguageMenuOpen}
+                    onClick={() =>
+                      setIsLanguageMenuOpen((previousState) => !previousState)
+                    }
+                  >
+                    <span className="parent-settings-language-trigger-label">
+                      {selectedLanguage}
+                    </span>
+                    <span
+                      className="parent-settings-language-trigger-arrow"
+                      aria-hidden="true"
+                    />
+                  </button>
 
-                const langDoc = allLang.find(
-                  (obj) => obj.id === selectedLangDocId,
-                );
+                  {isLanguageMenuOpen && (
+                    <div
+                      className="parent-settings-language-menu"
+                      role="listbox"
+                      aria-labelledby="parent-language-select"
+                    >
+                      {langList.map((option) => {
+                        const isSelected = option.id === currentAppLang;
 
-                if (!langDoc) return;
-                localStorage.setItem(LANGUAGE, langDoc.code ?? '');
-                await i18n.changeLanguage(langDoc.code ?? '');
-                const currentUser = await auth.getCurrentUser();
-                setTabIndex(t(parentHeaderIconList[1].header));
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            className={`parent-settings-language-option${
+                              isSelected ? ' is-selected' : ''
+                            }`}
+                            onClick={() => handleLanguageSelect(option.id)}
+                          >
+                            {option.displayName}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                const langId = langDocIds.get(langDoc.code ?? '');
-                if (!currentUser || !currentUser.id) return;
-                if (currentUser && selectedLangDocId) {
-                  api.updateLanguage(currentUser.id, selectedLangDocId);
-                }
-                setCurrentAppLang(selectedLangDocId);
-                const updatedUserData: TableTypes<'user'> = {
-                  ...currentUser,
-                  language_id: selectedLangDocId,
-                };
-                dispatch(setUser(updatedUserData));
-                if (updatedUserData) {
-                  auth.currentUser = updatedUserData;
-                }
-              }}
-            />
-          </div>
-          <div id="parent-page-setting-div">
-            <ToggleButton
-              flag={soundFlag!}
-              title={t('Sound')}
-              onIonChangeClick={async (v) => {
-                setSoundFlag(v.detail?.checked ? 0 : 1);
-                const currentUser =
-                  await ServiceConfig.getI().authHandler.getCurrentUser();
-                Util.setCurrentSound(v.detail?.checked ? 0 : 1);
-                if (currentUser) {
-                  ServiceConfig.getI().apiHandler.updateSoundFlag(
-                    currentUser.id,
-                    v.detail?.checked,
-                  );
-                }
-              }}
-            ></ToggleButton>
+              <div className="parent-settings-toggle-column">
+                <div className="parent-settings-toggle-group">
+                  <p className="parent-settings-toggle-title">{t('Sound')}</p>
+                  <div className="parent-settings-toggle-row">
+                    <span className="parent-settings-toggle-state">
+                      {t('OFF')}
+                    </span>
+                    <button
+                      type="button"
+                      className={`parent-settings-switch${soundEnabled ? ' is-on' : ''}`}
+                      onClick={handleSoundToggle}
+                      aria-label={String(t('Sound'))}
+                      aria-pressed={soundEnabled}
+                    >
+                      <span className="parent-settings-switch-thumb" />
+                    </button>
+                    <span className="parent-settings-toggle-state">
+                      {t('ON')}
+                    </span>
+                  </div>
+                </div>
 
-            <ToggleButton
-              flag={musicFlag!}
-              title={t('Music')}
-              onIonChangeClick={async (v) => {
-                setMusicFlag(v.detail?.checked ? 0 : 1);
-                const currentUser =
-                  await ServiceConfig.getI().authHandler.getCurrentUser();
-                Util.setCurrentMusic(v.detail?.checked ? 0 : 1);
-                if (currentUser) {
-                  ServiceConfig.getI().apiHandler.updateMusicFlag(
-                    currentUser.id,
-                    v.detail?.checked,
-                  );
-                }
-              }}
-            ></ToggleButton>
-          </div>
+                <div className="parent-settings-toggle-group">
+                  <p className="parent-settings-toggle-title">{t('Music')}</p>
+                  <div className="parent-settings-toggle-row">
+                    <span className="parent-settings-toggle-state">
+                      {t('OFF')}
+                    </span>
+                    <button
+                      type="button"
+                      className={`parent-settings-switch${musicEnabled ? ' is-on' : ''}`}
+                      onClick={handleMusicToggle}
+                      aria-label={String(t('Music'))}
+                      aria-pressed={musicEnabled}
+                    >
+                      <span className="parent-settings-switch-thumb" />
+                    </button>
+                    <span className="parent-settings-toggle-state">
+                      {t('ON')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="parent-settings-card parent-settings-teachers-card">
+            <h2 className="parent-settings-card-title">{t('For Teachers')}</h2>
+            <button
+              type="button"
+              className="parent-settings-teachers-button"
+              onClick={handleTeachersAppClick}
+            >
+              <img
+                src="/assets/icons/teacherAppIcon.svg"
+                alt=""
+                aria-hidden="true"
+                className="parent-settings-teachers-button-icon"
+              />
+              <span>{t('Teachers App')}</span>
+            </button>
+          </section>
         </div>
-        <div id="logout-delete-button">
-          <div id="parent-logout">
-            <ParentLogout />
+
+        <section className="parent-settings-card parent-settings-account-card">
+          <h2 className="parent-settings-card-title">{t('Account')}</h2>
+          <div className="parent-settings-account-actions">
+            <button
+              type="button"
+              className="parent-settings-account-button parent-settings-account-button--terms"
+              onClick={handleTermsClick}
+            >
+              <img
+                src="/assets/icons/tAndCIcon.svg"
+                alt=""
+                aria-hidden="true"
+                className="parent-settings-account-button-icon"
+              />
+              <span>{t('Terms & Conditions')}</span>
+            </button>
+
+            <button
+              type="button"
+              className="parent-settings-account-button parent-settings-account-button--signout"
+              onClick={() => setShowSignOutDialog(true)}
+            >
+              <img
+                src="/assets/icons/signOut.svg"
+                alt=""
+                aria-hidden="true"
+                className="parent-settings-account-button-icon"
+              />
+              <span>{t('Sign out')}</span>
+            </button>
+
+            <button
+              type="button"
+              className="parent-settings-account-button parent-settings-account-button--delete"
+              onClick={() => setShowDeleteAccountDialog(true)}
+            >
+              <img
+                src="/assets/icons/deleteAccountIcon.svg"
+                alt=""
+                aria-hidden="true"
+                className="parent-settings-account-button-icon"
+              />
+              <span>{t('Delete Account')}</span>
+            </button>
           </div>
-          <div id="parent_logout-btn">
-            <DeleteParentAccount />
-          </div>
-          <div className="parent-teachermode-toggle">
-            <ToggleButton
-              title={"Switch to Teacher's Mode"}
-              layout="vertical"
-              onIonChangeClick={async () => {
-                if (!currentUser?.name || currentUser.name.trim() === '') {
-                  history.replace(PAGES.ADD_TEACHER_NAME);
-                } else {
-                  schoolUtil.setCurrMode(MODES.TEACHER);
-                  history.replace(PAGES.DISPLAY_SCHOOLS);
-                }
-              }}
-            />
-          </div>
-        </div>
+
+          <DialogBoxButtons
+            width={'40vw'}
+            height={'30vh'}
+            message={t('Do you want to sign out')}
+            showDialogBox={showSignOutDialog}
+            yesText={t('Cancel')}
+            noText={t('Sign Out')}
+            handleClose={() => {
+              setShowSignOutDialog(false);
+            }}
+            onYesButtonClicked={() => {
+              setShowSignOutDialog(false);
+            }}
+            onNoButtonClicked={async () => {
+              setShowSignOutDialog(false);
+              await handleSignOut();
+            }}
+          />
+
+          <DialogBoxButtons
+            width={'40vw'}
+            height={'30vh'}
+            message={t("Do you want to delete the parent's account?")}
+            showDialogBox={showDeleteAccountDialog}
+            yesText={t('Cancel')}
+            noText={t('Delete')}
+            handleClose={() => {
+              setShowDeleteAccountDialog(false);
+            }}
+            onYesButtonClicked={() => {
+              setShowDeleteAccountDialog(false);
+            }}
+            onNoButtonClicked={async () => {
+              setShowDeleteAccountDialog(false);
+              await handleDeleteAccount();
+            }}
+          />
+        </section>
       </div>
     );
   }
@@ -446,8 +725,8 @@ const Parent: React.FC = () => {
   }, [localAppLang]);
 
   return (
-    <Box>
-      <div>
+    <Box className="parent-page-shell">
+      <div className="parent-page-main">
         <CustomAppBar
           tabs={tabs}
           value={tabIndex}
@@ -455,10 +734,23 @@ const Parent: React.FC = () => {
           handleBackButton={handleBackButton}
           customStyle={true}
         />
-        {tabIndex === t('profile') && <div>{profileUI()}</div>}
-        {tabIndex === t('setting') && <div>{settingUI()}</div>}
-        {tabIndex === t('help') && <div>{helpUI()}</div>}
-        {tabIndex === t('faq') && <div>{faqUI()}</div>}
+        <div className="parent-page-scroll-content">
+          {tabIndex === t('profile') && <div>{profileUI()}</div>}
+          {tabIndex === t('settings') && <div>{settingUI()}</div>}
+          {tabIndex === t('help') && <div>{helpUI()}</div>}
+          {tabIndex === t('faq') && <div>{faqUI()}</div>}
+          <TeacherAuthenticationPopup
+            isOpen={isTeacherAuthPopupOpen}
+            sourceEntryPoint={
+              TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS.PARENT_SETTINGS_TAB
+            }
+            onClose={() => setIsTeacherAuthPopupOpen(false)}
+            onAuthenticated={() => {
+              setIsTeacherAuthPopupOpen(false);
+              switchToTeacherMode();
+            }}
+          />
+        </div>
       </div>
     </Box>
   );

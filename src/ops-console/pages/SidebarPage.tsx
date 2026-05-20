@@ -17,6 +17,7 @@ import Sidebar from '../components/Sidebar';
 import ParentWhatsappInvitationPage from '../pages/Parentwhatsappinvite/ParentWhatsappInvitationPage';
 import ActivitiesPage from './ActivitiesPage';
 import AddSchoolPage from './AddSchoolPage';
+import CampaignSetupPage from './CampaignSetupPage';
 import MigrateSchoolsPage from './MigrateSchoolsPage';
 import NewUserPage from './NewUserPageOps';
 import OpsApprovedRequestDetails from './OpsApprovedRequestDetails';
@@ -141,6 +142,12 @@ const SidebarPage: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.SCHOOL_LIST}`} exact={true}>
               <SchoolList />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.ADMIN_COMPAIGNS}`}
+              exact={true}
+            >
+              <CampaignSetupPage />
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
               <RequestList />

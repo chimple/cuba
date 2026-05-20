@@ -1,5 +1,13 @@
 import {
   AssignmentCartData,
+  CampaignAudienceOptions,
+  CampaignAudiencePayload,
+  CampaignAudienceSummary,
+  CampaignAudienceSummaryParams,
+  CampaignSavedAudienceGroup,
+  CampaignSetupOptions,
+  CreateCampaignSetupPayload,
+  CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
   LeaderboardInfo,
   OpsStudentPerformanceBandRow,
@@ -762,6 +770,10 @@ export class ApiHandler implements ServiceApi {
   updateTcAccept(userId: string) {
     return this.s.updateTcAccept(userId);
   }
+
+  updateTcAgreedVersion(userId: string, version: number) {
+    return this.s.updateTcAgreedVersion(userId, version);
+  }
   public get currentStudent(): TableTypes<'user'> | undefined {
     return this.s.currentStudent;
   }
@@ -812,6 +824,7 @@ export class ApiHandler implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     return await this.s.createProfile(
       name,
@@ -822,6 +835,7 @@ export class ApiHandler implements ServiceApi {
       boardDocId,
       gradeDocId,
       languageDocId,
+      tcVersion,
     );
   }
 
@@ -837,6 +851,7 @@ export class ApiHandler implements ServiceApi {
     classId: string,
     role: string,
     studentId: string,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     return await this.s.createStudentProfile(
       name,
@@ -850,6 +865,7 @@ export class ApiHandler implements ServiceApi {
       classId,
       role,
       studentId,
+      tcVersion,
     );
   }
   public async updateClassCourseSelection(
@@ -1499,6 +1515,35 @@ export class ApiHandler implements ServiceApi {
   public async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this.s.getProgramManagers();
   }
+
+  public async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
+    return await this.s.getCampaignSetupOptions();
+  }
+
+  public async getCampaignAudienceOptions(
+    programId: string,
+  ): Promise<CampaignAudienceOptions> {
+    return await this.s.getCampaignAudienceOptions(programId);
+  }
+
+  public async getCampaignAudienceSummary(
+    params: CampaignAudienceSummaryParams,
+  ): Promise<CampaignAudienceSummary> {
+    return await this.s.getCampaignAudienceSummary(params);
+  }
+
+  public async createCampaignAudienceGroup(
+    payload: CampaignAudiencePayload,
+  ): Promise<CampaignSavedAudienceGroup> {
+    return await this.s.createCampaignAudienceGroup(payload);
+  }
+
+  public async createCampaignSetup(
+    payload: CreateCampaignSetupPayload,
+  ): Promise<CreateCampaignSetupResult> {
+    return await this.s.createCampaignSetup(payload);
+  }
+
   public async getUniqueGeoData(): Promise<{
     Country: string[];
     State: string[];
@@ -1748,8 +1793,9 @@ export class ApiHandler implements ServiceApi {
   }
   public async createAutoProfile(
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
-    return await this.s.createAutoProfile(languageDocId);
+    return await this.s.createAutoProfile(languageDocId, tcVersion);
   }
 
   public async isProgramUser(): Promise<boolean> {

@@ -1,0 +1,234 @@
+import { useEffect, useMemo, useState } from 'react';
+import { SelectChangeEvent } from '@mui/material';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import {
+  CampaignObjective,
+  CampaignOption,
+  CampaignSavedAudienceGroup,
+  CampaignTargetType,
+} from '../../services/api/ServiceApi';
+import logger from '../../utility/logger';
+import { CampaignSetupFormState } from '../components/CampaignSetupSections';
+import {
+  buildCampaignAudiencePayload,
+  getCampaignSetupValidationErrors,
+  initialCampaignSetupForm,
+  resetObjectiveFields,
+} from './campaignSetupFormHelpers';
+import {
+  CampaignSetupMessage,
+  useCampaignAudienceSelection,
+} from './useCampaignAudienceSelection';
+
+export const useCampaignSetupForm = () => {
+  const api = ServiceConfig.getI().apiHandler;
+
+  const [form, setForm] = useState<CampaignSetupFormState>(
+    initialCampaignSetupForm,
+  );
+  const [programs, setPrograms] = useState<CampaignOption[]>([]);
+  const [managers, setManagers] = useState<CampaignOption[]>([]);
+  const [savedGroups, setSavedGroups] = useState<CampaignSavedAudienceGroup[]>(
+    [],
+  );
+  const [saveGroup, setSaveGroup] = useState(true);
+  const [loadingInitial, setLoadingInitial] = useState(true);
+  const [savingGroup, setSavingGroup] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const [createdCampaignId, setCreatedCampaignId] = useState('');
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [message, setMessage] = useState<CampaignSetupMessage>(null);
+
+  const audience = useCampaignAudienceSelection({
+    api,
+    form,
+    programs,
+    savedGroups,
+    setForm,
+    setMessage,
+    setSaveGroup,
+  });
+
+  useEffect(() => {
+    const fetchSetupOptions = async () => {
+      setLoadingInitial(true);
+      try {
+        const setupOptions = await api.getCampaignSetupOptions();
+        setPrograms(setupOptions.programs);
+        setManagers(setupOptions.managers);
+        setSavedGroups(setupOptions.savedGroups);
+      } catch (error) {
+        logger.error('Failed to load campaign setup options:', error);
+        setMessage({
+          type: 'error',
+          text: 'Unable to load campaign setup options.',
+        });
+      } finally {
+        setLoadingInitial(false);
+      }
+    };
+
+    fetchSetupOptions();
+  }, [api]);
+
+  const updateForm =
+    (field: keyof CampaignSetupFormState) =>
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setForm((current) => ({ ...current, [field]: event.target.value }));
+    };
+
+  const updateNumericForm =
+    (
+      field: keyof Pick<
+        CampaignSetupFormState,
+        'targetValue' | 'learningPathCount'
+      >,
+    ) =>
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const max = field === 'targetValue' ? 100 : undefined;
+      const rawValue = event.target.value;
+      const nextValue = max && Number(rawValue) > max ? String(max) : rawValue;
+      setForm((current) => ({ ...current, [field]: nextValue }));
+    };
+
+  const handleSelectChange =
+    (field: keyof CampaignSetupFormState) =>
+    (event: SelectChangeEvent<string>) => {
+      const value = event.target.value;
+      if (field === 'objective') {
+        setForm((current) =>
+          resetObjectiveFields(current, value as CampaignObjective),
+        );
+        return;
+      }
+
+      setForm((current) => ({ ...current, [field]: value }));
+    };
+
+  const handleObjectiveChange = (objective: CampaignObjective) => {
+    setForm((current) => resetObjectiveFields(current, objective));
+  };
+
+  const validationErrors = useMemo(
+    () =>
+      getCampaignSetupValidationErrors(
+        form,
+        saveGroup,
+        audience.selectedGrades.length,
+      ),
+    [audience.selectedGrades.length, form, saveGroup],
+  );
+
+  const isFormValid = Object.keys(validationErrors).length === 0;
+
+  const buildAudiencePayload = () =>
+    buildCampaignAudiencePayload(form, saveGroup, {
+      isAllSchools: audience.isAllSchools,
+      isAllGrades: audience.isAllGrades,
+      selectedSchoolIds: audience.selectedSchoolIds,
+      selectedGradeIds: audience.selectedGradeIds,
+    });
+
+  const handleSaveGroup = async () => {
+    setSubmitAttempted(true);
+    if (
+      !form.programId ||
+      audience.selectedGrades.length === 0 ||
+      !form.groupName.trim()
+    ) {
+      return;
+    }
+
+    setSavingGroup(true);
+    setMessage(null);
+    try {
+      const savedGroup = await api.createCampaignAudienceGroup({
+        ...buildAudiencePayload(),
+        isSaved: true,
+        name: form.groupName.trim(),
+      });
+      setSavedGroups((current) => [savedGroup, ...current]);
+      audience.setSelectedSavedGroupId(savedGroup.id);
+      setSaveGroup(false);
+      setMessage({ type: 'success', text: 'Audience group saved.' });
+    } catch (error) {
+      logger.error('Failed to save campaign audience group:', error);
+      setMessage({ type: 'error', text: 'Unable to save audience group.' });
+    } finally {
+      setSavingGroup(false);
+    }
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSubmitAttempted(true);
+    setMessage(null);
+
+    if (!isFormValid) return;
+
+    setSubmitting(true);
+    try {
+      const savedAudienceGroupId =
+        audience.selectedSavedGroupId && !saveGroup
+          ? audience.selectedSavedGroupId
+          : undefined;
+      const result = await api.createCampaignSetup({
+        ...buildAudiencePayload(),
+        savedAudienceGroupId,
+        campaignName: form.campaignName.trim(),
+        objective: form.objective as CampaignObjective,
+        targetType:
+          form.objective === 'homework_campaign'
+            ? (form.targetType as CampaignTargetType)
+            : undefined,
+        targetValue:
+          form.objective === 'homework_campaign'
+            ? Number(form.targetValue)
+            : undefined,
+        learningPathCount:
+          form.objective === 'homepage_learning_pathway_campaign'
+            ? Number(form.learningPathCount)
+            : undefined,
+        managerId: form.managerId,
+        startDate: form.startDate,
+        endDate: form.endDate,
+      });
+      setCreatedCampaignId(result.campaignId);
+      setActiveStep(1);
+    } catch (error) {
+      logger.error('Failed to create campaign setup:', error);
+      setMessage({ type: 'error', text: 'Unable to save campaign setup.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const fieldError = (key: string) =>
+    submitAttempted ? validationErrors[key] : undefined;
+
+  return {
+    activeStep,
+    createdCampaignId,
+    fieldError,
+    form,
+    handleObjectiveChange,
+    handleSaveGroup,
+    handleSelectChange,
+    handleSubmit,
+    isFormValid,
+    loadingInitial,
+    managers,
+    message,
+    programs,
+    saveGroup,
+    savedGroups,
+    savingGroup,
+    setForm,
+    setSaveGroup,
+    submitting,
+    updateForm,
+    updateNumericForm,
+    ...audience,
+  };
+};

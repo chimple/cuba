@@ -1,20 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { BottomNavigation, BottomNavigationAction } from '@mui/material';
-import { useHistory, useLocation } from 'react-router-dom';
-import './HomePage.css';
-import DashBoard from '../components/homePage/dashBoard/DashBoard';
-import Header from '../components/homePage/Header';
-import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { App } from '@capacitor/app';
 import {
   Capacitor,
   PluginListenerHandle,
   registerPlugin,
 } from '@capacitor/core';
-import TeacherAssignment from '../components/homePage/assignment/TeacherAssignment';
-import AssignScreen from '../components/homePage/assignment/AssignScreen';
-import AssignmentQrUnavailableAlert from '../components/homePage/assignment/AssignmentQrUnavailableAlert';
-import Library from '../components/library/Library';
-import ReportTable from '../components/reports/ReportsTable';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { BottomNavigation, BottomNavigationAction } from '@mui/material';
+import { toPng } from 'html-to-image';
+import { t } from 'i18next';
+import React, { useEffect, useState } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
+import { RoleType } from '../../../src/interface/modelInterfaces';
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   LANGUAGE,
@@ -24,22 +21,26 @@ import {
   TABLESORTBY,
   TableTypes,
 } from '../../common/constants';
-import { Util } from '../../utility/util';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import { App } from '@capacitor/app';
-import { t } from 'i18next';
-import ComingSoon from '../components/homePage/ai/comingSoon';
 import {
   updateLocalAttributes,
   useGbContext,
 } from '../../growthbook/Growthbook';
-import { toPng } from 'html-to-image';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 import { useAppSelector } from '../../redux/hooks';
-import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import { RootState } from '../../redux/store';
+import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
-import { RoleType } from '../../../src/interface/modelInterfaces';
+import { schoolUtil } from '../../utility/schoolUtil';
+import { Util } from '../../utility/util';
+import ComingSoon from '../components/homePage/ai/comingSoon';
+import AssignmentQrUnavailableAlert from '../components/homePage/assignment/AssignmentQrUnavailableAlert';
+import AssignScreen from '../components/homePage/assignment/AssignScreen';
+import TeacherAssignment from '../components/homePage/assignment/TeacherAssignment';
+import DashBoard from '../components/homePage/dashBoard/DashBoard';
+import Header from '../components/homePage/Header';
+import Library from '../components/library/Library';
+import ReportTable from '../components/reports/ReportsTable';
+import './HomePage.css';
 const HomePage: React.FC = () => {
   const history = useHistory();
   const location = useLocation<{
@@ -50,8 +51,12 @@ const HomePage: React.FC = () => {
     startDate?: Date;
     endDate?: Date;
   }>();
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
   // 1) Safely grab tabValue (default to 0)
-  const initialTab = location.state?.tabValue ?? 0;
+  const initialTab =
+    isTeacherSchoolMode && location.state?.tabValue === 2
+      ? 0
+      : (location.state?.tabValue ?? 0);
   const [tabValue, setTabValue] = useState<number>(initialTab);
   const [showAssignOptionsScreen, setShowAssignOptionsScreen] = useState(true);
   const [autoStartScan, setAutoStartScan] = useState(false);
@@ -140,6 +145,9 @@ const HomePage: React.FC = () => {
     await fetchClassDetails();
   };
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    if (isTeacherSchoolMode && newValue === 2) {
+      return;
+    }
     // preserve whatever state you need when switching
     setShowAssignOptionsScreen(true);
     setTabValue(newValue);
@@ -312,7 +320,7 @@ const HomePage: React.FC = () => {
             }
           />
 
-          {!isExternalUser && (
+          {!isExternalUser && !isTeacherSchoolMode && (
             <BottomNavigationAction
               value={2}
               label={t('Assign')}

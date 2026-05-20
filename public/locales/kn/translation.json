@@ -1,6 +1,6 @@
 {
-  " OFF ": " ಆಫ್ ",
-  " ON ": " ಆನ್ ",
+  "OFF": "ಆಫ್",
+  "ON": "ಆನ್",
   " to choose and assign.": " ಆಯ್ಕೆ ಮಾಡಲು ಮತ್ತು ನಿಯೋಜಿಸಲು.",
   "***Be among the top performers in your class to win an exciting reward": "***ಅತ್ಯಾಕರ್ಷಕ ಬಹುಮಾನವನ್ನು ಗೆಲ್ಲಲು ನಿಮ್ಮ ತರಗತಿಯಲ್ಲಿ ಉನ್ನತ ಪ್ರದರ್ಶನಕಾರರಲ್ಲಿ ಒಬ್ಬರಾಗಿರಿ.",
   "🎉Congratulations🎊": "🎉ಅಭಿನಂದನೆಗಳು🎊",
@@ -1156,6 +1156,7 @@
   "sending": "ಕಳುಹಿಸುತ್ತಿದೆ",
   "Sent the OTP": "OTP-ಕಳುಹಿಸಲಾಗಿದೆ",
   "setting": "ಸೆಟ್ಟಿಂಗ್",
+  "settings": "ಸೆಟ್ಟಿಂಗ್ಗಳು",
   "Setup WhatsApp Group": "ವಾಟ್ಸಾಪ್ ಗುಂಪನ್ನು ಹೊಂದಿಸಿ",
   "Shadow Story": "ನೆರಳು ಕಥೆ",
   "Shape Order": "ಆಕಾರ ಕ್ರಮ",
@@ -1183,6 +1184,7 @@
   "Shapes": "ಆಕಾರಗಳು",
   "Share": "ಹಂಚಿಕೆ",
   "Sign out as a Parent": "ಪೋಷಕರ ಸೈನ್ ಔಟ್",
+  "Sign out": "ಸೈನ್ ಔಟ್",
   "Sign Out": "ಸೈನ್ ಔಟ್",
   "Simple": "ಸರಳ",
   "Skip 2's Backward": "2 ರಿಂದ ಹಿಂದಕ್ಕೆ",
@@ -1539,5 +1541,9 @@
   "Keep going!\nFinish these lessons to choose another subject.": "ಮುಂದುವರಿಸಿ!\nಬೇರೆ ವಿಷಯವನ್ನು ಆಯ್ಕೆ ಮಾಡಲು ಈ ಪಾಠಗಳನ್ನು ಮುಗಿಸಿ.",
   "High Engagement 45+ minutes": "ಹೆಚ್ಚಿನ ತೊಡಗಿಸಿಕೆ 45+ ನಿಮಿಷಗಳು",
   "Medium Engagement <45 minutes": "ಮಧ್ಯಮ ತೊಡಗಿಸಿಕೆ <45 ನಿಮಿಷಗಳು",
-  "App not downloaded": "ಆಪ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿಲ್ಲ"
+  "App not downloaded": "ಆಪ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿಲ್ಲ",
+  "We have updated our <1>Terms & Conditions</1>.": "<1>ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳಲ್ಲಿ</1> ಬದಲಾವಣೆಗಳು",
+  "To keep your data safe and comply with privacy regulations, please review and agree to continue.": "ನಿಮ್ಮ ಡೇಟಾವನ್ನು ಸುರಕ್ಷಿತವಾಗಿಡಲು ಮತ್ತು ಗೌಪ್ಯತೆ ನಿಯಮಗಳನ್ನು ಅನುಸರಿಸಲು, ದಯವಿಟ್ಟು ಪರಿಶೀಲಿಸಿ ಮತ್ತು ಮುಂದುವರಿಯಲು ಒಪ್ಪಿಕೊಳ್ಳಿ.",
+  "Agree as Parent": "ಪೋಷಕರಾಗಿ ಒಪ್ಪಿಕೊಳ್ಳಿ",
+  "Agree as Teacher": "ಶಿಕ್ಷಕರಾಗಿ ಒಪ್ಪಿಕೊಳ್ಳಿ"
 }
