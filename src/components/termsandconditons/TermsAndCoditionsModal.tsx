@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Trans, useTranslation } from 'react-i18next';
 
 import {
@@ -29,6 +30,7 @@ const TermsAndCoditionsModal: React.FC<TermsAndCoditionsModalProps> = ({
   const shouldRender = visible ?? isOpen;
   const appMode = getCurrentTermsAppMode();
   const hasReportedViewRef = useRef(false);
+  const termsLabel = String(t('Terms & Conditions'));
 
   useEffect(() => {
     if (!shouldRender) {
@@ -63,6 +65,7 @@ const TermsAndCoditionsModal: React.FC<TermsAndCoditionsModalProps> = ({
                   type="button"
                   className="terms-update-modal-link-teacher"
                   onClick={onTermsClick}
+                  aria-label={termsLabel}
                 />
               ),
             }}
@@ -102,6 +105,7 @@ const TermsAndCoditionsModal: React.FC<TermsAndCoditionsModalProps> = ({
                   type="button"
                   className="terms-update-modal-link-ops"
                   onClick={onTermsClick}
+                  aria-label={termsLabel}
                 />
               ),
             }}
@@ -138,6 +142,7 @@ const TermsAndCoditionsModal: React.FC<TermsAndCoditionsModalProps> = ({
                   type="button"
                   className="terms-update-modal-link"
                   onClick={onTermsClick}
+                  aria-label={termsLabel}
                 />
               ),
             }}
@@ -162,7 +167,7 @@ const TermsAndCoditionsModal: React.FC<TermsAndCoditionsModalProps> = ({
     </div>
   );
 
-  return (
+  const modalContent = (
     <div
       className="terms-update-modal-overlay"
       role="dialog"
@@ -176,6 +181,12 @@ const TermsAndCoditionsModal: React.FC<TermsAndCoditionsModalProps> = ({
           : renderKidsModal()}
     </div>
   );
+
+  if (typeof document === 'undefined') {
+    return modalContent;
+  }
+
+  return createPortal(modalContent, document.body);
 };
 
 export default TermsAndCoditionsModal;

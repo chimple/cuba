@@ -78,7 +78,13 @@ export const getUserTcAgreedVersion = (user?: UserWithTermsState | null) =>
 export const needsTermsAgreement = (
   user: UserWithTermsState | null | undefined,
   latestVersion: unknown,
-): boolean => getUserTcAgreedVersion(user) < normalizeTcVersion(latestVersion);
+): boolean => {
+  if (!user?.id) {
+    return false;
+  }
+
+  return getUserTcAgreedVersion(user) < normalizeTcVersion(latestVersion);
+};
 
 export const getCurrentTermsAppMode = (): TermsAppMode => {
   const currentMode = localStorage.getItem(CURRENT_MODE);
