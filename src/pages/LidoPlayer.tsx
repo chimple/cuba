@@ -37,10 +37,7 @@ import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { registerBackButtonHandler } from '../common/backButtonRegistry';
 import logger from '../utility/logger';
-import {
-  getLidoBundleBaseUrlForEnv,
-  REMOTE_CONFIG_KEYS,
-} from '../services/RemoteConfig';
+import { getBundleZipUrlsForEnv } from '../services/RemoteConfig';
 
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
@@ -903,16 +900,22 @@ const LidoPlayer: FC = () => {
         return;
       }
     } else {
-      const lidoBaseUrl = getLidoBundleBaseUrlForEnv();
-      const directZipUrl =
-        urlSearchParams.get('zipUrl') ??
-        state?.zipUrl ??
-        `${lidoBaseUrl}${lessonId}.zip`;
-      setZipUrl(directZipUrl);
+      // Extracted folder support used base-url/xml-path here; web now loads the ZIP directly.
       // const pathBase = `${lidoBaseUrl}${lessonId}/`;
       // const pathXml = `${lidoBaseUrl}${lessonId}/index.xml`;
       // setBasePath(pathBase);
       // setXmlPath(pathXml);
+      const [bundleBaseUrl] = getBundleZipUrlsForEnv();
+      const directZipUrl =
+        urlSearchParams.get('zipUrl') ??
+        state?.zipUrl ??
+        `${bundleBaseUrl}${lessonId}.zip`;
+      logger.debug('Resolved Lido ZIP URL', {
+        lessonId,
+        bundleBaseUrl,
+        zipUrl: directZipUrl,
+      });
+      setZipUrl(directZipUrl);
     }
     setIsLoading(false);
     setIsReady(true); // ONLY NOW allow the Web Component to mount
