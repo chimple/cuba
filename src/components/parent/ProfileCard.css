@@ -1,27 +1,32 @@
 #profile-card {
+  --card-size: var(--profile-card-size, 240px);
+  width: var(--card-size); /* Lock the exact width */
+  height: var(--card-size); /* Lock the exact height */
+  flex: 0 0 var(--card-size); /* Prevent shrinking or growing; forces strict sizing */
   aspect-ratio: 1 / 1;
+
   background: #fffdee;
-  border-radius: clamp(22px, 2.6vw, 40px);
+  border-radius: clamp(16px, calc(var(--card-size) * 0.09), 40px);
   box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
-  min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   margin: 0;
   box-sizing: border-box;
-  padding: clamp(10px, 1vw, 16px) clamp(24px, 2.6vw, 40px)
-    clamp(32px, 3.5vw, 48px);
+  padding: clamp(8px, calc(var(--card-size) * 0.04), 16px)
+    clamp(16px, calc(var(--card-size) * 0.09), 40px)
+    clamp(16px, calc(var(--card-size) * 0.12), 48px);
 }
 
 #profile-card.profile-card-add-child {
   justify-content: center;
-  padding: clamp(24px, 3vw, 44px);
+  padding: clamp(16px, calc(var(--card-size) * 0.12), 44px);
 }
 
 #profile-card-image-div {
   text-align: center;
-  margin-bottom: clamp(14px, 1.6vw, 24px);
-  transform: translateY(clamp(-12px, -1.2vw, -6px));
+  margin-bottom: clamp(8px, calc(var(--card-size) * 0.05), 24px);
+  transform: translateY(clamp(-26px, calc(var(--card-size) * -0.07), -14px));
 }
 
 #profile-card-image-div p {
@@ -29,8 +34,8 @@
 }
 
 #profile-card-image {
-  width: clamp(96px, 8vw, 124px);
-  height: clamp(96px, 8vw, 124px);
+  width: clamp(64px, calc(var(--card-size) * 0.28), 124px);
+  height: clamp(64px, calc(var(--card-size) * 0.28), 124px);
   border-radius: 50%;
   border: 4px solid #ffffff;
   object-fit: cover;
@@ -38,38 +43,39 @@
 
 #profile-card-user-name {
   display: block;
-  margin: auto;
+  text-align: center; /* Replaces margin: auto for horizontal layout centering */
   white-space: nowrap;
   max-width: 100%;
   text-overflow: ellipsis;
   overflow: hidden;
   color: #1d315d;
-  font-size: clamp(22px, 1.75vw, 30px);
+  font-size: clamp(16px, calc(var(--card-size) * 0.06), 30px);
   line-height: 1.2;
-  margin-top: clamp(16px, 1.6vw, 24px);
+  margin-top: clamp(4px, calc(var(--card-size) * 0.03), 12px);
+  margin-bottom: 0; /* Clear out any automatic browser margin injections */
 }
 
 #profile-card-edit-icon-div {
   position: relative;
   z-index: 2;
   text-align: end;
-  margin-bottom: clamp(0px, 0.4vw, 4px);
-  min-height: clamp(32px, 3.5vw, 56px);
-  margin-right: clamp(-16px, -1.2vw, -12px);
+  margin-bottom: clamp(0px, calc(var(--card-size) * 0.01), 4px);
+  min-height: clamp(24px, calc(var(--card-size) * 0.12), 56px);
+  margin-right: clamp(-16px, calc(var(--card-size) * -0.04), -12px);
 }
 
 #profile-card-edit-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: clamp(52px, 4.7vw, 72px);
-  height: clamp(52px, 4.7vw, 72px);
+  width: clamp(36px, calc(var(--card-size) * 0.16), 72px);
+  height: clamp(36px, calc(var(--card-size) * 0.16), 72px);
   padding: 0;
   border: none;
   background: transparent;
   cursor: pointer;
   position: relative;
-  transform: translateY(9px);
+  transform: translateY(2px);
   z-index: 3;
 }
 
@@ -85,15 +91,15 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 #profile-card-new-user-icon {
   position: relative;
-  width: clamp(116px, 11.4vw, 150px);
-  height: clamp(116px, 11.4vw, 150px);
-  margin: 0 0 clamp(26px, 3vw, 42px);
+  width: clamp(82px, calc(var(--card-size) * 0.4), 150px);
+  height: clamp(82px, calc(var(--card-size) * 0.4), 150px);
+  margin: 0 0 clamp(16px, calc(var(--card-size) * 0.1), 42px);
   border: 2px solid #f34d08;
   border-radius: 50%;
   background: rgba(255, 255, 255, 1);
@@ -125,15 +131,13 @@
 
 #profile-card-new-user p {
   color: #1d315d;
-  font-size: clamp(22px, 2vw, 32px);
+  font-size: clamp(16px, calc(var(--card-size) * 0.08), 32px);
   margin: 0;
 }
 
 .profile-card-empty-element {
-  color: white;
-  font-size: 5.5vh;
-  text-align: center;
-  line-height: 1;
+  height: clamp(40px, calc(var(--card-size) * 0.18), 68px);
+  margin: 0 auto clamp(6px, calc(var(--card-size) * 0.03), 12px);
   visibility: hidden;
 }
 
@@ -146,17 +150,17 @@
   color: #300d37;
   border-radius: 10px;
   border-bottom: 5px solid #300d37;
-  width: clamp(104px, 8vw, 124px);
-  height: 68px;
-  min-height: 68px;
-  margin: 0 auto clamp(8px, 0.8vw, 12px);
-  padding: clamp(10px, 1vw, 16px) 8px;
-  font-size: 19px !important;
+  width: clamp(88px, calc(var(--card-size) * 0.28), 124px);
+  height: clamp(40px, calc(var(--card-size) * 0.18), 68px);
+  min-height: clamp(40px, calc(var(--card-size) * 0.18), 68px);
+  margin: 0 auto clamp(6px, calc(var(--card-size) * 0.03), 12px);
+  padding: clamp(8px, calc(var(--card-size) * 0.04), 16px) 8px;
+  font-size: clamp(16px, calc(var(--card-size) * 0.07), 21px) !important;
   font-style: normal;
   font-weight: 600;
   line-height: normal;
   cursor: pointer;
-  transform: translateY(-8px);
+  transform: translateY(-18px);
   transition:
     transform 120ms ease,
     border-bottom-width 120ms ease,
@@ -170,6 +174,22 @@
 #profile-card-image-report:active {
   transform: translateY(-5px);
   border-bottom-width: 3px;
+}
+
+@media (min-width: 1200px) and (max-height: 760px) and (orientation: landscape) {
+  #profile-card-image-div {
+    margin-bottom: clamp(6px, calc(var(--card-size) * 0.04), 16px);
+    /* Bring this down to a modest offset or match your root layout rules */
+    transform: translateY(clamp(-20px, calc(var(--card-size) * -0.06), -10px));
+  }
+
+  #profile-card-user-name {
+    margin-top: 4px; /* Clean baseline instead of fighting auto layouts */
+  }
+
+  #profile-card-image-report {
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 900px) {
@@ -191,59 +211,144 @@
 
 @media (max-height: 500px) and (orientation: landscape) {
   #profile-card {
-    padding: 6px clamp(18px, 2.6vw, 28px) 12px;
-    overflow: hidden;
+    position: relative; /* Allows absolute positioning for the edit icon */
+    padding: clamp(10px, 2.5vh, 16px);
+    justify-content: center;
+    gap: 8px;
   }
 
-  #profile-card-image-div {
-    margin-bottom: 2px;
-    transform: translateY(-4px);
+  /* Equalize padding for the Add Child card so it matches exactly */
+  #profile-card.profile-card-add-child {
+    padding: clamp(10px, 2.5vh, 16px);
   }
 
-  #profile-card-image {
-    width: clamp(62px, 18vh, 72px);
-    height: clamp(62px, 18vh, 72px);
-  }
-
-  #profile-card-user-name {
-    font-size: clamp(17px, 2.8vh, 21px);
-    margin-top: 4px;
-  }
-
+  /* Take the edit icon out of the vertical flow so it stops pushing the avatar down */
   #profile-card-edit-icon-div {
-    min-height: 32px;
-    margin-bottom: 0;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    min-height: auto;
+    margin: 0;
   }
 
   #profile-card-edit-icon {
-    width: clamp(38px, 9vh, 46px);
-    height: clamp(38px, 9vh, 46px);
-    transform: translateY(5px);
+    width: clamp(34px, 10vh, 44px);
+    height: clamp(34px, 10vh, 44px);
+    transform: translateY(0);
   }
 
-  #profile-card-image-report {
-    width: clamp(100px, 13vw, 124px);
-    height: 58px;
-    min-height: 58px;
-    font-size: 15px;
+  /* Remove negative transforms and center the avatar */
+  #profile-card-image-div {
     margin-bottom: 0;
-    padding: 8px;
+    margin-top: 10px; /* Slight push down to avoid the corner icon */
+    transform: translateY(0);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
+  /* Restored larger avatar sizes */
+  #profile-card-image {
+    width: clamp(64px, 18vh, 84px);
+    height: clamp(64px, 18vh, 84px);
+    border-width: 3px;
+  }
+
+  #profile-card-user-name {
+    font-size: clamp(16px, 4vh, 20px);
+    margin-top: 4px;
+  }
+
+  /* Restored larger Progress button */
+  #profile-card-image-report {
+    width: clamp(100px, 15vw, 130px);
+    height: clamp(48px, 14vh, 60px); /* Increased height heavily here */
+    min-height: clamp(
+      48px,
+      14vh,
+      60px
+    ); /* Added min-height to prevent squishing */
+    font-size: clamp(14px, 3.5vh, 16px) !important;
+    margin-bottom: 0;
+    padding: 6px 8px;
+    transform: translateY(0);
+  }
+
+  #profile-card-new-user {
+    gap: 10px;
+    justify-content: center;
+  }
+
+  /* Restored larger Add Child icon */
   #profile-card-new-user-icon {
-    width: clamp(82px, 22vh, 104px);
-    height: clamp(82px, 22vh, 104px);
-    margin-bottom: 14px;
+    width: clamp(76px, 20vh, 96px);
+    height: clamp(76px, 20vh, 96px);
+    margin: 0;
   }
 
   #profile-card-new-user p {
-    font-size: clamp(18px, 4vh, 24px);
+    font-size: clamp(16px, 4vh, 20px);
+    margin: 0;
+  }
+
+  /* Hide the invisible top/bottom spacers so the Add Child content perfectly centers */
+  .profile-card-empty-element {
+    display: none;
+  }
+
+  #profile-card-new-user {
+    width: 100%;
+    height: 100%; /* Takes up all available space now that spacers are gone */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  /* Restored larger Add Child icon */
+  #profile-card-new-user-icon {
+    width: clamp(76px, 20vh, 96px);
+    height: clamp(76px, 20vh, 96px);
+    margin: 0;
+  }
+
+  #profile-card-new-user p {
+    font-size: clamp(16px, 4vh, 20px);
+    margin: 0;
+  } /* Hide the invisible top/bottom spacers so the Add Child content perfectly centers */
+  .profile-card-empty-element {
+    display: none;
+  }
+
+  #profile-card-new-user {
+    width: 100%;
+    height: 100%; /* Takes up all available space now that spacers are gone */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  /* Restored larger Add Child icon */
+  #profile-card-new-user-icon {
+    width: clamp(76px, 20vh, 96px);
+    height: clamp(76px, 20vh, 96px);
+    margin: 0;
+  }
+
+  #profile-card-new-user p {
+    font-size: clamp(16px, 4vh, 20px);
+    margin: 0;
   }
 }
 
 @media (max-width: 680px) {
-  #profile-card {
-    width: min(88vw, 360px) !important;
-    height: min(88vw, 360px) !important;
+  #parent-page-profile {
+    flex-wrap: nowrap !important; /* Keep forcing a single row even on tiny viewports */
+    align-items: center !important;
+    height: calc(100vh - 98px) !important;
+    overflow: hidden !important;
   }
 }

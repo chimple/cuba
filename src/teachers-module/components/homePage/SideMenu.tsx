@@ -25,7 +25,6 @@ import { RootState } from '../../../redux/store';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { logAuthDebug } from '../../../utility/authDebug';
 import logger from '../../../utility/logger';
-import { schoolUtil } from '../../../utility/schoolUtil';
 import { Util } from '../../../utility/util';
 import ClassSection from './ClassSection';
 import ProfileSection from './ProfileDetail';
@@ -197,11 +196,6 @@ const SideMenu: React.FC<{
     setTimeout(() => {
       Util.killCocosGame();
     }, 1000);
-    if (schoolUtil.isTeacherSchoolMode()) {
-      await schoolUtil.restoreKidsModeFromTeacherSchool();
-      history.replace(PAGES.SELECT_MODE);
-      return;
-    }
     history.replace(PAGES.KIDS_APP_LOCATION);
   };
 
