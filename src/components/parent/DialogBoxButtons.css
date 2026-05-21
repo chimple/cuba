@@ -57,6 +57,7 @@
 .profile-card-manage-dialog .MuiDialogContentText-root {
   margin: 5px 0 0 !important;
   color: #172a54 !important;
+  font-family: 'BalooRegular' !important;
   font-size: 18px;
   font-style: normal;
   font-weight: 600;
@@ -160,6 +161,7 @@
 .profile-card-delete-dialog .MuiDialogContentText-root {
   margin: 0 !important;
   color: #172a54 !important;
+  font-family: 'BalooRegular' !important;
   font-size: 18px;
   font-style: normal;
   font-weight: 600;
