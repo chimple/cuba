@@ -1635,5 +1635,9 @@
     "Agree as Parent": "अभिभावक के रूप में सहमत हों",
     "Agree as Teacher": "शिक्षक के रूप में सहमत हों",
     "Wrong Answer, please try again.": "गलत उत्तर, कृपया पुनः प्रयास करें।",
-    "Where are you using this app?": "आप इस ऐप का उपयोग कहाँ कर रहे हैं?"
+    "Where are you using this app?": "आप इस ऐप का उपयोग कहाँ कर रहे हैं?",
+    "How much is {{firstNumber}} + {{secondNumber}} = ?": "{{firstNumber}} + {{secondNumber}} कितना होता है?",
+    "This question is for the Teacher:": "यह प्रश्न शिक्षक / शिक्षिका के लिए है:",
+    "Enter your Answer in the keypad :": "अपना उत्तर कीबोर्ड पर दर्ज करें:",
+    "Add a Child": "एक बच्चा जोड़ें"
 }
