@@ -60,6 +60,7 @@ const LidoPlayer: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [basePath, setBasePath] = useState<string>();
   const [xmlPath, setXmlPath] = useState<string>();
+  const [zipUrl, setZipUrl] = useState<string>();
   const [commonAudioPath, setCommonAudioPath] = useState<string>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isReady, setIsReady] = useState<boolean>(false);
@@ -858,6 +859,7 @@ const LidoPlayer: FC = () => {
       push();
       return;
     }
+
     if (Capacitor.isNativePlatform()) {
       const path = await Util.getLessonPath({ lessonId: lessonId });
       if (path) {
@@ -902,10 +904,15 @@ const LidoPlayer: FC = () => {
       }
     } else {
       const lidoBaseUrl = getLidoBundleBaseUrlForEnv();
-      const pathBase = `${lidoBaseUrl}${lessonId}/`;
-      const pathXml = `${lidoBaseUrl}${lessonId}/index.xml`;
-      setBasePath(pathBase);
-      setXmlPath(pathXml);
+      const directZipUrl =
+        urlSearchParams.get('zipUrl') ??
+        state?.zipUrl ??
+        `${lidoBaseUrl}${lessonId}.zip`;
+      setZipUrl(directZipUrl);
+      // const pathBase = `${lidoBaseUrl}${lessonId}/`;
+      // const pathXml = `${lidoBaseUrl}${lessonId}/index.xml`;
+      // setBasePath(pathBase);
+      // setXmlPath(pathXml);
     }
     setIsLoading(false);
     setIsReady(true); // ONLY NOW allow the Web Component to mount
@@ -933,13 +940,14 @@ const LidoPlayer: FC = () => {
           }}
         />
       )}
-      {isReady && (xmlPath || basePath) && !showDialogBox
+      {isReady && (xmlPath || basePath || zipUrl) && !showDialogBox
         ? React.createElement('lido-standalone', {
             'xml-path': xmlPath,
             'base-url': basePath,
             canplay: true,
             'code-folder-path': '/Lido-player-code-versions',
             'common-audio-path': commonAudioPath ?? '/Lido-CommonAudios',
+            'zip-url': zipUrl ?? '',
           })
         : null}
     </IonPage>
