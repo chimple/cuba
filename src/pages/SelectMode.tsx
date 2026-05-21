@@ -46,6 +46,11 @@ import {
   TeacherModeAuthResult,
 } from '../services/TeacherModeAuth';
 import logger from '../utility/logger';
+import {
+  isAutoUserRole,
+  isTeacherAppRole,
+  resolveTeacherAppModeForRole,
+} from '../utility/roleUtil';
 import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
 import { ReactComponent as BrandLogoIcon } from './assets/brandLogoIcon.svg';
@@ -58,10 +63,6 @@ const CLASS_NAME_COLLATOR = new Intl.Collator(undefined, {
   numeric: true,
   sensitivity: 'base',
 });
-const isRole = (
-  roleValue: string | null | undefined,
-  roleToMatch: RoleType,
-): boolean => (roleValue ?? '').toLowerCase() === roleToMatch;
 
 const getInitialSelectedClass = (
   classes: TableTypes<'class'>[],
@@ -88,6 +89,13 @@ type AutoUserModeLanguageApi = Pick<
   ServiceApi,
   'getLanguageWithId' | 'getSchoolById'
 >;
+
+interface SchoolModeOption {
+  id: string;
+  displayName: string;
+  school: TableTypes<'school'>;
+  role: RoleType;
+}
 
 const SUPPORTED_LANGUAGE_CODES = new Set<string>(Object.values(LANG));
 
@@ -173,16 +181,11 @@ const applyAutoUserModeLanguage = async (
 
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [schoolList, setSchoolList] = useState<
-    {
-      id: string;
-      displayName: string;
-      school: TableTypes<'school'>;
-    }[]
-  >([]);
+  const [schoolList, setSchoolList] = useState<SchoolModeOption[]>([]);
   const [currentSchoolName, setCurrentSchoolName] = useState<string>();
   const [currentSchool, setCurrentSchool] = useState<TableTypes<'school'>>();
   const [currentSchoolId, setCurrentSchoolId] = useState<string>();
+  const [currentSchoolRole, setCurrentSchoolRole] = useState<RoleType>();
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'>>();
   const [currentClasses, setCurrentClasses] = useState<TableTypes<'class'>[]>();
   const [currentStudents, setCurrentStudents] =
@@ -193,11 +196,7 @@ const SelectMode: FC = () => {
   const [isTeacherAuthPopupOpen, setIsTeacherAuthPopupOpen] = useState(false);
   const [isAutoUser, setIsAutoUser] = useState<boolean>(false);
   let count = 1;
-  const tempSchoolList: {
-    id: string;
-    displayName: string;
-    school: TableTypes<'school'>;
-  }[] = [];
+  const tempSchoolList: SchoolModeOption[] = [];
   useEffect(() => {
     Util.loadBackgroundImage();
     restoreAuth();
@@ -393,7 +392,7 @@ const SelectMode: FC = () => {
     if (!currUser) return;
     const allSchool = await api.getSchoolsForUser(currUser.id);
     const hasAutoUserRoleFromSchoolEntries = allSchool.some((schoolEntry) =>
-      isRole(schoolEntry.role, RoleType.AUTOUSER),
+      isAutoUserRole(schoolEntry.role),
     );
     // Extract school IDs from schoolList
     const schoolIds = allSchool.map((school) => school.school.id);
@@ -403,9 +402,19 @@ const SelectMode: FC = () => {
     );
     const hasAutoUserRole =
       hasAutoUserRoleFromSchoolEntries || (filteredSchools?.length ?? 0) > 0;
+    const restoredSchoolRole = restoredSchoolForMode?.id
+      ? allSchool.find((entry) => entry.school.id === restoredSchoolForMode.id)
+          ?.role
+      : undefined;
+    if (restoredSchoolRole) {
+      setCurrentSchoolRole(restoredSchoolRole);
+    }
     if (hasAutoUserRole) {
       logger.info('This user is auto user: true');
-      if (isSchoolMode) {
+      const shouldApplyRestoredAutoUserLanguage = restoredSchoolRole
+        ? isAutoUserRole(restoredSchoolRole)
+        : true;
+      if (isSchoolMode && shouldApplyRestoredAutoUserLanguage) {
         await applyAutoUserModeLanguage(api, restoredSchoolForMode);
       }
     } else if (isSchoolMode) {
@@ -418,11 +427,8 @@ const SelectMode: FC = () => {
       filteredSchoolIds.includes(entry.school.id),
     );
 
-    const teacherRoleEntries = allSchool.filter(
-      (entry) =>
-        isRole(entry.role, RoleType.TEACHER) ||
-        isRole(entry.role, RoleType.PRINCIPAL) ||
-        isRole(entry.role, RoleType.COORDINATOR),
+    const teacherRoleEntries = allSchool.filter((entry) =>
+      isTeacherAppRole(entry.role),
     );
 
     const hasStudentsInSchool = async (schoolId: string, userId: string) => {
@@ -486,6 +492,7 @@ const SelectMode: FC = () => {
           id: element.school.id,
           displayName: element.school.name,
           school: element.school,
+          role: element.role,
         });
       }
       setCurrentUser(currUser);
@@ -494,7 +501,8 @@ const SelectMode: FC = () => {
         const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
         if (tempSchoolList.length === 1) {
           setCurrentSchool(tempSchoolList[0].school);
-          if (hasAutoUserRole) {
+          setCurrentSchoolRole(tempSchoolList[0].role);
+          if (isAutoUserRole(tempSchoolList[0].role)) {
             await applyAutoUserModeLanguage(api, tempSchoolList[0].school);
           }
           const selectedClass = await displayClasses(
@@ -515,13 +523,14 @@ const SelectMode: FC = () => {
 
           if (matchingEntry) {
             setCurrentSchool(matchingEntry.school);
+            setCurrentSchoolRole(matchingEntry.role);
             schoolUtil.setCurrentSchool(matchingEntry.school);
             localStorage.setItem(
               CURRENT_SCHOOL_NAME,
               JSON.stringify(matchingEntry.school.name),
             );
             setCurrentSchoolName(matchingEntry.school.name);
-            if (hasAutoUserRole) {
+            if (isAutoUserRole(matchingEntry.role)) {
               await applyAutoUserModeLanguage(api, matchingEntry.school);
             }
             const selectedClass = await displayClasses(
@@ -598,6 +607,14 @@ const SelectMode: FC = () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     // setStage(STAGES.MODE);
   };
+  const getSelectedSchoolRole = (): RoleType | undefined =>
+    currentSchoolRole ??
+    schoolList.find((schoolOption) => schoolOption.id === currentSchool?.id)
+      ?.role;
+  const shouldUseAutoUserForSelectedSchool = (): boolean => {
+    const selectedSchoolRole = getSelectedSchoolRole();
+    return selectedSchoolRole ? isAutoUserRole(selectedSchoolRole) : isAutoUser;
+  };
 
   const onSchoolModeSelect = async (): Promise<void> => {
     await applyOrientationForMode(MODES.SCHOOL);
@@ -605,7 +622,7 @@ const SelectMode: FC = () => {
     await schoolUtil.setCurrMode(MODES.SCHOOL);
 
     if (currentSchool) {
-      if (isAutoUser) {
+      if (shouldUseAutoUserForSelectedSchool()) {
         await applyAutoUserModeLanguage(api, currentSchool);
       }
       const selectedClass = await displayClasses(currentSchool, currentUser);
@@ -616,13 +633,14 @@ const SelectMode: FC = () => {
     if (schoolList.length === 1 && currentUser) {
       const selectedSchool = schoolList[0].school;
       setCurrentSchool(selectedSchool);
+      setCurrentSchoolRole(schoolList[0].role);
       schoolUtil.setCurrentSchool(selectedSchool);
       localStorage.setItem(
         CURRENT_SCHOOL_NAME,
         JSON.stringify(selectedSchool.name),
       );
       setCurrentSchoolName(selectedSchool.name);
-      if (isAutoUser) {
+      if (isAutoUserRole(schoolList[0].role)) {
         await applyAutoUserModeLanguage(api, selectedSchool);
       }
       const selectedClass = await displayClasses(selectedSchool, currentUser);
@@ -634,27 +652,37 @@ const SelectMode: FC = () => {
   };
 
   const continueToTeacherMode = async () => {
-    await applyOrientationForMode(MODES.TEACHER_SCHOOL);
+    const selectedSchoolRole = getSelectedSchoolRole();
+    const shouldUseAutoUserPermissions = shouldUseAutoUserForSelectedSchool();
+    const teacherMode = resolveTeacherAppModeForRole(
+      selectedSchoolRole,
+      isAutoUser,
+    );
+    await applyOrientationForMode(teacherMode);
     if (currentSchool) {
+      if (selectedSchoolRole) {
+        await Util.setCurrentSchool(currentSchool, selectedSchoolRole);
+      }
       await schoolUtil.setCurrentSchool(currentSchool);
     }
     if (currClass) {
       await schoolUtil.setCurrentClass(currClass);
     }
-    if (isAutoUser) {
+    if (shouldUseAutoUserPermissions) {
       await applyAutoUserModeLanguage(api, currentSchool);
     }
-    api.currentMode = MODES.TEACHER_SCHOOL;
-    schoolUtil.setCurrMode(MODES.TEACHER_SCHOOL);
+    api.currentMode = teacherMode;
+    schoolUtil.setCurrMode(teacherMode);
     setStage(STAGES.TEACHER);
     history.replace(PAGES.HOME_PAGE);
   };
 
   const onTeacherSelect = async () => {
     const teacherModeAuthResult = await requireTeacherModeAuth();
+    const shouldLogAutoUser = shouldUseAutoUserForSelectedSchool();
 
     if (teacherModeAuthResult === TeacherModeAuthResult.success) {
-      if (isAutoUser) {
+      if (shouldLogAutoUser) {
         Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
           user_role: TEACHER_APP_USER_ROLES.AUTO_USER,
           auth_method_attempted: TEACHER_APP_AUTH_METHODS.BIOMETRIC,
@@ -668,7 +696,7 @@ const SelectMode: FC = () => {
     }
 
     if (teacherModeAuthResult === TeacherModeAuthResult.popupFallbackRequired) {
-      if (isAutoUser) {
+      if (shouldLogAutoUser) {
         Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
           user_role: TEACHER_APP_USER_ROLES.AUTO_USER,
           auth_method_attempted: TEACHER_APP_AUTH_METHODS.MATH_GATE,
@@ -678,7 +706,7 @@ const SelectMode: FC = () => {
       return;
     }
 
-    if (isAutoUser) {
+    if (shouldLogAutoUser) {
       Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
         user_role: TEACHER_APP_USER_ROLES.AUTO_USER,
         auth_method_attempted: TEACHER_APP_AUTH_METHODS.BIOMETRIC,
@@ -865,7 +893,11 @@ const SelectMode: FC = () => {
                       setIsOkayButtonDisabled(true);
                       return;
                     }
+                    const selectedSchoolEntry = schoolList.find(
+                      (element) => element.id === selectedSchoolDocId,
+                    );
                     setCurrentSchool(currSchool);
+                    setCurrentSchoolRole(selectedSchoolEntry?.role);
                     localStorage.setItem(
                       CURRENT_SCHOOL_NAME,
                       JSON.stringify(currSchool.name),
@@ -874,7 +906,7 @@ const SelectMode: FC = () => {
                     setCurrentSchoolId(currSchool.id);
                     setIsOkayButtonDisabled(false);
                     schoolUtil.setCurrentSchool(currSchool);
-                    if (isAutoUser) {
+                    if (isAutoUserRole(selectedSchoolEntry?.role)) {
                       await applyAutoUserModeLanguage(api, currSchool);
                     }
                   }}
