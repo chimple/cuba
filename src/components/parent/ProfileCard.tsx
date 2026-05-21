@@ -209,7 +209,7 @@ const ProfileCard: React.FC<{
         <DialogBoxButtons
           width={'40vw'}
           height={'30vh'}
-          message={t("Choose the below options to manage your kid's profile.")}
+          message={t('Choose the below options to manage your kid’s profile.')}
           showDialogBox={showDialogBox}
           yesText={t('Edit Profile')}
           noText={t('Delete Profile')}

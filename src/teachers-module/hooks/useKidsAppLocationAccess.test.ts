@@ -2,13 +2,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import { renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
 import { Provider } from 'react-redux';
-import { PAGES } from '../../common/constants';
+import { MODES, PAGES } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
 import authReducer, { AuthState } from '../../redux/slices/auth/authSlice';
 
 const mockReplace = jest.fn();
 const mockGetCurrentUser = jest.fn();
 const mockGetSchoolsForUser = jest.fn();
+const mockSetCurrMode = jest.fn();
 
 interface HookWrapperProps {
   children: React.ReactNode;
@@ -71,6 +72,12 @@ jest.mock('../../utility/logger', () => ({
   warn: jest.fn(),
 }));
 
+jest.mock('../../utility/schoolUtil', () => ({
+  schoolUtil: {
+    setCurrMode: (mode: MODES) => mockSetCurrMode(mode),
+  },
+}));
+
 const { hasKidsAppLocationRoleAccess, useKidsAppLocationAccess } =
   require('./useKidsAppLocationAccess') as typeof import('./useKidsAppLocationAccess');
 
@@ -88,6 +95,10 @@ describe('hasKidsAppLocationRoleAccess', () => {
       expect(hasKidsAppLocationRoleAccess([role])).toBe(false);
     },
   );
+
+  test('does not allow autouser into the kids app location chooser', () => {
+    expect(hasKidsAppLocationRoleAccess([RoleType.AUTOUSER])).toBe(false);
+  });
 });
 
 describe('useKidsAppLocationAccess', () => {
@@ -123,6 +134,36 @@ describe('useKidsAppLocationAccess', () => {
     expect(result.current.isAccessAllowed).toBe(true);
     expect(mockGetSchoolsForUser).toHaveBeenCalledWith('user-1');
     expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  test('redirects stored autouser role directly to school kids mode', async () => {
+    const { result } = renderHook(() => useKidsAppLocationAccess(), {
+      wrapper: createWrapper([RoleType.AUTOUSER]),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isCheckingAccess).toBe(false);
+    });
+    expect(result.current.isAccessAllowed).toBe(false);
+    expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.SCHOOL);
+    expect(mockReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
+    expect(mockGetSchoolsForUser).not.toHaveBeenCalled();
+  });
+
+  test('redirects school autouser role fallback directly to school kids mode', async () => {
+    mockGetSchoolsForUser.mockResolvedValue([{ role: RoleType.AUTOUSER }]);
+
+    const { result } = renderHook(() => useKidsAppLocationAccess(), {
+      wrapper: createWrapper([RoleType.PARENT]),
+    });
+
+    await waitFor(() => {
+      expect(result.current.isCheckingAccess).toBe(false);
+    });
+    expect(result.current.isAccessAllowed).toBe(false);
+    expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.SCHOOL);
+    expect(mockReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
+    expect(mockGetSchoolsForUser).toHaveBeenCalledWith('user-1');
   });
 
   test('blocks access and redirects when roles are not allowed', async () => {
