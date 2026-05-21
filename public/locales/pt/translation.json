@@ -886,5 +886,9 @@
     "How much is {{firstNumber}} + {{secondNumber}} = ?": "Quanto é {{firstNumber}} + {{secondNumber}}?",
     "Enter your Answer in the keypad :": "Digite sua resposta no teclado:",
     "Where are you using this app?": "Onde você está usando este aplicativo?",
-    "Add a Child": "Adicionar um filho"
+    "Add a Child": "Adicionar um filho",
+    "Progress": "Progresso",
+    "Play": "Jogar",
+    "Are you sure you want to delete this profile?": "Tem certeza de que deseja excluir este perfil?",
+    "Choose the below options to manage your kid’s profile.": "Escolha uma das opções abaixo para gerenciar o perfil do seu filho."
 }
