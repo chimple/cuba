@@ -103,6 +103,7 @@ const mockEnsureLidoCommonAudioForStudent = jest.fn();
 const mockSetCurrentStudent = jest.fn();
 const mockLoadBackgroundImage = jest.fn();
 const mockGetCurrentSchool = jest.fn();
+const mockUtilSetCurrentSchool = jest.fn();
 const mockLogEvent = jest.fn();
 jest.mock('../utility/util', () => ({
   Util: {
@@ -112,6 +113,8 @@ jest.mock('../utility/util', () => ({
     ensureLidoCommonAudioForStudent: (...args: any[]) =>
       mockEnsureLidoCommonAudioForStudent(...args),
     setCurrentStudent: (...args: any[]) => mockSetCurrentStudent(...args),
+    setCurrentSchool: (...args: Parameters<typeof mockUtilSetCurrentSchool>) =>
+      mockUtilSetCurrentSchool(...args),
     logEvent: (eventName: string, eventParams?: Record<string, string>) =>
       mockLogEvent(eventName, eventParams),
   },
@@ -726,6 +729,57 @@ describe('SelectMode page', () => {
       expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER_SCHOOL);
       expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
     });
+  });
+
+  it('routes selected teacher-role school back to full teacher mode from school mode', async () => {
+    const user = userEvent.setup();
+    const teacherSchool = { id: 'school-1', name: 'Teacher School' };
+    const autoUserSchool = { id: 'school-2', name: 'Auto User School' };
+
+    mockRequireTeacherModeAuth.mockResolvedValue('success');
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockSchoolUtilGetCurrentSchool.mockReturnValue(teacherSchool);
+    mockGetCurrentSchool.mockReturnValue(teacherSchool);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: teacherSchool, role: 'TEACHER' },
+      { school: autoUserSchool, role: 'AUTOUSER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-2' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([
+      { id: 'class-1', name: 'Class 1' },
+    ]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    const teacherButton = await screen.findByRole('button', {
+      name: /teacher/i,
+    });
+    await user.click(teacherButton);
+
+    await waitFor(() => {
+      expect(mockRequireTeacherModeAuth).toHaveBeenCalled();
+      expect(mockUtilSetCurrentSchool).toHaveBeenCalledWith(
+        teacherSchool,
+        'TEACHER',
+      );
+      expect(mockSetCurrentSchool).toHaveBeenCalledWith(teacherSchool);
+      expect(mockApiHandler.currentMode).toBe(MODES.TEACHER);
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
+    });
+    expect(mockLogEvent).not.toHaveBeenCalledWith(
+      EVENTS.TEACHER_APP_ENTRY_CLICKED,
+      {
+        user_role: 'auto_user',
+        auth_method_attempted: 'biometric',
+      },
+    );
   });
 
   it('routes to teacher dashboard with TEACHER_SCHOOL mode after math auth fallback from class mode', async () => {
