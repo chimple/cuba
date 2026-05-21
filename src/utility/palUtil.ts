@@ -419,11 +419,12 @@ export class palUtil {
     if (!graph) return { lesson: undefined, chapterId: undefined };
 
     const subjectId = graph.subjects[0]?.id ?? '';
+    const blendWeights = this.getBlendWeightsForSubject(subjectId);
     const recommendation = recommendNextSkill({
       graph,
       abilities: abilityState,
       subjectId,
-      blendWeights: this.getBlendWeightsForSubject(subjectId),
+      blendWeights,
     });
 
     const skillId = recommendation?.candidateId;
@@ -621,12 +622,14 @@ export class palUtil {
         skillId,
         correct,
       }));
+      const blendWeights = this.getBlendWeightsForSubject(subjectId);
+      const learningRates = this.getLearningRatesForSubject(subjectId);
       const updated = updateAbilities({
         graph,
         abilities: abilityState,
         events: outcomeEvents,
-        blendWeights: this.getBlendWeightsForSubject(subjectId),
-        learningRates: this.getLearningRatesForSubject(subjectId),
+        blendWeights,
+        learningRates,
       });
 
       newAbilityState = updated?.abilities ?? abilityState;
