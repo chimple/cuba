@@ -177,12 +177,16 @@
   cursor: pointer;
 }
 
-.school-mode-nav-button-active {
-  box-shadow: none;
+.school-mode-nav-button:not(:disabled) .left-arrow-icon-mark {
+  opacity: 1;
 }
 
-.school-mode-nav-button-active .left-arrow-icon-mark {
-  opacity: 1;
+.school-mode-nav-button:disabled {
+  cursor: default;
+}
+
+.school-mode-nav-button:disabled .left-arrow-icon-mark {
+  opacity: 0.35;
 }
 
 .school-mode-nav-button:last-child {
@@ -242,6 +246,14 @@
   flex-basis: clamp(155px, 20vw, 220px);
 }
 
+.school-mode-class-strip-static .school-mode-class-tab:first-child {
+  border-left: 0;
+}
+
+.school-mode-class-strip-static .school-mode-class-tab:last-child {
+  border-right: 0;
+}
+
 .school-mode-class-tab-active {
   background: #fffdee;
   border-bottom: 3px solid #182a4f;
@@ -285,6 +297,16 @@
   );
   gap: 1.8vw;
   padding: 0 60px 1.2vh;
+}
+
+.school-mode-students-grid-single {
+  grid-template-columns: calc((100% - (2 * 1.8vw)) / 3) !important;
+  justify-content: flex-start;
+}
+
+.school-mode-students-grid-pair {
+  grid-template-columns: repeat(2, calc((100% - (2 * 1.8vw)) / 3)) !important;
+  justify-content: flex-start;
 }
 
 .school-mode-student-card {
@@ -441,6 +463,16 @@
     gap: 3vw;
     padding-left: 60px;
     padding-right: 60px;
+  }
+
+  .school-mode-students-grid-single {
+    grid-template-columns: calc((100% - (2 * 3vw)) / 3) !important;
+    justify-content: flex-start;
+  }
+
+  .school-mode-students-grid-pair {
+    grid-template-columns: repeat(2, calc((100% - (2 * 3vw)) / 3)) !important;
+    justify-content: flex-start;
   }
 
   .school-mode-student-card {

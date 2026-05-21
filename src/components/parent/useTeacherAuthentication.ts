@@ -140,6 +140,7 @@ export const useTeacherAuthentication = ({
     }
 
     setShowError(true);
+    setEnteredDigits([]);
     return false;
   };
 

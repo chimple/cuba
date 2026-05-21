@@ -856,6 +856,7 @@ const LidoPlayer: FC = () => {
       push();
       return;
     }
+
     if (Capacitor.isNativePlatform()) {
       const path = await Util.getLessonPath({ lessonId: lessonId });
       if (path) {
