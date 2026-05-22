@@ -1,6 +1,6 @@
 import { useFeatureValue } from '@growthbook/growthbook-react';
 import React, { useEffect, useMemo, useState } from 'react';
-import { t } from 'i18next';
+import { useTranslation } from 'react-i18next';
 import { useHistory, useLocation } from 'react-router';
 
 import { PAGES, TC_HTML_URL } from '../common/constants';
@@ -15,6 +15,12 @@ import './TermsAndConditions.css';
 
 type TermsPageLocationState = {
   from?: string;
+  returnLocation?: {
+    pathname: string;
+    search?: string;
+    hash?: string;
+    state?: unknown;
+  };
 };
 
 const LEGACY_TERMS_URL =
@@ -24,10 +30,12 @@ const CLOSE_ICON_SRC = '/assets/loginAssets/TermsConditionsClose.svg';
 const TermsAndConditions: React.FC = () => {
   const history = useHistory();
   const location = useLocation<TermsPageLocationState>();
+  const { t } = useTranslation();
   const tcHtmlUrlFeature = useFeatureValue<string>(TC_HTML_URL, '');
   const [iframeSrc, setIframeSrc] = useState(LEGACY_TERMS_URL);
 
   const redirectTarget = location.state?.from || PAGES.SELECT_MODE;
+  const returnLocation = location.state?.returnLocation;
   const baseTermsUrl = useMemo(
     () => resolveTermsBaseUrl(tcHtmlUrlFeature),
     [tcHtmlUrlFeature],
@@ -70,6 +78,14 @@ const TermsAndConditions: React.FC = () => {
   };
 
   const handleClose = () => {
+    if (returnLocation?.pathname) {
+      history.replace(
+        `${returnLocation.pathname}${returnLocation.search ?? ''}${returnLocation.hash ?? ''}`,
+        returnLocation.state,
+      );
+      return;
+    }
+
     history.replace(redirectTarget);
   };
 

@@ -1,6 +1,12 @@
 import { useFeatureValue } from '@growthbook/growthbook-react';
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { Redirect, Route, RouteProps, useHistory } from 'react-router-dom';
+import {
+  Redirect,
+  Route,
+  RouteProps,
+  useHistory,
+  useLocation,
+} from 'react-router-dom';
 
 import { EVENTS, LATEST_TC_VERSION, PAGES } from './common/constants';
 import Loading from './components/Loading';
@@ -19,12 +25,19 @@ type ProtectedRouteProps = RouteProps & {
   children: ReactNode;
 };
 
+const TERMS_MODAL_DEFERRED_PATHS = new Set<string>([
+  PAGES.GAME,
+  PAGES.LIDO_PLAYER,
+  PAGES.LIVE_QUIZ_GAME,
+]);
+
 export default function ProtectedRoute({
   children,
   ...rest
 }: ProtectedRouteProps) {
   const [isAuth, setIsAuth] = useState<boolean | null>(null); // initially undefined
   const history = useHistory();
+  const location = useLocation();
   const latestTcVersion = useFeatureValue<number>(LATEST_TC_VERSION, 0);
   const requiredTcVersion = normalizeTcVersion(latestTcVersion);
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
@@ -32,6 +45,14 @@ export default function ProtectedRoute({
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const viewedEventKeyRef = useRef('');
+  const shouldRequireTerms = needsTermsAgreement(
+    currentUser,
+    requiredTcVersion,
+  );
+  const shouldDeferTermsModal = TERMS_MODAL_DEFERRED_PATHS.has(
+    location.pathname,
+  );
+  const shouldShowTermsModal = shouldRequireTerms && !shouldDeferTermsModal;
 
   useEffect(() => {
     void checkAuth();
@@ -94,14 +115,25 @@ export default function ProtectedRoute({
   };
 
   const handleTermsClick = () => {
+    const from =
+      location.pathname + (location.search ?? '') + (location.hash ?? '');
+
     history.push({
       pathname: PAGES.TERMS_AND_CONDITIONS,
-      state: { from: window.location.pathname },
+      state: {
+        from,
+        returnLocation: {
+          pathname: location.pathname,
+          search: location.search,
+          hash: location.hash,
+          state: location.state,
+        },
+      },
     });
   };
 
   const handleTermsModalViewed = () => {
-    if (!currentUser || !needsTermsAgreement(currentUser, requiredTcVersion)) {
+    if (!currentUser || !shouldShowTermsModal) {
       return;
     }
 
@@ -125,7 +157,7 @@ export default function ProtectedRoute({
       {isAuth === true ? (
         <>
           {children}
-          {needsTermsAgreement(currentUser, requiredTcVersion) && (
+          {shouldShowTermsModal && (
             <TermsAndCoditionsModal
               isSubmitting={isSubmitting}
               onAgree={handleAgree}

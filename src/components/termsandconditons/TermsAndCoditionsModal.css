@@ -1,7 +1,7 @@
 .terms-update-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1200;
+  z-index: 20000;
   display: flex;
   align-items: center;
   justify-content: center;
