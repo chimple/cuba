@@ -44,6 +44,7 @@ interface HeaderProps {
   showSearchIcon?: boolean;
   onSearchIconClick?: () => void;
   onShareClick?: () => void;
+  showStreakButton?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -62,6 +63,7 @@ const Header: React.FC<HeaderProps> = ({
   showSearchIcon = false,
   onSearchIconClick,
   onShareClick,
+  showStreakButton = true,
 }) => {
   const history = useHistory();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -234,6 +236,24 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          {showStreakButton && (
+            <button
+              type="button"
+              id="header-streak-button"
+              className="streak-container"
+              onClick={() => history.push(PAGES.STREAK_PAGE)}
+              aria-label={String(t('My Streak'))}
+            >
+              <img
+                id="header-streak-icon"
+                src="assets/icons/streakIcon.png"
+                className="streak-icon"
+                alt={String(t('Streak'))}
+              />
+            </button>
+          )}
+
           <div className="help-icon-container">
             <img
               src="assets/icons/helpIcon.svg"

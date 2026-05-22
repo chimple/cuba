@@ -5083,6 +5083,7 @@ export type Database = {
           streak: number;
           updated_at: string | null;
           user_id: string;
+          id?: string;
         };
         Insert: {
           class_id?: string | null;
@@ -5096,6 +5097,7 @@ export type Database = {
           streak?: number;
           updated_at?: string | null;
           user_id: string;
+          id?: string;
         };
         Update: {
           class_id?: string | null;
@@ -5109,6 +5111,7 @@ export type Database = {
           streak?: number;
           updated_at?: string | null;
           user_id?: string;
+          id?: string;
         };
         Relationships: [
           {

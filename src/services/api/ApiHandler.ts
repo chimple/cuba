@@ -1,5 +1,6 @@
 import {
   AssignmentCartData,
+  AssignmentBatchGroupRow,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -1232,6 +1233,50 @@ export class ApiHandler implements ServiceApi {
       endDate,
     );
   }
+  async getAssignmentsForClassAndSchoolByDateRange(
+    classId: string,
+    schoolId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<TableTypes<'assignment'>[]> {
+    return this.s.getAssignmentsForClassAndSchoolByDateRange(
+      classId,
+      schoolId,
+      startDate,
+      endDate,
+    );
+  }
+  async getAssignmentBatchGroupsForClassAndSchoolByDateRange(
+    classId: string,
+    schoolId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<AssignmentBatchGroupRow[]> {
+    return this.s.getAssignmentBatchGroupsForClassAndSchoolByDateRange(
+      classId,
+      schoolId,
+      startDate,
+      endDate,
+    );
+  }
+
+  async getCoinAndStreakCount(
+    userId: string,
+    classId: string,
+    schoolId: string,
+  ): Promise<{ coins: number; streak: number } | undefined> {
+    return this.s.getCoinAndStreakCount(userId, classId, schoolId);
+  }
+
+  async putCoins(
+    userId: string,
+    schoolId: string,
+    classId: string,
+    coins: number,
+  ): Promise<TableTypes<TABLES.UserAchivements>> {
+    return this.s.putCoins(userId, schoolId, classId, coins);
+  }
+
   getTeacherJoinedDate(
     userId: string,
     classId: string,

@@ -57,6 +57,7 @@ import Course from '../../models/course';
 import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
+  AssignmentBatchGroupRow,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -825,6 +826,7 @@ export class SupabaseApi implements ServiceApi {
         p_tables: tableNames,
         p_is_first_time: isInitialFetch, // TABLES[] should be string[] under the hood
       });
+      logger.warn('pulled results', res);
       if (res == null || res.error || !res.data) {
         let parent_user;
         try {
@@ -7491,6 +7493,113 @@ export class SupabaseApi implements ServiceApi {
 
     return { classWiseAssignments, individualAssignments };
   }
+  async getAssignmentsForClassAndSchoolByDateRange(
+    classId: string,
+    schoolId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<TableTypes<'assignment'>[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select('*')
+      .eq('class_id', classId)
+      .eq('school_id', schoolId)
+      .gte('created_at', startDate)
+      .lte('created_at', endDate)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      logger.error(
+        'Error fetching class/school assignments by date range:',
+        error,
+      );
+      return [];
+    }
+
+    return data ?? [];
+  }
+  async getAssignmentBatchGroupsForClassAndSchoolByDateRange(
+    classId: string,
+    schoolId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<AssignmentBatchGroupRow[]> {
+    if (!this.supabase) return [];
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select('batch_id, created_at')
+      .eq('class_id', classId)
+      .eq('school_id', schoolId)
+      .gte('created_at', startDate)
+      .lte('created_at', endDate)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      logger.error(
+        'Error fetching grouped assignment batches by date range:',
+        error,
+      );
+      return [];
+    }
+
+    const grouped = new Map<
+      string,
+      {
+        batchId: string | null;
+        assignmentCount: number;
+        latestCreatedAt: string | null;
+      }
+    >();
+
+    (data ?? []).forEach((row) => {
+      const batchId = row.batch_id ?? null;
+      const key = batchId ?? '__null__';
+      const existing = grouped.get(key);
+
+      if (!existing) {
+        grouped.set(key, {
+          batchId,
+          assignmentCount: 1,
+          latestCreatedAt: row.created_at ?? null,
+        });
+        return;
+      }
+
+      existing.assignmentCount += 1;
+      existing.latestCreatedAt = row.created_at ?? existing.latestCreatedAt;
+    });
+
+    return Array.from(grouped.values());
+  }
+
+  async getCoinAndStreakCount(
+    userId: string,
+    classId: string,
+    schoolId: string,
+  ): Promise<{ coins: number; streak: number } | undefined> {
+    if (!this.supabase) return;
+    const { data, error } = await this.supabase
+      .from(TABLES.UserAchivements)
+      .select('coins, streak')
+      .eq('user_id', userId)
+      .eq('class_id', classId)
+      .eq('school_id', schoolId)
+      .eq('is_deleted', false)
+      .limit(1)
+      .maybeSingle();
+    if (error) {
+      logger.error('Error fetching user achievements:', error);
+      return;
+    }
+    if (!data) return;
+    return { coins: data.coins, streak: data.streak };
+  }
+
   async getTeacherJoinedDate(
     userId: string,
     classId: string,
@@ -14786,5 +14895,88 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Exception in isSplUser:', e);
       return false;
     }
+  }
+
+  async putCoins(
+    userId: string,
+    schoolId: string,
+    classId: string,
+    coins: number,
+  ): Promise<TableTypes<TABLES.UserAchivements>> {
+    if (!this.supabase) return {} as TableTypes<TABLES.UserAchivements>;
+
+    const now = new Date().toISOString();
+    const coinsToAdd = Number(coins) || 0;
+
+    // 1) Check if row already exists for this user/class/school
+    const { data: existing, error: fetchError } = await this.supabase
+      .from(TABLES.UserAchivements)
+      .select('*')
+      .eq('user_id', userId)
+      .eq('school_id', schoolId)
+      .eq('class_id', classId)
+      .or('is_deleted.is.false,is_deleted.is.null')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchError) {
+      logger.error('Error fetching user_achievements in putCoins:', fetchError);
+      return {} as TableTypes<TABLES.UserAchivements>;
+    }
+
+    // 2) If exists -> update coins + updated_at
+    if (existing) {
+      const updatedCoins = Number(existing.coins ?? 1000) + coinsToAdd;
+
+      const { error: updateError } = await this.supabase
+        .from(TABLES.UserAchivements)
+        .update({
+          coins: updatedCoins,
+          updated_at: now,
+          is_deleted: false,
+        })
+        .eq('user_id', userId)
+        .eq('school_id', schoolId)
+        .eq('class_id', classId);
+
+      if (updateError) {
+        logger.error('Error updating user_achievements coins:', updateError);
+        return {} as TableTypes<TABLES.UserAchivements>;
+      }
+
+      return {
+        ...existing,
+        coins: updatedCoins,
+        updated_at: now,
+        is_deleted: false,
+      } as TableTypes<TABLES.UserAchivements>;
+    }
+
+    // 3) If not exists -> create row with default 1000 + reward coins
+    const newRow: TableTypes<TABLES.UserAchivements> = {
+      user_id: userId,
+      school_id: schoolId,
+      class_id: classId,
+      program_id: null,
+      coins: 1000 + coinsToAdd,
+      streak: 0,
+      last_rewarded_week: null,
+      last_penalty_week: null,
+      is_deleted: false,
+      created_at: now,
+      updated_at: now,
+    };
+
+    const { error: insertError } = await this.supabase
+      .from(TABLES.UserAchivements)
+      .insert(newRow);
+
+    if (insertError) {
+      logger.error('Error inserting user_achievements row:', insertError);
+      return {} as TableTypes<TABLES.UserAchivements>;
+    }
+
+    return newRow;
   }
 }

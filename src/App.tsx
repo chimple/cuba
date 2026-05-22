@@ -155,6 +155,7 @@ import ColoringBoard from './components/coloring/ColoringBoard';
 import PostSuccess from './teachers-module/pages/PostSuccess';
 import QRAssignments from './teachers-module/components/homePage/assignment/QRAssignments';
 import TeacherRecommendedAssignments from './teachers-module/components/homePage/assignment/TeacherRecommendedAssignments';
+import StreakPage from './teachers-module/components/streakComponent/streakPage';
 import StickerBook from './pages/StickerBook';
 import KidsAppLocation from './teachers-module/pages/KidsAppLocation';
 
@@ -749,6 +750,9 @@ const App: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.HOME_PAGE} exact={true}>
               <HomePage />
+            </ProtectedRoute>
+            <ProtectedRoute path={PAGES.STREAK_PAGE} exact={true}>
+              <StreakPage />
             </ProtectedRoute>
             <ProtectedRoute path={PAGES.TEACHER_ASSIGNMENT} exact={true}>
               <TeacherLibraryAssignments />

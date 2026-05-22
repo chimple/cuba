@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './CreateSelectedAssignment.css'; // Assuming you will have a separate CSS file for styles
 import { IonIcon } from '@ionic/react';
 import { calendarOutline } from 'ionicons/icons';
@@ -26,6 +26,7 @@ import { addDays, addMonths, format } from 'date-fns';
 import { Trans } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../../../../utility/logger';
+
 interface LessonDetail {
   subject: string;
   chapter: string;
@@ -80,11 +81,27 @@ interface CreateSelectedAssignmentProps {
   recommendedAssignments: AssignmentLookup;
 }
 
+type RewardAnimationState = {
+  visible: boolean;
+  label: string;
+  x: number;
+  y: number;
+  deltaX: number;
+  deltaY: number;
+  isFlying: boolean;
+};
+
 const CreateSelectedAssignment = ({
   selectedAssignments,
   manualAssignments,
   recommendedAssignments,
 }: CreateSelectedAssignmentProps) => {
+  const FIRST_ASSIGNMENT_REWARD = 50;
+  const SUBSEQUENT_ASSIGNMENT_REWARD = 25;
+  const REWARD_INDICATOR_DELAY_MS = 700;
+  const REWARD_FLIGHT_DURATION_MS = 1600;
+  const FLAME_PULSE_DURATION_MS = 1000;
+
   const history = useHistory();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -105,6 +122,17 @@ const CreateSelectedAssignment = ({
   const [assignmentBatchId, setAssignmentBatchId] = useState<string | null>(
     null,
   );
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [rewardAnimation, setRewardAnimation] = useState<RewardAnimationState>({
+    visible: false,
+    label: '',
+    x: 0,
+    y: 0,
+    deltaX: 0,
+    deltaY: 0,
+    isFlying: false,
+  });
+  const assignButtonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     init();
@@ -432,6 +460,9 @@ const CreateSelectedAssignment = ({
   };
 
   const createAssignmentsForStudents = async () => {
+    if (isAssigning) {
+      return;
+    }
     const studentList = getSelectedStudentList(groupWiseStudents);
     if (studentList.length <= 0) {
       await Toast.show({
@@ -440,9 +471,122 @@ const CreateSelectedAssignment = ({
       });
       return;
     }
+    setIsAssigning(true);
 
     const batchId = uuidv4();
     setAssignmentBatchId(batchId);
+
+    const pause = (ms: number) =>
+      new Promise((resolve) => window.setTimeout(resolve, ms));
+
+    const getRewardForAssignment = async (): Promise<number> => {
+      try {
+        const currentClass = Util.getCurrentClass();
+        const currentSchool = Util.getCurrentSchool();
+        const classId = currentClass?.id;
+        const schoolId = currentSchool?.id || currentClass?.school_id;
+
+        if (!classId || !schoolId) {
+          return SUBSEQUENT_ASSIGNMENT_REWARD;
+        }
+
+        const today = new Date();
+        const mondayOffset = (today.getDay() + 6) % 7;
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - mondayOffset);
+        weekStart.setHours(0, 0, 0, 0);
+
+        const weekBatchRows =
+          await api.getAssignmentBatchGroupsForClassAndSchoolByDateRange(
+            classId,
+            schoolId,
+            weekStart.toISOString(),
+            today.toISOString(),
+          );
+
+        return weekBatchRows.length <= 0
+          ? FIRST_ASSIGNMENT_REWARD
+          : SUBSEQUENT_ASSIGNMENT_REWARD;
+      } catch (error) {
+        logger.error('Error calculating weekly assignment reward:', error);
+        return SUBSEQUENT_ASSIGNMENT_REWARD;
+      }
+    };
+
+    const animateStreakFlame = async () => {
+      const streakButton =
+        (document.getElementById('header-streak-button') as HTMLElement) ||
+        (document.querySelector('.streak-container') as HTMLElement | null);
+      if (!streakButton) {
+        return;
+      }
+
+      const streakIcon =
+        (document.getElementById('header-streak-icon') as HTMLElement) ||
+        (streakButton.querySelector('.streak-icon') as HTMLElement | null);
+
+      streakButton.classList.remove('streak-container--reward-pulse');
+      streakIcon?.classList.remove('streak-icon--reward-pulse');
+      void streakButton.offsetWidth;
+
+      streakButton.classList.add('streak-container--reward-pulse');
+      streakIcon?.classList.add('streak-icon--reward-pulse');
+
+      await pause(FLAME_PULSE_DURATION_MS);
+
+      streakButton.classList.remove('streak-container--reward-pulse');
+      streakIcon?.classList.remove('streak-icon--reward-pulse');
+    };
+
+    const animateRewardToStreak = async (rewardValue: number) => {
+      const assignButton = assignButtonRef.current;
+      if (!assignButton) {
+        return;
+      }
+
+      const assignRect = assignButton.getBoundingClientRect();
+      const startX = assignRect.left + assignRect.width / 2 - 22;
+      const startY = assignRect.top - 14;
+
+      setRewardAnimation({
+        visible: true,
+        label: `+${rewardValue}`,
+        x: startX,
+        y: startY,
+        deltaX: 0,
+        deltaY: 0,
+        isFlying: false,
+      });
+
+      await pause(REWARD_INDICATOR_DELAY_MS);
+
+      const streakButton =
+        (document.getElementById('header-streak-button') as HTMLElement) ||
+        (document.querySelector('.streak-container') as HTMLElement | null);
+
+      if (!streakButton) {
+        await pause(450);
+        setRewardAnimation((prev) => ({ ...prev, visible: false }));
+        return;
+      }
+
+      const streakRect = streakButton.getBoundingClientRect();
+      const deltaX = streakRect.left + streakRect.width / 2 - startX;
+      const deltaY = streakRect.top + streakRect.height / 2 - startY;
+
+      setRewardAnimation((prev) => ({
+        ...prev,
+        deltaX,
+        deltaY,
+        isFlying: true,
+      }));
+
+      await pause(REWARD_FLIGHT_DURATION_MS);
+      setRewardAnimation((prev) => ({ ...prev, visible: false }));
+      await animateStreakFlame();
+    };
+
+    const rewardValue = await getRewardForAssignment();
 
     // Step 1: Update assignment cart immediately to remove assigned lessons from UI
     (async () => {
@@ -508,10 +652,7 @@ const CreateSelectedAssignment = ({
       }
     })();
 
-    // Step 2: Show confirmation popup immediately
-    setShowConfirm(true);
-
-    // Step 3: Run actual assignment creation in background
+    // Step 2: Run actual assignment creation in background
     (async () => {
       try {
         const current_class = await Util.getCurrentClass();
@@ -666,8 +807,33 @@ const CreateSelectedAssignment = ({
           currUser?.id,
           _totalSelectedLesson,
         );
+
+        try {
+          if (currUser?.id && current_class?.id && current_class?.school_id) {
+            await api.putCoins(
+              currUser.id,
+              current_class.school_id,
+              current_class.id,
+              rewardValue,
+            );
+          }
+        } catch (coinError) {
+          logger.error(
+            'Error updating coins after assignment creation:',
+            coinError,
+          );
+        }
+
+        await animateRewardToStreak(rewardValue);
+        setShowConfirm(true);
       } catch (error) {
         logger.error('Error creating assignments in background:', error);
+        await Toast.show({
+          text: t('Something Went wrong') || '',
+          duration: 'long',
+        });
+      } finally {
+        setIsAssigning(false);
       }
     })();
   };
@@ -875,9 +1041,23 @@ const CreateSelectedAssignment = ({
           ))}
         </section>
 
+        {rewardAnimation.visible && (
+          <div
+            className={`assign-reward-indicator ${rewardAnimation.isFlying ? 'is-flying' : ''}`}
+            style={{
+              left: `${rewardAnimation.x}px`,
+              top: `${rewardAnimation.y}px`,
+              transform: `translate(${rewardAnimation.deltaX}px, ${rewardAnimation.deltaY}px)`,
+            }}
+          >
+            {rewardAnimation.label}
+          </div>
+        )}
+
         <button
+          ref={assignButtonRef}
           className="assign-selected-button"
-          disabled={(selectedAssignments.length ?? 0) > 0}
+          disabled={(selectedAssignments.length ?? 0) > 0 || isAssigning}
           onClick={createAssignmentsForStudents}
         >
           {t('Assign')}

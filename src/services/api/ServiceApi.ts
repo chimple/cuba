@@ -113,6 +113,12 @@ export type OpsStudentPerformanceBandRow = {
   performance?: string | null;
 };
 
+export type AssignmentBatchGroupRow = {
+  batchId: string | null;
+  assignmentCount: number;
+  latestCreatedAt?: string | null;
+};
+
 export type JoinClassInviteLookupResult = {
   inviteData: any;
   classData?: TableTypes<'class'>;
@@ -1629,6 +1635,47 @@ export interface ServiceApi {
     classWiseAssignments: TableTypes<'assignment'>[];
     individualAssignments: TableTypes<'assignment'>[];
   }>;
+
+  /**
+   * Gets assignments for a specific class and school in a date range.
+   * @param {string} classId class Id
+   * @param {string} schoolId school Id
+   * @param {string} startDate inclusive start datetime (ISO)
+   * @param {string} endDate inclusive end datetime (ISO)
+   * @return assignment rows.
+   */
+  getAssignmentsForClassAndSchoolByDateRange(
+    classId: string,
+    schoolId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<TableTypes<'assignment'>[]>;
+
+  /**
+   * Gets assignments grouped by batch_id for a specific class and school in a date range.
+   */
+  getAssignmentBatchGroupsForClassAndSchoolByDateRange(
+    classId: string,
+    schoolId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<AssignmentBatchGroupRow[]>;
+
+  /**
+   * Gets coin and streak count for a specific user in a class and school.
+   */
+  getCoinAndStreakCount(
+    userId: string,
+    classId: string,
+    schoolId: string,
+  ): Promise<{ coins: number; streak: number } | undefined>;
+
+  putCoins(
+    userId: string,
+    schoolId: string,
+    classId: string,
+    coins: number,
+  ): Promise<TableTypes<TABLES.UserAchivements>>;
 
   /**
    * Gets teacher joined date.
