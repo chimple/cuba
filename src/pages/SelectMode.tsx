@@ -402,8 +402,9 @@ const SelectMode: FC = () => {
     );
     const hasAutoUserRole =
       hasAutoUserRoleFromSchoolEntries || (filteredSchools?.length ?? 0) > 0;
-    const restoredSchoolRole = restoredSchoolForMode?.id
-      ? allSchool.find((entry) => entry.school.id === restoredSchoolForMode.id)
+    const restoredSchoolForModeId = restoredSchoolForMode?.id;
+    const restoredSchoolRole = restoredSchoolForModeId
+      ? allSchool.find((entry) => entry.school.id === restoredSchoolForModeId)
           ?.role
       : undefined;
     if (restoredSchoolRole) {
