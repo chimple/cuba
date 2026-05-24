@@ -1,8 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { IonContent, IonPage } from '@ionic/react';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
 import { useHistory } from 'react-router';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { toPng } from 'html-to-image';
 import Header from '../homePage/Header';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { Util } from '../../../utility/util';
@@ -20,6 +23,17 @@ type CalendarRow = {
   days: CalendarDayCell[];
 };
 
+type StreakShareImageFile = File[] | { name: string; path: string };
+
+interface StreakPortPlugin {
+  shareContentWithAndroidShare(options: {
+    text: string;
+    title: string;
+    url?: string;
+    imageFile?: StreakShareImageFile;
+  }): Promise<void>;
+}
+
 const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 const ALL_TIME_START = '1970-01-01T00:00:00.000Z';
 const ALL_TIME_END = '9999-12-31T23:59:59.999Z';
@@ -29,6 +43,8 @@ const StreakPage: React.FC = () => {
   const service = ServiceConfig.getI();
   const api = service.apiHandler;
   const auth = service.authHandler;
+  const PortPlugin = registerPlugin<StreakPortPlugin>('Port');
+  const shareCardRef = useRef<HTMLDivElement>(null);
 
   const [visibleMonth, setVisibleMonth] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -209,6 +225,58 @@ const StreakPage: React.FC = () => {
     return rows;
   }, [visibleMonth, assignedDays]);
 
+  const dataURLtoFile = (dataUrl: string, filename: string): File => {
+    const arr = dataUrl.split(',');
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) u8arr[n] = bstr.charCodeAt(n);
+    return new File([u8arr], filename, { type: mime });
+  };
+
+  const handleShareStreak = async () => {
+    if (!shareCardRef.current) return;
+
+    const message = `I'm on ${streakCount} weeks streak with ${assignmentCount} assignments. Keep Going!`;
+
+    try {
+      const dataUrl = await toPng(shareCardRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+      });
+      const fileName = `streak-share-${Date.now()}.png`;
+
+      if (!Capacitor.isNativePlatform()) {
+        const file = dataURLtoFile(dataUrl, fileName);
+        await Util.sendContentToAndroidOrWebShare(message, 'My Streak', '', [
+          file,
+        ]);
+        return;
+      }
+
+      const base64Data = dataUrl.replace(/^data:image\/png;base64,/, '');
+      const savedFile = await Filesystem.writeFile({
+        path: fileName,
+        data: base64Data,
+        directory: Directory.Cache,
+      });
+
+      await PortPlugin.shareContentWithAndroidShare({
+        text: message,
+        title: 'My Streak',
+        url: '',
+        imageFile: {
+          name: fileName,
+          path: savedFile.uri.replace('file://', ''),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to capture or share streak card.', error);
+    }
+  };
+
   return (
     <IonPage className="streak-screen streak-page-screen">
       <Header
@@ -216,6 +284,7 @@ const StreakPage: React.FC = () => {
         customText="My Streak"
         customTextClassName="streak-page-header-text"
         onBackButtonClick={() => history.goBack()}
+        onShareClick={handleShareStreak}
         showStreakButton={false}
       />
       <IonContent className="streak-content-shell">
@@ -223,7 +292,7 @@ const StreakPage: React.FC = () => {
           <div className="streak-coin-card">
             <img
               src="assets/icons/coinIcon.png"
-              className="streak-summary-fire"
+              className="streak-summary-coin"
               alt="Coins"
             />
             <span className="streak-coin-value">{coinCount}</span>
@@ -326,6 +395,38 @@ const StreakPage: React.FC = () => {
                 })}
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="streak-share-capture-shell" aria-hidden="true">
+          <div className="streak-share-card" ref={shareCardRef}>
+            <div className="streak-share-title">I&apos;m on</div>
+
+            <div className="streak-share-stats">
+              <div className="streak-share-stat">
+                <div className="streak-share-value">
+                  {streakCount}
+                  <img
+                    src="assets/icons/streakIcon2.png"
+                    alt=""
+                    className="streak-share-flame"
+                  />
+                </div>
+                <div className="streak-share-label">Weeks Streak</div>
+              </div>
+
+              <div className="streak-share-stat">
+                <div className="streak-share-value">{assignmentCount}</div>
+                <div className="streak-share-label">Assignments</div>
+              </div>
+            </div>
+
+            <div className="streak-share-bottom">
+              <div className="streak-share-avatar">
+                <img src="assets/icons/ChimpLogo.png" alt="" />
+              </div>
+              <div className="streak-share-cta">Keep Going</div>
+            </div>
           </div>
         </div>
       </IonContent>

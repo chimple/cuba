@@ -29,14 +29,15 @@
   background: #fff;
   border: 2px solid #ff6b00;
   border-radius: 14px;
-  width: 25%;
+  width: 17%;
   min-height: 50px;
   margin-left: auto;
   padding: 0 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 5px;
+  margin-right: 4%;
 }
 
 .streak-coin-icon {
@@ -45,8 +46,8 @@
 }
 
 .streak-coin-value {
-  font-size: 40px;
-  font-weight: 700;
+  font-size: 25px;
+  font-weight: 800;
   color: #2f3137;
   line-height: 1;
 }
@@ -75,8 +76,15 @@
 }
 
 .streak-summary-fire {
-  width: 25px;
-  height: 25px;
+  width: 40px;
+  height: 50px;
+  object-fit: contain;
+  margin-bottom: 12%;
+}
+
+.streak-summary-coin {
+  width: 20px;
+  height: 28px;
   object-fit: contain;
 }
 
@@ -238,13 +246,101 @@
   color: #4b4d52;
 }
 
+.streak-share-capture-shell {
+  position: fixed;
+  top: -10000px;
+  left: -10000px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.streak-share-card {
+  width: 900px;
+  height: 720px;
+  border-radius: 88px;
+  background: #d8d1e5;
+  box-sizing: border-box;
+  padding: 86px 104px;
+  font-family: 'Nunito', sans-serif;
+  color: #35363d;
+}
+
+.streak-share-title {
+  font-size: 76px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.streak-share-stats {
+  margin-top: 62px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 64px;
+}
+
+.streak-share-stat {
+  text-align: left;
+}
+
+.streak-share-value {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 96px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.streak-share-flame {
+  width: 86px;
+  height: 86px;
+  object-fit: contain;
+}
+
+.streak-share-label {
+  margin-top: 8px;
+  font-size: 58px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.streak-share-bottom {
+  margin-top: 122px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+/* .streak-share-avatar {
+  width: 136px;
+  height: 136px;
+  border-radius: 50%;
+  background: #ff6b00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+} */
+
+.streak-share-avatar img {
+  width: 95px;
+  height: 95px;
+  object-fit: contain;
+}
+
+.streak-share-cta {
+  font-size: 78px;
+  line-height: 1;
+  font-weight: 800;
+}
+
 @media (max-width: 420px) {
   .streak-page-layout {
     max-width: 100%;
   }
 
   .streak-coin-value {
-    font-size: 48px;
+    font-size: 20px;
   }
 
   .streak-summary-value {
