@@ -52,6 +52,7 @@ const DisplayChapters: FC<{}> = () => {
   const [lessonResultMap, setLessonResultMap] = useState<{
     [lessonDocId: string]: TableTypes<'result'>;
   }>({});
+  const [, setLanguageLoadVersion] = useState(0);
   const history = useHistory();
   const location = useLocation();
   const { t, i18n } = useTranslation();
@@ -92,7 +93,9 @@ const DisplayChapters: FC<{}> = () => {
 
   useEffect(() => {
     if (forcedLanguage) {
-      void i18n.loadLanguages(forcedLanguage);
+      void i18n.loadLanguages(forcedLanguage).then(() => {
+        setLanguageLoadVersion((version) => version + 1);
+      });
     }
   }, [forcedLanguage, i18n]);
   useEffect(() => {
