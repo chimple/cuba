@@ -57,6 +57,8 @@ import Course from '../../models/course';
 import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
+  CampaignAssignmentOptions,
+  CampaignAssignmentOptionsParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -148,6 +150,15 @@ type CampaignSchoolCourseGradeRow = {
         grade?: CampaignGradeRow | CampaignGradeRow[] | null;
       }>
     | null;
+};
+
+type CampaignAssignmentCourseRow = Pick<
+  TableTypes<'course'>,
+  'id' | 'name' | 'grade_id' | 'sort_index' | 'subject_id'
+>;
+
+type CampaignAssignmentSchoolCourseRow = {
+  course?: CampaignAssignmentCourseRow | CampaignAssignmentCourseRow[] | null;
 };
 
 const firstOrSelf = <T>(value: T | T[] | null | undefined): T | null =>
@@ -9169,6 +9180,113 @@ export class SupabaseApi implements ServiceApi {
     return {
       campaignId: String(data.id),
       targetAudienceId,
+    };
+  }
+
+  async getCampaignAssignmentOptions({
+    schoolIds,
+    gradeIds,
+  }: CampaignAssignmentOptionsParams): Promise<CampaignAssignmentOptions> {
+    if (!this.supabase || gradeIds.length === 0) {
+      return { grades: [] };
+    }
+
+    const courseMap = new Map<string, CampaignAssignmentCourseRow>();
+
+    if (schoolIds.length > 0) {
+      for (const schoolIdBatch of chunkArray(schoolIds, 500)) {
+        const { data, error } = await this.supabase
+          .from('school_course')
+          .select(
+            'course:course_id(id, name, grade_id, sort_index, subject_id)',
+          )
+          .in('school_id', schoolIdBatch)
+          .eq('is_deleted', false);
+
+        if (error) {
+          logger.error('Error fetching campaign assignment courses:', error);
+          continue;
+        }
+
+        ((data ?? []) as CampaignAssignmentSchoolCourseRow[]).forEach((row) => {
+          const course = firstOrSelf(row.course);
+          if (!course?.id || !course.name || !course.grade_id) return;
+          if (!gradeIds.includes(String(course.grade_id))) return;
+          courseMap.set(String(course.id), course);
+        });
+      }
+    }
+
+    if (courseMap.size === 0) {
+      const { data, error } = await this.supabase
+        .from('course')
+        .select('id, name, grade_id, sort_index, subject_id')
+        .in('grade_id', gradeIds)
+        .eq('is_deleted', false)
+        .order('sort_index', { ascending: true });
+
+      if (error) {
+        logger.error('Error fetching fallback campaign courses:', error);
+        return {
+          grades: gradeIds.map((gradeId) => ({ gradeId, subjects: [] })),
+        };
+      }
+
+      ((data ?? []) as CampaignAssignmentCourseRow[]).forEach((course) => {
+        if (!course.id || !course.name || !course.grade_id) return;
+        courseMap.set(String(course.id), course);
+      });
+    }
+
+    const subjectsByGrade = new Map<
+      string,
+      CampaignAssignmentOptions['grades'][number]['subjects']
+    >();
+
+    const sortedCourses = Array.from(courseMap.values()).sort(
+      (a, b) =>
+        Number(a.sort_index ?? 9999) - Number(b.sort_index ?? 9999) ||
+        String(a.name).localeCompare(String(b.name)),
+    );
+
+    const subjectOptions = await Promise.all(
+      sortedCourses.map(async (course) => {
+        const chapters = await this.getChaptersForCourse(String(course.id));
+        const chapterOptions = await Promise.all(
+          chapters.map(async (chapter) => {
+            const lessons = await this.getLessonsForChapter(String(chapter.id));
+            return {
+              id: String(chapter.id),
+              name: chapter.name || 'Untitled chapter',
+              lessons: lessons.map((lesson) => ({
+                id: String(lesson.id),
+                name: lesson.name || 'Untitled lesson',
+              })),
+            };
+          }),
+        );
+
+        return {
+          id: String(course.id),
+          name: course.name,
+          gradeId: String(course.grade_id),
+          chapters: chapterOptions,
+        };
+      }),
+    );
+
+    subjectOptions.forEach((subject) => {
+      if (!subjectsByGrade.has(subject.gradeId)) {
+        subjectsByGrade.set(subject.gradeId, []);
+      }
+      subjectsByGrade.get(subject.gradeId)?.push(subject);
+    });
+
+    return {
+      grades: gradeIds.map((gradeId) => ({
+        gradeId,
+        subjects: subjectsByGrade.get(gradeId) ?? [],
+      })),
     };
   }
 

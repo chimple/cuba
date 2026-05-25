@@ -57,6 +57,8 @@ import Course from '../../models/course';
 import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
+  CampaignAssignmentOptions,
+  CampaignAssignmentOptionsParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -7052,6 +7054,12 @@ order by
     payload: CreateCampaignSetupPayload,
   ): Promise<CreateCampaignSetupResult> {
     return await this._serverApi.createCampaignSetup(payload);
+  }
+
+  async getCampaignAssignmentOptions(
+    params: CampaignAssignmentOptionsParams,
+  ): Promise<CampaignAssignmentOptions> {
+    return await this._serverApi.getCampaignAssignmentOptions(params);
   }
 
   async getUniqueGeoData(): Promise<{

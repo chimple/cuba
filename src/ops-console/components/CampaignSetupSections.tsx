@@ -12,3 +12,4 @@ export { CampaignSetupStepper } from './campaignSetup/CampaignSetupStepper';
 export { ObjectiveGoalSection } from './campaignSetup/ObjectiveGoalSection';
 export { CampaignDetailsSection } from './campaignSetup/CampaignDetailsSection';
 export { TargetAudienceSection } from './campaignSetup/TargetAudienceSection';
+export { CampaignAssignmentStep } from './campaignSetup/CampaignAssignmentStep';

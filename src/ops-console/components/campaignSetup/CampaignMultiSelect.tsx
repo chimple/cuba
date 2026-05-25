@@ -15,6 +15,7 @@ type CampaignMultiSelectProps<T> = {
   isOptionEqualToValue?: (option: T, value: T) => boolean;
   error?: boolean;
   helperText?: string;
+  renderSelectedLabel?: (selected: T[]) => React.ReactNode;
   onChange: (value: T[]) => void;
 };
 
@@ -27,6 +28,7 @@ export const CampaignMultiSelect = <T,>({
   isOptionEqualToValue,
   error,
   helperText,
+  renderSelectedLabel,
   onChange,
 }: CampaignMultiSelectProps<T>) => (
   <Autocomplete
@@ -48,7 +50,11 @@ export const CampaignMultiSelect = <T,>({
       );
     }}
     onChange={(_, nextValue) => onChange(nextValue)}
-    renderTags={(selected) => renderSelectionCount(selected, placeholder)}
+    renderTags={(selected) =>
+      renderSelectedLabel
+        ? renderSelectedLabel(selected)
+        : renderSelectionCount(selected, placeholder)
+    }
     renderInput={(params) => (
       <TextField
         {...params}
