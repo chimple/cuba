@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { getTodayDateValue } from '../hooks/campaignSetupFormHelpers';
 import CampaignSetupPage from './CampaignSetupPage';
 
 const mockGoBack = jest.fn();
@@ -130,6 +131,72 @@ describe('CampaignSetupPage', () => {
     expect(screen.queryByText('Target Type')).not.toBeInTheDocument();
   });
 
+  it('opens date pickers and restricts campaign dates to today onward', async () => {
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+
+    const startDateInput = screen.getByLabelText(
+      'Start Date',
+    ) as HTMLInputElement;
+    const endDateInput = screen.getByLabelText('End Date') as HTMLInputElement;
+    const startDatePicker = jest.fn();
+    const endDatePicker = jest.fn();
+
+    startDateInput.showPicker = startDatePicker;
+    endDateInput.showPicker = endDatePicker;
+
+    expect(startDateInput).toHaveAttribute('min', getTodayDateValue());
+    expect(endDateInput).toHaveAttribute('min', getTodayDateValue());
+
+    fireEvent.click(screen.getByLabelText('Open start date picker'));
+    fireEvent.click(screen.getByLabelText('Open end date picker'));
+
+    expect(startDatePicker).toHaveBeenCalledTimes(1);
+    expect(endDatePicker).toHaveBeenCalledTimes(1);
+
+    fireEvent.change(startDateInput, {
+      target: { value: '2099-05-01' },
+    });
+
+    expect(endDateInput).toHaveAttribute('min', '2099-05-01');
+  });
+
+  it('does not save duplicate audience group names', async () => {
+    mockApiHandler.getCampaignSetupOptions.mockResolvedValueOnce({
+      programs: [{ id: 'program-1', name: 'Early Learning' }],
+      managers: [{ id: 'manager-1', name: 'Raj Patel' }],
+      savedGroups: [
+        {
+          id: 'audience-1',
+          name: 'Reusable Group',
+          programId: 'program-1',
+          isAllSchools: true,
+          isAllGrades: true,
+          schoolIds: [],
+          gradeIds: [],
+        },
+      ],
+    });
+
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await openSelectAndChoose('Select Program', 'Early Learning');
+    fireEvent.change(screen.getByPlaceholderText('Enter group name'), {
+      target: { value: ' reusable   group ' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(
+      await screen.findAllByText(
+        'A saved group with this name already exists.',
+      ),
+    ).toHaveLength(2);
+    expect(mockApiHandler.createCampaignAudienceGroup).not.toHaveBeenCalled();
+  });
+
   it('submits setup payload without showing a success toast on next', async () => {
     render(<CampaignSetupPage />);
 
@@ -144,10 +211,10 @@ describe('CampaignSetupPage', () => {
     await openSelectAndChoose('Select Campaign Manager', 'Raj Patel');
 
     fireEvent.change(screen.getByLabelText('Start Date'), {
-      target: { value: '2026-05-01' },
+      target: { value: '2099-05-01' },
     });
     fireEvent.change(screen.getByLabelText('End Date'), {
-      target: { value: '2026-05-31' },
+      target: { value: '2099-05-31' },
     });
 
     await openSelectAndChoose('Select Program', 'Early Learning');
@@ -177,8 +244,8 @@ describe('CampaignSetupPage', () => {
           programId: 'program-1',
           targetType: 'percentage_completion',
           targetValue: 90,
-          startDate: '2026-05-01',
-          endDate: '2026-05-31',
+          startDate: '2099-05-01',
+          endDate: '2099-05-31',
           isAllGrades: true,
           gradeIds: [],
         }),

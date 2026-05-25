@@ -12,6 +12,7 @@ import {
 import {
   OBJECTIVE_DESCRIPTION,
   OBJECTIVE_OPTIONS,
+  renderSelectPlaceholder,
   requiredLabel,
   TARGET_TYPE_OPTIONS,
 } from './constants';
@@ -78,6 +79,14 @@ export const ObjectiveGoalSection: React.FC<ObjectiveGoalSectionProps> = ({
                 value={form.targetType}
                 onChange={onSelectChange('targetType')}
                 displayEmpty
+                renderValue={(value) =>
+                  renderSelectPlaceholder(
+                    value,
+                    'Select Target Type',
+                    TARGET_TYPE_OPTIONS.find((option) => option.value === value)
+                      ?.label,
+                  )
+                }
                 size="small"
               >
                 <MenuItem value="" disabled>

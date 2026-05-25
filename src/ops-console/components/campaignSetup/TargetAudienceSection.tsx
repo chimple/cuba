@@ -7,7 +7,7 @@ import {
   Select,
   Typography,
 } from '@mui/material';
-import { requiredLabel } from './constants';
+import { renderSelectPlaceholder, requiredLabel } from './constants';
 import { TargetAudienceSectionProps } from './types';
 import { CampaignMultiSelect } from './CampaignMultiSelect';
 import { AudienceSummary } from './AudienceSummary';
@@ -48,8 +48,10 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
       Target Audience
     </Typography>
     <Typography className="campaign-setup-section-copy">
-      Define your campaign audience using hierarchical filters. Program → Block
-      → School.
+      <span>Define your campaign audience using hierarchical filters.</span>{' '}
+      <span className="campaign-setup-audience-flow-copy">
+        Program → Block → School → Grade.
+      </span>
     </Typography>
 
     <Box className="campaign-setup-audience-grid">
@@ -62,6 +64,13 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             value={selectedSavedGroupId}
             onChange={onSavedGroupChange}
             displayEmpty
+            renderValue={(value) =>
+              renderSelectPlaceholder(
+                value,
+                'Select a saved group',
+                savedGroups.find((group) => group.id === value)?.name,
+              )
+            }
             size="small"
           >
             <MenuItem value="">Select a saved group</MenuItem>
@@ -83,6 +92,13 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             value={form.programId}
             onChange={onProgramChange}
             displayEmpty
+            renderValue={(value) =>
+              renderSelectPlaceholder(
+                value,
+                'Select Program',
+                programs.find((program) => program.id === value)?.name,
+              )
+            }
             size="small"
           >
             <MenuItem value="" disabled>

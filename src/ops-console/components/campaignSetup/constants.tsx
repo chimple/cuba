@@ -47,3 +47,14 @@ export const renderSelectionCount = (
     {selectedCountLabel(selected.length, placeholder)}
   </span>
 );
+
+export const renderSelectPlaceholder = (
+  value: string,
+  placeholder: string,
+  selectedLabel?: string,
+) =>
+  value ? (
+    selectedLabel
+  ) : (
+    <span className="campaign-setup-placeholder">{placeholder}</span>
+  );

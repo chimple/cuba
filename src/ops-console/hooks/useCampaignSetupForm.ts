@@ -13,6 +13,7 @@ import { CampaignAssignmentDraft } from '../components/campaignSetup/campaignAss
 import {
   buildCampaignAudiencePayload,
   getCampaignSetupValidationErrors,
+  hasDuplicateSavedGroupName,
   initialCampaignSetupForm,
   resetObjectiveFields,
 } from './campaignSetupFormHelpers';
@@ -146,8 +147,8 @@ export const useCampaignSetupForm = () => {
   );
 
   const validationErrors = useMemo(
-    () => getCampaignSetupValidationErrors(form, saveGroup),
-    [form, saveGroup],
+    () => getCampaignSetupValidationErrors(form, saveGroup, savedGroups),
+    [form, saveGroup, savedGroups],
   );
 
   const isFormValid = Object.keys(validationErrors).length === 0;
@@ -163,6 +164,13 @@ export const useCampaignSetupForm = () => {
   const handleSaveGroup = async () => {
     setSubmitAttempted(true);
     if (!form.programId || !form.groupName.trim()) {
+      return;
+    }
+    if (hasDuplicateSavedGroupName(form.groupName, savedGroups)) {
+      setMessage({
+        type: 'error',
+        text: 'A saved group with this name already exists.',
+      });
       return;
     }
 
