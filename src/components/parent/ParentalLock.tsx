@@ -175,7 +175,7 @@ const ParentalLock: React.FC<{
             <div id="parental-lock-close-icon" onClick={onHandleClose}>
               <img src="pathwayAssets/menuCross.svg" alt="Close" />
             </div>
-            <div id="parent-screen">{t('Parents Section')}</div>
+            <div id="parent-screen">{t('Confirm you are a Parent')}</div>
           </div>
 
           <FcLock

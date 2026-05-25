@@ -188,7 +188,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     },
     {
       icon: '/assets/icons/Account.svg',
-      label: 'Parents Section',
+      label: 'Confirm you are a Parent',
       onClick: () => setShowDialogBox(true),
     },
     {
@@ -198,7 +198,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     },
   ];
 
-  const HIDE_IN_SCHOOL = new Set(['Parents Section', 'Edit Profile']);
+  const HIDE_IN_SCHOOL = new Set(['Confirm you are a Parent', 'Edit Profile']);
 
   const menuItems = allMenuItems
     .filter((item) =>
