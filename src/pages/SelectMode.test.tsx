@@ -14,6 +14,8 @@ import {
   CURRENT_CLASS_NAME,
   CURRENT_SCHOOL_NAME,
   EVENTS,
+  LANG,
+  LANGUAGE,
 } from '../common/constants';
 
 const originalStderrWrite = process.stderr.write.bind(process.stderr);
@@ -85,9 +87,11 @@ const mockGetCurrMode = jest.fn();
 const mockSetCurrMode = jest.fn();
 const mockSetCurrentClass = jest.fn();
 const mockSetCurrentSchool = jest.fn();
+const mockSchoolUtilGetCurrentSchool = jest.fn();
 jest.mock('../utility/schoolUtil', () => ({
   schoolUtil: {
     getCurrMode: (...args: any[]) => mockGetCurrMode(...args),
+    getCurrentSchool: () => mockSchoolUtilGetCurrentSchool(),
     setCurrMode: (...args: any[]) => mockSetCurrMode(...args),
     setCurrentClass: (...args: any[]) => mockSetCurrentClass(...args),
     setCurrentSchool: (...args: any[]) => mockSetCurrentSchool(...args),
@@ -99,6 +103,7 @@ const mockEnsureLidoCommonAudioForStudent = jest.fn();
 const mockSetCurrentStudent = jest.fn();
 const mockLoadBackgroundImage = jest.fn();
 const mockGetCurrentSchool = jest.fn();
+const mockUtilSetCurrentSchool = jest.fn();
 const mockLogEvent = jest.fn();
 jest.mock('../utility/util', () => ({
   Util: {
@@ -108,6 +113,8 @@ jest.mock('../utility/util', () => ({
     ensureLidoCommonAudioForStudent: (...args: any[]) =>
       mockEnsureLidoCommonAudioForStudent(...args),
     setCurrentStudent: (...args: any[]) => mockSetCurrentStudent(...args),
+    setCurrentSchool: (...args: Parameters<typeof mockUtilSetCurrentSchool>) =>
+      mockUtilSetCurrentSchool(...args),
     logEvent: (eventName: string, eventParams?: Record<string, string>) =>
       mockLogEvent(eventName, eventParams),
   },
@@ -188,6 +195,8 @@ const mockApiHandler = {
   getParentStudentProfiles: jest.fn(),
   getClassesForSchool: jest.fn(),
   getStudentsForClass: jest.fn(),
+  getLanguageWithId: jest.fn(),
+  getSchoolById: jest.fn(),
   currentMode: undefined as any,
   isSplUser: jest.fn().mockResolvedValue(false),
   getUserSpecialRoles: jest.fn().mockResolvedValue([]),
@@ -218,11 +227,54 @@ jest.mock('../services/TeacherModeAuth', () => ({
 }));
 
 const SelectMode = require('./SelectMode').default;
+const i18n = require('../i18n').default;
 
 // Import the mocked hooks
 const { useAppDispatch, useAppSelector } = require('../redux/hooks');
 
 describe('SelectMode page', () => {
+  const ENGLISH_LANGUAGE_ID = 'language-en';
+  const HINDI_LANGUAGE_ID = 'language-hi';
+  const classData = { id: 'class-1', name: 'Class 1' };
+
+  const mockLanguageLookup = (): void => {
+    mockApiHandler.getLanguageWithId.mockImplementation(
+      async (languageId: string) => {
+        if (languageId === ENGLISH_LANGUAGE_ID) {
+          return { id: ENGLISH_LANGUAGE_ID, code: LANG.ENGLISH };
+        }
+
+        if (languageId === HINDI_LANGUAGE_ID) {
+          return { id: HINDI_LANGUAGE_ID, code: LANG.HINDI };
+        }
+
+        return undefined;
+      },
+    );
+  };
+
+  const renderAutoUserSchoolMode = (
+    school: { id: string; name: string; language?: string | null },
+    student?: { id: string; language_id?: string | null },
+  ): void => {
+    localStorage.setItem(CURRENT_SCHOOL_NAME, JSON.stringify(school.name));
+    localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(classData));
+    localStorage.setItem(SELECTED_CLASSES, JSON.stringify([classData]));
+    mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
+    mockSchoolUtilGetCurrentSchool.mockReturnValue(school);
+    mockGetCurrentStudent.mockReturnValue(student);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school, role: 'AUTOUSER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: school.id },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([classData]);
+
+    render(<SelectMode />);
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
@@ -246,16 +298,85 @@ describe('SelectMode page', () => {
     mockApiHandler.getParentStudentProfiles.mockResolvedValue([]);
     mockApiHandler.getClassesForSchool.mockResolvedValue([]);
     mockApiHandler.getStudentsForClass.mockResolvedValue([]);
+    mockApiHandler.getLanguageWithId.mockResolvedValue(undefined);
+    mockApiHandler.getSchoolById.mockResolvedValue(undefined);
     mockApiHandler.currentMode = undefined;
     mockApiHandler.isSplUser.mockResolvedValue(false);
     mockApiHandler.getUserSpecialRoles.mockResolvedValue([]);
     mockAuthHandler.getCurrentUser.mockResolvedValue(null);
     mockAuthHandler.getUser.mockResolvedValue({ data: { user: null } });
     mockGetCurrMode.mockResolvedValue(undefined);
+    mockSchoolUtilGetCurrentSchool.mockReturnValue(undefined);
     mockGetCurrentSchool.mockReturnValue(undefined);
+    mockGetCurrentStudent.mockReturnValue(undefined);
     mockLogEvent.mockResolvedValue(undefined);
     mockRequireTeacherModeAuth.mockResolvedValue('popupFallbackRequired');
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
+  });
+
+  it('applies school language over current student language for autouser school mode', async () => {
+    mockLanguageLookup();
+    renderAutoUserSchoolMode(
+      {
+        id: 'school-1',
+        name: 'School 1',
+        language: ENGLISH_LANGUAGE_ID,
+      },
+      { id: 'student-1', language_id: HINDI_LANGUAGE_ID },
+    );
+
+    await waitFor(() =>
+      expect(i18n.changeLanguage).toHaveBeenLastCalledWith(LANG.ENGLISH),
+    );
+    expect(localStorage.getItem(LANGUAGE)).toBe(LANG.ENGLISH);
+    expect(mockApiHandler.getLanguageWithId).toHaveBeenCalledWith(
+      ENGLISH_LANGUAGE_ID,
+    );
+  });
+
+  it('refreshes an incomplete stored school before falling back to student language', async () => {
+    mockLanguageLookup();
+    const school = { id: 'school-1', name: 'School 1' };
+    mockApiHandler.getSchoolById.mockResolvedValue({
+      ...school,
+      language: ENGLISH_LANGUAGE_ID,
+    });
+    renderAutoUserSchoolMode(school, {
+      id: 'student-1',
+      language_id: HINDI_LANGUAGE_ID,
+    });
+
+    await waitFor(() =>
+      expect(i18n.changeLanguage).toHaveBeenLastCalledWith(LANG.ENGLISH),
+    );
+    expect(localStorage.getItem(LANGUAGE)).toBe(LANG.ENGLISH);
+    expect(mockApiHandler.getSchoolById).toHaveBeenCalledWith('school-1');
+  });
+
+  it('uses student language when autouser school has no language', async () => {
+    mockLanguageLookup();
+    const school = { id: 'school-1', name: 'School 1', language: null };
+    mockApiHandler.getSchoolById.mockResolvedValue(school);
+    renderAutoUserSchoolMode(school, {
+      id: 'student-1',
+      language_id: HINDI_LANGUAGE_ID,
+    });
+
+    await waitFor(() =>
+      expect(i18n.changeLanguage).toHaveBeenLastCalledWith(LANG.HINDI),
+    );
+    expect(localStorage.getItem(LANGUAGE)).toBe(LANG.HINDI);
+  });
+
+  it('uses English when autouser school and current student have no language', async () => {
+    const school = { id: 'school-1', name: 'School 1', language: null };
+    mockApiHandler.getSchoolById.mockResolvedValue(school);
+    renderAutoUserSchoolMode(school);
+
+    await waitFor(() =>
+      expect(i18n.changeLanguage).toHaveBeenLastCalledWith(LANG.ENGLISH),
+    );
+    expect(localStorage.getItem(LANGUAGE)).toBe(LANG.ENGLISH);
   });
 
   it('loads the shared app background image', async () => {
@@ -608,6 +729,57 @@ describe('SelectMode page', () => {
       expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER_SCHOOL);
       expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
     });
+  });
+
+  it('routes selected teacher-role school back to full teacher mode from school mode', async () => {
+    const user = userEvent.setup();
+    const teacherSchool = { id: 'school-1', name: 'Teacher School' };
+    const autoUserSchool = { id: 'school-2', name: 'Auto User School' };
+
+    mockRequireTeacherModeAuth.mockResolvedValue('success');
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockSchoolUtilGetCurrentSchool.mockReturnValue(teacherSchool);
+    mockGetCurrentSchool.mockReturnValue(teacherSchool);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: teacherSchool, role: 'TEACHER' },
+      { school: autoUserSchool, role: 'AUTOUSER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-2' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([
+      { id: 'class-1', name: 'Class 1' },
+    ]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    const teacherButton = await screen.findByRole('button', {
+      name: /teacher/i,
+    });
+    await user.click(teacherButton);
+
+    await waitFor(() => {
+      expect(mockRequireTeacherModeAuth).toHaveBeenCalled();
+      expect(mockUtilSetCurrentSchool).toHaveBeenCalledWith(
+        teacherSchool,
+        'TEACHER',
+      );
+      expect(mockSetCurrentSchool).toHaveBeenCalledWith(teacherSchool);
+      expect(mockApiHandler.currentMode).toBe(MODES.TEACHER);
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE);
+    });
+    expect(mockLogEvent).not.toHaveBeenCalledWith(
+      EVENTS.TEACHER_APP_ENTRY_CLICKED,
+      {
+        user_role: 'auto_user',
+        auth_method_attempted: 'biometric',
+      },
+    );
   });
 
   it('routes to teacher dashboard with TEACHER_SCHOOL mode after math auth fallback from class mode', async () => {

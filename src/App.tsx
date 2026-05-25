@@ -167,6 +167,8 @@ interface ExtraData {
 interface WindowEventMap {
   shouldShowModal: CustomEvent<boolean>;
 }
+type GrowthBookJsonConfig = Record<string, unknown>;
+
 const TIME_LIMIT = 1500; // 25 * 60
 const LAST_MODAL_SHOWN_KEY = 'lastTimeExceededShown';
 const START_TIME_KEY = 'startTime';
@@ -213,6 +215,10 @@ const App: React.FC = () => {
     HOMEWORK_PATHWAY_ASSETS,
     {},
   );
+  const palLearningRatesConfig = useFeatureValue<GrowthBookJsonConfig>(
+    PAL_LEARNING_RATES_CONFIG,
+    {},
+  );
 
   const OpsConsoleRouteWatcher = () => {
     const location = useLocation();
@@ -251,12 +257,6 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!growthbook) return;
-
-    const palLearningRatesConfig = growthbook.getFeatureValue(
-      PAL_LEARNING_RATES_CONFIG,
-      null,
-    );
     if (
       palLearningRatesConfig &&
       typeof palLearningRatesConfig === 'object' &&
@@ -267,6 +267,10 @@ const App: React.FC = () => {
         palLearningRatesConfig,
       );
     }
+  }, [palLearningRatesConfig]);
+
+  useEffect(() => {
+    if (!growthbook) return;
 
     const popupConfig = growthbook.getFeatureValue(GENERIC_POP_UP, null) as any;
 

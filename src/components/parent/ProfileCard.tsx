@@ -200,7 +200,7 @@ const ProfileCard: React.FC<{
             Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
           }}
         >
-          Progress
+          {t('Progress')}
         </div>
       ) : (
         <p className="profile-card-empty-element">&#9679;</p>
@@ -209,7 +209,7 @@ const ProfileCard: React.FC<{
         <DialogBoxButtons
           width={'40vw'}
           height={'30vh'}
-          message={t("Choose the below options to manage your kid's profile.")}
+          message={t('Choose the below options to manage your kid’s profile.')}
           showDialogBox={showDialogBox}
           yesText={t('Edit Profile')}
           noText={t('Delete Profile')}
@@ -220,7 +220,7 @@ const ProfileCard: React.FC<{
           handleClose={() => {
             setShowDialogBox(false);
           }}
-          onYesButtonClicked={async ({}) => {
+          onYesButtonClicked={async () => {
             logProfileCardAction('edit_profile');
             // Passing false to not change the student language as it is not required for edit student screen
             await Util.setCurrentStudent(user, undefined, false, false);
@@ -229,7 +229,7 @@ const ProfileCard: React.FC<{
             });
             setShowDialogBox(false);
           }}
-          onNoButtonClicked={async ({}) => {
+          onNoButtonClicked={async () => {
             logProfileCardAction('delete_profile');
             setShowWarningDialogBox(true);
           }}
@@ -251,7 +251,7 @@ const ProfileCard: React.FC<{
             });
             setShowWarningDialogBox(false);
           }}
-          onYesButtonClicked={async ({}) => {
+          onYesButtonClicked={async () => {
             void Util.logEvent(EVENTS.PROFILE_DELETION_CONFIRMED, {
               target_student_id: user.id,
             });
@@ -276,7 +276,7 @@ const ProfileCard: React.FC<{
             Util.logEvent(EVENTS.USER_PROFILE, eventParams);
             setIsLoading(false);
           }}
-          onNoButtonClicked={async ({}) => {
+          onNoButtonClicked={async () => {
             void Util.logEvent(EVENTS.PROFILE_DELETION_CANCELLED, {
               target_student_id: user.id,
             });

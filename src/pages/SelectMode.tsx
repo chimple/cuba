@@ -2,7 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { IonPage } from '@ionic/react';
 import { t } from 'i18next';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { GiTeacher } from 'react-icons/gi';
 import { IoMdPeople } from 'react-icons/io';
 import { useHistory } from 'react-router';
@@ -11,6 +11,7 @@ import {
   CURRENT_CLASS_NAME,
   CURRENT_SCHOOL_NAME,
   EVENTS,
+  LANG,
   LANGUAGE,
   MODES,
   PAGES,
@@ -38,12 +39,18 @@ import {
   setUser,
 } from '../redux/slices/auth/authSlice';
 import { RootState } from '../redux/store';
+import type { ServiceApi } from '../services/api/ServiceApi';
 import { ServiceConfig } from '../services/ServiceConfig';
 import {
   requireTeacherModeAuth,
   TeacherModeAuthResult,
 } from '../services/TeacherModeAuth';
 import logger from '../utility/logger';
+import {
+  isAutoUserRole,
+  isTeacherAppRole,
+  resolveTeacherAppModeForRole,
+} from '../utility/roleUtil';
 import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
 import { ReactComponent as BrandLogoIcon } from './assets/brandLogoIcon.svg';
@@ -52,10 +59,10 @@ import './SelectMode.css';
 import { logClassTabClassChanged } from './selectModeAnalytics';
 
 const VISIBLE_CLASS_COUNT = 3;
-const isRole = (
-  roleValue: string | null | undefined,
-  roleToMatch: RoleType,
-): boolean => (roleValue ?? '').toLowerCase() === roleToMatch;
+const CLASS_NAME_COLLATOR = new Intl.Collator(undefined, {
+  numeric: true,
+  sensitivity: 'base',
+});
 
 const getInitialSelectedClass = (
   classes: TableTypes<'class'>[],
@@ -71,41 +78,129 @@ const getInitialSelectedClass = (
   return classes[0];
 };
 
+const sortClassesByName = (
+  classes: TableTypes<'class'>[],
+): TableTypes<'class'>[] =>
+  [...classes].sort((firstClass, secondClass) =>
+    CLASS_NAME_COLLATOR.compare(firstClass.name, secondClass.name),
+  );
+
+type AutoUserModeLanguageApi = Pick<
+  ServiceApi,
+  'getLanguageWithId' | 'getSchoolById'
+>;
+
+interface SchoolModeOption {
+  id: string;
+  displayName: string;
+  school: TableTypes<'school'>;
+  role: RoleType;
+}
+
+const SUPPORTED_LANGUAGE_CODES = new Set<string>(Object.values(LANG));
+
+const getLanguageCodeForId = async (
+  apiHandler: AutoUserModeLanguageApi,
+  languageId: string,
+): Promise<string | undefined> => {
+  if (SUPPORTED_LANGUAGE_CODES.has(languageId)) {
+    return languageId;
+  }
+
+  try {
+    const language = await apiHandler.getLanguageWithId(languageId);
+    return language?.code ?? undefined;
+  } catch (error) {
+    logger.error('Failed to resolve auto user mode language:', error);
+    return undefined;
+  }
+};
+
+const resolveAutoUserModeLanguageCode = async (
+  apiHandler: AutoUserModeLanguageApi,
+  currentSchool?: TableTypes<'school'>,
+): Promise<string> => {
+  const candidateSchool =
+    currentSchool ?? schoolUtil.getCurrentSchool() ?? Util.getCurrentSchool();
+
+  if (candidateSchool?.language) {
+    const schoolLanguageCode = await getLanguageCodeForId(
+      apiHandler,
+      candidateSchool.language,
+    );
+
+    if (schoolLanguageCode) {
+      return schoolLanguageCode;
+    }
+  }
+
+  if (candidateSchool?.id) {
+    try {
+      const freshSchool = await apiHandler.getSchoolById(candidateSchool.id);
+      if (freshSchool?.language) {
+        const freshSchoolLanguageCode = await getLanguageCodeForId(
+          apiHandler,
+          freshSchool.language,
+        );
+
+        if (freshSchoolLanguageCode) {
+          return freshSchoolLanguageCode;
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to refresh auto user school language:', error);
+    }
+  }
+
+  const studentLanguageId = Util.getCurrentStudent()?.language_id;
+  if (studentLanguageId) {
+    const studentLanguageCode = await getLanguageCodeForId(
+      apiHandler,
+      studentLanguageId,
+    );
+
+    if (studentLanguageCode) {
+      return studentLanguageCode;
+    }
+  }
+
+  return LANG.ENGLISH;
+};
+
+const applyAutoUserModeLanguage = async (
+  apiHandler: AutoUserModeLanguageApi,
+  school?: TableTypes<'school'>,
+): Promise<void> => {
+  const languageCode = await resolveAutoUserModeLanguageCode(
+    apiHandler,
+    school,
+  );
+  localStorage.setItem(LANGUAGE, languageCode);
+  await i18n.changeLanguage(languageCode);
+};
+
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [schoolList, setSchoolList] = useState<
-    {
-      id: string;
-      displayName: string;
-      school: TableTypes<'school'>;
-    }[]
-  >([]);
+  const [schoolList, setSchoolList] = useState<SchoolModeOption[]>([]);
   const [currentSchoolName, setCurrentSchoolName] = useState<string>();
   const [currentSchool, setCurrentSchool] = useState<TableTypes<'school'>>();
   const [currentSchoolId, setCurrentSchoolId] = useState<string>();
+  const [currentSchoolRole, setCurrentSchoolRole] = useState<RoleType>();
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'>>();
   const [currentClasses, setCurrentClasses] = useState<TableTypes<'class'>[]>();
   const [currentStudents, setCurrentStudents] =
     useState<TableTypes<'user'>[]>();
   const [currStudent, setCurrStudent] = useState<TableTypes<'user'>>();
   const [currClass, setCurrClass] = useState<TableTypes<'class'>>();
-  const [activeClassNavDirection, setActiveClassNavDirection] = useState<
-    'previous' | 'next' | null
-  >(null);
   const [classWindowStartIndex, setClassWindowStartIndex] = useState(0);
   const [isTeacherAuthPopupOpen, setIsTeacherAuthPopupOpen] = useState(false);
   const [isAutoUser, setIsAutoUser] = useState<boolean>(false);
   let count = 1;
-  const tempSchoolList: {
-    id: string;
-    displayName: string;
-    school: TableTypes<'school'>;
-  }[] = [];
+  const tempSchoolList: SchoolModeOption[] = [];
   useEffect(() => {
     Util.loadBackgroundImage();
     restoreAuth();
     init();
-    changeLanguage();
     return () => {
       setIsLoading(false);
     };
@@ -123,6 +218,10 @@ const SelectMode: FC = () => {
     isOpsUser,
     roles,
   } = useAppSelector((state: RootState) => state.auth as AuthState);
+  const sortedCurrentClasses = useMemo<TableTypes<'class'>[]>(
+    () => sortClassesByName(currentClasses ?? []),
+    [currentClasses],
+  );
   useEffect(() => {
     if (currClass && stage === STAGES.STUDENT) {
       displayStudents(currClass);
@@ -132,13 +231,13 @@ const SelectMode: FC = () => {
     if (!currClass?.id) {
       return;
     }
-    const classIndex =
-      currentClasses?.findIndex((classItem) => classItem.id === currClass.id) ??
-      -1;
-    if (classIndex >= 0 && currentClasses) {
+    const classIndex = sortedCurrentClasses.findIndex(
+      (classItem) => classItem.id === currClass.id,
+    );
+    if (classIndex >= 0) {
       const maxStartIndex = Math.max(
         0,
-        currentClasses.length - VISIBLE_CLASS_COUNT,
+        sortedCurrentClasses.length - VISIBLE_CLASS_COUNT,
       );
       setClassWindowStartIndex((currentStartIndex) => {
         const visibleEndIndex = currentStartIndex + VISIBLE_CLASS_COUNT - 1;
@@ -163,13 +262,14 @@ const SelectMode: FC = () => {
           behavior: 'smooth',
         });
     });
-  }, [currClass?.id, currentClasses, stage]);
+  }, [currClass?.id, sortedCurrentClasses, stage]);
   const applyOrientationForMode = async (mode?: string) => {
     if (!mode || !Capacitor.isNativePlatform()) return;
 
     if (
       mode === MODES.PARENT ||
       mode === MODES.SCHOOL ||
+      mode === MODES.TEACHER_HOME ||
       mode === MODES.TEACHER_SCHOOL
     ) {
       await ScreenOrientation.lock({ orientation: 'landscape' });
@@ -189,7 +289,19 @@ const SelectMode: FC = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const setTab = urlParams.get('tab');
     const currentMode = await schoolUtil.getCurrMode();
+    const isSchoolMode =
+      currentMode === MODES.SCHOOL || currentMode === MODES.TEACHER_SCHOOL;
+    let restoredSchoolForMode: TableTypes<'school'> | undefined;
+
+    if (!isSchoolMode) {
+      await changeLanguage();
+    }
+
     await applyOrientationForMode(currentMode);
+    if (currentMode === MODES.TEACHER_HOME) {
+      history.replace(PAGES.DISPLAY_STUDENT);
+      return;
+    }
     if (setTab) {
       if (setTab === STAGES.STUDENT) {
         setStage(STAGES.STUDENT);
@@ -241,15 +353,24 @@ const SelectMode: FC = () => {
       currentMode === MODES.SCHOOL ||
       currentMode === MODES.TEACHER_SCHOOL
     ) {
+      const storedSchool = schoolUtil.getCurrentSchool();
+      restoredSchoolForMode = storedSchool;
+      if (storedSchool) {
+        setCurrentSchool(storedSchool);
+      }
       const schoolName = localStorage.getItem(CURRENT_SCHOOL_NAME);
-      if (schoolName) setCurrentSchoolName(JSON.parse(schoolName));
+      if (schoolName) {
+        setCurrentSchoolName(JSON.parse(schoolName));
+      } else if (storedSchool?.name) {
+        setCurrentSchoolName(storedSchool.name);
+      }
       const className = localStorage.getItem(CURRENT_CLASS_NAME);
       if (className) {
         const parsedClass = JSON.parse(className);
         setCurrClass(parsedClass);
         await schoolUtil.setCurrentClass(parsedClass);
       }
-      if (schoolName && className) {
+      if ((schoolName || storedSchool) && className) {
         const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
         if (selectedUser) {
           const parsedClass = JSON.parse(className);
@@ -271,7 +392,7 @@ const SelectMode: FC = () => {
     if (!currUser) return;
     const allSchool = await api.getSchoolsForUser(currUser.id);
     const hasAutoUserRoleFromSchoolEntries = allSchool.some((schoolEntry) =>
-      isRole(schoolEntry.role, RoleType.AUTOUSER),
+      isAutoUserRole(schoolEntry.role),
     );
     // Extract school IDs from schoolList
     const schoolIds = allSchool.map((school) => school.school.id);
@@ -281,8 +402,24 @@ const SelectMode: FC = () => {
     );
     const hasAutoUserRole =
       hasAutoUserRoleFromSchoolEntries || (filteredSchools?.length ?? 0) > 0;
+    const restoredSchoolForModeId = restoredSchoolForMode?.id;
+    const restoredSchoolRole = restoredSchoolForModeId
+      ? allSchool.find((entry) => entry.school.id === restoredSchoolForModeId)
+          ?.role
+      : undefined;
+    if (restoredSchoolRole) {
+      setCurrentSchoolRole(restoredSchoolRole);
+    }
     if (hasAutoUserRole) {
       logger.info('This user is auto user: true');
+      const shouldApplyRestoredAutoUserLanguage = restoredSchoolRole
+        ? isAutoUserRole(restoredSchoolRole)
+        : true;
+      if (isSchoolMode && shouldApplyRestoredAutoUserLanguage) {
+        await applyAutoUserModeLanguage(api, restoredSchoolForMode);
+      }
+    } else if (isSchoolMode) {
+      await changeLanguage();
     }
     setIsAutoUser(hasAutoUserRole);
     const filteredSchoolIds = filteredSchools?.map((school) => school.id) || [];
@@ -291,11 +428,8 @@ const SelectMode: FC = () => {
       filteredSchoolIds.includes(entry.school.id),
     );
 
-    const teacherRoleEntries = allSchool.filter(
-      (entry) =>
-        isRole(entry.role, RoleType.TEACHER) ||
-        isRole(entry.role, RoleType.PRINCIPAL) ||
-        isRole(entry.role, RoleType.COORDINATOR),
+    const teacherRoleEntries = allSchool.filter((entry) =>
+      isTeacherAppRole(entry.role),
     );
 
     const hasStudentsInSchool = async (schoolId: string, userId: string) => {
@@ -359,6 +493,7 @@ const SelectMode: FC = () => {
           id: element.school.id,
           displayName: element.school.name,
           school: element.school,
+          role: element.role,
         });
       }
       setCurrentUser(currUser);
@@ -367,6 +502,10 @@ const SelectMode: FC = () => {
         const selectedUser = localStorage.getItem(USER_SELECTION_STAGE);
         if (tempSchoolList.length === 1) {
           setCurrentSchool(tempSchoolList[0].school);
+          setCurrentSchoolRole(tempSchoolList[0].role);
+          if (isAutoUserRole(tempSchoolList[0].role)) {
+            await applyAutoUserModeLanguage(api, tempSchoolList[0].school);
+          }
           const selectedClass = await displayClasses(
             tempSchoolList[0].school,
             currUser,
@@ -385,12 +524,16 @@ const SelectMode: FC = () => {
 
           if (matchingEntry) {
             setCurrentSchool(matchingEntry.school);
+            setCurrentSchoolRole(matchingEntry.role);
             schoolUtil.setCurrentSchool(matchingEntry.school);
             localStorage.setItem(
               CURRENT_SCHOOL_NAME,
               JSON.stringify(matchingEntry.school.name),
             );
             setCurrentSchoolName(matchingEntry.school.name);
+            if (isAutoUserRole(matchingEntry.role)) {
+              await applyAutoUserModeLanguage(api, matchingEntry.school);
+            }
             const selectedClass = await displayClasses(
               matchingEntry.school,
               currUser,
@@ -465,6 +608,14 @@ const SelectMode: FC = () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     // setStage(STAGES.MODE);
   };
+  const getSelectedSchoolRole = (): RoleType | undefined =>
+    currentSchoolRole ??
+    schoolList.find((schoolOption) => schoolOption.id === currentSchool?.id)
+      ?.role;
+  const shouldUseAutoUserForSelectedSchool = (): boolean => {
+    const selectedSchoolRole = getSelectedSchoolRole();
+    return selectedSchoolRole ? isAutoUserRole(selectedSchoolRole) : isAutoUser;
+  };
 
   const onSchoolModeSelect = async (): Promise<void> => {
     await applyOrientationForMode(MODES.SCHOOL);
@@ -472,6 +623,9 @@ const SelectMode: FC = () => {
     await schoolUtil.setCurrMode(MODES.SCHOOL);
 
     if (currentSchool) {
+      if (shouldUseAutoUserForSelectedSchool()) {
+        await applyAutoUserModeLanguage(api, currentSchool);
+      }
       const selectedClass = await displayClasses(currentSchool, currentUser);
       setStage(selectedClass ? STAGES.STUDENT : STAGES.CLASS);
       return;
@@ -480,12 +634,16 @@ const SelectMode: FC = () => {
     if (schoolList.length === 1 && currentUser) {
       const selectedSchool = schoolList[0].school;
       setCurrentSchool(selectedSchool);
+      setCurrentSchoolRole(schoolList[0].role);
       schoolUtil.setCurrentSchool(selectedSchool);
       localStorage.setItem(
         CURRENT_SCHOOL_NAME,
         JSON.stringify(selectedSchool.name),
       );
       setCurrentSchoolName(selectedSchool.name);
+      if (isAutoUserRole(schoolList[0].role)) {
+        await applyAutoUserModeLanguage(api, selectedSchool);
+      }
       const selectedClass = await displayClasses(selectedSchool, currentUser);
       setStage(selectedClass ? STAGES.STUDENT : STAGES.CLASS);
       return;
@@ -495,24 +653,37 @@ const SelectMode: FC = () => {
   };
 
   const continueToTeacherMode = async () => {
-    await applyOrientationForMode(MODES.TEACHER_SCHOOL);
+    const selectedSchoolRole = getSelectedSchoolRole();
+    const shouldUseAutoUserPermissions = shouldUseAutoUserForSelectedSchool();
+    const teacherMode = resolveTeacherAppModeForRole(
+      selectedSchoolRole,
+      isAutoUser,
+    );
+    await applyOrientationForMode(teacherMode);
     if (currentSchool) {
+      if (selectedSchoolRole) {
+        await Util.setCurrentSchool(currentSchool, selectedSchoolRole);
+      }
       await schoolUtil.setCurrentSchool(currentSchool);
     }
     if (currClass) {
       await schoolUtil.setCurrentClass(currClass);
     }
-    api.currentMode = MODES.TEACHER_SCHOOL;
-    schoolUtil.setCurrMode(MODES.TEACHER_SCHOOL);
+    if (shouldUseAutoUserPermissions) {
+      await applyAutoUserModeLanguage(api, currentSchool);
+    }
+    api.currentMode = teacherMode;
+    schoolUtil.setCurrMode(teacherMode);
     setStage(STAGES.TEACHER);
     history.replace(PAGES.HOME_PAGE);
   };
 
   const onTeacherSelect = async () => {
     const teacherModeAuthResult = await requireTeacherModeAuth();
+    const shouldLogAutoUser = shouldUseAutoUserForSelectedSchool();
 
     if (teacherModeAuthResult === TeacherModeAuthResult.success) {
-      if (isAutoUser) {
+      if (shouldLogAutoUser) {
         Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
           user_role: TEACHER_APP_USER_ROLES.AUTO_USER,
           auth_method_attempted: TEACHER_APP_AUTH_METHODS.BIOMETRIC,
@@ -526,7 +697,7 @@ const SelectMode: FC = () => {
     }
 
     if (teacherModeAuthResult === TeacherModeAuthResult.popupFallbackRequired) {
-      if (isAutoUser) {
+      if (shouldLogAutoUser) {
         Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
           user_role: TEACHER_APP_USER_ROLES.AUTO_USER,
           auth_method_attempted: TEACHER_APP_AUTH_METHODS.MATH_GATE,
@@ -536,7 +707,7 @@ const SelectMode: FC = () => {
       return;
     }
 
-    if (isAutoUser) {
+    if (shouldLogAutoUser) {
       Util.logEvent(EVENTS.TEACHER_APP_ENTRY_CLICKED, {
         user_role: TEACHER_APP_USER_ROLES.AUTO_USER,
         auth_method_attempted: TEACHER_APP_AUTH_METHODS.BIOMETRIC,
@@ -610,19 +781,22 @@ const SelectMode: FC = () => {
     }
   };
   const onClassNavigation = (direction: 'previous' | 'next'): void => {
-    if (!currentClasses || currentClasses.length === 0) {
+    if (sortedCurrentClasses.length === 0) {
       return;
     }
-    const maxStartIndex = Math.max(
-      0,
-      currentClasses.length - VISIBLE_CLASS_COUNT,
-    );
+
+    if (
+      (direction === 'previous' && isPreviousClassNavigationDisabled) ||
+      (direction === 'next' && isNextClassNavigationDisabled)
+    ) {
+      return;
+    }
+
     const nextWindowStartIndex =
       direction === 'previous'
         ? Math.max(0, classWindowStartIndex - 1)
-        : Math.min(maxStartIndex, classWindowStartIndex + 1);
+        : Math.min(maxClassWindowStartIndex, classWindowStartIndex + 1);
     setClassWindowStartIndex(nextWindowStartIndex);
-    setActiveClassNavDirection(direction);
   };
   const getStudentAvatarSrc = (student: TableTypes<'user'>): string => {
     if (student.image) {
@@ -639,26 +813,38 @@ const SelectMode: FC = () => {
     let random = Math.floor(Math.random() * 37);
     return random;
   }
-  const shouldShowClassArrows = (currentClasses?.length ?? 0) > 3;
+  const maxClassWindowStartIndex = Math.max(
+    0,
+    sortedCurrentClasses.length - VISIBLE_CLASS_COUNT,
+  );
+  const shouldShowClassArrows =
+    sortedCurrentClasses.length > VISIBLE_CLASS_COUNT;
+  const isPreviousClassNavigationDisabled = classWindowStartIndex <= 0;
+  const isNextClassNavigationDisabled =
+    classWindowStartIndex >= maxClassWindowStartIndex;
   const visibleClasses = shouldShowClassArrows
-    ? currentClasses?.slice(
+    ? sortedCurrentClasses.slice(
         classWindowStartIndex,
         classWindowStartIndex + VISIBLE_CLASS_COUNT,
       )
-    : currentClasses;
+    : sortedCurrentClasses;
   const classProfileSelectionText = currClass?.name
     ? t("{{className}} - Select the child's profile", {
         className: currClass.name,
       })
     : '';
-  const highlightedClassNavDirection = shouldShowClassArrows
-    ? classWindowStartIndex === 0
-      ? 'next'
-      : 'previous'
-    : activeClassNavDirection;
   const classStripClassName = `school-mode-class-strip ${
     shouldShowClassArrows ? '' : 'school-mode-class-strip-static'
   }`;
+  const previousClassNavigationClassName = `school-mode-nav-button ${
+    isPreviousClassNavigationDisabled ? '' : 'school-mode-nav-button-active'
+  }`;
+  const nextClassNavigationClassName = `school-mode-nav-button ${
+    isNextClassNavigationDisabled ? '' : 'school-mode-nav-button-active'
+  }`;
+  const studentGridClassName = `class-container school-mode-students-grid ${
+    currentStudents?.length === 1 ? 'school-mode-students-grid-single' : ''
+  } ${currentStudents?.length === 2 ? 'school-mode-students-grid-pair' : ''}`;
   return (
     <IonPage className="select-mode-page">
       {!isLoading && (
@@ -708,7 +894,11 @@ const SelectMode: FC = () => {
                       setIsOkayButtonDisabled(true);
                       return;
                     }
+                    const selectedSchoolEntry = schoolList.find(
+                      (element) => element.id === selectedSchoolDocId,
+                    );
                     setCurrentSchool(currSchool);
+                    setCurrentSchoolRole(selectedSchoolEntry?.role);
                     localStorage.setItem(
                       CURRENT_SCHOOL_NAME,
                       JSON.stringify(currSchool.name),
@@ -717,6 +907,9 @@ const SelectMode: FC = () => {
                     setCurrentSchoolId(currSchool.id);
                     setIsOkayButtonDisabled(false);
                     schoolUtil.setCurrentSchool(currSchool);
+                    if (isAutoUserRole(selectedSchoolEntry?.role)) {
+                      await applyAutoUserModeLanguage(api, currSchool);
+                    }
                   }}
                   optionList={schoolList}
                   width="26vw"
@@ -762,11 +955,8 @@ const SelectMode: FC = () => {
                     <button
                       id="school-mode-prev-class-button"
                       type="button"
-                      className={`school-mode-nav-button ${
-                        highlightedClassNavDirection === 'previous'
-                          ? 'school-mode-nav-button-active'
-                          : ''
-                      }`}
+                      className={previousClassNavigationClassName}
+                      disabled={isPreviousClassNavigationDisabled}
                       onClick={() => onClassNavigation('previous')}
                     >
                       <LeftArrowIcon className="school-mode-nav-arrow" />
@@ -795,11 +985,8 @@ const SelectMode: FC = () => {
                     <button
                       id="school-mode-next-class-button"
                       type="button"
-                      className={`school-mode-nav-button ${
-                        highlightedClassNavDirection === 'next'
-                          ? 'school-mode-nav-button-active'
-                          : ''
-                      }`}
+                      className={nextClassNavigationClassName}
+                      disabled={isNextClassNavigationDisabled}
                       onClick={() => onClassNavigation('next')}
                     >
                       <LeftArrowIcon className="school-mode-nav-arrow school-mode-nav-arrow-right" />
@@ -836,11 +1023,8 @@ const SelectMode: FC = () => {
                       <button
                         id="school-mode-prev-class-button"
                         type="button"
-                        className={`school-mode-nav-button ${
-                          highlightedClassNavDirection === 'previous'
-                            ? 'school-mode-nav-button-active'
-                            : ''
-                        }`}
+                        className={previousClassNavigationClassName}
+                        disabled={isPreviousClassNavigationDisabled}
                         onClick={() => onClassNavigation('previous')}
                       >
                         <LeftArrowIcon className="school-mode-nav-arrow" />
@@ -869,11 +1053,8 @@ const SelectMode: FC = () => {
                       <button
                         id="school-mode-next-class-button"
                         type="button"
-                        className={`school-mode-nav-button ${
-                          highlightedClassNavDirection === 'next'
-                            ? 'school-mode-nav-button-active'
-                            : ''
-                        }`}
+                        className={nextClassNavigationClassName}
+                        disabled={isNextClassNavigationDisabled}
                         onClick={() => onClassNavigation('next')}
                       >
                         <LeftArrowIcon className="school-mode-nav-arrow school-mode-nav-arrow-right" />
@@ -885,7 +1066,7 @@ const SelectMode: FC = () => {
                       {classProfileSelectionText}
                     </p>
                   )}
-                  <div className="class-container school-mode-students-grid">
+                  <div className={studentGridClassName}>
                     {currentStudents?.map((tempStudent) => (
                       <article
                         key={tempStudent.id}

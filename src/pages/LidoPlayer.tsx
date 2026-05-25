@@ -37,10 +37,7 @@ import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { registerBackButtonHandler } from '../common/backButtonRegistry';
 import logger from '../utility/logger';
-import {
-  getLidoBundleBaseUrlForEnv,
-  REMOTE_CONFIG_KEYS,
-} from '../services/RemoteConfig';
+import { getBundleZipUrlsForEnv } from '../services/RemoteConfig';
 
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
@@ -60,6 +57,7 @@ const LidoPlayer: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [basePath, setBasePath] = useState<string>();
   const [xmlPath, setXmlPath] = useState<string>();
+  const [zipUrl, setZipUrl] = useState<string>();
   const [commonAudioPath, setCommonAudioPath] = useState<string>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isReady, setIsReady] = useState<boolean>(false);
@@ -858,6 +856,7 @@ const LidoPlayer: FC = () => {
       push();
       return;
     }
+
     if (Capacitor.isNativePlatform()) {
       const path = await Util.getLessonPath({ lessonId: lessonId });
       if (path) {
@@ -901,11 +900,22 @@ const LidoPlayer: FC = () => {
         return;
       }
     } else {
-      const lidoBaseUrl = getLidoBundleBaseUrlForEnv();
-      const pathBase = `${lidoBaseUrl}${lessonId}/`;
-      const pathXml = `${lidoBaseUrl}${lessonId}/index.xml`;
-      setBasePath(pathBase);
-      setXmlPath(pathXml);
+      // Extracted folder support used base-url/xml-path here; web now loads the ZIP directly.
+      // const pathBase = `${lidoBaseUrl}${lessonId}/`;
+      // const pathXml = `${lidoBaseUrl}${lessonId}/index.xml`;
+      // setBasePath(pathBase);
+      // setXmlPath(pathXml);
+      const [bundleBaseUrl] = getBundleZipUrlsForEnv();
+      const directZipUrl =
+        urlSearchParams.get('zipUrl') ??
+        state?.zipUrl ??
+        `${bundleBaseUrl}${lessonId}.zip`;
+      logger.debug('Resolved Lido ZIP URL', {
+        lessonId,
+        bundleBaseUrl,
+        zipUrl: directZipUrl,
+      });
+      setZipUrl(directZipUrl);
     }
     setIsLoading(false);
     setIsReady(true); // ONLY NOW allow the Web Component to mount
@@ -933,13 +943,14 @@ const LidoPlayer: FC = () => {
           }}
         />
       )}
-      {isReady && (xmlPath || basePath) && !showDialogBox
+      {isReady && (xmlPath || basePath || zipUrl) && !showDialogBox
         ? React.createElement('lido-standalone', {
             'xml-path': xmlPath,
             'base-url': basePath,
             canplay: true,
             'code-folder-path': '/Lido-player-code-versions',
             'common-audio-path': commonAudioPath ?? '/Lido-CommonAudios',
+            'zip-url': zipUrl ?? '',
           })
         : null}
     </IonPage>
