@@ -15,7 +15,7 @@ import CurriculumController from '../../models/curriculumController';
 import Result from '../../models/result';
 import User from '../../models/user';
 import {
-  AssignmentBatchGroupRow,
+  AssignmentDateRangeData,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
   ServiceApi,
@@ -964,29 +964,17 @@ export class OneRosterApi implements ServiceApi {
     throw new Error('Method not implemented.');
   }
 
-  async getAssignmentsForClassAndSchoolByDateRange(
+  async getAssignmentDateRangeDataForClassAndSchool(
     classId: string,
     schoolId: string,
     startDate: string,
     endDate: string,
-  ): Promise<TableTypes<'assignment'>[]> {
+  ): Promise<AssignmentDateRangeData> {
     logger.warn(
-      'getAssignmentsForClassAndSchoolByDateRange is not implemented for OneRosterApi.',
+      'getAssignmentDateRangeDataForClassAndSchool is not implemented for OneRosterApi.',
       { classId, schoolId, startDate, endDate },
     );
-    return [];
-  }
-  async getAssignmentBatchGroupsForClassAndSchoolByDateRange(
-    classId: string,
-    schoolId: string,
-    startDate: string,
-    endDate: string,
-  ): Promise<AssignmentBatchGroupRow[]> {
-    logger.warn(
-      'getAssignmentBatchGroupsForClassAndSchoolByDateRange is not implemented for OneRosterApi.',
-      { classId, schoolId, startDate, endDate },
-    );
-    return [];
+    return { assignments: [], batchGroups: [] };
   }
   async getCoinAndStreakCount(
     userId: string,
@@ -1001,13 +989,13 @@ export class OneRosterApi implements ServiceApi {
     return { coins: 0, streak: 0 };
   }
 
-  async putCoins(
+  async updateCoins(
     userId: string,
     schoolId: string,
     classId: string,
     coins: number,
   ): Promise<TableTypes<TABLES.UserAchivements>> {
-    logger.warn('putCoins is not implemented for oneRoster.', {
+    logger.warn('updateCoins is not implemented for oneRoster.', {
       userId,
       schoolId,
       classId,

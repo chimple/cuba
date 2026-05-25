@@ -119,6 +119,11 @@ export type AssignmentBatchGroupRow = {
   latestCreatedAt?: string | null;
 };
 
+export type AssignmentDateRangeData = {
+  assignments: TableTypes<'assignment'>[];
+  batchGroups: AssignmentBatchGroupRow[];
+};
+
 export type JoinClassInviteLookupResult = {
   inviteData: any;
   classData?: TableTypes<'class'>;
@@ -1637,32 +1642,26 @@ export interface ServiceApi {
   }>;
 
   /**
-   * Gets assignments for a specific class and school in a date range.
+   * Gets assignment data for a class/school within an inclusive datetime range.
    * @param {string} classId class Id
    * @param {string} schoolId school Id
-   * @param {string} startDate inclusive start datetime (ISO)
-   * @param {string} endDate inclusive end datetime (ISO)
-   * @return assignment rows.
+   * @param {string} startDate inclusive start datetime (ISO string)
+   * @param {string} endDate inclusive end datetime (ISO string)
+   * @return object containing raw assignment rows and grouped batch metadata.
    */
-  getAssignmentsForClassAndSchoolByDateRange(
+  getAssignmentDateRangeDataForClassAndSchool(
     classId: string,
     schoolId: string,
     startDate: string,
     endDate: string,
-  ): Promise<TableTypes<'assignment'>[]>;
+  ): Promise<AssignmentDateRangeData>;
 
   /**
-   * Gets assignments grouped by batch_id for a specific class and school in a date range.
-   */
-  getAssignmentBatchGroupsForClassAndSchoolByDateRange(
-    classId: string,
-    schoolId: string,
-    startDate: string,
-    endDate: string,
-  ): Promise<AssignmentBatchGroupRow[]>;
-
-  /**
-   * Gets coin and streak count for a specific user in a class and school.
+   * Gets the latest coin and streak summary for a user in a class and school.
+   * @param {string} userId user Id
+   * @param {string} classId class Id
+   * @param {string} schoolId school Id
+   * @return coin/streak summary, or undefined when no record exists.
    */
   getCoinAndStreakCount(
     userId: string,
@@ -1670,7 +1669,15 @@ export interface ServiceApi {
     schoolId: string,
   ): Promise<{ coins: number; streak: number } | undefined>;
 
-  putCoins(
+  /**
+   * Updates coin balance for a user in a class and school.
+   * @param {string} userId user Id
+   * @param {string} schoolId school Id
+   * @param {string} classId class Id
+   * @param {number} coins updated coin value to persist
+   * @return updated user achievement row.
+   */
+  updateCoins(
     userId: string,
     schoolId: string,
     classId: string,

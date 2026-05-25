@@ -57,7 +57,7 @@ import Course from '../../models/course';
 import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
-  AssignmentBatchGroupRow,
+  AssignmentDateRangeData,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -7493,13 +7493,13 @@ export class SupabaseApi implements ServiceApi {
 
     return { classWiseAssignments, individualAssignments };
   }
-  async getAssignmentsForClassAndSchoolByDateRange(
+  async getAssignmentDateRangeDataForClassAndSchool(
     classId: string,
     schoolId: string,
     startDate: string,
     endDate: string,
-  ): Promise<TableTypes<'assignment'>[]> {
-    if (!this.supabase) return [];
+  ): Promise<AssignmentDateRangeData> {
+    if (!this.supabase) return { assignments: [], batchGroups: [] };
 
     const { data, error } = await this.supabase
       .from(TABLES.Assignment)
@@ -7512,40 +7512,11 @@ export class SupabaseApi implements ServiceApi {
       .order('created_at', { ascending: true });
 
     if (error) {
-      logger.error(
-        'Error fetching class/school assignments by date range:',
-        error,
-      );
-      return [];
+      logger.error('Error fetching assignment date range data:', error);
+      return { assignments: [], batchGroups: [] };
     }
 
-    return data ?? [];
-  }
-  async getAssignmentBatchGroupsForClassAndSchoolByDateRange(
-    classId: string,
-    schoolId: string,
-    startDate: string,
-    endDate: string,
-  ): Promise<AssignmentBatchGroupRow[]> {
-    if (!this.supabase) return [];
-
-    const { data, error } = await this.supabase
-      .from(TABLES.Assignment)
-      .select('batch_id, created_at')
-      .eq('class_id', classId)
-      .eq('school_id', schoolId)
-      .gte('created_at', startDate)
-      .lte('created_at', endDate)
-      .eq('is_deleted', false)
-      .order('created_at', { ascending: true });
-
-    if (error) {
-      logger.error(
-        'Error fetching grouped assignment batches by date range:',
-        error,
-      );
-      return [];
-    }
+    const assignments = (data ?? []) as TableTypes<'assignment'>[];
 
     const grouped = new Map<
       string,
@@ -7556,7 +7527,7 @@ export class SupabaseApi implements ServiceApi {
       }
     >();
 
-    (data ?? []).forEach((row) => {
+    assignments.forEach((row) => {
       const batchId = row.batch_id ?? null;
       const key = batchId ?? '__null__';
       const existing = grouped.get(key);
@@ -7574,7 +7545,10 @@ export class SupabaseApi implements ServiceApi {
       existing.latestCreatedAt = row.created_at ?? existing.latestCreatedAt;
     });
 
-    return Array.from(grouped.values());
+    return {
+      assignments,
+      batchGroups: Array.from(grouped.values()),
+    };
   }
 
   async getCoinAndStreakCount(
@@ -14897,7 +14871,7 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
-  async putCoins(
+  async updateCoins(
     userId: string,
     schoolId: string,
     classId: string,
@@ -14921,7 +14895,10 @@ export class SupabaseApi implements ServiceApi {
       .maybeSingle();
 
     if (fetchError) {
-      logger.error('Error fetching user_achievements in putCoins:', fetchError);
+      logger.error(
+        'Error fetching user_achievements in updateCoins:',
+        fetchError,
+      );
       return {} as TableTypes<TABLES.UserAchivements>;
     }
 

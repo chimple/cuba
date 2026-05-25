@@ -23,7 +23,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 import {
-  AssignmentBatchGroupRow,
+  AssignmentDateRangeData,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
   ServiceApi,
@@ -2102,29 +2102,17 @@ export class FirebaseApi implements ServiceApi {
     throw new Error('Method not implemented.');
   }
 
-  async getAssignmentsForClassAndSchoolByDateRange(
+  async getAssignmentDateRangeDataForClassAndSchool(
     classId: string,
     schoolId: string,
     startDate: string,
     endDate: string,
-  ): Promise<TableTypes<'assignment'>[]> {
+  ): Promise<AssignmentDateRangeData> {
     logger.warn(
-      'getAssignmentsForClassAndSchoolByDateRange is not implemented for FirebaseApi.',
+      'getAssignmentDateRangeDataForClassAndSchool is not implemented for FirebaseApi.',
       { classId, schoolId, startDate, endDate },
     );
-    return [];
-  }
-  async getAssignmentBatchGroupsForClassAndSchoolByDateRange(
-    classId: string,
-    schoolId: string,
-    startDate: string,
-    endDate: string,
-  ): Promise<AssignmentBatchGroupRow[]> {
-    logger.warn(
-      'getAssignmentBatchGroupsForClassAndSchoolByDateRange is not implemented for FirebaseApi.',
-      { classId, schoolId, startDate, endDate },
-    );
-    return [];
+    return { assignments: [], batchGroups: [] };
   }
 
   async getCoinAndStreakCount(
@@ -2140,13 +2128,13 @@ export class FirebaseApi implements ServiceApi {
     return { coins: 0, streak: 0 };
   }
 
-  async putCoins(
+  async updateCoins(
     userId: string,
     schoolId: string,
     classId: string,
     coins: number,
   ): Promise<TableTypes<TABLES.UserAchivements>> {
-    logger.warn('putCoins is not implemented for FirebaseApi.', {
+    logger.warn('updateCoins is not implemented for FirebaseApi.', {
       userId,
       schoolId,
       classId,

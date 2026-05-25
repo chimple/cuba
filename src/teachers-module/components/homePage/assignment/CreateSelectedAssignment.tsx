@@ -496,8 +496,8 @@ const CreateSelectedAssignment = ({
         weekStart.setDate(today.getDate() - mondayOffset);
         weekStart.setHours(0, 0, 0, 0);
 
-        const weekBatchRows =
-          await api.getAssignmentBatchGroupsForClassAndSchoolByDateRange(
+        const { batchGroups: weekBatchRows } =
+          await api.getAssignmentDateRangeDataForClassAndSchool(
             classId,
             schoolId,
             weekStart.toISOString(),
@@ -810,7 +810,7 @@ const CreateSelectedAssignment = ({
 
         try {
           if (currUser?.id && current_class?.id && current_class?.school_id) {
-            await api.putCoins(
+            await api.updateCoins(
               currUser.id,
               current_class.school_id,
               current_class.id,

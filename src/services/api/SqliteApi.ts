@@ -58,6 +58,7 @@ import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
   AssignmentBatchGroupRow,
+  AssignmentDateRangeData,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -6031,16 +6032,17 @@ order by
 
     return { classWiseAssignments, individualAssignments };
   }
-  async getAssignmentsForClassAndSchoolByDateRange(
+  async getAssignmentDateRangeDataForClassAndSchool(
     classId: string,
     schoolId: string,
     startDate: string,
     endDate: string,
-  ): Promise<TableTypes<'assignment'>[]> {
+  ): Promise<AssignmentDateRangeData> {
     await this.ensureInitialized();
 
     const query = `
-      SELECT *
+      SELECT
+        *
       FROM ${TABLES.Assignment}
       WHERE class_id = ?
         AND school_id = ?
@@ -6057,63 +6059,51 @@ order by
         startDate,
         endDate,
       ]);
-      return (res?.values ?? []) as TableTypes<'assignment'>[];
+
+      const assignments = (res?.values ?? []) as TableTypes<'assignment'>[];
+      const groupedByBatch = new Map<string, AssignmentBatchGroupRow>();
+
+      assignments.forEach((assignment) => {
+        const batchId = assignment.batch_id ?? null;
+        const key = batchId ?? '__null_batch_id__';
+        const existing = groupedByBatch.get(key);
+
+        if (!existing) {
+          groupedByBatch.set(key, {
+            batchId,
+            assignmentCount: 1,
+            latestCreatedAt: assignment.created_at ?? null,
+          });
+          return;
+        }
+
+        existing.assignmentCount += 1;
+        if (
+          assignment.created_at &&
+          (!existing.latestCreatedAt ||
+            assignment.created_at > existing.latestCreatedAt)
+        ) {
+          existing.latestCreatedAt = assignment.created_at;
+        }
+      });
+
+      const batchGroups = Array.from(groupedByBatch.values()).sort((a, b) => {
+        const aTime = a.latestCreatedAt
+          ? new Date(a.latestCreatedAt).getTime()
+          : Number.NEGATIVE_INFINITY;
+        const bTime = b.latestCreatedAt
+          ? new Date(b.latestCreatedAt).getTime()
+          : Number.NEGATIVE_INFINITY;
+        return aTime - bTime;
+      });
+
+      return { assignments, batchGroups };
     } catch (error) {
       logger.error(
-        'Error fetching class/school assignments by date range from sqlite:',
+        'Error fetching assignment date range data from sqlite:',
         error,
       );
-      return [];
-    }
-  }
-  async getAssignmentBatchGroupsForClassAndSchoolByDateRange(
-    classId: string,
-    schoolId: string,
-    startDate: string,
-    endDate: string,
-  ): Promise<AssignmentBatchGroupRow[]> {
-    await this.ensureInitialized();
-
-    const query = `
-      SELECT
-        batch_id,
-        COUNT(*) AS assignment_count,
-        MAX(created_at) AS latest_created_at
-      FROM ${TABLES.Assignment}
-      WHERE class_id = ?
-        AND school_id = ?
-        AND created_at >= ?
-        AND created_at <= ?
-        AND (is_deleted = 0 OR is_deleted = false OR is_deleted IS NULL)
-      GROUP BY batch_id
-      ORDER BY latest_created_at ASC;
-    `;
-
-    try {
-      const res = await this.executeQuery(query, [
-        classId,
-        schoolId,
-        startDate,
-        endDate,
-      ]);
-
-      const groupedRows = (res?.values ?? []) as Array<{
-        batch_id: string | null;
-        assignment_count: number | string;
-        latest_created_at: string | null;
-      }>;
-
-      return groupedRows.map((row) => ({
-        batchId: row.batch_id ?? null,
-        assignmentCount: Number(row.assignment_count ?? 0),
-        latestCreatedAt: row.latest_created_at ?? null,
-      }));
-    } catch (error) {
-      logger.error(
-        'Error fetching grouped assignment batches by date range from sqlite:',
-        error,
-      );
-      return [];
+      return { assignments: [], batchGroups: [] };
     }
   }
 
@@ -10104,7 +10094,7 @@ order by
     return await this._serverApi.isSplUser();
   }
 
-  async putCoins(
+  async updateCoins(
     userId: string,
     schoolId: string,
     classId: string,
