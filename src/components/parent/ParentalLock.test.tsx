@@ -87,7 +87,9 @@ describe('ParentalLock', () => {
 
   test('renders parent section header', async () => {
     setup();
-    expect(await screen.findByText('Parents Section')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Confirm you are a Parent'),
+    ).toBeInTheDocument();
   });
 
   test('renders unlock instruction for LEFT when random chooses LEFT', async () => {
