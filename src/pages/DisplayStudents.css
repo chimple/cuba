@@ -72,6 +72,7 @@
 .display-students-subtitle {
   margin-top: clamp(10px, 1.5vh, 18px);
 
+  font-weight: 500;
   font-size: clamp(18px, 2.2vw, 30px);
   line-height: 1.15;
 
