@@ -70,7 +70,7 @@ const formatIsoDate = (date: Date) => {
 
 export const formatDisplayDate = (value: string) =>
   value
-    ? new Intl.DateTimeFormat('en-IN', {
+    ? new Intl.DateTimeFormat(undefined, {
         weekday: 'long',
         day: 'numeric',
         month: 'long',

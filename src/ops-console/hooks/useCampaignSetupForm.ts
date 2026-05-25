@@ -21,6 +21,18 @@ import {
   useCampaignAudienceSelection,
 } from './useCampaignAudienceSelection';
 
+const getAssignmentDraftKey = (draft: CampaignAssignmentDraft) =>
+  [
+    draft.batchId,
+    draft.gradeId,
+    draft.courseId,
+    draft.chapterId,
+    draft.lessonId,
+    draft.startsAt,
+    draft.setNumber,
+    draft.schoolIds.join(','),
+  ].join('|');
+
 export const useCampaignSetupForm = () => {
   const api = ServiceConfig.getI().apiHandler;
 
@@ -117,30 +129,8 @@ export const useCampaignSetupForm = () => {
   const handleAssignmentDraftsChange = useCallback(
     (drafts: CampaignAssignmentDraft[]) => {
       setAssignmentDrafts((current) => {
-        const currentKeys = current.map((draft) =>
-          [
-            draft.batchId,
-            draft.gradeId,
-            draft.courseId,
-            draft.chapterId,
-            draft.lessonId,
-            draft.startsAt,
-            draft.setNumber,
-            draft.schoolIds.join(','),
-          ].join('|'),
-        );
-        const nextKeys = drafts.map((draft) =>
-          [
-            draft.batchId,
-            draft.gradeId,
-            draft.courseId,
-            draft.chapterId,
-            draft.lessonId,
-            draft.startsAt,
-            draft.setNumber,
-            draft.schoolIds.join(','),
-          ].join('|'),
-        );
+        const currentKeys = current.map(getAssignmentDraftKey);
+        const nextKeys = drafts.map(getAssignmentDraftKey);
 
         if (
           currentKeys.length === nextKeys.length &&
@@ -200,6 +190,11 @@ export const useCampaignSetupForm = () => {
     event.preventDefault();
     setSubmitAttempted(true);
     setMessage(null);
+
+    if (createdCampaignId) {
+      setActiveStep(1);
+      return;
+    }
 
     if (!isFormValid) return;
 

@@ -151,7 +151,7 @@ const CampaignSetupPage: React.FC = () => {
               fieldError={campaignSetup.fieldError}
             />
           </>
-        ) : (
+        ) : campaignSetup.activeStep === 1 ? (
           <CampaignAssignmentStep
             form={campaignSetup.form}
             campaignId={campaignSetup.createdCampaignId}
@@ -160,15 +160,30 @@ const CampaignSetupPage: React.FC = () => {
             onCompletionChange={handleAssignmentCompletionChange}
             onAssignmentsChange={campaignSetup.handleAssignmentDraftsChange}
           />
+        ) : (
+          <Box className="campaign-setup-section">
+            <Typography variant="h6" className="campaign-setup-section-title">
+              Rewards
+            </Typography>
+            <Typography className="campaign-setup-section-copy">
+              Reward setup is not available in this flow yet.
+            </Typography>
+          </Box>
         )}
 
         <Box className="campaign-setup-actions">
-          {campaignSetup.activeStep === 1 && (
+          {campaignSetup.activeStep > 0 && (
             <Button
               type="button"
               variant="outlined"
               className="campaign-setup-back-cta"
-              onClick={() => campaignSetup.setActiveStep(0)}
+              onClick={() =>
+                campaignSetup.setActiveStep(
+                  campaignSetup.activeStep === 1
+                    ? 0
+                    : campaignSetup.activeStep - 1,
+                )
+              }
             >
               Back
             </Button>
@@ -180,7 +195,11 @@ const CampaignSetupPage: React.FC = () => {
             </Typography>
           )}
           <Button
-            type={campaignSetup.activeStep === 0 ? 'submit' : 'button'}
+            type={
+              campaignSetup.activeStep === 0 && !campaignSetup.createdCampaignId
+                ? 'submit'
+                : 'button'
+            }
             variant="contained"
             endIcon={
               campaignSetup.submitting ? (
@@ -190,12 +209,16 @@ const CampaignSetupPage: React.FC = () => {
             disabled={
               campaignSetup.activeStep === 0
                 ? !campaignSetup.isFormValid || campaignSetup.submitting
-                : !isAssignmentComplete
+                : campaignSetup.activeStep === 1
+                  ? !isAssignmentComplete
+                  : true
             }
             onClick={
-              campaignSetup.activeStep === 1
-                ? () => campaignSetup.setActiveStep(2)
-                : undefined
+              campaignSetup.activeStep === 0 && campaignSetup.createdCampaignId
+                ? () => campaignSetup.setActiveStep(1)
+                : campaignSetup.activeStep === 1
+                  ? () => campaignSetup.setActiveStep(2)
+                  : undefined
             }
           >
             Next
