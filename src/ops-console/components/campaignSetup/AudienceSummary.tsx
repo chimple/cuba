@@ -39,7 +39,7 @@ export const AudienceSummary: React.FC<AudienceSummaryProps> = ({
           <React.Fragment key={grade.gradeId}>
             {index > 0 && <span className="campaign-setup-summary-dot">·</span>}
             <span>
-              {grade.gradeName}: <strong>{grade.studentCount}</strong>
+              {grade.gradeName} - <strong>{grade.studentCount}</strong>
             </span>
           </React.Fragment>
         ))

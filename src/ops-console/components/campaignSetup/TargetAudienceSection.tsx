@@ -12,6 +12,7 @@ import { TargetAudienceSectionProps } from './types';
 import { CampaignMultiSelect } from './CampaignMultiSelect';
 import { AudienceSummary } from './AudienceSummary';
 import { SavedAudienceGroupFields } from './SavedAudienceGroupFields';
+import './TargetAudienceSection.css';
 
 export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
   form,
@@ -128,9 +129,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
       </Box>
 
       <Box className="campaign-setup-field">
-        <Typography className="campaign-setup-label">
-          {requiredLabel('Grade')}
-        </Typography>
+        <Typography className="campaign-setup-label">Grade</Typography>
         <CampaignMultiSelect
           options={audienceOptions.grades}
           value={selectedGrades}
@@ -138,10 +137,11 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
           placeholder="Select Grade"
           getOptionLabel={(option) => option.name}
           isOptionEqualToValue={(option, value) => option.id === value.id}
-          error={!!fieldError('grades')}
-          helperText={fieldError('grades')}
           onChange={onGradesChange}
         />
+        <Typography className="campaign-setup-field-note">
+          all grades under selected schools are included.
+        </Typography>
       </Box>
 
       <AudienceSummary

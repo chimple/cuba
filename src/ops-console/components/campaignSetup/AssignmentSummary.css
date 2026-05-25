@@ -1,0 +1,254 @@
+.campaign-assignment-delete {
+  min-width: 2.25rem !important;
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  border-radius: 50% !important;
+  color: #da1e28 !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.campaign-assignment-delete svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.campaign-assignment-summary {
+  margin-top: 1rem;
+}
+
+.campaign-assignment-warning {
+  min-height: 2.375rem;
+  border: 0.0625rem solid #f9a825;
+  border-radius: 0.375rem;
+  background: #fff8e1;
+  color: var(--campaign-text);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.875rem;
+  margin-top: 1rem;
+}
+
+.campaign-assignment-warning svg {
+  color: #e93445;
+}
+
+.campaign-assignment-warning .MuiTypography-root {
+  font-size: 0.875rem;
+  line-height: 1.125rem;
+}
+
+.campaign-assignment-summary-box {
+  margin-top: 1.5rem;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+.campaign-assignment-summary-subject {
+  height: 3.25rem;
+  background: #edf2f7;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1rem;
+}
+
+.campaign-assignment-summary-subject svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.campaign-assignment-summary-subject .MuiTypography-root {
+  color: var(--campaign-text);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.campaign-assignment-summary-subject span {
+  color: var(--campaign-muted);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.campaign-assignment-table {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 0.75rem;
+  border: 0.0625rem solid var(--campaign-divider);
+  border-radius: 0.5rem;
+}
+
+.campaign-assignment-table-row {
+  display: grid;
+  grid-template-columns: 10rem 13rem minmax(14rem, 1fr) 3.25rem;
+  align-items: center;
+  min-height: 3rem;
+  border-bottom: 0.0625rem solid var(--campaign-divider);
+  color: var(--campaign-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.campaign-assignment-table-row:last-child {
+  border-bottom: none;
+}
+
+.campaign-assignment-table-row > span {
+  padding: 0 1rem;
+}
+
+.campaign-assignment-table-head {
+  min-height: 2.5rem;
+  background: #fbfbfd;
+  color: #596273;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.campaign-assignment-lesson-number {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.campaign-assignment-lesson-number i {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: #4b8df8;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-style: normal;
+}
+
+@media (max-width: 48rem) {
+  .campaign-assignment-warning {
+    display: block;
+    margin-top: 0.5rem !important;
+  }
+
+  .campaign-assignment-summary {
+    margin-top: 1.25rem;
+  }
+
+  .campaign-assignment-summary-box {
+    margin-top: 1rem;
+  }
+
+  .campaign-assignment-summary-subject {
+    height: 2.25rem;
+    border: 0.0625rem solid var(--campaign-divider);
+    border-radius: 0.5rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    padding: 0 0.875rem;
+  }
+
+  .campaign-assignment-summary-subject svg {
+    display: none;
+  }
+
+  .campaign-assignment-summary-subject .MuiTypography-root {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  .campaign-assignment-summary-subject span {
+    justify-self: end;
+    color: var(--campaign-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .campaign-assignment-table {
+    min-width: 0;
+    border: none;
+    border-radius: 0;
+    display: grid;
+    gap: 0.75rem;
+    overflow: visible;
+  }
+
+  .campaign-assignment-table-head {
+    display: none;
+  }
+
+  .campaign-assignment-table-row {
+    min-height: 3rem;
+    border: 0.0625rem solid var(--campaign-divider);
+    border-radius: 0.5rem;
+    display: grid;
+    grid-template-columns: 1.75rem minmax(0, 1fr) 2rem;
+    grid-template-areas: 'lesson content delete';
+    column-gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    background: #ffffff;
+    font-size: 0.75rem;
+  }
+
+  .campaign-assignment-table-row > span {
+    padding: 0;
+  }
+
+  .campaign-assignment-table-row > span:nth-child(2),
+  .campaign-assignment-table-row > span:nth-child(3) {
+    grid-area: content;
+    min-width: 0;
+  }
+
+  .campaign-assignment-table-row > span:nth-child(2) {
+    align-self: end;
+    color: var(--campaign-text);
+    font-size: 0.6875rem;
+    font-weight: 400 !important;
+    line-height: 0.875rem;
+    padding-top: 1.125rem;
+  }
+
+  .campaign-assignment-table-row > span:nth-child(3) {
+    align-self: start;
+    overflow: hidden;
+    color: var(--campaign-text);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 0.9375rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .campaign-assignment-lesson-number {
+    grid-area: lesson;
+    align-self: center;
+    gap: 0;
+    font-size: 0;
+  }
+
+  .campaign-assignment-lesson-number i {
+    flex: 0 0 1.5rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 0.75rem;
+  }
+
+  .campaign-assignment-delete {
+    grid-area: delete;
+    justify-self: end;
+    align-self: center;
+    min-width: 2rem !important;
+    width: 2rem !important;
+    height: 2rem !important;
+    padding: 0 !important;
+  }
+}

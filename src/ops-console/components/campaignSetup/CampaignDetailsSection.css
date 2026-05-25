@@ -1,0 +1,27 @@
+.campaign-setup-details-grid {
+  grid-template-columns: repeat(2, minmax(13.75rem, 1fr));
+  max-width: min(61.4375rem, 100%);
+}
+
+.campaign-setup-half-width {
+  max-width: 30.75rem;
+}
+
+.campaign-setup-start-date-field {
+  grid-column: 1;
+}
+
+.campaign-setup-end-date-field {
+  grid-column: 2;
+}
+
+@media (max-width: 56.25rem) {
+  .campaign-setup-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-setup-start-date-field,
+  .campaign-setup-end-date-field {
+    grid-column: auto;
+  }
+}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SelectChangeEvent } from '@mui/material';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import {
@@ -9,6 +9,7 @@ import {
 } from '../../services/api/ServiceApi';
 import logger from '../../utility/logger';
 import { CampaignSetupFormState } from '../components/CampaignSetupSections';
+import { CampaignAssignmentDraft } from '../components/campaignSetup/campaignAssignmentUtils';
 import {
   buildCampaignAudiencePayload,
   getCampaignSetupValidationErrors,
@@ -19,6 +20,18 @@ import {
   CampaignSetupMessage,
   useCampaignAudienceSelection,
 } from './useCampaignAudienceSelection';
+
+const getAssignmentDraftKey = (draft: CampaignAssignmentDraft) =>
+  [
+    draft.batchId,
+    draft.gradeId,
+    draft.courseId,
+    draft.chapterId,
+    draft.lessonId,
+    draft.startsAt,
+    draft.setNumber,
+    draft.schoolIds.join(','),
+  ].join('|');
 
 export const useCampaignSetupForm = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -37,6 +50,9 @@ export const useCampaignSetupForm = () => {
   const [submitting, setSubmitting] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [createdCampaignId, setCreatedCampaignId] = useState('');
+  const [assignmentDrafts, setAssignmentDrafts] = useState<
+    CampaignAssignmentDraft[]
+  >([]);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [message, setMessage] = useState<CampaignSetupMessage>(null);
 
@@ -110,14 +126,28 @@ export const useCampaignSetupForm = () => {
     setForm((current) => resetObjectiveFields(current, objective));
   };
 
+  const handleAssignmentDraftsChange = useCallback(
+    (drafts: CampaignAssignmentDraft[]) => {
+      setAssignmentDrafts((current) => {
+        const currentKeys = current.map(getAssignmentDraftKey);
+        const nextKeys = drafts.map(getAssignmentDraftKey);
+
+        if (
+          currentKeys.length === nextKeys.length &&
+          currentKeys.every((key, index) => key === nextKeys[index])
+        ) {
+          return current;
+        }
+
+        return drafts;
+      });
+    },
+    [],
+  );
+
   const validationErrors = useMemo(
-    () =>
-      getCampaignSetupValidationErrors(
-        form,
-        saveGroup,
-        audience.selectedGrades.length,
-      ),
-    [audience.selectedGrades.length, form, saveGroup],
+    () => getCampaignSetupValidationErrors(form, saveGroup),
+    [form, saveGroup],
   );
 
   const isFormValid = Object.keys(validationErrors).length === 0;
@@ -132,11 +162,7 @@ export const useCampaignSetupForm = () => {
 
   const handleSaveGroup = async () => {
     setSubmitAttempted(true);
-    if (
-      !form.programId ||
-      audience.selectedGrades.length === 0 ||
-      !form.groupName.trim()
-    ) {
+    if (!form.programId || !form.groupName.trim()) {
       return;
     }
 
@@ -164,6 +190,11 @@ export const useCampaignSetupForm = () => {
     event.preventDefault();
     setSubmitAttempted(true);
     setMessage(null);
+
+    if (createdCampaignId) {
+      setActiveStep(1);
+      return;
+    }
 
     if (!isFormValid) return;
 
@@ -209,10 +240,12 @@ export const useCampaignSetupForm = () => {
 
   return {
     activeStep,
+    assignmentDrafts,
     createdCampaignId,
     fieldError,
     form,
     handleObjectiveChange,
+    handleAssignmentDraftsChange,
     handleSaveGroup,
     handleSelectChange,
     handleSubmit,
@@ -225,6 +258,7 @@ export const useCampaignSetupForm = () => {
     savedGroups,
     savingGroup,
     setForm,
+    setActiveStep,
     setSaveGroup,
     submitting,
     updateForm,

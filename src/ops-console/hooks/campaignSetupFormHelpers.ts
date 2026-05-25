@@ -47,7 +47,6 @@ export const buildCampaignAudiencePayload = (
 export const getCampaignSetupValidationErrors = (
   form: CampaignSetupFormState,
   saveGroup: boolean,
-  selectedGradeCount: number,
 ): Record<string, string> => {
   const errors: Record<string, string> = {};
   if (!form.objective) errors.objective = 'Campaign objective is required.';
@@ -77,7 +76,6 @@ export const getCampaignSetupValidationErrors = (
     errors.endDate = 'End date must be after start date.';
   }
   if (!form.programId) errors.programId = 'Program is required.';
-  if (selectedGradeCount === 0) errors.grades = 'Grade is required.';
   if (saveGroup && !form.groupName.trim()) {
     errors.groupName = 'Group name is required.';
   }
