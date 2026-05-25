@@ -9231,27 +9231,6 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
-    if (courseMap.size === 0) {
-      const { data, error } = await this.supabase
-        .from('course')
-        .select('id, name, grade_id, sort_index, subject_id')
-        .in('grade_id', gradeIds)
-        .eq('is_deleted', false)
-        .order('sort_index', { ascending: true });
-
-      if (error) {
-        logger.error('Error fetching fallback campaign courses:', error);
-        return {
-          grades: gradeIds.map((gradeId) => ({ gradeId, subjects: [] })),
-        };
-      }
-
-      ((data ?? []) as CampaignAssignmentCourseRow[]).forEach((course) => {
-        if (!course.id || !course.name || !course.grade_id) return;
-        courseMap.set(String(course.id), course);
-      });
-    }
-
     const subjectsByGrade = new Map<
       string,
       CampaignAssignmentOptions['grades'][number]['subjects']
