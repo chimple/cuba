@@ -66,6 +66,21 @@ export const hasPendingHomeworkStickerSession = (): boolean =>
 export const hasPendingHomeworkStickerFlow = (): boolean =>
   hasPendingHomeworkStickerSession() || hasPendingFinalHomeworkStickerFlow();
 
+export const clearPendingHomeworkStickerSession = (): void => {
+  sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+  sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+  sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+};
+
+export const clearPendingHomeworkStickerPreviewState = (): void => {
+  sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+};
+
+export const clearPendingHomeworkStickerFlow = (): void => {
+  clearPendingHomeworkStickerSession();
+  clearPendingFinalHomeworkStickerFlow();
+};
+
 export const setPendingFinalHomeworkStickerFlow = (studentId: string): void => {
   if (!studentId) return;
 

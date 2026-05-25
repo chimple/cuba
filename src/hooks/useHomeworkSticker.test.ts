@@ -3,7 +3,18 @@ import { useHomeworkSticker } from './useHomeworkSticker';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import { AudioUtil } from '../utility/AudioUtil';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import {
+  AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
+  PENDING_PATHWAY_STICKER_REWARD_KEY,
+  REWARD_LEARNING_PATH,
+  STICKER_BOOK_CELEBRATION_POPUP_ENABLED,
+  STICKER_BOOK_COMPLETION_POPUP,
+  STICKER_BOOK_PREVIEW_ENABLED,
+} from '../common/constants';
+import {
+  hasPendingHomeworkStickerFlow,
   hasPendingFinalHomeworkStickerFlow,
   setPendingFinalHomeworkStickerFlow,
 } from '../utility/homeworkStickerFlow';
@@ -47,6 +58,13 @@ describe('useHomeworkSticker', () => {
     jest.useFakeTimers();
     localStorage.clear();
     sessionStorage.clear();
+
+    (useFeatureIsOn as jest.Mock).mockImplementation((key: string) => {
+      if (key === STICKER_BOOK_PREVIEW_ENABLED) return true;
+      if (key === STICKER_BOOK_COMPLETION_POPUP) return true;
+      if (key === STICKER_BOOK_CELEBRATION_POPUP_ENABLED) return true;
+      return false;
+    });
 
     jest.spyOn(ServiceConfig, 'getI').mockReturnValue({
       apiHandler: mockApi,
@@ -272,5 +290,133 @@ describe('useHomeworkSticker', () => {
     });
 
     expect(onFinalHomeworkStickerComplete).toHaveBeenCalledTimes(1);
+  });
+
+  test('keeps completion popup state when celebration popup is disabled but completion popup is enabled', async () => {
+    const container = document.createElement('div');
+    (useFeatureIsOn as jest.Mock).mockImplementation((key: string) => {
+      if (key === STICKER_BOOK_PREVIEW_ENABLED) return true;
+      if (key === STICKER_BOOK_COMPLETION_POPUP) return true;
+      if (key === STICKER_BOOK_CELEBRATION_POPUP_ENABLED) return false;
+      return false;
+    });
+
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_PREVIEW_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        awardedStickerId: 'sticker-1',
+      }),
+    );
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        payload: {
+          stickerBookId: 'book-1',
+          collectedStickerIds: ['sticker-1'],
+        },
+      }),
+    );
+    sessionStorage.setItem(
+      PENDING_PATHWAY_STICKER_REWARD_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        awardedStickerId: 'sticker-1',
+      }),
+    );
+    sessionStorage.setItem(REWARD_LEARNING_PATH, '{"courses":{}}');
+    setPendingFinalHomeworkStickerFlow('student-1');
+
+    renderHook(() =>
+      useHomeworkSticker({
+        containerRef: { current: container },
+        riveContainer: document.createElement('div'),
+        currentMascotStateValue: 1,
+        reloadHomeworkPathway: jest.fn(),
+        onFinalHomeworkStickerComplete: jest.fn(),
+        playMascotAudioFromLocalPath: jest.fn().mockResolvedValue(true),
+        playRewardAudio: jest.fn().mockResolvedValue(undefined),
+      }),
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY)).toBeNull();
+    expect(
+      sessionStorage.getItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY),
+    ).not.toBeNull();
+    expect(
+      sessionStorage.getItem(PENDING_PATHWAY_STICKER_REWARD_KEY),
+    ).not.toBeNull();
+    expect(sessionStorage.getItem(REWARD_LEARNING_PATH)).toBeNull();
+    expect(hasPendingFinalHomeworkStickerFlow()).toBe(true);
+    expect(hasPendingHomeworkStickerFlow()).toBe(true);
+  });
+
+  test('clears all pending homework sticker flow when both celebration and completion popups are disabled', async () => {
+    const container = document.createElement('div');
+    (useFeatureIsOn as jest.Mock).mockImplementation((key: string) => {
+      if (key === STICKER_BOOK_PREVIEW_ENABLED) return true;
+      if (key === STICKER_BOOK_COMPLETION_POPUP) return false;
+      if (key === STICKER_BOOK_CELEBRATION_POPUP_ENABLED) return false;
+      return false;
+    });
+
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_PREVIEW_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        awardedStickerId: 'sticker-1',
+      }),
+    );
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        payload: {
+          stickerBookId: 'book-1',
+          collectedStickerIds: ['sticker-1'],
+        },
+      }),
+    );
+    sessionStorage.setItem(
+      PENDING_PATHWAY_STICKER_REWARD_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        awardedStickerId: 'sticker-1',
+      }),
+    );
+    sessionStorage.setItem(REWARD_LEARNING_PATH, '{"courses":{}}');
+    setPendingFinalHomeworkStickerFlow('student-1');
+
+    renderHook(() =>
+      useHomeworkSticker({
+        containerRef: { current: container },
+        riveContainer: document.createElement('div'),
+        currentMascotStateValue: 1,
+        reloadHomeworkPathway: jest.fn(),
+        onFinalHomeworkStickerComplete: jest.fn(),
+        playMascotAudioFromLocalPath: jest.fn().mockResolvedValue(true),
+        playRewardAudio: jest.fn().mockResolvedValue(undefined),
+      }),
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY)).toBeNull();
+    expect(
+      sessionStorage.getItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY),
+    ).toBeNull();
+    expect(
+      sessionStorage.getItem(PENDING_PATHWAY_STICKER_REWARD_KEY),
+    ).toBeNull();
+    expect(sessionStorage.getItem(REWARD_LEARNING_PATH)).toBeNull();
+    expect(hasPendingFinalHomeworkStickerFlow()).toBe(false);
+    expect(hasPendingHomeworkStickerFlow()).toBe(false);
   });
 });

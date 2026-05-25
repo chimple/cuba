@@ -10,6 +10,8 @@ import {
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   HOMEWORK_PATHWAY,
   LIVE_QUIZ,
+  STICKER_BOOK_CELEBRATION_POPUP_ENABLED,
+  STICKER_BOOK_COMPLETION_POPUP,
 } from '../../common/constants';
 
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
@@ -845,6 +847,101 @@ describe('HomeworkPathway – completion flow', () => {
       const refreshedPath = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
       expect(refreshedPath.lessons[0].lesson_id).toBe('l2');
     });
+  });
+
+  test('last homework completes normally when sticker celebration popup is disabled', async () => {
+    (useFeatureIsOn as jest.Mock).mockImplementation((key?: string) => {
+      if (key === STICKER_BOOK_CELEBRATION_POPUP_ENABLED) return false;
+      return true;
+    });
+
+    const initialPathway = {
+      path_id: 'p1',
+      lessons: [
+        {
+          assignment_id: 'a1',
+          lesson_id: 'l1',
+          chapter_id: 'c1',
+          course_id: 's1',
+          lesson: { id: 'l1', subject_id: 's1', name: 'Lesson 1' },
+        },
+      ],
+      currentIndex: 0,
+      pendingAssignmentIds: ['a1'],
+    };
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(initialPathway));
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_PREVIEW_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        awardedStickerId: 'sticker-1',
+      }),
+    );
+
+    mockApi.getPendingAssignments.mockResolvedValue([]);
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(await screen.findByTestId('pathway-structure'));
+
+    expect(
+      await screen.findByTestId('homework-complete-modal'),
+    ).toBeInTheDocument();
+    expect(sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY)).toBeNull();
+    const rebuiltPath = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+    expect(rebuiltPath.lessons).toEqual([]);
+  });
+
+  test('last homework completes normally when both sticker celebration and completion popups are disabled', async () => {
+    (useFeatureIsOn as jest.Mock).mockImplementation((key?: string) => {
+      if (key === STICKER_BOOK_CELEBRATION_POPUP_ENABLED) return false;
+      if (key === STICKER_BOOK_COMPLETION_POPUP) return false;
+      return true;
+    });
+
+    const initialPathway = {
+      path_id: 'p1',
+      lessons: [
+        {
+          assignment_id: 'a1',
+          lesson_id: 'l1',
+          chapter_id: 'c1',
+          course_id: 's1',
+          lesson: { id: 'l1', subject_id: 's1', name: 'Lesson 1' },
+        },
+      ],
+      currentIndex: 0,
+      pendingAssignmentIds: ['a1'],
+    };
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(initialPathway));
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_PREVIEW_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        awardedStickerId: 'sticker-1',
+      }),
+    );
+
+    mockApi.getPendingAssignments.mockResolvedValue([]);
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(await screen.findByTestId('pathway-structure'));
+
+    expect(
+      await screen.findByTestId('homework-complete-modal'),
+    ).toBeInTheDocument();
+    expect(sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY)).toBeNull();
+    const rebuiltPath = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+    expect(rebuiltPath.lessons).toEqual([]);
   });
 
   test('rebuilds homework instead of showing completion modal when no local path remains', async () => {

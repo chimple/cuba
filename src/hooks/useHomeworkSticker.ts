@@ -32,6 +32,8 @@ import { setCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import { useAppSelector } from '../redux/hooks';
 import logger from '../utility/logger';
 import {
+  clearPendingHomeworkStickerFlow,
+  clearPendingHomeworkStickerPreviewState,
   clearPendingFinalHomeworkStickerFlow,
   hasPendingFinalHomeworkStickerFlow,
 } from '../utility/homeworkStickerFlow';
@@ -780,10 +782,29 @@ export function useHomeworkSticker({
   );
 
   useEffect(() => {
+    if (isStickerBookCelebrationPopupOn) return;
+
+    clearPendingHomeworkStickerPreviewState();
+    sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    setIsStickerPreviewOpen(false);
+    setStickerPreviewData(null);
+    setStickerPreviewLaunchMotion(null);
+    setStickerPreviewFlyoutMotion(null);
+    setStickerPreviewTrigger('preview');
+    if (!isStickerBookCompletionPopupOn) {
+      clearPendingHomeworkStickerFlow();
+      resetStickerCelebrationState();
+    }
+  }, [
+    isStickerBookCelebrationPopupOn,
+    isStickerBookCompletionPopupOn,
+    resetStickerCelebrationState,
+  ]);
+
+  useEffect(() => {
     const handleStudentChanged = () => {
       resetRewardAudioSequence();
-      clearPendingFinalHomeworkStickerFlow();
-      clearPendingPathwayStickerReward();
+      clearPendingHomeworkStickerFlow();
       resetStickerCelebrationState();
     };
 
