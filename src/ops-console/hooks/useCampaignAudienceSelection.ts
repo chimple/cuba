@@ -75,7 +75,7 @@ export const useCampaignAudienceSelection = ({
         setAudienceOptions(options);
         setSelectedBlocks(options.blocks);
         setSelectedSchools(options.schools);
-        setSelectedGrades([]);
+        setSelectedGrades(options.grades);
       } catch (error) {
         logger.error('Failed to load campaign audience options:', error);
         setAudienceOptions(emptyAudienceOptions);
@@ -129,8 +129,9 @@ export const useCampaignAudienceSelection = ({
     (allSchoolIds.length > 0 &&
       selectedSchoolIds.length === allSchoolIds.length);
   const isAllGrades =
-    audienceOptions.grades.length > 0 &&
-    selectedGradeIds.length === audienceOptions.grades.length;
+    selectedGradeIds.length === 0 ||
+    (audienceOptions.grades.length > 0 &&
+      selectedGradeIds.length === audienceOptions.grades.length);
 
   const selectedProgramName =
     programs.find((program) => program.id === form.programId)?.name || '-';

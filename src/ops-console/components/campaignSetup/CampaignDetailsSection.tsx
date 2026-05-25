@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { requiredLabel } from './constants';
 import { CampaignDetailsSectionProps } from './types';
+import './CampaignDetailsSection.css';
 
 export const CampaignDetailsSection: React.FC<CampaignDetailsSectionProps> = ({
   form,

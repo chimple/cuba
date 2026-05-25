@@ -16,6 +16,7 @@ import {
   TARGET_TYPE_OPTIONS,
 } from './constants';
 import { ObjectiveGoalSectionProps } from './types';
+import './ObjectiveGoalSection.css';
 
 export const ObjectiveGoalSection: React.FC<ObjectiveGoalSectionProps> = ({
   form,

@@ -1,6 +1,8 @@
 import {
   AssignmentCartData,
   AssignmentDateRangeData,
+  CampaignAssignmentOptions,
+  CampaignAssignmentOptionsParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -1574,6 +1576,12 @@ export class ApiHandler implements ServiceApi {
     payload: CreateCampaignSetupPayload,
   ): Promise<CreateCampaignSetupResult> {
     return await this.s.createCampaignSetup(payload);
+  }
+
+  public async getCampaignAssignmentOptions(
+    params: CampaignAssignmentOptionsParams,
+  ): Promise<CampaignAssignmentOptions> {
+    return await this.s.getCampaignAssignmentOptions(params);
   }
 
   public async getUniqueGeoData(): Promise<{

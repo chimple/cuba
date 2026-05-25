@@ -18,6 +18,7 @@ const mockApiHandler = {
   getCampaignAudienceSummary: jest.fn(),
   createCampaignAudienceGroup: jest.fn(),
   createCampaignSetup: jest.fn(),
+  getCampaignAssignmentOptions: jest.fn(),
 };
 
 jest.mock('../../services/ServiceConfig', () => ({
@@ -27,6 +28,29 @@ jest.mock('../../services/ServiceConfig', () => ({
     }),
   },
 }));
+
+jest.mock('../components/CampaignSetupSections', () => {
+  const React = jest.requireActual('react');
+  const actual = jest.requireActual('../components/CampaignSetupSections');
+
+  return {
+    ...actual,
+    CampaignAssignmentStep: ({
+      onAssignmentsChange,
+      onCompletionChange,
+    }: {
+      onAssignmentsChange: (assignments: unknown[]) => void;
+      onCompletionChange: (isComplete: boolean) => void;
+    }) => {
+      React.useEffect(() => {
+        onAssignmentsChange([]);
+        onCompletionChange(false);
+      }, [onAssignmentsChange, onCompletionChange]);
+
+      return <div>Assignment Configuration</div>;
+    },
+  };
+});
 
 const setupApiMocks = () => {
   mockApiHandler.getCampaignSetupOptions.mockResolvedValue({
@@ -55,6 +79,14 @@ const setupApiMocks = () => {
   mockApiHandler.createCampaignSetup.mockResolvedValue({
     campaignId: 'campaign-1',
     targetAudienceId: 'audience-1',
+  });
+  mockApiHandler.getCampaignAssignmentOptions.mockResolvedValue({
+    grades: [
+      {
+        gradeId: 'grade-1',
+        subjects: [],
+      },
+    ],
   });
 };
 
@@ -125,8 +157,8 @@ describe('CampaignSetupPage', () => {
       ),
     );
 
-    fireEvent.mouseDown(screen.getByPlaceholderText('Select Grade'));
-    fireEvent.click(await screen.findByRole('option', { name: 'Grade 1' }));
+    expect(await screen.findByText('Students:')).toBeInTheDocument();
+    expect(await screen.findByText(/Grade 1/)).toBeInTheDocument();
     fireEvent.change(screen.getByPlaceholderText('Enter group name'), {
       target: { value: 'Group A' },
     });
@@ -147,6 +179,8 @@ describe('CampaignSetupPage', () => {
           targetValue: 90,
           startDate: '2026-05-01',
           endDate: '2026-05-31',
+          isAllGrades: true,
+          gradeIds: [],
         }),
       ),
     );

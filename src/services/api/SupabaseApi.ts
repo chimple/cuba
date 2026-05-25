@@ -58,6 +58,8 @@ import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
   AssignmentDateRangeData,
+  CampaignAssignmentOptions,
+  CampaignAssignmentOptionsParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -149,6 +151,29 @@ type CampaignSchoolCourseGradeRow = {
         grade?: CampaignGradeRow | CampaignGradeRow[] | null;
       }>
     | null;
+};
+
+type CampaignAssignmentCourseRow = Pick<
+  TableTypes<'course'>,
+  'id' | 'name' | 'grade_id' | 'sort_index' | 'subject_id'
+>;
+
+type CampaignAssignmentSchoolCourseRow = {
+  course?: CampaignAssignmentCourseRow | CampaignAssignmentCourseRow[] | null;
+};
+
+type CampaignAssignmentChapterRow = Pick<
+  TableTypes<'chapter'>,
+  'id' | 'name' | 'course_id' | 'sort_index'
+>;
+
+type CampaignAssignmentLessonRow = Pick<TableTypes<'lesson'>, 'id' | 'name'>;
+
+type CampaignAssignmentChapterLessonRow = Pick<
+  TableTypes<'chapter_lesson'>,
+  'chapter_id' | 'lesson_id' | 'sort_index'
+> & {
+  lesson?: CampaignAssignmentLessonRow | CampaignAssignmentLessonRow[] | null;
 };
 
 const firstOrSelf = <T>(value: T | T[] | null | undefined): T | null =>
@@ -9252,6 +9277,167 @@ export class SupabaseApi implements ServiceApi {
     return {
       campaignId: String(data.id),
       targetAudienceId,
+    };
+  }
+
+  async getCampaignAssignmentOptions({
+    schoolIds,
+    gradeIds,
+  }: CampaignAssignmentOptionsParams): Promise<CampaignAssignmentOptions> {
+    if (!this.supabase || gradeIds.length === 0) {
+      return { grades: [] };
+    }
+
+    const courseMap = new Map<string, CampaignAssignmentCourseRow>();
+
+    if (schoolIds.length > 0) {
+      for (const schoolIdBatch of chunkArray(schoolIds, 500)) {
+        const { data, error } = await this.supabase
+          .from('school_course')
+          .select(
+            'course:course_id(id, name, grade_id, sort_index, subject_id)',
+          )
+          .in('school_id', schoolIdBatch)
+          .eq('is_deleted', false);
+
+        if (error) {
+          logger.error('Error fetching campaign assignment courses:', error);
+          continue;
+        }
+
+        ((data ?? []) as CampaignAssignmentSchoolCourseRow[]).forEach((row) => {
+          const course = firstOrSelf(row.course);
+          if (!course?.id || !course.name || !course.grade_id) return;
+          if (!gradeIds.includes(String(course.grade_id))) return;
+          courseMap.set(String(course.id), course);
+        });
+      }
+    }
+
+    const subjectsByGrade = new Map<
+      string,
+      CampaignAssignmentOptions['grades'][number]['subjects']
+    >();
+
+    const sortedCourses = Array.from(courseMap.values()).sort(
+      (a, b) =>
+        Number(a.sort_index ?? 9999) - Number(b.sort_index ?? 9999) ||
+        String(a.name).localeCompare(String(b.name)),
+    );
+
+    const courseIds = sortedCourses.map((course) => String(course.id));
+    const chapterRows: CampaignAssignmentChapterRow[] = [];
+
+    for (const courseIdBatch of chunkArray(courseIds, 500)) {
+      const { data, error } = await this.supabase
+        .from(TABLES.Chapter)
+        .select('id, name, course_id, sort_index')
+        .in('course_id', courseIdBatch)
+        .eq('is_deleted', false)
+        .order('sort_index', { ascending: true });
+
+      if (error) {
+        logger.error('Error fetching campaign assignment chapters:', error);
+        continue;
+      }
+
+      chapterRows.push(...((data ?? []) as CampaignAssignmentChapterRow[]));
+    }
+
+    const chapterIds = chapterRows.map((chapter) => String(chapter.id));
+    const chapterLessonRows: CampaignAssignmentChapterLessonRow[] = [];
+
+    for (const chapterIdBatch of chunkArray(chapterIds, 500)) {
+      const { data, error } = await this.supabase
+        .from(TABLES.ChapterLesson)
+        .select('chapter_id, lesson_id, sort_index, lesson:lesson_id(id, name)')
+        .in('chapter_id', chapterIdBatch)
+        .eq('is_deleted', false)
+        .order('sort_index', { ascending: true });
+
+      if (error) {
+        logger.error('Error fetching campaign assignment lessons:', error);
+        continue;
+      }
+
+      chapterLessonRows.push(
+        ...((data ?? []) as CampaignAssignmentChapterLessonRow[]),
+      );
+    }
+
+    const lessonsByChapter = new Map<
+      string,
+      CampaignAssignmentOptions['grades'][number]['subjects'][number]['chapters'][number]['lessons']
+    >();
+    const lessonIdsByChapter = new Map<string, Set<string>>();
+
+    chapterLessonRows
+      .sort(
+        (a, b) =>
+          Number(a.sort_index ?? 9999) - Number(b.sort_index ?? 9999) ||
+          String(a.lesson_id).localeCompare(String(b.lesson_id)),
+      )
+      .forEach((row) => {
+        const lesson = firstOrSelf(row.lesson);
+        if (!row.chapter_id || !lesson?.id) return;
+
+        const chapterId = String(row.chapter_id);
+        const lessonId = String(lesson.id);
+        if (!lessonsByChapter.has(chapterId))
+          lessonsByChapter.set(chapterId, []);
+        if (!lessonIdsByChapter.has(chapterId)) {
+          lessonIdsByChapter.set(chapterId, new Set<string>());
+        }
+        if (lessonIdsByChapter.get(chapterId)?.has(lessonId)) return;
+
+        lessonIdsByChapter.get(chapterId)?.add(lessonId);
+        lessonsByChapter.get(chapterId)?.push({
+          id: lessonId,
+          name: lesson.name || 'Untitled lesson',
+        });
+      });
+
+    const chaptersByCourse = new Map<
+      string,
+      CampaignAssignmentOptions['grades'][number]['subjects'][number]['chapters']
+    >();
+
+    chapterRows
+      .sort(
+        (a, b) =>
+          Number(a.sort_index ?? 9999) - Number(b.sort_index ?? 9999) ||
+          String(a.name ?? '').localeCompare(String(b.name ?? '')),
+      )
+      .forEach((chapter) => {
+        if (!chapter.id || !chapter.course_id) return;
+        const courseId = String(chapter.course_id);
+        if (!chaptersByCourse.has(courseId)) chaptersByCourse.set(courseId, []);
+        chaptersByCourse.get(courseId)?.push({
+          id: String(chapter.id),
+          name: chapter.name || 'Untitled chapter',
+          lessons: lessonsByChapter.get(String(chapter.id)) ?? [],
+        });
+      });
+
+    const subjectOptions = sortedCourses.map((course) => ({
+      id: String(course.id),
+      name: course.name,
+      gradeId: String(course.grade_id),
+      chapters: chaptersByCourse.get(String(course.id)) ?? [],
+    }));
+
+    subjectOptions.forEach((subject) => {
+      if (!subjectsByGrade.has(subject.gradeId)) {
+        subjectsByGrade.set(subject.gradeId, []);
+      }
+      subjectsByGrade.get(subject.gradeId)?.push(subject);
+    });
+
+    return {
+      grades: gradeIds.map((gradeId) => ({
+        gradeId,
+        subjects: subjectsByGrade.get(gradeId) ?? [],
+      })),
     };
   }
 

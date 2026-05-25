@@ -238,6 +238,39 @@ export type CreateCampaignSetupResult = {
   targetAudienceId: string;
 };
 
+export type CampaignAssignmentLessonOption = {
+  id: string;
+  name: string;
+};
+
+export type CampaignAssignmentChapterOption = {
+  id: string;
+  name: string;
+  lessons: CampaignAssignmentLessonOption[];
+};
+
+export type CampaignAssignmentSubjectOption = {
+  id: string;
+  name: string;
+  gradeId: string;
+  chapters: CampaignAssignmentChapterOption[];
+};
+
+export type CampaignAssignmentGradeOption = {
+  gradeId: string;
+  subjects: CampaignAssignmentSubjectOption[];
+};
+
+export type CampaignAssignmentOptionsParams = {
+  programId: string;
+  schoolIds: string[];
+  gradeIds: string[];
+};
+
+export type CampaignAssignmentOptions = {
+  grades: CampaignAssignmentGradeOption[];
+};
+
 export interface ServiceApi {
   /**
    * Creates a AutoUser for at_school and hybrid school models when a new school is created
@@ -2179,6 +2212,14 @@ export interface ServiceApi {
   createCampaignSetup(
     payload: CreateCampaignSetupPayload,
   ): Promise<CreateCampaignSetupResult>;
+
+  /**
+   * Loads grade-wise subjects, chapters, and lessons for campaign assignment setup.
+   * Subjects are derived from courses available to the selected schools and grades.
+   */
+  getCampaignAssignmentOptions(
+    params: CampaignAssignmentOptionsParams,
+  ): Promise<CampaignAssignmentOptions>;
 
   /**
    * Get unique geo data
