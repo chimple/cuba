@@ -113,6 +113,17 @@ export type OpsStudentPerformanceBandRow = {
   performance?: string | null;
 };
 
+export type AssignmentBatchGroupRow = {
+  batchId: string | null;
+  assignmentCount: number;
+  latestCreatedAt?: string | null;
+};
+
+export type AssignmentDateRangeData = {
+  assignments: TableTypes<'assignment'>[];
+  batchGroups: AssignmentBatchGroupRow[];
+};
+
 export type JoinClassInviteLookupResult = {
   inviteData: any;
   classData?: TableTypes<'class'>;
@@ -1662,6 +1673,49 @@ export interface ServiceApi {
     classWiseAssignments: TableTypes<'assignment'>[];
     individualAssignments: TableTypes<'assignment'>[];
   }>;
+
+  /**
+   * Gets assignment data for a class/school within an inclusive datetime range.
+   * @param {string} classId class Id
+   * @param {string} schoolId school Id
+   * @param {string} startDate inclusive start datetime (ISO string)
+   * @param {string} endDate inclusive end datetime (ISO string)
+   * @return object containing raw assignment rows and grouped batch metadata.
+   */
+  getAssignmentDateRangeDataForClassAndSchool(
+    classId: string,
+    schoolId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<AssignmentDateRangeData>;
+
+  /**
+   * Gets the latest coin and streak summary for a user in a class and school.
+   * @param {string} userId user Id
+   * @param {string} classId class Id
+   * @param {string} schoolId school Id
+   * @return coin/streak summary, or undefined when no record exists.
+   */
+  getCoinAndStreakCount(
+    userId: string,
+    classId: string,
+    schoolId: string,
+  ): Promise<{ coins: number; streak: number } | undefined>;
+
+  /**
+   * Updates coin balance for a user in a class and school.
+   * @param {string} userId user Id
+   * @param {string} schoolId school Id
+   * @param {string} classId class Id
+   * @param {number} coins updated coin value to persist
+   * @return updated user achievement row.
+   */
+  updateCoins(
+    userId: string,
+    schoolId: string,
+    classId: string,
+    coins: number,
+  ): Promise<TableTypes<TABLES.UserAchivements>>;
 
   /**
    * Gets teacher joined date.

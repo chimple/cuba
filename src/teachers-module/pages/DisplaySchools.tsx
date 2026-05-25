@@ -284,6 +284,7 @@ const DisplaySchools: FC = () => {
             isBackButton={false}
             disableBackButton={true}
             customText="Select School"
+            showStreakButton={false}
           />
           <div className="display-user-switch-user-toggle">
             <div className="display-school-switch-text">

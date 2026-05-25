@@ -57,6 +57,8 @@ import Course from '../../models/course';
 import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
+  AssignmentBatchGroupRow,
+  AssignmentDateRangeData,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
   CampaignAudienceOptions,
@@ -116,7 +118,7 @@ export class SqliteApi implements ServiceApi {
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = 'db_issue10';
-  private DB_VERSION = 14;
+  private DB_VERSION = 15;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<'user'> | undefined;
@@ -6032,6 +6034,107 @@ order by
 
     return { classWiseAssignments, individualAssignments };
   }
+  async getAssignmentDateRangeDataForClassAndSchool(
+    classId: string,
+    schoolId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<AssignmentDateRangeData> {
+    await this.ensureInitialized();
+
+    const query = `
+      SELECT
+        *
+      FROM ${TABLES.Assignment}
+      WHERE class_id = ?
+        AND school_id = ?
+        AND created_at >= ?
+        AND created_at <= ?
+        AND (is_deleted = 0 OR is_deleted = false OR is_deleted IS NULL)
+      ORDER BY created_at ASC;
+    `;
+
+    try {
+      const res = await this.executeQuery(query, [
+        classId,
+        schoolId,
+        startDate,
+        endDate,
+      ]);
+
+      const assignments = (res?.values ?? []) as TableTypes<'assignment'>[];
+      const groupedByBatch = new Map<string, AssignmentBatchGroupRow>();
+
+      assignments.forEach((assignment) => {
+        const batchId = assignment.batch_id ?? null;
+        const key = batchId ?? '__null_batch_id__';
+        const existing = groupedByBatch.get(key);
+
+        if (!existing) {
+          groupedByBatch.set(key, {
+            batchId,
+            assignmentCount: 1,
+            latestCreatedAt: assignment.created_at ?? null,
+          });
+          return;
+        }
+
+        existing.assignmentCount += 1;
+        if (
+          assignment.created_at &&
+          (!existing.latestCreatedAt ||
+            assignment.created_at > existing.latestCreatedAt)
+        ) {
+          existing.latestCreatedAt = assignment.created_at;
+        }
+      });
+
+      const batchGroups = Array.from(groupedByBatch.values()).sort((a, b) => {
+        const aTime = a.latestCreatedAt
+          ? new Date(a.latestCreatedAt).getTime()
+          : Number.NEGATIVE_INFINITY;
+        const bTime = b.latestCreatedAt
+          ? new Date(b.latestCreatedAt).getTime()
+          : Number.NEGATIVE_INFINITY;
+        return aTime - bTime;
+      });
+
+      return { assignments, batchGroups };
+    } catch (error) {
+      logger.error(
+        'Error fetching assignment date range data from sqlite:',
+        error,
+      );
+      return { assignments: [], batchGroups: [] };
+    }
+  }
+
+  async getCoinAndStreakCount(
+    userId: string,
+    classId: string,
+    schoolId: string,
+  ): Promise<{ coins: number; streak: number } | undefined> {
+    logger.warn('coming here....................');
+    await this.ensureInitialized();
+    const query = `
+    SELECT coins , streak
+    FROM ${TABLES.UserAchivements}
+    where user_id = ? and class_id = ? and school_id = ?
+    and (is_deleted = 0 OR is_deleted = false OR is_deleted IS NULL)
+    ORDER BY created_at DESC`;
+
+    try {
+      const res = await this._db?.query(query, [userId, classId, schoolId]);
+      logger.warn('data or result', res?.values);
+      if (res?.values && res.values.length > 0) {
+        const { coins, streak } = res.values[0];
+        return { coins, streak };
+      }
+    } catch (error) {
+      logger.error('Error fetching coin and streak count:', error);
+    }
+    return undefined;
+  }
 
   async getTeacherJoinedDate(
     userId: string,
@@ -9997,5 +10100,115 @@ order by
   }
   async isSplUser(): Promise<boolean> {
     return await this._serverApi.isSplUser();
+  }
+
+  async updateCoins(
+    userId: string,
+    schoolId: string,
+    classId: string,
+    coins: number,
+  ): Promise<TableTypes<TABLES.UserAchivements>> {
+    await this.ensureInitialized();
+
+    const now = new Date().toISOString();
+    const coinsToAdd = Number(coins) || 0;
+
+    try {
+      const existingRes = await this.executeQuery(
+        `
+      SELECT *
+      FROM ${TABLES.UserAchivements}
+      WHERE user_id = ? AND school_id = ? AND class_id = ?
+        AND (is_deleted = 0 OR is_deleted = false OR is_deleted IS NULL)
+      ORDER BY created_at DESC
+      LIMIT 1;
+      `,
+        [userId, schoolId, classId],
+      );
+
+      const existing = existingRes?.values?.[0] as
+        | (TableTypes<TABLES.UserAchivements> & { id?: string })
+        | undefined;
+
+      if (existing) {
+        const updatedCoins = Number(existing.coins ?? 1000) + coinsToAdd;
+
+        await this.executeQuery(
+          `
+        UPDATE ${TABLES.UserAchivements}
+        SET coins = ?, updated_at = ?, is_deleted = 0
+        WHERE user_id = ? AND school_id = ? AND class_id = ?;
+        `,
+          [updatedCoins, now, userId, schoolId, classId],
+        );
+
+        const updatedRow = {
+          ...existing,
+          coins: updatedCoins,
+          updated_at: now,
+          is_deleted: false,
+        } as TableTypes<TABLES.UserAchivements>;
+
+        await this.updatePushChanges(
+          TABLES.UserAchivements,
+          MUTATE_TYPES.UPDATE,
+          updatedRow,
+        );
+
+        return updatedRow;
+      }
+
+      const id = uuidv4();
+      const newRow = {
+        id,
+        user_id: userId,
+        school_id: schoolId,
+        class_id: classId,
+        program_id: null,
+        coins: 1000 + coinsToAdd,
+        streak: 0,
+        last_rewarded_week: null,
+        last_penalty_week: null,
+        is_deleted: false,
+        created_at: now,
+        updated_at: now,
+      } as TableTypes<TABLES.UserAchivements>;
+
+      await this.executeQuery(
+        `
+      INSERT INTO ${TABLES.UserAchivements}
+      (
+        id, user_id, program_id, school_id, class_id, coins, streak,
+        last_rewarded_week, last_penalty_week, is_deleted, created_at, updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+        [
+          id,
+          userId,
+          null,
+          schoolId,
+          classId,
+          1000 + coinsToAdd,
+          0,
+          null,
+          null,
+          0,
+          now,
+          now,
+        ],
+      );
+
+      await this.updatePushChanges(
+        TABLES.UserAchivements,
+        MUTATE_TYPES.INSERT,
+        newRow,
+      );
+
+      return newRow;
+    } catch (error) {
+      logger.error('Error updating/inserting user_achievements coins:', error);
+      throw error;
+    }
   }
 }

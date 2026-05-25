@@ -1,5 +1,6 @@
 import {
   AssignmentCartData,
+  AssignmentDateRangeData,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
   CampaignAudienceOptions,
@@ -1234,6 +1235,37 @@ export class ApiHandler implements ServiceApi {
       endDate,
     );
   }
+  async getAssignmentDateRangeDataForClassAndSchool(
+    classId: string,
+    schoolId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<AssignmentDateRangeData> {
+    return this.s.getAssignmentDateRangeDataForClassAndSchool(
+      classId,
+      schoolId,
+      startDate,
+      endDate,
+    );
+  }
+
+  async getCoinAndStreakCount(
+    userId: string,
+    classId: string,
+    schoolId: string,
+  ): Promise<{ coins: number; streak: number } | undefined> {
+    return this.s.getCoinAndStreakCount(userId, classId, schoolId);
+  }
+
+  async updateCoins(
+    userId: string,
+    schoolId: string,
+    classId: string,
+    coins: number,
+  ): Promise<TableTypes<TABLES.UserAchivements>> {
+    return this.s.updateCoins(userId, schoolId, classId, coins);
+  }
+
   getTeacherJoinedDate(
     userId: string,
     classId: string,

@@ -20,6 +20,10 @@ import { t } from 'i18next';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import { IoShareSocialSharp } from 'react-icons/io5';
 import { registerBackButtonHandler } from '../../../common/backButtonRegistry';
+import {
+  registerStreakRectResolver,
+  registerStreakRewardPulseHandler,
+} from '../../../common/streakRewardBridge';
 
 // Updated DrawerOptions to include User Profile
 const iconMapping: Record<DrawerOptions, SvgIconComponent> = {
@@ -44,6 +48,7 @@ interface HeaderProps {
   showSearchIcon?: boolean;
   onSearchIconClick?: () => void;
   onShareClick?: () => void;
+  showStreakButton?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -62,9 +67,15 @@ const Header: React.FC<HeaderProps> = ({
   showSearchIcon = false,
   onSearchIconClick,
   onShareClick,
+  showStreakButton = true,
 }) => {
   const history = useHistory();
+  const FLAME_PULSE_DURATION_MS = 1000;
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isStreakRewardPulseActive, setIsStreakRewardPulseActive] =
+    useState(false);
+  const streakButtonRef = React.useRef<HTMLButtonElement | null>(null);
+  const streakPulseTimeoutRef = React.useRef<number | null>(null);
 
   useEffect(() => {
     setIsDrawerOpen(false);
@@ -133,6 +144,42 @@ const Header: React.FC<HeaderProps> = ({
     });
     return unregister;
   }, [isBackButton, disableBackButton]);
+
+  useEffect(() => {
+    registerStreakRectResolver(() => {
+      return streakButtonRef.current?.getBoundingClientRect() ?? null;
+    });
+
+    return () => {
+      registerStreakRectResolver(null);
+    };
+  }, []);
+
+  useEffect(() => {
+    const triggerStreakPulse = () => {
+      setIsStreakRewardPulseActive(false);
+      window.requestAnimationFrame(() => {
+        setIsStreakRewardPulseActive(true);
+      });
+
+      if (streakPulseTimeoutRef.current) {
+        window.clearTimeout(streakPulseTimeoutRef.current);
+      }
+
+      streakPulseTimeoutRef.current = window.setTimeout(() => {
+        setIsStreakRewardPulseActive(false);
+      }, FLAME_PULSE_DURATION_MS);
+    };
+
+    registerStreakRewardPulseHandler(triggerStreakPulse);
+
+    return () => {
+      registerStreakRewardPulseHandler(null);
+      if (streakPulseTimeoutRef.current) {
+        window.clearTimeout(streakPulseTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <header className="header-container">
@@ -234,6 +281,31 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             )}
           </div>
+
+          {showStreakButton && (
+            <button
+              ref={streakButtonRef}
+              type="button"
+              id="header-streak-button"
+              className={`streak-container ${
+                isStreakRewardPulseActive
+                  ? 'streak-container--reward-pulse'
+                  : ''
+              }`.trim()}
+              onClick={() => history.push(PAGES.STREAK_PAGE)}
+              aria-label={String(t('My Streak'))}
+            >
+              <img
+                id="header-streak-icon"
+                src="assets/icons/streakIcon.png"
+                className={`streak-icon ${
+                  isStreakRewardPulseActive ? 'streak-icon--reward-pulse' : ''
+                }`.trim()}
+                alt={String(t('Streak'))}
+              />
+            </button>
+          )}
+
           <div className="help-icon-container">
             <img
               src="assets/icons/helpIcon.svg"

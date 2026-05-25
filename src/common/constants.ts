@@ -104,6 +104,7 @@ export enum TABLES {
   SubjectLesson = 'subject_lesson',
   StickerBook = 'sticker_book',
   UserStickerBook = 'user_sticker_book',
+  UserAchivements = 'user_achievements',
 }
 export enum CLASS_USERS {
   STUDENTS = 'Students',
@@ -551,6 +552,7 @@ export enum PAGES {
   TEACHER_RECOMMENDED_ASSIGNMENTS = '/teacher-recommended-assignments',
   COLORING_BOARD = '/coloring-board',
   STICKER_BOOK = '/sticker-book',
+  STREAK_PAGE = '/streak-page',
 }
 
 export const enum ASSIGNMENT_TYPE {
