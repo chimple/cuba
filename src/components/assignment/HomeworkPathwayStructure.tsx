@@ -52,6 +52,8 @@ import { AudioUtil } from '../../utility/AudioUtil';
 import { useHomeworkSticker } from '../../hooks/useHomeworkSticker';
 import logger from '../../utility/logger';
 import {
+  clearPendingHomeworkStickerFlow,
+  clearPendingHomeworkStickerPreviewState,
   hasPendingFinalHomeworkStickerFlow,
   hasPendingHomeworkStickerFlow,
 } from '../../utility/homeworkStickerFlow';
@@ -896,6 +898,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       const lessons = lessonsToRender.map((item) => item.lesson);
       const currentStudent = Util.getCurrentStudent();
+      if (!isStickerBookCelebrationPopupOn) {
+        clearPendingHomeworkStickerPreviewState();
+        sessionStorage.removeItem(REWARD_LEARNING_PATH);
+        if (!isStickerBookCompletionPopupOn) {
+          clearPendingHomeworkStickerFlow();
+        }
+      }
       let previewOverrideParsed: {
         awardedStickerId?: string;
         preAwardCollectedStickerIds?: string[];
@@ -1029,6 +1038,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         stickerPreviewPromise,
       ]);
       let didScheduleStickerCompletionPopup = false;
+      let didDispatchStickerCompletionPopupImmediately = false;
       if (
         completionOverrideParsed &&
         !shouldOpenCelebrationPopup &&
@@ -1037,6 +1047,14 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       ) {
         sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
         didScheduleStickerCompletionPopup = true;
+        window.setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+              detail: stickerCompletionPayload,
+            }),
+          );
+        }, 0);
+        didDispatchStickerCompletionPopupImmediately = true;
       }
 
       const currentCompletedIndexFromPath =
@@ -1937,6 +1955,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               }, 0);
             } else if (
               didScheduleStickerCompletionPopup &&
+              !didDispatchStickerCompletionPopupImmediately &&
               stickerCompletionPayload
             ) {
               window.setTimeout(() => {
@@ -1957,6 +1976,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           }, 0);
         } else if (
           didScheduleStickerCompletionPopup &&
+          !didDispatchStickerCompletionPopupImmediately &&
           stickerCompletionPayload
         ) {
           window.setTimeout(() => {
