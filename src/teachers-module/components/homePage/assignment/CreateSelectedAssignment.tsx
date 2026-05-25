@@ -26,6 +26,10 @@ import { addDays, addMonths, format } from 'date-fns';
 import { Trans } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../../../../utility/logger';
+import {
+  getStreakTargetRect,
+  triggerStreakRewardPulse,
+} from '../../../../common/streakRewardBridge';
 
 interface LessonDetail {
   subject: string;
@@ -514,28 +518,12 @@ const CreateSelectedAssignment = ({
     };
 
     const animateStreakFlame = async () => {
-      const streakButton =
-        (document.getElementById('header-streak-button') as HTMLElement) ||
-        (document.querySelector('.streak-container') as HTMLElement | null);
-      if (!streakButton) {
+      const didTriggerPulse = triggerStreakRewardPulse();
+      if (!didTriggerPulse) {
         return;
       }
 
-      const streakIcon =
-        (document.getElementById('header-streak-icon') as HTMLElement) ||
-        (streakButton.querySelector('.streak-icon') as HTMLElement | null);
-
-      streakButton.classList.remove('streak-container--reward-pulse');
-      streakIcon?.classList.remove('streak-icon--reward-pulse');
-      void streakButton.offsetWidth;
-
-      streakButton.classList.add('streak-container--reward-pulse');
-      streakIcon?.classList.add('streak-icon--reward-pulse');
-
       await pause(FLAME_PULSE_DURATION_MS);
-
-      streakButton.classList.remove('streak-container--reward-pulse');
-      streakIcon?.classList.remove('streak-icon--reward-pulse');
     };
 
     const animateRewardToStreak = async (rewardValue: number) => {
@@ -560,17 +548,13 @@ const CreateSelectedAssignment = ({
 
       await pause(REWARD_INDICATOR_DELAY_MS);
 
-      const streakButton =
-        (document.getElementById('header-streak-button') as HTMLElement) ||
-        (document.querySelector('.streak-container') as HTMLElement | null);
-
-      if (!streakButton) {
+      const streakRect = getStreakTargetRect();
+      if (!streakRect) {
         await pause(450);
         setRewardAnimation((prev) => ({ ...prev, visible: false }));
         return;
       }
 
-      const streakRect = streakButton.getBoundingClientRect();
       const deltaX = streakRect.left + streakRect.width / 2 - startX;
       const deltaY = streakRect.top + streakRect.height / 2 - startY;
 
