@@ -14,6 +14,7 @@ import {
   OBJECTIVE_OPTIONS,
   renderSelectPlaceholder,
   requiredLabel,
+  TARGET_TYPE_LABEL_BY_VALUE,
   TARGET_TYPE_OPTIONS,
 } from './constants';
 import { ObjectiveGoalSectionProps } from './types';
@@ -83,8 +84,7 @@ export const ObjectiveGoalSection: React.FC<ObjectiveGoalSectionProps> = ({
                   renderSelectPlaceholder(
                     value,
                     'Select Target Type',
-                    TARGET_TYPE_OPTIONS.find((option) => option.value === value)
-                      ?.label,
+                    TARGET_TYPE_LABEL_BY_VALUE.get(value),
                   )
                 }
                 size="small"

@@ -27,19 +27,19 @@ export const getTodayDateValue = (date = new Date()): string => {
   return `${year}-${month}-${day}`;
 };
 
-const normalizeSavedGroupName = (name: string) =>
+export const normalizeSavedGroupName = (name: string) =>
   name.trim().replace(/\s+/g, ' ').toLowerCase();
+
+export const buildSavedGroupNameSet = (
+  savedGroups: CampaignSavedAudienceGroup[],
+) => new Set(savedGroups.map((group) => normalizeSavedGroupName(group.name)));
 
 export const hasDuplicateSavedGroupName = (
   groupName: string,
-  savedGroups: CampaignSavedAudienceGroup[],
-) => {
-  const normalizedName = normalizeSavedGroupName(groupName);
+  savedGroupNameSet: ReadonlySet<string>,
+) => savedGroupNameSet.has(normalizeSavedGroupName(groupName));
 
-  return savedGroups.some(
-    (group) => normalizeSavedGroupName(group.name) === normalizedName,
-  );
-};
+const EMPTY_SAVED_GROUP_NAME_SET: ReadonlySet<string> = new Set();
 
 type AudiencePayloadParams = {
   isAllSchools: boolean;
@@ -70,7 +70,7 @@ export const buildCampaignAudiencePayload = (
 export const getCampaignSetupValidationErrors = (
   form: CampaignSetupFormState,
   saveGroup: boolean,
-  savedGroups: CampaignSavedAudienceGroup[] = [],
+  savedGroupNameSet: ReadonlySet<string> = EMPTY_SAVED_GROUP_NAME_SET,
 ): Record<string, string> => {
   const errors: Record<string, string> = {};
   const today = getTodayDateValue();
@@ -112,7 +112,7 @@ export const getCampaignSetupValidationErrors = (
   if (saveGroup) {
     if (!form.groupName.trim()) {
       errors.groupName = 'Group name is required.';
-    } else if (hasDuplicateSavedGroupName(form.groupName, savedGroups)) {
+    } else if (hasDuplicateSavedGroupName(form.groupName, savedGroupNameSet)) {
       errors.groupName = 'A saved group with this name already exists.';
     }
   }

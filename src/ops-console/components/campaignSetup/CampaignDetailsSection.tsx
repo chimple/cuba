@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import {
   Box,
   FormControl,
@@ -28,6 +28,10 @@ export const CampaignDetailsSection: React.FC<CampaignDetailsSectionProps> = ({
   const today = getTodayDateValue();
   const endDateMin =
     form.startDate && form.startDate > today ? form.startDate : today;
+  const managerNameById = useMemo(
+    () => new Map(managers.map((manager) => [manager.id, manager.name])),
+    [managers],
+  );
   const openDatePicker = (input: HTMLInputElement | null) => {
     if (!input) return;
 
@@ -79,7 +83,7 @@ export const CampaignDetailsSection: React.FC<CampaignDetailsSectionProps> = ({
                 renderSelectPlaceholder(
                   value,
                   'Select Campaign Manager',
-                  managers.find((manager) => manager.id === value)?.name,
+                  managerNameById.get(value),
                 )
               }
               size="small"

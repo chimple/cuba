@@ -30,6 +30,10 @@ export const TARGET_TYPE_OPTIONS: Array<{
   { value: 'number_of_lessons', label: 'Number of Lessons' },
 ];
 
+export const TARGET_TYPE_LABEL_BY_VALUE = new Map(
+  TARGET_TYPE_OPTIONS.map((option) => [option.value, option.label]),
+);
+
 export const requiredLabel = (label: string) => (
   <>
     {label} <span className="campaign-setup-required">*</span>
