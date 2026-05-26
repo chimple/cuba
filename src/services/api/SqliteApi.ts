@@ -3478,16 +3478,29 @@ export class SqliteApi implements ServiceApi {
 
   async getSkillLessonsBySkillIds(
     skillIds: string[],
+    languageCode?: string,
   ): Promise<TableTypes<'skill_lesson'>[]> {
     await this.ensureInitialized();
     if (!skillIds || skillIds.length === 0) return [];
 
     const student = this.currentStudent;
-    const langId = student?.language_id;
+    let langId = student?.language_id;
     const localeId = student?.locale_id;
+    if (languageCode) {
+      const languageRes = await this._db?.query(
+        `
+        SELECT id
+        FROM ${TABLES.Language}
+        WHERE LOWER(code) = ?
+          AND is_deleted = 0
+        LIMIT 1;
+        `,
+        [languageCode.toLowerCase()],
+      );
+      langId = languageRes?.values?.[0]?.id ?? langId;
+    }
 
     const placeholders = skillIds.map(() => '?').join(',');
-
     const res = await this._db?.query(
       `
       SELECT *
@@ -3514,7 +3527,20 @@ export class SqliteApi implements ServiceApi {
       `,
       skillIds,
     );
-    return res?.values ?? [];
+    const skillLessons = res?.values ?? [];
+    if (skillLessons.length) return skillLessons;
+    const fallbackRes = await this._db?.query(
+      `
+      SELECT *
+      FROM ${TABLES.SkillLesson}
+      WHERE skill_id IN (${placeholders})
+        AND is_deleted = 0
+      ORDER BY sort_index ASC
+      `,
+      skillIds,
+    );
+    const fallbackLessons = fallbackRes?.values ?? [];
+    return fallbackLessons;
   }
 
   async getSkillRelationsByTargetIds(

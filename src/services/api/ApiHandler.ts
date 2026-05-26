@@ -952,8 +952,9 @@ export class ApiHandler implements ServiceApi {
   }
   public async getSkillLessonsBySkillIds(
     skillIds: string[],
+    languageCode?: string,
   ): Promise<TableTypes<'skill_lesson'>[]> {
-    return this.s.getSkillLessonsBySkillIds(skillIds);
+    return this.s.getSkillLessonsBySkillIds(skillIds, languageCode);
   }
 
   public async getLeaderboardResults(

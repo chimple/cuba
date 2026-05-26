@@ -894,6 +894,7 @@ export interface ServiceApi {
    */
   getSkillLessonsBySkillIds(
     skillIds: string[],
+    languageCode?: string,
   ): Promise<TableTypes<'skill_lesson'>[]>;
 
   /**
