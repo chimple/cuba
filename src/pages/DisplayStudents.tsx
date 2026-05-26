@@ -86,7 +86,7 @@ const DisplayStudents: FC<{}> = () => {
       logger.warn('Failed to prefetch Lido common audio in background.', error);
     });
     let resolvedSchoolIds: string[] = [];
-    if (linkedData.classes && linkedData.classes.length > 0) {
+    if (linkedData?.classes && linkedData.classes.length > 0) {
       const firstClass = linkedData.classes[0];
       const currClass = await api.getClassById(firstClass.id);
       await schoolUtil.setCurrentClass(currClass ?? undefined);

@@ -166,8 +166,8 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
   };
 
   const onSchoolModeSwitchUser = async () => {
-    Util.setCurrentStudent(null);
-    schoolUtil.setCurrentClass(undefined);
+    await Util.setCurrentStudent(null);
+    await schoolUtil.setCurrentClass(undefined);
     updateLocalAttributes({
       student_id: null,
       school_ids: [],
