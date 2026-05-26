@@ -1,0 +1,10 @@
+.campaign-count-placeholder,
+.campaign-select-placeholder {
+  color: var(--campaign-placeholder);
+  opacity: 1;
+  font-size: 0.75rem;
+}
+
+.campaign-setup-page .MuiSelect-select .campaign-select-placeholder {
+  font-size: 0.875rem;
+}

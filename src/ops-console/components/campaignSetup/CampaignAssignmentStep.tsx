@@ -6,6 +6,7 @@ import {
   CampaignAssignmentOptions,
   CampaignOption,
 } from '../../../services/api/ServiceApi';
+import logger from '../../../utility/logger';
 import { AssignmentConfigurationCard } from './AssignmentConfigurationCard';
 import { AssignmentSummary } from './AssignmentSummary';
 import { ChapterSelection } from './ChapterSelection';
@@ -142,10 +143,26 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   }, [isComplete, onCompletionChange]);
 
   useEffect(() => {
-    onAssignmentsChange(
-      buildAssignmentDrafts(rowsByGrade, selectedSchoolIds, campaignId),
+    const assignmentDrafts = buildAssignmentDrafts(
+      rowsByGrade,
+      selectedSchoolIds,
+      campaignId,
     );
-  }, [campaignId, onAssignmentsChange, rowsByGrade, selectedSchoolIds]);
+
+    logger.info('Campaign assignment drafts generated', {
+      campaignId,
+      selectedSchoolIds,
+      selectedGradeIds: selectedGrades.map((grade) => grade.id),
+      assignments: assignmentDrafts,
+    });
+    onAssignmentsChange(assignmentDrafts);
+  }, [
+    campaignId,
+    onAssignmentsChange,
+    rowsByGrade,
+    selectedGrades,
+    selectedSchoolIds,
+  ]);
 
   const updateConfig = (
     gradeId: string,

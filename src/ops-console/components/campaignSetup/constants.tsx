@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   CampaignObjective,
   CampaignRewardType,
@@ -32,6 +31,9 @@ export const TARGET_TYPE_OPTIONS: Array<{
   { value: 'number_of_lessons', label: 'Number of Lessons' },
 ];
 
+export const TARGET_TYPE_LABEL_BY_VALUE = new Map(
+  TARGET_TYPE_OPTIONS.map((option) => [option.value, option.label]),
+);
 export const REWARD_TYPE_OPTIONS: Array<{
   value: CampaignRewardType;
   label: string;
@@ -57,16 +59,4 @@ export const requiredLabel = (label: string) => (
   <>
     {label} <span className="campaign-setup-required">*</span>
   </>
-);
-
-const selectedCountLabel = (count: number, placeholder: string) =>
-  count > 0 ? `${count} Selected` : placeholder;
-
-export const renderSelectionCount = (
-  selected: unknown[],
-  placeholder: string,
-) => (
-  <span className={selected.length ? undefined : 'campaign-setup-placeholder'}>
-    {selectedCountLabel(selected.length, placeholder)}
-  </span>
 );

@@ -124,6 +124,11 @@
     gap: 1.1875rem;
   }
 
+  .campaign-setup-audience-flow-copy {
+    display: block;
+    white-space: nowrap;
+  }
+
   .campaign-setup-field-note {
     color: #000000;
     font-size: 0.6875rem !important;
