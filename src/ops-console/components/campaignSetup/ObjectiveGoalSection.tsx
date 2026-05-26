@@ -12,11 +12,11 @@ import {
 import {
   OBJECTIVE_DESCRIPTION,
   OBJECTIVE_OPTIONS,
-  renderSelectPlaceholder,
   requiredLabel,
   TARGET_TYPE_LABEL_BY_VALUE,
   TARGET_TYPE_OPTIONS,
 } from './constants';
+import { renderSelectPlaceholder } from './CampaignPlaceholder';
 import { ObjectiveGoalSectionProps } from './types';
 import './ObjectiveGoalSection.css';
 

@@ -7,7 +7,8 @@ import {
   Select,
   Typography,
 } from '@mui/material';
-import { renderSelectPlaceholder, requiredLabel } from './constants';
+import { renderSelectPlaceholder } from './CampaignPlaceholder';
+import { requiredLabel } from './constants';
 import { TargetAudienceSectionProps } from './types';
 import { CampaignMultiSelect } from './CampaignMultiSelect';
 import { AudienceSummary } from './AudienceSummary';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Autocomplete, Checkbox, TextField } from '@mui/material';
-import { renderSelectionCount } from './constants';
+import { renderSelectionCount } from './CampaignPlaceholder';
 
 type AutocompleteOptionProps = React.HTMLAttributes<HTMLLIElement> & {
   key: React.Key;

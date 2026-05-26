@@ -215,15 +215,10 @@
   color: #21272a;
 }
 
-.campaign-setup-placeholder,
 .campaign-setup-page input::placeholder {
   color: var(--campaign-placeholder);
   opacity: 1;
   font-size: 0.75rem;
-}
-
-.campaign-setup-page .MuiSelect-select .campaign-setup-placeholder {
-  font-size: 0.875rem;
 }
 
 .campaign-setup-actions {

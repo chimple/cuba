@@ -12,7 +12,8 @@ import {
 } from '@mui/material';
 import { CalendarToday } from '@mui/icons-material';
 import { getTodayDateValue } from '../../hooks/campaignSetupFormHelpers';
-import { renderSelectPlaceholder, requiredLabel } from './constants';
+import { renderSelectPlaceholder } from './CampaignPlaceholder';
+import { requiredLabel } from './constants';
 import { CampaignDetailsSectionProps } from './types';
 import './CampaignDetailsSection.css';
 
