@@ -1,7 +1,9 @@
 import {
   CampaignObjective,
+  CampaignRewardType,
   CampaignTargetType,
 } from '../../../services/api/ServiceApi';
+import type { CampaignRewardRankFormState } from './types';
 
 export const OBJECTIVE_OPTIONS: Array<{
   value: CampaignObjective;
@@ -32,6 +34,26 @@ export const TARGET_TYPE_OPTIONS: Array<{
 export const TARGET_TYPE_LABEL_BY_VALUE = new Map(
   TARGET_TYPE_OPTIONS.map((option) => [option.value, option.label]),
 );
+export const REWARD_TYPE_OPTIONS: Array<{
+  value: CampaignRewardType;
+  label: string;
+}> = [
+  { value: 'digital_rewards', label: 'Digital Rewards' },
+  { value: 'physical_rewards', label: 'Physical Rewards' },
+];
+
+export const DEFAULT_REWARD_RANKS: CampaignRewardRankFormState[] = [
+  { rank: 1, criteriaValue: '', reward: '' },
+  { rank: 2, criteriaValue: '', reward: '' },
+  { rank: 3, criteriaValue: '', reward: '' },
+];
+
+export const RANK_LABELS: Record<CampaignRewardRankFormState['rank'], string> =
+  {
+    1: '1st',
+    2: '2nd',
+    3: '3rd',
+  };
 
 export const requiredLabel = (label: string) => (
   <>

@@ -13,11 +13,15 @@ import { CampaignAssignmentDraft } from '../components/campaignSetup/campaignAss
 import {
   buildCampaignAudiencePayload,
   buildSavedGroupNameSet,
+  buildCampaignRewardsPayload,
+  getCampaignRewardsValidationErrors,
   getCampaignSetupValidationErrors,
   hasDuplicateSavedGroupName,
   initialCampaignSetupForm,
+  usesLessonRewardCriteria,
   resetObjectiveFields,
 } from './campaignSetupFormHelpers';
+import type { CampaignRewardsDraftPayload } from './campaignSetupFormHelpers';
 import {
   CampaignSetupMessage,
   useCampaignAudienceSelection,
@@ -52,10 +56,13 @@ export const useCampaignSetupForm = () => {
   const [submitting, setSubmitting] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [createdCampaignId, setCreatedCampaignId] = useState('');
+  const [campaignRewards, setCampaignRewards] =
+    useState<CampaignRewardsDraftPayload | null>(null);
   const [assignmentDrafts, setAssignmentDrafts] = useState<
     CampaignAssignmentDraft[]
   >([]);
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [rewardSubmitAttempted, setRewardSubmitAttempted] = useState(false);
   const [message, setMessage] = useState<CampaignSetupMessage>(null);
 
   const audience = useCampaignAudienceSelection({
@@ -110,6 +117,29 @@ export const useCampaignSetupForm = () => {
       setForm((current) => ({ ...current, [field]: nextValue }));
     };
 
+  const updateRewardRank =
+    (index: number, field: 'criteriaValue' | 'reward') =>
+    (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const rawValue = event.target.value;
+      setForm((current) => {
+        const nextValue =
+          field === 'criteriaValue' ? rawValue.replace(/\D/g, '') : rawValue;
+        const clampedValue =
+          field === 'criteriaValue' &&
+          !usesLessonRewardCriteria(current) &&
+          Number(nextValue) > 100
+            ? '100'
+            : nextValue;
+
+        return {
+          ...current,
+          rewardRanks: current.rewardRanks.map((rank, rankIndex) =>
+            rankIndex === index ? { ...rank, [field]: clampedValue } : rank,
+          ),
+        };
+      });
+    };
+
   const handleSelectChange =
     (field: keyof CampaignSetupFormState) =>
     (event: SelectChangeEvent<string>) => {
@@ -121,7 +151,10 @@ export const useCampaignSetupForm = () => {
         return;
       }
 
-      setForm((current) => ({ ...current, [field]: value }));
+      setForm((current) => ({
+        ...current,
+        [field]: value,
+      }));
     };
 
   const handleObjectiveChange = (objective: CampaignObjective) => {
@@ -158,6 +191,13 @@ export const useCampaignSetupForm = () => {
   );
 
   const isFormValid = Object.keys(validationErrors).length === 0;
+
+  const rewardValidationErrors = useMemo(
+    () => getCampaignRewardsValidationErrors(form),
+    [form],
+  );
+
+  const areRewardsValid = Object.keys(rewardValidationErrors).length === 0;
 
   const buildAudiencePayload = () =>
     buildCampaignAudiencePayload(form, saveGroup, {
@@ -249,17 +289,41 @@ export const useCampaignSetupForm = () => {
     }
   };
 
+  const handleRewardsSubmit = () => {
+    setRewardSubmitAttempted(true);
+    setMessage(null);
+
+    if (!createdCampaignId) {
+      setMessage({
+        type: 'error',
+        text: 'Save campaign setup before configuring rewards.',
+      });
+      return;
+    }
+
+    if (!areRewardsValid) return;
+
+    setCampaignRewards(buildCampaignRewardsPayload(form));
+    setActiveStep(3);
+  };
+
   const fieldError = (key: string) =>
     submitAttempted ? validationErrors[key] : undefined;
 
+  const rewardFieldError = (key: string) =>
+    rewardSubmitAttempted ? rewardValidationErrors[key] : undefined;
+
   return {
     activeStep,
+    areRewardsValid,
     assignmentDrafts,
+    campaignRewards,
     createdCampaignId,
     fieldError,
     form,
     handleObjectiveChange,
     handleAssignmentDraftsChange,
+    handleRewardsSubmit,
     handleSaveGroup,
     handleSelectChange,
     handleSubmit,
@@ -277,6 +341,8 @@ export const useCampaignSetupForm = () => {
     submitting,
     updateForm,
     updateNumericForm,
+    updateRewardRank,
+    rewardFieldError,
     ...audience,
   };
 };
