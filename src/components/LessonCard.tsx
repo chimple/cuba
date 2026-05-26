@@ -107,6 +107,7 @@ const LessonCard: React.FC<{
   };
 
   const [lessonCardColor, setLessonCardColor] = useState('');
+  const isMathCourse = course?.code?.toLowerCase().includes('math');
 
   const COURSE_VALUES_SET = new Set(
     (Object.values(CocosCourseIdentifier) as string[]).map((v) =>
@@ -379,20 +380,14 @@ const LessonCard: React.FC<{
         <div>
           {showText ? (
             <p id={`lesson-card-name${isLoved ? '-fav-icon' : ''}`}>
-              {course?.code === COURSES.ENGLISH ||
-              course?.code === COURSES.MATHS ||
-              course?.code === COURSES.MATHS_HINDI ||
-              course?.code === COURSES.MATHS_KANNADA
+              {course?.code === COURSES.ENGLISH || isMathCourse
                 ? lesson?.name
                 : t(lesson?.name ?? '')}
             </p>
           ) : null}
           {showChapterName && chapter?.name && (
             <div id={`chapter-title${isLoved ? '-fav-icon' : ''}`}>
-              {course?.code === COURSES.ENGLISH ||
-              course?.code === COURSES.MATHS ||
-              course?.code === COURSES.MATHS_HINDI ||
-              course?.code === COURSES.MATHS_KANNADA
+              {course?.code === COURSES.ENGLISH || isMathCourse
                 ? chapter?.name
                 : t(chapter?.name)}
             </div>
