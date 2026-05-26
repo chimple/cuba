@@ -18,8 +18,11 @@ const mockApiHandler = {
   getCampaignAudienceSummary: jest.fn(),
   createCampaignAudienceGroup: jest.fn(),
   createCampaignSetup: jest.fn(),
+  updateCampaignRewards: jest.fn(),
   getCampaignAssignmentOptions: jest.fn(),
 };
+
+let mockAssignmentComplete = false;
 
 jest.mock('../../services/ServiceConfig', () => ({
   ServiceConfig: {
@@ -44,7 +47,7 @@ jest.mock('../components/CampaignSetupSections', () => {
     }) => {
       React.useEffect(() => {
         onAssignmentsChange([]);
-        onCompletionChange(false);
+        onCompletionChange(mockAssignmentComplete);
       }, [onAssignmentsChange, onCompletionChange]);
 
       return <div>Assignment Configuration</div>;
@@ -80,6 +83,7 @@ const setupApiMocks = () => {
     campaignId: 'campaign-1',
     targetAudienceId: 'audience-1',
   });
+  mockApiHandler.updateCampaignRewards.mockResolvedValue(undefined);
   mockApiHandler.getCampaignAssignmentOptions.mockResolvedValue({
     grades: [
       {
@@ -97,8 +101,45 @@ const openSelectAndChoose = async (triggerText: string, optionText: string) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockAssignmentComplete = false;
   setupApiMocks();
 });
+
+const completeSetupStep = async () => {
+  fireEvent.change(screen.getByLabelText('Target Value'), {
+    target: { value: '90' },
+  });
+  fireEvent.change(screen.getByLabelText('Campaign Name'), {
+    target: { value: 'ABCD' },
+  });
+  await openSelectAndChoose('Select Campaign Manager', 'Raj Patel');
+
+  fireEvent.change(screen.getByLabelText('Start Date'), {
+    target: { value: '2026-05-01' },
+  });
+  fireEvent.change(screen.getByLabelText('End Date'), {
+    target: { value: '2026-05-31' },
+  });
+
+  await openSelectAndChoose('Select Program', 'Early Learning');
+  await waitFor(() =>
+    expect(mockApiHandler.getCampaignAudienceOptions).toHaveBeenCalledWith(
+      'program-1',
+    ),
+  );
+
+  expect(await screen.findByText('Students:')).toBeInTheDocument();
+  expect(await screen.findByText(/Grade 1/)).toBeInTheDocument();
+  fireEvent.change(screen.getByPlaceholderText('Enter group name'), {
+    target: { value: 'Group A' },
+  });
+
+  await waitFor(() =>
+    expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+  await screen.findByText('Assignment Configuration');
+};
 
 describe('CampaignSetupPage', () => {
   it('renders setup sections and keeps next disabled until mandatory fields are complete', async () => {
@@ -186,5 +227,188 @@ describe('CampaignSetupPage', () => {
     );
     expect(screen.queryByText('Campaign setup saved.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+  });
+
+  it('renders rewards configuration and validates mandatory rank fields', async () => {
+    mockAssignmentComplete = true;
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await completeSetupStep();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(screen.getByText('Rewards Configuration')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Completion is calculated based on assignments completed.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText('Minimum Completion (%)').length,
+    ).toBeGreaterThan(0);
+    fireEvent.mouseDown(screen.getByText('Select Reward Type'));
+    expect(
+      await screen.findByRole('option', { name: 'Digital Rewards' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: 'Physical Rewards' }),
+    ).toBeInTheDocument();
+    fireEvent.keyDown(document.activeElement || document.body, {
+      key: 'Escape',
+      code: 'Escape',
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(
+      await screen.findByText('Reward type is required.'),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText('Minimum completion is required.')).toHaveLength(
+      3,
+    );
+    expect(screen.getAllByText('Reward is required.')).toHaveLength(3);
+    expect(mockApiHandler.updateCampaignRewards).not.toHaveBeenCalled();
+  });
+
+  it('prevents overlapping reward ranking ranges', async () => {
+    mockAssignmentComplete = true;
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await completeSetupStep();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await openSelectAndChoose('Select Reward Type', 'Digital Rewards');
+    fireEvent.change(screen.getByLabelText('1st Minimum Completion (%)'), {
+      target: { value: '70' },
+    });
+    fireEvent.change(screen.getByLabelText('2nd Minimum Completion (%)'), {
+      target: { value: '90' },
+    });
+    fireEvent.change(screen.getByLabelText('3rd Minimum Completion (%)'), {
+      target: { value: '50' },
+    });
+    fireEvent.change(screen.getByLabelText('1st Reward'), {
+      target: { value: 'Gold' },
+    });
+    fireEvent.change(screen.getByLabelText('2nd Reward'), {
+      target: { value: 'Silver' },
+    });
+    fireEvent.change(screen.getByLabelText('3rd Reward'), {
+      target: { value: 'Bronze' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(
+      await screen.findByText(
+        'Ranking criteria must be highest for 1st rank, then decrease for each rank.',
+      ),
+    ).toBeInTheDocument();
+    expect(mockApiHandler.updateCampaignRewards).not.toHaveBeenCalled();
+  });
+
+  it('saves rewards payload and advances to messaging step', async () => {
+    mockAssignmentComplete = true;
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await completeSetupStep();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await openSelectAndChoose('Select Reward Type', 'Digital Rewards');
+
+    fireEvent.change(screen.getByLabelText('1st Minimum Completion (%)'), {
+      target: { value: '90' },
+    });
+    fireEvent.change(screen.getByLabelText('2nd Minimum Completion (%)'), {
+      target: { value: '70' },
+    });
+    fireEvent.change(screen.getByLabelText('3rd Minimum Completion (%)'), {
+      target: { value: '50' },
+    });
+    fireEvent.change(screen.getByLabelText('1st Reward'), {
+      target: { value: 'Certificate of Excellence' },
+    });
+    fireEvent.change(screen.getByLabelText('2nd Reward'), {
+      target: { value: 'Certificate of Merit' },
+    });
+    fireEvent.change(screen.getByLabelText('3rd Reward'), {
+      target: { value: 'Certificate of Achievement' },
+    });
+
+    expect(
+      screen.getByText('Students with >=90% completion qualify for 1st rank'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Students with 70% - 89% completion qualify for 2nd rank',
+      ),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    await waitFor(() =>
+      expect(mockApiHandler.updateCampaignRewards).toHaveBeenCalledWith(
+        'campaign-1',
+        {
+          rewardType: 'digital_rewards',
+          criteriaType: 'percentage_completion',
+          completionIncludesTeacherAssignments: true,
+          ranks: [
+            {
+              rank: 1,
+              minimum: 90,
+              reward: 'Certificate of Excellence',
+            },
+            { rank: 2, minimum: 70, reward: 'Certificate of Merit' },
+            { rank: 3, minimum: 50, reward: 'Certificate of Achievement' },
+          ],
+        },
+      ),
+    );
+    expect(
+      screen.getByRole('heading', { name: 'Messaging' }),
+    ).toBeInTheDocument();
+  });
+
+  it('uses lesson criteria for homepage learning pathway rewards', async () => {
+    mockAssignmentComplete = true;
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /Homepage Learning Pathway Campaign/i,
+      }),
+    );
+    fireEvent.change(screen.getByLabelText('Number of Learning Paths'), {
+      target: { value: '5' },
+    });
+    fireEvent.change(screen.getByLabelText('Campaign Name'), {
+      target: { value: 'Pathway Campaign' },
+    });
+    await openSelectAndChoose('Select Campaign Manager', 'Raj Patel');
+    fireEvent.change(screen.getByLabelText('Start Date'), {
+      target: { value: '2026-05-01' },
+    });
+    fireEvent.change(screen.getByLabelText('End Date'), {
+      target: { value: '2026-05-31' },
+    });
+    await openSelectAndChoose('Select Program', 'Early Learning');
+    expect(await screen.findByText('Students:')).toBeInTheDocument();
+    fireEvent.change(screen.getByPlaceholderText('Enter group name'), {
+      target: { value: 'Group A' },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await screen.findByText('Assignment Configuration');
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(screen.getAllByText('Number of Lessons').length).toBeGreaterThan(0);
   });
 });

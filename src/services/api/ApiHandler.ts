@@ -7,6 +7,7 @@ import {
   CampaignAudiencePayload,
   CampaignAudienceSummary,
   CampaignAudienceSummaryParams,
+  CampaignRewardsPayload,
   CampaignSavedAudienceGroup,
   CampaignSetupOptions,
   CreateCampaignSetupPayload,
@@ -1576,6 +1577,13 @@ export class ApiHandler implements ServiceApi {
     payload: CreateCampaignSetupPayload,
   ): Promise<CreateCampaignSetupResult> {
     return await this.s.createCampaignSetup(payload);
+  }
+
+  public async updateCampaignRewards(
+    campaignId: string,
+    rewards: CampaignRewardsPayload,
+  ): Promise<void> {
+    return await this.s.updateCampaignRewards(campaignId, rewards);
   }
 
   public async getCampaignAssignmentOptions(

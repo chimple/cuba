@@ -14,6 +14,7 @@ import {
   CampaignDetailsSection,
   CampaignSetupStepper,
   ObjectiveGoalSection,
+  RewardsConfigurationSection,
   TargetAudienceSection,
 } from '../components/CampaignSetupSections';
 import { useCampaignSetupForm } from '../hooks/useCampaignSetupForm';
@@ -160,13 +161,20 @@ const CampaignSetupPage: React.FC = () => {
             onCompletionChange={handleAssignmentCompletionChange}
             onAssignmentsChange={campaignSetup.handleAssignmentDraftsChange}
           />
+        ) : campaignSetup.activeStep === 2 ? (
+          <RewardsConfigurationSection
+            form={campaignSetup.form}
+            onSelectChange={campaignSetup.handleSelectChange}
+            onRewardRankChange={campaignSetup.updateRewardRank}
+            fieldError={campaignSetup.rewardFieldError}
+          />
         ) : (
           <Box className="campaign-setup-section">
             <Typography variant="h6" className="campaign-setup-section-title">
-              Rewards
+              Messaging
             </Typography>
             <Typography className="campaign-setup-section-copy">
-              Reward setup is not available in this flow yet.
+              Messaging setup is not available in this flow yet.
             </Typography>
           </Box>
         )}
@@ -202,7 +210,7 @@ const CampaignSetupPage: React.FC = () => {
             }
             variant="contained"
             endIcon={
-              campaignSetup.submitting ? (
+              campaignSetup.submitting || campaignSetup.savingRewards ? (
                 <CircularProgress size={18} />
               ) : undefined
             }
@@ -211,14 +219,18 @@ const CampaignSetupPage: React.FC = () => {
                 ? !campaignSetup.isFormValid || campaignSetup.submitting
                 : campaignSetup.activeStep === 1
                   ? !isAssignmentComplete
-                  : true
+                  : campaignSetup.activeStep === 2
+                    ? campaignSetup.savingRewards
+                    : true
             }
             onClick={
               campaignSetup.activeStep === 0 && campaignSetup.createdCampaignId
                 ? () => campaignSetup.setActiveStep(1)
                 : campaignSetup.activeStep === 1
                   ? () => campaignSetup.setActiveStep(2)
-                  : undefined
+                  : campaignSetup.activeStep === 2
+                    ? campaignSetup.handleRewardsSubmit
+                    : undefined
             }
           >
             Next

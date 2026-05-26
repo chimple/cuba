@@ -1,9 +1,12 @@
 import {
   CampaignAudiencePayload,
   CampaignObjective,
+  CampaignRewardCriteriaType,
+  CampaignRewardsPayload,
   CampaignTargetType,
 } from '../../services/api/ServiceApi';
-import { CampaignSetupFormState } from '../components/CampaignSetupSections';
+import type { CampaignSetupFormState } from '../components/CampaignSetupSections';
+import { DEFAULT_REWARD_RANKS } from '../components/campaignSetup/constants';
 
 export const initialCampaignSetupForm: CampaignSetupFormState = {
   objective: 'homework_campaign',
@@ -16,6 +19,8 @@ export const initialCampaignSetupForm: CampaignSetupFormState = {
   endDate: '',
   programId: '',
   groupName: '',
+  rewardType: '',
+  rewardRanks: DEFAULT_REWARD_RANKS.map((rank) => ({ ...rank })),
 };
 
 type AudiencePayloadParams = {
@@ -81,6 +86,71 @@ export const getCampaignSetupValidationErrors = (
   }
   return errors;
 };
+
+export const usesLessonRewardCriteria = (form: CampaignSetupFormState) =>
+  form.objective === 'homepage_learning_pathway_campaign' ||
+  form.targetType === 'number_of_lessons';
+
+export const getRewardCriteriaType = (
+  form: CampaignSetupFormState,
+): CampaignRewardCriteriaType =>
+  usesLessonRewardCriteria(form)
+    ? 'number_of_lessons'
+    : 'percentage_completion';
+
+export const getCampaignRewardsValidationErrors = (
+  form: CampaignSetupFormState,
+): Record<string, string> => {
+  const errors: Record<string, string> = {};
+  const usesLessonCount = usesLessonRewardCriteria(form);
+
+  if (!form.rewardType) errors.rewardType = 'Reward type is required.';
+
+  const values = form.rewardRanks.map((rank, index) => {
+    const value = Number(rank.criteriaValue);
+    if (!rank.criteriaValue) {
+      errors[`rewardRanks.${index}.criteriaValue`] = usesLessonCount
+        ? 'Number of lessons is required.'
+        : 'Minimum completion is required.';
+    } else if (!Number.isInteger(value) || value <= 0) {
+      errors[`rewardRanks.${index}.criteriaValue`] =
+        'Enter a number greater than 0.';
+    } else if (!usesLessonCount && value > 100) {
+      errors[`rewardRanks.${index}.criteriaValue`] =
+        'Minimum completion cannot be more than 100.';
+    }
+
+    if (!rank.reward.trim()) {
+      errors[`rewardRanks.${index}.reward`] = 'Reward is required.';
+    }
+
+    return value;
+  });
+
+  const hasValidCriteriaValues = values.every((value) => value > 0);
+  if (
+    hasValidCriteriaValues &&
+    values.some((value, index) => index > 0 && values[index - 1] <= value)
+  ) {
+    errors.rewardRanking =
+      'Ranking criteria must be highest for 1st rank, then decrease for each rank.';
+  }
+
+  return errors;
+};
+
+export const buildCampaignRewardsPayload = (
+  form: CampaignSetupFormState,
+): CampaignRewardsPayload => ({
+  rewardType: form.rewardType as CampaignRewardsPayload['rewardType'],
+  criteriaType: getRewardCriteriaType(form),
+  completionIncludesTeacherAssignments: true,
+  ranks: form.rewardRanks.map((rank) => ({
+    rank: rank.rank,
+    minimum: Number(rank.criteriaValue),
+    reward: rank.reward.trim(),
+  })),
+});
 
 export const resetObjectiveFields = (
   form: CampaignSetupFormState,

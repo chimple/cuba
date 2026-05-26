@@ -7,8 +7,15 @@ import {
   CampaignSavedAudienceGroup,
   CampaignSchoolOption,
   CampaignObjective,
+  CampaignRewardType,
   CampaignTargetType,
 } from '../../../services/api/ServiceApi';
+
+export type CampaignRewardRankFormState = {
+  rank: 1 | 2 | 3;
+  criteriaValue: string;
+  reward: string;
+};
 
 export type CampaignSetupFormState = {
   objective: CampaignObjective | '';
@@ -21,6 +28,8 @@ export type CampaignSetupFormState = {
   endDate: string;
   programId: string;
   groupName: string;
+  rewardType: CampaignRewardType | '';
+  rewardRanks: CampaignRewardRankFormState[];
 };
 
 export type CampaignSetupFormField = keyof CampaignSetupFormState;
@@ -85,5 +94,15 @@ export type TargetAudienceSectionProps = {
   onGroupNameChange: CampaignSetupTextChangeHandler;
   onSaveGroup: () => void;
   onCancelSaveGroup: () => void;
+  fieldError: CampaignSetupFieldError;
+};
+
+export type RewardsConfigurationSectionProps = {
+  form: CampaignSetupFormState;
+  onSelectChange: CampaignSetupSelectChange;
+  onRewardRankChange: (
+    index: number,
+    field: keyof Pick<CampaignRewardRankFormState, 'criteriaValue' | 'reward'>,
+  ) => CampaignSetupTextChangeHandler;
   fieldError: CampaignSetupFieldError;
 };
