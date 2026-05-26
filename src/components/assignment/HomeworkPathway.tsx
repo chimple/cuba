@@ -8,6 +8,8 @@ import {
   EVENTS,
   HOMEWORK_PATHWAY_DROPDOWN,
   HOMEWORK_PATHWAY,
+  STICKER_BOOK_CELEBRATION_POPUP_ENABLED,
+  STICKER_BOOK_COMPLETION_POPUP,
   TableTypes,
   LIVE_QUIZ,
 } from '../../common/constants';
@@ -23,6 +25,8 @@ import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import HomeworkCompleteModal from './HomeworkCompleteModal';
 import logger from '../../utility/logger';
 import {
+  clearPendingHomeworkStickerFlow,
+  clearPendingHomeworkStickerPreviewState,
   clearPendingFinalHomeworkStickerFlow,
   hasPendingHomeworkStickerFlow,
   hasPendingHomeworkStickerSession,
@@ -69,10 +73,25 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
   const [showDisabledDropdownModal, setShowDisabledDropdownModal] =
     useState<boolean>(false);
   const isDropdownAlwaysEnabled = useFeatureIsOn(HOMEWORK_PATHWAY_DROPDOWN);
+  const isStickerBookCelebrationPopupOn = useFeatureIsOn(
+    STICKER_BOOK_CELEBRATION_POPUP_ENABLED,
+  );
+  const isStickerBookCompletionPopupOn = useFeatureIsOn(
+    STICKER_BOOK_COMPLETION_POPUP,
+  );
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [isHomeworkComplete, setIsHomeworkComplete] = useState(false);
   const activeSubjectRef = useRef<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    if (isStickerBookCelebrationPopupOn) return;
+
+    clearPendingHomeworkStickerPreviewState();
+    if (!isStickerBookCompletionPopupOn) {
+      clearPendingHomeworkStickerFlow();
+    }
+  }, [isStickerBookCelebrationPopupOn, isStickerBookCompletionPopupOn]);
 
   useEffect(() => {
     if (!currentStudent?.id) {
@@ -894,6 +913,12 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
   const handleHomeworkComplete = async () => {
     const student = Util.getCurrentStudent();
     if (!student) return;
+    if (!isStickerBookCelebrationPopupOn) {
+      clearPendingHomeworkStickerPreviewState();
+      if (!isStickerBookCompletionPopupOn) {
+        clearPendingHomeworkStickerFlow();
+      }
+    }
 
     const resolveHomeworkCompletionState = async () => {
       await fetchHomeworkPathway(student);
@@ -927,7 +952,10 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         const newIndex = (path.currentIndex || 0) + 1;
 
         if (newIndex >= path.lessons.length) {
-          const hasPendingStickerFlow = hasPendingHomeworkStickerSession();
+          const hasPendingStickerFlow =
+            (isStickerBookCelebrationPopupOn ||
+              isStickerBookCompletionPopupOn) &&
+            hasPendingHomeworkStickerSession();
 
           if (hasPendingStickerFlow) {
             path.currentIndex = newIndex;

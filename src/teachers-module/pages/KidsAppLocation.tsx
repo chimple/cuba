@@ -100,7 +100,7 @@ const KidsAppLocation: FC = () => {
           <ChimpleRiveMascot animationName={CHIMPLE_MASCOT_ANIMATION_WAVY} />
         </div>
         <h1 id="kids-app-location-title" className="kids-app-location-title">
-          {t('Where are you using this app ?')}
+          {t('Where are you using this app?')}
         </h1>
         <div
           id="kids-app-location-actions"

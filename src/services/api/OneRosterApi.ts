@@ -15,6 +15,7 @@ import CurriculumController from '../../models/curriculumController';
 import Result from '../../models/result';
 import User from '../../models/user';
 import {
+  AssignmentDateRangeData,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
   ServiceApi,
@@ -961,5 +962,45 @@ export class OneRosterApi implements ServiceApi {
     localeId?: string | null,
   ): Promise<{ lido_common_audio_url: string | null } | null> {
     throw new Error('Method not implemented.');
+  }
+
+  async getAssignmentDateRangeDataForClassAndSchool(
+    classId: string,
+    schoolId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<AssignmentDateRangeData> {
+    logger.warn(
+      'getAssignmentDateRangeDataForClassAndSchool is not implemented for OneRosterApi.',
+      { classId, schoolId, startDate, endDate },
+    );
+    return { assignments: [], batchGroups: [] };
+  }
+  async getCoinAndStreakCount(
+    userId: string,
+    classId: string,
+    schoolId: string,
+  ): Promise<{ coins: number; streak: number } | undefined> {
+    logger.warn('getCoinAndStreakCount is not implemented for OneRosterApi.', {
+      userId,
+      classId,
+      schoolId,
+    });
+    return { coins: 0, streak: 0 };
+  }
+
+  async updateCoins(
+    userId: string,
+    schoolId: string,
+    classId: string,
+    coins: number,
+  ): Promise<TableTypes<TABLES.UserAchivements>> {
+    logger.warn('updateCoins is not implemented for oneRoster.', {
+      userId,
+      schoolId,
+      classId,
+      coins,
+    });
+    return {} as TableTypes<TABLES.UserAchivements>;
   }
 }
