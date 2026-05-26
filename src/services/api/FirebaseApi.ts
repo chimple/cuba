@@ -1068,6 +1068,7 @@ export class FirebaseApi implements ServiceApi {
 
   async getSkillLessonsBySkillIds(
     skillIds: string[],
+    languageCode?: string,
   ): Promise<TableTypes<'skill_lesson'>[]> {
     logger.warn(
       'getSkillLessonsBySkillIds is not supported for FirebaseApi. Returning empty list.',

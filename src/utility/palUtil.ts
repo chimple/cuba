@@ -11,6 +11,7 @@ import {
 } from '@chimple/palau-recommendation';
 import { PAL_LEARNING_RATES_CONFIG, TableTypes } from '../common/constants';
 import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
+import { COURSES } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
 
 type AbilityKeys = 'skill' | 'outcome' | 'competency' | 'domain' | 'subject';
@@ -432,7 +433,12 @@ export class palUtil {
       return { lesson: undefined, chapterId: undefined, recommendation };
     }
 
-    const skillLessons = await api.getSkillLessonsBySkillIds([skillId]);
+    const courseLanguageCode =
+      await this.getSkillLessonLanguageCodeForCourse(courseId);
+    const skillLessons = await api.getSkillLessonsBySkillIds(
+      [skillId],
+      courseLanguageCode,
+    );
     const sortedSkillLessons = [...skillLessons].sort((a, b) => {
       const aIndex = a.sort_index ?? Number.MAX_SAFE_INTEGER;
       const bIndex = b.sort_index ?? Number.MAX_SAFE_INTEGER;
@@ -533,6 +539,29 @@ export class palUtil {
       if (lessons.some((lesson) => lesson.id === lessonId)) {
         return chapter.id;
       }
+    }
+
+    return undefined;
+  }
+
+  private static async getSkillLessonLanguageCodeForCourse(
+    courseId: string,
+  ): Promise<string | undefined> {
+    const api = ServiceConfig.getI().apiHandler;
+    const course = await api.getCourse(courseId);
+    if (!course?.subject_id) return undefined;
+
+    const subject = await api.getSubject(course.subject_id);
+    const subjectName = subject?.name?.trim().toLowerCase();
+    if (subjectName !== COURSES.MATHS) {
+      return undefined;
+    }
+
+    const courseCode = course?.code?.trim().toLowerCase();
+
+    if (courseCode === COURSES.MATHS) return COURSES.ENGLISH;
+    if (courseCode?.startsWith(`${COURSES.MATHS}-`)) {
+      return courseCode.split('-').pop();
     }
 
     return undefined;
