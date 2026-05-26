@@ -15,7 +15,7 @@ import {
 } from '../common/constants';
 import { IonItem, IonPage } from '@ionic/react';
 import './DisplayChapters.css';
-import { t } from 'i18next';
+import i18n, { t } from 'i18next';
 import SelectChapter from '../components/displaySubjects/SelectChapter';
 import LessonSlider from '../components/LessonSlider';
 import BackButton from '../components/common/BackButton';
@@ -28,6 +28,12 @@ import { registerBackButtonHandler } from '../common/backButtonRegistry';
 import logger from '../utility/logger';
 
 const localData: any = {};
+const getForcedLanguage = (courseCode?: string | null) => {
+  if (courseCode === COURSES.MATHS_HINDI) return 'hi';
+  if (courseCode === COURSES.MATHS_KANNADA) return 'kn';
+  return undefined;
+};
+
 // let localStorageData: any = {};
 const DisplayChapters: FC<{}> = () => {
   enum STAGES {
@@ -63,12 +69,20 @@ const DisplayChapters: FC<{}> = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const courseDocId = searchParams.get('courseDocId');
+  const forcedLanguage = getForcedLanguage(currentCourse?.code);
   const shouldTranslateCourseText =
     currentCourse?.code !== COURSES.ENGLISH &&
     currentCourse?.code !== COURSES.MATHS;
   const getCourseBasedName = (name?: string | null) => {
     if (!name) return '';
-    return shouldTranslateCourseText ? t(name) : name;
+    if (!shouldTranslateCourseText) return name;
+    return forcedLanguage ? t(name, { lng: forcedLanguage }) : t(name);
+  };
+  const ensureForcedLanguageLoaded = async (courseCode?: string | null) => {
+    const language = getForcedLanguage(courseCode);
+    if (language) {
+      await i18n.loadLanguages(language);
+    }
   };
   const getCourseByUrl = useMemo(
     () =>
@@ -131,6 +145,7 @@ const DisplayChapters: FC<{}> = () => {
       setCourses(localData.courses);
       setLessons(localData.lessons);
       setCurrentGrade(localData.currentGrade);
+      await ensureForcedLanguageLoaded(localData.currentCourse?.code);
       setCurrentCourse(localData.currentCourse);
       const chapters = await api.getChaptersForCourse(
         localData.currentCourse.id,
@@ -164,6 +179,7 @@ const DisplayChapters: FC<{}> = () => {
 
       if (currentSelectedCourse) {
         const currentCourse = JSON.parse(currentSelectedCourse);
+        await ensureForcedLanguageLoaded(currentCourse?.code);
         setCurrentCourse(currentCourse);
         const chapters = await api.getChaptersForCourse(currentCourse.id);
         setChapters(chapters);
@@ -341,6 +357,7 @@ const DisplayChapters: FC<{}> = () => {
   }, [history, location.pathname, onBackButton]);
 
   const onCourseChanges = async (course: TableTypes<'course'>) => {
+    await ensureForcedLanguageLoaded(course?.code);
     const gradesMap: {
       grades: TableTypes<'grade'>[];
       courses: TableTypes<'course'>[];
@@ -388,6 +405,7 @@ const DisplayChapters: FC<{}> = () => {
     const currentCourse = _localMap?.courses.find(
       (course) => course.grade_id === grade.id,
     );
+    await ensureForcedLanguageLoaded(currentCourse?.code);
     localData.currentGrade = grade;
     setCurrentGrade(grade);
     addGradeToLocalStorage(grade);

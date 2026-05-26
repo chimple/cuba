@@ -58,7 +58,11 @@ const SelectChapter: FC<{
                   {course?.code === COURSES.ENGLISH ||
                   course?.code === COURSES.MATHS
                     ? chapter?.name
-                    : t(chapter?.name ?? '')}
+                    : course?.code === COURSES.MATHS_HINDI
+                      ? t(chapter?.name ?? '', { lng: 'hi' })
+                      : course?.code === COURSES.MATHS_KANNADA
+                        ? t(chapter?.name ?? '', { lng: 'kn' })
+                        : t(chapter?.name ?? '')}
                 </div>
                 <div className="chapter-download">
                   <DownloadLesson chapter={chapter} />

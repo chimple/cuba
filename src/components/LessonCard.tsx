@@ -107,6 +107,21 @@ const LessonCard: React.FC<{
   };
 
   const [lessonCardColor, setLessonCardColor] = useState('');
+  const effectiveCourseCode = course?.code ?? currentCourse?.code;
+  const forcedLanguage =
+    effectiveCourseCode === COURSES.MATHS_HINDI
+      ? 'hi'
+      : effectiveCourseCode === COURSES.MATHS_KANNADA
+        ? 'kn'
+        : undefined;
+  const shouldTranslateCourseText =
+    effectiveCourseCode !== COURSES.ENGLISH &&
+    effectiveCourseCode !== COURSES.MATHS;
+  const getCourseBasedName = (name?: string | null) => {
+    if (!name) return '';
+    if (!shouldTranslateCourseText) return name;
+    return forcedLanguage ? t(name, { lng: forcedLanguage }) : t(name);
+  };
 
   const COURSE_VALUES_SET = new Set(
     (Object.values(CocosCourseIdentifier) as string[]).map((v) =>
@@ -295,11 +310,7 @@ const LessonCard: React.FC<{
 
             {showSubjectName && currentCourse?.name ? (
               <div id="lesson-card-subject-name">
-                <p className="ignore">
-                  {course?.code === COURSES.ENGLISH
-                    ? lesson?.name
-                    : t(lesson?.name ?? '')}
-                </p>
+                <p className="ignore">{getCourseBasedName(lesson?.name)}</p>
 
                 <p>{currentCourse?.name}</p>
               </div>
@@ -379,18 +390,12 @@ const LessonCard: React.FC<{
         <div>
           {showText ? (
             <p id={`lesson-card-name${isLoved ? '-fav-icon' : ''}`}>
-              {course?.code === COURSES.ENGLISH ||
-              course?.code === COURSES.MATHS
-                ? lesson?.name
-                : t(lesson?.name ?? '')}
+              {getCourseBasedName(lesson?.name)}
             </p>
           ) : null}
           {showChapterName && chapter?.name && (
             <div id={`chapter-title${isLoved ? '-fav-icon' : ''}`}>
-              {course?.code === COURSES.ENGLISH ||
-              course?.code === COURSES.MATHS
-                ? chapter?.name
-                : t(chapter?.name)}
+              {getCourseBasedName(chapter?.name)}
             </div>
           )}
         </div>
