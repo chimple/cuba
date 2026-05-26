@@ -1,6 +1,6 @@
 import React from 'react';
 import { Autocomplete, Checkbox, TextField } from '@mui/material';
-import { renderSelectionCount } from './constants';
+import { CampaignCountPlaceholder } from './CampaignPlaceholder';
 
 type AutocompleteOptionProps = React.HTMLAttributes<HTMLLIElement> & {
   key: React.Key;
@@ -53,7 +53,7 @@ export const CampaignMultiSelect = <T,>({
     renderTags={(selected) =>
       renderSelectedLabel
         ? renderSelectedLabel(selected)
-        : renderSelectionCount(selected, placeholder)
+        : CampaignCountPlaceholder(selected, placeholder)
     }
     renderInput={(params) => (
       <TextField

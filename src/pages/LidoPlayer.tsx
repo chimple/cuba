@@ -112,6 +112,100 @@ const LidoPlayer: FC = () => {
     };
   };
 
+  type LidoEventDetail = Record<string, unknown> & {
+    chapterId?: string;
+    courseId?: string;
+    correctMoves?: number | string;
+    currentGameNumber?: number | null;
+    finalScore?: number | null;
+    gameCompleted?: boolean;
+    gameName?: string | null;
+    gameScore?: number | null;
+    gameTimeSpent?: number | null;
+    lessonId?: string;
+    lessonSessionId?: string;
+    lessonType?: string;
+    mlClassId?: string | null;
+    mlPartnerId?: string | null;
+    mlStudentId?: string | null;
+    quizCompleted?: boolean;
+    quizScore?: number | null;
+    quizTimeSpent?: number | null;
+    rightMoves?: number | string;
+    score?: number | null;
+    timeSpentForActivity?: number | null;
+    timeSpendForLesson?: number | null;
+    totalGames?: number;
+    totalMoves?: number;
+    wrongMoves?: number | string;
+  };
+
+  type StoredLidoScore = {
+    score: number;
+    result: 0 | 1;
+    correctMoves?: number;
+    wrongMoves?: number;
+    elapsedTime?: number;
+    timeSpent?: number;
+  };
+
+  const parseNumericValue = (value: unknown): number | undefined => {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) return undefined;
+      const parsed = Number(trimmed);
+      return Number.isFinite(parsed) ? parsed : undefined;
+    }
+    return undefined;
+  };
+
+  const getNormalizedMoveCounts = (detail: LidoEventDetail) => ({
+    correctMoves:
+      parseNumericValue(detail.correctMoves) ??
+      parseNumericValue(detail.rightMoves) ??
+      0,
+    wrongMoves: parseNumericValue(detail.wrongMoves) ?? 0,
+  });
+
+  const getStoredLidoScores = (): StoredLidoScore[] => {
+    const storedData = localStorage.getItem(LIDO_SCORES_KEY);
+    if (!storedData) return [];
+
+    const parsed = JSON.parse(storedData);
+    if (!Array.isArray(parsed)) return [];
+
+    let previousElapsedTime = 0;
+
+    return parsed.map((record): StoredLidoScore => {
+      const rawTimeSpent = parseNumericValue(record?.timeSpent) ?? 0;
+      const rawElapsedTime = parseNumericValue(record?.elapsedTime);
+      const effectiveElapsedTime = rawElapsedTime ?? rawTimeSpent;
+      const normalizedTimeSpent =
+        effectiveElapsedTime >= previousElapsedTime
+          ? effectiveElapsedTime - previousElapsedTime
+          : rawTimeSpent;
+
+      if (effectiveElapsedTime >= previousElapsedTime) {
+        previousElapsedTime = effectiveElapsedTime;
+      }
+
+      return {
+        score: parseNumericValue(record?.score) ?? 0,
+        result: record?.result === 1 ? 1 : 0,
+        correctMoves: parseNumericValue(record?.correctMoves) ?? 0,
+        wrongMoves: parseNumericValue(record?.wrongMoves) ?? 0,
+        elapsedTime: effectiveElapsedTime,
+        timeSpent: normalizedTimeSpent,
+      };
+    });
+  };
+
+  const getTotalStoredLessonTime = (scoresList: StoredLidoScore[]): number =>
+    scoresList.reduce((total, record) => total + (record.timeSpent ?? 0), 0);
+
   const onNextContainer = (e: any) => logger.info('Next', e);
   const gameCompleted = (e: any) => {
     // setShowDialogBox(true);
@@ -150,13 +244,13 @@ const LidoPlayer: FC = () => {
     isFullPathwayTerminated: boolean = false,
   ) => {
     try {
-      const storedData = localStorage.getItem(LIDO_SCORES_KEY);
+      const scoresList = getStoredLidoScores();
       const {
         student: currentStudent,
         studentId,
         userId,
       } = await resolveStudentContext();
-      if (!storedData) {
+      if (scoresList.length === 0) {
         logger.warn('⚠️ No stored data found.');
         return;
       }
@@ -164,20 +258,7 @@ const LidoPlayer: FC = () => {
         throw new Error('[LidoPlayer] Student context missing');
       }
       const parentUserId = userId;
-      const scoresList: Array<{
-        score: number;
-        result: 0 | 1;
-        correctMoves?: number;
-        wrongMoves?: number;
-        timeSpent?: number;
-      }> = JSON.parse(storedData);
-      if (!Array.isArray(scoresList) || scoresList.length === 0) return;
-      // 🔥 Calculate total lesson time (sum of all activities)
-      let totalLessonTime = 0;
-
-      scoresList.forEach((record) => {
-        totalLessonTime += record.timeSpent ?? 0;
-      });
+      const totalLessonTime = getTotalStoredLessonTime(scoresList);
       let dbMetaData: any = {};
       try {
         const lessonRow = await api.getLesson(lesson.id);
@@ -365,22 +446,21 @@ const LidoPlayer: FC = () => {
 
   const onActivityEnd = async (e: any) => {
     const { studentId, userId } = await resolveStudentContext();
-    const { score, timeSpentForActivity } = e.detail;
-
+    const detail = (e.detail ?? {}) as LidoEventDetail;
+    const score = detail.score ?? 0;
+    const timeSpentForActivity =
+      parseNumericValue(detail.timeSpentForActivity) ?? 0;
+    const { correctMoves, wrongMoves } = getNormalizedMoveCounts(detail);
     const isFail = score < 70;
     const binaryScore: 0 | 1 = isFail ? 0 : 1;
-    const existingData = localStorage.getItem(LIDO_SCORES_KEY);
-    let scoresList: any[] = [];
-    if (existingData) {
-      const parsed = JSON.parse(existingData);
-      scoresList = Array.isArray(parsed) ? parsed : [];
-    }
+    const scoresList = getStoredLidoScores();
     scoresList.push({
       score,
       result: binaryScore,
-      correctMoves: e.detail.rightMoves ?? 0,
-      wrongMoves: e.detail.wrongMoves ?? 0,
-      timeSpent: timeSpentForActivity ?? 0,
+      correctMoves,
+      wrongMoves,
+      elapsedTime: timeSpentForActivity,
+      timeSpent: timeSpentForActivity,
     });
     localStorage.setItem(LIDO_SCORES_KEY, JSON.stringify(scoresList));
     if (!studentId) return;
@@ -462,7 +542,8 @@ const LidoPlayer: FC = () => {
       }
       const parentUserId = userId;
       const courseDocId: string | undefined = state.courseDocId;
-      const lessonData = e.detail;
+      const lessonData = (e.detail ?? {}) as LidoEventDetail;
+      const { correctMoves, wrongMoves } = getNormalizedMoveCounts(lessonData);
       if (isAssessmentLesson) {
         const courseKey = courseDetail?.id ?? courseDocId ?? '';
         Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
@@ -481,18 +562,13 @@ const LidoPlayer: FC = () => {
       // const currentStudent = api.currentStudent;
       const data = lessonData;
       let assignmentId = assignment ? assignment.id : null;
-      const storedData = localStorage.getItem(LIDO_SCORES_KEY);
-
+      const scoresList = getStoredLidoScores();
       let booleanOutcomes: boolean[] = [];
       let activitiesScoresStr = '';
 
-      if (storedData) {
-        const values = Object.values(JSON.parse(storedData));
-
-        booleanOutcomes = values.map((item: any) => item?.result === 1);
-        activitiesScoresStr = values
-          .map((item: any) => item?.result ?? 0)
-          .join(',');
+      if (scoresList.length > 0) {
+        booleanOutcomes = scoresList.map((item) => item.result === 1);
+        activitiesScoresStr = scoresList.map((item) => item.result).join(',');
       }
 
       const isStudentLinked = await api.isStudentLinked(currentStudent.id);
@@ -530,6 +606,10 @@ const LidoPlayer: FC = () => {
       const learning_path: boolean = state?.learning_path ?? false;
       const is_homework: boolean = state?.isHomework ?? false;
       const homeworkIndex: number | undefined = state?.homeworkIndex;
+      const lessonTimeSpent =
+        scoresList.length > 0
+          ? getTotalStoredLessonTime(scoresList)
+          : (parseNumericValue(data.timeSpendForLesson) ?? 0);
       // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
       let shouldGiveHomeworkBonus = false;
       if (is_homework) {
@@ -564,7 +644,7 @@ const LidoPlayer: FC = () => {
       let finalProgressTimeSpent =
         avatarObj.weeklyTimeSpent['min'] * 60 +
         avatarObj.weeklyTimeSpent['sec'];
-      finalProgressTimeSpent = finalProgressTimeSpent + data.timeSpendForLesson;
+      finalProgressTimeSpent = finalProgressTimeSpent + lessonTimeSpent;
       let computeMinutes = Math.floor(finalProgressTimeSpent / 60);
       let computeSec = finalProgressTimeSpent % 60;
       avatarObj.weeklyTimeSpent['min'] = computeMinutes;
@@ -602,9 +682,9 @@ const LidoPlayer: FC = () => {
         courseDocId,
         lesson.id,
         Math.round(data.finalScore ?? 0),
-        data.correctMoves ?? 0,
-        data.wrongMoves ?? 0,
-        data.timeSpendForLesson ?? 0,
+        correctMoves,
+        wrongMoves,
+        lessonTimeSpent,
         assignmentId,
         chapterDetail?.id ?? chapter_id?.toString() ?? '',
         classId,
@@ -696,11 +776,11 @@ const LidoPlayer: FC = () => {
         ml_student_id: data.mlStudentId,
         course_id: data.courseId,
         course_name: courseDetail.name,
-        time_spent: data.timeSpendForLesson,
+        time_spent: lessonTimeSpent,
         total_moves: data.totalMoves,
         total_games: data.totalGames,
-        correct_moves: data.correctMoves,
-        wrong_moves: data.wrongMoves,
+        correct_moves: correctMoves,
+        wrong_moves: wrongMoves,
         game_score: data.gameScore,
         quiz_score: data.quizScore,
         game_completed: data.gameCompleted,
@@ -743,7 +823,13 @@ const LidoPlayer: FC = () => {
     const parentUserId = userId;
     const courseKey = courseDetail?.id ?? courseDocId ?? '';
     Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
-    const data = e.detail;
+    const data = (e.detail ?? {}) as LidoEventDetail;
+    const { correctMoves, wrongMoves } = getNormalizedMoveCounts(data);
+    const storedScores = getStoredLidoScores();
+    const lessonTimeSpent =
+      storedScores.length > 0
+        ? getTotalStoredLessonTime(storedScores)
+        : (parseNumericValue(data.timeSpendForLesson) ?? 0);
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: parentUserId,
       student_id: studentId,
@@ -761,11 +847,11 @@ const LidoPlayer: FC = () => {
       ml_student_id: data.mlStudentId,
       course_id: data.courseId,
       course_name: courseDetail?.name ?? '',
-      time_spent: data.timeSpendForLesson,
+      time_spent: lessonTimeSpent,
       total_moves: data.totalMoves,
       total_games: data.totalGames,
-      correct_moves: data.correctMoves,
-      wrong_moves: data.wrongMoves,
+      correct_moves: correctMoves,
+      wrong_moves: wrongMoves,
       game_score: data.gameScore,
       quiz_score: data.quizScore,
       game_completed: data.gameCompleted,

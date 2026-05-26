@@ -2431,34 +2431,50 @@ export class SqliteApi implements ServiceApi {
       logger.error('Error resolving chapter course language:', error);
     }
 
-    const query = `
-    SELECT *
-    FROM ${TABLES.ChapterLesson} AS cl
-    JOIN ${TABLES.Lesson} AS lesson ON cl.lesson_id= lesson.id
-    WHERE cl.chapter_id = "${chapterId}"
-    AND cl.is_deleted = 0
-    AND (
-      (cl.language_id IS NULL AND cl.locale_id IS NULL)
-      ${
-        langId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id IS NULL)`
-          : ''
-      }
-      ${
-        localeId
-          ? `OR (cl.language_id IS NULL AND cl.locale_id = "${localeId}")`
-          : ''
-      }
-      ${
-        langId && localeId
-          ? `OR (cl.language_id = "${langId}" AND cl.locale_id = "${localeId}")`
-          : ''
-      }
-    )
-    ORDER BY cl.sort_index ASC;
-  `;
-    const res = await this._db?.query(query);
-    return res?.values ?? [];
+    const fetchLessons = async (
+      localeCondition: string,
+      localeParams: string[] = [],
+    ) => {
+      const res = await this._db?.query(
+        `
+        SELECT *
+        FROM ${TABLES.ChapterLesson} AS cl
+        JOIN ${TABLES.Lesson} AS lesson ON cl.lesson_id= lesson.id
+        WHERE cl.chapter_id = ?
+          AND cl.is_deleted = 0
+          AND ${localeCondition}
+        ORDER BY cl.sort_index ASC;
+        `,
+        [chapterId, ...localeParams],
+      );
+      return res?.values ?? [];
+    };
+
+    if (langId && localeId) {
+      const lessons = await fetchLessons(
+        'cl.language_id = ? AND cl.locale_id = ?',
+        [langId, localeId],
+      );
+      if (lessons.length) return lessons;
+    }
+
+    if (langId) {
+      const lessons = await fetchLessons(
+        'cl.language_id = ? AND cl.locale_id IS NULL',
+        [langId],
+      );
+      if (lessons.length) return lessons;
+    }
+
+    if (localeId) {
+      const lessons = await fetchLessons(
+        'cl.language_id IS NULL AND cl.locale_id = ?',
+        [localeId],
+      );
+      if (lessons.length) return lessons;
+    }
+
+    return fetchLessons('cl.language_id IS NULL AND cl.locale_id IS NULL');
   }
 
   async getDifferentGradesForCourse(course: TableTypes<'course'>): Promise<{
@@ -3478,43 +3494,88 @@ export class SqliteApi implements ServiceApi {
 
   async getSkillLessonsBySkillIds(
     skillIds: string[],
+    languageCode?: string,
   ): Promise<TableTypes<'skill_lesson'>[]> {
     await this.ensureInitialized();
     if (!skillIds || skillIds.length === 0) return [];
 
     const student = this.currentStudent;
-    const langId = student?.language_id;
+    let langId = student?.language_id;
     const localeId = student?.locale_id;
+    if (languageCode) {
+      const languageRes = await this._db?.query(
+        `
+        SELECT id
+        FROM ${TABLES.Language}
+        WHERE LOWER(code) = ?
+          AND is_deleted = 0
+        LIMIT 1;
+        `,
+        [languageCode.toLowerCase()],
+      );
+      langId = languageRes?.values?.[0]?.id ?? langId;
+    }
 
     const placeholders = skillIds.map(() => '?').join(',');
+    const fetchSkillLessons = async (
+      localeCondition: string,
+      localeParams: string[] = [],
+    ) => {
+      const res = await this._db?.query(
+        `
+        SELECT *
+        FROM ${TABLES.SkillLesson}
+        WHERE skill_id IN (${placeholders})
+          AND is_deleted = 0
+          AND ${localeCondition}
+        ORDER BY sort_index ASC
+        `,
+        [...skillIds, ...localeParams],
+      );
+      return res?.values ?? [];
+    };
 
-    const res = await this._db?.query(
+    if (langId && localeId) {
+      const skillLessons = await fetchSkillLessons(
+        'language_id = ? AND locale_id = ?',
+        [langId, localeId],
+      );
+      if (skillLessons.length) return skillLessons;
+    }
+
+    if (langId) {
+      const skillLessons = await fetchSkillLessons(
+        'language_id = ? AND locale_id IS NULL',
+        [langId],
+      );
+      if (skillLessons.length) return skillLessons;
+    }
+
+    if (localeId) {
+      const skillLessons = await fetchSkillLessons(
+        'language_id IS NULL AND locale_id = ?',
+        [localeId],
+      );
+      if (skillLessons.length) return skillLessons;
+    }
+
+    const genericSkillLessons = await fetchSkillLessons(
+      'language_id IS NULL AND locale_id IS NULL',
+    );
+    if (genericSkillLessons.length) return genericSkillLessons;
+
+    const fallbackRes = await this._db?.query(
       `
       SELECT *
       FROM ${TABLES.SkillLesson}
       WHERE skill_id IN (${placeholders})
         AND is_deleted = 0
-        AND (
-          (language_id IS NULL AND locale_id IS NULL)
-          ${
-            langId ? `OR (language_id = "${langId}" AND locale_id IS NULL)` : ''
-          }
-          ${
-            localeId
-              ? `OR (language_id IS NULL AND locale_id = "${localeId}")`
-              : ''
-          }
-          ${
-            langId && localeId
-              ? `OR (language_id = "${langId}" AND locale_id = "${localeId}")`
-              : ''
-          }
-        )
       ORDER BY sort_index ASC
       `,
       skillIds,
     );
-    return res?.values ?? [];
+    const fallbackLessons = fallbackRes?.values ?? [];
+    return fallbackLessons;
   }
 
   async getSkillRelationsByTargetIds(

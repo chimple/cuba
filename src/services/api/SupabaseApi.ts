@@ -249,6 +249,7 @@ export class SupabaseApi implements ServiceApi {
   private _liveQuizRealTime?: RealtimeChannel;
   private _currentMode: MODES;
   private searchStudentsTimer: any = null;
+
   async getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -2237,12 +2238,13 @@ export class SupabaseApi implements ServiceApi {
     chapterId: string,
   ): Promise<TableTypes<'lesson'>[]> {
     if (!this.supabase) return [];
+    const supabase = this.supabase;
 
     const student = this.currentStudent;
     let langId = student?.language_id;
     const localeId = student?.locale_id;
 
-    const { data: chapterRows, error: chapterError } = await this.supabase
+    const { data: chapterRows, error: chapterError } = await supabase
       .from(TABLES.Chapter)
       .select('course:course_id(code)')
       .eq('id', chapterId)
@@ -2265,7 +2267,7 @@ export class SupabaseApi implements ServiceApi {
             : courseCode;
 
       if (courseLanguageCode) {
-        const { data: languageRows, error: languageError } = await this.supabase
+        const { data: languageRows, error: languageError } = await supabase
           .from(TABLES.Language)
           .select('id')
           .ilike('code', courseLanguageCode)
@@ -2280,34 +2282,53 @@ export class SupabaseApi implements ServiceApi {
       }
     }
 
-    const orFilters: string[] = [];
-    orFilters.push('language_id.is.null,locale_id.is.null');
-    if (langId) {
-      orFilters.push(`language_id.eq.${langId},locale_id.is.null`);
-    }
-    if (localeId) {
-      orFilters.push(`language_id.is.null,locale_id.eq.${localeId}`);
-    }
+    const fetchLessons = async (
+      languageId: string | null,
+      localeId: string | null,
+    ) => {
+      let query = supabase
+        .from(TABLES.ChapterLesson)
+        .select('lesson:lesson_id(*)')
+        .eq('chapter_id', chapterId)
+        .eq('is_deleted', false);
+
+      query = languageId
+        ? query.eq('language_id', languageId)
+        : query.is('language_id', null);
+      query = localeId
+        ? query.eq('locale_id', localeId)
+        : query.is('locale_id', null);
+
+      const { data, error } = await query.order('sort_index', {
+        ascending: true,
+      });
+
+      if (error) {
+        logger.error('Error fetching chapter lessons:', error);
+        return [];
+      }
+
+      return (data ?? [])
+        .map((item) => item.lesson as unknown as TableTypes<'lesson'>)
+        .filter(Boolean);
+    };
+
     if (langId && localeId) {
-      orFilters.push(`language_id.eq.${langId},locale_id.eq.${localeId}`);
+      const lessons = await fetchLessons(langId, localeId);
+      if (lessons.length) return lessons;
     }
 
-    const { data, error } = await this.supabase
-      .from(TABLES.ChapterLesson)
-      .select('lesson:lesson_id(*)')
-      .eq('chapter_id', chapterId)
-      .eq('is_deleted', false)
-      .or(orFilters.join(','))
-      .order('sort_index', { ascending: true });
-
-    if (error) {
-      logger.error('Error fetching chapter lessons:', error);
-      return [];
+    if (langId) {
+      const lessons = await fetchLessons(langId, null);
+      if (lessons.length) return lessons;
     }
 
-    return (data ?? [])
-      .map((item: any) => item.lesson as TableTypes<'lesson'>)
-      .filter(Boolean);
+    if (localeId) {
+      const lessons = await fetchLessons(null, localeId);
+      if (lessons.length) return lessons;
+    }
+
+    return fetchLessons(null, null);
   }
 
   async getDifferentGradesForCourse(course: TableTypes<'course'>): Promise<{
@@ -3252,31 +3273,88 @@ export class SupabaseApi implements ServiceApi {
 
   async getSkillLessonsBySkillIds(
     skillIds: string[],
+    languageCode?: string,
   ): Promise<TableTypes<'skill_lesson'>[]> {
     if (!this.supabase || !skillIds || skillIds.length === 0) return [];
+    const supabase = this.supabase;
 
     const student = this.currentStudent;
-    const langId = student?.language_id;
+    const studentLangId = student?.language_id ?? undefined;
     const localeId = student?.locale_id;
-    const orConditions: string[] = [];
 
-    orConditions.push('language_id.is.null,locale_id.is.null');
-    if (langId) {
-      orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
-    }
-    if (localeId) {
-      orConditions.push(`language_id.is.null,locale_id.eq.${localeId}`);
-    }
+    const resolveLanguageId = async (code?: string) => {
+      if (!code) return undefined;
+      const { data, error } = await supabase
+        .from(TABLES.Language)
+        .select('id')
+        .ilike('code', code)
+        .eq('is_deleted', false)
+        .limit(1);
+
+      if (error) {
+        logger.error('Error fetching skill lesson language:', error);
+        return undefined;
+      }
+
+      return data?.[0]?.id as string | undefined;
+    };
+
+    const langId = languageCode
+      ? ((await resolveLanguageId(languageCode)) ?? studentLangId)
+      : studentLangId;
+
+    const fetchSkillLessons = async (
+      languageId: string | null,
+      localeId: string | null,
+    ) => {
+      let query = supabase
+        .from('skill_lesson')
+        .select('*')
+        .in('skill_id', skillIds)
+        .eq('is_deleted', false);
+
+      query = languageId
+        ? query.eq('language_id', languageId)
+        : query.is('language_id', null);
+      query = localeId
+        ? query.eq('locale_id', localeId)
+        : query.is('locale_id', null);
+
+      const { data, error } = await query.order('sort_index', {
+        ascending: true,
+      });
+
+      if (error) {
+        logger.error('Error fetching skill lessons:', error);
+        return [];
+      }
+
+      return data ?? [];
+    };
+
     if (langId && localeId) {
-      orConditions.push(`language_id.eq.${langId},locale_id.eq.${localeId}`);
+      const skillLessons = await fetchSkillLessons(langId, localeId);
+      if (skillLessons.length) return skillLessons;
     }
 
-    const { data, error } = await this.supabase
+    if (langId) {
+      const skillLessons = await fetchSkillLessons(langId, null);
+      if (skillLessons.length) return skillLessons;
+    }
+
+    if (localeId) {
+      const skillLessons = await fetchSkillLessons(null, localeId);
+      if (skillLessons.length) return skillLessons;
+    }
+
+    const genericSkillLessons = await fetchSkillLessons(null, null);
+    if (genericSkillLessons.length) return genericSkillLessons;
+
+    const { data, error } = await supabase
       .from('skill_lesson')
       .select('*')
       .in('skill_id', skillIds)
       .eq('is_deleted', false)
-      .or(orConditions.join(','))
       .order('sort_index', { ascending: true });
 
     if (error) {

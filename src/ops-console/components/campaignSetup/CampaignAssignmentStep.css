@@ -33,6 +33,7 @@
 .campaign-assignment-helper svg {
   width: 1rem;
   height: 1rem;
+  flex: 0 0 auto;
   color: var(--campaign-blue);
 }
 
@@ -40,6 +41,8 @@
   color: inherit;
   font-size: 0.8125rem;
   line-height: 1rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .campaign-assignment-tabs {
@@ -99,6 +102,7 @@
   .campaign-assignment-helper {
     align-items: flex-start;
     padding: 0.75rem;
+    width: 100%;
   }
 
   .campaign-assignment-cta-error {

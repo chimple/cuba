@@ -387,6 +387,7 @@ export class OneRosterApi implements ServiceApi {
   }
   getSkillLessonsBySkillIds(
     skillIds: string[],
+    languageCode?: string,
   ): Promise<TableTypes<'skill_lesson'>[]> {
     throw new Error('Method not implemented.');
   }

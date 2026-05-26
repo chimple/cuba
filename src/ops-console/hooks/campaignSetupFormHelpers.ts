@@ -1,9 +1,10 @@
 import {
   CampaignAudiencePayload,
   CampaignObjective,
+  CampaignSavedAudienceGroup,
   CampaignTargetType,
 } from '../../services/api/ServiceApi';
-import type { CampaignSetupFormState } from '../components/CampaignSetupSections';
+import type { CampaignSetupFormState } from '../components/campaignSetup/types';
 import { DEFAULT_REWARD_RANKS } from '../components/campaignSetup/constants';
 
 export const initialCampaignSetupForm: CampaignSetupFormState = {
@@ -20,6 +21,28 @@ export const initialCampaignSetupForm: CampaignSetupFormState = {
   rewardType: '',
   rewardRanks: DEFAULT_REWARD_RANKS.map((rank) => ({ ...rank })),
 };
+
+export const getTodayDateValue = (date = new Date()): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+};
+
+export const normalizeSavedGroupName = (name: string) =>
+  name.trim().replace(/\s+/g, ' ').toLowerCase();
+
+export const buildSavedGroupNameSet = (
+  savedGroups: CampaignSavedAudienceGroup[],
+) => new Set(savedGroups.map((group) => normalizeSavedGroupName(group.name)));
+
+export const hasDuplicateSavedGroupName = (
+  groupName: string,
+  savedGroupNameSet: ReadonlySet<string>,
+) => savedGroupNameSet.has(normalizeSavedGroupName(groupName));
+
+const EMPTY_SAVED_GROUP_NAME_SET: ReadonlySet<string> = new Set();
 
 type AudiencePayloadParams = {
   isAllSchools: boolean;
@@ -50,8 +73,10 @@ export const buildCampaignAudiencePayload = (
 export const getCampaignSetupValidationErrors = (
   form: CampaignSetupFormState,
   saveGroup: boolean,
+  savedGroupNameSet: ReadonlySet<string> = EMPTY_SAVED_GROUP_NAME_SET,
 ): Record<string, string> => {
   const errors: Record<string, string> = {};
+  const today = getTodayDateValue();
   if (!form.objective) errors.objective = 'Campaign objective is required.';
   if (form.objective === 'homework_campaign') {
     if (!form.targetType) errors.targetType = 'Target type is required.';
@@ -73,14 +98,26 @@ export const getCampaignSetupValidationErrors = (
     errors.campaignName = 'Campaign name is required.';
   }
   if (!form.managerId) errors.managerId = 'Campaign manager is required.';
-  if (!form.startDate) errors.startDate = 'Start date is required.';
-  if (!form.endDate) errors.endDate = 'End date is required.';
+  if (!form.startDate) {
+    errors.startDate = 'Start date is required.';
+  } else if (form.startDate < today) {
+    errors.startDate = 'Start date cannot be in the past.';
+  }
+  if (!form.endDate) {
+    errors.endDate = 'End date is required.';
+  } else if (form.endDate < today) {
+    errors.endDate = 'End date cannot be in the past.';
+  }
   if (form.startDate && form.endDate && form.endDate < form.startDate) {
     errors.endDate = 'End date must be after start date.';
   }
   if (!form.programId) errors.programId = 'Program is required.';
-  if (saveGroup && !form.groupName.trim()) {
-    errors.groupName = 'Group name is required.';
+  if (saveGroup) {
+    if (!form.groupName.trim()) {
+      errors.groupName = 'Group name is required.';
+    } else if (hasDuplicateSavedGroupName(form.groupName, savedGroupNameSet)) {
+      errors.groupName = 'A saved group with this name already exists.';
+    }
   }
   return errors;
 };
