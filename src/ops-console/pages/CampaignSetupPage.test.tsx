@@ -99,6 +99,12 @@ const openSelectAndChoose = async (triggerText: string, optionText: string) => {
   fireEvent.click(await screen.findByRole('option', { name: optionText }));
 };
 
+const getDateValueDaysFromToday = (daysFromToday: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromToday);
+  return getTodayDateValue(date);
+};
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockAssignmentComplete = false;
@@ -115,10 +121,10 @@ const completeSetupStep = async () => {
   await openSelectAndChoose('Select Campaign Manager', 'Raj Patel');
 
   fireEvent.change(screen.getByLabelText('Start Date'), {
-    target: { value: '2026-05-01' },
+    target: { value: getDateValueDaysFromToday(1) },
   });
   fireEvent.change(screen.getByLabelText('End Date'), {
-    target: { value: '2026-05-31' },
+    target: { value: getDateValueDaysFromToday(30) },
   });
 
   await openSelectAndChoose('Select Program', 'Early Learning');
@@ -435,10 +441,10 @@ describe('CampaignSetupPage', () => {
     });
     await openSelectAndChoose('Select Campaign Manager', 'Raj Patel');
     fireEvent.change(screen.getByLabelText('Start Date'), {
-      target: { value: '2026-05-01' },
+      target: { value: getDateValueDaysFromToday(1) },
     });
     fireEvent.change(screen.getByLabelText('End Date'), {
-      target: { value: '2026-05-31' },
+      target: { value: getDateValueDaysFromToday(30) },
     });
     await openSelectAndChoose('Select Program', 'Early Learning');
     expect(await screen.findByText('Students:')).toBeInTheDocument();
