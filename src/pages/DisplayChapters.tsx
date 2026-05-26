@@ -28,6 +28,8 @@ import { registerBackButtonHandler } from '../common/backButtonRegistry';
 import logger from '../utility/logger';
 
 const localData: any = {};
+const LANGUAGE_NAMESPACE = 'translation';
+const pendingLanguageLoads = new Map<string, Promise<void>>();
 const getForcedLanguage = (courseCode?: string | null) => {
   if (courseCode === COURSES.MATHS_HINDI) return 'hi';
   if (courseCode === COURSES.MATHS_KANNADA) return 'kn';
@@ -80,9 +82,27 @@ const DisplayChapters: FC<{}> = () => {
   };
   const ensureForcedLanguageLoaded = async (courseCode?: string | null) => {
     const language = getForcedLanguage(courseCode);
-    if (language) {
-      await i18n.loadLanguages(language);
+    if (!language) return;
+
+    if (i18n.hasResourceBundle(language, LANGUAGE_NAMESPACE)) {
+      return;
     }
+
+    const pendingLoad = pendingLanguageLoads.get(language);
+    if (pendingLoad) {
+      await pendingLoad;
+      return;
+    }
+
+    const loadPromise = i18n
+      .loadLanguages(language)
+      .then(() => undefined)
+      .finally(() => {
+        pendingLanguageLoads.delete(language);
+      });
+
+    pendingLanguageLoads.set(language, loadPromise);
+    await loadPromise;
   };
   const getCourseByUrl = useMemo(
     () =>
