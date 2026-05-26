@@ -7,7 +7,7 @@ import {
   Select,
   Typography,
 } from '@mui/material';
-import { renderSelectPlaceholder } from './CampaignPlaceholder';
+import { CampaignSelectPlaceholder } from './CampaignPlaceholder';
 import { requiredLabel } from './constants';
 import { TargetAudienceSectionProps } from './types';
 import { CampaignMultiSelect } from './CampaignMultiSelect';
@@ -76,7 +76,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
               onChange={onSavedGroupChange}
               displayEmpty
               renderValue={(value) =>
-                renderSelectPlaceholder(
+                CampaignSelectPlaceholder(
                   value,
                   'Select a saved group',
                   savedGroupNameById.get(value),
@@ -104,7 +104,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
               onChange={onProgramChange}
               displayEmpty
               renderValue={(value) =>
-                renderSelectPlaceholder(
+                CampaignSelectPlaceholder(
                   value,
                   'Select Program',
                   programNameById.get(value),

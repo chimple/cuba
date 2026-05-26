@@ -16,7 +16,7 @@ import {
   TARGET_TYPE_LABEL_BY_VALUE,
   TARGET_TYPE_OPTIONS,
 } from './constants';
-import { renderSelectPlaceholder } from './CampaignPlaceholder';
+import { CampaignSelectPlaceholder } from './CampaignPlaceholder';
 import { ObjectiveGoalSectionProps } from './types';
 import './ObjectiveGoalSection.css';
 
@@ -81,7 +81,7 @@ export const ObjectiveGoalSection: React.FC<ObjectiveGoalSectionProps> = ({
                 onChange={onSelectChange('targetType')}
                 displayEmpty
                 renderValue={(value) =>
-                  renderSelectPlaceholder(
+                  CampaignSelectPlaceholder(
                     value,
                     'Select Target Type',
                     TARGET_TYPE_LABEL_BY_VALUE.get(value),

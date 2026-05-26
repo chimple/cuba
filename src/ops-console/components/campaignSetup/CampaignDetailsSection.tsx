@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { CalendarToday } from '@mui/icons-material';
 import { getTodayDateValue } from '../../hooks/campaignSetupFormHelpers';
-import { renderSelectPlaceholder } from './CampaignPlaceholder';
+import { CampaignSelectPlaceholder } from './CampaignPlaceholder';
 import { requiredLabel } from './constants';
 import { CampaignDetailsSectionProps } from './types';
 import './CampaignDetailsSection.css';
@@ -81,7 +81,7 @@ export const CampaignDetailsSection: React.FC<CampaignDetailsSectionProps> = ({
               onChange={onSelectChange('managerId')}
               displayEmpty
               renderValue={(value) =>
-                renderSelectPlaceholder(
+                CampaignSelectPlaceholder(
                   value,
                   'Select Campaign Manager',
                   managerNameById.get(value),

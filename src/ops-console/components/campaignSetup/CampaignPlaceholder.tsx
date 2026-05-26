@@ -4,16 +4,16 @@ import './CampaignPlaceholder.css';
 const selectedCountLabel = (count: number, placeholder: string) =>
   count > 0 ? `${count} Selected` : placeholder;
 
-export const renderSelectionCount = (
+export const CampaignCountPlaceholder = (
   selected: unknown[],
   placeholder: string,
 ) => (
-  <span className={selected.length ? undefined : 'campaign-setup-placeholder'}>
+  <span className={selected.length ? undefined : 'campaign-count-placeholder'}>
     {selectedCountLabel(selected.length, placeholder)}
   </span>
 );
 
-export const renderSelectPlaceholder = (
+export const CampaignSelectPlaceholder = (
   value: string,
   placeholder: string,
   selectedLabel?: string,
@@ -21,5 +21,5 @@ export const renderSelectPlaceholder = (
   value ? (
     selectedLabel
   ) : (
-    <span className="campaign-setup-placeholder">{placeholder}</span>
+    <span className="campaign-select-placeholder">{placeholder}</span>
   );
