@@ -8,6 +8,10 @@ import './ParentalLock.css';
 import { FcLock } from 'react-icons/fc';
 import { Util } from '../../utility/util';
 import { schoolUtil } from '../../utility/schoolUtil';
+import {
+  updateLocalAttributes,
+  useGbContext,
+} from '../../growthbook/Growthbook';
 
 const ParentalLock: React.FC<{
   showDialogBox: boolean;
@@ -15,6 +19,7 @@ const ParentalLock: React.FC<{
   onHandleClose: React.MouseEventHandler<HTMLDivElement | HTMLImageElement>;
   onUnlock?: () => void;
 }> = ({ showDialogBox, handleClose, onHandleClose, onUnlock }) => {
+  const { setGbUpdated } = useGbContext();
   enum FourSides {
     LEFT = 'LEFT',
     RIGHT = 'RIGHT',
@@ -46,6 +51,12 @@ const ParentalLock: React.FC<{
       Util.setPathToBackButton(PAGES.PARENT, history);
       Util.setCurrentStudent(null);
       schoolUtil.setCurrentClass(undefined);
+      // Parent unlock exits the active student context, so clear student targeting.
+      updateLocalAttributes({
+        student_id: null,
+        school_ids: [],
+      });
+      setGbUpdated(true);
     }
   };
 

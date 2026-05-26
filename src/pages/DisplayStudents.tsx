@@ -81,27 +81,28 @@ const DisplayStudents: FC<{}> = () => {
   const onStudentClick = async (student: TableTypes<'user'>) => {
     schoolUtil.setCurrMode(MODES.PARENT);
     await Util.setCurrentStudent(student, undefined, true);
-    // 2) Update GrowthBook attributes immediately for the newly selected student
-    updateLocalAttributes({
-      student_id: student.id,
-      age: student.age ?? null,
-      grade_id: student.grade_id ?? null,
-    });
-
-    // 3) Signal to GrowthBook context that attributes were updated
-    setGbUpdated(true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
     void Util.ensureLidoCommonAudioForStudent(student).catch((error) => {
       logger.warn('Failed to prefetch Lido common audio in background.', error);
     });
+    let resolvedSchoolIds: string[] = [];
     if (linkedData.classes && linkedData.classes.length > 0) {
       const firstClass = linkedData.classes[0];
       const currClass = await api.getClassById(firstClass.id);
       await schoolUtil.setCurrentClass(currClass ?? undefined);
+      resolvedSchoolIds = currClass?.school_id ? [currClass.school_id] : [];
     } else {
       logger.warn('No classes found for the student.');
       await schoolUtil.setCurrentClass(undefined);
     }
+    // Sync GrowthBook with the selected child's current school linkage.
+    updateLocalAttributes({
+      student_id: student.id,
+      age: student.age ?? null,
+      grade_id: student.grade_id ?? null,
+      school_ids: resolvedSchoolIds,
+    });
+    setGbUpdated(true);
     if (!student.language_id) {
       history.replace(PAGES.EDIT_STUDENT, {
         from: history.location.pathname,
