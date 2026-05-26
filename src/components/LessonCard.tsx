@@ -380,7 +380,9 @@ const LessonCard: React.FC<{
           {showText ? (
             <p id={`lesson-card-name${isLoved ? '-fav-icon' : ''}`}>
               {course?.code === COURSES.ENGLISH ||
-              course?.code === COURSES.MATHS
+              course?.code === COURSES.MATHS ||
+              course?.code === COURSES.MATHS_HINDI ||
+              course?.code === COURSES.MATHS_KANNADA
                 ? lesson?.name
                 : t(lesson?.name ?? '')}
             </p>
@@ -388,7 +390,9 @@ const LessonCard: React.FC<{
           {showChapterName && chapter?.name && (
             <div id={`chapter-title${isLoved ? '-fav-icon' : ''}`}>
               {course?.code === COURSES.ENGLISH ||
-              course?.code === COURSES.MATHS
+              course?.code === COURSES.MATHS ||
+              course?.code === COURSES.MATHS_HINDI ||
+              course?.code === COURSES.MATHS_KANNADA
                 ? chapter?.name
                 : t(chapter?.name)}
             </div>

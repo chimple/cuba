@@ -65,7 +65,9 @@ const DisplayChapters: FC<{}> = () => {
   const courseDocId = searchParams.get('courseDocId');
   const shouldTranslateCourseText =
     currentCourse?.code !== COURSES.ENGLISH &&
-    currentCourse?.code !== COURSES.MATHS;
+    currentCourse?.code !== COURSES.MATHS &&
+    currentCourse?.code !== COURSES.MATHS_HINDI &&
+    currentCourse?.code !== COURSES.MATHS_KANNADA;
   const getCourseBasedName = (name?: string | null) => {
     if (!name) return '';
     return shouldTranslateCourseText ? t(name) : name;
