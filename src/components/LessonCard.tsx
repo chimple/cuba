@@ -18,7 +18,7 @@ import './LessonCard.css';
 import LessonCardStarIcons from './LessonCardStarIcons';
 import React from 'react';
 import { ServiceConfig } from '../services/ServiceConfig';
-import { useTranslation } from 'react-i18next';
+import { t } from 'i18next';
 import LovedIcon from './LovedIcon';
 import SelectIconImage from './displaySubjects/SelectIconImage';
 import { Util } from '../utility/util';
@@ -68,7 +68,6 @@ const LessonCard: React.FC<{
   lessonCourseMap,
 }) => {
   const history = useHistory();
-  const { t, i18n } = useTranslation();
   const [showImage, setShowImage] = useState(true);
   const [subject, setSubject] = useState<TableTypes<'subject'>>();
   // const [subject, setSubject] = useState<Subject>();
@@ -108,21 +107,6 @@ const LessonCard: React.FC<{
   };
 
   const [lessonCardColor, setLessonCardColor] = useState('');
-  const effectiveCourseCode = course?.code ?? currentCourse?.code;
-  const forcedLanguage =
-    effectiveCourseCode === COURSES.MATHS_HINDI
-      ? 'hi'
-      : effectiveCourseCode === COURSES.MATHS_KANNADA
-        ? 'kn'
-        : undefined;
-  const shouldTranslateCourseText =
-    effectiveCourseCode !== COURSES.ENGLISH &&
-    effectiveCourseCode !== COURSES.MATHS;
-  const getCourseBasedName = (name?: string | null) => {
-    if (!name) return '';
-    if (!shouldTranslateCourseText) return name;
-    return forcedLanguage ? t(name, { lng: forcedLanguage }) : t(name);
-  };
 
   const COURSE_VALUES_SET = new Set(
     (Object.values(CocosCourseIdentifier) as string[]).map((v) =>
@@ -154,12 +138,6 @@ const LessonCard: React.FC<{
       LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)],
     );
   }, []);
-
-  useEffect(() => {
-    if (forcedLanguage) {
-      void i18n.loadLanguages(forcedLanguage);
-    }
-  }, [forcedLanguage, i18n]);
 
   return (
     <>
@@ -318,7 +296,9 @@ const LessonCard: React.FC<{
             {showSubjectName && currentCourse?.name ? (
               <div id="lesson-card-subject-name">
                 <p className="ignore">
-                  {getCourseBasedName(lesson?.name ?? '')}
+                  {course?.code === COURSES.ENGLISH
+                    ? lesson?.name
+                    : t(lesson?.name ?? '')}
                 </p>
 
                 <p>{currentCourse?.name}</p>
@@ -399,12 +379,18 @@ const LessonCard: React.FC<{
         <div>
           {showText ? (
             <p id={`lesson-card-name${isLoved ? '-fav-icon' : ''}`}>
-              {getCourseBasedName(lesson?.name ?? '')}
+              {course?.code === COURSES.ENGLISH ||
+              course?.code === COURSES.MATHS
+                ? lesson?.name
+                : t(lesson?.name ?? '')}
             </p>
           ) : null}
           {showChapterName && chapter?.name && (
             <div id={`chapter-title${isLoved ? '-fav-icon' : ''}`}>
-              {getCourseBasedName(chapter?.name)}
+              {course?.code === COURSES.ENGLISH ||
+              course?.code === COURSES.MATHS
+                ? chapter?.name
+                : t(chapter?.name)}
             </div>
           )}
         </div>

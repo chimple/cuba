@@ -15,7 +15,7 @@ import {
 } from '../common/constants';
 import { IonItem, IonPage } from '@ionic/react';
 import './DisplayChapters.css';
-import { useTranslation } from 'react-i18next';
+import { t } from 'i18next';
 import SelectChapter from '../components/displaySubjects/SelectChapter';
 import LessonSlider from '../components/LessonSlider';
 import BackButton from '../components/common/BackButton';
@@ -54,7 +54,6 @@ const DisplayChapters: FC<{}> = () => {
   }>({});
   const history = useHistory();
   const location = useLocation();
-  const { t, i18n } = useTranslation();
   const lastBackPressAtRef = useRef<number>(0);
   const blockIonRouterBackUntilRef = useRef<number>(0);
 
@@ -64,19 +63,12 @@ const DisplayChapters: FC<{}> = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const courseDocId = searchParams.get('courseDocId');
-  const forcedLanguage =
-    currentCourse?.code === COURSES.MATHS_HINDI
-      ? 'hi'
-      : currentCourse?.code === COURSES.MATHS_KANNADA
-        ? 'kn'
-        : undefined;
   const shouldTranslateCourseText =
     currentCourse?.code !== COURSES.ENGLISH &&
     currentCourse?.code !== COURSES.MATHS;
   const getCourseBasedName = (name?: string | null) => {
     if (!name) return '';
-    if (!shouldTranslateCourseText) return name;
-    return forcedLanguage ? t(name, { lng: forcedLanguage }) : t(name);
+    return shouldTranslateCourseText ? t(name) : name;
   };
   const getCourseByUrl = useMemo(
     () =>
@@ -89,12 +81,6 @@ const DisplayChapters: FC<{}> = () => {
     init();
     ScreenOrientation.lock({ orientation: 'landscape' });
   }, []);
-
-  useEffect(() => {
-    if (forcedLanguage) {
-      void i18n.loadLanguages(forcedLanguage);
-    }
-  }, [forcedLanguage, i18n]);
   useEffect(() => {
     const storedCourseByUrl = (() => {
       if (getCourseByUrl || !courseDocId) return;
