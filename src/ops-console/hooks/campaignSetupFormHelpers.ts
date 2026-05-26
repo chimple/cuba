@@ -1,8 +1,6 @@
 import {
   CampaignAudiencePayload,
   CampaignObjective,
-  CampaignRewardCriteriaType,
-  CampaignRewardsPayload,
   CampaignTargetType,
 } from '../../services/api/ServiceApi';
 import type { CampaignSetupFormState } from '../components/CampaignSetupSections';
@@ -91,13 +89,6 @@ export const usesLessonRewardCriteria = (form: CampaignSetupFormState) =>
   form.objective === 'homepage_learning_pathway_campaign' ||
   form.targetType === 'number_of_lessons';
 
-export const getRewardCriteriaType = (
-  form: CampaignSetupFormState,
-): CampaignRewardCriteriaType =>
-  usesLessonRewardCriteria(form)
-    ? 'number_of_lessons'
-    : 'percentage_completion';
-
 export const getCampaignRewardsValidationErrors = (
   form: CampaignSetupFormState,
 ): Record<string, string> => {
@@ -139,15 +130,22 @@ export const getCampaignRewardsValidationErrors = (
   return errors;
 };
 
+export type CampaignRewardsDraftPayload = {
+  type: NonNullable<CampaignSetupFormState['rewardType']>;
+  rules: Array<{
+    rank: 1 | 2 | 3;
+    min: number;
+    reward: string;
+  }>;
+};
+
 export const buildCampaignRewardsPayload = (
   form: CampaignSetupFormState,
-): CampaignRewardsPayload => ({
-  rewardType: form.rewardType as CampaignRewardsPayload['rewardType'],
-  criteriaType: getRewardCriteriaType(form),
-  completionIncludesTeacherAssignments: true,
-  ranks: form.rewardRanks.map((rank) => ({
+): CampaignRewardsDraftPayload => ({
+  type: form.rewardType as CampaignRewardsDraftPayload['type'],
+  rules: form.rewardRanks.map((rank) => ({
     rank: rank.rank,
-    minimum: Number(rank.criteriaValue),
+    min: Number(rank.criteriaValue),
     reward: rank.reward.trim(),
   })),
 });

@@ -210,7 +210,7 @@ const CampaignSetupPage: React.FC = () => {
             }
             variant="contained"
             endIcon={
-              campaignSetup.submitting || campaignSetup.savingRewards ? (
+              campaignSetup.submitting ? (
                 <CircularProgress size={18} />
               ) : undefined
             }
@@ -220,7 +220,7 @@ const CampaignSetupPage: React.FC = () => {
                 : campaignSetup.activeStep === 1
                   ? !isAssignmentComplete
                   : campaignSetup.activeStep === 2
-                    ? campaignSetup.savingRewards
+                    ? false
                     : true
             }
             onClick={

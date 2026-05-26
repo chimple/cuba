@@ -65,7 +65,6 @@ import {
   CampaignAudiencePayload,
   CampaignAudienceSummary,
   CampaignAudienceSummaryParams,
-  CampaignRewardsPayload,
   CampaignSavedAudienceGroup,
   CampaignSetupOptions,
   CreateCampaignSetupPayload,
@@ -7158,13 +7157,6 @@ order by
     payload: CreateCampaignSetupPayload,
   ): Promise<CreateCampaignSetupResult> {
     return await this._serverApi.createCampaignSetup(payload);
-  }
-
-  async updateCampaignRewards(
-    campaignId: string,
-    rewards: CampaignRewardsPayload,
-  ): Promise<void> {
-    return await this._serverApi.updateCampaignRewards(campaignId, rewards);
   }
 
   async getCampaignAssignmentOptions(

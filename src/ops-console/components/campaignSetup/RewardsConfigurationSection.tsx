@@ -8,16 +8,20 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { RANK_LABELS, REWARD_TYPE_OPTIONS, requiredLabel } from './constants';
 import { RewardsConfigurationSectionProps } from './types';
 import './RewardsConfigurationSection.css';
+
+type TranslationValues = Record<string, string | number>;
 
 const getSummaryRange = (
   currentValue: number,
   previousValue: number | undefined,
   usesLessonCount: boolean,
+  lessonsLabel: string,
 ) => {
-  const unit = usesLessonCount ? ' lessons' : '%';
+  const unit = usesLessonCount ? ` ${lessonsLabel}` : '%';
   if (!previousValue) return `>=${currentValue}${unit}`;
 
   const upperValue = previousValue - 1;
@@ -27,32 +31,53 @@ const getSummaryRange = (
 export const RewardsConfigurationSection: React.FC<
   RewardsConfigurationSectionProps
 > = ({ form, onSelectChange, onRewardRankChange, fieldError }) => {
+  const { t } = useTranslation();
+  const translate = (key: string, options?: TranslationValues) =>
+    String(options ? t(key, options) : t(key));
+  const translateDynamic = (
+    key: string,
+    options: TranslationValues,
+    fallback: string,
+  ) => {
+    const translated = translate(key, options);
+    return translated === key ? fallback : translated;
+  };
   const usesLessonCount =
     form.objective === 'homepage_learning_pathway_campaign' ||
     form.targetType === 'number_of_lessons';
   const criteriaLabel = usesLessonCount
-    ? 'Number of Lessons'
-    : 'Minimum Completion (%)';
+    ? translate('Number of Lessons')
+    : translate('Minimum Completion (%)');
   const minimumValue = form.rewardRanks[2]?.criteriaValue;
   const informationNote = minimumValue
     ? usesLessonCount
-      ? `Students meeting the same criteria will share the rank. Students completing fewer than ${minimumValue} lessons will not receive a rank.`
-      : `Students meeting the same criteria will share the rank. Students with completion below ${minimumValue}% will not receive a rank.`
-    : 'Students meeting the same criteria will share the rank. Students below the minimum configured criteria will not receive a rank.';
+      ? translateDynamic(
+          'Students meeting the same criteria will share the rank. Students completing fewer than {{value}} lessons will not receive a rank.',
+          { value: minimumValue },
+          `Students meeting the same criteria will share the rank. Students completing fewer than ${minimumValue} lessons will not receive a rank.`,
+        )
+      : translateDynamic(
+          'Students meeting the same criteria will share the rank. Students with completion below {{value}}% will not receive a rank.',
+          { value: minimumValue },
+          `Students meeting the same criteria will share the rank. Students with completion below ${minimumValue}% will not receive a rank.`,
+        )
+    : t(
+        'Students meeting the same criteria will share the rank. Students below the minimum configured criteria will not receive a rank.',
+      );
   const hasSummary = form.rewardRanks.some((rank) => rank.criteriaValue);
 
   return (
-    <Box className="campaign-rewards-section">
-      <Typography variant="h6" className="campaign-setup-section-title">
-        Rewards Configuration
+    <Box className="rewards-config-section">
+      <Typography variant="h6" className="rewards-config-title">
+        {t('Rewards Configuration')}
       </Typography>
-      <Typography className="campaign-setup-section-copy">
-        Completion is calculated based on assignments completed.
+      <Typography className="rewards-config-copy">
+        {t('Completion is calculated based on assignments completed.')}
       </Typography>
 
-      <Box className="campaign-rewards-type-field campaign-setup-field">
-        <Typography className="campaign-setup-label">
-          {requiredLabel('Reward Type')}
+      <Box className="rewards-config-type-field">
+        <Typography className="rewards-config-label">
+          {requiredLabel(translate('Reward Type'))}
         </Typography>
         <FormControl fullWidth error={!!fieldError('rewardType')}>
           <Select
@@ -62,11 +87,11 @@ export const RewardsConfigurationSection: React.FC<
             size="small"
           >
             <MenuItem value="" disabled>
-              Select Reward Type
+              {t('Select Reward Type')}
             </MenuItem>
             {REWARD_TYPE_OPTIONS.map((option) => (
               <MenuItem key={option.value} value={option.value}>
-                {option.label}
+                {t(option.label)}
               </MenuItem>
             ))}
           </Select>
@@ -74,25 +99,29 @@ export const RewardsConfigurationSection: React.FC<
         </FormControl>
       </Box>
 
-      <Box className="campaign-rewards-table" role="table">
-        <Box className="campaign-rewards-row campaign-rewards-head" role="row">
-          <Typography role="columnheader">Rank</Typography>
+      <Box className="rewards-config-table" role="table">
+        <Box className="rewards-config-row rewards-config-head" role="row">
+          <Typography role="columnheader">{t('Rank')}</Typography>
           <Typography role="columnheader">{criteriaLabel}</Typography>
-          <Typography role="columnheader">Reward</Typography>
+          <Typography role="columnheader">{t('Reward')}</Typography>
         </Box>
 
         {form.rewardRanks.map((rank, index) => (
-          <Box className="campaign-rewards-row" role="row" key={rank.rank}>
-            <Typography className="campaign-rewards-rank" role="cell">
-              <span className="campaign-rewards-rank-badge">
+          <Box className="rewards-config-row" role="row" key={rank.rank}>
+            <Typography className="rewards-config-rank" role="cell">
+              <span className="rewards-config-rank-badge">
                 {RANK_LABELS[rank.rank]}
               </span>
-              <span className="campaign-rewards-rank-title">
-                {RANK_LABELS[rank.rank]} Rank
+              <span className="rewards-config-rank-title">
+                {translateDynamic(
+                  '{{rank}} Rank',
+                  { rank: RANK_LABELS[rank.rank] },
+                  `${RANK_LABELS[rank.rank]} Rank`,
+                )}
               </span>
             </Typography>
-            <Box className="campaign-rewards-field-cell" role="cell">
-              <Typography className="campaign-rewards-mobile-label">
+            <Box className="rewards-config-field-cell" role="cell">
+              <Typography className="rewards-config-mobile-label">
                 {criteriaLabel}
               </Typography>
               <TextField
@@ -100,7 +129,11 @@ export const RewardsConfigurationSection: React.FC<
                 onChange={onRewardRankChange(index, 'criteriaValue')}
                 error={!!fieldError(`rewardRanks.${index}.criteriaValue`)}
                 helperText={fieldError(`rewardRanks.${index}.criteriaValue`)}
-                placeholder={usesLessonCount ? 'e.g., 10' : 'e.g., 90'}
+                placeholder={
+                  usesLessonCount
+                    ? translate('e.g., 10')
+                    : translate('e.g., 90')
+                }
                 inputProps={{
                   inputMode: 'numeric',
                   pattern: '[0-9]*',
@@ -109,9 +142,9 @@ export const RewardsConfigurationSection: React.FC<
                 size="small"
               />
             </Box>
-            <Box className="campaign-rewards-field-cell" role="cell">
-              <Typography className="campaign-rewards-mobile-label">
-                Reward
+            <Box className="rewards-config-field-cell" role="cell">
+              <Typography className="rewards-config-mobile-label">
+                {t('Reward')}
               </Typography>
               <TextField
                 fullWidth
@@ -121,13 +154,15 @@ export const RewardsConfigurationSection: React.FC<
                 helperText={fieldError(`rewardRanks.${index}.reward`)}
                 placeholder={
                   index === 0
-                    ? 'e.g., Certificate of Excellence'
+                    ? translate('e.g., Certificate of Excellence')
                     : index === 1
-                      ? 'e.g., Certificate of Merit'
-                      : 'e.g., Certificate of Achievement'
+                      ? translate('e.g., Certificate of Merit')
+                      : translate('e.g., Certificate of Achievement')
                 }
                 inputProps={{
-                  'aria-label': `${RANK_LABELS[rank.rank]} Reward`,
+                  'aria-label': `${RANK_LABELS[rank.rank]} ${translate(
+                    'Reward',
+                  )}`,
                 }}
                 size="small"
               />
@@ -137,19 +172,17 @@ export const RewardsConfigurationSection: React.FC<
       </Box>
 
       {fieldError('rewardRanking') && (
-        <FormHelperText error className="campaign-rewards-ranking-error">
+        <FormHelperText error className="rewards-config-ranking-error">
           {fieldError('rewardRanking')}
         </FormHelperText>
       )}
 
-      <Typography className="campaign-rewards-note">
-        {informationNote}
-      </Typography>
+      <Typography className="rewards-config-note">{informationNote}</Typography>
 
       {hasSummary && (
-        <Box className="campaign-rewards-preview">
-          <Typography className="campaign-rewards-preview-title">
-            Preview
+        <Box className="rewards-config-preview">
+          <Typography className="rewards-config-preview-title">
+            {t('Preview')}
           </Typography>
           {form.rewardRanks.map((rank, index) => {
             if (!rank.criteriaValue) return null;
@@ -158,12 +191,29 @@ export const RewardsConfigurationSection: React.FC<
               index === 0
                 ? undefined
                 : Number(form.rewardRanks[index - 1].criteriaValue);
+            const range = getSummaryRange(
+              currentValue,
+              previousValue,
+              usesLessonCount,
+              translate('lessons'),
+            );
+            const status = usesLessonCount
+              ? translate('completed')
+              : translate('completion');
+            const fallback = `Students with ${range} ${status} qualify for ${
+              RANK_LABELS[rank.rank]
+            } rank`;
             return (
               <Typography key={rank.rank}>
-                Students with{' '}
-                {getSummaryRange(currentValue, previousValue, usesLessonCount)}{' '}
-                {usesLessonCount ? 'completed' : 'completion'} qualify for{' '}
-                {RANK_LABELS[rank.rank]} rank
+                {translateDynamic(
+                  'Students with {{range}} {{status}} qualify for {{rank}} rank',
+                  {
+                    range,
+                    status,
+                    rank: RANK_LABELS[rank.rank],
+                  },
+                  fallback,
+                )}
               </Typography>
             );
           })}

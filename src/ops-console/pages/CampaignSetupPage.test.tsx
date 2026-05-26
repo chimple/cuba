@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import CampaignSetupPage from './CampaignSetupPage';
+import { buildCampaignRewardsPayload } from '../hooks/campaignSetupFormHelpers';
 
 const mockGoBack = jest.fn();
 jest.setTimeout(10000);
@@ -18,7 +19,6 @@ const mockApiHandler = {
   getCampaignAudienceSummary: jest.fn(),
   createCampaignAudienceGroup: jest.fn(),
   createCampaignSetup: jest.fn(),
-  updateCampaignRewards: jest.fn(),
   getCampaignAssignmentOptions: jest.fn(),
 };
 
@@ -83,7 +83,6 @@ const setupApiMocks = () => {
     campaignId: 'campaign-1',
     targetAudienceId: 'audience-1',
   });
-  mockApiHandler.updateCampaignRewards.mockResolvedValue(undefined);
   mockApiHandler.getCampaignAssignmentOptions.mockResolvedValue({
     grades: [
       {
@@ -268,7 +267,6 @@ describe('CampaignSetupPage', () => {
       3,
     );
     expect(screen.getAllByText('Reward is required.')).toHaveLength(3);
-    expect(mockApiHandler.updateCampaignRewards).not.toHaveBeenCalled();
   });
 
   it('prevents overlapping reward ranking ranges', async () => {
@@ -306,10 +304,9 @@ describe('CampaignSetupPage', () => {
         'Ranking criteria must be highest for 1st rank, then decrease for each rank.',
       ),
     ).toBeInTheDocument();
-    expect(mockApiHandler.updateCampaignRewards).not.toHaveBeenCalled();
   });
 
-  it('saves rewards payload and advances to messaging step', async () => {
+  it('builds rewards payload locally and advances to messaging step', async () => {
     mockAssignmentComplete = true;
     render(<CampaignSetupPage />);
 
@@ -348,26 +345,6 @@ describe('CampaignSetupPage', () => {
     ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-
-    await waitFor(() =>
-      expect(mockApiHandler.updateCampaignRewards).toHaveBeenCalledWith(
-        'campaign-1',
-        {
-          rewardType: 'digital_rewards',
-          criteriaType: 'percentage_completion',
-          completionIncludesTeacherAssignments: true,
-          ranks: [
-            {
-              rank: 1,
-              minimum: 90,
-              reward: 'Certificate of Excellence',
-            },
-            { rank: 2, minimum: 70, reward: 'Certificate of Merit' },
-            { rank: 3, minimum: 50, reward: 'Certificate of Achievement' },
-          ],
-        },
-      ),
-    );
     expect(
       screen.getByRole('heading', { name: 'Messaging' }),
     ).toBeInTheDocument();
@@ -410,5 +387,43 @@ describe('CampaignSetupPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
     expect(screen.getAllByText('Number of Lessons').length).toBeGreaterThan(0);
+  });
+
+  it('builds rewards payload in the next-step format', () => {
+    expect(
+      buildCampaignRewardsPayload({
+        objective: 'homework_campaign',
+        targetType: 'percentage_completion',
+        targetValue: '90',
+        learningPathCount: '',
+        campaignName: 'Campaign',
+        managerId: 'manager-1',
+        startDate: '2026-05-01',
+        endDate: '2026-05-31',
+        programId: 'program-1',
+        groupName: 'Group A',
+        rewardType: 'digital_rewards',
+        rewardRanks: [
+          {
+            rank: 1,
+            criteriaValue: '90',
+            reward: 'Certificate of Excellence',
+          },
+          { rank: 2, criteriaValue: '70', reward: 'Certificate of Merit' },
+          {
+            rank: 3,
+            criteriaValue: '50',
+            reward: 'Certificate of Achievement',
+          },
+        ],
+      }),
+    ).toEqual({
+      type: 'digital_rewards',
+      rules: [
+        { rank: 1, min: 90, reward: 'Certificate of Excellence' },
+        { rank: 2, min: 70, reward: 'Certificate of Merit' },
+        { rank: 3, min: 50, reward: 'Certificate of Achievement' },
+      ],
+    });
   });
 });

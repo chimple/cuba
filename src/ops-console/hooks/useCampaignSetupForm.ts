@@ -19,6 +19,7 @@ import {
   usesLessonRewardCriteria,
   resetObjectiveFields,
 } from './campaignSetupFormHelpers';
+import type { CampaignRewardsDraftPayload } from './campaignSetupFormHelpers';
 import {
   CampaignSetupMessage,
   useCampaignAudienceSelection,
@@ -51,9 +52,10 @@ export const useCampaignSetupForm = () => {
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [savingGroup, setSavingGroup] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [savingRewards, setSavingRewards] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [createdCampaignId, setCreatedCampaignId] = useState('');
+  const [campaignRewards, setCampaignRewards] =
+    useState<CampaignRewardsDraftPayload | null>(null);
   const [assignmentDrafts, setAssignmentDrafts] = useState<
     CampaignAssignmentDraft[]
   >([]);
@@ -273,7 +275,7 @@ export const useCampaignSetupForm = () => {
     }
   };
 
-  const handleRewardsSubmit = async () => {
+  const handleRewardsSubmit = () => {
     setRewardSubmitAttempted(true);
     setMessage(null);
 
@@ -287,19 +289,8 @@ export const useCampaignSetupForm = () => {
 
     if (!areRewardsValid) return;
 
-    setSavingRewards(true);
-    try {
-      await api.updateCampaignRewards(
-        createdCampaignId,
-        buildCampaignRewardsPayload(form),
-      );
-      setActiveStep(3);
-    } catch (error) {
-      logger.error('Failed to save campaign rewards:', error);
-      setMessage({ type: 'error', text: 'Unable to save campaign rewards.' });
-    } finally {
-      setSavingRewards(false);
-    }
+    setCampaignRewards(buildCampaignRewardsPayload(form));
+    setActiveStep(3);
   };
 
   const fieldError = (key: string) =>
@@ -312,6 +303,7 @@ export const useCampaignSetupForm = () => {
     activeStep,
     areRewardsValid,
     assignmentDrafts,
+    campaignRewards,
     createdCampaignId,
     fieldError,
     form,
@@ -328,7 +320,6 @@ export const useCampaignSetupForm = () => {
     programs,
     saveGroup,
     savedGroups,
-    savingRewards,
     savingGroup,
     setForm,
     setActiveStep,

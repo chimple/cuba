@@ -166,23 +166,6 @@ export type CampaignTargetType = 'percentage_completion' | 'number_of_lessons';
 
 export type CampaignRewardType = 'digital_rewards' | 'physical_rewards';
 
-export type CampaignRewardCriteriaType =
-  | 'percentage_completion'
-  | 'number_of_lessons';
-
-export type CampaignRewardRank = {
-  rank: 1 | 2 | 3;
-  minimum: number;
-  reward: string;
-};
-
-export type CampaignRewardsPayload = {
-  rewardType: CampaignRewardType;
-  criteriaType: CampaignRewardCriteriaType;
-  ranks: CampaignRewardRank[];
-  completionIncludesTeacherAssignments: true;
-};
-
 export type CampaignOption = {
   id: string;
   name: string;
@@ -2231,15 +2214,6 @@ export interface ServiceApi {
   createCampaignSetup(
     payload: CreateCampaignSetupPayload,
   ): Promise<CreateCampaignSetupResult>;
-
-  /**
-   * Saves reward eligibility and rank criteria for an existing campaign.
-   * The rewards payload is stored on the campaign record for later ranking jobs.
-   */
-  updateCampaignRewards(
-    campaignId: string,
-    rewards: CampaignRewardsPayload,
-  ): Promise<void>;
 
   /**
    * Loads grade-wise subjects, chapters, and lessons for campaign assignment setup.

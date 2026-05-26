@@ -64,7 +64,6 @@ import {
   CampaignAudiencePayload,
   CampaignAudienceSummary,
   CampaignAudienceSummaryParams,
-  CampaignRewardsPayload,
   CampaignSavedAudienceGroup,
   CampaignSchoolOption,
   CampaignSetupOptions,
@@ -9279,27 +9278,6 @@ export class SupabaseApi implements ServiceApi {
       campaignId: String(data.id),
       targetAudienceId,
     };
-  }
-
-  async updateCampaignRewards(
-    campaignId: string,
-    rewards: CampaignRewardsPayload,
-  ): Promise<void> {
-    if (!this.supabase) {
-      throw new Error('Supabase client is not initialized.');
-    }
-
-    const { error } = await this.supabase
-      .from('campaign')
-      .update({ rewards: JSON.stringify(rewards) })
-      .eq('id', campaignId)
-      .select('id')
-      .single();
-
-    if (error) {
-      logger.error('Error updating campaign rewards:', error);
-      throw error;
-    }
   }
 
   async getCampaignAssignmentOptions({
