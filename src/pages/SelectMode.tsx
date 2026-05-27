@@ -1082,9 +1082,6 @@ const SelectMode: FC = () => {
                       <article
                         key={tempStudent.id}
                         className="school-mode-student-card class-avatar"
-                        onClick={() => {
-                          handleStudentSelect(tempStudent);
-                        }}
                       >
                         <img
                           className="class-avatar-img school-mode-student-avatar"
