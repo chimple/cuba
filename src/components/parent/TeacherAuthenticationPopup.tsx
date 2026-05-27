@@ -36,9 +36,11 @@ const getKeyLabel = (
 ): React.ReactNode => {
   if (key === backspaceKey) {
     return (
-      <span
+      <img
         id="teacher-authentication-popup-backspace-icon"
         className="teacher-authentication-popup-backspace-icon"
+        src="/assets/teacher-authentication-key-backspace.svg"
+        alt={String(t('Backspace') ?? '')}
         aria-hidden="true"
       />
     );
