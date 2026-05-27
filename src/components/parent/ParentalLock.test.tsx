@@ -37,7 +37,6 @@ jest.mock('../../utility/schoolUtil', () => ({
 const setup = (props?: Partial<React.ComponentProps<typeof ParentalLock>>) => {
   const baseProps: React.ComponentProps<typeof ParentalLock> = {
     showDialogBox: true,
-    handleClose: jest.fn(),
     onHandleClose: jest.fn(),
     onUnlock: jest.fn(),
   };
@@ -118,12 +117,24 @@ describe('ParentalLock', () => {
     expect(await screen.findByText('Swipe DOWN to Unlock')).toBeInTheDocument();
   });
 
-  test('close icon click calls onHandleClose', async () => {
+  test('does not render a header close button', async () => {
+    setup();
+    expect(
+      await screen.findByText('Confirm you are a Parent'),
+    ).toBeInTheDocument();
+    expect(screen.queryByAltText('Close')).not.toBeInTheDocument();
+  });
+
+  test('backdrop click calls onHandleClose', async () => {
     const onHandleClose = jest.fn();
     setup({ onHandleClose });
-    const closeImg = await screen.findByAltText('Close');
-    fireEvent.click(closeImg);
-    expect(onHandleClose).toHaveBeenCalled();
+    await screen.findByRole('dialog');
+
+    const backdrop = document.querySelector('.MuiBackdrop-root');
+    expect(backdrop).not.toBeNull();
+    fireEvent.click(backdrop as Element);
+
+    expect(onHandleClose).toHaveBeenCalledTimes(1);
   });
 
   test('correct LEFT touch swipe unlocks and executes navigation side effects', async () => {

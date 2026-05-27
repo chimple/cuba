@@ -1,16 +1,27 @@
-#parent-lock-header {
-  position: relative;
-  width: 100%;
-  user-select: none;
-  text-align: center; /* center the text */
-  padding-top: 50px; /* push text below cross */
+.parental-lock-paper {
+  width: min(392px, calc(100vw - 48px)) !important;
+  height: min(225px, calc((100vw - 48px) * 0.574));
+  max-width: none !important;
+  margin: 24px !important;
+  border-radius: 25px !important;
+  background: #fffdee !important;
+  overflow: hidden;
 }
 
-#parental-lock-close-icon {
+.parental-lock-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  color: black;
+}
+
+#parent-lock-header {
   position: absolute;
-  top: 15px;
-  right: 25px;
-  cursor: pointer;
+  top: clamp(38px, 10.7vw, 42px);
+  left: 0;
+  width: 100%;
+  user-select: none;
+  text-align: center;
 }
 
 #parent-screen {
@@ -19,5 +30,49 @@
   font-size: 24px;
   font-style: normal;
   font-weight: 600;
-  line-height: normal;
+  line-height: 38px;
+}
+
+.parental-lock-icon {
+  position: absolute;
+  top: clamp(81px, 22.7vw, 89px);
+  left: 50%;
+  width: 60px;
+  height: 53px;
+  transform: translateX(-50%);
+}
+
+.parental-lock-dialog-content {
+  position: absolute;
+  top: clamp(150px, 42.1vw, 165px);
+  left: 0;
+  box-sizing: border-box;
+  width: 100%;
+  color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.parental-lock-instruction {
+  margin: 0;
+  user-select: none;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 32px;
+  color: #182a4f;
+}
+
+@media (max-width: 440px) {
+  #parent-screen {
+    font-size: 22px;
+    line-height: 34px;
+  }
+
+  .parental-lock-instruction {
+    font-size: 18px;
+    line-height: 29px;
+  }
 }

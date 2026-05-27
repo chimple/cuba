@@ -200,9 +200,6 @@ const DisplayStudents: FC<{}> = () => {
           {showDialogBox ? (
             <ParentalLock
               showDialogBox={showDialogBox}
-              handleClose={() => {
-                setShowDialogBox(true);
-              }}
               onHandleClose={() => {
                 setShowDialogBox(false);
               }}

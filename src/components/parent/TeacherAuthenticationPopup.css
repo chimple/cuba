@@ -13,8 +13,8 @@
 
 .teacher-authentication-popup {
   position: relative;
-  --teacher-auth-key-size: clamp(40px, 8vmin, 48px);
-  --teacher-auth-key-gap: clamp(18px, 3.8vmin, 34px) !important;
+  --teacher-auth-key-size: clamp(45px, 8vmin, 53px) !important;
+  --teacher-auth-key-gap: clamp(33px, 3.8vmin, 49px) !important;
 
   box-sizing: border-box;
   width: min(820px, calc(100vw - 32px));
@@ -95,24 +95,24 @@
 .teacher-authentication-popup-title {
   margin: clamp(12px, 2.5vmin, 24px) 0 8px;
   padding-left: 0;
-  color: rgba(24, 42, 79, 1);
-  font-size: clamp(20px, 4vmin, 26px);
+  color: #182a4f;
+  font-size: 22px;
   font-weight: 500;
-  line-height: 1.15;
+  line-height: normal;
 }
 
 .teacher-authentication-popup-question {
   margin: 0 0 12px;
-  color: rgba(24, 42, 79, 1);
-  font-size: clamp(22px, 4.2vmin, 28px);
+  color: #182a4f;
+  font-size: 22px;
   font-weight: 500;
-  line-height: 1.2;
+  line-height: 32px;
 }
 
 .teacher-authentication-popup-help-text {
   margin: 0 0 12px;
-  color: rgba(24, 42, 79, 1);
-  font-size: clamp(16px, 3.2vmin, 20px);
+  color: #182a4f;
+  font-size: 18px;
   font-weight: 500;
 }
 
@@ -131,9 +131,10 @@
   height: clamp(46px, 8.5vmin, 56px);
   background: rgba(255, 255, 255, 1);
   border-radius: 4px;
-  color: rgba(24, 42, 79, 1);
-  font-size: clamp(26px, 5vmin, 32px);
+  color: #182a4f;
+  font-size: 24px;
   font-weight: 500;
+  line-height: 32px;
   user-select: none;
 }
 
@@ -167,35 +168,36 @@
 }
 
 .teacher-authentication-popup-submit-button {
-  width: 144px;
-  min-height: 48px;
-  border: none;
-  border-radius: 12px;
-  background: #ff5b00;
+  width: 153px;
+  height: 48px;
+  border: 0;
+  border-bottom: 5px solid #8a2901;
+  border-radius: 10px;
+  background: #f34d08;
   color: #ffffff;
-  font-size: clamp(20px, 4vmin, 24px);
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: normal;
   cursor: pointer;
-  box-shadow: 0 4px 0 #ac3d00;
 }
 
 .teacher-authentication-popup-submit-button:not(:disabled):active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #ac3d00;
+  transform: translateY(3px);
+  border-bottom: 2px solid #8a2901;
 }
 
 .teacher-authentication-popup-submit-button:disabled {
-  background: #739190;
-  box-shadow: 0 4px 0 #4f6d6c;
-  color: rgba(255, 255, 255, 0.7);
+  background: #6d8c87;
+  border-bottom-color: #8a8a8a;
+  color: rgba(168, 168, 168, 1);
   cursor: not-allowed;
 }
 
 .teacher-authentication-popup-submit-button-success-feedback,
 .teacher-authentication-popup-submit-button-success-feedback:disabled {
-  transform: translateY(2px);
-  background: #ff5b00;
-  box-shadow: 0 2px 0 #ac3d00;
+  transform: translateY(3px);
+  background: #f34d08;
+  border-bottom: 2px solid #8a2901;
   color: #ffffff;
 }
 
@@ -212,25 +214,25 @@
 .teacher-authentication-popup-key {
   width: var(--teacher-auth-key-size);
   height: var(--teacher-auth-key-size);
-  border: none;
+  border: 0;
+  border-bottom: 5px solid #182a4f;
   border-radius: 10px;
-  background: #d7e5e6;
-  color: rgba(24, 42, 79, 1);
-  font-size: clamp(24px, 5vmin, 30px);
+  background: #dff2f2;
+  color: #182a4f;
+  font-size: 20px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 0 #1f3d6f;
 }
 
 .teacher-authentication-popup-key:active {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #1f3d6f;
+  transform: translateY(3px);
+  border-bottom-width: 2px;
 }
 
 .teacher-authentication-popup-key:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-  box-shadow: none;
+  border-bottom-width: 0;
   transform: none;
 }
 
@@ -246,21 +248,20 @@
   justify-content: center;
 }
 
-.teacher-authentication-popup-key-backspace:disabled {
-  background: rgba(215, 229, 230, 0.65);
-  color: rgba(24, 42, 79, 0.45);
-}
-
 .teacher-authentication-popup-key-backspace-hidden {
   visibility: hidden;
   pointer-events: none;
-  box-shadow: none;
+  border-bottom-width: 0;
 }
 
 .teacher-authentication-popup-backspace-icon {
   display: block;
-  width: 1em;
-  height: 1em;
+  width: 24px;
+  height: 24px;
+  background-image: url('../../../public/assets/teacher-authentication-key-backspace.svg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 
 @media (max-width: 680px) {

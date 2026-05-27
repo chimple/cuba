@@ -336,7 +336,6 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       {showDialogBox && (
         <ParentalLock
           showDialogBox={showDialogBox}
-          handleClose={() => setShowDialogBox(true)}
           onHandleClose={() => setShowDialogBox(false)}
           onUnlock={() => {
             localStorage.removeItem(HOMEWORK_PATHWAY);

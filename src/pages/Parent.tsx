@@ -222,8 +222,8 @@ const Parent: React.FC = () => {
           return (
             <ProfileCard
               key={element?.id ?? `empty-profile-${index}`}
-              width={'var(--profile-card-size)'}
-              height={'var(--profile-card-size)'}
+              width={'var(--profile-card-width)'}
+              height={'auto'}
               userType={studentUserType}
               user={element}
               showText={true}

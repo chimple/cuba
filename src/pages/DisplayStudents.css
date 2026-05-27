@@ -1,14 +1,45 @@
 .display-student-content {
   width: 100%;
   box-sizing: border-box;
-  margin-top: clamp(18px, 3.2vh, 34px);
+  margin-top: var(--display-students-content-gap);
 }
 
 #display-students {
-  --display-students-card-width: clamp(190px, 22vw, 260px);
-  --display-students-card-padding-x: clamp(18px, 2.5vw, 28px);
-  --display-students-side-padding: clamp(18px, 7vw, 70px);
-  --display-students-title-offset: clamp(14px, 2vh, 24px);
+  --display-students-card-width: clamp(180px, 25.625vw, 205px);
+  --display-students-card-height: calc(
+    var(--display-students-card-width) * 0.9512
+  );
+  --display-students-side-padding: clamp(18px, 5vw, 40px);
+  --display-students-page-padding-top: clamp(14px, 4.7vh, 17px);
+  --display-students-header-padding-top: 25px;
+  --display-students-header-padding-x: 26px;
+  --display-students-content-gap: 16px;
+  --display-students-logo-size: 35px;
+  --display-students-title-size: 22px;
+  --display-students-title-gap: 9px;
+  --display-students-subtitle-size: 18px;
+  --display-students-subtitle-gap: 5px;
+  --display-students-parent-button-top: 12px;
+  --display-students-parent-button-right: 26px;
+  --display-students-parent-button-width: 79px;
+  --display-students-parent-button-height: 37px;
+  --display-students-parent-icon-size: 16px;
+  --display-students-parent-font-size: 14px;
+  --display-students-card-padding: 25px 18px 20px;
+  --display-students-avatar-size: 60px;
+  --display-students-avatar-border-width: 2px;
+  --display-students-avatar-gap: 4px;
+  --display-students-name-size: 14px;
+  --display-students-name-line-height: 22px;
+  --display-students-name-gap: 13px;
+  --display-students-play-width: 92px;
+  --display-students-play-height: 48px;
+  --display-students-play-border-width: 5px;
+  --display-students-play-active-border-width: 2px;
+  --display-students-play-active-offset: 3px;
+  --display-students-play-font-size: 15px;
+  --display-students-play-line-height: 24px;
+  --display-students-play-padding-x: 27px;
 
   display: flex;
   flex-direction: column;
@@ -22,7 +53,7 @@
 
   overflow-y: auto;
 
-  padding: clamp(12px, 2vh, 24px) 0;
+  padding: 0;
 
   box-sizing: border-box;
 }
@@ -39,7 +70,8 @@
   color: #1e3555;
 
   margin: 0;
-  padding: clamp(4px, 0.8vh, 10px) clamp(12px, 2vw, 24px);
+  padding: var(--display-students-header-padding-top)
+    var(--display-students-header-padding-x) 0;
 }
 
 .display-students-title {
@@ -50,10 +82,8 @@
   align-items: center;
   justify-content: center;
 
-  font-weight: 700;
+  font-weight: 600;
   color: #1e3555;
-
-  transform: translateY(calc(-1 * var(--display-students-title-offset)));
 }
 
 .display-students-welcome-title {
@@ -61,34 +91,34 @@
   align-items: center;
   justify-content: center;
 
-  column-gap: clamp(6px, 0.8vw, 12px);
+  column-gap: var(--display-students-title-gap);
 
-  font-size: clamp(28px, 3.2vw, 44px);
+  font-size: var(--display-students-title-size);
   line-height: 1.1;
 
   text-align: center;
 }
 
 .display-students-subtitle {
-  margin-top: clamp(10px, 1.5vh, 18px);
+  margin-top: var(--display-students-subtitle-gap);
 
   font-weight: 500;
-  font-size: clamp(18px, 2.2vw, 30px);
+  font-size: var(--display-students-subtitle-size);
   line-height: 1.15;
 
   text-align: center;
 }
 
 .display-students-brand-logo {
-  width: clamp(34px, 3vw, 44px);
-  height: clamp(34px, 3vw, 44px);
+  width: var(--display-students-logo-size);
+  height: var(--display-students-logo-size);
 
   flex-shrink: 0;
 }
 
 #parent-icon {
-  height: clamp(14px, 1.8vw, 18px);
-  width: clamp(14px, 1.8vw, 18px);
+  height: var(--display-students-parent-icon-size);
+  width: var(--display-students-parent-icon-size);
 }
 
 #display-students-parent-icon {
@@ -108,11 +138,11 @@
 #display-students-parent-button {
   position: absolute;
 
-  top: clamp(10px, 2vh, 20px);
-  right: clamp(12px, 2vw, 24px);
+  top: var(--display-students-parent-button-top);
+  right: var(--display-students-parent-button-right);
 
-  width: clamp(88px, 10vw, 110px);
-  height: clamp(34px, 4vw, 45px);
+  width: var(--display-students-parent-button-width);
+  height: var(--display-students-parent-button-height);
 
   border-radius: 64px;
   background: #ffffffd9;
@@ -124,7 +154,8 @@
   padding-left: min(10px, 2vw);
   padding-right: min(10px, 2vw);
 
-  font-size: clamp(12px, 1.4vw, 16px);
+  font-size: var(--display-students-parent-font-size);
+  font-weight: 400;
   color: #05342f;
 }
 
@@ -146,7 +177,7 @@
   align-items: center;
   justify-items: center;
 
-  gap: clamp(22px, 3.5vw, 48px);
+  gap: clamp(18px, 3vw, 32px);
 
   padding: 0 var(--display-students-side-padding) clamp(6px, 1.2vh, 14px);
 
@@ -155,18 +186,18 @@
 
 .display-students-card {
   width: var(--display-students-card-width);
-  aspect-ratio: 1 / 1;
+  min-height: var(--display-students-card-height);
 
   box-sizing: border-box;
 
   border-radius: 20px;
   background: #fffdee;
 
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
 
   border: 0;
 
-  padding: clamp(20px, 2.2vw, 28px) var(--display-students-card-padding-x);
+  padding: var(--display-students-card-padding);
 
   margin: 0;
 
@@ -175,7 +206,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .display-students-avatar {
@@ -188,7 +219,7 @@
 
   cursor: default;
 
-  font-size: clamp(12px, 1.4vw, 16px);
+  font-size: 14px;
   color: #213960;
 }
 
@@ -197,14 +228,14 @@
 }
 
 .display-students-avatar-img {
-  width: clamp(72px, 7vw, 88px);
-  height: clamp(72px, 7vw, 88px);
+  width: var(--display-students-avatar-size);
+  height: var(--display-students-avatar-size);
 
-  border: 4px solid #ffffff;
+  border: var(--display-students-avatar-border-width) solid #ffffff;
 
   object-fit: cover;
 
-  margin-bottom: 5px;
+  margin-bottom: var(--display-students-avatar-gap);
 }
 
 .display-student-name {
@@ -217,13 +248,15 @@
   text-overflow: ellipsis;
   overflow: hidden;
 
-  font-size: clamp(15px, 1.5vw, 20px);
+  font-weight: 400;
+  font-size: var(--display-students-name-size);
+  line-height: var(--display-students-name-line-height);
 
   color: #213960;
 
   text-align: center;
 
-  margin: 0 0 10px;
+  margin: 0 0 var(--display-students-name-gap);
 }
 
 .display-student-name-profile {
@@ -240,32 +273,37 @@
 .display-students-play-button {
   box-sizing: border-box;
 
-  min-width: clamp(88px, 8vw, 100px);
-  height: clamp(46px, 4vw, 55px);
+  min-width: var(--display-students-play-width);
+  height: var(--display-students-play-height);
 
   border: 0;
-  border-bottom: 5px solid #8a2901;
+  border-bottom: var(--display-students-play-border-width) solid #8a2901;
 
   border-radius: 10px;
 
   background: #f34d08;
   color: #fff;
+  overflow: hidden;
 
-  font-size: clamp(15px, 1.4vw, 19px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: var(--display-students-play-font-size);
 
   font-style: normal;
   font-weight: 600;
-  line-height: normal;
+  line-height: var(--display-students-play-line-height);
 
-  padding: 10px 28px;
+  padding: 10px var(--display-students-play-padding-x);
 
   cursor: pointer;
 }
 
 .display-students-play-button:active {
-  border-bottom: 2px solid #8a2901;
+  border-bottom: var(--display-students-play-active-border-width) solid #8a2901;
 
-  transform: translateY(3px);
+  transform: translateY(var(--display-students-play-active-offset));
 }
 
 .add-new-button {
@@ -289,39 +327,173 @@
 
 @media (max-width: 900px) {
   #display-students {
-    --display-students-card-width: clamp(180px, 40vw, 220px);
-
-    --display-students-side-padding: clamp(18px, 6vw, 50px);
-  }
-
-  .display-students-welcome-title {
-    font-size: clamp(24px, 4.8vw, 34px);
-  }
-
-  .display-students-subtitle {
-    font-size: clamp(17px, 3.5vw, 24px);
+    --display-students-side-padding: clamp(18px, 5vw, 40px);
   }
 
   .avatar-container {
-    gap: clamp(18px, 3vw, 36px);
+    gap: clamp(18px, 3vw, 32px);
   }
 }
 
 @media (min-width: 1200px) {
   #display-students {
-    --display-students-card-width: clamp(230px, 18vw, 270px);
-
-    --display-students-card-padding-x: clamp(24px, 2.2vw, 34px);
-
-    --display-students-side-padding: clamp(60px, 8vw, 120px);
-  }
-
-  .display-student-content {
-    margin-top: clamp(26px, 4vh, 44px);
+    --display-students-side-padding: clamp(40px, 7vw, 90px);
   }
 
   .avatar-container {
-    gap: clamp(34px, 4vw, 72px);
+    gap: clamp(24px, 4vw, 48px);
+  }
+}
+
+@media (min-width: 1200px) {
+  #display-students {
+    --display-students-card-width: clamp(240px, 20vw, 255px);
+    --display-students-page-padding-top: clamp(18px, 3vh, 24px);
+    --display-students-header-padding-top: 30px;
+    --display-students-header-padding-x: 32px;
+    --display-students-content-gap: 20px;
+    --display-students-logo-size: 40px;
+    --display-students-title-size: 30px;
+    --display-students-title-gap: 10px;
+    --display-students-subtitle-size: 24px;
+    --display-students-subtitle-gap: 7px;
+    --display-students-parent-button-top: 16px;
+    --display-students-parent-button-right: 32px;
+    --display-students-parent-button-width: 92px;
+    --display-students-parent-button-height: 42px;
+    --display-students-parent-icon-size: 18px;
+    --display-students-parent-font-size: 17px;
+    --display-students-card-padding: 29px 21px 23px;
+    --display-students-avatar-size: 70px;
+    --display-students-avatar-gap: 5px;
+    --display-students-name-size: 19px;
+    --display-students-name-line-height: 30px;
+    --display-students-name-gap: 15px;
+    --display-students-play-width: 106px;
+    --display-students-play-height: 55px;
+    --display-students-play-border-width: 6px;
+    --display-students-play-active-border-width: 3px;
+    --display-students-play-font-size: 20px;
+    --display-students-play-line-height: 32px;
+    --display-students-play-padding-x: 31px;
+
+    justify-content: center;
+
+    padding-top: 0;
+  }
+}
+
+@media (min-width: 1440px) {
+  #display-students {
+    --display-students-card-width: clamp(245px, 19vw, 260px);
+    --display-students-page-padding-top: clamp(24px, 4vh, 34px);
+    --display-students-header-padding-top: 36px;
+    --display-students-header-padding-x: 40px;
+    --display-students-content-gap: 24px;
+    --display-students-logo-size: 45px;
+    --display-students-title-size: 36px;
+    --display-students-title-gap: 12px;
+    --display-students-subtitle-size: 29px;
+    --display-students-subtitle-gap: 8px;
+    --display-students-parent-button-top: 22px;
+    --display-students-parent-button-right: 40px;
+    --display-students-parent-button-width: 104px;
+    --display-students-parent-button-height: 48px;
+    --display-students-parent-icon-size: 20px;
+    --display-students-parent-font-size: 21px;
+    --display-students-card-padding: 32px 24px 26px;
+    --display-students-avatar-size: 78px;
+    --display-students-avatar-gap: 6px;
+    --display-students-name-size: 24px;
+    --display-students-name-line-height: 36px;
+    --display-students-name-gap: 17px;
+    --display-students-play-width: 117px;
+    --display-students-play-height: 61px;
+    --display-students-play-border-width: 6px;
+    --display-students-play-active-border-width: 3px;
+    --display-students-play-font-size: 25px;
+    --display-students-play-line-height: 38px;
+    --display-students-play-padding-x: 34px;
+  }
+}
+
+@media (min-width: 1920px) {
+  #display-students {
+    --display-students-card-width: clamp(285px, 20vw, 310px);
+    --display-students-page-padding-top: clamp(32px, 4.5vh, 44px);
+    --display-students-header-padding-top: 44px;
+    --display-students-header-padding-x: 52px;
+    --display-students-content-gap: 34px;
+    --display-students-logo-size: 54px;
+    --display-students-title-size: 40px;
+    --display-students-title-gap: 14px;
+    --display-students-subtitle-size: 32px;
+    --display-students-subtitle-gap: 10px;
+    --display-students-parent-button-top: 30px;
+    --display-students-parent-button-right: 52px;
+    --display-students-parent-button-width: 126px;
+    --display-students-parent-button-height: 58px;
+    --display-students-parent-icon-size: 24px;
+    --display-students-parent-font-size: 23px;
+    --display-students-card-padding: 38px 28px 31px;
+    --display-students-avatar-size: 94px;
+    --display-students-avatar-gap: 8px;
+    --display-students-name-size: 26px;
+    --display-students-name-line-height: 39px;
+    --display-students-name-gap: 21px;
+    --display-students-play-width: 140px;
+    --display-students-play-height: 73px;
+    --display-students-play-border-width: 8px;
+    --display-students-play-active-border-width: 4px;
+    --display-students-play-active-offset: 4px;
+    --display-students-play-font-size: 27px;
+    --display-students-play-line-height: 41px;
+    --display-students-play-padding-x: 41px;
+    --display-students-side-padding: clamp(90px, 8vw, 140px);
+  }
+
+  .avatar-container {
+    gap: clamp(48px, 4.5vw, 80px);
+  }
+}
+
+@media (min-width: 2560px) {
+  #display-students {
+    --display-students-card-width: clamp(320px, 19vw, 350px);
+    --display-students-page-padding-top: clamp(42px, 5vh, 56px);
+    --display-students-header-padding-top: 56px;
+    --display-students-header-padding-x: 64px;
+    --display-students-content-gap: 44px;
+    --display-students-logo-size: 62px;
+    --display-students-title-size: 46px;
+    --display-students-title-gap: 16px;
+    --display-students-subtitle-size: 37px;
+    --display-students-subtitle-gap: 12px;
+    --display-students-parent-button-top: 40px;
+    --display-students-parent-button-right: 64px;
+    --display-students-parent-button-width: 144px;
+    --display-students-parent-button-height: 66px;
+    --display-students-parent-icon-size: 28px;
+    --display-students-parent-font-size: 27px;
+    --display-students-card-padding: 43px 32px 35px;
+    --display-students-avatar-size: 106px;
+    --display-students-avatar-gap: 9px;
+    --display-students-name-size: 30px;
+    --display-students-name-line-height: 45px;
+    --display-students-name-gap: 24px;
+    --display-students-play-width: 157px;
+    --display-students-play-height: 82px;
+    --display-students-play-border-width: 9px;
+    --display-students-play-active-border-width: 4px;
+    --display-students-play-active-offset: 5px;
+    --display-students-play-font-size: 31px;
+    --display-students-play-line-height: 47px;
+    --display-students-play-padding-x: 46px;
+    --display-students-side-padding: clamp(120px, 9vw, 180px);
+  }
+
+  .avatar-container {
+    gap: clamp(64px, 5vw, 100px);
   }
 }
 
@@ -331,7 +503,7 @@
 
     --display-students-side-padding: 18px;
 
-    padding-top: 54px;
+    padding-top: 0;
 
     justify-content: center;
   }
@@ -342,8 +514,6 @@
 
   .display-students-title {
     grid-column: 1;
-
-    transform: none;
   }
 
   .display-students-welcome-title {
@@ -365,35 +535,72 @@
 
 @media (max-height: 430px) and (orientation: landscape) {
   #display-students {
-    --display-students-card-width: clamp(175px, 42vh, 205px);
+    --display-students-card-width: clamp(180px, 25.625vw, 205px);
+    --display-students-page-padding-top: clamp(14px, 4.7vh, 17px);
+    --display-students-header-padding-top: 25px;
+    --display-students-header-padding-x: 26px;
+    --display-students-content-gap: 12px;
+    --display-students-logo-size: 35px;
+    --display-students-title-size: 22px;
+    --display-students-title-gap: 9px;
+    --display-students-subtitle-size: 18px;
+    --display-students-subtitle-gap: 5px;
+    --display-students-parent-button-top: 12px;
+    --display-students-parent-button-right: 26px;
+    --display-students-parent-button-width: 79px;
+    --display-students-parent-button-height: 37px;
+    --display-students-parent-icon-size: 16px;
+    --display-students-parent-font-size: 14px;
+    --display-students-card-padding: 25px 18px 20px;
+    --display-students-avatar-size: 60px;
+    --display-students-avatar-gap: 4px;
+    --display-students-name-size: 14px;
+    --display-students-name-line-height: 22px;
+    --display-students-name-gap: 13px;
+    --display-students-play-width: 92px;
+    --display-students-play-height: 48px;
+    --display-students-play-font-size: 15px;
+    --display-students-play-line-height: 24px;
+    --display-students-play-padding-x: 27px;
 
-    padding-top: 8px;
+    padding-top: 0;
     padding-bottom: 8px;
-
-    justify-content: center;
   }
 
   .display-student-content {
-    margin-top: clamp(8px, 1.8vh, 14px);
+    margin-top: 12px;
   }
+}
 
-  .display-students-title {
-    transform: none;
-  }
+@media (min-width: 900px) and (max-height: 520px) and (orientation: landscape) {
+  #display-students {
+    --display-students-card-width: clamp(215px, 24vw, 225px);
+    --display-students-content-gap: 14px;
+    --display-students-logo-size: 38px;
+    --display-students-title-size: 24px;
+    --display-students-title-gap: 10px;
+    --display-students-subtitle-size: 19px;
+    --display-students-subtitle-gap: 6px;
+    --display-students-parent-button-width: 86px;
+    --display-students-parent-button-height: 40px;
+    --display-students-parent-icon-size: 17px;
+    --display-students-parent-font-size: 15px;
+    --display-students-card-padding: 27px 20px 22px;
+    --display-students-avatar-size: 66px;
+    --display-students-avatar-gap: 5px;
+    --display-students-name-size: 15px;
+    --display-students-name-line-height: 24px;
+    --display-students-name-gap: 14px;
+    --display-students-play-width: 100px;
+    --display-students-play-height: 52px;
+    --display-students-play-border-width: 5px;
+    --display-students-play-active-border-width: 2px;
+    --display-students-play-font-size: 16px;
+    --display-students-play-line-height: 26px;
+    --display-students-play-padding-x: 29px;
 
-  .display-students-brand-logo {
-    width: clamp(30px, 7vh, 38px);
-    height: clamp(30px, 7vh, 38px);
-  }
+    padding-top: 0;
 
-  .display-students-avatar-img {
-    width: clamp(58px, 14vh, 72px);
-    height: clamp(58px, 14vh, 72px);
-  }
-
-  .display-students-play-button {
-    height: 44px;
-
-    padding: 8px 24px;
+    justify-content: center;
   }
 }
