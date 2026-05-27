@@ -59,6 +59,8 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
   const growthbook = useGrowthBook();
   const [gbUpdated, setGbUpdated] = useState(true);
   const attributes = useAppSelector((state) => state.growthbook.attributes);
+  const hasOwn = (obj: Record<string, unknown> | undefined, key: string) =>
+    !!obj && Object.prototype.hasOwnProperty.call(obj, key);
 
   useEffect(() => {
     if (!gbUpdated) return;
@@ -107,6 +109,9 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
     } = attributes;
 
     const totalAssignments = count_of_assignment_played + assignmentCount;
+    const resolvedSchoolIds = hasOwn(attributes, 'school_ids')
+      ? Util.normalizeGrowthbookArrayAttribute(attributes?.school_ids)
+      : Util.normalizeGrowthbookArrayAttribute(schools);
 
     return {
       id: studentDetails?.id,
@@ -120,7 +125,7 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       stars: studentDetails?.stars || 0,
       last_login_at: studentDetails?.last_sign_in_at,
       login_method: studentDetails?.login_method,
-      school_ids: schools,
+      school_ids: resolvedSchoolIds,
       school_name,
       class_ids: classes,
       language: localStorage.getItem(LANGUAGE) || 'en',
@@ -170,17 +175,11 @@ export const GbProvider = ({ children }: { children: ReactNode }) => {
       );
       return buildAttributesOnMainThread(attributes);
     });
-    // Merge instead of replace so attributes set by other screens are not lost.
+    // Keep other attributes, but school_ids must always come from the latest
+    // prepared payload for the current student.
     const existingAttributes = growthbook.getAttributes?.() ?? {};
-    const normalizedSchoolIds = Array.from(
-      new Set([
-        ...Util.normalizeGrowthbookArrayAttribute(
-          existingAttributes?.school_ids,
-        ),
-        ...Util.normalizeGrowthbookArrayAttribute(
-          preparedAttributes?.school_ids,
-        ),
-      ]),
+    const normalizedSchoolIds = Util.normalizeGrowthbookArrayAttribute(
+      preparedAttributes?.school_ids,
     );
     const mergedAttributes = {
       ...existingAttributes,

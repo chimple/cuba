@@ -33,6 +33,11 @@ import {
   reinitializeHardwareBackButton,
 } from '../../common/backButtonRegistry';
 import logger from '../../utility/logger';
+import { schoolUtil } from '../../utility/schoolUtil';
+import {
+  updateLocalAttributes,
+  useGbContext,
+} from '../../growthbook/Growthbook';
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -53,6 +58,7 @@ const ProfileDetails = () => {
   const history = useHistory();
   const location = useLocation();
   const profileRef = useRef<HTMLDivElement>(null);
+  const { setGbUpdated } = useGbContext();
 
   const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
@@ -431,6 +437,15 @@ const ProfileDetails = () => {
           : undefined,
         tmpPath === PAGES.HOME ? true : false,
       );
+      await schoolUtil.setCurrentClass(undefined);
+      // A newly created child starts without class linkage, so clear school targeting.
+      updateLocalAttributes({
+        student_id: student.id,
+        age: student.age ?? null,
+        grade_id: student.grade_id ?? null,
+        school_ids: [],
+      });
+      setGbUpdated(true);
 
       await Util.ensureLidoCommonAudioForStudent(student);
       history.replace(tmpPath);
@@ -467,6 +482,15 @@ const ProfileDetails = () => {
         selectedLanguage?.code ?? undefined,
         true,
       );
+      await schoolUtil.setCurrentClass(undefined);
+      // Auto-created child profiles also start with no school/class association.
+      updateLocalAttributes({
+        student_id: student.id,
+        age: student.age ?? null,
+        grade_id: student.grade_id ?? null,
+        school_ids: [],
+      });
+      setGbUpdated(true);
 
       const user = await auth.getCurrentUser();
 

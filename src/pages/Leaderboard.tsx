@@ -687,6 +687,16 @@ const Leaderboard: React.FC = () => {
                 }
                 const currentMOde = localStorage.getItem(CURRENT_MODE);
                 await api.removeAssignmentChannel();
+                // Leaderboard switch profile should drop the active student target.
+                await Util.setCurrentStudent(null);
+                if (currentMOde === MODES.PARENT) {
+                  await schoolUtil.setCurrentClass(undefined);
+                }
+                updateLocalAttributes({
+                  student_id: null,
+                  school_ids: [],
+                });
+                setGbUpdated(true);
                 if (currentMOde === MODES.PARENT) {
                   Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
                 } else {

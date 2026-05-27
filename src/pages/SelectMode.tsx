@@ -41,6 +41,7 @@ import {
 import { RootState } from '../redux/store';
 import type { ServiceApi } from '../services/api/ServiceApi';
 import { ServiceConfig } from '../services/ServiceConfig';
+import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import {
   requireTeacherModeAuth,
   TeacherModeAuthResult,
@@ -209,6 +210,7 @@ const SelectMode: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
+  const { setGbUpdated } = useGbContext();
   const [stage, setStage] = useState(STAGES.MODE);
   const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
   const dispatch = useAppDispatch();
@@ -764,6 +766,15 @@ const SelectMode: FC = () => {
   const onStudentClick = async (student: TableTypes<'user'>) => {
     await Util.ensureLidoCommonAudioForStudent(student);
     await Util.setCurrentStudent(student, undefined, true);
+    const resolvedSchoolIds = currClass?.school_id ? [currClass.school_id] : [];
+    // School mode selection should target only the selected class's school.
+    updateLocalAttributes({
+      student_id: student.id,
+      age: student.age ?? null,
+      grade_id: student.grade_id ?? null,
+      school_ids: resolvedSchoolIds,
+    });
+    setGbUpdated(true);
     history.replace(PAGES.HOME);
   };
   const onClassSelect = async (

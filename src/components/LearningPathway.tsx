@@ -67,16 +67,14 @@ const LearningPathway: React.FC = () => {
 
     const currentClass = schoolUtil.getCurrentClass();
     const existingAttributes = gb.getAttributes?.() ?? {};
-    const resolvedSchoolIds = existingAttributes?.school_ids;
-    const normalizedSchoolIds =
-      Util.normalizeGrowthbookArrayAttribute(resolvedSchoolIds);
-    // Keep any existing school_ids and append the current class school for targeting.
-    const mergedSchoolIds = currentClass?.school_id
-      ? Array.from(new Set([...normalizedSchoolIds, currentClass.school_id]))
-      : normalizedSchoolIds;
+    // Always target the active student's current class school only.
+    const freshSchoolIds = currentClass?.school_id
+      ? [currentClass.school_id]
+      : [];
     gb.setAttributes({
       ...existingAttributes,
-      school_ids: mergedSchoolIds,
+      student_id: student.id,
+      school_ids: freshSchoolIds,
     });
     const resolvedMode = gb.getFeatureValue(
       'learning-pathway-mode',
