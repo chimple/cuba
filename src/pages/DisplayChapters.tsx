@@ -63,11 +63,9 @@ const DisplayChapters: FC<{}> = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const courseDocId = searchParams.get('courseDocId');
+  const isMathCourse = currentCourse?.code?.toLowerCase().includes('math');
   const shouldTranslateCourseText =
-    currentCourse?.code !== COURSES.ENGLISH &&
-    currentCourse?.code !== COURSES.MATHS &&
-    currentCourse?.code !== COURSES.MATHS_HINDI &&
-    currentCourse?.code !== COURSES.MATHS_KANNADA;
+    currentCourse?.code !== COURSES.ENGLISH && !isMathCourse;
   const getCourseBasedName = (name?: string | null) => {
     if (!name) return '';
     return shouldTranslateCourseText ? t(name) : name;
