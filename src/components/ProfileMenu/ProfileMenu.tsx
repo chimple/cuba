@@ -156,13 +156,28 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     schoolUtil.setCurrentClass(undefined);
     localStorage.removeItem(CURRENT_PATHWAY_MODE);
     localStorage.removeItem(HOMEWORK_PATHWAY);
-    // Also tell GrowthBook attributes are now cleared (or set to parent-level)
+    // Reset student-scoped targeting when leaving the active child profile.
     updateLocalAttributes({
       student_id: null,
+      school_ids: [],
     });
-
-    setGbUpdated(true); // cause consumers to re-evaluate
+    setGbUpdated(true);
     history.replace(PAGES.DISPLAY_STUDENT, { from: history.location.pathname });
+  };
+
+  const onSchoolModeSwitchUser = async () => {
+    await Util.setCurrentStudent(null);
+    if (currentMode === MODES.PARENT) {
+      await schoolUtil.setCurrentClass(undefined);
+    }
+    updateLocalAttributes({
+      student_id: null,
+      school_ids: [],
+    });
+    setGbUpdated(true);
+    history.replace(PAGES.SELECT_MODE, {
+      from: history.location.pathname,
+    });
   };
 
   const allMenuItems = [
@@ -209,10 +224,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       isSchoolKidsMode && item.label === 'Switch Profile'
         ? {
             ...item,
-            onClick: () =>
-              history.replace(PAGES.SELECT_MODE, {
-                from: history.location.pathname,
-              }),
+            onClick: onSchoolModeSwitchUser,
           }
         : item,
     );

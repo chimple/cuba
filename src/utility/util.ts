@@ -3956,11 +3956,31 @@ export class Util {
       if (!student?.id) return [];
       const api = ServiceConfig.getI().apiHandler;
       const linkedData = await api.getStudentClassesAndSchools(student.id);
-      if (!linkedData) return [];
+      if (!linkedData) {
+        api.currentClass = undefined;
+        localStorage.removeItem(CURRENT_CLASS);
+        // Clear school targeting when the active student has no linkage data.
+        updateLocalAttributes({
+          student_id: student.id,
+          school_ids: [],
+          schools: [],
+          classes: [],
+          school_name: null,
+        });
+        return [];
+      }
       const device = await Util.logDeviceInfo();
+      const resolvedSchoolIds = linkedData.schools.map(
+        (item: TableTypes<'school'>) => item.id,
+      );
+      if (linkedData.classes.length === 0) {
+        api.currentClass = undefined;
+        localStorage.removeItem(CURRENT_CLASS);
+      }
       const attributeParams = {
         studentDetails: student,
-        schools: linkedData.schools.map((item: any) => item.id),
+        schools: resolvedSchoolIds,
+        school_ids: resolvedSchoolIds,
         school_name: linkedData.schools[0]?.name,
         classes: linkedData.classes.map((item: any) => item.id),
         ...device,
