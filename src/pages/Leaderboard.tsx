@@ -689,7 +689,9 @@ const Leaderboard: React.FC = () => {
                 await api.removeAssignmentChannel();
                 // Leaderboard switch profile should drop the active student target.
                 await Util.setCurrentStudent(null);
-                await schoolUtil.setCurrentClass(undefined);
+                if (currentMOde === MODES.PARENT) {
+                  await schoolUtil.setCurrentClass(undefined);
+                }
                 updateLocalAttributes({
                   student_id: null,
                   school_ids: [],
