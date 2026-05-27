@@ -40,31 +40,28 @@
 }
 
 #parent-page-profile {
-  --profile-card-gap: clamp(16px, 2vw, 24px);
-  --profile-card-padding-x: clamp(20px, 4vw, 60px);
+  --profile-card-gap: clamp(49px, 2vw, 67px);
+  --profile-card-padding-x: clamp(20px, 3.5vw, 60px);
   --profile-card-padding-top: clamp(16px, 3vh, 40px);
   --profile-card-padding-bottom: clamp(16px, 3vh, 40px);
 
-  /* Simplified, foolproof size calculation for 3 cards in 1 row */
-  --profile-card-size: min(
+  --profile-card-width: min(
+    clamp(231px, 24vw, 320px),
     calc(
       (
           100vw - (2 * var(--profile-card-padding-x)) -
             (2 * var(--profile-card-gap))
         ) /
         3
-    ),
-    calc(
-      100vh - 100px - var(--profile-card-padding-top) -
-        var(--profile-card-padding-bottom)
     )
   );
+  --profile-card-size: var(--profile-card-width);
 
   display: flex;
-  flex-direction: row; /* Enforce horizontal row alignment */
-  flex-wrap: nowrap; /* STRICTLY PREVENT CARDS FROM WRAPPING TO A NEW ROW */
-  justify-content: center; /* Center the row horizontally */
-  align-items: center; /* Center the row vertically */
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
   gap: var(--profile-card-gap);
 
   width: 100vw;
@@ -72,15 +69,15 @@
   padding: var(--profile-card-padding-top) var(--profile-card-padding-x)
     var(--profile-card-padding-bottom);
   box-sizing: border-box;
-  max-height: calc(100vh - 98px); /* Explicit cap */
-  overflow: hidden !important; /* Hard boundary rule */
+  max-height: calc(100vh - 98px);
+  overflow: hidden !important;
   touch-action: none;
 }
 
 @media (max-width: 900px) {
   #parent-page-profile {
-    --profile-card-gap: clamp(16px, 2.5vw, 22px);
-    --profile-card-padding-x: clamp(20px, 5vw, 48px);
+    --profile-card-gap: clamp(48px, 1.7vw, 57px);
+    --profile-card-padding-x: clamp(20px, 3vw, 48px);
     --profile-card-padding-top: clamp(14px, 3vw, 34px);
     --profile-card-padding-bottom: clamp(14px, 3vw, 34px);
   }
@@ -88,37 +85,42 @@
 
 @media (max-height: 500px) and (orientation: landscape) {
   #parent-page-profile {
-    --profile-card-gap: clamp(14px, 2vw, 20px);
+    --profile-card-gap: clamp(45px, 1.7vw, 65px);
     --profile-card-padding-x: clamp(20px, 5vw, 48px);
     --profile-card-padding-top: clamp(8px, 2vh, 14px);
     --profile-card-padding-bottom: clamp(8px, 2vh, 14px);
 
-    /* Changed 100dvh to 100vh here as well */
-    --profile-card-size: min(
+    --profile-card-width: min(
+      clamp(190px, 24vw, 270px),
       calc(
         (
             100vw - (2 * var(--profile-card-padding-x)) -
               (2 * var(--profile-card-gap))
           ) /
           3
-      ),
-      calc(
-        100vh - 74px - var(--profile-card-padding-top) -
-          var(--profile-card-padding-bottom)
       )
     );
-    height: calc(100vh - 74px); /* Changed from 100dvh */
+    --profile-card-size: var(--profile-card-width);
+    height: calc(100vh - 74px);
   }
 }
 
 @media (max-width: 680px) {
   #parent-page-profile {
-    --profile-card-size: min(88vw, 360px);
-    align-items: flex-start;
-    flex-wrap: wrap;
-    height: auto;
-    min-height: calc(100vh - 98px); /* Changed from 100dvh */
-    overflow-y: auto;
+    --profile-card-gap: clamp(43px, 2vw, 49px);
+    --profile-card-padding-x: clamp(10px, 3vw, 20px);
+    --profile-card-width: calc(
+      (
+          100vw - (2 * var(--profile-card-padding-x)) -
+            (2 * var(--profile-card-gap))
+        ) /
+        3
+    );
+    --profile-card-size: var(--profile-card-width);
+    align-items: center;
+    flex-wrap: nowrap;
+    height: calc(100vh - 98px);
+    overflow: hidden !important;
   }
 }
 

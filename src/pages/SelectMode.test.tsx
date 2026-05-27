@@ -20,16 +20,22 @@ import {
 
 const originalStderrWrite = process.stderr.write.bind(process.stderr);
 
+type StderrWrite = typeof process.stderr.write;
+
 beforeAll(() => {
-  (process.stderr.write as any) = process.stdout.write.bind(process.stdout);
+  process.stderr.write = process.stdout.write.bind(
+    process.stdout,
+  ) as StderrWrite;
 });
 
 afterAll(() => {
-  (process.stderr.write as any) = originalStderrWrite;
+  process.stderr.write = originalStderrWrite as StderrWrite;
 });
 
 jest.mock('@ionic/react', () => ({
-  IonPage: ({ children }: any) => <div data-testid="ion-page">{children}</div>,
+  IonPage: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="ion-page">{children}</div>
+  ),
 }));
 
 jest.mock('@capacitor/core', () => ({
@@ -90,11 +96,11 @@ const mockSetCurrentSchool = jest.fn();
 const mockSchoolUtilGetCurrentSchool = jest.fn();
 jest.mock('../utility/schoolUtil', () => ({
   schoolUtil: {
-    getCurrMode: (...args: any[]) => mockGetCurrMode(...args),
+    getCurrMode: mockGetCurrMode,
     getCurrentSchool: () => mockSchoolUtilGetCurrentSchool(),
-    setCurrMode: (...args: any[]) => mockSetCurrMode(...args),
-    setCurrentClass: (...args: any[]) => mockSetCurrentClass(...args),
-    setCurrentSchool: (...args: any[]) => mockSetCurrentSchool(...args),
+    setCurrMode: mockSetCurrMode,
+    setCurrentClass: mockSetCurrentClass,
+    setCurrentSchool: mockSetCurrentSchool,
   },
 }));
 
@@ -108,11 +114,10 @@ const mockLogEvent = jest.fn();
 jest.mock('../utility/util', () => ({
   Util: {
     loadBackgroundImage: () => mockLoadBackgroundImage(),
-    getCurrentStudent: (...args: any[]) => mockGetCurrentStudent(...args),
+    getCurrentStudent: mockGetCurrentStudent,
     getCurrentSchool: () => mockGetCurrentSchool(),
-    ensureLidoCommonAudioForStudent: (...args: any[]) =>
-      mockEnsureLidoCommonAudioForStudent(...args),
-    setCurrentStudent: (...args: any[]) => mockSetCurrentStudent(...args),
+    ensureLidoCommonAudioForStudent: mockEnsureLidoCommonAudioForStudent,
+    setCurrentStudent: mockSetCurrentStudent,
     setCurrentSchool: (...args: Parameters<typeof mockUtilSetCurrentSchool>) =>
       mockUtilSetCurrentSchool(...args),
     logEvent: (eventName: string, eventParams?: Record<string, string>) =>
@@ -128,7 +133,13 @@ jest.mock('../components/Loading', () => ({
 
 jest.mock('../components/selectMode/SelectModeButton', () => ({
   __esModule: true,
-  default: ({ text, onClick }: any) => (
+  default: ({
+    text,
+    onClick,
+  }: {
+    text: string;
+    onClick: React.MouseEventHandler<HTMLButtonElement>;
+  }) => (
     <button type="button" onClick={onClick}>
       {text}
     </button>
@@ -151,9 +162,22 @@ jest.mock('../components/parent/TeacherAuthenticationPopup', () => ({
     ) : null,
 }));
 
+interface DropdownOption {
+  id: string;
+  displayName: string;
+}
+
 jest.mock('../components/DropDown', () => ({
   __esModule: true,
-  default: ({ optionList, currentValue, onValueChange }: any) => (
+  default: ({
+    optionList,
+    currentValue,
+    onValueChange,
+  }: {
+    optionList?: DropdownOption[];
+    currentValue?: string | null;
+    onValueChange: (value: string) => void;
+  }) => (
     <select
       aria-label="school-dropdown"
       value={currentValue ?? ''}
@@ -162,7 +186,7 @@ jest.mock('../components/DropDown', () => ({
       <option value="" disabled>
         select
       </option>
-      {(optionList ?? []).map((opt: any) => (
+      {(optionList ?? []).map((opt) => (
         <option key={opt.id} value={opt.id}>
           {opt.displayName}
         </option>
@@ -197,7 +221,7 @@ const mockApiHandler = {
   getStudentsForClass: jest.fn(),
   getLanguageWithId: jest.fn(),
   getSchoolById: jest.fn(),
-  currentMode: undefined as any,
+  currentMode: undefined as string | undefined,
   isSplUser: jest.fn().mockResolvedValue(false),
   getUserSpecialRoles: jest.fn().mockResolvedValue([]),
 };
@@ -231,6 +255,17 @@ const i18n = require('../i18n').default;
 
 // Import the mocked hooks
 const { useAppDispatch, useAppSelector } = require('../redux/hooks');
+
+interface AuthSelectorState {
+  auth: {
+    authUser: null;
+    user: null;
+    roles: string[];
+    isOpsUser: boolean;
+  };
+}
+
+type AppSelector<T> = (state: AuthSelectorState) => T;
 
 describe('SelectMode page', () => {
   const ENGLISH_LANGUAGE_ID = 'language-en';
@@ -282,7 +317,7 @@ describe('SelectMode page', () => {
 
     // Mock Redux hooks
     useAppDispatch.mockReturnValue(jest.fn());
-    useAppSelector.mockImplementation((selector: any) =>
+    useAppSelector.mockImplementation(<T,>(selector: AppSelector<T>) =>
       selector({
         auth: {
           authUser: null,
@@ -482,7 +517,7 @@ describe('SelectMode page', () => {
     mockAuthHandler.getCurrentUser.mockResolvedValue({
       id: 'user-1',
     });
-    useAppSelector.mockImplementation((selector: any) =>
+    useAppSelector.mockImplementation(<T,>(selector: AppSelector<T>) =>
       selector({
         auth: {
           authUser: null,
@@ -567,12 +602,67 @@ describe('SelectMode page', () => {
     await waitFor(() =>
       expect(document.querySelector('.class-container')).not.toBeNull(),
     );
-    // Click student - USER_SELECTION_STAGE is set when clicking a student
-    const studentElements = await screen.findAllByText('Student 1');
-    await user.click(studentElements[0]);
+    // Click Play - USER_SELECTION_STAGE is set only when the Play button is used
+    const playButton = await screen.findByRole('button', { name: 'Play' });
+    await user.click(playButton);
     await waitFor(() =>
       expect(localStorage.getItem(USER_SELECTION_STAGE)).toBe('true'),
     );
+  });
+
+  it('selects a student only from the Play button', async () => {
+    const user = userEvent.setup();
+    mockGetCurrMode.mockResolvedValue(undefined);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+    });
+    const school = { id: 'school-1', name: 'School 1' };
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school, role: 'PARENT' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([
+      { id: 'class-1', name: 'Class 1' },
+    ]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1', avatar: 'avatar1' },
+    ]);
+
+    render(<SelectMode />);
+
+    const classElements = await screen.findAllByText('Class 1');
+    await user.click(classElements[0]);
+    const studentName = await screen.findByText('Student 1');
+
+    await user.click(studentName);
+    expect(localStorage.getItem(USER_SELECTION_STAGE)).toBeNull();
+    expect(mockEnsureLidoCommonAudioForStudent).not.toHaveBeenCalled();
+    expect(mockSetCurrentStudent).not.toHaveBeenCalled();
+
+    const studentAvatar = document.querySelector('.school-mode-student-avatar');
+    expect(studentAvatar).not.toBeNull();
+    await user.click(studentAvatar as HTMLElement);
+    expect(localStorage.getItem(USER_SELECTION_STAGE)).toBeNull();
+    expect(mockEnsureLidoCommonAudioForStudent).not.toHaveBeenCalled();
+    expect(mockSetCurrentStudent).not.toHaveBeenCalled();
+
+    const studentCard = document.querySelector('.school-mode-student-card');
+    expect(studentCard).not.toBeNull();
+    await user.click(studentCard as HTMLElement);
+    expect(localStorage.getItem(USER_SELECTION_STAGE)).toBeNull();
+    expect(mockEnsureLidoCommonAudioForStudent).not.toHaveBeenCalled();
+    expect(mockSetCurrentStudent).not.toHaveBeenCalled();
+
+    const playButton = await screen.findByRole('button', { name: 'Play' });
+    await user.click(playButton);
+
+    await waitFor(() => {
+      expect(mockEnsureLidoCommonAudioForStudent).toHaveBeenCalled();
+      expect(mockSetCurrentStudent).toHaveBeenCalled();
+      expect(localStorage.getItem(USER_SELECTION_STAGE)).toBe('true');
+    });
   });
 
   it('renders Parent and Teacher mode buttons and handles Parent click', async () => {
@@ -664,9 +754,9 @@ describe('SelectMode page', () => {
       ),
     );
 
-    // click student
-    const student = await screen.findByText('Student 1');
-    await user.click(student);
+    // click Play button
+    const playButton = await screen.findByRole('button', { name: 'Play' });
+    await user.click(playButton);
 
     // assert navigation chain
     await waitFor(() => {

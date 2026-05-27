@@ -88,7 +88,7 @@
   justify-content: center;
   column-gap: 0.6vw;
   font-size: clamp(22px, 2.3vw, 36px);
-  font-weight: 700;
+  font-weight: 600;
   color: #1e3555;
 }
 
@@ -223,13 +223,14 @@
 }
 
 .school-mode-class-tab {
+  box-sizing: border-box;
   border: 0;
-  border-left: 2px solid #182a4f;
   background: #ffffff;
   color: #213960;
   font-size: clamp(24px, 3.2vh, 34px);
   font-weight: 600;
-  flex: 0 0 clamp(155px, 20vw, 220px);
+  width: clamp(155px, 20vw, 220px);
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -238,25 +239,23 @@
   cursor: pointer;
 }
 
-.school-mode-class-tab:last-child {
+.school-mode-class-tab + .school-mode-class-tab {
+  border-left: 2px solid #182a4f;
+}
+
+.school-mode-class-strip:not(.school-mode-class-strip-static)
+  .school-mode-class-tab:first-child {
+  border-left: 2px solid #182a4f;
+}
+
+.school-mode-class-strip:not(.school-mode-class-strip-static)
+  .school-mode-class-tab:last-child {
   border-right: 2px solid #182a4f;
-}
-
-.school-mode-class-strip-static .school-mode-class-tab {
-  flex-basis: clamp(155px, 20vw, 220px);
-}
-
-.school-mode-class-strip-static .school-mode-class-tab:first-child {
-  border-left: 0;
-}
-
-.school-mode-class-strip-static .school-mode-class-tab:last-child {
-  border-right: 0;
 }
 
 .school-mode-class-tab-active {
   background: #fffdee;
-  border-bottom: 3px solid #182a4f;
+  border-bottom: 4px solid #182a4f;
 }
 
 .school-mode-empty-state {
@@ -291,29 +290,27 @@
   width: 100%;
   max-width: none;
   margin-top: 0.6vh;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(clamp(170px, 22vw, 250px), 1fr)
-  );
-  gap: 1.8vw;
+  grid-template-columns: repeat(auto-fit, minmax(205px, 205px));
+  gap: 12px 32px;
+  justify-content: center;
   padding: 0 60px 1.2vh;
 }
 
 .school-mode-students-grid-single {
-  grid-template-columns: calc((100% - (2 * 1.8vw)) / 3) !important;
-  justify-content: flex-start;
+  grid-template-columns: repeat(3, 205px) !important;
+  justify-content: center;
 }
 
 .school-mode-students-grid-pair {
-  grid-template-columns: repeat(2, calc((100% - (2 * 1.8vw)) / 3)) !important;
-  justify-content: flex-start;
+  grid-template-columns: repeat(3, 205px) !important;
+  justify-content: center;
 }
 
 .school-mode-student-card {
   box-sizing: border-box;
-  width: 100%;
-  max-width: none;
-  min-height: 246px;
+  width: 205px;
+  height: 195px;
+  min-height: 195px;
   border-radius: 20px;
   background: #fffdee;
   box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
@@ -321,19 +318,23 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-self: center;
   justify-content: space-between;
-  padding: 20px 30px 18px;
+  padding: 25px 18px 19px;
   margin: 0;
 }
 
 .school-mode-student-avatar {
-  width: 86px;
-  height: 86px;
-  border: 4px solid #fff;
+  width: 64px;
+  height: 64px;
+  border: 2px solid #fff;
+  object-fit: cover;
 }
 
 .school-mode-student-name {
-  font-size: clamp(18px, 1.4vw, 24px);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: normal;
   color: #213960;
   max-width: 92%;
   text-align: center;
@@ -341,18 +342,22 @@
 
 .school-mode-play-button {
   box-sizing: border-box;
-  min-width: 94px;
-  height: 55px;
+  width: 92px;
+  height: 48px;
   border: 0;
   border-bottom: 5px solid #8a2901;
   border-radius: 10px;
   background: #f34d08;
   color: #fff;
-  font-size: 19px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
   font-style: normal;
   font-weight: 600;
-  line-height: normal;
-  padding: 12px 32px;
+  line-height: 24px;
+  padding: 10px 0;
   cursor: pointer;
 }
 
@@ -426,9 +431,8 @@
     width: 46px;
   }
 
-  .school-mode-class-tab,
-  .school-mode-class-strip-static .school-mode-class-tab {
-    flex-basis: clamp(130px, calc((100vw - 300px) / 3), 165px);
+  .school-mode-class-tab {
+    width: clamp(130px, calc((100vw - 300px) / 3), 165px);
   }
 }
 
@@ -452,43 +456,12 @@
     height: 56px;
   }
 
-  .school-mode-class-tab,
-  .school-mode-class-strip-static .school-mode-class-tab {
-    flex-basis: clamp(120px, calc((100vw - 280px) / 3), 155px);
+  .school-mode-class-tab {
+    width: clamp(120px, calc((100vw - 280px) / 3), 155px);
     font-size: clamp(20px, 3.2vh, 28px);
   }
 
-  .school-mode-students-grid {
-    grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
-    gap: 3vw;
-    padding-left: 60px;
-    padding-right: 60px;
-  }
-
-  .school-mode-students-grid-single {
-    grid-template-columns: calc((100% - (2 * 3vw)) / 3) !important;
-    justify-content: flex-start;
-  }
-
-  .school-mode-students-grid-pair {
-    grid-template-columns: repeat(2, calc((100% - (2 * 3vw)) / 3)) !important;
-    justify-content: flex-start;
-  }
-
-  .school-mode-student-card {
-    min-height: 206px;
-    border-radius: 20px;
-    padding: 16px 30px 14px;
-  }
-
-  .school-mode-student-avatar {
-    width: 72px;
-    height: 72px;
-  }
-
-  .school-mode-play-button {
-    min-width: 84px;
-    min-height: 44px;
-    font-size: clamp(16px, 4.1vw, 20px);
+  .school-mode-class-strip-static .school-mode-class-tab {
+    font-size: clamp(20px, 3.2vh, 28px);
   }
 }

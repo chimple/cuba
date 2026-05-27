@@ -19,7 +19,6 @@ import './TeacherAuthenticationPopup.css';
 const KEY_ZERO = '0';
 const SUBMIT_SUCCESS_FEEDBACK_MS = 160;
 const QUESTION_NUMBER_REGEX = /(\d+)\s*\+\s*(\d+)/;
-const BACKSPACE_ICON_SRC = '/assets/teacher-authentication-backspace.svg';
 
 export interface TeacherAuthenticationPopupProps {
   isOpen: boolean;
@@ -38,10 +37,10 @@ const getKeyLabel = (
   if (key === backspaceKey) {
     return (
       <img
-        src={BACKSPACE_ICON_SRC}
-        alt=""
         id="teacher-authentication-popup-backspace-icon"
         className="teacher-authentication-popup-backspace-icon"
+        src="/assets/teacher-authentication-key-backspace.svg"
+        alt={String(t('Backspace') ?? '')}
         aria-hidden="true"
       />
     );

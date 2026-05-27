@@ -31,6 +31,7 @@ const DisplayStudents: FC<{}> = () => {
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const { setGbUpdated } = useGbContext();
+  const isWebPlatform = Capacitor.getPlatform() === 'web';
   const getProfileCardPlayActionParams = (
     student: TableTypes<'user'>,
   ): Record<string, string> => {
@@ -135,7 +136,10 @@ const DisplayStudents: FC<{}> = () => {
     history.replace(PAGES.CREATE_STUDENT, locationState);
   };
   return (
-    <IonPage id="display-students">
+    <IonPage
+      id="display-students"
+      className={isWebPlatform ? 'display-students-web' : undefined}
+    >
       <div id="display-students-chimple-logo">
         <div id="display-students-parent-icon"></div>
         <div className="display-students-title">
@@ -200,9 +204,6 @@ const DisplayStudents: FC<{}> = () => {
           {showDialogBox ? (
             <ParentalLock
               showDialogBox={showDialogBox}
-              handleClose={() => {
-                setShowDialogBox(true);
-              }}
               onHandleClose={() => {
                 setShowDialogBox(false);
               }}
