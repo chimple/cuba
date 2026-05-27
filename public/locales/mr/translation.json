@@ -1110,5 +1110,6 @@
     "Play": "खेळा",
     "Are you sure you want to delete this profile?": "तुम्हाला हे प्रोफाइल हटवायचे आहे याची खात्री आहे का?",
     "Choose the below options to manage your kid’s profile.": "आपल्या पाल्याचे प्रोफाइल व्यवस्थापित करण्यासाठी खालील पर्याय निवडा.",
-    "Confirm you are a Parent": "आपण पालक आहात याची पुष्टी करा"
+    "Confirm you are a Parent": "आपण पालक आहात याची पुष्टी करा",
+    "{{className}} - Select the child's profile": "{{className}} - मुलाचा प्रोफाइल निवडा"
 }
