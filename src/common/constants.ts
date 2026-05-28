@@ -1428,12 +1428,14 @@ export enum SchoolVisitType {
   Regular = 'regular_visit',
   ParentsTeacherMeeting = 'parents_teacher_meeting',
   TeacherTraining = 'teacher_training_meeting',
+  Community = 'community_visit',
 }
 
 export const SchoolVisitTypeLabels: Record<SchoolVisitType, string> = {
   [SchoolVisitType.Regular]: 'Regular Visit',
   [SchoolVisitType.ParentsTeacherMeeting]: 'Parents Teacher Meeting',
   [SchoolVisitType.TeacherTraining]: 'Teacher Training Meeting',
+  [SchoolVisitType.Community]: 'Community Visit',
 };
 
 export enum SchoolVisitStatus {
@@ -1445,22 +1447,22 @@ export const PERFORMANCE_UI: Record<
   { label: string; bgColor: string; textColor: string }
 > = {
   [PerformanceLevel.NEED_HELP]: {
-    label: 'Need Help',
+    label: 'Not Active',
     bgColor: '#FFE2E2',
     textColor: '#C10007',
   },
   [PerformanceLevel.STILL_LEARNING]: {
-    label: 'Still Learning',
+    label: 'Medium Engagement',
     bgColor: '#FFEDD4',
     textColor: '#CA3500',
   },
   [PerformanceLevel.DOING_GOOD]: {
-    label: 'Doing Good',
+    label: 'High Engagement',
     bgColor: '#DCFCE7',
     textColor: '#008236',
   },
   [PerformanceLevel.NOT_TRACKED]: {
-    label: 'Not Tracked',
+    label: 'Not Downloaded',
     bgColor: '#F3F4F6',
     textColor: '#364153',
   },
