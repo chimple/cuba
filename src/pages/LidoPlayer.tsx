@@ -43,6 +43,19 @@ const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
   'pending_homework_reward_transition';
 
+const normalizeLidoPlayerLanguage = (languageCode?: string | null): string => {
+  const baseCode = languageCode?.split(/[-_]/)[0]?.toLowerCase() ?? 'en';
+
+  switch (baseCode) {
+    case 'mr':
+      return 'ma';
+    case 'pt':
+      return 'port';
+    default:
+      return baseCode || 'en';
+  }
+};
+
 const LidoPlayer: FC = () => {
   const history = useHistory();
   const [present] = useIonToast();
@@ -59,6 +72,7 @@ const LidoPlayer: FC = () => {
   const [xmlPath, setXmlPath] = useState<string>();
   const [zipUrl, setZipUrl] = useState<string>();
   const [commonAudioPath, setCommonAudioPath] = useState<string>();
+  const [playerLanguage, setPlayerLanguage] = useState<string>('en');
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [isReady, setIsReady] = useState<boolean>(false);
   const [gameResult, setGameResult] = useState<any>(null);
@@ -110,6 +124,26 @@ const LidoPlayer: FC = () => {
       studentId: student?.id ?? currentUser?.id,
       userId: currentUser?.id,
     };
+  };
+
+  const resolveLidoPlayerLanguage = async (): Promise<string> => {
+    const authCurrentUser = ServiceConfig.getI().authHandler.currentUser as
+      | TableTypes<'user'>
+      | undefined;
+    const { student } = await resolveStudentContext();
+    const languageId = student?.language_id ?? authCurrentUser?.language_id;
+
+    if (!languageId) {
+      return 'en';
+    }
+
+    try {
+      const languageDoc = await api.getLanguageWithId(languageId);
+      return normalizeLidoPlayerLanguage(languageDoc?.code ?? languageId);
+    } catch (error) {
+      logger.error('[LidoPlayer] Failed to resolve player language', error);
+      return normalizeLidoPlayerLanguage(languageId);
+    }
   };
 
   type LidoEventDetail = Record<string, unknown> & {
@@ -943,6 +977,9 @@ const LidoPlayer: FC = () => {
       return;
     }
 
+    const resolvedPlayerLanguage = await resolveLidoPlayerLanguage();
+    setPlayerLanguage(resolvedPlayerLanguage);
+
     if (Capacitor.isNativePlatform()) {
       const path = await Util.getLessonPath({ lessonId: lessonId });
       if (path) {
@@ -1037,6 +1074,7 @@ const LidoPlayer: FC = () => {
             'code-folder-path': '/Lido-player-code-versions',
             'common-audio-path': commonAudioPath ?? '/Lido-CommonAudios',
             'zip-url': zipUrl ?? '',
+            language: playerLanguage,
           })
         : null}
     </IonPage>
