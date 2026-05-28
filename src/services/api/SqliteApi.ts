@@ -6098,6 +6098,7 @@ order by
   async getAssignmentDateRangeDataForClassAndSchool(
     classId: string,
     schoolId: string,
+    userId: string,
     startDate: string,
     endDate: string,
   ): Promise<AssignmentDateRangeData> {
@@ -6109,6 +6110,7 @@ order by
       FROM ${TABLES.Assignment}
       WHERE class_id = ?
         AND school_id = ?
+        AND created_by = ?
         AND created_at >= ?
         AND created_at <= ?
         AND (is_deleted = 0 OR is_deleted = false OR is_deleted IS NULL)
@@ -6119,6 +6121,7 @@ order by
       const res = await this.executeQuery(query, [
         classId,
         schoolId,
+        userId,
         startDate,
         endDate,
       ]);
@@ -10168,11 +10171,13 @@ order by
     schoolId: string,
     classId: string,
     coins: number,
+    streakIncrement = 0,
   ): Promise<TableTypes<TABLES.UserAchivements>> {
     await this.ensureInitialized();
 
     const now = new Date().toISOString();
     const coinsToAdd = Number(coins) || 0;
+    const streakToAdd = Number(streakIncrement) || 0;
 
     try {
       const existingRes = await this.executeQuery(
@@ -10193,19 +10198,21 @@ order by
 
       if (existing) {
         const updatedCoins = Number(existing.coins ?? 1000) + coinsToAdd;
+        const updatedStreak = Number(existing.streak ?? 0) + streakToAdd;
 
         await this.executeQuery(
           `
         UPDATE ${TABLES.UserAchivements}
-        SET coins = ?, updated_at = ?, is_deleted = 0
+        SET coins = ?, streak = ?, updated_at = ?, is_deleted = 0
         WHERE user_id = ? AND school_id = ? AND class_id = ?;
         `,
-          [updatedCoins, now, userId, schoolId, classId],
+          [updatedCoins, updatedStreak, now, userId, schoolId, classId],
         );
 
         const updatedRow = {
           ...existing,
           coins: updatedCoins,
+          streak: updatedStreak,
           updated_at: now,
           is_deleted: false,
         } as TableTypes<TABLES.UserAchivements>;
@@ -10227,7 +10234,7 @@ order by
         class_id: classId,
         program_id: null,
         coins: 1000 + coinsToAdd,
-        streak: 0,
+        streak: streakToAdd,
         last_rewarded_week: null,
         last_penalty_week: null,
         is_deleted: false,
@@ -10251,7 +10258,7 @@ order by
           schoolId,
           classId,
           1000 + coinsToAdd,
-          0,
+          streakToAdd,
           null,
           null,
           0,

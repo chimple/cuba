@@ -7599,6 +7599,7 @@ export class SupabaseApi implements ServiceApi {
   async getAssignmentDateRangeDataForClassAndSchool(
     classId: string,
     schoolId: string,
+    userId: string,
     startDate: string,
     endDate: string,
   ): Promise<AssignmentDateRangeData> {
@@ -7609,6 +7610,7 @@ export class SupabaseApi implements ServiceApi {
       .select('*')
       .eq('class_id', classId)
       .eq('school_id', schoolId)
+      .eq('created_by', userId)
       .gte('created_at', startDate)
       .lte('created_at', endDate)
       .eq('is_deleted', false)
@@ -15140,11 +15142,13 @@ export class SupabaseApi implements ServiceApi {
     schoolId: string,
     classId: string,
     coins: number,
+    streakIncrement = 0,
   ): Promise<TableTypes<TABLES.UserAchivements>> {
     if (!this.supabase) return {} as TableTypes<TABLES.UserAchivements>;
 
     const now = new Date().toISOString();
     const coinsToAdd = Number(coins) || 0;
+    const streakToAdd = Number(streakIncrement) || 0;
 
     // 1) Check if row already exists for this user/class/school
     const { data: existing, error: fetchError } = await this.supabase
@@ -15169,11 +15173,13 @@ export class SupabaseApi implements ServiceApi {
     // 2) If exists -> update coins + updated_at
     if (existing) {
       const updatedCoins = Number(existing.coins ?? 1000) + coinsToAdd;
+      const updatedStreak = Number(existing.streak ?? 0) + streakToAdd;
 
       const { error: updateError } = await this.supabase
         .from(TABLES.UserAchivements)
         .update({
           coins: updatedCoins,
+          streak: updatedStreak,
           updated_at: now,
           is_deleted: false,
         })
@@ -15189,6 +15195,7 @@ export class SupabaseApi implements ServiceApi {
       return {
         ...existing,
         coins: updatedCoins,
+        streak: updatedStreak,
         updated_at: now,
         is_deleted: false,
       } as TableTypes<TABLES.UserAchivements>;
@@ -15201,7 +15208,7 @@ export class SupabaseApi implements ServiceApi {
       class_id: classId,
       program_id: null,
       coins: 1000 + coinsToAdd,
-      streak: 0,
+      streak: streakToAdd,
       last_rewarded_week: null,
       last_penalty_week: null,
       is_deleted: false,

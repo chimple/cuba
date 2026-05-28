@@ -1239,12 +1239,14 @@ export class ApiHandler implements ServiceApi {
   async getAssignmentDateRangeDataForClassAndSchool(
     classId: string,
     schoolId: string,
+    userId: string,
     startDate: string,
     endDate: string,
   ): Promise<AssignmentDateRangeData> {
     return this.s.getAssignmentDateRangeDataForClassAndSchool(
       classId,
       schoolId,
+      userId,
       startDate,
       endDate,
     );
@@ -1263,8 +1265,15 @@ export class ApiHandler implements ServiceApi {
     schoolId: string,
     classId: string,
     coins: number,
+    streakIncrement?: number,
   ): Promise<TableTypes<TABLES.UserAchivements>> {
-    return this.s.updateCoins(userId, schoolId, classId, coins);
+    return this.s.updateCoins(
+      userId,
+      schoolId,
+      classId,
+      coins,
+      streakIncrement,
+    );
   }
 
   getTeacherJoinedDate(

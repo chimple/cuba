@@ -2106,12 +2106,13 @@ export class FirebaseApi implements ServiceApi {
   async getAssignmentDateRangeDataForClassAndSchool(
     classId: string,
     schoolId: string,
+    userId: string,
     startDate: string,
     endDate: string,
   ): Promise<AssignmentDateRangeData> {
     logger.warn(
       'getAssignmentDateRangeDataForClassAndSchool is not implemented for FirebaseApi.',
-      { classId, schoolId, startDate, endDate },
+      { classId, schoolId, userId, startDate, endDate },
     );
     return { assignments: [], batchGroups: [] };
   }
@@ -2134,12 +2135,14 @@ export class FirebaseApi implements ServiceApi {
     schoolId: string,
     classId: string,
     coins: number,
+    streakIncrement?: number,
   ): Promise<TableTypes<TABLES.UserAchivements>> {
     logger.warn('updateCoins is not implemented for FirebaseApi.', {
       userId,
       schoolId,
       classId,
       coins,
+      streakIncrement,
     });
     return {} as TableTypes<TABLES.UserAchivements>;
   }

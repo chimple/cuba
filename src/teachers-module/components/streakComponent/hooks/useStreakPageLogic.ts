@@ -65,7 +65,7 @@ export const useStreakPageLogic = () => {
         setStreakCount(0);
       }
 
-      if (!classId || !schoolId) {
+      if (!classId || !schoolId || !userId) {
         if (!isMounted) return;
         setAssignmentCount(0);
         return;
@@ -75,6 +75,7 @@ export const useStreakPageLogic = () => {
         await api.getAssignmentDateRangeDataForClassAndSchool(
           classId,
           schoolId,
+          userId,
           ALL_TIME_START,
           ALL_TIME_END,
         );
@@ -95,10 +96,12 @@ export const useStreakPageLogic = () => {
     const loadMonthAssignments = async () => {
       const currentClass = Util.getCurrentClass();
       const currentSchool = Util.getCurrentSchool();
+      const currentUser = await auth.getCurrentUser();
       const classId = currentClass?.id;
       const schoolId = currentSchool?.id || currentClass?.school_id;
+      const userId = currentUser?.id;
 
-      if (!classId || !schoolId) {
+      if (!classId || !schoolId || !userId) {
         if (!isMounted) return;
         setAssignedDays(new Set());
         return;
@@ -121,6 +124,7 @@ export const useStreakPageLogic = () => {
         await api.getAssignmentDateRangeDataForClassAndSchool(
           classId,
           schoolId,
+          userId,
           startDate,
           endDate,
         );
