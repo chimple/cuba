@@ -75,14 +75,26 @@
 
 @media (max-width: 48rem) {
   .campaign-setup-stepper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 19;
     height: 2.875rem;
-    margin: 0 -1rem;
+    margin: 0;
+    margin-top: calc(3.875rem + env(safe-area-inset-top, 0rem));
     padding: 0 1rem;
     border-bottom: none;
+    background: #ffffff;
     justify-content: flex-start;
     gap: 0;
     overflow-x: auto;
     scrollbar-width: none;
+  }
+
+  .campaign-setup-stepper + .campaign-setup-section,
+  .campaign-setup-stepper + .campaign-assignment-step {
+    margin-top: 2.875rem;
   }
 
   .campaign-setup-stepper::-webkit-scrollbar {

@@ -164,6 +164,8 @@ export type CampaignObjective =
 
 export type CampaignTargetType = 'percentage_completion' | 'number_of_lessons';
 
+export type CampaignRewardType = 'digital_rewards' | 'physical_rewards';
+
 export type CampaignOption = {
   id: string;
   name: string;
