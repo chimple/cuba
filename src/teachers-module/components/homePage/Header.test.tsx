@@ -16,6 +16,7 @@ jest.mock('react-router', () => ({
 jest.mock('../../../utility/util', () => ({
   Util: {
     setPathToBackButton: jest.fn(),
+    getCurrentSchool: jest.fn(),
   },
 }));
 
@@ -34,6 +35,9 @@ beforeEach(() => {
     replace: mockReplace,
   });
   jest.clearAllMocks();
+  (Util.getCurrentSchool as jest.Mock).mockReturnValue({
+    id: 'school-1',
+  });
 });
 
 /* ================= TESTS ================= */

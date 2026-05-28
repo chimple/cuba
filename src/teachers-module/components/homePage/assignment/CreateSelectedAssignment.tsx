@@ -17,6 +17,7 @@ import { Util } from '../../../../utility/util';
 import { useHistory } from 'react-router';
 import i18n, { t } from 'i18next';
 import { ServiceConfig } from '../../../../services/ServiceConfig';
+import { RoleType } from '../../../../interface/modelInterfaces';
 import { TeacherAssignmentPageType } from './TeacherAssignment';
 import CommonDialogBox from '../../../../common/CommonDialogBox';
 import Loading from '../../../../components/Loading';
@@ -105,6 +106,7 @@ const CreateSelectedAssignment = ({
   const REWARD_INDICATOR_DELAY_MS = 700;
   const REWARD_FLIGHT_DURATION_MS = 1600;
   const FLAME_PULSE_DURATION_MS = 1000;
+  const STREAK_LANDING_LEFT_OFFSET_PX = 30;
 
   const history = useHistory();
   const [startDate, setStartDate] = useState('');
@@ -487,10 +489,12 @@ const CreateSelectedAssignment = ({
       try {
         const currentClass = Util.getCurrentClass();
         const currentSchool = Util.getCurrentSchool();
+        const currentUser = await auth.getCurrentUser();
         const classId = currentClass?.id;
         const schoolId = currentSchool?.id || currentClass?.school_id;
+        const userId = currentUser?.id;
 
-        if (!classId || !schoolId) {
+        if (!classId || !schoolId || !userId) {
           return SUBSEQUENT_ASSIGNMENT_REWARD;
         }
 
@@ -504,6 +508,7 @@ const CreateSelectedAssignment = ({
           await api.getAssignmentDateRangeDataForClassAndSchool(
             classId,
             schoolId,
+            userId,
             weekStart.toISOString(),
             today.toISOString(),
           );
@@ -555,7 +560,11 @@ const CreateSelectedAssignment = ({
         return;
       }
 
-      const deltaX = streakRect.left + streakRect.width / 2 - startX;
+      const deltaX =
+        streakRect.left +
+        streakRect.width / 2 -
+        STREAK_LANDING_LEFT_OFFSET_PX -
+        startX;
       const deltaY = streakRect.top + streakRect.height / 2 - startY;
 
       setRewardAnimation((prev) => ({
@@ -569,8 +578,6 @@ const CreateSelectedAssignment = ({
       setRewardAnimation((prev) => ({ ...prev, visible: false }));
       await animateStreakFlame();
     };
-
-    const rewardValue = await getRewardForAssignment();
 
     // Step 1: Update assignment cart immediately to remove assigned lessons from UI
     (async () => {
@@ -642,6 +649,21 @@ const CreateSelectedAssignment = ({
         const current_class = await Util.getCurrentClass();
         const currUser = await auth.getCurrentUser();
         if (!currUser || !current_class) return;
+
+        const assignerRole = await api.getUserRoleForSchool(
+          currUser.id,
+          current_class.school_id,
+        );
+        const isTeacherAssigner = assignerRole === RoleType.TEACHER;
+        let rewardValue = SUBSEQUENT_ASSIGNMENT_REWARD;
+        let streakIncrement = 0;
+
+        if (isTeacherAssigner) {
+          // Calculate reward before creating this batch, so the current
+          // assignment is not included in "this week's" existing count.
+          rewardValue = await getRewardForAssignment();
+          streakIncrement = rewardValue === FIRST_ASSIGNMENT_REWARD ? 1 : 0;
+        }
 
         const previous_sync_lesson = currUser?.id
           ? await api.getUserAssignmentCart(currUser?.id)
@@ -792,23 +814,23 @@ const CreateSelectedAssignment = ({
           _totalSelectedLesson,
         );
 
-        try {
-          if (currUser?.id && current_class?.id && current_class?.school_id) {
+        if (isTeacherAssigner) {
+          try {
             await api.updateCoins(
               currUser.id,
               current_class.school_id,
               current_class.id,
               rewardValue,
+              streakIncrement,
+            );
+          } catch (coinError) {
+            logger.error(
+              'Error updating coins after assignment creation:',
+              coinError,
             );
           }
-        } catch (coinError) {
-          logger.error(
-            'Error updating coins after assignment creation:',
-            coinError,
-          );
+          await animateRewardToStreak(rewardValue);
         }
-
-        await animateRewardToStreak(rewardValue);
         setShowConfirm(true);
       } catch (error) {
         logger.error('Error creating assignments in background:', error);

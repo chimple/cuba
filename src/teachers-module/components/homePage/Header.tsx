@@ -20,6 +20,9 @@ import { t } from 'i18next';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import { IoShareSocialSharp } from 'react-icons/io5';
 import { registerBackButtonHandler } from '../../../common/backButtonRegistry';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
 import {
   registerStreakRectResolver,
   registerStreakRewardPulseHandler,
@@ -70,6 +73,18 @@ const Header: React.FC<HeaderProps> = ({
   showStreakButton = true,
 }) => {
   const history = useHistory();
+  const roleMap = useAppSelector(
+    (state: RootState) =>
+      state.growthbook.attributes?.roleMap as
+        | Record<string, string>
+        | undefined,
+  );
+  const currentSchoolId = Util.getCurrentSchool()?.id;
+  const currentSchoolRole = currentSchoolId
+    ? roleMap?.[`${currentSchoolId}_role`]
+    : undefined;
+  const isTeacher =
+    (currentSchoolRole ?? '').toLowerCase() === RoleType.TEACHER;
   const FLAME_PULSE_DURATION_MS = 1000;
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isStreakRewardPulseActive, setIsStreakRewardPulseActive] =
@@ -282,7 +297,7 @@ const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {showStreakButton && (
+          {showStreakButton && isTeacher && (
             <button
               ref={streakButtonRef}
               type="button"

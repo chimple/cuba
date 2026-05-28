@@ -1681,6 +1681,7 @@ export interface ServiceApi {
    * Gets assignment data for a class/school within an inclusive datetime range.
    * @param {string} classId class Id
    * @param {string} schoolId school Id
+   * @param {string} userId assigner user Id
    * @param {string} startDate inclusive start datetime (ISO string)
    * @param {string} endDate inclusive end datetime (ISO string)
    * @return object containing raw assignment rows and grouped batch metadata.
@@ -1688,6 +1689,7 @@ export interface ServiceApi {
   getAssignmentDateRangeDataForClassAndSchool(
     classId: string,
     schoolId: string,
+    userId: string,
     startDate: string,
     endDate: string,
   ): Promise<AssignmentDateRangeData>;
@@ -1711,6 +1713,7 @@ export interface ServiceApi {
    * @param {string} schoolId school Id
    * @param {string} classId class Id
    * @param {number} coins updated coin value to persist
+   * @param {number} [streakIncrement] optional streak increment to apply
    * @return updated user achievement row.
    */
   updateCoins(
@@ -1718,6 +1721,7 @@ export interface ServiceApi {
     schoolId: string,
     classId: string,
     coins: number,
+    streakIncrement?: number,
   ): Promise<TableTypes<TABLES.UserAchivements>>;
 
   /**
