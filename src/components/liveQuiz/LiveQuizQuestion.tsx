@@ -9,7 +9,12 @@ import LiveQuiz, {
 import './LiveQuizQuestion.css';
 import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';
-import { PAGES, REWARD_LESSON, TableTypes } from '../../common/constants';
+import {
+  PAGES,
+  PLAY_SOURCE,
+  REWARD_LESSON,
+  TableTypes,
+} from '../../common/constants';
 import { useHistory } from 'react-router';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { HiSpeakerWave } from 'react-icons/hi2';
@@ -40,6 +45,7 @@ const LiveQuizQuestion: FC<{
   onTotalScoreChange?: (totalScore: number) => void;
   isLearningPathway?: boolean;
   isReward?: boolean;
+  playSource?: PLAY_SOURCE;
 }> = ({
   roomDoc,
   onNewQuestionChange,
@@ -56,6 +62,7 @@ const LiveQuizQuestion: FC<{
   onTotalScoreChange,
   isLearningPathway,
   isReward = false,
+  playSource = PLAY_SOURCE.SUBJECT_PAGE,
 }) => {
   const quizPathBase =
     localStorage.getItem('gameUrl') ??

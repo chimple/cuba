@@ -18,6 +18,7 @@ import {
   PAGES,
   PROBLEM_END,
   RESULT_STATUS,
+  PLAY_SOURCE,
   REWARD_LESSON,
   TableTypes,
 } from '../common/constants';
@@ -61,6 +62,18 @@ const CocosGame: React.FC = () => {
   const playedFrom = localStorage.getItem('currentHeader');
   const assignmentType = location?.assignment?.type || 'self-played';
   const state = history.location.state as any;
+  const playSource: PLAY_SOURCE =
+    state?.play_source ??
+    state?.playSource ??
+    (state?.isHomework
+      ? PLAY_SOURCE.LEARNING_PATHWAY_HOMEWORK
+      : state?.learning_path
+        ? state?.is_assessment
+          ? PLAY_SOURCE.INITIAL_ASSESSMENT
+          : state?.skillId
+            ? PLAY_SOURCE.LEARNING_PATHWAY_HOME_PAL
+            : PLAY_SOURCE.LEARNING_PATHWAY_HOME_NO_PAL
+        : PLAY_SOURCE.SUBJECT_PAGE);
   const iFrameUrl = state?.url;
   const [isLoading, setIsLoading] = useState<any>();
   const [present] = useIonToast();
@@ -523,6 +536,7 @@ const CocosGame: React.FC = () => {
       activities_scores ?? undefined,
       _currentUser?.id,
       RESULT_STATUS.COMPLETED,
+      playSource,
     );
 
     // Update the learning path / homework path

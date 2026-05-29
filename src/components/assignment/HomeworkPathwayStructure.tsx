@@ -28,6 +28,7 @@ import {
   PATHWAY_REWARD_AUDIO_READY_EVENT,
   PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
   PAGES,
+  PLAY_SOURCE,
   REWARD_LEARNING_PATH,
   REWARD_MODAL_SHOWN_DATE,
   RewardBoxState,
@@ -1297,6 +1298,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                   isHomework: true,
                   homeworkIndex: lessonIdx,
                   reward: shouldMarkRewardLesson,
+                  play_source: PLAY_SOURCE.LEARNING_PATHWAY_HOMEWORK,
                 });
               } else if (lesson.plugin_type === COCOS) {
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
@@ -1311,6 +1313,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                   isHomework: true,
                   homeworkIndex: lessonIdx,
                   reward: shouldMarkRewardLesson,
+                  play_source: PLAY_SOURCE.LEARNING_PATHWAY_HOMEWORK,
                 });
               } else if (lesson.plugin_type === LIVE_QUIZ) {
                 history.push(
@@ -1322,6 +1325,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                     isHomework: true,
                     homeworkIndex: lessonIdx,
                     reward: shouldMarkRewardLesson,
+                    play_source: PLAY_SOURCE.LEARNING_PATHWAY_HOMEWORK,
                   },
                 );
               }
@@ -2222,6 +2226,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           isHomework: true,
           homeworkIndex: homeworkPath.currentIndex,
           reward: true,
+          play_source: PLAY_SOURCE.LEARNING_PATHWAY_HOMEWORK,
         });
       } else if (lesson.plugin_type === COCOS) {
         const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
@@ -2236,6 +2241,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           isHomework: true,
           homeworkIndex: homeworkPath.currentIndex,
           reward: true,
+          play_source: PLAY_SOURCE.LEARNING_PATHWAY_HOMEWORK,
         });
       } else if (lesson.plugin_type === LIVE_QUIZ) {
         history.push(
@@ -2247,6 +2253,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             isHomework: true,
             homeworkIndex: homeworkPath.currentIndex,
             reward: true,
+            play_source: PLAY_SOURCE.LEARNING_PATHWAY_HOMEWORK,
           },
         );
       }

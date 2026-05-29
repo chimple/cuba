@@ -19,6 +19,7 @@ import {
   LIDO_COMMON_AUDIO_DIR,
   FAIL_STREAK_KEY,
   RESULT_STATUS,
+  PLAY_SOURCE,
 } from '../common/constants';
 import Loading from '../components/Loading';
 import ScoreCard from '../components/parent/ScoreCard';
@@ -49,6 +50,18 @@ const LidoPlayer: FC = () => {
 
   // State
   const state = history.location.state as any;
+  const playSource: PLAY_SOURCE =
+    state?.play_source ??
+    state?.playSource ??
+    (state?.isHomework
+      ? PLAY_SOURCE.LEARNING_PATHWAY_HOMEWORK
+      : state?.learning_path
+        ? state?.is_assessment
+          ? PLAY_SOURCE.INITIAL_ASSESSMENT
+          : state?.skillId
+            ? PLAY_SOURCE.LEARNING_PATHWAY_HOME_PAL
+            : PLAY_SOURCE.LEARNING_PATHWAY_HOME_NO_PAL
+        : PLAY_SOURCE.SUBJECT_PAGE);
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get('lessonid') ?? state?.lessonId;
   const assignmentType = state?.assignment?.type || 'self-played';
@@ -396,6 +409,7 @@ const LidoPlayer: FC = () => {
           activitiesScoresStr,
           parentUserId,
           isAborted ? RESULT_STATUS.SYSTEM_EXIT : RESULT_STATUS.COMPLETED,
+          playSource,
         );
       }
       Util.logEvent(EVENTS.RESULTS_SAVED, {
@@ -704,6 +718,7 @@ const LidoPlayer: FC = () => {
         activitiesScoresStr,
         parentUserId,
         RESULT_STATUS.COMPLETED,
+        playSource,
       );
 
       // Update the learning path

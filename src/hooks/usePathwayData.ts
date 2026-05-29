@@ -20,6 +20,7 @@ import {
   LIDO,
   LIDO_ASSESSMENT,
   PAGES,
+  PLAY_SOURCE,
   CONTINUE,
   COURSE_CHANGED,
   CAMPAIGN_SEQUENCE_FINISHED,
@@ -398,6 +399,8 @@ export const usePathwayData = () => {
             reward: true,
             skillId: pathItem?.skill_id,
             is_assessment: isAssessment,
+            play_source:
+              pathItem?.play_source ?? PLAY_SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
           });
         } else if (lesson.plugin_type === LIVE_QUIZ) {
           history.replace(
@@ -410,6 +413,9 @@ export const usePathwayData = () => {
               reward: true,
               skillId: pathItem?.skill_id,
               is_assessment: isAssessment,
+              play_source:
+                pathItem?.play_source ??
+                PLAY_SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
             },
           );
         } else if (
@@ -429,6 +435,8 @@ export const usePathwayData = () => {
             skillId: pathItem?.skill_id,
             is_assessment: isAssessment,
             assessmentId,
+            play_source:
+              pathItem?.play_source ?? PLAY_SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
           });
         }
       } catch (error) {
