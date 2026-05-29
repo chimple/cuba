@@ -6,7 +6,12 @@ import type { ReactElement } from 'react';
 import { MemoryRouter, Route, Switch, useLocation } from 'react-router-dom';
 
 import ProtectedRoute from '../../ProtectedRoute';
-import { LATEST_TC_VERSION, PAGES, TableTypes } from '../../common/constants';
+import {
+  EVENTS,
+  LATEST_TC_VERSION,
+  PAGES,
+  TableTypes,
+} from '../../common/constants';
 import TermsAndConditions from '../../pages/TermsAndConditions';
 import authReducer from '../../redux/slices/auth/authSlice';
 import growthbookReducer from '../../redux/slices/growthbook/growthbookSlice';
@@ -48,6 +53,10 @@ jest.mock('../../utility/util', () => ({
     logEvent: jest.fn(),
   },
 }));
+
+const { Util } = jest.requireMock('../../utility/util') as {
+  Util: { logEvent: jest.Mock };
+};
 
 describe('TermsGate', () => {
   const renderWithStore = (ui: ReactElement, userVersion = 1) => {
@@ -145,6 +154,44 @@ describe('TermsGate', () => {
     expect(
       screen.queryByRole('button', { name: /agree as parent/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it('rolls back the optimistic agreement and skips TC_AGREED analytics on persistence failure', async () => {
+    __setGrowthBookMock({
+      features: { [LATEST_TC_VERSION]: 3 },
+    });
+    mockApiHandler.updateTcAgreedVersion.mockRejectedValue(
+      new Error('persist failed'),
+    );
+
+    const user = userEvent.setup();
+
+    renderWithStore(
+      <MemoryRouter initialEntries={['/protected']}>
+        <TermsGate />
+        <Switch>
+          <ProtectedRoute path="/protected">
+            <ProtectedContent />
+          </ProtectedRoute>
+        </Switch>
+      </MemoryRouter>,
+      1,
+    );
+
+    expect(await screen.findByText(/protected content/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /agree as parent/i }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: /agree as parent/i }),
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      Util.logEvent.mock.calls.some(
+        ([eventName]: [string]) => eventName === EVENTS.TC_AGREED,
+      ),
+    ).toBe(false);
   });
 
   it('renders only one modal even when nested protected routes are mounted', async () => {

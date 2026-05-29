@@ -116,6 +116,7 @@ const TermsGate: React.FC = () => {
       return;
     }
 
+    const previousUser = effectiveUser;
     const agreedUser: TableTypes<'user'> = {
       ...effectiveUser,
       is_tc_accepted: true,
@@ -137,14 +138,24 @@ const TermsGate: React.FC = () => {
           effectiveUser.id,
           requiredTcVersion,
         );
-      } catch (error) {
-        logger.error('Failed to persist T&C agreement', error);
-      } finally {
-        setIsSubmitting(false);
+
         void Util.logEvent(EVENTS.TC_AGREED, {
           agreed_version: requiredTcVersion,
           ...buildTcAnalyticsContext(effectiveUser),
         });
+      } catch (error) {
+        logger.error('Failed to persist T&C agreement', error);
+
+        setOptimisticAgreements((previous) => {
+          const next = { ...previous };
+          delete next[effectiveUser.id];
+          return next;
+        });
+        setCurrentUser(previousUser);
+        ServiceConfig.getI().authHandler.currentUser = { ...previousUser };
+        dispatch(setUser(previousUser));
+      } finally {
+        setIsSubmitting(false);
       }
     })();
   };

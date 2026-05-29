@@ -2020,6 +2020,7 @@ export class SupabaseApi implements ServiceApi {
       }
     } catch (error) {
       logger.error('Error updating T&C acceptance:', error);
+      throw error;
     }
   }
 
@@ -2039,6 +2040,7 @@ export class SupabaseApi implements ServiceApi {
       }
     } catch (error) {
       logger.error('Error updating T&C acceptance:', error);
+      throw error;
     }
   }
   async getLanguageWithId(
