@@ -13,6 +13,7 @@ import {
   EVENTS,
   LANGUAGE,
   LEARNING_PATHWAY_MODE,
+  PLAY_SOURCE,
   TableTypes,
 } from '../common/constants';
 
@@ -217,6 +218,7 @@ describe('useLearningPath features used by Home tab', () => {
     expect(next).toEqual({
       lesson_id: 'assessment-lesson-1',
       chapter_id: undefined,
+      play_source: PLAY_SOURCE.INITIAL_ASSESSMENT,
       is_assessment: true,
       isPlayed: false,
     });
@@ -260,6 +262,7 @@ describe('useLearningPath features used by Home tab', () => {
     expect(next).toEqual({
       lesson_id: 'a2',
       chapter_id: undefined,
+      play_source: PLAY_SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
       is_assessment: true,
       isPlayed: false,
     });
@@ -353,6 +356,7 @@ describe('useLearningPath features used by Home tab', () => {
     expect(next).toEqual({
       lesson_id: 'l1',
       chapter_id: 'ch1',
+      play_source: PLAY_SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
       is_assessment: false,
       isPlayed: false,
     });
