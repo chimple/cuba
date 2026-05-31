@@ -1516,7 +1516,7 @@ export enum RESULT_STATUS {
   SYSTEM_EXIT = 'system_exit',
 }
 
-export enum PLAY_SOURCE {
+export enum SOURCE {
   INITIAL_ASSESSMENT = 'initial_assessment',
   LEARNING_PATHWAY_HOME_NO_PAL = 'learning_pathway_home_no_pal',
   LEARNING_PATHWAY_HOME_PAL = 'learning_pathway_home_pal',

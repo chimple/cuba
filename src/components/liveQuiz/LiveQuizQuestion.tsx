@@ -11,7 +11,7 @@ import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';
 import {
   PAGES,
-  PLAY_SOURCE,
+  SOURCE,
   REWARD_LESSON,
   TableTypes,
 } from '../../common/constants';
@@ -45,7 +45,7 @@ const LiveQuizQuestion: FC<{
   onTotalScoreChange?: (totalScore: number) => void;
   isLearningPathway?: boolean;
   isReward?: boolean;
-  playSource?: PLAY_SOURCE;
+  source?: SOURCE;
 }> = ({
   roomDoc,
   onNewQuestionChange,
@@ -62,7 +62,7 @@ const LiveQuizQuestion: FC<{
   onTotalScoreChange,
   isLearningPathway,
   isReward = false,
-  playSource = PLAY_SOURCE.SUBJECT_PAGE,
+  source = SOURCE.SUBJECT_PAGE,
 }) => {
   const quizPathBase =
     localStorage.getItem('gameUrl') ??
@@ -546,6 +546,8 @@ const LiveQuizQuestion: FC<{
         undefined, // subject_ability
         undefined, // activities_scores
         _currentUser?.id, // ✅ now correctly maps to user_id
+        undefined, // status
+        source,
       );
       totalLessonScore = 0;
       totalLessonTimeSpent = 0;
@@ -594,6 +596,8 @@ const LiveQuizQuestion: FC<{
         undefined, // subject_ability
         undefined, // activities_scores
         _currentUser?.id, // ✅ now correctly maps to user_id
+        undefined, // status
+        source,
       );
     }
   }

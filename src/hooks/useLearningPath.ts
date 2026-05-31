@@ -10,7 +10,7 @@ import {
   TableTypes,
   LANGUAGE,
   COURSES,
-  PLAY_SOURCE,
+  SOURCE,
 } from '../common/constants';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import logger from '../utility/logger';
@@ -39,7 +39,7 @@ export type LessonNode = {
   chapter_id?: string | undefined;
   skill_id?: string | undefined;
   assignment_id?: string | undefined;
-  play_source?: PLAY_SOURCE;
+  source?: SOURCE;
   is_assessment: boolean;
   isPlayed: boolean;
 };
@@ -134,7 +134,7 @@ export async function recommendNextLesson({
         lesson_id: assessments[0].lesson_id,
         chapter_id: undefined,
         assignment_id: assessments[0].id,
-        play_source: PLAY_SOURCE.INITIAL_ASSESSMENT,
+        source: SOURCE.INITIAL_ASSESSMENT,
         is_assessment: true,
         isPlayed: false,
       };
@@ -154,7 +154,7 @@ export async function recommendNextLesson({
       return {
         lesson_id: res.lesson_id,
         chapter_id: undefined,
-        play_source: PLAY_SOURCE.INITIAL_ASSESSMENT,
+        source: SOURCE.INITIAL_ASSESSMENT,
         is_assessment: true,
         isPlayed: false,
       };
@@ -175,7 +175,7 @@ export async function recommendNextLesson({
         lesson_id: palLesson.lesson_id,
         chapter_id: palLesson.chapter_id,
         skill_id: palLesson.skill_id,
-        play_source: PLAY_SOURCE.LEARNING_PATHWAY_HOME_PAL,
+        source: SOURCE.LEARNING_PATHWAY_HOME_PAL,
         is_assessment: false,
         isPlayed: false,
       };
@@ -220,7 +220,7 @@ export async function recommendNextLesson({
   return {
     lesson_id: firstLessons[0].id,
     chapter_id: chapters[0].id,
-    play_source: PLAY_SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
+    source: SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
     is_assessment: false,
     isPlayed: false,
   };
@@ -238,7 +238,7 @@ export function getNextFromList(
     return {
       lesson_id: first.lesson_id ?? first.id,
       chapter_id: first.chapter_id || undefined,
-      play_source: PLAY_SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
+      source: SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
       is_assessment: isAssessment,
       isPlayed: false,
     };
@@ -254,7 +254,7 @@ export function getNextFromList(
   return {
     lesson_id: next.lesson_id ?? next.id,
     chapter_id: next.chapter_id || undefined,
-    play_source: PLAY_SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
+    source: SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
     is_assessment: isAssessment,
     isPlayed: false,
   };
@@ -766,7 +766,7 @@ export const useLearningPath = (opts?: {
           chapter_id: l.chapter_id,
           skill_id: l.skill_id,
           assignment_id: l.assignment_id,
-          play_source: l.play_source,
+          source: l.source,
           isPlayed: absIndex < activeAbsIndex,
           is_assessment: !!l.is_assessment,
         };

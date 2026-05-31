@@ -44,7 +44,7 @@ import {
   REWARD_LESSON,
   OPS_ROLES,
   DEFAULT_LOCALE_ID,
-  PLAY_SOURCE,
+  SOURCE,
   RESULT_STATUS,
   LEARNING_PATHWAY_MODE,
   ProgramType,
@@ -2536,7 +2536,7 @@ export class SupabaseApi implements ServiceApi {
     activities_scores?: string | null,
     user_id?: string | null,
     status?: RESULT_STATUS | null,
-    play_source?: PLAY_SOURCE | null,
+    source?: SOURCE | null,
   ): Promise<TableTypes<'result'>> {
     if (!this.supabase) return {} as TableTypes<'result'>;
 
@@ -2574,7 +2574,7 @@ export class SupabaseApi implements ServiceApi {
       activities_scores: activities_scores ?? null,
       user_id: user_id ?? null,
       status: status ?? null,
-      play_source: play_source ?? null,
+      source: source ?? null,
     };
 
     const { error: insertError } = await this.supabase

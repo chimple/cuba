@@ -10,7 +10,7 @@ import {
   LIDO,
   LIVE_QUIZ,
   PAGES,
-  PLAY_SOURCE,
+  SOURCE,
   TYPE,
   TableTypes,
 } from '../common/constants';
@@ -180,9 +180,9 @@ const LessonCard: React.FC<{
               lesson.lido_lesson_id ||
               (lesson.plugin_type === LIDO ? lesson.cocos_lesson_id : null);
 
-            const playSource = assignment
-              ? PLAY_SOURCE.NO_LEARNING_PATHWAY_HOMEWORK
-              : PLAY_SOURCE.SUBJECT_PAGE;
+            const source = assignment
+              ? SOURCE.NO_LEARNING_PATHWAY_HOMEWORK
+              : SOURCE.SUBJECT_PAGE;
 
             if (lidoLessonId) {
               const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
@@ -194,7 +194,7 @@ const LessonCard: React.FC<{
                 assignment: assignment,
                 chapter: JSON.stringify(chapter),
                 from: history.location.pathname + `?${CONTINUE}=true`,
-                play_source: playSource,
+                source: source,
               });
             } else if (lesson.plugin_type === COCOS) {
               const courseId = getCourseIdFromCocosLesson(
@@ -215,7 +215,7 @@ const LessonCard: React.FC<{
                 assignment: assignment,
                 chapter: JSON.stringify(chapter),
                 from: history.location.pathname + `?${CONTINUE}=true`,
-                play_source: playSource,
+                source: source,
               });
             } else if (lesson.plugin_type === LIVE_QUIZ) {
               const lessonId = lesson.cocos_lesson_id;
@@ -245,7 +245,7 @@ const LessonCard: React.FC<{
                   PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignment?.id}`,
                   {
                     assignment: JSON.stringify(assignment),
-                    play_source: playSource,
+                    source: source,
                   },
                 );
               } else {
@@ -255,7 +255,7 @@ const LessonCard: React.FC<{
                     courseId: course?.id ?? currentCourse?.id,
                     lesson: JSON.stringify(lesson),
                     from: history.location.pathname + `?${CONTINUE}=true`,
-                    play_source: playSource,
+                    source: source,
                   },
                 );
               }

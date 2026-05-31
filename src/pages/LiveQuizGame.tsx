@@ -5,7 +5,7 @@ import { useHistory } from 'react-router';
 import {
   LESSONS_PLAYED_COUNT,
   PAGES,
-  PLAY_SOURCE,
+  SOURCE,
   TableTypes,
 } from '../common/constants';
 import './LiveQuizGame.css';
@@ -44,16 +44,13 @@ const LiveQuizGame: FC = () => {
   // Check if the game was played from `learning_pathway`
   const learning_path: boolean = state?.learning_path ?? false;
   const isReward: boolean = state?.reward ?? false;
-  const playSource: PLAY_SOURCE =
-    state?.play_source ??
-    state?.playSource ??
+  const source: SOURCE =
+    state?.source ??
     (learning_path
       ? state?.is_assessment
-        ? PLAY_SOURCE.INITIAL_ASSESSMENT
-        : state?.skillId
-          ? PLAY_SOURCE.LEARNING_PATHWAY_HOME_PAL
-          : PLAY_SOURCE.LEARNING_PATHWAY_HOME_NO_PAL
-      : PLAY_SOURCE.SUBJECT_PAGE);
+        ? SOURCE.INITIAL_ASSESSMENT
+        : SOURCE.LEARNING_PATHWAY_HOME_NO_PAL
+      : SOURCE.SUBJECT_PAGE);
   const growthbook = useGrowthBook();
 
   useEffect(() => {
@@ -177,7 +174,7 @@ const LiveQuizGame: FC = () => {
                 onQuizEnd={handleQuizEnd}
                 isLearningPathway={learning_path}
                 isReward={isReward}
-                playSource={playSource}
+                source={source}
               />
             )}
           </div>
@@ -251,7 +248,7 @@ const LiveQuizGame: FC = () => {
                       paramLiveRoomId,
                   );
                 }}
-                playSource={state?.play_source ?? PLAY_SOURCE.LIVE_QUIZ_ROOM}
+                source={state?.source ?? SOURCE.LIVE_QUIZ_ROOM}
               />
             )}
           </div>

@@ -25,7 +25,7 @@ import {
   TeacherAPIResponse,
   SchoolVisitAction,
   SchoolVisitType,
-  PLAY_SOURCE,
+  SOURCE,
   RESULT_STATUS,
 } from '../../common/constants';
 import { AvatarObj } from '../../components/animation/Avatar';
@@ -777,7 +777,7 @@ export interface ServiceApi {
     activities_scores?: string | undefined,
     user_id?: string | undefined,
     status?: RESULT_STATUS | undefined,
-    play_source?: PLAY_SOURCE | undefined,
+    source?: SOURCE | undefined,
   ): Promise<TableTypes<'result'>>;
 
   /**

@@ -3507,7 +3507,7 @@ export type Database = {
           lesson_id: string | null;
           outcome_ability: number | null;
           outcome_id: string | null;
-          play_source: Database['public']['Enums']['play_source'] | null;
+          source: Database['public']['Enums']['source'] | null;
           school_id: string | null;
           score: number | null;
           skill_ability: number | null;
@@ -3540,7 +3540,7 @@ export type Database = {
           lesson_id?: string | null;
           outcome_ability?: number | null;
           outcome_id?: string | null;
-          play_source?: Database['public']['Enums']['play_source'] | null;
+          source?: Database['public']['Enums']['source'] | null;
           school_id?: string | null;
           score?: number | null;
           skill_ability?: number | null;
@@ -3573,7 +3573,7 @@ export type Database = {
           lesson_id?: string | null;
           outcome_ability?: number | null;
           outcome_id?: string | null;
-          play_source?: Database['public']['Enums']['play_source'] | null;
+          source?: Database['public']['Enums']['source'] | null;
           school_id?: string | null;
           score?: number | null;
           skill_ability?: number | null;
@@ -6284,7 +6284,7 @@ export type Database = {
           lesson_id: string | null;
           outcome_ability: number | null;
           outcome_id: string | null;
-          play_source: Database['public']['Enums']['play_source'] | null;
+          source: Database['public']['Enums']['source'] | null;
           school_id: string | null;
           score: number | null;
           skill_ability: number | null;
@@ -7392,7 +7392,7 @@ export type Database = {
           lesson_id: string | null;
           outcome_ability: number | null;
           outcome_id: string | null;
-          play_source: Database['public']['Enums']['play_source'] | null;
+          source: Database['public']['Enums']['source'] | null;
           school_id: string | null;
           score: number | null;
           skill_ability: number | null;
@@ -7842,7 +7842,7 @@ export type Database = {
       ops_request_type: 'student' | 'teacher' | 'principal' | 'school';
       program_model: 'hybrid' | 'at_home' | 'at_school';
       program_type: 'government' | 'private' | 'learning_centers';
-      play_source:
+      source:
         | 'initial_assessment'
         | 'learning_pathway_home_no_pal'
         | 'learning_pathway_home_pal'
@@ -8048,7 +8048,7 @@ export const Constants = {
       ops_request_type: ['student', 'teacher', 'principal', 'school'],
       program_model: ['hybrid', 'at_home', 'at_school'],
       program_type: ['government', 'private', 'learning_centers'],
-      play_source: [
+      source: [
         'initial_assessment',
         'learning_pathway_home_no_pal',
         'learning_pathway_home_pal',
