@@ -19,7 +19,6 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: 16px;
 }
 
 #faq-page {
@@ -40,19 +39,16 @@
 }
 
 #parent-page-profile {
-  --profile-card-gap: clamp(49px, 2vw, 67px);
-  --profile-card-padding-x: clamp(20px, 3.5vw, 60px);
+  --profile-card-gap: clamp(45px, 2vw, 65px);
+  --profile-card-padding-x: clamp(20px, 9vw, 60px);
   --profile-card-padding-top: clamp(16px, 3vh, 40px);
   --profile-card-padding-bottom: clamp(16px, 3vh, 40px);
 
   --profile-card-width: min(
-    clamp(231px, 24vw, 320px),
+    clamp(270px, 28vw, 360px),
     calc(
-      (
-          100vw - (2 * var(--profile-card-padding-x)) -
-            (2 * var(--profile-card-gap))
-        ) /
-        3
+      33.33333vw - var(--profile-card-padding-x) * 2 / 3 -
+        var(--profile-card-gap) * 2 / 3
     )
   );
   --profile-card-size: var(--profile-card-width);
@@ -65,18 +61,18 @@
   gap: var(--profile-card-gap);
 
   width: 100vw;
-  height: calc(100vh - 98px);
-  padding: var(--profile-card-padding-top) var(--profile-card-padding-x)
-    var(--profile-card-padding-bottom);
+  height: 100vh;
+  padding: var(--profile-card-padding-x);
   box-sizing: border-box;
-  max-height: calc(100vh - 98px);
+  max-height: calc(100vh - 75px);
   overflow: hidden !important;
+  overscroll-behavior: none;
   touch-action: none;
 }
 
 @media (max-width: 900px) {
   #parent-page-profile {
-    --profile-card-gap: clamp(48px, 1.7vw, 57px);
+    --profile-card-gap: clamp(45px, 1.5vw, 55px);
     --profile-card-padding-x: clamp(20px, 3vw, 48px);
     --profile-card-padding-top: clamp(14px, 3vw, 34px);
     --profile-card-padding-bottom: clamp(14px, 3vw, 34px);
@@ -85,12 +81,12 @@
 
 @media (max-height: 500px) and (orientation: landscape) {
   #parent-page-profile {
-    --profile-card-gap: clamp(45px, 1.7vw, 65px);
+    --profile-card-gap: clamp(35px, 1.5vw, 65px);
     --profile-card-padding-x: clamp(20px, 5vw, 48px);
     --profile-card-padding-top: clamp(8px, 2vh, 14px);
     --profile-card-padding-bottom: clamp(8px, 2vh, 14px);
 
-    --profile-card-width: min(
+    /* --profile-card-width: min(
       clamp(190px, 24vw, 270px),
       calc(
         (
@@ -99,27 +95,27 @@
           ) /
           3
       )
-    );
+    ); */
     --profile-card-size: var(--profile-card-width);
-    height: calc(100vh - 74px);
+    /* height: calc(100vh - 98px); */
   }
 }
 
 @media (max-width: 680px) {
   #parent-page-profile {
-    --profile-card-gap: clamp(43px, 2vw, 49px);
+    --profile-card-gap: clamp(45px, 1.5vw, 65px);
     --profile-card-padding-x: clamp(10px, 3vw, 20px);
-    --profile-card-width: calc(
+    /* --profile-card-width: calc(
       (
           100vw - (2 * var(--profile-card-padding-x)) -
             (2 * var(--profile-card-gap))
         ) /
         3
-    );
+    ); */
     --profile-card-size: var(--profile-card-width);
     align-items: center;
     flex-wrap: nowrap;
-    height: calc(100vh - 98px);
+    /* height: calc(100vh - 98px); */
     overflow: hidden !important;
   }
 }

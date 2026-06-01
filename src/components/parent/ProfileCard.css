@@ -3,9 +3,9 @@
 
   position: relative;
   width: var(--card-width);
-  height: auto;
+  height: var(--card-width);
   flex: 0 0 var(--card-width);
-  aspect-ratio: 231 / 212;
+  aspect-ratio: 1/0.955;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -19,7 +19,7 @@
 }
 
 #profile-card.profile-card-add-child {
-  box-shadow: none;
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
 }
 
 #profile-card-edit-icon-div {
@@ -63,7 +63,7 @@
 #profile-card-image {
   width: 27.71%;
   min-width: 56px;
-  max-width: 90px;
+  max-width: var(--card-width);
   aspect-ratio: 1;
   border: none;
   border-radius: 50%;
@@ -73,11 +73,11 @@
 #profile-card-user-name {
   display: block;
   max-width: calc(var(--card-width) - 40px);
-  margin: 4px 0 0;
+  margin: clamp(4px, 0.8vh, 46px);
   overflow: hidden;
   color: #182a4f;
   font-family: 'BalooRegular', 'Baloo 2', cursive;
-  font-size: clamp(12px, 1.45vw, 19px);
+  font-size: clamp(14px, 1.75vw, 21px);
   font-weight: 400;
   line-height: normal;
   text-align: center;
@@ -99,7 +99,7 @@
   position: relative;
   width: 27.71%;
   min-width: 56px;
-  max-width: 90px;
+  max-width: var(--card-width);
   aspect-ratio: 1;
   margin: 0 0 6.6%;
   padding: 0;
@@ -135,7 +135,7 @@
   overflow: hidden;
   color: #182a4f;
   font-family: 'BalooRegular', 'Baloo 2', cursive;
-  font-size: clamp(12px, 1.45vw, 19px);
+  font-size: clamp(14px, 1.75vw, 21px);
   font-weight: 400;
   line-height: normal;
   text-align: center;
@@ -158,7 +158,7 @@
   min-width: 78px;
   max-width: 128px;
   aspect-ratio: 92 / 48;
-  height: auto;
+  height: clamp(55px, 5.8vw, 68px);
   padding: 5px 8px;
   box-sizing: border-box;
   border-bottom: 5px solid #300d37;
@@ -167,7 +167,7 @@
   color: #300d37;
   cursor: pointer;
   font-family: 'BalooRegular', 'Baloo 2', cursive;
-  font-size: clamp(13px, 1.55vw, 21px) !important;
+  font-size: clamp(14.5px, 1.55vw, 23px) !important;
   font-style: normal;
   font-weight: 600;
   line-height: normal;
