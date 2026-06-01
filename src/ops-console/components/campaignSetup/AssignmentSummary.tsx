@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Box, Button, Typography } from '@mui/material';
-import { DeleteOutline, ExpandLess, WarningAmber } from '@mui/icons-material';
+import { DeleteOutline, ExpandLess } from '@mui/icons-material';
 import { AssignmentRow, formatDisplayDate } from './campaignAssignmentUtils';
 import './AssignmentSummary.css';
 
@@ -38,7 +38,9 @@ export const AssignmentSummary: React.FC<AssignmentSummaryProps> = ({
       </Typography>
       {insufficientLessons && (
         <Box className="campaign-assignment-warning">
-          <WarningAmber />
+          <span className="campaign-assignment-warning-icon" aria-hidden="true">
+            <span>!</span>
+          </span>
           <Typography>
             The number of lessons ({rows.length}) may not fully cover the
             campaign duration ({campaignDays} days). Consider adding more

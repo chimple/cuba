@@ -1365,6 +1365,11 @@ export const OPS_ROLES = [
   RoleType.FIELD_COORDINATOR,
   RoleType.EXTERNAL_USER,
 ];
+export const CAMPAIGN_ACCESS_ROLES = [
+  RoleType.SUPER_ADMIN,
+  RoleType.OPERATIONAL_DIRECTOR,
+  RoleType.PROGRAM_MANAGER,
+];
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
 export const VERSION_KEY = 'last_native_version';
 export enum SupportLevelMap {

@@ -19,6 +19,7 @@
 .campaign-assignment-subject-header {
   min-height: 3rem;
   border-bottom: 0.0625rem solid var(--campaign-divider);
+  background: #e8f1ff;
   display: flex;
   align-items: center;
   padding: 0 1rem;
@@ -57,9 +58,12 @@
 }
 
 .campaign-assignment-chapter-name {
+  justify-self: start;
+  min-width: 0;
   color: var(--campaign-text);
   font-size: 0.875rem !important;
   font-weight: 700 !important;
+  text-align: left !important;
 }
 
 .campaign-assignment-activity-count {
@@ -125,8 +129,11 @@
 }
 
 .campaign-assignment-lesson-row .MuiTypography-root {
+  justify-self: start;
+  min-width: 0;
   font-size: 0.8125rem;
   line-height: 1rem;
+  text-align: left !important;
 }
 
 .campaign-assignment-lesson-row strong {
@@ -145,12 +152,9 @@
     margin-top: 1rem;
   }
 
-  .campaign-assignment-subject-header {
-    background: #e8f1ff;
-  }
-
   .campaign-assignment-chapter-list {
-    max-height: 18.5rem;
+    max-height: none;
+    overflow: visible;
     padding: 0;
   }
 

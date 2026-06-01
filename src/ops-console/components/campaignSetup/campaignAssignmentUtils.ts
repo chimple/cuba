@@ -106,9 +106,9 @@ const getScheduleDates = (
   startDate: string,
   endDate: string,
   frequency: Frequency,
-  count: number,
+  assignmentCount: number,
 ) => {
-  if (!startDate || !endDate || count === 0) return [];
+  if (!startDate || !endDate || assignmentCount === 0) return [];
 
   const dates: string[] = [];
   const end = parseDate(endDate);
@@ -116,7 +116,7 @@ const getScheduleDates = (
   const increment =
     frequency === 'daily' ? 1 : frequency === 'alternate_days' ? 2 : 7;
 
-  while (cursor <= end && dates.length < count) {
+  while (cursor <= end && dates.length < assignmentCount) {
     while (cursor <= end && isSunday(cursor)) {
       cursor = addDays(cursor, 1);
     }
@@ -125,6 +125,27 @@ const getScheduleDates = (
   }
 
   return dates;
+};
+
+const distributeDatesAcrossAssignments = (
+  dates: string[],
+  assignmentCount: number,
+) => {
+  if (dates.length === 0 || assignmentCount === 0) return [];
+
+  const baseAssignmentsPerDate = Math.floor(assignmentCount / dates.length);
+  const extraAssignments = assignmentCount % dates.length;
+  const distributedDates: string[] = [];
+
+  dates.forEach((date, dateIndex) => {
+    const assignmentCountForDate =
+      baseAssignmentsPerDate + (dateIndex < extraAssignments ? 1 : 0);
+    for (let index = 0; index < assignmentCountForDate; index += 1) {
+      distributedDates.push(date);
+    }
+  });
+
+  return distributedDates;
 };
 
 export const isAlternateWeekEnabled = (startDate: string, endDate: string) => {
@@ -171,6 +192,10 @@ export const buildRows = (
     config.frequency,
     selectedLessons.length,
   );
+  const assignmentDates = distributeDatesAcrossAssignments(
+    chapterDates,
+    selectedLessons.length,
+  );
 
   const rows = selectedLessons
     .map(({ chapter, lesson, subjectName, courseId }, lessonIndex) => ({
@@ -180,7 +205,7 @@ export const buildRows = (
       chapterId: chapter.id,
       lessonId: lesson.id,
       lessonNo: lessonIndex + 1,
-      date: chapterDates[lessonIndex] || form.endDate || form.startDate,
+      date: assignmentDates[lessonIndex] || '',
       lessonName: lesson.name,
       subjectName,
     }))
