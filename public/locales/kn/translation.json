@@ -567,7 +567,7 @@
     "Hindi": "ಹಿಂದಿ",
     "History": "ಇತಿಹಾಸ",
     "home": "ನಿವಾಸ",
-    "Home": "ಮುಖಪುಟ",
+    "Home": "ಮನೆ",
     "Homework": "ಹೋಮ್‌ವರ್ಕ್",
     "House": "ಮನೆ",
     "How are you feeling?": "ನೀವು ಹೇಗಿದ್ದೀರಿ?",
@@ -1557,5 +1557,11 @@
     "Are you sure you want to delete this profile?": "ನೀವು ಈ ಪ್ರೊಫೈಲ್ ಅನ್ನು ಅಳಿಸಲು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?",
     "Choose the below options to manage your kid’s profile.": "ನಿಮ್ಮ ಮಗುವಿನ ಪ್ರೊಫೈಲ್ ಅನ್ನು ನಿರ್ವಹಿಸಲು ಕೆಳಗಿನ ಆಯ್ಕೆಗಳನ್ನು ಆರಿಸಿ.",
     "Confirm you are a Parent": "ನೀವು ಪೋಷಕರಾಗಿದ್ದೀರಿ ಎಂದು ದೃಢೀಕರಿಸಿ",
-    "{{className}} - Select the child's profile": "{{className}} - ಮಗುವಿನ ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ"
+    "{{className}} - Select the child's profile": "{{className}} - ಮಗುವಿನ ಪ್ರೊಫೈಲ್ ಆಯ್ಕೆಮಾಡಿ",
+    "Application": "ಅಪ್ಲಿಕೇಶನ್",
+    "Parent's Language": "ಪೋಷಕರ ಭಾಷೆ",
+    "Account": "ಖಾತೆ",
+    "For Teachers": "ಶಿಕ್ಷಕರಿಗಾಗಿ",
+    "Teachers App": "ಶಿಕ್ಷಕರ ಅಪ್ಲಿಕೇಶನ್",
+    "Submit": "ಸಲ್ಲಿಸಿ"
 }
