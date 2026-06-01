@@ -734,7 +734,11 @@ const Parent: React.FC = () => {
           handleBackButton={handleBackButton}
           customStyle={true}
         />
-        <div className="parent-page-scroll-content">
+        <div
+          className={`parent-page-scroll-content${
+            isLanguageMenuOpen ? ' parent-page-scroll-content--locked' : ''
+          }`}
+        >
           {tabIndex === t('profile') && <div>{profileUI()}</div>}
           {tabIndex === t('settings') && <div>{settingUI()}</div>}
           {tabIndex === t('help') && <div>{helpUI()}</div>}
