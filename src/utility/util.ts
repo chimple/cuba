@@ -30,6 +30,7 @@ import {
   LeaderboardRewardsType,
   unlockedRewardsInfo,
   DOWNLOAD_LESSON_BATCH_SIZE,
+  MAX_DOWNLOAD_LESSON_ATTEMPTS,
   LESSON_DOWNLOAD_SUCCESS_EVENT,
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   CHAPTER_ID_LESSON_ID_MAP,
@@ -450,7 +451,11 @@ export class Util {
         return true;
       }
 
-      logger.warn('Starting download for lessons:', lessons);
+      const downloadStartedAt = Date.now();
+      logger.info('Starting download for lessons:', {
+        count: lessons.length,
+        chapterId: chapterId ?? null,
+      });
       for (let i = 0; i < lessons.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
         const lessonsChunk = lessons.slice(i, i + DOWNLOAD_LESSON_BATCH_SIZE);
         const results = await Promise.all(
@@ -464,14 +469,15 @@ export class Util {
               return false;
             }
 
+            const lessonStartedAt = Date.now();
             try {
               let lessonDownloadSuccess = true;
               const androidPath = await this.getAndroidBundlePath();
-              logger.warn('full lesson object for download:', lesson);
-              logger.warn('lesson version for download:', lesson.version);
+              logger.info('full lesson object for download:', lesson);
+              logger.info('lesson version for download:', lesson.version);
               // 🔥 GET DB VERSION ONCE
               let dbVersion = Number(lesson.version ?? 1);
-              logger.warn(
+              logger.info(
                 `[Version] Using lesson version for ${lessonId}:`,
                 lesson.version,
               );
@@ -487,7 +493,7 @@ export class Util {
 
                 localVersion = await this.getLocalLessonVersion(lessonId);
 
-                logger.warn(
+                logger.info(
                   `[Version] ${lessonId} → Local: ${localVersion}, DB: ${dbVersion}`,
                 );
 
@@ -501,9 +507,9 @@ export class Util {
                   return true;
                 }
 
-                logger.warn(`[Version] ${lessonId} outdated → updating`);
+                logger.info(`[Version] ${lessonId} outdated → updating`);
               } catch {
-                logger.warn(`[Version] ${lessonId} not found → downloading`);
+                logger.info(`[Version] ${lessonId} not found → downloading`);
               }
 
               // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
@@ -539,8 +545,18 @@ export class Util {
                 });
 
               if (!nativeBundleResult?.byteLength) {
+                logger.warn('[LessonDownloader] Native bundle returned empty', {
+                  lessonId,
+                  dbVersion,
+                });
                 return false;
               }
+              logger.info('[LessonDownloader] Native bundle finished', {
+                lessonId,
+                dbVersion,
+                byteLength: nativeBundleResult.byteLength,
+                durationMs: Date.now() - lessonStartedAt,
+              });
 
               // ✅ KEEP ORIGINAL METADATA + EVENTS
               const lessonData = JSON.parse(
@@ -568,6 +584,10 @@ export class Util {
                 `[LessonDownloader] Error processing lesson ${lessonId}:`,
                 err,
               );
+              logger.warn('[LessonDownloader] Download failed metrics', {
+                lessonId,
+                durationMs: Date.now() - lessonStartedAt,
+              });
               return false;
             }
           }),
@@ -594,6 +614,11 @@ export class Util {
         this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
       }
 
+      logger.info('[LessonDownloader] Chapter download complete', {
+        chapterId: chapterId ?? null,
+        lessonCount: lessons.length,
+        durationMs: Date.now() - downloadStartedAt,
+      });
       return true;
     } catch {
       return false;
@@ -921,6 +946,7 @@ export class Util {
       if (!window.cc) {
         return;
       }
+      const cocosLaunchStartedAt = Date.now();
       const settings = window._CCSettings;
       const launchScene = settings.launchScene;
       const bundle = window.cc.assetManager.bundles.find(function (b: {
@@ -950,6 +976,9 @@ export class Util {
                   div.style.backgroundImage = '';
                 }
               }
+              logger.info('[ANRGuard] Cocos launch completed', {
+                durationMs: Date.now() - cocosLaunchStartedAt,
+              });
               resolve(scene);
             } else {
               reject(err);
@@ -971,6 +1000,7 @@ export class Util {
     window.cc.audioEngine.stopAll();
     window.cc.assetManager?.releaseUnusedAssets?.();
     Util.hideCocosCanvas();
+    logger.info('[ANRGuard] Cocos game killed');
   }
 
   public static async getLastPlayedLessonIndex(
@@ -1153,6 +1183,7 @@ export class Util {
     if (!isActive) {
       TextToSpeech.stop();
     }
+    logger.info('[Lifecycle] App state changed', { isActive });
 
     // Handling app state changes (reloading pages, updating URLs, etc.)
     const url = new URL(window.location.toString());

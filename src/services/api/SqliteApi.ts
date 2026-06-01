@@ -137,6 +137,7 @@ export class SqliteApi implements ServiceApi {
   private _syncRequestedAgain: boolean = false;
   private _retryRefreshTables: TABLES[] = [];
   private _postSyncAssetPrefetchScheduled: boolean = false;
+  private _postSyncAssetPrefetchRequestedAt: number | null = null;
 
   private _cachedRewards: TableTypes<'rive_reward'>[] | undefined;
 
@@ -488,14 +489,30 @@ export class SqliteApi implements ServiceApi {
     }
 
     this._postSyncAssetPrefetchScheduled = true;
+    this._postSyncAssetPrefetchRequestedAt = Date.now();
+    logger.warn('[ANRGuard] Scheduled post-sync asset prefetch', {
+      delayMs: 30000,
+      visibilityState: document.visibilityState,
+    });
     window.setTimeout(() => {
       this.runPostSyncAssetPrefetch();
     }, 30000);
   }
 
   private async runPostSyncAssetPrefetch(): Promise<void> {
+    const startedAt = Date.now();
     try {
       if (document.visibilityState !== 'visible') {
+        logger.warn('[ANRGuard] Deferred post-sync prefetch while not visible');
+        window.addEventListener(
+          'visibilitychange',
+          () => {
+            if (document.visibilityState === 'visible') {
+              this.runPostSyncAssetPrefetch();
+            }
+          },
+          { once: true },
+        );
         return;
       }
 
@@ -504,8 +521,17 @@ export class SqliteApi implements ServiceApi {
         window.setTimeout(resolve, 1000);
       });
       await this.prefetchLidoCommonAudioAfterSync();
+      logger.warn('[ANRGuard] Post-sync prefetch completed', {
+        queueDelayMs: this._postSyncAssetPrefetchRequestedAt
+          ? startedAt - this._postSyncAssetPrefetchRequestedAt
+          : null,
+        durationMs: Date.now() - startedAt,
+      });
+    } catch (error) {
+      logger.warn('[ANRGuard] Post-sync prefetch failed', error);
     } finally {
       this._postSyncAssetPrefetchScheduled = false;
+      this._postSyncAssetPrefetchRequestedAt = null;
     }
   }
 
