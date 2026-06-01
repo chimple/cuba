@@ -243,7 +243,7 @@ describe('CampaignSetupPage', () => {
     expect(mockApiHandler.createCampaignAudienceGroup).not.toHaveBeenCalled();
   });
 
-  it('submits setup payload without showing a success toast on next', async () => {
+  it('advances to assignments without saving setup data on next', async () => {
     render(<CampaignSetupPage />);
 
     await screen.findByRole('heading', { name: 'New Campaign' });
@@ -281,22 +281,10 @@ describe('CampaignSetupPage', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
 
-    await waitFor(() =>
-      expect(mockApiHandler.createCampaignSetup).toHaveBeenCalledWith(
-        expect.objectContaining({
-          campaignName: 'ABCD',
-          managerId: 'manager-1',
-          objective: 'homework_campaign',
-          programId: 'program-1',
-          targetType: 'percentage_completion',
-          targetValue: 90,
-          startDate: '2099-05-01',
-          endDate: '2099-05-31',
-          isAllGrades: true,
-          gradeIds: [],
-        }),
-      ),
-    );
+    expect(
+      await screen.findByText('Assignment Configuration'),
+    ).toBeInTheDocument();
+    expect(mockApiHandler.createCampaignSetup).not.toHaveBeenCalled();
     expect(screen.queryByText('Campaign setup saved.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
   });
@@ -326,7 +314,7 @@ describe('CampaignSetupPage', () => {
     expect(
       screen.getByRole('option', { name: 'Physical Rewards' }),
     ).toBeInTheDocument();
-    fireEvent.keyDown(document.activeElement || document.body, {
+    fireEvent.keyDown(screen.getByRole('listbox'), {
       key: 'Escape',
       code: 'Escape',
     });

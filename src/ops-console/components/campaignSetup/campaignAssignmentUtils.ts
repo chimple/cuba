@@ -114,7 +114,7 @@ const getScheduleDates = (
   const end = parseDate(endDate);
   let cursor = parseDate(startDate);
   const increment =
-    frequency === 'daily' ? 1 : frequency === 'alternate_days' ? 2 : 7;
+    frequency === 'daily' ? 1 : frequency === 'alternate_days' ? 2 : 14;
 
   while (cursor <= end && dates.length < assignmentCount) {
     while (cursor <= end && isSunday(cursor)) {
@@ -188,7 +188,7 @@ export const buildRows = (
 
   const selectedLessonRows = selectedLessons
     .map(({ chapter, lesson, subjectName, courseId }, lessonIndex) => ({
-      rowId: `${chapter.id}:${lesson.id}:${lessonIndex}`,
+      rowId: `${chapter.id}:${lesson.id}`,
       gradeId,
       courseId,
       chapterId: chapter.id,

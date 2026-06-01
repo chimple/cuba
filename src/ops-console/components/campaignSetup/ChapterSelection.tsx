@@ -21,7 +21,7 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
   onToggleExpanded,
 }) => {
   const removedLessonIds = new Set(
-    activeConfig.removedRowIds.map((rowId) => rowId.split(':')[1]),
+    activeConfig?.removedRowIds?.map((rowId) => rowId.split(':')[1]) ?? [],
   );
 
   return (

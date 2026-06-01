@@ -2,6 +2,7 @@ import {
   buildAssignmentDrafts,
   buildRows,
   GradeAssignmentConfig,
+  isAlternateWeekEnabled,
 } from './campaignAssignmentUtils';
 import { CampaignAssignmentSubjectOption } from '../../../services/api/ServiceApi';
 import { CampaignSetupFormState } from './types';
@@ -49,6 +50,11 @@ const createForm = (
   }) as CampaignSetupFormState;
 
 describe('campaignAssignmentUtils buildRows', () => {
+  it('enables alternate week only when the selected date range is more than 14 days', () => {
+    expect(isAlternateWeekEnabled('2026-06-01', '2026-06-14')).toBe(false);
+    expect(isAlternateWeekEnabled('2026-06-01', '2026-06-15')).toBe(true);
+  });
+
   it('distributes daily assignments evenly across non-Sunday campaign days', () => {
     const rows = buildRows(
       'grade-1',
@@ -85,11 +91,26 @@ describe('campaignAssignmentUtils buildRows', () => {
     ]);
   });
 
+  it('distributes alternate-week assignments using a 14-day interval', () => {
+    const rows = buildRows(
+      'grade-1',
+      createSubjects(28),
+      createConfig('alternate_week'),
+      createForm('2026-06-01', '2026-06-30'),
+    );
+
+    expect(rows.map((row) => row.date)).toEqual([
+      ...Array(10).fill('2026-06-01'),
+      ...Array(9).fill('2026-06-15'),
+      ...Array(9).fill('2026-06-29'),
+    ]);
+  });
+
   it('redistributes dates after removed lessons are filtered out', () => {
     const rows = buildRows(
       'grade-1',
       createSubjects(28),
-      createConfig('daily', ['numbers-chapter:lesson-1:0']),
+      createConfig('daily', ['numbers-chapter:lesson-1']),
       createForm(),
     );
 

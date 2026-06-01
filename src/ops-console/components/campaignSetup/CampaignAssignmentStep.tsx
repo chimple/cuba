@@ -61,30 +61,6 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   } | null>(null);
 
   useEffect(() => {
-    onActiveGradeChange(
-      selectedGrades.some((grade) => grade.id === activeGradeId)
-        ? activeGradeId
-        : selectedGrades[0]?.id || '',
-    );
-    onConfigsChange((current) => {
-      const next = { ...current };
-      let changed = false;
-      const sharedFrequency =
-        Object.values(current)[0]?.frequency ?? createDefaultConfig().frequency;
-      selectedGrades.forEach((grade) => {
-        if (!next[grade.id]) {
-          changed = true;
-          next[grade.id] = {
-            ...createDefaultConfig(),
-            frequency: sharedFrequency,
-          };
-        }
-      });
-      return changed ? next : current;
-    });
-  }, [activeGradeId, onActiveGradeChange, onConfigsChange, selectedGrades]);
-
-  useEffect(() => {
     let isMounted = true;
     const loadOptions = async () => {
       if (!form.programId || selectedGrades.length === 0) return;

@@ -207,11 +207,7 @@ const CampaignSetupPage: React.FC = () => {
             </Typography>
           )}
           <Button
-            type={
-              campaignSetup.activeStep === 0 && !campaignSetup.createdCampaignId
-                ? 'submit'
-                : 'button'
-            }
+            type={campaignSetup.activeStep === 0 ? 'submit' : 'button'}
             variant="contained"
             endIcon={
               campaignSetup.submitting ? (
@@ -228,13 +224,11 @@ const CampaignSetupPage: React.FC = () => {
                     : true
             }
             onClick={
-              campaignSetup.activeStep === 0 && campaignSetup.createdCampaignId
-                ? () => campaignSetup.setActiveStep(1)
-                : campaignSetup.activeStep === 1
-                  ? () => campaignSetup.setActiveStep(2)
-                  : campaignSetup.activeStep === 2
-                    ? campaignSetup.handleRewardsSubmit
-                    : undefined
+              campaignSetup.activeStep === 1
+                ? () => campaignSetup.setActiveStep(2)
+                : campaignSetup.activeStep === 2
+                  ? campaignSetup.handleRewardsSubmit
+                  : undefined
             }
           >
             Next
