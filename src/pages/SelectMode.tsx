@@ -42,7 +42,6 @@ import { RootState } from '../redux/store';
 import type { ServiceApi } from '../services/api/ServiceApi';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
-import { useDocumentScrollLock } from '../hooks/useDocumentScrollLock';
 import {
   requireTeacherModeAuth,
   TeacherModeAuthResult,
@@ -197,7 +196,6 @@ const SelectMode: FC = () => {
   const [classWindowStartIndex, setClassWindowStartIndex] = useState(0);
   const [isTeacherAuthPopupOpen, setIsTeacherAuthPopupOpen] = useState(false);
   const [isAutoUser, setIsAutoUser] = useState<boolean>(false);
-  useDocumentScrollLock(isTeacherAuthPopupOpen);
   let count = 1;
   const tempSchoolList: SchoolModeOption[] = [];
   useEffect(() => {
@@ -858,12 +856,8 @@ const SelectMode: FC = () => {
   const studentGridClassName = `class-container school-mode-students-grid ${
     currentStudents?.length === 1 ? 'school-mode-students-grid-single' : ''
   } ${currentStudents?.length === 2 ? 'school-mode-students-grid-pair' : ''}`;
-  const selectModePageClassName = `select-mode-page ${
-    isTeacherAuthPopupOpen ? 'select-mode-page-popup-open' : ''
-  }`;
-
   return (
-    <IonPage className={selectModePageClassName}>
+    <IonPage className="select-mode-page">
       {!isLoading && (
         <div>
           <div>

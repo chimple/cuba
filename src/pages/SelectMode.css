@@ -3,19 +3,6 @@
   overflow-x: hidden;
 }
 
-.select-mode-page-popup-open {
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-
-html:has(.select-mode-page-popup-open),
-body:has(.select-mode-page-popup-open),
-ion-app:has(.select-mode-page-popup-open),
-ion-router-outlet:has(.select-mode-page-popup-open) {
-  overflow: hidden;
-  overscroll-behavior: none;
-}
-
 .select-mode-main {
   display: flex;
   flex-direction: column;
