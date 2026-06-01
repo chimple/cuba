@@ -28,11 +28,11 @@ Student override:
 node recommend.ts next <course_id> --student <student_id> --iterations 10 --pattern struggle
 
 Patterns:
-ones
-zeros
-alternate
-struggle
-improving
+ones       all outcomes are correct (1,1,1) → example: 1,1,1,1
+zeros      all outcomes are wrong (0,0,0) → example: 0,0,0,0
+alternate  outcomes alternate correct and wrong (1,0,1,0) → example: 1,0,1,0,1,0
+struggle   outcomes are two wrong, one correct (0,0,1) → example: 0,0,1,0,0,1
+improving  outcomes are one wrong, two correct (0,1,1) → example: 0,1,1,0,1,1,0,1,1
 
 Multiple patterns:
 node recommend.ts next <course_id> --iterations 10 --pattern ones/zeros/alternate
