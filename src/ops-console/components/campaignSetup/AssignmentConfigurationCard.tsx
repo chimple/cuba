@@ -84,7 +84,9 @@ export const AssignmentConfigurationCard: React.FC<
       </Box>
     </Box>
     <Box className="campaign-assignment-timeline">
-      Campaign timeline: <strong>{form.startDate}</strong> to{' '}
+      <span>Campaign timeline:</span>
+      <strong>{form.startDate}</strong>
+      <span>to</span>
       <strong>{form.endDate}</strong>
     </Box>
   </Box>

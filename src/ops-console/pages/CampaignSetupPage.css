@@ -409,8 +409,8 @@
   }
 
   .campaign-setup-actions {
-    position: sticky;
-    bottom: 0;
+    position: static !important;
+    bottom: auto !important;
     min-height: 5.25rem;
     height: auto;
     width: 100%;
@@ -421,6 +421,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 0.625rem;
+    flex-shrink: 0;
   }
 
   .campaign-setup-actions .MuiButton-root {

@@ -158,6 +158,10 @@ const CampaignSetupPage: React.FC = () => {
             campaignId={campaignSetup.createdCampaignId}
             selectedGrades={campaignSetup.selectedGrades}
             selectedSchoolIds={selectedAssignmentSchoolIds}
+            activeGradeId={campaignSetup.activeAssignmentGradeId}
+            configs={campaignSetup.assignmentConfigs}
+            onActiveGradeChange={campaignSetup.setActiveAssignmentGradeId}
+            onConfigsChange={campaignSetup.setAssignmentConfigs}
             onCompletionChange={handleAssignmentCompletionChange}
             onAssignmentsChange={campaignSetup.handleAssignmentDraftsChange}
           />

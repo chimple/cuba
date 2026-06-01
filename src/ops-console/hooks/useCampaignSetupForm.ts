@@ -9,7 +9,10 @@ import {
 } from '../../services/api/ServiceApi';
 import logger from '../../utility/logger';
 import { CampaignSetupFormState } from '../components/CampaignSetupSections';
-import { CampaignAssignmentDraft } from '../components/campaignSetup/campaignAssignmentUtils';
+import {
+  CampaignAssignmentDraft,
+  GradeAssignmentConfig,
+} from '../components/campaignSetup/campaignAssignmentUtils';
 import {
   buildCampaignAudiencePayload,
   buildSavedGroupNameSet,
@@ -61,6 +64,10 @@ export const useCampaignSetupForm = () => {
   const [assignmentDrafts, setAssignmentDrafts] = useState<
     CampaignAssignmentDraft[]
   >([]);
+  const [assignmentConfigs, setAssignmentConfigs] = useState<
+    Record<string, GradeAssignmentConfig>
+  >({});
+  const [activeAssignmentGradeId, setActiveAssignmentGradeId] = useState('');
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [rewardSubmitAttempted, setRewardSubmitAttempted] = useState(false);
   const [message, setMessage] = useState<CampaignSetupMessage>(null);
@@ -315,7 +322,9 @@ export const useCampaignSetupForm = () => {
 
   return {
     activeStep,
+    activeAssignmentGradeId,
     areRewardsValid,
+    assignmentConfigs,
     assignmentDrafts,
     campaignRewards,
     createdCampaignId,
@@ -337,6 +346,8 @@ export const useCampaignSetupForm = () => {
     savingGroup,
     setForm,
     setActiveStep,
+    setActiveAssignmentGradeId,
+    setAssignmentConfigs,
     setSaveGroup,
     submitting,
     updateForm,
