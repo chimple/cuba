@@ -131,7 +131,19 @@ type LessonBundlePlugin = {
   ) => Promise<LessonBundleDownloadResult>;
 };
 
-const lessonBundlePlugin = registerPlugin<LessonBundlePlugin>('LessonBundle');
+let lessonBundlePluginInstance: LessonBundlePlugin | null = null;
+
+const getLessonBundlePlugin = (): LessonBundlePlugin | null => {
+  if (lessonBundlePluginInstance) {
+    return lessonBundlePluginInstance;
+  }
+  if (typeof registerPlugin !== 'function') {
+    return null;
+  }
+  lessonBundlePluginInstance =
+    registerPlugin<LessonBundlePlugin>('LessonBundle');
+  return lessonBundlePluginInstance;
+};
 
 declare global {
   interface Window {
@@ -534,6 +546,15 @@ export class Util {
 
               if (!bundleZipUrls || bundleZipUrls.length < 1) {
                 logger.error('[LessonDownloader] No remote ZIP URLs found');
+                return false;
+              }
+
+              const lessonBundlePlugin = getLessonBundlePlugin();
+              if (!lessonBundlePlugin) {
+                logger.warn(
+                  '[LessonDownloader] LessonBundle plugin unavailable',
+                  { lessonId },
+                );
                 return false;
               }
 
