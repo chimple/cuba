@@ -1,4 +1,5 @@
 import { useFeatureValue } from '@growthbook/growthbook-react';
+import CloseIcon from '@mui/icons-material/Close';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHistory, useLocation } from 'react-router';
@@ -7,6 +8,7 @@ import { PAGES, TC_HTML_URL } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
 import {
   buildTermsUrl,
+  getCurrentTermsAppMode,
   getEnglishTermsUrl,
   getTermsLanguageCode,
   resolveTermsBaseUrl,
@@ -33,6 +35,7 @@ const TermsAndConditions: React.FC = () => {
   const { t } = useTranslation();
   const tcHtmlUrlFeature = useFeatureValue<string>(TC_HTML_URL, '');
   const [iframeSrc, setIframeSrc] = useState(LEGACY_TERMS_URL);
+  const appMode = getCurrentTermsAppMode();
 
   const redirectTarget = location.state?.from || PAGES.SELECT_MODE;
   const returnLocation = location.state?.returnLocation;
@@ -94,11 +97,26 @@ const TermsAndConditions: React.FC = () => {
       <div className="terms-and-conditions-header">
         <button
           type="button"
-          className="terms-and-conditions-close-button"
+          className={`terms-and-conditions-close-button ${
+            appMode === 'ops' ? 'terms-and-conditions-close-button--ops' : ''
+          }`}
           onClick={handleClose}
           aria-label={String(t('Close'))}
         >
-          <img src={CLOSE_ICON_SRC} alt="" aria-hidden="true" />
+          {appMode === 'ops' ? (
+            <CloseIcon aria-hidden="true" />
+          ) : (
+            <img
+              src={CLOSE_ICON_SRC}
+              alt=""
+              aria-hidden="true"
+              style={
+                appMode === 'teacher'
+                  ? { filter: 'brightness(0) saturate(100%)' }
+                  : undefined
+              }
+            />
+          )}
         </button>
       </div>
 
@@ -109,7 +127,7 @@ const TermsAndConditions: React.FC = () => {
           title="Terms and Conditions"
           allowFullScreen={true}
           onError={handleIframeError}
-          style={{ height: '80vh', width: '100%', border: 'none' }}
+          style={{ width: '100%', border: 'none' }}
         />
       </div>
     </div>

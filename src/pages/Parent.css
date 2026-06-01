@@ -459,7 +459,7 @@
 
 .parent-settings-language-menu {
   position: absolute;
-  top: calc(100% + 10px);
+  top: calc(100% + 3px);
   left: 0;
   z-index: 20;
   width: 100%;
@@ -505,7 +505,7 @@
   gap: 34px;
   margin-left: auto;
   padding-top: 2px;
-  min-width: 190px;
+  min-width: 140px;
   align-items: stretch;
 }
 
@@ -527,10 +527,10 @@
 
 .parent-settings-toggle-row {
   display: grid;
-  grid-template-columns: minmax(70px, auto) 48px minmax(55px, auto);
+  grid-template-columns: minmax(40px, auto) 48px minmax(40px, auto);
   align-items: center;
   justify-content: center;
-  column-gap: 8px;
+  column-gap: clamp(2px, 0.5vw, 5px);
 }
 
 .parent-settings-toggle-state {
@@ -656,7 +656,7 @@
   border-bottom: 5px solid #300d37;
   background: #c094ef;
   color: #311237;
-  font-size: clamp(16px, 1.2rem, 18px);
+  font-size: clamp(16px, 1.2rem, 17px);
   font-weight: 600;
   font-style: normal;
   line-height: 24px; /* 150% */
@@ -690,6 +690,155 @@
   height: 18px;
   display: block;
   flex-shrink: 0;
+}
+
+@media (min-width: 1200px) and (min-height: 700px) and (orientation: landscape) {
+  .parent-settings-layout {
+    width: min(94vw, 1460px);
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .parent-settings-top-grid {
+    grid-template-columns: minmax(0, 1.6fr) minmax(380px, 1fr);
+    gap: 24px;
+  }
+
+  .parent-settings-card {
+    border-radius: 28px;
+  }
+
+  .parent-settings-application-card {
+    min-height: clamp(290px, 43vh, 380px);
+    padding: 30px 32px 34px;
+  }
+
+  .parent-settings-teachers-card {
+    min-height: clamp(290px, 43vh, 380px);
+    padding: 30px 28px 24px;
+  }
+
+  .parent-settings-account-card {
+    min-height: clamp(190px, 27vh, 260px);
+    padding: 28px 32px 30px;
+  }
+
+  .parent-settings-card-title {
+    font-size: 20px;
+  }
+
+  .parent-settings-application-content {
+    gap: 38px;
+    margin-top: 24px;
+  }
+
+  .parent-settings-language-block {
+    max-width: 340px;
+  }
+
+  .parent-settings-field-label {
+    margin-bottom: 14px;
+    font-size: 18px;
+  }
+
+  .parent-settings-language-dropdown {
+    max-width: 280px;
+  }
+
+  .parent-settings-language-trigger {
+    min-height: 68px;
+    border-radius: 12px;
+    padding: 0 18px 0 20px;
+  }
+
+  .parent-settings-language-menu {
+    top: calc(100% + 6px);
+    max-height: 340px;
+    border-radius: 12px;
+  }
+
+  .parent-settings-language-trigger-label,
+  .parent-settings-language-option {
+    font-size: 30px;
+  }
+
+  .parent-settings-language-option {
+    min-height: 54px;
+    padding: 0 18px;
+  }
+
+  .parent-settings-toggle-column {
+    min-width: 190px;
+    gap: 44px;
+    padding-top: 6px;
+  }
+
+  .parent-settings-toggle-title,
+  .parent-settings-toggle-state {
+    font-size: 18px;
+  }
+
+  .parent-settings-toggle-row {
+    grid-template-columns: minmax(48px, auto) 64px minmax(48px, auto);
+    column-gap: 12px;
+  }
+
+  .parent-settings-switch {
+    width: 64px;
+    height: 34px;
+  }
+
+  .parent-settings-switch-thumb {
+    top: 2px;
+    left: 2px;
+    width: 30px;
+    height: 30px;
+  }
+
+  .parent-settings-switch.is-on .parent-settings-switch-thumb {
+    transform: translateX(30px);
+  }
+
+  .parent-settings-teachers-button {
+    width: min(100%, 380px);
+    max-width: 72%;
+    min-height: 70px;
+    padding: 12px 24px 14px;
+    font-size: 20px;
+  }
+
+  .parent-settings-teachers-button-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .parent-settings-account-actions {
+    justify-content: center;
+    gap: 28px;
+    margin-top: 26px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .parent-settings-account-button {
+    min-height: 64px;
+    padding: 10px 24px 12px;
+    font-size: 20px;
+  }
+
+  .parent-settings-account-button--terms {
+    width: min(100%, 324px);
+  }
+
+  .parent-settings-account-button--signout,
+  .parent-settings-account-button--delete {
+    width: min(100%, 236px);
+  }
+
+  .parent-settings-account-button-icon {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 @media (max-width: 900px) and (orientation: portrait) {

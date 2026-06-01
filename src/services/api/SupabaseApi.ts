@@ -2000,19 +2000,11 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async updateTcAccept(userId: string) {
-    return this.updateTcAgreedVersion(userId, 1);
-  }
-
-  async updateTcAgreedVersion(userId: string, version: number) {
     if (!this.supabase) return;
     try {
       const { error } = await this.supabase
         .from('user')
-        .update({
-          is_tc_accepted: true,
-          tc_agreed_version: version,
-          updated_at: new Date().toISOString(),
-        })
+        .update({ is_tc_accepted: true })
         .eq('id', userId);
 
       if (error) {
@@ -2022,12 +2014,34 @@ export class SupabaseApi implements ServiceApi {
       const auth = ServiceConfig.getI().authHandler;
       const currentUser = await auth.getCurrentUser();
       if (currentUser) {
-        currentUser.is_tc_accepted = true;
-        currentUser.tc_agreed_version = version;
-        auth.currentUser = currentUser;
+        auth.currentUser = {
+          ...currentUser,
+          is_tc_accepted: true,
+        };
       }
     } catch (error) {
       logger.error('Error updating T&C acceptance:', error);
+      throw error;
+    }
+  }
+
+  async updateTcAgreedVersion(userId: string, version: number) {
+    if (!this.supabase) return;
+    try {
+      const { error } = await this.supabase
+        .from('user')
+        .update({
+          tc_agreed_version: version,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+
+      if (error) {
+        throw new Error(`Failed to update T&C acceptance: ${error.message}`);
+      }
+    } catch (error) {
+      logger.error('Error updating T&C acceptance:', error);
+      throw error;
     }
   }
   async getLanguageWithId(

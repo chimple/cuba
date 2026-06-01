@@ -2250,32 +2250,40 @@ export class SqliteApi implements ServiceApi {
     });
   }
   async updateTcAccept(userId: string) {
-    return this.updateTcAgreedVersion(userId, 1);
-  }
-
-  async updateTcAgreedVersion(userId: string, version: number) {
     const query = `
     UPDATE "user"
-    SET is_tc_accepted = 1,
-        tc_agreed_version = ${version},
-        updated_at = "${new Date().toISOString()}"
+    SET is_tc_accepted = 1
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
     logger.info(
-      '🚀 ~ SqliteApi ~ updateTcAgreedVersion ~ res:',
+      '🚀 ~ SqliteApi ~ updateTcAccept ~ res:',
       res,
       ServiceConfig.getI().authHandler.currentUser,
     );
     const auth = ServiceConfig.getI().authHandler;
     const currentUser = await auth.getCurrentUser();
     if (currentUser) {
-      currentUser.is_tc_accepted = true;
-      currentUser.tc_agreed_version = version;
-      auth.currentUser = currentUser;
+      auth.currentUser = {
+        ...currentUser,
+        is_tc_accepted: true,
+      };
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       is_tc_accepted: 1,
+      id: userId,
+    });
+  }
+
+  async updateTcAgreedVersion(userId: string, version: number) {
+    const query = `
+    UPDATE "user"
+    SET tc_agreed_version = ${version},
+        updated_at = "${new Date().toISOString()}"
+    WHERE id = "${userId}";
+  `;
+    const res = await this.executeQuery(query);
+    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       tc_agreed_version: version,
       id: userId,
     });

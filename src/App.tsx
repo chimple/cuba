@@ -139,6 +139,7 @@ import CreateSchool from './teachers-module/pages/CreateSchool';
 import ScanRedirect from './teachers-module/components/homePage/assignment/ScanRedirect';
 import GenericPopup from './components/GenericPopUp/GenericPopUp';
 import PopupManager from './components/GenericPopUp/GenericPopUpManager';
+import TermsGate from './components/termsandconditons/TermsGate';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { setCachedGrowthBookFeatureValue } from './growthbook/Growthbook';
 import { HardwareBackButtonHandler } from './common/backButtonRegistry';
@@ -559,6 +560,7 @@ const App: React.FC = () => {
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
         <OpsConsoleRouteWatcher />
+        <TermsGate />
         <HardwareBackButtonHandler
           popupDataRef={popupDataRef}
           setPopupData={setPopupData}
