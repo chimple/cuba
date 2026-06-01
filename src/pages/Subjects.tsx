@@ -122,7 +122,10 @@ const Subjects: React.FC<{}> = ({}) => {
 
     const currMode = await schoolUtil.getCurrMode();
 
-    setUserMode(((currMode === MODES.PARENT) == true && !linkedData) ?? true);
+    const canAddSubject =
+      (currMode === MODES.PARENT && !linkedData) ||
+      currMode === MODES.TEACHER_HOME;
+    setUserMode(canAddSubject);
 
     const courses = await (!!currClass
       ? api.getCoursesForClassStudent(currClass.id)

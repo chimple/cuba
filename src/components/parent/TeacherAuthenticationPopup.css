@@ -9,6 +9,7 @@
   padding: clamp(8px, 2vmin, 20px);
   background: rgba(0, 0, 0, 0.5);
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .teacher-authentication-popup {
@@ -26,6 +27,7 @@
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
   padding: clamp(18px, 3vmin, 30px);
   overflow: auto;
+  overscroll-behavior: contain;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -169,7 +171,7 @@
 
 .teacher-authentication-popup-submit-button {
   width: 153px;
-  height: 48px;
+  height: 53px;
   border: 0;
   border-bottom: 5px solid #8a2901;
   border-radius: 10px;
