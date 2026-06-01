@@ -138,7 +138,8 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
           !!config &&
           config.subjectIds.length > 0 &&
           config.chapterIds.length > 0 &&
-          (rowsByGrade.get(grade.id)?.length ?? 0) > 0
+          (rowsByGrade.get(grade.id)?.length ?? 0) > 0 &&
+          (rowsByGrade.get(grade.id) ?? []).every((row) => row.date)
         );
       }),
     [configs, rowsByGrade, selectedGrades],
@@ -237,7 +238,7 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
 
   if (loading) {
     return (
-      <Box className="campaign-assignment-loading">
+      <Box className="campaign-assignment-step-loading">
         <CircularProgress />
       </Box>
     );
@@ -246,7 +247,7 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   return (
     <Box className="campaign-assignment-step">
       {selectedGrades.length > 1 && (
-        <Box className="campaign-assignment-helper">
+        <Box className="campaign-assignment-step-helper">
           <InfoOutlined />
           <Typography>
             Assignments should be configured for all selected grades. The
@@ -255,13 +256,15 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
         </Box>
       )}
 
-      <Box className="campaign-assignment-tabs" role="tablist">
+      <Box className="campaign-assignment-step-tabs" role="tablist">
         {selectedGrades.map((grade) => (
           <button
             type="button"
             key={grade.id}
-            className={`campaign-assignment-tab ${
-              activeGradeId === grade.id ? 'campaign-assignment-tab-active' : ''
+            className={`campaign-assignment-step-tab ${
+              activeGradeId === grade.id
+                ? 'campaign-assignment-step-tab-active'
+                : ''
             }`}
             onClick={() => onActiveGradeChange(grade.id)}
           >

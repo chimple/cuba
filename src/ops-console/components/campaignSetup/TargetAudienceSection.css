@@ -1,4 +1,4 @@
-.campaign-setup-audience-grid {
+.target-audience-section-grid {
   width: min(30.8125rem, 100%);
   max-width: 100%;
   display: flex;
@@ -7,7 +7,7 @@
   margin-top: 1.4375rem;
 }
 
-.campaign-setup-field-note {
+.target-audience-section-field-note {
   color: var(--campaign-muted);
   font-size: 0.8125rem !important;
   line-height: 1rem !important;
@@ -15,7 +15,7 @@
   text-align: left !important;
 }
 
-.campaign-setup-audience-summary {
+.target-audience-section-summary {
   width: min(58.5rem, calc(100vw - 6rem));
   min-height: 2.25rem;
   border: 0.0625rem solid var(--campaign-divider);
@@ -35,15 +35,15 @@
   white-space: nowrap;
 }
 
-.campaign-setup-audience-summary strong {
+.target-audience-section-summary strong {
   font-weight: 700;
 }
 
-.campaign-setup-audience-summary span {
+.target-audience-section-summary span {
   flex: 0 0 auto;
 }
 
-.campaign-setup-audience-summary span:first-child strong {
+.target-audience-section-summary span:first-child strong {
   display: inline-block;
   max-width: 5.75rem;
   overflow: hidden;
@@ -51,29 +51,29 @@
   vertical-align: bottom;
 }
 
-.campaign-setup-summary-dot {
+.target-audience-section-summary-dot {
   color: var(--campaign-muted);
 }
 
-.campaign-setup-save-group {
+.target-audience-section-save-group {
   margin-top: 1.1875rem;
 }
 
-.campaign-setup-save-group .MuiFormControlLabel-label {
+.target-audience-section-save-group .MuiFormControlLabel-label {
   color: var(--campaign-muted);
   font-size: 0.8125rem;
   line-height: 1rem;
 }
 
-.campaign-setup-save-group .MuiCheckbox-root {
+.target-audience-section-save-group .MuiCheckbox-root {
   color: #1991eb;
 }
 
-.campaign-setup-save-group .MuiCheckbox-root.Mui-checked {
+.target-audience-section-save-group .MuiCheckbox-root.Mui-checked {
   color: #1991eb;
 }
 
-.campaign-setup-save-group-fields {
+.target-audience-section-save-group-fields {
   display: grid;
   grid-template-columns: minmax(13.75rem, 22.875rem) 5rem 5.3125rem;
   align-items: end;
@@ -84,11 +84,11 @@
   max-width: 36.9375rem;
 }
 
-.campaign-setup-save-group-fields .campaign-setup-field {
+.target-audience-section-save-group-fields .campaign-setup-field {
   gap: 0.5rem;
 }
 
-.campaign-setup-text-button {
+.target-audience-section-text-button {
   height: 2.8125rem;
   min-width: 0 !important;
   padding: 0.625rem 0.9375rem !important;
@@ -99,44 +99,44 @@
   font-weight: 600 !important;
 }
 
-.campaign-setup-save-button {
+.target-audience-section-save-button {
   color: #1a71f6 !important;
 }
 
-.campaign-setup-cancel-button {
+.target-audience-section-cancel-button {
   color: #e93445 !important;
 }
 
 @media (max-width: 56.25rem) {
-  .campaign-setup-save-group-fields {
+  .target-audience-section-save-group-fields {
     grid-template-columns: 1fr auto auto;
     gap: 0.75rem;
   }
 
-  .campaign-setup-audience-summary {
+  .target-audience-section-summary {
     width: 100%;
   }
 }
 
 @media (max-width: 48rem) {
-  .campaign-setup-audience-grid {
+  .target-audience-section-grid {
     width: 100%;
     gap: 1.1875rem;
   }
 
-  .campaign-setup-audience-flow-copy {
+  .target-audience-section-flow-copy {
     display: block;
     white-space: nowrap;
   }
 
-  .campaign-setup-field-note {
+  .target-audience-section-field-note {
     color: #000000;
     font-size: 0.6875rem !important;
     line-height: 0.8125rem !important;
     margin-top: 0.125rem !important;
   }
 
-  .campaign-setup-audience-summary {
+  .target-audience-section-summary {
     min-height: 2.75rem;
     border-radius: 0.5rem;
     padding: 0.625rem 0.6875rem;
@@ -145,11 +145,11 @@
     gap: 0.4375rem;
   }
 
-  .campaign-setup-audience-summary span:first-child strong {
+  .target-audience-section-summary span:first-child strong {
     max-width: 9.375rem;
   }
 
-  .campaign-setup-save-group-fields {
+  .target-audience-section-save-group-fields {
     grid-template-columns: 1fr 1fr;
     align-items: stretch;
     column-gap: 0.75rem;
@@ -157,21 +157,21 @@
     max-width: none;
   }
 
-  .campaign-setup-save-group-fields .campaign-setup-field {
+  .target-audience-section-save-group-fields .campaign-setup-field {
     grid-column: 1 / -1;
   }
 
-  .campaign-setup-text-button {
+  .target-audience-section-text-button {
     height: 2.5rem;
     border-radius: 0.5rem !important;
   }
 
-  .campaign-setup-save-button {
+  .target-audience-section-save-button {
     color: #ffffff !important;
     background: var(--campaign-mobile-blue) !important;
   }
 
-  .campaign-setup-cancel-button {
+  .target-audience-section-cancel-button {
     color: #e24b4a !important;
     border: 0.0625rem solid #e24b4a !important;
   }

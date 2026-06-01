@@ -33,11 +33,11 @@ export const AssignmentConfigurationCard: React.FC<
   onSubjectsChange,
   onFrequencyChange,
 }) => (
-  <Box className="campaign-assignment-card">
+  <Box className="assignment-configuration-card">
     <Typography variant="h6" className="campaign-setup-section-title">
       Assignment Configuration — {gradeName || 'Grade'}
     </Typography>
-    <Box className="campaign-assignment-config-grid">
+    <Box className="assignment-configuration-card-grid">
       <Box className="campaign-setup-field">
         <Typography className="campaign-setup-label">
           Subject<span className="campaign-setup-required">*</span>
@@ -83,7 +83,7 @@ export const AssignmentConfigurationCard: React.FC<
         </FormControl>
       </Box>
     </Box>
-    <Box className="campaign-assignment-timeline">
+    <Box className="assignment-configuration-card-timeline">
       <span>Campaign timeline:</span>
       <strong>{form.startDate}</strong>
       <span>to</span>

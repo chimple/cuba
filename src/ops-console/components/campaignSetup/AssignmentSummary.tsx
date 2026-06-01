@@ -32,13 +32,13 @@ export const AssignmentSummary: React.FC<AssignmentSummaryProps> = ({
   if (rows.length === 0) return null;
 
   return (
-    <Box className="campaign-assignment-summary">
+    <Box className="assignment-summary">
       <Typography variant="h6" className="campaign-setup-section-title">
         Assignment Summary ({rows.length} assignments)
       </Typography>
       {insufficientLessons && (
-        <Box className="campaign-assignment-warning">
-          <span className="campaign-assignment-warning-icon" aria-hidden="true">
+        <Box className="assignment-summary-warning">
+          <span className="assignment-summary-warning-icon" aria-hidden="true">
             <span>!</span>
           </span>
           <Typography>
@@ -51,22 +51,22 @@ export const AssignmentSummary: React.FC<AssignmentSummaryProps> = ({
 
       {groupedRows.map(({ subjectName, subjectRows }) => {
         return (
-          <Box key={subjectName} className="campaign-assignment-summary-box">
-            <Box className="campaign-assignment-summary-subject">
+          <Box key={subjectName} className="assignment-summary-box">
+            <Box className="assignment-summary-subject">
               <ExpandLess />
               <Typography>{subjectName}</Typography>
               <span>({subjectRows.length} assignments)</span>
             </Box>
-            <Box className="campaign-assignment-table">
-              <Box className="campaign-assignment-table-row campaign-assignment-table-head">
+            <Box className="assignment-summary-table">
+              <Box className="assignment-summary-table-row assignment-summary-table-head">
                 <span>Lesson #</span>
                 <span>Date</span>
                 <span>Lesson Name</span>
                 <span />
               </Box>
               {subjectRows.map((row) => (
-                <Box key={row.rowId} className="campaign-assignment-table-row">
-                  <span className="campaign-assignment-lesson-number">
+                <Box key={row.rowId} className="assignment-summary-table-row">
+                  <span className="assignment-summary-lesson-number">
                     <i>{row.lessonNo}</i> Lesson {row.lessonNo}
                   </span>
                   <span style={{ fontWeight: 400 }}>
@@ -75,7 +75,7 @@ export const AssignmentSummary: React.FC<AssignmentSummaryProps> = ({
                   <span>{row.lessonName}</span>
                   <Button
                     type="button"
-                    className="campaign-assignment-delete"
+                    className="assignment-summary-delete"
                     onClick={() => onRemoveLesson(row.rowId)}
                   >
                     <DeleteOutline />

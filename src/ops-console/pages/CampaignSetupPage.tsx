@@ -201,7 +201,7 @@ const CampaignSetupPage: React.FC = () => {
             </Button>
           )}
           {campaignSetup.activeStep === 1 && !isAssignmentComplete && (
-            <Typography className="campaign-assignment-cta-error">
+            <Typography className="campaign-setup-page-assignment-cta-error">
               Please complete the assignment setup for all selected grades
               before proceeding.
             </Typography>
