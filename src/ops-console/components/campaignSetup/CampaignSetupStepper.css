@@ -93,7 +93,8 @@
   }
 
   .campaign-setup-stepper + .campaign-setup-section,
-  .campaign-setup-stepper + .campaign-assignment-step {
+  .campaign-setup-stepper + .campaign-assignment-step,
+  .campaign-setup-stepper + .rewards-config-section {
     margin-top: 2.875rem;
   }
 

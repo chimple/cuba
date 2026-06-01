@@ -287,6 +287,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    overflow-x: hidden;
     padding: 0 1rem 1rem;
   }
 
@@ -309,12 +310,22 @@
 
   .campaign-setup-form {
     flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
     min-height: 0;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    overflow-x: hidden;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .campaign-setup-form > * {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .campaign-setup-header > div {
@@ -402,8 +413,9 @@
     bottom: 0;
     min-height: 5.25rem;
     height: auto;
-    margin: 0 -1rem;
-    padding: 0.75rem 1rem 1.5rem;
+    width: 100%;
+    margin: 0;
+    padding: 0.75rem 0 1.5rem;
     border-top: none;
     flex-direction: row;
     flex-wrap: wrap;

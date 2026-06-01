@@ -1,6 +1,9 @@
 .rewards-config-section {
   border-bottom: 0.0625rem solid var(--campaign-divider);
   padding: 1.8125rem 0.4375rem 2.9375rem var(--campaign-section-left);
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .rewards-config-title {
@@ -36,6 +39,10 @@
   text-align: left !important;
 }
 
+.rewards-config-select-placeholder {
+  color: var(--campaign-placeholder);
+}
+
 .rewards-config-table {
   width: min(51rem, 100%);
   border: 0.0625rem solid var(--campaign-divider);
@@ -43,6 +50,9 @@
   overflow: hidden;
   margin-top: 2rem;
   background: #ffffff;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .rewards-config-row {
@@ -74,6 +84,11 @@
   font-size: 0.8125rem !important;
   font-weight: 700 !important;
   line-height: 1rem !important;
+  text-align: left !important;
+}
+
+.rewards-config-head .MuiTypography-root {
+  justify-self: start;
 }
 
 .rewards-config-rank-badge {
@@ -89,7 +104,8 @@
 }
 
 .rewards-config-rank {
-  display: block;
+  display: flex;
+  align-items: center;
 }
 
 .rewards-config-rank .rewards-config-rank-badge {
@@ -110,6 +126,9 @@
 
 .rewards-config-row:not(.rewards-config-head) .rewards-config-rank {
   font-size: 0.8125rem !important;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
 }
 
 .rewards-config-row:not(.rewards-config-head)
@@ -175,12 +194,13 @@
 
 @media (max-width: 48rem) {
   .rewards-config-section {
-    padding: 1rem 0 1.25rem;
+    padding: 1rem 0 6rem;
+    overflow-x: hidden;
   }
 
   .rewards-config-title {
     font-size: 0.9375rem !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
     line-height: 1.125rem !important;
   }
 
@@ -202,6 +222,9 @@
   .rewards-config-note,
   .rewards-config-preview {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
   .rewards-config-table {
@@ -216,6 +239,8 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     min-height: 0;
     padding: 0;
     border: 0.0625rem solid var(--campaign-divider);
@@ -279,6 +304,8 @@
 
   .rewards-config-field-cell {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     padding: 0.625rem 0.75rem 0;
     box-sizing: border-box;
   }

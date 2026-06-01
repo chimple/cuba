@@ -15,6 +15,9 @@ import './RewardsConfigurationSection.css';
 
 type TranslationValues = Record<string, string | number>;
 
+const PERCENTAGE_PLACEHOLDER_VALUES = [90, 70, 50];
+const LESSON_COUNT_PLACEHOLDER_VALUE = 10;
+
 const getSummaryRange = (
   currentValue: number,
   previousValue: number | undefined,
@@ -34,6 +37,8 @@ export const RewardsConfigurationSection: React.FC<
   const { t } = useTranslation();
   const translate = (key: string, options?: TranslationValues) =>
     String(options ? t(key, options) : t(key));
+  const examplePlaceholder = (value: number) =>
+    `${translate('e.g.,')} ${value}`;
   const translateDynamic = (
     key: string,
     options: TranslationValues,
@@ -84,6 +89,19 @@ export const RewardsConfigurationSection: React.FC<
             value={form.rewardType}
             onChange={onSelectChange('rewardType')}
             displayEmpty
+            renderValue={(selected) =>
+              selected ? (
+                translate(
+                  REWARD_TYPE_OPTIONS.find(
+                    (option) => option.value === selected,
+                  )?.label ?? String(selected),
+                )
+              ) : (
+                <span className="rewards-config-select-placeholder">
+                  {t('Select Reward Type')}
+                </span>
+              )
+            }
             size="small"
           >
             <MenuItem value="" disabled>
@@ -131,8 +149,8 @@ export const RewardsConfigurationSection: React.FC<
                 helperText={fieldError(`rewardRanks.${index}.criteriaValue`)}
                 placeholder={
                   usesLessonCount
-                    ? translate('e.g., 10')
-                    : translate('e.g., 90')
+                    ? examplePlaceholder(LESSON_COUNT_PLACEHOLDER_VALUE)
+                    : examplePlaceholder(PERCENTAGE_PLACEHOLDER_VALUES[index])
                 }
                 inputProps={{
                   inputMode: 'numeric',
