@@ -15,6 +15,7 @@ import {
   LIDO_ASSESSMENT,
   LIVE_QUIZ,
   PAGES,
+  SOURCE,
   TableTypes,
 } from '../../common/constants';
 import { Util } from '../../utility/util';
@@ -130,6 +131,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         selectedLesson: selectedLessonMap,
         from: history.location.pathname + `?${CONTINUE}=true`,
         returnState: lessonDetailsReturnState,
+        source: SOURCE.TEACHER_MODE,
       });
     } else if (lesson.plugin_type === COCOS) {
       const courseId = getCourseIdFromCocosLesson(
@@ -150,6 +152,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         selectedLesson: selectedLessonMap,
         from: history.location.pathname + `?${CONTINUE}=true`,
         returnState: lessonDetailsReturnState,
+        source: SOURCE.TEACHER_MODE,
       });
     } else if (
       // !!assignment?.id &&
@@ -178,6 +181,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
           selectedLesson: selectedLessonMap,
           from: history.location.pathname + `?${CONTINUE}=true`,
           returnState: lessonDetailsReturnState,
+          source: SOURCE.TEACHER_MODE,
         },
       );
     }

@@ -46,6 +46,7 @@ import {
   DEFAULT_LOCALE_ID,
   SCHOOL,
   CLASS,
+  SOURCE,
   RESULT_STATUS,
   LIDO_ASSESSMENT,
   LATEST_LEARNING_PATH,
@@ -2695,6 +2696,7 @@ export class SqliteApi implements ServiceApi {
     activities_scores?: string | undefined,
     user_id?: string | undefined,
     status?: RESULT_STATUS | null,
+    source?: SOURCE | null,
   ): Promise<TableTypes<'result'>> {
     let resultId = uuidv4();
     let isDuplicate = true;
@@ -2740,11 +2742,12 @@ export class SqliteApi implements ServiceApi {
       activities_scores: activities_scores ?? null,
       user_id: user_id ?? null,
       status: status ?? null,
+      source: source ?? null,
     };
     const res = await this.executeQuery(
       `
-    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability, activities_scores,user_id, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability, activities_scores,user_id, status, source)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `,
       [
         newResult.id,
@@ -2775,6 +2778,7 @@ export class SqliteApi implements ServiceApi {
         newResult.activities_scores,
         newResult.user_id,
         newResult.status,
+        newResult.source,
       ],
     );
     // ⭐ reward update

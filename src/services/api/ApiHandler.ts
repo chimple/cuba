@@ -19,6 +19,7 @@ import {
   ServiceApi,
 } from './ServiceApi';
 import {
+  SOURCE,
   RESULT_STATUS,
   SchoolVisitAction,
   SchoolVisitType,
@@ -635,6 +636,7 @@ export class ApiHandler implements ServiceApi {
     activities_scores?: string | undefined,
     user_id?: string | undefined,
     status?: RESULT_STATUS | undefined,
+    source?: SOURCE | undefined,
   ): Promise<TableTypes<'result'>> {
     return await this.s.updateResult(
       student,
@@ -663,6 +665,7 @@ export class ApiHandler implements ServiceApi {
       activities_scores,
       user_id,
       status,
+      source,
     );
   }
 

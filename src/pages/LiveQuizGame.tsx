@@ -2,7 +2,12 @@ import { IonContent, IonPage } from '@ionic/react';
 import { FC, useEffect, useState } from 'react';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { useHistory } from 'react-router';
-import { LESSONS_PLAYED_COUNT, PAGES, TableTypes } from '../common/constants';
+import {
+  LESSONS_PLAYED_COUNT,
+  PAGES,
+  SOURCE,
+  TableTypes,
+} from '../common/constants';
 import './LiveQuizGame.css';
 import LiveQuizCountdownTimer from '../components/liveQuiz/LiveQuizCountdownTimer';
 import LiveQuizQuestion from '../components/liveQuiz/LiveQuizQuestion';
@@ -39,6 +44,13 @@ const LiveQuizGame: FC = () => {
   // Check if the game was played from `learning_pathway`
   const learning_path: boolean = state?.learning_path ?? false;
   const isReward: boolean = state?.reward ?? false;
+  const source: SOURCE =
+    state?.source ??
+    (learning_path
+      ? state?.is_assessment
+        ? SOURCE.INITIAL_ASSESSMENT
+        : SOURCE.LEARNING_PATHWAY_HOME_NO_PAL
+      : SOURCE.SUBJECT_PAGE);
   const growthbook = useGrowthBook();
 
   useEffect(() => {
@@ -162,6 +174,7 @@ const LiveQuizGame: FC = () => {
                 onQuizEnd={handleQuizEnd}
                 isLearningPathway={learning_path}
                 isReward={isReward}
+                source={source}
               />
             )}
           </div>
@@ -235,6 +248,7 @@ const LiveQuizGame: FC = () => {
                       paramLiveRoomId,
                   );
                 }}
+                source={state?.source ?? SOURCE.LIVE_QUIZ_ROOM}
               />
             )}
           </div>

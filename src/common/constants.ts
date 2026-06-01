@@ -1515,6 +1515,17 @@ export enum RESULT_STATUS {
   USER_EXIT = 'user_exit',
   SYSTEM_EXIT = 'system_exit',
 }
+
+export enum SOURCE {
+  INITIAL_ASSESSMENT = 'initial_assessment',
+  LEARNING_PATHWAY_HOME_NO_PAL = 'learning_pathway_home_no_pal',
+  LEARNING_PATHWAY_HOME_PAL = 'learning_pathway_home_pal',
+  LEARNING_PATHWAY_HOMEWORK = 'learning_pathway_homework',
+  LIVE_QUIZ_ROOM = 'live_quiz_room',
+  NO_LEARNING_PATHWAY_HOMEWORK = 'no_learning_pathway_homework',
+  SUBJECT_PAGE = 'subject_page',
+  TEACHER_MODE = 'teacher_mode',
+}
 // Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from localStorage to survive app relaunch.
 export const LATEST_LEARNING_PATH = 'latest_learning_path';
 export const ENABLE_STICKER_BOOK = 'enable-sticker-book';

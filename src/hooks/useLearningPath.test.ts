@@ -9,10 +9,12 @@ import {
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import { schoolUtil } from '../utility/schoolUtil';
+import { palUtil } from '../utility/palUtil';
 import {
   EVENTS,
   LANGUAGE,
   LEARNING_PATHWAY_MODE,
+  SOURCE,
   TableTypes,
 } from '../common/constants';
 
@@ -217,6 +219,7 @@ describe('useLearningPath features used by Home tab', () => {
     expect(next).toEqual({
       lesson_id: 'assessment-lesson-1',
       chapter_id: undefined,
+      source: SOURCE.INITIAL_ASSESSMENT,
       is_assessment: true,
       isPlayed: false,
     });
@@ -251,6 +254,34 @@ describe('useLearningPath features used by Home tab', () => {
     expect(second?.assignment_id).toBe('assignment-11');
   });
 
+  test('marks only PAL recommended lessons with PAL source', async () => {
+    mockApi.isStudentPlayedPalLesson.mockResolvedValue(true);
+    (palUtil.getPalLessonPathForCourse as jest.Mock).mockResolvedValue({
+      lesson_id: 'pal-lesson-1',
+      chapter_id: 'chapter-1',
+      skill_id: 'skill-1',
+    });
+
+    const next = await recommendNextLesson({
+      student: { id: 'stu-1' },
+      course: { id: 'c1', subject_id: 's1' },
+      mode: LEARNING_PATHWAY_MODE.FULL_ADAPTIVE,
+    });
+
+    expect(palUtil.getPalLessonPathForCourse).toHaveBeenCalledWith(
+      'c1',
+      'stu-1',
+    );
+    expect(next).toEqual({
+      lesson_id: 'pal-lesson-1',
+      chapter_id: 'chapter-1',
+      skill_id: 'skill-1',
+      source: SOURCE.LEARNING_PATHWAY_HOME_PAL,
+      is_assessment: false,
+      isPlayed: false,
+    });
+  });
+
   test('course progression helper returns next assessment node after last played assessment', () => {
     const next = getNextFromList(
       [{ lesson_id: 'a1' }, { lesson_id: 'a2' }],
@@ -260,6 +291,7 @@ describe('useLearningPath features used by Home tab', () => {
     expect(next).toEqual({
       lesson_id: 'a2',
       chapter_id: undefined,
+      source: SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
       is_assessment: true,
       isPlayed: false,
     });
@@ -353,6 +385,7 @@ describe('useLearningPath features used by Home tab', () => {
     expect(next).toEqual({
       lesson_id: 'l1',
       chapter_id: 'ch1',
+      source: SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
       is_assessment: false,
       isPlayed: false,
     });

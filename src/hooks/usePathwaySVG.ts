@@ -11,6 +11,7 @@ import {
   LIVE_QUIZ,
   LIDO,
   PAGES,
+  SOURCE,
   CONTINUE,
   RewardBoxState,
   IS_REWARD_FEATURE_ON,
@@ -665,6 +666,7 @@ export function usePathwaySVG({
                 pathItem?.skill_id,
                 isAssessment,
                 assessmentId,
+                pathItem?.source,
               );
             });
 
@@ -1624,6 +1626,7 @@ export function usePathwaySVG({
     skillId?: string,
     is_assessment?: boolean,
     assessmentId?: string,
+    source: SOURCE = SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
   ) {
     if (!history) return;
 
@@ -1649,6 +1652,7 @@ export function usePathwaySVG({
         skillId: skillId,
         is_assessment: is_assessment,
         assessmentId: assessmentId,
+        source: source,
       });
     } else if (lesson.plugin_type === COCOS) {
       const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
@@ -1663,6 +1667,7 @@ export function usePathwaySVG({
         learning_path: true,
         skillId: skillId,
         is_assessment: is_assessment,
+        source: source,
       });
     } else if (lesson.plugin_type === LIVE_QUIZ) {
       history.replace(
@@ -1674,6 +1679,7 @@ export function usePathwaySVG({
           learning_path: true,
           skillId: skillId,
           is_assessment: is_assessment,
+          source: source,
         },
       );
     }

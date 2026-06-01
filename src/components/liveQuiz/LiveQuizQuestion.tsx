@@ -9,7 +9,12 @@ import LiveQuiz, {
 import './LiveQuizQuestion.css';
 import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';
-import { PAGES, REWARD_LESSON, TableTypes } from '../../common/constants';
+import {
+  PAGES,
+  SOURCE,
+  REWARD_LESSON,
+  TableTypes,
+} from '../../common/constants';
 import { useHistory } from 'react-router';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { HiSpeakerWave } from 'react-icons/hi2';
@@ -40,6 +45,7 @@ const LiveQuizQuestion: FC<{
   onTotalScoreChange?: (totalScore: number) => void;
   isLearningPathway?: boolean;
   isReward?: boolean;
+  source?: SOURCE;
 }> = ({
   roomDoc,
   onNewQuestionChange,
@@ -56,6 +62,7 @@ const LiveQuizQuestion: FC<{
   onTotalScoreChange,
   isLearningPathway,
   isReward = false,
+  source = SOURCE.SUBJECT_PAGE,
 }) => {
   const quizPathBase =
     localStorage.getItem('gameUrl') ??
@@ -539,6 +546,8 @@ const LiveQuizQuestion: FC<{
         undefined, // subject_ability
         undefined, // activities_scores
         _currentUser?.id, // ✅ now correctly maps to user_id
+        undefined, // status
+        source,
       );
       totalLessonScore = 0;
       totalLessonTimeSpent = 0;
@@ -587,6 +596,8 @@ const LiveQuizQuestion: FC<{
         undefined, // subject_ability
         undefined, // activities_scores
         _currentUser?.id, // ✅ now correctly maps to user_id
+        undefined, // status
+        source,
       );
     }
   }

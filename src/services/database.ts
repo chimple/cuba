@@ -3507,6 +3507,7 @@ export type Database = {
           lesson_id: string | null;
           outcome_ability: number | null;
           outcome_id: string | null;
+          source: Database['public']['Enums']['source'] | null;
           school_id: string | null;
           score: number | null;
           skill_ability: number | null;
@@ -3539,6 +3540,7 @@ export type Database = {
           lesson_id?: string | null;
           outcome_ability?: number | null;
           outcome_id?: string | null;
+          source?: Database['public']['Enums']['source'] | null;
           school_id?: string | null;
           score?: number | null;
           skill_ability?: number | null;
@@ -3571,6 +3573,7 @@ export type Database = {
           lesson_id?: string | null;
           outcome_ability?: number | null;
           outcome_id?: string | null;
+          source?: Database['public']['Enums']['source'] | null;
           school_id?: string | null;
           score?: number | null;
           skill_ability?: number | null;
@@ -6281,6 +6284,7 @@ export type Database = {
           lesson_id: string | null;
           outcome_ability: number | null;
           outcome_id: string | null;
+          source: Database['public']['Enums']['source'] | null;
           school_id: string | null;
           score: number | null;
           skill_ability: number | null;
@@ -7388,6 +7392,7 @@ export type Database = {
           lesson_id: string | null;
           outcome_ability: number | null;
           outcome_id: string | null;
+          source: Database['public']['Enums']['source'] | null;
           school_id: string | null;
           score: number | null;
           skill_ability: number | null;
@@ -7837,6 +7842,15 @@ export type Database = {
       ops_request_type: 'student' | 'teacher' | 'principal' | 'school';
       program_model: 'hybrid' | 'at_home' | 'at_school';
       program_type: 'government' | 'private' | 'learning_centers';
+      source:
+        | 'initial_assessment'
+        | 'learning_pathway_home_no_pal'
+        | 'learning_pathway_home_pal'
+        | 'learning_pathway_homework'
+        | 'live_quiz_room'
+        | 'no_learning_pathway_homework'
+        | 'subject_page'
+        | 'teacher_mode';
       result_status: 'user_exit' | 'system_exit' | 'completed';
       rive_type: 'idle' | 'normal' | 'celebrating';
       role:
@@ -8034,6 +8048,16 @@ export const Constants = {
       ops_request_type: ['student', 'teacher', 'principal', 'school'],
       program_model: ['hybrid', 'at_home', 'at_school'],
       program_type: ['government', 'private', 'learning_centers'],
+      source: [
+        'initial_assessment',
+        'learning_pathway_home_no_pal',
+        'learning_pathway_home_pal',
+        'learning_pathway_homework',
+        'live_quiz_room',
+        'no_learning_pathway_homework',
+        'subject_page',
+        'teacher_mode',
+      ],
       result_status: ['user_exit', 'system_exit', 'completed'],
       rive_type: ['idle', 'normal', 'celebrating'],
       role: [
