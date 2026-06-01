@@ -1,64 +1,99 @@
 import {
-  MODES,
-  LeaderboardDropdownList,
-  LeaderboardRewards,
-  TABLES,
-  TableTypes,
-  MUTATE_TYPES,
-  LIVE_QUIZ,
-  CURRENT_SQLITE_VERSION,
-  DEFAULT_SUBJECT_IDS,
-  OTHER_CURRICULUM,
-  PROFILETYPE,
-  LATEST_STARS,
-  SchoolRoleMap,
-  FilteredSchoolsForSchoolListingOps,
-  COURSES,
-  CHIMPLE_HINDI,
-  GRADE1_KANNADA,
-  GRADE1_MARATHI,
-  CHIMPLE_ENGLISH,
-  CHIMPLE_MATHS,
-  CHIMPLE_DIGITAL_SKILLS,
-  TabType,
+  CapacitorSQLite,
+  DBSQLiteValues,
+  SQLiteConnection,
+  SQLiteDBConnection,
+  capSQLiteResult,
+  capSQLiteVersionUpgrade,
+} from '@capacitor-community/sqlite';
+import { Capacitor } from '@capacitor/core';
+import { v4 as uuidv4 } from 'uuid';
+import {
   AVATARS,
   BASE_NAME,
-  DELETED_CLASSES,
-  StudentInfo,
-  StudentAPIResponse,
-  TeacherAPIResponse,
-  TeacherInfo,
-  PrincipalInfo,
-  PrincipalAPIResponse,
-  SchoolVisitAction,
-  SchoolVisitType,
-  CoordinatorInfo,
+  CACHETABLES,
+  CHIMPLE_DIGITAL_SKILLS,
+  CHIMPLE_ENGLISH,
+  CHIMPLE_HINDI,
+  CHIMPLE_MATHS,
+  CLASS,
+  COURSES,
+  CURRENT_SQLITE_VERSION,
   CoordinatorAPIResponse,
+  CoordinatorInfo,
+  DEFAULT_LOCALE_ID,
+  DEFAULT_SUBJECT_IDS,
+  DELETED_CLASSES,
   EVENTS,
   EnumType,
-  CACHETABLES,
-  RequestTypes,
-  STATUS,
+  FilteredSchoolsForSchoolListingOps,
+  GRADE1_KANNADA,
+  GRADE1_MARATHI,
   GeoDataParams,
+  LATEST_LEARNING_PATH,
+  LATEST_STARS,
+  LIDO_ASSESSMENT,
+  LIVE_QUIZ,
+  LeaderboardDropdownList,
+  LeaderboardRewards,
+  MODES,
+  MUTATE_TYPES,
+  OTHER_CURRICULUM,
+  PROFILETYPE,
+  PrincipalAPIResponse,
+  PrincipalInfo,
+  RESULT_STATUS,
+  REWARD_LEARNING_PATH,
+  REWARD_LESSON,
+  RequestTypes,
+  SCHOOL,
+  STATUS,
+  SchoolRoleMap,
+  SchoolVisitAction,
+  SchoolVisitType,
   SearchSchoolsParams,
   SearchSchoolsResult,
-  REWARD_LESSON,
-  DEFAULT_LOCALE_ID,
-  SCHOOL,
-  CLASS,
+  StudentAPIResponse,
+  StudentInfo,
+  TABLES,
   SOURCE,
-  RESULT_STATUS,
-  LIDO_ASSESSMENT,
-  LATEST_LEARNING_PATH,
-  REWARD_LEARNING_PATH,
+  TabType,
+  TableTypes,
+  TeacherAPIResponse,
+  TeacherInfo,
 } from '../../common/constants';
 import { StudentLessonResult } from '../../common/courseConstants';
 import { AvatarObj } from '../../components/animation/Avatar';
+import {
+  PaginatedResponse,
+  RoleType,
+  SchoolNote,
+  StickerBook,
+  StickerMeta,
+  UserStickerProgress,
+} from '../../interface/modelInterfaces';
 import Course from '../../models/course';
 import Lesson from '../../models/lesson';
 import {
-  AssignmentCartData,
+  UserSchoolClassParams,
+  UserSchoolClassResult,
+} from '../../ops-console/pages/NewUserPageOps';
+import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
+import { store } from '../../redux/store';
+import {
+  readAssignmentCartFromStorage,
+  writeAssignmentCartToStorage,
+} from '../../teachers-module/pages/AssignmentCartStorage';
+import logger from '../../utility/logger';
+import { ensureLocalStickerBookSvgUri } from '../../utility/stickerBookAssets';
+import { Util } from '../../utility/util';
+import type { SqlStatement } from '../../workers/background.worker.types';
+import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorkerClient';
+import { Json } from '../database';
+import { APIMode, ServiceConfig } from '../ServiceConfig';
+import {
   AssignmentBatchGroupRow,
+  AssignmentCartData,
   AssignmentDateRangeData,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
@@ -78,42 +113,7 @@ import {
   SchoolProgramAccessResponse,
   ServiceApi,
 } from './ServiceApi';
-import {
-  SQLiteDBConnection,
-  SQLiteConnection,
-  CapacitorSQLite,
-  capSQLiteResult,
-  DBSQLiteValues,
-  capSQLiteVersionUpgrade,
-} from '@capacitor-community/sqlite';
-import { Capacitor } from '@capacitor/core';
 import { SupabaseApi } from './SupabaseApi';
-import { APIMode, ServiceConfig } from '../ServiceConfig';
-import { v4 as uuidv4 } from 'uuid';
-import { RoleType } from '../../interface/modelInterfaces';
-import { Util } from '../../utility/util';
-import {
-  UserSchoolClassParams,
-  UserSchoolClassResult,
-} from '../../ops-console/pages/NewUserPageOps';
-import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
-import {
-  PaginatedResponse,
-  SchoolNote,
-  StickerMeta,
-  StickerBook,
-  UserStickerProgress,
-} from '../../interface/modelInterfaces';
-import {
-  readAssignmentCartFromStorage,
-  writeAssignmentCartToStorage,
-} from '../../teachers-module/pages/AssignmentCartStorage';
-import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorkerClient';
-import type { SqlStatement } from '../../workers/background.worker.types';
-import { store } from '../../redux/store';
-import { Json } from '../database';
-import logger from '../../utility/logger';
-import { ensureLocalStickerBookSvgUri } from '../../utility/stickerBookAssets';
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
@@ -136,6 +136,7 @@ export class SqliteApi implements ServiceApi {
   private _syncInProgress: boolean = false;
   private _syncRequestedAgain: boolean = false;
   private _retryRefreshTables: TABLES[] = [];
+  private _postSyncAssetPrefetchScheduled: boolean = false;
 
   private _cachedRewards: TableTypes<'rive_reward'>[] | undefined;
 
@@ -481,6 +482,33 @@ export class SqliteApi implements ServiceApi {
     await this._db.executeSet(batch as any, useImplicitTransaction);
   }
 
+  private schedulePostSyncAssetPrefetch(): void {
+    if (!Capacitor.isNativePlatform() || this._postSyncAssetPrefetchScheduled) {
+      return;
+    }
+
+    this._postSyncAssetPrefetchScheduled = true;
+    window.setTimeout(() => {
+      this.runPostSyncAssetPrefetch();
+    }, 30000);
+  }
+
+  private async runPostSyncAssetPrefetch(): Promise<void> {
+    try {
+      if (document.visibilityState !== 'visible') {
+        return;
+      }
+
+      await this.prefetchStickerBookAssetsAfterSync();
+      await new Promise<void>((resolve) => {
+        window.setTimeout(resolve, 1000);
+      });
+      await this.prefetchLidoCommonAudioAfterSync();
+    } finally {
+      this._postSyncAssetPrefetchScheduled = false;
+    }
+  }
+
   private async showToastWithRetry(
     message: string,
     actionLabel = 'Retry',
@@ -764,10 +792,14 @@ export class SqliteApi implements ServiceApi {
         );
       } catch (workerError) {
         logger.warn(
-          'Falling back to main-thread sync batch generation after worker failure:',
+          'Background worker sync batch generation failed:',
           workerError,
         );
         await rollbackSyncWriteTransaction();
+        if (Capacitor.isNativePlatform()) {
+          throw workerError;
+        }
+        logger.warn('Falling back to main-thread sync batch generation on web');
         await beginSyncWriteTransaction();
 
         for (const tableName of Object.keys(tablesForWorker)) {
@@ -1102,10 +1134,7 @@ export class SqliteApi implements ServiceApi {
         );
       }
       await this.pullChanges(tableNames, isFirstSync);
-      Promise.allSettled([
-        this.prefetchStickerBookAssetsAfterSync(),
-        this.prefetchLidoCommonAudioAfterSync(),
-      ]);
+      this.schedulePostSyncAssetPrefetch();
       const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
       // logger.info("logs to check synced tables1", JSON.stringify(tables));
