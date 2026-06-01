@@ -35,18 +35,18 @@ export const ObjectiveGoalSection: React.FC<ObjectiveGoalSectionProps> = ({
       Select the type of campaign and define its target.
     </Typography>
 
-    <Box className="campaign-setup-field campaign-setup-objective-field campaign-setup-full-width">
+    <Box className="campaign-setup-field objective-goal-section-objective-field campaign-setup-full-width">
       <Typography className="campaign-setup-label">
         {requiredLabel('Campaign Objective')}
       </Typography>
-      <Box className="campaign-setup-objective-list">
+      <Box className="objective-goal-section-objective-list">
         {OBJECTIVE_OPTIONS.map((option) => (
           <button
             type="button"
             key={option.value}
-            className={`campaign-setup-objective ${
+            className={`objective-goal-section-objective ${
               form.objective === option.value
-                ? 'campaign-setup-objective-selected'
+                ? 'objective-goal-section-objective-selected'
                 : ''
             }`}
             onClick={() => onObjectiveChange(option.value)}
@@ -68,7 +68,7 @@ export const ObjectiveGoalSection: React.FC<ObjectiveGoalSectionProps> = ({
       )}
     </Box>
 
-    <Box className="campaign-setup-grid campaign-setup-target-grid">
+    <Box className="campaign-setup-grid objective-goal-section-target-grid">
       {form.objective === 'homework_campaign' && (
         <>
           <Box className="campaign-setup-field">

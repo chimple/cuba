@@ -1,4 +1,8 @@
-import { buildRows, GradeAssignmentConfig } from './campaignAssignmentUtils';
+import {
+  buildAssignmentDrafts,
+  buildRows,
+  GradeAssignmentConfig,
+} from './campaignAssignmentUtils';
 import { CampaignAssignmentSubjectOption } from '../../../services/api/ServiceApi';
 import { CampaignSetupFormState } from './types';
 
@@ -26,18 +30,22 @@ const createSubjects = (lessonCount: number) =>
 
 const createConfig = (
   frequency: GradeAssignmentConfig['frequency'],
+  removedRowIds: string[] = [],
 ): GradeAssignmentConfig => ({
   subjectIds: ['math-course'],
   frequency,
   chapterIds: ['numbers-chapter'],
   expandedChapterIds: [],
-  removedRowIds: [],
+  removedRowIds,
 });
 
-const createForm = (): CampaignSetupFormState =>
+const createForm = (
+  startDate = '2026-06-01',
+  endDate = '2026-06-07',
+): CampaignSetupFormState =>
   ({
-    startDate: '2026-06-01',
-    endDate: '2026-06-07',
+    startDate,
+    endDate,
   }) as CampaignSetupFormState;
 
 describe('campaignAssignmentUtils buildRows', () => {
@@ -75,5 +83,39 @@ describe('campaignAssignmentUtils buildRows', () => {
       ...Array(9).fill('2026-06-03'),
       ...Array(9).fill('2026-06-05'),
     ]);
+  });
+
+  it('redistributes dates after removed lessons are filtered out', () => {
+    const rows = buildRows(
+      'grade-1',
+      createSubjects(28),
+      createConfig('daily', ['numbers-chapter:lesson-1:0']),
+      createForm(),
+    );
+
+    expect(rows).toHaveLength(27);
+    expect(rows[0].lessonName).toBe('Lesson 2');
+    expect(rows.map((row) => row.date)).toEqual([
+      ...Array(5).fill('2026-06-01'),
+      ...Array(5).fill('2026-06-02'),
+      ...Array(5).fill('2026-06-03'),
+      ...Array(4).fill('2026-06-04'),
+      ...Array(4).fill('2026-06-05'),
+      ...Array(4).fill('2026-06-06'),
+    ]);
+  });
+
+  it('does not create assignment drafts for rows without schedule dates', () => {
+    const rows = buildRows(
+      'grade-1',
+      createSubjects(2),
+      createConfig('daily'),
+      createForm('2026-06-07', '2026-06-07'),
+    );
+
+    expect(rows.map((row) => row.date)).toEqual(['', '']);
+    expect(
+      buildAssignmentDrafts(new Map([['grade-1', rows]]), ['school-1'], 'c-1'),
+    ).toEqual([]);
   });
 });

@@ -186,18 +186,7 @@ export const buildRows = (
     });
   });
 
-  const chapterDates = getScheduleDates(
-    form.startDate,
-    form.endDate,
-    config.frequency,
-    selectedLessons.length,
-  );
-  const assignmentDates = distributeDatesAcrossAssignments(
-    chapterDates,
-    selectedLessons.length,
-  );
-
-  const rows = selectedLessons
+  const selectedLessonRows = selectedLessons
     .map(({ chapter, lesson, subjectName, courseId }, lessonIndex) => ({
       rowId: `${chapter.id}:${lesson.id}:${lessonIndex}`,
       gradeId,
@@ -205,14 +194,25 @@ export const buildRows = (
       chapterId: chapter.id,
       lessonId: lesson.id,
       lessonNo: lessonIndex + 1,
-      date: assignmentDates[lessonIndex] || '',
       lessonName: lesson.name,
       subjectName,
     }))
     .filter((row) => !config.removedRowIds.includes(row.rowId));
 
-  return rows.map((row, index) => ({
+  const chapterDates = getScheduleDates(
+    form.startDate,
+    form.endDate,
+    config.frequency,
+    selectedLessonRows.length,
+  );
+  const assignmentDates = distributeDatesAcrossAssignments(
+    chapterDates,
+    selectedLessonRows.length,
+  );
+
+  return selectedLessonRows.map((row, index) => ({
     ...row,
+    date: assignmentDates[index] || '',
     lessonNo: index + 1,
   }));
 };
@@ -223,19 +223,21 @@ export const buildAssignmentDrafts = (
   campaignId: string,
 ): CampaignAssignmentDraft[] =>
   Array.from(rowsByGrade.entries()).flatMap(([gradeId, rows]) =>
-    rows.map((row, index) => ({
-      batchId: campaignId,
-      gradeId,
-      schoolIds,
-      courseId: row.courseId,
-      chapterId: row.chapterId,
-      lessonId: row.lessonId,
-      lessonName: row.lessonName,
-      subjectName: row.subjectName,
-      startsAt: row.date,
-      endsAt: null,
-      type: 'homework',
-      source: 'campaign',
-      setNumber: index + 1,
-    })),
+    rows
+      .filter((row) => row.date)
+      .map((row, index) => ({
+        batchId: campaignId,
+        gradeId,
+        schoolIds,
+        courseId: row.courseId,
+        chapterId: row.chapterId,
+        lessonId: row.lessonId,
+        lessonName: row.lessonName,
+        subjectName: row.subjectName,
+        startsAt: row.date,
+        endsAt: null,
+        type: 'homework',
+        source: 'campaign',
+        setNumber: index + 1,
+      })),
   );

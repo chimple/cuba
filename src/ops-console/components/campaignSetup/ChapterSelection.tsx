@@ -26,7 +26,7 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
 
   return (
     <>
-      <Box className="campaign-assignment-section-heading">
+      <Box className="chapter-selection-section-heading">
         <Typography variant="h6" className="campaign-setup-section-title">
           Chapter Selection
         </Typography>
@@ -35,15 +35,15 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
         </Typography>
       </Box>
 
-      <Box className="campaign-assignment-subjects">
+      <Box className="chapter-selection-subjects">
         {selectedSubjects.map((subject) => (
-          <Box key={subject.id} className="campaign-assignment-subject">
-            <Box className="campaign-assignment-subject-header">
-              <Typography className="campaign-assignment-subject-title">
+          <Box key={subject.id} className="chapter-selection-subject">
+            <Box className="chapter-selection-subject-header">
+              <Typography className="chapter-selection-subject-title">
                 {subject.name}
               </Typography>
             </Box>
-            <Box className="campaign-assignment-chapter-list">
+            <Box className="chapter-selection-chapter-list">
               {subject.chapters.map((chapter) => {
                 const isAssigned = activeConfig.chapterIds.includes(chapter.id);
                 const isExpanded = activeConfig.expandedChapterIds.includes(
@@ -53,23 +53,23 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
                 return (
                   <Box
                     key={chapter.id}
-                    className={`campaign-assignment-chapter ${
-                      isExpanded ? 'campaign-assignment-chapter-expanded' : ''
+                    className={`chapter-selection-chapter ${
+                      isExpanded ? 'chapter-selection-chapter-expanded' : ''
                     }`}
                   >
-                    <Box className="campaign-assignment-chapter-row">
-                      <Typography className="campaign-assignment-chapter-name">
+                    <Box className="chapter-selection-chapter-row">
+                      <Typography className="chapter-selection-chapter-name">
                         {chapter.name}
                       </Typography>
-                      <Typography className="campaign-assignment-activity-count">
+                      <Typography className="chapter-selection-activity-count">
                         {chapter.lessons.length} activities
                       </Typography>
                       <Button
                         type="button"
                         className={
                           isAssigned
-                            ? 'campaign-assignment-remove-button'
-                            : 'campaign-assignment-assign-button'
+                            ? 'chapter-selection-remove-button'
+                            : 'chapter-selection-assign-button'
                         }
                         onClick={() => onToggleChapter(chapter.id)}
                       >
@@ -77,7 +77,7 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
                       </Button>
                       <Button
                         type="button"
-                        className="campaign-assignment-expand-button"
+                        className="chapter-selection-expand-button"
                         onClick={() => onToggleExpanded(chapter.id)}
                         aria-label={
                           isExpanded
@@ -89,7 +89,7 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
                       </Button>
                     </Box>
                     {isExpanded && (
-                      <Box className="campaign-assignment-lessons">
+                      <Box className="chapter-selection-lessons">
                         {chapter.lessons.map((lesson) => {
                           const isLessonAssigned =
                             isAssigned && !removedLessonIds.has(lesson.id);
@@ -97,7 +97,7 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
                           return (
                             <Box
                               key={lesson.id}
-                              className="campaign-assignment-lesson-row"
+                              className="chapter-selection-lesson-row"
                             >
                               <span />
                               <Typography>{lesson.name}</Typography>

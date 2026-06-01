@@ -257,6 +257,13 @@
   border: 0.0625rem solid var(--campaign-divider) !important;
 }
 
+.campaign-setup-page-assignment-cta-error {
+  color: #9a5b00;
+  font-size: 0.8125rem !important;
+  line-height: 1.125rem !important;
+  margin-right: 1rem !important;
+}
+
 @media (max-width: 56.25rem) {
   .campaign-setup-page {
     padding: 1.25rem;
@@ -438,5 +445,12 @@
     border-color: var(--campaign-divider) !important;
     background: #ffffff !important;
     color: var(--campaign-text) !important;
+  }
+
+  .campaign-setup-page-assignment-cta-error {
+    order: -1;
+    flex: 0 0 100%;
+    margin-right: 0 !important;
+    text-align: center;
   }
 }
