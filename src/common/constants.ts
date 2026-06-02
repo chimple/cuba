@@ -669,6 +669,12 @@ export interface FilteredSchoolsForSchoolListingOps {
   activities_assigned?: number | null;
   avg_assignments_completed?: number | null;
   avg_activities_completed?: number | null;
+  phone_calls_students_parents?: number | null;
+  phone_calls_teachers_hms?: number | null;
+  community_visits?: number | null;
+  school_visits?: number | null;
+  parents_on_whatsapp?: number | null;
+  parents_in_whatsapp_group?: number | null;
   parents_reached?: number | null;
   program_managers: string[];
   field_coordinators: string[];

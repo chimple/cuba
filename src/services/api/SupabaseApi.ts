@@ -10545,6 +10545,7 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
   }
+
   async getSchoolMetricsForSchoolListing(params: {
     filters?: Record<string, string[]>;
     programId?: string;
@@ -10790,6 +10791,12 @@ export class SupabaseApi implements ServiceApi {
         activities_assigned: row.activities_assigned ?? null,
         avg_assignments_completed: row.avg_assignments_completed ?? null,
         avg_activities_completed: row.avg_activities_completed ?? null,
+        phone_calls_students_parents: row.student_parent_calls ?? null,
+        phone_calls_teachers_hms: row.teacher_hm_calls ?? null,
+        community_visits: row.community_visits ?? null,
+        school_visits: row.school_visits ?? null,
+        parents_on_whatsapp: row.parents_on_whatsapp ?? null,
+        parents_in_whatsapp_group: row.parents_in_group ?? null,
         parents_reached:
           typeof row.school_id === 'string'
             ? (parentsReachedBySchool[row.school_id] ?? 0)

@@ -49,6 +49,12 @@ export type SchoolListRow = SchoolListSourceRow & {
   parentsReached: SchoolMetricCell;
   avgAssignmentsCompleted: SchoolMetricCell;
   avgActivitiesCompleted: SchoolMetricCell;
+  phoneCallsStudentsParents: SchoolMetricCell;
+  phoneCallsTeachersHms: SchoolMetricCell;
+  communityVisits: SchoolMetricCell;
+  schoolVisits: SchoolMetricCell;
+  parentsOnWhatsapp: SchoolMetricCell;
+  parentsInWhatsappGroup: SchoolMetricCell;
 };
 
 const ORDER_BY_MAP: Record<string, string> = {
