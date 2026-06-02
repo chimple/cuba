@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ServiceConfig } from '../../../services/ServiceConfig';
+import logger from '../../../utility/logger';
 import { CampaignReachSummary } from './campaignCommunicationTypes';
 
 const emptyReach: CampaignReachSummary = {
@@ -62,6 +63,8 @@ export const useCampaignReach = (selectedSchoolIds: string[]) => {
             0,
           ),
         });
+      } catch (error) {
+        logger.error('Failed to load campaign reach:', error);
       } finally {
         if (mounted) setLoadingReach(false);
       }

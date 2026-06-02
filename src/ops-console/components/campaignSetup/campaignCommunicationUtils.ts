@@ -66,11 +66,14 @@ export const getCampaignDurationDays = (
   return Math.round(diff / (1000 * 60 * 60 * 24)) + 1;
 };
 
-const formatDateValue = (value: string) =>
-  new Intl.DateTimeFormat('en-GB', {
+const formatDateValue = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',
     month: 'short',
-  }).format(new Date(value));
+  }).format(date);
+};
 
 const getOrdinalSuffix = (value: number) => {
   const mod10 = value % 10;

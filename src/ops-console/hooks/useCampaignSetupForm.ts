@@ -286,7 +286,6 @@ export const useCampaignSetupForm = () => {
 
     if (!isFormValid) return;
 
-    setActiveStep(1);
     setSubmitting(true);
     try {
       const savedAudienceGroupId =
