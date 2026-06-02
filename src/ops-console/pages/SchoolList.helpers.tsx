@@ -173,6 +173,48 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     sortable: false,
     orderBy: 'avg_activities_completed',
   },
+  {
+    key: 'phoneCallsStudentsParents',
+    label: t('Phone Calls - Students / Parents'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+  },
+  {
+    key: 'phoneCallsTeachersHms',
+    label: t('Phone Calls - Teachers & HMs'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+  },
+  {
+    key: 'communityVisits',
+    label: t('Community Visits'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+  },
+  {
+    key: 'schoolVisits',
+    label: t('School Visits'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+  },
+  {
+    key: 'parentsOnWhatsapp',
+    label: t('On WhatsApp'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+  },
+  {
+    key: 'parentsInWhatsappGroup',
+    label: t('In Group'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+  },
 ];
 
 // Export columns intentionally mirror the UI while keeping paired % columns.
@@ -210,6 +252,24 @@ export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
     label: t('Avg Activities Completed'),
     part: 'value',
   },
+  {
+    key: 'phoneCallsStudentsParents',
+    label: t('Phone Calls - Students / Parents'),
+    part: 'value',
+  },
+  {
+    key: 'phoneCallsTeachersHms',
+    label: t('Phone Calls - Teachers & HMs'),
+    part: 'value',
+  },
+  {
+    key: 'communityVisits',
+    label: t('Community Visits'),
+    part: 'value',
+  },
+  { key: 'schoolVisits', label: t('School Visits'), part: 'value' },
+  { key: 'parentsOnWhatsapp', label: t('On WhatsApp'), part: 'value' },
+  { key: 'parentsInWhatsappGroup', label: t('In Group'), part: 'value' },
 ];
 
 export const formatCompactNumber = (

@@ -149,5 +149,21 @@ export const mapSchoolRowsToRenderRows = (
       ),
       avgAssignmentsCompleted: renderMetricCell(completionAssignments),
       avgActivitiesCompleted: renderMetricCell(completionActivities),
+      phoneCallsStudentsParents: renderMetricCell(
+        pickFirstNumber(school.phone_calls_students_parents),
+      ),
+      phoneCallsTeachersHms: renderMetricCell(
+        pickFirstNumber(school.phone_calls_teachers_hms),
+      ),
+      communityVisits: renderMetricCell(
+        pickFirstNumber(school.community_visits),
+      ),
+      schoolVisits: renderMetricCell(pickFirstNumber(school.school_visits)),
+      parentsOnWhatsapp: renderMetricCell(
+        pickFirstNumber(school.parents_on_whatsapp),
+      ),
+      parentsInWhatsappGroup: renderMetricCell(
+        pickFirstNumber(school.parents_in_whatsapp_group),
+      ),
     };
   });
