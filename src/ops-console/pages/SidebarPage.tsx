@@ -8,7 +8,11 @@ import {
   useHistory,
   useLocation,
 } from 'react-router-dom';
-import { PAGES, TableTypes } from '../../common/constants';
+import {
+  CAMPAIGN_ACCESS_ROLES,
+  PAGES,
+  TableTypes,
+} from '../../common/constants';
 import ProtectedRoute from '../../ProtectedRoute';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
@@ -73,6 +77,9 @@ const SidebarPage: React.FC = () => {
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const canAccessCampaignPage = userRoles.some((role) =>
+    CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
+  );
 
   useEffect(() => {
     fetchData();
@@ -147,7 +154,11 @@ const SidebarPage: React.FC = () => {
               path={`${path}${PAGES.ADMIN_COMPAIGNS}`}
               exact={true}
             >
-              <CampaignSetupPage />
+              {canAccessCampaignPage ? (
+                <CampaignSetupPage />
+              ) : (
+                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+              )}
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
               <RequestList />

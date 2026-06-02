@@ -183,20 +183,22 @@ const DisplayStudents: FC<{}> = () => {
                 <span className="display-student-name">
                   {student.name ? student.name : '\u00A0'}
                 </span>
-                <button
-                  id={`display-students-play-${student.id}`}
-                  type="button"
-                  className="display-students-play-button"
-                  onClick={() => {
-                    void Util.logEvent(
-                      EVENTS.PROFILE_CARD_ACTION_CLICKED,
-                      getProfileCardPlayActionParams(student),
-                    );
-                    onStudentClick(student);
-                  }}
-                >
-                  {t('Play')}
-                </button>
+                <div id="play-button-shadow" className="play-button-shadow">
+                  <button
+                    id={`display-students-play-${student.id}`}
+                    type="button"
+                    className="display-students-play-button"
+                    onClick={() => {
+                      void Util.logEvent(
+                        EVENTS.PROFILE_CARD_ACTION_CLICKED,
+                        getProfileCardPlayActionParams(student),
+                      );
+                      onStudentClick(student);
+                    }}
+                  >
+                    {t('Play')}
+                  </button>
+                </div>
               </article>
             ))}
           </div>

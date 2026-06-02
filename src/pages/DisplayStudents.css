@@ -1,9 +1,15 @@
 #display-students {
-  --display-students-card-width: clamp(180px, 25.625vw, 205px);
+  --display-students-card-width: clamp(150px, min(32vw, 52vh), 270px);
   --display-students-card-height: calc(
     var(--display-students-card-width) * 0.9512
   );
-  --display-students-side-padding: clamp(18px, 5vw, 40px);
+
+  --display-students-side-padding: clamp(16px, 6vw, 80px);
+  --display-students-grid-gap: clamp(16px, 4vw, 48px);
+
+  --display-students-header-top: clamp(42px, 11.6vh, 112px);
+  --display-students-content-gap: clamp(13px, 4vh, 80px);
+  --display-students-bottom-space: clamp(28px, 8vh, 112px);
 
   position: relative;
 
@@ -12,25 +18,34 @@
   justify-content: center;
   align-items: stretch;
 
+  width: 100%;
   min-height: 100vh;
   min-height: 100dvh;
   padding: 0;
-  overflow-y: auto;
+
+  overflow-y: hidden;
+  overflow-x: hidden;
 
   box-sizing: border-box;
 }
 
+/* Keeps page content above decorative background */
+#display-students > * {
+  position: relative;
+  z-index: 1;
+}
+
 #display-students-chimple-logo {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
 
   width: 100%;
   margin: 0;
-  padding: 25px 26px 0;
+  padding: var(--display-students-header-top) clamp(18px, 4vw, 74px) 0;
 
   box-sizing: border-box;
-  color: #1e3555;
+  color: #182a4f;
   cursor: pointer;
 }
 
@@ -42,8 +57,9 @@
   justify-content: center;
   align-items: center;
 
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
   font-weight: 600;
-  color: #1e3555;
+  color: #182a4f;
 }
 
 .display-students-welcome-title {
@@ -51,25 +67,30 @@
   justify-content: center;
   align-items: center;
 
-  column-gap: 9px;
+  column-gap: clamp(7px, 1.1vw, 50px);
 
-  font-size: 22px;
-  line-height: 1.1;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: clamp(20px, 2.75vw, 76px);
+  font-weight: 600;
+  line-height: normal;
   text-align: center;
+  color: #182a4f;
 }
 
 .display-students-subtitle {
-  margin-top: 5px;
+  margin-top: clamp(4px, 0.8vh, 46px);
 
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
   font-weight: 500;
-  font-size: 18px;
-  line-height: 1.15;
+  font-size: clamp(16px, 2.25vw, 66px);
+  line-height: normal;
   text-align: center;
+  color: #182a4f;
 }
 
 .display-students-brand-logo {
-  width: 35px;
-  height: 35px;
+  width: clamp(32px, 3.9vw, 48px);
+  height: clamp(32px, 3.9vw, 48px);
 
   flex-shrink: 0;
 }
@@ -78,88 +99,103 @@
   display: flex;
   flex-direction: column;
 
-  width: clamp(95px, 10vw, 110px);
+  width: clamp(85px, 10vw, 160px);
 }
 
 #display-students-parent-icon img {
-  width: 60px;
-  height: 35px;
+  width: clamp(50px, 7vw, 108px);
+  height: auto;
 
   cursor: pointer;
 }
 
+/* Always top-right */
 #display-students-parent-button {
-  position: absolute;
-  top: 12px;
-  right: 26px;
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
+  z-index: 50;
 
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  gap: clamp(5px, 1vw, 7px);
 
-  width: 79px;
-  height: 37px;
-  padding: 0 10px;
+  width: clamp(76px, 9.875vw, 92px);
+  height: clamp(36px, 4.625vw, 42px);
+  padding: 0 clamp(8px, 1.25vw, 12px);
+
+  box-sizing: border-box;
 
   border: 0;
   border-radius: 64px;
 
-  background: #ffffffd9;
+  background: rgba(255, 255, 255, 0.85);
   color: #05342f;
 
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
   font-weight: 400;
-  font-size: 14px;
+  font-size: clamp(13px, 1.75vw, 15px);
+  line-height: normal;
+
+  cursor: pointer;
 }
 
 #parent-icon {
-  width: 16px;
-  height: 16px;
+  width: clamp(14px, 2vw, 16px);
+  height: clamp(14px, 2vw, 16px);
+  flex-shrink: 0;
 }
 
 .display-student-content {
   width: 100%;
-  margin-top: 16px;
+  margin-top: var(--display-students-content-gap);
 
   box-sizing: border-box;
 }
 
 .avatar-container {
+  margin: 0 auto;
+  padding: 0 var(--display-students-side-padding) clamp(32px, 12vh, 112px);
   display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(
-      var(--display-students-card-width),
-      var(--display-students-card-width)
-    )
-  );
+  grid-template-columns: repeat(3, var(--display-students-card-width));
   justify-content: center;
   align-items: center;
   justify-items: center;
 
   width: 100%;
-  margin: 0;
-  padding: 0 var(--display-students-side-padding) clamp(6px, 1.2vh, 14px);
-  gap: clamp(18px, 3vw, 32px);
+  max-width: min(1320px, 100vw);
+  gap: var(--display-students-grid-gap);
 
   box-sizing: border-box;
+}
+
+.avatar-container:has(> :only-child) {
+  grid-template-columns: var(--display-students-card-width);
+}
+
+.avatar-container:has(> :first-child:nth-last-child(2)) {
+  grid-template-columns: repeat(2, var(--display-students-card-width));
 }
 
 .display-students-card {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
 
   width: var(--display-students-card-width);
-  height: var(--display-students-card-height);
+  min-height: var(--display-students-card-height);
+  height: auto;
   margin: 0;
-  padding: 25px 18px 19px;
+  padding: clamp(18px, 3.2vh, 65px) clamp(14px, 2.25vw, 62px)
+    clamp(16px, 2.5vh, 62px);
 
   box-sizing: border-box;
   justify-self: center;
 
   border: 0;
-  border-radius: 20px;
+  border-radius: clamp(18px, 2.5vw, 24px);
 
   background: #fffdee;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
@@ -171,9 +207,10 @@
   justify-content: center;
   align-items: center;
 
-  width: 100%;
+  width: var(--display-students-card-width);
 
   color: #182a4f;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
   font-size: 14px;
   cursor: default;
 }
@@ -183,9 +220,9 @@
 }
 
 .display-students-avatar-img {
-  width: 64px;
-  height: 64px;
-  margin-bottom: 4px;
+  width: clamp(58px, 8vw, 105px);
+  height: clamp(58px, 8vw, 105px);
+  margin-bottom: clamp(4px, 1vh, 8px);
 
   border: 0;
   object-fit: cover;
@@ -194,15 +231,17 @@
 .display-student-name {
   display: block;
 
-  max-width: 20ch;
-  margin: 0 0 13px;
+  width: 100%;
+  max-width: calc(var(--display-students-card-width) - 32px);
+  margin: 0 0 clamp(10px, 2vh, 16px);
   overflow: hidden;
 
   color: #182a4f;
 
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
   font-weight: 400;
-  font-size: 14px;
-  line-height: 22px;
+  font-size: clamp(13px, 1.75vw, 19px);
+  line-height: normal;
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -223,74 +262,34 @@
   justify-content: center;
   align-items: center;
 
-  min-width: 92px;
-  height: 48px;
-  padding: 10px 27px;
+  min-width: clamp(92px, 11.5vw, 108px);
+  height: clamp(48px, 6vw, 60px);
+  padding: 10px clamp(22px, 3.4vw, 30px);
   overflow: hidden;
 
   box-sizing: border-box;
 
   border: 0;
-  border-bottom: 5px solid #8a2901;
+  border-bottom: 6px solid #8a2901;
   border-radius: 10px;
 
   background: #f34d08;
-  color: #fff;
+  color: #ffffff;
 
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
   font-weight: 600;
-  font-size: 15px;
+  font-size: clamp(14px, 1.875vw, 17px);
   font-style: normal;
   line-height: 24px;
 
   cursor: pointer;
+  transition:
+    transform 120ms ease,
+    border-bottom-width 120ms ease,
+    filter 120ms ease;
 }
 
 .display-students-play-button:active {
-  border-bottom: 2px solid #8a2901;
-
-  transform: translateY(3px);
-}
-
-#display-students.display-students-web .display-students-welcome-title {
-  font-size: 48px;
-}
-
-#display-students.display-students-web .display-students-subtitle {
-  font-size: 30px;
-}
-
-#display-students.display-students-web .display-students-brand-logo {
-  width: 45px;
-  height: 45px;
-}
-
-@media (max-width: 640px) {
-  #display-students {
-    --display-students-card-width: min(76vw, 205px);
-    --display-students-side-padding: 18px;
-  }
-
-  #display-students-chimple-logo {
-    grid-template-columns: 1fr;
-  }
-
-  .display-students-title {
-    grid-column: 1;
-  }
-
-  .display-students-welcome-title {
-    flex-wrap: wrap;
-  }
-
-  .avatar-container {
-    grid-template-columns: minmax(
-      var(--display-students-card-width),
-      var(--display-students-card-width)
-    );
-  }
-
-  #display-students-parent-button {
-    top: 10px;
-    right: 12px;
-  }
+  border-bottom-width: 3px;
+  transform: translateY(2px);
 }

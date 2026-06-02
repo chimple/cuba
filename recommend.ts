@@ -256,10 +256,25 @@ const useImportJsonForCurriculum = async () => {
     table('skill_relation').filter(
       (r) => targetSkillIds.includes(r.target_skill_id) && isActive(r),
     );
-  service.getSkillLessonsBySkillIds = async (skillIds) =>
-    table('skill_lesson')
-      .filter((sl) => skillIds.includes(sl.skill_id) && isActive(sl))
+  service.getSkillLessonsBySkillIds = async (skillIds) => {
+    const lessonIds = new Set(
+      table('lesson')
+        .filter(isActive)
+        .map((lesson) => lesson.id),
+    );
+
+    return table('skill_lesson')
+      .filter((sl) => {
+        if (!skillIds.includes(sl.skill_id) || !isActive(sl)) return false;
+        if (lessonIds.has(sl.lesson_id)) return true;
+
+        log(
+          `skipping orphan skill_lesson lesson_id=${sl.lesson_id} skill_id=${sl.skill_id} sort_index=${sl.sort_index ?? ''}; lesson row not found in local import.json`,
+        );
+        return false;
+      })
       .sort((a, b) => (a.sort_index ?? 0) - (b.sort_index ?? 0));
+  };
   service.getLessonsBylessonIds = async (lessonIds) => {
     const lessons = table('lesson').filter(
       (lesson) => lessonIds.includes(lesson.id) && isActive(lesson),

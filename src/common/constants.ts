@@ -675,6 +675,7 @@ export interface FilteredSchoolsForSchoolListingOps {
   school_visits?: number | null;
   parents_on_whatsapp?: number | null;
   parents_in_whatsapp_group?: number | null;
+  parents_reached?: number | null;
   program_managers: string[];
   field_coordinators: string[];
 }
@@ -1103,7 +1104,7 @@ export enum LeaderboardRewardsType {
   BONUS = 'bonus',
   STICKER = 'sticker',
 }
-export const DOWNLOAD_LESSON_BATCH_SIZE = 8;
+export const DOWNLOAD_LESSON_BATCH_SIZE = 1;
 export const MAX_DOWNLOAD_LESSON_ATTEMPTS = 3;
 
 export const LESSON_DOWNLOAD_SUCCESS_EVENT = 'lesson_download_success';
@@ -1370,6 +1371,11 @@ export const OPS_ROLES = [
   RoleType.PROGRAM_MANAGER,
   RoleType.FIELD_COORDINATOR,
   RoleType.EXTERNAL_USER,
+];
+export const CAMPAIGN_ACCESS_ROLES = [
+  RoleType.SUPER_ADMIN,
+  RoleType.OPERATIONAL_DIRECTOR,
+  RoleType.PROGRAM_MANAGER,
 ];
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
 export const VERSION_KEY = 'last_native_version';

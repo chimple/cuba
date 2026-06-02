@@ -57,7 +57,7 @@ export const CampaignDetailsSection: React.FC<CampaignDetailsSectionProps> = ({
       <Typography className="campaign-setup-section-copy">
         Provide the campaign name, assign a manager, and set the timeline.
       </Typography>
-      <Box className="campaign-setup-grid campaign-setup-details-grid">
+      <Box className="campaign-setup-grid campaign-details-section-grid">
         <Box className="campaign-setup-field campaign-setup-full-width">
           <Typography className="campaign-setup-label">
             {requiredLabel('Campaign Name')}
@@ -71,7 +71,7 @@ export const CampaignDetailsSection: React.FC<CampaignDetailsSectionProps> = ({
             size="small"
           />
         </Box>
-        <Box className="campaign-setup-field campaign-setup-half-width">
+        <Box className="campaign-setup-field campaign-details-section-half-width">
           <Typography className="campaign-setup-label">
             {requiredLabel('Campaign Manager')}
           </Typography>
@@ -101,7 +101,7 @@ export const CampaignDetailsSection: React.FC<CampaignDetailsSectionProps> = ({
             <FormHelperText>{fieldError('managerId')}</FormHelperText>
           </FormControl>
         </Box>
-        <Box className="campaign-setup-field campaign-setup-start-date-field">
+        <Box className="campaign-setup-field campaign-details-section-start-date-field">
           <Typography className="campaign-setup-label">
             {requiredLabel('Start Date')}
           </Typography>
@@ -135,7 +135,7 @@ export const CampaignDetailsSection: React.FC<CampaignDetailsSectionProps> = ({
             size="small"
           />
         </Box>
-        <Box className="campaign-setup-field campaign-setup-end-date-field">
+        <Box className="campaign-setup-field campaign-details-section-end-date-field">
           <Typography className="campaign-setup-label">
             {requiredLabel('End Date')}
           </Typography>

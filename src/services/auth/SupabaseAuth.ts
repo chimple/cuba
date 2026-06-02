@@ -237,7 +237,7 @@ export class SupabaseAuth implements ServiceAuth {
         const { data, error } = await this._auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: window.location.origin,
+            redirectTo: `${window.location.origin}/login`,
             queryParams: {
               prompt: 'select_account',
             },

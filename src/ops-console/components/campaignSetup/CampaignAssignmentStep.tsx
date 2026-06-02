@@ -29,6 +29,12 @@ type CampaignAssignmentStepProps = {
   campaignId: string;
   selectedGrades: CampaignOption[];
   selectedSchoolIds: string[];
+  activeGradeId: string;
+  configs: Record<string, GradeAssignmentConfig>;
+  onActiveGradeChange: (gradeId: string) => void;
+  onConfigsChange: React.Dispatch<
+    React.SetStateAction<Record<string, GradeAssignmentConfig>>
+  >;
   onCompletionChange: (isComplete: boolean) => void;
   onAssignmentsChange: (assignments: CampaignAssignmentDraft[]) => void;
 };
@@ -38,6 +44,10 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   campaignId,
   selectedGrades,
   selectedSchoolIds,
+  activeGradeId,
+  configs,
+  onActiveGradeChange,
+  onConfigsChange,
   onCompletionChange,
   onAssignmentsChange,
 }) => {
@@ -45,38 +55,10 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   const [assignmentOptions, setAssignmentOptions] =
     useState<CampaignAssignmentOptions>({ grades: [] });
   const [loading, setLoading] = useState(false);
-  const [activeGradeId, setActiveGradeId] = useState(
-    selectedGrades[0]?.id || '',
-  );
-  const [configs, setConfigs] = useState<Record<string, GradeAssignmentConfig>>(
-    {},
-  );
   const [deleteTarget, setDeleteTarget] = useState<{
     gradeId: string;
     rowId: string;
   } | null>(null);
-
-  useEffect(() => {
-    setActiveGradeId((current) =>
-      selectedGrades.some((grade) => grade.id === current)
-        ? current
-        : selectedGrades[0]?.id || '',
-    );
-    setConfigs((current) => {
-      const next = { ...current };
-      const sharedFrequency =
-        Object.values(current)[0]?.frequency ?? createDefaultConfig().frequency;
-      selectedGrades.forEach((grade) => {
-        if (!next[grade.id]) {
-          next[grade.id] = {
-            ...createDefaultConfig(),
-            frequency: sharedFrequency,
-          };
-        }
-      });
-      return next;
-    });
-  }, [selectedGrades]);
 
   useEffect(() => {
     let isMounted = true;
@@ -132,7 +114,8 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
           !!config &&
           config.subjectIds.length > 0 &&
           config.chapterIds.length > 0 &&
-          (rowsByGrade.get(grade.id)?.length ?? 0) > 0
+          (rowsByGrade.get(grade.id)?.length ?? 0) > 0 &&
+          (rowsByGrade.get(grade.id) ?? []).every((row) => row.date)
         );
       }),
     [configs, rowsByGrade, selectedGrades],
@@ -168,14 +151,14 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
     gradeId: string,
     updater: (config: GradeAssignmentConfig) => GradeAssignmentConfig,
   ) => {
-    setConfigs((current) => ({
+    onConfigsChange((current) => ({
       ...current,
       [gradeId]: updater(current[gradeId] ?? createDefaultConfig()),
     }));
   };
 
   const updateSharedFrequency = (frequency: Frequency) => {
-    setConfigs((current) => {
+    onConfigsChange((current) => {
       const next = { ...current };
       selectedGrades.forEach((grade) => {
         next[grade.id] = {
@@ -231,7 +214,7 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
 
   if (loading) {
     return (
-      <Box className="campaign-assignment-loading">
+      <Box className="campaign-assignment-step-loading">
         <CircularProgress />
       </Box>
     );
@@ -240,7 +223,7 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   return (
     <Box className="campaign-assignment-step">
       {selectedGrades.length > 1 && (
-        <Box className="campaign-assignment-helper">
+        <Box className="campaign-assignment-step-helper">
           <InfoOutlined />
           <Typography>
             Assignments should be configured for all selected grades. The
@@ -249,15 +232,17 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
         </Box>
       )}
 
-      <Box className="campaign-assignment-tabs" role="tablist">
+      <Box className="campaign-assignment-step-tabs" role="tablist">
         {selectedGrades.map((grade) => (
           <button
             type="button"
             key={grade.id}
-            className={`campaign-assignment-tab ${
-              activeGradeId === grade.id ? 'campaign-assignment-tab-active' : ''
+            className={`campaign-assignment-step-tab ${
+              activeGradeId === grade.id
+                ? 'campaign-assignment-step-tab-active'
+                : ''
             }`}
-            onClick={() => setActiveGradeId(grade.id)}
+            onClick={() => onActiveGradeChange(grade.id)}
           >
             {grade.name}
           </button>

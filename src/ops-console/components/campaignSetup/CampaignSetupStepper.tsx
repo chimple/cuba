@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { Check } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import './CampaignSetupStepper.css';
 
 type CampaignSetupStepperProps = {
@@ -15,14 +16,14 @@ export const CampaignSetupStepper: React.FC<CampaignSetupStepperProps> = ({
       (step, index) => (
         <React.Fragment key={step}>
           <Box
-            className={`campaign-setup-step ${
-              index === activeStep ? 'campaign-setup-step-active' : ''
-            } ${index < activeStep ? 'campaign-setup-step-complete' : ''}`}
+            className={`campaign-setup-stepper-step ${
+              index === activeStep ? 'campaign-setup-stepper-step-active' : ''
+            } ${index < activeStep ? 'campaign-setup-stepper-step-complete' : ''}`}
           >
             <span>{index < activeStep ? <Check /> : index + 1}</span>
             <strong>{step}</strong>
           </Box>
-          {index < 4 && <span className="campaign-setup-step-line" />}
+          {index < 4 && <span className="campaign-setup-stepper-step-line" />}
         </React.Fragment>
       ),
     )}

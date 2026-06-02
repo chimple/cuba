@@ -967,6 +967,7 @@ export class SupabaseApi implements ServiceApi {
     action: SchoolVisitAction,
     visitType?: SchoolVisitType,
     distanceFromSchool?: number,
+    numberOfParents?: number,
   ): Promise<TableTypes<'fc_school_visit'> | null> {
     try {
       if (!this.supabase) {
@@ -996,6 +997,7 @@ export class SupabaseApi implements ServiceApi {
           is_deleted: false,
           distance_from_school:
             distanceFromSchool == null ? null : String(distanceFromSchool),
+          number_of_parents: null,
         };
 
         const { data, error } = await this.supabase
@@ -1027,6 +1029,12 @@ export class SupabaseApi implements ServiceApi {
 
         if (openVisits && openVisits.length > 0) {
           const visitToUpdate = openVisits[0];
+          const nextNumberOfParents =
+            visitToUpdate.type === SchoolVisitType.Community
+              ? numberOfParents == null
+                ? visitToUpdate.number_of_parents
+                : numberOfParents
+              : null;
 
           const { data, error } = await this.supabase
             .from(TABLES.FcSchoolVisit)
@@ -1034,6 +1042,7 @@ export class SupabaseApi implements ServiceApi {
               check_out_at: now,
               check_out_lat: lat,
               check_out_lng: lng,
+              number_of_parents: nextNumberOfParents,
               updated_at: now,
               distance_from_school:
                 distanceFromSchool == null
@@ -10755,6 +10764,13 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const rows = (data ?? []) as Array<Record<string, unknown>>;
+      const parentsReachedBySchool = await this.getParentsReachedBySchoolIds(
+        rows
+          .map((row) => row.school_id)
+          .filter(
+            (schoolId): schoolId is string => typeof schoolId === 'string',
+          ),
+      );
 
       const mappedRows = rows.map((row: Record<string, unknown>) => ({
         ...row,
@@ -10781,6 +10797,10 @@ export class SupabaseApi implements ServiceApi {
         school_visits: row.school_visits ?? null,
         parents_on_whatsapp: row.parents_on_whatsapp ?? null,
         parents_in_whatsapp_group: row.parents_in_group ?? null,
+        parents_reached:
+          typeof row.school_id === 'string'
+            ? (parentsReachedBySchool[row.school_id] ?? 0)
+            : 0,
         program_managers: row.program_managers ?? [],
         field_coordinators: row.field_coordinators ?? [],
       })) as FilteredSchoolsForSchoolListingOps[];
@@ -13743,6 +13763,7 @@ export class SupabaseApi implements ServiceApi {
         calls_made: 0,
         tech_issues: 0,
         parents_interacted: 0,
+        parents_reached: 0,
         students_interacted: 0,
         teachers_interacted: 0,
       };
@@ -13755,6 +13776,7 @@ export class SupabaseApi implements ServiceApi {
           calls_made: 0,
           tech_issues: 0,
           parents_interacted: 0,
+          parents_reached: 0,
           students_interacted: 0,
           teachers_interacted: 0,
         };
@@ -13788,10 +13810,14 @@ export class SupabaseApi implements ServiceApi {
           calls_made: 0,
           tech_issues: 0,
           parents_interacted: 0,
+          parents_reached: 0,
           students_interacted: 0,
           teachers_interacted: 0,
         };
       }
+      const parentsReachedBySchool = await this.getParentsReachedBySchoolIds([
+        schoolId,
+      ]);
       let calls_made = 0;
       let tech_issues = 0;
       let parents_interacted = 0;
@@ -13821,6 +13847,7 @@ export class SupabaseApi implements ServiceApi {
         calls_made,
         tech_issues,
         parents_interacted,
+        parents_reached: parentsReachedBySchool[schoolId] ?? 0,
         students_interacted,
         teachers_interacted,
       };
@@ -13831,10 +13858,48 @@ export class SupabaseApi implements ServiceApi {
         calls_made: 0,
         tech_issues: 0,
         parents_interacted: 0,
+        parents_reached: 0,
         students_interacted: 0,
         teachers_interacted: 0,
       };
     }
+  }
+
+  async getParentsReachedBySchoolIds(
+    schoolIds: string[],
+  ): Promise<Record<string, number>> {
+    const normalizedSchoolIds = [...new Set(schoolIds.filter(Boolean))];
+    if (!this.supabase || normalizedSchoolIds.length === 0) {
+      return {};
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.FcSchoolVisit)
+      .select('school_id, number_of_parents')
+      .in('school_id', normalizedSchoolIds)
+      .eq('type', SchoolVisitType.Community)
+      .eq('is_deleted', false)
+      .not('number_of_parents', 'is', null)
+      .gt('number_of_parents', 0);
+
+    if (error) {
+      logger.error('Error fetching community visit parent counts:', error);
+      return {};
+    }
+
+    return (data ?? []).reduce<Record<string, number>>((accumulator, visit) => {
+      const schoolId = visit.school_id;
+      if (!schoolId) {
+        return accumulator;
+      }
+
+      const parentCount =
+        typeof visit.number_of_parents === 'number'
+          ? visit.number_of_parents
+          : 0;
+      accumulator[schoolId] = (accumulator[schoolId] ?? 0) + parentCount;
+      return accumulator;
+    }, {});
   }
 
   async getLidoCommonAudioUrl(

@@ -60,12 +60,12 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
       </Typography>
       <Typography className="campaign-setup-section-copy">
         <span>Define your campaign audience using hierarchical filters.</span>{' '}
-        <span className="campaign-setup-audience-flow-copy">
+        <span className="target-audience-section-flow-copy">
           Program → Block → School → Grade.
         </span>
       </Typography>
 
-      <Box className="campaign-setup-audience-grid">
+      <Box className="target-audience-section-grid">
         <Box className="campaign-setup-field">
           <Typography className="campaign-setup-label">
             Saved Target Group
@@ -133,7 +133,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             placeholder="Select Blocks"
             onChange={onBlocksChange}
           />
-          <Typography className="campaign-setup-field-note">
+          <Typography className="target-audience-section-field-note">
             all blocks under selected program are included.
           </Typography>
         </Box>
@@ -149,7 +149,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={onSchoolsChange}
           />
-          <Typography className="campaign-setup-field-note">
+          <Typography className="target-audience-section-field-note">
             all schools under selected blocks are included.
           </Typography>
         </Box>
@@ -165,7 +165,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={onGradesChange}
           />
-          <Typography className="campaign-setup-field-note">
+          <Typography className="target-audience-section-field-note">
             all grades under selected schools are included.
           </Typography>
         </Box>

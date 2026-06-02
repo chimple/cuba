@@ -35,7 +35,7 @@ export const SavedAudienceGroupFields: React.FC<
   onSaveGroup,
   onCancelSaveGroup,
 }) => (
-  <Box className="campaign-setup-save-group">
+  <Box className="target-audience-section-save-group">
     <FormControlLabel
       control={
         <Checkbox
@@ -46,7 +46,7 @@ export const SavedAudienceGroupFields: React.FC<
       label="Save this group for reuse"
     />
     {saveGroup && (
-      <Box className="campaign-setup-save-group-fields">
+      <Box className="target-audience-section-save-group-fields">
         <Box className="campaign-setup-field">
           <Typography className="campaign-setup-label">Group Name</Typography>
           <TextField
@@ -61,7 +61,7 @@ export const SavedAudienceGroupFields: React.FC<
         </Box>
         <Button
           type="button"
-          className="campaign-setup-text-button campaign-setup-save-button"
+          className="target-audience-section-text-button target-audience-section-save-button"
           disabled={savingGroup}
           onClick={onSaveGroup}
         >
@@ -69,7 +69,7 @@ export const SavedAudienceGroupFields: React.FC<
         </Button>
         <Button
           type="button"
-          className="campaign-setup-text-button campaign-setup-cancel-button"
+          className="target-audience-section-text-button target-audience-section-cancel-button"
           onClick={onCancelSaveGroup}
         >
           Cancel

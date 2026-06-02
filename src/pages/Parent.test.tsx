@@ -339,6 +339,26 @@ describe('Parent page', () => {
     expect(mockChangeLanguage).toHaveBeenCalledWith('hi');
   });
 
+  it('adds a scroll lock class while the language menu is open', async () => {
+    const user = userEvent.setup();
+    mockAuthHandler.getCurrentUser.mockResolvedValue(parentUser);
+
+    const { container } = renderWithProviders(<Parent />);
+
+    await openSettingsTab(user);
+
+    const scrollContent = container.querySelector(
+      '.parent-page-scroll-content',
+    );
+    expect(scrollContent).not.toHaveClass('parent-page-scroll-content--locked');
+
+    await openLanguageMenu(user);
+    expect(scrollContent).toHaveClass('parent-page-scroll-content--locked');
+
+    await openLanguageMenu(user);
+    expect(scrollContent).not.toHaveClass('parent-page-scroll-content--locked');
+  });
+
   it('calls Util.setPathToBackButton when back is pressed', async () => {
     const user = userEvent.setup();
     mockAuthHandler.getCurrentUser.mockResolvedValue({
