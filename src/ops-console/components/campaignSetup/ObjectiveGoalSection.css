@@ -1,20 +1,20 @@
-.campaign-setup-target-grid {
+.objective-goal-section-target-grid {
   grid-template-columns: repeat(2, minmax(13.75rem, 1fr));
   max-width: min(56.875rem, 100%);
   margin-top: 1.125rem;
 }
 
-.campaign-setup-objective-field {
+.objective-goal-section-objective-field {
   margin-top: 1.0625rem;
 }
 
-.campaign-setup-objective-list {
+.objective-goal-section-objective-list {
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
 }
 
-.campaign-setup-objective {
+.objective-goal-section-objective {
   width: 100%;
   min-height: 4.375rem;
   border: 0.0625rem solid #e0e0e0;
@@ -31,60 +31,60 @@
   transition: all 0.2s ease-in-out;
 }
 
-.campaign-setup-objective:hover {
+.objective-goal-section-objective:hover {
   border-color: #bbdefb;
 }
 
-.campaign-setup-objective-selected {
+.objective-goal-section-objective-selected {
   border-color: #2196f3;
   background: #e3f2fd;
 }
 
-.campaign-setup-objective span {
+.objective-goal-section-objective span {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   padding-top: 0.125rem;
 }
 
-.campaign-setup-objective strong {
+.objective-goal-section-objective strong {
   color: var(--campaign-text);
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.0625rem;
 }
 
-.campaign-setup-objective small {
+.objective-goal-section-objective small {
   color: var(--campaign-muted);
   font-size: 0.8125rem;
   line-height: 1.21875rem;
 }
 
 @media (max-width: 56.25rem) {
-  .campaign-setup-target-grid {
+  .objective-goal-section-target-grid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 48rem) {
-  .campaign-setup-objective-field {
+  .objective-goal-section-objective-field {
     margin-top: 1.125rem;
   }
 
-  .campaign-setup-objective {
+  .objective-goal-section-objective {
     min-height: 5.25rem;
     border-radius: 0.75rem;
     padding: 0.75rem 0.875rem 0.75rem 0.75rem;
     gap: 0.5rem;
   }
 
-  .campaign-setup-objective strong {
+  .objective-goal-section-objective strong {
     font-size: 0.8125rem;
     font-weight: 500;
     line-height: 1rem;
   }
 
-  .campaign-setup-objective small {
+  .objective-goal-section-objective small {
     font-size: 0.75rem;
     line-height: 1.125rem;
   }

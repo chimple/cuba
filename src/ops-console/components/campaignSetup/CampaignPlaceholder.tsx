@@ -8,7 +8,7 @@ export const CampaignCountPlaceholder = (
   selected: unknown[],
   placeholder: string,
 ) => (
-  <span className={selected.length ? undefined : 'campaign-count-placeholder'}>
+  <span className={selected.length ? undefined : 'campaign-placeholder-count'}>
     {selectedCountLabel(selected.length, placeholder)}
   </span>
 );
@@ -21,5 +21,5 @@ export const CampaignSelectPlaceholder = (
   value ? (
     selectedLabel
   ) : (
-    <span className="campaign-select-placeholder">{placeholder}</span>
+    <span className="campaign-placeholder-select">{placeholder}</span>
   );

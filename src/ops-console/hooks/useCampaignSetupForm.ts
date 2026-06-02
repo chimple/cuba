@@ -5,11 +5,14 @@ import {
   CampaignObjective,
   CampaignOption,
   CampaignSavedAudienceGroup,
-  CampaignTargetType,
 } from '../../services/api/ServiceApi';
 import logger from '../../utility/logger';
 import { CampaignSetupFormState } from '../components/CampaignSetupSections';
-import { CampaignAssignmentDraft } from '../components/campaignSetup/campaignAssignmentUtils';
+import {
+  CampaignAssignmentDraft,
+  createDefaultConfig,
+  GradeAssignmentConfig,
+} from '../components/campaignSetup/campaignAssignmentUtils';
 import {
   buildCampaignAudiencePayload,
   buildSavedGroupNameSet,
@@ -53,14 +56,18 @@ export const useCampaignSetupForm = () => {
   const [saveGroup, setSaveGroup] = useState(true);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [savingGroup, setSavingGroup] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-  const [createdCampaignId, setCreatedCampaignId] = useState('');
+  const [createdCampaignId] = useState('');
   const [campaignRewards, setCampaignRewards] =
     useState<CampaignRewardsDraftPayload | null>(null);
   const [assignmentDrafts, setAssignmentDrafts] = useState<
     CampaignAssignmentDraft[]
   >([]);
+  const [assignmentConfigs, setAssignmentConfigs] = useState<
+    Record<string, GradeAssignmentConfig>
+  >({});
+  const [activeAssignmentGradeId, setActiveAssignmentGradeId] = useState('');
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [rewardSubmitAttempted, setRewardSubmitAttempted] = useState(false);
   const [message, setMessage] = useState<CampaignSetupMessage>(null);
@@ -74,6 +81,34 @@ export const useCampaignSetupForm = () => {
     setMessage,
     setSaveGroup,
   });
+
+  useEffect(() => {
+    const selectedGrades = audience.selectedGrades;
+
+    setActiveAssignmentGradeId((current) =>
+      selectedGrades.some((grade) => grade.id === current)
+        ? current
+        : selectedGrades[0]?.id || '',
+    );
+    setAssignmentConfigs((current) => {
+      const next = { ...current };
+      let changed = false;
+      const sharedFrequency =
+        Object.values(current)[0]?.frequency ?? createDefaultConfig().frequency;
+
+      selectedGrades.forEach((grade) => {
+        if (!next[grade.id]) {
+          changed = true;
+          next[grade.id] = {
+            ...createDefaultConfig(),
+            frequency: sharedFrequency,
+          };
+        }
+      });
+
+      return changed ? next : current;
+    });
+  }, [audience.selectedGrades]);
 
   useEffect(() => {
     const fetchSetupOptions = async () => {
@@ -245,61 +280,14 @@ export const useCampaignSetupForm = () => {
     setSubmitAttempted(true);
     setMessage(null);
 
-    if (createdCampaignId) {
-      setActiveStep(1);
-      return;
-    }
-
     if (!isFormValid) return;
 
-    setSubmitting(true);
-    try {
-      const savedAudienceGroupId =
-        audience.selectedSavedGroupId && !saveGroup
-          ? audience.selectedSavedGroupId
-          : undefined;
-      const result = await api.createCampaignSetup({
-        ...buildAudiencePayload(),
-        savedAudienceGroupId,
-        campaignName: form.campaignName.trim(),
-        objective: form.objective as CampaignObjective,
-        targetType:
-          form.objective === 'homework_campaign'
-            ? (form.targetType as CampaignTargetType)
-            : undefined,
-        targetValue:
-          form.objective === 'homework_campaign'
-            ? Number(form.targetValue)
-            : undefined,
-        learningPathCount:
-          form.objective === 'homepage_learning_pathway_campaign'
-            ? Number(form.learningPathCount)
-            : undefined,
-        managerId: form.managerId,
-        startDate: form.startDate,
-        endDate: form.endDate,
-      });
-      setCreatedCampaignId(result.campaignId);
-      setActiveStep(1);
-    } catch (error) {
-      logger.error('Failed to create campaign setup:', error);
-      setMessage({ type: 'error', text: 'Unable to save campaign setup.' });
-    } finally {
-      setSubmitting(false);
-    }
+    setActiveStep(1);
   };
 
   const handleRewardsSubmit = () => {
     setRewardSubmitAttempted(true);
     setMessage(null);
-
-    if (!createdCampaignId) {
-      setMessage({
-        type: 'error',
-        text: 'Save campaign setup before configuring rewards.',
-      });
-      return;
-    }
 
     if (!areRewardsValid) return;
 
@@ -315,7 +303,9 @@ export const useCampaignSetupForm = () => {
 
   return {
     activeStep,
+    activeAssignmentGradeId,
     areRewardsValid,
+    assignmentConfigs,
     assignmentDrafts,
     campaignRewards,
     createdCampaignId,
@@ -337,6 +327,8 @@ export const useCampaignSetupForm = () => {
     savingGroup,
     setForm,
     setActiveStep,
+    setActiveAssignmentGradeId,
+    setAssignmentConfigs,
     setSaveGroup,
     submitting,
     updateForm,

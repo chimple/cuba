@@ -17,27 +17,29 @@ export const AudienceSummary: React.FC<AudienceSummaryProps> = ({
   loadingAudienceSummary,
   audienceSummary,
 }) => (
-  <Box className="campaign-setup-audience-summary">
+  <Box className="target-audience-section-summary">
     <span>
       Program:{' '}
       <strong title={selectedProgramName}>{selectedProgramName}</strong>
     </span>
-    <span className="campaign-setup-summary-dot">·</span>
+    <span className="target-audience-section-summary-dot">·</span>
     <span>
       Blocks: <strong>{summaryBlockCount}</strong>
     </span>
-    <span className="campaign-setup-summary-dot">·</span>
+    <span className="target-audience-section-summary-dot">·</span>
     <span>
       Schools: <strong>{summarySchoolCount}</strong>
     </span>
-    <span className="campaign-setup-summary-dot">·</span>
+    <span className="target-audience-section-summary-dot">·</span>
     <span>Students:</span>
     {loadingAudienceSummary && <span>Loading...</span>}
     {!loadingAudienceSummary &&
       (audienceSummary.grades.length > 0 ? (
         audienceSummary.grades.map((grade, index) => (
           <React.Fragment key={grade.gradeId}>
-            {index > 0 && <span className="campaign-setup-summary-dot">·</span>}
+            {index > 0 && (
+              <span className="target-audience-section-summary-dot">·</span>
+            )}
             <span>
               {grade.gradeName} - <strong>{grade.studentCount}</strong>
             </span>

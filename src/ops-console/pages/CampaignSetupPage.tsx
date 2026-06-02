@@ -158,6 +158,10 @@ const CampaignSetupPage: React.FC = () => {
             campaignId={campaignSetup.createdCampaignId}
             selectedGrades={campaignSetup.selectedGrades}
             selectedSchoolIds={selectedAssignmentSchoolIds}
+            activeGradeId={campaignSetup.activeAssignmentGradeId}
+            configs={campaignSetup.assignmentConfigs}
+            onActiveGradeChange={campaignSetup.setActiveAssignmentGradeId}
+            onConfigsChange={campaignSetup.setAssignmentConfigs}
             onCompletionChange={handleAssignmentCompletionChange}
             onAssignmentsChange={campaignSetup.handleAssignmentDraftsChange}
           />
@@ -197,17 +201,13 @@ const CampaignSetupPage: React.FC = () => {
             </Button>
           )}
           {campaignSetup.activeStep === 1 && !isAssignmentComplete && (
-            <Typography className="campaign-assignment-cta-error">
+            <Typography className="campaign-setup-page-assignment-cta-error">
               Please complete the assignment setup for all selected grades
               before proceeding.
             </Typography>
           )}
           <Button
-            type={
-              campaignSetup.activeStep === 0 && !campaignSetup.createdCampaignId
-                ? 'submit'
-                : 'button'
-            }
+            type={campaignSetup.activeStep === 0 ? 'submit' : 'button'}
             variant="contained"
             endIcon={
               campaignSetup.submitting ? (
@@ -224,13 +224,11 @@ const CampaignSetupPage: React.FC = () => {
                     : true
             }
             onClick={
-              campaignSetup.activeStep === 0 && campaignSetup.createdCampaignId
-                ? () => campaignSetup.setActiveStep(1)
-                : campaignSetup.activeStep === 1
-                  ? () => campaignSetup.setActiveStep(2)
-                  : campaignSetup.activeStep === 2
-                    ? campaignSetup.handleRewardsSubmit
-                    : undefined
+              campaignSetup.activeStep === 1
+                ? () => campaignSetup.setActiveStep(2)
+                : campaignSetup.activeStep === 2
+                  ? campaignSetup.handleRewardsSubmit
+                  : undefined
             }
           >
             Next
