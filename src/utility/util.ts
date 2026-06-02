@@ -1,4 +1,4 @@
-import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
+﻿import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
 import { Device } from '@capacitor/device';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Toast } from '@capacitor/toast';
@@ -114,6 +114,37 @@ import {
 import logger from './logger';
 import type { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
 
+type LessonBundleDownloadOptions = {
+  lessonId: string;
+  zipUrls: string[];
+  dbVersion: number;
+};
+
+type LessonBundleDownloadResult = {
+  byteLength: number;
+  sha256Hex?: string;
+};
+
+type LessonBundlePlugin = {
+  downloadAndExtract: (
+    options: LessonBundleDownloadOptions,
+  ) => Promise<LessonBundleDownloadResult>;
+};
+
+let lessonBundlePluginInstance: LessonBundlePlugin | null = null;
+
+const getLessonBundlePlugin = (): LessonBundlePlugin | null => {
+  if (lessonBundlePluginInstance) {
+    return lessonBundlePluginInstance;
+  }
+  if (typeof registerPlugin !== 'function') {
+    return null;
+  }
+  lessonBundlePluginInstance =
+    registerPlugin<LessonBundlePlugin>('LessonBundle');
+  return lessonBundlePluginInstance;
+};
+
 declare global {
   interface Window {
     cc: any;
@@ -136,6 +167,8 @@ export class Util {
   public static port: PortPlugin;
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = 'lastModalShown';
+  private static lessonBundleDownloadQueue: Promise<void> = Promise.resolve();
+  private static readonly COCOS_ANDROID_FRAME_RATE = 30;
   // Normalize GrowthBook attributes that may come as a scalar or array into a consistent array.
   public static normalizeGrowthbookArrayAttribute<T>(
     value: T | T[] | null | undefined,
@@ -397,12 +430,44 @@ export class Util {
     chapterId?: string,
     bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
   ): Promise<boolean> {
+    return Util.enqueueLessonBundleDownload(() =>
+      Util.runDownloadZipBundle(lessons, chapterId, bundleZipUrlsKey),
+    );
+  }
+
+  private static async enqueueLessonBundleDownload(
+    downloadTask: () => Promise<boolean>,
+  ): Promise<boolean> {
+    const previousDownload = Util.lessonBundleDownloadQueue;
+    let releaseQueue: () => void = () => {};
+
+    Util.lessonBundleDownloadQueue = new Promise<void>((resolve) => {
+      releaseQueue = resolve;
+    });
+
+    try {
+      await previousDownload.catch(() => undefined);
+      return await downloadTask();
+    } finally {
+      releaseQueue();
+    }
+  }
+
+  private static async runDownloadZipBundle(
+    lessons: TableTypes<'lesson'>[],
+    chapterId?: string,
+    bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+  ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) {
         return true;
       }
 
-      logger.warn('Starting download for lessons:', lessons);
+      const downloadStartedAt = Date.now();
+      logger.info('Starting download for lessons:', {
+        count: lessons.length,
+        chapterId: chapterId ?? null,
+      });
       for (let i = 0; i < lessons.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
         const lessonsChunk = lessons.slice(i, i + DOWNLOAD_LESSON_BATCH_SIZE);
         const results = await Promise.all(
@@ -416,18 +481,15 @@ export class Util {
               return false;
             }
 
+            const lessonStartedAt = Date.now();
             try {
               let lessonDownloadSuccess = true;
-              const fs = createFilesystem(Filesystem, {
-                rootDir: '/',
-                directory: Directory.External,
-              });
               const androidPath = await this.getAndroidBundlePath();
-              logger.warn('full lesson object for download:', lesson);
-              logger.warn('lesson version for download:', lesson.version);
+              logger.info('full lesson object for download:', lesson);
+              logger.info('lesson version for download:', lesson.version);
               // 🔥 GET DB VERSION ONCE
               let dbVersion = Number(lesson.version ?? 1);
-              logger.warn(
+              logger.info(
                 `[Version] Using lesson version for ${lessonId}:`,
                 lesson.version,
               );
@@ -443,7 +505,7 @@ export class Util {
 
                 localVersion = await this.getLocalLessonVersion(lessonId);
 
-                logger.warn(
+                logger.info(
                   `[Version] ${lessonId} → Local: ${localVersion}, DB: ${dbVersion}`,
                 );
 
@@ -457,9 +519,9 @@ export class Util {
                   return true;
                 }
 
-                logger.warn(`[Version] ${lessonId} outdated → updating`);
+                logger.info(`[Version] ${lessonId} outdated → updating`);
               } catch {
-                logger.warn(`[Version] ${lessonId} not found → downloading`);
+                logger.info(`[Version] ${lessonId} not found → downloading`);
               }
 
               // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
@@ -487,142 +549,43 @@ export class Util {
                 return false;
               }
 
-              let zip: any;
-              let downloadAttempts = 0;
-              let downloadSuccessful = false;
-
-              while (
-                downloadAttempts < MAX_DOWNLOAD_LESSON_ATTEMPTS &&
-                !downloadSuccessful
-              ) {
-                for (const bundleUrl of bundleZipUrls) {
-                  const zipUrl = bundleUrl + lessonId + '.zip';
-                  try {
-                    logger.info(
-                      `[LessonDownloader] Attempting download from: ${zipUrl}`,
-                    );
-                    const downloadPromise = await CapacitorHttp.get({
-                      url: zipUrl,
-                      responseType: 'blob',
-                      headers: {},
-                      readTimeout: 10000,
-                      connectTimeout: 10000,
-                    });
-                    const timeoutPromise = new Promise((_, reject) =>
-                      setTimeout(() => reject(new Error('Timeout')), 10000),
-                    );
-
-                    zip = await Promise.race([downloadPromise, timeoutPromise]);
-
-                    if (zip && zip.data && zip.status === 200) {
-                      downloadSuccessful = true;
-                      break;
-                    }
-                  } catch {}
-                }
-
-                if (!downloadSuccessful) {
-                  downloadAttempts++;
-                }
-              }
-
-              if (!zip || !zip.data || zip.status !== 200) {
+              const lessonBundlePlugin = getLessonBundlePlugin();
+              if (!lessonBundlePlugin) {
+                logger.warn(
+                  '[LessonDownloader] LessonBundle plugin unavailable',
+                  { lessonId },
+                );
                 return false;
               }
-              const zipDataStr =
-                typeof zip.data === 'string'
-                  ? zip.data
-                  : await this.blobToString(zip.data as Blob);
 
-              const preparedZip = await runBackgroundWorkerTask(
-                'PREPARE_BINARY_FROM_BASE64',
-                { base64: zipDataStr },
-              ).catch(() => {
-                const fallback = Uint8Array.from(atob(zipDataStr), (c) =>
-                  c.charCodeAt(0),
-                );
-                return {
-                  byteLength: fallback.byteLength,
-                  sha256Hex: '',
-                  arrayBuffer: fallback.buffer,
-                };
-              });
-              const buffer = new Uint8Array(preparedZip.arrayBuffer);
-
-              // 🔥 SAFE UPDATE LOGIC
-              const isUpdate = localVersion < dbVersion;
-              const extractTo = isUpdate ? `${lessonId}_temp` : lessonId;
-
-              // clean temp
-              try {
-                await Filesystem.rmdir({
-                  path: `${lessonId}_temp`,
-                  directory: Directory.External,
-                  recursive: true,
+              const nativeBundleResult =
+                await lessonBundlePlugin.downloadAndExtract({
+                  lessonId,
+                  zipUrls: bundleZipUrls,
+                  dbVersion,
                 });
-              } catch {}
 
-              await unzip({
-                fs,
-                extractTo,
-                filepaths: ['.'],
-                filter: (filepath) => !filepath.startsWith('dist/'),
-                data: buffer,
-              });
-
-              // write version
-              await Filesystem.writeFile({
-                path: `${extractTo}/.version`,
-                directory: Directory.External,
-                data: btoa(String(dbVersion)),
-              });
-
-              // 🔥 ATOMIC SWAP
-              if (extractTo.includes('_temp')) {
-                const oldPath = lessonId;
-                const tempPath = `${lessonId}_temp`;
-                const backupPath = `${lessonId}_old`;
-
-                try {
-                  try {
-                    await Filesystem.rename({
-                      from: oldPath,
-                      to: backupPath,
-                      directory: Directory.External,
-                    });
-                  } catch {}
-
-                  await Filesystem.rename({
-                    from: tempPath,
-                    to: oldPath,
-                    directory: Directory.External,
-                  });
-
-                  try {
-                    await Filesystem.rmdir({
-                      path: backupPath,
-                      directory: Directory.External,
-                      recursive: true,
-                    });
-                  } catch {}
-                } catch {
-                  try {
-                    await Filesystem.rename({
-                      from: backupPath,
-                      to: oldPath,
-                      directory: Directory.External,
-                    });
-                  } catch {}
-                }
+              if (!nativeBundleResult?.byteLength) {
+                logger.warn('[LessonDownloader] Native bundle returned empty', {
+                  lessonId,
+                  dbVersion,
+                });
+                return false;
               }
+              logger.info('[LessonDownloader] Native bundle finished', {
+                lessonId,
+                dbVersion,
+                byteLength: nativeBundleResult.byteLength,
+                durationMs: Date.now() - lessonStartedAt,
+              });
 
               // ✅ KEEP ORIGINAL METADATA + EVENTS
               const lessonData = JSON.parse(
                 localStorage.getItem('downloaded_lessons_size') || '{}',
               );
               lessonData[lessonId] = {
-                size: preparedZip.byteLength,
-                sha256: preparedZip.sha256Hex || undefined,
+                size: nativeBundleResult.byteLength,
+                sha256: nativeBundleResult.sha256Hex || undefined,
               };
               localStorage.setItem(
                 'downloaded_lessons_size',
@@ -642,6 +605,10 @@ export class Util {
                 `[LessonDownloader] Error processing lesson ${lessonId}:`,
                 err,
               );
+              logger.warn('[LessonDownloader] Download failed metrics', {
+                lessonId,
+                durationMs: Date.now() - lessonStartedAt,
+              });
               return false;
             }
           }),
@@ -668,6 +635,11 @@ export class Util {
         this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
       }
 
+      logger.info('[LessonDownloader] Chapter download complete', {
+        chapterId: chapterId ?? null,
+        lessonCount: lessons.length,
+        durationMs: Date.now() - downloadStartedAt,
+      });
       return true;
     } catch {
       return false;
@@ -903,17 +875,16 @@ export class Util {
     const downloadedLessonIds = JSON.parse(
       localStorage.getItem(DOWNLOADED_LESSON_ID) || '[]',
     );
-    let lessonIdsForChapter = chapterLessonIdMap[chapterId];
-    if (!lessonIdsForChapter) {
-      const api = ServiceConfig.getI().apiHandler;
-      const storedLessonDoc = await api.getLessonsForChapter(chapterId);
-      lessonIdsForChapter = storedLessonDoc.map((id) => id.cocos_lesson_id);
-      chapterLessonIdMap[chapterId] = lessonIdsForChapter;
-      localStorage.setItem(
-        CHAPTER_ID_LESSON_ID_MAP,
-        JSON.stringify(chapterLessonIdMap),
-      );
-    }
+    const api = ServiceConfig.getI().apiHandler;
+    const storedLessonDoc = await api.getLessonsForChapter(chapterId);
+    const lessonIdsForChapter = storedLessonDoc
+      .map((lesson) => Util.getLessonBundleId(lesson))
+      .filter((lessonId): lessonId is string => Boolean(lessonId));
+    chapterLessonIdMap[chapterId] = lessonIdsForChapter;
+    localStorage.setItem(
+      CHAPTER_ID_LESSON_ID_MAP,
+      JSON.stringify(chapterLessonIdMap),
+    );
     const allLessonIdsDownloaded = lessonIdsForChapter.every(
       (lessonId: string) => downloadedLessonIds.includes(lessonId),
     );
@@ -931,11 +902,72 @@ export class Util {
     return JSON.stringify(value);
   }
 
+  private static applyCocosAndroidGpuProfile(): void {
+    if (
+      !Capacitor.isNativePlatform() ||
+      Capacitor.getPlatform() !== 'android' ||
+      !window.cc
+    ) {
+      return;
+    }
+
+    try {
+      window.cc.view?.enableRetina?.(true);
+      window.cc.view?.resizeWithBrowserSize?.(true);
+      window.cc.game?.setFrameRate?.(Util.COCOS_ANDROID_FRAME_RATE);
+    } catch (error) {
+      logger.warn('Failed to apply Cocos Android GPU profile', error);
+    }
+  }
+
+  private static restoreCocosCanvasSize(): void {
+    if (!window.cc?.sys.isBrowser) {
+      return;
+    }
+
+    const canvas = document.getElementById('GameCanvas');
+    if (canvas) {
+      canvas.style.visibility = '';
+      canvas.style.display = '';
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      canvas.style.pointerEvents = '';
+    }
+
+    const container = document.getElementById('Cocos2dGameContainer');
+    if (container) {
+      container.style.display = '';
+      container.style.width = '100%';
+      container.style.height = '100%';
+      container.style.overflow = '';
+    }
+  }
+
+  private static hideCocosCanvas(): void {
+    const canvas = document.getElementById('GameCanvas');
+    if (canvas) {
+      canvas.style.visibility = 'hidden';
+      canvas.style.display = 'none';
+      canvas.style.width = '0px';
+      canvas.style.height = '0px';
+      canvas.style.pointerEvents = 'none';
+    }
+
+    const container = document.getElementById('Cocos2dGameContainer');
+    if (container) {
+      container.style.display = 'none';
+      container.style.width = '0px';
+      container.style.height = '0px';
+      container.style.overflow = 'hidden';
+    }
+  }
+
   public static async launchCocosGame(): Promise<void> {
     try {
       if (!window.cc) {
         return;
       }
+      const cocosLaunchStartedAt = Date.now();
       const settings = window._CCSettings;
       const launchScene = settings.launchScene;
       const bundle = window.cc.assetManager.bundles.find(function (b: {
@@ -943,6 +975,9 @@ export class Util {
       }) {
         return b.getSceneInfo(launchScene);
       });
+      // Reduce Android WebView/Mali GPU texture-copy pressure by keeping the Cocos WebGL canvas active only during gameplay.
+      Util.applyCocosAndroidGpuProfile();
+      Util.restoreCocosCanvasSize();
 
       await new Promise<object>((resolve, reject) => {
         bundle.loadScene(
@@ -956,25 +991,15 @@ export class Util {
               window.cc.director.runSceneImmediate(scene);
               if (window.cc.sys.isBrowser) {
                 Util.checkingIfGameCanvasAvailable();
-                // show canvas
-                var canvas = document.getElementById('GameCanvas');
-                if (canvas) {
-                  canvas.style.visibility = '';
-                  canvas.style.display = '';
-                }
-                const container = document.getElementById(
-                  'Cocos2dGameContainer',
-                );
-                if (container) {
-                  container.style.display = '';
-                  container.style.width = '100%';
-                  container.style.height = '100%';
-                }
+                Util.restoreCocosCanvasSize();
                 var div = document.getElementById('GameDiv');
                 if (div) {
                   div.style.backgroundImage = '';
                 }
               }
+              logger.info('[ANRGuard] Cocos launch completed', {
+                durationMs: Date.now() - cocosLaunchStartedAt,
+              });
               resolve(scene);
             } else {
               reject(err);
@@ -994,18 +1019,9 @@ export class Util {
     window.cc.game.pause();
     window.cc.director?.pause?.();
     window.cc.audioEngine.stopAll();
-    const canvas = document.getElementById('GameCanvas');
-    if (canvas) {
-      canvas.style.visibility = 'hidden';
-      canvas.style.display = 'none';
-    }
-    const container = document.getElementById('Cocos2dGameContainer');
-    if (container) {
-      container.style.display = 'none';
-      container.style.width = '0px';
-      container.style.height = '0px';
-      container.style.overflow = 'hidden';
-    }
+    window.cc.assetManager?.releaseUnusedAssets?.();
+    Util.hideCocosCanvas();
+    logger.info('[ANRGuard] Cocos game killed');
   }
 
   public static async getLastPlayedLessonIndex(
@@ -1188,6 +1204,7 @@ export class Util {
     if (!isActive) {
       TextToSpeech.stop();
     }
+    logger.info('[Lifecycle] App state changed', { isActive });
 
     // Handling app state changes (reloading pages, updating URLs, etc.)
     const url = new URL(window.location.toString());
