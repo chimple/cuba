@@ -1,0 +1,401 @@
+.campaign-communication-step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  border-bottom: none;
+  padding-top: 1.5rem;
+  padding-right: 0;
+  padding-bottom: 1.5rem;
+  padding-left: 0;
+}
+
+.campaign-communication-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  align-items: flex-start;
+}
+
+.campaign-communication-section-title {
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  color: #202124;
+}
+
+.campaign-communication-helper-text {
+  font-size: 0.6875rem !important;
+  line-height: 1rem !important;
+  color: #757575;
+}
+
+.campaign-communication-widgets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.campaign-communication-widget {
+  min-height: 2.125rem;
+  border: 0.0625rem solid #d7dbe0;
+  border-radius: 0.25rem;
+  background: #f7f8fa;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.campaign-communication-widget-value {
+  font-size: 0.6875rem !important;
+  line-height: 1rem !important;
+  color: #343a40;
+}
+
+.campaign-communication-widget-loading {
+  display: flex;
+  align-items: center;
+}
+
+.campaign-communication-validation,
+.campaign-communication-row-error {
+  border-radius: 0.25rem !important;
+  margin: 0 !important;
+}
+
+.campaign-communication-validation {
+  border: 0.0625rem solid #f3b0ad !important;
+  background: #fef2f2 !important;
+}
+
+.campaign-communication-validation .MuiAlert-message,
+.campaign-communication-row-error .MuiAlert-message {
+  font-size: 0.6875rem;
+  width: 100%;
+}
+
+.campaign-communication-schedule {
+  border: 0.0625rem solid #dfe3e8;
+  border-radius: 0.375rem;
+  background: #ffffff;
+  padding: 0.875rem 1rem;
+}
+
+.campaign-communication-subtitle {
+  margin: 0 !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  color: #202124;
+}
+
+.campaign-communication-schedule-heading {
+  align-self: center;
+}
+
+.campaign-communication-schedule-grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 7rem) minmax(0, 7rem) 1fr;
+  align-items: center;
+  gap: 1rem;
+}
+
+.campaign-communication-field-block {
+  min-width: 0;
+}
+
+.campaign-communication-field-label {
+  margin-bottom: 0.375rem !important;
+  font-size: 0.625rem !important;
+  font-weight: 700 !important;
+  color: #202124;
+}
+
+.campaign-communication-schedule-note {
+  font-size: 0.625rem !important;
+  line-height: 0.875rem !important;
+  color: #8a8f98;
+}
+
+.campaign-communication-schedule-note-mobile {
+  display: none;
+}
+
+.campaign-communication-table {
+  display: flex;
+  flex-direction: column;
+  border: 0.0625rem solid #e5e7eb;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.campaign-communication-table-head {
+  display: grid;
+  grid-template-columns: 1.05fr 3.4fr 1.9fr 2fr 0.9fr;
+  align-items: center;
+  background: #f8fafc;
+  border-bottom: 0.0625rem solid #e5e7eb;
+}
+
+.campaign-communication-table-head span {
+  padding: 0.5rem 0.625rem;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9aa1aa;
+  text-align: left;
+}
+
+.campaign-communication-row {
+  display: grid;
+  grid-template-columns: 1.05fr 3.4fr 1.9fr 2fr 0.9fr;
+  background: #ffffff;
+}
+
+.campaign-communication-row + .campaign-communication-row {
+  border-top: 0.0625rem solid #e5e7eb;
+}
+
+.campaign-communication-row > .campaign-communication-date-cell,
+.campaign-communication-row > .campaign-communication-cell,
+.campaign-communication-row > .campaign-communication-poll-cell,
+.campaign-communication-row > .campaign-communication-clear-cell {
+  padding: 0.625rem;
+  border-right: 0.0625rem solid #e5e7eb;
+}
+
+.campaign-communication-row > :last-child {
+  border-right: none;
+}
+
+.campaign-communication-mobile-row-head,
+.campaign-communication-mobile-label {
+  display: none;
+}
+
+.campaign-communication-date-cell {
+  background: #f8fafc;
+  text-align: left;
+}
+
+.campaign-communication-date-label {
+  font-size: 0.6875rem !important;
+  font-weight: 700 !important;
+  color: #202124;
+}
+
+.campaign-communication-date-subtext {
+  margin-top: 0.125rem !important;
+  font-size: 0.625rem !important;
+  color: #667085;
+}
+
+.campaign-communication-cell,
+.campaign-communication-poll-cell,
+.campaign-communication-clear-cell {
+  min-width: 0;
+}
+
+.campaign-communication-poll-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.campaign-communication-option-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.375rem;
+}
+
+.campaign-communication-add-option {
+  align-self: flex-start;
+  min-width: 0 !important;
+  padding: 0.125rem 0.5rem !important;
+  border: 0.0625rem solid #3b82f6 !important;
+  border-radius: 0.25rem !important;
+  color: #2563eb !important;
+  text-transform: none !important;
+  font-size: 0.625rem !important;
+  font-weight: 600 !important;
+}
+
+.campaign-communication-remove-option {
+  min-width: 1.625rem !important;
+  width: 1.625rem;
+  height: 1.625rem;
+  padding: 0 !important;
+  border: 0.0625rem solid #f3b0ad !important;
+  color: #ea4335 !important;
+}
+
+.campaign-communication-clear-cell {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.campaign-communication-clear-cell button {
+  min-width: 2.625rem !important;
+  padding: 0.1875rem 0.625rem !important;
+  border: 0.0625rem solid #f3b0ad !important;
+  border-radius: 0.25rem !important;
+  color: #ea4335 !important;
+  text-transform: none !important;
+  font-size: 0.625rem !important;
+  font-weight: 500 !important;
+}
+
+.campaign-communication-empty-state {
+  padding: 1rem;
+  color: #667085;
+}
+
+.campaign-communication-step .MuiFormHelperText-root {
+  margin-left: 0;
+  font-size: 0.625rem;
+}
+
+.campaign-communication-step .MuiOutlinedInput-root {
+  border-radius: 0.1875rem !important;
+}
+
+.campaign-communication-step .MuiInputBase-input,
+.campaign-communication-step .MuiSelect-select {
+  padding: 0.5rem 0.625rem !important;
+  font-size: 0.6875rem !important;
+}
+
+.campaign-communication-step .MuiInputBase-inputMultiline {
+  padding: 0.625rem !important;
+}
+
+.campaign-communication-message-field .MuiOutlinedInput-root {
+  background: transparent !important;
+}
+
+.campaign-communication-message-field .MuiOutlinedInput-notchedOutline {
+  border: none !important;
+}
+
+.campaign-communication-message-field .MuiInputBase-inputMultiline {
+  padding: 0 !important;
+}
+
+@media (max-width: 48rem) {
+  .campaign-communication-step {
+    gap: 0.75rem;
+    margin-top: 2.875rem;
+    padding-top: 1rem;
+  }
+
+  .campaign-communication-widgets {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .campaign-communication-widget {
+    min-height: 2.5rem;
+    padding: 0.625rem 0.75rem;
+  }
+
+  .campaign-communication-widget-value {
+    font-size: 0.625rem !important;
+    line-height: 0.875rem !important;
+  }
+
+  .campaign-communication-schedule {
+    border-radius: 0.75rem;
+    padding: 0.875rem;
+  }
+
+  .campaign-communication-schedule-grid {
+    grid-template-columns: 1fr;
+    gap: 0.625rem;
+  }
+
+  .campaign-communication-schedule-heading {
+    align-self: flex-start;
+  }
+
+  .campaign-communication-field-label {
+    margin-bottom: 0.25rem !important;
+  }
+
+  .campaign-communication-schedule-note-desktop {
+    display: none;
+  }
+
+  .campaign-communication-schedule-note-mobile {
+    display: block;
+  }
+
+  .campaign-communication-table {
+    gap: 0.75rem;
+    border: none;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .campaign-communication-table-head {
+    display: none;
+  }
+
+  .campaign-communication-row {
+    display: flex;
+    flex-direction: column;
+    border: 0.0625rem solid #d9e4f2;
+    border-radius: 0.875rem;
+    overflow: hidden;
+    background: #ffffff;
+  }
+
+  .campaign-communication-row + .campaign-communication-row {
+    border-top: 0.0625rem solid #d9e4f2;
+  }
+
+  .campaign-communication-mobile-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0.875rem;
+    background: #eff6ff;
+    border-bottom: 0.0625rem solid #d9e4f2;
+  }
+
+  .campaign-communication-mobile-expand {
+    color: #6b7280;
+  }
+
+  .campaign-communication-date-cell {
+    display: none;
+  }
+
+  .campaign-communication-mobile-label {
+    display: block;
+    margin-bottom: 0.375rem !important;
+    font-size: 0.625rem !important;
+    font-weight: 700 !important;
+    color: #202124;
+    text-transform: none;
+  }
+
+  .campaign-communication-row > .campaign-communication-cell,
+  .campaign-communication-row > .campaign-communication-poll-cell,
+  .campaign-communication-row > .campaign-communication-clear-cell {
+    padding: 0.875rem;
+    border-right: none;
+  }
+
+  .campaign-communication-row > .campaign-communication-cell,
+  .campaign-communication-row > .campaign-communication-poll-cell {
+    border-bottom: 0.0625rem solid #edf2f7;
+  }
+
+  .campaign-communication-clear-cell {
+    justify-content: flex-start;
+  }
+
+  .campaign-communication-clear-cell button {
+    min-width: 4.5rem !important;
+  }
+}
