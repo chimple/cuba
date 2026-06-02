@@ -147,6 +147,7 @@ export const mapSchoolRowsToRenderRows = (
           school.assignments_assigned,
         ),
       ),
+      parentsReached: renderMetricCell(pickFirstNumber(school.parents_reached)),
       avgAssignmentsCompleted: renderMetricCell(completionAssignments),
       avgActivitiesCompleted: renderMetricCell(completionActivities),
     };

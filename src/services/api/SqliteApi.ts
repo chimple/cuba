@@ -8827,6 +8827,7 @@ order by
     action: SchoolVisitAction,
     visitType?: SchoolVisitType,
     distanceFromSchool?: number,
+    numberOfParents?: number,
   ): Promise<TableTypes<'fc_school_visit'> | null> {
     try {
       return await this._serverApi.recordSchoolVisit(
@@ -8836,6 +8837,7 @@ order by
         action,
         visitType,
         distanceFromSchool,
+        numberOfParents,
       );
     } catch (error) {
       logger.error('❌ Error recording school visit:', error);
