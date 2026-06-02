@@ -1,4 +1,4 @@
-﻿import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
+import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
 import { Device } from '@capacitor/device';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Toast } from '@capacitor/toast';

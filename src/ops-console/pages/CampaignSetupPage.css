@@ -244,6 +244,27 @@
   box-shadow: none;
 }
 
+.campaign-setup-actions .campaign-setup-primary-cta {
+  width: auto;
+  min-width: 10.5rem;
+  padding: 0 1rem;
+}
+
+.campaign-setup-actions .campaign-setup-secondary-cta {
+  width: auto;
+  min-width: 7.75rem;
+  margin-right: 0.75rem;
+  background: #ffffff !important;
+  color: #202124 !important;
+  border: 0.0625rem solid #d0d5dd !important;
+}
+
+.campaign-setup-actions .campaign-setup-secondary-cta + .MuiButton-root {
+  width: auto;
+  min-width: 10.5rem;
+  padding: 0 1rem;
+}
+
 .campaign-setup-actions .MuiButton-root.Mui-disabled {
   background: #c1c7cd;
   color: #ffffff;
@@ -439,6 +460,11 @@
     background: var(--campaign-mobile-blue);
   }
 
+  .campaign-setup-actions .campaign-setup-primary-cta {
+    min-width: 0;
+    padding: 0 1rem;
+  }
+
   .campaign-setup-actions .campaign-setup-back-cta {
     flex: 0 0 6.25rem;
     margin: 0;
@@ -452,5 +478,11 @@
     flex: 0 0 100%;
     margin-right: 0 !important;
     text-align: center;
+  }
+  .campaign-setup-actions .campaign-setup-secondary-cta {
+    flex: 1 1 100%;
+    order: 1;
+    width: 100%;
+    margin-right: 0;
   }
 }

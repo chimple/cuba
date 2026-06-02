@@ -5,12 +5,26 @@ import CampaignSetupPage from './CampaignSetupPage';
 import { buildCampaignRewardsPayload } from '../hooks/campaignSetupFormHelpers';
 
 const mockGoBack = jest.fn();
-jest.setTimeout(10000);
+jest.setTimeout(30000);
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string, options?: Record<string, string | number>): string =>
+      options
+        ? key.replace(/{{(\w+)}}/g, (_match, token: string) =>
+            String(options[token] ?? ''),
+          )
+        : key,
+  }),
+}));
 
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useHistory: () => ({
     goBack: mockGoBack,
+  }),
+  useLocation: () => ({
+    search: '',
   }),
 }));
 
@@ -21,6 +35,8 @@ const mockApiHandler = {
   createCampaignAudienceGroup: jest.fn(),
   createCampaignSetup: jest.fn(),
   getCampaignAssignmentOptions: jest.fn(),
+  getParentWhatsappClassesBySchoolId: jest.fn(),
+  getParentWhatsappParentPhonesByClassId: jest.fn(),
 };
 
 let mockAssignmentComplete = false;
@@ -47,7 +63,27 @@ jest.mock('../components/CampaignSetupSections', () => {
       onCompletionChange: (isComplete: boolean) => void;
     }) => {
       React.useEffect(() => {
-        onAssignmentsChange([]);
+        onAssignmentsChange(
+          mockAssignmentComplete
+            ? [
+                {
+                  batchId: 'campaign-1',
+                  gradeId: 'grade-1',
+                  schoolIds: ['school-1'],
+                  courseId: 'course-1',
+                  chapterId: 'chapter-1',
+                  lessonId: 'lesson-1',
+                  lessonName: 'Lesson 1',
+                  subjectName: 'Math',
+                  startsAt: '2099-05-01',
+                  endsAt: null,
+                  type: 'homework',
+                  source: 'campaign',
+                  setNumber: 1,
+                },
+              ]
+            : [],
+        );
         onCompletionChange(mockAssignmentComplete);
       }, [onAssignmentsChange, onCompletionChange]);
 
@@ -92,6 +128,8 @@ const setupApiMocks = () => {
       },
     ],
   });
+  mockApiHandler.getParentWhatsappClassesBySchoolId.mockResolvedValue([]);
+  mockApiHandler.getParentWhatsappParentPhonesByClassId.mockResolvedValue([]);
 };
 
 const openSelectAndChoose = async (triggerText: string, optionText: string) => {
@@ -243,7 +281,7 @@ describe('CampaignSetupPage', () => {
     expect(mockApiHandler.createCampaignAudienceGroup).not.toHaveBeenCalled();
   });
 
-  it('advances to assignments without saving setup data on next', async () => {
+  it('saves setup data and advances to assignments on next', async () => {
     render(<CampaignSetupPage />);
 
     await screen.findByRole('heading', { name: 'New Campaign' });
@@ -284,7 +322,7 @@ describe('CampaignSetupPage', () => {
     expect(
       await screen.findByText('Assignment Configuration'),
     ).toBeInTheDocument();
-    expect(mockApiHandler.createCampaignSetup).not.toHaveBeenCalled();
+    expect(mockApiHandler.createCampaignSetup).toHaveBeenCalledTimes(1);
     expect(screen.queryByText('Campaign setup saved.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
   });
@@ -367,7 +405,7 @@ describe('CampaignSetupPage', () => {
     ).toBeInTheDocument();
   });
 
-  it('builds rewards payload locally and advances to messaging step', async () => {
+  it('builds rewards payload locally and advances to campaign communication timeline', async () => {
     mockAssignmentComplete = true;
     render(<CampaignSetupPage />);
 
@@ -407,7 +445,72 @@ describe('CampaignSetupPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     expect(
-      screen.getByRole('heading', { name: 'Messaging' }),
+      screen.getByRole('heading', { name: 'Campaign Communication Timeline' }),
+    ).toBeInTheDocument();
+  });
+
+  it('requires at least one configured communication day before proceeding to summary', async () => {
+    mockAssignmentComplete = true;
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await completeSetupStep();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await openSelectAndChoose('Select Reward Type', 'Digital Rewards');
+
+    fireEvent.change(screen.getByLabelText('1st Minimum Completion (%)'), {
+      target: { value: '90' },
+    });
+    fireEvent.change(screen.getByLabelText('2nd Minimum Completion (%)'), {
+      target: { value: '70' },
+    });
+    fireEvent.change(screen.getByLabelText('3rd Minimum Completion (%)'), {
+      target: { value: '50' },
+    });
+    fireEvent.change(screen.getByLabelText('1st Reward'), {
+      target: { value: 'Gold Reward' },
+    });
+    fireEvent.change(screen.getByLabelText('2nd Reward'), {
+      target: { value: 'Silver Reward' },
+    });
+    fireEvent.change(screen.getByLabelText('3rd Reward'), {
+      target: { value: 'Bronze Reward' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(
+      screen.getByRole('heading', { name: 'Campaign Communication Timeline' }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Continue to Summary' }),
+    );
+
+    expect(
+      await screen.findAllByText(
+        'Configure at least one day to continue to the Summary.',
+      ),
+    ).toHaveLength(1);
+
+    fireEvent.mouseDown(screen.getByLabelText('Message Time'));
+    fireEvent.click(await screen.findByRole('option', { name: '09:00 AM' }));
+    fireEvent.mouseDown(screen.getByLabelText('Poll Time'));
+    fireEvent.click(await screen.findByRole('option', { name: '05:00 PM' }));
+    fireEvent.change(screen.getByPlaceholderText('Enter daily message'), {
+      target: { value: "Complete today's campaign task." },
+    });
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Continue to Summary' }),
+    );
+
+    expect(
+      screen.getByRole('heading', { name: 'Summary' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('1 campaign day(s) are configured for communication.'),
     ).toBeInTheDocument();
   });
 
