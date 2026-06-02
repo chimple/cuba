@@ -384,6 +384,29 @@ describe('Leaderboard', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('shows a back button on rewards page and navigates home', async () => {
+    const user = userEvent.setup();
+    window.history.pushState({}, '', '/leaderboard?tab=rewards');
+    const view = render(<Leaderboard />);
+
+    expect(await view.findByTestId('leaderboard-rewards')).toBeInTheDocument();
+    expect(document.querySelector('#LeaderBoard-Header')).toBeTruthy();
+    mockSetPathToBackButton.mockClear();
+
+    const backButton = document.querySelector(
+      '#back-button-in-LeaderBoard-Header img[alt="BackButtonIcon"]',
+    ) as HTMLImageElement | null;
+    expect(backButton).toBeTruthy();
+    if (!backButton) throw new Error('Back button not found');
+
+    await user.click(backButton);
+
+    expect(mockSetPathToBackButton).toHaveBeenCalledWith(
+      PAGES.HOME,
+      mockHistory,
+    );
+  });
+
   // 4) Change dropdown period and refresh table content accordingly.
   it('changes leaderboard period from dropdown and refreshes visible rows', async () => {
     const user = userEvent.setup();

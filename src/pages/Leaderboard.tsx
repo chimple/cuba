@@ -581,12 +581,12 @@ const Leaderboard: React.FC = () => {
         <Box>
           <div
             id={
-              tabIndex === LEADERBOARDHEADERLIST.LEADERBOARD
-                ? 'LeaderBoard-Header'
-                : 'leaderboard-debug-mode'
+              tabIndex === 'debugMode'
+                ? 'leaderboard-debug-mode'
+                : 'LeaderBoard-Header'
             }
           >
-            {tabIndex === LEADERBOARDHEADERLIST.LEADERBOARD && (
+            {tabIndex !== 'debugMode' && (
               <div id="back-button-in-LeaderBoard-Header">
                 <img
                   src="/assets/icons/BackButtonIcon.svg"
