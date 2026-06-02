@@ -63,7 +63,7 @@ export const getCampaignDurationDays = (
   const end = new Date(endDate);
   const diff = end.getTime() - start.getTime();
   if (Number.isNaN(diff) || diff < 0) return 0;
-  return Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
+  return Math.round(diff / (1000 * 60 * 60 * 24)) + 1;
 };
 
 const formatDateValue = (value: string) =>
