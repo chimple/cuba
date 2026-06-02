@@ -53,6 +53,7 @@ export type FCSchoolStats = {
   calls_made: number;
   tech_issues: number;
   parents_interacted: number;
+  parents_reached: number;
   students_interacted: number;
   teachers_interacted: number;
 };
@@ -65,6 +66,23 @@ export type ClassWithDetails = TableTypes<'class'> & {
   courses?: TableTypes<'course'>[];
   curriculum?: TableTypes<'curriculum'>[];
   studentCount?: number;
+};
+
+const mapSchoolVisitType = (
+  visitType: TableTypes<'fc_school_visit'>['type'],
+): SchoolVisitType | undefined => {
+  switch (visitType) {
+    case SchoolVisitType.Regular:
+      return SchoolVisitType.Regular;
+    case SchoolVisitType.ParentsTeacherMeeting:
+      return SchoolVisitType.ParentsTeacherMeeting;
+    case SchoolVisitType.TeacherTraining:
+      return SchoolVisitType.TeacherTraining;
+    case SchoolVisitType.Community:
+      return SchoolVisitType.Community;
+    default:
+      return undefined;
+  }
 };
 
 const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
@@ -193,6 +211,9 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const [selectedVisitType, setSelectedVisitType] = useState<SchoolVisitType>(
     SchoolVisitType.Regular,
   );
+  const [activeVisitType, setActiveVisitType] = useState<
+    SchoolVisitType | undefined
+  >(undefined);
   const openMenu = Boolean(anchorEl);
 
   useEffect(() => {
@@ -202,8 +223,10 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       const lastVisit = await api.getLastSchoolVisit(id);
       if (lastVisit && !lastVisit.check_out_at) {
         setCheckInStatus(SchoolVisitStatus.CheckedIn);
+        setActiveVisitType(mapSchoolVisitType(lastVisit.type));
       } else {
         setCheckInStatus(SchoolVisitStatus.CheckedOut);
+        setActiveVisitType(undefined);
       }
     };
     fetchVisitStatus();
@@ -237,6 +260,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     lat?: number,
     lng?: number,
     distance?: number,
+    numberOfParents?: number,
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     try {
@@ -253,6 +277,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           );
           if (res) {
             setCheckInStatus(SchoolVisitStatus.CheckedIn);
+            setActiveVisitType(selectedVisitType);
             setIsCheckInModalOpen(false);
             await Toast.show({ text: t('Checked in successfully!') });
           }
@@ -267,9 +292,11 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
             SchoolVisitAction.CheckOut,
             undefined,
             distance,
+            numberOfParents,
           );
           if (res) {
             setCheckInStatus(SchoolVisitStatus.CheckedOut);
+            setActiveVisitType(undefined);
             setIsCheckInModalOpen(false);
             await Toast.show({ text: t('Checked out successfully!') });
           }
@@ -310,6 +337,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
       calls_made: 0,
       tech_issues: 0,
       parents_interacted: 0,
+      parents_reached: 0,
       students_interacted: 0,
       teachers_interacted: 0,
     };
@@ -405,6 +433,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         calls_made: stats?.calls_made ?? 0,
         tech_issues: stats?.tech_issues ?? stats?.tech_issues_reported ?? 0,
         parents_interacted: stats?.parents_interacted ?? 0,
+        parents_reached: stats?.parents_reached ?? 0,
         students_interacted: stats?.students_interacted ?? 0,
         teachers_interacted: stats?.teachers_interacted ?? 0,
       };
@@ -562,6 +591,11 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           schoolLocation={schoolLocation}
           schoolAddress={data.schoolData?.address}
           schoolId={id}
+          visitType={
+            checkInStatus === SchoolVisitStatus.CheckedIn
+              ? activeVisitType
+              : selectedVisitType
+          }
           onLocationUpdated={fetchAll}
         />
       )}

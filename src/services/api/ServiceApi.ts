@@ -396,6 +396,7 @@ export interface ServiceApi {
     action: SchoolVisitAction,
     visitType?: SchoolVisitType,
     distanceFromSchool?: number,
+    numberOfParents?: number,
   ): Promise<TableTypes<'fc_school_visit'> | null>;
 
   getLastSchoolVisit(
