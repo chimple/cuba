@@ -358,6 +358,7 @@ jest.mock('../components/signup/LoginSwitch', () => ({
 const mockApiHandler = {
   getSchoolsForUser: jest.fn(),
   getUserSpecialRoles: jest.fn(),
+  isSplUser: jest.fn(),
 };
 const mockOnlineOfflineHandler =
   useOnlineOfflineErrorMessageHandler as jest.Mock;
@@ -437,6 +438,7 @@ describe('LoginScreen', () => {
 
     mockApiHandler.getSchoolsForUser.mockResolvedValue([]);
     mockApiHandler.getUserSpecialRoles.mockResolvedValue([]);
+    mockApiHandler.isSplUser.mockResolvedValue(false);
     mockPortPlugin.requestPermission.mockResolvedValue({});
     mockPortPlugin.numberRetrieve.mockResolvedValue({ number: '' });
     mockPortPlugin.otpRetrieve.mockResolvedValue({ otp: '' });
@@ -478,24 +480,38 @@ describe('LoginScreen', () => {
       expect(mockChangeLanguage).toHaveBeenCalledWith('hi');
     });
 
-    it('redirects logged-in user to select mode', async () => {
+    it('redirects logged-in teacher-capable user to display schools', async () => {
       (mockAuthHandler.isUserLoggedIn as jest.Mock).mockResolvedValue(true);
+      (mockAuthHandler.getCurrentUser as jest.Mock).mockResolvedValue({
+        id: 'teacher-1',
+        name: 'Teacher User',
+      });
+      mockApiHandler.getSchoolsForUser.mockResolvedValue([
+        { role: RoleType.TEACHER },
+      ]);
       await renderReady();
       await eventually(() => {
-        expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
+        expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
       });
     });
 
-    it('tries session migration before giving up on an existing login', async () => {
+    it('uses role-based redirect after session migration restores login', async () => {
       (mockAuthHandler.isUserLoggedIn as jest.Mock)
         .mockResolvedValueOnce(false)
         .mockResolvedValueOnce(true);
+      (mockAuthHandler.getCurrentUser as jest.Mock).mockResolvedValue({
+        id: 'teacher-1',
+        name: 'Teacher User',
+      });
+      mockApiHandler.getSchoolsForUser.mockResolvedValue([
+        { role: RoleType.COORDINATOR },
+      ]);
 
       await renderReady();
 
       await eventually(() => {
         expect(mockMigrateSupabaseSession).toHaveBeenCalledTimes(1);
-        expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
+        expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
       });
     });
   });
@@ -1182,6 +1198,56 @@ describe('LoginScreen', () => {
         orientation: 'landscape',
       });
     });
+
+    it.each([RoleType.TEACHER, RoleType.PRINCIPAL, RoleType.COORDINATOR])(
+      'redirects mixed auto-user %s accounts to DISPLAY_SCHOOLS after google sign in',
+      async (teacherAppRole) => {
+        __setGrowthBookMock({
+          features: { [LATEST_TC_VERSION]: 6 },
+        });
+        jest.spyOn(Capacitor, 'isNativePlatform').mockReturnValue(true);
+        (mockAuthHandler.googleSign as jest.Mock).mockResolvedValue({
+          success: true,
+          isSpl: false,
+          user: {
+            id: 'teacher-1',
+            uid: 'teacher-1',
+            name: 'Teacher User',
+            username: 'teacher@example.com',
+            last_login_at: '2026-01-01T00:00:00Z',
+          },
+          userData: {
+            id: 'teacher-1',
+            name: 'Teacher User',
+          },
+        });
+        (mockAuthHandler.getCurrentUser as jest.Mock).mockResolvedValue({
+          id: 'teacher-1',
+          uid: 'teacher-1',
+          name: 'Teacher User',
+          username: 'teacher@example.com',
+          last_login_at: '2026-01-01T00:00:00Z',
+        });
+        mockApiHandler.getSchoolsForUser.mockResolvedValue([
+          { role: RoleType.AUTOUSER },
+          { role: teacherAppRole },
+        ]);
+
+        const user = userEvent.setup();
+        const { view } = await renderReady();
+        await user.click(view.getByRole('button', { name: 'google-signin' }));
+
+        await eventually(() => {
+          expect(mockHistoryReplace).toHaveBeenCalledWith(
+            PAGES.DISPLAY_SCHOOLS,
+          );
+        });
+        expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
+        expect(ScreenOrientation.lock).not.toHaveBeenCalledWith({
+          orientation: 'landscape',
+        });
+      },
+    );
 
     it('shows error and falls back to phone when google sign fails', async () => {
       (mockAuthHandler.googleSign as jest.Mock).mockResolvedValue({

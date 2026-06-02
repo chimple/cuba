@@ -57,6 +57,7 @@ import {
   normalizeTcVersion,
   resolveTermsBaseUrl,
 } from '../utility/termsAndConditions';
+import { isTeacherAppRole } from '../utility/roleUtil';
 
 const LoginScreen: React.FC = () => {
   const history = useHistory();
@@ -175,7 +176,7 @@ const LoginScreen: React.FC = () => {
         }
 
         if (isLoggedIn) {
-          history.replace(PAGES.SELECT_MODE);
+          await redirectAuthenticatedUser();
           return;
         }
       } finally {
@@ -201,7 +202,7 @@ const LoginScreen: React.FC = () => {
       const authHandler = ServiceConfig.getI().authHandler;
       authHandler.isUserLoggedIn().then((isUserLoggedIn) => {
         if (isUserLoggedIn) {
-          history.replace(PAGES.SELECT_MODE);
+          void redirectAuthenticatedUser();
         }
       });
     }
@@ -561,6 +562,18 @@ const LoginScreen: React.FC = () => {
     return (await api.getSchoolsForUser(userId)) || [];
   };
 
+  const redirectAuthenticatedUser = async (): Promise<void> => {
+    const currentUser = await authInstance.getCurrentUser();
+    if (!currentUser?.id) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+
+    const isOpsUser = await api.isSplUser();
+    const schools = await getSchoolsForUser(currentUser.id);
+    await redirectUser(schools, isOpsUser);
+  };
+
   const redirectUser = async (
     schools: { role: RoleType }[],
     isOpsUser: boolean,
@@ -576,6 +589,20 @@ const LoginScreen: React.FC = () => {
       }
 
       // AUTOUSER → school‐mode
+      const hasTeacherAppRole = schools.some((school) =>
+        isTeacherAppRole(school.role),
+      );
+      if (hasTeacherAppRole) {
+        const authHandler = ServiceConfig.getI()?.authHandler;
+        const currentUser = await authHandler?.getCurrentUser();
+
+        schoolUtil.setCurrMode(MODES.TEACHER);
+        if (!currentUser?.name || currentUser.name.trim() === '') {
+          return history.replace(PAGES.ADD_TEACHER_NAME);
+        }
+        return history.replace(PAGES.DISPLAY_SCHOOLS);
+      }
+
       const auto = schools.find((s) => s.role === RoleType.AUTOUSER);
       if (auto) {
         if (Capacitor.isNativePlatform()) {
