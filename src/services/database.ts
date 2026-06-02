@@ -1621,6 +1621,7 @@ export type Database = {
           id: string;
           is_deleted: boolean;
           notes: string | null;
+          number_of_parents: number | null;
           school_id: string;
           type: Database['public']['Enums']['school_visit_type'] | null;
           updated_at: string;
@@ -1638,6 +1639,7 @@ export type Database = {
           id?: string;
           is_deleted?: boolean;
           notes?: string | null;
+          number_of_parents?: number | null;
           school_id: string;
           type?: Database['public']['Enums']['school_visit_type'] | null;
           updated_at?: string;
@@ -1655,6 +1657,7 @@ export type Database = {
           id?: string;
           is_deleted?: boolean;
           notes?: string | null;
+          number_of_parents?: number | null;
           school_id?: string;
           type?: Database['public']['Enums']['school_visit_type'] | null;
           updated_at?: string;
@@ -3588,6 +3591,7 @@ export type Database = {
           metric_window: string | null;
           onboarded_students: number | null;
           partners: string[] | null;
+          parents_reached: number | null;
           program_id: string | null;
           program_managers: string[] | null;
           program_name: string | null;
@@ -3618,6 +3622,7 @@ export type Database = {
           metric_window?: string | null;
           onboarded_students?: number | null;
           partners?: string[] | null;
+          parents_reached?: number | null;
           program_id?: string | null;
           program_managers?: string[] | null;
           program_name?: string | null;
@@ -3648,6 +3653,7 @@ export type Database = {
           metric_window?: string | null;
           onboarded_students?: number | null;
           partners?: string[] | null;
+          parents_reached?: number | null;
           program_id?: string | null;
           program_managers?: string[] | null;
           program_name?: string | null;
