@@ -170,8 +170,11 @@ const Parent: React.FC = () => {
       let tempLangDocIds: Map<string, string> = new Map();
       let keytempLangDocIds: Map<string, string> = new Map();
       if (!allLang || allLang.length == 0) return;
-      for (let i = 0; i < allLang.length; i++) {
-        const element = allLang[i];
+      const sortedLanguages = [...allLang].sort(
+        (left, right) => (left.sort_index ?? 0) - (right.sort_index ?? 0),
+      );
+      for (let i = 0; i < sortedLanguages.length; i++) {
+        const element = sortedLanguages[i];
 
         tempLangList.push({
           id: element.id,
