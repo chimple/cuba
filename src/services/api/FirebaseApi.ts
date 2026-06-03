@@ -1076,6 +1076,15 @@ export class FirebaseApi implements ServiceApi {
     return [];
   }
 
+  async getSkillByLessonIdentifier(
+    lessonIdentifier: string,
+  ): Promise<TableTypes<'skill'> | undefined> {
+    logger.warn(
+      'getSkillByLessonIdentifier is not supported for FirebaseApi. Returning undefined.',
+    );
+    return undefined;
+  }
+
   async getDataByInviteCode(inviteCode: number): Promise<any> {
     const functions = getFunctions();
     const generateInviteCode = httpsCallable(functions, 'GetDataByInviteCode');

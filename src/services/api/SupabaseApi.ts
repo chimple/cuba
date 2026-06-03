@@ -2596,7 +2596,7 @@ export class SupabaseApi implements ServiceApi {
       subject_ability: subject_ability ?? null,
       activities_scores: activities_scores ?? null,
       user_id: user_id ?? null,
-      status: status ?? null,
+      status: (status ?? null) as TableTypes<'result'>['status'],
       source: source ?? null,
     };
 
@@ -3278,6 +3278,59 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return data ?? [];
+  }
+
+  async getSkillByLessonIdentifier(
+    lessonIdentifier: string,
+  ): Promise<TableTypes<'skill'> | undefined> {
+    if (!this.supabase || !lessonIdentifier) return undefined;
+
+    const fetchLessonByColumn = async (
+      column: 'id' | 'cocos_lesson_id' | 'lido_lesson_id',
+    ) => {
+      const { data, error } = await this.supabase!.from(TABLES.Lesson)
+        .select('id')
+        .eq(column, lessonIdentifier)
+        .or('is_deleted.eq.false,is_deleted.is.null')
+        .order('updated_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false, nullsFirst: false })
+        .limit(1);
+
+      if (error) {
+        logger.error('Error fetching lesson for skill lookup:', error);
+        return undefined;
+      }
+
+      return data?.[0] as { id: string } | undefined;
+    };
+
+    const lesson =
+      (await fetchLessonByColumn('id')) ??
+      (await fetchLessonByColumn('cocos_lesson_id')) ??
+      (await fetchLessonByColumn('lido_lesson_id'));
+
+    if (!lesson?.id) return undefined;
+
+    const { data: skillLessons, error: skillLessonError } = await this.supabase
+      .from(TABLES.SkillLesson)
+      .select('skill_id')
+      .eq('lesson_id', lesson.id)
+      .or('is_deleted.eq.false,is_deleted.is.null')
+      .order('sort_index', { ascending: true, nullsFirst: false })
+      .limit(1);
+
+    if (skillLessonError) {
+      logger.error('Error fetching skill lesson for lesson:', skillLessonError);
+      return undefined;
+    }
+
+    const skillId = skillLessons?.[0]?.skill_id;
+    if (!skillId) return undefined;
+
+    return (
+      (await this.getSkillById(skillId)) ??
+      ({ id: skillId } as TableTypes<'skill'>)
+    );
   }
 
   async getSkillLessonsBySkillIds(
@@ -14287,52 +14340,93 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<boolean> {
     try {
       if (!this.supabase) return false;
-      const { data, error } = await this.supabase
-        .from('result')
-        .select(
-          `
-          id,
-          lesson!inner(
-            id,
-            plugin_type,
-            is_deleted
-          )
-        `,
-        )
-        .eq('student_id', studentId)
-        .eq('course_id', courseId)
-        .eq('is_deleted', false)
 
-        // 🔒 join condition parity
-        .eq('lesson.is_deleted', false)
-        .neq('lesson.plugin_type', 'lido_assessment')
+      const course = await this.getCourse(courseId);
+      if (!course?.subject_id) return false;
 
-        // STRICT ability validation
-        .not('skill_id', 'is', null)
-        .not('outcome_id', 'is', null)
-        .not('competency_id', 'is', null)
-        .not('domain_id', 'is', null)
-        .not('subject_id', 'is', null)
+      const { data: assessmentLessons, error: assessmentLessonsError } =
+        await this.supabase
+          .from('subject_lesson')
+          .select('lesson_id')
+          .eq('subject_id', course.subject_id)
+          .or('is_deleted.eq.false,is_deleted.is.null');
 
-        .not('skill_ability', 'is', null)
-        .not('outcome_ability', 'is', null)
-        .not('competency_ability', 'is', null)
-        .not('domain_ability', 'is', null)
-        .not('subject_ability', 'is', null)
-
-        .not('activities_scores', 'is', null)
-        .neq('activities_scores', '')
-
-        .limit(1);
-
-      if (error) {
-        logger.error('❌ Error checking played PLA lesson:', error);
+      if (assessmentLessonsError) {
+        logger.error(
+          '❌ Error fetching assessment lessons for PAL history:',
+          assessmentLessonsError,
+        );
         return false;
       }
 
-      return Array.isArray(data) && data.length > 0;
+      const assessmentLessonIds = Array.from(
+        new Set(
+          (assessmentLessons ?? [])
+            .map((lesson) => lesson.lesson_id)
+            .filter((lessonId): lessonId is string => !!lessonId),
+        ),
+      );
+
+      let resultsQuery = this.supabase
+        .from('result')
+        .select('lesson_id, status')
+        .eq('student_id', studentId)
+        .eq('course_id', courseId)
+        .or('is_deleted.eq.false,is_deleted.is.null');
+
+      if (assessmentLessonIds.length) {
+        resultsQuery = resultsQuery.or(
+          `status.eq.assessment_terminated,lesson_id.in.(${assessmentLessonIds.join(',')})`,
+        );
+      } else {
+        resultsQuery = resultsQuery.filter(
+          'status',
+          'eq',
+          'assessment_terminated',
+        );
+      }
+
+      const { data: results, error } = await resultsQuery;
+
+      if (error) {
+        logger.error('❌ Error checking PAL assessment history:', error);
+        return false;
+      }
+
+      const resultRows = results ?? [];
+      if (
+        resultRows.some(
+          (result) =>
+            (result.status as string | null) === 'assessment_terminated',
+        )
+      ) {
+        return true;
+      }
+
+      const assessmentLessonIdSet = new Set(assessmentLessonIds);
+      const systemExitAssessmentLessonIds = new Set(
+        resultRows
+          .filter(
+            (result) =>
+              result.status === 'system_exit' &&
+              !!result.lesson_id &&
+              assessmentLessonIdSet.has(result.lesson_id),
+          )
+          .map((result) => result.lesson_id),
+      );
+
+      if (systemExitAssessmentLessonIds.size >= 2) {
+        return true;
+      }
+
+      return resultRows.some(
+        (result) =>
+          result.status !== 'system_exit' &&
+          !!result.lesson_id &&
+          assessmentLessonIdSet.has(result.lesson_id),
+      );
     } catch (error) {
-      logger.error('❌ Error checking PAL lesson history:', error);
+      logger.error('❌ Error checking PAL assessment history:', error);
       return false;
     }
   }

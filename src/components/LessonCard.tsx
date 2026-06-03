@@ -99,7 +99,7 @@ const LessonCard: React.FC<{
         if (lessonData?.course_id) {
           const course = await api.getCourse(lessonData.course_id);
           setCurrentCourse(course);
-          return;
+          return course;
         }
       }
     } catch (error) {
@@ -172,9 +172,8 @@ const LessonCard: React.FC<{
         }}
         onClick={async () => {
           if (isUnlocked) {
-            if (!course && !currentCourse) {
-              await getCurrentCourse();
-            }
+            const resolvedCourse =
+              course ?? currentCourse ?? (await getCurrentCourse());
 
             const lidoLessonId =
               lesson.lido_lesson_id ||
@@ -188,8 +187,8 @@ const LessonCard: React.FC<{
               const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
               history.push(PAGES.LIDO_PLAYER + parmas, {
                 lessonId: lidoLessonId,
-                courseDocId: course?.id ?? currentCourse?.id,
-                course: JSON.stringify(course ?? currentCourse),
+                courseDocId: resolvedCourse?.id,
+                course: JSON.stringify(resolvedCourse),
                 lesson: JSON.stringify(lesson),
                 assignment: assignment,
                 chapter: JSON.stringify(chapter),
@@ -205,12 +204,8 @@ const LessonCard: React.FC<{
               history.push(PAGES.GAME + parmas, {
                 url: 'chimple-lib/index.html' + parmas,
                 lessonId: lesson.cocos_lesson_id,
-                courseDocId:
-                  course?.id ??
-                  assignment?.course_id ??
-                  // lesson.courseId ??
-                  currentCourse?.id,
-                course: JSON.stringify(currentCourse!),
+                courseDocId: resolvedCourse?.id ?? assignment?.course_id,
+                course: JSON.stringify(resolvedCourse),
                 lesson: JSON.stringify(lesson),
                 assignment: assignment,
                 chapter: JSON.stringify(chapter),
@@ -252,7 +247,7 @@ const LessonCard: React.FC<{
                 history.push(
                   PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
                   {
-                    courseId: course?.id ?? currentCourse?.id,
+                    courseId: resolvedCourse?.id,
                     lesson: JSON.stringify(lesson),
                     from: history.location.pathname + `?${CONTINUE}=true`,
                     source: source,
