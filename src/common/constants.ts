@@ -1526,6 +1526,7 @@ export enum RESULT_STATUS {
   COMPLETED = 'completed',
   USER_EXIT = 'user_exit',
   SYSTEM_EXIT = 'system_exit',
+  ASSESSMENT_TERMINATED = 'assessment_terminated',
 }
 
 export enum SOURCE {

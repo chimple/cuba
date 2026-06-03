@@ -903,6 +903,14 @@ export interface ServiceApi {
   ): Promise<TableTypes<'skill_lesson'>[]>;
 
   /**
+   * Fetches the first skill linked to a lesson using a lesson row id,
+   * cocos_lesson_id, or lido_lesson_id.
+   */
+  getSkillByLessonIdentifier(
+    lessonIdentifier: string,
+  ): Promise<TableTypes<'skill'> | undefined>;
+
+  /**
    * Gives StudentProfile for given a Student firebase doc Id
    * @param {string} id - Student firebase doc id
    * @param {boolean} fromCache - If true, it will try to fetch the data from the cache. If the data is not found in the cache, it will look in the database.
