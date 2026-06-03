@@ -491,19 +491,19 @@ const CocosGame: React.FC = () => {
         typeof value === 'string' && value.trim().length > 0
           ? value.trim()
           : undefined;
-      const lessonIdentifier = [
-        state?.lessonId,
-        lessonDetail?.cocos_lesson_id,
-        lessonDetail?.lido_lesson_id,
-        lesson.id,
-      ]
-        .map(normalizeIdentifier)
-        .find(Boolean);
+      const lessonIdentifiers = Array.from(
+        new Set(
+          [state?.lessonId, lessonDetail?.cocos_lesson_id, lesson?.id]
+            .map(normalizeIdentifier)
+            .filter((id): id is string => !!id),
+        ),
+      );
 
-      if (lessonIdentifier) {
+      for (const lessonIdentifier of lessonIdentifiers) {
         resolvedSkillId = (
           await api.getSkillByLessonIdentifier(lessonIdentifier)
         )?.id;
+        if (resolvedSkillId) break;
       }
     }
 
