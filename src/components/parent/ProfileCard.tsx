@@ -141,17 +141,35 @@ const ProfileCard: React.FC<{
         )}
       </div>
       {userType ? (
-        <div id="profile-card-image-div">
-          <img
-            id="profile-card-image"
-            loading="lazy"
-            src={
-              (studentCurrMode === MODES.SCHOOL && user.image) ||
-              'assets/avatars/' + (user.avatar ?? AVATARS[0]) + '.png'
-            }
-            alt=""
-          />
-          <p id="profile-card-user-name">{user.name ? user.name : '\u00A0'}</p>
+        <div id="profile-card-user-content">
+          <div id="profile-card-image-div">
+            <img
+              id="profile-card-image"
+              loading="lazy"
+              src={
+                (studentCurrMode === MODES.SCHOOL && user.image) ||
+                'assets/avatars/' + (user.avatar ?? AVATARS[0]) + '.png'
+              }
+              alt=""
+            />
+            <p id="profile-card-user-name">
+              {user.name ? user.name : '\u00A0'}
+            </p>
+          </div>
+          <div className="profile-card-image-report-shadow">
+            <button
+              id="profile-card-image-report"
+              type="button"
+              onClick={async () => {
+                logProfileCardAction('view_progress');
+                await Util.setCurrentStudent(user, undefined, false, false);
+
+                Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
+              }}
+            >
+              {t('Progress')}
+            </button>
+          </div>
         </div>
       ) : (
         <div id="profile-card-new-user">
@@ -188,22 +206,6 @@ const ProfileCard: React.FC<{
           </button>
           <p>{t('Add a Child')}</p>
         </div>
-      )}
-
-      {userType ? (
-        <div
-          id="profile-card-image-report"
-          onClick={async () => {
-            logProfileCardAction('view_progress');
-            await Util.setCurrentStudent(user, undefined, false, false);
-
-            Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
-          }}
-        >
-          {t('Progress')}
-        </div>
-      ) : (
-        <p className="profile-card-empty-element">&#9679;</p>
       )}
       {showDialogBox ? (
         <DialogBoxButtons
