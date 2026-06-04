@@ -1,5 +1,5 @@
 import { IonPage, IonHeader, useIonViewWillEnter } from '@ionic/react';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import {
   HOMEHEADERLIST,
   PAGES,
@@ -97,13 +97,16 @@ const Home: FC = () => {
   }, [currentHeader]);
 
   const growthbook = useGrowthBook();
+  const growthbookRef = useRef(growthbook);
+  growthbookRef.current = growthbook;
 
   // Reward eligibility is parent-school aware: if any child under the same
   // parent is linked to a school, use that school access only for the reward
   // flag without changing GrowthBook targeting for other features.
 
   const persistRewardFeatureFlag = async () => {
-    if (!growthbook) return;
+    const gb = growthbookRef.current;
+    if (!gb) return;
 
     const student = Util.getCurrentStudent();
     if (!student) {
@@ -115,7 +118,7 @@ const Home: FC = () => {
     // include parent_id in this flow.
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     const parentId = parentUser?.id ?? null;
-    const previousAttributes = growthbook.getAttributes?.() ?? {};
+    const previousAttributes = gb.getAttributes?.() ?? {};
     // Fetch all children for this parent because reward access should apply to
     // siblings when any child under the parent is linked to a school.
     const siblingProfiles = parentId
@@ -148,10 +151,12 @@ const Home: FC = () => {
       });
     });
 
+    if (Util.getCurrentStudent()?.id !== student.id) return;
+
     try {
       // Temporarily evaluate only the reward feature with parent-level school
       // ids. Shared GrowthBook attributes stay unchanged for all other flags.
-      growthbook.setAttributes({
+      gb.setAttributes({
         ...previousAttributes,
         id: student.id,
         student_id: student.id,
@@ -164,7 +169,7 @@ const Home: FC = () => {
         school_ids: Array.from(schoolIds),
       });
       const isRewardFeatureOn = Boolean(
-        growthbook.getFeatureValue?.(IS_REWARD_FEATURE_ON, false),
+        gb.getFeatureValue?.(IS_REWARD_FEATURE_ON, false),
       );
       // Keep the existing reward flow unchanged: downstream screens read this
       // cached boolean from localStorage.
@@ -175,7 +180,7 @@ const Home: FC = () => {
     } finally {
       // Restore the original attributes so this reward-only school union does
       // not affect pathway, homework, popup, or other GrowthBook features.
-      growthbook.setAttributes(previousAttributes);
+      gb.setAttributes(previousAttributes);
     }
   };
 
