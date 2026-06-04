@@ -51,6 +51,11 @@ type CocosGameListeners = {
   gameExit?: EventListener;
 };
 
+const getSourceFromState = (source: unknown): SOURCE | undefined =>
+  Object.values(SOURCE).includes(source as SOURCE)
+    ? (source as SOURCE)
+    : undefined;
+
 const CocosGame: React.FC = () => {
   const history = useHistory();
   const location = history.location.state as {
@@ -63,7 +68,7 @@ const CocosGame: React.FC = () => {
   const assignmentType = location?.assignment?.type || 'self-played';
   const state = history.location.state as any;
   const source: SOURCE =
-    state?.source ??
+    getSourceFromState(state?.source) ??
     (state?.isHomework
       ? SOURCE.LEARNING_PATHWAY_HOMEWORK
       : state?.learning_path
@@ -654,6 +659,7 @@ const CocosGame: React.FC = () => {
       score: data.score,
       played_from: playedFrom,
       assignment_type: assignmentType,
+      source,
     });
 
     let tempAssignmentCompletedIds = localStorage.getItem(

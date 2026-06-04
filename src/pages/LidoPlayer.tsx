@@ -46,6 +46,11 @@ const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
 
 type AbilityUpdates = Awaited<ReturnType<typeof palUtil.updateAndGetAbilities>>;
 
+const getSourceFromState = (source: unknown): SOURCE | undefined =>
+  Object.values(SOURCE).includes(source as SOURCE)
+    ? (source as SOURCE)
+    : undefined;
+
 const LidoPlayer: FC = () => {
   const history = useHistory();
   const [present] = useIonToast();
@@ -53,7 +58,7 @@ const LidoPlayer: FC = () => {
   // State
   const state = history.location.state as any;
   const source: SOURCE =
-    state?.source ??
+    getSourceFromState(state?.source) ??
     (state?.isHomework
       ? SOURCE.LEARNING_PATHWAY_HOMEWORK
       : state?.learning_path
@@ -840,6 +845,7 @@ const LidoPlayer: FC = () => {
         score: data.finalScore,
         played_from: playedFrom,
         assignment_type: assignmentType,
+        source,
       });
       let tempAssignmentCompletedIds = localStorage.getItem(
         ASSIGNMENT_COMPLETED_IDS,
