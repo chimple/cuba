@@ -61,13 +61,7 @@ const Home: FC = () => {
     useState<number>(0);
   const history = useHistory();
   const { setGbUpdated } = useGbContext();
-  const isRewardFeatureOn = useFeatureIsOn(IS_REWARD_FEATURE_ON);
-
-  if (isRewardFeatureOn === true) {
-    localStorage.setItem(IS_REWARD_FEATURE_ON, 'true');
-  } else if (isRewardFeatureOn === false) {
-    localStorage.setItem(IS_REWARD_FEATURE_ON, 'false');
-  }
+  const api = ServiceConfig.getI().apiHandler;
 
   let tempPageNumber = 1;
   const location = useLocation();
@@ -103,8 +97,98 @@ const Home: FC = () => {
   }, [currentHeader]);
 
   const growthbook = useGrowthBook();
+
+  // Reward eligibility is parent-school aware: if any child under the same
+  // parent is linked to a school, use that school access only for the reward
+  // flag without changing GrowthBook targeting for other features.
+
+  const persistRewardFeatureFlag = async () => {
+    if (!growthbook) return;
+
+    const student = Util.getCurrentStudent();
+    if (!student) {
+      localStorage.setItem(IS_REWARD_FEATURE_ON, 'false');
+      return;
+    }
+
+    // Use the logged-in parent id because student records do not reliably
+    // include parent_id in this flow.
+    const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    const parentId = parentUser?.id ?? null;
+    const previousAttributes = growthbook.getAttributes?.() ?? {};
+    // Fetch all children for this parent because reward access should apply to
+    // siblings when any child under the parent is linked to a school.
+    const siblingProfiles = parentId
+      ? await api.getParentStudentProfiles().catch(() => [])
+      : [];
+    // Include the current child even if it is missing from the parent profile
+    // list, so directly linked children are still evaluated correctly.
+    const studentsToInspect = [
+      student,
+      ...siblingProfiles.filter((profile) => profile.id !== student.id),
+    ];
+    const schoolIds = new Set<string>();
+    // Build a reward-only school list from the current child and all siblings.
+    // This lets an unlinked sibling inherit reward eligibility from a linked
+    // sibling under the same parent.
+    const linkedDataResults = await Promise.allSettled(
+      studentsToInspect.map((profile) =>
+        api.getStudentClassesAndSchools(profile.id),
+      ),
+    );
+
+    // Some child lookups may fail or return no school data; ignore those so one
+    // bad profile does not block reward evaluation for the rest.
+    linkedDataResults.forEach((result) => {
+      if (result.status !== 'fulfilled') return;
+      (result.value?.schools ?? []).forEach((school) => {
+        if (school?.id) {
+          schoolIds.add(school.id);
+        }
+      });
+    });
+
+    try {
+      // Temporarily evaluate only the reward feature with parent-level school
+      // ids. Shared GrowthBook attributes stay unchanged for all other flags.
+      growthbook.setAttributes({
+        ...previousAttributes,
+        id: student.id,
+        student_id: student.id,
+        age: student.age ?? (previousAttributes.age as number | null) ?? null,
+        grade_id:
+          student.grade_id ??
+          (previousAttributes.grade_id as string | null) ??
+          null,
+        parent_id: parentId ?? previousAttributes.parent_id ?? null,
+        school_ids: Array.from(schoolIds),
+      });
+      const isRewardFeatureOn = Boolean(
+        growthbook.getFeatureValue?.(IS_REWARD_FEATURE_ON, false),
+      );
+      // Keep the existing reward flow unchanged: downstream screens read this
+      // cached boolean from localStorage.
+      localStorage.setItem(
+        IS_REWARD_FEATURE_ON,
+        isRewardFeatureOn ? 'true' : 'false',
+      );
+    } finally {
+      // Restore the original attributes so this reward-only school union does
+      // not affect pathway, homework, popup, or other GrowthBook features.
+      growthbook.setAttributes(previousAttributes);
+    }
+  };
+
+  // Re-evaluate reward gating when GrowthBook becomes ready or the selected
+  // student's school/class links refresh; keep popup handling in this same
+  // GrowthBook effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!growthbook) return;
+
+    if (growthbook.ready) {
+      void persistRewardFeatureFlag();
+    }
 
     const popupConfig = growthbook.getFeatureValue(GENERIC_POP_UP, null) as any;
 
@@ -118,7 +202,7 @@ const Home: FC = () => {
       PopupManager.onAppOpen(popupConfig);
       PopupManager.onTimeElapsed(popupConfig);
     }
-  }, [growthbook, currentHeader]);
+  }, [growthbook, growthbook?.ready, refreshKey, currentHeader]);
 
   useEffect(() => {
     const student = Util.getCurrentStudent();
@@ -189,6 +273,7 @@ const Home: FC = () => {
     // Rebuild student-school attributes immediately after a class join.
     await Util.updateSchStdAttb();
     setGbUpdated(true);
+    await persistRewardFeatureFlag();
     setCanShowAvatar(true);
     setIsStudentLinked(true);
     setRefreshKey((oldKey) => oldKey + 1);
@@ -246,7 +331,8 @@ const Home: FC = () => {
       await Util.updateSchStdAttb();
       setGbUpdated(true);
     };
-    updateAtb();
+    await updateAtb();
+    await persistRewardFeatureFlag();
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('page') === PAGES.JOIN_CLASS) {
@@ -306,8 +392,6 @@ const Home: FC = () => {
     AvatarObj.getInstance().unlockedRewards =
       (await Util.getAllUnlockedRewards()) || [];
   }
-
-  const api = ServiceConfig.getI().apiHandler;
 
   async function getAssignments(
     withListeners: boolean = true,
