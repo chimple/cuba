@@ -34,6 +34,7 @@ const mockApiHandler = {
   getCampaignAudienceSummary: jest.fn(),
   createCampaignAudienceGroup: jest.fn(),
   createCampaignSetup: jest.fn(),
+  launchCampaign: jest.fn(),
   getCampaignAssignmentOptions: jest.fn(),
   getParentWhatsappClassesBySchoolId: jest.fn(),
   getParentWhatsappParentPhonesByClassId: jest.fn(),
@@ -120,6 +121,7 @@ const setupApiMocks = () => {
     campaignId: 'campaign-1',
     targetAudienceId: 'audience-1',
   });
+  mockApiHandler.launchCampaign.mockResolvedValue(undefined);
   mockApiHandler.getCampaignAssignmentOptions.mockResolvedValue({
     grades: [
       {
@@ -507,11 +509,41 @@ describe('CampaignSetupPage', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: 'Summary' }),
+      screen.getByRole('heading', { name: 'Campaign Summary' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText('1 campaign day(s) are configured for communication.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Campaign Overview')).toBeInTheDocument();
+    expect(screen.getByText('Communication')).toBeInTheDocument();
+    expect(screen.getByText('Launch Campaign')).toBeInTheDocument();
+    expect(screen.queryByText('Save as Draft')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Launch Campaign' }));
+
+    await waitFor(() =>
+      expect(mockApiHandler.launchCampaign).toHaveBeenCalledWith(
+        expect.objectContaining({
+          campaignId: 'campaign-1',
+          rewards: expect.objectContaining({
+            type: 'digital_rewards',
+          }),
+          assignments: [
+            expect.objectContaining({
+              gradeId: 'grade-1',
+              schoolIds: ['school-1'],
+              lessonId: 'lesson-1',
+              startsAt: '2099-05-01',
+            }),
+          ],
+          messagingRows: [
+            expect.objectContaining({
+              scheduledDate: '2099-05-01',
+              messageTime: '09:00:00',
+              pollTime: '17:00:00',
+              message: "Complete today's campaign task.",
+            }),
+          ],
+        }),
+      ),
+    );
   });
 
   it('uses lesson criteria for homepage learning pathway rewards', async () => {

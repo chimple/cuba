@@ -305,11 +305,9 @@ export const useCampaignSetupForm = () => {
         targetValue:
           form.objective === 'homework_campaign'
             ? Number(form.targetValue)
-            : undefined,
-        learningPathCount:
-          form.objective === 'homepage_learning_pathway_campaign'
-            ? Number(form.learningPathCount)
-            : undefined,
+            : form.objective === 'homepage_learning_pathway_campaign'
+              ? Number(form.learningPathCount)
+              : undefined,
         managerId: form.managerId,
         startDate: form.startDate,
         endDate: form.endDate,

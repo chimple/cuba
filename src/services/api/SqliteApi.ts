@@ -108,6 +108,7 @@ import {
   GetSchoolsWithProgramAccessParams,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
+  LaunchCampaignPayload,
   OpsStudentPerformanceBandRow,
   OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
@@ -7253,6 +7254,10 @@ order by
     payload: CreateCampaignSetupPayload,
   ): Promise<CreateCampaignSetupResult> {
     return await this._serverApi.createCampaignSetup(payload);
+  }
+
+  async launchCampaign(payload: LaunchCampaignPayload): Promise<void> {
+    return await this._serverApi.launchCampaign(payload);
   }
 
   async getCampaignAssignmentOptions(

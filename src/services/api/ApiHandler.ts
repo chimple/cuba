@@ -13,6 +13,7 @@ import {
   CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
   LeaderboardInfo,
+  LaunchCampaignPayload,
   OpsStudentPerformanceBandRow,
   OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
@@ -1589,6 +1590,10 @@ export class ApiHandler implements ServiceApi {
     payload: CreateCampaignSetupPayload,
   ): Promise<CreateCampaignSetupResult> {
     return await this.s.createCampaignSetup(payload);
+  }
+
+  public async launchCampaign(payload: LaunchCampaignPayload): Promise<void> {
+    return await this.s.launchCampaign(payload);
   }
 
   public async getCampaignAssignmentOptions(

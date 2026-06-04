@@ -690,6 +690,62 @@ export type Database = {
           },
         ];
       };
+      campaign_messaging: {
+        Row: {
+          campaign_id: string;
+          created_at: string | null;
+          id: string;
+          is_deleted: boolean | null;
+          media_link: string | null;
+          message: string | null;
+          message_status: string | null;
+          message_time: string | null;
+          poll: Json | null;
+          poll_status: string | null;
+          poll_time: string | null;
+          scheduled_date: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          campaign_id: string;
+          created_at?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          media_link?: string | null;
+          message?: string | null;
+          message_status?: string | null;
+          message_time?: string | null;
+          poll?: Json | null;
+          poll_status?: string | null;
+          poll_time?: string | null;
+          scheduled_date: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          campaign_id?: string;
+          created_at?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          media_link?: string | null;
+          message?: string | null;
+          message_status?: string | null;
+          message_time?: string | null;
+          poll?: Json | null;
+          poll_status?: string | null;
+          poll_time?: string | null;
+          scheduled_date?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_messaging_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaign';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       campaign_target_audience: {
         Row: {
           created_at: string | null;

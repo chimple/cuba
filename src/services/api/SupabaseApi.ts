@@ -70,6 +70,7 @@ import {
   CampaignSetupOptions,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
+  LaunchCampaignPayload,
   GetSchoolsWithProgramAccessParams,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
@@ -9329,7 +9330,6 @@ export class SupabaseApi implements ServiceApi {
       objective: payload.objective,
       target_type: payload.targetType ?? null,
       target_value: payload.targetValue ?? null,
-      learning_path_count: payload.learningPathCount ?? null,
       manager_id: payload.managerId,
       start_date: payload.startDate,
       end_date: payload.endDate,
@@ -9353,6 +9353,212 @@ export class SupabaseApi implements ServiceApi {
       campaignId: String(data.id),
       targetAudienceId,
     };
+  }
+
+  async launchCampaign(payload: LaunchCampaignPayload): Promise<void> {
+    if (!this.supabase) {
+      throw new Error('Supabase client is not initialized.');
+    }
+    if (!payload.campaignId) {
+      throw new Error('Campaign id is required.');
+    }
+    if (!payload.rewards?.type || payload.rewards.rules.length === 0) {
+      throw new Error('Campaign rewards are required.');
+    }
+    if (payload.assignments.length === 0) {
+      throw new Error('Campaign assignments are required.');
+    }
+    if (payload.messagingRows.length === 0) {
+      throw new Error('Campaign communication is required.');
+    }
+
+    const {
+      data: { user },
+    } = await this.supabase.auth.getUser();
+
+    const updatedAt = new Date().toISOString();
+    const { error: campaignError } = await this.supabase
+      .from('campaign')
+      .update({
+        program_id: payload.campaign.programId,
+        name: payload.campaign.campaignName,
+        objective: payload.campaign.objective,
+        target_type: payload.campaign.targetType ?? null,
+        target_value: payload.campaign.targetValue ?? null,
+        manager_id: payload.campaign.managerId,
+        start_date: payload.campaign.startDate,
+        end_date: payload.campaign.endDate,
+        rewards: JSON.stringify(payload.rewards),
+        updated_at: updatedAt,
+      })
+      .eq('id', payload.campaignId)
+      .eq('is_deleted', false);
+
+    if (campaignError) {
+      logger.error('Error updating launched campaign rewards:', campaignError);
+      throw campaignError;
+    }
+
+    const schoolIds = Array.from(
+      new Set(
+        payload.assignments.flatMap((assignment) => assignment.schoolIds),
+      ),
+    ).filter(Boolean);
+    const gradeIds = Array.from(
+      new Set(payload.assignments.map((assignment) => assignment.gradeId)),
+    ).filter(Boolean);
+
+    if (schoolIds.length === 0 || gradeIds.length === 0) {
+      throw new Error('Campaign assignment schools and grades are required.');
+    }
+
+    const classRows: Array<{
+      id: string;
+      school_id: string;
+      grade_id: string;
+    }> = [];
+    for (const schoolIdBatch of chunkArray(schoolIds, 500)) {
+      const { data, error } = await this.supabase
+        .from(TABLES.Class)
+        .select('id, school_id, grade_id')
+        .in('school_id', schoolIdBatch)
+        .in('grade_id', gradeIds)
+        .eq('is_deleted', false)
+        .not('grade_id', 'is', null);
+
+      if (error) {
+        logger.error('Error resolving campaign assignment classes:', error);
+        throw error;
+      }
+
+      classRows.push(
+        ...((data ?? []) as Array<{
+          id: string;
+          school_id: string;
+          grade_id: string;
+        }>),
+      );
+    }
+
+    const classesBySchoolAndGrade = new Map<
+      string,
+      Array<{ id: string; school_id: string; grade_id: string }>
+    >();
+    classRows.forEach((classRow) => {
+      const key = `${classRow.school_id}:${classRow.grade_id}`;
+      if (!classesBySchoolAndGrade.has(key)) {
+        classesBySchoolAndGrade.set(key, []);
+      }
+      classesBySchoolAndGrade.get(key)?.push(classRow);
+    });
+
+    const missingAssignmentTargets = new Set<string>();
+    const assignmentRows = payload.assignments.flatMap((assignment) =>
+      assignment.schoolIds.flatMap((schoolId) => {
+        const classes =
+          classesBySchoolAndGrade.get(`${schoolId}:${assignment.gradeId}`) ??
+          [];
+        if (classes.length === 0) {
+          missingAssignmentTargets.add(`${schoolId}:${assignment.gradeId}`);
+        }
+        return classes.map((classRow) => ({
+          campaign_id: payload.campaignId,
+          batch_id: payload.campaignId,
+          class_id: classRow.id,
+          school_id: classRow.school_id,
+          lesson_id: assignment.lessonId,
+          chapter_id: assignment.chapterId,
+          course_id: assignment.courseId,
+          starts_at: assignment.startsAt,
+          ends_at: assignment.endsAt,
+          type: assignment.type,
+          source: assignment.source,
+          set_number: assignment.setNumber,
+          is_class_wise: true,
+          created_by: user?.id ?? null,
+          is_deleted: false,
+        }));
+      }),
+    );
+
+    if (missingAssignmentTargets.size > 0) {
+      logger.warn(
+        'Skipping campaign assignments for school/grade pairs without classes:',
+        Array.from(missingAssignmentTargets).map((target) => {
+          const [schoolId, gradeId] = target.split(':');
+          return { schoolId, gradeId };
+        }),
+      );
+    }
+
+    if (assignmentRows.length === 0) {
+      throw new Error(
+        'No classes found for the selected campaign assignments.',
+      );
+    }
+
+    const { error: assignmentCleanupError } = await this.supabase
+      .from(TABLES.Assignment)
+      .update({ is_deleted: true, updated_at: updatedAt })
+      .eq('campaign_id', payload.campaignId)
+      .eq('is_deleted', false);
+
+    if (assignmentCleanupError) {
+      logger.error(
+        'Error clearing previous campaign assignments:',
+        assignmentCleanupError,
+      );
+      throw assignmentCleanupError;
+    }
+
+    for (const assignmentBatch of chunkArray(assignmentRows, 500)) {
+      const { error } = await this.supabase
+        .from(TABLES.Assignment)
+        .insert(assignmentBatch);
+
+      if (error) {
+        logger.error('Error inserting campaign assignments:', error);
+        throw error;
+      }
+    }
+
+    const { error: messagingCleanupError } = await this.supabase
+      .from('campaign_messaging')
+      .update({ is_deleted: true, updated_at: updatedAt })
+      .eq('campaign_id', payload.campaignId)
+      .eq('is_deleted', false);
+
+    if (messagingCleanupError) {
+      logger.error(
+        'Error clearing previous campaign messaging:',
+        messagingCleanupError,
+      );
+      throw messagingCleanupError;
+    }
+
+    const messagingRows = payload.messagingRows.map((row) => ({
+      campaign_id: payload.campaignId,
+      scheduled_date: row.scheduledDate,
+      message_time: row.messageTime,
+      poll_time: row.pollTime,
+      message: row.message,
+      media_link: row.mediaLink,
+      poll: row.poll,
+      message_status: 'pending',
+      poll_status: 'pending',
+      is_deleted: false,
+    }));
+
+    for (const messagingBatch of chunkArray(messagingRows, 500)) {
+      const { error } = await this.supabase
+        .from('campaign_messaging')
+        .insert(messagingBatch);
+
+      if (error) {
+        logger.error('Error inserting campaign messaging:', error);
+        throw error;
+      }
+    }
   }
 
   async getCampaignAssignmentOptions({
