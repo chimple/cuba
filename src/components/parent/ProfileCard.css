@@ -49,15 +49,23 @@
   pointer-events: none;
 }
 
-#profile-card-image-div {
+#profile-card-user-content {
   position: absolute;
-  top: 21.23%;
-  left: 50%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.5vh, 16px);
+}
+
+#profile-card-image-div {
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  transform: translateX(-50%);
 }
 
 #profile-card-image {
@@ -147,59 +155,62 @@
   display: none;
 }
 
-#profile-card-image-report {
+.profile-card-image-report-shadow {
+  position: relative;
+  display: inline-flex;
+  width: clamp(92px, 11.5vw, 125px);
+  height: clamp(48px, 5.5vw, 60px);
+}
+
+.profile-card-image-report-shadow::before {
+  content: '';
   position: absolute;
-  left: 50%;
-  bottom: 8.02%;
+  inset: 0;
+  background: #300d37;
+  border-radius: 10px;
+  transform: translateY(5px);
+  z-index: 0;
+}
+
+#profile-card-image-report {
+  appearance: none;
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 39.83%;
-  min-width: 78px;
-  max-width: 128px;
-  aspect-ratio: 92 / 48;
-  height: clamp(55px, 5.8vw, 68px);
-  padding: 5px 8px;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
   box-sizing: border-box;
-  border-bottom: 5px solid #300d37;
+  border: 0;
   border-radius: 10px;
   background: #c094ef;
   color: #300d37;
   cursor: pointer;
-  font-family: 'BalooRegular', 'Baloo 2', cursive;
-  font-size: clamp(14.5px, 1.55vw, 23px) !important;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: clamp(14.5px, 1.79vw, 18.5px) !important;
   font-style: normal;
   font-weight: 600;
-  line-height: normal;
+  line-height: 24px;
   text-align: center;
-  transform: translateX(-50%);
-  transition:
-    transform 120ms ease,
-    border-bottom-width 120ms ease,
-    filter 120ms ease;
+  transition: transform 120ms ease;
 }
 
-#profile-card-image-report:hover {
-  filter: brightness(1.02);
+#profile-card-image-report:focus-visible {
+  outline: 2px solid #300d37;
+  outline-offset: 3px;
 }
 
 #profile-card-image-report:active {
-  border-bottom-width: 3px;
-  transform: translate(-50%, 2px);
+  transform: translateY(3px);
 }
 
 @media (max-height: 500px) and (orientation: landscape) {
   #profile-card-edit-icon-div {
     top: 4.72%;
     right: 6.93%;
-  }
-
-  #profile-card-image-div {
-    top: 20.75%;
-  }
-
-  #profile-card-image-report {
-    bottom: 7.55%;
   }
 }
 

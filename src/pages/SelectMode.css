@@ -279,7 +279,7 @@
 .class-container {
   --display-students-card-width: clamp(150px, min(32vw, 52vh), 250px);
   --display-students-card-height: calc(
-    var(--display-students-card-width) * 0.88
+    var(--display-students-card-width) * 0.9512
   );
   position: relative;
 
@@ -374,41 +374,53 @@
   white-space: nowrap;
 }
 
+.play-button-shadow {
+  position: relative;
+  display: inline-flex;
+}
+
+.play-button-shadow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #8a2901;
+  border-radius: 10px;
+  transform: translateY(5px);
+  z-index: 0;
+}
+
 .school-mode-play-button {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: center;
   align-items: center;
 
-  min-width: clamp(92px, 11.5vw, 108px);
-  height: clamp(48px, 6vw, 60px);
+  width: clamp(92px, 11.5vw, 125px);
+  height: clamp(48px, 5.3vw, 60px);
   padding: 10px clamp(22px, 3.4vw, 30px);
   overflow: hidden;
 
   box-sizing: border-box;
 
   border: 0;
-  border-bottom: 6px solid #8a2901;
   border-radius: 10px;
 
   background: #f34d08;
-  color: #ffffff;
+  color: #fff;
 
   font-family: 'Baloo 2', 'BalooRegular', cursive;
   font-weight: 600;
-  font-size: clamp(14px, 1.875vw, 17px);
+  font-size: clamp(14px, 1.875vw, 18px);
   font-style: normal;
   line-height: 24px;
 
   cursor: pointer;
-  transition:
-    transform 120ms ease,
-    border-bottom-width 120ms ease,
-    filter 120ms ease;
+  transition: transform 120ms ease;
 }
 
 .school-mode-play-button:active {
-  border-bottom-width: 3px;
-  transform: translateY(2px);
+  transform: translateY(3px);
 }
 
 .class-avatar-counter {
