@@ -59,24 +59,48 @@ export const useCampaignAudienceSelection = ({
   const [selectedGrades, setSelectedGrades] = useState<CampaignOption[]>([]);
   const [loadingAudience, setLoadingAudience] = useState(false);
 
+  const resetAudienceSelection = () => {
+    setSelectedSavedGroupId('');
+    setSelectedBlocks([]);
+    setSelectedSchools([]);
+    setSelectedGrades([]);
+    setAudienceOptions(emptyAudienceOptions);
+    setAudienceSummary(emptyAudienceSummary);
+    setLoadingAudience(false);
+    setLoadingAudienceSummary(false);
+    setSaveGroup(true);
+    setMessage(null);
+    setForm((current) => ({
+      ...current,
+      programId: '',
+      groupName: '',
+    }));
+  };
+
   useEffect(() => {
+    let isActive = true;
+
     const fetchAudience = async () => {
       if (!form.programId) {
+        if (!isActive) return;
         setAudienceOptions(emptyAudienceOptions);
         setSelectedBlocks([]);
         setSelectedSchools([]);
         setSelectedGrades([]);
+        setLoadingAudience(false);
         return;
       }
 
       setLoadingAudience(true);
       try {
         const options = await api.getCampaignAudienceOptions(form.programId);
+        if (!isActive) return;
         setAudienceOptions(options);
         setSelectedBlocks(options.blocks);
         setSelectedSchools(options.schools);
         setSelectedGrades(options.grades);
       } catch (error) {
+        if (!isActive) return;
         logger.error('Failed to load campaign audience options:', error);
         setAudienceOptions(emptyAudienceOptions);
         setMessage({
@@ -84,11 +108,15 @@ export const useCampaignAudienceSelection = ({
           text: 'Unable to load target audience options.',
         });
       } finally {
-        setLoadingAudience(false);
+        if (isActive) setLoadingAudience(false);
       }
     };
 
     fetchAudience();
+
+    return () => {
+      isActive = false;
+    };
   }, [api, form.programId, setMessage]);
 
   const schoolsForSelectedBlocks = useMemo(
@@ -179,7 +207,10 @@ export const useCampaignAudienceSelection = ({
     const group = savedGroups.find((item) => item.id === groupId);
     setSelectedSavedGroupId(groupId);
 
-    if (!group) return;
+    if (!group) {
+      resetAudienceSelection();
+      return;
+    }
 
     setForm((current) => ({
       ...current,
@@ -258,6 +289,7 @@ export const useCampaignAudienceSelection = ({
     isAllSchools,
     loadingAudience,
     loadingAudienceSummary,
+    resetAudienceSelection,
     schoolsForSelectedBlocks,
     selectedBlocks,
     selectedGradeIds,

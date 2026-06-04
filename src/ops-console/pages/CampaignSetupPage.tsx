@@ -96,92 +96,96 @@ const CampaignSetupPage: React.FC = () => {
         className="campaign-setup-form"
         onSubmit={campaignSetup.handleSubmit}
       >
-        <CampaignSetupStepper activeStep={campaignSetup.activeStep} />
+        <Box className="campaign-setup-scroll-area">
+          <CampaignSetupStepper activeStep={campaignSetup.activeStep} />
 
-        {campaignSetup.activeStep === 0 ? (
-          <>
-            <ObjectiveGoalSection
-              form={campaignSetup.form}
-              onObjectiveChange={campaignSetup.handleObjectiveChange}
-              onSelectChange={campaignSetup.handleSelectChange}
-              onNumericChange={campaignSetup.updateNumericForm}
-              fieldError={campaignSetup.fieldError}
-            />
+          {campaignSetup.activeStep === 0 ? (
+            <>
+              <ObjectiveGoalSection
+                form={campaignSetup.form}
+                onObjectiveChange={campaignSetup.handleObjectiveChange}
+                onSelectChange={campaignSetup.handleSelectChange}
+                onNumericChange={campaignSetup.updateNumericForm}
+                fieldError={campaignSetup.fieldError}
+              />
 
-            <CampaignDetailsSection
-              form={campaignSetup.form}
-              managers={campaignSetup.managers}
-              onTextChange={campaignSetup.updateForm}
-              onSelectChange={campaignSetup.handleSelectChange}
-              fieldError={campaignSetup.fieldError}
-            />
+              <CampaignDetailsSection
+                form={campaignSetup.form}
+                managers={campaignSetup.managers}
+                onTextChange={campaignSetup.updateForm}
+                onSelectChange={campaignSetup.handleSelectChange}
+                fieldError={campaignSetup.fieldError}
+              />
 
-            <TargetAudienceSection
+              <TargetAudienceSection
+                form={campaignSetup.form}
+                programs={campaignSetup.programs}
+                savedGroups={campaignSetup.savedGroups}
+                selectedSavedGroupId={campaignSetup.selectedSavedGroupId}
+                audienceOptions={campaignSetup.audienceOptions}
+                selectedBlocks={campaignSetup.selectedBlocks}
+                selectedSchools={campaignSetup.selectedSchools}
+                selectedGrades={campaignSetup.selectedGrades}
+                schoolsForSelectedBlocks={
+                  campaignSetup.schoolsForSelectedBlocks
+                }
+                loadingAudience={campaignSetup.loadingAudience}
+                selectedProgramName={campaignSetup.selectedProgramName}
+                summaryBlockCount={campaignSetup.summaryBlockCount}
+                summarySchoolCount={campaignSetup.summarySchoolCount}
+                loadingAudienceSummary={campaignSetup.loadingAudienceSummary}
+                audienceSummary={campaignSetup.audienceSummary}
+                saveGroup={campaignSetup.saveGroup}
+                savingGroup={campaignSetup.savingGroup}
+                onSavedGroupChange={campaignSetup.handleSavedGroupChange}
+                onProgramChange={campaignSetup.handleProgramChange}
+                onBlocksChange={campaignSetup.handleBlocksChange}
+                onSchoolsChange={campaignSetup.handleSchoolsChange}
+                onGradesChange={campaignSetup.handleGradesChange}
+                onSaveGroupChange={campaignSetup.setSaveGroup}
+                onGroupNameChange={campaignSetup.updateForm('groupName')}
+                onSaveGroup={campaignSetup.handleSaveGroup}
+                onCancelSaveGroup={() => {
+                  campaignSetup.setSaveGroup(false);
+                  campaignSetup.setForm((current) => ({
+                    ...current,
+                    groupName: '',
+                  }));
+                }}
+                fieldError={campaignSetup.fieldError}
+              />
+            </>
+          ) : campaignSetup.activeStep === 1 ? (
+            <CampaignAssignmentStep
               form={campaignSetup.form}
-              programs={campaignSetup.programs}
-              savedGroups={campaignSetup.savedGroups}
-              selectedSavedGroupId={campaignSetup.selectedSavedGroupId}
-              audienceOptions={campaignSetup.audienceOptions}
-              selectedBlocks={campaignSetup.selectedBlocks}
-              selectedSchools={campaignSetup.selectedSchools}
+              campaignId={campaignSetup.createdCampaignId}
               selectedGrades={campaignSetup.selectedGrades}
-              schoolsForSelectedBlocks={campaignSetup.schoolsForSelectedBlocks}
-              loadingAudience={campaignSetup.loadingAudience}
-              selectedProgramName={campaignSetup.selectedProgramName}
-              summaryBlockCount={campaignSetup.summaryBlockCount}
-              summarySchoolCount={campaignSetup.summarySchoolCount}
-              loadingAudienceSummary={campaignSetup.loadingAudienceSummary}
-              audienceSummary={campaignSetup.audienceSummary}
-              saveGroup={campaignSetup.saveGroup}
-              savingGroup={campaignSetup.savingGroup}
-              onSavedGroupChange={campaignSetup.handleSavedGroupChange}
-              onProgramChange={campaignSetup.handleProgramChange}
-              onBlocksChange={campaignSetup.handleBlocksChange}
-              onSchoolsChange={campaignSetup.handleSchoolsChange}
-              onGradesChange={campaignSetup.handleGradesChange}
-              onSaveGroupChange={campaignSetup.setSaveGroup}
-              onGroupNameChange={campaignSetup.updateForm('groupName')}
-              onSaveGroup={campaignSetup.handleSaveGroup}
-              onCancelSaveGroup={() => {
-                campaignSetup.setSaveGroup(false);
-                campaignSetup.setForm((current) => ({
-                  ...current,
-                  groupName: '',
-                }));
-              }}
-              fieldError={campaignSetup.fieldError}
+              selectedSchoolIds={selectedAssignmentSchoolIds}
+              activeGradeId={campaignSetup.activeAssignmentGradeId}
+              configs={campaignSetup.assignmentConfigs}
+              onActiveGradeChange={campaignSetup.setActiveAssignmentGradeId}
+              onConfigsChange={campaignSetup.setAssignmentConfigs}
+              onCompletionChange={handleAssignmentCompletionChange}
+              onAssignmentsChange={campaignSetup.handleAssignmentDraftsChange}
             />
-          </>
-        ) : campaignSetup.activeStep === 1 ? (
-          <CampaignAssignmentStep
-            form={campaignSetup.form}
-            campaignId={campaignSetup.createdCampaignId}
-            selectedGrades={campaignSetup.selectedGrades}
-            selectedSchoolIds={selectedAssignmentSchoolIds}
-            activeGradeId={campaignSetup.activeAssignmentGradeId}
-            configs={campaignSetup.assignmentConfigs}
-            onActiveGradeChange={campaignSetup.setActiveAssignmentGradeId}
-            onConfigsChange={campaignSetup.setAssignmentConfigs}
-            onCompletionChange={handleAssignmentCompletionChange}
-            onAssignmentsChange={campaignSetup.handleAssignmentDraftsChange}
-          />
-        ) : campaignSetup.activeStep === 2 ? (
-          <RewardsConfigurationSection
-            form={campaignSetup.form}
-            onSelectChange={campaignSetup.handleSelectChange}
-            onRewardRankChange={campaignSetup.updateRewardRank}
-            fieldError={campaignSetup.rewardFieldError}
-          />
-        ) : (
-          <Box className="campaign-setup-section">
-            <Typography variant="h6" className="campaign-setup-section-title">
-              Messaging
-            </Typography>
-            <Typography className="campaign-setup-section-copy">
-              Messaging setup is not available in this flow yet.
-            </Typography>
-          </Box>
-        )}
+          ) : campaignSetup.activeStep === 2 ? (
+            <RewardsConfigurationSection
+              form={campaignSetup.form}
+              onSelectChange={campaignSetup.handleSelectChange}
+              onRewardRankChange={campaignSetup.updateRewardRank}
+              fieldError={campaignSetup.rewardFieldError}
+            />
+          ) : (
+            <Box className="campaign-setup-section">
+              <Typography variant="h6" className="campaign-setup-section-title">
+                Messaging
+              </Typography>
+              <Typography className="campaign-setup-section-copy">
+                Messaging setup is not available in this flow yet.
+              </Typography>
+            </Box>
+          )}
+        </Box>
 
         <Box className="campaign-setup-actions">
           {campaignSetup.activeStep > 0 && (
@@ -191,7 +195,10 @@ const CampaignSetupPage: React.FC = () => {
               className="campaign-setup-back-cta"
               onClick={() =>
                 campaignSetup.setActiveStep(
-                  campaignSetup.activeStep === 1
+                  campaignSetup.activeStep === 1 ||
+                    (campaignSetup.activeStep === 2 &&
+                      campaignSetup.form.objective ===
+                        'homepage_learning_pathway_campaign')
                     ? 0
                     : campaignSetup.activeStep - 1,
                 )

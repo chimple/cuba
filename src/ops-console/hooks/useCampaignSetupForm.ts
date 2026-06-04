@@ -12,6 +12,7 @@ import {
   CampaignAssignmentDraft,
   createDefaultConfig,
   GradeAssignmentConfig,
+  isAlternateWeekEnabled,
 } from '../components/campaignSetup/campaignAssignmentUtils';
 import {
   buildCampaignAudiencePayload,
@@ -109,6 +110,27 @@ export const useCampaignSetupForm = () => {
       return changed ? next : current;
     });
   }, [audience.selectedGrades]);
+
+  useEffect(() => {
+    if (isAlternateWeekEnabled(form.startDate, form.endDate)) return;
+
+    setAssignmentConfigs((current) => {
+      let changed = false;
+      const next = { ...current };
+
+      Object.entries(current).forEach(([gradeId, config]) => {
+        if (config.frequency === 'alternate_week') {
+          changed = true;
+          next[gradeId] = {
+            ...config,
+            frequency: createDefaultConfig().frequency,
+          };
+        }
+      });
+
+      return changed ? next : current;
+    });
+  }, [form.endDate, form.startDate]);
 
   useEffect(() => {
     const fetchSetupOptions = async () => {
@@ -282,7 +304,9 @@ export const useCampaignSetupForm = () => {
 
     if (!isFormValid) return;
 
-    setActiveStep(1);
+    setActiveStep(
+      form.objective === 'homepage_learning_pathway_campaign' ? 2 : 1,
+    );
   };
 
   const handleRewardsSubmit = () => {

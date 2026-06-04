@@ -45,7 +45,7 @@ export type GradeAssignmentConfig = {
 export const frequencyLabels: Record<Frequency, string> = {
   daily: 'Daily',
   alternate_days: 'Alternate Days',
-  alternate_week: 'Alternate Week',
+  alternate_week: 'Alternate Week (≥ 2 weeks)',
 };
 
 export const createDefaultConfig = (): GradeAssignmentConfig => ({
@@ -155,7 +155,7 @@ export const isAlternateWeekEnabled = (startDate: string, endDate: string) => {
       (parseDate(endDate).getTime() - parseDate(startDate).getTime()) /
         (1000 * 60 * 60 * 24),
     ) + 1;
-  return days > 14;
+  return days >= 14;
 };
 
 export const buildRows = (

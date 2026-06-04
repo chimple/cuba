@@ -131,6 +131,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             value={selectedBlocks}
             loading={loadingAudience}
             placeholder="Select Blocks"
+            preventMobileKeyboard
             onChange={onBlocksChange}
           />
           <Typography className="target-audience-section-field-note">
@@ -145,6 +146,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             value={selectedSchools}
             loading={loadingAudience}
             placeholder="Select Schools"
+            preventMobileKeyboard
             getOptionLabel={(option) => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={onSchoolsChange}
@@ -161,6 +163,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             value={selectedGrades}
             loading={loadingAudience}
             placeholder="Select Grade"
+            preventMobileKeyboard
             getOptionLabel={(option) => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={onGradesChange}
@@ -181,6 +184,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
 
       <SavedAudienceGroupFields
         form={form}
+        selectedSavedGroupId={selectedSavedGroupId}
         saveGroup={saveGroup}
         savingGroup={savingGroup}
         groupNameError={fieldError('groupName')}
