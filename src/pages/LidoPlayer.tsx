@@ -44,6 +44,8 @@ const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
   'pending_homework_reward_transition';
 
+type AbilityUpdates = Awaited<ReturnType<typeof palUtil.updateAndGetAbilities>>;
+
 const LidoPlayer: FC = () => {
   const history = useHistory();
   const [present] = useIonToast();
@@ -208,28 +210,17 @@ const LidoPlayer: FC = () => {
     const parsed = JSON.parse(storedData);
     if (!Array.isArray(parsed)) return [];
 
-    let previousElapsedTime = 0;
-
     return parsed.map((record): StoredLidoScore => {
       const rawTimeSpent = parseNumericValue(record?.timeSpent) ?? 0;
       const rawElapsedTime = parseNumericValue(record?.elapsedTime);
-      const effectiveElapsedTime = rawElapsedTime ?? rawTimeSpent;
-      const normalizedTimeSpent =
-        effectiveElapsedTime >= previousElapsedTime
-          ? effectiveElapsedTime - previousElapsedTime
-          : rawTimeSpent;
-
-      if (effectiveElapsedTime >= previousElapsedTime) {
-        previousElapsedTime = effectiveElapsedTime;
-      }
 
       return {
         score: parseNumericValue(record?.score) ?? 0,
         result: record?.result === 1 ? 1 : 0,
         correctMoves: parseNumericValue(record?.correctMoves) ?? 0,
         wrongMoves: parseNumericValue(record?.wrongMoves) ?? 0,
-        elapsedTime: effectiveElapsedTime,
-        timeSpent: normalizedTimeSpent,
+        elapsedTime: rawElapsedTime ?? rawTimeSpent,
+        timeSpent: rawTimeSpent,
       };
     });
   };
@@ -366,7 +357,7 @@ const LidoPlayer: FC = () => {
         const averageScore = group.totalScore / group.count;
         const activitiesScoresStr = group.resultsList.join(',');
 
-        let abilityUpdates: any = {};
+        let abilityUpdates: AbilityUpdates = { skill_id: skillId };
         try {
           const skillData = await api.getSkillById(skillId);
           const currentOutcomeId = skillData?.outcome_id;
@@ -426,7 +417,11 @@ const LidoPlayer: FC = () => {
           abilityUpdates.subject_ability,
           activitiesScoresStr,
           parentUserId,
-          isAborted ? RESULT_STATUS.SYSTEM_EXIT : RESULT_STATUS.COMPLETED,
+          isAborted && isFullPathwayTerminated
+            ? RESULT_STATUS.ASSESSMENT_TERMINATED
+            : isAborted
+              ? RESULT_STATUS.SYSTEM_EXIT
+              : RESULT_STATUS.COMPLETED,
           source,
         );
       }
@@ -587,10 +582,35 @@ const LidoPlayer: FC = () => {
       const lesson: Lesson = JSON.parse(state.lesson);
       const assignment = state.assignment;
       const skillId: string | undefined = state.skillId;
-      const normalizedSkillId =
+      let normalizedSkillId =
         typeof skillId === 'string' && skillId.trim().length > 0
           ? skillId.trim()
           : undefined;
+
+      if (!normalizedSkillId) {
+        const normalizeIdentifier = (value: unknown) =>
+          typeof value === 'string' && value.trim().length > 0
+            ? value.trim()
+            : undefined;
+        const lessonIdentifiers = Array.from(
+          new Set(
+            [
+              lessonDetail?.lido_lesson_id,
+              lessonId,
+              lessonDetail?.cocos_lesson_id,
+              lesson.id,
+            ]
+              .map(normalizeIdentifier)
+              .filter((id): id is string => !!id),
+          ),
+        );
+        for (const lessonIdentifier of lessonIdentifiers) {
+          normalizedSkillId = (
+            await api.getSkillByLessonIdentifier(lessonIdentifier)
+          )?.id;
+          if (normalizedSkillId) break;
+        }
+      }
       // const currentStudent = api.currentStudent;
       const data = lessonData;
       let assignmentId = assignment ? assignment.id : null;
@@ -638,10 +658,7 @@ const LidoPlayer: FC = () => {
       const learning_path: boolean = state?.learning_path ?? false;
       const is_homework: boolean = state?.isHomework ?? false;
       const homeworkIndex: number | undefined = state?.homeworkIndex;
-      const lessonTimeSpent =
-        scoresList.length > 0
-          ? getTotalStoredLessonTime(scoresList)
-          : (parseNumericValue(data.timeSpendForLesson) ?? 0);
+      const lessonTimeSpent = parseNumericValue(data.timeSpendForLesson) ?? 0;
       // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
       let shouldGiveHomeworkBonus = false;
       if (is_homework) {
@@ -859,10 +876,7 @@ const LidoPlayer: FC = () => {
     const data = (e.detail ?? {}) as LidoEventDetail;
     const { correctMoves, wrongMoves } = getNormalizedMoveCounts(data);
     const storedScores = getStoredLidoScores();
-    const lessonTimeSpent =
-      storedScores.length > 0
-        ? getTotalStoredLessonTime(storedScores)
-        : (parseNumericValue(data.timeSpendForLesson) ?? 0);
+    const lessonTimeSpent = parseNumericValue(data.timeSpendForLesson) ?? 0;
     Util.logEvent(EVENTS.LESSON_INCOMPLETE, {
       user_id: parentUserId,
       student_id: studentId,

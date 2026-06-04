@@ -34,7 +34,7 @@
 .rewards-config-label {
   color: var(--campaign-text);
   font-size: 0.8125rem !important;
-  font-weight: 500 !important;
+  font-weight: 700 !important;
   line-height: 0.9375rem !important;
   text-align: left !important;
 }
@@ -194,13 +194,13 @@
 
 @media (max-width: 48rem) {
   .rewards-config-section {
-    padding: 1rem 0 6rem;
+    padding: 1rem 0 4rem;
     overflow-x: hidden;
   }
 
   .rewards-config-title {
     font-size: 0.9375rem !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     line-height: 1.125rem !important;
   }
 
@@ -213,7 +213,7 @@
 
   .rewards-config-label {
     font-size: 0.75rem !important;
-    font-weight: 500 !important;
+    font-weight: 700 !important;
     line-height: 0.875rem !important;
   }
 

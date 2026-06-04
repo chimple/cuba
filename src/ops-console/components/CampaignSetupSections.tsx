@@ -15,3 +15,4 @@ export { CampaignDetailsSection } from './campaignSetup/CampaignDetailsSection';
 export { TargetAudienceSection } from './campaignSetup/TargetAudienceSection';
 export { CampaignAssignmentStep } from './campaignSetup/CampaignAssignmentStep';
 export { RewardsConfigurationSection } from './campaignSetup/RewardsConfigurationSection';
+export { default as CampaignCommunicationTimelineStep } from './campaignSetup/CampaignCommunicationTimelineStep';

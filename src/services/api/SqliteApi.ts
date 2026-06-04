@@ -2804,7 +2804,7 @@ export class SqliteApi implements ServiceApi {
       subject_ability: subject_ability ?? null,
       activities_scores: activities_scores ?? null,
       user_id: user_id ?? null,
-      status: status ?? null,
+      status: (status ?? null) as TableTypes<'result'>['status'],
       source: source ?? null,
     };
     const res = await this.executeQuery(
@@ -3541,6 +3541,53 @@ export class SqliteApi implements ServiceApi {
       [studentId, ...skillIds],
     );
     return res?.values ?? [];
+  }
+
+  async getSkillByLessonIdentifier(
+    lessonIdentifier: string,
+  ): Promise<TableTypes<'skill'> | undefined> {
+    await this.ensureInitialized();
+    if (!lessonIdentifier) return undefined;
+
+    const skillLessonRes = await this._db?.query(
+      `
+      SELECT sl.skill_id
+      FROM ${TABLES.Lesson} l
+      INNER JOIN ${TABLES.SkillLesson} sl
+        ON sl.lesson_id = l.id
+        AND COALESCE(sl.is_deleted, 0) = 0
+      WHERE (l.id = ? OR l.cocos_lesson_id = ? OR l.lido_lesson_id = ?)
+        AND COALESCE(l.is_deleted, 0) = 0
+      ORDER BY
+        CASE
+          WHEN l.id = ? THEN 0
+          WHEN l.lido_lesson_id = ? THEN 1
+          WHEN l.cocos_lesson_id = ? THEN 2
+          ELSE 3
+        END,
+        sl.sort_index ASC,
+        coalesce(datetime(l.updated_at), datetime(l.created_at)) DESC,
+        l.updated_at DESC,
+        l.created_at DESC
+      LIMIT 1
+      `,
+      [
+        lessonIdentifier,
+        lessonIdentifier,
+        lessonIdentifier,
+        lessonIdentifier,
+        lessonIdentifier,
+        lessonIdentifier,
+      ],
+    );
+
+    const skillId = skillLessonRes?.values?.[0]?.skill_id;
+    if (!skillId) return undefined;
+
+    return (
+      (await this.getSkillById(skillId)) ??
+      ({ id: skillId } as TableTypes<'skill'>)
+    );
   }
 
   async getSkillLessonsBySkillIds(
@@ -9366,43 +9413,83 @@ order by
     courseId: string,
   ): Promise<boolean> {
     try {
-      const query = `
-        SELECT 1
-        FROM result r
-        INNER JOIN lesson l
-          ON l.id = r.lesson_id
-          AND l.is_deleted = false
-        WHERE r.student_id = ?
-          AND r.course_id = ?
-          AND r.is_deleted = false
+      const course = await this.getCourse(courseId);
+      if (!course?.subject_id) return false;
 
-          -- ❗ Only PAL lessons (exclude assessments)
-          AND l.plugin_type != 'lido_assessment'
+      const assessmentLessonsQuery = `
+        SELECT DISTINCT lesson_id
+        FROM subject_lesson
+        WHERE subject_id = ?
+          AND COALESCE(is_deleted, 0) = 0
+          AND lesson_id IS NOT NULL;
+      `;
+      const assessmentLessonsRes = await this.executeQuery(
+        assessmentLessonsQuery,
+        [course.subject_id],
+      );
+      const assessmentLessonIds = Array.from(
+        new Set(
+          (
+            ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
+              []) as {
+              lesson_id?: string | null;
+            }[]
+          )
+            .map((lesson) => lesson.lesson_id)
+            .filter((lessonId): lessonId is string => !!lessonId),
+        ),
+      );
 
-          -- 🔒 STRICT ability validation
-          AND r.skill_id IS NOT NULL
-          AND r.outcome_id IS NOT NULL
-          AND r.competency_id IS NOT NULL
-          AND r.domain_id IS NOT NULL
-          AND r.subject_id IS NOT NULL
+      const params: string[] = [studentId, courseId];
+      const assessmentLessonFilter = assessmentLessonIds.length
+        ? `OR lesson_id IN (${assessmentLessonIds.map(() => '?').join(',')})`
+        : '';
+      params.push(...assessmentLessonIds);
 
-          AND r.skill_ability IS NOT NULL
-          AND r.outcome_ability IS NOT NULL
-          AND r.competency_ability IS NOT NULL
-          AND r.domain_ability IS NOT NULL
-          AND r.subject_ability IS NOT NULL
-
-          AND r.activities_scores IS NOT NULL
-          AND r.activities_scores <> ''
-        LIMIT 1;
+      const resultQuery = `
+        SELECT lesson_id, status
+        FROM result
+        WHERE student_id = ?
+          AND course_id = ?
+          AND COALESCE(is_deleted, 0) = 0
+          AND (status = 'assessment_terminated' ${assessmentLessonFilter});
       `;
 
-      const res = await this.executeQuery(query, [studentId, courseId]);
-      const rows = (res as any)?.values ?? [];
+      const resultRes = await this.executeQuery(resultQuery, params);
+      const rows = ((resultRes as DBSQLiteValues | undefined)?.values ??
+        []) as {
+        lesson_id?: string | null;
+        status?: string | null;
+      }[];
 
-      return rows.length > 0;
+      if (rows.some((result) => result.status === 'assessment_terminated')) {
+        return true;
+      }
+
+      const assessmentLessonIdSet = new Set(assessmentLessonIds);
+      const systemExitAssessmentLessonIds = new Set(
+        rows
+          .filter(
+            (result) =>
+              result.status === 'system_exit' &&
+              !!result.lesson_id &&
+              assessmentLessonIdSet.has(result.lesson_id),
+          )
+          .map((result) => result.lesson_id),
+      );
+
+      if (systemExitAssessmentLessonIds.size >= 2) {
+        return true;
+      }
+
+      return rows.some(
+        (result) =>
+          result.status !== 'system_exit' &&
+          !!result.lesson_id &&
+          assessmentLessonIdSet.has(result.lesson_id),
+      );
     } catch (error) {
-      logger.error('❌ Error checking PAL lesson history:', error);
+      logger.error('❌ Error checking PAL assessment history:', error);
       return false;
     }
   }

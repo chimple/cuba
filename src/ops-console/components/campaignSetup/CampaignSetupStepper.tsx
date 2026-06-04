@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box } from '@mui/material';
 import { Check } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import './CampaignSetupStepper.css';
 
 type CampaignSetupStepperProps = {
