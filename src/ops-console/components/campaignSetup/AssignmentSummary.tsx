@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { DeleteOutline, ExpandLess, ExpandMore } from '@mui/icons-material';
 import { AssignmentRow, formatDisplayDate } from './campaignAssignmentUtils';
@@ -32,16 +32,6 @@ export const AssignmentSummary: React.FC<AssignmentSummaryProps> = ({
       subjectRows,
     }));
   }, [rows]);
-
-  useEffect(() => {
-    setCollapsedSubjects((current) => {
-      const next: Record<string, boolean> = {};
-      groupedRows.forEach(({ subjectName }) => {
-        next[subjectName] = current[subjectName] ?? false;
-      });
-      return next;
-    });
-  }, [groupedRows]);
 
   if (rows.length === 0) return null;
 

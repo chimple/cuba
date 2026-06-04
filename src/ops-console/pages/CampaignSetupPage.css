@@ -465,11 +465,11 @@
   .campaign-setup-actions {
     position: static !important;
     bottom: auto !important;
-    min-height: 5.25rem;
+    min-height: 6.25rem;
     height: auto;
     width: 100%;
     margin: 0;
-    padding: 1.25rem 0 env(safe-area-inset-bottom, 0rem);
+    padding: 1.25rem 0 calc(1rem + env(safe-area-inset-bottom, 0rem));
     border-top: none;
     flex-direction: row;
     flex-wrap: wrap;

@@ -5,16 +5,21 @@ import CampaignSetupPage from './CampaignSetupPage';
 import { buildCampaignRewardsPayload } from '../hooks/campaignSetupFormHelpers';
 
 const mockGoBack = jest.fn();
+const mockTranslate = (
+  key: string,
+  options?: Record<string, string | number>,
+): string =>
+  options
+    ? key.replace(/{{(\w+)}}/g, (_match, token: string) =>
+        String(options[token] ?? ''),
+      )
+    : key;
+
 jest.setTimeout(30000);
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string, options?: Record<string, string | number>): string =>
-      options
-        ? key.replace(/{{(\w+)}}/g, (_match, token: string) =>
-            String(options[token] ?? ''),
-          )
-        : key,
+    t: mockTranslate,
   }),
 }));
 
@@ -294,7 +299,7 @@ describe('CampaignSetupPage', () => {
     expect(mockApiHandler.createCampaignAudienceGroup).not.toHaveBeenCalled();
   });
 
-  it('saves setup data and advances to assignments on next', async () => {
+  it('keeps setup next local-only and advances to assignments', async () => {
     render(<CampaignSetupPage />);
 
     await screen.findByRole('heading', { name: 'New Campaign' });
@@ -335,7 +340,7 @@ describe('CampaignSetupPage', () => {
     expect(
       await screen.findByText('Assignment Configuration'),
     ).toBeInTheDocument();
-    expect(mockApiHandler.createCampaignSetup).toHaveBeenCalledTimes(1);
+    expect(mockApiHandler.createCampaignSetup).not.toHaveBeenCalled();
     expect(screen.queryByText('Campaign setup saved.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
   });

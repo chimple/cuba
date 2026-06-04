@@ -20,9 +20,7 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
   onToggleChapter,
   onToggleExpanded,
 }) => {
-  const removedLessonIds = new Set(
-    activeConfig?.removedRowIds?.map((rowId) => rowId.split(':')[1]) ?? [],
-  );
+  const removedRowIds = new Set(activeConfig?.removedRowIds ?? []);
 
   return (
     <>
@@ -48,11 +46,12 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
                 const chapterLessonIds = chapter.lessons.map(
                   (lesson) => lesson.id,
                 );
+                const chapterRowIds = chapterLessonIds.map(
+                  (lessonId) => `${chapter.id}:${lessonId}`,
+                );
                 const hasAssignedLessons =
                   activeConfig.chapterIds.includes(chapter.id) &&
-                  chapterLessonIds.some(
-                    (lessonId) => !removedLessonIds.has(lessonId),
-                  );
+                  chapterRowIds.some((rowId) => !removedRowIds.has(rowId));
                 const isExpanded = activeConfig.expandedChapterIds.includes(
                   chapter.id,
                 );
@@ -100,9 +99,10 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
                     {isExpanded && (
                       <Box className="chapter-selection-lessons">
                         {chapter.lessons.map((lesson) => {
+                          const lessonRowId = `${chapter.id}:${lesson.id}`;
                           const isLessonAssigned =
                             activeConfig.chapterIds.includes(chapter.id) &&
-                            !removedLessonIds.has(lesson.id);
+                            !removedRowIds.has(lessonRowId);
 
                           return (
                             <Box

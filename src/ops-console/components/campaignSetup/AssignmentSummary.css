@@ -66,11 +66,12 @@
   line-height: 1;
 }
 
-.assignment-summary-warning-text {
+.assignment-summary-warning
+  .MuiTypography-root.assignment-summary-warning-text {
   color: #92400e;
-  font-size: 0.875rem !important;
-  line-height: 1.125rem !important;
-  font-weight: 400 !important;
+  font-size: 0.875rem;
+  line-height: 1.125rem;
+  font-weight: 400;
 }
 
 .assignment-summary-box {
@@ -180,10 +181,11 @@
     display: none;
   }
 
-  .assignment-summary-warning-text {
+  .assignment-summary-warning
+    .MuiTypography-root.assignment-summary-warning-text {
     color: #92400e;
-    font-size: 0.8125rem !important;
-    line-height: 1.25rem !important;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
     display: block;
     overflow: visible;
     white-space: normal;

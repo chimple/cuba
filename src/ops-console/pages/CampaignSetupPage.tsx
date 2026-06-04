@@ -290,7 +290,6 @@ const CampaignSetupPage: React.FC = () => {
           isAssignmentComplete={isAssignmentComplete}
           isFormValid={campaignSetup.isFormValid}
           isSubmitting={campaignSetup.submitting}
-          hasCreatedCampaign={!!campaignSetup.createdCampaignId}
           onBackStep={() =>
             setActiveStepSafe(
               campaignSetup.activeStep === 1 ||
@@ -302,14 +301,6 @@ const CampaignSetupPage: React.FC = () => {
             )
           }
           onSetupSubmit={campaignSetup.handleSubmit}
-          onGoToAssignments={() =>
-            setActiveStepSafe(
-              campaignSetup.form.objective ===
-                'homepage_learning_pathway_campaign'
-                ? 2
-                : 1,
-            )
-          }
           onGoToRewards={() => setActiveStepSafe(2)}
           onRewardsSubmit={campaignSetup.handleRewardsSubmit}
           onContinueToSummary={handleCommunicationContinue}
