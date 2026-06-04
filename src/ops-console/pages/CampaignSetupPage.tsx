@@ -95,6 +95,19 @@ const CampaignSetupPage: React.FC = () => {
 
   const { campaignReach } = useCampaignReach(selectedAssignmentSchoolIds);
 
+  const targetAudienceStudentCount = useMemo(
+    () =>
+      campaignSetup.audienceSummary.grades.reduce(
+        (total, grade) => total + grade.studentCount,
+        0,
+      ),
+    [campaignSetup.audienceSummary.grades],
+  );
+  const hasNoTargetAudienceStudents =
+    !campaignSetup.loadingAudienceSummary && targetAudienceStudentCount === 0;
+  const canProceedFromCampaignSetup =
+    campaignSetup.isFormValid && !hasNoTargetAudienceStudents;
+
   const messagingRows = useMemo(
     () =>
       buildCampaignMessagingPayload({
@@ -444,7 +457,7 @@ const CampaignSetupPage: React.FC = () => {
         <CampaignSetupActions
           activeStep={campaignSetup.activeStep}
           isAssignmentComplete={isAssignmentComplete}
-          isFormValid={campaignSetup.isFormValid}
+          isFormValid={canProceedFromCampaignSetup}
           isSubmitting={campaignSetup.submitting || launching}
           hasCreatedCampaign={!!campaignSetup.createdCampaignId}
           onBackStep={() =>
