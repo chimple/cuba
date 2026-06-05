@@ -1246,15 +1246,11 @@ export class ApiHandler implements ServiceApi {
     );
   }
   async getAssignmentDateRangeDataForClassAndSchool(
-    classId: string,
-    schoolId: string,
     userId: string,
     startDate: string,
     endDate: string,
   ): Promise<AssignmentDateRangeData> {
     return this.s.getAssignmentDateRangeDataForClassAndSchool(
-      classId,
-      schoolId,
       userId,
       startDate,
       endDate,

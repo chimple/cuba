@@ -972,15 +972,13 @@ export class OneRosterApi implements ServiceApi {
   }
 
   async getAssignmentDateRangeDataForClassAndSchool(
-    classId: string,
-    schoolId: string,
     userId: string,
     startDate: string,
     endDate: string,
   ): Promise<AssignmentDateRangeData> {
     logger.warn(
       'getAssignmentDateRangeDataForClassAndSchool is not implemented for OneRosterApi.',
-      { classId, schoolId, userId, startDate, endDate },
+      { userId, startDate, endDate },
     );
     return { assignments: [], batchGroups: [] };
   }

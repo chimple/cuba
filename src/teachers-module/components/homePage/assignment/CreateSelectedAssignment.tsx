@@ -487,14 +487,10 @@ const CreateSelectedAssignment = ({
 
     const getRewardForAssignment = async (): Promise<number> => {
       try {
-        const currentClass = Util.getCurrentClass();
-        const currentSchool = Util.getCurrentSchool();
         const currentUser = await auth.getCurrentUser();
-        const classId = currentClass?.id;
-        const schoolId = currentSchool?.id || currentClass?.school_id;
         const userId = currentUser?.id;
 
-        if (!classId || !schoolId || !userId) {
+        if (!userId) {
           return SUBSEQUENT_ASSIGNMENT_REWARD;
         }
 
@@ -506,8 +502,6 @@ const CreateSelectedAssignment = ({
 
         const { batchGroups: weekBatchRows } =
           await api.getAssignmentDateRangeDataForClassAndSchool(
-            classId,
-            schoolId,
             userId,
             weekStart.toISOString(),
             today.toISOString(),
@@ -657,7 +651,6 @@ const CreateSelectedAssignment = ({
         const isTeacherAssigner = assignerRole === RoleType.TEACHER;
         let rewardValue = SUBSEQUENT_ASSIGNMENT_REWARD;
         let streakIncrement = 0;
-
         if (isTeacherAssigner) {
           // Calculate reward before creating this batch, so the current
           // assignment is not included in "this week's" existing count.

@@ -7645,8 +7645,6 @@ export class SupabaseApi implements ServiceApi {
     return { classWiseAssignments, individualAssignments };
   }
   async getAssignmentDateRangeDataForClassAndSchool(
-    classId: string,
-    schoolId: string,
     userId: string,
     startDate: string,
     endDate: string,
@@ -7656,8 +7654,6 @@ export class SupabaseApi implements ServiceApi {
     const { data, error } = await this.supabase
       .from(TABLES.Assignment)
       .select('*')
-      .eq('class_id', classId)
-      .eq('school_id', schoolId)
       .eq('created_by', userId)
       .gte('created_at', startDate)
       .lte('created_at', endDate)
@@ -7714,8 +7710,6 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.UserAchivements)
       .select('coins, streak')
       .eq('user_id', userId)
-      .eq('class_id', classId)
-      .eq('school_id', schoolId)
       .eq('is_deleted', false)
       .limit(1)
       .maybeSingle();
