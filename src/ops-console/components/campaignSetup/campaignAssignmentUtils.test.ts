@@ -50,8 +50,8 @@ const createForm = (
   }) as CampaignSetupFormState;
 
 describe('campaignAssignmentUtils buildRows', () => {
-  it('enables alternate week only when the selected date range is more than 14 days', () => {
-    expect(isAlternateWeekEnabled('2026-06-01', '2026-06-14')).toBe(false);
+  it('enables alternate week when the selected date range is 14 days or more', () => {
+    expect(isAlternateWeekEnabled('2026-06-01', '2026-06-14')).toBe(true);
     expect(isAlternateWeekEnabled('2026-06-01', '2026-06-15')).toBe(true);
   });
 

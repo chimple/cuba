@@ -1091,17 +1091,19 @@ const SelectMode: FC = () => {
                         <span className="class-name school-mode-student-name">
                           {tempStudent.name}
                         </span>
-                        <button
-                          id={`school-mode-play-${tempStudent.id}`}
-                          type="button"
-                          className="school-mode-play-button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleStudentSelect(tempStudent);
-                          }}
-                        >
-                          {t('Play')}
-                        </button>
+                        <div className="play-button-shadow">
+                          <button
+                            id={`school-mode-play-${tempStudent.id}`}
+                            type="button"
+                            className="school-mode-play-button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleStudentSelect(tempStudent);
+                            }}
+                          >
+                            {t('Play')}
+                          </button>
+                        </div>
                       </article>
                     ))}
                   </div>

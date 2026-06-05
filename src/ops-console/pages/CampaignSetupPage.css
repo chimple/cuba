@@ -89,6 +89,12 @@
   flex-direction: column;
 }
 
+.campaign-setup-scroll-area {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .campaign-setup-section {
   background: #ffffff;
   border-bottom: 0.0625rem solid var(--campaign-divider);
@@ -222,14 +228,19 @@
 }
 
 .campaign-setup-actions {
-  height: 5rem;
+  min-height: 5rem;
   border-top: 0.0625rem solid var(--campaign-divider);
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: auto;
   background: #ffffff;
-  padding-right: 4.3125rem;
+  padding: 1rem 4.3125rem 1rem var(--campaign-section-left);
   box-sizing: border-box;
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
 }
 
 .campaign-setup-actions .MuiButton-root {
@@ -342,11 +353,27 @@
     max-width: 100%;
     min-height: 0;
     min-width: 0;
-    display: block;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .campaign-setup-scroll-area {
+    flex: 1 1 auto;
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .campaign-setup-actions {
+    margin: 0 -1rem 0;
+    padding: 0.875rem 1rem calc(0.875rem + env(safe-area-inset-bottom, 0rem));
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    flex-shrink: 0;
   }
 
   .campaign-setup-form > * {
@@ -438,11 +465,11 @@
   .campaign-setup-actions {
     position: static !important;
     bottom: auto !important;
-    min-height: 5.25rem;
+    min-height: 6.25rem;
     height: auto;
     width: 100%;
     margin: 0;
-    padding: 1.25rem 0 env(safe-area-inset-bottom, 0rem);
+    padding: 1.25rem 0 calc(1rem + env(safe-area-inset-bottom, 0rem));
     border-top: none;
     flex-direction: row;
     flex-wrap: wrap;

@@ -9,7 +9,7 @@ type ChapterSelectionProps = {
   gradeName: string;
   selectedSubjects: CampaignAssignmentSubjectOption[];
   activeConfig: GradeAssignmentConfig;
-  onToggleChapter: (chapterId: string) => void;
+  onToggleChapter: (chapterId: string, lessonIds: string[]) => void;
   onToggleExpanded: (chapterId: string) => void;
 };
 
@@ -20,9 +20,7 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
   onToggleChapter,
   onToggleExpanded,
 }) => {
-  const removedLessonIds = new Set(
-    activeConfig?.removedRowIds?.map((rowId) => rowId.split(':')[1]) ?? [],
-  );
+  const removedRowIds = new Set(activeConfig?.removedRowIds ?? []);
 
   return (
     <>
@@ -45,7 +43,15 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
             </Box>
             <Box className="chapter-selection-chapter-list">
               {subject.chapters.map((chapter) => {
-                const isAssigned = activeConfig.chapterIds.includes(chapter.id);
+                const chapterLessonIds = chapter.lessons.map(
+                  (lesson) => lesson.id,
+                );
+                const chapterRowIds = chapterLessonIds.map(
+                  (lessonId) => `${chapter.id}:${lessonId}`,
+                );
+                const hasAssignedLessons =
+                  activeConfig.chapterIds.includes(chapter.id) &&
+                  chapterRowIds.some((rowId) => !removedRowIds.has(rowId));
                 const isExpanded = activeConfig.expandedChapterIds.includes(
                   chapter.id,
                 );
@@ -67,13 +73,15 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
                       <Button
                         type="button"
                         className={
-                          isAssigned
+                          hasAssignedLessons
                             ? 'chapter-selection-remove-button'
                             : 'chapter-selection-assign-button'
                         }
-                        onClick={() => onToggleChapter(chapter.id)}
+                        onClick={() =>
+                          onToggleChapter(chapter.id, chapterLessonIds)
+                        }
                       >
-                        {isAssigned ? 'Remove' : 'Assign'}
+                        {hasAssignedLessons ? 'Remove' : 'Assign'}
                       </Button>
                       <Button
                         type="button"
@@ -91,8 +99,10 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
                     {isExpanded && (
                       <Box className="chapter-selection-lessons">
                         {chapter.lessons.map((lesson) => {
+                          const lessonRowId = `${chapter.id}:${lesson.id}`;
                           const isLessonAssigned =
-                            isAssigned && !removedLessonIds.has(lesson.id);
+                            activeConfig.chapterIds.includes(chapter.id) &&
+                            !removedRowIds.has(lessonRowId);
 
                           return (
                             <Box

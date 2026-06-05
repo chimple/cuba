@@ -187,9 +187,25 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   const insufficientLessons =
     activeRows.length > 0 && activeRows.length < campaignDays;
 
-  const toggleChapter = (chapterId: string) => {
+  const toggleChapter = (chapterId: string, lessonIds: string[]) => {
     updateConfig(activeGradeId, (config) => {
       const isSelected = config.chapterIds.includes(chapterId);
+      const chapterRowIds = lessonIds.map(
+        (lessonId) => `${chapterId}:${lessonId}`,
+      );
+      const hasAssignedLessons =
+        isSelected &&
+        chapterRowIds.some((rowId) => !config.removedRowIds.includes(rowId));
+
+      if (isSelected && !hasAssignedLessons) {
+        return {
+          ...config,
+          removedRowIds: config.removedRowIds.filter(
+            (rowId) => !chapterRowIds.includes(rowId),
+          ),
+        };
+      }
+
       return {
         ...config,
         chapterIds: isSelected
@@ -197,8 +213,12 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
           : [...config.chapterIds, chapterId],
         expandedChapterIds: isSelected
           ? config.expandedChapterIds.filter((id) => id !== chapterId)
-          : Array.from(new Set([...config.expandedChapterIds, chapterId])),
-        removedRowIds: [],
+          : config.expandedChapterIds,
+        removedRowIds: isSelected
+          ? config.removedRowIds.filter(
+              (rowId) => !chapterRowIds.includes(rowId),
+            )
+          : config.removedRowIds,
       };
     });
   };
