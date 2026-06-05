@@ -9415,6 +9415,9 @@ export class SupabaseApi implements ServiceApi {
     if (!payload.campaignId) {
       throw new Error('Campaign id is required.');
     }
+    if (!payload.currentUserId) {
+      throw new Error('Current user id is required.');
+    }
     if (!payload.rewards?.type || payload.rewards.rules.length === 0) {
       throw new Error('Campaign rewards are required.');
     }
@@ -9424,10 +9427,6 @@ export class SupabaseApi implements ServiceApi {
     if (payload.messagingRows.length === 0) {
       throw new Error('Campaign communication is required.');
     }
-
-    const {
-      data: { user },
-    } = await this.supabase.auth.getUser();
 
     const updatedAt = new Date().toISOString();
     const { error: campaignError } = await this.supabase
@@ -9528,7 +9527,7 @@ export class SupabaseApi implements ServiceApi {
           source: assignment.source,
           set_number: assignment.setNumber,
           is_class_wise: true,
-          created_by: user?.id ?? null,
+          created_by: payload.currentUserId,
           is_deleted: false,
         }));
       }),

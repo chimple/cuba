@@ -237,8 +237,15 @@ const CampaignSetupPage: React.FC = () => {
 
     setLaunching(true);
     try {
+      const currentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (!currentUser?.id) {
+        throw new Error('User is not logged in.');
+      }
+
       await ServiceConfig.getI().apiHandler.launchCampaign({
         campaignId: campaignSetup.createdCampaignId,
+        currentUserId: currentUser.id,
         campaign: {
           programId: campaignSetup.form.programId,
           campaignName: campaignSetup.form.campaignName.trim(),

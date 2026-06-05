@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import {
   CampaignAudienceSummary,
@@ -23,6 +23,7 @@ import {
 } from './campaignCommunicationUtils';
 import { CampaignReachSummary } from './campaignCommunicationTypes';
 import { CampaignSetupFormState } from './types';
+import { ReviewCard, ReviewRow } from './CampaignReviewComponents';
 import './CampaignReviewStep.css';
 
 export type CampaignReviewData = {
@@ -84,48 +85,6 @@ const getObjectiveLabel = (form: CampaignSetupFormState) => {
   }
   if (!form.targetType) return 'Homework Campaign';
   return `Homework Campaign (${TARGET_TYPE_LABEL_BY_VALUE.get(form.targetType) || form.targetType})`;
-};
-
-const ReviewCard: React.FC<{
-  title: string;
-  editStep: number;
-  onEditStep: (step: number) => void;
-  children: React.ReactNode;
-}> = ({ title, editStep, onEditStep, children }) => {
-  const { t } = useTranslation();
-
-  return (
-    <Box className="campaign-review-card">
-      <Box className="campaign-review-card-header">
-        <Typography className="campaign-review-card-title">
-          {t(title)}
-        </Typography>
-        <Button
-          type="button"
-          variant="outlined"
-          className="campaign-review-edit-button"
-          onClick={() => onEditStep(editStep)}
-        >
-          {t('Edit')}
-        </Button>
-      </Box>
-      <Box className="campaign-review-card-body">{children}</Box>
-    </Box>
-  );
-};
-
-const ReviewRow: React.FC<{ label: string; value: React.ReactNode }> = ({
-  label,
-  value,
-}) => {
-  const { t } = useTranslation();
-
-  return (
-    <Box className="campaign-review-row">
-      <Typography className="campaign-review-row-label">{t(label)}</Typography>
-      <Typography className="campaign-review-row-value">{value}</Typography>
-    </Box>
-  );
 };
 
 export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
