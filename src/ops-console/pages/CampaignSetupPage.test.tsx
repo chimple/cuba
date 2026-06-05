@@ -199,6 +199,44 @@ describe('CampaignSetupPage', () => {
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
   });
 
+  it('blocks campaign setup when selected target audience has no students', async () => {
+    mockApiHandler.getCampaignAudienceSummary.mockResolvedValue({
+      totalStudents: 0,
+      grades: [{ gradeId: 'grade-1', gradeName: 'Grade 1', studentCount: 0 }],
+    });
+
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    fireEvent.change(screen.getByLabelText('Target Value'), {
+      target: { value: '90' },
+    });
+    fireEvent.change(screen.getByLabelText('Campaign Name'), {
+      target: { value: 'ABCD' },
+    });
+    await openSelectAndChoose('Select Campaign Manager', 'Raj Patel');
+    fireEvent.change(screen.getByLabelText('Start Date'), {
+      target: { value: getDateValueDaysFromToday(1) },
+    });
+    fireEvent.change(screen.getByLabelText('End Date'), {
+      target: { value: getDateValueDaysFromToday(30) },
+    });
+    await openSelectAndChoose('Select Program', 'Early Learning');
+    await waitFor(() =>
+      expect(mockApiHandler.getCampaignAudienceSummary).toHaveBeenCalled(),
+    );
+    fireEvent.change(screen.getByPlaceholderText('Enter group name'), {
+      target: { value: 'Group A' },
+    });
+
+    expect(
+      await screen.findByText(
+        'Unable to proceed. The selected Target Audience has 0 students.',
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+  });
+
   it('switches dynamic objective fields when homepage pathway campaign is selected', async () => {
     render(<CampaignSetupPage />);
 

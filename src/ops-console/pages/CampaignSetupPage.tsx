@@ -66,6 +66,14 @@ const CampaignSetupPage: React.FC = () => {
     [campaignSetup.assignmentDrafts],
   );
 
+  const hasNoTargetAudienceStudents =
+    !campaignSetup.loadingAudienceSummary &&
+    campaignSetup.audienceSummary.totalStudents === 0 &&
+    (campaignSetup.summarySchoolCount > 0 ||
+      campaignSetup.audienceSummary.grades.length > 0);
+  const canProceedFromCampaignSetup =
+    campaignSetup.isFormValid && !hasNoTargetAudienceStudents;
+
   const communicationValidation = useMemo(
     () =>
       getCampaignCommunicationValidation(
@@ -282,7 +290,7 @@ const CampaignSetupPage: React.FC = () => {
         <CampaignSetupActions
           activeStep={campaignSetup.activeStep}
           isAssignmentComplete={isAssignmentComplete}
-          isFormValid={campaignSetup.isFormValid}
+          isFormValid={canProceedFromCampaignSetup}
           isSubmitting={campaignSetup.submitting}
           hasCreatedCampaign={!!campaignSetup.createdCampaignId}
           onBackStep={() =>
