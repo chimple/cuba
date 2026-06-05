@@ -9418,7 +9418,7 @@ export class SupabaseApi implements ServiceApi {
     if (!payload.currentUserId) {
       throw new Error('Current user id is required.');
     }
-    if (!payload.rewards?.type || payload.rewards.rules.length === 0) {
+    if (!payload.rewards?.type || !payload.rewards?.rules?.length) {
       throw new Error('Campaign rewards are required.');
     }
     if (payload.assignments.length === 0) {
@@ -9455,42 +9455,35 @@ export class SupabaseApi implements ServiceApi {
       new Set(
         payload.assignments.flatMap((assignment) => assignment.schoolIds),
       ),
-    ).filter(Boolean);
+    );
     const gradeIds = Array.from(
       new Set(payload.assignments.map((assignment) => assignment.gradeId)),
-    ).filter(Boolean);
+    );
 
     if (schoolIds.length === 0 || gradeIds.length === 0) {
       throw new Error('Campaign assignment schools and grades are required.');
     }
 
-    const classRows: Array<{
+    const { data: classRowsData, error: classRowsError } = await this.supabase
+      .from(TABLES.Class)
+      .select('id, school_id, grade_id')
+      .in('school_id', schoolIds)
+      .in('grade_id', gradeIds)
+      .eq('is_deleted', false);
+
+    if (classRowsError) {
+      logger.error(
+        'Error resolving campaign assignment classes:',
+        classRowsError,
+      );
+      throw classRowsError;
+    }
+
+    const classRows = (classRowsData ?? []) as Array<{
       id: string;
       school_id: string;
       grade_id: string;
-    }> = [];
-    for (const schoolIdBatch of chunkArray(schoolIds, 500)) {
-      const { data, error } = await this.supabase
-        .from(TABLES.Class)
-        .select('id, school_id, grade_id')
-        .in('school_id', schoolIdBatch)
-        .in('grade_id', gradeIds)
-        .eq('is_deleted', false)
-        .not('grade_id', 'is', null);
-
-      if (error) {
-        logger.error('Error resolving campaign assignment classes:', error);
-        throw error;
-      }
-
-      classRows.push(
-        ...((data ?? []) as Array<{
-          id: string;
-          school_id: string;
-          grade_id: string;
-        }>),
-      );
-    }
+    }>;
 
     const classesBySchoolAndGrade = new Map<
       string,
@@ -9601,15 +9594,13 @@ export class SupabaseApi implements ServiceApi {
       is_deleted: false,
     }));
 
-    for (const messagingBatch of chunkArray(messagingRows, 500)) {
-      const { error } = await this.supabase
-        .from('campaign_messaging')
-        .insert(messagingBatch);
+    const { error: messagingInsertError } = await this.supabase
+      .from('campaign_messaging')
+      .insert(messagingRows);
 
-      if (error) {
-        logger.error('Error inserting campaign messaging:', error);
-        throw error;
-      }
+    if (messagingInsertError) {
+      logger.error('Error inserting campaign messaging:', messagingInsertError);
+      throw messagingInsertError;
     }
   }
 
