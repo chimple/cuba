@@ -63,18 +63,9 @@ let ServiceConfig;
 let APIMode;
 let palUtil;
 let importTables;
-let lessonActivityCounts;
-let previousValidOutcomeCount;
 const localPlayedLessonResults = new Map();
 const DEFAULT_NEXT_STUDENT_ID = 'f3779dd0-3704-427e-b0de-9dd442c3a48b';
 const playedResultsFile = 'played_results.csv';
-const lessonActivityCountFiles = [
-  'course-en_count.json',
-  'course-kn_count.json',
-  'course-maths_count.json',
-  'course-puzzle_count.json',
-  'course-hi_count.json',
-];
 
 const PAL_GROWTHBOOK_CONFIG = {
   blendWeights: {
@@ -363,56 +354,6 @@ const fileExists = async (file) => {
   }
 };
 
-const loadLessonActivityCounts = async () => {
-  if (lessonActivityCounts) return lessonActivityCounts;
-
-  lessonActivityCounts = new Map();
-
-  for (const file of lessonActivityCountFiles) {
-    if (!(await fileExists(file))) {
-      log(`activity count file not found: ${file}`);
-      continue;
-    }
-
-    const counts = JSON.parse(await fs.readFile(file, 'utf8'));
-    for (const [cocosLessonId, count] of Object.entries(counts)) {
-      const activityCount = Number(count);
-      if (!cocosLessonId || !Number.isFinite(activityCount)) continue;
-      lessonActivityCounts.set(cocosLessonId, activityCount);
-    }
-  }
-
-  return lessonActivityCounts;
-};
-
-const getOutcomeCountForLesson = async (lessonId) => {
-  const lesson = byId('lesson', lessonId);
-  const cocosLessonId = lesson?.cocos_lesson_id;
-  const counts = await loadLessonActivityCounts();
-  const outcomeCount = cocosLessonId
-    ? Number(counts.get(cocosLessonId))
-    : undefined;
-
-  if (Number.isInteger(outcomeCount) && outcomeCount > 0) {
-    previousValidOutcomeCount = outcomeCount;
-    return { outcomeCount, cocosLessonId };
-  }
-
-  if (previousValidOutcomeCount) {
-    log(
-      `missing activity count for lesson_id=${lessonId} cocos_lesson_id=${cocosLessonId ?? ''}; using previous valid outcome_count=${previousValidOutcomeCount}`,
-    );
-    return {
-      outcomeCount: previousValidOutcomeCount,
-      cocosLessonId,
-    };
-  }
-
-  throw new Error(
-    `Missing activity count for lesson_id=${lessonId} cocos_lesson_id=${cocosLessonId ?? ''}, and no previous valid count is available. Add it to one of: ${lessonActivityCountFiles.join(', ')}`,
-  );
-};
-
 const readStudents = async (file) =>
   (await readCsvRecords(file)).map((row) => ({
     student_id: row.student_id,
@@ -499,6 +440,8 @@ const scenarioPatterns = (pattern) => {
     (item) => item,
   );
 };
+
+const generatedOutcomeCount = () => 4 + Math.floor(Math.random() * 12);
 
 const formatOutcomes = (outcomes) =>
   outcomes.map((outcome) => (outcome ? 1 : 0)).join(',');
@@ -1201,11 +1144,10 @@ async function runNextIterations(courseId, options) {
         break;
       }
 
-      const { outcomeCount, cocosLessonId } =
-        await getOutcomeCountForLesson(nextLessonId);
+      const outcomeCount = generatedOutcomeCount();
       const outcomes = generateOutcomes(scenario, outcomeCount);
       log(
-        `scenario=${scenario} iteration=${iteration} student_id=${latest.student_id} course_id=${latest.course_id} lesson_id=${nextLessonId} cocos_lesson_id=${cocosLessonId ?? ''} outcome_count=${outcomeCount} outcomes=${formatOutcomes(outcomes)}`,
+        `scenario=${scenario} iteration=${iteration} student_id=${latest.student_id} course_id=${latest.course_id} outcome_count=${outcomeCount} outcomes=${formatOutcomes(outcomes)}`,
       );
 
       const abilities = await palUtil.updateAndGetAbilities({
