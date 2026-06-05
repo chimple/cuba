@@ -33,10 +33,25 @@
 }
 
 .chapter-selection-chapter-list {
-  max-height: 20.625rem;
+  max-height: 18.5rem;
   overflow-y: auto;
   padding: 0.75rem 1rem 0.875rem;
   margin: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #4b8df8 transparent;
+}
+
+.chapter-selection-chapter-list::-webkit-scrollbar {
+  width: 0.25rem;
+}
+
+.chapter-selection-chapter-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chapter-selection-chapter-list::-webkit-scrollbar-thumb {
+  background: #4b8df8;
+  border-radius: 999px;
 }
 
 .chapter-selection-chapter {
@@ -153,8 +168,8 @@
   }
 
   .chapter-selection-chapter-list {
-    max-height: none;
-    overflow: visible;
+    max-height: 18.875rem;
+    overflow-y: auto;
     padding: 0;
   }
 

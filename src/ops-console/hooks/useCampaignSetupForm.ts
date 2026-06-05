@@ -6,14 +6,15 @@ import {
   CampaignObjective,
   CampaignOption,
   CampaignSavedAudienceGroup,
-  CampaignTargetType,
 } from '../../services/api/ServiceApi';
 import logger from '../../utility/logger';
 import { CampaignSetupFormState } from '../components/CampaignSetupSections';
 import {
   CampaignAssignmentDraft,
+  DEFAULT_FREQUENCY,
   createDefaultConfig,
   GradeAssignmentConfig,
+  isAlternateWeekEnabled,
 } from '../components/campaignSetup/campaignAssignmentUtils';
 import {
   buildCampaignAudiencePayload,
@@ -59,9 +60,9 @@ export const useCampaignSetupForm = () => {
   const [saveGroup, setSaveGroup] = useState(true);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [savingGroup, setSavingGroup] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-  const [createdCampaignId, setCreatedCampaignId] = useState('');
+  const [createdCampaignId] = useState('');
   const [campaignRewards, setCampaignRewards] =
     useState<CampaignRewardsDraftPayload | null>(null);
   const [assignmentDrafts, setAssignmentDrafts] = useState<
@@ -114,6 +115,27 @@ export const useCampaignSetupForm = () => {
   }, [audience.selectedGrades]);
 
   useEffect(() => {
+    if (isAlternateWeekEnabled(form.startDate, form.endDate)) return;
+
+    setAssignmentConfigs((current) => {
+      let changed = false;
+      const next = { ...current };
+
+      Object.entries(current).forEach(([gradeId, config]) => {
+        if (config.frequency === 'alternate_week') {
+          changed = true;
+          next[gradeId] = {
+            ...config,
+            frequency: DEFAULT_FREQUENCY,
+          };
+        }
+      });
+
+      return changed ? next : current;
+    });
+  }, [form.endDate, form.startDate]);
+
+  useEffect(() => {
     const fetchSetupOptions = async () => {
       setLoadingInitial(true);
       try {
@@ -133,7 +155,7 @@ export const useCampaignSetupForm = () => {
     };
 
     void fetchSetupOptions();
-  }, [api]);
+  }, [api, t]);
 
   const updateForm =
     (field: keyof CampaignSetupFormState) =>
@@ -286,58 +308,14 @@ export const useCampaignSetupForm = () => {
 
     if (!isFormValid) return;
 
-    setSubmitting(true);
-    try {
-      const savedAudienceGroupId =
-        audience.selectedSavedGroupId && !saveGroup
-          ? audience.selectedSavedGroupId
-          : undefined;
-
-      const result = await api.createCampaignSetup({
-        ...buildAudiencePayload(),
-        savedAudienceGroupId,
-        campaignName: form.campaignName.trim(),
-        objective: form.objective as CampaignObjective,
-        targetType:
-          form.objective === 'homework_campaign'
-            ? (form.targetType as CampaignTargetType)
-            : undefined,
-        targetValue:
-          form.objective === 'homework_campaign'
-            ? Number(form.targetValue)
-            : undefined,
-        learningPathCount:
-          form.objective === 'homepage_learning_pathway_campaign'
-            ? Number(form.learningPathCount)
-            : undefined,
-        managerId: form.managerId,
-        startDate: form.startDate,
-        endDate: form.endDate,
-      });
-      setCreatedCampaignId(result.campaignId);
-      setActiveStep(1);
-    } catch (error) {
-      logger.error('Failed to create campaign setup:', error);
-      setMessage({
-        type: 'error',
-        text: t('Unable to save campaign setup.'),
-      });
-    } finally {
-      setSubmitting(false);
-    }
+    setActiveStep(
+      form.objective === 'homepage_learning_pathway_campaign' ? 2 : 1,
+    );
   };
 
   const handleRewardsSubmit = () => {
     setRewardSubmitAttempted(true);
     setMessage(null);
-
-    if (!createdCampaignId) {
-      setMessage({
-        type: 'error',
-        text: t('Save campaign setup before configuring rewards.'),
-      });
-      return;
-    }
 
     if (!areRewardsValid) return;
 
