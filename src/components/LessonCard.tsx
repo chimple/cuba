@@ -139,9 +139,6 @@ const LessonCard: React.FC<{
         }}
         onClick={async () => {
           if (isUnlocked) {
-            if (!course && !currentCourse) {
-              await getCurrentCourse();
-            }
             const resolvedCourse =
               course ?? currentCourse ?? (await getCurrentCourse());
 
