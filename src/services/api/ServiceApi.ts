@@ -1689,17 +1689,13 @@ export interface ServiceApi {
   }>;
 
   /**
-   * Gets assignment data for a class/school within an inclusive datetime range.
-   * @param {string} classId class Id
-   * @param {string} schoolId school Id
+   * Gets assignment data for an assigner within an inclusive datetime range.
    * @param {string} userId assigner user Id
    * @param {string} startDate inclusive start datetime (ISO string)
    * @param {string} endDate inclusive end datetime (ISO string)
    * @return object containing raw assignment rows and grouped batch metadata.
    */
   getAssignmentDateRangeDataForClassAndSchool(
-    classId: string,
-    schoolId: string,
     userId: string,
     startDate: string,
     endDate: string,

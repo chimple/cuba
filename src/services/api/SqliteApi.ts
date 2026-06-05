@@ -6175,8 +6175,6 @@ order by
     return { classWiseAssignments, individualAssignments };
   }
   async getAssignmentDateRangeDataForClassAndSchool(
-    classId: string,
-    schoolId: string,
     userId: string,
     startDate: string,
     endDate: string,
@@ -6187,9 +6185,7 @@ order by
       SELECT
         *
       FROM ${TABLES.Assignment}
-      WHERE class_id = ?
-        AND school_id = ?
-        AND created_by = ?
+      WHERE created_by = ?
         AND created_at >= ?
         AND created_at <= ?
         AND (is_deleted = 0 OR is_deleted = false OR is_deleted IS NULL)
@@ -6197,13 +6193,7 @@ order by
     `;
 
     try {
-      const res = await this.executeQuery(query, [
-        classId,
-        schoolId,
-        userId,
-        startDate,
-        endDate,
-      ]);
+      const res = await this.executeQuery(query, [userId, startDate, endDate]);
 
       const assignments = (res?.values ?? []) as TableTypes<'assignment'>[];
       const groupedByBatch = new Map<string, AssignmentBatchGroupRow>();
@@ -6262,12 +6252,12 @@ order by
     const query = `
     SELECT coins , streak
     FROM ${TABLES.UserAchivements}
-    where user_id = ? and class_id = ? and school_id = ?
+    where user_id = ?
     and (is_deleted = 0 OR is_deleted = false OR is_deleted IS NULL)
     ORDER BY created_at DESC`;
 
     try {
-      const res = await this._db?.query(query, [userId, classId, schoolId]);
+      const res = await this._db?.query(query, [userId]);
       logger.warn('data or result', res?.values);
       if (res?.values && res.values.length > 0) {
         const { coins, streak } = res.values[0];
@@ -10305,12 +10295,12 @@ order by
         `
       SELECT *
       FROM ${TABLES.UserAchivements}
-      WHERE user_id = ? AND school_id = ? AND class_id = ?
+      WHERE user_id = ?
         AND (is_deleted = 0 OR is_deleted = false OR is_deleted IS NULL)
       ORDER BY created_at DESC
       LIMIT 1;
       `,
-        [userId, schoolId, classId],
+        [userId],
       );
 
       const existing = existingRes?.values?.[0] as
@@ -10325,9 +10315,9 @@ order by
           `
         UPDATE ${TABLES.UserAchivements}
         SET coins = ?, streak = ?, updated_at = ?, is_deleted = 0
-        WHERE user_id = ? AND school_id = ? AND class_id = ?;
+        WHERE user_id = ?;
         `,
-          [updatedCoins, updatedStreak, now, userId, schoolId, classId],
+          [updatedCoins, updatedStreak, now, userId],
         );
 
         const updatedRow = {
