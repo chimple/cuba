@@ -39,6 +39,7 @@ const mockApiHandler = {
   getCampaignAudienceSummary: jest.fn(),
   createCampaignAudienceGroup: jest.fn(),
   createCampaignSetup: jest.fn(),
+  launchCampaign: jest.fn(),
   getCampaignAssignmentOptions: jest.fn(),
   getParentWhatsappClassesBySchoolId: jest.fn(),
   getParentWhatsappParentPhonesByClassId: jest.fn(),
@@ -125,6 +126,7 @@ const setupApiMocks = () => {
     campaignId: 'campaign-1',
     targetAudienceId: 'audience-1',
   });
+  mockApiHandler.launchCampaign.mockResolvedValue(undefined);
   mockApiHandler.getCampaignAssignmentOptions.mockResolvedValue({
     grades: [
       {
@@ -214,6 +216,41 @@ describe('CampaignSetupPage', () => {
     expect(screen.getByText('Campaign Details')).toBeInTheDocument();
     expect(screen.getByText('Target Audience')).toBeInTheDocument();
     expect(screen.getByText('Save this group for reuse')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+  });
+
+  it('blocks campaign setup when selected target audience has no students', async () => {
+    mockApiHandler.getCampaignAudienceSummary.mockResolvedValue({
+      totalStudents: 0,
+      grades: [{ gradeId: 'grade-1', gradeName: 'Grade 1', studentCount: 0 }],
+    });
+
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    fireEvent.change(screen.getByLabelText('Target Value'), {
+      target: { value: '90' },
+    });
+    fireEvent.change(screen.getByLabelText('Campaign Name'), {
+      target: { value: 'ABCD' },
+    });
+    await openSelectAndChoose('Select Campaign Manager', 'Raj Patel');
+    fireEvent.change(screen.getByLabelText('Start Date'), {
+      target: { value: getDateValueDaysFromToday(1) },
+    });
+    fireEvent.change(screen.getByLabelText('End Date'), {
+      target: { value: getDateValueDaysFromToday(30) },
+    });
+    await openSelectAndChoose('Select Program', 'Early Learning');
+    fireEvent.change(screen.getByPlaceholderText('Enter group name'), {
+      target: { value: 'Group A' },
+    });
+
+    expect(
+      await screen.findByText(
+        'Unable to proceed. The selected Target Audience has 0 students.',
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
   });
 
@@ -525,11 +562,12 @@ describe('CampaignSetupPage', () => {
     );
 
     expect(
-      screen.getByRole('heading', { name: 'Summary' }),
+      screen.getByRole('heading', { name: 'Campaign Summary' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText('1 campaign day(s) are configured for communication.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('Campaign Overview')).toBeInTheDocument();
+    expect(screen.getByText('Communication')).toBeInTheDocument();
+    expect(screen.getByText('Launch Campaign')).toBeInTheDocument();
+    expect(screen.queryByText('Save as Draft')).not.toBeInTheDocument();
   });
 
   it('uses lesson criteria for homepage learning pathway rewards', async () => {

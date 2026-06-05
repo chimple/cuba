@@ -12,7 +12,7 @@ type CampaignSetupActionsProps = {
   onGoToRewards: () => void;
   onRewardsSubmit: () => void;
   onContinueToSummary: () => void;
-  onDone: () => void;
+  onLaunchCampaign: () => void;
 };
 
 export const CampaignSetupActions: React.FC<CampaignSetupActionsProps> = ({
@@ -25,7 +25,7 @@ export const CampaignSetupActions: React.FC<CampaignSetupActionsProps> = ({
   onGoToRewards,
   onRewardsSubmit,
   onContinueToSummary,
-  onDone,
+  onLaunchCampaign,
 }) => {
   const { t } = useTranslation();
 
@@ -53,7 +53,7 @@ export const CampaignSetupActions: React.FC<CampaignSetupActionsProps> = ({
       onContinueToSummary();
       return;
     }
-    onDone();
+    onLaunchCampaign();
   };
 
   return (
@@ -86,7 +86,7 @@ export const CampaignSetupActions: React.FC<CampaignSetupActionsProps> = ({
         {activeStep === 3
           ? t('Continue to Summary')
           : activeStep === 4
-            ? t('Done')
+            ? t('Launch Campaign')
             : t('Next')}
       </Button>
     </div>
