@@ -5,16 +5,21 @@ import CampaignSetupPage from './CampaignSetupPage';
 import { buildCampaignRewardsPayload } from '../hooks/campaignSetupFormHelpers';
 
 const mockGoBack = jest.fn();
+const mockTranslate = (
+  key: string,
+  options?: Record<string, string | number>,
+): string =>
+  options
+    ? key.replace(/{{(\w+)}}/g, (_match, token: string) =>
+        String(options[token] ?? ''),
+      )
+    : key;
+
 jest.setTimeout(30000);
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string, options?: Record<string, string | number>): string =>
-      options
-        ? key.replace(/{{(\w+)}}/g, (_match, token: string) =>
-            String(options[token] ?? ''),
-          )
-        : key,
+    t: mockTranslate,
   }),
 }));
 
@@ -149,6 +154,19 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockAssignmentComplete = false;
   setupApiMocks();
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  });
 });
 
 const completeSetupStep = async () => {
@@ -318,7 +336,7 @@ describe('CampaignSetupPage', () => {
     expect(mockApiHandler.createCampaignAudienceGroup).not.toHaveBeenCalled();
   });
 
-  it('saves setup data and advances to assignments on next', async () => {
+  it('keeps setup next local-only and advances to assignments', async () => {
     render(<CampaignSetupPage />);
 
     await screen.findByRole('heading', { name: 'New Campaign' });
@@ -359,7 +377,7 @@ describe('CampaignSetupPage', () => {
     expect(
       await screen.findByText('Assignment Configuration'),
     ).toBeInTheDocument();
-    expect(mockApiHandler.createCampaignSetup).toHaveBeenCalledTimes(1);
+    expect(mockApiHandler.createCampaignSetup).not.toHaveBeenCalled();
     expect(screen.queryByText('Campaign setup saved.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
   });
@@ -582,7 +600,6 @@ describe('CampaignSetupPage', () => {
   });
 
   it('uses lesson criteria for homepage learning pathway rewards', async () => {
-    mockAssignmentComplete = true;
     render(<CampaignSetupPage />);
 
     await screen.findByRole('heading', { name: 'New Campaign' });
@@ -614,10 +631,57 @@ describe('CampaignSetupPage', () => {
       expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
     );
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    await screen.findByText('Assignment Configuration');
-    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await screen.findByText('Rewards Configuration');
 
     expect(screen.getAllByText('Number of Lessons').length).toBeGreaterThan(0);
+  });
+
+  it('hides save-group controls when an existing saved group is selected and restores them when cleared', async () => {
+    mockApiHandler.getCampaignSetupOptions.mockResolvedValueOnce({
+      programs: [{ id: 'program-1', name: 'Early Learning' }],
+      managers: [{ id: 'manager-1', name: 'Raj Patel' }],
+      savedGroups: [
+        {
+          id: 'audience-1',
+          name: 'Reusable Group',
+          programId: 'program-1',
+          isAllSchools: true,
+          isAllGrades: true,
+          schoolIds: [],
+          gradeIds: [],
+        },
+      ],
+    });
+
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    expect(screen.getByText('Save this group for reuse')).toBeInTheDocument();
+
+    await openSelectAndChoose('Select a saved group', 'Reusable Group');
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText('Save this group for reuse'),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByPlaceholderText('Enter group name'),
+    ).not.toBeInTheDocument();
+
+    const savedGroupSelect = screen
+      .getAllByRole('combobox')
+      .find((element) => element.textContent === 'Reusable Group');
+    fireEvent.mouseDown(savedGroupSelect as HTMLElement);
+    fireEvent.click(
+      await screen.findByRole('option', { name: 'Select a saved group' }),
+    );
+
+    expect(
+      await screen.findByText('Save this group for reuse'),
+    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Enter group name')).toBeInTheDocument();
+    expect(await screen.findByText('Select Program')).toBeInTheDocument();
   });
 
   it('builds rewards payload in the next-step format', () => {

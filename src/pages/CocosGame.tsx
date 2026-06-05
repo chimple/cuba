@@ -51,6 +51,11 @@ type CocosGameListeners = {
   gameExit?: EventListener;
 };
 
+const getSourceFromState = (source: unknown): SOURCE | undefined =>
+  Object.values(SOURCE).includes(source as SOURCE)
+    ? (source as SOURCE)
+    : undefined;
+
 const CocosGame: React.FC = () => {
   const history = useHistory();
   const location = history.location.state as {
@@ -63,7 +68,7 @@ const CocosGame: React.FC = () => {
   const assignmentType = location?.assignment?.type || 'self-played';
   const state = history.location.state as any;
   const source: SOURCE =
-    state?.source ??
+    getSourceFromState(state?.source) ??
     (state?.isHomework
       ? SOURCE.LEARNING_PATHWAY_HOMEWORK
       : state?.learning_path
@@ -480,14 +485,50 @@ const CocosGame: React.FC = () => {
       subject_ability?: number;
     } = {};
 
-    if (state?.skillId) {
-      const courseIdForAbility = courseDetail?.id ?? courseDocId ?? '';
-      abilityUpdates = await palUtil.updateAndGetAbilities({
-        studentId: currentStudent.id,
-        courseId: courseIdForAbility,
-        skillId: state.skillId,
-        outcomes: outcomesRef.current,
-      });
+    const stateSkillId =
+      typeof state?.skillId === 'string' && state.skillId.trim().length > 0
+        ? state.skillId.trim()
+        : undefined;
+    let resolvedSkillId = stateSkillId;
+
+    if (!resolvedSkillId) {
+      const normalizeIdentifier = (value: unknown) =>
+        typeof value === 'string' && value.trim().length > 0
+          ? value.trim()
+          : undefined;
+      const lessonIdentifiers = Array.from(
+        new Set(
+          [state?.lessonId, lessonDetail?.cocos_lesson_id, lesson?.id]
+            .map(normalizeIdentifier)
+            .filter((id): id is string => !!id),
+        ),
+      );
+
+      for (const lessonIdentifier of lessonIdentifiers) {
+        resolvedSkillId = (
+          await api.getSkillByLessonIdentifier(lessonIdentifier)
+        )?.id;
+        if (resolvedSkillId) break;
+      }
+    }
+
+    if (resolvedSkillId) {
+      abilityUpdates.skill_id = resolvedSkillId;
+      try {
+        const courseIdForAbility = courseDetail?.id ?? courseDocId ?? '';
+        abilityUpdates = await palUtil.updateAndGetAbilities({
+          studentId: currentStudent.id,
+          courseId: courseIdForAbility,
+          skillId: resolvedSkillId,
+          outcomes: outcomesRef.current,
+        });
+        if (!abilityUpdates.skill_id) abilityUpdates.skill_id = resolvedSkillId;
+      } catch (palError) {
+        logger.warn(
+          '[CocosGame] PAL ability update skipped due to invalid skill context',
+          palError,
+        );
+      }
     }
 
     // Calculate activities_scores from outcomes (1 for true/correct, 0 for false/incorrect)
@@ -618,6 +659,7 @@ const CocosGame: React.FC = () => {
       score: data.score,
       played_from: playedFrom,
       assignment_type: assignmentType,
+      source,
     });
 
     let tempAssignmentCompletedIds = localStorage.getItem(

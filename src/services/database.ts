@@ -7913,7 +7913,11 @@ export type Database = {
         | 'no_learning_pathway_homework'
         | 'subject_page'
         | 'teacher_mode';
-      result_status: 'user_exit' | 'system_exit' | 'completed';
+      result_status:
+        | 'user_exit'
+        | 'system_exit'
+        | 'completed'
+        | 'assessment_terminated';
       rive_type: 'idle' | 'normal' | 'celebrating';
       role:
         | 'coordinator'
@@ -8120,7 +8124,12 @@ export const Constants = {
         'subject_page',
         'teacher_mode',
       ],
-      result_status: ['user_exit', 'system_exit', 'completed'],
+      result_status: [
+        'user_exit',
+        'system_exit',
+        'completed',
+        'assessment_terminated',
+      ],
       rive_type: ['idle', 'normal', 'celebrating'],
       role: [
         'coordinator',

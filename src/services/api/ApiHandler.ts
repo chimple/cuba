@@ -961,6 +961,12 @@ export class ApiHandler implements ServiceApi {
     return this.s.getSkillLessonsBySkillIds(skillIds, languageCode);
   }
 
+  public async getSkillByLessonIdentifier(
+    lessonIdentifier: string,
+  ): Promise<TableTypes<'skill'> | undefined> {
+    return this.s.getSkillByLessonIdentifier(lessonIdentifier);
+  }
+
   public async getLeaderboardResults(
     sectionId: string,
     leaderboardDropdownType: LeaderboardDropdownList,

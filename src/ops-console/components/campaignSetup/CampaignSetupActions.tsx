@@ -7,10 +7,8 @@ type CampaignSetupActionsProps = {
   isAssignmentComplete: boolean;
   isFormValid: boolean;
   isSubmitting: boolean;
-  hasCreatedCampaign: boolean;
   onBackStep: () => void;
   onSetupSubmit: () => void;
-  onGoToAssignments: () => void;
   onGoToRewards: () => void;
   onRewardsSubmit: () => void;
   onContinueToSummary: () => void;
@@ -22,10 +20,8 @@ export const CampaignSetupActions: React.FC<CampaignSetupActionsProps> = ({
   isAssignmentComplete,
   isFormValid,
   isSubmitting,
-  hasCreatedCampaign,
   onBackStep,
   onSetupSubmit,
-  onGoToAssignments,
   onGoToRewards,
   onRewardsSubmit,
   onContinueToSummary,
@@ -42,10 +38,6 @@ export const CampaignSetupActions: React.FC<CampaignSetupActionsProps> = ({
 
   const handleNextClick = () => {
     if (activeStep === 0) {
-      if (hasCreatedCampaign) {
-        onGoToAssignments();
-        return;
-      }
       onSetupSubmit();
       return;
     }
@@ -77,7 +69,7 @@ export const CampaignSetupActions: React.FC<CampaignSetupActionsProps> = ({
         </Button>
       )}
       {activeStep === 1 && !isAssignmentComplete && (
-        <Typography className="campaign-assignment-cta-error">
+        <Typography className="campaign-setup-page-assignment-cta-error">
           {t(
             'Please complete the assignment setup for all selected grades before proceeding.',
           )}

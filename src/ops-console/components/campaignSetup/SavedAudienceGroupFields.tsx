@@ -14,6 +14,7 @@ import {
 
 type SavedAudienceGroupFieldsProps = {
   form: CampaignSetupFormState;
+  selectedSavedGroupId: string;
   saveGroup: boolean;
   savingGroup: boolean;
   groupNameError?: string;
@@ -27,6 +28,7 @@ export const SavedAudienceGroupFields: React.FC<
   SavedAudienceGroupFieldsProps
 > = ({
   form,
+  selectedSavedGroupId,
   saveGroup,
   savingGroup,
   groupNameError,
@@ -36,16 +38,18 @@ export const SavedAudienceGroupFields: React.FC<
   onCancelSaveGroup,
 }) => (
   <Box className="target-audience-section-save-group">
-    <FormControlLabel
-      control={
-        <Checkbox
-          checked={saveGroup}
-          onChange={(event) => onSaveGroupChange(event.target.checked)}
-        />
-      }
-      label="Save this group for reuse"
-    />
-    {saveGroup && (
+    {!selectedSavedGroupId && (
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={saveGroup}
+            onChange={(event) => onSaveGroupChange(event.target.checked)}
+          />
+        }
+        label="Save this group for reuse"
+      />
+    )}
+    {!selectedSavedGroupId && saveGroup && (
       <Box className="target-audience-section-save-group-fields">
         <Box className="campaign-setup-field">
           <Typography className="campaign-setup-label">Group Name</Typography>

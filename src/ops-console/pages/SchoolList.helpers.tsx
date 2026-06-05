@@ -158,14 +158,6 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     orderBy: 'activities_assigned',
   },
   {
-    key: 'parentsReached',
-    label: t('Parents Reached'),
-    width: '7.78%',
-    align: 'center',
-    sortable: false,
-    orderBy: 'parents_reached',
-  },
-  {
     key: 'avgAssignmentsCompleted',
     label: t('Avg Assignments Completed'),
     width: '7.78%',
@@ -201,6 +193,14 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     width: '7.78%',
     align: 'center',
     sortable: false,
+  },
+  {
+    key: 'parentsReached',
+    label: t('Parents Reached'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+    orderBy: 'parents_reached',
   },
   {
     key: 'schoolVisits',
@@ -251,11 +251,6 @@ export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
     part: 'value',
   },
   {
-    key: 'parentsReached',
-    label: t('Parents Reached'),
-    part: 'value',
-  },
-  {
     key: 'avgAssignmentsCompleted',
     label: t('Avg Assignments Completed'),
     part: 'value',
@@ -278,6 +273,11 @@ export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
   {
     key: 'communityVisits',
     label: t('Community Visits'),
+    part: 'value',
+  },
+  {
+    key: 'parentsReached',
+    label: t('Parents Reached'),
     part: 'value',
   },
   { key: 'schoolVisits', label: t('School Visits'), part: 'value' },
