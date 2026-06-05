@@ -42,7 +42,6 @@ import '@ionic/react/css/display.css';
 /* Theme variables */
 import './theme/variables.css';
 import Home from './pages/Home';
-import CocosGame from './pages/CocosGame';
 import { End } from './pages/End';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Capacitor, registerPlugin } from '@capacitor/core';
@@ -582,9 +581,6 @@ const App: React.FC = () => {
             <Route path={PAGES.LOGIN} exact={true}>
               <LoginScreen />
             </Route>
-            <ProtectedRoute path={PAGES.GAME} exact={true}>
-              <CocosGame />
-            </ProtectedRoute>
             <ProtectedRoute path={PAGES.LIDO_PLAYER} exact={true}>
               <LidoPlayer />
             </ProtectedRoute>

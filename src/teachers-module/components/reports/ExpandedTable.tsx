@@ -50,7 +50,7 @@ async function getLessonScoresByDay(
       const lesson = await api.getLesson(lesson_id);
       const lessonName = lesson?.name ?? '';
 
-      // Use lesson_id as key for LIDO, id for COCOS
+      // Aggregate assessment lessons by lesson_id and keep other attempts separate.
       const key = lesson?.plugin_type === LIDO_ASSESSMENT ? lesson_id : id;
 
       if (!result[key]) {
@@ -81,7 +81,7 @@ async function getLessonScoresByDay(
 
         result[key].scoresByDay[day] = Math.round(avgScore);
       } else {
-        // COCOS → keep each result separate
+        // Non-assessment lessons keep each result separate.
         result[key].scoresByDay[day] = score;
       }
     }

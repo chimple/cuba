@@ -15,10 +15,7 @@ import {
   REWARD_MODAL_SHOWN_DATE,
   RewardBoxState,
   TableTypes,
-  COCOS,
   LIVE_QUIZ,
-  LIDO,
-  LIDO_ASSESSMENT,
   PAGES,
   SOURCE,
   CONTINUE,
@@ -384,24 +381,7 @@ export const usePathwayData = () => {
         const lesson = await api.getLesson(pathItem.lesson_id);
         if (!lesson) return;
 
-        // Navigate based on plugin type
-        if (lesson.plugin_type === COCOS) {
-          const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-          history.replace(PAGES.GAME + params, {
-            url: 'chimple-lib/index.html' + params,
-            lessonId: lesson.cocos_lesson_id,
-            courseDocId: course.course_id,
-            course: JSON.stringify(currentCourse),
-            lesson: JSON.stringify(lesson),
-            chapter: JSON.stringify(currentChapter),
-            from: history.location.pathname + `?${CONTINUE}=true`,
-            learning_path: true,
-            reward: true,
-            skillId: pathItem?.skill_id,
-            is_assessment: isAssessment,
-            source: pathItem?.source ?? SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
-          });
-        } else if (lesson.plugin_type === LIVE_QUIZ) {
+        if (lesson.plugin_type === LIVE_QUIZ) {
           history.replace(
             PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
             {
@@ -415,13 +395,14 @@ export const usePathwayData = () => {
               source: pathItem?.source ?? SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
             },
           );
-        } else if (
-          lesson.plugin_type === LIDO ||
-          lesson.plugin_type === LIDO_ASSESSMENT
-        ) {
-          const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
+        } else {
+          const playableLessonId = Util.getLessonBundleId(lesson);
+          if (!playableLessonId) {
+            return;
+          }
+          const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
           history.replace(PAGES.LIDO_PLAYER + params, {
-            lessonId: lesson.cocos_lesson_id,
+            lessonId: playableLessonId,
             courseDocId: course.course_id,
             course: JSON.stringify(currentCourse),
             lesson: JSON.stringify(lesson),

@@ -193,9 +193,6 @@ const SideMenu: React.FC<{
     await Util.logEvent(EVENTS.SWITCH_TO_KIDS_APP_CLICKED, {
       source_screen: getSwitchToKidsAppSourceScreen(),
     });
-    setTimeout(() => {
-      Util.killCocosGame();
-    }, 1000);
     history.replace(PAGES.KIDS_APP_LOCATION);
   };
 

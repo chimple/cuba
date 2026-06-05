@@ -4,7 +4,6 @@ import './HomeworkPathway.css';
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import {
-  COCOS,
   EVENTS,
   HOMEWORK_PATHWAY_DROPDOWN,
   HOMEWORK_PATHWAY,
@@ -212,7 +211,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           id: `sticker-placeholder-${index + 1}`,
           name: selectedCourse.name || 'Homework',
           image: 'assets/icons/NextNodeIcon.svg',
-          plugin_type: COCOS,
+          plugin_type: 'lido',
         } as TableTypes<'lesson'>,
       }));
 

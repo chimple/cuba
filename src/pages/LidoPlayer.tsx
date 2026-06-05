@@ -911,6 +911,8 @@ const LidoPlayer: FC = () => {
       quiz_completed: data.quizCompleted,
       game_time_spent: data.gameTimeSpent,
       quiz_time_spent: data.quizTimeSpent,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
     });
     push();
   };
@@ -1004,6 +1006,8 @@ const LidoPlayer: FC = () => {
       if (path) {
         setBasePath(path);
       } else {
+        presentToast();
+        push();
         return;
       }
       try {

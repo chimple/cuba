@@ -147,8 +147,6 @@ const getLessonBundlePlugin = (): LessonBundlePlugin | null => {
 
 declare global {
   interface Window {
-    cc: any;
-    _CCSettings: any;
     __LIDO_COMMON_AUDIO_PATH__?: string;
   }
 }
@@ -168,7 +166,6 @@ export class Util {
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = 'lastModalShown';
   private static lessonBundleDownloadQueue: Promise<void> = Promise.resolve();
-  private static readonly COCOS_ANDROID_FRAME_RATE = 30;
   // Normalize GrowthBook attributes that may come as a scalar or array into a consistent array.
   public static normalizeGrowthbookArrayAttribute<T>(
     value: T | T[] | null | undefined,
@@ -420,7 +417,9 @@ export class Util {
     return null;
   }
   public static getLessonBundleId(
-    lesson?: Pick<TableTypes<'lesson'>, 'cocos_lesson_id' | 'lido_lesson_id'>,
+    lesson?: Partial<
+      Pick<TableTypes<'lesson'>, 'cocos_lesson_id' | 'lido_lesson_id'>
+    >,
   ): string | null {
     return lesson?.lido_lesson_id ?? lesson?.cocos_lesson_id ?? null;
   }
@@ -902,128 +901,6 @@ export class Util {
     return JSON.stringify(value);
   }
 
-  private static applyCocosAndroidGpuProfile(): void {
-    if (
-      !Capacitor.isNativePlatform() ||
-      Capacitor.getPlatform() !== 'android' ||
-      !window.cc
-    ) {
-      return;
-    }
-
-    try {
-      window.cc.view?.enableRetina?.(true);
-      window.cc.view?.resizeWithBrowserSize?.(true);
-      window.cc.game?.setFrameRate?.(Util.COCOS_ANDROID_FRAME_RATE);
-    } catch (error) {
-      logger.warn('Failed to apply Cocos Android GPU profile', error);
-    }
-  }
-
-  private static restoreCocosCanvasSize(): void {
-    if (!window.cc?.sys.isBrowser) {
-      return;
-    }
-
-    const canvas = document.getElementById('GameCanvas');
-    if (canvas) {
-      canvas.style.visibility = '';
-      canvas.style.display = '';
-      canvas.style.width = '100%';
-      canvas.style.height = '100%';
-      canvas.style.pointerEvents = '';
-    }
-
-    const container = document.getElementById('Cocos2dGameContainer');
-    if (container) {
-      container.style.display = '';
-      container.style.width = '100%';
-      container.style.height = '100%';
-      container.style.overflow = '';
-    }
-  }
-
-  private static hideCocosCanvas(): void {
-    const canvas = document.getElementById('GameCanvas');
-    if (canvas) {
-      canvas.style.visibility = 'hidden';
-      canvas.style.display = 'none';
-      canvas.style.width = '0px';
-      canvas.style.height = '0px';
-      canvas.style.pointerEvents = 'none';
-    }
-
-    const container = document.getElementById('Cocos2dGameContainer');
-    if (container) {
-      container.style.display = 'none';
-      container.style.width = '0px';
-      container.style.height = '0px';
-      container.style.overflow = 'hidden';
-    }
-  }
-
-  public static async launchCocosGame(): Promise<void> {
-    try {
-      if (!window.cc) {
-        return;
-      }
-      const cocosLaunchStartedAt = Date.now();
-      const settings = window._CCSettings;
-      const launchScene = settings.launchScene;
-      const bundle = window.cc.assetManager.bundles.find(function (b: {
-        getSceneInfo: (sceneName: string) => object | null;
-      }) {
-        return b.getSceneInfo(launchScene);
-      });
-      // Reduce Android WebView/Mali GPU texture-copy pressure by keeping the Cocos WebGL canvas active only during gameplay.
-      Util.applyCocosAndroidGpuProfile();
-      Util.restoreCocosCanvasSize();
-
-      await new Promise<object>((resolve, reject) => {
-        bundle.loadScene(
-          launchScene,
-          null,
-          null,
-          function (err: Error | null | undefined, scene: object) {
-            if (!err) {
-              window.cc.game.resume?.();
-              window.cc.director?.resume?.();
-              window.cc.director.runSceneImmediate(scene);
-              if (window.cc.sys.isBrowser) {
-                Util.checkingIfGameCanvasAvailable();
-                Util.restoreCocosCanvasSize();
-                var div = document.getElementById('GameDiv');
-                if (div) {
-                  div.style.backgroundImage = '';
-                }
-              }
-              logger.info('[ANRGuard] Cocos launch completed', {
-                durationMs: Date.now() - cocosLaunchStartedAt,
-              });
-              resolve(scene);
-            } else {
-              reject(err);
-            }
-          },
-        );
-      });
-    } catch (error) {
-      logger.error('launchCocosGame(): error ', error);
-    }
-  }
-
-  public static killCocosGame(): void {
-    if (!window.cc) {
-      return;
-    }
-    window.cc.game.pause();
-    window.cc.director?.pause?.();
-    window.cc.audioEngine.stopAll();
-    window.cc.assetManager?.releaseUnusedAssets?.();
-    Util.hideCocosCanvas();
-    logger.info('[ANRGuard] Cocos game killed');
-  }
-
   public static async getLastPlayedLessonIndex(
     subjectCode: string,
     lessons: curriculamInterfaceLesson[],
@@ -1221,7 +1098,6 @@ export class Util {
       if (
         Capacitor.isNativePlatform() &&
         url.searchParams.get(CONTINUE) === 'true' &&
-        url.pathname !== PAGES.GAME &&
         url.pathname !== PAGES.LOGIN &&
         url.pathname !== PAGES.EDIT_STUDENT
       ) {
@@ -1238,74 +1114,7 @@ export class Util {
         url.searchParams.set('isReload', 'true');
         url.searchParams.delete(CONTINUE);
         window.history.replaceState(window.history.state, '', url.toString());
-        Util.checkingIfGameCanvasAvailable();
       }
-    }
-  };
-
-  public static checkingIfGameCanvasAvailable = async (): Promise<boolean> => {
-    try {
-      const canvas = document.getElementById('GameCanvas') as HTMLCanvasElement;
-
-      if (canvas) {
-        const gl = canvas.getContext('webgl') as WebGLRenderingContext | null;
-
-        if (!gl) {
-          logger.error('WebGL is not supported on this device or browser.');
-          return false;
-        }
-
-        if (!canvas.dataset.webglContextListenersAttached) {
-          canvas.dataset.webglContextListenersAttached = 'true';
-
-          canvas.addEventListener(
-            'webglcontextlost',
-            (event) => {
-              try {
-                logger.error('WebGL context lost detected.');
-                event.preventDefault();
-                const webglContext = canvas.getContext(
-                  'webgl',
-                ) as WebGLRenderingContext | null;
-
-                if (webglContext) {
-                  const rest = webglContext.getExtension('WEBGL_lose_context');
-
-                  if (!rest) {
-                    logger.error(
-                      'Unable to restore WebGL context. Reloading page...',
-                    );
-                    window.location.reload();
-                  }
-                }
-              } catch (error) {
-                logger.error('Error handling webglcontextlost:', error);
-              }
-            },
-            false,
-          );
-
-          canvas.addEventListener(
-            'webglcontextrestored',
-            (event) => {
-              try {
-                event.preventDefault();
-              } catch (error) {
-                logger.error('Error handling webglcontextrestored:', error);
-              }
-            },
-            false,
-          );
-        }
-
-        return true; // Return true if canvas exists and WebGL is initialized
-      } else {
-        logger.warn('GameCanvas element not found.');
-        return false;
-      }
-    } catch (error) {
-      logger.error('Error in checkingIfGameCanvasAvailable:', error);
-      return false;
     }
   };
 
