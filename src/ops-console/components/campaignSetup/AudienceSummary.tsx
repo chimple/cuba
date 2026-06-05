@@ -16,54 +16,39 @@ export const AudienceSummary: React.FC<AudienceSummaryProps> = ({
   summarySchoolCount,
   loadingAudienceSummary,
   audienceSummary,
-}) => {
-  const hasLoadedAudience = !loadingAudienceSummary;
-  const hasNoStudents =
-    hasLoadedAudience &&
-    audienceSummary.totalStudents === 0 &&
-    (summarySchoolCount > 0 || audienceSummary.grades.length > 0);
-
-  return (
-    <>
-      <Box className="target-audience-section-summary">
-        <span>
-          Program:{' '}
-          <strong title={selectedProgramName}>{selectedProgramName}</strong>
-        </span>
-        <span className="target-audience-section-summary-dot">·</span>
-        <span>
-          Blocks: <strong>{summaryBlockCount}</strong>
-        </span>
-        <span className="target-audience-section-summary-dot">·</span>
-        <span>
-          Schools: <strong>{summarySchoolCount}</strong>
-        </span>
-        <span className="target-audience-section-summary-dot">·</span>
-        <span>Students:</span>
-        {loadingAudienceSummary && <span>Loading...</span>}
-        {!loadingAudienceSummary &&
-          (audienceSummary.grades.length > 0 ? (
-            audienceSummary.grades.map((grade, index) => (
-              <React.Fragment key={grade.gradeId}>
-                {index > 0 && (
-                  <span className="target-audience-section-summary-dot">·</span>
-                )}
-                <span>
-                  {grade.gradeName} - <strong>{grade.studentCount}</strong>
-                </span>
-              </React.Fragment>
-            ))
-          ) : (
+}) => (
+  <Box className="target-audience-section-summary">
+    <span>
+      Program:{' '}
+      <strong title={selectedProgramName}>{selectedProgramName}</strong>
+    </span>
+    <span className="target-audience-section-summary-dot">·</span>
+    <span>
+      Blocks: <strong>{summaryBlockCount}</strong>
+    </span>
+    <span className="target-audience-section-summary-dot">·</span>
+    <span>
+      Schools: <strong>{summarySchoolCount}</strong>
+    </span>
+    <span className="target-audience-section-summary-dot">·</span>
+    <span>Students:</span>
+    {loadingAudienceSummary && <span>Loading...</span>}
+    {!loadingAudienceSummary &&
+      (audienceSummary.grades.length > 0 ? (
+        audienceSummary.grades.map((grade, index) => (
+          <React.Fragment key={grade.gradeId}>
+            {index > 0 && (
+              <span className="target-audience-section-summary-dot">·</span>
+            )}
             <span>
-              <strong>0</strong>
+              {grade.gradeName} - <strong>{grade.studentCount}</strong>
             </span>
-          ))}
-      </Box>
-      {hasNoStudents && (
-        <Box className="target-audience-section-zero-students-error">
-          Unable to proceed. The selected Target Audience has 0 students.
-        </Box>
-      )}
-    </>
-  );
-};
+          </React.Fragment>
+        ))
+      ) : (
+        <span>
+          <strong>0</strong>
+        </span>
+      ))}
+  </Box>
+);
