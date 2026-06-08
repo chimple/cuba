@@ -8,11 +8,7 @@ import SelectIcon from '../components/SelectIcon';
 import SelectIconImage from '../../components/displaySubjects/SelectIconImage';
 import {
   AssignmentSource,
-  COCOS,
   CONTINUE,
-  CocosCourseIdentifier,
-  LIDO,
-  LIDO_ASSESSMENT,
   LIVE_QUIZ,
   PAGES,
   SOURCE,
@@ -28,7 +24,6 @@ interface LessonDetailsProps {}
 type LessonDetailsState = {
   course?: TableTypes<'course'>;
   lesson?: TableTypes<'lesson'>;
-  fromCocos?: boolean;
   fromLido?: boolean;
   fromLiveQuiz?: boolean;
   chapterId?: string;
@@ -38,13 +33,11 @@ type LessonDetailsState = {
   from?: string;
 };
 const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
-  const currentSchool = Util.getCurrentSchool();
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const state = (history.location.state ?? {}) as LessonDetailsState;
   const course: TableTypes<'course'> | undefined = state.course;
   const lesson: TableTypes<'lesson'> = state.lesson as TableTypes<'lesson'>;
-  const fromCocos: boolean = Boolean(state.fromCocos);
   const fromLido: boolean = Boolean(state.fromLido);
   const fromLiveQuiz: boolean = Boolean(state.fromLiveQuiz);
   const [chapterId, setChapterId] = useState(state.chapterId ?? '');
@@ -72,29 +65,6 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     if (current_user?.id)
       await api.createOrUpdateAssignmentCart(current_user?.id, lesson);
   };
-  const COURSE_VALUES_SET = new Set(
-    (Object.values(CocosCourseIdentifier) as string[]).map((v) =>
-      v.toLowerCase(),
-    ),
-  );
-  const getCourseIdFromCocosLesson = (
-    rawLessonId: string | null,
-    subjectCode: string | null,
-  ): string | null => {
-    if (!rawLessonId) {
-      return subjectCode;
-    }
-    const parts = rawLessonId
-      .trim()
-      .toLowerCase()
-      .split(/[^a-z]+/);
-    for (const part of parts) {
-      if (COURSE_VALUES_SET.has(part)) {
-        return part;
-      }
-    }
-    return subjectCode;
-  };
   const lessonDetailsReturnState: LessonDetailsState = {
     course,
     lesson,
@@ -115,49 +85,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     //   logger.error("Error opening in-app browser:", error);
     //   window.open(urlToOpen, '_blank');
     // }
-    const lidoLessonId =
-      lesson.lido_lesson_id ||
-      (lesson.plugin_type === LIDO || lesson.plugin_type === LIDO_ASSESSMENT
-        ? lesson.cocos_lesson_id
-        : null);
-
-    if (lidoLessonId) {
-      const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
-      history.push(PAGES.LIDO_PLAYER + parmas, {
-        lessonId: lidoLessonId,
-        courseDocId: course?.id,
-        course: JSON.stringify(course!),
-        lesson: JSON.stringify(lesson),
-        selectedLesson: selectedLessonMap,
-        from: history.location.pathname + `?${CONTINUE}=true`,
-        returnState: lessonDetailsReturnState,
-        source: SOURCE.TEACHER_MODE,
-      });
-    } else if (lesson.plugin_type === COCOS) {
-      const courseId = getCourseIdFromCocosLesson(
-        lesson.cocos_lesson_id,
-        lesson.cocos_subject_code,
-      );
-      const parmas = `?courseid=${courseId}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-      setTimeout(() => {
-        Util.launchCocosGame();
-      }, 1000);
-      history.push(PAGES.GAME + parmas, {
-        url: 'chimple-lib/index.html' + parmas,
-        lessonId: lesson.cocos_lesson_id,
-        courseDocId: course?.id,
-        course: JSON.stringify(course),
-        lesson: JSON.stringify(lesson),
-        chapterId: chapterId,
-        selectedLesson: selectedLessonMap,
-        from: history.location.pathname + `?${CONTINUE}=true`,
-        returnState: lessonDetailsReturnState,
-        source: SOURCE.TEACHER_MODE,
-      });
-    } else if (
-      // !!assignment?.id &&
-      lesson.plugin_type === LIVE_QUIZ
-    ) {
+    if (lesson.plugin_type === LIVE_QUIZ) {
       if (!online) {
         presentToast({
           message: t(`Device is offline`),
@@ -184,6 +112,22 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
           source: SOURCE.TEACHER_MODE,
         },
       );
+    } else {
+      const playableLessonId = Util.getLessonBundleId(lesson);
+      if (!playableLessonId) {
+        return;
+      }
+      const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
+      history.push(PAGES.LIDO_PLAYER + parmas, {
+        lessonId: playableLessonId,
+        courseDocId: course?.id,
+        course: JSON.stringify(course!),
+        lesson: JSON.stringify(lesson),
+        selectedLesson: selectedLessonMap,
+        from: history.location.pathname + `?${CONTINUE}=true`,
+        returnState: lessonDetailsReturnState,
+        source: SOURCE.TEACHER_MODE,
+      });
     }
   };
   useEffect(() => {
@@ -227,16 +171,8 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
   }, [classSelectedLesson]);
 
   const init = async () => {
-    if (
-      Capacitor.isNativePlatform() &&
-      (fromCocos || fromLido || fromLiveQuiz)
-    ) {
+    if (Capacitor.isNativePlatform() && (fromLido || fromLiveQuiz)) {
       await ScreenOrientation.lock({ orientation: 'portrait' });
-    }
-    if (fromCocos) {
-      setTimeout(() => {
-        Util.killCocosGame();
-      }, 1000);
     }
 
     const current_class = Util.getCurrentClass();

@@ -51,44 +51,65 @@ const StreakCalendarSection: React.FC<StreakCalendarSectionProps> = ({
       </div>
 
       <div className="streak-calendar">
-        {calendarRows.map((row, rowIndex) => (
-          <div
-            key={`row-${rowIndex}`}
-            className={`streak-calendar-row ${row.trackColor ? `track-${row.trackColor}` : ''}`}
-          >
-            <div className="streak-row-track" />
-            {row.days.map((cell, dayIndex) => {
-              if (cell.day === null) {
-                return (
-                  <div
-                    key={`empty-${rowIndex}-${dayIndex}`}
-                    className="streak-day-empty"
-                  />
-                );
-              }
+        {calendarRows.map((row, rowIndex) => {
+          const firstDayIndex = row.days.findIndex((c) => c.day !== null);
+          const revIndex = [...row.days]
+            .reverse()
+            .findIndex((c) => c.day !== null);
+          const lastDayIndex = revIndex !== -1 ? 6 - revIndex : -1;
+          const hasTrackableDay = row.days.some(
+            (c) => c.day !== null && !c.future,
+          );
 
-              return (
-                <button
-                  key={`day-${cell.day}`}
-                  type="button"
-                  className={`streak-day ${
-                    cell.future
-                      ? 'future'
-                      : cell.assigned
-                        ? 'assigned'
-                        : 'unassigned'
-                  }`}
-                  disabled={cell.future}
-                >
-                  <span className="streak-day-number">{cell.day}</span>
-                  {!cell.assigned && !cell.future && (
-                    <span className="streak-day-cross" aria-hidden="true" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        ))}
+          const leftPercent =
+            firstDayIndex !== -1 ? firstDayIndex * (100 / 7) : 0;
+          const rightPercent =
+            lastDayIndex !== -1 ? (6 - lastDayIndex) * (100 / 7) : 0;
+
+          return (
+            <div
+              key={`row-${rowIndex}`}
+              className={`streak-calendar-row ${row.trackColor ? `track-${row.trackColor}` : ''}`}
+            >
+              {row.trackColor && firstDayIndex !== -1 && hasTrackableDay && (
+                <div
+                  className="streak-row-track"
+                  style={{ left: `${leftPercent}%`, right: `${rightPercent}%` }}
+                />
+              )}
+              {row.days.map((cell, dayIndex) => {
+                if (cell.day === null) {
+                  return (
+                    <div
+                      key={`empty-${rowIndex}-${dayIndex}`}
+                      className="streak-day-empty"
+                    />
+                  );
+                }
+
+                return (
+                  <button
+                    key={`day-${cell.day}`}
+                    type="button"
+                    className={`streak-day ${
+                      cell.future
+                        ? 'future'
+                        : cell.assigned
+                          ? 'assigned'
+                          : 'unassigned'
+                    }`}
+                    disabled={cell.future}
+                  >
+                    <span className="streak-day-number">{cell.day}</span>
+                    {!cell.assigned && !cell.future && (
+                      <span className="streak-day-cross" aria-hidden="true" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
     </>
   );

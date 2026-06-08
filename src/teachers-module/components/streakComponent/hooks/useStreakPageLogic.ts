@@ -57,7 +57,7 @@ export const useStreakPageLogic = () => {
           summary?.streak,
         );
         if (isMounted) {
-          setCoinCount(summary?.coins ?? 0);
+          setCoinCount(summary?.coins ?? 1000);
           setStreakCount(summary?.streak ?? 0);
         }
       } else if (isMounted) {
@@ -65,7 +65,7 @@ export const useStreakPageLogic = () => {
         setStreakCount(0);
       }
 
-      if (!classId || !schoolId || !userId) {
+      if (!userId) {
         if (!isMounted) return;
         setAssignmentCount(0);
         return;
@@ -73,8 +73,6 @@ export const useStreakPageLogic = () => {
 
       const { batchGroups: groupedBatchRowsAllTime } =
         await api.getAssignmentDateRangeDataForClassAndSchool(
-          classId,
-          schoolId,
           userId,
           ALL_TIME_START,
           ALL_TIME_END,
@@ -94,14 +92,10 @@ export const useStreakPageLogic = () => {
   useEffect(() => {
     let isMounted = true;
     const loadMonthAssignments = async () => {
-      const currentClass = Util.getCurrentClass();
-      const currentSchool = Util.getCurrentSchool();
       const currentUser = await auth.getCurrentUser();
-      const classId = currentClass?.id;
-      const schoolId = currentSchool?.id || currentClass?.school_id;
       const userId = currentUser?.id;
 
-      if (!classId || !schoolId || !userId) {
+      if (!userId) {
         if (!isMounted) return;
         setAssignedDays(new Set());
         return;
@@ -122,8 +116,6 @@ export const useStreakPageLogic = () => {
 
       const { assignments: rows } =
         await api.getAssignmentDateRangeDataForClassAndSchool(
-          classId,
-          schoolId,
           userId,
           startDate,
           endDate,

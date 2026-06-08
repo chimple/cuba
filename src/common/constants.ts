@@ -449,7 +449,6 @@ export enum PAGES {
   APP_UPDATE = '/',
   HOME = '/home',
   LOGIN = '/login',
-  GAME = '/game',
   LIDO_PLAYER = '/lido-player',
   END = '/end',
   PROFILE = '/profile',
@@ -723,7 +722,6 @@ export const GAME_URL = 'gameUrl';
 export const TC_ACCEPT = 'tcAccept';
 export const RECOMMENDATIONS = 'recommendations';
 export const LIVE_QUIZ = 'liveQuiz';
-export const COCOS = 'cocos';
 export const LIDO = 'lido';
 export const LIDO_ASSESSMENT = 'lido_assessment';
 export const TYPE = 'type';

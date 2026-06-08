@@ -229,7 +229,6 @@ export type CreateCampaignSetupPayload = CampaignAudiencePayload & {
   objective: CampaignObjective;
   targetType?: CampaignTargetType;
   targetValue?: number;
-  learningPathCount?: number;
   managerId: string;
   startDate: string;
   endDate: string;
@@ -239,6 +238,64 @@ export type CreateCampaignSetupPayload = CampaignAudiencePayload & {
 export type CreateCampaignSetupResult = {
   campaignId: string;
   targetAudienceId: string;
+};
+
+export type CampaignRewardRulePayload = {
+  rank: 1 | 2 | 3;
+  min: number;
+  reward: string;
+};
+
+export type CampaignRewardsPayload = {
+  type: CampaignRewardType;
+  rules: CampaignRewardRulePayload[];
+};
+
+export type CampaignLaunchAssignmentPayload = {
+  gradeId: string;
+  schoolIds: string[];
+  courseId: string;
+  chapterId: string;
+  lessonId: string;
+  startsAt: string;
+  endsAt: string | null;
+  type: 'homework';
+  source: 'campaign';
+  setNumber: number;
+};
+
+export type CampaignMessagingPollPayload = {
+  question: string;
+  options: string[];
+};
+
+export type CampaignLaunchMessagingPayload = {
+  scheduledDate: string;
+  messageTime: string | null;
+  pollTime: string | null;
+  message: string | null;
+  mediaLink: string | null;
+  poll: CampaignMessagingPollPayload | null;
+};
+
+export type CampaignLaunchDetailsPayload = {
+  programId: string;
+  campaignName: string;
+  objective: CampaignObjective;
+  targetType?: CampaignTargetType;
+  targetValue?: number;
+  managerId: string;
+  startDate: string;
+  endDate: string;
+};
+
+export type LaunchCampaignPayload = {
+  campaignId: string;
+  currentUserId: string;
+  campaign: CampaignLaunchDetailsPayload;
+  rewards: CampaignRewardsPayload;
+  assignments: CampaignLaunchAssignmentPayload[];
+  messagingRows: CampaignLaunchMessagingPayload[];
 };
 
 export type CampaignAssignmentLessonOption = {
@@ -1689,17 +1746,13 @@ export interface ServiceApi {
   }>;
 
   /**
-   * Gets assignment data for a class/school within an inclusive datetime range.
-   * @param {string} classId class Id
-   * @param {string} schoolId school Id
+   * Gets assignment data for an assigner within an inclusive datetime range.
    * @param {string} userId assigner user Id
    * @param {string} startDate inclusive start datetime (ISO string)
    * @param {string} endDate inclusive end datetime (ISO string)
    * @return object containing raw assignment rows and grouped batch metadata.
    */
   getAssignmentDateRangeDataForClassAndSchool(
-    classId: string,
-    schoolId: string,
     userId: string,
     startDate: string,
     endDate: string,
@@ -2230,6 +2283,13 @@ export interface ServiceApi {
   createCampaignSetup(
     payload: CreateCampaignSetupPayload,
   ): Promise<CreateCampaignSetupResult>;
+
+  /**
+   * Persists final campaign launch data collected across setup steps.
+   * Stores rewards on campaign, class-wise campaign assignments, and
+   * configured communication schedule rows.
+   */
+  launchCampaign(payload: LaunchCampaignPayload): Promise<void>;
 
   /**
    * Loads grade-wise subjects, chapters, and lessons for campaign assignment setup.

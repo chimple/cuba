@@ -42,15 +42,17 @@ export type GradeAssignmentConfig = {
   removedRowIds: string[];
 };
 
+export const DEFAULT_FREQUENCY: Frequency = 'daily';
+
 export const frequencyLabels: Record<Frequency, string> = {
   daily: 'Daily',
   alternate_days: 'Alternate Days',
-  alternate_week: 'Alternate Week',
+  alternate_week: 'Alternate Week (≥ 2 weeks)',
 };
 
 export const createDefaultConfig = (): GradeAssignmentConfig => ({
   subjectIds: [],
-  frequency: 'daily',
+  frequency: DEFAULT_FREQUENCY,
   chapterIds: [],
   expandedChapterIds: [],
   removedRowIds: [],
@@ -151,11 +153,11 @@ const distributeDatesAcrossAssignments = (
 export const isAlternateWeekEnabled = (startDate: string, endDate: string) => {
   if (!startDate || !endDate) return false;
   const days =
-    Math.floor(
+    Math.round(
       (parseDate(endDate).getTime() - parseDate(startDate).getTime()) /
         (1000 * 60 * 60 * 24),
     ) + 1;
-  return days > 14;
+  return days >= 14;
 };
 
 export const buildRows = (

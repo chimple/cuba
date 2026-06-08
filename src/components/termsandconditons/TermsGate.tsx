@@ -22,7 +22,6 @@ import { Util } from '../../utility/util';
 import TermsAndCoditionsModal from './TermsAndCoditionsModal';
 
 const TERMS_MODAL_DEFERRED_PATHS = new Set<string>([
-  PAGES.GAME,
   PAGES.LIDO_PLAYER,
   PAGES.LIVE_QUIZ_GAME,
 ]);

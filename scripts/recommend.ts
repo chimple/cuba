@@ -5,7 +5,7 @@ PAL Recommendation CLI
 
 1. First recommendation
 Command:
-node recommend.ts first students.csv
+node scripts/recommend.ts first students.csv
 
 Input:
 students.csv
@@ -22,10 +22,10 @@ graphs/graph_<course_id>_<subject_id>.json
 
 2. Next recommendation simulation
 Command:
-node recommend.ts next <course_id> --iterations 10 --pattern ones
+node scripts/recommend.ts next <course_id> --iterations 10 --pattern ones
 
 Student override:
-node recommend.ts next <course_id> --student <student_id> --iterations 10 --pattern struggle
+node scripts/recommend.ts next <course_id> --student <student_id> --iterations 10 --pattern struggle
 
 Patterns:
 ones       all outcomes are correct (1,1,1) → example: 1,1,1,1
@@ -35,7 +35,7 @@ struggle   outcomes are two wrong, one correct (0,0,1) → example: 0,0,1,0,0,1
 improving  outcomes are one wrong, two correct (0,1,1) → example: 0,1,1,0,1,1,0,1,1
 
 Multiple patterns:
-node recommend.ts next <course_id> --iterations 10 --pattern ones/zeros/alternate
+node scripts/recommend.ts next <course_id> --iterations 10 --pattern ones/zeros/alternate
 
 Output:
 simulation.csv     // output file
@@ -50,22 +50,34 @@ Run the PostgreSQL query below in Supabase SQL Editor .
 SELECT DISTINCT ON (r.student_id,r.course_id,r.lesson_id,r.skill_id) r.student_id,u.name AS student_name,sl.subject_id,sub.name AS subject_name,r.course_id,c.name AS course_name,r.lesson_id,l.name AS lesson_name,r.skill_id,sk.name AS skill_name,r.outcome_id,r.competency_id,comp.name AS competency_name,r.domain_id,d.name AS domain_name,r.skill_ability,r.outcome_ability,r.competency_ability,r.domain_ability,r.subject_ability,r.activities_scores,r.created_at FROM result r INNER JOIN subject_lesson sl ON r.lesson_id=sl.lesson_id LEFT JOIN "user" u ON r.student_id=u.id LEFT JOIN subject sub ON sl.subject_id=sub.id LEFT JOIN course c ON r.course_id=c.id LEFT JOIN lesson l ON r.lesson_id=l.id LEFT JOIN skill sk ON r.skill_id=sk.id LEFT JOIN competency comp ON r.competency_id=comp.id LEFT JOIN domain d ON r.domain_id=d.id ORDER BY r.student_id,r.course_id,r.lesson_id,r.skill_id,r.created_at DESC;
 
 */
-require('dotenv').config({ path: '.env' });
-require('dotenv').config({ path: '.env.local', override: true });
-
 require.extensions['.css'] = (m) => (m.exports = {});
 require.extensions['.png'] = (m, f) => (m.exports = f);
 require.extensions['.svg'] = (m, f) => (m.exports = f);
 
 const fs = require('node:fs/promises');
+const path = require('node:path');
+
+const scriptDir = __dirname;
+const repoRoot = path.resolve(scriptDir, '..');
+const resolveRepo = (...parts) => path.join(repoRoot, ...parts);
+const resolveScript = (...parts) => path.join(scriptDir, ...parts);
+
+require('dotenv').config({ path: resolveRepo('.env') });
+require('dotenv').config({ path: resolveRepo('.env.local'), override: true });
 
 let ServiceConfig;
 let APIMode;
 let palUtil;
 let importTables;
+let lessonActivityCounts;
+let previousValidOutcomeCount;
 const localPlayedLessonResults = new Map();
 const DEFAULT_NEXT_STUDENT_ID = 'f3779dd0-3704-427e-b0de-9dd442c3a48b';
 const playedResultsFile = 'played_results.csv';
+const lessonActivityCountFile = resolveScript(
+  'data',
+  'lesson_activity_count.json',
+);
 
 const PAL_GROWTHBOOK_CONFIG = {
   blendWeights: {
@@ -171,13 +183,17 @@ const init = async () => {
     target: 'node18',
     extensions: ['.ts', '.tsx'],
   });
-  ({ ServiceConfig, APIMode } = require('./src/services/ServiceConfig.ts'));
-  ({ palUtil } = require('./src/utility/palUtil.ts'));
-  const { PAL_LEARNING_RATES_CONFIG } = require('./src/common/constants.ts');
+  ({ ServiceConfig, APIMode } = require(
+    resolveRepo('src', 'services', 'ServiceConfig.ts'),
+  ));
+  ({ palUtil } = require(resolveRepo('src', 'utility', 'palUtil.ts')));
+  const { PAL_LEARNING_RATES_CONFIG } = require(
+    resolveRepo('src', 'common', 'constants.ts'),
+  );
   const {
     setCachedGrowthBookFeatureValue,
     getCachedGrowthBookFeatureValue,
-  } = require('./src/growthbook/Growthbook.tsx');
+  } = require(resolveRepo('src', 'growthbook', 'Growthbook.tsx'));
   ServiceConfig.getInstance(APIMode.SUPABASE);
   setCachedGrowthBookFeatureValue(
     PAL_LEARNING_RATES_CONFIG,
@@ -204,7 +220,10 @@ const loadImportTables = async () => {
   if (importTables) return importTables;
 
   const json = JSON.parse(
-    await fs.readFile('public/databases/import.json', 'utf8'),
+    await fs.readFile(
+      resolveRepo('public', 'databases', 'import.json'),
+      'utf8',
+    ),
   );
   importTables = new Map(
     json.tables.map((table) => {
@@ -354,6 +373,55 @@ const fileExists = async (file) => {
   }
 };
 
+const loadLessonActivityCounts = async () => {
+  if (lessonActivityCounts) return lessonActivityCounts;
+
+  lessonActivityCounts = new Map();
+
+  if (!(await fileExists(lessonActivityCountFile))) {
+    throw new Error(
+      `Activity count file not found: ${lessonActivityCountFile}`,
+    );
+  }
+
+  const counts = JSON.parse(await fs.readFile(lessonActivityCountFile, 'utf8'));
+  for (const [cocosLessonId, count] of Object.entries(counts)) {
+    const activityCount = Number(count);
+    if (!cocosLessonId || !Number.isFinite(activityCount)) continue;
+    lessonActivityCounts.set(cocosLessonId, activityCount);
+  }
+
+  return lessonActivityCounts;
+};
+
+const getOutcomeCountForLesson = async (lessonId) => {
+  const lesson = byId('lesson', lessonId);
+  const cocosLessonId = lesson?.cocos_lesson_id;
+  const counts = await loadLessonActivityCounts();
+  const outcomeCount = cocosLessonId
+    ? Number(counts.get(cocosLessonId))
+    : undefined;
+
+  if (Number.isInteger(outcomeCount) && outcomeCount > 0) {
+    previousValidOutcomeCount = outcomeCount;
+    return { outcomeCount, cocosLessonId };
+  }
+
+  if (previousValidOutcomeCount) {
+    log(
+      `missing activity count for lesson_id=${lessonId} cocos_lesson_id=${cocosLessonId ?? ''}; using previous valid outcome_count=${previousValidOutcomeCount}`,
+    );
+    return {
+      outcomeCount: previousValidOutcomeCount,
+      cocosLessonId,
+    };
+  }
+
+  throw new Error(
+    `Missing activity count for lesson_id=${lessonId} cocos_lesson_id=${cocosLessonId ?? ''}, and no previous valid count is available. Add it to ${lessonActivityCountFile}`,
+  );
+};
+
 const readStudents = async (file) =>
   (await readCsvRecords(file)).map((row) => ({
     student_id: row.student_id,
@@ -440,8 +508,6 @@ const scenarioPatterns = (pattern) => {
     (item) => item,
   );
 };
-
-const generatedOutcomeCount = () => 4 + Math.floor(Math.random() * 12);
 
 const formatOutcomes = (outcomes) =>
   outcomes.map((outcome) => (outcome ? 1 : 0)).join(',');
@@ -1144,10 +1210,11 @@ async function runNextIterations(courseId, options) {
         break;
       }
 
-      const outcomeCount = generatedOutcomeCount();
+      const { outcomeCount, cocosLessonId } =
+        await getOutcomeCountForLesson(nextLessonId);
       const outcomes = generateOutcomes(scenario, outcomeCount);
       log(
-        `scenario=${scenario} iteration=${iteration} student_id=${latest.student_id} course_id=${latest.course_id} outcome_count=${outcomeCount} outcomes=${formatOutcomes(outcomes)}`,
+        `scenario=${scenario} iteration=${iteration} student_id=${latest.student_id} course_id=${latest.course_id} lesson_id=${nextLessonId} cocos_lesson_id=${cocosLessonId ?? ''} outcome_count=${outcomeCount} outcomes=${formatOutcomes(outcomes)}`,
       );
 
       const abilities = await palUtil.updateAndGetAbilities({
@@ -1263,7 +1330,7 @@ const main = async () => {
     }
     default:
       throw new Error(
-        'Usage: node recommend.ts first students.csv [output.csv] | node recommend.ts next course_id [--iterations N] [--pattern ones|zeros|alternate|struggle|improving] [--student student_id] [--output output.csv]',
+        'Usage: node scripts/recommend.ts first students.csv [output.csv] | node scripts/recommend.ts next course_id [--iterations N] [--pattern ones|zeros|alternate|struggle|improving] [--student student_id] [--output output.csv]',
       );
   }
 
