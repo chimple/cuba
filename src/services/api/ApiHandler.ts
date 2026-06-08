@@ -2111,6 +2111,7 @@ export class ApiHandler implements ServiceApi {
     action: SchoolVisitAction,
     visitType?: SchoolVisitType,
     distanceFromSchool?: number,
+    numberOfParents?: number,
   ): Promise<TableTypes<'fc_school_visit'> | null> {
     return this.s.recordSchoolVisit(
       schoolId,
@@ -2119,6 +2120,7 @@ export class ApiHandler implements ServiceApi {
       action,
       visitType,
       distanceFromSchool,
+      numberOfParents,
     );
   }
 

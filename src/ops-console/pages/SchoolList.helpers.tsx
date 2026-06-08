@@ -195,6 +195,14 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     sortable: false,
   },
   {
+    key: 'parentsReached',
+    label: t('Parents Reached'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+    orderBy: 'parents_reached',
+  },
+  {
     key: 'schoolVisits',
     label: t('School Visits'),
     width: '7.78%',
@@ -265,6 +273,11 @@ export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
   {
     key: 'communityVisits',
     label: t('Community Visits'),
+    part: 'value',
+  },
+  {
+    key: 'parentsReached',
+    label: t('Parents Reached'),
     part: 'value',
   },
   { key: 'schoolVisits', label: t('School Visits'), part: 'value' },

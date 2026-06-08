@@ -158,6 +158,7 @@ export const mapSchoolRowsToRenderRows = (
       communityVisits: renderMetricCell(
         pickFirstNumber(school.community_visits),
       ),
+      parentsReached: renderMetricCell(pickFirstNumber(school.parents_reached)),
       schoolVisits: renderMetricCell(pickFirstNumber(school.school_visits)),
       parentsOnWhatsapp: renderMetricCell(
         pickFirstNumber(school.parents_on_whatsapp),
