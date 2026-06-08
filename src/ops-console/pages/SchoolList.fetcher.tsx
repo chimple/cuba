@@ -34,22 +34,31 @@ export type SchoolListSourceRow = FilteredSchoolsForSchoolListingOps & {
   assignments_assigned?: number | null;
 };
 
-export type SchoolListRow = SchoolListSourceRow & {
-  id: string | number;
-  fieldCoordinators?: string;
-  name: SchoolMetricCell;
-  udiseLocation: SchoolMetricCell;
-  schoolPerformance: SchoolMetricCell;
-  onboardedStudents: SchoolMetricCell;
-  activatedStudents: SchoolMetricCell;
-  activeStudents: SchoolMetricCell;
-  avgTimeSpent: SchoolMetricCell;
-  activeTeachers: SchoolMetricCell;
-  activitiesAssigned: SchoolMetricCell;
-  parentsReached: SchoolMetricCell;
-  avgAssignmentsCompleted: SchoolMetricCell;
-  avgActivitiesCompleted: SchoolMetricCell;
-};
+type SchoolListMetricKey =
+  | 'name'
+  | 'udiseLocation'
+  | 'schoolPerformance'
+  | 'onboardedStudents'
+  | 'activatedStudents'
+  | 'activeStudents'
+  | 'avgTimeSpent'
+  | 'activeTeachers'
+  | 'activitiesAssigned'
+  | 'parentsReached'
+  | 'avgAssignmentsCompleted'
+  | 'avgActivitiesCompleted'
+  | 'phoneCallsStudentsParents'
+  | 'phoneCallsTeachersHms'
+  | 'communityVisits'
+  | 'schoolVisits'
+  | 'parentsOnWhatsapp'
+  | 'parentsInWhatsappGroup';
+
+export type SchoolListRow = SchoolListSourceRow &
+  Record<SchoolListMetricKey, SchoolMetricCell> & {
+    id: string | number;
+    fieldCoordinators?: string;
+  };
 
 const ORDER_BY_MAP: Record<string, string> = {
   name: 'school_name',

@@ -22,6 +22,12 @@ describe('buildSchoolListExportSheetRows', () => {
         parents_reached: 42,
         avg_assignments_completed: 10,
         avg_activities_completed: 8,
+        phone_calls_students_parents: 5,
+        phone_calls_teachers_hms: 3,
+        community_visits: 2,
+        school_visits: 7,
+        parents_on_whatsapp: 40,
+        parents_in_whatsapp_group: 32,
       },
     ] as SchoolListSourceRow[];
 
@@ -89,11 +95,23 @@ describe('buildSchoolListExportSheetRows', () => {
         parents_reached: null,
         avg_assignments_completed: null,
         avg_activities_completed: null,
+        phone_calls_students_parents: null,
+        phone_calls_teachers_hms: null,
+        community_visits: null,
+        school_visits: null,
+        parents_on_whatsapp: null,
+        parents_in_whatsapp_group: null,
       },
     ] as SchoolListSourceRow[];
 
     expect(buildSchoolListExportSheetRows(rows)[1]).toEqual([
       'Beta School',
+      '--',
+      '--',
+      '--',
+      '--',
+      '--',
+      '--',
       '--',
       '--',
       '--',
