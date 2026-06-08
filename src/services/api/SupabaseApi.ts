@@ -889,7 +889,8 @@ export class SupabaseApi implements ServiceApi {
           check_in_lng: lng,
           type: visitType,
           is_deleted: false,
-          distance_from_school: distanceFromSchool ?? null,
+          distance_from_school:
+            distanceFromSchool == null ? null : String(distanceFromSchool),
           number_of_parents: null,
         };
 
@@ -938,7 +939,9 @@ export class SupabaseApi implements ServiceApi {
               number_of_parents: nextNumberOfParents,
               updated_at: now,
               distance_from_school:
-                distanceFromSchool ?? visitToUpdate.distance_from_school,
+                distanceFromSchool == null
+                  ? visitToUpdate.distance_from_school
+                  : String(distanceFromSchool),
             })
             .eq('id', visitToUpdate.id)
             .select()
