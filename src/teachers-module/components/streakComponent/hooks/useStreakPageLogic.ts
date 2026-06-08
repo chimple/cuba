@@ -143,7 +143,7 @@ export const useStreakPageLogic = () => {
     return () => {
       isMounted = false;
     };
-  }, [api, visibleMonth]);
+  }, [api, auth, visibleMonth]);
 
   const monthTitle = useMemo(() => {
     return visibleMonth.toLocaleString('en-US', { month: 'long' });
@@ -177,6 +177,11 @@ export const useStreakPageLogic = () => {
       const rowCells = rowDays.map((day) => ({
         day,
         assigned: day !== null && assignedDays.has(day),
+        today:
+          day !== null &&
+          year === todayYear &&
+          month === todayMonth &&
+          day === todayDate,
         future:
           day !== null &&
           (year > todayYear ||

@@ -61,10 +61,11 @@ const StreakCalendarSection: React.FC<StreakCalendarSectionProps> = ({
             (c) => c.day !== null && !c.future,
           );
 
+          const columnPercent = 100 / 7;
           const leftPercent =
-            firstDayIndex !== -1 ? firstDayIndex * (100 / 7) : 0;
+            firstDayIndex !== -1 ? (firstDayIndex + 0.5) * columnPercent : 0;
           const rightPercent =
-            lastDayIndex !== -1 ? (6 - lastDayIndex) * (100 / 7) : 0;
+            lastDayIndex !== -1 ? (6.5 - lastDayIndex) * columnPercent : 0;
 
           return (
             <div
@@ -74,7 +75,10 @@ const StreakCalendarSection: React.FC<StreakCalendarSectionProps> = ({
               {row.trackColor && firstDayIndex !== -1 && hasTrackableDay && (
                 <div
                   className="streak-row-track"
-                  style={{ left: `${leftPercent}%`, right: `${rightPercent}%` }}
+                  style={{
+                    left: `calc(${leftPercent}% - var(--streak-day-radius) - var(--streak-track-overhang))`,
+                    right: `calc(${rightPercent}% - var(--streak-day-radius) - var(--streak-track-overhang))`,
+                  }}
                 />
               )}
               {row.days.map((cell, dayIndex) => {
@@ -87,21 +91,25 @@ const StreakCalendarSection: React.FC<StreakCalendarSectionProps> = ({
                   );
                 }
 
+                const dayClass = cell.future
+                  ? 'future'
+                  : cell.assigned
+                    ? 'assigned'
+                    : cell.today
+                      ? 'muted'
+                      : 'unassigned';
+                const showMissedCross =
+                  !cell.assigned && !cell.future && !cell.today;
+
                 return (
                   <button
                     key={`day-${cell.day}`}
                     type="button"
-                    className={`streak-day ${
-                      cell.future
-                        ? 'future'
-                        : cell.assigned
-                          ? 'assigned'
-                          : 'unassigned'
-                    }`}
+                    className={`streak-day ${dayClass}`}
                     disabled={cell.future}
                   >
                     <span className="streak-day-number">{cell.day}</span>
-                    {!cell.assigned && !cell.future && (
+                    {showMissedCross && (
                       <span className="streak-day-cross" aria-hidden="true" />
                     )}
                   </button>
