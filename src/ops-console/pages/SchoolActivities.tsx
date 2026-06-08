@@ -129,7 +129,7 @@ const SchoolActivities: React.FC = () => {
 
               performance: (
                 <Chip
-                  label={perf?.label ?? 'Not Tracked'}
+                  label={perf?.label ? t(perf.label) : t('Not Downloaded')}
                   size="small"
                   sx={{
                     backgroundColor: perf?.bgColor,
@@ -230,9 +230,10 @@ const SchoolActivities: React.FC = () => {
         const contactTypeValues = res?.contactType ?? [];
         const transformed = {
           ...(res ?? {}),
-          performance: performanceValues.map(
-            (p) =>
-              PERFORMANCE_UI[(p ?? '') as PerformanceLevel]?.label ?? p ?? '',
+          performance: performanceValues.map((p) =>
+            PERFORMANCE_UI[(p ?? '') as PerformanceLevel]?.label
+              ? t(PERFORMANCE_UI[(p ?? '') as PerformanceLevel].label)
+              : (p ?? ''),
           ),
           contactType: contactTypeValues.map(
             (ct) =>
@@ -258,10 +259,9 @@ const SchoolActivities: React.FC = () => {
       case 'contactType':
         return data.raw.contact_target ?? '';
       case 'performance':
-        return (
-          PERFORMANCE_UI[data.raw.support_level as PerformanceLevel]?.label ??
-          ''
-        );
+        return PERFORMANCE_UI[data.raw.support_level as PerformanceLevel]?.label
+          ? t(PERFORMANCE_UI[data.raw.support_level as PerformanceLevel].label)
+          : '';
       case 'class':
         return data.classInfo?.name ?? '';
       case 'time':

@@ -289,7 +289,7 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
                       color: PERFORMANCE_UI[status].textColor,
                     }}
                   >
-                    {PERFORMANCE_UI[status].label}
+                    {t(PERFORMANCE_UI[status].label)}
                   </div>
                 )}
               </div>
