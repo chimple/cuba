@@ -654,44 +654,24 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
                           paper: 'schooldetailspage check-in-menu-paper',
                         }}
                       >
-                        <MenuItem
-                          onClick={() =>
-                            handleSelectVisitType(SchoolVisitType.Regular)
-                          }
-                          className="check-in-menu-item"
-                        >
-                          {t(SchoolVisitTypeLabels[SchoolVisitType.Regular])}
-                        </MenuItem>
-                        <Divider className="check-in-menu-divider" />
-                        <MenuItem
-                          onClick={() =>
-                            handleSelectVisitType(
-                              SchoolVisitType.ParentsTeacherMeeting,
-                            )
-                          }
-                          className="check-in-menu-item"
-                        >
-                          {t(
-                            SchoolVisitTypeLabels[
-                              SchoolVisitType.ParentsTeacherMeeting
-                            ],
-                          )}
-                        </MenuItem>
-                        <Divider className="check-in-menu-divider" />
-                        <MenuItem
-                          onClick={() =>
-                            handleSelectVisitType(
-                              SchoolVisitType.TeacherTraining,
-                            )
-                          }
-                          className="check-in-menu-item"
-                        >
-                          {t(
-                            SchoolVisitTypeLabels[
-                              SchoolVisitType.TeacherTraining
-                            ],
-                          )}
-                        </MenuItem>
+                        {(
+                          Object.entries(SchoolVisitTypeLabels) as [
+                            SchoolVisitType,
+                            string,
+                          ][]
+                        ).map(([visitType, label], index, items) => (
+                          <React.Fragment key={visitType}>
+                            <MenuItem
+                              onClick={() => handleSelectVisitType(visitType)}
+                              className="check-in-menu-item"
+                            >
+                              {t(label)}
+                            </MenuItem>
+                            {index < items.length - 1 && (
+                              <Divider className="check-in-menu-divider" />
+                            )}
+                          </React.Fragment>
+                        ))}
                       </Menu>
                     </>
                   ) : (
