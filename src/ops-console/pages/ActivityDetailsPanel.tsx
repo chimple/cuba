@@ -250,7 +250,7 @@ const FcActivityDetailsPanel: React.FC<Props> = ({ activity, onClose }) => {
               label={t('Profile Status')}
               value={
                 <Chip
-                  label={perf?.label ?? t('NA')}
+                  label={perf?.label ? t(perf.label) : t('NA')}
                   size="small"
                   sx={{
                     bgcolor: perf?.bgColor,
