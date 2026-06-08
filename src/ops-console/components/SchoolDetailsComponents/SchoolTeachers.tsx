@@ -1317,7 +1317,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
               row.performance,
             )}`}
           >
-            {ui.label}
+            {t(ui.label)}
           </Box>
         );
       },

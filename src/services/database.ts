@@ -6711,7 +6711,8 @@ export type Database = {
       school_visit_type:
         | 'teacher_training_meeting'
         | 'parents_teacher_meeting'
-        | 'regular_visit';
+        | 'regular_visit'
+        | 'community_visit';
       special_roles:
         | 'super_admin'
         | 'operational_director'
@@ -6902,6 +6903,7 @@ export const Constants = {
         'teacher_training_meeting',
         'parents_teacher_meeting',
         'regular_visit',
+        'community_visit',
       ],
       special_roles: [
         'super_admin',
