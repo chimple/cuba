@@ -12823,7 +12823,6 @@ export class SupabaseApi implements ServiceApi {
       .in('school_id', normalizedSchoolIds)
       .eq('type', SchoolVisitType.Community)
       .eq('is_deleted', false)
-      .not('number_of_parents', 'is', null)
       .gt('number_of_parents', 0);
 
     if (error) {
