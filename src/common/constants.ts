@@ -652,6 +652,7 @@ export interface FilteredSchoolsForSchoolListingOps {
   phone_calls_students_parents?: number | null;
   phone_calls_teachers_hms?: number | null;
   community_visits?: number | null;
+  parents_reached?: number | null;
   school_visits?: number | null;
   parents_on_whatsapp?: number | null;
   parents_in_whatsapp_group?: number | null;

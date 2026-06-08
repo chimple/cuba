@@ -46,6 +46,7 @@ export type SchoolListRow = SchoolListSourceRow & {
   avgTimeSpent: SchoolMetricCell;
   activeTeachers: SchoolMetricCell;
   activitiesAssigned: SchoolMetricCell;
+  parentsReached: SchoolMetricCell;
   avgAssignmentsCompleted: SchoolMetricCell;
   avgActivitiesCompleted: SchoolMetricCell;
   phoneCallsStudentsParents: SchoolMetricCell;

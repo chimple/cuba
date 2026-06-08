@@ -16,7 +16,13 @@ import {
   Polyline,
 } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { SchoolVisitAction } from '../../../common/constants';
+import { SchoolVisitAction, SchoolVisitType } from '../../../common/constants';
+import {
+  parseCommunityVisitParentsCount,
+  sanitizeCommunityVisitParentsInput,
+  shouldShowCommunityVisitParentsField,
+  validateCommunityVisitParentsCount,
+} from './communityVisitParentsField';
 
 import L from 'leaflet';
 import logger from '../../../utility/logger';
@@ -32,8 +38,14 @@ L.Icon.Default.mergeOptions({
 interface SchoolCheckInModalProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: (lat?: number, lng?: number, distance?: number) => void;
+  onConfirm: (
+    lat?: number,
+    lng?: number,
+    distance?: number,
+    numberOfParents?: number,
+  ) => void;
   status: SchoolVisitAction;
+  visitType?: SchoolVisitType;
   schoolName: string;
   isFirstTime?: boolean;
   schoolId?: string;
@@ -91,6 +103,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   onClose,
   onConfirm,
   status,
+  visitType,
   schoolName,
   schoolId,
   schoolLocation,
@@ -120,6 +133,29 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     useState<boolean>(false);
   const [locationLoadCycle, setLocationLoadCycle] = useState<number>(0);
   const [userAddress, setUserAddress] = useState<string | null>(null);
+  const [communityVisitParentsValue, setCommunityVisitParentsValue] =
+    useState<string>('');
+  const [communityVisitParentsError, setCommunityVisitParentsError] = useState<
+    string | null
+  >(null);
+
+  const showCommunityVisitParentsField = shouldShowCommunityVisitParentsField(
+    status,
+    visitType,
+  );
+
+  useEffect(() => {
+    if (!open) {
+      setCommunityVisitParentsValue('');
+      setCommunityVisitParentsError(null);
+      return;
+    }
+
+    if (!showCommunityVisitParentsField) {
+      setCommunityVisitParentsValue('');
+      setCommunityVisitParentsError(null);
+    }
+  }, [open, showCommunityVisitParentsField]);
 
   useEffect(() => {
     const fetchAddress = async () => {
@@ -487,22 +523,47 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   };
 
   const onConfirmAction = async () => {
+    const validationError = validateCommunityVisitParentsCount(
+      visitType,
+      communityVisitParentsValue,
+    );
+    if (showCommunityVisitParentsField && validationError) {
+      setCommunityVisitParentsError(validationError);
+      return;
+    }
+
+    const numberOfParents = showCommunityVisitParentsField
+      ? (parseCommunityVisitParentsCount(communityVisitParentsValue) ??
+        undefined)
+      : undefined;
+
     setIsSubmittingAction(true);
     try {
       if (isSchoolLocationMissing) {
         if (isConfirmedInSchool === true) {
           const success = await handleUpdateSchoolLocation();
           if (success) {
-            await onConfirm(userLocation?.lat, userLocation?.lng, 0);
+            await onConfirm(
+              userLocation?.lat,
+              userLocation?.lng,
+              0,
+              numberOfParents,
+            );
           }
         } else {
-          await onConfirm(userLocation?.lat, userLocation?.lng, undefined);
+          await onConfirm(
+            userLocation?.lat,
+            userLocation?.lng,
+            undefined,
+            numberOfParents,
+          );
         }
       } else {
         await onConfirm(
           userLocation?.lat,
           userLocation?.lng,
           distance ?? undefined,
+          numberOfParents,
         );
       }
     } finally {
@@ -567,6 +628,9 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
   const isAddressPending =
     hasValidCoordinates && !isLocationLoadTimeoutReached && !isAddressInfoReady;
   const canDismissModal = !isSubmittingAction;
+  const communityVisitParentsValidationError =
+    showCommunityVisitParentsField &&
+    validateCommunityVisitParentsCount(visitType, communityVisitParentsValue);
 
   // Disable confirm check-in if:
   // 1. Location is currently loading/updating
@@ -578,6 +642,7 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
     isAddressPending ||
     isUpdatingLocation ||
     isSubmittingAction ||
+    Boolean(communityVisitParentsValidationError) ||
     (isSchoolLocationMissing && isConfirmedInSchool === undefined) ||
     isPermissionDenied ||
     !hasValidCoordinates;
@@ -608,6 +673,59 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
         </div>
 
         <div id="check-in-modal-content" className="check-in-modal-content">
+          {showCommunityVisitParentsField && (
+            <div
+              id="community-visit-parents-section"
+              className="schoolcheckinmodal-community-visit-parents-section"
+            >
+              <label
+                id="community-visit-parents-label"
+                className="schoolcheckinmodal-community-visit-parents-label"
+                htmlFor="community-visit-parents-input"
+              >
+                {t('How many parents did you interact with?')}
+              </label>
+              <p
+                id="community-visit-parents-helper-text"
+                className="schoolcheckinmodal-community-visit-parents-helper-text"
+              >
+                {t(
+                  'Enter the number of parents you interacted with during this visit.',
+                )}
+              </p>
+              <input
+                id="community-visit-parents-input"
+                className={`schoolcheckinmodal-community-visit-parents-input${
+                  communityVisitParentsError
+                    ? ' schoolcheckinmodal-community-visit-parents-input-error'
+                    : ''
+                }`}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={communityVisitParentsValue}
+                onChange={(event) => {
+                  const nextValue = sanitizeCommunityVisitParentsInput(
+                    event.target.value,
+                  );
+                  setCommunityVisitParentsValue(nextValue);
+                  setCommunityVisitParentsError(
+                    validateCommunityVisitParentsCount(visitType, nextValue),
+                  );
+                }}
+                aria-describedby="community-visit-parents-helper-text community-visit-parents-error"
+                aria-invalid={Boolean(communityVisitParentsError)}
+              />
+              {communityVisitParentsError && (
+                <div
+                  id="community-visit-parents-error"
+                  className="schoolcheckinmodal-community-visit-parents-error"
+                >
+                  {t(communityVisitParentsError)}
+                </div>
+              )}
+            </div>
+          )}
           <div id="check-in-location-card" className="check-in-card">
             <div
               id="check-in-location-icon-wrapper"
