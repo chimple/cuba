@@ -889,8 +889,7 @@ export class SupabaseApi implements ServiceApi {
           check_in_lng: lng,
           type: visitType,
           is_deleted: false,
-          distance_from_school:
-            distanceFromSchool == null ? null : String(distanceFromSchool),
+          distance_from_school: distanceFromSchool ?? null,
           number_of_parents: null,
         };
 
