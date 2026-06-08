@@ -17,10 +17,15 @@ export default function ProtectedRoute({
   const [isAuth, setIsAuth] = useState<boolean | null>(null); // initially undefined
 
   useEffect(() => {
-    const lifecycle = { cancelled: false };
+    const lifecycle: { cancelled: boolean; timeoutId?: number } = {
+      cancelled: false,
+    };
     void checkAuth(lifecycle);
     return () => {
       lifecycle.cancelled = true;
+      if (lifecycle.timeoutId !== undefined) {
+        window.clearTimeout(lifecycle.timeoutId);
+      }
     };
   }, []);
 
@@ -38,10 +43,15 @@ export default function ProtectedRoute({
     );
   };
 
-  const checkAuth = async (lifecycle: { cancelled: boolean }, attempt = 1) => {
+  const checkAuth = async (
+    lifecycle: { cancelled: boolean; timeoutId?: number },
+    attempt = 1,
+  ) => {
+    if (lifecycle.cancelled) return;
     try {
       const authHandler = ServiceConfig.getI()?.authHandler;
       const isUserLoggedIn = await authHandler?.isUserLoggedIn();
+      if (lifecycle.cancelled) return;
       const user = await authHandler?.getCurrentUser();
       if (lifecycle.cancelled) return;
       setIsAuth(!!isUserLoggedIn && !!user);
@@ -72,7 +82,7 @@ export default function ProtectedRoute({
             from_page: window.location.pathname,
           },
         );
-        window.setTimeout(() => {
+        lifecycle.timeoutId = window.setTimeout(() => {
           void checkAuth(lifecycle, attempt + 1);
         }, 400 * attempt);
         return;

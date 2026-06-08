@@ -181,7 +181,6 @@ export class SqliteApi implements ServiceApi {
 
   private resetDbHandles(): void {
     this._db = undefined;
-    this._sqlite = undefined;
   }
 
   private async initializeWithRetry(

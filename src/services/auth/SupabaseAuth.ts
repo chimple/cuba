@@ -34,6 +34,13 @@ export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
   private _currentUser: TableTypes<'user'> | undefined;
   private _refreshPromise: Promise<void> | null = null;
+  private _sessionResolvePromise: Promise<
+    | {
+        data: { session: AuthSession | null };
+        error: unknown;
+      }
+    | undefined
+  > | null = null;
 
   private _auth: SupabaseAuthClient | undefined;
   private _supabaseDb: SupabaseClient<Database> | undefined;
@@ -307,25 +314,8 @@ export class SupabaseAuth implements ServiceAuth {
       logger.info('Refreshing session');
       // Recover session on cold app reopen before deciding user is logged out.
       await this.doRefreshSession();
-      const authData = await this.resolveSessionWithRetry();
+      const authData = await this.resolveSessionWithRetryDeduped();
       if (!authData || !authData.data.session?.user?.id) {
-        const persistedUser = store.getState()?.auth?.user as
-          | TableTypes<'user'>
-          | undefined;
-        if (persistedUser?.id) {
-          // Resume can briefly report an empty Supabase session even though the
-          // native app is still restoring auth state in the background.
-          this._currentUser = persistedUser;
-          logAuthDebug(
-            'Using persisted app user while auth session restoration is still in progress.',
-            {
-              source: 'SupabaseAuth.getCurrentUser',
-              reason: 'session_missing_using_persisted_user',
-              user_id: persistedUser.id,
-            },
-          );
-          return this._currentUser;
-        }
         logAuthDebug('Unable to resolve current user from session.', {
           source: 'SupabaseAuth.getCurrentUser',
           reason: 'missing_session_or_user_id',
@@ -485,6 +475,24 @@ export class SupabaseAuth implements ServiceAuth {
     }
   }
 
+  private async resolveSessionWithRetryDeduped(): Promise<
+    | {
+        data: { session: AuthSession | null };
+        error: unknown;
+      }
+    | undefined
+  > {
+    if (this._sessionResolvePromise) {
+      return await this._sessionResolvePromise;
+    }
+    this._sessionResolvePromise = this.resolveSessionWithRetry();
+    try {
+      return await this._sessionResolvePromise;
+    } finally {
+      this._sessionResolvePromise = null;
+    }
+  }
+
   private async resolveSessionWithRetry(
     attempts = 4,
     delayMs = 350,
@@ -495,8 +503,14 @@ export class SupabaseAuth implements ServiceAuth {
       }
     | undefined
   > {
+    let authData:
+      | {
+          data: { session: AuthSession | null };
+          error: unknown;
+        }
+      | undefined;
     for (let attempt = 1; attempt <= attempts; attempt++) {
-      const authData = await this._auth?.getSession();
+      authData = await this._auth?.getSession();
       if (authData?.data?.session?.user?.id) {
         return authData;
       }
@@ -512,7 +526,7 @@ export class SupabaseAuth implements ServiceAuth {
         await this.sleep(delayMs);
       }
     }
-    return await this._auth?.getSession();
+    return authData;
   }
 
   private isRecoverableDependencyError(error: unknown): boolean {
