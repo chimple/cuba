@@ -25,7 +25,7 @@ import Loading from '../components/Loading';
 import ScoreCard from '../components/parent/ScoreCard';
 import { IonPage, useIonToast } from '@ionic/react';
 import { Capacitor } from '@capacitor/core';
-import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { ScreenOrientation } from '../utility/screenOrientation';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Lesson } from '../interface/curriculumInterfaces';
 import { AvatarObj } from '../components/animation/Avatar';
@@ -830,7 +830,7 @@ const LidoPlayer: FC = () => {
         ml_class_id: data.mlClassId,
         ml_student_id: data.mlStudentId,
         course_id: data.courseId,
-        course_name: courseDetail.name,
+        course_name: courseDetail?.name ?? '',
         time_spent: lessonTimeSpent,
         total_moves: data.totalMoves,
         total_games: data.totalGames,
@@ -863,6 +863,7 @@ const LidoPlayer: FC = () => {
         ASSIGNMENT_COMPLETED_IDS,
         JSON.stringify(assignmentCompletedIds),
       );
+      setIsLoading(false);
       setShowDialogBox(true);
     } catch (error) {
       logger.error('❌ Failed to process lesson end', error);
@@ -880,6 +881,14 @@ const LidoPlayer: FC = () => {
     const courseKey = courseDetail?.id ?? courseDocId ?? '';
     Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
     const data = (e.detail ?? {}) as LidoEventDetail;
+    const isCompletedExit =
+      data.gameCompleted === true || data.quizCompleted === true;
+
+    if (isCompletedExit) {
+      await onLessonEnd(e);
+      return;
+    }
+
     const { correctMoves, wrongMoves } = getNormalizedMoveCounts(data);
     const storedScores = getStoredLidoScores();
     const lessonTimeSpent = parseNumericValue(data.timeSpendForLesson) ?? 0;
