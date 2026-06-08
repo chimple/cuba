@@ -556,7 +556,7 @@ const SchoolList: React.FC = () => {
               onSort={handleSort}
               loading={isLoading}
               // School listing needs the wider, scrollable table treatment only.
-              tableMinWidth={1700}
+              tableMinWidth={2500}
               tableWidth="max-content"
               headerClampLines={2}
               headerNoEllipsis

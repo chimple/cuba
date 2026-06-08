@@ -101,6 +101,22 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
     ),
     avgAssignmentsCompleted: buildMetricExportText(completionAssignments),
     avgActivitiesCompleted: buildMetricExportText(completionActivities),
+    phoneCallsStudentsParents: buildMetricExportText(
+      pickFirstNumber(school.phone_calls_students_parents),
+    ),
+    phoneCallsTeachersHms: buildMetricExportText(
+      pickFirstNumber(school.phone_calls_teachers_hms),
+    ),
+    communityVisits: buildMetricExportText(
+      pickFirstNumber(school.community_visits),
+    ),
+    schoolVisits: buildMetricExportText(pickFirstNumber(school.school_visits)),
+    parentsOnWhatsapp: buildMetricExportText(
+      pickFirstNumber(school.parents_on_whatsapp),
+    ),
+    parentsInWhatsappGroup: buildMetricExportText(
+      pickFirstNumber(school.parents_in_whatsapp_group),
+    ),
   };
   return metricTextByKey;
 };
