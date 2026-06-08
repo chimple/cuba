@@ -160,12 +160,65 @@ export class SqliteApi implements ServiceApi {
   private async ensureInitialized(): Promise<void> {
     if (this._db && this._sqlite) return;
     if (!this._initPromise) {
-      this._initPromise = this.init().catch((error) => {
-        this._initPromise = null;
-        throw error;
-      });
+      this._initPromise = this.initializeWithRetry();
     }
     await this._initPromise;
+  }
+
+  private isRecoverableInitError(error: unknown): boolean {
+    const message = String(
+      (error as { message?: string })?.message ?? error ?? '',
+    ).toLowerCase();
+
+    return (
+      message.includes('database is locked') ||
+      message.includes('connection pool') ||
+      message.includes('not opened') ||
+      message.includes('open: error in creating the database') ||
+      message.includes('pragma journal_mode')
+    );
+  }
+
+  private resetDbHandles(): void {
+    this._db = undefined;
+    this._sqlite = undefined;
+  }
+
+  private async initializeWithRetry(
+    attempts = 3,
+    delayMs = 400,
+  ): Promise<void> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        await this.init();
+        return;
+      } catch (error) {
+        lastError = error;
+        this.resetDbHandles();
+
+        if (!this.isRecoverableInitError(error) || attempt === attempts) {
+          this._initPromise = null;
+          throw error;
+        }
+
+        // Resume can briefly race with an in-flight native SQLite connection,
+        // so retry a couple of times before surfacing the failure as real.
+        logger.warn(
+          'SqliteApi init failed during recoverable resume window. Retrying.',
+          {
+            attempt,
+            attempts,
+            error,
+          },
+        );
+        await new Promise((resolve) => window.setTimeout(resolve, delayMs));
+      }
+    }
+
+    this._initPromise = null;
+    throw lastError;
   }
 
   private async init(): Promise<void> {
@@ -289,6 +342,7 @@ export class SqliteApi implements ServiceApi {
       await this._db?.open();
     } catch (err) {
       logger.error('🚀 ~ SqliteApi ~ init ~ err:', err);
+      throw err;
     }
     await this.setUpDatabase();
   }
@@ -1163,7 +1217,7 @@ export class SqliteApi implements ServiceApi {
       this.schedulePostSyncAssetPrefetch();
       const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
-      // logger.info("logs to check synced tables1", JSON.stringify(tables));
+      // logger.info('logs to check synced tables1', JSON.stringify(tables));
       const currentTimestamp = new Date();
       const reducedTimestamp = new Date(currentTimestamp); // clone it
       reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
