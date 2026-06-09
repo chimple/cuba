@@ -10985,13 +10985,6 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const rows = (data ?? []) as Array<Record<string, unknown>>;
-      const parentsReachedBySchool = await this.getParentsReachedBySchoolIds(
-        rows
-          .map((row) => row.school_id)
-          .filter(
-            (schoolId): schoolId is string => typeof schoolId === 'string',
-          ),
-      );
 
       const mappedRows = rows.map((row: Record<string, unknown>) => ({
         ...row,
@@ -11019,8 +11012,8 @@ export class SupabaseApi implements ServiceApi {
         parents_on_whatsapp: row.parents_on_whatsapp ?? null,
         parents_in_whatsapp_group: row.parents_in_group ?? null,
         parents_reached:
-          typeof row.school_id === 'string'
-            ? (parentsReachedBySchool[row.school_id] ?? 0)
+          typeof row.community_parents_reached === 'number'
+            ? row.community_parents_reached
             : 0,
         program_managers: row.program_managers ?? [],
         field_coordinators: row.field_coordinators ?? [],
