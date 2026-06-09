@@ -5,6 +5,7 @@ import { PAGES } from './common/constants';
 import Loading from './components/Loading';
 import { ServiceConfig } from './services/ServiceConfig';
 import { logAuthDebug } from './utility/authDebug';
+import { isRecoverableStorageError } from './utility/recoverableStorageError';
 
 type ProtectedRouteProps = RouteProps & {
   children: ReactNode;
@@ -28,20 +29,6 @@ export default function ProtectedRoute({
       }
     };
   }, []);
-
-  const isRecoverableAuthError = (error: unknown) => {
-    const message = String(
-      (error as { message?: string })?.message ?? error ?? '',
-    ).toLowerCase();
-
-    return (
-      message.includes('database is locked') ||
-      message.includes('not opened') ||
-      message.includes('connection pool') ||
-      message.includes('pragma journal_mode') ||
-      message.includes('open: error in creating the database')
-    );
-  };
 
   const checkAuth = async (
     lifecycle: { cancelled: boolean; timeoutId?: number },
@@ -69,7 +56,7 @@ export default function ProtectedRoute({
       if (
         !lifecycle.cancelled &&
         attempt < 4 &&
-        isRecoverableAuthError(error)
+        isRecoverableStorageError(error)
       ) {
         // If SQLite is still reopening after screen-on, retry briefly instead
         // of treating that transient storage error as a real logout.

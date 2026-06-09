@@ -27,6 +27,7 @@ import {
   setRoles,
 } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
+import { isRecoverableStorageError } from '../../utility/recoverableStorageError';
 import { logAuthDebug } from '../../utility/authDebug';
 import { normalizeTcVersion } from '../../utility/termsAndConditions';
 
@@ -530,17 +531,7 @@ export class SupabaseAuth implements ServiceAuth {
   }
 
   private isRecoverableDependencyError(error: unknown): boolean {
-    const message = String(
-      (error as { message?: string })?.message ?? error ?? '',
-    ).toLowerCase();
-
-    return (
-      message.includes('database is locked') ||
-      message.includes('not opened') ||
-      message.includes('connection pool') ||
-      message.includes('pragma journal_mode') ||
-      message.includes('open: error in creating the database')
-    );
+    return isRecoverableStorageError(error);
   }
 
   set currentUser(user: TableTypes<'user'>) {

@@ -85,6 +85,7 @@ import {
   writeAssignmentCartToStorage,
 } from '../../teachers-module/pages/AssignmentCartStorage';
 import logger from '../../utility/logger';
+import { isRecoverableStorageError } from '../../utility/recoverableStorageError';
 import { ensureLocalStickerBookSvgUri } from '../../utility/stickerBookAssets';
 import { Util } from '../../utility/util';
 import type { SqlStatement } from '../../workers/background.worker.types';
@@ -166,17 +167,7 @@ export class SqliteApi implements ServiceApi {
   }
 
   private isRecoverableInitError(error: unknown): boolean {
-    const message = String(
-      (error as { message?: string })?.message ?? error ?? '',
-    ).toLowerCase();
-
-    return (
-      message.includes('database is locked') ||
-      message.includes('connection pool') ||
-      message.includes('not opened') ||
-      message.includes('open: error in creating the database') ||
-      message.includes('pragma journal_mode')
-    );
+    return isRecoverableStorageError(error);
   }
 
   private resetDbHandles(): void {
