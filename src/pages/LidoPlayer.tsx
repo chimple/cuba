@@ -888,9 +888,6 @@ const LidoPlayer: FC = () => {
 
   const onGameExit = async (e: any) => {
     const data = (e.detail ?? {}) as LidoEventDetail;
-    const isCompletedExit =
-      data.gameCompleted === true || data.quizCompleted === true;
-
     if (isLessonEndProcessingRef.current || showDialogBox) {
       return;
     }
