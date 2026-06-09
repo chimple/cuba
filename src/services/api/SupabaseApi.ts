@@ -14605,6 +14605,67 @@ export class SupabaseApi implements ServiceApi {
       return false;
     }
   }
+  async hasPendingAbortedAssessment(
+    studentId: string,
+    courseId: string,
+  ): Promise<boolean> {
+    try {
+      if (!this.supabase) return false;
+
+      const course = await this.getCourse(courseId);
+      if (!course?.subject_id) {
+        return false;
+      }
+
+      const { data: assessmentLessons, error: assessmentLessonsError } =
+        await this.supabase
+          .from('subject_lesson')
+          .select('lesson_id')
+          .eq('subject_id', course.subject_id)
+          .or('is_deleted.eq.false,is_deleted.is.null');
+
+      if (assessmentLessonsError) {
+        logger.error(
+          '❌ Error fetching assessment lessons for pending abort check:',
+          assessmentLessonsError,
+        );
+        return false;
+      }
+
+      const assessmentLessonIds = Array.from(
+        new Set(
+          (assessmentLessons ?? [])
+            .map((lesson) => lesson.lesson_id)
+            .filter((lessonId): lessonId is string => !!lessonId),
+        ),
+      );
+
+      if (!assessmentLessonIds.length) {
+        return false;
+      }
+
+      const { data: pendingAbortResults, error } = await this.supabase
+        .from('result')
+        .select('lesson_id')
+        .eq('student_id', studentId)
+        .eq('course_id', courseId)
+        .eq('status', 'system_exit')
+        .is('assignment_id', null)
+        .in('lesson_id', assessmentLessonIds)
+        .or('is_deleted.eq.false,is_deleted.is.null')
+        .limit(1);
+
+      if (error) {
+        logger.error('❌ Error checking pending aborted assessment:', error);
+        return false;
+      }
+
+      return (pendingAbortResults ?? []).length > 0;
+    } catch (error) {
+      logger.error('❌ Error checking pending aborted assessment:', error);
+      return false;
+    }
+  }
   async updateSchoolProgram(
     schoolId: string,
     programId: string,

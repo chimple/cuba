@@ -3189,6 +3189,11 @@ export interface ServiceApi {
     courseId: string,
   ): Promise<boolean>;
 
+  hasPendingAbortedAssessment(
+    studentId: string,
+    courseId: string,
+  ): Promise<boolean>;
+
   getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<'user'>,

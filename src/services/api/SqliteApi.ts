@@ -9557,6 +9557,66 @@ order by
     }
   }
 
+  async hasPendingAbortedAssessment(
+    studentId: string,
+    courseId: string,
+  ): Promise<boolean> {
+    await this.ensureInitialized();
+
+    try {
+      const course = await this.getCourse(courseId);
+      const subjectId = course?.subject_id;
+      if (!subjectId) {
+        return false;
+      }
+
+      const assessmentLessonsRes = await this.executeQuery(
+        `
+          SELECT lesson_id
+          FROM subject_lesson
+          WHERE subject_id = ?
+            AND COALESCE(is_deleted, 0) = 0
+        `,
+        [subjectId],
+      );
+
+      const assessmentLessonIds = (
+        (assessmentLessonsRes as DBSQLiteValues | undefined)?.values ?? []
+      )
+        .map((row) => row.lesson_id)
+        .filter((lessonId): lessonId is string => !!lessonId);
+
+      if (!assessmentLessonIds.length) {
+        return false;
+      }
+
+      const placeholders = assessmentLessonIds.map(() => '?').join(', ');
+      const pendingAbortRes = await this.executeQuery(
+        `
+          SELECT lesson_id
+          FROM result
+          WHERE student_id = ?
+            AND course_id = ?
+            AND assignment_id IS NULL
+            AND status = 'system_exit'
+            AND COALESCE(is_deleted, 0) = 0
+            AND lesson_id IN (${placeholders})
+          ORDER BY created_at DESC
+          LIMIT 1
+        `,
+        [studentId, courseId, ...assessmentLessonIds],
+      );
+
+      return (
+        ((pendingAbortRes as DBSQLiteValues | undefined)?.values ?? []).length >
+        0
+      );
+    } catch (error) {
+      logger.error('❌ Error checking pending aborted assessment:', error);
+      return false;
+    }
+  }
+
   async getSkillById(
     skillId: string,
   ): Promise<TableTypes<'skill'> | undefined> {

@@ -103,6 +103,7 @@ const LidoPlayer: FC = () => {
 
   const api = ServiceConfig.getI().apiHandler;
   const resultsRef = useRef<Record<number, 0 | 1>>({});
+  const previousAssessmentSkippedRef = useRef<boolean | null>(null);
 
   const contextRef = useRef({
     classId: undefined as string | undefined,
@@ -147,6 +148,36 @@ const LidoPlayer: FC = () => {
     } catch (error) {
       logger.error('[LidoPlayer] Failed to resolve player language', error);
       return 'en';
+    }
+  };
+
+  const resolvePreviousAssessmentSkipped = async (
+    studentId: string,
+  ): Promise<boolean> => {
+    if (previousAssessmentSkippedRef.current !== null) {
+      return previousAssessmentSkippedRef.current;
+    }
+
+    const courseKey = courseDetail?.id ?? courseDocId ?? '';
+    if (!courseKey) {
+      previousAssessmentSkippedRef.current = false;
+      return false;
+    }
+
+    try {
+      const hasPendingAbort = await api.hasPendingAbortedAssessment(
+        studentId,
+        courseKey,
+      );
+      previousAssessmentSkippedRef.current = hasPendingAbort;
+      return hasPendingAbort;
+    } catch (error) {
+      logger.error(
+        '[LidoPlayer] Failed to resolve previous assessment skip state',
+        error,
+      );
+      previousAssessmentSkippedRef.current = false;
+      return false;
     }
   };
 
@@ -523,7 +554,9 @@ const LidoPlayer: FC = () => {
     failStreak += 1;
     streakMap[courseKey] = failStreak;
     localStorage.setItem(streakKey, JSON.stringify(streakMap));
-    const previousLessonSkipped = !!failMap[courseKey];
+    const previousLessonSkipped =
+      !!failMap[courseKey] ||
+      (await resolvePreviousAssessmentSkipped(studentId));
     if (previousLessonSkipped && failStreak >= 2) {
       const courseKey = courseDetail?.id ?? courseDocId ?? '';
       Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);

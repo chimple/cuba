@@ -2266,6 +2266,12 @@ export class ApiHandler implements ServiceApi {
   ): Promise<boolean> {
     return await this.s.isStudentPlayedPalLesson(studentId, courseId);
   }
+  public async hasPendingAbortedAssessment(
+    studentId: string,
+    courseId: string,
+  ): Promise<boolean> {
+    return await this.s.hasPendingAbortedAssessment(studentId, courseId);
+  }
   public async getSubjectLessonsBySubjectId(
     subjectId: string,
     student?: TableTypes<'user'>,
