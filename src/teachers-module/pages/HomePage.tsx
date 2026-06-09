@@ -36,11 +36,14 @@ import ComingSoon from '../components/homePage/ai/comingSoon';
 import AssignmentQrUnavailableAlert from '../components/homePage/assignment/AssignmentQrUnavailableAlert';
 import AssignScreen from '../components/homePage/assignment/AssignScreen';
 import TeacherAssignment from '../components/homePage/assignment/TeacherAssignment';
+import ClassSummaryInfoPopup from '../components/homePage/ClassSummaryInfoPopup';
 import DashBoard from '../components/homePage/dashBoard/DashBoard';
 import Header from '../components/homePage/Header';
 import Library from '../components/library/Library';
 import ReportTable from '../components/reports/ReportsTable';
 import './HomePage.css';
+import { format, subDays } from 'date-fns';
+
 const HomePage: React.FC = () => {
   const history = useHistory();
   const location = useLocation<{
@@ -61,6 +64,7 @@ const HomePage: React.FC = () => {
   const [showAssignOptionsScreen, setShowAssignOptionsScreen] = useState(true);
   const [autoStartScan, setAutoStartScan] = useState(false);
   const [showUnavailableQrAlert, setShowUnavailableQrAlert] = useState(false);
+  const [isHomeInfoOpen, setIsHomeInfoOpen] = useState(false);
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
     null,
   );
@@ -274,6 +278,10 @@ const HomePage: React.FC = () => {
   };
   const isLibraryTab = tabValue === 1;
   const footerTabValue = tabValue === 1 ? 2 : tabValue;
+  const today = new Date();
+  const oneWeekBack = subDays(today, 6);
+  const classSummaryDateRangeLabel = `${format(oneWeekBack, 'dd/MM')} - ${format(today, 'dd/MM')}`;
+
   return (
     <div className="main-container" key={renderKey}>
       <AssignmentQrUnavailableAlert
@@ -294,8 +302,15 @@ const HomePage: React.FC = () => {
           isLibraryTab ? () => history.replace(PAGES.SEARCH_LESSON) : undefined
         }
         onShareClick={tabValue === 3 ? handleShare : undefined}
+        showInfoButton={!isLibraryTab && tabValue === 0}
+        onInfoClick={() => setIsHomeInfoOpen(true)}
       />
       <main className="home-container-body">{renderComponent()}</main>
+      <ClassSummaryInfoPopup
+        isOpen={isHomeInfoOpen}
+        onClose={() => setIsHomeInfoOpen(false)}
+        dateRangeLabel={classSummaryDateRangeLabel}
+      />
       <footer className="container-footer">
         <BottomNavigation
           value={footerTabValue}

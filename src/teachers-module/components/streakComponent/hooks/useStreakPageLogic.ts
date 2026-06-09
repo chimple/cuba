@@ -71,7 +71,7 @@ export const useStreakPageLogic = () => {
         return;
       }
 
-      const { batchGroups: groupedBatchRowsAllTime } =
+      const { assignments: assignmentRowsAllTime } =
         await api.getAssignmentDateRangeDataForClassAndSchool(
           userId,
           ALL_TIME_START,
@@ -79,7 +79,7 @@ export const useStreakPageLogic = () => {
         );
 
       if (!isMounted) return;
-      setAssignmentCount(groupedBatchRowsAllTime.length);
+      setAssignmentCount(assignmentRowsAllTime.length);
     };
 
     loadSummaryAndAllTimeCount();

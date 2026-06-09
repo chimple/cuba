@@ -1049,7 +1049,12 @@ const CreateSelectedAssignment = ({
               transform: `translate(${rewardAnimation.deltaX}px, ${rewardAnimation.deltaY}px)`,
             }}
           >
-            {rewardAnimation.label}
+            <span>{rewardAnimation.label}</span>
+            <img
+              src="assets/icons/coinIcon.png"
+              className="assign-reward-coin-icon"
+              alt=""
+            />
           </div>
         )}
 

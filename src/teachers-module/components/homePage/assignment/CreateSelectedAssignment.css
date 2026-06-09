@@ -130,7 +130,7 @@
 
 .assign-reward-indicator {
   position: fixed;
-  min-width: 44px;
+  min-width: 66px;
   padding: 4px 10px;
   border-radius: 999px;
   background: #e7f9ea;
@@ -139,10 +139,13 @@
   font-size: 21px;
   font-weight: 800;
   line-height: 1;
-  text-align: center;
   z-index: 1200;
   pointer-events: none;
   opacity: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   transition:
     transform 1600ms cubic-bezier(0.22, 1, 0.36, 1),
     opacity 1600ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -150,6 +153,13 @@
 
 .assign-reward-indicator.is-flying {
   opacity: 0.95;
+}
+
+.assign-reward-coin-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .vertical-line {
   border-left: 1px solid gray;

@@ -12,6 +12,12 @@ const StreakShareCaptureCard = forwardRef<
   return (
     <div className="streak-share-capture-shell" aria-hidden="true">
       <div className="streak-share-card" ref={ref}>
+        <img
+          src="/assets/loginAssets/ChimpleLogo.svg"
+          alt=""
+          className="streak-share-logo"
+        />
+
         <div className="streak-share-title">I&apos;m on</div>
 
         <div className="streak-share-stats">
@@ -34,10 +40,7 @@ const StreakShareCaptureCard = forwardRef<
         </div>
 
         <div className="streak-share-bottom">
-          <div className="streak-share-avatar">
-            <img src="assets/icons/ChimpLogo.png" alt="" />
-          </div>
-          <div className="streak-share-cta">Keep Going</div>
+          <div className="streak-share-cta">Keep up the great work !</div>
         </div>
       </div>
     </div>
