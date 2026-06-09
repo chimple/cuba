@@ -110,18 +110,9 @@ const LidoPlayer: FC = () => {
     chapterId: undefined as string | undefined,
     isStudentLinked: false,
   });
+
   const isExitingRef = useRef(false);
   const isLessonEndProcessingRef = useRef(false);
-  const isLoadingRef = useRef(isLoading);
-  const showDialogBoxRef = useRef(showDialogBox);
-
-  useEffect(() => {
-    isLoadingRef.current = isLoading;
-  }, [isLoading]);
-
-  useEffect(() => {
-    showDialogBoxRef.current = showDialogBox;
-  }, [showDialogBox]);
 
   const resolveStudentContext = async (): Promise<{
     student: TableTypes<'user'> | undefined;
@@ -244,46 +235,12 @@ const LidoPlayer: FC = () => {
   const getTotalStoredLessonTime = (scoresList: StoredLidoScore[]): number =>
     scoresList.reduce((total, record) => total + (record.timeSpent ?? 0), 0);
 
-  const buildFallbackLessonResult = (
-    detail: LidoEventDetail,
-  ): LidoEventDetail => {
-    const scoresList = getStoredLidoScores();
-    const derivedFinalScore =
-      parseNumericValue(detail.finalScore) ??
-      parseNumericValue(detail.score) ??
-      (scoresList.length > 0
-        ? Math.round(
-            scoresList.reduce((sum, item) => sum + (item.score ?? 0), 0) /
-              scoresList.length,
-          )
-        : 0);
-    const derivedLessonTime =
-      parseNumericValue(detail.timeSpendForLesson) ??
-      getTotalStoredLessonTime(scoresList);
-    const derivedCorrectMoves =
-      parseNumericValue(detail.correctMoves) ??
-      parseNumericValue(detail.rightMoves) ??
-      scoresList.reduce((sum, item) => sum + (item.correctMoves ?? 0), 0);
-    const derivedWrongMoves =
-      parseNumericValue(detail.wrongMoves) ??
-      scoresList.reduce((sum, item) => sum + (item.wrongMoves ?? 0), 0);
-
-    return {
-      ...detail,
-      finalScore: derivedFinalScore,
-      score: derivedFinalScore,
-      timeSpendForLesson: derivedLessonTime,
-      correctMoves: derivedCorrectMoves,
-      wrongMoves: derivedWrongMoves,
-    };
-  };
-
   const onNextContainer = (e: any) => logger.info('Next', e);
   const gameCompleted = async (e: Event) => {
     // The bundled Lido player emits `lidoGameCompleted` only when the full
     // lesson flow is complete, and Digital Skills can send it with an empty
     // detail payload. Route that event through the normal lesson-end flow.
-    if (!showDialogBoxRef.current && !isLoadingRef.current) {
+    if (!showDialogBox && !isLoading) {
       await onLessonEnd(e);
       return;
     }
@@ -844,7 +801,6 @@ const LidoPlayer: FC = () => {
         await Util.updateHomeworkPath(homeworkIndex);
       }
 
-      // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway
       if (shouldGiveHomeworkBonus) {
         try {
           const student = Util.getCurrentStudent() ?? currentStudent;
@@ -923,10 +879,8 @@ const LidoPlayer: FC = () => {
       setShowDialogBox(true);
     } catch (error) {
       logger.error('❌ Failed to process lesson end', error);
-      const fallbackResult = buildFallbackLessonResult(lessonData);
-      setGameResult(fallbackResult);
-      setIsLoading(false);
-      setShowDialogBox(true);
+      localStorage.removeItem(LIDO_SCORES_KEY);
+      push();
     } finally {
       isLessonEndProcessingRef.current = false;
     }
@@ -934,8 +888,17 @@ const LidoPlayer: FC = () => {
 
   const onGameExit = async (e: any) => {
     const data = (e.detail ?? {}) as LidoEventDetail;
+    const isCompletedExit =
+      data.gameCompleted === true || data.quizCompleted === true;
 
-    if (isLessonEndProcessingRef.current || showDialogBoxRef.current) {
+    if (isCompletedExit) {
+      if (!showDialogBox && !isLoading) {
+        await onLessonEnd(e);
+      }
+      return;
+    }
+
+    if (isLessonEndProcessingRef.current || showDialogBox) {
       return;
     }
 
