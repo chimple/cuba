@@ -335,13 +335,13 @@ const CampaignSetupPage: React.FC = () => {
       setLaunching(false);
     }
   }, [
-    campaignSetup.assignmentDrafts,
-    campaignSetup.campaignRewards,
     campaignSetup.createdCampaignId,
     campaignSetup.form,
     campaignSetup.isFormValid,
     campaignSetup.isAllGrades,
     campaignSetup.isAllSchools,
+    campaignSetup.campaignRewards,
+    campaignSetup.assignmentDrafts,
     communicationValidation.isValid,
     history,
     isAssignmentComplete,

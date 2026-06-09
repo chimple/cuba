@@ -6,13 +6,13 @@ import {
 describe('campaignCommunicationUtils', () => {
   it('formats communication times as full timestamps for timestamptz columns', () => {
     expect(formatDateTimeForDatabase('2099-05-01', '09:00 AM')).toBe(
-      new Date(2099, 4, 1, 9, 0, 0, 0).toISOString(),
+      '2099-05-01T09:00:00.000Z',
     );
     expect(formatDateTimeForDatabase('2099-05-01', '12:00 AM')).toBe(
-      new Date(2099, 4, 1, 0, 0, 0, 0).toISOString(),
+      '2099-05-01T00:00:00.000Z',
     );
     expect(formatDateTimeForDatabase('2099-05-01', '12:00 PM')).toBe(
-      new Date(2099, 4, 1, 12, 0, 0, 0).toISOString(),
+      '2099-05-01T12:00:00.000Z',
     );
   });
 
@@ -38,8 +38,8 @@ describe('campaignCommunicationUtils', () => {
       expect.objectContaining({
         campaign_id: 'campaign-1',
         scheduled_date: '2099-05-01',
-        message_time: new Date(2099, 4, 1, 9, 0, 0, 0).toISOString(),
-        poll_time: new Date(2099, 4, 1, 17, 0, 0, 0).toISOString(),
+        message_time: '2099-05-01T09:00:00.000Z',
+        poll_time: '2099-05-01T17:00:00.000Z',
         message: 'Hello',
       }),
     ]);

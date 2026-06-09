@@ -157,13 +157,7 @@ export const formatDateTimeForDatabase = (
   const monthIndex = Number(dateParts[2]) - 1;
   const day = Number(dateParts[3]);
   const date = new Date(
-    year,
-    monthIndex,
-    day,
-    parsedTime.hour,
-    parsedTime.minute,
-    0,
-    0,
+    Date.UTC(year, monthIndex, day, parsedTime.hour, parsedTime.minute, 0, 0),
   );
 
   if (Number.isNaN(date.getTime())) return null;
