@@ -76,6 +76,9 @@ export type TargetAudienceSectionProps = {
   selectedBlocks: string[];
   selectedSchools: CampaignSchoolOption[];
   selectedGrades: CampaignOption[];
+  hasCustomBlockSelection: boolean;
+  hasCustomSchoolSelection: boolean;
+  hasCustomGradeSelection: boolean;
   schoolsForSelectedBlocks: CampaignSchoolOption[];
   loadingAudience: boolean;
   selectedProgramName: string;

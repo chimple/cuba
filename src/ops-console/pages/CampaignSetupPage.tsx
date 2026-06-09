@@ -196,6 +196,29 @@ const CampaignSetupPage: React.FC = () => {
     [campaignSetup],
   );
 
+  const handleBackStep = useCallback(() => {
+    setActiveStepSafe(
+      campaignSetup.activeStep === 1 ||
+        (campaignSetup.activeStep === 2 &&
+          campaignSetup.form.objective === 'homepage_learning_pathway_campaign')
+        ? 0
+        : campaignSetup.activeStep - 1,
+    );
+  }, [
+    campaignSetup.activeStep,
+    campaignSetup.form.objective,
+    setActiveStepSafe,
+  ]);
+
+  const handleHeaderBack = useCallback(() => {
+    if (campaignSetup.activeStep > 0) {
+      handleBackStep();
+      return;
+    }
+
+    history.goBack();
+  }, [campaignSetup.activeStep, handleBackStep, history]);
+
   const handleCommunicationContinue = useCallback(() => {
     setCommunicationAttempted(true);
     setLaunchMessage(null);
@@ -372,7 +395,7 @@ const CampaignSetupPage: React.FC = () => {
 
   return (
     <Box className="campaign-setup-page">
-      <CampaignSetupHeader onBack={() => history.goBack()} />
+      <CampaignSetupHeader onBack={handleHeaderBack} />
 
       {(campaignSetup.message || launchMessage) && (
         <Alert
@@ -418,6 +441,11 @@ const CampaignSetupPage: React.FC = () => {
                 selectedBlocks={campaignSetup.selectedBlocks}
                 selectedSchools={campaignSetup.selectedSchools}
                 selectedGrades={campaignSetup.selectedGrades}
+                hasCustomBlockSelection={campaignSetup.hasCustomBlockSelection}
+                hasCustomSchoolSelection={
+                  campaignSetup.hasCustomSchoolSelection
+                }
+                hasCustomGradeSelection={campaignSetup.hasCustomGradeSelection}
                 schoolsForSelectedBlocks={
                   campaignSetup.schoolsForSelectedBlocks
                 }
@@ -511,16 +539,7 @@ const CampaignSetupPage: React.FC = () => {
           isAssignmentComplete={isAssignmentComplete}
           isFormValid={canProceedFromCampaignSetup}
           isSubmitting={campaignSetup.submitting || launching}
-          onBackStep={() =>
-            setActiveStepSafe(
-              campaignSetup.activeStep === 1 ||
-                (campaignSetup.activeStep === 2 &&
-                  campaignSetup.form.objective ===
-                    'homepage_learning_pathway_campaign')
-                ? 0
-                : campaignSetup.activeStep - 1,
-            )
-          }
+          onBackStep={handleBackStep}
           onSetupSubmit={campaignSetup.handleSubmit}
           onGoToRewards={() => setActiveStepSafe(2)}
           onRewardsSubmit={campaignSetup.handleRewardsSubmit}

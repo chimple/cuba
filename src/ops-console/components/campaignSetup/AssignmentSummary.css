@@ -112,6 +112,10 @@
   font-weight: 700;
 }
 
+.assignment-summary-subject-static {
+  cursor: default;
+}
+
 .assignment-summary-table {
   width: 100%;
   overflow-x: auto;
@@ -256,6 +260,10 @@
     padding: 0.625rem 0.75rem;
     background: #ffffff;
     font-size: 0.75rem;
+  }
+
+  .assignment-summary-table-row:last-child {
+    border-bottom: 0.0625rem solid var(--campaign-divider);
   }
 
   .assignment-summary-table-row > span {

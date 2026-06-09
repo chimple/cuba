@@ -24,6 +24,9 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
   selectedBlocks,
   selectedSchools,
   selectedGrades,
+  hasCustomBlockSelection,
+  hasCustomSchoolSelection,
+  hasCustomGradeSelection,
   schoolsForSelectedBlocks,
   loadingAudience,
   selectedProgramName,
@@ -134,9 +137,11 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             preventMobileKeyboard
             onChange={onBlocksChange}
           />
-          <Typography className="target-audience-section-field-note">
-            all blocks under selected program are included.
-          </Typography>
+          {!hasCustomBlockSelection && (
+            <Typography className="target-audience-section-field-note">
+              all blocks under selected program are included.
+            </Typography>
+          )}
         </Box>
 
         <Box className="campaign-setup-field">
@@ -151,9 +156,11 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={onSchoolsChange}
           />
-          <Typography className="target-audience-section-field-note">
-            all schools under selected blocks are included.
-          </Typography>
+          {!hasCustomSchoolSelection && (
+            <Typography className="target-audience-section-field-note">
+              all schools under selected blocks are included.
+            </Typography>
+          )}
         </Box>
 
         <Box className="campaign-setup-field">
@@ -168,9 +175,11 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={onGradesChange}
           />
-          <Typography className="target-audience-section-field-note">
-            all grades under selected schools are included.
-          </Typography>
+          {!hasCustomGradeSelection && (
+            <Typography className="target-audience-section-field-note">
+              all grades under selected schools are included.
+            </Typography>
+          )}
         </Box>
 
         <AudienceSummary

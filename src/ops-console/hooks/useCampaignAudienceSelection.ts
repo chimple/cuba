@@ -57,6 +57,10 @@ export const useCampaignAudienceSelection = ({
     CampaignSchoolOption[]
   >([]);
   const [selectedGrades, setSelectedGrades] = useState<CampaignOption[]>([]);
+  const [hasCustomBlockSelection, setHasCustomBlockSelection] = useState(false);
+  const [hasCustomSchoolSelection, setHasCustomSchoolSelection] =
+    useState(false);
+  const [hasCustomGradeSelection, setHasCustomGradeSelection] = useState(false);
   const [loadingAudience, setLoadingAudience] = useState(false);
 
   const resetAudienceSelection = () => {
@@ -64,6 +68,9 @@ export const useCampaignAudienceSelection = ({
     setSelectedBlocks([]);
     setSelectedSchools([]);
     setSelectedGrades([]);
+    setHasCustomBlockSelection(false);
+    setHasCustomSchoolSelection(false);
+    setHasCustomGradeSelection(false);
     setAudienceOptions(emptyAudienceOptions);
     setAudienceSummary(emptyAudienceSummary);
     setLoadingAudience(false);
@@ -99,6 +106,9 @@ export const useCampaignAudienceSelection = ({
         setSelectedBlocks(options.blocks);
         setSelectedSchools(options.schools);
         setSelectedGrades(options.grades);
+        setHasCustomBlockSelection(false);
+        setHasCustomSchoolSelection(false);
+        setHasCustomGradeSelection(false);
       } catch (error) {
         if (!isActive) return;
         logger.error('Failed to load campaign audience options:', error);
@@ -186,6 +196,7 @@ export const useCampaignAudienceSelection = ({
 
   const handleBlocksChange = (blocks: string[]) => {
     setSelectedSavedGroupId('');
+    setHasCustomBlockSelection(true);
     setSelectedBlocks(blocks);
     setSelectedSchools(
       audienceOptions.schools.filter((school) => blocks.includes(school.block)),
@@ -194,11 +205,13 @@ export const useCampaignAudienceSelection = ({
 
   const handleSchoolsChange = (schools: CampaignSchoolOption[]) => {
     setSelectedSavedGroupId('');
+    setHasCustomSchoolSelection(true);
     setSelectedSchools(schools);
   };
 
   const handleGradesChange = (grades: CampaignOption[]) => {
     setSelectedSavedGroupId('');
+    setHasCustomGradeSelection(true);
     setSelectedGrades(grades);
   };
 
@@ -217,6 +230,9 @@ export const useCampaignAudienceSelection = ({
       programId: group.programId,
       groupName: group.name,
     }));
+    setHasCustomBlockSelection(!group.isAllSchools);
+    setHasCustomSchoolSelection(!group.isAllSchools);
+    setHasCustomGradeSelection(!group.isAllGrades);
     setSaveGroup(false);
   };
 
@@ -285,6 +301,9 @@ export const useCampaignAudienceSelection = ({
     handleProgramChange,
     handleSavedGroupChange,
     handleSchoolsChange,
+    hasCustomBlockSelection,
+    hasCustomGradeSelection,
+    hasCustomSchoolSelection,
     isAllGrades,
     isAllSchools,
     loadingAudience,
