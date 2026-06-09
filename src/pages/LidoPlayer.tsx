@@ -891,13 +891,6 @@ const LidoPlayer: FC = () => {
     const isCompletedExit =
       data.gameCompleted === true || data.quizCompleted === true;
 
-    if (isCompletedExit) {
-      if (!showDialogBox && !isLoading) {
-        await onLessonEnd(e);
-      }
-      return;
-    }
-
     if (isLessonEndProcessingRef.current || showDialogBox) {
       return;
     }
