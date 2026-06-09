@@ -32,6 +32,7 @@ export type SchoolListSourceRow = FilteredSchoolsForSchoolListingOps & {
   avg_time_spent_minutes?: number | null;
   total_activities_assigned?: number | null;
   assignments_assigned?: number | null;
+  community_parents_reached?: number | null;
 };
 
 export type SchoolListRow = SchoolListSourceRow & {

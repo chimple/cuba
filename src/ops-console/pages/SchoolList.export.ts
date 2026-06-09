@@ -100,7 +100,7 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
       ),
     ),
     parentsReached: buildMetricExportText(
-      pickFirstNumber(school.parents_reached),
+      pickFirstNumber(school.parents_reached, school.community_parents_reached),
     ),
     avgAssignmentsCompleted: buildMetricExportText(completionAssignments),
     avgActivitiesCompleted: buildMetricExportText(completionActivities),
