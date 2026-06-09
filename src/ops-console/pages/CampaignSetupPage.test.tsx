@@ -44,6 +44,9 @@ const mockApiHandler = {
   getParentWhatsappClassesBySchoolId: jest.fn(),
   getParentWhatsappParentPhonesByClassId: jest.fn(),
 };
+const mockAuthHandler = {
+  getCurrentUser: jest.fn(),
+};
 
 let mockAssignmentComplete = false;
 
@@ -51,6 +54,7 @@ jest.mock('../../services/ServiceConfig', () => ({
   ServiceConfig: {
     getI: () => ({
       apiHandler: mockApiHandler,
+      authHandler: mockAuthHandler,
     }),
   },
 }));
@@ -127,6 +131,7 @@ const setupApiMocks = () => {
     targetAudienceId: 'audience-1',
   });
   mockApiHandler.launchCampaign.mockResolvedValue(undefined);
+  mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
   mockApiHandler.getCampaignAssignmentOptions.mockResolvedValue({
     grades: [
       {
@@ -568,6 +573,34 @@ describe('CampaignSetupPage', () => {
     expect(screen.getByText('Communication')).toBeInTheDocument();
     expect(screen.getByText('Launch Campaign')).toBeInTheDocument();
     expect(screen.queryByText('Save as Draft')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Launch Campaign'));
+
+    await waitFor(() =>
+      expect(mockApiHandler.createCampaignSetup).toHaveBeenCalledWith(
+        expect.objectContaining({
+          campaignName: 'ABCD',
+          managerId: 'manager-1',
+          programId: 'program-1',
+          startDate: expect.any(String),
+          endDate: expect.any(String),
+        }),
+      ),
+    );
+    await waitFor(() =>
+      expect(mockApiHandler.launchCampaign).toHaveBeenCalledWith(
+        expect.objectContaining({
+          campaignId: 'campaign-1',
+          currentUserId: 'user-1',
+          messagingRows: [
+            expect.objectContaining({
+              messageTime: expect.any(String),
+              pollTime: expect.any(String),
+            }),
+          ],
+        }),
+      ),
+    );
   });
 
   it('uses lesson criteria for homepage learning pathway rewards', async () => {

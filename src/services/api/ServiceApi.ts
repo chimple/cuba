@@ -270,7 +270,6 @@ export type CampaignMessagingPollPayload = {
 };
 
 export type CampaignLaunchMessagingPayload = {
-  scheduledDate: string;
   messageTime: string | null;
   pollTime: string | null;
   message: string | null;

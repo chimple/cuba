@@ -23,6 +23,7 @@ import {
   CampaignReviewStep,
 } from '../components/campaignSetup/CampaignReviewStep';
 import { useCampaignSetupForm } from '../hooks/useCampaignSetupForm';
+import { buildCampaignAudiencePayload } from '../hooks/campaignSetupFormHelpers';
 import {
   CampaignCommunicationState,
   buildCampaignMessagingPayload,
@@ -206,7 +207,11 @@ const CampaignSetupPage: React.FC = () => {
   const handleLaunchCampaign = useCallback(async () => {
     setLaunchMessage(null);
 
-    if (!campaignSetup.createdCampaignId || !campaignSetup.campaignRewards) {
+    if (!campaignSetup.campaignRewards) {
+      logger.warn('Campaign launch blocked by incomplete setup state:', {
+        hasRewards: Boolean(campaignSetup.campaignRewards),
+        isFormValid: campaignSetup.isFormValid,
+      });
       setLaunchMessage({
         type: 'error',
         text: t('Complete campaign setup before launching.'),
@@ -214,6 +219,9 @@ const CampaignSetupPage: React.FC = () => {
       return;
     }
     if (!campaignSetup.isFormValid) {
+      logger.warn('Campaign launch blocked by invalid setup form:', {
+        campaignId: campaignSetup.createdCampaignId,
+      });
       setLaunchMessage({
         type: 'error',
         text: t('Complete campaign setup before launching.'),
@@ -243,28 +251,51 @@ const CampaignSetupPage: React.FC = () => {
         throw new Error('User is not logged in.');
       }
 
-      await ServiceConfig.getI().apiHandler.launchCampaign({
-        campaignId: campaignSetup.createdCampaignId,
-        currentUserId: currentUser.id,
-        campaign: {
-          programId: campaignSetup.form.programId,
-          campaignName: campaignSetup.form.campaignName.trim(),
-          objective: campaignSetup.form.objective as CampaignObjective,
-          targetType:
-            campaignSetup.form.objective === 'homework_campaign'
-              ? (campaignSetup.form.targetType as CampaignTargetType)
+      const campaign = {
+        programId: campaignSetup.form.programId,
+        campaignName: campaignSetup.form.campaignName.trim(),
+        objective: campaignSetup.form.objective as CampaignObjective,
+        targetType:
+          campaignSetup.form.objective === 'homework_campaign'
+            ? (campaignSetup.form.targetType as CampaignTargetType)
+            : undefined,
+        targetValue:
+          campaignSetup.form.objective === 'homework_campaign'
+            ? Number(campaignSetup.form.targetValue)
+            : campaignSetup.form.objective ===
+                'homepage_learning_pathway_campaign'
+              ? Number(campaignSetup.form.learningPathCount)
               : undefined,
-          targetValue:
-            campaignSetup.form.objective === 'homework_campaign'
-              ? Number(campaignSetup.form.targetValue)
-              : campaignSetup.form.objective ===
-                  'homepage_learning_pathway_campaign'
-                ? Number(campaignSetup.form.learningPathCount)
-                : undefined,
-          managerId: campaignSetup.form.managerId,
-          startDate: campaignSetup.form.startDate,
-          endDate: campaignSetup.form.endDate,
-        },
+        managerId: campaignSetup.form.managerId,
+        startDate: campaignSetup.form.startDate,
+        endDate: campaignSetup.form.endDate,
+      };
+      const campaignId =
+        campaignSetup.createdCampaignId ||
+        (
+          await ServiceConfig.getI().apiHandler.createCampaignSetup({
+            ...buildCampaignAudiencePayload(
+              campaignSetup.form,
+              campaignSetup.saveGroup,
+              {
+                isAllSchools: campaignSetup.isAllSchools,
+                isAllGrades: campaignSetup.isAllGrades,
+                selectedSchoolIds: campaignSetup.selectedSchoolIds,
+                selectedGradeIds: campaignSetup.selectedGradeIds,
+              },
+            ),
+            ...campaign,
+            savedAudienceGroupId:
+              campaignSetup.selectedSavedGroupId || undefined,
+          })
+        ).campaignId;
+
+      campaignSetup.setCreatedCampaignId(campaignId);
+
+      await ServiceConfig.getI().apiHandler.launchCampaign({
+        campaignId,
+        currentUserId: currentUser.id,
+        campaign,
         rewards: {
           type: campaignSetup.campaignRewards.type as CampaignRewardType,
           rules: campaignSetup.campaignRewards.rules,
@@ -282,7 +313,6 @@ const CampaignSetupPage: React.FC = () => {
           setNumber: assignment.setNumber,
         })),
         messagingRows: messagingRows.map((row) => ({
-          scheduledDate: row.scheduled_date,
           messageTime: row.message_time,
           pollTime: row.poll_time,
           message: row.message,
@@ -310,10 +340,17 @@ const CampaignSetupPage: React.FC = () => {
     campaignSetup.createdCampaignId,
     campaignSetup.form,
     campaignSetup.isFormValid,
+    campaignSetup.isAllGrades,
+    campaignSetup.isAllSchools,
     communicationValidation.isValid,
     history,
     isAssignmentComplete,
     messagingRows,
+    campaignSetup.saveGroup,
+    campaignSetup.selectedGradeIds,
+    campaignSetup.selectedSavedGroupId,
+    campaignSetup.selectedSchoolIds,
+    campaignSetup.setCreatedCampaignId,
     t,
   ]);
 
