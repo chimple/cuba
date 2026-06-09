@@ -871,21 +871,26 @@ const LidoPlayer: FC = () => {
       push();
     }
   };
+
   const onGameExit = async (e: any) => {
     const { studentId, userId } = await resolveStudentContext();
     if (!studentId) {
       push();
       return;
     }
+
     const parentUserId = userId;
     const courseKey = courseDetail?.id ?? courseDocId ?? '';
     Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
     const data = (e.detail ?? {}) as LidoEventDetail;
+
     const isCompletedExit =
       data.gameCompleted === true || data.quizCompleted === true;
 
     if (isCompletedExit) {
-      await onLessonEnd(e);
+      if (!showDialogBox && !isLoading) {
+        await onLessonEnd(e);
+      }
       return;
     }
 
