@@ -137,7 +137,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             preventMobileKeyboard
             onChange={onBlocksChange}
           />
-          {!hasCustomBlockSelection && (
+          {!!form.programId && !hasCustomBlockSelection && (
             <Typography className="target-audience-section-field-note">
               all blocks under selected program are included.
             </Typography>
@@ -156,7 +156,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={onSchoolsChange}
           />
-          {!hasCustomSchoolSelection && (
+          {!!form.programId && !hasCustomSchoolSelection && (
             <Typography className="target-audience-section-field-note">
               all schools under selected blocks are included.
             </Typography>
@@ -175,7 +175,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={onGradesChange}
           />
-          {!hasCustomGradeSelection && (
+          {!!form.programId && !hasCustomGradeSelection && (
             <Typography className="target-audience-section-field-note">
               all grades under selected schools are included.
             </Typography>

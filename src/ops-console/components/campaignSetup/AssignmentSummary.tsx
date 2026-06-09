@@ -62,7 +62,9 @@ export const AssignmentSummary: React.FC<AssignmentSummaryProps> = ({
         return (
           <Box key={subjectName} className="assignment-summary-box">
             <Box
-              className="assignment-summary-subject"
+              className={`assignment-summary-subject${
+                isMobileView ? ' assignment-summary-subject-static' : ''
+              }`}
               component={isMobileView ? 'div' : 'button'}
               type={isMobileView ? undefined : 'button'}
               onClick={

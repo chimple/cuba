@@ -197,6 +197,8 @@ const CampaignSetupPage: React.FC = () => {
   );
 
   const handleBackStep = useCallback(() => {
+    if (campaignSetup.activeStep === 0) return;
+
     setActiveStepSafe(
       campaignSetup.activeStep === 1 ||
         (campaignSetup.activeStep === 2 &&

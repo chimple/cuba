@@ -229,6 +229,30 @@ describe('CampaignAssignmentStep', () => {
     );
   });
 
+  it('marks the assignment step incomplete when alternate week remains selected for a short campaign', async () => {
+    const { onCompletionChange } = renderStep({
+      form: {
+        ...baseForm,
+        startDate: '2026-05-01',
+        endDate: '2026-05-13',
+      },
+      initialConfig: {
+        ...createDefaultConfig(),
+        subjectIds: ['subject-1'],
+        chapterIds: ['chapter-1', 'chapter-2', 'chapter-3'],
+        frequency: 'alternate_week',
+      },
+    });
+
+    expect(
+      await screen.findByText('Assignment Summary (6 assignments)'),
+    ).toBeInTheDocument();
+
+    await waitFor(() =>
+      expect(onCompletionChange).toHaveBeenLastCalledWith(false),
+    );
+  });
+
   it('keeps assignment summary expanded on mobile', async () => {
     window.matchMedia = jest.fn().mockImplementation((query: string) => ({
       matches: query === '(max-width:48rem)',

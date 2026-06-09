@@ -20,6 +20,7 @@ import {
   buildRows,
   createDefaultConfig,
   getRequiredAssignmentCount,
+  isAlternateWeekEnabled,
 } from './campaignAssignmentUtils';
 import { CampaignSetupFormState } from './types';
 import './CampaignAssignmentStep.css';
@@ -121,6 +122,8 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
           !!config &&
           config.subjectIds.length > 0 &&
           config.chapterIds.length > 0 &&
+          (config.frequency !== 'alternate_week' ||
+            isAlternateWeekEnabled(form.startDate, form.endDate)) &&
           rowCount > 0 &&
           rowCount >= requiredAssignments &&
           (rowsByGrade.get(grade.id) ?? []).every((row) => row.date)

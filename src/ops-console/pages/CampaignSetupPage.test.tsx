@@ -735,6 +735,22 @@ describe('CampaignSetupPage', () => {
     );
   });
 
+  it('does not show audience helper copy before a program is selected', async () => {
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+
+    expect(
+      screen.queryByText('all blocks under selected program are included.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('all schools under selected blocks are included.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('all grades under selected schools are included.'),
+    ).not.toBeInTheDocument();
+  });
+
   it('uses the header back button to move to the previous step before leaving the page', async () => {
     mockAssignmentComplete = true;
     render(<CampaignSetupPage />);
