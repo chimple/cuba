@@ -703,7 +703,6 @@ export type Database = {
           poll: Json | null;
           poll_status: string | null;
           poll_time: string | null;
-          scheduled_date: string;
           updated_at: string | null;
         };
         Insert: {
@@ -718,7 +717,6 @@ export type Database = {
           poll?: Json | null;
           poll_status?: string | null;
           poll_time?: string | null;
-          scheduled_date: string;
           updated_at?: string | null;
         };
         Update: {
@@ -733,7 +731,6 @@ export type Database = {
           poll?: Json | null;
           poll_status?: string | null;
           poll_time?: string | null;
-          scheduled_date?: string;
           updated_at?: string | null;
         };
         Relationships: [

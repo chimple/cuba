@@ -62,7 +62,7 @@ export const useCampaignSetupForm = () => {
   const [savingGroup, setSavingGroup] = useState(false);
   const [submitting] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-  const [createdCampaignId] = useState('');
+  const [createdCampaignId, setCreatedCampaignId] = useState('');
   const [campaignRewards, setCampaignRewards] =
     useState<CampaignRewardsDraftPayload | null>(null);
   const [assignmentDrafts, setAssignmentDrafts] = useState<
@@ -357,6 +357,7 @@ export const useCampaignSetupForm = () => {
     setActiveStep,
     setActiveAssignmentGradeId,
     setAssignmentConfigs,
+    setCreatedCampaignId,
     setSaveGroup,
     submitting,
     updateForm,
