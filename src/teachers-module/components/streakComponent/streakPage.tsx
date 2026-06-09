@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { IonContent, IonPage } from '@ionic/react';
 import { useHistory } from 'react-router';
-import { PAGES } from '../../../common/constants';
 import Header from '../homePage/Header';
 import StreakInfoPopup from '../homePage/StreakInfoPopup';
 import StreakHeaderStats from './components/StreakHeaderStats';
@@ -9,7 +8,6 @@ import StreakCalendarSection from './components/StreakCalendarSection';
 import StreakShareCaptureCard from './components/StreakShareCaptureCard';
 import { useStreakPageLogic } from './hooks/useStreakPageLogic';
 import './streakPage.css';
-import { t } from 'i18next';
 
 const STREAK_INFO_SECTIONS = [
   {
@@ -79,15 +77,6 @@ const StreakPage: React.FC = () => {
         sections={[...STREAK_INFO_SECTIONS]}
         onClose={() => setIsStreakInfoOpen(false)}
       />
-      <div className="streak-bottom-cta-shell">
-        <button
-          type="button"
-          className="streak-bottom-cta"
-          onClick={() => history.push(PAGES.TEACHER_ASSIGNMENT)}
-        >
-          {t('Assign Homework Now (+25 Coins)')}
-        </button>
-      </div>
     </IonPage>
   );
 };
