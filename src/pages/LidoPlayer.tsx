@@ -111,6 +111,17 @@ const LidoPlayer: FC = () => {
     isStudentLinked: false,
   });
   const isExitingRef = useRef(false);
+  const isLessonEndProcessingRef = useRef(false);
+  const isLoadingRef = useRef(isLoading);
+  const showDialogBoxRef = useRef(showDialogBox);
+
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
+
+  useEffect(() => {
+    showDialogBoxRef.current = showDialogBox;
+  }, [showDialogBox]);
 
   const resolveStudentContext = async (): Promise<{
     student: TableTypes<'user'> | undefined;
@@ -233,9 +244,50 @@ const LidoPlayer: FC = () => {
   const getTotalStoredLessonTime = (scoresList: StoredLidoScore[]): number =>
     scoresList.reduce((total, record) => total + (record.timeSpent ?? 0), 0);
 
+  const buildFallbackLessonResult = (
+    detail: LidoEventDetail,
+  ): LidoEventDetail => {
+    const scoresList = getStoredLidoScores();
+    const derivedFinalScore =
+      parseNumericValue(detail.finalScore) ??
+      parseNumericValue(detail.score) ??
+      (scoresList.length > 0
+        ? Math.round(
+            scoresList.reduce((sum, item) => sum + (item.score ?? 0), 0) /
+              scoresList.length,
+          )
+        : 0);
+    const derivedLessonTime =
+      parseNumericValue(detail.timeSpendForLesson) ??
+      getTotalStoredLessonTime(scoresList);
+    const derivedCorrectMoves =
+      parseNumericValue(detail.correctMoves) ??
+      parseNumericValue(detail.rightMoves) ??
+      scoresList.reduce((sum, item) => sum + (item.correctMoves ?? 0), 0);
+    const derivedWrongMoves =
+      parseNumericValue(detail.wrongMoves) ??
+      scoresList.reduce((sum, item) => sum + (item.wrongMoves ?? 0), 0);
+
+    return {
+      ...detail,
+      finalScore: derivedFinalScore,
+      score: derivedFinalScore,
+      timeSpendForLesson: derivedLessonTime,
+      correctMoves: derivedCorrectMoves,
+      wrongMoves: derivedWrongMoves,
+    };
+  };
+
   const onNextContainer = (e: any) => logger.info('Next', e);
-  const gameCompleted = (e: any) => {
-    // setShowDialogBox(true);
+  const gameCompleted = async (e: Event) => {
+    // The bundled Lido player emits `lidoGameCompleted` only when the full
+    // lesson flow is complete, and Digital Skills can send it with an empty
+    // detail payload. Route that event through the normal lesson-end flow.
+    if (!showDialogBoxRef.current && !isLoadingRef.current) {
+      await onLessonEnd(e);
+      return;
+    }
+
     const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
 
     if (popupConfig) {
@@ -560,7 +612,12 @@ const LidoPlayer: FC = () => {
   };
 
   const onLessonEnd = async (e: any) => {
+    if (isLessonEndProcessingRef.current) {
+      return;
+    }
+    isLessonEndProcessingRef.current = true;
     setIsLoading(true);
+    const lessonData = ((e?.detail ?? {}) as LidoEventDetail) ?? {};
     const {
       student: currentStudent,
       studentId,
@@ -574,7 +631,6 @@ const LidoPlayer: FC = () => {
       }
       const parentUserId = userId;
       const courseDocId: string | undefined = state.courseDocId;
-      const lessonData = (e.detail ?? {}) as LidoEventDetail;
       const { correctMoves, wrongMoves } = getNormalizedMoveCounts(lessonData);
       if (isAssessmentLesson) {
         const courseKey = courseDetail?.id ?? courseDocId ?? '';
@@ -867,12 +923,22 @@ const LidoPlayer: FC = () => {
       setShowDialogBox(true);
     } catch (error) {
       logger.error('❌ Failed to process lesson end', error);
-      localStorage.removeItem(LIDO_SCORES_KEY);
-      push();
+      const fallbackResult = buildFallbackLessonResult(lessonData);
+      setGameResult(fallbackResult);
+      setIsLoading(false);
+      setShowDialogBox(true);
+    } finally {
+      isLessonEndProcessingRef.current = false;
     }
   };
 
   const onGameExit = async (e: any) => {
+    const data = (e.detail ?? {}) as LidoEventDetail;
+
+    if (isLessonEndProcessingRef.current || showDialogBoxRef.current) {
+      return;
+    }
+
     const { studentId, userId } = await resolveStudentContext();
     if (!studentId) {
       push();
@@ -882,17 +948,6 @@ const LidoPlayer: FC = () => {
     const parentUserId = userId;
     const courseKey = courseDetail?.id ?? courseDocId ?? '';
     Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
-    const data = (e.detail ?? {}) as LidoEventDetail;
-
-    const isCompletedExit =
-      data.gameCompleted === true || data.quizCompleted === true;
-
-    if (isCompletedExit) {
-      if (!showDialogBox && !isLoading) {
-        await onLessonEnd(e);
-      }
-      return;
-    }
 
     const { correctMoves, wrongMoves } = getNormalizedMoveCounts(data);
     const storedScores = getStoredLidoScores();
