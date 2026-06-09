@@ -9380,6 +9380,7 @@ export class SupabaseApi implements ServiceApi {
       manager_id: payload.managerId,
       start_date: payload.startDate,
       end_date: payload.endDate,
+      rewards: payload.rewards ? JSON.stringify(payload.rewards) : null,
     };
 
     const { data, error } = await this.supabase
@@ -9423,28 +9424,6 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const updatedAt = new Date().toISOString();
-    const { error: campaignError } = await this.supabase
-      .from('campaign')
-      .update({
-        program_id: payload.campaign.programId,
-        name: payload.campaign.campaignName,
-        objective: payload.campaign.objective,
-        target_type: payload.campaign.targetType ?? null,
-        target_value: payload.campaign.targetValue ?? null,
-        manager_id: payload.campaign.managerId,
-        start_date: payload.campaign.startDate,
-        end_date: payload.campaign.endDate,
-        rewards: JSON.stringify(payload.rewards),
-        updated_at: updatedAt,
-      })
-      .eq('id', payload.campaignId)
-      .eq('is_deleted', false);
-
-    if (campaignError) {
-      logger.error('Error updating launched campaign rewards:', campaignError);
-      throw campaignError;
-    }
-
     const schoolIds = Array.from(
       new Set(
         payload.assignments.flatMap((assignment) => assignment.schoolIds),
@@ -9577,7 +9556,6 @@ export class SupabaseApi implements ServiceApi {
 
     const messagingRows = payload.messagingRows.map((row) => ({
       campaign_id: payload.campaignId,
-      scheduled_date: row.scheduledDate,
       message_time: row.messageTime,
       poll_time: row.pollTime,
       message: row.message,

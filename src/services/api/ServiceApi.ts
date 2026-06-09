@@ -232,6 +232,7 @@ export type CreateCampaignSetupPayload = CampaignAudiencePayload & {
   managerId: string;
   startDate: string;
   endDate: string;
+  rewards?: CampaignRewardsPayload;
   savedAudienceGroupId?: string;
 };
 
@@ -270,7 +271,6 @@ export type CampaignMessagingPollPayload = {
 };
 
 export type CampaignLaunchMessagingPayload = {
-  scheduledDate: string;
   messageTime: string | null;
   pollTime: string | null;
   message: string | null;
@@ -292,7 +292,6 @@ export type CampaignLaunchDetailsPayload = {
 export type LaunchCampaignPayload = {
   campaignId: string;
   currentUserId: string;
-  campaign: CampaignLaunchDetailsPayload;
   rewards: CampaignRewardsPayload;
   assignments: CampaignLaunchAssignmentPayload[];
   messagingRows: CampaignLaunchMessagingPayload[];

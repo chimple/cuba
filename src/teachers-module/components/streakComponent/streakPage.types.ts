@@ -2,6 +2,7 @@ export type CalendarDayCell = {
   day: number | null;
   assigned: boolean;
   future: boolean;
+  today: boolean;
 };
 
 export type CalendarRow = {

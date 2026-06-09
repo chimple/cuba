@@ -531,7 +531,7 @@ const LidoPlayer: FC = () => {
       const isAborted = true;
       const isFullPathwayTerminated = true;
       await exitLidoGame(isAborted, isFullPathwayTerminated); // aborted + full pathway terminated
-      Util.logEvent(EVENTS.ASSESSMENT_ABORTED, {
+      Util.logEvent(EVENTS.ASSESSMENT_TERMINATED, {
         user_id: parentUserId,
         student_id: studentId,
         lesson_id: lesson.id,

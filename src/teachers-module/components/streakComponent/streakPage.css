@@ -20,7 +20,7 @@
 
 .streak-page-header-text {
   font-style: normal;
-  font-size: 34px;
+  font-size: var(--text-sizeXL);
   margin-left: 25px;
 }
 
@@ -62,7 +62,7 @@
 
 .streak-summary {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 26px;
   margin-top: 18px;
 }
@@ -104,25 +104,33 @@
 }
 
 .streak-month-row {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
-  gap: 40px;
+  column-gap: 26px;
   margin-top: 26px;
   padding: 0 6px;
+  margin-left: 1.5vh;
 }
 
 .streak-month-title {
+  justify-self: center;
+  min-width: 0;
+  width: 100%;
+  white-space: nowrap;
   margin: 0;
   color: #4a4b50;
   font-size: 40px;
   font-weight: 700;
   line-height: 1;
+  text-align: center;
 }
 
 .streak-month-nav {
+  justify-self: center;
   display: flex;
-  gap: 40px;
+  width: 117px;
+  justify-content: space-between;
 }
 
 .streak-month-btn {
@@ -169,6 +177,9 @@
 }
 
 .streak-calendar-row {
+  --streak-day-size: 36px;
+  --streak-day-radius: calc(var(--streak-day-size) / 2);
+  --streak-track-overhang: 12px;
   position: relative;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -208,8 +219,8 @@
   position: relative;
   z-index: 1;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: var(--streak-day-size);
+  height: var(--streak-day-size);
   margin: 0 auto;
   font-size: 20px;
   font-weight: 700;
@@ -366,12 +377,8 @@
     font-size: 48px;
   }
 
-  .streak-month-title {
-    font-size: 40px;
-  }
-
   .streak-month-row {
-    gap: 30px;
+    column-gap: 26px;
   }
 
   .streak-month-title {
@@ -379,6 +386,6 @@
   }
 
   .streak-month-nav {
-    gap: 30px;
+    width: 96px;
   }
 }
