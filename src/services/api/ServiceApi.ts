@@ -232,6 +232,7 @@ export type CreateCampaignSetupPayload = CampaignAudiencePayload & {
   managerId: string;
   startDate: string;
   endDate: string;
+  rewards?: CampaignRewardsPayload;
   savedAudienceGroupId?: string;
 };
 
@@ -291,7 +292,6 @@ export type CampaignLaunchDetailsPayload = {
 export type LaunchCampaignPayload = {
   campaignId: string;
   currentUserId: string;
-  campaign: CampaignLaunchDetailsPayload;
   rewards: CampaignRewardsPayload;
   assignments: CampaignLaunchAssignmentPayload[];
   messagingRows: CampaignLaunchMessagingPayload[];

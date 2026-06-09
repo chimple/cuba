@@ -582,6 +582,9 @@ describe('CampaignSetupPage', () => {
           campaignName: 'ABCD',
           managerId: 'manager-1',
           programId: 'program-1',
+          rewards: expect.objectContaining({
+            type: 'digital_rewards',
+          }),
           startDate: expect.any(String),
           endDate: expect.any(String),
         }),

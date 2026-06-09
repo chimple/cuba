@@ -270,6 +270,10 @@ const CampaignSetupPage: React.FC = () => {
         startDate: campaignSetup.form.startDate,
         endDate: campaignSetup.form.endDate,
       };
+      const rewards = {
+        type: campaignSetup.campaignRewards.type as CampaignRewardType,
+        rules: campaignSetup.campaignRewards.rules,
+      };
       const campaignId =
         campaignSetup.createdCampaignId ||
         (
@@ -285,6 +289,7 @@ const CampaignSetupPage: React.FC = () => {
               },
             ),
             ...campaign,
+            rewards,
             savedAudienceGroupId:
               campaignSetup.selectedSavedGroupId || undefined,
           })
@@ -295,11 +300,7 @@ const CampaignSetupPage: React.FC = () => {
       await ServiceConfig.getI().apiHandler.launchCampaign({
         campaignId,
         currentUserId: currentUser.id,
-        campaign,
-        rewards: {
-          type: campaignSetup.campaignRewards.type as CampaignRewardType,
-          rules: campaignSetup.campaignRewards.rules,
-        },
+        rewards,
         assignments: campaignSetup.assignmentDrafts.map((assignment) => ({
           gradeId: assignment.gradeId,
           schoolIds: assignment.schoolIds,

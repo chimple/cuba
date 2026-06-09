@@ -9380,6 +9380,7 @@ export class SupabaseApi implements ServiceApi {
       manager_id: payload.managerId,
       start_date: payload.startDate,
       end_date: payload.endDate,
+      rewards: payload.rewards ? JSON.stringify(payload.rewards) : null,
     };
 
     const { data, error } = await this.supabase
@@ -9411,9 +9412,6 @@ export class SupabaseApi implements ServiceApi {
     }
     if (!payload.currentUserId) {
       throw new Error('Current user id is required.');
-    }
-    if (!payload.campaign) {
-      throw new Error('Campaign details are required.');
     }
     if (!payload.rewards?.type || !payload.rewards?.rules?.length) {
       throw new Error('Campaign rewards are required.');
@@ -9515,28 +9513,6 @@ export class SupabaseApi implements ServiceApi {
       throw new Error(
         'No classes found for the selected campaign assignments.',
       );
-    }
-
-    const { error: campaignError } = await this.supabase
-      .from('campaign')
-      .update({
-        program_id: payload.campaign.programId,
-        name: payload.campaign.campaignName,
-        objective: payload.campaign.objective,
-        target_type: payload.campaign.targetType ?? null,
-        target_value: payload.campaign.targetValue ?? null,
-        manager_id: payload.campaign.managerId,
-        start_date: payload.campaign.startDate,
-        end_date: payload.campaign.endDate,
-        rewards: JSON.stringify(payload.rewards),
-        updated_at: updatedAt,
-      })
-      .eq('id', payload.campaignId)
-      .eq('is_deleted', false);
-
-    if (campaignError) {
-      logger.error('Error updating launched campaign rewards:', campaignError);
-      throw campaignError;
     }
 
     const { error: assignmentCleanupError } = await this.supabase
