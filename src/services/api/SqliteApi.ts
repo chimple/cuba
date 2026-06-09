@@ -2382,11 +2382,35 @@ export class SqliteApi implements ServiceApi {
         updated_at = "${new Date().toISOString()}"
     WHERE id = "${userId}";
   `;
-    const res = await this.executeQuery(query);
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
-      tc_agreed_version: version,
-      id: userId,
-    });
+    try {
+      await this.executeQuery(query);
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+        tc_agreed_version: version,
+        id: userId,
+      });
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : '';
+
+      if (errorMessage.includes('no such column: tc_agreed_version')) {
+        try {
+          await this.executeQuery(`
+            ALTER TABLE "user"
+            ADD COLUMN tc_agreed_version NUMERIC;
+          `);
+
+          await this.executeQuery(query);
+
+          this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+            tc_agreed_version: version,
+            id: userId,
+          });
+        } catch (alterError: unknown) {
+          logger.error('Failed to add column and retry update', alterError);
+        }
+      } else {
+        logger.error('Update failed', e);
+      }
+    }
   }
   async getLanguageWithId(
     id: string,
