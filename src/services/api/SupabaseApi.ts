@@ -14632,13 +14632,14 @@ export class SupabaseApi implements ServiceApi {
         return false;
       }
 
-      const assessmentLessonIds = Array.from(
-        new Set(
-          (assessmentLessons ?? [])
-            .map((lesson) => lesson.lesson_id)
-            .filter((lessonId): lessonId is string => !!lessonId),
-        ),
-      );
+      const seenLessonIds = new Set<string>();
+      const assessmentLessonIds: string[] = [];
+      for (const lesson of assessmentLessons ?? []) {
+        const lessonId = lesson.lesson_id;
+        if (!lessonId || seenLessonIds.has(lessonId)) continue;
+        seenLessonIds.add(lessonId);
+        assessmentLessonIds.push(lessonId);
+      }
 
       if (!assessmentLessonIds.length) {
         return false;
@@ -14646,13 +14647,13 @@ export class SupabaseApi implements ServiceApi {
 
       const { data: pendingAbortResults, error } = await this.supabase
         .from('result')
-        .select('lesson_id')
+        .select('status')
         .eq('student_id', studentId)
         .eq('course_id', courseId)
-        .eq('status', 'system_exit')
         .is('assignment_id', null)
         .in('lesson_id', assessmentLessonIds)
         .or('is_deleted.eq.false,is_deleted.is.null')
+        .order('created_at', { ascending: false })
         .limit(1);
 
       if (error) {
@@ -14660,7 +14661,7 @@ export class SupabaseApi implements ServiceApi {
         return false;
       }
 
-      return (pendingAbortResults ?? []).length > 0;
+      return pendingAbortResults?.[0]?.status === 'system_exit';
     } catch (error) {
       logger.error('❌ Error checking pending aborted assessment:', error);
       return false;
