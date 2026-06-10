@@ -129,6 +129,14 @@ const getScheduleDates = (
   return dates;
 };
 
+export const getRequiredAssignmentCount = (
+  startDate: string,
+  endDate: string,
+  frequency: Frequency,
+) =>
+  getScheduleDates(startDate, endDate, frequency, Number.MAX_SAFE_INTEGER)
+    .length;
+
 const distributeDatesAcrossAssignments = (
   dates: string[],
   assignmentCount: number,

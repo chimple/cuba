@@ -172,7 +172,7 @@ describe('CampaignAssignmentStep', () => {
     });
   });
 
-  it('shows alternate week for a 14-day campaign and hides it for shorter campaigns', async () => {
+  it('shows alternate week for a 14-day campaign and disables it for shorter campaigns', async () => {
     renderStep({
       form: {
         ...baseForm,
@@ -204,13 +204,86 @@ describe('CampaignAssignmentStep', () => {
 
     await screen.findByText('Chapter Selection');
     openFrequencySelect();
+    expect(
+      await screen.findByRole('option', {
+        name: 'Alternate Week (≥ 2 weeks)',
+      }),
+    ).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('marks the assignment step incomplete when the selected lessons do not cover the schedule', async () => {
+    const { onCompletionChange } = renderStep({
+      initialConfig: {
+        ...createDefaultConfig(),
+        subjectIds: ['subject-1'],
+        chapterIds: ['chapter-1'],
+      },
+    });
+
+    expect(
+      await screen.findByText('Assignment Summary (2 assignments)'),
+    ).toBeInTheDocument();
+
     await waitFor(() =>
-      expect(
-        screen.queryByRole('option', {
-          name: 'Alternate Week (≥ 2 weeks)',
-        }),
-      ).not.toBeInTheDocument(),
+      expect(onCompletionChange).toHaveBeenLastCalledWith(false),
     );
+  });
+
+  it('marks the assignment step incomplete when alternate week remains selected for a short campaign', async () => {
+    const { onCompletionChange } = renderStep({
+      form: {
+        ...baseForm,
+        startDate: '2026-05-01',
+        endDate: '2026-05-13',
+      },
+      initialConfig: {
+        ...createDefaultConfig(),
+        subjectIds: ['subject-1'],
+        chapterIds: ['chapter-1', 'chapter-2', 'chapter-3'],
+        frequency: 'alternate_week',
+      },
+    });
+
+    expect(
+      await screen.findByText('Assignment Summary (6 assignments)'),
+    ).toBeInTheDocument();
+
+    await waitFor(() =>
+      expect(onCompletionChange).toHaveBeenLastCalledWith(false),
+    );
+  });
+
+  it('keeps assignment summary expanded on mobile', async () => {
+    window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+      matches: query === '(max-width:48rem)',
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    }));
+
+    renderStep({
+      initialConfig: {
+        ...createDefaultConfig(),
+        subjectIds: ['subject-1'],
+        chapterIds: ['chapter-1', 'chapter-2'],
+      },
+    });
+
+    expect(
+      await screen.findByText('Assignment Summary (4 assignments)'),
+    ).toBeInTheDocument();
+    const subjectHeader = document.querySelector(
+      '.assignment-summary-subject',
+    ) as HTMLElement;
+    expect(screen.getByText('Parts of plant')).toBeInTheDocument();
+
+    fireEvent.click(subjectHeader);
+
+    expect(screen.getByText('Parts of plant')).toBeInTheDocument();
   });
 
   it('does not restore previously removed chapter lessons when assigning another chapter', async () => {

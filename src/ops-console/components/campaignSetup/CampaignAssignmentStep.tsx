@@ -19,7 +19,8 @@ import {
   buildAssignmentDrafts,
   buildRows,
   createDefaultConfig,
-  getCampaignDaysWithoutSundays,
+  getRequiredAssignmentCount,
+  isAlternateWeekEnabled,
 } from './campaignAssignmentUtils';
 import { CampaignSetupFormState } from './types';
 import './CampaignAssignmentStep.css';
@@ -110,15 +111,25 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
     () =>
       selectedGrades.every((grade) => {
         const config = configs[grade.id];
+        const requiredAssignments = getRequiredAssignmentCount(
+          form.startDate,
+          form.endDate,
+          config?.frequency ?? createDefaultConfig().frequency,
+        );
+        const rowCount = rowsByGrade.get(grade.id)?.length ?? 0;
+
         return (
           !!config &&
           config.subjectIds.length > 0 &&
           config.chapterIds.length > 0 &&
-          (rowsByGrade.get(grade.id)?.length ?? 0) > 0 &&
+          (config.frequency !== 'alternate_week' ||
+            isAlternateWeekEnabled(form.startDate, form.endDate)) &&
+          rowCount > 0 &&
+          rowCount >= requiredAssignments &&
           (rowsByGrade.get(grade.id) ?? []).every((row) => row.date)
         );
       }),
-    [configs, rowsByGrade, selectedGrades],
+    [configs, form.endDate, form.startDate, rowsByGrade, selectedGrades],
   );
 
   useEffect(() => {
@@ -174,21 +185,23 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   const activeGrade =
     selectedGrades.find((grade) => grade.id === activeGradeId) ??
     selectedGrades[0];
-  const activeSubjects = gradeOptionsById.get(activeGradeId) ?? [];
-  const activeConfig = configs[activeGradeId] ?? createDefaultConfig();
+  const activeGradeKey = activeGrade?.id || '';
+  const activeSubjects = gradeOptionsById.get(activeGradeKey) ?? [];
+  const activeConfig = configs[activeGradeKey] ?? createDefaultConfig();
   const selectedSubjects = activeSubjects.filter((subject) =>
     activeConfig.subjectIds.includes(subject.id),
   );
-  const activeRows = rowsByGrade.get(activeGradeId) ?? [];
-  const campaignDays = getCampaignDaysWithoutSundays(
+  const activeRows = rowsByGrade.get(activeGradeKey) ?? [];
+  const requiredAssignments = getRequiredAssignmentCount(
     form.startDate,
     form.endDate,
+    activeConfig.frequency,
   );
   const insufficientLessons =
-    activeRows.length > 0 && activeRows.length < campaignDays;
+    activeRows.length > 0 && activeRows.length < requiredAssignments;
 
   const toggleChapter = (chapterId: string, lessonIds: string[]) => {
-    updateConfig(activeGradeId, (config) => {
+    updateConfig(activeGradeKey, (config) => {
       const isSelected = config.chapterIds.includes(chapterId);
       const chapterRowIds = lessonIds.map(
         (lessonId) => `${chapterId}:${lessonId}`,
@@ -224,7 +237,7 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   };
 
   const toggleExpanded = (chapterId: string) => {
-    updateConfig(activeGradeId, (config) => ({
+    updateConfig(activeGradeKey, (config) => ({
       ...config,
       expandedChapterIds: config.expandedChapterIds.includes(chapterId)
         ? config.expandedChapterIds.filter((id) => id !== chapterId)
@@ -276,7 +289,7 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
         selectedSubjects={selectedSubjects}
         activeConfig={activeConfig}
         onSubjectsChange={(subjects) =>
-          updateConfig(activeGradeId, (config) => ({
+          updateConfig(activeGradeKey, (config) => ({
             ...config,
             subjectIds: subjects.map((subject) => subject.id),
             chapterIds: config.chapterIds.filter((chapterId) =>
@@ -300,11 +313,11 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
 
       <AssignmentSummary
         rows={activeRows}
-        campaignDays={campaignDays}
+        requiredAssignments={requiredAssignments}
         insufficientLessons={insufficientLessons}
         onRemoveLesson={(rowId) =>
           setDeleteTarget({
-            gradeId: activeGradeId,
+            gradeId: activeGradeKey,
             rowId,
           })
         }

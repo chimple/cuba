@@ -1,5 +1,11 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { getTodayDateValue } from '../hooks/campaignSetupFormHelpers';
 import CampaignSetupPage from './CampaignSetupPage';
 import { buildCampaignRewardsPayload } from '../hooks/campaignSetupFormHelpers';
@@ -689,6 +695,74 @@ describe('CampaignSetupPage', () => {
     ).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Enter group name')).toBeInTheDocument();
     expect(await screen.findByText('Select Program')).toBeInTheDocument();
+  });
+
+  it('hides audience helper copy after manual selection', async () => {
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await openSelectAndChoose('Select Program', 'Early Learning');
+
+    expect(
+      await screen.findByText(
+        'all blocks under selected program are included.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('all schools under selected blocks are included.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('all grades under selected schools are included.'),
+    ).toBeInTheDocument();
+
+    const blockField = screen
+      .getByText('Block')
+      .closest('.campaign-setup-field') as HTMLElement | null;
+    const blockSelect = blockField
+      ? within(blockField).getByRole('combobox')
+      : null;
+    fireEvent.mouseDown(blockSelect as HTMLElement);
+    fireEvent.click(await screen.findByRole('option', { name: 'Block A' }));
+    fireEvent.keyDown(screen.getByRole('listbox'), {
+      key: 'Escape',
+      code: 'Escape',
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText('all blocks under selected program are included.'),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it('does not show audience helper copy before a program is selected', async () => {
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+
+    expect(
+      screen.queryByText('all blocks under selected program are included.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('all schools under selected blocks are included.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('all grades under selected schools are included.'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('uses the header back button to move to the previous step before leaving the page', async () => {
+    mockAssignmentComplete = true;
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await completeSetupStep();
+    expect(screen.getByText('Assignment Configuration')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Back'));
+
+    expect(await screen.findByText('Objective & Goal')).toBeInTheDocument();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('builds rewards payload in the next-step format', () => {

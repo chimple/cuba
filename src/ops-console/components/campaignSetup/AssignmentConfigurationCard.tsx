@@ -68,17 +68,18 @@ export const AssignmentConfigurationCard: React.FC<
               onFrequencyChange(event.target.value as Frequency)
             }
           >
-            {(Object.keys(frequencyLabels) as Frequency[])
-              .filter(
-                (frequency) =>
-                  frequency !== 'alternate_week' ||
-                  isAlternateWeekEnabled(form.startDate, form.endDate),
-              )
-              .map((frequency) => (
-                <MenuItem key={frequency} value={frequency}>
-                  {frequencyLabels[frequency]}
-                </MenuItem>
-              ))}
+            {(Object.keys(frequencyLabels) as Frequency[]).map((frequency) => (
+              <MenuItem
+                key={frequency}
+                value={frequency}
+                disabled={
+                  frequency === 'alternate_week' &&
+                  !isAlternateWeekEnabled(form.startDate, form.endDate)
+                }
+              >
+                {frequencyLabels[frequency]}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
       </Box>
