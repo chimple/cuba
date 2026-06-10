@@ -227,6 +227,7 @@ interface SchoolStudentsProps {
 }
 
 const ROWS_PER_PAGE = 20;
+const STUDENT_FETCH_BATCH_SIZE = 200;
 
 type StudentListCacheEntry = {
   data: ApiStudentData[];
@@ -299,19 +300,23 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     programScopedClassIds,
   );
   const cachedInitialStudents = studentListCache.get(initialStudentCacheKey);
+  const hasCompletePrefetchedStudents =
+    !hasProgramClassScope &&
+    Array.isArray(data?.students) &&
+    data.students.length > 0 &&
+    typeof data.totalStudentCount === 'number' &&
+    data.students.length >= data.totalStudentCount;
   const [students, setStudents] = useState<ApiStudentData[]>(
     cachedInitialStudents?.data ??
-      (hasProgramClassScope ? [] : data.students || []),
+      (hasCompletePrefetchedStudents ? data.students || [] : []),
   );
   const [totalCount, setTotalCount] = useState<number>(
     cachedInitialStudents?.total ??
-      (hasProgramClassScope ? 0 : data.totalStudentCount || 0),
+      (hasCompletePrefetchedStudents ? data.totalStudentCount || 0 : 0),
   );
   const hasInitialStudents =
-    !!cachedInitialStudents ||
-    (!hasProgramClassScope &&
-      Array.isArray(data?.students) &&
-      data.students.length > 0);
+    !!cachedInitialStudents || hasCompletePrefetchedStudents;
+  const fetchIdRef = React.useRef(0);
   const [isLoading, setIsLoading] = useState<boolean>(!hasInitialStudents);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -377,7 +382,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [searchTerm]);
 
   const fetchStudents = useCallback(
-    async (currentPage: number, search: string, silent = false) => {
+    async (search: string, silent = false) => {
+      const currentFetchId = ++fetchIdRef.current;
       if (!silent) {
         setIsLoading(true);
       }
@@ -389,57 +395,85 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         scopedClassId,
         scopedClassIds,
       );
-      const shouldCache = currentPage === 1 && search.trim() === '';
+      const shouldCache = search.trim() === '';
       // Empty scoped class IDs mean the program intentionally has no student rows.
       if (scopedClassIds && scopedClassIds.length === 0) {
+        if (currentFetchId !== fetchIdRef.current) return;
         setStudents([]);
         setTotalCount(0);
         if (shouldCache) {
           studentListCache.set(cacheKey, { data: [], total: 0 });
         }
-        setIsLoading(false);
+        if (currentFetchId === fetchIdRef.current) {
+          setIsLoading(false);
+        }
         return;
       }
       try {
-        let response;
-        if (search && search.trim() !== '') {
-          response = await api.searchStudentsInSchool(
+        const fetchStudentPage = async (pageNumber: number) => {
+          if (search && search.trim() !== '') {
+            return api.searchStudentsInSchool(
+              schoolId,
+              search,
+              pageNumber,
+              STUDENT_FETCH_BATCH_SIZE,
+              scopedClassId,
+              scopedClassIds,
+            );
+          }
+
+          return api.getStudentInfoBySchoolId(
             schoolId,
-            search,
-            currentPage,
-            ROWS_PER_PAGE,
+            pageNumber,
+            STUDENT_FETCH_BATCH_SIZE,
             scopedClassId,
             scopedClassIds,
           );
-          setStudents(response.data);
-          setTotalCount(response.total);
-          if (shouldCache) {
-            studentListCache.set(cacheKey, {
-              data: response.data,
-              total: response.total,
-            });
-          }
-        } else {
-          response = await api.getStudentInfoBySchoolId(
-            schoolId,
-            currentPage,
-            ROWS_PER_PAGE,
-            scopedClassId,
-            scopedClassIds,
+        };
+
+        const firstPage = await fetchStudentPage(1);
+        if (currentFetchId !== fetchIdRef.current) return;
+
+        const allStudents = [...(firstPage.data ?? [])];
+        const totalStudents = Math.max(
+          typeof firstPage.total === 'number' ? firstPage.total : 0,
+          allStudents.length,
+        );
+        const totalPages = Math.max(
+          1,
+          Math.ceil(totalStudents / STUDENT_FETCH_BATCH_SIZE),
+        );
+
+        if (totalPages > 1) {
+          const remainingPages = await Promise.all(
+            Array.from({ length: totalPages - 1 }, (_, index) =>
+              fetchStudentPage(index + 2),
+            ),
           );
-          setStudents(response.data);
-          setTotalCount(response.total);
-          if (shouldCache) {
-            studentListCache.set(cacheKey, {
-              data: response.data,
-              total: response.total,
-            });
-          }
+          if (currentFetchId !== fetchIdRef.current) return;
+
+          remainingPages.forEach((pageResponse) => {
+            allStudents.push(...(pageResponse.data ?? []));
+          });
+        }
+
+        if (currentFetchId !== fetchIdRef.current) return;
+        setStudents(allStudents);
+        setTotalCount(totalStudents);
+        if (shouldCache) {
+          studentListCache.set(cacheKey, {
+            data: allStudents,
+            total: totalStudents,
+          });
         }
       } catch (error) {
-        logger.error('Failed to fetch students:', error);
+        if (currentFetchId === fetchIdRef.current) {
+          logger.error('Failed to fetch students:', error);
+        }
       } finally {
-        setIsLoading(false);
+        if (currentFetchId === fetchIdRef.current) {
+          setIsLoading(false);
+        }
       }
     },
     [schoolId, optionalClassId, programScopedClassIds],
@@ -449,63 +483,51 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const issFilter = isFilter ?? true;
   const custoomTitle = customTitle ?? 'Students';
 
-  // Refreshes prefetched unscoped data without replacing scoped program results.
   useEffect(() => {
-    if (allowedGrades || !hasInitialStudents) return;
-    fetchStudents(1, '', true);
-  }, [allowedGrades, schoolId, fetchStudents, hasInitialStudents]);
-
-  useEffect(() => {
-    const isInitial =
-      page === 1 && !debouncedSearchTerm && filters.class.length === 0;
-
-    // Reuses prefetched school students only when no program scope is active.
-    if (isInitial && !allowedGrades && !optionalClassId) {
-      const prefetchedStudents = data.students || [];
-      const prefetchedTotal =
-        data.totalStudentCount ?? prefetchedStudents.length;
-      const cacheKey = getStudentListCacheKey(
-        schoolId,
-        optionalClassId,
-        programScopedClassIds,
-      );
-
-      setStudents(prefetchedStudents);
-      setTotalCount(prefetchedTotal);
-      studentListCache.set(cacheKey, {
-        data: prefetchedStudents,
-        total: prefetchedTotal,
-      });
-
-      if (prefetchedStudents.length > 0 || data.totalStudentCount === 0) {
-        setIsLoading(false);
-      } else {
-        fetchStudents(page, debouncedSearchTerm, true);
-      }
-      return;
-    }
     const cacheKey = getStudentListCacheKey(
       schoolId,
       optionalClassId,
       programScopedClassIds,
     );
-    fetchStudents(
-      page,
-      debouncedSearchTerm,
-      (isInitial && studentListCache.has(cacheKey)) ||
-        (isInitial && !allowedGrades),
-    );
+
+    if (!debouncedSearchTerm) {
+      const cachedStudents = studentListCache.get(cacheKey);
+      if (cachedStudents) {
+        setStudents(cachedStudents.data);
+        setTotalCount(cachedStudents.total);
+        setIsLoading(false);
+        fetchStudents('', true);
+        return;
+      }
+
+      if (!allowedGrades && !optionalClassId && hasCompletePrefetchedStudents) {
+        const prefetchedStudents = data.students || [];
+        const prefetchedTotal =
+          data.totalStudentCount ?? prefetchedStudents.length;
+
+        setStudents(prefetchedStudents);
+        setTotalCount(prefetchedTotal);
+        studentListCache.set(cacheKey, {
+          data: prefetchedStudents,
+          total: prefetchedTotal,
+        });
+        setIsLoading(false);
+        fetchStudents('', true);
+        return;
+      }
+    }
+
+    fetchStudents(debouncedSearchTerm);
   }, [
-    page,
     debouncedSearchTerm,
     fetchStudents,
     data.students,
     data.totalStudentCount,
-    filters.class,
     allowedGrades,
     optionalClassId,
     programScopedClassIds,
     schoolId,
+    hasCompletePrefetchedStudents,
   ]);
 
   const handlePageChange = (newPage: number) => {
@@ -971,7 +993,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     [],
   );
 
-  const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
+  const processedStudents = useMemo((): DisplayStudent[] => {
     let filtered = sortedStudents.map((s_api): DisplayStudent => {
       const classNameFromStudent = getExactClassName(s_api.classWithidname);
       const rowClassId = String(
@@ -1019,9 +1041,24 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     getWhatsappGroupStatus,
   ]);
 
+  const studentsForCurrentPage = useMemo((): DisplayStudent[] => {
+    const startIndex = (page - 1) * ROWS_PER_PAGE;
+    return processedStudents.slice(startIndex, startIndex + ROWS_PER_PAGE);
+  }, [page, processedStudents]);
+
   const pageCount = useMemo(() => {
-    return Math.ceil(totalCount / ROWS_PER_PAGE);
-  }, [totalCount, filters, searchTerm, filteredStudents.length]);
+    return Math.ceil(processedStudents.length / ROWS_PER_PAGE);
+  }, [processedStudents.length]);
+
+  useEffect(() => {
+    if (pageCount === 0 && page !== 1) {
+      setPage(1);
+      return;
+    }
+    if (page > pageCount && pageCount > 0) {
+      setPage(pageCount);
+    }
+  }, [page, pageCount]);
 
   const isDataPresent = studentsForCurrentPage.length > 0;
   const isFilteringOrSearching =
@@ -1602,7 +1639,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     );
 
     setIsEditStudentModalOpen(false);
-    fetchStudents(page, debouncedSearchTerm);
+    fetchStudents(debouncedSearchTerm);
   };
 
   const handleCloseAddStudentModal = useCallback(() => {
@@ -1663,7 +1700,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             setErrorMessage(undefined);
           }, 2000);
           setPage(1);
-          fetchStudents(1, debouncedSearchTerm);
+          fetchStudents(debouncedSearchTerm);
         } else {
           setErrorMessage({ text: result.message, type: 'error' });
         }
@@ -1729,7 +1766,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       setIsDeleteModalOpen(false);
       setDeleteTargetStudent(null);
 
-      fetchStudents(page, debouncedSearchTerm);
+      fetchStudents(debouncedSearchTerm);
     } catch (error) {
       logger.error('Delete failed:', error);
     } finally {
