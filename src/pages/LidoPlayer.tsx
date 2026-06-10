@@ -561,7 +561,7 @@ const LidoPlayer: FC = () => {
 
   const onLessonEnd = async (e: any) => {
     setIsLoading(true);
-    const lessonData = ((e?.detail ?? {}) as LidoEventDetail) ?? {};
+    const lessonData = (e?.detail ?? {}) as LidoEventDetail;
     const {
       student: currentStudent,
       studentId,
@@ -872,10 +872,6 @@ const LidoPlayer: FC = () => {
   };
 
   const onGameExit = async (e: any) => {
-    if (showDialogBox) {
-      return;
-    }
-
     const data = (e.detail ?? {}) as LidoEventDetail;
     const { studentId, userId } = await resolveStudentContext();
     if (!studentId) {
