@@ -872,11 +872,11 @@ const LidoPlayer: FC = () => {
   };
 
   const onGameExit = async (e: any) => {
-    const data = (e.detail ?? {}) as LidoEventDetail;
     if (showDialogBox) {
       return;
     }
 
+    const data = (e.detail ?? {}) as LidoEventDetail;
     const { studentId, userId } = await resolveStudentContext();
     if (!studentId) {
       push();
