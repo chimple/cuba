@@ -236,15 +236,7 @@ const LidoPlayer: FC = () => {
     scoresList.reduce((total, record) => total + (record.timeSpent ?? 0), 0);
 
   const onNextContainer = (e: any) => logger.info('Next', e);
-  const gameCompleted = async (e: Event) => {
-    // The bundled Lido player emits `lidoGameCompleted` only when the full
-    // lesson flow is complete, and Digital Skills can send it with an empty
-    // detail payload. Route that event through the normal lesson-end flow.
-    if (!showDialogBox && !isLoading) {
-      await onLessonEnd(e);
-      return;
-    }
-
+  const gameCompleted = () => {
     const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
 
     if (popupConfig) {
