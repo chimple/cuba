@@ -9308,7 +9308,6 @@ order by
       /* ==========================================
        * 3️⃣ Abort Check (with assignment_id IS NULL)
        * ========================================== */
-      const courseFilter = courseId ? ' AND course_id = ?' : '';
       const abortQuery = `
         SELECT lesson_id, status
         FROM (
@@ -9320,7 +9319,6 @@ order by
             FROM result
             WHERE student_id = ?
               AND subject_id = ?
-              ${courseFilter}
               AND assignment_id IS NULL
               AND is_deleted = 0
         ) t
@@ -9330,9 +9328,6 @@ order by
       `;
 
       const abortParams: (string | null)[] = [studentId, subjectId];
-      if (courseId) {
-        abortParams.push(courseId);
-      }
       const abortRes = await this.executeQuery(abortQuery, abortParams);
 
       const lastTwo = ((abortRes as DBSQLiteValues | undefined)?.values ??
@@ -9437,15 +9432,11 @@ order by
         FROM result
         WHERE student_id = ?
           AND subject_id = ?
-          ${courseFilter}
           AND assignment_id IS NULL
           AND is_deleted = 0
           AND lesson_id IN (${resultPlaceholders});
       `;
       const resultParams: (string | null)[] = [studentId, subjectId];
-      if (courseId) {
-        resultParams.push(courseId);
-      }
       resultParams.push(...lessonIds);
       const resultRes = await this.executeQuery(resultQuery, resultParams);
       const completedLessons = ((resultRes as DBSQLiteValues | undefined)
@@ -9503,7 +9494,7 @@ order by
         ),
       );
 
-      const params: string[] = [studentId, courseId];
+      const params: string[] = [studentId, course.subject_id];
       const assessmentLessonFilter = assessmentLessonIds.length
         ? `OR lesson_id IN (${assessmentLessonIds.map(() => '?').join(',')})`
         : '';
@@ -9513,7 +9504,7 @@ order by
         SELECT lesson_id, status
         FROM result
         WHERE student_id = ?
-          AND course_id = ?
+          AND subject_id = ?
           AND COALESCE(is_deleted, 0) = 0
           AND (status = 'assessment_terminated' ${assessmentLessonFilter});
       `;
@@ -9601,14 +9592,13 @@ order by
           SELECT status
           FROM result
           WHERE student_id = ?
-            AND course_id = ?
             AND assignment_id IS NULL
             AND COALESCE(is_deleted, 0) = 0
             AND lesson_id IN (${placeholders})
           ORDER BY created_at DESC
           LIMIT 1
         `,
-        [studentId, courseId, ...assessmentLessonIds],
+        [studentId, ...assessmentLessonIds],
       );
 
       const latestStatus = ((pendingAbortRes as DBSQLiteValues | undefined)

@@ -102,7 +102,11 @@ import { ASSIGNMENT_COMPLETED_IDS } from '../common/courseConstants';
 import { buildGlobalEventBaseContext } from '../common/eventBaseContext';
 import { v4 as uuidv4 } from 'uuid';
 import { updateLocalAttributes } from '../growthbook/Growthbook';
-import { recommendNextLesson } from '../hooks/useLearningPath';
+import {
+  CoursePath,
+  LessonNode,
+  recommendNextLesson,
+} from '../hooks/useLearningPath';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import { store } from '../redux/store';
 import {
@@ -2828,13 +2832,16 @@ export class Util {
     // ABORT CASE: refresh current lesson with PAL recommendation only
     // ABORT CASE: Assessment aborted → rebuild learning path (legacy flow)
     if (isFullPathwayTerminated && abortCourseId && isAssessmentLesson) {
-      let courseIndex = learningPath.courses.courseList.findIndex(
-        (c: any) => c.course_id === abortCourseId,
+      const courses = learningPath.courses as {
+        courseList: CoursePath[];
+        currentCourseIndex: number;
+      };
+      let courseIndex = courses.courseList.findIndex(
+        (coursePath: CoursePath) => coursePath.course_id === abortCourseId,
       );
 
       if (courseIndex === -1) return;
 
-      const courses = learningPath.courses;
       let course = courses.courseList[courseIndex];
       course.path.length = 0;
       const nextLesson = await recommendNextLesson({
@@ -2852,6 +2859,40 @@ export class Util {
       if (nextLesson) {
         course.path.push(nextLesson);
       }
+
+      if (
+        storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY &&
+        course.subject_id
+      ) {
+        for (const peerCourse of courses.courseList) {
+          if (
+            peerCourse === course ||
+            peerCourse.subject_id !== course.subject_id
+          ) {
+            continue;
+          }
+
+          peerCourse.path.length = 0;
+          const peerNextLesson = await recommendNextLesson({
+            student: currentStudent,
+            course: {
+              id: peerCourse.course_id,
+              subject_id: peerCourse.subject_id,
+              framework_id:
+                peerCourse.type === RECOMMENDATION_TYPE.FRAMEWORK
+                  ? 'framework'
+                  : null,
+            },
+            mode: storedPathwayMode,
+            coursePath: peerCourse,
+          });
+
+          if (peerNextLesson) {
+            peerCourse.path.push(peerNextLesson);
+          }
+        }
+      }
+
       courseIndex += 1;
       if (courseIndex >= courses.courseList.length) {
         courseIndex = 0;
@@ -2878,14 +2919,17 @@ export class Util {
       const PATH_SIZE = 5;
       const api = ServiceConfig.getI().apiHandler;
 
-      const courses = learningPath.courses;
+      const courses = learningPath.courses as {
+        courseList: CoursePath[];
+        currentCourseIndex: number;
+      };
       let courseIndex = courses.currentCourseIndex;
       let course = courses.courseList[courseIndex];
       if (!course) return;
 
       /* 1️⃣ Identify active lesson */
       const activeLessonIndex = course.path.findIndex(
-        (l: any) => l.isPlayed === false,
+        (lesson: LessonNode) => lesson.isPlayed === false,
       );
       const activeLesson =
         activeLessonIndex !== -1 ? course.path[activeLessonIndex] : null;
@@ -2915,6 +2959,56 @@ export class Util {
         isPlayed: true,
       };
 
+      const syncSameSubjectAssessmentPaths = (
+        nextAssessmentLesson: LessonNode | null,
+      ) => {
+        if (
+          storedPathwayMode !== LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
+          !activeLesson.is_assessment ||
+          !course.subject_id
+        ) {
+          return;
+        }
+
+        for (const peerCourse of courses.courseList) {
+          if (
+            peerCourse === course ||
+            peerCourse.subject_id !== course.subject_id
+          ) {
+            continue;
+          }
+
+          const peerActiveLessonIndex = peerCourse.path.findIndex(
+            (lesson: LessonNode) =>
+              lesson.isPlayed === false &&
+              lesson.is_assessment === true &&
+              lesson.lesson_id === activeLesson.lesson_id,
+          );
+
+          if (peerActiveLessonIndex === -1) continue;
+
+          const peerActiveLesson = peerCourse.path[peerActiveLessonIndex];
+          peerCourse.path[peerActiveLessonIndex] = {
+            ...peerActiveLesson,
+            isPlayed: true,
+          };
+
+          if (nextAssessmentLesson) {
+            peerCourse.path.push({ ...nextAssessmentLesson });
+          }
+
+          if (peerCourse.path.length > PATH_SIZE) {
+            const peerActive = peerCourse.path.find(
+              (lesson: LessonNode) => !lesson.isPlayed,
+            );
+            peerCourse.path.length = 0;
+            if (peerActive) peerCourse.path.push(peerActive);
+            peerCourse.path_id = uuidv4();
+            peerCourse.completedPath = (peerCourse.completedPath ?? 0) + 1;
+          }
+        }
+      };
+
       const completedPathwaySnapshot = JSON.stringify(learningPath);
 
       /* 3️⃣ Compute next active lesson */
@@ -2935,13 +3029,17 @@ export class Util {
       }
 
       /* 4️⃣ Check path overflow */
+      syncSameSubjectAssessmentPaths(nextLesson);
+
       let pathCompleted = false;
 
       if (course.path.length > PATH_SIZE) {
         // if exceeding max path size i.e '5', remove played lessons from old path keep active lesson from currentPath
-        const active = course.path.find((l: any) => !l.isPlayed);
+        const active = course.path.find(
+          (lesson: LessonNode) => !lesson.isPlayed,
+        );
         course.path.length = 0;
-        course.path.push(active);
+        if (active) course.path.push(active);
         pathCompleted = true;
       }
 
@@ -2987,7 +3085,7 @@ export class Util {
       /* 6️⃣ Event collection */
       const newCourse = courses.courseList[courses.currentCourseIndex];
       const newActiveLesson = newCourse.path.find(
-        (l: any) => l.isPlayed === false,
+        (lesson: LessonNode) => lesson.isPlayed === false,
       );
 
       const eventPayload = {

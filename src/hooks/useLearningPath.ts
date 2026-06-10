@@ -29,9 +29,16 @@ export type CoursePath = {
   path_id: string;
   course_id: string;
   subject_id: string;
+  display_name?: string;
+  is_pal_consolidated?: boolean;
   type: RECOMMENDATION_TYPE;
   path: LessonNode[]; // played + ONE active
   completedPath: number;
+};
+
+export type LearningPathCourse = TableTypes<'course'> & {
+  pathway_display_name?: string;
+  is_pal_consolidated?: boolean;
 };
 
 export type LessonNode = {
@@ -50,6 +57,54 @@ export const shouldUseAssessment = (mode: string) =>
 
 export const shouldUsePAL = (mode: string) =>
   mode === LEARNING_PATHWAY_MODE.FULL_ADAPTIVE;
+
+export const isPalEnabledCourse = (course?: TableTypes<'course'> | null) =>
+  !!course?.subject_id && !!course?.framework_id;
+
+export const consolidatePalEnabledCourses = async (
+  courses: TableTypes<'course'>[],
+  mode: string,
+): Promise<LearningPathCourse[]> => {
+  if (mode !== LEARNING_PATHWAY_MODE.FULL_ADAPTIVE) return courses;
+
+  const api = ServiceConfig.getI().apiHandler;
+  const palSubjectsAdded = new Set<string>();
+  const subjectNameById = new Map<string, string>();
+  const consolidatedCourses: LearningPathCourse[] = [];
+
+  for (const course of courses) {
+    const subjectId = course.subject_id;
+
+    if (!subjectId || !isPalEnabledCourse(course)) {
+      consolidatedCourses.push(course);
+      continue;
+    }
+
+    if (palSubjectsAdded.has(subjectId)) continue;
+
+    palSubjectsAdded.add(subjectId);
+
+    let displayName = subjectNameById.get(subjectId);
+    if (!displayName) {
+      try {
+        const subject = await api.getSubject(subjectId);
+        displayName = subject?.name?.trim() || course.name;
+      } catch (e) {
+        logger.error('Error resolving PAL subject display name', e);
+        displayName = course.name;
+      }
+      subjectNameById.set(subjectId, displayName);
+    }
+
+    consolidatedCourses.push({
+      ...course,
+      pathway_display_name: displayName,
+      is_pal_consolidated: true,
+    });
+  }
+
+  return consolidatedCourses;
+};
 
 export async function buildPath({
   student,
@@ -77,6 +132,8 @@ export async function buildPath({
         path_id: uuidv4(),
         course_id: course.id,
         subject_id: course.subject_id,
+        display_name: course.pathway_display_name,
+        is_pal_consolidated: course.is_pal_consolidated,
         type: course.framework_id
           ? RECOMMENDATION_TYPE.FRAMEWORK
           : RECOMMENDATION_TYPE.CHAPTER,
@@ -672,7 +729,18 @@ export const useLearningPath = (opts?: {
     const sameOrder =
       sameCourses && newIds.every((id, idx) => id === oldIds[idx]);
 
-    if (sameOrder) {
+    const sameMetadata =
+      sameOrder &&
+      userCourses.every((course, idx) => {
+        const oldCourse = oldCourseList[idx];
+        return (
+          (oldCourse?.display_name ?? undefined) ===
+            (course.pathway_display_name ?? undefined) &&
+          !!oldCourse?.is_pal_consolidated === !!course.is_pal_consolidated
+        );
+      });
+
+    if (sameOrder && sameMetadata) {
       return { updated: false, learningPath };
     }
 
@@ -688,7 +756,11 @@ export const useLearningPath = (opts?: {
 
       if (existing) {
         // ✅ Preserve entire course state
-        newCourseList.push(existing);
+        newCourseList.push({
+          ...existing,
+          display_name: course.pathway_display_name,
+          is_pal_consolidated: course.is_pal_consolidated,
+        });
       } else {
         // ➕ New course → build fresh
         const activeLesson = await recommendNextLesson({
@@ -702,10 +774,13 @@ export const useLearningPath = (opts?: {
           path_id: uuidv4(),
           course_id: course.id,
           subject_id: course.subject_id,
+          display_name: course.pathway_display_name,
+          is_pal_consolidated: course.is_pal_consolidated,
           type: course.framework_id
             ? RECOMMENDATION_TYPE.FRAMEWORK
             : RECOMMENDATION_TYPE.CHAPTER,
           path: activeLesson ? [activeLesson] : [],
+          completedPath: 0,
           lastPlayedLesson: undefined,
         });
       }
@@ -776,6 +851,8 @@ export const useLearningPath = (opts?: {
       path_id: coursePath.path_id,
       course_id: coursePath.course_id,
       subject_id: coursePath.subject_id,
+      display_name: coursePath.display_name,
+      is_pal_consolidated: coursePath.is_pal_consolidated,
       type: coursePath.type,
       path: newPath,
       completedPath: completedPath,

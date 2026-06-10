@@ -17,6 +17,7 @@ interface CourseDetails {
   course: TableTypes<'course'>;
   grade?: TableTypes<'grade'> | null;
   curriculum?: TableTypes<'curriculum'> | null;
+  displayName?: string;
 }
 const ImageUrlCache: Record<string, string> = {};
 
@@ -191,6 +192,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
               course,
               grade: gradeDoc,
               curriculum: curriculumDoc,
+              displayName: entry.display_name,
             };
           } catch (error) {
             logger.error(
@@ -309,6 +311,9 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
     const parts = name.split(' ');
     return parts.length > 1 ? parts[1] : name;
   };
+
+  const getDisplayName = (detail: CourseDetails) =>
+    detail.displayName || detail.course.name;
 
   const handleToggleExpand = () => {
     if (hideArrow) return;
@@ -446,7 +451,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                   </div>
                 </div>
                 <div className="dropdownmenu-truncate-style">
-                  {truncateName(detail.course.name)}
+                  {truncateName(getDisplayName(detail))}
                 </div>
               </div>
             ))}
@@ -470,7 +475,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       <div>
         {!expanded && selected && (
           <div className=" dropdownmenu-dropdown-label">
-            {selected.course.name}
+            {getDisplayName(selected)}
           </div>
         )}
       </div>
