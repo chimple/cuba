@@ -2964,6 +2964,7 @@ export class Util {
       ) => {
         if (
           storedPathwayMode !== LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
+          !activeLesson ||
           !activeLesson.is_assessment ||
           !course.subject_id
         ) {

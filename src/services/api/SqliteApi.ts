@@ -9333,11 +9333,14 @@ order by
       const lastTwo = ((abortRes as DBSQLiteValues | undefined)?.values ??
         []) as ResultStatusRow[];
 
+      const isAssessmentTerminated = lastTwo.some(
+        (r) => r.status === 'assessment_terminated',
+      );
       const isAborted =
         lastTwo.length === 2 &&
         lastTwo.every((r) => r.status === 'system_exit');
 
-      if (isAborted) {
+      if (isAssessmentTerminated || isAborted) {
         return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
       }
 
@@ -9469,6 +9472,7 @@ order by
     try {
       const course = await this.getCourse(courseId);
       if (!course?.subject_id) return false;
+      const subjectId = course.subject_id;
 
       const assessmentLessonsQuery = `
         SELECT DISTINCT lesson_id
@@ -9479,7 +9483,7 @@ order by
       `;
       const assessmentLessonsRes = await this.executeQuery(
         assessmentLessonsQuery,
-        [course.subject_id],
+        [subjectId],
       );
       const assessmentLessonIds = Array.from(
         new Set(
@@ -9494,7 +9498,7 @@ order by
         ),
       );
 
-      const params: string[] = [studentId, course.subject_id];
+      const params: string[] = [studentId, subjectId];
       const assessmentLessonFilter = assessmentLessonIds.length
         ? `OR lesson_id IN (${assessmentLessonIds.map(() => '?').join(',')})`
         : '';

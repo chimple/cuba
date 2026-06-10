@@ -230,6 +230,31 @@ describe('useLearningPath features used by Home tab', () => {
     );
   });
 
+  test('continues assessment sequence in assessment-only mode after prior assessment history', async () => {
+    mockApi.isStudentPlayedPalLesson.mockResolvedValue(true);
+    mockApi.getSubjectLessonsBySubjectId.mockResolvedValue({
+      id: 'asmt-doc-2',
+      lesson_id: 'assessment-lesson-2',
+    });
+
+    const next = await recommendNextLesson({
+      student: { id: 'stu-1' },
+      course: { id: 'c1', subject_id: 's1' },
+      mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+    });
+
+    expect(next).toMatchObject({
+      lesson_id: 'assessment-lesson-2',
+      is_assessment: true,
+    });
+    expect(mockApi.getSubjectLessonsBySubjectId).toHaveBeenCalledWith(
+      's1',
+      { id: 'stu-1' },
+      'c1',
+    );
+    expect(palUtil.getPalLessonPathForCourse).not.toHaveBeenCalled();
+  });
+
   test('resumes same teacher-assigned assessment after exit', async () => {
     mockApi.getLatestAssessmentGroup.mockResolvedValue([
       { id: 'assignment-11', lesson_id: 'teacher-asmt-11' },

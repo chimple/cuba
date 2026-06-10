@@ -14347,11 +14347,14 @@ export class SupabaseApi implements ServiceApi {
       /* -----------------------------------------
         Abort check
       ------------------------------------------ */
+      const isAssessmentTerminated = (data as ResultStatusRow[]).some(
+        (r) => r.status === 'assessment_terminated',
+      );
       const isAborted =
         lastTwoUniqueLessons.length === 2 &&
         lastTwoUniqueLessons.every((r) => r.status === 'system_exit');
 
-      if (isAborted) {
+      if (isAssessmentTerminated || isAborted) {
         return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
       }
 
@@ -14503,12 +14506,13 @@ export class SupabaseApi implements ServiceApi {
 
       const course = await this.getCourse(courseId);
       if (!course?.subject_id) return false;
+      const subjectId = course.subject_id;
 
       const { data: assessmentLessons, error: assessmentLessonsError } =
         await this.supabase
           .from('subject_lesson')
           .select('lesson_id')
-          .eq('subject_id', course.subject_id)
+          .eq('subject_id', subjectId)
           .or('is_deleted.eq.false,is_deleted.is.null');
 
       if (assessmentLessonsError) {
@@ -14531,7 +14535,7 @@ export class SupabaseApi implements ServiceApi {
         .from('result')
         .select('lesson_id, status')
         .eq('student_id', studentId)
-        .eq('subject_id', course.subject_id)
+        .eq('subject_id', subjectId)
         .or('is_deleted.eq.false,is_deleted.is.null');
 
       if (assessmentLessonIds.length) {

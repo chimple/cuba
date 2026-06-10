@@ -178,7 +178,9 @@ export async function recommendNextLesson({
   /* -------------------------------
    * 1️⃣ TEACHER ASSIGNED ASSESSMENT
    * ------------------------------- */
-  const rawResults = await api.isStudentPlayedPalLesson(student.id, course.id);
+  const hasCompletedInitialAssessment = shouldUsePAL(mode)
+    ? await api.isStudentPlayedPalLesson(student.id, course.id)
+    : false;
   if (classId) {
     const assessments = await api.getLatestAssessmentGroup(
       classId,
@@ -201,7 +203,7 @@ export async function recommendNextLesson({
   /* ------------------------------------------------------------------------------------------
    * 2️⃣ MODE-BASED ASSESSMENT (assessment only/full adaptive mode with pal lesson not played )
    * ------------------------------------------------------------------------------------------ */
-  if (shouldUseAssessment(mode) && !rawResults) {
+  if (shouldUseAssessment(mode) && !hasCompletedInitialAssessment) {
     const res = await api.getSubjectLessonsBySubjectId(
       course.subject_id,
       student,
