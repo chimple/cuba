@@ -97,6 +97,9 @@ jest.mock('../growthbook/Growthbook', () => ({
 jest.mock('@growthbook/growthbook-react', () => ({
   useFeatureIsOn: jest.fn(() => false),
   useGrowthBook: jest.fn(() => ({
+    ready: true,
+    getAttributes: jest.fn(() => ({})),
+    setAttributes: jest.fn(),
     getFeatureValue: jest.fn(() => null),
   })),
 }));
@@ -109,6 +112,7 @@ const mockApi = {
   getStudentResultInMap: jest.fn(),
   isStudentLinked: jest.fn(),
   getStudentClassesAndSchools: jest.fn(),
+  getParentStudentProfiles: jest.fn(),
   getPendingAssignments: jest.fn(),
   getLesson: jest.fn(),
   assignmentListner: jest.fn(),
@@ -116,17 +120,50 @@ const mockApi = {
   authHandler: { getCurrentUser: jest.fn() },
 };
 
+const mockAuthHandler = {
+  getCurrentUser: jest.fn(),
+};
+
+const createGrowthBookMock = ({
+  rewardEnabled = false,
+  popupConfig = null,
+  rewardEvaluator,
+}: {
+  rewardEnabled?: boolean;
+  popupConfig?: unknown;
+  rewardEvaluator?: (attributes: Record<string, unknown>) => boolean;
+} = {}) => {
+  let attributes: Record<string, unknown> = {};
+
+  return {
+    ready: true,
+    getAttributes: jest.fn(() => attributes),
+    setAttributes: jest.fn((nextAttributes: Record<string, unknown>) => {
+      attributes = nextAttributes;
+    }),
+    getFeatureValue: jest.fn((key: string, fallback: unknown) => {
+      if (key === IS_REWARD_FEATURE_ON) {
+        return rewardEvaluator ? rewardEvaluator(attributes) : rewardEnabled;
+      }
+      if (key === 'generic-pop-up') {
+        return popupConfig ?? fallback;
+      }
+      return fallback;
+    }),
+  };
+};
+
 describe('Home page (Home tab)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
     mockLocationSearch = '';
-    jest.spyOn(ServiceConfig, 'getI').mockReturnValue({
+    const mockServiceConfig = {
       apiHandler: mockApi,
-      authHandler: {
-        getCurrentUser: jest.fn().mockResolvedValue({ id: 'parent-1' }),
-      },
-    } as any);
+      authHandler: mockAuthHandler,
+    } as unknown as ServiceConfig;
+    jest.spyOn(ServiceConfig, 'getI').mockReturnValue(mockServiceConfig);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'parent-1' });
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({
       id: 'stu-1',
       language_id: 'lang-1',
@@ -147,14 +184,12 @@ describe('Home page (Home tab)', () => {
       classes: [{ id: 'class-1' }],
       schools: [{ id: 'school-1', name: 'School One' }],
     });
+    mockApi.getParentStudentProfiles.mockResolvedValue([{ id: 'stu-1' }]);
     mockApi.getPendingAssignments.mockResolvedValue([]);
     mockApi.getLesson.mockResolvedValue({ id: 'l-1', subject_id: 'sub-1' });
     mockApi.assignmentListner.mockResolvedValue(undefined);
     mockApi.assignmentUserListner.mockResolvedValue(undefined);
-    (useFeatureIsOn as jest.Mock).mockReturnValue(false);
-    (useGrowthBook as jest.Mock).mockReturnValue({
-      getFeatureValue: jest.fn(() => null),
-    });
+    (useGrowthBook as jest.Mock).mockReturnValue(createGrowthBookMock());
     window.history.replaceState({}, '', '/');
   });
 
@@ -377,20 +412,72 @@ describe('Home page (Home tab)', () => {
     });
   });
 
-  // Covers: stores reward feature flag true in localStorage when enabled
+  // Covers: stores reward feature flag true when a sibling links the parent to a school
 
-  test('stores reward feature flag true in localStorage when enabled', async () => {
-    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+  test('stores reward feature flag true in localStorage when a sibling links the parent to a school', async () => {
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: 'stu-1',
+      language_id: 'lang-1',
+      stars: 2,
+      parent_id: 'parent-1',
+    });
+    mockApi.getParentStudentProfiles.mockResolvedValue([
+      { id: 'stu-1' },
+      { id: 'stu-2' },
+    ]);
+    mockApi.getStudentClassesAndSchools.mockImplementation(
+      (studentId: string) =>
+        Promise.resolve(
+          studentId === 'stu-2'
+            ? {
+                classes: [{ id: 'class-2' }],
+                schools: [{ id: 'school-2', name: 'School Two' }],
+              }
+            : {
+                classes: [],
+                schools: [],
+              },
+        ),
+    );
+    (useGrowthBook as jest.Mock).mockReturnValue(
+      createGrowthBookMock({
+        rewardEvaluator: (attributes) =>
+          Array.isArray(attributes.school_ids) &&
+          attributes.school_ids.includes('school-2'),
+      }),
+    );
+
     render(<Home />);
     await waitFor(() => {
       expect(localStorage.getItem(IS_REWARD_FEATURE_ON)).toBe('true');
     });
   });
 
-  // Covers: stores reward feature flag false in localStorage when disabled
+  // Covers: stores reward feature flag false when no child is linked to any school
 
-  test('stores reward feature flag false in localStorage when disabled', async () => {
-    (useFeatureIsOn as jest.Mock).mockReturnValue(false);
+  test('stores reward feature flag false in localStorage when no child is linked to any school', async () => {
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: 'stu-1',
+      language_id: 'lang-1',
+      stars: 2,
+      parent_id: 'parent-1',
+    });
+    mockApi.getParentStudentProfiles.mockResolvedValue([
+      { id: 'stu-1' },
+      { id: 'stu-2' },
+    ]);
+    mockApi.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [],
+      schools: [],
+    });
+    (useGrowthBook as jest.Mock).mockReturnValue(
+      createGrowthBookMock({
+        rewardEvaluator: (attributes) =>
+          Array.isArray(attributes.school_ids) &&
+          attributes.school_ids.length > 0,
+      }),
+    );
+
     render(<Home />);
     await waitFor(() => {
       expect(localStorage.getItem(IS_REWARD_FEATURE_ON)).toBe('false');
@@ -669,9 +756,9 @@ describe('Home page (Home tab)', () => {
   test.each(fullPopupConfigVariations)(
     'triggers generic popup handlers for fullPopupConfig variation: $name',
     async ({ config }) => {
-      (useGrowthBook as jest.Mock).mockReturnValue({
-        getFeatureValue: jest.fn(() => config),
-      });
+      (useGrowthBook as jest.Mock).mockReturnValue(
+        createGrowthBookMock({ popupConfig: config }),
+      );
 
       render(<Home />);
 
@@ -687,9 +774,7 @@ describe('Home page (Home tab)', () => {
   // Covers: does NOT trigger generic popup handlers when growthbook returns null
 
   test('does NOT trigger generic popup handlers when growthbook returns null', async () => {
-    (useGrowthBook as jest.Mock).mockReturnValue({
-      getFeatureValue: jest.fn(() => null),
-    });
+    (useGrowthBook as jest.Mock).mockReturnValue(createGrowthBookMock());
 
     render(<Home />);
 
@@ -721,9 +806,9 @@ describe('Home page (Home tab)', () => {
   ])(
     'false-positive prevention: $name',
     async ({ config, clickButtonText }) => {
-      (useGrowthBook as jest.Mock).mockReturnValue({
-        getFeatureValue: jest.fn(() => config),
-      });
+      (useGrowthBook as jest.Mock).mockReturnValue(
+        createGrowthBookMock({ popupConfig: config }),
+      );
 
       render(<Home />);
 
@@ -759,9 +844,9 @@ describe('Home page (Home tab)', () => {
   ])(
     'negative payload: does NOT trigger popup handlers when growthbook payload is $name',
     async ({ config }) => {
-      (useGrowthBook as jest.Mock).mockReturnValue({
-        getFeatureValue: jest.fn(() => config),
-      });
+      (useGrowthBook as jest.Mock).mockReturnValue(
+        createGrowthBookMock({ popupConfig: config }),
+      );
 
       render(<Home />);
 
