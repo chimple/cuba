@@ -212,9 +212,33 @@ describe('Header Component - Full Unit Tests', () => {
     expect(screen.getByAltText('Back')).toBeInTheDocument();
   });
 
-  test('component renders help icon always', () => {
-    const { container } = render(<Header isBackButton={false} />);
-    expect(container.querySelector('.help-icon')).toBeInTheDocument();
+  test('does not render info button by default', () => {
+    render(<Header isBackButton={false} />);
+    expect(screen.queryByLabelText('Information')).not.toBeInTheDocument();
+  });
+
+  test('renders info button only when configured', () => {
+    render(
+      <Header
+        isBackButton={false}
+        showInfoButton={true}
+        onInfoClick={jest.fn()}
+      />,
+    );
+    expect(screen.getByLabelText('Information')).toBeInTheDocument();
+  });
+
+  test('calls onInfoClick when info button clicked', () => {
+    const mockInfoClick = jest.fn();
+    render(
+      <Header
+        isBackButton={false}
+        showInfoButton={true}
+        onInfoClick={mockInfoClick}
+      />,
+    );
+    fireEvent.click(screen.getByLabelText('Information'));
+    expect(mockInfoClick).toHaveBeenCalledTimes(1);
   });
 
   test('back button applies disabled class when disableBackButton=true', () => {
@@ -268,9 +292,9 @@ describe('Header Component - Full Unit Tests', () => {
     expect(mockSearchChange).toHaveBeenLastCalledWith('ABC');
   });
 
-  test('help icon has correct alt text', () => {
-    render(<Header isBackButton={false} />);
-    expect(screen.getByAltText('Menu')).toBeInTheDocument();
+  test('does not render info button without click handler', () => {
+    render(<Header isBackButton={false} showInfoButton={true} />);
+    expect(screen.queryByLabelText('Information')).not.toBeInTheDocument();
   });
 
   test('search input placeholder renders correctly', () => {

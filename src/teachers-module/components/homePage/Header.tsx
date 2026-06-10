@@ -51,6 +51,8 @@ interface HeaderProps {
   showSearchIcon?: boolean;
   onSearchIconClick?: () => void;
   onShareClick?: () => void;
+  onInfoClick?: () => void;
+  showInfoButton?: boolean;
   showStreakButton?: boolean;
 }
 
@@ -70,6 +72,8 @@ const Header: React.FC<HeaderProps> = ({
   showSearchIcon = false,
   onSearchIconClick,
   onShareClick,
+  onInfoClick,
+  showInfoButton = false,
   showStreakButton = true,
 }) => {
   const history = useHistory();
@@ -321,13 +325,20 @@ const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          <div className="help-icon-container">
-            <img
-              src="assets/icons/helpIcon.svg"
-              alt={String(t('Menu'))}
-              className="help-icon"
-            />
-          </div>
+          {showInfoButton && onInfoClick && (
+            <button
+              type="button"
+              className="header-info-icon-button"
+              onClick={onInfoClick}
+              aria-label={String(t('Information'))}
+            >
+              <img
+                src="/assets/icons/infoIcon.svg"
+                alt=""
+                className="header-info-icon"
+              />
+            </button>
+          )}
         </div>
       </div>
     </header>

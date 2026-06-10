@@ -10985,13 +10985,6 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const rows = (data ?? []) as Array<Record<string, unknown>>;
-      const parentsReachedBySchool = await this.getParentsReachedBySchoolIds(
-        rows
-          .map((row) => row.school_id)
-          .filter(
-            (schoolId): schoolId is string => typeof schoolId === 'string',
-          ),
-      );
 
       const mappedRows = rows.map((row: Record<string, unknown>) => ({
         ...row,
@@ -11019,8 +11012,8 @@ export class SupabaseApi implements ServiceApi {
         parents_on_whatsapp: row.parents_on_whatsapp ?? null,
         parents_in_whatsapp_group: row.parents_in_group ?? null,
         parents_reached:
-          typeof row.school_id === 'string'
-            ? (parentsReachedBySchool[row.school_id] ?? 0)
+          typeof row.community_parents_reached === 'number'
+            ? row.community_parents_reached
             : 0,
         program_managers: row.program_managers ?? [],
         field_coordinators: row.field_coordinators ?? [],
@@ -14602,6 +14595,67 @@ export class SupabaseApi implements ServiceApi {
       );
     } catch (error) {
       logger.error('❌ Error checking PAL assessment history:', error);
+      return false;
+    }
+  }
+  async hasPendingAbortedAssessment(
+    studentId: string,
+    courseId: string,
+  ): Promise<boolean> {
+    try {
+      if (!this.supabase) return false;
+
+      const course = await this.getCourse(courseId);
+      if (!course?.subject_id) {
+        return false;
+      }
+
+      const { data: assessmentLessons, error: assessmentLessonsError } =
+        await this.supabase
+          .from('subject_lesson')
+          .select('lesson_id')
+          .eq('subject_id', course.subject_id)
+          .or('is_deleted.eq.false,is_deleted.is.null');
+
+      if (assessmentLessonsError) {
+        logger.error(
+          '❌ Error fetching assessment lessons for pending abort check:',
+          assessmentLessonsError,
+        );
+        return false;
+      }
+
+      const assessmentLessonIds = Array.from(
+        new Set(
+          (assessmentLessons ?? [])
+            .map((lesson) => lesson.lesson_id)
+            .filter((lessonId): lessonId is string => !!lessonId),
+        ),
+      );
+
+      if (!assessmentLessonIds.length) {
+        return false;
+      }
+
+      const { data: pendingAbortResults, error } = await this.supabase
+        .from('result')
+        .select('lesson_id')
+        .eq('student_id', studentId)
+        .eq('course_id', courseId)
+        .eq('status', 'system_exit')
+        .is('assignment_id', null)
+        .in('lesson_id', assessmentLessonIds)
+        .or('is_deleted.eq.false,is_deleted.is.null')
+        .limit(1);
+
+      if (error) {
+        logger.error('❌ Error checking pending aborted assessment:', error);
+        return false;
+      }
+
+      return (pendingAbortResults ?? []).length > 0;
+    } catch (error) {
+      logger.error('❌ Error checking pending aborted assessment:', error);
       return false;
     }
   }
