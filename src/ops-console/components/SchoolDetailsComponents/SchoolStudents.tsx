@@ -316,6 +316,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   );
   const hasInitialStudents =
     !!cachedInitialStudents || hasCompletePrefetchedStudents;
+  const fetchIdRef = React.useRef(0);
   const [isLoading, setIsLoading] = useState<boolean>(!hasInitialStudents);
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -382,6 +383,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   const fetchStudents = useCallback(
     async (search: string, silent = false) => {
+      const currentFetchId = ++fetchIdRef.current;
       if (!silent) {
         setIsLoading(true);
       }
@@ -396,12 +398,15 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       const shouldCache = search.trim() === '';
       // Empty scoped class IDs mean the program intentionally has no student rows.
       if (scopedClassIds && scopedClassIds.length === 0) {
+        if (currentFetchId !== fetchIdRef.current) return;
         setStudents([]);
         setTotalCount(0);
         if (shouldCache) {
           studentListCache.set(cacheKey, { data: [], total: 0 });
         }
-        setIsLoading(false);
+        if (currentFetchId === fetchIdRef.current) {
+          setIsLoading(false);
+        }
         return;
       }
       try {
@@ -427,6 +432,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         };
 
         const firstPage = await fetchStudentPage(1);
+        if (currentFetchId !== fetchIdRef.current) return;
+
         const allStudents = [...(firstPage.data ?? [])];
         const totalStudents = Math.max(
           typeof firstPage.total === 'number' ? firstPage.total : 0,
@@ -443,12 +450,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
               fetchStudentPage(index + 2),
             ),
           );
+          if (currentFetchId !== fetchIdRef.current) return;
 
           remainingPages.forEach((pageResponse) => {
             allStudents.push(...(pageResponse.data ?? []));
           });
         }
 
+        if (currentFetchId !== fetchIdRef.current) return;
         setStudents(allStudents);
         setTotalCount(totalStudents);
         if (shouldCache) {
@@ -458,9 +467,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           });
         }
       } catch (error) {
-        logger.error('Failed to fetch students:', error);
+        if (currentFetchId === fetchIdRef.current) {
+          logger.error('Failed to fetch students:', error);
+        }
       } finally {
-        setIsLoading(false);
+        if (currentFetchId === fetchIdRef.current) {
+          setIsLoading(false);
+        }
       }
     },
     [schoolId, optionalClassId, programScopedClassIds],
