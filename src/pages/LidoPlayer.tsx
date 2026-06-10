@@ -112,7 +112,6 @@ const LidoPlayer: FC = () => {
   });
 
   const isExitingRef = useRef(false);
-  const isLessonEndProcessingRef = useRef(false);
 
   const resolveStudentContext = async (): Promise<{
     student: TableTypes<'user'> | undefined;
@@ -561,10 +560,6 @@ const LidoPlayer: FC = () => {
   };
 
   const onLessonEnd = async (e: any) => {
-    if (isLessonEndProcessingRef.current) {
-      return;
-    }
-    isLessonEndProcessingRef.current = true;
     setIsLoading(true);
     const lessonData = ((e?.detail ?? {}) as LidoEventDetail) ?? {};
     const {
@@ -873,14 +868,12 @@ const LidoPlayer: FC = () => {
       logger.error('❌ Failed to process lesson end', error);
       localStorage.removeItem(LIDO_SCORES_KEY);
       push();
-    } finally {
-      isLessonEndProcessingRef.current = false;
     }
   };
 
   const onGameExit = async (e: any) => {
     const data = (e.detail ?? {}) as LidoEventDetail;
-    if (isLessonEndProcessingRef.current || showDialogBox) {
+    if (showDialogBox) {
       return;
     }
 
