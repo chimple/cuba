@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SelectChangeEvent } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { ServiceConfig } from '../../services/ServiceConfig';
@@ -86,6 +86,7 @@ export const useCampaignSetupForm = () => {
   const [assignmentOptionsCache, setAssignmentOptionsCache] = useState<
     Record<string, CampaignAssignmentOptions>
   >({});
+  const assignmentOptionsCacheRef = useRef(assignmentOptionsCache);
   const [loadingAssignmentOptions, setLoadingAssignmentOptions] =
     useState(false);
   const [activeAssignmentGradeId, setActiveAssignmentGradeId] = useState('');
@@ -128,6 +129,10 @@ export const useCampaignSetupForm = () => {
   const assignmentOptions = assignmentOptionsCache[
     assignmentOptionsCacheKey
   ] ?? { grades: [] };
+
+  useEffect(() => {
+    assignmentOptionsCacheRef.current = assignmentOptionsCache;
+  }, [assignmentOptionsCache]);
 
   useEffect(() => {
     const selectedGrades = audience.selectedGrades;
@@ -208,7 +213,7 @@ export const useCampaignSetupForm = () => {
         !form.programId ||
         selectedAssignmentSchoolIds.length === 0 ||
         audience.selectedGrades.length === 0 ||
-        assignmentOptionsCache[assignmentOptionsCacheKey]
+        assignmentOptionsCacheRef.current[assignmentOptionsCacheKey]
       ) {
         return;
       }
@@ -241,7 +246,6 @@ export const useCampaignSetupForm = () => {
     };
   }, [
     api,
-    assignmentOptionsCache,
     assignmentOptionsCacheKey,
     audience.selectedGrades,
     form.programId,

@@ -103,14 +103,6 @@ export const useCampaignAudienceSelection = ({
         const options = await api.getCampaignAudienceOptions(form.programId);
         if (!isActive) return;
         setAudienceOptions(options);
-        if (!selectedSavedGroupId) {
-          setSelectedBlocks(options.blocks);
-          setSelectedSchools(options.schools);
-          setSelectedGrades(options.grades);
-          setHasCustomBlockSelection(false);
-          setHasCustomSchoolSelection(false);
-          setHasCustomGradeSelection(false);
-        }
       } catch (error) {
         if (!isActive) return;
         logger.error('Failed to load campaign audience options:', error);
@@ -129,7 +121,33 @@ export const useCampaignAudienceSelection = ({
     return () => {
       isActive = false;
     };
-  }, [api, form.programId, selectedSavedGroupId, setMessage]);
+  }, [api, form.programId, setMessage]);
+
+  useEffect(() => {
+    if (
+      selectedSavedGroupId ||
+      !form.programId ||
+      selectedBlocks.length > 0 ||
+      selectedSchools.length > 0 ||
+      selectedGrades.length > 0
+    ) {
+      return;
+    }
+
+    setSelectedBlocks(audienceOptions.blocks);
+    setSelectedSchools(audienceOptions.schools);
+    setSelectedGrades(audienceOptions.grades);
+    setHasCustomBlockSelection(false);
+    setHasCustomSchoolSelection(false);
+    setHasCustomGradeSelection(false);
+  }, [
+    audienceOptions,
+    form.programId,
+    selectedBlocks.length,
+    selectedGrades.length,
+    selectedSavedGroupId,
+    selectedSchools.length,
+  ]);
 
   const schoolsForSelectedBlocks = useMemo(
     () =>
@@ -193,6 +211,12 @@ export const useCampaignAudienceSelection = ({
 
   const handleProgramChange = (event: SelectChangeEvent<string>) => {
     setSelectedSavedGroupId('');
+    setSelectedBlocks([]);
+    setSelectedSchools([]);
+    setSelectedGrades([]);
+    setHasCustomBlockSelection(false);
+    setHasCustomSchoolSelection(false);
+    setHasCustomGradeSelection(false);
     setForm((current) => ({ ...current, programId: event.target.value }));
   };
 
