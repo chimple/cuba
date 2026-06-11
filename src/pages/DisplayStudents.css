@@ -268,7 +268,7 @@
   inset: 0;
 
   background: #8a2901;
-  border-radius: 10px;
+  border-radius: 13px;
 
   transform: translate(5px);
   z-index: 0;
@@ -290,7 +290,7 @@
   box-sizing: border-box;
 
   border: 0;
-  border-radius: 10px;
+  border-radius: 11px;
 
   background: #f34d08;
   color: #fff;

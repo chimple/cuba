@@ -25,7 +25,7 @@ import Loading from '../components/Loading';
 import ScoreCard from '../components/parent/ScoreCard';
 import { IonPage, useIonToast } from '@ionic/react';
 import { Capacitor } from '@capacitor/core';
-import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { ScreenOrientation } from '../utility/screenOrientation';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Lesson } from '../interface/curriculumInterfaces';
 import { AvatarObj } from '../components/animation/Avatar';
@@ -111,7 +111,15 @@ const LidoPlayer: FC = () => {
     chapterId: undefined as string | undefined,
     isStudentLinked: false,
   });
+
   const isExitingRef = useRef(false);
+
+  const getAssessmentProgressKey = () => {
+    if (isAssessmentLesson && courseDetail?.subject_id) {
+      return `subject:${courseDetail.subject_id}`;
+    }
+    return courseDetail?.id ?? courseDocId ?? '';
+  };
 
   const resolveStudentContext = async (): Promise<{
     student: TableTypes<'user'> | undefined;
@@ -265,8 +273,7 @@ const LidoPlayer: FC = () => {
     scoresList.reduce((total, record) => total + (record.timeSpent ?? 0), 0);
 
   const onNextContainer = (e: any) => logger.info('Next', e);
-  const gameCompleted = (e: any) => {
-    // setShowDialogBox(true);
+  const gameCompleted = () => {
     const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
 
     if (popupConfig) {
@@ -535,7 +542,7 @@ const LidoPlayer: FC = () => {
       }
     }
     if (!isAssessmentLesson) return;
-    const courseKey = courseDetail?.id ?? courseDocId ?? '';
+    const courseKey = getAssessmentProgressKey();
     const failKey = `${ASSESSMENT_FAIL_KEY}_${studentId}`;
     const streakKey = `${FAIL_STREAK_KEY}_${studentId}`;
     const failMap: Record<string, boolean> = JSON.parse(
@@ -558,7 +565,7 @@ const LidoPlayer: FC = () => {
       !!failMap[courseKey] ||
       (await resolvePreviousAssessmentSkipped(studentId));
     if (previousLessonSkipped && failStreak >= 2) {
-      const courseKey = courseDetail?.id ?? courseDocId ?? '';
+      const courseKey = getAssessmentProgressKey();
       Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
       Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, studentId, courseKey);
       const isAborted = true;
@@ -594,6 +601,7 @@ const LidoPlayer: FC = () => {
 
   const onLessonEnd = async (e: any) => {
     setIsLoading(true);
+    const lessonData = (e?.detail ?? {}) as LidoEventDetail;
     const {
       student: currentStudent,
       studentId,
@@ -607,10 +615,9 @@ const LidoPlayer: FC = () => {
       }
       const parentUserId = userId;
       const courseDocId: string | undefined = state.courseDocId;
-      const lessonData = (e.detail ?? {}) as LidoEventDetail;
       const { correctMoves, wrongMoves } = getNormalizedMoveCounts(lessonData);
       if (isAssessmentLesson) {
-        const courseKey = courseDetail?.id ?? courseDocId ?? '';
+        const courseKey = getAssessmentProgressKey();
         Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
         Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, studentId, courseKey);
         await exitLidoGame();
@@ -821,7 +828,6 @@ const LidoPlayer: FC = () => {
         await Util.updateHomeworkPath(homeworkIndex);
       }
 
-      // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway
       if (shouldGiveHomeworkBonus) {
         try {
           const student = Util.getCurrentStudent() ?? currentStudent;
@@ -863,7 +869,7 @@ const LidoPlayer: FC = () => {
         ml_class_id: data.mlClassId,
         ml_student_id: data.mlStudentId,
         course_id: data.courseId,
-        course_name: courseDetail.name,
+        course_name: courseDetail?.name ?? '',
         time_spent: lessonTimeSpent,
         total_moves: data.totalMoves,
         total_games: data.totalGames,
@@ -896,6 +902,7 @@ const LidoPlayer: FC = () => {
         ASSIGNMENT_COMPLETED_IDS,
         JSON.stringify(assignmentCompletedIds),
       );
+      setIsLoading(false);
       setShowDialogBox(true);
     } catch (error) {
       logger.error('❌ Failed to process lesson end', error);
@@ -903,16 +910,19 @@ const LidoPlayer: FC = () => {
       push();
     }
   };
+
   const onGameExit = async (e: any) => {
+    const data = (e.detail ?? {}) as LidoEventDetail;
     const { studentId, userId } = await resolveStudentContext();
     if (!studentId) {
       push();
       return;
     }
+
     const parentUserId = userId;
-    const courseKey = courseDetail?.id ?? courseDocId ?? '';
+    const courseKey = getAssessmentProgressKey();
     Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
-    const data = (e.detail ?? {}) as LidoEventDetail;
+
     const { correctMoves, wrongMoves } = getNormalizedMoveCounts(data);
     const storedScores = getStoredLidoScores();
     const lessonTimeSpent = parseNumericValue(data.timeSpendForLesson) ?? 0;

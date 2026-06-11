@@ -167,7 +167,7 @@
   position: absolute;
   inset: 0;
   background: #300d37;
-  border-radius: 10px;
+  border-radius: 13px;
   transform: translateY(5px);
   z-index: 0;
 }
@@ -185,7 +185,7 @@
   overflow: hidden;
   box-sizing: border-box;
   border: 0;
-  border-radius: 10px;
+  border-radius: 11px;
   background: #c094ef;
   color: #300d37;
   cursor: pointer;
