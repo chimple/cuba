@@ -49,6 +49,10 @@ jest.mock('@capacitor/toast', () => ({
     show: jest.fn(),
   },
 }));
+jest.mock('../../../../common/streakRewardBridge', () => ({
+  getStreakTargetRect: jest.fn(() => null),
+  triggerStreakRewardPulse: jest.fn(() => false),
+}));
 
 const mockApi = {
   getCoursesForClassStudent: jest.fn(),
@@ -457,5 +461,46 @@ describe('CreateSelectedAssignment (QR flow)', () => {
     await waitFor(() =>
       expect(mockHistory.replace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS),
     );
+  });
+
+  test('locks interactions while assignment creation is in progress', async () => {
+    let resolveCreateAssignment: (() => void) | undefined;
+    mockApi.createAssignment.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveCreateAssignment = resolve;
+        }),
+    );
+    const onInteractionLockChange = jest.fn();
+
+    const { container } = render(
+      <CreateSelectedAssignment
+        selectedAssignments={{
+          manual: {
+            'course-1': { count: ['lesson-1'] },
+          },
+        }}
+        manualAssignments={{
+          'course-1': {
+            lessons: [buildLesson('lesson-1', AssignmentSource.MANUAL)],
+          },
+        }}
+        recommendedAssignments={{}}
+        onInteractionLockChange={onInteractionLockChange}
+      />,
+    );
+
+    const assignButton = await screen.findByRole('button', { name: 'Assign' });
+    await userEvent.click(assignButton);
+
+    await waitFor(() =>
+      expect(onInteractionLockChange).toHaveBeenCalledWith(true),
+    );
+    expect(assignButton).toBeDisabled();
+    expect(
+      container.querySelector('.assignment-interaction-lock-overlay'),
+    ).toBeInTheDocument();
+
+    resolveCreateAssignment?.();
   });
 });

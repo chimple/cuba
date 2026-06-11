@@ -11,6 +11,7 @@ const ShowStudentsInAssignmentPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
     null,
   );
+  const [isInteractionLocked, setIsInteractionLocked] = useState(false);
   const [currentSchool, setCurrentSchool] = useState<
     TableTypes<'school'> | undefined
   >();
@@ -72,6 +73,7 @@ const ShowStudentsInAssignmentPage: React.FC = () => {
         <Header
           isBackButton={true}
           onBackButtonClick={onBackButtonClick}
+          disableBackButton={isInteractionLocked}
           schoolName={currentSchool?.name}
           showSchool={true}
           showClass={true}
@@ -82,6 +84,7 @@ const ShowStudentsInAssignmentPage: React.FC = () => {
         selectedAssignments={selectedAssignments}
         manualAssignments={manualAssignments}
         recommendedAssignments={recommendedAssignments}
+        onInteractionLockChange={setIsInteractionLocked}
       ></CreateSelectedAssignment>
     </div>
   );

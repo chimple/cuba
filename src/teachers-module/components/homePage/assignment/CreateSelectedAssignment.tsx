@@ -84,6 +84,7 @@ interface CreateSelectedAssignmentProps {
   selectedAssignments: SelectedAssignments;
   manualAssignments: AssignmentLookup;
   recommendedAssignments: AssignmentLookup;
+  onInteractionLockChange?: (isLocked: boolean) => void;
 }
 
 type RewardAnimationState = {
@@ -100,6 +101,7 @@ const CreateSelectedAssignment = ({
   selectedAssignments,
   manualAssignments,
   recommendedAssignments,
+  onInteractionLockChange,
 }: CreateSelectedAssignmentProps) => {
   const FIRST_ASSIGNMENT_REWARD = 50;
   const SUBSEQUENT_ASSIGNMENT_REWARD = 25;
@@ -147,35 +149,8 @@ const CreateSelectedAssignment = ({
   }, []);
 
   useEffect(() => {
-    if (!isInteractionLocked) {
-      return;
-    }
-
-    const unblockNavigation = history.block(() => false);
-    const stopEvent = (event: Event) => {
-      event.preventDefault();
-      event.stopPropagation();
-    };
-    const stopKeyboardEvent = (event: KeyboardEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-    };
-
-    document.body.classList.add('assignment-interaction-lock-active');
-    document.addEventListener('click', stopEvent, true);
-    document.addEventListener('pointerdown', stopEvent, true);
-    document.addEventListener('touchstart', stopEvent, true);
-    window.addEventListener('keydown', stopKeyboardEvent, true);
-
-    return () => {
-      unblockNavigation();
-      document.body.classList.remove('assignment-interaction-lock-active');
-      document.removeEventListener('click', stopEvent, true);
-      document.removeEventListener('pointerdown', stopEvent, true);
-      document.removeEventListener('touchstart', stopEvent, true);
-      window.removeEventListener('keydown', stopKeyboardEvent, true);
-    };
-  }, [history, isInteractionLocked]);
+    onInteractionLockChange?.(isInteractionLocked);
+  }, [isInteractionLocked, onInteractionLockChange]);
 
   const init = async () => {
     let todayDate = new Date().toISOString().slice(0, 10);
@@ -336,9 +311,6 @@ const CreateSelectedAssignment = ({
   };
 
   const handleDateConfirm = (type: 'start' | 'end', date: string) => {
-    if (isInteractionLocked) {
-      return;
-    }
     if (type === 'start') {
       setStartDate(date);
       // Always move end date to start date + 1 day
@@ -355,6 +327,7 @@ const CreateSelectedAssignment = ({
     if (isInteractionLocked) {
       return;
     }
+
     setGroupWiseStudents((bandStudents: GroupWiseStudents) => ({
       ...bandStudents,
       [category]: {
@@ -368,6 +341,7 @@ const CreateSelectedAssignment = ({
     if (isInteractionLocked) {
       return;
     }
+
     const newAllSelected = !allSelected;
     setAllSelected(newAllSelected);
     // Update all bands' students' selection state
@@ -389,6 +363,7 @@ const CreateSelectedAssignment = ({
     if (isInteractionLocked) {
       return;
     }
+
     setGroupWiseStudents((bandStudents: GroupWiseStudents) => {
       const updatedBands = { ...bandStudents };
       const students = [...updatedBands[category].students];
@@ -882,7 +857,17 @@ const CreateSelectedAssignment = ({
   };
 
   return !isLoading ? (
-    <div className="assignments-container">
+    <div
+      className={`assignments-container ${
+        isInteractionLocked ? 'assignment-interaction-lock-active' : ''
+      }`.trim()}
+    >
+      {isInteractionLocked && (
+        <div
+          className="assignment-interaction-lock-overlay"
+          aria-hidden="true"
+        />
+      )}
       <div id="assignment-success-dialog">
         <CommonDialogBox
           header={t('Assignments are assigned Successfully.') ?? ''}
@@ -890,24 +875,15 @@ const CreateSelectedAssignment = ({
           showConfirmFlag={showConfirm}
           leftButtonText={t('Cancel') ?? ''}
           leftButtonHandler={() => {
-            if (isInteractionLocked) {
-              return;
-            }
             setShowConfirm(false);
             history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
           }}
           onDidDismiss={() => {
-            if (isInteractionLocked) {
-              return;
-            }
             setShowConfirm(false);
             history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
           }}
           rightButtonText={t('Share') ?? ''}
           rightButtonHandler={async () => {
-            if (isInteractionLocked) {
-              return;
-            }
             const text = await getShareText();
             setShowConfirm(false);
             await Util.sendContentToAndroidOrWebShare(
@@ -919,12 +895,6 @@ const CreateSelectedAssignment = ({
         ></CommonDialogBox>
       </div>
       <div>
-        {isInteractionLocked && (
-          <div
-            className="assignment-interaction-lock-overlay"
-            aria-hidden="true"
-          />
-        )}
         <p id="create-assignment-heading">{t('Assignments')}</p>
         <section className="assignments-dates">
           <span style={{ color: '#4A4949', fontSize: '11px' }}>
@@ -946,6 +916,9 @@ const CreateSelectedAssignment = ({
                 ) : (
                   <span
                     onClick={() => {
+                      if (isInteractionLocked) {
+                        return;
+                      }
                       setShowStartDatePicker(true);
                     }}
                   >
@@ -979,6 +952,9 @@ const CreateSelectedAssignment = ({
                 ) : (
                   <span
                     onClick={() => {
+                      if (isInteractionLocked) {
+                        return;
+                      }
                       setShowEndDatePicker(true);
                     }}
                   >
@@ -1046,6 +1022,10 @@ const CreateSelectedAssignment = ({
                     // checked={true}
                     onClick={(e) => e.stopPropagation()}
                     onChange={() => {
+                      if (isInteractionLocked) {
+                        return;
+                      }
+
                       const allSelected = groupWiseStudents[
                         category
                       ].students.every(
