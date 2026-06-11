@@ -165,7 +165,7 @@ const AddCourse: FC<{
                     </div>
 
                     <div>
-                      <p> {t(course?.course.name)}</p>
+                      <p> {course?.course.name}</p>
                     </div>
 
                     {currt ? (

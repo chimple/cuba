@@ -121,7 +121,8 @@
   align-items: center;
   gap: clamp(5px, 1vw, 7px);
 
-  width: clamp(76px, 9.875vw, 92px);
+  min-width: clamp(76px, 9.875vw, 92px);
+  max-width: calc(100vw - 28px);
   height: clamp(36px, 4.625vw, 42px);
   padding: 0 clamp(8px, 1.25vw, 12px);
 
@@ -137,6 +138,7 @@
   font-weight: 400;
   font-size: clamp(13px, 1.75vw, 15px);
   line-height: normal;
+  white-space: nowrap;
 
   cursor: pointer;
 }
