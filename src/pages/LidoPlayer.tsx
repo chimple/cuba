@@ -114,6 +114,13 @@ const LidoPlayer: FC = () => {
 
   const isExitingRef = useRef(false);
 
+  const getAssessmentProgressKey = () => {
+    if (isAssessmentLesson && courseDetail?.subject_id) {
+      return `subject:${courseDetail.subject_id}`;
+    }
+    return courseDetail?.id ?? courseDocId ?? '';
+  };
+
   const resolveStudentContext = async (): Promise<{
     student: TableTypes<'user'> | undefined;
     studentId: string | undefined;
@@ -535,7 +542,7 @@ const LidoPlayer: FC = () => {
       }
     }
     if (!isAssessmentLesson) return;
-    const courseKey = courseDetail?.id ?? courseDocId ?? '';
+    const courseKey = getAssessmentProgressKey();
     const failKey = `${ASSESSMENT_FAIL_KEY}_${studentId}`;
     const streakKey = `${FAIL_STREAK_KEY}_${studentId}`;
     const failMap: Record<string, boolean> = JSON.parse(
@@ -558,7 +565,7 @@ const LidoPlayer: FC = () => {
       !!failMap[courseKey] ||
       (await resolvePreviousAssessmentSkipped(studentId));
     if (previousLessonSkipped && failStreak >= 2) {
-      const courseKey = courseDetail?.id ?? courseDocId ?? '';
+      const courseKey = getAssessmentProgressKey();
       Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
       Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, studentId, courseKey);
       const isAborted = true;
@@ -610,7 +617,7 @@ const LidoPlayer: FC = () => {
       const courseDocId: string | undefined = state.courseDocId;
       const { correctMoves, wrongMoves } = getNormalizedMoveCounts(lessonData);
       if (isAssessmentLesson) {
-        const courseKey = courseDetail?.id ?? courseDocId ?? '';
+        const courseKey = getAssessmentProgressKey();
         Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
         Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, studentId, courseKey);
         await exitLidoGame();
@@ -913,7 +920,7 @@ const LidoPlayer: FC = () => {
     }
 
     const parentUserId = userId;
-    const courseKey = courseDetail?.id ?? courseDocId ?? '';
+    const courseKey = getAssessmentProgressKey();
     Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
 
     const { correctMoves, wrongMoves } = getNormalizedMoveCounts(data);
