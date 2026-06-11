@@ -238,12 +238,12 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
           {(reviewData.campaignRewards?.rules ?? []).map((rule) => (
             <Box key={rule.rank} className="campaign-review-reward-item">
               <Typography className="campaign-review-reward-rank-label">
-                {RANK_LABELS[rule.rank]}
+                {t(RANK_LABELS[rule.rank])}
               </Typography>
               <Box
                 className={`campaign-review-rank-badge campaign-review-rank-${rule.rank}`}
               >
-                {RANK_LABELS[rule.rank]}
+                {t(RANK_LABELS[rule.rank])}
               </Box>
               <Box className="campaign-review-reward-copy">
                 <Typography className="campaign-review-reward-name">
