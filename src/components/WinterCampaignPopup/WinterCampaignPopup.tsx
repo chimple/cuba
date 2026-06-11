@@ -32,7 +32,7 @@ const WinterCampaignPopup: React.FC<WinterCampaignPopupProps> = ({
     >
       <div id="wintercampaign-popup-card" className="WinterCampaignPopup-card">
         <img
-          src="assets/campaignPopup/campaignPopupBg.svg"
+          src="assets/campaignPopup/campaignPopupBg.webp"
           alt=""
           aria-hidden="true"
           className="WinterCampaignPopup-bg"
