@@ -7,24 +7,13 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
+import { CampaignAssignmentOptions } from '../../../services/api/ServiceApi';
 import { CampaignAssignmentStep } from './CampaignAssignmentStep';
 import {
   createDefaultConfig,
   GradeAssignmentConfig,
 } from './campaignAssignmentUtils';
 import { CampaignSetupFormState } from './types';
-
-const mockApiHandler = {
-  getCampaignAssignmentOptions: jest.fn(),
-};
-
-jest.mock('../../../services/ServiceConfig', () => ({
-  ServiceConfig: {
-    getI: () => ({
-      apiHandler: mockApiHandler,
-    }),
-  },
-}));
 
 jest.mock('../../../utility/logger', () => ({
   __esModule: true,
@@ -55,13 +44,14 @@ const baseForm: CampaignSetupFormState = {
 
 const grade = { id: 'grade-1', name: 'Grade 1' };
 
-const assignmentOptions = {
+const assignmentOptions: CampaignAssignmentOptions = {
   grades: [
     {
       gradeId: 'grade-1',
       subjects: [
         {
           id: 'subject-1',
+          gradeId: 'grade-1',
           name: 'Science',
           chapters: [
             {
@@ -121,6 +111,8 @@ const renderStep = ({
         campaignId="campaign-1"
         selectedGrades={[grade]}
         selectedSchoolIds={['school-1']}
+        assignmentOptions={assignmentOptions}
+        loadingAssignmentOptions={false}
         activeGradeId={grade.id}
         configs={configs}
         onActiveGradeChange={jest.fn()}
@@ -154,9 +146,6 @@ const getChapterRow = (chapterName: string) =>
 describe('CampaignAssignmentStep', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockApiHandler.getCampaignAssignmentOptions.mockResolvedValue(
-      assignmentOptions,
-    );
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       value: jest.fn().mockImplementation((query: string) => ({
