@@ -9,6 +9,7 @@ import CustomAppBar from '../components/studentProgress/CustomAppBar';
 import { t } from 'i18next';
 import { Util } from '../utility/util';
 import SkeltonLoading from '../components/SkeltonLoading';
+import { getCourseDisplayName } from '../utility/courseNameLocalization';
 
 const StudentProgress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -63,11 +64,12 @@ const StudentProgress: React.FC = () => {
             const curriculumDoc = await api.getCurriculumById(
               course.curriculum_id!,
             );
+            const courseTitle = getCourseDisplayName(course);
             return {
               courseId: course.id,
               displayName: (
                 <div className="course-detail-div">
-                  <div className="course-text">{course.name}</div>
+                  <div className="course-text">{courseTitle}</div>
                   {gradeDoc && (
                     <div className="grade-text">{t(gradeDoc.name)}</div>
                   )}

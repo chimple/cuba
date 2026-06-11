@@ -11,6 +11,7 @@ import {
 } from '../../common/constants';
 import { useHistory } from 'react-router';
 import { ServiceConfig } from '../../services/ServiceConfig';
+import { getCourseDisplayName } from '../../utility/courseNameLocalization';
 interface CourseDetails {
   course: TableTypes<'course'>;
   grade?: TableTypes<'grade'> | null;
@@ -59,6 +60,7 @@ const SelectCourse: FC<{
       }}
     >
       {courseDetails.map(({ course, grade, curriculum }, index) => {
+        const courseTitle = getCourseDisplayName(course);
         return (
           <SplideSlide key={index} className="slide">
             <div
@@ -87,7 +89,7 @@ const SelectCourse: FC<{
                   imageHeight={'auto'}
                 />
               </div>
-              <div className="course-title">{course.name}</div>
+              <div className="course-title">{courseTitle}</div>
               {curriculum && (
                 <div className="course-curriculum">{curriculum.name}</div>
               )}

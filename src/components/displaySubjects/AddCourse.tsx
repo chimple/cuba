@@ -11,6 +11,7 @@ import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineE
 import Loading from '../Loading';
 import './AddCourse.css';
 import { ServiceConfig } from '../../services/ServiceConfig';
+import { getCourseDisplayName } from '../../utility/courseNameLocalization';
 
 const AddCourse: FC<{
   courses: TableTypes<'course'>[];
@@ -111,6 +112,7 @@ const AddCourse: FC<{
             if (course.course.curriculum_id === curr) {
               const grade = gradesMap.get(course.course.grade_id!);
               const gradeTitle = grade ? grade.name : '';
+              const courseTitle = getCourseDisplayName(course.course);
 
               return (
                 <SplideSlide
@@ -165,7 +167,7 @@ const AddCourse: FC<{
                     </div>
 
                     <div>
-                      <p> {course?.course.name}</p>
+                      <p> {courseTitle}</p>
                     </div>
 
                     {currt ? (

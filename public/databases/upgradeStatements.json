@@ -237,5 +237,16 @@
       "CREATE TABLE IF NOT EXISTS user_achievements (user_id TEXT, program_id TEXT, school_id TEXT, class_id TEXT, coins INTEGER NOT NULL DEFAULT 1000, streak INTEGER NOT NULL DEFAULT 0, last_rewarded_week DATE, last_penalty_week DATE, is_deleted BOOLEAN DEFAULT 0, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), id TEXT PRIMARY KEY);",
       "ALTER TABLE result ADD COLUMN source TEXT;"
     ]
+  },
+  "16": {
+    "toVersion": 16,
+    "statements": []
+  },
+  "17": {
+    "toVersion": 17,
+    "statements": [
+      "UPDATE course SET name = 'गणित', updated_at = datetime('now') WHERE LOWER(name) = 'maths-hindi' OR code = 'maths-hi';",
+      "UPDATE course SET name = 'ಗಣಿತ', updated_at = datetime('now') WHERE LOWER(name) = 'maths-kannada' OR code = 'maths-kn';"
+    ]
   }
 }
