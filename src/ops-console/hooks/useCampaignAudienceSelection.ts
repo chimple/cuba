@@ -103,12 +103,14 @@ export const useCampaignAudienceSelection = ({
         const options = await api.getCampaignAudienceOptions(form.programId);
         if (!isActive) return;
         setAudienceOptions(options);
-        setSelectedBlocks(options.blocks);
-        setSelectedSchools(options.schools);
-        setSelectedGrades(options.grades);
-        setHasCustomBlockSelection(false);
-        setHasCustomSchoolSelection(false);
-        setHasCustomGradeSelection(false);
+        if (!selectedSavedGroupId) {
+          setSelectedBlocks(options.blocks);
+          setSelectedSchools(options.schools);
+          setSelectedGrades(options.grades);
+          setHasCustomBlockSelection(false);
+          setHasCustomSchoolSelection(false);
+          setHasCustomGradeSelection(false);
+        }
       } catch (error) {
         if (!isActive) return;
         logger.error('Failed to load campaign audience options:', error);
@@ -127,7 +129,7 @@ export const useCampaignAudienceSelection = ({
     return () => {
       isActive = false;
     };
-  }, [api, form.programId, setMessage]);
+  }, [api, form.programId, selectedSavedGroupId, setMessage]);
 
   const schoolsForSelectedBlocks = useMemo(
     () =>
@@ -238,6 +240,10 @@ export const useCampaignAudienceSelection = ({
 
   useEffect(() => {
     if (!selectedSavedGroup || !form.programId) return;
+    setHasCustomBlockSelection(!selectedSavedGroup.isAllSchools);
+    setHasCustomSchoolSelection(!selectedSavedGroup.isAllSchools);
+    setHasCustomGradeSelection(!selectedSavedGroup.isAllGrades);
+
     if (selectedSavedGroup.isAllSchools) {
       setSelectedBlocks(audienceOptions.blocks);
       setSelectedSchools(audienceOptions.schools);

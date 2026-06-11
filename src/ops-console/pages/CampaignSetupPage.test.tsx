@@ -751,6 +751,45 @@ describe('CampaignSetupPage', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('does not show all-included helper copy for partially selected saved groups', async () => {
+    mockApiHandler.getCampaignSetupOptions.mockResolvedValueOnce({
+      programs: [{ id: 'program-1', name: 'Early Learning' }],
+      managers: [{ id: 'manager-1', name: 'Raj Patel' }],
+      savedGroups: [
+        {
+          id: 'audience-1',
+          name: 'Partial Group',
+          programId: 'program-1',
+          isAllSchools: false,
+          isAllGrades: false,
+          schoolIds: ['school-1'],
+          gradeIds: ['grade-1'],
+        },
+      ],
+    });
+
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await openSelectAndChoose('Select a saved group', 'Partial Group');
+
+    await waitFor(() =>
+      expect(mockApiHandler.getCampaignAudienceOptions).toHaveBeenCalledWith(
+        'program-1',
+      ),
+    );
+
+    expect(
+      screen.queryByText('all blocks under selected program are included.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('all schools under selected blocks are included.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('all grades under selected schools are included.'),
+    ).not.toBeInTheDocument();
+  });
+
   it('uses the header back button to move to the previous step before leaving the page', async () => {
     mockAssignmentComplete = true;
     render(<CampaignSetupPage />);
