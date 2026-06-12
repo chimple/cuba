@@ -24,7 +24,7 @@ import {
 } from '../../common/constants';
 import { useHistory, useLocation } from 'react-router';
 import { Capacitor } from '@capacitor/core';
-import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { ScreenOrientation } from '../../utility/screenOrientation';
 import { initializeFireBase } from '../../services/Firebase';
 import Loading from '../Loading';
 import { logProfileClick } from '../../analytics/profileClickUtil';
@@ -636,7 +636,7 @@ const ProfileDetails = () => {
                 }
                 options={languages.map((lang) => ({
                   value: lang.id,
-                  label: t(lang.name),
+                  label: lang.name,
                 }))}
                 // required={mode === FORM_MODES.ALL_REQUIRED}
               />
