@@ -128,6 +128,19 @@
   cursor: not-allowed;
 }
 
+.assignment-interaction-lock-active {
+  overflow: hidden;
+  touch-action: none;
+}
+
+.assignment-interaction-lock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1150;
+  background: transparent;
+  cursor: wait;
+}
+
 .assign-reward-indicator {
   position: fixed;
   min-width: 66px;

@@ -1650,6 +1650,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
 
   const handleSubmitAddStudentModal = useCallback(
     async (formValues: Record<string, string>) => {
+      if (isSubmitting) {
+        return;
+      }
+
       setIsSubmitting(true);
       setErrorMessage(undefined);
 
@@ -1691,14 +1695,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         };
         const result = await api.addStudentWithParentValidation(payload);
         if (result.success) {
-          setErrorMessage({
-            text: 'Student added successfully.',
-            type: 'success',
-          });
-          setTimeout(() => {
-            setIsAddStudentModalOpen(false);
-            setErrorMessage(undefined);
-          }, 2000);
+          handleCloseAddStudentModal();
           setPage(1);
           fetchStudents(debouncedSearchTerm);
         } else {
@@ -1717,12 +1714,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     [
       api,
       isAtSchool,
+      isSubmitting,
       issTotal,
       currentClass,
       schoolId,
       fetchStudents,
       debouncedSearchTerm,
-      setIsAddStudentModalOpen,
+      handleCloseAddStudentModal,
     ],
   );
 
@@ -1887,6 +1885,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         onClose={handleCloseAddStudentModal}
         onSubmit={handleSubmitAddStudentModal}
         message={errorMessage}
+        disabled={isSubmitting}
       />
       <FormCard
         open={isEditStudentModalOpen}
