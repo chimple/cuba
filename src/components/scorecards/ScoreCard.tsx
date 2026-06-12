@@ -107,8 +107,11 @@ const ScoreCard: React.FC<{
       }
 
       const { student, studentId } = await resolveScoreCardStudentContext();
+      const apiHandler = ServiceConfig.getI()?.apiHandler;
+      if (!apiHandler) return;
+
       const progressRowsForScoreCard = await buildScoreCardProgressRows({
-        api: ServiceConfig.getI().apiHandler,
+        api: apiHandler,
         student,
         studentId,
         completedCourseId: progressContext?.completedCourseId,
