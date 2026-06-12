@@ -14,7 +14,7 @@ import LiveQuizQuestion from '../components/liveQuiz/LiveQuizQuestion';
 import LiveQuiz from '../models/liveQuiz';
 import LiveQuizHeader from '../components/liveQuiz/LiveQuizHeader';
 import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
-import ScoreCard from '../components/parent/ScoreCard';
+import ScoreCard from '../components/scorecards/ScoreCard';
 import { Util } from '../utility/util';
 import { t } from 'i18next';
 import { Capacitor } from '@capacitor/core';
@@ -51,6 +51,12 @@ const LiveQuizGame: FC = () => {
         ? SOURCE.INITIAL_ASSESSMENT
         : SOURCE.LEARNING_PATHWAY_HOME_NO_PAL
       : SOURCE.SUBJECT_PAGE);
+  const shouldShowScoreCardProgressRows = [
+    SOURCE.LEARNING_PATHWAY_HOMEWORK,
+    SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
+    SOURCE.LEARNING_PATHWAY_HOME_PAL,
+    SOURCE.INITIAL_ASSESSMENT,
+  ].includes(source);
   const growthbook = useGrowthBook();
 
   useEffect(() => {
@@ -187,6 +193,18 @@ const LiveQuizGame: FC = () => {
                 lessonName={lesson?.name ?? ''}
                 noText={t('Continue Playing')}
                 handleClose={() => setShowDialogBox(true)}
+                progressContext={
+                  shouldShowScoreCardProgressRows
+                    ? {
+                        completedCourseId: state?.courseId,
+                        completedLessonId:
+                          lesson?.id ?? paramLessonId ?? undefined,
+                        animateDailyReward: Boolean(state?.reward),
+                      }
+                    : undefined
+                }
+                showProgressRows={shouldShowScoreCardProgressRows}
+                variant="progress"
                 onContinueButtonClicked={() => {
                   setShowDialogBox(false);
                   if (initialCount >= 5) {

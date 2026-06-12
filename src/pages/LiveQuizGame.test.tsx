@@ -107,18 +107,27 @@ jest.mock(
   ),
 );
 
-const mockScoreCardSpy = jest.fn();
-jest.mock('../components/parent/ScoreCard', () => (props: any) => {
-  mockScoreCardSpy(props);
-  return (
-    <div data-testid="scorecard">
-      <button onClick={() => props.onContinueButtonClicked?.()}>
-        continue
-      </button>
-      <button onClick={() => props.handleClose?.()}>close-dialog</button>
-    </div>
-  );
-});
+type MockScoreCardProps = {
+  onContinueButtonClicked?: () => void;
+  handleClose?: () => void;
+  [key: string]: unknown;
+};
+
+const mockScoreCardSpy = jest.fn<void, [MockScoreCardProps]>();
+jest.mock(
+  '../components/scorecards/ScoreCard',
+  () => (props: MockScoreCardProps) => {
+    mockScoreCardSpy(props);
+    return (
+      <div data-testid="scorecard">
+        <button onClick={() => props.onContinueButtonClicked?.()}>
+          continue
+        </button>
+        <button onClick={() => props.handleClose?.()}>close-dialog</button>
+      </div>
+    );
+  },
+);
 
 const mockApi = {
   liveQuizListener: jest.fn(),

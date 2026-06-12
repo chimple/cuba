@@ -22,7 +22,7 @@ import {
   SOURCE,
 } from '../common/constants';
 import Loading from '../components/Loading';
-import ScoreCard from '../components/parent/ScoreCard';
+import ScoreCard from '../components/scorecards/ScoreCard';
 import { IonPage, useIonToast } from '@ionic/react';
 import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
@@ -66,6 +66,12 @@ const LidoPlayer: FC = () => {
           ? SOURCE.INITIAL_ASSESSMENT
           : SOURCE.LEARNING_PATHWAY_HOME_NO_PAL
         : SOURCE.SUBJECT_PAGE);
+  const shouldShowScoreCardProgressRows = [
+    SOURCE.LEARNING_PATHWAY_HOMEWORK,
+    SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
+    SOURCE.LEARNING_PATHWAY_HOME_PAL,
+    SOURCE.INITIAL_ASSESSMENT,
+  ].includes(source);
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get('lessonid') ?? state?.lessonId;
   const assignmentType = state?.assignment?.type || 'self-played';
@@ -430,6 +436,7 @@ const LidoPlayer: FC = () => {
           source,
         );
       }
+
       Util.logEvent(EVENTS.RESULTS_SAVED, {
         user_id: parentUserId,
         student_id: studentId,
@@ -830,7 +837,7 @@ const LidoPlayer: FC = () => {
         ml_class_id: data.mlClassId,
         ml_student_id: data.mlStudentId,
         course_id: data.courseId,
-        course_name: courseDetail.name,
+        course_name: courseDetail?.name ?? '',
         time_spent: lessonTimeSpent,
         total_moves: data.totalMoves,
         total_games: data.totalGames,
@@ -863,6 +870,7 @@ const LidoPlayer: FC = () => {
         ASSIGNMENT_COMPLETED_IDS,
         JSON.stringify(assignmentCompletedIds),
       );
+      setIsLoading(false);
       setShowDialogBox(true);
     } catch (error) {
       logger.error('❌ Failed to process lesson end', error);
@@ -1087,6 +1095,17 @@ const LidoPlayer: FC = () => {
             setIsLoading(true);
             push();
           }}
+          progressContext={
+            shouldShowScoreCardProgressRows
+              ? {
+                  completedCourseId: courseDetail?.id ?? courseDocId,
+                  completedLessonId: lessonDetail?.id ?? lessonId ?? undefined,
+                  animateDailyReward: Boolean(state?.reward),
+                }
+              : undefined
+          }
+          showProgressRows={shouldShowScoreCardProgressRows}
+          variant="progress"
         />
       )}
       {isReady && (xmlPath || basePath || zipUrl) && !showDialogBox
