@@ -59,17 +59,7 @@ const CampaignSetupPage: React.FC = () => {
     [],
   );
 
-  const selectedAssignmentSchoolIds = useMemo(
-    () =>
-      campaignSetup.isAllSchools
-        ? campaignSetup.audienceOptions.schools.map((school) => school.id)
-        : campaignSetup.selectedSchools.map((school) => school.id),
-    [
-      campaignSetup.audienceOptions.schools,
-      campaignSetup.isAllSchools,
-      campaignSetup.selectedSchools,
-    ],
-  );
+  const selectedAssignmentSchoolIds = campaignSetup.selectedAssignmentSchoolIds;
 
   const communicationTimelineDates = useMemo(
     () => buildCommunicationTimelineDates(campaignSetup.assignmentDrafts),
@@ -483,6 +473,8 @@ const CampaignSetupPage: React.FC = () => {
               campaignId={campaignSetup.createdCampaignId}
               selectedGrades={campaignSetup.selectedGrades}
               selectedSchoolIds={selectedAssignmentSchoolIds}
+              assignmentOptions={campaignSetup.assignmentOptions}
+              loadingAssignmentOptions={campaignSetup.loadingAssignmentOptions}
               activeGradeId={campaignSetup.activeAssignmentGradeId}
               configs={campaignSetup.assignmentConfigs}
               onActiveGradeChange={campaignSetup.setActiveAssignmentGradeId}

@@ -80,11 +80,11 @@
 @media (max-width: 48rem) {
   .campaign-setup-stepper {
     position: fixed;
-    top: calc(3.875rem + env(safe-area-inset-top, 0rem));
+    top: var(--campaign-mobile-header-height);
     left: 0;
     right: 0;
     z-index: 19;
-    height: 2.875rem;
+    height: var(--campaign-mobile-stepper-height);
     margin: 0;
     padding: 0 1rem;
     border-bottom: none;
@@ -94,12 +94,6 @@
     max-width: 100vw;
     box-sizing: border-box;
     scrollbar-width: none;
-  }
-
-  .campaign-setup-stepper + .campaign-setup-section,
-  .campaign-setup-stepper + .campaign-assignment-step,
-  .campaign-setup-stepper + .rewards-config-section {
-    margin-top: 2.875rem;
   }
 
   .campaign-setup-stepper::-webkit-scrollbar {
