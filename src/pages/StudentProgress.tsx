@@ -2,21 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { IonCol, IonRow } from '@ionic/react';
 import '../components/studentProgress/CustomAppBar.css';
 import './StudentProgress.css';
-import { COURSES, PAGES, TableTypes } from '../common/constants';
+import { PAGES, TableTypes } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { useHistory } from 'react-router-dom';
 import CustomAppBar from '../components/studentProgress/CustomAppBar';
 import { t } from 'i18next';
 import { Util } from '../utility/util';
 import SkeltonLoading from '../components/SkeltonLoading';
-
-const LANGUAGE_COURSES = new Set<string>([
-  COURSES.ENGLISH,
-  COURSES.HINDI,
-  COURSES.KANNADA,
-  COURSES.MARATHI,
-  COURSES.SIERRA_LEONE_ENGLISH,
-]);
 
 const StudentProgress: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -55,10 +47,6 @@ const StudentProgress: React.FC = () => {
   const handleBackButton = () => {
     Util.setPathToBackButton(PAGES.PARENT, history);
   };
-  const getCourseTitle = (course: TableTypes<'course'>) => {
-    const courseName = course.name ?? '';
-    return LANGUAGE_COURSES.has(course.code ?? '') ? courseName : t(courseName);
-  };
 
   async function init() {
     const currentStudent = await Util.getCurrentStudent();
@@ -75,12 +63,11 @@ const StudentProgress: React.FC = () => {
             const curriculumDoc = await api.getCurriculumById(
               course.curriculum_id!,
             );
-            const courseTitle = getCourseTitle(course);
             return {
               courseId: course.id,
               displayName: (
                 <div className="course-detail-div">
-                  <div className="course-text">{courseTitle}</div>
+                  <div className="course-text">{t(course.name)}</div>
                   {gradeDoc && (
                     <div className="grade-text">{t(gradeDoc.name)}</div>
                   )}

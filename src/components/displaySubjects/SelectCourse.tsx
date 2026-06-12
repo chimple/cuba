@@ -5,21 +5,12 @@ import SelectIconImage from './SelectIconImage';
 import { IoAddCircleSharp } from 'react-icons/io5';
 import { Splide, SplideSlide } from '@splidejs/react-splide';
 import {
-  COURSES,
   DEFUALT_SUBJECT_CARD_COLOUR,
   PAGES,
   TableTypes,
 } from '../../common/constants';
 import { useHistory } from 'react-router';
 import { ServiceConfig } from '../../services/ServiceConfig';
-
-const LANGUAGE_COURSES = new Set<string>([
-  COURSES.ENGLISH,
-  COURSES.HINDI,
-  COURSES.KANNADA,
-  COURSES.MARATHI,
-  COURSES.SIERRA_LEONE_ENGLISH,
-]);
 
 interface CourseDetails {
   course: TableTypes<'course'>;
@@ -57,10 +48,6 @@ const SelectCourse: FC<{
     return a.course.sort_index! - b.course.sort_index!;
   });
   const history = useHistory();
-  const getCourseTitle = (course: TableTypes<'course'>) => {
-    const courseName = course.name ?? '';
-    return LANGUAGE_COURSES.has(course.code ?? '') ? courseName : t(courseName);
-  };
   return (
     <Splide
       hasTrack={true}
@@ -73,7 +60,6 @@ const SelectCourse: FC<{
       }}
     >
       {courseDetails.map(({ course, grade, curriculum }, index) => {
-        const courseTitle = getCourseTitle(course);
         return (
           <SplideSlide key={index} className="slide">
             <div
@@ -102,7 +88,7 @@ const SelectCourse: FC<{
                   imageHeight={'auto'}
                 />
               </div>
-              <div className="course-title">{courseTitle}</div>
+              <div className="course-title">{t(course.name)}</div>
               {curriculum && (
                 <div className="course-curriculum">{curriculum.name}</div>
               )}

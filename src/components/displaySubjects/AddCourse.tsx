@@ -3,7 +3,6 @@ import { t } from 'i18next';
 import SelectIconImage from './SelectIconImage';
 import { Splide, SplideSlide } from '@splidejs/react-splide';
 import {
-  COURSES,
   DEFUALT_SUBJECT_CARD_COLOUR,
   TableTypes,
 } from '../../common/constants';
@@ -12,14 +11,6 @@ import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineE
 import Loading from '../Loading';
 import './AddCourse.css';
 import { ServiceConfig } from '../../services/ServiceConfig';
-
-const LANGUAGE_COURSES = new Set<string>([
-  COURSES.ENGLISH,
-  COURSES.HINDI,
-  COURSES.KANNADA,
-  COURSES.MARATHI,
-  COURSES.SIERRA_LEONE_ENGLISH,
-]);
 
 const AddCourse: FC<{
   courses: TableTypes<'course'>[];
@@ -44,11 +35,6 @@ const AddCourse: FC<{
     return (a.course.sort_index ?? 0) - (b.course.sort_index ?? 0);
   });
   let selectedCourses: TableTypes<'course'>[] = [];
-
-  const getCourseTitle = (course: TableTypes<'course'>) => {
-    const courseName = course.name ?? '';
-    return LANGUAGE_COURSES.has(course.code ?? '') ? courseName : t(courseName);
-  };
 
   useEffect(() => {
     getCurriculum();
@@ -125,7 +111,6 @@ const AddCourse: FC<{
             if (course.course.curriculum_id === curr) {
               const grade = gradesMap.get(course.course.grade_id!);
               const gradeTitle = grade ? grade.name : '';
-              const courseTitle = getCourseTitle(course.course);
 
               return (
                 <SplideSlide
@@ -180,7 +165,7 @@ const AddCourse: FC<{
                     </div>
 
                     <div>
-                      <p> {courseTitle}</p>
+                      <p> {t(course?.course.name)}</p>
                     </div>
 
                     {currt ? (
