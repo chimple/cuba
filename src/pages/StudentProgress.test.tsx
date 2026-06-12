@@ -680,33 +680,6 @@ describe('StudentProgress', () => {
     expect(mockApiHandler.getChapterById).toHaveBeenCalledWith('chapter-1');
   });
 
-  it('deduplicates lesson and chapter lookups for repeated progress ids', async () => {
-    mockApiHandler.getStudentProgress.mockResolvedValue({
-      'course-1': [
-        {
-          lesson_id: 'lesson-1',
-          chapter_id: 'chapter-1',
-          score: 82,
-          time_spent: 90,
-        },
-        {
-          lesson_id: 'lesson-1',
-          chapter_id: 'chapter-1',
-          score: 90,
-          time_spent: 120,
-        },
-      ],
-      'course-2': [],
-    });
-
-    render(<StudentProgress />);
-
-    expect(await screen.findAllByText('lesson-1-name')).toHaveLength(2);
-    expect(await screen.findAllByText('chapter-1-name')).toHaveLength(2);
-    expect(mockApiHandler.getLesson).toHaveBeenCalledTimes(1);
-    expect(mockApiHandler.getChapterById).toHaveBeenCalledTimes(1);
-  });
-
   it('floors decimal scores instead of rounding them', async () => {
     mockApiHandler.getStudentProgress.mockResolvedValue({
       'course-1': [

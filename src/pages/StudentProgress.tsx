@@ -67,7 +67,9 @@ const StudentProgress: React.FC = () => {
               courseId: course.id,
               displayName: (
                 <div className="course-detail-div">
-                  <div className="course-text">{t(course.name)}</div>
+                  <div className="course-text">
+                    {course.name === 'English' ? course.name : t(course.name)}
+                  </div>
                   {gradeDoc && (
                     <div className="grade-text">{t(gradeDoc.name)}</div>
                   )}
@@ -189,48 +191,27 @@ const StudentProgress: React.FC = () => {
       const lessonResultsForCourse = lessonsResults[selectedCourseId];
       if (lessonResultsForCourse) {
         isDataAvailable = true;
-        const lessonPromises: Record<string, Promise<string>> = {};
-        const chapterPromises: Record<string, Promise<string>> = {};
-
-        const getCachedLessonName = (lessonId: string): Promise<string> => {
-          if (!lessonPromises[lessonId]) {
-            lessonPromises[lessonId] = api
-              .getLesson(lessonId)
-              .then((lesson) => lesson?.name ?? '');
+        for (const result of lessonResultsForCourse) {
+          let lessonName = result.lesson_name ?? '';
+          let chapterName = result.chapter_name ?? '';
+          if (!lessonName && result.lesson_id) {
+            const lesson = await api.getLesson(result.lesson_id);
+            lessonName = lesson?.name ?? '';
           }
-          return lessonPromises[lessonId];
-        };
-
-        const getCachedChapterName = (chapterId: string): Promise<string> => {
-          if (!chapterPromises[chapterId]) {
-            chapterPromises[chapterId] = api
-              .getChapterById(chapterId)
-              .then((chapter) => chapter?.name ?? '');
+          if (!chapterName && result.chapter_id) {
+            const chapter = await api.getChapterById(result.chapter_id);
+            chapterName = chapter?.name ?? '';
           }
-          return chapterPromises[chapterId];
-        };
-
-        tempDataContent = await Promise.all(
-          lessonResultsForCourse.map(async (result) => {
-            let lessonName = result.lesson_name ?? '';
-            let chapterName = result.chapter_name ?? '';
-            if (!lessonName && result.lesson_id) {
-              lessonName = await getCachedLessonName(result.lesson_id);
-            }
-            if (!chapterName && result.chapter_id) {
-              chapterName = await getCachedChapterName(result.chapter_id);
-            }
-            const timeSpent = result.time_spent ?? 0;
-            const computeMinutes = Math.floor(timeSpent / 60);
-            const computeSeconds = timeSpent % 60;
-            return [
-              lessonName,
-              chapterName,
-              Math.floor(result.score ?? 0).toString(),
-              `${computeMinutes}:${computeSeconds}`,
-            ];
-          }),
-        );
+          const timeSpent = result.time_spent ?? 0;
+          const computeMinutes = Math.floor(timeSpent / 60);
+          const computeSeconds = timeSpent % 60;
+          tempDataContent.push([
+            lessonName,
+            chapterName,
+            Math.floor(result.score ?? 0).toString(),
+            `${computeMinutes}:${computeSeconds}`,
+          ]);
+        }
       }
     }
 
