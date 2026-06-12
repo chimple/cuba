@@ -8,6 +8,8 @@
   "{{rank}} {{criteriaLabel}}": "{{rank}} {{criteriaLabel}}",
   "{{rank}} Rank": "{{rank}} Rank",
   "{{rank}} Reward": "{{rank}} Reward",
+  "Lesson starts in :": "Lesson starts in :",
+  "Let's play and learn! Complete first lesson and earn a reward!": "Let's play and learn! Complete first lesson and earn a reward!",
   "{{studentName}}'s profile has been deleted and is no longer available.": "{{studentName}}'s profile has been deleted and is no longer available.",
   "{{teacherName}}'s profile has been deleted and is no longer available.": "{{teacherName}}'s profile has been deleted and is no longer available.",
   "{{value}}% complete": "{{value}}% complete",
