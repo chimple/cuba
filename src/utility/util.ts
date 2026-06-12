@@ -2844,19 +2844,26 @@ export class Util {
 
       let course = courses.courseList[courseIndex];
       course.path.length = 0;
-      const nextLesson = await recommendNextLesson({
-        student: currentStudent,
-        course: {
-          id: course.course_id,
-          subject_id: course.subject_id,
-          framework_id:
-            course.type === RECOMMENDATION_TYPE.FRAMEWORK ? 'framework' : null,
-        },
-        mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
-        coursePath: course,
-      });
+      const nextQueuedLesson = course.path.find(
+        (lesson: LessonNode) => lesson.isPlayed === false,
+      );
+      const nextLesson =
+        nextQueuedLesson ??
+        (await recommendNextLesson({
+          student: currentStudent,
+          course: {
+            id: course.course_id,
+            subject_id: course.subject_id,
+            framework_id:
+              course.type === RECOMMENDATION_TYPE.FRAMEWORK
+                ? 'framework'
+                : null,
+          },
+          mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+          coursePath: course,
+        }));
 
-      if (nextLesson) {
+      if (nextLesson && !nextQueuedLesson) {
         course.path.push(nextLesson);
       }
 
@@ -2959,6 +2966,15 @@ export class Util {
         isPlayed: true,
       };
 
+      const hasQueuedAssessmentInPath = course.path
+        .slice(activeLessonIndex + 1)
+        .some(
+          (lesson: LessonNode) =>
+            lesson.isPlayed === false &&
+            lesson.is_assessment === true &&
+            !!lesson.assignment_id,
+        );
+
       const syncSameSubjectAssessmentPaths = (
         nextAssessmentLesson: LessonNode | null,
       ) => {
@@ -3013,17 +3029,21 @@ export class Util {
       const completedPathwaySnapshot = JSON.stringify(learningPath);
 
       /* 3️⃣ Compute next active lesson */
-      const nextLesson = await recommendNextLesson({
-        student: currentStudent,
-        course: {
-          id: course.course_id,
-          subject_id: course.subject_id,
-          framework_id:
-            course.type === RECOMMENDATION_TYPE.FRAMEWORK ? 'framework' : null,
-        },
-        mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
-        coursePath: course,
-      });
+      const nextLesson = hasQueuedAssessmentInPath
+        ? null
+        : await recommendNextLesson({
+            student: currentStudent,
+            course: {
+              id: course.course_id,
+              subject_id: course.subject_id,
+              framework_id:
+                course.type === RECOMMENDATION_TYPE.FRAMEWORK
+                  ? 'framework'
+                  : null,
+            },
+            mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+            coursePath: course,
+          });
 
       if (nextLesson) {
         course.path.push(nextLesson);

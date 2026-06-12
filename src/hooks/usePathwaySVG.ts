@@ -560,6 +560,55 @@ export function usePathwaySVG({
         chimple.setAttribute('width', '32.5%');
         chimple.setAttribute('height', '100%');
         let lastIndex = -1;
+        const buildInactiveLessonNode = (
+          index: number,
+          flowerX: number,
+          flowerY: number,
+        ) => {
+          const flower_Inactive = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'g',
+          );
+          const positionMappings = {
+            flowerInactive: {
+              x: [flowerX - 20, flowerX, flowerX, flowerX + 5, flowerX + 10],
+              y: [
+                flowerY - 20,
+                flowerY + 5,
+                flowerY - 6,
+                flowerY + 3,
+                flowerY - 5,
+              ],
+            },
+          };
+          const lessonImage = createSVGImage(
+            'assets/icons/NextNodeIcon.svg',
+            30,
+            30,
+            21,
+            23,
+          );
+          flower_Inactive.appendChild(
+            flowerInactive.cloneNode(true) as SVGGElement,
+          );
+          flower_Inactive.appendChild(lessonImage);
+          flower_Inactive.addEventListener('click', () => {
+            setModalOpen(true);
+            setModalText(
+              t('This lesson is locked. Play the current active lesson.'),
+            );
+          });
+          flower_Inactive.setAttribute(
+            'style',
+            'cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);',
+          );
+          placeElement(
+            flower_Inactive as SVGGElement,
+            positionMappings.flowerInactive.x[index] ?? flowerX - 20,
+            positionMappings.flowerInactive.y[index] ?? flowerY - 20,
+          );
+          return flower_Inactive;
+        };
         // Build lesson nodes
         lessons.forEach((lesson: any, idx: number) => {
           const path = paths[idx];
@@ -668,6 +717,10 @@ export function usePathwaySVG({
             });
 
             fragment.appendChild(activeGroup);
+          } else {
+            fragment.appendChild(
+              buildInactiveLessonNode(idx, flowerX, flowerY),
+            );
           }
           lastIndex = idx;
         });
@@ -677,50 +730,7 @@ export function usePathwaySVG({
           const point = path.getPointAtLength(0);
           const flowerX = point.x - 40;
           const flowerY = point.y - 40;
-          // Locked lesson
-          const flower_Inactive = document.createElementNS(
-            'http://www.w3.org/2000/svg',
-            'g',
-          );
-          const positionMappings = {
-            flowerInactive: {
-              x: [flowerX - 20, flowerX, flowerX, flowerX + 5, flowerX + 10],
-              y: [
-                flowerY - 20,
-                flowerY + 5,
-                flowerY - 6,
-                flowerY + 3,
-                flowerY - 5,
-              ],
-            },
-          };
-          const lessonImage = createSVGImage(
-            'assets/icons/NextNodeIcon.svg',
-            30,
-            30,
-            21,
-            23,
-          );
-          flower_Inactive.appendChild(
-            flowerInactive.cloneNode(true) as SVGGElement,
-          );
-          flower_Inactive.appendChild(lessonImage);
-          flower_Inactive.addEventListener('click', () => {
-            setModalOpen(true);
-            setModalText(
-              t('This lesson is locked. Play the current active lesson.'),
-            );
-          });
-          flower_Inactive.setAttribute(
-            'style',
-            'cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);',
-          );
-          placeElement(
-            flower_Inactive as SVGGElement,
-            positionMappings.flowerInactive.x[i] ?? flowerX - 20,
-            positionMappings.flowerInactive.y[i] ?? flowerY - 20,
-          );
-          fragment.appendChild(flower_Inactive);
+          fragment.appendChild(buildInactiveLessonNode(i, flowerX, flowerY));
         }
 
         // Path-end reward node (Sticker or Mystery box)
