@@ -67,7 +67,9 @@ const StudentProgress: React.FC = () => {
               courseId: course.id,
               displayName: (
                 <div className="course-detail-div">
-                  <div className="course-text">{t(course.name)}</div>
+                  <div className="course-text">
+                    {course.name === 'English' ? course.name : t(course.name)}
+                  </div>
                   {gradeDoc && (
                     <div className="grade-text">{t(gradeDoc.name)}</div>
                   )}
@@ -189,17 +191,27 @@ const StudentProgress: React.FC = () => {
       const lessonResultsForCourse = lessonsResults[selectedCourseId];
       if (lessonResultsForCourse) {
         isDataAvailable = true;
-        lessonResultsForCourse.forEach((result) => {
+        for (const result of lessonResultsForCourse) {
+          let lessonName = result.lesson_name ?? '';
+          let chapterName = result.chapter_name ?? '';
+          if (!lessonName && result.lesson_id) {
+            const lesson = await api.getLesson(result.lesson_id);
+            lessonName = lesson?.name ?? '';
+          }
+          if (!chapterName && result.chapter_id) {
+            const chapter = await api.getChapterById(result.chapter_id);
+            chapterName = chapter?.name ?? '';
+          }
           const timeSpent = result.time_spent ?? 0;
           const computeMinutes = Math.floor(timeSpent / 60);
           const computeSeconds = timeSpent % 60;
           tempDataContent.push([
-            result.lesson_name ?? '',
-            result.chapter_name ?? '',
+            lessonName,
+            chapterName,
             Math.floor(result.score ?? 0).toString(),
             `${computeMinutes}:${computeSeconds}`,
           ]);
-        });
+        }
       }
     }
 
