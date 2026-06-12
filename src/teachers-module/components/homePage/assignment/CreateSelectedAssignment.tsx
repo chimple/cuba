@@ -107,6 +107,7 @@ const CreateSelectedAssignment = ({
   const REWARD_FLIGHT_DURATION_MS = 1600;
   const FLAME_PULSE_DURATION_MS = 1000;
   const STREAK_LANDING_LEFT_OFFSET_PX = 30;
+  const REWARD_INDICATOR_EDGE_PADDING_PX = 2;
 
   const history = useHistory();
   const [startDate, setStartDate] = useState('');
@@ -139,6 +140,7 @@ const CreateSelectedAssignment = ({
     isFlying: false,
   });
   const assignButtonRef = useRef<HTMLButtonElement | null>(null);
+  const rewardIndicatorRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     init();
@@ -554,11 +556,24 @@ const CreateSelectedAssignment = ({
         return;
       }
 
-      const deltaX =
-        streakRect.left +
-        streakRect.width / 2 -
-        STREAK_LANDING_LEFT_OFFSET_PX -
-        startX;
+      const rewardRect = rewardIndicatorRef.current?.getBoundingClientRect();
+      const viewportWidth = Math.min(
+        window.innerWidth,
+        window.visualViewport?.width ?? window.innerWidth,
+        document.documentElement.clientWidth || window.innerWidth,
+      );
+      const targetX = Math.max(
+        REWARD_INDICATOR_EDGE_PADDING_PX,
+        Math.min(
+          streakRect.left +
+            streakRect.width / 2 -
+            STREAK_LANDING_LEFT_OFFSET_PX,
+          viewportWidth -
+            (rewardRect?.width ?? 66) -
+            REWARD_INDICATOR_EDGE_PADDING_PX,
+        ),
+      );
+      const deltaX = targetX - startX;
       const deltaY = streakRect.top + streakRect.height / 2 - startY;
 
       setRewardAnimation((prev) => ({
@@ -1042,6 +1057,7 @@ const CreateSelectedAssignment = ({
 
         {rewardAnimation.visible && (
           <div
+            ref={rewardIndicatorRef}
             className={`assign-reward-indicator ${rewardAnimation.isFlying ? 'is-flying' : ''}`}
             style={{
               left: `${rewardAnimation.x}px`,
