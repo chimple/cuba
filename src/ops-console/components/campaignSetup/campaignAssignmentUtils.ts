@@ -70,6 +70,28 @@ const formatIsoDate = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
+export const getAssignmentEndDate = (startsAt: string): string | null => {
+  if (!startsAt) return null;
+
+  const start = parseDate(startsAt);
+  if (Number.isNaN(start.getTime())) return null;
+
+  const year = start.getFullYear();
+  const targetMonthIndex = start.getMonth() + 1;
+  const targetYear = year + Math.floor(targetMonthIndex / 12);
+  const normalizedTargetMonthIndex = targetMonthIndex % 12;
+  const daysInTargetMonth = new Date(
+    targetYear,
+    normalizedTargetMonthIndex + 1,
+    0,
+  ).getDate();
+  const targetDay = Math.min(start.getDate(), daysInTargetMonth);
+
+  return formatIsoDate(
+    new Date(targetYear, normalizedTargetMonthIndex, targetDay),
+  );
+};
+
 export const formatDisplayDate = (value: string) =>
   value
     ? new Intl.DateTimeFormat(undefined, {
@@ -245,7 +267,7 @@ export const buildAssignmentDrafts = (
         lessonName: row.lessonName,
         subjectName: row.subjectName,
         startsAt: row.date,
-        endsAt: null,
+        endsAt: getAssignmentEndDate(row.date),
         type: 'homework',
         source: 'campaign',
         setNumber: index + 1,

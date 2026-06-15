@@ -139,6 +139,11 @@
   text-align: left !important;
 }
 
+.campaign-review-count {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
 .campaign-review-assignment-list,
 .campaign-review-message-list {
   display: flex;
@@ -335,7 +340,6 @@
 
 @media (max-width: 48rem) {
   .campaign-review-step {
-    margin-top: 2.875rem;
     padding: 1.25rem 0 1.5rem;
   }
 
@@ -374,6 +378,10 @@
   .campaign-review-assignment-detail,
   .campaign-review-reach .campaign-review-subheading {
     color: var(--campaign-text);
+  }
+
+  .campaign-review-reach .campaign-review-subheading {
+    text-transform: capitalize;
   }
 
   .campaign-review-communication-card .campaign-review-row {
@@ -472,6 +480,10 @@
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .campaign-review-message-line .campaign-review-label-colon {
+    display: none !important;
   }
 
   .campaign-review-message-overflow {
