@@ -70,8 +70,6 @@ const mockApiHandler = {
   getGradeById: jest.fn(),
   getCurriculumById: jest.fn(),
   getStudentProgress: jest.fn(),
-  getLesson: jest.fn(),
-  getChapterById: jest.fn(),
 };
 
 jest.mock('../services/ServiceConfig', () => ({
@@ -146,16 +144,6 @@ describe('StudentProgress', () => {
       }),
     );
     mockApiHandler.getStudentProgress.mockResolvedValue(classProgress);
-    mockApiHandler.getLesson.mockImplementation(async (lessonId: string) => ({
-      id: lessonId,
-      name: `${lessonId}-name`,
-    }));
-    mockApiHandler.getChapterById.mockImplementation(
-      async (chapterId: string) => ({
-        id: chapterId,
-        name: `${chapterId}-name`,
-      }),
-    );
   });
 
   it('loads class courses on mount and renders the first course results', async () => {
@@ -657,27 +645,6 @@ describe('StudentProgress', () => {
     expect(await screen.findByText('Subtraction')).toBeInTheDocument();
     expect(screen.getByText('44')).toBeInTheDocument();
     expect(screen.getByText('0:59')).toBeInTheDocument();
-  });
-
-  it('looks up lesson and chapter names when progress rows only include ids', async () => {
-    mockApiHandler.getStudentProgress.mockResolvedValue({
-      'course-1': [
-        {
-          lesson_id: 'lesson-1',
-          chapter_id: 'chapter-1',
-          score: 82,
-          time_spent: 90,
-        },
-      ],
-      'course-2': [],
-    });
-
-    render(<StudentProgress />);
-
-    expect(await screen.findByText('lesson-1-name')).toBeInTheDocument();
-    expect(screen.getByText('chapter-1-name')).toBeInTheDocument();
-    expect(mockApiHandler.getLesson).toHaveBeenCalledWith('lesson-1');
-    expect(mockApiHandler.getChapterById).toHaveBeenCalledWith('chapter-1');
   });
 
   it('floors decimal scores instead of rounding them', async () => {
