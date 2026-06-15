@@ -413,6 +413,10 @@ const buildBulkUploadPayload = (payload: {
             row['SCHOOL INSTRUCTION LANGUAGE']?.toString().trim() || '',
           student_login_type:
             row['STUDENT LOGIN TYPE']?.toString().trim() || '',
+          isWhatsappEnabled:
+            row['IS WHATSAPP ENABLED']?.toString().trim().toLowerCase() || '',
+          whatsapp_bot_number:
+            row['WHATSAPP BOT NUMBER']?.toString().trim() || null,
           academic_years: row['SCHOOL ACADEMIC YEAR']
             ? [row['SCHOOL ACADEMIC YEAR']?.toString().trim()]
             : [],
@@ -477,6 +481,8 @@ const buildBulkUploadPayload = (payload: {
     map.get(key).classes.push({
       grade: row['GRADE']?.toString().trim() || '',
       section: row['CLASS SECTION']?.toString().trim() || '',
+      whatsapp_invite_link:
+        row['WHATSAPP GROUP LINK']?.toString().trim() || null,
       student_count: row['STUDENTS COUNT IN CLASS']?.toString().trim() || '',
       subjects: [
         {
@@ -506,6 +512,7 @@ const buildBulkUploadPayload = (payload: {
       cls = {
         grade,
         section,
+        whatsapp_invite_link: null,
         student_count: '',
         subjects: [],
         teachers: [],
@@ -537,6 +544,7 @@ const buildBulkUploadPayload = (payload: {
       cls = {
         grade,
         section,
+        whatsapp_invite_link: null,
         student_count: '',
         subjects: [],
         teachers: [],

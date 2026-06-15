@@ -14,11 +14,6 @@ const AssigmentCount: React.FC<AssigmentCountProps> = ({
     <div className="assignment-count-container" onClick={onClick}>
       <div className="assignment-count-body">
         <div className="assignment-count-text">
-          <img
-            src="assets/icons/assignmentSelect.svg"
-            alt=""
-            className="assignment-count-img"
-          />
           {assignments} {t('Assignments')}
         </div>
         <div className="assignment-count-next-button">

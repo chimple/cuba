@@ -35,6 +35,13 @@
   animation: diagonal-move 1.4s infinite ease-in-out;
 }
 
+.HomeworkPathwayStructure-reward-confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10000;
+}
+
 @keyframes diagonal-move {
   0% {
     transform: translate(0, 0);

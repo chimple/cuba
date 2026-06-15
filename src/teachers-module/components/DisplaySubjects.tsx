@@ -1,17 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { IonIcon, IonAlert } from '@ionic/react';
-import { checkmarkCircle } from 'ionicons/icons';
+import { IonAlert, IonIcon } from '@ionic/react';
 import { t } from 'i18next';
-import './DisplaySubjects.css';
+import { checkmarkCircle } from 'ionicons/icons';
+import React, { useEffect, useState } from 'react';
 import { TableTypes } from '../../common/constants';
-import { Util } from '../../utility/util';
 import { RoleType } from '../../interface/modelInterfaces';
 import logger from '../../utility/logger';
+import { schoolUtil } from '../../utility/schoolUtil';
+import { Util } from '../../utility/util';
+import './DisplaySubjects.css';
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
   courses: TableTypes<'course'>[];
 }
+
+type ClassWithRole = TableTypes<'class'> & {
+  role?: RoleType;
+};
 
 interface DisplaySubjectsProps {
   curriculumsWithCourses: CurriculumWithCourses[];
@@ -35,16 +40,17 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
   // State to track whether the last subject warning should be shown
   const [isLastSubjectAlertOpen, setIsLastSubjectAlertOpen] = useState(false);
   const [canModify, setCanModify] = useState(true);
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
 
   useEffect(() => {
     const checkClassRole = async () => {
-      const cls = await Util.getCurrentClass();
-      if ((cls as any)?.role === RoleType.TEACHER) {
+      const cls = (await Util.getCurrentClass()) as ClassWithRole | undefined;
+      if (cls?.role === RoleType.TEACHER || isTeacherSchoolMode) {
         setCanModify(false);
       }
     };
     checkClassRole();
-  }, []);
+  }, [isTeacherSchoolMode]);
 
   // Trigger subject removal logic
   const triggerRemoveSubject = (subject: string) => {

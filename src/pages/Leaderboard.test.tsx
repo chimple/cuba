@@ -21,8 +21,10 @@ const mockSetGbUpdated = jest.fn();
 const mockUpdateLocalAttributes = jest.fn();
 const mockLoadBackgroundImage = jest.fn();
 const mockGetCurrentStudent = jest.fn();
+const mockSetCurrentStudent = jest.fn();
 const mockSetPathToBackButton = jest.fn();
 const mockGetCurrMode = jest.fn();
+const mockSetCurrentClass = jest.fn();
 const mockDestroyInstance = jest.fn();
 const mockChangeLanguage = jest.fn();
 const mockAddListener: jest.Mock = jest.fn((..._args: any[]) => ({
@@ -76,22 +78,23 @@ jest.mock('../i18n', () => ({
 
 jest.mock('../growthbook/Growthbook', () => ({
   useGbContext: () => ({ setGbUpdated: mockSetGbUpdated }),
-  updateLocalAttributes: (attributes: unknown) =>
-    mockUpdateLocalAttributes(attributes),
+  updateLocalAttributes: (...args: never[]) =>
+    mockUpdateLocalAttributes(...args),
 }));
 
 jest.mock('../utility/util', () => ({
   Util: {
     loadBackgroundImage: () => mockLoadBackgroundImage(),
     getCurrentStudent: () => mockGetCurrentStudent(),
-    setPathToBackButton: (...args: any[]) =>
-      mockSetPathToBackButton.apply(null, args),
+    setCurrentStudent: (...args: never[]) => mockSetCurrentStudent(...args),
+    setPathToBackButton: (...args: never[]) => mockSetPathToBackButton(...args),
   },
 }));
 
 jest.mock('../utility/schoolUtil', () => ({
   schoolUtil: {
     getCurrMode: () => mockGetCurrMode(),
+    setCurrentClass: (...args: never[]) => mockSetCurrentClass(...args),
   },
 }));
 
@@ -294,7 +297,9 @@ describe('Leaderboard', () => {
     window.history.pushState({}, '', '/leaderboard');
 
     mockGetCurrentStudent.mockReturnValue(currentStudent);
+    mockSetCurrentStudent.mockResolvedValue(undefined);
     mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
+    mockSetCurrentClass.mockResolvedValue(undefined);
     mockApiHandler.getStudentClassesAndSchools.mockResolvedValue({
       classes: [{ id: 'class-1' }],
       schools: [{ id: 'school-1' }],
@@ -377,6 +382,29 @@ describe('Leaderboard', () => {
     expect(
       view.queryByText(LEADERBOARDHEADERLIST.LEADERBOARD),
     ).not.toBeInTheDocument();
+  });
+
+  it('shows a back button on rewards page and navigates home', async () => {
+    const user = userEvent.setup();
+    window.history.pushState({}, '', '/leaderboard?tab=rewards');
+    const view = render(<Leaderboard />);
+
+    expect(await view.findByTestId('leaderboard-rewards')).toBeInTheDocument();
+    expect(document.querySelector('#LeaderBoard-Header')).toBeTruthy();
+    mockSetPathToBackButton.mockClear();
+
+    const backButton = document.querySelector(
+      '#back-button-in-LeaderBoard-Header img[alt="BackButtonIcon"]',
+    ) as HTMLImageElement | null;
+    expect(backButton).toBeTruthy();
+    if (!backButton) throw new Error('Back button not found');
+
+    await user.click(backButton);
+
+    expect(mockSetPathToBackButton).toHaveBeenCalledWith(
+      PAGES.HOME,
+      mockHistory,
+    );
   });
 
   // 4) Change dropdown period and refresh table content accordingly.

@@ -3,6 +3,7 @@
   width: 35%;
   height: 10vh;
   background-color: white;
+  border: none;
   border-radius: min(20px, 5vh);
   display: flex;
   padding: 0% min(20px, 2%);
@@ -13,6 +14,11 @@
   max-width: 250px;
   min-height: 50px;
   max-height: 65px;
+}
+
+.select-mode-btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .select-mode-btn-text {

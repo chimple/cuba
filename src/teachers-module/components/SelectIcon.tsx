@@ -1,26 +1,32 @@
 import React from 'react';
 import './SelectIcon.css';
 import { t } from 'i18next';
+
 interface SelectIconProps {
   isSelected: boolean;
   onClick: React.MouseEventHandler<HTMLDivElement>;
 }
+
 const SelectIcon: React.FC<SelectIconProps> = ({ onClick, isSelected }) => {
+  const label = t(isSelected ? 'Remove' : 'Add');
+
   return (
-    <div className="select-icon-container" onClick={onClick}>
-      <div id="select-Assignmenticon" className="select-Assignmenticon">
-        <img
+    <div className="select-icon-container">
+      <div
+        id="select-Assignmenticon"
+        className={`select-Assignmenticon${isSelected ? ' is-selected' : ''}`}
+        onClick={onClick}
+      >
+        <span
           id="select-Assignmenticon-image"
           className="select-Assignmenticon-image"
-          src={
-            isSelected
-              ? 'assets/icons/assignmentSelectGreen.svg'
-              : 'assets/icons/assignmentSelect.svg'
-          }
-          alt="Assignment_Icon"
-        />
+          aria-hidden="true"
+        >
+          {isSelected ? '-' : '+'}
+        </span>
+
         <span id="select-text" className="select-text">
-          {isSelected ? t('Remove') : t('Add')}
+          {label}
         </span>
       </div>
     </div>

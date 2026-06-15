@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Confetti from 'react-confetti';
 import './PathwayStructure.css';
 
 import PathwayModal from './PathwayModal';
@@ -48,6 +49,7 @@ const STICKER_REWARD_BOX_TILT_CLASS =
   'PathwayStructure-end-reward-box--sticker-clicked';
 const CROWD_CHEER_AUDIO_URL = '/assets/audios/common/crowd_cheer.mp3';
 const PATHWAY_LOADING_DELAY_MS = 1200;
+type DailyRewardAudioClipName = 'reward_01' | 'reward_02';
 
 const getStickerCollectMascotAudioPath = (languageCode?: string) => {
   const normalizedLanguageCode = languageCode?.toLowerCase().split('-')[0];
@@ -59,6 +61,9 @@ const PathwayStructure: React.FC = () => {
   const history = useHistory();
   const [isPathwaySvgLoading, setIsPathwaySvgLoading] =
     React.useState<boolean>(false);
+  const [showRewardConfetti, setShowRewardConfetti] =
+    React.useState<boolean>(false);
+  const rewardConfettiTimerRef = React.useRef<number | null>(null);
   const [stickerPreviewData, setStickerPreviewData] =
     React.useState<StickerBookModalData | null>(null);
   const [isStickerPreviewOpen, setIsStickerPreviewOpen] =
@@ -101,6 +106,8 @@ const PathwayStructure: React.FC = () => {
     rewardReady: false,
     suppressed: false,
     stateValue: null as number | null,
+    dailyRewardAudioClipName: 'reward_01' as DailyRewardAudioClipName,
+    onRewardAudioComplete: null as (() => void) | null,
     token: 0,
   });
   const currentMascotStateValueRef = React.useRef<number>(1);
@@ -400,6 +407,8 @@ const PathwayStructure: React.FC = () => {
       rewardReady: false,
       suppressed: false,
       stateValue: null,
+      dailyRewardAudioClipName: 'reward_01',
+      onRewardAudioComplete: null,
     };
   }, []);
 
@@ -426,26 +435,53 @@ const PathwayStructure: React.FC = () => {
   }, []);
 
   const playRewardCollectMascotAudio = React.useCallback(
-    (localAudioPath: string, stateValue?: number) => {
-      if (!localAudioPath) return;
+    (
+      localAudioPath: string,
+      stateValue?: number,
+      onPlaybackStop?: () => void,
+    ) => {
+      if (!localAudioPath) {
+        onPlaybackStop?.();
+        return;
+      }
 
-      void playMascotAudioFromLocalPathRef.current(localAudioPath, {
-        stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
-        inputName: CHIMPLE_MASCOT_INPUT_REWARD,
-        stateValue: stateValue ?? currentMascotStateValueRef.current ?? 1,
-      });
+      void (async () => {
+        const didStartPlayback = await playMascotAudioFromLocalPathRef.current(
+          localAudioPath,
+          {
+            stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
+            inputName: CHIMPLE_MASCOT_INPUT_REWARD,
+            stateValue: stateValue ?? currentMascotStateValueRef.current ?? 1,
+          },
+          { onPlaybackStop },
+        );
+
+        if (!didStartPlayback) {
+          onPlaybackStop?.();
+        }
+      })();
     },
     [],
   );
 
   const playRewardAudio = React.useCallback(
-    async (stateValue?: number) => {
+    async (
+      stateValue?: number,
+      onPlaybackStop?: () => void,
+      clipName: DailyRewardAudioClipName = 'reward_01',
+    ) => {
       const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
         'dailyReward',
-        'reward',
+        clipName,
       );
       if (localAudioPath) {
-        playRewardCollectMascotAudio(localAudioPath, stateValue);
+        playRewardCollectMascotAudio(
+          localAudioPath,
+          stateValue,
+          onPlaybackStop,
+        );
+      } else {
+        onPlaybackStop?.();
       }
     },
     [playRewardCollectMascotAudio],
@@ -510,6 +546,9 @@ const PathwayStructure: React.FC = () => {
     () => () => {
       rewardAudioSequenceRef.current.token += 1;
       resetRewardAudioSequence();
+      if (rewardConfettiTimerRef.current !== null) {
+        window.clearTimeout(rewardConfettiTimerRef.current);
+      }
     },
     [resetRewardAudioSequence],
   );
@@ -572,9 +611,12 @@ const PathwayStructure: React.FC = () => {
         return;
       }
 
+      const onRewardAudioComplete = rewardAudioSequence.onRewardAudioComplete;
       resetRewardAudioSequence();
       void playRewardAudio(
         rewardAudioSequence.stateValue ?? currentMascotStateValueRef.current,
+        onRewardAudioComplete ?? undefined,
+        rewardAudioSequence.dailyRewardAudioClipName,
       );
     };
 
@@ -582,6 +624,8 @@ const PathwayStructure: React.FC = () => {
       const customEvent = event as CustomEvent<{
         rewardId?: string;
         stateValue?: number;
+        forceRewardAudio?: boolean;
+        dailyRewardAudioClipName?: DailyRewardAudioClipName;
       }>;
       const rewardId = customEvent.detail?.rewardId;
       if (!rewardId) return;
@@ -589,7 +633,16 @@ const PathwayStructure: React.FC = () => {
         customEvent.detail?.stateValue ?? currentMascotStateValueRef.current;
 
       const nextToken = rewardAudioSequenceRef.current.token + 1;
-      const shouldSuppress = shouldSuppressRewardAudioForStickerBook();
+      const shouldSuppress =
+        !customEvent.detail?.forceRewardAudio &&
+        shouldSuppressRewardAudioForStickerBook();
+      setShowRewardConfetti(true);
+      if (rewardConfettiTimerRef.current !== null) {
+        window.clearTimeout(rewardConfettiTimerRef.current);
+      }
+      rewardConfettiTimerRef.current = window.setTimeout(() => {
+        setShowRewardConfetti(false);
+      }, 4500);
 
       rewardAudioSequenceRef.current = {
         rewardId,
@@ -597,12 +650,11 @@ const PathwayStructure: React.FC = () => {
         rewardReady: false,
         suppressed: shouldSuppress,
         stateValue: rewardStateValue,
+        dailyRewardAudioClipName:
+          customEvent.detail?.dailyRewardAudioClipName ?? 'reward_01',
+        onRewardAudioComplete: null,
         token: nextToken,
       };
-
-      if (shouldSuppress) {
-        return;
-      }
 
       void AudioUtil.playAudioOrTts({
         audioUrl: CROWD_CHEER_AUDIO_URL,
@@ -628,6 +680,9 @@ const PathwayStructure: React.FC = () => {
       const customEvent = event as CustomEvent<{
         rewardId?: string;
         stateValue?: number;
+        forceRewardAudio?: boolean;
+        dailyRewardAudioClipName?: DailyRewardAudioClipName;
+        onRewardAudioComplete?: () => void;
       }>;
       const rewardId = customEvent.detail?.rewardId;
       if (!rewardId) return;
@@ -638,11 +693,18 @@ const PathwayStructure: React.FC = () => {
         customEvent.detail?.stateValue ??
         rewardAudioSequence.stateValue ??
         currentMascotStateValueRef.current;
+      rewardAudioSequence.dailyRewardAudioClipName =
+        customEvent.detail?.dailyRewardAudioClipName ??
+        rewardAudioSequence.dailyRewardAudioClipName;
+      rewardAudioSequence.onRewardAudioComplete =
+        customEvent.detail?.onRewardAudioComplete ?? null;
 
       if (
         rewardAudioSequence.suppressed ||
-        shouldSuppressRewardAudioForStickerBook()
+        (!customEvent.detail?.forceRewardAudio &&
+          shouldSuppressRewardAudioForStickerBook())
       ) {
+        rewardAudioSequence.onRewardAudioComplete?.();
         resetRewardAudioSequence();
         return;
       }
@@ -990,6 +1052,17 @@ const PathwayStructure: React.FC = () => {
           <RewardRive rewardRiveState={rewardRiveState} />,
           rewardRiveContainer,
         )}
+
+      {showRewardConfetti && (
+        <Confetti
+          className="PathwayStructure-reward-confetti"
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={180}
+          gravity={0.28}
+        />
+      )}
 
       {/* Daily reward icon */}
       {hasTodayReward && isRewardFeatureOn && (

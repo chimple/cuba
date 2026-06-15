@@ -18,6 +18,7 @@ import {
   SCHOOL,
   MODES,
   CLASS,
+  CAMPAIGN_ACCESS_ROLES,
 } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
 import { schoolUtil } from '../../utility/schoolUtil';
@@ -28,7 +29,7 @@ import CommonToggle from '../../common/CommonToggle';
 import { Capacitor } from '@capacitor/core';
 import { IoGitPullRequestSharp } from 'react-icons/io5';
 import { t } from 'i18next';
-import DialogBoxButtons from '../../components/parent/DialogBoxButtons​';
+import DialogBoxButtons from '../../components/parent/DialogBoxButtons';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
@@ -225,7 +226,12 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             const canAccessModulePage = userRoles.some((role) =>
               moduleRolesWithAccess.includes(role as RoleType),
             );
+            const canAccessCampaignPage = userRoles.some((role) =>
+              CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
+            );
             if (isExternalUser && item.label !== NavItems.SCHOOLS) return null;
+            if (item.label === NavItems.COMPAIGNS && !canAccessCampaignPage)
+              return null;
             if (item.label === NavItems.USERS && !canAccessUsersPage)
               return null;
             if (item.label === NavItems.OpsMODULE && !canAccessModulePage)

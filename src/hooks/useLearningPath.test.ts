@@ -3,12 +3,20 @@ import {
   getLastPlayedLesson,
   getNextFromList,
   recommendNextLesson,
+  sortCoursesByStudentLanguage,
   useLearningPath,
 } from './useLearningPath';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import { schoolUtil } from '../utility/schoolUtil';
-import { EVENTS, LEARNING_PATHWAY_MODE } from '../common/constants';
+import { palUtil } from '../utility/palUtil';
+import {
+  EVENTS,
+  LANGUAGE,
+  LEARNING_PATHWAY_MODE,
+  SOURCE,
+  TableTypes,
+} from '../common/constants';
 
 jest.mock('../utility/util');
 jest.mock('../utility/schoolUtil');
@@ -33,6 +41,7 @@ const mockApi = {
   getChaptersForCourse: jest.fn(),
   getLessonsForChapter: jest.fn(),
   updateLearningPath: jest.fn(),
+  getLanguageWithId: jest.fn(),
 };
 
 describe('useLearningPath features used by Home tab', () => {
@@ -60,6 +69,47 @@ describe('useLearningPath features used by Home tab', () => {
     mockApi.getChaptersForCourse.mockResolvedValue([]);
     mockApi.getLessonsForChapter.mockResolvedValue([]);
     mockApi.updateLearningPath.mockResolvedValue(undefined);
+    mockApi.getLanguageWithId.mockResolvedValue(undefined);
+    localStorage.clear();
+  });
+
+  test('prefers the student-language math course when old English math is still attached', async () => {
+    localStorage.setItem(LANGUAGE, 'hi');
+
+    const sorted = await sortCoursesByStudentLanguage(
+      [
+        { id: 'english', code: 'en', subject_id: 'english-subject' },
+        {
+          id: 'math-english',
+          code: 'maths',
+          subject_id: 'math-subject',
+          curriculum_id: 'curriculum-1',
+          grade_id: 'grade-1',
+        },
+        {
+          id: 'digital-skills',
+          code: 'digital',
+          subject_id: 'digital-subject',
+        },
+        {
+          id: 'math-hindi',
+          code: 'maths-hi',
+          subject_id: 'math-subject',
+          curriculum_id: 'curriculum-1',
+          grade_id: 'grade-1',
+        },
+        { id: 'hindi', code: 'hi', subject_id: 'hindi-subject' },
+      ] as TableTypes<'course'>[],
+      'lang-hi',
+    );
+
+    expect(sorted.map((course) => course.id)).toEqual([
+      'hindi',
+      'english',
+      'math-hindi',
+      'math-english',
+      'digital-skills',
+    ]);
   });
 
   test('pathway rebuild/sync after class-join style course list change preserves current course index', async () => {
@@ -169,6 +219,7 @@ describe('useLearningPath features used by Home tab', () => {
     expect(next).toEqual({
       lesson_id: 'assessment-lesson-1',
       chapter_id: undefined,
+      source: SOURCE.INITIAL_ASSESSMENT,
       is_assessment: true,
       isPlayed: false,
     });
@@ -177,6 +228,31 @@ describe('useLearningPath features used by Home tab', () => {
       { id: 'stu-1' },
       'c1',
     );
+  });
+
+  test('continues assessment sequence in assessment-only mode after prior assessment history', async () => {
+    mockApi.isStudentPlayedPalLesson.mockResolvedValue(true);
+    mockApi.getSubjectLessonsBySubjectId.mockResolvedValue({
+      id: 'asmt-doc-2',
+      lesson_id: 'assessment-lesson-2',
+    });
+
+    const next = await recommendNextLesson({
+      student: { id: 'stu-1' },
+      course: { id: 'c1', subject_id: 's1' },
+      mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+    });
+
+    expect(next).toMatchObject({
+      lesson_id: 'assessment-lesson-2',
+      is_assessment: true,
+    });
+    expect(mockApi.getSubjectLessonsBySubjectId).toHaveBeenCalledWith(
+      's1',
+      { id: 'stu-1' },
+      'c1',
+    );
+    expect(palUtil.getPalLessonPathForCourse).not.toHaveBeenCalled();
   });
 
   test('resumes same teacher-assigned assessment after exit', async () => {
@@ -203,6 +279,131 @@ describe('useLearningPath features used by Home tab', () => {
     expect(second?.assignment_id).toBe('assignment-11');
   });
 
+  test('puts newly assigned assessment at the beginning of an existing course path', async () => {
+    const existingPath = {
+      courses: {
+        currentCourseIndex: 0,
+        courseList: [
+          {
+            path_id: 'old-path',
+            course_id: 'c1',
+            subject_id: 's1',
+            type: 'chapter',
+            path: [
+              {
+                lesson_id: 'normal-lesson-1',
+                chapter_id: 'chapter-1',
+                is_assessment: false,
+                isPlayed: false,
+              },
+            ],
+            completedPath: 2,
+          },
+        ],
+      },
+      type: 'chapter',
+      pathMode: LEARNING_PATHWAY_MODE.DISABLED,
+    };
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: 'stu-1',
+      learning_path: JSON.stringify(existingPath),
+    });
+    mockApi.getLatestAssessmentGroup.mockResolvedValue([
+      { id: 'assignment-11', lesson_id: 'teacher-asmt-11' },
+      { id: 'assignment-12', lesson_id: 'teacher-asmt-12' },
+      { id: 'assignment-13', lesson_id: 'teacher-asmt-13' },
+      { id: 'assignment-14', lesson_id: 'teacher-asmt-14' },
+      { id: 'assignment-15', lesson_id: 'teacher-asmt-15' },
+      { id: 'assignment-16', lesson_id: 'teacher-asmt-16' },
+    ]);
+
+    const { result } = renderHook(() => useLearningPath());
+    await act(async () => {
+      await result.current.getPath({
+        courses: [{ id: 'c1', subject_id: 's1', framework_id: null }],
+        mode: LEARNING_PATHWAY_MODE.DISABLED,
+        classId: 'class-1',
+      });
+    });
+
+    const saved = mockApi.updateLearningPath.mock.calls[0][1];
+    const parsed = JSON.parse(saved);
+    const coursePath = parsed.courses.courseList[0];
+
+    expect(parsed.courses.currentCourseIndex).toBe(0);
+    expect(coursePath.completedPath).toBe(2);
+    expect(coursePath.path).toEqual([
+      {
+        lesson_id: 'teacher-asmt-11',
+        chapter_id: undefined,
+        assignment_id: 'assignment-11',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+      {
+        lesson_id: 'teacher-asmt-12',
+        chapter_id: undefined,
+        assignment_id: 'assignment-12',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+      {
+        lesson_id: 'teacher-asmt-13',
+        chapter_id: undefined,
+        assignment_id: 'assignment-13',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+      {
+        lesson_id: 'teacher-asmt-14',
+        chapter_id: undefined,
+        assignment_id: 'assignment-14',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+      {
+        lesson_id: 'teacher-asmt-15',
+        chapter_id: undefined,
+        assignment_id: 'assignment-15',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+    ]);
+  });
+
+  test('marks only PAL recommended lessons with PAL source', async () => {
+    mockApi.isStudentPlayedPalLesson.mockResolvedValue(true);
+    (palUtil.getPalLessonPathForCourse as jest.Mock).mockResolvedValue({
+      lesson_id: 'pal-lesson-1',
+      chapter_id: 'chapter-1',
+      skill_id: 'skill-1',
+    });
+
+    const next = await recommendNextLesson({
+      student: { id: 'stu-1' },
+      course: { id: 'c1', subject_id: 's1' },
+      mode: LEARNING_PATHWAY_MODE.FULL_ADAPTIVE,
+    });
+
+    expect(palUtil.getPalLessonPathForCourse).toHaveBeenCalledWith(
+      'c1',
+      'stu-1',
+    );
+    expect(next).toEqual({
+      lesson_id: 'pal-lesson-1',
+      chapter_id: 'chapter-1',
+      skill_id: 'skill-1',
+      source: SOURCE.LEARNING_PATHWAY_HOME_PAL,
+      is_assessment: false,
+      isPlayed: false,
+    });
+  });
+
   test('course progression helper returns next assessment node after last played assessment', () => {
     const next = getNextFromList(
       [{ lesson_id: 'a1' }, { lesson_id: 'a2' }],
@@ -212,6 +413,7 @@ describe('useLearningPath features used by Home tab', () => {
     expect(next).toEqual({
       lesson_id: 'a2',
       chapter_id: undefined,
+      source: SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
       is_assessment: true,
       isPlayed: false,
     });
@@ -305,6 +507,7 @@ describe('useLearningPath features used by Home tab', () => {
     expect(next).toEqual({
       lesson_id: 'l1',
       chapter_id: 'ch1',
+      source: SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
       is_assessment: false,
       isPlayed: false,
     });

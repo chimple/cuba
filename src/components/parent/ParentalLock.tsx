@@ -2,19 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { PAGES } from '../../common/constants';
 import { Dialog, DialogContent } from '@mui/material';
-import { OverlayEventDetail } from '@ionic/react/dist/types/components/react-component-lib/interfaces';
 import { t } from 'i18next';
 import './ParentalLock.css';
 import { FcLock } from 'react-icons/fc';
 import { Util } from '../../utility/util';
 import { schoolUtil } from '../../utility/schoolUtil';
+import {
+  updateLocalAttributes,
+  useGbContext,
+} from '../../growthbook/Growthbook';
 
 const ParentalLock: React.FC<{
   showDialogBox: boolean;
-  handleClose: (event: CustomEvent<OverlayEventDetail<any>>) => void;
-  onHandleClose: React.MouseEventHandler<HTMLDivElement | HTMLImageElement>;
+  onHandleClose: () => void;
   onUnlock?: () => void;
-}> = ({ showDialogBox, handleClose, onHandleClose, onUnlock }) => {
+}> = ({ showDialogBox, onHandleClose, onUnlock }) => {
+  const { setGbUpdated } = useGbContext();
   enum FourSides {
     LEFT = 'LEFT',
     RIGHT = 'RIGHT',
@@ -46,6 +49,12 @@ const ParentalLock: React.FC<{
       Util.setPathToBackButton(PAGES.PARENT, history);
       Util.setCurrentStudent(null);
       schoolUtil.setCurrentClass(undefined);
+      // Parent unlock exits the active student context, so clear student targeting.
+      updateLocalAttributes({
+        student_id: null,
+        school_ids: [],
+      });
+      setGbUpdated(true);
     }
   };
 
@@ -143,72 +152,30 @@ const ParentalLock: React.FC<{
   };
 
   return (
-    <div>
-      <Dialog
-        sx={{
-          '& .MuiPaper-root': {
-            borderRadius: '4vh !important',
-            background: '#FFFDEE',
-            width: '390px',
-            height: '225px',
-          },
-        }}
-        open={showDialogBox}
-        onClose={handleClose}
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-        onTouchMove={onTouchMove}
-        onMouseDown={onMouseDown}
-        onMouseUp={onMouseUp}
-        onMouseMove={onMouseMove}
-        onMouseEnter={onMouseDown}
-      >
-        <div
-          style={{
-            color: 'black',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}
-        >
-          <div id="parent-lock-header">
-            <div id="parental-lock-close-icon" onClick={onHandleClose}>
-              <img src="pathwayAssets/menuCross.svg" alt="Close" />
-            </div>
-            <div id="parent-screen">{t('Parents Section')}</div>
-          </div>
-
-          <FcLock
-            style={{
-              height: '53px',
-              width: '60px',
-            }}
-          ></FcLock>
-
-          <DialogContent
-            style={{
-              width: '35vw',
-              color: 'black',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              overflow: 'hidden',
-              padding: '4vh 0 0 0',
-            }}
-          >
-            <p
-              style={{
-                userSelect: 'none',
-                fontWeight: '600',
-                fontSize: '20px',
-              }}
-            >
-              {title}
-            </p>
-          </DialogContent>
+    <Dialog
+      PaperProps={{ className: 'parental-lock-paper' }}
+      open={showDialogBox}
+      onClose={onHandleClose}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      onTouchMove={onTouchMove}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+      onMouseMove={onMouseMove}
+      onMouseEnter={onMouseDown}
+    >
+      <div className="parental-lock-content">
+        <div id="parent-lock-header">
+          <div id="parent-screen">{t('Confirm you are a Parent')}</div>
         </div>
-      </Dialog>
-    </div>
+
+        <FcLock className="parental-lock-icon" aria-hidden="true" />
+
+        <DialogContent className="parental-lock-dialog-content">
+          <p className="parental-lock-instruction">{title}</p>
+        </DialogContent>
+      </div>
+    </Dialog>
   );
 };
 

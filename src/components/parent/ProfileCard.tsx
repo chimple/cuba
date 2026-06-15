@@ -1,25 +1,53 @@
 import { IonCard } from '@ionic/react';
-import { useHistory } from 'react-router-dom';
-import './ProfileCard.css';
+import { t } from 'i18next';
 import React, { useState } from 'react';
-import { MdModeEditOutline } from 'react-icons/md';
-import { HiPlusCircle } from 'react-icons/hi';
+import { useHistory } from 'react-router-dom';
 import {
   ACTION,
+  ASSESSMENT_FAIL_KEY,
   AVATARS,
   EVENTS,
-  PAGES,
-  MODES,
-  TableTypes,
-  ASSESSMENT_FAIL_KEY,
   FAIL_STREAK_KEY,
+  MODES,
+  PAGES,
+  TableTypes,
 } from '../../common/constants';
-import { Util } from '../../utility/util';
-import DialogBoxButtons from './DialogBoxButtons​';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import { t } from 'i18next';
-import Loading from '../Loading';
 import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { Util } from '../../utility/util';
+import Loading from '../Loading';
+import DialogBoxButtons from './DialogBoxButtons';
+import './ProfileCard.css';
+
+const EDIT_PROFILE_ICON_SRC = '/assets/edit-profile-icon.svg';
+const EDIT_PROFILE_DIALOG_ICON_SRC =
+  '/assets/profile-card-edit-dialog-icon.svg';
+const DELETE_PROFILE_DIALOG_ICON_SRC =
+  '/assets/profile-card-delete-dialog-icon.svg';
+
+const editProfileDialogIcon = (
+  <img
+    src={EDIT_PROFILE_DIALOG_ICON_SRC}
+    alt=""
+    className="profile-card-dialog-button-icon"
+    aria-hidden="true"
+  />
+);
+
+const deleteProfileDialogIcon = (
+  <img
+    src={DELETE_PROFILE_DIALOG_ICON_SRC}
+    alt=""
+    className="profile-card-dialog-button-icon"
+    aria-hidden="true"
+  />
+);
+
+type ProfileCardActionType =
+  | 'play'
+  | 'view_progress'
+  | 'edit_profile'
+  | 'delete_profile';
 
 const ProfileCard: React.FC<{
   width: string;
@@ -47,24 +75,45 @@ const ProfileCard: React.FC<{
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const areProfilesAvailable = (profiles && profiles[0] == null) || undefined;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const getProfileCardActionParams = (
+    actionType: ProfileCardActionType,
+  ): Record<string, string> => {
+    const currentClass = Util.getCurrentClass();
+    return {
+      action_type: actionType,
+      target_student_id: user.id,
+      target_student_grade: user.grade_id ?? '',
+      ...(studentCurrMode === MODES.TEACHER_SCHOOL && currentClass?.id
+        ? { class_id: currentClass.id }
+        : {}),
+    };
+  };
+
+  const logProfileCardAction = (actionType: ProfileCardActionType): void => {
+    void Util.logEvent(
+      EVENTS.PROFILE_CARD_ACTION_CLICKED,
+      getProfileCardActionParams(actionType),
+    );
+  };
+
   return (
     <IonCard
       id="profile-card"
+      className={userType ? 'profile-card-user' : 'profile-card-add-child'}
       style={{
         width: width,
-
-        height: 'auto',
-        padding: userType ? '1.5% 1.5% 3% 1.5%' : '0% 0% 0% 0%',
+        height: height,
       }}
       onClick={() => {}}
     >
       <div id="profile-card-edit-icon-div">
         {userType ? (
-          <MdModeEditOutline
+          <button
+            type="button"
             id="profile-card-edit-icon"
             aria-label="Edit"
-            size={'5%'}
-            onClick={() => {
+            onClick={(event) => {
+              event.stopPropagation();
               if (!online) {
                 presentToast({
                   message: t(
@@ -84,29 +133,50 @@ const ProfileCard: React.FC<{
               }
               setShowDialogBox(true);
             }}
-          ></MdModeEditOutline>
+          >
+            <img src={EDIT_PROFILE_ICON_SRC} alt="" aria-hidden="true" />
+          </button>
         ) : (
           <p className="profile-card-empty-element">&#9679;</p>
         )}
       </div>
       {userType ? (
-        <div id="profile-card-image-div">
-          <img
-            id="profile-card-image"
-            loading="lazy"
-            src={
-              (studentCurrMode === MODES.SCHOOL && user.image) ||
-              'assets/avatars/' + (user.avatar ?? AVATARS[0]) + '.png'
-            }
-            alt=""
-          />
-          <p id="profile-card-user-name">{user.name ? user.name : '\u00A0'}</p>
+        <div id="profile-card-user-content">
+          <div id="profile-card-image-div">
+            <img
+              id="profile-card-image"
+              loading="lazy"
+              src={
+                (studentCurrMode === MODES.SCHOOL && user.image) ||
+                'assets/avatars/' + (user.avatar ?? AVATARS[0]) + '.png'
+              }
+              alt=""
+            />
+            <p id="profile-card-user-name">
+              {user.name ? user.name : '\u00A0'}
+            </p>
+          </div>
+          <div className="profile-card-image-report-shadow">
+            <button
+              id="profile-card-image-report"
+              type="button"
+              onClick={async () => {
+                logProfileCardAction('view_progress');
+                await Util.setCurrentStudent(user, undefined, false, false);
+
+                Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
+              }}
+            >
+              {t('Progress')}
+            </button>
+          </div>
         </div>
       ) : (
         <div id="profile-card-new-user">
-          <HiPlusCircle
+          <button
+            type="button"
             id="profile-card-new-user-icon"
-            size={'16vw'}
+            aria-label={t('Add a Child') ?? undefined}
             onClick={() => {
               if (!online) {
                 presentToast({
@@ -125,47 +195,35 @@ const ProfileCard: React.FC<{
                 });
                 return;
               }
+              void Util.logEvent(EVENTS.PROFILE_CREATION_CLICKED, {});
               history.replace(PAGES.CREATE_STUDENT, {
                 showBackButton: !areProfilesAvailable,
               });
             }}
-          ></HiPlusCircle>
-          <p>{t('New Profile')}</p>
+          >
+            <span className="profile-card-new-user-icon-horizontal" />
+            <span className="profile-card-new-user-icon-vertical" />
+          </button>
+          <p>{t('Add a Child')}</p>
         </div>
-      )}
-
-      {userType ? (
-        <div
-          id="profile-card-image-report"
-          onClick={async () => {
-            await Util.setCurrentStudent(user, undefined, false, false);
-
-            Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
-          }}
-        >
-          Progress
-        </div>
-      ) : (
-        <p className="profile-card-empty-element">&#9679;</p>
       )}
       {showDialogBox ? (
         <DialogBoxButtons
           width={'40vw'}
           height={'30vh'}
-          message={t(
-            'You can edit or delete the Profile by clicking on the buttons below.',
-          )}
+          message={t('Choose the below options to manage your kid’s profile.')}
           showDialogBox={showDialogBox}
-          yesText={t('Delete Profile')}
-          noText={t('Edit Profile')}
+          yesText={t('Edit Profile')}
+          noText={t('Delete Profile')}
+          className="profile-card-manage-dialog"
+          showCloseButton={true}
+          yesIcon={editProfileDialogIcon}
+          noIcon={deleteProfileDialogIcon}
           handleClose={() => {
             setShowDialogBox(false);
           }}
-          onYesButtonClicked={async ({}) => {
-            setShowWarningDialogBox(true);
-          }}
-          onNoButtonClicked={async ({}) => {
-            const api = ServiceConfig.getI().apiHandler;
+          onYesButtonClicked={async () => {
+            logProfileCardAction('edit_profile');
             // Passing false to not change the student language as it is not required for edit student screen
             await Util.setCurrentStudent(user, undefined, false, false);
             history.replace(PAGES.EDIT_STUDENT, {
@@ -173,20 +231,32 @@ const ProfileCard: React.FC<{
             });
             setShowDialogBox(false);
           }}
+          onNoButtonClicked={async () => {
+            logProfileCardAction('delete_profile');
+            setShowWarningDialogBox(true);
+          }}
         ></DialogBoxButtons>
       ) : null}
       {showWarningDialogBox ? (
         <DialogBoxButtons
           width={'40vw'}
           height={'30vh'}
-          message={t('Do you want to delete the Profile?')}
-          showDialogBox={showDialogBox}
+          message={t('Are you sure you want to delete this profile?')}
+          showDialogBox={showWarningDialogBox}
           yesText={t('Yes')}
           noText={t('No')}
+          className="profile-card-delete-dialog"
+          showCloseButton={true}
           handleClose={() => {
-            setShowDialogBox(false);
+            void Util.logEvent(EVENTS.PROFILE_DELETION_CANCELLED, {
+              target_student_id: user.id,
+            });
+            setShowWarningDialogBox(false);
           }}
-          onYesButtonClicked={async ({}) => {
+          onYesButtonClicked={async () => {
+            void Util.logEvent(EVENTS.PROFILE_DELETION_CONFIRMED, {
+              target_student_id: user.id,
+            });
             setShowWarningDialogBox(false);
             setShowDialogBox(false);
             setIsLoading(true);
@@ -208,7 +278,10 @@ const ProfileCard: React.FC<{
             Util.logEvent(EVENTS.USER_PROFILE, eventParams);
             setIsLoading(false);
           }}
-          onNoButtonClicked={async ({}) => {
+          onNoButtonClicked={async () => {
+            void Util.logEvent(EVENTS.PROFILE_DELETION_CANCELLED, {
+              target_student_id: user.id,
+            });
             setShowWarningDialogBox(false);
           }}
         ></DialogBoxButtons>

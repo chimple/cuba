@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Util } from '../utility/util';
 import { useHistory } from 'react-router';
 import StudentAvatar from '../components/common/StudentAvatar';
-import { PAGES, TableTypes } from '../common/constants';
+import { PAGES, SOURCE, TableTypes } from '../common/constants';
 import './LiveQuizRoom.css';
 import { t } from 'i18next';
 import BarLoader from 'react-spinners/BarLoader';
@@ -41,6 +41,7 @@ const LiveQuizRoom: React.FC = () => {
 
   const state = (history.location.state ?? {}) as {
     assignment?: string;
+    source?: SOURCE;
   };
   useEffect(() => {
     init();
@@ -155,7 +156,12 @@ const LiveQuizRoom: React.FC = () => {
       history.replace(PAGES.LIVE_QUIZ_JOIN);
       return;
     } else {
-      history.replace(PAGES.LIVE_QUIZ_GAME + '?liveRoomId=' + res);
+      const gamePath = PAGES.LIVE_QUIZ_GAME + '?liveRoomId=' + res;
+      if (state.source) {
+        history.replace(gamePath, { source: state.source });
+      } else {
+        history.replace(gamePath);
+      }
       setIsJoining(false);
       return;
     }

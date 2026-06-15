@@ -23,6 +23,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 import {
+  AssignmentDateRangeData,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
   ServiceApi,
@@ -1067,11 +1068,21 @@ export class FirebaseApi implements ServiceApi {
 
   async getSkillLessonsBySkillIds(
     skillIds: string[],
+    languageCode?: string,
   ): Promise<TableTypes<'skill_lesson'>[]> {
     logger.warn(
       'getSkillLessonsBySkillIds is not supported for FirebaseApi. Returning empty list.',
     );
     return [];
+  }
+
+  async getSkillByLessonIdentifier(
+    lessonIdentifier: string,
+  ): Promise<TableTypes<'skill'> | undefined> {
+    logger.warn(
+      'getSkillByLessonIdentifier is not supported for FirebaseApi. Returning undefined.',
+    );
+    return undefined;
   }
 
   async getDataByInviteCode(inviteCode: number): Promise<any> {
@@ -2099,5 +2110,47 @@ export class FirebaseApi implements ServiceApi {
   }
   async isProgramManager(): Promise<boolean> {
     throw new Error('Method not implemented.');
+  }
+
+  async getAssignmentDateRangeDataForClassAndSchool(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<AssignmentDateRangeData> {
+    logger.warn(
+      'getAssignmentDateRangeDataForClassAndSchool is not implemented for FirebaseApi.',
+      { userId, startDate, endDate },
+    );
+    return { assignments: [], batchGroups: [] };
+  }
+
+  async getCoinAndStreakCount(
+    userId: string,
+    classId: string,
+    schoolId: string,
+  ): Promise<{ coins: number; streak: number } | undefined> {
+    logger.warn('getCoinAndStreakCount is not implemented for FirebaseApi.', {
+      userId,
+      classId,
+      schoolId,
+    });
+    return { coins: 0, streak: 0 };
+  }
+
+  async updateCoins(
+    userId: string,
+    schoolId: string,
+    classId: string,
+    coins: number,
+    streakIncrement?: number,
+  ): Promise<TableTypes<TABLES.UserAchivements>> {
+    logger.warn('updateCoins is not implemented for FirebaseApi.', {
+      userId,
+      schoolId,
+      classId,
+      coins,
+      streakIncrement,
+    });
+    return {} as TableTypes<TABLES.UserAchivements>;
   }
 }

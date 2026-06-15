@@ -1,0 +1,313 @@
+html:has(.teacher-authentication-popup-overlay),
+body:has(.teacher-authentication-popup-overlay),
+ion-app:has(.teacher-authentication-popup-overlay),
+ion-router-outlet:has(.teacher-authentication-popup-overlay) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.teacher-authentication-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: clamp(8px, 2vmin, 20px);
+  background: rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.teacher-authentication-popup {
+  position: relative;
+  --teacher-auth-key-size: clamp(45px, 8vmin, 53px) !important;
+  --teacher-auth-key-gap: clamp(33px, 3.8vmin, 49px) !important;
+
+  box-sizing: border-box;
+  width: min(820px, calc(100vw - 32px));
+  min-height: min(520px, calc(100dvh - 16px));
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
+  border-radius: 18px;
+  background: rgba(255, 253, 238, 1);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
+  padding: clamp(18px, 3vmin, 30px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.teacher-authentication-popup-inner {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.teacher-authentication-popup-close-button {
+  position: absolute;
+  top: 16px;
+  right: 14px;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.teacher-authentication-popup-close-icon {
+  width: 44px;
+  height: 44px;
+  display: block;
+}
+
+.teacher-authentication-popup-content {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 4vmin, 42px);
+}
+
+.teacher-authentication-popup-question-container {
+  flex: 0 1 380px;
+  min-width: 0;
+  transform: translateX(-14px);
+}
+
+.teacher-authentication-popup-keypad-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: calc(
+    (var(--teacher-auth-key-size) * 3) + (var(--teacher-auth-key-gap) * 2)
+  );
+  margin-left: 0;
+  margin-top: 0;
+}
+
+.teacher-authentication-popup-left-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.teacher-authentication-popup-title {
+  margin: clamp(12px, 2.5vmin, 24px) 0 8px;
+  padding-left: 0;
+  color: #182a4f;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: normal;
+}
+
+.teacher-authentication-popup-question {
+  margin: 0 0 12px;
+  color: #182a4f;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 32px;
+}
+
+.teacher-authentication-popup-help-text {
+  margin: 0 0 12px;
+  color: #182a4f;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.teacher-authentication-popup-answer-slots {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 0;
+}
+
+.teacher-authentication-popup-answer-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: clamp(46px, 8.5vmin, 56px);
+  height: clamp(46px, 8.5vmin, 56px);
+  background: rgba(255, 255, 255, 1);
+  border-radius: 4px;
+  color: #182a4f;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+  user-select: none;
+}
+
+.teacher-authentication-popup-answer-slot::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 3px);
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(24, 42, 79, 1);
+}
+
+.teacher-authentication-popup-error {
+  min-height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 14px 0 10px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.teacher-authentication-popup-error-visible {
+  color: #ff1f1f;
+}
+
+.teacher-authentication-popup-error-hidden {
+  color: transparent;
+}
+
+.teacher-authentication-popup-submit-button {
+  width: 153px;
+  height: 53px;
+  border: 0;
+  border-bottom: 5px solid #8a2901;
+  border-radius: 10px;
+  background: #f34d08;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: normal;
+  cursor: pointer;
+}
+
+.teacher-authentication-popup-submit-button:not(:disabled):active {
+  transform: translateY(3px);
+  border-bottom: 2px solid #8a2901;
+}
+
+.teacher-authentication-popup-submit-button:disabled {
+  background: #6d8c87;
+  border-bottom-color: #8a8a8a;
+  color: rgba(168, 168, 168, 1);
+  cursor: not-allowed;
+}
+
+.teacher-authentication-popup-submit-button-success-feedback,
+.teacher-authentication-popup-submit-button-success-feedback:disabled {
+  transform: translateY(3px);
+  background: #f34d08;
+  border-bottom: 2px solid #8a2901;
+  color: #ffffff;
+}
+
+.teacher-authentication-popup-keypad {
+  width: max-content;
+  display: grid;
+  grid-template-columns: repeat(3, var(--teacher-auth-key-size));
+  grid-auto-rows: var(--teacher-auth-key-size);
+  column-gap: var(--teacher-auth-key-gap);
+  row-gap: var(--teacher-auth-key-gap);
+  align-content: start;
+}
+
+.teacher-authentication-popup-key {
+  width: var(--teacher-auth-key-size);
+  height: var(--teacher-auth-key-size);
+  border: 0;
+  border-bottom: 5px solid #182a4f;
+  border-radius: 10px;
+  background: #dff2f2;
+  color: #182a4f;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.teacher-authentication-popup-key:active {
+  transform: translateY(3px);
+  border-bottom-width: 2px;
+}
+
+.teacher-authentication-popup-key:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  border-bottom-width: 0;
+  transform: none;
+}
+
+.teacher-authentication-popup-key-zero {
+  grid-column: 2 / 3;
+}
+
+.teacher-authentication-popup-key-backspace {
+  grid-column: 3 / 4;
+  font-size: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.teacher-authentication-popup-key-backspace-hidden {
+  visibility: hidden;
+  pointer-events: none;
+  border-bottom-width: 0;
+}
+
+.teacher-authentication-popup-backspace-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+@media (max-width: 680px) {
+  .teacher-authentication-popup {
+    width: min(520px, calc(100vw - 16px));
+  }
+
+  .teacher-authentication-popup-content {
+    flex-direction: column;
+  }
+
+  .teacher-authentication-popup-question-container {
+    flex-basis: auto;
+    width: 100%;
+    transform: none;
+  }
+}
+
+@media (max-height: 430px) {
+  .teacher-authentication-popup {
+    --teacher-auth-key-size: clamp(34px, 10vh, 42px);
+    --teacher-auth-key-gap: clamp(8px, 2vh, 12px);
+    padding: 14px 18px;
+  }
+
+  .teacher-authentication-popup-close-button,
+  .teacher-authentication-popup-close-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .teacher-authentication-popup-title {
+    margin-top: 6px;
+  }
+
+  .teacher-authentication-popup-error {
+    margin: 8px 0;
+    min-height: 22px;
+  }
+}

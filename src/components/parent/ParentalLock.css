@@ -1,16 +1,30 @@
-#parent-lock-header {
-  position: relative;
-  width: 100%;
-  user-select: none;
-  text-align: center; /* center the text */
-  padding-top: 50px; /* push text below cross */
+.parental-lock-paper {
+  width: min(392px, calc(100vw - 48px)) !important;
+  min-height: min(225px, calc((100vw - 48px) * 0.574));
+  max-width: none !important;
+  margin: 24px !important;
+  border-radius: 25px !important;
+  background: #fffdee !important;
+  overflow: hidden;
 }
 
-#parental-lock-close-icon {
-  position: absolute;
-  top: 15px;
-  right: 25px;
-  cursor: pointer;
+.parental-lock-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2vh, 18px);
+  width: 100%;
+  min-height: 100%;
+  padding: clamp(28px, 5vh, 40px) clamp(24px, 5vw, 40px);
+  box-sizing: border-box;
+  color: black;
+}
+
+#parent-lock-header {
+  width: 100%;
+  user-select: none;
+  text-align: center;
 }
 
 #parent-screen {
@@ -19,5 +33,44 @@
   font-size: 24px;
   font-style: normal;
   font-weight: 600;
-  line-height: normal;
+  line-height: 1.25;
+}
+
+.parental-lock-icon {
+  width: 60px;
+  height: 53px;
+  flex-shrink: 0;
+}
+
+.parental-lock-dialog-content {
+  box-sizing: border-box;
+  width: 100%;
+  color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 !important;
+  text-align: center;
+}
+
+.parental-lock-instruction {
+  margin: 0;
+  user-select: none;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.4;
+  color: #182a4f;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 440px) {
+  #parent-screen {
+    font-size: 22px;
+    line-height: 34px;
+  }
+
+  .parental-lock-instruction {
+    font-size: 18px;
+    line-height: 29px;
+  }
 }

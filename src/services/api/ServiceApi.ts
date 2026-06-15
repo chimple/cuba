@@ -25,6 +25,7 @@ import {
   TeacherAPIResponse,
   SchoolVisitAction,
   SchoolVisitType,
+  SOURCE,
   RESULT_STATUS,
 } from '../../common/constants';
 import { AvatarObj } from '../../components/animation/Avatar';
@@ -113,6 +114,17 @@ export type OpsStudentPerformanceBandRow = {
   performance?: string | null;
 };
 
+export type AssignmentBatchGroupRow = {
+  batchId: string | null;
+  assignmentCount: number;
+  latestCreatedAt?: string | null;
+};
+
+export type AssignmentDateRangeData = {
+  assignments: TableTypes<'assignment'>[];
+  batchGroups: AssignmentBatchGroupRow[];
+};
+
 export type JoinClassInviteLookupResult = {
   inviteData: any;
   classData?: TableTypes<'class'>;
@@ -145,6 +157,177 @@ type FcUserFormSaveResult = {
 type ActivitiesFilterOptions = {
   contactType: Array<string | null>;
   performance: Array<string | null>;
+};
+
+export type CampaignObjective =
+  | 'homework_campaign'
+  | 'homepage_learning_pathway_campaign';
+
+export type CampaignTargetType = 'percentage_completion' | 'number_of_lessons';
+
+export type CampaignRewardType = 'digital_rewards' | 'physical_rewards';
+
+export type CampaignOption = {
+  id: string;
+  name: string;
+};
+
+export type CampaignSchoolOption = CampaignOption & {
+  block: string;
+};
+
+export type CampaignSavedAudienceGroup = {
+  id: string;
+  name: string;
+  programId: string;
+  isAllSchools: boolean;
+  isAllGrades: boolean;
+  schoolIds: string[];
+  gradeIds: string[];
+};
+
+export type CampaignSetupOptions = {
+  programs: CampaignOption[];
+  managers: CampaignOption[];
+  savedGroups: CampaignSavedAudienceGroup[];
+};
+
+export type CampaignAudienceOptions = {
+  blocks: string[];
+  schools: CampaignSchoolOption[];
+  grades: CampaignOption[];
+};
+
+export type CampaignAudienceSummaryParams = {
+  schoolIds: string[];
+  gradeIds: string[];
+};
+
+export type CampaignAudienceSummaryGrade = {
+  gradeId: string;
+  gradeName: string;
+  studentCount: number;
+};
+
+export type CampaignAudienceSummary = {
+  totalStudents: number;
+  grades: CampaignAudienceSummaryGrade[];
+};
+
+export type CampaignAudiencePayload = {
+  programId: string;
+  schoolIds: string[];
+  gradeIds: string[];
+  isAllSchools: boolean;
+  isAllGrades: boolean;
+  isSaved: boolean;
+  name?: string;
+};
+
+export type CreateCampaignSetupPayload = CampaignAudiencePayload & {
+  campaignName: string;
+  objective: CampaignObjective;
+  targetType?: CampaignTargetType;
+  targetValue?: number;
+  managerId: string;
+  startDate: string;
+  endDate: string;
+  rewards?: CampaignRewardsPayload;
+  savedAudienceGroupId?: string;
+};
+
+export type CreateCampaignSetupResult = {
+  campaignId: string;
+  targetAudienceId: string;
+};
+
+export type CampaignRewardRulePayload = {
+  rank: 1 | 2 | 3;
+  min: number;
+  reward: string;
+};
+
+export type CampaignRewardsPayload = {
+  type: CampaignRewardType;
+  rules: CampaignRewardRulePayload[];
+};
+
+export type CampaignLaunchAssignmentPayload = {
+  gradeId: string;
+  schoolIds: string[];
+  courseId: string;
+  chapterId: string;
+  lessonId: string;
+  startsAt: string;
+  endsAt: string | null;
+  type: 'homework';
+  source: 'campaign';
+  setNumber: number;
+};
+
+export type CampaignMessagingPollPayload = {
+  question: string;
+  options: string[];
+};
+
+export type CampaignLaunchMessagingPayload = {
+  messageTime: string | null;
+  pollTime: string | null;
+  message: string | null;
+  mediaLink: string | null;
+  poll: CampaignMessagingPollPayload | null;
+};
+
+export type CampaignLaunchDetailsPayload = {
+  programId: string;
+  campaignName: string;
+  objective: CampaignObjective;
+  targetType?: CampaignTargetType;
+  targetValue?: number;
+  managerId: string;
+  startDate: string;
+  endDate: string;
+};
+
+export type LaunchCampaignPayload = {
+  campaignId: string;
+  currentUserId: string;
+  rewards: CampaignRewardsPayload;
+  assignments: CampaignLaunchAssignmentPayload[];
+  messagingRows: CampaignLaunchMessagingPayload[];
+};
+
+export type CampaignAssignmentLessonOption = {
+  id: string;
+  name: string;
+};
+
+export type CampaignAssignmentChapterOption = {
+  id: string;
+  name: string;
+  lessons: CampaignAssignmentLessonOption[];
+};
+
+export type CampaignAssignmentSubjectOption = {
+  id: string;
+  name: string;
+  gradeId: string;
+  chapters: CampaignAssignmentChapterOption[];
+};
+
+export type CampaignAssignmentGradeOption = {
+  gradeId: string;
+  subjects: CampaignAssignmentSubjectOption[];
+};
+
+export type CampaignAssignmentOptionsParams = {
+  programId: string;
+  schoolIds: string[];
+  gradeIds: string[];
+};
+
+export type CampaignAssignmentOptions = {
+  grades: CampaignAssignmentGradeOption[];
 };
 
 export interface ServiceApi {
@@ -184,6 +367,7 @@ export interface ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>>;
   /**
    * Creates a new school and returns the created school object.
@@ -358,6 +542,7 @@ export interface ServiceApi {
     classId: string,
     role: string,
     studentId: string,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>>;
 
   updateClassCourseSelection(
@@ -429,6 +614,11 @@ export interface ServiceApi {
    */
   getGradeById(id: string): Promise<TableTypes<'grade'> | undefined>;
   /**
+   * @param name - The exact name of the grade.
+   * @returns {TableTypes<"grade">} or `undefined` if it could not find the grade with given `name`
+   */
+  getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined>;
+  /**
    * @param ids - IDs of the grades.
    * @returns {TableTypes<"grade">} or `[]` if it could not find the grade with given `ids`
    */
@@ -478,6 +668,7 @@ export interface ServiceApi {
   updateMusicFlag(userId: string, value: boolean): Promise<void>;
   updateLanguage(userId: string, value: string): Promise<void>;
   updateTcAccept(userId: string): Promise<void>;
+  updateTcAgreedVersion(userId: string, version: number): Promise<void>;
   updateFcmToken(userId: string): Promise<void>;
 
   /**
@@ -645,6 +836,7 @@ export interface ServiceApi {
     activities_scores?: string | undefined,
     user_id?: string | undefined,
     status?: RESULT_STATUS | undefined,
+    source?: SOURCE | undefined,
   ): Promise<TableTypes<'result'>>;
 
   /**
@@ -765,7 +957,16 @@ export interface ServiceApi {
    */
   getSkillLessonsBySkillIds(
     skillIds: string[],
+    languageCode?: string,
   ): Promise<TableTypes<'skill_lesson'>[]>;
+
+  /**
+   * Fetches the first skill linked to a lesson using a lesson row id,
+   * cocos_lesson_id, or lido_lesson_id.
+   */
+  getSkillByLessonIdentifier(
+    lessonIdentifier: string,
+  ): Promise<TableTypes<'skill'> | undefined>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id
@@ -1380,6 +1581,8 @@ export interface ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>>;
   /**
    * Updates a class name for given classId
@@ -1542,6 +1745,49 @@ export interface ServiceApi {
     classWiseAssignments: TableTypes<'assignment'>[];
     individualAssignments: TableTypes<'assignment'>[];
   }>;
+
+  /**
+   * Gets assignment data for an assigner within an inclusive datetime range.
+   * @param {string} userId assigner user Id
+   * @param {string} startDate inclusive start datetime (ISO string)
+   * @param {string} endDate inclusive end datetime (ISO string)
+   * @return object containing raw assignment rows and grouped batch metadata.
+   */
+  getAssignmentDateRangeDataForClassAndSchool(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<AssignmentDateRangeData>;
+
+  /**
+   * Gets the latest coin and streak summary for a user in a class and school.
+   * @param {string} userId user Id
+   * @param {string} classId class Id
+   * @param {string} schoolId school Id
+   * @return coin/streak summary, or undefined when no record exists.
+   */
+  getCoinAndStreakCount(
+    userId: string,
+    classId: string,
+    schoolId: string,
+  ): Promise<{ coins: number; streak: number } | undefined>;
+
+  /**
+   * Updates coin balance for a user in a class and school.
+   * @param {string} userId user Id
+   * @param {string} schoolId school Id
+   * @param {string} classId class Id
+   * @param {number} coins updated coin value to persist
+   * @param {number} [streakIncrement] optional streak increment to apply
+   * @return updated user achievement row.
+   */
+  updateCoins(
+    userId: string,
+    schoolId: string,
+    classId: string,
+    coins: number,
+    streakIncrement?: number,
+  ): Promise<TableTypes<TABLES.UserAchivements>>;
 
   /**
    * Gets teacher joined date.
@@ -1906,6 +2152,13 @@ export interface ServiceApi {
     programManagerPhone: string,
     fieldCoordinatorPhone?: string,
   ): Promise<{ status: string; errors?: string[] }>;
+  validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }>;
+  validateWhatsappGroupLink(
+    whatsappBotNumber: string,
+    whatsappGroupLink: string,
+  ): Promise<{ status: string; errors?: string[] }>;
   /**
    * setting a stars for the student
    * @param {string } studentId - student id
@@ -1986,6 +2239,66 @@ export interface ServiceApi {
    * Get all program managers
    */
   getProgramManagers(): Promise<{ name: string; id: string }[]>;
+
+  /**
+   * Loads setup dropdown data for campaign creation.
+   * Returns available programs, campaign managers, and saved audience groups.
+   */
+  getCampaignSetupOptions(): Promise<CampaignSetupOptions>;
+
+  /**
+   * Loads hierarchical audience options for a selected campaign program.
+   * Blocks and schools are scoped to the program, and grades are derived from
+   * the schools/classes/courses available under that program.
+   * @param {string} programId - Selected program ID.
+   */
+  getCampaignAudienceOptions(
+    programId: string,
+  ): Promise<CampaignAudienceOptions>;
+
+  /**
+   * Returns a grade-wise student count summary for the selected schools and grades.
+   * Used by the campaign setup audience summary box.
+   * @param {CampaignAudienceSummaryParams} params - School and grade IDs to summarize.
+   */
+  getCampaignAudienceSummary(
+    params: CampaignAudienceSummaryParams,
+  ): Promise<CampaignAudienceSummary>;
+
+  /**
+   * Saves a reusable campaign target audience group.
+   * Creates the audience record and school/grade link rows when the selection
+   * is not marked as all schools or all grades.
+   * @param {CampaignAudiencePayload} payload - Audience selection and saved-group metadata.
+   */
+  createCampaignAudienceGroup(
+    payload: CampaignAudiencePayload,
+  ): Promise<CampaignSavedAudienceGroup>;
+
+  /**
+   * Creates campaign setup data for step 1.
+   * Creates or reuses a target audience, then inserts the campaign objective,
+   * target, manager, and date fields.
+   * @param {CreateCampaignSetupPayload} payload - Complete campaign setup form payload.
+   */
+  createCampaignSetup(
+    payload: CreateCampaignSetupPayload,
+  ): Promise<CreateCampaignSetupResult>;
+
+  /**
+   * Persists final campaign launch data collected across setup steps.
+   * Stores rewards on campaign, class-wise campaign assignments, and
+   * configured communication schedule rows.
+   */
+  launchCampaign(payload: LaunchCampaignPayload): Promise<void>;
+
+  /**
+   * Loads grade-wise subjects, chapters, and lessons for campaign assignment setup.
+   * Subjects are derived from courses available to the selected schools and grades.
+   */
+  getCampaignAssignmentOptions(
+    params: CampaignAssignmentOptionsParams,
+  ): Promise<CampaignAssignmentOptions>;
 
   /**
    * Get unique geo data
@@ -2343,6 +2656,7 @@ export interface ServiceApi {
    */
   createAutoProfile(
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>>;
 
   /**
@@ -2463,9 +2777,12 @@ export interface ServiceApi {
    * @param {string} udiseCode - UDISE code of the school.
    * @returns {Promise<{ studentLoginType: schoolModel: string } | null>}
    */
-  getSchoolDetailsByUdise(
-    udiseCode: string,
-  ): Promise<{ studentLoginType: string; schoolModel: string } | null>;
+  getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
+    studentLoginType: string;
+    schoolModel: string;
+    whatsappBotNumber?: string;
+  } | null>;
 
   /**
    * Fetch SchoolData by UDISE code.
@@ -2879,6 +3196,11 @@ export interface ServiceApi {
   ): Promise<{ lido_common_audio_url: string | null } | null>;
 
   isStudentPlayedPalLesson(
+    studentId: string,
+    courseId: string,
+  ): Promise<boolean>;
+
+  hasPendingAbortedAssessment(
     studentId: string,
     courseId: string,
   ): Promise<boolean>;

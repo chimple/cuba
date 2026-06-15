@@ -31,7 +31,7 @@ import SkeltonLoading from '../components/SkeltonLoading';
 import { AvatarObj } from '../components/animation/Avatar';
 import { App } from '@capacitor/app';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
-import DialogBoxButtons from '../components/parent/DialogBoxButtons​';
+import DialogBoxButtons from '../components/parent/DialogBoxButtons';
 import DebugMode from '../teachers-module/components/DebugMode';
 
 const emptyLeaderboardInfo = (): LeaderboardInfo => ({
@@ -581,12 +581,12 @@ const Leaderboard: React.FC = () => {
         <Box>
           <div
             id={
-              tabIndex === LEADERBOARDHEADERLIST.LEADERBOARD
-                ? 'LeaderBoard-Header'
-                : 'leaderboard-debug-mode'
+              tabIndex === 'debugMode'
+                ? 'leaderboard-debug-mode'
+                : 'LeaderBoard-Header'
             }
           >
-            {tabIndex === LEADERBOARDHEADERLIST.LEADERBOARD && (
+            {tabIndex !== 'debugMode' && (
               <div id="back-button-in-LeaderBoard-Header">
                 <img
                   src="/assets/icons/BackButtonIcon.svg"
@@ -687,6 +687,16 @@ const Leaderboard: React.FC = () => {
                 }
                 const currentMOde = localStorage.getItem(CURRENT_MODE);
                 await api.removeAssignmentChannel();
+                // Leaderboard switch profile should drop the active student target.
+                await Util.setCurrentStudent(null);
+                if (currentMOde === MODES.PARENT) {
+                  await schoolUtil.setCurrentClass(undefined);
+                }
+                updateLocalAttributes({
+                  student_id: null,
+                  school_ids: [],
+                });
+                setGbUpdated(true);
                 if (currentMOde === MODES.PARENT) {
                   Util.setPathToBackButton(PAGES.DISPLAY_STUDENT, history);
                 } else {

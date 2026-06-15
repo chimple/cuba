@@ -1,0 +1,126 @@
+.kids-app-location-page {
+  --background: rgba(255, 253, 238, 1);
+  background: rgba(255, 253, 238, 1);
+}
+
+.kids-app-location-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  padding: 0 1rem;
+  transform: translateY(-35px);
+}
+
+.kids-app-location-avatar {
+  width: clamp(190px, 24vw, 280px);
+  height: clamp(120px, 16vw, 170px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: visible;
+}
+
+.kids-app-location-avatar .chimple-mascot-overlay {
+  transform: scale(1.9) translateY(18px);
+  transform-origin: center;
+}
+
+.kids-app-location-title {
+  margin: 0;
+  color: rgba(24, 42, 79, 1);
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  text-align: center;
+}
+
+.kids-app-location-actions {
+  display: flex;
+  gap: 3.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.kids-app-location-btn {
+  border: 0;
+  border-radius: 10px;
+  min-width: 170px;
+  padding: 0.9rem 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.55rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.kids-app-location-btn span {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  transform: translateY(3px);
+}
+
+.kids-app-location-btn:hover {
+  transform: translateY(-1px);
+}
+
+.kids-app-location-btn:active {
+  transform: translateY(2px);
+}
+
+.kids-app-location-btn-home {
+  background: rgba(192, 148, 239, 1);
+  border-bottom: 5px solid rgba(48, 13, 55, 1);
+  color: rgba(48, 13, 55, 1);
+}
+
+.kids-app-location-btn-school {
+  background: rgba(243, 77, 8, 1);
+  border-bottom: 5px solid rgba(138, 41, 1, 1);
+}
+
+.kids-app-location-btn-home:active {
+  border-bottom: 2px solid rgba(48, 13, 55, 1);
+}
+
+.kids-app-location-btn-school:active {
+  border-bottom: 2px solid rgba(138, 41, 1, 1);
+}
+
+.kids-app-location-btn-icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+  flex: 0 0 24px;
+}
+
+@media (max-width: 640px) {
+  .kids-app-location-container {
+    gap: 40px;
+    padding: 0 1rem;
+  }
+
+  .kids-app-location-avatar {
+    width: min(72vw, 250px);
+    height: min(42vw, 150px);
+  }
+
+  .kids-app-location-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .kids-app-location-btn {
+    width: min(92vw, 300px);
+  }
+}
