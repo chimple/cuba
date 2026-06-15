@@ -117,6 +117,21 @@ type ChapterLessonRow = {
   lesson: TableTypes<'lesson'> | null;
 };
 
+type StudentProgressRowWithLesson = TableTypes<'result'> & {
+  lesson?: {
+    name?: string;
+    chapter_lesson?:
+      | {
+          chapter?: {
+            id?: string;
+            name?: string;
+            course_id?: string;
+          } | null;
+        }[]
+      | null;
+  } | null;
+};
+
 type CampaignAudienceSchoolLinkRow = Pick<
   TableTypes<'campaign_target_audience_school'>,
   'school_id'
@@ -3498,19 +3513,30 @@ export class SupabaseApi implements ServiceApi {
 
     if (!data) return resultMap;
 
-    if (data && data.length > 0) {
-      data.forEach((result) => {
+    const progressRows = data as StudentProgressRowWithLesson[];
+    if (progressRows.length > 0) {
+      progressRows.forEach((result) => {
+        const lesson = result.lesson;
+        const chapter = lesson?.chapter_lesson?.find((chapterLesson) =>
+          chapterLesson.chapter?.id
+            ? chapterLesson.chapter.id === result.chapter_id ||
+              chapterLesson.chapter.course_id === result.course_id
+            : false,
+        )?.chapter;
+        const resultWithNames: TableTypes<'result'> & {
+          lesson_name?: string;
+          chapter_name?: string;
+        } = {
+          ...result,
+          lesson_name: lesson?.name ?? '',
+          chapter_name: chapter?.name ?? '',
+        };
         const courseId = result.course_id;
         if (courseId && !resultMap[courseId]) {
           resultMap[courseId] = [];
         }
         if (courseId) {
-          resultMap[courseId].push(
-            result as TableTypes<'result'> & {
-              lesson_name?: string;
-              chapter_name?: string;
-            },
-          );
+          resultMap[courseId].push(resultWithNames);
         }
       });
     }
