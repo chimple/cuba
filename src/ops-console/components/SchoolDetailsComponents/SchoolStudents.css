@@ -120,6 +120,10 @@
   font-weight: 500 !important;
   color: #1d2939 !important;
   text-align: left !important;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .schoolStudents-footer {
@@ -315,6 +319,16 @@
 
   .schoolStudents-table-container {
     overflow-x: auto;
+  }
+
+  .schoolStudents-table-container table {
+    min-width: 50rem;
+  }
+
+  .schoolStudents-table-container th:nth-child(2),
+  .schoolStudents-table-container td:nth-child(2) {
+    width: 14rem;
+    min-width: 14rem;
   }
 
   .schoolStudents-table-container th,

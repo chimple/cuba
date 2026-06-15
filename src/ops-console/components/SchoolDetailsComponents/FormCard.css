@@ -113,6 +113,40 @@
   box-shadow: 0 0 0 1px rgba(26, 115, 232, 0.15);
 }
 
+.formcard-chip-list {
+  min-height: 38px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  background: #f9fafb;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+}
+
+.formcard-value-chip {
+  max-width: 100%;
+  min-height: 24px;
+  border-radius: 9999px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.formcard-value-chip-empty {
+  color: #6b7280;
+  font-weight: 500;
+}
+
 .formcard-select-wrapper {
   position: relative;
 }
