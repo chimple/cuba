@@ -28,7 +28,7 @@ export type LearningPath = {
 export type CoursePath = {
   path_id: string;
   course_id: string;
-  subject_id: string;
+  subject_id: string | null;
   display_name?: string;
   is_pal_consolidated?: boolean;
   type: RECOMMENDATION_TYPE;
@@ -49,6 +49,81 @@ export type LessonNode = {
   source?: SOURCE;
   is_assessment: boolean;
   isPlayed: boolean;
+};
+
+type LearningPathStudent = Pick<TableTypes<'user'>, 'id'> &
+  Partial<TableTypes<'user'>>;
+
+type LearningPathCourseInput = Pick<TableTypes<'course'>, 'id'> &
+  Partial<TableTypes<'course'>> & {
+    pathway_display_name?: string;
+    is_pal_consolidated?: boolean;
+  };
+
+type StoredCoursePath = CoursePath & {
+  lastPlayedLesson?: LessonNode;
+};
+
+type LegacyLessonNode = Pick<LessonNode, 'lesson_id'> &
+  Partial<Omit<LessonNode, 'lesson_id'>>;
+
+type LegacyCoursePath = Omit<
+  StoredCoursePath,
+  'path' | 'type' | 'completedPath'
+> & {
+  path?: LegacyLessonNode[];
+  type: RECOMMENDATION_TYPE | string;
+  completedPath?: number;
+  currentIndex?: number;
+  startIndex?: number;
+  pathEndIndex?: number;
+};
+
+type LessonListItem = Pick<LessonNode, 'chapter_id'> & {
+  id?: string | null;
+  lesson_id?: string | null;
+};
+
+const getLessonListItemId = (lesson: LessonListItem) =>
+  lesson.lesson_id ?? lesson.id ?? null;
+
+const ASSIGNED_ASSESSMENT_PATH_SIZE = 5;
+
+const toAssignedAssessmentNode = (
+  assignment: TableTypes<'assignment'>,
+): LessonNode => ({
+  lesson_id: assignment.lesson_id,
+  chapter_id: undefined,
+  assignment_id: assignment.id,
+  source: SOURCE.INITIAL_ASSESSMENT,
+  is_assessment: true,
+  isPlayed: false,
+});
+
+const toAssignedAssessmentPath = (assignments: TableTypes<'assignment'>[]) =>
+  assignments
+    .slice(0, ASSIGNED_ASSESSMENT_PATH_SIZE)
+    .map(toAssignedAssessmentNode);
+
+const getAssignedAssessmentPath = async ({
+  student,
+  course,
+  classId,
+}: {
+  student: LearningPathStudent;
+  course: LearningPathCourseInput;
+  classId?: string | null;
+}): Promise<LessonNode[]> => {
+  if (!classId) return [];
+
+  const assessments =
+    await ServiceConfig.getI().apiHandler.getLatestAssessmentGroup(
+      classId,
+      student as TableTypes<'user'>,
+      course.id,
+    );
+
+  return assessments?.length ? toAssignedAssessmentPath(assessments) : [];
 };
 
 export const shouldUseAssessment = (mode: string) =>
@@ -111,8 +186,8 @@ export async function buildPath({
   courses,
   mode,
 }: {
-  student: any;
-  courses: any[];
+  student: LearningPathStudent;
+  courses: LearningPathCourseInput[];
   mode: string;
 }): Promise<LearningPath> {
   const isLinked = await ServiceConfig.getI().apiHandler.isStudentLinked(
@@ -121,23 +196,34 @@ export async function buildPath({
   const currClassId = isLinked ? schoolUtil.getCurrentClass()?.id : null;
   const courseList = await Promise.all(
     courses.map(async (course) => {
-      const activeLesson = await recommendNextLesson({
+      const assignedAssessmentPath = await getAssignedAssessmentPath({
         student,
         course,
-        mode,
-        classId: currClassId || undefined,
+        classId: currClassId,
       });
+      const activeLesson = assignedAssessmentPath.length
+        ? null
+        : await recommendNextLesson({
+            student,
+            course,
+            mode,
+            classId: currClassId || undefined,
+          });
 
       return {
         path_id: uuidv4(),
         course_id: course.id,
-        subject_id: course.subject_id,
+        subject_id: course.subject_id ?? null,
         display_name: course.pathway_display_name,
         is_pal_consolidated: course.is_pal_consolidated,
         type: course.framework_id
           ? RECOMMENDATION_TYPE.FRAMEWORK
           : RECOMMENDATION_TYPE.CHAPTER,
-        path: activeLesson ? [activeLesson] : [],
+        path: assignedAssessmentPath.length
+          ? assignedAssessmentPath
+          : activeLesson
+            ? [activeLesson]
+            : [],
         completedPath: 0,
       };
     }),
@@ -167,11 +253,11 @@ export async function recommendNextLesson({
   classId,
   coursePath,
 }: {
-  student: any;
-  course: any;
+  student: LearningPathStudent;
+  course: LearningPathCourseInput;
   mode: string;
   classId?: string;
-  coursePath?: any;
+  coursePath?: Pick<CoursePath, 'path'> | null;
 }): Promise<LessonNode | null> {
   const api = ServiceConfig.getI().apiHandler;
 
@@ -184,7 +270,7 @@ export async function recommendNextLesson({
   if (classId) {
     const assessments = await api.getLatestAssessmentGroup(
       classId,
-      student,
+      student as TableTypes<'user'>,
       course.id,
     );
 
@@ -203,10 +289,14 @@ export async function recommendNextLesson({
   /* ------------------------------------------------------------------------------------------
    * 2️⃣ MODE-BASED ASSESSMENT (assessment only/full adaptive mode with pal lesson not played )
    * ------------------------------------------------------------------------------------------ */
-  if (shouldUseAssessment(mode) && !hasCompletedInitialAssessment) {
+  if (
+    shouldUseAssessment(mode) &&
+    !hasCompletedInitialAssessment &&
+    course.subject_id
+  ) {
     const res = await api.getSubjectLessonsBySubjectId(
       course.subject_id,
-      student,
+      student as TableTypes<'user'>,
       course.id,
     );
     if (res && res.id) {
@@ -252,7 +342,7 @@ export async function recommendNextLesson({
   // 🔥 Find chapter index of last played lesson
   if (lastPlayedLesson?.chapter_id) {
     const foundIndex = chapters.findIndex(
-      (ch: any) => ch.id === lastPlayedLesson.chapter_id,
+      (ch) => ch.id === lastPlayedLesson.chapter_id,
     );
 
     if (foundIndex !== -1) {
@@ -264,7 +354,7 @@ export async function recommendNextLesson({
     const ch = chapters[i];
     const lessons = await api.getLessonsForChapter(ch.id);
     const next = getNextFromList(
-      lessons.map((l: any) => ({ ...l, chapter_id: ch.id })),
+      lessons.map((lesson) => ({ ...lesson, chapter_id: ch.id })),
       lastPlayedLesson,
       false,
     );
@@ -286,7 +376,7 @@ export async function recommendNextLesson({
 }
 
 export function getNextFromList(
-  lessons: any[],
+  lessons: LessonListItem[],
   lastPlayedLesson?: LessonNode,
   isAssessment = false,
 ): LessonNode | null {
@@ -294,8 +384,11 @@ export function getNextFromList(
 
   if (!lastPlayedLesson) {
     const first = lessons[0];
+    const lessonId = getLessonListItemId(first);
+    if (!lessonId) return null;
+
     return {
-      lesson_id: first.lesson_id ?? first.id,
+      lesson_id: lessonId,
       chapter_id: first.chapter_id || undefined,
       source: SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
       is_assessment: isAssessment,
@@ -304,14 +397,16 @@ export function getNextFromList(
   }
 
   const index = lessons.findIndex(
-    (l) => (l.lesson_id ?? l.id) === lastPlayedLesson.lesson_id,
+    (l) => getLessonListItemId(l) === lastPlayedLesson.lesson_id,
   );
 
   const next = lessons[index + 1];
   if (!next) return null;
+  const nextLessonId = getLessonListItemId(next);
+  if (!nextLessonId) return null;
 
   return {
-    lesson_id: next.lesson_id ?? next.id,
+    lesson_id: nextLessonId,
     chapter_id: next.chapter_id || undefined,
     source: SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
     is_assessment: isAssessment,
@@ -507,7 +602,7 @@ export const sortCoursesByStudentLanguage = async (
 };
 
 export function getLastPlayedLesson(
-  coursePath: any,
+  coursePath: Pick<CoursePath, 'path'> | null | undefined,
   type: 'assessment' | 'normal',
 ): LessonNode | undefined {
   if (!coursePath?.path?.length) return undefined;
@@ -524,8 +619,8 @@ export function getLastPlayedLesson(
 }
 
 export const useLearningPath = (opts?: {
-  student?: any;
-  gb?: any;
+  student?: LearningPathStudent;
+  gb?: unknown;
   onGbUpdate?: (b: boolean) => void;
 }) => {
   const api = ServiceConfig.getI().apiHandler;
@@ -536,7 +631,7 @@ export const useLearningPath = (opts?: {
     mode,
     classId,
   }: {
-    courses: any[];
+    courses: LearningPathCourseInput[];
     mode: string;
     classId?: string;
   }) {
@@ -545,7 +640,9 @@ export const useLearningPath = (opts?: {
       return;
     }
     const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
-    let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
+    let learningPath: LearningPath | null = pathToParse
+      ? (JSON.parse(pathToParse) as LearningPath)
+      : null;
     // check if learning path is empty, if empty build it
     if (!learningPath) {
       learningPath = await buildPath({
@@ -568,10 +665,10 @@ export const useLearningPath = (opts?: {
         return;
       }
 
-      const activeLesson = coursePath.find((l: any) => l.isPlayed === false);
+      const activeLesson = coursePath.find((l) => l.isPlayed === false);
       const lastPlayedLesson = [...coursePath]
         .reverse()
-        .find((l: any) => l.isPlayed === true);
+        .find((l) => l.isPlayed === true);
 
       const eventData = {
         user_id: currentStudent?.id,
@@ -593,15 +690,17 @@ export const useLearningPath = (opts?: {
     if (!mode || !pathMode) {
       // check if learning path has old structure, if so migrate it
       if (learningPath?.courses?.courseList) {
-        const hasOldStructure = learningPath.courses.courseList.some(
-          (c: any) =>
+        const courseList = learningPath.courses
+          .courseList as LegacyCoursePath[];
+        const hasOldStructure = courseList.some(
+          (c) =>
             c.currentIndex !== undefined ||
             c.startIndex !== undefined ||
             c.pathEndIndex !== undefined,
         );
         if (hasOldStructure) {
-          learningPath.courses.courseList = learningPath.courses.courseList.map(
-            (coursePath: any) => migrate(coursePath),
+          learningPath.courses.courseList = courseList.map((coursePath) =>
+            migrate(coursePath),
           );
           learningPath.pathMode = mode;
           learningPath.updated_at = new Date().toISOString();
@@ -632,10 +731,10 @@ export const useLearningPath = (opts?: {
         return;
       }
 
-      const activeLesson = coursePath.find((l: any) => l.isPlayed === false);
+      const activeLesson = coursePath.find((l) => l.isPlayed === false);
       const lastPlayedLesson = [...coursePath]
         .reverse()
-        .find((l: any) => l.isPlayed === true);
+        .find((l) => l.isPlayed === true);
 
       const eventData = {
         user_id: currentStudent?.id,
@@ -654,15 +753,16 @@ export const useLearningPath = (opts?: {
 
     // check if learning path has old structure, if so migrate it
     if (learningPath?.courses?.courseList) {
-      const hasOldStructure = learningPath.courses.courseList.some(
-        (c: any) =>
+      const courseList = learningPath.courses.courseList as LegacyCoursePath[];
+      const hasOldStructure = courseList.some(
+        (c) =>
           c.currentIndex !== undefined ||
           c.startIndex !== undefined ||
           c.pathEndIndex !== undefined,
       );
       if (hasOldStructure) {
-        learningPath.courses.courseList = learningPath.courses.courseList.map(
-          (coursePath: any) => migrate(coursePath),
+        learningPath.courses.courseList = courseList.map((coursePath) =>
+          migrate(coursePath),
         );
         learningPath.pathMode = mode;
         learningPath.updated_at = new Date().toISOString();
@@ -704,13 +804,14 @@ export const useLearningPath = (opts?: {
   }
 
   const updateLearningPathIfNeeded = async (
-    learningPath: any,
-    userCourses: any[],
+    learningPath: LearningPath,
+    userCourses: LearningPathCourseInput[],
     student: TableTypes<'user'>,
     mode: string,
     classId?: string,
   ) => {
-    const oldCourseList = learningPath.courses?.courseList || [];
+    const oldCourseList: StoredCoursePath[] =
+      learningPath.courses?.courseList || [];
 
     /* -----------------------------------
      * Save current active courseId
@@ -721,7 +822,7 @@ export const useLearningPath = (opts?: {
     /* -----------------------------------
      * Identity checks
      * ----------------------------------- */
-    const oldIds = oldCourseList.map((c: any) => c.course_id);
+    const oldIds = oldCourseList.map((c) => c.course_id);
     const newIds = userCourses.map((c) => c.id);
 
     const sameCourses =
@@ -742,6 +843,21 @@ export const useLearningPath = (opts?: {
         );
       });
 
+    const assignedAssessmentSync = await syncAssignedAssessmentPaths(
+      oldCourseList,
+      userCourses,
+      student,
+      classId,
+    );
+
+    if (assignedAssessmentSync.updated) {
+      learningPath.courses.currentCourseIndex =
+        assignedAssessmentSync.currentCourseIndex;
+      learningPath.updated_at = new Date().toISOString();
+      await saveLearningPath(student, learningPath);
+      return { updated: true, learningPath };
+    }
+
     if (sameOrder && sameMetadata) {
       return { updated: false, learningPath };
     }
@@ -749,10 +865,10 @@ export const useLearningPath = (opts?: {
     /* -----------------------------------
      * Sync courses (reuse by id)
      * ----------------------------------- */
-    const existingMap = new Map<string, any>();
-    oldCourseList.forEach((c: any) => existingMap.set(c.course_id, c));
+    const existingMap = new Map<string, StoredCoursePath>();
+    oldCourseList.forEach((c) => existingMap.set(c.course_id, c));
 
-    const newCourseList: any[] = [];
+    const newCourseList: StoredCoursePath[] = [];
     for (const course of userCourses) {
       const existing = existingMap.get(course.id);
 
@@ -775,7 +891,7 @@ export const useLearningPath = (opts?: {
         newCourseList.push({
           path_id: uuidv4(),
           course_id: course.id,
-          subject_id: course.subject_id,
+          subject_id: course.subject_id ?? null,
           display_name: course.pathway_display_name,
           is_pal_consolidated: course.is_pal_consolidated,
           type: course.framework_id
@@ -811,14 +927,102 @@ export const useLearningPath = (opts?: {
     return { updated: true, learningPath };
   };
 
-  async function saveLearningPath(student: any, path: LearningPath) {
+  const syncAssignedAssessmentPaths = async (
+    oldCourseList: StoredCoursePath[],
+    userCourses: LearningPathCourseInput[],
+    student: TableTypes<'user'>,
+    classId?: string,
+  ): Promise<{ updated: boolean; currentCourseIndex: number }> => {
+    if (!classId || !oldCourseList.length || !userCourses.length) {
+      return {
+        updated: false,
+        currentCourseIndex: learningPathSafeIndex(oldCourseList, 0),
+      };
+    }
+
+    for (const course of userCourses) {
+      const courseIndex = oldCourseList.findIndex(
+        (coursePath) => coursePath.course_id === course.id,
+      );
+      if (courseIndex === -1) continue;
+
+      const assignments = await api.getLatestAssessmentGroup(
+        classId,
+        student,
+        course.id,
+      );
+      if (!assignments?.length) continue;
+      const assessmentPath = toAssignedAssessmentPath(assignments);
+
+      const coursePath = oldCourseList[courseIndex];
+      const activeAssessment = coursePath.path?.find(
+        (node: LessonNode) =>
+          node.isPlayed === false && node.is_assessment === true,
+      );
+      const currentPendingAssessmentIds = (coursePath.path ?? [])
+        .filter(
+          (node: LessonNode) =>
+            node.isPlayed === false && node.is_assessment === true,
+        )
+        .map((node: LessonNode) => node.assignment_id);
+      const assignedAssessmentIds = assessmentPath.map(
+        (node) => node.assignment_id,
+      );
+      const hasSamePendingAssessmentSequence =
+        currentPendingAssessmentIds.length === assignedAssessmentIds.length &&
+        assignedAssessmentIds.every(
+          (assignmentId, index) =>
+            currentPendingAssessmentIds[index] === assignmentId,
+        );
+
+      if (
+        activeAssessment?.assignment_id === assignments[0].id &&
+        hasSamePendingAssessmentSequence
+      ) {
+        continue;
+      }
+
+      coursePath.path_id = uuidv4();
+      coursePath.path = assessmentPath;
+      coursePath.display_name = course.pathway_display_name;
+      coursePath.is_pal_consolidated = course.is_pal_consolidated;
+      coursePath.type = course.framework_id
+        ? RECOMMENDATION_TYPE.FRAMEWORK
+        : RECOMMENDATION_TYPE.CHAPTER;
+      coursePath.subject_id = course.subject_id ?? null;
+      coursePath.completedPath = coursePath.completedPath ?? 0;
+
+      return { updated: true, currentCourseIndex: courseIndex };
+    }
+
+    return {
+      updated: false,
+      currentCourseIndex: learningPathSafeIndex(oldCourseList, 0),
+    };
+  };
+
+  const learningPathSafeIndex = (
+    courseList: readonly StoredCoursePath[],
+    fallback: number,
+  ) =>
+    courseList.length > 0
+      ? Math.min(Math.max(fallback, 0), courseList.length - 1)
+      : 0;
+
+  async function saveLearningPath(
+    student: TableTypes<'user'> | LearningPathStudent,
+    path: LearningPath,
+  ) {
     const pathStr = JSON.stringify(path);
-    await api.updateLearningPath(student, pathStr);
-    await Util.setCurrentStudent({ ...student, learning_path: pathStr });
+    await api.updateLearningPath(student as TableTypes<'user'>, pathStr);
+    await Util.setCurrentStudent({
+      ...(student as TableTypes<'user'>),
+      learning_path: pathStr,
+    });
   }
 
-  function migrate(coursePath: any) {
-    const lessons: LessonNode[] = coursePath.path || [];
+  function migrate(coursePath: LegacyCoursePath): StoredCoursePath {
+    const lessons: LegacyLessonNode[] = coursePath.path || [];
 
     const startIndex = coursePath.startIndex ?? 0;
     const currentIndex = coursePath.currentIndex ?? 0;
@@ -833,10 +1037,10 @@ export const useLearningPath = (opts?: {
 
     const newPath: LessonNode[] = windowLessons
       .filter(
-        (_lesson: LessonNode, idx: number) =>
+        (_lesson: LegacyLessonNode, idx: number) =>
           startIndex + idx <= activeAbsIndex,
       )
-      .map((l: LessonNode, idx: number) => {
+      .map((l: LegacyLessonNode, idx: number) => {
         const absIndex = startIndex + idx;
         return {
           lesson_id: l.lesson_id,
@@ -855,7 +1059,7 @@ export const useLearningPath = (opts?: {
       subject_id: coursePath.subject_id,
       display_name: coursePath.display_name,
       is_pal_consolidated: coursePath.is_pal_consolidated,
-      type: coursePath.type,
+      type: coursePath.type as RECOMMENDATION_TYPE,
       path: newPath,
       completedPath: completedPath,
     };

@@ -182,6 +182,27 @@ type CampaignAssignmentChapterLessonRow = Pick<
   lesson?: CampaignAssignmentLessonRow | CampaignAssignmentLessonRow[] | null;
 };
 
+type AssessmentAssignmentUserLink = Pick<
+  TableTypes<'assignment_user'>,
+  'user_id' | 'is_deleted'
+>;
+
+type AssessmentBatchRow = Pick<
+  TableTypes<'assignment'>,
+  'batch_id' | 'created_at' | 'is_class_wise'
+> & {
+  assignment_user?: AssessmentAssignmentUserLink[] | null;
+};
+
+type AssessmentAssignmentRow = TableTypes<'assignment'> & {
+  assignment_user?: AssessmentAssignmentUserLink[] | null;
+};
+
+type AssessmentResultRow = Pick<
+  TableTypes<'result'>,
+  'assignment_id' | 'status' | 'created_at'
+>;
+
 const firstOrSelf = <T>(value: T | T[] | null | undefined): T | null =>
   Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
 
@@ -14686,12 +14707,29 @@ export class SupabaseApi implements ServiceApi {
 
     courseId = courseId ?? '';
 
+    const isAssignedToStudent = (
+      assignment: AssessmentBatchRow | AssessmentAssignmentRow,
+    ) =>
+      assignment.is_class_wise === true ||
+      (assignment.assignment_user ?? []).some(
+        (assignmentUser) =>
+          assignmentUser.user_id === studentId &&
+          assignmentUser.is_deleted !== true,
+      );
+
     /* ==========================================
      * STEP 1️⃣  Get latest valid batch for course
      * ========================================== */
     const { data: latestBatchData, error: batchError } = await this.supabase
       .from(TABLES.Assignment)
-      .select('batch_id, created_at')
+      .select(
+        `
+        batch_id,
+        created_at,
+        is_class_wise,
+        assignment_user:assignment_user!left(user_id, is_deleted)
+      `,
+      )
       .eq('class_id', classId)
       .eq('course_id', courseId)
       .eq('type', 'assessment')
@@ -14700,11 +14738,14 @@ export class SupabaseApi implements ServiceApi {
       .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
       .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
       .order('created_at', { ascending: false })
-      .limit(1);
+      .limit(50);
 
     if (batchError || !latestBatchData?.length) return [];
 
-    const latestBatchId = latestBatchData[0].batch_id;
+    const latestAssignedBatch = (
+      latestBatchData as unknown as AssessmentBatchRow[]
+    ).find((assignment) => isAssignedToStudent(assignment));
+    const latestBatchId = latestAssignedBatch?.batch_id;
     if (!latestBatchId) return [];
 
     /* ==========================================
@@ -14733,16 +14774,12 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
 
-    if (!data || data.length === 0) {
-      return [];
-    }
-
     /* -----------------------------------------
       Keep latest result per unique assignment
     ------------------------------------------ */
-    const uniqueMap = new Map<string, any>();
+    const uniqueMap = new Map<string, AssessmentResultRow>();
 
-    for (const row of data) {
+    for (const row of (data ?? []) as AssessmentResultRow[]) {
       if (!row.assignment_id) continue;
 
       if (!uniqueMap.has(row.assignment_id)) {
@@ -14771,7 +14808,12 @@ export class SupabaseApi implements ServiceApi {
      * ========================================== */
     const { data: assignments, error: lessonError } = await this.supabase
       .from(TABLES.Assignment)
-      .select('*')
+      .select(
+        `
+        *,
+        assignment_user:assignment_user!left(user_id, is_deleted)
+      `,
+      )
       .eq('class_id', classId)
       .eq('course_id', courseId)
       .eq('type', 'assessment')
@@ -14782,7 +14824,13 @@ export class SupabaseApi implements ServiceApi {
 
     if (lessonError || !assignments?.length) return [];
 
-    const assignmentIds = assignments.map((a) => a.id);
+    const assignedAssessments = (
+      assignments as unknown as AssessmentAssignmentRow[]
+    ).filter((assignment) => isAssignedToStudent(assignment));
+
+    if (!assignedAssessments.length) return [];
+
+    const assignmentIds = assignedAssessments.map((a) => a.id);
 
     // fetch completed results
     const { data: results } = await this.supabase
@@ -14794,7 +14842,7 @@ export class SupabaseApi implements ServiceApi {
 
     const completedSet = new Set((results ?? []).map((r) => r.assignment_id));
 
-    const incompleteAssignments = assignments.filter(
+    const incompleteAssignments = assignedAssessments.filter(
       (a) => !completedSet.has(a.id),
     );
 

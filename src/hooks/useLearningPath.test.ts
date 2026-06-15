@@ -279,6 +279,103 @@ describe('useLearningPath features used by Home tab', () => {
     expect(second?.assignment_id).toBe('assignment-11');
   });
 
+  test('puts newly assigned assessment at the beginning of an existing course path', async () => {
+    const existingPath = {
+      courses: {
+        currentCourseIndex: 0,
+        courseList: [
+          {
+            path_id: 'old-path',
+            course_id: 'c1',
+            subject_id: 's1',
+            type: 'chapter',
+            path: [
+              {
+                lesson_id: 'normal-lesson-1',
+                chapter_id: 'chapter-1',
+                is_assessment: false,
+                isPlayed: false,
+              },
+            ],
+            completedPath: 2,
+          },
+        ],
+      },
+      type: 'chapter',
+      pathMode: LEARNING_PATHWAY_MODE.DISABLED,
+    };
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: 'stu-1',
+      learning_path: JSON.stringify(existingPath),
+    });
+    mockApi.getLatestAssessmentGroup.mockResolvedValue([
+      { id: 'assignment-11', lesson_id: 'teacher-asmt-11' },
+      { id: 'assignment-12', lesson_id: 'teacher-asmt-12' },
+      { id: 'assignment-13', lesson_id: 'teacher-asmt-13' },
+      { id: 'assignment-14', lesson_id: 'teacher-asmt-14' },
+      { id: 'assignment-15', lesson_id: 'teacher-asmt-15' },
+      { id: 'assignment-16', lesson_id: 'teacher-asmt-16' },
+    ]);
+
+    const { result } = renderHook(() => useLearningPath());
+    await act(async () => {
+      await result.current.getPath({
+        courses: [{ id: 'c1', subject_id: 's1', framework_id: null }],
+        mode: LEARNING_PATHWAY_MODE.DISABLED,
+        classId: 'class-1',
+      });
+    });
+
+    const saved = mockApi.updateLearningPath.mock.calls[0][1];
+    const parsed = JSON.parse(saved);
+    const coursePath = parsed.courses.courseList[0];
+
+    expect(parsed.courses.currentCourseIndex).toBe(0);
+    expect(coursePath.completedPath).toBe(2);
+    expect(coursePath.path).toEqual([
+      {
+        lesson_id: 'teacher-asmt-11',
+        chapter_id: undefined,
+        assignment_id: 'assignment-11',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+      {
+        lesson_id: 'teacher-asmt-12',
+        chapter_id: undefined,
+        assignment_id: 'assignment-12',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+      {
+        lesson_id: 'teacher-asmt-13',
+        chapter_id: undefined,
+        assignment_id: 'assignment-13',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+      {
+        lesson_id: 'teacher-asmt-14',
+        chapter_id: undefined,
+        assignment_id: 'assignment-14',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+      {
+        lesson_id: 'teacher-asmt-15',
+        chapter_id: undefined,
+        assignment_id: 'assignment-15',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+    ]);
+  });
+
   test('marks only PAL recommended lessons with PAL source', async () => {
     mockApi.isStudentPlayedPalLesson.mockResolvedValue(true);
     (palUtil.getPalLessonPathForCourse as jest.Mock).mockResolvedValue({
