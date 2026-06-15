@@ -52,6 +52,7 @@ import { App as CapApp } from '@capacitor/app';
 import {
   // APP_LANG,
   BASE_NAME,
+  BUNDLE_ZIP_URLS,
   CACHE_IMAGE,
   HOMEWORK_REMOTE_ASSETS_ENABLED,
   CAN_ACCESS_REMOTE_ASSETS,
@@ -70,6 +71,7 @@ import {
   SEARCH_LESSON_CACHE_KEY,
   SEARCH_LESSON_HISTORY,
   PAL_LEARNING_RATES_CONFIG,
+  LIDO_BUNDLE_ZIP_URLS,
 } from './common/constants';
 import { Util } from './utility/util';
 import Parent from './pages/Parent';
@@ -144,6 +146,10 @@ import { setCachedGrowthBookFeatureValue } from './growthbook/Growthbook';
 import { HardwareBackButtonHandler } from './common/backButtonRegistry';
 import { logger } from './utility/logger';
 import {
+  getBundleZipUrlsForEnv,
+  getLidoBundleZipUrlsForEnv,
+} from './services/RemoteConfig';
+import {
   Dialog,
   DialogTitle,
   DialogContent,
@@ -202,6 +208,8 @@ const App: React.FC = () => {
 
   const popupDataRef = useRef<any>(null);
   const showModalRef = useRef(showModal);
+  const bundleZipUrlsFallbackRef = useRef(getBundleZipUrlsForEnv());
+  const lidoBundleZipUrlsFallbackRef = useRef(getLidoBundleZipUrlsForEnv());
 
   useEffect(() => {
     popupDataRef.current = popupData;
@@ -219,6 +227,14 @@ const App: React.FC = () => {
   const palLearningRatesConfig = useFeatureValue<GrowthBookJsonConfig>(
     PAL_LEARNING_RATES_CONFIG,
     {},
+  );
+  const bundleZipUrls = useFeatureValue<string[]>(
+    BUNDLE_ZIP_URLS,
+    bundleZipUrlsFallbackRef.current,
+  );
+  const lidoBundleZipUrls = useFeatureValue<string[]>(
+    LIDO_BUNDLE_ZIP_URLS,
+    lidoBundleZipUrlsFallbackRef.current,
   );
 
   const OpsConsoleRouteWatcher = () => {
@@ -269,6 +285,34 @@ const App: React.FC = () => {
       );
     }
   }, [palLearningRatesConfig]);
+
+  useEffect(() => {
+    const bundleZipUrlsResult =
+      growthbook.evalFeature<string[]>(BUNDLE_ZIP_URLS);
+    const lidoBundleZipUrlsResult =
+      growthbook.evalFeature<string[]>(LIDO_BUNDLE_ZIP_URLS);
+
+    logger.info('[GrowthBook] bundle ZIP URLs evaluated', {
+      featureKey: BUNDLE_ZIP_URLS,
+      growthBookSource: bundleZipUrlsResult.source,
+      growthBookValue: bundleZipUrlsResult.value,
+      fallbackValue: bundleZipUrlsFallbackRef.current,
+      resolvedValue: bundleZipUrls,
+      usingGrowthBookValue: bundleZipUrlsResult.value !== null,
+    });
+
+    logger.info('[GrowthBook] Lido bundle ZIP URLs evaluated', {
+      featureKey: LIDO_BUNDLE_ZIP_URLS,
+      growthBookSource: lidoBundleZipUrlsResult.source,
+      growthBookValue: lidoBundleZipUrlsResult.value,
+      fallbackValue: lidoBundleZipUrlsFallbackRef.current,
+      resolvedValue: lidoBundleZipUrls,
+      usingGrowthBookValue: lidoBundleZipUrlsResult.value !== null,
+    });
+
+    setCachedGrowthBookFeatureValue(BUNDLE_ZIP_URLS, bundleZipUrls);
+    setCachedGrowthBookFeatureValue(LIDO_BUNDLE_ZIP_URLS, lidoBundleZipUrls);
+  }, [growthbook, bundleZipUrls, lidoBundleZipUrls]);
 
   useEffect(() => {
     if (!growthbook) return;

@@ -1213,7 +1213,8 @@ export const GRADE1_KANNADA = 'a90608de-4376-4baf-82c2-07760b2aa899';
 export const GRADE1_MARATHI = '2cada0d1-db3d-4da0-8ade-e9ba282a3558';
 export const BULK_UPLOAD_TEMPLATE_URL =
   'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx';
-
+export const BUNDLE_ZIP_URLS = 'bundle_zip_urls';
+export const LIDO_BUNDLE_ZIP_URLS = 'lido_bundle_zip_urls';
 export const FORM_MODES = {
   ALL_REQUIRED: 'all-required',
   NAME_REQUIRED: 'name-required',

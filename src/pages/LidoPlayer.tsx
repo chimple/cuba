@@ -3,6 +3,8 @@ import { useHistory } from 'react-router';
 import { Util } from '../utility/util';
 import {
   ASSESSMENT_FAIL_KEY,
+  BUNDLE_ZIP_URLS,
+  LIDO_BUNDLE_ZIP_URLS,
   EVENTS,
   HOMEWORK_PATHWAY,
   LIDO_SCORES_KEY,
@@ -38,7 +40,12 @@ import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { registerBackButtonHandler } from '../common/backButtonRegistry';
 import logger from '../utility/logger';
-import { getBundleZipUrlsForEnv } from '../services/RemoteConfig';
+import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
+import {
+  getBundleZipUrlsForEnv,
+  getLidoBundleZipUrlsForEnv,
+  REMOTE_CONFIG_KEYS,
+} from '../services/RemoteConfig';
 
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
@@ -1041,7 +1048,11 @@ const LidoPlayer: FC = () => {
       push();
       return;
     }
-    const dow = await Util.downloadZipBundle([lessonToDownload]);
+    const dow = await Util.downloadZipBundle(
+      [lessonToDownload],
+      undefined,
+      REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS,
+    );
     if (!dow) {
       presentToast();
       push();
@@ -1101,13 +1112,17 @@ const LidoPlayer: FC = () => {
       // const pathXml = `${lidoBaseUrl}${lessonId}/index.xml`;
       // setBasePath(pathBase);
       // setXmlPath(pathXml);
-      const [bundleBaseUrl] = getBundleZipUrlsForEnv();
+      const [bundleBaseUrl] = getCachedGrowthBookFeatureValue<string[]>(
+        BUNDLE_ZIP_URLS,
+        getBundleZipUrlsForEnv(),
+      );
       const directZipUrl =
         urlSearchParams.get('zipUrl') ??
         state?.zipUrl ??
         `${bundleBaseUrl}${lessonId}.zip`;
       logger.debug('Resolved Lido ZIP URL', {
         lessonId,
+        featureKey: BUNDLE_ZIP_URLS,
         bundleBaseUrl,
         zipUrl: directZipUrl,
       });
