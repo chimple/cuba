@@ -117,6 +117,26 @@ type ChapterLessonRow = {
   lesson: TableTypes<'lesson'> | null;
 };
 
+type StudentProgressChapterRow = {
+  chapter: {
+    id: string;
+    name: string;
+    course_id: string;
+  } | null;
+};
+
+type StudentProgressLessonRow = {
+  name: string;
+  chapter_lesson?:
+    | StudentProgressChapterRow[]
+    | StudentProgressChapterRow
+    | null;
+};
+
+type StudentProgressResultRow = TableTypes<'result'> & {
+  lesson: StudentProgressLessonRow | StudentProgressLessonRow[] | null;
+};
+
 type CampaignAudienceSchoolLinkRow = Pick<
   TableTypes<'campaign_target_audience_school'>,
   'school_id'
@@ -3478,18 +3498,44 @@ export class SupabaseApi implements ServiceApi {
     if (!data) return resultMap;
 
     if (data && data.length > 0) {
-      data.forEach((result) => {
+      (data as StudentProgressResultRow[]).forEach((result) => {
+        const lesson = Array.isArray(result.lesson)
+          ? (result.lesson[0] ?? null)
+          : result.lesson;
+        const chapterLessons = Array.isArray(lesson?.chapter_lesson)
+          ? lesson.chapter_lesson
+          : [];
+        const matchingChapterLesson =
+          chapterLessons.find((chapterLesson) => {
+            const chapter = Array.isArray(chapterLesson)
+              ? chapterLesson[0]?.chapter
+              : chapterLesson.chapter;
+            return chapter?.id === result.chapter_id;
+          }) ??
+          chapterLessons.find((chapterLesson) => {
+            const chapter = Array.isArray(chapterLesson)
+              ? chapterLesson[0]?.chapter
+              : chapterLesson.chapter;
+            return chapter?.course_id === result.course_id;
+          });
+        const matchingChapter =
+          (Array.isArray(matchingChapterLesson)
+            ? matchingChapterLesson[0]?.chapter
+            : matchingChapterLesson?.chapter) ?? null;
+        const resultWithNames = {
+          ...result,
+          lesson_name: lesson?.name ?? '',
+          chapter_name: matchingChapter?.name ?? '',
+        } as TableTypes<'result'> & {
+          lesson_name?: string;
+          chapter_name?: string;
+        };
         const courseId = result.course_id;
         if (courseId && !resultMap[courseId]) {
           resultMap[courseId] = [];
         }
         if (courseId) {
-          resultMap[courseId].push(
-            result as TableTypes<'result'> & {
-              lesson_name?: string;
-              chapter_name?: string;
-            },
-          );
+          resultMap[courseId].push(resultWithNames);
         }
       });
     }
