@@ -1827,7 +1827,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           autoCloseSeconds: 5,
         });
         invalidateStudentListCache();
-        await fetchStudents(page, debouncedSearchTerm);
+        await fetchStudents(debouncedSearchTerm);
       } else {
         setPopup({
           open: true,
