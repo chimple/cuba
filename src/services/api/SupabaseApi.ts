@@ -117,24 +117,17 @@ type ChapterLessonRow = {
   lesson: TableTypes<'lesson'> | null;
 };
 
-type StudentProgressChapterRow = {
-  chapter: {
-    id: string;
-    name: string;
-    course_id: string;
-  } | null;
-};
-
-type StudentProgressLessonRow = {
-  name: string;
-  chapter_lesson?:
-    | StudentProgressChapterRow[]
-    | StudentProgressChapterRow
-    | null;
-};
-
 type StudentProgressResultRow = TableTypes<'result'> & {
-  lesson: StudentProgressLessonRow | StudentProgressLessonRow[] | null;
+  lesson: {
+    name: string;
+    chapter_lesson?: {
+      chapter: {
+        id: string;
+        name: string;
+        course_id: string;
+      } | null;
+    }[];
+  } | null;
 };
 
 type CampaignAudienceSchoolLinkRow = Pick<
@@ -3499,33 +3492,19 @@ export class SupabaseApi implements ServiceApi {
 
     if (data && data.length > 0) {
       (data as StudentProgressResultRow[]).forEach((result) => {
-        const lesson = Array.isArray(result.lesson)
-          ? (result.lesson[0] ?? null)
-          : result.lesson;
-        const chapterLessons = Array.isArray(lesson?.chapter_lesson)
-          ? lesson.chapter_lesson
-          : [];
+        const lesson = result.lesson;
+        const chapterLessons = lesson?.chapter_lesson ?? [];
         const matchingChapterLesson =
           chapterLessons.find((chapterLesson) => {
-            const chapter = Array.isArray(chapterLesson)
-              ? chapterLesson[0]?.chapter
-              : chapterLesson.chapter;
-            return chapter?.id === result.chapter_id;
+            return chapterLesson.chapter?.id === result.chapter_id;
           }) ??
           chapterLessons.find((chapterLesson) => {
-            const chapter = Array.isArray(chapterLesson)
-              ? chapterLesson[0]?.chapter
-              : chapterLesson.chapter;
-            return chapter?.course_id === result.course_id;
+            return chapterLesson.chapter?.course_id === result.course_id;
           });
-        const matchingChapter =
-          (Array.isArray(matchingChapterLesson)
-            ? matchingChapterLesson[0]?.chapter
-            : matchingChapterLesson?.chapter) ?? null;
         const resultWithNames = {
           ...result,
           lesson_name: lesson?.name ?? '',
-          chapter_name: matchingChapter?.name ?? '',
+          chapter_name: matchingChapterLesson?.chapter?.name ?? '',
         } as TableTypes<'result'> & {
           lesson_name?: string;
           chapter_name?: string;
