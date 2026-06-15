@@ -275,6 +275,78 @@ describe('CampaignAssignmentStep', () => {
     expect(screen.getByText('Parts of plant')).toBeInTheDocument();
   });
 
+  it('shows the helper only when multiple grades are selected', () => {
+    const secondGrade = { id: 'grade-2', name: 'Grade 2' };
+    const multiGradeOptions: CampaignAssignmentOptions = {
+      grades: [
+        assignmentOptions.grades[0],
+        {
+          gradeId: 'grade-2',
+          subjects: [
+            {
+              id: 'subject-2',
+              gradeId: 'grade-2',
+              name: 'Maths',
+              chapters: [],
+            },
+          ],
+        },
+      ],
+    };
+
+    const { rerender } = render(
+      <CampaignAssignmentStep
+        form={baseForm}
+        campaignId="campaign-1"
+        selectedGrades={[grade, secondGrade]}
+        selectedSchoolIds={['school-1']}
+        assignmentOptions={multiGradeOptions}
+        loadingAssignmentOptions={false}
+        activeGradeId={grade.id}
+        configs={{
+          [grade.id]: createDefaultConfig(),
+          [secondGrade.id]: createDefaultConfig(),
+        }}
+        onActiveGradeChange={jest.fn()}
+        onConfigsChange={jest.fn()}
+        onCompletionChange={jest.fn()}
+        onAssignmentsChange={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        /Assignments should be configured for all selected grades/,
+      ),
+    ).toBeInTheDocument();
+
+    rerender(
+      <CampaignAssignmentStep
+        form={baseForm}
+        campaignId="campaign-1"
+        selectedGrades={[]}
+        selectedSchoolIds={['school-1']}
+        assignmentOptions={multiGradeOptions}
+        loadingAssignmentOptions={false}
+        activeGradeId={grade.id}
+        configs={{
+          [grade.id]: createDefaultConfig(),
+          [secondGrade.id]: createDefaultConfig(),
+        }}
+        onActiveGradeChange={jest.fn()}
+        onConfigsChange={jest.fn()}
+        onCompletionChange={jest.fn()}
+        onAssignmentsChange={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByText(
+        /Assignments should be configured for all selected grades/,
+      ),
+    ).not.toBeInTheDocument();
+  });
+
   it('does not restore previously removed chapter lessons when assigning another chapter', async () => {
     renderStep({
       initialConfig: {
