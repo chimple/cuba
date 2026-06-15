@@ -389,6 +389,7 @@ export interface ServiceApi {
     group2: string,
     group3: string,
     group4: string | null,
+    status: EnumType<'status'> | null,
     image: File | null,
     program_id: string | null,
     udise: string | null,
@@ -404,6 +405,7 @@ export interface ServiceApi {
    * @param {string} group1 - State of the school.
    * @param {string} group2 - District of the school.
    * @param {string} group3 - City of the school.
+   * @param {EnumType} status - School Status
    * @param {string | null} group4 - Additional grouping, if any.
    * @param {File | null} image - Optional image file for the school.
    * @param {string | null} program_id - Linked program ID if any.
@@ -2580,9 +2582,18 @@ export interface ServiceApi {
   /**
    * Fetch  parent information even if the student is deleted.
    * @param {string} studentId - The ID of the student to fetch.
+   * @param {Object} [options] - Optional query controls for bulk lookup and filtering.
+   * @param {string[]} [options.studentIds] - When provided, fetches parents for all listed students.
+   * @param {boolean} [options.activeOnly] - When true, excludes deleted parent links.
    * @returns Promise resolving to an array of parents.
    */
-  getParentsByStudentId(studentId: string): Promise<TableTypes<'user'>[]>;
+  getParentsByStudentId(
+    studentId: string,
+    options?: {
+      studentIds?: string[];
+      activeOnly?: boolean;
+    },
+  ): Promise<TableTypes<'user'>[]>;
 
   /**
    * Merge a new student into an existing student record in SQLite.

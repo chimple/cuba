@@ -68,6 +68,7 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { getStudentContactValues } from '../../utils/studentContactNumbers';
 
 type ApiStudentData = StudentInfo;
 type StudentPerformanceBand =
@@ -478,6 +479,16 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     },
     [schoolId, optionalClassId, programScopedClassIds],
   );
+
+  const invalidateStudentListCache = useCallback(() => {
+    // Merge updates can change contacts, so clear school-scoped cache entries.
+    const schoolCachePrefix = `${schoolId}|`;
+    Array.from(studentListCache.keys()).forEach((cacheKey) => {
+      if (cacheKey.startsWith(schoolCachePrefix)) {
+        studentListCache.delete(cacheKey);
+      }
+    });
+  }, [schoolId]);
 
   const issTotal = isTotal ?? true;
   const issFilter = isFilter ?? true;
@@ -1009,7 +1020,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         gender: s_api.user.gender ?? 'N/A',
         grade: s_api.grade ?? 0,
         classSection: s_api.classSection ?? 'N/A',
-        phoneNumber: s_api.parent?.phone || s_api.parent?.email || 'N/A', //here
+        phoneNumber: s_api.parent?.phone || s_api.parent?.email || 'N/A',
         class: getClassDisplayLabel(
           s_api.grade,
           s_api.classSection,
@@ -1592,8 +1603,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     // 6️⃣ Phone – full width
     {
       name: 'phone',
-      label: 'Phone Number',
-      kind: 'text',
+      label: 'Phone / Email',
+      kind: 'chips',
       column: 2,
       disabled: true,
     },
@@ -1815,6 +1826,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           text: mergeMessage, // dynamic
           autoCloseSeconds: 5,
         });
+        invalidateStudentListCache();
+        await fetchStudents(page, debouncedSearchTerm);
       } else {
         setPopup({
           open: true,
@@ -1823,20 +1836,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           text: mergeResult.message || t('Failed to merge student profile.'),
           autoCloseSeconds: 5,
         });
-      }
-      // Keep UI in sync with backend after merge attempts.
-      let removed = false;
-      setStudents((prev) => {
-        const next = prev.filter((row: any) => {
-          const rowId = row?.user?.id ?? row?.id;
-          const keep = rowId !== oldId;
-          if (!keep) removed = true;
-          return keep;
-        });
-        return next;
-      });
-      if (removed) {
-        setTotalCount((prev) => Math.max(0, prev - 1));
       }
       setShowSuccessPopup(true);
       setIsMergeStudentModalOpen(false);
@@ -1900,7 +1899,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           classAndSection: `${editStudentData?.grade ?? ''}${
             editStudentData?.classSection ?? ''
           }`,
-          phone: editStudentData?.parent?.phone ?? '',
+          // Show all merged contacts in edit details as chips.
+          phone: getStudentContactValues(editStudentData).join(' / '),
         }}
         onClose={() => {
           setIsEditStudentModalOpen(false);
@@ -1913,7 +1913,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         schoolId={schoolId}
         classId={mergeModalClassId}
         primaryStudentId={mergePrimaryStudent?.id}
-        onClose={() => setIsMergeStudentModalOpen(false)}
+        onClose={() => {
+          setIsMergeStudentModalOpen(false);
+          setMergePrimaryStudent(null);
+        }}
         onSubmit={handleMergeStudents}
         isSubmitting={isMergingStudent}
       />

@@ -122,6 +122,20 @@
   color: #1d2939 !important;
 }
 
+.schoolTeachers-table-container .schoolTeachers-firstColText {
+  display: block;
+  max-width: 8.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
+}
+
+.schoolTeachers-table-container .data-tablebody-head-cell:first-child,
+.schoolTeachers-table-container .data-tablebody-cell:first-child {
+  text-align: left !important;
+}
+
 .schoolTeachers-table-container .truncate-text {
   max-width: 12.5rem;
   white-space: nowrap;
