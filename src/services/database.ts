@@ -2029,7 +2029,6 @@ export type Database = {
           is_deleted: boolean;
           notes: string | null;
           number_of_parents: number | null;
-          number_of_parents: number | null;
           school_id: string;
           type: Database['public']['Enums']['school_visit_type'] | null;
           updated_at: string;
@@ -2067,7 +2066,6 @@ export type Database = {
           id?: string;
           is_deleted?: boolean;
           notes?: string | null;
-          number_of_parents?: number | null;
           number_of_parents?: number | null;
           school_id?: string;
           type?: Database['public']['Enums']['school_visit_type'] | null;
