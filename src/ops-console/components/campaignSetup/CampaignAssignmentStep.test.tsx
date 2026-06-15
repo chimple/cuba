@@ -275,7 +275,7 @@ describe('CampaignAssignmentStep', () => {
     expect(screen.getByText('Parts of plant')).toBeInTheDocument();
   });
 
-  it('keeps the multi-grade helper visible during transient selected-grade updates', () => {
+  it('shows the helper only when multiple grades are selected', () => {
     const secondGrade = { id: 'grade-2', name: 'Grade 2' };
     const multiGradeOptions: CampaignAssignmentOptions = {
       grades: [
@@ -341,10 +341,10 @@ describe('CampaignAssignmentStep', () => {
     );
 
     expect(
-      screen.getByText(
+      screen.queryByText(
         /Assignments should be configured for all selected grades/,
       ),
-    ).toBeInTheDocument();
+    ).not.toBeInTheDocument();
   });
 
   it('does not restore previously removed chapter lessons when assigning another chapter', async () => {
