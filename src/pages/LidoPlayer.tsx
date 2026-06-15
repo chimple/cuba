@@ -25,7 +25,7 @@ import Loading from '../components/Loading';
 import ScoreCard from '../components/scorecards/ScoreCard';
 import { IonPage, useIonToast } from '@ionic/react';
 import { Capacitor } from '@capacitor/core';
-import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { ScreenOrientation } from '../utility/screenOrientation';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Lesson } from '../interface/curriculumInterfaces';
 import { AvatarObj } from '../components/animation/Avatar';
@@ -109,6 +109,7 @@ const LidoPlayer: FC = () => {
 
   const api = ServiceConfig.getI().apiHandler;
   const resultsRef = useRef<Record<number, 0 | 1>>({});
+  const previousAssessmentSkippedRef = useRef<boolean | null>(null);
 
   const contextRef = useRef({
     classId: undefined as string | undefined,
@@ -116,7 +117,15 @@ const LidoPlayer: FC = () => {
     chapterId: undefined as string | undefined,
     isStudentLinked: false,
   });
+
   const isExitingRef = useRef(false);
+
+  const getAssessmentProgressKey = () => {
+    if (isAssessmentLesson && courseDetail?.subject_id) {
+      return `subject:${courseDetail.subject_id}`;
+    }
+    return courseDetail?.id ?? courseDocId ?? '';
+  };
 
   const resolveStudentContext = async (): Promise<{
     student: TableTypes<'user'> | undefined;
@@ -153,6 +162,36 @@ const LidoPlayer: FC = () => {
     } catch (error) {
       logger.error('[LidoPlayer] Failed to resolve player language', error);
       return 'en';
+    }
+  };
+
+  const resolvePreviousAssessmentSkipped = async (
+    studentId: string,
+  ): Promise<boolean> => {
+    if (previousAssessmentSkippedRef.current !== null) {
+      return previousAssessmentSkippedRef.current;
+    }
+
+    const courseKey = courseDetail?.id ?? courseDocId ?? '';
+    if (!courseKey) {
+      previousAssessmentSkippedRef.current = false;
+      return false;
+    }
+
+    try {
+      const hasPendingAbort = await api.hasPendingAbortedAssessment(
+        studentId,
+        courseKey,
+      );
+      previousAssessmentSkippedRef.current = hasPendingAbort;
+      return hasPendingAbort;
+    } catch (error) {
+      logger.error(
+        '[LidoPlayer] Failed to resolve previous assessment skip state',
+        error,
+      );
+      previousAssessmentSkippedRef.current = false;
+      return false;
     }
   };
 
@@ -240,8 +279,7 @@ const LidoPlayer: FC = () => {
     scoresList.reduce((total, record) => total + (record.timeSpent ?? 0), 0);
 
   const onNextContainer = (e: any) => logger.info('Next', e);
-  const gameCompleted = (e: any) => {
-    // setShowDialogBox(true);
+  const gameCompleted = () => {
     const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
 
     if (popupConfig) {
@@ -511,7 +549,7 @@ const LidoPlayer: FC = () => {
       }
     }
     if (!isAssessmentLesson) return;
-    const courseKey = courseDetail?.id ?? courseDocId ?? '';
+    const courseKey = getAssessmentProgressKey();
     const failKey = `${ASSESSMENT_FAIL_KEY}_${studentId}`;
     const streakKey = `${FAIL_STREAK_KEY}_${studentId}`;
     const failMap: Record<string, boolean> = JSON.parse(
@@ -530,15 +568,17 @@ const LidoPlayer: FC = () => {
     failStreak += 1;
     streakMap[courseKey] = failStreak;
     localStorage.setItem(streakKey, JSON.stringify(streakMap));
-    const previousLessonSkipped = !!failMap[courseKey];
+    const previousLessonSkipped =
+      !!failMap[courseKey] ||
+      (await resolvePreviousAssessmentSkipped(studentId));
     if (previousLessonSkipped && failStreak >= 2) {
-      const courseKey = courseDetail?.id ?? courseDocId ?? '';
+      const courseKey = getAssessmentProgressKey();
       Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
       Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, studentId, courseKey);
       const isAborted = true;
       const isFullPathwayTerminated = true;
       await exitLidoGame(isAborted, isFullPathwayTerminated); // aborted + full pathway terminated
-      Util.logEvent(EVENTS.ASSESSMENT_ABORTED, {
+      Util.logEvent(EVENTS.ASSESSMENT_TERMINATED, {
         user_id: parentUserId,
         student_id: studentId,
         lesson_id: lesson.id,
@@ -568,6 +608,7 @@ const LidoPlayer: FC = () => {
 
   const onLessonEnd = async (e: any) => {
     setIsLoading(true);
+    const lessonData = (e?.detail ?? {}) as LidoEventDetail;
     const {
       student: currentStudent,
       studentId,
@@ -581,10 +622,9 @@ const LidoPlayer: FC = () => {
       }
       const parentUserId = userId;
       const courseDocId: string | undefined = state.courseDocId;
-      const lessonData = (e.detail ?? {}) as LidoEventDetail;
       const { correctMoves, wrongMoves } = getNormalizedMoveCounts(lessonData);
       if (isAssessmentLesson) {
-        const courseKey = courseDetail?.id ?? courseDocId ?? '';
+        const courseKey = getAssessmentProgressKey();
         Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
         Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, studentId, courseKey);
         await exitLidoGame();
@@ -795,7 +835,6 @@ const LidoPlayer: FC = () => {
         await Util.updateHomeworkPath(homeworkIndex);
       }
 
-      // ⭐ 2) Bonus +10 stars if this was the last lesson in pathway
       if (shouldGiveHomeworkBonus) {
         try {
           const student = Util.getCurrentStudent() ?? currentStudent;
@@ -878,16 +917,19 @@ const LidoPlayer: FC = () => {
       push();
     }
   };
+
   const onGameExit = async (e: any) => {
+    const data = (e.detail ?? {}) as LidoEventDetail;
     const { studentId, userId } = await resolveStudentContext();
     if (!studentId) {
       push();
       return;
     }
+
     const parentUserId = userId;
-    const courseKey = courseDetail?.id ?? courseDocId ?? '';
+    const courseKey = getAssessmentProgressKey();
     Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
-    const data = (e.detail ?? {}) as LidoEventDetail;
+
     const { correctMoves, wrongMoves } = getNormalizedMoveCounts(data);
     const storedScores = getStoredLidoScores();
     const lessonTimeSpent = parseNumericValue(data.timeSpendForLesson) ?? 0;

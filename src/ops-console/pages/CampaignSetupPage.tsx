@@ -23,6 +23,7 @@ import {
   CampaignReviewStep,
 } from '../components/campaignSetup/CampaignReviewStep';
 import { useCampaignSetupForm } from '../hooks/useCampaignSetupForm';
+import { buildCampaignAudiencePayload } from '../hooks/campaignSetupFormHelpers';
 import {
   CampaignCommunicationState,
   buildCampaignMessagingPayload,
@@ -58,17 +59,7 @@ const CampaignSetupPage: React.FC = () => {
     [],
   );
 
-  const selectedAssignmentSchoolIds = useMemo(
-    () =>
-      campaignSetup.isAllSchools
-        ? campaignSetup.audienceOptions.schools.map((school) => school.id)
-        : campaignSetup.selectedSchools.map((school) => school.id),
-    [
-      campaignSetup.audienceOptions.schools,
-      campaignSetup.isAllSchools,
-      campaignSetup.selectedSchools,
-    ],
-  );
+  const selectedAssignmentSchoolIds = campaignSetup.selectedAssignmentSchoolIds;
 
   const communicationTimelineDates = useMemo(
     () => buildCommunicationTimelineDates(campaignSetup.assignmentDrafts),
@@ -195,6 +186,31 @@ const CampaignSetupPage: React.FC = () => {
     [campaignSetup],
   );
 
+  const handleBackStep = useCallback(() => {
+    if (campaignSetup.activeStep === 0) return;
+
+    setActiveStepSafe(
+      campaignSetup.activeStep === 1 ||
+        (campaignSetup.activeStep === 2 &&
+          campaignSetup.form.objective === 'homepage_learning_pathway_campaign')
+        ? 0
+        : campaignSetup.activeStep - 1,
+    );
+  }, [
+    campaignSetup.activeStep,
+    campaignSetup.form.objective,
+    setActiveStepSafe,
+  ]);
+
+  const handleHeaderBack = useCallback(() => {
+    if (campaignSetup.activeStep > 0) {
+      handleBackStep();
+      return;
+    }
+
+    history.goBack();
+  }, [campaignSetup.activeStep, handleBackStep, history]);
+
   const handleCommunicationContinue = useCallback(() => {
     setCommunicationAttempted(true);
     setLaunchMessage(null);
@@ -206,7 +222,11 @@ const CampaignSetupPage: React.FC = () => {
   const handleLaunchCampaign = useCallback(async () => {
     setLaunchMessage(null);
 
-    if (!campaignSetup.createdCampaignId || !campaignSetup.campaignRewards) {
+    if (!campaignSetup.campaignRewards) {
+      logger.warn('Campaign launch blocked by incomplete setup state:', {
+        hasRewards: Boolean(campaignSetup.campaignRewards),
+        isFormValid: campaignSetup.isFormValid,
+      });
       setLaunchMessage({
         type: 'error',
         text: t('Complete campaign setup before launching.'),
@@ -214,6 +234,9 @@ const CampaignSetupPage: React.FC = () => {
       return;
     }
     if (!campaignSetup.isFormValid) {
+      logger.warn('Campaign launch blocked by invalid setup form:', {
+        campaignId: campaignSetup.createdCampaignId,
+      });
       setLaunchMessage({
         type: 'error',
         text: t('Complete campaign setup before launching.'),
@@ -243,32 +266,56 @@ const CampaignSetupPage: React.FC = () => {
         throw new Error('User is not logged in.');
       }
 
-      await ServiceConfig.getI().apiHandler.launchCampaign({
-        campaignId: campaignSetup.createdCampaignId,
-        currentUserId: currentUser.id,
-        campaign: {
-          programId: campaignSetup.form.programId,
-          campaignName: campaignSetup.form.campaignName.trim(),
-          objective: campaignSetup.form.objective as CampaignObjective,
-          targetType:
-            campaignSetup.form.objective === 'homework_campaign'
-              ? (campaignSetup.form.targetType as CampaignTargetType)
+      const campaign = {
+        programId: campaignSetup.form.programId,
+        campaignName: campaignSetup.form.campaignName.trim(),
+        objective: campaignSetup.form.objective as CampaignObjective,
+        targetType:
+          campaignSetup.form.objective === 'homework_campaign'
+            ? (campaignSetup.form.targetType as CampaignTargetType)
+            : undefined,
+        targetValue:
+          campaignSetup.form.objective === 'homework_campaign'
+            ? Number(campaignSetup.form.targetValue)
+            : campaignSetup.form.objective ===
+                'homepage_learning_pathway_campaign'
+              ? Number(campaignSetup.form.learningPathCount)
               : undefined,
-          targetValue:
-            campaignSetup.form.objective === 'homework_campaign'
-              ? Number(campaignSetup.form.targetValue)
-              : campaignSetup.form.objective ===
-                  'homepage_learning_pathway_campaign'
-                ? Number(campaignSetup.form.learningPathCount)
-                : undefined,
-          managerId: campaignSetup.form.managerId,
-          startDate: campaignSetup.form.startDate,
-          endDate: campaignSetup.form.endDate,
-        },
-        rewards: {
-          type: campaignSetup.campaignRewards.type as CampaignRewardType,
-          rules: campaignSetup.campaignRewards.rules,
-        },
+        managerId: campaignSetup.form.managerId,
+        startDate: campaignSetup.form.startDate,
+        endDate: campaignSetup.form.endDate,
+      };
+      const rewards = {
+        type: campaignSetup.campaignRewards.type as CampaignRewardType,
+        rules: campaignSetup.campaignRewards.rules,
+      };
+      const campaignId =
+        campaignSetup.createdCampaignId ||
+        (
+          await ServiceConfig.getI().apiHandler.createCampaignSetup({
+            ...buildCampaignAudiencePayload(
+              campaignSetup.form,
+              campaignSetup.saveGroup,
+              {
+                isAllSchools: campaignSetup.isAllSchools,
+                isAllGrades: campaignSetup.isAllGrades,
+                selectedSchoolIds: campaignSetup.selectedSchoolIds,
+                selectedGradeIds: campaignSetup.selectedGradeIds,
+              },
+            ),
+            ...campaign,
+            rewards,
+            savedAudienceGroupId:
+              campaignSetup.selectedSavedGroupId || undefined,
+          })
+        ).campaignId;
+
+      campaignSetup.setCreatedCampaignId(campaignId);
+
+      await ServiceConfig.getI().apiHandler.launchCampaign({
+        campaignId,
+        currentUserId: currentUser.id,
+        rewards,
         assignments: campaignSetup.assignmentDrafts.map((assignment) => ({
           gradeId: assignment.gradeId,
           schoolIds: assignment.schoolIds,
@@ -282,7 +329,6 @@ const CampaignSetupPage: React.FC = () => {
           setNumber: assignment.setNumber,
         })),
         messagingRows: messagingRows.map((row) => ({
-          scheduledDate: row.scheduled_date,
           messageTime: row.message_time,
           pollTime: row.poll_time,
           message: row.message,
@@ -305,15 +351,22 @@ const CampaignSetupPage: React.FC = () => {
       setLaunching(false);
     }
   }, [
-    campaignSetup.assignmentDrafts,
-    campaignSetup.campaignRewards,
     campaignSetup.createdCampaignId,
     campaignSetup.form,
     campaignSetup.isFormValid,
+    campaignSetup.isAllGrades,
+    campaignSetup.isAllSchools,
+    campaignSetup.campaignRewards,
+    campaignSetup.assignmentDrafts,
     communicationValidation.isValid,
     history,
     isAssignmentComplete,
     messagingRows,
+    campaignSetup.saveGroup,
+    campaignSetup.selectedGradeIds,
+    campaignSetup.selectedSavedGroupId,
+    campaignSetup.selectedSchoolIds,
+    campaignSetup.setCreatedCampaignId,
     t,
   ]);
 
@@ -334,7 +387,7 @@ const CampaignSetupPage: React.FC = () => {
 
   return (
     <Box className="campaign-setup-page">
-      <CampaignSetupHeader onBack={() => history.goBack()} />
+      <CampaignSetupHeader onBack={handleHeaderBack} />
 
       {(campaignSetup.message || launchMessage) && (
         <Alert
@@ -380,6 +433,11 @@ const CampaignSetupPage: React.FC = () => {
                 selectedBlocks={campaignSetup.selectedBlocks}
                 selectedSchools={campaignSetup.selectedSchools}
                 selectedGrades={campaignSetup.selectedGrades}
+                hasCustomBlockSelection={campaignSetup.hasCustomBlockSelection}
+                hasCustomSchoolSelection={
+                  campaignSetup.hasCustomSchoolSelection
+                }
+                hasCustomGradeSelection={campaignSetup.hasCustomGradeSelection}
                 schoolsForSelectedBlocks={
                   campaignSetup.schoolsForSelectedBlocks
                 }
@@ -415,6 +473,8 @@ const CampaignSetupPage: React.FC = () => {
               campaignId={campaignSetup.createdCampaignId}
               selectedGrades={campaignSetup.selectedGrades}
               selectedSchoolIds={selectedAssignmentSchoolIds}
+              assignmentOptions={campaignSetup.assignmentOptions}
+              loadingAssignmentOptions={campaignSetup.loadingAssignmentOptions}
               activeGradeId={campaignSetup.activeAssignmentGradeId}
               configs={campaignSetup.assignmentConfigs}
               onActiveGradeChange={campaignSetup.setActiveAssignmentGradeId}
@@ -473,16 +533,7 @@ const CampaignSetupPage: React.FC = () => {
           isAssignmentComplete={isAssignmentComplete}
           isFormValid={canProceedFromCampaignSetup}
           isSubmitting={campaignSetup.submitting || launching}
-          onBackStep={() =>
-            setActiveStepSafe(
-              campaignSetup.activeStep === 1 ||
-                (campaignSetup.activeStep === 2 &&
-                  campaignSetup.form.objective ===
-                    'homepage_learning_pathway_campaign')
-                ? 0
-                : campaignSetup.activeStep - 1,
-            )
-          }
+          onBackStep={handleBackStep}
           onSetupSubmit={campaignSetup.handleSubmit}
           onGoToRewards={() => setActiveStepSafe(2)}
           onRewardsSubmit={campaignSetup.handleRewardsSubmit}

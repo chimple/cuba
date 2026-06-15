@@ -85,6 +85,7 @@ import {
   writeAssignmentCartToStorage,
 } from '../../teachers-module/pages/AssignmentCartStorage';
 import logger from '../../utility/logger';
+import { isRecoverableStorageError } from '../../utility/recoverableStorageError';
 import { ensureLocalStickerBookSvgUri } from '../../utility/stickerBookAssets';
 import { Util } from '../../utility/util';
 import type { SqlStatement } from '../../workers/background.worker.types';
@@ -161,12 +162,54 @@ export class SqliteApi implements ServiceApi {
   private async ensureInitialized(): Promise<void> {
     if (this._db && this._sqlite) return;
     if (!this._initPromise) {
-      this._initPromise = this.init().catch((error) => {
-        this._initPromise = null;
-        throw error;
-      });
+      this._initPromise = this.initializeWithRetry();
     }
     await this._initPromise;
+  }
+
+  private isRecoverableInitError(error: unknown): boolean {
+    return isRecoverableStorageError(error);
+  }
+
+  private resetDbHandles(): void {
+    this._db = undefined;
+  }
+
+  private async initializeWithRetry(
+    attempts = 3,
+    delayMs = 400,
+  ): Promise<void> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        await this.init();
+        return;
+      } catch (error) {
+        lastError = error;
+        this.resetDbHandles();
+
+        if (!this.isRecoverableInitError(error) || attempt === attempts) {
+          this._initPromise = null;
+          throw error;
+        }
+
+        // Resume can briefly race with an in-flight native SQLite connection,
+        // so retry a couple of times before surfacing the failure as real.
+        logger.warn(
+          'SqliteApi init failed during recoverable resume window. Retrying.',
+          {
+            attempt,
+            attempts,
+            error,
+          },
+        );
+        await new Promise((resolve) => window.setTimeout(resolve, delayMs));
+      }
+    }
+
+    this._initPromise = null;
+    throw lastError;
   }
 
   private async init(): Promise<void> {
@@ -290,6 +333,7 @@ export class SqliteApi implements ServiceApi {
       await this._db?.open();
     } catch (err) {
       logger.error('🚀 ~ SqliteApi ~ init ~ err:', err);
+      throw err;
     }
     await this.setUpDatabase();
   }
@@ -1164,7 +1208,7 @@ export class SqliteApi implements ServiceApi {
       this.schedulePostSyncAssetPrefetch();
       const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
-      // logger.info("logs to check synced tables1", JSON.stringify(tables));
+      // logger.info('logs to check synced tables1', JSON.stringify(tables));
       const currentTimestamp = new Date();
       const reducedTimestamp = new Date(currentTimestamp); // clone it
       reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
@@ -2338,11 +2382,35 @@ export class SqliteApi implements ServiceApi {
         updated_at = "${new Date().toISOString()}"
     WHERE id = "${userId}";
   `;
-    const res = await this.executeQuery(query);
-    this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
-      tc_agreed_version: version,
-      id: userId,
-    });
+    try {
+      await this.executeQuery(query);
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+        tc_agreed_version: version,
+        id: userId,
+      });
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : '';
+
+      if (errorMessage.includes('no such column: tc_agreed_version')) {
+        try {
+          await this.executeQuery(`
+            ALTER TABLE "user"
+            ADD COLUMN tc_agreed_version NUMERIC;
+          `);
+
+          await this.executeQuery(query);
+
+          this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+            tc_agreed_version: version,
+            id: userId,
+          });
+        } catch (alterError: unknown) {
+          logger.error('Failed to add column and retry update', alterError);
+        }
+      } else {
+        logger.error('Update failed', e);
+      }
+    }
   }
   async getLanguageWithId(
     id: string,
@@ -9240,7 +9308,6 @@ order by
       /* ==========================================
        * 3️⃣ Abort Check (with assignment_id IS NULL)
        * ========================================== */
-      const courseFilter = courseId ? ' AND course_id = ?' : '';
       const abortQuery = `
         SELECT lesson_id, status
         FROM (
@@ -9252,7 +9319,6 @@ order by
             FROM result
             WHERE student_id = ?
               AND subject_id = ?
-              ${courseFilter}
               AND assignment_id IS NULL
               AND is_deleted = 0
         ) t
@@ -9262,19 +9328,19 @@ order by
       `;
 
       const abortParams: (string | null)[] = [studentId, subjectId];
-      if (courseId) {
-        abortParams.push(courseId);
-      }
       const abortRes = await this.executeQuery(abortQuery, abortParams);
 
       const lastTwo = ((abortRes as DBSQLiteValues | undefined)?.values ??
         []) as ResultStatusRow[];
 
+      const isAssessmentTerminated = lastTwo.some(
+        (r) => r.status === 'assessment_terminated',
+      );
       const isAborted =
         lastTwo.length === 2 &&
         lastTwo.every((r) => r.status === 'system_exit');
 
-      if (isAborted) {
+      if (isAssessmentTerminated || isAborted) {
         return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
       }
 
@@ -9369,15 +9435,11 @@ order by
         FROM result
         WHERE student_id = ?
           AND subject_id = ?
-          ${courseFilter}
           AND assignment_id IS NULL
           AND is_deleted = 0
           AND lesson_id IN (${resultPlaceholders});
       `;
       const resultParams: (string | null)[] = [studentId, subjectId];
-      if (courseId) {
-        resultParams.push(courseId);
-      }
       resultParams.push(...lessonIds);
       const resultRes = await this.executeQuery(resultQuery, resultParams);
       const completedLessons = ((resultRes as DBSQLiteValues | undefined)
@@ -9410,6 +9472,7 @@ order by
     try {
       const course = await this.getCourse(courseId);
       if (!course?.subject_id) return false;
+      const subjectId = course.subject_id;
 
       const assessmentLessonsQuery = `
         SELECT DISTINCT lesson_id
@@ -9420,7 +9483,7 @@ order by
       `;
       const assessmentLessonsRes = await this.executeQuery(
         assessmentLessonsQuery,
-        [course.subject_id],
+        [subjectId],
       );
       const assessmentLessonIds = Array.from(
         new Set(
@@ -9435,7 +9498,7 @@ order by
         ),
       );
 
-      const params: string[] = [studentId, courseId];
+      const params: string[] = [studentId, subjectId];
       const assessmentLessonFilter = assessmentLessonIds.length
         ? `OR lesson_id IN (${assessmentLessonIds.map(() => '?').join(',')})`
         : '';
@@ -9445,7 +9508,7 @@ order by
         SELECT lesson_id, status
         FROM result
         WHERE student_id = ?
-          AND course_id = ?
+          AND subject_id = ?
           AND COALESCE(is_deleted, 0) = 0
           AND (status = 'assessment_terminated' ${assessmentLessonFilter});
       `;
@@ -9485,6 +9548,69 @@ order by
       );
     } catch (error) {
       logger.error('❌ Error checking PAL assessment history:', error);
+      return false;
+    }
+  }
+
+  async hasPendingAbortedAssessment(
+    studentId: string,
+    courseId: string,
+  ): Promise<boolean> {
+    await this.ensureInitialized();
+
+    try {
+      const course = await this.getCourse(courseId);
+      const subjectId = course?.subject_id;
+      if (!subjectId) {
+        return false;
+      }
+
+      const assessmentLessonsRes = await this.executeQuery(
+        `
+          SELECT lesson_id
+          FROM subject_lesson
+          WHERE subject_id = ?
+            AND COALESCE(is_deleted, 0) = 0
+        `,
+        [subjectId],
+      );
+
+      const assessmentLessonRows =
+        (assessmentLessonsRes as DBSQLiteValues | undefined)?.values ?? [];
+      const assessmentLessonIds: string[] = [];
+      const placeholderParts: string[] = [];
+      for (const row of assessmentLessonRows) {
+        const lessonId = row.lesson_id;
+        if (!lessonId) continue;
+        assessmentLessonIds.push(lessonId);
+        placeholderParts.push('?');
+      }
+
+      if (!assessmentLessonIds.length) {
+        return false;
+      }
+
+      const placeholders = placeholderParts.join(', ');
+      const pendingAbortRes = await this.executeQuery(
+        `
+          SELECT status
+          FROM result
+          WHERE student_id = ?
+            AND assignment_id IS NULL
+            AND COALESCE(is_deleted, 0) = 0
+            AND lesson_id IN (${placeholders})
+          ORDER BY created_at DESC
+          LIMIT 1
+        `,
+        [studentId, ...assessmentLessonIds],
+      );
+
+      const latestStatus = ((pendingAbortRes as DBSQLiteValues | undefined)
+        ?.values ?? [])[0]?.status;
+
+      return latestStatus === 'system_exit';
+    } catch (error) {
+      logger.error('❌ Error checking pending aborted assessment:', error);
       return false;
     }
   }

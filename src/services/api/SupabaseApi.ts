@@ -9380,6 +9380,7 @@ export class SupabaseApi implements ServiceApi {
       manager_id: payload.managerId,
       start_date: payload.startDate,
       end_date: payload.endDate,
+      rewards: payload.rewards ? JSON.stringify(payload.rewards) : null,
     };
 
     const { data, error } = await this.supabase
@@ -9423,28 +9424,6 @@ export class SupabaseApi implements ServiceApi {
     }
 
     const updatedAt = new Date().toISOString();
-    const { error: campaignError } = await this.supabase
-      .from('campaign')
-      .update({
-        program_id: payload.campaign.programId,
-        name: payload.campaign.campaignName,
-        objective: payload.campaign.objective,
-        target_type: payload.campaign.targetType ?? null,
-        target_value: payload.campaign.targetValue ?? null,
-        manager_id: payload.campaign.managerId,
-        start_date: payload.campaign.startDate,
-        end_date: payload.campaign.endDate,
-        rewards: JSON.stringify(payload.rewards),
-        updated_at: updatedAt,
-      })
-      .eq('id', payload.campaignId)
-      .eq('is_deleted', false);
-
-    if (campaignError) {
-      logger.error('Error updating launched campaign rewards:', campaignError);
-      throw campaignError;
-    }
-
     const schoolIds = Array.from(
       new Set(
         payload.assignments.flatMap((assignment) => assignment.schoolIds),
@@ -9577,7 +9556,6 @@ export class SupabaseApi implements ServiceApi {
 
     const messagingRows = payload.messagingRows.map((row) => ({
       campaign_id: payload.campaignId,
-      scheduled_date: row.scheduledDate,
       message_time: row.messageTime,
       poll_time: row.pollTime,
       message: row.message,
@@ -11007,13 +10985,6 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const rows = (data ?? []) as Array<Record<string, unknown>>;
-      const parentsReachedBySchool = await this.getParentsReachedBySchoolIds(
-        rows
-          .map((row) => row.school_id)
-          .filter(
-            (schoolId): schoolId is string => typeof schoolId === 'string',
-          ),
-      );
 
       const mappedRows = rows.map((row: Record<string, unknown>) => ({
         ...row,
@@ -11041,8 +11012,8 @@ export class SupabaseApi implements ServiceApi {
         parents_on_whatsapp: row.parents_on_whatsapp ?? null,
         parents_in_whatsapp_group: row.parents_in_group ?? null,
         parents_reached:
-          typeof row.school_id === 'string'
-            ? (parentsReachedBySchool[row.school_id] ?? 0)
+          typeof row.community_parents_reached === 'number'
+            ? row.community_parents_reached
             : 0,
         program_managers: row.program_managers ?? [],
         field_coordinators: row.field_coordinators ?? [],
@@ -14335,7 +14306,7 @@ export class SupabaseApi implements ServiceApi {
       /* ==========================================
        * 2️⃣ Abort Check (assignment_id IS NULL)
        * ========================================== */
-      let abortQuery = this.supabase
+      const abortQuery = this.supabase
         .from('result')
         .select('lesson_id, status, created_at')
         .eq('student_id', studentId)
@@ -14344,10 +14315,6 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false)
         .order('created_at', { ascending: false })
         .limit(50);
-
-      if (courseId) {
-        abortQuery = abortQuery.eq('course_id', courseId);
-      }
 
       const { data, error } = await abortQuery;
 
@@ -14380,11 +14347,14 @@ export class SupabaseApi implements ServiceApi {
       /* -----------------------------------------
         Abort check
       ------------------------------------------ */
+      const isAssessmentTerminated = (data as ResultStatusRow[]).some(
+        (r) => r.status === 'assessment_terminated',
+      );
       const isAborted =
         lastTwoUniqueLessons.length === 2 &&
         lastTwoUniqueLessons.every((r) => r.status === 'system_exit');
 
-      if (isAborted) {
+      if (isAssessmentTerminated || isAborted) {
         return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
       }
 
@@ -14476,17 +14446,13 @@ export class SupabaseApi implements ServiceApi {
        * ========================================== */
       const lessonIds = candidateLessons.map((lesson) => lesson.lesson_id);
 
-      let resultsQuery = this.supabase
+      const resultsQuery = this.supabase
         .from('result')
         .select('lesson_id')
         .in('lesson_id', lessonIds)
         .eq('student_id', studentId)
         .is('assignment_id', null)
         .eq('is_deleted', false);
-
-      if (courseId) {
-        resultsQuery = resultsQuery.eq('course_id', courseId);
-      }
 
       const { data: results } = await resultsQuery;
 
@@ -14540,12 +14506,13 @@ export class SupabaseApi implements ServiceApi {
 
       const course = await this.getCourse(courseId);
       if (!course?.subject_id) return false;
+      const subjectId = course.subject_id;
 
       const { data: assessmentLessons, error: assessmentLessonsError } =
         await this.supabase
           .from('subject_lesson')
           .select('lesson_id')
-          .eq('subject_id', course.subject_id)
+          .eq('subject_id', subjectId)
           .or('is_deleted.eq.false,is_deleted.is.null');
 
       if (assessmentLessonsError) {
@@ -14568,7 +14535,7 @@ export class SupabaseApi implements ServiceApi {
         .from('result')
         .select('lesson_id, status')
         .eq('student_id', studentId)
-        .eq('course_id', courseId)
+        .eq('subject_id', subjectId)
         .or('is_deleted.eq.false,is_deleted.is.null');
 
       if (assessmentLessonIds.length) {
@@ -14624,6 +14591,67 @@ export class SupabaseApi implements ServiceApi {
       );
     } catch (error) {
       logger.error('❌ Error checking PAL assessment history:', error);
+      return false;
+    }
+  }
+  async hasPendingAbortedAssessment(
+    studentId: string,
+    courseId: string,
+  ): Promise<boolean> {
+    try {
+      if (!this.supabase) return false;
+
+      const course = await this.getCourse(courseId);
+      if (!course?.subject_id) {
+        return false;
+      }
+
+      const { data: assessmentLessons, error: assessmentLessonsError } =
+        await this.supabase
+          .from('subject_lesson')
+          .select('lesson_id')
+          .eq('subject_id', course.subject_id)
+          .or('is_deleted.eq.false,is_deleted.is.null');
+
+      if (assessmentLessonsError) {
+        logger.error(
+          '❌ Error fetching assessment lessons for pending abort check:',
+          assessmentLessonsError,
+        );
+        return false;
+      }
+
+      const seenLessonIds = new Set<string>();
+      const assessmentLessonIds: string[] = [];
+      for (const lesson of assessmentLessons ?? []) {
+        const lessonId = lesson.lesson_id;
+        if (!lessonId || seenLessonIds.has(lessonId)) continue;
+        seenLessonIds.add(lessonId);
+        assessmentLessonIds.push(lessonId);
+      }
+
+      if (!assessmentLessonIds.length) {
+        return false;
+      }
+
+      const { data: pendingAbortResults, error } = await this.supabase
+        .from('result')
+        .select('status')
+        .eq('student_id', studentId)
+        .is('assignment_id', null)
+        .in('lesson_id', assessmentLessonIds)
+        .or('is_deleted.eq.false,is_deleted.is.null')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        logger.error('❌ Error checking pending aborted assessment:', error);
+        return false;
+      }
+
+      return pendingAbortResults?.[0]?.status === 'system_exit';
+    } catch (error) {
+      logger.error('❌ Error checking pending aborted assessment:', error);
       return false;
     }
   }

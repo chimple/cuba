@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SelectChangeEvent } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import {
+  CampaignAssignmentOptions,
   CampaignObjective,
   CampaignOption,
   CampaignSavedAudienceGroup,
@@ -45,6 +46,17 @@ const getAssignmentDraftKey = (draft: CampaignAssignmentDraft) =>
     draft.schoolIds.join(','),
   ].join('|');
 
+const buildAssignmentOptionsCacheKey = (
+  programId: string,
+  schoolIds: string[],
+  gradeIds: string[],
+) =>
+  [
+    programId,
+    [...schoolIds].sort().join(','),
+    [...gradeIds].sort().join(','),
+  ].join('|');
+
 export const useCampaignSetupForm = () => {
   const { t } = useTranslation();
   const api = ServiceConfig.getI().apiHandler;
@@ -62,7 +74,7 @@ export const useCampaignSetupForm = () => {
   const [savingGroup, setSavingGroup] = useState(false);
   const [submitting] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-  const [createdCampaignId] = useState('');
+  const [createdCampaignId, setCreatedCampaignId] = useState('');
   const [campaignRewards, setCampaignRewards] =
     useState<CampaignRewardsDraftPayload | null>(null);
   const [assignmentDrafts, setAssignmentDrafts] = useState<
@@ -71,6 +83,12 @@ export const useCampaignSetupForm = () => {
   const [assignmentConfigs, setAssignmentConfigs] = useState<
     Record<string, GradeAssignmentConfig>
   >({});
+  const [assignmentOptionsCache, setAssignmentOptionsCache] = useState<
+    Record<string, CampaignAssignmentOptions>
+  >({});
+  const assignmentOptionsCacheRef = useRef(assignmentOptionsCache);
+  const [loadingAssignmentOptions, setLoadingAssignmentOptions] =
+    useState(false);
   const [activeAssignmentGradeId, setActiveAssignmentGradeId] = useState('');
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [rewardSubmitAttempted, setRewardSubmitAttempted] = useState(false);
@@ -85,6 +103,36 @@ export const useCampaignSetupForm = () => {
     setMessage,
     setSaveGroup,
   });
+
+  const selectedAssignmentSchoolIds = useMemo(
+    () =>
+      audience.isAllSchools
+        ? audience.audienceOptions.schools.map((school) => school.id)
+        : audience.selectedSchools.map((school) => school.id),
+    [
+      audience.audienceOptions.schools,
+      audience.isAllSchools,
+      audience.selectedSchools,
+    ],
+  );
+
+  const assignmentOptionsCacheKey = useMemo(
+    () =>
+      buildAssignmentOptionsCacheKey(
+        form.programId,
+        selectedAssignmentSchoolIds,
+        audience.selectedGrades.map((grade) => grade.id),
+      ),
+    [audience.selectedGrades, form.programId, selectedAssignmentSchoolIds],
+  );
+
+  const assignmentOptions = assignmentOptionsCache[
+    assignmentOptionsCacheKey
+  ] ?? { grades: [] };
+
+  useEffect(() => {
+    assignmentOptionsCacheRef.current = assignmentOptionsCache;
+  }, [assignmentOptionsCache]);
 
   useEffect(() => {
     const selectedGrades = audience.selectedGrades;
@@ -156,6 +204,53 @@ export const useCampaignSetupForm = () => {
 
     void fetchSetupOptions();
   }, [api, t]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadAssignmentOptions = async () => {
+      if (
+        !form.programId ||
+        selectedAssignmentSchoolIds.length === 0 ||
+        audience.selectedGrades.length === 0 ||
+        assignmentOptionsCacheRef.current[assignmentOptionsCacheKey]
+      ) {
+        return;
+      }
+
+      setLoadingAssignmentOptions(true);
+      try {
+        const options = await api.getCampaignAssignmentOptions({
+          programId: form.programId,
+          schoolIds: selectedAssignmentSchoolIds,
+          gradeIds: audience.selectedGrades.map((grade) => grade.id),
+        });
+
+        if (!isMounted) return;
+
+        setAssignmentOptionsCache((current) => ({
+          ...current,
+          [assignmentOptionsCacheKey]: options,
+        }));
+      } catch (error) {
+        logger.error('Failed to load campaign assignment options:', error);
+      } finally {
+        if (isMounted) setLoadingAssignmentOptions(false);
+      }
+    };
+
+    void loadAssignmentOptions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    api,
+    assignmentOptionsCacheKey,
+    audience.selectedGrades,
+    form.programId,
+    selectedAssignmentSchoolIds,
+  ]);
 
   const updateForm =
     (field: keyof CampaignSetupFormState) =>
@@ -332,6 +427,7 @@ export const useCampaignSetupForm = () => {
   return {
     activeStep,
     activeAssignmentGradeId,
+    assignmentOptions,
     areRewardsValid,
     assignmentConfigs,
     assignmentDrafts,
@@ -347,16 +443,19 @@ export const useCampaignSetupForm = () => {
     handleSubmit,
     isFormValid,
     loadingInitial,
+    loadingAssignmentOptions,
     managers,
     message,
     programs,
     saveGroup,
     savedGroups,
+    selectedAssignmentSchoolIds,
     savingGroup,
     setForm,
     setActiveStep,
     setActiveAssignmentGradeId,
     setAssignmentConfigs,
+    setCreatedCampaignId,
     setSaveGroup,
     submitting,
     updateForm,

@@ -30,6 +30,7 @@
   padding-top: 18px;
   padding-left: 8%;
   padding-right: 8%;
+  padding-bottom: 96px;
 }
 
 .streak-coin-card {
@@ -284,14 +285,24 @@
 
 .streak-share-card {
   width: 886px;
-  height: 712px;
+  height: 768px;
   border-radius: 96px;
-  background: #d8d1e5;
+  background: #eee5fa;
   box-sizing: border-box;
-  padding: 108px 96px 96px 160px;
+  padding: 246px 96px 86px 110px;
   font-family: 'Nunito', sans-serif;
-  color: #35363d;
+  color: #5d5f64;
   overflow: hidden;
+  position: relative;
+}
+
+.streak-share-logo {
+  position: absolute;
+  top: 68px;
+  right: 96px;
+  width: 260px;
+  height: 196px;
+  object-fit: contain;
 }
 
 .streak-share-title {
@@ -301,10 +312,10 @@
 }
 
 .streak-share-stats {
-  margin-top: 62px;
+  margin-top: 56px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  column-gap: 80px;
+  column-gap: 94px;
 }
 
 .streak-share-stat {
@@ -315,6 +326,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  color: #35363d;
   font-size: 104px;
   line-height: 1;
   font-weight: 900;
@@ -335,33 +347,17 @@
 }
 
 .streak-share-bottom {
-  margin-top: 90px;
-  display: flex;
-  align-items: center;
-  gap: 38px;
-}
-
-/* .streak-share-avatar {
-  width: 136px;
-  height: 136px;
-  border-radius: 50%;
-  background: #ff6b00;
+  margin-top: 86px;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-} */
-
-.streak-share-avatar img {
-  width: 140px;
-  height: 140px;
-  object-fit: contain;
 }
 
 .streak-share-cta {
-  font-size: 68px;
+  font-size: 52px;
   line-height: 1;
   font-weight: 800;
+  text-align: center;
 }
 
 @media (max-width: 420px) {

@@ -154,18 +154,32 @@
   color-scheme: light;
 }
 
-.help-icon-container {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
 .header-share-icon-button {
   background: none;
   border: none;
   cursor: pointer;
   padding: 0;
   margin-top: 4px;
+}
+
+.header-info-icon-button {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.header-info-icon {
+  width: 30px;
+  height: 30px;
+  display: block;
 }
 
 .streak-container {

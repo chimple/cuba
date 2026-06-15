@@ -48,6 +48,7 @@ const FormCard: React.FC<EntityModalProps> = ({
   onSubmit,
   message,
   initialValues,
+  disabled = false,
 }) => {
   const [values, setValues] = useState<Record<string, string>>({});
   const [openSelect, setOpenSelect] = useState<string | null>(null);
@@ -91,6 +92,9 @@ const FormCard: React.FC<EntityModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (disabled) {
+      return;
+    }
     onSubmit(values);
   };
 
@@ -451,7 +455,7 @@ const FormCard: React.FC<EntityModalProps> = ({
             <button
               type="submit"
               className="formcard-btn formcard-btn-primary"
-              disabled={isEditMode && !isDirty}
+              disabled={disabled || (isEditMode && !isDirty)}
             >
               {submitLabel}
             </button>

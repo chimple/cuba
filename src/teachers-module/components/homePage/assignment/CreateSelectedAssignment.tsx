@@ -84,6 +84,7 @@ interface CreateSelectedAssignmentProps {
   selectedAssignments: SelectedAssignments;
   manualAssignments: AssignmentLookup;
   recommendedAssignments: AssignmentLookup;
+  onInteractionLockChange?: (isLocked: boolean) => void;
 }
 
 type RewardAnimationState = {
@@ -100,6 +101,7 @@ const CreateSelectedAssignment = ({
   selectedAssignments,
   manualAssignments,
   recommendedAssignments,
+  onInteractionLockChange,
 }: CreateSelectedAssignmentProps) => {
   const FIRST_ASSIGNMENT_REWARD = 50;
   const SUBSEQUENT_ASSIGNMENT_REWARD = 25;
@@ -107,6 +109,7 @@ const CreateSelectedAssignment = ({
   const REWARD_FLIGHT_DURATION_MS = 1600;
   const FLAME_PULSE_DURATION_MS = 1000;
   const STREAK_LANDING_LEFT_OFFSET_PX = 30;
+  const REWARD_INDICATOR_EDGE_PADDING_PX = 2;
 
   const history = useHistory();
   const [startDate, setStartDate] = useState('');
@@ -139,11 +142,17 @@ const CreateSelectedAssignment = ({
     isFlying: false,
   });
   const assignButtonRef = useRef<HTMLButtonElement | null>(null);
+  const rewardIndicatorRef = useRef<HTMLDivElement | null>(null);
+  const isInteractionLocked = isAssigning || rewardAnimation.visible;
 
   useEffect(() => {
     init();
     assignmentsInfo();
   }, []);
+
+  useEffect(() => {
+    onInteractionLockChange?.(isInteractionLocked);
+  }, [isInteractionLocked, onInteractionLockChange]);
 
   const init = async () => {
     let todayDate = new Date().toISOString().slice(0, 10);
@@ -317,6 +326,10 @@ const CreateSelectedAssignment = ({
   };
 
   const toggleCollapse = (category: string) => {
+    if (isInteractionLocked) {
+      return;
+    }
+
     setGroupWiseStudents((bandStudents: GroupWiseStudents) => ({
       ...bandStudents,
       [category]: {
@@ -327,6 +340,10 @@ const CreateSelectedAssignment = ({
   };
 
   const toggleSelectAll = () => {
+    if (isInteractionLocked) {
+      return;
+    }
+
     const newAllSelected = !allSelected;
     setAllSelected(newAllSelected);
     // Update all bands' students' selection state
@@ -345,6 +362,10 @@ const CreateSelectedAssignment = ({
   };
 
   const toggleStudentSelection = (category: string, index: number) => {
+    if (isInteractionLocked) {
+      return;
+    }
+
     setGroupWiseStudents((bandStudents: GroupWiseStudents) => {
       const updatedBands = { ...bandStudents };
       const students = [...updatedBands[category].students];
@@ -554,11 +575,24 @@ const CreateSelectedAssignment = ({
         return;
       }
 
-      const deltaX =
-        streakRect.left +
-        streakRect.width / 2 -
-        STREAK_LANDING_LEFT_OFFSET_PX -
-        startX;
+      const rewardRect = rewardIndicatorRef.current?.getBoundingClientRect();
+      const viewportWidth = Math.min(
+        window.innerWidth,
+        window.visualViewport?.width ?? window.innerWidth,
+        document.documentElement.clientWidth || window.innerWidth,
+      );
+      const targetX = Math.max(
+        REWARD_INDICATOR_EDGE_PADDING_PX,
+        Math.min(
+          streakRect.left +
+            streakRect.width / 2 -
+            STREAK_LANDING_LEFT_OFFSET_PX,
+          viewportWidth -
+            (rewardRect?.width ?? 66) -
+            REWARD_INDICATOR_EDGE_PADDING_PX,
+        ),
+      );
+      const deltaX = targetX - startX;
       const deltaY = streakRect.top + streakRect.height / 2 - startY;
 
       setRewardAnimation((prev) => ({
@@ -838,7 +872,17 @@ const CreateSelectedAssignment = ({
   };
 
   return !isLoading ? (
-    <div className="assignments-container">
+    <div
+      className={`assignments-container ${
+        isInteractionLocked ? 'assignment-interaction-lock-active' : ''
+      }`.trim()}
+    >
+      {isInteractionLocked && (
+        <div
+          className="assignment-interaction-lock-overlay"
+          aria-hidden="true"
+        />
+      )}
       <div id="assignment-success-dialog">
         <CommonDialogBox
           header={t('Assignments are assigned Successfully.') ?? ''}
@@ -887,6 +931,9 @@ const CreateSelectedAssignment = ({
                 ) : (
                   <span
                     onClick={() => {
+                      if (isInteractionLocked) {
+                        return;
+                      }
                       setShowStartDatePicker(true);
                     }}
                   >
@@ -920,6 +967,9 @@ const CreateSelectedAssignment = ({
                 ) : (
                   <span
                     onClick={() => {
+                      if (isInteractionLocked) {
+                        return;
+                      }
                       setShowEndDatePicker(true);
                     }}
                   >
@@ -987,6 +1037,10 @@ const CreateSelectedAssignment = ({
                     // checked={true}
                     onClick={(e) => e.stopPropagation()}
                     onChange={() => {
+                      if (isInteractionLocked) {
+                        return;
+                      }
+
                       const allSelected = groupWiseStudents[
                         category
                       ].students.every(
@@ -1042,6 +1096,7 @@ const CreateSelectedAssignment = ({
 
         {rewardAnimation.visible && (
           <div
+            ref={rewardIndicatorRef}
             className={`assign-reward-indicator ${rewardAnimation.isFlying ? 'is-flying' : ''}`}
             style={{
               left: `${rewardAnimation.x}px`,
@@ -1049,14 +1104,21 @@ const CreateSelectedAssignment = ({
               transform: `translate(${rewardAnimation.deltaX}px, ${rewardAnimation.deltaY}px)`,
             }}
           >
-            {rewardAnimation.label}
+            <span>{rewardAnimation.label}</span>
+            <img
+              src="assets/icons/coinIcon.png"
+              className="assign-reward-coin-icon"
+              alt=""
+            />
           </div>
         )}
 
         <button
           ref={assignButtonRef}
           className="assign-selected-button"
-          disabled={(selectedAssignments.length ?? 0) > 0 || isAssigning}
+          disabled={
+            (selectedAssignments.length ?? 0) > 0 || isInteractionLocked
+          }
           onClick={createAssignmentsForStudents}
         >
           {t('Assign')}

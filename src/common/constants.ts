@@ -1004,6 +1004,7 @@ export enum EVENTS {
   TEACHER_APP_ENTRY_CLICKED = 'teacher_app_entry_clicked',
   TEACHER_APP_AUTH_SUCCESS = 'teacher_app_auth_success',
   AUTO_USER_ACTION_ATTEMPTED = 'auto_user_action_attempted',
+  ASSESSMENT_TERMINATED = 'assessment_terminated',
 }
 
 export const KIDS_APP_LOCATION_SELECTIONS = {

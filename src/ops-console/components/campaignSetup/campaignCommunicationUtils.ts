@@ -104,7 +104,9 @@ export const buildTimeOptions = (): string[] => {
   return options;
 };
 
-export const formatTimeForDatabase = (value: string): string | null => {
+const parseTimeOption = (
+  value: string,
+): { hour: number; minute: number } | null => {
   const trimmed = value.trim();
   if (!trimmed) return null;
 
@@ -129,9 +131,38 @@ export const formatTimeForDatabase = (value: string): string | null => {
   const normalizedHour =
     meridiem === 'AM' ? hourValue % 12 : (hourValue % 12) + 12;
 
-  return `${String(normalizedHour).padStart(2, '0')}:${String(
-    minuteValue,
+  return { hour: normalizedHour, minute: minuteValue };
+};
+
+export const formatTimeForDatabase = (value: string): string | null => {
+  const parsed = parseTimeOption(value);
+  if (!parsed) return null;
+
+  return `${String(parsed.hour).padStart(2, '0')}:${String(
+    parsed.minute,
   ).padStart(2, '0')}:00`;
+};
+
+export const formatDateTimeForDatabase = (
+  dateValue: string,
+  timeValue: string,
+): string | null => {
+  const parsedTime = parseTimeOption(timeValue);
+  if (!dateValue || !parsedTime) return null;
+
+  const dateParts = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!dateParts) return null;
+
+  const year = Number(dateParts[1]);
+  const monthIndex = Number(dateParts[2]) - 1;
+  const day = Number(dateParts[3]);
+  const date = new Date(
+    Date.UTC(year, monthIndex, day, parsedTime.hour, parsedTime.minute, 0, 0),
+  );
+
+  if (Number.isNaN(date.getTime())) return null;
+
+  return date.toISOString();
 };
 
 export const isCommunicationRowConfigured = (
@@ -244,8 +275,11 @@ export const buildCampaignMessagingPayload = ({
       return {
         campaign_id: campaignId,
         scheduled_date: date,
-        message_time: formatTimeForDatabase(communicationState.messageTime),
-        poll_time: formatTimeForDatabase(communicationState.pollTime),
+        message_time: formatDateTimeForDatabase(
+          date,
+          communicationState.messageTime,
+        ),
+        poll_time: formatDateTimeForDatabase(date, communicationState.pollTime),
         message: row?.message.trim() || null,
         media_link: row?.mediaLink.trim() || null,
         poll:

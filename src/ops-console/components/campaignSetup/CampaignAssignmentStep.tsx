@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { InfoOutlined } from '@mui/icons-material';
-import { ServiceConfig } from '../../../services/ServiceConfig';
 import {
   CampaignAssignmentOptions,
   CampaignOption,
@@ -19,7 +18,8 @@ import {
   buildAssignmentDrafts,
   buildRows,
   createDefaultConfig,
-  getCampaignDaysWithoutSundays,
+  getRequiredAssignmentCount,
+  isAlternateWeekEnabled,
 } from './campaignAssignmentUtils';
 import { CampaignSetupFormState } from './types';
 import './CampaignAssignmentStep.css';
@@ -29,6 +29,8 @@ type CampaignAssignmentStepProps = {
   campaignId: string;
   selectedGrades: CampaignOption[];
   selectedSchoolIds: string[];
+  assignmentOptions: CampaignAssignmentOptions;
+  loadingAssignmentOptions: boolean;
   activeGradeId: string;
   configs: Record<string, GradeAssignmentConfig>;
   onActiveGradeChange: (gradeId: string) => void;
@@ -44,6 +46,8 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   campaignId,
   selectedGrades,
   selectedSchoolIds,
+  assignmentOptions,
+  loadingAssignmentOptions,
   activeGradeId,
   configs,
   onActiveGradeChange,
@@ -51,37 +55,10 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   onCompletionChange,
   onAssignmentsChange,
 }) => {
-  const api = ServiceConfig.getI().apiHandler;
-  const [assignmentOptions, setAssignmentOptions] =
-    useState<CampaignAssignmentOptions>({ grades: [] });
-  const [loading, setLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     gradeId: string;
     rowId: string;
   } | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadOptions = async () => {
-      if (!form.programId || selectedGrades.length === 0) return;
-      setLoading(true);
-      try {
-        const options = await api.getCampaignAssignmentOptions({
-          programId: form.programId,
-          schoolIds: selectedSchoolIds,
-          gradeIds: selectedGrades.map((grade) => grade.id),
-        });
-        if (isMounted) setAssignmentOptions(options);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    loadOptions();
-    return () => {
-      isMounted = false;
-    };
-  }, [api, form.programId, selectedGrades, selectedSchoolIds]);
 
   const gradeOptionsById = useMemo(
     () =>
@@ -110,15 +87,25 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
     () =>
       selectedGrades.every((grade) => {
         const config = configs[grade.id];
+        const requiredAssignments = getRequiredAssignmentCount(
+          form.startDate,
+          form.endDate,
+          config?.frequency ?? createDefaultConfig().frequency,
+        );
+        const rowCount = rowsByGrade.get(grade.id)?.length ?? 0;
+
         return (
           !!config &&
           config.subjectIds.length > 0 &&
           config.chapterIds.length > 0 &&
-          (rowsByGrade.get(grade.id)?.length ?? 0) > 0 &&
+          (config.frequency !== 'alternate_week' ||
+            isAlternateWeekEnabled(form.startDate, form.endDate)) &&
+          rowCount > 0 &&
+          rowCount >= requiredAssignments &&
           (rowsByGrade.get(grade.id) ?? []).every((row) => row.date)
         );
       }),
-    [configs, rowsByGrade, selectedGrades],
+    [configs, form.endDate, form.startDate, rowsByGrade, selectedGrades],
   );
 
   useEffect(() => {
@@ -174,21 +161,23 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   const activeGrade =
     selectedGrades.find((grade) => grade.id === activeGradeId) ??
     selectedGrades[0];
-  const activeSubjects = gradeOptionsById.get(activeGradeId) ?? [];
-  const activeConfig = configs[activeGradeId] ?? createDefaultConfig();
+  const activeGradeKey = activeGrade?.id || '';
+  const activeSubjects = gradeOptionsById.get(activeGradeKey) ?? [];
+  const activeConfig = configs[activeGradeKey] ?? createDefaultConfig();
   const selectedSubjects = activeSubjects.filter((subject) =>
     activeConfig.subjectIds.includes(subject.id),
   );
-  const activeRows = rowsByGrade.get(activeGradeId) ?? [];
-  const campaignDays = getCampaignDaysWithoutSundays(
+  const activeRows = rowsByGrade.get(activeGradeKey) ?? [];
+  const requiredAssignments = getRequiredAssignmentCount(
     form.startDate,
     form.endDate,
+    activeConfig.frequency,
   );
   const insufficientLessons =
-    activeRows.length > 0 && activeRows.length < campaignDays;
+    activeRows.length > 0 && activeRows.length < requiredAssignments;
 
   const toggleChapter = (chapterId: string, lessonIds: string[]) => {
-    updateConfig(activeGradeId, (config) => {
+    updateConfig(activeGradeKey, (config) => {
       const isSelected = config.chapterIds.includes(chapterId);
       const chapterRowIds = lessonIds.map(
         (lessonId) => `${chapterId}:${lessonId}`,
@@ -224,7 +213,7 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   };
 
   const toggleExpanded = (chapterId: string) => {
-    updateConfig(activeGradeId, (config) => ({
+    updateConfig(activeGradeKey, (config) => ({
       ...config,
       expandedChapterIds: config.expandedChapterIds.includes(chapterId)
         ? config.expandedChapterIds.filter((id) => id !== chapterId)
@@ -232,7 +221,7 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
     }));
   };
 
-  if (loading) {
+  if (loadingAssignmentOptions) {
     return (
       <Box className="campaign-assignment-step-loading">
         <CircularProgress />
@@ -276,7 +265,7 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
         selectedSubjects={selectedSubjects}
         activeConfig={activeConfig}
         onSubjectsChange={(subjects) =>
-          updateConfig(activeGradeId, (config) => ({
+          updateConfig(activeGradeKey, (config) => ({
             ...config,
             subjectIds: subjects.map((subject) => subject.id),
             chapterIds: config.chapterIds.filter((chapterId) =>
@@ -300,11 +289,11 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
 
       <AssignmentSummary
         rows={activeRows}
-        campaignDays={campaignDays}
+        requiredAssignments={requiredAssignments}
         insufficientLessons={insufficientLessons}
         onRemoveLesson={(rowId) =>
           setDeleteTarget({
-            gradeId: activeGradeId,
+            gradeId: activeGradeKey,
             rowId,
           })
         }

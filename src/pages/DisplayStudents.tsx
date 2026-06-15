@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { ScreenOrientation } from '../utility/screenOrientation';
 import { IonPage } from '@ionic/react';
 import { t } from 'i18next';
 import { FC, useEffect, useState } from 'react';
@@ -153,6 +153,7 @@ const DisplayStudents: FC<{}> = () => {
         </div>
         <button
           id="display-students-parent-button"
+          type="button"
           onClick={() => {
             setShowDialogBox(true);
           }}

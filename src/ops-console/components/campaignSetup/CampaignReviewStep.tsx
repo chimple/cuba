@@ -6,7 +6,10 @@ import {
   CampaignOption,
   CampaignSchoolOption,
 } from '../../../services/api/ServiceApi';
-import type { CampaignRewardsDraftPayload } from '../../hooks/campaignSetupFormHelpers';
+import {
+  type CampaignRewardsDraftPayload,
+  usesLessonRewardCriteria,
+} from '../../hooks/campaignSetupFormHelpers';
 import {
   RANK_LABELS,
   REWARD_TYPE_OPTIONS,
@@ -53,22 +56,13 @@ const emptyValue = '--';
 
 const formatDate = (value: string) => {
   if (!value) return emptyValue;
-  const date = new Date(value);
+  const date = new Date(`${value}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat('en-GB', {
     day: 'numeric',
-    month: 'short',
+    month: 'long',
     year: 'numeric',
-  }).format(date);
-};
-
-const formatShortDate = (value: string) => {
-  if (!value) return emptyValue;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat('en-GB', {
-    day: 'numeric',
-    month: 'short',
+    timeZone: 'UTC',
   }).format(date);
 };
 
@@ -86,6 +80,9 @@ const getObjectiveLabel = (form: CampaignSetupFormState) => {
   if (!form.targetType) return 'Homework Campaign';
   return `Homework Campaign (${TARGET_TYPE_LABEL_BY_VALUE.get(form.targetType) || form.targetType})`;
 };
+
+const formatRewardThreshold = (value: number, usesLessonCriteria: boolean) =>
+  `${value}${usesLessonCriteria ? '' : '%'}`;
 
 export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
   reviewData,
@@ -143,6 +140,10 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
     );
     return `${grade.name} (${summary?.studentCount ?? 0})`;
   });
+  const visibleMessagingRows = reviewData.messagingRows.slice(0, 3);
+  const hiddenMessagingDayCount =
+    reviewData.messagingRows.length - visibleMessagingRows.length;
+  const usesLessonCriteria = usesLessonRewardCriteria(reviewData.form);
 
   return (
     <Box className="campaign-review-step">
@@ -217,7 +218,9 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
                 {assignment.grade.name}
               </Typography>
               <Typography className="campaign-review-assignment-detail">
-                {t('Subjects')}: {formatList(assignment.subjects)} -{' '}
+                {t('Subjects')}: {formatList(assignment.subjects)}
+              </Typography>
+              <Typography className="campaign-review-assignment-detail">
                 {t('Lessons')}: {assignment.lessonCount} - {t('Frequency')}:{' '}
                 {t(frequencyLabels[assignment.frequency])}
               </Typography>
@@ -231,25 +234,56 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
           label="Reward Type"
           value={getRewardTypeLabel(reviewData.form.rewardType)}
         />
-        {(reviewData.campaignRewards?.rules ?? []).map((rule) => (
-          <ReviewRow
-            key={rule.rank}
-            label={RANK_LABELS[rule.rank]}
-            value={`${t('Threshold')}: ${rule.min} - ${rule.reward}`}
-          />
-        ))}
+        <Box className="campaign-review-reward-list">
+          {(reviewData.campaignRewards?.rules ?? []).map((rule) => (
+            <Box key={rule.rank} className="campaign-review-reward-item">
+              <Typography className="campaign-review-reward-rank-label">
+                {t(RANK_LABELS[rule.rank])}
+              </Typography>
+              <Box
+                className={`campaign-review-rank-badge campaign-review-rank-${rule.rank}`}
+              >
+                {t(RANK_LABELS[rule.rank])}
+              </Box>
+              <Box className="campaign-review-reward-copy">
+                <Typography className="campaign-review-reward-name">
+                  <span className="campaign-review-reward-threshold-text">
+                    {t('Threshold')}:{' '}
+                    {formatRewardThreshold(rule.min, usesLessonCriteria)}
+                  </span>{' '}
+                  <span className="campaign-review-reward-separator">·</span>{' '}
+                  {rule.reward || emptyValue}
+                </Typography>
+                <Typography className="campaign-review-reward-threshold">
+                  {t('Threshold')}:{' '}
+                  {formatRewardThreshold(rule.min, usesLessonCriteria)}
+                </Typography>
+              </Box>
+            </Box>
+          ))}
+        </Box>
       </ReviewCard>
 
-      <ReviewCard title="Communication" editStep={3} onEditStep={onEditStep}>
+      <ReviewCard
+        title="Communication"
+        editStep={3}
+        onEditStep={onEditStep}
+        className="campaign-review-communication-card"
+      >
         <Box className="campaign-review-reach">
           <Typography className="campaign-review-subheading">
             {t('Campaign Reach')}
           </Typography>
-          <Typography className="campaign-review-reach-value">
-            <strong>{reviewData.campaignReach.groupCount}</strong> {t('Groups')}{' '}
-            / <strong>{reviewData.campaignReach.memberCount}</strong>{' '}
-            {t('Members')}
-          </Typography>
+          <Box className="campaign-review-reach-values">
+            <Typography className="campaign-review-reach-value">
+              <strong>{reviewData.campaignReach.groupCount}</strong>{' '}
+              {t('Groups')}
+            </Typography>
+            <Typography className="campaign-review-reach-value">
+              <strong>{reviewData.campaignReach.memberCount}</strong>{' '}
+              {t('Members')}
+            </Typography>
+          </Box>
         </Box>
         <ReviewRow label="Total Days" value={totalDays || 0} />
         <ReviewRow
@@ -266,32 +300,48 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
         />
 
         <Typography className="campaign-review-subheading campaign-review-message-heading">
-          {t('Sample Configured Days')}
+          {t('Configured Messages')}
         </Typography>
         <Box className="campaign-review-message-list">
-          {reviewData.messagingRows.map((row, index) => (
+          {visibleMessagingRows.map((row, index) => (
             <Box key={row.scheduled_date} className="campaign-review-message">
-              <Typography className="campaign-review-message-date">
-                {t('Day {{day}}', { day: index + 1 })} -{' '}
-                {formatShortDate(row.scheduled_date)}
-              </Typography>
+              <Box className="campaign-review-message-header">
+                <Typography className="campaign-review-message-day">
+                  {t('Day {{day}}', { day: index + 1 })}
+                </Typography>
+                <Typography className="campaign-review-message-date">
+                  {formatDate(row.scheduled_date)}
+                </Typography>
+              </Box>
               {row.message && (
                 <Typography className="campaign-review-message-line">
-                  {row.message}
+                  <strong>{t('Message')}:</strong> <span>{row.message}</span>
                 </Typography>
               )}
               {row.media_link && (
                 <Typography className="campaign-review-message-line">
-                  {row.media_link}
+                  <strong>{t('Media Link')}:</strong>{' '}
+                  <span>{row.media_link}</span>
                 </Typography>
               )}
               {row.poll && (
                 <Typography className="campaign-review-message-line">
-                  {row.poll.question} ({row.poll.options.length} {t('options')})
+                  <strong>{t('Poll')}:</strong>{' '}
+                  <span>
+                    {row.poll.question} ({row.poll.options.length}{' '}
+                    {t('options')})
+                  </span>
                 </Typography>
               )}
             </Box>
           ))}
+          {hiddenMessagingDayCount > 0 && (
+            <Typography className="campaign-review-message-overflow">
+              {t('...and {{count}} more days configured.', {
+                count: hiddenMessagingDayCount,
+              })}
+            </Typography>
+          )}
           {reviewData.messagingRows.length === 0 && (
             <Typography className="campaign-review-empty">
               {t('No configured communication days.')}

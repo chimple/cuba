@@ -11,6 +11,7 @@ import {
 } from '../../common/constants';
 import { useHistory } from 'react-router';
 import { ServiceConfig } from '../../services/ServiceConfig';
+
 interface CourseDetails {
   course: TableTypes<'course'>;
   grade?: TableTypes<'grade'> | null;

@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactElement } from 'react';
 import { MemoryRouter, Route, Switch, useLocation } from 'react-router-dom';
@@ -296,5 +296,47 @@ describe('TermsGate', () => {
     expect(
       screen.queryByRole('button', { name: /agree as parent/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it('retries auth checks for recoverable resume-time storage errors instead of redirecting to login', async () => {
+    jest.useFakeTimers();
+    try {
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 1 },
+      });
+
+      mockAuthHandler.isUserLoggedIn
+        .mockRejectedValueOnce(new Error('database is locked'))
+        .mockResolvedValue(true);
+      mockAuthHandler.getCurrentUser.mockResolvedValue({
+        id: 'parent-1',
+        is_tc_accepted: true,
+        tc_agreed_version: 1,
+      });
+
+      renderWithStore(
+        <MemoryRouter initialEntries={['/protected']}>
+          <TermsGate />
+          <Switch>
+            <ProtectedRoute path="/protected">
+              <ProtectedContent />
+            </ProtectedRoute>
+            <Route path={PAGES.LOGIN}>
+              <div>Login Screen</div>
+            </Route>
+          </Switch>
+        </MemoryRouter>,
+        1,
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+
+      expect(await screen.findByText(/protected content/i)).toBeInTheDocument();
+      expect(screen.queryByText(/login screen/i)).not.toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

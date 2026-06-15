@@ -1,5 +1,11 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { getTodayDateValue } from '../hooks/campaignSetupFormHelpers';
 import CampaignSetupPage from './CampaignSetupPage';
 import { buildCampaignRewardsPayload } from '../hooks/campaignSetupFormHelpers';
@@ -44,6 +50,9 @@ const mockApiHandler = {
   getParentWhatsappClassesBySchoolId: jest.fn(),
   getParentWhatsappParentPhonesByClassId: jest.fn(),
 };
+const mockAuthHandler = {
+  getCurrentUser: jest.fn(),
+};
 
 let mockAssignmentComplete = false;
 
@@ -51,6 +60,7 @@ jest.mock('../../services/ServiceConfig', () => ({
   ServiceConfig: {
     getI: () => ({
       apiHandler: mockApiHandler,
+      authHandler: mockAuthHandler,
     }),
   },
 }));
@@ -127,6 +137,7 @@ const setupApiMocks = () => {
     targetAudienceId: 'audience-1',
   });
   mockApiHandler.launchCampaign.mockResolvedValue(undefined);
+  mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
   mockApiHandler.getCampaignAssignmentOptions.mockResolvedValue({
     grades: [
       {
@@ -568,6 +579,37 @@ describe('CampaignSetupPage', () => {
     expect(screen.getByText('Communication')).toBeInTheDocument();
     expect(screen.getByText('Launch Campaign')).toBeInTheDocument();
     expect(screen.queryByText('Save as Draft')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByText('Launch Campaign'));
+
+    await waitFor(() =>
+      expect(mockApiHandler.createCampaignSetup).toHaveBeenCalledWith(
+        expect.objectContaining({
+          campaignName: 'ABCD',
+          managerId: 'manager-1',
+          programId: 'program-1',
+          rewards: expect.objectContaining({
+            type: 'digital_rewards',
+          }),
+          startDate: expect.any(String),
+          endDate: expect.any(String),
+        }),
+      ),
+    );
+    await waitFor(() =>
+      expect(mockApiHandler.launchCampaign).toHaveBeenCalledWith(
+        expect.objectContaining({
+          campaignId: 'campaign-1',
+          currentUserId: 'user-1',
+          messagingRows: [
+            expect.objectContaining({
+              messageTime: expect.any(String),
+              pollTime: expect.any(String),
+            }),
+          ],
+        }),
+      ),
+    );
   });
 
   it('uses lesson criteria for homepage learning pathway rewards', async () => {
@@ -653,6 +695,177 @@ describe('CampaignSetupPage', () => {
     ).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Enter group name')).toBeInTheDocument();
     expect(await screen.findByText('Select Program')).toBeInTheDocument();
+  });
+
+  it('hides audience helper copy after manual selection', async () => {
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await openSelectAndChoose('Select Program', 'Early Learning');
+
+    expect(
+      await screen.findByText(
+        'all blocks under selected program are included.',
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('all schools under selected blocks are included.'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('all grades under selected schools are included.'),
+    ).toBeInTheDocument();
+
+    const blockField = screen
+      .getByText('Block')
+      .closest('.campaign-setup-field') as HTMLElement | null;
+    const blockSelect = blockField
+      ? within(blockField).getByRole('combobox')
+      : null;
+    fireEvent.mouseDown(blockSelect as HTMLElement);
+    fireEvent.click(await screen.findByRole('option', { name: 'Block A' }));
+    fireEvent.keyDown(screen.getByRole('listbox'), {
+      key: 'Escape',
+      code: 'Escape',
+    });
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText('all blocks under selected program are included.'),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it('does not show audience helper copy before a program is selected', async () => {
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+
+    expect(
+      screen.queryByText('all blocks under selected program are included.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('all schools under selected blocks are included.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('all grades under selected schools are included.'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not show all-included helper copy for partially selected saved groups', async () => {
+    mockApiHandler.getCampaignSetupOptions.mockResolvedValueOnce({
+      programs: [{ id: 'program-1', name: 'Early Learning' }],
+      managers: [{ id: 'manager-1', name: 'Raj Patel' }],
+      savedGroups: [
+        {
+          id: 'audience-1',
+          name: 'Partial Group',
+          programId: 'program-1',
+          isAllSchools: false,
+          isAllGrades: false,
+          schoolIds: ['school-1'],
+          gradeIds: ['grade-1'],
+        },
+      ],
+    });
+
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await openSelectAndChoose('Select a saved group', 'Partial Group');
+
+    await waitFor(() =>
+      expect(mockApiHandler.getCampaignAudienceOptions).toHaveBeenCalledWith(
+        'program-1',
+      ),
+    );
+
+    expect(
+      screen.queryByText('all blocks under selected program are included.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('all schools under selected blocks are included.'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('all grades under selected schools are included.'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('preserves manual audience edits after clearing a saved group selection', async () => {
+    mockApiHandler.getCampaignSetupOptions.mockResolvedValueOnce({
+      programs: [{ id: 'program-1', name: 'Early Learning' }],
+      managers: [{ id: 'manager-1', name: 'Raj Patel' }],
+      savedGroups: [
+        {
+          id: 'audience-1',
+          name: 'Partial Group',
+          programId: 'program-1',
+          isAllSchools: false,
+          isAllGrades: false,
+          schoolIds: ['school-1'],
+          gradeIds: ['grade-1'],
+        },
+      ],
+    });
+    mockApiHandler.getCampaignAudienceOptions.mockResolvedValueOnce({
+      blocks: ['Block A'],
+      schools: [
+        { id: 'school-1', name: 'School One', block: 'Block A' },
+        { id: 'school-2', name: 'School Two', block: 'Block A' },
+      ],
+      grades: [
+        { id: 'grade-1', name: 'Grade 1' },
+        { id: 'grade-2', name: 'Grade 2' },
+      ],
+    });
+
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await openSelectAndChoose('Select a saved group', 'Partial Group');
+
+    await waitFor(() =>
+      expect(mockApiHandler.getCampaignAudienceOptions).toHaveBeenCalledTimes(
+        1,
+      ),
+    );
+
+    const schoolField = screen
+      .getByText('School')
+      .closest('.campaign-setup-field') as HTMLElement | null;
+    const schoolSelect = schoolField
+      ? within(schoolField).getByRole('combobox')
+      : null;
+
+    fireEvent.mouseDown(schoolSelect as HTMLElement);
+    fireEvent.click(await screen.findByRole('option', { name: 'School Two' }));
+    fireEvent.keyDown(screen.getByRole('listbox'), {
+      key: 'Escape',
+      code: 'Escape',
+    });
+
+    await waitFor(() =>
+      expect(mockApiHandler.getCampaignAudienceOptions).toHaveBeenCalledTimes(
+        1,
+      ),
+    );
+
+    expect(
+      screen.queryByText('School One, School Two'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('uses the header back button to move to the previous step before leaving the page', async () => {
+    mockAssignmentComplete = true;
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await completeSetupStep();
+    expect(screen.getByText('Assignment Configuration')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Back'));
+
+    expect(await screen.findByText('Objective & Goal')).toBeInTheDocument();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('builds rewards payload in the next-step format', () => {

@@ -7,6 +7,7 @@ type ReviewCardProps = {
   editStep: number;
   onEditStep: (step: number) => void;
   children: React.ReactNode;
+  className?: string;
 };
 
 export const ReviewCard: React.FC<ReviewCardProps> = ({
@@ -14,11 +15,14 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
   editStep,
   onEditStep,
   children,
+  className,
 }) => {
   const { t } = useTranslation();
 
   return (
-    <Box className="campaign-review-card">
+    <Box
+      className={['campaign-review-card', className].filter(Boolean).join(' ')}
+    >
       <Box className="campaign-review-card-header">
         <Typography className="campaign-review-card-title">
           {t(title)}

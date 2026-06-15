@@ -63,7 +63,7 @@
 .school-mode-student-stage {
   display: flex;
   flex-direction: column;
-  gap: 2.2vh;
+  gap: 1.2vh;
   width: 100%;
 }
 
@@ -75,11 +75,11 @@
 }
 
 .school-mode-header {
-  margin: 0.4vh 0 0.2vh;
+  margin: 0;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 0.8vh 0.8vw;
+  padding: 0.4vh 0.8vw;
 }
 
 .school-mode-welcome {
@@ -156,7 +156,7 @@
   grid-template-columns: auto max-content auto;
   align-items: stretch;
   overflow: hidden;
-  height: 56px;
+  height: 50px;
 }
 
 .school-mode-class-strip-static {
@@ -268,18 +268,18 @@
 }
 
 .school-mode-class-profile-selection-text {
-  margin: -0.8vh 0 0;
+  margin: -0.2vh 0 0;
   color: #1d315d;
-  font-size: clamp(18px, 1.7vw, 26px);
+  font-size: clamp(11px, 1vw, 14px);
   font-weight: 500;
-  line-height: normal;
+  line-height: 1.2;
   text-align: center;
 }
 
 .class-container {
-  --display-students-card-width: clamp(150px, min(32vw, 52vh), 250px);
+  --display-students-card-width: clamp(138px, min(20vw, 28vh), 188px);
   --display-students-card-height: calc(
-    var(--display-students-card-width) * 0.9512
+    var(--display-students-card-width) * 0.92
   );
   position: relative;
 
@@ -301,18 +301,23 @@
 .school-mode-students-grid {
   width: 100%;
   max-width: none;
-  margin-top: 0.6vh;
+  margin-top: 0.2vh;
   display: grid;
-  grid-template-columns: repeat(3, var(--display-students-card-width));
-  gap: clamp(16px, 4vw, 48px);
+  grid-template-columns: repeat(4, var(--display-students-card-width));
+  gap: clamp(10px, 1.4vw, 16px);
   justify-content: center;
-  padding: 0 clamp(16px, 6vw, 80px) 1.2vh;
+  align-content: start;
+  /* max-height: calc(
+    (var(--display-students-card-height) * 2) + clamp(10px, 1.4vw, 16px)
+  ); */
+  padding: 0 clamp(12px, 3vw, 32px) 0.8vh;
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .school-mode-students-grid-single {
   grid-template-columns: repeat(
-    3,
+    4,
     var(--display-students-card-width)
   ) !important;
   justify-content: center;
@@ -320,7 +325,7 @@
 
 .school-mode-students-grid-pair {
   grid-template-columns: repeat(
-    3,
+    4,
     var(--display-students-card-width)
   ) !important;
   justify-content: center;
@@ -336,8 +341,8 @@
   min-height: var(--display-students-card-height);
   height: auto;
   margin: 0;
-  padding: clamp(18px, 3.2vh, 65px) clamp(14px, 2.25vw, 62px)
-    clamp(16px, 2.5vh, 62px);
+  padding: clamp(12px, 1.4vh, 16px) clamp(10px, 1.2vw, 14px)
+    clamp(10px, 1.2vh, 14px);
 
   box-sizing: border-box;
   justify-self: center;
@@ -350,9 +355,9 @@
 }
 
 .school-mode-student-avatar {
-  width: clamp(58px, 8vw, 105px);
-  height: clamp(58px, 8vw, 105px);
-  margin-bottom: clamp(4px, 1vh, 8px);
+  width: clamp(42px, 4.4vw, 58px);
+  height: clamp(42px, 4.4vw, 58px);
+  margin-bottom: 6px;
 }
 
 .school-mode-student-name {
@@ -360,14 +365,14 @@
 
   width: 100%;
   max-width: calc(var(--display-students-card-width) - 32px);
-  margin: 0 0 clamp(10px, 2vh, 16px);
+  margin: 0 0 clamp(8px, 0.9vh, 10px);
   overflow: hidden;
 
   color: #182a4f;
 
   font-family: 'Baloo 2', 'BalooRegular', cursive;
   font-weight: 400;
-  font-size: clamp(13px, 1.75vw, 19px);
+  font-size: clamp(10px, 1vw, 13px);
   line-height: normal;
   text-align: center;
   text-overflow: ellipsis;
@@ -385,7 +390,7 @@
   inset: 0;
   background: #8a2901;
   border-radius: 10px;
-  transform: translateY(5px);
+  transform: translateY(4px);
   z-index: 0;
 }
 
@@ -396,24 +401,24 @@
   justify-content: center;
   align-items: center;
 
-  width: clamp(92px, 11.5vw, 125px);
-  height: clamp(48px, 5.3vw, 60px);
-  padding: 10px clamp(22px, 3.4vw, 30px);
+  width: clamp(66px, 6.8vw, 88px);
+  height: 34px;
+  padding: 8px clamp(14px, 1.8vw, 20px);
   overflow: hidden;
 
   box-sizing: border-box;
 
   border: 0;
-  border-radius: 10px;
+  border-radius: 9px;
 
   background: #f34d08;
   color: #fff;
 
   font-family: 'Baloo 2', 'BalooRegular', cursive;
   font-weight: 600;
-  font-size: clamp(14px, 1.875vw, 18px);
+  font-size: clamp(10px, 1vw, 13px);
   font-style: normal;
-  line-height: 24px;
+  line-height: 1;
 
   cursor: pointer;
   transition: transform 120ms ease;
