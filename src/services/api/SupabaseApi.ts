@@ -3491,20 +3491,19 @@ export class SupabaseApi implements ServiceApi {
     if (!data) return resultMap;
 
     if (data && data.length > 0) {
-      (data as StudentProgressResultRow[]).forEach((result) => {
+      const progressRows = data as StudentProgressResultRow[];
+      progressRows.forEach((result) => {
         const lesson = result.lesson;
-        const chapterLessons = lesson?.chapter_lesson ?? [];
-        const matchingChapterLesson =
-          chapterLessons.find((chapterLesson) => {
-            return chapterLesson.chapter?.id === result.chapter_id;
-          }) ??
-          chapterLessons.find((chapterLesson) => {
-            return chapterLesson.chapter?.course_id === result.course_id;
-          });
+        const chapter = lesson?.chapter_lesson?.find((chapterLesson) =>
+          chapterLesson.chapter?.id
+            ? chapterLesson.chapter.id === result.chapter_id ||
+              chapterLesson.chapter.course_id === result.course_id
+            : false,
+        )?.chapter;
         const resultWithNames = {
           ...result,
           lesson_name: lesson?.name ?? '',
-          chapter_name: matchingChapterLesson?.chapter?.name ?? '',
+          chapter_name: chapter?.name ?? '',
         } as TableTypes<'result'> & {
           lesson_name?: string;
           chapter_name?: string;
