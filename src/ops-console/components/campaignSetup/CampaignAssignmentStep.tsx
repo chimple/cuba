@@ -175,6 +175,7 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   );
   const insufficientLessons =
     activeRows.length > 0 && activeRows.length < requiredAssignments;
+  const shouldShowSharedGradeHelper = selectedGrades.length > 1;
 
   const toggleChapter = (chapterId: string, lessonIds: string[]) => {
     updateConfig(activeGradeKey, (config) => {
@@ -230,16 +231,29 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   }
 
   return (
-    <Box className="campaign-assignment-step">
-      <Box className="campaign-assignment-step-helper">
-        <InfoOutlined />
-        <Typography>
-          Assignments should be configured for all selected grades. The selected
-          assignment frequency will apply across all grades.
-        </Typography>
-      </Box>
+    <Box
+      className={`campaign-assignment-step ${
+        shouldShowSharedGradeHelper ? '' : 'campaign-assignment-step-no-helper'
+      }`}
+    >
+      {shouldShowSharedGradeHelper && (
+        <Box className="campaign-assignment-step-helper">
+          <InfoOutlined />
+          <Typography>
+            Assignments should be configured for all selected grades. The
+            selected assignment frequency will apply across all grades.
+          </Typography>
+        </Box>
+      )}
 
-      <Box className="campaign-assignment-step-tabs" role="tablist">
+      <Box
+        className={`campaign-assignment-step-tabs ${
+          shouldShowSharedGradeHelper
+            ? ''
+            : 'campaign-assignment-step-tabs-no-helper'
+        }`}
+        role="tablist"
+      >
         {selectedGrades.map((grade) => (
           <button
             type="button"

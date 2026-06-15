@@ -12,6 +12,10 @@
   overflow-x: hidden;
 }
 
+.campaign-assignment-step-no-helper {
+  padding-top: 1.25rem;
+}
+
 .campaign-assignment-step-helper {
   min-height: 2.125rem;
   border: 0.0625rem solid #8bb7ff;
@@ -50,6 +54,10 @@
   overflow-x: auto;
 }
 
+.campaign-assignment-step-tabs-no-helper {
+  margin-top: 0;
+}
+
 .campaign-assignment-step-tab {
   min-width: 6.875rem;
   height: 3.3125rem;
@@ -74,6 +82,10 @@
   .campaign-assignment-step {
     padding: 1.5rem 0;
   }
+
+  .campaign-assignment-step-no-helper {
+    padding-top: 1rem;
+  }
 }
 
 @media (max-width: 48rem) {
@@ -84,8 +96,16 @@
     box-sizing: border-box;
   }
 
+  .campaign-assignment-step-no-helper {
+    padding-top: 0.5rem;
+  }
+
   .campaign-assignment-step-tabs {
     margin: 0.75rem 0 1rem;
+  }
+
+  .campaign-assignment-step-tabs-no-helper {
+    margin-top: 0;
   }
 
   .campaign-assignment-step-tab {
