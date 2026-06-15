@@ -69,6 +69,28 @@ const formatDate = (value: string) => {
 const formatList = (values: string[]) =>
   values.length > 0 ? values.join(', ') : emptyValue;
 
+const formatGradesWithStudentCounts = (
+  grades: CampaignOption[],
+  audienceSummary: CampaignAudienceSummary,
+) =>
+  grades.length > 0
+    ? grades.map((grade, index) => {
+        const summary = audienceSummary.grades.find(
+          (item) => item.gradeId === grade.id,
+        );
+        return (
+          <React.Fragment key={grade.id}>
+            {index > 0 && ', '}
+            {grade.name} (
+            <strong className="campaign-review-count">
+              {summary?.studentCount ?? 0}
+            </strong>
+            )
+          </React.Fragment>
+        );
+      })
+    : emptyValue;
+
 const getRewardTypeLabel = (value: CampaignSetupFormState['rewardType']) =>
   REWARD_TYPE_OPTIONS.find((option) => option.value === value)?.label ||
   emptyValue;
@@ -134,12 +156,6 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
       ),
     );
 
-  const gradesWithStudents = reviewData.selectedGrades.map((grade) => {
-    const summary = reviewData.audienceSummary.grades.find(
-      (item) => item.gradeId === grade.id,
-    );
-    return `${grade.name} (${summary?.studentCount ?? 0})`;
-  });
   const visibleMessagingRows = reviewData.messagingRows.slice(0, 3);
   const hiddenMessagingDayCount =
     reviewData.messagingRows.length - visibleMessagingRows.length;
@@ -204,7 +220,13 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
               : emptyValue
           }
         />
-        <ReviewRow label="Grades" value={formatList(gradesWithStudents)} />
+        <ReviewRow
+          label="Grades"
+          value={formatGradesWithStudentCounts(
+            reviewData.selectedGrades,
+            reviewData.audienceSummary,
+          )}
+        />
       </ReviewCard>
 
       <ReviewCard title="Assignments" editStep={1} onEditStep={onEditStep}>
@@ -221,7 +243,7 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
                 {t('Subjects')}: {formatList(assignment.subjects)}
               </Typography>
               <Typography className="campaign-review-assignment-detail">
-                {t('Lessons')}: {assignment.lessonCount} - {t('Frequency')}:{' '}
+                {t('Lessons')}: {assignment.lessonCount} · {t('Frequency')}:{' '}
                 {t(frequencyLabels[assignment.frequency])}
               </Typography>
             </Box>
@@ -309,24 +331,35 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
                 <Typography className="campaign-review-message-day">
                   {t('Day {{day}}', { day: index + 1 })}
                 </Typography>
+                <span className="campaign-review-reward-separator">·</span>{' '}
                 <Typography className="campaign-review-message-date">
                   {formatDate(row.scheduled_date)}
                 </Typography>
               </Box>
               {row.message && (
                 <Typography className="campaign-review-message-line">
-                  <strong>{t('Message')}:</strong> <span>{row.message}</span>
+                  <strong>
+                    {t('Message')}
+                    <span className="campaign-review-label-colon">:</span>
+                  </strong>{' '}
+                  <span>{row.message}</span>
                 </Typography>
               )}
               {row.media_link && (
                 <Typography className="campaign-review-message-line">
-                  <strong>{t('Media Link')}:</strong>{' '}
+                  <strong>
+                    {t('Media Link')}
+                    <span className="campaign-review-label-colon">:</span>
+                  </strong>{' '}
                   <span>{row.media_link}</span>
                 </Typography>
               )}
               {row.poll && (
                 <Typography className="campaign-review-message-line">
-                  <strong>{t('Poll')}:</strong>{' '}
+                  <strong>
+                    {t('Poll')}
+                    <span className="campaign-review-label-colon">:</span>
+                  </strong>{' '}
                   <span>
                     {row.poll.question} ({row.poll.options.length}{' '}
                     {t('options')})
