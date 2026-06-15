@@ -56,6 +56,7 @@ import { StudentLessonResult } from '../../common/courseConstants';
 import { AvatarObj } from '../../components/animation/Avatar';
 import Course from '../../models/course';
 import Lesson from '../../models/lesson';
+import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
 import {
   AssignmentCartData,
   AssignmentDateRangeData,
@@ -14883,7 +14884,7 @@ export class SupabaseApi implements ServiceApi {
     if (!latestBatchId) return [];
 
     /* ==========================================
-     * STEP 2️⃣  Abort check (2 system_exit)
+     * STEP 2️⃣  Abort check
      * ========================================== */
     const { data, error: abortError } = await this.supabase
       .from(TABLES.Result)
@@ -14929,11 +14930,7 @@ export class SupabaseApi implements ServiceApi {
     /* -----------------------------------------
       Abort check
     ------------------------------------------ */
-    const isAborted =
-      lastTwoUniqueAssignments.length === 2 &&
-      lastTwoUniqueAssignments.every((r) => r.status === 'system_exit');
-
-    if (isAborted) {
+    if (isAssessmentBatchClosed(lastTwoUniqueAssignments)) {
       return [];
     }
 

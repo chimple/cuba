@@ -116,6 +116,7 @@ import {
   ServiceApi,
 } from './ServiceApi';
 import { SupabaseApi } from './SupabaseApi';
+import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
@@ -9755,8 +9756,7 @@ order by
     if (!latestBatchId) return [];
 
     /* ==========================================
-     * Check if batch is ABORTED
-     * (2 consecutive system_exit results)
+     * Check if batch is closed by termination or abort
      * ========================================== */
     const abortCheckQuery = `
     SELECT assignment_id, status
@@ -9785,10 +9785,7 @@ order by
     const abortRes = await this._db?.query(abortCheckQuery);
     const lastTwoResults = abortRes?.values ?? [];
 
-    if (
-      lastTwoResults.length === 2 &&
-      lastTwoResults.every((r: any) => r.status === 'system_exit')
-    ) {
+    if (isAssessmentBatchClosed(lastTwoResults)) {
       // 🚫 Assessment group is aborted
       return [];
     }

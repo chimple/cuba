@@ -117,6 +117,7 @@ const LidoPlayer: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const resultsRef = useRef<Record<number, 0 | 1>>({});
   const previousAssessmentSkippedRef = useRef<boolean | null>(null);
+  const resultFinalizationStartedRef = useRef(false);
 
   const contextRef = useRef({
     classId: undefined as string | undefined,
@@ -303,6 +304,25 @@ const LidoPlayer: FC = () => {
 
   const getTotalStoredLessonTime = (scoresList: StoredLidoScore[]): number =>
     scoresList.reduce((total, record) => total + (record.timeSpent ?? 0), 0);
+
+  const shouldTerminateAssessmentPathway = async (
+    studentId: string,
+    courseKey: string,
+  ): Promise<boolean> => {
+    const failKey = `${ASSESSMENT_FAIL_KEY}_${studentId}`;
+    const streakKey = `${FAIL_STREAK_KEY}_${studentId}`;
+    const failMap: Record<string, boolean> = JSON.parse(
+      localStorage.getItem(failKey) || '{}',
+    );
+    const streakMap: Record<string, number> = JSON.parse(
+      localStorage.getItem(streakKey) || '{}',
+    );
+    const previousLessonSkipped =
+      !!failMap[courseKey] ||
+      (await resolvePreviousAssessmentSkipped(studentId));
+
+    return previousLessonSkipped && (streakMap[courseKey] || 0) >= 2;
+  };
 
   const onNextContainer = (e: any) => logger.info('Next', e);
   const gameCompleted = () => {
@@ -541,6 +561,8 @@ const LidoPlayer: FC = () => {
     isAborted: boolean = false,
     isFullPathwayTerminated: boolean = false,
   ) => {
+    if (resultFinalizationStartedRef.current) return;
+    resultFinalizationStartedRef.current = true;
     setIsLoading(true);
     await processStoredResults(isAborted, isFullPathwayTerminated);
     setShowDialogBox(true);
@@ -594,10 +616,12 @@ const LidoPlayer: FC = () => {
     failStreak += 1;
     streakMap[courseKey] = failStreak;
     localStorage.setItem(streakKey, JSON.stringify(streakMap));
-    const previousLessonSkipped =
-      !!failMap[courseKey] ||
-      (await resolvePreviousAssessmentSkipped(studentId));
-    if (previousLessonSkipped && failStreak >= 2) {
+    const previousLessonSkipped = await shouldTerminateAssessmentPathway(
+      studentId,
+      courseKey,
+    );
+    if (resultFinalizationStartedRef.current) return;
+    if (previousLessonSkipped) {
       const courseKey = getAssessmentProgressKey();
       Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
       Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, studentId, courseKey);
@@ -633,6 +657,8 @@ const LidoPlayer: FC = () => {
   };
 
   const onLessonEnd = async (e: any) => {
+    if (resultFinalizationStartedRef.current) return;
+    resultFinalizationStartedRef.current = true;
     setIsLoading(true);
     const lessonData = (e?.detail ?? {}) as LidoEventDetail;
     const {
@@ -651,13 +677,27 @@ const LidoPlayer: FC = () => {
       const { correctMoves, wrongMoves } = getNormalizedMoveCounts(lessonData);
       if (isAssessmentLesson) {
         const courseKey = getAssessmentProgressKey();
+        const isFullPathwayTerminated = await shouldTerminateAssessmentPathway(
+          studentId,
+          courseKey,
+        );
         Util.removeCourseScopedKey(FAIL_STREAK_KEY, studentId, courseKey);
         Util.removeCourseScopedKey(ASSESSMENT_FAIL_KEY, studentId, courseKey);
-        await exitLidoGame();
+        if (isFullPathwayTerminated) {
+          Util.logEvent(EVENTS.ASSESSMENT_TERMINATED, {
+            user_id: parentUserId,
+            student_id: studentId,
+            lesson_id: lesson.id,
+            course_id: courseDocId,
+            is_assessment: isAssessmentLesson,
+            played_from: playedFrom,
+          });
+        }
+        resultFinalizationStartedRef.current = false;
+        await exitLidoGame(isFullPathwayTerminated, isFullPathwayTerminated);
         return;
       }
       const api = ServiceConfig.getI().apiHandler;
-      const lesson: Lesson = JSON.parse(state.lesson);
       const assignment = state.assignment;
       const currentCourseId = courseDetail?.id ?? courseDocId ?? '';
       const courseHasFramework = await hasCourseFrameworkId(currentCourseId);
