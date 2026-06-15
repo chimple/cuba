@@ -175,6 +175,10 @@ interface WindowEventMap {
   shouldShowModal: CustomEvent<boolean>;
 }
 type GrowthBookJsonConfig = Record<string, unknown>;
+type GrowthBookFeatureDebugResult<T> = {
+  value: T | null;
+  source: string;
+};
 
 const TIME_LIMIT = 1500; // 25 * 60
 const LAST_MODAL_SHOWN_KEY = 'lastTimeExceededShown';
@@ -287,12 +291,38 @@ const App: React.FC = () => {
   }, [palLearningRatesConfig]);
 
   useEffect(() => {
-    const bundleZipUrlsResult =
-      growthbook.evalFeature<string[]>(BUNDLE_ZIP_URLS);
-    const lidoBundleZipUrlsResult =
-      growthbook.evalFeature<string[]>(LIDO_BUNDLE_ZIP_URLS);
+    if (!growthbook) return;
+    const getFeatureDebugResult = <T,>(
+      featureKey: string,
+      resolvedValue: T,
+      fallbackValue: T,
+    ): GrowthBookFeatureDebugResult<T> => {
+      if (typeof growthbook?.evalFeature === 'function') {
+        const result = growthbook.evalFeature<T>(featureKey);
+        return {
+          value: result?.value ?? null,
+          source: result?.source ?? 'unknown',
+        };
+      }
 
-    logger.info('[GrowthBook] bundle ZIP URLs evaluated', {
+      return {
+        value: resolvedValue,
+        source: resolvedValue === fallbackValue ? 'fallback-or-mock' : 'mocked',
+      };
+    };
+
+    const bundleZipUrlsResult = getFeatureDebugResult(
+      BUNDLE_ZIP_URLS,
+      bundleZipUrls,
+      bundleZipUrlsFallbackRef.current,
+    );
+    const lidoBundleZipUrlsResult = getFeatureDebugResult(
+      LIDO_BUNDLE_ZIP_URLS,
+      lidoBundleZipUrls,
+      lidoBundleZipUrlsFallbackRef.current,
+    );
+
+    logger.warn('[GrowthBook] bundle ZIP URLs evaluated', {
       featureKey: BUNDLE_ZIP_URLS,
       growthBookSource: bundleZipUrlsResult.source,
       growthBookValue: bundleZipUrlsResult.value,
@@ -301,7 +331,7 @@ const App: React.FC = () => {
       usingGrowthBookValue: bundleZipUrlsResult.value !== null,
     });
 
-    logger.info('[GrowthBook] Lido bundle ZIP URLs evaluated', {
+    logger.warn('[GrowthBook] Lido bundle ZIP URLs evaluated', {
       featureKey: LIDO_BUNDLE_ZIP_URLS,
       growthBookSource: lidoBundleZipUrlsResult.source,
       growthBookValue: lidoBundleZipUrlsResult.value,

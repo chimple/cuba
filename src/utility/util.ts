@@ -149,6 +149,15 @@ const getBundleZipUrlsFallback = (
     ? getLidoBundleZipUrlsForEnv()
     : getBundleZipUrlsForEnv();
 
+const mergeBundleZipUrls = (...zipUrlLists: (string[] | null | undefined)[]) =>
+  Array.from(
+    new Set(
+      zipUrlLists.flatMap((zipUrls) =>
+        Array.isArray(zipUrls) ? zipUrls.filter(Boolean) : [],
+      ),
+    ),
+  );
+
 const getLessonBundlePlugin = (): LessonBundlePlugin | null => {
   if (lessonBundlePluginInstance) {
     return lessonBundlePluginInstance;
@@ -561,14 +570,34 @@ export class Util {
               const cachedBundleZipUrls = getCachedGrowthBookFeatureValue<
                 string[] | null
               >(bundleZipUrlsKey, null);
+              const fallbackGeneralBundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? getBundleZipUrlsForEnv()
+                  : [];
+              const cachedGeneralBundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? getCachedGrowthBookFeatureValue<string[] | null>(
+                      REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+                      null,
+                    )
+                  : null;
               const bundleZipUrls =
-                cachedBundleZipUrls ?? fallbackBundleZipUrls;
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? mergeBundleZipUrls(
+                      cachedBundleZipUrls,
+                      fallbackBundleZipUrls,
+                      cachedGeneralBundleZipUrls,
+                      fallbackGeneralBundleZipUrls,
+                    )
+                  : (cachedBundleZipUrls ?? fallbackBundleZipUrls);
 
               logger.warn('[LessonDownloader] Resolved bundle ZIP URLs', {
                 lessonId,
                 bundleZipUrlsKey,
                 cachedBundleZipUrls,
                 fallbackBundleZipUrls,
+                cachedGeneralBundleZipUrls,
+                fallbackGeneralBundleZipUrls,
                 resolvedBundleZipUrls: bundleZipUrls,
                 usedCachedBundleZipUrls: cachedBundleZipUrls !== null,
               });
