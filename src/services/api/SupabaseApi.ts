@@ -117,6 +117,21 @@ type ChapterLessonRow = {
   lesson: TableTypes<'lesson'> | null;
 };
 
+type StudentProgressRowWithLesson = TableTypes<'result'> & {
+  lesson?: {
+    name?: string;
+    chapter_lesson?:
+      | {
+          chapter?: {
+            id?: string;
+            name?: string;
+            course_id?: string;
+          } | null;
+        }[]
+      | null;
+  } | null;
+};
+
 type CampaignAudienceSchoolLinkRow = Pick<
   TableTypes<'campaign_target_audience_school'>,
   'school_id'
@@ -3477,21 +3492,8 @@ export class SupabaseApi implements ServiceApi {
 
     if (!data) return resultMap;
 
-    if (data && data.length > 0) {
-      const progressRows = data as unknown as Array<{
-        course_id: string;
-        chapter_id: string | null;
-        lesson: {
-          name: string;
-          chapter_lesson?: Array<{
-            chapter: {
-              id: string;
-              name: string;
-              course_id: string;
-            } | null;
-          }> | null;
-        } | null;
-      }>;
+    const progressRows = data as StudentProgressRowWithLesson[];
+    if (progressRows.length > 0) {
       progressRows.forEach((result) => {
         const lesson = result.lesson;
         const chapter = lesson?.chapter_lesson?.find((chapterLesson) =>
@@ -3500,13 +3502,13 @@ export class SupabaseApi implements ServiceApi {
               chapterLesson.chapter.course_id === result.course_id
             : false,
         )?.chapter;
-        const resultWithNames = {
-          ...(result as unknown as TableTypes<'result'>),
-          lesson_name: lesson?.name ?? '',
-          chapter_name: chapter?.name ?? '',
-        } as TableTypes<'result'> & {
+        const resultWithNames: TableTypes<'result'> & {
           lesson_name?: string;
           chapter_name?: string;
+        } = {
+          ...result,
+          lesson_name: lesson?.name ?? '',
+          chapter_name: chapter?.name ?? '',
         };
         const courseId = result.course_id;
         if (courseId && !resultMap[courseId]) {
