@@ -195,6 +195,25 @@ const LidoPlayer: FC = () => {
     }
   };
 
+  const hasCourseFrameworkId = async (courseId: string): Promise<boolean> => {
+    if (!courseId) return false;
+
+    if (courseDetail?.id === courseId || !courseDetail?.id) {
+      if (courseDetail?.framework_id) return true;
+    }
+
+    try {
+      const course = await api.getCourse(courseId);
+      return !!course?.framework_id;
+    } catch (error) {
+      logger.warn(
+        '[LidoPlayer] Failed to verify course framework before PAL update',
+        error,
+      );
+      return false;
+    }
+  };
+
   type LidoEventDetail = Record<string, unknown> & {
     chapterId?: string;
     courseId?: string;
@@ -633,13 +652,17 @@ const LidoPlayer: FC = () => {
       const api = ServiceConfig.getI().apiHandler;
       const lesson: Lesson = JSON.parse(state.lesson);
       const assignment = state.assignment;
+      const currentCourseId = courseDetail?.id ?? courseDocId ?? '';
+      const courseHasFramework = await hasCourseFrameworkId(currentCourseId);
       const skillId: string | undefined = state.skillId;
       let normalizedSkillId =
-        typeof skillId === 'string' && skillId.trim().length > 0
+        courseHasFramework &&
+        typeof skillId === 'string' &&
+        skillId.trim().length > 0
           ? skillId.trim()
           : undefined;
 
-      if (!normalizedSkillId) {
+      if (courseHasFramework && !normalizedSkillId) {
         const normalizeIdentifier = (value: unknown) =>
           typeof value === 'string' && value.trim().length > 0
             ? value.trim()
@@ -762,11 +785,11 @@ const LidoPlayer: FC = () => {
       }
 
       let abilityUpdates: any = {};
-      if (normalizedSkillId) {
+      if (normalizedSkillId && courseHasFramework) {
         try {
           abilityUpdates = await palUtil.updateAndGetAbilities({
             studentId: currentStudent.id,
-            courseId: courseDetail?.id ?? courseDocId ?? '',
+            courseId: currentCourseId,
             skillId: normalizedSkillId,
             outcomes: booleanOutcomes,
           });
@@ -792,7 +815,7 @@ const LidoPlayer: FC = () => {
         schoolId,
         false, // isImediateSync
         false, // isHomework
-        normalizedSkillId,
+        courseHasFramework ? normalizedSkillId : undefined,
         abilityUpdates.skill_ability,
         abilityUpdates.outcome_id,
         abilityUpdates.outcome_ability,
