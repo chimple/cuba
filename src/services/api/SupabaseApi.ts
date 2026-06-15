@@ -117,19 +117,6 @@ type ChapterLessonRow = {
   lesson: TableTypes<'lesson'> | null;
 };
 
-type StudentProgressResultRow = TableTypes<'result'> & {
-  lesson: {
-    name: string;
-    chapter_lesson?: {
-      chapter: {
-        id: string;
-        name: string;
-        course_id: string;
-      } | null;
-    }[];
-  } | null;
-};
-
 type CampaignAudienceSchoolLinkRow = Pick<
   TableTypes<'campaign_target_audience_school'>,
   'school_id'
@@ -3491,7 +3478,20 @@ export class SupabaseApi implements ServiceApi {
     if (!data) return resultMap;
 
     if (data && data.length > 0) {
-      const progressRows = data as StudentProgressResultRow[];
+      const progressRows = data as unknown as Array<{
+        course_id: string;
+        chapter_id: string | null;
+        lesson: {
+          name: string;
+          chapter_lesson?: Array<{
+            chapter: {
+              id: string;
+              name: string;
+              course_id: string;
+            } | null;
+          }> | null;
+        } | null;
+      }>;
       progressRows.forEach((result) => {
         const lesson = result.lesson;
         const chapter = lesson?.chapter_lesson?.find((chapterLesson) =>
@@ -3501,7 +3501,7 @@ export class SupabaseApi implements ServiceApi {
             : false,
         )?.chapter;
         const resultWithNames = {
-          ...result,
+          ...(result as unknown as TableTypes<'result'>),
           lesson_name: lesson?.name ?? '',
           chapter_name: chapter?.name ?? '',
         } as TableTypes<'result'> & {
