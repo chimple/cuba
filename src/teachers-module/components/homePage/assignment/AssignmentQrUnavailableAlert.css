@@ -1,0 +1,32 @@
+.assignment-qr-unavailable-alert {
+  --background: #ffffff;
+}
+
+.assignment-qr-unavailable-alert .alert-wrapper {
+  border-radius: 10px !important;
+  width: min(90vw, 360px);
+  max-width: min(90vw, 360px);
+}
+
+.assignment-qr-unavailable-alert .alert-message {
+  color: #3f3f3f;
+  font-size: 18px;
+  line-height: 1.3;
+  text-align: center;
+  padding: 22px 24px 10px;
+}
+
+.assignment-qr-unavailable-alert .alert-button-group {
+  justify-content: center;
+  padding: 4px 0 16px;
+}
+
+.assignment-qr-unavailable-alert .assignment-qr-unavailable-alert-ok {
+  min-width: 80px;
+  height: 32px;
+  border-radius: 3px;
+  background: #7c5db0;
+  color: #ffffff;
+  font-size: 18px;
+  text-transform: none;
+}

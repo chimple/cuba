@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './CreateSelectedAssignment.css'; // Assuming you will have a separate CSS file for styles
 import { IonIcon } from '@ionic/react';
 import { calendarOutline } from 'ionicons/icons';
@@ -17,6 +17,7 @@ import { Util } from '../../../../utility/util';
 import { useHistory } from 'react-router';
 import i18n, { t } from 'i18next';
 import { ServiceConfig } from '../../../../services/ServiceConfig';
+import { RoleType } from '../../../../interface/modelInterfaces';
 import { TeacherAssignmentPageType } from './TeacherAssignment';
 import CommonDialogBox from '../../../../common/CommonDialogBox';
 import Loading from '../../../../components/Loading';
@@ -26,6 +27,11 @@ import { addDays, addMonths, format } from 'date-fns';
 import { Trans } from 'react-i18next';
 import { v4 as uuidv4 } from 'uuid';
 import logger from '../../../../utility/logger';
+import {
+  getStreakTargetRect,
+  triggerStreakRewardPulse,
+} from '../../../../common/streakRewardBridge';
+
 interface LessonDetail {
   subject: string;
   chapter: string;
@@ -78,13 +84,33 @@ interface CreateSelectedAssignmentProps {
   selectedAssignments: SelectedAssignments;
   manualAssignments: AssignmentLookup;
   recommendedAssignments: AssignmentLookup;
+  onInteractionLockChange?: (isLocked: boolean) => void;
 }
+
+type RewardAnimationState = {
+  visible: boolean;
+  label: string;
+  x: number;
+  y: number;
+  deltaX: number;
+  deltaY: number;
+  isFlying: boolean;
+};
 
 const CreateSelectedAssignment = ({
   selectedAssignments,
   manualAssignments,
   recommendedAssignments,
+  onInteractionLockChange,
 }: CreateSelectedAssignmentProps) => {
+  const FIRST_ASSIGNMENT_REWARD = 50;
+  const SUBSEQUENT_ASSIGNMENT_REWARD = 25;
+  const REWARD_INDICATOR_DELAY_MS = 700;
+  const REWARD_FLIGHT_DURATION_MS = 1600;
+  const FLAME_PULSE_DURATION_MS = 1000;
+  const STREAK_LANDING_LEFT_OFFSET_PX = 30;
+  const REWARD_INDICATOR_EDGE_PADDING_PX = 2;
+
   const history = useHistory();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -105,11 +131,28 @@ const CreateSelectedAssignment = ({
   const [assignmentBatchId, setAssignmentBatchId] = useState<string | null>(
     null,
   );
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [rewardAnimation, setRewardAnimation] = useState<RewardAnimationState>({
+    visible: false,
+    label: '',
+    x: 0,
+    y: 0,
+    deltaX: 0,
+    deltaY: 0,
+    isFlying: false,
+  });
+  const assignButtonRef = useRef<HTMLButtonElement | null>(null);
+  const rewardIndicatorRef = useRef<HTMLDivElement | null>(null);
+  const isInteractionLocked = isAssigning || rewardAnimation.visible;
 
   useEffect(() => {
     init();
     assignmentsInfo();
   }, []);
+
+  useEffect(() => {
+    onInteractionLockChange?.(isInteractionLocked);
+  }, [isInteractionLocked, onInteractionLockChange]);
 
   const init = async () => {
     let todayDate = new Date().toISOString().slice(0, 10);
@@ -283,6 +326,10 @@ const CreateSelectedAssignment = ({
   };
 
   const toggleCollapse = (category: string) => {
+    if (isInteractionLocked) {
+      return;
+    }
+
     setGroupWiseStudents((bandStudents: GroupWiseStudents) => ({
       ...bandStudents,
       [category]: {
@@ -293,6 +340,10 @@ const CreateSelectedAssignment = ({
   };
 
   const toggleSelectAll = () => {
+    if (isInteractionLocked) {
+      return;
+    }
+
     const newAllSelected = !allSelected;
     setAllSelected(newAllSelected);
     // Update all bands' students' selection state
@@ -311,6 +362,10 @@ const CreateSelectedAssignment = ({
   };
 
   const toggleStudentSelection = (category: string, index: number) => {
+    if (isInteractionLocked) {
+      return;
+    }
+
     setGroupWiseStudents((bandStudents: GroupWiseStudents) => {
       const updatedBands = { ...bandStudents };
       const students = [...updatedBands[category].students];
@@ -432,6 +487,9 @@ const CreateSelectedAssignment = ({
   };
 
   const createAssignmentsForStudents = async () => {
+    if (isAssigning) {
+      return;
+    }
     const studentList = getSelectedStudentList(groupWiseStudents);
     if (studentList.length <= 0) {
       await Toast.show({
@@ -440,9 +498,114 @@ const CreateSelectedAssignment = ({
       });
       return;
     }
+    setIsAssigning(true);
 
     const batchId = uuidv4();
     setAssignmentBatchId(batchId);
+
+    const pause = (ms: number) =>
+      new Promise((resolve) => window.setTimeout(resolve, ms));
+
+    const getRewardForAssignment = async (): Promise<number> => {
+      try {
+        const currentUser = await auth.getCurrentUser();
+        const userId = currentUser?.id;
+
+        if (!userId) {
+          return SUBSEQUENT_ASSIGNMENT_REWARD;
+        }
+
+        const today = new Date();
+        const mondayOffset = (today.getDay() + 6) % 7;
+        const weekStart = new Date(today);
+        weekStart.setDate(today.getDate() - mondayOffset);
+        weekStart.setHours(0, 0, 0, 0);
+
+        const { batchGroups: weekBatchRows } =
+          await api.getAssignmentDateRangeDataForClassAndSchool(
+            userId,
+            weekStart.toISOString(),
+            today.toISOString(),
+          );
+
+        return weekBatchRows.length <= 0
+          ? FIRST_ASSIGNMENT_REWARD
+          : SUBSEQUENT_ASSIGNMENT_REWARD;
+      } catch (error) {
+        logger.error('Error calculating weekly assignment reward:', error);
+        return SUBSEQUENT_ASSIGNMENT_REWARD;
+      }
+    };
+
+    const animateStreakFlame = async () => {
+      const didTriggerPulse = triggerStreakRewardPulse();
+      if (!didTriggerPulse) {
+        return;
+      }
+
+      await pause(FLAME_PULSE_DURATION_MS);
+    };
+
+    const animateRewardToStreak = async (rewardValue: number) => {
+      const assignButton = assignButtonRef.current;
+      if (!assignButton) {
+        return;
+      }
+
+      const assignRect = assignButton.getBoundingClientRect();
+      const startX = assignRect.left + assignRect.width / 2 - 22;
+      const startY = assignRect.top - 14;
+
+      setRewardAnimation({
+        visible: true,
+        label: `+${rewardValue}`,
+        x: startX,
+        y: startY,
+        deltaX: 0,
+        deltaY: 0,
+        isFlying: false,
+      });
+
+      await pause(REWARD_INDICATOR_DELAY_MS);
+
+      const streakRect = getStreakTargetRect();
+      if (!streakRect) {
+        await pause(450);
+        setRewardAnimation((prev) => ({ ...prev, visible: false }));
+        return;
+      }
+
+      const rewardRect = rewardIndicatorRef.current?.getBoundingClientRect();
+      const viewportWidth = Math.min(
+        window.innerWidth,
+        window.visualViewport?.width ?? window.innerWidth,
+        document.documentElement.clientWidth || window.innerWidth,
+      );
+      const targetX = Math.max(
+        REWARD_INDICATOR_EDGE_PADDING_PX,
+        Math.min(
+          streakRect.left +
+            streakRect.width / 2 -
+            STREAK_LANDING_LEFT_OFFSET_PX,
+          viewportWidth -
+            (rewardRect?.width ?? 66) -
+            REWARD_INDICATOR_EDGE_PADDING_PX,
+        ),
+      );
+      const deltaX = targetX - startX;
+      const deltaY = streakRect.top + streakRect.height / 2 - startY;
+
+      setRewardAnimation((prev) => ({
+        ...prev,
+        deltaX,
+        deltaY,
+        isFlying: true,
+      }));
+
+      await pause(REWARD_FLIGHT_DURATION_MS);
+      setRewardAnimation((prev) => ({ ...prev, visible: false }));
+      await animateStreakFlame();
+    };
 
     // Step 1: Update assignment cart immediately to remove assigned lessons from UI
     (async () => {
@@ -508,15 +671,26 @@ const CreateSelectedAssignment = ({
       }
     })();
 
-    // Step 2: Show confirmation popup immediately
-    setShowConfirm(true);
-
-    // Step 3: Run actual assignment creation in background
+    // Step 2: Run actual assignment creation in background
     (async () => {
       try {
         const current_class = await Util.getCurrentClass();
         const currUser = await auth.getCurrentUser();
         if (!currUser || !current_class) return;
+
+        const assignerRole = await api.getUserRoleForSchool(
+          currUser.id,
+          current_class.school_id,
+        );
+        const isTeacherAssigner = assignerRole === RoleType.TEACHER;
+        let rewardValue = SUBSEQUENT_ASSIGNMENT_REWARD;
+        let streakIncrement = 0;
+        if (isTeacherAssigner) {
+          // Calculate reward before creating this batch, so the current
+          // assignment is not included in "this week's" existing count.
+          rewardValue = await getRewardForAssignment();
+          streakIncrement = rewardValue === FIRST_ASSIGNMENT_REWARD ? 1 : 0;
+        }
 
         const previous_sync_lesson = currUser?.id
           ? await api.getUserAssignmentCart(currUser?.id)
@@ -666,14 +840,49 @@ const CreateSelectedAssignment = ({
           currUser?.id,
           _totalSelectedLesson,
         );
+
+        if (isTeacherAssigner) {
+          try {
+            await api.updateCoins(
+              currUser.id,
+              current_class.school_id,
+              current_class.id,
+              rewardValue,
+              streakIncrement,
+            );
+          } catch (coinError) {
+            logger.error(
+              'Error updating coins after assignment creation:',
+              coinError,
+            );
+          }
+          await animateRewardToStreak(rewardValue);
+        }
+        setShowConfirm(true);
       } catch (error) {
         logger.error('Error creating assignments in background:', error);
+        await Toast.show({
+          text: t('Something Went wrong') || '',
+          duration: 'long',
+        });
+      } finally {
+        setIsAssigning(false);
       }
     })();
   };
 
   return !isLoading ? (
-    <div className="assignments-container">
+    <div
+      className={`assignments-container ${
+        isInteractionLocked ? 'assignment-interaction-lock-active' : ''
+      }`.trim()}
+    >
+      {isInteractionLocked && (
+        <div
+          className="assignment-interaction-lock-overlay"
+          aria-hidden="true"
+        />
+      )}
       <div id="assignment-success-dialog">
         <CommonDialogBox
           header={t('Assignments are assigned Successfully.') ?? ''}
@@ -722,6 +931,9 @@ const CreateSelectedAssignment = ({
                 ) : (
                   <span
                     onClick={() => {
+                      if (isInteractionLocked) {
+                        return;
+                      }
                       setShowStartDatePicker(true);
                     }}
                   >
@@ -755,6 +967,9 @@ const CreateSelectedAssignment = ({
                 ) : (
                   <span
                     onClick={() => {
+                      if (isInteractionLocked) {
+                        return;
+                      }
                       setShowEndDatePicker(true);
                     }}
                   >
@@ -822,6 +1037,10 @@ const CreateSelectedAssignment = ({
                     // checked={true}
                     onClick={(e) => e.stopPropagation()}
                     onChange={() => {
+                      if (isInteractionLocked) {
+                        return;
+                      }
+
                       const allSelected = groupWiseStudents[
                         category
                       ].students.every(
@@ -875,9 +1094,31 @@ const CreateSelectedAssignment = ({
           ))}
         </section>
 
+        {rewardAnimation.visible && (
+          <div
+            ref={rewardIndicatorRef}
+            className={`assign-reward-indicator ${rewardAnimation.isFlying ? 'is-flying' : ''}`}
+            style={{
+              left: `${rewardAnimation.x}px`,
+              top: `${rewardAnimation.y}px`,
+              transform: `translate(${rewardAnimation.deltaX}px, ${rewardAnimation.deltaY}px)`,
+            }}
+          >
+            <span>{rewardAnimation.label}</span>
+            <img
+              src="assets/icons/coinIcon.png"
+              className="assign-reward-coin-icon"
+              alt=""
+            />
+          </div>
+        )}
+
         <button
+          ref={assignButtonRef}
           className="assign-selected-button"
-          disabled={(selectedAssignments.length ?? 0) > 0}
+          disabled={
+            (selectedAssignments.length ?? 0) > 0 || isInteractionLocked
+          }
           onClick={createAssignmentsForStudents}
         >
           {t('Assign')}

@@ -1,19 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { BottomNavigation, BottomNavigationAction } from '@mui/material';
-import { useHistory, useLocation } from 'react-router-dom';
-import './HomePage.css';
-import DashBoard from '../components/homePage/dashBoard/DashBoard';
-import Header from '../components/homePage/Header';
-import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { App } from '@capacitor/app';
 import {
   Capacitor,
   PluginListenerHandle,
   registerPlugin,
 } from '@capacitor/core';
-import TeacherAssignment from '../components/homePage/assignment/TeacherAssignment';
-import AssignScreen from '../components/homePage/assignment/AssignScreen';
-import Library from '../components/library/Library';
-import ReportTable from '../components/reports/ReportsTable';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { BottomNavigation, BottomNavigationAction } from '@mui/material';
+import { toPng } from 'html-to-image';
+import { t } from 'i18next';
+import React, { useEffect, useState } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
+import { RoleType } from '../../../src/interface/modelInterfaces';
 import {
   CLASS_OR_SCHOOL_CHANGE_EVENT,
   LANGUAGE,
@@ -23,22 +21,29 @@ import {
   TABLESORTBY,
   TableTypes,
 } from '../../common/constants';
-import { Util } from '../../utility/util';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import { App } from '@capacitor/app';
-import { t } from 'i18next';
-import ComingSoon from '../components/homePage/ai/comingSoon';
 import {
   updateLocalAttributes,
   useGbContext,
 } from '../../growthbook/Growthbook';
-import { toPng } from 'html-to-image';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 import { useAppSelector } from '../../redux/hooks';
-import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import { RootState } from '../../redux/store';
+import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
-import { RoleType } from '../../../src/interface/modelInterfaces';
+import { schoolUtil } from '../../utility/schoolUtil';
+import { Util } from '../../utility/util';
+import ComingSoon from '../components/homePage/ai/comingSoon';
+import AssignmentQrUnavailableAlert from '../components/homePage/assignment/AssignmentQrUnavailableAlert';
+import AssignScreen from '../components/homePage/assignment/AssignScreen';
+import TeacherAssignment from '../components/homePage/assignment/TeacherAssignment';
+import ClassSummaryInfoPopup from '../components/homePage/ClassSummaryInfoPopup';
+import DashBoard from '../components/homePage/dashBoard/DashBoard';
+import Header from '../components/homePage/Header';
+import Library from '../components/library/Library';
+import ReportTable from '../components/reports/ReportsTable';
+import './HomePage.css';
+import { format, subDays } from 'date-fns';
+
 const HomePage: React.FC = () => {
   const history = useHistory();
   const location = useLocation<{
@@ -49,11 +54,17 @@ const HomePage: React.FC = () => {
     startDate?: Date;
     endDate?: Date;
   }>();
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
   // 1) Safely grab tabValue (default to 0)
-  const initialTab = location.state?.tabValue ?? 0;
+  const initialTab =
+    isTeacherSchoolMode && location.state?.tabValue === 2
+      ? 0
+      : (location.state?.tabValue ?? 0);
   const [tabValue, setTabValue] = useState<number>(initialTab);
   const [showAssignOptionsScreen, setShowAssignOptionsScreen] = useState(true);
   const [autoStartScan, setAutoStartScan] = useState(false);
+  const [showUnavailableQrAlert, setShowUnavailableQrAlert] = useState(false);
+  const [isHomeInfoOpen, setIsHomeInfoOpen] = useState(false);
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
     null,
   );
@@ -138,9 +149,16 @@ const HomePage: React.FC = () => {
     await fetchClassDetails();
   };
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    if (isTeacherSchoolMode && newValue === 2) {
+      return;
+    }
     // preserve whatever state you need when switching
     setShowAssignOptionsScreen(true);
     setTabValue(newValue);
+  };
+  const showUnavailableQr = () => {
+    setTabValue(2);
+    setShowUnavailableQrAlert(true);
   };
   const renderComponent = () => {
     const key = currentClass?.id || '';
@@ -166,6 +184,7 @@ const HomePage: React.FC = () => {
                 history.replace(PAGES.TEACHER_RECOMMENDED_ASSIGNMENTS);
                 setShowAssignOptionsScreen(false);
               }}
+              onUnavailableQr={showUnavailableQr}
             />
           );
         }
@@ -178,6 +197,7 @@ const HomePage: React.FC = () => {
               setShowAssignOptionsScreen(true);
               setTabValue(1);
             }}
+            onUnavailableQr={showUnavailableQr}
           />
         );
       case 3:
@@ -258,8 +278,16 @@ const HomePage: React.FC = () => {
   };
   const isLibraryTab = tabValue === 1;
   const footerTabValue = tabValue === 1 ? 2 : tabValue;
+  const today = new Date();
+  const oneWeekBack = subDays(today, 6);
+  const classSummaryDateRangeLabel = `${format(oneWeekBack, 'dd/MM')} - ${format(today, 'dd/MM')}`;
+
   return (
     <div className="main-container" key={renderKey}>
+      <AssignmentQrUnavailableAlert
+        isOpen={showUnavailableQrAlert}
+        onDismiss={() => setShowUnavailableQrAlert(false)}
+      />
       <Header
         isBackButton={isLibraryTab}
         showSchool={!isLibraryTab}
@@ -274,8 +302,15 @@ const HomePage: React.FC = () => {
           isLibraryTab ? () => history.replace(PAGES.SEARCH_LESSON) : undefined
         }
         onShareClick={tabValue === 3 ? handleShare : undefined}
+        showInfoButton={!isLibraryTab && tabValue === 0}
+        onInfoClick={() => setIsHomeInfoOpen(true)}
       />
       <main className="home-container-body">{renderComponent()}</main>
+      <ClassSummaryInfoPopup
+        isOpen={isHomeInfoOpen}
+        onClose={() => setIsHomeInfoOpen(false)}
+        dateRangeLabel={classSummaryDateRangeLabel}
+      />
       <footer className="container-footer">
         <BottomNavigation
           value={footerTabValue}
@@ -300,7 +335,7 @@ const HomePage: React.FC = () => {
             }
           />
 
-          {!isExternalUser && (
+          {!isExternalUser && !isTeacherSchoolMode && (
             <BottomNavigationAction
               value={2}
               label={t('Assign')}

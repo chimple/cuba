@@ -90,7 +90,11 @@ import {
 } from '@capawesome/capacitor-app-update';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from '../services/RemoteConfig';
+import {
+  getBundleZipUrlsForEnv,
+  getLidoBundleZipUrlsForEnv,
+  REMOTE_CONFIG_KEYS,
+} from '../services/RemoteConfig';
 import { schoolUtil } from './schoolUtil';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { URLOpenListenerEvent } from '@capacitor/app';
@@ -99,9 +103,15 @@ import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
 import CryptoJS from 'crypto-js';
 import { InAppReview } from '@capacitor-community/in-app-review';
 import { ASSIGNMENT_COMPLETED_IDS } from '../common/courseConstants';
+import { buildGlobalEventBaseContext } from '../common/eventBaseContext';
 import { v4 as uuidv4 } from 'uuid';
+import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import { updateLocalAttributes } from '../growthbook/Growthbook';
-import { recommendNextLesson } from '../hooks/useLearningPath';
+import {
+  CoursePath,
+  LessonNode,
+  recommendNextLesson,
+} from '../hooks/useLearningPath';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import { store } from '../redux/store';
 import {
@@ -113,10 +123,56 @@ import {
 import logger from './logger';
 import type { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
 
+type LessonBundleDownloadOptions = {
+  lessonId: string;
+  zipUrls: string[];
+  dbVersion: number;
+};
+
+type LessonBundleDownloadResult = {
+  byteLength: number;
+  sha256Hex?: string;
+};
+
+type LessonBundlePlugin = {
+  downloadAndExtract: (
+    options: LessonBundleDownloadOptions,
+  ) => Promise<LessonBundleDownloadResult>;
+};
+
+let lessonBundlePluginInstance: LessonBundlePlugin | null = null;
+
+const getBundleZipUrlsFallback = (
+  bundleZipUrlsKey: REMOTE_CONFIG_KEYS,
+): string[] =>
+  bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+    ? getLidoBundleZipUrlsForEnv()
+    : getBundleZipUrlsForEnv();
+
+const mergeBundleZipUrls = (...zipUrlLists: (string[] | null | undefined)[]) =>
+  Array.from(
+    new Set(
+      zipUrlLists.flatMap((zipUrls) =>
+        Array.isArray(zipUrls) ? zipUrls.filter(Boolean) : [],
+      ),
+    ),
+  );
+
+const getLessonBundlePlugin = (): LessonBundlePlugin | null => {
+  if (lessonBundlePluginInstance) {
+    return lessonBundlePluginInstance;
+  }
+  if (typeof registerPlugin !== 'function') {
+    return null;
+  }
+  lessonBundlePluginInstance =
+    registerPlugin<LessonBundlePlugin>('LessonBundle');
+  return lessonBundlePluginInstance;
+};
+
 declare global {
   interface Window {
-    cc: any;
-    _CCSettings: any;
+    __LIDO_COMMON_AUDIO_PATH__?: string;
   }
 }
 
@@ -134,6 +190,7 @@ export class Util {
   public static port: PortPlugin;
   static TIME_LIMIT = 25 * 60;
   static LAST_MODAL_SHOWN_KEY = 'lastModalShown';
+  private static lessonBundleDownloadQueue: Promise<void> = Promise.resolve();
   // Normalize GrowthBook attributes that may come as a scalar or array into a consistent array.
   public static normalizeGrowthbookArrayAttribute<T>(
     value: T | T[] | null | undefined,
@@ -385,7 +442,9 @@ export class Util {
     return null;
   }
   public static getLessonBundleId(
-    lesson?: Pick<TableTypes<'lesson'>, 'cocos_lesson_id' | 'lido_lesson_id'>,
+    lesson?: Partial<
+      Pick<TableTypes<'lesson'>, 'cocos_lesson_id' | 'lido_lesson_id'>
+    >,
   ): string | null {
     return lesson?.lido_lesson_id ?? lesson?.cocos_lesson_id ?? null;
   }
@@ -395,12 +454,44 @@ export class Util {
     chapterId?: string,
     bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
   ): Promise<boolean> {
+    return Util.enqueueLessonBundleDownload(() =>
+      Util.runDownloadZipBundle(lessons, chapterId, bundleZipUrlsKey),
+    );
+  }
+
+  private static async enqueueLessonBundleDownload(
+    downloadTask: () => Promise<boolean>,
+  ): Promise<boolean> {
+    const previousDownload = Util.lessonBundleDownloadQueue;
+    let releaseQueue: () => void = () => {};
+
+    Util.lessonBundleDownloadQueue = new Promise<void>((resolve) => {
+      releaseQueue = resolve;
+    });
+
+    try {
+      await previousDownload.catch(() => undefined);
+      return await downloadTask();
+    } finally {
+      releaseQueue();
+    }
+  }
+
+  private static async runDownloadZipBundle(
+    lessons: TableTypes<'lesson'>[],
+    chapterId?: string,
+    bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+  ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) {
         return true;
       }
 
-      logger.warn('Starting download for lessons:', lessons);
+      const downloadStartedAt = Date.now();
+      logger.info('Starting download for lessons:', {
+        count: lessons.length,
+        chapterId: chapterId ?? null,
+      });
       for (let i = 0; i < lessons.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
         const lessonsChunk = lessons.slice(i, i + DOWNLOAD_LESSON_BATCH_SIZE);
         const results = await Promise.all(
@@ -414,18 +505,15 @@ export class Util {
               return false;
             }
 
+            const lessonStartedAt = Date.now();
             try {
               let lessonDownloadSuccess = true;
-              const fs = createFilesystem(Filesystem, {
-                rootDir: '/',
-                directory: Directory.External,
-              });
               const androidPath = await this.getAndroidBundlePath();
-              logger.warn('full lesson object for download:', lesson);
-              logger.warn('lesson version for download:', lesson.version);
+              logger.info('full lesson object for download:', lesson);
+              logger.info('lesson version for download:', lesson.version);
               // 🔥 GET DB VERSION ONCE
               let dbVersion = Number(lesson.version ?? 1);
-              logger.warn(
+              logger.info(
                 `[Version] Using lesson version for ${lessonId}:`,
                 lesson.version,
               );
@@ -441,7 +529,7 @@ export class Util {
 
                 localVersion = await this.getLocalLessonVersion(lessonId);
 
-                logger.warn(
+                logger.info(
                   `[Version] ${lessonId} → Local: ${localVersion}, DB: ${dbVersion}`,
                 );
 
@@ -455,9 +543,9 @@ export class Util {
                   return true;
                 }
 
-                logger.warn(`[Version] ${lessonId} outdated → updating`);
+                logger.info(`[Version] ${lessonId} outdated → updating`);
               } catch {
-                logger.warn(`[Version] ${lessonId} not found → downloading`);
+                logger.info(`[Version] ${lessonId} not found → downloading`);
               }
 
               // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
@@ -477,150 +565,85 @@ export class Util {
               }
 
               // 🔥 DOWNLOAD LOGIC (UNCHANGED)
-              const bundleZipUrls: string[] =
-                await RemoteConfig.getJSON(bundleZipUrlsKey);
+              const fallbackBundleZipUrls =
+                getBundleZipUrlsFallback(bundleZipUrlsKey);
+              const cachedBundleZipUrls = getCachedGrowthBookFeatureValue<
+                string[] | null
+              >(bundleZipUrlsKey, null);
+              const fallbackGeneralBundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? getBundleZipUrlsForEnv()
+                  : [];
+              const cachedGeneralBundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? getCachedGrowthBookFeatureValue<string[] | null>(
+                      REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+                      null,
+                    )
+                  : null;
+              const bundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? mergeBundleZipUrls(
+                      cachedBundleZipUrls,
+                      fallbackBundleZipUrls,
+                      cachedGeneralBundleZipUrls,
+                      fallbackGeneralBundleZipUrls,
+                    )
+                  : (cachedBundleZipUrls ?? fallbackBundleZipUrls);
+
+              logger.warn('[LessonDownloader] Resolved bundle ZIP URLs', {
+                lessonId,
+                bundleZipUrlsKey,
+                cachedBundleZipUrls,
+                fallbackBundleZipUrls,
+                cachedGeneralBundleZipUrls,
+                fallbackGeneralBundleZipUrls,
+                resolvedBundleZipUrls: bundleZipUrls,
+                usedCachedBundleZipUrls: cachedBundleZipUrls !== null,
+              });
 
               if (!bundleZipUrls || bundleZipUrls.length < 1) {
                 logger.error('[LessonDownloader] No remote ZIP URLs found');
                 return false;
               }
 
-              let zip: any;
-              let downloadAttempts = 0;
-              let downloadSuccessful = false;
-
-              while (
-                downloadAttempts < MAX_DOWNLOAD_LESSON_ATTEMPTS &&
-                !downloadSuccessful
-              ) {
-                for (const bundleUrl of bundleZipUrls) {
-                  const zipUrl = bundleUrl + lessonId + '.zip';
-                  try {
-                    logger.info(
-                      `[LessonDownloader] Attempting download from: ${zipUrl}`,
-                    );
-                    const downloadPromise = await CapacitorHttp.get({
-                      url: zipUrl,
-                      responseType: 'blob',
-                      headers: {},
-                      readTimeout: 10000,
-                      connectTimeout: 10000,
-                    });
-                    const timeoutPromise = new Promise((_, reject) =>
-                      setTimeout(() => reject(new Error('Timeout')), 10000),
-                    );
-
-                    zip = await Promise.race([downloadPromise, timeoutPromise]);
-
-                    if (zip && zip.data && zip.status === 200) {
-                      downloadSuccessful = true;
-                      break;
-                    }
-                  } catch {}
-                }
-
-                if (!downloadSuccessful) {
-                  downloadAttempts++;
-                }
-              }
-
-              if (!zip || !zip.data || zip.status !== 200) {
+              const lessonBundlePlugin = getLessonBundlePlugin();
+              if (!lessonBundlePlugin) {
+                logger.warn(
+                  '[LessonDownloader] LessonBundle plugin unavailable',
+                  { lessonId },
+                );
                 return false;
               }
-              const zipDataStr =
-                typeof zip.data === 'string'
-                  ? zip.data
-                  : await this.blobToString(zip.data as Blob);
 
-              const preparedZip = await runBackgroundWorkerTask(
-                'PREPARE_BINARY_FROM_BASE64',
-                { base64: zipDataStr },
-              ).catch(() => {
-                const fallback = Uint8Array.from(atob(zipDataStr), (c) =>
-                  c.charCodeAt(0),
-                );
-                return {
-                  byteLength: fallback.byteLength,
-                  sha256Hex: '',
-                  arrayBuffer: fallback.buffer,
-                };
-              });
-              const buffer = new Uint8Array(preparedZip.arrayBuffer);
-
-              // 🔥 SAFE UPDATE LOGIC
-              const isUpdate = localVersion < dbVersion;
-              const extractTo = isUpdate ? `${lessonId}_temp` : lessonId;
-
-              // clean temp
-              try {
-                await Filesystem.rmdir({
-                  path: `${lessonId}_temp`,
-                  directory: Directory.External,
-                  recursive: true,
+              const nativeBundleResult =
+                await lessonBundlePlugin.downloadAndExtract({
+                  lessonId,
+                  zipUrls: bundleZipUrls,
+                  dbVersion,
                 });
-              } catch {}
 
-              await unzip({
-                fs,
-                extractTo,
-                filepaths: ['.'],
-                filter: (filepath) => !filepath.startsWith('dist/'),
-                data: buffer,
-              });
-
-              // write version
-              await Filesystem.writeFile({
-                path: `${extractTo}/.version`,
-                directory: Directory.External,
-                data: btoa(String(dbVersion)),
-              });
-
-              // 🔥 ATOMIC SWAP
-              if (extractTo.includes('_temp')) {
-                const oldPath = lessonId;
-                const tempPath = `${lessonId}_temp`;
-                const backupPath = `${lessonId}_old`;
-
-                try {
-                  try {
-                    await Filesystem.rename({
-                      from: oldPath,
-                      to: backupPath,
-                      directory: Directory.External,
-                    });
-                  } catch {}
-
-                  await Filesystem.rename({
-                    from: tempPath,
-                    to: oldPath,
-                    directory: Directory.External,
-                  });
-
-                  try {
-                    await Filesystem.rmdir({
-                      path: backupPath,
-                      directory: Directory.External,
-                      recursive: true,
-                    });
-                  } catch {}
-                } catch {
-                  try {
-                    await Filesystem.rename({
-                      from: backupPath,
-                      to: oldPath,
-                      directory: Directory.External,
-                    });
-                  } catch {}
-                }
+              if (!nativeBundleResult?.byteLength) {
+                logger.warn('[LessonDownloader] Native bundle returned empty', {
+                  lessonId,
+                  dbVersion,
+                });
+                return false;
               }
+              logger.info('[LessonDownloader] Native bundle finished', {
+                lessonId,
+                dbVersion,
+                byteLength: nativeBundleResult.byteLength,
+                durationMs: Date.now() - lessonStartedAt,
+              });
 
               // ✅ KEEP ORIGINAL METADATA + EVENTS
               const lessonData = JSON.parse(
                 localStorage.getItem('downloaded_lessons_size') || '{}',
               );
               lessonData[lessonId] = {
-                size: preparedZip.byteLength,
-                sha256: preparedZip.sha256Hex || undefined,
+                size: nativeBundleResult.byteLength,
+                sha256: nativeBundleResult.sha256Hex || undefined,
               };
               localStorage.setItem(
                 'downloaded_lessons_size',
@@ -640,6 +663,10 @@ export class Util {
                 `[LessonDownloader] Error processing lesson ${lessonId}:`,
                 err,
               );
+              logger.warn('[LessonDownloader] Download failed metrics', {
+                lessonId,
+                durationMs: Date.now() - lessonStartedAt,
+              });
               return false;
             }
           }),
@@ -666,6 +693,11 @@ export class Util {
         this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
       }
 
+      logger.info('[LessonDownloader] Chapter download complete', {
+        chapterId: chapterId ?? null,
+        lessonCount: lessons.length,
+        durationMs: Date.now() - downloadStartedAt,
+      });
       return true;
     } catch {
       return false;
@@ -901,17 +933,16 @@ export class Util {
     const downloadedLessonIds = JSON.parse(
       localStorage.getItem(DOWNLOADED_LESSON_ID) || '[]',
     );
-    let lessonIdsForChapter = chapterLessonIdMap[chapterId];
-    if (!lessonIdsForChapter) {
-      const api = ServiceConfig.getI().apiHandler;
-      const storedLessonDoc = await api.getLessonsForChapter(chapterId);
-      lessonIdsForChapter = storedLessonDoc.map((id) => id.cocos_lesson_id);
-      chapterLessonIdMap[chapterId] = lessonIdsForChapter;
-      localStorage.setItem(
-        CHAPTER_ID_LESSON_ID_MAP,
-        JSON.stringify(chapterLessonIdMap),
-      );
-    }
+    const api = ServiceConfig.getI().apiHandler;
+    const storedLessonDoc = await api.getLessonsForChapter(chapterId);
+    const lessonIdsForChapter = storedLessonDoc
+      .map((lesson) => Util.getLessonBundleId(lesson))
+      .filter((lessonId): lessonId is string => Boolean(lessonId));
+    chapterLessonIdMap[chapterId] = lessonIdsForChapter;
+    localStorage.setItem(
+      CHAPTER_ID_LESSON_ID_MAP,
+      JSON.stringify(chapterLessonIdMap),
+    );
     const allLessonIdsDownloaded = lessonIdsForChapter.every(
       (lessonId: string) => downloadedLessonIds.includes(lessonId),
     );
@@ -927,80 +958,6 @@ export class Util {
 
   public static courseToJson(value: curriculamInterfaceCourse): string {
     return JSON.stringify(value);
-  }
-
-  public static async launchCocosGame(): Promise<void> {
-    try {
-      if (!window.cc) {
-        return;
-      }
-      const settings = window._CCSettings;
-      const launchScene = settings.launchScene;
-      const bundle = window.cc.assetManager.bundles.find(function (b: {
-        getSceneInfo: (sceneName: string) => object | null;
-      }) {
-        return b.getSceneInfo(launchScene);
-      });
-
-      await new Promise<object>((resolve, reject) => {
-        bundle.loadScene(
-          launchScene,
-          null,
-          null,
-          function (err: Error | null | undefined, scene: object) {
-            if (!err) {
-              window.cc.director.runSceneImmediate(scene);
-              if (window.cc.sys.isBrowser) {
-                Util.checkingIfGameCanvasAvailable();
-                // show canvas
-                var canvas = document.getElementById('GameCanvas');
-                if (canvas) {
-                  canvas.style.visibility = '';
-                  canvas.style.display = '';
-                }
-                const container = document.getElementById(
-                  'Cocos2dGameContainer',
-                );
-                if (container) {
-                  container.style.display = '';
-                  container.style.width = '100%';
-                  container.style.height = '100%';
-                }
-                var div = document.getElementById('GameDiv');
-                if (div) {
-                  div.style.backgroundImage = '';
-                }
-              }
-              resolve(scene);
-            } else {
-              reject(err);
-            }
-          },
-        );
-      });
-    } catch (error) {
-      logger.error('launchCocosGame(): error ', error);
-    }
-  }
-
-  public static killCocosGame(): void {
-    if (!window.cc) {
-      return;
-    }
-    window.cc.game.pause();
-    window.cc.audioEngine.stopAll();
-    const canvas = document.getElementById('GameCanvas');
-    if (canvas) {
-      canvas.style.visibility = 'none';
-      canvas.style.display = 'none';
-    }
-    const container = document.getElementById('Cocos2dGameContainer');
-    if (container) {
-      container.style.display = 'none';
-      container.style.width = '0px';
-      container.style.height = '0px';
-      container.style.overflow = 'hidden';
-    }
   }
 
   public static async getLastPlayedLessonIndex(
@@ -1095,26 +1052,31 @@ export class Util {
     },
   ) {
     try {
+      const baseContext = buildGlobalEventBaseContext();
+      const mergedParams = {
+        ...baseContext,
+        ...params,
+      };
       const normalizedParams: { [key: string]: string } = Object.fromEntries(
-        Object.entries(params).map(([key, value]) => [
+        Object.entries(mergedParams).map(([key, value]) => [
           key,
-          typeof value === 'number' ? value.toString() : String(value),
+          String(value),
         ]),
       );
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
-        userId: params.user_id,
+        userId: normalizedParams.user_id,
       });
       try {
         if (!Util.port) Util.port = registerPlugin<PortPlugin>('Port');
         await Promise.resolve(
-          Util.port.shareUserId({ userId: params.user_id }),
+          Util.port.shareUserId({ userId: normalizedParams.user_id }),
         );
       } catch (e) {
         logger.warn('Port.shareUserId skipped:', e);
       }
       await FirebaseCrashlytics.setUserId({
-        userId: params.user_id,
+        userId: normalizedParams.user_id,
       });
 
       await FirebaseAnalytics.setScreenName({
@@ -1124,7 +1086,7 @@ export class Util {
 
       await FirebaseAnalytics.logEvent({
         name: eventName,
-        params: params,
+        params: normalizedParams,
       });
     } catch (error) {
       logger.error(
@@ -1178,6 +1140,7 @@ export class Util {
     if (!isActive) {
       TextToSpeech.stop();
     }
+    logger.info('[Lifecycle] App state changed', { isActive });
 
     // Handling app state changes (reloading pages, updating URLs, etc.)
     const url = new URL(window.location.toString());
@@ -1194,7 +1157,6 @@ export class Util {
       if (
         Capacitor.isNativePlatform() &&
         url.searchParams.get(CONTINUE) === 'true' &&
-        url.pathname !== PAGES.GAME &&
         url.pathname !== PAGES.LOGIN &&
         url.pathname !== PAGES.EDIT_STUDENT
       ) {
@@ -1211,134 +1173,7 @@ export class Util {
         url.searchParams.set('isReload', 'true');
         url.searchParams.delete(CONTINUE);
         window.history.replaceState(window.history.state, '', url.toString());
-        Util.checkingIfGameCanvasAvailable();
       }
-    }
-  };
-
-  public static checkingIfGameCanvasAvailable = async (): Promise<boolean> => {
-    try {
-      const canvas = document.getElementById('GameCanvas') as HTMLCanvasElement;
-
-      if (canvas) {
-        const gl = canvas.getContext('webgl') as WebGLRenderingContext | null;
-
-        if (!gl) {
-          logger.error('WebGL is not supported on this device or browser.');
-          return false;
-        }
-
-        // Helper function to create and validate shaders
-        const createAndValidateShader = (
-          type: GLenum,
-          source: string,
-        ): WebGLShader | null => {
-          const shader = gl.createShader(type);
-          if (!shader) {
-            logger.error('Failed to create shader.');
-            return null;
-          }
-          gl.shaderSource(shader, source);
-          gl.compileShader(shader);
-
-          // Check for shader compilation errors
-          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            logger.error(
-              `Error compiling shader: ${gl.getShaderInfoLog(shader)}`,
-            );
-            gl.deleteShader(shader);
-            return null;
-          }
-
-          return shader;
-        };
-
-        // Example vertex and fragment shader source code
-        const vertexShaderSource = `
-          attribute vec4 position;
-          void main() {
-            gl_Position = position;
-          }
-        `;
-
-        const fragmentShaderSource = `
-          precision mediump float;
-          void main() {
-            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red color
-          }
-        `;
-
-        // Create and validate shaders
-        const vertexShader = createAndValidateShader(
-          gl.VERTEX_SHADER,
-          vertexShaderSource,
-        );
-        const fragmentShader = createAndValidateShader(
-          gl.FRAGMENT_SHADER,
-          fragmentShaderSource,
-        );
-
-        if (!vertexShader || !fragmentShader) {
-          logger.error('Shader creation or validation failed.');
-          return false;
-        }
-
-        // Handle WebGL context lost
-        canvas.addEventListener(
-          'webglcontextlost',
-          (event) => {
-            try {
-              logger.error('WebGL context lost detected.');
-              event.preventDefault(); // Prevent the browser from handling context loss
-              const webglContext = canvas.getContext(
-                'webgl',
-              ) as WebGLRenderingContext | null;
-
-              if (webglContext) {
-                const rest = webglContext.getExtension('WEBGL_lose_context');
-
-                // If the context cannot be restored, reload the page
-                if (!rest) {
-                  logger.error(
-                    'Unable to restore WebGL context. Reloading page...',
-                  );
-                  window.location.reload();
-                }
-              }
-            } catch (error) {
-              logger.error('Error handling webglcontextlost:', error);
-            }
-          },
-          false,
-        );
-
-        // Handle WebGL context restored
-        canvas.addEventListener(
-          'webglcontextrestored',
-          (event) => {
-            try {
-              event.preventDefault(); // Prevent the browser from restoring automatically
-              const webglContext = canvas.getContext(
-                'webgl',
-              ) as WebGLRenderingContext | null;
-
-              if (webglContext) {
-              }
-            } catch (error) {
-              logger.error('Error handling webglcontextrestored:', error);
-            }
-          },
-          false,
-        );
-
-        return true; // Return true if canvas exists and WebGL is initialized
-      } else {
-        logger.warn('GameCanvas element not found.');
-        return false;
-      }
-    } catch (error) {
-      logger.error('Error in checkingIfGameCanvasAvailable:', error);
-      return false;
     }
   };
 
@@ -3052,30 +2887,74 @@ export class Util {
     // ABORT CASE: refresh current lesson with PAL recommendation only
     // ABORT CASE: Assessment aborted → rebuild learning path (legacy flow)
     if (isFullPathwayTerminated && abortCourseId && isAssessmentLesson) {
-      let courseIndex = learningPath.courses.courseList.findIndex(
-        (c: any) => c.course_id === abortCourseId,
+      const courses = learningPath.courses as {
+        courseList: CoursePath[];
+        currentCourseIndex: number;
+      };
+      let courseIndex = courses.courseList.findIndex(
+        (coursePath: CoursePath) => coursePath.course_id === abortCourseId,
       );
 
       if (courseIndex === -1) return;
 
-      const courses = learningPath.courses;
       let course = courses.courseList[courseIndex];
       course.path.length = 0;
-      const nextLesson = await recommendNextLesson({
-        student: currentStudent,
-        course: {
-          id: course.course_id,
-          subject_id: course.subject_id,
-          framework_id:
-            course.type === RECOMMENDATION_TYPE.FRAMEWORK ? 'framework' : null,
-        },
-        mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
-        coursePath: course,
-      });
+      const nextQueuedLesson = course.path.find(
+        (lesson: LessonNode) => lesson.isPlayed === false,
+      );
+      const nextLesson =
+        nextQueuedLesson ??
+        (await recommendNextLesson({
+          student: currentStudent,
+          course: {
+            id: course.course_id,
+            subject_id: course.subject_id,
+            framework_id:
+              course.type === RECOMMENDATION_TYPE.FRAMEWORK
+                ? 'framework'
+                : null,
+          },
+          mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+          coursePath: course,
+        }));
 
-      if (nextLesson) {
+      if (nextLesson && !nextQueuedLesson) {
         course.path.push(nextLesson);
       }
+
+      if (
+        storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY &&
+        course.subject_id
+      ) {
+        for (const peerCourse of courses.courseList) {
+          if (
+            peerCourse === course ||
+            peerCourse.subject_id !== course.subject_id
+          ) {
+            continue;
+          }
+
+          peerCourse.path.length = 0;
+          const peerNextLesson = await recommendNextLesson({
+            student: currentStudent,
+            course: {
+              id: peerCourse.course_id,
+              subject_id: peerCourse.subject_id,
+              framework_id:
+                peerCourse.type === RECOMMENDATION_TYPE.FRAMEWORK
+                  ? 'framework'
+                  : null,
+            },
+            mode: storedPathwayMode,
+            coursePath: peerCourse,
+          });
+
+          if (peerNextLesson) {
+            peerCourse.path.push(peerNextLesson);
+          }
+        }
+      }
+
       courseIndex += 1;
       if (courseIndex >= courses.courseList.length) {
         courseIndex = 0;
@@ -3102,14 +2981,17 @@ export class Util {
       const PATH_SIZE = 5;
       const api = ServiceConfig.getI().apiHandler;
 
-      const courses = learningPath.courses;
+      const courses = learningPath.courses as {
+        courseList: CoursePath[];
+        currentCourseIndex: number;
+      };
       let courseIndex = courses.currentCourseIndex;
       let course = courses.courseList[courseIndex];
       if (!course) return;
 
       /* 1️⃣ Identify active lesson */
       const activeLessonIndex = course.path.findIndex(
-        (l: any) => l.isPlayed === false,
+        (lesson: LessonNode) => lesson.isPlayed === false,
       );
       const activeLesson =
         activeLessonIndex !== -1 ? course.path[activeLessonIndex] : null;
@@ -3139,33 +3021,101 @@ export class Util {
         isPlayed: true,
       };
 
+      const hasQueuedAssessmentInPath = course.path
+        .slice(activeLessonIndex + 1)
+        .some(
+          (lesson: LessonNode) =>
+            lesson.isPlayed === false &&
+            lesson.is_assessment === true &&
+            !!lesson.assignment_id,
+        );
+
+      const syncSameSubjectAssessmentPaths = (
+        nextAssessmentLesson: LessonNode | null,
+      ) => {
+        if (
+          storedPathwayMode !== LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
+          !activeLesson ||
+          !activeLesson.is_assessment ||
+          !course.subject_id
+        ) {
+          return;
+        }
+
+        for (const peerCourse of courses.courseList) {
+          if (
+            peerCourse === course ||
+            peerCourse.subject_id !== course.subject_id
+          ) {
+            continue;
+          }
+
+          const peerActiveLessonIndex = peerCourse.path.findIndex(
+            (lesson: LessonNode) =>
+              lesson.isPlayed === false &&
+              lesson.is_assessment === true &&
+              lesson.lesson_id === activeLesson.lesson_id,
+          );
+
+          if (peerActiveLessonIndex === -1) continue;
+
+          const peerActiveLesson = peerCourse.path[peerActiveLessonIndex];
+          peerCourse.path[peerActiveLessonIndex] = {
+            ...peerActiveLesson,
+            isPlayed: true,
+          };
+
+          if (nextAssessmentLesson) {
+            peerCourse.path.push({ ...nextAssessmentLesson });
+          }
+
+          if (peerCourse.path.length > PATH_SIZE) {
+            const peerActive = peerCourse.path.find(
+              (lesson: LessonNode) => !lesson.isPlayed,
+            );
+            peerCourse.path.length = 0;
+            if (peerActive) peerCourse.path.push(peerActive);
+            peerCourse.path_id = uuidv4();
+            peerCourse.completedPath = (peerCourse.completedPath ?? 0) + 1;
+          }
+        }
+      };
+
       const completedPathwaySnapshot = JSON.stringify(learningPath);
 
       /* 3️⃣ Compute next active lesson */
-      const nextLesson = await recommendNextLesson({
-        student: currentStudent,
-        course: {
-          id: course.course_id,
-          subject_id: course.subject_id,
-          framework_id:
-            course.type === RECOMMENDATION_TYPE.FRAMEWORK ? 'framework' : null,
-        },
-        mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
-        coursePath: course,
-      });
+      const nextLesson = hasQueuedAssessmentInPath
+        ? null
+        : await recommendNextLesson({
+            student: currentStudent,
+            course: {
+              id: course.course_id,
+              subject_id: course.subject_id,
+              framework_id:
+                course.type === RECOMMENDATION_TYPE.FRAMEWORK
+                  ? 'framework'
+                  : null,
+            },
+            mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+            coursePath: course,
+          });
 
       if (nextLesson) {
         course.path.push(nextLesson);
       }
 
       /* 4️⃣ Check path overflow */
+      syncSameSubjectAssessmentPaths(nextLesson);
+
       let pathCompleted = false;
 
       if (course.path.length > PATH_SIZE) {
         // if exceeding max path size i.e '5', remove played lessons from old path keep active lesson from currentPath
-        const active = course.path.find((l: any) => !l.isPlayed);
+        const active = course.path.find(
+          (lesson: LessonNode) => !lesson.isPlayed,
+        );
         course.path.length = 0;
-        course.path.push(active);
+        if (active) course.path.push(active);
         pathCompleted = true;
       }
 
@@ -3211,7 +3161,7 @@ export class Util {
       /* 6️⃣ Event collection */
       const newCourse = courses.courseList[courses.currentCourseIndex];
       const newActiveLesson = newCourse.path.find(
-        (l: any) => l.isPlayed === false,
+        (lesson: LessonNode) => lesson.isPlayed === false,
       );
 
       const eventPayload = {
@@ -4006,11 +3956,31 @@ export class Util {
       if (!student?.id) return [];
       const api = ServiceConfig.getI().apiHandler;
       const linkedData = await api.getStudentClassesAndSchools(student.id);
-      if (!linkedData) return [];
+      if (!linkedData) {
+        api.currentClass = undefined;
+        localStorage.removeItem(CURRENT_CLASS);
+        // Clear school targeting when the active student has no linkage data.
+        updateLocalAttributes({
+          student_id: student.id,
+          school_ids: [],
+          schools: [],
+          classes: [],
+          school_name: null,
+        });
+        return [];
+      }
       const device = await Util.logDeviceInfo();
+      const resolvedSchoolIds = linkedData.schools.map(
+        (item: TableTypes<'school'>) => item.id,
+      );
+      if (linkedData.classes.length === 0) {
+        api.currentClass = undefined;
+        localStorage.removeItem(CURRENT_CLASS);
+      }
       const attributeParams = {
         studentDetails: student,
-        schools: linkedData.schools.map((item: any) => item.id),
+        schools: resolvedSchoolIds,
+        school_ids: resolvedSchoolIds,
         school_name: linkedData.schools[0]?.name,
         classes: linkedData.classes.map((item: any) => item.id),
         ...device,

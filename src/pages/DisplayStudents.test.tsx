@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { act } from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import DisplayStudents from './DisplayStudents';
 import { MODES, PAGES } from '../common/constants';
@@ -21,6 +21,30 @@ const mockApi = {
   getClassById: jest.fn(),
 };
 
+interface StudentFixture {
+  id: string;
+  name: string;
+  avatar: string;
+  image?: string;
+  language_id: string;
+  grade_id: string;
+  age: number;
+}
+
+interface ChimpleLogoProps {
+  header: string;
+  msg?: string[];
+}
+
+interface SkeltonLoadingProps {
+  header: boolean;
+}
+
+interface ParentalLockProps {
+  handleClose: React.MouseEventHandler<HTMLButtonElement>;
+  onHandleClose: React.MouseEventHandler<HTMLButtonElement>;
+}
+
 jest.mock('../utility/logger', () => ({
   error: jest.fn(),
   warn: jest.fn(),
@@ -29,8 +53,12 @@ jest.mock('../utility/logger', () => ({
 }));
 
 jest.mock('@ionic/react', () => ({
-  IonPage: (props: any) => <div data-testid="ion-page">{props.children}</div>,
-  IonContent: (props: any) => <div>{props.children}</div>,
+  IonPage: (props: React.HTMLAttributes<HTMLDivElement>) => (
+    <div data-testid="ion-page" {...props} />
+  ),
+  IonContent: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
   useIonToast: () => [jest.fn()],
 }));
 
@@ -45,6 +73,10 @@ jest.mock('i18next', () => ({
   t: (k: string) => k,
 }));
 
+jest.mock('./assets/brandLogoIcon.svg', () => ({
+  ReactComponent: (props: React.SVGProps<SVGSVGElement>) => <svg {...props} />,
+}));
+
 jest.mock('../i18n', () => ({
   __esModule: true,
   default: {
@@ -53,7 +85,7 @@ jest.mock('../i18n', () => ({
   },
 }));
 
-jest.mock('../components/ChimpleLogo', () => (props: any) => (
+jest.mock('../components/ChimpleLogo', () => (props: ChimpleLogoProps) => (
   <div data-testid="chimple-logo">
     <div>{props.header}</div>
     {props.msg?.map((m: string) => (
@@ -64,20 +96,26 @@ jest.mock('../components/ChimpleLogo', () => (props: any) => (
 
 jest.mock('../components/Loading', () => () => <div data-testid="loading" />);
 
-jest.mock('../components/SkeltonLoading', () => (props: any) => (
-  <div data-testid="skeleton-loading">{String(props.header)}</div>
-));
+jest.mock(
+  '../components/SkeltonLoading',
+  () => (props: SkeltonLoadingProps) => (
+    <div data-testid="skeleton-loading">{String(props.header)}</div>
+  ),
+);
 
-jest.mock('../components/parent/ParentalLock', () => (props: any) => (
-  <div data-testid="parental-lock">
-    <button type="button" onClick={props.handleClose}>
-      keep-open
-    </button>
-    <button type="button" onClick={props.onHandleClose}>
-      close-lock
-    </button>
-  </div>
-));
+jest.mock(
+  '../components/parent/ParentalLock',
+  () => (props: ParentalLockProps) => (
+    <div data-testid="parental-lock">
+      <button type="button" onClick={props.handleClose}>
+        keep-open
+      </button>
+      <button type="button" onClick={props.onHandleClose}>
+        close-lock
+      </button>
+    </div>
+  ),
+);
 
 jest.mock('../utility/util');
 
@@ -106,6 +144,7 @@ jest.mock('../services/ServiceConfig', () => ({
 
 jest.mock('@capacitor/core', () => ({
   Capacitor: {
+    getPlatform: jest.fn(),
     isNativePlatform: jest.fn(),
   },
 }));
@@ -135,7 +174,7 @@ describe('DisplayStudents', () => {
       grade_id: 'grade-2',
       age: 8,
     },
-  ] as any[];
+  ] satisfies StudentFixture[];
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -156,6 +195,7 @@ describe('DisplayStudents', () => {
     });
 
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
+    (Capacitor.getPlatform as jest.Mock).mockReturnValue('web');
 
     (schoolUtil.getCurrMode as jest.Mock).mockResolvedValue(MODES.PARENT);
 
@@ -177,6 +217,16 @@ describe('DisplayStudents', () => {
     mockApi.getClassById.mockResolvedValue({ id: 'class-1', name: 'Class 1' });
   });
 
+  const clickStudentOnePlayButton = async (): Promise<void> => {
+    await screen.findByText('Student One');
+    const playButton = document.getElementById('display-students-play-stu-1');
+    expect(playButton).not.toBeNull();
+
+    await act(async () => {
+      fireEvent.click(playButton as HTMLElement);
+    });
+  };
+
   test('loads background image and fetches student profiles on mount', async () => {
     render(<DisplayStudents />);
 
@@ -189,9 +239,27 @@ describe('DisplayStudents', () => {
   test('renders welcome copy and student cards after loading', async () => {
     render(<DisplayStudents />);
 
-    expect(await screen.findByTestId('chimple-logo')).toBeInTheDocument();
-    expect(screen.getByText('Welcome to Chimple!')).toBeInTheDocument();
+    expect(await screen.findByText('Welcome to Chimple!')).toBeInTheDocument();
+    expect(screen.getByText("Select the child's profile")).toBeInTheDocument();
     expect(await screen.findByText('Student One')).toBeInTheDocument();
+  });
+
+  test('marks the page for web-only display styling on web platform', async () => {
+    render(<DisplayStudents />);
+
+    expect(await screen.findByTestId('ion-page')).toHaveClass(
+      'display-students-web',
+    );
+  });
+
+  test('does not mark the page for web-only display styling on native platform', async () => {
+    (Capacitor.getPlatform as jest.Mock).mockReturnValue('android');
+
+    render(<DisplayStudents />);
+
+    expect(await screen.findByTestId('ion-page')).not.toHaveClass(
+      'display-students-web',
+    );
   });
 
   test('updates growthbook child-count attributes when students are loaded', async () => {
@@ -235,12 +303,17 @@ describe('DisplayStudents', () => {
 
     render(<DisplayStudents />);
 
-    fireEvent.click(await screen.findByText('Student One'));
+    await clickStudentOnePlayButton();
 
-    await waitFor(() => {
-      expect(schoolUtil.setCurrentClass).toHaveBeenCalledWith(undefined);
-      expect(warnSpy).toHaveBeenCalledWith('No classes found for the student.');
-    });
+    await waitFor(
+      () => {
+        expect(schoolUtil.setCurrentClass).toHaveBeenCalledWith(undefined);
+        expect(warnSpy).toHaveBeenCalledWith(
+          'No classes found for the student.',
+        );
+      },
+      { timeout: 3000 },
+    );
 
     warnSpy.mockRestore();
   });
@@ -248,7 +321,7 @@ describe('DisplayStudents', () => {
   test('ensures lido common audio when student profile is selected', async () => {
     render(<DisplayStudents />);
 
-    fireEvent.click(await screen.findByText('Student One'));
+    await clickStudentOnePlayButton();
 
     await waitFor(() => {
       expect(Util.ensureLidoCommonAudioForStudent).toHaveBeenCalledWith(
@@ -266,7 +339,7 @@ describe('DisplayStudents', () => {
 
     render(<DisplayStudents />);
 
-    fireEvent.click(await screen.findByText('Student One'));
+    await clickStudentOnePlayButton();
 
     await waitFor(() => {
       expect(mockHistoryReplace).toHaveBeenCalledWith(

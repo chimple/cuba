@@ -31,7 +31,6 @@ import { t } from 'i18next';
 import { useHistory } from 'react-router';
 import { schoolUtil } from '../../utility/schoolUtil';
 import Header from '../components/homePage/Header';
-import { Util } from '../../utility/util';
 
 const PAGE_LIMIT = 50;
 
@@ -223,9 +222,6 @@ const SearchSchool: FC = () => {
 
   const switchUser = () => {
     schoolUtil.setCurrMode(MODES.PARENT);
-    setTimeout(() => {
-      Util.killCocosGame();
-    }, 1000);
     history.replace(PAGES.DISPLAY_STUDENT);
   };
 

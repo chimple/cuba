@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
+import Confetti from 'react-confetti';
 import './HomeworkPathwayStructure.css';
 import '../learningPathway/PathwayStructure.css';
 import { useHistory } from 'react-router';
@@ -17,16 +18,15 @@ import {
   CHIMPLE_MASCOT_STATE_MACHINE_NORMAL,
   CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
   HOMEWORK_REMOTE_ASSETS_ENABLED,
-  COCOS,
   CONTINUE,
   HOMEWORK_PATHWAY,
   IDLE_REWARD_ID,
-  LIDO,
   LIVE_QUIZ,
   EVENTS,
   PATHWAY_REWARD_AUDIO_READY_EVENT,
   PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
   PAGES,
+  SOURCE,
   REWARD_LEARNING_PATH,
   REWARD_MODAL_SHOWN_DATE,
   RewardBoxState,
@@ -50,7 +50,12 @@ import StickerBookPreviewModal, {
 import { AudioUtil } from '../../utility/AudioUtil';
 import { useHomeworkSticker } from '../../hooks/useHomeworkSticker';
 import logger from '../../utility/logger';
-import { hasPendingHomeworkStickerFlow } from '../../utility/homeworkStickerFlow';
+import {
+  clearPendingHomeworkStickerFlow,
+  clearPendingHomeworkStickerPreviewState,
+  hasPendingFinalHomeworkStickerFlow,
+  hasPendingHomeworkStickerFlow,
+} from '../../utility/homeworkStickerFlow';
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;
@@ -60,10 +65,10 @@ interface HomeworkPathwayStructureProps {
 
 interface HomeworkPathLessonItem {
   lesson: Partial<TableTypes<'lesson'>>;
-  course_id: string;
-  chapter_id: string;
-  assignment_id?: string;
-  raw_assignment?: TableTypes<'assignment'>;
+  course_id: string | null;
+  chapter_id: string | null;
+  assignment_id?: string | null;
+  raw_assignment?: Partial<TableTypes<'assignment'>>;
 }
 
 interface PendingHomeworkRewardTransition {
@@ -72,12 +77,20 @@ interface PendingHomeworkRewardTransition {
   pathSnapshot?: string;
 }
 
+type HomeworkStoredPathItem = HomeworkPathLessonItem & {
+  lesson_id?: string;
+  subject_id?: string;
+  id?: string;
+};
+
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
-const CROWD_CHEER_AUDIO_URL = '/assets/audios/common/crowd_cheer.mp3';
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
   'pending_homework_reward_transition';
-const MASCOT_X_OFFSET = -163;
+const MASCOT_X_OFFSET = -155;
+const REWARD_FLIGHT_TARGET_X_OFFSET = MASCOT_X_OFFSET + 84;
+const REWARD_FLIGHT_DURATION_MS = 4000;
+const REWARD_FLIGHT_ARC_Y_OFFSET = 150;
 
 const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   selectedSubject,
@@ -94,6 +107,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   );
   const [rewardRiveContainer, setRewardRiveContainer] =
     useState<HTMLDivElement | null>(null);
+  const [showRewardConfetti, setShowRewardConfetti] = useState(false);
+  const rewardConfettiTimerRef = useRef<number | null>(null);
 
   const [rewardRiveState, setRewardRiveState] = useState<
     RewardBoxState.IDLE | RewardBoxState.SHAKING | RewardBoxState.BLAST
@@ -117,14 +132,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   } | null>(null);
   const mascotSpeakRequestIdRef = useRef(0);
   const currentMascotStateValueRef = useRef(1);
-  const rewardAudioSequenceRef = useRef({
-    rewardId: null as string | null,
-    crowdComplete: false,
-    rewardReady: false,
-    suppressed: false,
-    stateValue: null as number | null,
-    token: 0,
-  });
 
   const {
     hasTodayReward,
@@ -132,6 +139,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     checkAndUpdateReward,
     shouldShowDailyRewardModal,
   } = useReward();
+  const hasTodayRewardRef = useRef(hasTodayReward);
 
   const [currentCourse, setCurrentCourse] = useState<TableTypes<'course'>>();
   const [currentChapter, setCurrentChapter] = useState<TableTypes<'chapter'>>();
@@ -141,6 +149,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   const lessonCacheRef = useRef<Map<string, Partial<TableTypes<'lesson'>>>>(
     new Map(),
   );
+  const lastRenderedPathSignatureRef = useRef<string | null>(null);
+  const loadSvgRequestIdRef = useRef(0);
 
   // New state for homework pathway lessons array
   const [homeworkLessons, setHomeworkLessons] = useState<
@@ -164,16 +174,36 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     currentMascotStateValueRef.current = chimpleRiveStateValue;
   }, [chimpleRiveStateValue]);
 
-  const resetRewardAudioSequence = () => {
-    rewardAudioSequenceRef.current = {
-      ...rewardAudioSequenceRef.current,
-      rewardId: null,
-      crowdComplete: false,
-      rewardReady: false,
-      suppressed: false,
-      stateValue: null,
+  useEffect(() => {
+    const handleRewardCelebrationStarted = () => {
+      setShowRewardConfetti(true);
+      if (rewardConfettiTimerRef.current !== null) {
+        window.clearTimeout(rewardConfettiTimerRef.current);
+      }
+      rewardConfettiTimerRef.current = window.setTimeout(() => {
+        setShowRewardConfetti(false);
+      }, 4500);
     };
-  };
+
+    window.addEventListener(
+      PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+      handleRewardCelebrationStarted,
+    );
+
+    return () => {
+      window.removeEventListener(
+        PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+        handleRewardCelebrationStarted,
+      );
+      if (rewardConfettiTimerRef.current !== null) {
+        window.clearTimeout(rewardConfettiTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    hasTodayRewardRef.current = hasTodayReward;
+  }, [hasTodayReward]);
 
   const invokeMascotCelebration = async (stateValue: number) => {
     setChimpleRiveStateMachineName(CHIMPLE_MASCOT_STATE_MACHINE_CELEBRATE);
@@ -254,23 +284,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       chimpleRiveStateMachineName,
       chimpleRiveStateValue,
     ],
-  );
-
-  const playRewardCollectMascotAudio = useCallback(
-    async (stateValue?: number) => {
-      const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
-        'dailyReward',
-        'reward',
-      );
-      if (!localAudioPath) return;
-
-      await playMascotAudioFromLocalPath(localAudioPath, {
-        stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
-        inputName: CHIMPLE_MASCOT_INPUT_REWARD,
-        stateValue: stateValue ?? currentMascotStateValueRef.current ?? 1,
-      });
-    },
-    [playMascotAudioFromLocalPath],
   );
 
   const fetchLocalSVGGroup = async (
@@ -481,14 +494,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           pendingRewardTransition.completedIndex;
 
       const normalizeLessonShape = (
-        item: unknown,
-        fallbackLessons: unknown[],
+        item: HomeworkStoredPathItem,
+        fallbackLessons: HomeworkStoredPathItem[],
       ): HomeworkPathLessonItem => {
-        const typedItem = item as HomeworkPathLessonItem & {
-          lesson_id?: string;
-          subject_id?: string;
-          id?: string;
-        };
+        const typedItem = item;
         if (typedItem.lesson && typedItem.lesson.id) return typedItem;
 
         return {
@@ -514,7 +523,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           const snapshotPath = JSON.parse(
             pendingRewardTransition.pathSnapshot,
           ) as {
-            lessons?: unknown[];
+            lessons?: HomeworkStoredPathItem[];
           };
           const snapshotLessons = snapshotPath.lessons ?? [];
           if (snapshotLessons.length > 0) {
@@ -534,7 +543,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       if (existingPathStr) {
         try {
           const existingPath = JSON.parse(existingPathStr) as {
-            lessons?: unknown[];
+            lessons?: HomeworkStoredPathItem[];
             currentIndex?: number;
           };
 
@@ -668,23 +677,36 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     if (containerRef.current) {
       containerRef.current.innerHTML = '';
     }
+    lastRenderedPathSignatureRef.current = null;
     setHomeworkLessons([]);
     void fetchHomeworkLessons();
   }, [fetchHomeworkLessons]);
 
   const playRewardAudio = useCallback(
-    async (stateValue?: number) => {
+    async (
+      stateValue?: number,
+      playbackOptions?: {
+        onPlaybackStop?: () => void;
+      },
+    ): Promise<boolean> => {
       const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
         'dailyReward',
         'reward',
       );
-      if (!localAudioPath) return;
+      if (!localAudioPath) {
+        playbackOptions?.onPlaybackStop?.();
+        return false;
+      }
 
-      await playMascotAudioFromLocalPath(localAudioPath, {
-        stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
-        inputName: CHIMPLE_MASCOT_INPUT_REWARD,
-        stateValue: stateValue ?? currentMascotStateValueRef.current ?? 1,
-      });
+      return playMascotAudioFromLocalPath(
+        localAudioPath,
+        {
+          stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
+          inputName: CHIMPLE_MASCOT_INPUT_REWARD,
+          stateValue: stateValue ?? currentMascotStateValueRef.current ?? 1,
+        },
+        playbackOptions,
+      );
     },
     [playMascotAudioFromLocalPath],
   );
@@ -692,6 +714,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   const {
     closeStickerCompletion,
     closeStickerPreview,
+    finishFinalHomeworkStickerFlow,
     getPersistedStickerCompletionPayload,
     getStickerPreviewPayload,
     handleMascotReplayClick,
@@ -768,9 +791,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       logger.error('Error in initializeHomeworkRewardState:', err);
     }
   }, [checkAndUpdateReward, setHasTodayReward, updateMascotToNormalState]);
-
   const loadSVG = useCallback(async () => {
     if (!containerRef.current) return;
+    const requestId = loadSvgRequestIdRef.current + 1;
+    loadSvgRequestIdRef.current = requestId;
 
     try {
       const pendingRewardIndexRaw = sessionStorage.getItem(
@@ -833,6 +857,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       let fetchedChapter: TableTypes<'chapter'> | undefined;
 
       try {
+        if (!firstHomeworkItem.course_id || !firstHomeworkItem.chapter_id) {
+          throw new Error('Missing homework course/chapter identifiers');
+        }
         const [cData, chData] = await Promise.all([
           api.getCourse(firstHomeworkItem.course_id),
           api.getChapterById(firstHomeworkItem.chapter_id),
@@ -848,17 +875,21 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           id: firstHomeworkItem.course_id,
           name: 'Course',
           subject_id: 'unknown',
-        } as any;
+        } as TableTypes<'course'>;
         fetchedChapter = {
           id: firstHomeworkItem.chapter_id,
           name: 'Chapter',
-        } as any;
+        } as TableTypes<'chapter'>;
       }
 
       if (!fetchedCourse || !fetchedChapter) {
         logger.error('Could not determine course/chapter data.');
-        fetchedCourse = { id: firstHomeworkItem.course_id } as any;
-        fetchedChapter = { id: firstHomeworkItem.chapter_id } as any;
+        fetchedCourse = {
+          id: firstHomeworkItem.course_id,
+        } as TableTypes<'course'>;
+        fetchedChapter = {
+          id: firstHomeworkItem.chapter_id,
+        } as TableTypes<'chapter'>;
       }
 
       setCurrentCourse(fetchedCourse);
@@ -866,6 +897,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       const lessons = lessonsToRender.map((item) => item.lesson);
       const currentStudent = Util.getCurrentStudent();
+      if (!isStickerBookCelebrationPopupOn) {
+        clearPendingHomeworkStickerPreviewState();
+        sessionStorage.removeItem(REWARD_LEARNING_PATH);
+        if (!isStickerBookCompletionPopupOn) {
+          clearPendingHomeworkStickerFlow();
+        }
+      }
       let previewOverrideParsed: {
         awardedStickerId?: string;
         preAwardCollectedStickerIds?: string[];
@@ -998,8 +1036,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         ),
         stickerPreviewPromise,
       ]);
-
       let didScheduleStickerCompletionPopup = false;
+      let didDispatchStickerCompletionPopupImmediately = false;
       if (
         completionOverrideParsed &&
         !shouldOpenCelebrationPopup &&
@@ -1008,6 +1046,14 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       ) {
         sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
         didScheduleStickerCompletionPopup = true;
+        window.setTimeout(() => {
+          window.dispatchEvent(
+            new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+              detail: stickerCompletionPayload,
+            }),
+          );
+        }, 0);
+        didDispatchStickerCompletionPopupImmediately = true;
       }
 
       const currentCompletedIndexFromPath =
@@ -1052,7 +1098,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       chimple.setAttribute('height', '260%');
 
       requestAnimationFrame(async () => {
-        if (!containerRef.current) return;
+        if (!containerRef.current || loadSvgRequestIdRef.current !== requestId)
+          return;
         containerRef.current.innerHTML = svgContent;
         const svg = containerRef.current.querySelector('svg') as SVGSVGElement;
         if (!svg) return;
@@ -1232,39 +1279,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
             activeGroup.addEventListener('click', () => {
               const shouldMarkRewardLesson =
-                isRewardFeatureOn && hasTodayReward;
-              const lidoLessonId =
-                lesson.lido_lesson_id ||
-                (lesson.plugin_type === LIDO ? lesson.cocos_lesson_id : null);
-
-              if (lidoLessonId) {
-                const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
-                history.push(PAGES.LIDO_PLAYER + params, {
-                  lessonId: lidoLessonId,
-                  courseDocId: fetchedCourse?.id,
-                  course: JSON.stringify(fetchedCourse),
-                  lesson: JSON.stringify(lesson),
-                  chapter: JSON.stringify(fetchedChapter),
-                  from: history.location.pathname + `?${CONTINUE}=true`,
-                  isHomework: true,
-                  homeworkIndex: lessonIdx,
-                  reward: shouldMarkRewardLesson,
-                });
-              } else if (lesson.plugin_type === COCOS) {
-                const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-                history.push(PAGES.GAME + params, {
-                  url: 'chimple-lib/index.html' + params,
-                  lessonId: lesson.cocos_lesson_id,
-                  courseDocId: fetchedCourse?.id,
-                  lesson: JSON.stringify(lesson),
-                  chapter: JSON.stringify(fetchedChapter),
-                  from: history.location.pathname + `?${CONTINUE}=true`,
-                  course: JSON.stringify(fetchedCourse),
-                  isHomework: true,
-                  homeworkIndex: lessonIdx,
-                  reward: shouldMarkRewardLesson,
-                });
-              } else if (lesson.plugin_type === LIVE_QUIZ) {
+                isRewardFeatureOn && hasTodayRewardRef.current;
+              if (lesson.plugin_type === LIVE_QUIZ) {
                 history.push(
                   PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
                   {
@@ -1274,8 +1290,27 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                     isHomework: true,
                     homeworkIndex: lessonIdx,
                     reward: shouldMarkRewardLesson,
+                    source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
                   },
                 );
+              } else {
+                const playableLessonId = Util.getLessonBundleId(lesson);
+                if (!playableLessonId) {
+                  return;
+                }
+                const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
+                history.push(PAGES.LIDO_PLAYER + params, {
+                  lessonId: playableLessonId,
+                  courseDocId: fetchedCourse?.id,
+                  course: JSON.stringify(fetchedCourse),
+                  lesson: JSON.stringify(lesson),
+                  chapter: JSON.stringify(fetchedChapter),
+                  from: history.location.pathname + `?${CONTINUE}=true`,
+                  isHomework: true,
+                  homeworkIndex: lessonIdx,
+                  reward: shouldMarkRewardLesson,
+                  source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
+                });
               }
             });
             fragment.appendChild(activeGroup);
@@ -1653,7 +1688,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           });
         };
 
-        const runRewardAnimation = async (newRewardId: string) => {
+        const runRewardAnimation = async (
+          newRewardId: string,
+          onComplete?: () => void,
+        ) => {
           // If offline, this might fail, wrap in try/catch or skip if no internet
           try {
             const rewardRecord = await api.getRewardById(newRewardId);
@@ -1704,28 +1742,24 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             ).contain = 'layout paint style';
             const fromX = 570,
               fromY = 110;
-            const toX = destinationX - 27,
+            const toX = destinationX + REWARD_FLIGHT_TARGET_X_OFFSET,
               toY = startPoint.y - 69;
             const controlX = (fromX + toX) / 2,
-              controlY = Math.min(fromY, toY) - 150;
-            const duration = 4000;
+              controlY = Math.min(fromY, toY) - REWARD_FLIGHT_ARC_Y_OFFSET;
+            const duration = REWARD_FLIGHT_DURATION_MS;
             const start = performance.now();
+            const easeInOutCubic = (val: number) =>
+              val < 0.5
+                ? 4 * val * val * val
+                : 1 - Math.pow(-2 * val + 2, 3) / 2;
+            const bezier = (tVal: number, p0: number, p1: number, p2: number) =>
+              (1 - tVal) ** 2 * p0 +
+              2 * (1 - tVal) * tVal * p1 +
+              tVal ** 2 * p2;
             const animateBezier = (now: number) => {
               let t = (now - start) / duration;
               if (t > 1) t = 1;
-              const easeInOutCubic = (val: number) =>
-                val < 0.5
-                  ? 4 * val * val * val
-                  : 1 - Math.pow(-2 * val + 2, 3) / 2;
-              const bezier = (
-                tVal: number,
-                p0: number,
-                p1: number,
-                p2: number,
-              ) =>
-                (1 - tVal) ** 2 * p0 +
-                2 * (1 - tVal) * tVal * p1 +
-                tVal ** 2 * p2;
+
               const easedT = easeInOutCubic(t);
               const x = bezier(easedT, fromX, controlX, toX);
               const y = bezier(easedT, fromY, controlY, toY);
@@ -1771,6 +1805,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                   },
                 }),
               );
+              await Util.updateUserReward();
+              onComplete?.();
             };
             const rewardDiv = document.createElement('div');
             rewardDiv.style.width = '100%';
@@ -1786,7 +1822,6 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               });
             });
             requestAnimationFrame(animateBezier);
-            await Util.updateUserReward();
           } catch (e) {
             logger.warn('Reward animation failed offline', e);
           }
@@ -1876,14 +1911,14 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         const shouldSkipRewardAnimationForSticker =
           isStringReward &&
           isRewardFeatureOn &&
-          Boolean(pendingStickerRewardParsed?.awardedStickerId);
+          Boolean(pendingStickerRewardParsed?.awardedStickerId) &&
+          !willShowCelebration &&
+          !didScheduleStickerCompletionPopup;
         const shouldRunRewardAnimation =
           !isPlaceholderSnapshot &&
           isStringReward &&
           isRewardFeatureOn &&
-          !shouldSkipRewardAnimationForSticker &&
-          !willShowCelebration &&
-          !didScheduleStickerCompletionPopup;
+          !shouldSkipRewardAnimationForSticker;
 
         if (shouldSkipRewardAnimationForSticker) {
           setHasTodayReward(false);
@@ -1891,13 +1926,35 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
           await updateMascotToNormalState(newRewardId as string);
           await Util.updateUserReward();
+          if (hasPendingFinalHomeworkStickerFlow()) {
+            finishFinalHomeworkStickerFlow();
+          }
         }
 
         if (shouldRunRewardAnimation) {
-          runRewardAnimation(newRewardId);
-        }
-
-        if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
+          runRewardAnimation(newRewardId, () => {
+            if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
+              window.setTimeout(() => {
+                handleStickerPreviewReady(
+                  stickerPreviewPayload,
+                  'pathway_completion_auto',
+                );
+              }, 0);
+            } else if (
+              didScheduleStickerCompletionPopup &&
+              !didDispatchStickerCompletionPopupImmediately &&
+              stickerCompletionPayload
+            ) {
+              window.setTimeout(() => {
+                window.dispatchEvent(
+                  new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+                    detail: stickerCompletionPayload,
+                  }),
+                );
+              }, 0);
+            }
+          });
+        } else if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
           window.setTimeout(() => {
             handleStickerPreviewReady(
               stickerPreviewPayload,
@@ -1906,6 +1963,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           }, 0);
         } else if (
           didScheduleStickerCompletionPopup &&
+          !didDispatchStickerCompletionPopupImmediately &&
           stickerCompletionPayload
         ) {
           window.setTimeout(() => {
@@ -1925,10 +1983,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     checkAndUpdateReward,
     history,
     fetchSVGGroup,
+    finishFinalHomeworkStickerFlow,
     getPersistedStickerCompletionPayload,
     getStickerPreviewPayload,
     handleStickerPreviewReady,
-    hasTodayReward,
     inactiveText,
     isOffline,
     isRewardFeatureOn,
@@ -1954,13 +2012,79 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
   useEffect(() => {
     if (homeworkLessons.length > 0) {
+      const homeworkPathSignature = (() => {
+        const pendingRewardTransition = sessionStorage.getItem(
+          PENDING_HOMEWORK_REWARD_TRANSITION_KEY,
+        );
+        const rewardCompletedIndex = sessionStorage.getItem(
+          HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
+        );
+        const storedHomeworkPath = pendingRewardTransition
+          ? null
+          : localStorage.getItem(HOMEWORK_PATHWAY);
+        const visualConfigSignature = [
+          rewardBoxVariant ?? 'no-reward-box-variant',
+          isStickerBookPreviewOn ? 'preview-on' : 'preview-off',
+          isStickerBookCelebrationPopupOn
+            ? 'celebration-on'
+            : 'celebration-off',
+          isStickerBookCompletionPopupOn ? 'completion-on' : 'completion-off',
+          isOffline ? 'offline' : 'online',
+          sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY) ??
+            'no-sticker-preview',
+          sessionStorage.getItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY) ??
+            'no-sticker-completion',
+          sessionStorage.getItem(PENDING_PATHWAY_STICKER_REWARD_KEY) ??
+            'no-pending-sticker-reward',
+        ].join('::');
+        const lessonIds = homeworkLessons
+          .map((item) => item.lesson?.id || item.assignment_id || '')
+          .join('|');
+
+        try {
+          const path = storedHomeworkPath
+            ? (JSON.parse(storedHomeworkPath) as {
+                path_id?: string;
+                currentIndex?: number;
+              })
+            : null;
+          return [
+            path?.path_id ?? 'no-path-id',
+            path?.currentIndex ?? 'no-index',
+            rewardCompletedIndex ?? 'no-reward-index',
+            pendingRewardTransition ?? 'no-reward-transition',
+            visualConfigSignature,
+            lessonIds,
+          ].join('::');
+        } catch {
+          return [visualConfigSignature, lessonIds].join('::');
+        }
+      })();
+
+      if (
+        lastRenderedPathSignatureRef.current === homeworkPathSignature &&
+        containerRef.current?.querySelector('svg')
+      ) {
+        return;
+      }
+
+      lastRenderedPathSignatureRef.current = homeworkPathSignature;
       loadSVG();
     } else {
+      lastRenderedPathSignatureRef.current = null;
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
       }
     }
-  }, [homeworkLessons, loadSVG]);
+  }, [
+    homeworkLessons,
+    isOffline,
+    isStickerBookCelebrationPopupOn,
+    isStickerBookCompletionPopupOn,
+    isStickerBookPreviewOn,
+    loadSVG,
+    rewardBoxVariant,
+  ]);
 
   useEffect(() => {
     if (!isRewardFeatureOn) return;
@@ -2035,6 +2159,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       const courseDocId = activeLessonItem.course_id;
       const chapterDocId = activeLessonItem.chapter_id;
 
+      if (!courseDocId || !chapterDocId) {
+        logger.warn(
+          'Skipping homework lesson launch because course/chapter identifiers are missing.',
+        );
+        return;
+      }
+
       if (!currentCourse || currentCourse.id !== courseDocId) {
         try {
           const course = await api.getCourse(courseDocId);
@@ -2062,38 +2193,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           ? currentChapter
           : await api.getChapterById(chapterDocId).catch(() => currentChapter);
 
-      const lidoLessonId =
-        lesson.lido_lesson_id ||
-        (lesson.plugin_type === LIDO ? lesson.cocos_lesson_id : null);
-
-      if (lidoLessonId) {
-        const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lidoLessonId}`;
-        history.push(PAGES.LIDO_PLAYER + params, {
-          lessonId: lidoLessonId,
-          courseDocId,
-          course: JSON.stringify(nextCourse),
-          lesson: JSON.stringify(lesson),
-          chapter: JSON.stringify(nextChapter),
-          from: history.location.pathname + `?${CONTINUE}=true`,
-          isHomework: true,
-          homeworkIndex: homeworkPath.currentIndex,
-          reward: true,
-        });
-      } else if (lesson.plugin_type === COCOS) {
-        const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-        history.push(PAGES.GAME + params, {
-          url: 'chimple-lib/index.html' + params,
-          lessonId: lesson.cocos_lesson_id,
-          courseDocId,
-          course: JSON.stringify(nextCourse),
-          lesson: JSON.stringify(lesson),
-          chapter: JSON.stringify(nextChapter),
-          from: history.location.pathname + `?${CONTINUE}=true`,
-          isHomework: true,
-          homeworkIndex: homeworkPath.currentIndex,
-          reward: true,
-        });
-      } else if (lesson.plugin_type === LIVE_QUIZ) {
+      if (lesson.plugin_type === LIVE_QUIZ) {
         history.push(
           PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
           {
@@ -2103,8 +2203,27 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             isHomework: true,
             homeworkIndex: homeworkPath.currentIndex,
             reward: true,
+            source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
           },
         );
+      } else {
+        const playableLessonId = Util.getLessonBundleId(lesson);
+        if (!playableLessonId) {
+          return;
+        }
+        const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
+        history.push(PAGES.LIDO_PLAYER + params, {
+          lessonId: playableLessonId,
+          courseDocId,
+          course: JSON.stringify(nextCourse),
+          lesson: JSON.stringify(lesson),
+          chapter: JSON.stringify(nextChapter),
+          from: history.location.pathname + `?${CONTINUE}=true`,
+          isHomework: true,
+          homeworkIndex: homeworkPath.currentIndex,
+          reward: true,
+          source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
+        });
       }
     } catch (error) {
       logger.error('Error in playLesson:', error);
@@ -2162,6 +2281,17 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           <RewardRive rewardRiveState={rewardRiveState} />,
           rewardRiveContainer,
         )}
+
+      {showRewardConfetti && (
+        <Confetti
+          className="HomeworkPathwayStructure-reward-confetti"
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={180}
+          gravity={0.28}
+        />
+      )}
 
       {hasTodayReward && isRewardFeatureOn && (
         <RewardBox onRewardClick={handleOpen} />

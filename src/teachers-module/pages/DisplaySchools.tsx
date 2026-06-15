@@ -91,9 +91,6 @@ const DisplaySchools: FC = () => {
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
       ScreenOrientation.lock({ orientation: 'portrait' });
-      setTimeout(() => {
-        Util.killCocosGame();
-      }, 1000);
     }
   };
 
@@ -247,8 +244,7 @@ const DisplaySchools: FC = () => {
   };
 
   const switchUser = () => {
-    schoolUtil.setCurrMode(MODES.PARENT);
-    history.replace(PAGES.DISPLAY_STUDENT);
+    history.replace(PAGES.KIDS_APP_LOCATION);
     setLoading(false);
   };
 
@@ -285,14 +281,12 @@ const DisplaySchools: FC = () => {
             isBackButton={false}
             disableBackButton={true}
             customText="Select School"
+            showStreakButton={false}
           />
           <div className="display-user-switch-user-toggle">
             <div className="display-school-switch-text">
               <PiUserSwitchFill className="display-user-user-switch-icon" />
-              <CommonToggle
-                onChange={switchUser}
-                label="Switch to Child's Mode"
-              />
+              <CommonToggle onChange={switchUser} label="Switch to Kids App" />
             </div>
             {isAuthorizedForOpsMode && (
               <div className="display-schools-toggle-ops-switch-text">

@@ -17,13 +17,14 @@ import {
   FORM_MODES,
   GENDER,
   LANGUAGE,
+  LATEST_TC_VERSION,
   PAGES,
   PROFILE_DETAILS_GROWTHBOOK_VARIATION,
   TableTypes,
 } from '../../common/constants';
 import { useHistory, useLocation } from 'react-router';
 import { Capacitor } from '@capacitor/core';
-import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { ScreenOrientation } from '../../utility/screenOrientation';
 import { initializeFireBase } from '../../services/Firebase';
 import Loading from '../Loading';
 import { logProfileClick } from '../../analytics/profileClickUtil';
@@ -32,6 +33,11 @@ import {
   reinitializeHardwareBackButton,
 } from '../../common/backButtonRegistry';
 import logger from '../../utility/logger';
+import { schoolUtil } from '../../utility/schoolUtil';
+import {
+  updateLocalAttributes,
+  useGbContext,
+} from '../../growthbook/Growthbook';
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -52,6 +58,7 @@ const ProfileDetails = () => {
   const history = useHistory();
   const location = useLocation();
   const profileRef = useRef<HTMLDivElement>(null);
+  const { setGbUpdated } = useGbContext();
 
   const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const [parentHasStudent, setParentHasStudent] = useState<boolean>(false);
@@ -79,6 +86,7 @@ const ProfileDetails = () => {
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.ONBOARDING,
     PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL,
   );
+  const latestTcVersion = useFeatureValue<number>(LATEST_TC_VERSION, 0);
   const mode = getModeFromFeature(variation);
   const randomIndex = Math.floor(Math.random() * AVATARS.length);
 
@@ -402,6 +410,7 @@ const ProfileDetails = () => {
         undefined,
         undefined,
         languageId || DEFAULT_LANGUAGE_ID_EN,
+        latestTcVersion,
       );
 
       Util.logEvent(EVENTS.PROFILE_CREATED, {
@@ -428,6 +437,15 @@ const ProfileDetails = () => {
           : undefined,
         tmpPath === PAGES.HOME ? true : false,
       );
+      await schoolUtil.setCurrentClass(undefined);
+      // A newly created child starts without class linkage, so clear school targeting.
+      updateLocalAttributes({
+        student_id: student.id,
+        age: student.age ?? null,
+        grade_id: student.grade_id ?? null,
+        school_ids: [],
+      });
+      setGbUpdated(true);
 
       await Util.ensureLidoCommonAudioForStudent(student);
       history.replace(tmpPath);
@@ -454,13 +472,25 @@ const ProfileDetails = () => {
         (lang) => lang.code === languageCode,
       );
 
-      const student = await api.createAutoProfile(selectedLanguage?.id);
+      const student = await api.createAutoProfile(
+        selectedLanguage?.id,
+        latestTcVersion,
+      );
 
       await Util.setCurrentStudent(
         student,
         selectedLanguage?.code ?? undefined,
         true,
       );
+      await schoolUtil.setCurrentClass(undefined);
+      // Auto-created child profiles also start with no school/class association.
+      updateLocalAttributes({
+        student_id: student.id,
+        age: student.age ?? null,
+        grade_id: student.grade_id ?? null,
+        school_ids: [],
+      });
+      setGbUpdated(true);
 
       const user = await auth.getCurrentUser();
 
@@ -606,7 +636,7 @@ const ProfileDetails = () => {
                 }
                 options={languages.map((lang) => ({
                   value: lang.id,
-                  label: t(lang.name),
+                  label: lang.name,
                 }))}
                 // required={mode === FORM_MODES.ALL_REQUIRED}
               />

@@ -1,116 +1,127 @@
 import {
-  MODES,
-  LeaderboardDropdownList,
-  LeaderboardRewards,
-  TABLES,
-  TableTypes,
-  MUTATE_TYPES,
-  LIVE_QUIZ,
-  CURRENT_SQLITE_VERSION,
-  DEFAULT_SUBJECT_IDS,
-  OTHER_CURRICULUM,
-  grade1,
-  aboveGrade3,
-  belowGrade1,
-  grade2,
-  grade3,
-  PROFILETYPE,
-  LATEST_STARS,
-  SchoolRoleMap,
-  FilteredSchoolsForSchoolListingOps,
-  COURSES,
-  CHIMPLE_HINDI,
-  GRADE1_KANNADA,
-  GRADE1_MARATHI,
-  CHIMPLE_ENGLISH,
-  CHIMPLE_MATHS,
-  CHIMPLE_DIGITAL_SKILLS,
-  TabType,
-  AVATARS,
-  BASE_NAME,
-  DELETED_CLASSES,
-  StudentInfo,
-  StudentAPIResponse,
-  TeacherAPIResponse,
-  TeacherInfo,
-  PrincipalInfo,
-  PrincipalAPIResponse,
-  SchoolVisitAction,
-  SchoolVisitType,
-  CoordinatorInfo,
-  CoordinatorAPIResponse,
-  EVENTS,
-  EnumType,
-  CACHETABLES,
-  RequestTypes,
-  STATUS,
-  GeoDataParams,
-  SearchSchoolsParams,
-  SearchSchoolsResult,
-  REWARD_LESSON,
-  DEFAULT_LOCALE_ID,
-  SCHOOL,
-  CLASS,
-  RESULT_STATUS,
-  LIDO_ASSESSMENT,
-  LATEST_LEARNING_PATH,
-} from '../../common/constants';
-import { StudentLessonResult } from '../../common/courseConstants';
-import { AvatarObj } from '../../components/animation/Avatar';
-import Course from '../../models/course';
-import Lesson from '../../models/lesson';
-import {
-  AssignmentCartData,
-  GetSchoolsWithProgramAccessParams,
-  JoinClassInviteLookupResult,
-  LeaderboardInfo,
-  OpsStudentPerformanceBandRow,
-  OpsStudentPerformanceBandsParams,
-  SchoolProgramAccessResponse,
-  ServiceApi,
-} from './ServiceApi';
-import {
-  SQLiteDBConnection,
-  SQLiteConnection,
   CapacitorSQLite,
-  capSQLiteResult,
   DBSQLiteValues,
+  SQLiteConnection,
+  SQLiteDBConnection,
+  capSQLiteResult,
   capSQLiteVersionUpgrade,
 } from '@capacitor-community/sqlite';
 import { Capacitor } from '@capacitor/core';
-import { SupabaseApi } from './SupabaseApi';
-import { APIMode, ServiceConfig } from '../ServiceConfig';
 import { v4 as uuidv4 } from 'uuid';
-import { RoleType } from '../../interface/modelInterfaces';
-import { Util } from '../../utility/util';
+import {
+  AVATARS,
+  BASE_NAME,
+  CACHETABLES,
+  CHIMPLE_DIGITAL_SKILLS,
+  CHIMPLE_ENGLISH,
+  CHIMPLE_HINDI,
+  CHIMPLE_MATHS,
+  CLASS,
+  COURSES,
+  CURRENT_SQLITE_VERSION,
+  CoordinatorAPIResponse,
+  CoordinatorInfo,
+  DEFAULT_LOCALE_ID,
+  DEFAULT_SUBJECT_IDS,
+  DELETED_CLASSES,
+  EVENTS,
+  EnumType,
+  FilteredSchoolsForSchoolListingOps,
+  GRADE1_KANNADA,
+  GRADE1_MARATHI,
+  GeoDataParams,
+  LATEST_LEARNING_PATH,
+  LATEST_STARS,
+  LIDO_ASSESSMENT,
+  LIVE_QUIZ,
+  LeaderboardDropdownList,
+  LeaderboardRewards,
+  MODES,
+  MUTATE_TYPES,
+  OTHER_CURRICULUM,
+  PROFILETYPE,
+  PrincipalAPIResponse,
+  PrincipalInfo,
+  RESULT_STATUS,
+  REWARD_LEARNING_PATH,
+  REWARD_LESSON,
+  RequestTypes,
+  SCHOOL,
+  STATUS,
+  SchoolRoleMap,
+  SchoolVisitAction,
+  SchoolVisitType,
+  SearchSchoolsParams,
+  SearchSchoolsResult,
+  StudentAPIResponse,
+  StudentInfo,
+  TABLES,
+  SOURCE,
+  TabType,
+  TableTypes,
+  TeacherAPIResponse,
+  TeacherInfo,
+} from '../../common/constants';
+import { StudentLessonResult } from '../../common/courseConstants';
+import { AvatarObj } from '../../components/animation/Avatar';
+import {
+  PaginatedResponse,
+  RoleType,
+  SchoolNote,
+  StickerBook,
+  StickerMeta,
+  UserStickerProgress,
+} from '../../interface/modelInterfaces';
+import Course from '../../models/course';
+import Lesson from '../../models/lesson';
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from '../../ops-console/pages/NewUserPageOps';
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
-import {
-  PaginatedResponse,
-  SchoolNote,
-  StickerMeta,
-  StickerBook,
-  UserStickerProgress,
-} from '../../interface/modelInterfaces';
+import { store } from '../../redux/store';
 import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
 } from '../../teachers-module/pages/AssignmentCartStorage';
-import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorkerClient';
-import type { SqlStatement } from '../../workers/background.worker.types';
-import { store } from '../../redux/store';
-import { Json } from '../database';
 import logger from '../../utility/logger';
+import { isRecoverableStorageError } from '../../utility/recoverableStorageError';
 import { ensureLocalStickerBookSvgUri } from '../../utility/stickerBookAssets';
+import { Util } from '../../utility/util';
+import type { SqlStatement } from '../../workers/background.worker.types';
+import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorkerClient';
+import { Json } from '../database';
+import { APIMode, ServiceConfig } from '../ServiceConfig';
+import {
+  AssignmentBatchGroupRow,
+  AssignmentCartData,
+  AssignmentDateRangeData,
+  CampaignAssignmentOptions,
+  CampaignAssignmentOptionsParams,
+  CampaignAudienceOptions,
+  CampaignAudiencePayload,
+  CampaignAudienceSummary,
+  CampaignAudienceSummaryParams,
+  CampaignSavedAudienceGroup,
+  CampaignSetupOptions,
+  CreateCampaignSetupPayload,
+  CreateCampaignSetupResult,
+  GetSchoolsWithProgramAccessParams,
+  JoinClassInviteLookupResult,
+  LeaderboardInfo,
+  LaunchCampaignPayload,
+  OpsStudentPerformanceBandRow,
+  OpsStudentPerformanceBandsParams,
+  SchoolProgramAccessResponse,
+  ServiceApi,
+} from './ServiceApi';
+import { SupabaseApi } from './SupabaseApi';
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = 'db_issue10';
-  private DB_VERSION = 13;
+  private DB_VERSION = 15;
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<'user'> | undefined;
@@ -127,6 +138,8 @@ export class SqliteApi implements ServiceApi {
   private _syncInProgress: boolean = false;
   private _syncRequestedAgain: boolean = false;
   private _retryRefreshTables: TABLES[] = [];
+  private _postSyncAssetPrefetchScheduled: boolean = false;
+  private _postSyncAssetPrefetchRequestedAt: number | null = null;
 
   private _cachedRewards: TableTypes<'rive_reward'>[] | undefined;
 
@@ -149,12 +162,54 @@ export class SqliteApi implements ServiceApi {
   private async ensureInitialized(): Promise<void> {
     if (this._db && this._sqlite) return;
     if (!this._initPromise) {
-      this._initPromise = this.init().catch((error) => {
-        this._initPromise = null;
-        throw error;
-      });
+      this._initPromise = this.initializeWithRetry();
     }
     await this._initPromise;
+  }
+
+  private isRecoverableInitError(error: unknown): boolean {
+    return isRecoverableStorageError(error);
+  }
+
+  private resetDbHandles(): void {
+    this._db = undefined;
+  }
+
+  private async initializeWithRetry(
+    attempts = 3,
+    delayMs = 400,
+  ): Promise<void> {
+    let lastError: unknown;
+
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        await this.init();
+        return;
+      } catch (error) {
+        lastError = error;
+        this.resetDbHandles();
+
+        if (!this.isRecoverableInitError(error) || attempt === attempts) {
+          this._initPromise = null;
+          throw error;
+        }
+
+        // Resume can briefly race with an in-flight native SQLite connection,
+        // so retry a couple of times before surfacing the failure as real.
+        logger.warn(
+          'SqliteApi init failed during recoverable resume window. Retrying.',
+          {
+            attempt,
+            attempts,
+            error,
+          },
+        );
+        await new Promise((resolve) => window.setTimeout(resolve, delayMs));
+      }
+    }
+
+    this._initPromise = null;
+    throw lastError;
   }
 
   private async init(): Promise<void> {
@@ -278,6 +333,7 @@ export class SqliteApi implements ServiceApi {
       await this._db?.open();
     } catch (err) {
       logger.error('🚀 ~ SqliteApi ~ init ~ err:', err);
+      throw err;
     }
     await this.setUpDatabase();
   }
@@ -470,6 +526,58 @@ export class SqliteApi implements ServiceApi {
   ) {
     if (!this._db || batch.length === 0) return;
     await this._db.executeSet(batch as any, useImplicitTransaction);
+  }
+
+  private schedulePostSyncAssetPrefetch(): void {
+    if (!Capacitor.isNativePlatform() || this._postSyncAssetPrefetchScheduled) {
+      return;
+    }
+
+    this._postSyncAssetPrefetchScheduled = true;
+    this._postSyncAssetPrefetchRequestedAt = Date.now();
+    logger.warn('[ANRGuard] Scheduled post-sync asset prefetch', {
+      delayMs: 30000,
+      visibilityState: document.visibilityState,
+    });
+    window.setTimeout(() => {
+      this.runPostSyncAssetPrefetch();
+    }, 30000);
+  }
+
+  private async runPostSyncAssetPrefetch(): Promise<void> {
+    const startedAt = Date.now();
+    try {
+      if (document.visibilityState !== 'visible') {
+        logger.warn('[ANRGuard] Deferred post-sync prefetch while not visible');
+        window.addEventListener(
+          'visibilitychange',
+          () => {
+            if (document.visibilityState === 'visible') {
+              this.runPostSyncAssetPrefetch();
+            }
+          },
+          { once: true },
+        );
+        return;
+      }
+
+      await this.prefetchStickerBookAssetsAfterSync();
+      await new Promise<void>((resolve) => {
+        window.setTimeout(resolve, 1000);
+      });
+      await this.prefetchLidoCommonAudioAfterSync();
+      logger.warn('[ANRGuard] Post-sync prefetch completed', {
+        queueDelayMs: this._postSyncAssetPrefetchRequestedAt
+          ? startedAt - this._postSyncAssetPrefetchRequestedAt
+          : null,
+        durationMs: Date.now() - startedAt,
+      });
+    } catch (error) {
+      logger.warn('[ANRGuard] Post-sync prefetch failed', error);
+    } finally {
+      this._postSyncAssetPrefetchScheduled = false;
+      this._postSyncAssetPrefetchRequestedAt = null;
+    }
   }
 
   private async showToastWithRetry(
@@ -755,10 +863,14 @@ export class SqliteApi implements ServiceApi {
         );
       } catch (workerError) {
         logger.warn(
-          'Falling back to main-thread sync batch generation after worker failure:',
+          'Background worker sync batch generation failed:',
           workerError,
         );
         await rollbackSyncWriteTransaction();
+        if (Capacitor.isNativePlatform()) {
+          throw workerError;
+        }
+        logger.warn('Falling back to main-thread sync batch generation on web');
         await beginSyncWriteTransaction();
 
         for (const tableName of Object.keys(tablesForWorker)) {
@@ -1093,13 +1205,10 @@ export class SqliteApi implements ServiceApi {
         );
       }
       await this.pullChanges(tableNames, isFirstSync);
-      Promise.allSettled([
-        this.prefetchStickerBookAssetsAfterSync(),
-        this.prefetchLidoCommonAudioAfterSync(),
-      ]);
+      this.schedulePostSyncAssetPrefetch();
       const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
-      // logger.info("logs to check synced tables1", JSON.stringify(tables));
+      // logger.info('logs to check synced tables1', JSON.stringify(tables));
       const currentTimestamp = new Date();
       const reducedTimestamp = new Date(currentTimestamp); // clone it
       reducedTimestamp.setMinutes(reducedTimestamp.getMinutes() - 1);
@@ -1178,6 +1287,7 @@ export class SqliteApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -1202,6 +1312,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: now,
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -1215,6 +1326,7 @@ export class SqliteApi implements ServiceApi {
       ops_created_by: null,
       reward: null,
       stars: null,
+      is_wa_contact: null,
     };
 
     await this.executeQuery(
@@ -1653,6 +1765,7 @@ export class SqliteApi implements ServiceApi {
     classId: string,
     role: 'student',
     studentId: string,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -1679,6 +1792,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -1692,6 +1806,7 @@ export class SqliteApi implements ServiceApi {
       ops_created_by: null,
       stars: null,
       reward: null,
+      is_wa_contact: null,
     };
     // Insert into user table
     await this.executeQuery(
@@ -1994,23 +2109,7 @@ export class SqliteApi implements ServiceApi {
     }
 
     let courseIds: TableTypes<'course'>[] = [];
-    let isGrade1: boolean = false;
-    let isGrade2: boolean = false;
-
-    if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
-      isGrade1 = true;
-    } else if (
-      gradeDocId === grade2 ||
-      gradeDocId === grade3 ||
-      gradeDocId === aboveGrade3
-    ) {
-      isGrade2 = true;
-    } else {
-      isGrade2 = true;
-    }
-
-    const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
-    const gradeCourses = await this.getCoursesByGrade(gradeLevel);
+    const gradeCourses = await this.getCoursesByGrade(gradeDocId);
     const curriculumCourses = gradeCourses.filter(
       (course: TableTypes<'course'>) => {
         return course.curriculum_id === boardDocId;
@@ -2035,12 +2134,11 @@ export class SqliteApi implements ServiceApi {
     remainingSubjects.forEach((subjectId) => {
       const courses = gradeCourses.filter((course) => {
         const subjectRef = course.subject_id;
-        if (
+        return (
           !!subjectRef &&
           subjectRef === subjectId &&
           course.curriculum_id === OTHER_CURRICULUM
-        )
-          return true;
+        );
       });
       courses.forEach((course) => {
         courseIds.push(course);
@@ -2068,6 +2166,14 @@ export class SqliteApi implements ServiceApi {
     await this.ensureInitialized();
     const res = await this._db?.query(
       `select * from ${TABLES.Grade} where id = "${id}"`,
+    );
+    if (!res || !res.values || res.values.length < 1) return;
+    return res.values[0];
+  }
+  async getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined> {
+    const res = await this._db?.query(
+      `SELECT * FROM ${TABLES.Grade} WHERE name = ? AND is_deleted = 0 LIMIT 1`,
+      [name],
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
@@ -2259,13 +2365,53 @@ export class SqliteApi implements ServiceApi {
     const auth = ServiceConfig.getI().authHandler;
     const currentUser = await auth.getCurrentUser();
     if (currentUser) {
-      currentUser.is_tc_accepted = true;
-      auth.currentUser = currentUser;
+      auth.currentUser = {
+        ...currentUser,
+        is_tc_accepted: true,
+      };
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       is_tc_accepted: 1,
       id: userId,
     });
+  }
+
+  async updateTcAgreedVersion(userId: string, version: number) {
+    const query = `
+    UPDATE "user"
+    SET tc_agreed_version = ${version},
+        updated_at = "${new Date().toISOString()}"
+    WHERE id = "${userId}";
+  `;
+    try {
+      await this.executeQuery(query);
+      this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+        tc_agreed_version: version,
+        id: userId,
+      });
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : '';
+
+      if (errorMessage.includes('no such column: tc_agreed_version')) {
+        try {
+          await this.executeQuery(`
+            ALTER TABLE "user"
+            ADD COLUMN tc_agreed_version NUMERIC;
+          `);
+
+          await this.executeQuery(query);
+
+          this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
+            tc_agreed_version: version,
+            id: userId,
+          });
+        } catch (alterError: unknown) {
+          logger.error('Failed to add column and retry update', alterError);
+        }
+      } else {
+        logger.error('Update failed', e);
+      }
+    }
   }
   async getLanguageWithId(
     id: string,
@@ -2364,8 +2510,60 @@ export class SqliteApi implements ServiceApi {
   ): Promise<TableTypes<'lesson'>[]> {
     await this.ensureInitialized();
     const student = this.currentStudent;
-    const langId = student?.language_id;
+    let langId = student?.language_id;
     const localeId = student?.locale_id;
+
+    try {
+      const courseRes = await this.executeQuery(
+        `
+          SELECT course.code
+          FROM ${TABLES.Chapter} AS chapter
+          JOIN ${TABLES.Course} AS course ON chapter.course_id = course.id
+          WHERE chapter.id = ?
+            AND chapter.is_deleted = 0
+            AND course.is_deleted = 0
+          LIMIT 1;
+        `,
+        [chapterId],
+      );
+      const courseCode = (
+        ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
+          code?: string | null;
+        }
+      ).code
+        ?.trim()
+        .toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const languageRes = await this.executeQuery(
+          `
+            SELECT id
+            FROM ${TABLES.Language}
+            WHERE LOWER(code) = ?
+              AND is_deleted = 0
+            LIMIT 1;
+          `,
+          [courseLanguageCode],
+        );
+        const courseLanguageId = (
+          ((languageRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
+            id?: string | null;
+          }
+        ).id;
+
+        if (courseLanguageId) {
+          langId = courseLanguageId;
+        }
+      }
+    } catch (error) {
+      logger.error('Error resolving chapter course language:', error);
+    }
 
     const query = `
     SELECT *
@@ -2421,46 +2619,80 @@ export class SqliteApi implements ServiceApi {
 
   `;
     const res = await this._db?.query(query);
-    const gradeMap: {
-      grades: TableTypes<'grade'>[];
-      courses: TableTypes<'course'>[];
-    } = { grades: [], courses: [] };
+    const gradesById = new Map<string, TableTypes<'grade'>>();
+    const coursesByGradeId = new Map<string, TableTypes<'course'>[]>();
     for (const data of res?.values ?? []) {
       const grade = JSON.parse(data.grade);
       delete data.grade;
       const courseDoc = data;
-      const gradeAlreadyExistsIndex = gradeMap.grades.findIndex(
-        (_grade) => _grade.id === grade.id,
-      );
-      if (gradeAlreadyExistsIndex >= 0) {
-        if (courseDoc.id === course.id) {
-          gradeMap.courses[gradeAlreadyExistsIndex] = courseDoc;
-        }
-        continue;
-      }
-      gradeMap.courses.push(courseDoc);
-      gradeMap.grades.push(grade);
+      gradesById.set(grade.id, grade);
+      const currentGradeCourses = coursesByGradeId.get(grade.id) ?? [];
+      currentGradeCourses.push(courseDoc);
+      coursesByGradeId.set(grade.id, currentGradeCourses);
     }
 
-    if (!gradeMap.courses.some((_course) => _course.id === course.id)) {
-      gradeMap.courses.unshift(course);
-      if (
-        course.grade_id &&
-        !gradeMap.grades.some((g) => g.id === course.grade_id)
-      ) {
+    if (course.grade_id) {
+      const currentGradeCourses = coursesByGradeId.get(course.grade_id) ?? [];
+      if (!currentGradeCourses.some((_course) => _course.id === course.id)) {
+        currentGradeCourses.push(course);
+        coursesByGradeId.set(course.grade_id, currentGradeCourses);
+      }
+
+      if (!gradesById.has(course.grade_id)) {
         const courseGrade = await this.getGradeById(course.grade_id);
         if (courseGrade) {
-          gradeMap.grades.unshift(courseGrade);
+          gradesById.set(course.grade_id, courseGrade);
         }
       }
     }
-    gradeMap.grades.sort((a, b) => {
+
+    const currentCourseCode = course.code?.toLowerCase() ?? '';
+    const isMathCourse =
+      currentCourseCode === COURSES.MATHS ||
+      currentCourseCode.startsWith(`${COURSES.MATHS}-`);
+
+    const pickCourseForGrade = (gradeId: string) => {
+      const gradeCourses = coursesByGradeId.get(gradeId) ?? [];
+      if (gradeCourses.length === 0) return undefined;
+
+      if (course.grade_id === gradeId) {
+        const selectedCourse = gradeCourses.find(
+          (_course) => _course.id === course.id,
+        );
+        if (selectedCourse) return selectedCourse;
+      }
+
+      if (isMathCourse) {
+        const matchingMathVariant = gradeCourses.find(
+          (_course) => _course.code?.toLowerCase() === currentCourseCode,
+        );
+        if (matchingMathVariant) return matchingMathVariant;
+
+        const regularMathCourse = gradeCourses.find(
+          (_course) => _course.code?.toLowerCase() === COURSES.MATHS,
+        );
+        if (regularMathCourse) return regularMathCourse;
+      }
+
+      return gradeCourses[0];
+    };
+
+    const grades = Array.from(gradesById.values()).sort((a, b) => {
       //Number.MAX_SAFE_INTEGER is using when sortIndex is not found GRADES (i.e it gives default value)
       const sortIndexA = a.sort_index || Number.MAX_SAFE_INTEGER;
       const sortIndexB = b.sort_index || Number.MAX_SAFE_INTEGER;
 
       return sortIndexA - sortIndexB;
     });
+    const gradeMap = {
+      grades,
+      courses: grades
+        .map((grade) => pickCourseForGrade(grade.id))
+        .filter(
+          (mappedCourse): mappedCourse is TableTypes<'course'> =>
+            !!mappedCourse,
+        ),
+    };
     return gradeMap as any;
   }
 
@@ -2597,6 +2829,7 @@ export class SqliteApi implements ServiceApi {
     activities_scores?: string | undefined,
     user_id?: string | undefined,
     status?: RESULT_STATUS | null,
+    source?: SOURCE | null,
   ): Promise<TableTypes<'result'>> {
     let resultId = uuidv4();
     let isDuplicate = true;
@@ -2641,12 +2874,13 @@ export class SqliteApi implements ServiceApi {
       subject_ability: subject_ability ?? null,
       activities_scores: activities_scores ?? null,
       user_id: user_id ?? null,
-      status: status ?? null,
+      status: (status ?? null) as TableTypes<'result'>['status'],
+      source: source ?? null,
     };
     const res = await this.executeQuery(
       `
-    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability, activities_scores,user_id, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability, activities_scores,user_id, status, source)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `,
       [
         newResult.id,
@@ -2677,6 +2911,7 @@ export class SqliteApi implements ServiceApi {
         newResult.activities_scores,
         newResult.user_id,
         newResult.status,
+        newResult.source,
       ],
     );
     // ⭐ reward update
@@ -2871,7 +3106,7 @@ export class SqliteApi implements ServiceApi {
     // Fallback default courses
     else {
       const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-      const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+      const mathsCourse = await this.resolveMathCourseByLanguage(languageDocId);
       const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
 
       let langCourse: TableTypes<'course'> | undefined;
@@ -2979,6 +3214,7 @@ export class SqliteApi implements ServiceApi {
       language_id = ?,
       locale_id = ?,
       updated_at = ?
+      ${languageChanged ? ', learning_path = ?' : ''}
     WHERE id = ?;
   `;
     const params = [
@@ -2993,6 +3229,9 @@ export class SqliteApi implements ServiceApi {
       localeId,
       now,
     ];
+    if (languageChanged) {
+      params.push(null);
+    }
     params.push(student.id);
     await this.executeQuery(updateUserQuery, params);
 
@@ -3008,6 +3247,7 @@ export class SqliteApi implements ServiceApi {
       language_id: languageDocId,
       locale_id: localeId,
       updated_at: now,
+      ...(languageChanged && { learning_path: null }),
     };
 
     await this.assignCoursesToStudent(
@@ -3029,7 +3269,12 @@ export class SqliteApi implements ServiceApi {
       language_id: languageDocId,
       locale_id: localeId,
       updated_at: now,
+      ...(languageChanged && { learning_path: null }),
     });
+    if (languageChanged) {
+      localStorage.removeItem(`${LATEST_LEARNING_PATH}:${student.id}`);
+      sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    }
     return updatedStudent;
   }
   async getCurrentClassIdForStudent(studentId: string): Promise<string | null> {
@@ -3224,6 +3469,7 @@ export class SqliteApi implements ServiceApi {
         );
         await this._serverApi.addParentToNewClass(newClassId, student.id);
       }
+
       return updatedStudent;
     } catch (error) {
       logger.error('Error updating student:', error);
@@ -3247,6 +3493,42 @@ export class SqliteApi implements ServiceApi {
     );
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
+  }
+
+  async resolveMathCourseByLanguage(
+    languageDocId?: string | null,
+  ): Promise<TableTypes<'course'> | undefined> {
+    const englishMathCourse = await this.getCourse(CHIMPLE_MATHS);
+    if (!englishMathCourse?.subject_id) return englishMathCourse;
+
+    if (!languageDocId) return englishMathCourse;
+
+    const language = await this.getLanguageWithId(languageDocId);
+    const languageCode = (language?.code ?? '').toLowerCase();
+    if (!languageCode || languageCode === COURSES.ENGLISH) {
+      return englishMathCourse;
+    }
+
+    const mathCode = `maths-${languageCode}`;
+    const res = await this._db?.query(
+      `
+      SELECT *
+      FROM ${TABLES.Course}
+      WHERE subject_id = ?
+        AND code = ?
+        AND is_deleted = 0
+      `,
+      [englishMathCourse.subject_id, mathCode],
+    );
+
+    const matchingCourse =
+      (res?.values ?? []).find(
+        (course: TableTypes<'course'>) =>
+          course.curriculum_id === englishMathCourse.curriculum_id &&
+          course.grade_id === englishMathCourse.grade_id,
+      ) ?? res?.values?.[0];
+
+    return matchingCourse ?? englishMathCourse;
   }
   async getCourses(courseIds: string[]): Promise<TableTypes<'course'>[]> {
     await this.ensureInitialized();
@@ -3333,18 +3615,78 @@ export class SqliteApi implements ServiceApi {
     return res?.values ?? [];
   }
 
+  async getSkillByLessonIdentifier(
+    lessonIdentifier: string,
+  ): Promise<TableTypes<'skill'> | undefined> {
+    await this.ensureInitialized();
+    if (!lessonIdentifier) return undefined;
+
+    const skillLessonRes = await this._db?.query(
+      `
+      SELECT sl.skill_id
+      FROM ${TABLES.Lesson} l
+      INNER JOIN ${TABLES.SkillLesson} sl
+        ON sl.lesson_id = l.id
+        AND COALESCE(sl.is_deleted, 0) = 0
+      WHERE (l.id = ? OR l.cocos_lesson_id = ? OR l.lido_lesson_id = ?)
+        AND COALESCE(l.is_deleted, 0) = 0
+      ORDER BY
+        CASE
+          WHEN l.id = ? THEN 0
+          WHEN l.lido_lesson_id = ? THEN 1
+          WHEN l.cocos_lesson_id = ? THEN 2
+          ELSE 3
+        END,
+        sl.sort_index ASC,
+        coalesce(datetime(l.updated_at), datetime(l.created_at)) DESC,
+        l.updated_at DESC,
+        l.created_at DESC
+      LIMIT 1
+      `,
+      [
+        lessonIdentifier,
+        lessonIdentifier,
+        lessonIdentifier,
+        lessonIdentifier,
+        lessonIdentifier,
+        lessonIdentifier,
+      ],
+    );
+
+    const skillId = skillLessonRes?.values?.[0]?.skill_id;
+    if (!skillId) return undefined;
+
+    return (
+      (await this.getSkillById(skillId)) ??
+      ({ id: skillId } as TableTypes<'skill'>)
+    );
+  }
+
   async getSkillLessonsBySkillIds(
     skillIds: string[],
+    languageCode?: string,
   ): Promise<TableTypes<'skill_lesson'>[]> {
     await this.ensureInitialized();
     if (!skillIds || skillIds.length === 0) return [];
 
     const student = this.currentStudent;
-    const langId = student?.language_id;
+    let langId = student?.language_id;
     const localeId = student?.locale_id;
+    if (languageCode) {
+      const languageRes = await this._db?.query(
+        `
+        SELECT id
+        FROM ${TABLES.Language}
+        WHERE LOWER(code) = ?
+          AND is_deleted = 0
+        LIMIT 1;
+        `,
+        [languageCode.toLowerCase()],
+      );
+      langId = languageRes?.values?.[0]?.id ?? langId;
+    }
 
     const placeholders = skillIds.map(() => '?').join(',');
-
     const res = await this._db?.query(
       `
       SELECT *
@@ -3371,7 +3713,20 @@ export class SqliteApi implements ServiceApi {
       `,
       skillIds,
     );
-    return res?.values ?? [];
+    const skillLessons = res?.values ?? [];
+    if (skillLessons.length) return skillLessons;
+    const fallbackRes = await this._db?.query(
+      `
+      SELECT *
+      FROM ${TABLES.SkillLesson}
+      WHERE skill_id IN (${placeholders})
+        AND is_deleted = 0
+      ORDER BY sort_index ASC
+      `,
+      skillIds,
+    );
+    const fallbackLessons = fallbackRes?.values ?? [];
+    return fallbackLessons;
   }
 
   async getSkillRelationsByTargetIds(
@@ -3894,6 +4249,8 @@ export class SqliteApi implements ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -3905,6 +4262,7 @@ export class SqliteApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
+      grade_id: gradeId ?? null,
       group_id: groupId ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -3915,21 +4273,24 @@ export class SqliteApi implements ServiceApi {
       is_firebase: null,
       is_ops: null,
       ops_created_by: null,
-      standard: null,
+      standard: standard ?? null,
       status: null,
       whatsapp_invite_link: whatsapp_invite_link ?? null,
+      migrated_count: 0,
     };
 
     await this.executeQuery(
       `
-      INSERT INTO class (id, name , image, school_id, created_at, updated_at, is_deleted, group_id, whatsapp_invite_link)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO class (id, name , image, school_id, grade_id, standard, created_at, updated_at, is_deleted, group_id, whatsapp_invite_link)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         newClass.id,
         newClass.name,
         newClass.image,
         newClass.school_id,
+        newClass.grade_id,
+        newClass.standard,
         newClass.created_at,
         newClass.updated_at,
         newClass.is_deleted,
@@ -4987,8 +5348,8 @@ export class SqliteApi implements ServiceApi {
 
     await this.executeQuery(
       `
-      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id, locale_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      INSERT INTO user (id, name, age, gender, avatar, image, curriculum_id, language_id, locale_id, tc_agreed_version)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       `,
       [
         user.id,
@@ -5000,6 +5361,7 @@ export class SqliteApi implements ServiceApi {
         user.curriculum_id,
         user.language_id,
         (user.locale_id = localeId),
+        user.tc_agreed_version,
       ],
     );
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
@@ -5884,6 +6246,100 @@ order by
 
     return { classWiseAssignments, individualAssignments };
   }
+  async getAssignmentDateRangeDataForClassAndSchool(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<AssignmentDateRangeData> {
+    await this.ensureInitialized();
+
+    const query = `
+      SELECT
+        *
+      FROM ${TABLES.Assignment}
+      WHERE created_by = ?
+        AND created_at >= ?
+        AND created_at <= ?
+        AND (is_deleted = 0 OR is_deleted = false OR is_deleted IS NULL)
+      ORDER BY created_at ASC;
+    `;
+
+    try {
+      const res = await this.executeQuery(query, [userId, startDate, endDate]);
+
+      const assignments = (res?.values ?? []) as TableTypes<'assignment'>[];
+      const groupedByBatch = new Map<string, AssignmentBatchGroupRow>();
+
+      assignments.forEach((assignment) => {
+        const batchId = assignment.batch_id ?? null;
+        const key = batchId ?? '__null_batch_id__';
+        const existing = groupedByBatch.get(key);
+
+        if (!existing) {
+          groupedByBatch.set(key, {
+            batchId,
+            assignmentCount: 1,
+            latestCreatedAt: assignment.created_at ?? null,
+          });
+          return;
+        }
+
+        existing.assignmentCount += 1;
+        if (
+          assignment.created_at &&
+          (!existing.latestCreatedAt ||
+            assignment.created_at > existing.latestCreatedAt)
+        ) {
+          existing.latestCreatedAt = assignment.created_at;
+        }
+      });
+
+      const batchGroups = Array.from(groupedByBatch.values()).sort((a, b) => {
+        const aTime = a.latestCreatedAt
+          ? new Date(a.latestCreatedAt).getTime()
+          : Number.NEGATIVE_INFINITY;
+        const bTime = b.latestCreatedAt
+          ? new Date(b.latestCreatedAt).getTime()
+          : Number.NEGATIVE_INFINITY;
+        return aTime - bTime;
+      });
+
+      return { assignments, batchGroups };
+    } catch (error) {
+      logger.error(
+        'Error fetching assignment date range data from sqlite:',
+        error,
+      );
+      return { assignments: [], batchGroups: [] };
+    }
+  }
+
+  async getCoinAndStreakCount(
+    userId: string,
+    classId: string,
+    schoolId: string,
+  ): Promise<{ coins: number; streak: number } | undefined> {
+    logger.warn('coming here....................');
+    await this.ensureInitialized();
+    const query = `
+    SELECT coins , streak
+    FROM ${TABLES.UserAchivements}
+    where user_id = ?
+    and (is_deleted = 0 OR is_deleted = false OR is_deleted IS NULL)
+    ORDER BY created_at DESC`;
+
+    try {
+      const res = await this._db?.query(query, [userId]);
+      logger.warn('data or result', res?.values);
+      if (res?.values && res.values.length > 0) {
+        const { coins, streak } = res.values[0];
+        return { coins, streak };
+      }
+    } catch (error) {
+      logger.error('Error fetching coin and streak count:', error);
+    }
+    return undefined;
+  }
 
   async getTeacherJoinedDate(
     userId: string,
@@ -6040,7 +6496,7 @@ order by
       WHERE class_id = ?
         AND course_id = ?
         AND chapter_id IN (${idslst})
-        AND is_deleted = 0; 
+        AND is_deleted = 0;
     `;
 
     const res = await this._db?.query(query, [
@@ -6379,9 +6835,9 @@ order by
       const updatedAt = new Date().toISOString();
 
       await this.executeQuery(
-        `UPDATE school_user 
-       SET is_deleted = 1, updated_at = ? 
-       WHERE user_id = ? AND school_id = ? 
+        `UPDATE school_user
+       SET is_deleted = 1, updated_at = ?
+       WHERE user_id = ? AND school_id = ?
        AND role = '${role}' AND is_deleted = 0`,
         [updatedAt, userId, schoolId],
       );
@@ -6582,6 +7038,35 @@ order by
       return {
         status: 'error',
         errors: response.errors || ['Invalid user contacts'],
+      };
+    }
+    return { status: 'success' };
+  }
+  async validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    const response =
+      await this._serverApi.validateWhatsappBotNumber(whatsappBotNumber);
+    if (response.status === 'error') {
+      return {
+        status: 'error',
+        errors: response.errors || ['Invalid WHATSAPP BOT NUMBER'],
+      };
+    }
+    return { status: 'success' };
+  }
+  async validateWhatsappGroupLink(
+    whatsappBotNumber: string,
+    whatsappGroupLink: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    const response = await this._serverApi.validateWhatsappGroupLink(
+      whatsappBotNumber,
+      whatsappGroupLink,
+    );
+    if (response.status === 'error') {
+      return {
+        status: 'error',
+        errors: response.errors || ['Invalid WHATSAPP GROUP LINK'],
       };
     }
     return { status: 'success' };
@@ -6849,6 +7334,44 @@ order by
 
   async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this._serverApi.getProgramManagers();
+  }
+
+  async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
+    return await this._serverApi.getCampaignSetupOptions();
+  }
+
+  async getCampaignAudienceOptions(
+    programId: string,
+  ): Promise<CampaignAudienceOptions> {
+    return await this._serverApi.getCampaignAudienceOptions(programId);
+  }
+
+  async getCampaignAudienceSummary(
+    params: CampaignAudienceSummaryParams,
+  ): Promise<CampaignAudienceSummary> {
+    return await this._serverApi.getCampaignAudienceSummary(params);
+  }
+
+  async createCampaignAudienceGroup(
+    payload: CampaignAudiencePayload,
+  ): Promise<CampaignSavedAudienceGroup> {
+    return await this._serverApi.createCampaignAudienceGroup(payload);
+  }
+
+  async createCampaignSetup(
+    payload: CreateCampaignSetupPayload,
+  ): Promise<CreateCampaignSetupResult> {
+    return await this._serverApi.createCampaignSetup(payload);
+  }
+
+  async launchCampaign(payload: LaunchCampaignPayload): Promise<void> {
+    return await this._serverApi.launchCampaign(payload);
+  }
+
+  async getCampaignAssignmentOptions(
+    params: CampaignAssignmentOptionsParams,
+  ): Promise<CampaignAssignmentOptions> {
+    return await this._serverApi.getCampaignAssignmentOptions(params);
   }
 
   async getUniqueGeoData(): Promise<{
@@ -7273,6 +7796,7 @@ order by
             is_firebase: false,
             is_ops: false,
             is_tc_accepted: false,
+            tc_agreed_version: 0,
             language_id: null,
             learning_path: null,
             locale_id: null,
@@ -7281,6 +7805,7 @@ order by
             reward: null,
             sfx_off: false,
             stars: null,
+            is_wa_contact: null,
             student_id: null,
             updated_at: null,
           }
@@ -7411,6 +7936,7 @@ order by
             is_firebase: false,
             is_ops: false,
             is_tc_accepted: false,
+            tc_agreed_version: 0,
             language_id: null,
             learning_path: null,
             locale_id: null,
@@ -7419,6 +7945,7 @@ order by
             reward: null,
             sfx_off: false,
             stars: null,
+            is_wa_contact: null,
             student_id: null,
             updated_at: null,
           }
@@ -7622,7 +8149,7 @@ order by
 
           if (!alreadyLinked) {
             await this._db.run(
-              `INSERT INTO parent_user 
+              `INSERT INTO parent_user
              (student_id, parent_id, is_deleted, created_at, updated_at)
              VALUES (?, ?, 0, ?, ?)`,
               [existingStudentId, parent.id, now, now],
@@ -7650,7 +8177,7 @@ order by
       // 7. Optional ops request update
       if (requestId) {
         await this._db.run(
-          `UPDATE ops_requests 
+          `UPDATE ops_requests
          SET status = 'approved', merged_to = ?, updated_at = ?, responded_by = ?
          WHERE request_id = ?`,
           [newStudentId, now, respondedBy ?? null, requestId],
@@ -7687,6 +8214,7 @@ order by
 
   async createAutoProfile(
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     const _currentUser =
       await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -7710,6 +8238,7 @@ order by
       updated_at: new Date().toISOString(),
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -7723,6 +8252,7 @@ order by
       learning_path: null,
       ops_created_by: null,
       stars: null,
+      is_wa_contact: null,
     };
 
     await this.executeQuery(
@@ -7762,7 +8292,7 @@ order by
 
     // Find English, Maths, and language-dependent subject
     const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-    const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+    const mathsCourse = await this.resolveMathCourseByLanguage(languageDocId);
     const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
     const language = await this.getLanguageWithId(languageDocId!);
     let langCourse;
@@ -7896,12 +8426,14 @@ order by
    * @returns An object with studentLoginType, programId, and programModel if found, else null
    */
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
     studentLoginType: string;
     schoolModel: string;
+    whatsappBotNumber?: string;
   } | null> {
     // Step 1: Get school info by UDISE code
     const schoolRes = await this.executeQuery(
-      `SELECT student_login_type, model FROM school WHERE udise = ? AND is_deleted = 0`,
+      `SELECT id, student_login_type, model, whatsapp_bot_number FROM school WHERE udise = ? AND is_deleted = 0`,
       [udiseCode],
     );
 
@@ -7909,11 +8441,14 @@ order by
       return null;
     }
 
-    const { student_login_type, model } = schoolRes.values[0];
+    const { id, student_login_type, model, whatsapp_bot_number } =
+      schoolRes.values[0];
 
     return {
+      schoolId: id || '',
       studentLoginType: student_login_type || '',
       schoolModel: model || '',
+      whatsappBotNumber: whatsapp_bot_number || '',
     };
   }
   async getSchoolDataByUdise(
@@ -8038,7 +8573,7 @@ order by
     const total = countResult?.values?.[0]?.total ?? 0;
     // ✅ DATA QUERY
     const query = `
-    SELECT 
+    SELECT
       u.id,
       u.name,
       u.student_id,
@@ -8050,10 +8585,10 @@ order by
     FROM class_user cu
     JOIN user u ON cu.user_id = u.id
     JOIN class c ON cu.class_id = c.id
-    LEFT JOIN parent_user pu 
-      ON pu.student_id = u.id 
+    LEFT JOIN parent_user pu
+      ON pu.student_id = u.id
       AND pu.is_deleted = 0
-    LEFT JOIN user p 
+    LEFT JOIN user p
       ON pu.parent_id = p.id
     WHERE ${whereClause}
     ORDER BY u.name
@@ -8704,10 +9239,14 @@ order by
   ): Promise<TableTypes<'subject_lesson'>> {
     if (!student) return {} as TableTypes<'subject_lesson'>;
     const studentId = student.id;
-    const langId = student.language_id ?? null;
+    let langId = student.language_id ?? null;
     const localeId = student.locale_id ?? null;
 
     try {
+      type CourseLanguageRow = {
+        code?: string | null;
+        id?: string | null;
+      };
       type SubjectLessonSetRow = {
         set_number: number;
         language_id: string | null;
@@ -8718,6 +9257,59 @@ order by
         status: string | null;
       };
       type ResultLessonRow = { lesson_id: string | null };
+
+      if (courseId) {
+        try {
+          const courseRes = await this.executeQuery(
+            `
+              SELECT code
+              FROM course
+              WHERE id = ?
+                AND is_deleted = 0
+              LIMIT 1;
+            `,
+            [courseId],
+          );
+          const courseCode = (
+            ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ??
+              {}) as CourseLanguageRow
+          ).code
+            ?.trim()
+            .toLowerCase();
+          const courseLanguageCode =
+            courseCode === COURSES.MATHS
+              ? COURSES.ENGLISH
+              : courseCode?.includes('-')
+                ? courseCode.split('-').pop()
+                : courseCode;
+
+          if (courseLanguageCode) {
+            const languageRes = await this.executeQuery(
+              `
+                SELECT id
+                FROM language
+                WHERE LOWER(code) = ?
+                  AND is_deleted = 0
+                LIMIT 1;
+              `,
+              [courseLanguageCode],
+            );
+            const courseLanguageId = (
+              ((languageRes as DBSQLiteValues | undefined)?.values?.[0] ??
+                {}) as CourseLanguageRow
+            ).id;
+
+            if (courseLanguageId) {
+              langId = courseLanguageId;
+            }
+          }
+        } catch (error) {
+          logger.error(
+            'Error resolving subject lesson course language:',
+            error,
+          );
+        }
+      }
 
       // 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
       const setQuery = `
@@ -8777,7 +9369,6 @@ order by
       /* ==========================================
        * 3️⃣ Abort Check (with assignment_id IS NULL)
        * ========================================== */
-      const courseFilter = courseId ? ' AND course_id = ?' : '';
       const abortQuery = `
         SELECT lesson_id, status
         FROM (
@@ -8789,7 +9380,6 @@ order by
             FROM result
             WHERE student_id = ?
               AND subject_id = ?
-              ${courseFilter}
               AND assignment_id IS NULL
               AND is_deleted = 0
         ) t
@@ -8799,19 +9389,19 @@ order by
       `;
 
       const abortParams: (string | null)[] = [studentId, subjectId];
-      if (courseId) {
-        abortParams.push(courseId);
-      }
       const abortRes = await this.executeQuery(abortQuery, abortParams);
 
       const lastTwo = ((abortRes as DBSQLiteValues | undefined)?.values ??
         []) as ResultStatusRow[];
 
+      const isAssessmentTerminated = lastTwo.some(
+        (r) => r.status === 'assessment_terminated',
+      );
       const isAborted =
         lastTwo.length === 2 &&
         lastTwo.every((r) => r.status === 'system_exit');
 
-      if (isAborted) {
+      if (isAssessmentTerminated || isAborted) {
         return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
       }
 
@@ -8906,15 +9496,11 @@ order by
         FROM result
         WHERE student_id = ?
           AND subject_id = ?
-          ${courseFilter}
           AND assignment_id IS NULL
           AND is_deleted = 0
           AND lesson_id IN (${resultPlaceholders});
       `;
       const resultParams: (string | null)[] = [studentId, subjectId];
-      if (courseId) {
-        resultParams.push(courseId);
-      }
       resultParams.push(...lessonIds);
       const resultRes = await this.executeQuery(resultQuery, resultParams);
       const completedLessons = ((resultRes as DBSQLiteValues | undefined)
@@ -8945,43 +9531,147 @@ order by
     courseId: string,
   ): Promise<boolean> {
     try {
-      const query = `
-        SELECT 1
-        FROM result r
-        INNER JOIN lesson l
-          ON l.id = r.lesson_id
-          AND l.is_deleted = false
-        WHERE r.student_id = ?
-          AND r.course_id = ?
-          AND r.is_deleted = false
+      const course = await this.getCourse(courseId);
+      if (!course?.subject_id) return false;
+      const subjectId = course.subject_id;
 
-          -- ❗ Only PAL lessons (exclude assessments)
-          AND l.plugin_type != 'lido_assessment'
+      const assessmentLessonsQuery = `
+        SELECT DISTINCT lesson_id
+        FROM subject_lesson
+        WHERE subject_id = ?
+          AND COALESCE(is_deleted, 0) = 0
+          AND lesson_id IS NOT NULL;
+      `;
+      const assessmentLessonsRes = await this.executeQuery(
+        assessmentLessonsQuery,
+        [subjectId],
+      );
+      const assessmentLessonIds = Array.from(
+        new Set(
+          (
+            ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
+              []) as {
+              lesson_id?: string | null;
+            }[]
+          )
+            .map((lesson) => lesson.lesson_id)
+            .filter((lessonId): lessonId is string => !!lessonId),
+        ),
+      );
 
-          -- 🔒 STRICT ability validation
-          AND r.skill_id IS NOT NULL
-          AND r.outcome_id IS NOT NULL
-          AND r.competency_id IS NOT NULL
-          AND r.domain_id IS NOT NULL
-          AND r.subject_id IS NOT NULL
+      const params: string[] = [studentId, subjectId];
+      const assessmentLessonFilter = assessmentLessonIds.length
+        ? `OR lesson_id IN (${assessmentLessonIds.map(() => '?').join(',')})`
+        : '';
+      params.push(...assessmentLessonIds);
 
-          AND r.skill_ability IS NOT NULL
-          AND r.outcome_ability IS NOT NULL
-          AND r.competency_ability IS NOT NULL
-          AND r.domain_ability IS NOT NULL
-          AND r.subject_ability IS NOT NULL
-
-          AND r.activities_scores IS NOT NULL
-          AND r.activities_scores <> ''
-        LIMIT 1;
+      const resultQuery = `
+        SELECT lesson_id, status
+        FROM result
+        WHERE student_id = ?
+          AND subject_id = ?
+          AND COALESCE(is_deleted, 0) = 0
+          AND (status = 'assessment_terminated' ${assessmentLessonFilter});
       `;
 
-      const res = await this.executeQuery(query, [studentId, courseId]);
-      const rows = (res as any)?.values ?? [];
+      const resultRes = await this.executeQuery(resultQuery, params);
+      const rows = ((resultRes as DBSQLiteValues | undefined)?.values ??
+        []) as {
+        lesson_id?: string | null;
+        status?: string | null;
+      }[];
 
-      return rows.length > 0;
+      if (rows.some((result) => result.status === 'assessment_terminated')) {
+        return true;
+      }
+
+      const assessmentLessonIdSet = new Set(assessmentLessonIds);
+      const systemExitAssessmentLessonIds = new Set(
+        rows
+          .filter(
+            (result) =>
+              result.status === 'system_exit' &&
+              !!result.lesson_id &&
+              assessmentLessonIdSet.has(result.lesson_id),
+          )
+          .map((result) => result.lesson_id),
+      );
+
+      if (systemExitAssessmentLessonIds.size >= 2) {
+        return true;
+      }
+
+      return rows.some(
+        (result) =>
+          result.status !== 'system_exit' &&
+          !!result.lesson_id &&
+          assessmentLessonIdSet.has(result.lesson_id),
+      );
     } catch (error) {
-      logger.error('❌ Error checking PAL lesson history:', error);
+      logger.error('❌ Error checking PAL assessment history:', error);
+      return false;
+    }
+  }
+
+  async hasPendingAbortedAssessment(
+    studentId: string,
+    courseId: string,
+  ): Promise<boolean> {
+    await this.ensureInitialized();
+
+    try {
+      const course = await this.getCourse(courseId);
+      const subjectId = course?.subject_id;
+      if (!subjectId) {
+        return false;
+      }
+
+      const assessmentLessonsRes = await this.executeQuery(
+        `
+          SELECT lesson_id
+          FROM subject_lesson
+          WHERE subject_id = ?
+            AND COALESCE(is_deleted, 0) = 0
+        `,
+        [subjectId],
+      );
+
+      const assessmentLessonRows =
+        (assessmentLessonsRes as DBSQLiteValues | undefined)?.values ?? [];
+      const assessmentLessonIds: string[] = [];
+      const placeholderParts: string[] = [];
+      for (const row of assessmentLessonRows) {
+        const lessonId = row.lesson_id;
+        if (!lessonId) continue;
+        assessmentLessonIds.push(lessonId);
+        placeholderParts.push('?');
+      }
+
+      if (!assessmentLessonIds.length) {
+        return false;
+      }
+
+      const placeholders = placeholderParts.join(', ');
+      const pendingAbortRes = await this.executeQuery(
+        `
+          SELECT status
+          FROM result
+          WHERE student_id = ?
+            AND assignment_id IS NULL
+            AND COALESCE(is_deleted, 0) = 0
+            AND lesson_id IN (${placeholders})
+          ORDER BY created_at DESC
+          LIMIT 1
+        `,
+        [studentId, ...assessmentLessonIds],
+      );
+
+      const latestStatus = ((pendingAbortRes as DBSQLiteValues | undefined)
+        ?.values ?? [])[0]?.status;
+
+      return latestStatus === 'system_exit';
+    } catch (error) {
+      logger.error('❌ Error checking pending aborted assessment:', error);
       return false;
     }
   }
@@ -9777,5 +10467,119 @@ order by
   }
   async isSplUser(): Promise<boolean> {
     return await this._serverApi.isSplUser();
+  }
+
+  async updateCoins(
+    userId: string,
+    schoolId: string,
+    classId: string,
+    coins: number,
+    streakIncrement = 0,
+  ): Promise<TableTypes<TABLES.UserAchivements>> {
+    await this.ensureInitialized();
+
+    const now = new Date().toISOString();
+    const coinsToAdd = Number(coins) || 0;
+    const streakToAdd = Number(streakIncrement) || 0;
+
+    try {
+      const existingRes = await this.executeQuery(
+        `
+      SELECT *
+      FROM ${TABLES.UserAchivements}
+      WHERE user_id = ?
+        AND (is_deleted = 0 OR is_deleted = false OR is_deleted IS NULL)
+      ORDER BY created_at DESC
+      LIMIT 1;
+      `,
+        [userId],
+      );
+
+      const existing = existingRes?.values?.[0] as
+        | (TableTypes<TABLES.UserAchivements> & { id?: string })
+        | undefined;
+
+      if (existing) {
+        const updatedCoins = Number(existing.coins ?? 1000) + coinsToAdd;
+        const updatedStreak = Number(existing.streak ?? 0) + streakToAdd;
+
+        await this.executeQuery(
+          `
+        UPDATE ${TABLES.UserAchivements}
+        SET coins = ?, streak = ?, updated_at = ?, is_deleted = 0
+        WHERE user_id = ?;
+        `,
+          [updatedCoins, updatedStreak, now, userId],
+        );
+
+        const updatedRow = {
+          ...existing,
+          coins: updatedCoins,
+          streak: updatedStreak,
+          updated_at: now,
+          is_deleted: false,
+        } as TableTypes<TABLES.UserAchivements>;
+
+        await this.updatePushChanges(
+          TABLES.UserAchivements,
+          MUTATE_TYPES.UPDATE,
+          updatedRow,
+        );
+
+        return updatedRow;
+      }
+
+      const id = uuidv4();
+      const newRow = {
+        id,
+        user_id: userId,
+        school_id: schoolId,
+        class_id: classId,
+        program_id: null,
+        coins: 1000 + coinsToAdd,
+        streak: streakToAdd,
+        last_rewarded_week: null,
+        last_penalty_week: null,
+        is_deleted: false,
+        created_at: now,
+        updated_at: now,
+      } as TableTypes<TABLES.UserAchivements>;
+
+      await this.executeQuery(
+        `
+      INSERT INTO ${TABLES.UserAchivements}
+      (
+        id, user_id, program_id, school_id, class_id, coins, streak,
+        last_rewarded_week, last_penalty_week, is_deleted, created_at, updated_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `,
+        [
+          id,
+          userId,
+          null,
+          schoolId,
+          classId,
+          1000 + coinsToAdd,
+          streakToAdd,
+          null,
+          null,
+          0,
+          now,
+          now,
+        ],
+      );
+
+      await this.updatePushChanges(
+        TABLES.UserAchivements,
+        MUTATE_TYPES.INSERT,
+        newRow,
+      );
+
+      return newRow;
+    } catch (error) {
+      logger.error('Error updating/inserting user_achievements coins:', error);
+      throw error;
+    }
   }
 }

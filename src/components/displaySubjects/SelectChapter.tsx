@@ -23,6 +23,7 @@ const SelectChapter: FC<{
   currentChapterId,
 }) => {
   let currentChapterRef = useRef<any>(null);
+  const isMathCourse = course?.code?.toLowerCase().includes('math');
 
   useEffect(() => {
     currentChapterRef.current?.scrollIntoView({ behavior: 'instant' });
@@ -55,7 +56,7 @@ const SelectChapter: FC<{
                   />
                 </div>
                 <div className="selectchapter-title">
-                  {course?.code === COURSES.ENGLISH
+                  {course?.code === COURSES.ENGLISH || isMathCourse
                     ? chapter?.name
                     : t(chapter?.name ?? '')}
                 </div>

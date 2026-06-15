@@ -186,6 +186,9 @@ const Home: FC = () => {
   }, [currentHeader, canShowAvatar]);
   const handleJoinClassEvent = async (event: Event) => {
     await getAssignments(true);
+    // Rebuild student-school attributes immediately after a class join.
+    await Util.updateSchStdAttb();
+    setGbUpdated(true);
     setCanShowAvatar(true);
     setIsStudentLinked(true);
     setRefreshKey((oldKey) => oldKey + 1);
@@ -396,6 +399,10 @@ const Home: FC = () => {
       const attributeParams = {
         studentDetails: student,
         schools: linkedData.schools.map((item: any) => item.id),
+        // Keep the raw school_ids array available for GrowthBook targeting.
+        school_ids: linkedData.schools.map(
+          (item: TableTypes<'school'>) => item.id,
+        ),
         school_name: linkedData.schools[0]?.name,
         classes: linkedData.classes.map((item: any) => item.id),
         liveQuizCount: liveQuizCount,

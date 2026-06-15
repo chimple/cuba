@@ -149,21 +149,58 @@ jest.mock('@ionic/react', () => ({
 }));
 
 describe('DisplayChapters', () => {
-  const student = { id: 'student-1', name: 'Student One' } as any;
-  const classObj = { id: 'class-1', name: 'Class One' } as any;
-  const grade1 = { id: 'g1', name: 'Grade 1' } as any;
-  const grade2 = { id: 'g2', name: 'Grade 2' } as any;
+  type Student = {
+    id: string;
+    name: string;
+  };
 
-  const course1 = {
+  type Class = {
+    id: string;
+    name: string;
+  };
+
+  type Grade = {
+    id: string;
+    name: string;
+  };
+
+  type Course = {
+    id: string;
+    name: string;
+    grade_id: string;
+  };
+
+  const student: Student = {
+    id: 'student-1',
+    name: 'Student One',
+  };
+
+  const classObj: Class = {
+    id: 'class-1',
+    name: 'Class One',
+  };
+
+  const grade1: Grade = {
+    id: 'g1',
+    name: 'Grade 1',
+  };
+
+  const grade2: Grade = {
+    id: 'g2',
+    name: 'Grade 2',
+  };
+
+  const course1: Course = {
     id: 'course-1',
     name: 'Math',
     grade_id: 'g1',
-  } as any;
-  const course2 = {
+  };
+
+  const course2: Course = {
     id: 'course-2',
     name: 'English',
     grade_id: 'g2',
-  } as any;
+  };
 
   const chapter1 = { id: 'chapter-1', name: 'Numbers' } as any;
   const chapter2 = { id: 'chapter-2', name: 'Reading' } as any;
@@ -340,6 +377,58 @@ describe('DisplayChapters', () => {
     await eventually(() => {
       expect(view.getByTestId('chapter-chapter-b')).toBeInTheDocument();
       expect(view.queryByTestId('chapter-chapter-a')).not.toBeInTheDocument();
+    });
+  });
+
+  it('keeps math language variant chapters when grade changes', async () => {
+    const user = userEvent.setup();
+    const mathKannadaGrade1 = {
+      id: 'math-kn-g1',
+      name: 'Maths-kannada',
+      grade_id: grade1.id,
+    };
+    const mathKannadaGrade2 = {
+      id: 'math-kn-g2',
+      name: 'Maths-kannada',
+      grade_id: grade2.id,
+    };
+
+    mockLocation.search = `?courseDocId=${mathKannadaGrade1.id}`;
+    mockApiHandler.getCoursesForClassStudent.mockResolvedValue([
+      mathKannadaGrade1,
+      mathKannadaGrade2,
+    ]);
+    mockApiHandler.getDifferentGradesForCourse.mockResolvedValue({
+      grades: [grade1, grade2],
+      courses: [mathKannadaGrade1, mathKannadaGrade2],
+    });
+    mockApiHandler.getChaptersForCourse.mockImplementation(
+      async (courseId: string) =>
+        courseId === mathKannadaGrade2.id
+          ? [{ id: 'chapter-kn-g2', name: 'Kannada Grade 2 Chapter' }]
+          : [{ id: 'chapter-kn-g1', name: 'Kannada Grade 1 Chapter' }],
+    );
+
+    const view = render(<DisplayChapters />);
+    await view.findByTestId('grade-dropdown');
+
+    await eventually(() => {
+      expect(view.getByTestId('chapter-chapter-kn-g1')).toBeInTheDocument();
+    });
+
+    await user.selectOptions(view.getByTestId('grade-dropdown'), grade2.id);
+
+    await eventually(() => {
+      expect(mockApiHandler.getChaptersForCourse).toHaveBeenCalledWith(
+        mathKannadaGrade2.id,
+      );
+      expect(localStorage.getItem(CURRENT_SELECTED_COURSE)).toContain(
+        mathKannadaGrade2.id,
+      );
+      expect(view.getByTestId('chapter-chapter-kn-g2')).toBeInTheDocument();
+      expect(
+        view.queryByTestId('chapter-chapter-kn-g1'),
+      ).not.toBeInTheDocument();
     });
   });
 

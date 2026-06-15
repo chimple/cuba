@@ -30,21 +30,6 @@
   line-height: 1;
 }
 
-.class-summary-info-icon {
-  width: 25px;
-  height: 25px;
-}
-
-.class-summary-info-icon-btn {
-  border: 0;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  cursor: pointer;
-}
-
 .weekly-summary {
   display: flex;
   justify-content: space-between;

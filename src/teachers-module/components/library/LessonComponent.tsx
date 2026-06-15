@@ -4,6 +4,7 @@ import { COURSES, TableTypes } from '../../../common/constants';
 import SelectIconImage from '../../../components/displaySubjects/SelectIconImage';
 import SelectIcon from '../SelectIcon';
 import { t } from 'i18next';
+import AssignedBadgeIcon from '../AssignedBadgeIcon';
 
 interface LessonComponentProps {
   lesson: TableTypes<'lesson'>;
@@ -49,18 +50,18 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
           id="lessoncomponent-lesson-type"
           className="lessoncomponent-lesson-type"
         >
-          {lesson.plugin_type === 'cocos' ? t('Assignment') : t('Live Quiz')}
+          {lesson.plugin_type === 'liveQuiz' ? t('Live Quiz') : t('Assignment')}
         </div>
         <div
           id={
-            lesson.plugin_type === 'cocos'
-              ? 'lessoncomponent-assignment-logo'
-              : 'lessoncomponent-quiz-logo'
+            lesson.plugin_type === 'liveQuiz'
+              ? 'lessoncomponent-quiz-logo'
+              : 'lessoncomponent-assignment-logo'
           }
           className={
-            lesson.plugin_type === 'cocos'
-              ? 'lessoncomponent-assignment-logo'
-              : 'lessoncomponent-quiz-logo'
+            lesson.plugin_type === 'liveQuiz'
+              ? 'lessoncomponent-quiz-logo'
+              : 'lessoncomponent-assignment-logo'
           }
         ></div>
       </div>
@@ -87,20 +88,12 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
           />
         </div>
         {showAssignedBadge && isAssigned ? (
-          <span
+          <AssignedBadgeIcon
             id="lessoncomponent-lesson-assigned-badge"
             className="lessoncomponent-lesson-assigned-badge"
             title={t('Assigned') ?? ''}
-            aria-label={t('Assigned') ?? ''}
-          >
-            <img
-              src="/assets/hideassigned.png"
-              alt=""
-              onError={(event) => {
-                event.currentTarget.src = 'assets/icons/assignmentSelect.svg';
-              }}
-            />
-          </span>
+            ariaLabel={t('Assigned') ?? ''}
+          />
         ) : null}
       </div>
       <div
@@ -111,7 +104,7 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
           id="lessoncomponent-lesson-details"
           className="lessoncomponent-lesson-details"
         >
-          {courseCode === COURSES.ENGLISH
+          {courseCode === COURSES.ENGLISH || courseCode === COURSES.MATHS
             ? lesson.name!.length > 15
               ? lesson.name?.substring(0, 15) + '...'
               : lesson.name

@@ -15,6 +15,11 @@ export enum COURSES {
   PUZZLE = 'puzzle',
   ENGLISH = 'en',
   MATHS = 'maths',
+  MATHS_HINDI = 'maths-hi',
+  MATHS_KANNADA = 'maths-kn',
+  KANNADA = 'kn',
+  HINDI = 'hi',
+  MARATHI = 'mr',
 }
 export enum CocosCourseIdentifier {
   maths = 'maths',
@@ -99,6 +104,7 @@ export enum TABLES {
   SubjectLesson = 'subject_lesson',
   StickerBook = 'sticker_book',
   UserStickerBook = 'user_sticker_book',
+  UserAchivements = 'user_achievements',
 }
 export enum CLASS_USERS {
   STUDENTS = 'Students',
@@ -113,6 +119,18 @@ export enum SL_GRADES {
   GRADE1 = 'Grade 1',
   GRADE2 = 'Grade 2',
 }
+
+export const LOWER_GRADE_STANDARDS = {
+  NURSERY: 'NURSERY',
+  LKG: 'LKG',
+  UKG: 'UKG',
+} as const;
+
+export const LOWER_GRADE_MAPPING = {
+  [LOWER_GRADE_STANDARDS.NURSERY]: 'Preschool 1',
+  [LOWER_GRADE_STANDARDS.LKG]: 'Preschool 2',
+  [LOWER_GRADE_STANDARDS.UKG]: 'Preschool 3',
+} as const;
 
 export enum PROGRAM_TAB {
   ALL = 'all',
@@ -431,7 +449,6 @@ export enum PAGES {
   APP_UPDATE = '/',
   HOME = '/home',
   LOGIN = '/login',
-  GAME = '/game',
   LIDO_PLAYER = '/lido-player',
   END = '/end',
   PROFILE = '/profile',
@@ -442,6 +459,7 @@ export enum PAGES {
   DISPLAY_SUBJECTS = '/display-subjects',
   DISPLAY_CHAPTERS = '/display-chapters',
   DISPLAY_SCHOOLS = '/display-schools',
+  KIDS_APP_LOCATION = '/kids-app-location',
   DISPLAY_CLASSES = '/display-classes',
   DASHBOARD_DETAILS = '/dashboard-details',
   HOME_PAGE = '/home-page',
@@ -533,6 +551,7 @@ export enum PAGES {
   TEACHER_RECOMMENDED_ASSIGNMENTS = '/teacher-recommended-assignments',
   COLORING_BOARD = '/coloring-board',
   STICKER_BOOK = '/sticker-book',
+  STREAK_PAGE = '/streak-page',
 }
 
 export const enum ASSIGNMENT_TYPE {
@@ -652,10 +671,10 @@ export interface FilteredSchoolsForSchoolListingOps {
   phone_calls_students_parents?: number | null;
   phone_calls_teachers_hms?: number | null;
   community_visits?: number | null;
-  parents_reached?: number | null;
   school_visits?: number | null;
   parents_on_whatsapp?: number | null;
   parents_in_whatsapp_group?: number | null;
+  parents_reached?: number | null;
   program_managers: string[];
   field_coordinators: string[];
 }
@@ -703,7 +722,6 @@ export const GAME_URL = 'gameUrl';
 export const TC_ACCEPT = 'tcAccept';
 export const RECOMMENDATIONS = 'recommendations';
 export const LIVE_QUIZ = 'liveQuiz';
-export const COCOS = 'cocos';
 export const LIDO = 'lido';
 export const LIDO_ASSESSMENT = 'lido_assessment';
 export const TYPE = 'type';
@@ -723,6 +741,8 @@ export const CURRENT_STUDENT_CHANGED_EVENT = 'currentStudentChanged';
 export const SHOW_GENERIC_POPUP = 'SHOW_GENERIC_POPUP';
 export const GENERIC_POPUP_INTERNAL_NAVIGATION = 'POPUP_INTERNAL_NAVIGATION';
 export const GENERIC_POP_UP = 'generic-pop-up';
+export const TC_HTML_URL = 'tc_html_url';
+export const LATEST_TC_VERSION = 'latest_tc_version';
 export enum GENERIC_POPUP_TRIGGER_CONDITION {
   APP_OPEN = 'APP_OPEN',
   GAME_COMPLETE = 'GAME_COMPLETE',
@@ -885,6 +905,8 @@ export const INSTANT_SEARCH_INDEX_NAME =
 export enum MODES {
   PARENT = 'PARENT',
   SCHOOL = 'SCHOOL',
+  TEACHER_HOME = 'TEACHER_HOME',
+  TEACHER_SCHOOL = 'TEACHER_SCHOOL',
   TEACHER = 'TEACHER',
   OPS_CONSOLE = 'OPS_CONSOLE',
 }
@@ -968,7 +990,51 @@ export enum EVENTS {
   STICKER_BOOK_SAVE_CLICKED = 'sticker_book_save_clicked',
   STICKER_BOOK_IMAGE_SAVED = 'sticker_book_image_saved',
   STICKER_BOOK_IMAGE_SHARED = 'sticker_book_image_shared',
+  TC_POPUP_VIEWED = 'tc_popup_viewed',
+  TC_AGREED = 'tc_agreed',
+  SWITCH_TO_KIDS_APP_CLICKED = 'switch_to_kids_app_clicked',
+  KIDS_APP_LOCATION_SELECTED = 'kids_app_location_selected',
+  CLASS_TAB_CLASS_CHANGED = 'class_tab_class_changed',
+  PROFILE_CREATION_CLICKED = 'profile_creation_clicked',
+  PROFILE_CARD_ACTION_CLICKED = 'profile_card_action_clicked',
+  PROFILE_DELETION_CONFIRMED = 'profile_deletion_confirmed',
+  PROFILE_DELETION_CANCELLED = 'profile_deletion_cancelled',
+  TEACHER_AUTH_GATE_VIEWED = 'teacher_auth_gate_viewed',
+  TEACHER_AUTH_GATE_ATTEMPTED = 'teacher_auth_gate_attempted',
+  TEACHER_APP_ENTRY_CLICKED = 'teacher_app_entry_clicked',
+  TEACHER_APP_AUTH_SUCCESS = 'teacher_app_auth_success',
+  AUTO_USER_ACTION_ATTEMPTED = 'auto_user_action_attempted',
+  ASSESSMENT_TERMINATED = 'assessment_terminated',
 }
+
+export const KIDS_APP_LOCATION_SELECTIONS = {
+  HOME: 'home',
+  SCHOOL: 'school',
+} as const;
+
+export type KidsAppLocationSelection =
+  (typeof KIDS_APP_LOCATION_SELECTIONS)[keyof typeof KIDS_APP_LOCATION_SELECTIONS];
+
+export const TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS = {
+  SWITCH_PROFILE_BACK_BUTTON: 'switch_profile_back_button',
+  PARENT_SETTINGS_TAB: 'parent_settings_tab',
+} as const;
+
+export type TeacherAuthGateSourceEntryPoint =
+  (typeof TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS)[keyof typeof TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS];
+
+export const TEACHER_APP_AUTH_METHODS = {
+  BIOMETRIC: 'biometric',
+  MATH_GATE: 'math_gate',
+} as const;
+
+export const TEACHER_APP_USER_ROLES = {
+  AUTO_USER: 'auto_user',
+} as const;
+
+export const AUTO_USER_ACTION_TYPES = {
+  ADD_STUDENT: 'add_student',
+} as const;
 
 export const FCM_TOKENS = 'fcmTokens';
 export const IS_CONECTED = 'is_conected';
@@ -1002,7 +1068,7 @@ export const CAMPAIGN_SEQUENCE_FINISHED = 'CAMPAIGN_SEQUENCE_FINISHED';
 export const LIDO_COMMON_AUDIO_DIR = 'Lido-CommonAudios';
 export const LIDO_COMMON_AUDIO_LANG_KEY = 'lido_common_audio_language';
 export const HOT_UPDATE_STATE_KEY = 'hotUpdateState';
-
+export const PAL_LEARNING_RATES_CONFIG = 'pal_learning_rates_config';
 export type LeaderboardBadge = {
   id: string;
   seen: boolean;
@@ -1037,7 +1103,7 @@ export enum LeaderboardRewardsType {
   BONUS = 'bonus',
   STICKER = 'sticker',
 }
-export const DOWNLOAD_LESSON_BATCH_SIZE = 8;
+export const DOWNLOAD_LESSON_BATCH_SIZE = 1;
 export const MAX_DOWNLOAD_LESSON_ATTEMPTS = 3;
 
 export const LESSON_DOWNLOAD_SUCCESS_EVENT = 'lesson_download_success';
@@ -1147,7 +1213,8 @@ export const GRADE1_KANNADA = 'a90608de-4376-4baf-82c2-07760b2aa899';
 export const GRADE1_MARATHI = '2cada0d1-db3d-4da0-8ade-e9ba282a3558';
 export const BULK_UPLOAD_TEMPLATE_URL =
   'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx';
-
+export const BUNDLE_ZIP_URLS = 'bundle_zip_urls';
+export const LIDO_BUNDLE_ZIP_URLS = 'lido_bundle_zip_urls';
 export const FORM_MODES = {
   ALL_REQUIRED: 'all-required',
   NAME_REQUIRED: 'name-required',
@@ -1241,6 +1308,7 @@ export const CHIMPLE_MASCOT_INPUT_CELEBRATE = 'Number 1';
 export const CHIMPLE_MASCOT_INPUT_NORMAL = 'Number 2';
 export const CHIMPLE_MASCOT_INPUT_REWARD = 'Number 3';
 export const CHIMPLE_MASCOT_ANIMATION_IDLE = 'id';
+export const CHIMPLE_MASCOT_ANIMATION_WAVY = 'wavy';
 export const CHIMPLE_MASCOT_ANIMATION_WIN = 'win';
 
 export interface GeoDataParams {
@@ -1305,6 +1373,11 @@ export const OPS_ROLES = [
   RoleType.PROGRAM_MANAGER,
   RoleType.FIELD_COORDINATOR,
   RoleType.EXTERNAL_USER,
+];
+export const CAMPAIGN_ACCESS_ROLES = [
+  RoleType.SUPER_ADMIN,
+  RoleType.OPERATIONAL_DIRECTOR,
+  RoleType.PROGRAM_MANAGER,
 ];
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
 export const VERSION_KEY = 'last_native_version';
@@ -1455,6 +1528,18 @@ export enum RESULT_STATUS {
   COMPLETED = 'completed',
   USER_EXIT = 'user_exit',
   SYSTEM_EXIT = 'system_exit',
+  ASSESSMENT_TERMINATED = 'assessment_terminated',
+}
+
+export enum SOURCE {
+  INITIAL_ASSESSMENT = 'initial_assessment',
+  LEARNING_PATHWAY_HOME_NO_PAL = 'learning_pathway_home_no_pal',
+  LEARNING_PATHWAY_HOME_PAL = 'learning_pathway_home_pal',
+  LEARNING_PATHWAY_HOMEWORK = 'learning_pathway_homework',
+  LIVE_QUIZ_ROOM = 'live_quiz_room',
+  NO_LEARNING_PATHWAY_HOMEWORK = 'no_learning_pathway_homework',
+  SUBJECT_PAGE = 'subject_page',
+  TEACHER_MODE = 'teacher_mode',
 }
 // Used this LATEST_LEARNING_PATH to store with updateLearningPath() api and get latest learning path with Util.getLatestLearningPathByUpdatedAt() from localStorage to survive app relaunch.
 export const LATEST_LEARNING_PATH = 'latest_learning_path';

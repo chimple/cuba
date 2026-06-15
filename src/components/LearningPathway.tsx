@@ -16,6 +16,7 @@ import {
 } from '../common/constants';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import {
+  consolidatePalEnabledCourses,
   sortCoursesByStudentLanguage,
   useLearningPath,
 } from '../hooks/useLearningPath';
@@ -67,16 +68,14 @@ const LearningPathway: React.FC = () => {
 
     const currentClass = schoolUtil.getCurrentClass();
     const existingAttributes = gb.getAttributes?.() ?? {};
-    const resolvedSchoolIds = existingAttributes?.school_ids;
-    const normalizedSchoolIds =
-      Util.normalizeGrowthbookArrayAttribute(resolvedSchoolIds);
-    // Keep any existing school_ids and append the current class school for targeting.
-    const mergedSchoolIds = currentClass?.school_id
-      ? Array.from(new Set([...normalizedSchoolIds, currentClass.school_id]))
-      : normalizedSchoolIds;
+    // Always target the active student's current class school only.
+    const freshSchoolIds = currentClass?.school_id
+      ? [currentClass.school_id]
+      : [];
     gb.setAttributes({
       ...existingAttributes,
-      school_ids: mergedSchoolIds,
+      student_id: student.id,
+      school_ids: freshSchoolIds,
     });
     const resolvedMode = gb.getFeatureValue(
       'learning-pathway-mode',
@@ -110,7 +109,13 @@ const LearningPathway: React.FC = () => {
 
         const sortedCourses = await sortCoursesByStudentLanguage(
           courses,
-          student.language_id,
+          student,
+        );
+        const learningPathMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
+        const mode = learningPathMode ?? LEARNING_PATHWAY_MODE.DISABLED;
+        const pathwayCourses = await consolidatePalEnabledCourses(
+          sortedCourses,
+          mode,
         );
         const learningPath = student.learning_path
           ? JSON.parse(student.learning_path)
@@ -122,11 +127,9 @@ const LearningPathway: React.FC = () => {
                 ?.course_id
             : null;
         await updateCourseCodeFromSubject(selectedCourseId);
-        const learningPathMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
-        const mode = learningPathMode ?? LEARNING_PATHWAY_MODE.DISABLED;
         updateStarCount(student);
         await getPath({
-          courses: sortedCourses,
+          courses: pathwayCourses,
           mode,
           classId: currClass?.id,
         });

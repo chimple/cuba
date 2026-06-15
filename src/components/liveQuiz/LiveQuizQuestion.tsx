@@ -9,7 +9,13 @@ import LiveQuiz, {
 import './LiveQuizQuestion.css';
 import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';
-import { PAGES, REWARD_LESSON, TableTypes } from '../../common/constants';
+import {
+  BUNDLE_ZIP_URLS,
+  PAGES,
+  SOURCE,
+  REWARD_LESSON,
+  TableTypes,
+} from '../../common/constants';
 import { useHistory } from 'react-router';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { HiSpeakerWave } from 'react-icons/hi2';
@@ -17,6 +23,7 @@ import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import LiveQuizNavigationDots from './LiveQuizNavigationDots';
 import { schoolUtil } from '../../utility/schoolUtil';
 import logger from '../../utility/logger';
+import { getCachedGrowthBookFeatureValue } from '../../growthbook/Growthbook';
 import { getBundleZipUrlsForEnv } from '../../services/RemoteConfig';
 
 let questionInterval: ReturnType<typeof setInterval> | undefined;
@@ -40,6 +47,7 @@ const LiveQuizQuestion: FC<{
   onTotalScoreChange?: (totalScore: number) => void;
   isLearningPathway?: boolean;
   isReward?: boolean;
+  source?: SOURCE;
 }> = ({
   roomDoc,
   onNewQuestionChange,
@@ -56,6 +64,7 @@ const LiveQuizQuestion: FC<{
   onTotalScoreChange,
   isLearningPathway,
   isReward = false,
+  source = SOURCE.SUBJECT_PAGE,
 }) => {
   const quizPathBase =
     localStorage.getItem('gameUrl') ??
@@ -344,7 +353,10 @@ const LiveQuizQuestion: FC<{
     /* =====================
      REMOTE FETCH (UNCHANGED)
      ===================== */
-    const remoteUrls = getBundleZipUrlsForEnv();
+    const remoteUrls = getCachedGrowthBookFeatureValue<string[]>(
+      BUNDLE_ZIP_URLS,
+      getBundleZipUrlsForEnv(),
+    );
 
     for (const baseUrl of remoteUrls) {
       try {
@@ -539,6 +551,8 @@ const LiveQuizQuestion: FC<{
         undefined, // subject_ability
         undefined, // activities_scores
         _currentUser?.id, // ✅ now correctly maps to user_id
+        undefined, // status
+        source,
       );
       totalLessonScore = 0;
       totalLessonTimeSpent = 0;
@@ -587,6 +601,8 @@ const LiveQuizQuestion: FC<{
         undefined, // subject_ability
         undefined, // activities_scores
         _currentUser?.id, // ✅ now correctly maps to user_id
+        undefined, // status
+        source,
       );
     }
   }

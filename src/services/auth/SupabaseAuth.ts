@@ -27,11 +27,21 @@ import {
   setRoles,
 } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
+import { isRecoverableStorageError } from '../../utility/recoverableStorageError';
 import { logAuthDebug } from '../../utility/authDebug';
+import { normalizeTcVersion } from '../../utility/termsAndConditions';
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
   private _currentUser: TableTypes<'user'> | undefined;
+  private _refreshPromise: Promise<void> | null = null;
+  private _sessionResolvePromise: Promise<
+    | {
+        data: { session: AuthSession | null };
+        error: unknown;
+      }
+    | undefined
+  > | null = null;
 
   private _auth: SupabaseAuthClient | undefined;
   private _supabaseDb: SupabaseClient<Database> | undefined;
@@ -62,6 +72,7 @@ export class SupabaseAuth implements ServiceAuth {
   async loginWithEmailAndPassword(
     email: string,
     password: string,
+    _tcAgreedVersion?: number,
   ): Promise<{
     user?: User;
     success: boolean;
@@ -135,6 +146,7 @@ export class SupabaseAuth implements ServiceAuth {
   async signInWithEmail(
     email: string,
     password: string,
+    _tcAgreedVersion?: number,
   ): Promise<{
     user?: User;
     success: boolean;
@@ -210,7 +222,7 @@ export class SupabaseAuth implements ServiceAuth {
     return true;
   }
 
-  async googleSign(): Promise<{
+  async googleSign(tcAgreedVersion?: number): Promise<{
     user?: User;
     success: boolean;
     isSpl: boolean;
@@ -273,7 +285,10 @@ export class SupabaseAuth implements ServiceAuth {
       if (!data.session)
         return { success: false, isSpl: false, userData: null };
 
-      const initResult = await this.initializeUserRecord(data.session);
+      const initResult = await this.initializeUserRecord(
+        data.session,
+        tcAgreedVersion,
+      );
       const userData = await api.getUserByDocId(data.user?.id ?? '');
       return {
         user: data.user,
@@ -293,15 +308,14 @@ export class SupabaseAuth implements ServiceAuth {
   async getCurrentUser(): Promise<TableTypes<'user'> | undefined> {
     if (this._currentUser) return this._currentUser;
     if (!navigator.onLine) {
-      const api = ServiceConfig.getI().apiHandler;
-      let user = store.getState()?.auth?.user as TableTypes<'user'>;
+      const user = store.getState()?.auth?.user as TableTypes<'user'>;
       if (user) this._currentUser = user;
       return this._currentUser;
     } else {
       logger.info('Refreshing session');
       // Recover session on cold app reopen before deciding user is logged out.
       await this.doRefreshSession();
-      const authData = await this._auth?.getSession();
+      const authData = await this.resolveSessionWithRetryDeduped();
       if (!authData || !authData.data.session?.user?.id) {
         logAuthDebug('Unable to resolve current user from session.', {
           source: 'SupabaseAuth.getCurrentUser',
@@ -314,16 +328,40 @@ export class SupabaseAuth implements ServiceAuth {
       const session = authData.data.session;
 
       const api = ServiceConfig.getI().apiHandler;
-      const roles = store.getState()?.auth?.roles;
-      if (!roles || roles.length === 0) {
-        const userRole = await api.getUserSpecialRoles(
-          authData.data.session?.user.id,
-        );
-        if (userRole.length > 0) {
-          store.dispatch(setRoles(userRole));
+      let user: TableTypes<'user'> | undefined;
+      try {
+        const roles = store.getState()?.auth?.roles;
+        if (!roles || roles.length === 0) {
+          const userRole = await api.getUserSpecialRoles(
+            authData.data.session?.user.id,
+          );
+          if (userRole.length > 0) {
+            store.dispatch(setRoles(userRole));
+          }
         }
+        user = await api.getUserByDocId(authData.data.session?.user.id);
+      } catch (error) {
+        if (this.isRecoverableDependencyError(error)) {
+          const persistedUser = store.getState()?.auth?.user as
+            | TableTypes<'user'>
+            | undefined;
+          if (persistedUser?.id) {
+            // A temporary SQLite lock during resume should not look like a
+            // real logout while the last known app user is still available.
+            this._currentUser = persistedUser;
+            logAuthDebug(
+              'Using persisted app user because local data store is temporarily unavailable during resume.',
+              {
+                source: 'SupabaseAuth.getCurrentUser',
+                reason: 'recoverable_storage_failure_using_persisted_user',
+                user_id: persistedUser.id,
+              },
+            );
+            return this._currentUser;
+          }
+        }
+        throw error;
       }
-      let user = await api.getUserByDocId(authData.data.session?.user.id);
       if (user) {
         this._currentUser = user;
         return this._currentUser;
@@ -334,7 +372,22 @@ export class SupabaseAuth implements ServiceAuth {
           this._currentUser = initResult.user;
           return this._currentUser;
         }
-        // If still fails, sign out
+        const persistedUser = store.getState()?.auth?.user as
+          | TableTypes<'user'>
+          | undefined;
+        if (persistedUser?.id) {
+          this._currentUser = persistedUser;
+          logAuthDebug(
+            'User record lookup failed after resume; keeping persisted app user to avoid false logout.',
+            {
+              source: 'SupabaseAuth.getCurrentUser',
+              reason:
+                'user_record_missing_after_initialize_using_persisted_user',
+              user_id: persistedUser.id,
+            },
+          );
+          return this._currentUser;
+        }
         logAuthDebug('Signing out because user record initialization failed.', {
           source: 'SupabaseAuth.getCurrentUser',
           reason: 'user_record_missing_after_initialize',
@@ -346,6 +399,19 @@ export class SupabaseAuth implements ServiceAuth {
     }
   }
   async doRefreshSession(): Promise<void> {
+    if (this._refreshPromise) {
+      await this._refreshPromise;
+      return;
+    }
+    this._refreshPromise = this.performRefreshSession();
+    try {
+      await this._refreshPromise;
+    } finally {
+      this._refreshPromise = null;
+    }
+  }
+
+  private async performRefreshSession(): Promise<void> {
     if (!navigator.onLine) {
       logAuthDebug('Skipping session refresh while device is offline.', {
         source: 'SupabaseAuth.doRefreshSession',
@@ -408,6 +474,64 @@ export class SupabaseAuth implements ServiceAuth {
         logger.error('trySchoolRelogin failed:', retryError);
       }
     }
+  }
+
+  private async resolveSessionWithRetryDeduped(): Promise<
+    | {
+        data: { session: AuthSession | null };
+        error: unknown;
+      }
+    | undefined
+  > {
+    if (this._sessionResolvePromise) {
+      return await this._sessionResolvePromise;
+    }
+    this._sessionResolvePromise = this.resolveSessionWithRetry();
+    try {
+      return await this._sessionResolvePromise;
+    } finally {
+      this._sessionResolvePromise = null;
+    }
+  }
+
+  private async resolveSessionWithRetry(
+    attempts = 4,
+    delayMs = 350,
+  ): Promise<
+    | {
+        data: { session: AuthSession | null };
+        error: unknown;
+      }
+    | undefined
+  > {
+    let authData:
+      | {
+          data: { session: AuthSession | null };
+          error: unknown;
+        }
+      | undefined;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      authData = await this._auth?.getSession();
+      if (authData?.data?.session?.user?.id) {
+        return authData;
+      }
+      if (attempt < attempts) {
+        // Native resume can report INITIAL_SESSION/SIGNED_IN a moment after
+        // the first getSession() call, so wait briefly before deciding logout.
+        logAuthDebug('Waiting for session to become available after resume.', {
+          source: 'SupabaseAuth.resolveSessionWithRetry',
+          reason: 'session_not_ready_retrying',
+          attempt,
+          attempts,
+        });
+        await this.sleep(delayMs);
+      }
+    }
+    return authData;
+  }
+
+  private isRecoverableDependencyError(error: unknown): boolean {
+    return isRecoverableStorageError(error);
   }
 
   set currentUser(user: TableTypes<'user'>) {
@@ -524,6 +648,7 @@ export class SupabaseAuth implements ServiceAuth {
   async proceedWithVerificationCode(
     phoneNumber: string,
     verificationCode: string,
+    tcAgreedVersion?: number,
   ): Promise<
     | {
         user: User | null;
@@ -536,6 +661,7 @@ export class SupabaseAuth implements ServiceAuth {
     try {
       if (!this._auth) return;
       const api = ServiceConfig.getI().apiHandler;
+      const agreedVersion = normalizeTcVersion(tcAgreedVersion);
 
       const { data: user, error } = await this._auth.verifyOtp({
         phone: phoneNumber,
@@ -569,6 +695,7 @@ export class SupabaseAuth implements ServiceAuth {
           image: null,
           is_deleted: false,
           is_tc_accepted: true,
+          tc_agreed_version: agreedVersion,
           language_id: null,
           // locale_id: null,
           locale_id: null,
@@ -587,6 +714,7 @@ export class SupabaseAuth implements ServiceAuth {
           ops_created_by: null,
           reward: null,
           stars: null,
+          is_wa_contact: null,
         });
         this._currentUser = createdUser;
       }
@@ -654,10 +782,12 @@ export class SupabaseAuth implements ServiceAuth {
 
   private async initializeUserRecord(
     session: Session,
+    tcAgreedVersion?: number,
   ): Promise<{ user: TableTypes<'user'>; isSpl: boolean } | null> {
     try {
       if (!this._supabaseDb || !session.user) return null;
       let api = ServiceConfig.getI().apiHandler;
+      const agreedVersion = normalizeTcVersion(tcAgreedVersion);
       const user = session.user;
       const email = user.email;
       const id = user.id;
@@ -688,6 +818,7 @@ export class SupabaseAuth implements ServiceAuth {
           image: avatarUrl,
           is_deleted: false,
           is_tc_accepted: true,
+          tc_agreed_version: agreedVersion,
           language_id: null,
           // locale_id: null,
           locale_id: null,
@@ -706,6 +837,7 @@ export class SupabaseAuth implements ServiceAuth {
           ops_created_by: null,
           reward: null,
           stars: null,
+          is_wa_contact: null,
         });
       }
 

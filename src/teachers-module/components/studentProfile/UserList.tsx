@@ -1,16 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import './UserList.css';
-import { ServiceConfig } from '../../../services/ServiceConfig';
-import { CLASS_USERS, TableTypes, OPS_ROLES } from '../../../common/constants';
-import UserDetail from './UserDetail';
 import { IonAlert, IonIcon } from '@ionic/react';
-import { RoleType } from '../../../interface/modelInterfaces';
 import { t } from 'i18next';
 import { trashOutline } from 'ionicons/icons';
+import React, { useEffect, useMemo, useState } from 'react';
+import { CLASS_USERS, OPS_ROLES, TableTypes } from '../../../common/constants';
+import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
-import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RootState } from '../../../redux/store';
+import { ServiceConfig } from '../../../services/ServiceConfig';
 import logger from '../../../utility/logger';
+import { schoolUtil } from '../../../utility/schoolUtil';
+import UserDetail from './UserDetail';
+import './UserList.css';
 
 const UserList: React.FC<{
   schoolDoc: TableTypes<'school'>;
@@ -30,6 +31,7 @@ const UserList: React.FC<{
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const currentUserRoles = roles || [];
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
 
   useEffect(() => {
     init();
@@ -116,7 +118,7 @@ const UserList: React.FC<{
                   />
                 </div>
 
-                {!isExternalUser && (
+                {!isExternalUser && !isTeacherSchoolMode && (
                   <div
                     className="delete-button" //////
                     onClick={() => handleDeleteClick(student)}
@@ -146,7 +148,7 @@ const UserList: React.FC<{
                   />
                 </div>
 
-                {canDelete && !isExternalUser && (
+                {canDelete && !isExternalUser && !isTeacherSchoolMode && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(teacher)}

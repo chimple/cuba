@@ -15,6 +15,7 @@ import {
   EDIT_STUDENT_STORE,
   TableTypes,
   EDIT_STUDENTS_MAP,
+  LATEST_TC_VERSION,
 } from '../common/constants';
 import Loading from '../components/Loading';
 import { useHistory, useLocation } from 'react-router';
@@ -28,6 +29,7 @@ import BackButton from '../components/common/BackButton';
 import i18n from '../i18n';
 import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
 import logger from '../utility/logger';
+import { useFeatureValue } from '@growthbook/growthbook-react';
 
 let localStoreData: any = {};
 
@@ -82,7 +84,7 @@ const EditStudent = () => {
   const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const [checkResults, setCheckResults] = useState<boolean>(false);
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
-
+  const latestTcVersion = useFeatureValue<number>(LATEST_TC_VERSION, 0);
   const onNextButton = async () => {
     setIsLoading(true);
     const stagesLength = Object.keys(STAGES).length / 2;
@@ -135,6 +137,7 @@ const EditStudent = () => {
           board,
           grade,
           language,
+          latestTcVersion,
         );
         const eventParams = {
           user_id: student.id,
@@ -231,7 +234,10 @@ const EditStudent = () => {
             (lang) => lang.code === languageCode,
           );
           // Create auto profile with default/null values
-          const student = await api.createAutoProfile(selectedLanguage?.id);
+          const student = await api.createAutoProfile(
+            selectedLanguage?.id,
+            latestTcVersion,
+          );
           // Set as current student
           await Util.setCurrentStudent(
             student,

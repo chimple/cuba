@@ -152,10 +152,10 @@ describe('QRAssignments – full coverage', () => {
   /* ---------- Toggle Assigned ---------- */
   test('hides assigned lessons when toggled', async () => {
     renderPage();
-    const toggle = await screen.findByText('Hide Assigned');
+    const toggle = await screen.findByRole('button', { name: 'Hide' });
     await userEvent.click(toggle);
 
-    expect(screen.getByText('Show Assigned')).toBeInTheDocument();
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
     expect(screen.queryByText('Lesson 0')).not.toBeInTheDocument();
   });
 

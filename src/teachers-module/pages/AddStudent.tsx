@@ -2,13 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import './AddStudent.css';
 import Header from '../components/homePage/Header';
-import { AVATARS, PAGES, TableTypes } from '../../common/constants';
+import {
+  AVATARS,
+  LATEST_TC_VERSION,
+  PAGES,
+  TableTypes,
+} from '../../common/constants';
 import AddStudentSection from '../components/AddStudentSection';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { t } from 'i18next';
 import ProfileDetails from '../components/library/ProfileDetails';
 import Loading from '../../components/Loading';
 import logger from '../../utility/logger';
+import { useFeatureValue } from '@growthbook/growthbook-react';
 
 const AddStudent: React.FC = () => {
   const history = useHistory();
@@ -33,6 +39,7 @@ const AddStudent: React.FC = () => {
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const { classDoc, school } = location.state || {};
+  const latestTcVersion = useFeatureValue<number>(LATEST_TC_VERSION, 0);
 
   useEffect(() => {
     fetchClassDetails();
@@ -117,6 +124,7 @@ const AddStudent: React.FC = () => {
         currentClass?.id,
         'student',
         studentId,
+        latestTcVersion,
       );
 
       handleBack();

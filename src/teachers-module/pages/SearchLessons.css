@@ -125,12 +125,22 @@
   padding-bottom: 72px;
 }
 
+.search-lesson-result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 0 4px 0 10px;
+}
+
 .search-lesson-result-text {
   color: #6d6d6d;
   font-size: 15px;
-  margin-top: 8px;
-  margin-left: 10px;
-  padding: 0 4px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .search-lessons-no-results {

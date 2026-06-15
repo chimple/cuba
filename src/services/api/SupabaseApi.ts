@@ -8,11 +8,6 @@ import {
   TableTypes,
   MUTATE_TYPES,
   PROFILETYPE,
-  grade1,
-  belowGrade1,
-  grade2,
-  grade3,
-  aboveGrade3,
   DEFAULT_SUBJECT_IDS,
   OTHER_CURRICULUM,
   LIVE_QUIZ,
@@ -49,9 +44,12 @@ import {
   REWARD_LESSON,
   OPS_ROLES,
   DEFAULT_LOCALE_ID,
+  SOURCE,
   RESULT_STATUS,
   LEARNING_PATHWAY_MODE,
   ProgramType,
+  LATEST_LEARNING_PATH,
+  REWARD_LEARNING_PATH,
 } from '../../common/constants';
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
@@ -60,6 +58,19 @@ import Course from '../../models/course';
 import Lesson from '../../models/lesson';
 import {
   AssignmentCartData,
+  AssignmentDateRangeData,
+  CampaignAssignmentOptions,
+  CampaignAssignmentOptionsParams,
+  CampaignAudienceOptions,
+  CampaignAudiencePayload,
+  CampaignAudienceSummary,
+  CampaignAudienceSummaryParams,
+  CampaignSavedAudienceGroup,
+  CampaignSchoolOption,
+  CampaignSetupOptions,
+  CreateCampaignSetupPayload,
+  CreateCampaignSetupResult,
+  LaunchCampaignPayload,
   GetSchoolsWithProgramAccessParams,
   JoinClassInviteLookupResult,
   LeaderboardInfo,
@@ -80,6 +91,7 @@ import {
 import {
   RoleType,
   StickerBook,
+  StickerMeta,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
@@ -98,6 +110,135 @@ import {
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
 import logger from '../../utility/logger';
+
+type CampaignProgramRow = Pick<TableTypes<'program'>, 'id' | 'name'>;
+
+type ChapterLessonRow = {
+  lesson: TableTypes<'lesson'> | null;
+};
+
+type StudentProgressRowWithLesson = TableTypes<'result'> & {
+  lesson?: {
+    name?: string;
+    chapter_lesson?:
+      | {
+          chapter?: {
+            id?: string;
+            name?: string;
+            course_id?: string;
+          } | null;
+        }[]
+      | null;
+  } | null;
+};
+
+type CampaignAudienceSchoolLinkRow = Pick<
+  TableTypes<'campaign_target_audience_school'>,
+  'school_id'
+>;
+
+type CampaignAudienceGradeLinkRow = Pick<
+  TableTypes<'campaign_target_audience_grade'>,
+  'grade_id'
+>;
+
+type CampaignSavedAudienceGroupRow = Pick<
+  TableTypes<'campaign_target_audience'>,
+  'id' | 'name' | 'program_id' | 'is_all_schools' | 'is_all_grades'
+> & {
+  campaign_target_audience_school?: CampaignAudienceSchoolLinkRow[] | null;
+  campaign_target_audience_grade?: CampaignAudienceGradeLinkRow[] | null;
+};
+
+type CampaignSchoolRow = Pick<TableTypes<'school'>, 'id' | 'name' | 'group3'>;
+
+type CampaignGradeRow = Pick<TableTypes<'grade'>, 'id' | 'name' | 'sort_index'>;
+
+type CampaignClassGradeRow = Pick<TableTypes<'class'>, 'id' | 'grade_id'> & {
+  grade?: CampaignGradeRow | CampaignGradeRow[] | null;
+};
+
+type CampaignClassUserRow = Pick<
+  TableTypes<'class_user'>,
+  'class_id' | 'user_id'
+>;
+
+type CampaignSchoolCourseGradeRow = {
+  course?:
+    | {
+        grade?: CampaignGradeRow | CampaignGradeRow[] | null;
+      }
+    | Array<{
+        grade?: CampaignGradeRow | CampaignGradeRow[] | null;
+      }>
+    | null;
+};
+
+type CampaignAssignmentCourseRow = Pick<
+  TableTypes<'course'>,
+  'id' | 'name' | 'grade_id' | 'sort_index' | 'subject_id'
+>;
+
+type CampaignAssignmentSchoolCourseRow = {
+  course?: CampaignAssignmentCourseRow | CampaignAssignmentCourseRow[] | null;
+};
+
+type CampaignAssignmentChapterRow = Pick<
+  TableTypes<'chapter'>,
+  'id' | 'name' | 'course_id' | 'sort_index'
+>;
+
+type CampaignAssignmentLessonRow = Pick<TableTypes<'lesson'>, 'id' | 'name'>;
+
+type CampaignAssignmentChapterLessonRow = Pick<
+  TableTypes<'chapter_lesson'>,
+  'chapter_id' | 'lesson_id' | 'sort_index'
+> & {
+  lesson?: CampaignAssignmentLessonRow | CampaignAssignmentLessonRow[] | null;
+};
+
+type AssessmentAssignmentUserLink = Pick<
+  TableTypes<'assignment_user'>,
+  'user_id' | 'is_deleted'
+>;
+
+type AssessmentBatchRow = Pick<
+  TableTypes<'assignment'>,
+  'batch_id' | 'created_at' | 'is_class_wise'
+> & {
+  assignment_user?: AssessmentAssignmentUserLink[] | null;
+};
+
+type AssessmentAssignmentRow = TableTypes<'assignment'> & {
+  assignment_user?: AssessmentAssignmentUserLink[] | null;
+};
+
+type AssessmentResultRow = Pick<
+  TableTypes<'result'>,
+  'assignment_id' | 'status' | 'created_at'
+>;
+
+const firstOrSelf = <T>(value: T | T[] | null | undefined): T | null =>
+  Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+
+const chunkArray = <T>(items: T[], chunkSize: number): T[][] => {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += chunkSize) {
+    chunks.push(items.slice(index, index + chunkSize));
+  }
+  return chunks;
+};
+
+const mapStickerBookRow = (book: TableTypes<'sticker_book'>): StickerBook => ({
+  id: book.id,
+  title: book.title,
+  svg_url: book.svg_url,
+  sort_index: book.sort_index,
+  stickers_metadata: Array.isArray(book.stickers_metadata)
+    ? (book.stickers_metadata as unknown as StickerMeta[])
+    : [],
+  total_stickers: book.total_stickers,
+});
 
 const GENERIC_LEADERBOARD_LIMIT = 50;
 const SCHOOL_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
@@ -348,6 +489,7 @@ export class SupabaseApi implements ServiceApi {
       curriculum_id: user.curriculum_id,
       language_id: user.language_id,
       locale_id: localeId,
+      tc_agreed_version: user.tc_agreed_version,
     });
 
     if (error) {
@@ -751,6 +893,7 @@ export class SupabaseApi implements ServiceApi {
         p_tables: tableNames,
         p_is_first_time: isInitialFetch, // TABLES[] should be string[] under the hood
       });
+      logger.warn('pulled results', res);
       if (res == null || res.error || !res.data) {
         let parent_user;
         try {
@@ -1441,6 +1584,7 @@ export class SupabaseApi implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     if (!this.supabase) throw new Error('Supabase instance is not initialized');
 
@@ -1468,6 +1612,7 @@ export class SupabaseApi implements ServiceApi {
       updated_at: now,
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -1481,6 +1626,7 @@ export class SupabaseApi implements ServiceApi {
       ops_created_by: null,
       reward: null,
       stars: null,
+      is_wa_contact: null,
     };
 
     const { error: userInsertError } = await this.supabase
@@ -1535,7 +1681,7 @@ export class SupabaseApi implements ServiceApi {
       const [englishCourse, mathsCourse, digitalSkillsCourse] =
         await Promise.all([
           this.getCourse(CHIMPLE_ENGLISH),
-          this.getCourse(CHIMPLE_MATHS),
+          this.resolveMathCourseByLanguage(languageDocId),
           this.getCourse(CHIMPLE_DIGITAL_SKILLS),
         ]);
       const language = await this.getLanguageWithId(languageDocId!);
@@ -1589,6 +1735,7 @@ export class SupabaseApi implements ServiceApi {
     classId: string,
     role: RoleType.STUDENT,
     studentId: string,
+    tcVersion: number,
   ): Promise<TableTypes<TABLES.User>> {
     if (!this.supabase)
       return Promise.reject('Supabase client not initialized');
@@ -1620,6 +1767,7 @@ export class SupabaseApi implements ServiceApi {
       updated_at: timestamp,
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -1633,6 +1781,7 @@ export class SupabaseApi implements ServiceApi {
       ops_created_by: null,
       reward: null,
       stars: null,
+      is_wa_contact: null,
     };
 
     // Insert into user table
@@ -1772,24 +1921,7 @@ export class SupabaseApi implements ServiceApi {
     }
 
     let courseIds: TableTypes<'course'>[] = [];
-    let isGrade1 = false;
-    let isGrade2 = false;
-
-    if (gradeDocId === grade1 || gradeDocId === belowGrade1) {
-      isGrade1 = true;
-    } else if (
-      gradeDocId === grade2 ||
-      gradeDocId === grade3 ||
-      gradeDocId === aboveGrade3
-    ) {
-      isGrade2 = true;
-    } else {
-      isGrade2 = true;
-    }
-
-    const gradeLevel = isGrade1 ? grade1 : isGrade2 ? grade2 : gradeDocId;
-
-    const gradeCourses = await this.getCoursesByGrade(gradeLevel);
+    const gradeCourses = await this.getCoursesByGrade(gradeDocId);
     const curriculumCourses = gradeCourses.filter(
       (course) => course.curriculum_id === boardDocId,
     );
@@ -1929,11 +2061,34 @@ export class SupabaseApi implements ServiceApi {
       const auth = ServiceConfig.getI().authHandler;
       const currentUser = await auth.getCurrentUser();
       if (currentUser) {
-        currentUser.is_tc_accepted = true;
-        auth.currentUser = currentUser;
+        auth.currentUser = {
+          ...currentUser,
+          is_tc_accepted: true,
+        };
       }
     } catch (error) {
       logger.error('Error updating T&C acceptance:', error);
+      throw error;
+    }
+  }
+
+  async updateTcAgreedVersion(userId: string, version: number) {
+    if (!this.supabase) return;
+    try {
+      const { error } = await this.supabase
+        .from('user')
+        .update({
+          tc_agreed_version: version,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+
+      if (error) {
+        throw new Error(`Failed to update T&C acceptance: ${error.message}`);
+      }
+    } catch (error) {
+      logger.error('Error updating T&C acceptance:', error);
+      throw error;
     }
   }
   async getLanguageWithId(
@@ -2150,8 +2305,46 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return [];
 
     const student = this.currentStudent;
-    const langId = student?.language_id;
+    let langId = student?.language_id;
     const localeId = student?.locale_id;
+
+    const { data: chapterRows, error: chapterError } = await this.supabase
+      .from(TABLES.Chapter)
+      .select('course:course_id(code)')
+      .eq('id', chapterId)
+      .eq('is_deleted', false)
+      .limit(1);
+
+    if (chapterError) {
+      logger.error('Error fetching chapter course:', chapterError);
+    } else {
+      const courseCode = (
+        chapterRows?.[0]?.course as { code?: string | null } | null | undefined
+      )?.code
+        ?.trim()
+        .toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const { data: languageRows, error: languageError } = await this.supabase
+          .from(TABLES.Language)
+          .select('id')
+          .ilike('code', courseLanguageCode)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (languageError) {
+          logger.error('Error fetching course language:', languageError);
+        } else if (languageRows?.[0]?.id) {
+          langId = languageRows[0].id;
+        }
+      }
+    }
 
     const orFilters: string[] = [];
     orFilters.push('language_id.is.null,locale_id.is.null');
@@ -2178,9 +2371,9 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
 
-    return (data ?? [])
-      .map((item: any) => item.lesson as TableTypes<'lesson'>)
-      .filter(Boolean);
+    return ((data ?? []) as ChapterLessonRow[])
+      .map((item) => item.lesson)
+      .filter((lesson): lesson is TableTypes<'lesson'> => !!lesson);
   }
 
   async getDifferentGradesForCourse(course: TableTypes<'course'>): Promise<{
@@ -2225,7 +2418,64 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Error fetching grades:', gradeError);
       return { grades: [], courses };
     }
-    return { grades, courses };
+
+    const coursesByGradeId = new Map<string, TableTypes<'course'>[]>();
+    for (const courseDoc of courses) {
+      if (!courseDoc.grade_id) continue;
+      const currentGradeCourses =
+        coursesByGradeId.get(courseDoc.grade_id) ?? [];
+      currentGradeCourses.push(courseDoc);
+      coursesByGradeId.set(courseDoc.grade_id, currentGradeCourses);
+    }
+
+    if (course.grade_id) {
+      const currentGradeCourses = coursesByGradeId.get(course.grade_id) ?? [];
+      if (!currentGradeCourses.some((_course) => _course.id === course.id)) {
+        currentGradeCourses.push(course);
+        coursesByGradeId.set(course.grade_id, currentGradeCourses);
+      }
+    }
+
+    const currentCourseCode = course.code?.toLowerCase() ?? '';
+    const isMathCourse =
+      currentCourseCode === COURSES.MATHS ||
+      currentCourseCode.startsWith(`${COURSES.MATHS}-`);
+
+    const pickCourseForGrade = (gradeId: string) => {
+      const gradeCourses = coursesByGradeId.get(gradeId) ?? [];
+      if (gradeCourses.length === 0) return undefined;
+
+      if (course.grade_id === gradeId) {
+        const selectedCourse = gradeCourses.find(
+          (_course) => _course.id === course.id,
+        );
+        if (selectedCourse) return selectedCourse;
+      }
+
+      if (isMathCourse) {
+        const matchingMathVariant = gradeCourses.find(
+          (_course) => _course.code?.toLowerCase() === currentCourseCode,
+        );
+        if (matchingMathVariant) return matchingMathVariant;
+
+        const regularMathCourse = gradeCourses.find(
+          (_course) => _course.code?.toLowerCase() === COURSES.MATHS,
+        );
+        if (regularMathCourse) return regularMathCourse;
+      }
+
+      return gradeCourses[0];
+    };
+
+    return {
+      grades,
+      courses: grades
+        .map((grade) => pickCourseForGrade(grade.id))
+        .filter(
+          (mappedCourse): mappedCourse is TableTypes<'course'> =>
+            !!mappedCourse,
+        ),
+    };
   }
   getAvatarInfo(): Promise<AvatarObj | undefined> {
     throw new Error('Method not implemented.');
@@ -2347,6 +2597,7 @@ export class SupabaseApi implements ServiceApi {
     activities_scores?: string | null,
     user_id?: string | null,
     status?: RESULT_STATUS | null,
+    source?: SOURCE | null,
   ): Promise<TableTypes<'result'>> {
     if (!this.supabase) return {} as TableTypes<'result'>;
 
@@ -2383,7 +2634,8 @@ export class SupabaseApi implements ServiceApi {
       subject_ability: subject_ability ?? null,
       activities_scores: activities_scores ?? null,
       user_id: user_id ?? null,
-      status: status ?? null,
+      status: (status ?? null) as TableTypes<'result'>['status'],
+      source: source ?? null,
     };
 
     const { error: insertError } = await this.supabase
@@ -2486,6 +2738,7 @@ export class SupabaseApi implements ServiceApi {
     localeId?: string,
   ): Promise<TableTypes<'user'>> {
     if (!this.supabase) return student;
+    const languageChanged = student.language_id !== languageDocId;
 
     const updatedFields: any = {
       name,
@@ -2498,19 +2751,26 @@ export class SupabaseApi implements ServiceApi {
       language_id: languageDocId,
     };
 
-    if (student.language_id !== languageDocId) {
+    if (languageChanged) {
       const countryCode = await this.getClientCountryCode();
       const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
       updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
+      updatedFields.learning_path = null;
     }
 
     await this.supabase.from('user').update(updatedFields).eq('id', student.id);
     const updatedStudent = { ...student, ...updatedFields };
+    if (languageChanged) {
+      localStorage.removeItem(`${LATEST_LEARNING_PATH}:${student.id}`);
+      sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    }
 
     const courses =
       gradeDocId && boardDocId
         ? await this.getCourseByUserGradeId(gradeDocId, boardDocId)
-        : [];
+        : languageChanged
+          ? await this.getDefaultCoursesForLanguage(languageDocId)
+          : [];
 
     if (courses && courses.length > 0) {
       // Batch fetch existing user_course entries for this student and these courses
@@ -2547,6 +2807,40 @@ export class SupabaseApi implements ServiceApi {
 
     return updatedStudent;
   }
+
+  private async getDefaultCoursesForLanguage(
+    languageDocId?: string | null,
+  ): Promise<TableTypes<'course'>[]> {
+    const [englishCourse, mathsCourse, digitalSkillsCourse] = await Promise.all(
+      [
+        this.getCourse(CHIMPLE_ENGLISH),
+        this.resolveMathCourseByLanguage(languageDocId),
+        this.getCourse(CHIMPLE_DIGITAL_SKILLS),
+      ],
+    );
+
+    const language = languageDocId
+      ? await this.getLanguageWithId(languageDocId)
+      : undefined;
+    let langCourse: TableTypes<'course'> | undefined;
+
+    if (language && language.code !== COURSES.ENGLISH) {
+      const thirdLanguageCourseMap: Record<string, string> = {
+        hi: CHIMPLE_HINDI,
+        kn: GRADE1_KANNADA,
+        mr: GRADE1_MARATHI,
+      };
+      const courseId = thirdLanguageCourseMap[language.code ?? ''];
+      if (courseId) {
+        langCourse = await this.getCourse(courseId);
+      }
+    }
+
+    return [englishCourse, mathsCourse, langCourse, digitalSkillsCourse].filter(
+      Boolean,
+    ) as TableTypes<'course'>[];
+  }
+
   async updateStudentFromSchoolMode(
     student: TableTypes<'user'>,
     name: string,
@@ -2848,6 +3142,44 @@ export class SupabaseApi implements ServiceApi {
     }
     return data ?? undefined;
   }
+
+  async resolveMathCourseByLanguage(
+    languageDocId?: string | null,
+  ): Promise<TableTypes<'course'> | undefined> {
+    if (!this.supabase) return undefined;
+
+    const englishMathCourse = await this.getCourse(CHIMPLE_MATHS);
+    if (!englishMathCourse?.subject_id) return englishMathCourse;
+
+    if (!languageDocId) return englishMathCourse;
+
+    const language = await this.getLanguageWithId(languageDocId);
+    const languageCode = (language?.code ?? '').toLowerCase();
+    if (!languageCode || languageCode === COURSES.ENGLISH) {
+      return englishMathCourse;
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Course)
+      .select('*')
+      .eq('subject_id', englishMathCourse.subject_id)
+      .eq('code', `maths-${languageCode}`)
+      .eq('is_deleted', false);
+
+    if (error) {
+      logger.error('Error fetching language-specific math course:', error);
+      return englishMathCourse;
+    }
+
+    const matchingCourse =
+      (data ?? []).find(
+        (course) =>
+          course.curriculum_id === englishMathCourse.curriculum_id &&
+          course.grade_id === englishMathCourse.grade_id,
+      ) ?? data?.[0];
+
+    return matchingCourse ?? englishMathCourse;
+  }
   async getCourses(ids: string[]): Promise<TableTypes<'course'>[]> {
     if (!this.supabase || !ids || ids.length === 0) return [];
 
@@ -2986,33 +3318,129 @@ export class SupabaseApi implements ServiceApi {
     return data ?? [];
   }
 
+  async getSkillByLessonIdentifier(
+    lessonIdentifier: string,
+  ): Promise<TableTypes<'skill'> | undefined> {
+    if (!this.supabase || !lessonIdentifier) return undefined;
+
+    const fetchLessonByColumn = async (
+      column: 'id' | 'cocos_lesson_id' | 'lido_lesson_id',
+    ) => {
+      const { data, error } = await this.supabase!.from(TABLES.Lesson)
+        .select('id')
+        .eq(column, lessonIdentifier)
+        .or('is_deleted.eq.false,is_deleted.is.null')
+        .order('updated_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false, nullsFirst: false })
+        .limit(1);
+
+      if (error) {
+        logger.error('Error fetching lesson for skill lookup:', error);
+        return undefined;
+      }
+
+      return data?.[0] as { id: string } | undefined;
+    };
+
+    const lesson =
+      (await fetchLessonByColumn('id')) ??
+      (await fetchLessonByColumn('cocos_lesson_id')) ??
+      (await fetchLessonByColumn('lido_lesson_id'));
+
+    if (!lesson?.id) return undefined;
+
+    const { data: skillLessons, error: skillLessonError } = await this.supabase
+      .from(TABLES.SkillLesson)
+      .select('skill_id')
+      .eq('lesson_id', lesson.id)
+      .or('is_deleted.eq.false,is_deleted.is.null')
+      .order('sort_index', { ascending: true, nullsFirst: false })
+      .limit(1);
+
+    if (skillLessonError) {
+      logger.error('Error fetching skill lesson for lesson:', skillLessonError);
+      return undefined;
+    }
+
+    const skillId = skillLessons?.[0]?.skill_id;
+    if (!skillId) return undefined;
+
+    return (
+      (await this.getSkillById(skillId)) ??
+      ({ id: skillId } as TableTypes<'skill'>)
+    );
+  }
+
   async getSkillLessonsBySkillIds(
     skillIds: string[],
+    languageCode?: string,
   ): Promise<TableTypes<'skill_lesson'>[]> {
     if (!this.supabase || !skillIds || skillIds.length === 0) return [];
+    const supabase = this.supabase;
 
     const student = this.currentStudent;
-    const langId = student?.language_id;
+    const studentLangId = student?.language_id ?? undefined;
     const localeId = student?.locale_id;
-    const orConditions: string[] = [];
 
-    orConditions.push('language_id.is.null,locale_id.is.null');
-    if (langId) {
-      orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
-    }
-    if (localeId) {
-      orConditions.push(`language_id.is.null,locale_id.eq.${localeId}`);
-    }
-    if (langId && localeId) {
-      orConditions.push(`language_id.eq.${langId},locale_id.eq.${localeId}`);
+    const resolveLanguageId = async (code?: string) => {
+      if (!code) return undefined;
+      const { data, error } = await supabase
+        .from(TABLES.Language)
+        .select('id')
+        .ilike('code', code)
+        .eq('is_deleted', false)
+        .limit(1);
+
+      if (error) {
+        logger.error('Error fetching skill lesson language:', error);
+        return undefined;
+      }
+
+      return data?.[0]?.id as string | undefined;
+    };
+
+    const fetchSkillLessons = async (langId?: string) => {
+      const orConditions: string[] = [];
+      orConditions.push('language_id.is.null,locale_id.is.null');
+      if (langId) {
+        orConditions.push(`language_id.eq.${langId},locale_id.is.null`);
+      }
+      if (localeId) {
+        orConditions.push(`language_id.is.null,locale_id.eq.${localeId}`);
+      }
+      if (langId && localeId) {
+        orConditions.push(`language_id.eq.${langId},locale_id.eq.${localeId}`);
+      }
+
+      const { data, error } = await supabase
+        .from('skill_lesson')
+        .select('*')
+        .in('skill_id', skillIds)
+        .eq('is_deleted', false)
+        .or(orConditions.join(','))
+        .order('sort_index', { ascending: true });
+
+      if (error) {
+        logger.error('Error fetching skill lessons:', error);
+        return [];
+      }
+
+      return data ?? [];
+    };
+
+    const langId = languageCode
+      ? ((await resolveLanguageId(languageCode)) ?? studentLangId)
+      : studentLangId;
+    const skillLessons = await fetchSkillLessons(langId);
+    if (skillLessons.length) {
+      return skillLessons;
     }
 
-    const { data, error } = await this.supabase
+    const { data, error } = await supabase
       .from('skill_lesson')
       .select('*')
       .in('skill_id', skillIds)
       .eq('is_deleted', false)
-      .or(orConditions.join(','))
       .order('sort_index', { ascending: true });
 
     if (error) {
@@ -3086,19 +3514,30 @@ export class SupabaseApi implements ServiceApi {
 
     if (!data) return resultMap;
 
-    if (data && data.length > 0) {
-      data.forEach((result) => {
+    const progressRows = data as StudentProgressRowWithLesson[];
+    if (progressRows.length > 0) {
+      progressRows.forEach((result) => {
+        const lesson = result.lesson;
+        const chapter = lesson?.chapter_lesson?.find((chapterLesson) =>
+          chapterLesson.chapter?.id
+            ? chapterLesson.chapter.id === result.chapter_id ||
+              chapterLesson.chapter.course_id === result.course_id
+            : false,
+        )?.chapter;
+        const resultWithNames: TableTypes<'result'> & {
+          lesson_name?: string;
+          chapter_name?: string;
+        } = {
+          ...result,
+          lesson_name: lesson?.name ?? '',
+          chapter_name: chapter?.name ?? '',
+        };
         const courseId = result.course_id;
         if (courseId && !resultMap[courseId]) {
           resultMap[courseId] = [];
         }
         if (courseId) {
-          resultMap[courseId].push(
-            result as TableTypes<'result'> & {
-              lesson_name?: string;
-              chapter_name?: string;
-            },
-          );
+          resultMap[courseId].push(resultWithNames);
         }
       });
     }
@@ -5279,6 +5718,8 @@ export class SupabaseApi implements ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>> {
     if (!this.supabase) throw new Error('Supabase instance is not initialized');
 
@@ -5294,6 +5735,7 @@ export class SupabaseApi implements ServiceApi {
       name: className,
       image: null,
       school_id: schoolId,
+      grade_id: gradeId ?? null,
       group_id: groupId ?? null,
       created_at: timestamp,
       updated_at: timestamp,
@@ -5303,9 +5745,10 @@ export class SupabaseApi implements ServiceApi {
       is_firebase: null,
       is_ops: null,
       ops_created_by: null,
-      standard: null,
+      standard: standard ?? null,
       status: null,
       whatsapp_invite_link: whatsapp_invite_link ?? null,
+      migrated_count: 0,
     };
 
     const { error } = await this.supabase.from('class').insert(newClass);
@@ -6274,8 +6717,10 @@ export class SupabaseApi implements ServiceApi {
     }
   }
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
     studentLoginType: string;
     schoolModel: string;
+    whatsappBotNumber?: string;
   } | null> {
     if (!this.supabase) return null;
 
@@ -6283,7 +6728,7 @@ export class SupabaseApi implements ServiceApi {
       // Fetch student_login_type and program_model directly from school table
       const { data: schoolData, error } = await this.supabase
         .from('school')
-        .select('student_login_type, model')
+        .select('id, student_login_type, model, whatsapp_bot_number')
         .eq('udise', udiseCode)
         .eq('is_deleted', false)
         .single();
@@ -6292,11 +6737,13 @@ export class SupabaseApi implements ServiceApi {
         return null;
       }
 
-      const { student_login_type, model } = schoolData;
+      const { id, student_login_type, model, whatsapp_bot_number } = schoolData;
 
       return {
+        schoolId: id || '',
         studentLoginType: student_login_type || '',
         schoolModel: model || '',
+        whatsappBotNumber: whatsapp_bot_number || '',
       };
     } catch (err) {
       logger.error('Unexpected error in getSchoolDetailsByUdise:', err);
@@ -6360,6 +6807,29 @@ export class SupabaseApi implements ServiceApi {
       return data;
     } catch (err) {
       logger.error('Unexpected error fetching grade by ID:', err);
+      return;
+    }
+  }
+  async getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined> {
+    if (!this.supabase) return;
+
+    try {
+      const { data, error } = await this.supabase
+        .from('grade')
+        .select('*')
+        .eq('name', name)
+        .eq('is_deleted', false)
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        logger.error('Error fetching grade by name:', error);
+        return;
+      }
+
+      return data ?? undefined;
+    } catch (err) {
+      logger.error('Unexpected error fetching grade by name:', err);
       return;
     }
   }
@@ -7282,6 +7752,83 @@ export class SupabaseApi implements ServiceApi {
 
     return { classWiseAssignments, individualAssignments };
   }
+  async getAssignmentDateRangeDataForClassAndSchool(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<AssignmentDateRangeData> {
+    if (!this.supabase) return { assignments: [], batchGroups: [] };
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select('*')
+      .eq('created_by', userId)
+      .gte('created_at', startDate)
+      .lte('created_at', endDate)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      logger.error('Error fetching assignment date range data:', error);
+      return { assignments: [], batchGroups: [] };
+    }
+
+    const assignments = (data ?? []) as TableTypes<'assignment'>[];
+
+    const grouped = new Map<
+      string,
+      {
+        batchId: string | null;
+        assignmentCount: number;
+        latestCreatedAt: string | null;
+      }
+    >();
+
+    assignments.forEach((row) => {
+      const batchId = row.batch_id ?? null;
+      const key = batchId ?? '__null__';
+      const existing = grouped.get(key);
+
+      if (!existing) {
+        grouped.set(key, {
+          batchId,
+          assignmentCount: 1,
+          latestCreatedAt: row.created_at ?? null,
+        });
+        return;
+      }
+
+      existing.assignmentCount += 1;
+      existing.latestCreatedAt = row.created_at ?? existing.latestCreatedAt;
+    });
+
+    return {
+      assignments,
+      batchGroups: Array.from(grouped.values()),
+    };
+  }
+
+  async getCoinAndStreakCount(
+    userId: string,
+    classId: string,
+    schoolId: string,
+  ): Promise<{ coins: number; streak: number } | undefined> {
+    if (!this.supabase) return;
+    const { data, error } = await this.supabase
+      .from(TABLES.UserAchivements)
+      .select('coins, streak')
+      .eq('user_id', userId)
+      .eq('is_deleted', false)
+      .limit(1)
+      .maybeSingle();
+    if (error) {
+      logger.error('Error fetching user achievements:', error);
+      return;
+    }
+    if (!data) return;
+    return { coins: data.coins, streak: data.streak };
+  }
+
   async getTeacherJoinedDate(
     userId: string,
     classId: string,
@@ -8387,6 +8934,99 @@ export class SupabaseApi implements ServiceApi {
     }
   }
 
+  async validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: 'error',
+        errors: ['Supabase client is not initialized'],
+      };
+    }
+    try {
+      const { data, error } = await this.supabase.functions.invoke(
+        'whatsapp-bot-check',
+        {
+          body: {
+            phone: whatsappBotNumber.trim(),
+          },
+        },
+      );
+      if (error) {
+        return {
+          status: 'error',
+          errors: [error.message || 'WHATSAPP BOT NUMBER validation failed.'],
+        };
+      }
+      if (data?.working === true) {
+        return { status: 'success' };
+      }
+      const stateInfo =
+        data?.wa_state || typeof data?.is_ready === 'boolean'
+          ? ` (wa_state: ${data?.wa_state ?? 'unknown'}, is_ready: ${String(
+              data?.is_ready,
+            )})`
+          : '';
+
+      return {
+        status: 'error',
+        errors: [
+          data?.error || `WHATSAPP BOT NUMBER is not active or connected.`,
+        ],
+      };
+    } catch (err) {
+      return {
+        status: 'error',
+        errors: [String(err)],
+      };
+    }
+  }
+
+  async validateWhatsappGroupLink(
+    whatsappBotNumber: string,
+    whatsappGroupLink: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    if (!this.supabase) {
+      return {
+        status: 'error',
+        errors: ['Supabase client is not initialized'],
+      };
+    }
+
+    try {
+      const { data, error } = await this.supabase.functions.invoke(
+        'whatsapp-group-validate',
+        {
+          body: {
+            invite_link: whatsappGroupLink.trim(),
+            phone: whatsappBotNumber.trim(),
+          },
+        },
+      );
+
+      if (error) {
+        return {
+          status: 'error',
+          errors: [error.message || 'WHATSAPP GROUP LINK validation failed.'],
+        };
+      }
+
+      if (data?.valid === true) {
+        return { status: 'success' };
+      }
+
+      return {
+        status: 'error',
+        errors: [data?.error || 'Invalid WHATSAPP GROUP LINK.'],
+      };
+    } catch (err) {
+      return {
+        status: 'error',
+        errors: [String(err)],
+      };
+    }
+  }
+
   async setStarsForStudents(
     studentId: string,
     starsCount: number,
@@ -8615,6 +9255,789 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return (data as { name: string; id: string }[]) || [];
+  }
+
+  async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized.');
+      return { programs: [], managers: [], savedGroups: [] };
+    }
+
+    const [programsResponse, managers, savedGroupsResponse] = await Promise.all(
+      [
+        this.supabase
+          .from('program')
+          .select('id, name')
+          .eq('is_deleted', false)
+          .order('name', { ascending: true }),
+        this.getProgramManagers(),
+        this.supabase
+          .from('campaign_target_audience')
+          .select(
+            'id, name, program_id, is_all_schools, is_all_grades, campaign_target_audience_school(school_id), campaign_target_audience_grade(grade_id)',
+          )
+          .eq('is_deleted', false)
+          .eq('is_saved', true)
+          .order('created_at', { ascending: false }),
+      ],
+    );
+
+    if (programsResponse.error) {
+      logger.error('Error fetching campaign programs:', programsResponse.error);
+    }
+
+    if (savedGroupsResponse.error) {
+      logger.error(
+        'Error fetching campaign saved groups:',
+        savedGroupsResponse.error,
+      );
+    }
+
+    const programs = ((programsResponse.data ?? []) as CampaignProgramRow[])
+      .filter((program) => program.id && program.name)
+      .map((program) => ({
+        id: String(program.id),
+        name: String(program.name),
+      }));
+
+    const savedGroups = (
+      (savedGroupsResponse.data ?? []) as CampaignSavedAudienceGroupRow[]
+    )
+      .filter((group) => group.id && group.name && group.program_id)
+      .map((group) => this.mapCampaignSavedAudienceGroup(group));
+
+    return {
+      programs,
+      managers,
+      savedGroups,
+    };
+  }
+
+  async getCampaignAudienceOptions(
+    programId: string,
+  ): Promise<CampaignAudienceOptions> {
+    if (!this.supabase || !programId) {
+      return { blocks: [], schools: [], grades: [] };
+    }
+
+    const { data: schoolRows, error: schoolError } = await this.supabase
+      .from('school')
+      .select('id, name, group3')
+      .eq('program_id', programId)
+      .eq('is_deleted', false)
+      .order('name', { ascending: true });
+
+    if (schoolError) {
+      logger.error('Error fetching campaign audience schools:', schoolError);
+      return { blocks: [], schools: [], grades: [] };
+    }
+
+    const schools: CampaignSchoolOption[] = (
+      (schoolRows ?? []) as CampaignSchoolRow[]
+    )
+      .filter((school) => school.id && school.name)
+      .map((school) => ({
+        id: String(school.id),
+        name: String(school.name),
+        block: String(school.group3 || 'Unassigned'),
+      }));
+
+    const blocks = Array.from(
+      new Set(schools.map((school) => school.block).filter(Boolean)),
+    ).sort((a, b) => a.localeCompare(b));
+
+    const grades = await this.getCampaignGradesForSchools(
+      schools.map((school) => school.id),
+    );
+
+    return { blocks, schools, grades };
+  }
+
+  async getCampaignAudienceSummary({
+    schoolIds,
+    gradeIds,
+  }: CampaignAudienceSummaryParams): Promise<CampaignAudienceSummary> {
+    if (!this.supabase || schoolIds.length === 0 || gradeIds.length === 0) {
+      return { totalStudents: 0, grades: [] };
+    }
+
+    const { data: classRows, error: classError } = await this.supabase
+      .from('class')
+      .select('id, grade_id, grade:grade_id(id, name, sort_index)')
+      .in('school_id', schoolIds)
+      .in('grade_id', gradeIds)
+      .eq('is_deleted', false);
+
+    if (classError) {
+      logger.error('Error fetching campaign summary classes:', classError);
+      return { totalStudents: 0, grades: [] };
+    }
+
+    const classGradeMap = new Map<
+      string,
+      { gradeId: string; gradeName: string; sort: number }
+    >();
+
+    ((classRows ?? []) as CampaignClassGradeRow[]).forEach((row) => {
+      const grade = firstOrSelf(row.grade);
+      if (!row.id || !row.grade_id || !grade?.name) return;
+      classGradeMap.set(String(row.id), {
+        gradeId: String(row.grade_id),
+        gradeName: String(grade.name),
+        sort: Number(grade.sort_index ?? 9999),
+      });
+    });
+
+    const classIds = Array.from(classGradeMap.keys());
+    if (classIds.length === 0) return { totalStudents: 0, grades: [] };
+
+    const classUserRows: CampaignClassUserRow[] = [];
+    for (const classIdBatch of chunkArray(classIds, 500)) {
+      const { data, error: classUserError } = await this.supabase
+        .from('class_user')
+        .select('class_id, user_id')
+        .in('class_id', classIdBatch)
+        .eq('role', RoleType.STUDENT)
+        .eq('is_deleted', false);
+
+      if (classUserError) {
+        logger.error(
+          'Error fetching campaign summary class users:',
+          classUserError,
+        );
+        return { totalStudents: 0, grades: [] };
+      }
+
+      classUserRows.push(...((data ?? []) as CampaignClassUserRow[]));
+    }
+
+    const studentsByGrade = new Map<string, Set<string>>();
+    const gradeMeta = new Map<string, { gradeName: string; sort: number }>();
+
+    (classUserRows ?? []).forEach((row) => {
+      const classMeta = classGradeMap.get(String(row.class_id));
+      if (!classMeta || !row.user_id) return;
+      if (!studentsByGrade.has(classMeta.gradeId)) {
+        studentsByGrade.set(classMeta.gradeId, new Set<string>());
+        gradeMeta.set(classMeta.gradeId, {
+          gradeName: classMeta.gradeName,
+          sort: classMeta.sort,
+        });
+      }
+      studentsByGrade.get(classMeta.gradeId)?.add(String(row.user_id));
+    });
+
+    const grades = Array.from(studentsByGrade.entries())
+      .map(([gradeId, students]) => ({
+        gradeId,
+        gradeName: gradeMeta.get(gradeId)?.gradeName ?? 'Grade',
+        sort: gradeMeta.get(gradeId)?.sort ?? 9999,
+        studentCount: students.size,
+      }))
+      .sort((a, b) => a.sort - b.sort || a.gradeName.localeCompare(b.gradeName))
+      .map(({ gradeId, gradeName, studentCount }) => ({
+        gradeId,
+        gradeName,
+        studentCount,
+      }));
+
+    return {
+      totalStudents: grades.reduce(
+        (total, grade) => total + grade.studentCount,
+        0,
+      ),
+      grades,
+    };
+  }
+
+  async createCampaignAudienceGroup(
+    payload: CampaignAudiencePayload,
+  ): Promise<CampaignSavedAudienceGroup> {
+    const targetAudienceId = await this.insertCampaignTargetAudience(payload);
+    return {
+      id: targetAudienceId,
+      name: payload.name || 'Saved audience group',
+      programId: payload.programId,
+      isAllSchools: payload.isAllSchools,
+      isAllGrades: payload.isAllGrades,
+      schoolIds: payload.isAllSchools ? [] : payload.schoolIds,
+      gradeIds: payload.isAllGrades ? [] : payload.gradeIds,
+    };
+  }
+
+  async createCampaignSetup(
+    payload: CreateCampaignSetupPayload,
+  ): Promise<CreateCampaignSetupResult> {
+    if (!this.supabase) {
+      throw new Error('Supabase client is not initialized.');
+    }
+
+    const createdAudienceForCampaign = !payload.savedAudienceGroupId;
+    const targetAudienceId =
+      payload.savedAudienceGroupId ||
+      (await this.insertCampaignTargetAudience(payload));
+
+    const campaignInsert = {
+      program_id: payload.programId,
+      target_audience_id: targetAudienceId,
+      name: payload.campaignName,
+      objective: payload.objective,
+      target_type: payload.targetType ?? null,
+      target_value: payload.targetValue ?? null,
+      manager_id: payload.managerId,
+      start_date: payload.startDate,
+      end_date: payload.endDate,
+      rewards: payload.rewards ? JSON.stringify(payload.rewards) : null,
+    };
+
+    const { data, error } = await this.supabase
+      .from('campaign')
+      .insert(campaignInsert)
+      .select('id')
+      .single();
+
+    if (error) {
+      logger.error('Error creating campaign setup:', error);
+      if (createdAudienceForCampaign) {
+        await this.deleteCampaignTargetAudience(targetAudienceId);
+      }
+      throw error;
+    }
+
+    return {
+      campaignId: String(data.id),
+      targetAudienceId,
+    };
+  }
+
+  async launchCampaign(payload: LaunchCampaignPayload): Promise<void> {
+    if (!this.supabase) {
+      throw new Error('Supabase client is not initialized.');
+    }
+    if (!payload.campaignId) {
+      throw new Error('Campaign id is required.');
+    }
+    if (!payload.currentUserId) {
+      throw new Error('Current user id is required.');
+    }
+    if (!payload.rewards?.type || !payload.rewards?.rules?.length) {
+      throw new Error('Campaign rewards are required.');
+    }
+    if (payload.assignments.length === 0) {
+      throw new Error('Campaign assignments are required.');
+    }
+    if (payload.messagingRows.length === 0) {
+      throw new Error('Campaign communication is required.');
+    }
+
+    const updatedAt = new Date().toISOString();
+    const schoolIds = Array.from(
+      new Set(
+        payload.assignments.flatMap((assignment) => assignment.schoolIds),
+      ),
+    );
+    const gradeIds = Array.from(
+      new Set(payload.assignments.map((assignment) => assignment.gradeId)),
+    );
+
+    if (schoolIds.length === 0 || gradeIds.length === 0) {
+      throw new Error('Campaign assignment schools and grades are required.');
+    }
+
+    const { data: classRowsData, error: classRowsError } = await this.supabase
+      .from(TABLES.Class)
+      .select('id, school_id, grade_id')
+      .in('school_id', schoolIds)
+      .in('grade_id', gradeIds)
+      .eq('is_deleted', false);
+
+    if (classRowsError) {
+      logger.error(
+        'Error resolving campaign assignment classes:',
+        classRowsError,
+      );
+      throw classRowsError;
+    }
+
+    const classRows = (classRowsData ?? []) as Array<{
+      id: string;
+      school_id: string;
+      grade_id: string;
+    }>;
+
+    const classesBySchoolAndGrade = new Map<
+      string,
+      Array<{ id: string; school_id: string; grade_id: string }>
+    >();
+    classRows.forEach((classRow) => {
+      const key = `${classRow.school_id}:${classRow.grade_id}`;
+      if (!classesBySchoolAndGrade.has(key)) {
+        classesBySchoolAndGrade.set(key, []);
+      }
+      classesBySchoolAndGrade.get(key)?.push(classRow);
+    });
+
+    const missingAssignmentTargets = new Set<string>();
+    const assignmentRows = payload.assignments.flatMap((assignment) =>
+      assignment.schoolIds.flatMap((schoolId) => {
+        const classes =
+          classesBySchoolAndGrade.get(`${schoolId}:${assignment.gradeId}`) ??
+          [];
+        if (classes.length === 0) {
+          missingAssignmentTargets.add(`${schoolId}:${assignment.gradeId}`);
+        }
+        return classes.map((classRow) => ({
+          campaign_id: payload.campaignId,
+          batch_id: payload.campaignId,
+          class_id: classRow.id,
+          school_id: classRow.school_id,
+          lesson_id: assignment.lessonId,
+          chapter_id: assignment.chapterId,
+          course_id: assignment.courseId,
+          starts_at: assignment.startsAt,
+          ends_at: assignment.endsAt,
+          type: assignment.type,
+          source: assignment.source,
+          set_number: assignment.setNumber,
+          is_class_wise: true,
+          created_by: payload.currentUserId,
+          is_deleted: false,
+        }));
+      }),
+    );
+
+    if (missingAssignmentTargets.size > 0) {
+      logger.warn(
+        'Skipping campaign assignments for school/grade pairs without classes:',
+        Array.from(missingAssignmentTargets).map((target) => {
+          const [schoolId, gradeId] = target.split(':');
+          return { schoolId, gradeId };
+        }),
+      );
+    }
+
+    if (assignmentRows.length === 0) {
+      throw new Error(
+        'No classes found for the selected campaign assignments.',
+      );
+    }
+
+    const { error: assignmentCleanupError } = await this.supabase
+      .from(TABLES.Assignment)
+      .update({ is_deleted: true, updated_at: updatedAt })
+      .eq('campaign_id', payload.campaignId)
+      .eq('is_deleted', false);
+
+    if (assignmentCleanupError) {
+      logger.error(
+        'Error clearing previous campaign assignments:',
+        assignmentCleanupError,
+      );
+      throw assignmentCleanupError;
+    }
+
+    for (const assignmentBatch of chunkArray(assignmentRows, 500)) {
+      const { error } = await this.supabase
+        .from(TABLES.Assignment)
+        .insert(assignmentBatch);
+
+      if (error) {
+        logger.error('Error inserting campaign assignments:', error);
+        throw error;
+      }
+    }
+
+    const { error: messagingCleanupError } = await this.supabase
+      .from('campaign_messaging')
+      .update({ is_deleted: true, updated_at: updatedAt })
+      .eq('campaign_id', payload.campaignId)
+      .eq('is_deleted', false);
+
+    if (messagingCleanupError) {
+      logger.error(
+        'Error clearing previous campaign messaging:',
+        messagingCleanupError,
+      );
+      throw messagingCleanupError;
+    }
+
+    const messagingRows = payload.messagingRows.map((row) => ({
+      campaign_id: payload.campaignId,
+      message_time: row.messageTime,
+      poll_time: row.pollTime,
+      message: row.message,
+      media_link: row.mediaLink,
+      poll: row.poll,
+      message_status: 'pending',
+      poll_status: 'pending',
+      is_deleted: false,
+    }));
+
+    const { error: messagingInsertError } = await this.supabase
+      .from('campaign_messaging')
+      .insert(messagingRows);
+
+    if (messagingInsertError) {
+      logger.error('Error inserting campaign messaging:', messagingInsertError);
+      throw messagingInsertError;
+    }
+  }
+
+  async getCampaignAssignmentOptions({
+    schoolIds,
+    gradeIds,
+  }: CampaignAssignmentOptionsParams): Promise<CampaignAssignmentOptions> {
+    if (!this.supabase || gradeIds.length === 0) {
+      return { grades: [] };
+    }
+
+    const courseMap = new Map<string, CampaignAssignmentCourseRow>();
+
+    if (schoolIds.length > 0) {
+      for (const schoolIdBatch of chunkArray(schoolIds, 500)) {
+        const { data, error } = await this.supabase
+          .from('school_course')
+          .select(
+            'course:course_id(id, name, grade_id, sort_index, subject_id)',
+          )
+          .in('school_id', schoolIdBatch)
+          .eq('is_deleted', false);
+
+        if (error) {
+          logger.error('Error fetching campaign assignment courses:', error);
+          continue;
+        }
+
+        ((data ?? []) as CampaignAssignmentSchoolCourseRow[]).forEach((row) => {
+          const course = firstOrSelf(row.course);
+          if (!course?.id || !course.name || !course.grade_id) return;
+          if (!gradeIds.includes(String(course.grade_id))) return;
+          courseMap.set(String(course.id), course);
+        });
+      }
+    }
+
+    const subjectsByGrade = new Map<
+      string,
+      CampaignAssignmentOptions['grades'][number]['subjects']
+    >();
+
+    const sortedCourses = Array.from(courseMap.values()).sort(
+      (a, b) =>
+        Number(a.sort_index ?? 9999) - Number(b.sort_index ?? 9999) ||
+        String(a.name).localeCompare(String(b.name)),
+    );
+
+    const courseIds = sortedCourses.map((course) => String(course.id));
+    const chapterRows: CampaignAssignmentChapterRow[] = [];
+
+    for (const courseIdBatch of chunkArray(courseIds, 500)) {
+      const { data, error } = await this.supabase
+        .from(TABLES.Chapter)
+        .select('id, name, course_id, sort_index')
+        .in('course_id', courseIdBatch)
+        .eq('is_deleted', false)
+        .order('sort_index', { ascending: true });
+
+      if (error) {
+        logger.error('Error fetching campaign assignment chapters:', error);
+        continue;
+      }
+
+      chapterRows.push(...((data ?? []) as CampaignAssignmentChapterRow[]));
+    }
+
+    const chapterIds = chapterRows.map((chapter) => String(chapter.id));
+    const chapterLessonRows: CampaignAssignmentChapterLessonRow[] = [];
+
+    for (const chapterIdBatch of chunkArray(chapterIds, 500)) {
+      const { data, error } = await this.supabase
+        .from(TABLES.ChapterLesson)
+        .select('chapter_id, lesson_id, sort_index, lesson:lesson_id(id, name)')
+        .in('chapter_id', chapterIdBatch)
+        .eq('is_deleted', false)
+        .order('sort_index', { ascending: true });
+
+      if (error) {
+        logger.error('Error fetching campaign assignment lessons:', error);
+        continue;
+      }
+
+      chapterLessonRows.push(
+        ...((data ?? []) as CampaignAssignmentChapterLessonRow[]),
+      );
+    }
+
+    const lessonsByChapter = new Map<
+      string,
+      CampaignAssignmentOptions['grades'][number]['subjects'][number]['chapters'][number]['lessons']
+    >();
+    const lessonIdsByChapter = new Map<string, Set<string>>();
+
+    chapterLessonRows
+      .sort(
+        (a, b) =>
+          Number(a.sort_index ?? 9999) - Number(b.sort_index ?? 9999) ||
+          String(a.lesson_id).localeCompare(String(b.lesson_id)),
+      )
+      .forEach((row) => {
+        const lesson = firstOrSelf(row.lesson);
+        if (!row.chapter_id || !lesson?.id) return;
+
+        const chapterId = String(row.chapter_id);
+        const lessonId = String(lesson.id);
+        if (!lessonsByChapter.has(chapterId))
+          lessonsByChapter.set(chapterId, []);
+        if (!lessonIdsByChapter.has(chapterId)) {
+          lessonIdsByChapter.set(chapterId, new Set<string>());
+        }
+        if (lessonIdsByChapter.get(chapterId)?.has(lessonId)) return;
+
+        lessonIdsByChapter.get(chapterId)?.add(lessonId);
+        lessonsByChapter.get(chapterId)?.push({
+          id: lessonId,
+          name: lesson.name || 'Untitled lesson',
+        });
+      });
+
+    const chaptersByCourse = new Map<
+      string,
+      CampaignAssignmentOptions['grades'][number]['subjects'][number]['chapters']
+    >();
+
+    chapterRows
+      .sort(
+        (a, b) =>
+          Number(a.sort_index ?? 9999) - Number(b.sort_index ?? 9999) ||
+          String(a.name ?? '').localeCompare(String(b.name ?? '')),
+      )
+      .forEach((chapter) => {
+        if (!chapter.id || !chapter.course_id) return;
+        const courseId = String(chapter.course_id);
+        if (!chaptersByCourse.has(courseId)) chaptersByCourse.set(courseId, []);
+        chaptersByCourse.get(courseId)?.push({
+          id: String(chapter.id),
+          name: chapter.name || 'Untitled chapter',
+          lessons: lessonsByChapter.get(String(chapter.id)) ?? [],
+        });
+      });
+
+    const subjectOptions = sortedCourses.map((course) => ({
+      id: String(course.id),
+      name: course.name,
+      gradeId: String(course.grade_id),
+      chapters: chaptersByCourse.get(String(course.id)) ?? [],
+    }));
+
+    subjectOptions.forEach((subject) => {
+      if (!subjectsByGrade.has(subject.gradeId)) {
+        subjectsByGrade.set(subject.gradeId, []);
+      }
+      subjectsByGrade.get(subject.gradeId)?.push(subject);
+    });
+
+    return {
+      grades: gradeIds.map((gradeId) => ({
+        gradeId,
+        subjects: subjectsByGrade.get(gradeId) ?? [],
+      })),
+    };
+  }
+
+  private mapCampaignSavedAudienceGroup(
+    group: CampaignSavedAudienceGroupRow,
+  ): CampaignSavedAudienceGroup {
+    const schoolLinks = Array.isArray(group.campaign_target_audience_school)
+      ? group.campaign_target_audience_school
+      : [];
+    const gradeLinks = Array.isArray(group.campaign_target_audience_grade)
+      ? group.campaign_target_audience_grade
+      : [];
+
+    return {
+      id: String(group.id),
+      name: String(group.name),
+      programId: String(group.program_id),
+      isAllSchools: Boolean(group.is_all_schools),
+      isAllGrades: Boolean(group.is_all_grades),
+      schoolIds: schoolLinks
+        .map((link) => link.school_id)
+        .filter((schoolId: unknown): schoolId is string => !!schoolId),
+      gradeIds: gradeLinks
+        .map((link) => link.grade_id)
+        .filter((gradeId: unknown): gradeId is string => !!gradeId),
+    };
+  }
+
+  private async getCampaignGradesForSchools(
+    schoolIds: string[],
+  ): Promise<{ id: string; name: string }[]> {
+    if (!this.supabase || schoolIds.length === 0) return [];
+
+    const gradeMap = new Map<
+      string,
+      { id: string; name: string; sort: number }
+    >();
+
+    const { data: classRows, error: classError } = await this.supabase
+      .from('class')
+      .select('grade_id, grade:grade_id(id, name, sort_index)')
+      .in('school_id', schoolIds)
+      .eq('is_deleted', false)
+      .not('grade_id', 'is', null);
+
+    if (classError) {
+      logger.error('Error fetching class grades for campaign:', classError);
+    }
+
+    ((classRows ?? []) as CampaignClassGradeRow[]).forEach((row) => {
+      const grade = firstOrSelf(row.grade);
+      if (!grade?.id || !grade?.name) return;
+      gradeMap.set(String(grade.id), {
+        id: String(grade.id),
+        name: String(grade.name),
+        sort: Number(grade.sort_index ?? 9999),
+      });
+    });
+
+    for (const schoolIdBatch of chunkArray(schoolIds, 500)) {
+      const { data: schoolCourseRows, error: schoolCourseError } =
+        await this.supabase
+          .from('school_course')
+          .select(
+            'course:course_id(grade_id, grade:grade_id(id, name, sort_index))',
+          )
+          .in('school_id', schoolIdBatch)
+          .eq('is_deleted', false);
+
+      if (schoolCourseError) {
+        logger.error(
+          'Error fetching school course grades for campaign:',
+          schoolCourseError,
+        );
+        continue;
+      }
+
+      ((schoolCourseRows ?? []) as CampaignSchoolCourseGradeRow[]).forEach(
+        (row) => {
+          const course = firstOrSelf(row.course);
+          const grade = firstOrSelf(course?.grade);
+          if (!grade?.id || !grade?.name) return;
+          gradeMap.set(String(grade.id), {
+            id: String(grade.id),
+            name: String(grade.name),
+            sort: Number(grade.sort_index ?? 9999),
+          });
+        },
+      );
+    }
+
+    return Array.from(gradeMap.values())
+      .sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name))
+      .map(({ id, name }) => ({ id, name }));
+  }
+
+  private async insertCampaignTargetAudience(
+    payload: CampaignAudiencePayload,
+  ): Promise<string> {
+    if (!this.supabase) {
+      throw new Error('Supabase client is not initialized.');
+    }
+
+    const {
+      data: { user },
+    } = await this.supabase.auth.getUser();
+
+    const { data, error } = await this.supabase
+      .from('campaign_target_audience')
+      .insert({
+        name: payload.isSaved ? payload.name : null,
+        program_id: payload.programId,
+        is_all_schools: payload.isAllSchools,
+        is_all_grades: payload.isAllGrades,
+        is_saved: payload.isSaved,
+        created_by: user?.id ?? null,
+      })
+      .select('id')
+      .single();
+
+    if (error) {
+      logger.error('Error creating campaign target audience:', error);
+      throw error;
+    }
+
+    const targetAudienceId = String(data.id);
+
+    try {
+      if (!payload.isAllSchools && payload.schoolIds.length > 0) {
+        const { error: schoolInsertError } = await this.supabase
+          .from('campaign_target_audience_school')
+          .insert(
+            payload.schoolIds.map((schoolId) => ({
+              target_audience_id: targetAudienceId,
+              school_id: schoolId,
+            })),
+          );
+
+        if (schoolInsertError) {
+          logger.error(
+            'Error creating campaign target audience schools:',
+            schoolInsertError,
+          );
+          throw schoolInsertError;
+        }
+      }
+
+      if (!payload.isAllGrades && payload.gradeIds.length > 0) {
+        const { error: gradeInsertError } = await this.supabase
+          .from('campaign_target_audience_grade')
+          .insert(
+            payload.gradeIds.map((gradeId) => ({
+              target_audience_id: targetAudienceId,
+              grade_id: gradeId,
+            })),
+          );
+
+        if (gradeInsertError) {
+          logger.error(
+            'Error creating campaign target audience grades:',
+            gradeInsertError,
+          );
+          throw gradeInsertError;
+        }
+      }
+    } catch (error) {
+      await this.deleteCampaignTargetAudience(targetAudienceId);
+      throw error;
+    }
+
+    return targetAudienceId;
+  }
+
+  private async deleteCampaignTargetAudience(targetAudienceId: string) {
+    if (!this.supabase) return;
+
+    const cleanupSteps = [
+      this.supabase
+        .from('campaign_target_audience_school')
+        .delete()
+        .eq('target_audience_id', targetAudienceId),
+      this.supabase
+        .from('campaign_target_audience_grade')
+        .delete()
+        .eq('target_audience_id', targetAudienceId),
+      this.supabase
+        .from('campaign_target_audience')
+        .delete()
+        .eq('id', targetAudienceId),
+    ];
+
+    for (const cleanupStep of cleanupSteps) {
+      const { error } = await cleanupStep;
+      if (error) {
+        logger.error('Error cleaning up campaign target audience:', error);
+      }
+    }
   }
 
   async getUniqueGeoData(): Promise<{
@@ -9692,13 +11115,13 @@ export class SupabaseApi implements ServiceApi {
         phone_calls_students_parents: row.student_parent_calls ?? null,
         phone_calls_teachers_hms: row.teacher_hm_calls ?? null,
         community_visits: row.community_visits ?? null,
+        school_visits: row.school_visits ?? null,
+        parents_on_whatsapp: row.parents_on_whatsapp ?? null,
+        parents_in_whatsapp_group: row.parents_in_group ?? null,
         parents_reached:
           typeof row.community_parents_reached === 'number'
             ? row.community_parents_reached
             : 0,
-        school_visits: row.school_visits ?? null,
-        parents_on_whatsapp: row.parents_on_whatsapp ?? null,
-        parents_in_whatsapp_group: row.parents_in_group ?? null,
         program_managers: row.program_managers ?? [],
         field_coordinators: row.field_coordinators ?? [],
       })) as FilteredSchoolsForSchoolListingOps[];
@@ -9761,7 +11184,7 @@ export class SupabaseApi implements ServiceApi {
           _page_size: normalizedPageSize,
           _order_by: safeParams.orderBy ?? 'school_name',
           _order_dir: safeParams.orderDir ?? 'asc',
-          _search: safeParams.search?.trim() || null,
+          _search: safeParams.search?.trim() || undefined,
           _include_migrated_counts: safeParams.includeMigratedCounts ?? false,
         },
       );
@@ -9827,6 +11250,7 @@ export class SupabaseApi implements ServiceApi {
 
   async createAutoProfile(
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     if (!this.supabase) throw new Error('Supabase instance is not initialized');
 
@@ -9855,6 +11279,7 @@ export class SupabaseApi implements ServiceApi {
       updated_at: now,
       is_deleted: false,
       is_tc_accepted: true,
+      tc_agreed_version: tcVersion,
       email: null,
       phone: null,
       fcm_token: null,
@@ -9868,6 +11293,7 @@ export class SupabaseApi implements ServiceApi {
       ops_created_by: null,
       reward: null,
       stars: null,
+      is_wa_contact: null,
     };
 
     // Insert user
@@ -9905,7 +11331,7 @@ export class SupabaseApi implements ServiceApi {
 
     // Find English, Maths, and language-dependent subject
     const englishCourse = await this.getCourse(CHIMPLE_ENGLISH);
-    const mathsCourse = await this.getCourse(CHIMPLE_MATHS);
+    const mathsCourse = await this.resolveMathCourseByLanguage(languageDocId);
     const digitalSkillsCourse = await this.getCourse(CHIMPLE_DIGITAL_SKILLS);
     const language = languageDocId
       ? await this.getLanguageWithId(languageDocId)
@@ -10474,19 +11900,25 @@ export class SupabaseApi implements ServiceApi {
         p_order_dir: orderDir,
         p_request_types: filters?.request_type?.length
           ? filters.request_type
-          : null,
-        p_school_ids: filters?.school?.length ? filters.school : null,
-        p_search_term: searchTerm ?? null,
+          : undefined,
+        p_school_ids: filters?.school?.length ? filters.school : undefined,
+        p_search_term: searchTerm ?? undefined,
       });
 
       if (error) throw error;
 
+      const response =
+        data && typeof data === 'object' && !Array.isArray(data)
+          ? (data as Record<string, unknown>)
+          : {};
+
       return {
-        data: data?.data ?? [],
-        total: data?.total ?? 0,
-        totalPages: data?.totalPages ?? 0,
-        page: data?.page ?? page,
-        limit: data?.limit ?? limit,
+        data: Array.isArray(response.data) ? response.data : [],
+        total: typeof response.total === 'number' ? response.total : 0,
+        totalPages:
+          typeof response.totalPages === 'number' ? response.totalPages : 0,
+        page: typeof response.page === 'number' ? response.page : page,
+        limit: typeof response.limit === 'number' ? response.limit : limit,
       };
     } catch (err) {
       logger.error('Error in getOpsRequests:', err);
@@ -12816,6 +14248,7 @@ export class SupabaseApi implements ServiceApi {
       .in('school_id', normalizedSchoolIds)
       .eq('type', SchoolVisitType.Community)
       .eq('is_deleted', false)
+      .not('number_of_parents', 'is', null)
       .gt('number_of_parents', 0);
 
     if (error) {
@@ -12917,7 +14350,7 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase || !student) return {} as TableTypes<'subject_lesson'>;
 
     const studentId = student.id;
-    const langId = student.language_id ?? null;
+    let langId = student.language_id ?? null;
     const localeId = student.locale_id ?? null;
 
     try {
@@ -12926,6 +14359,46 @@ export class SupabaseApi implements ServiceApi {
         status: string | null;
         created_at: string | null;
       };
+
+      if (courseId) {
+        const { data: courseRows, error: courseError } = await this.supabase
+          .from('course')
+          .select('code')
+          .eq('id', courseId)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (courseError) {
+          logger.error('Error fetching subject lesson course:', courseError);
+        } else {
+          const courseCode = courseRows?.[0]?.code?.trim().toLowerCase();
+          const courseLanguageCode =
+            courseCode === COURSES.MATHS
+              ? COURSES.ENGLISH
+              : courseCode?.includes('-')
+                ? courseCode.split('-').pop()
+                : courseCode;
+
+          if (courseLanguageCode) {
+            const { data: languageRows, error: languageError } =
+              await this.supabase
+                .from('language')
+                .select('id')
+                .ilike('code', courseLanguageCode)
+                .eq('is_deleted', false)
+                .limit(1);
+
+            if (languageError) {
+              logger.error(
+                'Error fetching subject lesson language:',
+                languageError,
+              );
+            } else if (languageRows?.[0]?.id) {
+              langId = languageRows[0].id;
+            }
+          }
+        }
+      }
 
       /* ==========================================
        * 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
@@ -12988,7 +14461,7 @@ export class SupabaseApi implements ServiceApi {
       /* ==========================================
        * 2️⃣ Abort Check (assignment_id IS NULL)
        * ========================================== */
-      let abortQuery = this.supabase
+      const abortQuery = this.supabase
         .from('result')
         .select('lesson_id, status, created_at')
         .eq('student_id', studentId)
@@ -12997,10 +14470,6 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false)
         .order('created_at', { ascending: false })
         .limit(50);
-
-      if (courseId) {
-        abortQuery = abortQuery.eq('course_id', courseId);
-      }
 
       const { data, error } = await abortQuery;
 
@@ -13033,11 +14502,14 @@ export class SupabaseApi implements ServiceApi {
       /* -----------------------------------------
         Abort check
       ------------------------------------------ */
+      const isAssessmentTerminated = (data as ResultStatusRow[]).some(
+        (r) => r.status === 'assessment_terminated',
+      );
       const isAborted =
         lastTwoUniqueLessons.length === 2 &&
         lastTwoUniqueLessons.every((r) => r.status === 'system_exit');
 
-      if (isAborted) {
+      if (isAssessmentTerminated || isAborted) {
         return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
       }
 
@@ -13129,17 +14601,13 @@ export class SupabaseApi implements ServiceApi {
        * ========================================== */
       const lessonIds = candidateLessons.map((lesson) => lesson.lesson_id);
 
-      let resultsQuery = this.supabase
+      const resultsQuery = this.supabase
         .from('result')
         .select('lesson_id')
         .in('lesson_id', lessonIds)
         .eq('student_id', studentId)
         .is('assignment_id', null)
         .eq('is_deleted', false);
-
-      if (courseId) {
-        resultsQuery = resultsQuery.eq('course_id', courseId);
-      }
 
       const { data: results } = await resultsQuery;
 
@@ -13190,52 +14658,155 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<boolean> {
     try {
       if (!this.supabase) return false;
-      const { data, error } = await this.supabase
-        .from('result')
-        .select(
-          `
-          id,
-          lesson!inner(
-            id,
-            plugin_type,
-            is_deleted
-          )
-        `,
-        )
-        .eq('student_id', studentId)
-        .eq('course_id', courseId)
-        .eq('is_deleted', false)
 
-        // 🔒 join condition parity
-        .eq('lesson.is_deleted', false)
-        .neq('lesson.plugin_type', 'lido_assessment')
+      const course = await this.getCourse(courseId);
+      if (!course?.subject_id) return false;
+      const subjectId = course.subject_id;
 
-        // STRICT ability validation
-        .not('skill_id', 'is', null)
-        .not('outcome_id', 'is', null)
-        .not('competency_id', 'is', null)
-        .not('domain_id', 'is', null)
-        .not('subject_id', 'is', null)
+      const { data: assessmentLessons, error: assessmentLessonsError } =
+        await this.supabase
+          .from('subject_lesson')
+          .select('lesson_id')
+          .eq('subject_id', subjectId)
+          .or('is_deleted.eq.false,is_deleted.is.null');
 
-        .not('skill_ability', 'is', null)
-        .not('outcome_ability', 'is', null)
-        .not('competency_ability', 'is', null)
-        .not('domain_ability', 'is', null)
-        .not('subject_ability', 'is', null)
-
-        .not('activities_scores', 'is', null)
-        .neq('activities_scores', '')
-
-        .limit(1);
-
-      if (error) {
-        logger.error('❌ Error checking played PLA lesson:', error);
+      if (assessmentLessonsError) {
+        logger.error(
+          '❌ Error fetching assessment lessons for PAL history:',
+          assessmentLessonsError,
+        );
         return false;
       }
 
-      return Array.isArray(data) && data.length > 0;
+      const assessmentLessonIds = Array.from(
+        new Set(
+          (assessmentLessons ?? [])
+            .map((lesson) => lesson.lesson_id)
+            .filter((lessonId): lessonId is string => !!lessonId),
+        ),
+      );
+
+      let resultsQuery = this.supabase
+        .from('result')
+        .select('lesson_id, status')
+        .eq('student_id', studentId)
+        .eq('subject_id', subjectId)
+        .or('is_deleted.eq.false,is_deleted.is.null');
+
+      if (assessmentLessonIds.length) {
+        resultsQuery = resultsQuery.or(
+          `status.eq.assessment_terminated,lesson_id.in.(${assessmentLessonIds.join(',')})`,
+        );
+      } else {
+        resultsQuery = resultsQuery.filter(
+          'status',
+          'eq',
+          'assessment_terminated',
+        );
+      }
+
+      const { data: results, error } = await resultsQuery;
+
+      if (error) {
+        logger.error('❌ Error checking PAL assessment history:', error);
+        return false;
+      }
+
+      const resultRows = results ?? [];
+      if (
+        resultRows.some(
+          (result) =>
+            (result.status as string | null) === 'assessment_terminated',
+        )
+      ) {
+        return true;
+      }
+
+      const assessmentLessonIdSet = new Set(assessmentLessonIds);
+      const systemExitAssessmentLessonIds = new Set(
+        resultRows
+          .filter(
+            (result) =>
+              result.status === 'system_exit' &&
+              !!result.lesson_id &&
+              assessmentLessonIdSet.has(result.lesson_id),
+          )
+          .map((result) => result.lesson_id),
+      );
+
+      if (systemExitAssessmentLessonIds.size >= 2) {
+        return true;
+      }
+
+      return resultRows.some(
+        (result) =>
+          result.status !== 'system_exit' &&
+          !!result.lesson_id &&
+          assessmentLessonIdSet.has(result.lesson_id),
+      );
     } catch (error) {
-      logger.error('❌ Error checking PAL lesson history:', error);
+      logger.error('❌ Error checking PAL assessment history:', error);
+      return false;
+    }
+  }
+  async hasPendingAbortedAssessment(
+    studentId: string,
+    courseId: string,
+  ): Promise<boolean> {
+    try {
+      if (!this.supabase) return false;
+
+      const course = await this.getCourse(courseId);
+      if (!course?.subject_id) {
+        return false;
+      }
+
+      const { data: assessmentLessons, error: assessmentLessonsError } =
+        await this.supabase
+          .from('subject_lesson')
+          .select('lesson_id')
+          .eq('subject_id', course.subject_id)
+          .or('is_deleted.eq.false,is_deleted.is.null');
+
+      if (assessmentLessonsError) {
+        logger.error(
+          '❌ Error fetching assessment lessons for pending abort check:',
+          assessmentLessonsError,
+        );
+        return false;
+      }
+
+      const seenLessonIds = new Set<string>();
+      const assessmentLessonIds: string[] = [];
+      for (const lesson of assessmentLessons ?? []) {
+        const lessonId = lesson.lesson_id;
+        if (!lessonId || seenLessonIds.has(lessonId)) continue;
+        seenLessonIds.add(lessonId);
+        assessmentLessonIds.push(lessonId);
+      }
+
+      if (!assessmentLessonIds.length) {
+        return false;
+      }
+
+      const { data: pendingAbortResults, error } = await this.supabase
+        .from('result')
+        .select('status')
+        .eq('student_id', studentId)
+        .is('assignment_id', null)
+        .in('lesson_id', assessmentLessonIds)
+        .or('is_deleted.eq.false,is_deleted.is.null')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) {
+        logger.error('❌ Error checking pending aborted assessment:', error);
+        return false;
+      }
+
+      return pendingAbortResults?.[0]?.status === 'system_exit';
+    } catch (error) {
+      logger.error('❌ Error checking pending aborted assessment:', error);
       return false;
     }
   }
@@ -13270,12 +14841,29 @@ export class SupabaseApi implements ServiceApi {
 
     courseId = courseId ?? '';
 
+    const isAssignedToStudent = (
+      assignment: AssessmentBatchRow | AssessmentAssignmentRow,
+    ) =>
+      assignment.is_class_wise === true ||
+      (assignment.assignment_user ?? []).some(
+        (assignmentUser) =>
+          assignmentUser.user_id === studentId &&
+          assignmentUser.is_deleted !== true,
+      );
+
     /* ==========================================
      * STEP 1️⃣  Get latest valid batch for course
      * ========================================== */
     const { data: latestBatchData, error: batchError } = await this.supabase
       .from(TABLES.Assignment)
-      .select('batch_id, created_at')
+      .select(
+        `
+        batch_id,
+        created_at,
+        is_class_wise,
+        assignment_user:assignment_user!left(user_id, is_deleted)
+      `,
+      )
       .eq('class_id', classId)
       .eq('course_id', courseId)
       .eq('type', 'assessment')
@@ -13284,11 +14872,14 @@ export class SupabaseApi implements ServiceApi {
       .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
       .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
       .order('created_at', { ascending: false })
-      .limit(1);
+      .limit(50);
 
     if (batchError || !latestBatchData?.length) return [];
 
-    const latestBatchId = latestBatchData[0].batch_id;
+    const latestAssignedBatch = (
+      latestBatchData as unknown as AssessmentBatchRow[]
+    ).find((assignment) => isAssignedToStudent(assignment));
+    const latestBatchId = latestAssignedBatch?.batch_id;
     if (!latestBatchId) return [];
 
     /* ==========================================
@@ -13317,16 +14908,12 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
 
-    if (!data || data.length === 0) {
-      return [];
-    }
-
     /* -----------------------------------------
       Keep latest result per unique assignment
     ------------------------------------------ */
-    const uniqueMap = new Map<string, any>();
+    const uniqueMap = new Map<string, AssessmentResultRow>();
 
-    for (const row of data) {
+    for (const row of (data ?? []) as AssessmentResultRow[]) {
       if (!row.assignment_id) continue;
 
       if (!uniqueMap.has(row.assignment_id)) {
@@ -13355,7 +14942,12 @@ export class SupabaseApi implements ServiceApi {
      * ========================================== */
     const { data: assignments, error: lessonError } = await this.supabase
       .from(TABLES.Assignment)
-      .select('*')
+      .select(
+        `
+        *,
+        assignment_user:assignment_user!left(user_id, is_deleted)
+      `,
+      )
       .eq('class_id', classId)
       .eq('course_id', courseId)
       .eq('type', 'assessment')
@@ -13366,7 +14958,13 @@ export class SupabaseApi implements ServiceApi {
 
     if (lessonError || !assignments?.length) return [];
 
-    const assignmentIds = assignments.map((a) => a.id);
+    const assignedAssessments = (
+      assignments as unknown as AssessmentAssignmentRow[]
+    ).filter((assignment) => isAssignedToStudent(assignment));
+
+    if (!assignedAssessments.length) return [];
+
+    const assignmentIds = assignedAssessments.map((a) => a.id);
 
     // fetch completed results
     const { data: results } = await this.supabase
@@ -13378,7 +14976,7 @@ export class SupabaseApi implements ServiceApi {
 
     const completedSet = new Set((results ?? []).map((r) => r.assignment_id));
 
-    const incompleteAssignments = assignments.filter(
+    const incompleteAssignments = assignedAssessments.filter(
       (a) => !completedSet.has(a.id),
     );
 
@@ -13441,6 +15039,7 @@ export class SupabaseApi implements ServiceApi {
         body: { groupId, bot },
       },
     );
+    logger.info('getWhatsappGroupDetails response', data);
     if (error) {
       throw error;
     }
@@ -13829,7 +15428,7 @@ export class SupabaseApi implements ServiceApi {
       .order('sort_index', { ascending: true });
 
     if (error) throw error;
-    return data ?? [];
+    return (data ?? []).map(mapStickerBookRow);
   }
 
   async getCurrentStickerBookWithProgress(userId: string): Promise<{
@@ -13859,7 +15458,7 @@ export class SupabaseApi implements ServiceApi {
       if (!book) return null;
 
       return {
-        book: book as StickerBook,
+        book: mapStickerBookRow(book),
         progress: progress as UserStickerProgress,
       };
     }
@@ -13900,7 +15499,7 @@ export class SupabaseApi implements ServiceApi {
 
     if (nextBook) {
       return {
-        book: nextBook as StickerBook,
+        book: mapStickerBookRow(nextBook),
         progress: null,
       };
     }
@@ -13930,7 +15529,14 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
 
-    return data?.map((r: any) => r.sticker_book as StickerBook) ?? [];
+    const rows = (data ?? []) as Array<{
+      sticker_book: TableTypes<'sticker_book'> | null;
+    }>;
+
+    return rows
+      .map((row) => row.sticker_book)
+      .filter((book): book is TableTypes<'sticker_book'> => Boolean(book))
+      .map(mapStickerBookRow);
   }
 
   async getNextWinnableSticker(
@@ -13966,8 +15572,8 @@ export class SupabaseApi implements ServiceApi {
 
     const collected = progress?.stickers_collected ?? [];
 
-    const sorted = [...book.stickers_metadata].sort(
-      (a: any, b: any) => a.sequence - b.sequence,
+    const sorted = [...mapStickerBookRow(book).stickers_metadata].sort(
+      (a: StickerMeta, b: StickerMeta) => a.sequence - b.sequence,
     );
 
     const next = sorted.find((s: any) => !collected.includes(s.id));
@@ -14081,5 +15687,96 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Exception in isSplUser:', e);
       return false;
     }
+  }
+
+  async updateCoins(
+    userId: string,
+    schoolId: string,
+    classId: string,
+    coins: number,
+    streakIncrement = 0,
+  ): Promise<TableTypes<TABLES.UserAchivements>> {
+    if (!this.supabase) return {} as TableTypes<TABLES.UserAchivements>;
+
+    const now = new Date().toISOString();
+    const coinsToAdd = Number(coins) || 0;
+    const streakToAdd = Number(streakIncrement) || 0;
+
+    // 1) Check if row already exists for this user/class/school
+    const { data: existing, error: fetchError } = await this.supabase
+      .from(TABLES.UserAchivements)
+      .select('*')
+      .eq('user_id', userId)
+      .eq('school_id', schoolId)
+      .eq('class_id', classId)
+      .or('is_deleted.is.false,is_deleted.is.null')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchError) {
+      logger.error(
+        'Error fetching user_achievements in updateCoins:',
+        fetchError,
+      );
+      return {} as TableTypes<TABLES.UserAchivements>;
+    }
+
+    // 2) If exists -> update coins + updated_at
+    if (existing) {
+      const updatedCoins = Number(existing.coins ?? 1000) + coinsToAdd;
+      const updatedStreak = Number(existing.streak ?? 0) + streakToAdd;
+
+      const { error: updateError } = await this.supabase
+        .from(TABLES.UserAchivements)
+        .update({
+          coins: updatedCoins,
+          streak: updatedStreak,
+          updated_at: now,
+          is_deleted: false,
+        })
+        .eq('user_id', userId)
+        .eq('school_id', schoolId)
+        .eq('class_id', classId);
+
+      if (updateError) {
+        logger.error('Error updating user_achievements coins:', updateError);
+        return {} as TableTypes<TABLES.UserAchivements>;
+      }
+
+      return {
+        ...existing,
+        coins: updatedCoins,
+        streak: updatedStreak,
+        updated_at: now,
+        is_deleted: false,
+      } as TableTypes<TABLES.UserAchivements>;
+    }
+
+    // 3) If not exists -> create row with default 1000 + reward coins
+    const newRow: TableTypes<TABLES.UserAchivements> = {
+      user_id: userId,
+      school_id: schoolId,
+      class_id: classId,
+      program_id: null,
+      coins: 1000 + coinsToAdd,
+      streak: streakToAdd,
+      last_rewarded_week: null,
+      last_penalty_week: null,
+      is_deleted: false,
+      created_at: now,
+      updated_at: now,
+    };
+
+    const { error: insertError } = await this.supabase
+      .from(TABLES.UserAchivements)
+      .insert(newRow);
+
+    if (insertError) {
+      logger.error('Error inserting user_achievements row:', insertError);
+      return {} as TableTypes<TABLES.UserAchivements>;
+    }
+
+    return newRow;
   }
 }

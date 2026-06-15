@@ -71,20 +71,58 @@ jest.mock('../components/displaySubjects/SelectCourse', () => ({
 }));
 
 describe('Subjects', () => {
-  const student = { id: 'student-1', name: 'Student One' } as any;
-  const linkedClass = { id: 'class-1', name: 'Class One' } as any;
-  const grade1 = { id: 'g1', name: 'Grade 1' } as any;
-  const grade2 = { id: 'g2', name: 'Grade 2' } as any;
-  const course1 = {
+  type Student = {
+    id: string;
+    name: string;
+  };
+
+  type LinkedClass = {
+    id: string;
+    name: string;
+  };
+
+  type Grade = {
+    id: string;
+    name: string;
+  };
+
+  type Course = {
+    id: string;
+    name: string;
+    grade_id: string;
+  };
+
+  const student: Student = {
+    id: 'student-1',
+    name: 'Student One',
+  };
+
+  const linkedClass: LinkedClass = {
+    id: 'class-1',
+    name: 'Class One',
+  };
+
+  const grade1: Grade = {
+    id: 'g1',
+    name: 'Grade 1',
+  };
+
+  const grade2: Grade = {
+    id: 'g2',
+    name: 'Grade 2',
+  };
+
+  const course1: Course = {
     id: 'course-1',
     name: 'Mathematics',
     grade_id: 'g1',
-  } as any;
-  const course2 = {
+  };
+
+  const course2: Course = {
     id: 'course-2',
     name: 'English',
     grade_id: 'g2',
-  } as any;
+  };
 
   const mockApiHandler = {
     isStudentLinked: jest.fn(),

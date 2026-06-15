@@ -1,13 +1,26 @@
 import {
   AssignmentCartData,
+  AssignmentDateRangeData,
+  CampaignAssignmentOptions,
+  CampaignAssignmentOptionsParams,
+  CampaignAudienceOptions,
+  CampaignAudiencePayload,
+  CampaignAudienceSummary,
+  CampaignAudienceSummaryParams,
+  CampaignSavedAudienceGroup,
+  CampaignSetupOptions,
+  CreateCampaignSetupPayload,
+  CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
   LeaderboardInfo,
+  LaunchCampaignPayload,
   OpsStudentPerformanceBandRow,
   OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
 } from './ServiceApi';
 import {
+  SOURCE,
   RESULT_STATUS,
   SchoolVisitAction,
   SchoolVisitType,
@@ -626,6 +639,7 @@ export class ApiHandler implements ServiceApi {
     activities_scores?: string | undefined,
     user_id?: string | undefined,
     status?: RESULT_STATUS | undefined,
+    source?: SOURCE | undefined,
   ): Promise<TableTypes<'result'>> {
     return await this.s.updateResult(
       student,
@@ -654,6 +668,7 @@ export class ApiHandler implements ServiceApi {
       activities_scores,
       user_id,
       status,
+      source,
     );
   }
 
@@ -723,6 +738,9 @@ export class ApiHandler implements ServiceApi {
   async getGradeById(id: string): Promise<TableTypes<'grade'> | undefined> {
     return await this.s.getGradeById(id);
   }
+  async getGradeByName(name: string): Promise<TableTypes<'grade'> | undefined> {
+    return await this.s.getGradeByName(name);
+  }
   async getGradesByIds(ids: string[]): Promise<TableTypes<'grade'>[]> {
     return await this.s.getGradesByIds(ids);
   }
@@ -760,6 +778,10 @@ export class ApiHandler implements ServiceApi {
   }
   updateTcAccept(userId: string) {
     return this.s.updateTcAccept(userId);
+  }
+
+  updateTcAgreedVersion(userId: string, version: number) {
+    return this.s.updateTcAgreedVersion(userId, version);
   }
   public get currentStudent(): TableTypes<'user'> | undefined {
     return this.s.currentStudent;
@@ -811,6 +833,7 @@ export class ApiHandler implements ServiceApi {
     boardDocId: string | undefined,
     gradeDocId: string | undefined,
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     return await this.s.createProfile(
       name,
@@ -821,6 +844,7 @@ export class ApiHandler implements ServiceApi {
       boardDocId,
       gradeDocId,
       languageDocId,
+      tcVersion,
     );
   }
 
@@ -836,6 +860,7 @@ export class ApiHandler implements ServiceApi {
     classId: string,
     role: string,
     studentId: string,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
     return await this.s.createStudentProfile(
       name,
@@ -849,6 +874,7 @@ export class ApiHandler implements ServiceApi {
       classId,
       role,
       studentId,
+      tcVersion,
     );
   }
   public async updateClassCourseSelection(
@@ -932,8 +958,15 @@ export class ApiHandler implements ServiceApi {
   }
   public async getSkillLessonsBySkillIds(
     skillIds: string[],
+    languageCode?: string,
   ): Promise<TableTypes<'skill_lesson'>[]> {
-    return this.s.getSkillLessonsBySkillIds(skillIds);
+    return this.s.getSkillLessonsBySkillIds(skillIds, languageCode);
+  }
+
+  public async getSkillByLessonIdentifier(
+    lessonIdentifier: string,
+  ): Promise<TableTypes<'skill'> | undefined> {
+    return this.s.getSkillByLessonIdentifier(lessonIdentifier);
   }
 
   public async getLeaderboardResults(
@@ -1048,12 +1081,16 @@ export class ApiHandler implements ServiceApi {
     className: string,
     groupId?: string,
     whatsapp_invite_link?: string,
+    gradeId?: string,
+    standard?: string,
   ): Promise<TableTypes<'class'>> {
     return this.s.createClass(
       schoolId,
       className,
       groupId,
       whatsapp_invite_link,
+      gradeId,
+      standard,
     );
   }
   updateClass(
@@ -1211,6 +1248,42 @@ export class ApiHandler implements ServiceApi {
       endDate,
     );
   }
+  async getAssignmentDateRangeDataForClassAndSchool(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<AssignmentDateRangeData> {
+    return this.s.getAssignmentDateRangeDataForClassAndSchool(
+      userId,
+      startDate,
+      endDate,
+    );
+  }
+
+  async getCoinAndStreakCount(
+    userId: string,
+    classId: string,
+    schoolId: string,
+  ): Promise<{ coins: number; streak: number } | undefined> {
+    return this.s.getCoinAndStreakCount(userId, classId, schoolId);
+  }
+
+  async updateCoins(
+    userId: string,
+    schoolId: string,
+    classId: string,
+    coins: number,
+    streakIncrement?: number,
+  ): Promise<TableTypes<TABLES.UserAchivements>> {
+    return this.s.updateCoins(
+      userId,
+      schoolId,
+      classId,
+      coins,
+      streakIncrement,
+    );
+  }
+
   getTeacherJoinedDate(
     userId: string,
     classId: string,
@@ -1334,8 +1407,10 @@ export class ApiHandler implements ServiceApi {
     return this.s.addUserToSchool(schoolId, user, role);
   }
   async getSchoolDetailsByUdise(udiseCode: string): Promise<{
+    schoolId?: string;
     studentLoginType: string;
     schoolModel: string;
+    whatsappBotNumber?: string;
   } | null> {
     return this.s.getSchoolDetailsByUdise(udiseCode);
   }
@@ -1427,6 +1502,20 @@ export class ApiHandler implements ServiceApi {
       fieldCoordinatorPhone,
     );
   }
+  async validateWhatsappBotNumber(
+    whatsappBotNumber: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateWhatsappBotNumber(whatsappBotNumber);
+  }
+  async validateWhatsappGroupLink(
+    whatsappBotNumber: string,
+    whatsappGroupLink: string,
+  ): Promise<{ status: string; errors?: string[] }> {
+    return this.s.validateWhatsappGroupLink(
+      whatsappBotNumber,
+      whatsappGroupLink,
+    );
+  }
   public async setStarsForStudents(
     studentId: string,
     starsCount: number,
@@ -1478,6 +1567,45 @@ export class ApiHandler implements ServiceApi {
   public async getProgramManagers(): Promise<{ name: string; id: string }[]> {
     return await this.s.getProgramManagers();
   }
+
+  public async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
+    return await this.s.getCampaignSetupOptions();
+  }
+
+  public async getCampaignAudienceOptions(
+    programId: string,
+  ): Promise<CampaignAudienceOptions> {
+    return await this.s.getCampaignAudienceOptions(programId);
+  }
+
+  public async getCampaignAudienceSummary(
+    params: CampaignAudienceSummaryParams,
+  ): Promise<CampaignAudienceSummary> {
+    return await this.s.getCampaignAudienceSummary(params);
+  }
+
+  public async createCampaignAudienceGroup(
+    payload: CampaignAudiencePayload,
+  ): Promise<CampaignSavedAudienceGroup> {
+    return await this.s.createCampaignAudienceGroup(payload);
+  }
+
+  public async createCampaignSetup(
+    payload: CreateCampaignSetupPayload,
+  ): Promise<CreateCampaignSetupResult> {
+    return await this.s.createCampaignSetup(payload);
+  }
+
+  public async launchCampaign(payload: LaunchCampaignPayload): Promise<void> {
+    return await this.s.launchCampaign(payload);
+  }
+
+  public async getCampaignAssignmentOptions(
+    params: CampaignAssignmentOptionsParams,
+  ): Promise<CampaignAssignmentOptions> {
+    return await this.s.getCampaignAssignmentOptions(params);
+  }
+
   public async getUniqueGeoData(): Promise<{
     Country: string[];
     State: string[];
@@ -1731,8 +1859,9 @@ export class ApiHandler implements ServiceApi {
   }
   public async createAutoProfile(
     languageDocId: string | undefined,
+    tcVersion: number,
   ): Promise<TableTypes<'user'>> {
-    return await this.s.createAutoProfile(languageDocId);
+    return await this.s.createAutoProfile(languageDocId, tcVersion);
   }
 
   public async isProgramUser(): Promise<boolean> {
@@ -2142,6 +2271,12 @@ export class ApiHandler implements ServiceApi {
     courseId: string,
   ): Promise<boolean> {
     return await this.s.isStudentPlayedPalLesson(studentId, courseId);
+  }
+  public async hasPendingAbortedAssessment(
+    studentId: string,
+    courseId: string,
+  ): Promise<boolean> {
+    return await this.s.hasPendingAbortedAssessment(studentId, courseId);
   }
   public async getSubjectLessonsBySubjectId(
     subjectId: string,

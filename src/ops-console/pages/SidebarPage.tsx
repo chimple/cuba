@@ -8,7 +8,11 @@ import {
   useHistory,
   useLocation,
 } from 'react-router-dom';
-import { PAGES, TableTypes } from '../../common/constants';
+import {
+  CAMPAIGN_ACCESS_ROLES,
+  PAGES,
+  TableTypes,
+} from '../../common/constants';
 import ProtectedRoute from '../../ProtectedRoute';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
@@ -17,6 +21,7 @@ import Sidebar from '../components/Sidebar';
 import ParentWhatsappInvitationPage from '../pages/Parentwhatsappinvite/ParentWhatsappInvitationPage';
 import ActivitiesPage from './ActivitiesPage';
 import AddSchoolPage from './AddSchoolPage';
+import CampaignSetupPage from './CampaignSetupPage';
 import MigrateSchoolsPage from './MigrateSchoolsPage';
 import NewUserPage from './NewUserPageOps';
 import OpsApprovedRequestDetails from './OpsApprovedRequestDetails';
@@ -72,6 +77,9 @@ const SidebarPage: React.FC = () => {
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const canAccessCampaignPage = userRoles.some((role) =>
+    CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
+  );
 
   useEffect(() => {
     fetchData();
@@ -141,6 +149,16 @@ const SidebarPage: React.FC = () => {
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.SCHOOL_LIST}`} exact={true}>
               <SchoolList />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.ADMIN_COMPAIGNS}`}
+              exact={true}
+            >
+              {canAccessCampaignPage ? (
+                <CampaignSetupPage />
+              ) : (
+                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+              )}
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
               <RequestList />

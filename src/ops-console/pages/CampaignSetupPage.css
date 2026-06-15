@@ -1,0 +1,545 @@
+.campaign-setup-page {
+  --campaign-blue: #1a71f6;
+  --campaign-mobile-blue: #1d6cf6;
+  --campaign-text: #21272a;
+  --campaign-muted: #697077;
+  --campaign-placeholder: #8d8d8d;
+  --campaign-border: #c1c7cd;
+  --campaign-divider: #dde1e6;
+  --campaign-error: #e53935;
+  --campaign-content-max: 68.25rem;
+  --campaign-field-height: 2.4375rem;
+  --campaign-field-radius: 0.375rem;
+  --campaign-section-left: 2.5rem;
+  width: 100%;
+  min-height: 100vh;
+  background: #ffffff;
+  color: var(--campaign-text);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  font-family: Roboto, sans-serif;
+}
+
+.campaign-setup-loading {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.campaign-setup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1.625rem;
+}
+
+.campaign-setup-back-button {
+  display: none !important;
+}
+
+.campaign-setup-title {
+  color: var(--campaign-text);
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0 !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.campaign-setup-breadcrumb {
+  display: flex;
+  align-items: center;
+  color: #888888;
+  font-size: 0.875rem;
+  line-height: 1.3125rem;
+}
+
+.campaign-setup-breadcrumb strong {
+  color: #454545;
+  font-weight: 700;
+}
+
+.campaign-setup-breadcrumb-icon {
+  width: 1rem !important;
+  height: 1rem !important;
+  color: #454545;
+}
+
+.campaign-setup-notification {
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+  color: #000000;
+  margin-top: 0.25rem;
+}
+
+.campaign-setup-alert {
+  max-width: var(--campaign-content-max);
+  margin-inline: auto;
+  margin-bottom: 1rem;
+}
+
+.campaign-setup-form {
+  width: 100%;
+  max-width: var(--campaign-content-max);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.campaign-setup-scroll-area {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.campaign-setup-section {
+  background: #ffffff;
+  border-bottom: 0.0625rem solid var(--campaign-divider);
+  padding: 1.8125rem 0.4375rem 2.9375rem var(--campaign-section-left);
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.campaign-setup-section-title {
+  color: var(--campaign-text);
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  line-height: 1.125rem !important;
+  margin: 0 !important;
+}
+
+.campaign-setup-section-copy {
+  color: var(--campaign-muted);
+  font-size: 0.8125rem !important;
+  line-height: 1rem !important;
+  margin-top: 0.3125rem !important;
+  text-align: left !important;
+}
+
+.campaign-setup-grid {
+  display: grid;
+  gap: 1.125rem;
+  margin-top: 1.125rem;
+}
+
+.campaign-setup-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4375rem;
+  min-width: 0;
+}
+
+.campaign-setup-full-width {
+  grid-column: 1 / -1;
+}
+
+.campaign-setup-label {
+  color: var(--campaign-text);
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  line-height: 0.9375rem !important;
+  text-align: left !important;
+}
+
+.campaign-setup-required {
+  color: var(--campaign-error);
+}
+.campaign-setup-page .MuiOutlinedInput-root {
+  min-height: var(--campaign-field-height);
+  border-radius: var(--campaign-field-radius);
+  color: var(--campaign-text);
+  font-size: 0.875rem;
+  background: #ffffff !important;
+}
+
+.campaign-setup-page .MuiOutlinedInput-notchedOutline {
+  border-color: #e0e0e0;
+}
+
+.campaign-setup-page .MuiInputBase-input,
+.campaign-setup-page .MuiSelect-select {
+  font-size: 0.875rem;
+  line-height: 1.0625rem;
+  padding: 0.625rem 0.875rem;
+  box-sizing: border-box;
+  background-color: #ffffff !important;
+}
+
+.campaign-setup-page .MuiAutocomplete-inputRoot {
+  min-height: var(--campaign-field-height);
+  padding: 0 0.5rem !important;
+  background-color: #ffffff !important;
+}
+
+.campaign-setup-page .MuiAutocomplete-input {
+  min-width: 1.25rem !important;
+  background-color: #ffffff !important;
+}
+
+.campaign-setup-page input:-webkit-autofill,
+.campaign-setup-page input:-webkit-autofill:hover,
+.campaign-setup-page input:-webkit-autofill:focus,
+.campaign-setup-page textarea:-webkit-autofill,
+.campaign-setup-page textarea:-webkit-autofill:hover,
+.campaign-setup-page textarea:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #21272a !important;
+}
+
+.campaign-setup-page input[type='date']::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+.campaign-setup-page input[type='date'] {
+  appearance: none;
+  -webkit-appearance: none;
+  color-scheme: light;
+}
+
+.campaign-setup-page .MuiInputBase-input[type='date'] {
+  padding-right: 0;
+}
+
+.campaign-setup-page .campaign-setup-date-adornment {
+  margin-left: 0;
+}
+
+.campaign-setup-page .campaign-setup-date-button {
+  width: 2rem;
+  height: 2rem;
+  color: #21272a;
+  padding: 0;
+}
+
+.campaign-setup-page .campaign-setup-date-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: #21272a;
+}
+
+.campaign-setup-page input::placeholder {
+  color: var(--campaign-placeholder);
+  opacity: 1;
+  font-size: 0.75rem;
+}
+
+.campaign-setup-actions {
+  min-height: 5rem;
+  border-top: 0.0625rem solid var(--campaign-divider);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: auto;
+  background: #ffffff;
+  padding: 1rem 4.3125rem 1rem var(--campaign-section-left);
+  box-sizing: border-box;
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+}
+
+.campaign-setup-actions .MuiButton-root {
+  width: 4.8125rem;
+  height: 2.4375rem;
+  border-radius: 0.5rem;
+  background: var(--campaign-blue);
+  color: #ffffff;
+  text-transform: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: none;
+}
+
+.campaign-setup-actions .campaign-setup-primary-cta {
+  width: auto;
+  min-width: 10.5rem;
+  padding: 0 1rem;
+}
+
+.campaign-setup-actions .campaign-setup-secondary-cta {
+  width: auto;
+  min-width: 7.75rem;
+  margin-right: 0.75rem;
+  background: #ffffff !important;
+  color: #202124 !important;
+  border: 0.0625rem solid #d0d5dd !important;
+}
+
+.campaign-setup-actions .campaign-setup-secondary-cta + .MuiButton-root {
+  width: auto;
+  min-width: 10.5rem;
+  padding: 0 1rem;
+}
+
+.campaign-setup-actions .MuiButton-root.Mui-disabled {
+  background: #c1c7cd;
+  color: #ffffff;
+}
+
+.campaign-setup-actions .campaign-setup-back-cta {
+  margin-right: auto;
+  margin-left: 0;
+  background: #ffffff !important;
+  color: var(--campaign-text) !important;
+  border: 0.0625rem solid var(--campaign-divider) !important;
+}
+
+.campaign-setup-page-assignment-cta-error {
+  color: #9a5b00;
+  font-size: 0.8125rem !important;
+  line-height: 1.125rem !important;
+  margin-right: 1rem !important;
+}
+
+@media (max-width: 56.25rem) {
+  .campaign-setup-page {
+    padding: 1.25rem;
+  }
+
+  .campaign-setup-form {
+    max-width: none;
+  }
+
+  .campaign-setup-section {
+    padding: 1.5rem 0;
+  }
+
+  .campaign-setup-actions {
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 48rem) {
+  .campaign-setup-page {
+    --campaign-mobile-header-height: calc(
+      3.875rem + env(safe-area-inset-top, 0rem)
+    );
+    --campaign-mobile-stepper-height: 2.875rem;
+    --campaign-mobile-actions-height: calc(
+      6.25rem + env(safe-area-inset-bottom, 0rem)
+    );
+  }
+
+  body.campaign-setup-active .sidebar-hamburger-outside {
+    display: none;
+  }
+
+  .campaign-setup-page {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: calc(
+        var(--campaign-mobile-header-height) +
+          var(--campaign-mobile-stepper-height)
+      )
+      1rem var(--campaign-mobile-actions-height);
+  }
+
+  .campaign-setup-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    height: var(--campaign-mobile-header-height);
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: env(safe-area-inset-top, 0rem) 1rem 0;
+    background: #ffffff;
+    box-sizing: border-box;
+    flex-shrink: 0;
+  }
+
+  .campaign-setup-alert {
+    flex-shrink: 0;
+  }
+
+  .campaign-setup-form {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 100%;
+    min-height: auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .campaign-setup-scroll-area {
+    flex: 0 0 auto;
+    overflow: visible;
+    min-height: auto;
+  }
+
+  .campaign-setup-actions {
+    margin: 0;
+    padding: 0.875rem 1rem calc(0.875rem + env(safe-area-inset-bottom, 0rem));
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    flex-shrink: 0;
+    z-index: 20;
+    background: #ffffff;
+    box-shadow: 0 -0.25rem 1rem rgba(0, 0, 0, 0.06);
+  }
+
+  .campaign-setup-form > * {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .campaign-setup-header > div {
+    min-width: 0;
+  }
+
+  .campaign-setup-back-button {
+    display: inline-flex !important;
+    position: absolute !important;
+    left: 1rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    border: 0.0625rem solid var(--campaign-text) !important;
+    border-radius: 0.4375rem !important;
+    color: #21272a !important;
+    padding: 0 !important;
+  }
+
+  .campaign-setup-back-button svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .campaign-setup-title {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    line-height: 1.1875rem !important;
+    margin: 0 !important;
+    text-align: center;
+  }
+
+  .campaign-setup-breadcrumb {
+    display: none;
+  }
+
+  .campaign-setup-notification {
+    position: absolute;
+    right: 1.125rem;
+    width: 1.375rem !important;
+    height: 1.375rem !important;
+    margin: 0;
+  }
+
+  .campaign-setup-section {
+    padding: 1.25rem 0 1.5rem;
+  }
+
+  .campaign-setup-section-title {
+    font-size: 0.9375rem !important;
+    font-weight: 700 !important;
+    line-height: 1.125rem !important;
+  }
+
+  .campaign-setup-section-copy {
+    font-size: 0.75rem !important;
+    line-height: 1.125rem !important;
+    color: #000000;
+    margin-top: 0.1875rem !important;
+  }
+
+  .campaign-setup-label {
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    line-height: 0.875rem !important;
+  }
+
+  .campaign-setup-page .MuiOutlinedInput-root {
+    min-height: 2.75rem;
+    border-radius: 0.5rem;
+  }
+
+  .campaign-setup-page .MuiInputBase-input,
+  .campaign-setup-page .MuiSelect-select {
+    font-size: 0.875rem;
+    line-height: 1.0625rem;
+    padding: 0.78125rem 0.6875rem;
+  }
+
+  .campaign-setup-page .MuiAutocomplete-inputRoot {
+    min-height: 2.75rem;
+  }
+
+  .campaign-setup-actions {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0;
+    right: 0;
+    min-height: 6.25rem;
+    height: auto;
+    width: 100%;
+    margin: 0;
+    padding: 1.25rem 1rem calc(1rem + env(safe-area-inset-bottom, 0rem));
+    border-top: none;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.625rem;
+    flex-shrink: 0;
+    z-index: 20;
+    background: #ffffff;
+  }
+
+  .campaign-setup-actions .MuiButton-root {
+    flex: 1 1 0;
+    height: 3rem;
+    border-radius: 0.75rem;
+    font-size: 0.9375rem;
+    background: var(--campaign-mobile-blue);
+  }
+
+  .campaign-setup-actions .campaign-setup-primary-cta {
+    min-width: 0;
+    padding: 0 1rem;
+  }
+
+  .campaign-setup-actions .campaign-setup-back-cta {
+    flex: 0 0 6.25rem;
+    margin: 0;
+    border-color: var(--campaign-divider) !important;
+    background: #ffffff !important;
+    color: var(--campaign-text) !important;
+  }
+
+  .campaign-setup-page-assignment-cta-error {
+    order: -1;
+    flex: 0 0 100%;
+    margin-right: 0 !important;
+    text-align: center;
+  }
+  .campaign-setup-actions .campaign-setup-secondary-cta {
+    flex: 1 1 100%;
+    order: 1;
+    width: 100%;
+    margin-right: 0;
+  }
+}

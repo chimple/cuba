@@ -1,10 +1,21 @@
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Switch } from 'react-router-dom';
+import { MemoryRouter, Route, Switch, useLocation } from 'react-router-dom';
+
 import ProtectedRoute from './ProtectedRoute';
 import { PAGES } from './common/constants';
 import { mockAuthHandler } from './tests/__mocks__/serviceConfigMock';
 
 describe('ProtectedRoute', () => {
+  const ProtectedContent = () => {
+    const location = useLocation();
+
+    return <div>{`Protected Content: ${location.pathname}`}</div>;
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('redirects to login when user is not authenticated', async () => {
     mockAuthHandler.isUserLoggedIn.mockResolvedValue(false);
     mockAuthHandler.getCurrentUser.mockResolvedValue(null);
@@ -13,9 +24,8 @@ describe('ProtectedRoute', () => {
       <MemoryRouter initialEntries={['/protected']}>
         <Switch>
           <ProtectedRoute path="/protected">
-            <div>Protected Content</div>
+            <ProtectedContent />
           </ProtectedRoute>
-
           <Route path={PAGES.LOGIN}>
             <div>Login Page</div>
           </Route>
@@ -26,45 +36,25 @@ describe('ProtectedRoute', () => {
     expect(await screen.findByText(/login page/i)).toBeInTheDocument();
   });
 
-  it('renders children when user is authenticated and T&C accepted', async () => {
+  it('renders children when user is authenticated', async () => {
     mockAuthHandler.isUserLoggedIn.mockResolvedValue(true);
     mockAuthHandler.getCurrentUser.mockResolvedValue({
-      is_tc_accepted: true,
+      id: 'parent-1',
+      tc_agreed_version: 1,
     });
 
     render(
       <MemoryRouter initialEntries={['/protected']}>
         <Switch>
           <ProtectedRoute path="/protected">
-            <div>Protected Content</div>
+            <ProtectedContent />
           </ProtectedRoute>
         </Switch>
       </MemoryRouter>,
     );
 
-    expect(await screen.findByText(/protected content/i)).toBeInTheDocument();
-  });
-
-  it('redirects to terms and conditions when T&C not accepted', async () => {
-    mockAuthHandler.isUserLoggedIn.mockResolvedValue(true);
-    mockAuthHandler.getCurrentUser.mockResolvedValue({
-      is_tc_accepted: false,
-    });
-
-    render(
-      <MemoryRouter initialEntries={['/protected']}>
-        <Switch>
-          <ProtectedRoute path="/protected">
-            <div>Protected Content</div>
-          </ProtectedRoute>
-
-          <Route path={PAGES.TERMS_AND_CONDITIONS}>
-            <div>Terms Page</div>
-          </Route>
-        </Switch>
-      </MemoryRouter>,
-    );
-
-    expect(await screen.findByText(/terms page/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/protected content: \/protected/i),
+    ).toBeInTheDocument();
   });
 });

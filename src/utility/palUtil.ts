@@ -1,19 +1,166 @@
 import {
   AbilityState,
+  BlendWeights,
   DependencyGraph,
+  LearningRates,
+  OutcomeEvent,
   RecommendationContext,
   createEmptyAbilityState,
   recommendNextSkill,
   updateAbilities,
-  OutcomeEvent,
 } from '@chimple/palau-recommendation';
-import { TableTypes } from '../common/constants';
+import { PAL_LEARNING_RATES_CONFIG, TableTypes } from '../common/constants';
+import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
+import { COURSES } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
 
 type AbilityKeys = 'skill' | 'outcome' | 'competency' | 'domain' | 'subject';
 
 type ResultAbilityMap = {
   [K in AbilityKeys]: Map<string, { ability: number; timestamp: number }>;
+};
+
+type PalConstants = {
+  blendWeights: PalLocalLayerConfig<BlendWeights>;
+  learningRates: PalLocalLayerConfig<LearningRates>;
+};
+
+// Local config mirrors GrowthBook so the same resolution logic works offline.
+type PalLocalLayerConfig<T> = {
+  default: T;
+  subjects: Record<string, T>;
+};
+
+type PalLayerConfig<T> = {
+  default?: Partial<T>;
+  subjects?: Record<string, Partial<T>>;
+};
+
+// GrowthBook stores both PAL knobs in one JSON feature, split by config type.
+type PalConfig = {
+  blendWeights?: PalLayerConfig<BlendWeights>;
+  learningRates?: PalLayerConfig<LearningRates>;
+};
+
+const BLEND_WEIGHT_KEYS: (keyof BlendWeights)[] = [
+  'skill',
+  'outcome',
+  'competency',
+  'domain',
+  'subject',
+];
+
+const LEARNING_RATE_KEYS: (keyof LearningRates)[] = [
+  'skill',
+  'outcome',
+  'competency',
+  'domain',
+  'subject',
+];
+
+const DEFAULT_BLEND_WEIGHTS: BlendWeights = {
+  skill: 0.1,
+  outcome: 0.1,
+  competency: 0.6,
+  domain: 0.1,
+  subject: 0.1,
+};
+
+const DEFAULT_LEARNING_RATES: LearningRates = {
+  skill: 0.5,
+  outcome: 0.8,
+  competency: 0.3,
+  domain: 0.5,
+  subject: 0.4,
+};
+
+// Local PAL defaults keep recommendations working when GrowthBook is unavailable.
+const PAL_CONSTANTS: PalConstants = {
+  blendWeights: {
+    default: DEFAULT_BLEND_WEIGHTS,
+    subjects: {},
+  },
+  learningRates: {
+    default: DEFAULT_LEARNING_RATES,
+    subjects: {},
+  },
+};
+
+const resolveRates = (
+  overrides: Partial<LearningRates> | undefined,
+  fallback: LearningRates,
+): LearningRates => {
+  const resolved = { ...fallback };
+
+  if (!overrides || typeof overrides !== 'object') return resolved;
+
+  LEARNING_RATE_KEYS.forEach((key) => {
+    const value = overrides[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      resolved[key] = value;
+    }
+  });
+
+  return resolved;
+};
+
+// GrowthBook can send partial blend weights; merge valid values over fallback.
+const resolveBlendWeights = (
+  overrides: Partial<BlendWeights> | undefined,
+  fallback: BlendWeights,
+): BlendWeights => {
+  const resolved = { ...fallback };
+
+  if (!overrides || typeof overrides !== 'object') return resolved;
+
+  BLEND_WEIGHT_KEYS.forEach((key) => {
+    const value = overrides[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      resolved[key] = value;
+    }
+  });
+
+  return resolved;
+};
+
+// Merge only valid numeric keys so a bad GrowthBook value cannot break PAL.
+const resolvePalBlendWeightsForSubject = (
+  config: PalConfig | undefined,
+  subjectId: string,
+): BlendWeights => {
+  const localDefault = resolveBlendWeights(
+    subjectId ? PAL_CONSTANTS.blendWeights.subjects[subjectId] : undefined,
+    PAL_CONSTANTS.blendWeights.default,
+  );
+  const defaultWeights = resolveBlendWeights(
+    config?.blendWeights?.default,
+    localDefault,
+  );
+  const subjectWeights = subjectId
+    ? config?.blendWeights?.subjects?.[subjectId]
+    : undefined;
+
+  return resolveBlendWeights(subjectWeights, defaultWeights);
+};
+
+// Learning rates follow the same local/default/subject fallback order.
+const resolvePalLearningRatesForSubject = (
+  config: PalConfig | undefined,
+  subjectId: string,
+): LearningRates => {
+  const localDefault = resolveRates(
+    subjectId ? PAL_CONSTANTS.learningRates.subjects[subjectId] : undefined,
+    PAL_CONSTANTS.learningRates.default,
+  );
+  const defaultRates = resolveRates(
+    config?.learningRates?.default,
+    localDefault,
+  );
+  const subjectRates = subjectId
+    ? config?.learningRates?.subjects?.[subjectId]
+    : undefined;
+
+  return resolveRates(subjectRates, defaultRates);
 };
 
 export class palUtil {
@@ -273,10 +420,12 @@ export class palUtil {
     if (!graph) return { lesson: undefined, chapterId: undefined };
 
     const subjectId = graph.subjects[0]?.id ?? '';
+    const blendWeights = this.getBlendWeightsForSubject(subjectId);
     const recommendation = recommendNextSkill({
       graph,
       abilities: abilityState,
       subjectId,
+      blendWeights,
     });
 
     const skillId = recommendation?.candidateId;
@@ -284,7 +433,12 @@ export class palUtil {
       return { lesson: undefined, chapterId: undefined, recommendation };
     }
 
-    const skillLessons = await api.getSkillLessonsBySkillIds([skillId]);
+    const courseLanguageCode =
+      await this.getSkillLessonLanguageCodeForCourse(courseId);
+    const skillLessons = await api.getSkillLessonsBySkillIds(
+      [skillId],
+      courseLanguageCode,
+    );
     const sortedSkillLessons = [...skillLessons].sort((a, b) => {
       const aIndex = a.sort_index ?? Number.MAX_SAFE_INTEGER;
       const bIndex = b.sort_index ?? Number.MAX_SAFE_INTEGER;
@@ -390,6 +544,29 @@ export class palUtil {
     return undefined;
   }
 
+  private static async getSkillLessonLanguageCodeForCourse(
+    courseId: string,
+  ): Promise<string | undefined> {
+    const api = ServiceConfig.getI().apiHandler;
+    const course = await api.getCourse(courseId);
+    if (!course?.subject_id) return undefined;
+
+    const subject = await api.getSubject(course.subject_id);
+    const subjectName = subject?.name?.trim().toLowerCase();
+    if (subjectName !== COURSES.MATHS) {
+      return undefined;
+    }
+
+    const courseCode = course?.code?.trim().toLowerCase();
+
+    if (courseCode === COURSES.MATHS) return COURSES.ENGLISH;
+    if (courseCode?.startsWith(`${COURSES.MATHS}-`)) {
+      return courseCode.split('-').pop();
+    }
+
+    return undefined;
+  }
+
   private static upsertAbility(
     abilityMap: Map<string, { ability: number; timestamp: number }>,
     id: string | null,
@@ -418,6 +595,24 @@ export class palUtil {
       record[key] = value.ability;
     });
     return record;
+  }
+
+  private static getBlendWeightsForSubject(subjectId: string): BlendWeights {
+    // One GrowthBook JSON now owns both blend weights and learning rates.
+    const config = getCachedGrowthBookFeatureValue<PalConfig>(
+      PAL_LEARNING_RATES_CONFIG,
+      {},
+    );
+    return resolvePalBlendWeightsForSubject(config, subjectId);
+  }
+
+  private static getLearningRatesForSubject(subjectId: string): LearningRates {
+    // Read the same cached payload so both PAL knobs stay in sync by subject.
+    const config = getCachedGrowthBookFeatureValue<PalConfig>(
+      PAL_LEARNING_RATES_CONFIG,
+      {},
+    );
+    return resolvePalLearningRatesForSubject(config, subjectId);
   }
 
   public static async updateAndGetAbilities(params: {
@@ -456,10 +651,14 @@ export class palUtil {
         skillId,
         correct,
       }));
+      const blendWeights = this.getBlendWeightsForSubject(subjectId);
+      const learningRates = this.getLearningRatesForSubject(subjectId);
       const updated = updateAbilities({
         graph,
         abilities: abilityState,
         events: outcomeEvents,
+        blendWeights,
+        learningRates,
       });
 
       newAbilityState = updated?.abilities ?? abilityState;

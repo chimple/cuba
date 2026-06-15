@@ -440,6 +440,47 @@ describe('StickerBook page', () => {
     );
   });
 
+  test('onPaint pushes stickerBookId into coloring board route state', async () => {
+    const book = makeBook({
+      id: 'book-7',
+      stickers_metadata: [{ id: 's1', sequence: 1 }],
+    });
+
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      apiHandler: {
+        getAllStickerBooks: jest.fn().mockResolvedValue([book]),
+        getCurrentStickerBookWithProgress: jest.fn().mockResolvedValue({
+          book,
+          progress: { stickers_collected: ['s1'] },
+        }),
+        getUserWonStickerBooks: jest.fn().mockResolvedValue([]),
+        getUserStickerBook: jest.fn().mockResolvedValue([]),
+        markStciekercolledasTrue: jest.fn().mockResolvedValue(undefined),
+        updateRewardAsSeen: jest.fn(),
+      },
+    });
+
+    render(<StickerBook />);
+
+    await waitFor(() => {
+      const props = expectProps();
+      expect(props.canPaint).toBe(true);
+    });
+
+    const props = expectProps();
+    act(() => {
+      props.onPaint();
+    });
+
+    expect(pushMock).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
+      stickerBookId: 'book-7',
+      svgRaw: '<svg></svg>',
+      svgUrl: '/assets/books/book-1.svg',
+      artworkTitle: 'Animals',
+      returnTo: PAGES.STICKER_BOOK,
+    });
+  });
+
   test('does not render board while loading', () => {
     const slowPromise = new Promise(() => {});
 
