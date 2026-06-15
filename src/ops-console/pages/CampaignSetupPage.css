@@ -330,8 +330,9 @@
     );
     --campaign-mobile-stepper-height: 2.875rem;
     --campaign-mobile-actions-height: calc(
-      6.25rem + env(safe-area-inset-bottom, 0rem)
+      5.5rem + env(safe-area-inset-bottom, 0rem)
     );
+    --campaign-mobile-scroll-buffer: 2rem;
   }
 
   body.campaign-setup-active .sidebar-hamburger-outside {
@@ -350,7 +351,11 @@
         var(--campaign-mobile-header-height) +
           var(--campaign-mobile-stepper-height)
       )
-      1rem var(--campaign-mobile-actions-height);
+      1rem
+      calc(
+        var(--campaign-mobile-actions-height) +
+          var(--campaign-mobile-scroll-buffer)
+      );
   }
 
   .campaign-setup-header {
@@ -494,11 +499,11 @@
     bottom: 0 !important;
     left: 0;
     right: 0;
-    min-height: 6.25rem;
+    min-height: 5.5rem;
     height: auto;
     width: 100%;
     margin: 0;
-    padding: 1.25rem 1rem calc(1rem + env(safe-area-inset-bottom, 0rem));
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0rem));
     border-top: none;
     flex-direction: row;
     flex-wrap: wrap;
