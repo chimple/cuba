@@ -1360,6 +1360,7 @@ export const DAILY_USER_REWARD = 'DailyUserReward';
 export const IDLE_REWARD_ID = '5dfa8e34-14a3-42de-ae3a-977862712b1e';
 export const REWARD_LESSON = 'RewardLesson';
 export const REWARD_LEARNING_PATH = 'RewardLearningPath';
+export const ACTIVATION_REWARD_FLOW_KEY = 'ActivationRewardFlow';
 export enum RewardBoxState {
   IDLE = 'idle',
   SHAKING = 'shaking',

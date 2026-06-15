@@ -500,6 +500,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }> {
     return await this.s.getStudentResultInMap(studentId);
   }
+  public async hasStudentResult(studentId: string): Promise<boolean> {
+    return await this.s.hasStudentResult(studentId);
+  }
   public async getClassById(
     id: string,
   ): Promise<TableTypes<'class'> | undefined> {

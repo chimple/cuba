@@ -28,6 +28,7 @@ import {
   PAGES,
   SOURCE,
   REWARD_LEARNING_PATH,
+  ACTIVATION_REWARD_FLOW_KEY,
   REWARD_MODAL_SHOWN_DATE,
   RewardBoxState,
   STICKER_BOOK_COMPLETION_READY_EVENT,
@@ -689,10 +690,37 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         onPlaybackStop?: () => void;
       },
     ): Promise<boolean> => {
-      const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
-        'dailyReward',
-        'reward',
+      let localAudioPath: string | null = null;
+      const pendingActivationRewardFlow = sessionStorage.getItem(
+        ACTIVATION_REWARD_FLOW_KEY,
       );
+
+      if (pendingActivationRewardFlow) {
+        if (pendingActivationRewardFlow === 'true') {
+          const languageCode = await AudioUtil.getAudioLanguageCode();
+          localAudioPath = `/assets/audios/activationLesson/complete/${languageCode}_activation_lesson_complete.mp3`;
+          sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+        } else {
+          try {
+            const parsed = JSON.parse(pendingActivationRewardFlow);
+            if (parsed) {
+              const languageCode = await AudioUtil.getAudioLanguageCode();
+              localAudioPath = `/assets/audios/activationLesson/complete/${languageCode}_activation_lesson_complete.mp3`;
+              sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+            }
+          } catch {
+            sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+          }
+        }
+      }
+
+      if (!localAudioPath) {
+        localAudioPath = await AudioUtil.getLocalizedAudioUrl(
+          'dailyReward',
+          'reward',
+        );
+      }
+
       if (!localAudioPath) {
         playbackOptions?.onPlaybackStop?.();
         return false;

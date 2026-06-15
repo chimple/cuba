@@ -17,6 +17,7 @@ import {
   MODES,
   PAGES,
   REWARD_LESSON,
+  ACTIVATION_REWARD_FLOW_KEY,
   TableTypes,
   LIDO_COMMON_AUDIO_DIR,
   FAIL_STREAK_KEY,
@@ -438,10 +439,11 @@ const LidoPlayer: FC = () => {
       const learning_path: boolean = state?.learning_path ?? false;
       const is_homework: boolean = state?.isHomework ?? false;
       const isReward: boolean = state?.reward ?? false;
+      const isDefaultLesson: boolean = state?.isDefaultLesson ?? false;
 
       const shouldGiveDailyReward =
         isReward ||
-        ((learning_path || is_homework) &&
+        ((learning_path || is_homework || isDefaultLesson) &&
           (await Util.shouldGiveDailyReward()));
 
       if (isAssessmentLesson && shouldGiveDailyReward) {
@@ -877,6 +879,10 @@ const LidoPlayer: FC = () => {
         RESULT_STATUS.COMPLETED,
         source,
       );
+
+      if (shouldGiveDailyReward && state?.isDefaultLesson) {
+        sessionStorage.setItem(ACTIVATION_REWARD_FLOW_KEY, 'true');
+      }
 
       // Update the learning path
       if (learning_path) {

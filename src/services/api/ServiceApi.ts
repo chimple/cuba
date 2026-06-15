@@ -1003,6 +1003,12 @@ export interface ServiceApi {
   ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }>;
 
   /**
+   * Checks whether a student has at least one result row.
+   * If the student is linked to a class, the lookup is scoped to the active class.
+   */
+  hasStudentResult(studentId: string): Promise<boolean>;
+
+  /**
    * Gives Class for given a Class firebase doc Id
    * @param {string} id - Class firebase doc id
    * @returns {Class | undefined}`Class` or `undefined` if it could not find the Class with given `id`
