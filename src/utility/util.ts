@@ -90,7 +90,11 @@ import {
 } from '@capawesome/capacitor-app-update';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from '../services/RemoteConfig';
+import {
+  getBundleZipUrlsForEnv,
+  getLidoBundleZipUrlsForEnv,
+  REMOTE_CONFIG_KEYS,
+} from '../services/RemoteConfig';
 import { schoolUtil } from './schoolUtil';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { URLOpenListenerEvent } from '@capacitor/app';
@@ -101,6 +105,7 @@ import { InAppReview } from '@capacitor-community/in-app-review';
 import { ASSIGNMENT_COMPLETED_IDS } from '../common/courseConstants';
 import { buildGlobalEventBaseContext } from '../common/eventBaseContext';
 import { v4 as uuidv4 } from 'uuid';
+import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import { updateLocalAttributes } from '../growthbook/Growthbook';
 import {
   CoursePath,
@@ -136,6 +141,22 @@ type LessonBundlePlugin = {
 };
 
 let lessonBundlePluginInstance: LessonBundlePlugin | null = null;
+
+const getBundleZipUrlsFallback = (
+  bundleZipUrlsKey: REMOTE_CONFIG_KEYS,
+): string[] =>
+  bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+    ? getLidoBundleZipUrlsForEnv()
+    : getBundleZipUrlsForEnv();
+
+const mergeBundleZipUrls = (...zipUrlLists: (string[] | null | undefined)[]) =>
+  Array.from(
+    new Set(
+      zipUrlLists.flatMap((zipUrls) =>
+        Array.isArray(zipUrls) ? zipUrls.filter(Boolean) : [],
+      ),
+    ),
+  );
 
 const getLessonBundlePlugin = (): LessonBundlePlugin | null => {
   if (lessonBundlePluginInstance) {
@@ -544,8 +565,42 @@ export class Util {
               }
 
               // 🔥 DOWNLOAD LOGIC (UNCHANGED)
-              const bundleZipUrls: string[] =
-                await RemoteConfig.getJSON(bundleZipUrlsKey);
+              const fallbackBundleZipUrls =
+                getBundleZipUrlsFallback(bundleZipUrlsKey);
+              const cachedBundleZipUrls = getCachedGrowthBookFeatureValue<
+                string[] | null
+              >(bundleZipUrlsKey, null);
+              const fallbackGeneralBundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? getBundleZipUrlsForEnv()
+                  : [];
+              const cachedGeneralBundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? getCachedGrowthBookFeatureValue<string[] | null>(
+                      REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+                      null,
+                    )
+                  : null;
+              const bundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? mergeBundleZipUrls(
+                      cachedBundleZipUrls,
+                      fallbackBundleZipUrls,
+                      cachedGeneralBundleZipUrls,
+                      fallbackGeneralBundleZipUrls,
+                    )
+                  : (cachedBundleZipUrls ?? fallbackBundleZipUrls);
+
+              logger.warn('[LessonDownloader] Resolved bundle ZIP URLs', {
+                lessonId,
+                bundleZipUrlsKey,
+                cachedBundleZipUrls,
+                fallbackBundleZipUrls,
+                cachedGeneralBundleZipUrls,
+                fallbackGeneralBundleZipUrls,
+                resolvedBundleZipUrls: bundleZipUrls,
+                usedCachedBundleZipUrls: cachedBundleZipUrls !== null,
+              });
 
               if (!bundleZipUrls || bundleZipUrls.length < 1) {
                 logger.error('[LessonDownloader] No remote ZIP URLs found');
