@@ -78,6 +78,7 @@
 
 @media (max-width: 48rem) {
   .campaign-assignment-step {
+    border-bottom: none;
     padding: 1rem 0 1.25rem;
     width: 100%;
     box-sizing: border-box;

@@ -231,15 +231,13 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
 
   return (
     <Box className="campaign-assignment-step">
-      {selectedGrades.length > 1 && (
-        <Box className="campaign-assignment-step-helper">
-          <InfoOutlined />
-          <Typography>
-            Assignments should be configured for all selected grades. The
-            selected assignment frequency will apply across all grades.
-          </Typography>
-        </Box>
-      )}
+      <Box className="campaign-assignment-step-helper">
+        <InfoOutlined />
+        <Typography>
+          Assignments should be configured for all selected grades. The selected
+          assignment frequency will apply across all grades.
+        </Typography>
+      </Box>
 
       <Box className="campaign-assignment-step-tabs" role="tablist">
         {selectedGrades.map((grade) => (
