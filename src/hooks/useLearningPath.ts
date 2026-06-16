@@ -264,7 +264,7 @@ export async function recommendNextLesson({
   /* -------------------------------
    * 1️⃣ TEACHER ASSIGNED ASSESSMENT
    * ------------------------------- */
-  const hasCompletedInitialAssessment = shouldUsePAL(mode)
+  const hasCompletedInitialAssessment = shouldUseAssessment(mode)
     ? await api.isStudentPlayedPalLesson(student.id, course.id)
     : false;
   if (classId) {

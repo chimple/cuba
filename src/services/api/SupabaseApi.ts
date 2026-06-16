@@ -14405,7 +14405,7 @@ export class SupabaseApi implements ServiceApi {
        * ========================================== */
       const { data: setRows, error: setError } = await this.supabase
         .from('subject_lesson')
-        .select('set_number, language_id, locale_id')
+        .select('set_number, language_id, locale_id, lesson_id')
         .eq('subject_id', subjectId)
         .eq('is_deleted', false)
         .not('set_number', 'is', null);
@@ -14457,6 +14457,17 @@ export class SupabaseApi implements ServiceApi {
       const setNumber = candidateSets[randomIndex];
       const useStrictLanguageTrack =
         !!langId && preferredSets.includes(setNumber);
+      const assessmentLessonIds = Array.from(
+        new Set(
+          (setRows ?? [])
+            .map((row) => row.lesson_id)
+            .filter((lessonId): lessonId is string => !!lessonId),
+        ),
+      );
+
+      if (!assessmentLessonIds.length) {
+        return {} as TableTypes<'subject_lesson'>;
+      }
 
       /* ==========================================
        * 2️⃣ Abort Check (assignment_id IS NULL)
@@ -14467,6 +14478,7 @@ export class SupabaseApi implements ServiceApi {
         .eq('student_id', studentId)
         .eq('subject_id', subjectId)
         .is('assignment_id', null)
+        .in('lesson_id', assessmentLessonIds)
         .eq('is_deleted', false)
         .order('created_at', { ascending: false })
         .limit(50);
@@ -14919,19 +14931,21 @@ export class SupabaseApi implements ServiceApi {
       if (!uniqueMap.has(row.assignment_id)) {
         uniqueMap.set(row.assignment_id, row);
       }
-
-      // stop early once we have 2 unique assignments
-      if (uniqueMap.size === 2) break;
     }
 
-    const lastTwoUniqueAssignments = Array.from(uniqueMap.values());
+    const uniqueAssignments = Array.from(uniqueMap.values());
+    const lastTwoUniqueAssignments = uniqueAssignments.slice(0, 2);
 
     /* -----------------------------------------
       Abort check
     ------------------------------------------ */
+    const isAssessmentTerminated = uniqueAssignments.some(
+      (r) => r.status === 'assessment_terminated',
+    );
     const isAborted =
-      lastTwoUniqueAssignments.length === 2 &&
-      lastTwoUniqueAssignments.every((r) => r.status === 'system_exit');
+      isAssessmentTerminated ||
+      (lastTwoUniqueAssignments.length === 2 &&
+        lastTwoUniqueAssignments.every((r) => r.status === 'system_exit'));
 
     if (isAborted) {
       return [];
