@@ -252,6 +252,16 @@ export const buildCampaignDurationLabel = (form: CampaignSetupFormState) => {
   });
 };
 
+export const getCampaignDurationSummary = (form: CampaignSetupFormState) => {
+  if (!form.startDate || !form.endDate) return '--';
+
+  return t('{{startDate}} → {{endDate}} · {{days}} days', {
+    startDate: form.startDate,
+    endDate: form.endDate,
+    days: getCampaignDurationDays(form.startDate, form.endDate),
+  });
+};
+
 export const buildCampaignMessagingPayload = ({
   campaignId,
   timelineDates,

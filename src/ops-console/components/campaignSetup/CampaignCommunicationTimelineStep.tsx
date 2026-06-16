@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { CampaignCommunicationRow } from './CampaignCommunicationRow';
 import { CampaignCommunicationSchedule } from './CampaignCommunicationSchedule';
 import {
-  buildCampaignDurationLabel,
   buildCommunicationTimelineDates,
   buildTimeOptions,
   createEmptyCommunicationRow,
   formatTimelineDateLabel,
+  getCampaignDurationDays,
 } from './campaignCommunicationUtils';
 import { CampaignCommunicationTimelineStepProps } from './campaignCommunicationTypes';
 import { useCampaignReach } from './useCampaignReach';
@@ -46,6 +46,10 @@ const CampaignCommunicationTimelineStep: React.FC<
     showValidation && communicationValidation.errors.rows
       ? communicationValidation.errors.rows
       : t('Configure at least one day to continue to the Summary.');
+  const campaignDurationDays =
+    form.startDate && form.endDate
+      ? getCampaignDurationDays(form.startDate, form.endDate)
+      : 0;
 
   return (
     <Box className="campaign-communication-step campaign-setup-section">
@@ -66,7 +70,21 @@ const CampaignCommunicationTimelineStep: React.FC<
       <Box className="campaign-communication-widgets">
         <Box className="campaign-communication-widget">
           <Typography className="campaign-communication-widget-value">
-            {buildCampaignDurationLabel(form)}
+            <span className="campaign-communication-widget-label">
+              {t('Campaign')}:
+            </span>{' '}
+            {form.startDate && form.endDate ? (
+              <>
+                <span className="campaign-communication-widget-strong">
+                  {form.startDate} → {form.endDate}
+                </span>
+                <span className="campaign-communication-widget-days">
+                  · {campaignDurationDays} days
+                </span>
+              </>
+            ) : (
+              <span className="campaign-communication-widget-strong">--</span>
+            )}
           </Typography>
         </Box>
         <Box className="campaign-communication-widget">
@@ -76,19 +94,28 @@ const CampaignCommunicationTimelineStep: React.FC<
             </Box>
           ) : (
             <Typography className="campaign-communication-widget-value">
-              {t(
-                'Campaign Reach: {{groupCount}} WhatsApp Groups -> {{memberCount}} Members',
-                {
-                  groupCount: campaignReach.groupCount,
-                  memberCount: campaignReach.memberCount,
-                },
-              )}
+              <span className="campaign-communication-widget-label">
+                {t('Campaign Reach')}:
+              </span>{' '}
+              <span className="campaign-communication-widget-strong">
+                {campaignReach.groupCount}
+              </span>{' '}
+              <span>{t('WhatsApp Groups')}</span>{' '}
+              <span className="campaign-communication-widget-arrow">→</span>{' '}
+              <span className="campaign-communication-widget-strong">
+                {campaignReach.memberCount}
+              </span>{' '}
+              <span>{t('Members')}</span>
             </Typography>
           )}
         </Box>
       </Box>
 
-      <Alert severity="error" className="campaign-communication-validation">
+      <Alert
+        severity="error"
+        icon={false}
+        className="campaign-communication-validation"
+      >
         {validationMessage}
       </Alert>
 
@@ -104,35 +131,41 @@ const CampaignCommunicationTimelineStep: React.FC<
 
       <Box className="campaign-communication-table">
         <Box className="campaign-communication-table-head">
-          <span>{t('Date')}</span>
-          <span>{t('Daily Message')}</span>
-          <span>{t('Media Link')}</span>
-          <span>{t('Poll')}</span>
-          <span>{t('Clear')}</span>
+          <Box component="span">{t('Date')}</Box>
+          <Box component="span">{t('Daily Message')}</Box>
+          <Box component="span">{t('Media Link')}</Box>
+          <Box component="span">{t('Poll')}</Box>
+          <Box
+            component="span"
+            aria-label={String(t('Clear row actions'))}
+            className="campaign-communication-table-head-empty"
+          />
         </Box>
 
-        {timelineDates.map((date, index) => (
-          <CampaignCommunicationRow
-            key={date}
-            date={date}
-            index={index}
-            row={getRow(date)}
-            dateLabel={formatTimelineDateLabel(date)}
-            getError={rowError}
-            onRowChange={onRowChange}
-            onClearRow={onClearRow}
-          />
-        ))}
+        <Box className="campaign-communication-table-body">
+          {timelineDates.map((date, index) => (
+            <CampaignCommunicationRow
+              key={date}
+              date={date}
+              index={index}
+              row={getRow(date)}
+              dateLabel={formatTimelineDateLabel(date)}
+              getError={rowError}
+              onRowChange={onRowChange}
+              onClearRow={onClearRow}
+            />
+          ))}
 
-        {timelineDates.length === 0 && (
-          <Box className="campaign-communication-empty-state">
-            <Typography>
-              {t(
-                'No campaign days are available yet. Complete assignment setup to generate the communication schedule.',
-              )}
-            </Typography>
-          </Box>
-        )}
+          {timelineDates.length === 0 && (
+            <Box className="campaign-communication-empty-state">
+              <Typography>
+                {t(
+                  'No campaign days are available yet. Complete assignment setup to generate the communication schedule.',
+                )}
+              </Typography>
+            </Box>
+          )}
+        </Box>
       </Box>
     </Box>
   );

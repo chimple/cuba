@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessTimeOutlined } from '@mui/icons-material';
 import { Box, MenuItem, TextField, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
@@ -24,6 +25,7 @@ export const CampaignCommunicationSchedule: React.FC<
   onPollTimeChange,
 }) => {
   const { t } = useTranslation();
+  const TimeSelectIcon = AccessTimeOutlined;
 
   return (
     <Box className="campaign-communication-schedule">
@@ -44,6 +46,7 @@ export const CampaignCommunicationSchedule: React.FC<
             onChange={(event) => onMessageTimeChange(event.target.value)}
             error={!!messageTimeError}
             helperText={messageTimeError}
+            SelectProps={{ IconComponent: TimeSelectIcon }}
           >
             {timeOptions.map((option) => (
               <MenuItem key={option} value={option}>
@@ -65,6 +68,7 @@ export const CampaignCommunicationSchedule: React.FC<
             onChange={(event) => onPollTimeChange(event.target.value)}
             error={!!pollTimeError}
             helperText={pollTimeError}
+            SelectProps={{ IconComponent: TimeSelectIcon }}
           >
             {timeOptions.map((option) => (
               <MenuItem key={option} value={option}>
