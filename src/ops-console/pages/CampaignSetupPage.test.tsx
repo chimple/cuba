@@ -564,7 +564,7 @@ describe('CampaignSetupPage', () => {
     fireEvent.click(await screen.findByRole('option', { name: '09:00 AM' }));
     fireEvent.mouseDown(screen.getByLabelText('Poll Time'));
     fireEvent.click(await screen.findByRole('option', { name: '05:00 PM' }));
-    fireEvent.change(screen.getByPlaceholderText('Enter daily message'), {
+    fireEvent.change(screen.getByPlaceholderText(/Enter daily .* message/i), {
       target: { value: "Complete today's campaign task." },
     });
 

@@ -191,9 +191,12 @@ describe('CampaignCommunicationRow', () => {
   it('calls onRowChange with the row date when the message changes', () => {
     const { onRowChange } = renderRow();
 
-    fireEvent.change(screen.getByPlaceholderText('Enter daily message'), {
-      target: { value: 'Send reminder to students.' },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText('Enter daily campaign message...'),
+      {
+        target: { value: 'Send reminder to students.' },
+      },
+    );
 
     expect(onRowChange).toHaveBeenCalledTimes(1);
     expect(onRowChange).toHaveBeenCalledWith(
@@ -207,9 +210,12 @@ describe('CampaignCommunicationRow', () => {
     const recorder = createRowChangeRecorder(initialRow);
     renderRow({ row: initialRow, onRowChange: recorder.onRowChange });
 
-    fireEvent.change(screen.getByPlaceholderText('Enter daily message'), {
-      target: { value: 'Send reminder to students.' },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText('Enter daily campaign message...'),
+      {
+        target: { value: 'Send reminder to students.' },
+      },
+    );
 
     const updatedRow = recorder.appliedRows[0];
     expect(updatedRow).toEqual({
@@ -548,9 +554,12 @@ describe('CampaignCommunicationRow', () => {
   it('uses the supplied date key in every row change callback', () => {
     const { onRowChange } = renderRow({ date: '2099-06-01' });
 
-    fireEvent.change(screen.getByPlaceholderText('Enter daily message'), {
-      target: { value: 'Message value' },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText('Enter daily campaign message...'),
+      {
+        target: { value: 'Message value' },
+      },
+    );
     fireEvent.change(screen.getByPlaceholderText('Paste media drive link...'), {
       target: { value: 'https://example.com' },
     });
@@ -603,9 +612,12 @@ describe('CampaignCommunicationRow', () => {
   it('supports editing several fields in sequence and emits separate updater callbacks', () => {
     const { onRowChange } = renderRow();
 
-    fireEvent.change(screen.getByPlaceholderText('Enter daily message'), {
-      target: { value: 'Message 1' },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText('Enter daily campaign message...'),
+      {
+        target: { value: 'Message 1' },
+      },
+    );
     fireEvent.change(screen.getByPlaceholderText('Paste media drive link...'), {
       target: { value: 'https://media.example.com' },
     });
