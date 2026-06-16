@@ -17,6 +17,7 @@ import {
   MODES,
   PAGES,
   REWARD_LESSON,
+  ACTIVATION_REWARD_FLOW_KEY,
   TableTypes,
   LIDO_COMMON_AUDIO_DIR,
   FAIL_STREAK_KEY,
@@ -64,6 +65,7 @@ const LidoPlayer: FC = () => {
 
   // State
   const state = history.location.state as any;
+  const isActivationLesson = state?.isDefaultLesson === true;
   const source: SOURCE =
     getSourceFromState(state?.source) ??
     (state?.isHomework
@@ -324,6 +326,63 @@ const LidoPlayer: FC = () => {
     return previousLessonSkipped && (streakMap[courseKey] || 0) >= 2;
   };
 
+  const logUserActivationLessonEvent = ({
+    detail,
+    userId,
+    studentId,
+    lessonTimeSpent,
+    correctMoves,
+    wrongMoves,
+    resultId,
+    status,
+  }: {
+    detail: LidoEventDetail;
+    userId?: string;
+    studentId: string;
+    lessonTimeSpent: number;
+    correctMoves: number;
+    wrongMoves: number;
+    resultId?: string | null;
+    status: 'completed' | 'incomplete';
+  }) => {
+    if (!isActivationLesson) {
+      return;
+    }
+
+    Util.logEvent(EVENTS.USER_ACTIVATION_LESSON, {
+      user_id: userId,
+      student_id: studentId,
+      result_id: resultId ?? null,
+      chapter_id: detail.chapterId,
+      chapter_name: chapterDetail?.name ?? '',
+      lesson_id: detail.lessonId,
+      lesson_name: lessonDetail?.name ?? lesson?.name ?? '',
+      lesson_type: detail.lessonType,
+      lesson_session_id: detail.lessonSessionId,
+      ml_partner_id: detail.mlPartnerId,
+      ml_class_id: detail.mlClassId,
+      ml_student_id: detail.mlStudentId,
+      course_id: detail.courseId,
+      course_name: courseDetail?.name ?? '',
+      time_spent: lessonTimeSpent,
+      total_moves: detail.totalMoves,
+      total_games: detail.totalGames,
+      correct_moves: correctMoves,
+      wrong_moves: wrongMoves,
+      game_score: detail.gameScore,
+      quiz_score: detail.quizScore,
+      game_completed: detail.gameCompleted,
+      quiz_completed: detail.quizCompleted,
+      game_time_spent: detail.gameTimeSpent,
+      quiz_time_spent: detail.quizTimeSpent,
+      score: detail.finalScore,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
+      source,
+      status,
+    });
+  };
+
   const onNextContainer = (e: any) => logger.info('Next', e);
   const gameCompleted = () => {
     const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
@@ -438,10 +497,11 @@ const LidoPlayer: FC = () => {
       const learning_path: boolean = state?.learning_path ?? false;
       const is_homework: boolean = state?.isHomework ?? false;
       const isReward: boolean = state?.reward ?? false;
+      const isDefaultLesson: boolean = state?.isDefaultLesson ?? false;
 
       const shouldGiveDailyReward =
         isReward ||
-        ((learning_path || is_homework) &&
+        ((learning_path || is_homework || isDefaultLesson) &&
           (await Util.shouldGiveDailyReward()));
 
       if (isAssessmentLesson && shouldGiveDailyReward) {
@@ -878,6 +938,10 @@ const LidoPlayer: FC = () => {
         source,
       );
 
+      if (shouldGiveDailyReward && state?.isDefaultLesson) {
+        sessionStorage.setItem(ACTIVATION_REWARD_FLOW_KEY, 'true');
+      }
+
       // Update the learning path
       if (learning_path) {
         await Util.updateLearningPath(currentStudent, isReward);
@@ -963,6 +1027,16 @@ const LidoPlayer: FC = () => {
         assignment_type: assignmentType,
         source,
       });
+      logUserActivationLessonEvent({
+        detail: data,
+        userId: parentUserId,
+        studentId,
+        lessonTimeSpent,
+        correctMoves,
+        wrongMoves,
+        resultId: result?.id ?? null,
+        status: 'completed',
+      });
       let tempAssignmentCompletedIds = localStorage.getItem(
         ASSIGNMENT_COMPLETED_IDS,
       );
@@ -1033,6 +1107,16 @@ const LidoPlayer: FC = () => {
       quiz_time_spent: data.quizTimeSpent,
       played_from: playedFrom,
       assignment_type: assignmentType,
+    });
+    logUserActivationLessonEvent({
+      detail: data,
+      userId: parentUserId,
+      studentId,
+      lessonTimeSpent,
+      correctMoves,
+      wrongMoves,
+      resultId: null,
+      status: 'incomplete',
     });
     push();
   };

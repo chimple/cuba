@@ -15,6 +15,7 @@ import {
   LANG,
   IS_REWARD_FEATURE_ON,
   GENERIC_POP_UP,
+  SOURCE,
 } from '../common/constants';
 import './Home.css';
 import HomeHeader from '../components/HomeHeader';
@@ -40,6 +41,7 @@ import { useFeatureIsOn } from '@growthbook/growthbook-react';
 import WinterCampaignPopupGating from '../components/WinterCampaignPopup/WinterCampaignPopupGating';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
+import ActivationLessonBanner from '../components/activationLesson/ActivationLessonBanner';
 const localData: any = {};
 
 const Home: FC = () => {
@@ -59,6 +61,8 @@ const Home: FC = () => {
   const [pendingLiveQuizCount, setPendingLiveQuizCount] = useState<number>(0);
   const [pendingAssignmentCount, setPendingAssignmentCount] =
     useState<number>(0);
+  const [showActivationLessonBanner, setShowActivationLessonBanner] =
+    useState<boolean>(false);
   const history = useHistory();
   const { setGbUpdated } = useGbContext();
   const isRewardFeatureOn = useFeatureIsOn(IS_REWARD_FEATURE_ON);
@@ -206,6 +210,11 @@ const Home: FC = () => {
       localStorage.setItem(LANGUAGE, tempLangCode);
       await i18n.changeLanguage(tempLangCode);
     }
+    const hasStudentResult =
+      typeof api.hasStudentResult === 'function'
+        ? await api.hasStudentResult(student.id)
+        : true;
+    setShowActivationLessonBanner(!hasStudentResult);
     const studentResult = await api.getStudentResultInMap(student.id);
     if (!!studentResult) {
       setLessonResultMap(studentResult);
@@ -501,7 +510,11 @@ const Home: FC = () => {
         {!isLoading ? (
           <div className="space-between">
             {currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar ? (
-              <LearningPathway />
+              showActivationLessonBanner ? (
+                <ActivationLessonBanner source={SOURCE.INITIAL_ASSESSMENT} />
+              ) : (
+                <LearningPathway />
+              )
             ) : null}
 
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}

@@ -3781,6 +3781,46 @@ export class SqliteApi implements ServiceApi {
     return resultMap;
   }
 
+  async hasStudentResult(studentId: string): Promise<boolean> {
+    try {
+      await this.ensureInitialized();
+      const { classes } = await this.getStudentClassesAndSchools(studentId);
+      const classId = this.currentClass?.id ?? classes[0]?.id;
+
+      if (classes.length > 0) {
+        if (!classId) {
+          logger.warn(
+            '[SqliteApi] Unable to resolve class for linked student result check',
+            { studentId },
+          );
+          return false;
+        }
+
+        const res = await this._db?.query(
+          `SELECT 1
+         FROM ${TABLES.Result}
+         WHERE student_id = "${studentId}"
+           AND class_id = "${classId}"
+           AND is_deleted = 0
+         LIMIT 1`,
+        );
+        return (res?.values?.length ?? 0) > 0;
+      }
+
+      const res = await this._db?.query(
+        `SELECT 1
+       FROM ${TABLES.Result}
+       WHERE student_id = "${studentId}"
+         AND is_deleted = 0
+       LIMIT 1`,
+      );
+      return (res?.values?.length ?? 0) > 0;
+    } catch (error) {
+      logger.error('Error checking student result', error);
+      return true;
+    }
+  }
+
   async getClassById(id: string): Promise<TableTypes<'class'> | undefined> {
     await this.ensureInitialized();
     const res = await this._db?.query(

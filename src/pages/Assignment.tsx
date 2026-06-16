@@ -9,6 +9,7 @@ import {
   HOMEHEADERLIST,
   LIVE_QUIZ,
   PAGES,
+  SOURCE,
   TABLES,
   TableTypes,
 } from '../common/constants';
@@ -28,6 +29,7 @@ import { useFeatureIsOn, useGrowthBook } from '@growthbook/growthbook-react';
 import HomeworkCompleteModal from '../components/assignment/HomeworkCompleteModal';
 import { useGbContext } from '../growthbook/Growthbook';
 import logger from '../utility/logger';
+import ActivationLessonBanner from '../components/activationLesson/ActivationLessonBanner';
 
 const waitForJoinRefresh = (delayMs: number) =>
   new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -44,6 +46,8 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 }) => {
   const growthbook = useGrowthBook();
   const [loading, setLoading] = useState(true);
+  const [showActivationLessonBanner, setShowActivationLessonBanner] =
+    useState<boolean>(false);
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
   const [lessons, setLessons] = useState<TableTypes<'lesson'>[]>([]);
@@ -138,6 +142,11 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         history.replace(PAGES.SELECT_MODE);
         return;
       }
+      const hasStudentResult =
+        typeof api.hasStudentResult === 'function'
+          ? await api.hasStudentResult(student.id)
+          : true;
+      setShowActivationLessonBanner(!hasStudentResult);
       const linkedData = await api.getStudentClassesAndSchools(student.id);
       if (!linkedData?.classes.length) {
         setIsLinked(false);
@@ -536,6 +545,10 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                   onClassJoin={() => {
                     refreshAssignmentPageAfterJoin();
                   }}
+                />
+              ) : showActivationLessonBanner ? (
+                <ActivationLessonBanner
+                  source={SOURCE.LEARNING_PATHWAY_HOMEWORK}
                 />
               ) : (
                 <div>

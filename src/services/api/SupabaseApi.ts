@@ -3567,6 +3567,59 @@ export class SupabaseApi implements ServiceApi {
     }
     return resultMap;
   }
+  async hasStudentResult(studentId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    try {
+      const { classes } = await this.getStudentClassesAndSchools(studentId);
+      const classId = this.currentClass?.id ?? classes[0]?.id;
+
+      if (classes.length > 0) {
+        if (!classId) {
+          logger.warn(
+            '[SupabaseApi] Unable to resolve class for linked student result check',
+            { studentId },
+          );
+          return false;
+        }
+
+        const { data, error } = await this.supabase
+          .from(TABLES.Result)
+          .select('id')
+          .eq('student_id', studentId)
+          .eq('class_id', classId)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (error) {
+          logger.error(
+            'Error checking linked student result existence:',
+            error,
+          );
+          return false;
+        }
+
+        return (data?.length ?? 0) > 0;
+      }
+
+      const { data, error } = await this.supabase
+        .from(TABLES.Result)
+        .select('id')
+        .eq('student_id', studentId)
+        .eq('is_deleted', false)
+        .limit(1);
+
+      if (error) {
+        logger.error('Error checking student result existence:', error);
+        return false;
+      }
+
+      return (data?.length ?? 0) > 0;
+    } catch (error) {
+      logger.error('Error checking student result', error);
+      return true;
+    }
+  }
   async getClassById(id: string): Promise<TableTypes<'class'> | undefined> {
     if (!this.supabase) return;
     const { data, error } = await this.supabase
