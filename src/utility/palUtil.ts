@@ -74,15 +74,59 @@ const DEFAULT_LEARNING_RATES: LearningRates = {
   subject: 0.4,
 };
 
+const ENGLISH_SUBJECT_ID = '54abf22e-7102-4e14-915b-acd8eab47d56';
+const HINDI_SUBJECT_ID = 'c6e312bc-a832-4b81-964a-e0537cf7f18c';
+const MATHS_SUBJECT_ID = 'c5674cc5-48f8-40b8-8123-f5246ea0c5e8';
+
+const ENGLISH_AND_MATHS_BLEND_WEIGHTS: BlendWeights = {
+  skill: 0.55,
+  outcome: 0.25,
+  competency: 0.1,
+  domain: 0.05,
+  subject: 0.05,
+};
+
+const ENGLISH_LEARNING_RATES: LearningRates = {
+  skill: 0.012693671811,
+  outcome: 0.00923273843,
+  competency: 0.003460933381,
+  domain: 0.002310871668,
+  subject: 0.002310871668,
+};
+
+const HINDI_LEARNING_RATES: LearningRates = {
+  skill: 0.1583,
+  outcome: 0.1151,
+  competency: 0.0431,
+  domain: 0.0288,
+  subject: 0.0288,
+};
+
+const MATHS_LEARNING_RATES: LearningRates = {
+  skill: 0.7913,
+  outcome: 0.5755,
+  competency: 0.2157,
+  domain: 0.144,
+  subject: 0.144,
+};
+
 // Local PAL defaults keep recommendations working when GrowthBook is unavailable.
 const PAL_CONSTANTS: PalConstants = {
   blendWeights: {
     default: DEFAULT_BLEND_WEIGHTS,
-    subjects: {},
+    subjects: {
+      // English and Maths use the same fallback blend weights.
+      [ENGLISH_SUBJECT_ID]: ENGLISH_AND_MATHS_BLEND_WEIGHTS,
+      [MATHS_SUBJECT_ID]: ENGLISH_AND_MATHS_BLEND_WEIGHTS,
+    },
   },
   learningRates: {
     default: DEFAULT_LEARNING_RATES,
-    subjects: {},
+    subjects: {
+      [ENGLISH_SUBJECT_ID]: ENGLISH_LEARNING_RATES,
+      [HINDI_SUBJECT_ID]: HINDI_LEARNING_RATES,
+      [MATHS_SUBJECT_ID]: MATHS_LEARNING_RATES,
+    },
   },
 };
 
