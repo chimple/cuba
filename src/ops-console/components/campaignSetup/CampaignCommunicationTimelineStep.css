@@ -161,12 +161,12 @@
 
 .campaign-communication-schedule-grid
   > .campaign-communication-field-block:nth-of-type(1) {
-  margin-left: -0.5rem;
+  margin-left: -2.5rem;
 }
 
 .campaign-communication-schedule-grid
   > .campaign-communication-field-block:nth-of-type(2) {
-  margin-left: -0.5rem;
+  margin-left: -0.175rem;
 }
 
 .campaign-communication-field-label {
@@ -205,7 +205,7 @@
 }
 
 .campaign-communication-table-body {
-  max-height: 120rem;
+  max-height: 102rem;
   overflow-y: auto;
   scrollbar-gutter: stable;
 }
@@ -718,5 +718,67 @@
 
   .campaign-communication-message-field textarea {
     height: 4.5rem !important;
+  }
+}
+
+@media (max-width: 64rem) and (orientation: landscape) {
+  .campaign-communication-step {
+    gap: 0.875rem;
+  }
+
+  .campaign-communication-schedule {
+    padding: 0.75rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .campaign-communication-schedule-grid {
+    grid-template-columns: auto auto auto minmax(10rem, 1fr);
+    column-gap: 0.625rem;
+    row-gap: 0.625rem;
+    min-width: 41rem;
+  }
+
+  .campaign-communication-schedule-heading {
+    margin-left: 0 !important;
+    font-size: 0.75rem !important;
+  }
+
+  .campaign-communication-field-block {
+    gap: 0.3125rem;
+  }
+
+  .campaign-communication-field-label {
+    font-size: 0.75rem !important;
+  }
+
+  .campaign-communication-schedule .MuiOutlinedInput-root {
+    min-width: 6.25rem;
+  }
+
+  .campaign-communication-schedule-note {
+    font-size: 0.6875rem !important;
+    line-height: 1rem !important;
+  }
+
+  .campaign-communication-schedule-grid
+    > .campaign-communication-field-block:nth-of-type(1),
+  .campaign-communication-schedule-grid
+    > .campaign-communication-field-block:nth-of-type(2) {
+    margin-left: 0;
+  }
+
+  .campaign-communication-table {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .campaign-communication-table-head,
+  .campaign-communication-table-body {
+    min-width: 48rem;
+  }
+
+  .campaign-communication-table-body {
+    overflow-x: visible;
   }
 }

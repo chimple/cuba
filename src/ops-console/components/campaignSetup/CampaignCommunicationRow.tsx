@@ -53,6 +53,12 @@ export const CampaignCommunicationRow: React.FC<
                 currentIndex === optionIndex ? '' : currentOption,
             ),
     }));
+  const getOptionPlaceholder = (optionIndex: number) =>
+    `${t('Option')} ${optionIndex + 1}`;
+  const getOptionActionLabel = (optionIndex: number) =>
+    `${optionIndex >= 2 ? t('Remove') : t('Clear')} ${t('Option')} ${
+      optionIndex + 1
+    }`;
 
   return (
     <Box className="campaign-communication-row">
@@ -173,9 +179,7 @@ export const CampaignCommunicationRow: React.FC<
               <TextField
                 className="campaign-communication-poll-option-field"
                 fullWidth
-                placeholder={String(
-                  t('Option {{number}}', { number: optionIndex + 1 }),
-                )}
+                placeholder={getOptionPlaceholder(optionIndex)}
                 value={option}
                 onChange={(event) =>
                   updatePollOptions(optionIndex, event.target.value)
@@ -187,15 +191,13 @@ export const CampaignCommunicationRow: React.FC<
                 type="button"
                 className="campaign-communication-mobile-option-clear"
                 onClick={() => clearOrRemoveOption(optionIndex)}
-                aria-label={String(
+                aria-label={
                   optionIndex >= 2
-                    ? t('Remove Option {{number}}', {
-                        number: optionIndex + 1,
-                      })
-                    : t('Clear Option {{number}}', {
-                        number: optionIndex + 1,
-                      }),
-                )}
+                    ? undefined
+                    : getOptionActionLabel(optionIndex)
+                }
+                aria-hidden={optionIndex >= 2}
+                tabIndex={optionIndex >= 2 ? -1 : undefined}
               >
                 <Close fontSize="small" />
               </Button>
@@ -204,11 +206,7 @@ export const CampaignCommunicationRow: React.FC<
                   type="button"
                   className="campaign-communication-remove-option"
                   onClick={() => clearOrRemoveOption(optionIndex)}
-                  aria-label={String(
-                    t('Remove Option {{number}}', {
-                      number: optionIndex + 1,
-                    }),
-                  )}
+                  aria-label={getOptionActionLabel(optionIndex)}
                 >
                   <Close fontSize="small" />
                 </Button>
