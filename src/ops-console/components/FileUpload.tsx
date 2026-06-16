@@ -104,6 +104,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
   const markDuplicateStudentErrorIfPresent = (messages: string[]) => {
     if (
       messages.some((message) => {
+        if (!message) return false;
         const normalizedMessage = message.toLowerCase();
         return (
           normalizedMessage.includes('duplicate') ||
@@ -686,6 +687,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const schoolId = row['SCHOOL ID']?.toString().trim();
           let grade = row['GRADE']?.toString().trim();
           const classSection = row['CLASS SECTION']?.toString().trim();
+          if (!schoolId || schoolId.trim() === '') {
+            errors.push('Missing SCHOOL ID.');
+          }
           let subjectGrade = row['SUBJECT GRADE']?.toString().trim();
           let curriculum = row['CURRICULUM']?.toString().trim();
           let subject = row['SUBJECT']?.toString().trim();
@@ -748,7 +752,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           ) {
             errors.push('Missing required class details.');
           } else {
-            if (!validatedSchoolIds.has(schoolId)) {
+            if (schoolId && !validatedSchoolIds.has(schoolId)) {
               const result = await api.validateSchoolUdiseCode(schoolId);
               if (result?.status === 'error') {
                 errors.push('SCHOOL ID does not match any validated school.');
@@ -1105,6 +1109,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const studentId = row['STUDENT ID']?.toString().trim();
           const rawStudentName = row['STUDENT NAME']?.toString() ?? '';
           const studentName = rawStudentName.trim().replace(/\s+/g, ' ');
+          row['STUDENT NAME'] = studentName;
           const normalizedStudentName = studentName.toLowerCase();
           const gender = row['GENDER']?.toString().trim();
           let age = row['AGE']?.toString().trim();
