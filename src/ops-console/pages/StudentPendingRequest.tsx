@@ -177,9 +177,10 @@ const StudentPendingRequestDetails = () => {
           return;
         }
         // MERGE & APPROVE logic
+        // Keep requested profile as source and selected student as destination.
         const mergeResult = await api.mergeStudentRequest(
-          currentSelectedStudent,
           newStudentUserId,
+          currentSelectedStudent,
           currentRequest_Id,
           respondedBy,
         );

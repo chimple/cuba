@@ -254,6 +254,7 @@ export class ApiHandler implements ServiceApi {
     group2: string,
     group3: string,
     group4: string | null,
+    status: EnumType<'status'> | null,
     image: File | null,
     program_id: string | null,
     udise: string | null,
@@ -268,6 +269,7 @@ export class ApiHandler implements ServiceApi {
       group2,
       group3,
       group4,
+      status,
       image,
       program_id,
       udise,
@@ -1786,8 +1788,12 @@ export class ApiHandler implements ServiceApi {
   }
   public async getParentsByStudentId(
     studentId: string,
+    options?: {
+      studentIds?: string[];
+      activeOnly?: boolean;
+    },
   ): Promise<TableTypes<'user'>[]> {
-    return await this.s.getParentsByStudentId(studentId);
+    return await this.s.getParentsByStudentId(studentId, options);
   }
   public async mergeStudentRequest(
     existingStudentId: string,

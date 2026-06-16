@@ -1348,6 +1348,7 @@ export class SupabaseApi implements ServiceApi {
     group2: string,
     group3: string,
     group4: string | null,
+    status: EnumType<'status'> | null,
     image: File | null,
     program_id: string | null,
     udise: string | null,
@@ -1395,7 +1396,7 @@ export class SupabaseApi implements ServiceApi {
         language: null,
         ops_created_by: null,
         student_login_type: null,
-        status: STATUS.REQUESTED,
+        status: status,
         key_contacts: null,
         country: country ?? null,
         location_link: null,
@@ -4178,15 +4179,14 @@ export class SupabaseApi implements ServiceApi {
       };
     }
 
-    const parentByStudentId = new Map<
+    const parentsByStudentId = new Map<
       string,
-      {
+      Array<{
         id?: string;
-        parent_name?: string;
         phone?: string;
         email?: string;
         is_wa_contact?: string | boolean | null;
-      } | null
+      }>
     >();
     if (pagedStudentIds.length > 0) {
       const { data: parentLinks, error: parentError } = await this.supabase
@@ -4210,7 +4210,6 @@ export class SupabaseApi implements ServiceApi {
           string,
           {
             id?: string;
-            parent_name?: string;
             phone?: string;
             email?: string;
             is_wa_contact?: string | boolean | null;
@@ -4246,10 +4245,6 @@ export class SupabaseApi implements ServiceApi {
 
               parentById.set(parentId, {
                 id: parentId,
-                parent_name:
-                  typeof parentUser?.name === 'string'
-                    ? parentUser.name
-                    : undefined,
                 phone:
                   typeof parentUser?.phone === 'string'
                     ? parentUser.phone
@@ -4271,8 +4266,24 @@ export class SupabaseApi implements ServiceApi {
         (parentLinks || []).forEach((link) => {
           const sid = String(link?.student_id || '').trim();
           const parentId = String(link?.parent_id || '').trim();
-          if (!sid || parentByStudentId.has(sid)) return;
-          parentByStudentId.set(sid, parentById.get(parentId) || null);
+          const parent = parentById.get(parentId);
+          if (!sid || !parent) return;
+
+          const currentParents = parentsByStudentId.get(sid) ?? [];
+          // Deduplicate by contact values to keep merged contacts clean.
+          const alreadyAdded = currentParents.some(
+            (existingParent) =>
+              (existingParent.id && existingParent.id === parent.id) ||
+              (existingParent.phone &&
+                parent.phone &&
+                existingParent.phone === parent.phone) ||
+              (existingParent.email &&
+                parent.email &&
+                existingParent.email === parent.email),
+          );
+          if (alreadyAdded) return;
+
+          parentsByStudentId.set(sid, [...currentParents, parent]);
         });
       }
     }
@@ -4286,7 +4297,9 @@ export class SupabaseApi implements ServiceApi {
         const classIdValue = row.classIdValue;
         const className = classMap.get(classIdValue) || '';
         const { grade, section } = this.parseClassName(className);
-        const parent = parentByStudentId.get(studentId) || null;
+        const parents =
+          (parentsByStudentId.get(studentId) as TableTypes<'user'>[]) ?? [];
+        const parent = parents[0] || null;
         const updatedUser = {
           ...user,
           phone: user?.phone || parent?.phone || '',
@@ -4298,6 +4311,8 @@ export class SupabaseApi implements ServiceApi {
           grade,
           classSection: section,
           parent,
+          parents,
+          // Needed by student detail flows that rely on class id/name shape.
           classWithidname: {
             id: classIdValue,
             class_name: className,
@@ -4355,29 +4370,50 @@ export class SupabaseApi implements ServiceApi {
       return { data: [], total: 0 };
     }
 
-    const studentInfoList: StudentInfo[] = (data || []).map((row: any) => {
+    type StudentParentLinkRow = {
+      user?:
+        | (TableTypes<'user'> & {
+            parent_links?: Array<{ parent?: TableTypes<'user'> | null }>;
+          })
+        | null;
+      class?: { id?: string | null; name?: string | null } | null;
+    };
+    const studentRows = (data ?? []) as object[] as StudentParentLinkRow[];
+    const studentInfoList = studentRows.reduce<StudentInfo[]>((list, row) => {
       const { user, class: cls } = row;
+      if (!user) return list;
 
       const className = cls?.name || '';
       const { grade, section } = this.parseClassName(className);
 
-      const parent = user?.parent_links?.[0]?.parent || null;
+      const parents = (user.parent_links || [])
+        .map((link) => link?.parent)
+        .filter((parent): parent is TableTypes<'user'> => Boolean(parent));
+      const parent = parents[0] || null;
 
-      return {
+      list.push({
         user,
         grade,
         classSection: section,
         parent,
-      };
-    });
+        parents,
+        classWithidname: cls?.id
+          ? {
+              id: cls.id,
+              class_name: className,
+            }
+          : undefined,
+      });
+      return list;
+    }, []);
     return {
       data: studentInfoList,
       total: count ?? 0,
     };
   }
   async getStudentAndParentByStudentId(studentId: string): Promise<{
-    user: any;
-    parents: any[];
+    user: TableTypes<'user'> | null;
+    parents: TableTypes<'user'>[];
   }> {
     if (!this.supabase) {
       logger.warn('Supabase not initialized.');
@@ -4404,7 +4440,12 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Error fetching student and parent by student ID:', error);
       return { user: null, parents: [] };
     }
-    const parents = (data.parent_links || []).map((link: any) => link.parent);
+    const parentLinks = (data.parent_links ?? []) as object[] as Array<{
+      parent?: TableTypes<'user'> | null;
+    }>;
+    const parents = parentLinks
+      .map((link) => link.parent)
+      .filter((parent): parent is TableTypes<'user'> => Boolean(parent));
 
     return {
       user: data,
@@ -4413,23 +4454,42 @@ export class SupabaseApi implements ServiceApi {
   }
   async getParentsByStudentId(
     studentId: string,
+    options?: {
+      studentIds?: string[];
+      activeOnly?: boolean;
+    },
   ): Promise<TableTypes<'user'>[]> {
     if (!this.supabase) {
       logger.warn('Supabase not initialized.');
       return [];
     }
 
-    const { data, error } = await this.supabase
-      .from('parent_user')
-      .select(
-        `
+    const requestedStudentIds =
+      options?.studentIds?.filter((id) => id.trim() !== '') ??
+      (studentId.trim() !== '' ? [studentId] : []);
+    if (requestedStudentIds.length === 0) {
+      return [];
+    }
+
+    let query = this.supabase.from('parent_user').select(
+      `
           parent:parent_id (
             *
           )
         `,
-      )
-      .eq('student_id', studentId);
-    // no is_deleted filter
+    );
+
+    if (requestedStudentIds.length === 1) {
+      query = query.eq('student_id', requestedStudentIds[0]);
+    } else {
+      query = query.in('student_id', requestedStudentIds);
+    }
+
+    if (options?.activeOnly) {
+      query = query.eq('is_deleted', false);
+    }
+
+    const { data, error } = await query;
 
     if (error || !data) {
       logger.error('Error fetching parents by student ID:', error);
@@ -12025,12 +12085,56 @@ export class SupabaseApi implements ServiceApi {
             .map((row) => String(row?.user?.id ?? '').trim())
             .filter((id) => id.length > 0);
 
-          let parentLinkedStudents: any[] = [];
+          type StudentSearchRow = {
+            class_id: string;
+            user: {
+              id: string;
+              name?: string | null;
+              email?: string | null;
+              phone?: string | null;
+              gender?: string | null;
+              student_id?: string | null;
+            };
+          };
+          let parentLinkedStudents: StudentSearchRow[] = [];
+          type ParentSearchContact = {
+            phone?: string | null;
+            email?: string | null;
+            is_wa_contact?: string | boolean | null;
+          };
+          const parentContactsByStudentId = new Map<
+            string,
+            ParentSearchContact[]
+          >();
+          const addParentContact = (
+            studentId: string | null | undefined,
+            parent: ParentSearchContact | null | undefined,
+          ) => {
+            const normalizedStudentId = String(studentId ?? '').trim();
+            if (!normalizedStudentId || !parent) return;
 
-          const parentContactMap = new Map<string, any>();
+            const currentParents =
+              parentContactsByStudentId.get(normalizedStudentId) ?? [];
+            // For search results we only need unique phone/email contact entries.
+            const alreadyAdded = currentParents.some(
+              (existingParent) =>
+                (existingParent.phone &&
+                  parent.phone &&
+                  existingParent.phone === parent.phone) ||
+                (existingParent.email &&
+                  parent.email &&
+                  existingParent.email === parent.email),
+            );
+            if (alreadyAdded) return;
+
+            parentContactsByStudentId.set(normalizedStudentId, [
+              ...currentParents,
+              parent,
+            ]);
+          };
 
           if (parentIds.length > 0) {
-            const { data: parentLinksRaw } = await (supabase
+            const { data: parentLinksRaw } = await supabase
               .from('parent_user')
               .select(
                 `
@@ -12043,7 +12147,7 @@ export class SupabaseApi implements ServiceApi {
               `,
               )
               .in('parent_id', parentIds)
-              .eq('is_deleted', false) as any);
+              .eq('is_deleted', false);
             const parentLinks = (parentLinksRaw ?? []) as Array<{
               student_id?: string | null;
               parent?: {
@@ -12057,8 +12161,8 @@ export class SupabaseApi implements ServiceApi {
               .map((link) => String(link?.student_id ?? '').trim())
               .filter((id) => id.length > 0);
 
-            (parentLinks ?? []).forEach((link: any) => {
-              parentContactMap.set(link.student_id, {
+            parentLinks.forEach((link) => {
+              addParentContact(link.student_id, {
                 phone: link.parent?.phone ?? null,
                 email: link.parent?.email ?? null,
                 is_wa_contact: link.parent?.is_wa_contact ?? null,
@@ -12086,13 +12190,17 @@ export class SupabaseApi implements ServiceApi {
                 .in('user_id', studentIds)
                 .eq('is_deleted', false);
 
-              parentLinkedStudents = data ?? [];
+              parentLinkedStudents = (data ??
+                []) as object[] as StudentSearchRow[];
             }
           }
 
-          const allRows = [...(studentRows ?? []), ...parentLinkedStudents];
+          const allRows = [
+            ...((studentRows ?? []) as object[] as StudentSearchRow[]),
+            ...parentLinkedStudents,
+          ];
 
-          const uniqueMap = new Map<string, any>();
+          const uniqueMap = new Map<string, StudentSearchRow>();
 
           allRows.forEach((row) => {
             uniqueMap.set(row.user.id, row);
@@ -12100,14 +12208,11 @@ export class SupabaseApi implements ServiceApi {
 
           const mergedRows = Array.from(uniqueMap.values());
           // ✅ GET ALL STUDENT IDS
-          const allStudentIds = mergedRows.map((r: any) => r.user.id);
+          const allStudentIds = mergedRows.map((r) => r.user.id);
 
-          // Fetch parent contact only for students not already mapped.
-          const missingParentStudentIds = allStudentIds.filter(
-            (id: string) => !parentContactMap.has(id),
-          );
-          if (missingParentStudentIds.length > 0) {
-            const { data: allParentLinksRaw } = await (supabase
+          // Fetch every linked parent contact for matched students.
+          if (allStudentIds.length > 0) {
+            const { data: allParentLinksRaw } = await supabase
               .from('parent_user')
               .select(
                 `
@@ -12119,8 +12224,8 @@ export class SupabaseApi implements ServiceApi {
         )
       `,
               )
-              .in('student_id', missingParentStudentIds)
-              .eq('is_deleted', false) as any);
+              .in('student_id', allStudentIds)
+              .eq('is_deleted', false);
             const allParentLinks = (allParentLinksRaw ?? []) as Array<{
               student_id?: string | null;
               parent?: {
@@ -12131,9 +12236,7 @@ export class SupabaseApi implements ServiceApi {
             }>;
 
             allParentLinks.forEach((link) => {
-              const studentId = String(link?.student_id ?? '').trim();
-              if (!studentId) return;
-              parentContactMap.set(studentId, {
+              addParentContact(link.student_id, {
                 phone: link.parent?.phone ?? null,
                 email: link.parent?.email ?? null,
                 is_wa_contact: link.parent?.is_wa_contact ?? null,
@@ -12143,16 +12246,16 @@ export class SupabaseApi implements ServiceApi {
           const offset = (page - 1) * limit;
 
           const pagedRows = mergedRows.slice(offset, offset + limit);
-          const result = pagedRows.map((row: any) => {
-            const classInfo = classData?.find(
-              (c: any) => c.id === row.class_id,
-            );
+          const result = pagedRows.map((row) => {
+            const classInfo = classData?.find((c) => c.id === row.class_id);
 
             const className = classInfo?.name ?? '';
 
             const { grade, section } = this.parseClassName(className);
 
-            const parentContact = parentContactMap.get(row.user.id) ?? {};
+            const parentContacts =
+              parentContactsByStudentId.get(row.user.id) ?? [];
+            const parentContact = parentContacts[0] ?? {};
 
             // ✅ FALLBACK FLATTEN LOGIC (ONLY ADDITION)
             const phone = row.user.phone || parentContact.phone || '';
@@ -12173,9 +12276,14 @@ export class SupabaseApi implements ServiceApi {
                 email: parentContact.email ?? null,
                 is_wa_contact: parentContact.is_wa_contact ?? null,
               },
+              parents: parentContacts,
 
               class_id: row.class_id,
               class_name: className,
+              classWithidname: {
+                id: row.class_id,
+                class_name: className,
+              },
               grade,
               classSection: section,
             };

@@ -109,6 +109,43 @@ describe('CardListModal', () => {
     await screen.findByText(/\(8888888888\)/);
   });
 
+  it('resets primary student data when primaryStudentId changes', async () => {
+    const { rerender } = render(<CardListModal {...baseProps} />);
+
+    await screen.findByText(/\(8888888888\)/);
+
+    mockApiHandler.getStudentInfoBySchoolId.mockResolvedValue({
+      data: [
+        {
+          user: {
+            id: '2',
+            name: 'John Doe',
+            student_id: 'ST002',
+            gender: 'female',
+            phone: '7777777777',
+          },
+          parent: { phone: '6666666666' },
+        },
+        {
+          user: {
+            id: '3',
+            name: 'New Primary',
+            student_id: 'ST003',
+            gender: 'male',
+            phone: '5555555555',
+          },
+          parent: { phone: '4444444444' },
+        },
+      ],
+      total: 2,
+    });
+
+    rerender(<CardListModal {...baseProps} primaryStudentId="3" />);
+
+    await screen.findByText(/\(4444444444\)/);
+    expect(screen.queryByText(/\(8888888888\)/)).not.toBeInTheDocument();
+  });
+
   /* ================= LOADING / EMPTY ================= */
 
   it('shows loading state', async () => {
@@ -145,10 +182,10 @@ describe('CardListModal', () => {
 
   /* ================= PHONE FALLBACK ================= */
 
-  it('uses parent phone first', async () => {
+  it('shows parent phone first in the contact list', async () => {
     render(<CardListModal {...baseProps} />);
 
-    await screen.findByText('6666666666');
+    await screen.findByText('6666666666 / 7777777777');
   });
 
   it('falls back to email if no phone', async () => {

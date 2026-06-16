@@ -5,7 +5,7 @@ import 'react-international-phone/style.css';
 import { t } from 'i18next';
 import CheckIcon from '@mui/icons-material/Check';
 
-export type FieldKind = 'text' | 'email' | 'phone' | 'select';
+export type FieldKind = 'text' | 'email' | 'phone' | 'select' | 'chips';
 export type FieldColumn = 0 | 1 | 2; // 0 = left, 1 = right, 2 = full row
 
 export interface FieldConfig {
@@ -378,6 +378,28 @@ const FormCard: React.FC<EntityModalProps> = ({
             onChange={(e) => handleChange(field.name, e.target.value)}
           />
         );
+
+      case 'chips': {
+        // Chips are supplied as a "/" joined string from read-only form values.
+        const chips = (values[field.name] ?? '')
+          .split('/')
+          .map((value) => value.trim())
+          .filter(Boolean);
+
+        return (
+          <div className="formcard-chip-list" id={field.name}>
+            {chips.map((chip, index) => (
+              <span
+                key={`${chip}-${index}`}
+                className="formcard-value-chip"
+                title={chip}
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
+        );
+      }
 
       case 'text':
       default:

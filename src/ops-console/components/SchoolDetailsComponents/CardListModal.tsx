@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import SearchAndFilter from '../SearchAndFilter';
 import DataTablePagination from '../DataTablePagination';
 import { ServiceConfig } from '../../../services/ServiceConfig';
@@ -6,6 +6,10 @@ import { CircularProgress } from '@mui/material';
 import './CardListModal.css';
 import { t } from 'i18next';
 import logger from '../../../utility/logger';
+import {
+  formatStudentContactList,
+  getStudentPrimaryContact,
+} from '../../utils/studentContactNumbers';
 
 interface StudentItem {
   user?: {
@@ -17,8 +21,18 @@ interface StudentItem {
     phone?: string | null;
   };
   phone?: string | null;
-  parent?: { phone?: string | null } | null;
+  parent?: { phone?: string | null; email?: string | null } | null;
+  parents?: { phone?: string | null; email?: string | null }[] | null;
 }
+
+type StudentSearchResponse = {
+  data?: StudentItem[];
+  total?: number;
+};
+
+type ProcessedStudentItem = Omit<StudentItem, 'user'> & {
+  user: NonNullable<StudentItem['user']>;
+};
 
 interface CardListModalProps {
   open: boolean;
@@ -51,93 +65,91 @@ const CardListModal: React.FC<CardListModalProps> = ({
   const requestIdRef = React.useRef(0);
   const [primaryStudentData, setPrimaryStudentData] =
     useState<StudentItem | null>(null);
-  const fetchStudents = async (currentPage: number, searchText: string) => {
-    if (!open) return;
-    const currentRequest = ++requestIdRef.current;
-    setLoading(true);
-    try {
-      let res;
-      if (searchText.trim()) {
-        res = await api.searchStudentsInSchool(
-          schoolId,
-          searchText,
-          currentPage,
-          ROWS_PER_PAGE,
-          classId,
-        );
-      } else {
-        res = await api.getStudentInfoBySchoolId(
-          schoolId,
-          currentPage,
-          ROWS_PER_PAGE,
-          classId,
-        );
+  const fetchStudents = useCallback(
+    async (currentPage: number, searchText: string) => {
+      if (!open) return;
+      const currentRequest = ++requestIdRef.current;
+      setLoading(true);
+      try {
+        let res: StudentSearchResponse;
+        if (searchText.trim()) {
+          res = await api.searchStudentsInSchool(
+            schoolId,
+            searchText,
+            currentPage,
+            ROWS_PER_PAGE,
+            classId,
+          );
+        } else {
+          res = await api.getStudentInfoBySchoolId(
+            schoolId,
+            currentPage,
+            ROWS_PER_PAGE,
+            classId,
+          );
+        }
+        // Ignore old responses
+        if (currentRequest !== requestIdRef.current) return;
+        if (res.data) {
+          const found = res.data.find(
+            (student) => student.user?.id === primaryStudentId,
+          );
+          if (found) setPrimaryStudentData(found);
+        }
+        setStudents(res.data || []);
+        setTotal(res.total || 0);
+      } catch (e) {
+        logger.error(e);
+      } finally {
+        if (currentRequest === requestIdRef.current) {
+          setLoading(false);
+        }
       }
-      // Ignore old responses
-      if (currentRequest !== requestIdRef.current) return;
-      if (!primaryStudentData && res.data) {
-        const found = res.data.find(
-          (s: any) => s.user?.id === primaryStudentId,
-        );
-        if (found) setPrimaryStudentData(found);
-      }
-      setStudents(res.data || []);
-      setTotal(res.total || 0);
-    } catch (e) {
-      logger.error(e);
-    } finally {
-      if (currentRequest === requestIdRef.current) {
-        setLoading(false);
-      }
-    }
-  };
+    },
+    [api, classId, open, primaryStudentId, schoolId],
+  );
 
   useEffect(() => {
-    if (!open) return;
-    fetchStudents(1, '');
-  }, [open]);
+    if (!open) {
+      requestIdRef.current += 1;
+      setPrimaryStudentData(null);
+      setSelectedId(undefined);
+      return;
+    }
+
+    requestIdRef.current += 1;
+    setSearch('');
+    setPage(1);
+    setSelectedId(undefined);
+    setPrimaryStudentData(null);
+  }, [classId, open, primaryStudentId, schoolId]);
 
   useEffect(() => {
     if (!open) return;
     fetchStudents(page, search);
-  }, [page, search]);
+  }, [fetchStudents, open, page, search]);
 
-  useEffect(() => {
-    if (open) {
-      setSearch('');
-      setPage(1);
-      setSelectedId(undefined);
-    }
-  }, [open]);
+  const processedStudents = students.reduce<ProcessedStudentItem[]>(
+    (list, student) => {
+      if (!student.user || student.user.id === primaryStudentId) return list;
 
-  const processedStudents = students
-    .map((s: any) => {
-      const user = s.user ?? s;
-      const phone = s.parent?.phone ?? s.phone ?? user?.phone ?? '';
-      return {
-        ...s,
-        user: {
-          ...user,
-          phone: String(phone).replace(/\D/g, ''),
-        },
-        parent: {
-          phone: String(phone).replace(/\D/g, ''),
-        },
-      };
-    })
-    .filter((s) => s.user?.id !== primaryStudentId);
+      list.push({
+        ...student,
+        user: student.user as NonNullable<StudentItem['user']>,
+      });
+
+      return list;
+    },
+    [],
+  );
   const selectedStudent = processedStudents.find(
-    (s) => s.user?.id === selectedId,
+    (s) => s.user.id === selectedId,
   );
   const pageCount = Math.ceil(total / ROWS_PER_PAGE);
   if (!open) return null;
 
   const primaryName = primaryStudentData?.user?.name || '';
-  const primaryContact =
-    primaryStudentData?.parent?.phone ||
-    primaryStudentData?.user?.phone ||
-    primaryStudentData?.user?.email ||
-    '';
+  const primaryContact = getStudentPrimaryContact(primaryStudentData);
   return (
     <div id="cardlist-backdrop" className="cardlist-modal-backdrop">
       <div id="cardlist-modal" className="cardlist-modal">
@@ -194,11 +206,11 @@ const CardListModal: React.FC<CardListModalProps> = ({
             </div>
           ) : (
             processedStudents.map((s) => {
-              const selected = selectedId === s.user?.id;
+              const selected = selectedId === s.user.id;
               return (
                 <label
                   id="cardlist-label"
-                  key={s.user?.id}
+                  key={s.user.id}
                   className={`cardlist-card ${
                     selected ? 'cardlist-card-selected' : ''
                   }`}
@@ -207,23 +219,23 @@ const CardListModal: React.FC<CardListModalProps> = ({
                     id="cardlist-input"
                     type="radio"
                     checked={selected}
-                    onChange={() => setSelectedId(s.user?.id!)}
+                    onChange={() => setSelectedId(s.user.id)}
                   />
 
                   <div id="cardlist-row" className="cardlist-row">
                     <span id="cardlist-col-id" className="cardlist-col-id">
-                      {s.user?.student_id || 'N/A'}
+                      {s.user.student_id || 'N/A'}
                     </span>
 
                     <span id="cardlist-col-name" className="cardlist-col-name">
-                      {s.user?.name || 'N/A'}
+                      {s.user.name || 'N/A'}
                     </span>
 
                     <span
                       id="cardlist-col-gender"
                       className="cardlist-col-gender"
                     >
-                      {s.user?.gender
+                      {s.user.gender
                         ? s.user.gender.toLowerCase() === 'male'
                           ? 'Male'
                           : s.user.gender.toLowerCase() === 'female'
@@ -235,10 +247,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
                       id="cardlist-col-phone"
                       className="cardlist-col-phone"
                     >
-                      {s.parent?.phone ||
-                        s.user?.phone ||
-                        s.user?.email ||
-                        'N/A'}
+                      {formatStudentContactList(s, 'N/A')}
                     </span>
                   </div>
                 </label>
