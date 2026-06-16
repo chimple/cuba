@@ -825,6 +825,19 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     loadSvgRequestIdRef.current = requestId;
 
     try {
+      const pendingActivationRewardFlowRaw = sessionStorage.getItem(
+        ACTIVATION_REWARD_FLOW_KEY,
+      );
+      const hasPendingActivationRewardFlow =
+        pendingActivationRewardFlowRaw === 'true' ||
+        (() => {
+          if (!pendingActivationRewardFlowRaw) return false;
+          try {
+            return Boolean(JSON.parse(pendingActivationRewardFlowRaw));
+          } catch {
+            return false;
+          }
+        })();
       const pendingRewardIndexRaw = sessionStorage.getItem(
         HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
       );
@@ -1097,6 +1110,15 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         /^-?\d+$/.test(rewardCompletedIndexRaw)
           ? Number(rewardCompletedIndexRaw)
           : null;
+      const activationRewardIndex =
+        hasPendingActivationRewardFlow &&
+        pendingRewardCompletedIndex === null &&
+        typeof pendingRewardTransition?.completedIndex !== 'number' &&
+        Number.isFinite(currentIndex) &&
+        currentIndex >= 0 &&
+        currentIndex < lessonsToRender.length
+          ? currentIndex
+          : null;
       const completedRewardIndex =
         typeof pendingRewardCompletedIndex === 'number' &&
         Number.isFinite(pendingRewardCompletedIndex) &&
@@ -1108,7 +1130,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               pendingRewardTransition.completedIndex >= 0 &&
               pendingRewardTransition.completedIndex < lessonsToRender.length
             ? pendingRewardTransition.completedIndex
-            : currentCompletedIndexFromPath;
+            : typeof activationRewardIndex === 'number'
+              ? activationRewardIndex
+              : currentCompletedIndexFromPath;
 
       if (typeof newRewardId !== 'string') {
         sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
@@ -2052,6 +2076,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           : localStorage.getItem(HOMEWORK_PATHWAY);
         const visualConfigSignature = [
           rewardBoxVariant ?? 'no-reward-box-variant',
+          sessionStorage.getItem(ACTIVATION_REWARD_FLOW_KEY) ??
+            'no-activation-reward-flow',
           isStickerBookPreviewOn ? 'preview-on' : 'preview-off',
           isStickerBookCelebrationPopupOn
             ? 'celebration-on'

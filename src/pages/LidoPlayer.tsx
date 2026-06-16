@@ -65,6 +65,7 @@ const LidoPlayer: FC = () => {
 
   // State
   const state = history.location.state as any;
+  const isActivationLesson = state?.isDefaultLesson === true;
   const source: SOURCE =
     getSourceFromState(state?.source) ??
     (state?.isHomework
@@ -323,6 +324,63 @@ const LidoPlayer: FC = () => {
       (await resolvePreviousAssessmentSkipped(studentId));
 
     return previousLessonSkipped && (streakMap[courseKey] || 0) >= 2;
+  };
+
+  const logUserActivationLessonEvent = ({
+    detail,
+    userId,
+    studentId,
+    lessonTimeSpent,
+    correctMoves,
+    wrongMoves,
+    resultId,
+    status,
+  }: {
+    detail: LidoEventDetail;
+    userId?: string;
+    studentId: string;
+    lessonTimeSpent: number;
+    correctMoves: number;
+    wrongMoves: number;
+    resultId?: string | null;
+    status: 'completed' | 'incomplete';
+  }) => {
+    if (!isActivationLesson) {
+      return;
+    }
+
+    Util.logEvent(EVENTS.USER_ACTIVATION_LESSON, {
+      user_id: userId,
+      student_id: studentId,
+      result_id: resultId ?? null,
+      chapter_id: detail.chapterId,
+      chapter_name: chapterDetail?.name ?? '',
+      lesson_id: detail.lessonId,
+      lesson_name: lessonDetail?.name ?? lesson?.name ?? '',
+      lesson_type: detail.lessonType,
+      lesson_session_id: detail.lessonSessionId,
+      ml_partner_id: detail.mlPartnerId,
+      ml_class_id: detail.mlClassId,
+      ml_student_id: detail.mlStudentId,
+      course_id: detail.courseId,
+      course_name: courseDetail?.name ?? '',
+      time_spent: lessonTimeSpent,
+      total_moves: detail.totalMoves,
+      total_games: detail.totalGames,
+      correct_moves: correctMoves,
+      wrong_moves: wrongMoves,
+      game_score: detail.gameScore,
+      quiz_score: detail.quizScore,
+      game_completed: detail.gameCompleted,
+      quiz_completed: detail.quizCompleted,
+      game_time_spent: detail.gameTimeSpent,
+      quiz_time_spent: detail.quizTimeSpent,
+      score: detail.finalScore,
+      played_from: playedFrom,
+      assignment_type: assignmentType,
+      source,
+      status,
+    });
   };
 
   const onNextContainer = (e: any) => logger.info('Next', e);
@@ -969,6 +1027,16 @@ const LidoPlayer: FC = () => {
         assignment_type: assignmentType,
         source,
       });
+      logUserActivationLessonEvent({
+        detail: data,
+        userId: parentUserId,
+        studentId,
+        lessonTimeSpent,
+        correctMoves,
+        wrongMoves,
+        resultId: result?.id ?? null,
+        status: 'completed',
+      });
       let tempAssignmentCompletedIds = localStorage.getItem(
         ASSIGNMENT_COMPLETED_IDS,
       );
@@ -1039,6 +1107,16 @@ const LidoPlayer: FC = () => {
       quiz_time_spent: data.quizTimeSpent,
       played_from: playedFrom,
       assignment_type: assignmentType,
+    });
+    logUserActivationLessonEvent({
+      detail: data,
+      userId: parentUserId,
+      studentId,
+      lessonTimeSpent,
+      correctMoves,
+      wrongMoves,
+      resultId: null,
+      status: 'incomplete',
     });
     push();
   };

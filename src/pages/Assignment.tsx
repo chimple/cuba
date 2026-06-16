@@ -540,15 +540,15 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
           {!loading && (
             <div>
-              {showActivationLessonBanner ? (
-                <ActivationLessonBanner
-                  source={SOURCE.LEARNING_PATHWAY_HOMEWORK}
-                />
-              ) : !isLinked ? (
+              {!isLinked ? (
                 <JoinClass
                   onClassJoin={() => {
                     refreshAssignmentPageAfterJoin();
                   }}
+                />
+              ) : showActivationLessonBanner ? (
+                <ActivationLessonBanner
+                  source={SOURCE.LEARNING_PATHWAY_HOMEWORK}
                 />
               ) : (
                 <div>

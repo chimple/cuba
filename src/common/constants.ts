@@ -965,6 +965,7 @@ export enum EVENTS {
   LIVE_UPDATE_APPLIED = 'live_update_applied',
   LIVE_UPDATE_STARTED = 'live_update_started',
   LIVE_UPDATE_ERROR = 'live_update_error',
+  USER_ACTIVATION_LESSON = 'user_activation_lesson',
   ASSESSMENT_ABORTED = 'assessment_aborted',
   ASSESSMENT_COMPLETED = 'assessment_completed',
   RESULTS_SAVED = 'results_saved',
