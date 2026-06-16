@@ -1,4 +1,6 @@
 .campaign-communication-step {
+  --campaign-communication-table-columns: 1.05fr 3.4fr 1.9fr 2fr 0.9fr;
+  --campaign-communication-table-scrollbar-width: 0.375rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -84,6 +86,18 @@
   align-items: center;
 }
 
+.campaign-communication-visually-hidden {
+  position: absolute;
+  width: 0.0625rem;
+  height: 0.0625rem;
+  padding: 0;
+  margin: -0.0625rem;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .campaign-communication-validation,
 .campaign-communication-row-error {
   border-radius: 0.25rem !important;
@@ -111,7 +125,7 @@
   border: 0.0625rem solid #d0d5dd;
   border-radius: 0.625rem;
   background: #ffffff;
-  padding: 1rem 1rem 0.875rem;
+  padding: 0.875rem 0.875rem 0.75rem 0.875rem;
 }
 
 .campaign-communication-subtitle {
@@ -123,13 +137,18 @@
 
 .campaign-communication-schedule-heading {
   align-self: center;
+  justify-self: start;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  margin-left: 0.5rem !important;
 }
 
 .campaign-communication-schedule-grid {
   display: grid;
-  grid-template-columns: auto minmax(0, 12.75rem) minmax(0, 12.75rem) 1fr;
+  grid-template-columns: auto auto auto auto;
   align-items: center;
-  gap: 1rem;
+  column-gap: 1rem;
+  row-gap: 0.75rem;
 }
 
 .campaign-communication-field-block {
@@ -137,21 +156,39 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 0.625rem;
+  gap: 0.375rem;
+}
+
+.campaign-communication-schedule-grid
+  > .campaign-communication-field-block:nth-of-type(1) {
+  margin-left: -0.5rem;
+}
+
+.campaign-communication-schedule-grid
+  > .campaign-communication-field-block:nth-of-type(2) {
+  margin-left: -0.5rem;
 }
 
 .campaign-communication-field-label {
   margin: 0 !important;
-  font-size: 0.875rem !important;
-  font-weight: 700 !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
   color: #202124;
   white-space: nowrap;
 }
 
 .campaign-communication-schedule-note {
-  font-size: 0.8125rem !important;
+  font-size: 0.75rem !important;
   line-height: 1.125rem !important;
   color: #8a8f98;
+}
+
+.campaign-communication-schedule-note-desktop {
+  justify-self: start;
+}
+
+.campaign-communication-schedule .MuiOutlinedInput-root {
+  min-width: 7.375rem;
 }
 
 .campaign-communication-schedule-note-mobile {
@@ -170,6 +207,7 @@
 .campaign-communication-table-body {
   max-height: 120rem;
   overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .campaign-communication-table-body::-webkit-scrollbar {
@@ -183,10 +221,12 @@
 
 .campaign-communication-table-head {
   display: grid;
-  grid-template-columns: 1.05fr 3.4fr 1.9fr 2fr 0.9fr;
+  grid-template-columns: var(--campaign-communication-table-columns);
   align-items: center;
   background: #eff4f8;
   border-bottom: 0.0625rem solid #d8dee8;
+  padding-right: var(--campaign-communication-table-scrollbar-width);
+  box-sizing: border-box;
 }
 
 .campaign-communication-table-head span {
@@ -210,7 +250,7 @@
 
 .campaign-communication-row {
   display: grid;
-  grid-template-columns: 1.05fr 3.4fr 1.9fr 2fr 0.9fr;
+  grid-template-columns: var(--campaign-communication-table-columns);
   background: #ffffff;
 }
 
@@ -245,7 +285,9 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: flex-start;
   min-height: 100%;
+  padding-left: 1rem !important;
 }
 
 .campaign-communication-date-label {
@@ -275,7 +317,7 @@
 
 .campaign-communication-option-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.25rem;
   width: 100%;
 }
@@ -316,6 +358,7 @@
   padding: 0 !important;
   border: 0.0625rem solid #f3b0ad !important;
   color: #ea4335 !important;
+  align-self: center;
 }
 
 .campaign-communication-mobile-option-clear,
@@ -375,6 +418,8 @@
   width: 1rem;
   height: 1rem;
   right: 0.625rem;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .campaign-communication-step textarea::placeholder,

@@ -31,6 +31,28 @@ export const CampaignCommunicationRow: React.FC<
   const { t } = useTranslation();
   const dayLabel = `Day ${index + 1}`;
   const [isMobileExpanded, setIsMobileExpanded] = useState(index < 2);
+  const updatePollOptions = (optionIndex: number, optionValue: string) =>
+    onRowChange(date, (current) => ({
+      ...current,
+      pollOptions: current.pollOptions.map(
+        (currentOption: string, currentIndex: number) =>
+          currentIndex === optionIndex ? optionValue : currentOption,
+      ),
+    }));
+  const clearOrRemoveOption = (optionIndex: number) =>
+    onRowChange(date, (current) => ({
+      ...current,
+      pollOptions:
+        optionIndex >= 2
+          ? current.pollOptions.filter(
+              (_option: string, currentIndex: number) =>
+                currentIndex !== optionIndex,
+            )
+          : current.pollOptions.map(
+              (currentOption: string, currentIndex: number) =>
+                currentIndex === optionIndex ? '' : currentOption,
+            ),
+    }));
 
   return (
     <Box className="campaign-communication-row">
@@ -151,18 +173,12 @@ export const CampaignCommunicationRow: React.FC<
               <TextField
                 className="campaign-communication-poll-option-field"
                 fullWidth
-                placeholder={`Option ${optionIndex + 1}`}
+                placeholder={String(
+                  t('Option {{number}}', { number: optionIndex + 1 }),
+                )}
                 value={option}
                 onChange={(event) =>
-                  onRowChange(date, (current) => ({
-                    ...current,
-                    pollOptions: current.pollOptions.map(
-                      (currentOption: string, currentIndex: number) =>
-                        currentIndex === optionIndex
-                          ? event.target.value
-                          : currentOption,
-                    ),
-                  }))
+                  updatePollOptions(optionIndex, event.target.value)
                 }
                 error={!!getError(`rows.${date}.pollOptions.${optionIndex}`)}
                 helperText={getError(`rows.${date}.pollOptions.${optionIndex}`)}
@@ -170,22 +186,16 @@ export const CampaignCommunicationRow: React.FC<
               <Button
                 type="button"
                 className="campaign-communication-mobile-option-clear"
-                onClick={() =>
-                  onRowChange(date, (current) => ({
-                    ...current,
-                    pollOptions:
-                      optionIndex >= 2
-                        ? current.pollOptions.filter(
-                            (_option: string, currentIndex: number) =>
-                              currentIndex !== optionIndex,
-                          )
-                        : current.pollOptions.map(
-                            (currentOption: string, currentIndex: number) =>
-                              currentIndex === optionIndex ? '' : currentOption,
-                          ),
-                  }))
-                }
-                aria-label={`Clear Option ${optionIndex + 1}`}
+                onClick={() => clearOrRemoveOption(optionIndex)}
+                aria-label={String(
+                  optionIndex >= 2
+                    ? t('Remove Option {{number}}', {
+                        number: optionIndex + 1,
+                      })
+                    : t('Clear Option {{number}}', {
+                        number: optionIndex + 1,
+                      }),
+                )}
               >
                 <Close fontSize="small" />
               </Button>
@@ -193,16 +203,12 @@ export const CampaignCommunicationRow: React.FC<
                 <Button
                   type="button"
                   className="campaign-communication-remove-option"
-                  onClick={() =>
-                    onRowChange(date, (current) => ({
-                      ...current,
-                      pollOptions: current.pollOptions.filter(
-                        (_option: string, currentIndex: number) =>
-                          currentIndex !== optionIndex,
-                      ),
-                    }))
-                  }
-                  aria-label={`Remove Option ${optionIndex + 1}`}
+                  onClick={() => clearOrRemoveOption(optionIndex)}
+                  aria-label={String(
+                    t('Remove Option {{number}}', {
+                      number: optionIndex + 1,
+                    }),
+                  )}
                 >
                   <Close fontSize="small" />
                 </Button>

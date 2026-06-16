@@ -79,7 +79,7 @@ const CampaignCommunicationTimelineStep: React.FC<
                   {form.startDate} → {form.endDate}
                 </span>
                 <span className="campaign-communication-widget-days">
-                  · {campaignDurationDays} days
+                  · {t('{{count}} days', { count: campaignDurationDays })}
                 </span>
               </>
             ) : (
@@ -137,9 +137,12 @@ const CampaignCommunicationTimelineStep: React.FC<
           <Box component="span">{t('Poll')}</Box>
           <Box
             component="span"
-            aria-label={String(t('Clear row actions'))}
             className="campaign-communication-table-head-empty"
-          />
+          >
+            <span className="campaign-communication-visually-hidden">
+              {t('Clear row actions')}
+            </span>
+          </Box>
         </Box>
 
         <Box className="campaign-communication-table-body">
