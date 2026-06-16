@@ -9401,7 +9401,7 @@ order by
         ) t
         WHERE rn = 1
         ORDER BY created_at DESC
-        LIMIT 2;
+        LIMIT 50;
       `;
 
       const abortParams: (string | null)[] = [
@@ -9411,10 +9411,11 @@ order by
       ];
       const abortRes = await this.executeQuery(abortQuery, abortParams);
 
-      const lastTwo = ((abortRes as DBSQLiteValues | undefined)?.values ??
-        []) as ResultStatusRow[];
+      const uniqueAssessmentResults = ((abortRes as DBSQLiteValues | undefined)
+        ?.values ?? []) as ResultStatusRow[];
+      const lastTwo = uniqueAssessmentResults.slice(0, 2);
 
-      const isAssessmentTerminated = lastTwo.some(
+      const isAssessmentTerminated = uniqueAssessmentResults.some(
         (r) => r.status === 'assessment_terminated',
       );
       const isAborted =
@@ -9422,7 +9423,7 @@ order by
         lastTwo.every((r) => r.status === 'system_exit');
 
       if (isAssessmentTerminated || isAborted) {
-        return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
+        return {} as TableTypes<'subject_lesson'>; // Aborted group
       }
 
       /* ==========================================
