@@ -88,7 +88,9 @@ const SelectCourse: FC<{
                   imageHeight={'auto'}
                 />
               </div>
-              <div className="course-title">{t(course.name)}</div>
+              <div className="course-title">
+                {course.name === 'English' ? course.name : t(course.name)}
+              </div>
               {curriculum && (
                 <div className="course-curriculum">{curriculum.name}</div>
               )}

@@ -3,35 +3,42 @@
   width: clamp(30px, 8vh, 58px);
   border-radius: 50%;
   background-color: rgb(220, 213, 213);
-  cursor: 'pointer';
+  cursor: pointer;
   position: relative;
-}
-.loading-button-container {
   display: flex;
   justify-content: center;
   align-items: center;
+  box-sizing: border-box;
+  overflow: hidden;
 }
+
 .loading-button {
-  height: clamp(30px, 8vh, 58px);
-  width: clamp(30px, 8vh, 58px);
-  border: 3px solid rgb(220, 213, 213);
+  width: 62%;
+  height: 62%;
+  border: 3px solid transparent;
   border-top-color: #007bff;
+  border-right-color: #007bff;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-top: 20px;
+  box-sizing: border-box;
+  display: block;
+  margin: 0;
+  flex: 0 0 auto;
+  transform-origin: center center;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
+
 .lesson-or-chapter-delete-icon {
-  margin-top: 1.4vh;
   width: 65%;
   height: 60%;
 }
+
 .lesson-or-chapter-download-icon {
-  margin-top: 1.4vh;
   width: 65%;
   height: 60%;
 }

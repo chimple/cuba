@@ -67,7 +67,9 @@ const StudentProgress: React.FC = () => {
               courseId: course.id,
               displayName: (
                 <div className="course-detail-div">
-                  <div className="course-text">{t(course.name)}</div>
+                  <div className="course-text">
+                    {course.name === 'English' ? course.name : t(course.name)}
+                  </div>
                   {gradeDoc && (
                     <div className="grade-text">{t(gradeDoc.name)}</div>
                   )}

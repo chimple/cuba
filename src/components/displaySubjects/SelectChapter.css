@@ -54,14 +54,17 @@
 }
 .chapter-download {
   position: absolute;
-  /* margin-bottom: 29vh; */
   top: 50%;
-  left: -10%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  z-index: 2;
 }
 .chapter-icon-and-chapter-download-container {
   display: flex;
   flex-direction: column;
   position: relative;
+  align-items: center;
+  width: min(70vh, 130px);
 }
 .selectchapter-title {
   width: min(70vh, 130px);
