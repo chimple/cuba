@@ -1,13 +1,12 @@
 .chapter-container-in-select-chapter-page {
   display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: min(10px, 1vh);
   justify-items: center;
-  margin: 2%;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(clamp(150px, 40vh, 200px), 1fr)
-  );
+  align-items: start;
+  margin: 1% 2% 2%;
 }
+
 .chapter-button {
   font-size: var(--text-size);
   display: flex;
