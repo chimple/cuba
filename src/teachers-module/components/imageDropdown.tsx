@@ -2,6 +2,7 @@ import React from 'react';
 import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import './imageDropdown.css';
 import { t } from 'i18next';
+import CachedImage from '../../components/common/CachedImage';
 
 interface DropdownOption {
   id: string | number;
@@ -60,7 +61,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
             selectedValue?.id ? (
               <div className="imageDropdown-selected">
                 {selectedValue.icon && (
-                  <img
+                  <CachedImage
                     src={selectedValue.icon}
                     alt={selectedValue.name}
                     className="imageDropdown-icon"
@@ -70,7 +71,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
               </div>
             ) : (
               <div className="placeholder">
-                <img
+                <CachedImage
                   src={options[0]?.icon || ''}
                   alt="placeholder-icon"
                   className="imageDropdown-icon"
@@ -98,7 +99,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
               className="menu-item-in-image-dropdown"
             >
               {option.icon && (
-                <img
+                <CachedImage
                   src={option.icon}
                   alt={option.name}
                   className="imageDropdown-icon"

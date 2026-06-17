@@ -3,6 +3,14 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import GenericPopup from './GenericPopUp';
 import { AudioUtil } from '../../utility/AudioUtil';
 
+jest.mock('../common/CachedImage', () => {
+  return function MockCachedImage(
+    props: React.ImgHTMLAttributes<HTMLImageElement>,
+  ) {
+    return <img {...props} />;
+  };
+});
+
 jest.mock('../../utility/AudioUtil', () => ({
   AudioUtil: {
     playAudioOrTts: jest.fn(),

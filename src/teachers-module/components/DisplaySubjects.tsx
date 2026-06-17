@@ -3,6 +3,7 @@ import { t } from 'i18next';
 import { checkmarkCircle } from 'ionicons/icons';
 import React, { useEffect, useState } from 'react';
 import { TableTypes } from '../../common/constants';
+import CachedImage from '../../components/common/CachedImage';
 import { RoleType } from '../../interface/modelInterfaces';
 import logger from '../../utility/logger';
 import { schoolUtil } from '../../utility/schoolUtil';
@@ -110,7 +111,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
                   style={{ cursor: canModify ? 'pointer' : 'not-allowed' }}
                 >
                   <div className="display-subject-name">
-                    <img
+                    <CachedImage
                       src={course?.image || 'assets/icons/DefaultIcon.png'}
                       alt={course.name || 'Default Subject Icon'}
                       className="subject-icon-in-display-subject-page"
