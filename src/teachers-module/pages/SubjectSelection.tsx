@@ -21,6 +21,7 @@ import { useAppSelector } from '../../redux/hooks';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import { RootState } from '../../redux/store';
 import logger from '../../utility/logger';
+import { getCachedImageSrc } from '../../utility/imageCache';
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
@@ -282,14 +283,15 @@ const SubjectSelection: React.FC = () => {
     }
     return connectedClasses;
   }
-  const generateCourseHTML = (
+  const generateCourseHTML = async (
     curriculumImage: string,
     courseName: string,
     className: string,
-  ): string => {
+  ): Promise<string> => {
+    const cachedCurriculumImage = await getCachedImageSrc(curriculumImage);
     return `
       <div class="course-item">
-        <img src="${curriculumImage}" alt="Curriculum Image" />
+        <img src="${cachedCurriculumImage}" alt="Curriculum Image" />
         <span>${courseName} — ${className}</span>
       </div>`;
   };
@@ -345,18 +347,18 @@ const SubjectSelection: React.FC = () => {
             ),
           );
 
-          const courseDisplayNames = coursesThatCannotBeRemoved.map(
-            (entry, index) => {
+          const courseDisplayNames = await Promise.all(
+            coursesThatCannotBeRemoved.map(async (entry, index) => {
               const courseName = courseDetails[index]?.name || 'Unknown Course';
               const curriculumName =
                 curriculumDetails[index]?.name || 'Unknown Curriculum';
               const curriculumImage = curriculumDetails[index]?.image || '';
-              return generateCourseHTML(
+              return await generateCourseHTML(
                 curriculumImage,
                 courseName,
                 entry.className,
               ); // Return the HTML here
-            },
+            }),
           );
 
           setAlertState({
@@ -491,7 +493,7 @@ const SubjectSelection: React.FC = () => {
             courseDetails?.curriculum_id ?? '',
           );
           const curriculumImage = curriculumDetails?.image || '';
-          const courseDisplayName = generateCourseHTML(
+          const courseDisplayName = await generateCourseHTML(
             curriculumImage,
             courseDetails?.name || 'Unknown Course',
             connectedClasses[0]?.name,

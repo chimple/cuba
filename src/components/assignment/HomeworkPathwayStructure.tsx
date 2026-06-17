@@ -56,6 +56,8 @@ import {
   hasPendingFinalHomeworkStickerFlow,
   hasPendingHomeworkStickerFlow,
 } from '../../utility/homeworkStickerFlow';
+import { getCachedImageSrc } from '../../utility/imageCache';
+import { mapInBatches } from '../../utility/batch';
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;
@@ -439,7 +441,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   const preloadAllLessonImages = useCallback(
     async (lessons: Array<{ image?: string | null }>) => {
       await Promise.all(
-        lessons.map((lesson) => {
+        lessons.map(async (lesson) => {
           const isValidUrl =
             typeof lesson.image === 'string' &&
             /^(https?:\/\/|\/)/.test(lesson.image);
@@ -447,7 +449,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             isValidUrl && lesson.image
               ? lesson.image
               : 'assets/icons/DefaultIcon.png';
-          return preloadImage(src);
+          const resolvedSrc = await getCachedImageSrc(src);
+          return preloadImage(resolvedSrc);
         }),
       );
     },
@@ -1093,6 +1096,38 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       preloadAllLessonImages(lessons);
 
+      const resolvedLessonImageUrls = await mapInBatches(
+        lessonsToRender,
+        5,
+        async ({ lesson }, lessonIdx) => {
+          const isPlayed = lessonIdx < visualCurrentIndex;
+          const isActive = lessonIdx === visualCurrentIndex;
+          const isValidUrl =
+            typeof lesson.image === 'string' &&
+            /^(https?:\/\/|\/)/.test(lesson.image);
+
+          const lessonImageUrl =
+            isPlayed || isActive
+              ? isValidUrl
+                ? (lesson.image ?? 'assets/icons/DefaultIcon.png')
+                : 'assets/icons/DefaultIcon.png'
+              : 'assets/icons/NextNodeIcon.svg';
+
+          return await getCachedImageSrc(lessonImageUrl);
+        },
+      );
+      const resolvedHaloSrc =
+        typeof haloPath === 'string'
+          ? await getCachedImageSrc(haloPath)
+          : haloPath;
+      const resolvedPointerSrc = await getCachedImageSrc(
+        '/pathwayAssets/touchpointer.svg',
+      );
+      const resolvedStickerImageSrc =
+        typeof stickerPreviewPayload?.nextStickerImage === 'string'
+          ? await getCachedImageSrc(stickerPreviewPayload.nextStickerImage)
+          : null;
+
       let chimple: SVGForeignObjectElement | null = null;
       chimple = document.createElementNS(
         'http://www.w3.org/2000/svg',
@@ -1101,7 +1136,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       chimple.setAttribute('width', '40%');
       chimple.setAttribute('height', '260%');
 
-      requestAnimationFrame(async () => {
+      requestAnimationFrame(() => {
         if (!containerRef.current || loadSvgRequestIdRef.current !== requestId)
           return;
         containerRef.current.innerHTML = svgContent;
@@ -1188,17 +1223,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
           const isPlayed = lessonIdx < visualCurrentIndex;
           const isActive = lessonIdx === visualCurrentIndex;
-
-          const isValidUrl =
-            typeof lesson.image === 'string' &&
-            /^(https?:\/\/|\/)/.test(lesson.image);
-
-          const lesson_image: string =
-            isPlayed || isActive
-              ? isValidUrl
-                ? (lesson.image ?? 'assets/icons/DefaultIcon.png')
-                : 'assets/icons/DefaultIcon.png'
-              : 'assets/icons/NextNodeIcon.svg';
+          const resolvedLessonImageSrc =
+            resolvedLessonImageUrls[lessonIdx] ??
+            'assets/icons/DefaultIcon.png';
 
           if (isPlaceholderSnapshot || lessonIdx < visualCurrentIndex) {
             const playedLesson = document.createElementNS(
@@ -1209,7 +1236,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               playedLessonSVG.cloneNode(true) as SVGGElement,
             );
             if (!isPlaceholderSnapshot) {
-              const lessonImage = createSVGImage(lesson_image, 30, 30, 28, 30);
+              const lessonImage = createSVGImage(
+                resolvedLessonImageSrc,
+                30,
+                30,
+                28,
+                30,
+              );
               playedLesson.appendChild(lessonImage);
             }
 
@@ -1261,19 +1294,25 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               }, ${positionMappings.activeGroup.baseY + activeYOffset})`,
             );
 
-            const halo = createSVGImage(haloPath, 140, 140, -15, -12);
-            const pointer = createSVGImage(
-              '/pathwayAssets/touchpointer.svg',
-              30,
-              30,
-              70,
-              90,
+            const halo = createSVGImage(
+              resolvedHaloSrc || haloPath,
+              140,
+              140,
+              -15,
+              -12,
             );
+            const pointer = createSVGImage(resolvedPointerSrc, 30, 30, 70, 90);
             pointer.setAttribute(
               'class',
               'homeworkpathway-structure-animated-pointer',
             );
-            const lessonImage = createSVGImage(lesson_image, 30, 30, 40, 40);
+            const lessonImage = createSVGImage(
+              resolvedLessonImageSrc,
+              30,
+              30,
+              40,
+              40,
+            );
 
             activeGroup.appendChild(halo);
             activeGroup.appendChild(fruitActive.cloneNode(true) as SVGGElement);
@@ -1324,7 +1363,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               'g',
             );
 
-            const lessonImage = createSVGImage(lesson_image, 30, 30, 27, 29);
+            const lessonImage = createSVGImage(
+              resolvedLessonImageSrc,
+              30,
+              30,
+              27,
+              29,
+            );
             flower_Inactive.appendChild(
               fruitInactive.cloneNode(true) as SVGGElement,
             );
@@ -1483,11 +1528,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             bg.setAttribute('stroke-width', '3');
             rewardGroup.appendChild(bg);
 
-            if (nextStickerImageSrc) {
+            if (resolvedStickerImageSrc) {
               const horizontalPadding = Math.round(width * 0.12);
               const verticalPadding = Math.round(height * 0.12);
               const stickerImage = createSVGImage(
-                nextStickerImageSrc,
+                resolvedStickerImageSrc,
                 width - horizontalPadding * 2,
                 height - verticalPadding * 2,
                 horizontalPadding,
@@ -1974,8 +2019,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           setHasTodayReward(false);
           sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
           sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
-          await updateMascotToNormalState(newRewardId as string);
-          await Util.updateUserReward();
+          void (async () => {
+            await updateMascotToNormalState(newRewardId as string);
+            await Util.updateUserReward();
+          })();
           if (hasPendingFinalHomeworkStickerFlow()) {
             finishFinalHomeworkStickerFlow();
           }
