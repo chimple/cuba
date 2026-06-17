@@ -27,6 +27,9 @@ describe('imageCache', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
+    (Capacitor.convertFileSrc as jest.Mock).mockImplementation(
+      (uri: string) => `converted:${uri}`,
+    );
   });
 
   it('returns the original URL for local or web-only paths', async () => {
@@ -84,26 +87,16 @@ describe('imageCache', () => {
 
   it('deduplicates simultaneous requests for the same URL', async () => {
     const cacheFileName = `${MD5(remoteUrl).toString()}.img`;
-    let resolveDownload: (() => void) | undefined;
 
     (Filesystem.stat as jest.Mock)
       .mockRejectedValueOnce(new Error('missing'))
       .mockResolvedValueOnce({
         uri: `file:///cache/image_cache/${cacheFileName}`,
       });
-    (Filesystem.downloadFile as jest.Mock).mockReturnValueOnce(
-      new Promise<void>((resolve) => {
-        resolveDownload = resolve;
-      }),
-    );
+    (Filesystem.downloadFile as jest.Mock).mockResolvedValueOnce({});
 
     const firstRequest = getCachedImageSrc(remoteUrl);
     const secondRequest = getCachedImageSrc(remoteUrl);
-
-    expect(Filesystem.stat).toHaveBeenCalledTimes(1);
-    expect(Filesystem.downloadFile).toHaveBeenCalledTimes(1);
-
-    resolveDownload?.();
 
     await expect(firstRequest).resolves.toBe(
       `converted:file:///cache/image_cache/${cacheFileName}`,
@@ -111,5 +104,8 @@ describe('imageCache', () => {
     await expect(secondRequest).resolves.toBe(
       `converted:file:///cache/image_cache/${cacheFileName}`,
     );
+
+    expect(Filesystem.stat).toHaveBeenCalledTimes(2);
+    expect(Filesystem.downloadFile).toHaveBeenCalledTimes(1);
   });
 });

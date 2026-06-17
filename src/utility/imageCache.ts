@@ -6,7 +6,7 @@ import logger from './logger';
 const IMAGE_CACHE_DIRECTORY = 'image_cache';
 const inflightDownloads = new Map<string, Promise<string>>();
 
-const isLocalImageUrl = (url: string): boolean => {
+export const isLocalImageUrl = (url: string): boolean => {
   return (
     url.startsWith('file:') ||
     url.startsWith('capacitor:') ||
@@ -84,14 +84,16 @@ export const getCachedImageSrc = async (url: string): Promise<string> => {
     return inflight;
   }
 
-  const request = resolveCachedRemoteImage(url).catch((error) => {
-    logger.warn('[imageCache] Falling back to remote image URL', error);
-    return url;
-  });
-
-  const trackedRequest = request.finally(() => {
-    inflightDownloads.delete(url);
-  });
+  const trackedRequest = (async () => {
+    try {
+      return await resolveCachedRemoteImage(url);
+    } catch (error) {
+      logger.warn('[imageCache] Falling back to remote image URL', error);
+      return url;
+    } finally {
+      inflightDownloads.delete(url);
+    }
+  })();
 
   inflightDownloads.set(url, trackedRequest);
   return trackedRequest;

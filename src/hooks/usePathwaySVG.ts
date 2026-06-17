@@ -525,8 +525,30 @@ export function usePathwaySVG({
         }
       }
 
+      const resolvedLessonImageUrls = await Promise.all(
+        lessons.map(async (lesson) => {
+          const isValidUrl =
+            typeof lesson.image === 'string' &&
+            /^(https?:\/\/|\/)/.test(lesson.image);
+          const lessonImageUrl = isValidUrl
+            ? (lesson.image ?? 'assets/icons/DefaultIcon.png')
+            : 'assets/icons/DefaultIcon.png';
+
+          return await getCachedImageSrc(lessonImageUrl);
+        }),
+      );
+      const resolvedHaloSrc =
+        typeof halo === 'string' ? await getCachedImageSrc(halo) : null;
+      const resolvedPointerSrc = await getCachedImageSrc(
+        '/pathwayAssets/touchpointer.svg',
+      );
+      const resolvedStickerImageSrc =
+        typeof stickerPreviewPayload?.nextStickerImage === 'string'
+          ? await getCachedImageSrc(stickerPreviewPayload.nextStickerImage)
+          : null;
+
       // Build SVG in next frame to keep main thread responsive
-      requestAnimationFrame(async () => {
+      requestAnimationFrame(() => {
         if (!containerRef.current) {
           stopPathwayLoading();
           return;
@@ -623,19 +645,9 @@ export function usePathwaySVG({
           const isActive =
             startIndex + idx === currentIndex && activeIndex !== -1;
 
-          const isValidUrl =
-            typeof lesson.image === 'string' &&
-            /^(https?:\/\/|\/)/.test(lesson.image);
-
           logger.warn('lesson image:', lesson.image);
-          const lessonImageUrl =
-            isPlayed || isActive
-              ? isValidUrl
-                ? lesson.image
-                : 'assets/icons/DefaultIcon.png'
-              : 'assets/icons/NextNodeIcon.svg';
           const resolvedLessonImageUrl =
-            await getCachedImageSrc(lessonImageUrl);
+            resolvedLessonImageUrls[idx] ?? 'assets/icons/DefaultIcon.png';
 
           const positionMappings = {
             playedLesson: {
@@ -687,7 +699,7 @@ export function usePathwaySVG({
             // halo
             if (typeof halo === 'string') {
               const haloImg = createSVGImage(
-                await getCachedImageSrc(halo),
+                resolvedHaloSrc || halo,
                 140,
                 140,
                 -15,
@@ -718,7 +730,7 @@ export function usePathwaySVG({
             activeGroup.appendChild(lessonImage);
 
             const pointer = createSVGImage(
-              await getCachedImageSrc('/pathwayAssets/touchpointer.svg'),
+              resolvedPointerSrc,
               35,
               35,
               85,
@@ -886,9 +898,7 @@ export function usePathwaySVG({
 
           rewardGroup.appendChild(bg);
           // Reuse the same resolved sticker image that powers the preview modal.
-          if (nextStickerImageSrc) {
-            const resolvedStickerImageSrc =
-              await getCachedImageSrc(nextStickerImageSrc);
+          if (resolvedStickerImageSrc) {
             rewardGroup.appendChild(
               createSVGImage(
                 resolvedStickerImageSrc,
@@ -1042,8 +1052,10 @@ export function usePathwaySVG({
 
         if (shouldSkipRewardAnimationForSticker) {
           setHasTodayReward(false);
-          await updateMascotToNormalState(newRewardIdFromCheck as string);
-          await Util.updateUserReward();
+          void (async () => {
+            await updateMascotToNormalState(newRewardIdFromCheck as string);
+            await Util.updateUserReward();
+          })();
         }
 
         if (shouldRunRewardAnimation) {

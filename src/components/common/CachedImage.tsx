@@ -1,16 +1,46 @@
 import { ImgHTMLAttributes, useEffect, useState } from 'react';
-import { getCachedImageSrc } from '../../utility/imageCache';
+import { getCachedImageSrc, isLocalImageUrl } from '../../utility/imageCache';
+import { Capacitor } from '@capacitor/core';
+
+const shouldBypassCache = (src?: string): boolean => {
+  if (!src) {
+    return false;
+  }
+
+  return !Capacitor.isNativePlatform() || isLocalImageUrl(src);
+};
 
 function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
   const { src, alt, ...imgProps } = props;
-  const [localSrc, setLocalSrc] = useState<string>();
-  const [isLoading, setIsLoading] = useState<boolean>(!!src);
+  const bypassCache = src ? shouldBypassCache(src) : false;
+  const [localSrc, setLocalSrc] = useState<string | undefined>(() => {
+    if (!src) {
+      return undefined;
+    }
+
+    return bypassCache ? src : undefined;
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    if (!src) {
+      return false;
+    }
+
+    return !bypassCache;
+  });
 
   useEffect(() => {
     let isMounted = true;
 
     if (!src) {
       setLocalSrc(undefined);
+      setIsLoading(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    if (bypassCache) {
+      setLocalSrc(src);
       setIsLoading(false);
       return () => {
         isMounted = false;
@@ -41,10 +71,14 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
     return () => {
       isMounted = false;
     };
-  }, [src]);
+  }, [src, bypassCache]);
 
   if (!src) {
     return <div />;
+  }
+
+  if (bypassCache) {
+    return <img loading="lazy" {...imgProps} src={src} alt={alt ?? src} />;
   }
 
   if (isLoading || !localSrc) {

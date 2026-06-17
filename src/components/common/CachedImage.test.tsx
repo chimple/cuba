@@ -1,14 +1,27 @@
 import React from 'react';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { Capacitor } from '@capacitor/core';
 import CachedImage from './CachedImage';
 import { getCachedImageSrc } from '../../utility/imageCache';
 
+jest.mock('@capacitor/core', () => ({
+  Capacitor: {
+    isNativePlatform: jest.fn(),
+    convertFileSrc: jest.fn(),
+  },
+}));
+
 jest.mock('../../utility/imageCache', () => ({
   getCachedImageSrc: jest.fn(),
+  isLocalImageUrl: jest.fn(),
 }));
 
 describe('CachedImage', () => {
+  beforeEach(() => {
+    (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(true);
+  });
+
   afterEach(() => {
     cleanup();
     jest.clearAllMocks();
