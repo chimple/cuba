@@ -91,6 +91,9 @@ const MASCOT_X_OFFSET = -155;
 const REWARD_FLIGHT_TARGET_X_OFFSET = MASCOT_X_OFFSET + 84;
 const REWARD_FLIGHT_DURATION_MS = 4000;
 const REWARD_FLIGHT_ARC_Y_OFFSET = 150;
+const FINAL_HOMEWORK_REWARD_AUDIO_DELAY_MS = 1000;
+const FINAL_HOMEWORK_REWARD_AUDIO_TIMEOUT_MS = 6000;
+type DailyRewardAudioClipName = 'reward' | 'reward_01' | 'reward_02';
 
 const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   selectedSubject,
@@ -688,10 +691,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       playbackOptions?: {
         onPlaybackStop?: () => void;
       },
+      clipName: DailyRewardAudioClipName = 'reward',
     ): Promise<boolean> => {
       const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
         'dailyReward',
-        'reward',
+        clipName,
       );
       if (!localAudioPath) {
         playbackOptions?.onPlaybackStop?.();
@@ -1688,8 +1692,32 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           });
         };
 
+        const waitForFinalHomeworkRewardAudio = (): {
+          promise: Promise<void>;
+          resolve: () => void;
+        } => {
+          let didResolve = false;
+          let resolveAudio = () => {};
+
+          const resolve = () => {
+            if (didResolve) return;
+            didResolve = true;
+            resolveAudio();
+          };
+
+          const promise = Promise.race([
+            new Promise<void>((resolvePromise) => {
+              resolveAudio = resolvePromise;
+            }),
+            delay(FINAL_HOMEWORK_REWARD_AUDIO_TIMEOUT_MS).then(() => undefined),
+          ]);
+
+          return { promise, resolve };
+        };
+
         const runRewardAnimation = async (
           newRewardId: string,
+          shouldPlayFinalRewardAudioBeforeComplete: boolean,
           onComplete?: () => void,
         ) => {
           // If offline, this might fail, wrap in try/catch or skip if no internet
@@ -1779,6 +1807,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                   detail: {
                     rewardId: newRewardId,
                     stateValue: rewardStateValue,
+                    forceRewardAudio: shouldPlayFinalRewardAudioBeforeComplete,
+                    dailyRewardAudioClipName:
+                      shouldPlayFinalRewardAudioBeforeComplete
+                        ? 'reward_02'
+                        : 'reward',
                   },
                 }),
               );
@@ -1797,15 +1830,32 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               } else {
                 await animateChimpleMovement();
               }
+              const finalRewardAudioWait =
+                shouldPlayFinalRewardAudioBeforeComplete
+                  ? waitForFinalHomeworkRewardAudio()
+                  : null;
               window.dispatchEvent(
                 new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
                   detail: {
                     rewardId: newRewardId,
                     stateValue: rewardStateValue,
+                    forceRewardAudio: shouldPlayFinalRewardAudioBeforeComplete,
+                    dailyRewardAudioClipName:
+                      shouldPlayFinalRewardAudioBeforeComplete
+                        ? 'reward_02'
+                        : 'reward',
+                    onRewardAudioComplete:
+                      shouldPlayFinalRewardAudioBeforeComplete
+                        ? finalRewardAudioWait?.resolve
+                        : undefined,
                   },
                 }),
               );
               await Util.updateUserReward();
+              if (finalRewardAudioWait) {
+                await finalRewardAudioWait.promise;
+                await delay(FINAL_HOMEWORK_REWARD_AUDIO_DELAY_MS);
+              }
               onComplete?.();
             };
             const rewardDiv = document.createElement('div');
@@ -1932,28 +1982,33 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         }
 
         if (shouldRunRewardAnimation) {
-          runRewardAnimation(newRewardId, () => {
-            if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
-              window.setTimeout(() => {
-                handleStickerPreviewReady(
-                  stickerPreviewPayload,
-                  'pathway_completion_auto',
-                );
-              }, 0);
-            } else if (
-              didScheduleStickerCompletionPopup &&
-              !didDispatchStickerCompletionPopupImmediately &&
-              stickerCompletionPayload
-            ) {
-              window.setTimeout(() => {
-                window.dispatchEvent(
-                  new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
-                    detail: stickerCompletionPayload,
-                  }),
-                );
-              }, 0);
-            }
-          });
+          runRewardAnimation(
+            newRewardId,
+            isFinalRewardTransition &&
+              (willShowCelebration || didScheduleStickerCompletionPopup),
+            () => {
+              if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
+                window.setTimeout(() => {
+                  handleStickerPreviewReady(
+                    stickerPreviewPayload,
+                    'pathway_completion_auto',
+                  );
+                }, 0);
+              } else if (
+                didScheduleStickerCompletionPopup &&
+                !didDispatchStickerCompletionPopupImmediately &&
+                stickerCompletionPayload
+              ) {
+                window.setTimeout(() => {
+                  window.dispatchEvent(
+                    new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+                      detail: stickerCompletionPayload,
+                    }),
+                  );
+                }, 0);
+              }
+            },
+          );
         } else if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
           window.setTimeout(() => {
             handleStickerPreviewReady(
