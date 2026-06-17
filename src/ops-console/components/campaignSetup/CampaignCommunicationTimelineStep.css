@@ -661,7 +661,8 @@
   }
 
   .campaign-communication-poll-option-field {
-    max-width: none;
+    width: calc(100% - 2.75rem);
+    max-width: 16.5rem;
   }
 
   .campaign-communication-option-row {
