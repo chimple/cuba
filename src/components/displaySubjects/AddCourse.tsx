@@ -3,7 +3,6 @@ import { t } from 'i18next';
 import SelectIconImage from './SelectIconImage';
 import { Splide, SplideSlide } from '@splidejs/react-splide';
 import {
-  COURSES,
   DEFUALT_SUBJECT_CARD_COLOUR,
   TableTypes,
 } from '../../common/constants';
@@ -169,11 +168,7 @@ const AddCourse: FC<{
                     </div>
 
                     <div>
-                      <p>
-                        {course?.course.name === 'English'
-                          ? course?.course.name
-                          : t(course?.course.name)}
-                      </p>
+                      <p>{t(course?.course.name)}</p>
                     </div>
 
                     {currt ? (
