@@ -266,7 +266,7 @@
 .campaign-communication-row-body > .campaign-communication-cell,
 .campaign-communication-row-body > .campaign-communication-poll-cell,
 .campaign-communication-row-body > .campaign-communication-clear-cell {
-  padding: 0.25rem 0.5rem;
+  padding: 0.6rem 0.5rem;
   border-right: 0.0625rem solid #d8dee8;
 }
 
