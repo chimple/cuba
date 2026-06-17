@@ -193,11 +193,11 @@ export const CampaignCommunicationRow: React.FC<
                     type="button"
                     className="campaign-communication-mobile-option-clear"
                     onClick={() => clearOrRemoveOption(optionIndex)}
-                    aria-hidden
-                    tabIndex={-1}
+                    aria-label={getOptionActionLabel(optionIndex)}
                   >
                     <Close fontSize="small" />
                   </Button>
+
                   <Button
                     type="button"
                     className="campaign-communication-remove-option"
