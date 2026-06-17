@@ -187,29 +187,26 @@ export const CampaignCommunicationRow: React.FC<
                 error={!!getError(`rows.${date}.pollOptions.${optionIndex}`)}
                 helperText={getError(`rows.${date}.pollOptions.${optionIndex}`)}
               />
-              <Button
-                type="button"
-                className="campaign-communication-mobile-option-clear"
-                onClick={() => clearOrRemoveOption(optionIndex)}
-                aria-label={
-                  optionIndex >= 2
-                    ? undefined
-                    : getOptionActionLabel(optionIndex)
-                }
-                aria-hidden={optionIndex >= 2}
-                tabIndex={optionIndex >= 2 ? -1 : undefined}
-              >
-                <Close fontSize="small" />
-              </Button>
               {optionIndex >= 2 && (
-                <Button
-                  type="button"
-                  className="campaign-communication-remove-option"
-                  onClick={() => clearOrRemoveOption(optionIndex)}
-                  aria-label={getOptionActionLabel(optionIndex)}
-                >
-                  <Close fontSize="small" />
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    className="campaign-communication-mobile-option-clear"
+                    onClick={() => clearOrRemoveOption(optionIndex)}
+                    aria-hidden
+                    tabIndex={-1}
+                  >
+                    <Close fontSize="small" />
+                  </Button>
+                  <Button
+                    type="button"
+                    className="campaign-communication-remove-option"
+                    onClick={() => clearOrRemoveOption(optionIndex)}
+                    aria-label={getOptionActionLabel(optionIndex)}
+                  >
+                    <Close fontSize="small" />
+                  </Button>
+                </>
               )}
             </Box>
           ))}
