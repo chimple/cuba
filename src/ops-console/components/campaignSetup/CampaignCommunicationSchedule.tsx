@@ -1,7 +1,7 @@
 import React from 'react';
-import { AccessTimeOutlined } from '@mui/icons-material';
-import { Box, MenuItem, TextField, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import { CompactTimePickerField } from './CompactTimePickerField';
 
 type CampaignCommunicationScheduleProps = {
   messageTime: string;
@@ -18,14 +18,12 @@ export const CampaignCommunicationSchedule: React.FC<
 > = ({
   messageTime,
   pollTime,
-  timeOptions,
   messageTimeError,
   pollTimeError,
   onMessageTimeChange,
   onPollTimeChange,
 }) => {
   const { t } = useTranslation();
-  const TimeSelectIcon = AccessTimeOutlined;
 
   return (
     <Box className="campaign-communication-schedule">
@@ -37,45 +35,23 @@ export const CampaignCommunicationSchedule: React.FC<
           <Typography className="campaign-communication-field-label">
             {t('Message Time')}
           </Typography>
-          <TextField
-            select
-            fullWidth
-            size="small"
-            inputProps={{ 'aria-label': String(t('Message Time')) }}
+          <CompactTimePickerField
+            label={String(t('Message Time'))}
             value={messageTime}
-            onChange={(event) => onMessageTimeChange(event.target.value)}
-            error={!!messageTimeError}
-            helperText={messageTimeError}
-            SelectProps={{ IconComponent: TimeSelectIcon }}
-          >
-            {timeOptions.map((option) => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </TextField>
+            error={messageTimeError}
+            onChange={onMessageTimeChange}
+          />
         </Box>
         <Box className="campaign-communication-field-block">
           <Typography className="campaign-communication-field-label">
             {t('Poll Time')}
           </Typography>
-          <TextField
-            select
-            fullWidth
-            size="small"
-            inputProps={{ 'aria-label': String(t('Poll Time')) }}
+          <CompactTimePickerField
+            label={String(t('Poll Time'))}
             value={pollTime}
-            onChange={(event) => onPollTimeChange(event.target.value)}
-            error={!!pollTimeError}
-            helperText={pollTimeError}
-            SelectProps={{ IconComponent: TimeSelectIcon }}
-          >
-            {timeOptions.map((option) => (
-              <MenuItem key={option} value={option}>
-                {option}
-              </MenuItem>
-            ))}
-          </TextField>
+            error={pollTimeError}
+            onChange={onPollTimeChange}
+          />
         </Box>
         <Typography className="campaign-communication-schedule-note campaign-communication-schedule-note-mobile">
           {t('Applied globally across all campaign days.')}

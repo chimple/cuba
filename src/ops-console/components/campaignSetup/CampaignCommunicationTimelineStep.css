@@ -191,8 +191,76 @@
   min-width: 7.375rem;
 }
 
+.campaign-communication-time-picker {
+  width: 9.625rem;
+  max-height: 14.375rem;
+  overflow: hidden;
+  border: 0.0625rem solid #b8c0cc;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.campaign-communication-time-picker [role='listbox'] {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+  padding: 0.25rem;
+}
+
+.campaign-communication-time-picker-column {
+  max-height: 13.875rem;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.campaign-communication-time-picker-column::-webkit-scrollbar {
+  display: none;
+}
+
+.campaign-communication-time-picker-option {
+  width: 100%;
+  min-height: 1.875rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #111827;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.campaign-communication-time-picker-option:hover {
+  background: #eef4ff;
+}
+
+.campaign-communication-time-picker-option[aria-selected='true'] {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.campaign-communication-schedule .MuiInputAdornment-root svg {
+  color: #667085;
+}
+
 .campaign-communication-schedule-note-mobile {
   display: none;
+}
+
+@media (min-width: 64.0625rem) {
+  .campaign-communication-field-block {
+    width: 13.25rem;
+    grid-template-columns: auto 7.375rem;
+  }
+
+  .campaign-communication-schedule-grid
+    > .campaign-communication-field-block:nth-of-type(1),
+  .campaign-communication-schedule-grid
+    > .campaign-communication-field-block:nth-of-type(2) {
+    margin-left: 0;
+  }
 }
 
 .campaign-communication-table {

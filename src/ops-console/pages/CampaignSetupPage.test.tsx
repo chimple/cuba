@@ -155,6 +155,20 @@ const openSelectAndChoose = async (triggerText: string, optionText: string) => {
   fireEvent.click(await screen.findByRole('option', { name: optionText }));
 };
 
+const selectCampaignTime = async (
+  fieldLabel: string,
+  hour: string,
+  minute: string,
+  meridiem: string,
+) => {
+  fireEvent.click(screen.getByLabelText(fieldLabel));
+  fireEvent.click(await screen.findByRole('option', { name: `Hour ${hour}` }));
+  fireEvent.click(
+    await screen.findByRole('option', { name: `Minute ${minute}` }),
+  );
+  fireEvent.click(await screen.findByRole('option', { name: meridiem }));
+};
+
 const getDateValueDaysFromToday = (daysFromToday: number) => {
   const date = new Date();
   date.setDate(date.getDate() + daysFromToday);
@@ -560,10 +574,8 @@ describe('CampaignSetupPage', () => {
       ),
     ).toHaveLength(1);
 
-    fireEvent.mouseDown(screen.getByLabelText('Message Time'));
-    fireEvent.click(await screen.findByRole('option', { name: '09:00 AM' }));
-    fireEvent.mouseDown(screen.getByLabelText('Poll Time'));
-    fireEvent.click(await screen.findByRole('option', { name: '05:00 PM' }));
+    await selectCampaignTime('Message Time', '09', '00', 'AM');
+    await selectCampaignTime('Poll Time', '05', '00', 'PM');
     fireEvent.change(screen.getByPlaceholderText(/Enter daily .* message/i), {
       target: { value: "Complete today's campaign task." },
     });
