@@ -23,27 +23,25 @@ const formatCampaignDateDisplay = (value: string) => {
   }
 
   const [year, month, day] = value.split('-');
-  const monthIndex = Number(month) - 1;
-  const monthNames = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
 
-  if (!year || !month || !day || Number.isNaN(monthIndex)) {
+  if (!year || !month || !day) {
     return value;
   }
 
-  return `${day}-${monthNames[monthIndex] ?? month}-${year}`;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+    .format(date)
+    .replace(/ /g, '-');
 };
 
 export const CampaignDetailsSection: React.FC<CampaignDetailsSectionProps> = ({
