@@ -661,12 +661,16 @@
   }
 
   .campaign-communication-poll-option-field {
-    width: calc(100% - 2.75rem);
-    max-width: 16.5rem;
+    width: 100%;
+    max-width: none;
   }
 
   .campaign-communication-option-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.25rem;
+    align-items: start;
     gap: 0.5rem;
+    width: 100%;
   }
 
   .campaign-communication-mobile-option-clear {
