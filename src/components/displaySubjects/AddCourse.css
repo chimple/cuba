@@ -37,7 +37,7 @@
   width: fit-content;
 }
 .add-course-gender-check-box {
-  margin-right: 1vh;
+  margin-right: clamp(0.25rem, 0.6vw, 0.5rem);
   color: white;
 }
 .add-course-course-icon {
@@ -55,8 +55,8 @@
 }
 #add-course-subject-card-select-icon {
   position: absolute;
-  right: 0.5rem;
-  top: 0.5rem;
+  right: 0.2rem;
+  top: 0.2rem;
   width: auto;
   display: flex;
   align-items: center;

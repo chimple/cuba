@@ -13,8 +13,8 @@
 }
 
 .loading-button {
-  width: 62%;
-  height: 62%;
+  width: 95%;
+  height: 95%;
   border: 3px solid transparent;
   border-top-color: #007bff;
   border-right-color: #007bff;
@@ -26,7 +26,7 @@
   flex: 0 0 auto;
   transform-origin: center center;
   position: relative;
-  top: 30%;
+  top: 49%;
 }
 
 @keyframes spin {
