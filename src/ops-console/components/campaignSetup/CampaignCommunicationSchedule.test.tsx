@@ -47,12 +47,12 @@ const renderSchedule = (props: RenderScheduleProps = {}) => {
 };
 
 const openMessageTimeMenu = async () => {
-  fireEvent.mouseDown(screen.getByLabelText('Message Time'));
+  fireEvent.click(screen.getByLabelText('Message Time'));
   await screen.findByRole('listbox');
 };
 
 const openPollTimeMenu = async () => {
-  fireEvent.mouseDown(screen.getByLabelText('Poll Time'));
+  fireEvent.click(screen.getByLabelText('Poll Time'));
   await screen.findByRole('listbox');
 };
 
@@ -77,6 +77,16 @@ describe('CampaignCommunicationSchedule', () => {
 
     expect(screen.getByLabelText('Message Time')).toBeInTheDocument();
     expect(screen.getByLabelText('Poll Time')).toBeInTheDocument();
+  });
+
+  it('opens the message time picker with keyboard activation', async () => {
+    renderSchedule();
+
+    fireEvent.keyDown(screen.getByLabelText('Message Time'), {
+      key: 'Enter',
+    });
+
+    expect(await screen.findByRole('listbox')).toBeInTheDocument();
   });
 
   it('renders compact message time picker columns when opened', async () => {

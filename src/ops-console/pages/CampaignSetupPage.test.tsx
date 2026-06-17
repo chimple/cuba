@@ -161,7 +161,7 @@ const selectCampaignTime = async (
   minute: string,
   meridiem: string,
 ) => {
-  fireEvent.mouseDown(screen.getByLabelText(fieldLabel));
+  fireEvent.click(screen.getByLabelText(fieldLabel));
   fireEvent.click(await screen.findByRole('option', { name: `Hour ${hour}` }));
   fireEvent.click(
     await screen.findByRole('option', { name: `Minute ${minute}` }),

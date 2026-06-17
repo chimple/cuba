@@ -59,6 +59,11 @@ export const CompactTimePickerField: React.FC<CompactTimePickerFieldProps> = ({
     onChange(buildTimeValue(updatedTime));
   };
 
+  const openPicker = (anchorElement: HTMLElement) => {
+    setDraftTime(parseTimeValue(value));
+    setAnchorEl(anchorElement);
+  };
+
   const renderColumn = (
     values: string[],
     selectedValue: string,
@@ -97,10 +102,14 @@ export const CompactTimePickerField: React.FC<CompactTimePickerFieldProps> = ({
           readOnly: true,
         }}
         value={value}
-        onMouseDown={(event) => {
-          event.preventDefault();
-          setDraftTime(parseTimeValue(value));
-          setAnchorEl(event.currentTarget);
+        onClick={(event) => {
+          openPicker(event.currentTarget);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === ' ' || event.key === 'Enter') {
+            event.preventDefault();
+            openPicker(event.currentTarget);
+          }
         }}
         error={!!error}
         helperText={error}
