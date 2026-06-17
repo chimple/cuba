@@ -100,12 +100,12 @@
 
 .campaign-communication-validation,
 .campaign-communication-row-error {
-  border-radius: 0.25rem !important;
+  border-radius: 0.5rem !important;
   margin: 0 !important;
 }
 
 .campaign-communication-validation {
-  border: 0.0625rem solid #f4a8a4 !important;
+  border: 0.0625rem solid #fca5a5 !important;
   background: #fff5f5 !important;
   padding: 0.125rem 0.75rem !important;
 }
@@ -118,7 +118,7 @@
 }
 
 .campaign-communication-validation .MuiAlert-message {
-  color: #b42318;
+  color: #dc2626;
 }
 
 .campaign-communication-schedule {
@@ -266,7 +266,7 @@
 .campaign-communication-row-body > .campaign-communication-cell,
 .campaign-communication-row-body > .campaign-communication-poll-cell,
 .campaign-communication-row-body > .campaign-communication-clear-cell {
-  padding: 0.25rem 0.5rem;
+  padding: 0.6rem 0.5rem;
   border-right: 0.0625rem solid #d8dee8;
 }
 
@@ -376,9 +376,9 @@
   min-width: 4.625rem !important;
   height: 1.75rem;
   padding: 0.125rem 0.5rem !important;
-  border: 0.0625rem solid #ff9f97 !important;
+  border: 0.0625rem solid #e24b4a !important;
   border-radius: 0.25rem !important;
-  color: #ef4444 !important;
+  color: #e24b4a !important;
   text-transform: none !important;
   font-size: 0.6875rem !important;
   font-weight: 400 !important;
@@ -515,6 +515,13 @@
     justify-items: start;
   }
 
+  .campaign-communication-schedule-grid
+    > .campaign-communication-field-block:nth-of-type(1),
+  .campaign-communication-schedule-grid
+    > .campaign-communication-field-block:nth-of-type(2) {
+    margin-left: 0;
+  }
+
   .campaign-communication-field-label {
     margin-bottom: 0 !important;
     font-size: 0.75rem !important;
@@ -640,9 +647,9 @@
     min-width: 5.5rem !important;
     height: 2.5rem !important;
     padding: 0.375rem 1rem !important;
-    border: 0.0625rem solid #f87171 !important;
+    border: 0.0625rem solid #e24b4a !important;
     border-radius: 0.375rem !important;
-    color: #ef4444 !important;
+    color: #e24b4a !important;
     background-color: #ffffff !important;
     font-size: 0.8125rem !important;
     font-weight: 500 !important;
@@ -654,7 +661,8 @@
   }
 
   .campaign-communication-poll-option-field {
-    max-width: none;
+    width: calc(100% - 2.75rem);
+    max-width: 16.5rem;
   }
 
   .campaign-communication-option-row {
@@ -665,12 +673,12 @@
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
-    min-width: 2.75rem !important;
-    width: 2.75rem;
-    height: 2.75rem;
+    min-width: 2.25rem !important;
+    width: 2.25rem;
+    height: 2.25rem;
     padding: 0 !important;
     border: 0.0625rem solid #fecaca !important;
-    border-radius: 0.375rem !important;
+    border-radius: 0.3125rem !important;
     color: #ef4444 !important;
     background-color: #fef2f2 !important;
     flex: 0 0 auto;
