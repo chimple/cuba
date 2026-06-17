@@ -56,6 +56,12 @@ const openPollTimeMenu = async () => {
   await screen.findByRole('listbox');
 };
 
+const selectTime = (hour: string, minute: string, meridiem: string) => {
+  fireEvent.click(screen.getByRole('option', { name: `Hour ${hour}` }));
+  fireEvent.click(screen.getByRole('option', { name: `Minute ${minute}` }));
+  fireEvent.click(screen.getByRole('option', { name: meridiem }));
+};
+
 describe('CampaignCommunicationSchedule', () => {
   it('renders the schedule heading text and helper note content', () => {
     renderSchedule();
@@ -73,47 +79,60 @@ describe('CampaignCommunicationSchedule', () => {
     expect(screen.getByLabelText('Poll Time')).toBeInTheDocument();
   });
 
-  it('renders all supplied message time options when the message select is opened', async () => {
+  it('renders compact message time picker columns when opened', async () => {
     renderSchedule();
 
     await openMessageTimeMenu();
 
-    for (const option of defaultTimeOptions) {
-      expect(screen.getByRole('option', { name: option })).toBeInTheDocument();
-    }
+    expect(screen.getByRole('option', { name: 'Hour 01' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Hour 12' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: 'Minute 00' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: 'Minute 59' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'AM' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'PM' })).toBeInTheDocument();
   });
 
-  it('renders all supplied poll time options when the poll select is opened', async () => {
+  it('renders compact poll time picker columns when opened', async () => {
     renderSchedule();
 
     await openPollTimeMenu();
 
-    for (const option of defaultTimeOptions) {
-      expect(screen.getByRole('option', { name: option })).toBeInTheDocument();
-    }
+    expect(screen.getByRole('option', { name: 'Hour 01' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Hour 12' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: 'Minute 00' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: 'Minute 59' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'AM' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'PM' })).toBeInTheDocument();
   });
 
   it('uses the provided message time value', () => {
     renderSchedule({ messageTime: '09:00 AM' });
 
     const messageSelect = screen.getByLabelText('Message Time');
-    expect(messageSelect).toHaveTextContent('09:00 AM');
+    expect(messageSelect).toHaveValue('09:00 AM');
   });
 
   it('uses the provided poll time value', () => {
     renderSchedule({ pollTime: '06:00 PM' });
 
     const pollSelect = screen.getByLabelText('Poll Time');
-    expect(pollSelect).toHaveTextContent('06:00 PM');
+    expect(pollSelect).toHaveValue('06:00 PM');
   });
 
   it('calls onMessageTimeChange with the selected option value', async () => {
     const { onMessageTimeChange } = renderSchedule();
 
     await openMessageTimeMenu();
-    fireEvent.click(screen.getByRole('option', { name: '09:30 AM' }));
+    selectTime('09', '30', 'AM');
 
-    expect(onMessageTimeChange).toHaveBeenCalledTimes(1);
     expect(onMessageTimeChange).toHaveBeenCalledWith('09:30 AM');
   });
 
@@ -121,9 +140,8 @@ describe('CampaignCommunicationSchedule', () => {
     const { onPollTimeChange } = renderSchedule();
 
     await openPollTimeMenu();
-    fireEvent.click(screen.getByRole('option', { name: '05:30 PM' }));
+    selectTime('05', '30', 'PM');
 
-    expect(onPollTimeChange).toHaveBeenCalledTimes(1);
     expect(onPollTimeChange).toHaveBeenCalledWith('05:30 PM');
   });
 
@@ -160,40 +178,32 @@ describe('CampaignCommunicationSchedule', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('supports a custom time option list for message selection', async () => {
+  it('keeps full hour and minute ranges for message selection', async () => {
     renderSchedule({
       timeOptions: ['07:15 AM', '11:45 AM', '03:15 PM'],
     });
 
     await openMessageTimeMenu();
 
+    expect(screen.getByRole('option', { name: 'Hour 07' })).toBeInTheDocument();
     expect(
-      screen.getByRole('option', { name: '07:15 AM' }),
+      screen.getByRole('option', { name: 'Minute 45' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('option', { name: '11:45 AM' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('option', { name: '03:15 PM' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'PM' })).toBeInTheDocument();
   });
 
-  it('supports a custom time option list for poll selection', async () => {
+  it('keeps full hour and minute ranges for poll selection', async () => {
     renderSchedule({
       timeOptions: ['07:15 AM', '11:45 AM', '03:15 PM'],
     });
 
     await openPollTimeMenu();
 
+    expect(screen.getByRole('option', { name: 'Hour 07' })).toBeInTheDocument();
     expect(
-      screen.getByRole('option', { name: '07:15 AM' }),
+      screen.getByRole('option', { name: 'Minute 45' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole('option', { name: '11:45 AM' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('option', { name: '03:15 PM' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'PM' })).toBeInTheDocument();
   });
 
   it('preserves an already selected message value when rerendered with a new poll value', () => {
@@ -217,8 +227,8 @@ describe('CampaignCommunicationSchedule', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Message Time')).toHaveTextContent('08:00 AM');
-    expect(screen.getByLabelText('Poll Time')).toHaveTextContent('06:00 PM');
+    expect(screen.getByLabelText('Message Time')).toHaveValue('08:00 AM');
+    expect(screen.getByLabelText('Poll Time')).toHaveValue('06:00 PM');
   });
 
   it('preserves an already selected poll value when rerendered with a new message value', () => {
@@ -242,8 +252,8 @@ describe('CampaignCommunicationSchedule', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Message Time')).toHaveTextContent('09:00 AM');
-    expect(screen.getByLabelText('Poll Time')).toHaveTextContent('05:00 PM');
+    expect(screen.getByLabelText('Message Time')).toHaveValue('09:00 AM');
+    expect(screen.getByLabelText('Poll Time')).toHaveValue('05:00 PM');
   });
 
   it('updates the displayed message value after rerender', () => {
@@ -267,7 +277,7 @@ describe('CampaignCommunicationSchedule', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Message Time')).toHaveTextContent('10:00 AM');
+    expect(screen.getByLabelText('Message Time')).toHaveValue('10:00 AM');
   });
 
   it('updates the displayed poll value after rerender', () => {
@@ -291,7 +301,7 @@ describe('CampaignCommunicationSchedule', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Poll Time')).toHaveTextContent('06:00 PM');
+    expect(screen.getByLabelText('Poll Time')).toHaveValue('06:00 PM');
   });
 
   it('updates the message validation text after rerender', () => {
@@ -430,12 +440,8 @@ describe('CampaignCommunicationSchedule', () => {
 
     await openMessageTimeMenu();
 
-    expect(
-      screen.getByRole('option', { name: '08:00 AM' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('option', { name: '06:00 PM' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Hour 08' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'PM' })).toBeInTheDocument();
   });
 
   it('opens the poll menu multiple times without losing options', async () => {
@@ -446,12 +452,8 @@ describe('CampaignCommunicationSchedule', () => {
 
     await openPollTimeMenu();
 
-    expect(
-      screen.getByRole('option', { name: '08:00 AM' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('option', { name: '06:00 PM' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Hour 08' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'PM' })).toBeInTheDocument();
   });
 
   it('renders duplicate note text for desktop and mobile note placements', () => {
@@ -467,7 +469,7 @@ describe('CampaignCommunicationSchedule', () => {
     const { onMessageTimeChange } = renderSchedule();
 
     await openMessageTimeMenu();
-    fireEvent.click(screen.getByRole('option', { name: '08:00 AM' }));
+    selectTime('08', '00', 'AM');
 
     expect(onMessageTimeChange).toHaveBeenCalledWith('08:00 AM');
   });
@@ -476,7 +478,7 @@ describe('CampaignCommunicationSchedule', () => {
     const { onMessageTimeChange } = renderSchedule();
 
     await openMessageTimeMenu();
-    fireEvent.click(screen.getByRole('option', { name: '06:00 PM' }));
+    selectTime('06', '00', 'PM');
 
     expect(onMessageTimeChange).toHaveBeenCalledWith('06:00 PM');
   });
@@ -485,7 +487,7 @@ describe('CampaignCommunicationSchedule', () => {
     const { onPollTimeChange } = renderSchedule();
 
     await openPollTimeMenu();
-    fireEvent.click(screen.getByRole('option', { name: '08:00 AM' }));
+    selectTime('08', '00', 'AM');
 
     expect(onPollTimeChange).toHaveBeenCalledWith('08:00 AM');
   });
@@ -494,7 +496,7 @@ describe('CampaignCommunicationSchedule', () => {
     const { onPollTimeChange } = renderSchedule();
 
     await openPollTimeMenu();
-    fireEvent.click(screen.getByRole('option', { name: '06:00 PM' }));
+    selectTime('06', '00', 'PM');
 
     expect(onPollTimeChange).toHaveBeenCalledWith('06:00 PM');
   });
@@ -503,7 +505,7 @@ describe('CampaignCommunicationSchedule', () => {
     renderSchedule({ timeOptions: [] });
 
     await openMessageTimeMenu();
-    expect(screen.queryAllByRole('option')).toHaveLength(0);
+    expect(screen.getAllByRole('option')).toHaveLength(74);
   });
 
   it('supports empty time option arrays in the poll select without crashing', async () => {
@@ -513,16 +515,16 @@ describe('CampaignCommunicationSchedule', () => {
       key: 'Escape',
     });
     await openPollTimeMenu();
-    expect(screen.queryAllByRole('option')).toHaveLength(0);
+    expect(screen.getAllByRole('option')).toHaveLength(74);
   });
 
   it('keeps callback wiring isolated between message and poll changes', async () => {
     const { onMessageTimeChange, onPollTimeChange } = renderSchedule();
 
     await openMessageTimeMenu();
-    fireEvent.click(screen.getByRole('option', { name: '09:00 AM' }));
+    selectTime('09', '00', 'AM');
 
-    expect(onMessageTimeChange).toHaveBeenCalledTimes(1);
+    expect(onMessageTimeChange).toHaveBeenLastCalledWith('09:00 AM');
     expect(onPollTimeChange).not.toHaveBeenCalled();
   });
 
@@ -530,9 +532,9 @@ describe('CampaignCommunicationSchedule', () => {
     const { onMessageTimeChange, onPollTimeChange } = renderSchedule();
 
     await openPollTimeMenu();
-    fireEvent.click(screen.getByRole('option', { name: '05:00 PM' }));
+    selectTime('05', '00', 'PM');
 
-    expect(onPollTimeChange).toHaveBeenCalledTimes(1);
+    expect(onPollTimeChange).toHaveBeenLastCalledWith('05:00 PM');
     expect(onMessageTimeChange).not.toHaveBeenCalled();
   });
 
@@ -542,8 +544,8 @@ describe('CampaignCommunicationSchedule', () => {
       pollTime: '06:00 PM',
     });
 
-    expect(screen.getByLabelText('Message Time')).toHaveTextContent('09:00 AM');
-    expect(screen.getByLabelText('Poll Time')).toHaveTextContent('06:00 PM');
+    expect(screen.getByLabelText('Message Time')).toHaveValue('09:00 AM');
+    expect(screen.getByLabelText('Poll Time')).toHaveValue('06:00 PM');
   });
 
   it('keeps the title visible when values and errors are both present', () => {
@@ -569,7 +571,7 @@ describe('CampaignCommunicationSchedule', () => {
     expect(screen.getByText('Poll Time')).toBeInTheDocument();
   });
 
-  it('accepts a long time option list and renders each supplied option', async () => {
+  it('renders the complete compact picker independently of supplied options', async () => {
     const longTimeOptions = [
       '12:00 AM',
       '12:30 AM',
@@ -587,9 +589,11 @@ describe('CampaignCommunicationSchedule', () => {
     renderSchedule({ timeOptions: longTimeOptions });
     await openMessageTimeMenu();
 
-    for (const option of longTimeOptions) {
-      expect(screen.getByRole('option', { name: option })).toBeInTheDocument();
-    }
+    expect(screen.getByRole('option', { name: 'Hour 12' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: 'Minute 30' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'PM' })).toBeInTheDocument();
   });
 
   it('can switch from one message option to another across rerenders', async () => {
@@ -604,7 +608,7 @@ describe('CampaignCommunicationSchedule', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Message Time')).toHaveTextContent('08:00 AM');
+    expect(screen.getByLabelText('Message Time')).toHaveValue('08:00 AM');
 
     rerender(
       <CampaignCommunicationSchedule
@@ -616,7 +620,7 @@ describe('CampaignCommunicationSchedule', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Message Time')).toHaveTextContent('09:30 AM');
+    expect(screen.getByLabelText('Message Time')).toHaveValue('09:30 AM');
   });
 
   it('can switch from one poll option to another across rerenders', () => {
@@ -630,7 +634,7 @@ describe('CampaignCommunicationSchedule', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Poll Time')).toHaveTextContent('05:00 PM');
+    expect(screen.getByLabelText('Poll Time')).toHaveValue('05:00 PM');
 
     rerender(
       <CampaignCommunicationSchedule
@@ -642,7 +646,7 @@ describe('CampaignCommunicationSchedule', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Poll Time')).toHaveTextContent('06:00 PM');
+    expect(screen.getByLabelText('Poll Time')).toHaveValue('06:00 PM');
   });
 
   it('continues to render after many sequential rerenders', async () => {
@@ -675,12 +679,12 @@ describe('CampaignCommunicationSchedule', () => {
       );
     });
 
-    expect(screen.getByLabelText('Message Time')).toHaveTextContent('09:30 AM');
-    expect(screen.getByLabelText('Poll Time')).toHaveTextContent('05:00 PM');
+    expect(screen.getByLabelText('Message Time')).toHaveValue('09:30 AM');
+    expect(screen.getByLabelText('Poll Time')).toHaveValue('05:00 PM');
 
     await openMessageTimeMenu();
     expect(
-      screen.getByRole('option', { name: '09:30 AM' }),
+      screen.getByRole('option', { name: 'Minute 30' }),
     ).toBeInTheDocument();
   });
 
@@ -692,12 +696,10 @@ describe('CampaignCommunicationSchedule', () => {
 
     await screen.findByText('Global Send Schedule');
     await waitFor(() =>
-      expect(screen.getByLabelText('Message Time')).toHaveTextContent(
-        '09:00 AM',
-      ),
+      expect(screen.getByLabelText('Message Time')).toHaveValue('09:00 AM'),
     );
     await waitFor(() =>
-      expect(screen.getByLabelText('Poll Time')).toHaveTextContent('05:00 PM'),
+      expect(screen.getByLabelText('Poll Time')).toHaveValue('05:00 PM'),
     );
   });
 });
