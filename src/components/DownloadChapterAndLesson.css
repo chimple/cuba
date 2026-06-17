@@ -25,6 +25,8 @@
   margin: 0;
   flex: 0 0 auto;
   transform-origin: center center;
+  position: relative;
+  top: 30%;
 }
 
 @keyframes spin {

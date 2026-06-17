@@ -33,7 +33,6 @@ const DownloadLesson: React.FC<{
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const lessonId = Util.getLessonBundleId(lesson) ?? undefined;
   const isNativePlatform = Capacitor.isNativePlatform();
-
   useEffect(() => {
     init();
     setLoading(downloadButtonLoading);
