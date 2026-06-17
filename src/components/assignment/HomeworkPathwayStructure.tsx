@@ -57,6 +57,7 @@ import {
   hasPendingHomeworkStickerFlow,
 } from '../../utility/homeworkStickerFlow';
 import { getCachedImageSrc } from '../../utility/imageCache';
+import { mapInBatches } from '../../utility/batch';
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;
@@ -1095,8 +1096,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
       preloadAllLessonImages(lessons);
 
-      const resolvedLessonImageUrls = await Promise.all(
-        lessonsToRender.map(async ({ lesson }, lessonIdx) => {
+      const resolvedLessonImageUrls = await mapInBatches(
+        lessonsToRender,
+        5,
+        async ({ lesson }, lessonIdx) => {
           const isPlayed = lessonIdx < visualCurrentIndex;
           const isActive = lessonIdx === visualCurrentIndex;
           const isValidUrl =
@@ -1111,7 +1114,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               : 'assets/icons/NextNodeIcon.svg';
 
           return await getCachedImageSrc(lessonImageUrl);
-        }),
+        },
       );
       const resolvedHaloSrc =
         typeof haloPath === 'string'

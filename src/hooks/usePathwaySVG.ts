@@ -34,6 +34,7 @@ import { setCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import { useAppSelector } from '../redux/hooks';
 import { t } from 'i18next';
 import { getCachedImageSrc } from '../utility/imageCache';
+import { mapInBatches } from '../utility/batch';
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -525,8 +526,10 @@ export function usePathwaySVG({
         }
       }
 
-      const resolvedLessonImageUrls = await Promise.all(
-        lessons.map(async (lesson) => {
+      const resolvedLessonImageUrls = await mapInBatches(
+        lessons,
+        5,
+        async (lesson) => {
           const isValidUrl =
             typeof lesson.image === 'string' &&
             /^(https?:\/\/|\/)/.test(lesson.image);
@@ -535,7 +538,7 @@ export function usePathwaySVG({
             : 'assets/icons/DefaultIcon.png';
 
           return await getCachedImageSrc(lessonImageUrl);
-        }),
+        },
       );
       const resolvedHaloSrc =
         typeof halo === 'string' ? await getCachedImageSrc(halo) : null;
