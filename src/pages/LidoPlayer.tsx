@@ -4,7 +4,6 @@ import { Util } from '../utility/util';
 import {
   ASSESSMENT_FAIL_KEY,
   BUNDLE_ZIP_URLS,
-  LIDO_BUNDLE_ZIP_URLS,
   EVENTS,
   HOMEWORK_PATHWAY,
   LIDO_SCORES_KEY,
@@ -44,7 +43,6 @@ import logger from '../utility/logger';
 import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import {
   getBundleZipUrlsForEnv,
-  getLidoBundleZipUrlsForEnv,
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
 
@@ -58,6 +56,52 @@ const getSourceFromState = (source: unknown): SOURCE | undefined =>
   Object.values(SOURCE).includes(source as SOURCE)
     ? (source as SOURCE)
     : undefined;
+
+const resolveLessonZipUrl = async (
+  zipBaseUrls: string[],
+  lessonId: string,
+): Promise<string | null> => {
+  for (const baseUrl of Array.from(
+    new Set(zipBaseUrls.map((zipUrl) => zipUrl.trim()).filter(Boolean)),
+  )) {
+    try {
+      const zipUrl = new URL(
+        `${lessonId}.zip`,
+        baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`,
+      ).toString();
+      logger.warn('[LidoPlayer] Trying ZIP URL', { lessonId, baseUrl, zipUrl });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      try {
+        const response = await fetch(zipUrl, {
+          method: 'GET',
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+
+        if (response.ok) {
+          logger.warn('[LidoPlayer] Using ZIP URL', {
+            lessonId,
+            baseUrl,
+            zipUrl,
+          });
+          return zipUrl;
+        }
+      } finally {
+        clearTimeout(timeoutId);
+      }
+    } catch (error) {
+      logger.warn('[LidoPlayer] Invalid ZIP base URL skipped', {
+        baseUrl,
+        lessonId,
+        error,
+      });
+    }
+  }
+
+  return null;
+};
 
 const LidoPlayer: FC = () => {
   const history = useHistory();
@@ -1259,21 +1303,43 @@ const LidoPlayer: FC = () => {
       // const pathXml = `${lidoBaseUrl}${lessonId}/index.xml`;
       // setBasePath(pathBase);
       // setXmlPath(pathXml);
-      const [bundleBaseUrl] = getCachedGrowthBookFeatureValue<string[]>(
+      const explicitZipUrl =
+        urlSearchParams.get('zipUrl') ?? state?.zipUrl ?? null;
+
+      if (explicitZipUrl) {
+        logger.warn('Resolved Lido ZIP URL from override', {
+          lessonId,
+          zipUrl: explicitZipUrl,
+        });
+        setZipUrl(explicitZipUrl);
+        setIsLoading(false);
+        setIsReady(true);
+        return;
+      }
+
+      const bundleZipUrls = getCachedGrowthBookFeatureValue<string[]>(
         BUNDLE_ZIP_URLS,
         getBundleZipUrlsForEnv(),
       );
-      const directZipUrl =
-        urlSearchParams.get('zipUrl') ??
-        state?.zipUrl ??
-        `${bundleBaseUrl}${lessonId}.zip`;
-      logger.debug('Resolved Lido ZIP URL', {
+      const resolvedZipUrl = await resolveLessonZipUrl(bundleZipUrls, lessonId);
+      if (!resolvedZipUrl) {
+        logger.error('[LidoPlayer] No working ZIP URL found for lesson', {
+          lessonId,
+          featureKey: BUNDLE_ZIP_URLS,
+          bundleZipUrls,
+        });
+        presentToast();
+        push();
+        return;
+      }
+
+      logger.warn('Resolved Lido ZIP URL', {
         lessonId,
         featureKey: BUNDLE_ZIP_URLS,
-        bundleBaseUrl,
-        zipUrl: directZipUrl,
+        bundleZipUrls,
+        zipUrl: resolvedZipUrl,
       });
-      setZipUrl(directZipUrl);
+      setZipUrl(resolvedZipUrl);
     }
     setIsLoading(false);
     setIsReady(true); // ONLY NOW allow the Web Component to mount
