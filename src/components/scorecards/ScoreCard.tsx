@@ -1,4 +1,10 @@
-import React, { MouseEventHandler, useEffect, useState } from 'react';
+import React, {
+  MouseEventHandler,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import './ScoreCard.css';
 import { Dialog, DialogContentText } from '@mui/material';
 import ScoreCardStarIcons from './ScoreCardStarIcons';
@@ -9,13 +15,15 @@ import ScoreCardProgressRows, {
 import i18n from '../../i18n';
 import { t } from 'i18next';
 import { AudioUtil } from '../../utility/AudioUtil';
-import { TableTypes } from '../../common/constants';
+import { EVENTS, TableTypes } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { buildScoreCardProgressRows } from './scoreCardLogic';
 
 const SCORECARD_AUDIO_URL = '/assets/audios/scorecard/victory.mp3';
 const EMPTY_PROGRESS_ROWS: ScoreCardProgressRowData[] = [];
+
+type ScoreCardAnalyticsAction = 'shown' | 'continue_click';
 
 const resolveScoreCardStudentContext = async (): Promise<{
   student: TableTypes<'user'> | undefined;
@@ -42,7 +50,9 @@ const ScoreCard: React.FC<{
   progressContext?: {
     completedCourseId?: string;
     completedLessonId?: string;
+    completedHomeworkIndex?: number;
     animateDailyReward?: boolean;
+    showDailyReward?: boolean;
   };
   showProgressRows?: boolean;
   variant?: 'default' | 'progress';
@@ -65,6 +75,7 @@ const ScoreCard: React.FC<{
   const [resolvedProgressRows, setResolvedProgressRows] = useState<
     ScoreCardProgressRowData[]
   >(progressRows ?? EMPTY_PROGRESS_ROWS);
+  const [isLoadingRows, setIsLoadingRows] = useState(false);
   const hasProvidedProgressRows = Boolean(progressRows?.length);
   const displayedProgressRows = showProgressRows
     ? hasProvidedProgressRows
@@ -84,8 +95,44 @@ const ScoreCard: React.FC<{
     displayedProgressRows.length,
     2,
   )}`;
+  const hasLoggedGoalProgressRef = useRef(false);
+
+  const logScoreCardAnalytics = useCallback(
+    async (eventName: EVENTS, action: ScoreCardAnalyticsAction) => {
+      if (eventName === EVENTS.CLICKS_ANALYTICS) {
+        await Util.logEvent(eventName, {
+          action,
+          click_value: noText,
+          click_identifier: 'noButton',
+          action_type: 'click',
+        });
+        return;
+      }
+
+      const { student, studentId } = await resolveScoreCardStudentContext();
+      await Util.logEvent(eventName, {
+        action,
+        score,
+        user_id: studentId ?? 'null',
+        student_id: studentId ?? 'null',
+        student_stars: student?.stars ?? 'null',
+        progress_rows_count: displayedProgressRows.length,
+        completed_course_id: progressContext?.completedCourseId ?? 'null',
+        completed_lesson_id: progressContext?.completedLessonId ?? 'null',
+      });
+    },
+    [
+      displayedProgressRows.length,
+      noText,
+      progressContext?.completedCourseId,
+      progressContext?.completedLessonId,
+      score,
+    ],
+  );
+
   const handleContinueClick: MouseEventHandler<HTMLButtonElement> = (event) => {
     void AudioUtil.stopAudioUrlOrTtsPlayback();
+    void logScoreCardAnalytics(EVENTS.CLICKS_ANALYTICS, 'continue_click');
     onContinueButtonClicked(event);
   };
 
@@ -106,9 +153,13 @@ const ScoreCard: React.FC<{
         return;
       }
 
+      setIsLoadingRows(true);
       const { student, studentId } = await resolveScoreCardStudentContext();
       const apiHandler = ServiceConfig.getI()?.apiHandler;
-      if (!apiHandler) return;
+      if (!apiHandler) {
+        if (!isCancelled) setIsLoadingRows(false);
+        return;
+      }
 
       const progressRowsForScoreCard = await buildScoreCardProgressRows({
         api: apiHandler,
@@ -116,10 +167,15 @@ const ScoreCard: React.FC<{
         studentId,
         completedCourseId: progressContext?.completedCourseId,
         completedLessonId: progressContext?.completedLessonId,
+        completedHomeworkIndex: progressContext?.completedHomeworkIndex,
         animateDailyReward: progressContext?.animateDailyReward,
+        showDailyReward: progressContext?.showDailyReward,
       });
 
-      if (!isCancelled) setResolvedProgressRows(progressRowsForScoreCard);
+      if (!isCancelled) {
+        setResolvedProgressRows(progressRowsForScoreCard);
+        setIsLoadingRows(false);
+      }
     };
 
     void loadProgressRows();
@@ -133,12 +189,15 @@ const ScoreCard: React.FC<{
     progressContext?.animateDailyReward,
     progressContext?.completedCourseId,
     progressContext?.completedLessonId,
+    progressContext?.completedHomeworkIndex,
+    progressContext?.showDailyReward,
     showDialogBox,
     variant,
   ]);
 
   useEffect(() => {
     if (!showDialogBox) {
+      hasLoggedGoalProgressRef.current = false;
       void AudioUtil.stopAudioUrlOrTtsPlayback();
       return;
     }
@@ -153,6 +212,30 @@ const ScoreCard: React.FC<{
       void AudioUtil.stopAudioUrlOrTtsPlayback();
     };
   }, [audioUrl, lessonName, message, showDialogBox]);
+
+  useEffect(() => {
+    if (!showDialogBox || isLoadingRows || hasLoggedGoalProgressRef.current) {
+      return;
+    }
+
+    hasLoggedGoalProgressRef.current = true;
+    void logScoreCardAnalytics(EVENTS.GOAL_PROGRESS, 'shown');
+  }, [
+    displayedProgressRows,
+    isLoadingRows,
+    logScoreCardAnalytics,
+    lessonName,
+    message,
+    progressContext?.animateDailyReward,
+    progressContext?.completedCourseId,
+    progressContext?.completedHomeworkIndex,
+    progressContext?.completedLessonId,
+    progressContext?.showDailyReward,
+    score,
+    showDialogBox,
+    showProgressRows,
+    variant,
+  ]);
 
   return (
     <div>
@@ -200,19 +283,23 @@ const ScoreCard: React.FC<{
             </div>
           </DialogContentText>
         </div>
-        <ScoreCardProgressRows rows={displayedProgressRows} />
-        <div
-          id="ScoreCard-Continue-Button-div"
-          className="ScoreCard-Continue-Button-div"
-        >
-          <button
-            id="noButton"
-            className={`dialog-box-button-style-score-card ${progressRowCountClass} ${i18n.language === 'kn' ? 'scorecard-button-kn' : ''}`}
-            onClick={handleContinueClick}
-          >
-            <span>{noText}</span>
-          </button>
-        </div>
+        {isLoadingRows ? null : (
+          <>
+            <ScoreCardProgressRows rows={displayedProgressRows} />
+            <div
+              id="ScoreCard-Continue-Button-div"
+              className="ScoreCard-Continue-Button-div"
+            >
+              <button
+                id="noButton"
+                className={`dialog-box-button-style-score-card ${progressRowCountClass} ${i18n.language === 'kn' ? 'scorecard-button-kn' : ''}`}
+                onClick={handleContinueClick}
+              >
+                <span>{noText}</span>
+              </button>
+            </div>
+          </>
+        )}
       </Dialog>
     </div>
   );

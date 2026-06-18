@@ -19,6 +19,7 @@ type ScoreCardProgressRowsProps = {
 type ProgressRowRenderState = {
   total: number;
   current: number;
+  fillPercent: number;
   completed: boolean;
   rowIndexClass: string;
   fillProgressClass: string;
@@ -33,6 +34,7 @@ const getProgressRowRenderState = (
 ): ProgressRowRenderState => {
   const total = Math.max(row.total, 1);
   const current = Math.min(Math.max(row.current, 0), total);
+  const fillPercent = Math.min(Math.max((current / total) * 100, 0), 100);
   const completed = row.completed || current >= total;
   const shouldSkipCompletionAnimation =
     completed && current === total && !row.animateCompletion;
@@ -40,6 +42,7 @@ const getProgressRowRenderState = (
   return {
     total,
     current,
+    fillPercent,
     completed,
     rowIndexClass: `score-card-progress-row--index-${index}`,
     fillProgressClass: `score-card-progress-fill--${current}-of-${total}`,
@@ -80,6 +83,7 @@ const ScoreCardProgressRows: React.FC<ScoreCardProgressRowsProps> = ({
         const {
           total,
           current,
+          fillPercent,
           completed,
           rowIndexClass,
           fillProgressClass,
@@ -126,6 +130,7 @@ const ScoreCardProgressRows: React.FC<ScoreCardProgressRowsProps> = ({
                 <div
                   id="score-card-progress-fill--dailyReward"
                   className={fillClassName}
+                  style={{ width: fillPercent + '%' }}
                 />
               </div>
               <div
@@ -173,6 +178,7 @@ const ScoreCardProgressRows: React.FC<ScoreCardProgressRowsProps> = ({
               <div
                 id="score-card-progress-fill--sticker"
                 className={fillClassName}
+                style={{ width: fillPercent + '%' }}
               />
             </div>
             <div

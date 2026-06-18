@@ -21,6 +21,7 @@ import {
   TableTypes,
   LIDO_COMMON_AUDIO_DIR,
   FAIL_STREAK_KEY,
+  IS_REWARD_FEATURE_ON,
   RESULT_STATUS,
   SOURCE,
 } from '../common/constants';
@@ -75,6 +76,8 @@ const LidoPlayer: FC = () => {
           ? SOURCE.INITIAL_ASSESSMENT
           : SOURCE.LEARNING_PATHWAY_HOME_NO_PAL
         : SOURCE.SUBJECT_PAGE);
+  const shouldShowDailyRewardProgressRow =
+    localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
   const shouldShowScoreCardProgressRows = [
     SOURCE.LEARNING_PATHWAY_HOMEWORK,
     SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
@@ -1304,7 +1307,13 @@ const LidoPlayer: FC = () => {
               ? {
                   completedCourseId: courseDetail?.id ?? courseDocId,
                   completedLessonId: lessonDetail?.id ?? lessonId ?? undefined,
+                  completedHomeworkIndex:
+                    state?.isHomework &&
+                    typeof state?.homeworkIndex === 'number'
+                      ? state.homeworkIndex
+                      : undefined,
                   animateDailyReward: Boolean(state?.reward),
+                  showDailyReward: shouldShowDailyRewardProgressRow,
                 }
               : undefined
           }
