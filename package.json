@@ -79,7 +79,7 @@
     "leaflet": "^1.9.4",
     "libphonenumber-js": "^1.12.18",
     "lido-player": "^0.0.2-alpha-77",
-    "lido-standalone": "^0.0.0-beta-11",
+    "lido-standalone": "^0.0.0-beta-12",
     "qrcode.react": "^4.2.0",
     "query-string": "^9.3.1",
     "react": "^19.1.1",
@@ -122,7 +122,7 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "GENERATE_SOURCEMAP=false craco build && npx @capawesome/cli manifests:generate --path build && cap sync && npm run build-storybook",
+    "build": "craco build && npx @capawesome/cli manifests:generate --path build && cap sync && npm run build-storybook",
     "create-check-sum": "node scripts/check_sum_generator.js",
     "serve-build": "http-server build",
     "test": "craco test",
