@@ -4,6 +4,7 @@ import { Util } from '../utility/util';
 import {
   ASSESSMENT_FAIL_KEY,
   BUNDLE_ZIP_URLS,
+  LIDO_BUNDLE_ZIP_URLS,
   EVENTS,
   HOMEWORK_PATHWAY,
   LIDO_SCORES_KEY,
@@ -43,6 +44,7 @@ import logger from '../utility/logger';
 import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import {
   getBundleZipUrlsForEnv,
+  getLidoBundleZipUrlsForEnv,
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
 
@@ -65,7 +67,15 @@ const resolveLessonZipUrl = async (
     new Set(zipBaseUrls.map((zipUrl) => zipUrl.trim()).filter(Boolean)),
   )) {
     try {
-      const zipUrl = new URL(`${lessonId}.zip`, baseUrl).toString();
+      const zipUrl = new URL(
+        `${lessonId}.zip`,
+        baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`,
+      ).toString();
+      logger.warn('[LidoPlayer] Probing ZIP URL', {
+        lessonId,
+        baseUrl,
+        zipUrl,
+      });
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -93,6 +103,11 @@ const resolveLessonZipUrl = async (
         }
 
         if (response.ok) {
+          logger.warn('[LidoPlayer] Using ZIP URL', {
+            lessonId,
+            baseUrl,
+            zipUrl,
+          });
           return zipUrl;
         }
       } finally {
