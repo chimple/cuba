@@ -3,23 +3,24 @@ import {
   CampaignRewardType,
   CampaignTargetType,
 } from '../../../services/api/ServiceApi';
+import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
 import type { CampaignRewardRankFormState } from './types';
 
 export const OBJECTIVE_OPTIONS: Array<{
   value: CampaignObjective;
   label: string;
 }> = [
-  { value: 'homework_campaign', label: 'Homework Campaign' },
+  { value: CAMPAIGN_OBJECTIVE.HOMEWORK, label: 'Homework Campaign' },
   {
-    value: 'homepage_learning_pathway_campaign',
+    value: CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY,
     label: 'Homepage Learning Pathway Campaign',
   },
 ];
 
 export const OBJECTIVE_DESCRIPTION: Record<CampaignObjective, string> = {
-  homework_campaign:
+  [CAMPAIGN_OBJECTIVE.HOMEWORK]:
     'Assign subject-wise lessons to students over a defined schedule with configurable frequency and tracking.',
-  homepage_learning_pathway_campaign:
+  [CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY]:
     'Encourage students to complete structured learning paths at subject-level.',
 };
 

@@ -7,6 +7,7 @@ import type {
   CampaignRewardType,
   CampaignTargetType,
 } from '../../services/api/ServiceApi';
+import { CAMPAIGN_OBJECTIVE } from '../../common/constants';
 import {
   CampaignCommunicationTimelineStep,
   CampaignAssignmentStep,
@@ -102,7 +103,8 @@ const CampaignSetupPage: React.FC = () => {
   const canProceedFromCampaignSetup =
     campaignSetup.isFormValid && !hasNoTargetAudienceStudents;
   const isHomepageLearningPathwayCampaign =
-    campaignSetup.form.objective === 'homepage_learning_pathway_campaign';
+    campaignSetup.form.objective ===
+    CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY;
   const stepperSteps = isHomepageLearningPathwayCampaign
     ? ['Setup', 'Rewards', 'Messaging', 'Review']
     : ['Setup', 'Assignments', 'Rewards', 'Messaging', 'Review'];
@@ -204,7 +206,8 @@ const CampaignSetupPage: React.FC = () => {
     setActiveStepSafe(
       campaignSetup.activeStep === 1 ||
         (campaignSetup.activeStep === 2 &&
-          campaignSetup.form.objective === 'homepage_learning_pathway_campaign')
+          campaignSetup.form.objective ===
+            CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY)
         ? 0
         : campaignSetup.activeStep - 1,
     );
@@ -286,14 +289,14 @@ const CampaignSetupPage: React.FC = () => {
         campaignName: campaignSetup.form.campaignName.trim(),
         objective: campaignSetup.form.objective as CampaignObjective,
         targetType:
-          campaignSetup.form.objective === 'homework_campaign'
+          campaignSetup.form.objective === CAMPAIGN_OBJECTIVE.HOMEWORK
             ? (campaignSetup.form.targetType as CampaignTargetType)
             : undefined,
         targetValue:
-          campaignSetup.form.objective === 'homework_campaign'
+          campaignSetup.form.objective === CAMPAIGN_OBJECTIVE.HOMEWORK
             ? Number(campaignSetup.form.targetValue)
             : campaignSetup.form.objective ===
-                'homepage_learning_pathway_campaign'
+                CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY
               ? Number(campaignSetup.form.learningPathCount)
               : undefined,
         managerId: campaignSetup.form.managerId,

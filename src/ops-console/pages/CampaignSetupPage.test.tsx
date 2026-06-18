@@ -9,6 +9,7 @@ import {
 import { getTodayDateValue } from '../hooks/campaignSetupFormHelpers';
 import CampaignSetupPage from './CampaignSetupPage';
 import { buildCampaignRewardsPayload } from '../hooks/campaignSetupFormHelpers';
+import { CAMPAIGN_OBJECTIVE } from '../../common/constants';
 
 const mockGoBack = jest.fn();
 const mockTranslate = (
@@ -627,7 +628,7 @@ describe('CampaignSetupPage', () => {
         expect.objectContaining({
           campaignId: 'campaign-1',
           currentUserId: 'user-1',
-          objective: 'homework_campaign',
+          objective: CAMPAIGN_OBJECTIVE.HOMEWORK,
           messagingRows: [
             expect.objectContaining({
               messageTime: expect.any(String),
@@ -938,7 +939,7 @@ describe('CampaignSetupPage', () => {
   it('builds rewards payload in the next-step format', () => {
     expect(
       buildCampaignRewardsPayload({
-        objective: 'homework_campaign',
+        objective: CAMPAIGN_OBJECTIVE.HOMEWORK,
         targetType: 'percentage_completion',
         targetValue: '90',
         learningPathCount: '',

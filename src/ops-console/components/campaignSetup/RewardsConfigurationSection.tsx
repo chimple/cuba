@@ -11,6 +11,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { RANK_LABELS, REWARD_TYPE_OPTIONS, requiredLabel } from './constants';
 import { RewardsConfigurationSectionProps } from './types';
+import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
 import './RewardsConfigurationSection.css';
 
 type TranslationValues = Record<string, string | number>;
@@ -48,7 +49,7 @@ export const RewardsConfigurationSection: React.FC<
     return translated === key ? fallback : translated;
   };
   const usesLessonCount =
-    form.objective === 'homepage_learning_pathway_campaign' ||
+    form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY ||
     form.targetType === 'number_of_lessons';
   const criteriaLabel = usesLessonCount
     ? translate('Number of Lessons')

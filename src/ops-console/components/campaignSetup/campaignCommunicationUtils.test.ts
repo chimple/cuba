@@ -3,6 +3,7 @@ import {
   buildCampaignMessagingPayload,
   formatDateTimeForDatabase,
 } from './campaignCommunicationUtils';
+import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
 
 describe('campaignCommunicationUtils', () => {
   it('formats communication times as full timestamps for timestamptz columns', () => {
@@ -49,7 +50,7 @@ describe('campaignCommunicationUtils', () => {
   it('uses campaign duration dates for homepage learning pathway campaigns', () => {
     expect(
       buildCommunicationTimelineDates([], {
-        objective: 'homepage_learning_pathway_campaign',
+        objective: CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY,
         targetType: 'percentage_completion',
         targetValue: '',
         learningPathCount: '5',

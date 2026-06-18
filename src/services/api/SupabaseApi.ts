@@ -50,6 +50,7 @@ import {
   ProgramType,
   LATEST_LEARNING_PATH,
   REWARD_LEARNING_PATH,
+  CAMPAIGN_OBJECTIVE,
 } from '../../common/constants';
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
@@ -9578,28 +9579,13 @@ export class SupabaseApi implements ServiceApi {
       throw new Error('Campaign rewards are required.');
     }
     const requiresAssignments =
-      payload.objective !== 'homepage_learning_pathway_campaign';
+      payload.objective !== CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY;
 
     if (requiresAssignments && payload.assignments.length === 0) {
       throw new Error('Campaign assignments are required.');
     }
     if (payload.messagingRows.length === 0) {
       throw new Error('Campaign communication is required.');
-    }
-
-    const updatedAt = new Date().toISOString();
-    const { error: assignmentCleanupError } = await this.supabase
-      .from(TABLES.Assignment)
-      .update({ is_deleted: true, updated_at: updatedAt })
-      .eq('campaign_id', payload.campaignId)
-      .eq('is_deleted', false);
-
-    if (assignmentCleanupError) {
-      logger.error(
-        'Error clearing previous campaign assignments:',
-        assignmentCleanupError,
-      );
-      throw assignmentCleanupError;
     }
 
     if (requiresAssignments) {
@@ -9704,20 +9690,6 @@ export class SupabaseApi implements ServiceApi {
           throw error;
         }
       }
-    }
-
-    const { error: messagingCleanupError } = await this.supabase
-      .from('campaign_messaging')
-      .update({ is_deleted: true, updated_at: updatedAt })
-      .eq('campaign_id', payload.campaignId)
-      .eq('is_deleted', false);
-
-    if (messagingCleanupError) {
-      logger.error(
-        'Error clearing previous campaign messaging:',
-        messagingCleanupError,
-      );
-      throw messagingCleanupError;
     }
 
     const messagingRows = payload.messagingRows.map((row) => ({

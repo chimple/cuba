@@ -1381,6 +1381,11 @@ export const CAMPAIGN_ACCESS_ROLES = [
   RoleType.OPERATIONAL_DIRECTOR,
   RoleType.PROGRAM_MANAGER,
 ];
+
+export const CAMPAIGN_OBJECTIVE = {
+  HOMEWORK: 'homework_campaign',
+  HOMEPAGE_LEARNING_PATHWAY: 'homepage_learning_pathway_campaign',
+} as const;
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
 export const VERSION_KEY = 'last_native_version';
 export enum SupportLevelMap {

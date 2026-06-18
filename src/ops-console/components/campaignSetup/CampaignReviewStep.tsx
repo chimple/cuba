@@ -27,6 +27,7 @@ import {
 import { CampaignReachSummary } from './campaignCommunicationTypes';
 import { CampaignSetupFormState } from './types';
 import { ReviewCard, ReviewRow } from './CampaignReviewComponents';
+import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
 import './CampaignReviewStep.css';
 
 export type CampaignReviewData = {
@@ -96,7 +97,7 @@ const getRewardTypeLabel = (value: CampaignSetupFormState['rewardType']) =>
   emptyValue;
 
 const getObjectiveLabel = (form: CampaignSetupFormState) => {
-  if (form.objective === 'homepage_learning_pathway_campaign') {
+  if (form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY) {
     return 'Homepage Learning Pathway Campaign';
   }
   if (!form.targetType) return 'Homework Campaign';
@@ -161,7 +162,7 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
     reviewData.messagingRows.length - visibleMessagingRows.length;
   const usesLessonCriteria = usesLessonRewardCriteria(reviewData.form);
   const isHomepageLearningPathwayCampaign =
-    reviewData.form.objective === 'homepage_learning_pathway_campaign';
+    reviewData.form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY;
 
   return (
     <Box className="campaign-review-step">

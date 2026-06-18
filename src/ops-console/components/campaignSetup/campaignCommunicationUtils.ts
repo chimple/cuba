@@ -1,4 +1,5 @@
 import { t } from 'i18next';
+import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
 import { CampaignAssignmentDraft } from './campaignAssignmentUtils';
 import { CampaignSetupFormState } from './types';
 
@@ -51,7 +52,7 @@ export const buildCommunicationTimelineDates = (
   assignmentDrafts: CampaignAssignmentDraft[],
   form?: CampaignSetupFormState,
 ): string[] => {
-  if (form?.objective === 'homepage_learning_pathway_campaign') {
+  if (form?.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY) {
     return buildCampaignDurationTimelineDates(form.startDate, form.endDate);
   }
 
