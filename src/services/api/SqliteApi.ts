@@ -116,6 +116,7 @@ import {
   ServiceApi,
 } from './ServiceApi';
 import { SupabaseApi } from './SupabaseApi';
+import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
@@ -3778,6 +3779,46 @@ export class SqliteApi implements ServiceApi {
       resultMap[data.lesson_id] = data;
     }
     return resultMap;
+  }
+
+  async hasStudentResult(studentId: string): Promise<boolean> {
+    try {
+      await this.ensureInitialized();
+      const { classes } = await this.getStudentClassesAndSchools(studentId);
+      const classId = this.currentClass?.id ?? classes[0]?.id;
+
+      if (classes.length > 0) {
+        if (!classId) {
+          logger.warn(
+            '[SqliteApi] Unable to resolve class for linked student result check',
+            { studentId },
+          );
+          return false;
+        }
+
+        const res = await this._db?.query(
+          `SELECT 1
+         FROM ${TABLES.Result}
+         WHERE student_id = "${studentId}"
+           AND class_id = "${classId}"
+           AND is_deleted = 0
+         LIMIT 1`,
+        );
+        return (res?.values?.length ?? 0) > 0;
+      }
+
+      const res = await this._db?.query(
+        `SELECT 1
+       FROM ${TABLES.Result}
+       WHERE student_id = "${studentId}"
+         AND is_deleted = 0
+       LIMIT 1`,
+      );
+      return (res?.values?.length ?? 0) > 0;
+    } catch (error) {
+      logger.error('Error checking student result', error);
+      return true;
+    }
   }
 
   async getClassById(id: string): Promise<TableTypes<'class'> | undefined> {
@@ -9755,8 +9796,7 @@ order by
     if (!latestBatchId) return [];
 
     /* ==========================================
-     * Check if batch is ABORTED
-     * (2 consecutive system_exit results)
+     * Check if batch is closed by termination or abort
      * ========================================== */
     const abortCheckQuery = `
     SELECT assignment_id, status
@@ -9785,10 +9825,7 @@ order by
     const abortRes = await this._db?.query(abortCheckQuery);
     const lastTwoResults = abortRes?.values ?? [];
 
-    if (
-      lastTwoResults.length === 2 &&
-      lastTwoResults.every((r: any) => r.status === 'system_exit')
-    ) {
+    if (isAssessmentBatchClosed(lastTwoResults)) {
       // 🚫 Assessment group is aborted
       return [];
     }

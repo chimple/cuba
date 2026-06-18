@@ -28,6 +28,7 @@ import {
   PAGES,
   SOURCE,
   REWARD_LEARNING_PATH,
+  ACTIVATION_REWARD_FLOW_KEY,
   REWARD_MODAL_SHOWN_DATE,
   RewardBoxState,
   STICKER_BOOK_COMPLETION_READY_EVENT,
@@ -689,10 +690,37 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         onPlaybackStop?: () => void;
       },
     ): Promise<boolean> => {
-      const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
-        'dailyReward',
-        'reward',
+      let localAudioPath: string | null = null;
+      const pendingActivationRewardFlow = sessionStorage.getItem(
+        ACTIVATION_REWARD_FLOW_KEY,
       );
+
+      if (pendingActivationRewardFlow) {
+        if (pendingActivationRewardFlow === 'true') {
+          const languageCode = await AudioUtil.getAudioLanguageCode();
+          localAudioPath = `/assets/audios/activationLesson/complete/${languageCode}_activation_lesson_complete.mp3`;
+          sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+        } else {
+          try {
+            const parsed = JSON.parse(pendingActivationRewardFlow);
+            if (parsed) {
+              const languageCode = await AudioUtil.getAudioLanguageCode();
+              localAudioPath = `/assets/audios/activationLesson/complete/${languageCode}_activation_lesson_complete.mp3`;
+              sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+            }
+          } catch {
+            sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+          }
+        }
+      }
+
+      if (!localAudioPath) {
+        localAudioPath = await AudioUtil.getLocalizedAudioUrl(
+          'dailyReward',
+          'reward',
+        );
+      }
+
       if (!localAudioPath) {
         playbackOptions?.onPlaybackStop?.();
         return false;
@@ -797,6 +825,19 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     loadSvgRequestIdRef.current = requestId;
 
     try {
+      const pendingActivationRewardFlowRaw = sessionStorage.getItem(
+        ACTIVATION_REWARD_FLOW_KEY,
+      );
+      const hasPendingActivationRewardFlow =
+        pendingActivationRewardFlowRaw === 'true' ||
+        (() => {
+          if (!pendingActivationRewardFlowRaw) return false;
+          try {
+            return Boolean(JSON.parse(pendingActivationRewardFlowRaw));
+          } catch {
+            return false;
+          }
+        })();
       const pendingRewardIndexRaw = sessionStorage.getItem(
         HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
       );
@@ -1069,6 +1110,15 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         /^-?\d+$/.test(rewardCompletedIndexRaw)
           ? Number(rewardCompletedIndexRaw)
           : null;
+      const activationRewardIndex =
+        hasPendingActivationRewardFlow &&
+        pendingRewardCompletedIndex === null &&
+        typeof pendingRewardTransition?.completedIndex !== 'number' &&
+        Number.isFinite(currentIndex) &&
+        currentIndex >= 0 &&
+        currentIndex < lessonsToRender.length
+          ? currentIndex
+          : null;
       const completedRewardIndex =
         typeof pendingRewardCompletedIndex === 'number' &&
         Number.isFinite(pendingRewardCompletedIndex) &&
@@ -1080,7 +1130,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               pendingRewardTransition.completedIndex >= 0 &&
               pendingRewardTransition.completedIndex < lessonsToRender.length
             ? pendingRewardTransition.completedIndex
-            : currentCompletedIndexFromPath;
+            : typeof activationRewardIndex === 'number'
+              ? activationRewardIndex
+              : currentCompletedIndexFromPath;
 
       if (typeof newRewardId !== 'string') {
         sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
@@ -2024,6 +2076,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           : localStorage.getItem(HOMEWORK_PATHWAY);
         const visualConfigSignature = [
           rewardBoxVariant ?? 'no-reward-box-variant',
+          sessionStorage.getItem(ACTIVATION_REWARD_FLOW_KEY) ??
+            'no-activation-reward-flow',
           isStickerBookPreviewOn ? 'preview-on' : 'preview-off',
           isStickerBookCelebrationPopupOn
             ? 'celebration-on'

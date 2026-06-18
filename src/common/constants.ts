@@ -965,6 +965,7 @@ export enum EVENTS {
   LIVE_UPDATE_APPLIED = 'live_update_applied',
   LIVE_UPDATE_STARTED = 'live_update_started',
   LIVE_UPDATE_ERROR = 'live_update_error',
+  USER_ACTIVATION_LESSON = 'user_activation_lesson',
   ASSESSMENT_ABORTED = 'assessment_aborted',
   ASSESSMENT_COMPLETED = 'assessment_completed',
   RESULTS_SAVED = 'results_saved',
@@ -1360,6 +1361,7 @@ export const DAILY_USER_REWARD = 'DailyUserReward';
 export const IDLE_REWARD_ID = '5dfa8e34-14a3-42de-ae3a-977862712b1e';
 export const REWARD_LESSON = 'RewardLesson';
 export const REWARD_LEARNING_PATH = 'RewardLearningPath';
+export const ACTIVATION_REWARD_FLOW_KEY = 'ActivationRewardFlow';
 export enum RewardBoxState {
   IDLE = 'idle',
   SHAKING = 'shaking',
@@ -1379,6 +1381,11 @@ export const CAMPAIGN_ACCESS_ROLES = [
   RoleType.OPERATIONAL_DIRECTOR,
   RoleType.PROGRAM_MANAGER,
 ];
+
+export const CAMPAIGN_OBJECTIVE = {
+  HOMEWORK: 'homework_campaign',
+  HOMEPAGE_LEARNING_PATHWAY: 'homepage_learning_pathway_campaign',
+} as const;
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
 export const VERSION_KEY = 'last_native_version';
 export enum SupportLevelMap {
