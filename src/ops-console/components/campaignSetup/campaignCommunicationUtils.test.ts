@@ -1,4 +1,5 @@
 import {
+  buildCommunicationTimelineDates,
   buildCampaignMessagingPayload,
   formatDateTimeForDatabase,
 } from './campaignCommunicationUtils';
@@ -43,5 +44,24 @@ describe('campaignCommunicationUtils', () => {
         message: 'Hello',
       }),
     ]);
+  });
+
+  it('uses campaign duration dates for homepage learning pathway campaigns', () => {
+    expect(
+      buildCommunicationTimelineDates([], {
+        objective: 'homepage_learning_pathway_campaign',
+        targetType: 'percentage_completion',
+        targetValue: '',
+        learningPathCount: '5',
+        campaignName: 'Pathway Campaign',
+        managerId: 'manager-1',
+        startDate: '2099-05-01',
+        endDate: '2099-05-03',
+        programId: 'program-1',
+        groupName: 'Group A',
+        rewardType: '',
+        rewardRanks: [],
+      }),
+    ).toEqual(['2099-05-01', '2099-05-02', '2099-05-03']);
   });
 });

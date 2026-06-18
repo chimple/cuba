@@ -292,6 +292,7 @@ export type CampaignLaunchDetailsPayload = {
 export type LaunchCampaignPayload = {
   campaignId: string;
   currentUserId: string;
+  objective: CampaignObjective;
   rewards: CampaignRewardsPayload;
   assignments: CampaignLaunchAssignmentPayload[];
   messagingRows: CampaignLaunchMessagingPayload[];

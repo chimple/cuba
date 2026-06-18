@@ -31,8 +31,8 @@ const CampaignCommunicationTimelineStep: React.FC<
   const { t } = useTranslation();
   const timeOptions = useMemo(() => buildTimeOptions(), []);
   const timelineDates = useMemo(
-    () => buildCommunicationTimelineDates(assignmentDrafts),
-    [assignmentDrafts],
+    () => buildCommunicationTimelineDates(assignmentDrafts, form),
+    [assignmentDrafts, form],
   );
   const { campaignReach, loadingReach } = useCampaignReach(selectedSchoolIds);
 
