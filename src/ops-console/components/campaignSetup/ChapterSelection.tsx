@@ -68,7 +68,7 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
                         {chapter.name}
                       </Typography>
                       <Typography className="chapter-selection-activity-count">
-                        {chapter.lessons.length} Lessons
+                        {chapter.lessons.length} {t('Lessons')}
                       </Typography>
                       <Button
                         type="button"
