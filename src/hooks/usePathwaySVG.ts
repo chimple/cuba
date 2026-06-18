@@ -33,6 +33,8 @@ import { fetchStickerBookSvgText } from '../utility/stickerBookAssets';
 import { setCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import { useAppSelector } from '../redux/hooks';
 import { t } from 'i18next';
+import { getCachedImageSrc } from '../utility/imageCache';
+import { mapInBatches } from '../utility/batch';
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -524,8 +526,32 @@ export function usePathwaySVG({
         }
       }
 
+      const resolvedLessonImageUrls = await mapInBatches(
+        lessons,
+        5,
+        async (lesson) => {
+          const isValidUrl =
+            typeof lesson.image === 'string' &&
+            /^(https?:\/\/|\/)/.test(lesson.image);
+          const lessonImageUrl = isValidUrl
+            ? (lesson.image ?? 'assets/icons/DefaultIcon.png')
+            : 'assets/icons/DefaultIcon.png';
+
+          return await getCachedImageSrc(lessonImageUrl);
+        },
+      );
+      const resolvedHaloSrc =
+        typeof halo === 'string' ? await getCachedImageSrc(halo) : null;
+      const resolvedPointerSrc = await getCachedImageSrc(
+        '/pathwayAssets/touchpointer.svg',
+      );
+      const resolvedStickerImageSrc =
+        typeof stickerPreviewPayload?.nextStickerImage === 'string'
+          ? await getCachedImageSrc(stickerPreviewPayload.nextStickerImage)
+          : null;
+
       // Build SVG in next frame to keep main thread responsive
-      requestAnimationFrame(async () => {
+      requestAnimationFrame(() => {
         if (!containerRef.current) {
           stopPathwayLoading();
           return;
@@ -610,7 +636,8 @@ export function usePathwaySVG({
           return flower_Inactive;
         };
         // Build lesson nodes
-        lessons.forEach((lesson: any, idx: number) => {
+        for (let idx = 0; idx < lessons.length; idx += 1) {
+          const lesson = lessons[idx];
           const path = paths[idx];
           const point = path.getPointAtLength(0);
           const flowerX = point.x - 40;
@@ -621,16 +648,9 @@ export function usePathwaySVG({
           const isActive =
             startIndex + idx === currentIndex && activeIndex !== -1;
 
-          const isValidUrl =
-            typeof lesson.image === 'string' &&
-            /^(https?:\/\/|\/)/.test(lesson.image);
-
-          const lessonImageUrl =
-            isPlayed || isActive
-              ? isValidUrl
-                ? lesson.image
-                : 'assets/icons/DefaultIcon.png'
-              : 'assets/icons/NextNodeIcon.svg';
+          logger.warn('lesson image:', lesson.image);
+          const resolvedLessonImageUrl =
+            resolvedLessonImageUrls[idx] ?? 'assets/icons/DefaultIcon.png';
 
           const positionMappings = {
             playedLesson: {
@@ -649,7 +669,13 @@ export function usePathwaySVG({
               'http://www.w3.org/2000/svg',
               'g',
             );
-            const lessonImage = createSVGImage(lessonImageUrl, 30, 30, 28, 30);
+            const lessonImage = createSVGImage(
+              resolvedLessonImageUrl,
+              30,
+              30,
+              28,
+              30,
+            );
             playedLesson.appendChild(
               playedLessonSVG.cloneNode(true) as SVGGElement,
             );
@@ -675,7 +701,13 @@ export function usePathwaySVG({
 
             // halo
             if (typeof halo === 'string') {
-              const haloImg = createSVGImage(halo, 140, 140, -15, -12);
+              const haloImg = createSVGImage(
+                resolvedHaloSrc || halo,
+                140,
+                140,
+                -15,
+                -12,
+              );
               activeGroup.appendChild(haloImg);
             } else {
               const haloNode = halo.cloneNode(true) as
@@ -688,14 +720,20 @@ export function usePathwaySVG({
               activeGroup.appendChild(haloNode);
             }
 
-            const lessonImage = createSVGImage(lessonImageUrl, 30, 30, 40, 40);
+            const lessonImage = createSVGImage(
+              resolvedLessonImageUrl,
+              30,
+              30,
+              40,
+              40,
+            );
             activeGroup.appendChild(
               flowerActive.cloneNode(true) as SVGGElement,
             );
             activeGroup.appendChild(lessonImage);
 
             const pointer = createSVGImage(
-              '/pathwayAssets/touchpointer.svg',
+              resolvedPointerSrc,
               35,
               35,
               85,
@@ -723,8 +761,7 @@ export function usePathwaySVG({
             );
           }
           lastIndex = idx;
-        });
-
+        }
         for (let i = lastIndex + 1; i < PATH_SIZE; i++) {
           const path = paths[i];
           const point = path.getPointAtLength(0);
@@ -864,10 +901,10 @@ export function usePathwaySVG({
 
           rewardGroup.appendChild(bg);
           // Reuse the same resolved sticker image that powers the preview modal.
-          if (nextStickerImageSrc) {
+          if (resolvedStickerImageSrc) {
             rewardGroup.appendChild(
               createSVGImage(
-                nextStickerImageSrc,
+                resolvedStickerImageSrc,
                 contentWidth,
                 contentHeight,
                 horizontalPadding,
@@ -1018,8 +1055,10 @@ export function usePathwaySVG({
 
         if (shouldSkipRewardAnimationForSticker) {
           setHasTodayReward(false);
-          await updateMascotToNormalState(newRewardIdFromCheck as string);
-          await Util.updateUserReward();
+          void (async () => {
+            await updateMascotToNormalState(newRewardIdFromCheck as string);
+            await Util.updateUserReward();
+          })();
         }
 
         if (shouldRunRewardAnimation) {
@@ -1361,13 +1400,15 @@ export function usePathwaySVG({
   };
 
   async function preloadAllLessonImages(lessons: any[]) {
-    Promise.all(
-      lessons.map((lesson) => {
+    await Promise.all(
+      lessons.map(async (lesson) => {
+        logger.warn('lesson image:', lesson.image);
         const isValidUrl =
           typeof lesson.image === 'string' &&
           /^(https?:\/\/|\/)/.test(lesson.image);
         const src = isValidUrl ? lesson.image : 'assets/icons/DefaultIcon.png';
-        return preloadImage(src);
+        const resolvedSrc = await getCachedImageSrc(src);
+        return preloadImage(resolvedSrc);
       }),
     );
   }

@@ -9292,6 +9292,7 @@ order by
         set_number: number;
         language_id: string | null;
         locale_id: string | null;
+        lesson_id: string | null;
       };
       type ResultStatusRow = {
         lesson_id: string | null;
@@ -9354,7 +9355,7 @@ order by
 
       // 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
       const setQuery = `
-      SELECT DISTINCT set_number, language_id, locale_id
+      SELECT DISTINCT set_number, language_id, locale_id, lesson_id
       FROM subject_lesson
       WHERE subject_id = ?
         AND is_deleted = 0
@@ -9406,10 +9407,24 @@ order by
       const setNumber = candidateSets[randomIndex];
       const useStrictLanguageTrack =
         !!langId && preferredSets.includes(setNumber);
+      const assessmentLessonIds = Array.from(
+        new Set(
+          setRows
+            .map((row) => row.lesson_id)
+            .filter((lessonId): lessonId is string => !!lessonId),
+        ),
+      );
+
+      if (!assessmentLessonIds.length) {
+        return {} as TableTypes<'subject_lesson'>;
+      }
 
       /* ==========================================
        * 3️⃣ Abort Check (with assignment_id IS NULL)
        * ========================================== */
+      const abortLessonPlaceholders = assessmentLessonIds
+        .map(() => '?')
+        .join(', ');
       const abortQuery = `
         SELECT lesson_id, status
         FROM (
@@ -9422,20 +9437,26 @@ order by
             WHERE student_id = ?
               AND subject_id = ?
               AND assignment_id IS NULL
+              AND lesson_id IN (${abortLessonPlaceholders})
               AND is_deleted = 0
         ) t
         WHERE rn = 1
         ORDER BY created_at DESC
-        LIMIT 2;
+        LIMIT 50;
       `;
 
-      const abortParams: (string | null)[] = [studentId, subjectId];
+      const abortParams: (string | null)[] = [
+        studentId,
+        subjectId,
+        ...assessmentLessonIds,
+      ];
       const abortRes = await this.executeQuery(abortQuery, abortParams);
 
-      const lastTwo = ((abortRes as DBSQLiteValues | undefined)?.values ??
-        []) as ResultStatusRow[];
+      const uniqueAssessmentResults = ((abortRes as DBSQLiteValues | undefined)
+        ?.values ?? []) as ResultStatusRow[];
+      const lastTwo = uniqueAssessmentResults.slice(0, 2);
 
-      const isAssessmentTerminated = lastTwo.some(
+      const isAssessmentTerminated = uniqueAssessmentResults.some(
         (r) => r.status === 'assessment_terminated',
       );
       const isAborted =
@@ -9443,7 +9464,7 @@ order by
         lastTwo.every((r) => r.status === 'system_exit');
 
       if (isAssessmentTerminated || isAborted) {
-        return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
+        return {} as TableTypes<'subject_lesson'>; // Aborted group
       }
 
       /* ==========================================
@@ -9819,13 +9840,27 @@ order by
     ) t
     WHERE rn = 1
     ORDER BY created_at DESC
-    LIMIT 2;
+    LIMIT 50;
     `;
 
     const abortRes = await this._db?.query(abortCheckQuery);
-    const lastTwoResults = abortRes?.values ?? [];
+    type AssignmentAbortResultRow = {
+      assignment_id?: string | null;
+      status?: string | null;
+    };
+    const uniqueAssignmentResults = (abortRes?.values ??
+      []) as AssignmentAbortResultRow[];
+    const lastTwoResults = uniqueAssignmentResults.slice(0, 2);
 
-    if (isAssessmentBatchClosed(lastTwoResults)) {
+    const isAssessmentTerminated = uniqueAssignmentResults.some(
+      (result) => result.status === 'assessment_terminated',
+    );
+    const isAborted =
+      isAssessmentTerminated ||
+      (lastTwoResults.length === 2 &&
+        lastTwoResults.every((r) => r.status === 'system_exit'));
+
+    if (isAborted) {
       // 🚫 Assessment group is aborted
       return [];
     }

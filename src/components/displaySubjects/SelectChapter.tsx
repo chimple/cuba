@@ -51,6 +51,7 @@ const SelectChapter: FC<{
                     localSrc={`courses/${course.code}/icons/${chapter.id}.webp`}
                     defaultSrc={'assets/icons/DefaultIcon.png'}
                     webSrc={chapter.image || 'assets/icons/DefaultIcon.png'}
+                    enableOfflineDownload={true}
                     imageWidth={'100%'}
                     imageHeight={'auto'}
                   />
