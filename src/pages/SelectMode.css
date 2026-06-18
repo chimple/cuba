@@ -157,6 +157,7 @@
   align-items: stretch;
   overflow: hidden;
   height: 50px;
+  margin-top: -5px;
 }
 
 .school-mode-class-strip-static {
@@ -268,16 +269,16 @@
 }
 
 .school-mode-class-profile-selection-text {
-  margin: -0.2vh 0 0;
+  margin: -0.2vh 0 -5px 0;
   color: #1d315d;
-  font-size: clamp(11px, 1vw, 14px);
+  font-size: clamp(16px, 1vw, 14px);
   font-weight: 500;
   line-height: 1.2;
   text-align: center;
 }
 
 .class-container {
-  --display-students-card-width: clamp(138px, min(20vw, 28vh), 188px);
+  --display-students-card-width: clamp(180px, min(20vw, 28vh), 188px);
   --display-students-card-height: calc(
     var(--display-students-card-width) * 0.92
   );
@@ -304,13 +305,14 @@
   margin-top: 0.2vh;
   display: grid;
   grid-template-columns: repeat(4, var(--display-students-card-width));
-  gap: clamp(10px, 1.4vw, 16px);
+  row-gap: clamp(6px, 0.8vw, 10px);
+  column-gap: clamp(16px, 2.2vw, 24px);
   justify-content: center;
   align-content: start;
   /* max-height: calc(
     (var(--display-students-card-height) * 2) + clamp(10px, 1.4vw, 16px)
   ); */
-  padding: 0 clamp(12px, 3vw, 32px) 0.8vh;
+  padding: 0 clamp(14px, 3vw, 32px) 0.8vh;
   overflow-x: hidden;
   overflow-y: auto;
 }
@@ -355,8 +357,8 @@
 }
 
 .school-mode-student-avatar {
-  width: clamp(42px, 4.4vw, 58px);
-  height: clamp(42px, 4.4vw, 58px);
+  width: clamp(55px, 4.4vw, 58px);
+  height: clamp(55px, 4.4vw, 58px);
   margin-bottom: 6px;
 }
 
@@ -372,7 +374,7 @@
 
   font-family: 'Baloo 2', 'BalooRegular', cursive;
   font-weight: 400;
-  font-size: clamp(10px, 1vw, 13px);
+  font-size: clamp(8px, 1vw, 13px);
   line-height: normal;
   text-align: center;
   text-overflow: ellipsis;
@@ -401,8 +403,8 @@
   justify-content: center;
   align-items: center;
 
-  width: clamp(66px, 6.8vw, 88px);
-  height: 34px;
+  width: clamp(90px, 6.8vw, 88px);
+  height: 45px;
   padding: 8px clamp(14px, 1.8vw, 20px);
   overflow: hidden;
 
@@ -415,8 +417,8 @@
   color: #fff;
 
   font-family: 'Baloo 2', 'BalooRegular', cursive;
-  font-weight: 600;
-  font-size: clamp(10px, 1vw, 13px);
+  font-weight: 700;
+  font-size: clamp(16px, 1vw, 13px);
   font-style: normal;
   line-height: 1;
 
@@ -513,7 +515,7 @@
   }
 
   .school-mode-class-strip {
-    height: 56px;
+    height: 40px;
   }
 
   .school-mode-class-tab {
