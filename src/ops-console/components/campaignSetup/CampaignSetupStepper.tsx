@@ -5,10 +5,12 @@ import './CampaignSetupStepper.css';
 
 type CampaignSetupStepperProps = {
   activeStep?: number;
+  steps?: string[];
 };
 
 export const CampaignSetupStepper: React.FC<CampaignSetupStepperProps> = ({
   activeStep = 0,
+  steps = ['Setup', 'Assignments', 'Rewards', 'Messaging', 'Review'],
 }) => {
   const stepperRef = useRef<HTMLDivElement | null>(null);
   const activeStepRef = useRef<HTMLDivElement | null>(null);
@@ -44,26 +46,22 @@ export const CampaignSetupStepper: React.FC<CampaignSetupStepperProps> = ({
       aria-label="Campaign steps"
     >
       <Box className="campaign-setup-stepper-track">
-        {['Setup', 'Assignments', 'Rewards', 'Messaging', 'Review'].map(
-          (step, index) => (
-            <React.Fragment key={step}>
-              <Box
-                ref={index === activeStep ? activeStepRef : null}
-                className={`campaign-setup-stepper-step ${
-                  index === activeStep
-                    ? 'campaign-setup-stepper-step-active'
-                    : ''
-                } ${index < activeStep ? 'campaign-setup-stepper-step-complete' : ''}`}
-              >
-                <span>{index < activeStep ? <Check /> : index + 1}</span>
-                <strong>{step}</strong>
-              </Box>
-              {index < 4 && (
-                <span className="campaign-setup-stepper-step-line" />
-              )}
-            </React.Fragment>
-          ),
-        )}
+        {steps.map((step, index) => (
+          <React.Fragment key={step}>
+            <Box
+              ref={index === activeStep ? activeStepRef : null}
+              className={`campaign-setup-stepper-step ${
+                index === activeStep ? 'campaign-setup-stepper-step-active' : ''
+              } ${index < activeStep ? 'campaign-setup-stepper-step-complete' : ''}`}
+            >
+              <span>{index < activeStep ? <Check /> : index + 1}</span>
+              <strong>{step}</strong>
+            </Box>
+            {index < steps.length - 1 && (
+              <span className="campaign-setup-stepper-step-line" />
+            )}
+          </React.Fragment>
+        ))}
       </Box>
     </Box>
   );

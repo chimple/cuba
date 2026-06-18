@@ -18,6 +18,7 @@ import {
 } from './constants';
 import { CampaignSelectPlaceholder } from './CampaignPlaceholder';
 import { ObjectiveGoalSectionProps } from './types';
+import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
 import './ObjectiveGoalSection.css';
 
 export const ObjectiveGoalSection: React.FC<ObjectiveGoalSectionProps> = ({
@@ -69,7 +70,7 @@ export const ObjectiveGoalSection: React.FC<ObjectiveGoalSectionProps> = ({
     </Box>
 
     <Box className="campaign-setup-grid objective-goal-section-target-grid">
-      {form.objective === 'homework_campaign' && (
+      {form.objective === CAMPAIGN_OBJECTIVE.HOMEWORK && (
         <>
           <Box className="campaign-setup-field">
             <Typography className="campaign-setup-label">
@@ -118,7 +119,7 @@ export const ObjectiveGoalSection: React.FC<ObjectiveGoalSectionProps> = ({
         </>
       )}
 
-      {form.objective === 'homepage_learning_pathway_campaign' && (
+      {form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY && (
         <Box className="campaign-setup-field">
           <Typography className="campaign-setup-label">
             {requiredLabel('Number of Learning Paths')}

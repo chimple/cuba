@@ -9,6 +9,7 @@ import {
 import { getTodayDateValue } from '../hooks/campaignSetupFormHelpers';
 import CampaignSetupPage from './CampaignSetupPage';
 import { buildCampaignRewardsPayload } from '../hooks/campaignSetupFormHelpers';
+import { CAMPAIGN_OBJECTIVE } from '../../common/constants';
 
 const mockGoBack = jest.fn();
 const mockTranslate = (
@@ -175,6 +176,8 @@ const getDateValueDaysFromToday = (daysFromToday: number) => {
   return getTodayDateValue(date);
 };
 
+const getCampaignStepper = () => screen.getByLabelText('Campaign steps');
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockAssignmentComplete = false;
@@ -241,6 +244,9 @@ describe('CampaignSetupPage', () => {
     expect(screen.getByText('Campaign Details')).toBeInTheDocument();
     expect(screen.getByText('Target Audience')).toBeInTheDocument();
     expect(screen.getByText('Save this group for reuse')).toBeInTheDocument();
+    expect(
+      within(getCampaignStepper()).getByText('Assignments'),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
   });
 
@@ -284,6 +290,9 @@ describe('CampaignSetupPage', () => {
 
     await screen.findByRole('heading', { name: 'New Campaign' });
     expect(screen.getByText('Target Type')).toBeInTheDocument();
+    expect(
+      within(getCampaignStepper()).getByText('Assignments'),
+    ).toBeInTheDocument();
 
     fireEvent.click(
       screen.getByRole('button', {
@@ -293,6 +302,12 @@ describe('CampaignSetupPage', () => {
 
     expect(screen.getByText('Number of Learning Paths')).toBeInTheDocument();
     expect(screen.queryByText('Target Type')).not.toBeInTheDocument();
+    expect(
+      within(getCampaignStepper()).queryByText('Assignments'),
+    ).not.toBeInTheDocument();
+    expect(
+      within(getCampaignStepper()).getByText('Rewards'),
+    ).toBeInTheDocument();
   });
 
   it('opens date pickers and restricts campaign dates to today onward', async () => {
@@ -613,6 +628,7 @@ describe('CampaignSetupPage', () => {
         expect.objectContaining({
           campaignId: 'campaign-1',
           currentUserId: 'user-1',
+          objective: CAMPAIGN_OBJECTIVE.HOMEWORK,
           messagingRows: [
             expect.objectContaining({
               messageTime: expect.any(String),
@@ -658,7 +674,47 @@ describe('CampaignSetupPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await screen.findByText('Rewards Configuration');
 
+    expect(
+      within(getCampaignStepper()).queryByText('Assignments'),
+    ).not.toBeInTheDocument();
+    expect(
+      within(getCampaignStepper()).getByText('Rewards'),
+    ).toBeInTheDocument();
     expect(screen.getAllByText('Number of Lessons').length).toBeGreaterThan(0);
+
+    await openSelectAndChoose('Select Reward Type', 'Digital Rewards');
+    fireEvent.change(screen.getByLabelText('1st Number of Lessons'), {
+      target: { value: '10' },
+    });
+    fireEvent.change(screen.getByLabelText('2nd Number of Lessons'), {
+      target: { value: '7' },
+    });
+    fireEvent.change(screen.getByLabelText('3rd Number of Lessons'), {
+      target: { value: '5' },
+    });
+    fireEvent.change(screen.getByLabelText('1st Reward'), {
+      target: { value: 'Gold Reward' },
+    });
+    fireEvent.change(screen.getByLabelText('2nd Reward'), {
+      target: { value: 'Silver Reward' },
+    });
+    fireEvent.change(screen.getByLabelText('3rd Reward'), {
+      target: { value: 'Bronze Reward' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+
+    expect(
+      screen.getByRole('heading', { name: 'Campaign Communication Timeline' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        'No campaign days are available yet. Complete assignment setup to generate the communication schedule.',
+      ),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getAllByPlaceholderText('Enter daily campaign message...').length,
+    ).toBeGreaterThan(0);
   });
 
   it('hides save-group controls when an existing saved group is selected and restores them when cleared', async () => {
@@ -883,7 +939,7 @@ describe('CampaignSetupPage', () => {
   it('builds rewards payload in the next-step format', () => {
     expect(
       buildCampaignRewardsPayload({
-        objective: 'homework_campaign',
+        objective: CAMPAIGN_OBJECTIVE.HOMEWORK,
         targetType: 'percentage_completion',
         targetValue: '90',
         learningPathCount: '',

@@ -1,7 +1,9 @@
 import {
+  buildCommunicationTimelineDates,
   buildCampaignMessagingPayload,
   formatDateTimeForDatabase,
 } from './campaignCommunicationUtils';
+import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
 
 describe('campaignCommunicationUtils', () => {
   it('formats communication times as full timestamps for timestamptz columns', () => {
@@ -43,5 +45,24 @@ describe('campaignCommunicationUtils', () => {
         message: 'Hello',
       }),
     ]);
+  });
+
+  it('uses campaign duration dates for homepage learning pathway campaigns', () => {
+    expect(
+      buildCommunicationTimelineDates([], {
+        objective: CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY,
+        targetType: 'percentage_completion',
+        targetValue: '',
+        learningPathCount: '5',
+        campaignName: 'Pathway Campaign',
+        managerId: 'manager-1',
+        startDate: '2099-05-01',
+        endDate: '2099-05-03',
+        programId: 'program-1',
+        groupName: 'Group A',
+        rewardType: '',
+        rewardRanks: [],
+      }),
+    ).toEqual(['2099-05-01', '2099-05-02', '2099-05-03']);
   });
 });

@@ -4,6 +4,7 @@ import Lesson from '../../models/lesson';
 import { StudentLessonResult } from '../../common/courseConstants';
 import {
   CACHETABLES,
+  CAMPAIGN_OBJECTIVE,
   CoordinatorAPIResponse,
   EnumType,
   FilteredSchoolsForSchoolListingOps,
@@ -160,8 +161,7 @@ type ActivitiesFilterOptions = {
 };
 
 export type CampaignObjective =
-  | 'homework_campaign'
-  | 'homepage_learning_pathway_campaign';
+  (typeof CAMPAIGN_OBJECTIVE)[keyof typeof CAMPAIGN_OBJECTIVE];
 
 export type CampaignTargetType = 'percentage_completion' | 'number_of_lessons';
 
@@ -292,6 +292,7 @@ export type CampaignLaunchDetailsPayload = {
 export type LaunchCampaignPayload = {
   campaignId: string;
   currentUserId: string;
+  objective: CampaignObjective;
   rewards: CampaignRewardsPayload;
   assignments: CampaignLaunchAssignmentPayload[];
   messagingRows: CampaignLaunchMessagingPayload[];

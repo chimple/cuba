@@ -14,6 +14,7 @@ import {
   GradeAssignmentConfig,
 } from './campaignAssignmentUtils';
 import { CampaignSetupFormState } from './types';
+import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
 
 jest.mock('../../../utility/logger', () => ({
   __esModule: true,
@@ -24,7 +25,7 @@ jest.mock('../../../utility/logger', () => ({
 }));
 
 const baseForm: CampaignSetupFormState = {
-  objective: 'homework_campaign',
+  objective: CAMPAIGN_OBJECTIVE.HOMEWORK,
   targetType: 'percentage_completion',
   targetValue: '90',
   learningPathCount: '',
