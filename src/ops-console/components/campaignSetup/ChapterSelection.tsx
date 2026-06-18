@@ -4,6 +4,7 @@ import { ExpandLess, ExpandMore } from '@mui/icons-material';
 import { CampaignAssignmentSubjectOption } from '../../../services/api/ServiceApi';
 import { GradeAssignmentConfig } from './campaignAssignmentUtils';
 import './ChapterSelection.css';
+import { t } from 'i18next';
 
 type ChapterSelectionProps = {
   gradeName: string;
