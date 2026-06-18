@@ -4,6 +4,7 @@ import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
 import './SubjectSelectionComponent.css';
 import { t } from 'i18next';
 import logger from '../../utility/logger';
+import CachedImage from '../../components/common/CachedImage';
 
 interface SubjectSelectionProps {
   curriculumsWithCourses: {
@@ -68,7 +69,7 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
             return (
               <div key={course.id} className="subject-item">
                 <div className="subject-selection-div">
-                  <img
+                  <CachedImage
                     src={course?.image || 'assets/icons/DefaultIcon.png'}
                     alt={course.name || 'Default Subject Icon'}
                     className="subject-icon"
