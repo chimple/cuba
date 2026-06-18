@@ -3,6 +3,7 @@ import ScoreCard from './ScoreCard';
 import { AudioUtil } from '../../utility/AudioUtil';
 import { Util } from '../../utility/util';
 import { EVENTS } from '../../common/constants';
+import { ServiceConfig } from '../../services/ServiceConfig';
 
 jest.mock('../../utility/AudioUtil', () => ({
   AudioUtil: {
@@ -15,6 +16,16 @@ jest.mock('../../utility/util', () => ({
   Util: {
     getCurrentStudent: jest.fn(),
     logEvent: jest.fn(),
+  },
+}));
+
+jest.mock('../../services/ServiceConfig', () => ({
+  ServiceConfig: {
+    getI: jest.fn(() => ({
+      authHandler: {
+        getCurrentUser: jest.fn().mockResolvedValue({ id: 'parent-1' }),
+      },
+    })),
   },
 }));
 
@@ -36,6 +47,11 @@ describe('ScoreCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      authHandler: {
+        getCurrentUser: jest.fn().mockResolvedValue({ id: 'parent-1' }),
+      },
+    });
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({
       id: 'student-1',
       name: 'Student One',
@@ -65,9 +81,13 @@ describe('ScoreCard', () => {
         expect.objectContaining({
           action: 'shown',
           score: 80,
+          parent_id: 'parent-1',
           student_id: 'student-1',
           student_stars: 5,
           progress_rows_count: 0,
+          lesson_name: 'Lesson One',
+          course_id: 'null',
+          lesson_id: 'null',
         }),
       ),
     );
@@ -105,9 +125,15 @@ describe('ScoreCard', () => {
         EVENTS.CLICKS_ANALYTICS,
         expect.objectContaining({
           action: 'continue_click',
-          click_identifier: 'noButton',
+          click_identifier: 'lesson_end_continue',
           click_value: 'Continue Playing',
           action_type: 'click',
+          user_id: 'parent-1',
+          parent_id: 'parent-1',
+          student_id: 'student-1',
+          lesson_name: 'Lesson One',
+          course_id: 'null',
+          lesson_id: 'null',
         }),
       ),
     );

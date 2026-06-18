@@ -1317,6 +1317,8 @@ const LidoPlayer: FC = () => {
                 }
               : undefined
           }
+          courseId={courseDetail?.id ?? courseDocId}
+          lessonId={lessonDetail?.id ?? lessonId ?? undefined}
           showProgressRows={shouldShowScoreCardProgressRows}
           variant="progress"
         />
