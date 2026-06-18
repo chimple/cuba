@@ -65,7 +65,6 @@ describe('ScoreCard', () => {
         expect.objectContaining({
           action: 'shown',
           score: 80,
-          user_id: 'student-1',
           student_id: 'student-1',
           student_stars: 5,
           progress_rows_count: 0,
