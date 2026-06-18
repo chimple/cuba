@@ -1,4 +1,10 @@
-import React, { MouseEventHandler, useEffect, useState } from 'react';
+import React, {
+  MouseEventHandler,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import './ScoreCard.css';
 import { Dialog, DialogContentText } from '@mui/material';
 import ScoreCardStarIcons from './ScoreCardStarIcons';
@@ -9,7 +15,7 @@ import ScoreCardProgressRows, {
 import i18n from '../../i18n';
 import { t } from 'i18next';
 import { AudioUtil } from '../../utility/AudioUtil';
-import { TableTypes } from '../../common/constants';
+import { EVENTS, TableTypes } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { buildScoreCardProgressRows } from './scoreCardLogic';
@@ -20,6 +26,7 @@ const EMPTY_PROGRESS_ROWS: ScoreCardProgressRowData[] = [];
 const resolveScoreCardStudentContext = async (): Promise<{
   student: TableTypes<'user'> | undefined;
   studentId: string | undefined;
+  parentId: string | undefined;
 }> => {
   const authHandler = ServiceConfig.getI()?.authHandler;
   const currentUser = await authHandler?.getCurrentUser();
@@ -28,6 +35,7 @@ const resolveScoreCardStudentContext = async (): Promise<{
   return {
     student,
     studentId: student?.id ?? currentUser?.id,
+    parentId: currentUser?.id,
   };
 };
 
@@ -38,11 +46,15 @@ const ScoreCard: React.FC<{
   lessonName: string;
   noText: string;
   audioUrl?: string;
+  courseId?: string;
+  lessonId?: string;
   progressRows?: ScoreCardProgressRowData[];
   progressContext?: {
     completedCourseId?: string;
     completedLessonId?: string;
+    completedHomeworkIndex?: number;
     animateDailyReward?: boolean;
+    showDailyReward?: boolean;
   };
   showProgressRows?: boolean;
   variant?: 'default' | 'progress';
@@ -55,6 +67,8 @@ const ScoreCard: React.FC<{
   score,
   noText,
   audioUrl = SCORECARD_AUDIO_URL,
+  courseId,
+  lessonId,
   progressRows,
   progressContext,
   variant = 'default',
@@ -65,6 +79,7 @@ const ScoreCard: React.FC<{
   const [resolvedProgressRows, setResolvedProgressRows] = useState<
     ScoreCardProgressRowData[]
   >(progressRows ?? EMPTY_PROGRESS_ROWS);
+  const [isLoadingRows, setIsLoadingRows] = useState(false);
   const hasProvidedProgressRows = Boolean(progressRows?.length);
   const displayedProgressRows = showProgressRows
     ? hasProvidedProgressRows
@@ -84,8 +99,57 @@ const ScoreCard: React.FC<{
     displayedProgressRows.length,
     2,
   )}`;
+  const hasLoggedGoalProgressRef = useRef(false);
+
+  const logGoalProgressShown = useCallback(async () => {
+    const { student, studentId, parentId } =
+      await resolveScoreCardStudentContext();
+    Util.logEvent(EVENTS.GOAL_PROGRESS, {
+      action: 'shown',
+      score,
+      parent_id: parentId ?? 'null',
+      student_id: studentId ?? 'null',
+      student_stars: student?.stars ?? 'null',
+      progress_rows_count: displayedProgressRows.length,
+      course_id: courseId ?? progressContext?.completedCourseId ?? 'null',
+      lesson_id: lessonId ?? progressContext?.completedLessonId ?? 'null',
+      lesson_name: lessonName ?? 'null',
+    });
+  }, [
+    displayedProgressRows.length,
+    courseId,
+    lessonId,
+    progressContext?.completedCourseId,
+    progressContext?.completedLessonId,
+    lessonName,
+    score,
+  ]);
+
+  const logContinueClick = useCallback(async () => {
+    const { studentId, parentId } = await resolveScoreCardStudentContext();
+    Util.logEvent(EVENTS.CLICKS_ANALYTICS, {
+      action: 'continue_click',
+      click_value: 'Continue Playing',
+      click_identifier: 'lesson_end_continue',
+      action_type: 'click',
+      user_id: parentId ?? studentId ?? 'null',
+      parent_id: parentId ?? 'null',
+      student_id: studentId ?? 'null',
+      course_id: courseId ?? progressContext?.completedCourseId ?? 'null',
+      lesson_id: lessonId ?? progressContext?.completedLessonId ?? 'null',
+      lesson_name: lessonName ?? 'null',
+    });
+  }, [
+    lessonName,
+    courseId,
+    lessonId,
+    progressContext?.completedCourseId,
+    progressContext?.completedLessonId,
+  ]);
+
   const handleContinueClick: MouseEventHandler<HTMLButtonElement> = (event) => {
     void AudioUtil.stopAudioUrlOrTtsPlayback();
+    void logContinueClick();
     onContinueButtonClicked(event);
   };
 
@@ -106,20 +170,31 @@ const ScoreCard: React.FC<{
         return;
       }
 
-      const { student, studentId } = await resolveScoreCardStudentContext();
-      const apiHandler = ServiceConfig.getI()?.apiHandler;
-      if (!apiHandler) return;
+      setIsLoadingRows(true);
+      try {
+        const { student, studentId } = await resolveScoreCardStudentContext();
+        const apiHandler = ServiceConfig.getI()?.apiHandler;
+        if (!apiHandler) return;
 
-      const progressRowsForScoreCard = await buildScoreCardProgressRows({
-        api: apiHandler,
-        student,
-        studentId,
-        completedCourseId: progressContext?.completedCourseId,
-        completedLessonId: progressContext?.completedLessonId,
-        animateDailyReward: progressContext?.animateDailyReward,
-      });
+        const progressRowsForScoreCard = await buildScoreCardProgressRows({
+          api: apiHandler,
+          student,
+          studentId,
+          completedCourseId: progressContext?.completedCourseId,
+          completedLessonId: progressContext?.completedLessonId,
+          completedHomeworkIndex: progressContext?.completedHomeworkIndex,
+          animateDailyReward: progressContext?.animateDailyReward,
+          showDailyReward: progressContext?.showDailyReward,
+        });
 
-      if (!isCancelled) setResolvedProgressRows(progressRowsForScoreCard);
+        if (!isCancelled) {
+          setResolvedProgressRows(progressRowsForScoreCard);
+        }
+      } catch {
+        // Keep the scorecard actionable even if progress lookup fails.
+      } finally {
+        if (!isCancelled) setIsLoadingRows(false);
+      }
     };
 
     void loadProgressRows();
@@ -133,12 +208,15 @@ const ScoreCard: React.FC<{
     progressContext?.animateDailyReward,
     progressContext?.completedCourseId,
     progressContext?.completedLessonId,
+    progressContext?.completedHomeworkIndex,
+    progressContext?.showDailyReward,
     showDialogBox,
     variant,
   ]);
 
   useEffect(() => {
     if (!showDialogBox) {
+      hasLoggedGoalProgressRef.current = false;
       void AudioUtil.stopAudioUrlOrTtsPlayback();
       return;
     }
@@ -153,6 +231,15 @@ const ScoreCard: React.FC<{
       void AudioUtil.stopAudioUrlOrTtsPlayback();
     };
   }, [audioUrl, lessonName, message, showDialogBox]);
+
+  useEffect(() => {
+    if (!showDialogBox || isLoadingRows || hasLoggedGoalProgressRef.current) {
+      return;
+    }
+
+    hasLoggedGoalProgressRef.current = true;
+    void logGoalProgressShown();
+  }, [isLoadingRows, logGoalProgressShown, showDialogBox]);
 
   return (
     <div>
@@ -200,19 +287,23 @@ const ScoreCard: React.FC<{
             </div>
           </DialogContentText>
         </div>
-        <ScoreCardProgressRows rows={displayedProgressRows} />
-        <div
-          id="ScoreCard-Continue-Button-div"
-          className="ScoreCard-Continue-Button-div"
-        >
-          <button
-            id="noButton"
-            className={`dialog-box-button-style-score-card ${progressRowCountClass} ${i18n.language === 'kn' ? 'scorecard-button-kn' : ''}`}
-            onClick={handleContinueClick}
-          >
-            <span>{noText}</span>
-          </button>
-        </div>
+        {isLoadingRows ? null : (
+          <>
+            <ScoreCardProgressRows rows={displayedProgressRows} />
+            <div
+              id="ScoreCard-Continue-Button-div"
+              className="ScoreCard-Continue-Button-div"
+            >
+              <button
+                id="lesson_end_continue"
+                className={`dialog-box-button-style-score-card ${progressRowCountClass} ${i18n.language === 'kn' ? 'scorecard-button-kn' : ''}`}
+                onClick={handleContinueClick}
+              >
+                <span>{noText}</span>
+              </button>
+            </div>
+          </>
+        )}
       </Dialog>
     </div>
   );

@@ -930,6 +930,7 @@ export enum EVENTS {
   LESSON_END = 'lesson_end',
   LESSON_INCOMPLETE = 'lesson_incomplete',
   USER_PROFILE = 'user_profile',
+  GOAL_PROGRESS = 'Goal_Progress',
   CLICKS_ANALYTICS = 'clicks_analytics',
   EXPERIMENT_VIEWED = 'experiment_viewed',
   PATHWAY_CREATED = 'pathway_created',

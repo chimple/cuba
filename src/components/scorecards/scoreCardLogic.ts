@@ -36,7 +36,10 @@ const stickerImageCache: Record<string, string> = {};
 
 type StickerBookSummary = {
   id?: string | null;
+  title?: string | null;
   svg_url?: string | null;
+  total_stickers?: number | null;
+  stickers_metadata?: { id: string; sequence: number }[] | null;
 } | null;
 
 type AwardedStickerContext = {
@@ -44,6 +47,9 @@ type AwardedStickerContext = {
   createdAt: string | null;
   stickerBookId: string | null;
   stickerBookSvgUrl: string | null;
+  collectedStickerIds?: string[];
+  totalStickerCount?: number | null;
+  completed?: boolean;
 };
 
 type StickerRowIcon = {
@@ -78,6 +84,9 @@ type LearningPathData = {
 export type ScoreCardLogicApi = {
   getCurrentStickerBookWithProgress: (studentId: string) => Promise<{
     book?: StickerBookSummary;
+    progress?: {
+      stickers_collected?: string[] | null;
+    } | null;
   } | null>;
   getNextWinnableSticker: (
     stickerBookId: string,
@@ -87,6 +96,9 @@ export type ScoreCardLogicApi = {
   getUserStickerBook: (
     userId: string,
   ) => Promise<TableTypes<'user_sticker_book'>[]>;
+  getAllStickerBooks?: () => Promise<
+    { id?: string | null; svg_url?: string | null }[]
+  >;
 };
 
 type BuildScoreCardProgressRowsParams = {
@@ -95,7 +107,9 @@ type BuildScoreCardProgressRowsParams = {
   studentId?: string;
   completedCourseId?: string;
   completedLessonId?: string;
+  completedHomeworkIndex?: number;
   animateDailyReward?: boolean;
+  showDailyReward?: boolean;
 };
 
 const parseDailyRewardSnapshot = (
@@ -407,6 +421,11 @@ const normalizeStickerIds = (value: unknown): string[] => {
   }
 };
 
+const appendUniqueStickerId = (stickerIds: string[], stickerId?: string) => {
+  if (!stickerId || stickerIds.includes(stickerId)) return stickerIds;
+  return [...stickerIds, stickerId];
+};
+
 const getPendingAwardedStickerContext = (
   studentId?: string,
 ): AwardedStickerContext | null => {
@@ -441,6 +460,23 @@ const getPendingAwardedStickerContext = (
       : completionPayload.collectedStickerIds[
           completionPayload.collectedStickerIds.length - 1
         ];
+  const completionCollectedStickerIds = normalizeStickerIds(
+    completionPayload?.collectedStickerIds,
+  );
+  const previewCollectedStickerIds = appendUniqueStickerId(
+    normalizeStickerIds(previewReward?.preAwardCollectedStickerIds),
+    awardedStickerId,
+  );
+  const collectedStickerIds =
+    completionCollectedStickerIds.length > 0
+      ? completionCollectedStickerIds
+      : previewCollectedStickerIds.length > 0
+        ? previewCollectedStickerIds
+        : undefined;
+  const totalStickerCount =
+    typeof completionPayload?.totalStickerCount === 'number'
+      ? completionPayload.totalStickerCount
+      : null;
 
   return {
     awardedStickerId,
@@ -466,6 +502,13 @@ const getPendingAwardedStickerContext = (
         : typeof completionPayload?.stickerBookSvgUrl === 'string'
           ? completionPayload.stickerBookSvgUrl
           : null,
+    collectedStickerIds,
+    totalStickerCount,
+    completed: Boolean(
+      totalStickerCount &&
+      collectedStickerIds &&
+      collectedStickerIds.length >= totalStickerCount,
+    ),
   };
 };
 
@@ -505,11 +548,29 @@ const getLatestCompletedStickerBookToday = async (
       ];
     if (!awardedStickerId) return null;
 
+    const stickerBookId = latestCompleted.row.sticker_book_id ?? null;
+    let stickerBookSvgUrl: string | null = null;
+
+    if (stickerBookId && typeof api.getAllStickerBooks === 'function') {
+      try {
+        const allBooks = await api.getAllStickerBooks();
+        const matchedBook = allBooks.find((b) => b.id === stickerBookId);
+        if (matchedBook?.svg_url) {
+          stickerBookSvgUrl = matchedBook.svg_url;
+        }
+      } catch {
+        // Ignore fetch errors, fallback to null
+      }
+    }
+
     return {
       awardedStickerId,
       createdAt: latestCompleted.row.updated_at ?? null,
-      stickerBookId: latestCompleted.row.sticker_book_id ?? null,
-      stickerBookSvgUrl: null,
+      stickerBookId,
+      stickerBookSvgUrl,
+      collectedStickerIds: latestCompleted.collectedStickerIds,
+      totalStickerCount: latestCompleted.collectedStickerIds.length,
+      completed: true,
     };
   } catch {
     return null;
@@ -520,12 +581,49 @@ const getCurrentPathwayStickerProgress = ({
   student,
   completedCourseId,
   completedLessonId,
+  completedHomeworkIndex,
 }: {
   student?: TableTypes<'user'>;
   completedCourseId?: string;
   completedLessonId?: string;
-}): number => {
-  if (!student) return 1;
+  completedHomeworkIndex?: number;
+}): { current: number; total: number } => {
+  // Only use homework_pathway localStorage when we are actually in a homework
+  // lesson. If completedHomeworkIndex is undefined, we are in a regular
+  // learning pathway and must not read stale homework data.
+  if (
+    typeof completedHomeworkIndex === 'number' &&
+    typeof localStorage !== 'undefined'
+  ) {
+    try {
+      const hwStr = localStorage.getItem('homework_pathway');
+      if (hwStr) {
+        const hwPath = JSON.parse(hwStr);
+        const total = Array.isArray(hwPath?.lessons)
+          ? hwPath.lessons.length
+          : STICKER_PROGRESS_TOTAL;
+        const current = completedHomeworkIndex + 1;
+        return {
+          current: Math.min(Math.max(current, 0), total),
+          total,
+        };
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }
+
+  if (typeof completedHomeworkIndex === 'number') {
+    return {
+      current: Math.min(
+        Math.max(completedHomeworkIndex + 1, 1),
+        STICKER_PROGRESS_TOTAL,
+      ),
+      total: STICKER_PROGRESS_TOTAL,
+    };
+  }
+
+  if (!student) return { current: 1, total: STICKER_PROGRESS_TOTAL };
 
   try {
     const learningPath = resolveProgressLearningPath({
@@ -533,7 +631,7 @@ const getCurrentPathwayStickerProgress = ({
       completedCourseId,
       completedLessonId,
     });
-    if (!learningPath) return 1;
+    if (!learningPath) return { current: 1, total: STICKER_PROGRESS_TOTAL };
 
     const progressCourse = getProgressCourse({
       completedCourseId,
@@ -544,6 +642,7 @@ const getCurrentPathwayStickerProgress = ({
       progressCourse && Array.isArray(progressCourse.path)
         ? progressCourse.path
         : [];
+    const total = STICKER_PROGRESS_TOTAL;
     const playedCount = lessons.filter((lesson) => lesson?.isPlayed).length;
     const completedLessonStillPending = completedLessonId
       ? lessons.some(
@@ -555,9 +654,12 @@ const getCurrentPathwayStickerProgress = ({
     const effectivePlayedCount =
       playedCount + (completedLessonStillPending ? 1 : 0);
 
-    return Math.min(Math.max(effectivePlayedCount, 1), STICKER_PROGRESS_TOTAL);
+    return {
+      current: Math.min(Math.max(effectivePlayedCount, 1), total),
+      total,
+    };
   } catch {
-    return 1;
+    return { current: 1, total: STICKER_PROGRESS_TOTAL };
   }
 };
 
@@ -566,8 +668,9 @@ const resolveStickerRowContext = async (
   studentId: string,
 ): Promise<StickerRowContext> => {
   const sessionAwardedSticker = getPendingAwardedStickerContext(studentId);
-  const currentBook =
-    (await api.getCurrentStickerBookWithProgress(studentId))?.book ?? null;
+  const currentBookWithProgress =
+    await api.getCurrentStickerBookWithProgress(studentId);
+  const currentBook = currentBookWithProgress?.book ?? null;
   const completedTodayAwardedSticker = !currentBook?.id
     ? await getLatestCompletedStickerBookToday(api, studentId)
     : null;
@@ -578,7 +681,11 @@ const resolveStickerRowContext = async (
     isSameCalendarDay(pendingAwardedSticker.createdAt),
   );
   const shouldShowCompletedRow = Boolean(
-    !currentBook?.id && shouldShowAwardedSticker,
+    shouldShowAwardedSticker &&
+    (!currentBook?.id ||
+      pendingAwardedSticker?.completed ||
+      (pendingAwardedSticker?.stickerBookId &&
+        currentBook.id !== pendingAwardedSticker.stickerBookId)),
   );
 
   return {
@@ -605,11 +712,12 @@ const shouldAnimateStickerCompletionRow = (
   studentId: string,
   stickerRowContext: StickerRowContext,
   currentProgress: number,
+  totalProgress: number,
 ): boolean => {
   const awardedSticker = stickerRowContext.pendingAwardedSticker;
 
   if (
-    currentProgress !== STICKER_PROGRESS_TOTAL ||
+    currentProgress !== totalProgress ||
     !stickerRowContext.shouldShowAwardedSticker ||
     !awardedSticker?.awardedStickerId ||
     !isSameCalendarDay(awardedSticker.createdAt)
@@ -620,6 +728,22 @@ const shouldAnimateStickerCompletionRow = (
   return shouldAnimateOnce(
     getStickerCompletionAnimationKey(studentId, awardedSticker),
   );
+};
+
+const resolveStickerBookProgressCounts = (
+  _stickerRowContext: StickerRowContext,
+  pathwayProgress: { current: number; total: number },
+) => {
+  // Always use pathway progress (e.g. 2/6 lessons done) rather than
+  // sticker book collected counts. The completed row shows pathway total / total.
+  if (_stickerRowContext.shouldShowCompletedRow) {
+    return {
+      current: pathwayProgress.total,
+      total: pathwayProgress.total,
+    };
+  }
+
+  return pathwayProgress;
 };
 
 const resolveStickerIdToDisplay = async ({
@@ -691,15 +815,19 @@ const buildStickerRow = async ({
   studentId,
   completedCourseId,
   completedLessonId,
+  completedHomeworkIndex,
 }: BuildScoreCardProgressRowsParams): Promise<ScoreCardProgressRowData | null> => {
-  const currentProgress = getCurrentPathwayStickerProgress({
+  const pathwayProgress = getCurrentPathwayStickerProgress({
     student,
     completedCourseId,
     completedLessonId,
+    completedHomeworkIndex,
   });
 
   if (!studentId) {
-    return buildBaseStickerRow(currentProgress);
+    return buildBaseStickerRow(pathwayProgress.current, {
+      total: pathwayProgress.total,
+    });
   }
 
   try {
@@ -730,22 +858,27 @@ const buildStickerRow = async ({
       stickerBookSvgUrl,
     });
 
-    const displayedProgress = stickerRowContext.shouldShowCompletedRow
-      ? STICKER_PROGRESS_TOTAL
-      : currentProgress;
+    const displayedProgress = resolveStickerBookProgressCounts(
+      stickerRowContext,
+      pathwayProgress,
+    );
 
-    return buildBaseStickerRow(displayedProgress, {
+    return buildBaseStickerRow(displayedProgress.current, {
+      total: displayedProgress.total,
       iconSrc,
       iconAlt,
       completed: stickerRowContext.shouldShowCompletedRow,
       animateCompletion: shouldAnimateStickerCompletionRow(
         studentId,
         stickerRowContext,
-        displayedProgress,
+        displayedProgress.current,
+        displayedProgress.total,
       ),
     });
   } catch {
-    return buildBaseStickerRow(currentProgress);
+    return buildBaseStickerRow(pathwayProgress.current, {
+      total: pathwayProgress.total,
+    });
   }
 };
 
@@ -755,7 +888,9 @@ export const buildScoreCardProgressRows = async ({
   studentId,
   completedCourseId,
   completedLessonId,
+  completedHomeworkIndex,
   animateDailyReward = false,
+  showDailyReward = true,
 }: BuildScoreCardProgressRowsParams): Promise<ScoreCardProgressRowData[]> => {
   const stickerRow = await buildStickerRow({
     api,
@@ -763,15 +898,17 @@ export const buildScoreCardProgressRows = async ({
     studentId,
     completedCourseId,
     completedLessonId,
+    completedHomeworkIndex,
   });
 
-  const shouldAnimateDailyReward = shouldAnimateDailyRewardRow(
-    student,
-    studentId,
-    animateDailyReward,
-  );
+  const shouldAnimateDailyReward =
+    showDailyReward &&
+    shouldAnimateDailyRewardRow(student, studentId, animateDailyReward);
+  const dailyRewardRow = showDailyReward
+    ? buildDailyRewardRow(shouldAnimateDailyReward)
+    : null;
 
-  return [buildDailyRewardRow(shouldAnimateDailyReward), stickerRow].filter(
+  return [dailyRewardRow, stickerRow].filter(
     (row): row is ScoreCardProgressRowData => Boolean(row),
   );
 };
