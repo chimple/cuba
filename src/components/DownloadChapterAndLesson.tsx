@@ -32,7 +32,7 @@ const DownloadLesson: React.FC<{
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const lessonId = Util.getLessonBundleId(lesson) ?? undefined;
-  const isNativePlatform = true;
+  const isNativePlatform = Capacitor.isNativePlatform();
   useEffect(() => {
     init();
     setLoading(downloadButtonLoading);
