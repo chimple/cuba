@@ -100,7 +100,7 @@ const ScoreCard: React.FC<{
   const logScoreCardAnalytics = useCallback(
     async (eventName: EVENTS, action: ScoreCardAnalyticsAction) => {
       if (eventName === EVENTS.CLICKS_ANALYTICS) {
-        await Util.logEvent(eventName, {
+        Util.logEvent(eventName, {
           action,
           click_value: noText,
           click_identifier: 'noButton',
@@ -110,10 +110,9 @@ const ScoreCard: React.FC<{
       }
 
       const { student, studentId } = await resolveScoreCardStudentContext();
-      await Util.logEvent(eventName, {
+      Util.logEvent(eventName, {
         action,
         score,
-        user_id: studentId ?? 'null',
         student_id: studentId ?? 'null',
         student_stars: student?.stars ?? 'null',
         progress_rows_count: displayedProgressRows.length,
