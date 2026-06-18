@@ -4,7 +4,6 @@ import { Util } from '../utility/util';
 import {
   ASSESSMENT_FAIL_KEY,
   BUNDLE_ZIP_URLS,
-  LIDO_BUNDLE_ZIP_URLS,
   EVENTS,
   HOMEWORK_PATHWAY,
   LIDO_SCORES_KEY,
@@ -44,7 +43,6 @@ import logger from '../utility/logger';
 import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import {
   getBundleZipUrlsForEnv,
-  getLidoBundleZipUrlsForEnv,
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
 
@@ -71,36 +69,16 @@ const resolveLessonZipUrl = async (
         `${lessonId}.zip`,
         baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`,
       ).toString();
-      logger.warn('[LidoPlayer] Probing ZIP URL', {
-        lessonId,
-        baseUrl,
-        zipUrl,
-      });
+      logger.warn('[LidoPlayer] Trying ZIP URL', { lessonId, baseUrl, zipUrl });
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       try {
-        let response = await fetch(zipUrl, {
-          method: 'HEAD',
+        const response = await fetch(zipUrl, {
+          method: 'GET',
           cache: 'no-store',
           signal: controller.signal,
         });
-
-        if (
-          !response.ok &&
-          response.status !== 405 &&
-          response.status !== 501
-        ) {
-          continue;
-        }
-
-        if (!response.ok) {
-          response = await fetch(zipUrl, {
-            method: 'GET',
-            cache: 'no-store',
-            signal: controller.signal,
-          });
-        }
 
         if (response.ok) {
           logger.warn('[LidoPlayer] Using ZIP URL', {
