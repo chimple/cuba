@@ -117,12 +117,58 @@ import {
 } from './ServiceApi';
 import { SupabaseApi } from './SupabaseApi';
 import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
+
+type ImportJsonTable = {
+  name: string;
+  schema?: unknown[];
+  values?: unknown[][];
+  indexes?: unknown[];
+  triggers?: unknown[];
+};
+
+type ImportJsonData = {
+  database: string;
+  version: number;
+  encrypted: boolean;
+  mode: string;
+  tables: ImportJsonTable[];
+  views?: unknown[];
+  overwrite?: boolean;
+};
+
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = 'db_issue10';
   private DB_VERSION = 15;
+  private BUNDLED_IMPORT_VERSION_KEY = 'bundledImportSqliteVersion';
+  private BUNDLED_IMPORT_TABLES = new Set<string>([
+    TABLES.Curriculum,
+    TABLES.Subject,
+    TABLES.Grade,
+    TABLES.Language,
+    TABLES.Badge,
+    TABLES.Course,
+    TABLES.Sticker,
+    TABLES.Reward,
+    TABLES.Chapter,
+    TABLES.Lesson,
+    TABLES.ChapterLesson,
+    TABLES.ChapterLinks,
+    TABLES.RiveReward,
+    TABLES.Framework,
+    TABLES.Domain,
+    TABLES.Competency,
+    TABLES.Outcome,
+    TABLES.Skill,
+    TABLES.SkillRelation,
+    TABLES.SkillLesson,
+    TABLES.SubjectLesson,
+    TABLES.LanguageLocale,
+    TABLES.Locale,
+    TABLES.StickerBook,
+  ]);
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<'user'> | undefined;
@@ -141,6 +187,7 @@ export class SqliteApi implements ServiceApi {
   private _retryRefreshTables: TABLES[] = [];
   private _postSyncAssetPrefetchScheduled: boolean = false;
   private _postSyncAssetPrefetchRequestedAt: number | null = null;
+  private _shouldImportBundledDataAfterUpgrade: boolean = false;
 
   private _cachedRewards: TableTypes<'rive_reward'>[] | undefined;
 
@@ -309,6 +356,7 @@ export class SqliteApi implements ServiceApi {
         );
 
         await this._sqlite.addUpgradeStatement(this.DB_NAME, upgradeStatements);
+        this._shouldImportBundledDataAfterUpgrade = true;
 
         localStorage.setItem(
           CURRENT_SQLITE_VERSION,
@@ -372,6 +420,10 @@ export class SqliteApi implements ServiceApi {
             CURRENT_SQLITE_VERSION,
             this.DB_VERSION.toString(),
           );
+          localStorage.setItem(
+            this.BUNDLED_IMPORT_VERSION_KEY,
+            this.DB_VERSION.toString(),
+          );
           logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:', resImport);
 
           // Keep current web behavior; avoid native full page reload on first import.
@@ -385,6 +437,8 @@ export class SqliteApi implements ServiceApi {
       } catch (error) {
         logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
       }
+    } else {
+      await this.importBundledDataAfterUpgrade();
     }
     if (this._syncTableData) {
       const tableNames = Object.keys(this._syncTableData) ?? [];
@@ -413,6 +467,158 @@ export class SqliteApi implements ServiceApi {
     }
 
     await this.checkAndSyncData();
+  }
+
+  private async importBundledDataAfterUpgrade(): Promise<void> {
+    if (!this._db || !this._sqlite) return;
+
+    const appliedVersion = Number(
+      localStorage.getItem(this.BUNDLED_IMPORT_VERSION_KEY),
+    );
+    const shouldImport =
+      this._shouldImportBundledDataAfterUpgrade ||
+      Number.isNaN(appliedVersion) ||
+      appliedVersion < this.DB_VERSION;
+
+    if (!shouldImport) return;
+
+    try {
+      const importData = await fetch('databases/import.json');
+      if (!importData || !importData.ok) return;
+
+      const importJson = ((await importData.json()) ?? {}) as ImportJsonData;
+      const tables = (importJson.tables ?? []).filter(
+        (table) =>
+          this.BUNDLED_IMPORT_TABLES.has(table.name) &&
+          (table.values?.length ?? 0) > 0,
+      );
+
+      if (tables.length === 0) {
+        localStorage.setItem(
+          this.BUNDLED_IMPORT_VERSION_KEY,
+          this.DB_VERSION.toString(),
+        );
+        return;
+      }
+
+      const importedTableNames = await this.upsertBundledImportTables(tables);
+      await this.markBundledImportTablesPulled(importedTableNames);
+
+      if (!Capacitor.isNativePlatform()) {
+        await this._sqlite.saveToStore(this.DB_NAME);
+      }
+
+      localStorage.setItem(
+        this.BUNDLED_IMPORT_VERSION_KEY,
+        this.DB_VERSION.toString(),
+      );
+      this._shouldImportBundledDataAfterUpgrade = false;
+      logger.info(
+        '🚀 ~ SqliteApi ~ importBundledDataAfterUpgrade ~ imported tables:',
+        importedTableNames,
+      );
+    } catch (error) {
+      logger.error(
+        '🚀 ~ SqliteApi ~ importBundledDataAfterUpgrade ~ error:',
+        error,
+      );
+    }
+  }
+
+  private quoteSqlIdentifier(identifier: string): string {
+    return `"${identifier.replace(/"/g, '""')}"`;
+  }
+
+  private async upsertBundledImportTables(
+    tables: ImportJsonTable[],
+  ): Promise<string[]> {
+    if (!this._db) return [];
+
+    const importedTableNames: string[] = [];
+    const batchSize = this.getSyncWriteTuning().defaultBatchSize;
+
+    for (const table of tables) {
+      const schema = table.schema ?? [];
+      const values = table.values ?? [];
+      if (schema.length === 0 || values.length === 0) continue;
+
+      const importColumns = schema
+        .map((column) =>
+          typeof column === 'object' &&
+          column !== null &&
+          'column' in column &&
+          typeof column.column === 'string'
+            ? column.column
+            : undefined,
+        )
+        .filter((column): column is string => !!column);
+      if (importColumns.length === 0) continue;
+
+      const existingColumns = new Set(await this.getTableColumns(table.name));
+      const columnIndexes = importColumns
+        .map((column, index) => ({ column, index }))
+        .filter(({ column }) => existingColumns.has(column));
+      if (columnIndexes.length === 0) continue;
+
+      const conflictColumn = columnIndexes[0].column;
+      const insertColumns = columnIndexes.map(({ column }) => column);
+      const quotedTableName = this.quoteSqlIdentifier(table.name);
+      const quotedInsertColumns = insertColumns
+        .map((column) => this.quoteSqlIdentifier(column))
+        .join(', ');
+      const placeholders = insertColumns.map(() => '?').join(', ');
+      const updateColumns = insertColumns.filter(
+        (column) => column !== conflictColumn,
+      );
+      const conflictClause =
+        updateColumns.length > 0
+          ? `DO UPDATE SET ${updateColumns
+              .map((column) => {
+                const quotedColumn = this.quoteSqlIdentifier(column);
+                return `${quotedColumn} = excluded.${quotedColumn}`;
+              })
+              .join(', ')}`
+          : 'DO NOTHING';
+      const statement = `INSERT INTO ${quotedTableName} (${quotedInsertColumns}) VALUES (${placeholders}) ON CONFLICT(${this.quoteSqlIdentifier(
+        conflictColumn,
+      )}) ${conflictClause};`;
+
+      for (let offset = 0; offset < values.length; offset += batchSize) {
+        const batch = values.slice(offset, offset + batchSize).map((row) => ({
+          statement,
+          values: columnIndexes.map(({ index }) =>
+            this.normalizeSqliteValue(row[index]),
+          ),
+        }));
+
+        await this.executeSqlStatementBatch(batch);
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+      }
+
+      importedTableNames.push(table.name);
+    }
+
+    return importedTableNames;
+  }
+
+  private async markBundledImportTablesPulled(
+    tableNames: string[],
+  ): Promise<void> {
+    if (!this._db || tableNames.length === 0) return;
+
+    const lastPulled = new Date().toISOString();
+    const statements = tableNames.map((tableName) => ({
+      statement:
+        'INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)',
+      values: [tableName, lastPulled],
+    }));
+
+    await this.executeSqlStatementBatch(statements);
+
+    for (const tableName of tableNames) {
+      delete this._syncTableData[tableName];
+      this._tablesNeedingFullSync.delete(tableName);
+    }
   }
 
   private async checkAndSyncData() {
