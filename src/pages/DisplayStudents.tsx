@@ -173,6 +173,7 @@ const DisplayStudents: FC<{}> = () => {
                 <img
                   className="avatar-img display-students-avatar-img"
                   src={
+                    (studentMode === MODES.SCHOOL && student.image) ||
                     'assets/avatars/' + (student.avatar ?? AVATARS[0]) + '.png'
                   }
                   alt=""
