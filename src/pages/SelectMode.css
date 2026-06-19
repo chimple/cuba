@@ -305,7 +305,7 @@
   margin-top: 0.2vh;
   display: grid;
   grid-template-columns: repeat(4, var(--display-students-card-width));
-  row-gap: clamp(12px, 0.8vw, 10px);
+  row-gap: clamp(12px, 0.8vw, 16px);
   column-gap: clamp(22px, 2.2vw, 24px);
 
   justify-content: center;
