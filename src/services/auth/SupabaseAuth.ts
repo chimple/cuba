@@ -85,7 +85,7 @@ export class SupabaseAuth implements ServiceAuth {
       if (!email || !password) {
         throw new Error('Email and password are required.');
       }
-      const api = ServiceConfig.getI().apiHandler;
+      let api = ServiceConfig.getI().apiHandler;
       const { data, error } = await this._auth.signInWithPassword({
         email: email,
         password: password,
@@ -129,11 +129,15 @@ export class SupabaseAuth implements ServiceAuth {
         );
       } else {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+        api = ServiceConfig.getInstance(APIMode.SUPABASE).apiHandler;
       }
       await api.updateFcmToken(data?.user?.id ?? '');
       Util.storeLoginDetails(email, password);
       await api.subscribeToClassTopic();
       const userData = await api.getUserByDocId(data.user.id);
+      if (userData?.id) {
+        this._currentUser = userData;
+      }
       return { user: data.user, success: true, isSpl, userData };
     } catch (error) {
       logger.error(
@@ -160,7 +164,7 @@ export class SupabaseAuth implements ServiceAuth {
         email,
         password,
       });
-      const api = ServiceConfig.getI().apiHandler;
+      let api = ServiceConfig.getI().apiHandler;
       if (error) {
         throw new Error(error.message || 'Authentication failed.');
       }
@@ -171,15 +175,16 @@ export class SupabaseAuth implements ServiceAuth {
       isSplValue = isSpl?.data === true;
       if (isSplValue) {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
+        api = ServiceConfig.getInstance(APIMode.SUPABASE).apiHandler;
       } else {
-        await ServiceConfig.getI().apiHandler.syncDB(
-          Object.values(TABLES),
-          REFRESH_TABLES_ON_LOGIN,
-        );
+        await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
       }
       await api.updateFcmToken(data?.user?.id ?? '');
       Util.storeLoginDetails(email, password);
       const userData = await api.getUserByDocId(data?.user?.id ?? '');
+      if (userData?.id) {
+        this._currentUser = userData;
+      }
       return {
         user: data.user,
         success: true,
