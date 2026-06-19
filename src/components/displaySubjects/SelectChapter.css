@@ -1,6 +1,6 @@
 .chapter-container-in-select-chapter-page {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: min(10px, 1vh);
   justify-items: center;
   align-items: start;
