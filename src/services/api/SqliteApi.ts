@@ -9755,6 +9755,38 @@ order by
     return res?.values && res.values.length > 0 ? res.values[0] : undefined;
   }
 
+  async getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    await this.ensureInitialized();
+    if (!skillId) return undefined;
+
+    const res = await this._db?.query(
+      `
+      SELECT subject.*
+      FROM  skill
+      INNER JOIN  outcome
+        ON outcome.id = skill.outcome_id
+        AND outcome.is_deleted = 0
+      INNER JOIN  competency
+        ON competency.id = outcome.competency_id
+        AND competency.is_deleted = 0
+      INNER JOIN  domain
+        ON domain.id = competency.domain_id
+        AND domain.is_deleted = 0
+      INNER JOIN  subject
+        ON subject.id = domain.subject_id
+        AND subject.is_deleted = 0
+      WHERE skill.id = ?
+        AND skill.is_deleted = 0
+      LIMIT 1
+    `,
+      [skillId],
+    );
+
+    return res?.values && res.values.length > 0 ? res.values[0] : undefined;
+  }
+
   async updateSchoolProgram(
     schoolId: string,
     programId: string,

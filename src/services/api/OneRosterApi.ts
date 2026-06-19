@@ -398,6 +398,12 @@ export class OneRosterApi implements ServiceApi {
     throw new Error('Method not implemented.');
   }
 
+  getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    throw new Error('Method not implemented.');
+  }
+
   deleteProfile(studentId: string) {
     throw new Error('Method not implemented.');
   }

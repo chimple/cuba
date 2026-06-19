@@ -14695,6 +14695,59 @@ export class SupabaseApi implements ServiceApi {
     return data ?? undefined;
   }
 
+  async getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    if (!this.supabase || !skillId) return undefined;
+
+    const skill = await this.getSkillById(skillId);
+    if (!skill?.outcome_id) return undefined;
+
+    const { data: outcome, error: outcomeError } = await this.supabase
+      .from('outcome')
+      .select('competency_id')
+      .eq('id', skill.outcome_id)
+      .eq('is_deleted', false)
+      .limit(1)
+      .single();
+
+    if (outcomeError || !outcome?.competency_id) {
+      if (outcomeError)
+        logger.error('Error fetching outcome for skill:', outcomeError);
+      return undefined;
+    }
+
+    const { data: competency, error: competencyError } = await this.supabase
+      .from('competency')
+      .select('domain_id')
+      .eq('id', outcome.competency_id)
+      .eq('is_deleted', false)
+      .limit(1)
+      .single();
+
+    if (competencyError || !competency?.domain_id) {
+      if (competencyError)
+        logger.error('Error fetching competency for skill:', competencyError);
+      return undefined;
+    }
+
+    const { data: domain, error: domainError } = await this.supabase
+      .from('domain')
+      .select('subject_id')
+      .eq('id', competency.domain_id)
+      .eq('is_deleted', false)
+      .limit(1)
+      .single();
+
+    if (domainError || !domain?.subject_id) {
+      if (domainError)
+        logger.error('Error fetching domain for skill:', domainError);
+      return undefined;
+    }
+
+    return this.getSubject(domain.subject_id);
+  }
+
   async isStudentPlayedPalLesson(
     studentId: string,
     courseId: string,
