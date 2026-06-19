@@ -14700,52 +14700,59 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<TableTypes<'subject'> | undefined> {
     if (!this.supabase || !skillId) return undefined;
 
-    const skill = await this.getSkillById(skillId);
-    if (!skill?.outcome_id) return undefined;
+    type MaybeArray<T> = T | T[] | undefined;
+    type SkillSubjectRow = {
+      outcome?: MaybeArray<{
+        competency?: MaybeArray<{
+          domain?: MaybeArray<{
+            subject?: MaybeArray<TableTypes<'subject'>>;
+          }>;
+        }>;
+      }>;
+    };
 
-    const { data: outcome, error: outcomeError } = await this.supabase
-      .from('outcome')
-      .select('competency_id')
-      .eq('id', skill.outcome_id)
+    const { data, error } = await this.supabase
+      .from('skill')
+      .select(
+        `
+          outcome!inner(
+            competency!inner(
+              domain!inner(
+                subject!inner(*)
+              )
+            )
+          )
+        `,
+      )
+      .eq('id', skillId)
       .eq('is_deleted', false)
+      .eq('outcome.is_deleted', false)
+      .eq('outcome.competency.is_deleted', false)
+      .eq('outcome.competency.domain.is_deleted', false)
+      .eq('outcome.competency.domain.subject.is_deleted', false)
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (outcomeError || !outcome?.competency_id) {
-      if (outcomeError)
-        logger.error('Error fetching outcome for skill:', outcomeError);
+    if (error) {
+      logger.error('Error fetching subject by skillId:', error);
       return undefined;
     }
 
-    const { data: competency, error: competencyError } = await this.supabase
-      .from('competency')
-      .select('domain_id')
-      .eq('id', outcome.competency_id)
-      .eq('is_deleted', false)
-      .limit(1)
-      .single();
+    const row = data as SkillSubjectRow | null;
+    const outcome = Array.isArray(row?.outcome)
+      ? row?.outcome[0]
+      : row?.outcome;
+    const competency = Array.isArray(outcome?.competency)
+      ? outcome?.competency[0]
+      : outcome?.competency;
+    const domain = Array.isArray(competency?.domain)
+      ? competency?.domain[0]
+      : competency?.domain;
+    const subject = Array.isArray(domain?.subject)
+      ? domain?.subject[0]
+      : domain?.subject;
 
-    if (competencyError || !competency?.domain_id) {
-      if (competencyError)
-        logger.error('Error fetching competency for skill:', competencyError);
-      return undefined;
-    }
-
-    const { data: domain, error: domainError } = await this.supabase
-      .from('domain')
-      .select('subject_id')
-      .eq('id', competency.domain_id)
-      .eq('is_deleted', false)
-      .limit(1)
-      .single();
-
-    if (domainError || !domain?.subject_id) {
-      if (domainError)
-        logger.error('Error fetching domain for skill:', domainError);
-      return undefined;
-    }
-
-    return this.getSubject(domain.subject_id);
+    return subject ?? undefined;
   }
 
   async isStudentPlayedPalLesson(
