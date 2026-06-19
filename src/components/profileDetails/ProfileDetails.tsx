@@ -204,7 +204,10 @@ const ProfileDetails = () => {
 
     const loadLanguages = async () => {
       const langs = await api.getAllLanguages();
-      setLanguages(langs);
+      const sortedLanguages = [...langs].sort(
+        (left, right) => (left.sort_index ?? 0) - (right.sort_index ?? 0),
+      );
+      setLanguages(sortedLanguages);
     };
     loadLanguages();
 
@@ -426,15 +429,12 @@ const ProfileDetails = () => {
       });
 
       const resolvedLanguageId = languageId || DEFAULT_LANGUAGE_ID_EN;
-      const langIndex = languages.findIndex(
-        (lang) => lang.id === resolvedLanguageId,
-      );
+      const resolvedLanguageCode =
+        await resolveLanguageCodeById(resolvedLanguageId);
 
       await Util.setCurrentStudent(
         student,
-        langIndex && languages && languages[langIndex]?.code
-          ? (languages[langIndex]?.code ?? undefined)
-          : undefined,
+        resolvedLanguageCode,
         tmpPath === PAGES.HOME ? true : false,
       );
       await schoolUtil.setCurrentClass(undefined);

@@ -148,6 +148,36 @@ describe('ProfileDetails Component', () => {
     expect(await getFullNameLabel()).toBeInTheDocument();
   });
 
+  test('orders language dropdown options by sort index', async () => {
+    mockApi.getAllLanguages.mockResolvedValue([
+      { id: 'pt', name: 'Portuguese', code: 'pt', sort_index: 5 },
+      { id: 'mr', name: 'Marathi', code: 'mr', sort_index: 4 },
+      { id: 'kn', name: 'Kannada', code: 'kn', sort_index: 3 },
+      { id: 'en', name: 'English', code: 'en', sort_index: 1 },
+      { id: 'hi', name: 'Hindi', code: 'hi', sort_index: 2 },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <ProfileDetails />
+      </MemoryRouter>,
+    );
+
+    await screen.findByText(/Language/i);
+    await userEvent.click(screen.getAllByText('Select one')[1]);
+    const languageOptions = screen
+      .getAllByText(/English|Hindi|Kannada|Marathi|Portuguese/)
+      .map((option) => option.textContent);
+
+    expect(languageOptions).toEqual([
+      'English',
+      'Hindi',
+      'Kannada',
+      'Marathi',
+      'Portuguese',
+    ]);
+  });
+
   test('save button disabled initially', async () => {
     mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL);
 
