@@ -252,19 +252,50 @@ const LidoPlayer: FC = () => {
     }
   };
 
-  const hasCourseFrameworkId = async (courseId: string): Promise<boolean> => {
-    if (!courseId) return false;
+  const getCoursePalContext = async (
+    courseId: string,
+  ): Promise<{
+    subjectId?: string | null;
+    hasFramework: boolean;
+  }> => {
+    if (!courseId) return { hasFramework: false };
 
     if (courseDetail?.id === courseId || !courseDetail?.id) {
-      if (courseDetail?.framework_id) return true;
+      if (courseDetail?.subject_id || courseDetail?.framework_id) {
+        return {
+          subjectId: courseDetail.subject_id,
+          hasFramework: !!courseDetail.framework_id,
+        };
+      }
     }
 
     try {
       const course = await api.getCourse(courseId);
-      return !!course?.framework_id;
+      return {
+        subjectId: course?.subject_id,
+        hasFramework: !!course?.framework_id,
+      };
     } catch (error) {
       logger.warn(
-        '[LidoPlayer] Failed to verify course framework before PAL update',
+        '[LidoPlayer] Failed to resolve course PAL context before update',
+        error,
+      );
+      return { hasFramework: false };
+    }
+  };
+
+  const doesSkillBelongToCourseSubject = async (
+    courseSubjectId: string | null | undefined,
+    skillId: string | undefined,
+  ): Promise<boolean> => {
+    if (!courseSubjectId || !skillId) return false;
+
+    try {
+      const skillSubject = await api.getSubjectBySkillId(skillId);
+      return skillSubject?.id === courseSubjectId;
+    } catch (error) {
+      logger.warn(
+        '[LidoPlayer] Failed to verify skill subject before PAL update',
         error,
       );
       return false;
@@ -559,23 +590,33 @@ const LidoPlayer: FC = () => {
         const averageScore = group.totalScore / group.count;
         const activitiesScoresStr = group.resultsList.join(',');
 
-        let abilityUpdates: AbilityUpdates = { skill_id: skillId };
+        let abilityUpdates: Partial<AbilityUpdates> = {};
         try {
+          const currentCourseId = courseDetail?.id ?? courseDocId ?? '';
+          const {
+            subjectId: courseSubjectId,
+            hasFramework: courseHasFramework,
+          } = await getCoursePalContext(currentCourseId);
           const skillData = await api.getSkillById(skillId);
           const currentOutcomeId = skillData?.outcome_id;
+          const canUpdateAbility =
+            courseHasFramework &&
+            (await doesSkillBelongToCourseSubject(courseSubjectId, skillId));
 
-          const booleanOutcomes = group.resultsList.map((r) => r === 1);
+          if (canUpdateAbility) {
+            const booleanOutcomes = group.resultsList.map((r) => r === 1);
 
-          abilityUpdates = await palUtil.updateAndGetAbilities({
-            studentId,
-            courseId: courseDetail?.id ?? courseDocId ?? '',
-            skillId,
-            outcomes: booleanOutcomes,
-          });
+            abilityUpdates = await palUtil.updateAndGetAbilities({
+              studentId,
+              courseId: currentCourseId,
+              skillId,
+              outcomes: booleanOutcomes,
+            });
 
-          if (!abilityUpdates.skill_id) abilityUpdates.skill_id = skillId;
-          if (!abilityUpdates.outcome_id)
-            abilityUpdates.outcome_id = currentOutcomeId;
+            if (!abilityUpdates.skill_id) abilityUpdates.skill_id = skillId;
+            if (!abilityUpdates.outcome_id)
+              abilityUpdates.outcome_id = currentOutcomeId;
+          }
         } catch (e) {
           logger.error('PAL Error', e);
         }
@@ -807,7 +848,8 @@ const LidoPlayer: FC = () => {
       const api = ServiceConfig.getI().apiHandler;
       const assignment = state.assignment;
       const currentCourseId = courseDetail?.id ?? courseDocId ?? '';
-      const courseHasFramework = await hasCourseFrameworkId(currentCourseId);
+      const { subjectId: courseSubjectId, hasFramework: courseHasFramework } =
+        await getCoursePalContext(currentCourseId);
       const skillId: string | undefined = state.skillId;
       let normalizedSkillId =
         courseHasFramework &&
@@ -939,19 +981,28 @@ const LidoPlayer: FC = () => {
       }
 
       let abilityUpdates: any = {};
+      let canUseSkillForAbility = false;
       if (normalizedSkillId && courseHasFramework) {
         try {
-          abilityUpdates = await palUtil.updateAndGetAbilities({
-            studentId: currentStudent.id,
-            courseId: currentCourseId,
-            skillId: normalizedSkillId,
-            outcomes: booleanOutcomes,
-          });
+          canUseSkillForAbility = await doesSkillBelongToCourseSubject(
+            courseSubjectId,
+            normalizedSkillId,
+          );
+
+          if (canUseSkillForAbility) {
+            abilityUpdates = await palUtil.updateAndGetAbilities({
+              studentId: currentStudent.id,
+              courseId: currentCourseId,
+              skillId: normalizedSkillId,
+              outcomes: booleanOutcomes,
+            });
+          }
         } catch (palError) {
           logger.warn(
             '[LidoPlayer] PAL ability update skipped due to invalid skill context',
             palError,
           );
+          canUseSkillForAbility = false;
         }
       }
 
@@ -969,7 +1020,7 @@ const LidoPlayer: FC = () => {
         schoolId,
         false, // isImediateSync
         false, // isHomework
-        courseHasFramework ? normalizedSkillId : undefined,
+        canUseSkillForAbility ? normalizedSkillId : undefined,
         abilityUpdates.skill_ability,
         abilityUpdates.outcome_id,
         abilityUpdates.outcome_ability,

@@ -2298,6 +2298,12 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSkillById(skillId);
   }
 
+  public async getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    return await this.s.getSubjectBySkillId(skillId);
+  }
+
   async updateSchoolProgram(
     schoolId: string,
     programId: string,

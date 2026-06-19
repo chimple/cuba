@@ -14695,6 +14695,66 @@ export class SupabaseApi implements ServiceApi {
     return data ?? undefined;
   }
 
+  async getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    if (!this.supabase || !skillId) return undefined;
+
+    type MaybeArray<T> = T | T[] | undefined;
+    type SkillSubjectRow = {
+      outcome?: MaybeArray<{
+        competency?: MaybeArray<{
+          domain?: MaybeArray<{
+            subject?: MaybeArray<TableTypes<'subject'>>;
+          }>;
+        }>;
+      }>;
+    };
+
+    const { data, error } = await this.supabase
+      .from('skill')
+      .select(
+        `
+          outcome!inner(
+            competency!inner(
+              domain!inner(
+                subject!inner(*)
+              )
+            )
+          )
+        `,
+      )
+      .eq('id', skillId)
+      .eq('is_deleted', false)
+      .eq('outcome.is_deleted', false)
+      .eq('outcome.competency.is_deleted', false)
+      .eq('outcome.competency.domain.is_deleted', false)
+      .eq('outcome.competency.domain.subject.is_deleted', false)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      logger.error('Error fetching subject by skillId:', error);
+      return undefined;
+    }
+
+    const row = data as SkillSubjectRow | null;
+    const outcome = Array.isArray(row?.outcome)
+      ? row?.outcome[0]
+      : row?.outcome;
+    const competency = Array.isArray(outcome?.competency)
+      ? outcome?.competency[0]
+      : outcome?.competency;
+    const domain = Array.isArray(competency?.domain)
+      ? competency?.domain[0]
+      : competency?.domain;
+    const subject = Array.isArray(domain?.subject)
+      ? domain?.subject[0]
+      : domain?.subject;
+
+    return subject ?? undefined;
+  }
+
   async isStudentPlayedPalLesson(
     studentId: string,
     courseId: string,
