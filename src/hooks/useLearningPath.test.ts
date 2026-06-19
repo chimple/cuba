@@ -230,14 +230,12 @@ describe('useLearningPath features used by Home tab', () => {
     );
   });
 
-  test('skips subject assessment in assessment-only mode after prior assessment history', async () => {
+  test('continues assessment sequence in assessment-only mode after prior assessment history', async () => {
     mockApi.isStudentPlayedPalLesson.mockResolvedValue(true);
     mockApi.getSubjectLessonsBySubjectId.mockResolvedValue({
       id: 'asmt-doc-2',
       lesson_id: 'assessment-lesson-2',
     });
-    mockApi.getChaptersForCourse.mockResolvedValue([{ id: 'chapter-1' }]);
-    mockApi.getLessonsForChapter.mockResolvedValue([{ id: 'normal-lesson-1' }]);
 
     const next = await recommendNextLesson({
       student: { id: 'stu-1' },
@@ -245,14 +243,15 @@ describe('useLearningPath features used by Home tab', () => {
       mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
     });
 
-    expect(next).toEqual({
-      lesson_id: 'normal-lesson-1',
-      chapter_id: 'chapter-1',
-      source: SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
-      is_assessment: false,
-      isPlayed: false,
+    expect(next).toMatchObject({
+      lesson_id: 'assessment-lesson-2',
+      is_assessment: true,
     });
-    expect(mockApi.getSubjectLessonsBySubjectId).not.toHaveBeenCalled();
+    expect(mockApi.getSubjectLessonsBySubjectId).toHaveBeenCalledWith(
+      's1',
+      { id: 'stu-1' },
+      'c1',
+    );
     expect(palUtil.getPalLessonPathForCourse).not.toHaveBeenCalled();
   });
 
