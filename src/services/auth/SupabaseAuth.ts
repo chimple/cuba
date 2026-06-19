@@ -23,6 +23,7 @@ import { Capacitor } from '@capacitor/core';
 import { store } from '../../redux/store';
 import {
   logout,
+  setRefreshToken,
   setIsOpsUser,
   setRoles,
 } from '../../redux/slices/auth/authSlice';
@@ -42,9 +43,12 @@ export class SupabaseAuth implements ServiceAuth {
       }
     | undefined
   > | null = null;
+  private _emailPasswordLoginInProgress = false;
 
   private _auth: SupabaseAuthClient | undefined;
   private _supabaseDb: SupabaseClient<Database> | undefined;
+  private static readonly PASSWORD_LOGIN_SESSION_MISSING_ERROR =
+    'Password login completed without a Supabase session.';
   // private _auth = getAuth();
 
   private constructor() {}
@@ -85,17 +89,22 @@ export class SupabaseAuth implements ServiceAuth {
       if (!email || !password) {
         throw new Error('Email and password are required.');
       }
+      this.beginEmailPasswordLogin();
       let api = ServiceConfig.getI().apiHandler;
+      store.dispatch(setRefreshToken(null));
       const { data, error } = await this._auth.signInWithPassword({
-        email: email,
-        password: password,
+        email,
+        password,
       });
       if (error) {
         throw new Error(error.message || 'Authentication failed.');
       }
-      if (data.session?.refresh_token) {
-        Util.addRefreshTokenToStore(data.session?.refresh_token);
+      if (!data.session) {
+        throw new Error(SupabaseAuth.PASSWORD_LOGIN_SESSION_MISSING_ERROR);
       }
+      Util.addRefreshTokenToStore(data.session.refresh_token);
+      const { user } = data.session;
+      this._currentUser = { id: user.id } as TableTypes<'user'>;
       if (this._supabaseDb) {
         try {
           isSpl = await this.rpcRetry<boolean>(async () => {
@@ -131,20 +140,22 @@ export class SupabaseAuth implements ServiceAuth {
         ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
         api = ServiceConfig.getInstance(APIMode.SUPABASE).apiHandler;
       }
-      await api.updateFcmToken(data?.user?.id ?? '');
+      await api.updateFcmToken(user.id);
       Util.storeLoginDetails(email, password);
       await api.subscribeToClassTopic();
-      const userData = await api.getUserByDocId(data.user.id);
+      const userData = await api.getUserByDocId(user.id);
       if (userData?.id) {
         this._currentUser = userData;
       }
-      return { user: data.user, success: true, isSpl, userData };
+      return { user, success: true, isSpl, userData };
     } catch (error) {
       logger.error(
         '🚀 ~ file: SupabaseAuth.ts:143 ~ SupabaseAuth ~ Emailsignin ~ error:',
         error,
       );
       return { success: false, isSpl, userData: null };
+    } finally {
+      this.endEmailPasswordLogin();
     }
   }
   async signInWithEmail(
@@ -160,17 +171,22 @@ export class SupabaseAuth implements ServiceAuth {
     let isSplValue = false;
     try {
       if (!this._auth) return { success: false, isSpl: isSplValue };
+      this.beginEmailPasswordLogin();
+      store.dispatch(setRefreshToken(null));
       const { data, error } = await this._auth.signInWithPassword({
         email,
         password,
       });
-      let api = ServiceConfig.getI().apiHandler;
       if (error) {
         throw new Error(error.message || 'Authentication failed.');
       }
-      if (data.session?.refresh_token) {
-        Util.addRefreshTokenToStore(data.session?.refresh_token);
+      if (!data.session) {
+        throw new Error(SupabaseAuth.PASSWORD_LOGIN_SESSION_MISSING_ERROR);
       }
+      Util.addRefreshTokenToStore(data.session.refresh_token);
+      const { user } = data.session;
+      this._currentUser = { id: user.id } as TableTypes<'user'>;
+      let api = ServiceConfig.getI().apiHandler;
       const isSpl = await this._supabaseDb?.rpc('is_special_or_program_user');
       isSplValue = isSpl?.data === true;
       if (isSplValue) {
@@ -179,14 +195,14 @@ export class SupabaseAuth implements ServiceAuth {
       } else {
         await api.syncDB(Object.values(TABLES), REFRESH_TABLES_ON_LOGIN);
       }
-      await api.updateFcmToken(data?.user?.id ?? '');
+      await api.updateFcmToken(user.id);
       Util.storeLoginDetails(email, password);
-      const userData = await api.getUserByDocId(data?.user?.id ?? '');
+      const userData = await api.getUserByDocId(user.id);
       if (userData?.id) {
         this._currentUser = userData;
       }
       return {
-        user: data.user,
+        user,
         success: true,
         isSpl: isSplValue,
         userData,
@@ -197,6 +213,8 @@ export class SupabaseAuth implements ServiceAuth {
         error,
       );
       return { success: false, isSpl: isSplValue, userData: undefined };
+    } finally {
+      this.endEmailPasswordLogin();
     }
   }
   async sendResetPasswordEmail(email: string): Promise<boolean> {
@@ -312,6 +330,9 @@ export class SupabaseAuth implements ServiceAuth {
 
   async getCurrentUser(): Promise<TableTypes<'user'> | undefined> {
     if (this._currentUser) return this._currentUser;
+    if (this._emailPasswordLoginInProgress) {
+      return store.getState()?.auth?.user as TableTypes<'user'> | undefined;
+    }
     if (!navigator.onLine) {
       const user = store.getState()?.auth?.user as TableTypes<'user'>;
       if (user) this._currentUser = user;
@@ -404,6 +425,13 @@ export class SupabaseAuth implements ServiceAuth {
     }
   }
   async doRefreshSession(): Promise<void> {
+    if (this._emailPasswordLoginInProgress) {
+      logAuthDebug('Skipping session refresh during password login.', {
+        source: 'SupabaseAuth.doRefreshSession',
+        reason: 'email_password_login_in_progress',
+      });
+      return;
+    }
     if (this._refreshPromise) {
       await this._refreshPromise;
       return;
@@ -467,6 +495,25 @@ export class SupabaseAuth implements ServiceAuth {
         }
       }
     } catch (error) {
+      const currentSession = await this._auth?.getSession();
+      if (currentSession?.data?.session?.access_token) {
+        logAuthDebug(
+          'Ignoring refresh failure because an active session is available.',
+          {
+            source: 'SupabaseAuth.doRefreshSession',
+            reason: 'refresh_failed_but_active_session_exists',
+          },
+        );
+        return;
+      }
+      if (this.isInvalidRefreshTokenError(error)) {
+        store.dispatch(setRefreshToken(null));
+        logAuthDebug('Cleared stale refresh token after refresh failure.', {
+          source: 'SupabaseAuth.doRefreshSession',
+          reason: 'invalid_refresh_token',
+        });
+        return;
+      }
       logger.error('Unexpected error while refreshing session:', error);
       logAuthDebug('Session refresh failed, attempting school relogin.', {
         source: 'SupabaseAuth.doRefreshSession',
@@ -545,6 +592,9 @@ export class SupabaseAuth implements ServiceAuth {
 
   async isUserLoggedIn(): Promise<boolean> {
     if (this._currentUser) return true;
+    if (this._emailPasswordLoginInProgress) {
+      return true;
+    }
     if (navigator.onLine) {
       await this.doRefreshSession();
       const user = await this.getCurrentUser();
@@ -611,6 +661,23 @@ export class SupabaseAuth implements ServiceAuth {
   private sleep(ms: number) {
     return new Promise((r) => setTimeout(r, ms));
   }
+
+  private beginEmailPasswordLogin(): void {
+    this._emailPasswordLoginInProgress = true;
+  }
+
+  private endEmailPasswordLogin(): void {
+    this._emailPasswordLoginInProgress = false;
+  }
+
+  private isInvalidRefreshTokenError(error: unknown): boolean {
+    if (!(error instanceof Error)) return false;
+    return (
+      error.message.includes('Invalid Refresh Token') ||
+      error.message.includes('Refresh Token Not Found')
+    );
+  }
+
   private isNetworkError(err: any): boolean {
     const code = String(err?.code ?? '');
     const msg = String(err?.message ?? '');
