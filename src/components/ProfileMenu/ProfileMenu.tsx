@@ -256,10 +256,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
           {/* Profile Image with fixed gap */}
           <div className="profile-image-container">
             <img
-              src={
-                student?.image ||
-                `/assets/avatars/${student?.avatar ?? AVATARS[0]}.png`
-              }
+              src={`/assets/avatars/${student?.avatar ?? AVATARS[0]}.png`}
               alt="Profile"
               className="profile-avatar-img"
             />
