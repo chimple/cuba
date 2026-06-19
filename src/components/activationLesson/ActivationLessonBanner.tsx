@@ -11,6 +11,7 @@ import './ActivationLessonBanner.css';
 const ENTRY_SOUND_EFFECT = '/assets/audios/common/generic_sound_effect.mp3';
 const ACTIVATION_COUNTDOWN_SECONDS = 5;
 const ACTIVATION_ENTRY_DELAY_MS = 2100;
+const ACTIVATION_LAUNCH_DELAY_MS = 500;
 const ACTIVATION_SUN_STEP_DEGREES = 7;
 const ACTIVATION_CHAPTER_ID = '51468247-e4b9-4d8f-9e01-d46acdc4ffb5';
 
@@ -25,6 +26,7 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
   const [secondsLeft, setSecondsLeft] = useState(ACTIVATION_COUNTDOWN_SECONDS);
   const delayTimeoutRef = useRef<number | null>(null);
   const intervalRef = useRef<number | null>(null);
+  const launchTimeoutRef = useRef<number | null>(null);
   const hasLaunchedLessonRef = useRef(false);
 
   useEffect(() => {
@@ -61,6 +63,10 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
 
       if (delayTimeoutRef.current !== null) {
         window.clearTimeout(delayTimeoutRef.current);
+      }
+
+      if (launchTimeoutRef.current !== null) {
+        window.clearTimeout(launchTimeoutRef.current);
       }
 
       void AudioUtil.stopAudioUrlOrTtsPlayback();
@@ -105,15 +111,17 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
         }
 
         const params = `?courseid=${randomLesson.cocos_subject_code}&chapterid=${randomLesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
-        history.push(PAGES.LIDO_PLAYER + params, {
-          lessonId: playableLessonId,
-          courseDocId: CHIMPLE_DIGITAL_SKILLS,
-          lesson: JSON.stringify(randomLesson),
-          reward: true,
-          isDefaultLesson: true,
-          source,
-          from: history.location.pathname + history.location.search,
-        });
+        launchTimeoutRef.current = window.setTimeout(() => {
+          history.push(PAGES.LIDO_PLAYER + params, {
+            lessonId: playableLessonId,
+            courseDocId: CHIMPLE_DIGITAL_SKILLS,
+            lesson: JSON.stringify(randomLesson),
+            reward: true,
+            isDefaultLesson: true,
+            source,
+            from: history.location.pathname + history.location.search,
+          });
+        }, ACTIVATION_LAUNCH_DELAY_MS);
       } catch (error) {
         logger.error(
           '[ActivationLessonBanner] Failed to launch activation lesson',
