@@ -129,13 +129,21 @@ const CreateSchool: React.FC = () => {
   const handleSendRequest = async () => {
     try {
       setSending(true);
+      logger.info('Submitting teacher school creation request', {
+        schoolName,
+        state,
+        district,
+        block,
+        country,
+        udise,
+      });
       const school = await api.createSchool(
         schoolName,
         state,
         district,
         block,
-        STATUS.REQUESTED,
         null,
+        STATUS.REQUESTED,
         null,
         null,
         udise,
@@ -145,6 +153,9 @@ const CreateSchool: React.FC = () => {
         false,
       );
       await api.sendJoinSchoolRequest(school.id, RequestTypes.SCHOOL);
+      logger.info('Teacher school creation request created', {
+        schoolId: school.id,
+      });
       history.replace(PAGES.POST_SUCCESS);
     } catch (error) {
       logger.error('Error creating school:', error);
