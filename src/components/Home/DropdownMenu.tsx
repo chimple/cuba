@@ -12,6 +12,7 @@ import { Util } from '../../utility/util';
 import { LessonNode } from '../../hooks/useLearningPath';
 import logger from '../../utility/logger';
 import { downloadMissingCourseIcons } from '../../utility/courseIconDeviceCache';
+import { getCachedImageSrc } from '../../utility/imageCache';
 
 interface CourseDetails {
   course: TableTypes<'course'>;
@@ -321,12 +322,14 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
   };
 
   useEffect(() => {
-    const preloadImage = (src: string): Promise<boolean> => {
-      return new Promise<boolean>((resolve) => {
+    const preloadImage = async (src: string): Promise<boolean> => {
+      const resolvedSrc = await getCachedImageSrc(src);
+
+      return await new Promise<boolean>((resolve) => {
         const img = new Image();
         img.onload = () => resolve(true);
         img.onerror = () => resolve(false);
-        img.src = src;
+        img.src = resolvedSrc;
       });
     };
 

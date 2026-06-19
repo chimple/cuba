@@ -129,43 +129,46 @@ const AddCourse: FC<{
                     }}
                     className="add-course-subject-button"
                   >
-                    {course.selected ? (
-                      <div id="add-course-subject-card-select-icon">
-                        <div>
-                          <BsFillCheckCircleFill
-                            color={'white'}
-                            className="add-course-gender-check-box"
-                            size="4vh"
-                          />
-                        </div>
+                    <div className="add-course-card">
+                      <div id="add-course-subject-card-subject-name">
+                        <p>{gradeTitle}</p>
                       </div>
-                    ) : null}
 
-                    <div id="add-course-subject-card-subject-name">
-                      <p>{gradeTitle}</p>
-                    </div>
+                      <div
+                        className="add-course-course-icon"
+                        style={{
+                          backgroundColor:
+                            course.course.color ?? DEFUALT_SUBJECT_CARD_COLOUR,
+                          flexDirection: 'column',
+                        }}
+                      >
+                        {course.selected ? (
+                          <div id="add-course-subject-card-select-icon">
+                            <div>
+                              <BsFillCheckCircleFill
+                                color={'white'}
+                                className="add-course-gender-check-box"
+                                size="4vh"
+                              />
+                            </div>
+                          </div>
+                        ) : null}
 
-                    <div
-                      className="add-course-course-icon"
-                      style={{
-                        backgroundColor:
-                          course.course.color ?? DEFUALT_SUBJECT_CARD_COLOUR,
-                        flexDirection: 'column',
-                      }}
-                    >
-                      <SelectIconImage
-                        localSrc={`courses/chapter_icons/${course.course.code}.png`}
-                        defaultSrc={'assets/icons/DefaultIcon.png'}
-                        webSrc={
-                          course.course.image || 'assets/icons/DefaultIcon.png'
-                        }
-                        imageWidth={'80%'}
-                        imageHeight={'auto'}
-                      />
+                        <SelectIconImage
+                          localSrc={`courses/chapter_icons/${course.course.code}.png`}
+                          defaultSrc={'assets/icons/DefaultIcon.png'}
+                          webSrc={
+                            course.course.image ||
+                            'assets/icons/DefaultIcon.png'
+                          }
+                          imageWidth={'80%'}
+                          imageHeight={'auto'}
+                        />
+                      </div>
                     </div>
 
                     <div>
-                      <p> {t(course?.course.name)}</p>
+                      <p>{t(course?.course.name)}</p>
                     </div>
 
                     {currt ? (

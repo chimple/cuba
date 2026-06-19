@@ -32,7 +32,7 @@ const DownloadLesson: React.FC<{
   const api = ServiceConfig.getI().apiHandler;
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const lessonId = Util.getLessonBundleId(lesson) ?? undefined;
-
+  const isNativePlatform = Capacitor.isNativePlatform();
   useEffect(() => {
     init();
     setLoading(downloadButtonLoading);
@@ -192,14 +192,16 @@ const DownloadLesson: React.FC<{
     }
     setLoading(false);
   };
-
-  return Capacitor.isNativePlatform() ? (
+  return isNativePlatform ? (
     <div
       className="download-or-delete-button"
       onClick={(event) => {
         const mouseEvent = event as React.MouseEvent<HTMLDivElement>;
         mouseEvent.stopPropagation();
-        handleDownload();
+        if (loading) return;
+        if (showIcon) {
+          handleDownload();
+        }
       }}
     >
       {showDialogBox && (
@@ -228,11 +230,8 @@ const DownloadLesson: React.FC<{
           }}
         />
       )}
-
       {loading ? (
-        <div className="loading-button-container">
-          <div className="loading-button"></div>
-        </div>
+        <div className="loading-button" />
       ) : showIcon ? (
         <TfiDownload className="lesson-or-chapter-delete-icon" />
       ) : (
