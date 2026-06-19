@@ -17,7 +17,6 @@ import { Util } from '../../../../utility/util';
 import { useHistory } from 'react-router';
 import i18n, { t } from 'i18next';
 import { ServiceConfig } from '../../../../services/ServiceConfig';
-import { RoleType } from '../../../../interface/modelInterfaces';
 import { TeacherAssignmentPageType } from './TeacherAssignment';
 import CommonDialogBox from '../../../../common/CommonDialogBox';
 import Loading from '../../../../components/Loading';
@@ -506,15 +505,24 @@ const CreateSelectedAssignment = ({
     const pause = (ms: number) =>
       new Promise((resolve) => window.setTimeout(resolve, ms));
 
-    const getRewardForAssignment = async (): Promise<number> => {
+    const getRewardForAssignment = async (
+      classId: string,
+      schoolId: string,
+    ): Promise<{ rewardValue: number; streakIncrement: number }> => {
       try {
         const currentUser = await auth.getCurrentUser();
         const userId = currentUser?.id;
 
         if (!userId) {
-          return SUBSEQUENT_ASSIGNMENT_REWARD;
+          return {
+            rewardValue: SUBSEQUENT_ASSIGNMENT_REWARD,
+            streakIncrement: 0,
+          };
         }
 
+        const currentStreak =
+          (await api.getCoinAndStreakCount(userId, classId, schoolId))
+            ?.streak ?? 0;
         const today = new Date();
         const mondayOffset = (today.getDay() + 6) % 7;
         const weekStart = new Date(today);
@@ -528,12 +536,21 @@ const CreateSelectedAssignment = ({
             today.toISOString(),
           );
 
-        return weekBatchRows.length <= 0
-          ? FIRST_ASSIGNMENT_REWARD
-          : SUBSEQUENT_ASSIGNMENT_REWARD;
+        const shouldIncrementStreak =
+          currentStreak <= 0 || weekBatchRows.length <= 0;
+
+        return {
+          rewardValue: shouldIncrementStreak
+            ? FIRST_ASSIGNMENT_REWARD
+            : SUBSEQUENT_ASSIGNMENT_REWARD,
+          streakIncrement: shouldIncrementStreak ? 1 : 0,
+        };
       } catch (error) {
         logger.error('Error calculating weekly assignment reward:', error);
-        return SUBSEQUENT_ASSIGNMENT_REWARD;
+        return {
+          rewardValue: SUBSEQUENT_ASSIGNMENT_REWARD,
+          streakIncrement: 0,
+        };
       }
     };
 
@@ -678,18 +695,22 @@ const CreateSelectedAssignment = ({
         const currUser = await auth.getCurrentUser();
         if (!currUser || !current_class) return;
 
-        const assignerRole = await api.getUserRoleForSchool(
-          currUser.id,
-          current_class.school_id,
+        const classTeachers =
+          (await api.getTeachersForClass(current_class.id)) ?? [];
+        const isTeacherAssigner = classTeachers.some(
+          (teacher) => teacher.id === currUser.id,
         );
-        const isTeacherAssigner = assignerRole === RoleType.TEACHER;
         let rewardValue = SUBSEQUENT_ASSIGNMENT_REWARD;
         let streakIncrement = 0;
         if (isTeacherAssigner) {
           // Calculate reward before creating this batch, so the current
           // assignment is not included in "this week's" existing count.
-          rewardValue = await getRewardForAssignment();
-          streakIncrement = rewardValue === FIRST_ASSIGNMENT_REWARD ? 1 : 0;
+          const reward = await getRewardForAssignment(
+            current_class.id,
+            current_class.school_id,
+          );
+          rewardValue = reward.rewardValue;
+          streakIncrement = reward.streakIncrement;
         }
 
         const previous_sync_lesson = currUser?.id

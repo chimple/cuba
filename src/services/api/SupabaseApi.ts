@@ -15812,8 +15812,6 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.UserAchivements)
       .select('*')
       .eq('user_id', userId)
-      .eq('school_id', schoolId)
-      .eq('class_id', classId)
       .or('is_deleted.is.false,is_deleted.is.null')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -15837,12 +15835,12 @@ export class SupabaseApi implements ServiceApi {
         .update({
           coins: updatedCoins,
           streak: updatedStreak,
+          school_id: schoolId,
+          class_id: classId,
           updated_at: now,
           is_deleted: false,
         })
-        .eq('user_id', userId)
-        .eq('school_id', schoolId)
-        .eq('class_id', classId);
+        .eq('user_id', userId);
 
       if (updateError) {
         logger.error('Error updating user_achievements coins:', updateError);
