@@ -508,7 +508,10 @@ const CreateSelectedAssignment = ({
     const getRewardForAssignment = async (
       classId: string,
       schoolId: string,
-    ): Promise<{ rewardValue: number; streakIncrement: number }> => {
+    ): Promise<{
+      rewardValue: number;
+      streakIncrement: number;
+    }> => {
       try {
         const currentUser = await auth.getCurrentUser();
         const userId = currentUser?.id;
@@ -520,9 +523,6 @@ const CreateSelectedAssignment = ({
           };
         }
 
-        const currentStreak =
-          (await api.getCoinAndStreakCount(userId, classId, schoolId))
-            ?.streak ?? 0;
         const today = new Date();
         const mondayOffset = (today.getDay() + 6) % 7;
         const weekStart = new Date(today);
@@ -535,12 +535,16 @@ const CreateSelectedAssignment = ({
             weekStart.toISOString(),
             today.toISOString(),
           );
+        const currentStreak =
+          (await api.getCoinAndStreakCount(userId, classId, schoolId))
+            ?.streak ?? 0;
 
+        const isFirstAssignmentOfWeek = weekBatchRows.length <= 0;
         const shouldIncrementStreak =
-          currentStreak <= 0 || weekBatchRows.length <= 0;
+          isFirstAssignmentOfWeek || currentStreak <= 0;
 
         return {
-          rewardValue: shouldIncrementStreak
+          rewardValue: isFirstAssignmentOfWeek
             ? FIRST_ASSIGNMENT_REWARD
             : SUBSEQUENT_ASSIGNMENT_REWARD,
           streakIncrement: shouldIncrementStreak ? 1 : 0,

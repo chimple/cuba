@@ -6,6 +6,7 @@ import { useHistory } from 'react-router';
 import { Util } from '../../../utility/util';
 import { registerBackButtonHandler } from '../../../common/backButtonRegistry';
 import { PAGES } from '../../../common/constants';
+import { ServiceConfig } from '../../../services/ServiceConfig';
 
 /* ================= MOCKS ================= */
 
@@ -17,6 +18,13 @@ jest.mock('../../../utility/util', () => ({
   Util: {
     setPathToBackButton: jest.fn(),
     getCurrentSchool: jest.fn(),
+    getCurrentClass: jest.fn(),
+  },
+}));
+
+jest.mock('../../../services/ServiceConfig', () => ({
+  ServiceConfig: {
+    getI: jest.fn(),
   },
 }));
 
@@ -29,14 +37,31 @@ jest.mock('i18next', () => ({
 }));
 
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
+const mockGetCurrentUser = jest.fn();
+const mockGetTeachersForClass = jest.fn();
 
 beforeEach(() => {
   (useHistory as jest.Mock).mockReturnValue({
     replace: mockReplace,
+    push: mockPush,
   });
   jest.clearAllMocks();
   (Util.getCurrentSchool as jest.Mock).mockReturnValue({
     id: 'school-1',
+  });
+  (Util.getCurrentClass as jest.Mock).mockReturnValue({
+    id: 'class-1',
+  });
+  mockGetCurrentUser.mockResolvedValue({ id: 'teacher-1' });
+  mockGetTeachersForClass.mockResolvedValue([{ id: 'teacher-1' }]);
+  (ServiceConfig.getI as jest.Mock).mockReturnValue({
+    authHandler: {
+      getCurrentUser: mockGetCurrentUser,
+    },
+    apiHandler: {
+      getTeachersForClass: mockGetTeachersForClass,
+    },
   });
 });
 
