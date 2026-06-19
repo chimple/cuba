@@ -444,10 +444,7 @@ export class SqliteApi implements ServiceApi {
   ) {
     await this.ensureInitialized();
     if (!this._db || !this._sqlite) return;
-    const safeValues = values?.map((value) =>
-      value === undefined ? null : value,
-    );
-    const res = await this._db.query(statement, safeValues, isSQL92);
+    const res = await this._db.query(statement, values, isSQL92);
     if (!Capacitor.isNativePlatform())
       await this._sqlite?.saveToStore(this.DB_NAME);
 
