@@ -7,7 +7,6 @@ import {
   capSQLiteVersionUpgrade,
 } from '@capacitor-community/sqlite';
 import { Capacitor } from '@capacitor/core';
-import { LiveUpdate } from '@capawesome/capacitor-live-update';
 import { v4 as uuidv4 } from 'uuid';
 import {
   AVATARS,
@@ -143,7 +142,6 @@ export class SqliteApi implements ServiceApi {
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = 'db_issue10';
   private DB_VERSION = 15;
-  private BUNDLED_IMPORT_APP_VERSION_KEY = 'bundledImportAppVersion';
   private BUNDLED_IMPORT_TABLES = new Set<string>([
     TABLES.Curriculum,
     TABLES.Subject,
@@ -421,10 +419,6 @@ export class SqliteApi implements ServiceApi {
             CURRENT_SQLITE_VERSION,
             this.DB_VERSION.toString(),
           );
-          localStorage.setItem(
-            this.BUNDLED_IMPORT_APP_VERSION_KEY,
-            await this.getCurrentAppVersionMarker(),
-          );
           logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:', resImport);
 
           // Keep current web behavior; avoid native full page reload on first import.
@@ -472,16 +466,7 @@ export class SqliteApi implements ServiceApi {
 
   private async importBundledDataAfterUpgrade(): Promise<void> {
     if (!this._db || !this._sqlite) return;
-
-    const currentAppVersion = await this.getCurrentAppVersionMarker();
-    const appliedAppVersion = localStorage.getItem(
-      this.BUNDLED_IMPORT_APP_VERSION_KEY,
-    );
-    const shouldImport =
-      this._shouldImportBundledDataAfterUpgrade ||
-      (Capacitor.isNativePlatform() && appliedAppVersion !== currentAppVersion);
-
-    if (!shouldImport) return;
+    if (!this._shouldImportBundledDataAfterUpgrade) return;
 
     try {
       const importData = await fetch('databases/import.json');
@@ -495,10 +480,7 @@ export class SqliteApi implements ServiceApi {
       );
 
       if (tables.length === 0) {
-        localStorage.setItem(
-          this.BUNDLED_IMPORT_APP_VERSION_KEY,
-          currentAppVersion,
-        );
+        this._shouldImportBundledDataAfterUpgrade = false;
         return;
       }
 
@@ -509,10 +491,6 @@ export class SqliteApi implements ServiceApi {
         await this._sqlite.saveToStore(this.DB_NAME);
       }
 
-      localStorage.setItem(
-        this.BUNDLED_IMPORT_APP_VERSION_KEY,
-        currentAppVersion,
-      );
       this._shouldImportBundledDataAfterUpgrade = false;
       logger.info(
         '🚀 ~ SqliteApi ~ importBundledDataAfterUpgrade ~ imported tables:',
@@ -523,23 +501,6 @@ export class SqliteApi implements ServiceApi {
         '🚀 ~ SqliteApi ~ importBundledDataAfterUpgrade ~ error:',
         error,
       );
-    }
-  }
-
-  private async getCurrentAppVersionMarker(): Promise<string> {
-    if (!Capacitor.isNativePlatform()) {
-      return `web-sqlite-${this.DB_VERSION}`;
-    }
-
-    try {
-      const { versionName } = await LiveUpdate.getVersionName();
-      return versionName || `native-sqlite-${this.DB_VERSION}`;
-    } catch (error) {
-      logger.warn(
-        'SqliteApi: Unable to read native app version for bundled import marker.',
-        error,
-      );
-      return `native-sqlite-${this.DB_VERSION}`;
     }
   }
 
