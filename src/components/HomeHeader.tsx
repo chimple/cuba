@@ -230,9 +230,7 @@ const HomeHeader: React.FC<{
         <HeaderIcon
           headerConfig={{
             displayName: student?.name || t('Name'),
-            iconSrc:
-              (studentMode === MODES.SCHOOL && student?.image) ||
-              `assets/avatars/${student?.avatar ?? AVATARS[0]}.png`,
+            iconSrc: `assets/avatars/${student?.avatar ?? AVATARS[0]}.png`,
             headerList: HOMEHEADERLIST.PROFILE,
           }}
           currentHeader={currentHeader}

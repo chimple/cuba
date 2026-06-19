@@ -810,9 +810,6 @@ const SelectMode: FC = () => {
     setClassWindowStartIndex(nextWindowStartIndex);
   };
   const getStudentAvatarSrc = (student: TableTypes<'user'>): string => {
-    if (student.image) {
-      return student.image;
-    }
     return `assets/avatars/${student.avatar ?? AVATARS[randomValue()]}.png`;
   };
   const handleStudentSelect = (student: TableTypes<'user'>) => {
