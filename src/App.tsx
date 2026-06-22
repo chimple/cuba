@@ -602,6 +602,7 @@ const App: React.FC = () => {
       }
       startTimeout();
     } else {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
       saveUsedTime();
       localStorage.removeItem(START_TIME_KEY);
       clearExistingTimeout();

@@ -96,7 +96,6 @@ import {
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
 import { schoolUtil } from './schoolUtil';
-import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { URLOpenListenerEvent } from '@capacitor/app';
 import { t } from 'i18next';
 import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
@@ -122,6 +121,7 @@ import {
 } from '../redux/slices/auth/authSlice';
 import logger from './logger';
 import type { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
+import { AudioUtil } from './AudioUtil';
 
 type LessonBundleDownloadOptions = {
   lessonId: string;
@@ -1136,9 +1136,8 @@ export class Util {
   }
 
   public static onAppStateChange = ({ isActive }: { isActive: boolean }) => {
-    // Existing logic for stopping TextToSpeech when app is inactive
     if (!isActive) {
-      TextToSpeech.stop();
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
     }
     logger.info('[Lifecycle] App state changed', { isActive });
 
