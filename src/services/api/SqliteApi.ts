@@ -492,7 +492,22 @@ export class SqliteApi implements ServiceApi {
 
     try {
       const importData = await fetch('databases/import.json');
-      if (!importData || !importData.ok) return;
+      if (!importData || !importData.ok) {
+        logger.warn(
+          'SqliteApi: Unable to fetch bundled import.json for app update import.',
+          {
+            status: importData?.status,
+            statusText: importData?.statusText,
+          },
+        );
+        return;
+      }
+      logger.warn(
+        'SqliteApi: Fetched bundled import.json for app update import.',
+        {
+          status: importData.status,
+        },
+      );
 
       const importJson = ((await importData.json()) ?? {}) as ImportJsonData;
       const tables = (importJson.tables ?? []).filter(
@@ -693,13 +708,17 @@ export class SqliteApi implements ServiceApi {
         .filter((column): column is string => !!column);
       if (importColumns.length === 0) continue;
 
-      const existingColumns = new Set(await this.getTableColumns(table.name));
+      const columns = await this.getTableColumns(table.name);
+      if (!columns) continue;
+      const existingColumns = new Set(columns);
       const columnIndexes = importColumns
         .map((column, index) => ({ column, index }))
         .filter(({ column }) => existingColumns.has(column));
       if (columnIndexes.length === 0) continue;
 
-      const conflictColumn = columnIndexes[0].column;
+      const conflictColumn =
+        columnIndexes.find(({ column }) => column === 'id')?.column ??
+        columnIndexes[0].column;
       const insertColumns = columnIndexes.map(({ column }) => column);
       const quotedTableName = this.quoteSqlIdentifier(table.name);
       const quotedInsertColumns = insertColumns
