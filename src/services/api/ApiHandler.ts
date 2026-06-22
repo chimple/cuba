@@ -968,7 +968,7 @@ export class ApiHandler implements ServiceApi {
 
   public async getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
+  ): Promise<TableTypes<'skill'>[]> {
     return this.s.getSkillByLessonIdentifier(lessonIdentifier);
   }
 

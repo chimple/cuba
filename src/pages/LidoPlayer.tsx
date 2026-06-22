@@ -913,9 +913,15 @@ const LidoPlayer: FC = () => {
           ),
         );
         for (const lessonIdentifier of lessonIdentifiers) {
-          normalizedSkillId = (
-            await api.getSkillByLessonIdentifier(lessonIdentifier)
-          )?.id;
+          const skills = await api.getSkillByLessonIdentifier(lessonIdentifier);
+          for (const skill of skills) {
+            if (
+              await doesSkillBelongToCourseSubject(courseSubjectId, skill.id)
+            ) {
+              normalizedSkillId = skill.id;
+              break;
+            }
+          }
           if (normalizedSkillId) break;
         }
       }
