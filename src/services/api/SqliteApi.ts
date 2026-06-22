@@ -3618,13 +3618,13 @@ export class SqliteApi implements ServiceApi {
 
   async getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
+  ): Promise<TableTypes<'skill'>[]> {
     await this.ensureInitialized();
-    if (!lessonIdentifier) return undefined;
+    if (!lessonIdentifier) return [];
 
     const skillLessonRes = await this._db?.query(
       `
-      SELECT sl.skill_id
+      SELECT DISTINCT sl.skill_id
       FROM ${TABLES.Lesson} l
       INNER JOIN ${TABLES.SkillLesson} sl
         ON sl.lesson_id = l.id
@@ -3642,7 +3642,6 @@ export class SqliteApi implements ServiceApi {
         coalesce(datetime(l.updated_at), datetime(l.created_at)) DESC,
         l.updated_at DESC,
         l.created_at DESC
-      LIMIT 1
       `,
       [
         lessonIdentifier,
@@ -3654,13 +3653,21 @@ export class SqliteApi implements ServiceApi {
       ],
     );
 
-    const skillId = skillLessonRes?.values?.[0]?.skill_id;
-    if (!skillId) return undefined;
-
-    return (
-      (await this.getSkillById(skillId)) ??
-      ({ id: skillId } as TableTypes<'skill'>)
+    const skillIds = Array.from(
+      new Set(
+        (skillLessonRes?.values ?? [])
+          .map((row) => row.skill_id)
+          .filter((skillId): skillId is string => !!skillId),
+      ),
     );
+    const skills = await Promise.all(
+      skillIds.map(
+        async (skillId) =>
+          (await this.getSkillById(skillId)) ??
+          ({ id: skillId } as TableTypes<'skill'>),
+      ),
+    );
+    return skills;
   }
 
   async getSkillLessonsBySkillIds(

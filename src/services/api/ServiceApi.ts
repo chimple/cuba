@@ -962,12 +962,12 @@ export interface ServiceApi {
   ): Promise<TableTypes<'skill_lesson'>[]>;
 
   /**
-   * Fetches the first skill linked to a lesson using a lesson row id,
+   * Fetches skills linked to a lesson using a lesson row id,
    * cocos_lesson_id, or lido_lesson_id.
    */
   getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined>;
+  ): Promise<TableTypes<'skill'>[]>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id

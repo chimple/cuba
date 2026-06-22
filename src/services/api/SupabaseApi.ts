@@ -3322,8 +3322,8 @@ export class SupabaseApi implements ServiceApi {
 
   async getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
-    if (!this.supabase || !lessonIdentifier) return undefined;
+  ): Promise<TableTypes<'skill'>[]> {
+    if (!this.supabase || !lessonIdentifier) return [];
 
     const fetchLessonByColumn = async (
       column: 'id' | 'cocos_lesson_id' | 'lido_lesson_id',
@@ -3349,28 +3349,36 @@ export class SupabaseApi implements ServiceApi {
       (await fetchLessonByColumn('cocos_lesson_id')) ??
       (await fetchLessonByColumn('lido_lesson_id'));
 
-    if (!lesson?.id) return undefined;
+    if (!lesson?.id) return [];
 
     const { data: skillLessons, error: skillLessonError } = await this.supabase
       .from(TABLES.SkillLesson)
       .select('skill_id')
       .eq('lesson_id', lesson.id)
       .or('is_deleted.eq.false,is_deleted.is.null')
-      .order('sort_index', { ascending: true, nullsFirst: false })
-      .limit(1);
+      .order('sort_index', { ascending: true, nullsFirst: false });
 
     if (skillLessonError) {
       logger.error('Error fetching skill lesson for lesson:', skillLessonError);
-      return undefined;
+      return [];
     }
 
-    const skillId = skillLessons?.[0]?.skill_id;
-    if (!skillId) return undefined;
-
-    return (
-      (await this.getSkillById(skillId)) ??
-      ({ id: skillId } as TableTypes<'skill'>)
+    const skillIds = Array.from(
+      new Set(
+        (skillLessons ?? [])
+          .map((row) => row.skill_id)
+          .filter((skillId): skillId is string => !!skillId),
+      ),
     );
+
+    const skills = await Promise.all(
+      skillIds.map(
+        async (skillId) =>
+          (await this.getSkillById(skillId)) ??
+          ({ id: skillId } as TableTypes<'skill'>),
+      ),
+    );
+    return skills;
   }
 
   async getSkillLessonsBySkillIds(
