@@ -188,6 +188,10 @@ export class SqliteApi implements ServiceApi {
   private _syncInProgress: boolean = false;
   private _syncRequestedAgain: boolean = false;
   private _retryRefreshTables: TABLES[] = [];
+  private _queuedSyncCompletion: Promise<void> | null = null;
+  private _resolveQueuedSyncCompletion: (() => void) | null = null;
+  private _rejectQueuedSyncCompletion: ((reason?: unknown) => void) | null =
+    null;
   private _postSyncAssetPrefetchScheduled: boolean = false;
   private _postSyncAssetPrefetchRequestedAt: number | null = null;
   private _shouldImportBundledDataAfterUpgrade: boolean = false;
@@ -1555,6 +1559,37 @@ export class SqliteApi implements ServiceApi {
     return true;
   }
 
+  private getOrCreateQueuedSyncCompletion(): Promise<void> {
+    if (!this._queuedSyncCompletion) {
+      this._queuedSyncCompletion = new Promise((resolve, reject) => {
+        this._resolveQueuedSyncCompletion = resolve;
+        this._rejectQueuedSyncCompletion = reject;
+      });
+    }
+
+    return this._queuedSyncCompletion;
+  }
+
+  private async syncDbNowAndWait(
+    tableNames: TABLES[] = Object.values(TABLES),
+    refreshTables: TABLES[] = [],
+    isFirstSync?: boolean,
+  ) {
+    const queuedSyncCompletion = this._syncInProgress
+      ? this.getOrCreateQueuedSyncCompletion()
+      : null;
+    const syncResult = await this.syncDbNow(
+      tableNames,
+      refreshTables,
+      isFirstSync,
+    );
+
+    if (queuedSyncCompletion) {
+      await queuedSyncCompletion;
+    }
+    return syncResult;
+  }
+
   async syncDbNow(
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = [],
@@ -1608,8 +1643,27 @@ export class SqliteApi implements ServiceApi {
         ];
         this._retryRefreshTables = [];
 
-        setTimeout(() => {
-          this.syncDbNow(Object.values(TABLES), retryTablesToRefresh);
+        const queuedSyncCompletion = this._queuedSyncCompletion;
+        const resolveQueuedSyncCompletion = this._resolveQueuedSyncCompletion;
+        const rejectQueuedSyncCompletion = this._rejectQueuedSyncCompletion;
+
+        window.setTimeout(async () => {
+          if (this._queuedSyncCompletion === queuedSyncCompletion) {
+            this._queuedSyncCompletion = null;
+            this._resolveQueuedSyncCompletion = null;
+            this._rejectQueuedSyncCompletion = null;
+          }
+
+          try {
+            await this.syncDbNowAndWait(
+              Object.values(TABLES),
+              retryTablesToRefresh,
+            );
+            resolveQueuedSyncCompletion?.();
+          } catch (error) {
+            rejectQueuedSyncCompletion?.(error);
+            logger.error('Requeued sync failed:', error);
+          }
         }, 0);
       }
     }
@@ -4879,7 +4933,7 @@ export class SqliteApi implements ServiceApi {
         inviteCode,
         studentId,
       });
-      await this.syncDbNow(Object.values(TABLES), [
+      await this.syncDbNowAndWait(Object.values(TABLES), [
         TABLES.Assignment,
         TABLES.Class,
         TABLES.School,

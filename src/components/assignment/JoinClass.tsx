@@ -123,78 +123,6 @@ const JoinClass: FC<{
     }
   };
 
-  const waitForJoinSyncToSettle = async () => {
-    const pollIntervalMs = 100;
-    const settleDurationMs = 400;
-    const timeoutMs = 180000;
-    const startedAt = Date.now();
-    let syncIdleSince: number | null = null;
-    let sawSyncingState = false;
-    let sawIdleState = false;
-
-    logJoinDebug('Waiting for join sync to settle', 'waitForJoinSyncToSettle', {
-      timeoutMs,
-      pollIntervalMs,
-      settleDurationMs,
-      initialSyncInProgress: api.isSyncInProgress(),
-    });
-
-    while (Date.now() - startedAt < timeoutMs) {
-      const syncing = api.isSyncInProgress();
-
-      if (syncing) {
-        if (!sawSyncingState) {
-          sawSyncingState = true;
-          logJoinDebug(
-            'Join sync wait observed sync in progress',
-            'waitForJoinSyncToSettle',
-            {
-              elapsedMs: Date.now() - startedAt,
-            },
-          );
-        }
-        syncIdleSince = null;
-      } else if (syncIdleSince === null) {
-        syncIdleSince = Date.now();
-        if (!sawIdleState) {
-          sawIdleState = true;
-          logJoinDebug(
-            'Join sync wait observed idle state',
-            'waitForJoinSyncToSettle',
-            {
-              elapsedMs: Date.now() - startedAt,
-            },
-          );
-        }
-      } else if (Date.now() - syncIdleSince >= settleDurationMs) {
-        logJoinDebug(
-          'Join sync settled successfully',
-          'waitForJoinSyncToSettle',
-          {
-            elapsedMs: Date.now() - startedAt,
-            sawSyncingState,
-            sawIdleState,
-          },
-        );
-        return;
-      }
-
-      await new Promise((resolve) =>
-        window.setTimeout(resolve, pollIntervalMs),
-      );
-    }
-
-    logger.warn(
-      'Join class timed out while waiting for sync to settle. Continuing anyway.',
-    );
-    logJoinDebug('Join sync wait timed out', 'waitForJoinSyncToSettle', {
-      elapsedMs: Date.now() - startedAt,
-      sawSyncingState,
-      sawIdleState,
-      finalSyncInProgress: api.isSyncInProgress(),
-    });
-  };
-
   const onJoin = async () => {
     // setShowDialogBox(false);
     if (loading || joiningClass) return;
@@ -243,7 +171,7 @@ const JoinClass: FC<{
         parsedInviteCode,
         student.id,
       );
-      logJoinDebug('linkStudent RPC completed', 'onJoin', {
+      logJoinDebug('linkStudent completed with required join sync', 'onJoin', {
         inviteCode: parsedInviteCode,
         studentId: student.id,
         responseCount: Array.isArray(linkStudentResponse)
@@ -253,7 +181,6 @@ const JoinClass: FC<{
           ? 'array'
           : typeof linkStudentResponse,
       });
-      await waitForJoinSyncToSettle();
       const RESET_ON_JOIN_KEY = `reset_on_join_${student.id}`;
       localStorage.setItem(RESET_ON_JOIN_KEY, 'true');
       if (!!codeResult) {
