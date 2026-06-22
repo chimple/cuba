@@ -53,7 +53,8 @@ const AddStudent: React.FC = () => {
     try {
       const fetchedLanguages: TableTypes<'language'>[] =
         await api.getAllLanguages();
-      const sanitizedLanguages = fetchedLanguages
+      const sanitizedLanguages = [...fetchedLanguages]
+        .sort((left, right) => (left.sort_index ?? 0) - (right.sort_index ?? 0))
         .filter((lang) => lang.code && lang.name && lang.id)
         .map((lang) => ({
           label: lang.name,
