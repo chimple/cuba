@@ -262,27 +262,36 @@ const ScoreCard: React.FC<{
           },
         }}
       >
-        <div id="ScoreCard-Content" className="ScoreCard-Content">
-          <DialogContentText className="dialog-content-text">
+        <div
+          id="ScoreCard-Content"
+          className={
+            useProgressLayout
+              ? 'score-card-goal-progress-content-box'
+              : 'ScoreCard-Content'
+          }
+        >
+          <DialogContentText component="div" className="dialog-content-text">
             <div id="score-card-icons" className="score-card-icons">
               <img src="assets/loading.gif" className="image-icon" alt="" />
               <div id="star-images-component" className="star-images-component">
                 <ScoreCardStarIcons score={score} />
               </div>
             </div>
-            <ScoreCardTitle score={score} />
-            <div id="score-card-content" className="score-card-content">
-              <div
-                id="score-card-content-message"
-                className="score-card-content-message"
-              >
-                {t(message)}
-              </div>
-              <div
-                id="score-card-content-lesson-name"
-                className="score-card-content-lesson-name"
-              >
-                {t(lessonName)}
+            <div className="score-card-text-column">
+              <ScoreCardTitle score={score} />
+              <div id="score-card-content" className="score-card-content">
+                <div
+                  id="score-card-content-message"
+                  className="score-card-content-message"
+                >
+                  {t(message)}
+                </div>
+                <div
+                  id="score-card-content-lesson-name"
+                  className="score-card-content-lesson-name"
+                >
+                  {t(lessonName)}
+                </div>
               </div>
             </div>
           </DialogContentText>
@@ -292,7 +301,11 @@ const ScoreCard: React.FC<{
             <ScoreCardProgressRows rows={displayedProgressRows} />
             <div
               id="ScoreCard-Continue-Button-div"
-              className="ScoreCard-Continue-Button-div"
+              className={
+                useProgressLayout
+                  ? 'score-card-progress-continue-wrapper'
+                  : 'ScoreCard-Continue-Button-div'
+              }
             >
               <button
                 id="lesson_end_continue"
