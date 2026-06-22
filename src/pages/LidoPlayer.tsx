@@ -913,9 +913,15 @@ const LidoPlayer: FC = () => {
           ),
         );
         for (const lessonIdentifier of lessonIdentifiers) {
-          normalizedSkillId = (
-            await api.getSkillByLessonIdentifier(lessonIdentifier)
-          )?.id;
+          const skills = await api.getSkillByLessonIdentifier(lessonIdentifier);
+          for (const skill of skills) {
+            if (
+              await doesSkillBelongToCourseSubject(courseSubjectId, skill.id)
+            ) {
+              normalizedSkillId = skill.id;
+              break;
+            }
+          }
           if (normalizedSkillId) break;
         }
       }
@@ -966,7 +972,7 @@ const LidoPlayer: FC = () => {
       const learning_path: boolean = state?.learning_path ?? false;
       const is_homework: boolean = state?.isHomework ?? false;
       const homeworkIndex: number | undefined = state?.homeworkIndex;
-      const lessonTimeSpent = getTotalStoredLessonTime(scoresList);
+      const lessonTimeSpent = parseNumericValue(data.timeSpendForLesson) ?? 0;
       // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
       let shouldGiveHomeworkBonus = false;
       if (is_homework) {
