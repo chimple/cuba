@@ -78,7 +78,10 @@ const ScoreCardProgressRows: React.FC<ScoreCardProgressRowsProps> = ({
   if (!rows.length) return null;
 
   return (
-    <div id="score-card-progress-list" className="score-card-progress-list">
+    <div
+      id="score-card-goal-progress-list"
+      className="score-card-goal-progress-list"
+    >
       {rows.map((row, index) => {
         const {
           total,
