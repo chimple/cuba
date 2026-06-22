@@ -90,7 +90,8 @@ function CachedImage(props: CachedImageProps) {
         src={resolvedSrc}
         alt={alt ?? resolvedSrc}
         onError={(event) => {
-          if (fallbackSrc && event.currentTarget.src !== fallbackSrc) {
+          const currentSrc = event.currentTarget.getAttribute('src');
+          if (fallbackSrc && currentSrc !== fallbackSrc) {
             event.currentTarget.src = fallbackSrc;
           }
           onError?.(event);
@@ -116,7 +117,8 @@ function CachedImage(props: CachedImageProps) {
       src={localSrc}
       alt={alt ?? resolvedSrc}
       onError={(event) => {
-        if (fallbackSrc && event.currentTarget.src !== fallbackSrc) {
+        const currentSrc = event.currentTarget.getAttribute('src');
+        if (fallbackSrc && currentSrc !== fallbackSrc) {
           event.currentTarget.src = fallbackSrc;
           setLocalSrc(fallbackSrc);
           setIsLoading(false);
