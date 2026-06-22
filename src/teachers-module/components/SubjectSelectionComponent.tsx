@@ -6,6 +6,8 @@ import { t } from 'i18next';
 import logger from '../../utility/logger';
 import CachedImage from '../../components/common/CachedImage';
 
+const DEFAULT_SUBJECT_ICON = '/assets/icons/DefaultIcon.png';
+
 interface SubjectSelectionProps {
   curriculumsWithCourses: {
     curriculum: {
@@ -70,7 +72,8 @@ const SubjectSelectionComponent: React.FC<SubjectSelectionProps> = ({
               <div key={course.id} className="subject-item">
                 <div className="subject-selection-div">
                   <CachedImage
-                    src={course?.image || 'assets/icons/DefaultIcon.png'}
+                    src={course?.image || DEFAULT_SUBJECT_ICON}
+                    fallbackSrc={DEFAULT_SUBJECT_ICON}
                     alt={course.name || 'Default Subject Icon'}
                     className="subject-icon"
                   />

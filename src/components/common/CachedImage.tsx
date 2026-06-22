@@ -10,18 +10,23 @@ const shouldBypassCache = (src?: string): boolean => {
   return !Capacitor.isNativePlatform() || isLocalImageUrl(src);
 };
 
-function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
-  const { src, alt, ...imgProps } = props;
-  const bypassCache = src ? shouldBypassCache(src) : false;
+interface CachedImageProps extends ImgHTMLAttributes<HTMLImageElement> {
+  fallbackSrc?: string;
+}
+
+function CachedImage(props: CachedImageProps) {
+  const { src, alt, fallbackSrc, onError, ...imgProps } = props;
+  const resolvedSrc = src || fallbackSrc;
+  const bypassCache = resolvedSrc ? shouldBypassCache(resolvedSrc) : false;
   const [localSrc, setLocalSrc] = useState<string | undefined>(() => {
-    if (!src) {
+    if (!resolvedSrc) {
       return undefined;
     }
 
-    return bypassCache ? src : undefined;
+    return bypassCache ? resolvedSrc : undefined;
   });
   const [isLoading, setIsLoading] = useState<boolean>(() => {
-    if (!src) {
+    if (!resolvedSrc) {
       return false;
     }
 
@@ -31,7 +36,7 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
   useEffect(() => {
     let isMounted = true;
 
-    if (!src) {
+    if (!resolvedSrc) {
       setLocalSrc(undefined);
       setIsLoading(false);
       return () => {
@@ -40,7 +45,7 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
     }
 
     if (bypassCache) {
-      setLocalSrc(src);
+      setLocalSrc(resolvedSrc);
       setIsLoading(false);
       return () => {
         isMounted = false;
@@ -50,7 +55,7 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
     setIsLoading(true);
     setLocalSrc(undefined);
 
-    void getCachedImageSrc(src)
+    void getCachedImageSrc(resolvedSrc)
       .then((resolvedSrc) => {
         if (!isMounted) {
           return;
@@ -64,21 +69,34 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
           return;
         }
 
-        setLocalSrc(src);
+        setLocalSrc(resolvedSrc);
         setIsLoading(false);
       });
 
     return () => {
       isMounted = false;
     };
-  }, [src, bypassCache]);
+  }, [resolvedSrc, src, fallbackSrc, bypassCache]);
 
-  if (!src) {
+  if (!resolvedSrc) {
     return <div />;
   }
 
   if (bypassCache) {
-    return <img loading="lazy" {...imgProps} src={src} alt={alt ?? src} />;
+    return (
+      <img
+        loading="lazy"
+        {...imgProps}
+        src={resolvedSrc}
+        alt={alt ?? resolvedSrc}
+        onError={(event) => {
+          if (fallbackSrc && event.currentTarget.src !== fallbackSrc) {
+            event.currentTarget.src = fallbackSrc;
+          }
+          onError?.(event);
+        }}
+      />
+    );
   }
 
   if (isLoading || !localSrc) {
@@ -91,6 +109,21 @@ function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
     );
   }
 
-  return <img loading="lazy" {...imgProps} src={localSrc} alt={alt ?? src} />;
+  return (
+    <img
+      loading="lazy"
+      {...imgProps}
+      src={localSrc}
+      alt={alt ?? resolvedSrc}
+      onError={(event) => {
+        if (fallbackSrc && event.currentTarget.src !== fallbackSrc) {
+          event.currentTarget.src = fallbackSrc;
+          setLocalSrc(fallbackSrc);
+          setIsLoading(false);
+        }
+        onError?.(event);
+      }}
+    />
+  );
 }
 export default CachedImage;
