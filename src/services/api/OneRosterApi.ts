@@ -371,7 +371,7 @@ export class OneRosterApi implements ServiceApi {
   ): Promise<TableTypes<'outcome'>[]> {
     throw new Error('Method not implemented.');
   }
-  getSkillsByOutcomeIds(): Promise<TableTypes<'skill'>[]> {
+  getSkillsByOutcomeIds(outcomeIds: string[]): Promise<TableTypes<'skill'>[]> {
     throw new Error('Method not implemented.');
   }
   getResultsBySkillIds(
