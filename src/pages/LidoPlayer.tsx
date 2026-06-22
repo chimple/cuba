@@ -966,7 +966,7 @@ const LidoPlayer: FC = () => {
       const learning_path: boolean = state?.learning_path ?? false;
       const is_homework: boolean = state?.isHomework ?? false;
       const homeworkIndex: number | undefined = state?.homeworkIndex;
-      const lessonTimeSpent = parseNumericValue(data.timeSpendForLesson) ?? 0;
+      const lessonTimeSpent = getTotalStoredLessonTime(scoresList);
       // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
       let shouldGiveHomeworkBonus = false;
       if (is_homework) {
