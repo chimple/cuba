@@ -189,6 +189,21 @@ const LAST_ACCESS_DATE_KEY = 'lastAccessDate';
 const IS_INITIALIZED = 'isInitialized';
 let timeoutId: NodeJS.Timeout;
 
+const RouteAudioCleanup = () => {
+  const location = useLocation();
+  const lastLocationRef = useRef(location.pathname + location.search);
+
+  useEffect(() => {
+    const currentLocation = location.pathname + location.search;
+    if (lastLocationRef.current !== currentLocation) {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
+      lastLocationRef.current = currentLocation;
+    }
+  }, [location.pathname, location.search]);
+
+  return null;
+};
+
 const App: React.FC = () => {
   const growthbook = useGrowthBook();
   const [online, setOnline] = useState(navigator.onLine);
@@ -258,21 +273,6 @@ const App: React.FC = () => {
         document.body.classList.remove('ops-console');
       };
     }, [location.pathname]);
-
-    return null;
-  };
-
-  const RouteAudioCleanup = () => {
-    const location = useLocation();
-    const lastLocationRef = useRef(location.pathname + location.search);
-
-    useEffect(() => {
-      const currentLocation = location.pathname + location.search;
-      if (lastLocationRef.current !== currentLocation) {
-        void AudioUtil.stopAudioUrlOrTtsPlayback();
-        lastLocationRef.current = currentLocation;
-      }
-    }, [location.pathname, location.search]);
 
     return null;
   };
