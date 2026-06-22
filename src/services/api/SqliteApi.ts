@@ -995,8 +995,7 @@ export class SqliteApi implements ServiceApi {
         (school_user_data?.length ?? 0) > 0 ||
         (data.get(TABLES.Class)?.length ?? 0) > 0 ||
         (data.get(TABLES.ClassUser)?.length ?? 0) > 0;
-
-      if (new_school && new_school?.length > 0) {
+      if ((new_school && new_school?.length > 0) || hasSelectionUpdates) {
         const localSchoolRaw = localStorage.getItem(SCHOOL);
 
         if (localSchoolRaw) {
@@ -1028,6 +1027,7 @@ export class SqliteApi implements ServiceApi {
         await this.syncDbNow(Object.values(TABLES), [
           TABLES.Assignment,
           TABLES.Assignment_user,
+          TABLES.School,
           TABLES.SchoolCourse,
           TABLES.Class,
           TABLES.ClassInvite_code,
@@ -4086,14 +4086,19 @@ export class SqliteApi implements ServiceApi {
   async getCoursesBySchoolId(
     schoolId: string,
   ): Promise<TableTypes<'school_course'>[]> {
-    await this.ensureInitialized();
-    const query = `
+    try {
+      await this.ensureInitialized();
+      const query = `
       SELECT *
       FROM ${TABLES.SchoolCourse}
       WHERE school_id = ? AND is_deleted = 0
     `;
-    const res = await this._db?.query(query, [schoolId]);
-    return res?.values ?? [];
+      const res = await this._db?.query(query, [schoolId]);
+      return res?.values ?? [];
+    } catch (e) {
+      logger.error('Error in getCoursesBySchoolId', e);
+      return [];
+    }
   }
 
   async checkCourseInClasses(
