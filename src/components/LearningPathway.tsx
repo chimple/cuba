@@ -189,12 +189,7 @@ const LearningPathway: React.FC = () => {
       </div>
 
       <div className="chapter-egg-container">
-        <ChapterLessonBox
-          courseCode={courseCode}
-          containerStyle={{
-            width: '35vw',
-          }}
-        />
+        <ChapterLessonBox courseCode={courseCode} />
       </div>
     </div>
   );
