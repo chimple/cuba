@@ -4,6 +4,11 @@
   max-width: calc(100vw - 8px) !important;
   min-height: 314px !important;
   border-radius: 22px !important;
+  margin: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .score-card-dialog__paper--progress {
@@ -18,7 +23,15 @@
   padding-top: 24px !important;
   padding-bottom: 32px !important;
   box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
   gap: 5vh;
+}
+
+.score-card-dialog__paper--progress:has(.score-card-progress-count-1) {
+  gap: 11vh;
 }
 
 .score-card-dialog__paper--progress-no-rows {

@@ -80,6 +80,9 @@ const ScoreCard: React.FC<{
     ScoreCardProgressRowData[]
   >(progressRows ?? EMPTY_PROGRESS_ROWS);
   const [isLoadingRows, setIsLoadingRows] = useState(false);
+  const [loadedProgressRowsKey, setLoadedProgressRowsKey] = useState<
+    string | null
+  >(null);
   const hasProvidedProgressRows = Boolean(progressRows?.length);
   const displayedProgressRows = showProgressRows
     ? hasProvidedProgressRows
@@ -99,6 +102,21 @@ const ScoreCard: React.FC<{
     displayedProgressRows.length,
     2,
   )}`;
+  const progressLookupKey = [
+    progressContext?.completedCourseId ?? '',
+    progressContext?.completedLessonId ?? '',
+    progressContext?.completedHomeworkIndex ?? '',
+    progressContext?.animateDailyReward ? '1' : '0',
+    progressContext?.showDailyReward ? '1' : '0',
+  ].join('|');
+  const shouldLoadProgressRows =
+    showDialogBox &&
+    variant === 'progress' &&
+    showProgressRows &&
+    !hasProvidedProgressRows;
+  const isProgressRowsPending =
+    shouldLoadProgressRows && loadedProgressRowsKey !== progressLookupKey;
+  const shouldRenderDialog = showDialogBox && !isProgressRowsPending;
   const hasLoggedGoalProgressRef = useRef(false);
 
   const logGoalProgressShown = useCallback(async () => {
@@ -161,12 +179,7 @@ const ScoreCard: React.FC<{
     let isCancelled = false;
 
     const loadProgressRows = async () => {
-      if (
-        !showDialogBox ||
-        variant !== 'progress' ||
-        !showProgressRows ||
-        hasProvidedProgressRows
-      ) {
+      if (!shouldLoadProgressRows) {
         return;
       }
 
@@ -193,7 +206,10 @@ const ScoreCard: React.FC<{
       } catch {
         // Keep the scorecard actionable even if progress lookup fails.
       } finally {
-        if (!isCancelled) setIsLoadingRows(false);
+        if (!isCancelled) {
+          setLoadedProgressRowsKey(progressLookupKey);
+          setIsLoadingRows(false);
+        }
       }
     };
 
@@ -204,7 +220,8 @@ const ScoreCard: React.FC<{
     };
   }, [
     hasProvidedProgressRows,
-    showProgressRows,
+    progressLookupKey,
+    shouldLoadProgressRows,
     progressContext?.animateDailyReward,
     progressContext?.completedCourseId,
     progressContext?.completedLessonId,
@@ -215,7 +232,7 @@ const ScoreCard: React.FC<{
   ]);
 
   useEffect(() => {
-    if (!showDialogBox) {
+    if (!shouldRenderDialog) {
       hasLoggedGoalProgressRef.current = false;
       void AudioUtil.stopAudioUrlOrTtsPlayback();
       return;
@@ -230,22 +247,26 @@ const ScoreCard: React.FC<{
     return () => {
       void AudioUtil.stopAudioUrlOrTtsPlayback();
     };
-  }, [audioUrl, lessonName, message, showDialogBox]);
+  }, [audioUrl, lessonName, message, shouldRenderDialog]);
 
   useEffect(() => {
-    if (!showDialogBox || isLoadingRows || hasLoggedGoalProgressRef.current) {
+    if (
+      !shouldRenderDialog ||
+      isLoadingRows ||
+      hasLoggedGoalProgressRef.current
+    ) {
       return;
     }
 
     hasLoggedGoalProgressRef.current = true;
     void logGoalProgressShown();
-  }, [isLoadingRows, logGoalProgressShown, showDialogBox]);
+  }, [isLoadingRows, logGoalProgressShown, shouldRenderDialog]);
 
   return (
     <div>
       <Dialog
         className={dialogClassName}
-        open={showDialogBox}
+        open={shouldRenderDialog}
         onClose={(event, reason) => {
           if (reason === 'backdropClick') return;
           if (reason === 'escapeKeyDown') return;
