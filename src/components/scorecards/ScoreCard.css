@@ -19,7 +19,7 @@
   box-shadow: none !important;
   margin: 2vh auto !important;
   max-height: 96vh !important;
-  overflow-y: auto !important;
+  overflow: hidden !important;
   padding-top: 24px !important;
   padding-bottom: 32px !important;
   box-sizing: border-box !important;
@@ -43,6 +43,13 @@
 
 .score-card-dialog__backdrop--progress {
   background-color: #ffffff !important;
+}
+
+.score-card-dialog--progress .MuiDialog-container,
+.score-card-dialog--progress .MuiDialog-scrollPaper,
+.score-card-dialog--progress .MuiDialog-paperScrollPaper {
+  overflow: hidden !important;
+  overscroll-behavior: none;
 }
 
 .dialog-box-button-style-score-card {
