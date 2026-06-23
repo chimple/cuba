@@ -906,6 +906,16 @@ export class SqliteApi implements ServiceApi {
     await this._db.executeSet(batch as any, useImplicitTransaction);
   }
 
+  private async isSqliteTransactionActive(): Promise<boolean> {
+    if (!this._db) return false;
+
+    try {
+      return (await this._db.isTransactionActive()).result === true;
+    } catch {
+      return false;
+    }
+  }
+
   private schedulePostSyncAssetPrefetch(): void {
     if (!Capacitor.isNativePlatform() || this._postSyncAssetPrefetchScheduled) {
       return;
@@ -1192,11 +1202,17 @@ export class SqliteApi implements ServiceApi {
     const beginSyncWriteTransaction = async () => {
       if (!this._db || syncWriteTransactionOpen) return;
       await this._db.beginTransaction();
-      syncWriteTransactionOpen = true;
+      syncWriteTransactionOpen = await this.isSqliteTransactionActive();
     };
 
     const commitSyncWriteTransaction = async () => {
       if (!this._db || !syncWriteTransactionOpen) return;
+      const isTransactionActive = await this.isSqliteTransactionActive();
+      if (!isTransactionActive) {
+        syncWriteTransactionOpen = false;
+        webStoreDirty = false;
+        return;
+      }
       await this._db.commitTransaction();
       syncWriteTransactionOpen = false;
       if (isWebPlatform && webStoreDirty) {
@@ -1208,7 +1224,9 @@ export class SqliteApi implements ServiceApi {
     const rollbackSyncWriteTransaction = async () => {
       if (!this._db || !syncWriteTransactionOpen) return;
       try {
-        await this._db.rollbackTransaction();
+        if (await this.isSqliteTransactionActive()) {
+          await this._db.rollbackTransaction();
+        }
       } finally {
         syncWriteTransactionOpen = false;
         webStoreDirty = false;
@@ -1562,6 +1580,7 @@ export class SqliteApi implements ServiceApi {
   ) {
     await this.ensureInitialized();
     if (!this._db) return;
+    await this.createSyncTables();
     // 🔒 LOCK
     if (this._syncInProgress) {
       if (refreshTables && refreshTables.length > 0) {
@@ -7670,6 +7689,9 @@ order by
     const currentUser = await authHandler?.getCurrentUser();
     const parentId = currentUser?.id;
     const today = new Date().toISOString().split('T')[0];
+    if (!parentId) {
+      return;
+    }
 
     const selectQuery = `
       SELECT * FROM debug_info
