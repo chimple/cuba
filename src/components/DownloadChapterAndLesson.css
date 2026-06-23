@@ -36,8 +36,9 @@
 }
 
 .lesson-or-chapter-delete-icon {
-  width: 65%;
-  height: 60%;
+  margin-top: 7px;
+  width: 2vw;
+  height: auto;
 }
 
 .lesson-or-chapter-download-icon {

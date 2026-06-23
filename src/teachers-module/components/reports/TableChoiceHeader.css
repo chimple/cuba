@@ -133,13 +133,13 @@ nav-btn:hover {
   overflow: hidden;
   width: auto;
   height: 25px;
-  font-size: 1.2vh;
+  font-size: clamp(7px, 1.2vh, 10px);
   font-weight: 600;
   user-select: none;
 }
 
 .pill-option {
-  flex: 1;
+  min-width: 60px;
   text-align: center;
   padding: 3px 8px;
   cursor: pointer;

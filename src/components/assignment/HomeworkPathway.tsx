@@ -1045,9 +1045,6 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           chapterName={boxDetails?.cName || 'Loading'}
           lessonName={boxDetails?.lName || '...'}
           courseCode={boxDetails?.courseCode}
-          containerStyle={{
-            width: '35vw',
-          }}
         />
       </div>
 

@@ -111,7 +111,6 @@
   color: var(--text-color);
   font-size: var(--text-size);
   text-align: center;
-  width: 7vw;
 }
 
 #leaderboard-switch-user-button-img {

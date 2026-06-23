@@ -380,7 +380,7 @@ const SideMenu: React.FC<{
               setClassCode={setClassCode}
             />
           </div>
-          <div className="side-menu-switch-user-toggle">
+          <div className="side-menu-switch-user-toggle side-menu-kids-toggle">
             <IonItem className="side-menu-ion-item-container">
               <img
                 src="assets/icons/userSwitch.svg"
