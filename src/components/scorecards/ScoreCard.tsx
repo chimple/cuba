@@ -80,9 +80,7 @@ const ScoreCard: React.FC<{
     ScoreCardProgressRowData[]
   >(progressRows ?? EMPTY_PROGRESS_ROWS);
   const [isLoadingRows, setIsLoadingRows] = useState(false);
-  const [loadedProgressRowsKey, setLoadedProgressRowsKey] = useState<
-    string | null
-  >(null);
+  const loadedProgressRowsKeyRef = useRef<string | null>(null);
   const hasProvidedProgressRows = Boolean(progressRows?.length);
   const displayedProgressRows = showProgressRows
     ? hasProvidedProgressRows
@@ -115,7 +113,8 @@ const ScoreCard: React.FC<{
     showProgressRows &&
     !hasProvidedProgressRows;
   const isProgressRowsPending =
-    shouldLoadProgressRows && loadedProgressRowsKey !== progressLookupKey;
+    shouldLoadProgressRows &&
+    loadedProgressRowsKeyRef.current !== progressLookupKey;
   const shouldRenderDialog = showDialogBox && !isProgressRowsPending;
   const hasLoggedGoalProgressRef = useRef(false);
 
@@ -179,7 +178,10 @@ const ScoreCard: React.FC<{
     let isCancelled = false;
 
     const loadProgressRows = async () => {
-      if (!shouldLoadProgressRows) {
+      if (
+        !shouldLoadProgressRows ||
+        loadedProgressRowsKeyRef.current === progressLookupKey
+      ) {
         return;
       }
 
@@ -207,7 +209,7 @@ const ScoreCard: React.FC<{
         // Keep the scorecard actionable even if progress lookup fails.
       } finally {
         if (!isCancelled) {
-          setLoadedProgressRowsKey(progressLookupKey);
+          loadedProgressRowsKeyRef.current = progressLookupKey;
           setIsLoadingRows(false);
         }
       }
