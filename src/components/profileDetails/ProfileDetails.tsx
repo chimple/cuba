@@ -268,20 +268,22 @@ const ProfileDetails = () => {
 
       // CREATE MODE Logic
       const state = history.location.state as any;
-      const createFallbackPath = parentHasStudentRef.current
-        ? PAGES.DISPLAY_STUDENT
-        : PAGES.SELECT_MODE;
-      const targetPath = withContinueIfNeeded(
-        state?.from ?? createFallbackPath,
-      );
-
-      if (targetPath.startsWith(PAGES.DISPLAY_STUDENT)) {
-        // Reinitialize hardware back handling only for create -> display students path.
-        reinitializeHardwareBackButton();
-        const separator = targetPath.includes('?') ? '&' : '?';
-        history.replace(`${targetPath}${separator}forceReload=1`);
+      if (state?.from) {
+        const targetPath = withContinueIfNeeded(state.from);
+        if (targetPath.startsWith(PAGES.DISPLAY_STUDENT)) {
+          // Reinitialize hardware back handling only for create -> display students path.
+          reinitializeHardwareBackButton();
+          const separator = targetPath.includes('?') ? '&' : '?';
+          history.replace(`${targetPath}${separator}forceReload=1`);
+        } else {
+          history.replace(targetPath);
+        }
+      } else if (history.length > 1) {
+        history.goBack();
+      } else if (parentHasStudentRef.current) {
+        history.replace(PAGES.DISPLAY_STUDENT);
       } else {
-        history.replace(targetPath);
+        history.replace(PAGES.SELECT_MODE);
       }
       return;
     } catch (e) {
@@ -547,7 +549,7 @@ const ProfileDetails = () => {
 
         <div className="profiledetails-form-fields">
           {/* Header Info: Class Name | School Name */}
-          {(className || schoolName) && (
+          {isEdit && (className || schoolName) && (
             <div className="profiledetails-header-info">
               {className && (
                 <div className="pd-info-item">
