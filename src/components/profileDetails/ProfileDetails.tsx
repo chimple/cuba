@@ -282,7 +282,9 @@ const ProfileDetails = () => {
         const createFallbackPath = parentHasStudentRef.current
           ? PAGES.DISPLAY_STUDENT
           : PAGES.SELECT_MODE;
-        const targetPath = withContinueIfNeeded(createFallbackPath);
+        const targetPath = withContinueIfNeeded(
+          state?.from ?? createFallbackPath,
+        );
 
         if (targetPath.startsWith(PAGES.DISPLAY_STUDENT)) {
           // Reinitialize hardware back handling only for create -> display students path.
