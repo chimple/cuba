@@ -1,11 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import {
-  CLASSES,
-  IconType,
-  PAGES,
-  TableTypes,
-  OPS_ROLES,
-} from '../../common/constants';
+import React, { useState, useEffect } from 'react';
+import { CLASSES, IconType, PAGES, TableTypes } from '../../common/constants';
 import { useHistory } from 'react-router-dom';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import Header from '../components/homePage/Header';
@@ -21,16 +15,22 @@ import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
 
+const CLASS_CREATION_ROLES = [
+  RoleType.SUPER_ADMIN,
+  RoleType.OPERATIONAL_DIRECTOR,
+  RoleType.PROGRAM_MANAGER,
+  RoleType.FIELD_COORDINATOR,
+  RoleType.PRINCIPAL,
+  RoleType.COORDINATOR,
+];
+
 const ManageClass: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
-    null,
-  );
   const [currentSchool, setCurrentSchool] = useState<
     TableTypes<'school'> | undefined
   >();
 
   const [allClasses, setAllClasses] = useState<TableTypes<'class'>[]>([]);
-  const [userRole, setUserRole] = useState<RoleType>();
+  const [currentSchoolRole, setCurrentSchoolRole] = useState<RoleType>();
 
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -42,16 +42,19 @@ const ManageClass: React.FC = () => {
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
-  const storedRoles = roles || [];
 
   const init = async () => {
     try {
       const user = await auth.getCurrentUser();
       if (!user) return;
-      setCurrentUser(user);
       const tempSchool = Util.getCurrentSchool();
       if (tempSchool) {
         setCurrentSchool(tempSchool);
+        const schoolRole = await api.getUserRoleForSchool(
+          user.id,
+          tempSchool.id,
+        );
+        setCurrentSchoolRole(schoolRole);
         const fetchedClasses = await api.getClassesForSchool(
           tempSchool.id,
           user.id,
@@ -66,10 +69,9 @@ const ManageClass: React.FC = () => {
     }
   };
 
-  const canCreate = useMemo(
-    () => OPS_ROLES.some((role) => storedRoles.includes(role)),
-    [storedRoles],
-  );
+  const canCreate =
+    !!currentSchoolRole && CLASS_CREATION_ROLES.includes(currentSchoolRole);
+
   const onBackButtonClick = () => {
     history.replace(PAGES.HOME_PAGE, {
       tabValue: 0,
@@ -113,15 +115,13 @@ const ManageClass: React.FC = () => {
           school={currentSchool}
         />
       </div>
-      {/* Class creation is disabled in Teacher Mode.
-        Classes should be created only from Ops Mode. */}
-      {/* {canCreate && !isExternalUser && (
+      {canCreate && !isExternalUser && (
         <AddButton
           onClick={() => {
             history.replace(PAGES.ADD_CLASS, { origin: PAGES.MANAGE_CLASS });
           }}
         />
-      )} */}
+      )}
     </div>
   );
 };
