@@ -5405,7 +5405,9 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<RoleType | undefined> {
     if (!this.supabase) return;
 
-    const getProgramScopedRole = async (
+    // Program roles apply only to schools in the user's mapped program.
+    // This prevents program permissions from leaking into unrelated schools.
+    const getUserProgramRoleForSchool = async (
       fallbackRole?: RoleType,
     ): Promise<RoleType | undefined> => {
       const { data: school } = await this.supabase!.from(TABLES.School)
@@ -5453,14 +5455,15 @@ export class SupabaseApi implements ServiceApi {
         specialRole === RoleType.PROGRAM_MANAGER ||
         specialRole === RoleType.FIELD_COORDINATOR
       ) {
-        const programScopedRole = await getProgramScopedRole(specialRole);
+        const programScopedRole =
+          await getUserProgramRoleForSchool(specialRole);
         if (programScopedRole) return programScopedRole;
       } else {
         return specialRole;
       }
     }
 
-    const programScopedRole = await getProgramScopedRole();
+    const programScopedRole = await getUserProgramRoleForSchool();
     if (programScopedRole) return programScopedRole;
 
     // Check school_user (not parent)
