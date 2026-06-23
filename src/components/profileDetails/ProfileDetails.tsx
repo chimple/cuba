@@ -278,12 +278,20 @@ const ProfileDetails = () => {
         } else {
           history.replace(targetPath);
         }
-      } else if (history.length > 1) {
-        history.goBack();
-      } else if (parentHasStudentRef.current) {
-        history.replace(PAGES.DISPLAY_STUDENT);
       } else {
-        history.replace(PAGES.SELECT_MODE);
+        const createFallbackPath = parentHasStudentRef.current
+          ? PAGES.DISPLAY_STUDENT
+          : PAGES.SELECT_MODE;
+        const targetPath = withContinueIfNeeded(createFallbackPath);
+
+        if (targetPath.startsWith(PAGES.DISPLAY_STUDENT)) {
+          // Reinitialize hardware back handling only for create -> display students path.
+          reinitializeHardwareBackButton();
+          const separator = targetPath.includes('?') ? '&' : '?';
+          history.replace(`${targetPath}${separator}forceReload=1`);
+        } else {
+          history.replace(targetPath);
+        }
       }
       return;
     } catch (e) {
