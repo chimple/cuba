@@ -547,7 +547,7 @@ const ProfileDetails = () => {
 
         <div className="profiledetails-form-fields">
           {/* Header Info: Class Name | School Name */}
-          {(className || schoolName) && (
+          {isEdit && (className || schoolName) && (
             <div className="profiledetails-header-info">
               {className && (
                 <div className="pd-info-item">
