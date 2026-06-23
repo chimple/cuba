@@ -10241,16 +10241,20 @@ order by
       FROM result r
       INNER JOIN assignment a
         ON a.id = r.assignment_id
-      WHERE r.student_id = '${studentId}'
+      WHERE r.student_id = ?
         AND r.status = 'assessment_terminated'
-        AND r.is_deleted = false
-        AND a.class_id = '${classId}'
-        AND a.course_id = '${courseId}'
+        AND r.is_deleted = 0
+        AND a.class_id = ?
+        AND a.course_id = ?
         AND a.type = 'assessment'
       LIMIT 1;
     `;
 
-    const courseTerminationRes = await this._db?.query(courseTerminationQuery);
+    const courseTerminationRes = await this._db?.query(courseTerminationQuery, [
+      studentId,
+      classId,
+      courseId,
+    ]);
     if (courseTerminationRes?.values?.length) {
       return [];
     }
@@ -10352,7 +10356,7 @@ order by
           FROM result lr
           WHERE lr.student_id = '${studentId}'
             AND lr.lesson_id = a.lesson_id
-            AND lr.is_deleted = false
+            AND lr.is_deleted = 0
         )
 
         -- subject_lesson validation (LANGUAGE ONLY)
