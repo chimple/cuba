@@ -37,6 +37,8 @@
 .score-card-dialog__paper--progress-no-rows {
   width: 800px !important;
   height: auto !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .score-card-dialog__backdrop--progress {
@@ -517,8 +519,8 @@
   margin-top: 16px;
 } */
 
-.score-card-dialog--progress-no-rows .ScoreCard-Content {
-  margin: 88px auto 0;
+.score-card-dialog--progress-no-rows .score-card-goal-progress-content-box {
+  margin: 0 auto;
 }
 
 .score-card-dialog--progress-no-rows .score-card-progress-continue-wrapper,
@@ -526,10 +528,10 @@
   margin-top: 32px;
 }
 
-.score-card-dialog--progress-no-rows .dialog-box-button-style-score-card {
+/* .score-card-dialog--progress-no-rows .dialog-box-button-style-score-card {
   width: 221px !important;
   min-width: 221px !important;
-}
+} */
 
 .score-card-dialog--progress .dialog-box-button-style-score-card {
   width: auto;
