@@ -914,6 +914,35 @@ describe('SelectMode page', () => {
     });
   });
 
+  it('uses the school picker when multiple teacher schools remain after stored school is removed', async () => {
+    const removedPrincipalSchool = {
+      id: 'school-removed',
+      name: 'Removed Principal School',
+    };
+
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockSchoolUtilGetCurrentSchool.mockReturnValue(removedPrincipalSchool);
+    mockGetCurrentSchool.mockReturnValue(removedPrincipalSchool);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'Teacher School 1' }, role: 'teacher' },
+      { school: { id: 'school-2', name: 'Teacher School 2' }, role: 'teacher' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([]);
+
+    render(<SelectMode />);
+
+    await waitFor(() => {
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+      expect(mockSetCurrentSchool).not.toHaveBeenCalledWith({
+        id: 'school-1',
+        name: 'Teacher School 1',
+      });
+    });
+  });
+
   it('routes to teacher dashboard with TEACHER_SCHOOL mode after math auth fallback from class mode', async () => {
     const user = userEvent.setup();
 
