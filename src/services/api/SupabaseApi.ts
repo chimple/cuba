@@ -14657,7 +14657,6 @@ export class SupabaseApi implements ServiceApi {
         .select('lesson_id')
         .in('lesson_id', lessonIds)
         .eq('student_id', studentId)
-        .is('assignment_id', null)
         .eq('is_deleted', false);
 
       const { data: results } = await resultsQuery;
@@ -14993,6 +14992,35 @@ export class SupabaseApi implements ServiceApi {
     const latestBatchId = latestAssignedBatch?.batch_id;
     if (!latestBatchId) return [];
 
+    const { data: courseTerminationResults, error: courseTerminationError } =
+      await this.supabase
+        .from(TABLES.Result)
+        .select(
+          `
+          status,
+          assignment!inner(class_id, course_id, type)
+        `,
+        )
+        .eq('student_id', studentId)
+        .eq('status', 'assessment_terminated')
+        .eq('is_deleted', false)
+        .eq('assignment.class_id', classId)
+        .eq('assignment.course_id', courseId)
+        .eq('assignment.type', 'assessment')
+        .limit(1);
+
+    if (courseTerminationError) {
+      logger.error(
+        'Course assessment termination query error:',
+        courseTerminationError,
+      );
+      return [];
+    }
+
+    if (courseTerminationResults?.length) {
+      return [];
+    }
+
     /* ==========================================
      * STEP 2️⃣  Abort check
      * ========================================== */
@@ -15078,19 +15106,38 @@ export class SupabaseApi implements ServiceApi {
     if (!assignedAssessments.length) return [];
 
     const assignmentIds = assignedAssessments.map((a) => a.id);
+    const assignedLessonIds = assignedAssessments
+      .map((assignment) => assignment.lesson_id)
+      .filter((lessonId): lessonId is string => !!lessonId);
 
-    // fetch completed results
-    const { data: results } = await this.supabase
+    const { data: assignmentResults } = await this.supabase
       .from(TABLES.Result)
       .select('assignment_id')
       .in('assignment_id', assignmentIds)
       .eq('student_id', studentId)
       .eq('is_deleted', false);
 
-    const completedSet = new Set((results ?? []).map((r) => r.assignment_id));
+    const completedAssignmentIds = new Set(
+      (assignmentResults ?? []).map((r) => r.assignment_id),
+    );
+
+    const { data: lessonResults } = assignedLessonIds.length
+      ? await this.supabase
+          .from(TABLES.Result)
+          .select('lesson_id')
+          .in('lesson_id', assignedLessonIds)
+          .eq('student_id', studentId)
+          .eq('is_deleted', false)
+      : { data: [] };
+
+    const completedLessonIds = new Set(
+      (lessonResults ?? []).map((r) => r.lesson_id),
+    );
 
     const incompleteAssignments = assignedAssessments.filter(
-      (a) => !completedSet.has(a.id),
+      (a) =>
+        !completedAssignmentIds.has(a.id) &&
+        !completedLessonIds.has(a.lesson_id),
     );
 
     if (!incompleteAssignments.length) return [];

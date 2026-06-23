@@ -2915,6 +2915,7 @@ export class Util {
           },
           mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
           coursePath: course,
+          skipAssessment: true,
         }));
 
       if (nextLesson && !nextQueuedLesson) {
@@ -2946,6 +2947,7 @@ export class Util {
             },
             mode: storedPathwayMode,
             coursePath: peerCourse,
+            skipAssessment: true,
           });
 
           if (peerNextLesson) {
