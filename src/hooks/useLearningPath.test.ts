@@ -255,6 +255,31 @@ describe('useLearningPath features used by Home tab', () => {
     expect(palUtil.getPalLessonPathForCourse).not.toHaveBeenCalled();
   });
 
+  test('skips assessment recommendation when rebuilding after assessment termination', async () => {
+    mockApi.getSubjectLessonsBySubjectId.mockResolvedValue({
+      id: 'asmt-doc-1',
+      lesson_id: 'assessment-lesson-1',
+    });
+    mockApi.getChaptersForCourse.mockResolvedValue([{ id: 'chapter-1' }]);
+    mockApi.getLessonsForChapter.mockResolvedValue([{ id: 'normal-lesson-1' }]);
+
+    const next = await recommendNextLesson({
+      student: { id: 'stu-1' },
+      course: { id: 'c1', subject_id: 's1' },
+      mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+      skipAssessment: true,
+    });
+
+    expect(mockApi.getSubjectLessonsBySubjectId).not.toHaveBeenCalled();
+    expect(next).toEqual({
+      lesson_id: 'normal-lesson-1',
+      chapter_id: 'chapter-1',
+      source: SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
+      is_assessment: false,
+      isPlayed: false,
+    });
+  });
+
   test('resumes same teacher-assigned assessment after exit', async () => {
     mockApi.getLatestAssessmentGroup.mockResolvedValue([
       { id: 'assignment-11', lesson_id: 'teacher-asmt-11' },
@@ -374,6 +399,158 @@ describe('useLearningPath features used by Home tab', () => {
         isPlayed: false,
       },
     ]);
+  });
+
+  test('does not rebuild an in-progress assessment path when matching assessments are assigned', async () => {
+    const existingPath = {
+      courses: {
+        currentCourseIndex: 0,
+        courseList: [
+          {
+            path_id: 'assessment-path',
+            course_id: 'c1',
+            subject_id: 's1',
+            type: 'chapter',
+            path: [
+              {
+                lesson_id: 'assessment-lesson-1',
+                is_assessment: true,
+                isPlayed: true,
+              },
+              {
+                lesson_id: 'assessment-lesson-2',
+                is_assessment: true,
+                isPlayed: false,
+              },
+              {
+                lesson_id: 'assessment-lesson-3',
+                is_assessment: true,
+                isPlayed: false,
+              },
+            ],
+            completedPath: 0,
+          },
+        ],
+      },
+      type: 'chapter',
+      pathMode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+    };
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: 'stu-1',
+      learning_path: JSON.stringify(existingPath),
+    });
+    mockApi.getLatestAssessmentGroup.mockResolvedValue([
+      { id: 'assignment-1', lesson_id: 'assessment-lesson-1' },
+      { id: 'assignment-2', lesson_id: 'assessment-lesson-2' },
+      { id: 'assignment-3', lesson_id: 'assessment-lesson-3' },
+    ]);
+
+    const { result } = renderHook(() => useLearningPath());
+    await act(async () => {
+      await result.current.getPath({
+        courses: [{ id: 'c1', subject_id: 's1', framework_id: null }],
+        mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+        classId: 'class-1',
+      });
+    });
+
+    const saved = mockApi.updateLearningPath.mock.calls[0][1];
+    const parsed = JSON.parse(saved) as {
+      courses: {
+        courseList: Array<{
+          path_id: string;
+          path: Array<{
+            lesson_id: string;
+            assignment_id?: string;
+            isPlayed: boolean;
+          }>;
+        }>;
+      };
+    };
+    const coursePath = parsed.courses.courseList[0];
+
+    expect(coursePath.path_id).toBe('assessment-path');
+    expect(coursePath.path).toEqual([
+      {
+        lesson_id: 'assessment-lesson-1',
+        assignment_id: 'assignment-1',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: true,
+      },
+      {
+        lesson_id: 'assessment-lesson-2',
+        assignment_id: 'assignment-2',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+      {
+        lesson_id: 'assessment-lesson-3',
+        assignment_id: 'assignment-3',
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+    ]);
+  });
+
+  test('does not reset an already assigned assessment path when a new batch arrives mid-assessment', async () => {
+    const existingPath = {
+      courses: {
+        currentCourseIndex: 0,
+        courseList: [
+          {
+            path_id: 'assigned-assessment-path',
+            course_id: 'math-course',
+            subject_id: 'math-subject',
+            type: 'chapter',
+            path: [
+              {
+                lesson_id: 'math-assessment-1',
+                assignment_id: 'old-assignment-1',
+                is_assessment: true,
+                isPlayed: true,
+              },
+              {
+                lesson_id: 'math-assessment-2',
+                assignment_id: 'old-assignment-2',
+                is_assessment: true,
+                isPlayed: false,
+              },
+            ],
+            completedPath: 0,
+          },
+        ],
+      },
+      type: 'chapter',
+      pathMode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+    };
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: 'stu-1',
+      learning_path: JSON.stringify(existingPath),
+    });
+    mockApi.getLatestAssessmentGroup.mockResolvedValue([
+      { id: 'new-assignment-1', lesson_id: 'new-math-assessment-1' },
+      { id: 'new-assignment-2', lesson_id: 'new-math-assessment-2' },
+    ]);
+
+    const { result } = renderHook(() => useLearningPath());
+    await act(async () => {
+      await result.current.getPath({
+        courses: [
+          {
+            id: 'math-course',
+            subject_id: 'math-subject',
+            framework_id: null,
+          },
+        ],
+        mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+        classId: 'class-1',
+      });
+    });
+
+    expect(mockApi.updateLearningPath).not.toHaveBeenCalled();
   });
 
   test('marks only PAL recommended lessons with PAL source', async () => {

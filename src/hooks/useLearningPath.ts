@@ -105,6 +105,41 @@ const toAssignedAssessmentPath = (assignments: TableTypes<'assignment'>[]) =>
     .slice(0, ASSIGNED_ASSESSMENT_PATH_SIZE)
     .map(toAssignedAssessmentNode);
 
+const getAssignedAssessmentNodeKey = (node: LessonNode) =>
+  node.assignment_id ?? node.lesson_id;
+
+const hasInProgressAssessmentPath = (path: LessonNode[] = []) =>
+  path.some((node) => node.is_assessment === true && node.isPlayed === false);
+
+const mergeAssignedAssessmentIdsIntoPath = (
+  path: LessonNode[] = [],
+  assessmentPath: LessonNode[],
+) => {
+  const assignmentByLessonId = new Map(
+    assessmentPath.map((node) => [node.lesson_id, node.assignment_id]),
+  );
+  let updated = false;
+
+  const mergedPath = path.map((node) => {
+    if (
+      node.is_assessment !== true ||
+      node.assignment_id ||
+      !assignmentByLessonId.has(node.lesson_id)
+    ) {
+      return node;
+    }
+
+    updated = true;
+    return {
+      ...node,
+      assignment_id: assignmentByLessonId.get(node.lesson_id),
+      source: SOURCE.INITIAL_ASSESSMENT,
+    };
+  });
+
+  return updated ? mergedPath : path;
+};
+
 const getAssignedAssessmentPath = async ({
   student,
   course,
@@ -252,12 +287,14 @@ export async function recommendNextLesson({
   mode,
   classId,
   coursePath,
+  skipAssessment = false,
 }: {
   student: LearningPathStudent;
   course: LearningPathCourseInput;
   mode: string;
   classId?: string;
   coursePath?: Pick<CoursePath, 'path'> | null;
+  skipAssessment?: boolean;
 }): Promise<LessonNode | null> {
   const api = ServiceConfig.getI().apiHandler;
 
@@ -267,7 +304,7 @@ export async function recommendNextLesson({
   const hasCompletedInitialAssessment = shouldUsePAL(mode)
     ? await api.isStudentPlayedPalLesson(student.id, course.id)
     : false;
-  if (classId) {
+  if (!skipAssessment && classId) {
     const assessments = await api.getLatestAssessmentGroup(
       classId,
       student as TableTypes<'user'>,
@@ -291,6 +328,7 @@ export async function recommendNextLesson({
    * ------------------------------------------------------------------------------------------ */
   if (
     shouldUseAssessment(mode) &&
+    !skipAssessment &&
     !hasCompletedInitialAssessment &&
     course.subject_id
   ) {
@@ -955,6 +993,27 @@ export const useLearningPath = (opts?: {
       const assessmentPath = toAssignedAssessmentPath(assignments);
 
       const coursePath = oldCourseList[courseIndex];
+      if (hasInProgressAssessmentPath(coursePath.path)) {
+        const mergedPath = mergeAssignedAssessmentIdsIntoPath(
+          coursePath.path,
+          assessmentPath,
+        );
+
+        if (mergedPath !== coursePath.path) {
+          coursePath.path = mergedPath;
+          coursePath.display_name = course.pathway_display_name;
+          coursePath.is_pal_consolidated = course.is_pal_consolidated;
+          coursePath.type = course.framework_id
+            ? RECOMMENDATION_TYPE.FRAMEWORK
+            : RECOMMENDATION_TYPE.CHAPTER;
+          coursePath.subject_id = course.subject_id ?? null;
+
+          return { updated: true, currentCourseIndex: courseIndex };
+        }
+
+        continue;
+      }
+
       const activeAssessment = coursePath.path?.find(
         (node: LessonNode) =>
           node.isPlayed === false && node.is_assessment === true,
@@ -964,9 +1023,9 @@ export const useLearningPath = (opts?: {
           (node: LessonNode) =>
             node.isPlayed === false && node.is_assessment === true,
         )
-        .map((node: LessonNode) => node.assignment_id);
+        .map(getAssignedAssessmentNodeKey);
       const assignedAssessmentIds = assessmentPath.map(
-        (node) => node.assignment_id,
+        getAssignedAssessmentNodeKey,
       );
       const hasSamePendingAssessmentSequence =
         currentPendingAssessmentIds.length === assignedAssessmentIds.length &&

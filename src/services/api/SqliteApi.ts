@@ -9947,7 +9947,6 @@ order by
         FROM result
         WHERE student_id = ?
           AND subject_id = ?
-          AND assignment_id IS NULL
           AND is_deleted = 0
           AND lesson_id IN (${resultPlaceholders});
       `;
@@ -10237,6 +10236,25 @@ order by
 
     if (!latestBatchId) return [];
 
+    const courseTerminationQuery = `
+      SELECT r.status
+      FROM result r
+      INNER JOIN assignment a
+        ON a.id = r.assignment_id
+      WHERE r.student_id = '${studentId}'
+        AND r.status = 'assessment_terminated'
+        AND r.is_deleted = false
+        AND a.class_id = '${classId}'
+        AND a.course_id = '${courseId}'
+        AND a.type = 'assessment'
+      LIMIT 1;
+    `;
+
+    const courseTerminationRes = await this._db?.query(courseTerminationQuery);
+    if (courseTerminationRes?.values?.length) {
+      return [];
+    }
+
     /* ==========================================
      * Check if batch is closed by termination or abort
      * ========================================== */
@@ -10329,6 +10347,13 @@ order by
 
         -- NOT completed
         AND r.assignment_id IS NULL
+        AND NOT EXISTS (
+          SELECT 1
+          FROM result lr
+          WHERE lr.student_id = '${studentId}'
+            AND lr.lesson_id = a.lesson_id
+            AND lr.is_deleted = false
+        )
 
         -- subject_lesson validation (LANGUAGE ONLY)
         AND EXISTS (
