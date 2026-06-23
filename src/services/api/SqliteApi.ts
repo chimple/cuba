@@ -1235,10 +1235,7 @@ export class SqliteApi implements ServiceApi {
 
     const writeSyncBatch = async (batch: SqlStatement[]) => {
       if (!batch.length) return;
-      const isTransactionActive =
-        syncWriteTransactionOpen && (await this.isSqliteTransactionActive());
-      syncWriteTransactionOpen = isTransactionActive;
-      await this.executeSqlStatementBatch(batch, !isTransactionActive);
+      await this.executeSqlStatementBatch(batch, !syncWriteTransactionOpen);
       if (isWebPlatform) {
         webStoreDirty = true;
       }
