@@ -183,6 +183,9 @@ const applyAutoUserModeLanguage = async (
 const SelectMode: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [schoolList, setSchoolList] = useState<SchoolModeOption[]>([]);
+  const [teacherAppSchoolList, setTeacherAppSchoolList] = useState<
+    SchoolModeOption[]
+  >([]);
   const [currentSchoolName, setCurrentSchoolName] = useState<string>();
   const [currentSchool, setCurrentSchool] = useState<TableTypes<'school'>>();
   const [currentSchoolId, setCurrentSchoolId] = useState<string>();
@@ -433,6 +436,13 @@ const SelectMode: FC = () => {
     const teacherRoleEntries = allSchool.filter((entry) =>
       isTeacherAppRole(entry.role),
     );
+    const teacherAppSchoolOptions = teacherRoleEntries.map((entry) => ({
+      id: entry.school.id,
+      displayName: entry.school.name,
+      school: entry.school,
+      role: entry.role,
+    }));
+    setTeacherAppSchoolList(teacherAppSchoolOptions);
 
     const hasStudentsInSchool = async (schoolId: string, userId: string) => {
       try {
@@ -553,6 +563,17 @@ const SelectMode: FC = () => {
         }
       } else if (allSchool.length === 0) {
         onParentSelect();
+      } else if (teacherRoleEntries.length > 0) {
+        const fallbackTeacherSchool = teacherRoleEntries[0];
+        setCurrentSchool(fallbackTeacherSchool.school);
+        setCurrentSchoolRole(fallbackTeacherSchool.role);
+        await schoolUtil.setCurrentSchool(fallbackTeacherSchool.school);
+        localStorage.setItem(
+          CURRENT_SCHOOL_NAME,
+          JSON.stringify(fallbackTeacherSchool.school.name),
+        );
+        setCurrentSchoolName(fallbackTeacherSchool.school.name);
+        setStage(STAGES.MODE);
       } else {
         // Teacher logic
         await applyOrientationForMode(MODES.TEACHER);
@@ -610,10 +631,22 @@ const SelectMode: FC = () => {
     schoolUtil.setCurrMode(MODES.PARENT);
     // setStage(STAGES.MODE);
   };
-  const getSelectedSchoolRole = (): RoleType | undefined =>
+  const getCurrentSchoolRoleFromFreshOptions = (): RoleType | undefined =>
     currentSchoolRole ??
     schoolList.find((schoolOption) => schoolOption.id === currentSchool?.id)
-      ?.role;
+      ?.role ??
+    teacherAppSchoolList.find(
+      (schoolOption) => schoolOption.id === currentSchool?.id,
+    )?.role;
+  const getSelectedSchoolRole = (): RoleType | undefined =>
+    getCurrentSchoolRoleFromFreshOptions() ?? teacherAppSchoolList[0]?.role;
+  const getSelectedTeacherAppSchool = (): TableTypes<'school'> | undefined => {
+    if (currentSchool && getCurrentSchoolRoleFromFreshOptions()) {
+      return currentSchool;
+    }
+
+    return teacherAppSchoolList[0]?.school ?? currentSchool;
+  };
   const shouldUseAutoUserForSelectedSchool = (): boolean => {
     const selectedSchoolRole = getSelectedSchoolRole();
     return selectedSchoolRole ? isAutoUserRole(selectedSchoolRole) : isAutoUser;
@@ -656,17 +689,21 @@ const SelectMode: FC = () => {
 
   const continueToTeacherMode = async () => {
     const selectedSchoolRole = getSelectedSchoolRole();
+    const selectedTeacherAppSchool = getSelectedTeacherAppSchool();
     const shouldUseAutoUserPermissions = shouldUseAutoUserForSelectedSchool();
     const teacherMode = resolveTeacherAppModeForRole(
       selectedSchoolRole,
       isAutoUser,
     );
     await applyOrientationForMode(teacherMode);
-    if (currentSchool) {
+    if (selectedTeacherAppSchool) {
       if (selectedSchoolRole) {
-        await Util.setCurrentSchool(currentSchool, selectedSchoolRole);
+        await Util.setCurrentSchool(
+          selectedTeacherAppSchool,
+          selectedSchoolRole,
+        );
       }
-      await schoolUtil.setCurrentSchool(currentSchool);
+      await schoolUtil.setCurrentSchool(selectedTeacherAppSchool);
     }
     if (currClass) {
       await schoolUtil.setCurrentClass(currClass);
