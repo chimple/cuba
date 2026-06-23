@@ -113,13 +113,15 @@ const ManageClass: React.FC = () => {
           school={currentSchool}
         />
       </div>
-      {canCreate && !isExternalUser && (
+      {/* Class creation is disabled in Teacher Mode.
+        Classes should be created only from Ops Mode. */}
+      {/* {canCreate && !isExternalUser && (
         <AddButton
           onClick={() => {
             history.replace(PAGES.ADD_CLASS, { origin: PAGES.MANAGE_CLASS });
           }}
         />
-      )}
+      )} */}
     </div>
   );
 };

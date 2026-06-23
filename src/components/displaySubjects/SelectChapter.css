@@ -1,7 +1,7 @@
 .chapter-container-in-select-chapter-page {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: min(10px, 1vh);
+  gap: min(15px, 5vh);
   justify-items: center;
   align-items: start;
   margin: 1% 2% 2%;
@@ -53,8 +53,8 @@
 }
 .chapter-download {
   position: absolute;
-  top: 50%;
-  left: 0;
+  top: 57%;
+  left: 5%;
   transform: translate(-50%, -50%);
   z-index: 2;
 }
@@ -76,4 +76,11 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+@media screen and (max-width: 690px) and (orientation: landscape) {
+  .chapter-container-in-select-chapter-page {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: min(15px, 5vh);
+  }
 }
