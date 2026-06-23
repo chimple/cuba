@@ -15,6 +15,15 @@ import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
 
+const CLASS_CREATION_ROLES = [
+  RoleType.SUPER_ADMIN,
+  RoleType.OPERATIONAL_DIRECTOR,
+  RoleType.PROGRAM_MANAGER,
+  RoleType.FIELD_COORDINATOR,
+  RoleType.PRINCIPAL,
+  RoleType.COORDINATOR,
+];
+
 const ManageClass: React.FC = () => {
   const [currentSchool, setCurrentSchool] = useState<
     TableTypes<'school'> | undefined
@@ -61,9 +70,7 @@ const ManageClass: React.FC = () => {
   };
 
   const canCreate =
-    !!currentSchoolRole &&
-    currentSchoolRole !== RoleType.TEACHER &&
-    currentSchoolRole !== RoleType.EXTERNAL_USER;
+    !!currentSchoolRole && CLASS_CREATION_ROLES.includes(currentSchoolRole);
 
   const onBackButtonClick = () => {
     history.replace(PAGES.HOME_PAGE, {
