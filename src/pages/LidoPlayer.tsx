@@ -524,7 +524,7 @@ const LidoPlayer: FC = () => {
         userId,
       } = await resolveStudentContext();
       if (scoresList.length === 0) {
-        logger.warn('No stored data found.');
+        logger.warn('⚠️ No stored data found.');
         return;
       }
       if (!currentStudent || !studentId) {
@@ -533,79 +533,18 @@ const LidoPlayer: FC = () => {
       const parentUserId = userId;
       const totalLessonTime = getTotalStoredLessonTime(scoresList);
       let dbMetaData: any = {};
-
       try {
         const lessonRow = await api.getLesson(lesson.id);
-
-        const safeParseMetadata = (value: unknown) => {
-          if (!value) return {};
-          if (typeof value !== 'string') return value as Record<string, any>;
-
-          const raw = value.trim();
-
-          const tryParse = (input: string) => {
-            try {
-              return JSON.parse(input);
-            } catch {
-              return null;
-            }
-          };
-
-          const buildSkillOnlyActivity = (source: string) => {
-            const skillIds = Array.from(
-              source.matchAll(/"skill_id"\s*:\s*"([^"]+)"/g),
-            )
-              .map((match) => match[1]?.trim())
-              .filter((id): id is string => !!id);
-
-            if (!skillIds.length) return null;
-
-            const activity = skillIds.reduce<Record<string, any>>(
-              (acc, skillId, index) => {
-                acc[String(index)] = { skill_id: skillId };
-                return acc;
-              },
-              {},
-            );
-
-            return { activity };
-          };
-
-          const directParsed = tryParse(raw);
-          if (directParsed) return directParsed;
-
-          const repaired = raw.startsWith('{') ? raw : `{${raw}}`;
-          const quotedActivity = repaired.replace(
-            /^\{\s*"?activity"?\s*:/,
-            '{"activity":',
-          );
-
-          const repairedParsed = tryParse(quotedActivity);
-          if (repairedParsed) return repairedParsed;
-
-          const skillOnlyParsed = buildSkillOnlyActivity(raw);
-          if (skillOnlyParsed) {
-            logger.warn('[LidoPlayer] Recovered legacy lesson metadata', {
-              lessonId: lesson.id,
-              recoveryMode: 'skill_id_fallback',
-            });
-            return skillOnlyParsed;
-          }
-
-          logger.warn('[LidoPlayer] Invalid lesson metadata skipped', {
-            lessonId: lesson.id,
-            metadataPreview: raw.slice(0, 120),
-          });
-          return {};
-        };
-
         dbMetaData = lessonRow?.metadata
-          ? safeParseMetadata(lessonRow.metadata)
-          : safeParseMetadata(lesson.metadata);
+          ? typeof lessonRow.metadata === 'string'
+            ? JSON.parse(lessonRow.metadata)
+            : lessonRow.metadata
+          : typeof lesson.metadata === 'string'
+            ? JSON.parse(lesson.metadata || '{}')
+            : lesson.metadata || {};
       } catch (e) {
         logger.error('Meta error', e);
       }
-
       const activitiesMeta = dbMetaData?.activity || {};
       const skillAggregator = new Map<
         string,
@@ -701,10 +640,9 @@ const LidoPlayer: FC = () => {
           logger.error('PAL Error', e);
         }
 
-        const currentClass = Util.getCurrentClass();
         const isStudentLinked = await api.isStudentLinked(studentId);
-        let classId: string | undefined = currentClass?.id;
-        let schoolId: string | undefined = currentClass?.school_id;
+        let classId;
+        let schoolId;
 
         if (isStudentLinked) {
           const studentResult =
