@@ -212,7 +212,7 @@ describe('useLearningPath features used by Home tab', () => {
 
     const next = await recommendNextLesson({
       student: { id: 'stu-1' },
-      course: { id: 'c1', subject_id: 's1' },
+      course: { id: 'c1', subject_id: 's1', framework_id: 'framework-1' },
       mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
     });
 
@@ -239,7 +239,7 @@ describe('useLearningPath features used by Home tab', () => {
 
     const next = await recommendNextLesson({
       student: { id: 'stu-1' },
-      course: { id: 'c1', subject_id: 's1' },
+      course: { id: 'c1', subject_id: 's1', framework_id: 'framework-1' },
       mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
     });
 
@@ -632,7 +632,13 @@ describe('useLearningPath features used by Home tab', () => {
     const { result } = renderHook(() => useLearningPath());
     await act(async () => {
       await result.current.getPath({
-        courses: [{ id: 'c1', subject_id: 's1', framework_id: null }],
+        courses: [
+          {
+            id: 'c1',
+            subject_id: 's1',
+            framework_id: 'framework-1',
+          },
+        ],
         mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
       });
     });
