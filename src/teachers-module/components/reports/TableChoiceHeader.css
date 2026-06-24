@@ -133,7 +133,7 @@ nav-btn:hover {
   overflow: hidden;
   width: auto;
   height: 25px;
-  font-size: clamp(7px, 1.2vh, 10px);
+  font-size: clamp(7px, 1.2vh, 9px);
   font-weight: 600;
   user-select: none;
 }
@@ -141,7 +141,7 @@ nav-btn:hover {
 .pill-option {
   min-width: 60px;
   text-align: center;
-  padding: 3px 6px;
+  padding: 3px 5px;
   cursor: pointer;
   color: #707070;
   transition:
