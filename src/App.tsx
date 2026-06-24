@@ -164,6 +164,7 @@ import TeacherRecommendedAssignments from './teachers-module/components/homePage
 import StreakPage from './teachers-module/components/streakComponent/streakPage';
 import StickerBook from './pages/StickerBook';
 import KidsAppLocation from './teachers-module/pages/KidsAppLocation';
+import { AudioUtil } from './utility/AudioUtil';
 
 setupIonicReact();
 interface ExtraData {
@@ -187,6 +188,21 @@ const USED_TIME_KEY = 'usedTime';
 const LAST_ACCESS_DATE_KEY = 'lastAccessDate';
 const IS_INITIALIZED = 'isInitialized';
 let timeoutId: NodeJS.Timeout;
+
+const RouteAudioCleanup = () => {
+  const location = useLocation();
+  const lastLocationRef = useRef(location.pathname + location.search);
+
+  useEffect(() => {
+    const currentLocation = location.pathname + location.search;
+    if (lastLocationRef.current !== currentLocation) {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
+      lastLocationRef.current = currentLocation;
+    }
+  }, [location.pathname, location.search]);
+
+  return null;
+};
 
 const App: React.FC = () => {
   const growthbook = useGrowthBook();
@@ -586,6 +602,7 @@ const App: React.FC = () => {
       }
       startTimeout();
     } else {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
       saveUsedTime();
       localStorage.removeItem(START_TIME_KEY);
       clearExistingTimeout();
@@ -633,6 +650,7 @@ const App: React.FC = () => {
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
         <OpsConsoleRouteWatcher />
+        <RouteAudioCleanup />
         <TermsGate />
         <HardwareBackButtonHandler
           popupDataRef={popupDataRef}

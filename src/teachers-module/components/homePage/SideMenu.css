@@ -29,6 +29,11 @@
   background: white;
 }
 
+.side-menu-kids-toggle .common-toggle-custom-rounded-toggle {
+  margin-left: 7px;
+  white-space: nowrap;
+}
+
 .teacher-logout-btn {
   width: 250px;
   height: 50px;

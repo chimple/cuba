@@ -87,11 +87,11 @@ const ENGLISH_AND_MATHS_BLEND_WEIGHTS: BlendWeights = {
 };
 
 const ENGLISH_LEARNING_RATES: LearningRates = {
-  skill: 0.012693671811,
-  outcome: 0.00923273843,
-  competency: 0.003460933381,
-  domain: 0.002310871668,
-  subject: 0.002310871668,
+  skill: 0.10643810749,
+  outcome: 0.077417725939,
+  competency: 0.029020381551,
+  domain: 0.019376962837,
+  subject: 0.019376962837,
 };
 
 const HINDI_LEARNING_RATES: LearningRates = {

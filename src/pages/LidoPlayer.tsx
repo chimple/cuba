@@ -146,6 +146,10 @@ const LidoPlayer: FC = () => {
   const [commonAudioPath, setCommonAudioPath] = useState<string>();
   const [playerLanguage, setPlayerLanguage] = useState<string>('en');
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
+  const [scoreCardProgressState, setScoreCardProgressState] = useState({
+    isAborted: false,
+    isFullPathwayTerminated: false,
+  });
   const [isReady, setIsReady] = useState<boolean>(false);
   const [gameResult, setGameResult] = useState<any>(null);
   const growthbook = useGrowthBook();
@@ -732,6 +736,7 @@ const LidoPlayer: FC = () => {
     resultFinalizationStartedRef.current = true;
     setIsLoading(true);
     await processStoredResults(isAborted, isFullPathwayTerminated);
+    setScoreCardProgressState({ isAborted, isFullPathwayTerminated });
     setShowDialogBox(true);
     setIsLoading(false);
   };
@@ -913,9 +918,15 @@ const LidoPlayer: FC = () => {
           ),
         );
         for (const lessonIdentifier of lessonIdentifiers) {
-          normalizedSkillId = (
-            await api.getSkillByLessonIdentifier(lessonIdentifier)
-          )?.id;
+          const skills = await api.getSkillByLessonIdentifier(lessonIdentifier);
+          for (const skill of skills) {
+            if (
+              await doesSkillBelongToCourseSubject(courseSubjectId, skill.id)
+            ) {
+              normalizedSkillId = skill.id;
+              break;
+            }
+          }
           if (normalizedSkillId) break;
         }
       }
@@ -1189,6 +1200,10 @@ const LidoPlayer: FC = () => {
         JSON.stringify(assignmentCompletedIds),
       );
       setIsLoading(false);
+      setScoreCardProgressState({
+        isAborted: false,
+        isFullPathwayTerminated: false,
+      });
       setShowDialogBox(true);
     } catch (error) {
       logger.error('❌ Failed to process lesson end', error);
@@ -1468,6 +1483,15 @@ const LidoPlayer: FC = () => {
                       : undefined,
                   animateDailyReward: Boolean(state?.reward),
                   showDailyReward: shouldShowDailyRewardProgressRow,
+                  showStickerProgress: !isActivationLesson,
+                  countCompletedLessonTowardStickerProgress:
+                    !scoreCardProgressState.isFullPathwayTerminated,
+                  allowZeroStickerProgress:
+                    scoreCardProgressState.isFullPathwayTerminated,
+                  stickerProgressCurrentOverride:
+                    scoreCardProgressState.isFullPathwayTerminated
+                      ? 0
+                      : undefined,
                 }
               : undefined
           }

@@ -13,10 +13,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: clamp(10px, 2vh, 18px);
+  gap: clamp(16px, 2vh, 18px);
   width: 100%;
   min-height: 100%;
-  padding: clamp(28px, 5vh, 40px) clamp(24px, 5vw, 40px);
+  padding: clamp(35px, 11vh, 40px) clamp(24px, 5vw, 40px);
   box-sizing: border-box;
   color: black;
 }
