@@ -1068,7 +1068,11 @@ export class SqliteApi implements ServiceApi {
     });
   }
 
-  private async pullChanges(tableNames: TABLES[], isFirstSync?: boolean) {
+  private async pullChanges(
+    tableNames: TABLES[],
+    isFirstSync?: boolean,
+    isRefreshSync = false,
+  ): Promise<void> {
     if (!this._db) return;
 
     const isInitialFetch = isFirstSync;
@@ -1382,7 +1386,7 @@ export class SqliteApi implements ServiceApi {
       this._cachedRewards = undefined;
     }
 
-    if (!isInitialFetch) {
+    if (!isInitialFetch && !isRefreshSync) {
       const new_school = data.get(TABLES.School);
       const school_user_data = data.get(TABLES.SchoolUser);
       const hasSelectionUpdates =
@@ -1419,6 +1423,8 @@ export class SqliteApi implements ServiceApi {
             logger.info('local school removed because school_user is_deleted');
           }
         }
+        // Selection updates need one follow-up refresh, but refresh syncs must
+        // not request themselves again or syncDbNow can loop indefinitely.
         await this.syncDbNow(Object.values(TABLES), [
           TABLES.Assignment,
           TABLES.Assignment_user,
@@ -1577,7 +1583,7 @@ export class SqliteApi implements ServiceApi {
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = [],
     isFirstSync?: boolean,
-  ) {
+  ): Promise<boolean | undefined> {
     await this.ensureInitialized();
     if (!this._db) return;
     await this.createSyncTables();
@@ -1601,7 +1607,7 @@ export class SqliteApi implements ServiceApi {
           `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
         );
       }
-      await this.pullChanges(tableNames, isFirstSync);
+      await this.pullChanges(tableNames, isFirstSync, refreshTables.length > 0);
       this.schedulePostSyncAssetPrefetch();
       const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
