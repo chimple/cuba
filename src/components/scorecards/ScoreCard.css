@@ -693,6 +693,18 @@
   --score-card-check-delay: 5820ms;
 }
 
+.score-card-dialog--progress .score-card-progress-row--event-sequenced {
+  --score-card-row-delay: 0ms;
+  --score-card-fill-delay: 1500ms;
+  --score-card-check-delay: 2000ms;
+}
+
+.score-card-dialog--progress .score-card-progress-row--sequence-placeholder {
+  visibility: hidden;
+  pointer-events: none;
+  animation: none;
+}
+
 .score-card-dialog--progress .score-card-progress-row:nth-child(odd) {
   --score-card-row-start-x: calc(-100vw - 80px);
 }
@@ -735,12 +747,22 @@
   animation-delay: 220ms;
 }
 
-.score-card-dialog--progress .score-card-progress-count-1 {
-  animation-delay: 2720ms;
+.score-card-dialog--progress
+  .dialog-box-button-style-score-card.score-card-continue--pending {
+  pointer-events: none;
+  animation: none;
 }
 
-.score-card-dialog--progress .score-card-progress-count-2 {
-  animation-delay: 4520ms;
+.score-card-dialog--progress
+  .dialog-box-button-style-score-card.score-card-continue--ready {
+  animation-delay: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .score-card-dialog--progress .dialog-box-button-style-score-card {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 @keyframes score-card-progress-paper-in {
