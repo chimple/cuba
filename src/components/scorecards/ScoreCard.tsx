@@ -55,6 +55,10 @@ const ScoreCard: React.FC<{
     completedHomeworkIndex?: number;
     animateDailyReward?: boolean;
     showDailyReward?: boolean;
+    showStickerProgress?: boolean;
+    countCompletedLessonTowardStickerProgress?: boolean;
+    allowZeroStickerProgress?: boolean;
+    stickerProgressCurrentOverride?: number;
   };
   showProgressRows?: boolean;
   variant?: 'default' | 'progress';
@@ -100,12 +104,37 @@ const ScoreCard: React.FC<{
     displayedProgressRows.length,
     2,
   )}`;
+  const progressRowsAnimationKey = displayedProgressRows
+    .map(
+      (row) =>
+        `${row.id}:${row.current}:${row.total}:${row.completed ? '1' : '0'}:${
+          row.animateCompletion ? '1' : '0'
+        }`,
+    )
+    .join('|');
+  const shouldWaitForProgressRowsAnimation =
+    useProgressLayout && displayedProgressRows.length > 0;
+  const [
+    areProgressRowsAnimationComplete,
+    setAreProgressRowsAnimationComplete,
+  ] = useState(true);
+  const progressContinueStateClass = useProgressLayout
+    ? areProgressRowsAnimationComplete
+      ? 'score-card-continue--ready'
+      : 'score-card-continue--pending'
+    : '';
   const progressLookupKey = [
     progressContext?.completedCourseId ?? '',
     progressContext?.completedLessonId ?? '',
     progressContext?.completedHomeworkIndex ?? '',
     progressContext?.animateDailyReward ? '1' : '0',
     progressContext?.showDailyReward ? '1' : '0',
+    progressContext?.showStickerProgress === false ? '0' : '1',
+    progressContext?.countCompletedLessonTowardStickerProgress === false
+      ? '0'
+      : '1',
+    progressContext?.allowZeroStickerProgress ? '1' : '0',
+    progressContext?.stickerProgressCurrentOverride ?? '',
   ].join('|');
   const shouldLoadProgressRows =
     showDialogBox &&
@@ -170,6 +199,23 @@ const ScoreCard: React.FC<{
     onContinueButtonClicked(event);
   };
 
+  const handleProgressRowsAnimationComplete = useCallback(() => {
+    setAreProgressRowsAnimationComplete(true);
+  }, []);
+
+  useEffect(() => {
+    if (!shouldRenderDialog) {
+      setAreProgressRowsAnimationComplete(true);
+      return;
+    }
+
+    setAreProgressRowsAnimationComplete(!shouldWaitForProgressRowsAnimation);
+  }, [
+    progressRowsAnimationKey,
+    shouldRenderDialog,
+    shouldWaitForProgressRowsAnimation,
+  ]);
+
   useEffect(() => {
     if (progressRows) setResolvedProgressRows(progressRows);
   }, [progressRows]);
@@ -200,6 +246,12 @@ const ScoreCard: React.FC<{
           completedHomeworkIndex: progressContext?.completedHomeworkIndex,
           animateDailyReward: progressContext?.animateDailyReward,
           showDailyReward: progressContext?.showDailyReward,
+          showStickerProgress: progressContext?.showStickerProgress,
+          countCompletedLessonTowardStickerProgress:
+            progressContext?.countCompletedLessonTowardStickerProgress,
+          allowZeroStickerProgress: progressContext?.allowZeroStickerProgress,
+          stickerProgressCurrentOverride:
+            progressContext?.stickerProgressCurrentOverride,
         });
 
         if (!isCancelled) {
@@ -229,6 +281,10 @@ const ScoreCard: React.FC<{
     progressContext?.completedLessonId,
     progressContext?.completedHomeworkIndex,
     progressContext?.showDailyReward,
+    progressContext?.showStickerProgress,
+    progressContext?.countCompletedLessonTowardStickerProgress,
+    progressContext?.allowZeroStickerProgress,
+    progressContext?.stickerProgressCurrentOverride,
     showDialogBox,
     variant,
   ]);
@@ -321,7 +377,10 @@ const ScoreCard: React.FC<{
         </div>
         {isLoadingRows ? null : (
           <>
-            <ScoreCardProgressRows rows={displayedProgressRows} />
+            <ScoreCardProgressRows
+              rows={displayedProgressRows}
+              onRowsAnimationComplete={handleProgressRowsAnimationComplete}
+            />
             <div
               id="ScoreCard-Continue-Button-div"
               className={
@@ -332,7 +391,7 @@ const ScoreCard: React.FC<{
             >
               <button
                 id="lesson_end_continue"
-                className={`dialog-box-button-style-score-card ${progressRowCountClass} ${i18n.language === 'kn' ? 'scorecard-button-kn' : ''}`}
+                className={`dialog-box-button-style-score-card ${progressRowCountClass} ${progressContinueStateClass} ${i18n.language === 'kn' ? 'scorecard-button-kn' : ''}`}
                 onClick={handleContinueClick}
               >
                 <span>{noText}</span>

@@ -100,6 +100,88 @@ describe('buildScoreCardProgressRows', () => {
     expect(rows[0]).toMatchObject({ id: 'sticker' });
   });
 
+  test('hides sticker row when sticker progress is disabled', async () => {
+    const rows = await buildScoreCardProgressRows({
+      api: mockApi,
+      student: makeStudent(),
+      studentId: 'student-1',
+      showStickerProgress: false,
+    });
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ id: 'dailyReward' });
+  });
+
+  test('can force full pathway termination sticker progress to 0 of 5', async () => {
+    mockGetLatestLearningPathByUpdatedAt.mockReturnValue(
+      JSON.stringify({
+        courses: {
+          currentCourseIndex: 0,
+          courseList: [
+            {
+              course_id: 'course-1',
+              path: [
+                { lesson_id: 'lesson-1', isPlayed: true },
+                { lesson_id: 'lesson-2', isPlayed: false },
+              ],
+            },
+          ],
+        },
+      }),
+    );
+
+    const rows = await buildScoreCardProgressRows({
+      api: mockApi,
+      student: makeStudent(),
+      studentId: 'student-1',
+      completedCourseId: 'course-1',
+      completedLessonId: 'lesson-2',
+      allowZeroStickerProgress: true,
+      countCompletedLessonTowardStickerProgress: false,
+      stickerProgressCurrentOverride: 0,
+    });
+
+    expect(rows[1]).toMatchObject({
+      id: 'sticker',
+      current: 0,
+      total: 5,
+    });
+  });
+
+  test('uses completed lesson position instead of over-counted played flags', async () => {
+    mockGetLatestLearningPathByUpdatedAt.mockReturnValue(
+      JSON.stringify({
+        courses: {
+          currentCourseIndex: 0,
+          courseList: [
+            {
+              course_id: 'course-1',
+              path: [
+                { lesson_id: 'lesson-1', isPlayed: true },
+                { lesson_id: 'lesson-2', isPlayed: true },
+                { lesson_id: 'lesson-3', isPlayed: false },
+              ],
+            },
+          ],
+        },
+      }),
+    );
+
+    const rows = await buildScoreCardProgressRows({
+      api: mockApi,
+      student: makeStudent(),
+      studentId: 'student-1',
+      completedCourseId: 'course-1',
+      completedLessonId: 'lesson-1',
+    });
+
+    expect(rows[1]).toMatchObject({
+      id: 'sticker',
+      current: 1,
+      total: 5,
+    });
+  });
+
   test('uses the completed lesson course when currentCourseIndex already advanced', async () => {
     mockGetLatestLearningPathByUpdatedAt.mockReturnValue(
       JSON.stringify({
