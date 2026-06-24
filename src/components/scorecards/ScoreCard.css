@@ -758,6 +758,13 @@
   animation-delay: 0ms;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .score-card-dialog--progress .dialog-box-button-style-score-card {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 @keyframes score-card-progress-paper-in {
   from {
     opacity: 0;

@@ -209,7 +209,16 @@ const ScoreCard: React.FC<{
       return;
     }
 
-    setAreProgressRowsAnimationComplete(!shouldWaitForProgressRowsAnimation);
+    const needsProgressRowsAnimationWait = shouldWaitForProgressRowsAnimation;
+    setAreProgressRowsAnimationComplete(!needsProgressRowsAnimationWait);
+
+    if (!needsProgressRowsAnimationWait) return;
+
+    const fallbackTimerId = window.setTimeout(() => {
+      setAreProgressRowsAnimationComplete(true);
+    }, 8000);
+
+    return () => window.clearTimeout(fallbackTimerId);
   }, [
     progressRowsAnimationKey,
     shouldRenderDialog,
