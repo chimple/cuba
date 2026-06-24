@@ -20,7 +20,7 @@
 
 .with-icon-input-label {
   position: absolute;
-  top: -11.5px;
+  top: -11px;
   left: 13px;
   background: transparent;
   padding: 0 6px;
@@ -32,21 +32,20 @@
   width: fit-content;
 }
 
-.with-icon-input-label::before {
+.with-icon-input-box::before {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
-  width: 100%;
+  top: -1.5px;
+  left: 13px;
+  width: var(--label-width, 65px);
   height: 3px;
   background-color: white;
-  z-index: -2;
+  z-index: 1;
   border-radius: 2px;
 }
 
 .with-icon-label-offset-small {
-  top: -23% !important;
+  top: -11px !important;
 }
 
 .with-icon-required {
@@ -91,9 +90,4 @@
   font-weight: 400;
   font-style: normal;
   font-size: 14px;
-}
-@media (min-width: 1000px) and (max-width: 1010px) and (min-height: 595px) and (max-height: 610px) {
-  .with-icon-label-offset-small {
-    top: -27% !important;
-  }
 }
