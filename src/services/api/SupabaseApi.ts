@@ -249,6 +249,7 @@ const TABLES_EXCLUDED_FROM_SYNC = new Set<TABLES>([
   TABLES.ReqNewSchool,
   TABLES.Program,
   TABLES.GeoLocations,
+  TABLES.SchoolMetrics,
   TABLES.FcQuestion,
   TABLES.FcSchoolVisit,
   TABLES.FcUserForms,
