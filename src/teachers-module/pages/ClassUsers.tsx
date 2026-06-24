@@ -13,10 +13,8 @@ import { RoleType } from '../../interface/modelInterfaces';
 import { useAppSelector } from '../../redux/hooks';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import { RootState } from '../../redux/store';
-import { ServiceConfig } from '../../services/ServiceConfig';
 import { schoolUtil } from '../../utility/schoolUtil';
 import { Util } from '../../utility/util';
-import logger from '../../utility/logger';
 import Header from '../components/homePage/Header';
 import UserList from '../components/studentProfile/UserList';
 import './ClassUsers.css';
@@ -26,15 +24,14 @@ const ClassUsers: React.FC = () => {
   const location = useLocation();
   const [selectedTab, setSelectedTab] = useState(CLASS_USERS.STUDENTS);
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
-  const [currentSchoolRole, setCurrentSchoolRole] = useState<RoleType>();
   const classData = (location.state as TableTypes<'class'>) || {};
   const currentSchool = Util.getCurrentSchool();
-  const api = ServiceConfig.getI().apiHandler;
-  const { roles, user } = useAppSelector(
+  const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const currentRoles = roles || [];
   const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
   useEffect(() => {
     init();
@@ -43,19 +40,6 @@ const ClassUsers: React.FC = () => {
   const init = async () => {
     if (classData) {
       setCurrentClass(classData);
-    }
-    if (currentSchool?.id) {
-      try {
-        if (user?.id) {
-          const role = await api.getUserRoleForSchool(
-            user.id,
-            currentSchool.id,
-          );
-          setCurrentSchoolRole(role);
-        }
-      } catch (error) {
-        logger.error('Failed to resolve current school role', error);
-      }
     }
     const queryParams = new URLSearchParams(location.search);
     const tab = queryParams.get('tab');
@@ -136,8 +120,7 @@ const ClassUsers: React.FC = () => {
             <AddButton onClick={addStudent} />
           )}
           {selectedTab === CLASS_USERS.TEACHERS &&
-            currentSchoolRole !== undefined &&
-            currentSchoolRole !== RoleType.TEACHER &&
+            !currentRoles.includes(RoleType.TEACHER) &&
             !isExternalUser &&
             !isTeacherSchoolMode && <AddButton onClick={addTeacher} />}
         </div>
