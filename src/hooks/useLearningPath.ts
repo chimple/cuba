@@ -11,6 +11,8 @@ import {
   LANGUAGE,
   COURSES,
   SOURCE,
+  grade1,
+  grade2,
 } from '../common/constants';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import logger from '../utility/logger';
@@ -330,7 +332,8 @@ export async function recommendNextLesson({
     shouldUseAssessment(mode) &&
     !skipAssessment &&
     !hasCompletedInitialAssessment &&
-    course.subject_id
+    course.subject_id &&
+    [grade1, grade2].includes(course.grade_id ?? '')
   ) {
     const res = await api.getSubjectLessonsBySubjectId(
       course.subject_id,
