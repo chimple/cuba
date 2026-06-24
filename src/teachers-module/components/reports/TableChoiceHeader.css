@@ -141,7 +141,7 @@ nav-btn:hover {
 .pill-option {
   min-width: 60px;
   text-align: center;
-  padding: 3px 8px;
+  padding: 3px 6px;
   cursor: pointer;
   color: #707070;
   transition:
