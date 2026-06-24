@@ -432,11 +432,7 @@ const ProfileDetails = () => {
       const resolvedLanguageCode =
         await resolveLanguageCodeById(resolvedLanguageId);
 
-      await Util.setCurrentStudent(
-        student,
-        resolvedLanguageCode,
-        tmpPath === PAGES.HOME ? true : false,
-      );
+      await Util.setCurrentStudent(student, resolvedLanguageCode, true);
       await schoolUtil.setCurrentClass(undefined);
       // A newly created child starts without class linkage, so clear school targeting.
       updateLocalAttributes({
@@ -448,7 +444,7 @@ const ProfileDetails = () => {
       setGbUpdated(true);
 
       await Util.ensureLidoCommonAudioForStudent(student);
-      history.replace(tmpPath);
+      history.replace(PAGES.HOME);
     } catch (err) {
       logger.error('Error saving profile:', err);
       setIsCreatingProfile(false);
