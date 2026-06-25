@@ -2989,6 +2989,30 @@ export class Util {
       let courseIndex = courses.currentCourseIndex;
       let course = courses.courseList[courseIndex];
       if (!course) return;
+      const courseCodeById = new Map<string, string | null>();
+      const getCourseCode = async (coursePath: CoursePath) => {
+        const storedCode = coursePath.course_code?.trim().toLowerCase();
+        if (storedCode) return storedCode;
+
+        const courseId = coursePath.course_id;
+        if (courseCodeById.has(courseId)) {
+          return courseCodeById.get(courseId) ?? null;
+        }
+
+        try {
+          const courseMeta = await api.getCourse(courseId);
+          const code = courseMeta?.code?.trim().toLowerCase() || null;
+          courseCodeById.set(courseId, code);
+          return code;
+        } catch (error) {
+          logger.warn('[LearningPath] Unable to resolve course code', {
+            courseId,
+            error,
+          });
+          courseCodeById.set(courseId, null);
+          return null;
+        }
+      };
 
       /* 1️⃣ Identify active lesson */
       const activeLessonIndex = course.path.findIndex(
@@ -3031,7 +3055,7 @@ export class Util {
             !!lesson.assignment_id,
         );
 
-      const syncSameSubjectAssessmentPaths = (
+      const syncSameSubjectAssessmentPaths = async (
         nextAssessmentLesson: LessonNode | null,
       ) => {
         if (
@@ -3043,6 +3067,9 @@ export class Util {
           return;
         }
 
+        const activeCourseCode = await getCourseCode(course);
+        if (!activeCourseCode) return;
+
         for (const peerCourse of courses.courseList) {
           const isSameAssessmentGroup =
             !!course.framework_id &&
@@ -3053,6 +3080,11 @@ export class Util {
                 peerCourse.subject_id === course.subject_id;
 
           if (peerCourse === course || !isSameAssessmentGroup) {
+            continue;
+          }
+
+          const peerCourseCode = await getCourseCode(peerCourse);
+          if (!peerCourseCode || peerCourseCode !== activeCourseCode) {
             continue;
           }
 
@@ -3111,7 +3143,7 @@ export class Util {
       }
 
       /* 4️⃣ Check path overflow */
-      syncSameSubjectAssessmentPaths(nextLesson);
+      await syncSameSubjectAssessmentPaths(nextLesson);
 
       let pathCompleted = false;
 
