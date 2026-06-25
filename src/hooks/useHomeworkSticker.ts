@@ -718,6 +718,15 @@ export function useHomeworkSticker({
 
       setIsStickerCompletionOpen(false);
 
+      if (reason === 'acknowledge_button') {
+        shouldRefreshPathAfterCompletionRef.current = false;
+        clearPendingFinalHomeworkStickerFlow();
+        clearPendingPathwayStickerReward();
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+        return;
+      }
+
       if (hasPendingFinalHomeworkStickerFlow()) {
         playStickerAudioAndFinishHomework();
         return;
@@ -746,6 +755,7 @@ export function useHomeworkSticker({
       playStickerAudioAndClearPending();
     },
     [
+      clearPendingPathwayStickerReward,
       hasPendingPathwayStickerReward,
       playStickerAudioAfterReload,
       playStickerAudioAndClearPending,
