@@ -166,6 +166,80 @@ describe('useHomeworkSticker', () => {
     expect(onFinalHomeworkStickerComplete).toHaveBeenCalledTimes(1);
   });
 
+  test('closes completion for acknowledge without audio or reload and clears pending sticker flow state', async () => {
+    const container = document.createElement('div');
+    const reloadHomeworkPathway = jest.fn();
+    const onFinalHomeworkStickerComplete = jest.fn();
+    const playMascotAudioFromLocalPath = jest.fn().mockResolvedValue(true);
+
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_PREVIEW_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        awardedStickerId: 'sticker-1',
+      }),
+    );
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        payload: {
+          stickerBookId: 'book-1',
+          collectedStickerIds: ['sticker-1'],
+        },
+      }),
+    );
+    sessionStorage.setItem(
+      PENDING_PATHWAY_STICKER_REWARD_KEY,
+      JSON.stringify({
+        studentId: 'student-1',
+        awardedStickerId: 'sticker-1',
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useHomeworkSticker({
+        containerRef: { current: container },
+        riveContainer: document.createElement('div'),
+        currentMascotStateValue: 1,
+        reloadHomeworkPathway,
+        onFinalHomeworkStickerComplete,
+        playMascotAudioFromLocalPath,
+        playRewardAudio: jest.fn().mockResolvedValue(undefined),
+      }),
+    );
+
+    act(() => {
+      result.current.openStickerCompletion({
+        source: 'homework_pathway',
+        stickerBookId: 'book-1',
+        stickerBookTitle: 'Sticker Book',
+        stickerBookSvgUrl: '',
+        collectedStickerIds: ['sticker-1'],
+        totalStickerCount: 1,
+      });
+      setPendingFinalHomeworkStickerFlow('student-1');
+      result.current.closeStickerCompletion('acknowledge_button');
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(playMascotAudioFromLocalPath).not.toHaveBeenCalled();
+    expect(reloadHomeworkPathway).not.toHaveBeenCalled();
+    expect(onFinalHomeworkStickerComplete).not.toHaveBeenCalled();
+    expect(result.current.isStickerCompletionOpen).toBe(false);
+    expect(sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY)).toBeNull();
+    expect(
+      sessionStorage.getItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY),
+    ).toBeNull();
+    expect(
+      sessionStorage.getItem(PENDING_PATHWAY_STICKER_REWARD_KEY),
+    ).toBeNull();
+    expect(hasPendingFinalHomeworkStickerFlow()).toBe(false);
+  });
+
   test('forced final homework reward audio bypasses sticker suppression and waits before continuing', async () => {
     const container = document.createElement('div');
     const reloadHomeworkPathway = jest.fn();
