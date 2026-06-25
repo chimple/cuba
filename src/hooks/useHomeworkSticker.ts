@@ -704,7 +704,7 @@ export function useHomeworkSticker({
   );
 
   const closeStickerCompletion = useCallback(
-    (reason: 'backdrop' | 'close_button') => {
+    (reason: 'backdrop' | 'close_button' | 'acknowledge_button') => {
       if (stickerCompletionData && reason === 'close_button') {
         Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE, {
           user_id: Util.getCurrentStudent()?.id ?? 'unknown',

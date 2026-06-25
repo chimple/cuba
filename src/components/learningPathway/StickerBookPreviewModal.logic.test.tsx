@@ -377,6 +377,7 @@ describe('useStickerBookPreviewModalLogic', () => {
       ok: true,
       text: async () => svgWithSlots,
     } as Response);
+    const onClose = jest.fn();
 
     const { result } = renderHook(() =>
       useStickerBookPreviewModalLogic({
@@ -384,7 +385,7 @@ describe('useStickerBookPreviewModalLogic', () => {
           stickerBookTitle: 'My Book!!',
         }),
         variant: 'preview',
-        onClose: jest.fn(),
+        onClose,
         mode: 'completion',
       }),
     );
@@ -416,6 +417,7 @@ describe('useStickerBookPreviewModalLogic', () => {
         sticker_book_id: 'book-1',
       }),
     );
+    expect(onClose).toHaveBeenCalledWith('acknowledge_button');
     expect(mockPush).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
       stickerBookId: 'book-1',
       svgRaw: expect.stringContaining('<svg'),
