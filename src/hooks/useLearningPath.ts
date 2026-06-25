@@ -29,6 +29,7 @@ export type CoursePath = {
   path_id: string;
   course_id: string;
   subject_id: string | null;
+  framework_id?: string | null;
   display_name?: string;
   is_pal_consolidated?: boolean;
   type: RECOMMENDATION_TYPE;
@@ -140,6 +141,30 @@ const mergeAssignedAssessmentIdsIntoPath = (
   return updated ? mergedPath : path;
 };
 
+const hasAssessmentProgress = (path: LessonNode[] = []) =>
+  path.some((node) => node.is_assessment === true);
+
+const buildSameFrameworkAssessmentPath = (
+  sourcePath: LessonNode[] = [],
+  activeLesson: LessonNode | null,
+) => {
+  if (!activeLesson?.is_assessment || !sourcePath.length) return null;
+
+  const assessmentPath = sourcePath.filter(
+    (node) => node.is_assessment === true,
+  );
+  if (!assessmentPath.length) return null;
+
+  const activeIndex = assessmentPath.findIndex(
+    (node) => node.isPlayed === false,
+  );
+  if (activeIndex === -1) return null;
+
+  return assessmentPath.map((node, index) =>
+    index === activeIndex ? { ...activeLesson } : { ...node },
+  );
+};
+
 const getAssignedAssessmentPath = async ({
   student,
   course,
@@ -249,6 +274,7 @@ export async function buildPath({
         path_id: uuidv4(),
         course_id: course.id,
         subject_id: course.subject_id ?? null,
+        framework_id: course.framework_id ?? null,
         display_name: course.pathway_display_name,
         is_pal_consolidated: course.is_pal_consolidated,
         type: course.framework_id
@@ -906,6 +932,30 @@ export const useLearningPath = (opts?: {
      * ----------------------------------- */
     const existingMap = new Map<string, StoredCoursePath>();
     oldCourseList.forEach((c) => existingMap.set(c.course_id, c));
+    const courseInputMap = new Map(
+      userCourses.map((course) => [course.id, course]),
+    );
+
+    const findSameFrameworkAssessmentPath = (
+      course: LearningPathCourseInput,
+    ) => {
+      const frameworkId = course.framework_id;
+      if (!frameworkId) return null;
+
+      return (
+        oldCourseList.find((coursePath) => {
+          const pathFrameworkId =
+            coursePath.framework_id ??
+            courseInputMap.get(coursePath.course_id)?.framework_id ??
+            null;
+
+          return (
+            pathFrameworkId === frameworkId &&
+            hasAssessmentProgress(coursePath.path)
+          );
+        }) ?? null
+      );
+    };
 
     const newCourseList: StoredCoursePath[] = [];
     for (const course of userCourses) {
@@ -915,6 +965,7 @@ export const useLearningPath = (opts?: {
         // ✅ Preserve entire course state
         newCourseList.push({
           ...existing,
+          framework_id: course.framework_id ?? existing.framework_id ?? null,
           display_name: course.pathway_display_name,
           is_pal_consolidated: course.is_pal_consolidated,
         });
@@ -926,17 +977,23 @@ export const useLearningPath = (opts?: {
           mode,
           classId,
         });
+        const sameFrameworkAssessmentPath = buildSameFrameworkAssessmentPath(
+          findSameFrameworkAssessmentPath(course)?.path,
+          activeLesson,
+        );
 
         newCourseList.push({
           path_id: uuidv4(),
           course_id: course.id,
           subject_id: course.subject_id ?? null,
+          framework_id: course.framework_id ?? null,
           display_name: course.pathway_display_name,
           is_pal_consolidated: course.is_pal_consolidated,
           type: course.framework_id
             ? RECOMMENDATION_TYPE.FRAMEWORK
             : RECOMMENDATION_TYPE.CHAPTER,
-          path: activeLesson ? [activeLesson] : [],
+          path:
+            sameFrameworkAssessmentPath ?? (activeLesson ? [activeLesson] : []),
           completedPath: 0,
           lastPlayedLesson: undefined,
         });
@@ -1004,6 +1061,7 @@ export const useLearningPath = (opts?: {
           coursePath.path = mergedPath;
           coursePath.display_name = course.pathway_display_name;
           coursePath.is_pal_consolidated = course.is_pal_consolidated;
+          coursePath.framework_id = course.framework_id ?? null;
           coursePath.type = course.framework_id
             ? RECOMMENDATION_TYPE.FRAMEWORK
             : RECOMMENDATION_TYPE.CHAPTER;
@@ -1046,6 +1104,7 @@ export const useLearningPath = (opts?: {
       coursePath.path = assessmentPath;
       coursePath.display_name = course.pathway_display_name;
       coursePath.is_pal_consolidated = course.is_pal_consolidated;
+      coursePath.framework_id = course.framework_id ?? null;
       coursePath.type = course.framework_id
         ? RECOMMENDATION_TYPE.FRAMEWORK
         : RECOMMENDATION_TYPE.CHAPTER;
@@ -1117,6 +1176,7 @@ export const useLearningPath = (opts?: {
       path_id: coursePath.path_id,
       course_id: coursePath.course_id,
       subject_id: coursePath.subject_id,
+      framework_id: coursePath.framework_id,
       display_name: coursePath.display_name,
       is_pal_consolidated: coursePath.is_pal_consolidated,
       type: coursePath.type as RECOMMENDATION_TYPE,

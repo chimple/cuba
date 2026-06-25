@@ -3038,16 +3038,21 @@ export class Util {
           storedPathwayMode !== LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
           !activeLesson ||
           !activeLesson.is_assessment ||
-          !course.subject_id
+          (!course.subject_id && !course.framework_id)
         ) {
           return;
         }
 
         for (const peerCourse of courses.courseList) {
-          if (
-            peerCourse === course ||
-            peerCourse.subject_id !== course.subject_id
-          ) {
+          const isSameAssessmentGroup =
+            !!course.framework_id &&
+            !!peerCourse.framework_id &&
+            peerCourse.framework_id === course.framework_id
+              ? true
+              : !!course.subject_id &&
+                peerCourse.subject_id === course.subject_id;
+
+          if (peerCourse === course || !isSameAssessmentGroup) {
             continue;
           }
 

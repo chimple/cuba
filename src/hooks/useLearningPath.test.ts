@@ -553,6 +553,109 @@ describe('useLearningPath features used by Home tab', () => {
     expect(mockApi.updateLearningPath).not.toHaveBeenCalled();
   });
 
+  test('initializes a newly added same-framework assessment course with synced active index', async () => {
+    const existingPath = {
+      courses: {
+        currentCourseIndex: 0,
+        courseList: [
+          {
+            path_id: 'grade-1-path',
+            course_id: 'grade-1-course',
+            subject_id: 'grade-1-subject',
+            framework_id: 'framework-1',
+            type: 'chapter',
+            path: [
+              {
+                lesson_id: 'grade-1-assessment-1',
+                is_assessment: true,
+                isPlayed: true,
+              },
+              {
+                lesson_id: 'grade-1-assessment-2',
+                is_assessment: true,
+                isPlayed: true,
+              },
+              {
+                lesson_id: 'grade-1-assessment-3',
+                is_assessment: true,
+                isPlayed: false,
+              },
+            ],
+            completedPath: 0,
+          },
+        ],
+      },
+      type: 'chapter',
+      pathMode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+    };
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: 'stu-1',
+      learning_path: JSON.stringify(existingPath),
+    });
+    mockApi.getSubjectLessonsBySubjectId.mockResolvedValue({
+      id: 'grade-2-assessment-doc-3',
+      lesson_id: 'grade-2-assessment-3',
+    });
+
+    const { result } = renderHook(() => useLearningPath());
+    await act(async () => {
+      await result.current.getPath({
+        courses: [
+          {
+            id: 'grade-1-course',
+            subject_id: 'grade-1-subject',
+            framework_id: 'framework-1',
+          },
+          {
+            id: 'grade-2-course',
+            subject_id: 'grade-2-subject',
+            framework_id: 'framework-1',
+          },
+        ],
+        mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+      });
+    });
+
+    const saved = mockApi.updateLearningPath.mock.calls[0][1];
+    const parsed = JSON.parse(saved) as {
+      courses: {
+        courseList: Array<{
+          course_id: string;
+          framework_id?: string | null;
+          path: Array<{
+            lesson_id: string;
+            is_assessment: boolean;
+            isPlayed: boolean;
+          }>;
+        }>;
+      };
+    };
+    const gradeTwoPath = parsed.courses.courseList.find(
+      (course) => course.course_id === 'grade-2-course',
+    );
+
+    expect(gradeTwoPath?.framework_id).toBe('framework-1');
+    expect(gradeTwoPath?.path).toEqual([
+      {
+        lesson_id: 'grade-1-assessment-1',
+        is_assessment: true,
+        isPlayed: true,
+      },
+      {
+        lesson_id: 'grade-1-assessment-2',
+        is_assessment: true,
+        isPlayed: true,
+      },
+      {
+        lesson_id: 'grade-2-assessment-3',
+        chapter_id: undefined,
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+    ]);
+  });
+
   test('marks only PAL recommended lessons with PAL source', async () => {
     mockApi.isStudentPlayedPalLesson.mockResolvedValue(true);
     (palUtil.getPalLessonPathForCourse as jest.Mock).mockResolvedValue({
