@@ -30,6 +30,7 @@ export type CoursePath = {
   course_id: string;
   subject_id: string | null;
   framework_id?: string | null;
+  course_code?: string | null;
   display_name?: string;
   is_pal_consolidated?: boolean;
   type: RECOMMENDATION_TYPE;
@@ -275,6 +276,7 @@ export async function buildPath({
         course_id: course.id,
         subject_id: course.subject_id ?? null,
         framework_id: course.framework_id ?? null,
+        course_code: course.code ?? null,
         display_name: course.pathway_display_name,
         is_pal_consolidated: course.is_pal_consolidated,
         type: course.framework_id
@@ -948,9 +950,16 @@ export const useLearningPath = (opts?: {
             coursePath.framework_id ??
             courseInputMap.get(coursePath.course_id)?.framework_id ??
             null;
+          const pathCourseCode = normalizeCourseToken(
+            coursePath.course_code ??
+              courseInputMap.get(coursePath.course_id)?.code,
+          );
+          const courseCode = normalizeCourseToken(course.code);
 
           return (
             pathFrameworkId === frameworkId &&
+            coursePath.subject_id === (course.subject_id ?? null) &&
+            (!pathCourseCode || !courseCode || pathCourseCode === courseCode) &&
             hasAssessmentProgress(coursePath.path)
           );
         }) ?? null
@@ -966,6 +975,7 @@ export const useLearningPath = (opts?: {
         newCourseList.push({
           ...existing,
           framework_id: course.framework_id ?? existing.framework_id ?? null,
+          course_code: course.code ?? existing.course_code ?? null,
           display_name: course.pathway_display_name,
           is_pal_consolidated: course.is_pal_consolidated,
         });
@@ -987,6 +997,7 @@ export const useLearningPath = (opts?: {
           course_id: course.id,
           subject_id: course.subject_id ?? null,
           framework_id: course.framework_id ?? null,
+          course_code: course.code ?? null,
           display_name: course.pathway_display_name,
           is_pal_consolidated: course.is_pal_consolidated,
           type: course.framework_id
@@ -1062,6 +1073,8 @@ export const useLearningPath = (opts?: {
           coursePath.display_name = course.pathway_display_name;
           coursePath.is_pal_consolidated = course.is_pal_consolidated;
           coursePath.framework_id = course.framework_id ?? null;
+          coursePath.course_code =
+            course.code ?? coursePath.course_code ?? null;
           coursePath.type = course.framework_id
             ? RECOMMENDATION_TYPE.FRAMEWORK
             : RECOMMENDATION_TYPE.CHAPTER;
@@ -1105,6 +1118,7 @@ export const useLearningPath = (opts?: {
       coursePath.display_name = course.pathway_display_name;
       coursePath.is_pal_consolidated = course.is_pal_consolidated;
       coursePath.framework_id = course.framework_id ?? null;
+      coursePath.course_code = course.code ?? coursePath.course_code ?? null;
       coursePath.type = course.framework_id
         ? RECOMMENDATION_TYPE.FRAMEWORK
         : RECOMMENDATION_TYPE.CHAPTER;
@@ -1177,6 +1191,7 @@ export const useLearningPath = (opts?: {
       course_id: coursePath.course_id,
       subject_id: coursePath.subject_id,
       framework_id: coursePath.framework_id,
+      course_code: coursePath.course_code,
       display_name: coursePath.display_name,
       is_pal_consolidated: coursePath.is_pal_consolidated,
       type: coursePath.type as RECOMMENDATION_TYPE,

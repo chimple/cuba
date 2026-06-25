@@ -561,7 +561,7 @@ describe('useLearningPath features used by Home tab', () => {
           {
             path_id: 'grade-1-path',
             course_id: 'grade-1-course',
-            subject_id: 'grade-1-subject',
+            subject_id: 'math-subject',
             framework_id: 'framework-1',
             type: 'chapter',
             path: [
@@ -603,12 +603,12 @@ describe('useLearningPath features used by Home tab', () => {
         courses: [
           {
             id: 'grade-1-course',
-            subject_id: 'grade-1-subject',
+            subject_id: 'math-subject',
             framework_id: 'framework-1',
           },
           {
             id: 'grade-2-course',
-            subject_id: 'grade-2-subject',
+            subject_id: 'math-subject',
             framework_id: 'framework-1',
           },
         ],
