@@ -140,7 +140,7 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
     };
 
     void launchRandomLesson();
-  }, [history, secondsLeft, source]);
+  }, [history, isBannerImageReady, secondsLeft, source]);
 
   return (
     <div className="activation-lesson-banner">
@@ -151,6 +151,7 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
           className="activation-lesson-banner__image"
           src="/assets/activationLesson/banner.webp"
           onLoad={() => setIsBannerImageReady(true)}
+          onError={() => setIsBannerImageReady(true)}
         />
         {isBannerImageReady ? (
           <div className="activation-lesson-banner__content">
