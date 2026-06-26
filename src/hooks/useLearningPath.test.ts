@@ -165,6 +165,87 @@ describe('useLearningPath features used by Home tab', () => {
     expect(parsed.courses.currentCourseIndex).toBe(1);
   });
 
+  test('continues pending assessment after class join in full adaptive mode', async () => {
+    const existingPath = {
+      courses: {
+        currentCourseIndex: 0,
+        courseList: [
+          {
+            path_id: 'old-math-path',
+            course_id: 'old-math-course',
+            subject_id: 'math-subject',
+            framework_id: 'framework-1',
+            course_code: 'maths',
+            type: 'framework',
+            path: [
+              {
+                lesson_id: 'assessment-lesson-1',
+                is_assessment: true,
+                isPlayed: true,
+              },
+              {
+                lesson_id: 'assessment-lesson-2',
+                is_assessment: true,
+                isPlayed: false,
+              },
+            ],
+            completedPath: 0,
+          },
+        ],
+      },
+      type: 'framework',
+      pathMode: LEARNING_PATHWAY_MODE.FULL_ADAPTIVE,
+    };
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: 'stu-1',
+      learning_path: JSON.stringify(existingPath),
+    });
+    mockApi.isStudentPlayedPalLesson.mockResolvedValue(true);
+    mockApi.getSubjectLessonsBySubjectId.mockResolvedValue({
+      id: 'asmt-doc-2',
+      lesson_id: 'assessment-lesson-2',
+    });
+    (palUtil.getPalLessonPathForCourse as jest.Mock).mockResolvedValue({
+      lesson_id: 'normal-pal-lesson',
+      chapter_id: 'pal-chapter',
+      skill_id: 'pal-skill',
+    });
+
+    const { result } = renderHook(() => useLearningPath());
+    await act(async () => {
+      await result.current.getPath({
+        courses: [
+          {
+            id: 'new-math-course',
+            subject_id: 'math-subject',
+            framework_id: 'framework-1',
+            code: 'maths',
+          },
+        ],
+        mode: LEARNING_PATHWAY_MODE.FULL_ADAPTIVE,
+        classId: 'class-1',
+      });
+    });
+
+    const saved = mockApi.updateLearningPath.mock.calls[0][1];
+    const parsed = JSON.parse(saved);
+    expect(parsed.courses.courseList[0].path).toEqual([
+      {
+        lesson_id: 'assessment-lesson-1',
+        is_assessment: true,
+        isPlayed: true,
+      },
+      {
+        lesson_id: 'assessment-lesson-2',
+        chapter_id: undefined,
+        source: SOURCE.INITIAL_ASSESSMENT,
+        is_assessment: true,
+        isPlayed: false,
+      },
+    ]);
+    expect(palUtil.getPalLessonPathForCourse).not.toHaveBeenCalled();
+  });
+
   test('restores lesson index correctly from old pathway structure (migration)', () => {
     const { result } = renderHook(() => useLearningPath());
     const migrated = result.current.migrate({
@@ -252,6 +333,43 @@ describe('useLearningPath features used by Home tab', () => {
       { id: 'stu-1' },
       'c1',
     );
+    expect(palUtil.getPalLessonPathForCourse).not.toHaveBeenCalled();
+  });
+
+  test('continues assessment sequence in full adaptive mode after first assessment is played', async () => {
+    mockApi.isStudentPlayedPalLesson.mockResolvedValue(true);
+    mockApi.getSubjectLessonsBySubjectId.mockResolvedValue({
+      id: 'asmt-doc-2',
+      lesson_id: 'assessment-lesson-2',
+    });
+    (palUtil.getPalLessonPathForCourse as jest.Mock).mockResolvedValue({
+      lesson_id: 'normal-pal-lesson',
+      chapter_id: 'pal-chapter',
+      skill_id: 'pal-skill',
+    });
+
+    const next = await recommendNextLesson({
+      student: { id: 'stu-1' },
+      course: { id: 'c1', subject_id: 's1', framework_id: 'framework-1' },
+      mode: LEARNING_PATHWAY_MODE.FULL_ADAPTIVE,
+      coursePath: {
+        path: [
+          {
+            lesson_id: 'assessment-lesson-1',
+            is_assessment: true,
+            isPlayed: true,
+          },
+        ],
+      },
+    });
+
+    expect(next).toEqual({
+      lesson_id: 'assessment-lesson-2',
+      chapter_id: undefined,
+      source: SOURCE.INITIAL_ASSESSMENT,
+      is_assessment: true,
+      isPlayed: false,
+    });
     expect(palUtil.getPalLessonPathForCourse).not.toHaveBeenCalled();
   });
 
