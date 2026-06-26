@@ -463,6 +463,42 @@ describe('Home page (Home tab)', () => {
     });
   });
 
+  test('excludes stale homework assignments from the header assignment count', async () => {
+    mockApi.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [{ id: 'class-1' }],
+      schools: [{ id: 'school-1', name: 'School One' }],
+    });
+    mockApi.getPendingAssignments.mockResolvedValue([
+      {
+        id: 'a-valid',
+        type: 'HOMEWORK',
+        lesson_id: 'l-valid',
+        course_id: 'c-1',
+      },
+      {
+        id: 'a-stale',
+        type: 'HOMEWORK',
+        lesson_id: 'l-stale',
+        course_id: 'c-1',
+      },
+    ]);
+    mockApi.getLesson.mockImplementation((lessonId: string) => {
+      if (lessonId === 'l-stale') return Promise.resolve(undefined);
+      return Promise.resolve({
+        id: 'l-valid',
+        subject_id: 'sub-1',
+      });
+    });
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('header-assignment-count')).toHaveTextContent(
+        '1',
+      );
+    });
+  });
+
   // Covers: keeps no-homework state visible with zero assignment count
 
   test('keeps no-homework state visible with zero assignment count', async () => {

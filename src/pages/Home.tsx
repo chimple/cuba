@@ -42,6 +42,7 @@ import WinterCampaignPopupGating from '../components/WinterCampaignPopup/WinterC
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import ActivationLessonBanner from '../components/activationLesson/ActivationLessonBanner';
+import logger from '../utility/logger';
 const localData: any = {};
 
 const Home: FC = () => {
@@ -350,6 +351,7 @@ const Home: FC = () => {
       );
       let assignmentCount = 0;
       let liveQuizCount = 0;
+      const validHomeworkAssignments: TableTypes<'assignment'>[] = [];
 
       const counts: Record<string, number> = {};
 
@@ -358,7 +360,18 @@ const Home: FC = () => {
           const res = await api.getLesson(_assignment.lesson_id);
           const now = new Date().toISOString();
           if (_assignment.type !== LIVE_QUIZ) {
+            if (!res) {
+              logger.warn(
+                '[Home] Skipping stale pending homework assignment with missing lesson metadata',
+                {
+                  assignmentId: _assignment.id ?? null,
+                  lessonId: _assignment.lesson_id ?? null,
+                },
+              );
+              return;
+            }
             assignmentCount++;
+            validHomeworkAssignments.push(_assignment);
             const subject_id = res?.subject_id;
             if (!subject_id) return;
             const key = `count_of_subject_${subject_id}_pending`;
@@ -380,23 +393,22 @@ const Home: FC = () => {
 
       setPendingLiveQuizCount(liveQuizCount);
       setPendingAssignmentCount(assignmentCount);
-      setPendingAssignments(allAssignments);
+      setPendingAssignments(validHomeworkAssignments);
 
-      const courseCount = allAssignments.reduce<Record<string, number>>(
-        (accumulator, current: TableTypes<'assignment'>) => {
-          const courseId = current.course_id;
-          if (!courseId) {
-            return accumulator;
-          }
-          if (accumulator[courseId]) {
-            accumulator[courseId] += 1;
-          } else {
-            accumulator[courseId] = 1;
-          }
+      const courseCount = validHomeworkAssignments.reduce<
+        Record<string, number>
+      >((accumulator, current: TableTypes<'assignment'>) => {
+        const courseId = current.course_id;
+        if (!courseId) {
           return accumulator;
-        },
-        {},
-      );
+        }
+        if (accumulator[courseId]) {
+          accumulator[courseId] += 1;
+        } else {
+          accumulator[courseId] = 1;
+        }
+        return accumulator;
+      }, {});
       const result = Object.keys(courseCount).reduce<Record<string, number>>(
         (acc, courseId) => {
           acc[`count_of_course_${courseId}_pending`] = courseCount[courseId];

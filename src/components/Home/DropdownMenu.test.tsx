@@ -14,6 +14,7 @@ jest.mock('../../utility/util');
 
 const mockApi = {
   getPendingAssignments: jest.fn(),
+  getLesson: jest.fn(),
   getCoursesForClassStudent: jest.fn(),
   getCourse: jest.fn(),
   getGradeById: jest.fn(),
@@ -60,6 +61,9 @@ describe('DropdownMenu', () => {
     (Util.setCurrentStudent as jest.Mock).mockResolvedValue(undefined);
     (Util.logEvent as jest.Mock).mockImplementation(() => {});
     mockApi.getCoursesForClassStudent.mockResolvedValue([]);
+    mockApi.getLesson.mockImplementation((lessonId: string) =>
+      Promise.resolve({ id: lessonId, subject_id: 'subject-1' }),
+    );
     mockApi.getGradeById.mockResolvedValue({ id: 'g1', name: 'Grade 1' });
     mockApi.getCurriculumById.mockResolvedValue({ id: 'cur-1', name: 'CBSE' });
     mockApi.updateLearningPath.mockResolvedValue(undefined);
@@ -336,6 +340,41 @@ describe('DropdownMenu', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Grade Math')).toBeInTheDocument();
+    });
+  });
+
+  test('homework mode excludes courses that only have stale pending assignments', async () => {
+    mockApi.getPendingAssignments.mockResolvedValue([
+      {
+        id: 'a-kannada',
+        course_id: 'kannada',
+        type: 'assignment',
+        lesson_id: 'stale-lesson',
+      },
+      {
+        id: 'a-math',
+        course_id: 'math',
+        type: 'assignment',
+        lesson_id: 'math-lesson',
+      },
+    ]);
+    mockApi.getLesson.mockImplementation((lessonId: string) => {
+      if (lessonId === 'stale-lesson') return Promise.resolve(undefined);
+      return Promise.resolve({ id: lessonId, subject_id: 'math' });
+    });
+    mockApi.getCourse.mockImplementation((id: string) => {
+      if (id === 'math')
+        return Promise.resolve({ id, name: 'Grade Math', code: 'MTH' });
+      if (id === 'kannada')
+        return Promise.resolve({ id, name: 'Kannada', code: 'KAN' });
+      return Promise.resolve(null);
+    });
+
+    render(<DropdownMenu syncWithLearningPath={false} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Grade Math')).toBeInTheDocument();
+      expect(screen.queryByText('Kannada')).not.toBeInTheDocument();
     });
   });
 

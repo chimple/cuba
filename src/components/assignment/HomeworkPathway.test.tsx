@@ -405,6 +405,78 @@ describe('HomeworkPathway – pathway logic', () => {
     });
   });
 
+  test('skips stale deleted homework assignments and rebuilds with playable lessons only', async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    localStorage.setItem(
+      HOMEWORK_PATHWAY,
+      JSON.stringify({
+        path_id: 'playstore-path',
+        lessons: [
+          {
+            assignment_id: 'a-deleted',
+            lesson_id: 'kannada-deleted',
+            chapter_id: 'chapter-kannada',
+            course_id: 'subject-kannada',
+            lesson: {
+              id: 'kannada-deleted',
+              subject_id: 'subject-kannada',
+              chapter_id: 'chapter-kannada',
+            },
+          },
+        ],
+        currentIndex: 0,
+        pendingAssignmentIds: ['a-deleted'],
+      }),
+    );
+
+    mockApi.getPendingAssignments.mockResolvedValue([
+      {
+        id: 'a-deleted',
+        type: 'HOMEWORK',
+        lesson_id: 'kannada-deleted',
+        course_id: 'subject-kannada',
+      },
+      {
+        id: 'a-valid',
+        type: 'HOMEWORK',
+        lesson_id: 'kannada-valid',
+        course_id: 'subject-kannada',
+      },
+    ]);
+    mockApi.getLesson.mockImplementation(async (lessonId: string) => {
+      if (lessonId === 'kannada-deleted') {
+        return undefined;
+      }
+
+      return {
+        id: 'kannada-valid',
+        subject_id: 'subject-kannada',
+        chapter_id: 'chapter-kannada',
+        course_id: 'subject-kannada',
+        name: 'Playable Kannada Lesson',
+      };
+    });
+    mockApi.getChapterById.mockResolvedValue({
+      id: 'chapter-kannada',
+      name: 'Kannada Chapter',
+    });
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      const pathway = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(pathway.lessons).toHaveLength(1);
+      expect(pathway.lessons[0].assignment_id).toBe('a-valid');
+      expect(pathway.lessons[0].lesson_id).toBe('kannada-valid');
+      expect(pathway.currentIndex).toBe(0);
+    });
+  });
+
   test('migrates legacy cached pathways without pending ids', async () => {
     (useFeatureIsOn as jest.Mock).mockReturnValue(true);
 
@@ -846,6 +918,102 @@ describe('HomeworkPathway – completion flow', () => {
       ).not.toBeInTheDocument();
       const refreshedPath = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
       expect(refreshedPath.lessons[0].lesson_id).toBe('l2');
+    });
+  });
+
+  test('ignores stale assignments after completing a subject and continues with another course', async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    const initialPathway = {
+      path_id: 'kannada-path',
+      lessons: [
+        {
+          assignment_id: 'a-kannada-normal',
+          lesson_id: 'kannada-normal',
+          chapter_id: 'chapter-kannada',
+          course_id: 'course-kannada',
+          lesson: {
+            id: 'kannada-normal',
+            subject_id: 'course-kannada',
+            name: 'Kannada Normal',
+          },
+        },
+      ],
+      currentIndex: 0,
+      pendingAssignmentIds: ['a-kannada-normal'],
+    };
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(initialPathway));
+
+    mockApi.getPendingAssignments
+      .mockResolvedValueOnce([
+        {
+          id: 'a-kannada-normal',
+          type: 'HOMEWORK',
+          lesson_id: 'kannada-normal',
+          course_id: 'course-kannada',
+        },
+      ])
+      .mockResolvedValue([
+        {
+          id: 'a-kannada-stale',
+          type: 'HOMEWORK',
+          lesson_id: 'kannada-stale',
+          course_id: 'course-kannada',
+        },
+        {
+          id: 'a-math-valid',
+          type: 'HOMEWORK',
+          lesson_id: 'math-valid',
+          course_id: 'course-math',
+        },
+      ]);
+    mockApi.getLesson.mockImplementation(async (lessonId: string) => {
+      if (lessonId === 'kannada-stale') return undefined;
+      if (lessonId === 'math-valid') {
+        return {
+          id: 'math-valid',
+          subject_id: 'course-math',
+          name: 'Math Valid',
+          chapter_id: 'chapter-math',
+          course_id: 'course-math',
+        };
+      }
+
+      return {
+        id: 'kannada-normal',
+        subject_id: 'course-kannada',
+        name: 'Kannada Normal',
+        chapter_id: 'chapter-kannada',
+        course_id: 'course-kannada',
+      };
+    });
+    mockApi.getChapterById.mockResolvedValue({
+      id: 'chapter-math',
+      name: 'Math Chapter',
+    });
+    mockApi.getCourse.mockResolvedValue({
+      id: 'course-math',
+      code: 'MATH',
+      name: 'Math',
+    });
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(await screen.findByTestId('pathway-structure'));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('homework-complete-modal'),
+      ).not.toBeInTheDocument();
+      const rebuiltPath = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(rebuiltPath.lessons).toHaveLength(1);
+      expect(rebuiltPath.lessons[0].assignment_id).toBe('a-math-valid');
+      expect(rebuiltPath.lessons[0].course_id).toBe('course-math');
+      expect(rebuiltPath.pendingAssignmentIds).toEqual(['a-math-valid']);
     });
   });
 

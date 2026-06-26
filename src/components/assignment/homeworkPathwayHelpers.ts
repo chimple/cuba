@@ -72,7 +72,7 @@ export const mergeHomeworkPathWithPendingAssignments = async (
   pendingAssignmentIds: string[],
   normalizeAssignment: (
     assignment: HomeworkPathwayAssignment,
-  ) => Promise<HomeworkPathwayItem>,
+  ) => Promise<HomeworkPathwayItem | null>,
 ): Promise<HomeworkPath> => {
   // Keep every completed lesson before the active index exactly as-is.
   const completedCount = Math.min(
@@ -110,11 +110,13 @@ export const mergeHomeworkPathWithPendingAssignments = async (
   });
 
   // Normalize the final playable slice before saving it back to local storage.
-  const normalizedPendingLessons = await Promise.all(
-    mergedPendingAssignments
-      .slice(0, remainingSlots)
-      .map(async (assignment) => normalizeAssignment(assignment)),
-  );
+  const normalizedPendingLessons = (
+    await Promise.all(
+      mergedPendingAssignments
+        .slice(0, remainingSlots)
+        .map(async (assignment) => normalizeAssignment(assignment)),
+    )
+  ).filter((lesson): lesson is HomeworkPathwayItem => lesson !== null);
 
   return {
     ...existingPath,
@@ -126,6 +128,19 @@ export const mergeHomeworkPathWithPendingAssignments = async (
     pendingAssignmentIds,
   };
 };
+
+/**
+ * Removes homework nodes that no longer have enough lesson metadata to be played.
+ */
+export const filterPlayableHomeworkItems = (
+  lessons: Array<HomeworkPathwayItem | null | undefined>,
+): HomeworkPathwayItem[] =>
+  lessons.filter((lesson): lesson is HomeworkPathwayItem => {
+    if (!lesson) return false;
+
+    const lessonId = lesson.lesson_id ?? lesson.lesson?.id ?? null;
+    return Boolean(lessonId && lesson.lesson?.id);
+  });
 
 /**
  * Detects whether the stored path actually changed before we overwrite local storage.

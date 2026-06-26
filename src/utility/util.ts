@@ -3637,18 +3637,29 @@ export class Util {
       const newLessons = await Promise.all(
         assignmentsToInject.map(async (assignment: any) => {
           const fullLesson = await api.getLesson(assignment.lesson_id);
+          if (!fullLesson?.id) {
+            logger.warn(
+              '[HomeworkPathway] Skipping stale assignment while refreshing homework tail',
+              {
+                assignmentId: assignment.id ?? null,
+                lessonId: assignment.lesson_id ?? null,
+              },
+            );
+            return null;
+          }
           return {
             assignment_id: assignment.id,
             lesson_id: assignment.lesson_id,
             chapter_id: assignment.chapter_id,
             course_id: assignment.course_id,
-            lesson: fullLesson || {
-              id: assignment.lesson_id,
-              image: 'assets/icons/DefaultIcon.png',
-            },
+            lesson: fullLesson,
             raw_assignment: assignment,
           };
         }),
+      );
+      const playableNewLessons = newLessons.filter(
+        (lesson): lesson is NonNullable<(typeof newLessons)[number]> =>
+          lesson !== null,
       );
 
       // 10. REBUILD while preserving original path length.
@@ -3657,7 +3668,7 @@ export class Util {
       type LessonWithAssignmentId = { assignment_id?: string | null };
       const existingFutureLessons = originalLessons.slice(completedIndex + 1);
       const usedAssignmentIds = new Set<string>(
-        [...history, ...newLessons]
+        [...history, ...playableNewLessons]
           .map((l) => (l as LessonWithAssignmentId)?.assignment_id)
           .filter(
             (id): id is string => typeof id === 'string' && id.length > 0,
@@ -3671,7 +3682,7 @@ export class Util {
         },
       );
 
-      const filledFutureLessons = [...newLessons];
+      const filledFutureLessons = [...playableNewLessons];
       if (filledFutureLessons.length < remainingSlotsCount) {
         const missingCount = remainingSlotsCount - filledFutureLessons.length;
         filledFutureLessons.push(

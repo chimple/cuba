@@ -162,17 +162,43 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       const classId = classDoc.id;
       const studentId = student.id;
       // Fetch assignments
-      let allAssignments: TableTypes<'assignment'>[] = [];
       try {
         const all = await api.getPendingAssignments(classId, studentId);
-        const allAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
+        const homeworkAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
+        const resolvedAssignments = await Promise.all(
+          homeworkAssignments.map(async (assignment) => {
+            const lesson = await api.getLesson(assignment.lesson_id);
+            if (!lesson) {
+              logger.warn(
+                '[AssignmentPage] Skipping stale pending homework assignment with missing lesson metadata',
+                {
+                  assignmentId: assignment.id ?? null,
+                  lessonId: assignment.lesson_id ?? null,
+                },
+              );
+              return null;
+            }
+
+            return { assignment, lesson };
+          }),
+        );
+        const validAssignments = resolvedAssignments
+          .filter(
+            (
+              item,
+            ): item is {
+              assignment: TableTypes<'assignment'>;
+              lesson: TableTypes<'lesson'>;
+            } => item !== null,
+          )
+          .map((item) => item.assignment);
         // Update only if length or content has changed
         const assignmentIds = assignments.map((a) => a.id);
-        const newAssignments = allAssignments.filter(
+        const newAssignments = validAssignments.filter(
           (a) => !assignmentIds.includes(a.id),
         );
         const updatedAssignments = fullRefresh
-          ? allAssignments
+          ? validAssignments
           : [...assignments, ...newAssignments];
 
         setAssignments(updatedAssignments);
@@ -180,13 +206,23 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
         await updateLessonChapterAndCourseMaps(updatedAssignments);
 
-        const lessonPromises = newAssignments.map(async (assignment) => {
-          return await api.getLesson(assignment.lesson_id);
-        });
-        const lessonList = await Promise.all(lessonPromises);
-        const filteredLessons = lessonList.filter(
-          (lesson): lesson is TableTypes<'lesson'> => lesson !== undefined,
+        const newLessonMap = new Map(
+          resolvedAssignments
+            .filter(
+              (
+                item,
+              ): item is {
+                assignment: TableTypes<'assignment'>;
+                lesson: TableTypes<'lesson'>;
+              } => item !== null,
+            )
+            .map((item) => [item.assignment.id, item.lesson] as const),
         );
+        const filteredLessons = newAssignments
+          .map((assignment) => newLessonMap.get(assignment.id))
+          .filter(
+            (lesson): lesson is TableTypes<'lesson'> => lesson !== undefined,
+          );
         const mergedLessons = fullRefresh
           ? filteredLessons
           : [...lessons, ...filteredLessons];

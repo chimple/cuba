@@ -127,7 +127,27 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
           currentStudent.id,
         );
         const pendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
-        const pendingCourseIds = pendingAssignments
+        const resolvedPendingAssignments = await Promise.all(
+          pendingAssignments.map(async (assignment) => {
+            const lesson = await api.getLesson(assignment.lesson_id);
+            if (!lesson) {
+              logger.warn(
+                '[DropdownMenu] Skipping stale pending homework assignment with missing lesson metadata',
+                {
+                  assignmentId: assignment.id ?? null,
+                  lessonId: assignment.lesson_id ?? null,
+                },
+              );
+              return null;
+            }
+            return assignment;
+          }),
+        );
+        const pendingCourseIds = resolvedPendingAssignments
+          .filter(
+            (assignment): assignment is TableTypes<'assignment'> =>
+              assignment !== null,
+          )
           .map((assignment) => assignment.course_id)
           .filter((id): id is string => !!id);
         const fallbackCourses =

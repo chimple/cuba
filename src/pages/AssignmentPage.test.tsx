@@ -258,6 +258,38 @@ describe('AssignmentPage', () => {
     expect(assignmentCount).toHaveBeenCalledWith(1);
   });
 
+  test('excludes stale homework assignments from assignmentCount', async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(false);
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({ id: 's1' });
+
+    mockApi.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [{ id: 'c1', school_id: 'sch1', name: 'Class A' }],
+      schools: [{ id: 'sch1', name: 'My School' }],
+    });
+
+    mockApi.getPendingAssignments.mockResolvedValue([
+      { id: 'a1', lesson_id: 'l1', type: 'HOMEWORK' },
+      { id: 'a-stale', lesson_id: 'l-stale', type: 'HOMEWORK' },
+    ]);
+
+    mockApi.getLesson.mockImplementation((lessonId: string) => {
+      if (lessonId === 'l-stale') {
+        return Promise.resolve(undefined);
+      }
+
+      return Promise.resolve({ id: 'l1', name: 'Math' });
+    });
+
+    render(
+      <MemoryRouter>
+        <AssignmentPage assignmentCount={assignmentCount} />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText('LessonSlider Math')).toBeInTheDocument();
+    expect(assignmentCount).toHaveBeenCalledWith(1);
+  });
+
   test('renders HomeworkPathway when flag ON', async () => {
     (useFeatureIsOn as jest.Mock).mockReturnValue(true);
     mockGetFeatureValue.mockReturnValue(true);
