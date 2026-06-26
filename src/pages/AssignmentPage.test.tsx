@@ -155,6 +155,7 @@ const mockApi = {
   getStudentClassesAndSchools: jest.fn(),
   getPendingAssignments: jest.fn(),
   getLesson: jest.fn(),
+  getLessonsBylessonIds: jest.fn(),
   getChaptersByIds: jest.fn(),
   syncDB: jest.fn(),
   removeAssignmentChannel: jest.fn(),
@@ -176,6 +177,14 @@ beforeEach(() => {
 
   mockApi.syncDB.mockResolvedValue(true);
   mockApi.getChaptersByIds.mockResolvedValue([]);
+  mockApi.getLessonsBylessonIds.mockImplementation(
+    async (lessonIds: string[]) => {
+      const lessons = await Promise.all(
+        lessonIds.map((lessonId) => mockApi.getLesson(lessonId)),
+      );
+      return lessons.filter(Boolean);
+    },
+  );
   (Capacitor.isNativePlatform as jest.Mock).mockReturnValue(false);
   (Util.getStoredLessonIds as jest.Mock).mockReturnValue([]);
 });

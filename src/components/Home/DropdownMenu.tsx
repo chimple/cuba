@@ -130,7 +130,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
         const pendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
         const lessonById = await fetchLessonsById(
           pendingAssignments.map((assignment) => assignment.lesson_id),
-          api.getLesson.bind(api),
+          api.getLessonsBylessonIds.bind(api),
         );
         const resolvedPendingAssignments = pendingAssignments.filter(
           (assignment) => {

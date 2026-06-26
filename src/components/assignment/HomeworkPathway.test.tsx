@@ -105,6 +105,7 @@ jest.mock('./HomeworkCompleteModal', () => (props: any) => (
 const mockApi = {
   getPendingAssignments: jest.fn(),
   getLesson: jest.fn(),
+  getLessonsBylessonIds: jest.fn(),
   getCourse: jest.fn(),
   getCoursesForClassStudent: jest.fn(),
   getChapterById: jest.fn(),
@@ -132,6 +133,14 @@ beforeEach(() => {
   (Util.logEvent as jest.Mock).mockImplementation(() => {});
   (Util.pickFiveHomeworkLessons as jest.Mock).mockImplementation((a) =>
     a.slice(0, 5),
+  );
+  mockApi.getLessonsBylessonIds.mockImplementation(
+    async (lessonIds: string[]) => {
+      const lessons = await Promise.all(
+        lessonIds.map((lessonId) => mockApi.getLesson(lessonId)),
+      );
+      return lessons.filter(Boolean);
+    },
   );
   mockApi.getCourse.mockResolvedValue({ id: 'course-1', name: 'Course 1' });
 

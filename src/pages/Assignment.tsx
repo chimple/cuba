@@ -168,7 +168,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         const homeworkAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
         const lessonById = await fetchLessonsById(
           homeworkAssignments.map((assignment) => assignment.lesson_id),
-          api.getLesson.bind(api),
+          api.getLessonsBylessonIds.bind(api),
         );
         const resolvedAssignments = homeworkAssignments.map((assignment) => {
           const lesson = assignment.lesson_id

@@ -31,33 +31,32 @@ export type HomeworkPathwayItem = {
 };
 
 /**
- * Fetches each unique lesson once so stale-homework validation does not issue
- * duplicate API requests when multiple assignments point at the same lesson.
+ * Fetches each unique lesson in one batch so stale-homework validation does not
+ * issue duplicate per-lesson API requests when multiple assignments point at
+ * the same lesson.
  */
 export const fetchLessonsById = async <
   TLesson extends HomeworkPathwayLesson = HomeworkPathwayLesson,
 >(
   lessonIds: Array<string | null | undefined>,
-  getLesson: (lessonId: string) => Promise<TLesson | null | undefined>,
+  getLessonsBylessonIds: (
+    lessonIds: string[],
+  ) => Promise<TLesson[] | null | undefined>,
 ): Promise<Map<string, TLesson>> => {
   const uniqueLessonIds = Array.from(
     new Set(lessonIds.filter((id): id is string => !!id)),
   );
 
-  const lessonEntries = await Promise.all(
-    uniqueLessonIds.map(async (lessonId) => {
-      const lesson = await getLesson(lessonId);
-      return [lessonId, lesson?.id ? lesson : null] as const;
-    }),
-  );
+  if (uniqueLessonIds.length === 0) {
+    return new Map();
+  }
 
-  return lessonEntries.reduce<Map<string, TLesson>>(
-    (lessonMap, [lessonId, lesson]) => {
-      if (lesson) lessonMap.set(lessonId, lesson);
-      return lessonMap;
-    },
-    new Map(),
-  );
+  const lessons = (await getLessonsBylessonIds(uniqueLessonIds)) ?? [];
+
+  return lessons.reduce<Map<string, TLesson>>((lessonMap, lesson) => {
+    if (lesson?.id) lessonMap.set(lesson.id, lesson);
+    return lessonMap;
+  }, new Map());
 };
 
 /**

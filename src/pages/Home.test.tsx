@@ -111,6 +111,7 @@ const mockApi = {
   getStudentClassesAndSchools: jest.fn(),
   getPendingAssignments: jest.fn(),
   getLesson: jest.fn(),
+  getLessonsBylessonIds: jest.fn(),
   assignmentListner: jest.fn(),
   assignmentUserListner: jest.fn(),
   authHandler: { getCurrentUser: jest.fn() },
@@ -149,6 +150,14 @@ describe('Home page (Home tab)', () => {
     });
     mockApi.getPendingAssignments.mockResolvedValue([]);
     mockApi.getLesson.mockResolvedValue({ id: 'l-1', subject_id: 'sub-1' });
+    mockApi.getLessonsBylessonIds.mockImplementation(
+      async (lessonIds: string[]) => {
+        const lessons = await Promise.all(
+          lessonIds.map((lessonId) => mockApi.getLesson(lessonId)),
+        );
+        return lessons.filter(Boolean);
+      },
+    );
     mockApi.assignmentListner.mockResolvedValue(undefined);
     mockApi.assignmentUserListner.mockResolvedValue(undefined);
     (useFeatureIsOn as jest.Mock).mockReturnValue(false);

@@ -363,7 +363,7 @@ const Home: FC = () => {
       );
       const lessonById = await fetchLessonsById(
         homeworkAssignments.map((assignment) => assignment.lesson_id),
-        api.getLesson.bind(api),
+        api.getLessonsBylessonIds.bind(api),
       );
 
       allAssignments.forEach((_assignment) => {

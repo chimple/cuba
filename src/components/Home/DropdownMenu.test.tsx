@@ -15,6 +15,7 @@ jest.mock('../../utility/util');
 const mockApi = {
   getPendingAssignments: jest.fn(),
   getLesson: jest.fn(),
+  getLessonsBylessonIds: jest.fn(),
   getCoursesForClassStudent: jest.fn(),
   getCourse: jest.fn(),
   getGradeById: jest.fn(),
@@ -63,6 +64,14 @@ describe('DropdownMenu', () => {
     mockApi.getCoursesForClassStudent.mockResolvedValue([]);
     mockApi.getLesson.mockImplementation((lessonId: string) =>
       Promise.resolve({ id: lessonId, subject_id: 'subject-1' }),
+    );
+    mockApi.getLessonsBylessonIds.mockImplementation(
+      async (lessonIds: string[]) => {
+        const lessons = await Promise.all(
+          lessonIds.map((lessonId) => mockApi.getLesson(lessonId)),
+        );
+        return lessons.filter(Boolean);
+      },
     );
     mockApi.getGradeById.mockResolvedValue({ id: 'g1', name: 'Grade 1' });
     mockApi.getCurriculumById.mockResolvedValue({ id: 'cur-1', name: 'CBSE' });

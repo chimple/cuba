@@ -447,7 +447,7 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         );
         const lessonById = await fetchLessonsById(
           pendingHomeworkAssignments.map((assignment) => assignment.lesson_id),
-          api.getLesson.bind(api),
+          api.getLessonsBylessonIds.bind(api),
         );
         allPendingAssignments = pendingHomeworkAssignments.reduce<
           HomeworkPathwayAssignment[]
