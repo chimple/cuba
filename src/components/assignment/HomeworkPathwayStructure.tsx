@@ -625,6 +625,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         Array<TableTypes<'assignment'> & { lesson: HomeworkPathwayLesson }>
       > = {};
       for (const assignment of pendingAssignments) {
+        if (!assignment.lesson_id) continue;
         const lesson = await getCachedLesson(assignment.lesson_id);
         const subjectId = lesson?.subject_id;
         if (!subjectId) continue;

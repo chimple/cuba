@@ -3636,6 +3636,9 @@ export class Util {
       // 9. Fetch Full Lesson Details
       const newLessons = await Promise.all(
         assignmentsToInject.map(async (assignment: any) => {
+          if (!assignment.lesson_id) {
+            return null;
+          }
           const fullLesson = await api.getLesson(assignment.lesson_id);
           if (!fullLesson?.id) {
             logger.warn(

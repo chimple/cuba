@@ -31,6 +31,36 @@ export type HomeworkPathwayItem = {
 };
 
 /**
+ * Fetches each unique lesson once so stale-homework validation does not issue
+ * duplicate API requests when multiple assignments point at the same lesson.
+ */
+export const fetchLessonsById = async <
+  TLesson extends HomeworkPathwayLesson = HomeworkPathwayLesson,
+>(
+  lessonIds: Array<string | null | undefined>,
+  getLesson: (lessonId: string) => Promise<TLesson | null | undefined>,
+): Promise<Map<string, TLesson>> => {
+  const uniqueLessonIds = Array.from(
+    new Set(lessonIds.filter((id): id is string => !!id)),
+  );
+
+  const lessonEntries = await Promise.all(
+    uniqueLessonIds.map(async (lessonId) => {
+      const lesson = await getLesson(lessonId);
+      return [lessonId, lesson?.id ? lesson : null] as const;
+    }),
+  );
+
+  return lessonEntries.reduce<Map<string, TLesson>>(
+    (lessonMap, [lessonId, lesson]) => {
+      if (lesson) lessonMap.set(lessonId, lesson);
+      return lessonMap;
+    },
+    new Map(),
+  );
+};
+
+/**
  * Represents the stored homework path along with progress metadata.
  */
 export interface HomeworkPath {

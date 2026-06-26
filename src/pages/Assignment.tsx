@@ -30,6 +30,7 @@ import HomeworkCompleteModal from '../components/assignment/HomeworkCompleteModa
 import { useGbContext } from '../growthbook/Growthbook';
 import logger from '../utility/logger';
 import ActivationLessonBanner from '../components/activationLesson/ActivationLessonBanner';
+import { fetchLessonsById } from '../components/assignment/homeworkPathwayHelpers';
 
 const waitForJoinRefresh = (delayMs: number) =>
   new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -165,23 +166,27 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       try {
         const all = await api.getPendingAssignments(classId, studentId);
         const homeworkAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
-        const resolvedAssignments = await Promise.all(
-          homeworkAssignments.map(async (assignment) => {
-            const lesson = await api.getLesson(assignment.lesson_id);
-            if (!lesson) {
-              logger.warn(
-                '[AssignmentPage] Skipping stale pending homework assignment with missing lesson metadata',
-                {
-                  assignmentId: assignment.id ?? null,
-                  lessonId: assignment.lesson_id ?? null,
-                },
-              );
-              return null;
-            }
-
-            return { assignment, lesson };
-          }),
+        const lessonById = await fetchLessonsById(
+          homeworkAssignments.map((assignment) => assignment.lesson_id),
+          api.getLesson.bind(api),
         );
+        const resolvedAssignments = homeworkAssignments.map((assignment) => {
+          const lesson = assignment.lesson_id
+            ? lessonById.get(assignment.lesson_id)
+            : null;
+          if (!lesson) {
+            logger.warn(
+              '[AssignmentPage] Skipping stale pending homework assignment with missing lesson metadata',
+              {
+                assignmentId: assignment.id ?? null,
+                lessonId: assignment.lesson_id ?? null,
+              },
+            );
+            return null;
+          }
+
+          return { assignment, lesson };
+        });
         const validAssignments = resolvedAssignments
           .filter(
             (

@@ -1017,6 +1017,108 @@ describe('HomeworkPathway – completion flow', () => {
     });
   });
 
+  test('falls back to other courses when selected subject has no playable lessons', async () => {
+    (useFeatureIsOn as jest.Mock).mockReturnValue(true);
+
+    const initialPathway = {
+      path_id: 'kannada-path',
+      lessons: [
+        {
+          assignment_id: 'a-kannada-normal',
+          lesson_id: 'kannada-normal',
+          chapter_id: 'chapter-kannada',
+          course_id: 'course-kannada',
+          lesson: {
+            id: 'kannada-normal',
+            subject_id: 'course-kannada',
+            name: 'Kannada Normal',
+          },
+        },
+      ],
+      currentIndex: 0,
+      pendingAssignmentIds: ['a-kannada-normal'],
+    };
+    localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(initialPathway));
+
+    mockApi.getPendingAssignments
+      .mockResolvedValueOnce([
+        {
+          id: 'a-kannada-normal',
+          type: 'HOMEWORK',
+          lesson_id: 'kannada-normal',
+          course_id: 'course-kannada',
+        },
+      ])
+      .mockResolvedValue([
+        {
+          id: 'a-kannada-malformed',
+          type: 'HOMEWORK',
+          lesson_id: 'kannada-malformed',
+          course_id: 'course-kannada',
+        },
+        {
+          id: 'a-math-valid',
+          type: 'HOMEWORK',
+          lesson_id: 'math-valid',
+          course_id: 'course-math',
+        },
+      ]);
+    mockApi.getLesson.mockImplementation(async (lessonId: string) => {
+      if (lessonId === 'kannada-malformed') {
+        return {
+          id: 'kannada-malformed',
+          subject_id: 'course-kannada',
+          name: 'Kannada Malformed',
+        };
+      }
+      if (lessonId === 'math-valid') {
+        return {
+          id: 'math-valid',
+          subject_id: 'course-math',
+          name: 'Math Valid',
+          chapter_id: 'chapter-math',
+          course_id: 'course-math',
+        };
+      }
+
+      return {
+        id: 'kannada-normal',
+        subject_id: 'course-kannada',
+        name: 'Kannada Normal',
+        chapter_id: 'chapter-kannada',
+        course_id: 'course-kannada',
+      };
+    });
+    mockApi.getChapterById.mockResolvedValue({
+      id: 'chapter-math',
+      name: 'Math Chapter',
+    });
+    mockApi.getCourse.mockResolvedValue({
+      id: 'course-math',
+      code: 'MATH',
+      name: 'Math',
+    });
+
+    render(
+      <MemoryRouter>
+        <HomeworkPathway />
+      </MemoryRouter>,
+    );
+
+    await userEvent.click(await screen.findByTestId('pathway-structure'));
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId('homework-complete-modal'),
+      ).not.toBeInTheDocument();
+      const rebuiltPath = JSON.parse(localStorage.getItem(HOMEWORK_PATHWAY)!);
+      expect(rebuiltPath.lessons).toHaveLength(1);
+      expect(rebuiltPath.lessons[0].assignment_id).toBe('a-math-valid');
+      expect(rebuiltPath.lessons[0].course_id).toBe('course-math');
+      expect(rebuiltPath.pendingAssignmentIds).toEqual(['a-math-valid']);
+    });
+  });
+
   test('last homework completes normally when sticker celebration popup is disabled', async () => {
     (useFeatureIsOn as jest.Mock).mockImplementation((key?: string) => {
       if (key === STICKER_BOOK_CELEBRATION_POPUP_ENABLED) return false;

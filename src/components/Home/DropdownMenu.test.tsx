@@ -231,8 +231,8 @@ describe('DropdownMenu', () => {
   test('handles per-course API failure gracefully in homework mode', async () => {
     const spy = jest.spyOn(logger, 'error').mockImplementation(() => {});
     mockApi.getPendingAssignments.mockResolvedValue([
-      { course_id: 'c1', type: 'assignment' },
-      { course_id: 'c2', type: 'assignment' },
+      { course_id: 'c1', type: 'assignment', lesson_id: 'l1' },
+      { course_id: 'c2', type: 'assignment', lesson_id: 'l2' },
     ]);
     mockApi.getCourse.mockImplementation((id: string) => {
       if (id === 'c1') return Promise.reject(new Error('course fetch failed'));
