@@ -373,6 +373,44 @@ describe('useLearningPath features used by Home tab', () => {
     expect(palUtil.getPalLessonPathForCourse).not.toHaveBeenCalled();
   });
 
+  test('skips assessment lookup in full adaptive mode after PAL phase starts', async () => {
+    (palUtil.getPalLessonPathForCourse as jest.Mock).mockResolvedValue({
+      lesson_id: 'normal-pal-lesson-2',
+      chapter_id: 'pal-chapter-2',
+      skill_id: 'pal-skill-2',
+    });
+
+    const next = await recommendNextLesson({
+      student: { id: 'stu-1' },
+      course: { id: 'c1', subject_id: 's1', framework_id: 'framework-1' },
+      mode: LEARNING_PATHWAY_MODE.FULL_ADAPTIVE,
+      coursePath: {
+        path: [
+          {
+            lesson_id: 'assessment-lesson-1',
+            is_assessment: true,
+            isPlayed: true,
+          },
+          {
+            lesson_id: 'normal-pal-lesson-1',
+            is_assessment: false,
+            isPlayed: true,
+          },
+        ],
+      },
+    });
+
+    expect(mockApi.getSubjectLessonsBySubjectId).not.toHaveBeenCalled();
+    expect(next).toEqual({
+      lesson_id: 'normal-pal-lesson-2',
+      chapter_id: 'pal-chapter-2',
+      skill_id: 'pal-skill-2',
+      source: SOURCE.LEARNING_PATHWAY_HOME_PAL,
+      is_assessment: false,
+      isPlayed: false,
+    });
+  });
+
   test('skips assessment recommendation when rebuilding after assessment termination', async () => {
     mockApi.getSubjectLessonsBySubjectId.mockResolvedValue({
       id: 'asmt-doc-1',

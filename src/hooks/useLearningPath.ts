@@ -331,14 +331,19 @@ export async function recommendNextLesson({
     coursePath?.path?.some(
       (node) => node.is_assessment === true && node.isPlayed === false,
     ) ?? false;
+  const hasPlayedNormalLessonInPath =
+    coursePath?.path?.some(
+      (node) => node.is_assessment === false && node.isPlayed === true,
+    ) ?? false;
 
   /* -------------------------------
    * 1️⃣ TEACHER ASSIGNED ASSESSMENT
    * ------------------------------- */
   const hasCompletedInitialAssessment = shouldUsePAL(mode)
-    ? !hasAssessmentProgressInPath &&
-      !hasPendingAssessmentInPath &&
-      (await api.isStudentPlayedPalLesson(student.id, course.id))
+    ? hasPlayedNormalLessonInPath ||
+      (!hasAssessmentProgressInPath &&
+        !hasPendingAssessmentInPath &&
+        (await api.isStudentPlayedPalLesson(student.id, course.id)))
     : false;
   if (!skipAssessment && classId) {
     const assessments = await api.getLatestAssessmentGroup(
