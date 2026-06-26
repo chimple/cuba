@@ -1399,6 +1399,16 @@ export class Util {
     }
   }
 
+  private static async safeLocationReplace(url: string): Promise<void> {
+    const api = ServiceConfig.getI().apiHandler;
+    try {
+      await api.close();
+    } catch (error) {
+      logger.error('Failed to close database before page reload:', error);
+    }
+    window.location.replace(url);
+  }
+
   public static async navigateTabByNotificationData(data: any) {
     const currentStudent = this.getCurrentStudent();
     const api = ServiceConfig.getI().apiHandler;
@@ -1406,7 +1416,9 @@ export class Util {
       const rewardProfileId = data.rewardProfileId;
       if (rewardProfileId)
         if (currentStudent?.id === rewardProfileId) {
-          window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
+          await this.safeLocationReplace(
+            PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME,
+          );
         } else {
           await this.setCurrentStudent(null);
           const students = await api.getParentStudentProfiles();
@@ -1414,7 +1426,9 @@ export class Util {
             students.find((user) => user.id === rewardProfileId) || students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
+            await this.safeLocationReplace(
+              PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME,
+            );
           } else {
             return;
           }
@@ -1432,9 +1446,6 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            window.location.replace(
-              PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
-            );
             foundMatch = true;
             break;
           }
@@ -1447,12 +1458,12 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(
+            await this.safeLocationReplace(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
             );
           }
         } else {
-          window.location.replace(
+          await this.safeLocationReplace(
             PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
           );
           return;
@@ -1470,7 +1481,7 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            window.location.replace(
+            await this.safeLocationReplace(
               data.assignmentId
                 ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${data.assignmentId}`
                 : PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
@@ -1487,13 +1498,15 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(
+            await this.safeLocationReplace(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
             );
           }
         }
       } else {
-        window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ);
+        await this.safeLocationReplace(
+          PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
+        );
         return;
       }
     }

@@ -769,6 +769,10 @@ export const useStickerBookPreviewModalLogic = ({
       ? new XMLSerializer().serializeToString(bookSvgRef.current)
       : svgMarkup || undefined;
 
+    if (isCompletionMode) {
+      onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
+    }
+
     history.push(PAGES.COLORING_BOARD, {
       stickerBookId: data.stickerBookId,
       svgRaw,
