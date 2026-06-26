@@ -1305,7 +1305,6 @@ export class SqliteApi implements ServiceApi {
             VALUES ${valuesPlaceholders}
             ON CONFLICT(id) DO UPDATE SET
             ${updateSetClause}
-            WHERE excluded.updated_at > ${tableName}.updated_at;
             `
               : `
             INSERT INTO ${tableName} (${currentFieldNames.join(', ')})
