@@ -42,10 +42,15 @@ import WinterCampaignPopupGating from '../components/WinterCampaignPopup/WinterC
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import ActivationLessonBanner from '../components/activationLesson/ActivationLessonBanner';
+import logger from '../utility/logger';
+import {
+  fetchLessonsById,
+  HomeworkPathwayLesson,
+} from '../components/assignment/homeworkPathwayHelpers';
 const localData: any = {};
 
 const Home: FC = () => {
-  const [dataCourse, setDataCourse] = useState<TableTypes<'lesson'>[]>([]);
+  const [dataCourse, setDataCourse] = useState<HomeworkPathwayLesson[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
@@ -320,8 +325,8 @@ const Home: FC = () => {
 
   async function getAssignments(
     withListeners: boolean = true,
-  ): Promise<TableTypes<'lesson'>[]> {
-    let reqLes: TableTypes<'lesson'>[] = [];
+  ): Promise<HomeworkPathwayLesson[]> {
+    let reqLes: HomeworkPathwayLesson[] = [];
     // setIsLoading(true);
     const student = Util.getCurrentStudent();
     const linkedData =
@@ -350,53 +355,72 @@ const Home: FC = () => {
       );
       let assignmentCount = 0;
       let liveQuizCount = 0;
+      const validHomeworkAssignments: TableTypes<'assignment'>[] = [];
 
       const counts: Record<string, number> = {};
+      const homeworkAssignments = allAssignments.filter(
+        (assignment) => assignment.type !== LIVE_QUIZ,
+      );
+      const lessonById = await fetchLessonsById(
+        homeworkAssignments.map((assignment) => assignment.lesson_id),
+        api.getLessonsBylessonIds.bind(api),
+      );
 
-      await Promise.all(
-        allAssignments.map(async (_assignment) => {
-          const res = await api.getLesson(_assignment.lesson_id);
-          const now = new Date().toISOString();
-          if (_assignment.type !== LIVE_QUIZ) {
-            assignmentCount++;
-            const subject_id = res?.subject_id;
-            if (!subject_id) return;
-            const key = `count_of_subject_${subject_id}_pending`;
-            counts[key] = (counts[key] || 0) + 1;
-          } else {
-            if (_assignment.ends_at && _assignment.starts_at) {
-              if (_assignment.starts_at <= now && _assignment.ends_at > now) {
-                liveQuizCount++;
-              }
+      allAssignments.forEach((_assignment) => {
+        const res = _assignment.lesson_id
+          ? lessonById.get(_assignment.lesson_id)
+          : null;
+        const now = new Date().toISOString();
+        if (_assignment.type !== LIVE_QUIZ) {
+          if (!res) {
+            logger.warn(
+              '[Home] Skipping stale pending homework assignment with missing lesson metadata',
+              {
+                assignmentId: _assignment.id ?? null,
+                lessonId: _assignment.lesson_id ?? null,
+              },
+            );
+            return;
+          }
+          assignmentCount++;
+          validHomeworkAssignments.push(_assignment);
+          const subject_id = res?.subject_id;
+          if (!subject_id) return;
+          const key = `count_of_subject_${subject_id}_pending`;
+          counts[key] = (counts[key] || 0) + 1;
+        } else {
+          if (_assignment.ends_at && _assignment.starts_at) {
+            if (_assignment.starts_at <= now && _assignment.ends_at > now) {
+              liveQuizCount++;
             }
           }
-          if (!!res) {
-            // res.assignment = _assignment;
-            (res as any).course_id = _assignment.course_id || null;
-            reqLes.push(res);
-          }
-        }),
-      );
+        }
+        if (!!res) {
+          reqLes.push({
+            ...res,
+            course_id: _assignment.course_id || null,
+          });
+        }
+      });
 
       setPendingLiveQuizCount(liveQuizCount);
       setPendingAssignmentCount(assignmentCount);
-      setPendingAssignments(allAssignments);
+      setPendingAssignments(validHomeworkAssignments);
 
-      const courseCount = allAssignments.reduce<Record<string, number>>(
-        (accumulator, current: TableTypes<'assignment'>) => {
-          const courseId = current.course_id;
-          if (!courseId) {
-            return accumulator;
-          }
-          if (accumulator[courseId]) {
-            accumulator[courseId] += 1;
-          } else {
-            accumulator[courseId] = 1;
-          }
+      const courseCount = validHomeworkAssignments.reduce<
+        Record<string, number>
+      >((accumulator, current: TableTypes<'assignment'>) => {
+        const courseId = current.course_id;
+        if (!courseId) {
           return accumulator;
-        },
-        {},
-      );
+        }
+        if (accumulator[courseId]) {
+          accumulator[courseId] += 1;
+        } else {
+          accumulator[courseId] = 1;
+        }
+        return accumulator;
+      }, {});
       const result = Object.keys(courseCount).reduce<Record<string, number>>(
         (acc, courseId) => {
           acc[`count_of_course_${courseId}_pending`] = courseCount[courseId];
