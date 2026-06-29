@@ -390,6 +390,38 @@ export class SqliteApi implements ServiceApi {
     await this.setUpDatabase();
   }
 
+  public async close(): Promise<void> {
+    if (this._initPromise) {
+      try {
+        await this._initPromise;
+      } catch (error) {
+        logger.error(
+          'Error waiting for SQLite initialization before close:',
+          error,
+        );
+      }
+    }
+
+    const db = this._db;
+    const sqlite = this._sqlite;
+    if (!db || !sqlite) return;
+
+    try {
+      await db.close();
+    } catch (error) {
+      logger.error('Error closing SQLite database:', error);
+    }
+
+    try {
+      await sqlite.closeConnection(this.DB_NAME, false);
+    } catch (error) {
+      logger.error('Error closing SQLite connection:', error);
+    } finally {
+      this.resetDbHandles();
+      this._initPromise = null;
+    }
+  }
+
   private async setUpDatabase() {
     if (!this._db || !this._sqlite) return;
 
@@ -1305,7 +1337,6 @@ export class SqliteApi implements ServiceApi {
             VALUES ${valuesPlaceholders}
             ON CONFLICT(id) DO UPDATE SET
             ${updateSetClause}
-            WHERE excluded.updated_at > ${tableName}.updated_at;
             `
               : `
             INSERT INTO ${tableName} (${currentFieldNames.join(', ')})
@@ -10264,8 +10295,48 @@ order by
 
     if (!latestBatchId) return [];
 
+    const latestBatchLessonQuery = `
+      SELECT a.lesson_id
+      FROM assignment a
+      LEFT JOIN assignment_user au
+        ON a.id = au.assignment_id
+        AND au.is_deleted = 0
+      WHERE a.class_id = ?
+        AND a.course_id = ?
+        AND a.type = 'assessment'
+        AND a.is_deleted = 0
+        AND a.batch_id = ?
+        AND (
+          a.starts_at IS NULL
+          OR a.starts_at = ''
+          OR datetime(a.starts_at) <= datetime(?)
+        )
+        AND (
+          a.ends_at IS NULL
+          OR a.ends_at = ''
+          OR datetime(a.ends_at) > datetime(?)
+        )
+        AND (
+          a.is_class_wise = 1
+          OR au.user_id = ?
+        );
+    `;
+    const latestBatchLessonRes = await this._db?.query(latestBatchLessonQuery, [
+      classId,
+      courseId,
+      latestBatchId,
+      nowIso,
+      nowIso,
+      studentId,
+    ]);
+    const latestBatchLessonIds = new Set(
+      ((latestBatchLessonRes?.values ?? []) as { lesson_id?: string | null }[])
+        .map((assignment) => assignment.lesson_id)
+        .filter((lessonId): lessonId is string => !!lessonId),
+    );
+
     const courseTerminationQuery = `
-      SELECT r.status
+      SELECT r.lesson_id, r.status
       FROM result r
       INNER JOIN assignment a
         ON a.id = r.assignment_id
@@ -10283,7 +10354,14 @@ order by
       classId,
       courseId,
     ]);
-    if (courseTerminationRes?.values?.length) {
+    const courseTerminationRows = (courseTerminationRes?.values ?? []) as {
+      lesson_id?: string | null;
+    }[];
+    const isLatestBatchReassignment = courseTerminationRows.some(
+      (result) =>
+        !!result.lesson_id && latestBatchLessonIds.has(result.lesson_id),
+    );
+    if (courseTerminationRows.length && !isLatestBatchReassignment) {
       return [];
     }
 
@@ -10379,13 +10457,6 @@ order by
 
         -- NOT completed
         AND r.assignment_id IS NULL
-        AND NOT EXISTS (
-          SELECT 1
-          FROM result lr
-          WHERE lr.student_id = '${studentId}'
-            AND lr.lesson_id = a.lesson_id
-            AND lr.is_deleted = 0
-        )
 
         -- subject_lesson validation (LANGUAGE ONLY)
         AND EXISTS (

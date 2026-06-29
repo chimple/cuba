@@ -1399,6 +1399,16 @@ export class Util {
     }
   }
 
+  private static async safeLocationReplace(url: string): Promise<void> {
+    const api = ServiceConfig.getI().apiHandler;
+    try {
+      await api.close();
+    } catch (error) {
+      logger.error('Failed to close database before page reload:', error);
+    }
+    window.location.replace(url);
+  }
+
   public static async navigateTabByNotificationData(data: any) {
     const currentStudent = this.getCurrentStudent();
     const api = ServiceConfig.getI().apiHandler;
@@ -1406,7 +1416,9 @@ export class Util {
       const rewardProfileId = data.rewardProfileId;
       if (rewardProfileId)
         if (currentStudent?.id === rewardProfileId) {
-          window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
+          await this.safeLocationReplace(
+            PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME,
+          );
         } else {
           await this.setCurrentStudent(null);
           const students = await api.getParentStudentProfiles();
@@ -1414,7 +1426,9 @@ export class Util {
             students.find((user) => user.id === rewardProfileId) || students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
+            await this.safeLocationReplace(
+              PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME,
+            );
           } else {
             return;
           }
@@ -1432,9 +1446,6 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            window.location.replace(
-              PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
-            );
             foundMatch = true;
             break;
           }
@@ -1447,12 +1458,12 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(
+            await this.safeLocationReplace(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
             );
           }
         } else {
-          window.location.replace(
+          await this.safeLocationReplace(
             PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
           );
           return;
@@ -1470,7 +1481,7 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            window.location.replace(
+            await this.safeLocationReplace(
               data.assignmentId
                 ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${data.assignmentId}`
                 : PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
@@ -1487,13 +1498,15 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(
+            await this.safeLocationReplace(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
             );
           }
         }
       } else {
-        window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ);
+        await this.safeLocationReplace(
+          PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
+        );
         return;
       }
     }
@@ -2989,6 +3002,30 @@ export class Util {
       let courseIndex = courses.currentCourseIndex;
       let course = courses.courseList[courseIndex];
       if (!course) return;
+      const courseCodeById = new Map<string, string | null>();
+      const getCourseCode = async (coursePath: CoursePath) => {
+        const storedCode = coursePath.course_code?.trim().toLowerCase();
+        if (storedCode) return storedCode;
+
+        const courseId = coursePath.course_id;
+        if (courseCodeById.has(courseId)) {
+          return courseCodeById.get(courseId) ?? null;
+        }
+
+        try {
+          const courseMeta = await api.getCourse(courseId);
+          const code = courseMeta?.code?.trim().toLowerCase() || null;
+          courseCodeById.set(courseId, code);
+          return code;
+        } catch (error) {
+          logger.warn('[LearningPath] Unable to resolve course code', {
+            courseId,
+            error,
+          });
+          courseCodeById.set(courseId, null);
+          return null;
+        }
+      };
 
       /* 1️⃣ Identify active lesson */
       const activeLessonIndex = course.path.findIndex(
@@ -3031,23 +3068,36 @@ export class Util {
             !!lesson.assignment_id,
         );
 
-      const syncSameSubjectAssessmentPaths = (
+      const syncSameSubjectAssessmentPaths = async (
         nextAssessmentLesson: LessonNode | null,
       ) => {
         if (
           storedPathwayMode !== LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
           !activeLesson ||
           !activeLesson.is_assessment ||
-          !course.subject_id
+          (!course.subject_id && !course.framework_id)
         ) {
           return;
         }
 
+        const activeCourseCode = await getCourseCode(course);
+        if (!activeCourseCode) return;
+
         for (const peerCourse of courses.courseList) {
-          if (
-            peerCourse === course ||
-            peerCourse.subject_id !== course.subject_id
-          ) {
+          const isSameAssessmentGroup =
+            !!course.framework_id &&
+            !!peerCourse.framework_id &&
+            peerCourse.framework_id === course.framework_id
+              ? true
+              : !!course.subject_id &&
+                peerCourse.subject_id === course.subject_id;
+
+          if (peerCourse === course || !isSameAssessmentGroup) {
+            continue;
+          }
+
+          const peerCourseCode = await getCourseCode(peerCourse);
+          if (!peerCourseCode || peerCourseCode !== activeCourseCode) {
             continue;
           }
 
@@ -3106,7 +3156,7 @@ export class Util {
       }
 
       /* 4️⃣ Check path overflow */
-      syncSameSubjectAssessmentPaths(nextLesson);
+      await syncSameSubjectAssessmentPaths(nextLesson);
 
       let pathCompleted = false;
 
@@ -3599,19 +3649,33 @@ export class Util {
       // 9. Fetch Full Lesson Details
       const newLessons = await Promise.all(
         assignmentsToInject.map(async (assignment: any) => {
+          if (!assignment.lesson_id) {
+            return null;
+          }
           const fullLesson = await api.getLesson(assignment.lesson_id);
+          if (!fullLesson?.id) {
+            logger.warn(
+              '[HomeworkPathway] Skipping stale assignment while refreshing homework tail',
+              {
+                assignmentId: assignment.id ?? null,
+                lessonId: assignment.lesson_id ?? null,
+              },
+            );
+            return null;
+          }
           return {
             assignment_id: assignment.id,
             lesson_id: assignment.lesson_id,
             chapter_id: assignment.chapter_id,
             course_id: assignment.course_id,
-            lesson: fullLesson || {
-              id: assignment.lesson_id,
-              image: 'assets/icons/DefaultIcon.png',
-            },
+            lesson: fullLesson,
             raw_assignment: assignment,
           };
         }),
+      );
+      const playableNewLessons = newLessons.filter(
+        (lesson): lesson is NonNullable<(typeof newLessons)[number]> =>
+          lesson !== null,
       );
 
       // 10. REBUILD while preserving original path length.
@@ -3620,7 +3684,7 @@ export class Util {
       type LessonWithAssignmentId = { assignment_id?: string | null };
       const existingFutureLessons = originalLessons.slice(completedIndex + 1);
       const usedAssignmentIds = new Set<string>(
-        [...history, ...newLessons]
+        [...history, ...playableNewLessons]
           .map((l) => (l as LessonWithAssignmentId)?.assignment_id)
           .filter(
             (id): id is string => typeof id === 'string' && id.length > 0,
@@ -3634,7 +3698,7 @@ export class Util {
         },
       );
 
-      const filledFutureLessons = [...newLessons];
+      const filledFutureLessons = [...playableNewLessons];
       if (filledFutureLessons.length < remainingSlotsCount) {
         const missingCount = remainingSlotsCount - filledFutureLessons.length;
         filledFutureLessons.push(

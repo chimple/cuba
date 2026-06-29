@@ -215,6 +215,13 @@ type AssessmentAssignmentRow = TableTypes<'assignment'> & {
   assignment_user?: AssessmentAssignmentUserLink[] | null;
 };
 
+type AssessmentBatchLessonRow = Pick<
+  TableTypes<'assignment'>,
+  'lesson_id' | 'is_class_wise'
+> & {
+  assignment_user?: AssessmentAssignmentUserLink[] | null;
+};
+
 type AssessmentResultRow = Pick<
   TableTypes<'result'>,
   'assignment_id' | 'status' | 'created_at'
@@ -520,6 +527,11 @@ export class SupabaseApi implements ServiceApi {
   isSyncInProgress(): boolean {
     return false;
   }
+
+  close(): Promise<void> {
+    return Promise.resolve();
+  }
+
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
   private supabaseUrl: string;
@@ -15017,7 +15029,10 @@ export class SupabaseApi implements ServiceApi {
     courseId = courseId ?? '';
 
     const isAssignedToStudent = (
-      assignment: AssessmentBatchRow | AssessmentAssignmentRow,
+      assignment:
+        | AssessmentBatchRow
+        | AssessmentAssignmentRow
+        | AssessmentBatchLessonRow,
     ) =>
       assignment.is_class_wise === true ||
       (assignment.assignment_user ?? []).some(
@@ -15057,11 +15072,45 @@ export class SupabaseApi implements ServiceApi {
     const latestBatchId = latestAssignedBatch?.batch_id;
     if (!latestBatchId) return [];
 
+    const { data: latestBatchLessons, error: latestBatchLessonsError } =
+      await this.supabase
+        .from(TABLES.Assignment)
+        .select(
+          `
+          lesson_id,
+          is_class_wise,
+          assignment_user:assignment_user!left(user_id, is_deleted)
+        `,
+        )
+        .eq('class_id', classId)
+        .eq('course_id', courseId)
+        .eq('type', 'assessment')
+        .eq('is_deleted', false)
+        .eq('batch_id', latestBatchId)
+        .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+        .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
+
+    if (latestBatchLessonsError) {
+      logger.error(
+        'Latest assessment batch lesson query error:',
+        latestBatchLessonsError,
+      );
+      return [];
+    }
+
+    const latestBatchLessonIds = new Set(
+      ((latestBatchLessons ?? []) as unknown as AssessmentBatchLessonRow[])
+        .filter((assignment) => isAssignedToStudent(assignment))
+        .map((assignment) => assignment.lesson_id)
+        .filter((lessonId): lessonId is string => !!lessonId),
+    );
+
     const { data: courseTerminationResults, error: courseTerminationError } =
       await this.supabase
         .from(TABLES.Result)
         .select(
           `
+          lesson_id,
           status,
           assignment!inner(class_id, course_id, type)
         `,
@@ -15082,7 +15131,14 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
 
-    if (courseTerminationResults?.length) {
+    const isLatestBatchReassignment = (courseTerminationResults ?? []).some(
+      (result) => {
+        const lessonId = result.lesson_id;
+        return !!lessonId && latestBatchLessonIds.has(lessonId);
+      },
+    );
+
+    if (courseTerminationResults?.length && !isLatestBatchReassignment) {
       return [];
     }
 
@@ -15171,10 +15227,6 @@ export class SupabaseApi implements ServiceApi {
     if (!assignedAssessments.length) return [];
 
     const assignmentIds = assignedAssessments.map((a) => a.id);
-    const assignedLessonIds = assignedAssessments
-      .map((assignment) => assignment.lesson_id)
-      .filter((lessonId): lessonId is string => !!lessonId);
-
     const { data: assignmentResults } = await this.supabase
       .from(TABLES.Result)
       .select('assignment_id')
@@ -15186,23 +15238,8 @@ export class SupabaseApi implements ServiceApi {
       (assignmentResults ?? []).map((r) => r.assignment_id),
     );
 
-    const { data: lessonResults } = assignedLessonIds.length
-      ? await this.supabase
-          .from(TABLES.Result)
-          .select('lesson_id')
-          .in('lesson_id', assignedLessonIds)
-          .eq('student_id', studentId)
-          .eq('is_deleted', false)
-      : { data: [] };
-
-    const completedLessonIds = new Set(
-      (lessonResults ?? []).map((r) => r.lesson_id),
-    );
-
     const incompleteAssignments = assignedAssessments.filter(
-      (a) =>
-        !completedAssignmentIds.has(a.id) &&
-        !completedLessonIds.has(a.lesson_id),
+      (a) => !completedAssignmentIds.has(a.id),
     );
 
     if (!incompleteAssignments.length) return [];
