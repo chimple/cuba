@@ -165,6 +165,7 @@ import StreakPage from './teachers-module/components/streakComponent/streakPage'
 import StickerBook from './pages/StickerBook';
 import KidsAppLocation from './teachers-module/pages/KidsAppLocation';
 import { AudioUtil } from './utility/AudioUtil';
+import { useNavigationHandler } from './helper/navigation/NavigationHandler';
 
 setupIonicReact();
 interface ExtraData {
@@ -201,6 +202,11 @@ const RouteAudioCleanup = () => {
     }
   }, [location.pathname, location.search]);
 
+  return null;
+};
+
+const NavigationHandler = () => {
+  useNavigationHandler();
   return null;
 };
 
@@ -649,6 +655,7 @@ const App: React.FC = () => {
   return (
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
+        <NavigationHandler />
         <OpsConsoleRouteWatcher />
         <RouteAudioCleanup />
         <TermsGate />

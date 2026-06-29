@@ -47,6 +47,8 @@ import {
   fetchLessonsById,
   HomeworkPathwayLesson,
 } from '../components/assignment/homeworkPathwayHelpers';
+import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
+
 const localData: any = {};
 
 const Home: FC = () => {
@@ -104,12 +106,30 @@ const Home: FC = () => {
   const [to, setTo] = useState<number>(0);
 
   useEffect(() => {
-    if (currentHeader) {
-      const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set('tab', currentHeader);
-      window.history.replaceState({}, '', newUrl.toString());
+    const params = new URLSearchParams(location.search);
+    const tabFromUrl = params.get('tab');
+
+    if (
+      tabFromUrl &&
+      Object.values(HOMEHEADERLIST).includes(tabFromUrl as HOMEHEADERLIST) &&
+      tabFromUrl !== currentHeader
+    ) {
+      setCurrentHeader(tabFromUrl as HOMEHEADERLIST);
     }
-  }, [currentHeader]);
+  }, [location.search, currentHeader]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (currentHeader && params.get('tab') !== currentHeader) {
+      history.replace({
+        pathname: location.pathname,
+        search: `?${new URLSearchParams({
+          ...Object.fromEntries(params.entries()),
+          tab: currentHeader,
+        }).toString()}`,
+      });
+    }
+  }, [currentHeader, history, location.pathname, location.search]);
 
   const growthbook = useGrowthBook();
   useEffect(() => {
@@ -159,7 +179,6 @@ const Home: FC = () => {
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, 'true');
     Util.checkDownloadedLessonsFromLocal();
     initData();
-    setCurrentHeader(HOMEHEADERLIST.HOME);
     setSubTab(SUBTAB.SUGGESTIONS);
     getCanShowAvatar();
     if (!!urlParams.get(CONTINUE)) {
