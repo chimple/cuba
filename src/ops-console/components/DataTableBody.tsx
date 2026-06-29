@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react';
 import {
+  Box,
   Table,
   TableBody,
   TableCell,
@@ -72,6 +73,7 @@ interface Props<T extends object> {
   headerClampLines?: number;
   headerNoEllipsis?: boolean;
   headerAlign?: 'left' | 'center' | 'right';
+  renderHeaderActions?: (column: Column<T>) => React.ReactNode;
 }
 
 function TableSkeleton<T extends object>({
@@ -148,6 +150,7 @@ function DataTableBodyInner<T extends object>(
     headerClampLines = 2,
     headerNoEllipsis = false,
     headerAlign = 'left',
+    renderHeaderActions,
   }: Props<T>,
   ref: React.ForwardedRef<HTMLDivElement>,
 ) {
@@ -263,6 +266,49 @@ function DataTableBodyInner<T extends object>(
             )}
             {columns.map((col) => {
               const resolvedHeaderAlign = col.headerAlign ?? headerAlign;
+              const headerActions = renderHeaderActions?.(col);
+              const headerContent =
+                col.sortable === false ? (
+                  <span
+                    className="data-tablebody-head-label"
+                    style={getHeaderLabelSx(headerClampLines, headerNoEllipsis)}
+                  >
+                    {col.label}
+                  </span>
+                ) : (
+                  <TableSortLabel
+                    active={orderBy === String(col.key)}
+                    direction={orderBy === String(col.key) ? order : 'asc'}
+                    onClick={() => onSort(String(col.key))}
+                    sx={{
+                      color: '#121619 !important',
+                      fontWeight: 700,
+                      maxWidth: '100%',
+                      justifyContent:
+                        resolvedHeaderAlign === 'center'
+                          ? 'center'
+                          : resolvedHeaderAlign === 'right'
+                            ? 'flex-end'
+                            : 'flex-start',
+                      '&:hover': {
+                        color: '#121619 !important',
+                      },
+                      '& .MuiTableSortLabel-label': getHeaderLabelSx(
+                        headerClampLines,
+                        headerNoEllipsis,
+                      ),
+                      '& .MuiTableSortLabel-label, & .MuiTableSortLabel-icon': {
+                        color: '#121619 !important',
+                      },
+                      '& .MuiTableSortLabel-icon': {
+                        opacity: 1,
+                      },
+                    }}
+                  >
+                    {col.label}
+                  </TableSortLabel>
+                );
+
               return (
                 <TableCell
                   key={String(col.key)}
@@ -286,51 +332,35 @@ function DataTableBodyInner<T extends object>(
                     fontWeight: 700,
                   }}
                 >
-                  {/* Sortable and non-sortable headers share the same wrapping rules. */}
-                  {col.sortable === false ? (
-                    <span
-                      className="data-tablebody-head-label"
-                      style={getHeaderLabelSx(
-                        headerClampLines,
-                        headerNoEllipsis,
-                      )}
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent={
+                      resolvedHeaderAlign === 'center'
+                        ? 'center'
+                        : resolvedHeaderAlign === 'right'
+                          ? 'flex-end'
+                          : 'flex-start'
+                    }
+                    gap={0.25}
+                    width="100%"
+                    minHeight={32}
+                  >
+                    <Box
+                      minWidth={0}
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="inherit"
+                      flex={headerActions ? '1 1 auto' : '0 1 auto'}
                     >
-                      {col.label}
-                    </span>
-                  ) : (
-                    <TableSortLabel
-                      active={orderBy === String(col.key)}
-                      direction={orderBy === String(col.key) ? order : 'asc'}
-                      onClick={() => onSort(String(col.key))}
-                      sx={{
-                        color: '#121619 !important',
-                        fontWeight: 700,
-                        width: '100%',
-                        justifyContent:
-                          resolvedHeaderAlign === 'center'
-                            ? 'center'
-                            : resolvedHeaderAlign === 'right'
-                              ? 'flex-end'
-                              : 'flex-start',
-                        '&:hover': {
-                          color: '#121619 !important',
-                        },
-                        '& .MuiTableSortLabel-label': getHeaderLabelSx(
-                          headerClampLines,
-                          headerNoEllipsis,
-                        ),
-                        '& .MuiTableSortLabel-label, & .MuiTableSortLabel-icon':
-                          {
-                            color: '#121619 !important',
-                          },
-                        '& .MuiTableSortLabel-icon': {
-                          opacity: 1,
-                        },
-                      }}
-                    >
-                      {col.label}
-                    </TableSortLabel>
-                  )}
+                      {headerContent}
+                    </Box>
+                    {headerActions ? (
+                      <Box display="flex" alignItems="center" flexShrink={0}>
+                        {headerActions}
+                      </Box>
+                    ) : null}
+                  </Box>
                 </TableCell>
               );
             })}

@@ -8,6 +8,7 @@ import React, {
 import {
   Box,
   Button,
+  Chip,
   Divider,
   IconButton,
   ListItemIcon,
@@ -17,8 +18,10 @@ import {
   CircularProgress,
   Tab,
   Tabs,
+  Typography,
 } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { PAGES, PROGRAM_TAB } from '../../common/constants';
 import {
@@ -30,10 +33,16 @@ import {
   getSchoolListColumns,
   hasSchoolListFilters,
   mapSchoolListFilterOptions,
+  PERCENTAGE_FILTER_OPTIONS,
+  SCHOOL_PERFORMANCE_FILTER_OPTIONS,
   parseSchoolListJsonParam,
   tabOptions,
   type DateRangeValue,
   type Filters,
+  type PercentBand,
+  type PercentageFilters,
+  type PercentageFilterKey,
+  type SchoolPerformanceFilterValue,
 } from './SchoolList.helpers';
 import { useDebouncedValue, useSchoolListData } from './SchoolList.fetcher';
 import { mapSchoolRowsToRenderRows } from './SchoolListRowRenderer';
@@ -82,6 +91,13 @@ const SchoolList: React.FC = () => {
         : DEFAULT_DATE_RANGE;
     },
   );
+  const [percentageFilters, setPercentageFilters] = useState<PercentageFilters>(
+    () => parseSchoolListJsonParam(qs.get('percentFilters'), {}),
+  );
+  const [schoolPerformanceFilter, setSchoolPerformanceFilter] =
+    useState<SchoolPerformanceFilterValue | null>(() =>
+      parseSchoolListJsonParam(qs.get('performanceFilter'), null),
+    );
   const [page, setPage] = useState(() => {
     const p = parseInt(qs.get('page') || '', 10);
     return isNaN(p) || p < 1 ? 1 : p;
@@ -105,6 +121,12 @@ const SchoolList: React.FC = () => {
   );
   const [isActionsButtonCloseShine, setIsActionsButtonCloseShine] =
     useState(false);
+  const [percentageFilterAnchorEl, setPercentageFilterAnchorEl] =
+    useState<HTMLElement | null>(null);
+  const [activePercentageFilterKey, setActivePercentageFilterKey] =
+    useState<PercentageFilterKey | null>(null);
+  const [schoolPerformanceFilterAnchorEl, setSchoolPerformanceFilterAnchorEl] =
+    useState<HTMLElement | null>(null);
   const actionsButtonCloseShineTimeoutRef = useRef<number | null>(null);
   const actionsButtonCloseShineRafRef = useRef<number | null>(null);
   const isFirstSearchRenderRef = useRef(true);
@@ -139,6 +161,8 @@ const SchoolList: React.FC = () => {
     orderDir,
     searchTerm: debouncedSearchTerm,
     selectedDateRange,
+    percentageFilters,
+    schoolPerformanceFilter,
   });
   const renderedSchools = useMemo(
     () => mapSchoolRowsToRenderRows(schools),
@@ -155,6 +179,8 @@ const SchoolList: React.FC = () => {
       orderDir,
       searchTerm: debouncedSearchTerm,
       selectedDateRange,
+      percentageFilters,
+      schoolPerformanceFilter,
       total,
       isLoading,
       isSearchPending,
@@ -203,9 +229,24 @@ const SchoolList: React.FC = () => {
     }
     if (selectedDateRange !== DEFAULT_DATE_RANGE)
       params.set('range', selectedDateRange);
+    if (Object.keys(percentageFilters).length > 0) {
+      params.set('percentFilters', JSON.stringify(percentageFilters));
+    }
+    if (schoolPerformanceFilter) {
+      params.set('performanceFilter', JSON.stringify(schoolPerformanceFilter));
+    }
     if (page !== 1) params.set('page', String(page));
     history.replace({ search: params.toString() });
-  }, [selectedTab, searchTerm, filters, selectedDateRange, page, history]);
+  }, [
+    selectedTab,
+    searchTerm,
+    filters,
+    selectedDateRange,
+    percentageFilters,
+    schoolPerformanceFilter,
+    page,
+    history,
+  ]);
 
   useEffect(() => {
     if (isFirstSearchRenderRef.current) {
@@ -234,8 +275,9 @@ const SchoolList: React.FC = () => {
   }, [api]);
 
   const handleSort = (colKey: string) => {
-    const sortableKeys = ['name'];
-    if (!sortableKeys.includes(colKey)) return;
+    const column = columns.find((col) => String(col.key) === colKey);
+    if (!column || column.sortable === false) return;
+
     if (orderBy === colKey) {
       setOrderDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     } else {
@@ -244,6 +286,61 @@ const SchoolList: React.FC = () => {
     }
     setPage(1);
   };
+
+  const handleOpenPercentageFilter = useCallback(
+    (event: React.MouseEvent<HTMLElement>, filterKey: PercentageFilterKey) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setPercentageFilterAnchorEl(event.currentTarget);
+      setActivePercentageFilterKey(filterKey);
+    },
+    [],
+  );
+
+  const handleClosePercentageFilter = useCallback(() => {
+    setPercentageFilterAnchorEl(null);
+    setActivePercentageFilterKey(null);
+  }, []);
+
+  const handleSelectPercentageFilter = useCallback(
+    (band: PercentBand) => {
+      if (!activePercentageFilterKey) return;
+      setPercentageFilters((prev) => {
+        const next = { ...prev };
+        if (next[activePercentageFilterKey] === band) {
+          delete next[activePercentageFilterKey];
+        } else {
+          next[activePercentageFilterKey] = band;
+        }
+        return next;
+      });
+      setPage(1);
+      handleClosePercentageFilter();
+    },
+    [activePercentageFilterKey, handleClosePercentageFilter],
+  );
+
+  const handleOpenSchoolPerformanceFilter = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setSchoolPerformanceFilterAnchorEl(event.currentTarget);
+    },
+    [],
+  );
+
+  const handleCloseSchoolPerformanceFilter = useCallback(() => {
+    setSchoolPerformanceFilterAnchorEl(null);
+  }, []);
+
+  const handleSelectSchoolPerformanceFilter = useCallback(
+    (status: SchoolPerformanceFilterValue) => {
+      setSchoolPerformanceFilter((prev) => (prev === status ? null : status));
+      setPage(1);
+      handleCloseSchoolPerformanceFilter();
+    },
+    [handleCloseSchoolPerformanceFilter],
+  );
 
   const handleCloseUploadPage = useCallback((): void => {
     setShowUploadPage(false);
@@ -367,6 +464,90 @@ const SchoolList: React.FC = () => {
     () => Math.ceil(total / pageSize),
     [pageSize, total],
   );
+  const selectedHeaderFilters = useMemo(() => {
+    const items: Array<{ key: string; value: string; label: string }> = [];
+
+    if (schoolPerformanceFilter) {
+      items.push({
+        key: 'schoolPerformanceFilter',
+        value: schoolPerformanceFilter,
+        label: `${t('School Performance')} : ${t(schoolPerformanceFilter)}`,
+      });
+    }
+
+    columns.forEach((column) => {
+      const percentageFilterKey = column.percentageFilterKey as
+        | PercentageFilterKey
+        | undefined;
+      if (!percentageFilterKey) return;
+
+      const selectedBand = percentageFilters[percentageFilterKey];
+      if (!selectedBand) return;
+
+      const option = PERCENTAGE_FILTER_OPTIONS.find(
+        (item) => item.value === selectedBand,
+      );
+      if (!option) return;
+
+      items.push({
+        key: percentageFilterKey,
+        value: selectedBand,
+        label: `${column.label} : ${option.description}`,
+      });
+    });
+
+    return items;
+  }, [columns, percentageFilters, schoolPerformanceFilter]);
+  const activePercentageBand = activePercentageFilterKey
+    ? percentageFilters[activePercentageFilterKey]
+    : undefined;
+  const renderHeaderActions = useCallback(
+    (column: (typeof columns)[number]) => {
+      if (column.schoolPerformanceFilterKey) {
+        return (
+          <IconButton
+            size="small"
+            aria-label={`${column.label} filter`}
+            onClick={handleOpenSchoolPerformanceFilter}
+            sx={{
+              color: schoolPerformanceFilter ? '#1A71F6' : '#6B7280',
+              p: 0.25,
+            }}
+          >
+            <FilterListIcon fontSize="small" />
+          </IconButton>
+        );
+      }
+
+      const filterKey = column.percentageFilterKey as
+        | PercentageFilterKey
+        | undefined;
+      if (!filterKey) return null;
+
+      const selectedBand = percentageFilters[filterKey];
+
+      return (
+        <IconButton
+          size="small"
+          aria-label={`${column.label} percentage filter`}
+          onClick={(event) => handleOpenPercentageFilter(event, filterKey)}
+          sx={{
+            color: selectedBand ? '#1A71F6' : '#6B7280',
+            p: 0.25,
+          }}
+        >
+          <FilterListIcon fontSize="small" />
+        </IconButton>
+      );
+    },
+    [
+      columns,
+      handleOpenPercentageFilter,
+      handleOpenSchoolPerformanceFilter,
+      percentageFilters,
+      schoolPerformanceFilter,
+    ],
+  );
 
   if (showUploadPage) {
     return (
@@ -489,6 +670,26 @@ const SchoolList: React.FC = () => {
           <SelectedFilters
             filters={filters}
             onDeleteFilter={(key, value) => {
+              if (key === 'schoolPerformanceFilter') {
+                setSchoolPerformanceFilter(null);
+                setPage(1);
+                return;
+              }
+
+              if (
+                key === 'activatedStudents' ||
+                key === 'activeStudents' ||
+                key === 'activeTeachers'
+              ) {
+                setPercentageFilters((prev) => {
+                  const next = { ...prev };
+                  delete next[key];
+                  return next;
+                });
+                setPage(1);
+                return;
+              }
+
               setFilters((prev) => {
                 const updated = {
                   ...prev,
@@ -499,6 +700,7 @@ const SchoolList: React.FC = () => {
               });
               setPage(1);
             }}
+            extraFilters={selectedHeaderFilters}
           />
 
           <FilterSlider
@@ -554,6 +756,7 @@ const SchoolList: React.FC = () => {
               orderBy={orderBy}
               order={orderDir}
               onSort={handleSort}
+              renderHeaderActions={renderHeaderActions}
               loading={isLoading}
               // School listing needs the wider, scrollable table treatment only.
               tableMinWidth={2500}
@@ -566,6 +769,113 @@ const SchoolList: React.FC = () => {
 
           {!isLoading && renderedSchools.length === 0 && t('No schools found.')}
         </div>
+
+        <Menu
+          anchorEl={percentageFilterAnchorEl}
+          open={Boolean(percentageFilterAnchorEl)}
+          onClose={handleClosePercentageFilter}
+          PaperProps={{ className: 'school-list-percent-filter-menu' }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          {PERCENTAGE_FILTER_OPTIONS.map((option) => {
+            const selected = activePercentageBand === option.value;
+
+            return (
+              <MenuItem
+                key={option.value}
+                onClick={() => handleSelectPercentageFilter(option.value)}
+                className="school-list-percent-filter-menu-item"
+                selected={selected}
+              >
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                  width="100%"
+                  gap={1.5}
+                >
+                  <Typography variant="body2" fontWeight={500} color="#4B5563">
+                    {option.description}
+                  </Typography>
+                  <Chip
+                    label={option.label}
+                    size="small"
+                    sx={{
+                      height: 28,
+                      minWidth: 64,
+                      fontWeight: 700,
+                      backgroundColor:
+                        option.value === 'low'
+                          ? '#FCE8E6'
+                          : option.value === 'mid'
+                            ? '#FEF3C7'
+                            : '#DFF7EB',
+                      color:
+                        option.value === 'low'
+                          ? '#D35451'
+                          : option.value === 'mid'
+                            ? '#E7A54E'
+                            : '#2BA980',
+                    }}
+                  />
+                </Box>
+              </MenuItem>
+            );
+          })}
+        </Menu>
+
+        <Menu
+          anchorEl={schoolPerformanceFilterAnchorEl}
+          open={Boolean(schoolPerformanceFilterAnchorEl)}
+          onClose={handleCloseSchoolPerformanceFilter}
+          PaperProps={{ className: 'school-list-percent-filter-menu' }}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          {SCHOOL_PERFORMANCE_FILTER_OPTIONS.map((option) => {
+            const selected = schoolPerformanceFilter === option;
+            const optionLabel = t(option);
+
+            return (
+              <MenuItem
+                key={option}
+                onClick={() => handleSelectSchoolPerformanceFilter(option)}
+                className="school-list-percent-filter-menu-item"
+                selected={selected}
+              >
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  width="100%"
+                  gap={1.5}
+                >
+                  <Chip
+                    label={optionLabel}
+                    size="small"
+                    sx={{
+                      height: 28,
+                      fontWeight: 700,
+                      backgroundColor:
+                        option === 'Performing Well'
+                          ? '#DFF7EB'
+                          : option === 'Needs Attention'
+                            ? '#FEF3C7'
+                            : '#FCE8E6',
+                      color:
+                        option === 'Performing Well'
+                          ? '#2BA980'
+                          : option === 'Needs Attention'
+                            ? '#E7A54E'
+                            : '#D35451',
+                    }}
+                  />
+                </Box>
+              </MenuItem>
+            );
+          })}
+        </Menu>
 
         {!isLoading && renderedSchools.length > 0 && (
           <div className="school-list-footer">

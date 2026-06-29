@@ -23,11 +23,36 @@ export const DATE_RANGE_OPTIONS = [
 export type DateRangeValue = (typeof DATE_RANGE_OPTIONS)[number]['value'];
 
 export type Filters = Record<string, string[]>;
+export type PercentBand = 'low' | 'mid' | 'high';
+export type SchoolPerformanceFilterValue =
+  | 'Performing Well'
+  | 'Needs Attention'
+  | 'Needs Support';
+export type PercentageFilterKey =
+  | 'activatedStudents'
+  | 'activeStudents'
+  | 'activeTeachers';
+export type PercentageFilters = Partial<
+  Record<PercentageFilterKey, PercentBand>
+>;
 export type SchoolListExportColumn = {
   key: keyof SchoolListRow;
   label: string;
   part: 'value' | 'percent';
 };
+
+export const PERCENTAGE_FILTER_OPTIONS: Array<{
+  value: PercentBand;
+  label: string;
+  description: string;
+}> = [
+  { value: 'low', label: t('Low'), description: t('≤ 30%') },
+  { value: 'mid', label: t('Mid'), description: t('31% - 69%') },
+  { value: 'high', label: t('High'), description: t('≥ 70%') },
+];
+
+export const SCHOOL_PERFORMANCE_FILTER_OPTIONS: SchoolPerformanceFilterValue[] =
+  ['Performing Well', 'Needs Attention', 'Needs Support'];
 
 // Shared filter metadata for the school listing drawer.
 export const filterConfigsForSchool = [
@@ -107,14 +132,16 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     label: t('School Performance'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
+    orderBy: 'school_performance',
+    schoolPerformanceFilterKey: 'schoolPerformance',
   },
   {
     key: 'onboardedStudents',
     label: t('Onboarded Students'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
     orderBy: 'onboarded_students',
   },
   {
@@ -122,23 +149,25 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     label: t('Activated Students'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
     orderBy: 'activated_students',
+    percentageFilterKey: 'activatedStudents',
   },
   {
     key: 'activeStudents',
     label: t('Active Students'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
     orderBy: 'active_students',
+    percentageFilterKey: 'activeStudents',
   },
   {
     key: 'avgTimeSpent',
     label: t('Avg Time Spent'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
     orderBy: 'avg_time_spent',
   },
   {
@@ -146,15 +175,16 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     label: t('Active Teachers'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
     orderBy: 'active_teachers',
+    percentageFilterKey: 'activeTeachers',
   },
   {
     key: 'activitiesAssigned',
     label: t('Activities Assigned'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
     orderBy: 'activities_assigned',
   },
   {
@@ -162,7 +192,7 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     label: t('Avg Assignments Completed'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
     orderBy: 'avg_assignments_completed',
   },
   {
@@ -170,7 +200,7 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     label: t('Avg Activities Completed'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
     orderBy: 'avg_activities_completed',
   },
   {
@@ -178,50 +208,56 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     label: t('Phone Calls - Students / Parents'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
+    orderBy: 'student_parent_calls',
   },
   {
     key: 'phoneCallsTeachersHms',
     label: t('Phone Calls - Teachers & HMs'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
+    orderBy: 'teacher_hm_calls',
   },
   {
     key: 'communityVisits',
     label: t('Community Visits'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
+    orderBy: 'community_visits',
   },
   {
     key: 'parentsReached',
     label: t('Parents Reached'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
-    orderBy: 'parents_reached',
+    sortable: true,
+    orderBy: 'community_parents_reached',
   },
   {
     key: 'schoolVisits',
     label: t('School Visits'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
+    orderBy: 'school_visits',
   },
   {
     key: 'parentsOnWhatsapp',
     label: t('On WhatsApp'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
+    orderBy: 'parents_on_whatsapp',
   },
   {
     key: 'parentsInWhatsappGroup',
     label: t('In Group'),
     width: '7.78%',
     align: 'center',
-    sortable: false,
+    sortable: true,
+    orderBy: 'parents_in_group',
   },
 ];
 
@@ -423,6 +459,19 @@ export const formatPercent = (value: unknown) => {
         : NaN;
   if (!Number.isFinite(numericValue)) return null;
   return `${Math.round(numericValue)}%`;
+};
+
+export const isPercentInBand = (
+  percent: number | null | undefined,
+  band: PercentBand,
+) => {
+  if (percent === null || percent === undefined || !Number.isFinite(percent)) {
+    return false;
+  }
+  const roundedPercent = Math.round(percent);
+  if (band === 'low') return roundedPercent <= 30;
+  if (band === 'mid') return roundedPercent >= 31 && roundedPercent <= 69;
+  return roundedPercent >= 70;
 };
 
 // Percentage chip palette used by the listing metrics.

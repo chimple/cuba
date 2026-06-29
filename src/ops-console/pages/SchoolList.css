@@ -236,6 +236,28 @@
   margin: 0 !important;
 }
 
+.school-list-percent-filter-menu.MuiPaper-root {
+  margin-top: 8px;
+  border-radius: 12px;
+  min-width: 156px;
+  max-width: 188px;
+  box-shadow: 0px 10px 24px rgba(18, 22, 25, 0.12);
+  overflow: hidden;
+}
+
+.school-list-percent-filter-menu-item {
+  min-height: 48px !important;
+  padding: 10px 14px !important;
+}
+
+.school-list-percent-filter-menu-item.Mui-selected {
+  background-color: rgba(26, 113, 246, 0.08) !important;
+}
+
+.school-list-percent-filter-menu-item.Mui-selected:hover {
+  background-color: rgba(26, 113, 246, 0.12) !important;
+}
+
 .school-list-table-container {
   overflow-y: hidden;
   padding: 0 20px;
