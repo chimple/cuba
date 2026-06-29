@@ -325,12 +325,25 @@ export async function recommendNextLesson({
   skipAssessment?: boolean;
 }): Promise<LessonNode | null> {
   const api = ServiceConfig.getI().apiHandler;
+  const hasAssessmentProgressInPath =
+    coursePath?.path?.some((node) => node.is_assessment === true) ?? false;
+  const hasPendingAssessmentInPath =
+    coursePath?.path?.some(
+      (node) => node.is_assessment === true && node.isPlayed === false,
+    ) ?? false;
+  const hasPlayedNormalLessonInPath =
+    coursePath?.path?.some(
+      (node) => node.is_assessment === false && node.isPlayed === true,
+    ) ?? false;
 
   /* -------------------------------
    * 1️⃣ TEACHER ASSIGNED ASSESSMENT
    * ------------------------------- */
   const hasCompletedInitialAssessment = shouldUsePAL(mode)
-    ? await api.isStudentPlayedPalLesson(student.id, course.id)
+    ? hasPlayedNormalLessonInPath ||
+      (!hasAssessmentProgressInPath &&
+        !hasPendingAssessmentInPath &&
+        (await api.isStudentPlayedPalLesson(student.id, course.id)))
     : false;
   if (!skipAssessment && classId) {
     const assessments = await api.getLatestAssessmentGroup(
@@ -981,14 +994,17 @@ export const useLearningPath = (opts?: {
         });
       } else {
         // ➕ New course → build fresh
+        const sameFrameworkAssessmentSource =
+          findSameFrameworkAssessmentPath(course);
         const activeLesson = await recommendNextLesson({
           student,
           course,
           mode,
           classId,
+          coursePath: sameFrameworkAssessmentSource,
         });
         const sameFrameworkAssessmentPath = buildSameFrameworkAssessmentPath(
-          findSameFrameworkAssessmentPath(course)?.path,
+          sameFrameworkAssessmentSource?.path,
           activeLesson,
         );
 

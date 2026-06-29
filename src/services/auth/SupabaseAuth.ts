@@ -4,6 +4,8 @@ import { ServiceAuth } from './ServiceAuth';
 import { Database } from '../database';
 import {
   REFRESH_TABLES_ON_LOGIN,
+  BASE_NAME,
+  PAGES,
   TABLES,
   TableTypes,
 } from '../../common/constants';
@@ -266,10 +268,15 @@ export class SupabaseAuth implements ServiceAuth {
           },
         });
       } else {
+        const loginPath = `${BASE_NAME}${PAGES.LOGIN}`.replace(/\/{2,}/g, '/');
+        const redirectTo = new URL(
+          loginPath,
+          window.location.origin,
+        ).toString();
         const { data, error } = await this._auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: window.location.origin,
+            redirectTo,
             queryParams: {
               prompt: 'select_account',
             },
