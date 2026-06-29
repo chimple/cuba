@@ -252,7 +252,7 @@ const UserProfile: React.FC<{
                     <input
                       type="radio"
                       name="gender"
-                      value="other"
+                      value="unspecified"
                       checked={student.gender === 'unspecified'}
                       onChange={() => handleGenderChange('unspecified')}
                     />{' '}
