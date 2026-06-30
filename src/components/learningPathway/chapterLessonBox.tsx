@@ -14,14 +14,29 @@ interface ChapterLessonBoxProps {
   courseCode?: string;
 }
 
-const getSessionStorageItem = <T,>(key: string): T | null => {
-  const cachedValue = sessionStorage.getItem(key);
-  if (!cachedValue) return null;
-
+const getSessionStorageItem = <T,>(
+  key: string,
+): { found: boolean; value: T | null } => {
   try {
-    return JSON.parse(cachedValue) as T;
+    const cachedValue = sessionStorage.getItem(key);
+    if (cachedValue === null) {
+      return { found: false, value: null };
+    }
+
+    return {
+      found: true,
+      value: JSON.parse(cachedValue) as T,
+    };
   } catch {
-    return null;
+    return { found: false, value: null };
+  }
+};
+
+const setSessionStorageItem = (key: string, value: unknown): void => {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    logger.warn('Unable to persist chapter lesson cache', { key, error });
   }
 };
 
@@ -36,25 +51,22 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   const { t } = useTranslation();
   const getCachedLesson = async (lessonId: string) => {
     const cacheKey = `lesson_${lessonId}`;
-    const cachedLesson = getSessionStorageItem<TableTypes<'lesson'> | null>(
-      cacheKey,
-    );
-    if (cachedLesson) return cachedLesson;
+    const cachedLesson = getSessionStorageItem<TableTypes<'lesson'>>(cacheKey);
+    if (cachedLesson.found) return cachedLesson.value;
 
     const lesson = await api.getLesson(lessonId);
-    sessionStorage.setItem(cacheKey, JSON.stringify(lesson ?? null));
+    setSessionStorageItem(cacheKey, lesson ?? null);
     return lesson;
   };
 
   const getCachedChapter = async (chapterId: string) => {
     const cacheKey = `chapter_${chapterId}`;
-    const cachedChapter = getSessionStorageItem<TableTypes<'chapter'> | null>(
-      cacheKey,
-    );
-    if (cachedChapter) return cachedChapter;
+    const cachedChapter =
+      getSessionStorageItem<TableTypes<'chapter'>>(cacheKey);
+    if (cachedChapter.found) return cachedChapter.value;
 
     const chapter = await api.getChapterById(chapterId);
-    sessionStorage.setItem(cacheKey, JSON.stringify(chapter ?? null));
+    setSessionStorageItem(cacheKey, chapter ?? null);
     return chapter;
   };
 
@@ -113,10 +125,17 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
         return;
       }
 
-      const [lesson, chapter] = await Promise.all([
-        getCachedLesson(pathItem.lesson_id),
-        pathItem.chapter_id ? getCachedChapter(pathItem.chapter_id) : null,
-      ]);
+      let lesson: TableTypes<'lesson'> | undefined | null = null;
+      let chapter: TableTypes<'chapter'> | undefined | null = null;
+
+      try {
+        lesson = await getCachedLesson(pathItem.lesson_id);
+        chapter = pathItem.chapter_id
+          ? await getCachedChapter(pathItem.chapter_id)
+          : null;
+      } catch (error) {
+        logger.error('Error fetching lesson or chapter details:', error);
+      }
 
       const rawChapterName = chapter?.name ?? null;
       const rawLessonName = lesson?.name ?? null;

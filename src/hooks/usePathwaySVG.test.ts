@@ -101,4 +101,34 @@ describe('usePathwaySVG stale lesson cleanup', () => {
     expect(result.currentCourse?.course_id).toBe('course-valid');
     expect(result.learningPath.courses.courseList[0].path).toEqual([]);
   });
+
+  test('keeps reward snapshots from appending a replacement lesson', async () => {
+    const playedLesson: LessonNode = {
+      lesson_id: 'played-lesson',
+      chapter_id: 'chapter-1',
+      is_assessment: false,
+      isPlayed: true,
+    };
+    const replacementLesson: LessonNode = {
+      lesson_id: 'replacement-lesson',
+      chapter_id: 'chapter-2',
+      is_assessment: false,
+      isPlayed: false,
+    };
+
+    const result = await ensurePlayableLearningPath({
+      learningPath: buildLearningPath([buildCourse({ path: [playedLesson] })]),
+      getCachedLesson: jest
+        .fn()
+        .mockResolvedValue({ id: playedLesson.lesson_id }),
+      resolveNextLesson: jest.fn().mockResolvedValue(replacementLesson),
+      options: {
+        allowCourseSwitch: false,
+        allowReplacementLesson: false,
+      },
+    });
+
+    expect(result.updated).toBe(false);
+    expect(result.currentCourse?.path).toEqual([playedLesson]);
+  });
 });

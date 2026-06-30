@@ -84,6 +84,11 @@ type EnsurePlayableLearningPathResult = {
   updated: boolean;
 };
 
+type LearningPathRepairOptions = {
+  allowCourseSwitch?: boolean;
+  allowReplacementLesson?: boolean;
+};
+
 const getCourseResolutionOrder = (
   preferredIndex: number,
   totalCourses: number,
@@ -106,29 +111,31 @@ export const sanitizeLearningPathCourse = async ({
   course,
   getCachedLesson,
   resolveNextLesson,
+  allowReplacementLesson = true,
 }: {
   course: CoursePath;
   getCachedLesson: (lessonId: string) => Promise<CachedLesson>;
   resolveNextLesson: (course: CoursePath) => Promise<LessonNode | null>;
+  allowReplacementLesson?: boolean;
 }): Promise<{ course: CoursePath; updated: boolean }> => {
-  const resolvedLessons = await Promise.all(
-    course.path.map(async (pathItem) => {
-      if (!pathItem?.lesson_id) return null;
+  const validPath: LessonNode[] = [];
+  for (const pathItem of course.path) {
+    if (!pathItem?.lesson_id) {
+      continue;
+    }
 
-      const lesson = await getCachedLesson(pathItem.lesson_id);
-      return lesson?.id ? { ...pathItem } : null;
-    }),
-  );
+    const lesson = await getCachedLesson(pathItem.lesson_id);
+    if (lesson?.id) {
+      validPath.push({ ...pathItem });
+    }
+  }
 
-  const validPath = resolvedLessons.filter(
-    (pathItem): pathItem is LessonNode => pathItem !== null,
-  );
   const removedStaleLessons = validPath.length !== course.path.length;
   const hasActiveLesson = validPath.some((pathItem) => !pathItem.isPlayed);
   let rebuiltPath = validPath;
   let appendedReplacementLesson = false;
 
-  if (!hasActiveLesson) {
+  if (!hasActiveLesson && allowReplacementLesson) {
     const nextLesson = await resolveNextLesson({
       ...course,
       path: validPath,
@@ -157,11 +164,15 @@ export const ensurePlayableLearningPath = async ({
   learningPath,
   getCachedLesson,
   resolveNextLesson,
+  options,
 }: {
   learningPath: LearningPath;
   getCachedLesson: (lessonId: string) => Promise<CachedLesson>;
   resolveNextLesson: (course: CoursePath) => Promise<LessonNode | null>;
+  options?: LearningPathRepairOptions;
 }): Promise<EnsurePlayableLearningPathResult> => {
+  const allowCourseSwitch = options?.allowCourseSwitch ?? true;
+  const allowReplacementLesson = options?.allowReplacementLesson ?? true;
   const courseList = learningPath.courses?.courseList ?? [];
   const courseResolutionOrder = getCourseResolutionOrder(
     learningPath.courses?.currentCourseIndex ?? 0,
@@ -184,6 +195,7 @@ export const ensurePlayableLearningPath = async ({
       course,
       getCachedLesson,
       resolveNextLesson,
+      allowReplacementLesson,
     });
 
     if (sanitizedCourse.updated) {
@@ -192,10 +204,14 @@ export const ensurePlayableLearningPath = async ({
     }
 
     if (hasCoursePathContent(nextCourseList[courseIndex])) {
-      if (currentCourseIndex !== courseIndex) {
+      if (allowCourseSwitch && currentCourseIndex !== courseIndex) {
         currentCourseIndex = courseIndex;
         updated = true;
       }
+      break;
+    }
+
+    if (!allowCourseSwitch && courseIndex === currentCourseIndex) {
       break;
     }
   }
@@ -477,6 +493,12 @@ export function usePathwaySVG({
         learningPath,
         getCachedLesson,
         resolveNextLesson,
+        options: rewardLearningPath
+          ? {
+              allowCourseSwitch: false,
+              allowReplacementLesson: false,
+            }
+          : undefined,
       });
 
       learningPath = playablePathState.learningPath;

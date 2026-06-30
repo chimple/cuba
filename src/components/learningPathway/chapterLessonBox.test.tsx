@@ -152,7 +152,7 @@ describe('chapterLessonBox', () => {
 
     await waitFor(() => {
       expect(errSpy).toHaveBeenCalledWith(
-        'Error handling course change:',
+        'Error fetching lesson or chapter details:',
         expect.any(Error),
       );
     });
