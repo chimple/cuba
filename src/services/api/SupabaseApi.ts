@@ -95,7 +95,10 @@ import {
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
-import { sortBySchoolSearchRelevance } from '../../utility/schoolSearchUtil';
+import {
+  getSchoolSearchScore,
+  sortBySchoolSearchRelevance,
+} from '../../utility/schoolSearchUtil';
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
@@ -10957,71 +10960,90 @@ export class SupabaseApi implements ServiceApi {
         }
       }
 
-      if (search) {
-        query = query.or(
-          [
-            `school_name.ilike.%${search}%`,
-            `udise.ilike.%${search}%`,
-            `district.ilike.%${search}%`,
-            `block.ilike.%${search}%`,
-            `cluster.ilike.%${search}%`,
-            `state.ilike.%${search}%`,
-          ].join(','),
-        );
-      }
-
       const sortBy = order_by === 'name' ? 'school_name' : 'school_name';
-      const sortDir = order_dir === 'desc' ? false : true;
+      const sortAscending = order_dir !== 'desc';
+      const normalizedSearch = search?.trim() ?? '';
       const from = Math.max(page - 1, 0) * page_size;
-      const to = from + page_size - 1;
+      const to = from + page_size;
 
-      const { data, count, error } = await query
-        .order(sortBy, { ascending: sortDir })
-        .range(from, to);
+      const baseQuery = query.order(sortBy, { ascending: sortAscending });
+
+      const { data, count, error } = normalizedSearch
+        ? await baseQuery
+        : await baseQuery.range(from, to - 1);
 
       if (error) {
         logger.error('Error fetching school_metrics listing:', error);
         return { data: [], total: 0 };
       }
 
-      const rows = (data ?? []) as Array<Record<string, unknown>>;
+      const mappedRows = ((data ?? []) as Array<Record<string, unknown>>).map(
+        (row: Record<string, unknown>) => ({
+          ...row,
+          school_name:
+            typeof row.school_name === 'string' ? row.school_name : '',
+          udise: row.udise ?? null,
+          num_students:
+            typeof row.onboarded_students === 'number'
+              ? row.onboarded_students
+              : 0,
+          num_teachers:
+            typeof row.active_teachers === 'number' ? row.active_teachers : 0,
+          total_teachers: null,
+          onboarded_students: row.onboarded_students ?? null,
+          activated_students: row.activated_students ?? null,
+          active_students: row.active_students ?? null,
+          avg_time_spent: row.avg_time_spent ?? null,
+          active_teachers: row.active_teachers ?? null,
+          activities_assigned: row.activities_assigned ?? null,
+          avg_assignments_completed: row.avg_assignments_completed ?? null,
+          avg_activities_completed: row.avg_activities_completed ?? null,
+          phone_calls_students_parents: row.student_parent_calls ?? null,
+          phone_calls_teachers_hms: row.teacher_hm_calls ?? null,
+          community_visits: row.community_visits ?? null,
+          school_visits: row.school_visits ?? null,
+          parents_on_whatsapp: row.parents_on_whatsapp ?? null,
+          parents_in_whatsapp_group: row.parents_in_group ?? null,
+          parents_reached:
+            typeof row.community_parents_reached === 'number'
+              ? row.community_parents_reached
+              : 0,
+          program_managers: row.program_managers ?? [],
+          field_coordinators: row.field_coordinators ?? [],
+        }),
+      ) as FilteredSchoolsForSchoolListingOps[];
 
-      const mappedRows = rows.map((row: Record<string, unknown>) => ({
-        ...row,
-        school_name: typeof row.school_name === 'string' ? row.school_name : '',
-        udise: row.udise ?? null,
-        num_students:
-          typeof row.onboarded_students === 'number'
-            ? row.onboarded_students
-            : 0,
-        num_teachers:
-          typeof row.active_teachers === 'number' ? row.active_teachers : 0,
-        total_teachers: null,
-        onboarded_students: row.onboarded_students ?? null,
-        activated_students: row.activated_students ?? null,
-        active_students: row.active_students ?? null,
-        avg_time_spent: row.avg_time_spent ?? null,
-        active_teachers: row.active_teachers ?? null,
-        activities_assigned: row.activities_assigned ?? null,
-        avg_assignments_completed: row.avg_assignments_completed ?? null,
-        avg_activities_completed: row.avg_activities_completed ?? null,
-        phone_calls_students_parents: row.student_parent_calls ?? null,
-        phone_calls_teachers_hms: row.teacher_hm_calls ?? null,
-        community_visits: row.community_visits ?? null,
-        school_visits: row.school_visits ?? null,
-        parents_on_whatsapp: row.parents_on_whatsapp ?? null,
-        parents_in_whatsapp_group: row.parents_in_group ?? null,
-        parents_reached:
-          typeof row.community_parents_reached === 'number'
-            ? row.community_parents_reached
-            : 0,
-        program_managers: row.program_managers ?? [],
-        field_coordinators: row.field_coordinators ?? [],
-      })) as FilteredSchoolsForSchoolListingOps[];
+      if (!normalizedSearch) {
+        return {
+          data: mappedRows,
+          total: typeof count === 'number' ? count : 0,
+        };
+      }
+
+      const searchableRows = mappedRows.filter((row) => {
+        const searchableValues = [
+          String(row.school_name ?? ''),
+          String(row.udise ?? ''),
+          String(row.district ?? ''),
+          String(row.block ?? ''),
+          String(row.cluster ?? ''),
+          String(row.state ?? ''),
+        ];
+
+        return searchableValues.some(
+          (value) => getSchoolSearchScore(value, normalizedSearch) < 4,
+        );
+      });
+
+      const rankedRows = sortBySchoolSearchRelevance(
+        searchableRows,
+        normalizedSearch,
+        (row) => String(row.school_name ?? ''),
+      );
 
       return {
-        data: mappedRows,
-        total: typeof count === 'number' ? count : 0,
+        data: rankedRows.slice(from, to),
+        total: rankedRows.length,
       };
     } catch (error) {
       logger.error(
