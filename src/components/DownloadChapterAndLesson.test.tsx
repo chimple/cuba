@@ -127,13 +127,13 @@ describe('DownloadChapterAndLesson', () => {
 
     await waitFor(() => {
       expect(
-        view.container.querySelector('.lesson-or-chapter-download-icon'),
+        view.container.querySelector('.lesson-or-chapter-delete-icon'),
       ).toBeInTheDocument();
     });
 
     await user.click(
       view.container.querySelector(
-        '.lesson-or-chapter-download-icon',
+        '.lesson-or-chapter-delete-icon',
       ) as HTMLElement,
     );
 
@@ -213,13 +213,13 @@ describe('DownloadChapterAndLesson', () => {
 
     await waitFor(() => {
       expect(
-        view.container.querySelector('.lesson-or-chapter-download-icon'),
+        view.container.querySelector('.lesson-or-chapter-delete-icon'),
       ).toBeInTheDocument();
     });
 
     await user.click(
       view.container.querySelector(
-        '.lesson-or-chapter-download-icon',
+        '.lesson-or-chapter-delete-icon',
       ) as HTMLElement,
     );
 

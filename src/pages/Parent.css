@@ -1042,3 +1042,8 @@
     margin-top: 2vh;
   }
 }
+@media (min-width: 860px) and (min-height: 500px) and (orientation: landscape) {
+  .parent-settings-account-button--terms {
+    min-width: 260px;
+  }
+}

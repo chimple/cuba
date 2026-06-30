@@ -146,6 +146,7 @@ export class SqliteApi implements ServiceApi {
   private DB_VERSION = 15;
   // Tracks the native shell plus active hot-update bundle so new bundled data is imported once per app asset version.
   private BUNDLED_IMPORT_APP_VERSION_KEY = 'bundledImportAppVersion';
+  private BUNDLED_IMPORT_PULL_SYNC_TABLE = 'pull_sync_info';
   private BUNDLED_IMPORT_TABLES = new Set<string>([
     TABLES.Curriculum,
     TABLES.Subject,
@@ -394,6 +395,38 @@ export class SqliteApi implements ServiceApi {
     await this.setUpDatabase();
   }
 
+  public async close(): Promise<void> {
+    if (this._initPromise) {
+      try {
+        await this._initPromise;
+      } catch (error) {
+        logger.error(
+          'Error waiting for SQLite initialization before close:',
+          error,
+        );
+      }
+    }
+
+    const db = this._db;
+    const sqlite = this._sqlite;
+    if (!db || !sqlite) return;
+
+    try {
+      await db.close();
+    } catch (error) {
+      logger.error('Error closing SQLite database:', error);
+    }
+
+    try {
+      await sqlite.closeConnection(this.DB_NAME, false);
+    } catch (error) {
+      logger.error('Error closing SQLite connection:', error);
+    } finally {
+      this.resetDbHandles();
+      this._initPromise = null;
+    }
+  }
+
   private async setUpDatabase() {
     if (!this._db || !this._sqlite) return;
 
@@ -530,8 +563,12 @@ export class SqliteApi implements ServiceApi {
         return;
       }
 
+      const bundledPullSyncInfo = this.getBundledPullSyncInfo(importJson);
       const importedTableNames = await this.upsertBundledImportTables(tables);
-      await this.markBundledImportTablesPulled(importedTableNames);
+      await this.markBundledImportTablesPulled(
+        importedTableNames,
+        bundledPullSyncInfo,
+      );
 
       if (!Capacitor.isNativePlatform()) {
         await this._sqlite.saveToStore(this.DB_NAME);
@@ -687,6 +724,43 @@ export class SqliteApi implements ServiceApi {
     return `"${identifier.replace(/"/g, '""')}"`;
   }
 
+  private getBundledPullSyncInfo(
+    importJson: ImportJsonData,
+  ): Map<string, string> {
+    const pullSyncTable = (importJson.tables ?? []).find(
+      (table) => table.name === this.BUNDLED_IMPORT_PULL_SYNC_TABLE,
+    );
+    if (!pullSyncTable) return new Map();
+
+    const getColumnName = (column: unknown): string | undefined =>
+      typeof column === 'object' &&
+      column !== null &&
+      'column' in column &&
+      typeof column.column === 'string'
+        ? column.column
+        : undefined;
+
+    const tableNameIndex = (pullSyncTable.schema ?? []).findIndex(
+      (column) => getColumnName(column) === 'table_name',
+    );
+    const lastPulledIndex = (pullSyncTable.schema ?? []).findIndex(
+      (column) => getColumnName(column) === 'last_pulled',
+    );
+
+    if (tableNameIndex < 0 || lastPulledIndex < 0) return new Map();
+
+    const bundledPullSyncInfo = new Map<string, string>();
+    for (const row of pullSyncTable.values ?? []) {
+      const tableName = row[tableNameIndex];
+      const lastPulled = row[lastPulledIndex];
+      if (typeof tableName === 'string' && typeof lastPulled === 'string') {
+        bundledPullSyncInfo.set(tableName, lastPulled);
+      }
+    }
+
+    return bundledPullSyncInfo;
+  }
+
   private async upsertBundledImportTables(
     tables: ImportJsonTable[],
   ): Promise<string[]> {
@@ -778,14 +852,18 @@ export class SqliteApi implements ServiceApi {
 
   private async markBundledImportTablesPulled(
     tableNames: string[],
+    bundledPullSyncInfo: Map<string, string>,
   ): Promise<void> {
     if (!this._db || tableNames.length === 0) return;
 
-    const lastPulled = new Date().toISOString();
+    const fallbackLastPulled = new Date().toISOString();
     const statements = tableNames.map((tableName) => ({
       statement:
         'INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)',
-      values: [tableName, lastPulled],
+      values: [
+        tableName,
+        bundledPullSyncInfo.get(tableName) ?? fallbackLastPulled,
+      ],
     }));
 
     await this.executeSqlStatementBatch(statements);
@@ -908,6 +986,16 @@ export class SqliteApi implements ServiceApi {
   ) {
     if (!this._db || batch.length === 0) return;
     await this._db.executeSet(batch as any, useImplicitTransaction);
+  }
+
+  private async isSqliteTransactionActive(): Promise<boolean> {
+    if (!this._db) return false;
+
+    try {
+      return (await this._db.isTransactionActive()).result === true;
+    } catch {
+      return false;
+    }
   }
 
   private schedulePostSyncAssetPrefetch(): void {
@@ -1062,7 +1150,11 @@ export class SqliteApi implements ServiceApi {
     });
   }
 
-  private async pullChanges(tableNames: TABLES[], isFirstSync?: boolean) {
+  private async pullChanges(
+    tableNames: TABLES[],
+    isFirstSync?: boolean,
+    isRefreshSync = false,
+  ): Promise<void> {
     if (!this._db) return;
 
     const isInitialFetch = isFirstSync;
@@ -1196,11 +1288,17 @@ export class SqliteApi implements ServiceApi {
     const beginSyncWriteTransaction = async () => {
       if (!this._db || syncWriteTransactionOpen) return;
       await this._db.beginTransaction();
-      syncWriteTransactionOpen = true;
+      syncWriteTransactionOpen = await this.isSqliteTransactionActive();
     };
 
     const commitSyncWriteTransaction = async () => {
       if (!this._db || !syncWriteTransactionOpen) return;
+      const isTransactionActive = await this.isSqliteTransactionActive();
+      if (!isTransactionActive) {
+        syncWriteTransactionOpen = false;
+        webStoreDirty = false;
+        return;
+      }
       await this._db.commitTransaction();
       syncWriteTransactionOpen = false;
       if (isWebPlatform && webStoreDirty) {
@@ -1212,7 +1310,9 @@ export class SqliteApi implements ServiceApi {
     const rollbackSyncWriteTransaction = async () => {
       if (!this._db || !syncWriteTransactionOpen) return;
       try {
-        await this._db.rollbackTransaction();
+        if (await this.isSqliteTransactionActive()) {
+          await this._db.rollbackTransaction();
+        }
       } finally {
         syncWriteTransactionOpen = false;
         webStoreDirty = false;
@@ -1287,7 +1387,6 @@ export class SqliteApi implements ServiceApi {
             VALUES ${valuesPlaceholders}
             ON CONFLICT(id) DO UPDATE SET
             ${updateSetClause}
-            WHERE excluded.updated_at > ${tableName}.updated_at;
             `
               : `
             INSERT INTO ${tableName} (${currentFieldNames.join(', ')})
@@ -1368,7 +1467,7 @@ export class SqliteApi implements ServiceApi {
       this._cachedRewards = undefined;
     }
 
-    if (!isInitialFetch) {
+    if (!isInitialFetch && !isRefreshSync) {
       const new_school = data.get(TABLES.School);
       const school_user_data = data.get(TABLES.SchoolUser);
       const hasSelectionUpdates =
@@ -1405,6 +1504,8 @@ export class SqliteApi implements ServiceApi {
             logger.info('local school removed because school_user is_deleted');
           }
         }
+        // Selection updates need one follow-up refresh, but refresh syncs must
+        // not request themselves again or syncDbNow can loop indefinitely.
         await this.syncDbNow(Object.values(TABLES), [
           TABLES.Assignment,
           TABLES.Assignment_user,
@@ -1594,9 +1695,10 @@ export class SqliteApi implements ServiceApi {
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = [],
     isFirstSync?: boolean,
-  ) {
+  ): Promise<boolean | undefined> {
     await this.ensureInitialized();
     if (!this._db) return;
+    await this.createSyncTables();
     // 🔒 LOCK
     if (this._syncInProgress) {
       if (refreshTables && refreshTables.length > 0) {
@@ -1617,7 +1719,7 @@ export class SqliteApi implements ServiceApi {
           `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
         );
       }
-      await this.pullChanges(tableNames, isFirstSync);
+      await this.pullChanges(tableNames, isFirstSync, refreshTables.length > 0);
       this.schedulePostSyncAssetPrefetch();
       const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
@@ -5948,6 +6050,7 @@ export class SqliteApi implements ServiceApi {
       l.cocos_subject_code,
       l.cocos_chapter_code,
       l.cocos_lesson_id,
+      l.lido_lesson_id,
       l.image,
       l.outcome,
       l.plugin_type,
@@ -6081,6 +6184,7 @@ export class SqliteApi implements ServiceApi {
   cocos_subject_code,
   cocos_chapter_code,
   cocos_lesson_id,
+  lido_lesson_id,
   image,
   outcome,
   plugin_type,
@@ -6107,6 +6211,7 @@ select
   cocos_subject_code,
   cocos_chapter_code,
   cocos_lesson_id,
+  lido_lesson_id,
   image,
   outcome,
   plugin_type,
@@ -6133,6 +6238,7 @@ select
   cocos_subject_code,
   cocos_chapter_code,
   cocos_lesson_id,
+  lido_lesson_id,
   image,
   outcome,
   plugin_type,
@@ -7724,6 +7830,9 @@ order by
     const currentUser = await authHandler?.getCurrentUser();
     const parentId = currentUser?.id;
     const today = new Date().toISOString().split('T')[0];
+    if (!parentId) {
+      return;
+    }
 
     const selectQuery = `
       SELECT * FROM debug_info
@@ -10001,7 +10110,6 @@ order by
         FROM result
         WHERE student_id = ?
           AND subject_id = ?
-          AND assignment_id IS NULL
           AND is_deleted = 0
           AND lesson_id IN (${resultPlaceholders});
       `;
@@ -10290,6 +10398,76 @@ order by
     const latestBatchId = batchRes?.values?.[0]?.batch_id;
 
     if (!latestBatchId) return [];
+
+    const latestBatchLessonQuery = `
+      SELECT a.lesson_id
+      FROM assignment a
+      LEFT JOIN assignment_user au
+        ON a.id = au.assignment_id
+        AND au.is_deleted = 0
+      WHERE a.class_id = ?
+        AND a.course_id = ?
+        AND a.type = 'assessment'
+        AND a.is_deleted = 0
+        AND a.batch_id = ?
+        AND (
+          a.starts_at IS NULL
+          OR a.starts_at = ''
+          OR datetime(a.starts_at) <= datetime(?)
+        )
+        AND (
+          a.ends_at IS NULL
+          OR a.ends_at = ''
+          OR datetime(a.ends_at) > datetime(?)
+        )
+        AND (
+          a.is_class_wise = 1
+          OR au.user_id = ?
+        );
+    `;
+    const latestBatchLessonRes = await this._db?.query(latestBatchLessonQuery, [
+      classId,
+      courseId,
+      latestBatchId,
+      nowIso,
+      nowIso,
+      studentId,
+    ]);
+    const latestBatchLessonIds = new Set(
+      ((latestBatchLessonRes?.values ?? []) as { lesson_id?: string | null }[])
+        .map((assignment) => assignment.lesson_id)
+        .filter((lessonId): lessonId is string => !!lessonId),
+    );
+
+    const courseTerminationQuery = `
+      SELECT r.lesson_id, r.status
+      FROM result r
+      INNER JOIN assignment a
+        ON a.id = r.assignment_id
+      WHERE r.student_id = ?
+        AND r.status = 'assessment_terminated'
+        AND r.is_deleted = 0
+        AND a.class_id = ?
+        AND a.course_id = ?
+        AND a.type = 'assessment'
+      LIMIT 1;
+    `;
+
+    const courseTerminationRes = await this._db?.query(courseTerminationQuery, [
+      studentId,
+      classId,
+      courseId,
+    ]);
+    const courseTerminationRows = (courseTerminationRes?.values ?? []) as {
+      lesson_id?: string | null;
+    }[];
+    const isLatestBatchReassignment = courseTerminationRows.some(
+      (result) =>
+        !!result.lesson_id && latestBatchLessonIds.has(result.lesson_id),
+    );
+    if (courseTerminationRows.length && !isLatestBatchReassignment) {
+      return [];
+    }
 
     /* ==========================================
      * Check if batch is closed by termination or abort

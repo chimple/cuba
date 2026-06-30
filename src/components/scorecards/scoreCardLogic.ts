@@ -110,6 +110,10 @@ type BuildScoreCardProgressRowsParams = {
   completedHomeworkIndex?: number;
   animateDailyReward?: boolean;
   showDailyReward?: boolean;
+  showStickerProgress?: boolean;
+  countCompletedLessonTowardStickerProgress?: boolean;
+  allowZeroStickerProgress?: boolean;
+  stickerProgressCurrentOverride?: number;
 };
 
 const parseDailyRewardSnapshot = (
@@ -582,12 +586,29 @@ const getCurrentPathwayStickerProgress = ({
   completedCourseId,
   completedLessonId,
   completedHomeworkIndex,
+  countCompletedLessonTowardStickerProgress = true,
+  allowZeroStickerProgress = false,
+  stickerProgressCurrentOverride,
 }: {
   student?: TableTypes<'user'>;
   completedCourseId?: string;
   completedLessonId?: string;
   completedHomeworkIndex?: number;
+  countCompletedLessonTowardStickerProgress?: boolean;
+  allowZeroStickerProgress?: boolean;
+  stickerProgressCurrentOverride?: number;
 }): { current: number; total: number } => {
+  const minProgress = allowZeroStickerProgress ? 0 : 1;
+
+  if (typeof stickerProgressCurrentOverride === 'number') {
+    return {
+      current: Math.min(
+        Math.max(stickerProgressCurrentOverride, minProgress),
+        STICKER_PROGRESS_TOTAL,
+      ),
+      total: STICKER_PROGRESS_TOTAL,
+    };
+  }
   // Only use homework_pathway localStorage when we are actually in a homework
   // lesson. If completedHomeworkIndex is undefined, we are in a regular
   // learning pathway and must not read stale homework data.
@@ -616,14 +637,14 @@ const getCurrentPathwayStickerProgress = ({
   if (typeof completedHomeworkIndex === 'number') {
     return {
       current: Math.min(
-        Math.max(completedHomeworkIndex + 1, 1),
+        Math.max(completedHomeworkIndex + 1, minProgress),
         STICKER_PROGRESS_TOTAL,
       ),
       total: STICKER_PROGRESS_TOTAL,
     };
   }
 
-  if (!student) return { current: 1, total: STICKER_PROGRESS_TOTAL };
+  if (!student) return { current: minProgress, total: STICKER_PROGRESS_TOTAL };
 
   try {
     const learningPath = resolveProgressLearningPath({
@@ -631,7 +652,9 @@ const getCurrentPathwayStickerProgress = ({
       completedCourseId,
       completedLessonId,
     });
-    if (!learningPath) return { current: 1, total: STICKER_PROGRESS_TOTAL };
+    if (!learningPath) {
+      return { current: minProgress, total: STICKER_PROGRESS_TOTAL };
+    }
 
     const progressCourse = getProgressCourse({
       completedCourseId,
@@ -644,6 +667,23 @@ const getCurrentPathwayStickerProgress = ({
         : [];
     const total = STICKER_PROGRESS_TOTAL;
     const playedCount = lessons.filter((lesson) => lesson?.isPlayed).length;
+    const completedLessonIndex = completedLessonId
+      ? lessons.findIndex((lesson) => lesson?.lesson_id === completedLessonId)
+      : -1;
+
+    if (
+      countCompletedLessonTowardStickerProgress &&
+      completedLessonIndex >= 0
+    ) {
+      return {
+        current: Math.min(
+          Math.max(completedLessonIndex + 1, minProgress),
+          total,
+        ),
+        total,
+      };
+    }
+
     const completedLessonStillPending = completedLessonId
       ? lessons.some(
           (lesson) =>
@@ -651,15 +691,17 @@ const getCurrentPathwayStickerProgress = ({
             lesson?.isPlayed !== true,
         )
       : false;
+    const shouldCountCompletedLesson =
+      countCompletedLessonTowardStickerProgress && completedLessonStillPending;
     const effectivePlayedCount =
-      playedCount + (completedLessonStillPending ? 1 : 0);
+      playedCount + (shouldCountCompletedLesson ? 1 : 0);
 
     return {
-      current: Math.min(Math.max(effectivePlayedCount, 1), total),
+      current: Math.min(Math.max(effectivePlayedCount, minProgress), total),
       total,
     };
   } catch {
-    return { current: 1, total: STICKER_PROGRESS_TOTAL };
+    return { current: minProgress, total: STICKER_PROGRESS_TOTAL };
   }
 };
 
@@ -816,12 +858,21 @@ const buildStickerRow = async ({
   completedCourseId,
   completedLessonId,
   completedHomeworkIndex,
+  showStickerProgress = true,
+  countCompletedLessonTowardStickerProgress = true,
+  allowZeroStickerProgress = false,
+  stickerProgressCurrentOverride,
 }: BuildScoreCardProgressRowsParams): Promise<ScoreCardProgressRowData | null> => {
+  if (!showStickerProgress) return null;
+
   const pathwayProgress = getCurrentPathwayStickerProgress({
     student,
     completedCourseId,
     completedLessonId,
     completedHomeworkIndex,
+    countCompletedLessonTowardStickerProgress,
+    allowZeroStickerProgress,
+    stickerProgressCurrentOverride,
   });
 
   if (!studentId) {
@@ -891,6 +942,10 @@ export const buildScoreCardProgressRows = async ({
   completedHomeworkIndex,
   animateDailyReward = false,
   showDailyReward = true,
+  showStickerProgress = true,
+  countCompletedLessonTowardStickerProgress = true,
+  allowZeroStickerProgress = false,
+  stickerProgressCurrentOverride,
 }: BuildScoreCardProgressRowsParams): Promise<ScoreCardProgressRowData[]> => {
   const stickerRow = await buildStickerRow({
     api,
@@ -899,6 +954,10 @@ export const buildScoreCardProgressRows = async ({
     completedCourseId,
     completedLessonId,
     completedHomeworkIndex,
+    showStickerProgress,
+    countCompletedLessonTowardStickerProgress,
+    allowZeroStickerProgress,
+    stickerProgressCurrentOverride,
   });
 
   const shouldAnimateDailyReward =

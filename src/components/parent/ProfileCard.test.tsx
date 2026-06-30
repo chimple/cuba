@@ -4,7 +4,7 @@ import { EVENTS, MODES, PAGES } from '../../common/constants';
 import ProfileCard from './ProfileCard';
 import { Util } from '../../utility/util';
 
-const mockHistoryReplace = jest.fn();
+const mockHistoryPush = jest.fn();
 const mockPresentToast = jest.fn();
 
 jest.mock('@ionic/react', () => ({
@@ -15,8 +15,8 @@ jest.mock('@ionic/react', () => ({
 
 jest.mock('react-router-dom', () => ({
   useHistory: () => ({
-    replace: mockHistoryReplace,
-    location: { pathname: '/parent' },
+    push: mockHistoryPush,
+    location: { pathname: '/parent', search: '' },
   }),
 }));
 
@@ -86,8 +86,9 @@ describe('ProfileCard', () => {
         {},
       ),
     );
-    expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.CREATE_STUDENT, {
-      showBackButton: false,
+    expect(mockHistoryPush).toHaveBeenCalledWith(PAGES.CREATE_STUDENT, {
+      isEdit: false,
+      from: '/parent',
     });
   });
 });

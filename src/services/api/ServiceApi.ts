@@ -1491,6 +1491,11 @@ export interface ServiceApi {
   isSyncInProgress(): boolean;
 
   /**
+   * Releases active backing resources before a forced WebView reload.
+   */
+  close(): Promise<void>;
+
+  /**
    * Function to get Recommended Lessons.
    *
    * @param studentId - The current student id.

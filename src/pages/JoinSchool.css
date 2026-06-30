@@ -94,7 +94,7 @@
   border-radius: 0.5vh;
   background-color: #7c5db0;
   color: white;
-  font-size: 3vh;
+  font-size: clamp(17px, 3vh, 19px);
   font-weight: bold;
   cursor: pointer;
   height: 50px;
@@ -133,15 +133,18 @@
 }
 
 .join-school-class-btn {
-  width: 50px;
+  width: 100px;
   height: 35px;
   border: 1px solid #ccc;
   background: #fff;
-  padding: 6px 14px;
+  padding: 6px 8px;
   border-radius: 6px;
   font-size: 16px;
   font-weight: 600;
   color: #4a4949;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   cursor: pointer;
   transition: all 0.2s;
 }

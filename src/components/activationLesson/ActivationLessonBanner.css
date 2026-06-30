@@ -14,6 +14,7 @@
 .activation-lesson-banner__frame {
   position: relative;
   width: min(92vw, calc((100vh - 130px) * 2.1069958848), 1080px);
+  aspect-ratio: 2.1069958848 / 1;
 }
 
 .activation-lesson-banner__image {

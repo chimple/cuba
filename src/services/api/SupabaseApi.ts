@@ -215,6 +215,13 @@ type AssessmentAssignmentRow = TableTypes<'assignment'> & {
   assignment_user?: AssessmentAssignmentUserLink[] | null;
 };
 
+type AssessmentBatchLessonRow = Pick<
+  TableTypes<'assignment'>,
+  'lesson_id' | 'is_class_wise'
+> & {
+  assignment_user?: AssessmentAssignmentUserLink[] | null;
+};
+
 type AssessmentResultRow = Pick<
   TableTypes<'result'>,
   'assignment_id' | 'status' | 'created_at'
@@ -244,6 +251,16 @@ const mapStickerBookRow = (book: TableTypes<'sticker_book'>): StickerBook => ({
 
 const GENERIC_LEADERBOARD_LIMIT = 50;
 const SCHOOL_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
+const TABLES_EXCLUDED_FROM_SYNC = new Set<TABLES>([
+  TABLES.ProgramUser,
+  TABLES.ReqNewSchool,
+  TABLES.Program,
+  TABLES.GeoLocations,
+  TABLES.SchoolMetrics,
+  TABLES.FcQuestion,
+  TABLES.FcSchoolVisit,
+  TABLES.FcUserForms,
+]);
 
 type LeaderboardDataType = 'weekly' | 'monthly' | 'allTime';
 
@@ -510,6 +527,11 @@ export class SupabaseApi implements ServiceApi {
   isSyncInProgress(): boolean {
     return false;
   }
+
+  close(): Promise<void> {
+    return Promise.resolve();
+  }
+
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
   private supabaseUrl: string;
@@ -884,15 +906,18 @@ export class SupabaseApi implements ServiceApi {
     try {
       const data = new Map<string, any[]>();
       const DEFAULT_LAST_MODIFIED = '2024-01-01T00:00:00.000Z';
+      const syncTableNames = tableNames.filter(
+        (tableName) => !TABLES_EXCLUDED_FROM_SYNC.has(tableName),
+      );
       const updatedAtPayload: Record<string, string> = {};
-      for (const tableName of tableNames) {
+      for (const tableName of syncTableNames) {
         // TABLES.User -> "user", TABLES.Class -> "class", etc.
         updatedAtPayload[tableName] =
           tablesLastModifiedTime.get(tableName) ?? DEFAULT_LAST_MODIFIED;
       }
       const res = await this.supabase?.rpc('sql_sync_all', {
         p_updated_at: updatedAtPayload,
-        p_tables: tableNames,
+        p_tables: syncTableNames,
         p_is_first_time: isInitialFetch, // TABLES[] should be string[] under the hood
       });
       logger.warn('pulled results', res);
@@ -914,7 +939,7 @@ export class SupabaseApi implements ServiceApi {
           error_message: res?.error?.message || null,
         });
       }
-      tableNames.map(async (tableName) => {
+      syncTableNames.map(async (tableName) => {
         const payload =
           res?.data && typeof res.data === 'object' && !Array.isArray(res.data)
             ? (res.data as Record<string, Json>)
@@ -5405,14 +5430,66 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<RoleType | undefined> {
     if (!this.supabase) return;
 
+    // Program roles apply only to schools in the user's mapped program.
+    // This prevents program permissions from leaking into unrelated schools.
+    const getUserProgramRoleForSchool = async (
+      fallbackRole?: RoleType,
+    ): Promise<RoleType | undefined> => {
+      const { data: school } = await this.supabase!.from(TABLES.School)
+        .select('program_id')
+        .eq('id', schoolId)
+        .eq('is_deleted', false)
+        .maybeSingle();
+
+      if (!school?.program_id) return undefined;
+
+      const { data: programUser } = await this.supabase!.from(
+        TABLES.ProgramUser,
+      )
+        .select('role')
+        .eq('user', userId)
+        .eq('program_id', school.program_id)
+        .eq('is_deleted', false)
+        .in('role', [RoleType.PROGRAM_MANAGER, RoleType.FIELD_COORDINATOR])
+        .limit(1)
+        .maybeSingle();
+
+      if (!programUser) return undefined;
+
+      return (programUser.role as RoleType | null) ?? fallbackRole;
+    };
+
     // Check special users
     const { data: specialUser } = await this.supabase
       .from(TABLES.SpecialUsers)
       .select('role')
       .eq('user_id', userId)
       .eq('is_deleted', false)
-      .single();
-    if (specialUser?.role) return specialUser.role as RoleType;
+      .maybeSingle();
+    if (specialUser?.role) {
+      const specialRole = specialUser.role as RoleType;
+      if (
+        specialRole === RoleType.SUPER_ADMIN ||
+        specialRole === RoleType.OPERATIONAL_DIRECTOR ||
+        specialRole === RoleType.EXTERNAL_USER
+      ) {
+        return specialRole;
+      }
+
+      if (
+        specialRole === RoleType.PROGRAM_MANAGER ||
+        specialRole === RoleType.FIELD_COORDINATOR
+      ) {
+        const programScopedRole =
+          await getUserProgramRoleForSchool(specialRole);
+        if (programScopedRole) return programScopedRole;
+      } else {
+        return specialRole;
+      }
+    }
+
+    const programScopedRole = await getUserProgramRoleForSchool();
+    if (programScopedRole) return programScopedRole;
 
     // Check school_user (not parent)
     const { data: schoolUser } = await this.supabase
@@ -7011,7 +7088,7 @@ export class SupabaseApi implements ServiceApi {
         `
       lesson (
         id, name, cocos_subject_code, cocos_chapter_code, cocos_lesson_id,
-        image, outcome, plugin_type, status, created_by, subject_id,
+        lido_lesson_id, image, outcome, plugin_type, status, created_by, subject_id,
         target_age_from, target_age_to, language_id, created_at, updated_at,
         is_deleted, color
       ),
@@ -11472,22 +11549,37 @@ export class SupabaseApi implements ServiceApi {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
     if (isSuperAdmin || isOpsDirector) {
+      let specialUsersQuery = this.supabase
+        .from('special_users')
+        .select('user_id, role')
+        .eq('is_deleted', false)
+        .not('user_id', 'is', null);
+      if (isOpsDirector && !isSuperAdmin) {
+        specialUsersQuery = specialUsersQuery.neq('role', RoleType.SUPER_ADMIN);
+      }
+      const { data: specialUsers, error: specialUsersError } =
+        await specialUsersQuery;
+      if (specialUsersError) {
+        logger.error('Error fetching special users:', specialUsersError);
+        return { data: [], totalCount: 0 };
+      }
+      if (!specialUsers || specialUsers.length === 0) {
+        return { data: [], totalCount: 0 };
+      }
+      const roleByUserId = new Map<string, string>();
+      specialUsers.forEach((specialUser) => {
+        if (specialUser.user_id && specialUser.role) {
+          roleByUserId.set(specialUser.user_id, specialUser.role);
+        }
+      });
+      const userIds = Array.from(roleByUserId.keys());
       let query = this.supabase
         .from('user')
-        .select(
-          `
-          *,
-          special_users!inner (
-            role
-          )
-        `,
-          { count: 'exact' },
-        )
-        .eq('is_deleted', false)
-        .ilike('name', `%${search}%`)
-        .eq('special_users.is_deleted', false);
-      if (isOpsDirector && !isSuperAdmin) {
-        query = query.neq('special_users.role', RoleType.SUPER_ADMIN);
+        .select('*', search ? { count: 'exact' } : undefined)
+        .in('id', userIds)
+        .eq('is_deleted', false);
+      if (search) {
+        query = query.ilike('name', `%${search}%`);
       }
       const { data, count, error } = await query
         .order(sortBy, { ascending: sortOrder === 'asc' })
@@ -11497,15 +11589,14 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], totalCount: 0 };
       }
       if (!data) return { data: [], totalCount: 0 };
-      const result = data.map((d) => {
-        const { special_users, ...userObject } = d;
-        const role = special_users[0]?.role || '';
+      const result = data.map((userObject) => {
+        const role = roleByUserId.get(userObject.id) || '';
         return {
           user: userObject as TableTypes<'user'>,
           role,
         };
       });
-      return { data: result, totalCount: count || 0 };
+      return { data: result, totalCount: search ? count || 0 : userIds.length };
     }
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {
       const { data: programs, error: programsError } = await this.supabase
@@ -14657,7 +14748,6 @@ export class SupabaseApi implements ServiceApi {
         .select('lesson_id')
         .in('lesson_id', lessonIds)
         .eq('student_id', studentId)
-        .is('assignment_id', null)
         .eq('is_deleted', false);
 
       const { data: results } = await resultsQuery;
@@ -14953,7 +15043,10 @@ export class SupabaseApi implements ServiceApi {
     courseId = courseId ?? '';
 
     const isAssignedToStudent = (
-      assignment: AssessmentBatchRow | AssessmentAssignmentRow,
+      assignment:
+        | AssessmentBatchRow
+        | AssessmentAssignmentRow
+        | AssessmentBatchLessonRow,
     ) =>
       assignment.is_class_wise === true ||
       (assignment.assignment_user ?? []).some(
@@ -14992,6 +15085,76 @@ export class SupabaseApi implements ServiceApi {
     ).find((assignment) => isAssignedToStudent(assignment));
     const latestBatchId = latestAssignedBatch?.batch_id;
     if (!latestBatchId) return [];
+
+    const { data: latestBatchLessons, error: latestBatchLessonsError } =
+      await this.supabase
+        .from(TABLES.Assignment)
+        .select(
+          `
+          lesson_id,
+          is_class_wise,
+          assignment_user:assignment_user!left(user_id, is_deleted)
+        `,
+        )
+        .eq('class_id', classId)
+        .eq('course_id', courseId)
+        .eq('type', 'assessment')
+        .eq('is_deleted', false)
+        .eq('batch_id', latestBatchId)
+        .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+        .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
+
+    if (latestBatchLessonsError) {
+      logger.error(
+        'Latest assessment batch lesson query error:',
+        latestBatchLessonsError,
+      );
+      return [];
+    }
+
+    const latestBatchLessonIds = new Set(
+      ((latestBatchLessons ?? []) as unknown as AssessmentBatchLessonRow[])
+        .filter((assignment) => isAssignedToStudent(assignment))
+        .map((assignment) => assignment.lesson_id)
+        .filter((lessonId): lessonId is string => !!lessonId),
+    );
+
+    const { data: courseTerminationResults, error: courseTerminationError } =
+      await this.supabase
+        .from(TABLES.Result)
+        .select(
+          `
+          lesson_id,
+          status,
+          assignment!inner(class_id, course_id, type)
+        `,
+        )
+        .eq('student_id', studentId)
+        .eq('status', 'assessment_terminated')
+        .eq('is_deleted', false)
+        .eq('assignment.class_id', classId)
+        .eq('assignment.course_id', courseId)
+        .eq('assignment.type', 'assessment')
+        .limit(1);
+
+    if (courseTerminationError) {
+      logger.error(
+        'Course assessment termination query error:',
+        courseTerminationError,
+      );
+      return [];
+    }
+
+    const isLatestBatchReassignment = (courseTerminationResults ?? []).some(
+      (result) => {
+        const lessonId = result.lesson_id;
+        return !!lessonId && latestBatchLessonIds.has(lessonId);
+      },
+    );
+
+    if (courseTerminationResults?.length && !isLatestBatchReassignment) {
+      return [];
+    }
 
     /* ==========================================
      * STEP 2️⃣  Abort check
@@ -15078,19 +15241,19 @@ export class SupabaseApi implements ServiceApi {
     if (!assignedAssessments.length) return [];
 
     const assignmentIds = assignedAssessments.map((a) => a.id);
-
-    // fetch completed results
-    const { data: results } = await this.supabase
+    const { data: assignmentResults } = await this.supabase
       .from(TABLES.Result)
       .select('assignment_id')
       .in('assignment_id', assignmentIds)
       .eq('student_id', studentId)
       .eq('is_deleted', false);
 
-    const completedSet = new Set((results ?? []).map((r) => r.assignment_id));
+    const completedAssignmentIds = new Set(
+      (assignmentResults ?? []).map((r) => r.assignment_id),
+    );
 
     const incompleteAssignments = assignedAssessments.filter(
-      (a) => !completedSet.has(a.id),
+      (a) => !completedAssignmentIds.has(a.id),
     );
 
     if (!incompleteAssignments.length) return [];
