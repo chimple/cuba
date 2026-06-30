@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import './chpaterLessonBox.css';
 import { Util } from '../../utility/util';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import { COURSE_CHANGED, COURSES } from '../../common/constants';
+import { COURSE_CHANGED, COURSES, TableTypes } from '../../common/constants';
 import { useTranslation } from 'react-i18next';
 import { LessonNode } from '../../hooks/useLearningPath';
 import logger from '../../utility/logger';
@@ -14,6 +14,17 @@ interface ChapterLessonBoxProps {
   courseCode?: string;
 }
 
+const getSessionStorageItem = <T,>(key: string): T | null => {
+  const cachedValue = sessionStorage.getItem(key);
+  if (!cachedValue) return null;
+
+  try {
+    return JSON.parse(cachedValue) as T;
+  } catch {
+    return null;
+  }
+};
+
 const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   containerStyle,
   chapterName,
@@ -23,6 +34,30 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   const api = ServiceConfig.getI().apiHandler;
   const [currentChapterName, setCurrentChapterName] = useState<string>('');
   const { t } = useTranslation();
+  const getCachedLesson = async (lessonId: string) => {
+    const cacheKey = `lesson_${lessonId}`;
+    const cachedLesson = getSessionStorageItem<TableTypes<'lesson'> | null>(
+      cacheKey,
+    );
+    if (cachedLesson) return cachedLesson;
+
+    const lesson = await api.getLesson(lessonId);
+    sessionStorage.setItem(cacheKey, JSON.stringify(lesson ?? null));
+    return lesson;
+  };
+
+  const getCachedChapter = async (chapterId: string) => {
+    const cacheKey = `chapter_${chapterId}`;
+    const cachedChapter = getSessionStorageItem<TableTypes<'chapter'> | null>(
+      cacheKey,
+    );
+    if (cachedChapter) return cachedChapter;
+
+    const chapter = await api.getChapterById(chapterId);
+    sessionStorage.setItem(cacheKey, JSON.stringify(chapter ?? null));
+    return chapter;
+  };
+
   const getRenderedChapterLessonText = (
     rawChapterName: string | null,
     rawLessonName: string | null,
@@ -70,24 +105,23 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
       const currentCourseIndex = learningPath?.courses.currentCourseIndex;
       const course = learningPath?.courses.courseList[currentCourseIndex];
 
-      const pathItem = course.path.find(
-        (p: LessonNode) => p.isPlayed === false,
-      );
+      const pathItem =
+        course?.path?.find((p: LessonNode) => p.isPlayed === false) ??
+        (course?.path?.length ? course.path[course.path.length - 1] : null);
+      if (!pathItem?.lesson_id) {
+        setCurrentChapterName('');
+        return;
+      }
 
-      // 1️⃣ Fetch lesson (always required)
-      const lesson = pathItem.lesson_id
-        ? await api.getLesson(pathItem.lesson_id)
-        : null;
+      const [lesson, chapter] = await Promise.all([
+        getCachedLesson(pathItem.lesson_id),
+        pathItem.chapter_id ? getCachedChapter(pathItem.chapter_id) : null,
+      ]);
 
-      // 2️⃣ Fetch chapter ONLY if chapter_id exists
-      const chapter = pathItem.chapter_id
-        ? await api.getChapterById(pathItem.chapter_id)
-        : null;
-
-      // 3️⃣ Build chapter name safely
       const rawChapterName = chapter?.name ?? null;
       const rawLessonName = lesson?.name ?? null;
-      const resolvedCourseCode = courseCode ?? course?.code ?? null;
+      const resolvedCourseCode =
+        courseCode ?? course?.course_code ?? course?.code ?? null;
       const renderedText = getRenderedChapterLessonText(
         rawChapterName,
         rawLessonName,
