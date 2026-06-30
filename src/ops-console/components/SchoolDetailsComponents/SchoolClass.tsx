@@ -2,8 +2,8 @@ import React, { useMemo, useRef, useEffect, useState } from 'react';
 import DataTableBody from '../DataTableBody';
 import {
   Button as MuiButton,
-  Typography,
   Box,
+  Typography,
   useMediaQuery,
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
@@ -26,6 +26,19 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
+import type { ClassMetricsForClassListingRow } from '../../../services/api/ServiceApi';
+import SchoolListDateRangeDropdown from '../SchoolListDateRangeDropdown';
+import {
+  DEFAULT_DATE_RANGE,
+  type DateRangeValue,
+} from '../../pages/SchoolList.helpers';
+import {
+  getClassMetricValues,
+  normalizeSchoolModel,
+  renderClassPerformanceCell,
+  renderNumberCell,
+  renderNumberWithPercentCell,
+} from './SchoolClassMetrics';
 import {
   filterByProgramGrades,
   getClassDisplayLabel,
@@ -65,11 +78,17 @@ export type ClassRow = ClassWithDetails & {
 type TableRowData = {
   id: string;
   _raw: ClassRow;
-  code: string | { render: React.ReactNode };
   class: { render: React.ReactNode };
-  subjects: string;
-  curriculum: string;
-  studentCount: number | undefined;
+  code?: string | { render: React.ReactNode };
+  classPerformance: { render: React.ReactNode };
+  onboardedStudents: { render: React.ReactNode };
+  activatedStudents: { render: React.ReactNode };
+  activeStudents: { render: React.ReactNode };
+  avgTimeSpent: { render: React.ReactNode };
+  activeTeachers: { render: React.ReactNode };
+  activitiesAssigned: { render: React.ReactNode };
+  avgAssignmentsCompleted: { render: React.ReactNode };
+  avgActivitiesCompleted: { render: React.ReactNode };
   actions: { render: React.ReactNode };
   whatsapp?: { render: React.ReactNode };
 };
@@ -148,6 +167,14 @@ const SchoolClasses: React.FC<Props> = ({
   >({});
   const [editingClass, setEditingClass] = useState<ClassRow | null>(null);
   const [waMetaLoading, setWaMetaLoading] = useState(true);
+  const [selectedDateRange, setSelectedDateRange] =
+    useState<DateRangeValue>(DEFAULT_DATE_RANGE);
+  const [classMetrics, setClassMetrics] = useState<
+    Record<string, ClassMetricsForClassListingRow>
+  >({});
+  const [classMetricsLoading, setClassMetricsLoading] = useState(false);
+  const [codes, setCodes] = useState<Record<string, string | null>>({});
+  const [loadingIds, setLoadingIds] = useState<Record<string, boolean>>({});
 
   // Add Student Modal State
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
@@ -183,12 +210,55 @@ const SchoolClasses: React.FC<Props> = ({
     [safeClasses, groupIdOverrides],
   );
 
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      setClassMetricsLoading(true);
+      try {
+        const metricRows = await api.getClassMetricsForClassListing({
+          schoolId,
+          date_range: selectedDateRange,
+        });
+        if (cancelled) return;
+
+        const nextMetrics: Record<string, ClassMetricsForClassListingRow> = {};
+        const nextCodes: Record<string, string | null> = {};
+        for (const row of metricRows ?? []) {
+          if (!row?.class_id) continue;
+          nextMetrics[row.class_id] = row;
+          if (row.class_code !== null && row.class_code !== undefined) {
+            nextCodes[row.class_id] = String(row.class_code);
+          }
+        }
+        setClassMetrics(nextMetrics);
+        if (Object.keys(nextCodes).length > 0) {
+          setCodes((prev) => ({ ...nextCodes, ...prev }));
+        }
+      } catch (error) {
+        logger.error('Failed to fetch class listing metrics:', error);
+        if (!cancelled) setClassMetrics({});
+      } finally {
+        if (!cancelled) setClassMetricsLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [api, schoolId, selectedDateRange]);
+
   const bot = getAll()?.schoolData?.whatsapp_bot_number;
   const hasWhatsAppBot = typeof bot === 'string' && /^\d{12}$/.test(bot.trim());
   const hasValue = (v: string) => v != null && String(v).trim() !== '';
   const [phoneDetails, setPhoneDetails] = useState<any>(null);
-  const [codes, setCodes] = useState<Record<string, string | null>>({});
-  const [loadingIds, setLoadingIds] = useState<Record<string, boolean>>({});
+  const schoolModel = useMemo(
+    () => normalizeSchoolModel(data?.schoolData?.model),
+    [data?.schoolData?.model],
+  );
+  const isAtSchool = schoolModel === 'at_school';
+  const shouldShowClassCode =
+    schoolModel === 'at_home' || schoolModel === 'hybrid';
 
   useEffect(() => {
     if (!bot) return; // 🚨 wait until bot exists
@@ -253,6 +323,11 @@ const SchoolClasses: React.FC<Props> = ({
   }, [api, bot, effectiveClasses, groupIdOverrides]);
 
   useEffect(() => {
+    if (!shouldShowClassCode) {
+      setCodes({});
+      return;
+    }
+
     let cancelled = false;
     (async () => {
       const seeded: Record<string, string | null> = {};
@@ -298,7 +373,7 @@ const SchoolClasses: React.FC<Props> = ({
     return () => {
       cancelled = true;
     };
-  }, [safeClasses]);
+  }, [api, safeClasses, shouldShowClassCode]);
 
   const handleGenerateCode = async (classId: string) => {
     try {
@@ -313,15 +388,6 @@ const SchoolClasses: React.FC<Props> = ({
       setLoadingIds((s) => ({ ...s, [classId]: false }));
     }
   };
-
-  const isAtSchool = useMemo(() => {
-    const raw = (data?.schoolData?.model ?? '').toString();
-    const norm = raw
-      .trim()
-      .toLowerCase()
-      .replace(/[\s-]+/g, '_');
-    return norm === 'at_school';
-  }, [data?.schoolData?.model]);
 
   const addStudentFields: FieldConfig[] = useMemo(() => {
     const fields: FieldConfig[] = [
@@ -469,9 +535,8 @@ const SchoolClasses: React.FC<Props> = ({
   const rows = useMemo<TableRowData[]>(() => {
     return effectiveClasses.map((c) => {
       const classLabel = typeof c.name === 'string' ? c.name.trim() : '';
-
-      const subjectsDisplay = c.subjectsNames;
-      const curriculumDisplay = c.curriculumNames;
+      const metrics = classMetrics[c.id];
+      const metricValues = getClassMetricValues(metrics, c.studentCount);
       const isGroupConnected = hasValue(c.group_id ?? '');
       const hasExitStatus = Object.prototype.hasOwnProperty.call(
         exitStatuses,
@@ -499,7 +564,11 @@ const SchoolClasses: React.FC<Props> = ({
         waStatus = 'disconnected';
       }
 
-      const codeVal = codes[c.id] ?? null;
+      const rawCodeVal = codes[c.id] ?? metrics?.class_code ?? null;
+      const codeVal =
+        rawCodeVal === null || rawCodeVal === undefined
+          ? null
+          : String(rawCodeVal);
       const hasCode = typeof codeVal === 'string' && codeVal.trim().length > 0;
       const isLoading = !!loadingIds[c.id];
       const codeCell = hasCode
@@ -535,11 +604,36 @@ const SchoolClasses: React.FC<Props> = ({
       const baseRow: TableRowData = {
         id: c.id,
         _raw: c,
-        code: codeCell,
         class: { render: <strong>{classLabel}</strong> },
-        subjects: subjectsDisplay ?? '',
-        curriculum: curriculumDisplay ?? '',
-        studentCount: Number.isFinite(c.studentCount) ? c.studentCount : 0,
+        classPerformance: renderClassPerformanceCell(metrics),
+        onboardedStudents: renderNumberCell(metricValues.onboardedStudents),
+        activatedStudents: renderNumberWithPercentCell(
+          metricValues.activatedStudents,
+          metricValues.activatedPercent,
+        ),
+        activeStudents: renderNumberWithPercentCell(
+          metricValues.activeStudents,
+          metricValues.activePercent,
+        ),
+        avgTimeSpent: renderNumberCell(metricValues.avgTimeSpent, 'm', {
+          maxFractionDigits: 0,
+        }),
+        activeTeachers: renderNumberCell(metricValues.activeTeachers),
+        activitiesAssigned: renderNumberCell(metricValues.activitiesAssigned),
+        avgAssignmentsCompleted: renderNumberCell(
+          metricValues.avgAssignmentsCompleted,
+          '',
+          {
+            maxFractionDigits: 1,
+          },
+        ),
+        avgActivitiesCompleted: renderNumberCell(
+          metricValues.avgActivitiesCompleted,
+          '',
+          {
+            maxFractionDigits: 1,
+          },
+        ),
         actions: {
           render: isExternalUser ? null : (
             <div
@@ -564,10 +658,6 @@ const SchoolClasses: React.FC<Props> = ({
                       setClassForStudent(c);
                       setIsAddStudentModalOpen(true);
                     },
-                  },
-                  {
-                    name: t('Setup WhatsApp Group'),
-                    icon: <ChatBubbleOutlineOutlined fontSize="small" />,
                   },
                 ]}
                 renderTrigger={(open, isOpen) => (
@@ -602,6 +692,9 @@ const SchoolClasses: React.FC<Props> = ({
           ),
         },
       };
+      if (shouldShowClassCode) {
+        baseRow.code = codeCell;
+      }
       if (hasWhatsAppBot) {
         baseRow.whatsapp = {
           render: (
@@ -616,10 +709,11 @@ const SchoolClasses: React.FC<Props> = ({
     });
   }, [
     effectiveClasses,
-    safeClasses,
     isExternalUser,
     codes,
     loadingIds,
+    classMetrics,
+    shouldShowClassCode,
     hasWhatsAppBot,
     phoneDetails,
     waMetaLoading,
@@ -646,9 +740,12 @@ const SchoolClasses: React.FC<Props> = ({
   const selectedClassCode = useMemo(() => {
     if (!selectedClassId) return undefined;
     const fromCodes = codes[selectedClassId] ?? null;
+    const fromMetrics = classMetrics[selectedClassId]?.class_code;
     const fromRow = selectedRow?.code == null ? null : String(selectedRow.code);
-    return (fromCodes || fromRow) ?? undefined;
-  }, [selectedClassId, codes, selectedRow]);
+    return (fromCodes || fromMetrics || fromRow) === null
+      ? undefined
+      : String(fromCodes || fromMetrics || fromRow);
+  }, [selectedClassId, codes, classMetrics, selectedRow]);
 
   const selectedTotalStudents = useMemo(() => {
     if (!selectedRow) return undefined;
@@ -659,17 +756,67 @@ const SchoolClasses: React.FC<Props> = ({
 
   const columns = useMemo<ColumnDef[]>(() => {
     const cols: ColumnDef[] = [
-      { key: 'code', label: t('Class Code'), sortable: false },
-      { key: 'class', label: t('Class'), sortable: false },
-      { key: 'subjects', label: t('Subjects'), sortable: false },
-      { key: 'curriculum', label: t('Curriculum'), sortable: false },
-      {
-        key: 'studentCount',
-        label: t('Student Count'),
-        sortable: false,
-        align: 'right',
-      },
+      { key: 'class', label: t('Class'), sortable: false, width: 120 },
     ];
+    if (shouldShowClassCode) {
+      cols.push({ key: 'code', label: t('Class Code'), sortable: false });
+    }
+    cols.push(
+      {
+        key: 'classPerformance',
+        label: t('Class Performance'),
+        sortable: false,
+        align: 'center',
+      },
+      {
+        key: 'onboardedStudents',
+        label: t('Onboarded Students'),
+        sortable: false,
+        align: 'center',
+      },
+      {
+        key: 'activatedStudents',
+        label: t('Activated Students'),
+        sortable: false,
+        align: 'center',
+      },
+      {
+        key: 'activeStudents',
+        label: t('Active Students'),
+        sortable: false,
+        align: 'center',
+      },
+      {
+        key: 'avgTimeSpent',
+        label: t('Avg Time Spent'),
+        sortable: false,
+        align: 'center',
+      },
+      {
+        key: 'activeTeachers',
+        label: t('Active Teachers'),
+        sortable: false,
+        align: 'center',
+      },
+      {
+        key: 'activitiesAssigned',
+        label: t('Activities Assigned'),
+        sortable: false,
+        align: 'center',
+      },
+      {
+        key: 'avgAssignmentsCompleted',
+        label: t('Avg Assignments Completed'),
+        sortable: false,
+        align: 'center',
+      },
+      {
+        key: 'avgActivitiesCompleted',
+        label: t('Avg Activities Completed'),
+        sortable: false,
+        align: 'center',
+      },
+    );
     if (hasWhatsAppBot) {
       cols.push({
         key: 'whatsapp',
@@ -687,7 +834,7 @@ const SchoolClasses: React.FC<Props> = ({
       });
     }
     return cols;
-  }, [hasWhatsAppBot, isExternalUser]);
+  }, [hasWhatsAppBot, isExternalUser, shouldShowClassCode]);
 
   const totalCount = safeClasses.length;
 
@@ -716,8 +863,8 @@ const SchoolClasses: React.FC<Props> = ({
           </Typography>
         </Box>
 
-        {!isExternalUser && (
-          <Box className="schoolclass-actionsGroup">
+        <Box className="schoolclass-actionsGroup">
+          {!isExternalUser && (
             <MuiButton
               variant="outlined"
               onClick={() => {
@@ -729,8 +876,12 @@ const SchoolClasses: React.FC<Props> = ({
               <AddIcon className="schoolclass-newStudentButton-outlined-icon" />
               {!isSmall && t('New Class')}
             </MuiButton>
-          </Box>
-        )}
+          )}
+          <SchoolListDateRangeDropdown
+            value={selectedDateRange}
+            onChange={setSelectedDateRange}
+          />
+        </Box>
       </Box>
 
       {showForm && (
@@ -766,10 +917,13 @@ const SchoolClasses: React.FC<Props> = ({
         <DataTableBody
           columns={columns}
           rows={rows}
-          orderBy={'curriculum' as const}
+          orderBy={'class' as const}
           order={'asc' as const}
           onSort={() => {}}
           onRowClick={(id) => setSelectedClassId(String(id))}
+          loading={classMetricsLoading}
+          tableMinWidth={shouldShowClassCode ? 1380 : 1260}
+          headerNoEllipsis
         />
       </div>
     </div>
