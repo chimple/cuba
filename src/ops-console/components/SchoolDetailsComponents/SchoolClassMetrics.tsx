@@ -18,11 +18,13 @@ export type ClassMetricValues = {
   activeStudents?: number;
   avgTimeSpent?: number;
   activeTeachers?: number;
+  totalTeachers?: number;
   activitiesAssigned?: number;
   avgAssignmentsCompleted?: number;
   avgActivitiesCompleted?: number;
   activatedPercent: number | null;
   activePercent: number | null;
+  activeTeachersPercent: number | null;
 };
 
 export const normalizeSchoolModel = (value: unknown) =>
@@ -41,13 +43,16 @@ export const getClassMetricValues = (
   );
   const activatedStudents = pickFirstNumber(metrics?.activated_students);
   const activeStudents = pickFirstNumber(metrics?.active_students);
+  const activeTeachers = pickFirstNumber(metrics?.active_teachers);
+  const totalTeachers = pickFirstNumber(metrics?.total_teachers);
 
   return {
     onboardedStudents,
     activatedStudents,
     activeStudents,
     avgTimeSpent: pickFirstNumber(metrics?.avg_time_spent),
-    activeTeachers: pickFirstNumber(metrics?.active_teachers),
+    activeTeachers,
+    totalTeachers,
     activitiesAssigned: pickFirstNumber(metrics?.activities_assigned),
     avgAssignmentsCompleted: pickFirstNumber(
       metrics?.avg_assignments_completed,
@@ -60,6 +65,10 @@ export const getClassMetricValues = (
     activePercent:
       activatedStudents && activeStudents !== undefined
         ? (activeStudents / activatedStudents) * 100
+        : null,
+    activeTeachersPercent:
+      totalTeachers && activeTeachers !== undefined
+        ? (activeTeachers / totalTeachers) * 100
         : null,
   };
 };
@@ -151,16 +160,16 @@ export const resolveClassPerformanceStatus = (
     return '';
   }
 
-  const activatedPercent = (activatedStudents / onboardedStudents) * 100;
-  const activePercent =
-    activatedStudents > 0 && activeStudents !== undefined
-      ? (activeStudents / activatedStudents) * 100
-      : 0;
-
   const flags = [
-    getMetricPerformanceStatus(activatedPercent),
-    getMetricPerformanceStatus(activePercent),
+    getMetricPerformanceStatus((activatedStudents / onboardedStudents) * 100),
   ];
+
+  if (activatedStudents > 0 && activeStudents !== undefined) {
+    flags.push(
+      getMetricPerformanceStatus((activeStudents / activatedStudents) * 100),
+    );
+  }
+
   if (flags.includes(CLASS_PERFORMANCE_STATUS.NEEDS_SUPPORT)) {
     return CLASS_PERFORMANCE_STATUS.NEEDS_SUPPORT;
   }

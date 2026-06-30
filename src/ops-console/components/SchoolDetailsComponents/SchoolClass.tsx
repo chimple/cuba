@@ -618,7 +618,10 @@ const SchoolClasses: React.FC<Props> = ({
         avgTimeSpent: renderNumberCell(metricValues.avgTimeSpent, 'm', {
           maxFractionDigits: 0,
         }),
-        activeTeachers: renderNumberCell(metricValues.activeTeachers),
+        activeTeachers: renderNumberWithPercentCell(
+          metricValues.activeTeachers,
+          metricValues.activeTeachersPercent,
+        ),
         activitiesAssigned: renderNumberCell(metricValues.activitiesAssigned),
         avgAssignmentsCompleted: renderNumberCell(
           metricValues.avgAssignmentsCompleted,

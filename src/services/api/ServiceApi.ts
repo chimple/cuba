@@ -112,6 +112,7 @@ export type ClassMetricsForClassListingRow = {
   active_students?: number | null;
   avg_time_spent?: number | null;
   active_teachers?: number | null;
+  total_teachers?: number | null;
   activities_assigned?: number | null;
   avg_assignments_completed?: number | null;
   avg_activities_completed?: number | null;
