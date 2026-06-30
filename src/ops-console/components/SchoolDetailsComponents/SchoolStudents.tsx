@@ -754,21 +754,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const classDataRef = useMemo(() => {
     return Array.isArray(data.classData) ? data.classData[0] : undefined;
   }, [data.classData]);
-  const performanceClassIdsKey = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          sortedStudents
-            .map((student) =>
-              issTotal
-                ? student.classWithidname?.id
-                : (classDataRef?.id ?? student.classWithidname?.id),
-            )
-            .filter((value): value is string => Boolean(value)),
-        ),
-      ).join(','),
-    [classDataRef?.id, issTotal, sortedStudents],
-  );
 
   // Fold classId + group_id into one key so the fetch effect reruns on link changes.
   const classGroupKey = useMemo(() => {
@@ -984,7 +969,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       }
     };
     fetchStudentPerformance();
-  }, [api, classDataRef?.id, issTotal, performanceClassIdsKey, studentIdsKey]);
+  }, [api, classDataRef?.id, issTotal, studentIdsKey]);
   const getStudentInfoById = useCallback(
     (id: string): StudentInfo | null => {
       if (!Array.isArray(students)) return null;
@@ -1089,8 +1074,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const isDataPresent = studentsForCurrentPage.length > 0;
   const isFilteringOrSearching =
     searchTerm.trim() !== '' ||
-    Object.values(filters).some((f) => f.length > 0) ||
-    performanceFilter !== PerformanceLevel.ALL;
+    Object.values(filters).some((f) => f.length > 0);
 
   const handleFilterIconClick = useCallback(() => {
     setTempFilters(filters);
@@ -1115,14 +1099,6 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setPage(1);
     setIsFilterSliderOpen(false);
   }, []);
-
-  const handlePerformanceFilterChange = useCallback(
-    (value: PerformanceLevel) => {
-      setPerformanceFilter(value);
-      setPage(1);
-    },
-    [],
-  );
 
   const hasAnyStudents = (totalCount ?? 0) > 0;
   const isNoStudentsState = !isLoading && !hasAnyStudents;
@@ -2104,7 +2080,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         </Box>
       </Box>
 
-      {!hideFilterUI && (
+      {/* Keep as-is, but hide when no students overall */}
+      {!issTotal && !isNoStudentsState && (
         <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
           {performanceFilters.map((filter) => {
             const isActive = performanceFilter === filter.key;
@@ -2134,7 +2111,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
               <Chip
                 key={filter.key}
                 label={filter.label}
-                onClick={() => handlePerformanceFilterChange(filter.key)}
+                onClick={() => setPerformanceFilter(filter.key)}
                 className={className}
                 sx={{
                   fontWeight: isActive ? 600 : 400,
