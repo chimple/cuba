@@ -758,7 +758,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     () =>
       Array.from(
         new Set(
-          sortedStudents
+          normalizedStudents
             .map((student) =>
               issTotal
                 ? student.classWithidname?.id
@@ -767,7 +767,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             .filter((value): value is string => Boolean(value)),
         ),
       ).join(','),
-    [classDataRef?.id, issTotal, sortedStudents],
+    [classDataRef?.id, issTotal, normalizedStudents],
   );
 
   // Fold classId + group_id into one key so the fetch effect reruns on link changes.
