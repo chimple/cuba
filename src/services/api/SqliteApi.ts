@@ -146,6 +146,7 @@ export class SqliteApi implements ServiceApi {
   private DB_VERSION = 15;
   // Tracks the native shell plus active hot-update bundle so new bundled data is imported once per app asset version.
   private BUNDLED_IMPORT_APP_VERSION_KEY = 'bundledImportAppVersion';
+  private BUNDLED_IMPORT_PULL_SYNC_TABLE = 'pull_sync_info';
   private BUNDLED_IMPORT_TABLES = new Set<string>([
     TABLES.Curriculum,
     TABLES.Subject,
@@ -558,8 +559,12 @@ export class SqliteApi implements ServiceApi {
         return;
       }
 
+      const bundledPullSyncInfo = this.getBundledPullSyncInfo(importJson);
       const importedTableNames = await this.upsertBundledImportTables(tables);
-      await this.markBundledImportTablesPulled(importedTableNames);
+      await this.markBundledImportTablesPulled(
+        importedTableNames,
+        bundledPullSyncInfo,
+      );
 
       if (!Capacitor.isNativePlatform()) {
         await this._sqlite.saveToStore(this.DB_NAME);
@@ -715,6 +720,43 @@ export class SqliteApi implements ServiceApi {
     return `"${identifier.replace(/"/g, '""')}"`;
   }
 
+  private getBundledPullSyncInfo(
+    importJson: ImportJsonData,
+  ): Map<string, string> {
+    const pullSyncTable = (importJson.tables ?? []).find(
+      (table) => table.name === this.BUNDLED_IMPORT_PULL_SYNC_TABLE,
+    );
+    if (!pullSyncTable) return new Map();
+
+    const getColumnName = (column: unknown): string | undefined =>
+      typeof column === 'object' &&
+      column !== null &&
+      'column' in column &&
+      typeof column.column === 'string'
+        ? column.column
+        : undefined;
+
+    const tableNameIndex = (pullSyncTable.schema ?? []).findIndex(
+      (column) => getColumnName(column) === 'table_name',
+    );
+    const lastPulledIndex = (pullSyncTable.schema ?? []).findIndex(
+      (column) => getColumnName(column) === 'last_pulled',
+    );
+
+    if (tableNameIndex < 0 || lastPulledIndex < 0) return new Map();
+
+    const bundledPullSyncInfo = new Map<string, string>();
+    for (const row of pullSyncTable.values ?? []) {
+      const tableName = row[tableNameIndex];
+      const lastPulled = row[lastPulledIndex];
+      if (typeof tableName === 'string' && typeof lastPulled === 'string') {
+        bundledPullSyncInfo.set(tableName, lastPulled);
+      }
+    }
+
+    return bundledPullSyncInfo;
+  }
+
   private async upsertBundledImportTables(
     tables: ImportJsonTable[],
   ): Promise<string[]> {
@@ -806,14 +848,18 @@ export class SqliteApi implements ServiceApi {
 
   private async markBundledImportTablesPulled(
     tableNames: string[],
+    bundledPullSyncInfo: Map<string, string>,
   ): Promise<void> {
     if (!this._db || tableNames.length === 0) return;
 
-    const lastPulled = new Date().toISOString();
+    const fallbackLastPulled = new Date().toISOString();
     const statements = tableNames.map((tableName) => ({
       statement:
         'INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)',
-      values: [tableName, lastPulled],
+      values: [
+        tableName,
+        bundledPullSyncInfo.get(tableName) ?? fallbackLastPulled,
+      ],
     }));
 
     await this.executeSqlStatementBatch(statements);
@@ -5950,6 +5996,7 @@ export class SqliteApi implements ServiceApi {
       l.cocos_subject_code,
       l.cocos_chapter_code,
       l.cocos_lesson_id,
+      l.lido_lesson_id,
       l.image,
       l.outcome,
       l.plugin_type,
@@ -6083,6 +6130,7 @@ export class SqliteApi implements ServiceApi {
   cocos_subject_code,
   cocos_chapter_code,
   cocos_lesson_id,
+  lido_lesson_id,
   image,
   outcome,
   plugin_type,
@@ -6109,6 +6157,7 @@ select
   cocos_subject_code,
   cocos_chapter_code,
   cocos_lesson_id,
+  lido_lesson_id,
   image,
   outcome,
   plugin_type,
@@ -6135,6 +6184,7 @@ select
   cocos_subject_code,
   cocos_chapter_code,
   cocos_lesson_id,
+  lido_lesson_id,
   image,
   outcome,
   plugin_type,

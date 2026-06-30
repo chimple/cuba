@@ -7088,7 +7088,7 @@ export class SupabaseApi implements ServiceApi {
         `
       lesson (
         id, name, cocos_subject_code, cocos_chapter_code, cocos_lesson_id,
-        image, outcome, plugin_type, status, created_by, subject_id,
+        lido_lesson_id, image, outcome, plugin_type, status, created_by, subject_id,
         target_age_from, target_age_to, language_id, created_at, updated_at,
         is_deleted, color
       ),

@@ -122,6 +122,7 @@ import {
 import logger from './logger';
 import type { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
 import { AudioUtil } from './AudioUtil';
+import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
 
 type LessonBundleDownloadOptions = {
   lessonId: string;
@@ -1399,16 +1400,6 @@ export class Util {
     }
   }
 
-  private static async safeLocationReplace(url: string): Promise<void> {
-    const api = ServiceConfig.getI().apiHandler;
-    try {
-      await api.close();
-    } catch (error) {
-      logger.error('Failed to close database before page reload:', error);
-    }
-    window.location.replace(url);
-  }
-
   public static async navigateTabByNotificationData(data: any) {
     const currentStudent = this.getCurrentStudent();
     const api = ServiceConfig.getI().apiHandler;
@@ -1416,7 +1407,7 @@ export class Util {
       const rewardProfileId = data.rewardProfileId;
       if (rewardProfileId)
         if (currentStudent?.id === rewardProfileId) {
-          await this.safeLocationReplace(
+          replaceWithNavigationTarget(
             PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME,
           );
         } else {
@@ -1426,7 +1417,7 @@ export class Util {
             students.find((user) => user.id === rewardProfileId) || students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            await this.safeLocationReplace(
+            replaceWithNavigationTarget(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME,
             );
           } else {
@@ -1458,12 +1449,12 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            await this.safeLocationReplace(
+            replaceWithNavigationTarget(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
             );
           }
         } else {
-          await this.safeLocationReplace(
+          replaceWithNavigationTarget(
             PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
           );
           return;
@@ -1481,7 +1472,7 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            await this.safeLocationReplace(
+            replaceWithNavigationTarget(
               data.assignmentId
                 ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${data.assignmentId}`
                 : PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
@@ -1498,13 +1489,13 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            await this.safeLocationReplace(
+            replaceWithNavigationTarget(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
             );
           }
         }
       } else {
-        await this.safeLocationReplace(
+        replaceWithNavigationTarget(
           PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
         );
         return;
@@ -1794,9 +1785,9 @@ export class Util {
       destinationPage,
     );
     if (destinationPage && currentStudent) {
-      window.location.replace(destinationPage);
+      replaceWithNavigationTarget(destinationPage);
     } else {
-      window.location.replace(
+      replaceWithNavigationTarget(
         PAGES.DISPLAY_STUDENT + '?' + currentParams.toString(),
       );
     }
