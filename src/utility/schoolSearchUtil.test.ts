@@ -1,16 +1,7 @@
-import {
-  getSchoolSearchScore,
-  sortBySchoolSearchRelevance,
-} from './schoolSearchUtil';
+import { sortBySchoolSearchRelevance } from './schoolSearchUtil';
 
 describe('schoolSearchUtil', () => {
   it('matches school names regardless of dots, spaces, and punctuation', () => {
-    expect(getSchoolSearchScore('A.B. School', 'ab school')).toBe(0);
-    expect(getSchoolSearchScore('A.B. School', 'a b')).toBe(1);
-    expect(getSchoolSearchScore('Alpha-Beta School', 'beta')).toBe(2);
-  });
-
-  it('sorts search results using normalized relevance', () => {
     const items = [
       { name: 'Gamma School' },
       { name: 'A.B. School' },
@@ -29,6 +20,28 @@ describe('schoolSearchUtil', () => {
       'A B School',
       'Alpha School',
       'Gamma School',
+    ]);
+  });
+
+  it('orders exact, prefix, and contains matches by relevance', () => {
+    const items = [
+      { name: 'Alpha School Annex' },
+      { name: 'My Alpha School' },
+      { name: 'Alpha School' },
+      { name: 'Completely Different School' },
+    ];
+
+    const sorted = sortBySchoolSearchRelevance(
+      items,
+      'alpha school',
+      (item) => item.name,
+    );
+
+    expect(sorted.map((item) => item.name)).toEqual([
+      'Alpha School',
+      'Alpha School Annex',
+      'My Alpha School',
+      'Completely Different School',
     ]);
   });
 

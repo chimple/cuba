@@ -8,21 +8,31 @@ const normalizeSchoolSearchText = (value: string) =>
 const compactSchoolSearchText = (value: string) =>
   normalizeSchoolSearchText(value).replace(/\s+/g, '');
 
-export const getSchoolSearchScore = (name: string, query: string): number => {
-  const normalizedName = normalizeSchoolSearchText(name);
-  const normalizedQuery = normalizeSchoolSearchText(query);
-  const compactName = compactSchoolSearchText(name);
-  const compactQuery = compactSchoolSearchText(query);
+type NormalizedSearchKey = {
+  normalized: string;
+  compact: string;
+};
 
-  if (!compactQuery) return Number.MAX_SAFE_INTEGER;
-  if (compactName === compactQuery) return 0;
-  if (compactName.startsWith(compactQuery)) return 1;
+export const buildSchoolSearchKey = (value: string): NormalizedSearchKey => ({
+  normalized: normalizeSchoolSearchText(value),
+  compact: compactSchoolSearchText(value),
+});
+
+export const getSchoolSearchScore = (
+  nameKey: NormalizedSearchKey,
+  queryKey: NormalizedSearchKey,
+): number => {
+  if (!queryKey.compact) return Number.MAX_SAFE_INTEGER;
+  if (nameKey.compact === queryKey.compact) return 0;
+  if (nameKey.compact.startsWith(queryKey.compact)) return 1;
   if (
-    normalizedName.split(' ').some((token) => token.startsWith(normalizedQuery))
+    nameKey.normalized
+      .split(' ')
+      .some((token) => token.startsWith(queryKey.normalized))
   ) {
     return 2;
   }
-  if (compactName.includes(compactQuery)) return 3;
+  if (nameKey.compact.includes(queryKey.compact)) return 3;
   return 4;
 };
 
@@ -31,19 +41,25 @@ export const sortBySchoolSearchRelevance = <T>(
   query: string,
   getName: (item: T) => string,
 ): T[] => {
-  const normalizedQuery = normalizeSchoolSearchText(query);
-  if (!normalizedQuery) return items;
+  const queryKey = buildSchoolSearchKey(query);
+  if (!queryKey.normalized) return items;
 
-  return [...items].sort((a, b) => {
-    const nameA = getName(a) || '';
-    const nameB = getName(b) || '';
+  const prepared = items.map((item) => {
+    const name = getName(item) || '';
+    return {
+      item,
+      name,
+      key: buildSchoolSearchKey(name),
+    };
+  });
 
-    const scoreA = getSchoolSearchScore(nameA, normalizedQuery);
-    const scoreB = getSchoolSearchScore(nameB, normalizedQuery);
+  prepared.sort((a, b) => {
+    const scoreA = getSchoolSearchScore(a.key, queryKey);
+    const scoreB = getSchoolSearchScore(b.key, queryKey);
 
     if (scoreA !== scoreB) return scoreA - scoreB;
-    return normalizeSchoolSearchText(nameA).localeCompare(
-      normalizeSchoolSearchText(nameB),
-    );
+    return a.key.normalized.localeCompare(b.key.normalized);
   });
+
+  return prepared.map((entry) => entry.item);
 };

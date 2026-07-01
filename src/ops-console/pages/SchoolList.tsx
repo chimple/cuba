@@ -37,7 +37,6 @@ import {
 } from './SchoolList.helpers';
 import { useDebouncedValue, useSchoolListData } from './SchoolList.fetcher';
 import { mapSchoolRowsToRenderRows } from './SchoolListRowRenderer';
-import { sortBySchoolSearchRelevance } from '../../utility/schoolSearchUtil';
 import './SchoolList.css';
 import DataTablePagination from '../components/DataTablePagination';
 import DataTableBody from '../components/DataTableBody';
@@ -114,7 +113,7 @@ const SchoolList: React.FC = () => {
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
-  const debouncedSearchTerm = useDebouncedValue(searchTerm, 500);
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 800);
   const isSearchPending = searchTerm !== debouncedSearchTerm;
 
   const rolesWithAccess = [
@@ -142,13 +141,8 @@ const SchoolList: React.FC = () => {
     selectedDateRange,
   });
   const renderedSchools = useMemo(
-    () =>
-      sortBySchoolSearchRelevance(
-        mapSchoolRowsToRenderRows(schools),
-        debouncedSearchTerm,
-        (row) => String(row.name.value ?? row.name.text ?? ''),
-      ),
-    [schools, debouncedSearchTerm],
+    () => mapSchoolRowsToRenderRows(schools),
+    [schools],
   );
 
   const isLoading = isFilterLoading || isDataLoading;

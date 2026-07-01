@@ -96,6 +96,7 @@ import {
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
 import {
+  buildSchoolSearchKey,
   getSchoolSearchScore,
   sortBySchoolSearchRelevance,
 } from '../../utility/schoolSearchUtil';
@@ -11020,6 +11021,7 @@ export class SupabaseApi implements ServiceApi {
         };
       }
 
+      const queryKey = buildSchoolSearchKey(normalizedSearch);
       const searchableRows = mappedRows.filter((row) => {
         const searchableValues = [
           String(row.school_name ?? ''),
@@ -11031,7 +11033,8 @@ export class SupabaseApi implements ServiceApi {
         ];
 
         return searchableValues.some(
-          (value) => getSchoolSearchScore(value, normalizedSearch) < 4,
+          (value) =>
+            getSchoolSearchScore(buildSchoolSearchKey(value), queryKey) < 4,
         );
       });
 
