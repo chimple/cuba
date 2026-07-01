@@ -21,6 +21,7 @@ import {
   CLASS,
   COURSES,
   CURRENT_SQLITE_VERSION,
+  SHOW_GLOBAL_LOADING,
   CoordinatorAPIResponse,
   CoordinatorInfo,
   DEFAULT_LOCALE_ID,
@@ -475,7 +476,20 @@ export class SqliteApi implements ServiceApi {
         logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
       }
     } else {
-      await this.importBundledDataAfterUpgrade();
+      try {
+        window.dispatchEvent(
+          new CustomEvent(SHOW_GLOBAL_LOADING, { detail: true }),
+        );
+        logger.warn(
+          '🚀 ~ SqliteApi ~ Updaing Local Dabatase from import.json after app update',
+        );
+        await this.importBundledDataAfterUpgrade();
+      } finally {
+        window.dispatchEvent(
+          new CustomEvent(SHOW_GLOBAL_LOADING, { detail: false }),
+        );
+        logger.warn('🚀 ~ SqliteApi ~ Local Dabatase update complete');
+      }
     }
     if (this._syncTableData) {
       const tableNames = Object.keys(this._syncTableData) ?? [];

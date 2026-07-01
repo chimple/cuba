@@ -739,6 +739,7 @@ export const IS_OPS_USER = 'isOpsUser';
 export const EDIT_STUDENTS_MAP = 'editStudentsMap';
 export const CURRENT_STUDENT_CHANGED_EVENT = 'currentStudentChanged';
 export const SHOW_GENERIC_POPUP = 'SHOW_GENERIC_POPUP';
+export const SHOW_GLOBAL_LOADING = 'SHOW_GLOBAL_LOADING';
 export const GENERIC_POPUP_INTERNAL_NAVIGATION = 'POPUP_INTERNAL_NAVIGATION';
 export const GENERIC_POP_UP = 'generic-pop-up';
 export const TC_HTML_URL = 'tc_html_url';
