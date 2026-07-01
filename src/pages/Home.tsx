@@ -16,6 +16,7 @@ import {
   IS_REWARD_FEATURE_ON,
   GENERIC_POP_UP,
   SOURCE,
+  STUDENT_RESULT,
 } from '../common/constants';
 import './Home.css';
 import HomeHeader from '../components/HomeHeader';
@@ -238,7 +239,21 @@ const Home: FC = () => {
       typeof api.hasStudentResult === 'function'
         ? await api.hasStudentResult(student.id)
         : true;
-    setShowActivationLessonBanner(!hasStudentResult);
+
+    let playedNow = false;
+    try {
+      const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
+      if (studentResultStr) {
+        const studentResultObj = JSON.parse(studentResultStr);
+        if (studentResultObj && studentResultObj[student.id] === true) {
+          playedNow = true;
+        }
+      }
+    } catch (e) {
+      logger.error('Failed to parse studentResult from sessionStorage', e);
+    }
+
+    setShowActivationLessonBanner(!hasStudentResult && !playedNow);
     const studentResult = await api.getStudentResultInMap(student.id);
     if (!!studentResult) {
       setLessonResultMap(studentResult);
