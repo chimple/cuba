@@ -103,6 +103,21 @@ export type SchoolProgramAccessResponse = {
   total_pages: number;
 };
 
+export type ClassMetricsForClassListingRow = {
+  class_id: string;
+  class_name?: string | null;
+  class_code?: number | null;
+  onboarded_students?: number | null;
+  activated_students?: number | null;
+  active_students?: number | null;
+  avg_time_spent?: number | null;
+  active_teachers?: number | null;
+  total_teachers?: number | null;
+  activities_assigned?: number | null;
+  avg_assignments_completed?: number | null;
+  avg_activities_completed?: number | null;
+};
+
 export type ProgramListingProgramRow = {
   id?: string;
   program_id?: string | null;
@@ -2528,6 +2543,14 @@ export interface ServiceApi {
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
   }>;
+
+  /**
+   * Fetch class-level listing metrics for a single school and selected date window.
+   */
+  getClassMetricsForClassListing(params: {
+    schoolId: string;
+    date_range?: string;
+  }): Promise<ClassMetricsForClassListingRow[]>;
 
   /**
    * Fetch schools with linked program access details using academic years and optional filters.

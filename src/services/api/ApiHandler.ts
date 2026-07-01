@@ -9,6 +9,7 @@ import {
   CampaignAudienceSummaryParams,
   CampaignSavedAudienceGroup,
   CampaignSetupOptions,
+  ClassMetricsForClassListingRow,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
@@ -1728,6 +1729,13 @@ export class ApiHandler implements ServiceApi {
     date_range?: string;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this.s.getSchoolMetricsForSchoolListing(params);
+  }
+
+  async getClassMetricsForClassListing(params: {
+    schoolId: string;
+    date_range?: string;
+  }): Promise<ClassMetricsForClassListingRow[]> {
+    return await this.s.getClassMetricsForClassListing(params);
   }
 
   async getSchoolsWithProgramAccess(

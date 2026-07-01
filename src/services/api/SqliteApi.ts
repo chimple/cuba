@@ -104,6 +104,7 @@ import {
   CampaignAudienceSummaryParams,
   CampaignSavedAudienceGroup,
   CampaignSetupOptions,
+  ClassMetricsForClassListingRow,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
@@ -7500,6 +7501,13 @@ order by
     date_range?: string;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this._serverApi.getSchoolMetricsForSchoolListing(params);
+  }
+
+  async getClassMetricsForClassListing(params: {
+    schoolId: string;
+    date_range?: string;
+  }): Promise<ClassMetricsForClassListingRow[]> {
+    return await this._serverApi.getClassMetricsForClassListing(params);
   }
 
   async getSchoolsWithProgramAccess(
