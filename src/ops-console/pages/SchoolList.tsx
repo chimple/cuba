@@ -113,7 +113,7 @@ const SchoolList: React.FC = () => {
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
-  const debouncedSearchTerm = useDebouncedValue(searchTerm, 500);
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 800);
   const isSearchPending = searchTerm !== debouncedSearchTerm;
 
   const rolesWithAccess = [
@@ -144,6 +144,7 @@ const SchoolList: React.FC = () => {
     () => mapSchoolRowsToRenderRows(schools),
     [schools],
   );
+
   const isLoading = isFilterLoading || isDataLoading;
   const columns = useMemo(() => getSchoolListColumns(), []);
   const { isExporting, isExportDisabled, handleExportSchools } =

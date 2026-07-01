@@ -26,7 +26,7 @@ interface SearchAndFilterProps {
   filterIconSrc?: string;
 }
 
-const DEBOUNCE_MS = 400;
+const DEBOUNCE_MS = 800;
 
 const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   searchTerm,
