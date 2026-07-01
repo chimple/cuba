@@ -161,10 +161,12 @@ export class SqliteApi implements ServiceApi {
   private async resolveCourseLanguageId(
     courseId: string,
   ): Promise<string | null> {
+    // Reuse successful course-language resolution across chapter lesson fetches.
     if (this.courseLanguageIdCache.has(courseId)) {
       return this.courseLanguageIdCache.get(courseId) ?? null;
     }
 
+    // Deduplicate concurrent lookups for the same course while one query is in flight.
     const inFlightPromise = this.courseLanguageIdPromiseCache.get(courseId);
     if (inFlightPromise) {
       return inFlightPromise;
@@ -181,6 +183,11 @@ export class SqliteApi implements ServiceApi {
         `,
         [courseId],
       );
+      if (!courseRes) {
+        throw new Error(
+          `Failed to fetch course code while resolving language for course ${courseId}`,
+        );
+      }
 
       const courseCode = (
         ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
@@ -210,6 +217,11 @@ export class SqliteApi implements ServiceApi {
         `,
         [courseLanguageCode],
       );
+      if (!languageRes) {
+        throw new Error(
+          `Failed to fetch language id while resolving language for course ${courseId}`,
+        );
+      }
 
       const courseLanguageId = (
         ((languageRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
@@ -220,7 +232,10 @@ export class SqliteApi implements ServiceApi {
       return courseLanguageId ?? null;
     })()
       .then((languageId) => {
-        this.courseLanguageIdCache.set(courseId, languageId);
+        // Cache only confirmed language ids so transient query failures can retry later.
+        if (languageId) {
+          this.courseLanguageIdCache.set(courseId, languageId);
+        }
         return languageId;
       })
       .finally(() => {
@@ -251,6 +266,11 @@ export class SqliteApi implements ServiceApi {
       `,
       [chapterId],
     );
+    if (!courseRes) {
+      throw new Error(
+        `Failed to fetch chapter course while resolving language for chapter ${chapterId}`,
+      );
+    }
 
     const courseId = (
       ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
@@ -258,7 +278,10 @@ export class SqliteApi implements ServiceApi {
       }
     ).course_id;
 
-    this.chapterCourseIdCache.set(chapterId, courseId ?? null);
+    // Keep the chapter -> course mapping only when we resolved a real course id.
+    if (courseId) {
+      this.chapterCourseIdCache.set(chapterId, courseId);
+    }
     return courseId ? this.resolveCourseLanguageId(courseId) : null;
   }
   public static async getInstance(): Promise<SqliteApi> {

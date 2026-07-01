@@ -302,17 +302,23 @@ export class SupabaseApi implements ServiceApi {
   private async resolveCourseLanguageId(
     courseId: string,
   ): Promise<string | null> {
+    // Reuse successful course-language resolution across chapter lesson fetches.
     if (this.courseLanguageIdCache.has(courseId)) {
       return this.courseLanguageIdCache.get(courseId) ?? null;
     }
 
+    // Deduplicate concurrent lookups for the same course while one request is in flight.
     const inFlightPromise = this.courseLanguageIdPromiseCache.get(courseId);
     if (inFlightPromise) {
       return inFlightPromise;
     }
 
     const languagePromise = (async () => {
-      if (!this.supabase) return null;
+      if (!this.supabase) {
+        throw new Error(
+          `Supabase is not initialized while resolving language for course ${courseId}`,
+        );
+      }
 
       const { data: courseRows, error: courseError } = await this.supabase
         .from(TABLES.Course)
@@ -326,7 +332,9 @@ export class SupabaseApi implements ServiceApi {
           'Error fetching course code for lesson language:',
           courseError,
         );
-        return null;
+        throw new Error(
+          `Failed to fetch course code while resolving language for course ${courseId}`,
+        );
       }
 
       const courseCode = (courseRows?.[0]?.code ?? '').trim().toLowerCase();
@@ -350,13 +358,18 @@ export class SupabaseApi implements ServiceApi {
 
       if (languageError) {
         logger.error('Error fetching course language:', languageError);
-        return null;
+        throw new Error(
+          `Failed to fetch language while resolving language for course ${courseId}`,
+        );
       }
 
       return languageRows?.[0]?.id ?? null;
     })()
       .then((languageId) => {
-        this.courseLanguageIdCache.set(courseId, languageId);
+        // Cache only confirmed language ids so transient client/query failures can retry.
+        if (languageId) {
+          this.courseLanguageIdCache.set(courseId, languageId);
+        }
         return languageId;
       })
       .finally(() => {
@@ -377,7 +390,11 @@ export class SupabaseApi implements ServiceApi {
         : Promise.resolve(null);
     }
 
-    if (!this.supabase) return null;
+    if (!this.supabase) {
+      throw new Error(
+        `Supabase is not initialized while resolving language for chapter ${chapterId}`,
+      );
+    }
 
     const { data: chapterRows, error: chapterError } = await this.supabase
       .from(TABLES.Chapter)
@@ -391,11 +408,16 @@ export class SupabaseApi implements ServiceApi {
         'Error fetching chapter course for lesson language:',
         chapterError,
       );
-      return null;
+      throw new Error(
+        `Failed to fetch chapter course while resolving language for chapter ${chapterId}`,
+      );
     }
 
     const courseId = chapterRows?.[0]?.course_id ?? null;
-    this.chapterCourseIdCache.set(chapterId, courseId);
+    // Keep the chapter -> course mapping only when we resolved a real course id.
+    if (courseId) {
+      this.chapterCourseIdCache.set(chapterId, courseId);
+    }
     return courseId ? this.resolveCourseLanguageId(courseId) : null;
   }
 
