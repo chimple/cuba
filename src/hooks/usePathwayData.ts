@@ -37,6 +37,15 @@ export interface MascotProps {
   animationName?: string;
 }
 
+type LessonBundleIdFields = Pick<
+  Partial<TableTypes<'lesson'>>,
+  'plugin_type' | 'lido_lesson_id'
+>;
+
+const isCocosLessonMissingLidoId = (
+  lesson: LessonBundleIdFields | null | undefined,
+): boolean => lesson?.plugin_type === 'cocos' && !lesson?.lido_lesson_id;
+
 export const usePathwayData = () => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
@@ -110,20 +119,44 @@ export const usePathwayData = () => {
   const getCachedLesson = useCallback(
     async (lessonId: string): Promise<any> => {
       const lessonCache = lessonCacheRef.current;
-      if (lessonCache.has(lessonId)) return lessonCache.get(lessonId);
+      const memoryCachedLesson = lessonCache.get(lessonId);
+      let staleLessonFallback: unknown;
+      if (
+        memoryCachedLesson &&
+        !isCocosLessonMissingLidoId(memoryCachedLesson)
+      ) {
+        return memoryCachedLesson;
+      } else if (memoryCachedLesson) {
+        staleLessonFallback = memoryCachedLesson;
+      }
 
       const key = `lesson_${lessonId}`;
       const cached = sessionStorage.getItem(key);
       if (cached) {
         const parsed = JSON.parse(cached);
-        lessonCache.set(lessonId, parsed);
-        return parsed;
+        if (!isCocosLessonMissingLidoId(parsed)) {
+          lessonCache.set(lessonId, parsed);
+          return parsed;
+        } else {
+          staleLessonFallback = staleLessonFallback ?? parsed;
+        }
       }
 
-      const lesson = await api.getLesson(lessonId);
-      lessonCache.set(lessonId, lesson);
-      sessionStorage.setItem(key, JSON.stringify(lesson));
-      return lesson;
+      try {
+        const lesson = await api.getLesson(lessonId);
+        if (lesson) {
+          lessonCache.set(lessonId, lesson);
+          sessionStorage.setItem(key, JSON.stringify(lesson));
+          return lesson;
+        }
+      } catch (error) {
+        logger.warn('Could not refresh stale lesson cache', {
+          lessonId,
+          error,
+        });
+      }
+
+      return staleLessonFallback;
     },
     [api],
   );

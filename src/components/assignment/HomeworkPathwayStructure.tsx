@@ -71,6 +71,10 @@ type HomeworkPathwayLesson = Partial<TableTypes<'lesson'>> & {
   course_id?: string | null;
 };
 
+const isCocosLessonMissingLidoId = (
+  lesson: HomeworkPathwayLesson | null | undefined,
+): boolean => lesson?.plugin_type === 'cocos' && !lesson?.lido_lesson_id;
+
 interface HomeworkPathLessonItem {
   lesson: HomeworkPathwayLesson;
   course_id: string | null;
@@ -407,13 +411,22 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     async (lessonId: string): Promise<HomeworkPathwayLesson | null> => {
       const lessonCache = lessonCacheRef.current;
       const existingLesson = lessonCache.get(lessonId);
-      if (existingLesson) return existingLesson;
+      let staleLessonFallback: HomeworkPathwayLesson | null = null;
+      if (existingLesson && !isCocosLessonMissingLidoId(existingLesson)) {
+        return existingLesson;
+      } else if (existingLesson) {
+        staleLessonFallback = existingLesson;
+      }
       const key = `lesson_${lessonId}`;
       const cached = sessionStorage.getItem(key);
       if (cached) {
         const parsed = JSON.parse(cached) as HomeworkPathwayLesson;
-        lessonCache.set(lessonId, parsed);
-        return parsed;
+        if (!isCocosLessonMissingLidoId(parsed)) {
+          lessonCache.set(lessonId, parsed);
+          return parsed;
+        } else {
+          staleLessonFallback = staleLessonFallback ?? parsed;
+        }
       }
       try {
         const lesson = await api.getLesson(lessonId);
@@ -422,10 +435,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           sessionStorage.setItem(key, JSON.stringify(lesson));
           return lesson;
         }
-        return null;
+        return staleLessonFallback;
       } catch (e) {
         logger.warn('Could not fetch lesson details (offline)', e);
-        return null;
+        return staleLessonFallback;
       }
     },
     [api],

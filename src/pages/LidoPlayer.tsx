@@ -135,7 +135,7 @@ const LidoPlayer: FC = () => {
     SOURCE.INITIAL_ASSESSMENT,
   ].includes(source);
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const lessonId = urlSearchParams.get('lessonid') ?? state?.lessonId;
+  const routeLessonId = urlSearchParams.get('lessonid') ?? state?.lessonId;
   const assignmentType = state?.assignment?.type || 'self-played';
   const playedFrom = localStorage.getItem('currentHeader');
 
@@ -172,6 +172,7 @@ const LidoPlayer: FC = () => {
   const lessonDetail: TableTypes<'lesson'> = state?.lesson
     ? JSON.parse(state.lesson)
     : undefined;
+  const lessonId = Util.getLessonBundleId(lessonDetail) ?? routeLessonId;
 
   const api = ServiceConfig.getI().apiHandler;
   const resultsRef = useRef<Record<number, 0 | 1>>({});
