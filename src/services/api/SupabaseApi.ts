@@ -292,135 +292,6 @@ export class SupabaseApi implements ServiceApi {
   private _liveQuizRealTime?: RealtimeChannel;
   private _currentMode: MODES;
   private searchStudentsTimer: any = null;
-  private chapterCourseIdCache = new Map<string, string | null>();
-  private courseLanguageIdCache = new Map<string, string | null>();
-  private courseLanguageIdPromiseCache = new Map<
-    string,
-    Promise<string | null>
-  >();
-
-  private async resolveCourseLanguageId(
-    courseId: string,
-  ): Promise<string | null> {
-    // Reuse successful course-language resolution across chapter lesson fetches.
-    if (this.courseLanguageIdCache.has(courseId)) {
-      return this.courseLanguageIdCache.get(courseId) ?? null;
-    }
-
-    // Deduplicate concurrent lookups for the same course while one request is in flight.
-    const inFlightPromise = this.courseLanguageIdPromiseCache.get(courseId);
-    if (inFlightPromise) {
-      return inFlightPromise;
-    }
-
-    const languagePromise = (async () => {
-      if (!this.supabase) {
-        throw new Error(
-          `Supabase is not initialized while resolving language for course ${courseId}`,
-        );
-      }
-
-      const { data: courseRows, error: courseError } = await this.supabase
-        .from(TABLES.Course)
-        .select('code')
-        .eq('id', courseId)
-        .eq('is_deleted', false)
-        .limit(1);
-
-      if (courseError) {
-        logger.error(
-          'Error fetching course code for lesson language:',
-          courseError,
-        );
-        throw new Error(
-          `Failed to fetch course code while resolving language for course ${courseId}`,
-        );
-      }
-
-      const courseCode = (courseRows?.[0]?.code ?? '').trim().toLowerCase();
-      const courseLanguageCode =
-        courseCode === COURSES.MATHS
-          ? COURSES.ENGLISH
-          : courseCode.includes('-')
-            ? courseCode.split('-').pop()
-            : courseCode;
-
-      if (!courseLanguageCode) {
-        return null;
-      }
-
-      const { data: languageRows, error: languageError } = await this.supabase
-        .from(TABLES.Language)
-        .select('id')
-        .ilike('code', courseLanguageCode)
-        .eq('is_deleted', false)
-        .limit(1);
-
-      if (languageError) {
-        logger.error('Error fetching course language:', languageError);
-        throw new Error(
-          `Failed to fetch language while resolving language for course ${courseId}`,
-        );
-      }
-
-      return languageRows?.[0]?.id ?? null;
-    })()
-      .then((languageId) => {
-        // Cache only confirmed language ids so transient client/query failures can retry.
-        if (languageId) {
-          this.courseLanguageIdCache.set(courseId, languageId);
-        }
-        return languageId;
-      })
-      .finally(() => {
-        this.courseLanguageIdPromiseCache.delete(courseId);
-      });
-
-    this.courseLanguageIdPromiseCache.set(courseId, languagePromise);
-    return languagePromise;
-  }
-
-  private async resolveCourseLanguageIdForChapter(
-    chapterId: string,
-  ): Promise<string | null> {
-    const cachedCourseId = this.chapterCourseIdCache.get(chapterId);
-    if (cachedCourseId !== undefined) {
-      return cachedCourseId
-        ? this.resolveCourseLanguageId(cachedCourseId)
-        : Promise.resolve(null);
-    }
-
-    if (!this.supabase) {
-      throw new Error(
-        `Supabase is not initialized while resolving language for chapter ${chapterId}`,
-      );
-    }
-
-    const { data: chapterRows, error: chapterError } = await this.supabase
-      .from(TABLES.Chapter)
-      .select('course_id')
-      .eq('id', chapterId)
-      .eq('is_deleted', false)
-      .limit(1);
-
-    if (chapterError) {
-      logger.error(
-        'Error fetching chapter course for lesson language:',
-        chapterError,
-      );
-      throw new Error(
-        `Failed to fetch chapter course while resolving language for chapter ${chapterId}`,
-      );
-    }
-
-    const courseId = chapterRows?.[0]?.course_id ?? null;
-    // Keep the chapter -> course mapping only when we resolved a real course id.
-    if (courseId) {
-      this.chapterCourseIdCache.set(chapterId, courseId);
-    }
-    return courseId ? this.resolveCourseLanguageId(courseId) : null;
-  }
-
   async getChaptersForCourse(courseId: string): Promise<
     {
       course_id: string | null;
@@ -446,10 +317,6 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Error fetching chapters for course:', error);
       return [];
     }
-
-    (data ?? []).forEach((chapter) => {
-      this.chapterCourseIdCache.set(chapter.id, chapter.course_id ?? courseId);
-    });
 
     return data ?? [];
   }
@@ -2442,10 +2309,42 @@ export class SupabaseApi implements ServiceApi {
     let langId = student?.language_id;
     const localeId = student?.locale_id;
 
-    const courseLanguageId =
-      await this.resolveCourseLanguageIdForChapter(chapterId);
-    if (courseLanguageId) {
-      langId = courseLanguageId;
+    const { data: chapterRows, error: chapterError } = await this.supabase
+      .from(TABLES.Chapter)
+      .select('course:course_id(code)')
+      .eq('id', chapterId)
+      .eq('is_deleted', false)
+      .limit(1);
+
+    if (chapterError) {
+      logger.error('Error fetching chapter course:', chapterError);
+    } else {
+      const courseCode = (
+        chapterRows?.[0]?.course as { code?: string | null } | null | undefined
+      )?.code
+        ?.trim()
+        .toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const { data: languageRows, error: languageError } = await this.supabase
+          .from(TABLES.Language)
+          .select('id')
+          .ilike('code', courseLanguageCode)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (languageError) {
+          logger.error('Error fetching course language:', languageError);
+        } else if (languageRows?.[0]?.id) {
+          langId = languageRows[0].id;
+        }
+      }
     }
 
     const orFilters: string[] = [];
