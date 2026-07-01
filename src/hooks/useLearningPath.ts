@@ -371,8 +371,7 @@ export async function recommendNextLesson({
     shouldUseAssessment(mode) &&
     !skipAssessment &&
     !hasCompletedInitialAssessment &&
-    course.subject_id &&
-    course.framework_id != null
+    course.subject_id
   ) {
     const res = await api.getSubjectLessonsBySubjectId(
       course.subject_id,
