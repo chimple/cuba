@@ -47,6 +47,7 @@ import {
   RESULT_STATUS,
   REWARD_LEARNING_PATH,
   REWARD_LESSON,
+  STUDENT_RESULT,
   RequestTypes,
   SCHOOL,
   STATUS,
@@ -3525,6 +3526,18 @@ export class SqliteApi implements ServiceApi {
       });
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushData);
+
+    try {
+      const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
+      const studentResultObj = studentResultStr
+        ? JSON.parse(studentResultStr)
+        : {};
+      studentResultObj[student.id] = true;
+      sessionStorage.setItem(STUDENT_RESULT, JSON.stringify(studentResultObj));
+    } catch (e) {
+      logger.error('Failed to set studentResult in sessionStorage', e);
+    }
+
     return newResult;
   }
 
@@ -5003,6 +5016,21 @@ export class SqliteApi implements ServiceApi {
         inviteCode,
         studentId,
       });
+
+      try {
+        const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
+        const studentResultObj = studentResultStr
+          ? JSON.parse(studentResultStr)
+          : {};
+        studentResultObj[studentId] = false;
+        sessionStorage.setItem(
+          STUDENT_RESULT,
+          JSON.stringify(studentResultObj),
+        );
+      } catch (e) {
+        logger.error('Failed to reset studentResult in sessionStorage', e);
+      }
+
       return linkData;
     } catch (error) {
       logger.warn('Join class link failed through SQLite API', {
