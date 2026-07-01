@@ -44,6 +44,36 @@
   flex-wrap: nowrap;
 }
 
+.school-list-actions-menu.MuiPaper-root {
+  border-radius: 0.75rem;
+  box-shadow: 0 0.75rem 1.5rem rgba(16, 24, 40, 0.14);
+  min-width: 10rem;
+}
+
+.school-list-actions-menu-item.MuiMenuItem-root {
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+}
+
+.school-list-actions-menu-item-label.MuiTypography-root {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #344054;
+}
+
+.school-list-actions-menu-divider.MuiDivider-root {
+  margin: 0;
+}
+
+.school-list-actions-chevron {
+  color: #1976d2;
+  transition: transform 160ms ease;
+}
+
+.school-list-actions-chevron-open {
+  transform: rotate(180deg);
+}
+
 .schoolclass-newStudentButton-outlined.MuiButton-root {
   border-color: #e0e0e0 !important;
   border-width: 1px !important;
@@ -183,6 +213,7 @@
   .schoolclass-actionsGroup {
     justify-content: flex-start;
     width: 100%;
+    gap: 0.75rem;
   }
 
   .schoolclass-newStudentButton-outlined.MuiButton-root {
