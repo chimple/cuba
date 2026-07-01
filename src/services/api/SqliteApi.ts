@@ -21,7 +21,6 @@ import {
   CLASS,
   COURSES,
   CURRENT_SQLITE_VERSION,
-  SHOW_GLOBAL_LOADING,
   CoordinatorAPIResponse,
   CoordinatorInfo,
   DEFAULT_LOCALE_ID,
@@ -83,6 +82,7 @@ import {
 } from '../../ops-console/pages/NewUserPageOps';
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
+import { setGlobalLoading } from '../../redux/slices/auth/authSlice';
 import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
@@ -477,18 +477,14 @@ export class SqliteApi implements ServiceApi {
       }
     } else {
       try {
-        window.dispatchEvent(
-          new CustomEvent(SHOW_GLOBAL_LOADING, { detail: true }),
-        );
+        store.dispatch(setGlobalLoading(true));
         logger.warn(
-          '🚀 ~ SqliteApi ~ Updaing Local Dabatase from import.json after app update',
+          '🚀 ~ SqliteApi ~ Updating Local Database from import.json after app update',
         );
         await this.importBundledDataAfterUpgrade();
       } finally {
-        window.dispatchEvent(
-          new CustomEvent(SHOW_GLOBAL_LOADING, { detail: false }),
-        );
-        logger.warn('🚀 ~ SqliteApi ~ Local Dabatase update complete');
+        store.dispatch(setGlobalLoading(false));
+        logger.warn('🚀 ~ SqliteApi ~ Local Database update complete');
       }
     }
     if (this._syncTableData) {

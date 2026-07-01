@@ -67,7 +67,6 @@ import {
   SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS,
   SHOULD_SHOW_REMOTE_ASSETS,
   SHOW_GENERIC_POPUP,
-  SHOW_GLOBAL_LOADING,
   GENERIC_POP_UP,
   SEARCH_LESSON_CACHE_KEY,
   SEARCH_LESSON_HISTORY,
@@ -145,6 +144,7 @@ import PopupManager from './components/GenericPopUp/GenericPopUpManager';
 import TermsGate from './components/termsandconditons/TermsGate';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { setCachedGrowthBookFeatureValue } from './growthbook/Growthbook';
+import { useAppSelector } from './redux/hooks';
 import { HardwareBackButtonHandler } from './common/backButtonRegistry';
 import { logger } from './utility/logger';
 import {
@@ -228,7 +228,7 @@ const App: React.FC = () => {
   const [timeExceeded, setTimeExceeded] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
-  const [isGlobalLoading, setIsGlobalLoading] = useState<boolean>(false);
+  const isGlobalLoading = useAppSelector((state) => state.auth.globalLoading);
   const [isActive, setIsActive] = useState(true);
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
   const shouldShowHomeworkRemoteAssets = useFeatureIsOn(
@@ -399,17 +399,6 @@ const App: React.FC = () => {
 
     return () => {
       window.removeEventListener(SHOW_GENERIC_POPUP, handler);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const customEvent = e as CustomEvent<boolean>;
-      setIsGlobalLoading(!!customEvent.detail);
-    };
-    window.addEventListener(SHOW_GLOBAL_LOADING, handler);
-    return () => {
-      window.removeEventListener(SHOW_GLOBAL_LOADING, handler);
     };
   }, []);
 
