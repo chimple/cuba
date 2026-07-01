@@ -128,6 +128,12 @@ export class SqliteApi implements ServiceApi {
   private _currentStudent: TableTypes<'user'> | undefined;
   private _currentClass: TableTypes<'class'> | undefined;
   private _currentSchool: TableTypes<'school'> | undefined;
+  private chapterCourseIdCache = new Map<string, string | null>();
+  private courseLanguageIdCache = new Map<string, string | null>();
+  private courseLanguageIdPromiseCache = new Map<
+    string,
+    Promise<string | null>
+  >();
   private _currentCourse:
     | Map<string, TableTypes<'course'> | undefined>
     | undefined;
@@ -150,6 +156,110 @@ export class SqliteApi implements ServiceApi {
       SqliteApi.i._serverApi = SupabaseApi.getInstance();
     }
     return SqliteApi.i;
+  }
+
+  private async resolveCourseLanguageId(
+    courseId: string,
+  ): Promise<string | null> {
+    if (this.courseLanguageIdCache.has(courseId)) {
+      return this.courseLanguageIdCache.get(courseId) ?? null;
+    }
+
+    const inFlightPromise = this.courseLanguageIdPromiseCache.get(courseId);
+    if (inFlightPromise) {
+      return inFlightPromise;
+    }
+
+    const languagePromise = (async () => {
+      const courseRes = await this.executeQuery(
+        `
+          SELECT code
+          FROM ${TABLES.Course}
+          WHERE id = ?
+            AND is_deleted = 0
+          LIMIT 1;
+        `,
+        [courseId],
+      );
+
+      const courseCode = (
+        ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
+          code?: string | null;
+        }
+      ).code
+        ?.trim()
+        .toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (!courseLanguageCode) {
+        return null;
+      }
+
+      const languageRes = await this.executeQuery(
+        `
+          SELECT id
+          FROM ${TABLES.Language}
+          WHERE LOWER(code) = ?
+            AND is_deleted = 0
+          LIMIT 1;
+        `,
+        [courseLanguageCode],
+      );
+
+      const courseLanguageId = (
+        ((languageRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
+          id?: string | null;
+        }
+      ).id;
+
+      return courseLanguageId ?? null;
+    })()
+      .then((languageId) => {
+        this.courseLanguageIdCache.set(courseId, languageId);
+        return languageId;
+      })
+      .finally(() => {
+        this.courseLanguageIdPromiseCache.delete(courseId);
+      });
+
+    this.courseLanguageIdPromiseCache.set(courseId, languagePromise);
+    return languagePromise;
+  }
+
+  private async resolveCourseLanguageIdForChapter(
+    chapterId: string,
+  ): Promise<string | null> {
+    const cachedCourseId = this.chapterCourseIdCache.get(chapterId);
+    if (cachedCourseId !== undefined) {
+      return cachedCourseId
+        ? this.resolveCourseLanguageId(cachedCourseId)
+        : Promise.resolve(null);
+    }
+
+    const courseRes = await this.executeQuery(
+      `
+        SELECT course_id
+        FROM ${TABLES.Chapter}
+        WHERE id = ?
+          AND is_deleted = 0
+        LIMIT 1;
+      `,
+      [chapterId],
+    );
+
+    const courseId = (
+      ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
+        course_id?: string | null;
+      }
+    ).course_id;
+
+    this.chapterCourseIdCache.set(chapterId, courseId ?? null);
+    return courseId ? this.resolveCourseLanguageId(courseId) : null;
   }
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
@@ -2515,52 +2625,10 @@ export class SqliteApi implements ServiceApi {
     const localeId = student?.locale_id;
 
     try {
-      const courseRes = await this.executeQuery(
-        `
-          SELECT course.code
-          FROM ${TABLES.Chapter} AS chapter
-          JOIN ${TABLES.Course} AS course ON chapter.course_id = course.id
-          WHERE chapter.id = ?
-            AND chapter.is_deleted = 0
-            AND course.is_deleted = 0
-          LIMIT 1;
-        `,
-        [chapterId],
-      );
-      const courseCode = (
-        ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
-          code?: string | null;
-        }
-      ).code
-        ?.trim()
-        .toLowerCase();
-      const courseLanguageCode =
-        courseCode === COURSES.MATHS
-          ? COURSES.ENGLISH
-          : courseCode?.includes('-')
-            ? courseCode.split('-').pop()
-            : courseCode;
-
-      if (courseLanguageCode) {
-        const languageRes = await this.executeQuery(
-          `
-            SELECT id
-            FROM ${TABLES.Language}
-            WHERE LOWER(code) = ?
-              AND is_deleted = 0
-            LIMIT 1;
-          `,
-          [courseLanguageCode],
-        );
-        const courseLanguageId = (
-          ((languageRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
-            id?: string | null;
-          }
-        ).id;
-
-        if (courseLanguageId) {
-          langId = courseLanguageId;
-        }
+      const courseLanguageId =
+        await this.resolveCourseLanguageIdForChapter(chapterId);
+      if (courseLanguageId) {
+        langId = courseLanguageId;
       }
     } catch (error) {
       logger.error('Error resolving chapter course language:', error);
@@ -5120,6 +5188,9 @@ export class SqliteApi implements ServiceApi {
     ORDER BY sort_index ASC;
     `;
     const res = await this._db?.query(query);
+    (res?.values ?? []).forEach((chapter) => {
+      this.chapterCourseIdCache.set(chapter.id, chapter.course_id ?? courseId);
+    });
     return res?.values ?? [];
   }
   async getPendingAssignmentForLesson(
