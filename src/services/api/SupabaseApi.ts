@@ -76,6 +76,7 @@ import {
   LeaderboardInfo,
   OpsStudentPerformanceBandRow,
   OpsStudentPerformanceBandsParams,
+  ProgramListingProgramRow,
   SchoolProgramAccessResponse,
   SchoolProgramAccessRow,
   ServiceApi,
@@ -112,6 +113,39 @@ import { store } from '../../redux/store';
 import logger from '../../utility/logger';
 
 type CampaignProgramRow = Pick<TableTypes<'program'>, 'id' | 'name'>;
+
+type ProgramMetricsTableRow = Omit<
+  ProgramListingProgramRow,
+  'target_student_count' | 'target_teachers_count'
+> & {
+  program_managers?: string[] | string | null;
+  field_coordinators?: string[] | string | null;
+  partners?: string[] | string | null;
+  district?: string | null;
+  block?: string | null;
+  cluster?: string | null;
+  target_student_count?: number | string | null;
+  target_teachers_count?: number | string | null;
+  target_teacher_count?: number | string | null;
+  program_type?: ProgramType | null;
+  program_model?: PROGRAM_TAB | PROGRAM_TAB[] | string | null;
+  updated_at?: string | null;
+  created_at?: string | null;
+  is_deleted?: boolean | null;
+};
+
+type ProgramMetricsDatabase = Database & {
+  public: Database['public'] & {
+    Tables: Database['public']['Tables'] & {
+      program_metrics: {
+        Row: ProgramMetricsTableRow;
+        Insert: ProgramMetricsTableRow;
+        Update: Partial<ProgramMetricsTableRow>;
+        Relationships: [];
+      };
+    };
+  };
+};
 
 type ChapterLessonRow = {
   lesson: TableTypes<'lesson'> | null;
@@ -9165,29 +9199,85 @@ export class SupabaseApi implements ServiceApi {
     }
 
     try {
-      const { data, error } = await this.supabase.rpc(
-        'get_program_filter_options',
-      );
+      // Normalizes array fields that may arrive as real arrays or JSON strings.
+      const normalizeProgramMetricsStringList = (
+        value: string[] | string | null | undefined,
+      ): string[] => {
+        const normalizeString = (item: string): string[] => {
+          const trimmedItem = item.trim();
+          if (!trimmedItem || trimmedItem === 'null') return [];
+          if (!trimmedItem.startsWith('[')) return [trimmedItem];
+          try {
+            const parsed = JSON.parse(trimmedItem) as Json;
+            if (!Array.isArray(parsed)) return [trimmedItem];
+            return parsed.filter(
+              (entry): entry is string =>
+                typeof entry === 'string' &&
+                entry.trim() !== '' &&
+                entry !== 'null',
+            );
+          } catch {
+            return [trimmedItem];
+          }
+        };
+
+        if (Array.isArray(value)) {
+          return value.flatMap((item) =>
+            typeof item === 'string' ? normalizeString(item) : [],
+          );
+        }
+        return typeof value === 'string' ? normalizeString(value) : [];
+      };
+
+      // Builds the Program Listing drawer filter options from program_metrics rows.
+      const buildProgramMetricsFilterOptions = (
+        rows: ProgramMetricsTableRow[],
+      ): Record<string, string[]> => {
+        const options = {
+          partner: new Set<string>(),
+          programManager: new Set<string>(),
+          programType: new Set<string>(),
+          state: new Set<string>(),
+          district: new Set<string>(),
+        };
+
+        rows.forEach((row) => {
+          normalizeProgramMetricsStringList(row.partners).forEach((value) =>
+            options.partner.add(value),
+          );
+          normalizeProgramMetricsStringList(row.program_managers).forEach(
+            (value) => options.programManager.add(value),
+          );
+          if (row.program_type) options.programType.add(row.program_type);
+          if (row.state?.trim()) options.state.add(row.state.trim());
+          if (row.district?.trim()) options.district.add(row.district.trim());
+        });
+
+        return {
+          partner: Array.from(options.partner).sort(),
+          programManager: Array.from(options.programManager).sort(),
+          programType: Array.from(options.programType).sort(),
+          state: Array.from(options.state).sort(),
+          district: Array.from(options.district).sort(),
+        };
+      };
+
+      const programMetricsClient = this
+        .supabase as SupabaseClient<ProgramMetricsDatabase>;
+      const { data, error } = await programMetricsClient
+        .from('program_metrics')
+        .select(
+          'partners,program_managers,program_type,state,district,is_deleted',
+        )
+        .eq('is_deleted', false);
       if (error) {
-        logger.error('RPC error:', error);
+        logger.error('Error fetching program_metrics filter options:', error);
         return {};
       }
 
-      const parsed: Record<string, string[]> = {};
-      if (data && typeof data === 'object' && !Array.isArray(data)) {
-        for (const key in data) {
-          const val = (data as Record<string, Json>)[key];
-          if (Array.isArray(val)) {
-            parsed[key] = val.filter(
-              (v): v is string =>
-                typeof v === 'string' && v.trim() !== '' && v !== 'null',
-            );
-          } else {
-            parsed[key] = [];
-          }
-        }
-      }
-      return parsed;
+      return buildProgramMetricsFilterOptions(
+        (data ?? []) as ProgramMetricsTableRow[],
+      );
     } catch (err) {
       logger.error('Unexpected error:', err);
       return {};
@@ -9201,10 +9291,16 @@ export class SupabaseApi implements ServiceApi {
     tab = PROGRAM_TAB.ALL,
     limit = 10,
     offset = 0,
-    orderBy = 'name',
+    orderBy = 'program_name',
     order = 'asc',
+    page,
+    page_size,
+    order_by,
+    order_dir,
+    search,
+    date_range,
   }: {
-    currentUserId: string;
+    currentUserId?: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: TabType;
@@ -9212,32 +9308,42 @@ export class SupabaseApi implements ServiceApi {
     offset?: number;
     orderBy?: string;
     order?: 'asc' | 'desc';
-  }): Promise<{ data: any[] }> {
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{ data: ProgramListingProgramRow[]; total: number }> {
     if (!this.supabase) {
       logger.error('Supabase client not initialized');
-      return { data: [] };
+      return { data: [], total: 0 };
     }
 
     try {
-      const { data, error } = await this.supabase.rpc('get_programs_for_user', {
-        _current_user_id: currentUserId,
-        _filters: filters,
-        _search_term: searchTerm,
-        _tab: tab,
-        _limit: limit,
-        _offset: offset,
-        _order_by: orderBy,
-        _order: order,
-      });
-
-      if (error) {
-        logger.error('Error calling get_programs_for_user RPC:', error);
-        return { data: [] };
+      const authUserId =
+        currentUserId ||
+        (await this.supabase.auth.getUser()).data.user?.id ||
+        '';
+      if (!authUserId) {
+        logger.error('Current user is not available for program query');
+        return { data: [], total: 0 };
       }
-      return { data: data || [] };
+
+      return await this.getProgramsFromProgramMetrics({
+        currentUserId: authUserId,
+        filters,
+        tab,
+        page: page ?? Math.floor(offset / limit) + 1,
+        page_size: page_size ?? limit,
+        order_by: order_by ?? orderBy,
+        order_dir: order_dir ?? order,
+        search: search ?? searchTerm,
+        date_range,
+      });
     } catch (err) {
       logger.error('Unexpected error in getPrograms:', err);
-      return { data: [] };
+      return { data: [], total: 0 };
     }
   }
 
@@ -11135,6 +11241,434 @@ export class SupabaseApi implements ServiceApi {
         'Unexpected error in getSchoolMetricsForSchoolListing:',
         error,
       );
+      return { data: [], total: 0 };
+    }
+  }
+
+  public async getProgramsFromProgramMetrics(params: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    tab?: TabType;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{
+    data: ProgramListingProgramRow[];
+    total: number;
+  }> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized');
+      return { data: [], total: 0 };
+    }
+
+    const {
+      currentUserId,
+      filters,
+      tab = PROGRAM_TAB.ALL,
+      page = 1,
+      page_size = 10,
+      order_by = 'program_name',
+      order_dir = 'asc',
+      search = '',
+      date_range,
+    } = params;
+
+    // Needed because program_metrics numeric columns can arrive as strings from Supabase.
+    const getProgramMetricNumber = (
+      value: number | string | null | undefined,
+    ): number => {
+      if (typeof value === 'number' && Number.isFinite(value)) return value;
+      if (typeof value === 'string' && value.trim() !== '') {
+        const parsedValue = Number(value);
+        return Number.isFinite(parsedValue) ? parsedValue : 0;
+      }
+      return 0;
+    };
+
+    // Needed so missing target counts show NA instead of an incorrect 0%.
+    const getProgramConfiguredTargetCount = (
+      value: number | string | null | undefined,
+    ): number | null => {
+      if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+        return value;
+      }
+      if (typeof value === 'string' && value.trim() !== '') {
+        const parsedValue = Number(value);
+        return Number.isFinite(parsedValue) && parsedValue > 0
+          ? parsedValue
+          : null;
+      }
+      return null;
+    };
+
+    // Needed because school division is stored as counts but the UI consumes percentages.
+    const getProgramSchoolDivisionPercent = (
+      value: number | null | undefined,
+      totalSchools: number,
+    ): number => {
+      if (totalSchools <= 0) return 0;
+      return Math.round((getProgramMetricNumber(value) / totalSchools) * 100);
+    };
+
+    // Needed because partner, manager, coordinator, and model fields can be JSON strings.
+    const normalizeProgramMetricsStringList = (
+      value: string[] | string | null | undefined,
+    ): string[] => {
+      const normalizeString = (item: string): string[] => {
+        const trimmedItem = item.trim();
+        if (!trimmedItem || trimmedItem === 'null') return [];
+        if (!trimmedItem.startsWith('[')) return [trimmedItem];
+        try {
+          const parsed = JSON.parse(trimmedItem) as Json;
+          if (!Array.isArray(parsed)) return [trimmedItem];
+          return parsed.filter(
+            (entry): entry is string =>
+              typeof entry === 'string' &&
+              entry.trim() !== '' &&
+              entry !== 'null',
+          );
+        } catch {
+          return [trimmedItem];
+        }
+      };
+
+      if (Array.isArray(value)) {
+        return value.flatMap((item) =>
+          typeof item === 'string' ? normalizeString(item) : [],
+        );
+      }
+      return typeof value === 'string' ? normalizeString(value) : [];
+    };
+
+    // Needed so multi-select filters work for both array and JSON-string fields.
+    const programMetricsListHasSelection = (
+      value: string[] | string | null | undefined,
+      selectedValues: string[] | undefined,
+    ): boolean => {
+      if (!selectedValues?.length) return true;
+      const normalizedValues = normalizeProgramMetricsStringList(value);
+      return selectedValues.some((selectedValue) =>
+        normalizedValues.includes(selectedValue),
+      );
+    };
+
+    // Needed because these list-like filters cannot be safely handled by DB operators alone.
+    const matchesProgramMetricsDimensionFilters = (
+      row: ProgramMetricsTableRow,
+      rowFilters: Record<string, string[]>,
+      selectedTab: PROGRAM_TAB,
+    ): boolean => {
+      const selectedModels = rowFilters.model?.filter((value) =>
+        Object.values(PROGRAM_TAB).includes(value as PROGRAM_TAB),
+      );
+      const modelFilter = selectedModels?.length
+        ? selectedModels
+        : selectedTab !== PROGRAM_TAB.ALL
+          ? [selectedTab]
+          : [];
+
+      return (
+        programMetricsListHasSelection(row.program_model, modelFilter) &&
+        programMetricsListHasSelection(row.partners, rowFilters.partner) &&
+        programMetricsListHasSelection(
+          row.program_managers,
+          rowFilters.programManager,
+        ) &&
+        programMetricsListHasSelection(
+          row.field_coordinators,
+          rowFilters.fieldCoordinator,
+        )
+      );
+    };
+
+    // Needed to keep the Program Listing response stable while reading from program_metrics.
+    const mapProgramMetricsRow = (
+      row: ProgramMetricsTableRow,
+    ): ProgramListingProgramRow => {
+      const onboardedStudents = getProgramMetricNumber(row.onboarded_students);
+      const targetStudentCount = getProgramConfiguredTargetCount(
+        row.target_student_count,
+      );
+      const activatedStudents = getProgramMetricNumber(row.activated_students);
+      const activeStudents = getProgramMetricNumber(row.active_students);
+      const onboardedTeachers = getProgramMetricNumber(row.onboarded_teachers);
+      const targetTeachersCount = getProgramConfiguredTargetCount(
+        row.target_teacher_count ?? row.target_teachers_count,
+      );
+      const activatedTeachers = getProgramMetricNumber(row.activated_teachers);
+      const activeTeachers = getProgramMetricNumber(row.active_teachers);
+      const totalSchools = getProgramMetricNumber(row.total_schools);
+
+      return {
+        ...row,
+        total_schools: totalSchools,
+        performing_well: getProgramSchoolDivisionPercent(
+          row.performing_well,
+          totalSchools,
+        ),
+        needs_attention: getProgramSchoolDivisionPercent(
+          row.needs_attention,
+          totalSchools,
+        ),
+        needs_support: getProgramSchoolDivisionPercent(
+          row.needs_support,
+          totalSchools,
+        ),
+        onboarded_students: onboardedStudents,
+        target_student_count: targetStudentCount,
+        onboarded_students_pct:
+          targetStudentCount !== null
+            ? (onboardedStudents / targetStudentCount) * 100
+            : null,
+        activated_students: activatedStudents,
+        activated_students_pct:
+          onboardedStudents > 0
+            ? (activatedStudents / onboardedStudents) * 100
+            : 0,
+        active_students: activeStudents,
+        active_students_pct:
+          activatedStudents > 0
+            ? (activeStudents / activatedStudents) * 100
+            : 0,
+        avg_time_spent: getProgramMetricNumber(row.avg_time_spent),
+        onboarded_teachers: onboardedTeachers,
+        target_teachers_count: targetTeachersCount,
+        onboarded_teachers_pct:
+          targetTeachersCount !== null
+            ? (onboardedTeachers / targetTeachersCount) * 100
+            : null,
+        activated_teachers: activatedTeachers,
+        activated_teachers_pct:
+          onboardedTeachers > 0
+            ? (activatedTeachers / onboardedTeachers) * 100
+            : 0,
+        active_teachers: activeTeachers,
+        active_teachers_pct:
+          activatedTeachers > 0
+            ? (activeTeachers / activatedTeachers) * 100
+            : 0,
+      };
+    };
+
+    // Needed because Low/Mid/High filters depend on calculated percentages.
+    const matchesProgramPercentFilters = (
+      row: ProgramListingProgramRow,
+      rowFilters: Record<string, string[]>,
+    ): boolean => {
+      const filterEntries: Array<[keyof ProgramListingProgramRow, string]> = [
+        ['onboarded_students_pct', 'onboardedStudentsPct'],
+        ['activated_students_pct', 'activatedStudentsPct'],
+        ['active_students_pct', 'activeStudentsPct'],
+        ['onboarded_teachers_pct', 'onboardedTeachersPct'],
+        ['activated_teachers_pct', 'activatedTeachersPct'],
+        ['active_teachers_pct', 'activeTeachersPct'],
+      ];
+
+      return filterEntries.every(([metricKey, filterKey]) => {
+        const selectedBands = rowFilters[filterKey] ?? [];
+        if (selectedBands.length === 0) return true;
+        const value = row[metricKey];
+        if (typeof value !== 'number') return false;
+        const band = value >= 70 ? 'High' : value >= 31 ? 'Mid' : 'Low';
+        return selectedBands.includes(band);
+      });
+    };
+
+    // Needed so all sortable Program columns use one consistent ordering path.
+    const sortProgramMetricsRows = (
+      first: ProgramListingProgramRow,
+      second: ProgramListingProgramRow,
+      orderBy: string,
+      orderDir: 'asc' | 'desc',
+    ): number => {
+      const dir = orderDir === 'desc' ? -1 : 1;
+      const firstValue = first[orderBy as keyof ProgramListingProgramRow];
+      const secondValue = second[orderBy as keyof ProgramListingProgramRow];
+      if (typeof firstValue === 'number' || typeof secondValue === 'number') {
+        return (
+          (((firstValue as number | null) ?? 0) -
+            ((secondValue as number | null) ?? 0)) *
+          dir
+        );
+      }
+      return (
+        String(firstValue ?? '').localeCompare(String(secondValue ?? '')) * dir
+      );
+    };
+
+    // Needed to decide whether the current user can see all programs or only linked programs.
+    const specialRoles = await this.getUserSpecialRoles(currentUserId);
+    const isAdminOrDirector = specialRoles.some((role) =>
+      [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
+        role as RoleType,
+      ),
+    );
+    const isExternalUser = specialRoles.includes(RoleType.EXTERNAL_USER);
+    const isFieldCoordinator = specialRoles.includes(
+      RoleType.FIELD_COORDINATOR,
+    );
+    const shouldRestrictToSchoolLinks =
+      !isAdminOrDirector && (isExternalUser || isFieldCoordinator);
+
+    try {
+      // Needed to collect program access from both school links and program-manager links.
+      const [schoolUserResult, programUserResult] = await Promise.all([
+        shouldRestrictToSchoolLinks || !isAdminOrDirector
+          ? this.supabase
+              .from(TABLES.SchoolUser)
+              .select('school_id')
+              .eq('user_id', currentUserId)
+              .eq('is_deleted', false)
+          : Promise.resolve({
+              data: [] as Array<{ school_id?: string | null }>,
+              error: null,
+            }),
+        !isAdminOrDirector && specialRoles.includes(RoleType.PROGRAM_MANAGER)
+          ? this.supabase
+              .from(TABLES.ProgramUser)
+              .select('program_id')
+              .eq('user', currentUserId)
+              .eq('role', RoleType.PROGRAM_MANAGER)
+              .eq('is_deleted', false)
+          : Promise.resolve({
+              data: [] as Array<{ program_id?: string | null }>,
+              error: null,
+            }),
+      ]);
+
+      if (schoolUserResult.error || programUserResult.error) {
+        logger.error('Error fetching program listing access lists', {
+          schoolUserError: schoolUserResult.error,
+          programUserError: programUserResult.error,
+        });
+        return { data: [], total: 0 };
+      }
+
+      // Needed to convert access query rows into clean ID arrays for follow-up filters.
+      const schoolIds = (schoolUserResult.data ?? [])
+        .map((row) => row.school_id)
+        .filter((id): id is string => !!id);
+      const programIds = (programUserResult.data ?? [])
+        .map((row) => row.program_id)
+        .filter((id): id is string => !!id);
+
+      // Needed because school-linked users must be filtered by the programs of their schools.
+      const schoolProgramResult =
+        schoolIds.length > 0
+          ? await this.supabase
+              .from(TABLES.School)
+              .select('program_id')
+              .in('id', schoolIds)
+              .eq('is_deleted', false)
+          : {
+              data: [] as Array<{ program_id?: string | null }>,
+              error: null,
+            };
+
+      if (schoolProgramResult.error) {
+        logger.error(
+          'Error resolving school-linked program access:',
+          schoolProgramResult.error,
+        );
+        return { data: [], total: 0 };
+      }
+
+      // Needed to combine direct program access and school-derived program access without duplicates.
+      const accessProgramIds = Array.from(
+        new Set([
+          ...programIds,
+          ...(schoolProgramResult.data ?? [])
+            .map((row) => row.program_id)
+            .filter((id): id is string => !!id),
+        ]),
+      );
+
+      // Needed to query the program_metrics table even though generated DB types do not include it.
+      const programMetricsClient = this
+        .supabase as SupabaseClient<ProgramMetricsDatabase>;
+      let query = programMetricsClient
+        .from('program_metrics')
+        .select('*')
+        .eq('is_deleted', false);
+
+      // Needed so the listing and export reflect the selected metric window.
+      if (date_range && date_range !== 'all_time') {
+        query = query.eq('metric_window', date_range.trim().toLowerCase());
+      }
+
+      // Needed to enforce access rules for non-admin and non-director users.
+      if (!isAdminOrDirector) {
+        if (accessProgramIds.length === 0) {
+          return { data: [], total: 0 };
+        }
+        query = query.in('program_id', accessProgramIds);
+      }
+
+      // Needed to avoid sending empty filter arrays into DB and in-memory filters.
+      const cleanedFilters = Object.fromEntries(
+        Object.entries(filters ?? {}).filter(
+          ([, values]) => Array.isArray(values) && values.length > 0,
+        ),
+      );
+
+      // Needed to apply simple scalar filters at the database layer.
+      if (cleanedFilters.state?.length)
+        query = query.in('state', cleanedFilters.state);
+      if (cleanedFilters.district?.length)
+        query = query.in('district', cleanedFilters.district);
+      if (cleanedFilters.block?.length)
+        query = query.in('block', cleanedFilters.block);
+      if (cleanedFilters.cluster?.length)
+        query = query.in('cluster', cleanedFilters.cluster);
+      if (cleanedFilters.programType?.length) {
+        const programTypeValues = cleanedFilters.programType.filter(
+          (value): value is ProgramType =>
+            Object.values(ProgramType).includes(value as ProgramType),
+        );
+        if (programTypeValues.length) {
+          query = query.in('program_type', programTypeValues);
+        }
+      }
+      // Needed to keep search behavior consistent across program and location fields.
+      if (search) {
+        query = query.or(
+          [
+            `program_name.ilike.%${search}%`,
+            `state.ilike.%${search}%`,
+            `district.ilike.%${search}%`,
+            `block.ilike.%${search}%`,
+            `cluster.ilike.%${search}%`,
+          ].join(','),
+        );
+      }
+
+      // Needed to fetch the filtered program_metrics rows before calculated filters run.
+      const { data, error } = await query;
+      if (error) {
+        logger.error('Error fetching program_metrics listing:', error);
+        return { data: [], total: 0 };
+      }
+
+      // Needed to apply normalized list filters, calculated percentages, sorting, and paging.
+      const rows = ((data ?? []) as ProgramMetricsTableRow[])
+        .filter((row) =>
+          matchesProgramMetricsDimensionFilters(row, cleanedFilters, tab),
+        )
+        .map((row) => mapProgramMetricsRow(row))
+        .filter((row) => matchesProgramPercentFilters(row, cleanedFilters))
+        .sort((a, b) => sortProgramMetricsRows(a, b, order_by, order_dir));
+      // Needed to return only the requested page while preserving the total filtered count.
+      const from = Math.max(page - 1, 0) * page_size;
+
+      return {
+        data: rows.slice(from, from + page_size),
+        total: rows.length,
+      };
+    } catch (error) {
+      logger.error('Unexpected error in getProgramsFromProgramMetrics:', error);
       return { data: [], total: 0 };
     }
   }

@@ -7297,7 +7297,7 @@ order by
     return await this._serverApi.getProgramFilterOptions();
   }
   async getPrograms(params: {
-    currentUserId: string;
+    currentUserId?: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: TabType;
@@ -7305,27 +7305,14 @@ order by
     offset?: number;
     orderBy?: string;
     order?: 'asc' | 'desc';
-  }): Promise<{ data: any[] }> {
-    const {
-      currentUserId,
-      filters,
-      searchTerm,
-      tab,
-      limit,
-      offset,
-      orderBy,
-      order,
-    } = params;
-    return await this._serverApi.getPrograms({
-      currentUserId,
-      filters,
-      searchTerm,
-      tab,
-      limit,
-      offset,
-      orderBy,
-      order,
-    });
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }) {
+    return await this._serverApi.getPrograms(params);
   }
 
   async insertProgram(payload: any): Promise<boolean | null> {
