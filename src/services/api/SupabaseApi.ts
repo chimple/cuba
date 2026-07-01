@@ -68,6 +68,7 @@ import {
   CampaignSavedAudienceGroup,
   CampaignSchoolOption,
   CampaignSetupOptions,
+  ClassMetricsForClassListingRow,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
   LaunchCampaignPayload,
@@ -11136,6 +11137,56 @@ export class SupabaseApi implements ServiceApi {
         error,
       );
       return { data: [], total: 0 };
+    }
+  }
+
+  async getClassMetricsForClassListing(params: {
+    schoolId: string;
+    date_range?: string;
+  }): Promise<ClassMetricsForClassListingRow[]> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized');
+      return [];
+    }
+
+    const schoolId = params.schoolId?.trim();
+    if (!schoolId) {
+      logger.error('getClassMetricsForClassListing called without schoolId');
+      return [];
+    }
+
+    const days = (() => {
+      const value = params.date_range?.trim().toLowerCase() ?? '7d';
+      if (value === '15d') return 15;
+      if (value === '30d') return 30;
+      return 7;
+    })();
+
+    try {
+      const { data, error } = await (
+        this.supabase as unknown as {
+          rpc: (
+            fn: string,
+            args: Record<string, unknown>,
+          ) => Promise<{ data: unknown; error: unknown }>;
+        }
+      ).rpc('get_class_metrics_for_listing', {
+        p_school_id: schoolId,
+        p_days: days,
+      });
+
+      if (error) {
+        logger.error('RPC error in get_class_metrics_for_listing:', error);
+        return [];
+      }
+
+      return (data ?? []) as ClassMetricsForClassListingRow[];
+    } catch (error) {
+      logger.error(
+        'Unexpected error in getClassMetricsForClassListing:',
+        error,
+      );
+      return [];
     }
   }
 
