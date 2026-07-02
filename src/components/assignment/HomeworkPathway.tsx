@@ -33,6 +33,8 @@ import {
 } from '../../utility/homeworkStickerFlow';
 import {
   areStringArraysEqual,
+  filterPlayableHomeworkItems,
+  fetchLessonsById,
   hasHomeworkPathChanged,
   HomeworkPath,
   HomeworkPathwayAssignment,
@@ -236,25 +238,54 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
    */
   const normalizeAssignment = async (
     assignment: HomeworkPathwayAssignment,
-  ): Promise<HomeworkPathwayItem> => {
+  ): Promise<HomeworkPathwayItem | null> => {
     // Reuse lesson data from the payload when available to avoid extra fetches.
     const lesson =
       assignment.lesson ??
       (assignment.lesson_id ? await api.getLesson(assignment.lesson_id) : null);
+    if (!lesson?.id) {
+      logger.warn(
+        '[HomeworkPathway] Skipping stale assignment because lesson metadata is unavailable',
+        {
+          assignmentId: assignment.assignment_id ?? assignment.id ?? null,
+          lessonId: assignment.lesson_id ?? null,
+        },
+      );
+      return null;
+    }
+
     const lessonPathMetadata = lesson as {
       chapter_id?: string | null;
       course_id?: string | null;
     } | null;
 
+    const lessonId = assignment.lesson_id ?? lesson.id ?? null;
+    const chapterId =
+      assignment.chapter_id ?? lessonPathMetadata?.chapter_id ?? null;
+    const courseId =
+      assignment.course_id ?? lessonPathMetadata?.course_id ?? null;
+
+    if (!lessonId || !chapterId || !courseId) {
+      logger.warn(
+        '[HomeworkPathway] Skipping assignment because required pathway metadata is missing',
+        {
+          assignmentId: assignment.assignment_id ?? assignment.id ?? null,
+          lessonId,
+          chapterId,
+          courseId,
+        },
+      );
+      return null;
+    }
+
     return {
       assignment_id: assignment.assignment_id ?? assignment.id ?? null,
-      lesson_id: assignment.lesson_id ?? lesson?.id ?? null,
+      lesson_id: lessonId,
       // Preserve assignment ids first, but fall back to lesson metadata when the API omits them.
-      chapter_id:
-        assignment.chapter_id ?? lessonPathMetadata?.chapter_id ?? null,
+      chapter_id: chapterId,
       // Preserve assignment ids first, but fall back to lesson metadata when the API omits them.
-      course_id: assignment.course_id ?? lessonPathMetadata?.course_id ?? null,
-      lesson: lesson ?? null,
+      course_id: courseId,
+      lesson,
       raw_assignment: assignment,
     };
   };
@@ -407,11 +438,41 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         return;
       }
 
-      let allPendingAssignments: TableTypes<'assignment'>[] = [];
+      let allPendingAssignments: HomeworkPathwayAssignment[] = [];
       let pendingAssignmentsFetched = false;
       try {
         const all = await api.getPendingAssignments(currClass.id, student.id);
-        allPendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
+        const pendingHomeworkAssignments = all.filter(
+          (a) => a.type !== LIVE_QUIZ,
+        );
+        const lessonById = await fetchLessonsById(
+          pendingHomeworkAssignments.map((assignment) => assignment.lesson_id),
+          api.getLessonsBylessonIds.bind(api),
+        );
+        allPendingAssignments = pendingHomeworkAssignments.reduce<
+          HomeworkPathwayAssignment[]
+        >((assignments, assignment) => {
+          const lesson = assignment.lesson_id
+            ? lessonById.get(assignment.lesson_id)
+            : null;
+          if (!lesson) {
+            logger.warn(
+              '[HomeworkPathway] Skipping stale pending homework assignment with missing lesson metadata',
+              {
+                assignmentId: assignment.id ?? null,
+                lessonId: assignment.lesson_id ?? null,
+              },
+            );
+            return assignments;
+          }
+
+          assignments.push({
+            ...assignment,
+            lesson,
+            subject_id: lesson.subject_id,
+          });
+          return assignments;
+        }, []);
         pendingAssignmentsFetched = true;
       } catch (error) {
         logger.error('Failed to load pending assignments:', error);
@@ -585,7 +646,11 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
               > = {};
 
               for (const assignment of allPendingAssignments) {
-                const lesson = await api.getLesson(assignment.lesson_id);
+                const lesson =
+                  assignment.lesson ??
+                  (assignment.lesson_id
+                    ? await api.getLesson(assignment.lesson_id)
+                    : null);
                 if (!lesson || !lesson.subject_id) continue;
 
                 const enriched = {
@@ -632,13 +697,15 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
                       student.id,
                       subjectsWithMaxPending,
                     );
-                  completedCountBySubject = completedCounts.reduce(
-                    (acc, { subject_id, completed_count }) => {
-                      acc[subject_id] = completed_count;
-                      return acc;
-                    },
-                    {} as { [key: string]: number },
-                  );
+                  completedCountBySubject = Array.isArray(completedCounts)
+                    ? completedCounts.reduce(
+                        (acc, { subject_id, completed_count }) => {
+                          acc[subject_id] = completed_count;
+                          return acc;
+                        },
+                        {} as { [key: string]: number },
+                      )
+                    : {};
                 }
 
                 const selectedAssignments = Util.pickFiveHomeworkLessons(
@@ -651,12 +718,17 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
                     return await normalizeAssignment(assignment);
                   }),
                 );
+                const playableLessons =
+                  filterPlayableHomeworkItems(lessonsWithDetails);
 
                 const newHomeworkPath: HomeworkPath = {
                   path_id: uuidv4(),
-                  lessons: lessonsWithDetails,
+                  lessons: playableLessons,
                   currentIndex: 0,
-                  pendingAssignmentIds: currentPendingAssignmentIds,
+                  pendingAssignmentIds: playableLessons
+                    .map((lesson) => lesson.assignment_id)
+                    .filter((id): id is string => !!id)
+                    .map(String),
                 };
 
                 await saveHomeworkPath(student, newHomeworkPath);
@@ -706,6 +778,28 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
       // ---- From here on, we just use pathData (from cache OR built) ----
       if (!pathData) {
         clearPendingFinalHomeworkStickerFlow();
+        setLoading(false);
+        return;
+      }
+
+      if (
+        (!pathData.lessons || pathData.lessons.length === 0) &&
+        currentPendingAssignmentIds.length > 0 &&
+        !hasPendingRewardTransition &&
+        !hasPendingHomeworkStickerFlow()
+      ) {
+        if (effectiveSubjectId) {
+          setSelectedSubject(null);
+          activeSubjectRef.current = null;
+          localStorage.removeItem(HOMEWORK_PATHWAY);
+          await fetchHomeworkPathway(student);
+          return;
+        }
+
+        localStorage.removeItem(HOMEWORK_PATHWAY);
+        setCurrentIndex(0);
+        setBoxDetails(null);
+        setIsHomeworkComplete(true);
         setLoading(false);
         return;
       }
@@ -775,7 +869,11 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
 
     for (const assignment of pendingAssignments) {
       if (!assignment.lesson_id) continue;
-      const lesson = await api.getLesson(assignment.lesson_id);
+      const lesson =
+        assignment.lesson ??
+        (assignment.lesson_id
+          ? await api.getLesson(assignment.lesson_id)
+          : null);
       if (lesson && lesson.subject_id) {
         pendingBySubject[lesson.subject_id] = (
           pendingBySubject[lesson.subject_id] || []
@@ -816,13 +914,14 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
         return await normalizeAssignment(assignment);
       }),
     );
+    const playableLessons = filterPlayableHomeworkItems(lessonsWithDetails);
 
     const newHomeworkPath: HomeworkPath = {
       path_id: uuidv4(),
-      lessons: lessonsWithDetails,
+      lessons: playableLessons,
       currentIndex: 0,
-      pendingAssignmentIds: pendingAssignments
-        .map((assignment) => assignment.id)
+      pendingAssignmentIds: playableLessons
+        .map((lesson) => lesson.assignment_id)
         .filter((id): id is string => !!id)
         .map(String),
     };
@@ -1045,9 +1144,6 @@ const HomeworkPathway: React.FC<HomeworkPathwayProps> = ({
           chapterName={boxDetails?.cName || 'Loading'}
           lessonName={boxDetails?.lName || '...'}
           courseCode={boxDetails?.courseCode}
-          containerStyle={{
-            width: '35vw',
-          }}
         />
       </div>
 

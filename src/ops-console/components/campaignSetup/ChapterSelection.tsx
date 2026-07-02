@@ -4,6 +4,7 @@ import { ExpandLess, ExpandMore } from '@mui/icons-material';
 import { CampaignAssignmentSubjectOption } from '../../../services/api/ServiceApi';
 import { GradeAssignmentConfig } from './campaignAssignmentUtils';
 import './ChapterSelection.css';
+import { t } from 'i18next';
 
 type ChapterSelectionProps = {
   gradeName: string;
@@ -68,7 +69,7 @@ export const ChapterSelection: React.FC<ChapterSelectionProps> = ({
                         {chapter.name}
                       </Typography>
                       <Typography className="chapter-selection-activity-count">
-                        {chapter.lessons.length} activities
+                        {chapter.lessons.length} {t('Lessons')}
                       </Typography>
                       <Button
                         type="button"

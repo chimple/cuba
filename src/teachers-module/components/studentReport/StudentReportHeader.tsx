@@ -1,6 +1,6 @@
 import React from 'react';
 import './StudentReportHeader.css';
-import { TableTypes } from '../../../common/constants';
+import { AVATARS, TableTypes } from '../../../common/constants';
 import { t } from 'i18next';
 import ImageDropdown from '../imageDropdown';
 
@@ -28,6 +28,8 @@ const StudentReportHeader: React.FC<StudentReportHeaderProps> = ({
   currentClass,
   onSubjectChange,
 }) => {
+  const fallbackAvatar = student.avatar ?? AVATARS[0];
+
   return (
     <div className="report-student-profile">
       <div className="report-student-details">
@@ -36,12 +38,13 @@ const StudentReportHeader: React.FC<StudentReportHeaderProps> = ({
           <div className="report-student-class-name">{currentClass?.name}</div>
         </div>
         <img
-          src={student.image ?? `assets/avatars/${student.avatar}.png`}
+          src={student.image || `/assets/avatars/${fallbackAvatar}.png`}
           alt="Profile"
           className="report-student-avatar"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = `assets/avatars/${student.avatar}.png`;
+            target.onerror = null;
+            target.src = `/assets/avatars/${fallbackAvatar}.png`;
           }}
         />
       </div>

@@ -35,6 +35,7 @@ jest.mock('../../redux/hooks', () => ({
 
 const mockApiHandler = {
   getSchoolFilterOptionsForSchoolListing: jest.fn(),
+  getSchoolMetricsForSchoolListing: jest.fn(),
   getFilteredSchoolsForSchoolListing: jest.fn(),
 };
 
@@ -210,6 +211,10 @@ beforeEach(() => {
     block: [],
     cluster: [],
   });
+  mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
+    data: [],
+    total: 0,
+  });
   mockApiHandler.getFilteredSchoolsForSchoolListing.mockResolvedValue({
     data: [],
     total: 0,
@@ -247,7 +252,7 @@ describe('SchoolList actions menu', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
 
@@ -270,7 +275,7 @@ describe('SchoolList actions menu', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
 
@@ -293,7 +298,7 @@ describe('SchoolList actions menu', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
 
@@ -316,7 +321,7 @@ describe('SchoolList actions menu', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
 
@@ -329,13 +334,13 @@ describe('SchoolList actions menu', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('closes the actions menu when clicking outside', async () => {
+  it('closes the actions menu when pressing Escape', async () => {
     const user = userEvent.setup();
     renderPage();
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
 
@@ -344,10 +349,7 @@ describe('SchoolList actions menu', () => {
       screen.getByRole('menuitem', { name: 'Upload' }),
     ).toBeInTheDocument();
 
-    const backdrop = document.querySelector('.MuiBackdrop-root');
-    expect(backdrop).toBeTruthy();
-
-    await user.click(backdrop as HTMLElement);
+    await user.keyboard('{Escape}');
 
     await waitFor(() =>
       expect(
@@ -368,7 +370,7 @@ describe('SchoolList export', () => {
 
   it('exports the filtered school metrics rows to an xlsx file', async () => {
     const user = userEvent.setup();
-    mockApiHandler.getFilteredSchoolsForSchoolListing.mockResolvedValue({
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
       data: [
         {
           school_id: 'school-1',
@@ -409,10 +411,10 @@ describe('SchoolList export', () => {
     await user.click(exportButton);
 
     expect(
-      mockApiHandler.getFilteredSchoolsForSchoolListing,
+      mockApiHandler.getSchoolMetricsForSchoolListing,
     ).toHaveBeenCalledTimes(2);
     expect(
-      mockApiHandler.getFilteredSchoolsForSchoolListing,
+      mockApiHandler.getSchoolMetricsForSchoolListing,
     ).toHaveBeenLastCalledWith(
       expect.objectContaining({
         page: 1,
@@ -514,7 +516,7 @@ describe('SchoolList export', () => {
     jest.useFakeTimers();
     const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
 
-    mockApiHandler.getFilteredSchoolsForSchoolListing.mockResolvedValue({
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
       data: [
         {
           school_id: 'school-1',
@@ -562,7 +564,7 @@ describe('SchoolList export', () => {
     mockRunBackgroundWorkerTask.mockRejectedValueOnce(
       new Error('worker failed'),
     );
-    mockApiHandler.getFilteredSchoolsForSchoolListing.mockResolvedValue({
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
       data: [
         {
           school_id: 'school-1',

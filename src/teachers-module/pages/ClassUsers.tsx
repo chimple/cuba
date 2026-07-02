@@ -32,6 +32,15 @@ const ClassUsers: React.FC = () => {
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const currentRoles = roles || [];
+  const canAddTeacher = [
+    RoleType.PRINCIPAL,
+    RoleType.COORDINATOR,
+    RoleType.SPONSOR,
+    RoleType.SUPER_ADMIN,
+    RoleType.OPERATIONAL_DIRECTOR,
+    RoleType.PROGRAM_MANAGER,
+    RoleType.FIELD_COORDINATOR,
+  ].some((role) => currentRoles.includes(role));
   const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
   useEffect(() => {
     init();
@@ -120,7 +129,7 @@ const ClassUsers: React.FC = () => {
             <AddButton onClick={addStudent} />
           )}
           {selectedTab === CLASS_USERS.TEACHERS &&
-            !currentRoles.includes(RoleType.TEACHER) &&
+            canAddTeacher &&
             !isExternalUser &&
             !isTeacherSchoolMode && <AddButton onClick={addTeacher} />}
         </div>

@@ -16,6 +16,13 @@ export const useReward = () => {
     if (!student) return null;
 
     const studentReward = student.reward ? JSON.parse(student.reward) : null;
+    const studentRewardDate = studentReward?.timestamp
+      ? new Date(studentReward.timestamp).toISOString().split('T')[0]
+      : null;
+    const isStudentRewardTodaysReward =
+      !!studentReward?.reward_id &&
+      studentRewardDate === today &&
+      todaysReward?.id === studentReward.reward_id;
 
     if (!currentReward.reward_id && studentReward === null) {
       const timestamp = new Date();
@@ -27,12 +34,15 @@ export const useReward = () => {
       );
       await Util.updateUserReward();
     } else if (!currentReward.reward_id && studentReward?.reward_id) {
+      if (isStudentRewardTodaysReward) {
+        setHasTodayReward(false);
+        return studentReward.reward_id;
+      }
       await Util.updateUserReward();
     } else if (
       studentReward?.reward_id &&
       studentReward.reward_id !== currentReward?.reward_id &&
-      new Date(studentReward.timestamp).toISOString().split('T')[0] === today &&
-      todaysReward?.id === studentReward.reward_id
+      isStudentRewardTodaysReward
     ) {
       setHasTodayReward(false);
       return studentReward.reward_id;

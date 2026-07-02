@@ -23,9 +23,15 @@ import {
   PENDING_PATHWAY_STICKER_REWARD_KEY,
   PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
   PATHWAY_REWARD_AUDIO_READY_EVENT,
+  TableTypes,
 } from '../common/constants';
 import { Util } from '../utility/util';
-import { LessonNode } from './useLearningPath';
+import {
+  CoursePath,
+  LearningPath,
+  LessonNode,
+  recommendNextLesson,
+} from './useLearningPath';
 import { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
 import { extractStickerSvg } from '../components/common/SvgHelpers';
 import logger from '../utility/logger';
@@ -35,6 +41,7 @@ import { useAppSelector } from '../redux/hooks';
 import { t } from 'i18next';
 import { getCachedImageSrc } from '../utility/imageCache';
 import { mapInBatches } from '../utility/batch';
+import { schoolUtil } from '../utility/schoolUtil';
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -68,6 +75,171 @@ interface PendingStickerReward {
   stickerBookId: string | null;
   createdAt: string;
 }
+
+type CachedLesson = Partial<TableTypes<'lesson'>> | null;
+
+type EnsurePlayableLearningPathResult = {
+  currentCourse: CoursePath | null;
+  learningPath: LearningPath;
+  updated: boolean;
+};
+
+type LearningPathRepairOptions = {
+  allowCourseSwitch?: boolean;
+  allowReplacementLesson?: boolean;
+};
+
+const getCourseResolutionOrder = (
+  preferredIndex: number,
+  totalCourses: number,
+): number[] => {
+  if (totalCourses <= 0) return [];
+
+  const safeIndex = Math.min(Math.max(preferredIndex, 0), totalCourses - 1);
+  const remainingIndexes = Array.from(
+    { length: totalCourses },
+    (_, index) => index,
+  ).filter((index) => index !== safeIndex);
+
+  return [safeIndex, ...remainingIndexes];
+};
+
+const hasCoursePathContent = (course?: Pick<CoursePath, 'path'> | null) =>
+  Boolean(course?.path?.length);
+
+export const sanitizeLearningPathCourse = async ({
+  course,
+  getCachedLesson,
+  resolveNextLesson,
+  allowReplacementLesson = true,
+}: {
+  course: CoursePath;
+  getCachedLesson: (lessonId: string) => Promise<CachedLesson>;
+  resolveNextLesson: (course: CoursePath) => Promise<LessonNode | null>;
+  allowReplacementLesson?: boolean;
+}): Promise<{ course: CoursePath; updated: boolean }> => {
+  const validPath: LessonNode[] = [];
+  for (const pathItem of course.path) {
+    if (!pathItem?.lesson_id) {
+      continue;
+    }
+
+    const lesson = await getCachedLesson(pathItem.lesson_id);
+    if (lesson?.id) {
+      validPath.push({ ...pathItem });
+    }
+  }
+
+  const removedStaleLessons = validPath.length !== course.path.length;
+  const hasActiveLesson = validPath.some((pathItem) => !pathItem.isPlayed);
+  let rebuiltPath = validPath;
+  let appendedReplacementLesson = false;
+
+  if (!hasActiveLesson && allowReplacementLesson) {
+    const nextLesson = await resolveNextLesson({
+      ...course,
+      path: validPath,
+    });
+
+    if (nextLesson) {
+      rebuiltPath = [...validPath, nextLesson];
+      appendedReplacementLesson = true;
+    }
+  }
+
+  if (!removedStaleLessons && !appendedReplacementLesson) {
+    return { course, updated: false };
+  }
+
+  return {
+    course: {
+      ...course,
+      path: rebuiltPath,
+    },
+    updated: true,
+  };
+};
+
+export const ensurePlayableLearningPath = async ({
+  learningPath,
+  getCachedLesson,
+  resolveNextLesson,
+  options,
+}: {
+  learningPath: LearningPath;
+  getCachedLesson: (lessonId: string) => Promise<CachedLesson>;
+  resolveNextLesson: (course: CoursePath) => Promise<LessonNode | null>;
+  options?: LearningPathRepairOptions;
+}): Promise<EnsurePlayableLearningPathResult> => {
+  const allowCourseSwitch = options?.allowCourseSwitch ?? true;
+  const allowReplacementLesson = options?.allowReplacementLesson ?? true;
+  const courseList = learningPath.courses?.courseList ?? [];
+  const courseResolutionOrder = getCourseResolutionOrder(
+    learningPath.courses?.currentCourseIndex ?? 0,
+    courseList.length,
+  );
+
+  if (!courseResolutionOrder.length) {
+    return { currentCourse: null, learningPath, updated: false };
+  }
+
+  const nextCourseList = [...courseList];
+  let currentCourseIndex = learningPath.courses.currentCourseIndex ?? 0;
+  let updated = false;
+
+  for (const courseIndex of courseResolutionOrder) {
+    const course = nextCourseList[courseIndex];
+    if (!course) continue;
+
+    const sanitizedCourse = await sanitizeLearningPathCourse({
+      course,
+      getCachedLesson,
+      resolveNextLesson,
+      allowReplacementLesson,
+    });
+
+    if (sanitizedCourse.updated) {
+      nextCourseList[courseIndex] = sanitizedCourse.course;
+      updated = true;
+    }
+
+    if (hasCoursePathContent(nextCourseList[courseIndex])) {
+      if (allowCourseSwitch && currentCourseIndex !== courseIndex) {
+        currentCourseIndex = courseIndex;
+        updated = true;
+      }
+      break;
+    }
+
+    if (!allowCourseSwitch && courseIndex === currentCourseIndex) {
+      break;
+    }
+  }
+
+  const currentCourse = nextCourseList[currentCourseIndex] ?? null;
+
+  if (!updated) {
+    return {
+      currentCourse,
+      learningPath,
+      updated: false,
+    };
+  }
+
+  return {
+    currentCourse,
+    updated: true,
+    learningPath: {
+      ...learningPath,
+      updated_at: new Date().toISOString(),
+      courses: {
+        ...learningPath.courses,
+        courseList: nextCourseList,
+        currentCourseIndex,
+      },
+    },
+  };
+};
 
 // CACHES
 const svgGroupCache: Record<string, SVGGElement | SVGSVGElement> = {};
@@ -283,8 +455,69 @@ export function usePathwaySVG({
         return;
       }
 
-      const currentCourseIndex = learningPath.courses.currentCourseIndex;
-      const course = learningPath.courses.courseList[currentCourseIndex];
+      const currentClass = schoolUtil.getCurrentClass();
+      let linkedClassId: string | undefined;
+      const resolveNextLesson = async (course: CoursePath) => {
+        if (linkedClassId === undefined) {
+          try {
+            const isLinked = await api.isStudentLinked(currentStudent.id);
+            linkedClassId = isLinked ? currentClass?.id : undefined;
+          } catch (error) {
+            logger.warn(
+              'Unable to confirm linked class while rebuilding learning pathway',
+              error,
+            );
+            linkedClassId = undefined;
+          }
+        }
+
+        const courseInput = {
+          id: course.course_id,
+          subject_id: course.subject_id,
+          framework_id: course.framework_id ?? null,
+          code: course.course_code ?? null,
+          pathway_display_name: course.display_name,
+          is_pal_consolidated: course.is_pal_consolidated,
+        };
+
+        return recommendNextLesson({
+          student: currentStudent,
+          course: courseInput,
+          mode: learningPath.pathMode,
+          classId: linkedClassId,
+          coursePath: { path: course.path },
+        });
+      };
+
+      const playablePathState = await ensurePlayableLearningPath({
+        learningPath,
+        getCachedLesson,
+        resolveNextLesson,
+        options: rewardLearningPath
+          ? {
+              allowCourseSwitch: false,
+              allowReplacementLesson: false,
+            }
+          : undefined,
+      });
+
+      learningPath = playablePathState.learningPath;
+      if (playablePathState.updated) {
+        const pathString = JSON.stringify(learningPath);
+
+        if (rewardLearningPath) {
+          sessionStorage.setItem(REWARD_LEARNING_PATH, pathString);
+        } else {
+          await api.updateLearningPath(currentStudent, pathString);
+          await Util.setCurrentStudent({
+            ...currentStudent,
+            learning_path: pathString,
+          });
+          window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+        }
+      }
+
+      const course = playablePathState.currentCourse;
       if (!course) {
         stopPathwayLoading();
         return;
@@ -314,15 +547,17 @@ export function usePathwaySVG({
       let chapterData: any = null;
       try {
         [courseData, chapterData] = await Promise.all([
-          api.getCourse(course.id),
-          api.getChapterById(pathItem.chapter_id),
+          api.getCourse(course.course_id),
+          pathItem.chapter_id
+            ? api.getChapterById(pathItem.chapter_id)
+            : Promise.resolve(null),
         ]);
       } catch (err) {
         logger.warn(
           'Offline: Could not fetch Course/Chapter metadata. Using fallbacks.',
           err,
         );
-        courseData = { id: course.id, name: 'Course' };
+        courseData = { id: course.course_id, name: 'Course' };
         chapterData = { id: pathItem.chapter_id, name: 'Chapter' };
       }
 

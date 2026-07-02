@@ -1,11 +1,31 @@
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import ScoreCard from './ScoreCard';
 import { AudioUtil } from '../../utility/AudioUtil';
+import { Util } from '../../utility/util';
+import { EVENTS } from '../../common/constants';
+import { ServiceConfig } from '../../services/ServiceConfig';
 
 jest.mock('../../utility/AudioUtil', () => ({
   AudioUtil: {
     playAudioOrTts: jest.fn(),
     stopAudioUrlOrTtsPlayback: jest.fn(),
+  },
+}));
+
+jest.mock('../../utility/util', () => ({
+  Util: {
+    getCurrentStudent: jest.fn(),
+    logEvent: jest.fn(),
+  },
+}));
+
+jest.mock('../../services/ServiceConfig', () => ({
+  ServiceConfig: {
+    getI: jest.fn(() => ({
+      authHandler: {
+        getCurrentUser: jest.fn().mockResolvedValue({ id: 'parent-1' }),
+      },
+    })),
   },
 }));
 
@@ -27,12 +47,24 @@ describe('ScoreCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (ServiceConfig.getI as jest.Mock).mockReturnValue({
+      authHandler: {
+        getCurrentUser: jest.fn().mockResolvedValue({ id: 'parent-1' }),
+      },
+    });
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: 'student-1',
+      name: 'Student One',
+      gender: 'female',
+      grade_id: 'grade-1',
+      stars: 5,
+    });
     (AudioUtil.stopAudioUrlOrTtsPlayback as jest.Mock).mockResolvedValue(
       undefined,
     );
   });
 
-  test('autoplays audio when the dialog is open', () => {
+  test('autoplays audio and logs goal progress when the dialog is open', async () => {
     render(<ScoreCard {...baseProps} />);
 
     expect(AudioUtil.playAudioOrTts).toHaveBeenCalledWith(
@@ -41,6 +73,23 @@ describe('ScoreCard', () => {
         delayMs: 300,
         loop: false,
       }),
+    );
+
+    await waitFor(() =>
+      expect(Util.logEvent).toHaveBeenCalledWith(
+        EVENTS.GOAL_PROGRESS,
+        expect.objectContaining({
+          action: 'shown',
+          score: 80,
+          parent_id: 'parent-1',
+          student_id: 'student-1',
+          student_stars: 5,
+          progress_rows_count: 0,
+          lesson_name: 'Lesson One',
+          course_id: 'null',
+          lesson_id: 'null',
+        }),
+      ),
     );
   });
 
@@ -51,7 +100,7 @@ describe('ScoreCard', () => {
     expect(AudioUtil.playAudioOrTts).not.toHaveBeenCalled();
   });
 
-  test('calls continue handler immediately from CTA while stopping audio in the background', () => {
+  test('calls continue handler immediately from CTA while stopping audio in the background', async () => {
     const onContinueButtonClicked = jest.fn();
     let resolveStopAudio: (() => void) | undefined;
     (AudioUtil.stopAudioUrlOrTtsPlayback as jest.Mock).mockReturnValue(
@@ -70,6 +119,24 @@ describe('ScoreCard', () => {
 
     expect(AudioUtil.stopAudioUrlOrTtsPlayback).toHaveBeenCalledTimes(1);
     expect(onContinueButtonClicked).toHaveBeenCalledTimes(1);
+
+    await waitFor(() =>
+      expect(Util.logEvent).toHaveBeenCalledWith(
+        EVENTS.CLICKS_ANALYTICS,
+        expect.objectContaining({
+          action: 'continue_click',
+          click_identifier: 'lesson_end_continue',
+          click_value: 'Continue Playing',
+          action_type: 'click',
+          user_id: 'parent-1',
+          parent_id: 'parent-1',
+          student_id: 'student-1',
+          lesson_name: 'Lesson One',
+          course_id: 'null',
+          lesson_id: 'null',
+        }),
+      ),
+    );
 
     resolveStopAudio?.();
   });
