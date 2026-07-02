@@ -118,6 +118,33 @@ export type ClassMetricsForClassListingRow = {
   avg_activities_completed?: number | null;
 };
 
+export type ProgramListingProgramRow = {
+  id?: string;
+  program_id?: string | null;
+  program_name?: string | null;
+  state?: string | null;
+  metric_window?: string | null;
+  total_schools?: number | null;
+  performing_well?: number | null;
+  needs_attention?: number | null;
+  needs_support?: number | null;
+  onboarded_students?: number | null;
+  target_student_count?: number | null;
+  onboarded_students_pct?: number | null;
+  activated_students?: number | null;
+  activated_students_pct?: number | null;
+  active_students?: number | null;
+  active_students_pct?: number | null;
+  avg_time_spent?: number | null;
+  onboarded_teachers?: number | null;
+  target_teachers_count?: number | null;
+  onboarded_teachers_pct?: number | null;
+  activated_teachers?: number | null;
+  activated_teachers_pct?: number | null;
+  active_teachers?: number | null;
+  active_teachers_pct?: number | null;
+};
+
 export type OpsStudentPerformanceBandsParams = {
   classIds?: string[];
   studentIds?: string[];
@@ -2230,10 +2257,10 @@ export interface ServiceApi {
    * @param {number} [params.offset] - Number of results to skip (for pagination).
    * @param {string} [params.orderBy] - Field name to sort by.
    * @param {'asc' | 'desc'} [params.order] - Sort order.
-   * @returns {Promise<{ data: any[] }>} Promise resolving to an object containing an array of programs with manager names.
+   * @returns Promise resolving to paginated program listing rows and total count.
    */
   getPrograms(params: {
-    currentUserId: string;
+    currentUserId?: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: TabType;
@@ -2241,7 +2268,13 @@ export interface ServiceApi {
     offset?: number;
     orderBy?: string;
     order?: 'asc' | 'desc';
-  }): Promise<{ data: any[] }>;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{ data: ProgramListingProgramRow[]; total?: number }>;
 
   /**
    * Inserts or updates a program record in the database via Supabase Edge Function.
