@@ -49,7 +49,13 @@ import {
   LEARNING_PATHWAY_MODE,
   ProgramType,
   LATEST_LEARNING_PATH,
+  PERCENTAGE_BAND,
+  PERCENTAGE_BAND_VALUES,
   REWARD_LEARNING_PATH,
+  SCHOOL_PERFORMANCE_STATUS,
+  SCHOOL_PERFORMANCE_STATUS_VALUES,
+  type PercentageBandValue,
+  type SchoolPerformanceStatusValue,
 } from '../../common/constants';
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
@@ -111,18 +117,22 @@ import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
 import logger from '../../utility/logger';
 
-type SchoolListPercentBand = 'low' | 'mid' | 'high';
+type SchoolListPercentBand = PercentageBandValue;
 
 const SCHOOL_LIST_PERCENTAGE_FILTER_KEYS = new Set([
   'activatedStudents',
   'activeStudents',
   'activeTeachers',
 ]);
-const SCHOOL_LIST_PERFORMANCE_FILTER_VALUES = new Set([
-  'Performing Well',
-  'Needs Attention',
-  'Needs Support',
-]);
+const SCHOOL_LIST_PERFORMANCE_FILTER_VALUES =
+  new Set<SchoolPerformanceStatusValue>(SCHOOL_PERFORMANCE_STATUS_VALUES);
+
+const isSchoolPerformanceStatusValue = (
+  value: string,
+): value is SchoolPerformanceStatusValue =>
+  SCHOOL_LIST_PERFORMANCE_FILTER_VALUES.has(
+    value as SchoolPerformanceStatusValue,
+  );
 
 const getNumericMetric = (value: unknown) => {
   if (typeof value === 'number' && Number.isFinite(value)) return value;
@@ -139,8 +149,9 @@ const isPercentWithinBand = (
 ) => {
   if (percent === null) return false;
   const roundedPercent = Math.round(percent);
-  if (band === 'low') return roundedPercent <= 30;
-  if (band === 'mid') return roundedPercent >= 31 && roundedPercent <= 69;
+  if (band === PERCENTAGE_BAND.LOW) return roundedPercent <= 30;
+  if (band === PERCENTAGE_BAND.MID)
+    return roundedPercent >= 31 && roundedPercent <= 69;
   return roundedPercent >= 70;
 };
 
@@ -206,9 +217,9 @@ const normalizeSchoolPerformanceStatus = (value: unknown) => {
       ? value.trim().toLowerCase().replace(/[_-]+/g, ' ')
       : '';
   if (!text) return '';
-  if (text.includes('green')) return 'Performing Well';
-  if (text.includes('red')) return 'Needs Support';
-  if (text.includes('yellow')) return 'Needs Attention';
+  if (text.includes('green')) return SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL;
+  if (text.includes('red')) return SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT;
+  if (text.includes('yellow')) return SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION;
   return text
     .split(/\s+/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -235,9 +246,9 @@ const resolveSchoolMetricsPerformanceStatus = (
     return '';
   }
   const activeRate = activeStudents / onboardedStudents;
-  if (activeRate >= 0.8) return 'Performing Well';
-  if (activeRate >= 0.5) return 'Needs Attention';
-  return 'Needs Support';
+  if (activeRate >= 0.8) return SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL;
+  if (activeRate >= 0.5) return SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION;
+  return SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT;
 };
 
 type CampaignProgramRow = Pick<TableTypes<'program'>, 'id' | 'name'>;
@@ -11249,7 +11260,7 @@ export class SupabaseApi implements ServiceApi {
         Object.entries(percentage_filters ?? {}).filter(
           ([key, value]) =>
             SCHOOL_LIST_PERCENTAGE_FILTER_KEYS.has(key) &&
-            ['low', 'mid', 'high'].includes(value),
+            PERCENTAGE_BAND_VALUES.includes(value as SchoolListPercentBand),
         ),
       ) as Record<string, SchoolListPercentBand>;
 
@@ -11275,7 +11286,7 @@ export class SupabaseApi implements ServiceApi {
 
       const schoolPerformanceFilter =
         typeof school_performance_filter === 'string' &&
-        SCHOOL_LIST_PERFORMANCE_FILTER_VALUES.has(school_performance_filter)
+        isSchoolPerformanceStatusValue(school_performance_filter)
           ? school_performance_filter
           : null;
 

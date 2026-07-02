@@ -3,6 +3,7 @@ import { Box, Chip, Typography } from '@mui/material';
 import { t } from 'i18next';
 import {
   buildSchoolUdiseLocationLabel,
+  getSchoolPerformanceLabel,
   getSchoolCoordinatorList,
   getStatusMeta,
   resolvePerformanceStatus,
@@ -100,7 +101,11 @@ export const mapSchoolRowsToRenderRows = (
           exportPercentText: '',
           render: (
             <Chip
-              label={performanceStatus ? t(performanceStatus) : '--'}
+              label={
+                performanceStatus
+                  ? getSchoolPerformanceLabel(performanceStatus)
+                  : '--'
+              }
               size="small"
               sx={{
                 backgroundColor: `${meta.bg} !important`,

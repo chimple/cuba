@@ -1549,12 +1549,67 @@ export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
   'sticker-book-notification-dot-enabled';
 export const ENABLE_SAVE_AND_SHARE_STICKER_BOOK =
   'enable_save_and_share_sticker_book';
+export const SCHOOL_PERFORMANCE_STATUS = {
+  PERFORMING_WELL: 'Performing Well',
+  NEEDS_ATTENTION: 'Needs Attention',
+  NEEDS_SUPPORT: 'Needs Support',
+} as const;
+export const PERCENTAGE_BAND = {
+  LOW: 'low',
+  MID: 'mid',
+  HIGH: 'high',
+} as const;
+export type SchoolPerformanceStatusValue =
+  (typeof SCHOOL_PERFORMANCE_STATUS)[keyof typeof SCHOOL_PERFORMANCE_STATUS];
+export type PercentageBandValue =
+  (typeof PERCENTAGE_BAND)[keyof typeof PERCENTAGE_BAND];
+export const SCHOOL_PERFORMANCE_STATUS_VALUES = Object.values(
+  SCHOOL_PERFORMANCE_STATUS,
+) as SchoolPerformanceStatusValue[];
+export const PERCENTAGE_BAND_VALUES = Object.values(
+  PERCENTAGE_BAND,
+) as PercentageBandValue[];
+export const SCHOOL_PERFORMANCE_TRANSLATION_KEYS: Record<
+  SchoolPerformanceStatusValue,
+  string
+> = {
+  [SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL]:
+    'schoolPerformance.performingWell',
+  [SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION]:
+    'schoolPerformance.needsAttention',
+  [SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT]: 'schoolPerformance.needsSupport',
+};
+export const PERCENTAGE_BAND_TRANSLATION_KEYS: Record<
+  PercentageBandValue,
+  string
+> = {
+  [PERCENTAGE_BAND.LOW]: 'percentageBand.low',
+  [PERCENTAGE_BAND.MID]: 'percentageBand.mid',
+  [PERCENTAGE_BAND.HIGH]: 'percentageBand.high',
+};
+export const PERCENTAGE_BAND_META: Record<
+  PercentageBandValue,
+  { bg: string; color: string }
+> = {
+  [PERCENTAGE_BAND.LOW]: { bg: '#FCE8E6', color: '#D35451' },
+  [PERCENTAGE_BAND.MID]: { bg: '#FEF3C7', color: '#E7A54E' },
+  [PERCENTAGE_BAND.HIGH]: { bg: '#DFF7EB', color: '#2BA980' },
+};
 export const SCHOOL_LISTING_STATUS_META: Record<
   string,
   { bg: string; color: string }
 > = {
-  'Performing Well': { bg: '#D1FAE5', color: '#2BA980' },
-  'Needs Attention': { bg: '#FEF3C7', color: '#E7A54E' },
-  'Needs Support': { bg: '#FCE8E6', color: '#D35451' },
+  [SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL]: {
+    bg: '#D1FAE5',
+    color: '#2BA980',
+  },
+  [SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION]: {
+    bg: '#FEF3C7',
+    color: '#E7A54E',
+  },
+  [SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT]: {
+    bg: '#FCE8E6',
+    color: '#D35451',
+  },
   default: { bg: '#EEF2F6', color: '#5B6472' },
 };

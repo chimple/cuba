@@ -2,10 +2,18 @@ import React from 'react';
 import { Box, Chip, Typography } from '@mui/material';
 import { t } from 'i18next';
 import {
+  PERCENTAGE_BAND,
+  PERCENTAGE_BAND_META,
+  PERCENTAGE_BAND_TRANSLATION_KEYS,
   FilteredSchoolsForSchoolListingOps,
   PROGRAM_TAB,
   PROGRAM_TAB_LABELS,
+  SCHOOL_PERFORMANCE_STATUS,
+  SCHOOL_PERFORMANCE_STATUS_VALUES,
+  SCHOOL_PERFORMANCE_TRANSLATION_KEYS,
   SCHOOL_LISTING_STATUS_META,
+  type PercentageBandValue,
+  type SchoolPerformanceStatusValue,
 } from '../../common/constants';
 import type { Column } from '../components/DataTableBody';
 import type { SchoolListRow } from './SchoolList.fetcher';
@@ -23,11 +31,8 @@ export const DATE_RANGE_OPTIONS = [
 export type DateRangeValue = (typeof DATE_RANGE_OPTIONS)[number]['value'];
 
 export type Filters = Record<string, string[]>;
-export type PercentBand = 'low' | 'mid' | 'high';
-export type SchoolPerformanceFilterValue =
-  | 'Performing Well'
-  | 'Needs Attention'
-  | 'Needs Support';
+export type PercentBand = PercentageBandValue;
+export type SchoolPerformanceFilterValue = SchoolPerformanceStatusValue;
 export type PercentageFilterKey =
   | 'activatedStudents'
   | 'activeStudents'
@@ -46,13 +51,25 @@ export const PERCENTAGE_FILTER_OPTIONS: Array<{
   label: string;
   description: string;
 }> = [
-  { value: 'low', label: t('Low'), description: t('≤ 30%') },
-  { value: 'mid', label: t('Mid'), description: t('31% - 69%') },
-  { value: 'high', label: t('High'), description: t('≥ 70%') },
+  {
+    value: PERCENTAGE_BAND.LOW,
+    label: t(PERCENTAGE_BAND_TRANSLATION_KEYS[PERCENTAGE_BAND.LOW]),
+    description: t('≤ 30%'),
+  },
+  {
+    value: PERCENTAGE_BAND.MID,
+    label: t(PERCENTAGE_BAND_TRANSLATION_KEYS[PERCENTAGE_BAND.MID]),
+    description: t('31% - 69%'),
+  },
+  {
+    value: PERCENTAGE_BAND.HIGH,
+    label: t(PERCENTAGE_BAND_TRANSLATION_KEYS[PERCENTAGE_BAND.HIGH]),
+    description: t('≥ 70%'),
+  },
 ];
 
 export const SCHOOL_PERFORMANCE_FILTER_OPTIONS: SchoolPerformanceFilterValue[] =
-  ['Performing Well', 'Needs Attention', 'Needs Support'];
+  SCHOOL_PERFORMANCE_STATUS_VALUES;
 
 // Shared filter metadata for the school listing drawer.
 export const filterConfigsForSchool = [
@@ -368,14 +385,32 @@ export const normalizeStatus = (value: unknown) => {
       ? value.trim().toLowerCase().replace(/[_-]+/g, ' ')
       : '';
   if (!text) return '';
-  if (text.includes('green')) return 'Performing Well';
-  if (text.includes('red')) return 'Needs Support';
-  if (text.includes('yellow')) return 'Needs Attention';
+  if (text.includes('green')) return SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL;
+  if (text.includes('red')) return SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT;
+  if (text.includes('yellow')) return SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION;
   return text
     .split(/\s+/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 };
+
+export const getSchoolPerformanceLabel = (status: string) => {
+  const translationKey =
+    SCHOOL_PERFORMANCE_TRANSLATION_KEYS[status as SchoolPerformanceFilterValue];
+  if (!translationKey) return status;
+
+  const translated = t(translationKey);
+  return translated === translationKey ? status : translated;
+};
+
+export const getPercentageBandLabel = (band: PercentBand) => {
+  const translationKey = PERCENTAGE_BAND_TRANSLATION_KEYS[band];
+  const translated = t(translationKey);
+  return translated === translationKey ? band : translated;
+};
+
+export const getPercentageBandMeta = (band: PercentBand) =>
+  PERCENTAGE_BAND_META[band];
 
 export const getStatusMeta = (status: string) => {
   return (
@@ -399,9 +434,9 @@ export const resolvePerformanceStatus = (school: SchoolMetricRow) => {
     return '';
   }
   const activeRate = activeStudents / onboardedStudents;
-  if (activeRate >= 0.8) return 'Performing Well';
-  if (activeRate >= 0.5) return 'Needs Attention';
-  return 'Needs Support';
+  if (activeRate >= 0.8) return SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL;
+  if (activeRate >= 0.5) return SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION;
+  return SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT;
 };
 
 // Kept for future table helpers that need a compact geographic breadcrumb.
@@ -469,8 +504,9 @@ export const isPercentInBand = (
     return false;
   }
   const roundedPercent = Math.round(percent);
-  if (band === 'low') return roundedPercent <= 30;
-  if (band === 'mid') return roundedPercent >= 31 && roundedPercent <= 69;
+  if (band === PERCENTAGE_BAND.LOW) return roundedPercent <= 30;
+  if (band === PERCENTAGE_BAND.MID)
+    return roundedPercent >= 31 && roundedPercent <= 69;
   return roundedPercent >= 70;
 };
 

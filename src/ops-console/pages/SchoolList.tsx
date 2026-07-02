@@ -30,7 +30,11 @@ import {
   DATE_RANGE_OPTIONS,
   DEFAULT_PAGE_SIZE,
   filterConfigsForSchool,
+  getPercentageBandLabel,
+  getPercentageBandMeta,
   getSchoolListColumns,
+  getSchoolPerformanceLabel,
+  getStatusMeta,
   hasSchoolListFilters,
   mapSchoolListFilterOptions,
   PERCENTAGE_FILTER_OPTIONS,
@@ -476,7 +480,9 @@ const SchoolList: React.FC = () => {
       items.push({
         key: 'schoolPerformanceFilter',
         value: schoolPerformanceFilter,
-        label: `${t('School Performance')} : ${t(schoolPerformanceFilter)}`,
+        label: `${t('School Performance')} : ${getSchoolPerformanceLabel(
+          schoolPerformanceFilter,
+        )}`,
       });
     }
 
@@ -793,6 +799,7 @@ const SchoolList: React.FC = () => {
         >
           {PERCENTAGE_FILTER_OPTIONS.map((option) => {
             const selected = activePercentageBand === option.value;
+            const bandMeta = getPercentageBandMeta(option.value);
 
             return (
               <MenuItem
@@ -812,24 +819,14 @@ const SchoolList: React.FC = () => {
                     {option.description}
                   </Typography>
                   <Chip
-                    label={option.label}
+                    label={getPercentageBandLabel(option.value)}
                     size="small"
                     sx={{
                       height: 28,
                       minWidth: 64,
                       fontWeight: 700,
-                      backgroundColor:
-                        option.value === 'low'
-                          ? '#FCE8E6'
-                          : option.value === 'mid'
-                            ? '#FEF3C7'
-                            : '#DFF7EB',
-                      color:
-                        option.value === 'low'
-                          ? '#D35451'
-                          : option.value === 'mid'
-                            ? '#E7A54E'
-                            : '#2BA980',
+                      backgroundColor: bandMeta.bg,
+                      color: bandMeta.color,
                     }}
                   />
                 </Box>
@@ -848,7 +845,8 @@ const SchoolList: React.FC = () => {
         >
           {SCHOOL_PERFORMANCE_FILTER_OPTIONS.map((option) => {
             const selected = schoolPerformanceFilter === option;
-            const optionLabel = t(option);
+            const optionLabel = getSchoolPerformanceLabel(option);
+            const meta = getStatusMeta(option);
 
             return (
               <MenuItem
@@ -870,18 +868,8 @@ const SchoolList: React.FC = () => {
                     sx={{
                       height: 28,
                       fontWeight: 700,
-                      backgroundColor:
-                        option === 'Performing Well'
-                          ? '#DFF7EB'
-                          : option === 'Needs Attention'
-                            ? '#FEF3C7'
-                            : '#FCE8E6',
-                      color:
-                        option === 'Performing Well'
-                          ? '#2BA980'
-                          : option === 'Needs Attention'
-                            ? '#E7A54E'
-                            : '#D35451',
+                      backgroundColor: meta.bg,
+                      color: meta.color,
                     }}
                   />
                 </Box>
