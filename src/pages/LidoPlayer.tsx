@@ -614,14 +614,16 @@ const LidoPlayer: FC = () => {
         const activitiesScoresStr = group.resultsList.join(',');
 
         let abilityUpdates: Partial<AbilityUpdates> = {};
-        let courseSubjectIdForResult: string | undefined;
+        let courseSubjectIdForResult: string | undefined =
+          courseDetail?.subject_id ?? undefined;
         try {
           const currentCourseId = courseDetail?.id ?? courseDocId ?? '';
           const {
             subjectId: courseSubjectId,
             hasFramework: courseHasFramework,
           } = await getCoursePalContext(currentCourseId);
-          courseSubjectIdForResult = courseSubjectId ?? undefined;
+          courseSubjectIdForResult =
+            courseSubjectId ?? courseSubjectIdForResult;
           const skillData = await api.getSkillById(skillId);
           const currentOutcomeId = skillData?.outcome_id;
           const canUpdateAbility =
