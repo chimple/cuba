@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PAGES } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
@@ -549,7 +549,9 @@ describe('SchoolList export', () => {
 
     expect(exportButton).toBeDisabled();
 
-    jest.advanceTimersByTime(500);
+    act(() => {
+      jest.advanceTimersByTime(500);
+    });
 
     await waitFor(() => expect(exportButton).toBeEnabled());
     jest.useRealTimers();

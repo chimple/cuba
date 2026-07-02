@@ -406,7 +406,9 @@ export const getSchoolPerformanceLabel = (status: string) => {
 export const getPercentageBandLabel = (band: PercentBand) => {
   const translationKey = PERCENTAGE_BAND_TRANSLATION_KEYS[band];
   const translated = t(translationKey);
-  return translated === translationKey ? band : translated;
+  return translated === translationKey
+    ? `${band.charAt(0).toUpperCase()}${band.slice(1)}`
+    : translated;
 };
 
 export const getPercentageBandMeta = (band: PercentBand) =>
