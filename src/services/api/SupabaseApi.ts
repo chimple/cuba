@@ -49,7 +49,13 @@ import {
   LEARNING_PATHWAY_MODE,
   ProgramType,
   LATEST_LEARNING_PATH,
+  PERCENTAGE_BAND,
+  PERCENTAGE_BAND_VALUES,
   REWARD_LEARNING_PATH,
+  SCHOOL_PERFORMANCE_STATUS,
+  SCHOOL_PERFORMANCE_STATUS_VALUES,
+  type PercentageBandValue,
+  type SchoolPerformanceStatusValue,
 } from '../../common/constants';
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
@@ -112,6 +118,140 @@ import {
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
 import logger from '../../utility/logger';
+
+type SchoolListPercentBand = PercentageBandValue;
+
+const SCHOOL_LIST_PERCENTAGE_FILTER_KEYS = new Set([
+  'activatedStudents',
+  'activeStudents',
+  'activeTeachers',
+]);
+const SCHOOL_LIST_PERFORMANCE_FILTER_VALUES =
+  new Set<SchoolPerformanceStatusValue>(SCHOOL_PERFORMANCE_STATUS_VALUES);
+
+const isSchoolPerformanceStatusValue = (
+  value: string,
+): value is SchoolPerformanceStatusValue =>
+  SCHOOL_LIST_PERFORMANCE_FILTER_VALUES.has(
+    value as SchoolPerformanceStatusValue,
+  );
+
+const getNumericMetric = (value: unknown) => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const numericValue = Number(value);
+    if (Number.isFinite(numericValue)) return numericValue;
+  }
+  return null;
+};
+
+const isPercentWithinBand = (
+  percent: number | null,
+  band: SchoolListPercentBand,
+) => {
+  if (percent === null) return false;
+  const roundedPercent = Math.round(percent);
+  if (band === PERCENTAGE_BAND.LOW) return roundedPercent <= 30;
+  if (band === PERCENTAGE_BAND.MID)
+    return roundedPercent >= 31 && roundedPercent <= 69;
+  return roundedPercent >= 70;
+};
+
+const getActivatedStudentsPercent = (row: Record<string, unknown>) => {
+  const onboardedStudents = getNumericMetric(row.onboarded_students);
+  const activatedStudents = getNumericMetric(row.activated_students);
+  if (
+    onboardedStudents === null ||
+    activatedStudents === null ||
+    onboardedStudents <= 0
+  ) {
+    return null;
+  }
+  return (activatedStudents / onboardedStudents) * 100;
+};
+
+const getActiveStudentsPercent = (row: Record<string, unknown>) => {
+  const activatedStudents = getNumericMetric(row.activated_students);
+  const activeStudents = getNumericMetric(row.active_students);
+  if (
+    activatedStudents === null ||
+    activeStudents === null ||
+    activatedStudents <= 0
+  ) {
+    return null;
+  }
+  return (activeStudents / activatedStudents) * 100;
+};
+
+const getActiveTeachersPercent = (row: Record<string, unknown>) => {
+  const explicitPercent = getNumericMetric(row.active_teacher_percentage);
+  if (explicitPercent !== null) return explicitPercent;
+
+  const activeTeachers = getNumericMetric(row.active_teachers);
+  const totalTeachers = getNumericMetric(row.total_teachers);
+  if (activeTeachers !== null && totalTeachers !== null && totalTeachers > 0) {
+    return (activeTeachers / totalTeachers) * 100;
+  }
+  if (activeTeachers !== null && activeTeachers > 0) return 100;
+  return null;
+};
+
+const getSchoolMetricsSortValue = (
+  row: Record<string, unknown>,
+  sortBy: string,
+): string | number | null => {
+  if (sortBy === 'school_performance') {
+    return typeof row.school_performance === 'string'
+      ? row.school_performance.toLowerCase()
+      : '';
+  }
+  if (sortBy === 'school_name') {
+    return typeof row.school_name === 'string'
+      ? row.school_name.toLowerCase()
+      : '';
+  }
+  return getNumericMetric(row[sortBy]);
+};
+
+const normalizeSchoolPerformanceStatus = (value: unknown) => {
+  const text =
+    typeof value === 'string'
+      ? value.trim().toLowerCase().replace(/[_-]+/g, ' ')
+      : '';
+  if (!text) return '';
+  if (text.includes('green')) return SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL;
+  if (text.includes('red')) return SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT;
+  if (text.includes('yellow')) return SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION;
+  return text
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+const resolveSchoolMetricsPerformanceStatus = (
+  row: Record<string, unknown>,
+) => {
+  const explicitStatus = normalizeSchoolPerformanceStatus(
+    row.school_performance,
+  );
+  if (explicitStatus) return explicitStatus;
+
+  const onboardedStudents = getNumericMetric(row.onboarded_students);
+  const activeStudents =
+    getNumericMetric(row.active_students) ??
+    getNumericMetric(row.activated_students);
+  if (
+    onboardedStudents === null ||
+    activeStudents === null ||
+    onboardedStudents <= 0
+  ) {
+    return '';
+  }
+  const activeRate = activeStudents / onboardedStudents;
+  if (activeRate >= 0.8) return SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL;
+  if (activeRate >= 0.5) return SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION;
+  return SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT;
+};
 
 type CampaignProgramRow = Pick<TableTypes<'program'>, 'id' | 'name'>;
 
@@ -10921,6 +11061,8 @@ export class SupabaseApi implements ServiceApi {
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
+    percentage_filters?: Record<string, SchoolListPercentBand>;
+    school_performance_filter?: string | null;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
@@ -10990,6 +11132,8 @@ export class SupabaseApi implements ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, SchoolListPercentBand>;
+    school_performance_filter?: string | null;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
@@ -11017,6 +11161,8 @@ export class SupabaseApi implements ServiceApi {
       order_dir,
       search,
       date_range,
+      percentage_filters,
+      school_performance_filter,
     } = params;
 
     const specialRoles = await this.getUserSpecialRoles(authUser.id);
@@ -11184,23 +11330,110 @@ export class SupabaseApi implements ServiceApi {
         );
       }
 
-      const sortBy = order_by === 'name' ? 'school_name' : 'school_name';
-      const sortDir = order_dir === 'desc' ? false : true;
-      const from = Math.max(page - 1, 0) * page_size;
-      const to = from + page_size - 1;
+      const allowedSortColumns = new Set([
+        'school_name',
+        'school_performance',
+        'onboarded_students',
+        'activated_students',
+        'active_students',
+        'avg_time_spent',
+        'active_teachers',
+        'activities_assigned',
+        'avg_assignments_completed',
+        'avg_activities_completed',
+        'student_parent_calls',
+        'teacher_hm_calls',
+        'community_visits',
+        'community_parents_reached',
+        'school_visits',
+        'parents_on_whatsapp',
+        'parents_in_group',
+      ]);
+      const sortBy = allowedSortColumns.has(order_by ?? '')
+        ? (order_by as string)
+        : 'school_name';
+      const sortAscending = order_dir !== 'desc';
 
-      const { data, count, error } = await query
-        .order(sortBy, { ascending: sortDir })
-        .range(from, to);
+      const { data, error } = await query;
 
       if (error) {
         logger.error('Error fetching school_metrics listing:', error);
         return { data: [], total: 0 };
       }
 
-      const rows = (data ?? []) as Array<Record<string, unknown>>;
+      let rows = (data ?? []) as Array<Record<string, unknown>>;
 
-      const mappedRows = rows.map((row: Record<string, unknown>) => ({
+      const percentageFilters = Object.fromEntries(
+        Object.entries(percentage_filters ?? {}).filter(
+          ([key, value]) =>
+            SCHOOL_LIST_PERCENTAGE_FILTER_KEYS.has(key) &&
+            PERCENTAGE_BAND_VALUES.includes(value as SchoolListPercentBand),
+        ),
+      ) as Record<string, SchoolListPercentBand>;
+
+      if (Object.keys(percentageFilters).length > 0) {
+        rows = rows.filter((row) =>
+          Object.entries(percentageFilters).every(([key, band]) => {
+            if (key === 'activatedStudents') {
+              return isPercentWithinBand(
+                getActivatedStudentsPercent(row),
+                band,
+              );
+            }
+            if (key === 'activeStudents') {
+              return isPercentWithinBand(getActiveStudentsPercent(row), band);
+            }
+            if (key === 'activeTeachers') {
+              return isPercentWithinBand(getActiveTeachersPercent(row), band);
+            }
+            return true;
+          }),
+        );
+      }
+
+      const schoolPerformanceFilter =
+        typeof school_performance_filter === 'string' &&
+        isSchoolPerformanceStatusValue(school_performance_filter)
+          ? school_performance_filter
+          : null;
+
+      if (schoolPerformanceFilter) {
+        rows = rows.filter(
+          (row) =>
+            resolveSchoolMetricsPerformanceStatus(row) ===
+            schoolPerformanceFilter,
+        );
+      }
+
+      rows.sort((leftRow, rightRow) => {
+        const leftValue = getSchoolMetricsSortValue(leftRow, sortBy);
+        const rightValue = getSchoolMetricsSortValue(rightRow, sortBy);
+
+        if (leftValue == null && rightValue == null) return 0;
+        if (leftValue == null) return 1;
+        if (rightValue == null) return -1;
+
+        if (typeof leftValue === 'string' || typeof rightValue === 'string') {
+          const result = String(leftValue).localeCompare(
+            String(rightValue),
+            undefined,
+            {
+              sensitivity: 'base',
+              numeric: true,
+            },
+          );
+          return sortAscending ? result : -result;
+        }
+
+        const result =
+          leftValue === rightValue ? 0 : leftValue > rightValue ? 1 : -1;
+        return sortAscending ? result : -result;
+      });
+
+      const from = Math.max(page - 1, 0) * page_size;
+      const pagedRows = rows.slice(from, from + page_size);
+
+      const mappedRows = pagedRows.map((row: Record<string, unknown>) => ({
         ...row,
         school_name: typeof row.school_name === 'string' ? row.school_name : '',
         udise: row.udise ?? null,
@@ -11210,12 +11443,15 @@ export class SupabaseApi implements ServiceApi {
             : 0,
         num_teachers:
           typeof row.active_teachers === 'number' ? row.active_teachers : 0,
-        total_teachers: null,
+        total_teachers: getNumericMetric(row.total_teachers),
         onboarded_students: row.onboarded_students ?? null,
         activated_students: row.activated_students ?? null,
         active_students: row.active_students ?? null,
         avg_time_spent: row.avg_time_spent ?? null,
         active_teachers: row.active_teachers ?? null,
+        active_teacher_percentage: getNumericMetric(
+          row.active_teacher_percentage,
+        ),
         activities_assigned: row.activities_assigned ?? null,
         avg_assignments_completed: row.avg_assignments_completed ?? null,
         avg_activities_completed: row.avg_activities_completed ?? null,
@@ -11235,7 +11471,7 @@ export class SupabaseApi implements ServiceApi {
 
       return {
         data: mappedRows,
-        total: typeof count === 'number' ? count : 0,
+        total: rows.length,
       };
     } catch (error) {
       logger.error(

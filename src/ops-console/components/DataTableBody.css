@@ -11,7 +11,7 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background-color: #dde1e6 !important;
+  background-color: #f2f4f8 !important;
   font-size: 14px;
   padding: 16px 12px;
   height: 48px;
@@ -23,7 +23,8 @@
   top: 0;
   left: 0;
   z-index: 10;
-  background-color: #dde1e6 !important;
+  background-color: #f2f4f8 !important;
+  border-left: 1px solid rgba(224, 224, 224, 1);
 }
 
 .data-tablebody-select-all-head-cell {
@@ -93,6 +94,7 @@
   z-index: 1;
   background-color: #ffffff;
   padding-left: 16px;
+  border-left: 1px solid rgba(224, 224, 224, 1);
 }
 
 .data-tablebody-skeleton-selection-cell {

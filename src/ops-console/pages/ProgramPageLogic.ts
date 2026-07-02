@@ -741,6 +741,7 @@ const getXlsx = async (): Promise<XlsxModule> => {
 type ExportCellValue = string | number;
 
 const safeExportNumber = (value?: number | null) => value ?? 0;
+const toExportText = (value: unknown): string => String(value ?? '');
 
 const formatExportPercent = (
   value: number | null | undefined,
@@ -754,7 +755,9 @@ const formatExportPercent = (
 };
 
 const getProgramExportDateRangeLabel = (value: DateRangeValue): string =>
-  DATE_RANGE_OPTIONS.find((option) => option.value === value)?.label ?? value;
+  toExportText(
+    DATE_RANGE_OPTIONS.find((option) => option.value === value)?.label ?? value,
+  );
 
 const buildProgramAppliedFilterLabels = (
   filters: Filters,
@@ -763,7 +766,11 @@ const buildProgramAppliedFilterLabels = (
   const tabFilter =
     selectedTab === PROGRAM_TAB.ALL
       ? []
-      : [`${t('Program Model')}: ${t(PROGRAM_TAB_LABELS[selectedTab])}`];
+      : [
+          `${toExportText(t('Program Model'))}: ${toExportText(
+            t(PROGRAM_TAB_LABELS[selectedTab]),
+          )}`,
+        ];
   const selectedFilterLabels = Object.entries(filters).flatMap(
     ([key, values]) =>
       values
@@ -782,13 +789,16 @@ const buildProgramExportMetadataRows = (
   const appliedFilters = buildProgramAppliedFilterLabels(filters, selectedTab);
   const filterRows = appliedFilters.length
     ? appliedFilters.map((filterLabel, index) => [
-        index === 0 ? t('Applied Filters') : '',
+        index === 0 ? toExportText(t('Applied Filters')) : '',
         filterLabel,
       ])
-    : [[t('Applied Filters'), t('None')]];
+    : [[toExportText(t('Applied Filters')), toExportText(t('None'))]];
 
   return [
-    [t('Date Range'), getProgramExportDateRangeLabel(selectedDateRange)],
+    [
+      toExportText(t('Date Range')),
+      getProgramExportDateRangeLabel(selectedDateRange),
+    ],
     ...filterRows,
     [],
   ];
@@ -876,43 +886,43 @@ const buildProgramMetricExportRows = (
 ): ExportCellValue[][] => [
   ...buildProgramExportMetadataRows(filters, selectedDateRange, selectedTab),
   [
-    t('Program Name'),
-    t('Total Schools'),
-    t('School Division'),
+    toExportText(t('Program Name')),
+    toExportText(t('Total Schools')),
+    toExportText(t('School Division')),
     '',
     '',
-    t('Onboarded Students'),
+    toExportText(t('Onboarded Students')),
     '',
-    t('Activated Students'),
+    toExportText(t('Activated Students')),
     '',
-    t('Active Users'),
+    toExportText(t('Active Users')),
     '',
-    t('Avg Engagement'),
-    t('Onboarded Teachers'),
+    toExportText(t('Avg Engagement')),
+    toExportText(t('Onboarded Teachers')),
     '',
-    t('Activated Teachers'),
+    toExportText(t('Activated Teachers')),
     '',
-    t('Active Teachers'),
+    toExportText(t('Active Teachers')),
     '',
   ],
   [
     '',
     '',
-    t('Performing Well'),
-    t('Needs Attention'),
-    t('Needs Support'),
-    t('Count'),
+    toExportText(t('Performing Well')),
+    toExportText(t('Needs Attention')),
+    toExportText(t('Needs Support')),
+    toExportText(t('Count')),
     '%',
-    t('Count'),
+    toExportText(t('Count')),
     '%',
-    t('Count'),
+    toExportText(t('Count')),
     '%',
     '',
-    t('Count'),
+    toExportText(t('Count')),
     '%',
-    t('Count'),
+    toExportText(t('Count')),
     '%',
-    t('Count'),
+    toExportText(t('Count')),
     '%',
   ],
   ...rows.map(buildProgramMetricExportRow),
