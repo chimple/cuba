@@ -9,6 +9,7 @@ import {
   CampaignAudienceSummaryParams,
   CampaignSavedAudienceGroup,
   CampaignSetupOptions,
+  ClassMetricsForClassListingRow,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
@@ -1549,7 +1550,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getProgramFilterOptions();
   }
   async getPrograms(params: {
-    currentUserId: string;
+    currentUserId?: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: TabType;
@@ -1557,7 +1558,13 @@ export class ApiHandler implements ServiceApi {
     offset?: number;
     orderBy?: string;
     order?: 'asc' | 'desc';
-  }): Promise<{ data: any[] }> {
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }) {
     return await this.s.getPrograms(params);
   }
 
@@ -1726,6 +1733,13 @@ export class ApiHandler implements ServiceApi {
     school_performance_filter?: string | null;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this.s.getSchoolMetricsForSchoolListing(params);
+  }
+
+  async getClassMetricsForClassListing(params: {
+    schoolId: string;
+    date_range?: string;
+  }): Promise<ClassMetricsForClassListingRow[]> {
+    return await this.s.getClassMetricsForClassListing(params);
   }
 
   async getSchoolsWithProgramAccess(

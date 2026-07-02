@@ -1,26 +1,27 @@
-import React, { forwardRef } from 'react';
 import {
   Box,
+  Checkbox,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
-  Checkbox,
   TableContainer,
   TableHead,
   TableRow,
   TableSortLabel,
-  Skeleton,
 } from '@mui/material';
-import './DataTableBody.css';
+import React, { forwardRef } from 'react';
 import { useHistory } from 'react-router';
 import { PAGES } from '../../common/constants';
 import logger from '../../utility/logger';
+import './DataTableBody.css';
 
 export interface Column<T extends object> {
   key: keyof T | string;
   label: string;
   align?: 'left' | 'right' | 'center' | 'justify' | 'inherit';
   headerAlign?: 'left' | 'center' | 'right';
+  headerIcon?: 'sort' | 'filter' | 'none';
   render?: (row: T) => React.ReactNode;
   width?: string | number;
   [key: string]: unknown;
@@ -74,6 +75,9 @@ interface Props<T extends object> {
   headerNoEllipsis?: boolean;
   headerAlign?: 'left' | 'center' | 'right';
   renderHeaderActions?: (column: Column<T>) => React.ReactNode;
+  customHeaderIcons?: boolean;
+  activeHeaderFilterKey?: string | null;
+  onHeaderFilterClick?: (anchorEl: HTMLElement, key: string) => void;
 }
 
 function TableSkeleton<T extends object>({
@@ -151,6 +155,9 @@ function DataTableBodyInner<T extends object>(
     headerNoEllipsis = false,
     headerAlign = 'left',
     renderHeaderActions,
+    customHeaderIcons = false,
+    activeHeaderFilterKey,
+    onHeaderFilterClick,
   }: Props<T>,
   ref: React.ForwardedRef<HTMLDivElement>,
 ) {
@@ -190,7 +197,6 @@ function DataTableBodyInner<T extends object>(
     }
 
     if (detailPageRouteBase === 'programs') {
-      const recordRow = row as Record<string, unknown>;
       history.push(
         `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${String(
           recordRow.id,
@@ -235,7 +241,6 @@ function DataTableBodyInner<T extends object>(
     !allRowsSelected;
 
   return (
-    // This shared body stays generic; SchoolList only opts into the wider scroll props.
     <TableContainer ref={ref} className="data-tablebody-container">
       <Table
         size="small"
@@ -267,20 +272,150 @@ function DataTableBodyInner<T extends object>(
             {columns.map((col) => {
               const resolvedHeaderAlign = col.headerAlign ?? headerAlign;
               const headerActions = renderHeaderActions?.(col);
-              const isSortedColumn = orderBy === String(col.key);
+              const columnKey = String(col.key);
+              const isSortedColumn = orderBy === columnKey;
+
               const headerContent =
-                col.sortable === false ? (
+                customHeaderIcons && col.headerIcon === 'filter' ? (
+                  <div
+                    className={`data-tablebody-head-button data-tablebody-head-button-${resolvedHeaderAlign}`}
+                  >
+                    <span
+                      className="data-tablebody-head-label"
+                      style={getHeaderLabelSx(
+                        headerClampLines,
+                        headerNoEllipsis,
+                      )}
+                    >
+                      {col.label}
+                    </span>
+                    {col.sortable !== false && (
+                      <button
+                        type="button"
+                        className="data-tablebody-head-sort-icon-trigger"
+                        aria-label={`Sort ${col.label}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onSort(columnKey);
+                        }}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`data-tablebody-head-icon data-tablebody-head-icon-sort ${
+                            isSortedColumn
+                              ? 'data-tablebody-head-icon-active'
+                              : ''
+                          } ${
+                            isSortedColumn && order === 'desc'
+                              ? 'data-tablebody-head-icon-desc'
+                              : ''
+                          }`}
+                        >
+                          <img
+                            alt=""
+                            aria-hidden="true"
+                            className="data-tablebody-head-sort-image"
+                            src={
+                              isSortedColumn
+                                ? '/assets/icons/Sorted.svg'
+                                : '/assets/icons/Sort.svg'
+                            }
+                          />
+                        </span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className={`data-tablebody-head-filter-trigger ${
+                        activeHeaderFilterKey === columnKey
+                          ? 'data-tablebody-head-filter-trigger-active'
+                          : ''
+                      }`}
+                      aria-label={`Filter ${col.label}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        const headerCell = event.currentTarget.closest('th');
+                        onHeaderFilterClick?.(
+                          headerCell ?? event.currentTarget,
+                          columnKey,
+                        );
+                      }}
+                    >
+                      <img
+                        alt=""
+                        aria-hidden="true"
+                        className="data-tablebody-head-icon data-tablebody-head-icon-filter"
+                        src={
+                          activeHeaderFilterKey === columnKey
+                            ? '/assets/icons/tableFilterIconActive.svg'
+                            : '/assets/icons/tableFilterIcon.svg'
+                        }
+                      />
+                    </button>
+                  </div>
+                ) : col.sortable === false ? (
                   <span
                     className="data-tablebody-head-label"
                     style={getHeaderLabelSx(headerClampLines, headerNoEllipsis)}
                   >
                     {col.label}
                   </span>
+                ) : customHeaderIcons ? (
+                  <div
+                    className={`data-tablebody-head-button data-tablebody-head-button-${resolvedHeaderAlign}`}
+                  >
+                    <span
+                      className="data-tablebody-head-label"
+                      style={getHeaderLabelSx(
+                        headerClampLines,
+                        headerNoEllipsis,
+                      )}
+                    >
+                      {col.label}
+                    </span>
+                    {(col.headerIcon ?? 'sort') !== 'none' && (
+                      <button
+                        type="button"
+                        className="data-tablebody-head-sort-icon-trigger"
+                        aria-label={`Sort ${col.label}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onSort(columnKey);
+                        }}
+                      >
+                        {col.headerIcon === 'sort' ? (
+                          <span
+                            aria-hidden="true"
+                            className={`data-tablebody-head-icon data-tablebody-head-icon-sort ${
+                              isSortedColumn
+                                ? 'data-tablebody-head-icon-active'
+                                : ''
+                            } ${
+                              isSortedColumn && order === 'desc'
+                                ? 'data-tablebody-head-icon-desc'
+                                : ''
+                            }`}
+                          >
+                            <img
+                              alt=""
+                              aria-hidden="true"
+                              className="data-tablebody-head-sort-image"
+                              src={
+                                isSortedColumn
+                                  ? '/assets/icons/Sorted.svg'
+                                  : '/assets/icons/Sort.svg'
+                              }
+                            />
+                          </span>
+                        ) : null}
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   <TableSortLabel
                     active={isSortedColumn}
                     direction={isSortedColumn ? order : 'asc'}
-                    onClick={() => onSort(String(col.key))}
+                    onClick={() => onSort(columnKey)}
                     sx={{
                       color: '#121619 !important',
                       fontWeight: 700,
@@ -333,7 +468,7 @@ function DataTableBodyInner<T extends object>(
 
               return (
                 <TableCell
-                  key={String(col.key)}
+                  key={columnKey}
                   align={col.align || 'left'}
                   className="data-tablebody-head-cell"
                   sx={{
@@ -388,7 +523,6 @@ function DataTableBodyInner<T extends object>(
             })}
           </TableRow>
         </TableHead>
-        {/* Show skeleton or actual rows */}
         {loading ? (
           <TableSkeleton
             columns={columns}
@@ -397,7 +531,7 @@ function DataTableBodyInner<T extends object>(
           />
         ) : (
           <TableBody>
-            {rows.map((row, idx) => {
+            {rows.map((row) => {
               const rowId = resolveRowId(row);
               const canSelect = isRowSelectable ? isRowSelectable(row) : true;
               const selected = selectableRows
@@ -443,7 +577,8 @@ function DataTableBodyInner<T extends object>(
                       className="data-tablebody-cell"
                       sx={{
                         width: col.width ?? 'auto',
-                        maxWidth: col.width,
+                        maxWidth: customHeaderIcons ? 'none' : col.width,
+                        textAlign: col.align || 'left',
                       }}
                     >
                       {(() => {

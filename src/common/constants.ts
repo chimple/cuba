@@ -1613,3 +1613,28 @@ export const SCHOOL_LISTING_STATUS_META: Record<
   },
   default: { bg: '#EEF2F6', color: '#5B6472' },
 };
+
+export const CLASS_PERFORMANCE_STATUS = {
+  PERFORMING_WELL: 'Performing Well',
+  NEEDS_ATTENTION: 'Needs Attention',
+  NEEDS_SUPPORT: 'Needs Support',
+} as const;
+
+export const CLASS_PERFORMANCE_STATUS_META: Record<
+  string,
+  { bg: string; color: string }
+> = {
+  [CLASS_PERFORMANCE_STATUS.PERFORMING_WELL]: {
+    bg: '#E6F4EA',
+    color: '#137333',
+  },
+  [CLASS_PERFORMANCE_STATUS.NEEDS_ATTENTION]: {
+    bg: '#FEF7E0',
+    color: '#B95000',
+  },
+  [CLASS_PERFORMANCE_STATUS.NEEDS_SUPPORT]: {
+    bg: '#FCE8E6',
+    color: '#C5221F',
+  },
+  default: { bg: '#EEF2F6', color: '#5B6472' },
+};
