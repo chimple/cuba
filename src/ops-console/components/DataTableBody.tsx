@@ -1,25 +1,26 @@
-import React, { forwardRef } from 'react';
 import {
+  Checkbox,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
-  Checkbox,
   TableContainer,
   TableHead,
   TableRow,
   TableSortLabel,
-  Skeleton,
 } from '@mui/material';
-import './DataTableBody.css';
+import React, { forwardRef } from 'react';
 import { useHistory } from 'react-router';
 import { PAGES } from '../../common/constants';
 import logger from '../../utility/logger';
+import './DataTableBody.css';
 
 export interface Column<T extends object> {
   key: keyof T | string;
   label: string;
   align?: 'left' | 'right' | 'center' | 'justify' | 'inherit';
   headerAlign?: 'left' | 'center' | 'right';
+  headerIcon?: 'sort' | 'filter' | 'none';
   render?: (row: T) => React.ReactNode;
   width?: string | number;
   [key: string]: unknown;
@@ -72,6 +73,9 @@ interface Props<T extends object> {
   headerClampLines?: number;
   headerNoEllipsis?: boolean;
   headerAlign?: 'left' | 'center' | 'right';
+  customHeaderIcons?: boolean;
+  activeHeaderFilterKey?: string | null;
+  onHeaderFilterClick?: (anchorEl: HTMLElement, key: string) => void;
 }
 
 function TableSkeleton<T extends object>({
@@ -148,6 +152,9 @@ function DataTableBodyInner<T extends object>(
     headerClampLines = 2,
     headerNoEllipsis = false,
     headerAlign = 'left',
+    customHeaderIcons = false,
+    activeHeaderFilterKey,
+    onHeaderFilterClick,
   }: Props<T>,
   ref: React.ForwardedRef<HTMLDivElement>,
 ) {
@@ -263,6 +270,7 @@ function DataTableBodyInner<T extends object>(
             )}
             {columns.map((col) => {
               const resolvedHeaderAlign = col.headerAlign ?? headerAlign;
+              const columnKey = String(col.key);
               return (
                 <TableCell
                   key={String(col.key)}
@@ -287,7 +295,84 @@ function DataTableBodyInner<T extends object>(
                   }}
                 >
                   {/* Sortable and non-sortable headers share the same wrapping rules. */}
-                  {col.sortable === false ? (
+                  {customHeaderIcons && col.headerIcon === 'filter' ? (
+                    <div
+                      className={`data-tablebody-head-button data-tablebody-head-button-${resolvedHeaderAlign}`}
+                    >
+                      <span
+                        className="data-tablebody-head-label"
+                        style={getHeaderLabelSx(
+                          headerClampLines,
+                          headerNoEllipsis,
+                        )}
+                      >
+                        {col.label}
+                      </span>
+                      {col.sortable !== false && (
+                        <button
+                          type="button"
+                          className="data-tablebody-head-sort-icon-trigger"
+                          aria-label={`Sort ${col.label}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onSort(String(col.key));
+                          }}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={`data-tablebody-head-icon data-tablebody-head-icon-sort ${
+                              orderBy === String(col.key)
+                                ? 'data-tablebody-head-icon-active'
+                                : ''
+                            } ${
+                              orderBy === String(col.key) && order === 'desc'
+                                ? 'data-tablebody-head-icon-desc'
+                                : ''
+                            }`}
+                          >
+                            <img
+                              alt=""
+                              aria-hidden="true"
+                              className="data-tablebody-head-sort-image"
+                              src={
+                                orderBy === String(col.key)
+                                  ? '/assets/icons/Sorted.svg'
+                                  : '/assets/icons/Sort.svg'
+                              }
+                            />
+                          </span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className={`data-tablebody-head-filter-trigger ${
+                          activeHeaderFilterKey === String(col.key)
+                            ? 'data-tablebody-head-filter-trigger-active'
+                            : ''
+                        }`}
+                        aria-label={`Filter ${col.label}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          const headerCell = event.currentTarget.closest('th');
+                          onHeaderFilterClick?.(
+                            headerCell ?? event.currentTarget,
+                            String(col.key),
+                          );
+                        }}
+                      >
+                        <img
+                          alt=""
+                          aria-hidden="true"
+                          className="data-tablebody-head-icon data-tablebody-head-icon-filter"
+                          src={
+                            activeHeaderFilterKey === columnKey
+                              ? '/assets/icons/tableFilterIconActive.svg'
+                              : '/assets/icons/tableFilterIcon.svg'
+                          }
+                        />
+                      </button>
+                    </div>
+                  ) : col.sortable === false ? (
                     <span
                       className="data-tablebody-head-label"
                       style={getHeaderLabelSx(
@@ -297,6 +382,57 @@ function DataTableBodyInner<T extends object>(
                     >
                       {col.label}
                     </span>
+                  ) : customHeaderIcons ? (
+                    <div
+                      className={`data-tablebody-head-button data-tablebody-head-button-${resolvedHeaderAlign}`}
+                    >
+                      <span
+                        className="data-tablebody-head-label"
+                        style={getHeaderLabelSx(
+                          headerClampLines,
+                          headerNoEllipsis,
+                        )}
+                      >
+                        {col.label}
+                      </span>
+                      {(col.headerIcon ?? 'sort') !== 'none' && (
+                        <button
+                          type="button"
+                          className="data-tablebody-head-sort-icon-trigger"
+                          aria-label={`Sort ${col.label}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onSort(String(col.key));
+                          }}
+                        >
+                          {col.headerIcon === 'sort' ? (
+                            <span
+                              aria-hidden="true"
+                              className={`data-tablebody-head-icon data-tablebody-head-icon-sort ${
+                                orderBy === String(col.key)
+                                  ? 'data-tablebody-head-icon-active'
+                                  : ''
+                              } ${
+                                orderBy === String(col.key) && order === 'desc'
+                                  ? 'data-tablebody-head-icon-desc'
+                                  : ''
+                              }`}
+                            >
+                              <img
+                                alt=""
+                                aria-hidden="true"
+                                className="data-tablebody-head-sort-image"
+                                src={
+                                  orderBy === String(col.key)
+                                    ? '/assets/icons/Sorted.svg'
+                                    : '/assets/icons/Sort.svg'
+                                }
+                              />
+                            </span>
+                          ) : null}
+                        </button>
+                      )}
+                    </div>
                   ) : (
                     <TableSortLabel
                       active={orderBy === String(col.key)}
@@ -391,7 +527,8 @@ function DataTableBodyInner<T extends object>(
                       className="data-tablebody-cell"
                       sx={{
                         width: col.width ?? 'auto',
-                        maxWidth: col.width,
+                        maxWidth: customHeaderIcons ? 'none' : col.width,
+                        textAlign: col.align || 'left',
                       }}
                     >
                       {(() => {

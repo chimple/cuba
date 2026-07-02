@@ -77,6 +77,13 @@ const SidebarPage: React.FC = () => {
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const canAccessProgramPage = userRoles.some((role) =>
+    [
+      RoleType.SUPER_ADMIN,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.PROGRAM_MANAGER,
+    ].includes(role as RoleType),
+  );
   const canAccessCampaignPage = userRoles.some((role) =>
     CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
   );
@@ -86,7 +93,7 @@ const SidebarPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!isExternalUser) return;
+    if (canAccessProgramPage && !isExternalUser) return;
 
     const schoolListPath = `${path}${PAGES.SCHOOL_LIST}`;
     const schoolDetailsPrefix = `${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/`;
@@ -97,7 +104,7 @@ const SidebarPage: React.FC = () => {
     if (!isAllowedPath) {
       history.replace(schoolListPath);
     }
-  }, [history, isExternalUser, location.pathname, path]);
+  }, [canAccessProgramPage, history, isExternalUser, location.pathname, path]);
 
   const fetchData = async () => {
     try {
@@ -134,7 +141,9 @@ const SidebarPage: React.FC = () => {
               <Redirect
                 to={`${
                   path +
-                  (isExternalUser ? PAGES.SCHOOL_LIST : PAGES.PROGRAM_PAGE)
+                  (canAccessProgramPage
+                    ? PAGES.PROGRAM_PAGE
+                    : PAGES.SCHOOL_LIST)
                 }`}
               />
             </ProtectedRoute>
