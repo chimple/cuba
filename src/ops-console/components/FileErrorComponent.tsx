@@ -31,7 +31,7 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
             )}
         </p>
         <div className="error-page-actions">
-          {!title && (
+          {handleDownload && (
             <button
               className="error-page-btn error-page-next-btn"
               onClick={handleDownload}

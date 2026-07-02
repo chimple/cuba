@@ -11,6 +11,7 @@ interface Props {
   onEnter: () => void;
   toggleInputMethod: () => void;
   resetUserNotFound: () => void;
+  className?: string;
 }
 
 const InputField: React.FC<Props> = ({
@@ -20,6 +21,7 @@ const InputField: React.FC<Props> = ({
   onEnter,
   toggleInputMethod,
   resetUserNotFound,
+  className = '',
 }) => {
   const [showError, setShowError] = useState(false);
 
@@ -60,7 +62,7 @@ const InputField: React.FC<Props> = ({
 
   return (
     <>
-      <div className="custom-search-bar">
+      <div className={`custom-search-bar ${className}`}>
         <input
           className="plain-input"
           type={useEmail ? 'email' : 'number'}

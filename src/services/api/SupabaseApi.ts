@@ -56,12 +56,14 @@ import {
   SCHOOL_PERFORMANCE_STATUS_VALUES,
   type PercentageBandValue,
   type SchoolPerformanceStatusValue,
+  CAMPAIGN_OBJECTIVE,
 } from '../../common/constants';
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
 import { AvatarObj } from '../../components/animation/Avatar';
 import Course from '../../models/course';
 import Lesson from '../../models/lesson';
+import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
 import {
   AssignmentCartData,
   AssignmentDateRangeData,
@@ -103,7 +105,11 @@ import {
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
-import { sortBySchoolSearchRelevance } from '../../utility/schoolSearchUtil';
+import {
+  buildSchoolSearchKey,
+  getSchoolSearchScore,
+  sortBySchoolSearchRelevance,
+} from '../../utility/schoolSearchUtil';
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
@@ -388,6 +394,13 @@ type AssessmentAssignmentRow = TableTypes<'assignment'> & {
   assignment_user?: AssessmentAssignmentUserLink[] | null;
 };
 
+type AssessmentBatchLessonRow = Pick<
+  TableTypes<'assignment'>,
+  'lesson_id' | 'is_class_wise'
+> & {
+  assignment_user?: AssessmentAssignmentUserLink[] | null;
+};
+
 type AssessmentResultRow = Pick<
   TableTypes<'result'>,
   'assignment_id' | 'status' | 'created_at'
@@ -417,6 +430,16 @@ const mapStickerBookRow = (book: TableTypes<'sticker_book'>): StickerBook => ({
 
 const GENERIC_LEADERBOARD_LIMIT = 50;
 const SCHOOL_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
+const TABLES_EXCLUDED_FROM_SYNC = new Set<TABLES>([
+  TABLES.ProgramUser,
+  TABLES.ReqNewSchool,
+  TABLES.Program,
+  TABLES.GeoLocations,
+  TABLES.SchoolMetrics,
+  TABLES.FcQuestion,
+  TABLES.FcSchoolVisit,
+  TABLES.FcUserForms,
+]);
 
 type LeaderboardDataType = 'weekly' | 'monthly' | 'allTime';
 
@@ -683,6 +706,11 @@ export class SupabaseApi implements ServiceApi {
   isSyncInProgress(): boolean {
     return false;
   }
+
+  close(): Promise<void> {
+    return Promise.resolve();
+  }
+
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
   private supabaseUrl: string;
@@ -1057,15 +1085,18 @@ export class SupabaseApi implements ServiceApi {
     try {
       const data = new Map<string, any[]>();
       const DEFAULT_LAST_MODIFIED = '2024-01-01T00:00:00.000Z';
+      const syncTableNames = tableNames.filter(
+        (tableName) => !TABLES_EXCLUDED_FROM_SYNC.has(tableName),
+      );
       const updatedAtPayload: Record<string, string> = {};
-      for (const tableName of tableNames) {
+      for (const tableName of syncTableNames) {
         // TABLES.User -> "user", TABLES.Class -> "class", etc.
         updatedAtPayload[tableName] =
           tablesLastModifiedTime.get(tableName) ?? DEFAULT_LAST_MODIFIED;
       }
       const res = await this.supabase?.rpc('sql_sync_all', {
         p_updated_at: updatedAtPayload,
-        p_tables: tableNames,
+        p_tables: syncTableNames,
         p_is_first_time: isInitialFetch, // TABLES[] should be string[] under the hood
       });
       logger.warn('pulled results', res);
@@ -1087,7 +1118,7 @@ export class SupabaseApi implements ServiceApi {
           error_message: res?.error?.message || null,
         });
       }
-      tableNames.map(async (tableName) => {
+      syncTableNames.map(async (tableName) => {
         const payload =
           res?.data && typeof res.data === 'object' && !Array.isArray(res.data)
             ? (res.data as Record<string, Json>)
@@ -3495,8 +3526,8 @@ export class SupabaseApi implements ServiceApi {
 
   async getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
-    if (!this.supabase || !lessonIdentifier) return undefined;
+  ): Promise<TableTypes<'skill'>[]> {
+    if (!this.supabase || !lessonIdentifier) return [];
 
     const fetchLessonByColumn = async (
       column: 'id' | 'cocos_lesson_id' | 'lido_lesson_id',
@@ -3522,28 +3553,36 @@ export class SupabaseApi implements ServiceApi {
       (await fetchLessonByColumn('cocos_lesson_id')) ??
       (await fetchLessonByColumn('lido_lesson_id'));
 
-    if (!lesson?.id) return undefined;
+    if (!lesson?.id) return [];
 
     const { data: skillLessons, error: skillLessonError } = await this.supabase
       .from(TABLES.SkillLesson)
       .select('skill_id')
       .eq('lesson_id', lesson.id)
       .or('is_deleted.eq.false,is_deleted.is.null')
-      .order('sort_index', { ascending: true, nullsFirst: false })
-      .limit(1);
+      .order('sort_index', { ascending: true, nullsFirst: false });
 
     if (skillLessonError) {
       logger.error('Error fetching skill lesson for lesson:', skillLessonError);
-      return undefined;
+      return [];
     }
 
-    const skillId = skillLessons?.[0]?.skill_id;
-    if (!skillId) return undefined;
-
-    return (
-      (await this.getSkillById(skillId)) ??
-      ({ id: skillId } as TableTypes<'skill'>)
+    const skillIds = Array.from(
+      new Set(
+        (skillLessons ?? [])
+          .map((row) => row.skill_id)
+          .filter((skillId): skillId is string => !!skillId),
+      ),
     );
+
+    const skills = await Promise.all(
+      skillIds.map(
+        async (skillId) =>
+          (await this.getSkillById(skillId)) ??
+          ({ id: skillId } as TableTypes<'skill'>),
+      ),
+    );
+    return skills;
   }
 
   async getSkillLessonsBySkillIds(
@@ -3740,6 +3779,59 @@ export class SupabaseApi implements ServiceApi {
       }
     }
     return resultMap;
+  }
+  async hasStudentResult(studentId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    try {
+      const { classes } = await this.getStudentClassesAndSchools(studentId);
+      const classId = this.currentClass?.id ?? classes[0]?.id;
+
+      if (classes.length > 0) {
+        if (!classId) {
+          logger.warn(
+            '[SupabaseApi] Unable to resolve class for linked student result check',
+            { studentId },
+          );
+          return false;
+        }
+
+        const { data, error } = await this.supabase
+          .from(TABLES.Result)
+          .select('id')
+          .eq('student_id', studentId)
+          .eq('class_id', classId)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (error) {
+          logger.error(
+            'Error checking linked student result existence:',
+            error,
+          );
+          return false;
+        }
+
+        return (data?.length ?? 0) > 0;
+      }
+
+      const { data, error } = await this.supabase
+        .from(TABLES.Result)
+        .select('id')
+        .eq('student_id', studentId)
+        .eq('is_deleted', false)
+        .limit(1);
+
+      if (error) {
+        logger.error('Error checking student result existence:', error);
+        return false;
+      }
+
+      return (data?.length ?? 0) > 0;
+    } catch (error) {
+      logger.error('Error checking student result', error);
+      return true;
+    }
   }
   async getClassById(id: string): Promise<TableTypes<'class'> | undefined> {
     if (!this.supabase) return;
@@ -5517,14 +5609,66 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<RoleType | undefined> {
     if (!this.supabase) return;
 
+    // Program roles apply only to schools in the user's mapped program.
+    // This prevents program permissions from leaking into unrelated schools.
+    const getUserProgramRoleForSchool = async (
+      fallbackRole?: RoleType,
+    ): Promise<RoleType | undefined> => {
+      const { data: school } = await this.supabase!.from(TABLES.School)
+        .select('program_id')
+        .eq('id', schoolId)
+        .eq('is_deleted', false)
+        .maybeSingle();
+
+      if (!school?.program_id) return undefined;
+
+      const { data: programUser } = await this.supabase!.from(
+        TABLES.ProgramUser,
+      )
+        .select('role')
+        .eq('user', userId)
+        .eq('program_id', school.program_id)
+        .eq('is_deleted', false)
+        .in('role', [RoleType.PROGRAM_MANAGER, RoleType.FIELD_COORDINATOR])
+        .limit(1)
+        .maybeSingle();
+
+      if (!programUser) return undefined;
+
+      return (programUser.role as RoleType | null) ?? fallbackRole;
+    };
+
     // Check special users
     const { data: specialUser } = await this.supabase
       .from(TABLES.SpecialUsers)
       .select('role')
       .eq('user_id', userId)
       .eq('is_deleted', false)
-      .single();
-    if (specialUser?.role) return specialUser.role as RoleType;
+      .maybeSingle();
+    if (specialUser?.role) {
+      const specialRole = specialUser.role as RoleType;
+      if (
+        specialRole === RoleType.SUPER_ADMIN ||
+        specialRole === RoleType.OPERATIONAL_DIRECTOR ||
+        specialRole === RoleType.EXTERNAL_USER
+      ) {
+        return specialRole;
+      }
+
+      if (
+        specialRole === RoleType.PROGRAM_MANAGER ||
+        specialRole === RoleType.FIELD_COORDINATOR
+      ) {
+        const programScopedRole =
+          await getUserProgramRoleForSchool(specialRole);
+        if (programScopedRole) return programScopedRole;
+      } else {
+        return specialRole;
+      }
+    }
+
+    const programScopedRole = await getUserProgramRoleForSchool();
+    if (programScopedRole) return programScopedRole;
 
     // Check school_user (not parent)
     const { data: schoolUser } = await this.supabase
@@ -7123,7 +7267,7 @@ export class SupabaseApi implements ServiceApi {
         `
       lesson (
         id, name, cocos_subject_code, cocos_chapter_code, cocos_lesson_id,
-        image, outcome, plugin_type, status, created_by, subject_id,
+        lido_lesson_id, image, outcome, plugin_type, status, created_by, subject_id,
         target_age_from, target_age_to, language_id, created_at, updated_at,
         is_deleted, color
       ),
@@ -9770,142 +9914,118 @@ export class SupabaseApi implements ServiceApi {
     if (!payload.rewards?.type || !payload.rewards?.rules?.length) {
       throw new Error('Campaign rewards are required.');
     }
-    if (payload.assignments.length === 0) {
+    const requiresAssignments =
+      payload.objective !== CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY;
+
+    if (requiresAssignments && payload.assignments.length === 0) {
       throw new Error('Campaign assignments are required.');
     }
     if (payload.messagingRows.length === 0) {
       throw new Error('Campaign communication is required.');
     }
 
-    const updatedAt = new Date().toISOString();
-    const schoolIds = Array.from(
-      new Set(
-        payload.assignments.flatMap((assignment) => assignment.schoolIds),
-      ),
-    );
-    const gradeIds = Array.from(
-      new Set(payload.assignments.map((assignment) => assignment.gradeId)),
-    );
-
-    if (schoolIds.length === 0 || gradeIds.length === 0) {
-      throw new Error('Campaign assignment schools and grades are required.');
-    }
-
-    const { data: classRowsData, error: classRowsError } = await this.supabase
-      .from(TABLES.Class)
-      .select('id, school_id, grade_id')
-      .in('school_id', schoolIds)
-      .in('grade_id', gradeIds)
-      .eq('is_deleted', false);
-
-    if (classRowsError) {
-      logger.error(
-        'Error resolving campaign assignment classes:',
-        classRowsError,
+    if (requiresAssignments) {
+      const schoolIds = Array.from(
+        new Set(
+          payload.assignments.flatMap((assignment) => assignment.schoolIds),
+        ),
       );
-      throw classRowsError;
-    }
+      const gradeIds = Array.from(
+        new Set(payload.assignments.map((assignment) => assignment.gradeId)),
+      );
 
-    const classRows = (classRowsData ?? []) as Array<{
-      id: string;
-      school_id: string;
-      grade_id: string;
-    }>;
-
-    const classesBySchoolAndGrade = new Map<
-      string,
-      Array<{ id: string; school_id: string; grade_id: string }>
-    >();
-    classRows.forEach((classRow) => {
-      const key = `${classRow.school_id}:${classRow.grade_id}`;
-      if (!classesBySchoolAndGrade.has(key)) {
-        classesBySchoolAndGrade.set(key, []);
+      if (schoolIds.length === 0 || gradeIds.length === 0) {
+        throw new Error('Campaign assignment schools and grades are required.');
       }
-      classesBySchoolAndGrade.get(key)?.push(classRow);
-    });
 
-    const missingAssignmentTargets = new Set<string>();
-    const assignmentRows = payload.assignments.flatMap((assignment) =>
-      assignment.schoolIds.flatMap((schoolId) => {
-        const classes =
-          classesBySchoolAndGrade.get(`${schoolId}:${assignment.gradeId}`) ??
-          [];
-        if (classes.length === 0) {
-          missingAssignmentTargets.add(`${schoolId}:${assignment.gradeId}`);
+      const { data: classRowsData, error: classRowsError } = await this.supabase
+        .from(TABLES.Class)
+        .select('id, school_id, grade_id')
+        .in('school_id', schoolIds)
+        .in('grade_id', gradeIds)
+        .eq('is_deleted', false);
+
+      if (classRowsError) {
+        logger.error(
+          'Error resolving campaign assignment classes:',
+          classRowsError,
+        );
+        throw classRowsError;
+      }
+
+      const classRows = (classRowsData ?? []) as Array<{
+        id: string;
+        school_id: string;
+        grade_id: string;
+      }>;
+
+      const classesBySchoolAndGrade = new Map<
+        string,
+        Array<{ id: string; school_id: string; grade_id: string }>
+      >();
+      classRows.forEach((classRow) => {
+        const key = `${classRow.school_id}:${classRow.grade_id}`;
+        if (!classesBySchoolAndGrade.has(key)) {
+          classesBySchoolAndGrade.set(key, []);
         }
-        return classes.map((classRow) => ({
-          campaign_id: payload.campaignId,
-          batch_id: payload.campaignId,
-          class_id: classRow.id,
-          school_id: classRow.school_id,
-          lesson_id: assignment.lessonId,
-          chapter_id: assignment.chapterId,
-          course_id: assignment.courseId,
-          starts_at: assignment.startsAt,
-          ends_at: assignment.endsAt,
-          type: assignment.type,
-          source: assignment.source,
-          set_number: assignment.setNumber,
-          is_class_wise: true,
-          created_by: payload.currentUserId,
-          is_deleted: false,
-        }));
-      }),
-    );
+        classesBySchoolAndGrade.get(key)?.push(classRow);
+      });
 
-    if (missingAssignmentTargets.size > 0) {
-      logger.warn(
-        'Skipping campaign assignments for school/grade pairs without classes:',
-        Array.from(missingAssignmentTargets).map((target) => {
-          const [schoolId, gradeId] = target.split(':');
-          return { schoolId, gradeId };
+      const missingAssignmentTargets = new Set<string>();
+      const assignmentRows = payload.assignments.flatMap((assignment) =>
+        assignment.schoolIds.flatMap((schoolId) => {
+          const classes =
+            classesBySchoolAndGrade.get(`${schoolId}:${assignment.gradeId}`) ??
+            [];
+          if (classes.length === 0) {
+            missingAssignmentTargets.add(`${schoolId}:${assignment.gradeId}`);
+          }
+          return classes.map((classRow) => ({
+            campaign_id: payload.campaignId,
+            batch_id: payload.campaignId,
+            class_id: classRow.id,
+            school_id: classRow.school_id,
+            lesson_id: assignment.lessonId,
+            chapter_id: assignment.chapterId,
+            course_id: assignment.courseId,
+            starts_at: assignment.startsAt,
+            ends_at: assignment.endsAt,
+            type: assignment.type,
+            source: assignment.source,
+            set_number: assignment.setNumber,
+            is_class_wise: true,
+            created_by: payload.currentUserId,
+            is_deleted: false,
+          }));
         }),
       );
-    }
 
-    if (assignmentRows.length === 0) {
-      throw new Error(
-        'No classes found for the selected campaign assignments.',
-      );
-    }
-
-    const { error: assignmentCleanupError } = await this.supabase
-      .from(TABLES.Assignment)
-      .update({ is_deleted: true, updated_at: updatedAt })
-      .eq('campaign_id', payload.campaignId)
-      .eq('is_deleted', false);
-
-    if (assignmentCleanupError) {
-      logger.error(
-        'Error clearing previous campaign assignments:',
-        assignmentCleanupError,
-      );
-      throw assignmentCleanupError;
-    }
-
-    for (const assignmentBatch of chunkArray(assignmentRows, 500)) {
-      const { error } = await this.supabase
-        .from(TABLES.Assignment)
-        .insert(assignmentBatch);
-
-      if (error) {
-        logger.error('Error inserting campaign assignments:', error);
-        throw error;
+      if (missingAssignmentTargets.size > 0) {
+        logger.warn(
+          'Skipping campaign assignments for school/grade pairs without classes:',
+          Array.from(missingAssignmentTargets).map((target) => {
+            const [schoolId, gradeId] = target.split(':');
+            return { schoolId, gradeId };
+          }),
+        );
       }
-    }
 
-    const { error: messagingCleanupError } = await this.supabase
-      .from('campaign_messaging')
-      .update({ is_deleted: true, updated_at: updatedAt })
-      .eq('campaign_id', payload.campaignId)
-      .eq('is_deleted', false);
+      if (assignmentRows.length === 0) {
+        throw new Error(
+          'No classes found for the selected campaign assignments.',
+        );
+      }
 
-    if (messagingCleanupError) {
-      logger.error(
-        'Error clearing previous campaign messaging:',
-        messagingCleanupError,
-      );
-      throw messagingCleanupError;
+      for (const assignmentBatch of chunkArray(assignmentRows, 500)) {
+        const { error } = await this.supabase
+          .from(TABLES.Assignment)
+          .insert(assignmentBatch);
+
+        if (error) {
+          logger.error('Error inserting campaign assignments:', error);
+          throw error;
+        }
+      }
     }
 
     const messagingRows = payload.messagingRows.map((row) => ({
@@ -12206,22 +12326,37 @@ export class SupabaseApi implements ServiceApi {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
     if (isSuperAdmin || isOpsDirector) {
+      let specialUsersQuery = this.supabase
+        .from('special_users')
+        .select('user_id, role')
+        .eq('is_deleted', false)
+        .not('user_id', 'is', null);
+      if (isOpsDirector && !isSuperAdmin) {
+        specialUsersQuery = specialUsersQuery.neq('role', RoleType.SUPER_ADMIN);
+      }
+      const { data: specialUsers, error: specialUsersError } =
+        await specialUsersQuery;
+      if (specialUsersError) {
+        logger.error('Error fetching special users:', specialUsersError);
+        return { data: [], totalCount: 0 };
+      }
+      if (!specialUsers || specialUsers.length === 0) {
+        return { data: [], totalCount: 0 };
+      }
+      const roleByUserId = new Map<string, string>();
+      specialUsers.forEach((specialUser) => {
+        if (specialUser.user_id && specialUser.role) {
+          roleByUserId.set(specialUser.user_id, specialUser.role);
+        }
+      });
+      const userIds = Array.from(roleByUserId.keys());
       let query = this.supabase
         .from('user')
-        .select(
-          `
-          *,
-          special_users!inner (
-            role
-          )
-        `,
-          { count: 'exact' },
-        )
-        .eq('is_deleted', false)
-        .ilike('name', `%${search}%`)
-        .eq('special_users.is_deleted', false);
-      if (isOpsDirector && !isSuperAdmin) {
-        query = query.neq('special_users.role', RoleType.SUPER_ADMIN);
+        .select('*', search ? { count: 'exact' } : undefined)
+        .in('id', userIds)
+        .eq('is_deleted', false);
+      if (search) {
+        query = query.ilike('name', `%${search}%`);
       }
       const { data, count, error } = await query
         .order(sortBy, { ascending: sortOrder === 'asc' })
@@ -12231,15 +12366,14 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], totalCount: 0 };
       }
       if (!data) return { data: [], totalCount: 0 };
-      const result = data.map((d) => {
-        const { special_users, ...userObject } = d;
-        const role = special_users[0]?.role || '';
+      const result = data.map((userObject) => {
+        const role = roleByUserId.get(userObject.id) || '';
         return {
           user: userObject as TableTypes<'user'>,
           role,
         };
       });
-      return { data: result, totalCount: count || 0 };
+      return { data: result, totalCount: search ? count || 0 : userIds.length };
     }
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {
       const { data: programs, error: programsError } = await this.supabase
@@ -15391,7 +15525,6 @@ export class SupabaseApi implements ServiceApi {
         .select('lesson_id')
         .in('lesson_id', lessonIds)
         .eq('student_id', studentId)
-        .is('assignment_id', null)
         .eq('is_deleted', false);
 
       const { data: results } = await resultsQuery;
@@ -15435,6 +15568,66 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return data ?? undefined;
+  }
+
+  async getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    if (!this.supabase || !skillId) return undefined;
+
+    type MaybeArray<T> = T | T[] | undefined;
+    type SkillSubjectRow = {
+      outcome?: MaybeArray<{
+        competency?: MaybeArray<{
+          domain?: MaybeArray<{
+            subject?: MaybeArray<TableTypes<'subject'>>;
+          }>;
+        }>;
+      }>;
+    };
+
+    const { data, error } = await this.supabase
+      .from('skill')
+      .select(
+        `
+          outcome!inner(
+            competency!inner(
+              domain!inner(
+                subject!inner(*)
+              )
+            )
+          )
+        `,
+      )
+      .eq('id', skillId)
+      .eq('is_deleted', false)
+      .eq('outcome.is_deleted', false)
+      .eq('outcome.competency.is_deleted', false)
+      .eq('outcome.competency.domain.is_deleted', false)
+      .eq('outcome.competency.domain.subject.is_deleted', false)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      logger.error('Error fetching subject by skillId:', error);
+      return undefined;
+    }
+
+    const row = data as SkillSubjectRow | null;
+    const outcome = Array.isArray(row?.outcome)
+      ? row?.outcome[0]
+      : row?.outcome;
+    const competency = Array.isArray(outcome?.competency)
+      ? outcome?.competency[0]
+      : outcome?.competency;
+    const domain = Array.isArray(competency?.domain)
+      ? competency?.domain[0]
+      : competency?.domain;
+    const subject = Array.isArray(domain?.subject)
+      ? domain?.subject[0]
+      : domain?.subject;
+
+    return subject ?? undefined;
   }
 
   async isStudentPlayedPalLesson(
@@ -15627,7 +15820,10 @@ export class SupabaseApi implements ServiceApi {
     courseId = courseId ?? '';
 
     const isAssignedToStudent = (
-      assignment: AssessmentBatchRow | AssessmentAssignmentRow,
+      assignment:
+        | AssessmentBatchRow
+        | AssessmentAssignmentRow
+        | AssessmentBatchLessonRow,
     ) =>
       assignment.is_class_wise === true ||
       (assignment.assignment_user ?? []).some(
@@ -15667,8 +15863,78 @@ export class SupabaseApi implements ServiceApi {
     const latestBatchId = latestAssignedBatch?.batch_id;
     if (!latestBatchId) return [];
 
+    const { data: latestBatchLessons, error: latestBatchLessonsError } =
+      await this.supabase
+        .from(TABLES.Assignment)
+        .select(
+          `
+          lesson_id,
+          is_class_wise,
+          assignment_user:assignment_user!left(user_id, is_deleted)
+        `,
+        )
+        .eq('class_id', classId)
+        .eq('course_id', courseId)
+        .eq('type', 'assessment')
+        .eq('is_deleted', false)
+        .eq('batch_id', latestBatchId)
+        .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+        .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
+
+    if (latestBatchLessonsError) {
+      logger.error(
+        'Latest assessment batch lesson query error:',
+        latestBatchLessonsError,
+      );
+      return [];
+    }
+
+    const latestBatchLessonIds = new Set(
+      ((latestBatchLessons ?? []) as unknown as AssessmentBatchLessonRow[])
+        .filter((assignment) => isAssignedToStudent(assignment))
+        .map((assignment) => assignment.lesson_id)
+        .filter((lessonId): lessonId is string => !!lessonId),
+    );
+
+    const { data: courseTerminationResults, error: courseTerminationError } =
+      await this.supabase
+        .from(TABLES.Result)
+        .select(
+          `
+          lesson_id,
+          status,
+          assignment!inner(class_id, course_id, type)
+        `,
+        )
+        .eq('student_id', studentId)
+        .eq('status', 'assessment_terminated')
+        .eq('is_deleted', false)
+        .eq('assignment.class_id', classId)
+        .eq('assignment.course_id', courseId)
+        .eq('assignment.type', 'assessment')
+        .limit(1);
+
+    if (courseTerminationError) {
+      logger.error(
+        'Course assessment termination query error:',
+        courseTerminationError,
+      );
+      return [];
+    }
+
+    const isLatestBatchReassignment = (courseTerminationResults ?? []).some(
+      (result) => {
+        const lessonId = result.lesson_id;
+        return !!lessonId && latestBatchLessonIds.has(lessonId);
+      },
+    );
+
+    if (courseTerminationResults?.length && !isLatestBatchReassignment) {
+      return [];
+    }
+
     /* ==========================================
-     * STEP 2️⃣  Abort check (2 system_exit)
+     * STEP 2️⃣  Abort check
      * ========================================== */
     const { data, error: abortError } = await this.supabase
       .from(TABLES.Result)
@@ -15752,19 +16018,19 @@ export class SupabaseApi implements ServiceApi {
     if (!assignedAssessments.length) return [];
 
     const assignmentIds = assignedAssessments.map((a) => a.id);
-
-    // fetch completed results
-    const { data: results } = await this.supabase
+    const { data: assignmentResults } = await this.supabase
       .from(TABLES.Result)
       .select('assignment_id')
       .in('assignment_id', assignmentIds)
       .eq('student_id', studentId)
       .eq('is_deleted', false);
 
-    const completedSet = new Set((results ?? []).map((r) => r.assignment_id));
+    const completedAssignmentIds = new Set(
+      (assignmentResults ?? []).map((r) => r.assignment_id),
+    );
 
     const incompleteAssignments = assignedAssessments.filter(
-      (a) => !completedSet.has(a.id),
+      (a) => !completedAssignmentIds.has(a.id),
     );
 
     if (!incompleteAssignments.length) return [];
@@ -16494,8 +16760,6 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.UserAchivements)
       .select('*')
       .eq('user_id', userId)
-      .eq('school_id', schoolId)
-      .eq('class_id', classId)
       .or('is_deleted.is.false,is_deleted.is.null')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -16519,12 +16783,12 @@ export class SupabaseApi implements ServiceApi {
         .update({
           coins: updatedCoins,
           streak: updatedStreak,
+          school_id: schoolId,
+          class_id: classId,
           updated_at: now,
           is_deleted: false,
         })
-        .eq('user_id', userId)
-        .eq('school_id', schoolId)
-        .eq('class_id', classId);
+        .eq('user_id', userId);
 
       if (updateError) {
         logger.error('Error updating user_achievements coins:', updateError);

@@ -77,7 +77,7 @@
   margin: 0 0.5rem;
 }
 
-@media (max-width: 48rem) {
+@media (max-width: 48rem) and (orientation: portrait) {
   .campaign-setup-stepper {
     position: fixed;
     top: var(--campaign-mobile-header-height);

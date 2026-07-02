@@ -685,6 +685,11 @@ describe('DisplayChapters', () => {
       'utf8',
     );
 
-    expect(css).toMatch(/\.chapters-content\s*\{[\s\S]*overflow-y:\s*scroll;/);
+    expect(css).toMatch(
+      /#display-chapters-page\s*\{[\s\S]*justify-content:\s*flex-start;/,
+    );
+    expect(css).toMatch(/\.chapters-content\s*\{[\s\S]*flex:\s*1;/);
+    expect(css).toMatch(/\.chapters-content\s*\{[\s\S]*overflow-y:\s*auto;/);
+    expect(css).toMatch(/\.chapters-content\s*\{[\s\S]*align-self:\s*stretch;/);
   });
 });

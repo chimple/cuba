@@ -28,6 +28,7 @@ import {
   resetObjectiveFields,
   usesLessonRewardCriteria,
 } from './campaignSetupFormHelpers';
+import { CAMPAIGN_OBJECTIVE } from '../../common/constants';
 import type { CampaignRewardsDraftPayload } from './campaignSetupFormHelpers';
 import {
   CampaignSetupMessage,
@@ -404,7 +405,7 @@ export const useCampaignSetupForm = () => {
     if (!isFormValid) return;
 
     setActiveStep(
-      form.objective === 'homepage_learning_pathway_campaign' ? 2 : 1,
+      form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY ? 2 : 1,
     );
   };
 

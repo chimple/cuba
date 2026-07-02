@@ -233,7 +233,7 @@ const DownloadLesson: React.FC<{
       {loading ? (
         <div className="loading-button" />
       ) : showIcon ? (
-        <TfiDownload className="lesson-or-chapter-delete-icon" />
+        <TfiDownload className="lesson-or-chapter-download-icon" />
       ) : (
         <div
           onClick={(event) => {
@@ -242,7 +242,7 @@ const DownloadLesson: React.FC<{
             setShowDialogBox(!showDialogBox);
           }}
         >
-          <TfiTrash className="lesson-or-chapter-download-icon" />
+          <TfiTrash className="lesson-or-chapter-delete-icon" />
         </div>
       )}
     </div>

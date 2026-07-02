@@ -3,6 +3,7 @@ import { FC, useEffect, useState } from 'react';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { useHistory } from 'react-router';
 import {
+  IS_REWARD_FEATURE_ON,
   LESSONS_PLAYED_COUNT,
   PAGES,
   SOURCE,
@@ -51,6 +52,8 @@ const LiveQuizGame: FC = () => {
         ? SOURCE.INITIAL_ASSESSMENT
         : SOURCE.LEARNING_PATHWAY_HOME_NO_PAL
       : SOURCE.SUBJECT_PAGE);
+  const shouldShowDailyRewardProgressRow =
+    localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
   const shouldShowScoreCardProgressRows = [
     SOURCE.LEARNING_PATHWAY_HOMEWORK,
     SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
@@ -200,6 +203,7 @@ const LiveQuizGame: FC = () => {
                         completedLessonId:
                           lesson?.id ?? paramLessonId ?? undefined,
                         animateDailyReward: Boolean(state?.reward),
+                        showDailyReward: shouldShowDailyRewardProgressRow,
                       }
                     : undefined
                 }

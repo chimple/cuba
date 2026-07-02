@@ -204,7 +204,10 @@ const ProfileDetails = () => {
 
     const loadLanguages = async () => {
       const langs = await api.getAllLanguages();
-      setLanguages(langs);
+      const sortedLanguages = [...langs].sort(
+        (left, right) => (left.sort_index ?? 0) - (right.sort_index ?? 0),
+      );
+      setLanguages(sortedLanguages);
     };
     loadLanguages();
 
@@ -426,17 +429,10 @@ const ProfileDetails = () => {
       });
 
       const resolvedLanguageId = languageId || DEFAULT_LANGUAGE_ID_EN;
-      const langIndex = languages.findIndex(
-        (lang) => lang.id === resolvedLanguageId,
-      );
+      const resolvedLanguageCode =
+        await resolveLanguageCodeById(resolvedLanguageId);
 
-      await Util.setCurrentStudent(
-        student,
-        langIndex && languages && languages[langIndex]?.code
-          ? (languages[langIndex]?.code ?? undefined)
-          : undefined,
-        tmpPath === PAGES.HOME ? true : false,
-      );
+      await Util.setCurrentStudent(student, resolvedLanguageCode, true);
       await schoolUtil.setCurrentClass(undefined);
       // A newly created child starts without class linkage, so clear school targeting.
       updateLocalAttributes({
@@ -448,7 +444,7 @@ const ProfileDetails = () => {
       setGbUpdated(true);
 
       await Util.ensureLidoCommonAudioForStudent(student);
-      history.replace(tmpPath);
+      history.replace(PAGES.HOME);
     } catch (err) {
       logger.error('Error saving profile:', err);
       setIsCreatingProfile(false);
@@ -547,7 +543,7 @@ const ProfileDetails = () => {
 
         <div className="profiledetails-form-fields">
           {/* Header Info: Class Name | School Name */}
-          {(className || schoolName) && (
+          {isEdit && (className || schoolName) && (
             <div className="profiledetails-header-info">
               {className && (
                 <div className="pd-info-item">
