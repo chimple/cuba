@@ -47,6 +47,7 @@ import {
   RESULT_STATUS,
   REWARD_LEARNING_PATH,
   REWARD_LESSON,
+  STUDENT_RESULT,
   RequestTypes,
   SCHOOL,
   STATUS,
@@ -82,6 +83,7 @@ import {
 } from '../../ops-console/pages/NewUserPageOps';
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
+import { setGlobalLoading } from '../../redux/slices/auth/authSlice';
 import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
@@ -475,7 +477,16 @@ export class SqliteApi implements ServiceApi {
         logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
       }
     } else {
-      await this.importBundledDataAfterUpgrade();
+      try {
+        store.dispatch(setGlobalLoading(true));
+        logger.warn(
+          '🚀 ~ SqliteApi ~ Updating Local Database from import.json after app update',
+        );
+        await this.importBundledDataAfterUpgrade();
+      } finally {
+        store.dispatch(setGlobalLoading(false));
+        logger.warn('🚀 ~ SqliteApi ~ Local Database update complete');
+      }
     }
     if (this._syncTableData) {
       const tableNames = Object.keys(this._syncTableData) ?? [];
@@ -3515,6 +3526,18 @@ export class SqliteApi implements ServiceApi {
       });
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushData);
+
+    try {
+      const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
+      const studentResultObj = studentResultStr
+        ? JSON.parse(studentResultStr)
+        : {};
+      studentResultObj[student.id] = true;
+      sessionStorage.setItem(STUDENT_RESULT, JSON.stringify(studentResultObj));
+    } catch (e) {
+      logger.error('Failed to set studentResult in sessionStorage', e);
+    }
+
     return newResult;
   }
 
@@ -4993,6 +5016,21 @@ export class SqliteApi implements ServiceApi {
         inviteCode,
         studentId,
       });
+
+      try {
+        const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
+        const studentResultObj = studentResultStr
+          ? JSON.parse(studentResultStr)
+          : {};
+        studentResultObj[studentId] = false;
+        sessionStorage.setItem(
+          STUDENT_RESULT,
+          JSON.stringify(studentResultObj),
+        );
+      } catch (e) {
+        logger.error('Failed to reset studentResult in sessionStorage', e);
+      }
+
       return linkData;
     } catch (error) {
       logger.warn('Join class link failed through SQLite API', {

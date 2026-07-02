@@ -98,6 +98,7 @@ import React from 'react';
 import './App.css';
 import { schoolUtil } from './utility/schoolUtil';
 import LidoPlayer from './pages/LidoPlayer';
+import Loading from './components/Loading';
 import UploadPage from './ops-console/pages/UploadPage';
 import SidebarPage from './ops-console/pages/SidebarPage';
 import { initializeClickListener } from './analytics/clickUtil';
@@ -143,6 +144,7 @@ import PopupManager from './components/GenericPopUp/GenericPopUpManager';
 import TermsGate from './components/termsandconditons/TermsGate';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { setCachedGrowthBookFeatureValue } from './growthbook/Growthbook';
+import { useAppSelector } from './redux/hooks';
 import { HardwareBackButtonHandler } from './common/backButtonRegistry';
 import { logger } from './utility/logger';
 import {
@@ -226,6 +228,7 @@ const App: React.FC = () => {
   const [timeExceeded, setTimeExceeded] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
+  const isGlobalLoading = useAppSelector((state) => state.auth.globalLoading);
   const [isActive, setIsActive] = useState(true);
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
   const shouldShowHomeworkRemoteAssets = useFeatureIsOn(
@@ -975,6 +978,7 @@ const App: React.FC = () => {
           }}
         />
       )}
+      <Loading isLoading={isGlobalLoading} />
     </IonApp>
   );
 };
