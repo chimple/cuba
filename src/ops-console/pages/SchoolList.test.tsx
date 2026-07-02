@@ -611,7 +611,7 @@ describe('SchoolList sorting', () => {
   it('sorts globally by non-name columns using backend order mapping and resets to page 1', async () => {
     const user = userEvent.setup();
     mockLocationSearch = '?page=3';
-    mockApiHandler.getFilteredSchoolsForSchoolListing.mockResolvedValue({
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
       data: [
         {
           school_id: 'school-1',
@@ -630,7 +630,7 @@ describe('SchoolList sorting', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalledWith(
         expect.objectContaining({
           page: 3,
@@ -646,7 +646,7 @@ describe('SchoolList sorting', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenLastCalledWith(
         expect.objectContaining({
           page: 1,
@@ -662,7 +662,7 @@ describe('SchoolList sorting', () => {
 describe('SchoolList percentage filters', () => {
   it('sends selected percentage bucket filters to the global listing request', async () => {
     const user = userEvent.setup();
-    mockApiHandler.getFilteredSchoolsForSchoolListing.mockResolvedValue({
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
       data: [
         {
           school_id: 'school-1',
@@ -685,7 +685,7 @@ describe('SchoolList percentage filters', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
     await screen.findByTestId('data-table-body');
@@ -697,7 +697,7 @@ describe('SchoolList percentage filters', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenLastCalledWith(
         expect.objectContaining({
           page: 1,
@@ -711,7 +711,7 @@ describe('SchoolList percentage filters', () => {
 
   it('sends the selected school performance filter to the global listing request', async () => {
     const user = userEvent.setup();
-    mockApiHandler.getFilteredSchoolsForSchoolListing.mockResolvedValue({
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
       data: [
         {
           school_id: 'school-1',
@@ -732,7 +732,7 @@ describe('SchoolList percentage filters', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
     await screen.findByTestId('data-table-body');
@@ -742,7 +742,7 @@ describe('SchoolList percentage filters', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenLastCalledWith(
         expect.objectContaining({
           page: 1,
@@ -754,7 +754,7 @@ describe('SchoolList percentage filters', () => {
 
   it('shows selected header filters above the table and clears them from the global request', async () => {
     const user = userEvent.setup();
-    mockApiHandler.getFilteredSchoolsForSchoolListing.mockResolvedValue({
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
       data: [
         {
           school_id: 'school-1',
@@ -776,7 +776,7 @@ describe('SchoolList percentage filters', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenCalled(),
     );
     await screen.findByTestId('data-table-body');
@@ -794,7 +794,7 @@ describe('SchoolList percentage filters', () => {
 
     await waitFor(() =>
       expect(
-        mockApiHandler.getFilteredSchoolsForSchoolListing,
+        mockApiHandler.getSchoolMetricsForSchoolListing,
       ).toHaveBeenLastCalledWith(
         expect.objectContaining({
           school_performance_filter: null,

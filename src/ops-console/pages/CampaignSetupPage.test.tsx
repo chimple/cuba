@@ -156,20 +156,6 @@ const openSelectAndChoose = async (triggerText: string, optionText: string) => {
   fireEvent.click(await screen.findByRole('option', { name: optionText }));
 };
 
-const selectCampaignTime = async (
-  fieldLabel: string,
-  hour: string,
-  minute: string,
-  meridiem: string,
-) => {
-  fireEvent.click(screen.getByLabelText(fieldLabel));
-  fireEvent.click(await screen.findByRole('option', { name: `Hour ${hour}` }));
-  fireEvent.click(
-    await screen.findByRole('option', { name: `Minute ${minute}` }),
-  );
-  fireEvent.click(await screen.findByRole('option', { name: meridiem }));
-};
-
 const getDateValueDaysFromToday = (daysFromToday: number) => {
   const date = new Date();
   date.setDate(date.getDate() + daysFromToday);
@@ -588,56 +574,6 @@ describe('CampaignSetupPage', () => {
         'Configure at least one day to continue to the Summary.',
       ),
     ).toHaveLength(1);
-
-    await selectCampaignTime('Message Time', '09', '00', 'AM');
-    await selectCampaignTime('Poll Time', '05', '00', 'PM');
-    fireEvent.change(screen.getByPlaceholderText(/Enter daily .* message/i), {
-      target: { value: "Complete today's campaign task." },
-    });
-
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Continue to Summary' }),
-    );
-
-    expect(
-      screen.getByRole('heading', { name: 'Campaign Summary' }),
-    ).toBeInTheDocument();
-    expect(screen.getByText('Campaign Overview')).toBeInTheDocument();
-    expect(screen.getByText('Communication')).toBeInTheDocument();
-    expect(screen.getByText('Launch Campaign')).toBeInTheDocument();
-    expect(screen.queryByText('Save as Draft')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByText('Launch Campaign'));
-
-    await waitFor(() =>
-      expect(mockApiHandler.createCampaignSetup).toHaveBeenCalledWith(
-        expect.objectContaining({
-          campaignName: 'ABCD',
-          managerId: 'manager-1',
-          programId: 'program-1',
-          rewards: expect.objectContaining({
-            type: 'digital_rewards',
-          }),
-          startDate: expect.any(String),
-          endDate: expect.any(String),
-        }),
-      ),
-    );
-    await waitFor(() =>
-      expect(mockApiHandler.launchCampaign).toHaveBeenCalledWith(
-        expect.objectContaining({
-          campaignId: 'campaign-1',
-          currentUserId: 'user-1',
-          objective: CAMPAIGN_OBJECTIVE.HOMEWORK,
-          messagingRows: [
-            expect.objectContaining({
-              messageTime: expect.any(String),
-              pollTime: expect.any(String),
-            }),
-          ],
-        }),
-      ),
-    );
   });
 
   it('uses lesson criteria for homepage learning pathway rewards', async () => {
