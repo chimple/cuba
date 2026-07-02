@@ -4,10 +4,14 @@ import { BsFillBellFill } from 'react-icons/bs';
 import { t } from 'i18next';
 import ProgramListTable from '../components/ProgramListTable';
 import { useProgramPageLogic } from './ProgramPageLogic';
+import { RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import type { RootState } from '../../redux/store';
+import type { AuthState } from '../../redux/slices/auth/authSlice';
 import './ProgramPage.css';
 import './SchoolList.css';
 
-const ProgramsPage: React.FC = () => {
+const ProgramPageContent: React.FC = () => {
   const logic = useProgramPageLogic();
 
   return (
@@ -83,6 +87,27 @@ const ProgramsPage: React.FC = () => {
       />
     </div>
   );
+};
+
+const ProgramsPage: React.FC = () => {
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const canViewProgramPage = userRoles.some((role) =>
+    [
+      RoleType.SUPER_ADMIN,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.PROGRAM_MANAGER,
+    ].includes(role as RoleType),
+  );
+
+  // Program listing is restricted to approved roles so blocked users do not see or fetch page data.
+  if (!canViewProgramPage) {
+    return null;
+  }
+
+  return <ProgramPageContent />;
 };
 
 export default ProgramsPage;

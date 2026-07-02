@@ -9,6 +9,7 @@ import type {
   ProgramListRow,
 } from './ProgramPageLogic';
 import ProgramPage from './ProgramPage';
+import { RoleType } from '../../interface/modelInterfaces';
 
 jest.mock('i18next', () => ({
   t: (key: string) => key,
@@ -129,6 +130,11 @@ const mockHandleSort = jest.fn();
 const mockHandleHeaderFilterChange = jest.fn();
 const mockHistoryPush = jest.fn();
 const mockScrollTo = jest.fn();
+let mockRoles: RoleType[] = [RoleType.SUPER_ADMIN];
+
+jest.mock('../../redux/hooks', () => ({
+  useAppSelector: () => ({ roles: mockRoles }),
+}));
 
 jest.mock('./ProgramPageLogic', () => ({
   useProgramPageLogic: () => ({
@@ -178,6 +184,7 @@ jest.mock('./ProgramPageLogic', () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockRoles = [RoleType.SUPER_ADMIN];
 });
 
 it('renders the Program page and wires table actions to page logic', async () => {
@@ -246,4 +253,13 @@ it('renders the Program page and wires table actions to page logic', async () =>
     top: 0,
     behavior: 'smooth',
   });
+});
+
+it('does not render Program page for non-admin roles', () => {
+  mockRoles = [RoleType.EXTERNAL_USER, RoleType.FIELD_COORDINATOR];
+
+  render(<ProgramPage />);
+
+  expect(screen.queryByText('Programs')).not.toBeInTheDocument();
+  expect(screen.queryByTestId('program-list-table')).not.toBeInTheDocument();
 });

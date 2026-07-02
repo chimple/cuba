@@ -11557,85 +11557,37 @@ export class SupabaseApi implements ServiceApi {
         role as RoleType,
       ),
     );
-    const isExternalUser = specialRoles.includes(RoleType.EXTERNAL_USER);
-    const isFieldCoordinator = specialRoles.includes(
-      RoleType.FIELD_COORDINATOR,
-    );
-    const shouldRestrictToSchoolLinks =
-      !isAdminOrDirector && (isExternalUser || isFieldCoordinator);
 
     try {
-      // Needed to collect program access from both school links and program-manager links.
-      const [schoolUserResult, programUserResult] = await Promise.all([
-        shouldRestrictToSchoolLinks || !isAdminOrDirector
-          ? this.supabase
-              .from(TABLES.SchoolUser)
-              .select('school_id')
-              .eq('user_id', currentUserId)
-              .eq('is_deleted', false)
-          : Promise.resolve({
-              data: [] as Array<{ school_id?: string | null }>,
-              error: null,
-            }),
+      // Needed to collect direct program access for program managers only.
+      const programUserResult =
         !isAdminOrDirector && specialRoles.includes(RoleType.PROGRAM_MANAGER)
-          ? this.supabase
+          ? await this.supabase
               .from(TABLES.ProgramUser)
               .select('program_id')
               .eq('user', currentUserId)
               .eq('role', RoleType.PROGRAM_MANAGER)
-              .eq('is_deleted', false)
-          : Promise.resolve({
-              data: [] as Array<{ program_id?: string | null }>,
-              error: null,
-            }),
-      ]);
-
-      if (schoolUserResult.error || programUserResult.error) {
-        logger.error('Error fetching program listing access lists', {
-          schoolUserError: schoolUserResult.error,
-          programUserError: programUserResult.error,
-        });
-        return { data: [], total: 0 };
-      }
-
-      // Needed to convert access query rows into clean ID arrays for follow-up filters.
-      const schoolIds = (schoolUserResult.data ?? [])
-        .map((row) => row.school_id)
-        .filter((id): id is string => !!id);
-      const programIds = (programUserResult.data ?? [])
-        .map((row) => row.program_id)
-        .filter((id): id is string => !!id);
-
-      // Needed because school-linked users must be filtered by the programs of their schools.
-      const schoolProgramResult =
-        schoolIds.length > 0
-          ? await this.supabase
-              .from(TABLES.School)
-              .select('program_id')
-              .in('id', schoolIds)
               .eq('is_deleted', false)
           : {
               data: [] as Array<{ program_id?: string | null }>,
               error: null,
             };
 
-      if (schoolProgramResult.error) {
+      if (programUserResult.error) {
         logger.error(
-          'Error resolving school-linked program access:',
-          schoolProgramResult.error,
+          'Error fetching program_user access list:',
+          programUserResult.error,
         );
         return { data: [], total: 0 };
       }
 
-      // Needed to combine direct program access and school-derived program access without duplicates.
-      const accessProgramIds = Array.from(
-        new Set([
-          ...programIds,
-          ...(schoolProgramResult.data ?? [])
-            .map((row) => row.program_id)
-            .filter((id): id is string => !!id),
-        ]),
-      );
+      // Needed to convert program_user rows into clean IDs for program metrics filtering.
+      const programIds = (programUserResult.data ?? [])
+        .map((row) => row.program_id)
+        .filter((id): id is string => !!id);
+
+      // Needed to de-duplicate direct program access before applying row-level filtering.
+      const accessProgramIds = Array.from(new Set(programIds));
 
       // Needed to query the program_metrics table even though generated DB types do not include it.
       const programMetricsClient = this
