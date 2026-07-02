@@ -253,7 +253,7 @@ const SchoolList: React.FC = () => {
       isFirstSearchRenderRef.current = false;
       return;
     }
-    if (page !== 1) setPage(1);
+    setPage(1);
   }, [searchTerm]);
 
   useEffect(() => {
@@ -541,7 +541,6 @@ const SchoolList: React.FC = () => {
       );
     },
     [
-      columns,
       handleOpenPercentageFilter,
       handleOpenSchoolPerformanceFilter,
       percentageFilters,
@@ -603,14 +602,8 @@ const SchoolList: React.FC = () => {
                     setPage(1);
                   }}
                   filters={filters}
-                  onFilterClick={() => setIsFilterOpen(true)}
+                  isFilter={false}
                   onClearFilters={handleCancelFilters}
-                />
-              </div>
-              <div className="school-list-date-range-control">
-                <SchoolListDateRangeDropdown
-                  value={selectedDateRange}
-                  onChange={handleSelectDateRange}
                 />
               </div>
               <div className="school-list-export-control">
@@ -663,6 +656,21 @@ const SchoolList: React.FC = () => {
                 >
                   {actionMenuEntries}
                 </Menu>
+              </div>
+              <div className="school-list-date-range-control">
+                <SchoolListDateRangeDropdown
+                  value={selectedDateRange}
+                  onChange={handleSelectDateRange}
+                />
+              </div>
+              <div className="school-list-filter-control">
+                <Button
+                  startIcon={<FilterListIcon fontSize="small" />}
+                  className="filter-button-SearchAndFilter school-list-top-filter-button"
+                  onClick={() => setIsFilterOpen(true)}
+                >
+                  <span style={{ color: 'black' }}>{t('Filter')}</span>
+                </Button>
               </div>
             </div>
           </div>

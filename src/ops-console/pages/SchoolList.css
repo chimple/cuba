@@ -105,6 +105,12 @@
   flex-shrink: 0;
 }
 
+.school-list-filter-control {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 /* Keep the date-range control visually aligned with the Actions menu button. */
 .school-list-date-range-button.MuiButton-root {
   min-width: 140px !important;
@@ -272,6 +278,10 @@
 .school-list-table-container .data-tablebody-container {
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x pan-y;
+  border-top: 1px solid rgba(224, 224, 224, 1);
+  border-left: 1px solid rgba(224, 224, 224, 1);
+  border-top-left-radius: 28px;
+  background-color: #ffffff;
 }
 
 .school-list-table-container .data-tablebody-head-cell:first-child,

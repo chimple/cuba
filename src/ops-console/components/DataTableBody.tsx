@@ -267,6 +267,30 @@ function DataTableBodyInner<T extends object>(
             {columns.map((col) => {
               const resolvedHeaderAlign = col.headerAlign ?? headerAlign;
               const headerActions = renderHeaderActions?.(col);
+              const isSortedColumn = orderBy === String(col.key);
+              const SortIcon = ({ className }: { className?: string }) => (
+                <Box
+                  component="img"
+                  src={
+                    isSortedColumn
+                      ? 'assets/icons/Sorted.svg'
+                      : 'assets/icons/Sort.svg'
+                  }
+                  alt=""
+                  aria-hidden="true"
+                  className={className}
+                  sx={{
+                    width: isSortedColumn ? 7 : 4,
+                    height: isSortedColumn ? 7 : 10,
+                    objectFit: 'contain',
+                    transform:
+                      isSortedColumn && order === 'desc'
+                        ? 'rotate(180deg)'
+                        : 'none',
+                    transition: 'transform 0.2s ease',
+                  }}
+                />
+              );
               const headerContent =
                 col.sortable === false ? (
                   <span
@@ -277,8 +301,9 @@ function DataTableBodyInner<T extends object>(
                   </span>
                 ) : (
                   <TableSortLabel
-                    active={orderBy === String(col.key)}
-                    direction={orderBy === String(col.key) ? order : 'asc'}
+                    active={isSortedColumn}
+                    direction={isSortedColumn ? order : 'asc'}
+                    IconComponent={SortIcon}
                     onClick={() => onSort(String(col.key))}
                     sx={{
                       color: '#121619 !important',
@@ -302,6 +327,7 @@ function DataTableBodyInner<T extends object>(
                       },
                       '& .MuiTableSortLabel-icon': {
                         opacity: 1,
+                        marginLeft: '6px',
                       },
                     }}
                   >
