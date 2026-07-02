@@ -89,6 +89,7 @@
 .leaderboard-avatar-img {
   height: clamp(60px, 8vh, 80px);
   width: clamp(60px, 8vh, 80px);
+  border-radius: 50%;
 }
 
 #leaderboard-student-name {
