@@ -143,8 +143,8 @@ export const mapSchoolRowsToRenderRows = (
       activeTeachers: renderMetricWithPercentCell(
         activeTeachers,
         activeTeacherPercent ??
-          (activeTeachers !== undefined &&
-          totalTeachers !== undefined &&
+          (activeTeachers != undefined &&
+          totalTeachers != undefined &&
           totalTeachers > 0
             ? (activeTeachers / totalTeachers) * 100
             : activeTeachers && activeTeachers > 0

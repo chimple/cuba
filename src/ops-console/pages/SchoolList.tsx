@@ -95,9 +95,14 @@ const SchoolList: React.FC = () => {
     () => parseSchoolListJsonParam(qs.get('percentFilters'), {}),
   );
   const [schoolPerformanceFilter, setSchoolPerformanceFilter] =
-    useState<SchoolPerformanceFilterValue | null>(() =>
-      parseSchoolListJsonParam(qs.get('performanceFilter'), null),
-    );
+    useState<SchoolPerformanceFilterValue | null>(() => {
+      const performanceFilter = qs.get('performanceFilter');
+      return SCHOOL_PERFORMANCE_FILTER_OPTIONS.includes(
+        performanceFilter as SchoolPerformanceFilterValue,
+      )
+        ? (performanceFilter as SchoolPerformanceFilterValue)
+        : null;
+    });
   const [page, setPage] = useState(() => {
     const p = parseInt(qs.get('page') || '', 10);
     return isNaN(p) || p < 1 ? 1 : p;
@@ -233,7 +238,7 @@ const SchoolList: React.FC = () => {
       params.set('percentFilters', JSON.stringify(percentageFilters));
     }
     if (schoolPerformanceFilter) {
-      params.set('performanceFilter', JSON.stringify(schoolPerformanceFilter));
+      params.set('performanceFilter', schoolPerformanceFilter);
     }
     if (page !== 1) params.set('page', String(page));
     history.replace({ search: params.toString() });

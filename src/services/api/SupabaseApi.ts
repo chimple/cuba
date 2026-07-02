@@ -11291,9 +11291,13 @@ export class SupabaseApi implements ServiceApi {
         const leftValue = getSchoolMetricsSortValue(leftRow, sortBy);
         const rightValue = getSchoolMetricsSortValue(rightRow, sortBy);
 
+        if (leftValue == null && rightValue == null) return 0;
+        if (leftValue == null) return 1;
+        if (rightValue == null) return -1;
+
         if (typeof leftValue === 'string' || typeof rightValue === 'string') {
-          const result = String(leftValue ?? '').localeCompare(
-            String(rightValue ?? ''),
+          const result = String(leftValue).localeCompare(
+            String(rightValue),
             undefined,
             {
               sensitivity: 'base',
@@ -11303,10 +11307,8 @@ export class SupabaseApi implements ServiceApi {
           return sortAscending ? result : -result;
         }
 
-        const safeLeft = leftValue ?? Number.NEGATIVE_INFINITY;
-        const safeRight = rightValue ?? Number.NEGATIVE_INFINITY;
         const result =
-          safeLeft === safeRight ? 0 : safeLeft > safeRight ? 1 : -1;
+          leftValue === rightValue ? 0 : leftValue > rightValue ? 1 : -1;
         return sortAscending ? result : -result;
       });
 

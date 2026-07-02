@@ -95,8 +95,8 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
     activeTeachers: buildMetricWithPercentExportText(
       activeTeachers,
       activeTeacherPercent ??
-        (activeTeachers !== undefined &&
-        totalTeachers !== undefined &&
+        (activeTeachers != undefined &&
+        totalTeachers != undefined &&
         totalTeachers > 0
           ? (activeTeachers / totalTeachers) * 100
           : activeTeachers && activeTeachers > 0
