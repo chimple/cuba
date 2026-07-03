@@ -1,9 +1,6 @@
 # lido-avatar
 
-
-
 <!-- Auto Generated Below -->
-
 
 ## Properties
 
@@ -30,20 +27,20 @@
 | `y`            | `y`             | The y-coordinate (top position) of the column within its container (CSS value, e.g., '10px', '5vh').                    | `string`  | `'0px'`  |
 | `z`            | `z`             | The z-index of the column to control stacking order.                                                                    | `string`  | `'0'`    |
 
-
 ## Dependencies
 
 ### Used by
 
- - [lido-home](../home)
+- [lido-home](../home)
 
 ### Graph
+
 ```mermaid
 graph TD;
   lido-home --> lido-avatar
   style lido-avatar fill:#f9f,stroke:#333,stroke-width:4px
 ```
 
-----------------------------------------------
+---
 
-*Built with [StencilJS](https://stenciljs.com/)*
+_Built with [StencilJS](https://stenciljs.com/)_

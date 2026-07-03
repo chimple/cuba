@@ -20,12 +20,18 @@
   width: 18.5%;
   height: 10vh;
 }
-.chapters-content {
-  align-self: center;
-  overflow-y: scroll;
+
+#display-chapters-page {
+  justify-content: flex-start;
 }
 
-.subjects-content::-webkit-scrollbar {
+.chapters-content {
+  flex: 1;
+  overflow-y: auto;
+  align-self: stretch;
+}
+
+.chapters-content::-webkit-scrollbar {
   display: none;
 }
 

@@ -1078,9 +1078,18 @@ export class FirebaseApi implements ServiceApi {
 
   async getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
+  ): Promise<TableTypes<'skill'>[]> {
     logger.warn(
-      'getSkillByLessonIdentifier is not supported for FirebaseApi. Returning undefined.',
+      'getSkillByLessonIdentifier is not supported for FirebaseApi. Returning empty list.',
+    );
+    return [];
+  }
+
+  async getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    logger.warn(
+      'getSubjectBySkillId is not supported for FirebaseApi. Returning undefined.',
     );
     return undefined;
   }

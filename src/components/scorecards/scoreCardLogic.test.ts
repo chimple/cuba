@@ -88,6 +88,100 @@ describe('buildScoreCardProgressRows', () => {
     });
   });
 
+  test('hides daily reward row when reward feature is disabled', async () => {
+    const rows = await buildScoreCardProgressRows({
+      api: mockApi,
+      student: makeStudent(),
+      studentId: 'student-1',
+      showDailyReward: false,
+    });
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ id: 'sticker' });
+  });
+
+  test('hides sticker row when sticker progress is disabled', async () => {
+    const rows = await buildScoreCardProgressRows({
+      api: mockApi,
+      student: makeStudent(),
+      studentId: 'student-1',
+      showStickerProgress: false,
+    });
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ id: 'dailyReward' });
+  });
+
+  test('can force full pathway termination sticker progress to 0 of 5', async () => {
+    mockGetLatestLearningPathByUpdatedAt.mockReturnValue(
+      JSON.stringify({
+        courses: {
+          currentCourseIndex: 0,
+          courseList: [
+            {
+              course_id: 'course-1',
+              path: [
+                { lesson_id: 'lesson-1', isPlayed: true },
+                { lesson_id: 'lesson-2', isPlayed: false },
+              ],
+            },
+          ],
+        },
+      }),
+    );
+
+    const rows = await buildScoreCardProgressRows({
+      api: mockApi,
+      student: makeStudent(),
+      studentId: 'student-1',
+      completedCourseId: 'course-1',
+      completedLessonId: 'lesson-2',
+      allowZeroStickerProgress: true,
+      countCompletedLessonTowardStickerProgress: false,
+      stickerProgressCurrentOverride: 0,
+    });
+
+    expect(rows[1]).toMatchObject({
+      id: 'sticker',
+      current: 0,
+      total: 5,
+    });
+  });
+
+  test('uses completed lesson position instead of over-counted played flags', async () => {
+    mockGetLatestLearningPathByUpdatedAt.mockReturnValue(
+      JSON.stringify({
+        courses: {
+          currentCourseIndex: 0,
+          courseList: [
+            {
+              course_id: 'course-1',
+              path: [
+                { lesson_id: 'lesson-1', isPlayed: true },
+                { lesson_id: 'lesson-2', isPlayed: true },
+                { lesson_id: 'lesson-3', isPlayed: false },
+              ],
+            },
+          ],
+        },
+      }),
+    );
+
+    const rows = await buildScoreCardProgressRows({
+      api: mockApi,
+      student: makeStudent(),
+      studentId: 'student-1',
+      completedCourseId: 'course-1',
+      completedLessonId: 'lesson-1',
+    });
+
+    expect(rows[1]).toMatchObject({
+      id: 'sticker',
+      current: 1,
+      total: 5,
+    });
+  });
+
   test('uses the completed lesson course when currentCourseIndex already advanced', async () => {
     mockGetLatestLearningPathByUpdatedAt.mockReturnValue(
       JSON.stringify({
@@ -781,6 +875,170 @@ describe('buildScoreCardProgressRows', () => {
       current: 5,
       iconSrc: 'earned.png',
       iconAlt: 'Earned Sticker',
+    });
+  });
+
+  test('uses pathway progress total when sticker metadata is available', async () => {
+    mockApi.getCurrentStickerBookWithProgress.mockResolvedValueOnce({
+      book: {
+        id: 'book-2',
+        svg_url: 'book-2.svg',
+        total_stickers: 2,
+        stickers_metadata: [
+          { id: 's1', sequence: 1 },
+          { id: 's2', sequence: 2 },
+        ],
+      },
+      progress: { stickers_collected: ['s1'] },
+    });
+    mockApi.getNextWinnableSticker.mockResolvedValueOnce('s2');
+
+    const rows = await buildScoreCardProgressRows({
+      api: mockApi,
+      student: makeStudent(),
+      studentId: 'student-1',
+    });
+
+    expect(rows[1]).toMatchObject({
+      id: 'sticker',
+      current: 1,
+      total: 5,
+    });
+  });
+
+  test('shows the just-awarded sticker while keeping pathway progress count', async () => {
+    const now = new Date().toISOString();
+    sessionStorage.setItem(
+      'pending_pathway_sticker_reward',
+      JSON.stringify({
+        studentId: 'student-1',
+        stickerBookId: 'book-5',
+        awardedStickerId: 's4',
+        createdAt: now,
+      }),
+    );
+    sessionStorage.setItem(
+      'auto_open_sticker_preview',
+      JSON.stringify({
+        studentId: 'student-1',
+        stickerBookId: 'book-5',
+        awardedStickerId: 's4',
+        createdAt: now,
+        preAwardCollectedStickerIds: ['s1', 's2', 's3'],
+        stickerBookSvgUrl: 'book-5.svg',
+      }),
+    );
+    mockApi.getCurrentStickerBookWithProgress.mockResolvedValueOnce({
+      book: {
+        id: 'book-5',
+        svg_url: 'book-5.svg',
+        total_stickers: 5,
+        stickers_metadata: [
+          { id: 's1', sequence: 1 },
+          { id: 's2', sequence: 2 },
+          { id: 's3', sequence: 3 },
+          { id: 's4', sequence: 4 },
+          { id: 's5', sequence: 5 },
+        ],
+      },
+      progress: { stickers_collected: ['s1', 's2', 's3'] },
+    });
+    mockApi.getStickersByIds.mockResolvedValueOnce([
+      { id: 's4', name: 'Fourth Sticker', image: 's4.png' },
+    ]);
+
+    const rows = await buildScoreCardProgressRows({
+      api: mockApi,
+      student: makeStudent(),
+      studentId: 'student-1',
+    });
+
+    expect(mockApi.getNextWinnableSticker).not.toHaveBeenCalled();
+    expect(rows[1]).toMatchObject({
+      id: 'sticker',
+      current: 1,
+      total: 5,
+      iconSrc: 's4.png',
+      iconAlt: 'Fourth Sticker',
+    });
+  });
+
+  test('keeps completed book total when the next sticker book is already current', async () => {
+    const now = new Date().toISOString();
+    sessionStorage.setItem(
+      'pending_pathway_sticker_reward',
+      JSON.stringify({
+        studentId: 'student-1',
+        stickerBookId: 'completed-book',
+        awardedStickerId: 's5',
+        createdAt: now,
+      }),
+    );
+    sessionStorage.setItem(
+      'auto_open_sticker_completion_popup',
+      JSON.stringify({
+        studentId: 'student-1',
+        stickerBookId: 'completed-book',
+        createdAt: now,
+        payload: {
+          source: 'homework_pathway',
+          stickerBookId: 'completed-book',
+          stickerBookTitle: 'Completed Book',
+          stickerBookSvgUrl: 'completed-book.svg',
+          collectedStickerIds: ['s1', 's2', 's3', 's4', 's5'],
+          totalStickerCount: 5,
+        },
+      }),
+    );
+    mockApi.getCurrentStickerBookWithProgress.mockResolvedValueOnce({
+      book: {
+        id: 'next-book',
+        svg_url: 'next-book.svg',
+        total_stickers: 2,
+        stickers_metadata: [
+          { id: 'n1', sequence: 1 },
+          { id: 'n2', sequence: 2 },
+        ],
+      },
+      progress: null,
+    });
+    mockApi.getStickersByIds.mockResolvedValueOnce([
+      { id: 's5', name: 'Last Sticker', image: 's5.png' },
+    ]);
+
+    const rows = await buildScoreCardProgressRows({
+      api: mockApi,
+      student: makeStudent(),
+      studentId: 'student-1',
+    });
+
+    expect(rows[1]).toMatchObject({
+      id: 'sticker',
+      current: 5,
+      total: 5,
+      iconSrc: 's5.png',
+      completed: true,
+    });
+  });
+
+  test('uses completed homework index for fallback pathway progress', async () => {
+    mockApi.getCurrentStickerBookWithProgress.mockResolvedValueOnce({
+      book: { id: 'book-1', svg_url: 'book.svg' },
+      progress: null,
+    });
+    mockApi.getNextWinnableSticker.mockResolvedValueOnce('next-sticker');
+
+    const rows = await buildScoreCardProgressRows({
+      api: mockApi,
+      student: makeStudent(),
+      studentId: 'student-1',
+      completedHomeworkIndex: 3,
+    });
+
+    expect(rows[1]).toMatchObject({
+      id: 'sticker',
+      current: 4,
+      total: 5,
     });
   });
 });

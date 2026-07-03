@@ -37,7 +37,7 @@ describe('mapSchoolRowsToRenderRows', () => {
     expect(mappedRow.parentsReached.exportValueText).toBe('27');
   });
 
-  it('uses the active teacher percentage when it is available', () => {
+  it('calculates active teacher percentage from total teachers', () => {
     const rows: SchoolListSourceRow[] = [
       {
         school_id: 'school-2',
@@ -49,7 +49,6 @@ describe('mapSchoolRowsToRenderRows', () => {
         num_teachers: 10,
         active_teachers: 4,
         total_teachers: 10,
-        active_teacher_percentage: 40,
         program_managers: [],
         field_coordinators: [],
       },

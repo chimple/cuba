@@ -59,6 +59,8 @@ const mockApi = {
   getUserAssignmentCart: jest.fn(),
   createOrUpdateAssignmentCart: jest.fn(),
   getAssignmentDateRangeDataForClassAndSchool: jest.fn(),
+  getCoinAndStreakCount: jest.fn(),
+  getTeachersForClass: jest.fn(),
   getUserRoleForSchool: jest.fn(),
   updateCoins: jest.fn(),
   getChapterByLesson: jest.fn(),
@@ -170,6 +172,11 @@ describe('CreateSelectedAssignment (QR flow)', () => {
       assignments: [],
       batchGroups: [],
     });
+    mockApi.getCoinAndStreakCount.mockResolvedValue({
+      coins: 1000,
+      streak: 0,
+    });
+    mockApi.getTeachersForClass.mockResolvedValue([{ id: 'teacher-1' }]);
     mockApi.getUserRoleForSchool.mockResolvedValue('teacher');
     mockApi.updateCoins.mockResolvedValue({});
     mockApi.getChapterByLesson.mockResolvedValue('chapter-1');

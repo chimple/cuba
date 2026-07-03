@@ -4,6 +4,7 @@ import Lesson from '../../models/lesson';
 import { StudentLessonResult } from '../../common/courseConstants';
 import {
   CACHETABLES,
+  CAMPAIGN_OBJECTIVE,
   CoordinatorAPIResponse,
   EnumType,
   FilteredSchoolsForSchoolListingOps,
@@ -202,8 +203,7 @@ type ActivitiesFilterOptions = {
 };
 
 export type CampaignObjective =
-  | 'homework_campaign'
-  | 'homepage_learning_pathway_campaign';
+  (typeof CAMPAIGN_OBJECTIVE)[keyof typeof CAMPAIGN_OBJECTIVE];
 
 export type CampaignTargetType = 'percentage_completion' | 'number_of_lessons';
 
@@ -334,6 +334,7 @@ export type CampaignLaunchDetailsPayload = {
 export type LaunchCampaignPayload = {
   campaignId: string;
   currentUserId: string;
+  objective: CampaignObjective;
   rewards: CampaignRewardsPayload;
   assignments: CampaignLaunchAssignmentPayload[];
   messagingRows: CampaignLaunchMessagingPayload[];
@@ -1003,12 +1004,12 @@ export interface ServiceApi {
   ): Promise<TableTypes<'skill_lesson'>[]>;
 
   /**
-   * Fetches the first skill linked to a lesson using a lesson row id,
+   * Fetches skills linked to a lesson using a lesson row id,
    * cocos_lesson_id, or lido_lesson_id.
    */
   getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined>;
+  ): Promise<TableTypes<'skill'>[]>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id
@@ -1043,6 +1044,12 @@ export interface ServiceApi {
   getStudentResultInMap(
     studentId: string,
   ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }>;
+
+  /**
+   * Checks whether a student has at least one result row.
+   * If the student is linked to a class, the lookup is scoped to the active class.
+   */
+  hasStudentResult(studentId: string): Promise<boolean>;
 
   /**
    * Gives Class for given a Class firebase doc Id
@@ -1524,6 +1531,11 @@ export interface ServiceApi {
   ): Promise<boolean>;
 
   isSyncInProgress(): boolean;
+
+  /**
+   * Releases active backing resources before a forced WebView reload.
+   */
+  close(): Promise<void>;
 
   /**
    * Function to get Recommended Lessons.
@@ -3272,6 +3284,9 @@ export interface ServiceApi {
   ): Promise<TableTypes<'subject_lesson'> | null>;
 
   getSkillById(skillId: string): Promise<TableTypes<'skill'> | undefined>;
+  getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined>;
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
   computeSchoolMetricsForSchool(schoolId: string): Promise<boolean>;

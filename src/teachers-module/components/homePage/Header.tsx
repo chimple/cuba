@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Header.css';
 import { useHistory } from 'react-router';
-import { DrawerOptions, PAGES } from '../../../common/constants';
+import {
+  CLASS_OR_SCHOOL_CHANGE_EVENT,
+  DrawerOptions,
+  PAGES,
+} from '../../../common/constants';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
@@ -20,9 +24,7 @@ import { t } from 'i18next';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import { IoShareSocialSharp } from 'react-icons/io5';
 import { registerBackButtonHandler } from '../../../common/backButtonRegistry';
-import { RoleType } from '../../../interface/modelInterfaces';
-import { useAppSelector } from '../../../redux/hooks';
-import { RootState } from '../../../redux/store';
+import { ServiceConfig } from '../../../services/ServiceConfig';
 import {
   registerStreakRectResolver,
   registerStreakRewardPulseHandler,
@@ -77,20 +79,10 @@ const Header: React.FC<HeaderProps> = ({
   showStreakButton = true,
 }) => {
   const history = useHistory();
-  const roleMap = useAppSelector(
-    (state: RootState) =>
-      state.growthbook.attributes?.roleMap as
-        | Record<string, string>
-        | undefined,
-  );
-  const currentSchoolId = Util.getCurrentSchool()?.id;
-  const currentSchoolRole = currentSchoolId
-    ? roleMap?.[`${currentSchoolId}_role`]
-    : undefined;
-  const isTeacher =
-    (currentSchoolRole ?? '').toLowerCase() === RoleType.TEACHER;
   const FLAME_PULSE_DURATION_MS = 1000;
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isTeacherOfSelectedClass, setIsTeacherOfSelectedClass] =
+    useState(false);
   const [isStreakRewardPulseActive, setIsStreakRewardPulseActive] =
     useState(false);
   const streakButtonRef = React.useRef<HTMLButtonElement | null>(null);
@@ -99,6 +91,50 @@ const Header: React.FC<HeaderProps> = ({
   useEffect(() => {
     setIsDrawerOpen(false);
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+    const service = ServiceConfig.getI();
+    const api = service.apiHandler;
+    const auth = service.authHandler;
+
+    const checkTeacherForSelectedClass = async () => {
+      if (!showStreakButton) {
+        setIsTeacherOfSelectedClass(false);
+        return;
+      }
+
+      const currentClassId = Util.getCurrentClass()?.id;
+      const currentUserId = (await auth.getCurrentUser())?.id;
+
+      if (!currentClassId || !currentUserId) {
+        if (isMounted) setIsTeacherOfSelectedClass(false);
+        return;
+      }
+
+      const teachers = (await api.getTeachersForClass(currentClassId)) ?? [];
+
+      if (isMounted) {
+        setIsTeacherOfSelectedClass(
+          teachers.some((teacher) => teacher.id === currentUserId),
+        );
+      }
+    };
+
+    checkTeacherForSelectedClass();
+    window.addEventListener(
+      CLASS_OR_SCHOOL_CHANGE_EVENT,
+      checkTeacherForSelectedClass,
+    );
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener(
+        CLASS_OR_SCHOOL_CHANGE_EVENT,
+        checkTeacherForSelectedClass,
+      );
+    };
+  }, [showStreakButton]);
 
   const toggleDrawer = (open: boolean) => {
     setIsDrawerOpen(open);
@@ -301,7 +337,7 @@ const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {showStreakButton && isTeacher && (
+          {showStreakButton && isTeacherOfSelectedClass && (
             <button
               ref={streakButtonRef}
               type="button"

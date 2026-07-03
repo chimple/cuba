@@ -7,13 +7,12 @@
 .detail-list__icon-container {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   color: #707070;
   font-weight: 600;
   font-size: 14px;
   padding-right: 2px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .header-text {
@@ -129,25 +128,31 @@
 
 .detail-list-header-row {
   display: grid;
-  grid-template-columns: 1fr 90px 55px;
-  padding: 6px 13px;
+  grid-template-columns: minmax(0, 1fr) minmax(56px, max-content) minmax(
+      70px,
+      max-content
+    );
+  column-gap: 4px;
+  padding: 6px 4px;
   font-weight: 600;
   color: #888;
   margin-bottom: 6px;
   box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
 }
 
 .detail-list-header-row.no-subjects {
-  grid-template-columns: 1fr 56px;
+  grid-template-columns: minmax(0, 1fr) minmax(56px, max-content);
 }
 
 @media (max-width: 600px) {
   .detail-list-header-row {
-    grid-template-columns: 1fr 41px 55px;
-  }
-
-  .detail-list-header-row.no-subjects {
-    grid-template-columns: 1fr 41px;
+    grid-template-columns: minmax(0, 1fr) minmax(52px, max-content) minmax(
+        64px,
+        max-content
+      );
+    column-gap: 0px;
   }
 }
 
@@ -161,5 +166,8 @@
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }

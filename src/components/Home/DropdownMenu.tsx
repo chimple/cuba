@@ -13,6 +13,7 @@ import { LessonNode } from '../../hooks/useLearningPath';
 import logger from '../../utility/logger';
 import { downloadMissingCourseIcons } from '../../utility/courseIconDeviceCache';
 import { getCachedImageSrc } from '../../utility/imageCache';
+import { fetchLessonsById } from '../assignment/homeworkPathwayHelpers';
 
 interface CourseDetails {
   course: TableTypes<'course'>;
@@ -127,7 +128,27 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
           currentStudent.id,
         );
         const pendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
-        const pendingCourseIds = pendingAssignments
+        const lessonById = await fetchLessonsById(
+          pendingAssignments.map((assignment) => assignment.lesson_id),
+          api.getLessonsBylessonIds.bind(api),
+        );
+        const resolvedPendingAssignments = pendingAssignments.filter(
+          (assignment) => {
+            if (!assignment.lesson_id) return false;
+            if (!lessonById.has(assignment.lesson_id)) {
+              logger.warn(
+                '[DropdownMenu] Skipping stale pending homework assignment with missing lesson metadata',
+                {
+                  assignmentId: assignment.id ?? null,
+                  lessonId: assignment.lesson_id ?? null,
+                },
+              );
+              return false;
+            }
+            return true;
+          },
+        );
+        const pendingCourseIds = resolvedPendingAssignments
           .map((assignment) => assignment.course_id)
           .filter((id): id is string => !!id);
         const fallbackCourses =

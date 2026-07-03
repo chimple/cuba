@@ -108,7 +108,7 @@ const buildUpsertStatement = (
     .map((name) => `${name} = excluded.${name}`)
     .join(', ');
   const onConflictClause = updateSetClause
-    ? `ON CONFLICT(id) DO UPDATE SET ${updateSetClause} WHERE excluded.updated_at > ${tableName}.updated_at`
+    ? `ON CONFLICT(id) DO UPDATE SET ${updateSetClause}`
     : 'ON CONFLICT(id) DO NOTHING';
 
   return {

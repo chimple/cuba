@@ -323,7 +323,7 @@
   }
 }
 
-@media (max-width: 48rem) {
+@media (max-width: 48rem) and (orientation: portrait) {
   .campaign-setup-page {
     --campaign-mobile-header-height: calc(
       3.875rem + env(safe-area-inset-top, 0rem)
