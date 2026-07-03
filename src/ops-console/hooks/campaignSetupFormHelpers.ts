@@ -6,9 +6,10 @@ import {
 } from '../../services/api/ServiceApi';
 import type { CampaignSetupFormState } from '../components/campaignSetup/types';
 import { DEFAULT_REWARD_RANKS } from '../components/campaignSetup/constants';
+import { CAMPAIGN_OBJECTIVE } from '../../common/constants';
 
 export const initialCampaignSetupForm: CampaignSetupFormState = {
-  objective: 'homework_campaign',
+  objective: CAMPAIGN_OBJECTIVE.HOMEWORK,
   targetType: 'percentage_completion',
   targetValue: '',
   learningPathCount: '',
@@ -78,7 +79,7 @@ export const getCampaignSetupValidationErrors = (
   const errors: Record<string, string> = {};
   const today = getTodayDateValue();
   if (!form.objective) errors.objective = 'Campaign objective is required.';
-  if (form.objective === 'homework_campaign') {
+  if (form.objective === CAMPAIGN_OBJECTIVE.HOMEWORK) {
     if (!form.targetType) errors.targetType = 'Target type is required.';
     if (!Number(form.targetValue) || Number(form.targetValue) <= 0) {
       errors.targetValue = 'Target value is required.';
@@ -86,7 +87,7 @@ export const getCampaignSetupValidationErrors = (
       errors.targetValue = 'Target value cannot be more than 100.';
     }
   }
-  if (form.objective === 'homepage_learning_pathway_campaign') {
+  if (form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY) {
     if (
       !Number(form.learningPathCount) ||
       Number(form.learningPathCount) <= 0
@@ -123,7 +124,7 @@ export const getCampaignSetupValidationErrors = (
 };
 
 export const usesLessonRewardCriteria = (form: CampaignSetupFormState) =>
-  form.objective === 'homepage_learning_pathway_campaign' ||
+  form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY ||
   form.targetType === 'number_of_lessons';
 
 export const getCampaignRewardsValidationErrors = (

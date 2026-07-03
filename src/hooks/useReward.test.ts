@@ -13,8 +13,6 @@ const mockApi = {
 };
 
 describe('useReward', () => {
-  const today = new Date().toISOString().split('T')[0];
-
   beforeEach(() => {
     jest.clearAllMocks();
     sessionStorage.clear();
@@ -67,7 +65,7 @@ describe('useReward', () => {
     expect(Util.updateUserReward).toHaveBeenCalled();
   });
 
-  test('syncs when studentReward exists but local reward missing', async () => {
+  test('returns reward id when studentReward exists for today but local reward is missing', async () => {
     (Util.getCurrentStudent as jest.Mock).mockReturnValue({
       id: 'stu-1',
       reward: JSON.stringify({
@@ -80,10 +78,36 @@ describe('useReward', () => {
 
     const { result } = renderHook(() => useReward());
 
+    let returned: string | null = null;
+
     await act(async () => {
-      await result.current.checkAndUpdateReward();
+      returned = await result.current.checkAndUpdateReward();
     });
 
+    expect(returned).toBe('reward-1');
+    expect(Util.updateUserReward).not.toHaveBeenCalled();
+  });
+
+  test('syncs local reward when studentReward exists but is not today reward', async () => {
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: 'stu-1',
+      reward: JSON.stringify({
+        reward_id: 'older-reward',
+        timestamp: new Date('2020-01-01').toISOString(),
+      }),
+    });
+
+    (Util.retrieveUserReward as jest.Mock).mockReturnValue({});
+
+    const { result } = renderHook(() => useReward());
+
+    let returned: string | null = null;
+
+    await act(async () => {
+      returned = await result.current.checkAndUpdateReward();
+    });
+
+    expect(returned).toBeNull();
     expect(Util.updateUserReward).toHaveBeenCalled();
   });
 

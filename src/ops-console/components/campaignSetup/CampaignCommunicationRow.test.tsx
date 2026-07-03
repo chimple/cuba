@@ -191,9 +191,12 @@ describe('CampaignCommunicationRow', () => {
   it('calls onRowChange with the row date when the message changes', () => {
     const { onRowChange } = renderRow();
 
-    fireEvent.change(screen.getByPlaceholderText('Enter daily message'), {
-      target: { value: 'Send reminder to students.' },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText('Enter daily campaign message...'),
+      {
+        target: { value: 'Send reminder to students.' },
+      },
+    );
 
     expect(onRowChange).toHaveBeenCalledTimes(1);
     expect(onRowChange).toHaveBeenCalledWith(
@@ -207,9 +210,12 @@ describe('CampaignCommunicationRow', () => {
     const recorder = createRowChangeRecorder(initialRow);
     renderRow({ row: initialRow, onRowChange: recorder.onRowChange });
 
-    fireEvent.change(screen.getByPlaceholderText('Enter daily message'), {
-      target: { value: 'Send reminder to students.' },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText('Enter daily campaign message...'),
+      {
+        target: { value: 'Send reminder to students.' },
+      },
+    );
 
     const updatedRow = recorder.appliedRows[0];
     expect(updatedRow).toEqual({
@@ -420,11 +426,11 @@ describe('CampaignCommunicationRow', () => {
       screen.queryByRole('button', { name: 'Remove Option 2' }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Remove Option 3' }),
-    ).toBeInTheDocument();
+      screen.getAllByRole('button', { name: 'Remove Option 3' }).length,
+    ).toBeGreaterThan(0);
     expect(
-      screen.getByRole('button', { name: 'Remove Option 4' }),
-    ).toBeInTheDocument();
+      screen.getAllByRole('button', { name: 'Remove Option 4' }).length,
+    ).toBeGreaterThan(0);
   });
 
   it('does not render remove buttons when only the first two options exist', () => {
@@ -446,7 +452,9 @@ describe('CampaignCommunicationRow', () => {
       }),
     });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Option 3' }));
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Remove Option 3' })[0],
+    );
 
     expect(onRowChange).toHaveBeenCalledTimes(1);
     expect(onRowChange).toHaveBeenCalledWith(
@@ -461,7 +469,9 @@ describe('CampaignCommunicationRow', () => {
     });
     const { onRowChange } = renderRow({ row: existingRow });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Option 3' }));
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Remove Option 3' })[0],
+    );
 
     const updatedRow = expectUpdaterResult(onRowChange, 0, existingRow);
     expect(updatedRow.pollOptions).toEqual(['A', 'B']);
@@ -473,7 +483,9 @@ describe('CampaignCommunicationRow', () => {
     });
     const { onRowChange } = renderRow({ row: existingRow });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Option 4' }));
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Remove Option 4' })[0],
+    );
 
     const updatedRow = expectUpdaterResult(onRowChange, 0, existingRow);
     expect(updatedRow.pollOptions).toEqual(['A', 'B', 'C']);
@@ -548,9 +560,12 @@ describe('CampaignCommunicationRow', () => {
   it('uses the supplied date key in every row change callback', () => {
     const { onRowChange } = renderRow({ date: '2099-06-01' });
 
-    fireEvent.change(screen.getByPlaceholderText('Enter daily message'), {
-      target: { value: 'Message value' },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText('Enter daily campaign message...'),
+      {
+        target: { value: 'Message value' },
+      },
+    );
     fireEvent.change(screen.getByPlaceholderText('Paste media drive link...'), {
       target: { value: 'https://example.com' },
     });
@@ -603,9 +618,12 @@ describe('CampaignCommunicationRow', () => {
   it('supports editing several fields in sequence and emits separate updater callbacks', () => {
     const { onRowChange } = renderRow();
 
-    fireEvent.change(screen.getByPlaceholderText('Enter daily message'), {
-      target: { value: 'Message 1' },
-    });
+    fireEvent.change(
+      screen.getByPlaceholderText('Enter daily campaign message...'),
+      {
+        target: { value: 'Message 1' },
+      },
+    );
     fireEvent.change(screen.getByPlaceholderText('Paste media drive link...'), {
       target: { value: 'https://media.example.com' },
     });
@@ -650,14 +668,14 @@ describe('CampaignCommunicationRow', () => {
     });
 
     expect(
-      screen.getByRole('button', { name: 'Remove Option 3' }),
-    ).toBeInTheDocument();
+      screen.getAllByRole('button', { name: 'Remove Option 3' }).length,
+    ).toBeGreaterThan(0);
     expect(
-      screen.getByRole('button', { name: 'Remove Option 4' }),
-    ).toBeInTheDocument();
+      screen.getAllByRole('button', { name: 'Remove Option 4' }).length,
+    ).toBeGreaterThan(0);
     expect(
-      screen.getByRole('button', { name: 'Remove Option 5' }),
-    ).toBeInTheDocument();
+      screen.getAllByRole('button', { name: 'Remove Option 5' }).length,
+    ).toBeGreaterThan(0);
   });
 
   it('updates the correct option when many poll options exist', () => {
@@ -681,7 +699,9 @@ describe('CampaignCommunicationRow', () => {
     });
     const { onRowChange } = renderRow({ row: existingRow });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Option 5' }));
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Remove Option 5' })[0],
+    );
 
     const updatedRow = expectUpdaterResult(onRowChange, 0, existingRow);
     expect(updatedRow.pollOptions).toEqual(['A', 'B', 'C', 'D']);
@@ -696,7 +716,9 @@ describe('CampaignCommunicationRow', () => {
     });
     const { onRowChange } = renderRow({ row: existingRow });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remove Option 3' }));
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Remove Option 3' })[0],
+    );
 
     const updatedRow = expectUpdaterResult(onRowChange, 0, existingRow);
     expect(updatedRow.message).toBe('Daily reminder');

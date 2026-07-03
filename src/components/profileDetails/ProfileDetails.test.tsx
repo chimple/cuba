@@ -6,6 +6,8 @@ import { useFeatureValue } from '@growthbook/growthbook-react';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { MemoryRouter } from 'react-router';
+import { Router } from 'react-router-dom';
+import { createMemoryHistory } from 'history';
 import { logProfileClick } from '../../analytics/profileClickUtil';
 import {
   LATEST_TC_VERSION,
@@ -148,6 +150,36 @@ describe('ProfileDetails Component', () => {
     expect(await getFullNameLabel()).toBeInTheDocument();
   });
 
+  test('orders language dropdown options by sort index', async () => {
+    mockApi.getAllLanguages.mockResolvedValue([
+      { id: 'pt', name: 'Portuguese', code: 'pt', sort_index: 5 },
+      { id: 'mr', name: 'Marathi', code: 'mr', sort_index: 4 },
+      { id: 'kn', name: 'Kannada', code: 'kn', sort_index: 3 },
+      { id: 'en', name: 'English', code: 'en', sort_index: 1 },
+      { id: 'hi', name: 'Hindi', code: 'hi', sort_index: 2 },
+    ]);
+
+    render(
+      <MemoryRouter>
+        <ProfileDetails />
+      </MemoryRouter>,
+    );
+
+    await screen.findByText(/Language/i);
+    await userEvent.click(screen.getAllByText('Select one')[1]);
+    const languageOptions = screen
+      .getAllByText(/English|Hindi|Kannada|Marathi|Portuguese/)
+      .map((option) => option.textContent);
+
+    expect(languageOptions).toEqual([
+      'English',
+      'Hindi',
+      'Kannada',
+      'Marathi',
+      'Portuguese',
+    ]);
+  });
+
   test('save button disabled initially', async () => {
     mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.CONTROL);
 
@@ -208,6 +240,36 @@ describe('ProfileDetails Component', () => {
 
     await waitFor(() => {
       expect(mockApi.createProfile).toHaveBeenCalled();
+    });
+  });
+
+  test('create mode navigates to student home after save even when opened from parent page', async () => {
+    mockProfileFeatureValues(PROFILE_DETAILS_GROWTHBOOK_VARIATION.VARIANT_2);
+    mockApi.createProfile.mockResolvedValue({
+      id: 'student-1',
+      age: null,
+      grade_id: null,
+    });
+    const history = createMemoryHistory({
+      initialEntries: [
+        {
+          pathname: PAGES.CREATE_STUDENT,
+          state: { from: PAGES.PARENT },
+        },
+      ],
+    });
+
+    render(
+      <Router history={history}>
+        <ProfileDetails />
+      </Router>,
+    );
+
+    await userEvent.type(screen.getByPlaceholderText(/Name Surname/i), 'Alice');
+    await userEvent.click(getSaveBtn());
+
+    await waitFor(() => {
+      expect(history.location.pathname).toBe(PAGES.HOME);
     });
   });
 

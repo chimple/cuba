@@ -142,6 +142,7 @@ const AddSchoolUser: React.FC = () => {
           onEnter={handleSearch}
           toggleInputMethod={toggleInputMethod}
           resetUserNotFound={resetUserNotFound}
+          className={'add-school-user-input'}
         />
 
         {user && (

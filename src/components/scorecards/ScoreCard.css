@@ -4,24 +4,52 @@
   max-width: calc(100vw - 8px) !important;
   min-height: 314px !important;
   border-radius: 22px !important;
+  margin: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .score-card-dialog__paper--progress {
   background-color: #ffffff !important;
   width: 800px !important;
-  min-height: 420px !important;
-  border-radius: 0 !important;
+  max-width: 100vw !important;
+  border-radius: 24px !important;
   box-shadow: none !important;
+  margin: 0 auto !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 20px;
+}
+
+.score-card-dialog__paper--progress:has(.score-card-progress-count-1) {
+  gap: 11vh;
 }
 
 .score-card-dialog__paper--progress-no-rows {
   width: 800px !important;
-  height: 360px !important;
-  min-height: 360px !important;
+  height: auto !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .score-card-dialog__backdrop--progress {
   background-color: #ffffff !important;
+}
+
+.score-card-dialog--progress .MuiDialog-container,
+.score-card-dialog--progress .MuiDialog-scrollPaper,
+.score-card-dialog--progress .MuiDialog-paperScrollPaper {
+  overflow: hidden !important;
+  overscroll-behavior: none;
 }
 
 .dialog-box-button-style-score-card {
@@ -31,7 +59,8 @@
   font-size: 22px;
   font-weight: 600;
   text-align: center;
-  white-space: nowrap;
+  width: 100%;
+  word-wrap: break-word;
   min-width: 196px;
   min-height: 48px;
   max-width: 340px;
@@ -75,6 +104,14 @@
   font-size: 14px;
   font-weight: 500;
   color: red;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  max-width: 100%;
 }
 
 .image-icon {
@@ -94,12 +131,12 @@
   font-weight: 500;
 }
 
-.ScoreCard-Continue-Button-div {
+.ScoreCard-Continue-Button-div,
+.score-card-progress-continue-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
   width: 100%;
-  margin-top: 10px;
 }
 
 .dialog-box-button-style-score-card:active {
@@ -109,12 +146,13 @@
     color 0.1s;
 }
 
-.score-card-progress-list {
+.score-card-goal-progress-list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  width: min(628px, calc(100vw - 72px));
-  margin: 10px auto 0;
+  gap: 16px;
+  width: calc(100vw - 72px);
+  max-width: 628px;
+  margin: 1px auto 0;
 }
 
 .score-card-progress-row {
@@ -239,8 +277,9 @@
     min-height: 42px;
   }
 
-  .score-card-progress-list {
-    width: min(360px, calc(100vw - 32px));
+  .score-card-goal-progress-list {
+    width: calc(100vw - 32px);
+    max-width: 360px;
     gap: 10px;
   }
 
@@ -251,23 +290,21 @@
   }
 
   .score-card-progress-label {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .score-card-progress-count {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 
-.score-card-dialog--progress .ScoreCard-Content {
+.score-card-dialog--progress .score-card-goal-progress-content-box {
   position: relative;
-  width: max-content;
-  max-width: min(558px, calc(100vw - 48px));
-  min-width: min(345px, calc(100vw - 48px));
+  width: fit-content;
+  max-width: 700px;
   height: auto;
-  min-height: 113.707px;
-  margin: 11.5px auto 0;
-  padding: 16px 24px;
+  margin: 0 auto;
+  padding: 20px 24px 16px;
   background:
     linear-gradient(0deg, #fffdee 0%, #fffdee 100%),
     linear-gradient(0deg, #fffdee 0%, #fffdee 100%),
@@ -276,37 +313,36 @@
   border-radius: 16.798px;
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
   box-sizing: border-box;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
 }
 
 .score-card-dialog--progress .dialog-content-text {
-  margin: 0;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-  column-gap: 16px;
-  row-gap: 4px;
-  align-items: center;
-  text-align: center;
-  width: 100%;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  width: 100% !important;
+  gap: 24px !important;
 }
 
 .score-card-dialog--progress .score-card-icons {
-  grid-column: 1;
-  grid-row: 1 / 3;
+  flex-shrink: 0 !important;
   position: relative;
-  width: 82px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 76px !important;
+  margin-top: -3vh;
 }
 
 .score-card-dialog--progress .image-icon {
-  width: 43px;
-  height: 43px;
+  width: 54px;
+  height: 54px;
   transform: none;
   display: block;
   margin: 0 auto;
@@ -314,8 +350,8 @@
 
 .score-card-dialog--progress .star-images-component {
   position: relative;
-  margin-top: -6px;
-  width: 82px;
+  margin-top: 2px;
+  width: 76px;
   z-index: 2;
 }
 
@@ -331,23 +367,33 @@
 
 .score-card-dialog--progress .score-card-first-star,
 .score-card-dialog--progress .score-card-middle-star {
-  width: 18px;
-  height: 18px;
+  width: 23px;
+  height: 23px;
 }
 
 .score-card-dialog--progress .score-card-middle-star {
   margin: 0;
-  transform: translateY(13px);
+  transform: translateY(8px);
+}
+
+/* right-side text column wrapper */
+.score-card-dialog--progress .score-card-text-column {
+  position: relative;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
 }
 
 .score-card-dialog--progress .title-scoreCard {
-  grid-column: 2;
-  grid-row: 1;
   position: relative;
-  margin: 0;
+  margin: 0 !important;
   justify-content: center;
-  gap: 7px;
-  align-self: end;
+  gap: 6px;
+  white-space: nowrap;
 }
 
 .score-card-dialog--progress .title-scoreCard-icon,
@@ -363,78 +409,99 @@
 .score-card-dialog--progress .title-scoreCard span {
   top: 0;
   min-width: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  white-space: normal;
+  white-space: nowrap;
   line-height: 1.2;
 }
 
 .score-card-dialog--progress .score-card-content {
-  grid-column: 2;
-  grid-row: 2;
   position: relative;
   align-items: center;
+  text-align: center;
   margin-left: 0;
-  gap: 4px;
-  align-self: start;
+  gap: 2px;
+  width: 100%;
 }
 
 .score-card-dialog--progress .score-card-content-message {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-color);
-  white-space: normal;
+  white-space: nowrap;
 }
 
 .score-card-dialog--progress .score-card-content-lesson-name {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: red;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: normal;
+  word-break: break-word;
+  max-width: 100%;
 }
 
-.score-card-dialog--progress .score-card-progress-list {
-  width: min(557.851px, calc(100vw - 48px));
-  gap: 14px;
-  margin: 41.5px auto 0;
+.score-card-dialog--progress .score-card-goal-progress-list {
+  width: calc(100vw - 48px);
+  max-width: 650px;
+  gap: 5vh;
 }
 
 .score-card-dialog--progress .score-card-progress-row {
   box-sizing: border-box;
-  grid-template-columns:
-    58px minmax(0, 1fr) minmax(64px, 80.546px)
-    max-content 28px;
-  column-gap: 8px;
-  height: 45.943px;
-  min-height: 45.943px;
-  padding: 4px 14px 4px 16px;
+  grid-template-columns: 45px minmax(0, 1fr) 92px 38px 24px;
+  column-gap: 12px;
+  height: 54px;
+  min-height: 50px;
+  padding: 5px 31px;
   border-radius: 0 18.313px 18.313px 18.313px;
 }
 
 .score-card-dialog--progress .score-card-progress-row--dailyReward {
-  width: min(557.842px, 100%);
-  height: 45.942px;
-  min-height: 45.942px;
-  border-radius: 0 18.313px 18.313px 18.313px;
   background: #f3ffff;
 }
 
 .score-card-dialog--progress .score-card-progress-row--sticker {
-  width: min(557.851px, 100%);
-  height: 45.943px;
-  min-height: 45.943px;
-  border-radius: 0 18.313px 18.313px 18.313px;
   background: #fffdee;
 }
 
 .score-card-dialog--progress .score-card-progress-icon-wrap {
   width: 42px;
   height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .score-card-dialog--progress .score-card-progress-icon {
   max-width: 42px;
   max-height: 42px;
+}
+
+.score-card-dialog--progress
+  .score-card-progress-row--sticker
+  .score-card-progress-icon-wrap {
+  border: 1.78px solid #ff5b8a;
+  border-radius: 10px;
+  background: #fff8ef;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  width: 49px;
+  height: 39px;
+}
+
+.score-card-dialog--progress
+  .score-card-progress-row--sticker
+  .score-card-progress-icon {
+  max-width: 100%;
+  max-height: 100%;
 }
 
 .score-card-dialog--progress .score-card-progress-fallback-icon {
@@ -445,16 +512,19 @@
 
 .score-card-dialog--progress .score-card-progress-label {
   min-width: 0;
-  overflow-wrap: anywhere;
-  line-height: 1.1;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  line-height: 1;
   font-size: 16px;
   font-weight: 700;
 }
 
 .score-card-dialog--progress .score-card-progress-track {
-  width: 100%;
-  height: 22.318px;
-  border-radius: 9.156px;
+  width: 90px;
+  max-width: 95px;
+  height: 25.7749px;
+  border-radius: 11.156px;
 }
 
 .score-card-dialog--progress .score-card-progress-count {
@@ -470,32 +540,35 @@
   height: 24px;
 }
 
-.score-card-dialog--progress .ScoreCard-Continue-Button-div {
-  margin-top: 47px;
+/* .score-card-dialog--progress .score-card-progress-continue-wrapper {
+  margin-top: 16px;
+} */
+
+.score-card-dialog--progress-no-rows .score-card-goal-progress-content-box {
+  margin: 0 auto;
 }
 
-.score-card-dialog--progress-no-rows .ScoreCard-Content {
-  margin: 88px auto 0;
-}
-
+.score-card-dialog--progress-no-rows .score-card-progress-continue-wrapper,
 .score-card-dialog--progress-no-rows .ScoreCard-Continue-Button-div {
-  margin-top: 55px;
+  margin-top: 32px;
 }
 
-.score-card-dialog--progress-no-rows .dialog-box-button-style-score-card {
+/* .score-card-dialog--progress-no-rows .dialog-box-button-style-score-card {
   width: 221px !important;
   min-width: 221px !important;
-}
+} */
 
 .score-card-dialog--progress .dialog-box-button-style-score-card {
-  width: 196px;
+  width: auto;
+  max-width: 90vw;
   height: 48px;
   min-width: 196px;
   min-height: 48px;
-  padding: 0 16px;
+  padding: 0 24px;
   border-radius: 10px;
   border-bottom-width: 6px;
   font-size: 22px;
+  white-space: nowrap;
 }
 
 @media (max-width: 720px) {
@@ -504,36 +577,36 @@
     max-width: 100vw !important;
   }
 
-  .score-card-dialog--progress .score-card-progress-list {
-    width: min(557.851px, calc(100vw - 28px));
+  .score-card-dialog--progress .score-card-goal-progress-content-box,
+  .score-card-dialog--progress .score-card-goal-progress-list {
+    width: calc(100vw - 32px);
+  }
+
+  .score-card-dialog--progress .dialog-content-text {
+    gap: 24px !important;
+  }
+
+  .score-card-dialog--progress .title-scoreCard span {
+    font-size: 18px;
   }
 
   .score-card-dialog--progress .score-card-progress-row {
-    grid-template-columns: 44px minmax(0, 1fr) 72px 28px 24px;
-    column-gap: 8px;
-    padding: 6px 10px 6px 8px;
+    grid-template-columns: 49px minmax(0, 1fr) 92px 34px 24px;
+    column-gap: 10px;
+    padding: 6px 16px;
   }
 
   .score-card-dialog--progress .score-card-progress-label {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .score-card-dialog--progress .score-card-progress-count {
-    font-size: 11px;
+    font-size: 12px;
   }
 
   .score-card-dialog--progress .score-card-progress-track {
-    max-width: 72px;
-  }
-
-  .score-card-dialog--progress
-    .score-card-progress-row--completed
-    .score-card-progress-track {
-    display: none;
-  }
-
-  .score-card-dialog--progress .score-card-progress-row--completed {
-    grid-template-columns: 44px minmax(0, 1fr) 0 30px 24px;
+    width: 92px;
+    max-width: 92px;
   }
 
   .score-card-dialog--progress .score-card-progress-check {
@@ -543,19 +616,45 @@
 }
 
 @media (max-width: 480px) {
-  .score-card-dialog--progress .ScoreCard-Content {
-    width: min(344.998px, calc(100vw - 24px));
+  .score-card-dialog--progress .score-card-goal-progress-content-box {
+    width: calc(100vw - 24px);
+    max-width: 440px;
+    padding: 14px 14px;
   }
 
-  .score-card-dialog--progress .score-card-progress-list {
-    width: calc(100vw - 20px);
+  .score-card-dialog--progress .score-card-goal-progress-list {
+    width: calc(100vw - 24px);
+    max-width: 440px;
     gap: 12px;
+    margin: 0 auto 0;
+  }
+
+  .score-card-dialog--progress .dialog-content-text {
+    gap: 12px !important;
+    padding-top: 4px;
+  }
+
+  .score-card-dialog--progress .score-card-icons {
+    width: 60px !important;
+  }
+
+  .score-card-dialog--progress .image-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .score-card-dialog--progress .star-images-component {
+    width: 60px;
+  }
+
+  .score-card-dialog--progress .title-scoreCard span {
+    font-size: 16px;
   }
 
   .score-card-dialog--progress .score-card-progress-row {
-    grid-template-columns: 38px minmax(0, 1fr) 56px 24px 24px;
-    column-gap: 6px;
-    padding: 5px 8px 5px 6px;
+    grid-template-columns: 36px minmax(0, 1fr) 74px 28px 24px;
+    column-gap: 8px;
+    padding: 5px 14px;
   }
 
   .score-card-dialog--progress .score-card-progress-icon-wrap,
@@ -570,12 +669,13 @@
   }
 
   .score-card-dialog--progress .score-card-progress-track {
-    max-width: 56px;
+    width: 74px;
+    max-width: 74px;
     height: 18px;
   }
 
-  .score-card-dialog--progress .score-card-progress-row--completed {
-    grid-template-columns: 38px minmax(0, 1fr) 0 26px 24px;
+  .score-card-dialog--progress .score-card-progress-continue-wrapper {
+    margin-top: 0;
   }
 }
 
@@ -583,40 +683,52 @@
   animation: score-card-progress-paper-in 220ms ease-out both;
 }
 
-.score-card-dialog--progress .ScoreCard-Content {
+.score-card-dialog--progress .score-card-goal-progress-content-box {
   animation: score-card-header-pop 320ms cubic-bezier(0.2, 0.9, 0.25, 1.18) both;
 }
 
 .score-card-dialog--progress .score-card-progress-row {
   opacity: 0;
-  animation: score-card-row-slide-in 360ms ease-out both;
+  animation: score-card-row-slide-in 1500ms ease-in-out both;
   animation-delay: var(--score-card-row-delay, 220ms);
 }
 
 .score-card-dialog--progress .score-card-progress-row--index-0 {
   --score-card-row-delay: 220ms;
-  --score-card-fill-delay: 580ms;
-  --score-card-check-delay: 1080ms;
+  --score-card-fill-delay: 1720ms;
+  --score-card-check-delay: 2220ms;
 }
 
 .score-card-dialog--progress .score-card-progress-row--index-1 {
-  --score-card-row-delay: 1170ms;
-  --score-card-fill-delay: 1530ms;
-  --score-card-check-delay: 2030ms;
+  --score-card-row-delay: 2020ms;
+  --score-card-fill-delay: 3520ms;
+  --score-card-check-delay: 4020ms;
 }
 
 .score-card-dialog--progress .score-card-progress-row--index-2 {
-  --score-card-row-delay: 2120ms;
-  --score-card-fill-delay: 2480ms;
-  --score-card-check-delay: 2980ms;
+  --score-card-row-delay: 3820ms;
+  --score-card-fill-delay: 5320ms;
+  --score-card-check-delay: 5820ms;
+}
+
+.score-card-dialog--progress .score-card-progress-row--event-sequenced {
+  --score-card-row-delay: 0ms;
+  --score-card-fill-delay: 1500ms;
+  --score-card-check-delay: 2000ms;
+}
+
+.score-card-dialog--progress .score-card-progress-row--sequence-placeholder {
+  visibility: hidden;
+  pointer-events: none;
+  animation: none;
 }
 
 .score-card-dialog--progress .score-card-progress-row:nth-child(odd) {
-  --score-card-row-start-x: -28px;
+  --score-card-row-start-x: calc(-100vw - 80px);
 }
 
 .score-card-dialog--progress .score-card-progress-row:nth-child(even) {
-  --score-card-row-start-x: 28px;
+  --score-card-row-start-x: calc(100vw + 80px);
 }
 
 .score-card-dialog--progress .score-card-progress-fill {
@@ -653,12 +765,22 @@
   animation-delay: 220ms;
 }
 
-.score-card-dialog--progress .score-card-progress-count-1 {
-  animation-delay: 1170ms;
+.score-card-dialog--progress
+  .dialog-box-button-style-score-card.score-card-continue--pending {
+  pointer-events: none;
+  animation: none;
 }
 
-.score-card-dialog--progress .score-card-progress-count-2 {
-  animation-delay: 2120ms;
+.score-card-dialog--progress
+  .dialog-box-button-style-score-card.score-card-continue--ready {
+  animation-delay: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .score-card-dialog--progress .dialog-box-button-style-score-card {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 @keyframes score-card-progress-paper-in {

@@ -27,6 +27,7 @@ import {
 import { CampaignReachSummary } from './campaignCommunicationTypes';
 import { CampaignSetupFormState } from './types';
 import { ReviewCard, ReviewRow } from './CampaignReviewComponents';
+import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
 import './CampaignReviewStep.css';
 
 export type CampaignReviewData = {
@@ -96,7 +97,7 @@ const getRewardTypeLabel = (value: CampaignSetupFormState['rewardType']) =>
   emptyValue;
 
 const getObjectiveLabel = (form: CampaignSetupFormState) => {
-  if (form.objective === 'homepage_learning_pathway_campaign') {
+  if (form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY) {
     return 'Homepage Learning Pathway Campaign';
   }
   if (!form.targetType) return 'Homework Campaign';
@@ -160,6 +161,8 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
   const hiddenMessagingDayCount =
     reviewData.messagingRows.length - visibleMessagingRows.length;
   const usesLessonCriteria = usesLessonRewardCriteria(reviewData.form);
+  const isHomepageLearningPathwayCampaign =
+    reviewData.form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY;
 
   return (
     <Box className="campaign-review-step">
@@ -229,27 +232,29 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
         />
       </ReviewCard>
 
-      <ReviewCard title="Assignments" editStep={1} onEditStep={onEditStep}>
-        <Box className="campaign-review-assignment-list">
-          {assignmentsByGrade.map((assignment) => (
-            <Box
-              key={assignment.grade.id}
-              className="campaign-review-assignment-item"
-            >
-              <Typography className="campaign-review-assignment-grade">
-                {assignment.grade.name}
-              </Typography>
-              <Typography className="campaign-review-assignment-detail">
-                {t('Subjects')}: {formatList(assignment.subjects)}
-              </Typography>
-              <Typography className="campaign-review-assignment-detail">
-                {t('Lessons')}: {assignment.lessonCount} · {t('Frequency')}:{' '}
-                {t(frequencyLabels[assignment.frequency])}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </ReviewCard>
+      {!isHomepageLearningPathwayCampaign && (
+        <ReviewCard title="Assignments" editStep={1} onEditStep={onEditStep}>
+          <Box className="campaign-review-assignment-list">
+            {assignmentsByGrade.map((assignment) => (
+              <Box
+                key={assignment.grade.id}
+                className="campaign-review-assignment-item"
+              >
+                <Typography className="campaign-review-assignment-grade">
+                  {assignment.grade.name}
+                </Typography>
+                <Typography className="campaign-review-assignment-detail">
+                  {t('Subjects')}: {formatList(assignment.subjects)}
+                </Typography>
+                <Typography className="campaign-review-assignment-detail">
+                  {t('Lessons')}: {assignment.lessonCount} · {t('Frequency')}:{' '}
+                  {t(frequencyLabels[assignment.frequency])}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </ReviewCard>
+      )}
 
       <ReviewCard title="Rewards" editStep={2} onEditStep={onEditStep}>
         <ReviewRow

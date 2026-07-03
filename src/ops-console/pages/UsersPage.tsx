@@ -96,17 +96,17 @@ const UsersPage: React.FC = () => {
 
       if (result) {
         setUsers(
-          result.data.map((u: any) => ({
+          result.data.map((u) => ({
             id: u.user?.id,
             user: u.user,
             userRole: u.role,
-            fullName: u.user?.name,
+            fullName: u.user?.name || '',
             role: RoleLabels[u.role as RoleType] || u.role,
           })),
         );
         const totalPages = Math.ceil(result.totalCount / ROWS_PER_PAGE);
         setPageCount(totalPages);
-        if (page > totalPages) setPage(1);
+        if (totalPages > 0 && page > totalPages) setPage(totalPages);
       } else {
         setUsers([]);
         setPageCount(0);
