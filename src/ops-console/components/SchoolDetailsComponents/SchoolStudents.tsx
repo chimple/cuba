@@ -1323,14 +1323,32 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     return programScopedClasses
       .map((classRow) => ({
         value: classRow.id,
-        label:
-          typeof classRow.name === 'string'
-            ? classRow.name
-            : String(classRow.name ?? ''),
+        label: getClassDisplayLabel(
+          classRow.grade,
+          classRow.section,
+          typeof classRow.name === 'string' ? classRow.name : undefined,
+        ),
       }))
       .filter((option) => option.value && option.label)
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [programScopedClasses]);
+
+  const editStudentClassId = useMemo(() => {
+    const directClassId = String(
+      editStudentData?.classWithidname?.id ?? '',
+    ).trim();
+    if (directClassId) return directClassId;
+
+    const classLabel = getClassDisplayLabel(
+      editStudentData?.grade,
+      editStudentData?.classSection,
+      editStudentData?.classWithidname?.class_name,
+    );
+    const matchedClass = classOptions.find(
+      (option) => option.label === classLabel,
+    );
+    return matchedClass?.value ?? '';
+  }, [classOptions, editStudentData]);
 
   const currentClass = useMemo(() => {
     if (!issTotal) {
@@ -1571,9 +1589,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     {
       name: 'classAndSection',
       label: 'Class And Section',
-      kind: 'text',
+      kind: 'select',
+      required: true,
       column: 0,
-      disabled: true,
+      options: classOptions,
     },
 
     // 5️⃣ Age – right
@@ -1614,14 +1633,20 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     if (!editStudentData) return; // ✅ null safety
 
     const user = editStudentData.user;
-    const classId = editStudentData.classWithidname?.id;
+    const selectedClassId = values.classAndSection?.trim();
+    const originalClassId = String(editStudentClassId ?? '').trim();
     const avatarToSend =
       user.avatar && user.avatar.trim() !== ''
         ? user.avatar
         : getRandomAvatar();
-
-    if (!classId) {
-      logger.error('Class ID missing for student');
+    if (!selectedClassId) {
+      logger.error('Selected class ID missing for student');
+      return;
+    }
+    if (selectedClassId === originalClassId) {
+      logger.info('Skipping student update because class did not change.');
+      setIsEditStudentModalOpen(false);
+      setEditStudentData(null);
       return;
     }
     await api.updateStudentFromSchoolMode(
@@ -1635,7 +1660,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       user.grade_id || user.grade_id!,
       user.language_id || user.language_id!,
       user.student_id || user.student_id!,
-      classId,
+      selectedClassId,
     );
 
     setIsEditStudentModalOpen(false);
@@ -1898,9 +1923,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           gender: editStudentData?.user?.gender ?? '',
           ageGroup: String(editStudentData?.user?.age ?? ''),
           studentID: editStudentData?.user?.student_id ?? '',
-          classAndSection: `${editStudentData?.grade ?? ''}${
-            editStudentData?.classSection ?? ''
-          }`,
+          classAndSection: editStudentClassId,
           phone: editStudentData?.parent?.phone ?? '',
         }}
         onClose={() => {

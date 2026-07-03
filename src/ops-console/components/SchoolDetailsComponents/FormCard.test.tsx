@@ -71,6 +71,21 @@ describe('FormCard', () => {
     },
   ];
 
+  const singleSelectFields: FieldConfig[] = [
+    {
+      name: 'classAndSection',
+      label: 'Class And Section',
+      kind: 'select',
+      required: true,
+      column: 2,
+      options: [
+        { value: '1', label: '1' },
+        { value: '2', label: '2' },
+        { value: '3', label: '3' },
+      ],
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -177,5 +192,32 @@ describe('FormCard', () => {
         name: 'Gourav',
       }),
     );
+  });
+
+  it('renders single-select dropdown without placeholder option row', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <FormCard
+        open={true}
+        title="Edit Student Details"
+        submitLabel="Save Changes"
+        fields={singleSelectFields}
+        initialValues={{ classAndSection: '2' }}
+        onClose={onClose}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    expect(screen.getByText('2')).toBeInTheDocument();
+
+    await user.click(screen.getByText('2'));
+
+    expect(
+      screen.queryByText('Select Class And Section'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getAllByText('2')).toHaveLength(2);
+    expect(screen.getByText('3')).toBeInTheDocument();
   });
 });

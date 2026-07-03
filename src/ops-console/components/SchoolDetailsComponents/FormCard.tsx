@@ -81,7 +81,7 @@ const FormCard: React.FC<EntityModalProps> = ({
       setInitialSnapshot({});
     }
     setOpenSelect(null);
-  }, [open, fields, initialValues]);
+  }, [open, fields, initialValues, isEditMode]);
 
   if (!open) return null;
 
@@ -214,7 +214,7 @@ const FormCard: React.FC<EntityModalProps> = ({
           );
         }
 
-        const shouldUseCustomDropdown = (field.options?.length || 0) > 3;
+        const shouldUseCustomDropdown = true;
 
         if (shouldUseCustomDropdown) {
           const currentValue = values[field.name] || '';
