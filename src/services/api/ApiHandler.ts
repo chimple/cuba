@@ -9,6 +9,7 @@ import {
   CampaignAudienceSummaryParams,
   CampaignSavedAudienceGroup,
   CampaignSetupOptions,
+  ClassMetricsForClassListingRow,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
@@ -500,6 +501,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }> {
     return await this.s.getStudentResultInMap(studentId);
   }
+  public async hasStudentResult(studentId: string): Promise<boolean> {
+    return await this.s.hasStudentResult(studentId);
+  }
   public async getClassById(
     id: string,
   ): Promise<TableTypes<'class'> | undefined> {
@@ -965,7 +969,7 @@ export class ApiHandler implements ServiceApi {
 
   public async getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
+  ): Promise<TableTypes<'skill'>[]> {
     return this.s.getSkillByLessonIdentifier(lessonIdentifier);
   }
 
@@ -1044,6 +1048,10 @@ export class ApiHandler implements ServiceApi {
 
   isSyncInProgress(): boolean {
     return this.s.isSyncInProgress();
+  }
+
+  close(): Promise<void> {
+    return this.s.close();
   }
 
   async getRecommendedLessons(
@@ -1549,7 +1557,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getProgramFilterOptions();
   }
   async getPrograms(params: {
-    currentUserId: string;
+    currentUserId?: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: TabType;
@@ -1557,7 +1565,13 @@ export class ApiHandler implements ServiceApi {
     offset?: number;
     orderBy?: string;
     order?: 'asc' | 'desc';
-  }): Promise<{ data: any[] }> {
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }) {
     return await this.s.getPrograms(params);
   }
 
@@ -1707,6 +1721,8 @@ export class ApiHandler implements ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this.s.getFilteredSchoolsForSchoolListing(params);
   }
@@ -1720,8 +1736,17 @@ export class ApiHandler implements ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this.s.getSchoolMetricsForSchoolListing(params);
+  }
+
+  async getClassMetricsForClassListing(params: {
+    schoolId: string;
+    date_range?: string;
+  }): Promise<ClassMetricsForClassListingRow[]> {
+    return await this.s.getClassMetricsForClassListing(params);
   }
 
   async getSchoolsWithProgramAccess(
@@ -2293,6 +2318,12 @@ export class ApiHandler implements ServiceApi {
     skillId: string,
   ): Promise<TableTypes<'skill'> | undefined> {
     return await this.s.getSkillById(skillId);
+  }
+
+  public async getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    return await this.s.getSubjectBySkillId(skillId);
   }
 
   async updateSchoolProgram(

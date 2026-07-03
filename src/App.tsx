@@ -98,6 +98,7 @@ import React from 'react';
 import './App.css';
 import { schoolUtil } from './utility/schoolUtil';
 import LidoPlayer from './pages/LidoPlayer';
+import Loading from './components/Loading';
 import UploadPage from './ops-console/pages/UploadPage';
 import SidebarPage from './ops-console/pages/SidebarPage';
 import { initializeClickListener } from './analytics/clickUtil';
@@ -143,6 +144,7 @@ import PopupManager from './components/GenericPopUp/GenericPopUpManager';
 import TermsGate from './components/termsandconditons/TermsGate';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { setCachedGrowthBookFeatureValue } from './growthbook/Growthbook';
+import { useAppSelector } from './redux/hooks';
 import { HardwareBackButtonHandler } from './common/backButtonRegistry';
 import { logger } from './utility/logger';
 import {
@@ -164,6 +166,8 @@ import TeacherRecommendedAssignments from './teachers-module/components/homePage
 import StreakPage from './teachers-module/components/streakComponent/streakPage';
 import StickerBook from './pages/StickerBook';
 import KidsAppLocation from './teachers-module/pages/KidsAppLocation';
+import { AudioUtil } from './utility/AudioUtil';
+import { useNavigationHandler } from './helper/navigation/NavigationHandler';
 
 setupIonicReact();
 interface ExtraData {
@@ -188,6 +192,26 @@ const LAST_ACCESS_DATE_KEY = 'lastAccessDate';
 const IS_INITIALIZED = 'isInitialized';
 let timeoutId: NodeJS.Timeout;
 
+const RouteAudioCleanup = () => {
+  const location = useLocation();
+  const lastLocationRef = useRef(location.pathname + location.search);
+
+  useEffect(() => {
+    const currentLocation = location.pathname + location.search;
+    if (lastLocationRef.current !== currentLocation) {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
+      lastLocationRef.current = currentLocation;
+    }
+  }, [location.pathname, location.search]);
+
+  return null;
+};
+
+const NavigationHandler = () => {
+  useNavigationHandler();
+  return null;
+};
+
 const App: React.FC = () => {
   const growthbook = useGrowthBook();
   const [online, setOnline] = useState(navigator.onLine);
@@ -204,6 +228,7 @@ const App: React.FC = () => {
   const [timeExceeded, setTimeExceeded] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
+  const isGlobalLoading = useAppSelector((state) => state.auth.globalLoading);
   const [isActive, setIsActive] = useState(true);
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
   const shouldShowHomeworkRemoteAssets = useFeatureIsOn(
@@ -586,6 +611,7 @@ const App: React.FC = () => {
       }
       startTimeout();
     } else {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
       saveUsedTime();
       localStorage.removeItem(START_TIME_KEY);
       clearExistingTimeout();
@@ -632,7 +658,9 @@ const App: React.FC = () => {
   return (
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
+        <NavigationHandler />
         <OpsConsoleRouteWatcher />
+        <RouteAudioCleanup />
         <TermsGate />
         <HardwareBackButtonHandler
           popupDataRef={popupDataRef}
@@ -950,6 +978,7 @@ const App: React.FC = () => {
           }}
         />
       )}
+      <Loading isLoading={isGlobalLoading} />
     </IonApp>
   );
 };

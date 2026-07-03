@@ -9,8 +9,10 @@ import {
   HOMEHEADERLIST,
   LIVE_QUIZ,
   PAGES,
+  SOURCE,
   TABLES,
   TableTypes,
+  STUDENT_RESULT,
 } from '../common/constants';
 import { useHistory } from 'react-router';
 import { App } from '@capacitor/app';
@@ -28,6 +30,8 @@ import { useFeatureIsOn, useGrowthBook } from '@growthbook/growthbook-react';
 import HomeworkCompleteModal from '../components/assignment/HomeworkCompleteModal';
 import { useGbContext } from '../growthbook/Growthbook';
 import logger from '../utility/logger';
+import ActivationLessonBanner from '../components/activationLesson/ActivationLessonBanner';
+import { fetchLessonsById } from '../components/assignment/homeworkPathwayHelpers';
 
 const waitForJoinRefresh = (delayMs: number) =>
   new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -44,6 +48,8 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 }) => {
   const growthbook = useGrowthBook();
   const [loading, setLoading] = useState(true);
+  const [showActivationLessonBanner, setShowActivationLessonBanner] =
+    useState<boolean>(false);
   const [isLinked, setIsLinked] = useState(true);
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
   const [lessons, setLessons] = useState<TableTypes<'lesson'>[]>([]);
@@ -138,6 +144,25 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         history.replace(PAGES.SELECT_MODE);
         return;
       }
+      const hasStudentResult =
+        typeof api.hasStudentResult === 'function'
+          ? await api.hasStudentResult(student.id)
+          : true;
+
+      let playedNow = false;
+      try {
+        const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
+        if (studentResultStr) {
+          const studentResultObj = JSON.parse(studentResultStr);
+          if (studentResultObj && studentResultObj[student.id] === true) {
+            playedNow = true;
+          }
+        }
+      } catch (e) {
+        logger.error('Failed to parse studentResult from sessionStorage', e);
+      }
+
+      setShowActivationLessonBanner(!hasStudentResult && !playedNow);
       const linkedData = await api.getStudentClassesAndSchools(student.id);
       if (!linkedData?.classes.length) {
         setIsLinked(false);
@@ -153,17 +178,47 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
       const classId = classDoc.id;
       const studentId = student.id;
       // Fetch assignments
-      let allAssignments: TableTypes<'assignment'>[] = [];
       try {
         const all = await api.getPendingAssignments(classId, studentId);
-        const allAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
+        const homeworkAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
+        const lessonById = await fetchLessonsById(
+          homeworkAssignments.map((assignment) => assignment.lesson_id),
+          api.getLessonsBylessonIds.bind(api),
+        );
+        const resolvedAssignments = homeworkAssignments.map((assignment) => {
+          const lesson = assignment.lesson_id
+            ? lessonById.get(assignment.lesson_id)
+            : null;
+          if (!lesson) {
+            logger.warn(
+              '[AssignmentPage] Skipping stale pending homework assignment with missing lesson metadata',
+              {
+                assignmentId: assignment.id ?? null,
+                lessonId: assignment.lesson_id ?? null,
+              },
+            );
+            return null;
+          }
+
+          return { assignment, lesson };
+        });
+        const validAssignments = resolvedAssignments
+          .filter(
+            (
+              item,
+            ): item is {
+              assignment: TableTypes<'assignment'>;
+              lesson: TableTypes<'lesson'>;
+            } => item !== null,
+          )
+          .map((item) => item.assignment);
         // Update only if length or content has changed
         const assignmentIds = assignments.map((a) => a.id);
-        const newAssignments = allAssignments.filter(
+        const newAssignments = validAssignments.filter(
           (a) => !assignmentIds.includes(a.id),
         );
         const updatedAssignments = fullRefresh
-          ? allAssignments
+          ? validAssignments
           : [...assignments, ...newAssignments];
 
         setAssignments(updatedAssignments);
@@ -171,13 +226,23 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
 
         await updateLessonChapterAndCourseMaps(updatedAssignments);
 
-        const lessonPromises = newAssignments.map(async (assignment) => {
-          return await api.getLesson(assignment.lesson_id);
-        });
-        const lessonList = await Promise.all(lessonPromises);
-        const filteredLessons = lessonList.filter(
-          (lesson): lesson is TableTypes<'lesson'> => lesson !== undefined,
+        const newLessonMap = new Map(
+          resolvedAssignments
+            .filter(
+              (
+                item,
+              ): item is {
+                assignment: TableTypes<'assignment'>;
+                lesson: TableTypes<'lesson'>;
+              } => item !== null,
+            )
+            .map((item) => [item.assignment.id, item.lesson] as const),
         );
+        const filteredLessons = newAssignments
+          .map((assignment) => newLessonMap.get(assignment.id))
+          .filter(
+            (lesson): lesson is TableTypes<'lesson'> => lesson !== undefined,
+          );
         const mergedLessons = fullRefresh
           ? filteredLessons
           : [...lessons, ...filteredLessons];
@@ -536,6 +601,10 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
                   onClassJoin={() => {
                     refreshAssignmentPageAfterJoin();
                   }}
+                />
+              ) : showActivationLessonBanner ? (
+                <ActivationLessonBanner
+                  source={SOURCE.LEARNING_PATHWAY_HOMEWORK}
                 />
               ) : (
                 <div>

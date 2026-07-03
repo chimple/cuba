@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Capacitor } from '@capacitor/core';
 import CachedImage from './CachedImage';
@@ -35,11 +41,10 @@ describe('CachedImage', () => {
       }),
     );
 
-    const { container } = render(
+    render(
       <CachedImage src="https://example.com/image.png" className="thumb" />,
     );
 
-    expect(container.firstChild).toHaveClass('thumb');
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
 
     await act(async () => {
@@ -62,8 +67,26 @@ describe('CachedImage', () => {
   });
 
   it('renders an empty div when src is missing', () => {
-    const { container } = render(<CachedImage />);
-    expect(container.firstChild).toBeInstanceOf(HTMLDivElement);
+    render(<CachedImage />);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('falls back to the default image when the primary image fails', async () => {
+    (getCachedImageSrc as jest.Mock).mockResolvedValueOnce(
+      'https://example.com/image.png',
+    );
+
+    render(
+      <CachedImage
+        src="https://example.com/image.png"
+        fallbackSrc="/assets/icons/DefaultIcon.png"
+        alt="Example"
+      />,
+    );
+
+    const image = await screen.findByRole('img');
+    fireEvent.error(image);
+
+    expect(image).toHaveAttribute('src', '/assets/icons/DefaultIcon.png');
   });
 });

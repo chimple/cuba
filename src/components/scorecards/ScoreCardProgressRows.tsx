@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { t } from 'i18next';
 
 export type ScoreCardProgressRowData = {
@@ -14,11 +15,13 @@ export type ScoreCardProgressRowData = {
 
 type ScoreCardProgressRowsProps = {
   rows?: ScoreCardProgressRowData[];
+  onRowsAnimationComplete?: () => void;
 };
 
 type ProgressRowRenderState = {
   total: number;
   current: number;
+  fillPercent: number;
   completed: boolean;
   rowIndexClass: string;
   fillProgressClass: string;
@@ -33,6 +36,7 @@ const getProgressRowRenderState = (
 ): ProgressRowRenderState => {
   const total = Math.max(row.total, 1);
   const current = Math.min(Math.max(row.current, 0), total);
+  const fillPercent = Math.min(Math.max((current / total) * 100, 0), 100);
   const completed = row.completed || current >= total;
   const shouldSkipCompletionAnimation =
     completed && current === total && !row.animateCompletion;
@@ -40,6 +44,7 @@ const getProgressRowRenderState = (
   return {
     total,
     current,
+    fillPercent,
     completed,
     rowIndexClass: `score-card-progress-row--index-${index}`,
     fillProgressClass: `score-card-progress-fill--${current}-of-${total}`,
@@ -71,15 +76,71 @@ const renderCompletedCheck = (completed: boolean, checkClassName: string) =>
 
 const ScoreCardProgressRows: React.FC<ScoreCardProgressRowsProps> = ({
   rows = [],
+  onRowsAnimationComplete,
 }) => {
+  const shouldSequenceRows = Boolean(
+    rows.length > 1 && rows[0]?.animateCompletion,
+  );
+  const [visibleRowCount, setVisibleRowCount] = useState(
+    shouldSequenceRows ? 1 : rows.length,
+  );
+
+  useEffect(() => {
+    setVisibleRowCount(shouldSequenceRows ? 1 : rows.length);
+  }, [rows.length, shouldSequenceRows]);
+
   if (!rows.length) return null;
 
+  const handleAnimationEnd = (
+    event: React.AnimationEvent<HTMLDivElement>,
+    rowIndex: number,
+    completed: boolean,
+    animateCompletion?: boolean,
+    hasAnimatedFill?: boolean,
+  ) => {
+    const hasAnimatedCheck = Boolean(completed && animateCompletion);
+
+    if (
+      event.animationName === 'score-card-check-pop' &&
+      shouldSequenceRows &&
+      rowIndex === 0
+    ) {
+      flushSync(() => setVisibleRowCount(rows.length));
+      return;
+    }
+
+    if (rowIndex !== rows.length - 1) return;
+
+    if (event.animationName === 'score-card-check-pop' && hasAnimatedCheck) {
+      onRowsAnimationComplete?.();
+    }
+
+    if (
+      event.animationName === 'score-card-progress-fill-in' &&
+      !hasAnimatedCheck
+    ) {
+      onRowsAnimationComplete?.();
+    }
+
+    if (
+      event.animationName === 'score-card-row-slide-in' &&
+      !hasAnimatedCheck &&
+      !hasAnimatedFill
+    ) {
+      onRowsAnimationComplete?.();
+    }
+  };
+
   return (
-    <div id="score-card-progress-list" className="score-card-progress-list">
+    <div
+      id="score-card-goal-progress-list"
+      className="score-card-goal-progress-list"
+    >
       {rows.map((row, index) => {
         const {
           total,
           current,
+          fillPercent,
           completed,
           rowIndexClass,
           fillProgressClass,
@@ -87,16 +148,41 @@ const ScoreCardProgressRows: React.FC<ScoreCardProgressRowsProps> = ({
           rowCompletedClass,
           checkClassName,
         } = getProgressRowRenderState(row, index);
-        const rowClassName = `score-card-progress-row score-card-progress-row--${row.id} ${rowIndexClass}${rowCompletedClass}`;
+        const isHiddenUntilPreviousRowCompletes = index >= visibleRowCount;
+        const rowDelayClass =
+          shouldSequenceRows && index > 0
+            ? ' score-card-progress-row--event-sequenced'
+            : '';
+        const rowClassName = `score-card-progress-row score-card-progress-row--${row.id} ${rowIndexClass}${rowDelayClass}${rowCompletedClass}`;
         const fillClassName = `score-card-progress-fill ${fillProgressClass}${fillStaticClass}`;
         const label = t(row.label);
+
+        if (isHiddenUntilPreviousRowCompletes) {
+          return (
+            <div
+              id={`score-card-progress-row--${row.id}-placeholder`}
+              className={`${rowClassName} score-card-progress-row--sequence-placeholder`}
+              key={`${row.id}-placeholder`}
+              aria-hidden="true"
+            />
+          );
+        }
 
         if (row.id === 'dailyReward') {
           return (
             <div
               id="score-card-progress-row--dailyReward"
               className={rowClassName}
-              key={row.id}
+              key={`${row.id}-visible`}
+              onAnimationEnd={(event) =>
+                handleAnimationEnd(
+                  event,
+                  index,
+                  completed,
+                  row.animateCompletion,
+                  !fillStaticClass,
+                )
+              }
             >
               <div
                 id="score-card-progress-icon-wrap--dailyReward"
@@ -126,6 +212,7 @@ const ScoreCardProgressRows: React.FC<ScoreCardProgressRowsProps> = ({
                 <div
                   id="score-card-progress-fill--dailyReward"
                   className={fillClassName}
+                  style={{ width: fillPercent + '%' }}
                 />
               </div>
               <div
@@ -143,7 +230,16 @@ const ScoreCardProgressRows: React.FC<ScoreCardProgressRowsProps> = ({
           <div
             id="score-card-progress-row--sticker"
             className={rowClassName}
-            key={row.id}
+            key={`${row.id}-visible`}
+            onAnimationEnd={(event) =>
+              handleAnimationEnd(
+                event,
+                index,
+                completed,
+                row.animateCompletion,
+                !fillStaticClass,
+              )
+            }
           >
             <div
               id="score-card-progress-icon-wrap--sticker"
@@ -173,6 +269,7 @@ const ScoreCardProgressRows: React.FC<ScoreCardProgressRowsProps> = ({
               <div
                 id="score-card-progress-fill--sticker"
                 className={fillClassName}
+                style={{ width: fillPercent + '%' }}
               />
             </div>
             <div

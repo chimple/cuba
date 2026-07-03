@@ -665,6 +665,7 @@ export interface FilteredSchoolsForSchoolListingOps {
   active_students?: number | null;
   avg_time_spent?: number | null;
   active_teachers?: number | null;
+  active_teacher_percentage?: number | null;
   activities_assigned?: number | null;
   avg_assignments_completed?: number | null;
   avg_activities_completed?: number | null;
@@ -930,6 +931,7 @@ export enum EVENTS {
   LESSON_END = 'lesson_end',
   LESSON_INCOMPLETE = 'lesson_incomplete',
   USER_PROFILE = 'user_profile',
+  GOAL_PROGRESS = 'Goal_Progress',
   CLICKS_ANALYTICS = 'clicks_analytics',
   EXPERIMENT_VIEWED = 'experiment_viewed',
   PATHWAY_CREATED = 'pathway_created',
@@ -965,6 +967,7 @@ export enum EVENTS {
   LIVE_UPDATE_APPLIED = 'live_update_applied',
   LIVE_UPDATE_STARTED = 'live_update_started',
   LIVE_UPDATE_ERROR = 'live_update_error',
+  USER_ACTIVATION_LESSON = 'user_activation_lesson',
   ASSESSMENT_ABORTED = 'assessment_aborted',
   ASSESSMENT_COMPLETED = 'assessment_completed',
   RESULTS_SAVED = 'results_saved',
@@ -1359,7 +1362,9 @@ export const REWARD_MODAL_SHOWN_DATE = 'RewardModalShownDate';
 export const DAILY_USER_REWARD = 'DailyUserReward';
 export const IDLE_REWARD_ID = '5dfa8e34-14a3-42de-ae3a-977862712b1e';
 export const REWARD_LESSON = 'RewardLesson';
+export const STUDENT_RESULT = 'studentResult';
 export const REWARD_LEARNING_PATH = 'RewardLearningPath';
+export const ACTIVATION_REWARD_FLOW_KEY = 'ActivationRewardFlow';
 export enum RewardBoxState {
   IDLE = 'idle',
   SHAKING = 'shaking',
@@ -1379,6 +1384,11 @@ export const CAMPAIGN_ACCESS_ROLES = [
   RoleType.OPERATIONAL_DIRECTOR,
   RoleType.PROGRAM_MANAGER,
 ];
+
+export const CAMPAIGN_OBJECTIVE = {
+  HOMEWORK: 'homework_campaign',
+  HOMEPAGE_LEARNING_PATHWAY: 'homepage_learning_pathway_campaign',
+} as const;
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
 export const VERSION_KEY = 'last_native_version';
 export enum SupportLevelMap {
@@ -1548,12 +1558,92 @@ export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
   'sticker-book-notification-dot-enabled';
 export const ENABLE_SAVE_AND_SHARE_STICKER_BOOK =
   'enable_save_and_share_sticker_book';
+export const SCHOOL_PERFORMANCE_STATUS = {
+  PERFORMING_WELL: 'Performing Well',
+  NEEDS_ATTENTION: 'Needs Attention',
+  NEEDS_SUPPORT: 'Needs Support',
+} as const;
+export const PERCENTAGE_BAND = {
+  LOW: 'low',
+  MID: 'mid',
+  HIGH: 'high',
+} as const;
+export type SchoolPerformanceStatusValue =
+  (typeof SCHOOL_PERFORMANCE_STATUS)[keyof typeof SCHOOL_PERFORMANCE_STATUS];
+export type PercentageBandValue =
+  (typeof PERCENTAGE_BAND)[keyof typeof PERCENTAGE_BAND];
+export const SCHOOL_PERFORMANCE_STATUS_VALUES = Object.values(
+  SCHOOL_PERFORMANCE_STATUS,
+) as SchoolPerformanceStatusValue[];
+export const PERCENTAGE_BAND_VALUES = Object.values(
+  PERCENTAGE_BAND,
+) as PercentageBandValue[];
+export const SCHOOL_PERFORMANCE_TRANSLATION_KEYS: Record<
+  SchoolPerformanceStatusValue,
+  string
+> = {
+  [SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL]:
+    'schoolPerformance.performingWell',
+  [SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION]:
+    'schoolPerformance.needsAttention',
+  [SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT]: 'schoolPerformance.needsSupport',
+};
+export const PERCENTAGE_BAND_TRANSLATION_KEYS: Record<
+  PercentageBandValue,
+  string
+> = {
+  [PERCENTAGE_BAND.LOW]: 'percentageBand.low',
+  [PERCENTAGE_BAND.MID]: 'percentageBand.mid',
+  [PERCENTAGE_BAND.HIGH]: 'percentageBand.high',
+};
+export const PERCENTAGE_BAND_META: Record<
+  PercentageBandValue,
+  { bg: string; color: string }
+> = {
+  [PERCENTAGE_BAND.LOW]: { bg: '#FCE8E6', color: '#D35451' },
+  [PERCENTAGE_BAND.MID]: { bg: '#FEF3C7', color: '#E7A54E' },
+  [PERCENTAGE_BAND.HIGH]: { bg: '#DFF7EB', color: '#2BA980' },
+};
 export const SCHOOL_LISTING_STATUS_META: Record<
   string,
   { bg: string; color: string }
 > = {
-  'Performing Well': { bg: '#D1FAE5', color: '#2BA980' },
-  'Needs Attention': { bg: '#FEF3C7', color: '#E7A54E' },
-  'Needs Support': { bg: '#FCE8E6', color: '#D35451' },
+  [SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL]: {
+    bg: '#D1FAE5',
+    color: '#2BA980',
+  },
+  [SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION]: {
+    bg: '#FEF3C7',
+    color: '#E7A54E',
+  },
+  [SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT]: {
+    bg: '#FCE8E6',
+    color: '#D35451',
+  },
+  default: { bg: '#EEF2F6', color: '#5B6472' },
+};
+
+export const CLASS_PERFORMANCE_STATUS = {
+  PERFORMING_WELL: 'Performing Well',
+  NEEDS_ATTENTION: 'Needs Attention',
+  NEEDS_SUPPORT: 'Needs Support',
+} as const;
+
+export const CLASS_PERFORMANCE_STATUS_META: Record<
+  string,
+  { bg: string; color: string }
+> = {
+  [CLASS_PERFORMANCE_STATUS.PERFORMING_WELL]: {
+    bg: '#E6F4EA',
+    color: '#137333',
+  },
+  [CLASS_PERFORMANCE_STATUS.NEEDS_ATTENTION]: {
+    bg: '#FEF7E0',
+    color: '#B95000',
+  },
+  [CLASS_PERFORMANCE_STATUS.NEEDS_SUPPORT]: {
+    bg: '#FCE8E6',
+    color: '#C5221F',
+  },
   default: { bg: '#EEF2F6', color: '#5B6472' },
 };

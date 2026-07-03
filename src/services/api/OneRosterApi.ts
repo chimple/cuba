@@ -394,7 +394,13 @@ export class OneRosterApi implements ServiceApi {
 
   getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
+  ): Promise<TableTypes<'skill'>[]> {
+    throw new Error('Method not implemented.');
+  }
+
+  getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
     throw new Error('Method not implemented.');
   }
 

@@ -4,6 +4,7 @@ import Lesson from '../../models/lesson';
 import { StudentLessonResult } from '../../common/courseConstants';
 import {
   CACHETABLES,
+  CAMPAIGN_OBJECTIVE,
   CoordinatorAPIResponse,
   EnumType,
   FilteredSchoolsForSchoolListingOps,
@@ -103,6 +104,48 @@ export type SchoolProgramAccessResponse = {
   total_pages: number;
 };
 
+export type ClassMetricsForClassListingRow = {
+  class_id: string;
+  class_name?: string | null;
+  class_code?: number | null;
+  onboarded_students?: number | null;
+  activated_students?: number | null;
+  active_students?: number | null;
+  avg_time_spent?: number | null;
+  active_teachers?: number | null;
+  total_teachers?: number | null;
+  activities_assigned?: number | null;
+  avg_assignments_completed?: number | null;
+  avg_activities_completed?: number | null;
+};
+
+export type ProgramListingProgramRow = {
+  id?: string;
+  program_id?: string | null;
+  program_name?: string | null;
+  state?: string | null;
+  metric_window?: string | null;
+  total_schools?: number | null;
+  performing_well?: number | null;
+  needs_attention?: number | null;
+  needs_support?: number | null;
+  onboarded_students?: number | null;
+  target_student_count?: number | null;
+  onboarded_students_pct?: number | null;
+  activated_students?: number | null;
+  activated_students_pct?: number | null;
+  active_students?: number | null;
+  active_students_pct?: number | null;
+  avg_time_spent?: number | null;
+  onboarded_teachers?: number | null;
+  target_teachers_count?: number | null;
+  onboarded_teachers_pct?: number | null;
+  activated_teachers?: number | null;
+  activated_teachers_pct?: number | null;
+  active_teachers?: number | null;
+  active_teachers_pct?: number | null;
+};
+
 export type OpsStudentPerformanceBandsParams = {
   classIds?: string[];
   studentIds?: string[];
@@ -160,8 +203,7 @@ type ActivitiesFilterOptions = {
 };
 
 export type CampaignObjective =
-  | 'homework_campaign'
-  | 'homepage_learning_pathway_campaign';
+  (typeof CAMPAIGN_OBJECTIVE)[keyof typeof CAMPAIGN_OBJECTIVE];
 
 export type CampaignTargetType = 'percentage_completion' | 'number_of_lessons';
 
@@ -292,6 +334,7 @@ export type CampaignLaunchDetailsPayload = {
 export type LaunchCampaignPayload = {
   campaignId: string;
   currentUserId: string;
+  objective: CampaignObjective;
   rewards: CampaignRewardsPayload;
   assignments: CampaignLaunchAssignmentPayload[];
   messagingRows: CampaignLaunchMessagingPayload[];
@@ -961,12 +1004,12 @@ export interface ServiceApi {
   ): Promise<TableTypes<'skill_lesson'>[]>;
 
   /**
-   * Fetches the first skill linked to a lesson using a lesson row id,
+   * Fetches skills linked to a lesson using a lesson row id,
    * cocos_lesson_id, or lido_lesson_id.
    */
   getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined>;
+  ): Promise<TableTypes<'skill'>[]>;
 
   /**
    * Gives StudentProfile for given a Student firebase doc Id
@@ -1001,6 +1044,12 @@ export interface ServiceApi {
   getStudentResultInMap(
     studentId: string,
   ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }>;
+
+  /**
+   * Checks whether a student has at least one result row.
+   * If the student is linked to a class, the lookup is scoped to the active class.
+   */
+  hasStudentResult(studentId: string): Promise<boolean>;
 
   /**
    * Gives Class for given a Class firebase doc Id
@@ -1482,6 +1531,11 @@ export interface ServiceApi {
   ): Promise<boolean>;
 
   isSyncInProgress(): boolean;
+
+  /**
+   * Releases active backing resources before a forced WebView reload.
+   */
+  close(): Promise<void>;
 
   /**
    * Function to get Recommended Lessons.
@@ -2215,10 +2269,10 @@ export interface ServiceApi {
    * @param {number} [params.offset] - Number of results to skip (for pagination).
    * @param {string} [params.orderBy] - Field name to sort by.
    * @param {'asc' | 'desc'} [params.order] - Sort order.
-   * @returns {Promise<{ data: any[] }>} Promise resolving to an object containing an array of programs with manager names.
+   * @returns Promise resolving to paginated program listing rows and total count.
    */
   getPrograms(params: {
-    currentUserId: string;
+    currentUserId?: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: TabType;
@@ -2226,7 +2280,13 @@ export interface ServiceApi {
     offset?: number;
     orderBy?: string;
     order?: 'asc' | 'desc';
-  }): Promise<{ data: any[] }>;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{ data: ProgramListingProgramRow[]; total?: number }>;
 
   /**
    * Inserts or updates a program record in the database via Supabase Edge Function.
@@ -2464,6 +2524,8 @@ export interface ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
@@ -2491,10 +2553,20 @@ export interface ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
   }>;
+
+  /**
+   * Fetch class-level listing metrics for a single school and selected date window.
+   */
+  getClassMetricsForClassListing(params: {
+    schoolId: string;
+    date_range?: string;
+  }): Promise<ClassMetricsForClassListingRow[]>;
 
   /**
    * Fetch schools with linked program access details using academic years and optional filters.
@@ -3212,6 +3284,9 @@ export interface ServiceApi {
   ): Promise<TableTypes<'subject_lesson'> | null>;
 
   getSkillById(skillId: string): Promise<TableTypes<'skill'> | undefined>;
+  getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined>;
 
   updateSchoolProgram(schoolId: string, programId: string): Promise<boolean>;
   computeSchoolMetricsForSchool(schoolId: string): Promise<boolean>;

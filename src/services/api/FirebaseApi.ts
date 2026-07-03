@@ -1078,9 +1078,18 @@ export class FirebaseApi implements ServiceApi {
 
   async getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
+  ): Promise<TableTypes<'skill'>[]> {
     logger.warn(
-      'getSkillByLessonIdentifier is not supported for FirebaseApi. Returning undefined.',
+      'getSkillByLessonIdentifier is not supported for FirebaseApi. Returning empty list.',
+    );
+    return [];
+  }
+
+  async getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    logger.warn(
+      'getSubjectBySkillId is not supported for FirebaseApi. Returning undefined.',
     );
     return undefined;
   }
@@ -2038,6 +2047,8 @@ export class FirebaseApi implements ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<FilteredSchoolsForSchoolListingOps[]> {
     throw new Error('getFilteredSchoolsForSchoolListing() is not implemented.');
   }
@@ -2051,6 +2062,8 @@ export class FirebaseApi implements ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;

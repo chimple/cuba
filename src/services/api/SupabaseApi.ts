@@ -49,13 +49,21 @@ import {
   LEARNING_PATHWAY_MODE,
   ProgramType,
   LATEST_LEARNING_PATH,
+  PERCENTAGE_BAND,
+  PERCENTAGE_BAND_VALUES,
   REWARD_LEARNING_PATH,
+  SCHOOL_PERFORMANCE_STATUS,
+  SCHOOL_PERFORMANCE_STATUS_VALUES,
+  type PercentageBandValue,
+  type SchoolPerformanceStatusValue,
+  CAMPAIGN_OBJECTIVE,
 } from '../../common/constants';
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
 import { AvatarObj } from '../../components/animation/Avatar';
 import Course from '../../models/course';
 import Lesson from '../../models/lesson';
+import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
 import {
   AssignmentCartData,
   AssignmentDateRangeData,
@@ -68,6 +76,7 @@ import {
   CampaignSavedAudienceGroup,
   CampaignSchoolOption,
   CampaignSetupOptions,
+  ClassMetricsForClassListingRow,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
   LaunchCampaignPayload,
@@ -76,6 +85,7 @@ import {
   LeaderboardInfo,
   OpsStudentPerformanceBandRow,
   OpsStudentPerformanceBandsParams,
+  ProgramListingProgramRow,
   SchoolProgramAccessResponse,
   SchoolProgramAccessRow,
   ServiceApi,
@@ -95,7 +105,11 @@ import {
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
-import { sortBySchoolSearchRelevance } from '../../utility/schoolSearchUtil';
+import {
+  buildSchoolSearchKey,
+  getSchoolSearchScore,
+  sortBySchoolSearchRelevance,
+} from '../../utility/schoolSearchUtil';
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
@@ -111,7 +125,174 @@ import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
 import logger from '../../utility/logger';
 
+type SchoolListPercentBand = PercentageBandValue;
+
+const SCHOOL_LIST_PERCENTAGE_FILTER_KEYS = new Set([
+  'activatedStudents',
+  'activeStudents',
+  'activeTeachers',
+]);
+const SCHOOL_LIST_PERFORMANCE_FILTER_VALUES =
+  new Set<SchoolPerformanceStatusValue>(SCHOOL_PERFORMANCE_STATUS_VALUES);
+
+const isSchoolPerformanceStatusValue = (
+  value: string,
+): value is SchoolPerformanceStatusValue =>
+  SCHOOL_LIST_PERFORMANCE_FILTER_VALUES.has(
+    value as SchoolPerformanceStatusValue,
+  );
+
+const getNumericMetric = (value: unknown) => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const numericValue = Number(value);
+    if (Number.isFinite(numericValue)) return numericValue;
+  }
+  return null;
+};
+
+const isPercentWithinBand = (
+  percent: number | null,
+  band: SchoolListPercentBand,
+) => {
+  if (percent === null) return false;
+  const roundedPercent = Math.round(percent);
+  if (band === PERCENTAGE_BAND.LOW) return roundedPercent <= 30;
+  if (band === PERCENTAGE_BAND.MID)
+    return roundedPercent >= 31 && roundedPercent <= 69;
+  return roundedPercent >= 70;
+};
+
+const getActivatedStudentsPercent = (row: Record<string, unknown>) => {
+  const onboardedStudents = getNumericMetric(row.onboarded_students);
+  const activatedStudents = getNumericMetric(row.activated_students);
+  if (
+    onboardedStudents === null ||
+    activatedStudents === null ||
+    onboardedStudents <= 0
+  ) {
+    return null;
+  }
+  return (activatedStudents / onboardedStudents) * 100;
+};
+
+const getActiveStudentsPercent = (row: Record<string, unknown>) => {
+  const activatedStudents = getNumericMetric(row.activated_students);
+  const activeStudents = getNumericMetric(row.active_students);
+  if (
+    activatedStudents === null ||
+    activeStudents === null ||
+    activatedStudents <= 0
+  ) {
+    return null;
+  }
+  return (activeStudents / activatedStudents) * 100;
+};
+
+const getActiveTeachersPercent = (row: Record<string, unknown>) => {
+  const explicitPercent = getNumericMetric(row.active_teacher_percentage);
+  if (explicitPercent !== null) return explicitPercent;
+
+  const activeTeachers = getNumericMetric(row.active_teachers);
+  const totalTeachers = getNumericMetric(row.total_teachers);
+  if (activeTeachers !== null && totalTeachers !== null && totalTeachers > 0) {
+    return (activeTeachers / totalTeachers) * 100;
+  }
+  if (activeTeachers !== null && activeTeachers > 0) return 100;
+  return null;
+};
+
+const getSchoolMetricsSortValue = (
+  row: Record<string, unknown>,
+  sortBy: string,
+): string | number | null => {
+  if (sortBy === 'school_performance') {
+    return typeof row.school_performance === 'string'
+      ? row.school_performance.toLowerCase()
+      : '';
+  }
+  if (sortBy === 'school_name') {
+    return typeof row.school_name === 'string'
+      ? row.school_name.toLowerCase()
+      : '';
+  }
+  return getNumericMetric(row[sortBy]);
+};
+
+const normalizeSchoolPerformanceStatus = (value: unknown) => {
+  const text =
+    typeof value === 'string'
+      ? value.trim().toLowerCase().replace(/[_-]+/g, ' ')
+      : '';
+  if (!text) return '';
+  if (text.includes('green')) return SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL;
+  if (text.includes('red')) return SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT;
+  if (text.includes('yellow')) return SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION;
+  return text
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+const resolveSchoolMetricsPerformanceStatus = (
+  row: Record<string, unknown>,
+) => {
+  const explicitStatus = normalizeSchoolPerformanceStatus(
+    row.school_performance,
+  );
+  if (explicitStatus) return explicitStatus;
+
+  const onboardedStudents = getNumericMetric(row.onboarded_students);
+  const activeStudents =
+    getNumericMetric(row.active_students) ??
+    getNumericMetric(row.activated_students);
+  if (
+    onboardedStudents === null ||
+    activeStudents === null ||
+    onboardedStudents <= 0
+  ) {
+    return '';
+  }
+  const activeRate = activeStudents / onboardedStudents;
+  if (activeRate >= 0.8) return SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL;
+  if (activeRate >= 0.5) return SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION;
+  return SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT;
+};
+
 type CampaignProgramRow = Pick<TableTypes<'program'>, 'id' | 'name'>;
+
+type ProgramMetricsTableRow = Omit<
+  ProgramListingProgramRow,
+  'target_student_count' | 'target_teachers_count'
+> & {
+  program_managers?: string[] | string | null;
+  field_coordinators?: string[] | string | null;
+  partners?: string[] | string | null;
+  district?: string | null;
+  block?: string | null;
+  cluster?: string | null;
+  target_student_count?: number | string | null;
+  target_teachers_count?: number | string | null;
+  target_teacher_count?: number | string | null;
+  program_type?: ProgramType | null;
+  program_model?: PROGRAM_TAB | PROGRAM_TAB[] | string | null;
+  updated_at?: string | null;
+  created_at?: string | null;
+  is_deleted?: boolean | null;
+};
+
+type ProgramMetricsDatabase = Database & {
+  public: Database['public'] & {
+    Tables: Database['public']['Tables'] & {
+      program_metrics: {
+        Row: ProgramMetricsTableRow;
+        Insert: ProgramMetricsTableRow;
+        Update: Partial<ProgramMetricsTableRow>;
+        Relationships: [];
+      };
+    };
+  };
+};
 
 type ChapterLessonRow = {
   lesson: TableTypes<'lesson'> | null;
@@ -213,6 +394,13 @@ type AssessmentAssignmentRow = TableTypes<'assignment'> & {
   assignment_user?: AssessmentAssignmentUserLink[] | null;
 };
 
+type AssessmentBatchLessonRow = Pick<
+  TableTypes<'assignment'>,
+  'lesson_id' | 'is_class_wise'
+> & {
+  assignment_user?: AssessmentAssignmentUserLink[] | null;
+};
+
 type AssessmentResultRow = Pick<
   TableTypes<'result'>,
   'assignment_id' | 'status' | 'created_at'
@@ -242,6 +430,16 @@ const mapStickerBookRow = (book: TableTypes<'sticker_book'>): StickerBook => ({
 
 const GENERIC_LEADERBOARD_LIMIT = 50;
 const SCHOOL_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
+const TABLES_EXCLUDED_FROM_SYNC = new Set<TABLES>([
+  TABLES.ProgramUser,
+  TABLES.ReqNewSchool,
+  TABLES.Program,
+  TABLES.GeoLocations,
+  TABLES.SchoolMetrics,
+  TABLES.FcQuestion,
+  TABLES.FcSchoolVisit,
+  TABLES.FcUserForms,
+]);
 
 type LeaderboardDataType = 'weekly' | 'monthly' | 'allTime';
 
@@ -508,6 +706,11 @@ export class SupabaseApi implements ServiceApi {
   isSyncInProgress(): boolean {
     return false;
   }
+
+  close(): Promise<void> {
+    return Promise.resolve();
+  }
+
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
   private supabaseUrl: string;
@@ -882,15 +1085,18 @@ export class SupabaseApi implements ServiceApi {
     try {
       const data = new Map<string, any[]>();
       const DEFAULT_LAST_MODIFIED = '2024-01-01T00:00:00.000Z';
+      const syncTableNames = tableNames.filter(
+        (tableName) => !TABLES_EXCLUDED_FROM_SYNC.has(tableName),
+      );
       const updatedAtPayload: Record<string, string> = {};
-      for (const tableName of tableNames) {
+      for (const tableName of syncTableNames) {
         // TABLES.User -> "user", TABLES.Class -> "class", etc.
         updatedAtPayload[tableName] =
           tablesLastModifiedTime.get(tableName) ?? DEFAULT_LAST_MODIFIED;
       }
       const res = await this.supabase?.rpc('sql_sync_all', {
         p_updated_at: updatedAtPayload,
-        p_tables: tableNames,
+        p_tables: syncTableNames,
         p_is_first_time: isInitialFetch, // TABLES[] should be string[] under the hood
       });
       logger.warn('pulled results', res);
@@ -912,7 +1118,7 @@ export class SupabaseApi implements ServiceApi {
           error_message: res?.error?.message || null,
         });
       }
-      tableNames.map(async (tableName) => {
+      syncTableNames.map(async (tableName) => {
         const payload =
           res?.data && typeof res.data === 'object' && !Array.isArray(res.data)
             ? (res.data as Record<string, Json>)
@@ -3320,8 +3526,8 @@ export class SupabaseApi implements ServiceApi {
 
   async getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
-    if (!this.supabase || !lessonIdentifier) return undefined;
+  ): Promise<TableTypes<'skill'>[]> {
+    if (!this.supabase || !lessonIdentifier) return [];
 
     const fetchLessonByColumn = async (
       column: 'id' | 'cocos_lesson_id' | 'lido_lesson_id',
@@ -3347,28 +3553,36 @@ export class SupabaseApi implements ServiceApi {
       (await fetchLessonByColumn('cocos_lesson_id')) ??
       (await fetchLessonByColumn('lido_lesson_id'));
 
-    if (!lesson?.id) return undefined;
+    if (!lesson?.id) return [];
 
     const { data: skillLessons, error: skillLessonError } = await this.supabase
       .from(TABLES.SkillLesson)
       .select('skill_id')
       .eq('lesson_id', lesson.id)
       .or('is_deleted.eq.false,is_deleted.is.null')
-      .order('sort_index', { ascending: true, nullsFirst: false })
-      .limit(1);
+      .order('sort_index', { ascending: true, nullsFirst: false });
 
     if (skillLessonError) {
       logger.error('Error fetching skill lesson for lesson:', skillLessonError);
-      return undefined;
+      return [];
     }
 
-    const skillId = skillLessons?.[0]?.skill_id;
-    if (!skillId) return undefined;
-
-    return (
-      (await this.getSkillById(skillId)) ??
-      ({ id: skillId } as TableTypes<'skill'>)
+    const skillIds = Array.from(
+      new Set(
+        (skillLessons ?? [])
+          .map((row) => row.skill_id)
+          .filter((skillId): skillId is string => !!skillId),
+      ),
     );
+
+    const skills = await Promise.all(
+      skillIds.map(
+        async (skillId) =>
+          (await this.getSkillById(skillId)) ??
+          ({ id: skillId } as TableTypes<'skill'>),
+      ),
+    );
+    return skills;
   }
 
   async getSkillLessonsBySkillIds(
@@ -3565,6 +3779,59 @@ export class SupabaseApi implements ServiceApi {
       }
     }
     return resultMap;
+  }
+  async hasStudentResult(studentId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    try {
+      const { classes } = await this.getStudentClassesAndSchools(studentId);
+      const classId = this.currentClass?.id ?? classes[0]?.id;
+
+      if (classes.length > 0) {
+        if (!classId) {
+          logger.warn(
+            '[SupabaseApi] Unable to resolve class for linked student result check',
+            { studentId },
+          );
+          return false;
+        }
+
+        const { data, error } = await this.supabase
+          .from(TABLES.Result)
+          .select('id')
+          .eq('student_id', studentId)
+          .eq('class_id', classId)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (error) {
+          logger.error(
+            'Error checking linked student result existence:',
+            error,
+          );
+          return false;
+        }
+
+        return (data?.length ?? 0) > 0;
+      }
+
+      const { data, error } = await this.supabase
+        .from(TABLES.Result)
+        .select('id')
+        .eq('student_id', studentId)
+        .eq('is_deleted', false)
+        .limit(1);
+
+      if (error) {
+        logger.error('Error checking student result existence:', error);
+        return false;
+      }
+
+      return (data?.length ?? 0) > 0;
+    } catch (error) {
+      logger.error('Error checking student result', error);
+      return true;
+    }
   }
   async getClassById(id: string): Promise<TableTypes<'class'> | undefined> {
     if (!this.supabase) return;
@@ -5342,14 +5609,66 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<RoleType | undefined> {
     if (!this.supabase) return;
 
+    // Program roles apply only to schools in the user's mapped program.
+    // This prevents program permissions from leaking into unrelated schools.
+    const getUserProgramRoleForSchool = async (
+      fallbackRole?: RoleType,
+    ): Promise<RoleType | undefined> => {
+      const { data: school } = await this.supabase!.from(TABLES.School)
+        .select('program_id')
+        .eq('id', schoolId)
+        .eq('is_deleted', false)
+        .maybeSingle();
+
+      if (!school?.program_id) return undefined;
+
+      const { data: programUser } = await this.supabase!.from(
+        TABLES.ProgramUser,
+      )
+        .select('role')
+        .eq('user', userId)
+        .eq('program_id', school.program_id)
+        .eq('is_deleted', false)
+        .in('role', [RoleType.PROGRAM_MANAGER, RoleType.FIELD_COORDINATOR])
+        .limit(1)
+        .maybeSingle();
+
+      if (!programUser) return undefined;
+
+      return (programUser.role as RoleType | null) ?? fallbackRole;
+    };
+
     // Check special users
     const { data: specialUser } = await this.supabase
       .from(TABLES.SpecialUsers)
       .select('role')
       .eq('user_id', userId)
       .eq('is_deleted', false)
-      .single();
-    if (specialUser?.role) return specialUser.role as RoleType;
+      .maybeSingle();
+    if (specialUser?.role) {
+      const specialRole = specialUser.role as RoleType;
+      if (
+        specialRole === RoleType.SUPER_ADMIN ||
+        specialRole === RoleType.OPERATIONAL_DIRECTOR ||
+        specialRole === RoleType.EXTERNAL_USER
+      ) {
+        return specialRole;
+      }
+
+      if (
+        specialRole === RoleType.PROGRAM_MANAGER ||
+        specialRole === RoleType.FIELD_COORDINATOR
+      ) {
+        const programScopedRole =
+          await getUserProgramRoleForSchool(specialRole);
+        if (programScopedRole) return programScopedRole;
+      } else {
+        return specialRole;
+      }
+    }
+
+    const programScopedRole = await getUserProgramRoleForSchool();
+    if (programScopedRole) return programScopedRole;
 
     // Check school_user (not parent)
     const { data: schoolUser } = await this.supabase
@@ -6948,7 +7267,7 @@ export class SupabaseApi implements ServiceApi {
         `
       lesson (
         id, name, cocos_subject_code, cocos_chapter_code, cocos_lesson_id,
-        image, outcome, plugin_type, status, created_by, subject_id,
+        lido_lesson_id, image, outcome, plugin_type, status, created_by, subject_id,
         target_age_from, target_age_to, language_id, created_at, updated_at,
         is_deleted, color
       ),
@@ -9165,29 +9484,85 @@ export class SupabaseApi implements ServiceApi {
     }
 
     try {
-      const { data, error } = await this.supabase.rpc(
-        'get_program_filter_options',
-      );
+      // Normalizes array fields that may arrive as real arrays or JSON strings.
+      const normalizeProgramMetricsStringList = (
+        value: string[] | string | null | undefined,
+      ): string[] => {
+        const normalizeString = (item: string): string[] => {
+          const trimmedItem = item.trim();
+          if (!trimmedItem || trimmedItem === 'null') return [];
+          if (!trimmedItem.startsWith('[')) return [trimmedItem];
+          try {
+            const parsed = JSON.parse(trimmedItem) as Json;
+            if (!Array.isArray(parsed)) return [trimmedItem];
+            return parsed.filter(
+              (entry): entry is string =>
+                typeof entry === 'string' &&
+                entry.trim() !== '' &&
+                entry !== 'null',
+            );
+          } catch {
+            return [trimmedItem];
+          }
+        };
+
+        if (Array.isArray(value)) {
+          return value.flatMap((item) =>
+            typeof item === 'string' ? normalizeString(item) : [],
+          );
+        }
+        return typeof value === 'string' ? normalizeString(value) : [];
+      };
+
+      // Builds the Program Listing drawer filter options from program_metrics rows.
+      const buildProgramMetricsFilterOptions = (
+        rows: ProgramMetricsTableRow[],
+      ): Record<string, string[]> => {
+        const options = {
+          partner: new Set<string>(),
+          programManager: new Set<string>(),
+          programType: new Set<string>(),
+          state: new Set<string>(),
+          district: new Set<string>(),
+        };
+
+        rows.forEach((row) => {
+          normalizeProgramMetricsStringList(row.partners).forEach((value) =>
+            options.partner.add(value),
+          );
+          normalizeProgramMetricsStringList(row.program_managers).forEach(
+            (value) => options.programManager.add(value),
+          );
+          if (row.program_type) options.programType.add(row.program_type);
+          if (row.state?.trim()) options.state.add(row.state.trim());
+          if (row.district?.trim()) options.district.add(row.district.trim());
+        });
+
+        return {
+          partner: Array.from(options.partner).sort(),
+          programManager: Array.from(options.programManager).sort(),
+          programType: Array.from(options.programType).sort(),
+          state: Array.from(options.state).sort(),
+          district: Array.from(options.district).sort(),
+        };
+      };
+
+      const programMetricsClient = this
+        .supabase as SupabaseClient<ProgramMetricsDatabase>;
+      const { data, error } = await programMetricsClient
+        .from('program_metrics')
+        .select(
+          'partners,program_managers,program_type,state,district,is_deleted',
+        )
+        .eq('is_deleted', false);
       if (error) {
-        logger.error('RPC error:', error);
+        logger.error('Error fetching program_metrics filter options:', error);
         return {};
       }
 
-      const parsed: Record<string, string[]> = {};
-      if (data && typeof data === 'object' && !Array.isArray(data)) {
-        for (const key in data) {
-          const val = (data as Record<string, Json>)[key];
-          if (Array.isArray(val)) {
-            parsed[key] = val.filter(
-              (v): v is string =>
-                typeof v === 'string' && v.trim() !== '' && v !== 'null',
-            );
-          } else {
-            parsed[key] = [];
-          }
-        }
-      }
-      return parsed;
+      return buildProgramMetricsFilterOptions(
+        (data ?? []) as ProgramMetricsTableRow[],
+      );
     } catch (err) {
       logger.error('Unexpected error:', err);
       return {};
@@ -9201,10 +9576,16 @@ export class SupabaseApi implements ServiceApi {
     tab = PROGRAM_TAB.ALL,
     limit = 10,
     offset = 0,
-    orderBy = 'name',
+    orderBy = 'program_name',
     order = 'asc',
+    page,
+    page_size,
+    order_by,
+    order_dir,
+    search,
+    date_range,
   }: {
-    currentUserId: string;
+    currentUserId?: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: TabType;
@@ -9212,32 +9593,42 @@ export class SupabaseApi implements ServiceApi {
     offset?: number;
     orderBy?: string;
     order?: 'asc' | 'desc';
-  }): Promise<{ data: any[] }> {
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{ data: ProgramListingProgramRow[]; total: number }> {
     if (!this.supabase) {
       logger.error('Supabase client not initialized');
-      return { data: [] };
+      return { data: [], total: 0 };
     }
 
     try {
-      const { data, error } = await this.supabase.rpc('get_programs_for_user', {
-        _current_user_id: currentUserId,
-        _filters: filters,
-        _search_term: searchTerm,
-        _tab: tab,
-        _limit: limit,
-        _offset: offset,
-        _order_by: orderBy,
-        _order: order,
-      });
-
-      if (error) {
-        logger.error('Error calling get_programs_for_user RPC:', error);
-        return { data: [] };
+      const authUserId =
+        currentUserId ||
+        (await this.supabase.auth.getUser()).data.user?.id ||
+        '';
+      if (!authUserId) {
+        logger.error('Current user is not available for program query');
+        return { data: [], total: 0 };
       }
-      return { data: data || [] };
+
+      return await this.getProgramsFromProgramMetrics({
+        currentUserId: authUserId,
+        filters,
+        tab,
+        page: page ?? Math.floor(offset / limit) + 1,
+        page_size: page_size ?? limit,
+        order_by: order_by ?? orderBy,
+        order_dir: order_dir ?? order,
+        search: search ?? searchTerm,
+        date_range,
+      });
     } catch (err) {
       logger.error('Unexpected error in getPrograms:', err);
-      return { data: [] };
+      return { data: [], total: 0 };
     }
   }
 
@@ -9523,142 +9914,118 @@ export class SupabaseApi implements ServiceApi {
     if (!payload.rewards?.type || !payload.rewards?.rules?.length) {
       throw new Error('Campaign rewards are required.');
     }
-    if (payload.assignments.length === 0) {
+    const requiresAssignments =
+      payload.objective !== CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY;
+
+    if (requiresAssignments && payload.assignments.length === 0) {
       throw new Error('Campaign assignments are required.');
     }
     if (payload.messagingRows.length === 0) {
       throw new Error('Campaign communication is required.');
     }
 
-    const updatedAt = new Date().toISOString();
-    const schoolIds = Array.from(
-      new Set(
-        payload.assignments.flatMap((assignment) => assignment.schoolIds),
-      ),
-    );
-    const gradeIds = Array.from(
-      new Set(payload.assignments.map((assignment) => assignment.gradeId)),
-    );
-
-    if (schoolIds.length === 0 || gradeIds.length === 0) {
-      throw new Error('Campaign assignment schools and grades are required.');
-    }
-
-    const { data: classRowsData, error: classRowsError } = await this.supabase
-      .from(TABLES.Class)
-      .select('id, school_id, grade_id')
-      .in('school_id', schoolIds)
-      .in('grade_id', gradeIds)
-      .eq('is_deleted', false);
-
-    if (classRowsError) {
-      logger.error(
-        'Error resolving campaign assignment classes:',
-        classRowsError,
+    if (requiresAssignments) {
+      const schoolIds = Array.from(
+        new Set(
+          payload.assignments.flatMap((assignment) => assignment.schoolIds),
+        ),
       );
-      throw classRowsError;
-    }
+      const gradeIds = Array.from(
+        new Set(payload.assignments.map((assignment) => assignment.gradeId)),
+      );
 
-    const classRows = (classRowsData ?? []) as Array<{
-      id: string;
-      school_id: string;
-      grade_id: string;
-    }>;
-
-    const classesBySchoolAndGrade = new Map<
-      string,
-      Array<{ id: string; school_id: string; grade_id: string }>
-    >();
-    classRows.forEach((classRow) => {
-      const key = `${classRow.school_id}:${classRow.grade_id}`;
-      if (!classesBySchoolAndGrade.has(key)) {
-        classesBySchoolAndGrade.set(key, []);
+      if (schoolIds.length === 0 || gradeIds.length === 0) {
+        throw new Error('Campaign assignment schools and grades are required.');
       }
-      classesBySchoolAndGrade.get(key)?.push(classRow);
-    });
 
-    const missingAssignmentTargets = new Set<string>();
-    const assignmentRows = payload.assignments.flatMap((assignment) =>
-      assignment.schoolIds.flatMap((schoolId) => {
-        const classes =
-          classesBySchoolAndGrade.get(`${schoolId}:${assignment.gradeId}`) ??
-          [];
-        if (classes.length === 0) {
-          missingAssignmentTargets.add(`${schoolId}:${assignment.gradeId}`);
+      const { data: classRowsData, error: classRowsError } = await this.supabase
+        .from(TABLES.Class)
+        .select('id, school_id, grade_id')
+        .in('school_id', schoolIds)
+        .in('grade_id', gradeIds)
+        .eq('is_deleted', false);
+
+      if (classRowsError) {
+        logger.error(
+          'Error resolving campaign assignment classes:',
+          classRowsError,
+        );
+        throw classRowsError;
+      }
+
+      const classRows = (classRowsData ?? []) as Array<{
+        id: string;
+        school_id: string;
+        grade_id: string;
+      }>;
+
+      const classesBySchoolAndGrade = new Map<
+        string,
+        Array<{ id: string; school_id: string; grade_id: string }>
+      >();
+      classRows.forEach((classRow) => {
+        const key = `${classRow.school_id}:${classRow.grade_id}`;
+        if (!classesBySchoolAndGrade.has(key)) {
+          classesBySchoolAndGrade.set(key, []);
         }
-        return classes.map((classRow) => ({
-          campaign_id: payload.campaignId,
-          batch_id: payload.campaignId,
-          class_id: classRow.id,
-          school_id: classRow.school_id,
-          lesson_id: assignment.lessonId,
-          chapter_id: assignment.chapterId,
-          course_id: assignment.courseId,
-          starts_at: assignment.startsAt,
-          ends_at: assignment.endsAt,
-          type: assignment.type,
-          source: assignment.source,
-          set_number: assignment.setNumber,
-          is_class_wise: true,
-          created_by: payload.currentUserId,
-          is_deleted: false,
-        }));
-      }),
-    );
+        classesBySchoolAndGrade.get(key)?.push(classRow);
+      });
 
-    if (missingAssignmentTargets.size > 0) {
-      logger.warn(
-        'Skipping campaign assignments for school/grade pairs without classes:',
-        Array.from(missingAssignmentTargets).map((target) => {
-          const [schoolId, gradeId] = target.split(':');
-          return { schoolId, gradeId };
+      const missingAssignmentTargets = new Set<string>();
+      const assignmentRows = payload.assignments.flatMap((assignment) =>
+        assignment.schoolIds.flatMap((schoolId) => {
+          const classes =
+            classesBySchoolAndGrade.get(`${schoolId}:${assignment.gradeId}`) ??
+            [];
+          if (classes.length === 0) {
+            missingAssignmentTargets.add(`${schoolId}:${assignment.gradeId}`);
+          }
+          return classes.map((classRow) => ({
+            campaign_id: payload.campaignId,
+            batch_id: payload.campaignId,
+            class_id: classRow.id,
+            school_id: classRow.school_id,
+            lesson_id: assignment.lessonId,
+            chapter_id: assignment.chapterId,
+            course_id: assignment.courseId,
+            starts_at: assignment.startsAt,
+            ends_at: assignment.endsAt,
+            type: assignment.type,
+            source: assignment.source,
+            set_number: assignment.setNumber,
+            is_class_wise: true,
+            created_by: payload.currentUserId,
+            is_deleted: false,
+          }));
         }),
       );
-    }
 
-    if (assignmentRows.length === 0) {
-      throw new Error(
-        'No classes found for the selected campaign assignments.',
-      );
-    }
-
-    const { error: assignmentCleanupError } = await this.supabase
-      .from(TABLES.Assignment)
-      .update({ is_deleted: true, updated_at: updatedAt })
-      .eq('campaign_id', payload.campaignId)
-      .eq('is_deleted', false);
-
-    if (assignmentCleanupError) {
-      logger.error(
-        'Error clearing previous campaign assignments:',
-        assignmentCleanupError,
-      );
-      throw assignmentCleanupError;
-    }
-
-    for (const assignmentBatch of chunkArray(assignmentRows, 500)) {
-      const { error } = await this.supabase
-        .from(TABLES.Assignment)
-        .insert(assignmentBatch);
-
-      if (error) {
-        logger.error('Error inserting campaign assignments:', error);
-        throw error;
+      if (missingAssignmentTargets.size > 0) {
+        logger.warn(
+          'Skipping campaign assignments for school/grade pairs without classes:',
+          Array.from(missingAssignmentTargets).map((target) => {
+            const [schoolId, gradeId] = target.split(':');
+            return { schoolId, gradeId };
+          }),
+        );
       }
-    }
 
-    const { error: messagingCleanupError } = await this.supabase
-      .from('campaign_messaging')
-      .update({ is_deleted: true, updated_at: updatedAt })
-      .eq('campaign_id', payload.campaignId)
-      .eq('is_deleted', false);
+      if (assignmentRows.length === 0) {
+        throw new Error(
+          'No classes found for the selected campaign assignments.',
+        );
+      }
 
-    if (messagingCleanupError) {
-      logger.error(
-        'Error clearing previous campaign messaging:',
-        messagingCleanupError,
-      );
-      throw messagingCleanupError;
+      for (const assignmentBatch of chunkArray(assignmentRows, 500)) {
+        const { error } = await this.supabase
+          .from(TABLES.Assignment)
+          .insert(assignmentBatch);
+
+        if (error) {
+          logger.error('Error inserting campaign assignments:', error);
+          throw error;
+        }
+      }
     }
 
     const messagingRows = payload.messagingRows.map((row) => ({
@@ -10814,6 +11181,8 @@ export class SupabaseApi implements ServiceApi {
     order_by?: string;
     order_dir?: 'asc' | 'desc';
     search?: string;
+    percentage_filters?: Record<string, SchoolListPercentBand>;
+    school_performance_filter?: string | null;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
@@ -10883,6 +11252,8 @@ export class SupabaseApi implements ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, SchoolListPercentBand>;
+    school_performance_filter?: string | null;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
@@ -10910,6 +11281,8 @@ export class SupabaseApi implements ServiceApi {
       order_dir,
       search,
       date_range,
+      percentage_filters,
+      school_performance_filter,
     } = params;
 
     const specialRoles = await this.getUserSpecialRoles(authUser.id);
@@ -11077,23 +11450,110 @@ export class SupabaseApi implements ServiceApi {
         );
       }
 
-      const sortBy = order_by === 'name' ? 'school_name' : 'school_name';
-      const sortDir = order_dir === 'desc' ? false : true;
-      const from = Math.max(page - 1, 0) * page_size;
-      const to = from + page_size - 1;
+      const allowedSortColumns = new Set([
+        'school_name',
+        'school_performance',
+        'onboarded_students',
+        'activated_students',
+        'active_students',
+        'avg_time_spent',
+        'active_teachers',
+        'activities_assigned',
+        'avg_assignments_completed',
+        'avg_activities_completed',
+        'student_parent_calls',
+        'teacher_hm_calls',
+        'community_visits',
+        'community_parents_reached',
+        'school_visits',
+        'parents_on_whatsapp',
+        'parents_in_group',
+      ]);
+      const sortBy = allowedSortColumns.has(order_by ?? '')
+        ? (order_by as string)
+        : 'school_name';
+      const sortAscending = order_dir !== 'desc';
 
-      const { data, count, error } = await query
-        .order(sortBy, { ascending: sortDir })
-        .range(from, to);
+      const { data, error } = await query;
 
       if (error) {
         logger.error('Error fetching school_metrics listing:', error);
         return { data: [], total: 0 };
       }
 
-      const rows = (data ?? []) as Array<Record<string, unknown>>;
+      let rows = (data ?? []) as Array<Record<string, unknown>>;
 
-      const mappedRows = rows.map((row: Record<string, unknown>) => ({
+      const percentageFilters = Object.fromEntries(
+        Object.entries(percentage_filters ?? {}).filter(
+          ([key, value]) =>
+            SCHOOL_LIST_PERCENTAGE_FILTER_KEYS.has(key) &&
+            PERCENTAGE_BAND_VALUES.includes(value as SchoolListPercentBand),
+        ),
+      ) as Record<string, SchoolListPercentBand>;
+
+      if (Object.keys(percentageFilters).length > 0) {
+        rows = rows.filter((row) =>
+          Object.entries(percentageFilters).every(([key, band]) => {
+            if (key === 'activatedStudents') {
+              return isPercentWithinBand(
+                getActivatedStudentsPercent(row),
+                band,
+              );
+            }
+            if (key === 'activeStudents') {
+              return isPercentWithinBand(getActiveStudentsPercent(row), band);
+            }
+            if (key === 'activeTeachers') {
+              return isPercentWithinBand(getActiveTeachersPercent(row), band);
+            }
+            return true;
+          }),
+        );
+      }
+
+      const schoolPerformanceFilter =
+        typeof school_performance_filter === 'string' &&
+        isSchoolPerformanceStatusValue(school_performance_filter)
+          ? school_performance_filter
+          : null;
+
+      if (schoolPerformanceFilter) {
+        rows = rows.filter(
+          (row) =>
+            resolveSchoolMetricsPerformanceStatus(row) ===
+            schoolPerformanceFilter,
+        );
+      }
+
+      rows.sort((leftRow, rightRow) => {
+        const leftValue = getSchoolMetricsSortValue(leftRow, sortBy);
+        const rightValue = getSchoolMetricsSortValue(rightRow, sortBy);
+
+        if (leftValue == null && rightValue == null) return 0;
+        if (leftValue == null) return 1;
+        if (rightValue == null) return -1;
+
+        if (typeof leftValue === 'string' || typeof rightValue === 'string') {
+          const result = String(leftValue).localeCompare(
+            String(rightValue),
+            undefined,
+            {
+              sensitivity: 'base',
+              numeric: true,
+            },
+          );
+          return sortAscending ? result : -result;
+        }
+
+        const result =
+          leftValue === rightValue ? 0 : leftValue > rightValue ? 1 : -1;
+        return sortAscending ? result : -result;
+      });
+
+      const from = Math.max(page - 1, 0) * page_size;
+      const pagedRows = rows.slice(from, from + page_size);
+
+      const mappedRows = pagedRows.map((row: Record<string, unknown>) => ({
         ...row,
         school_name: typeof row.school_name === 'string' ? row.school_name : '',
         udise: row.udise ?? null,
@@ -11103,12 +11563,15 @@ export class SupabaseApi implements ServiceApi {
             : 0,
         num_teachers:
           typeof row.active_teachers === 'number' ? row.active_teachers : 0,
-        total_teachers: null,
+        total_teachers: getNumericMetric(row.total_teachers),
         onboarded_students: row.onboarded_students ?? null,
         activated_students: row.activated_students ?? null,
         active_students: row.active_students ?? null,
         avg_time_spent: row.avg_time_spent ?? null,
         active_teachers: row.active_teachers ?? null,
+        active_teacher_percentage: getNumericMetric(
+          row.active_teacher_percentage,
+        ),
         activities_assigned: row.activities_assigned ?? null,
         avg_assignments_completed: row.avg_assignments_completed ?? null,
         avg_activities_completed: row.avg_activities_completed ?? null,
@@ -11128,13 +11591,443 @@ export class SupabaseApi implements ServiceApi {
 
       return {
         data: mappedRows,
-        total: typeof count === 'number' ? count : 0,
+        total: rows.length,
       };
     } catch (error) {
       logger.error(
         'Unexpected error in getSchoolMetricsForSchoolListing:',
         error,
       );
+      return { data: [], total: 0 };
+    }
+  }
+
+  async getClassMetricsForClassListing(params: {
+    schoolId: string;
+    date_range?: string;
+  }): Promise<ClassMetricsForClassListingRow[]> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized');
+      return [];
+    }
+
+    const schoolId = params.schoolId?.trim();
+    if (!schoolId) {
+      logger.error('getClassMetricsForClassListing called without schoolId');
+      return [];
+    }
+
+    const days = (() => {
+      const value = params.date_range?.trim().toLowerCase() ?? '7d';
+      if (value === '15d') return 15;
+      if (value === '30d') return 30;
+      return 7;
+    })();
+
+    try {
+      const { data, error } = await (
+        this.supabase as unknown as {
+          rpc: (
+            fn: string,
+            args: Record<string, unknown>,
+          ) => Promise<{ data: unknown; error: unknown }>;
+        }
+      ).rpc('get_class_metrics_for_listing', {
+        p_school_id: schoolId,
+        p_days: days,
+      });
+
+      if (error) {
+        logger.error('RPC error in get_class_metrics_for_listing:', error);
+        return [];
+      }
+
+      return (data ?? []) as ClassMetricsForClassListingRow[];
+    } catch (error) {
+      logger.error(
+        'Unexpected error in getClassMetricsForClassListing:',
+        error,
+      );
+      return [];
+    }
+  }
+
+  public async getProgramsFromProgramMetrics(params: {
+    currentUserId: string;
+    filters?: Record<string, string[]>;
+    tab?: TabType;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{
+    data: ProgramListingProgramRow[];
+    total: number;
+  }> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized');
+      return { data: [], total: 0 };
+    }
+
+    const {
+      currentUserId,
+      filters,
+      tab = PROGRAM_TAB.ALL,
+      page = 1,
+      page_size = 10,
+      order_by = 'program_name',
+      order_dir = 'asc',
+      search = '',
+      date_range,
+    } = params;
+
+    // Needed because program_metrics numeric columns can arrive as strings from Supabase.
+    const getProgramMetricNumber = (
+      value: number | string | null | undefined,
+    ): number => {
+      if (typeof value === 'number' && Number.isFinite(value)) return value;
+      if (typeof value === 'string' && value.trim() !== '') {
+        const parsedValue = Number(value);
+        return Number.isFinite(parsedValue) ? parsedValue : 0;
+      }
+      return 0;
+    };
+
+    // Needed so missing target counts show NA instead of an incorrect 0%.
+    const getProgramConfiguredTargetCount = (
+      value: number | string | null | undefined,
+    ): number | null => {
+      if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+        return value;
+      }
+      if (typeof value === 'string' && value.trim() !== '') {
+        const parsedValue = Number(value);
+        return Number.isFinite(parsedValue) && parsedValue > 0
+          ? parsedValue
+          : null;
+      }
+      return null;
+    };
+
+    // Needed because school division is stored as counts but the UI consumes percentages.
+    const getProgramSchoolDivisionPercent = (
+      value: number | null | undefined,
+      totalSchools: number,
+    ): number => {
+      if (totalSchools <= 0) return 0;
+      return Math.round((getProgramMetricNumber(value) / totalSchools) * 100);
+    };
+
+    // Needed because partner, manager, coordinator, and model fields can be JSON strings.
+    const normalizeProgramMetricsStringList = (
+      value: string[] | string | null | undefined,
+    ): string[] => {
+      const normalizeString = (item: string): string[] => {
+        const trimmedItem = item.trim();
+        if (!trimmedItem || trimmedItem === 'null') return [];
+        if (!trimmedItem.startsWith('[')) return [trimmedItem];
+        try {
+          const parsed = JSON.parse(trimmedItem) as Json;
+          if (!Array.isArray(parsed)) return [trimmedItem];
+          return parsed.filter(
+            (entry): entry is string =>
+              typeof entry === 'string' &&
+              entry.trim() !== '' &&
+              entry !== 'null',
+          );
+        } catch {
+          return [trimmedItem];
+        }
+      };
+
+      if (Array.isArray(value)) {
+        return value.flatMap((item) =>
+          typeof item === 'string' ? normalizeString(item) : [],
+        );
+      }
+      return typeof value === 'string' ? normalizeString(value) : [];
+    };
+
+    // Needed so multi-select filters work for both array and JSON-string fields.
+    const programMetricsListHasSelection = (
+      value: string[] | string | null | undefined,
+      selectedValues: string[] | undefined,
+    ): boolean => {
+      if (!selectedValues?.length) return true;
+      const normalizedValues = normalizeProgramMetricsStringList(value);
+      return selectedValues.some((selectedValue) =>
+        normalizedValues.includes(selectedValue),
+      );
+    };
+
+    // Needed because these list-like filters cannot be safely handled by DB operators alone.
+    const matchesProgramMetricsDimensionFilters = (
+      row: ProgramMetricsTableRow,
+      rowFilters: Record<string, string[]>,
+      selectedTab: PROGRAM_TAB,
+    ): boolean => {
+      const selectedModels = rowFilters.model?.filter((value) =>
+        Object.values(PROGRAM_TAB).includes(value as PROGRAM_TAB),
+      );
+      const modelFilter = selectedModels?.length
+        ? selectedModels
+        : selectedTab !== PROGRAM_TAB.ALL
+          ? [selectedTab]
+          : [];
+
+      return (
+        programMetricsListHasSelection(row.program_model, modelFilter) &&
+        programMetricsListHasSelection(row.partners, rowFilters.partner) &&
+        programMetricsListHasSelection(
+          row.program_managers,
+          rowFilters.programManager,
+        ) &&
+        programMetricsListHasSelection(
+          row.field_coordinators,
+          rowFilters.fieldCoordinator,
+        )
+      );
+    };
+
+    // Needed to keep the Program Listing response stable while reading from program_metrics.
+    const mapProgramMetricsRow = (
+      row: ProgramMetricsTableRow,
+    ): ProgramListingProgramRow => {
+      const onboardedStudents = getProgramMetricNumber(row.onboarded_students);
+      const targetStudentCount = getProgramConfiguredTargetCount(
+        row.target_student_count,
+      );
+      const activatedStudents = getProgramMetricNumber(row.activated_students);
+      const activeStudents = getProgramMetricNumber(row.active_students);
+      const onboardedTeachers = getProgramMetricNumber(row.onboarded_teachers);
+      const targetTeachersCount = getProgramConfiguredTargetCount(
+        row.target_teacher_count ?? row.target_teachers_count,
+      );
+      const activatedTeachers = getProgramMetricNumber(row.activated_teachers);
+      const activeTeachers = getProgramMetricNumber(row.active_teachers);
+      const totalSchools = getProgramMetricNumber(row.total_schools);
+
+      return {
+        ...row,
+        total_schools: totalSchools,
+        performing_well: getProgramSchoolDivisionPercent(
+          row.performing_well,
+          totalSchools,
+        ),
+        needs_attention: getProgramSchoolDivisionPercent(
+          row.needs_attention,
+          totalSchools,
+        ),
+        needs_support: getProgramSchoolDivisionPercent(
+          row.needs_support,
+          totalSchools,
+        ),
+        onboarded_students: onboardedStudents,
+        target_student_count: targetStudentCount,
+        onboarded_students_pct:
+          targetStudentCount !== null
+            ? (onboardedStudents / targetStudentCount) * 100
+            : null,
+        activated_students: activatedStudents,
+        activated_students_pct:
+          onboardedStudents > 0
+            ? (activatedStudents / onboardedStudents) * 100
+            : 0,
+        active_students: activeStudents,
+        active_students_pct:
+          activatedStudents > 0
+            ? (activeStudents / activatedStudents) * 100
+            : 0,
+        avg_time_spent: getProgramMetricNumber(row.avg_time_spent),
+        onboarded_teachers: onboardedTeachers,
+        target_teachers_count: targetTeachersCount,
+        onboarded_teachers_pct:
+          targetTeachersCount !== null
+            ? (onboardedTeachers / targetTeachersCount) * 100
+            : null,
+        activated_teachers: activatedTeachers,
+        activated_teachers_pct:
+          onboardedTeachers > 0
+            ? (activatedTeachers / onboardedTeachers) * 100
+            : 0,
+        active_teachers: activeTeachers,
+        active_teachers_pct:
+          activatedTeachers > 0
+            ? (activeTeachers / activatedTeachers) * 100
+            : 0,
+      };
+    };
+
+    // Needed because Low/Mid/High filters depend on calculated percentages.
+    const matchesProgramPercentFilters = (
+      row: ProgramListingProgramRow,
+      rowFilters: Record<string, string[]>,
+    ): boolean => {
+      const filterEntries: Array<[keyof ProgramListingProgramRow, string]> = [
+        ['onboarded_students_pct', 'onboardedStudentsPct'],
+        ['activated_students_pct', 'activatedStudentsPct'],
+        ['active_students_pct', 'activeStudentsPct'],
+        ['onboarded_teachers_pct', 'onboardedTeachersPct'],
+        ['activated_teachers_pct', 'activatedTeachersPct'],
+        ['active_teachers_pct', 'activeTeachersPct'],
+      ];
+
+      return filterEntries.every(([metricKey, filterKey]) => {
+        const selectedBands = rowFilters[filterKey] ?? [];
+        if (selectedBands.length === 0) return true;
+        const value = row[metricKey];
+        if (typeof value !== 'number') return false;
+        const band = value >= 70 ? 'High' : value >= 31 ? 'Mid' : 'Low';
+        return selectedBands.includes(band);
+      });
+    };
+
+    // Needed so all sortable Program columns use one consistent ordering path.
+    const sortProgramMetricsRows = (
+      first: ProgramListingProgramRow,
+      second: ProgramListingProgramRow,
+      orderBy: string,
+      orderDir: 'asc' | 'desc',
+    ): number => {
+      const dir = orderDir === 'desc' ? -1 : 1;
+      const firstValue = first[orderBy as keyof ProgramListingProgramRow];
+      const secondValue = second[orderBy as keyof ProgramListingProgramRow];
+      if (typeof firstValue === 'number' || typeof secondValue === 'number') {
+        return (
+          (((firstValue as number | null) ?? 0) -
+            ((secondValue as number | null) ?? 0)) *
+          dir
+        );
+      }
+      return (
+        String(firstValue ?? '').localeCompare(String(secondValue ?? '')) * dir
+      );
+    };
+
+    // Needed to decide whether the current user can see all programs or only linked programs.
+    const specialRoles = await this.getUserSpecialRoles(currentUserId);
+    const isAdminOrDirector = specialRoles.some((role) =>
+      [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
+        role as RoleType,
+      ),
+    );
+
+    try {
+      // Needed to collect direct program access for program managers only.
+      const programUserResult =
+        !isAdminOrDirector && specialRoles.includes(RoleType.PROGRAM_MANAGER)
+          ? await this.supabase
+              .from(TABLES.ProgramUser)
+              .select('program_id')
+              .eq('user', currentUserId)
+              .eq('role', RoleType.PROGRAM_MANAGER)
+              .eq('is_deleted', false)
+          : {
+              data: [] as Array<{ program_id?: string | null }>,
+              error: null,
+            };
+
+      if (programUserResult.error) {
+        logger.error(
+          'Error fetching program_user access list:',
+          programUserResult.error,
+        );
+        return { data: [], total: 0 };
+      }
+
+      // Needed to convert program_user rows into clean IDs for program metrics filtering.
+      const programIds = (programUserResult.data ?? [])
+        .map((row) => row.program_id)
+        .filter((id): id is string => !!id);
+
+      // Needed to de-duplicate direct program access before applying row-level filtering.
+      const accessProgramIds = Array.from(new Set(programIds));
+
+      // Needed to query the program_metrics table even though generated DB types do not include it.
+      const programMetricsClient = this
+        .supabase as SupabaseClient<ProgramMetricsDatabase>;
+      let query = programMetricsClient
+        .from('program_metrics')
+        .select('*')
+        .eq('is_deleted', false);
+
+      // Needed so the listing and export reflect the selected metric window.
+      if (date_range && date_range !== 'all_time') {
+        query = query.eq('metric_window', date_range.trim().toLowerCase());
+      }
+
+      // Needed to enforce access rules for non-admin and non-director users.
+      if (!isAdminOrDirector) {
+        if (accessProgramIds.length === 0) {
+          return { data: [], total: 0 };
+        }
+        query = query.in('program_id', accessProgramIds);
+      }
+
+      // Needed to avoid sending empty filter arrays into DB and in-memory filters.
+      const cleanedFilters = Object.fromEntries(
+        Object.entries(filters ?? {}).filter(
+          ([, values]) => Array.isArray(values) && values.length > 0,
+        ),
+      );
+
+      // Needed to apply simple scalar filters at the database layer.
+      if (cleanedFilters.state?.length)
+        query = query.in('state', cleanedFilters.state);
+      if (cleanedFilters.district?.length)
+        query = query.in('district', cleanedFilters.district);
+      if (cleanedFilters.block?.length)
+        query = query.in('block', cleanedFilters.block);
+      if (cleanedFilters.cluster?.length)
+        query = query.in('cluster', cleanedFilters.cluster);
+      if (cleanedFilters.programType?.length) {
+        const programTypeValues = cleanedFilters.programType.filter(
+          (value): value is ProgramType =>
+            Object.values(ProgramType).includes(value as ProgramType),
+        );
+        if (programTypeValues.length) {
+          query = query.in('program_type', programTypeValues);
+        }
+      }
+      // Needed to keep search behavior consistent across program and location fields.
+      if (search) {
+        query = query.or(
+          [
+            `program_name.ilike.%${search}%`,
+            `state.ilike.%${search}%`,
+            `district.ilike.%${search}%`,
+            `block.ilike.%${search}%`,
+            `cluster.ilike.%${search}%`,
+          ].join(','),
+        );
+      }
+
+      // Needed to fetch the filtered program_metrics rows before calculated filters run.
+      const { data, error } = await query;
+      if (error) {
+        logger.error('Error fetching program_metrics listing:', error);
+        return { data: [], total: 0 };
+      }
+
+      // Needed to apply normalized list filters, calculated percentages, sorting, and paging.
+      const rows = ((data ?? []) as ProgramMetricsTableRow[])
+        .filter((row) =>
+          matchesProgramMetricsDimensionFilters(row, cleanedFilters, tab),
+        )
+        .map((row) => mapProgramMetricsRow(row))
+        .filter((row) => matchesProgramPercentFilters(row, cleanedFilters))
+        .sort((a, b) => sortProgramMetricsRows(a, b, order_by, order_dir));
+      // Needed to return only the requested page while preserving the total filtered count.
+      const from = Math.max(page - 1, 0) * page_size;
+
+      return {
+        data: rows.slice(from, from + page_size),
+        total: rows.length,
+      };
+    } catch (error) {
+      logger.error('Unexpected error in getProgramsFromProgramMetrics:', error);
       return { data: [], total: 0 };
     }
   }
@@ -11433,22 +12326,37 @@ export class SupabaseApi implements ServiceApi {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
     if (isSuperAdmin || isOpsDirector) {
+      let specialUsersQuery = this.supabase
+        .from('special_users')
+        .select('user_id, role')
+        .eq('is_deleted', false)
+        .not('user_id', 'is', null);
+      if (isOpsDirector && !isSuperAdmin) {
+        specialUsersQuery = specialUsersQuery.neq('role', RoleType.SUPER_ADMIN);
+      }
+      const { data: specialUsers, error: specialUsersError } =
+        await specialUsersQuery;
+      if (specialUsersError) {
+        logger.error('Error fetching special users:', specialUsersError);
+        return { data: [], totalCount: 0 };
+      }
+      if (!specialUsers || specialUsers.length === 0) {
+        return { data: [], totalCount: 0 };
+      }
+      const roleByUserId = new Map<string, string>();
+      specialUsers.forEach((specialUser) => {
+        if (specialUser.user_id && specialUser.role) {
+          roleByUserId.set(specialUser.user_id, specialUser.role);
+        }
+      });
+      const userIds = Array.from(roleByUserId.keys());
       let query = this.supabase
         .from('user')
-        .select(
-          `
-          *,
-          special_users!inner (
-            role
-          )
-        `,
-          { count: 'exact' },
-        )
-        .eq('is_deleted', false)
-        .ilike('name', `%${search}%`)
-        .eq('special_users.is_deleted', false);
-      if (isOpsDirector && !isSuperAdmin) {
-        query = query.neq('special_users.role', RoleType.SUPER_ADMIN);
+        .select('*', search ? { count: 'exact' } : undefined)
+        .in('id', userIds)
+        .eq('is_deleted', false);
+      if (search) {
+        query = query.ilike('name', `%${search}%`);
       }
       const { data, count, error } = await query
         .order(sortBy, { ascending: sortOrder === 'asc' })
@@ -11458,15 +12366,14 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], totalCount: 0 };
       }
       if (!data) return { data: [], totalCount: 0 };
-      const result = data.map((d) => {
-        const { special_users, ...userObject } = d;
-        const role = special_users[0]?.role || '';
+      const result = data.map((userObject) => {
+        const role = roleByUserId.get(userObject.id) || '';
         return {
           user: userObject as TableTypes<'user'>,
           role,
         };
       });
-      return { data: result, totalCount: count || 0 };
+      return { data: result, totalCount: search ? count || 0 : userIds.length };
     }
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {
       const { data: programs, error: programsError } = await this.supabase
@@ -14618,7 +15525,6 @@ export class SupabaseApi implements ServiceApi {
         .select('lesson_id')
         .in('lesson_id', lessonIds)
         .eq('student_id', studentId)
-        .is('assignment_id', null)
         .eq('is_deleted', false);
 
       const { data: results } = await resultsQuery;
@@ -14662,6 +15568,66 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return data ?? undefined;
+  }
+
+  async getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    if (!this.supabase || !skillId) return undefined;
+
+    type MaybeArray<T> = T | T[] | undefined;
+    type SkillSubjectRow = {
+      outcome?: MaybeArray<{
+        competency?: MaybeArray<{
+          domain?: MaybeArray<{
+            subject?: MaybeArray<TableTypes<'subject'>>;
+          }>;
+        }>;
+      }>;
+    };
+
+    const { data, error } = await this.supabase
+      .from('skill')
+      .select(
+        `
+          outcome!inner(
+            competency!inner(
+              domain!inner(
+                subject!inner(*)
+              )
+            )
+          )
+        `,
+      )
+      .eq('id', skillId)
+      .eq('is_deleted', false)
+      .eq('outcome.is_deleted', false)
+      .eq('outcome.competency.is_deleted', false)
+      .eq('outcome.competency.domain.is_deleted', false)
+      .eq('outcome.competency.domain.subject.is_deleted', false)
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      logger.error('Error fetching subject by skillId:', error);
+      return undefined;
+    }
+
+    const row = data as SkillSubjectRow | null;
+    const outcome = Array.isArray(row?.outcome)
+      ? row?.outcome[0]
+      : row?.outcome;
+    const competency = Array.isArray(outcome?.competency)
+      ? outcome?.competency[0]
+      : outcome?.competency;
+    const domain = Array.isArray(competency?.domain)
+      ? competency?.domain[0]
+      : competency?.domain;
+    const subject = Array.isArray(domain?.subject)
+      ? domain?.subject[0]
+      : domain?.subject;
+
+    return subject ?? undefined;
   }
 
   async isStudentPlayedPalLesson(
@@ -14854,7 +15820,10 @@ export class SupabaseApi implements ServiceApi {
     courseId = courseId ?? '';
 
     const isAssignedToStudent = (
-      assignment: AssessmentBatchRow | AssessmentAssignmentRow,
+      assignment:
+        | AssessmentBatchRow
+        | AssessmentAssignmentRow
+        | AssessmentBatchLessonRow,
     ) =>
       assignment.is_class_wise === true ||
       (assignment.assignment_user ?? []).some(
@@ -14894,8 +15863,78 @@ export class SupabaseApi implements ServiceApi {
     const latestBatchId = latestAssignedBatch?.batch_id;
     if (!latestBatchId) return [];
 
+    const { data: latestBatchLessons, error: latestBatchLessonsError } =
+      await this.supabase
+        .from(TABLES.Assignment)
+        .select(
+          `
+          lesson_id,
+          is_class_wise,
+          assignment_user:assignment_user!left(user_id, is_deleted)
+        `,
+        )
+        .eq('class_id', classId)
+        .eq('course_id', courseId)
+        .eq('type', 'assessment')
+        .eq('is_deleted', false)
+        .eq('batch_id', latestBatchId)
+        .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+        .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
+
+    if (latestBatchLessonsError) {
+      logger.error(
+        'Latest assessment batch lesson query error:',
+        latestBatchLessonsError,
+      );
+      return [];
+    }
+
+    const latestBatchLessonIds = new Set(
+      ((latestBatchLessons ?? []) as unknown as AssessmentBatchLessonRow[])
+        .filter((assignment) => isAssignedToStudent(assignment))
+        .map((assignment) => assignment.lesson_id)
+        .filter((lessonId): lessonId is string => !!lessonId),
+    );
+
+    const { data: courseTerminationResults, error: courseTerminationError } =
+      await this.supabase
+        .from(TABLES.Result)
+        .select(
+          `
+          lesson_id,
+          status,
+          assignment!inner(class_id, course_id, type)
+        `,
+        )
+        .eq('student_id', studentId)
+        .eq('status', 'assessment_terminated')
+        .eq('is_deleted', false)
+        .eq('assignment.class_id', classId)
+        .eq('assignment.course_id', courseId)
+        .eq('assignment.type', 'assessment')
+        .limit(1);
+
+    if (courseTerminationError) {
+      logger.error(
+        'Course assessment termination query error:',
+        courseTerminationError,
+      );
+      return [];
+    }
+
+    const isLatestBatchReassignment = (courseTerminationResults ?? []).some(
+      (result) => {
+        const lessonId = result.lesson_id;
+        return !!lessonId && latestBatchLessonIds.has(lessonId);
+      },
+    );
+
+    if (courseTerminationResults?.length && !isLatestBatchReassignment) {
+      return [];
+    }
+
     /* ==========================================
-     * STEP 2️⃣  Abort check (2 system_exit)
+     * STEP 2️⃣  Abort check
      * ========================================== */
     const { data, error: abortError } = await this.supabase
       .from(TABLES.Result)
@@ -14979,19 +16018,19 @@ export class SupabaseApi implements ServiceApi {
     if (!assignedAssessments.length) return [];
 
     const assignmentIds = assignedAssessments.map((a) => a.id);
-
-    // fetch completed results
-    const { data: results } = await this.supabase
+    const { data: assignmentResults } = await this.supabase
       .from(TABLES.Result)
       .select('assignment_id')
       .in('assignment_id', assignmentIds)
       .eq('student_id', studentId)
       .eq('is_deleted', false);
 
-    const completedSet = new Set((results ?? []).map((r) => r.assignment_id));
+    const completedAssignmentIds = new Set(
+      (assignmentResults ?? []).map((r) => r.assignment_id),
+    );
 
     const incompleteAssignments = assignedAssessments.filter(
-      (a) => !completedSet.has(a.id),
+      (a) => !completedAssignmentIds.has(a.id),
     );
 
     if (!incompleteAssignments.length) return [];
@@ -15721,8 +16760,6 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.UserAchivements)
       .select('*')
       .eq('user_id', userId)
-      .eq('school_id', schoolId)
-      .eq('class_id', classId)
       .or('is_deleted.is.false,is_deleted.is.null')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -15746,12 +16783,12 @@ export class SupabaseApi implements ServiceApi {
         .update({
           coins: updatedCoins,
           streak: updatedStreak,
+          school_id: schoolId,
+          class_id: classId,
           updated_at: now,
           is_deleted: false,
         })
-        .eq('user_id', userId)
-        .eq('school_id', schoolId)
-        .eq('class_id', classId);
+        .eq('user_id', userId);
 
       if (updateError) {
         logger.error('Error updating user_achievements coins:', updateError);

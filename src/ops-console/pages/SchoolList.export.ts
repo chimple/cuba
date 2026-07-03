@@ -49,6 +49,10 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
   const activatedStudents = pickFirstNumber(school.activated_students);
   const activeStudents = pickFirstNumber(school.active_students);
   const activeTeachers = pickFirstNumber(school.active_teachers);
+  const totalTeachers = pickFirstNumber(school.total_teachers);
+  const activeTeacherPercent = pickFirstNumber(
+    school.active_teacher_percentage,
+  );
   const completionAssignments = pickFirstNumber(
     school.avg_assignments_completed,
   );
@@ -90,7 +94,14 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
     ),
     activeTeachers: buildMetricWithPercentExportText(
       activeTeachers,
-      activeTeachers && activeTeachers > 0 ? 100 : null,
+      activeTeacherPercent ??
+        (activeTeachers != undefined &&
+        totalTeachers != undefined &&
+        totalTeachers > 0
+          ? (activeTeachers / totalTeachers) * 100
+          : activeTeachers && activeTeachers > 0
+            ? 100
+            : null),
     ),
     activitiesAssigned: buildMetricExportText(
       pickFirstNumber(

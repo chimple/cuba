@@ -12,6 +12,7 @@ import InputWithIcons from '../common/InputWithIcons';
 import Loading from '../Loading';
 import logger from '../../utility/logger';
 import { JoinClassInviteLookupResult } from '../../services/api/ServiceApi';
+import { STUDENT_RESULT } from '../../common/constants';
 const urlClassCode: any = {};
 
 const JoinClass: FC<{
@@ -293,6 +294,21 @@ const JoinClass: FC<{
         inviteCode: parsedInviteCode,
         studentId: student.id,
       });
+
+      try {
+        const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
+        const studentResultObj = studentResultStr
+          ? JSON.parse(studentResultStr)
+          : {};
+        studentResultObj[student.id] = false;
+        sessionStorage.setItem(
+          STUDENT_RESULT,
+          JSON.stringify(studentResultObj),
+        );
+      } catch (e) {
+        logger.error('Failed to reset studentResult in sessionStorage', e);
+      }
+
       const event = new CustomEvent('JoinClassListner', { detail: 'Joined' });
       window.dispatchEvent(event);
       // history.replace("/");
