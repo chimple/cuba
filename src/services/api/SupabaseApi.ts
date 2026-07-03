@@ -190,15 +190,11 @@ const getActiveStudentsPercent = (row: Record<string, unknown>) => {
 };
 
 const getActiveTeachersPercent = (row: Record<string, unknown>) => {
-  const explicitPercent = getNumericMetric(row.active_teacher_percentage);
-  if (explicitPercent !== null) return explicitPercent;
-
   const activeTeachers = getNumericMetric(row.active_teachers);
   const totalTeachers = getNumericMetric(row.total_teachers);
   if (activeTeachers !== null && totalTeachers !== null && totalTeachers > 0) {
     return (activeTeachers / totalTeachers) * 100;
   }
-  if (activeTeachers !== null && activeTeachers > 0) return 100;
   return null;
 };
 
@@ -11561,8 +11557,7 @@ export class SupabaseApi implements ServiceApi {
           typeof row.onboarded_students === 'number'
             ? row.onboarded_students
             : 0,
-        num_teachers:
-          typeof row.active_teachers === 'number' ? row.active_teachers : 0,
+        num_teachers: getNumericMetric(row.num_teachers) ?? 0,
         total_teachers: getNumericMetric(row.total_teachers),
         onboarded_students: row.onboarded_students ?? null,
         activated_students: row.activated_students ?? null,
