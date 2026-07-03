@@ -201,7 +201,7 @@ const LidoPlayer: FC = () => {
         courseDetailWithPathFields.course_code
       )
         ?.trim()
-        .toLowerCase();
+        ?.toLowerCase();
       const courseId =
         courseDetailWithPathFields.id ??
         courseDetailWithPathFields.course_id ??
