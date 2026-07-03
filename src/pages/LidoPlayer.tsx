@@ -190,7 +190,10 @@ const LidoPlayer: FC = () => {
 
   const getAssessmentProgressKey = () => {
     if (isAssessmentLesson && courseDetail?.subject_id) {
-      return `subject:${courseDetail.subject_id}`;
+      const courseCode = courseDetail.code?.trim().toLowerCase();
+      return courseCode
+        ? `subject:${courseDetail.subject_id}:course:${courseCode}`
+        : `subject:${courseDetail.subject_id}:course:${courseDetail.id}`;
     }
     return courseDetail?.id ?? courseDocId ?? '';
   };

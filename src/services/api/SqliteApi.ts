@@ -9943,9 +9943,22 @@ order by
       const setNumber = candidateSets[randomIndex];
       const useStrictLanguageTrack =
         !!langId && preferredSets.includes(setNumber);
+      const assessmentTrackRows = useStrictLanguageTrack
+        ? setRows.filter((row) =>
+            localeId
+              ? row.language_id === langId &&
+                (row.locale_id === localeId || row.locale_id == null)
+              : row.language_id === langId,
+          )
+        : setRows.filter((row) =>
+            localeId
+              ? row.language_id == null &&
+                (row.locale_id === localeId || row.locale_id == null)
+              : row.language_id == null,
+          );
       const assessmentLessonIds = Array.from(
         new Set(
-          setRows
+          assessmentTrackRows
             .map((row) => row.lesson_id)
             .filter((lessonId): lessonId is string => !!lessonId),
         ),
@@ -10131,9 +10144,33 @@ order by
       const course = await this.getCourse(courseId);
       if (!course?.subject_id) return false;
       const subjectId = course.subject_id;
+      let langId: string | null = null;
+      const courseCode = course.code?.trim().toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const languageRes = await this.executeQuery(
+          `
+            SELECT id
+            FROM language
+            WHERE LOWER(code) = ?
+              AND is_deleted = 0
+            LIMIT 1;
+          `,
+          [courseLanguageCode],
+        );
+        langId =
+          (((languageRes as DBSQLiteValues | undefined)?.values ?? [])[0]
+            ?.id as string | undefined) ?? null;
+      }
 
       const assessmentLessonsQuery = `
-        SELECT DISTINCT lesson_id
+        SELECT DISTINCT lesson_id, language_id
         FROM subject_lesson
         WHERE subject_id = ?
           AND COALESCE(is_deleted, 0) = 0
@@ -10145,11 +10182,28 @@ order by
       );
       const assessmentLessonIds = Array.from(
         new Set(
+          (langId &&
           (
             ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
               []) as {
               lesson_id?: string | null;
+              language_id?: string | null;
             }[]
+          ).some((lesson) => lesson.language_id === langId)
+            ? (
+                ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
+                  []) as {
+                  lesson_id?: string | null;
+                  language_id?: string | null;
+                }[]
+              ).filter((lesson) => lesson.language_id === langId)
+            : (
+                ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
+                  []) as {
+                  lesson_id?: string | null;
+                  language_id?: string | null;
+                }[]
+              ).filter((lesson) => lesson.language_id == null)
           )
             .map((lesson) => lesson.lesson_id)
             .filter((lessonId): lessonId is string => !!lessonId),
@@ -10222,10 +10276,34 @@ order by
       if (!subjectId) {
         return false;
       }
+      let langId: string | null = null;
+      const courseCode = course.code?.trim().toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const languageRes = await this.executeQuery(
+          `
+            SELECT id
+            FROM language
+            WHERE LOWER(code) = ?
+              AND is_deleted = 0
+            LIMIT 1;
+          `,
+          [courseLanguageCode],
+        );
+        langId =
+          (((languageRes as DBSQLiteValues | undefined)?.values ?? [])[0]
+            ?.id as string | undefined) ?? null;
+      }
 
       const assessmentLessonsRes = await this.executeQuery(
         `
-          SELECT lesson_id
+          SELECT lesson_id, language_id
           FROM subject_lesson
           WHERE subject_id = ?
             AND COALESCE(is_deleted, 0) = 0
@@ -10235,9 +10313,16 @@ order by
 
       const assessmentLessonRows =
         (assessmentLessonsRes as DBSQLiteValues | undefined)?.values ?? [];
+      const languageTrackLessons =
+        langId &&
+        assessmentLessonRows.some((lesson) => lesson.language_id === langId)
+          ? assessmentLessonRows.filter(
+              (lesson) => lesson.language_id === langId,
+            )
+          : assessmentLessonRows.filter((lesson) => lesson.language_id == null);
       const assessmentLessonIds: string[] = [];
       const placeholderParts: string[] = [];
-      for (const row of assessmentLessonRows) {
+      for (const row of languageTrackLessons) {
         const lessonId = row.lesson_id;
         if (!lessonId) continue;
         assessmentLessonIds.push(lessonId);
