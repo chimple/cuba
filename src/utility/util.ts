@@ -110,6 +110,7 @@ import {
   CoursePath,
   LessonNode,
   recommendNextLesson,
+  shouldUseAssessment,
 } from '../hooks/useLearningPath';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import { store } from '../redux/store';
@@ -2952,7 +2953,9 @@ export class Util {
       }
 
       if (
-        storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY &&
+        shouldUseAssessment(
+          storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+        ) &&
         course.subject_id
       ) {
         const activeCourseCode = await getCourseCode(course);
@@ -2978,7 +2981,7 @@ export class Util {
                   ? 'framework'
                   : null,
             },
-            mode: storedPathwayMode,
+            mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
             coursePath: peerCourse,
             skipAssessment: true,
           });
@@ -3092,7 +3095,9 @@ export class Util {
         nextAssessmentLesson: LessonNode | null,
       ) => {
         if (
-          storedPathwayMode !== LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
+          !shouldUseAssessment(
+            storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+          ) ||
           !activeLesson ||
           !activeLesson.is_assessment ||
           (!course.subject_id && !course.framework_id)
