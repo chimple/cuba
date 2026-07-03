@@ -9,7 +9,7 @@ import {
 } from './CampaignsOverviewLogic';
 import CampaignsOverviewHeaderBar from './CampaignsOverviewHeaderBar';
 import CampaignsOverviewWidgets from './CampaignsOverviewWidgets';
-import CampaignMessages from '../campaignMessages/CampaignMessages';
+// import CampaignMessages from '../campaignMessages/CampaignMessages';
 import './CampaignsOverview.css';
 import './CampaignsOverviewMobile.css';
 
@@ -87,9 +87,9 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
           cancellationDetails={campaignViewModel.cancellationDetails}
         />
       )}
-      {shouldShowMessages && (
+      {/* {shouldShowMessages && (
         <CampaignMessages data={campaignOverviewData?.data} />
-      )}
+      )} */}
     </main>
   );
 };
