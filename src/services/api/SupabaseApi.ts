@@ -14612,9 +14612,22 @@ export class SupabaseApi implements ServiceApi {
       const setNumber = candidateSets[randomIndex];
       const useStrictLanguageTrack =
         !!langId && preferredSets.includes(setNumber);
+      const assessmentTrackRows = useStrictLanguageTrack
+        ? (setRows ?? []).filter((row) =>
+            localeId
+              ? row.language_id === langId &&
+                (row.locale_id === localeId || row.locale_id == null)
+              : row.language_id === langId,
+          )
+        : (setRows ?? []).filter((row) =>
+            localeId
+              ? row.language_id == null &&
+                (row.locale_id === localeId || row.locale_id == null)
+              : row.language_id == null,
+          );
       const assessmentLessonIds = Array.from(
         new Set(
-          (setRows ?? [])
+          assessmentTrackRows
             .map((row) => row.lesson_id)
             .filter((lessonId): lessonId is string => !!lessonId),
         ),
@@ -14645,16 +14658,12 @@ export class SupabaseApi implements ServiceApi {
         return {} as TableTypes<'subject_lesson'>;
       }
 
-      if (!data || data.length === 0) {
-        return {} as TableTypes<'subject_lesson'>;
-      }
-
       /* -----------------------------------------
         Keep latest result per unique lesson
       ------------------------------------------ */
       const uniqueMap = new Map<string, ResultStatusRow>();
 
-      for (const row of data as ResultStatusRow[]) {
+      for (const row of (data ?? []) as ResultStatusRow[]) {
         if (!row.lesson_id) continue;
         if (!uniqueMap.has(row.lesson_id)) {
           uniqueMap.set(row.lesson_id, row);
@@ -14669,7 +14678,7 @@ export class SupabaseApi implements ServiceApi {
       /* -----------------------------------------
         Abort check
       ------------------------------------------ */
-      const isAssessmentTerminated = (data as ResultStatusRow[]).some(
+      const isAssessmentTerminated = ((data ?? []) as ResultStatusRow[]).some(
         (r) => r.status === 'assessment_terminated',
       );
       const isAborted =
@@ -14888,11 +14897,37 @@ export class SupabaseApi implements ServiceApi {
       const course = await this.getCourse(courseId);
       if (!course?.subject_id) return false;
       const subjectId = course.subject_id;
+      let langId: string | null = null;
+      const courseCode = course.code?.trim().toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const { data: languageRows, error: languageError } = await this.supabase
+          .from('language')
+          .select('id')
+          .ilike('code', courseLanguageCode)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (languageError) {
+          logger.error(
+            'Error fetching PAL assessment history language:',
+            languageError,
+          );
+        } else {
+          langId = languageRows?.[0]?.id ?? null;
+        }
+      }
 
       const { data: assessmentLessons, error: assessmentLessonsError } =
         await this.supabase
           .from('subject_lesson')
-          .select('lesson_id')
+          .select('lesson_id, language_id')
           .eq('subject_id', subjectId)
           .or('is_deleted.eq.false,is_deleted.is.null');
 
@@ -14906,7 +14941,17 @@ export class SupabaseApi implements ServiceApi {
 
       const assessmentLessonIds = Array.from(
         new Set(
-          (assessmentLessons ?? [])
+          (langId &&
+          (assessmentLessons ?? []).some(
+            (lesson) => lesson.language_id === langId,
+          )
+            ? (assessmentLessons ?? []).filter(
+                (lesson) => lesson.language_id === langId,
+              )
+            : (assessmentLessons ?? []).filter(
+                (lesson) => lesson.language_id == null,
+              )
+          )
             .map((lesson) => lesson.lesson_id)
             .filter((lessonId): lessonId is string => !!lessonId),
         ),
@@ -14986,11 +15031,37 @@ export class SupabaseApi implements ServiceApi {
       if (!course?.subject_id) {
         return false;
       }
+      let langId: string | null = null;
+      const courseCode = course.code?.trim().toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const { data: languageRows, error: languageError } = await this.supabase
+          .from('language')
+          .select('id')
+          .ilike('code', courseLanguageCode)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (languageError) {
+          logger.error(
+            'Error fetching pending abort assessment language:',
+            languageError,
+          );
+        } else {
+          langId = languageRows?.[0]?.id ?? null;
+        }
+      }
 
       const { data: assessmentLessons, error: assessmentLessonsError } =
         await this.supabase
           .from('subject_lesson')
-          .select('lesson_id')
+          .select('lesson_id, language_id')
           .eq('subject_id', course.subject_id)
           .or('is_deleted.eq.false,is_deleted.is.null');
 
@@ -15002,9 +15073,21 @@ export class SupabaseApi implements ServiceApi {
         return false;
       }
 
+      const languageTrackLessons =
+        langId &&
+        (assessmentLessons ?? []).some(
+          (lesson) => lesson.language_id === langId,
+        )
+          ? (assessmentLessons ?? []).filter(
+              (lesson) => lesson.language_id === langId,
+            )
+          : (assessmentLessons ?? []).filter(
+              (lesson) => lesson.language_id == null,
+            );
+
       const seenLessonIds = new Set<string>();
       const assessmentLessonIds: string[] = [];
-      for (const lesson of assessmentLessons ?? []) {
+      for (const lesson of languageTrackLessons) {
         const lessonId = lesson.lesson_id;
         if (!lessonId || seenLessonIds.has(lessonId)) continue;
         seenLessonIds.add(lessonId);
