@@ -4257,6 +4257,7 @@ export type Database = {
           school_name: string | null;
           school_performance: string | null;
           state: string | null;
+          total_teachers: number | null;
           udise: string | null;
           updated_at: string | null;
         };
@@ -4288,6 +4289,7 @@ export type Database = {
           school_name?: string | null;
           school_performance?: string | null;
           state?: string | null;
+          total_teachers?: number | null;
           udise?: string | null;
           updated_at?: string | null;
         };
@@ -4319,6 +4321,7 @@ export type Database = {
           school_name?: string | null;
           school_performance?: string | null;
           state?: string | null;
+          total_teachers?: number | null;
           udise?: string | null;
           updated_at?: string | null;
         };
