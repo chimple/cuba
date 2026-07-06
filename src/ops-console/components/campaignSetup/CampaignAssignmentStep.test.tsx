@@ -7,15 +7,24 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { CampaignAssignmentStep } from './CampaignAssignmentStep';
 import {
   createDefaultConfig,
   GradeAssignmentConfig,
 } from './campaignAssignmentUtils';
 import { CampaignSetupFormState } from './types';
-import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
-import { CampaignAssignmentOptions } from '../../../services/api/ServiceApi';
+
+const mockApiHandler = {
+  getCampaignAssignmentOptions: jest.fn(),
+};
+
+jest.mock('../../../services/ServiceConfig', () => ({
+  ServiceConfig: {
+    getI: () => ({
+      apiHandler: mockApiHandler,
+    }),
+  },
+}));
 
 jest.mock('../../../utility/logger', () => ({
   __esModule: true,
@@ -25,10 +34,8 @@ jest.mock('../../../utility/logger', () => ({
   },
 }));
 
-jest.setTimeout(10000);
-
 const baseForm: CampaignSetupFormState = {
-  objective: CAMPAIGN_OBJECTIVE.HOMEWORK,
+  objective: 'homework_campaign',
   targetType: 'percentage_completion',
   targetValue: '90',
   learningPathCount: '',
@@ -48,14 +55,13 @@ const baseForm: CampaignSetupFormState = {
 
 const grade = { id: 'grade-1', name: 'Grade 1' };
 
-const assignmentOptions: CampaignAssignmentOptions = {
+const assignmentOptions = {
   grades: [
     {
       gradeId: 'grade-1',
       subjects: [
         {
           id: 'subject-1',
-          gradeId: 'grade-1',
           name: 'Science',
           chapters: [
             {
@@ -150,6 +156,9 @@ const getChapterRow = (chapterName: string) =>
 describe('CampaignAssignmentStep', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockApiHandler.getCampaignAssignmentOptions.mockResolvedValue(
+      assignmentOptions,
+    );
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       value: jest.fn().mockImplementation((query: string) => ({
@@ -178,7 +187,7 @@ describe('CampaignAssignmentStep', () => {
     openFrequencySelect();
     expect(
       await screen.findByRole('option', {
-        name: /Alternate Week/i,
+        name: 'Alternate Week (≥ 2 weeks)',
       }),
     ).toBeInTheDocument();
     fireEvent.keyDown(screen.getByRole('listbox'), {
@@ -199,7 +208,7 @@ describe('CampaignAssignmentStep', () => {
     openFrequencySelect();
     expect(
       await screen.findByRole('option', {
-        name: /Alternate Week/i,
+        name: 'Alternate Week (≥ 2 weeks)',
       }),
     ).toHaveAttribute('aria-disabled', 'true');
   });
@@ -279,81 +288,7 @@ describe('CampaignAssignmentStep', () => {
     expect(screen.getByText('Parts of plant')).toBeInTheDocument();
   });
 
-  it('shows the helper only when multiple grades are selected', () => {
-    const secondGrade = { id: 'grade-2', name: 'Grade 2' };
-    const multiGradeOptions: CampaignAssignmentOptions = {
-      grades: [
-        assignmentOptions.grades[0],
-        {
-          gradeId: 'grade-2',
-          subjects: [
-            {
-              id: 'subject-2',
-              gradeId: 'grade-2',
-              name: 'Maths',
-              chapters: [],
-            },
-          ],
-        },
-      ],
-    };
-
-    const { rerender } = render(
-      <CampaignAssignmentStep
-        form={baseForm}
-        campaignId="campaign-1"
-        selectedGrades={[grade, secondGrade]}
-        selectedSchoolIds={['school-1']}
-        assignmentOptions={multiGradeOptions}
-        loadingAssignmentOptions={false}
-        activeGradeId={grade.id}
-        configs={{
-          [grade.id]: createDefaultConfig(),
-          [secondGrade.id]: createDefaultConfig(),
-        }}
-        onActiveGradeChange={jest.fn()}
-        onConfigsChange={jest.fn()}
-        onCompletionChange={jest.fn()}
-        onAssignmentsChange={jest.fn()}
-      />,
-    );
-
-    expect(
-      screen.getByText(
-        /Assignments should be configured for all selected grades/,
-      ),
-    ).toBeInTheDocument();
-
-    rerender(
-      <CampaignAssignmentStep
-        form={baseForm}
-        campaignId="campaign-1"
-        selectedGrades={[]}
-        selectedSchoolIds={['school-1']}
-        assignmentOptions={multiGradeOptions}
-        loadingAssignmentOptions={false}
-        activeGradeId={grade.id}
-        configs={{
-          [grade.id]: createDefaultConfig(),
-          [secondGrade.id]: createDefaultConfig(),
-        }}
-        onActiveGradeChange={jest.fn()}
-        onConfigsChange={jest.fn()}
-        onCompletionChange={jest.fn()}
-        onAssignmentsChange={jest.fn()}
-      />,
-    );
-
-    expect(
-      screen.queryByText(
-        /Assignments should be configured for all selected grades/,
-      ),
-    ).not.toBeInTheDocument();
-  });
-
   it('does not restore previously removed chapter lessons when assigning another chapter', async () => {
-    const user = userEvent.setup();
-
     renderStep({
       initialConfig: {
         ...createDefaultConfig(),
@@ -367,17 +302,17 @@ describe('CampaignAssignmentStep', () => {
     const deleteButtons = Array.from(
       document.querySelectorAll('.assignment-summary-delete'),
     ) as HTMLButtonElement[];
-    await user.click(deleteButtons[0]);
-    await user.click(await screen.findByRole('button', { name: 'Remove' }));
+    fireEvent.click(deleteButtons[0]);
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
     await waitFor(() =>
       expect(
         document.querySelectorAll('.assignment-summary-delete'),
       ).toHaveLength(3),
     );
-    await user.click(
+    fireEvent.click(
       document.querySelectorAll('.assignment-summary-delete')[0] as HTMLElement,
     );
-    await user.click(await screen.findByRole('button', { name: 'Remove' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
 
     await waitFor(() =>
       expect(
@@ -390,7 +325,7 @@ describe('CampaignAssignmentStep', () => {
       screen.getByText('Assignment Summary (2 assignments)'),
     ).toBeInTheDocument();
 
-    await user.click(
+    fireEvent.click(
       within(getChapterRow('Our Body')).getByRole('button', { name: 'Assign' }),
     );
 

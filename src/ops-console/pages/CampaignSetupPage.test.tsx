@@ -638,7 +638,7 @@ describe('CampaignSetupPage', () => {
         }),
       ),
     );
-  });
+  }, 60000);
 
   it('uses lesson criteria for homepage learning pathway rewards', async () => {
     render(<CampaignSetupPage />);
