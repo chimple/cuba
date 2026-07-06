@@ -1302,7 +1302,7 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
     },
     {
       key: 'performance',
-      label: t('Performance (15 days)'),
+      label: t('Performance (7 days)'),
       align: 'center',
       width: 120,
       sortable: false,

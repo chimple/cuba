@@ -14781,7 +14781,7 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase) return null;
 
     const FIFTEEN_DAYS_AGO = new Date(
-      Date.now() - 15 * 24 * 60 * 60 * 1000,
+      Date.now() - 7 * 24 * 60 * 60 * 1000,
     ).toISOString();
 
     const { data, error } = await this.supabase
