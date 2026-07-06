@@ -797,6 +797,22 @@ export const useLearningPath = (opts?: {
       return learningPath;
     }
     if (mode != pathMode) {
+      if (shouldUseAssessment(pathMode) && shouldUseAssessment(mode)) {
+        learningPath.pathMode = mode;
+        const res = await updateLearningPathIfNeeded(
+          learningPath,
+          courses,
+          currentStudent,
+          mode,
+          classId,
+        );
+        if (res.updated) learningPath = res.learningPath;
+        learningPath.pathMode = mode;
+        learningPath.updated_at = new Date().toISOString();
+        await saveLearningPath(currentStudent, learningPath);
+        return learningPath;
+      }
+
       learningPath = await buildPath({
         student: currentStudent,
         courses,
