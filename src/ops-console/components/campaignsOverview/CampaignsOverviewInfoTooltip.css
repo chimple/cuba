@@ -1,0 +1,81 @@
+.ops-campaigns-info-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ops-campaigns-info-tooltip-icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}
+
+.ops-campaigns-info-tooltip-message {
+  position: absolute;
+  z-index: 20;
+  top: 25px;
+  left: -10px;
+  display: none;
+  width: 405px;
+  padding: 18px;
+  border: 2px solid var(--ops-campaigns-info-tooltip-color);
+  border-radius: 8px;
+  background: #fff;
+  color: #121619;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.28;
+  text-align: left;
+  transform: none;
+}
+
+.ops-campaigns-info-tooltip-right .ops-campaigns-info-tooltip-message {
+  right: -10px;
+  left: auto;
+  transform: none;
+}
+
+.ops-campaigns-info-tooltip-message::before {
+  position: absolute;
+  top: -5px;
+  left: 10px;
+  width: 8px;
+  height: 8px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+  border-color: var(--ops-campaigns-info-tooltip-color);
+  background: #fff;
+  content: '';
+  transform: rotate(45deg);
+}
+
+.ops-campaigns-info-tooltip-right .ops-campaigns-info-tooltip-message::before {
+  right: 10px;
+  left: auto;
+  transform: rotate(45deg);
+}
+
+.ops-campaigns-info-tooltip-open .ops-campaigns-info-tooltip-message {
+  display: block;
+}
+
+@media (min-width: 769px) {
+  .ops-campaigns-info-tooltip:hover .ops-campaigns-info-tooltip-message {
+    display: block;
+  }
+
+  .ops-campaigns-info-tooltip-open .ops-campaigns-info-tooltip-message {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .ops-campaigns-info-tooltip-open .ops-campaigns-info-tooltip-message {
+    display: block;
+  }
+}
