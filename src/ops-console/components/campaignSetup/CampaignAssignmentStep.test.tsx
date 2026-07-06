@@ -15,6 +15,7 @@ import {
 } from './campaignAssignmentUtils';
 import { CampaignSetupFormState } from './types';
 import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
+import { CampaignAssignmentOptions } from '../../../services/api/ServiceApi';
 
 jest.mock('../../../utility/logger', () => ({
   __esModule: true,
