@@ -584,6 +584,7 @@ export type Database = {
           campaign_status:
             | Database['public']['Enums']['campaign_status']
             | null;
+          comments: string | null;
           created_at: string | null;
           end_date: string;
           id: string;
@@ -603,6 +604,7 @@ export type Database = {
           campaign_status?:
             | Database['public']['Enums']['campaign_status']
             | null;
+          comments?: string | null;
           created_at?: string | null;
           end_date: string;
           id?: string;
@@ -622,6 +624,7 @@ export type Database = {
           campaign_status?:
             | Database['public']['Enums']['campaign_status']
             | null;
+          comments?: string | null;
           created_at?: string | null;
           end_date?: string;
           id?: string;

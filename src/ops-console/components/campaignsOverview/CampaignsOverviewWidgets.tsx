@@ -124,7 +124,7 @@ const CampaignsOverviewWidgets: React.FC<CampaignsOverviewWidgetsProps> = ({
               id="ops-campaigns-overview-cancellation-title"
               className="ops-campaigns-overview-cancellation-title"
             >
-              Cancelation Details
+              Cancellation Details
             </h2>
             <div
               id="ops-campaigns-overview-cancellation-divider"

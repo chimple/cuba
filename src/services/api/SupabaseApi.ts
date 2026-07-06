@@ -9913,7 +9913,9 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false);
 
       if (normalizedSearchTerm.length > 0) {
-        const orFilters = [`name.ilike.%${normalizedSearchTerm}%`];
+        // Escape quoted search text before building the PostgREST OR filter expression.
+        const escapedSearchTerm = normalizedSearchTerm.replace(/"/g, '\\"');
+        const orFilters = [`name.ilike."%${escapedSearchTerm}%"`];
         if (managerIds.length > 0) {
           orFilters.push(`manager_id.in.(${managerIds.join(',')})`);
         }
@@ -10092,7 +10094,9 @@ export class SupabaseApi implements ServiceApi {
   }
 
   async cancelCampaign(campaignId: string, reason: string): Promise<void> {
-    if (!this.supabase || !campaignId || !reason.trim()) {
+    const trimmedReason = reason.trim();
+
+    if (!this.supabase || !campaignId || !trimmedReason) {
       return;
     }
 
@@ -10101,6 +10105,7 @@ export class SupabaseApi implements ServiceApi {
       .from('campaign')
       .update({
         campaign_status: CAMPAIGN_STATUS.INACTIVE,
+        comments: trimmedReason,
         updated_at: timestamp,
       })
       .eq('id', campaignId)

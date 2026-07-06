@@ -224,11 +224,11 @@ const CampaignSetupPage: React.FC = () => {
       return;
     }
 
-    history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_COMPAIGNS}`);
+    history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`);
   }, [campaignSetup.activeStep, handleBackStep, history]);
 
   const handleOpenCampaignListing = useCallback(() => {
-    history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_COMPAIGNS}`);
+    history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`);
   }, [history]);
 
   const handleCommunicationContinue = useCallback(() => {
@@ -364,7 +364,7 @@ const CampaignSetupPage: React.FC = () => {
         type: 'success',
         text: t('Campaign launched successfully.'),
       });
-      history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_COMPAIGNS}`);
+      history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`);
     } catch (error) {
       logger.error('Failed to launch campaign:', error);
       setLaunchMessage({

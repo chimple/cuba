@@ -7,10 +7,16 @@ import {
 } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
 import React from 'react';
-import { Box, IconButton, Tooltip } from '@mui/material';
-import { InfoOutlined, MoreHoriz } from '@mui/icons-material';
+import { Box, IconButton } from '@mui/material';
+import { MoreHoriz } from '@mui/icons-material';
 import { CampaignListingItem, CampaignListingParams } from './ServiceApi';
 import type { Column } from '../../ops-console/components/DataTableBody';
+import type { CampaignsOverviewApiResponse } from '../../ops-console/components/campaignsOverview/CampaignsOverviewLogic';
+import CampaignsOverviewInfoTooltip from '../../ops-console/components/campaignsOverview/CampaignsOverviewInfoTooltip';
+
+const getSingleCampaignRelationValue = <T>(
+  value: T | T[] | null | undefined,
+): T | null => (Array.isArray(value) ? (value[0] ?? null) : (value ?? null));
 
 export const getCampaignListingStatus = ({
   campaignStatus,
@@ -55,23 +61,22 @@ const compareCampaignListingItems = (
   orderBy: NonNullable<CampaignListingParams['orderBy']>,
 ) => {
   switch (orderBy) {
-    case 'manager':
-      return (
-        (left.campaign.manager as TableTypes<'user'> | null | undefined)
-          ?.name ?? ''
-      ).localeCompare(
-        (right.campaign.manager as TableTypes<'user'> | null | undefined)
-          ?.name ?? '',
+    case 'manager': {
+      const leftManager = getSingleCampaignRelationValue(left.campaign.manager);
+      const rightManager = getSingleCampaignRelationValue(
+        right.campaign.manager,
+      );
+      return (leftManager?.name ?? '').localeCompare(
+        rightManager?.name ?? '',
         undefined,
         { sensitivity: 'base' },
       );
+    }
     case 'programName':
       return (
-        (left.campaign.program as TableTypes<'program'> | null | undefined)
-          ?.name ?? ''
+        getSingleCampaignRelationValue(left.campaign.program)?.name ?? ''
       ).localeCompare(
-        (right.campaign.program as TableTypes<'program'> | null | undefined)
-          ?.name ?? '',
+        getSingleCampaignRelationValue(right.campaign.program)?.name ?? '',
         undefined,
         { sensitivity: 'base' },
       );
@@ -206,23 +211,21 @@ export const getCampaignStatusClassName = (status: CampaignListingStatus) =>
     }) as const
   )[status];
 
-const renderMetricHeaderLabel = (label: string, tooltip: string) =>
+const renderMetricHeaderLabel = (
+  label: string,
+  tooltip: string,
+  alignment: 'left' | 'center' | 'right' = 'center',
+) =>
   // React.createElement keeps this helper in a .ts file while still returning JSX content.
   React.createElement(
     Box,
     { className: 'campaign-listing-head-metric' },
     React.createElement('span', null, label),
-    React.createElement(Tooltip, {
-      title: React.createElement(
-        'span',
-        { className: 'campaign-listing-info-tooltip-copy' },
-        tooltip,
-      ),
-      placement: 'top',
-      classes: { tooltip: 'campaign-listing-info-tooltip' },
-      children: React.createElement(InfoOutlined, {
-        className: 'campaign-listing-info-icon',
-      }),
+    React.createElement(CampaignsOverviewInfoTooltip, {
+      alignment,
+      color: '#1a71f6',
+      label,
+      message: tooltip,
     }),
   );
 
@@ -264,6 +267,7 @@ export const getCampaignListingColumns = (
       translate(
         'The average number of unique users who were active in the past 7 days.',
       ),
+      'left',
     ),
     align: 'left',
     sortable: true,
@@ -276,6 +280,7 @@ export const getCampaignListingColumns = (
       translate(
         'The average time users spent actively using the app in the past 7 days.',
       ),
+      'right',
     ),
     align: 'left',
     sortable: true,
@@ -333,13 +338,11 @@ export const buildCampaignTableRows = ({
     ),
     objective: getCampaignObjectiveLabel(campaign.campaign.objective),
     manager:
-      (
-        campaign.campaign.manager as { name?: string | null } | null | undefined
-      )?.name?.trim() || '-',
+      getSingleCampaignRelationValue(campaign.campaign.manager)?.name?.trim() ||
+      '-',
     programName:
-      (
-        campaign.campaign.program as { name?: string | null } | null | undefined
-      )?.name?.trim() || '-',
+      getSingleCampaignRelationValue(campaign.campaign.program)?.name?.trim() ||
+      '-',
     avgWeeklyActiveUsers: formatCampaignMetricValue(
       campaign.avgWeeklyActiveUsers,
     ),
@@ -371,6 +374,24 @@ export const buildCampaignTableRows = ({
 
 export const getCampaignListingPageCount = (total: number, pageSize: number) =>
   Math.max(1, Math.ceil(total / pageSize));
+
+export const mapCampaignListingItemToOverviewData = (
+  campaign: CampaignListingItem,
+): CampaignsOverviewApiResponse => ({
+  data: {
+    campaignId: campaign.campaignId,
+    // Reuse listing payload data for overview so we do not issue a second API request on row click.
+    campaign: {
+      ...campaign.campaign,
+      manager: getSingleCampaignRelationValue(campaign.campaign.manager),
+      program: getSingleCampaignRelationValue(campaign.campaign.program),
+    },
+    dashboardMetrics: campaign.dashboardMetrics,
+    avgWeeklyActiveUsers: campaign.avgWeeklyActiveUsers,
+    avgWeeklyEngagementTimeMinutes: campaign.avgWeeklyEngagementTimeMinutes,
+    status: campaign.status,
+  },
+});
 
 export const getCampaignWithStatusOverrides = ({
   campaigns,

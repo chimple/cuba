@@ -131,9 +131,10 @@ export const useCampaignListingData = ({
 
 export const useCampaignListingPageState = (api: ServiceApi) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 500);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<CampaignSortColumn>('startDate');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
     null,
@@ -154,7 +155,8 @@ export const useCampaignListingPageState = (api: ServiceApi) => {
     pageSize: CAMPAIGN_LISTING_PAGE_SIZE,
     orderBy: sortBy,
     orderDir: sortOrder,
-    searchTerm,
+    // Debounce keystrokes so the listing does not hit Supabase on every character typed.
+    searchTerm: debouncedSearchTerm,
   });
 
   useEffect(() => {

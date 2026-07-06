@@ -17,7 +17,8 @@ jest.mock('@mui/material', () => {
 });
 
 jest.mock('i18next', () => ({
-  t: (key: string) => key,
+  t: (key: string, options?: { name?: string }) =>
+    key.replace('{{name}}', options?.name ?? ''),
 }));
 
 const mockPush = jest.fn();
@@ -41,6 +42,7 @@ type DataTableBodyMockProps = {
   orderBy: string;
   order: string;
   onSort: (key: string) => void;
+  onRowClick?: (id: string | number, row: CampaignTableRow) => void;
 };
 
 jest.mock('react-router', () => ({
@@ -103,7 +105,11 @@ jest.mock('../components/DataTableBody', () => ({
         </button>
       ))}
       {props.rows.map((row: CampaignTableRow) => (
-        <div key={row.id} data-testid={`row-${row.id}`}>
+        <div
+          key={row.id}
+          data-testid={`row-${row.id}`}
+          onClick={() => props.onRowClick?.(row.id, row)}
+        >
           <div>{row.campaignName}</div>
           <div>{row.objective}</div>
           <div>{row.manager}</div>
@@ -266,7 +272,27 @@ describe('CampaignListingPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'New Campaign' }));
 
     expect(mockPush).toHaveBeenCalled();
-    expect(String(mockPush.mock.calls[0][0])).toContain('/compaigns/new');
+    expect(String(mockPush.mock.calls[0][0])).toContain('/campaigns/new');
+  });
+
+  it('navigates to the campaign overview page when a campaign row is clicked', () => {
+    renderPage();
+
+    fireEvent.click(screen.getByTestId('row-campaign-1'));
+
+    expect(mockPush).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pathname: '/admin-home-page/campaigns/campaign-1',
+        state: expect.objectContaining({
+          campaignOverviewData: expect.objectContaining({
+            data: expect.objectContaining({
+              campaignId: 'campaign-1',
+              status: 'In Progress',
+            }),
+          }),
+        }),
+      }),
+    );
   });
 
   it('passes the search input changes to the listing state hook', () => {

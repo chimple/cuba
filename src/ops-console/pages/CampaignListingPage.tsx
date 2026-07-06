@@ -25,6 +25,7 @@ import {
   buildCampaignTableRows,
   getCampaignListingColumns,
   hasCampaignWriteAccess,
+  mapCampaignListingItemToOverviewData,
 } from '../../services/api/campaignListingHelpers';
 import DataTableBody from '../components/DataTableBody';
 import DataTablePagination from '../components/DataTablePagination';
@@ -81,7 +82,24 @@ const CampaignListingPage: React.FC = () => {
   );
 
   const handleClickNewCampaign = () =>
-    history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_COMPAIGNS_NEW}`);
+    history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS_NEW}`);
+  const handleOpenCampaignOverview = (campaignId: string | number) => {
+    const selectedCampaignData = campaigns.find(
+      (campaign) => campaign.campaignId === String(campaignId),
+    );
+
+    history.push({
+      pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}/${String(
+        campaignId,
+      )}`,
+      state: selectedCampaignData
+        ? {
+            campaignOverviewData:
+              mapCampaignListingItemToOverviewData(selectedCampaignData),
+          }
+        : undefined,
+    });
+  };
 
   return (
     <Box className="campaign-listing-page">
@@ -136,6 +154,7 @@ const CampaignListingPage: React.FC = () => {
               rows={rows}
               orderBy={sortBy}
               order={sortOrder}
+              onRowClick={handleOpenCampaignOverview}
               onSort={(key) =>
                 handleSort(
                   key,
@@ -145,7 +164,6 @@ const CampaignListingPage: React.FC = () => {
                 )
               }
               loading={isLoading}
-              disableRowNavigation
               tableMinWidth={1500}
               headerClampLines={3}
               headerNoEllipsis
@@ -185,9 +203,9 @@ const CampaignListingPage: React.FC = () => {
             <WarningAmberOutlined className="campaign-listing-cancel-banner-icon" />
             <Box className="campaign-listing-cancel-banner-copy">
               <Typography className="campaign-listing-cancel-banner-title">
-                {`${t('Cancel')} (${selectedCampaign?.campaign.name ?? ''}) ${t(
-                  'Campaign',
-                )}`}
+                {t('Cancel ({{name}}) Campaign', {
+                  name: selectedCampaign?.campaign.name ?? '',
+                })}
               </Typography>
               <Typography className="campaign-listing-cancel-banner-subtitle">
                 {t('Please provide a reason for cancelling this campaign')}

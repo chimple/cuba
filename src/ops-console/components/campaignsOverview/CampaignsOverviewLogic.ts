@@ -60,6 +60,7 @@ export interface CampaignsOverviewDashboardMetrics {
 }
 
 export interface CampaignsOverviewApiCampaign {
+  comments?: string | null;
   name?: string | null;
   objective?: string | null;
   start_date?: string | null;
@@ -391,7 +392,7 @@ export const buildCampaignsOverviewViewModel = (
     cancellationDetails: {
       canceledBy: formatValue(campaign?.manager?.name),
       canceledOn: formatDateTime(campaign?.updated_at),
-      messageToAdmin: EMPTY_VALUE,
+      messageToAdmin: formatValue(campaign?.comments),
     },
   };
 };

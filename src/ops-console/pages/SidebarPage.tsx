@@ -38,6 +38,8 @@ import SchoolActivities from './SchoolActivities';
 import SchoolApprovedRequest from './SchoolApprovedRequest';
 import SchoolDetailsPage from './SchoolDetailsPage';
 import SchoolFormPage from './SchoolFormPage';
+import CampaignsOverview from '../components/campaignsOverview/CampaignsOverview';
+import { CampaignsOverviewApiResponse } from '../components/campaignsOverview/CampaignsOverviewLogic';
 import SchoolList from './SchoolList';
 import SchoolPendingRequest from './SchoolPendingRequest';
 import SchoolRejectedRequest from './SchoolRejectedRequest';
@@ -63,6 +65,36 @@ const ProgramDetailsRoute: React.FC = () => {
 const ProgramConnectedSchoolRoute: React.FC = () => {
   const { program_id } = useParams<{ program_id: string }>();
   return <ProgramConnectedSchoolPage id={program_id} />;
+};
+
+type CampaignOverviewRouteState = {
+  campaignOverviewData?: CampaignsOverviewApiResponse;
+};
+
+const CampaignOverviewRoute: React.FC = () => {
+  const history = useHistory();
+  const location = useLocation<CampaignOverviewRouteState>();
+  const campaignOverviewData = location.state?.campaignOverviewData;
+
+  const handleOpenCampaignListing = () => {
+    history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`);
+  };
+
+  if (!campaignOverviewData) {
+    return <Redirect to={`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`} />;
+  }
+
+  return (
+    <CampaignsOverview
+      campaignOverviewData={campaignOverviewData}
+      onBackClick={handleOpenCampaignListing}
+      onBreadcrumbClick={(_, index) => {
+        if (index === 0) {
+          handleOpenCampaignListing();
+        }
+      }}
+    />
+  );
 };
 
 const SidebarPage: React.FC = () => {
@@ -161,7 +193,7 @@ const SidebarPage: React.FC = () => {
               <SchoolList />
             </ProtectedRoute>
             <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_COMPAIGNS_NEW}`}
+              path={`${path}${PAGES.ADMIN_CAMPAIGNS_NEW}`}
               exact={true}
             >
               {canAccessCampaignPage ? (
@@ -171,7 +203,17 @@ const SidebarPage: React.FC = () => {
               )}
             </ProtectedRoute>
             <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_COMPAIGNS}`}
+              path={`${path}${PAGES.ADMIN_CAMPAIGNS}/:campaignId`}
+              exact={true}
+            >
+              {canAccessCampaignPage ? (
+                <CampaignOverviewRoute />
+              ) : (
+                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+              )}
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.ADMIN_CAMPAIGNS}`}
               exact={true}
             >
               {canAccessCampaignPage ? (
