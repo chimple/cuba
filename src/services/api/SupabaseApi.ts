@@ -10256,7 +10256,8 @@ export class SupabaseApi implements ServiceApi {
         `,
         { count: 'exact' },
       )
-      .eq('campaign_id', campaignId);
+      .eq('campaign_id', campaignId)
+      .eq('is_deleted', false);
 
     // Apply filters only if provided
     if (filters.gradeIds?.length) {

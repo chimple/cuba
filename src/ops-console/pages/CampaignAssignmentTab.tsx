@@ -25,7 +25,7 @@ import type {
 const ROWS_PER_PAGE = 20;
 
 interface CampaignAssignmentTabProps {
-  campaignId: string;
+  campaignId?: string;
 }
 
 const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
@@ -51,6 +51,13 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
     let cancelled = false;
 
     async function loadFilters() {
+      if (!campaignId) {
+        setGrades([]);
+        setSubjects([]);
+        setIsLoadingFilters(false);
+        return;
+      }
+
       setIsLoadingFilters(true);
       try {
         const [nextGrades, nextSubjects] = await Promise.all([
@@ -90,6 +97,13 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
     let cancelled = false;
 
     async function loadAssignments() {
+      if (!campaignId) {
+        setAssignments([]);
+        setTotal(0);
+        setIsLoadingAssignments(false);
+        return;
+      }
+
       setIsLoadingAssignments(true);
       try {
         const response = await api.getCampaignAssignments(campaignId, {
