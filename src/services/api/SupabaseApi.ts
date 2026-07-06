@@ -14780,7 +14780,7 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<number | null> {
     if (!this.supabase) return null;
 
-    const FIFTEEN_DAYS_AGO = new Date(
+    const SEVEN_DAYS_AGO = new Date(
       Date.now() - 7 * 24 * 60 * 60 * 1000,
     ).toISOString();
 
@@ -14790,7 +14790,7 @@ export class SupabaseApi implements ServiceApi {
       .eq('created_by', teacherId)
       .eq('class_id', classId)
       .eq('is_deleted', false)
-      .gte('created_at', FIFTEEN_DAYS_AGO);
+      .gte('created_at', SEVEN_DAYS_AGO);
 
     if (error) {
       logger.error('Error fetching assignments:', error);
