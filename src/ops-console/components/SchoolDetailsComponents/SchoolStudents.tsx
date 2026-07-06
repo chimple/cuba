@@ -1334,6 +1334,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   }, [programScopedClasses]);
 
   const editStudentClassId = useMemo(() => {
+    if (!editStudentData) return '';
     const directClassId = String(
       editStudentData?.classWithidname?.id ?? '',
     ).trim();
@@ -1555,68 +1556,75 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }
   }, [issTotal, classOptions, isAtSchool, baseStudents]);
 
-  const editStudentFields: FieldConfig[] = [
-    {
-      name: 'studentName',
-      label: 'Student Name',
-      kind: 'text',
-      required: true,
-      column: 2,
-    },
+  const editStudentFields: FieldConfig[] = useMemo(
+    () => [
+      {
+        name: 'studentName',
+        label: 'Student Name',
+        kind: 'text',
+        required: true,
+        column: 2,
+      },
+      {
+        name: 'studentID',
+        label: 'Student ID',
+        kind: 'text',
+        column: 0,
+        disabled: true,
+      },
+      {
+        name: 'gender',
+        label: 'Gender',
+        kind: 'select',
+        required: true,
+        column: 1,
+        options: [
+          { label: t('FEMALE'), value: GENDER.GIRL },
+          { label: t('MALE'), value: GENDER.BOY },
+          { label: t('UNSPECIFIED'), value: GENDER.OTHER },
+        ],
+      },
+      {
+        name: 'classAndSection',
+        label: 'Class And Section',
+        kind: 'select',
+        required: true,
+        column: 0,
+        options: classOptions,
+      },
+      {
+        name: 'ageGroup',
+        label: 'Age',
+        kind: 'select',
+        required: true,
+        column: 1,
+        options: Object.values(AGE_OPTIONS).map((v) => ({
+          value: v,
+          label: v,
+        })),
+      },
+      {
+        name: 'phone',
+        label: 'Phone Number',
+        kind: 'text',
+        column: 2,
+        disabled: true,
+      },
+    ],
+    [classOptions],
+  );
 
-    // 2️⃣ Student ID – left
-    {
-      name: 'studentID',
-      label: 'Student ID',
-      kind: 'text',
-      column: 0,
-      disabled: true,
-    },
-
-    {
-      name: 'gender',
-      label: 'Gender',
-      kind: 'select',
-      required: true,
-      column: 1,
-      options: [
-        { label: t('FEMALE'), value: GENDER.GIRL },
-        { label: t('MALE'), value: GENDER.BOY },
-        { label: t('UNSPECIFIED'), value: GENDER.OTHER },
-      ],
-    },
-    // 3️⃣ Class & Section – right
-    {
-      name: 'classAndSection',
-      label: 'Class And Section',
-      kind: 'select',
-      required: true,
-      column: 0,
-      options: classOptions,
-    },
-
-    // 5️⃣ Age – right
-    {
-      name: 'ageGroup',
-      label: 'Age',
-      kind: 'select',
-      required: true,
-      column: 1,
-      options: Object.values(AGE_OPTIONS).map((v) => ({
-        value: v,
-        label: v,
-      })),
-    },
-
-    // 6️⃣ Phone – full width
-    {
-      name: 'phone',
-      label: 'Phone Number',
-      kind: 'text',
-      column: 2,
-      disabled: true,
-    },
-  ];
+  const editStudentInitialValues = useMemo(
+    () => ({
+      studentName: editStudentData?.user?.name ?? '',
+      gender: editStudentData?.user?.gender ?? '',
+      ageGroup: String(editStudentData?.user?.age ?? ''),
+      studentID: editStudentData?.user?.student_id ?? '',
+      classAndSection: editStudentClassId,
+      phone: editStudentData?.parent?.phone ?? '',
+    }),
+    [editStudentData, editStudentClassId],
+  );
 
   const getRandomAvatar = () => {
     if (AVATARS.length === 0) return '';
@@ -1643,8 +1651,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       logger.error('Selected class ID missing for student');
       return;
     }
-    if (selectedClassId === originalClassId) {
-      logger.info('Skipping student update because class did not change.');
+    const hasChanges =
+      values.studentName?.trim() !== (user.name ?? '').trim() ||
+      values.gender !== (user.gender ?? '') ||
+      String(values.ageGroup) !== String(user.age ?? '') ||
+      selectedClassId !== originalClassId;
+
+    if (!hasChanges) {
+      logger.info('Skipping student update because no fields changed.');
       setIsEditStudentModalOpen(false);
       setEditStudentData(null);
       return;
@@ -1913,25 +1927,20 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         onSubmit={handleSubmitAddStudentModal}
         message={errorMessage}
       />
+
       <FormCard
         open={isEditStudentModalOpen}
         title={t('Edit Student Details')}
         submitLabel={t('Save Changes')}
         fields={editStudentFields}
-        initialValues={{
-          studentName: editStudentData?.user?.name ?? '',
-          gender: editStudentData?.user?.gender ?? '',
-          ageGroup: String(editStudentData?.user?.age ?? ''),
-          studentID: editStudentData?.user?.student_id ?? '',
-          classAndSection: editStudentClassId,
-          phone: editStudentData?.parent?.phone ?? '',
-        }}
+        initialValues={editStudentInitialValues}
         onClose={() => {
           setIsEditStudentModalOpen(false);
           setEditStudentData(null);
         }}
         onSubmit={handleEditSubmit}
       />
+
       <CardListModal
         open={isMergeStudentModalOpen}
         schoolId={schoolId}

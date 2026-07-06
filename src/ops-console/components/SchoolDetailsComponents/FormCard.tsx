@@ -214,7 +214,7 @@ const FormCard: React.FC<EntityModalProps> = ({
           );
         }
 
-        const shouldUseCustomDropdown = true;
+        const shouldUseCustomDropdown = (field.options?.length || 0) > 3;
 
         if (shouldUseCustomDropdown) {
           const currentValue = values[field.name] || '';
