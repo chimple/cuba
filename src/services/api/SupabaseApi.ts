@@ -90,6 +90,10 @@ import {
   SchoolProgramAccessRow,
   ServiceApi,
   StudentLeaderboardInfo,
+  CampaignAssignmentsResponse,
+  CampaignAssignmentSummaryRow,
+  CampaignAssignmentFilters,
+  CampaignOption,
 } from './ServiceApi';
 import { Database, Json } from '../database';
 import {
@@ -7171,6 +7175,7 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
   }
+
   async getCurriculumById(
     id: string,
   ): Promise<TableTypes<'curriculum'> | undefined> {
@@ -10205,6 +10210,144 @@ export class SupabaseApi implements ServiceApi {
         subjects: subjectsByGrade.get(gradeId) ?? [],
       })),
     };
+  }
+
+  async getCampaignAssignments(
+    campaignId: string,
+    filters: CampaignAssignmentFilters,
+  ): Promise<CampaignAssignmentsResponse> {
+    if (!this.supabase || !campaignId) {
+      return {
+        assignments: [],
+        total: 0,
+      };
+    }
+
+    const page = filters.page ?? 1;
+    const pageSize = filters.pageSize ?? 10;
+
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    logger.info('page', page, 'pageSize', pageSize, 'from', from, 'to', to);
+
+    let query = this.supabase
+      .from('assignment')
+      .select(
+        `
+          id,
+          starts_at,
+          lesson (
+            id,
+            name
+          ),
+          class!inner (
+            grade!inner (
+              id,
+              name
+            )
+          ),
+          course!inner (
+            subject!inner (
+              id,
+              name
+            )
+          )
+        `,
+        { count: 'exact' },
+      )
+      .eq('campaign_id', campaignId)
+      .eq('is_deleted', false);
+
+    // Apply filters only if provided
+    if (filters.gradeIds?.length) {
+      query = query.in('class.grade.id', filters.gradeIds);
+    }
+
+    if (filters.subjectIds?.length) {
+      query = query.in('course.subject.id', filters.subjectIds);
+    }
+
+    query = query.order('starts_at', { ascending: true }).range(from, to);
+
+    const { data, count, error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      assignments:
+        data?.map((assignment) => ({
+          assignmentId: assignment.id,
+          assignmentDate: assignment.starts_at,
+
+          gradeId: assignment.class?.grade?.id ?? '',
+          gradeName: assignment.class?.grade?.name ?? '',
+
+          subjectId: assignment.course?.subject?.id ?? '',
+          subjectName: assignment.course?.subject?.name ?? '',
+
+          lessonId: assignment.lesson?.id ?? '',
+          lessonName: assignment.lesson?.name ?? '',
+        })) ?? [],
+      total: count ?? 0,
+    };
+  }
+
+  async getCampaignSubjectsByCampaignId(
+    campaignId: string,
+  ): Promise<CampaignOption[]> {
+    if (!this.supabase || !campaignId) {
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select(
+        `
+        course:course_id(
+          subject:subject_id(
+            id,
+            name
+          )
+        )
+      `,
+      )
+      .eq('campaign_id', campaignId)
+      .eq('is_deleted', false)
+      .not('course_id', 'is', null);
+
+    if (error) {
+      logger.error('Error fetching campaign subjects:', error);
+      return [];
+    }
+
+    const uniqueSubjects = new Map<string, CampaignOption>();
+
+    (
+      (data ?? []) as Array<{
+        course?: {
+          subject?: CampaignOption | CampaignOption[] | null;
+        } | null;
+      }>
+    ).forEach((row) => {
+      const course = Array.isArray(row.course) ? row.course[0] : row.course;
+      const subject = Array.isArray(course?.subject)
+        ? course?.subject[0]
+        : course?.subject;
+
+      if (subject?.id && subject?.name) {
+        uniqueSubjects.set(String(subject.id), {
+          id: String(subject.id),
+          name: String(subject.name),
+        });
+      }
+    });
+
+    return Array.from(uniqueSubjects.values()).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
   }
 
   private mapCampaignSavedAudienceGroup(
