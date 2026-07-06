@@ -426,11 +426,28 @@
 
 @media (max-width: 600px) and (orientation: portrait) {
   .campaign-listing-header {
+    position: relative;
+    justify-content: center;
     padding: 14px 16px 10px;
+    min-height: 48px;
   }
 
   .campaign-listing-header-title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width: 100%;
+    text-align: center;
+    pointer-events: none;
+    line-height: 1.2;
     font-size: 24px !important;
+  }
+
+  .campaign-listing-notification-button.MuiIconButton-root {
+    margin-left: auto;
+    position: relative;
+    z-index: 1;
   }
 
   .campaign-listing-toolbar {
