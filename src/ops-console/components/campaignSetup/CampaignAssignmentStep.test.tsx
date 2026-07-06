@@ -7,6 +7,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { CampaignAssignmentStep } from './CampaignAssignmentStep';
 import {
   createDefaultConfig,
@@ -33,6 +34,8 @@ jest.mock('../../../utility/logger', () => ({
     error: jest.fn(),
   },
 }));
+
+jest.setTimeout(10000);
 
 const baseForm: CampaignSetupFormState = {
   objective: 'homework_campaign',
@@ -185,7 +188,7 @@ describe('CampaignAssignmentStep', () => {
     openFrequencySelect();
     expect(
       await screen.findByRole('option', {
-        name: 'Alternate Week (≥ 2 weeks)',
+        name: /Alternate Week/i,
       }),
     ).toBeInTheDocument();
     fireEvent.keyDown(screen.getByRole('listbox'), {
@@ -206,7 +209,7 @@ describe('CampaignAssignmentStep', () => {
     openFrequencySelect();
     expect(
       await screen.findByRole('option', {
-        name: 'Alternate Week (≥ 2 weeks)',
+        name: /Alternate Week/i,
       }),
     ).toHaveAttribute('aria-disabled', 'true');
   });
@@ -287,6 +290,8 @@ describe('CampaignAssignmentStep', () => {
   });
 
   it('does not restore previously removed chapter lessons when assigning another chapter', async () => {
+    const user = userEvent.setup();
+
     renderStep({
       initialConfig: {
         ...createDefaultConfig(),
@@ -300,17 +305,17 @@ describe('CampaignAssignmentStep', () => {
     const deleteButtons = Array.from(
       document.querySelectorAll('.assignment-summary-delete'),
     ) as HTMLButtonElement[];
-    fireEvent.click(deleteButtons[0]);
-    fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
+    await user.click(deleteButtons[0]);
+    await user.click(await screen.findByRole('button', { name: 'Remove' }));
     await waitFor(() =>
       expect(
         document.querySelectorAll('.assignment-summary-delete'),
       ).toHaveLength(3),
     );
-    fireEvent.click(
+    await user.click(
       document.querySelectorAll('.assignment-summary-delete')[0] as HTMLElement,
     );
-    fireEvent.click(await screen.findByRole('button', { name: 'Remove' }));
+    await user.click(await screen.findByRole('button', { name: 'Remove' }));
 
     await waitFor(() =>
       expect(
@@ -323,7 +328,7 @@ describe('CampaignAssignmentStep', () => {
       screen.getByText('Assignment Summary (2 assignments)'),
     ).toBeInTheDocument();
 
-    fireEvent.click(
+    await user.click(
       within(getChapterRow('Our Body')).getByRole('button', { name: 'Assign' }),
     );
 

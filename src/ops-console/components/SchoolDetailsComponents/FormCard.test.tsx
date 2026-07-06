@@ -194,9 +194,7 @@ describe('FormCard', () => {
     );
   });
 
-  it('renders single-select dropdown without placeholder option row', async () => {
-    const user = userEvent.setup();
-
+  it('renders single-select dropdown with a placeholder option row', async () => {
     render(
       <FormCard
         open={true}
@@ -209,15 +207,12 @@ describe('FormCard', () => {
       />,
     );
 
-    expect(screen.getByText('2')).toBeInTheDocument();
+    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    expect(select.value).toBe('2');
 
-    await user.click(screen.getByText('2'));
-
-    expect(
-      screen.queryByText('Select Class And Section'),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText('1')).toBeInTheDocument();
-    expect(screen.getAllByText('2')).toHaveLength(2);
-    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('Select Class And Section')).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '1' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '2' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: '3' })).toBeInTheDocument();
   });
 });
