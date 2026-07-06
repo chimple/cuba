@@ -57,6 +57,7 @@ import {
   type PercentageBandValue,
   type SchoolPerformanceStatusValue,
   CAMPAIGN_OBJECTIVE,
+  CAMPAIGN_STATUS,
 } from '../../common/constants';
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
@@ -69,6 +70,8 @@ import {
   AssignmentDateRangeData,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignListingItem,
+  CampaignListingParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -113,6 +116,10 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
+import {
+  mapCampaignListingItem,
+  sortCampaignListingItems,
+} from './campaignListingHelpers';
 import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
@@ -325,6 +332,40 @@ type CampaignSavedAudienceGroupRow = Pick<
 > & {
   campaign_target_audience_school?: CampaignAudienceSchoolLinkRow[] | null;
   campaign_target_audience_grade?: CampaignAudienceGradeLinkRow[] | null;
+};
+
+type CampaignListingAudienceRow = Pick<
+  TableTypes<'campaign_target_audience'>,
+  'id' | 'is_all_schools'
+> & {
+  campaign_target_audience_school?: CampaignAudienceSchoolLinkRow[] | null;
+};
+
+type CampaignListingQueryRow = TableTypes<'campaign'> & {
+  manager?: TableTypes<'user'> | TableTypes<'user'>[] | null;
+  program?: TableTypes<'program'> | TableTypes<'program'>[] | null;
+  target_audience?:
+    | CampaignListingAudienceRow
+    | CampaignListingAudienceRow[]
+    | null;
+};
+
+type CampaignAccessSchoolRow = Pick<TableTypes<'school_user'>, 'school_id'> & {
+  school?:
+    | Pick<TableTypes<'school'>, 'program_id'>
+    | Pick<TableTypes<'school'>, 'program_id'>[]
+    | null;
+};
+
+const getSingleRelationValue = <T>(value: T | T[] | null | undefined) =>
+  Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+
+const CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS: Partial<
+  Record<NonNullable<CampaignListingParams['orderBy']>, string>
+> = {
+  name: 'name',
+  startDate: 'start_date',
+  endDate: 'end_date',
 };
 
 type CampaignSchoolRow = Pick<TableTypes<'school'>, 'id' | 'name' | 'group3'>;
@@ -9698,6 +9739,377 @@ export class SupabaseApi implements ServiceApi {
       managers,
       savedGroups,
     };
+  }
+
+  async getCampaignListing({
+    page = 1,
+    pageSize = 10,
+    searchTerm = '',
+    orderBy = 'startDate',
+    orderDir = 'desc',
+  }: CampaignListingParams): Promise<{
+    data: CampaignListingItem[];
+    totalCount: number;
+  }> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized.');
+      return { data: [], totalCount: 0 };
+    }
+
+    const supabase = this.supabase;
+    const normalizedSearchTerm = searchTerm.trim();
+    const now = new Date();
+
+    try {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+
+      if (!authUser?.id) {
+        logger.error('Current user is not available for campaign listing');
+        return { data: [], totalCount: 0 };
+      }
+
+      // Campaign listing access is role-based: admins/managers see all, field coordinators are scoped.
+      const specialRoles = await this.getUserSpecialRoles(authUser.id);
+      const hasGlobalCampaignAccess = specialRoles.some((role) =>
+        [
+          RoleType.SUPER_ADMIN,
+          RoleType.OPERATIONAL_DIRECTOR,
+          RoleType.PROGRAM_MANAGER,
+        ].includes(role as RoleType),
+      );
+      const isFieldCoordinator =
+        specialRoles.includes(RoleType.FIELD_COORDINATOR) &&
+        !hasGlobalCampaignAccess;
+
+      // Field coordinators can only see campaigns tied to their linked schools/programs.
+      const [schoolAccessResult, programAccessResult] = isFieldCoordinator
+        ? await Promise.all([
+            supabase
+              .from(TABLES.SchoolUser)
+              .select('school_id, school:school_id(program_id)')
+              .eq('user_id', authUser.id)
+              .eq('is_deleted', false),
+            supabase
+              .from(TABLES.ProgramUser)
+              .select('program_id')
+              .eq('user', authUser.id)
+              .eq('role', RoleType.FIELD_COORDINATOR)
+              .eq('is_deleted', false),
+          ])
+        : [
+            {
+              data: [] as CampaignAccessSchoolRow[],
+              error: null,
+            },
+            {
+              data: [] as Array<{ program_id?: string | null }>,
+              error: null,
+            },
+          ];
+
+      if (schoolAccessResult.error) {
+        logger.error(
+          'Error fetching school_user campaign access list:',
+          schoolAccessResult.error,
+        );
+        return { data: [], totalCount: 0 };
+      }
+
+      if (programAccessResult.error) {
+        logger.error(
+          'Error fetching program_user campaign access list:',
+          programAccessResult.error,
+        );
+        return { data: [], totalCount: 0 };
+      }
+
+      const accessibleSchoolIds = new Set(
+        ((schoolAccessResult.data ?? []) as CampaignAccessSchoolRow[])
+          .map((row) => row.school_id)
+          .filter((id): id is string => !!id),
+      );
+      const programIdsFromSchools = (
+        (schoolAccessResult.data ?? []) as CampaignAccessSchoolRow[]
+      )
+        .map((row) => getSingleRelationValue(row.school)?.program_id ?? null)
+        .filter((id): id is string => !!id);
+      const fieldCoordinatorProgramIds = new Set(
+        (programAccessResult.data ?? [])
+          .map((row) => row.program_id)
+          .filter((id): id is string => !!id),
+      );
+      const accessibleProgramIds = new Set([
+        ...programIdsFromSchools,
+        ...fieldCoordinatorProgramIds,
+      ]);
+
+      if (
+        isFieldCoordinator &&
+        accessibleSchoolIds.size === 0 &&
+        accessibleProgramIds.size === 0
+      ) {
+        return { data: [], totalCount: 0 };
+      }
+
+      // Search is supported across campaign name, manager name, and program name.
+      const [managerSearchResponse, programSearchResponse] =
+        normalizedSearchTerm.length > 0
+          ? await Promise.all([
+              this.supabase
+                .from(TABLES.User)
+                .select('id')
+                .ilike('name', `%${normalizedSearchTerm}%`)
+                .eq('is_deleted', false)
+                .limit(50),
+              this.supabase
+                .from(TABLES.Program)
+                .select('id')
+                .ilike('name', `%${normalizedSearchTerm}%`)
+                .eq('is_deleted', false)
+                .limit(50),
+            ])
+          : [
+              { data: [], error: null },
+              { data: [], error: null },
+            ];
+
+      if (managerSearchResponse.error) {
+        logger.error(
+          'Error searching campaign managers for listing:',
+          managerSearchResponse.error,
+        );
+      }
+
+      if (programSearchResponse.error) {
+        logger.error(
+          'Error searching campaign programs for listing:',
+          programSearchResponse.error,
+        );
+      }
+
+      const managerIds = (managerSearchResponse.data ?? []).map(
+        (row) => row.id,
+      );
+      const programIds = (programSearchResponse.data ?? []).map(
+        (row) => row.id,
+      );
+      const nativeSortColumn = CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS[orderBy];
+      const shouldUseDatabasePagination =
+        !isFieldCoordinator && Boolean(nativeSortColumn);
+      const campaignListingSelect = `*, manager:manager_id(*), program:program_id(*),
+        target_audience:target_audience_id(
+          id,
+          is_all_schools,
+          campaign_target_audience_school(school_id)
+        )`;
+
+      const campaignQuery = this.supabase
+        .from('campaign')
+        .select(campaignListingSelect, {
+          count: shouldUseDatabasePagination ? 'exact' : undefined,
+        })
+        .eq('is_deleted', false);
+
+      if (normalizedSearchTerm.length > 0) {
+        const orFilters = [`name.ilike.%${normalizedSearchTerm}%`];
+        if (managerIds.length > 0) {
+          orFilters.push(`manager_id.in.(${managerIds.join(',')})`);
+        }
+        if (programIds.length > 0) {
+          orFilters.push(`program_id.in.(${programIds.join(',')})`);
+        }
+        campaignQuery.or(orFilters.join(','));
+      }
+
+      if (shouldUseDatabasePagination && nativeSortColumn) {
+        campaignQuery
+          .order(nativeSortColumn, { ascending: orderDir === 'asc' })
+          .range(
+            (Math.max(page, 1) - 1) * Math.max(pageSize, 1),
+            Math.max(page, 1) * Math.max(pageSize, 1) - 1,
+          );
+      }
+
+      const { data, error, count } = await campaignQuery;
+
+      if (error) {
+        logger.error('Error fetching campaign listing:', error);
+        return { data: [], totalCount: 0 };
+      }
+
+      const mappedCampaigns = (data ?? []) as CampaignListingQueryRow[];
+      // When a native campaign column is being sorted, let the database handle ordering and slicing first.
+      if (shouldUseDatabasePagination) {
+        const campaignIds = mappedCampaigns.map((campaign) => campaign.id);
+        let pageMetricsMap = new Map<
+          string,
+          CampaignListingItem['dashboardMetrics']
+        >();
+
+        if (campaignIds.length > 0) {
+          try {
+            const { data: metricsData, error: metricsError } =
+              await supabase.rpc('get_campaign_dashboard_metrics', {
+                p_campaign_ids: campaignIds,
+              });
+
+            if (metricsError) {
+              logger.error(
+                'Error fetching campaign dashboard metrics for listing:',
+                metricsError,
+              );
+            } else {
+              pageMetricsMap = new Map(
+                (metricsData ?? []).map((metric) => [
+                  metric.campaign_id,
+                  metric,
+                ]),
+              );
+            }
+          } catch (metricsError) {
+            logger.error(
+              'Unexpected error fetching campaign dashboard metrics for listing:',
+              metricsError,
+            );
+          }
+        }
+
+        return {
+          data: mappedCampaigns.map((campaign) =>
+            mapCampaignListingItem(
+              campaign,
+              now,
+              pageMetricsMap.get(campaign.id) ?? null,
+            ),
+          ),
+          totalCount: count ?? 0,
+        };
+      }
+
+      // Apply field-coordinator visibility after the base campaign query so audience links can be inspected.
+      const visibleCampaigns = isFieldCoordinator
+        ? mappedCampaigns.filter((campaign) => {
+            const targetAudience = getSingleRelationValue(
+              campaign.target_audience,
+            );
+            const audienceSchoolIds = (
+              targetAudience?.campaign_target_audience_school ?? []
+            )
+              .map((row) => row.school_id)
+              .filter((id): id is string => !!id);
+            const hasProgramAccess =
+              !!campaign.program_id &&
+              accessibleProgramIds.has(campaign.program_id);
+            const hasSchoolAccess = audienceSchoolIds.some((schoolId) =>
+              accessibleSchoolIds.has(schoolId),
+            );
+            const hasDirectProgramAssignment =
+              !!campaign.program_id &&
+              fieldCoordinatorProgramIds.has(campaign.program_id);
+
+            return (
+              hasSchoolAccess ||
+              (hasProgramAccess &&
+                (Boolean(targetAudience?.is_all_schools) ||
+                  hasDirectProgramAssignment))
+            );
+          })
+        : mappedCampaigns;
+      const campaignIds = visibleCampaigns.map((campaign) => campaign.id);
+      let campaignMetricsMap = new Map<
+        string,
+        CampaignListingItem['dashboardMetrics']
+      >();
+
+      if (campaignIds.length > 0) {
+        try {
+          // Metrics come from a separate RPC so the listing can stay lightweight and still show averages.
+          const { data: metricsData, error: metricsError } = await supabase.rpc(
+            'get_campaign_dashboard_metrics',
+            {
+              p_campaign_ids: campaignIds,
+            },
+          );
+
+          if (metricsError) {
+            logger.error(
+              'Error fetching campaign dashboard metrics for listing:',
+              metricsError,
+            );
+          } else {
+            logger.info('Campaign dashboard metrics rpc data:', {
+              data: metricsData?.[0] ?? null,
+            });
+            campaignMetricsMap = new Map(
+              (metricsData ?? []).map((metric) => [metric.campaign_id, metric]),
+            );
+          }
+        } catch (metricsError) {
+          logger.error(
+            'Unexpected error fetching campaign dashboard metrics for listing:',
+            metricsError,
+          );
+        }
+      }
+
+      const listingItems = visibleCampaigns.map((campaign) =>
+        mapCampaignListingItem(
+          campaign,
+          now,
+          campaignMetricsMap.get(campaign.id) ?? null,
+        ),
+      );
+
+      const sortedCampaigns = sortCampaignListingItems(
+        listingItems,
+        orderBy,
+        orderDir,
+      );
+      // Sorting and pagination stay in one place so every role sees a consistent listing order.
+      const totalCount = sortedCampaigns.length;
+      const currentPage = Math.max(page, 1);
+      const currentPageSize = Math.max(pageSize, 1);
+      const from = (currentPage - 1) * currentPageSize;
+      const paginatedCampaigns = sortedCampaigns.slice(
+        from,
+        from + currentPageSize,
+      );
+
+      logger.info('Campaign listing final data:', {
+        data: paginatedCampaigns[0] ?? null,
+      });
+
+      return {
+        data: paginatedCampaigns,
+        totalCount,
+      };
+    } catch (error) {
+      logger.error('Unexpected error fetching campaign listing:', error);
+      return { data: [], totalCount: 0 };
+    }
+  }
+
+  async cancelCampaign(campaignId: string, reason: string): Promise<void> {
+    if (!this.supabase || !campaignId || !reason.trim()) {
+      return;
+    }
+
+    const timestamp = new Date().toISOString();
+    const { error } = await this.supabase
+      .from('campaign')
+      .update({
+        campaign_status: CAMPAIGN_STATUS.INACTIVE,
+        updated_at: timestamp,
+      })
+      .eq('id', campaignId)
+      .eq('is_deleted', false);
+
+    if (error) {
+      logger.error('Error cancelling campaign:', error);
+      throw error;
+    }
   }
 
   async getCampaignAudienceOptions(

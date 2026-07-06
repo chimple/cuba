@@ -21,6 +21,7 @@ import Sidebar from '../components/Sidebar';
 import ParentWhatsappInvitationPage from '../pages/Parentwhatsappinvite/ParentWhatsappInvitationPage';
 import ActivitiesPage from './ActivitiesPage';
 import AddSchoolPage from './AddSchoolPage';
+import CampaignListingPage from './CampaignListingPage';
 import CampaignSetupPage from './CampaignSetupPage';
 import MigrateSchoolsPage from './MigrateSchoolsPage';
 import NewUserPage from './NewUserPageOps';
@@ -160,11 +161,21 @@ const SidebarPage: React.FC = () => {
               <SchoolList />
             </ProtectedRoute>
             <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_COMPAIGNS}`}
+              path={`${path}${PAGES.ADMIN_COMPAIGNS_NEW}`}
               exact={true}
             >
               {canAccessCampaignPage ? (
                 <CampaignSetupPage />
+              ) : (
+                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+              )}
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.ADMIN_COMPAIGNS}`}
+              exact={true}
+            >
+              {canAccessCampaignPage ? (
+                <CampaignListingPage />
               ) : (
                 <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
               )}

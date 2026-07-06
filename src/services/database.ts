@@ -581,11 +581,13 @@ export type Database = {
       };
       campaign: {
         Row: {
+          campaign_status:
+            | Database['public']['Enums']['campaign_status']
+            | null;
           created_at: string | null;
           end_date: string;
           id: string;
           is_deleted: boolean | null;
-          learning_path_count: number | null;
           manager_id: string | null;
           name: string;
           objective: string;
@@ -598,11 +600,13 @@ export type Database = {
           updated_at: string | null;
         };
         Insert: {
+          campaign_status?:
+            | Database['public']['Enums']['campaign_status']
+            | null;
           created_at?: string | null;
           end_date: string;
           id?: string;
           is_deleted?: boolean | null;
-          learning_path_count?: number | null;
           manager_id?: string | null;
           name: string;
           objective: string;
@@ -615,11 +619,13 @@ export type Database = {
           updated_at?: string | null;
         };
         Update: {
+          campaign_status?:
+            | Database['public']['Enums']['campaign_status']
+            | null;
           created_at?: string | null;
           end_date?: string;
           id?: string;
           is_deleted?: boolean | null;
-          learning_path_count?: number | null;
           manager_id?: string | null;
           name?: string;
           objective?: string;
@@ -6260,6 +6266,25 @@ export type Database = {
         Args: { p_class_id: string; p_days: number };
         Returns: number;
       };
+      get_campaign_dashboard_metrics: {
+        Args: {
+          p_campaign_ids: string[];
+          p_metric_window?: string;
+          p_today?: string;
+        };
+        Returns: {
+          active_students: number;
+          average_weekly_engagement_time: number;
+          campaign_id: string;
+          campaign_name: string;
+          is_all_grades: boolean;
+          is_all_schools: boolean;
+          participating_schools: number;
+          program_id: string;
+          target_audience_id: string;
+          total_students: number;
+        }[];
+      };
       get_class_leaderboard: {
         Args: { current_class_id: string };
         Returns: {
@@ -7880,6 +7905,7 @@ export type Database = {
     };
     Enums: {
       assignment_source: 'manual' | 'recommended' | 'qr_code' | 'chatbot';
+      campaign_status: 'active' | 'inactive';
       fc_call_result: 'call_picked' | 'call_later' | 'call_not_reachable';
       fc_contact_method: 'call' | 'in_person';
       fc_engagement_target:
@@ -8088,6 +8114,7 @@ export const Constants = {
   public: {
     Enums: {
       assignment_source: ['manual', 'recommended', 'qr_code', 'chatbot'],
+      campaign_status: ['active', 'inactive'],
       fc_call_result: ['call_picked', 'call_later', 'call_not_reachable'],
       fc_contact_method: ['call', 'in_person'],
       fc_engagement_target: [
