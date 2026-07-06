@@ -52,6 +52,7 @@ import { App as CapApp } from '@capacitor/app';
 import {
   // APP_LANG,
   BASE_NAME,
+  BUNDLE_ZIP_URLS,
   CACHE_IMAGE,
   HOMEWORK_REMOTE_ASSETS_ENABLED,
   CAN_ACCESS_REMOTE_ASSETS,
@@ -70,6 +71,7 @@ import {
   SEARCH_LESSON_CACHE_KEY,
   SEARCH_LESSON_HISTORY,
   PAL_LEARNING_RATES_CONFIG,
+  LIDO_BUNDLE_ZIP_URLS,
 } from './common/constants';
 import { Util } from './utility/util';
 import Parent from './pages/Parent';
@@ -96,6 +98,7 @@ import React from 'react';
 import './App.css';
 import { schoolUtil } from './utility/schoolUtil';
 import LidoPlayer from './pages/LidoPlayer';
+import Loading from './components/Loading';
 import UploadPage from './ops-console/pages/UploadPage';
 import SidebarPage from './ops-console/pages/SidebarPage';
 import { initializeClickListener } from './analytics/clickUtil';
@@ -141,8 +144,13 @@ import PopupManager from './components/GenericPopUp/GenericPopUpManager';
 import TermsGate from './components/termsandconditons/TermsGate';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { setCachedGrowthBookFeatureValue } from './growthbook/Growthbook';
+import { useAppSelector } from './redux/hooks';
 import { HardwareBackButtonHandler } from './common/backButtonRegistry';
 import { logger } from './utility/logger';
+import {
+  getBundleZipUrlsForEnv,
+  getLidoBundleZipUrlsForEnv,
+} from './services/RemoteConfig';
 import {
   Dialog,
   DialogTitle,
@@ -158,6 +166,8 @@ import TeacherRecommendedAssignments from './teachers-module/components/homePage
 import StreakPage from './teachers-module/components/streakComponent/streakPage';
 import StickerBook from './pages/StickerBook';
 import KidsAppLocation from './teachers-module/pages/KidsAppLocation';
+import { AudioUtil } from './utility/AudioUtil';
+import { useNavigationHandler } from './helper/navigation/NavigationHandler';
 
 setupIonicReact();
 interface ExtraData {
@@ -169,6 +179,10 @@ interface WindowEventMap {
   shouldShowModal: CustomEvent<boolean>;
 }
 type GrowthBookJsonConfig = Record<string, unknown>;
+type GrowthBookFeatureDebugResult<T> = {
+  value: T | null;
+  source: string;
+};
 
 const TIME_LIMIT = 1500; // 25 * 60
 const LAST_MODAL_SHOWN_KEY = 'lastTimeExceededShown';
@@ -177,6 +191,26 @@ const USED_TIME_KEY = 'usedTime';
 const LAST_ACCESS_DATE_KEY = 'lastAccessDate';
 const IS_INITIALIZED = 'isInitialized';
 let timeoutId: NodeJS.Timeout;
+
+const RouteAudioCleanup = () => {
+  const location = useLocation();
+  const lastLocationRef = useRef(location.pathname + location.search);
+
+  useEffect(() => {
+    const currentLocation = location.pathname + location.search;
+    if (lastLocationRef.current !== currentLocation) {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
+      lastLocationRef.current = currentLocation;
+    }
+  }, [location.pathname, location.search]);
+
+  return null;
+};
+
+const NavigationHandler = () => {
+  useNavigationHandler();
+  return null;
+};
 
 const App: React.FC = () => {
   const growthbook = useGrowthBook();
@@ -194,6 +228,7 @@ const App: React.FC = () => {
   const [timeExceeded, setTimeExceeded] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
+  const isGlobalLoading = useAppSelector((state) => state.auth.globalLoading);
   const [isActive, setIsActive] = useState(true);
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
   const shouldShowHomeworkRemoteAssets = useFeatureIsOn(
@@ -202,6 +237,8 @@ const App: React.FC = () => {
 
   const popupDataRef = useRef<any>(null);
   const showModalRef = useRef(showModal);
+  const bundleZipUrlsFallbackRef = useRef(getBundleZipUrlsForEnv());
+  const lidoBundleZipUrlsFallbackRef = useRef(getLidoBundleZipUrlsForEnv());
 
   useEffect(() => {
     popupDataRef.current = popupData;
@@ -219,6 +256,14 @@ const App: React.FC = () => {
   const palLearningRatesConfig = useFeatureValue<GrowthBookJsonConfig>(
     PAL_LEARNING_RATES_CONFIG,
     {},
+  );
+  const bundleZipUrls = useFeatureValue<string[]>(
+    BUNDLE_ZIP_URLS,
+    bundleZipUrlsFallbackRef.current,
+  );
+  const lidoBundleZipUrls = useFeatureValue<string[]>(
+    LIDO_BUNDLE_ZIP_URLS,
+    lidoBundleZipUrlsFallbackRef.current,
   );
 
   const OpsConsoleRouteWatcher = () => {
@@ -269,6 +314,60 @@ const App: React.FC = () => {
       );
     }
   }, [palLearningRatesConfig]);
+
+  useEffect(() => {
+    if (!growthbook) return;
+    const getFeatureDebugResult = <T,>(
+      featureKey: string,
+      resolvedValue: T,
+      fallbackValue: T,
+    ): GrowthBookFeatureDebugResult<T> => {
+      if (typeof growthbook?.evalFeature === 'function') {
+        const result = growthbook.evalFeature<T>(featureKey);
+        return {
+          value: result?.value ?? null,
+          source: result?.source ?? 'unknown',
+        };
+      }
+
+      return {
+        value: resolvedValue,
+        source: resolvedValue === fallbackValue ? 'fallback-or-mock' : 'mocked',
+      };
+    };
+
+    const bundleZipUrlsResult = getFeatureDebugResult(
+      BUNDLE_ZIP_URLS,
+      bundleZipUrls,
+      bundleZipUrlsFallbackRef.current,
+    );
+    const lidoBundleZipUrlsResult = getFeatureDebugResult(
+      LIDO_BUNDLE_ZIP_URLS,
+      lidoBundleZipUrls,
+      lidoBundleZipUrlsFallbackRef.current,
+    );
+
+    logger.warn('[GrowthBook] bundle ZIP URLs evaluated', {
+      featureKey: BUNDLE_ZIP_URLS,
+      growthBookSource: bundleZipUrlsResult.source,
+      growthBookValue: bundleZipUrlsResult.value,
+      fallbackValue: bundleZipUrlsFallbackRef.current,
+      resolvedValue: bundleZipUrls,
+      usingGrowthBookValue: bundleZipUrlsResult.value !== null,
+    });
+
+    logger.warn('[GrowthBook] Lido bundle ZIP URLs evaluated', {
+      featureKey: LIDO_BUNDLE_ZIP_URLS,
+      growthBookSource: lidoBundleZipUrlsResult.source,
+      growthBookValue: lidoBundleZipUrlsResult.value,
+      fallbackValue: lidoBundleZipUrlsFallbackRef.current,
+      resolvedValue: lidoBundleZipUrls,
+      usingGrowthBookValue: lidoBundleZipUrlsResult.value !== null,
+    });
+
+    setCachedGrowthBookFeatureValue(BUNDLE_ZIP_URLS, bundleZipUrls);
+    setCachedGrowthBookFeatureValue(LIDO_BUNDLE_ZIP_URLS, lidoBundleZipUrls);
+  }, [growthbook, bundleZipUrls, lidoBundleZipUrls]);
 
   useEffect(() => {
     if (!growthbook) return;
@@ -512,6 +611,7 @@ const App: React.FC = () => {
       }
       startTimeout();
     } else {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
       saveUsedTime();
       localStorage.removeItem(START_TIME_KEY);
       clearExistingTimeout();
@@ -558,7 +658,9 @@ const App: React.FC = () => {
   return (
     <IonApp>
       <IonReactRouter basename={BASE_NAME}>
+        <NavigationHandler />
         <OpsConsoleRouteWatcher />
+        <RouteAudioCleanup />
         <TermsGate />
         <HardwareBackButtonHandler
           popupDataRef={popupDataRef}
@@ -876,6 +978,7 @@ const App: React.FC = () => {
           }}
         />
       )}
+      <Loading isLoading={isGlobalLoading} />
     </IonApp>
   );
 };

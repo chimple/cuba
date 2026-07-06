@@ -4,7 +4,7 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { t } from 'i18next';
 import Header from '../components/homePage/Header';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import { PAGES, RequestTypes } from '../../common/constants';
+import { PAGES, RequestTypes, STATUS } from '../../common/constants';
 import SelectField from '../components/SelectField';
 import logger from '../../utility/logger';
 
@@ -135,6 +135,7 @@ const CreateSchool: React.FC = () => {
         district,
         block,
         null,
+        STATUS.REQUESTED,
         null,
         null,
         udise,

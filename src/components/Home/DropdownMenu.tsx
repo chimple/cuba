@@ -12,11 +12,14 @@ import { Util } from '../../utility/util';
 import { LessonNode } from '../../hooks/useLearningPath';
 import logger from '../../utility/logger';
 import { downloadMissingCourseIcons } from '../../utility/courseIconDeviceCache';
+import { getCachedImageSrc } from '../../utility/imageCache';
+import { fetchLessonsById } from '../assignment/homeworkPathwayHelpers';
 
 interface CourseDetails {
   course: TableTypes<'course'>;
   grade?: TableTypes<'grade'> | null;
   curriculum?: TableTypes<'curriculum'> | null;
+  displayName?: string;
 }
 const ImageUrlCache: Record<string, string> = {};
 
@@ -125,7 +128,27 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
           currentStudent.id,
         );
         const pendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
-        const pendingCourseIds = pendingAssignments
+        const lessonById = await fetchLessonsById(
+          pendingAssignments.map((assignment) => assignment.lesson_id),
+          api.getLessonsBylessonIds.bind(api),
+        );
+        const resolvedPendingAssignments = pendingAssignments.filter(
+          (assignment) => {
+            if (!assignment.lesson_id) return false;
+            if (!lessonById.has(assignment.lesson_id)) {
+              logger.warn(
+                '[DropdownMenu] Skipping stale pending homework assignment with missing lesson metadata',
+                {
+                  assignmentId: assignment.id ?? null,
+                  lessonId: assignment.lesson_id ?? null,
+                },
+              );
+              return false;
+            }
+            return true;
+          },
+        );
+        const pendingCourseIds = resolvedPendingAssignments
           .map((assignment) => assignment.course_id)
           .filter((id): id is string => !!id);
         const fallbackCourses =
@@ -191,6 +214,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
               course,
               grade: gradeDoc,
               curriculum: curriculumDoc,
+              displayName: entry.display_name,
             };
           } catch (error) {
             logger.error(
@@ -310,18 +334,23 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
     return parts.length > 1 ? parts[1] : name;
   };
 
+  const getDisplayName = (detail: CourseDetails) =>
+    detail.displayName || detail.course.name;
+
   const handleToggleExpand = () => {
     if (hideArrow) return;
     requestAnimationFrame(() => setExpanded((prev) => !prev));
   };
 
   useEffect(() => {
-    const preloadImage = (src: string): Promise<boolean> => {
-      return new Promise<boolean>((resolve) => {
+    const preloadImage = async (src: string): Promise<boolean> => {
+      const resolvedSrc = await getCachedImageSrc(src);
+
+      return await new Promise<boolean>((resolve) => {
         const img = new Image();
         img.onload = () => resolve(true);
         img.onerror = () => resolve(false);
-        img.src = src;
+        img.src = resolvedSrc;
       });
     };
 
@@ -446,7 +475,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
                   </div>
                 </div>
                 <div className="dropdownmenu-truncate-style">
-                  {truncateName(detail.course.name)}
+                  {truncateName(getDisplayName(detail))}
                 </div>
               </div>
             ))}
@@ -470,7 +499,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
       <div>
         {!expanded && selected && (
           <div className=" dropdownmenu-dropdown-label">
-            {selected.course.name}
+            {getDisplayName(selected)}
           </div>
         )}
       </div>

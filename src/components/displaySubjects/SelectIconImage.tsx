@@ -1,10 +1,12 @@
 import { FC, useEffect, useRef, useState } from 'react';
 import './SelectIconImage.css';
+import CachedImage from '../common/CachedImage';
 import {
   downloadCourseIconToDevice,
   getCachedCourseIconUri,
   getCachedCourseIconUriSync,
 } from '../../utility/courseIconDeviceCache';
+import logger from '../../utility/logger';
 
 interface SelectIconImageProps {
   localSrc?: string;
@@ -91,10 +93,19 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
     }
 
     setIsLocalLookupResolved(false);
+    logger.warn('[SelectIconImage] resolving local source', {
+      localSrc,
+      webSrc,
+      enableOfflineDownload,
+    });
 
     // Resolve local icon path to on-device file URI when it already exists.
     const syncCachedUri = getCachedCourseIconUriSync(localSrc);
     if (syncCachedUri) {
+      logger.warn('[SelectIconImage] local cache sync hit', {
+        localSrc,
+        syncCachedUri,
+      });
       setDownloadedLocalSrc(syncCachedUri);
       setIsLocalLookupResolved(true);
       return () => {
@@ -110,6 +121,10 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
         }
 
         if (cachedUri) {
+          logger.warn('[SelectIconImage] local cache hit', {
+            localSrc,
+            cachedUri,
+          });
           setDownloadedLocalSrc(cachedUri);
         }
         setIsLocalLookupResolved(true);
@@ -118,6 +133,7 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
         if (!isMounted) {
           return;
         }
+        logger.warn('[SelectIconImage] local cache miss', { localSrc });
         setIsLocalLookupResolved(true);
       });
 
@@ -180,6 +196,30 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
   }, [localSrc, webSrc, downloadedLocalSrc, defaultSrc, isLocalLookupResolved]);
 
   useEffect(() => {
+    if (!activeSrc) {
+      return;
+    }
+
+    const renderSourceKind =
+      activeSrc.startsWith('file:') ||
+      activeSrc.startsWith('capacitor:') ||
+      activeSrc.includes('/_capacitor_file_/')
+        ? 'local-file'
+        : activeSrc.startsWith('http')
+          ? 'remote'
+          : 'asset-or-other';
+
+    logger.warn('[SelectIconImage] render source state', {
+      localSrc,
+      webSrc,
+      activeSrc,
+      downloadedLocalSrc,
+      isLocalLookupResolved,
+      renderSourceKind,
+    });
+  }, [activeSrc, downloadedLocalSrc, isLocalLookupResolved, localSrc, webSrc]);
+
+  useEffect(() => {
     if (disableLoader) {
       setShowLoader(false);
       return;
@@ -239,12 +279,25 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
     }
 
     if (enableOfflineDownload && webSrc && localSrc && activeSrc === webSrc) {
+      logger.warn('[SelectIconImage] backing up remote image to device', {
+        localSrc,
+        webSrc,
+      });
       void downloadCourseIconToDevice(localSrc, webSrc).then(
         (downloadedUri) => {
           if (!downloadedUri) {
+            logger.warn('[SelectIconImage] remote backup download skipped', {
+              localSrc,
+              webSrc,
+            });
             return;
           }
 
+          logger.warn('[SelectIconImage] remote backup download complete', {
+            localSrc,
+            webSrc,
+            downloadedUri,
+          });
           setDownloadedLocalSrc(downloadedUri);
         },
       );
@@ -273,10 +326,19 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
     ) {
       hasRetriedBeforeDefaultRef.current = true;
       setIsLoading(true);
+      logger.warn('[SelectIconImage] retrying remote backup before default', {
+        localSrc,
+        webSrc,
+      });
 
       void downloadCourseIconToDevice(localSrc, webSrc, true)
         .then((downloadedUri) => {
           if (downloadedUri) {
+            logger.warn('[SelectIconImage] retry download complete', {
+              localSrc,
+              webSrc,
+              downloadedUri,
+            });
             setDownloadedLocalSrc(downloadedUri);
             setActiveSrc(downloadedUri);
 
@@ -286,12 +348,25 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
             return;
           }
 
+          logger.warn('[SelectIconImage] falling back to default src', {
+            localSrc,
+            webSrc,
+            defaultSrc,
+          });
           setActiveSrc(defaultSrc);
           if (isImageReady(defaultSrc)) {
             finishLoadingImmediately();
           }
         })
         .catch(() => {
+          logger.warn(
+            '[SelectIconImage] retry download failed, using default',
+            {
+              localSrc,
+              webSrc,
+              defaultSrc,
+            },
+          );
           setActiveSrc(defaultSrc);
           if (isImageReady(defaultSrc)) {
             finishLoadingImmediately();
@@ -333,7 +408,7 @@ const SelectIconImage: FC<SelectIconImageProps> = ({
         </div>
       )}
       {activeSrc && (
-        <img
+        <CachedImage
           src={activeSrc}
           alt=""
           className={`select-icon-image ${!isLoading ? 'imageLoaded' : ''}`}

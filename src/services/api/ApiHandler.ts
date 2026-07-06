@@ -254,6 +254,7 @@ export class ApiHandler implements ServiceApi {
     group2: string,
     group3: string,
     group4: string | null,
+    status: EnumType<'status'> | null,
     image: File | null,
     program_id: string | null,
     udise: string | null,
@@ -268,6 +269,7 @@ export class ApiHandler implements ServiceApi {
       group2,
       group3,
       group4,
+      status,
       image,
       program_id,
       udise,
@@ -497,6 +499,9 @@ export class ApiHandler implements ServiceApi {
     studentId: string,
   ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }> {
     return await this.s.getStudentResultInMap(studentId);
+  }
+  public async hasStudentResult(studentId: string): Promise<boolean> {
+    return await this.s.hasStudentResult(studentId);
   }
   public async getClassById(
     id: string,
@@ -963,7 +968,7 @@ export class ApiHandler implements ServiceApi {
 
   public async getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
+  ): Promise<TableTypes<'skill'>[]> {
     return this.s.getSkillByLessonIdentifier(lessonIdentifier);
   }
 
@@ -1042,6 +1047,10 @@ export class ApiHandler implements ServiceApi {
 
   isSyncInProgress(): boolean {
     return this.s.isSyncInProgress();
+  }
+
+  close(): Promise<void> {
+    return this.s.close();
   }
 
   async getRecommendedLessons(
@@ -1786,8 +1795,12 @@ export class ApiHandler implements ServiceApi {
   }
   public async getParentsByStudentId(
     studentId: string,
+    options?: {
+      studentIds?: string[];
+      activeOnly?: boolean;
+    },
   ): Promise<TableTypes<'user'>[]> {
-    return await this.s.getParentsByStudentId(studentId);
+    return await this.s.getParentsByStudentId(studentId, options);
   }
   public async mergeStudentRequest(
     existingStudentId: string,
@@ -2287,6 +2300,12 @@ export class ApiHandler implements ServiceApi {
     skillId: string,
   ): Promise<TableTypes<'skill'> | undefined> {
     return await this.s.getSkillById(skillId);
+  }
+
+  public async getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    return await this.s.getSubjectBySkillId(skillId);
   }
 
   async updateSchoolProgram(

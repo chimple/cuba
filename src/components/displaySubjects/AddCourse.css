@@ -32,8 +32,12 @@
   margin-bottom: 0;
   color: var(--text-color);
 }
+.add-course-card {
+  position: relative;
+  width: fit-content;
+}
 .add-course-gender-check-box {
-  margin-right: 1vh;
+  margin-right: clamp(0.25rem, 0.6vw, 0.5rem);
   color: white;
 }
 .add-course-course-icon {
@@ -47,13 +51,17 @@
   align-items: center;
   max-width: 22vw;
   padding: 0% 4% 0% 4%;
+  position: relative;
 }
 #add-course-subject-card-select-icon {
-  justify-self: right;
   position: absolute;
-  width: 40%;
-  right: -3%;
-  top: 12%;
+  right: 0.2rem;
+  top: 0.2rem;
+  width: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
 }
 #add-course-subject-card-subject-name {
   background: rgba(255, 255, 255, 0.5);
@@ -61,9 +69,13 @@
   font-size: clamp(8px, 2vh, 10px);
   border-radius: 25px;
   position: absolute;
-  top: 13%;
-  justify-self: left;
-  width: 30%;
-  padding: 0 1vw;
-  width: fit-content;
+  top: calc(3vh + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 2rem);
+  padding: 0 0.75rem;
+  white-space: nowrap;
+  z-index: 1;
+  text-align: center;
 }

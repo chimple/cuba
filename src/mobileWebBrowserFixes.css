@@ -1,0 +1,697 @@
+/*
+ * Scoped fixes for mobile web browsers only.
+ * The class is applied at runtime in index.tsx and is not present in
+ * Capacitor native apps, tablet app builds, or desktop/laptop browsers.
+ */
+body.mobile-web-browser {
+  overflow-x: hidden;
+}
+
+body.mobile-web-browser *,
+body.mobile-web-browser *::before,
+body.mobile-web-browser *::after {
+  box-sizing: border-box;
+}
+
+@media (max-width: 960px), (max-height: 560px) {
+  body.mobile-web-browser {
+    --text-size: clamp(13px, 2.4vmin, 16px);
+    --text-sizeXL: clamp(16px, 4vmin, 22px);
+    --margin: clamp(8px, 2vmin, 14px);
+  }
+
+  body.mobile-web-browser .add-course-subject-slider-content {
+    overflow-x: auto;
+    overflow-y: visible;
+    padding-inline: max(16px, env(safe-area-inset-left));
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+
+  body.mobile-web-browser .add-course-subject-header {
+    background-color: transparent;
+    border-right: 0;
+    margin: 0 5px;
+    padding: 0 10px;
+  }
+
+  body.mobile-web-browser .add-subjects-content,
+  body.mobile-web-browser .add-courses-content {
+    height: calc(100dvh - 112px);
+    overflow-y: auto;
+    padding-bottom: 0;
+  }
+
+  body.mobile-web-browser #display-subjects-page,
+  body.mobile-web-browser .subjects-content {
+    height: auto !important;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  body.mobile-web-browser #home-page .slider-content,
+  body.mobile-web-browser #home-page .space-between {
+    overflow: visible;
+  }
+
+  body.mobile-web-browser .add-course-slide {
+    width: auto;
+    max-width: fit-content;
+  }
+
+  body.mobile-web-browser .add-course-subject-button {
+    width: auto;
+    margin: clamp(10px, 3vh, 18px);
+    min-width: 0;
+  }
+
+  body.mobile-web-browser .subject-button {
+    margin: clamp(6px, 2dvh, 12px) 3vh 0;
+  }
+
+  body.mobile-web-browser .course-icon {
+    height: clamp(160px, 51dvh, 190px);
+    margin-top: clamp(6px, 2dvh, 12px);
+  }
+
+  body.mobile-web-browser .course-title,
+  body.mobile-web-browser .course-curriculum {
+    line-height: 1.15;
+  }
+
+  body.mobile-web-browser .add-course-course-icon {
+    width: clamp(26vh, 28vh, 37vh);
+    height: clamp(160px, 51dvh, 190px);
+    max-width: 22vw;
+    aspect-ratio: auto;
+    margin-top: clamp(6px, 2dvh, 12px);
+  }
+
+  @media (max-height: 560px) {
+    body.mobile-web-browser #add-courses-subjects-page {
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+    }
+
+    body.mobile-web-browser .add-subjects-content,
+    body.mobile-web-browser .add-courses-content {
+      height: calc(100dvh - 64px);
+      overflow-y: auto;
+      background: transparent;
+      padding-bottom: 0;
+    }
+
+    body.mobile-web-browser .add-course-subject-slider-content {
+      background: transparent;
+      margin-top: 0;
+      padding-bottom: 0;
+    }
+
+    body.mobile-web-browser .add-course-subject-button {
+      margin-top: clamp(4px, 1.4dvh, 8px);
+      margin-bottom: 0;
+    }
+  }
+
+  body.mobile-web-browser #leaderboard-UI {
+    height: calc(100dvh - 80px);
+    min-height: 0;
+    padding: 0 12px 16px;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  body.mobile-web-browser #leaderboard-right-UI {
+    max-width: calc(100vw - 32vw);
+    height: calc(100dvh - 115px);
+    overflow: auto;
+    border-radius: 14px;
+  }
+
+  body.mobile-web-browser #leaderboard-right-UI-content,
+  body.mobile-web-browser #leaderboard-left-UI-content {
+    font-size: clamp(11px, 2.2vmin, 14px) !important;
+  }
+
+  body.mobile-web-browser #leaderboard-left-note-message {
+    display: none;
+  }
+
+  body.mobile-web-browser #parent-page-profile {
+    justify-content: center;
+    overflow-x: auto;
+    overflow-y: hidden;
+    height: auto;
+    min-height: calc(100dvh - 110px);
+    gap: clamp(16px, 3vw, 32px);
+    padding: 12px clamp(24px, 4vw, 56px) 20px;
+    margin: 0;
+  }
+
+  body.mobile-web-browser #profile-card {
+    min-width: 190px;
+  }
+
+  body.mobile-web-browser .profile-menu {
+    width: min(82vw, 300px);
+    height: 100dvh;
+  }
+
+  body.mobile-web-browser .RewardModal-content,
+  body.mobile-web-browser .generic-popup-card {
+    width: min(92vw, 485px);
+    min-width: 0;
+    max-height: calc(100dvh - 24px);
+  }
+
+  body.mobile-web-browser .StickerBookPreviewModal-modal {
+    width: min(86vw, 52rem);
+    margin-left: 0;
+    margin-right: 0;
+    max-height: calc(100dvh - 12px);
+    transform: translateY(-3dvh);
+  }
+
+  body.mobile-web-browser .StickerBookPreviewModal-overlay {
+    align-items: center;
+    justify-content: center;
+    padding: 4px 12px;
+  }
+
+  body.mobile-web-browser .StickerBookPreviewModal-bottom-strip {
+    min-height: clamp(48px, 13dvh, 68px);
+    padding-block: 4px;
+  }
+
+  body.mobile-web-browser .StickerBookPreviewModal-helper-text {
+    white-space: normal;
+    font-size: clamp(14px, 3.5vmin, 20px);
+  }
+
+  body.mobile-web-browser .PathwayStructure-div {
+    top: 40%;
+    left: 17vw;
+    width: 88vw;
+    height: 50dvh;
+    transform: none;
+    transform-origin: center;
+    overflow: visible;
+  }
+
+  body.mobile-web-browser .PathwayStructure-div > svg {
+    width: 100% !important;
+    max-width: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  body.mobile-web-browser .rewardBox-box-wrapper {
+    width: clamp(140px, 18vw, 220px);
+    height: clamp(140px, 20dvh, 220px);
+    min-width: 140px;
+    min-height: 140px;
+    max-width: 220px;
+    max-height: 220px;
+  }
+
+  body.mobile-web-browser .homeworkpathway-structure-div .fruitActive,
+  body.mobile-web-browser .homeworkpathway-structure-div .fruitInactive {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(0.82);
+  }
+
+  body.mobile-web-browser .learning-pathway-container {
+    min-height: calc(100dvh - 112px);
+  }
+
+  body.mobile-web-browser .dropdownmenu-dropdown-main {
+    top: 50%;
+    left: 5%;
+    transform: translateY(-50%);
+    z-index: 3;
+  }
+
+  body.mobile-web-browser
+    .dropdownmenu-dropdown-container.dropdownmenu-expanded {
+    max-height: min(60dvh, 260px);
+  }
+
+  body.mobile-web-browser
+    .dropdownmenu-dropdown-container.dropdownmenu-expanded
+    .dropdownmenu-dropdown-left {
+    max-height: min(50dvh, 260px);
+    overflow-y: auto;
+  }
+
+  body.mobile-web-browser .dropdownmenu-dropdown-items.dropdownmenu-open {
+    max-height: min(50dvh, 190px);
+    overflow-y: auto;
+  }
+
+  body.mobile-web-browser .chapter-egg-container {
+    height: 20dvh;
+    min-height: 64px;
+    max-height: 80px;
+  }
+
+  body.mobile-web-browser .homeworkpathway-mascot-wrapper {
+    z-index: 1;
+  }
+
+  body.mobile-web-browser .ScoreCard-paper {
+    width: min(82vw, 346px) !important;
+    height: min(82dvh, 314px) !important;
+    padding: clamp(12px, 3dvh, 18px) 18px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .dialog-content-text {
+    margin: 0;
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .image-icon {
+    width: 58px;
+    height: 58px;
+    transform: translateY(10px);
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .stars-icon {
+    margin: 4px 0 0;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .star-icon-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .score-card-first-star {
+    width: 22px;
+    height: 21px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .score-card-middle-star {
+    width: 22px;
+    height: 21px;
+    transform: translateY(12px);
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .title-scoreCard {
+    margin-top: 8px;
+    gap: 4px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .title-scoreCard-icon {
+    min-width: 20px;
+    max-width: 20px;
+    min-height: 20px;
+    max-height: 20px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .title-scoreCard-icon-3star {
+    min-width: 22px;
+    max-width: 22px;
+    min-height: 30px;
+    max-height: 30px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .title-scoreCard span {
+    top: 2px;
+    font-size: 16px;
+    min-width: 90px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .score-card-content {
+    gap: 1px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Content .score-card-content-message,
+  body.mobile-web-browser .ScoreCard-Content .score-card-content-lesson-name {
+    font-size: 12px;
+  }
+
+  body.mobile-web-browser .ScoreCard-Continue-Button-div {
+    flex: 0 0 auto;
+    margin-top: clamp(6px, 1.8dvh, 10px);
+  }
+
+  body.mobile-web-browser .dialog-box-button-style-score-card {
+    min-width: 160px;
+    min-height: 40px;
+    padding: 6px 16px;
+    font-size: 18px;
+    border-bottom-width: 4px;
+  }
+
+  body.mobile-web-browser .slider-content {
+    height: calc(100dvh - 112px);
+    overflow: hidden;
+  }
+
+  body.mobile-web-browser .space-between {
+    height: 100%;
+    min-height: 0;
+  }
+
+  body.mobile-web-browser .assignment-main-join-class,
+  body.mobile-web-browser .assignment-main {
+    height: calc(100dvh - 112px);
+    min-height: 0;
+    overflow: auto;
+  }
+
+  body.mobile-web-browser .join-class-parent-container {
+    min-height: 100%;
+    justify-content: flex-start;
+    margin-top: 0;
+    padding-bottom: 12px;
+  }
+
+  body.mobile-web-browser .assignment-join-class-container-scroll {
+    overflow: visible;
+    padding-bottom: 12px;
+  }
+
+  body.mobile-web-browser .join-class-parent-container h2 {
+    font-size: clamp(17px, 3.6vmin, 26px);
+    margin: 0 0 2px;
+  }
+
+  body.mobile-web-browser .assignment-join-class-container-scroll h2 {
+    width: min(78vw, 640px);
+  }
+
+  body.mobile-web-browser .join-class-container .with-icon-input-wrapper {
+    margin: clamp(10px, 2.6dvh, 16px) auto;
+  }
+
+  body.mobile-web-browser .join-class-container .with-icon-input-box {
+    height: clamp(42px, 10dvh, 54px);
+    padding-block: 6px;
+  }
+
+  body.mobile-web-browser .join-class-message {
+    height: 16px;
+    margin: -2px 0 2px;
+    font-size: clamp(11px, 2.2vmin, 14px);
+  }
+
+  body.mobile-web-browser .join-class-confirm-button {
+    width: clamp(160px, 22vw, 220px);
+    height: clamp(40px, 8dvh, 52px);
+    font-size: clamp(20px, 4vmin, 30px);
+  }
+
+  body.mobile-web-browser .join-class-confirm-text {
+    line-height: clamp(40px, 8dvh, 52px);
+  }
+
+  body.mobile-web-browser .profiledetails-container {
+    width: 100%;
+    height: calc(100dvh - 2px);
+    min-height: 0;
+    overflow: auto;
+    align-items: center;
+    padding: 8px 22px 12px 74px;
+  }
+
+  body.mobile-web-browser .profiledetails-back-button {
+    top: 18px;
+    left: 24px;
+  }
+
+  body.mobile-web-browser .profiledetails-avatar-form {
+    width: min(86vw, 980px);
+    gap: clamp(18px, 3vw, 32px);
+    align-items: center;
+  }
+
+  body.mobile-web-browser .profiledetails-avatar-section {
+    flex-basis: clamp(118px, 17vw, 150px);
+  }
+
+  body.mobile-web-browser .profiledetails-avatar-image {
+    width: clamp(118px, 17vw, 150px);
+    height: clamp(118px, 17vw, 150px);
+  }
+
+  body.mobile-web-browser .profiledetails-form-fields {
+    width: auto;
+    min-width: 0;
+  }
+
+  body.mobile-web-browser .profiledetails-header-info {
+    margin-bottom: 0;
+    font-size: clamp(12px, 2vmin, 15px);
+  }
+
+  body.mobile-web-browser .profiledetails-full-name .with-icon-input-wrapper {
+    margin: 2px auto 10px;
+  }
+
+  body.mobile-web-browser .profiledetails-full-name .with-icon-input-box {
+    height: clamp(46px, 10dvh, 55px);
+  }
+
+  body.mobile-web-browser .profiledetails-full-name .with-icon-text-input,
+  body.mobile-web-browser
+    .profiledetails-full-name
+    .with-icon-text-input::placeholder {
+    font-size: clamp(20px, 4vmin, 24px);
+  }
+
+  body.mobile-web-browser .profiledetails-row-group {
+    gap: 12px;
+  }
+
+  body.mobile-web-browser
+    .profiledetails-row-group
+    .select-with-icon-input-wrapper {
+    margin: 0 auto 8px;
+  }
+
+  body.mobile-web-browser
+    .profiledetails-row-group
+    .select-with-icon-input-box {
+    min-height: clamp(46px, 10dvh, 55px);
+    padding-block: 7px;
+  }
+
+  body.mobile-web-browser
+    .profiledetails-row-group
+    .select-with-icon-selected-text {
+    font-size: clamp(20px, 4vmin, 24px);
+  }
+
+  body.mobile-web-browser .profiledetails-gender-fieldset {
+    height: clamp(64px, 14dvh, 78px);
+    margin-top: 4px;
+  }
+
+  body.mobile-web-browser .profiledetails-gender-buttons {
+    height: clamp(38px, 8.5dvh, 45px);
+    gap: 10px;
+  }
+
+  body.mobile-web-browser .profiledetails-gender-btn {
+    height: clamp(36px, 8dvh, 45px);
+    flex-basis: clamp(128px, 18vw, 150px);
+    padding-inline: 10px;
+    font-size: clamp(13px, 2.4vmin, 16px);
+  }
+
+  body.mobile-web-browser .profiledetails-button-group {
+    margin-top: 8px;
+    gap: 14px;
+  }
+
+  body.mobile-web-browser .profiledetails-save-button,
+  body.mobile-web-browser .profiledetails-skip-button {
+    width: clamp(180px, 25vw, 220px);
+    height: clamp(48px, 10dvh, 58px);
+    font-size: clamp(24px, 5vmin, 32px);
+  }
+
+  body.mobile-web-browser .profiledetails-skip-button {
+    font-size: clamp(20px, 4vmin, 26px);
+  }
+
+  body.mobile-web-browser #parent-page-setting {
+    margin: 5dvh 19vw 0;
+  }
+
+  body.mobile-web-browser #logout-delete-button {
+    top: 10dvh;
+    gap: clamp(14px, 4vw, 32px);
+    padding-bottom: 24px;
+  }
+
+  body.mobile-web-browser #parent-page-help {
+    height: calc(100dvh - 104px);
+    overflow: auto;
+    justify-content: flex-start;
+    row-gap: 0;
+    padding: 0 0 14px;
+  }
+
+  body.mobile-web-browser #parent-page-help-title {
+    margin: 0 0 4px;
+    line-height: 1.1;
+  }
+
+  body.mobile-web-browser #parent-page-help-title-container {
+    height: auto;
+  }
+
+  body.mobile-web-browser #parent-page-help-title-link {
+    row-gap: clamp(6px, 2dvh, 12px);
+    width: min(78vw, 760px);
+  }
+
+  body.mobile-web-browser #parent-page-help-title-e1 {
+    padding-top: 0;
+    margin: 0;
+  }
+
+  body.mobile-web-browser #parent-page-help-title-e2 {
+    width: min(52vw, 520px);
+    height: auto;
+    min-height: 0;
+    padding: 6px 10px 10px;
+  }
+
+  body.mobile-web-browser #parent-page-help-title-e2-video {
+    width: 100%;
+  }
+
+  body.mobile-web-browser #parent-page-help-title-e2-video-youtude {
+    height: clamp(118px, 28dvh, 190px);
+  }
+
+  body.mobile-web-browser #parent-page-help-title-e3 {
+    min-height: clamp(34px, 8dvh, 48px);
+    flex-shrink: 0;
+  }
+
+  @media (max-height: 560px) {
+    body.mobile-web-browser #parent-page-help {
+      height: calc(100dvh - 74px);
+      min-height: 0;
+      overflow-y: auto;
+      background: transparent;
+      padding-bottom: 0;
+    }
+
+    body.mobile-web-browser #parent-page-help-title {
+      margin: 10px;
+      flex-shrink: 0;
+      font-size: 16px;
+    }
+
+    body.mobile-web-browser #parent-page-help-title-container,
+    body.mobile-web-browser #parent-page-help-title-link {
+      height: auto;
+      min-height: 0;
+      overflow: visible;
+      background: transparent;
+    }
+
+    body.mobile-web-browser #parent-page-help-title-link {
+      row-gap: clamp(4px, 1.4dvh, 8px);
+    }
+
+    body.mobile-web-browser #parent-page-help-title-e1,
+    body.mobile-web-browser #parent-page-help-title-e2,
+    body.mobile-web-browser #parent-page-help-title-e3 {
+      flex-shrink: 0;
+      background-clip: padding-box;
+    }
+
+    body.mobile-web-browser #parent-page-help-title-e2 {
+      padding: 4px 10px 8px;
+    }
+
+    body.mobile-web-browser #parent-page-help-title-e2-video-youtude {
+      height: clamp(96px, 25dvh, 138px);
+    }
+  }
+
+  body.mobile-web-browser #faq-page {
+    margin-top: 10dvh;
+    margin-bottom: 0;
+  }
+
+  body.mobile-web-browser .parent-logout-btn,
+  body.mobile-web-browser .parent-delete-btn {
+    width: 24vw;
+    min-width: 220px;
+    max-width: 260px;
+    height: clamp(50px, 10dvh, 65px);
+    white-space: nowrap;
+    font-size: clamp(14px, 2.4vmin, 18px);
+  }
+
+  body.mobile-web-browser .parent-logout-btn > div,
+  body.mobile-web-browser .parent-delete-btn > div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body.mobile-web-browser .parent-teachermode-toggle {
+    min-width: 240px;
+    white-space: nowrap;
+  }
+
+  body.mobile-web-browser .parent-teachermode-toggle .toggle-text {
+    white-space: nowrap;
+    font-size: clamp(14px, 2.4vmin, 18px);
+  }
+
+  body.mobile-web-browser .coloring-board-paint-layout {
+    width: 100%;
+    height: 100dvh;
+    padding: 8px;
+  }
+
+  body.mobile-web-browser .coloring-board-controls {
+    width: clamp(140px, 18vw, 170px);
+  }
+
+  body.mobile-web-browser .coloring-board-controls .color-palette {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    overflow: hidden;
+  }
+
+  body.mobile-web-browser .color-palette-swatch {
+    width: clamp(40px, 10dvh, 48px);
+    height: clamp(40px, 10dvh, 48px);
+  }
+}

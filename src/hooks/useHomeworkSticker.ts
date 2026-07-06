@@ -50,6 +50,7 @@ const STICKER_REWARD_BOX_TILT_CLASS =
   'PathwayStructure-end-reward-box--sticker-clicked';
 const CROWD_CHEER_AUDIO_URL = '/assets/audios/common/crowd_cheer.mp3';
 const stickerDataUrlCache: Record<string, string> = {};
+type DailyRewardAudioClipName = 'reward' | 'reward_01' | 'reward_02';
 
 type PlaybackStateConfig = {
   stateMachine?: string;
@@ -76,6 +77,7 @@ interface UseHomeworkStickerParams {
     playbackOptions?: {
       onPlaybackStop?: () => void;
     },
+    clipName?: DailyRewardAudioClipName,
   ) => Promise<boolean | void>;
 }
 
@@ -163,6 +165,8 @@ export function useHomeworkSticker({
     rewardReady: false,
     suppressed: false,
     stateValue: null as number | null,
+    dailyRewardAudioClipName: 'reward' as DailyRewardAudioClipName,
+    onRewardAudioComplete: null as (() => void) | null,
     token: 0,
   });
 
@@ -288,6 +292,8 @@ export function useHomeworkSticker({
       rewardReady: false,
       suppressed: false,
       stateValue: null,
+      dailyRewardAudioClipName: 'reward',
+      onRewardAudioComplete: null,
     };
   }, []);
 
@@ -698,7 +704,7 @@ export function useHomeworkSticker({
   );
 
   const closeStickerCompletion = useCallback(
-    (reason: 'backdrop' | 'close_button') => {
+    (reason: 'backdrop' | 'close_button' | 'acknowledge_button') => {
       if (stickerCompletionData && reason === 'close_button') {
         Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE, {
           user_id: Util.getCurrentStudent()?.id ?? 'unknown',
@@ -711,6 +717,15 @@ export function useHomeworkSticker({
       }
 
       setIsStickerCompletionOpen(false);
+
+      if (reason === 'acknowledge_button') {
+        shouldRefreshPathAfterCompletionRef.current = false;
+        clearPendingFinalHomeworkStickerFlow();
+        clearPendingPathwayStickerReward();
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+        return;
+      }
 
       if (hasPendingFinalHomeworkStickerFlow()) {
         playStickerAudioAndFinishHomework();
@@ -740,6 +755,7 @@ export function useHomeworkSticker({
       playStickerAudioAndClearPending();
     },
     [
+      clearPendingPathwayStickerReward,
       hasPendingPathwayStickerReward,
       playStickerAudioAfterReload,
       playStickerAudioAndClearPending,
@@ -866,9 +882,13 @@ export function useHomeworkSticker({
 
       const tiltRequestId = rewardStickerTiltRequestIdRef.current + 1;
       rewardStickerTiltRequestIdRef.current = tiltRequestId;
+      let didStopRewardAudio = false;
       const stopRewardStickerTilt = () => {
+        if (didStopRewardAudio) return;
         if (rewardStickerTiltRequestIdRef.current !== tiltRequestId) return;
+        didStopRewardAudio = true;
         setStickerCollectTiltActive(false);
+        rewardAudioSequence.onRewardAudioComplete?.();
       };
 
       resetRewardAudioSequence();
@@ -878,6 +898,7 @@ export function useHomeworkSticker({
         {
           onPlaybackStop: stopRewardStickerTilt,
         },
+        rewardAudioSequence.dailyRewardAudioClipName,
       ).then((didStartPlayback) => {
         if (didStartPlayback === false) {
           stopRewardStickerTilt();
@@ -889,12 +910,16 @@ export function useHomeworkSticker({
       const customEvent = event as CustomEvent<{
         rewardId?: string;
         stateValue?: number;
+        forceRewardAudio?: boolean;
+        dailyRewardAudioClipName?: DailyRewardAudioClipName;
       }>;
       const rewardId = customEvent.detail?.rewardId;
       if (!rewardId) return;
 
       const nextToken = rewardAudioSequenceRef.current.token + 1;
-      const shouldSuppress = shouldSuppressRewardAudioForStickerBook();
+      const shouldSuppress =
+        !customEvent.detail?.forceRewardAudio &&
+        shouldSuppressRewardAudioForStickerBook();
 
       rewardAudioSequenceRef.current = {
         rewardId,
@@ -902,6 +927,9 @@ export function useHomeworkSticker({
         rewardReady: false,
         suppressed: shouldSuppress,
         stateValue: customEvent.detail?.stateValue ?? currentMascotStateValue,
+        dailyRewardAudioClipName:
+          customEvent.detail?.dailyRewardAudioClipName ?? 'reward',
+        onRewardAudioComplete: null,
         token: nextToken,
       };
 
@@ -929,6 +957,9 @@ export function useHomeworkSticker({
       const customEvent = event as CustomEvent<{
         rewardId?: string;
         stateValue?: number;
+        forceRewardAudio?: boolean;
+        dailyRewardAudioClipName?: DailyRewardAudioClipName;
+        onRewardAudioComplete?: () => void;
       }>;
       const rewardId = customEvent.detail?.rewardId;
       if (!rewardId) return;
@@ -940,11 +971,18 @@ export function useHomeworkSticker({
         customEvent.detail?.stateValue ??
         rewardAudioSequence.stateValue ??
         currentMascotStateValue;
+      rewardAudioSequence.dailyRewardAudioClipName =
+        customEvent.detail?.dailyRewardAudioClipName ??
+        rewardAudioSequence.dailyRewardAudioClipName;
+      rewardAudioSequence.onRewardAudioComplete =
+        customEvent.detail?.onRewardAudioComplete ?? null;
 
       if (
         rewardAudioSequence.suppressed ||
-        shouldSuppressRewardAudioForStickerBook()
+        (!customEvent.detail?.forceRewardAudio &&
+          shouldSuppressRewardAudioForStickerBook())
       ) {
+        rewardAudioSequence.onRewardAudioComplete?.();
         resetRewardAudioSequence();
         return;
       }

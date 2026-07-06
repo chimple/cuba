@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SelectChangeEvent } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import {
+  CampaignAssignmentOptions,
   CampaignObjective,
   CampaignOption,
   CampaignSavedAudienceGroup,
@@ -27,6 +28,7 @@ import {
   resetObjectiveFields,
   usesLessonRewardCriteria,
 } from './campaignSetupFormHelpers';
+import { CAMPAIGN_OBJECTIVE } from '../../common/constants';
 import type { CampaignRewardsDraftPayload } from './campaignSetupFormHelpers';
 import {
   CampaignSetupMessage,
@@ -43,6 +45,17 @@ const getAssignmentDraftKey = (draft: CampaignAssignmentDraft) =>
     draft.startsAt,
     draft.setNumber,
     draft.schoolIds.join(','),
+  ].join('|');
+
+const buildAssignmentOptionsCacheKey = (
+  programId: string,
+  schoolIds: string[],
+  gradeIds: string[],
+) =>
+  [
+    programId,
+    [...schoolIds].sort().join(','),
+    [...gradeIds].sort().join(','),
   ].join('|');
 
 export const useCampaignSetupForm = () => {
@@ -71,6 +84,12 @@ export const useCampaignSetupForm = () => {
   const [assignmentConfigs, setAssignmentConfigs] = useState<
     Record<string, GradeAssignmentConfig>
   >({});
+  const [assignmentOptionsCache, setAssignmentOptionsCache] = useState<
+    Record<string, CampaignAssignmentOptions>
+  >({});
+  const assignmentOptionsCacheRef = useRef(assignmentOptionsCache);
+  const [loadingAssignmentOptions, setLoadingAssignmentOptions] =
+    useState(false);
   const [activeAssignmentGradeId, setActiveAssignmentGradeId] = useState('');
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [rewardSubmitAttempted, setRewardSubmitAttempted] = useState(false);
@@ -85,6 +104,36 @@ export const useCampaignSetupForm = () => {
     setMessage,
     setSaveGroup,
   });
+
+  const selectedAssignmentSchoolIds = useMemo(
+    () =>
+      audience.isAllSchools
+        ? audience.audienceOptions.schools.map((school) => school.id)
+        : audience.selectedSchools.map((school) => school.id),
+    [
+      audience.audienceOptions.schools,
+      audience.isAllSchools,
+      audience.selectedSchools,
+    ],
+  );
+
+  const assignmentOptionsCacheKey = useMemo(
+    () =>
+      buildAssignmentOptionsCacheKey(
+        form.programId,
+        selectedAssignmentSchoolIds,
+        audience.selectedGrades.map((grade) => grade.id),
+      ),
+    [audience.selectedGrades, form.programId, selectedAssignmentSchoolIds],
+  );
+
+  const assignmentOptions = assignmentOptionsCache[
+    assignmentOptionsCacheKey
+  ] ?? { grades: [] };
+
+  useEffect(() => {
+    assignmentOptionsCacheRef.current = assignmentOptionsCache;
+  }, [assignmentOptionsCache]);
 
   useEffect(() => {
     const selectedGrades = audience.selectedGrades;
@@ -156,6 +205,53 @@ export const useCampaignSetupForm = () => {
 
     void fetchSetupOptions();
   }, [api, t]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadAssignmentOptions = async () => {
+      if (
+        !form.programId ||
+        selectedAssignmentSchoolIds.length === 0 ||
+        audience.selectedGrades.length === 0 ||
+        assignmentOptionsCacheRef.current[assignmentOptionsCacheKey]
+      ) {
+        return;
+      }
+
+      setLoadingAssignmentOptions(true);
+      try {
+        const options = await api.getCampaignAssignmentOptions({
+          programId: form.programId,
+          schoolIds: selectedAssignmentSchoolIds,
+          gradeIds: audience.selectedGrades.map((grade) => grade.id),
+        });
+
+        if (!isMounted) return;
+
+        setAssignmentOptionsCache((current) => ({
+          ...current,
+          [assignmentOptionsCacheKey]: options,
+        }));
+      } catch (error) {
+        logger.error('Failed to load campaign assignment options:', error);
+      } finally {
+        if (isMounted) setLoadingAssignmentOptions(false);
+      }
+    };
+
+    void loadAssignmentOptions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [
+    api,
+    assignmentOptionsCacheKey,
+    audience.selectedGrades,
+    form.programId,
+    selectedAssignmentSchoolIds,
+  ]);
 
   const updateForm =
     (field: keyof CampaignSetupFormState) =>
@@ -309,7 +405,7 @@ export const useCampaignSetupForm = () => {
     if (!isFormValid) return;
 
     setActiveStep(
-      form.objective === 'homepage_learning_pathway_campaign' ? 2 : 1,
+      form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY ? 2 : 1,
     );
   };
 
@@ -332,6 +428,7 @@ export const useCampaignSetupForm = () => {
   return {
     activeStep,
     activeAssignmentGradeId,
+    assignmentOptions,
     areRewardsValid,
     assignmentConfigs,
     assignmentDrafts,
@@ -347,11 +444,13 @@ export const useCampaignSetupForm = () => {
     handleSubmit,
     isFormValid,
     loadingInitial,
+    loadingAssignmentOptions,
     managers,
     message,
     programs,
     saveGroup,
     savedGroups,
+    selectedAssignmentSchoolIds,
     savingGroup,
     setForm,
     setActiveStep,

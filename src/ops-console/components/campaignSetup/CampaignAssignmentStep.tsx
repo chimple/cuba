@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { InfoOutlined } from '@mui/icons-material';
-import { ServiceConfig } from '../../../services/ServiceConfig';
 import {
   CampaignAssignmentOptions,
   CampaignOption,
@@ -30,6 +29,8 @@ type CampaignAssignmentStepProps = {
   campaignId: string;
   selectedGrades: CampaignOption[];
   selectedSchoolIds: string[];
+  assignmentOptions: CampaignAssignmentOptions;
+  loadingAssignmentOptions: boolean;
   activeGradeId: string;
   configs: Record<string, GradeAssignmentConfig>;
   onActiveGradeChange: (gradeId: string) => void;
@@ -45,6 +46,8 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   campaignId,
   selectedGrades,
   selectedSchoolIds,
+  assignmentOptions,
+  loadingAssignmentOptions,
   activeGradeId,
   configs,
   onActiveGradeChange,
@@ -52,37 +55,10 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   onCompletionChange,
   onAssignmentsChange,
 }) => {
-  const api = ServiceConfig.getI().apiHandler;
-  const [assignmentOptions, setAssignmentOptions] =
-    useState<CampaignAssignmentOptions>({ grades: [] });
-  const [loading, setLoading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     gradeId: string;
     rowId: string;
   } | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-    const loadOptions = async () => {
-      if (!form.programId || selectedGrades.length === 0) return;
-      setLoading(true);
-      try {
-        const options = await api.getCampaignAssignmentOptions({
-          programId: form.programId,
-          schoolIds: selectedSchoolIds,
-          gradeIds: selectedGrades.map((grade) => grade.id),
-        });
-        if (isMounted) setAssignmentOptions(options);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    loadOptions();
-    return () => {
-      isMounted = false;
-    };
-  }, [api, form.programId, selectedGrades, selectedSchoolIds]);
 
   const gradeOptionsById = useMemo(
     () =>
@@ -199,6 +175,7 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   );
   const insufficientLessons =
     activeRows.length > 0 && activeRows.length < requiredAssignments;
+  const shouldShowSharedGradeHelper = selectedGrades.length > 1;
 
   const toggleChapter = (chapterId: string, lessonIds: string[]) => {
     updateConfig(activeGradeKey, (config) => {
@@ -245,7 +222,7 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
     }));
   };
 
-  if (loading) {
+  if (loadingAssignmentOptions) {
     return (
       <Box className="campaign-assignment-step-loading">
         <CircularProgress />
@@ -254,8 +231,12 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
   }
 
   return (
-    <Box className="campaign-assignment-step">
-      {selectedGrades.length > 1 && (
+    <Box
+      className={`campaign-assignment-step ${
+        shouldShowSharedGradeHelper ? '' : 'campaign-assignment-step-no-helper'
+      }`}
+    >
+      {shouldShowSharedGradeHelper && (
         <Box className="campaign-assignment-step-helper">
           <InfoOutlined />
           <Typography>
@@ -265,7 +246,14 @@ export const CampaignAssignmentStep: React.FC<CampaignAssignmentStepProps> = ({
         </Box>
       )}
 
-      <Box className="campaign-assignment-step-tabs" role="tablist">
+      <Box
+        className={`campaign-assignment-step-tabs ${
+          shouldShowSharedGradeHelper
+            ? ''
+            : 'campaign-assignment-step-tabs-no-helper'
+        }`}
+        role="tablist"
+      >
         {selectedGrades.map((grade) => (
           <button
             type="button"

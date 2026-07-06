@@ -6,6 +6,7 @@ import { Util } from '../utility/util';
 import { schoolUtil } from '../utility/schoolUtil';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import {
+  consolidatePalEnabledCourses,
   sortCoursesByStudentLanguage,
   useLearningPath,
 } from '../hooks/useLearningPath';
@@ -39,6 +40,7 @@ jest.mock('../hooks/useLearningPath', () => ({
   __esModule: true,
   useLearningPath: jest.fn(),
   sortCoursesByStudentLanguage: jest.fn(),
+  consolidatePalEnabledCourses: jest.fn(),
 }));
 
 const mockApi = {
@@ -86,6 +88,9 @@ describe('LearningPathway', () => {
     });
     (useLearningPath as jest.Mock).mockReturnValue({ getPath });
     (sortCoursesByStudentLanguage as jest.Mock).mockImplementation(
+      async (courses: any[]) => courses,
+    );
+    (consolidatePalEnabledCourses as jest.Mock).mockImplementation(
       async (courses: any[]) => courses,
     );
     mockApi.getUserByDocId.mockResolvedValue({ id: 'stu-1', stars: 8 });

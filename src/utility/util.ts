@@ -90,9 +90,12 @@ import {
 } from '@capawesome/capacitor-app-update';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from '../services/RemoteConfig';
+import {
+  getBundleZipUrlsForEnv,
+  getLidoBundleZipUrlsForEnv,
+  REMOTE_CONFIG_KEYS,
+} from '../services/RemoteConfig';
 import { schoolUtil } from './schoolUtil';
-import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { URLOpenListenerEvent } from '@capacitor/app';
 import { t } from 'i18next';
 import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
@@ -101,8 +104,14 @@ import { InAppReview } from '@capacitor-community/in-app-review';
 import { ASSIGNMENT_COMPLETED_IDS } from '../common/courseConstants';
 import { buildGlobalEventBaseContext } from '../common/eventBaseContext';
 import { v4 as uuidv4 } from 'uuid';
+import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import { updateLocalAttributes } from '../growthbook/Growthbook';
-import { recommendNextLesson } from '../hooks/useLearningPath';
+import {
+  CoursePath,
+  LessonNode,
+  recommendNextLesson,
+  shouldUseAssessment,
+} from '../hooks/useLearningPath';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import { store } from '../redux/store';
 import {
@@ -113,6 +122,8 @@ import {
 } from '../redux/slices/auth/authSlice';
 import logger from './logger';
 import type { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
+import { AudioUtil } from './AudioUtil';
+import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
 
 type LessonBundleDownloadOptions = {
   lessonId: string;
@@ -132,6 +143,22 @@ type LessonBundlePlugin = {
 };
 
 let lessonBundlePluginInstance: LessonBundlePlugin | null = null;
+
+const getBundleZipUrlsFallback = (
+  bundleZipUrlsKey: REMOTE_CONFIG_KEYS,
+): string[] =>
+  bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+    ? getLidoBundleZipUrlsForEnv()
+    : getBundleZipUrlsForEnv();
+
+const mergeBundleZipUrls = (...zipUrlLists: (string[] | null | undefined)[]) =>
+  Array.from(
+    new Set(
+      zipUrlLists.flatMap((zipUrls) =>
+        Array.isArray(zipUrls) ? zipUrls.filter(Boolean) : [],
+      ),
+    ),
+  );
 
 const getLessonBundlePlugin = (): LessonBundlePlugin | null => {
   if (lessonBundlePluginInstance) {
@@ -540,8 +567,42 @@ export class Util {
               }
 
               // 🔥 DOWNLOAD LOGIC (UNCHANGED)
-              const bundleZipUrls: string[] =
-                await RemoteConfig.getJSON(bundleZipUrlsKey);
+              const fallbackBundleZipUrls =
+                getBundleZipUrlsFallback(bundleZipUrlsKey);
+              const cachedBundleZipUrls = getCachedGrowthBookFeatureValue<
+                string[] | null
+              >(bundleZipUrlsKey, null);
+              const fallbackGeneralBundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? getBundleZipUrlsForEnv()
+                  : [];
+              const cachedGeneralBundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? getCachedGrowthBookFeatureValue<string[] | null>(
+                      REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+                      null,
+                    )
+                  : null;
+              const bundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? mergeBundleZipUrls(
+                      cachedBundleZipUrls,
+                      fallbackBundleZipUrls,
+                      cachedGeneralBundleZipUrls,
+                      fallbackGeneralBundleZipUrls,
+                    )
+                  : (cachedBundleZipUrls ?? fallbackBundleZipUrls);
+
+              logger.warn('[LessonDownloader] Resolved bundle ZIP URLs', {
+                lessonId,
+                bundleZipUrlsKey,
+                cachedBundleZipUrls,
+                fallbackBundleZipUrls,
+                cachedGeneralBundleZipUrls,
+                fallbackGeneralBundleZipUrls,
+                resolvedBundleZipUrls: bundleZipUrls,
+                usedCachedBundleZipUrls: cachedBundleZipUrls !== null,
+              });
 
               if (!bundleZipUrls || bundleZipUrls.length < 1) {
                 logger.error('[LessonDownloader] No remote ZIP URLs found');
@@ -1077,9 +1138,8 @@ export class Util {
   }
 
   public static onAppStateChange = ({ isActive }: { isActive: boolean }) => {
-    // Existing logic for stopping TextToSpeech when app is inactive
     if (!isActive) {
-      TextToSpeech.stop();
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
     }
     logger.info('[Lifecycle] App state changed', { isActive });
 
@@ -1348,7 +1408,9 @@ export class Util {
       const rewardProfileId = data.rewardProfileId;
       if (rewardProfileId)
         if (currentStudent?.id === rewardProfileId) {
-          window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
+          replaceWithNavigationTarget(
+            PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME,
+          );
         } else {
           await this.setCurrentStudent(null);
           const students = await api.getParentStudentProfiles();
@@ -1356,7 +1418,9 @@ export class Util {
             students.find((user) => user.id === rewardProfileId) || students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
+            replaceWithNavigationTarget(
+              PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME,
+            );
           } else {
             return;
           }
@@ -1374,9 +1438,6 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            window.location.replace(
-              PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
-            );
             foundMatch = true;
             break;
           }
@@ -1389,12 +1450,12 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(
+            replaceWithNavigationTarget(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
             );
           }
         } else {
-          window.location.replace(
+          replaceWithNavigationTarget(
             PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
           );
           return;
@@ -1412,7 +1473,7 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            window.location.replace(
+            replaceWithNavigationTarget(
               data.assignmentId
                 ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${data.assignmentId}`
                 : PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
@@ -1429,13 +1490,15 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(
+            replaceWithNavigationTarget(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
             );
           }
         }
       } else {
-        window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ);
+        replaceWithNavigationTarget(
+          PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
+        );
         return;
       }
     }
@@ -1723,9 +1786,9 @@ export class Util {
       destinationPage,
     );
     if (destinationPage && currentStudent) {
-      window.location.replace(destinationPage);
+      replaceWithNavigationTarget(destinationPage);
     } else {
-      window.location.replace(
+      replaceWithNavigationTarget(
         PAGES.DISPLAY_STUDENT + '?' + currentParams.toString(),
       );
     }
@@ -2828,30 +2891,107 @@ export class Util {
     // ABORT CASE: refresh current lesson with PAL recommendation only
     // ABORT CASE: Assessment aborted → rebuild learning path (legacy flow)
     if (isFullPathwayTerminated && abortCourseId && isAssessmentLesson) {
-      let courseIndex = learningPath.courses.courseList.findIndex(
-        (c: any) => c.course_id === abortCourseId,
+      const courses = learningPath.courses as {
+        courseList: CoursePath[];
+        currentCourseIndex: number;
+      };
+      let courseIndex = courses.courseList.findIndex(
+        (coursePath: CoursePath) => coursePath.course_id === abortCourseId,
       );
 
       if (courseIndex === -1) return;
 
-      const courses = learningPath.courses;
       let course = courses.courseList[courseIndex];
-      course.path.length = 0;
-      const nextLesson = await recommendNextLesson({
-        student: currentStudent,
-        course: {
-          id: course.course_id,
-          subject_id: course.subject_id,
-          framework_id:
-            course.type === RECOMMENDATION_TYPE.FRAMEWORK ? 'framework' : null,
-        },
-        mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
-        coursePath: course,
-      });
+      const courseCodeById = new Map<string, string | null>();
+      const getCourseCode = async (coursePath: CoursePath) => {
+        const storedCode = coursePath.course_code?.trim().toLowerCase();
+        if (storedCode) return storedCode;
 
-      if (nextLesson) {
+        const courseId = coursePath.course_id;
+        if (courseCodeById.has(courseId)) {
+          return courseCodeById.get(courseId) ?? null;
+        }
+
+        try {
+          const courseMeta =
+            await ServiceConfig.getI().apiHandler.getCourse(courseId);
+          const code = courseMeta?.code?.trim().toLowerCase() || null;
+          courseCodeById.set(courseId, code);
+          return code;
+        } catch (error) {
+          logger.warn('[LearningPath] Unable to resolve course code', {
+            courseId,
+            error,
+          });
+          courseCodeById.set(courseId, null);
+          return null;
+        }
+      };
+      course.path.length = 0;
+      const nextQueuedLesson = course.path.find(
+        (lesson: LessonNode) => lesson.isPlayed === false,
+      );
+      const nextLesson =
+        nextQueuedLesson ??
+        (await recommendNextLesson({
+          student: currentStudent,
+          course: {
+            id: course.course_id,
+            subject_id: course.subject_id,
+            framework_id:
+              course.type === RECOMMENDATION_TYPE.FRAMEWORK
+                ? 'framework'
+                : null,
+          },
+          mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+          coursePath: course,
+          skipAssessment: true,
+        }));
+
+      if (nextLesson && !nextQueuedLesson) {
         course.path.push(nextLesson);
       }
+
+      if (
+        shouldUseAssessment(
+          storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+        ) &&
+        course.subject_id
+      ) {
+        const activeCourseCode = await getCourseCode(course);
+        for (const peerCourse of courses.courseList) {
+          const peerCourseCode = await getCourseCode(peerCourse);
+          if (
+            peerCourse === course ||
+            peerCourse.subject_id !== course.subject_id ||
+            !activeCourseCode ||
+            peerCourseCode !== activeCourseCode
+          ) {
+            continue;
+          }
+
+          peerCourse.path.length = 0;
+          const peerNextLesson = await recommendNextLesson({
+            student: currentStudent,
+            course: {
+              id: peerCourse.course_id,
+              subject_id: peerCourse.subject_id,
+              framework_id:
+                peerCourse.type === RECOMMENDATION_TYPE.FRAMEWORK
+                  ? 'framework'
+                  : null,
+            },
+            mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+            coursePath: peerCourse,
+            skipAssessment: true,
+          });
+
+          if (peerNextLesson) {
+            peerCourse.path.push(peerNextLesson);
+          }
+        }
+      }
+
       courseIndex += 1;
       if (courseIndex >= courses.courseList.length) {
         courseIndex = 0;
@@ -2878,14 +3018,41 @@ export class Util {
       const PATH_SIZE = 5;
       const api = ServiceConfig.getI().apiHandler;
 
-      const courses = learningPath.courses;
+      const courses = learningPath.courses as {
+        courseList: CoursePath[];
+        currentCourseIndex: number;
+      };
       let courseIndex = courses.currentCourseIndex;
       let course = courses.courseList[courseIndex];
       if (!course) return;
+      const courseCodeById = new Map<string, string | null>();
+      const getCourseCode = async (coursePath: CoursePath) => {
+        const storedCode = coursePath.course_code?.trim().toLowerCase();
+        if (storedCode) return storedCode;
+
+        const courseId = coursePath.course_id;
+        if (courseCodeById.has(courseId)) {
+          return courseCodeById.get(courseId) ?? null;
+        }
+
+        try {
+          const courseMeta = await api.getCourse(courseId);
+          const code = courseMeta?.code?.trim().toLowerCase() || null;
+          courseCodeById.set(courseId, code);
+          return code;
+        } catch (error) {
+          logger.warn('[LearningPath] Unable to resolve course code', {
+            courseId,
+            error,
+          });
+          courseCodeById.set(courseId, null);
+          return null;
+        }
+      };
 
       /* 1️⃣ Identify active lesson */
       const activeLessonIndex = course.path.findIndex(
-        (l: any) => l.isPlayed === false,
+        (lesson: LessonNode) => lesson.isPlayed === false,
       );
       const activeLesson =
         activeLessonIndex !== -1 ? course.path[activeLessonIndex] : null;
@@ -2915,33 +3082,116 @@ export class Util {
         isPlayed: true,
       };
 
+      const hasQueuedAssessmentInPath = course.path
+        .slice(activeLessonIndex + 1)
+        .some(
+          (lesson: LessonNode) =>
+            lesson.isPlayed === false &&
+            lesson.is_assessment === true &&
+            !!lesson.assignment_id,
+        );
+
+      const syncSameSubjectAssessmentPaths = async (
+        nextAssessmentLesson: LessonNode | null,
+      ) => {
+        if (
+          !shouldUseAssessment(
+            storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+          ) ||
+          !activeLesson ||
+          !activeLesson.is_assessment ||
+          (!course.subject_id && !course.framework_id)
+        ) {
+          return;
+        }
+
+        const activeCourseCode = await getCourseCode(course);
+        if (!activeCourseCode) return;
+
+        for (const peerCourse of courses.courseList) {
+          const isSameAssessmentGroup =
+            !!course.framework_id &&
+            !!peerCourse.framework_id &&
+            peerCourse.framework_id === course.framework_id
+              ? true
+              : !!course.subject_id &&
+                peerCourse.subject_id === course.subject_id;
+
+          if (peerCourse === course || !isSameAssessmentGroup) {
+            continue;
+          }
+
+          const peerCourseCode = await getCourseCode(peerCourse);
+          if (!peerCourseCode || peerCourseCode !== activeCourseCode) {
+            continue;
+          }
+
+          const peerActiveLessonIndex = peerCourse.path.findIndex(
+            (lesson: LessonNode) =>
+              lesson.isPlayed === false &&
+              lesson.is_assessment === true &&
+              lesson.lesson_id === activeLesson.lesson_id,
+          );
+
+          if (peerActiveLessonIndex === -1) continue;
+
+          const peerActiveLesson = peerCourse.path[peerActiveLessonIndex];
+          peerCourse.path[peerActiveLessonIndex] = {
+            ...peerActiveLesson,
+            isPlayed: true,
+          };
+
+          if (nextAssessmentLesson) {
+            peerCourse.path.push({ ...nextAssessmentLesson });
+          }
+
+          if (peerCourse.path.length > PATH_SIZE) {
+            const peerActive = peerCourse.path.find(
+              (lesson: LessonNode) => !lesson.isPlayed,
+            );
+            peerCourse.path.length = 0;
+            if (peerActive) peerCourse.path.push(peerActive);
+            peerCourse.path_id = uuidv4();
+            peerCourse.completedPath = (peerCourse.completedPath ?? 0) + 1;
+          }
+        }
+      };
+
       const completedPathwaySnapshot = JSON.stringify(learningPath);
 
       /* 3️⃣ Compute next active lesson */
-      const nextLesson = await recommendNextLesson({
-        student: currentStudent,
-        course: {
-          id: course.course_id,
-          subject_id: course.subject_id,
-          framework_id:
-            course.type === RECOMMENDATION_TYPE.FRAMEWORK ? 'framework' : null,
-        },
-        mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
-        coursePath: course,
-      });
+      const nextLesson = hasQueuedAssessmentInPath
+        ? null
+        : await recommendNextLesson({
+            student: currentStudent,
+            course: {
+              id: course.course_id,
+              subject_id: course.subject_id,
+              framework_id:
+                course.type === RECOMMENDATION_TYPE.FRAMEWORK
+                  ? 'framework'
+                  : null,
+            },
+            mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+            coursePath: course,
+          });
 
       if (nextLesson) {
         course.path.push(nextLesson);
       }
 
       /* 4️⃣ Check path overflow */
+      await syncSameSubjectAssessmentPaths(nextLesson);
+
       let pathCompleted = false;
 
       if (course.path.length > PATH_SIZE) {
         // if exceeding max path size i.e '5', remove played lessons from old path keep active lesson from currentPath
-        const active = course.path.find((l: any) => !l.isPlayed);
+        const active = course.path.find(
+          (lesson: LessonNode) => !lesson.isPlayed,
+        );
         course.path.length = 0;
-        course.path.push(active);
+        if (active) course.path.push(active);
         pathCompleted = true;
       }
 
@@ -2987,7 +3237,7 @@ export class Util {
       /* 6️⃣ Event collection */
       const newCourse = courses.courseList[courses.currentCourseIndex];
       const newActiveLesson = newCourse.path.find(
-        (l: any) => l.isPlayed === false,
+        (lesson: LessonNode) => lesson.isPlayed === false,
       );
 
       const eventPayload = {
@@ -3424,19 +3674,33 @@ export class Util {
       // 9. Fetch Full Lesson Details
       const newLessons = await Promise.all(
         assignmentsToInject.map(async (assignment: any) => {
+          if (!assignment.lesson_id) {
+            return null;
+          }
           const fullLesson = await api.getLesson(assignment.lesson_id);
+          if (!fullLesson?.id) {
+            logger.warn(
+              '[HomeworkPathway] Skipping stale assignment while refreshing homework tail',
+              {
+                assignmentId: assignment.id ?? null,
+                lessonId: assignment.lesson_id ?? null,
+              },
+            );
+            return null;
+          }
           return {
             assignment_id: assignment.id,
             lesson_id: assignment.lesson_id,
             chapter_id: assignment.chapter_id,
             course_id: assignment.course_id,
-            lesson: fullLesson || {
-              id: assignment.lesson_id,
-              image: 'assets/icons/DefaultIcon.png',
-            },
+            lesson: fullLesson,
             raw_assignment: assignment,
           };
         }),
+      );
+      const playableNewLessons = newLessons.filter(
+        (lesson): lesson is NonNullable<(typeof newLessons)[number]> =>
+          lesson !== null,
       );
 
       // 10. REBUILD while preserving original path length.
@@ -3445,7 +3709,7 @@ export class Util {
       type LessonWithAssignmentId = { assignment_id?: string | null };
       const existingFutureLessons = originalLessons.slice(completedIndex + 1);
       const usedAssignmentIds = new Set<string>(
-        [...history, ...newLessons]
+        [...history, ...playableNewLessons]
           .map((l) => (l as LessonWithAssignmentId)?.assignment_id)
           .filter(
             (id): id is string => typeof id === 'string' && id.length > 0,
@@ -3459,7 +3723,7 @@ export class Util {
         },
       );
 
-      const filledFutureLessons = [...newLessons];
+      const filledFutureLessons = [...playableNewLessons];
       if (filledFutureLessons.length < remainingSlotsCount) {
         const missingCount = remainingSlotsCount - filledFutureLessons.length;
         filledFutureLessons.push(

@@ -291,7 +291,7 @@
   box-sizing: border-box;
   padding: 246px 96px 86px 110px;
   font-family: 'Nunito', sans-serif;
-  color: #35363d;
+  color: #5d5f64;
   overflow: hidden;
   position: relative;
 }
@@ -326,6 +326,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
+  color: #35363d;
   font-size: 104px;
   line-height: 1;
   font-weight: 900;
@@ -353,7 +354,6 @@
 }
 
 .streak-share-cta {
-  color: #4f5054;
   font-size: 52px;
   line-height: 1;
   font-weight: 800;

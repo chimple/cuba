@@ -930,6 +930,7 @@ export enum EVENTS {
   LESSON_END = 'lesson_end',
   LESSON_INCOMPLETE = 'lesson_incomplete',
   USER_PROFILE = 'user_profile',
+  GOAL_PROGRESS = 'Goal_Progress',
   CLICKS_ANALYTICS = 'clicks_analytics',
   EXPERIMENT_VIEWED = 'experiment_viewed',
   PATHWAY_CREATED = 'pathway_created',
@@ -965,6 +966,7 @@ export enum EVENTS {
   LIVE_UPDATE_APPLIED = 'live_update_applied',
   LIVE_UPDATE_STARTED = 'live_update_started',
   LIVE_UPDATE_ERROR = 'live_update_error',
+  USER_ACTIVATION_LESSON = 'user_activation_lesson',
   ASSESSMENT_ABORTED = 'assessment_aborted',
   ASSESSMENT_COMPLETED = 'assessment_completed',
   RESULTS_SAVED = 'results_saved',
@@ -1213,7 +1215,8 @@ export const GRADE1_KANNADA = 'a90608de-4376-4baf-82c2-07760b2aa899';
 export const GRADE1_MARATHI = '2cada0d1-db3d-4da0-8ade-e9ba282a3558';
 export const BULK_UPLOAD_TEMPLATE_URL =
   'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx';
-
+export const BUNDLE_ZIP_URLS = 'bundle_zip_urls';
+export const LIDO_BUNDLE_ZIP_URLS = 'lido_bundle_zip_urls';
 export const FORM_MODES = {
   ALL_REQUIRED: 'all-required',
   NAME_REQUIRED: 'name-required',
@@ -1263,6 +1266,8 @@ export interface StudentInfo {
   grade: number;
   classSection: string;
   parent: TableTypes<'user'> | null;
+  // Optional full parent list used when merged profiles carry multiple contacts.
+  parents?: TableTypes<'user'>[];
   classWithidname?: {
     id: string;
     class_name: string;
@@ -1356,7 +1361,9 @@ export const REWARD_MODAL_SHOWN_DATE = 'RewardModalShownDate';
 export const DAILY_USER_REWARD = 'DailyUserReward';
 export const IDLE_REWARD_ID = '5dfa8e34-14a3-42de-ae3a-977862712b1e';
 export const REWARD_LESSON = 'RewardLesson';
+export const STUDENT_RESULT = 'studentResult';
 export const REWARD_LEARNING_PATH = 'RewardLearningPath';
+export const ACTIVATION_REWARD_FLOW_KEY = 'ActivationRewardFlow';
 export enum RewardBoxState {
   IDLE = 'idle',
   SHAKING = 'shaking',
@@ -1376,6 +1383,11 @@ export const CAMPAIGN_ACCESS_ROLES = [
   RoleType.OPERATIONAL_DIRECTOR,
   RoleType.PROGRAM_MANAGER,
 ];
+
+export const CAMPAIGN_OBJECTIVE = {
+  HOMEWORK: 'homework_campaign',
+  HOMEPAGE_LEARNING_PATHWAY: 'homepage_learning_pathway_campaign',
+} as const;
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
 export const VERSION_KEY = 'last_native_version';
 export enum SupportLevelMap {

@@ -323,7 +323,18 @@
   }
 }
 
-@media (max-width: 48rem) {
+@media (max-width: 48rem) and (orientation: portrait) {
+  .campaign-setup-page {
+    --campaign-mobile-header-height: calc(
+      3.875rem + env(safe-area-inset-top, 0rem)
+    );
+    --campaign-mobile-stepper-height: 2.875rem;
+    --campaign-mobile-actions-height: calc(
+      5.5rem + env(safe-area-inset-bottom, 0rem)
+    );
+    --campaign-mobile-scroll-buffer: 2rem;
+  }
+
   body.campaign-setup-active .sidebar-hamburger-outside {
     display: none;
   }
@@ -336,7 +347,15 @@
     flex-direction: column;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: calc(3.875rem + env(safe-area-inset-top, 0rem)) 1rem 0;
+    padding: calc(
+        var(--campaign-mobile-header-height) +
+          var(--campaign-mobile-stepper-height)
+      )
+      1rem
+      calc(
+        var(--campaign-mobile-actions-height) +
+          var(--campaign-mobile-scroll-buffer)
+      );
   }
 
   .campaign-setup-header {
@@ -345,7 +364,7 @@
     left: 0;
     right: 0;
     z-index: 20;
-    height: calc(3.875rem + env(safe-area-inset-top, 0rem));
+    height: var(--campaign-mobile-header-height);
     align-items: center;
     justify-content: center;
     margin: 0;
@@ -377,13 +396,16 @@
   }
 
   .campaign-setup-actions {
-    margin: 0 -1rem 0;
+    margin: 0;
     padding: 0.875rem 1rem calc(0.875rem + env(safe-area-inset-bottom, 0rem));
-    position: sticky;
+    position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     flex-shrink: 0;
+    z-index: 20;
+    background: #ffffff;
+    box-shadow: 0 -0.25rem 1rem rgba(0, 0, 0, 0.06);
   }
 
   .campaign-setup-form > * {
@@ -473,19 +495,23 @@
   }
 
   .campaign-setup-actions {
-    position: static !important;
-    bottom: auto !important;
-    min-height: 6.25rem;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0;
+    right: 0;
+    min-height: 5.5rem;
     height: auto;
     width: 100%;
     margin: 0;
-    padding: 1.25rem 0 calc(1rem + env(safe-area-inset-bottom, 0rem));
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0rem));
     border-top: none;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.625rem;
     flex-shrink: 0;
+    z-index: 20;
+    background: #ffffff;
   }
 
   .campaign-setup-actions .MuiButton-root {

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import './GenericPopup.css';
 import AudioButton from '../common/AudioButton';
 import { AudioUtil } from '../../utility/AudioUtil';
+import CachedImage from '../common/CachedImage';
 
 const GENERIC_POPUP_SOUND_EFFECT_URL =
   '/assets/audios/common/generic_popup_sound_effect.mp3';
@@ -146,7 +147,7 @@ const GenericPopup: React.FC<Props> = ({
           />
         </button>
 
-        <img
+        <CachedImage
           id="generic-popup-bg-image"
           className="generic-popup-bg-image"
           src={backgroundImageUrl}
@@ -159,7 +160,7 @@ const GenericPopup: React.FC<Props> = ({
               id="generic-popup-thumb-wrapper"
               className="generic-popup-thumb-wrapper"
             >
-              <img
+              <CachedImage
                 id="generic-popup-thumb"
                 className="generic-popup-thumb"
                 src={thumbnailImageUrl}

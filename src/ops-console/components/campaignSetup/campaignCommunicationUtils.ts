@@ -1,4 +1,5 @@
 import { t } from 'i18next';
+import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
 import { CampaignAssignmentDraft } from './campaignAssignmentUtils';
 import { CampaignSetupFormState } from './types';
 
@@ -49,10 +50,54 @@ export const createEmptyCommunicationRow =
 
 export const buildCommunicationTimelineDates = (
   assignmentDrafts: CampaignAssignmentDraft[],
-): string[] =>
-  Array.from(new Set(assignmentDrafts.map((draft) => draft.startsAt)))
+  form?: CampaignSetupFormState,
+): string[] => {
+  if (form?.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY) {
+    return buildCampaignDurationTimelineDates(form.startDate, form.endDate);
+  }
+
+  return Array.from(new Set(assignmentDrafts.map((draft) => draft.startsAt)))
     .filter(Boolean)
     .sort();
+};
+
+export function buildCampaignDurationTimelineDates(
+  startDate: string,
+  endDate: string,
+): string[] {
+  if (!startDate || !endDate) return [];
+
+  const startParts = startDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const endParts = endDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!startParts || !endParts) return [];
+
+  const start = new Date(
+    Date.UTC(
+      Number(startParts[1]),
+      Number(startParts[2]) - 1,
+      Number(startParts[3]),
+    ),
+  );
+  const end = new Date(
+    Date.UTC(Number(endParts[1]), Number(endParts[2]) - 1, Number(endParts[3])),
+  );
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime()) ||
+    start > end
+  ) {
+    return [];
+  }
+
+  const dates: string[] = [];
+  const cursor = new Date(start);
+  while (cursor <= end) {
+    dates.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+
+  return dates;
+}
 
 export const getCampaignDurationDays = (
   startDate: string,
@@ -246,6 +291,16 @@ export const getCampaignCommunicationValidation = (
 export const buildCampaignDurationLabel = (form: CampaignSetupFormState) => {
   if (!form.startDate || !form.endDate) return t('Campaign: --');
   return t('Campaign: {{startDate}} -> {{endDate}} · {{days}} days', {
+    startDate: form.startDate,
+    endDate: form.endDate,
+    days: getCampaignDurationDays(form.startDate, form.endDate),
+  });
+};
+
+export const getCampaignDurationSummary = (form: CampaignSetupFormState) => {
+  if (!form.startDate || !form.endDate) return '--';
+
+  return t('{{startDate}} → {{endDate}} · {{days}} days', {
     startDate: form.startDate,
     endDate: form.endDate,
     days: getCampaignDurationDays(form.startDate, form.endDate),

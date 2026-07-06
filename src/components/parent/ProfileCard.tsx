@@ -196,8 +196,9 @@ const ProfileCard: React.FC<{
                 return;
               }
               void Util.logEvent(EVENTS.PROFILE_CREATION_CLICKED, {});
-              history.replace(PAGES.CREATE_STUDENT, {
-                showBackButton: !areProfilesAvailable,
+              history.push(PAGES.CREATE_STUDENT, {
+                isEdit: false,
+                from: `${history.location.pathname}${history.location.search}`,
               });
             }}
           >

@@ -73,8 +73,8 @@
   content: '*';
   color: red;
   position: absolute;
-  top: 0.6rem;
-  left: -0.7rem;
+  top: 0.1rem;
+  left: -0.45rem;
   font-size: 1rem;
   z-index: 10;
 }

@@ -2,6 +2,7 @@ import React from 'react';
 import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import './imageDropdown.css';
 import { t } from 'i18next';
+import CachedImage from '../../components/common/CachedImage';
 
 interface DropdownOption {
   id: string | number;
@@ -33,6 +34,7 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
   placeholder = 'Select an option',
   isDownBorder = true,
 }) => {
+  const defaultIcon = '/assets/icons/DefaultIcon.png';
   const handleChange = (event: SelectChangeEvent<string | number>) => {
     const selectedOption = options.find((opt) => opt.id === event.target.value);
     if (selectedOption) onOptionSelect(selectedOption);
@@ -59,19 +61,19 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
           renderValue={(value) =>
             selectedValue?.id ? (
               <div className="imageDropdown-selected">
-                {selectedValue.icon && (
-                  <img
-                    src={selectedValue.icon}
-                    alt={selectedValue.name}
-                    className="imageDropdown-icon"
-                  />
-                )}
+                <CachedImage
+                  src={selectedValue.icon}
+                  fallbackSrc={defaultIcon}
+                  alt={selectedValue.name}
+                  className="imageDropdown-icon"
+                />
                 <span>{t(selectedValue.name)}</span>
               </div>
             ) : (
               <div className="placeholder">
-                <img
-                  src={options[0]?.icon || ''}
+                <CachedImage
+                  src={options[0]?.icon || defaultIcon}
+                  fallbackSrc={defaultIcon}
                   alt="placeholder-icon"
                   className="imageDropdown-icon"
                 />
@@ -97,13 +99,12 @@ const ImageDropdown: React.FC<ImageDropdownProps> = ({
               value={option.id}
               className="menu-item-in-image-dropdown"
             >
-              {option.icon && (
-                <img
-                  src={option.icon}
-                  alt={option.name}
-                  className="imageDropdown-icon"
-                />
-              )}
+              <CachedImage
+                src={option.icon}
+                fallbackSrc={defaultIcon}
+                alt={option.name}
+                className="imageDropdown-icon"
+              />
               <div className="imageDropdown-text">
                 <span className="imageDropdown-subject-text">
                   {t(splitText(option.name, option.subjectDetail).subject)}

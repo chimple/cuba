@@ -28,6 +28,7 @@ import {
   PAGES,
   SOURCE,
   REWARD_LEARNING_PATH,
+  ACTIVATION_REWARD_FLOW_KEY,
   REWARD_MODAL_SHOWN_DATE,
   RewardBoxState,
   STICKER_BOOK_COMPLETION_READY_EVENT,
@@ -56,6 +57,8 @@ import {
   hasPendingFinalHomeworkStickerFlow,
   hasPendingHomeworkStickerFlow,
 } from '../../utility/homeworkStickerFlow';
+import { getCachedImageSrc } from '../../utility/imageCache';
+import { mapInBatches } from '../../utility/batch';
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;
@@ -63,8 +66,13 @@ interface HomeworkPathwayStructureProps {
   onFinalHomeworkStickerComplete?: () => void;
 }
 
+type HomeworkPathwayLesson = Partial<TableTypes<'lesson'>> & {
+  chapter_id?: string | null;
+  course_id?: string | null;
+};
+
 interface HomeworkPathLessonItem {
-  lesson: Partial<TableTypes<'lesson'>>;
+  lesson: HomeworkPathwayLesson;
   course_id: string | null;
   chapter_id: string | null;
   assignment_id?: string | null;
@@ -91,6 +99,9 @@ const MASCOT_X_OFFSET = -155;
 const REWARD_FLIGHT_TARGET_X_OFFSET = MASCOT_X_OFFSET + 84;
 const REWARD_FLIGHT_DURATION_MS = 4000;
 const REWARD_FLIGHT_ARC_Y_OFFSET = 150;
+const FINAL_HOMEWORK_REWARD_AUDIO_DELAY_MS = 1000;
+const FINAL_HOMEWORK_REWARD_AUDIO_TIMEOUT_MS = 6000;
+type DailyRewardAudioClipName = 'reward' | 'reward_01' | 'reward_02';
 
 const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   selectedSubject,
@@ -146,9 +157,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
   const [rewardModalOpen, setRewardModalOpen] = useState(false);
   const [isRewardPathLoaded, setIsRewardPathLoaded] = useState(false);
-  const lessonCacheRef = useRef<Map<string, Partial<TableTypes<'lesson'>>>>(
-    new Map(),
-  );
+  const lessonCacheRef = useRef<Map<string, HomeworkPathwayLesson>>(new Map());
   const lastRenderedPathSignatureRef = useRef<string | null>(null);
   const loadSvgRequestIdRef = useRef(0);
 
@@ -395,14 +404,14 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   );
 
   const getCachedLesson = useCallback(
-    async (lessonId: string): Promise<Partial<TableTypes<'lesson'>>> => {
+    async (lessonId: string): Promise<HomeworkPathwayLesson | null> => {
       const lessonCache = lessonCacheRef.current;
       const existingLesson = lessonCache.get(lessonId);
       if (existingLesson) return existingLesson;
       const key = `lesson_${lessonId}`;
       const cached = sessionStorage.getItem(key);
       if (cached) {
-        const parsed = JSON.parse(cached) as Partial<TableTypes<'lesson'>>;
+        const parsed = JSON.parse(cached) as HomeworkPathwayLesson;
         lessonCache.set(lessonId, parsed);
         return parsed;
       }
@@ -413,10 +422,10 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           sessionStorage.setItem(key, JSON.stringify(lesson));
           return lesson;
         }
-        return {};
+        return null;
       } catch (e) {
         logger.warn('Could not fetch lesson details (offline)', e);
-        return {};
+        return null;
       }
     },
     [api],
@@ -436,7 +445,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
   const preloadAllLessonImages = useCallback(
     async (lessons: Array<{ image?: string | null }>) => {
       await Promise.all(
-        lessons.map((lesson) => {
+        lessons.map(async (lesson) => {
           const isValidUrl =
             typeof lesson.image === 'string' &&
             /^(https?:\/\/|\/)/.test(lesson.image);
@@ -444,7 +453,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             isValidUrl && lesson.image
               ? lesson.image
               : 'assets/icons/DefaultIcon.png';
-          return preloadImage(src);
+          const resolvedSrc = await getCachedImageSrc(src);
+          return preloadImage(resolvedSrc);
         }),
       );
     },
@@ -607,13 +617,31 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       }
 
       // Grouping logic...
-      const pendingBySubject: Record<string, TableTypes<'assignment'>[]> = {};
+      const playablePendingAssignments: Array<
+        TableTypes<'assignment'> & { lesson: HomeworkPathwayLesson }
+      > = [];
+      const pendingBySubject: Record<
+        string,
+        Array<TableTypes<'assignment'> & { lesson: HomeworkPathwayLesson }>
+      > = {};
       for (const assignment of pendingAssignments) {
+        if (!assignment.lesson_id) continue;
         const lesson = await getCachedLesson(assignment.lesson_id);
-        const subjectId = lesson.subject_id;
+        const subjectId = lesson?.subject_id;
         if (!subjectId) continue;
+        const playableAssignment = { ...assignment, lesson };
+        playablePendingAssignments.push(playableAssignment);
         if (!pendingBySubject[subjectId]) pendingBySubject[subjectId] = [];
-        pendingBySubject[subjectId].push(assignment);
+        pendingBySubject[subjectId].push(playableAssignment);
+      }
+
+      if (playablePendingAssignments.length === 0) {
+        localStorage.removeItem(HOMEWORK_PATHWAY);
+        setHomeworkLessons([]);
+        if (!hasPendingStickerFlow) {
+          onHomeworkComplete?.();
+        }
+        return;
       }
 
       let maxPending = 0;
@@ -649,24 +677,52 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       }
 
       const selected = Util.pickFiveHomeworkLessons(
-        pendingAssignments,
+        playablePendingAssignments,
         completedCountBySubject,
       );
 
       const lessonsWithDetails = await Promise.all(
         selected.map(async (assignment) => {
           const lesson = await getCachedLesson(assignment.lesson_id);
+          if (
+            !lesson?.id ||
+            !lesson.subject_id ||
+            !(lesson.chapter_id || assignment.chapter_id) ||
+            !(assignment.course_id || lesson.course_id)
+          ) {
+            logger.warn(
+              '[HomeworkPathwayStructure] Skipping stale homework assignment with missing lesson metadata',
+              {
+                assignmentId: assignment.id ?? null,
+                lessonId: assignment.lesson_id ?? null,
+              },
+            );
+            return null;
+          }
           return { ...assignment, lesson };
         }),
       );
+      const playableLessons = lessonsWithDetails.filter(
+        (lesson): lesson is NonNullable<(typeof lessonsWithDetails)[number]> =>
+          lesson !== null,
+      );
+
+      if (playableLessons.length === 0) {
+        localStorage.removeItem(HOMEWORK_PATHWAY);
+        setHomeworkLessons([]);
+        if (!hasPendingStickerFlow) {
+          onHomeworkComplete?.();
+        }
+        return;
+      }
 
       const newHomeworkPath = {
-        lessons: lessonsWithDetails,
+        lessons: playableLessons,
         currentIndex: 0,
       };
 
       localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(newHomeworkPath));
-      setHomeworkLessons(lessonsWithDetails);
+      setHomeworkLessons(playableLessons);
     } catch (error) {
       logger.error('Failed to fetch homework lessons:', error);
       setHomeworkLessons([]);
@@ -688,11 +744,39 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       playbackOptions?: {
         onPlaybackStop?: () => void;
       },
+      clipName: DailyRewardAudioClipName = 'reward',
     ): Promise<boolean> => {
-      const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
-        'dailyReward',
-        'reward',
+      let localAudioPath: string | null = null;
+      const pendingActivationRewardFlow = sessionStorage.getItem(
+        ACTIVATION_REWARD_FLOW_KEY,
       );
+
+      if (pendingActivationRewardFlow) {
+        if (pendingActivationRewardFlow === 'true') {
+          const languageCode = await AudioUtil.getAudioLanguageCode();
+          localAudioPath = `/assets/audios/activationLesson/complete/${languageCode}_activation_lesson_complete.mp3`;
+          sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+        } else {
+          try {
+            const parsed = JSON.parse(pendingActivationRewardFlow);
+            if (parsed) {
+              const languageCode = await AudioUtil.getAudioLanguageCode();
+              localAudioPath = `/assets/audios/activationLesson/complete/${languageCode}_activation_lesson_complete.mp3`;
+              sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+            }
+          } catch {
+            sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+          }
+        }
+      }
+
+      if (!localAudioPath) {
+        localAudioPath = await AudioUtil.getLocalizedAudioUrl(
+          'dailyReward',
+          clipName,
+        );
+      }
+
       if (!localAudioPath) {
         playbackOptions?.onPlaybackStop?.();
         return false;
@@ -797,6 +881,19 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
     loadSvgRequestIdRef.current = requestId;
 
     try {
+      const pendingActivationRewardFlowRaw = sessionStorage.getItem(
+        ACTIVATION_REWARD_FLOW_KEY,
+      );
+      const hasPendingActivationRewardFlow =
+        pendingActivationRewardFlowRaw === 'true' ||
+        (() => {
+          if (!pendingActivationRewardFlowRaw) return false;
+          try {
+            return Boolean(JSON.parse(pendingActivationRewardFlowRaw));
+          } catch {
+            return false;
+          }
+        })();
       const pendingRewardIndexRaw = sessionStorage.getItem(
         HOMEWORK_REWARD_COMPLETED_INDEX_KEY,
       );
@@ -848,6 +945,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       const startIndex = 0;
 
       if (lessonsToRender.length === 0) {
+        localStorage.removeItem(HOMEWORK_PATHWAY);
+        onHomeworkComplete?.();
         return;
       }
 
@@ -1069,6 +1168,15 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         /^-?\d+$/.test(rewardCompletedIndexRaw)
           ? Number(rewardCompletedIndexRaw)
           : null;
+      const activationRewardIndex =
+        hasPendingActivationRewardFlow &&
+        pendingRewardCompletedIndex === null &&
+        typeof pendingRewardTransition?.completedIndex !== 'number' &&
+        Number.isFinite(currentIndex) &&
+        currentIndex >= 0 &&
+        currentIndex < lessonsToRender.length
+          ? currentIndex
+          : null;
       const completedRewardIndex =
         typeof pendingRewardCompletedIndex === 'number' &&
         Number.isFinite(pendingRewardCompletedIndex) &&
@@ -1080,7 +1188,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               pendingRewardTransition.completedIndex >= 0 &&
               pendingRewardTransition.completedIndex < lessonsToRender.length
             ? pendingRewardTransition.completedIndex
-            : currentCompletedIndexFromPath;
+            : typeof activationRewardIndex === 'number'
+              ? activationRewardIndex
+              : currentCompletedIndexFromPath;
 
       if (typeof newRewardId !== 'string') {
         sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
@@ -1088,6 +1198,38 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       }
 
       preloadAllLessonImages(lessons);
+
+      const resolvedLessonImageUrls = await mapInBatches(
+        lessonsToRender,
+        5,
+        async ({ lesson }, lessonIdx) => {
+          const isPlayed = lessonIdx < visualCurrentIndex;
+          const isActive = lessonIdx === visualCurrentIndex;
+          const isValidUrl =
+            typeof lesson.image === 'string' &&
+            /^(https?:\/\/|\/)/.test(lesson.image);
+
+          const lessonImageUrl =
+            isPlayed || isActive
+              ? isValidUrl
+                ? (lesson.image ?? 'assets/icons/DefaultIcon.png')
+                : 'assets/icons/DefaultIcon.png'
+              : 'assets/icons/NextNodeIcon.svg';
+
+          return await getCachedImageSrc(lessonImageUrl);
+        },
+      );
+      const resolvedHaloSrc =
+        typeof haloPath === 'string'
+          ? await getCachedImageSrc(haloPath)
+          : haloPath;
+      const resolvedPointerSrc = await getCachedImageSrc(
+        '/pathwayAssets/touchpointer.svg',
+      );
+      const resolvedStickerImageSrc =
+        typeof stickerPreviewPayload?.nextStickerImage === 'string'
+          ? await getCachedImageSrc(stickerPreviewPayload.nextStickerImage)
+          : null;
 
       let chimple: SVGForeignObjectElement | null = null;
       chimple = document.createElementNS(
@@ -1097,7 +1239,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
       chimple.setAttribute('width', '40%');
       chimple.setAttribute('height', '260%');
 
-      requestAnimationFrame(async () => {
+      requestAnimationFrame(() => {
         if (!containerRef.current || loadSvgRequestIdRef.current !== requestId)
           return;
         containerRef.current.innerHTML = svgContent;
@@ -1184,17 +1326,9 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
 
           const isPlayed = lessonIdx < visualCurrentIndex;
           const isActive = lessonIdx === visualCurrentIndex;
-
-          const isValidUrl =
-            typeof lesson.image === 'string' &&
-            /^(https?:\/\/|\/)/.test(lesson.image);
-
-          const lesson_image: string =
-            isPlayed || isActive
-              ? isValidUrl
-                ? (lesson.image ?? 'assets/icons/DefaultIcon.png')
-                : 'assets/icons/DefaultIcon.png'
-              : 'assets/icons/NextNodeIcon.svg';
+          const resolvedLessonImageSrc =
+            resolvedLessonImageUrls[lessonIdx] ??
+            'assets/icons/DefaultIcon.png';
 
           if (isPlaceholderSnapshot || lessonIdx < visualCurrentIndex) {
             const playedLesson = document.createElementNS(
@@ -1205,7 +1339,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               playedLessonSVG.cloneNode(true) as SVGGElement,
             );
             if (!isPlaceholderSnapshot) {
-              const lessonImage = createSVGImage(lesson_image, 30, 30, 28, 30);
+              const lessonImage = createSVGImage(
+                resolvedLessonImageSrc,
+                30,
+                30,
+                28,
+                30,
+              );
               playedLesson.appendChild(lessonImage);
             }
 
@@ -1257,19 +1397,25 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               }, ${positionMappings.activeGroup.baseY + activeYOffset})`,
             );
 
-            const halo = createSVGImage(haloPath, 140, 140, -15, -12);
-            const pointer = createSVGImage(
-              '/pathwayAssets/touchpointer.svg',
-              30,
-              30,
-              70,
-              90,
+            const halo = createSVGImage(
+              resolvedHaloSrc || haloPath,
+              140,
+              140,
+              -15,
+              -12,
             );
+            const pointer = createSVGImage(resolvedPointerSrc, 30, 30, 70, 90);
             pointer.setAttribute(
               'class',
               'homeworkpathway-structure-animated-pointer',
             );
-            const lessonImage = createSVGImage(lesson_image, 30, 30, 40, 40);
+            const lessonImage = createSVGImage(
+              resolvedLessonImageSrc,
+              30,
+              30,
+              40,
+              40,
+            );
 
             activeGroup.appendChild(halo);
             activeGroup.appendChild(fruitActive.cloneNode(true) as SVGGElement);
@@ -1320,7 +1466,13 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               'g',
             );
 
-            const lessonImage = createSVGImage(lesson_image, 30, 30, 27, 29);
+            const lessonImage = createSVGImage(
+              resolvedLessonImageSrc,
+              30,
+              30,
+              27,
+              29,
+            );
             flower_Inactive.appendChild(
               fruitInactive.cloneNode(true) as SVGGElement,
             );
@@ -1479,11 +1631,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             bg.setAttribute('stroke-width', '3');
             rewardGroup.appendChild(bg);
 
-            if (nextStickerImageSrc) {
+            if (resolvedStickerImageSrc) {
               const horizontalPadding = Math.round(width * 0.12);
               const verticalPadding = Math.round(height * 0.12);
               const stickerImage = createSVGImage(
-                nextStickerImageSrc,
+                resolvedStickerImageSrc,
                 width - horizontalPadding * 2,
                 height - verticalPadding * 2,
                 horizontalPadding,
@@ -1688,8 +1840,32 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           });
         };
 
+        const waitForFinalHomeworkRewardAudio = (): {
+          promise: Promise<void>;
+          resolve: () => void;
+        } => {
+          let didResolve = false;
+          let resolveAudio = () => {};
+
+          const resolve = () => {
+            if (didResolve) return;
+            didResolve = true;
+            resolveAudio();
+          };
+
+          const promise = Promise.race([
+            new Promise<void>((resolvePromise) => {
+              resolveAudio = resolvePromise;
+            }),
+            delay(FINAL_HOMEWORK_REWARD_AUDIO_TIMEOUT_MS).then(() => undefined),
+          ]);
+
+          return { promise, resolve };
+        };
+
         const runRewardAnimation = async (
           newRewardId: string,
+          shouldPlayFinalRewardAudioBeforeComplete: boolean,
           onComplete?: () => void,
         ) => {
           // If offline, this might fail, wrap in try/catch or skip if no internet
@@ -1779,6 +1955,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                   detail: {
                     rewardId: newRewardId,
                     stateValue: rewardStateValue,
+                    forceRewardAudio: shouldPlayFinalRewardAudioBeforeComplete,
+                    dailyRewardAudioClipName:
+                      shouldPlayFinalRewardAudioBeforeComplete
+                        ? 'reward_02'
+                        : 'reward',
                   },
                 }),
               );
@@ -1797,15 +1978,32 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               } else {
                 await animateChimpleMovement();
               }
+              const finalRewardAudioWait =
+                shouldPlayFinalRewardAudioBeforeComplete
+                  ? waitForFinalHomeworkRewardAudio()
+                  : null;
               window.dispatchEvent(
                 new CustomEvent(PATHWAY_REWARD_AUDIO_READY_EVENT, {
                   detail: {
                     rewardId: newRewardId,
                     stateValue: rewardStateValue,
+                    forceRewardAudio: shouldPlayFinalRewardAudioBeforeComplete,
+                    dailyRewardAudioClipName:
+                      shouldPlayFinalRewardAudioBeforeComplete
+                        ? 'reward_02'
+                        : 'reward',
+                    onRewardAudioComplete:
+                      shouldPlayFinalRewardAudioBeforeComplete
+                        ? finalRewardAudioWait?.resolve
+                        : undefined,
                   },
                 }),
               );
               await Util.updateUserReward();
+              if (finalRewardAudioWait) {
+                await finalRewardAudioWait.promise;
+                await delay(FINAL_HOMEWORK_REWARD_AUDIO_DELAY_MS);
+              }
               onComplete?.();
             };
             const rewardDiv = document.createElement('div');
@@ -1924,36 +2122,43 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           setHasTodayReward(false);
           sessionStorage.removeItem(HOMEWORK_REWARD_COMPLETED_INDEX_KEY);
           sessionStorage.removeItem(PENDING_HOMEWORK_REWARD_TRANSITION_KEY);
-          await updateMascotToNormalState(newRewardId as string);
-          await Util.updateUserReward();
+          void (async () => {
+            await updateMascotToNormalState(newRewardId as string);
+            await Util.updateUserReward();
+          })();
           if (hasPendingFinalHomeworkStickerFlow()) {
             finishFinalHomeworkStickerFlow();
           }
         }
 
         if (shouldRunRewardAnimation) {
-          runRewardAnimation(newRewardId, () => {
-            if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
-              window.setTimeout(() => {
-                handleStickerPreviewReady(
-                  stickerPreviewPayload,
-                  'pathway_completion_auto',
-                );
-              }, 0);
-            } else if (
-              didScheduleStickerCompletionPopup &&
-              !didDispatchStickerCompletionPopupImmediately &&
-              stickerCompletionPayload
-            ) {
-              window.setTimeout(() => {
-                window.dispatchEvent(
-                  new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
-                    detail: stickerCompletionPayload,
-                  }),
-                );
-              }, 0);
-            }
-          });
+          runRewardAnimation(
+            newRewardId,
+            isFinalRewardTransition &&
+              (willShowCelebration || didScheduleStickerCompletionPopup),
+            () => {
+              if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
+                window.setTimeout(() => {
+                  handleStickerPreviewReady(
+                    stickerPreviewPayload,
+                    'pathway_completion_auto',
+                  );
+                }, 0);
+              } else if (
+                didScheduleStickerCompletionPopup &&
+                !didDispatchStickerCompletionPopupImmediately &&
+                stickerCompletionPayload
+              ) {
+                window.setTimeout(() => {
+                  window.dispatchEvent(
+                    new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+                      detail: stickerCompletionPayload,
+                    }),
+                  );
+                }, 0);
+              }
+            },
+          );
         } else if (shouldOpenCelebrationPopup && stickerPreviewPayload) {
           window.setTimeout(() => {
             handleStickerPreviewReady(
@@ -2024,6 +2229,8 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           : localStorage.getItem(HOMEWORK_PATHWAY);
         const visualConfigSignature = [
           rewardBoxVariant ?? 'no-reward-box-variant',
+          sessionStorage.getItem(ACTIVATION_REWARD_FLOW_KEY) ??
+            'no-activation-reward-flow',
           isStickerBookPreviewOn ? 'preview-on' : 'preview-off',
           isStickerBookCelebrationPopupOn
             ? 'celebration-on'

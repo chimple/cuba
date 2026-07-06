@@ -16,6 +16,7 @@ import {
 } from '../common/constants';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import {
+  consolidatePalEnabledCourses,
   sortCoursesByStudentLanguage,
   useLearningPath,
 } from '../hooks/useLearningPath';
@@ -110,6 +111,12 @@ const LearningPathway: React.FC = () => {
           courses,
           student,
         );
+        const learningPathMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
+        const mode = learningPathMode ?? LEARNING_PATHWAY_MODE.DISABLED;
+        const pathwayCourses = await consolidatePalEnabledCourses(
+          sortedCourses,
+          mode,
+        );
         const learningPath = student.learning_path
           ? JSON.parse(student.learning_path)
           : null;
@@ -120,11 +127,9 @@ const LearningPathway: React.FC = () => {
                 ?.course_id
             : null;
         await updateCourseCodeFromSubject(selectedCourseId);
-        const learningPathMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
-        const mode = learningPathMode ?? LEARNING_PATHWAY_MODE.DISABLED;
         updateStarCount(student);
         await getPath({
-          courses: sortedCourses,
+          courses: pathwayCourses,
           mode,
           classId: currClass?.id,
         });
@@ -184,12 +189,7 @@ const LearningPathway: React.FC = () => {
       </div>
 
       <div className="chapter-egg-container">
-        <ChapterLessonBox
-          courseCode={courseCode}
-          containerStyle={{
-            width: '35vw',
-          }}
-        />
+        <ChapterLessonBox courseCode={courseCode} />
       </div>
     </div>
   );

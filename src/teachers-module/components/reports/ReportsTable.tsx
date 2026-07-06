@@ -199,6 +199,15 @@ const ReportTable: React.FC<ReportTableProps> = ({
       current_class?.id ?? '',
     );
     setSubjects(_subjects);
+
+    const baseSubjectOptions = _subjects.map((subject) => ({
+      id: subject.id,
+      name: subject.name,
+      icon: subject?.image || '/assets/icons/DefaultIcon.png',
+      subjectDetail: subject.name,
+      code: subject.code || '',
+    }));
+
     const curriculumIds = Array.from(
       new Set(_subjects.map((s) => s.curriculum_id)),
     );
@@ -211,22 +220,27 @@ const ReportTable: React.FC<ReportTableProps> = ({
     var current_course = Util.getCurrentCourse(current_class?.id);
     setSelectedSubject(current_course ?? _subjects[0]);
     const _chapters = await api.getChaptersForCourse(_subjects[0]?.id);
-    const [curriculums, grades] = await Promise.all([
+    const [curriculumsResult, gradesResult] = await Promise.allSettled([
       api.getCurriculumsByIds(filteredCurriculumIds),
       api.getGradesByIds(filteredGradeIds),
     ]);
     setChapters(_chapters);
     setSelectedChapter(_chapters[0]);
+    const curriculums =
+      curriculumsResult.status === 'fulfilled' ? curriculumsResult.value : [];
+    const grades =
+      gradesResult.status === 'fulfilled' ? gradesResult.value : [];
     const curriculumMap = new Map(curriculums.map((c) => [c.id, c]));
     const gradeMap = new Map(grades.map((g) => [g.id, g]));
-    const _mappedSubjectOptions = _subjects.map((subject) => {
-      const curriculum = curriculumMap.get(subject.curriculum_id ?? '');
-      const grade = gradeMap.get(subject.grade_id ?? '');
+    const _mappedSubjectOptions = baseSubjectOptions.map((subject) => {
+      const sourceSubject = _subjects.find((item) => item.id === subject.id);
+      const curriculum = curriculumMap.get(sourceSubject?.curriculum_id ?? '');
+      const grade = gradeMap.get(sourceSubject?.grade_id ?? '');
       return {
         id: subject.id,
         subjectDetail: `${subject.name} ${curriculum?.name ?? 'Unknown'}-${grade?.name ?? 'Unknown'}`,
         // icon: curriculum?.image,
-        icon: subject?.image || '/assets/icons/DefaultIcon.png',
+        icon: subject.icon,
         name: subject.name,
         code: subject.code || '',
       };

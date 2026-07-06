@@ -1,6 +1,7 @@
 import {
   buildAssignmentDrafts,
   buildRows,
+  getAssignmentEndDate,
   GradeAssignmentConfig,
   isAlternateWeekEnabled,
 } from './campaignAssignmentUtils';
@@ -138,5 +139,37 @@ describe('campaignAssignmentUtils buildRows', () => {
     expect(
       buildAssignmentDrafts(new Map([['grade-1', rows]]), ['school-1'], 'c-1'),
     ).toEqual([]);
+  });
+
+  it('sets assignment draft end dates one month after their start dates', () => {
+    const drafts = buildAssignmentDrafts(
+      new Map([
+        [
+          'grade-1',
+          [
+            {
+              rowId: 'row-1',
+              gradeId: 'grade-1',
+              courseId: 'course-1',
+              chapterId: 'chapter-1',
+              lessonId: 'lesson-1',
+              lessonNo: 1,
+              date: '2026-06-15',
+              lessonName: 'Lesson 1',
+              subjectName: 'Math',
+            },
+          ],
+        ],
+      ]),
+      ['school-1'],
+      'campaign-1',
+    );
+
+    expect(drafts[0].endsAt).toBe('2026-07-15');
+  });
+
+  it('clamps assignment end dates to the last day of the next month', () => {
+    expect(getAssignmentEndDate('2026-01-31')).toBe('2026-02-28');
+    expect(getAssignmentEndDate('2028-01-31')).toBe('2028-02-29');
   });
 });

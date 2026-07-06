@@ -90,6 +90,7 @@
   border-radius: 0.25rem !important;
   text-transform: none !important;
   font-size: 0.75rem !important;
+  font-weight: 700 !important;
   line-height: 1rem !important;
   box-shadow: none !important;
 }
@@ -138,20 +139,28 @@
   text-align: left !important;
 }
 
+.campaign-review-count {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
 .campaign-review-assignment-list,
 .campaign-review-message-list {
   display: flex;
   flex-direction: column;
 }
 
-.campaign-review-assignment-item,
+.campaign-review-assignment-item {
+  padding: 0.625rem 0;
+  border-bottom: 0.0625rem solid #edf0f4;
+}
+
 .campaign-review-message {
   padding: 0.625rem 0;
   border-bottom: 0.0625rem solid #edf0f4;
 }
 
-.campaign-review-assignment-item:first-child,
-.campaign-review-message:first-child {
+.campaign-review-assignment-item:first-child {
   padding-top: 0;
 }
 
@@ -162,27 +171,58 @@
 }
 
 .campaign-review-assignment-grade,
+.campaign-review-message-day {
+  color: var(--campaign-text);
+  font-size: 0.8125rem !important;
+  font-weight: 700 !important;
+  line-height: 1.125rem !important;
+  margin-bottom: 0 !important;
+}
+
+.campaign-review-message-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 0.375rem;
+}
+
 .campaign-review-message-date {
   color: var(--campaign-text);
   font-size: 0.8125rem !important;
   font-weight: 700 !important;
   line-height: 1.125rem !important;
-  margin-bottom: 0.25rem !important;
 }
 
 .campaign-review-assignment-detail,
 .campaign-review-message-line,
-.campaign-review-empty {
+.campaign-review-empty,
+.campaign-review-message-overflow {
   color: var(--campaign-muted);
   font-size: 0.8125rem !important;
   line-height: 1.125rem !important;
   overflow-wrap: anywhere;
 }
 
+.campaign-review-message-line strong {
+  color: var(--campaign-text);
+  font-weight: 700;
+}
+
+.campaign-review-message-line span {
+  color: var(--campaign-muted);
+}
+
 .campaign-review-reach {
   padding-bottom: 0.875rem;
   margin-bottom: 0.625rem;
   border-bottom: 0.0625rem solid #edf0f4;
+}
+
+.campaign-review-reach-values {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .campaign-review-subheading {
@@ -210,6 +250,88 @@
   margin-top: 0.875rem !important;
 }
 
+.campaign-review-reward-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.campaign-review-reward-item {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 0.875rem;
+  min-height: 1.625rem;
+  align-items: start;
+  padding: 0;
+  border-bottom: 0.0625rem solid #edf0f4;
+}
+
+.campaign-review-reward-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.campaign-review-rank-badge {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.campaign-review-rank-1 {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.campaign-review-rank-2 {
+  background: #eef2f7;
+  color: #64748b;
+}
+
+.campaign-review-rank-3 {
+  background: #ffedd5;
+  color: #ea580c;
+}
+
+.campaign-review-reward-copy {
+  min-width: 0;
+}
+
+.campaign-review-reward-rank-label {
+  color: var(--campaign-muted);
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  line-height: 1.625rem !important;
+}
+
+.campaign-review-reward-name {
+  color: var(--campaign-text);
+  font-size: 0.8125rem !important;
+  font-weight: 400 !important;
+  line-height: 1.625rem !important;
+  overflow-wrap: anywhere;
+}
+
+.campaign-review-reward-threshold {
+  display: none;
+  color: var(--campaign-text);
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
+}
+
+.campaign-review-reward-threshold-text {
+  font-weight: 600;
+}
+
+.campaign-review-message-overflow {
+  padding-top: 0.625rem;
+}
+
 @media (max-width: 56.25rem) {
   .campaign-review-step {
     padding: 1.5rem 0;
@@ -218,13 +340,13 @@
 
 @media (max-width: 48rem) {
   .campaign-review-step {
-    margin-top: 2.875rem;
     padding: 1.25rem 0 1.5rem;
   }
 
   .campaign-review-card-header {
     min-height: 3.25rem;
     padding: 0.75rem;
+    background: #eff6ff;
   }
 
   .campaign-review-card-body {
@@ -233,12 +355,139 @@
 
   .campaign-review-row {
     grid-template-columns: 1fr;
-    gap: 0;
-    padding: 0.375rem 0;
+    gap: 0.125rem;
+    padding: 0.75rem 0;
   }
 
   .campaign-review-row-label,
   .campaign-review-row-value {
     line-height: 1.25rem !important;
+  }
+
+  .campaign-review-row-label {
+    color: var(--campaign-text);
+  }
+
+  .campaign-review-row-value {
+    text-align: left !important;
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+  }
+
+  .campaign-review-assignment-item,
+  .campaign-review-assignment-detail,
+  .campaign-review-reach .campaign-review-subheading {
+    color: var(--campaign-text);
+  }
+
+  .campaign-review-reach .campaign-review-subheading {
+    text-transform: capitalize;
+  }
+
+  .campaign-review-communication-card .campaign-review-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    padding: 0.375rem 0;
+  }
+
+  .campaign-review-communication-card .campaign-review-row-value {
+    text-align: right !important;
+    font-size: 0.8125rem !important;
+  }
+
+  .campaign-review-reach-values {
+    display: flex;
+    justify-content: flex-start;
+    gap: 0.625rem;
+  }
+
+  .campaign-review-rank-badge {
+    display: inline-flex;
+  }
+
+  .campaign-review-reward-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3.25rem;
+    padding: 0.625rem 0;
+  }
+
+  .campaign-review-reward-rank-label,
+  .campaign-review-reward-threshold-text,
+  .campaign-review-reward-separator {
+    display: none;
+  }
+
+  .campaign-review-reward-name {
+    font-weight: 700 !important;
+    line-height: 1.125rem !important;
+  }
+
+  .campaign-review-reward-threshold {
+    display: block;
+  }
+
+  .campaign-review-reach-value {
+    width: 7.25rem;
+    min-height: 3.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 0.0625rem solid #c7ced8;
+    border-radius: 0.5rem;
+    color: var(--campaign-text);
+  }
+
+  .campaign-review-reach-value strong {
+    font-size: 1rem;
+    line-height: 1.25rem;
+  }
+
+  .campaign-review-message-list {
+    gap: 0.875rem;
+  }
+
+  .campaign-review-message {
+    padding: 0;
+    border-bottom: none;
+  }
+
+  .campaign-review-message-header {
+    display: block;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    background: #eff6ff;
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+
+  .campaign-review-message-date {
+    font-weight: 400 !important;
+  }
+
+  .campaign-review-message-line {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0 0.875rem 0.625rem;
+    color: var(--campaign-text);
+  }
+
+  .campaign-review-message-line span {
+    color: var(--campaign-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .campaign-review-message-line .campaign-review-label-colon {
+    display: none !important;
+  }
+
+  .campaign-review-message-overflow {
+    color: var(--campaign-text);
+    font-style: italic;
   }
 }

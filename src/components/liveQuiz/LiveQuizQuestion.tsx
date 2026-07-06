@@ -10,6 +10,7 @@ import './LiveQuizQuestion.css';
 import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';
 import {
+  BUNDLE_ZIP_URLS,
   PAGES,
   SOURCE,
   REWARD_LESSON,
@@ -22,6 +23,7 @@ import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import LiveQuizNavigationDots from './LiveQuizNavigationDots';
 import { schoolUtil } from '../../utility/schoolUtil';
 import logger from '../../utility/logger';
+import { getCachedGrowthBookFeatureValue } from '../../growthbook/Growthbook';
 import { getBundleZipUrlsForEnv } from '../../services/RemoteConfig';
 
 let questionInterval: ReturnType<typeof setInterval> | undefined;
@@ -351,7 +353,10 @@ const LiveQuizQuestion: FC<{
     /* =====================
      REMOTE FETCH (UNCHANGED)
      ===================== */
-    const remoteUrls = getBundleZipUrlsForEnv();
+    const remoteUrls = getCachedGrowthBookFeatureValue<string[]>(
+      BUNDLE_ZIP_URLS,
+      getBundleZipUrlsForEnv(),
+    );
 
     for (const baseUrl of remoteUrls) {
       try {

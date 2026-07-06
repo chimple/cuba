@@ -17,7 +17,6 @@ import { Util } from '../../../../utility/util';
 import { useHistory } from 'react-router';
 import i18n, { t } from 'i18next';
 import { ServiceConfig } from '../../../../services/ServiceConfig';
-import { RoleType } from '../../../../interface/modelInterfaces';
 import { TeacherAssignmentPageType } from './TeacherAssignment';
 import CommonDialogBox from '../../../../common/CommonDialogBox';
 import Loading from '../../../../components/Loading';
@@ -84,6 +83,7 @@ interface CreateSelectedAssignmentProps {
   selectedAssignments: SelectedAssignments;
   manualAssignments: AssignmentLookup;
   recommendedAssignments: AssignmentLookup;
+  onInteractionLockChange?: (isLocked: boolean) => void;
 }
 
 type RewardAnimationState = {
@@ -100,6 +100,7 @@ const CreateSelectedAssignment = ({
   selectedAssignments,
   manualAssignments,
   recommendedAssignments,
+  onInteractionLockChange,
 }: CreateSelectedAssignmentProps) => {
   const FIRST_ASSIGNMENT_REWARD = 50;
   const SUBSEQUENT_ASSIGNMENT_REWARD = 25;
@@ -107,6 +108,7 @@ const CreateSelectedAssignment = ({
   const REWARD_FLIGHT_DURATION_MS = 1600;
   const FLAME_PULSE_DURATION_MS = 1000;
   const STREAK_LANDING_LEFT_OFFSET_PX = 30;
+  const REWARD_INDICATOR_EDGE_PADDING_PX = 2;
 
   const history = useHistory();
   const [startDate, setStartDate] = useState('');
@@ -139,11 +141,17 @@ const CreateSelectedAssignment = ({
     isFlying: false,
   });
   const assignButtonRef = useRef<HTMLButtonElement | null>(null);
+  const rewardIndicatorRef = useRef<HTMLDivElement | null>(null);
+  const isInteractionLocked = isAssigning || rewardAnimation.visible;
 
   useEffect(() => {
     init();
     assignmentsInfo();
   }, []);
+
+  useEffect(() => {
+    onInteractionLockChange?.(isInteractionLocked);
+  }, [isInteractionLocked, onInteractionLockChange]);
 
   const init = async () => {
     let todayDate = new Date().toISOString().slice(0, 10);
@@ -317,6 +325,10 @@ const CreateSelectedAssignment = ({
   };
 
   const toggleCollapse = (category: string) => {
+    if (isInteractionLocked) {
+      return;
+    }
+
     setGroupWiseStudents((bandStudents: GroupWiseStudents) => ({
       ...bandStudents,
       [category]: {
@@ -327,6 +339,10 @@ const CreateSelectedAssignment = ({
   };
 
   const toggleSelectAll = () => {
+    if (isInteractionLocked) {
+      return;
+    }
+
     const newAllSelected = !allSelected;
     setAllSelected(newAllSelected);
     // Update all bands' students' selection state
@@ -345,6 +361,10 @@ const CreateSelectedAssignment = ({
   };
 
   const toggleStudentSelection = (category: string, index: number) => {
+    if (isInteractionLocked) {
+      return;
+    }
+
     setGroupWiseStudents((bandStudents: GroupWiseStudents) => {
       const updatedBands = { ...bandStudents };
       const students = [...updatedBands[category].students];
@@ -485,13 +505,22 @@ const CreateSelectedAssignment = ({
     const pause = (ms: number) =>
       new Promise((resolve) => window.setTimeout(resolve, ms));
 
-    const getRewardForAssignment = async (): Promise<number> => {
+    const getRewardForAssignment = async (
+      classId: string,
+      schoolId: string,
+    ): Promise<{
+      rewardValue: number;
+      streakIncrement: number;
+    }> => {
       try {
         const currentUser = await auth.getCurrentUser();
         const userId = currentUser?.id;
 
         if (!userId) {
-          return SUBSEQUENT_ASSIGNMENT_REWARD;
+          return {
+            rewardValue: SUBSEQUENT_ASSIGNMENT_REWARD,
+            streakIncrement: 0,
+          };
         }
 
         const today = new Date();
@@ -506,13 +535,26 @@ const CreateSelectedAssignment = ({
             weekStart.toISOString(),
             today.toISOString(),
           );
+        const currentStreak =
+          (await api.getCoinAndStreakCount(userId, classId, schoolId))
+            ?.streak ?? 0;
 
-        return weekBatchRows.length <= 0
-          ? FIRST_ASSIGNMENT_REWARD
-          : SUBSEQUENT_ASSIGNMENT_REWARD;
+        const isFirstAssignmentOfWeek = weekBatchRows.length <= 0;
+        const shouldIncrementStreak =
+          isFirstAssignmentOfWeek || currentStreak <= 0;
+
+        return {
+          rewardValue: isFirstAssignmentOfWeek
+            ? FIRST_ASSIGNMENT_REWARD
+            : SUBSEQUENT_ASSIGNMENT_REWARD,
+          streakIncrement: shouldIncrementStreak ? 1 : 0,
+        };
       } catch (error) {
         logger.error('Error calculating weekly assignment reward:', error);
-        return SUBSEQUENT_ASSIGNMENT_REWARD;
+        return {
+          rewardValue: SUBSEQUENT_ASSIGNMENT_REWARD,
+          streakIncrement: 0,
+        };
       }
     };
 
@@ -554,11 +596,24 @@ const CreateSelectedAssignment = ({
         return;
       }
 
-      const deltaX =
-        streakRect.left +
-        streakRect.width / 2 -
-        STREAK_LANDING_LEFT_OFFSET_PX -
-        startX;
+      const rewardRect = rewardIndicatorRef.current?.getBoundingClientRect();
+      const viewportWidth = Math.min(
+        window.innerWidth,
+        window.visualViewport?.width ?? window.innerWidth,
+        document.documentElement.clientWidth || window.innerWidth,
+      );
+      const targetX = Math.max(
+        REWARD_INDICATOR_EDGE_PADDING_PX,
+        Math.min(
+          streakRect.left +
+            streakRect.width / 2 -
+            STREAK_LANDING_LEFT_OFFSET_PX,
+          viewportWidth -
+            (rewardRect?.width ?? 66) -
+            REWARD_INDICATOR_EDGE_PADDING_PX,
+        ),
+      );
+      const deltaX = targetX - startX;
       const deltaY = streakRect.top + streakRect.height / 2 - startY;
 
       setRewardAnimation((prev) => ({
@@ -644,18 +699,22 @@ const CreateSelectedAssignment = ({
         const currUser = await auth.getCurrentUser();
         if (!currUser || !current_class) return;
 
-        const assignerRole = await api.getUserRoleForSchool(
-          currUser.id,
-          current_class.school_id,
+        const classTeachers =
+          (await api.getTeachersForClass(current_class.id)) ?? [];
+        const isTeacherAssigner = classTeachers.some(
+          (teacher) => teacher.id === currUser.id,
         );
-        const isTeacherAssigner = assignerRole === RoleType.TEACHER;
         let rewardValue = SUBSEQUENT_ASSIGNMENT_REWARD;
         let streakIncrement = 0;
         if (isTeacherAssigner) {
           // Calculate reward before creating this batch, so the current
           // assignment is not included in "this week's" existing count.
-          rewardValue = await getRewardForAssignment();
-          streakIncrement = rewardValue === FIRST_ASSIGNMENT_REWARD ? 1 : 0;
+          const reward = await getRewardForAssignment(
+            current_class.id,
+            current_class.school_id,
+          );
+          rewardValue = reward.rewardValue;
+          streakIncrement = reward.streakIncrement;
         }
 
         const previous_sync_lesson = currUser?.id
@@ -838,7 +897,17 @@ const CreateSelectedAssignment = ({
   };
 
   return !isLoading ? (
-    <div className="assignments-container">
+    <div
+      className={`assignments-container ${
+        isInteractionLocked ? 'assignment-interaction-lock-active' : ''
+      }`.trim()}
+    >
+      {isInteractionLocked && (
+        <div
+          className="assignment-interaction-lock-overlay"
+          aria-hidden="true"
+        />
+      )}
       <div id="assignment-success-dialog">
         <CommonDialogBox
           header={t('Assignments are assigned Successfully.') ?? ''}
@@ -887,6 +956,9 @@ const CreateSelectedAssignment = ({
                 ) : (
                   <span
                     onClick={() => {
+                      if (isInteractionLocked) {
+                        return;
+                      }
                       setShowStartDatePicker(true);
                     }}
                   >
@@ -920,6 +992,9 @@ const CreateSelectedAssignment = ({
                 ) : (
                   <span
                     onClick={() => {
+                      if (isInteractionLocked) {
+                        return;
+                      }
                       setShowEndDatePicker(true);
                     }}
                   >
@@ -987,6 +1062,10 @@ const CreateSelectedAssignment = ({
                     // checked={true}
                     onClick={(e) => e.stopPropagation()}
                     onChange={() => {
+                      if (isInteractionLocked) {
+                        return;
+                      }
+
                       const allSelected = groupWiseStudents[
                         category
                       ].students.every(
@@ -1042,6 +1121,7 @@ const CreateSelectedAssignment = ({
 
         {rewardAnimation.visible && (
           <div
+            ref={rewardIndicatorRef}
             className={`assign-reward-indicator ${rewardAnimation.isFlying ? 'is-flying' : ''}`}
             style={{
               left: `${rewardAnimation.x}px`,
@@ -1061,7 +1141,9 @@ const CreateSelectedAssignment = ({
         <button
           ref={assignButtonRef}
           className="assign-selected-button"
-          disabled={(selectedAssignments.length ?? 0) > 0 || isAssigning}
+          disabled={
+            (selectedAssignments.length ?? 0) > 0 || isInteractionLocked
+          }
           onClick={createAssignmentsForStudents}
         >
           {t('Assign')}

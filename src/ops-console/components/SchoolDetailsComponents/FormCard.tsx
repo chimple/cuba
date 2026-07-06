@@ -5,7 +5,7 @@ import 'react-international-phone/style.css';
 import { t } from 'i18next';
 import CheckIcon from '@mui/icons-material/Check';
 
-export type FieldKind = 'text' | 'email' | 'phone' | 'select';
+export type FieldKind = 'text' | 'email' | 'phone' | 'select' | 'chips';
 export type FieldColumn = 0 | 1 | 2; // 0 = left, 1 = right, 2 = full row
 
 export interface FieldConfig {
@@ -48,6 +48,7 @@ const FormCard: React.FC<EntityModalProps> = ({
   onSubmit,
   message,
   initialValues,
+  disabled = false,
 }) => {
   const [values, setValues] = useState<Record<string, string>>({});
   const [openSelect, setOpenSelect] = useState<string | null>(null);
@@ -91,6 +92,9 @@ const FormCard: React.FC<EntityModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (disabled) {
+      return;
+    }
     onSubmit(values);
   };
 
@@ -375,6 +379,28 @@ const FormCard: React.FC<EntityModalProps> = ({
           />
         );
 
+      case 'chips': {
+        // Chips are supplied as a "/" joined string from read-only form values.
+        const chips = (values[field.name] ?? '')
+          .split('/')
+          .map((value) => value.trim())
+          .filter(Boolean);
+
+        return (
+          <div className="formcard-chip-list" id={field.name}>
+            {chips.map((chip, index) => (
+              <span
+                key={`${chip}-${index}`}
+                className="formcard-value-chip"
+                title={chip}
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
+        );
+      }
+
       case 'text':
       default:
         return (
@@ -451,7 +477,7 @@ const FormCard: React.FC<EntityModalProps> = ({
             <button
               type="submit"
               className="formcard-btn formcard-btn-primary"
-              disabled={isEditMode && !isDirty}
+              disabled={disabled || (isEditMode && !isDirty)}
             >
               {submitLabel}
             </button>

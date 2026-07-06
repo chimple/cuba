@@ -6,7 +6,9 @@ import {
   capSQLiteResult,
   capSQLiteVersionUpgrade,
 } from '@capacitor-community/sqlite';
+import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
+import { LiveUpdate } from '@capawesome/capacitor-live-update';
 import { v4 as uuidv4 } from 'uuid';
 import {
   AVATARS,
@@ -45,6 +47,7 @@ import {
   RESULT_STATUS,
   REWARD_LEARNING_PATH,
   REWARD_LESSON,
+  STUDENT_RESULT,
   RequestTypes,
   SCHOOL,
   STATUS,
@@ -80,6 +83,7 @@ import {
 } from '../../ops-console/pages/NewUserPageOps';
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
+import { setGlobalLoading } from '../../redux/slices/auth/authSlice';
 import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
@@ -116,12 +120,61 @@ import {
   ServiceApi,
 } from './ServiceApi';
 import { SupabaseApi } from './SupabaseApi';
+import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
+
+type ImportJsonTable = {
+  name: string;
+  schema?: unknown[];
+  values?: unknown[][];
+  indexes?: unknown[];
+  triggers?: unknown[];
+};
+
+type ImportJsonData = {
+  database: string;
+  version: number;
+  encrypted: boolean;
+  mode: string;
+  tables: ImportJsonTable[];
+  views?: unknown[];
+  overwrite?: boolean;
+};
+
 export class SqliteApi implements ServiceApi {
   public static i: SqliteApi;
   private _db: SQLiteDBConnection | undefined;
   private _sqlite: SQLiteConnection | undefined;
   private DB_NAME = 'db_issue10';
   private DB_VERSION = 15;
+  // Tracks the native shell plus active hot-update bundle so new bundled data is imported once per app asset version.
+  private BUNDLED_IMPORT_APP_VERSION_KEY = 'bundledImportAppVersion';
+  private BUNDLED_IMPORT_PULL_SYNC_TABLE = 'pull_sync_info';
+  private BUNDLED_IMPORT_TABLES = new Set<string>([
+    TABLES.Curriculum,
+    TABLES.Subject,
+    TABLES.Grade,
+    TABLES.Language,
+    TABLES.Badge,
+    TABLES.Course,
+    TABLES.Sticker,
+    TABLES.Reward,
+    TABLES.Chapter,
+    TABLES.Lesson,
+    TABLES.ChapterLesson,
+    TABLES.ChapterLinks,
+    TABLES.RiveReward,
+    TABLES.Framework,
+    TABLES.Domain,
+    TABLES.Competency,
+    TABLES.Outcome,
+    TABLES.Skill,
+    TABLES.SkillRelation,
+    TABLES.SkillLesson,
+    TABLES.SubjectLesson,
+    TABLES.LanguageLocale,
+    TABLES.Locale,
+    TABLES.StickerBook,
+  ]);
   private _serverApi: SupabaseApi;
   private _currentMode: MODES;
   private _currentStudent: TableTypes<'user'> | undefined;
@@ -140,6 +193,7 @@ export class SqliteApi implements ServiceApi {
   private _retryRefreshTables: TABLES[] = [];
   private _postSyncAssetPrefetchScheduled: boolean = false;
   private _postSyncAssetPrefetchRequestedAt: number | null = null;
+  private _shouldImportBundledDataAfterUpgrade: boolean = false;
 
   private _cachedRewards: TableTypes<'rive_reward'>[] | undefined;
 
@@ -308,6 +362,7 @@ export class SqliteApi implements ServiceApi {
         );
 
         await this._sqlite.addUpgradeStatement(this.DB_NAME, upgradeStatements);
+        this._shouldImportBundledDataAfterUpgrade = true;
 
         localStorage.setItem(
           CURRENT_SQLITE_VERSION,
@@ -336,6 +391,38 @@ export class SqliteApi implements ServiceApi {
       throw err;
     }
     await this.setUpDatabase();
+  }
+
+  public async close(): Promise<void> {
+    if (this._initPromise) {
+      try {
+        await this._initPromise;
+      } catch (error) {
+        logger.error(
+          'Error waiting for SQLite initialization before close:',
+          error,
+        );
+      }
+    }
+
+    const db = this._db;
+    const sqlite = this._sqlite;
+    if (!db || !sqlite) return;
+
+    try {
+      await db.close();
+    } catch (error) {
+      logger.error('Error closing SQLite database:', error);
+    }
+
+    try {
+      await sqlite.closeConnection(this.DB_NAME, false);
+    } catch (error) {
+      logger.error('Error closing SQLite connection:', error);
+    } finally {
+      this.resetDbHandles();
+      this._initPromise = null;
+    }
   }
 
   private async setUpDatabase() {
@@ -371,6 +458,11 @@ export class SqliteApi implements ServiceApi {
             CURRENT_SQLITE_VERSION,
             this.DB_VERSION.toString(),
           );
+          // Fresh installs already imported the bundled data, so record the marker to avoid re-importing on the next launch.
+          localStorage.setItem(
+            this.BUNDLED_IMPORT_APP_VERSION_KEY,
+            await this.getCurrentAppVersionMarker(),
+          );
           logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ resImport:', resImport);
 
           // Keep current web behavior; avoid native full page reload on first import.
@@ -383,6 +475,17 @@ export class SqliteApi implements ServiceApi {
         }
       } catch (error) {
         logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
+      }
+    } else {
+      try {
+        store.dispatch(setGlobalLoading(true));
+        logger.warn(
+          '🚀 ~ SqliteApi ~ Updating Local Database from import.json after app update',
+        );
+        await this.importBundledDataAfterUpgrade();
+      } finally {
+        store.dispatch(setGlobalLoading(false));
+        logger.warn('🚀 ~ SqliteApi ~ Local Database update complete');
       }
     }
     if (this._syncTableData) {
@@ -412,6 +515,370 @@ export class SqliteApi implements ServiceApi {
     }
 
     await this.checkAndSyncData();
+  }
+
+  private async importBundledDataAfterUpgrade(): Promise<void> {
+    if (!this._db || !this._sqlite) return;
+
+    const currentAppVersion = await this.getCurrentAppVersionMarker();
+    const storedAppVersion = localStorage.getItem(
+      this.BUNDLED_IMPORT_APP_VERSION_KEY,
+    );
+    // Import after db.open() when either schema migrations ran or a newer bundled app asset version is active.
+    const shouldImport =
+      this._shouldImportBundledDataAfterUpgrade ||
+      this.shouldImportBundledDataForAppVersion(
+        storedAppVersion,
+        currentAppVersion,
+      );
+
+    if (!shouldImport) return;
+
+    try {
+      const importData = await fetch('databases/import.json');
+      if (!importData || !importData.ok) {
+        logger.warn(
+          'SqliteApi: Unable to fetch bundled import.json for app update import.',
+          {
+            status: importData?.status,
+            statusText: importData?.statusText,
+          },
+        );
+        return;
+      }
+      logger.warn(
+        'SqliteApi: Fetched bundled import.json for app update import.',
+        {
+          status: importData.status,
+        },
+      );
+
+      const importJson = ((await importData.json()) ?? {}) as ImportJsonData;
+      const tables = (importJson.tables ?? []).filter(
+        (table) =>
+          this.BUNDLED_IMPORT_TABLES.has(table.name) &&
+          (table.values?.length ?? 0) > 0,
+      );
+
+      if (tables.length === 0) {
+        this._shouldImportBundledDataAfterUpgrade = false;
+        // Empty eligible data is still a completed check for this app asset version.
+        localStorage.setItem(
+          this.BUNDLED_IMPORT_APP_VERSION_KEY,
+          currentAppVersion,
+        );
+        return;
+      }
+
+      const bundledPullSyncInfo = this.getBundledPullSyncInfo(importJson);
+      const importedTableNames = await this.upsertBundledImportTables(tables);
+      await this.markBundledImportTablesPulled(
+        importedTableNames,
+        bundledPullSyncInfo,
+      );
+
+      if (!Capacitor.isNativePlatform()) {
+        await this._sqlite.saveToStore(this.DB_NAME);
+      }
+
+      this._shouldImportBundledDataAfterUpgrade = false;
+      // Store only after successful local ingestion so failed imports retry on the next launch.
+      localStorage.setItem(
+        this.BUNDLED_IMPORT_APP_VERSION_KEY,
+        currentAppVersion,
+      );
+      logger.info(
+        '🚀 ~ SqliteApi ~ importBundledDataAfterUpgrade ~ imported tables:',
+        importedTableNames,
+      );
+    } catch (error) {
+      logger.error(
+        '🚀 ~ SqliteApi ~ importBundledDataAfterUpgrade ~ error:',
+        error,
+      );
+    }
+  }
+
+  private async getCurrentAppVersionMarker(): Promise<string> {
+    if (!Capacitor.isNativePlatform()) {
+      return `web-sqlite-${this.DB_VERSION}`;
+    }
+
+    try {
+      const appInfo = await App.getInfo();
+      const version = appInfo.version || `native-sqlite-${this.DB_VERSION}`;
+      // LiveUpdate can replace import.json without changing the native APK version, so include the active bundle id.
+      const bundleId = await this.getCurrentLiveUpdateBundleId();
+      const nativeMarker = appInfo.build
+        ? `${version}|${appInfo.build}`
+        : version;
+      return bundleId ? `${nativeMarker}|${bundleId}` : nativeMarker;
+    } catch (error) {
+      logger.warn(
+        'SqliteApi: Unable to read native app version for bundled import marker.',
+        error,
+      );
+      return `native-sqlite-${this.DB_VERSION}`;
+    }
+  }
+
+  private async getCurrentLiveUpdateBundleId(): Promise<string | undefined> {
+    try {
+      const bundle = await LiveUpdate.getCurrentBundle();
+      return bundle.bundleId || undefined;
+    } catch (error) {
+      logger.warn(
+        'SqliteApi: Unable to read LiveUpdate bundle for bundled import marker.',
+        error,
+      );
+      return undefined;
+    }
+  }
+
+  private shouldImportBundledDataForAppVersion(
+    storedAppVersion: string | null,
+    currentAppVersion: string,
+  ): boolean {
+    // Web keeps its existing fresh-import behavior; this marker is only for native app/hot-update assets.
+    if (!Capacitor.isNativePlatform()) return false;
+    // Old installs will not have this key, so run once to align local SQLite with the bundled import.
+    if (!storedAppVersion) return true;
+
+    // A different marker should import only when it is newer, preventing old APKs from re-importing after rollback.
+    return (
+      this.compareAppVersionMarkers(currentAppVersion, storedAppVersion) > 0
+    );
+  }
+
+  private compareAppVersionMarkers(current: string, stored: string): number {
+    // Parse both markers so native version/build can be compared before considering hot-update bundle changes.
+    const currentVersion = this.parseAppVersionMarker(current);
+    const storedVersion = this.parseAppVersionMarker(stored);
+
+    // If either marker is not parseable, avoid importing on unknown differences because that could re-run on rollback.
+    if (!currentVersion || !storedVersion) {
+      return current === stored ? 0 : -1;
+    }
+
+    // Version strings can have different lengths, so compare missing parts as zero: 3.5 equals 3.5.0.
+    const versionLength = Math.max(
+      currentVersion.versionParts.length,
+      storedVersion.versionParts.length,
+    );
+
+    // Native version decides whether this is an upgrade or rollback before build or bundle checks.
+    for (let index = 0; index < versionLength; index++) {
+      const currentPart = currentVersion.versionParts[index] ?? 0;
+      const storedPart = storedVersion.versionParts[index] ?? 0;
+      if (currentPart !== storedPart) return currentPart - storedPart;
+    }
+
+    // Build number catches same-version native releases.
+    const buildComparison = currentVersion.build - storedVersion.build;
+    if (buildComparison !== 0) return buildComparison;
+
+    // Same native build and same hot-update bundle means this import already completed.
+    if (currentVersion.bundleId === storedVersion.bundleId) return 0;
+    // If the active bundle cannot be read, do not import repeatedly on an unknown bundle state.
+    if (!currentVersion.bundleId) return 0;
+
+    // Same native build with a different active LiveUpdate bundle means import.json may have changed.
+    return 1;
+  }
+
+  private parseAppVersionMarker(
+    marker: string,
+  ): { versionParts: number[]; build: number; bundleId?: string } | undefined {
+    // Current markers use pipes so semantic versions like 3.5.0 and bundle ids stay separate.
+    const markerParts = marker.split('|');
+    // First segment is the native version because native downgrade protection must be checked first.
+    let versionMarker = markerParts[0] ?? '';
+    // Second segment is the native build number when App.getInfo() provides it.
+    let buildMarker = markerParts[1] ?? '';
+    // Remaining segments belong to the LiveUpdate bundle id, which can contain arbitrary characters.
+    const bundleId =
+      markerParts.length > 2 ? markerParts.slice(2).join('|') : undefined;
+
+    // Earlier marker format used version-build, so keep parsing it to avoid forcing a one-time false update.
+    if (markerParts.length === 1) {
+      const legacyBuildSeparatorIndex = marker.lastIndexOf('-');
+      const legacyBuildMarker = marker.slice(legacyBuildSeparatorIndex + 1);
+
+      // Treat the suffix as a build only when it is numeric; otherwise it may be part of a version label.
+      if (legacyBuildSeparatorIndex > -1 && /^\d+$/.test(legacyBuildMarker)) {
+        versionMarker = marker.slice(0, legacyBuildSeparatorIndex);
+        buildMarker = legacyBuildMarker;
+      }
+    }
+
+    // Extract numeric version pieces so 3.5.0, v3.5.0, and similar native strings compare consistently.
+    const versionParts =
+      versionMarker.match(/\d+/g)?.map((part) => Number(part)) ?? [];
+    // Without numeric version parts we cannot safely decide upgrade versus rollback.
+    if (versionParts.length === 0) return undefined;
+
+    // Missing or malformed build should behave like build 0 instead of blocking app-version comparison.
+    const build = buildMarker ? Number(buildMarker) : 0;
+
+    return {
+      versionParts,
+      build: Number.isFinite(build) ? build : 0,
+      bundleId,
+    };
+  }
+
+  private quoteSqlIdentifier(identifier: string): string {
+    return `"${identifier.replace(/"/g, '""')}"`;
+  }
+
+  private getBundledPullSyncInfo(
+    importJson: ImportJsonData,
+  ): Map<string, string> {
+    const pullSyncTable = (importJson.tables ?? []).find(
+      (table) => table.name === this.BUNDLED_IMPORT_PULL_SYNC_TABLE,
+    );
+    if (!pullSyncTable) return new Map();
+
+    const getColumnName = (column: unknown): string | undefined =>
+      typeof column === 'object' &&
+      column !== null &&
+      'column' in column &&
+      typeof column.column === 'string'
+        ? column.column
+        : undefined;
+
+    const tableNameIndex = (pullSyncTable.schema ?? []).findIndex(
+      (column) => getColumnName(column) === 'table_name',
+    );
+    const lastPulledIndex = (pullSyncTable.schema ?? []).findIndex(
+      (column) => getColumnName(column) === 'last_pulled',
+    );
+
+    if (tableNameIndex < 0 || lastPulledIndex < 0) return new Map();
+
+    const bundledPullSyncInfo = new Map<string, string>();
+    for (const row of pullSyncTable.values ?? []) {
+      const tableName = row[tableNameIndex];
+      const lastPulled = row[lastPulledIndex];
+      if (typeof tableName === 'string' && typeof lastPulled === 'string') {
+        bundledPullSyncInfo.set(tableName, lastPulled);
+      }
+    }
+
+    return bundledPullSyncInfo;
+  }
+
+  private async upsertBundledImportTables(
+    tables: ImportJsonTable[],
+  ): Promise<string[]> {
+    if (!this._db) return [];
+
+    const importedTableNames: string[] = [];
+    const batchSize = this.getSyncWriteTuning().defaultBatchSize;
+
+    for (const table of tables) {
+      const schema = table.schema ?? [];
+      const values = table.values ?? [];
+      if (schema.length === 0 || values.length === 0) continue;
+
+      const importColumns = schema
+        .map((column) =>
+          typeof column === 'object' &&
+          column !== null &&
+          'column' in column &&
+          typeof column.column === 'string'
+            ? column.column
+            : undefined,
+        )
+        .filter((column): column is string => !!column);
+      if (importColumns.length === 0) continue;
+
+      const columns = await this.getTableColumns(table.name);
+      if (!columns) continue;
+      const existingColumns = new Set(columns);
+      const columnIndexes = importColumns
+        .map((column, index) => ({ column, index }))
+        .filter(({ column }) => existingColumns.has(column));
+      if (columnIndexes.length === 0) continue;
+
+      const conflictColumn =
+        columnIndexes.find(({ column }) => column === 'id')?.column ??
+        columnIndexes[0].column;
+      const insertColumns = columnIndexes.map(({ column }) => column);
+      const quotedTableName = this.quoteSqlIdentifier(table.name);
+      const quotedInsertColumns = insertColumns
+        .map((column) => this.quoteSqlIdentifier(column))
+        .join(', ');
+      const placeholders = insertColumns.map(() => '?').join(', ');
+      // Primary path matches the required bundled-data upsert behavior without guessing a conflict target.
+      const statement = `INSERT OR REPLACE INTO ${quotedTableName} (${quotedInsertColumns}) VALUES (${placeholders});`;
+      const updateColumns = insertColumns.filter(
+        (column) => column !== conflictColumn,
+      );
+      const conflictClause =
+        updateColumns.length > 0
+          ? `DO UPDATE SET ${updateColumns
+              .map((column) => {
+                const quotedColumn = this.quoteSqlIdentifier(column);
+                return `${quotedColumn} = excluded.${quotedColumn}`;
+              })
+              .join(', ')}`
+          : 'DO NOTHING';
+      const fallbackStatement = `INSERT INTO ${quotedTableName} (${quotedInsertColumns}) VALUES (${placeholders}) ON CONFLICT(${this.quoteSqlIdentifier(
+        conflictColumn,
+      )}) ${conflictClause};`;
+
+      for (let offset = 0; offset < values.length; offset += batchSize) {
+        const rows = values.slice(offset, offset + batchSize);
+        const buildBatch = (sqlStatement: string): SqlStatement[] =>
+          rows.map((row) => ({
+            statement: sqlStatement,
+            values: columnIndexes.map(({ index }) =>
+              this.normalizeSqliteValue(row[index]),
+            ),
+          }));
+
+        try {
+          await this.executeSqlStatementBatch(buildBatch(statement));
+        } catch (error) {
+          logger.warn(
+            'SqliteApi: INSERT OR REPLACE bundled import failed. Retrying with conflict upsert.',
+            error,
+          );
+          // Keep the previous conflict-upsert path as a compatibility fallback if INSERT OR REPLACE fails.
+          await this.executeSqlStatementBatch(buildBatch(fallbackStatement));
+        }
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+      }
+
+      importedTableNames.push(table.name);
+    }
+
+    return importedTableNames;
+  }
+
+  private async markBundledImportTablesPulled(
+    tableNames: string[],
+    bundledPullSyncInfo: Map<string, string>,
+  ): Promise<void> {
+    if (!this._db || tableNames.length === 0) return;
+
+    const fallbackLastPulled = new Date().toISOString();
+    const statements = tableNames.map((tableName) => ({
+      statement:
+        'INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)',
+      values: [
+        tableName,
+        bundledPullSyncInfo.get(tableName) ?? fallbackLastPulled,
+      ],
+    }));
+
+    await this.executeSqlStatementBatch(statements);
+
+    for (const tableName of tableNames) {
+      delete this._syncTableData[tableName];
+      this._tablesNeedingFullSync.delete(tableName);
+    }
   }
 
   private async checkAndSyncData() {
@@ -526,6 +993,16 @@ export class SqliteApi implements ServiceApi {
   ) {
     if (!this._db || batch.length === 0) return;
     await this._db.executeSet(batch as any, useImplicitTransaction);
+  }
+
+  private async isSqliteTransactionActive(): Promise<boolean> {
+    if (!this._db) return false;
+
+    try {
+      return (await this._db.isTransactionActive()).result === true;
+    } catch {
+      return false;
+    }
   }
 
   private schedulePostSyncAssetPrefetch(): void {
@@ -680,7 +1157,11 @@ export class SqliteApi implements ServiceApi {
     });
   }
 
-  private async pullChanges(tableNames: TABLES[], isFirstSync?: boolean) {
+  private async pullChanges(
+    tableNames: TABLES[],
+    isFirstSync?: boolean,
+    isRefreshSync = false,
+  ): Promise<void> {
     if (!this._db) return;
 
     const isInitialFetch = isFirstSync;
@@ -814,11 +1295,17 @@ export class SqliteApi implements ServiceApi {
     const beginSyncWriteTransaction = async () => {
       if (!this._db || syncWriteTransactionOpen) return;
       await this._db.beginTransaction();
-      syncWriteTransactionOpen = true;
+      syncWriteTransactionOpen = await this.isSqliteTransactionActive();
     };
 
     const commitSyncWriteTransaction = async () => {
       if (!this._db || !syncWriteTransactionOpen) return;
+      const isTransactionActive = await this.isSqliteTransactionActive();
+      if (!isTransactionActive) {
+        syncWriteTransactionOpen = false;
+        webStoreDirty = false;
+        return;
+      }
       await this._db.commitTransaction();
       syncWriteTransactionOpen = false;
       if (isWebPlatform && webStoreDirty) {
@@ -830,7 +1317,9 @@ export class SqliteApi implements ServiceApi {
     const rollbackSyncWriteTransaction = async () => {
       if (!this._db || !syncWriteTransactionOpen) return;
       try {
-        await this._db.rollbackTransaction();
+        if (await this.isSqliteTransactionActive()) {
+          await this._db.rollbackTransaction();
+        }
       } finally {
         syncWriteTransactionOpen = false;
         webStoreDirty = false;
@@ -905,7 +1394,6 @@ export class SqliteApi implements ServiceApi {
             VALUES ${valuesPlaceholders}
             ON CONFLICT(id) DO UPDATE SET
             ${updateSetClause}
-            WHERE excluded.updated_at > ${tableName}.updated_at;
             `
               : `
             INSERT INTO ${tableName} (${currentFieldNames.join(', ')})
@@ -986,7 +1474,7 @@ export class SqliteApi implements ServiceApi {
       this._cachedRewards = undefined;
     }
 
-    if (!isInitialFetch) {
+    if (!isInitialFetch && !isRefreshSync) {
       const new_school = data.get(TABLES.School);
       const school_user_data = data.get(TABLES.SchoolUser);
       const hasSelectionUpdates =
@@ -994,8 +1482,7 @@ export class SqliteApi implements ServiceApi {
         (school_user_data?.length ?? 0) > 0 ||
         (data.get(TABLES.Class)?.length ?? 0) > 0 ||
         (data.get(TABLES.ClassUser)?.length ?? 0) > 0;
-
-      if (new_school && new_school?.length > 0) {
+      if ((new_school && new_school?.length > 0) || hasSelectionUpdates) {
         const localSchoolRaw = localStorage.getItem(SCHOOL);
 
         if (localSchoolRaw) {
@@ -1024,9 +1511,12 @@ export class SqliteApi implements ServiceApi {
             logger.info('local school removed because school_user is_deleted');
           }
         }
+        // Selection updates need one follow-up refresh, but refresh syncs must
+        // not request themselves again or syncDbNow can loop indefinitely.
         await this.syncDbNow(Object.values(TABLES), [
           TABLES.Assignment,
           TABLES.Assignment_user,
+          TABLES.School,
           TABLES.SchoolCourse,
           TABLES.Class,
           TABLES.ClassInvite_code,
@@ -1181,9 +1671,10 @@ export class SqliteApi implements ServiceApi {
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = [],
     isFirstSync?: boolean,
-  ) {
+  ): Promise<boolean | undefined> {
     await this.ensureInitialized();
     if (!this._db) return;
+    await this.createSyncTables();
     // 🔒 LOCK
     if (this._syncInProgress) {
       if (refreshTables && refreshTables.length > 0) {
@@ -1204,7 +1695,7 @@ export class SqliteApi implements ServiceApi {
           `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
         );
       }
-      await this.pullChanges(tableNames, isFirstSync);
+      await this.pullChanges(tableNames, isFirstSync, refreshTables.length > 0);
       this.schedulePostSyncAssetPrefetch();
       const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
@@ -1405,6 +1896,7 @@ export class SqliteApi implements ServiceApi {
     group2: string,
     group3: string,
     group4: string | null,
+    status: EnumType<'status'> | null,
     image: File | null,
     program_id: string | null,
     udise: string | null,
@@ -1445,7 +1937,7 @@ export class SqliteApi implements ServiceApi {
       language: null,
       ops_created_by: null,
       student_login_type: null,
-      status: STATUS.REQUESTED,
+      status: status,
       key_contacts: null,
       country: country,
       location_link: null,
@@ -3034,6 +3526,18 @@ export class SqliteApi implements ServiceApi {
       });
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushData);
+
+    try {
+      const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
+      const studentResultObj = studentResultStr
+        ? JSON.parse(studentResultStr)
+        : {};
+      studentResultObj[student.id] = true;
+      sessionStorage.setItem(STUDENT_RESULT, JSON.stringify(studentResultObj));
+    } catch (e) {
+      logger.error('Failed to set studentResult in sessionStorage', e);
+    }
+
     return newResult;
   }
 
@@ -3069,12 +3573,14 @@ export class SqliteApi implements ServiceApi {
       user.id,
     ]);
 
-    // Update the user object with new details
-    user.name = fullName;
-    user.email = email;
-    user.phone = phoneNum;
-    user.language_id = languageDocId;
-    user.image = profilePic ?? null;
+    const updatedUser: TableTypes<'user'> = {
+      ...user,
+      name: fullName,
+      email: email,
+      phone: phoneNum,
+      language_id: languageDocId,
+      image: profilePic ?? null,
+    };
 
     // Push changes for synchronization
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
@@ -3085,7 +3591,7 @@ export class SqliteApi implements ServiceApi {
       image: profilePic ?? null,
       id: user.id,
     });
-    return user;
+    return updatedUser;
   }
   private async assignCoursesToStudent(
     studentId: string,
@@ -3614,13 +4120,13 @@ export class SqliteApi implements ServiceApi {
 
   async getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
+  ): Promise<TableTypes<'skill'>[]> {
     await this.ensureInitialized();
-    if (!lessonIdentifier) return undefined;
+    if (!lessonIdentifier) return [];
 
     const skillLessonRes = await this._db?.query(
       `
-      SELECT sl.skill_id
+      SELECT DISTINCT sl.skill_id
       FROM ${TABLES.Lesson} l
       INNER JOIN ${TABLES.SkillLesson} sl
         ON sl.lesson_id = l.id
@@ -3638,7 +4144,6 @@ export class SqliteApi implements ServiceApi {
         coalesce(datetime(l.updated_at), datetime(l.created_at)) DESC,
         l.updated_at DESC,
         l.created_at DESC
-      LIMIT 1
       `,
       [
         lessonIdentifier,
@@ -3650,13 +4155,21 @@ export class SqliteApi implements ServiceApi {
       ],
     );
 
-    const skillId = skillLessonRes?.values?.[0]?.skill_id;
-    if (!skillId) return undefined;
-
-    return (
-      (await this.getSkillById(skillId)) ??
-      ({ id: skillId } as TableTypes<'skill'>)
+    const skillIds = Array.from(
+      new Set(
+        (skillLessonRes?.values ?? [])
+          .map((row) => row.skill_id)
+          .filter((skillId): skillId is string => !!skillId),
+      ),
     );
+    const skills = await Promise.all(
+      skillIds.map(
+        async (skillId) =>
+          (await this.getSkillById(skillId)) ??
+          ({ id: skillId } as TableTypes<'skill'>),
+      ),
+    );
+    return skills;
   }
 
   async getSkillLessonsBySkillIds(
@@ -3775,6 +4288,46 @@ export class SqliteApi implements ServiceApi {
       resultMap[data.lesson_id] = data;
     }
     return resultMap;
+  }
+
+  async hasStudentResult(studentId: string): Promise<boolean> {
+    try {
+      await this.ensureInitialized();
+      const { classes } = await this.getStudentClassesAndSchools(studentId);
+      const classId = this.currentClass?.id ?? classes[0]?.id;
+
+      if (classes.length > 0) {
+        if (!classId) {
+          logger.warn(
+            '[SqliteApi] Unable to resolve class for linked student result check',
+            { studentId },
+          );
+          return false;
+        }
+
+        const res = await this._db?.query(
+          `SELECT 1
+         FROM ${TABLES.Result}
+         WHERE student_id = "${studentId}"
+           AND class_id = "${classId}"
+           AND is_deleted = 0
+         LIMIT 1`,
+        );
+        return (res?.values?.length ?? 0) > 0;
+      }
+
+      const res = await this._db?.query(
+        `SELECT 1
+       FROM ${TABLES.Result}
+       WHERE student_id = "${studentId}"
+         AND is_deleted = 0
+       LIMIT 1`,
+      );
+      return (res?.values?.length ?? 0) > 0;
+    } catch (error) {
+      logger.error('Error checking student result', error);
+      return true;
+    }
   }
 
   async getClassById(id: string): Promise<TableTypes<'class'> | undefined> {
@@ -4042,14 +4595,19 @@ export class SqliteApi implements ServiceApi {
   async getCoursesBySchoolId(
     schoolId: string,
   ): Promise<TableTypes<'school_course'>[]> {
-    await this.ensureInitialized();
-    const query = `
+    try {
+      await this.ensureInitialized();
+      const query = `
       SELECT *
       FROM ${TABLES.SchoolCourse}
       WHERE school_id = ? AND is_deleted = 0
     `;
-    const res = await this._db?.query(query, [schoolId]);
-    return res?.values ?? [];
+      const res = await this._db?.query(query, [schoolId]);
+      return res?.values ?? [];
+    } catch (e) {
+      logger.error('Error in getCoursesBySchoolId', e);
+      return [];
+    }
   }
 
   async checkCourseInClasses(
@@ -4458,6 +5016,21 @@ export class SqliteApi implements ServiceApi {
         inviteCode,
         studentId,
       });
+
+      try {
+        const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
+        const studentResultObj = studentResultStr
+          ? JSON.parse(studentResultStr)
+          : {};
+        studentResultObj[studentId] = false;
+        sessionStorage.setItem(
+          STUDENT_RESULT,
+          JSON.stringify(studentResultObj),
+        );
+      } catch (e) {
+        logger.error('Failed to reset studentResult in sessionStorage', e);
+      }
+
       return linkData;
     } catch (error) {
       logger.warn('Join class link failed through SQLite API', {
@@ -5461,6 +6034,7 @@ export class SqliteApi implements ServiceApi {
       l.cocos_subject_code,
       l.cocos_chapter_code,
       l.cocos_lesson_id,
+      l.lido_lesson_id,
       l.image,
       l.outcome,
       l.plugin_type,
@@ -5594,6 +6168,7 @@ export class SqliteApi implements ServiceApi {
   cocos_subject_code,
   cocos_chapter_code,
   cocos_lesson_id,
+  lido_lesson_id,
   image,
   outcome,
   plugin_type,
@@ -5620,6 +6195,7 @@ select
   cocos_subject_code,
   cocos_chapter_code,
   cocos_lesson_id,
+  lido_lesson_id,
   image,
   outcome,
   plugin_type,
@@ -5646,6 +6222,7 @@ select
   cocos_subject_code,
   cocos_chapter_code,
   cocos_lesson_id,
+  lido_lesson_id,
   image,
   outcome,
   plugin_type,
@@ -7237,6 +7814,9 @@ order by
     const currentUser = await authHandler?.getCurrentUser();
     const parentId = currentUser?.id;
     const today = new Date().toISOString().split('T')[0];
+    if (!parentId) {
+      return;
+    }
 
     const selectQuery = `
       SELECT * FROM debug_info
@@ -7743,8 +8323,16 @@ order by
   `;
     const res = await this._db.query(query, [...baseParams, limit, offset]);
     const rows = res?.values ?? [];
+    const studentIds = rows
+      .map((row) => String((row as { id?: string | null })?.id ?? '').trim())
+      .filter((id): id is string => id.length > 0);
+    // Hydrate full parent contact list so UI can show merged phone/email entries.
+    const parentRows = (await this.getParentsByStudentId('', {
+      studentIds,
+      activeOnly: true,
+    })) as Array<TableTypes<'user'> & { linked_student_id?: string | null }>;
 
-    const studentInfoList: StudentInfo[] = rows.map((row: any) => {
+    const studentInfoList: StudentInfo[] = rows.map((row) => {
       const {
         class_id,
         class_name,
@@ -7756,6 +8344,16 @@ order by
       } = row;
 
       const { grade, section } = this.parseClassName(class_name || '');
+      const parents = parentRows
+        .filter(
+          (parent) =>
+            String(parent.linked_student_id ?? '').trim() ===
+            String(studentUser.id ?? '').trim(),
+        )
+        .map(({ linked_student_id, ...parentUser }) => {
+          void linked_student_id;
+          return parentUser as TableTypes<'user'>;
+        });
       const parentObject: TableTypes<'user'> | null = parent_id
         ? {
             id: parent_id,
@@ -7795,6 +8393,8 @@ order by
         grade,
         classSection: section,
         parent: parentObject,
+        parents:
+          parents.length > 0 ? parents : parentObject ? [parentObject] : [],
         classWithidname: {
           id: class_id,
           class_name: class_name || '',
@@ -7864,8 +8464,16 @@ order by
   `;
     const res = await this._db.query(query, [classId, limit, offset]);
     const rows = res?.values ?? [];
+    const studentIds = rows
+      .map((row) => String((row as { id?: string | null })?.id ?? '').trim())
+      .filter((id): id is string => id.length > 0);
+    // Hydrate full parent contact list so UI can show merged phone/email entries.
+    const parentRows = (await this.getParentsByStudentId('', {
+      studentIds,
+      activeOnly: true,
+    })) as Array<TableTypes<'user'> & { linked_student_id?: string | null }>;
 
-    const studentInfoList: StudentInfo[] = rows.map((row: any) => {
+    const studentInfoList: StudentInfo[] = rows.map((row) => {
       const {
         class_name,
         parent_id,
@@ -7876,6 +8484,16 @@ order by
       } = row;
 
       const { grade, section } = this.parseClassName(class_name || '');
+      const parents = parentRows
+        .filter(
+          (parent) =>
+            String(parent.linked_student_id ?? '').trim() ===
+            String(studentUser.id ?? '').trim(),
+        )
+        .map(({ linked_student_id, ...parentUser }) => {
+          void linked_student_id;
+          return parentUser as TableTypes<'user'>;
+        });
       const parentObject: TableTypes<'user'> | null = parent_id
         ? {
             id: parent_id,
@@ -7915,6 +8533,8 @@ order by
         grade,
         classSection: section,
         parent: parentObject,
+        parents:
+          parents.length > 0 ? parents : parentObject ? [parentObject] : [],
       };
     });
 
@@ -7970,6 +8590,10 @@ order by
   }
   async getParentsByStudentId(
     studentId: string,
+    options?: {
+      studentIds?: string[];
+      activeOnly?: boolean;
+    },
   ): Promise<TableTypes<'user'>[]> {
     await this.ensureInitialized();
     if (!this._db) {
@@ -7978,19 +8602,33 @@ order by
     }
 
     try {
+      const requestedStudentIds =
+        options?.studentIds?.filter((id) => id.trim() !== '') ??
+        (studentId.trim() !== '' ? [studentId] : []);
+      if (requestedStudentIds.length === 0) {
+        return [];
+      }
+
+      const parentPlaceholders = requestedStudentIds.map(() => '?').join(', ');
+      const activeOnlyClause =
+        options?.activeOnly === true
+          ? `
+          AND pu.is_deleted = false
+          AND p.is_deleted = false
+        `
+          : '';
       const parentRes = await this._db.query(
         `
-          SELECT p.*
+          SELECT pu.student_id as linked_student_id, p.*
           FROM parent_user pu
           JOIN user p ON pu.parent_id = p.id
-          WHERE pu.student_id = ?
+          WHERE pu.student_id IN (${parentPlaceholders})
+          ${activeOnlyClause}
         `,
-        // no is_deleted filter
-        [studentId],
+        requestedStudentIds,
       );
 
-      const parentRows = parentRes?.values ?? [];
-      return parentRows;
+      return (parentRes?.values ?? []) as TableTypes<'user'>[];
     } catch (error) {
       logger.error('Error fetching parents by student ID', error);
       return [];
@@ -9190,6 +9828,7 @@ order by
         set_number: number;
         language_id: string | null;
         locale_id: string | null;
+        lesson_id: string | null;
       };
       type ResultStatusRow = {
         lesson_id: string | null;
@@ -9252,7 +9891,7 @@ order by
 
       // 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
       const setQuery = `
-      SELECT DISTINCT set_number, language_id, locale_id
+      SELECT DISTINCT set_number, language_id, locale_id, lesson_id
       FROM subject_lesson
       WHERE subject_id = ?
         AND is_deleted = 0
@@ -9304,11 +9943,37 @@ order by
       const setNumber = candidateSets[randomIndex];
       const useStrictLanguageTrack =
         !!langId && preferredSets.includes(setNumber);
+      const assessmentTrackRows = useStrictLanguageTrack
+        ? setRows.filter((row) =>
+            localeId
+              ? row.language_id === langId &&
+                (row.locale_id === localeId || row.locale_id == null)
+              : row.language_id === langId,
+          )
+        : setRows.filter((row) =>
+            localeId
+              ? row.language_id == null &&
+                (row.locale_id === localeId || row.locale_id == null)
+              : row.language_id == null,
+          );
+      const assessmentLessonIds = Array.from(
+        new Set(
+          assessmentTrackRows
+            .map((row) => row.lesson_id)
+            .filter((lessonId): lessonId is string => !!lessonId),
+        ),
+      );
+
+      if (!assessmentLessonIds.length) {
+        return {} as TableTypes<'subject_lesson'>;
+      }
 
       /* ==========================================
        * 3️⃣ Abort Check (with assignment_id IS NULL)
        * ========================================== */
-      const courseFilter = courseId ? ' AND course_id = ?' : '';
+      const abortLessonPlaceholders = assessmentLessonIds
+        .map(() => '?')
+        .join(', ');
       const abortQuery = `
         SELECT lesson_id, status
         FROM (
@@ -9320,30 +9985,35 @@ order by
             FROM result
             WHERE student_id = ?
               AND subject_id = ?
-              ${courseFilter}
               AND assignment_id IS NULL
+              AND lesson_id IN (${abortLessonPlaceholders})
               AND is_deleted = 0
         ) t
         WHERE rn = 1
         ORDER BY created_at DESC
-        LIMIT 2;
+        LIMIT 50;
       `;
 
-      const abortParams: (string | null)[] = [studentId, subjectId];
-      if (courseId) {
-        abortParams.push(courseId);
-      }
+      const abortParams: (string | null)[] = [
+        studentId,
+        subjectId,
+        ...assessmentLessonIds,
+      ];
       const abortRes = await this.executeQuery(abortQuery, abortParams);
 
-      const lastTwo = ((abortRes as DBSQLiteValues | undefined)?.values ??
-        []) as ResultStatusRow[];
+      const uniqueAssessmentResults = ((abortRes as DBSQLiteValues | undefined)
+        ?.values ?? []) as ResultStatusRow[];
+      const lastTwo = uniqueAssessmentResults.slice(0, 2);
 
+      const isAssessmentTerminated = uniqueAssessmentResults.some(
+        (r) => r.status === 'assessment_terminated',
+      );
       const isAborted =
         lastTwo.length === 2 &&
         lastTwo.every((r) => r.status === 'system_exit');
 
-      if (isAborted) {
-        return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
+      if (isAssessmentTerminated || isAborted) {
+        return {} as TableTypes<'subject_lesson'>; // Aborted group
       }
 
       /* ==========================================
@@ -9437,15 +10107,10 @@ order by
         FROM result
         WHERE student_id = ?
           AND subject_id = ?
-          ${courseFilter}
-          AND assignment_id IS NULL
           AND is_deleted = 0
           AND lesson_id IN (${resultPlaceholders});
       `;
       const resultParams: (string | null)[] = [studentId, subjectId];
-      if (courseId) {
-        resultParams.push(courseId);
-      }
       resultParams.push(...lessonIds);
       const resultRes = await this.executeQuery(resultQuery, resultParams);
       const completedLessons = ((resultRes as DBSQLiteValues | undefined)
@@ -9478,9 +10143,34 @@ order by
     try {
       const course = await this.getCourse(courseId);
       if (!course?.subject_id) return false;
+      const subjectId = course.subject_id;
+      let langId: string | null = null;
+      const courseCode = course.code?.trim().toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const languageRes = await this.executeQuery(
+          `
+            SELECT id
+            FROM language
+            WHERE LOWER(code) = ?
+              AND is_deleted = 0
+            LIMIT 1;
+          `,
+          [courseLanguageCode],
+        );
+        langId =
+          (((languageRes as DBSQLiteValues | undefined)?.values ?? [])[0]
+            ?.id as string | undefined) ?? null;
+      }
 
       const assessmentLessonsQuery = `
-        SELECT DISTINCT lesson_id
+        SELECT DISTINCT lesson_id, language_id
         FROM subject_lesson
         WHERE subject_id = ?
           AND COALESCE(is_deleted, 0) = 0
@@ -9488,22 +10178,39 @@ order by
       `;
       const assessmentLessonsRes = await this.executeQuery(
         assessmentLessonsQuery,
-        [course.subject_id],
+        [subjectId],
       );
       const assessmentLessonIds = Array.from(
         new Set(
+          (langId &&
           (
             ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
               []) as {
               lesson_id?: string | null;
+              language_id?: string | null;
             }[]
+          ).some((lesson) => lesson.language_id === langId)
+            ? (
+                ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
+                  []) as {
+                  lesson_id?: string | null;
+                  language_id?: string | null;
+                }[]
+              ).filter((lesson) => lesson.language_id === langId)
+            : (
+                ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
+                  []) as {
+                  lesson_id?: string | null;
+                  language_id?: string | null;
+                }[]
+              ).filter((lesson) => lesson.language_id == null)
           )
             .map((lesson) => lesson.lesson_id)
             .filter((lessonId): lessonId is string => !!lessonId),
         ),
       );
 
-      const params: string[] = [studentId, courseId];
+      const params: string[] = [studentId, subjectId];
       const assessmentLessonFilter = assessmentLessonIds.length
         ? `OR lesson_id IN (${assessmentLessonIds.map(() => '?').join(',')})`
         : '';
@@ -9513,7 +10220,7 @@ order by
         SELECT lesson_id, status
         FROM result
         WHERE student_id = ?
-          AND course_id = ?
+          AND subject_id = ?
           AND COALESCE(is_deleted, 0) = 0
           AND (status = 'assessment_terminated' ${assessmentLessonFilter});
       `;
@@ -9569,10 +10276,34 @@ order by
       if (!subjectId) {
         return false;
       }
+      let langId: string | null = null;
+      const courseCode = course.code?.trim().toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const languageRes = await this.executeQuery(
+          `
+            SELECT id
+            FROM language
+            WHERE LOWER(code) = ?
+              AND is_deleted = 0
+            LIMIT 1;
+          `,
+          [courseLanguageCode],
+        );
+        langId =
+          (((languageRes as DBSQLiteValues | undefined)?.values ?? [])[0]
+            ?.id as string | undefined) ?? null;
+      }
 
       const assessmentLessonsRes = await this.executeQuery(
         `
-          SELECT lesson_id
+          SELECT lesson_id, language_id
           FROM subject_lesson
           WHERE subject_id = ?
             AND COALESCE(is_deleted, 0) = 0
@@ -9582,9 +10313,16 @@ order by
 
       const assessmentLessonRows =
         (assessmentLessonsRes as DBSQLiteValues | undefined)?.values ?? [];
+      const languageTrackLessons =
+        langId &&
+        assessmentLessonRows.some((lesson) => lesson.language_id === langId)
+          ? assessmentLessonRows.filter(
+              (lesson) => lesson.language_id === langId,
+            )
+          : assessmentLessonRows.filter((lesson) => lesson.language_id == null);
       const assessmentLessonIds: string[] = [];
       const placeholderParts: string[] = [];
-      for (const row of assessmentLessonRows) {
+      for (const row of languageTrackLessons) {
         const lessonId = row.lesson_id;
         if (!lessonId) continue;
         assessmentLessonIds.push(lessonId);
@@ -9601,14 +10339,13 @@ order by
           SELECT status
           FROM result
           WHERE student_id = ?
-            AND course_id = ?
             AND assignment_id IS NULL
             AND COALESCE(is_deleted, 0) = 0
             AND lesson_id IN (${placeholders})
           ORDER BY created_at DESC
           LIMIT 1
         `,
-        [studentId, courseId, ...assessmentLessonIds],
+        [studentId, ...assessmentLessonIds],
       );
 
       const latestStatus = ((pendingAbortRes as DBSQLiteValues | undefined)
@@ -9631,6 +10368,38 @@ order by
       FROM ${TABLES.Skill}
       WHERE id = ?
         AND is_deleted = 0
+    `,
+      [skillId],
+    );
+
+    return res?.values && res.values.length > 0 ? res.values[0] : undefined;
+  }
+
+  async getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    await this.ensureInitialized();
+    if (!skillId) return undefined;
+
+    const res = await this._db?.query(
+      `
+      SELECT subject.*
+      FROM  skill
+      INNER JOIN  outcome
+        ON outcome.id = skill.outcome_id
+        AND outcome.is_deleted = 0
+      INNER JOIN  competency
+        ON competency.id = outcome.competency_id
+        AND competency.is_deleted = 0
+      INNER JOIN  domain
+        ON domain.id = competency.domain_id
+        AND domain.is_deleted = 0
+      INNER JOIN  subject
+        ON subject.id = domain.subject_id
+        AND subject.is_deleted = 0
+      WHERE skill.id = ?
+        AND skill.is_deleted = 0
+      LIMIT 1
     `,
       [skillId],
     );
@@ -9699,9 +10468,78 @@ order by
 
     if (!latestBatchId) return [];
 
+    const latestBatchLessonQuery = `
+      SELECT a.lesson_id
+      FROM assignment a
+      LEFT JOIN assignment_user au
+        ON a.id = au.assignment_id
+        AND au.is_deleted = 0
+      WHERE a.class_id = ?
+        AND a.course_id = ?
+        AND a.type = 'assessment'
+        AND a.is_deleted = 0
+        AND a.batch_id = ?
+        AND (
+          a.starts_at IS NULL
+          OR a.starts_at = ''
+          OR datetime(a.starts_at) <= datetime(?)
+        )
+        AND (
+          a.ends_at IS NULL
+          OR a.ends_at = ''
+          OR datetime(a.ends_at) > datetime(?)
+        )
+        AND (
+          a.is_class_wise = 1
+          OR au.user_id = ?
+        );
+    `;
+    const latestBatchLessonRes = await this._db?.query(latestBatchLessonQuery, [
+      classId,
+      courseId,
+      latestBatchId,
+      nowIso,
+      nowIso,
+      studentId,
+    ]);
+    const latestBatchLessonIds = new Set(
+      ((latestBatchLessonRes?.values ?? []) as { lesson_id?: string | null }[])
+        .map((assignment) => assignment.lesson_id)
+        .filter((lessonId): lessonId is string => !!lessonId),
+    );
+
+    const courseTerminationQuery = `
+      SELECT r.lesson_id, r.status
+      FROM result r
+      INNER JOIN assignment a
+        ON a.id = r.assignment_id
+      WHERE r.student_id = ?
+        AND r.status = 'assessment_terminated'
+        AND r.is_deleted = 0
+        AND a.class_id = ?
+        AND a.course_id = ?
+        AND a.type = 'assessment'
+      LIMIT 1;
+    `;
+
+    const courseTerminationRes = await this._db?.query(courseTerminationQuery, [
+      studentId,
+      classId,
+      courseId,
+    ]);
+    const courseTerminationRows = (courseTerminationRes?.values ?? []) as {
+      lesson_id?: string | null;
+    }[];
+    const isLatestBatchReassignment = courseTerminationRows.some(
+      (result) =>
+        !!result.lesson_id && latestBatchLessonIds.has(result.lesson_id),
+    );
+    if (courseTerminationRows.length && !isLatestBatchReassignment) {
+      return [];
+    }
+
     /* ==========================================
-     * Check if batch is ABORTED
-     * (2 consecutive system_exit results)
+     * Check if batch is closed by termination or abort
      * ========================================== */
     const abortCheckQuery = `
     SELECT assignment_id, status
@@ -9724,16 +10562,27 @@ order by
     ) t
     WHERE rn = 1
     ORDER BY created_at DESC
-    LIMIT 2;
+    LIMIT 50;
     `;
 
     const abortRes = await this._db?.query(abortCheckQuery);
-    const lastTwoResults = abortRes?.values ?? [];
+    type AssignmentAbortResultRow = {
+      assignment_id?: string | null;
+      status?: string | null;
+    };
+    const uniqueAssignmentResults = (abortRes?.values ??
+      []) as AssignmentAbortResultRow[];
+    const lastTwoResults = uniqueAssignmentResults.slice(0, 2);
 
-    if (
-      lastTwoResults.length === 2 &&
-      lastTwoResults.every((r: any) => r.status === 'system_exit')
-    ) {
+    const isAssessmentTerminated = uniqueAssignmentResults.some(
+      (result) => result.status === 'assessment_terminated',
+    );
+    const isAborted =
+      isAssessmentTerminated ||
+      (lastTwoResults.length === 2 &&
+        lastTwoResults.every((r) => r.status === 'system_exit'));
+
+    if (isAborted) {
       // 🚫 Assessment group is aborted
       return [];
     }
