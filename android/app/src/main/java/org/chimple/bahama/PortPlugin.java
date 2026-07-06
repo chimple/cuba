@@ -319,8 +319,7 @@ public void shareContentWithAndroidShare(PluginCall call) {
 
                 try (OutputStream outputStream = resolver.openOutputStream(fileUri)) {
                     if (outputStream == null) {
-                        call.reject("Failed to open download output stream");
-                        return;
+                        throw new IOException("Failed to open download output stream");
                     }
 
                     try (BufferedOutputStream bos = new BufferedOutputStream(outputStream)) {
@@ -333,7 +332,9 @@ public void shareContentWithAndroidShare(PluginCall call) {
                 completed.put(MediaStore.Downloads.IS_PENDING, 0);
                 resolver.update(fileUri, completed, null, null);
 
-                Toast.makeText(getContext(), "File saved to Downloads", Toast.LENGTH_SHORT).show();
+                getActivity().runOnUiThread(() ->
+                    Toast.makeText(getContext(), "File saved to Downloads", Toast.LENGTH_SHORT).show()
+                );
                 JSObject result = new JSObject();
                 result.put("uri", fileUri.toString());
                 call.resolve(result);
