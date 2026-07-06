@@ -121,6 +121,9 @@ import {
   OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
+  CampaignAssignmentsResponse,
+  CampaignOption,
+  CampaignAssignmentFilters,
 } from './ServiceApi';
 import { SupabaseApi } from './SupabaseApi';
 import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
@@ -8043,6 +8046,18 @@ order by
 
   async cancelCampaign(campaignId: string, reason: string): Promise<void> {
     return await this._serverApi.cancelCampaign(campaignId, reason);
+  }
+  async getCampaignAssignments(
+    campaignId: string,
+    filters: CampaignAssignmentFilters,
+  ): Promise<CampaignAssignmentsResponse> {
+    return await this._serverApi.getCampaignAssignments(campaignId, filters);
+  }
+
+  async getCampaignSubjectsByCampaignId(
+    campaignId: string,
+  ): Promise<CampaignOption[]> {
+    return await this._serverApi.getCampaignSubjectsByCampaignId(campaignId);
   }
 
   async getUniqueGeoData(): Promise<{

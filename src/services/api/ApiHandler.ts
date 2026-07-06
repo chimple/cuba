@@ -21,6 +21,9 @@ import {
   OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
+  CampaignAssignmentsResponse,
+  CampaignOption,
+  CampaignAssignmentFilters,
 } from './ServiceApi';
 import {
   SOURCE,
@@ -1633,6 +1636,18 @@ export class ApiHandler implements ServiceApi {
     reason: string,
   ): Promise<void> {
     return await this.s.cancelCampaign(campaignId, reason);
+  }
+  public async getCampaignAssignments(
+    campaignId: string,
+    filters: CampaignAssignmentFilters,
+  ): Promise<CampaignAssignmentsResponse> {
+    return await this.s.getCampaignAssignments(campaignId, filters);
+  }
+
+  public async getCampaignSubjectsByCampaignId(
+    campaignId: string,
+  ): Promise<CampaignOption[]> {
+    return await this.s.getCampaignSubjectsByCampaignId(campaignId);
   }
 
   public async getUniqueGeoData(): Promise<{

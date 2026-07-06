@@ -402,6 +402,28 @@ export type CampaignListingParams = {
     | 'endDate';
   orderDir?: 'asc' | 'desc';
 };
+export type CampaignAssignmentFilters = {
+  page: number;
+  pageSize: number;
+  gradeIds?: string[];
+  subjectIds?: string[];
+};
+
+export type CampaignAssignmentSummaryRow = {
+  assignmentId: string;
+  assignmentDate: string;
+  gradeId: string;
+  gradeName: string;
+  subjectId: string;
+  subjectName: string;
+  lessonId: string;
+  lessonName: string;
+};
+
+export type CampaignAssignmentsResponse = {
+  assignments: CampaignAssignmentSummaryRow[];
+  total: number;
+};
 
 export interface ServiceApi {
   /**
@@ -2403,6 +2425,25 @@ export interface ServiceApi {
    * The reason is supplied by the UI for cancellation auditing and validation.
    */
   cancelCampaign(campaignId: string, reason: string): Promise<void>;
+  /**
+   * Fetches campaign assignments for a given campaign ID, with optional filters for school, grade, subject, chapter, and lesson.
+   * @param {string} campaignId - The ID of the campaign to fetch assignments for.
+   * @param {CampaignAssignmentFilters} filters - Optional filters to narrow down the assignments.
+   * @returns {Promise<CampaignAssignmentsResponse>} - A promise resolving to the campaign assignments data.
+   */
+  getCampaignAssignments(
+    campaignId: string,
+    filters: CampaignAssignmentFilters,
+  ): Promise<CampaignAssignmentsResponse>;
+
+  /**
+   * Fetches the unique subjects used by a campaign's assignments.
+   * @param {string} campaignId - The campaign ID.
+   * @returns {Promise<CampaignOption[]>} - Unique subjects for that campaign.
+   */
+  getCampaignSubjectsByCampaignId(
+    campaignId: string,
+  ): Promise<CampaignOption[]>;
 
   /**
    * Get unique geo data
