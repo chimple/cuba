@@ -292,63 +292,7 @@ public void shareContentWithAndroidShare(PluginCall call) {
         if (fileName == null || fileName.trim().isEmpty()) {
               fileName = "ProcessedFile.xlsx";
        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            byte[] fileBytes = Base64.decode(fileData, Base64.NO_WRAP);
-            ContentResolver resolver = getContext().getContentResolver();
-            String mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
-            values.put(MediaStore.Downloads.MIME_TYPE, mimeType);
-            values.put(
-                MediaStore.Downloads.RELATIVE_PATH,
-                Environment.DIRECTORY_DOWNLOADS + "/Chimple"
-            );
-            values.put(MediaStore.Downloads.IS_PENDING, 1);
-
-            Uri downloadsCollection = MediaStore.Downloads.getContentUri(
-                MediaStore.VOLUME_EXTERNAL_PRIMARY
-            );
-            Uri fileUri = null;
-
-            try {
-                fileUri = resolver.insert(downloadsCollection, values);
-                if (fileUri == null) {
-                    call.reject("Failed to create download record");
-                    return;
-                }
-
-                try (OutputStream outputStream = resolver.openOutputStream(fileUri)) {
-                    if (outputStream == null) {
-                        call.reject("Failed to open download output stream");
-                        return;
-                    }
-
-                    try (BufferedOutputStream bos = new BufferedOutputStream(outputStream)) {
-                        bos.write(fileBytes);
-                        bos.flush();
-                    }
-                }
-
-                ContentValues completed = new ContentValues();
-                completed.put(MediaStore.Downloads.IS_PENDING, 0);
-                resolver.update(fileUri, completed, null, null);
-
-                Toast.makeText(getContext(), "File saved to Downloads", Toast.LENGTH_SHORT).show();
-                JSObject result = new JSObject();
-                result.put("uri", fileUri.toString());
-                call.resolve(result);
-            } catch (Exception e) {
-                if (fileUri != null) {
-                    try {
-                        resolver.delete(fileUri, null, null);
-                    } catch (Exception ignored) {
-                    }
-                }
-                call.reject("Error saving file: " + e.getMessage());
-            }
-            return;
-        }
-
+       
         fileDataStorage = fileData;
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
