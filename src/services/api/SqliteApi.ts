@@ -102,6 +102,8 @@ import {
   AssignmentDateRangeData,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignListingItem,
+  CampaignListingParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -8036,6 +8038,15 @@ order by
     return await this._serverApi.getCampaignAssignmentOptions(params);
   }
 
+  async getCampaignListing(
+    params: CampaignListingParams,
+  ): Promise<PaginatedResponse<CampaignListingItem>> {
+    return await this._serverApi.getCampaignListing(params);
+  }
+
+  async cancelCampaign(campaignId: string, reason: string): Promise<void> {
+    return await this._serverApi.cancelCampaign(campaignId, reason);
+  }
   async getCampaignAssignments(
     campaignId: string,
     filters: CampaignAssignmentFilters,
