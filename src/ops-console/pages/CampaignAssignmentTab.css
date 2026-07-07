@@ -3,6 +3,7 @@
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
+  height: 100%;
   width: 100%;
   min-height: 0;
   box-sizing: border-box;
@@ -99,6 +100,8 @@
 .campaign-assignment-table-container {
   flex: 1 1 auto;
   min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid #eaecf0;
   border-radius: 0.5rem;
@@ -106,7 +109,17 @@
 }
 
 .campaign-assignment-table-container .data-tablebody-container {
+  flex: 1 1 auto;
+  min-height: 0;
   border-radius: 0.5rem;
+  margin-bottom: 0;
+}
+
+.campaign-assignment-content {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .campaign-assignment-table-container table {
@@ -173,18 +186,24 @@
   }
 
   .campaign-assignment-filterRow {
-    align-items: flex-start;
+    align-items: stretch;
     gap: 0.75rem;
   }
 
   .campaign-assignment-filterField {
-    min-width: 7rem;
-    width: auto;
-    align-items: flex-start;
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .campaign-assignment-filter {
+    width: 100%;
   }
 
   .campaign-assignment-select.MuiInputBase-root {
-    min-width: 7rem;
+    width: 100%;
+    min-width: 0;
   }
 
   .campaign-assignment-table-container table {

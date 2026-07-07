@@ -284,54 +284,57 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
         </Box>
       </Box>
 
-      <div className="campaign-assignment-table-container">
-        {isLoading && (
-          <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            minHeight={240}
-            width="100%"
-          >
-            <CircularProgress size={28} />
-          </Box>
-        )}
+      <div className="campaign-assignment-content">
+        <div className="campaign-assignment-table-container">
+          {isLoading && (
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              minHeight={240}
+              width="100%"
+              flex="1 1 auto"
+            >
+              <CircularProgress size={28} />
+            </Box>
+          )}
+
+          {!isLoading && assignments.length > 0 && (
+            <DataTableBody
+              columns={columns}
+              rows={assignments}
+              orderBy="assignmentDate"
+              order="asc"
+              onSort={() => {}}
+              loading={false}
+              tableMinWidth={820}
+              tableWidth="100%"
+              headerNoEllipsis
+            />
+          )}
+
+          {!isLoading && assignments.length === 0 && (
+            <Box className="campaign-assignment-emptyState">
+              <Typography
+                variant="h6"
+                className="campaign-assignment-emptyStateTitle"
+              >
+                {t('No Assignments Found')}
+              </Typography>
+            </Box>
+          )}
+        </div>
 
         {!isLoading && assignments.length > 0 && (
-          <DataTableBody
-            columns={columns}
-            rows={assignments}
-            orderBy="assignmentDate"
-            order="asc"
-            onSort={() => {}}
-            loading={false}
-            tableMinWidth={820}
-            tableWidth="100%"
-            headerNoEllipsis
-          />
-        )}
-
-        {!isLoading && assignments.length === 0 && (
-          <Box className="campaign-assignment-emptyState">
-            <Typography
-              variant="h6"
-              className="campaign-assignment-emptyStateTitle"
-            >
-              {t('No Assignments Found')}
-            </Typography>
-          </Box>
+          <div className="campaign-assignment-footer">
+            <DataTablePagination
+              page={page}
+              pageCount={pageCount}
+              onPageChange={setPage}
+            />
+          </div>
         )}
       </div>
-
-      {!isLoading && assignments.length > 0 && (
-        <div className="campaign-assignment-footer">
-          <DataTablePagination
-            page={page}
-            pageCount={pageCount}
-            onPageChange={setPage}
-          />
-        </div>
-      )}
     </div>
   );
 };
