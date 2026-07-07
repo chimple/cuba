@@ -175,6 +175,30 @@ export type JoinClassInviteLookupResult = {
   schoolData?: TableTypes<'school'>;
 };
 
+export type CampaignMessagingRow = TableTypes<'campaign_messaging'>;
+
+export type CampaignMessagingQueryParams = {
+  page?: number;
+  pageSize?: number;
+};
+
+export type CampaignMessagingResponse = {
+  data: CampaignMessagingRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export type UpdateCampaignMessagingRowPayload = {
+  id: string;
+  message: string;
+  mediaLink: string;
+  messageTime: string | null;
+  pollTime: string | null;
+  pollQuestion: string;
+  pollOptions: string[];
+};
+
 type OpsRequestsResponse = {
   data: Array<TableTypes<'ops_requests'> | Record<string, Json>>;
   total: number;
@@ -3613,4 +3637,21 @@ export interface ServiceApi {
     lessonId: string,
   ): Promise<boolean>;
   isSplUser(): Promise<boolean>;
+
+  /**
+   * Fetches active communication rows for a campaign.
+   * Filters out rows soft-deleted from the campaign messaging table.
+   */
+  getCampaignMessaging(
+    campaignId: string,
+    params?: CampaignMessagingQueryParams,
+  ): Promise<CampaignMessagingResponse>;
+
+  /**
+   * Updates editable campaign communication rows.
+   * Only pending, non-deleted campaign messaging rows should be updated.
+   */
+  updateCampaignMessaging(
+    rows: UpdateCampaignMessagingRowPayload[],
+  ): Promise<boolean>;
 }

@@ -21,124 +21,23 @@
 
   .ops-campaigns-overview {
     position: relative;
-    min-height: 100vh;
-    padding: 0 0 32px;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    padding: 0;
     background: #fff;
-  }
-  .ops-campaigns-overview-back-button {
-    display: inline-flex !important;
-    position: absolute !important;
-    top: 40px;
-    left: 1rem;
-    width: 1.75rem;
-    height: 1.75rem;
-    border: 0.0625rem solid #21272a !important;
-    border-radius: 0.4375rem !important;
-    color: #21272a !important;
-    padding: 0 !important;
-  }
-
-  .ops-campaigns-overview-back-button svg {
-    width: 1.125rem;
-    height: 1.125rem;
-  }
-
-  .ops-campaigns-overview-header {
-    position: relative;
-    height: 80px;
-    margin: 0;
-    padding: 39px 50px 0 60px;
-  }
-
-  .ops-campaigns-overview-title {
-    position: relative;
-    top: -10px;
-    font-size: 1rem;
-    line-height: 1.2;
-  }
-
-  .ops-campaigns-overview-notification {
-    position: absolute;
-    top: 40px;
-    right: 16px;
-    width: 1.375rem;
-    height: 1.375rem;
-  }
-
-  .ops-campaigns-overview-notification svg {
-    width: 25px;
-    height: 25px;
-  }
-
-  .ops-campaigns-overview-breadcrumb {
-    position: absolute;
-    top: 60px;
-    left: 60px;
-    gap: 0;
-    margin: 0;
-    font-size: 11px;
-    line-height: 1.2;
-  }
-
-  .ops-campaigns-overview-breadcrumb-link {
-    color: #000;
-    font-weight: 400;
-  }
-
-  .ops-campaigns-overview-breadcrumb-link::after {
-    margin: 0 4px;
-    content: '>';
-  }
-
-  .ops-campaigns-overview-breadcrumb-current {
-    max-width: 205px;
     overflow: hidden;
-    color: #000;
-    font-weight: 500;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
-
-  .ops-campaigns-overview-breadcrumb-arrow {
-    display: none;
-  }
-
-  .ops-campaigns-overview-tabs {
-    height: 41px;
-    min-height: 41px;
-    box-sizing: border-box;
-    margin: 0;
-    padding-left: 15px;
-    padding-right: 15px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    border: 1px solid #c1c7cd;
-    border-right: 0;
-    border-left: 0;
-    scrollbar-width: none;
-    touch-action: pan-x;
-  }
-
-  .ops-campaigns-overview-tabs::-webkit-scrollbar {
-    display: none;
-  }
-
-  .ops-campaigns-overview-tab {
-    flex: 0 0 auto;
-    min-width: auto;
-    height: 100%;
-    padding: 0 16px;
-    border-bottom: 2px solid transparent;
-    color: #000;
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.2;
-  }
-
-  .ops-campaigns-overview-tab-active {
-    border-bottom-color: #1d6cf6;
-    background: transparent;
-    color: #1d6cf6;
+  .ops-campaigns-overview-content {
+    flex: 1 1 0;
+    min-height: 0;
+    height: 0;
+    padding: 0 0 32px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .ops-campaigns-overview-cards {
@@ -147,7 +46,7 @@
     gap: 24px;
     width: 100%;
     box-sizing: border-box;
-    padding: 20px 16px 0;
+    padding: 20px 27px 0;
   }
 
   .ops-campaigns-overview-card {
@@ -277,7 +176,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
-    padding: 14px;
+    padding: 24px 14px 14px;
   }
 
   .ops-campaigns-overview-metric {
@@ -314,7 +213,7 @@
     order: 1;
     margin: 0;
     color: #1d6cf6;
-    font-family: Roboto, Arial, sans-serif;
+    font-family: 'Baloo 2', 'BalooRegular', cursive;
     font-size: 22px;
     font-weight: 700;
     line-height: 1.2;

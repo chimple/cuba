@@ -97,6 +97,9 @@ import {
   CampaignAssignmentSummaryRow,
   CampaignAssignmentFilters,
   CampaignOption,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
+  UpdateCampaignMessagingRowPayload,
 } from './ServiceApi';
 import { Database, Json } from '../database';
 import {
@@ -137,6 +140,8 @@ import { store } from '../../redux/store';
 import logger from '../../utility/logger';
 
 type SchoolListPercentBand = PercentageBandValue;
+
+const DEFAULT_CAMPAIGN_MESSAGING_PAGE_SIZE = 20;
 
 const SCHOOL_LIST_PERCENTAGE_FILTER_KEYS = new Set([
   'activatedStudents',
@@ -17343,5 +17348,113 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return newRow;
+  }
+
+  async getCampaignMessaging(
+    campaignId: string,
+    {
+      page = 1,
+      pageSize = DEFAULT_CAMPAIGN_MESSAGING_PAGE_SIZE,
+    }: CampaignMessagingQueryParams = {},
+  ): Promise<CampaignMessagingResponse> {
+    const safePage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+    const safePageSize = Number.isFinite(pageSize)
+      ? Math.max(1, Math.floor(pageSize))
+      : DEFAULT_CAMPAIGN_MESSAGING_PAGE_SIZE;
+    const from = (safePage - 1) * safePageSize;
+    const to = from + safePageSize - 1;
+
+    const emptyResponse: CampaignMessagingResponse = {
+      data: [],
+      total: 0,
+      page: safePage,
+      pageSize: safePageSize,
+    };
+
+    if (!this.supabase) return emptyResponse;
+
+    try {
+      const effectiveCampaignId = campaignId.trim();
+      if (!effectiveCampaignId) return emptyResponse;
+
+      const { data, error, count } = await this.supabase
+        .from('campaign_messaging')
+        .select('*', { count: 'exact' })
+        .eq('campaign_id', effectiveCampaignId)
+        .eq('is_deleted', false)
+        .order('message_time', { ascending: true })
+        .range(from, to);
+
+      if (error) {
+        logger.error('Error fetching campaign messaging:', error);
+        return emptyResponse;
+      }
+
+      logger.info(
+        `Fetched campaign messaging for campaignId=${effectiveCampaignId}, page=${safePage}, pageSize=${safePageSize}:`,
+        data,
+      );
+
+      return {
+        data: (data ?? []) as CampaignMessagingResponse['data'],
+        total: count ?? 0,
+        page: safePage,
+        pageSize: safePageSize,
+      };
+    } catch (error) {
+      logger.error('Exception fetching campaign messaging:', error);
+      return emptyResponse;
+    }
+  }
+
+  async updateCampaignMessaging(
+    rows: UpdateCampaignMessagingRowPayload[],
+  ): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const editableRows = rows.filter((row) => String(row.id ?? '').trim());
+    if (editableRows.length === 0) return true;
+
+    const updatedAt = new Date().toISOString();
+
+    try {
+      const results = await Promise.all(
+        editableRows.map((row) => {
+          const pollQuestion = row.pollQuestion.trim();
+          const pollOptions = row.pollOptions
+            .map((option) => option.trim())
+            .filter((option) => option.length > 0);
+
+          return this.supabase!.from('campaign_messaging')
+            .update({
+              message: row.message.trim(),
+              media_link: row.mediaLink.trim() || null,
+              message_time: row.messageTime,
+              poll_time: row.pollTime,
+              poll:
+                pollQuestion.length > 0 || pollOptions.length > 0
+                  ? {
+                      question: pollQuestion,
+                      options: pollOptions,
+                    }
+                  : null,
+              updated_at: updatedAt,
+            })
+            .eq('id', row.id)
+            .eq('is_deleted', false);
+        }),
+      );
+
+      const failedResult = results.find((result) => result.error);
+      if (failedResult?.error) {
+        logger.error('Error updating campaign messaging:', failedResult.error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      logger.error('Exception updating campaign messaging:', error);
+      return false;
+    }
   }
 }

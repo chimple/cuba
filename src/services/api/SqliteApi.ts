@@ -124,6 +124,9 @@ import {
   CampaignAssignmentsResponse,
   CampaignOption,
   CampaignAssignmentFilters,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
+  UpdateCampaignMessagingRowPayload,
 } from './ServiceApi';
 import { SupabaseApi } from './SupabaseApi';
 import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
@@ -11410,5 +11413,18 @@ order by
       logger.error('Error updating/inserting user_achievements coins:', error);
       throw error;
     }
+  }
+
+  async getCampaignMessaging(
+    campaignId: string,
+    params?: CampaignMessagingQueryParams,
+  ): Promise<CampaignMessagingResponse> {
+    return await this._serverApi.getCampaignMessaging(campaignId, params);
+  }
+
+  async updateCampaignMessaging(
+    rows: UpdateCampaignMessagingRowPayload[],
+  ): Promise<boolean> {
+    return await this._serverApi.updateCampaignMessaging(rows);
   }
 }
