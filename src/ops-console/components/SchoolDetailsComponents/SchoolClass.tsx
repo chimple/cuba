@@ -9,7 +9,6 @@ import {
 import { Add as AddIcon } from '@mui/icons-material';
 import EditOutlined from '@mui/icons-material/EditOutlined';
 import PersonAddAlt1Outlined from '@mui/icons-material/PersonAddAlt1Outlined';
-import ChatBubbleOutlineOutlined from '@mui/icons-material/ChatBubbleOutlineOutlined';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import './SchoolClass.css';
@@ -90,13 +89,13 @@ type TableRowData = {
   avgAssignmentsCompleted: { render: React.ReactNode };
   avgActivitiesCompleted: { render: React.ReactNode };
   actions: { render: React.ReactNode };
-  whatsapp?: { render: React.ReactNode };
 };
 
 type ColumnDef = {
   key: keyof TableRowData;
   label: string;
   align?: 'left' | 'right' | 'center' | 'justify' | 'inherit';
+  headerAlign?: 'left' | 'center' | 'right';
   sortable?: boolean;
   width?: string | number;
 };
@@ -108,42 +107,6 @@ interface Props {
   onGenerateCode?: (classId: string) => void;
   refreshClasses?: () => void;
 }
-const StatusChip: React.FC<{
-  status: 'connected' | 'disconnected' | 'not_connected' | 'loading';
-}> = ({ status }) => {
-  const isConnected = status === 'connected';
-
-  return (
-    <span
-      role="status"
-      className={`schoolclass-wa-chip ${
-        status === 'connected'
-          ? 'schoolclass-wa-chip--ok'
-          : status === 'disconnected'
-            ? 'schoolclass-wa-chip--warn'
-            : status === 'loading'
-              ? 'schoolclass-wa-chip--loading'
-              : 'schoolclass-wa-chip--na'
-      }`}
-    >
-      {isConnected && (
-        <ChatBubbleOutlineOutlined
-          fontSize="small"
-          className="schoolclass-wa-chip__icon"
-        />
-      )}
-
-      {status === 'connected'
-        ? t('Connected')
-        : status === 'disconnected'
-          ? t('Disconnected')
-          : status === 'loading'
-            ? t('Loading...')
-            : t('Not Connected')}
-    </span>
-  );
-};
-
 const SchoolClasses: React.FC<Props> = ({
   data,
   schoolId,
@@ -161,12 +124,10 @@ const SchoolClasses: React.FC<Props> = ({
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [mode, setMode] = useState<'create' | 'edit'>('edit');
   const [showForm, setShowForm] = useState<boolean>(false);
-  const [exitStatuses, setExitStatuses] = useState<Record<string, boolean>>({});
   const [groupIdOverrides, setGroupIdOverrides] = useState<
     Record<string, string>
   >({});
   const [editingClass, setEditingClass] = useState<ClassRow | null>(null);
-  const [waMetaLoading, setWaMetaLoading] = useState(true);
   const [selectedDateRange, setSelectedDateRange] =
     useState<DateRangeValue>(DEFAULT_DATE_RANGE);
   const [classMetrics, setClassMetrics] = useState<
@@ -248,10 +209,6 @@ const SchoolClasses: React.FC<Props> = ({
     };
   }, [api, schoolId, selectedDateRange]);
 
-  const bot = getAll()?.schoolData?.whatsapp_bot_number;
-  const hasWhatsAppBot = typeof bot === 'string' && /^\d{12}$/.test(bot.trim());
-  const hasValue = (v: string) => v != null && String(v).trim() !== '';
-  const [phoneDetails, setPhoneDetails] = useState<any>(null);
   const schoolModel = useMemo(
     () => normalizeSchoolModel(data?.schoolData?.model),
     [data?.schoolData?.model],
@@ -259,68 +216,6 @@ const SchoolClasses: React.FC<Props> = ({
   const isAtSchool = schoolModel === 'at_school';
   const shouldShowClassCode =
     schoolModel === 'at_home' || schoolModel === 'hybrid';
-
-  useEffect(() => {
-    if (!bot) return; // 🚨 wait until bot exists
-
-    let cancelled = false;
-    setWaMetaLoading(true);
-
-    (async () => {
-      const promises = effectiveClasses
-        .filter((c) => c.group_id)
-        .map(async (c) => {
-          try {
-            await api.getWhatsappGroupDetails(c.group_id!, bot);
-            return { classId: c.id, isExited: false };
-          } catch (err) {
-            logger.error(
-              `Failed to fetch WhatsApp group details for group ${c.group_id}:`,
-              err,
-            );
-            // If we cannot verify membership status for this group, treat it as
-            // disconnected to avoid showing a false connected state.
-            return { classId: c.id, isExited: true };
-          }
-        });
-
-      const results = await Promise.all(promises);
-
-      if (cancelled) {
-        return;
-      }
-
-      const newStatuses = results.reduce(
-        (acc, { classId, isExited }) => {
-          acc[classId] = isExited;
-          return acc;
-        },
-        {} as Record<string, boolean>,
-      );
-
-      setExitStatuses(newStatuses);
-    })();
-
-    (async () => {
-      try {
-        const firstGroupId =
-          effectiveClasses.find((c) => Boolean(c.group_id))?.group_id ?? null;
-        const details = await api.getPhoneDetailsByBotNum(
-          String(bot),
-          firstGroupId,
-        );
-        if (!cancelled) setPhoneDetails(details);
-      } catch (e) {
-        logger.error('getPhoneDetailsByBotNum failed', e);
-      }
-
-      if (!cancelled) setWaMetaLoading(false); // ✅ critical
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [api, bot, effectiveClasses, groupIdOverrides]);
 
   useEffect(() => {
     if (!shouldShowClassCode) {
@@ -537,32 +432,6 @@ const SchoolClasses: React.FC<Props> = ({
       const classLabel = typeof c.name === 'string' ? c.name.trim() : '';
       const metrics = classMetrics[c.id];
       const metricValues = getClassMetricValues(metrics, c.studentCount);
-      const isGroupConnected = hasValue(c.group_id ?? '');
-      const hasExitStatus = Object.prototype.hasOwnProperty.call(
-        exitStatuses,
-        c.id,
-      );
-      const botState = String(
-        phoneDetails?.phone?.wa_state ??
-          phoneDetails?.phone?.state ??
-          phoneDetails?.phone?.status ??
-          '',
-      )
-        .trim()
-        .toUpperCase();
-      const isBotConnected =
-        botState === 'CONNECTED' && hasExitStatus && !exitStatuses[c.id];
-      let waStatus: 'connected' | 'disconnected' | 'not_connected' | 'loading';
-
-      if (!isGroupConnected) {
-        waStatus = 'not_connected';
-      } else if (waMetaLoading || !hasExitStatus) {
-        waStatus = 'loading'; // Keep row loading until this class status is known.
-      } else if (isBotConnected) {
-        waStatus = 'connected';
-      } else {
-        waStatus = 'disconnected';
-      }
 
       const rawCodeVal = codes[c.id] ?? metrics?.class_code ?? null;
       const codeVal =
@@ -698,15 +567,6 @@ const SchoolClasses: React.FC<Props> = ({
       if (shouldShowClassCode) {
         baseRow.code = codeCell;
       }
-      if (hasWhatsAppBot) {
-        baseRow.whatsapp = {
-          render: (
-            <div className="schoolclass-cell-center">
-              <StatusChip status={waStatus} />
-            </div>
-          ),
-        };
-      }
 
       return baseRow;
     });
@@ -717,10 +577,6 @@ const SchoolClasses: React.FC<Props> = ({
     loadingIds,
     classMetrics,
     shouldShowClassCode,
-    hasWhatsAppBot,
-    phoneDetails,
-    waMetaLoading,
-    exitStatuses,
   ]);
 
   const selectedRow = useMemo(
@@ -737,7 +593,6 @@ const SchoolClasses: React.FC<Props> = ({
     if (!classIdValue || !groupIdValue) return;
 
     setGroupIdOverrides((prev) => ({ ...prev, [classIdValue]: groupIdValue }));
-    setExitStatuses((prev) => ({ ...prev, [classIdValue]: false }));
   };
 
   const selectedClassCode = useMemo(() => {
@@ -759,10 +614,23 @@ const SchoolClasses: React.FC<Props> = ({
 
   const columns = useMemo<ColumnDef[]>(() => {
     const cols: ColumnDef[] = [
-      { key: 'class', label: t('Class'), sortable: false, width: 120 },
+      {
+        key: 'class',
+        label: t('Class'),
+        sortable: false,
+        width: 120,
+        align: 'left',
+        headerAlign: 'left',
+      },
     ];
     if (shouldShowClassCode) {
-      cols.push({ key: 'code', label: t('Class Code'), sortable: false });
+      cols.push({
+        key: 'code',
+        label: t('Class Code'),
+        sortable: false,
+        align: 'center',
+        headerAlign: 'center',
+      });
     }
     cols.push(
       {
@@ -770,74 +638,76 @@ const SchoolClasses: React.FC<Props> = ({
         label: t('Class Performance'),
         sortable: false,
         align: 'center',
+        headerAlign: 'center',
       },
       {
         key: 'onboardedStudents',
         label: t('Onboarded Students'),
         sortable: false,
         align: 'center',
+        headerAlign: 'center',
       },
       {
         key: 'activatedStudents',
         label: t('Activated Students'),
         sortable: false,
         align: 'center',
+        headerAlign: 'center',
       },
       {
         key: 'activeStudents',
         label: t('Active Students'),
         sortable: false,
         align: 'center',
+        headerAlign: 'center',
       },
       {
         key: 'avgTimeSpent',
         label: t('Avg Time Spent'),
         sortable: false,
         align: 'center',
+        headerAlign: 'center',
       },
       {
         key: 'activeTeachers',
         label: t('Active Teachers'),
         sortable: false,
         align: 'center',
+        headerAlign: 'center',
       },
       {
         key: 'activitiesAssigned',
         label: t('Activities Assigned'),
         sortable: false,
         align: 'center',
+        headerAlign: 'center',
       },
       {
         key: 'avgAssignmentsCompleted',
         label: t('Avg Assignments Completed'),
         sortable: false,
         align: 'center',
+        headerAlign: 'center',
       },
       {
         key: 'avgActivitiesCompleted',
         label: t('Avg Activities Completed'),
         sortable: false,
         align: 'center',
+        headerAlign: 'center',
       },
     );
-    if (hasWhatsAppBot) {
-      cols.push({
-        key: 'whatsapp',
-        label: t('WhatsApp Group'),
-        align: 'center',
-        sortable: false,
-      });
-    }
     if (!isExternalUser) {
       cols.push({
         key: 'actions',
         label: t('Actions'),
-        align: 'right',
+        align: 'center',
+        headerAlign: 'center',
         sortable: false,
       });
     }
     return cols;
-  }, [hasWhatsAppBot, isExternalUser, shouldShowClassCode]);
+  }, [isExternalUser, shouldShowClassCode]);
 
   const totalCount = safeClasses.length;
 
@@ -926,6 +796,7 @@ const SchoolClasses: React.FC<Props> = ({
           onRowClick={(id) => setSelectedClassId(String(id))}
           loading={classMetricsLoading}
           tableMinWidth={shouldShowClassCode ? 1380 : 1260}
+          headerAlign="center"
           headerNoEllipsis
         />
       </div>
