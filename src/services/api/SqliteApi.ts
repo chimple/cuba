@@ -92,6 +92,7 @@ import logger from '../../utility/logger';
 import { isRecoverableStorageError } from '../../utility/recoverableStorageError';
 import { ensureLocalStickerBookSvgUri } from '../../utility/stickerBookAssets';
 import { Util } from '../../utility/util';
+import { getDailyRewardClaimedEvent } from '../../analytics/rewardEvents';
 import type { SqlStatement } from '../../workers/background.worker.types';
 import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorkerClient';
 import { Json } from '../database';
@@ -3609,12 +3610,13 @@ export class SqliteApi implements ServiceApi {
         logger.error('Failed to get user from redux store:', error);
       }
       pushData.reward = JSON.stringify(newReward);
-      await Util.logEvent(EVENTS.REWARD_COLLECTED, {
+      await Util.logEvent(getDailyRewardClaimedEvent(source), {
         user_id: userId,
         student_id: currentUser.id,
         reward_id: newReward.reward_id,
         prev_reward_id: currentUserReward?.reward_id ?? null,
         timestamp: newReward.timestamp,
+        source: source ?? null,
         course_id: courseId ?? null,
         chapter_id: chapterId,
         lesson_id: lessonId,

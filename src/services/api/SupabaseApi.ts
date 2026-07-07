@@ -115,6 +115,7 @@ import {
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
+import { getDailyRewardClaimedEvent } from '../../analytics/rewardEvents';
 import {
   buildSchoolSearchKey,
   getSchoolSearchScore,
@@ -2959,11 +2960,12 @@ export class SupabaseApi implements ServiceApi {
     }
     // 8️⃣ Log reward event if any
     if (newReward && currentUser) {
-      await Util.logEvent(EVENTS.REWARD_COLLECTED, {
+      await Util.logEvent(getDailyRewardClaimedEvent(source), {
         user_id: currentUser.id,
         reward_id: newReward.reward_id,
         prev_reward_id: currentUserReward?.reward_id ?? null,
         timestamp: newReward.timestamp,
+        source: source ?? null,
         course_id: courseId ?? null,
         chapter_id: chapterId,
         lesson_id: lessonId,
