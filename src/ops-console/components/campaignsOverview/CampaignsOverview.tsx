@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import CampaignAssignmentTab from '../../pages/CampaignAssignmentTab';
+import CampaignMessages from '../campaignMessages/CampaignMessages';
+import './CampaignsOverview.css';
+import CampaignsOverviewHeaderBar from './CampaignsOverviewHeaderBar';
 import {
+  buildCampaignsOverviewViewModel,
+  CampaignsOverviewApiResponse,
   DEFAULT_CAMPAIGNS_OVERVIEW_BREADCRUMB,
   DEFAULT_CAMPAIGNS_OVERVIEW_TABS,
   DEFAULT_CAMPAIGNS_OVERVIEW_TITLE,
-  buildCampaignsOverviewViewModel,
-  CampaignsOverviewApiResponse,
 } from './CampaignsOverviewLogic';
-import CampaignsOverviewHeaderBar from './CampaignsOverviewHeaderBar';
-import CampaignsOverviewWidgets from './CampaignsOverviewWidgets';
-import CampaignAssignmentTab from '../../pages/CampaignAssignmentTab';
-import './CampaignsOverview.css';
 import './CampaignsOverviewMobile.css';
+import CampaignsOverviewWidgets from './CampaignsOverviewWidgets';
 
 export interface CampaignsOverviewProps {
   title?: string;
@@ -40,10 +41,11 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
   const [selectedTab, setSelectedTab] = useState(activeTab);
   const campaignViewModel =
     buildCampaignsOverviewViewModel(campaignOverviewData);
-  const resolvedCampaignId =
-    campaignId ??
-    campaignOverviewData?.data?.campaignId ??
-    campaignOverviewData?.data?.dashboardMetrics?.campaign_id;
+  const resolvedCampaignId = [
+    campaignId,
+    campaignOverviewData?.data?.campaignId,
+    campaignOverviewData?.data?.dashboardMetrics?.campaign_id,
+  ].find((id): id is string => typeof id === 'string' && id.trim().length > 0);
 
   useEffect(() => {
     document.body.classList.add('campaigns-overview-active');
@@ -61,6 +63,7 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
     selectedTab === DEFAULT_CAMPAIGNS_OVERVIEW_TABS[0];
   const shouldShowAssignments =
     selectedTab === DEFAULT_CAMPAIGNS_OVERVIEW_TABS[1];
+  const shouldShowMessages = selectedTab === tabs[2];
   const handleBackClick = (): void => {
     if (onBackClick) {
       onBackClick();
@@ -86,17 +89,22 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
         onBreadcrumbClick={onBreadcrumbClick}
         onTabClick={handleTabClick}
       />
-      {shouldShowOverviewWidgets && (
-        <CampaignsOverviewWidgets
-          campaignStatus={campaignViewModel.campaignStatus}
-          summaryData={campaignViewModel.summaryData}
-          performanceData={campaignViewModel.performanceData}
-          cancellationDetails={campaignViewModel.cancellationDetails}
-        />
-      )}
-      {shouldShowAssignments && resolvedCampaignId && (
-        <CampaignAssignmentTab campaignId={resolvedCampaignId} />
-      )}
+      <div className="ops-campaigns-overview-content">
+        {shouldShowOverviewWidgets && (
+          <CampaignsOverviewWidgets
+            campaignStatus={campaignViewModel.campaignStatus}
+            summaryData={campaignViewModel.summaryData}
+            performanceData={campaignViewModel.performanceData}
+            cancellationDetails={campaignViewModel.cancellationDetails}
+          />
+        )}
+        {shouldShowAssignments && resolvedCampaignId && (
+          <CampaignAssignmentTab campaignId={resolvedCampaignId} />
+        )}
+        {shouldShowMessages && (
+          <CampaignMessages campaignId={resolvedCampaignId} />
+        )}
+      </div>
     </main>
   );
 };

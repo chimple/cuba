@@ -24,6 +24,9 @@ import {
   CampaignAssignmentsResponse,
   CampaignOption,
   CampaignAssignmentFilters,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
+  UpdateCampaignMessagingRowPayload,
 } from './ServiceApi';
 import {
   SOURCE,
@@ -2534,5 +2537,18 @@ export class ApiHandler implements ServiceApi {
   }
   public async isSplUser(): Promise<boolean> {
     return await this.s.isSplUser();
+  }
+
+  public async getCampaignMessaging(
+    campaignId: string,
+    params?: CampaignMessagingQueryParams,
+  ): Promise<CampaignMessagingResponse> {
+    return await this.s.getCampaignMessaging(campaignId, params);
+  }
+
+  public async updateCampaignMessaging(
+    rows: UpdateCampaignMessagingRowPayload[],
+  ): Promise<boolean> {
+    return await this.s.updateCampaignMessaging(rows);
   }
 }
