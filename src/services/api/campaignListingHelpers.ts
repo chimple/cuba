@@ -14,6 +14,30 @@ import type { Column } from '../../ops-console/components/DataTableBody';
 import type { CampaignsOverviewApiResponse } from '../../ops-console/components/campaignsOverview/CampaignsOverviewLogic';
 import CampaignsOverviewInfoTooltip from '../../ops-console/components/campaignsOverview/CampaignsOverviewInfoTooltip';
 
+const CAMPAIGN_LISTING_ORDER_BY = {
+  NAME: 'name',
+  MANAGER: 'manager',
+  PROGRAM_NAME: 'programName',
+  AVG_WEEKLY_ACTIVE_USERS: 'avgWeeklyActiveUsers',
+  AVG_WEEKLY_ENGAGEMENT_TIME_MINUTES: 'avgWeeklyEngagementTimeMinutes',
+  START_DATE: 'startDate',
+  END_DATE: 'endDate',
+} as const;
+
+const CAMPAIGN_STATUS_CLASS_NAME_BY_STATUS: Record<
+  CampaignListingStatus,
+  string
+> = {
+  [CAMPAIGN_LISTING_STATUS.NOT_STARTED]:
+    'campaign-listing-status-pill campaign-listing-status-not-started',
+  [CAMPAIGN_LISTING_STATUS.IN_PROGRESS]:
+    'campaign-listing-status-pill campaign-listing-status-in-progress',
+  [CAMPAIGN_LISTING_STATUS.COMPLETED]:
+    'campaign-listing-status-pill campaign-listing-status-completed',
+  [CAMPAIGN_LISTING_STATUS.CANCELLED]:
+    'campaign-listing-status-pill campaign-listing-status-cancelled',
+};
+
 const getSingleCampaignRelationValue = <T>(
   value: T | T[] | null | undefined,
 ): T | null => (Array.isArray(value) ? (value[0] ?? null) : (value ?? null));
@@ -61,7 +85,7 @@ const compareCampaignListingItems = (
   orderBy: NonNullable<CampaignListingParams['orderBy']>,
 ) => {
   switch (orderBy) {
-    case 'manager': {
+    case CAMPAIGN_LISTING_ORDER_BY.MANAGER: {
       const leftManager = getSingleCampaignRelationValue(left.campaign.manager);
       const rightManager = getSingleCampaignRelationValue(
         right.campaign.manager,
@@ -72,7 +96,7 @@ const compareCampaignListingItems = (
         { sensitivity: 'base' },
       );
     }
-    case 'programName':
+    case CAMPAIGN_LISTING_ORDER_BY.PROGRAM_NAME:
       return (
         getSingleCampaignRelationValue(left.campaign.program)?.name ?? ''
       ).localeCompare(
@@ -80,26 +104,26 @@ const compareCampaignListingItems = (
         undefined,
         { sensitivity: 'base' },
       );
-    case 'endDate':
+    case CAMPAIGN_LISTING_ORDER_BY.END_DATE:
       return (
         new Date(left.campaign.end_date).getTime() -
         new Date(right.campaign.end_date).getTime()
       );
-    case 'avgWeeklyActiveUsers':
+    case CAMPAIGN_LISTING_ORDER_BY.AVG_WEEKLY_ACTIVE_USERS:
       return (
         (left.avgWeeklyActiveUsers ?? -1) - (right.avgWeeklyActiveUsers ?? -1)
       );
-    case 'avgWeeklyEngagementTimeMinutes':
+    case CAMPAIGN_LISTING_ORDER_BY.AVG_WEEKLY_ENGAGEMENT_TIME_MINUTES:
       return (
         (left.avgWeeklyEngagementTimeMinutes ?? -1) -
         (right.avgWeeklyEngagementTimeMinutes ?? -1)
       );
-    case 'startDate':
+    case CAMPAIGN_LISTING_ORDER_BY.START_DATE:
       return (
         new Date(left.campaign.start_date).getTime() -
         new Date(right.campaign.start_date).getTime()
       );
-    case 'name':
+    case CAMPAIGN_LISTING_ORDER_BY.NAME:
     default:
       return left.campaign.name.localeCompare(right.campaign.name, undefined, {
         sensitivity: 'base',
@@ -198,18 +222,7 @@ export const hasCampaignWriteAccess = (roles: string[]) =>
   );
 
 export const getCampaignStatusClassName = (status: CampaignListingStatus) =>
-  (
-    ({
-      'Not Started':
-        'campaign-listing-status-pill campaign-listing-status-not-started',
-      'In Progress':
-        'campaign-listing-status-pill campaign-listing-status-in-progress',
-      Completed:
-        'campaign-listing-status-pill campaign-listing-status-completed',
-      Cancelled:
-        'campaign-listing-status-pill campaign-listing-status-cancelled',
-    }) as const
-  )[status];
+  CAMPAIGN_STATUS_CLASS_NAME_BY_STATUS[status];
 
 const renderMetricHeaderLabel = (
   label: string,

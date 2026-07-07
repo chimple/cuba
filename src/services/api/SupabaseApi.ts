@@ -9764,6 +9764,40 @@ export class SupabaseApi implements ServiceApi {
     const supabase = this.supabase;
     const normalizedSearchTerm = searchTerm.trim();
     const now = new Date();
+    const fetchCampaignListingMetrics = async (
+      campaignIds: string[],
+    ): Promise<Map<string, CampaignListingItem['dashboardMetrics']>> => {
+      if (campaignIds.length === 0) {
+        return new Map();
+      }
+
+      try {
+        const { data: metricsData, error: metricsError } = await supabase.rpc(
+          'get_campaign_dashboard_metrics',
+          {
+            p_campaign_ids: campaignIds,
+          },
+        );
+
+        if (metricsError) {
+          logger.error(
+            'Error fetching campaign dashboard metrics for listing:',
+            metricsError,
+          );
+          return new Map();
+        }
+
+        return new Map(
+          (metricsData ?? []).map((metric) => [metric.campaign_id, metric]),
+        );
+      } catch (metricsError) {
+        logger.error(
+          'Unexpected error fetching campaign dashboard metrics for listing:',
+          metricsError,
+        );
+        return new Map();
+      }
+    };
 
     try {
       const {
@@ -9947,149 +9981,74 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const mappedCampaigns = (data ?? []) as CampaignListingQueryRow[];
-      // When a native campaign column is being sorted, let the database handle ordering and slicing first.
-      if (shouldUseDatabasePagination) {
-        const campaignIds = mappedCampaigns.map((campaign) => campaign.id);
-        let pageMetricsMap = new Map<
-          string,
-          CampaignListingItem['dashboardMetrics']
-        >();
-
-        if (campaignIds.length > 0) {
-          try {
-            const { data: metricsData, error: metricsError } =
-              await supabase.rpc('get_campaign_dashboard_metrics', {
-                p_campaign_ids: campaignIds,
-              });
-
-            if (metricsError) {
-              logger.error(
-                'Error fetching campaign dashboard metrics for listing:',
-                metricsError,
-              );
-            } else {
-              pageMetricsMap = new Map(
-                (metricsData ?? []).map((metric) => [
-                  metric.campaign_id,
-                  metric,
-                ]),
-              );
-            }
-          } catch (metricsError) {
-            logger.error(
-              'Unexpected error fetching campaign dashboard metrics for listing:',
-              metricsError,
-            );
-          }
-        }
-
-        return {
-          data: mappedCampaigns.map((campaign) =>
-            mapCampaignListingItem(
-              campaign,
-              now,
-              pageMetricsMap.get(campaign.id) ?? null,
-            ),
-          ),
-          totalCount: count ?? 0,
-        };
-      }
-
       // Apply field-coordinator visibility after the base campaign query so audience links can be inspected.
-      const visibleCampaigns = isFieldCoordinator
-        ? mappedCampaigns.filter((campaign) => {
-            const targetAudience = getSingleRelationValue(
-              campaign.target_audience,
-            );
-            const audienceSchoolIds = (
-              targetAudience?.campaign_target_audience_school ?? []
-            )
-              .map((row) => row.school_id)
-              .filter((id): id is string => !!id);
-            const hasProgramAccess =
-              !!campaign.program_id &&
-              accessibleProgramIds.has(campaign.program_id);
-            const hasSchoolAccess = audienceSchoolIds.some((schoolId) =>
-              accessibleSchoolIds.has(schoolId),
-            );
-            const hasDirectProgramAssignment =
-              !!campaign.program_id &&
-              fieldCoordinatorProgramIds.has(campaign.program_id);
+      const visibleCampaigns = shouldUseDatabasePagination
+        ? mappedCampaigns
+        : isFieldCoordinator
+          ? mappedCampaigns.filter((campaign) => {
+              const targetAudience = getSingleRelationValue(
+                campaign.target_audience,
+              );
+              const audienceSchoolIds = (
+                targetAudience?.campaign_target_audience_school ?? []
+              )
+                .map((row) => row.school_id)
+                .filter((id): id is string => !!id);
+              const hasProgramAccess =
+                !!campaign.program_id &&
+                accessibleProgramIds.has(campaign.program_id);
+              const hasSchoolAccess = audienceSchoolIds.some((schoolId) =>
+                accessibleSchoolIds.has(schoolId),
+              );
+              const hasDirectProgramAssignment =
+                !!campaign.program_id &&
+                fieldCoordinatorProgramIds.has(campaign.program_id);
 
-            return (
-              hasSchoolAccess ||
-              (hasProgramAccess &&
-                (Boolean(targetAudience?.is_all_schools) ||
-                  hasDirectProgramAssignment))
-            );
-          })
-        : mappedCampaigns;
-      const campaignIds = visibleCampaigns.map((campaign) => campaign.id);
-      let campaignMetricsMap = new Map<
-        string,
-        CampaignListingItem['dashboardMetrics']
-      >();
-
-      if (campaignIds.length > 0) {
-        try {
-          // Metrics come from a separate RPC so the listing can stay lightweight and still show averages.
-          const { data: metricsData, error: metricsError } = await supabase.rpc(
-            'get_campaign_dashboard_metrics',
-            {
-              p_campaign_ids: campaignIds,
-            },
-          );
-
-          if (metricsError) {
-            logger.error(
-              'Error fetching campaign dashboard metrics for listing:',
-              metricsError,
-            );
-          } else {
-            logger.info('Campaign dashboard metrics rpc data:', {
-              data: metricsData?.[0] ?? null,
-            });
-            campaignMetricsMap = new Map(
-              (metricsData ?? []).map((metric) => [metric.campaign_id, metric]),
-            );
-          }
-        } catch (metricsError) {
-          logger.error(
-            'Unexpected error fetching campaign dashboard metrics for listing:',
-            metricsError,
-          );
-        }
-      }
-
-      const listingItems = visibleCampaigns.map((campaign) =>
-        mapCampaignListingItem(
-          campaign,
-          now,
-          campaignMetricsMap.get(campaign.id) ?? null,
-        ),
-      );
-
-      const sortedCampaigns = sortCampaignListingItems(
-        listingItems,
-        orderBy,
-        orderDir,
-      );
-      // Sorting and pagination stay in one place so every role sees a consistent listing order.
-      const totalCount = sortedCampaigns.length;
+              return (
+                hasSchoolAccess ||
+                (hasProgramAccess &&
+                  (Boolean(targetAudience?.is_all_schools) ||
+                    hasDirectProgramAssignment))
+              );
+            })
+          : mappedCampaigns;
       const currentPage = Math.max(page, 1);
       const currentPageSize = Math.max(pageSize, 1);
       const from = (currentPage - 1) * currentPageSize;
-      const paginatedCampaigns = sortedCampaigns.slice(
-        from,
-        from + currentPageSize,
+
+      let listingItems: CampaignListingItem[] = [];
+      let totalCount = 0;
+      const campaignMetricsMap = await fetchCampaignListingMetrics(
+        visibleCampaigns.map((campaign) => campaign.id),
       );
 
-      logger.info('Campaign listing final data:', {
-        data: paginatedCampaigns[0] ?? null,
-      });
+      if (shouldUseDatabasePagination) {
+        listingItems = visibleCampaigns.map((campaign) =>
+          mapCampaignListingItem(
+            campaign,
+            now,
+            campaignMetricsMap.get(campaign.id) ?? null,
+          ),
+        );
+        totalCount = count ?? 0;
+      } else {
+        const visibleListingItems = visibleCampaigns.map((campaign) =>
+          mapCampaignListingItem(
+            campaign,
+            now,
+            campaignMetricsMap.get(campaign.id) ?? null,
+          ),
+        );
+        totalCount = visibleListingItems.length;
+        listingItems = sortCampaignListingItems(
+          visibleListingItems,
+          orderBy,
+          orderDir,
+        ).slice(from, from + currentPageSize);
+      }
 
       return {
-        data: paginatedCampaigns,
+        data: listingItems,
         totalCount,
       };
     } catch (error) {
