@@ -9,7 +9,7 @@ import {
 } from './CampaignsOverviewLogic';
 import CampaignsOverviewHeaderBar from './CampaignsOverviewHeaderBar';
 import CampaignsOverviewWidgets from './CampaignsOverviewWidgets';
-// import CampaignMessages from '../campaignMessages/CampaignMessages';
+import CampaignAssignmentTab from '../../pages/CampaignAssignmentTab';
 import './CampaignsOverview.css';
 import './CampaignsOverviewMobile.css';
 
@@ -18,6 +18,7 @@ export interface CampaignsOverviewProps {
   breadcrumb?: readonly string[];
   tabs?: readonly string[];
   activeTab?: string;
+  campaignId?: string;
   campaignOverviewData?: CampaignsOverviewApiResponse;
   onBackClick?: () => void;
   onBreadcrumbClick?: (item: string, index: number) => void;
@@ -29,6 +30,7 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
   breadcrumb = DEFAULT_CAMPAIGNS_OVERVIEW_BREADCRUMB,
   tabs = DEFAULT_CAMPAIGNS_OVERVIEW_TABS,
   activeTab = DEFAULT_CAMPAIGNS_OVERVIEW_TABS[0],
+  campaignId,
   campaignOverviewData,
   onBackClick,
   onBreadcrumbClick,
@@ -38,6 +40,10 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
   const [selectedTab, setSelectedTab] = useState(activeTab);
   const campaignViewModel =
     buildCampaignsOverviewViewModel(campaignOverviewData);
+  const resolvedCampaignId =
+    campaignId ??
+    campaignOverviewData?.data?.campaignId ??
+    campaignOverviewData?.data?.dashboardMetrics?.campaign_id;
 
   useEffect(() => {
     document.body.classList.add('campaigns-overview-active');
@@ -53,7 +59,8 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
 
   const shouldShowOverviewWidgets =
     selectedTab === DEFAULT_CAMPAIGNS_OVERVIEW_TABS[0];
-  const shouldShowMessages = selectedTab === DEFAULT_CAMPAIGNS_OVERVIEW_TABS[2];
+  const shouldShowAssignments =
+    selectedTab === DEFAULT_CAMPAIGNS_OVERVIEW_TABS[1];
   const handleBackClick = (): void => {
     if (onBackClick) {
       onBackClick();
@@ -87,9 +94,9 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
           cancellationDetails={campaignViewModel.cancellationDetails}
         />
       )}
-      {/* {shouldShowMessages && (
-        <CampaignMessages data={campaignOverviewData?.data} />
-      )} */}
+      {shouldShowAssignments && resolvedCampaignId && (
+        <CampaignAssignmentTab campaignId={resolvedCampaignId} />
+      )}
     </main>
   );
 };
