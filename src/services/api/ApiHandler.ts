@@ -3,6 +3,8 @@ import {
   AssignmentDateRangeData,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignListingItem,
+  CampaignListingParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -1623,6 +1625,18 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCampaignAssignmentOptions(params);
   }
 
+  public async getCampaignListing(
+    params: CampaignListingParams,
+  ): Promise<PaginatedResponse<CampaignListingItem>> {
+    return await this.s.getCampaignListing(params);
+  }
+
+  public async cancelCampaign(
+    campaignId: string,
+    reason: string,
+  ): Promise<void> {
+    return await this.s.cancelCampaign(campaignId, reason);
+  }
   public async getCampaignAssignments(
     campaignId: string,
     filters: CampaignAssignmentFilters,

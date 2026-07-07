@@ -58,8 +58,8 @@ const navItems = [
     icon: <SchoolIcon />,
   },
   {
-    label: NavItems.COMPAIGNS,
-    route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_COMPAIGNS,
+    label: NavItems.CAMPAIGNS,
+    route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_CAMPAIGNS,
     icon: <CampaignIcon />,
   },
   {
@@ -233,7 +233,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             // Program listing is only available to roles approved for Program page access.
             if (item.label === NavItems.PROGRAMS && !canAccessUsersPage)
               return null;
-            if (item.label === NavItems.COMPAIGNS && !canAccessCampaignPage)
+            if (item.label === NavItems.CAMPAIGNS && !canAccessCampaignPage)
               return null;
             if (item.label === NavItems.USERS && !canAccessUsersPage)
               return null;

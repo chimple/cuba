@@ -28,6 +28,7 @@ import {
   SchoolVisitType,
   SOURCE,
   RESULT_STATUS,
+  CampaignListingStatus,
 } from '../../common/constants';
 import { AvatarObj } from '../../components/animation/Avatar';
 import { DocumentData } from 'firebase/firestore';
@@ -46,7 +47,7 @@ import {
   StickerBook,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
-import { Json } from '../database';
+import { Database, Json } from '../database';
 import logger from '../../utility/logger';
 
 export interface LeaderboardInfo {
@@ -373,6 +374,34 @@ export type CampaignAssignmentOptions = {
   grades: CampaignAssignmentGradeOption[];
 };
 
+export type CampaignListingItem = {
+  campaignId: string;
+  campaign: TableTypes<'campaign'> & {
+    manager?: TableTypes<'user'> | TableTypes<'user'>[] | null;
+    program?: TableTypes<'program'> | TableTypes<'program'>[] | null;
+  };
+  dashboardMetrics:
+    | Database['public']['Functions']['get_campaign_dashboard_metrics']['Returns'][number]
+    | null;
+  avgWeeklyActiveUsers: number | null;
+  avgWeeklyEngagementTimeMinutes: number | null;
+  status: CampaignListingStatus;
+};
+
+export type CampaignListingParams = {
+  page?: number;
+  pageSize?: number;
+  searchTerm?: string;
+  orderBy?:
+    | 'name'
+    | 'manager'
+    | 'programName'
+    | 'avgWeeklyActiveUsers'
+    | 'avgWeeklyEngagementTimeMinutes'
+    | 'startDate'
+    | 'endDate';
+  orderDir?: 'asc' | 'desc';
+};
 export type CampaignAssignmentFilters = {
   page: number;
   pageSize: number;
@@ -2383,6 +2412,19 @@ export interface ServiceApi {
     params: CampaignAssignmentOptionsParams,
   ): Promise<CampaignAssignmentOptions>;
 
+  /**
+   * Returns the campaign listing page data with server-side pagination metadata.
+   * Search, sorting, role-based visibility, and average dashboard metrics are applied by the implementation.
+   */
+  getCampaignListing(
+    params: CampaignListingParams,
+  ): Promise<PaginatedResponse<CampaignListingItem>>;
+
+  /**
+   * Cancels an existing campaign and persists the inactive status update in the database.
+   * The reason is supplied by the UI for cancellation auditing and validation.
+   */
+  cancelCampaign(campaignId: string, reason: string): Promise<void>;
   /**
    * Fetches campaign assignments for a given campaign ID, with optional filters for school, grade, subject, chapter, and lesson.
    * @param {string} campaignId - The ID of the campaign to fetch assignments for.

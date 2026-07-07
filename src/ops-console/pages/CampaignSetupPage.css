@@ -60,6 +60,19 @@
   line-height: 1.3125rem;
 }
 
+.campaign-setup-breadcrumb-link {
+  background: transparent;
+  border: 0;
+  color: #888888;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.campaign-setup-breadcrumb-link:hover {
+  color: #454545;
+}
+
 .campaign-setup-breadcrumb strong {
   color: #454545;
   font-weight: 700;

@@ -25,11 +25,6 @@
     padding: 0 0 32px;
     background: #fff;
   }
-
-  .sidebar-hamburger-outside {
-    display: none !important;
-  }
-
   .ops-campaigns-overview-back-button {
     display: inline-flex !important;
     position: absolute !important;
