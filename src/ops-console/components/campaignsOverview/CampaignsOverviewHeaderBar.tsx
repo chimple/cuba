@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowBack, Notifications } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
+import './CampaignsOverviewHeaderBar.css';
 
 const BREADCRUMB_ARROW_SRC = '/assets/ops-breadcrumb-arrow.svg';
 

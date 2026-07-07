@@ -5,10 +5,12 @@ import { useTranslation } from 'react-i18next';
 
 type CampaignSetupHeaderProps = {
   onBack: () => void;
+  onOpenCampaignListing: () => void;
 };
 
 export const CampaignSetupHeader: React.FC<CampaignSetupHeaderProps> = ({
   onBack,
+  onOpenCampaignListing,
 }) => {
   const { t } = useTranslation();
 
@@ -26,7 +28,13 @@ export const CampaignSetupHeader: React.FC<CampaignSetupHeaderProps> = ({
           {t('New Campaign')}
         </Typography>
         <Box className="campaign-setup-breadcrumb">
-          <span>{t('Campaigns')}</span>
+          <button
+            type="button"
+            className="campaign-setup-breadcrumb-link"
+            onClick={onOpenCampaignListing}
+          >
+            {t('Campaigns')}
+          </button>
           <ChevronRight className="campaign-setup-breadcrumb-icon" />
           <strong>{t('New Campaign')}</strong>
         </Box>

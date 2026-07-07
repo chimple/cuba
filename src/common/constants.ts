@@ -516,7 +516,8 @@ export enum PAGES {
   ADMIN_DASHBOARD = '/dashboard',
   ADMIN_PROGRAMS = '/programs',
   ADMIN_SCHOOLS = '/schools',
-  ADMIN_COMPAIGNS = '/compaigns',
+  ADMIN_CAMPAIGNS = '/campaigns',
+  ADMIN_CAMPAIGNS_NEW = '/campaigns/new',
   ADMIN_USERS = '/users',
   ADMIN_DEVICES = '/devices',
   ADMIN_RESOURCES = '/resourses',
@@ -582,7 +583,7 @@ export enum NavItems {
   DASHBOARD = 'Dashboard',
   PROGRAMS = 'Programs',
   SCHOOLS = 'Schools',
-  COMPAIGNS = 'Campaigns',
+  CAMPAIGNS = 'Campaigns',
   REQUESTS = 'Requests',
   OpsMODULE = 'OpsModule',
   USERS = 'Users',
@@ -1393,6 +1394,18 @@ export const CAMPAIGN_OBJECTIVE = {
   HOMEWORK: 'homework_campaign',
   HOMEPAGE_LEARNING_PATHWAY: 'homepage_learning_pathway_campaign',
 } as const;
+export const CAMPAIGN_STATUS = {
+  ACTIVE: 'active' as EnumType<'campaign_status'>,
+  INACTIVE: 'inactive' as EnumType<'campaign_status'>,
+} as const;
+export const CAMPAIGN_LISTING_STATUS = {
+  NOT_STARTED: 'Not Started',
+  IN_PROGRESS: 'In Progress',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
+} as const;
+export type CampaignListingStatus =
+  (typeof CAMPAIGN_LISTING_STATUS)[keyof typeof CAMPAIGN_LISTING_STATUS];
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
 export const VERSION_KEY = 'last_native_version';
 export enum SupportLevelMap {

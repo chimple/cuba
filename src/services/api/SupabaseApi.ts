@@ -57,6 +57,7 @@ import {
   type PercentageBandValue,
   type SchoolPerformanceStatusValue,
   CAMPAIGN_OBJECTIVE,
+  CAMPAIGN_STATUS,
 } from '../../common/constants';
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
@@ -69,6 +70,8 @@ import {
   AssignmentDateRangeData,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignListingItem,
+  CampaignListingParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -90,6 +93,13 @@ import {
   SchoolProgramAccessRow,
   ServiceApi,
   StudentLeaderboardInfo,
+  CampaignAssignmentsResponse,
+  CampaignAssignmentSummaryRow,
+  CampaignAssignmentFilters,
+  CampaignOption,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
+  UpdateCampaignMessagingRowPayload,
 } from './ServiceApi';
 import { Database, Json } from '../database';
 import {
@@ -115,6 +125,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
 import {
+  mapCampaignListingItem,
+  sortCampaignListingItems,
+} from './campaignListingHelpers';
+import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
 } from '../../teachers-module/pages/AssignmentCartStorage';
@@ -127,6 +141,8 @@ import { store } from '../../redux/store';
 import logger from '../../utility/logger';
 
 type SchoolListPercentBand = PercentageBandValue;
+
+const DEFAULT_CAMPAIGN_MESSAGING_PAGE_SIZE = 20;
 
 const SCHOOL_LIST_PERCENTAGE_FILTER_KEYS = new Set([
   'activatedStudents',
@@ -326,6 +342,40 @@ type CampaignSavedAudienceGroupRow = Pick<
 > & {
   campaign_target_audience_school?: CampaignAudienceSchoolLinkRow[] | null;
   campaign_target_audience_grade?: CampaignAudienceGradeLinkRow[] | null;
+};
+
+type CampaignListingAudienceRow = Pick<
+  TableTypes<'campaign_target_audience'>,
+  'id' | 'is_all_schools'
+> & {
+  campaign_target_audience_school?: CampaignAudienceSchoolLinkRow[] | null;
+};
+
+type CampaignListingQueryRow = TableTypes<'campaign'> & {
+  manager?: TableTypes<'user'> | TableTypes<'user'>[] | null;
+  program?: TableTypes<'program'> | TableTypes<'program'>[] | null;
+  target_audience?:
+    | CampaignListingAudienceRow
+    | CampaignListingAudienceRow[]
+    | null;
+};
+
+type CampaignAccessSchoolRow = Pick<TableTypes<'school_user'>, 'school_id'> & {
+  school?:
+    | Pick<TableTypes<'school'>, 'program_id'>
+    | Pick<TableTypes<'school'>, 'program_id'>[]
+    | null;
+};
+
+const getSingleRelationValue = <T>(value: T | T[] | null | undefined) =>
+  Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+
+const CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS: Partial<
+  Record<NonNullable<CampaignListingParams['orderBy']>, string>
+> = {
+  name: 'name',
+  startDate: 'start_date',
+  endDate: 'end_date',
 };
 
 type CampaignSchoolRow = Pick<TableTypes<'school'>, 'id' | 'name' | 'group3'>;
@@ -7173,6 +7223,7 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
   }
+
   async getCurriculumById(
     id: string,
   ): Promise<TableTypes<'curriculum'> | undefined> {
@@ -9702,6 +9753,341 @@ export class SupabaseApi implements ServiceApi {
     };
   }
 
+  async getCampaignListing({
+    page = 1,
+    pageSize = 10,
+    searchTerm = '',
+    orderBy = 'startDate',
+    orderDir = 'desc',
+  }: CampaignListingParams): Promise<{
+    data: CampaignListingItem[];
+    totalCount: number;
+  }> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized.');
+      return { data: [], totalCount: 0 };
+    }
+
+    const supabase = this.supabase;
+    const normalizedSearchTerm = searchTerm.trim();
+    const now = new Date();
+    const fetchCampaignListingMetrics = async (
+      campaignIds: string[],
+    ): Promise<Map<string, CampaignListingItem['dashboardMetrics']>> => {
+      if (campaignIds.length === 0) {
+        return new Map();
+      }
+
+      try {
+        const { data: metricsData, error: metricsError } = await supabase.rpc(
+          'get_campaign_dashboard_metrics',
+          {
+            p_campaign_ids: campaignIds,
+          },
+        );
+
+        if (metricsError) {
+          logger.error(
+            'Error fetching campaign dashboard metrics for listing:',
+            metricsError,
+          );
+          return new Map();
+        }
+
+        return new Map(
+          (metricsData ?? []).map((metric) => [metric.campaign_id, metric]),
+        );
+      } catch (metricsError) {
+        logger.error(
+          'Unexpected error fetching campaign dashboard metrics for listing:',
+          metricsError,
+        );
+        return new Map();
+      }
+    };
+
+    try {
+      const {
+        data: { user: authUser },
+      } = await supabase.auth.getUser();
+
+      if (!authUser?.id) {
+        logger.error('Current user is not available for campaign listing');
+        return { data: [], totalCount: 0 };
+      }
+
+      // Campaign listing access is role-based: admins/managers see all, field coordinators are scoped.
+      const specialRoles = await this.getUserSpecialRoles(authUser.id);
+      const hasGlobalCampaignAccess = specialRoles.some((role) =>
+        [
+          RoleType.SUPER_ADMIN,
+          RoleType.OPERATIONAL_DIRECTOR,
+          RoleType.PROGRAM_MANAGER,
+        ].includes(role as RoleType),
+      );
+      const isFieldCoordinator =
+        specialRoles.includes(RoleType.FIELD_COORDINATOR) &&
+        !hasGlobalCampaignAccess;
+
+      // Field coordinators can only see campaigns tied to their linked schools/programs.
+      const [schoolAccessResult, programAccessResult] = isFieldCoordinator
+        ? await Promise.all([
+            supabase
+              .from(TABLES.SchoolUser)
+              .select('school_id, school:school_id(program_id)')
+              .eq('user_id', authUser.id)
+              .eq('is_deleted', false),
+            supabase
+              .from(TABLES.ProgramUser)
+              .select('program_id')
+              .eq('user', authUser.id)
+              .eq('role', RoleType.FIELD_COORDINATOR)
+              .eq('is_deleted', false),
+          ])
+        : [
+            {
+              data: [] as CampaignAccessSchoolRow[],
+              error: null,
+            },
+            {
+              data: [] as Array<{ program_id?: string | null }>,
+              error: null,
+            },
+          ];
+
+      if (schoolAccessResult.error) {
+        logger.error(
+          'Error fetching school_user campaign access list:',
+          schoolAccessResult.error,
+        );
+        return { data: [], totalCount: 0 };
+      }
+
+      if (programAccessResult.error) {
+        logger.error(
+          'Error fetching program_user campaign access list:',
+          programAccessResult.error,
+        );
+        return { data: [], totalCount: 0 };
+      }
+
+      const accessibleSchoolIds = new Set(
+        ((schoolAccessResult.data ?? []) as CampaignAccessSchoolRow[])
+          .map((row) => row.school_id)
+          .filter((id): id is string => !!id),
+      );
+      const programIdsFromSchools = (
+        (schoolAccessResult.data ?? []) as CampaignAccessSchoolRow[]
+      )
+        .map((row) => getSingleRelationValue(row.school)?.program_id ?? null)
+        .filter((id): id is string => !!id);
+      const fieldCoordinatorProgramIds = new Set(
+        (programAccessResult.data ?? [])
+          .map((row) => row.program_id)
+          .filter((id): id is string => !!id),
+      );
+      const accessibleProgramIds = new Set([
+        ...programIdsFromSchools,
+        ...fieldCoordinatorProgramIds,
+      ]);
+
+      if (
+        isFieldCoordinator &&
+        accessibleSchoolIds.size === 0 &&
+        accessibleProgramIds.size === 0
+      ) {
+        return { data: [], totalCount: 0 };
+      }
+
+      // Search is supported across campaign name, manager name, and program name.
+      const [managerSearchResponse, programSearchResponse] =
+        normalizedSearchTerm.length > 0
+          ? await Promise.all([
+              this.supabase
+                .from(TABLES.User)
+                .select('id')
+                .ilike('name', `%${normalizedSearchTerm}%`)
+                .eq('is_deleted', false)
+                .limit(50),
+              this.supabase
+                .from(TABLES.Program)
+                .select('id')
+                .ilike('name', `%${normalizedSearchTerm}%`)
+                .eq('is_deleted', false)
+                .limit(50),
+            ])
+          : [
+              { data: [], error: null },
+              { data: [], error: null },
+            ];
+
+      if (managerSearchResponse.error) {
+        logger.error(
+          'Error searching campaign managers for listing:',
+          managerSearchResponse.error,
+        );
+      }
+
+      if (programSearchResponse.error) {
+        logger.error(
+          'Error searching campaign programs for listing:',
+          programSearchResponse.error,
+        );
+      }
+
+      const managerIds = (managerSearchResponse.data ?? []).map(
+        (row) => row.id,
+      );
+      const programIds = (programSearchResponse.data ?? []).map(
+        (row) => row.id,
+      );
+      const nativeSortColumn = CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS[orderBy];
+      const shouldUseDatabasePagination =
+        !isFieldCoordinator && Boolean(nativeSortColumn);
+      const campaignListingSelect = `*, manager:manager_id(*), program:program_id(*),
+        target_audience:target_audience_id(
+          id,
+          is_all_schools,
+          campaign_target_audience_school(school_id)
+        )`;
+
+      const campaignQuery = this.supabase
+        .from('campaign')
+        .select(campaignListingSelect, {
+          count: shouldUseDatabasePagination ? 'exact' : undefined,
+        })
+        .eq('is_deleted', false);
+
+      if (normalizedSearchTerm.length > 0) {
+        // Escape quoted search text before building the PostgREST OR filter expression.
+        const escapedSearchTerm = normalizedSearchTerm.replace(/"/g, '\\"');
+        const orFilters = [`name.ilike."%${escapedSearchTerm}%"`];
+        if (managerIds.length > 0) {
+          orFilters.push(`manager_id.in.(${managerIds.join(',')})`);
+        }
+        if (programIds.length > 0) {
+          orFilters.push(`program_id.in.(${programIds.join(',')})`);
+        }
+        campaignQuery.or(orFilters.join(','));
+      }
+
+      if (shouldUseDatabasePagination && nativeSortColumn) {
+        campaignQuery
+          .order(nativeSortColumn, { ascending: orderDir === 'asc' })
+          .range(
+            (Math.max(page, 1) - 1) * Math.max(pageSize, 1),
+            Math.max(page, 1) * Math.max(pageSize, 1) - 1,
+          );
+      }
+
+      const { data, error, count } = await campaignQuery;
+
+      if (error) {
+        logger.error('Error fetching campaign listing:', error);
+        return { data: [], totalCount: 0 };
+      }
+
+      const mappedCampaigns = (data ?? []) as CampaignListingQueryRow[];
+      // Apply field-coordinator visibility after the base campaign query so audience links can be inspected.
+      const visibleCampaigns = shouldUseDatabasePagination
+        ? mappedCampaigns
+        : isFieldCoordinator
+          ? mappedCampaigns.filter((campaign) => {
+              const targetAudience = getSingleRelationValue(
+                campaign.target_audience,
+              );
+              const audienceSchoolIds = (
+                targetAudience?.campaign_target_audience_school ?? []
+              )
+                .map((row) => row.school_id)
+                .filter((id): id is string => !!id);
+              const hasProgramAccess =
+                !!campaign.program_id &&
+                accessibleProgramIds.has(campaign.program_id);
+              const hasSchoolAccess = audienceSchoolIds.some((schoolId) =>
+                accessibleSchoolIds.has(schoolId),
+              );
+              const hasDirectProgramAssignment =
+                !!campaign.program_id &&
+                fieldCoordinatorProgramIds.has(campaign.program_id);
+
+              return (
+                hasSchoolAccess ||
+                (hasProgramAccess &&
+                  (Boolean(targetAudience?.is_all_schools) ||
+                    hasDirectProgramAssignment))
+              );
+            })
+          : mappedCampaigns;
+      const currentPage = Math.max(page, 1);
+      const currentPageSize = Math.max(pageSize, 1);
+      const from = (currentPage - 1) * currentPageSize;
+
+      let listingItems: CampaignListingItem[] = [];
+      let totalCount = 0;
+      const campaignMetricsMap = await fetchCampaignListingMetrics(
+        visibleCampaigns.map((campaign) => campaign.id),
+      );
+
+      if (shouldUseDatabasePagination) {
+        listingItems = visibleCampaigns.map((campaign) =>
+          mapCampaignListingItem(
+            campaign,
+            now,
+            campaignMetricsMap.get(campaign.id) ?? null,
+          ),
+        );
+        totalCount = count ?? 0;
+      } else {
+        const visibleListingItems = visibleCampaigns.map((campaign) =>
+          mapCampaignListingItem(
+            campaign,
+            now,
+            campaignMetricsMap.get(campaign.id) ?? null,
+          ),
+        );
+        totalCount = visibleListingItems.length;
+        listingItems = sortCampaignListingItems(
+          visibleListingItems,
+          orderBy,
+          orderDir,
+        ).slice(from, from + currentPageSize);
+      }
+
+      return {
+        data: listingItems,
+        totalCount,
+      };
+    } catch (error) {
+      logger.error('Unexpected error fetching campaign listing:', error);
+      return { data: [], totalCount: 0 };
+    }
+  }
+
+  async cancelCampaign(campaignId: string, reason: string): Promise<void> {
+    const trimmedReason = reason.trim();
+
+    if (!this.supabase || !campaignId || !trimmedReason) {
+      return;
+    }
+
+    const timestamp = new Date().toISOString();
+    const { error } = await this.supabase
+      .from('campaign')
+      .update({
+        campaign_status: CAMPAIGN_STATUS.INACTIVE,
+        comments: trimmedReason,
+        updated_at: timestamp,
+      })
+      .eq('id', campaignId)
+      .eq('is_deleted', false);
+
+    if (error) {
+      logger.error('Error cancelling campaign:', error);
+      throw error;
+    }
+  }
+
   async getCampaignAudienceOptions(
     programId: string,
   ): Promise<CampaignAudienceOptions> {
@@ -10207,6 +10593,144 @@ export class SupabaseApi implements ServiceApi {
         subjects: subjectsByGrade.get(gradeId) ?? [],
       })),
     };
+  }
+
+  async getCampaignAssignments(
+    campaignId: string,
+    filters: CampaignAssignmentFilters,
+  ): Promise<CampaignAssignmentsResponse> {
+    if (!this.supabase || !campaignId) {
+      return {
+        assignments: [],
+        total: 0,
+      };
+    }
+
+    const page = filters.page ?? 1;
+    const pageSize = filters.pageSize ?? 10;
+
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+
+    logger.info('page', page, 'pageSize', pageSize, 'from', from, 'to', to);
+
+    let query = this.supabase
+      .from('assignment')
+      .select(
+        `
+          id,
+          starts_at,
+          lesson (
+            id,
+            name
+          ),
+          class!inner (
+            grade!inner (
+              id,
+              name
+            )
+          ),
+          course!inner (
+            subject!inner (
+              id,
+              name
+            )
+          )
+        `,
+        { count: 'exact' },
+      )
+      .eq('campaign_id', campaignId)
+      .eq('is_deleted', false);
+
+    // Apply filters only if provided
+    if (filters.gradeIds?.length) {
+      query = query.in('class.grade.id', filters.gradeIds);
+    }
+
+    if (filters.subjectIds?.length) {
+      query = query.in('course.subject.id', filters.subjectIds);
+    }
+
+    query = query.order('starts_at', { ascending: true }).range(from, to);
+
+    const { data, count, error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      assignments:
+        data?.map((assignment) => ({
+          assignmentId: assignment.id,
+          assignmentDate: assignment.starts_at,
+
+          gradeId: assignment.class?.grade?.id ?? '',
+          gradeName: assignment.class?.grade?.name ?? '',
+
+          subjectId: assignment.course?.subject?.id ?? '',
+          subjectName: assignment.course?.subject?.name ?? '',
+
+          lessonId: assignment.lesson?.id ?? '',
+          lessonName: assignment.lesson?.name ?? '',
+        })) ?? [],
+      total: count ?? 0,
+    };
+  }
+
+  async getCampaignSubjectsByCampaignId(
+    campaignId: string,
+  ): Promise<CampaignOption[]> {
+    if (!this.supabase || !campaignId) {
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select(
+        `
+        course:course_id(
+          subject:subject_id(
+            id,
+            name
+          )
+        )
+      `,
+      )
+      .eq('campaign_id', campaignId)
+      .eq('is_deleted', false)
+      .not('course_id', 'is', null);
+
+    if (error) {
+      logger.error('Error fetching campaign subjects:', error);
+      return [];
+    }
+
+    const uniqueSubjects = new Map<string, CampaignOption>();
+
+    (
+      (data ?? []) as Array<{
+        course?: {
+          subject?: CampaignOption | CampaignOption[] | null;
+        } | null;
+      }>
+    ).forEach((row) => {
+      const course = Array.isArray(row.course) ? row.course[0] : row.course;
+      const subject = Array.isArray(course?.subject)
+        ? course?.subject[0]
+        : course?.subject;
+
+      if (subject?.id && subject?.name) {
+        uniqueSubjects.set(String(subject.id), {
+          id: String(subject.id),
+          name: String(subject.name),
+        });
+      }
+    });
+
+    return Array.from(uniqueSubjects.values()).sort((a, b) =>
+      a.name.localeCompare(b.name),
+    );
   }
 
   private mapCampaignSavedAudienceGroup(
@@ -16826,5 +17350,113 @@ export class SupabaseApi implements ServiceApi {
     }
 
     return newRow;
+  }
+
+  async getCampaignMessaging(
+    campaignId: string,
+    {
+      page = 1,
+      pageSize = DEFAULT_CAMPAIGN_MESSAGING_PAGE_SIZE,
+    }: CampaignMessagingQueryParams = {},
+  ): Promise<CampaignMessagingResponse> {
+    const safePage = Number.isFinite(page) ? Math.max(1, Math.floor(page)) : 1;
+    const safePageSize = Number.isFinite(pageSize)
+      ? Math.max(1, Math.floor(pageSize))
+      : DEFAULT_CAMPAIGN_MESSAGING_PAGE_SIZE;
+    const from = (safePage - 1) * safePageSize;
+    const to = from + safePageSize - 1;
+
+    const emptyResponse: CampaignMessagingResponse = {
+      data: [],
+      total: 0,
+      page: safePage,
+      pageSize: safePageSize,
+    };
+
+    if (!this.supabase) return emptyResponse;
+
+    try {
+      const effectiveCampaignId = campaignId.trim();
+      if (!effectiveCampaignId) return emptyResponse;
+
+      const { data, error, count } = await this.supabase
+        .from('campaign_messaging')
+        .select('*', { count: 'exact' })
+        .eq('campaign_id', effectiveCampaignId)
+        .eq('is_deleted', false)
+        .order('message_time', { ascending: true })
+        .range(from, to);
+
+      if (error) {
+        logger.error('Error fetching campaign messaging:', error);
+        return emptyResponse;
+      }
+
+      logger.info(
+        `Fetched campaign messaging for campaignId=${effectiveCampaignId}, page=${safePage}, pageSize=${safePageSize}:`,
+        data,
+      );
+
+      return {
+        data: (data ?? []) as CampaignMessagingResponse['data'],
+        total: count ?? 0,
+        page: safePage,
+        pageSize: safePageSize,
+      };
+    } catch (error) {
+      logger.error('Exception fetching campaign messaging:', error);
+      return emptyResponse;
+    }
+  }
+
+  async updateCampaignMessaging(
+    rows: UpdateCampaignMessagingRowPayload[],
+  ): Promise<boolean> {
+    if (!this.supabase) return false;
+
+    const editableRows = rows.filter((row) => String(row.id ?? '').trim());
+    if (editableRows.length === 0) return true;
+
+    const updatedAt = new Date().toISOString();
+
+    try {
+      const results = await Promise.all(
+        editableRows.map((row) => {
+          const pollQuestion = row.pollQuestion.trim();
+          const pollOptions = row.pollOptions
+            .map((option) => option.trim())
+            .filter((option) => option.length > 0);
+
+          return this.supabase!.from('campaign_messaging')
+            .update({
+              message: row.message.trim(),
+              media_link: row.mediaLink.trim() || null,
+              message_time: row.messageTime,
+              poll_time: row.pollTime,
+              poll:
+                pollQuestion.length > 0 || pollOptions.length > 0
+                  ? {
+                      question: pollQuestion,
+                      options: pollOptions,
+                    }
+                  : null,
+              updated_at: updatedAt,
+            })
+            .eq('id', row.id)
+            .eq('is_deleted', false);
+        }),
+      );
+
+      const failedResult = results.find((result) => result.error);
+      if (failedResult?.error) {
+        logger.error('Error updating campaign messaging:', failedResult.error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      logger.error('Exception updating campaign messaging:', error);
+      return false;
+    }
   }
 }

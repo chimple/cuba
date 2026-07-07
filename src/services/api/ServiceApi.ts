@@ -28,6 +28,7 @@ import {
   SchoolVisitType,
   SOURCE,
   RESULT_STATUS,
+  CampaignListingStatus,
 } from '../../common/constants';
 import { AvatarObj } from '../../components/animation/Avatar';
 import { DocumentData } from 'firebase/firestore';
@@ -46,7 +47,7 @@ import {
   StickerBook,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
-import { Json } from '../database';
+import { Database, Json } from '../database';
 import logger from '../../utility/logger';
 
 export interface LeaderboardInfo {
@@ -172,6 +173,30 @@ export type JoinClassInviteLookupResult = {
   inviteData: any;
   classData?: TableTypes<'class'>;
   schoolData?: TableTypes<'school'>;
+};
+
+export type CampaignMessagingRow = TableTypes<'campaign_messaging'>;
+
+export type CampaignMessagingQueryParams = {
+  page?: number;
+  pageSize?: number;
+};
+
+export type CampaignMessagingResponse = {
+  data: CampaignMessagingRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export type UpdateCampaignMessagingRowPayload = {
+  id: string;
+  message: string;
+  mediaLink: string;
+  messageTime: string | null;
+  pollTime: string | null;
+  pollQuestion: string;
+  pollOptions: string[];
 };
 
 type OpsRequestsResponse = {
@@ -371,6 +396,57 @@ export type CampaignAssignmentOptionsParams = {
 
 export type CampaignAssignmentOptions = {
   grades: CampaignAssignmentGradeOption[];
+};
+
+export type CampaignListingItem = {
+  campaignId: string;
+  campaign: TableTypes<'campaign'> & {
+    manager?: TableTypes<'user'> | TableTypes<'user'>[] | null;
+    program?: TableTypes<'program'> | TableTypes<'program'>[] | null;
+  };
+  dashboardMetrics:
+    | Database['public']['Functions']['get_campaign_dashboard_metrics']['Returns'][number]
+    | null;
+  avgWeeklyActiveUsers: number | null;
+  avgWeeklyEngagementTimeMinutes: number | null;
+  status: CampaignListingStatus;
+};
+
+export type CampaignListingParams = {
+  page?: number;
+  pageSize?: number;
+  searchTerm?: string;
+  orderBy?:
+    | 'name'
+    | 'manager'
+    | 'programName'
+    | 'avgWeeklyActiveUsers'
+    | 'avgWeeklyEngagementTimeMinutes'
+    | 'startDate'
+    | 'endDate';
+  orderDir?: 'asc' | 'desc';
+};
+export type CampaignAssignmentFilters = {
+  page: number;
+  pageSize: number;
+  gradeIds?: string[];
+  subjectIds?: string[];
+};
+
+export type CampaignAssignmentSummaryRow = {
+  assignmentId: string;
+  assignmentDate: string;
+  gradeId: string;
+  gradeName: string;
+  subjectId: string;
+  subjectName: string;
+  lessonId: string;
+  lessonName: string;
+};
+
+export type CampaignAssignmentsResponse = {
+  assignments: CampaignAssignmentSummaryRow[];
+  total: number;
 };
 
 export interface ServiceApi {
@@ -2361,6 +2437,39 @@ export interface ServiceApi {
   ): Promise<CampaignAssignmentOptions>;
 
   /**
+   * Returns the campaign listing page data with server-side pagination metadata.
+   * Search, sorting, role-based visibility, and average dashboard metrics are applied by the implementation.
+   */
+  getCampaignListing(
+    params: CampaignListingParams,
+  ): Promise<PaginatedResponse<CampaignListingItem>>;
+
+  /**
+   * Cancels an existing campaign and persists the inactive status update in the database.
+   * The reason is supplied by the UI for cancellation auditing and validation.
+   */
+  cancelCampaign(campaignId: string, reason: string): Promise<void>;
+  /**
+   * Fetches campaign assignments for a given campaign ID, with optional filters for school, grade, subject, chapter, and lesson.
+   * @param {string} campaignId - The ID of the campaign to fetch assignments for.
+   * @param {CampaignAssignmentFilters} filters - Optional filters to narrow down the assignments.
+   * @returns {Promise<CampaignAssignmentsResponse>} - A promise resolving to the campaign assignments data.
+   */
+  getCampaignAssignments(
+    campaignId: string,
+    filters: CampaignAssignmentFilters,
+  ): Promise<CampaignAssignmentsResponse>;
+
+  /**
+   * Fetches the unique subjects used by a campaign's assignments.
+   * @param {string} campaignId - The campaign ID.
+   * @returns {Promise<CampaignOption[]>} - Unique subjects for that campaign.
+   */
+  getCampaignSubjectsByCampaignId(
+    campaignId: string,
+  ): Promise<CampaignOption[]>;
+
+  /**
    * Get unique geo data
    */
   getUniqueGeoData(): Promise<{
@@ -3528,4 +3637,21 @@ export interface ServiceApi {
     lessonId: string,
   ): Promise<boolean>;
   isSplUser(): Promise<boolean>;
+
+  /**
+   * Fetches active communication rows for a campaign.
+   * Filters out rows soft-deleted from the campaign messaging table.
+   */
+  getCampaignMessaging(
+    campaignId: string,
+    params?: CampaignMessagingQueryParams,
+  ): Promise<CampaignMessagingResponse>;
+
+  /**
+   * Updates editable campaign communication rows.
+   * Only pending, non-deleted campaign messaging rows should be updated.
+   */
+  updateCampaignMessaging(
+    rows: UpdateCampaignMessagingRowPayload[],
+  ): Promise<boolean>;
 }

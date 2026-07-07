@@ -103,6 +103,8 @@ import {
   AssignmentDateRangeData,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignListingItem,
+  CampaignListingParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -120,6 +122,12 @@ import {
   OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
+  CampaignAssignmentsResponse,
+  CampaignOption,
+  CampaignAssignmentFilters,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
+  UpdateCampaignMessagingRowPayload,
 } from './ServiceApi';
 import { SupabaseApi } from './SupabaseApi';
 import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
@@ -8035,6 +8043,28 @@ order by
     return await this._serverApi.getCampaignAssignmentOptions(params);
   }
 
+  async getCampaignListing(
+    params: CampaignListingParams,
+  ): Promise<PaginatedResponse<CampaignListingItem>> {
+    return await this._serverApi.getCampaignListing(params);
+  }
+
+  async cancelCampaign(campaignId: string, reason: string): Promise<void> {
+    return await this._serverApi.cancelCampaign(campaignId, reason);
+  }
+  async getCampaignAssignments(
+    campaignId: string,
+    filters: CampaignAssignmentFilters,
+  ): Promise<CampaignAssignmentsResponse> {
+    return await this._serverApi.getCampaignAssignments(campaignId, filters);
+  }
+
+  async getCampaignSubjectsByCampaignId(
+    campaignId: string,
+  ): Promise<CampaignOption[]> {
+    return await this._serverApi.getCampaignSubjectsByCampaignId(campaignId);
+  }
+
   async getUniqueGeoData(): Promise<{
     Country: string[];
     State: string[];
@@ -11385,5 +11415,18 @@ order by
       logger.error('Error updating/inserting user_achievements coins:', error);
       throw error;
     }
+  }
+
+  async getCampaignMessaging(
+    campaignId: string,
+    params?: CampaignMessagingQueryParams,
+  ): Promise<CampaignMessagingResponse> {
+    return await this._serverApi.getCampaignMessaging(campaignId, params);
+  }
+
+  async updateCampaignMessaging(
+    rows: UpdateCampaignMessagingRowPayload[],
+  ): Promise<boolean> {
+    return await this._serverApi.updateCampaignMessaging(rows);
   }
 }

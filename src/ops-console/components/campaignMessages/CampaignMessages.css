@@ -1,0 +1,1526 @@
+/* Table columns requested: Date 10%, Daily Message 40%, Media Link 10%, Poll 40% */
+.campaign-messages {
+  --campaign-messages-table-min-width: 1085px;
+  --campaign-messages-grid-columns: 10% 40% 10% 40%;
+  --campaign-messages-schedule-height: 64px;
+  --campaign-messages-schedule-padding-x: 31px;
+  --campaign-messages-schedule-padding-y: 14px;
+  --campaign-messages-schedule-font-size: 13px;
+  --campaign-messages-schedule-note-font-size: 12px;
+  --campaign-messages-schedule-title-width: 135px;
+  --campaign-messages-schedule-title-gap: 10%;
+  --campaign-messages-schedule-message-label-width: 85.852px;
+  --campaign-messages-schedule-poll-label-width: 55.038px;
+  --campaign-messages-schedule-small-gap: 7.66px;
+  --campaign-messages-schedule-section-gap: 27.99px;
+  --campaign-messages-schedule-time-width: 120px;
+  --campaign-messages-schedule-time-height: 33.82px;
+  --campaign-messages-schedule-note-width: 226.086px;
+  --campaign-messages-schedule-icon-size: 24px;
+}
+
+.campaign-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.campaign-messages .campaign-messages-schedule {
+  min-height: var(--campaign-messages-schedule-height);
+  box-sizing: border-box;
+  border: 1px solid #dde1e6;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: var(--campaign-messages-schedule-padding-y)
+    var(--campaign-messages-schedule-padding-x);
+}
+
+.campaign-messages .campaign-messages-subtitle {
+  margin: 0;
+  color: #1f1f1f;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: var(--campaign-messages-schedule-font-size);
+  font-weight: 600;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.campaign-messages .campaign-messages-time-button {
+  display: block;
+  text-align: left;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.campaign-messages .campaign-messages-time-picker-wrapper {
+  position: relative;
+  width: var(--campaign-messages-schedule-time-width);
+  height: var(--campaign-messages-schedule-time-height);
+  min-height: var(--campaign-messages-schedule-time-height);
+}
+
+.campaign-messages .campaign-messages-schedule-heading {
+  align-self: center !important;
+  grid-column: 1;
+}
+
+.campaign-messages .campaign-messages-schedule-grid {
+  display: grid;
+  grid-template-columns:
+    var(--campaign-messages-schedule-title-width)
+    var(--campaign-messages-schedule-title-gap)
+    var(--campaign-messages-schedule-message-label-width)
+    var(--campaign-messages-schedule-small-gap)
+    var(--campaign-messages-schedule-time-width)
+    var(--campaign-messages-schedule-section-gap)
+    var(--campaign-messages-schedule-poll-label-width)
+    var(--campaign-messages-schedule-small-gap)
+    var(--campaign-messages-schedule-time-width)
+    var(--campaign-messages-schedule-section-gap)
+    var(--campaign-messages-schedule-note-width)
+    minmax(0, 1fr)
+    var(--campaign-messages-schedule-icon-size);
+  align-items: center !important;
+  min-height: 34px;
+}
+
+.campaign-messages .campaign-messages-field-block {
+  display: contents;
+}
+
+.campaign-messages .campaign-messages-field-label {
+  margin: 0;
+  color: #1f1f1f;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: var(--campaign-messages-schedule-font-size);
+  font-weight: 600;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.campaign-messages .campaign-messages-time {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+  width: var(--campaign-messages-schedule-time-width);
+  height: var(--campaign-messages-schedule-time-height);
+  min-height: var(--campaign-messages-schedule-time-height);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 8px 38px 8px 10px;
+  border: 1px solid #c1c7cd;
+  border-radius: 6px;
+  color: #a0a0a0;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: var(--campaign-messages-schedule-font-size);
+  font-weight: 400;
+  line-height: normal;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.campaign-messages .campaign-messages-time-editable {
+  color: #1f1f1f;
+}
+
+.campaign-messages .campaign-messages-time::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  width: 13.62px;
+  height: 13.62px;
+  transform: translateY(-50%);
+  background-color: #21272a;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='7' cy='7' r='5.25' stroke='black' stroke-width='1.2'/%3E%3Cpath d='M7 3.8V7L9.15 8.25' stroke='black' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='7' cy='7' r='5.25' stroke='black' stroke-width='1.2'/%3E%3Cpath d='M7 3.8V7L9.15 8.25' stroke='black' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.campaign-messages .campaign-messages-time-picker {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 30;
+  width: var(--campaign-messages-schedule-time-width);
+  max-height: 8.75rem;
+  overflow: hidden;
+  border: 0.0625rem solid #b8c0cc;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: #ffffff;
+}
+
+.campaign-messages .campaign-messages-time-picker-column {
+  max-height: 8.25rem;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.campaign-messages .campaign-messages-time-picker-column::-webkit-scrollbar {
+  display: none;
+}
+
+.campaign-messages .campaign-messages-time-picker-period-column {
+  overflow-y: hidden;
+}
+
+.campaign-messages .campaign-messages-time-picker-option {
+  width: 100%;
+  min-height: 1.875rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #111827;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.campaign-messages .campaign-messages-time-picker-option:hover {
+  background: #eef4ff;
+}
+
+.campaign-messages .campaign-messages-time-picker-option[aria-selected='true'] {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.campaign-messages-editing .campaign-messages-schedule-grid {
+  grid-template-columns:
+    var(--campaign-messages-schedule-title-width)
+    var(--campaign-messages-schedule-title-gap)
+    var(--campaign-messages-schedule-message-label-width)
+    var(--campaign-messages-schedule-small-gap)
+    var(--campaign-messages-schedule-time-width)
+    var(--campaign-messages-schedule-section-gap)
+    var(--campaign-messages-schedule-poll-label-width)
+    var(--campaign-messages-schedule-small-gap)
+    var(--campaign-messages-schedule-time-width)
+    var(--campaign-messages-schedule-section-gap)
+    var(--campaign-messages-schedule-note-width)
+    minmax(0, 1fr)
+    var(--campaign-messages-schedule-icon-size);
+  align-items: center !important;
+}
+
+.campaign-messages .campaign-messages-schedule-note {
+  margin: 0;
+  color: #666;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: var(--campaign-messages-schedule-note-font-size);
+  font-weight: 400;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.campaign-messages .campaign-messages-schedule-note-mobile {
+  display: none;
+}
+
+.campaign-messages
+  .campaign-messages-field-block:first-of-type
+  .campaign-messages-field-label {
+  grid-column: 3;
+}
+
+.campaign-messages
+  .campaign-messages-field-block:first-of-type
+  .campaign-messages-time,
+.campaign-messages
+  .campaign-messages-field-block:first-of-type
+  .campaign-messages-time-picker-wrapper {
+  grid-column: 5;
+}
+
+.campaign-messages
+  .campaign-messages-field-block:nth-of-type(2)
+  .campaign-messages-field-label {
+  grid-column: 7;
+}
+
+.campaign-messages
+  .campaign-messages-field-block:nth-of-type(2)
+  .campaign-messages-time,
+.campaign-messages
+  .campaign-messages-field-block:nth-of-type(2)
+  .campaign-messages-time-picker-wrapper {
+  grid-column: 9;
+}
+
+.campaign-messages .campaign-messages-schedule-note-desktop {
+  grid-column: 11;
+  justify-self: start;
+}
+
+.campaign-messages .campaign-messages-schedule-edit {
+  display: flex;
+  grid-column: 13;
+  align-items: center;
+  justify-content: center;
+  width: var(--campaign-messages-schedule-icon-size);
+  height: var(--campaign-messages-schedule-icon-size);
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #1a71f6;
+  cursor: pointer;
+  justify-self: end;
+}
+
+.campaign-messages .campaign-messages-schedule-edit img {
+  display: block;
+  width: var(--campaign-messages-schedule-icon-size);
+  height: var(--campaign-messages-schedule-icon-size);
+}
+
+.campaign-messages .campaign-messages-schedule-edit:disabled,
+.campaign-messages .campaign-messages-schedule-edit-disabled {
+  color: #a0a0a0;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.campaign-messages-editing .campaign-messages-schedule-edit {
+  display: none;
+}
+
+.campaign-messages .campaign-messages-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: 1 0 auto;
+  min-height: 0;
+  min-width: 0;
+  border: 1px solid #dde1e6;
+  border-radius: 8px;
+  overflow-x: auto;
+  overflow-y: visible;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+
+.campaign-messages .campaign-messages-table *,
+.campaign-messages .campaign-messages-table *::before,
+.campaign-messages .campaign-messages-table *::after {
+  box-sizing: border-box;
+}
+
+.campaign-messages .campaign-messages-table-head,
+.campaign-messages .campaign-messages-row {
+  display: grid;
+  grid-template-columns: var(--campaign-messages-grid-columns);
+  width: 100%;
+  min-width: var(--campaign-messages-table-min-width);
+  align-items: stretch;
+  box-sizing: border-box;
+}
+
+.campaign-messages
+  .campaign-messages-table-editing
+  .campaign-messages-table-head,
+.campaign-messages .campaign-messages-table-editing .campaign-messages-row {
+  grid-template-columns: var(--campaign-messages-grid-columns);
+  width: 100%;
+  min-width: var(--campaign-messages-table-min-width);
+  align-items: stretch;
+}
+
+.campaign-messages .campaign-messages-table-head {
+  min-height: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  align-items: stretch;
+  background: #f0f4fa;
+  border-bottom: 1.111px solid #dde1e6;
+}
+
+.campaign-messages .campaign-messages-table-head span {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-right: 1.111px solid #dde1e6;
+  color: #666;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  line-height: normal;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.campaign-messages .campaign-messages-table-head span:last-child {
+  border-right: none;
+}
+
+.campaign-messages .campaign-messages-table-body {
+  flex: 0 0 auto;
+  min-width: var(--campaign-messages-table-min-width);
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  -webkit-overflow-scrolling: touch;
+}
+
+.campaign-messages .campaign-messages-row {
+  position: relative;
+  min-height: 117px;
+  background: #ffffff;
+  border-bottom: 1.111px solid #dde1e6;
+}
+
+.campaign-messages .campaign-messages-row > *,
+.campaign-messages .campaign-messages-table-head > span {
+  align-self: stretch;
+  height: 100%;
+}
+
+.campaign-messages .campaign-messages-row:first-of-type {
+  min-height: 137px;
+}
+
+.campaign-messages .campaign-messages-row:nth-of-type(2) {
+  min-height: 128px;
+}
+
+.campaign-messages .campaign-messages-table-editing .campaign-messages-row {
+  min-height: 128px;
+}
+
+.campaign-messages
+  .campaign-messages-table-editing
+  .campaign-messages-row:has(
+    .campaign-messages-poll-option-edit-row:nth-of-type(4)
+  ) {
+  min-height: 166px;
+}
+
+.campaign-messages .campaign-messages-row:last-child {
+  border-bottom: none;
+}
+
+.campaign-messages .campaign-messages-row-disabled::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.03);
+  pointer-events: none;
+}
+
+.campaign-messages .campaign-messages-row-disabled input,
+.campaign-messages .campaign-messages-row-disabled textarea,
+.campaign-messages .campaign-messages-row-disabled select,
+.campaign-messages .campaign-messages-row-disabled button {
+  cursor: not-allowed;
+}
+
+.campaign-messages
+  .campaign-messages-row-disabled
+  .campaign-messages-row-actions {
+  display: none;
+}
+
+.campaign-messages
+  .campaign-messages-table-editing
+  .campaign-messages-row-disabled
+  .campaign-messages-poll-cell {
+  padding-right: 10px;
+}
+
+.campaign-messages .campaign-messages-date-cell,
+.campaign-messages .campaign-messages-cell,
+.campaign-messages .campaign-messages-poll-cell,
+.campaign-messages .campaign-messages-edit-field,
+.campaign-messages .campaign-messages-message-edit-field {
+  min-width: 0;
+  margin: 0;
+  border-right: 1.111px solid #dde1e6;
+  color: #4c4c4c;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: normal;
+  box-sizing: border-box;
+}
+
+.campaign-messages .campaign-messages-row > :last-child {
+  border-right: none;
+}
+
+.campaign-messages .campaign-messages-date-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 8px 10px;
+  background: #fafafa;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.campaign-messages .campaign-messages-date-label {
+  margin: 0;
+  color: #21272a;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: normal;
+}
+
+.campaign-messages .campaign-messages-date-subtext {
+  margin: 2px 0 0;
+  color: #666;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
+}
+
+.campaign-messages .campaign-messages-message-cell {
+  display: flex;
+  align-items: center;
+  max-height: 180px;
+  padding: 8px 18px;
+  white-space: pre-line;
+  overflow: auto;
+}
+
+.campaign-messages .campaign-messages-media-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 8px 10px;
+}
+
+.campaign-messages .campaign-messages-poll-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 8px 10px;
+  overflow: hidden;
+}
+
+.campaign-messages
+  .campaign-messages-table-editing
+  .campaign-messages-poll-cell {
+  gap: 6px;
+}
+
+.campaign-messages .campaign-messages-readonly-field {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  border: 1px solid #dde1e6;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #4c4c4c;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.campaign-messages .campaign-messages-media-link-field {
+  min-height: 30px;
+  max-height: 76px;
+  padding: 8px;
+  border-color: #e8e8e8;
+  color: #a0a0a0;
+  overflow-wrap: anywhere;
+}
+
+.campaign-messages .campaign-messages-poll-question {
+  min-height: 28px;
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+
+.campaign-messages .campaign-messages-poll-option {
+  min-height: 25px;
+  padding: 5px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.campaign-messages .campaign-messages-poll-question,
+.campaign-messages .campaign-messages-poll-option {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.campaign-messages .campaign-messages-edit-field {
+  width: 100%;
+  outline: none;
+  background: #ffffff;
+  border: 1px solid #dde1e6;
+  border-radius: 4px;
+  color: #4c4c4c;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: normal;
+}
+
+.campaign-messages .campaign-messages-edit-field::placeholder {
+  color: #a0a0a0;
+  opacity: 1;
+}
+
+.campaign-messages .campaign-messages-edit-field:focus {
+  border-color: #1a71f6;
+}
+
+.campaign-messages .campaign-messages-edit-field:disabled {
+  background: #f7f7f7;
+  color: #a0a0a0;
+}
+
+.campaign-messages .campaign-messages-message-edit-field {
+  height: 100%;
+  min-height: 117px;
+  padding: 8px 10px;
+  resize: none;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  border-radius: 0;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+.campaign-messages .campaign-messages-media-link-edit-field {
+  height: 76px;
+  padding: 8px;
+  resize: none;
+  border-color: #e8e8e8;
+  color: #1a71f6;
+  text-decoration: underline;
+  overflow: hidden;
+}
+
+.campaign-messages .campaign-messages-poll-question-edit-field {
+  height: 28px;
+  padding: 6px 8px;
+}
+
+.campaign-messages .campaign-messages-poll-option-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+}
+
+.campaign-messages .campaign-messages-poll-option-edit-field {
+  height: 25px;
+  min-width: 0;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.campaign-messages .campaign-messages-add-option-button,
+.campaign-messages .campaign-messages-remove-option-button,
+.campaign-messages .campaign-messages-clear-row-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin: 0;
+  background: #ffffff;
+  border-radius: 4px;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-weight: 500;
+  line-height: normal;
+  cursor: pointer;
+}
+
+.campaign-messages .campaign-messages-add-option-button {
+  width: 57px;
+  height: 22.43px;
+  border: 1px solid #1a71f6;
+  color: #1a71f6;
+  font-size: 11px;
+}
+
+.campaign-messages .campaign-messages-remove-option-button {
+  width: 20px;
+  height: 20.66px;
+  flex: 0 0 20px;
+  border: 1px solid #f28b82;
+  color: #e53935;
+  font-size: 12px;
+}
+
+.campaign-messages .campaign-messages-row-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 94px;
+  min-width: 94px;
+  padding: 10.93px 6px 0;
+  margin: 0;
+  border-left: 1.111px solid #dde1e6;
+  border-right: none;
+  background: #ffffff;
+  color: #4c4c4c;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: normal;
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+.campaign-messages
+  .campaign-messages-table-editing
+  .campaign-messages-row-editable
+  .campaign-messages-poll-cell {
+  padding-right: 104px;
+}
+
+.campaign-messages .campaign-messages-clear-row-button {
+  width: 80px;
+  height: 22.43px;
+  border: 1px solid #f28b82;
+  color: #e53935;
+  font-size: 11px;
+}
+
+.campaign-messages .campaign-messages-clear-row-button-disabled {
+  border-color: #d9d9d9;
+  color: #a0a0a0;
+}
+
+.campaign-messages .campaign-messages-mobile-row-head {
+  display: none;
+}
+
+.campaign-messages .campaign-messages-pagination-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex: 0 0 auto;
+  min-height: 52px;
+  margin-top: auto;
+  border-top: 1px solid #dde1e6;
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
+.campaign-messages .campaign-messages-pagination-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.campaign-messages .campaign-messages-edit-actions {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+  padding-top: 0;
+  transform: translateY(-50%);
+}
+
+.campaign-messages .campaign-messages-cancel-button,
+.campaign-messages .campaign-messages-save-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  cursor: pointer;
+}
+
+.campaign-messages .campaign-messages-cancel-button {
+  min-width: 100px;
+  padding: 0 32px;
+  border: 1px solid #1a71f6;
+  background: #ffffff;
+  color: #1a71f6;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.campaign-messages .campaign-messages-save-button {
+  min-width: 166px;
+  padding: 0 24px;
+  border: 1px solid #1a71f6;
+  background: #1a71f6;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.campaign-messages .campaign-messages-empty-state,
+.campaign-messages .campaign-messages-loading-state {
+  padding: 1rem;
+  color: #667085;
+}
+
+.campaign-messages .campaign-messages-empty-state p,
+.campaign-messages .campaign-messages-loading-state p {
+  margin: 0;
+}
+
+/* Toast animations */
+@keyframes toast-fade-out {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  86% {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, 10px);
+    visibility: hidden;
+  }
+}
+
+.campaign-messages .campaign-messages-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  z-index: 100;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #21272a;
+  color: #ffffff;
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  text-align: center;
+  transform: translateX(-50%);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  animation: toast-fade-out 1.4s forwards ease-in-out;
+}
+
+@media (max-width: 48rem) {
+  .campaign-messages {
+    --campaign-messages-schedule-height: auto;
+    --campaign-messages-schedule-padding-x: 13px;
+    --campaign-messages-schedule-padding-y: 13px;
+    --campaign-messages-schedule-font-size: 13px;
+    --campaign-messages-schedule-note-font-size: 11px;
+    --campaign-messages-schedule-time-width: 100%;
+    --campaign-messages-schedule-time-height: 42px;
+    --campaign-messages-schedule-icon-size: 19.62px;
+    position: relative; /* Positioning ancestor context */
+    gap: 16px;
+    padding: 16px;
+    background: #ffffff;
+    min-height: 100%;
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-bottom: 80px; /* Space to clear fixed bottom pagination */
+  }
+
+  .campaign-messages.campaign-messages-editing {
+    padding-top: 77px; /* Space created directly above the schedule for save buttons */
+  }
+
+  .campaign-messages .campaign-messages-schedule {
+    flex: 0 0 auto;
+    min-height: 232.5px;
+    border: 1px solid #c1c7cd;
+    border-radius: 12px;
+    padding: 13px;
+    background: #ffffff;
+    text-align: left;
+  }
+
+  .campaign-messages .campaign-messages-schedule-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'heading edit'
+      'message-label message-label'
+      'message-input message-input'
+      'poll-label poll-label'
+      'poll-input poll-input'
+      'note note';
+    align-items: stretch !important;
+    min-height: 0;
+    gap: 0;
+  }
+
+  .campaign-messages .campaign-messages-schedule-heading {
+    grid-area: heading;
+    align-self: center !important;
+    justify-self: start;
+    text-align: left;
+    margin: 0;
+    color: #1f1f1f;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .campaign-messages .campaign-messages-subtitle {
+    color: #1f1f1f;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  .campaign-messages .campaign-messages-field-block {
+    display: contents;
+  }
+
+  .campaign-messages .campaign-messages-field-label {
+    margin: 0;
+    color: #000000;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: left;
+    justify-self: start;
+  }
+
+  .campaign-messages
+    .campaign-messages-field-block:first-of-type
+    .campaign-messages-field-label {
+    grid-area: message-label;
+    margin-top: 22px;
+  }
+
+  .campaign-messages
+    .campaign-messages-field-block:first-of-type
+    .campaign-messages-time,
+  .campaign-messages
+    .campaign-messages-field-block:first-of-type
+    .campaign-messages-time-picker-wrapper {
+    grid-area: message-input;
+    margin-top: 5px;
+  }
+
+  .campaign-messages
+    .campaign-messages-field-block:nth-of-type(2)
+    .campaign-messages-field-label {
+    grid-area: poll-label;
+    margin-top: 12px;
+  }
+
+  .campaign-messages
+    .campaign-messages-field-block:nth-of-type(2)
+    .campaign-messages-time,
+  .campaign-messages
+    .campaign-messages-field-block:nth-of-type(2)
+    .campaign-messages-time-picker-wrapper {
+    grid-area: poll-input;
+    margin-top: 5px;
+  }
+
+  .campaign-messages .campaign-messages-time,
+  .campaign-messages .campaign-messages-time-picker-wrapper {
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+  }
+
+  .campaign-messages .campaign-messages-time {
+    padding: 12.5px 46px 12.5px 11px;
+    border: 1px solid #c1c7cd;
+    border-radius: 8px;
+    color: #a0a0a0;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: normal;
+    text-align: left;
+    justify-self: stretch;
+  }
+
+  .campaign-messages .campaign-messages-time-editable {
+    color: #000000;
+  }
+
+  .campaign-messages .campaign-messages-time::after {
+    right: 29.38px;
+    width: 13.62px;
+    height: 13.62px;
+    background-color: #667085;
+  }
+
+  .campaign-messages .campaign-messages-time-editable::after {
+    background-color: #21272a;
+  }
+
+  .campaign-messages .campaign-messages-time-picker {
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    max-width: none;
+    max-height: 150px;
+    z-index: 40;
+    grid-template-columns: 1fr 1fr;
+    border: 1px solid #b8c0cc;
+    background: #ffffff;
+  }
+
+  .campaign-messages .campaign-messages-time-picker-column {
+    max-height: 142px;
+  }
+
+  .campaign-messages .campaign-messages-schedule-note-desktop {
+    display: none;
+  }
+
+  .campaign-messages .campaign-messages-schedule-note-mobile {
+    grid-area: note;
+    display: block;
+    margin: 10px 0 0;
+    color: #000 !important;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16.5px;
+    white-space: normal;
+    text-align: left;
+  }
+
+  .campaign-messages .campaign-messages-schedule-edit {
+    grid-area: edit;
+    display: flex;
+    align-self: center;
+    justify-self: end;
+    width: 20px;
+    height: 20px;
+    color: #1d6cf6;
+  }
+
+  .campaign-messages .campaign-messages-schedule-edit img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .campaign-messages-editing .campaign-messages-schedule-edit {
+    display: none;
+  }
+
+  .campaign-messages .campaign-messages-table,
+  .campaign-messages .campaign-messages-table-editing {
+    flex: none;
+    min-height: 0;
+    gap: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .campaign-messages .campaign-messages-table-head {
+    display: none;
+  }
+
+  .campaign-messages .campaign-messages-table-body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    min-height: 0;
+    flex: none;
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .campaign-messages .campaign-messages-row,
+  .campaign-messages .campaign-messages-table-editing .campaign-messages-row {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    border: 1px solid #c1c7cd;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+  }
+
+  .campaign-messages .campaign-messages-row-editable {
+    color: #000;
+    font-weight: 400; /* Normal weight applied */
+  }
+
+  .campaign-messages .campaign-messages-row-editable .campaign-messages-cell,
+  .campaign-messages
+    .campaign-messages-row-editable
+    .campaign-messages-readonly-field {
+    font-weight: 400; /* Normal weight applied */
+  }
+
+  .campaign-messages .campaign-messages-row:first-of-type,
+  .campaign-messages .campaign-messages-row:nth-of-type(2),
+  .campaign-messages .campaign-messages-table-editing .campaign-messages-row,
+  .campaign-messages
+    .campaign-messages-table-editing
+    .campaign-messages-row:has(
+      .campaign-messages-poll-option-edit-row:nth-of-type(4)
+    ) {
+    min-height: 0;
+  }
+
+  .campaign-messages .campaign-messages-row-disabled::after {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .campaign-messages .campaign-messages-mobile-row-head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    order: 0;
+    width: 100%;
+    min-height: 55px;
+    padding: 12px 14px;
+    border: none;
+    border-bottom: none;
+    background: #eff6ff;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .campaign-messages .campaign-messages-mobile-row-head::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    margin-right: 8px;
+    border-top: 1.5px solid #475467;
+    border-left: 1.5px solid #475467;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+  }
+
+  .campaign-messages
+    .campaign-messages-row-collapsed
+    .campaign-messages-mobile-row-head::after {
+    transform: rotate(225deg);
+  }
+
+  .campaign-messages .campaign-messages-date-label {
+    margin: 0;
+    color: #000000;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  .campaign-messages .campaign-messages-date-subtext {
+    margin: 1px 0 0;
+    color: #000000;
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  .campaign-messages .campaign-messages-date-cell {
+    display: none;
+  }
+
+  .campaign-messages .campaign-messages-cell,
+  .campaign-messages .campaign-messages-poll-cell,
+  .campaign-messages .campaign-messages-media-cell,
+  .campaign-messages .campaign-messages-row-actions,
+  .campaign-messages .campaign-messages-message-edit-field {
+    border-right: none;
+    border-bottom: none;
+  }
+
+  .campaign-messages .campaign-messages-message-cell {
+    order: 1;
+    display: block;
+    max-height: none;
+    padding: 14px;
+    color: #000000;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 22.1px;
+    white-space: pre-line;
+    overflow: visible;
+    text-align: left;
+  }
+
+  .campaign-messages .campaign-messages-message-cell::before {
+    content: 'Message';
+    display: block;
+    margin-bottom: 7px;
+    color: #000000;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.4px;
+    text-align: left;
+  }
+
+  .campaign-messages
+    .campaign-messages-row:has(.campaign-messages-message-edit-field)::before {
+    content: 'Message';
+    order: 1;
+    margin: 14px 14px 7px;
+    color: #000000;
+    font-family: 'Baloo 2', 'BalooRegular', cursive;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.4px;
+    text-align: left;
+  }
+
+  .campaign-messages .campaign-messages-message-edit-field {
+    order: 2;
+    width: calc(100% - 28px);
+    min-height: 116px;
+    height: auto;
+    margin: 0 14px 14px;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    color: #000000;
+    font-size: 13px;
+    line-height: 22.1px;
+    resize: vertical;
+    white-space: pre-wrap;
+  }
+
+  .campaign-messages .campaign-messages-media-cell {
+    order: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin: 0 14px;
+    padding: 14px 0;
+    border-top: 0.5px solid #c1c7cd;
+  }
+
+  .campaign-messages
+    .campaign-messages-row:has(.campaign-messages-message-edit-field)
+    .campaign-messages-media-cell {
+    order: 3;
+  }
+
+  .campaign-messages .campaign-messages-media-cell::before {
+    content: 'Media';
+    display: block;
+    color: #000000;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.4px;
+    text-align: left;
+  }
+
+  .campaign-messages .campaign-messages-media-link-field,
+  .campaign-messages .campaign-messages-media-link-edit-field {
+    width: 100%;
+    min-height: 32px;
+    height: 32px;
+    max-height: 32px;
+    margin: 0;
+    padding: 7px 11px;
+    border: 1px solid #c1c7cd;
+    border-radius: 8px;
+    color: #1d6cf6;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: normal;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    resize: none;
+  }
+
+  .campaign-messages .campaign-messages-poll-cell {
+    order: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 14px;
+    padding: 14px 0;
+    border-top: 0.5px solid #c1c7cd;
+    overflow: visible;
+  }
+
+  .campaign-messages
+    .campaign-messages-row:has(.campaign-messages-message-edit-field)
+    .campaign-messages-poll-cell {
+    order: 4;
+  }
+
+  .campaign-messages .campaign-messages-poll-cell::before {
+    content: 'Poll';
+    display: block;
+    margin-bottom: 0;
+    color: #000000;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: 0.4px;
+    text-align: left;
+  }
+
+  /* Collapse active rows in mobile editing */
+  .campaign-messages
+    .campaign-messages-row-collapsed
+    .campaign-messages-message-cell,
+  .campaign-messages
+    .campaign-messages-row-collapsed
+    .campaign-messages-message-edit-field,
+  .campaign-messages
+    .campaign-messages-row-collapsed
+    .campaign-messages-media-cell,
+  .campaign-messages
+    .campaign-messages-row-collapsed
+    .campaign-messages-poll-cell,
+  .campaign-messages
+    .campaign-messages-row-collapsed
+    .campaign-messages-row-actions,
+  .campaign-messages .campaign-messages-row-collapsed::before {
+    display: none !important;
+  }
+
+  .campaign-messages .campaign-messages-poll-question,
+  .campaign-messages .campaign-messages-poll-question-edit-field {
+    width: 100%;
+    min-height: 40px;
+    height: auto;
+    margin: 0;
+    padding: 11px;
+    border: 1px solid #c1c7cd;
+    border-radius: 8px;
+    color: #000000;
+    background: #ffffff;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 19.5px;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .campaign-messages .campaign-messages-poll-option,
+  .campaign-messages .campaign-messages-poll-option-edit-field {
+    width: 100%;
+    min-height: 40px;
+    height: 40px;
+    margin: 0;
+    padding: 11px;
+    border: 1px solid #c1c7cd;
+    border-radius: 8px;
+    color: #000000;
+    background: #ffffff;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .campaign-messages .campaign-messages-poll-option-edit-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .campaign-messages .campaign-messages-remove-option-button {
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+    border: 1px solid #f3b0ad;
+    border-radius: 5px;
+    color: #ea4335;
+    background: #ffffff;
+    font-size: 13px;
+  }
+
+  .campaign-messages .campaign-messages-add-option-button {
+    align-self: flex-start;
+    width: auto;
+    min-width: 0;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid #bfdbfe;
+    border-radius: 6px;
+    color: #2563eb;
+    background: #eff6ff;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .campaign-messages .campaign-messages-row-actions {
+    position: static;
+    order: 5;
+    display: flex;
+    justify-content: flex-end;
+    width: auto;
+    min-width: 0;
+    margin: 0 14px 14px;
+    padding: 0;
+    border-left: none;
+    background: transparent;
+  }
+
+  .campaign-messages .campaign-messages-clear-row-button {
+    min-width: 88px;
+    height: 40px;
+    padding: 0 16px;
+    border: 1px solid #e24b4a;
+    border-radius: 6px;
+    color: #e24b4a;
+    background: #ffffff;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .campaign-messages
+    .campaign-messages-table-editing
+    .campaign-messages-row-editable
+    .campaign-messages-poll-cell,
+  .campaign-messages
+    .campaign-messages-table-editing
+    .campaign-messages-row-disabled
+    .campaign-messages-poll-cell {
+    padding-right: 0;
+  }
+
+  .campaign-messages .campaign-messages-empty-state,
+  .campaign-messages .campaign-messages-loading-state {
+    padding: 14px;
+    color: #667085;
+  }
+
+  /* Footer wrapper stripped of positioning context to allow Top Actions to break free */
+  .campaign-messages .campaign-messages-pagination-footer {
+    position: static;
+    display: block;
+    min-height: 0;
+    height: 0;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* Fixed Bottom Pagination Center */
+  .campaign-messages .campaign-messages-pagination-center {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex !important; /* Force pagination center to show */
+    align-items: center;
+    justify-content: center;
+    min-height: 52px;
+    padding: 0 16px;
+    border-top: 1px solid #dde1e6;
+    background: #ffffff;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    color: #000;
+  }
+
+  /* Force keep pagination displayed when editing */
+  .campaign-messages.campaign-messages-editing
+    .campaign-messages-pagination-center {
+    display: flex !important;
+  }
+
+  /* Save actions rendered exactly at top: 16px of the container layout */
+  .campaign-messages .campaign-messages-edit-actions {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    top: 16px;
+    bottom: auto;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 10px;
+    width: calc(100% - 32px);
+    height: 61px;
+    padding: 0;
+    background: #ffffff;
+    transform: none;
+  }
+
+  .campaign-messages .campaign-messages-cancel-button,
+  .campaign-messages .campaign-messages-save-button {
+    width: 100%;
+    min-width: 0;
+    height: 41px;
+    margin: 8px 0 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .campaign-messages .campaign-messages-cancel-button {
+    padding: 0;
+    border: 1px solid #eff6ff;
+    color: #000000;
+    background: #ffffff;
+  }
+
+  .campaign-messages .campaign-messages-save-button {
+    padding: 0;
+    border: 1px solid #1d6cf6;
+    color: #ffffff;
+    background: #1d6cf6;
+  }
+
+  .campaign-messages .campaign-messages-toast {
+    bottom: 18px;
+  }
+}

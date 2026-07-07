@@ -1,105 +1,37 @@
 .ops-campaigns-overview {
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  max-height: 100dvh;
   padding: 24px;
   background: #fff;
   color: #21272a;
-  font-family: Roboto, Arial, sans-serif;
-}
-
-.ops-campaigns-overview-header {
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  overflow: hidden;
+  box-sizing: border-box;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 36px;
+  flex-direction: column;
 }
 
-.ops-campaigns-overview-title {
-  margin: 0;
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.18;
-  color: #21272a;
+.ops-campaigns-overview > .campaign-messages {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
-.ops-campaigns-overview-back-button {
-  display: none !important;
+.ops-campaigns-overview > :not(.ops-campaigns-overview-content) {
+  flex: 0 0 auto;
 }
 
-.ops-campaigns-overview-notification {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #000;
-  cursor: pointer;
+.ops-campaigns-overview-content {
+  flex: 1 1 0;
+  min-height: 0;
+  height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
-.ops-campaigns-overview-notification svg {
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-}
-
-.ops-campaigns-overview-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  margin-bottom: 32px;
-  font-size: 14px;
-  line-height: 1.1;
-}
-
-.ops-campaigns-overview-breadcrumb-item {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  line-height: inherit;
-  cursor: pointer;
-}
-
-.ops-campaigns-overview-breadcrumb-link {
-  color: #888;
-}
-
-.ops-campaigns-overview-breadcrumb-current {
-  color: #21272a;
-  font-weight: 500;
-}
-
-.ops-campaigns-overview-breadcrumb-arrow {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.ops-campaigns-overview-tabs {
-  display: flex;
-  min-height: 51px;
-  margin-bottom: 20px;
-  border: 1px solid #dde1e6;
-  background: #fff;
-}
-
-.ops-campaigns-overview-tab {
-  min-width: 108px;
-  padding: 14px 24px;
-  border: 0;
-  background: transparent;
-  color: #666;
-  font-size: 14px;
-  line-height: 21px;
-  cursor: pointer;
-}
-
-.ops-campaigns-overview-tab-active {
-  background: #1a71f6;
-  color: #fff;
+body.campaigns-overview-active {
+  overflow: hidden;
 }
 
 .ops-campaigns-overview-cards {
@@ -311,18 +243,6 @@
 }
 
 @media (max-width: 768px) {
-  .ops-campaigns-overview {
-    padding: 72px 16px 24px;
-  }
-
-  .ops-campaigns-overview-header {
-    margin-bottom: 24px;
-  }
-
-  .ops-campaigns-overview-tabs {
-    overflow-x: auto;
-  }
-
   .ops-campaigns-overview-summary-grid,
   .ops-campaigns-overview-metric-grid {
     grid-template-columns: 1fr;

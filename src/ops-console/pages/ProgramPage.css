@@ -186,8 +186,8 @@
 }
 
 .program-table .MuiTableCell-root {
-  border-left: 0 !important;
-  border-right: 0 !important;
+  border-right: 0.667px solid #dde1e6 !important;
+  border-left: 0.667px solid #dde1e6 !important;
 }
 
 .program-table .data-tablebody-cell {

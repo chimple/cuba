@@ -3,6 +3,8 @@ import {
   AssignmentDateRangeData,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignListingItem,
+  CampaignListingParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -19,6 +21,12 @@ import {
   OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
+  CampaignAssignmentsResponse,
+  CampaignOption,
+  CampaignAssignmentFilters,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
+  UpdateCampaignMessagingRowPayload,
 } from './ServiceApi';
 import {
   SOURCE,
@@ -1620,6 +1628,31 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCampaignAssignmentOptions(params);
   }
 
+  public async getCampaignListing(
+    params: CampaignListingParams,
+  ): Promise<PaginatedResponse<CampaignListingItem>> {
+    return await this.s.getCampaignListing(params);
+  }
+
+  public async cancelCampaign(
+    campaignId: string,
+    reason: string,
+  ): Promise<void> {
+    return await this.s.cancelCampaign(campaignId, reason);
+  }
+  public async getCampaignAssignments(
+    campaignId: string,
+    filters: CampaignAssignmentFilters,
+  ): Promise<CampaignAssignmentsResponse> {
+    return await this.s.getCampaignAssignments(campaignId, filters);
+  }
+
+  public async getCampaignSubjectsByCampaignId(
+    campaignId: string,
+  ): Promise<CampaignOption[]> {
+    return await this.s.getCampaignSubjectsByCampaignId(campaignId);
+  }
+
   public async getUniqueGeoData(): Promise<{
     Country: string[];
     State: string[];
@@ -2504,5 +2537,18 @@ export class ApiHandler implements ServiceApi {
   }
   public async isSplUser(): Promise<boolean> {
     return await this.s.isSplUser();
+  }
+
+  public async getCampaignMessaging(
+    campaignId: string,
+    params?: CampaignMessagingQueryParams,
+  ): Promise<CampaignMessagingResponse> {
+    return await this.s.getCampaignMessaging(campaignId, params);
+  }
+
+  public async updateCampaignMessaging(
+    rows: UpdateCampaignMessagingRowPayload[],
+  ): Promise<boolean> {
+    return await this.s.updateCampaignMessaging(rows);
   }
 }
