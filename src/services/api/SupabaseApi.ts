@@ -477,6 +477,7 @@ const mapStickerBookRow = (book: TableTypes<'sticker_book'>): StickerBook => ({
 
 const GENERIC_LEADERBOARD_LIMIT = 50;
 const SCHOOL_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
+const PROGRAM_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
 const TABLES_EXCLUDED_FROM_SYNC = new Set<TABLES>([
   TABLES.ProgramUser,
   TABLES.ReqNewSchool,
@@ -1725,6 +1726,40 @@ export class SupabaseApi implements ServiceApi {
     } catch (error) {
       logger.error('computeSchoolMetricsForSchool failed:', {
         schoolId,
+        error,
+      });
+      return false;
+    }
+  }
+
+  async computeProgramMetricsForProgram(programId: string): Promise<boolean> {
+    if (!this.supabase) return false;
+    if (!programId) {
+      logger.error(
+        'computeProgramMetricsForProgram called without a valid programId',
+      );
+      return false;
+    }
+    try {
+      for (const dayWindow of PROGRAM_METRICS_DAY_WINDOWS) {
+        const { error } = await this.supabase.rpc('compute_program_metrics', {
+          p_days: dayWindow,
+          p_program_id: programId,
+        });
+
+        if (error) {
+          logger.error('Error computing program metrics:', {
+            programId,
+            dayWindow,
+            error,
+          });
+          return false;
+        }
+      }
+      return true;
+    } catch (error) {
+      logger.error('computeProgramMetricsForProgram failed:', {
+        programId,
         error,
       });
       return false;
@@ -10972,8 +11007,6 @@ export class SupabaseApi implements ServiceApi {
         return false;
       }
       const programId = uuidv4();
-      const _currentUser =
-        await ServiceConfig.getI().authHandler.getCurrentUser();
 
       const record: any = {
         id: programId,
@@ -11003,10 +11036,7 @@ export class SupabaseApi implements ServiceApi {
       };
 
       // Step 1: Insert the program
-      const { data, error } = await this.supabase
-        .from(TABLES.Program)
-        .insert(record)
-        .single();
+      const { error } = await this.supabase.from(TABLES.Program).insert(record);
 
       if (error) {
         logger.error('Insert error:', error);
@@ -11031,6 +11061,8 @@ export class SupabaseApi implements ServiceApi {
         logger.error('Error inserting program users:', programUserError);
         return false;
       }
+
+      await this.computeProgramMetricsForProgram(programId);
 
       return true;
     } catch (error) {
