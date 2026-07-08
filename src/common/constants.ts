@@ -1581,9 +1581,9 @@ export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
 export const ENABLE_SAVE_AND_SHARE_STICKER_BOOK =
   'enable_save_and_share_sticker_book';
 export const SCHOOL_PERFORMANCE_STATUS = {
-  PERFORMING_WELL: 'Performing Well',
-  NEEDS_ATTENTION: 'Needs Attention',
-  NEEDS_SUPPORT: 'Needs Support',
+  PERFORMING_WELL: 'High Performing',
+  NEEDS_ATTENTION: 'Medium Performing',
+  NEEDS_SUPPORT: 'Low Performing',
 } as const;
 export const PERCENTAGE_BAND = {
   LOW: 'low',
