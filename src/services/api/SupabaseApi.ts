@@ -10664,23 +10664,27 @@ export class SupabaseApi implements ServiceApi {
     if (error) {
       throw error;
     }
+    const uniqueAssignments = Array.from(
+      new Map(
+        (data ?? []).map((assignment) => [assignment.lesson?.id, assignment]),
+      ).values(),
+    );
 
     return {
-      assignments:
-        data?.map((assignment) => ({
-          assignmentId: assignment.id,
-          assignmentDate: assignment.starts_at,
+      assignments: uniqueAssignments.map((assignment) => ({
+        assignmentId: assignment.id,
+        assignmentDate: assignment.starts_at,
 
-          gradeId: assignment.class?.grade?.id ?? '',
-          gradeName: assignment.class?.grade?.name ?? '',
+        gradeId: assignment.class?.grade?.id ?? '',
+        gradeName: assignment.class?.grade?.name ?? '',
 
-          subjectId: assignment.course?.subject?.id ?? '',
-          subjectName: assignment.course?.subject?.name ?? '',
+        subjectId: assignment.course?.subject?.id ?? '',
+        subjectName: assignment.course?.subject?.name ?? '',
 
-          lessonId: assignment.lesson?.id ?? '',
-          lessonName: assignment.lesson?.name ?? '',
-        })) ?? [],
-      total: count ?? 0,
+        lessonId: assignment.lesson?.id ?? '',
+        lessonName: assignment.lesson?.name ?? '',
+      })),
+      total: uniqueAssignments.length,
     };
   }
 
