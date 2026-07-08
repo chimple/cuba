@@ -2,6 +2,7 @@ import { IonAlert, IonIcon } from '@ionic/react';
 import { t } from 'i18next';
 import { trashOutline } from 'ionicons/icons';
 import React, { useEffect, useMemo, useState } from 'react';
+import CommonDialogBox from '../../../common/CommonDialogBox';
 import { CLASS_USERS, OPS_ROLES, TableTypes } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
@@ -19,9 +20,14 @@ const UserList: React.FC<{
   userType: CLASS_USERS;
 }> = ({ schoolDoc, classDoc, userType }) => {
   const api = ServiceConfig.getI()?.apiHandler;
+  const auth = ServiceConfig.getI()?.authHandler;
   const [allStudents, setAllStudents] = useState<TableTypes<'user'>[]>();
   const [allTeachers, setAllTeachers] = useState<TableTypes<'user'>[]>();
+  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
+    null,
+  );
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showSelfDeleteError, setShowSelfDeleteError] = useState(false);
   const [selectedUser, setSelectedUser] = useState<TableTypes<'user'> | null>(
     null,
   );
@@ -36,6 +42,14 @@ const UserList: React.FC<{
   useEffect(() => {
     init();
   }, []);
+
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      const user = await auth?.getCurrentUser();
+      setCurrentUser(user ?? null);
+    };
+    loadCurrentUser();
+  }, [auth]);
 
   const canDelete = useMemo(
     () =>
@@ -55,6 +69,10 @@ const UserList: React.FC<{
   };
 
   const handleDeleteClick = (user: TableTypes<'user'>) => {
+    if (user.id === currentUser?.id) {
+      setShowSelfDeleteError(true);
+      return;
+    }
     setSelectedUser(user);
     setShowConfirm(true);
   };
@@ -120,7 +138,7 @@ const UserList: React.FC<{
 
                 {!isExternalUser && !isTeacherSchoolMode && (
                   <div
-                    className="delete-button" //////
+                    className="delete-button"
                     onClick={() => handleDeleteClick(student)}
                   >
                     <IonIcon icon={trashOutline} className="trash-icon" />
@@ -180,6 +198,13 @@ const UserList: React.FC<{
             handler: () => setShowConfirm(false),
           },
         ]}
+      />
+      <CommonDialogBox
+        showConfirmFlag={showSelfDeleteError}
+        onDidDismiss={() => setShowSelfDeleteError(false)}
+        message="You cannot delete yourself."
+        rightButtonText="OK"
+        rightButtonHandler={() => setShowSelfDeleteError(false)}
       />
     </div>
   );
