@@ -485,6 +485,12 @@
   box-sizing: border-box;
 }
 
+.program-table .data-tablebody-head-cell:nth-child(10),
+.program-table .data-tablebody-cell:nth-child(10) {
+  min-width: 200px !important;
+  width: 200px !important;
+}
+
 .program-page-pagination {
   display: flex;
   justify-content: center;

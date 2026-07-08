@@ -109,7 +109,7 @@ const PROGRAM_SELECTED_FILTER_LABELS: Record<string, string> = {
   activeStudentsPct: t('Active Students'),
   onboardedTeachersPct: t('Onboarded Teachers'),
   activatedTeachersPct: t('Activated Teachers'),
-  activeTeachersPct: t('Active Teachers'),
+  activeTeachersPct: t('Active Teachers (HW)'),
 };
 
 const PROGRAM_PERCENT_FILTER_LABELS: Record<string, string> = {
@@ -334,8 +334,8 @@ export const getProgramListColumns = (): Column<ProgramListRow>[] => [
   },
   {
     key: 'activeTeachers',
-    label: t('Active Teachers'),
-    width: 160,
+    label: t('Active Teachers (HW)'),
+    width: 200,
     sortable: true,
     headerIcon: 'filter',
   },
@@ -902,7 +902,7 @@ const buildProgramMetricExportRows = (
     '',
     toExportText(t('Activated Teachers')),
     '',
-    toExportText(t('Active Teachers')),
+    toExportText(t('Active Teachers (HW)')),
     '',
   ],
   [
