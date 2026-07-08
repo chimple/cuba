@@ -1,4 +1,3 @@
-import { SupabaseAuthClient } from '@supabase/supabase-js/dist/module/lib/SupabaseAuthClient';
 import { SupabaseApi } from '../api/SupabaseApi';
 import { ServiceAuth } from './ServiceAuth';
 import { Database } from '../database';
@@ -15,6 +14,7 @@ import {
   Session,
   AuthSession,
   User,
+  AuthChangeEvent,
 } from '@supabase/supabase-js';
 import { APIMode, ServiceConfig } from '../ServiceConfig';
 import { SocialLogin } from '@capgo/capacitor-social-login';
@@ -47,7 +47,7 @@ export class SupabaseAuth implements ServiceAuth {
   > | null = null;
   private _emailPasswordLoginInProgress = false;
 
-  private _auth: SupabaseAuthClient | undefined;
+  private _auth: SupabaseClient<Database>['auth'] | undefined;
   private _supabaseDb: SupabaseClient<Database> | undefined;
   private static readonly PASSWORD_LOGIN_SESSION_MISSING_ERROR =
     'Password login completed without a Supabase session.';
@@ -59,18 +59,20 @@ export class SupabaseAuth implements ServiceAuth {
       SupabaseAuth.i = new SupabaseAuth();
       SupabaseAuth.i._supabaseDb = SupabaseApi.getInstance().supabase;
       SupabaseAuth.i._auth = SupabaseAuth.i._supabaseDb?.auth;
-      SupabaseAuth?.i?._auth?.onAuthStateChange((event, session) => {
-        logAuthDebug('Supabase auth state changed.', {
-          source: 'SupabaseAuth.onAuthStateChange',
-          event,
-          has_session: !!session,
-          has_refresh_token: !!session?.refresh_token,
-        });
-        if (event === 'TOKEN_REFRESHED') {
-          if (session?.refresh_token)
-            Util.addRefreshTokenToStore(session?.refresh_token);
-        }
-      });
+      SupabaseAuth?.i?._auth?.onAuthStateChange(
+        (event: AuthChangeEvent, session: Session | null) => {
+          logAuthDebug('Supabase auth state changed.', {
+            source: 'SupabaseAuth.onAuthStateChange',
+            event,
+            has_session: !!session,
+            has_refresh_token: !!session?.refresh_token,
+          });
+          if (event === 'TOKEN_REFRESHED') {
+            if (session?.refresh_token)
+              Util.addRefreshTokenToStore(session?.refresh_token);
+          }
+        },
+      );
     }
 
     return SupabaseAuth.i;
@@ -222,7 +224,7 @@ export class SupabaseAuth implements ServiceAuth {
   async sendResetPasswordEmail(email: string): Promise<boolean> {
     try {
       if (!this._auth) return false;
-      const { data, error } = await this._auth.resetPasswordForEmail(email);
+      const { error } = await this._auth.resetPasswordForEmail(email);
 
       if (error) {
         logger.error('Reset password error:', error.message);
@@ -238,7 +240,7 @@ export class SupabaseAuth implements ServiceAuth {
   async updateUser(attributes: UserAttributes): Promise<boolean> {
     if (!this._auth) return false;
 
-    const { data, error } = await this._auth.updateUser(attributes);
+    const { error } = await this._auth.updateUser(attributes);
 
     if (error) {
       logger.error('Error updating user:', error.message);
@@ -273,7 +275,7 @@ export class SupabaseAuth implements ServiceAuth {
           loginPath,
           window.location.origin,
         ).toString();
-        const { data, error } = await this._auth.signInWithOAuth({
+        const { error } = await this._auth.signInWithOAuth({
           provider: 'google',
           options: {
             redirectTo,
@@ -302,11 +304,16 @@ export class SupabaseAuth implements ServiceAuth {
       ) {
         return { success: false, isSpl: false, userData: null };
       }
-      const { data, error } = await this._auth.signInWithIdToken({
+      const { data, error: signInError } = await this._auth.signInWithIdToken({
         provider: 'google',
         token: authentication.idToken,
         access_token: authentication.accessToken?.token,
       });
+
+      if (signInError) {
+        logger.error('Google sign in failed:', signInError);
+        return { success: false, isSpl: false, userData: null };
+      }
 
       if (data.session?.refresh_token) {
         Util.addRefreshTokenToStore(data.session?.refresh_token);

@@ -24,6 +24,7 @@ describe('buildSchoolListExportSheetRows', () => {
         avg_assignments_completed: 10,
         avg_activities_completed: 8,
         phone_calls_students_parents: 5,
+        inperson_students_parents: 4,
         phone_calls_teachers_hms: 3,
         community_visits: 2,
         school_visits: 7,
@@ -35,6 +36,8 @@ describe('buildSchoolListExportSheetRows', () => {
     expect(buildSchoolListExportSheetRows(rows)).toEqual([
       [
         'School Name',
+        'UDISE',
+        'Block',
         'School Performance',
         'Onboarded Students',
         'Activated Students',
@@ -48,6 +51,7 @@ describe('buildSchoolListExportSheetRows', () => {
         'Avg Assignments Completed',
         'Avg Activities Completed',
         'Phone Calls - Students / Parents',
+        'In-Person - Students / Parents',
         'Phone Calls - Teachers & HMs',
         'Community Visits',
         'Parents Reached',
@@ -56,8 +60,10 @@ describe('buildSchoolListExportSheetRows', () => {
         'In Group',
       ],
       [
-        'Alpha School\n1234567890 - Pune',
-        'Performing Well',
+        'Alpha School',
+        '1234567890',
+        '--',
+        'High Performing',
         '100',
         '80',
         '80%',
@@ -70,6 +76,7 @@ describe('buildSchoolListExportSheetRows', () => {
         '10',
         '8',
         '5',
+        '4',
         '3',
         '2',
         '42',
@@ -97,6 +104,7 @@ describe('buildSchoolListExportSheetRows', () => {
         avg_assignments_completed: null,
         avg_activities_completed: null,
         phone_calls_students_parents: null,
+        inperson_students_parents: null,
         phone_calls_teachers_hms: null,
         community_visits: null,
         school_visits: null,
@@ -105,8 +113,14 @@ describe('buildSchoolListExportSheetRows', () => {
       },
     ] as SchoolListSourceRow[];
 
-    expect(buildSchoolListExportSheetRows(rows)[1]).toEqual([
+    const exportRows = buildSchoolListExportSheetRows(rows);
+
+    expect(exportRows[1]).toHaveLength(exportRows[0].length);
+    expect(exportRows[1]).toEqual([
       'Beta School',
+      '--',
+      '--',
+      '--',
       '--',
       '--',
       '--',

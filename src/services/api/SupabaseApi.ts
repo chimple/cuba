@@ -62,8 +62,8 @@ import {
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
 import { AvatarObj } from '../../components/animation/Avatar';
-import Course from '../../models/course';
-import Lesson from '../../models/lesson';
+import Course from '../../models/Course';
+import Lesson from '../../models/Lesson';
 import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
 import {
   AssignmentCartData,
@@ -778,8 +778,8 @@ export class SupabaseApi implements ServiceApi {
   }
 
   private init() {
-    this.supabaseUrl = process.env.REACT_APP_SUPABASE_URL ?? '';
-    this.supabaseKey = process.env.REACT_APP_SUPABASE_KEY ?? '';
+    this.supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? '';
+    this.supabaseKey = import.meta.env.VITE_SUPABASE_KEY ?? '';
     this.supabase = createClient<Database>(this.supabaseUrl, this.supabaseKey);
   }
 
@@ -3968,6 +3968,7 @@ export class SupabaseApi implements ServiceApi {
     studentId: string,
   ): Promise<TableTypes<'assignment'>[]> {
     if (!this.supabase) return [];
+    const nowIso = new Date().toISOString();
 
     // Fetch assignments with left joins to assignment_user and result
     const { data: allAssignments, error } = await this.supabase
@@ -3982,6 +3983,8 @@ export class SupabaseApi implements ServiceApi {
       .eq('class_id', classId)
       .eq('is_deleted', false)
       .neq('type', 'assessment')
+      .or(`starts_at.is.null,starts_at.lte."${nowIso}"`)
+      .or(`ends_at.is.null,ends_at.gt."${nowIso}"`)
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -11988,6 +11991,7 @@ export class SupabaseApi implements ServiceApi {
         'avg_assignments_completed',
         'avg_activities_completed',
         'student_parent_calls',
+        'student_parent_inperson',
         'teacher_hm_calls',
         'community_visits',
         'community_parents_reached',
@@ -12101,6 +12105,7 @@ export class SupabaseApi implements ServiceApi {
         avg_assignments_completed: row.avg_assignments_completed ?? null,
         avg_activities_completed: row.avg_activities_completed ?? null,
         phone_calls_students_parents: row.student_parent_calls ?? null,
+        inperson_students_parents: row.student_parent_inperson ?? null,
         phone_calls_teachers_hms: row.teacher_hm_calls ?? null,
         community_visits: row.community_visits ?? null,
         school_visits: row.school_visits ?? null,

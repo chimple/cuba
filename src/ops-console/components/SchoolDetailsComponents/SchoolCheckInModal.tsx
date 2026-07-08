@@ -16,6 +16,11 @@ import {
   Polyline,
 } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import leafletMarkerRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import leafletMarkerUrl from 'leaflet/dist/images/marker-icon.png';
+import leafletMarkerShadowUrl from 'leaflet/dist/images/marker-shadow.png';
+import greenMarkerRetinaUrl from '../../../assets/images/marker-icon-2x-green.png';
+import greenMarkerShadowUrl from '../../../assets/images/marker-shadow.png';
 import { SchoolVisitAction, SchoolVisitType } from '../../../common/constants';
 import {
   parseCommunityVisitParentsCount,
@@ -30,9 +35,9 @@ import logger from '../../../utility/logger';
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+  iconRetinaUrl: leafletMarkerRetinaUrl,
+  iconUrl: leafletMarkerUrl,
+  shadowUrl: leafletMarkerShadowUrl,
 });
 
 interface SchoolCheckInModalProps {
@@ -889,8 +894,8 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
                     position={[targetLocation.lat, targetLocation.lng]}
                     icon={
                       new L.Icon({
-                        iconUrl: require('../../../assets/images/marker-icon-2x-green.png'),
-                        shadowUrl: require('../../../assets/images/marker-shadow.png'),
+                        iconUrl: greenMarkerRetinaUrl,
+                        shadowUrl: greenMarkerShadowUrl,
                         iconSize: [30, 41],
                         iconAnchor: [12, 41],
                         popupAnchor: [1, -34],

@@ -392,6 +392,7 @@ describe('SchoolList export', () => {
           avg_assignments_completed: 10,
           avg_activities_completed: 8,
           phone_calls_students_parents: 5,
+          inperson_students_parents: 4,
           phone_calls_teachers_hms: 3,
           community_visits: 2,
           school_visits: 7,
@@ -431,6 +432,8 @@ describe('SchoolList export', () => {
           Schools: [
             [
               'School Name',
+              'UDISE',
+              'Block',
               'School Performance',
               'Onboarded Students',
               'Activated Students',
@@ -444,6 +447,7 @@ describe('SchoolList export', () => {
               'Avg Assignments Completed',
               'Avg Activities Completed',
               'Phone Calls - Students / Parents',
+              'In-Person - Students / Parents',
               'Phone Calls - Teachers & HMs',
               'Community Visits',
               'Parents Reached',
@@ -452,8 +456,10 @@ describe('SchoolList export', () => {
               'In Group',
             ],
             [
-              'Alpha School\n1234567890 - Pune',
-              'Performing Well',
+              'Alpha School',
+              '1234567890',
+              '--',
+              'High Performing',
               '100',
               '80',
               '80%',
@@ -466,6 +472,7 @@ describe('SchoolList export', () => {
               '10',
               '8',
               '5',
+              '4',
               '3',
               '2',
               '42',
@@ -492,16 +499,16 @@ describe('SchoolList export', () => {
         sheetMerges: {
           Schools: [
             {
-              s: { r: 0, c: 3 },
-              e: { r: 0, c: 4 },
-            },
-            {
               s: { r: 0, c: 5 },
               e: { r: 0, c: 6 },
             },
             {
-              s: { r: 0, c: 8 },
-              e: { r: 0, c: 9 },
+              s: { r: 0, c: 7 },
+              e: { r: 0, c: 8 },
+            },
+            {
+              s: { r: 0, c: 10 },
+              e: { r: 0, c: 11 },
             },
           ],
         },
@@ -741,7 +748,7 @@ describe('SchoolList percentage filters', () => {
     await screen.findByTestId('data-table-body');
 
     await user.click(screen.getByLabelText('School Performance filter'));
-    await user.click(screen.getAllByText('Needs Attention')[0]);
+    await user.click(screen.getAllByText('Medium Performing')[0]);
 
     await waitFor(() =>
       expect(
@@ -749,7 +756,7 @@ describe('SchoolList percentage filters', () => {
       ).toHaveBeenLastCalledWith(
         expect.objectContaining({
           page: 1,
-          school_performance_filter: 'Needs Attention',
+          school_performance_filter: 'Medium Performing',
         }),
       ),
     );
@@ -785,10 +792,10 @@ describe('SchoolList percentage filters', () => {
     await screen.findByTestId('data-table-body');
 
     await user.click(screen.getByLabelText('School Performance filter'));
-    await user.click(screen.getAllByText('Needs Attention')[0]);
+    await user.click(screen.getAllByText('Medium Performing')[0]);
 
     expect(
-      await screen.findByText('School Performance : Needs Attention'),
+      await screen.findByText('School Performance : Medium Performing'),
     ).toBeInTheDocument();
 
     await user.click(

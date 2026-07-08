@@ -12,15 +12,15 @@ import {
   PAGES,
   TableTypes,
 } from '../common/constants';
-import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
 import ParentalLock from '../components/parent/ParentalLock';
 import SkeltonLoading from '../components/SkeltonLoading';
+import InlineSvg from '../components/InlineSvg';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import { ServiceConfig } from '../services/ServiceConfig';
 import logger from '../utility/logger';
 import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
-import { ReactComponent as BrandLogoIcon } from './assets/brandLogoIcon.svg';
+import BrandLogoIcon from './assets/brandLogoIcon.svg?raw';
 import './DisplayStudents.css';
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -29,7 +29,6 @@ const DisplayStudents: FC<{}> = () => {
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const { setGbUpdated } = useGbContext();
   const isWebPlatform = Capacitor.getPlatform() === 'web';
   const getProfileCardPlayActionParams = (
@@ -112,29 +111,6 @@ const DisplayStudents: FC<{}> = () => {
       history.replace(PAGES.HOME + window.location.search);
     }
   };
-  const onCreateNewStudent = () => {
-    if (!online) {
-      presentToast({
-        message: t(`Device is offline. Cannot create a new child profile`),
-        color: 'danger',
-        duration: 3000,
-        position: 'bottom',
-        buttons: [
-          {
-            text: 'Dismiss',
-            role: 'cancel',
-          },
-        ],
-      });
-
-      return;
-    }
-    const isProfilesExist = students && students.length > 0;
-    const locationState = isProfilesExist
-      ? { showBackButton: true }
-      : undefined;
-    history.replace(PAGES.CREATE_STUDENT, locationState);
-  };
   return (
     <IonPage
       id="display-students"
@@ -144,7 +120,10 @@ const DisplayStudents: FC<{}> = () => {
         <div id="display-students-parent-icon"></div>
         <div className="display-students-title">
           <div className="display-students-welcome-title">
-            <BrandLogoIcon className="display-students-brand-logo" />
+            <InlineSvg
+              svg={BrandLogoIcon}
+              className="display-students-brand-logo"
+            />
             <span>{t('Welcome to Chimple!')}</span>
           </div>
           <span className="display-students-subtitle">

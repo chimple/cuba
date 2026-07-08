@@ -13,6 +13,8 @@ import {
   PAGES,
   PROGRAM_TAB,
   PROGRAM_TAB_LABELS,
+  SCHOOL_PERFORMANCE_STATUS,
+  SCHOOL_PERFORMANCE_TRANSLATION_KEYS,
   SCHOOL_LISTING_STATUS_META,
 } from '../../common/constants';
 import type { ServiceApi } from '../../services/api/ServiceApi';
@@ -106,7 +108,7 @@ const PROGRAM_SELECTED_FILTER_LABELS: Record<string, string> = {
   model: t('Program Model'),
   onboardedStudentsPct: t('Onboarded Students'),
   activatedStudentsPct: t('Activated Students'),
-  activeStudentsPct: t('Active Users'),
+  activeStudentsPct: t('Active Students'),
   onboardedTeachersPct: t('Onboarded Teachers'),
   activatedTeachersPct: t('Activated Teachers'),
   activeTeachersPct: t('Active Teachers'),
@@ -306,7 +308,7 @@ export const getProgramListColumns = (): Column<ProgramListRow>[] => [
   },
   {
     key: 'activeStudents',
-    label: t('Active Users'),
+    label: t('Active Students'),
     width: 160,
     sortable: true,
     headerIcon: 'filter',
@@ -895,7 +897,7 @@ const buildProgramMetricExportRows = (
     '',
     toExportText(t('Activated Students')),
     '',
-    toExportText(t('Active Users')),
+    toExportText(t('Active Students')),
     '',
     toExportText(t('Avg Engagement')),
     toExportText(t('Onboarded Teachers')),
@@ -908,9 +910,27 @@ const buildProgramMetricExportRows = (
   [
     '',
     '',
-    toExportText(t('Performing Well')),
-    toExportText(t('Needs Attention')),
-    toExportText(t('Needs Support')),
+    toExportText(
+      t(
+        SCHOOL_PERFORMANCE_TRANSLATION_KEYS[
+          SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL
+        ],
+      ),
+    ),
+    toExportText(
+      t(
+        SCHOOL_PERFORMANCE_TRANSLATION_KEYS[
+          SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION
+        ],
+      ),
+    ),
+    toExportText(
+      t(
+        SCHOOL_PERFORMANCE_TRANSLATION_KEYS[
+          SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT
+        ],
+      ),
+    ),
     toExportText(t('Count')),
     '%',
     toExportText(t('Count')),
