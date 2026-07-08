@@ -757,7 +757,7 @@ export enum IconType {
   CLASS = 'class',
 }
 
-const rawWebBaseName = process.env.REACT_APP_GITHUB_BASE ?? '';
+const rawWebBaseName = import.meta.env.VITE_GITHUB_BASE ?? '';
 const normalizedWebBaseName = rawWebBaseName
   .replace(/\/$/, '')
   .replace(/^\.$/, '')
@@ -904,7 +904,7 @@ export const NUMBER_NAME = [
 
 export const MAX_STUDENTS_ALLOWED = 3;
 export const INSTANT_SEARCH_INDEX_NAME =
-  process.env.REACT_APP_ALGOLIA_INDEX_NAME ?? '';
+  import.meta.env.VITE_ALGOLIA_INDEX_NAME ?? '';
 
 export enum MODES {
   PARENT = 'PARENT',
@@ -1057,7 +1057,7 @@ export const CACHE_IMAGE = 'cacheImage';
 
 export const IS_MIGRATION_CHECKED = 'isMigrationChecked';
 
-export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
+export const HOT_UPDATE_SERVER = import.meta.env.VITE_HOT_UPDATE_SERVER;
 
 export const COPIED_BUNDLE_FILES_INDEX = 'copiedBundleFilesIndex';
 

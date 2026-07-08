@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
+import { GrowthBook } from '@growthbook/growthbook';
 import { LiveUpdate } from '@capawesome/capacitor-live-update';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { CAN_HOT_UPDATE, EVENTS } from '../common/constants';
@@ -27,7 +28,7 @@ export const useHotUpdate = () => {
   }, [growthbook, user]);
 };
 
-const checkForUpdate = async (growthbook: any, userId: string) => {
+const checkForUpdate = async (growthbook: GrowthBook, userId: string) => {
   let majorVersion = '0';
   const canHotUpdate = growthbook?.isOn?.(CAN_HOT_UPDATE) ?? false;
   logger.info('ðŸš€ Started for updates...');
@@ -116,7 +117,7 @@ const checkForUpdate = async (growthbook: any, userId: string) => {
           `ðŸš€ LiveUpdate: Update applied successfully to bundle ${result.bundleId}`,
         );
         success = true;
-      } catch (error: any) {
+      } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         logger.error(`âŒ Sync attempt ${attempt} failed`, error);
         Util.setHotUpdateState({

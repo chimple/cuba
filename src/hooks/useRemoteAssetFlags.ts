@@ -10,13 +10,21 @@ import {
 } from '../common/constants';
 import { Util } from '../utility/util';
 
+type RemoteAssetFeature = {
+  uniqueId?: string;
+  asset_repo_url?: string;
+};
+
 export const useRemoteAssetFlags = () => {
   const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
   const shouldShowHomeworkRemoteAssets = useFeatureIsOn(
     HOMEWORK_REMOTE_ASSETS_ENABLED,
   );
-  const learningPathAssets: any = useFeatureValue(LEARNING_PATH_ASSETS, {});
-  const homeworkPathwayAssets: any = useFeatureValue(
+  const learningPathAssets = useFeatureValue<RemoteAssetFeature>(
+    LEARNING_PATH_ASSETS,
+    {},
+  );
+  const homeworkPathwayAssets = useFeatureValue<RemoteAssetFeature>(
     HOMEWORK_PATHWAY_ASSETS,
     {},
   );

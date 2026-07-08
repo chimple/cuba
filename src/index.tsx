@@ -29,7 +29,6 @@ import { initializeNativeRuntime } from './startup/nativeRuntime';
 import { initializePlatformSetup } from './startup/platformSetup';
 import { createAppRoot, renderRoot } from './startup/renderRoot';
 import { bootstrapServicesAndRender } from './startup/serviceBootstrap';
-
 initializeErrorReporting();
 initializePlatformSetup();
 
@@ -42,5 +41,4 @@ initializeNativeRuntime();
 bootstrapServicesAndRender(() => {
   renderRoot(root, growthbook);
 });
-
 serviceWorkerRegistration.unregister();

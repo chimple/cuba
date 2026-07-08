@@ -8,11 +8,19 @@ import {
 } from '@mui/material';
 import { t } from 'i18next';
 import GenericPopup from '../components/GenericPopUp/GenericPopUp';
+import { PopupConfig } from '../components/GenericPopUp/GenericPopUpType';
 import Loading from '../components/Loading';
+
+type PopupLocalizedContent = PopupConfig['content'][string];
+
+type PopupEventDetail = {
+  config: PopupConfig;
+  localized: PopupLocalizedContent;
+};
 
 type AppOverlaysProps = {
   isGlobalLoading: boolean;
-  popupData: any;
+  popupData: PopupEventDetail | null;
   onPopupClose: () => void;
   onPopupAction: () => void;
   showBreakModal: boolean;

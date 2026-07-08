@@ -3,13 +3,21 @@ import { useLocation } from 'react-router-dom';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { GENERIC_POP_UP, SHOW_GENERIC_POPUP } from '../common/constants';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
+import { PopupConfig } from '../components/GenericPopUp/GenericPopUpType';
 import { logger } from '../utility/logger';
+
+type PopupLocalizedContent = PopupConfig['content'][string];
+
+type PopupEventDetail = {
+  config: PopupConfig;
+  localized: PopupLocalizedContent;
+};
 
 export const useGenericPopup = () => {
   const growthbook = useGrowthBook();
   const location = useLocation();
-  const [popupData, setPopupData] = useState<any>(null);
-  const popupDataRef = useRef<any>(null);
+  const [popupData, setPopupData] = useState<PopupEventDetail | null>(null);
+  const popupDataRef = useRef<PopupEventDetail | null>(null);
 
   useEffect(() => {
     popupDataRef.current = popupData;
@@ -17,7 +25,7 @@ export const useGenericPopup = () => {
 
   useLayoutEffect(() => {
     const handler = (event: Event) => {
-      const customEvent = event as CustomEvent;
+      const customEvent = event as CustomEvent<PopupEventDetail>;
       logger.info('POPUP EVENT RECEIVED', customEvent.detail);
       setPopupData(customEvent.detail);
     };
@@ -31,7 +39,10 @@ export const useGenericPopup = () => {
   useEffect(() => {
     if (!growthbook) return;
 
-    const popupConfig = growthbook.getFeatureValue(GENERIC_POP_UP, null) as any;
+    const popupConfig = growthbook.getFeatureValue<PopupConfig | null>(
+      GENERIC_POP_UP,
+      null,
+    );
     if (!popupConfig) return;
 
     const params = new URLSearchParams(location.search);

@@ -20,6 +20,13 @@ interface ExtraData {
 
 type PluginListenerHandle = { remove: () => void };
 
+type NotificationPortPlugin = PortPlugin & {
+  addListener?: (
+    eventName: 'notificationOpened',
+    listenerFunc: (data: ExtraData | undefined) => void,
+  ) => PluginListenerHandle | Promise<PluginListenerHandle>;
+};
+
 const processNotificationData = (data: ExtraData | undefined) => {
   Util.navigateTabByNotificationData(data);
 };
@@ -66,13 +73,13 @@ export const useNativeAppListeners = () => {
     });
 
     if (Capacitor.isNativePlatform()) {
-      const portPlugin = registerPlugin<PortPlugin>('Port');
+      const portPlugin = registerPlugin<NotificationPortPlugin>('Port');
       void Promise.resolve(
-        portPlugin.addListener?.('notificationOpened', (data: any) => {
+        portPlugin.addListener?.('notificationOpened', (data) => {
           if (data) {
             processNotificationData(data);
           }
-        }) as any,
+        }),
       ).then((listener) => {
         notificationOpenedListener = listener;
       });

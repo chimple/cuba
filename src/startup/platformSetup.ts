@@ -13,6 +13,11 @@ type NavigatorWithUserAgentData = Navigator & {
   };
 };
 
+type WindowWithSpeechPolyfills = Window & {
+  speechSynthesis?: SpeechSynthesis;
+  SpeechSynthesisUtterance?: typeof SpeechSynthesisUtterance;
+};
+
 declare global {
   namespace JSX {
     interface IntrinsicElements extends LocalJSX.IntrinsicElements {}
@@ -42,10 +47,13 @@ const applyMobileWebBrowserClass = () => {
 const initializeSpeechPolyfills = () => {
   if (typeof window === 'undefined') return;
 
-  if (!(window as any).speechSynthesis) {
-    (window as any).speechSynthesis = new SpeechSynthesis();
+  const windowWithSpeechPolyfills = window as WindowWithSpeechPolyfills;
+
+  if (!windowWithSpeechPolyfills.speechSynthesis) {
+    windowWithSpeechPolyfills.speechSynthesis = new SpeechSynthesis();
   }
-  if (!(window as any).SpeechSynthesisUtterance) {
-    (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
+  if (!windowWithSpeechPolyfills.SpeechSynthesisUtterance) {
+    windowWithSpeechPolyfills.SpeechSynthesisUtterance =
+      SpeechSynthesisUtterance;
   }
 };

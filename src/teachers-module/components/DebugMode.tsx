@@ -285,7 +285,7 @@ const DebugPage: React.FC = () => {
   async function getHotUpdateChannel() {
     const { versionName } = await LiveUpdate.getVersionName();
     const majorVersion = versionName.split('.')[0];
-    return `${process.env.REACT_APP_ENV}-${majorVersion}`;
+    return `${import.meta.env.VITE_ENV}-${majorVersion}`;
   }
 
   const handleManualHotUpdate = async () => {
