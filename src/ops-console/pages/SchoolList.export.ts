@@ -60,11 +60,11 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
       percentText: '--',
     },
     udise: {
-      valueText: school.udise?.trim() || '--',
+      valueText: school.udise ? String(school.udise).trim() : '--',
       percentText: '--',
     },
     block: {
-      valueText: school.block?.trim() || '--',
+      valueText: school.block ? String(school.block).trim() : '--',
       percentText: '--',
     },
     schoolPerformance: {
