@@ -116,6 +116,9 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
     phoneCallsStudentsParents: buildMetricExportText(
       pickFirstNumber(school.phone_calls_students_parents),
     ),
+    inpersonStudentsParents: buildMetricExportText(
+      pickFirstNumber(school.inperson_students_parents),
+    ),
     phoneCallsTeachersHms: buildMetricExportText(
       pickFirstNumber(school.phone_calls_teachers_hms),
     ),
