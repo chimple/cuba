@@ -11007,6 +11007,8 @@ export class SupabaseApi implements ServiceApi {
         return false;
       }
       const programId = uuidv4();
+      const _currentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
 
       const record: any = {
         id: programId,
@@ -11036,7 +11038,10 @@ export class SupabaseApi implements ServiceApi {
       };
 
       // Step 1: Insert the program
-      const { error } = await this.supabase.from(TABLES.Program).insert(record);
+      const { data, error } = await this.supabase
+        .from(TABLES.Program)
+        .insert(record)
+        .single();
 
       if (error) {
         logger.error('Insert error:', error);
