@@ -229,6 +229,14 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     orderBy: 'student_parent_calls',
   },
   {
+    key: 'inpersonStudentsParents',
+    label: t('In-Person - Students / Parents'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'student_parent_inperson',
+  },
+  {
     key: 'phoneCallsTeachersHms',
     label: t('Phone Calls - Teachers & HMs'),
     width: '7.78%',
@@ -316,6 +324,11 @@ export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
   {
     key: 'phoneCallsStudentsParents',
     label: t('Phone Calls - Students / Parents'),
+    part: 'value',
+  },
+  {
+    key: 'inpersonStudentsParents',
+    label: t('In-Person - Students / Parents'),
     part: 'value',
   },
   {

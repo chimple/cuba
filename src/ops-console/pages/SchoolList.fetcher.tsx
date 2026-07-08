@@ -58,6 +58,7 @@ export type SchoolListRow = SchoolListSourceRow & {
   avgAssignmentsCompleted: SchoolMetricCell;
   avgActivitiesCompleted: SchoolMetricCell;
   phoneCallsStudentsParents: SchoolMetricCell;
+  inpersonStudentsParents: SchoolMetricCell;
   phoneCallsTeachersHms: SchoolMetricCell;
   communityVisits: SchoolMetricCell;
   schoolVisits: SchoolMetricCell;
@@ -78,6 +79,7 @@ const ORDER_BY_MAP: Record<string, string> = {
   avgAssignmentsCompleted: 'avg_assignments_completed',
   avgActivitiesCompleted: 'avg_activities_completed',
   phoneCallsStudentsParents: 'student_parent_calls',
+  inpersonStudentsParents: 'student_parent_inperson',
   phoneCallsTeachersHms: 'teacher_hm_calls',
   communityVisits: 'community_visits',
   parentsReached: 'community_parents_reached',

@@ -163,6 +163,9 @@ export const mapSchoolRowsToRenderRows = (
       phoneCallsStudentsParents: renderMetricCell(
         pickFirstNumber(school.phone_calls_students_parents),
       ),
+      inpersonStudentsParents: renderMetricCell(
+        pickFirstNumber(school.inperson_students_parents),
+      ),
       phoneCallsTeachersHms: renderMetricCell(
         pickFirstNumber(school.phone_calls_teachers_hms),
       ),

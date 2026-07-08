@@ -671,6 +671,7 @@ export interface FilteredSchoolsForSchoolListingOps {
   avg_assignments_completed?: number | null;
   avg_activities_completed?: number | null;
   phone_calls_students_parents?: number | null;
+  inperson_students_parents?: number | null;
   phone_calls_teachers_hms?: number | null;
   community_visits?: number | null;
   school_visits?: number | null;
