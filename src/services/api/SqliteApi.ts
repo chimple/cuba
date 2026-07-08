@@ -92,6 +92,7 @@ import logger from '../../utility/logger';
 import { isRecoverableStorageError } from '../../utility/recoverableStorageError';
 import { ensureLocalStickerBookSvgUri } from '../../utility/stickerBookAssets';
 import { Util } from '../../utility/util';
+import { getDailyRewardClaimedEvent } from '../../analytics/rewardEvents';
 import type { SqlStatement } from '../../workers/background.worker.types';
 import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorkerClient';
 import { Json } from '../database';
@@ -102,12 +103,15 @@ import {
   AssignmentDateRangeData,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignListingItem,
+  CampaignListingParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
   CampaignAudienceSummaryParams,
   CampaignSavedAudienceGroup,
   CampaignSetupOptions,
+  ClassMetricsForClassListingRow,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
@@ -118,6 +122,12 @@ import {
   OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
+  CampaignAssignmentsResponse,
+  CampaignOption,
+  CampaignAssignmentFilters,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
+  UpdateCampaignMessagingRowPayload,
 } from './ServiceApi';
 import { SupabaseApi } from './SupabaseApi';
 import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
@@ -180,6 +190,12 @@ export class SqliteApi implements ServiceApi {
   private _currentStudent: TableTypes<'user'> | undefined;
   private _currentClass: TableTypes<'class'> | undefined;
   private _currentSchool: TableTypes<'school'> | undefined;
+  private chapterCourseIdCache = new Map<string, string | null>();
+  private courseLanguageIdCache = new Map<string, string | null>();
+  private courseLanguageIdPromiseCache = new Map<
+    string,
+    Promise<string | null>
+  >();
   private _currentCourse:
     | Map<string, TableTypes<'course'> | undefined>
     | undefined;
@@ -203,6 +219,133 @@ export class SqliteApi implements ServiceApi {
       SqliteApi.i._serverApi = SupabaseApi.getInstance();
     }
     return SqliteApi.i;
+  }
+
+  private async resolveCourseLanguageId(
+    courseId: string,
+  ): Promise<string | null> {
+    // Reuse successful course-language resolution across chapter lesson fetches.
+    if (this.courseLanguageIdCache.has(courseId)) {
+      return this.courseLanguageIdCache.get(courseId) ?? null;
+    }
+
+    // Deduplicate concurrent lookups for the same course while one query is in flight.
+    const inFlightPromise = this.courseLanguageIdPromiseCache.get(courseId);
+    if (inFlightPromise) {
+      return inFlightPromise;
+    }
+
+    const languagePromise = (async () => {
+      const courseRes = await this.executeQuery(
+        `
+          SELECT code
+          FROM ${TABLES.Course}
+          WHERE id = ?
+            AND is_deleted = 0
+          LIMIT 1;
+        `,
+        [courseId],
+      );
+      if (!courseRes) {
+        throw new Error(
+          `Failed to fetch course code while resolving language for course ${courseId}`,
+        );
+      }
+
+      const courseCode = (
+        ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
+          code?: string | null;
+        }
+      ).code
+        ?.trim()
+        .toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (!courseLanguageCode) {
+        return null;
+      }
+
+      const languageRes = await this.executeQuery(
+        `
+          SELECT id
+          FROM ${TABLES.Language}
+          WHERE LOWER(code) = ?
+            AND is_deleted = 0
+          LIMIT 1;
+        `,
+        [courseLanguageCode],
+      );
+      if (!languageRes) {
+        throw new Error(
+          `Failed to fetch language id while resolving language for course ${courseId}`,
+        );
+      }
+
+      const courseLanguageId = (
+        ((languageRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
+          id?: string | null;
+        }
+      ).id;
+
+      return courseLanguageId ?? null;
+    })()
+      .then((languageId) => {
+        // Cache only confirmed language ids so transient query failures can retry later.
+        if (languageId) {
+          this.courseLanguageIdCache.set(courseId, languageId);
+        }
+        return languageId;
+      })
+      .finally(() => {
+        this.courseLanguageIdPromiseCache.delete(courseId);
+      });
+
+    this.courseLanguageIdPromiseCache.set(courseId, languagePromise);
+    return languagePromise;
+  }
+
+  private async resolveCourseLanguageIdForChapter(
+    chapterId: string,
+  ): Promise<string | null> {
+    const cachedCourseId = this.chapterCourseIdCache.get(chapterId);
+    if (cachedCourseId !== undefined) {
+      return cachedCourseId
+        ? this.resolveCourseLanguageId(cachedCourseId)
+        : Promise.resolve(null);
+    }
+
+    const courseRes = await this.executeQuery(
+      `
+        SELECT course_id
+        FROM ${TABLES.Chapter}
+        WHERE id = ?
+          AND is_deleted = 0
+        LIMIT 1;
+      `,
+      [chapterId],
+    );
+    if (!courseRes) {
+      throw new Error(
+        `Failed to fetch chapter course while resolving language for chapter ${chapterId}`,
+      );
+    }
+
+    const courseId = (
+      ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
+        course_id?: string | null;
+      }
+    ).course_id;
+
+    // Keep the chapter -> course mapping only when we resolved a real course id.
+    if (courseId) {
+      this.chapterCourseIdCache.set(chapterId, courseId);
+    }
+    return courseId ? this.resolveCourseLanguageId(courseId) : null;
   }
   public static async getInstance(): Promise<SqliteApi> {
     if (!SqliteApi.i) {
@@ -1803,7 +1946,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: now,
       is_deleted: false,
       is_tc_accepted: true,
-      tc_agreed_version: tcVersion,
+      tc_agreed_version: tcVersion ?? 0,
       email: null,
       phone: null,
       fcm_token: null,
@@ -2283,7 +2426,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false,
       is_tc_accepted: true,
-      tc_agreed_version: tcVersion,
+      tc_agreed_version: tcVersion ?? 0,
       email: null,
       phone: null,
       fcm_token: null,
@@ -3005,52 +3148,10 @@ export class SqliteApi implements ServiceApi {
     const localeId = student?.locale_id;
 
     try {
-      const courseRes = await this.executeQuery(
-        `
-          SELECT course.code
-          FROM ${TABLES.Chapter} AS chapter
-          JOIN ${TABLES.Course} AS course ON chapter.course_id = course.id
-          WHERE chapter.id = ?
-            AND chapter.is_deleted = 0
-            AND course.is_deleted = 0
-          LIMIT 1;
-        `,
-        [chapterId],
-      );
-      const courseCode = (
-        ((courseRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
-          code?: string | null;
-        }
-      ).code
-        ?.trim()
-        .toLowerCase();
-      const courseLanguageCode =
-        courseCode === COURSES.MATHS
-          ? COURSES.ENGLISH
-          : courseCode?.includes('-')
-            ? courseCode.split('-').pop()
-            : courseCode;
-
-      if (courseLanguageCode) {
-        const languageRes = await this.executeQuery(
-          `
-            SELECT id
-            FROM ${TABLES.Language}
-            WHERE LOWER(code) = ?
-              AND is_deleted = 0
-            LIMIT 1;
-          `,
-          [courseLanguageCode],
-        );
-        const courseLanguageId = (
-          ((languageRes as DBSQLiteValues | undefined)?.values?.[0] ?? {}) as {
-            id?: string | null;
-          }
-        ).id;
-
-        if (courseLanguageId) {
-          langId = courseLanguageId;
-        }
+      const courseLanguageId =
+        await this.resolveCourseLanguageIdForChapter(chapterId);
+      if (courseLanguageId) {
+        langId = courseLanguageId;
       }
     } catch (error) {
       logger.error('Error resolving chapter course language:', error);
@@ -3509,12 +3610,13 @@ export class SqliteApi implements ServiceApi {
         logger.error('Failed to get user from redux store:', error);
       }
       pushData.reward = JSON.stringify(newReward);
-      await Util.logEvent(EVENTS.REWARD_COLLECTED, {
+      await Util.logEvent(getDailyRewardClaimedEvent(source), {
         user_id: userId,
         student_id: currentUser.id,
         reward_id: newReward.reward_id,
         prev_reward_id: currentUserReward?.reward_id ?? null,
         timestamp: newReward.timestamp,
+        source: source ?? null,
         course_id: courseId ?? null,
         chapter_id: chapterId,
         lesson_id: lessonId,
@@ -5695,6 +5797,9 @@ export class SqliteApi implements ServiceApi {
     ORDER BY sort_index ASC;
     `;
     const res = await this._db?.query(query);
+    (res?.values ?? []).forEach((chapter) => {
+      this.chapterCourseIdCache.set(chapter.id, chapter.course_id ?? courseId);
+    });
     return res?.values ?? [];
   }
   async getPendingAssignmentForLesson(
@@ -5921,6 +6026,8 @@ export class SqliteApi implements ServiceApi {
       countryCode,
     );
     const localeId = locale?.id ?? DEFAULT_LOCALE_ID;
+    const tcAgreedVersion = user.tc_agreed_version ?? 0;
+    user.tc_agreed_version = tcAgreedVersion;
 
     await this.executeQuery(
       `
@@ -5937,7 +6044,7 @@ export class SqliteApi implements ServiceApi {
         user.curriculum_id,
         user.language_id,
         (user.locale_id = localeId),
-        user.tc_agreed_version,
+        tcAgreedVersion,
       ],
     );
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
@@ -7880,7 +7987,7 @@ order by
     return await this._serverApi.getProgramFilterOptions();
   }
   async getPrograms(params: {
-    currentUserId: string;
+    currentUserId?: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: TabType;
@@ -7888,27 +7995,14 @@ order by
     offset?: number;
     orderBy?: string;
     order?: 'asc' | 'desc';
-  }): Promise<{ data: any[] }> {
-    const {
-      currentUserId,
-      filters,
-      searchTerm,
-      tab,
-      limit,
-      offset,
-      orderBy,
-      order,
-    } = params;
-    return await this._serverApi.getPrograms({
-      currentUserId,
-      filters,
-      searchTerm,
-      tab,
-      limit,
-      offset,
-      orderBy,
-      order,
-    });
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }) {
+    return await this._serverApi.getPrograms(params);
   }
 
   async insertProgram(payload: any): Promise<boolean | null> {
@@ -7955,6 +8049,28 @@ order by
     params: CampaignAssignmentOptionsParams,
   ): Promise<CampaignAssignmentOptions> {
     return await this._serverApi.getCampaignAssignmentOptions(params);
+  }
+
+  async getCampaignListing(
+    params: CampaignListingParams,
+  ): Promise<PaginatedResponse<CampaignListingItem>> {
+    return await this._serverApi.getCampaignListing(params);
+  }
+
+  async cancelCampaign(campaignId: string, reason: string): Promise<void> {
+    return await this._serverApi.cancelCampaign(campaignId, reason);
+  }
+  async getCampaignAssignments(
+    campaignId: string,
+    filters: CampaignAssignmentFilters,
+  ): Promise<CampaignAssignmentsResponse> {
+    return await this._serverApi.getCampaignAssignments(campaignId, filters);
+  }
+
+  async getCampaignSubjectsByCampaignId(
+    campaignId: string,
+  ): Promise<CampaignOption[]> {
+    return await this._serverApi.getCampaignSubjectsByCampaignId(campaignId);
   }
 
   async getUniqueGeoData(): Promise<{
@@ -8081,6 +8197,8 @@ order by
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this._serverApi.getFilteredSchoolsForSchoolListing(params);
   }
@@ -8094,8 +8212,17 @@ order by
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this._serverApi.getSchoolMetricsForSchoolListing(params);
+  }
+
+  async getClassMetricsForClassListing(params: {
+    schoolId: string;
+    date_range?: string;
+  }): Promise<ClassMetricsForClassListingRow[]> {
+    return await this._serverApi.getClassMetricsForClassListing(params);
   }
 
   async getSchoolsWithProgramAccess(
@@ -8821,7 +8948,7 @@ order by
       updated_at: new Date().toISOString(),
       is_deleted: false,
       is_tc_accepted: true,
-      tc_agreed_version: tcVersion,
+      tc_agreed_version: tcVersion ?? 0,
       email: null,
       phone: null,
       fcm_token: null,
@@ -11381,5 +11508,18 @@ order by
       logger.error('Error updating/inserting user_achievements coins:', error);
       throw error;
     }
+  }
+
+  async getCampaignMessaging(
+    campaignId: string,
+    params?: CampaignMessagingQueryParams,
+  ): Promise<CampaignMessagingResponse> {
+    return await this._serverApi.getCampaignMessaging(campaignId, params);
+  }
+
+  async updateCampaignMessaging(
+    rows: UpdateCampaignMessagingRowPayload[],
+  ): Promise<boolean> {
+    return await this._serverApi.updateCampaignMessaging(rows);
   }
 }

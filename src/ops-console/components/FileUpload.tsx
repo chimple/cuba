@@ -1125,8 +1125,12 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           if (!studentName) errors.push('Missing STUDENT NAME.');
           if (!gender) {
             errors.push('Missing GENDER.');
-          } else if (!['MALE', 'FEMALE'].includes(gender.toUpperCase())) {
-            errors.push('Invalid GENDER. Must be "MALE" or "FEMALE".');
+          } else if (
+            !['MALE', 'FEMALE', 'UNSPECIFIED'].includes(gender.toUpperCase())
+          ) {
+            errors.push(
+              'Invalid GENDER. Must be "MALE", "FEMALE", or "UNSPECIFIED".',
+            );
           }
           if (!/^\d+$/.test(age)) {
             errors.push('AGE must be a whole number.');

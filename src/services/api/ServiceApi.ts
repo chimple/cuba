@@ -28,6 +28,7 @@ import {
   SchoolVisitType,
   SOURCE,
   RESULT_STATUS,
+  CampaignListingStatus,
 } from '../../common/constants';
 import { AvatarObj } from '../../components/animation/Avatar';
 import { DocumentData } from 'firebase/firestore';
@@ -46,7 +47,7 @@ import {
   StickerBook,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
-import { Json } from '../database';
+import { Database, Json } from '../database';
 import logger from '../../utility/logger';
 
 export interface LeaderboardInfo {
@@ -104,6 +105,48 @@ export type SchoolProgramAccessResponse = {
   total_pages: number;
 };
 
+export type ClassMetricsForClassListingRow = {
+  class_id: string;
+  class_name?: string | null;
+  class_code?: number | null;
+  onboarded_students?: number | null;
+  activated_students?: number | null;
+  active_students?: number | null;
+  avg_time_spent?: number | null;
+  active_teachers?: number | null;
+  total_teachers?: number | null;
+  activities_assigned?: number | null;
+  avg_assignments_completed?: number | null;
+  avg_activities_completed?: number | null;
+};
+
+export type ProgramListingProgramRow = {
+  id?: string;
+  program_id?: string | null;
+  program_name?: string | null;
+  state?: string | null;
+  metric_window?: string | null;
+  total_schools?: number | null;
+  performing_well?: number | null;
+  needs_attention?: number | null;
+  needs_support?: number | null;
+  onboarded_students?: number | null;
+  target_student_count?: number | null;
+  onboarded_students_pct?: number | null;
+  activated_students?: number | null;
+  activated_students_pct?: number | null;
+  active_students?: number | null;
+  active_students_pct?: number | null;
+  avg_time_spent?: number | null;
+  onboarded_teachers?: number | null;
+  target_teachers_count?: number | null;
+  onboarded_teachers_pct?: number | null;
+  activated_teachers?: number | null;
+  activated_teachers_pct?: number | null;
+  active_teachers?: number | null;
+  active_teachers_pct?: number | null;
+};
+
 export type OpsStudentPerformanceBandsParams = {
   classIds?: string[];
   studentIds?: string[];
@@ -130,6 +173,30 @@ export type JoinClassInviteLookupResult = {
   inviteData: any;
   classData?: TableTypes<'class'>;
   schoolData?: TableTypes<'school'>;
+};
+
+export type CampaignMessagingRow = TableTypes<'campaign_messaging'>;
+
+export type CampaignMessagingQueryParams = {
+  page?: number;
+  pageSize?: number;
+};
+
+export type CampaignMessagingResponse = {
+  data: CampaignMessagingRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export type UpdateCampaignMessagingRowPayload = {
+  id: string;
+  message: string;
+  mediaLink: string;
+  messageTime: string | null;
+  pollTime: string | null;
+  pollQuestion: string;
+  pollOptions: string[];
 };
 
 type OpsRequestsResponse = {
@@ -329,6 +396,57 @@ export type CampaignAssignmentOptionsParams = {
 
 export type CampaignAssignmentOptions = {
   grades: CampaignAssignmentGradeOption[];
+};
+
+export type CampaignListingItem = {
+  campaignId: string;
+  campaign: TableTypes<'campaign'> & {
+    manager?: TableTypes<'user'> | TableTypes<'user'>[] | null;
+    program?: TableTypes<'program'> | TableTypes<'program'>[] | null;
+  };
+  dashboardMetrics:
+    | Database['public']['Functions']['get_campaign_dashboard_metrics']['Returns'][number]
+    | null;
+  avgWeeklyActiveUsers: number | null;
+  avgWeeklyEngagementTimeMinutes: number | null;
+  status: CampaignListingStatus;
+};
+
+export type CampaignListingParams = {
+  page?: number;
+  pageSize?: number;
+  searchTerm?: string;
+  orderBy?:
+    | 'name'
+    | 'manager'
+    | 'programName'
+    | 'avgWeeklyActiveUsers'
+    | 'avgWeeklyEngagementTimeMinutes'
+    | 'startDate'
+    | 'endDate';
+  orderDir?: 'asc' | 'desc';
+};
+export type CampaignAssignmentFilters = {
+  page: number;
+  pageSize: number;
+  gradeIds?: string[];
+  subjectIds?: string[];
+};
+
+export type CampaignAssignmentSummaryRow = {
+  assignmentId: string;
+  assignmentDate: string;
+  gradeId: string;
+  gradeName: string;
+  subjectId: string;
+  subjectName: string;
+  lessonId: string;
+  lessonName: string;
+};
+
+export type CampaignAssignmentsResponse = {
+  assignments: CampaignAssignmentSummaryRow[];
+  total: number;
 };
 
 export interface ServiceApi {
@@ -2227,10 +2345,10 @@ export interface ServiceApi {
    * @param {number} [params.offset] - Number of results to skip (for pagination).
    * @param {string} [params.orderBy] - Field name to sort by.
    * @param {'asc' | 'desc'} [params.order] - Sort order.
-   * @returns {Promise<{ data: any[] }>} Promise resolving to an object containing an array of programs with manager names.
+   * @returns Promise resolving to paginated program listing rows and total count.
    */
   getPrograms(params: {
-    currentUserId: string;
+    currentUserId?: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: TabType;
@@ -2238,7 +2356,13 @@ export interface ServiceApi {
     offset?: number;
     orderBy?: string;
     order?: 'asc' | 'desc';
-  }): Promise<{ data: any[] }>;
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }): Promise<{ data: ProgramListingProgramRow[]; total?: number }>;
 
   /**
    * Inserts or updates a program record in the database via Supabase Edge Function.
@@ -2311,6 +2435,39 @@ export interface ServiceApi {
   getCampaignAssignmentOptions(
     params: CampaignAssignmentOptionsParams,
   ): Promise<CampaignAssignmentOptions>;
+
+  /**
+   * Returns the campaign listing page data with server-side pagination metadata.
+   * Search, sorting, role-based visibility, and average dashboard metrics are applied by the implementation.
+   */
+  getCampaignListing(
+    params: CampaignListingParams,
+  ): Promise<PaginatedResponse<CampaignListingItem>>;
+
+  /**
+   * Cancels an existing campaign and persists the inactive status update in the database.
+   * The reason is supplied by the UI for cancellation auditing and validation.
+   */
+  cancelCampaign(campaignId: string, reason: string): Promise<void>;
+  /**
+   * Fetches campaign assignments for a given campaign ID, with optional filters for school, grade, subject, chapter, and lesson.
+   * @param {string} campaignId - The ID of the campaign to fetch assignments for.
+   * @param {CampaignAssignmentFilters} filters - Optional filters to narrow down the assignments.
+   * @returns {Promise<CampaignAssignmentsResponse>} - A promise resolving to the campaign assignments data.
+   */
+  getCampaignAssignments(
+    campaignId: string,
+    filters: CampaignAssignmentFilters,
+  ): Promise<CampaignAssignmentsResponse>;
+
+  /**
+   * Fetches the unique subjects used by a campaign's assignments.
+   * @param {string} campaignId - The campaign ID.
+   * @returns {Promise<CampaignOption[]>} - Unique subjects for that campaign.
+   */
+  getCampaignSubjectsByCampaignId(
+    campaignId: string,
+  ): Promise<CampaignOption[]>;
 
   /**
    * Get unique geo data
@@ -2476,6 +2633,8 @@ export interface ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
@@ -2503,10 +2662,20 @@ export interface ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;
   }>;
+
+  /**
+   * Fetch class-level listing metrics for a single school and selected date window.
+   */
+  getClassMetricsForClassListing(params: {
+    schoolId: string;
+    date_range?: string;
+  }): Promise<ClassMetricsForClassListingRow[]>;
 
   /**
    * Fetch schools with linked program access details using academic years and optional filters.
@@ -3468,4 +3637,21 @@ export interface ServiceApi {
     lessonId: string,
   ): Promise<boolean>;
   isSplUser(): Promise<boolean>;
+
+  /**
+   * Fetches active communication rows for a campaign.
+   * Filters out rows soft-deleted from the campaign messaging table.
+   */
+  getCampaignMessaging(
+    campaignId: string,
+    params?: CampaignMessagingQueryParams,
+  ): Promise<CampaignMessagingResponse>;
+
+  /**
+   * Updates editable campaign communication rows.
+   * Only pending, non-deleted campaign messaging rows should be updated.
+   */
+  updateCampaignMessaging(
+    rows: UpdateCampaignMessagingRowPayload[],
+  ): Promise<boolean>;
 }

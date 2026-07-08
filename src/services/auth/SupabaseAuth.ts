@@ -740,7 +740,7 @@ export class SupabaseAuth implements ServiceAuth {
     try {
       if (!this._auth) return;
       const api = ServiceConfig.getI().apiHandler;
-      const agreedVersion = normalizeTcVersion(tcAgreedVersion);
+      const agreedVersion = normalizeTcVersion(tcAgreedVersion) ?? 0;
 
       const { data: user, error } = await this._auth.verifyOtp({
         phone: phoneNumber,
@@ -866,7 +866,7 @@ export class SupabaseAuth implements ServiceAuth {
     try {
       if (!this._supabaseDb || !session.user) return null;
       let api = ServiceConfig.getI().apiHandler;
-      const agreedVersion = normalizeTcVersion(tcAgreedVersion);
+      const agreedVersion = normalizeTcVersion(tcAgreedVersion) ?? 0;
       const user = session.user;
       const email = user.email;
       const id = user.id;

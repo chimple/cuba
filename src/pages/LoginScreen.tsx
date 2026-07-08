@@ -680,7 +680,6 @@ const LoginScreen: React.FC = () => {
         );
         return;
       }
-      setAnimatedLoading(false);
       dispatch(setAuthLoading(false));
       dispatch(setAuthUser(authUser));
       dispatch(setUser(userData));
