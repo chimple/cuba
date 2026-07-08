@@ -24,12 +24,17 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
 }) => {
   const history = useHistory();
   const [secondsLeft, setSecondsLeft] = useState(ACTIVATION_COUNTDOWN_SECONDS);
+  const [isBannerImageReady, setIsBannerImageReady] = useState(false);
   const delayTimeoutRef = useRef<number | null>(null);
   const intervalRef = useRef<number | null>(null);
   const launchTimeoutRef = useRef<number | null>(null);
   const hasLaunchedLessonRef = useRef(false);
 
   useEffect(() => {
+    if (!isBannerImageReady) {
+      return;
+    }
+
     const startBannerFlow = async () => {
       const languageCode = await AudioUtil.getAudioLanguageCode();
       const letsPlayAudioUrl = `/assets/audios/activationLesson/letsPlay/${languageCode}_lets_play.mp3`;
@@ -71,10 +76,14 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
 
       void AudioUtil.stopAudioUrlOrTtsPlayback();
     };
-  }, [history]);
+  }, [history, isBannerImageReady]);
 
   useEffect(() => {
-    if (secondsLeft !== 0 || hasLaunchedLessonRef.current) {
+    if (
+      !isBannerImageReady ||
+      secondsLeft !== 0 ||
+      hasLaunchedLessonRef.current
+    ) {
       return;
     }
 
@@ -131,7 +140,7 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
     };
 
     void launchRandomLesson();
-  }, [history, secondsLeft, source]);
+  }, [history, isBannerImageReady, secondsLeft, source]);
 
   return (
     <div className="activation-lesson-banner">
@@ -141,36 +150,43 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
           aria-hidden="true"
           className="activation-lesson-banner__image"
           src="/assets/activationLesson/banner.webp"
+          onLoad={() => setIsBannerImageReady(true)}
+          onError={() => setIsBannerImageReady(true)}
         />
-        <div className="activation-lesson-banner__content">
-          <div className="activation-lesson-banner__title">
-            {t('Lesson starts in :')}
-          </div>
+        {isBannerImageReady ? (
+          <div className="activation-lesson-banner__content">
+            <div className="activation-lesson-banner__title">
+              {t('Lesson starts in :')}
+            </div>
 
-          <div className="activation-lesson-banner__sun-wrap">
-            <img
-              alt=""
-              aria-hidden="true"
-              className="activation-lesson-banner__sun"
-              src="/assets/activationLesson/sunTimer.svg"
-              style={{
-                transform: `rotate(${
-                  (ACTIVATION_COUNTDOWN_SECONDS - secondsLeft) *
-                  ACTIVATION_SUN_STEP_DEGREES
-                }deg)`,
-              }}
-            />
-            <span className="activation-lesson-banner__count" key={secondsLeft}>
-              {secondsLeft}
-            </span>
-          </div>
+            <div className="activation-lesson-banner__sun-wrap">
+              <img
+                alt=""
+                aria-hidden="true"
+                className="activation-lesson-banner__sun"
+                src="/assets/activationLesson/sunTimer.svg"
+                style={{
+                  transform: `rotate(${
+                    (ACTIVATION_COUNTDOWN_SECONDS - secondsLeft) *
+                    ACTIVATION_SUN_STEP_DEGREES
+                  }deg)`,
+                }}
+              />
+              <span
+                className="activation-lesson-banner__count"
+                key={secondsLeft}
+              >
+                {secondsLeft}
+              </span>
+            </div>
 
-          <div className="activation-lesson-banner__footer">
-            {t(
-              "Let's play and learn! Complete first lesson and earn a reward!",
-            )}
+            <div className="activation-lesson-banner__footer">
+              {t(
+                "Let's play and learn! Complete first lesson and earn a reward!",
+              )}
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </div>
   );

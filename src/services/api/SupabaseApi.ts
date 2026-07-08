@@ -97,7 +97,11 @@ import {
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Util } from '../../utility/util';
-import { sortBySchoolSearchRelevance } from '../../utility/schoolSearchUtil';
+import {
+  buildSchoolSearchKey,
+  getSchoolSearchScore,
+  sortBySchoolSearchRelevance,
+} from '../../utility/schoolSearchUtil';
 import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
@@ -212,6 +216,13 @@ type AssessmentBatchRow = Pick<
 };
 
 type AssessmentAssignmentRow = TableTypes<'assignment'> & {
+  assignment_user?: AssessmentAssignmentUserLink[] | null;
+};
+
+type AssessmentBatchLessonRow = Pick<
+  TableTypes<'assignment'>,
+  'lesson_id' | 'is_class_wise'
+> & {
   assignment_user?: AssessmentAssignmentUserLink[] | null;
 };
 
@@ -520,6 +531,11 @@ export class SupabaseApi implements ServiceApi {
   isSyncInProgress(): boolean {
     return false;
   }
+
+  close(): Promise<void> {
+    return Promise.resolve();
+  }
+
   public static i: SupabaseApi;
   public supabase: SupabaseClient<Database> | undefined;
   private supabaseUrl: string;
@@ -7076,7 +7092,7 @@ export class SupabaseApi implements ServiceApi {
         `
       lesson (
         id, name, cocos_subject_code, cocos_chapter_code, cocos_lesson_id,
-        image, outcome, plugin_type, status, created_by, subject_id,
+        lido_lesson_id, image, outcome, plugin_type, status, created_by, subject_id,
         target_age_from, target_age_to, language_id, created_at, updated_at,
         is_deleted, color
       ),
@@ -11168,71 +11184,92 @@ export class SupabaseApi implements ServiceApi {
         }
       }
 
-      if (search) {
-        query = query.or(
-          [
-            `school_name.ilike.%${search}%`,
-            `udise.ilike.%${search}%`,
-            `district.ilike.%${search}%`,
-            `block.ilike.%${search}%`,
-            `cluster.ilike.%${search}%`,
-            `state.ilike.%${search}%`,
-          ].join(','),
-        );
-      }
-
       const sortBy = order_by === 'name' ? 'school_name' : 'school_name';
-      const sortDir = order_dir === 'desc' ? false : true;
+      const sortAscending = order_dir !== 'desc';
+      const normalizedSearch = search?.trim() ?? '';
       const from = Math.max(page - 1, 0) * page_size;
-      const to = from + page_size - 1;
+      const to = from + page_size;
 
-      const { data, count, error } = await query
-        .order(sortBy, { ascending: sortDir })
-        .range(from, to);
+      const baseQuery = query.order(sortBy, { ascending: sortAscending });
+
+      const { data, count, error } = normalizedSearch
+        ? await baseQuery
+        : await baseQuery.range(from, to - 1);
 
       if (error) {
         logger.error('Error fetching school_metrics listing:', error);
         return { data: [], total: 0 };
       }
 
-      const rows = (data ?? []) as Array<Record<string, unknown>>;
+      const mappedRows = ((data ?? []) as Array<Record<string, unknown>>).map(
+        (row: Record<string, unknown>) => ({
+          ...row,
+          school_name:
+            typeof row.school_name === 'string' ? row.school_name : '',
+          udise: row.udise ?? null,
+          num_students:
+            typeof row.onboarded_students === 'number'
+              ? row.onboarded_students
+              : 0,
+          num_teachers:
+            typeof row.active_teachers === 'number' ? row.active_teachers : 0,
+          total_teachers: null,
+          onboarded_students: row.onboarded_students ?? null,
+          activated_students: row.activated_students ?? null,
+          active_students: row.active_students ?? null,
+          avg_time_spent: row.avg_time_spent ?? null,
+          active_teachers: row.active_teachers ?? null,
+          activities_assigned: row.activities_assigned ?? null,
+          avg_assignments_completed: row.avg_assignments_completed ?? null,
+          avg_activities_completed: row.avg_activities_completed ?? null,
+          phone_calls_students_parents: row.student_parent_calls ?? null,
+          phone_calls_teachers_hms: row.teacher_hm_calls ?? null,
+          community_visits: row.community_visits ?? null,
+          school_visits: row.school_visits ?? null,
+          parents_on_whatsapp: row.parents_on_whatsapp ?? null,
+          parents_in_whatsapp_group: row.parents_in_group ?? null,
+          parents_reached:
+            typeof row.community_parents_reached === 'number'
+              ? row.community_parents_reached
+              : 0,
+          program_managers: row.program_managers ?? [],
+          field_coordinators: row.field_coordinators ?? [],
+        }),
+      ) as FilteredSchoolsForSchoolListingOps[];
 
-      const mappedRows = rows.map((row: Record<string, unknown>) => ({
-        ...row,
-        school_name: typeof row.school_name === 'string' ? row.school_name : '',
-        udise: row.udise ?? null,
-        num_students:
-          typeof row.onboarded_students === 'number'
-            ? row.onboarded_students
-            : 0,
-        num_teachers:
-          typeof row.active_teachers === 'number' ? row.active_teachers : 0,
-        total_teachers: null,
-        onboarded_students: row.onboarded_students ?? null,
-        activated_students: row.activated_students ?? null,
-        active_students: row.active_students ?? null,
-        avg_time_spent: row.avg_time_spent ?? null,
-        active_teachers: row.active_teachers ?? null,
-        activities_assigned: row.activities_assigned ?? null,
-        avg_assignments_completed: row.avg_assignments_completed ?? null,
-        avg_activities_completed: row.avg_activities_completed ?? null,
-        phone_calls_students_parents: row.student_parent_calls ?? null,
-        phone_calls_teachers_hms: row.teacher_hm_calls ?? null,
-        community_visits: row.community_visits ?? null,
-        school_visits: row.school_visits ?? null,
-        parents_on_whatsapp: row.parents_on_whatsapp ?? null,
-        parents_in_whatsapp_group: row.parents_in_group ?? null,
-        parents_reached:
-          typeof row.community_parents_reached === 'number'
-            ? row.community_parents_reached
-            : 0,
-        program_managers: row.program_managers ?? [],
-        field_coordinators: row.field_coordinators ?? [],
-      })) as FilteredSchoolsForSchoolListingOps[];
+      if (!normalizedSearch) {
+        return {
+          data: mappedRows,
+          total: typeof count === 'number' ? count : 0,
+        };
+      }
+
+      const queryKey = buildSchoolSearchKey(normalizedSearch);
+      const searchableRows = mappedRows.filter((row) => {
+        const searchableValues = [
+          String(row.school_name ?? ''),
+          String(row.udise ?? ''),
+          String(row.district ?? ''),
+          String(row.block ?? ''),
+          String(row.cluster ?? ''),
+          String(row.state ?? ''),
+        ];
+
+        return searchableValues.some(
+          (value) =>
+            getSchoolSearchScore(buildSchoolSearchKey(value), queryKey) < 4,
+        );
+      });
+
+      const rankedRows = sortBySchoolSearchRelevance(
+        searchableRows,
+        normalizedSearch,
+        (row) => String(row.school_name ?? ''),
+      );
 
       return {
-        data: mappedRows,
-        total: typeof count === 'number' ? count : 0,
+        data: rankedRows.slice(from, to),
+        total: rankedRows.length,
       };
     } catch (error) {
       logger.error(
@@ -11537,22 +11574,37 @@ export class SupabaseApi implements ServiceApi {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
     if (isSuperAdmin || isOpsDirector) {
+      let specialUsersQuery = this.supabase
+        .from('special_users')
+        .select('user_id, role')
+        .eq('is_deleted', false)
+        .not('user_id', 'is', null);
+      if (isOpsDirector && !isSuperAdmin) {
+        specialUsersQuery = specialUsersQuery.neq('role', RoleType.SUPER_ADMIN);
+      }
+      const { data: specialUsers, error: specialUsersError } =
+        await specialUsersQuery;
+      if (specialUsersError) {
+        logger.error('Error fetching special users:', specialUsersError);
+        return { data: [], totalCount: 0 };
+      }
+      if (!specialUsers || specialUsers.length === 0) {
+        return { data: [], totalCount: 0 };
+      }
+      const roleByUserId = new Map<string, string>();
+      specialUsers.forEach((specialUser) => {
+        if (specialUser.user_id && specialUser.role) {
+          roleByUserId.set(specialUser.user_id, specialUser.role);
+        }
+      });
+      const userIds = Array.from(roleByUserId.keys());
       let query = this.supabase
         .from('user')
-        .select(
-          `
-          *,
-          special_users!inner (
-            role
-          )
-        `,
-          { count: 'exact' },
-        )
-        .eq('is_deleted', false)
-        .ilike('name', `%${search}%`)
-        .eq('special_users.is_deleted', false);
-      if (isOpsDirector && !isSuperAdmin) {
-        query = query.neq('special_users.role', RoleType.SUPER_ADMIN);
+        .select('*', search ? { count: 'exact' } : undefined)
+        .in('id', userIds)
+        .eq('is_deleted', false);
+      if (search) {
+        query = query.ilike('name', `%${search}%`);
       }
       const { data, count, error } = await query
         .order(sortBy, { ascending: sortOrder === 'asc' })
@@ -11562,15 +11614,14 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], totalCount: 0 };
       }
       if (!data) return { data: [], totalCount: 0 };
-      const result = data.map((d) => {
-        const { special_users, ...userObject } = d;
-        const role = special_users[0]?.role || '';
+      const result = data.map((userObject) => {
+        const role = roleByUserId.get(userObject.id) || '';
         return {
           user: userObject as TableTypes<'user'>,
           role,
         };
       });
-      return { data: result, totalCount: count || 0 };
+      return { data: result, totalCount: search ? count || 0 : userIds.length };
     }
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {
       const { data: programs, error: programsError } = await this.supabase
@@ -14561,9 +14612,22 @@ export class SupabaseApi implements ServiceApi {
       const setNumber = candidateSets[randomIndex];
       const useStrictLanguageTrack =
         !!langId && preferredSets.includes(setNumber);
+      const assessmentTrackRows = useStrictLanguageTrack
+        ? (setRows ?? []).filter((row) =>
+            localeId
+              ? row.language_id === langId &&
+                (row.locale_id === localeId || row.locale_id == null)
+              : row.language_id === langId,
+          )
+        : (setRows ?? []).filter((row) =>
+            localeId
+              ? row.language_id == null &&
+                (row.locale_id === localeId || row.locale_id == null)
+              : row.language_id == null,
+          );
       const assessmentLessonIds = Array.from(
         new Set(
-          (setRows ?? [])
+          assessmentTrackRows
             .map((row) => row.lesson_id)
             .filter((lessonId): lessonId is string => !!lessonId),
         ),
@@ -14594,16 +14658,12 @@ export class SupabaseApi implements ServiceApi {
         return {} as TableTypes<'subject_lesson'>;
       }
 
-      if (!data || data.length === 0) {
-        return {} as TableTypes<'subject_lesson'>;
-      }
-
       /* -----------------------------------------
         Keep latest result per unique lesson
       ------------------------------------------ */
       const uniqueMap = new Map<string, ResultStatusRow>();
 
-      for (const row of data as ResultStatusRow[]) {
+      for (const row of (data ?? []) as ResultStatusRow[]) {
         if (!row.lesson_id) continue;
         if (!uniqueMap.has(row.lesson_id)) {
           uniqueMap.set(row.lesson_id, row);
@@ -14618,7 +14678,7 @@ export class SupabaseApi implements ServiceApi {
       /* -----------------------------------------
         Abort check
       ------------------------------------------ */
-      const isAssessmentTerminated = (data as ResultStatusRow[]).some(
+      const isAssessmentTerminated = ((data ?? []) as ResultStatusRow[]).some(
         (r) => r.status === 'assessment_terminated',
       );
       const isAborted =
@@ -14837,11 +14897,37 @@ export class SupabaseApi implements ServiceApi {
       const course = await this.getCourse(courseId);
       if (!course?.subject_id) return false;
       const subjectId = course.subject_id;
+      let langId: string | null = null;
+      const courseCode = course.code?.trim().toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const { data: languageRows, error: languageError } = await this.supabase
+          .from('language')
+          .select('id')
+          .ilike('code', courseLanguageCode)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (languageError) {
+          logger.error(
+            'Error fetching PAL assessment history language:',
+            languageError,
+          );
+        } else {
+          langId = languageRows?.[0]?.id ?? null;
+        }
+      }
 
       const { data: assessmentLessons, error: assessmentLessonsError } =
         await this.supabase
           .from('subject_lesson')
-          .select('lesson_id')
+          .select('lesson_id, language_id')
           .eq('subject_id', subjectId)
           .or('is_deleted.eq.false,is_deleted.is.null');
 
@@ -14855,7 +14941,17 @@ export class SupabaseApi implements ServiceApi {
 
       const assessmentLessonIds = Array.from(
         new Set(
-          (assessmentLessons ?? [])
+          (langId &&
+          (assessmentLessons ?? []).some(
+            (lesson) => lesson.language_id === langId,
+          )
+            ? (assessmentLessons ?? []).filter(
+                (lesson) => lesson.language_id === langId,
+              )
+            : (assessmentLessons ?? []).filter(
+                (lesson) => lesson.language_id == null,
+              )
+          )
             .map((lesson) => lesson.lesson_id)
             .filter((lessonId): lessonId is string => !!lessonId),
         ),
@@ -14935,11 +15031,37 @@ export class SupabaseApi implements ServiceApi {
       if (!course?.subject_id) {
         return false;
       }
+      let langId: string | null = null;
+      const courseCode = course.code?.trim().toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const { data: languageRows, error: languageError } = await this.supabase
+          .from('language')
+          .select('id')
+          .ilike('code', courseLanguageCode)
+          .eq('is_deleted', false)
+          .limit(1);
+
+        if (languageError) {
+          logger.error(
+            'Error fetching pending abort assessment language:',
+            languageError,
+          );
+        } else {
+          langId = languageRows?.[0]?.id ?? null;
+        }
+      }
 
       const { data: assessmentLessons, error: assessmentLessonsError } =
         await this.supabase
           .from('subject_lesson')
-          .select('lesson_id')
+          .select('lesson_id, language_id')
           .eq('subject_id', course.subject_id)
           .or('is_deleted.eq.false,is_deleted.is.null');
 
@@ -14951,9 +15073,21 @@ export class SupabaseApi implements ServiceApi {
         return false;
       }
 
+      const languageTrackLessons =
+        langId &&
+        (assessmentLessons ?? []).some(
+          (lesson) => lesson.language_id === langId,
+        )
+          ? (assessmentLessons ?? []).filter(
+              (lesson) => lesson.language_id === langId,
+            )
+          : (assessmentLessons ?? []).filter(
+              (lesson) => lesson.language_id == null,
+            );
+
       const seenLessonIds = new Set<string>();
       const assessmentLessonIds: string[] = [];
-      for (const lesson of assessmentLessons ?? []) {
+      for (const lesson of languageTrackLessons) {
         const lessonId = lesson.lesson_id;
         if (!lessonId || seenLessonIds.has(lessonId)) continue;
         seenLessonIds.add(lessonId);
@@ -15017,7 +15151,10 @@ export class SupabaseApi implements ServiceApi {
     courseId = courseId ?? '';
 
     const isAssignedToStudent = (
-      assignment: AssessmentBatchRow | AssessmentAssignmentRow,
+      assignment:
+        | AssessmentBatchRow
+        | AssessmentAssignmentRow
+        | AssessmentBatchLessonRow,
     ) =>
       assignment.is_class_wise === true ||
       (assignment.assignment_user ?? []).some(
@@ -15057,11 +15194,45 @@ export class SupabaseApi implements ServiceApi {
     const latestBatchId = latestAssignedBatch?.batch_id;
     if (!latestBatchId) return [];
 
+    const { data: latestBatchLessons, error: latestBatchLessonsError } =
+      await this.supabase
+        .from(TABLES.Assignment)
+        .select(
+          `
+          lesson_id,
+          is_class_wise,
+          assignment_user:assignment_user!left(user_id, is_deleted)
+        `,
+        )
+        .eq('class_id', classId)
+        .eq('course_id', courseId)
+        .eq('type', 'assessment')
+        .eq('is_deleted', false)
+        .eq('batch_id', latestBatchId)
+        .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+        .or(`ends_at.is.null,ends_at.gt.${nowIso}`);
+
+    if (latestBatchLessonsError) {
+      logger.error(
+        'Latest assessment batch lesson query error:',
+        latestBatchLessonsError,
+      );
+      return [];
+    }
+
+    const latestBatchLessonIds = new Set(
+      ((latestBatchLessons ?? []) as unknown as AssessmentBatchLessonRow[])
+        .filter((assignment) => isAssignedToStudent(assignment))
+        .map((assignment) => assignment.lesson_id)
+        .filter((lessonId): lessonId is string => !!lessonId),
+    );
+
     const { data: courseTerminationResults, error: courseTerminationError } =
       await this.supabase
         .from(TABLES.Result)
         .select(
           `
+          lesson_id,
           status,
           assignment!inner(class_id, course_id, type)
         `,
@@ -15082,7 +15253,14 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
 
-    if (courseTerminationResults?.length) {
+    const isLatestBatchReassignment = (courseTerminationResults ?? []).some(
+      (result) => {
+        const lessonId = result.lesson_id;
+        return !!lessonId && latestBatchLessonIds.has(lessonId);
+      },
+    );
+
+    if (courseTerminationResults?.length && !isLatestBatchReassignment) {
       return [];
     }
 
@@ -15171,10 +15349,6 @@ export class SupabaseApi implements ServiceApi {
     if (!assignedAssessments.length) return [];
 
     const assignmentIds = assignedAssessments.map((a) => a.id);
-    const assignedLessonIds = assignedAssessments
-      .map((assignment) => assignment.lesson_id)
-      .filter((lessonId): lessonId is string => !!lessonId);
-
     const { data: assignmentResults } = await this.supabase
       .from(TABLES.Result)
       .select('assignment_id')
@@ -15186,23 +15360,8 @@ export class SupabaseApi implements ServiceApi {
       (assignmentResults ?? []).map((r) => r.assignment_id),
     );
 
-    const { data: lessonResults } = assignedLessonIds.length
-      ? await this.supabase
-          .from(TABLES.Result)
-          .select('lesson_id')
-          .in('lesson_id', assignedLessonIds)
-          .eq('student_id', studentId)
-          .eq('is_deleted', false)
-      : { data: [] };
-
-    const completedLessonIds = new Set(
-      (lessonResults ?? []).map((r) => r.lesson_id),
-    );
-
     const incompleteAssignments = assignedAssessments.filter(
-      (a) =>
-        !completedAssignmentIds.has(a.id) &&
-        !completedLessonIds.has(a.lesson_id),
+      (a) => !completedAssignmentIds.has(a.id),
     );
 
     if (!incompleteAssignments.length) return [];

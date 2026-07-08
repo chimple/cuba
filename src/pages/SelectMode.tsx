@@ -1129,6 +1129,17 @@ const SelectMode: FC = () => {
                           className="class-avatar-img school-mode-student-avatar"
                           src={getStudentAvatarSrc(tempStudent)}
                           alt=""
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            const fallback = `assets/avatars/${tempStudent?.avatar ?? AVATARS[0]}.png`;
+                            if (
+                              target.src !==
+                                window.location.origin + '/' + fallback &&
+                              target.src !== fallback
+                            ) {
+                              target.src = fallback;
+                            }
+                          }}
                         />
                         <span className="class-name school-mode-student-name">
                           {tempStudent.name}

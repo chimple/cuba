@@ -1049,6 +1049,10 @@ export class ApiHandler implements ServiceApi {
     return this.s.isSyncInProgress();
   }
 
+  close(): Promise<void> {
+    return this.s.close();
+  }
+
   async getRecommendedLessons(
     studentId: string,
     classId?: string,

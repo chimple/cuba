@@ -47,6 +47,7 @@ import {
   RESULT_STATUS,
   REWARD_LEARNING_PATH,
   REWARD_LESSON,
+  STUDENT_RESULT,
   RequestTypes,
   SCHOOL,
   STATUS,
@@ -82,6 +83,7 @@ import {
 } from '../../ops-console/pages/NewUserPageOps';
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
 import { store } from '../../redux/store';
+import { setGlobalLoading } from '../../redux/slices/auth/authSlice';
 import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
@@ -146,6 +148,7 @@ export class SqliteApi implements ServiceApi {
   private DB_VERSION = 15;
   // Tracks the native shell plus active hot-update bundle so new bundled data is imported once per app asset version.
   private BUNDLED_IMPORT_APP_VERSION_KEY = 'bundledImportAppVersion';
+  private BUNDLED_IMPORT_PULL_SYNC_TABLE = 'pull_sync_info';
   private BUNDLED_IMPORT_TABLES = new Set<string>([
     TABLES.Curriculum,
     TABLES.Subject,
@@ -390,6 +393,38 @@ export class SqliteApi implements ServiceApi {
     await this.setUpDatabase();
   }
 
+  public async close(): Promise<void> {
+    if (this._initPromise) {
+      try {
+        await this._initPromise;
+      } catch (error) {
+        logger.error(
+          'Error waiting for SQLite initialization before close:',
+          error,
+        );
+      }
+    }
+
+    const db = this._db;
+    const sqlite = this._sqlite;
+    if (!db || !sqlite) return;
+
+    try {
+      await db.close();
+    } catch (error) {
+      logger.error('Error closing SQLite database:', error);
+    }
+
+    try {
+      await sqlite.closeConnection(this.DB_NAME, false);
+    } catch (error) {
+      logger.error('Error closing SQLite connection:', error);
+    } finally {
+      this.resetDbHandles();
+      this._initPromise = null;
+    }
+  }
+
   private async setUpDatabase() {
     if (!this._db || !this._sqlite) return;
 
@@ -442,7 +477,16 @@ export class SqliteApi implements ServiceApi {
         logger.info('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
       }
     } else {
-      await this.importBundledDataAfterUpgrade();
+      try {
+        store.dispatch(setGlobalLoading(true));
+        logger.warn(
+          '🚀 ~ SqliteApi ~ Updating Local Database from import.json after app update',
+        );
+        await this.importBundledDataAfterUpgrade();
+      } finally {
+        store.dispatch(setGlobalLoading(false));
+        logger.warn('🚀 ~ SqliteApi ~ Local Database update complete');
+      }
     }
     if (this._syncTableData) {
       const tableNames = Object.keys(this._syncTableData) ?? [];
@@ -526,8 +570,12 @@ export class SqliteApi implements ServiceApi {
         return;
       }
 
+      const bundledPullSyncInfo = this.getBundledPullSyncInfo(importJson);
       const importedTableNames = await this.upsertBundledImportTables(tables);
-      await this.markBundledImportTablesPulled(importedTableNames);
+      await this.markBundledImportTablesPulled(
+        importedTableNames,
+        bundledPullSyncInfo,
+      );
 
       if (!Capacitor.isNativePlatform()) {
         await this._sqlite.saveToStore(this.DB_NAME);
@@ -683,6 +731,43 @@ export class SqliteApi implements ServiceApi {
     return `"${identifier.replace(/"/g, '""')}"`;
   }
 
+  private getBundledPullSyncInfo(
+    importJson: ImportJsonData,
+  ): Map<string, string> {
+    const pullSyncTable = (importJson.tables ?? []).find(
+      (table) => table.name === this.BUNDLED_IMPORT_PULL_SYNC_TABLE,
+    );
+    if (!pullSyncTable) return new Map();
+
+    const getColumnName = (column: unknown): string | undefined =>
+      typeof column === 'object' &&
+      column !== null &&
+      'column' in column &&
+      typeof column.column === 'string'
+        ? column.column
+        : undefined;
+
+    const tableNameIndex = (pullSyncTable.schema ?? []).findIndex(
+      (column) => getColumnName(column) === 'table_name',
+    );
+    const lastPulledIndex = (pullSyncTable.schema ?? []).findIndex(
+      (column) => getColumnName(column) === 'last_pulled',
+    );
+
+    if (tableNameIndex < 0 || lastPulledIndex < 0) return new Map();
+
+    const bundledPullSyncInfo = new Map<string, string>();
+    for (const row of pullSyncTable.values ?? []) {
+      const tableName = row[tableNameIndex];
+      const lastPulled = row[lastPulledIndex];
+      if (typeof tableName === 'string' && typeof lastPulled === 'string') {
+        bundledPullSyncInfo.set(tableName, lastPulled);
+      }
+    }
+
+    return bundledPullSyncInfo;
+  }
+
   private async upsertBundledImportTables(
     tables: ImportJsonTable[],
   ): Promise<string[]> {
@@ -774,14 +859,18 @@ export class SqliteApi implements ServiceApi {
 
   private async markBundledImportTablesPulled(
     tableNames: string[],
+    bundledPullSyncInfo: Map<string, string>,
   ): Promise<void> {
     if (!this._db || tableNames.length === 0) return;
 
-    const lastPulled = new Date().toISOString();
+    const fallbackLastPulled = new Date().toISOString();
     const statements = tableNames.map((tableName) => ({
       statement:
         'INSERT OR REPLACE INTO pull_sync_info (table_name, last_pulled) VALUES (?, ?)',
-      values: [tableName, lastPulled],
+      values: [
+        tableName,
+        bundledPullSyncInfo.get(tableName) ?? fallbackLastPulled,
+      ],
     }));
 
     await this.executeSqlStatementBatch(statements);
@@ -1068,7 +1157,11 @@ export class SqliteApi implements ServiceApi {
     });
   }
 
-  private async pullChanges(tableNames: TABLES[], isFirstSync?: boolean) {
+  private async pullChanges(
+    tableNames: TABLES[],
+    isFirstSync?: boolean,
+    isRefreshSync = false,
+  ): Promise<void> {
     if (!this._db) return;
 
     const isInitialFetch = isFirstSync;
@@ -1301,7 +1394,6 @@ export class SqliteApi implements ServiceApi {
             VALUES ${valuesPlaceholders}
             ON CONFLICT(id) DO UPDATE SET
             ${updateSetClause}
-            WHERE excluded.updated_at > ${tableName}.updated_at;
             `
               : `
             INSERT INTO ${tableName} (${currentFieldNames.join(', ')})
@@ -1382,7 +1474,7 @@ export class SqliteApi implements ServiceApi {
       this._cachedRewards = undefined;
     }
 
-    if (!isInitialFetch) {
+    if (!isInitialFetch && !isRefreshSync) {
       const new_school = data.get(TABLES.School);
       const school_user_data = data.get(TABLES.SchoolUser);
       const hasSelectionUpdates =
@@ -1419,6 +1511,8 @@ export class SqliteApi implements ServiceApi {
             logger.info('local school removed because school_user is_deleted');
           }
         }
+        // Selection updates need one follow-up refresh, but refresh syncs must
+        // not request themselves again or syncDbNow can loop indefinitely.
         await this.syncDbNow(Object.values(TABLES), [
           TABLES.Assignment,
           TABLES.Assignment_user,
@@ -1577,7 +1671,7 @@ export class SqliteApi implements ServiceApi {
     tableNames: TABLES[] = Object.values(TABLES),
     refreshTables: TABLES[] = [],
     isFirstSync?: boolean,
-  ) {
+  ): Promise<boolean | undefined> {
     await this.ensureInitialized();
     if (!this._db) return;
     await this.createSyncTables();
@@ -1601,7 +1695,7 @@ export class SqliteApi implements ServiceApi {
           `UPDATE pull_sync_info SET last_pulled = '2024-01-01 00:00:00' WHERE table_name IN (${refresh_tables})`,
         );
       }
-      await this.pullChanges(tableNames, isFirstSync);
+      await this.pullChanges(tableNames, isFirstSync, refreshTables.length > 0);
       this.schedulePostSyncAssetPrefetch();
       const res = await this.pushChanges(Object.values(TABLES));
       const tables = "'" + tableNames.join("', '") + "'";
@@ -3432,6 +3526,18 @@ export class SqliteApi implements ServiceApi {
       });
     }
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, pushData);
+
+    try {
+      const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
+      const studentResultObj = studentResultStr
+        ? JSON.parse(studentResultStr)
+        : {};
+      studentResultObj[student.id] = true;
+      sessionStorage.setItem(STUDENT_RESULT, JSON.stringify(studentResultObj));
+    } catch (e) {
+      logger.error('Failed to set studentResult in sessionStorage', e);
+    }
+
     return newResult;
   }
 
@@ -4910,6 +5016,21 @@ export class SqliteApi implements ServiceApi {
         inviteCode,
         studentId,
       });
+
+      try {
+        const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
+        const studentResultObj = studentResultStr
+          ? JSON.parse(studentResultStr)
+          : {};
+        studentResultObj[studentId] = false;
+        sessionStorage.setItem(
+          STUDENT_RESULT,
+          JSON.stringify(studentResultObj),
+        );
+      } catch (e) {
+        logger.error('Failed to reset studentResult in sessionStorage', e);
+      }
+
       return linkData;
     } catch (error) {
       logger.warn('Join class link failed through SQLite API', {
@@ -5913,6 +6034,7 @@ export class SqliteApi implements ServiceApi {
       l.cocos_subject_code,
       l.cocos_chapter_code,
       l.cocos_lesson_id,
+      l.lido_lesson_id,
       l.image,
       l.outcome,
       l.plugin_type,
@@ -6046,6 +6168,7 @@ export class SqliteApi implements ServiceApi {
   cocos_subject_code,
   cocos_chapter_code,
   cocos_lesson_id,
+  lido_lesson_id,
   image,
   outcome,
   plugin_type,
@@ -6072,6 +6195,7 @@ select
   cocos_subject_code,
   cocos_chapter_code,
   cocos_lesson_id,
+  lido_lesson_id,
   image,
   outcome,
   plugin_type,
@@ -6098,6 +6222,7 @@ select
   cocos_subject_code,
   cocos_chapter_code,
   cocos_lesson_id,
+  lido_lesson_id,
   image,
   outcome,
   plugin_type,
@@ -9818,9 +9943,22 @@ order by
       const setNumber = candidateSets[randomIndex];
       const useStrictLanguageTrack =
         !!langId && preferredSets.includes(setNumber);
+      const assessmentTrackRows = useStrictLanguageTrack
+        ? setRows.filter((row) =>
+            localeId
+              ? row.language_id === langId &&
+                (row.locale_id === localeId || row.locale_id == null)
+              : row.language_id === langId,
+          )
+        : setRows.filter((row) =>
+            localeId
+              ? row.language_id == null &&
+                (row.locale_id === localeId || row.locale_id == null)
+              : row.language_id == null,
+          );
       const assessmentLessonIds = Array.from(
         new Set(
-          setRows
+          assessmentTrackRows
             .map((row) => row.lesson_id)
             .filter((lessonId): lessonId is string => !!lessonId),
         ),
@@ -10006,9 +10144,33 @@ order by
       const course = await this.getCourse(courseId);
       if (!course?.subject_id) return false;
       const subjectId = course.subject_id;
+      let langId: string | null = null;
+      const courseCode = course.code?.trim().toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const languageRes = await this.executeQuery(
+          `
+            SELECT id
+            FROM language
+            WHERE LOWER(code) = ?
+              AND is_deleted = 0
+            LIMIT 1;
+          `,
+          [courseLanguageCode],
+        );
+        langId =
+          (((languageRes as DBSQLiteValues | undefined)?.values ?? [])[0]
+            ?.id as string | undefined) ?? null;
+      }
 
       const assessmentLessonsQuery = `
-        SELECT DISTINCT lesson_id
+        SELECT DISTINCT lesson_id, language_id
         FROM subject_lesson
         WHERE subject_id = ?
           AND COALESCE(is_deleted, 0) = 0
@@ -10020,11 +10182,28 @@ order by
       );
       const assessmentLessonIds = Array.from(
         new Set(
+          (langId &&
           (
             ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
               []) as {
               lesson_id?: string | null;
+              language_id?: string | null;
             }[]
+          ).some((lesson) => lesson.language_id === langId)
+            ? (
+                ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
+                  []) as {
+                  lesson_id?: string | null;
+                  language_id?: string | null;
+                }[]
+              ).filter((lesson) => lesson.language_id === langId)
+            : (
+                ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
+                  []) as {
+                  lesson_id?: string | null;
+                  language_id?: string | null;
+                }[]
+              ).filter((lesson) => lesson.language_id == null)
           )
             .map((lesson) => lesson.lesson_id)
             .filter((lessonId): lessonId is string => !!lessonId),
@@ -10097,10 +10276,34 @@ order by
       if (!subjectId) {
         return false;
       }
+      let langId: string | null = null;
+      const courseCode = course.code?.trim().toLowerCase();
+      const courseLanguageCode =
+        courseCode === COURSES.MATHS
+          ? COURSES.ENGLISH
+          : courseCode?.includes('-')
+            ? courseCode.split('-').pop()
+            : courseCode;
+
+      if (courseLanguageCode) {
+        const languageRes = await this.executeQuery(
+          `
+            SELECT id
+            FROM language
+            WHERE LOWER(code) = ?
+              AND is_deleted = 0
+            LIMIT 1;
+          `,
+          [courseLanguageCode],
+        );
+        langId =
+          (((languageRes as DBSQLiteValues | undefined)?.values ?? [])[0]
+            ?.id as string | undefined) ?? null;
+      }
 
       const assessmentLessonsRes = await this.executeQuery(
         `
-          SELECT lesson_id
+          SELECT lesson_id, language_id
           FROM subject_lesson
           WHERE subject_id = ?
             AND COALESCE(is_deleted, 0) = 0
@@ -10110,9 +10313,16 @@ order by
 
       const assessmentLessonRows =
         (assessmentLessonsRes as DBSQLiteValues | undefined)?.values ?? [];
+      const languageTrackLessons =
+        langId &&
+        assessmentLessonRows.some((lesson) => lesson.language_id === langId)
+          ? assessmentLessonRows.filter(
+              (lesson) => lesson.language_id === langId,
+            )
+          : assessmentLessonRows.filter((lesson) => lesson.language_id == null);
       const assessmentLessonIds: string[] = [];
       const placeholderParts: string[] = [];
-      for (const row of assessmentLessonRows) {
+      for (const row of languageTrackLessons) {
         const lessonId = row.lesson_id;
         if (!lessonId) continue;
         assessmentLessonIds.push(lessonId);
@@ -10258,8 +10468,48 @@ order by
 
     if (!latestBatchId) return [];
 
+    const latestBatchLessonQuery = `
+      SELECT a.lesson_id
+      FROM assignment a
+      LEFT JOIN assignment_user au
+        ON a.id = au.assignment_id
+        AND au.is_deleted = 0
+      WHERE a.class_id = ?
+        AND a.course_id = ?
+        AND a.type = 'assessment'
+        AND a.is_deleted = 0
+        AND a.batch_id = ?
+        AND (
+          a.starts_at IS NULL
+          OR a.starts_at = ''
+          OR datetime(a.starts_at) <= datetime(?)
+        )
+        AND (
+          a.ends_at IS NULL
+          OR a.ends_at = ''
+          OR datetime(a.ends_at) > datetime(?)
+        )
+        AND (
+          a.is_class_wise = 1
+          OR au.user_id = ?
+        );
+    `;
+    const latestBatchLessonRes = await this._db?.query(latestBatchLessonQuery, [
+      classId,
+      courseId,
+      latestBatchId,
+      nowIso,
+      nowIso,
+      studentId,
+    ]);
+    const latestBatchLessonIds = new Set(
+      ((latestBatchLessonRes?.values ?? []) as { lesson_id?: string | null }[])
+        .map((assignment) => assignment.lesson_id)
+        .filter((lessonId): lessonId is string => !!lessonId),
+    );
+
     const courseTerminationQuery = `
-      SELECT r.status
+      SELECT r.lesson_id, r.status
       FROM result r
       INNER JOIN assignment a
         ON a.id = r.assignment_id
@@ -10277,7 +10527,14 @@ order by
       classId,
       courseId,
     ]);
-    if (courseTerminationRes?.values?.length) {
+    const courseTerminationRows = (courseTerminationRes?.values ?? []) as {
+      lesson_id?: string | null;
+    }[];
+    const isLatestBatchReassignment = courseTerminationRows.some(
+      (result) =>
+        !!result.lesson_id && latestBatchLessonIds.has(result.lesson_id),
+    );
+    if (courseTerminationRows.length && !isLatestBatchReassignment) {
       return [];
     }
 
@@ -10373,13 +10630,6 @@ order by
 
         -- NOT completed
         AND r.assignment_id IS NULL
-        AND NOT EXISTS (
-          SELECT 1
-          FROM result lr
-          WHERE lr.student_id = '${studentId}'
-            AND lr.lesson_id = a.lesson_id
-            AND lr.is_deleted = 0
-        )
 
         -- subject_lesson validation (LANGUAGE ONLY)
         AND EXISTS (

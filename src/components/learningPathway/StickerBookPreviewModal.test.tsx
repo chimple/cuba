@@ -1028,11 +1028,12 @@ describe('StickerBookPreviewModal', () => {
       text: async () => svgWithSlots,
     } as Response);
 
+    const onClose = jest.fn();
     const { container } = render(
       <StickerBookPreviewModal
         data={buildCompletionData()}
         mode="completion"
-        onClose={jest.fn()}
+        onClose={onClose}
       />,
     );
 
@@ -1060,6 +1061,7 @@ describe('StickerBookPreviewModal', () => {
         sticker_book_id: 'book-complete',
       }),
     );
+    expect(onClose).toHaveBeenCalledWith('acknowledge_button');
     expect(mockPush).toHaveBeenCalledWith(PAGES.COLORING_BOARD, {
       stickerBookId: 'book-complete',
       svgRaw: expect.stringContaining('<svg'),

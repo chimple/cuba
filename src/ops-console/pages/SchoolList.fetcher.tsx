@@ -143,26 +143,24 @@ export const fetchSchoolListPage = async ({
   searchTerm: string;
   selectedDateRange: string;
 }) => {
-  const getSchoolListing =
-    api.getSchoolMetricsForSchoolListing?.bind(api) ??
-    api.getFilteredSchoolsForSchoolListing?.bind(api);
+  const request = buildSchoolListRequest({
+    filters,
+    selectedTab,
+    page,
+    pageSize,
+    orderBy,
+    orderDir,
+    searchTerm,
+    selectedDateRange,
+  });
+
+  const getSchoolListing = api.getSchoolMetricsForSchoolListing?.bind(api);
 
   if (!getSchoolListing) {
     throw new Error('School listing API is not available');
   }
 
-  return getSchoolListing(
-    buildSchoolListRequest({
-      filters,
-      selectedTab,
-      page,
-      pageSize,
-      orderBy,
-      orderDir,
-      searchTerm,
-      selectedDateRange,
-    }),
-  );
+  return getSchoolListing(request);
 };
 
 export const useSchoolListData = ({

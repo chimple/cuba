@@ -34,6 +34,7 @@ jest.mock('../i18n', () => ({
 
 const mockHistoryPush = jest.fn();
 const mockHistoryReplace = jest.fn();
+const mockLocation: { state?: { activeTab?: string } } = {};
 jest.mock('react-router-dom', () => {
   const actual = jest.requireActual('react-router-dom');
   return {
@@ -42,6 +43,7 @@ jest.mock('react-router-dom', () => {
       push: mockHistoryPush,
       replace: mockHistoryReplace,
     }),
+    useLocation: () => mockLocation,
   };
 });
 
@@ -213,6 +215,7 @@ describe('Parent page', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockToggleCheckedByTitle.clear();
+    mockLocation.state = undefined;
 
     localStorage.clear();
     sessionStorage.clear();
@@ -731,7 +734,15 @@ describe('Parent page', () => {
 
     expect(mockHistoryPush).toHaveBeenCalledWith({
       pathname: PAGES.TERMS_AND_CONDITIONS,
-      state: { from: window.location.pathname },
+      state: {
+        from: window.location.pathname,
+        returnLocation: {
+          pathname: window.location.pathname,
+          state: {
+            activeTab: 'settings',
+          },
+        },
+      },
     });
   });
 });
