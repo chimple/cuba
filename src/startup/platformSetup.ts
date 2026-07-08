@@ -27,9 +27,10 @@ declare global {
 export const initializePlatformSetup = () => {
   applyMobileWebBrowserClass();
   defineCustomElements(window);
+  jeepSqlite(window);
+  ensureJeepSqliteHostElement();
   initializeFireBase();
   initializeSpeechPolyfills();
-  jeepSqlite(window);
 };
 
 const applyMobileWebBrowserClass = () => {
@@ -56,4 +57,11 @@ const initializeSpeechPolyfills = () => {
     windowWithSpeechPolyfills.SpeechSynthesisUtterance =
       WindowsSpeechSynthesisUtterance;
   }
+};
+
+const ensureJeepSqliteHostElement = () => {
+  if (typeof document === 'undefined') return;
+  if (document.querySelector('jeep-sqlite')) return;
+
+  document.body.appendChild(document.createElement('jeep-sqlite'));
 };

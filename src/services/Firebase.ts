@@ -7,17 +7,44 @@ import {
   persistentLocalCache,
   persistentMultipleTabManager,
 } from 'firebase/firestore';
+import logger from '../utility/logger';
+
+const REQUIRED_FIREBASE_ENV_KEYS = [
+  'VITE_API_KEY',
+  'VITE_AUTH_DOMAIN',
+  'VITE_PROJECT_ID',
+  'VITE_STORAGE_BUCKET',
+  'VITE_MESSAGING_SENDER_ID',
+  'VITE_APP_ID',
+] as const;
 
 export const initializeFireBase = async () => {
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const missingKeys = REQUIRED_FIREBASE_ENV_KEYS.filter(
+    (key) => !import.meta.env[key],
+  );
+
+  if (missingKeys.length > 0) {
+    logger.warn('Firebase config is missing required Vite env keys.', {
+      missingKeys,
+    });
+    return;
+  }
+
+  const measurementId = import.meta.env.VITE_MEASUREMENT_ID;
+  const apiKey = import.meta.env.VITE_API_KEY;
+  const authDomain = import.meta.env.VITE_AUTH_DOMAIN;
+  const projectId = import.meta.env.VITE_PROJECT_ID;
+  const storageBucket = import.meta.env.VITE_STORAGE_BUCKET;
+  const messagingSenderId = import.meta.env.VITE_MESSAGING_SENDER_ID;
+  const appId = import.meta.env.VITE_APP_ID;
   const firebaseConfig = {
-    apiKey: import.meta.env.VITE_API_KEY!,
-    authDomain: import.meta.env.VITE_AUTH_DOMAIN!,
-    projectId: import.meta.env.VITE_PROJECT_ID!,
-    storageBucket: import.meta.env.VITE_STORAGE_BUCKET!,
-    messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID!,
-    appId: import.meta.env.VITE_APP_ID!,
-    measurementId: import.meta.env.VITE_MEASUREMENT_ID!,
+    apiKey: apiKey as string,
+    authDomain: authDomain as string,
+    projectId: projectId as string,
+    storageBucket: storageBucket as string,
+    messagingSenderId: messagingSenderId as string,
+    appId: appId as string,
+    ...(measurementId ? { measurementId } : {}),
   };
 
   // Initialize Firebase
@@ -33,9 +60,26 @@ export const initializeFireBase = async () => {
     }),
   });
 
-  var deviceInfo = await Device.getInfo();
+  const deviceInfo = await Device.getInfo();
 
   if (deviceInfo.platform === 'web') {
-    FirebaseAnalytics.initializeFirebase(firebaseConfig);
+    if (!measurementId) {
+      logger.warn(
+        'Firebase Analytics initialization skipped because VITE_MEASUREMENT_ID is missing in .env.local.',
+      );
+      return;
+    }
+
+    try {
+      await FirebaseAnalytics.initializeFirebase({
+        ...firebaseConfig,
+        measurementId,
+      });
+    } catch (error) {
+      logger.warn(
+        'Firebase Analytics initialization failed. Verify VITE_APP_ID, VITE_PROJECT_ID, and VITE_MEASUREMENT_ID in .env.local.',
+        { error },
+      );
+    }
   }
 };
