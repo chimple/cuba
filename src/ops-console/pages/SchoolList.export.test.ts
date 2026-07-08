@@ -113,8 +113,12 @@ describe('buildSchoolListExportSheetRows', () => {
       },
     ] as SchoolListSourceRow[];
 
-    expect(buildSchoolListExportSheetRows(rows)[1]).toEqual([
+    const exportRows = buildSchoolListExportSheetRows(rows);
+
+    expect(exportRows[1]).toHaveLength(exportRows[0].length);
+    expect(exportRows[1]).toEqual([
       'Beta School',
+      '--',
       '--',
       '--',
       '--',
