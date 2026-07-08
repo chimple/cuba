@@ -37,12 +37,17 @@ export const useRemoteAssetFlags = () => {
     );
 
     if (shouldShowRemoteAssets) {
-      const assetKey = `learning:${learningPathAssets?.uniqueId ?? ''}`;
+      const { asset_repo_url: assetRepoUrl, uniqueId } = learningPathAssets;
+      if (!assetRepoUrl || !uniqueId) {
+        return;
+      }
+
+      const assetKey = `learning:${uniqueId}`;
       if (!downloadedAssetKeysRef.current.has(assetKey)) {
         downloadedAssetKeysRef.current.add(assetKey);
         void Util.DownloadRemoteAssets(
-          learningPathAssets?.asset_repo_url,
-          learningPathAssets?.uniqueId,
+          assetRepoUrl,
+          uniqueId,
           'remoteAsset',
           'Learning Path',
         );
@@ -57,12 +62,17 @@ export const useRemoteAssetFlags = () => {
     );
 
     if (shouldShowHomeworkRemoteAssets) {
-      const assetKey = `homework:${homeworkPathwayAssets?.uniqueId ?? ''}`;
+      const { asset_repo_url: assetRepoUrl, uniqueId } = homeworkPathwayAssets;
+      if (!assetRepoUrl || !uniqueId) {
+        return;
+      }
+
+      const assetKey = `homework:${uniqueId}`;
       if (!downloadedAssetKeysRef.current.has(assetKey)) {
         downloadedAssetKeysRef.current.add(assetKey);
         void Util.DownloadRemoteAssets(
-          homeworkPathwayAssets?.asset_repo_url,
-          homeworkPathwayAssets?.uniqueId,
+          assetRepoUrl,
+          uniqueId,
           'homeworkRemoteAsset',
           'Homework',
         );
