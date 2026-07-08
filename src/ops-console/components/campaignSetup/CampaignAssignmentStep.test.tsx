@@ -63,7 +63,6 @@ const assignmentOptions = {
         {
           id: 'subject-1',
           name: 'Science',
-          gradeId: 'grade-1',
           chapters: [
             {
               id: 'chapter-1',
@@ -122,8 +121,6 @@ const renderStep = ({
         campaignId="campaign-1"
         selectedGrades={[grade]}
         selectedSchoolIds={['school-1']}
-        assignmentOptions={assignmentOptions}
-        loadingAssignmentOptions={false}
         activeGradeId={grade.id}
         configs={configs}
         onActiveGradeChange={jest.fn()}
