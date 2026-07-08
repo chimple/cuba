@@ -37,7 +37,8 @@ export const useRemoteAssetFlags = () => {
     );
 
     if (shouldShowRemoteAssets) {
-      const { asset_repo_url: assetRepoUrl, uniqueId } = learningPathAssets;
+      const { asset_repo_url: assetRepoUrl, uniqueId } =
+        learningPathAssets ?? {};
       if (!assetRepoUrl || !uniqueId) {
         return;
       }
@@ -62,7 +63,8 @@ export const useRemoteAssetFlags = () => {
     );
 
     if (shouldShowHomeworkRemoteAssets) {
-      const { asset_repo_url: assetRepoUrl, uniqueId } = homeworkPathwayAssets;
+      const { asset_repo_url: assetRepoUrl, uniqueId } =
+        homeworkPathwayAssets ?? {};
       if (!assetRepoUrl || !uniqueId) {
         return;
       }
