@@ -1,8 +1,8 @@
 import { defineCustomElements as jeepSqlite } from 'jeep-sqlite/loader';
 import { defineCustomElements, JSX as LocalJSX } from 'lido-standalone/loader';
 import {
-  SpeechSynthesis,
-  SpeechSynthesisUtterance,
+  SpeechSynthesis as WindowsSpeechSynthesis,
+  SpeechSynthesisUtterance as WindowsSpeechSynthesisUtterance,
 } from '../utility/WindowsSpeech';
 import { initializeFireBase } from '../services/Firebase';
 import { isNativePlatform } from './nativeRuntime';
@@ -13,9 +13,9 @@ type NavigatorWithUserAgentData = Navigator & {
   };
 };
 
-type WindowWithSpeechPolyfills = Window & {
-  speechSynthesis?: SpeechSynthesis;
-  SpeechSynthesisUtterance?: typeof SpeechSynthesisUtterance;
+type SpeechPolyfillWindow = {
+  speechSynthesis?: unknown;
+  SpeechSynthesisUtterance?: unknown;
 };
 
 declare global {
@@ -47,13 +47,13 @@ const applyMobileWebBrowserClass = () => {
 const initializeSpeechPolyfills = () => {
   if (typeof window === 'undefined') return;
 
-  const windowWithSpeechPolyfills = window as WindowWithSpeechPolyfills;
+  const windowWithSpeechPolyfills = window as unknown as SpeechPolyfillWindow;
 
   if (!windowWithSpeechPolyfills.speechSynthesis) {
-    windowWithSpeechPolyfills.speechSynthesis = new SpeechSynthesis();
+    windowWithSpeechPolyfills.speechSynthesis = new WindowsSpeechSynthesis();
   }
   if (!windowWithSpeechPolyfills.SpeechSynthesisUtterance) {
     windowWithSpeechPolyfills.SpeechSynthesisUtterance =
-      SpeechSynthesisUtterance;
+      WindowsSpeechSynthesisUtterance;
   }
 };
