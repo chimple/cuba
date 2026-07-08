@@ -121,7 +121,7 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "tsc -p tsconfig.build.json && vite build",
+    "build": "tsc -p tsconfig.build.json && vite build && npx @capawesome/cli manifests:generate --path dist && npx cap sync && npm run build-storybook",
     "create-check-sum": "node scripts/check_sum_generator.js",
     "serve-build": "http-server dist",
     "test": "jest --config jest.config.js",
