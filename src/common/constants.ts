@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import Auth from '../models/auth';
+import Auth from '../models/Auth';
 import { Constants, Database } from '../services/database';
 import { RoleType } from '../interface/modelInterfaces';
 import SelectIconImage from '../teachers-module/assets/icons/all_subject_icon.png';
@@ -735,6 +735,7 @@ export const CLASSES = 'classes';
 export const DELETED_CLASSES = 'deleted_classes';
 export const CURRENT_TEACHER = 'currentTeacher';
 export const CURRENT_COURSE = 'currentCourse';
+export const COURSE_LESSONS = 'CourseLessons';
 export const NAVIGATION_STATE = 'navigationState';
 export const STARS_COUNT = 'starsCount';
 export const LATEST_STARS = (studentId: string) => `latestStar_${studentId}`;
@@ -1062,6 +1063,7 @@ export const COPIED_BUNDLE_FILES_INDEX = 'copiedBundleFilesIndex';
 
 export const NUMBER_REGEX = /^[0-9]+$/;
 export const DOWNLOADED_LESSON_ID = 'downloadedLessonId';
+export const DOWNLOADED_LESSONS_SIZE = 'downloaded_lessons_size';
 export enum SnackbarType {
   Success = 'success',
   Error = 'error',
@@ -1224,6 +1226,8 @@ export const BULK_UPLOAD_TEMPLATE_URL =
   'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx';
 export const BUNDLE_ZIP_URLS = 'bundle_zip_urls';
 export const LIDO_BUNDLE_ZIP_URLS = 'lido_bundle_zip_urls';
+export const CURRENT_HEADER = 'currentHeader';
+export const SEARCH_TERM = 'searchTerm';
 export const FORM_MODES = {
   ALL_REQUIRED: 'all-required',
   NAME_REQUIRED: 'name-required',
@@ -1408,6 +1412,7 @@ export const CAMPAIGN_LISTING_STATUS = {
 export type CampaignListingStatus =
   (typeof CAMPAIGN_LISTING_STATUS)[keyof typeof CAMPAIGN_LISTING_STATUS];
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
+export const READY_FOR_HOT_UPDATE = 'readyForHotUpdate';
 export const VERSION_KEY = 'last_native_version';
 export enum SupportLevelMap {
   'Doing Good' = 'doing_good',
@@ -1577,9 +1582,9 @@ export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
 export const ENABLE_SAVE_AND_SHARE_STICKER_BOOK =
   'enable_save_and_share_sticker_book';
 export const SCHOOL_PERFORMANCE_STATUS = {
-  PERFORMING_WELL: 'Performing Well',
-  NEEDS_ATTENTION: 'Needs Attention',
-  NEEDS_SUPPORT: 'Needs Support',
+  PERFORMING_WELL: 'High Performing',
+  NEEDS_ATTENTION: 'Medium Performing',
+  NEEDS_SUPPORT: 'Low Performing',
 } as const;
 export const PERCENTAGE_BAND = {
   LOW: 'low',

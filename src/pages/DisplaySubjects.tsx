@@ -1,7 +1,7 @@
 //@ts-nocheck
 import { FC, useEffect, useState } from 'react';
-import Course from '../models/course';
-import Lesson from '../models/lesson';
+import Course from '../models/Course';
+import Lesson from '../models/Lesson';
 
 import { Chapter } from '../common/courseConstants';
 import { useHistory, useLocation } from 'react-router';
@@ -20,7 +20,7 @@ import SelectCourse from '../components/displaySubjects/SelectCourse';
 import Loading from '../components/Loading';
 import SelectChapter from '../components/displaySubjects/SelectChapter';
 import LessonSlider from '../components/LessonSlider';
-import Grade from '../models/grade';
+import Grade from '../models/Grade';
 import BackButton from '../components/common/BackButton';
 import { Util } from '../utility/util';
 import { schoolUtil } from '../utility/schoolUtil';
