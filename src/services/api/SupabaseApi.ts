@@ -2922,7 +2922,6 @@ export class SupabaseApi implements ServiceApi {
         .eq('is_deleted', false)
         .maybeSingle();
       if (currentClassUser?.class_id !== newClassId) {
-        const oldClassId = currentClassUser?.class_id ?? null;
         // Mark old class_user as deleted
         if (currentClassUser) {
           await this.supabase
@@ -2946,37 +2945,6 @@ export class SupabaseApi implements ServiceApi {
         };
 
         await this.supabase.from(TABLES.ClassUser).insert(newClassUser);
-
-        if (oldClassId) {
-          const { data: remainingStudents, error: remainingStudentsError } =
-            await this.supabase
-              .from(TABLES.ClassUser)
-              .select('user_id')
-              .eq('class_id', oldClassId)
-              .eq('role', RoleType.STUDENT)
-              .eq('is_deleted', false)
-              .neq('user_id', student.id);
-
-          if (remainingStudentsError) {
-            logger.warn(
-              'Failed to check remaining students after class change:',
-              remainingStudentsError,
-            );
-          } else if ((remainingStudents ?? []).length === 0) {
-            const { error: oldClassDeleteError } = await this.supabase
-              .from(TABLES.Class)
-              .update({ is_deleted: true, updated_at: now })
-              .eq('id', oldClassId)
-              .eq('is_deleted', false);
-
-            if (oldClassDeleteError) {
-              logger.warn(
-                'Failed to soft delete empty old class after student move:',
-                oldClassDeleteError,
-              );
-            }
-          }
-        }
 
         await this.addParentToNewClass(newClassId, student.id);
       }

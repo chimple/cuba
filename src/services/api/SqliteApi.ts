@@ -3976,32 +3976,6 @@ export class SqliteApi implements ServiceApi {
           MUTATE_TYPES.INSERT,
           newClassUser,
         );
-
-        if (oldClassId) {
-          const remainingStudentsResult = await this.executeQuery(
-            `
-              SELECT user_id
-              FROM class_user
-              WHERE class_id = ?
-                AND role = 'student'
-                AND is_deleted = 0
-                AND user_id != ?
-            `,
-            [oldClassId, student.id],
-          );
-          const remainingStudents = remainingStudentsResult?.values ?? [];
-          if (remainingStudents.length === 0) {
-            await this.executeQuery(
-              `
-                UPDATE class
-                SET is_deleted = 1, updated_at = ?
-                WHERE id = ? AND is_deleted = 0
-              `,
-              [now, oldClassId],
-            );
-          }
-        }
-
         await this._serverApi.addParentToNewClass(newClassId, student.id);
       }
 
