@@ -23,7 +23,10 @@ let xlsxModulePromise: Promise<XlsxModule> | null = null;
 
 const getXlsx = async (): Promise<XlsxModule> => {
   if (!xlsxModulePromise) {
-    xlsxModulePromise = import('xlsx-js-style');
+    xlsxModulePromise = import('xlsx-js-style').catch((error) => {
+      xlsxModulePromise = null;
+      throw error;
+    });
   }
   return xlsxModulePromise;
 };

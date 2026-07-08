@@ -121,7 +121,7 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc -p tsconfig.build.json && vite build",
     "create-check-sum": "node scripts/check_sum_generator.js",
     "serve-build": "http-server dist",
     "test": "jest --config jest.config.js",

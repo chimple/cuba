@@ -8,8 +8,47 @@ interface InlineSvgProps {
   focusable?: boolean;
 }
 
-const escapeAttribute = (value: string): string =>
-  value.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+const mergeSvgAttributes = ({
+  svg,
+  className,
+  id,
+  ariaHidden,
+  focusable,
+}: InlineSvgProps): string => {
+  if (typeof DOMParser === 'undefined') {
+    return svg;
+  }
+
+  const document = new DOMParser().parseFromString(svg, 'image/svg+xml');
+  const parserError = document.querySelector('parsererror');
+  const root = document.documentElement;
+
+  if (parserError || root.tagName.toLowerCase() !== 'svg') {
+    return svg;
+  }
+
+  if (id) {
+    root.setAttribute('id', id);
+  }
+
+  if (className) {
+    const existingClassName = root.getAttribute('class');
+    root.setAttribute(
+      'class',
+      [existingClassName, className].filter(Boolean).join(' '),
+    );
+  }
+
+  if (ariaHidden !== undefined) {
+    root.setAttribute('aria-hidden', String(ariaHidden));
+  }
+
+  if (focusable !== undefined) {
+    root.setAttribute('focusable', String(focusable));
+  }
+
+  return root.outerHTML;
+};
 
 const InlineSvg: FC<InlineSvgProps> = ({
   svg,
@@ -19,29 +58,22 @@ const InlineSvg: FC<InlineSvgProps> = ({
   focusable,
 }) => {
   const markup = useMemo(() => {
-    const attributes: string[] = [];
-
-    if (id) {
-      attributes.push(`id="${escapeAttribute(id)}"`);
-    }
-
-    if (className) {
-      attributes.push(`class="${escapeAttribute(className)}"`);
-    }
-
-    if (ariaHidden !== undefined) {
-      attributes.push(`aria-hidden="${ariaHidden}"`);
-    }
-
-    if (focusable !== undefined) {
-      attributes.push(`focusable="${focusable}"`);
-    }
-
-    if (attributes.length === 0) {
+    if (
+      !className &&
+      !id &&
+      ariaHidden === undefined &&
+      focusable === undefined
+    ) {
       return svg;
     }
 
-    return svg.replace('<svg', `<svg ${attributes.join(' ')}`);
+    return mergeSvgAttributes({
+      svg,
+      className,
+      id,
+      ariaHidden,
+      focusable,
+    });
   }, [ariaHidden, className, focusable, id, svg]);
 
   return <span dangerouslySetInnerHTML={{ __html: markup }} />;

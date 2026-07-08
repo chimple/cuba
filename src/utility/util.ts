@@ -174,9 +174,12 @@ const getLessonBundlePlugin = (): LessonBundlePlugin | null => {
 
 const getCreateFilesystem = async (): Promise<CreateFilesystem> => {
   if (!createFilesystemPromise) {
-    createFilesystemPromise = import('capacitor-fs').then(
-      (module) => module.default,
-    );
+    createFilesystemPromise = import('capacitor-fs')
+      .then((module) => module.default)
+      .catch((error) => {
+        createFilesystemPromise = null;
+        throw error;
+      });
   }
   return createFilesystemPromise;
 };

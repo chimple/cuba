@@ -90,18 +90,7 @@ module.exports = {
     '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(\
-      @ionic|\
-      @capacitor|\
-      @capacitor-community|\
-      @capacitor-firebase|\
-      @capawesome|\
-      @capgo|\
-      @stencil|\
-      ionicons|\
-      @splidejs|\
-      @algolia\
-    )/)',
+    'node_modules/(?!(@ionic|@capacitor|@capacitor-community|@capacitor-firebase|@capawesome|@capgo|@stencil|ionicons|@splidejs|@algolia)/)',
   ],
   testPathIgnorePatterns: ['/node_modules/', '/android/', '/build/', '/dist/'],
   collectCoverageFrom: [
