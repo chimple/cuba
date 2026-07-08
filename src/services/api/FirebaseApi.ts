@@ -44,6 +44,7 @@ import {
   grade1,
   grade2,
   grade3,
+  COURSE_LESSONS,
 } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
 import User from '../../models/User';
