@@ -105,6 +105,9 @@ jobs:
         working-directory: ./android/
         run: chmod +x ./gradlew
 
+      - name: Sync Capacitor Android
+        run: npx cap sync android
+
       - name: Generate the Android App bundleRelease
         working-directory: ./android/
         # android/app/build/outputs/bundle/release/app-release.aab
