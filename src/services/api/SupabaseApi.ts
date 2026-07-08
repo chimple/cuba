@@ -3967,6 +3967,7 @@ export class SupabaseApi implements ServiceApi {
     studentId: string,
   ): Promise<TableTypes<'assignment'>[]> {
     if (!this.supabase) return [];
+    const nowIso = new Date().toISOString();
 
     // Fetch assignments with left joins to assignment_user and result
     const { data: allAssignments, error } = await this.supabase
@@ -3981,6 +3982,8 @@ export class SupabaseApi implements ServiceApi {
       .eq('class_id', classId)
       .eq('is_deleted', false)
       .neq('type', 'assessment')
+      .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
+      .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
       .order('created_at', { ascending: false });
 
     if (error) {
