@@ -35,8 +35,8 @@ import {
   SchoolVisitType,
 } from '../../common/constants';
 import { StudentLessonResult } from '../../common/courseConstants';
-import Course from '../../models/course';
-import Lesson from '../../models/lesson';
+import Course from '../../models/Course';
+import Lesson from '../../models/Lesson';
 import {
   FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
