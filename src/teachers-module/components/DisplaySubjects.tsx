@@ -25,7 +25,6 @@ interface DisplaySubjectsProps {
   currentSubject: string | null;
   setIsModalOpen: (open: boolean) => void;
   schoolId?: string;
-  classId?: string;
 }
 
 const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
@@ -37,7 +36,6 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
   currentSubject,
   setIsModalOpen,
   schoolId,
-  classId,
 }) => {
   // State to track whether the last subject warning should be shown
   const [isLastSubjectAlertOpen, setIsLastSubjectAlertOpen] = useState(false);
@@ -52,23 +50,18 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
 
   useEffect(() => {
     const selectedSchoolId = Util.getCurrentSchool()?.id;
-    const selectedClassId = Util.getCurrentClass()?.id;
     const activeSchoolRole = selectedSchoolId
       ? roleMap?.[`${selectedSchoolId}_role`]
       : undefined;
     const normalizedRole = (activeSchoolRole ?? '').toLowerCase();
     const schoolMatches =
       !schoolId || !selectedSchoolId || schoolId === selectedSchoolId;
-    const classMatches =
-      !classId || !selectedClassId || classId === selectedClassId;
     setCanModify(
       !isTeacherSchoolMode &&
         schoolMatches &&
-        classMatches &&
-        (normalizedRole === RoleType.TEACHER ||
-          normalizedRole === RoleType.PRINCIPAL),
+        normalizedRole === RoleType.PRINCIPAL,
     );
-  }, [classId, isTeacherSchoolMode, roleMap, schoolId]);
+  }, [isTeacherSchoolMode, roleMap, schoolId]);
 
   // Trigger subject removal logic
   const triggerRemoveSubject = (subject: string) => {

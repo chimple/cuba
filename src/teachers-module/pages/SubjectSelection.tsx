@@ -108,7 +108,6 @@ const SubjectSelection: React.FC = () => {
 
   useEffect(() => {
     const selectedSchoolId = Util.getCurrentSchool()?.id;
-    const selectedClassId = Util.getCurrentClass()?.id;
     const activeSchoolId = currentSchool?.id ?? paramSchoolId;
     const activeSchoolRole = activeSchoolId
       ? roleMap?.[`${activeSchoolId}_role`]
@@ -118,17 +117,8 @@ const SubjectSelection: React.FC = () => {
       !currentSchool?.id ||
       !selectedSchoolId ||
       currentSchool.id === selectedSchoolId;
-    const classMatches =
-      !currentClass?.id ||
-      !selectedClassId ||
-      currentClass.id === selectedClassId;
-    setCanModify(
-      schoolMatches &&
-        classMatches &&
-        (normalizedRole === RoleType.TEACHER ||
-          normalizedRole === RoleType.PRINCIPAL),
-    );
-  }, [currentClass?.id, currentSchool?.id, paramSchoolId, roleMap]);
+    setCanModify(schoolMatches && normalizedRole === RoleType.PRINCIPAL);
+  }, [currentSchool?.id, paramSchoolId, roleMap]);
 
   const fetchCurriculumsAndCourses = async (
     context: 'school' | 'class',
@@ -618,7 +608,6 @@ const SubjectSelection: React.FC = () => {
           currentSubject={currentSubject}
           setIsModalOpen={setIsModalOpen}
           schoolId={currentSchool?.id ?? paramSchoolId ?? undefined}
-          classId={currentClass?.id ?? paramClassId ?? undefined}
         />
       ) : (
         <SubjectSelectionComponent
