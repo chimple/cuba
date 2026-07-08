@@ -1,5 +1,6 @@
 import { PopupConfig } from './GenericPopUpType';
 import { GENERIC_POPUP_TRIGGER_CONDITION } from '../../common/constants';
+import * as GenericPopUpNavigation from './navigation';
 
 type PopupConfigOverrides = Omit<
   Partial<PopupConfig>,
@@ -105,23 +106,17 @@ export const installAnalyticsMock = (shouldThrow = false) => {
 };
 
 export const mockNavigation = () => {
-  const originalLocation = window.location;
-  const replaceSpy = jest.fn();
-  // window.location is read-only in jsdom, so we must redefine it
-  Object.defineProperty(window, 'location', {
-    writable: true,
-    value: { ...originalLocation, replace: replaceSpy },
-  });
+  const replaceSpy = jest
+    .spyOn(GenericPopUpNavigation, 'replaceLocation')
+    .mockImplementation(() => undefined);
   const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
 
   return {
     replaceSpy,
     openSpy,
     restore: () => {
-      Object.defineProperty(window, 'location', {
-        writable: true,
-        value: originalLocation,
-      });
+      replaceSpy.mockRestore();
+      openSpy.mockRestore();
     },
   };
 };

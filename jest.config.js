@@ -81,6 +81,7 @@ module.exports = {
     '^@ffmpeg/ffmpeg$': '<rootDir>/src/tests/__mocks__/@ffmpeg/ffmpeg.ts',
     '^@ffmpeg/util$': '<rootDir>/src/tests/__mocks__/@ffmpeg/util.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^.+\\.svg\\?raw$': '<rootDir>/src/tests/__mocks__/filemock.ts',
     '.+\\.(css|styl|less|sass|scss|gif|png|jpg|jpeg|svg|webp|ttf|woff|woff2)$':
       'identity-obj-proxy',
     '\\.(ttf|woff|woff2|wasm)$': '<rootDir>/src/tests/__mocks__/filemock.ts',
