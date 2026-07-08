@@ -63,6 +63,7 @@ const assignmentOptions = {
         {
           id: 'subject-1',
           name: 'Science',
+          gradeId: 'grade-1',
           chapters: [
             {
               id: 'chapter-1',
