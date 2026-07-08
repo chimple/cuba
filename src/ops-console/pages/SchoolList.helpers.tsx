@@ -281,6 +281,8 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
 // Export columns intentionally mirror the UI while keeping paired % columns.
 export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
   { key: 'name', label: t('School Name'), part: 'value' },
+  { key: 'udise', label: t('UDISE'), part: 'value' },
+  { key: 'block', label: t('Block'), part: 'value' },
   {
     key: 'schoolPerformance',
     label: t('School Performance'),

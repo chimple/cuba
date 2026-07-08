@@ -13,6 +13,8 @@ import {
   PAGES,
   PROGRAM_TAB,
   PROGRAM_TAB_LABELS,
+  SCHOOL_PERFORMANCE_STATUS,
+  SCHOOL_PERFORMANCE_TRANSLATION_KEYS,
   SCHOOL_LISTING_STATUS_META,
 } from '../../common/constants';
 import type { ServiceApi } from '../../services/api/ServiceApi';
@@ -908,9 +910,27 @@ const buildProgramMetricExportRows = (
   [
     '',
     '',
-    toExportText(t('Performing Well')),
-    toExportText(t('Needs Attention')),
-    toExportText(t('Needs Support')),
+    toExportText(
+      t(
+        SCHOOL_PERFORMANCE_TRANSLATION_KEYS[
+          SCHOOL_PERFORMANCE_STATUS.PERFORMING_WELL
+        ],
+      ),
+    ),
+    toExportText(
+      t(
+        SCHOOL_PERFORMANCE_TRANSLATION_KEYS[
+          SCHOOL_PERFORMANCE_STATUS.NEEDS_ATTENTION
+        ],
+      ),
+    ),
+    toExportText(
+      t(
+        SCHOOL_PERFORMANCE_TRANSLATION_KEYS[
+          SCHOOL_PERFORMANCE_STATUS.NEEDS_SUPPORT
+        ],
+      ),
+    ),
     toExportText(t('Count')),
     '%',
     toExportText(t('Count')),

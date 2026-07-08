@@ -69,6 +69,7 @@ import {
   PENDING_PATHWAY_STICKER_REWARD_KEY,
   STICKER_BOOK_COMPLETION_READY_EVENT,
   CURRENT_STUDENT_CHANGED_EVENT,
+  DOWNLOADED_LESSONS_SIZE,
 } from '../common/constants';
 import {
   Chapter as curriculamInterfaceChapter,
@@ -428,7 +429,7 @@ export class Util {
   }: {
     lessonId: string;
   }): Promise<string | null> {
-    const gameUrl = localStorage.getItem('gameUrl');
+    const gameUrl = localStorage.getItem(GAME_URL);
 
     const exists = async (path: string) => {
       try {
@@ -653,14 +654,14 @@ export class Util {
 
               // ✅ KEEP ORIGINAL METADATA + EVENTS
               const lessonData = JSON.parse(
-                localStorage.getItem('downloaded_lessons_size') || '{}',
+                localStorage.getItem(DOWNLOADED_LESSONS_SIZE) || '{}',
               );
               lessonData[lessonId] = {
                 size: nativeBundleResult.byteLength,
                 sha256: nativeBundleResult.sha256Hex || undefined,
               };
               localStorage.setItem(
-                'downloaded_lessons_size',
+                DOWNLOADED_LESSONS_SIZE,
                 JSON.stringify(lessonData),
               );
               this.setGameUrl(androidPath);
@@ -854,7 +855,7 @@ export class Util {
   ): Promise<boolean> {
     try {
       const lessonData = JSON.parse(
-        localStorage.getItem('downloaded_lessons_size') || '{}',
+        localStorage.getItem(DOWNLOADED_LESSONS_SIZE) || '{}',
       );
       for (const lessonId of lessonIds) {
         const lessonPath = `${lessonId}`;
@@ -867,7 +868,7 @@ export class Util {
         // Remove the lesson and size from the single object in localStorage
         delete lessonData[lessonId];
         localStorage.setItem(
-          'downloaded_lessons_size',
+          DOWNLOADED_LESSONS_SIZE,
           JSON.stringify(lessonData),
         );
 
@@ -883,7 +884,7 @@ export class Util {
     try {
       // Retrieve all lesson data stored in localStorage
       const lessonData = JSON.parse(
-        localStorage.getItem('downloaded_lessons_size') || '{}',
+        localStorage.getItem(DOWNLOADED_LESSONS_SIZE) || '{}',
       );
 
       await Filesystem.rmdir({
@@ -893,7 +894,7 @@ export class Util {
       });
 
       // Clear the lessons data from localStorage
-      localStorage.removeItem('downloaded_lessons_size');
+      localStorage.removeItem(DOWNLOADED_LESSONS_SIZE);
       localStorage.removeItem(DOWNLOADED_LESSON_ID);
       return true;
     } catch (error) {

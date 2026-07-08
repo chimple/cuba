@@ -75,8 +75,8 @@ import {
   StickerMeta,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
-import Course from '../../models/course';
-import Lesson from '../../models/lesson';
+import Course from '../../models/Course';
+import Lesson from '../../models/Lesson';
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
@@ -1946,7 +1946,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: now,
       is_deleted: false,
       is_tc_accepted: true,
-      tc_agreed_version: tcVersion,
+      tc_agreed_version: tcVersion ?? 0,
       email: null,
       phone: null,
       fcm_token: null,
@@ -2426,7 +2426,7 @@ export class SqliteApi implements ServiceApi {
       updated_at: new Date().toISOString(),
       is_deleted: false,
       is_tc_accepted: true,
-      tc_agreed_version: tcVersion,
+      tc_agreed_version: tcVersion ?? 0,
       email: null,
       phone: null,
       fcm_token: null,
@@ -6020,6 +6020,8 @@ export class SqliteApi implements ServiceApi {
       countryCode,
     );
     const localeId = locale?.id ?? DEFAULT_LOCALE_ID;
+    const tcAgreedVersion = user.tc_agreed_version ?? 0;
+    user.tc_agreed_version = tcAgreedVersion;
 
     await this.executeQuery(
       `
@@ -6036,7 +6038,7 @@ export class SqliteApi implements ServiceApi {
         user.curriculum_id,
         user.language_id,
         (user.locale_id = localeId),
-        user.tc_agreed_version,
+        tcAgreedVersion,
       ],
     );
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.INSERT, user);
@@ -8940,7 +8942,7 @@ order by
       updated_at: new Date().toISOString(),
       is_deleted: false,
       is_tc_accepted: true,
-      tc_agreed_version: tcVersion,
+      tc_agreed_version: tcVersion ?? 0,
       email: null,
       phone: null,
       fcm_token: null,

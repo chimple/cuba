@@ -12,7 +12,7 @@ import {
 import './LiveQuizGame.css';
 import LiveQuizCountdownTimer from '../components/liveQuiz/LiveQuizCountdownTimer';
 import LiveQuizQuestion from '../components/liveQuiz/LiveQuizQuestion';
-import LiveQuiz from '../models/liveQuiz';
+import LiveQuiz from '../models/LiveQuiz';
 import LiveQuizHeader from '../components/liveQuiz/LiveQuizHeader';
 import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
 import ScoreCard from '../components/scorecards/ScoreCard';

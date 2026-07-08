@@ -1,6 +1,9 @@
 import { Capacitor, CapacitorHttp, WebView } from '@capacitor/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
-import { COPIED_BUNDLE_FILES_INDEX } from '../common/constants';
+import {
+  COPIED_BUNDLE_FILES_INDEX,
+  READY_FOR_HOT_UPDATE,
+} from '../common/constants';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import logger from '../utility/logger';
 
@@ -223,7 +226,7 @@ export const AppUpdater = {
 
       // // Activate the downloaded release.
       // await activateRelease(serverChecksum.id);
-      localStorage.setItem('readyForHotUpdate', serverChecksum.id);
+      localStorage.setItem(READY_FOR_HOT_UPDATE, serverChecksum.id);
 
       // Report that the app was successfully updated.
       return true;
@@ -235,7 +238,7 @@ export const AppUpdater = {
   },
 };
 async function checkForDownloadedHotUpdate(): Promise<boolean> {
-  const serverChecksumId = localStorage.getItem('readyForHotUpdate');
+  const serverChecksumId = localStorage.getItem(READY_FOR_HOT_UPDATE);
 
   if (!serverChecksumId) return false;
   //  Delete any old release packages.
@@ -243,7 +246,7 @@ async function checkForDownloadedHotUpdate(): Promise<boolean> {
 
   // Activate the downloaded release.
   await activateRelease(serverChecksumId);
-  localStorage.removeItem('readyForHotUpdate');
+  localStorage.removeItem(READY_FOR_HOT_UPDATE);
   return true;
 }
 // --------------

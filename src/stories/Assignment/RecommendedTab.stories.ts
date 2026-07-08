@@ -1,6 +1,6 @@
 //@ts-nocheck
 import type { Meta, StoryObj } from '@storybook/react';
-import Lesson from '../../models/lesson';
+import Lesson from '../../models/Lesson';
 import RecommendedTab from '../../components/malta/assignment/RecommendedTab';
 
 const meta = {

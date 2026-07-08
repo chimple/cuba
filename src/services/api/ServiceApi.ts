@@ -1,6 +1,6 @@
-import User from '../../models/user';
-import Course from '../../models/course';
-import Lesson from '../../models/lesson';
+import User from '../../models/User';
+import Course from '../../models/Course';
+import Lesson from '../../models/Lesson';
 import { StudentLessonResult } from '../../common/courseConstants';
 import {
   CACHETABLES,
