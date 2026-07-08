@@ -2,7 +2,6 @@ import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
 import { Device } from '@capacitor/device';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Toast } from '@capacitor/toast';
-import createFilesystem from 'capacitor-fs';
 import { unzip } from 'zip2';
 import {
   CURRENT_STUDENT,
@@ -142,6 +141,8 @@ type LessonBundlePlugin = {
 };
 
 let lessonBundlePluginInstance: LessonBundlePlugin | null = null;
+type CreateFilesystem = typeof import('capacitor-fs').default;
+let createFilesystemPromise: Promise<CreateFilesystem> | null = null;
 
 const getBundleZipUrlsFallback = (
   bundleZipUrlsKey: REMOTE_CONFIG_KEYS,
@@ -169,6 +170,15 @@ const getLessonBundlePlugin = (): LessonBundlePlugin | null => {
   lessonBundlePluginInstance =
     registerPlugin<LessonBundlePlugin>('LessonBundle');
   return lessonBundlePluginInstance;
+};
+
+const getCreateFilesystem = async (): Promise<CreateFilesystem> => {
+  if (!createFilesystemPromise) {
+    createFilesystemPromise = import('capacitor-fs').then(
+      (module) => module.default,
+    );
+  }
+  return createFilesystemPromise;
 };
 
 declare global {
@@ -738,6 +748,7 @@ export class Util {
     try {
       if (!Capacitor.isNativePlatform()) return true;
 
+      const createFilesystem = await getCreateFilesystem();
       const fs = createFilesystem(Filesystem, {
         rootDir: '',
         directory: Directory.External,
@@ -2230,7 +2241,7 @@ export class Util {
     history: any,
     originPage: PAGES,
   ) {
-    if (schoolId == undefined) return;
+    if (schoolId === undefined) return;
     const api = ServiceConfig.getI().apiHandler;
     const schoolCourses = await api.getCoursesBySchoolId(schoolId);
     if (schoolCourses.length === 0) {
@@ -2287,7 +2298,7 @@ export class Util {
   public static async encryptData(data: object): Promise<string | null> {
     try {
       const stringData = JSON.stringify(data);
-      const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
+      const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY;
 
       if (!ENCRYPTION_KEY) {
         throw new Error('ENCRYPTION_KEY is not set.');
@@ -2303,7 +2314,7 @@ export class Util {
     ciphertext: string,
   ): Promise<{ email: string; password: string } | null> {
     try {
-      const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
+      const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY;
       if (!ENCRYPTION_KEY) {
         throw new Error('ENCRYPTION_KEY is not set.');
       }
@@ -3842,6 +3853,7 @@ export class Util {
       } catch (e) {
         // Directory does not exist, proceed to download.
       }
+      const createFilesystem = await getCreateFilesystem();
       const fs = createFilesystem(Filesystem, {
         rootDir: '/',
         directory: Directory.Data,
@@ -4066,7 +4078,7 @@ export class Util {
 
   public static migrateSupabaseSession() {
     try {
-      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
       if (!supabaseUrl) {
         logger.warn('Supabase URL missing, skipping session migration');

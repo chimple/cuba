@@ -91,7 +91,7 @@ describe('AppLangSelection', function () {
   beforeEach(function () {
     jest.clearAllMocks();
     localStorage.clear();
-    // Re-setup i18n mocks (resetMocks: true in craco config clears implementations)
+    // Re-setup i18n mocks (resetMocks: true in jest config clears implementations)
     i18n.t.mockImplementation(function (str: string) {
       return str;
     });

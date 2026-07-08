@@ -60,7 +60,7 @@ import Loading from './components/Loading';
 
 Sentry.init(
   {
-    dsn: process.env.REACT_APP_SENTRY_DSN,
+    dsn: import.meta.env.VITE_SENTRY_DSN,
 
     sendDefaultPii: true,
 
@@ -161,7 +161,7 @@ if (typeof window !== 'undefined') {
 jeepSqlite(window);
 
 const recordExecption = (message: string, error: string) => {
-  if (Capacitor.getPlatform() != 'web') {
+  if (Capacitor.getPlatform() !== 'web') {
     FirebaseCrashlytics.recordException({ message: message, domain: error });
   }
 };
@@ -183,7 +183,7 @@ const root = createRoot(container!, {
 
 const gb = new GrowthBook({
   apiHost: GB_API_HOST,
-  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
+  clientKey: import.meta.env.VITE_GROWTHBOOK_ID,
   enableDevMode: true,
   trackingCallback: async (experiment, result) => {
     try {
@@ -224,7 +224,7 @@ void (async () => {
   if (!initResult?.success) {
     await tryRestoreGrowthbookPayloadFromCache(
       gb,
-      process.env.REACT_APP_GROWTHBOOK_ID,
+      import.meta.env.VITE_GROWTHBOOK_ID,
       GB_API_HOST,
     );
   }
@@ -278,14 +278,14 @@ async function checkForUpdate() {
       Util.setHotUpdateState({
         status: 'Checking (Auto)',
         progress: 10,
-        channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+        channel: `${import.meta.env.VITE_ENV}-${majorVersion}`,
         lastChecked: new Date().toLocaleString(),
         isAuto: true,
         error: '',
       });
       const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
       const result = await LiveUpdate.fetchLatestBundle({
-        channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+        channel: `${import.meta.env.VITE_ENV}-${majorVersion}`,
       });
       let isUpdateAllowed = false;
       if (result.customProperties && result.customProperties.version) {
@@ -305,7 +305,7 @@ async function checkForUpdate() {
           current_bundle_id: currentBundleId,
           new_bundle_id: result.bundleId,
           timestamp: new Date().toISOString(),
-          channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+          channel_name: `${import.meta.env.VITE_ENV}-${majorVersion}`,
           app_version: versionName,
           update_type: result.artifactType,
         });
@@ -326,7 +326,7 @@ async function checkForUpdate() {
             });
 
             await LiveUpdate.sync({
-              channel: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+              channel: `${import.meta.env.VITE_ENV}-${majorVersion}`,
             });
             Util.setHotUpdateState({
               status: 'Updated successfully (Auto)',
@@ -341,7 +341,7 @@ async function checkForUpdate() {
               new_bundle_id: result.bundleId,
               timestamp: new Date().toISOString(),
               time_taken_ms: (totalEnd - start).toFixed(2),
-              channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+              channel_name: `${import.meta.env.VITE_ENV}-${majorVersion}`,
               app_version: versionName,
               update_type: result.artifactType,
             });
@@ -368,7 +368,7 @@ async function checkForUpdate() {
               Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
                 user_id: userId,
                 timestamp: new Date().toISOString(),
-                channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+                channel_name: `${import.meta.env.VITE_ENV}-${majorVersion}`,
                 error:
                   msg || 'All attempts to apply update failed, Device offline',
                 retries: attempt,
@@ -398,7 +398,7 @@ async function checkForUpdate() {
     Util.logEvent(EVENTS.LIVE_UPDATE_ERROR, {
       user_id: userId,
       timestamp: new Date().toISOString(),
-      channel_name: `${process.env.REACT_APP_ENV}-${majorVersion}`,
+      channel_name: `${import.meta.env.VITE_ENV}-${majorVersion}`,
       error: msg || 'LiveUpdate failed unknown error',
     });
   }
