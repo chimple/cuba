@@ -3982,8 +3982,8 @@ export class SupabaseApi implements ServiceApi {
       .eq('class_id', classId)
       .eq('is_deleted', false)
       .neq('type', 'assessment')
-      .or(`starts_at.is.null,starts_at.lte.${nowIso}`)
-      .or(`ends_at.is.null,ends_at.gt.${nowIso}`)
+      .or(`starts_at.is.null,starts_at.lte."${nowIso}"`)
+      .or(`ends_at.is.null,ends_at.gt."${nowIso}"`)
       .order('created_at', { ascending: false });
 
     if (error) {
