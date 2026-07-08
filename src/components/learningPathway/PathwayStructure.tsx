@@ -20,6 +20,7 @@ import { usePathwayData } from '../../hooks/usePathwayData';
 import { usePathwaySVG } from '../../hooks/usePathwaySVG';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
+import { getPathwayStickerCollectedEvent } from '../../analytics/rewardEvents';
 import {
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
@@ -32,6 +33,7 @@ import {
   PATHWAY_REWARD_AUDIO_READY_EVENT,
   PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
   REWARD_LEARNING_PATH,
+  ACTIVATION_REWARD_FLOW_KEY,
   STICKER_BOOK_COMPLETION_READY_EVENT,
 } from '../../common/constants';
 import { t } from 'i18next';
@@ -303,6 +305,15 @@ const PathwayStructure: React.FC = () => {
           trigger,
         },
       );
+      if (isDragPopup) {
+        Util.logEvent(getPathwayStickerCollectedEvent(data.source), {
+          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+          sticker_book_id: data.stickerBookId,
+          sticker_id: data.nextStickerId,
+          source: data.source,
+          trigger,
+        });
+      }
     },
     [containerRef],
   );
@@ -470,10 +481,37 @@ const PathwayStructure: React.FC = () => {
       onPlaybackStop?: () => void,
       clipName: DailyRewardAudioClipName = 'reward_01',
     ) => {
-      const localAudioPath = await AudioUtil.getLocalizedAudioUrl(
-        'dailyReward',
-        clipName,
+      let localAudioPath: string | null = null;
+      const pendingActivationRewardFlow = sessionStorage.getItem(
+        ACTIVATION_REWARD_FLOW_KEY,
       );
+
+      if (pendingActivationRewardFlow) {
+        if (pendingActivationRewardFlow === 'true') {
+          const languageCode = await AudioUtil.getAudioLanguageCode();
+          localAudioPath = `/assets/audios/activationLesson/complete/${languageCode}_activation_lesson_complete.mp3`;
+          sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+        } else {
+          try {
+            const parsed = JSON.parse(pendingActivationRewardFlow);
+            if (parsed) {
+              const languageCode = await AudioUtil.getAudioLanguageCode();
+              localAudioPath = `/assets/audios/activationLesson/complete/${languageCode}_activation_lesson_complete.mp3`;
+              sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+            }
+          } catch {
+            sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+          }
+        }
+      }
+
+      if (!localAudioPath) {
+        localAudioPath = await AudioUtil.getLocalizedAudioUrl(
+          'dailyReward',
+          clipName,
+        );
+      }
+
       if (localAudioPath) {
         playRewardCollectMascotAudio(
           localAudioPath,

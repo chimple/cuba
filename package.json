@@ -39,7 +39,7 @@
     "@capawesome/capacitor-app-update": "^7.0.1",
     "@capawesome/capacitor-live-update": "^7.2.2",
     "@capgo/capacitor-social-login": "^7.11.8",
-    "@chimple/palau-recommendation": "^0.1.5",
+    "@chimple/palau-recommendation": "^0.1.6",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@ffmpeg/ffmpeg": "^0.12.15",
@@ -95,7 +95,6 @@
     "react-redux": "^9.2.0",
     "react-router": "^5.0.1",
     "react-router-dom": "^5.0.1",
-    "react-scripts": "^5.0.1",
     "react-share": "^5.2.2",
     "react-spinners": "^0.17.0",
     "redux-persist": "^6.0.0",
@@ -121,16 +120,16 @@
     "zip2": "^0.0.4"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "GENERATE_SOURCEMAP=false craco build && npx @capawesome/cli manifests:generate --path build && cap sync && npm run build-storybook",
+    "start": "vite",
+    "build": "tsc -p tsconfig.build.json && vite build",
     "create-check-sum": "node scripts/check_sum_generator.js",
-    "serve-build": "http-server build",
-    "test": "craco test",
-    "eject": "craco eject",
+    "serve-build": "http-server dist",
+    "test": "jest --config jest.config.js",
+    "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build --output-dir build/storybook",
-    "lint": "eslint src/**/*.{js,jsx,ts,tsx}",
-    "lint:fix": "eslint src/**/*.{js,jsx,ts,tsx} --fix",
+    "build-storybook": "storybook build --output-dir dist/storybook",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
+    "lint:fix": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,json,md}\"",
     "fix-staged": "lint-staged -c .lintstagedrc-fix.json --no-stash",
     "check:new-any": "node scripts/check-new-explicit-any.js",
@@ -171,16 +170,15 @@
   "devDependencies": {
     "@capawesome/cli": "^3.3.0",
     "@chromatic-com/storybook": "^1.4.0",
-    "@craco/craco": "^7.1.0",
     "@storybook/addon-essentials": "^8.6.14",
     "@storybook/addon-interactions": "^8.6.14",
     "@storybook/addon-links": "^8.6.14",
     "@storybook/addon-onboarding": "^8.6.14",
     "@storybook/blocks": "^8.6.14",
-    "@storybook/preset-create-react-app": "^8.6.14",
     "@storybook/react": "^8.6.14",
     "@storybook/react-webpack5": "^8.6.14",
     "@storybook/test": "^8.6.14",
+    "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.1",
     "@testing-library/user-event": "^14.6.1",
@@ -192,8 +190,11 @@
     "@types/react-dom": "^19.2.0",
     "@types/react-router": "^5.1.20",
     "@types/react-router-dom": "^5.3.3",
+    "@vitejs/plugin-react": "^5.0.0",
     "babel-jest": "^30.2.0",
+    "eslint": "^8.57.1",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-prettier": "^5.5.5",
     "eslint-plugin-storybook": "^0.10.0",
     "http-server": "^14.1.1",
@@ -207,15 +208,17 @@
     "storybook": "^8.6.14",
     "storybook-react-i18next": "^3.0.1",
     "ts-jest": "^29.4.6",
+    "typescript": "^5.9.3",
+    "vite": "^7.0.4",
     "webpack": "^5.101.3"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
+    "src/**/*.{js,jsx,ts,tsx}": [
       "eslint",
       "prettier --check",
       "npm run check:new-any"
     ],
-    "*.{css,json,md}": [
+    "*.{js,jsx,ts,tsx,css,json,md}": [
       "prettier --check"
     ]
   },

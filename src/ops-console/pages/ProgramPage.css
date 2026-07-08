@@ -186,8 +186,8 @@
 }
 
 .program-table .MuiTableCell-root {
-  border-left: 0 !important;
-  border-right: 0 !important;
+  border-right: 0.667px solid #dde1e6 !important;
+  border-left: 0.667px solid #dde1e6 !important;
 }
 
 .program-table .data-tablebody-cell {
@@ -198,6 +198,62 @@
   padding: 8px 12px;
 
   text-align: left !important;
+}
+
+.program-table .data-tablebody-head-cell:nth-child(2),
+.program-table .data-tablebody-cell:nth-child(2),
+.program-table .data-tablebody-head-cell:nth-child(n + 4),
+.program-table .data-tablebody-cell:nth-child(n + 4) {
+  text-align: center !important;
+}
+
+.program-table
+  .data-tablebody-head-cell:nth-child(2)
+  .data-tablebody-head-button,
+.program-table
+  .data-tablebody-head-cell:nth-child(n + 4)
+  .data-tablebody-head-button {
+  justify-content: center !important;
+}
+
+.program-table .data-tablebody-head-cell:nth-child(2) > .MuiBox-root,
+.program-table
+  .data-tablebody-head-cell:nth-child(2)
+  > .MuiBox-root
+  > .MuiBox-root {
+  justify-content: center !important;
+  width: 100%;
+}
+
+.program-table
+  .data-tablebody-head-cell:nth-child(2)
+  .data-tablebody-head-button-left {
+  justify-content: center !important;
+  width: 100%;
+}
+
+.program-table
+  .data-tablebody-head-cell:nth-child(2)
+  .data-tablebody-head-button
+  .data-tablebody-head-label,
+.program-table
+  .data-tablebody-head-cell:nth-child(n + 4)
+  .data-tablebody-head-button
+  .data-tablebody-head-label {
+  flex: 0 1 auto;
+  text-align: center !important;
+}
+
+.program-table .data-tablebody-cell:nth-child(2) .program-metric-value,
+.program-table .data-tablebody-cell:nth-child(n + 4) .program-metric-value {
+  text-align: center !important;
+}
+
+.program-table
+  .data-tablebody-cell:nth-child(n + 4)
+  .program-metric-with-percent {
+  justify-content: center;
+  text-align: center;
 }
 
 .program-table .data-tablebody-head-cell:first-child,

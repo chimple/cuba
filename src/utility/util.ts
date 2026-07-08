@@ -2,7 +2,6 @@ import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
 import { Device } from '@capacitor/device';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
 import { Toast } from '@capacitor/toast';
-import createFilesystem from 'capacitor-fs';
 import { unzip } from 'zip2';
 import {
   CURRENT_STUDENT,
@@ -70,6 +69,7 @@ import {
   PENDING_PATHWAY_STICKER_REWARD_KEY,
   STICKER_BOOK_COMPLETION_READY_EVENT,
   CURRENT_STUDENT_CHANGED_EVENT,
+  DOWNLOADED_LESSONS_SIZE,
 } from '../common/constants';
 import {
   Chapter as curriculamInterfaceChapter,
@@ -96,7 +96,6 @@ import {
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
 import { schoolUtil } from './schoolUtil';
-import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { URLOpenListenerEvent } from '@capacitor/app';
 import { t } from 'i18next';
 import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
@@ -122,6 +121,8 @@ import {
 } from '../redux/slices/auth/authSlice';
 import logger from './logger';
 import type { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
+import { AudioUtil } from './AudioUtil';
+import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
 
 type LessonBundleDownloadOptions = {
   lessonId: string;
@@ -141,6 +142,8 @@ type LessonBundlePlugin = {
 };
 
 let lessonBundlePluginInstance: LessonBundlePlugin | null = null;
+type CreateFilesystem = typeof import('capacitor-fs').default;
+let createFilesystemPromise: Promise<CreateFilesystem> | null = null;
 
 const getBundleZipUrlsFallback = (
   bundleZipUrlsKey: REMOTE_CONFIG_KEYS,
@@ -168,6 +171,18 @@ const getLessonBundlePlugin = (): LessonBundlePlugin | null => {
   lessonBundlePluginInstance =
     registerPlugin<LessonBundlePlugin>('LessonBundle');
   return lessonBundlePluginInstance;
+};
+
+const getCreateFilesystem = async (): Promise<CreateFilesystem> => {
+  if (!createFilesystemPromise) {
+    createFilesystemPromise = import('capacitor-fs')
+      .then((module) => module.default)
+      .catch((error) => {
+        createFilesystemPromise = null;
+        throw error;
+      });
+  }
+  return createFilesystemPromise;
 };
 
 declare global {
@@ -414,7 +429,7 @@ export class Util {
   }: {
     lessonId: string;
   }): Promise<string | null> {
-    const gameUrl = localStorage.getItem('gameUrl');
+    const gameUrl = localStorage.getItem(GAME_URL);
 
     const exists = async (path: string) => {
       try {
@@ -639,14 +654,14 @@ export class Util {
 
               // ✅ KEEP ORIGINAL METADATA + EVENTS
               const lessonData = JSON.parse(
-                localStorage.getItem('downloaded_lessons_size') || '{}',
+                localStorage.getItem(DOWNLOADED_LESSONS_SIZE) || '{}',
               );
               lessonData[lessonId] = {
                 size: nativeBundleResult.byteLength,
                 sha256: nativeBundleResult.sha256Hex || undefined,
               };
               localStorage.setItem(
-                'downloaded_lessons_size',
+                DOWNLOADED_LESSONS_SIZE,
                 JSON.stringify(lessonData),
               );
               this.setGameUrl(androidPath);
@@ -737,6 +752,7 @@ export class Util {
     try {
       if (!Capacitor.isNativePlatform()) return true;
 
+      const createFilesystem = await getCreateFilesystem();
       const fs = createFilesystem(Filesystem, {
         rootDir: '',
         directory: Directory.External,
@@ -839,7 +855,7 @@ export class Util {
   ): Promise<boolean> {
     try {
       const lessonData = JSON.parse(
-        localStorage.getItem('downloaded_lessons_size') || '{}',
+        localStorage.getItem(DOWNLOADED_LESSONS_SIZE) || '{}',
       );
       for (const lessonId of lessonIds) {
         const lessonPath = `${lessonId}`;
@@ -852,7 +868,7 @@ export class Util {
         // Remove the lesson and size from the single object in localStorage
         delete lessonData[lessonId];
         localStorage.setItem(
-          'downloaded_lessons_size',
+          DOWNLOADED_LESSONS_SIZE,
           JSON.stringify(lessonData),
         );
 
@@ -868,7 +884,7 @@ export class Util {
     try {
       // Retrieve all lesson data stored in localStorage
       const lessonData = JSON.parse(
-        localStorage.getItem('downloaded_lessons_size') || '{}',
+        localStorage.getItem(DOWNLOADED_LESSONS_SIZE) || '{}',
       );
 
       await Filesystem.rmdir({
@@ -878,7 +894,7 @@ export class Util {
       });
 
       // Clear the lessons data from localStorage
-      localStorage.removeItem('downloaded_lessons_size');
+      localStorage.removeItem(DOWNLOADED_LESSONS_SIZE);
       localStorage.removeItem(DOWNLOADED_LESSON_ID);
       return true;
     } catch (error) {
@@ -1136,9 +1152,8 @@ export class Util {
   }
 
   public static onAppStateChange = ({ isActive }: { isActive: boolean }) => {
-    // Existing logic for stopping TextToSpeech when app is inactive
     if (!isActive) {
-      TextToSpeech.stop();
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
     }
     logger.info('[Lifecycle] App state changed', { isActive });
 
@@ -1407,7 +1422,9 @@ export class Util {
       const rewardProfileId = data.rewardProfileId;
       if (rewardProfileId)
         if (currentStudent?.id === rewardProfileId) {
-          window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
+          replaceWithNavigationTarget(
+            PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME,
+          );
         } else {
           await this.setCurrentStudent(null);
           const students = await api.getParentStudentProfiles();
@@ -1415,7 +1432,9 @@ export class Util {
             students.find((user) => user.id === rewardProfileId) || students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME);
+            replaceWithNavigationTarget(
+              PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME,
+            );
           } else {
             return;
           }
@@ -1433,9 +1452,6 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            window.location.replace(
-              PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
-            );
             foundMatch = true;
             break;
           }
@@ -1448,12 +1464,12 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(
+            replaceWithNavigationTarget(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
             );
           }
         } else {
-          window.location.replace(
+          replaceWithNavigationTarget(
             PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
           );
           return;
@@ -1471,7 +1487,7 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            window.location.replace(
+            replaceWithNavigationTarget(
               data.assignmentId
                 ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${data.assignmentId}`
                 : PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
@@ -1488,13 +1504,15 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(
+            replaceWithNavigationTarget(
               PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
             );
           }
         }
       } else {
-        window.location.replace(PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ);
+        replaceWithNavigationTarget(
+          PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
+        );
         return;
       }
     }
@@ -1782,9 +1800,9 @@ export class Util {
       destinationPage,
     );
     if (destinationPage && currentStudent) {
-      window.location.replace(destinationPage);
+      replaceWithNavigationTarget(destinationPage);
     } else {
-      window.location.replace(
+      replaceWithNavigationTarget(
         PAGES.DISPLAY_STUDENT + '?' + currentParams.toString(),
       );
     }
@@ -2227,7 +2245,7 @@ export class Util {
     history: any,
     originPage: PAGES,
   ) {
-    if (schoolId == undefined) return;
+    if (schoolId === undefined) return;
     const api = ServiceConfig.getI().apiHandler;
     const schoolCourses = await api.getCoursesBySchoolId(schoolId);
     if (schoolCourses.length === 0) {
@@ -2284,7 +2302,7 @@ export class Util {
   public static async encryptData(data: object): Promise<string | null> {
     try {
       const stringData = JSON.stringify(data);
-      const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
+      const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY;
 
       if (!ENCRYPTION_KEY) {
         throw new Error('ENCRYPTION_KEY is not set.');
@@ -2300,7 +2318,7 @@ export class Util {
     ciphertext: string,
   ): Promise<{ email: string; password: string } | null> {
     try {
-      const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
+      const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY;
       if (!ENCRYPTION_KEY) {
         throw new Error('ENCRYPTION_KEY is not set.');
       }
@@ -2916,6 +2934,7 @@ export class Util {
           },
           mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
           coursePath: course,
+          skipAssessment: true,
         }));
 
       if (nextLesson && !nextQueuedLesson) {
@@ -2947,6 +2966,7 @@ export class Util {
             },
             mode: storedPathwayMode,
             coursePath: peerCourse,
+            skipAssessment: true,
           });
 
           if (peerNextLesson) {
@@ -2988,6 +3008,30 @@ export class Util {
       let courseIndex = courses.currentCourseIndex;
       let course = courses.courseList[courseIndex];
       if (!course) return;
+      const courseCodeById = new Map<string, string | null>();
+      const getCourseCode = async (coursePath: CoursePath) => {
+        const storedCode = coursePath.course_code?.trim().toLowerCase();
+        if (storedCode) return storedCode;
+
+        const courseId = coursePath.course_id;
+        if (courseCodeById.has(courseId)) {
+          return courseCodeById.get(courseId) ?? null;
+        }
+
+        try {
+          const courseMeta = await api.getCourse(courseId);
+          const code = courseMeta?.code?.trim().toLowerCase() || null;
+          courseCodeById.set(courseId, code);
+          return code;
+        } catch (error) {
+          logger.warn('[LearningPath] Unable to resolve course code', {
+            courseId,
+            error,
+          });
+          courseCodeById.set(courseId, null);
+          return null;
+        }
+      };
 
       /* 1️⃣ Identify active lesson */
       const activeLessonIndex = course.path.findIndex(
@@ -3030,23 +3074,36 @@ export class Util {
             !!lesson.assignment_id,
         );
 
-      const syncSameSubjectAssessmentPaths = (
+      const syncSameSubjectAssessmentPaths = async (
         nextAssessmentLesson: LessonNode | null,
       ) => {
         if (
           storedPathwayMode !== LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
           !activeLesson ||
           !activeLesson.is_assessment ||
-          !course.subject_id
+          (!course.subject_id && !course.framework_id)
         ) {
           return;
         }
 
+        const activeCourseCode = await getCourseCode(course);
+        if (!activeCourseCode) return;
+
         for (const peerCourse of courses.courseList) {
-          if (
-            peerCourse === course ||
-            peerCourse.subject_id !== course.subject_id
-          ) {
+          const isSameAssessmentGroup =
+            !!course.framework_id &&
+            !!peerCourse.framework_id &&
+            peerCourse.framework_id === course.framework_id
+              ? true
+              : !!course.subject_id &&
+                peerCourse.subject_id === course.subject_id;
+
+          if (peerCourse === course || !isSameAssessmentGroup) {
+            continue;
+          }
+
+          const peerCourseCode = await getCourseCode(peerCourse);
+          if (!peerCourseCode || peerCourseCode !== activeCourseCode) {
             continue;
           }
 
@@ -3105,7 +3162,7 @@ export class Util {
       }
 
       /* 4️⃣ Check path overflow */
-      syncSameSubjectAssessmentPaths(nextLesson);
+      await syncSameSubjectAssessmentPaths(nextLesson);
 
       let pathCompleted = false;
 
@@ -3598,19 +3655,33 @@ export class Util {
       // 9. Fetch Full Lesson Details
       const newLessons = await Promise.all(
         assignmentsToInject.map(async (assignment: any) => {
+          if (!assignment.lesson_id) {
+            return null;
+          }
           const fullLesson = await api.getLesson(assignment.lesson_id);
+          if (!fullLesson?.id) {
+            logger.warn(
+              '[HomeworkPathway] Skipping stale assignment while refreshing homework tail',
+              {
+                assignmentId: assignment.id ?? null,
+                lessonId: assignment.lesson_id ?? null,
+              },
+            );
+            return null;
+          }
           return {
             assignment_id: assignment.id,
             lesson_id: assignment.lesson_id,
             chapter_id: assignment.chapter_id,
             course_id: assignment.course_id,
-            lesson: fullLesson || {
-              id: assignment.lesson_id,
-              image: 'assets/icons/DefaultIcon.png',
-            },
+            lesson: fullLesson,
             raw_assignment: assignment,
           };
         }),
+      );
+      const playableNewLessons = newLessons.filter(
+        (lesson): lesson is NonNullable<(typeof newLessons)[number]> =>
+          lesson !== null,
       );
 
       // 10. REBUILD while preserving original path length.
@@ -3619,7 +3690,7 @@ export class Util {
       type LessonWithAssignmentId = { assignment_id?: string | null };
       const existingFutureLessons = originalLessons.slice(completedIndex + 1);
       const usedAssignmentIds = new Set<string>(
-        [...history, ...newLessons]
+        [...history, ...playableNewLessons]
           .map((l) => (l as LessonWithAssignmentId)?.assignment_id)
           .filter(
             (id): id is string => typeof id === 'string' && id.length > 0,
@@ -3633,7 +3704,7 @@ export class Util {
         },
       );
 
-      const filledFutureLessons = [...newLessons];
+      const filledFutureLessons = [...playableNewLessons];
       if (filledFutureLessons.length < remainingSlotsCount) {
         const missingCount = remainingSlotsCount - filledFutureLessons.length;
         filledFutureLessons.push(
@@ -3786,6 +3857,7 @@ export class Util {
       } catch (e) {
         // Directory does not exist, proceed to download.
       }
+      const createFilesystem = await getCreateFilesystem();
       const fs = createFilesystem(Filesystem, {
         rootDir: '/',
         directory: Directory.Data,
@@ -4010,7 +4082,7 @@ export class Util {
 
   public static migrateSupabaseSession() {
     try {
-      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
       if (!supabaseUrl) {
         logger.warn('Supabase URL missing, skipping session migration');

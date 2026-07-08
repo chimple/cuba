@@ -257,20 +257,6 @@ body.mobile-web-browser *::after {
     max-height: 80px;
   }
 
-  body.mobile-web-browser .chapter-lesson-box {
-    max-width: min(74vw, 800px);
-    z-index: 5;
-    padding: 2px;
-  }
-
-  body.mobile-web-browser .chapter-lesson-text {
-    display: block;
-    width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   body.mobile-web-browser .homeworkpathway-mascot-wrapper {
     z-index: 1;
   }

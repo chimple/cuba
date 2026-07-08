@@ -3,6 +3,8 @@ import {
   AssignmentDateRangeData,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignListingItem,
+  CampaignListingParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -19,6 +21,12 @@ import {
   OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
+  CampaignAssignmentsResponse,
+  CampaignOption,
+  CampaignAssignmentFilters,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
+  UpdateCampaignMessagingRowPayload,
 } from './ServiceApi';
 import {
   SOURCE,
@@ -27,8 +35,8 @@ import {
   SchoolVisitType,
 } from '../../common/constants';
 import { StudentLessonResult } from '../../common/courseConstants';
-import Course from '../../models/course';
-import Lesson from '../../models/lesson';
+import Course from '../../models/Course';
+import Lesson from '../../models/Lesson';
 import {
   FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
@@ -501,6 +509,9 @@ export class ApiHandler implements ServiceApi {
   ): Promise<{ [lessonDocId: string]: TableTypes<'result'> }> {
     return await this.s.getStudentResultInMap(studentId);
   }
+  public async hasStudentResult(studentId: string): Promise<boolean> {
+    return await this.s.hasStudentResult(studentId);
+  }
   public async getClassById(
     id: string,
   ): Promise<TableTypes<'class'> | undefined> {
@@ -966,7 +977,7 @@ export class ApiHandler implements ServiceApi {
 
   public async getSkillByLessonIdentifier(
     lessonIdentifier: string,
-  ): Promise<TableTypes<'skill'> | undefined> {
+  ): Promise<TableTypes<'skill'>[]> {
     return this.s.getSkillByLessonIdentifier(lessonIdentifier);
   }
 
@@ -1045,6 +1056,10 @@ export class ApiHandler implements ServiceApi {
 
   isSyncInProgress(): boolean {
     return this.s.isSyncInProgress();
+  }
+
+  close(): Promise<void> {
+    return this.s.close();
   }
 
   async getRecommendedLessons(
@@ -1611,6 +1626,31 @@ export class ApiHandler implements ServiceApi {
     params: CampaignAssignmentOptionsParams,
   ): Promise<CampaignAssignmentOptions> {
     return await this.s.getCampaignAssignmentOptions(params);
+  }
+
+  public async getCampaignListing(
+    params: CampaignListingParams,
+  ): Promise<PaginatedResponse<CampaignListingItem>> {
+    return await this.s.getCampaignListing(params);
+  }
+
+  public async cancelCampaign(
+    campaignId: string,
+    reason: string,
+  ): Promise<void> {
+    return await this.s.cancelCampaign(campaignId, reason);
+  }
+  public async getCampaignAssignments(
+    campaignId: string,
+    filters: CampaignAssignmentFilters,
+  ): Promise<CampaignAssignmentsResponse> {
+    return await this.s.getCampaignAssignments(campaignId, filters);
+  }
+
+  public async getCampaignSubjectsByCampaignId(
+    campaignId: string,
+  ): Promise<CampaignOption[]> {
+    return await this.s.getCampaignSubjectsByCampaignId(campaignId);
   }
 
   public async getUniqueGeoData(): Promise<{
@@ -2313,6 +2353,12 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getSkillById(skillId);
   }
 
+  public async getSubjectBySkillId(
+    skillId: string,
+  ): Promise<TableTypes<'subject'> | undefined> {
+    return await this.s.getSubjectBySkillId(skillId);
+  }
+
   async updateSchoolProgram(
     schoolId: string,
     programId: string,
@@ -2491,5 +2537,18 @@ export class ApiHandler implements ServiceApi {
   }
   public async isSplUser(): Promise<boolean> {
     return await this.s.isSplUser();
+  }
+
+  public async getCampaignMessaging(
+    campaignId: string,
+    params?: CampaignMessagingQueryParams,
+  ): Promise<CampaignMessagingResponse> {
+    return await this.s.getCampaignMessaging(campaignId, params);
+  }
+
+  public async updateCampaignMessaging(
+    rows: UpdateCampaignMessagingRowPayload[],
+  ): Promise<boolean> {
+    return await this.s.updateCampaignMessaging(rows);
   }
 }

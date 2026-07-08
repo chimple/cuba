@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import * as XLSX from 'xlsx-js-style';
 import './FileUpload.css';
 import UploadIcon from '../assets/icons/upload_icon.png';
 import { FaCloudDownloadAlt } from 'react-icons/fa';
@@ -17,6 +16,20 @@ import {
   FileUploadStep,
 } from '../../common/constants';
 import logger from '../../utility/logger';
+
+type XlsxModule = typeof import('xlsx-js-style');
+
+let xlsxModulePromise: Promise<XlsxModule> | null = null;
+
+const getXlsx = async (): Promise<XlsxModule> => {
+  if (!xlsxModulePromise) {
+    xlsxModulePromise = import('xlsx-js-style').catch((error) => {
+      xlsxModulePromise = null;
+      throw error;
+    });
+  }
+  return xlsxModulePromise;
+};
 
 type NamedContact = {
   name: string;
@@ -37,6 +50,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
   const [verifyingProgressState, setVerifyingProgressState] = useState(10);
   const [isReupload, setIsReupload] = useState(false);
   const processedDataRef = useRef<ArrayBuffer | null>(null);
+  const hasDuplicateStudentErrorRef = useRef(false);
   const [finalPayload, setFinalPayload] = useState<any[] | null>(null);
   const [isVerified, setIsVerified] = useState(false);
   const [step, setStep] = useState<FileUploadStep>(FileUploadStep.Idle);
@@ -47,6 +61,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     setProgress(0);
     setFileBuffer(null);
     validSheetCountRef.current = null;
+    hasDuplicateStudentErrorRef.current = false;
     setStep(FileUploadStep.Idle);
     setIsReupload(true);
   }
@@ -99,6 +114,21 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     };
   };
 
+  const markDuplicateStudentErrorIfPresent = (messages: string[]) => {
+    if (
+      messages.some((message) => {
+        if (!message) return false;
+        const normalizedMessage = message.toLowerCase();
+        return (
+          normalizedMessage.includes('duplicate') ||
+          normalizedMessage.includes('already exist')
+        );
+      })
+    ) {
+      hasDuplicateStudentErrorRef.current = true;
+    }
+  };
+
   useEffect(() => {
     setVerifyingProgressState(progressRef.current);
   }, [progressRef.current]);
@@ -133,6 +163,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
     setFile(selectedFile);
     setProgress(0);
     setIsProcessing(true);
+    hasDuplicateStudentErrorRef.current = false;
 
     const reader = new FileReader();
     reader.readAsArrayBuffer(selectedFile);
@@ -171,6 +202,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
 
   const processFile = async () => {
     if (!fileBuffer) return;
+    hasDuplicateStudentErrorRef.current = false;
     progressRef.current = 40;
     setVerifyingProgressState(progressRef.current);
     let workbookSheetNames: string[] = [];
@@ -189,6 +221,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
         'XLSX parsing failed in worker, falling back to main thread parsing.',
         workerError,
       );
+      const XLSX = await getXlsx();
       const workbook = XLSX.read(fileBuffer, { type: 'array' });
       workbookSheetNames = workbook.SheetNames;
       for (const sheetName of workbook.SheetNames) {
@@ -668,6 +701,9 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           const schoolId = row['SCHOOL ID']?.toString().trim();
           let grade = row['GRADE']?.toString().trim();
           const classSection = row['CLASS SECTION']?.toString().trim();
+          if (!schoolId || schoolId.trim() === '') {
+            errors.push('Missing SCHOOL ID.');
+          }
           let subjectGrade = row['SUBJECT GRADE']?.toString().trim();
           let curriculum = row['CURRICULUM']?.toString().trim();
           let subject = row['SUBJECT']?.toString().trim();
@@ -695,16 +731,10 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               grade = numericGrade.toString();
             }
           }
-
           const className = `${grade}${classSection}`.trim();
           const classNameKey = normalizeClassNameKey(className);
-          if (schoolId && className) {
-            const schoolClassKey = `${schoolId}_${className}`;
-            if (!validatedSchoolClassPairs.has(schoolClassKey)) {
-              validatedSchoolClassPairs.add(schoolClassKey);
-              newlyCreatedClasses.add(schoolClassKey);
-            }
-          }
+          const schoolClassKey = `${schoolId}_${className}`;
+          let classExistsInDb = false;
 
           if (!curriculum) errors.push('Missing curriculum');
           if (!subject) errors.push('Missing subject');
@@ -736,12 +766,18 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           ) {
             errors.push('Missing required class details.');
           } else {
-            if (!validatedSchoolIds.has(schoolId)) {
+            if (schoolId && !validatedSchoolIds.has(schoolId)) {
               const result = await api.validateSchoolUdiseCode(schoolId);
               if (result?.status === 'error') {
                 errors.push('SCHOOL ID does not match any validated school.');
                 errors.push(...(result.errors || []));
               }
+            }
+
+            if (schoolId && className) {
+              const classValidationResponse =
+                await api.validateClassNameWithSchoolID(schoolId, className);
+              classExistsInDb = classValidationResponse?.status === 'success';
             }
           }
           const validationResponse =
@@ -875,12 +911,18 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
 
           if (errors.length > 0) {
             row['Updated'] = createStyledCell(
-              `❌ Errors: ${errors.join(', ')}`,
+              `Errors: ${errors.join(', ')}`,
               true,
             );
             validSheetCountRef.current = 1;
           } else {
-            row['Updated'] = createStyledCell('✅ Class Validated', false);
+            validatedSchoolClassPairs.add(schoolClassKey);
+
+            if (!classExistsInDb) {
+              newlyCreatedClasses.add(schoolClassKey);
+            }
+
+            row['Updated'] = createStyledCell('Class Validated', false);
           }
         }
       }
@@ -999,7 +1041,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           studentLoginType: string | undefined,
           parentContact: string,
           className: string,
-          studentName: string,
+          normalizedStudentName: string,
           schoolId: string,
           studentId: string | undefined,
           errors: string[],
@@ -1026,14 +1068,18 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
               try {
                 const result = await api.validateParentAndStudentInClass(
                   parentContact,
-                  studentName,
+                  normalizedStudentName,
                   className,
                   schoolId,
                 );
                 if (result?.status === 'error') {
-                  if (result.message) errors.push(result.message);
+                  if (result.message) {
+                    errors.push(result.message);
+                    markDuplicateStudentErrorIfPresent([result.message]);
+                  }
                   if (result.errors && result.errors.length > 0) {
                     errors.push(...result.errors);
+                    markDuplicateStudentErrorIfPresent(result.errors);
                   }
                 }
               } catch (e) {
@@ -1050,14 +1096,18 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             }
             try {
               const result = await api.validateStudentInClassWithoutPhone(
-                studentName,
+                normalizedStudentName,
                 className,
                 schoolId,
               );
               if (result?.status === 'error') {
-                if (result.message) errors.push(result.message);
+                if (result.message) {
+                  errors.push(result.message);
+                  markDuplicateStudentErrorIfPresent([result.message]);
+                }
                 if (result.errors && result.errors.length > 0) {
                   errors.push(...result.errors);
+                  markDuplicateStudentErrorIfPresent(result.errors);
                 }
               }
             } catch (e) {
@@ -1071,7 +1121,10 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           let errors: string[] = [];
           const schoolId = row['SCHOOL ID']?.toString().trim();
           const studentId = row['STUDENT ID']?.toString().trim();
-          const studentName = row['STUDENT NAME']?.toString().trim();
+          const rawStudentName = row['STUDENT NAME']?.toString() ?? '';
+          const studentName = rawStudentName.trim().replace(/\s+/g, ' ');
+          row['STUDENT NAME'] = studentName;
+          const normalizedStudentName = studentName.toLowerCase();
           const gender = row['GENDER']?.toString().trim();
           let age = row['AGE']?.toString().trim();
           let grade = row['GRADE']?.toString().trim();
@@ -1111,16 +1164,19 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
             errors.push('Class details (Grade/Section) are required.');
 
           // --- In-sheet duplicate checks ---
-          if (studentName && classId) {
-            const nameClassKey = `${studentName}_${classId}`.toLowerCase();
+
+          if (normalizedStudentName && classId) {
+            const nameClassKey = `${schoolId}_${classId}_${normalizedStudentName}`;
             if (seenNameClassCombos.has(nameClassKey)) {
-              errors.push(
-                'Duplicate student name in the same class within this sheet.',
-              );
+              const duplicateMessage =
+                'Duplicate student name in the same class within this sheet.';
+              errors.push(duplicateMessage);
+              markDuplicateStudentErrorIfPresent([duplicateMessage]);
             } else {
               seenNameClassCombos.add(nameClassKey);
             }
           }
+
           const identifier = parentContact || studentId;
           if (identifier && classId) {
             const classIdentifierKey = `${classId}_${identifier}`.toLowerCase();
@@ -1227,23 +1283,23 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                   schoolModel === 'AT_SCHOOL'
                 ) {
                   const result = await api.validateStudentInClassWithoutPhone(
-                    studentName,
+                    normalizedStudentName,
                     className,
                     schoolId,
                   );
                   if (result?.status === 'error') {
-                    errors.push(
-                      ...(result.errors || [
-                        result.message || 'Validation failed.',
-                      ]),
-                    );
+                    const duplicateMessages = result.errors || [
+                      result.message || 'Validation failed.',
+                    ];
+                    errors.push(...duplicateMessages);
+                    markDuplicateStudentErrorIfPresent(duplicateMessages);
                   }
                 } else {
                   await validateStudentData(
                     studentLoginType,
                     parentContact,
                     className,
-                    studentName,
+                    normalizedStudentName,
                     schoolId,
                     studentId,
                     errors,
@@ -1285,6 +1341,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
         'XLSX generation failed in worker, falling back to main thread generation.',
         workerError,
       );
+      const XLSX = await getXlsx();
       const fallbackWorkbook = XLSX.utils.book_new();
       for (const sheetName of workbookSheetNames) {
         const rows = processedSheetsForExport[sheetName] ?? [];
@@ -1520,6 +1577,18 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
       <ErrorPage
         handleDownload={() => handleDownload()}
         reUplod={() => onReuploadTriggered()}
+        title={
+          hasDuplicateStudentErrorRef.current
+            ? t('Duplicate Students Found')
+            : undefined
+        }
+        message={
+          hasDuplicateStudentErrorRef.current
+            ? t(
+                'Some student records already exist in the same class for this school. Download the file, review the highlighted rows, remove duplicates, and re-upload.',
+              )
+            : undefined
+        }
       />
     );
   }

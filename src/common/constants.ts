@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core';
-import Auth from '../models/auth';
+import Auth from '../models/Auth';
 import { Constants, Database } from '../services/database';
 import { RoleType } from '../interface/modelInterfaces';
 import SelectIconImage from '../teachers-module/assets/icons/all_subject_icon.png';
@@ -516,7 +516,8 @@ export enum PAGES {
   ADMIN_DASHBOARD = '/dashboard',
   ADMIN_PROGRAMS = '/programs',
   ADMIN_SCHOOLS = '/schools',
-  ADMIN_COMPAIGNS = '/compaigns',
+  ADMIN_CAMPAIGNS = '/campaigns',
+  ADMIN_CAMPAIGNS_NEW = '/campaigns/new',
   ADMIN_USERS = '/users',
   ADMIN_DEVICES = '/devices',
   ADMIN_RESOURCES = '/resourses',
@@ -582,7 +583,7 @@ export enum NavItems {
   DASHBOARD = 'Dashboard',
   PROGRAMS = 'Programs',
   SCHOOLS = 'Schools',
-  COMPAIGNS = 'Campaigns',
+  CAMPAIGNS = 'Campaigns',
   REQUESTS = 'Requests',
   OpsMODULE = 'OpsModule',
   USERS = 'Users',
@@ -670,6 +671,7 @@ export interface FilteredSchoolsForSchoolListingOps {
   avg_assignments_completed?: number | null;
   avg_activities_completed?: number | null;
   phone_calls_students_parents?: number | null;
+  inperson_students_parents?: number | null;
   phone_calls_teachers_hms?: number | null;
   community_visits?: number | null;
   school_visits?: number | null;
@@ -733,6 +735,7 @@ export const CLASSES = 'classes';
 export const DELETED_CLASSES = 'deleted_classes';
 export const CURRENT_TEACHER = 'currentTeacher';
 export const CURRENT_COURSE = 'currentCourse';
+export const COURSE_LESSONS = 'CourseLessons';
 export const NAVIGATION_STATE = 'navigationState';
 export const STARS_COUNT = 'starsCount';
 export const LATEST_STARS = (studentId: string) => `latestStar_${studentId}`;
@@ -754,7 +757,7 @@ export enum IconType {
   CLASS = 'class',
 }
 
-const rawWebBaseName = process.env.REACT_APP_GITHUB_BASE ?? '';
+const rawWebBaseName = import.meta.env.VITE_GITHUB_BASE ?? '';
 const normalizedWebBaseName = rawWebBaseName
   .replace(/\/$/, '')
   .replace(/^\.$/, '')
@@ -901,7 +904,7 @@ export const NUMBER_NAME = [
 
 export const MAX_STUDENTS_ALLOWED = 3;
 export const INSTANT_SEARCH_INDEX_NAME =
-  process.env.REACT_APP_ALGOLIA_INDEX_NAME ?? '';
+  import.meta.env.VITE_ALGOLIA_INDEX_NAME ?? '';
 
 export enum MODES {
   PARENT = 'PARENT',
@@ -931,6 +934,7 @@ export enum EVENTS {
   LESSON_END = 'lesson_end',
   LESSON_INCOMPLETE = 'lesson_incomplete',
   USER_PROFILE = 'user_profile',
+  GOAL_PROGRESS = 'Goal_Progress',
   CLICKS_ANALYTICS = 'clicks_analytics',
   EXPERIMENT_VIEWED = 'experiment_viewed',
   PATHWAY_CREATED = 'pathway_created',
@@ -944,6 +948,8 @@ export enum EVENTS {
   ERROR_LOGS = 'error_logs',
   PROFILE_CLICKS_ANALYTICS = 'profile_clicks_analytics',
   REWARD_COLLECTED = 'reward_collected',
+  HW_DAILY_REWARD_CLAIMED = 'hw_daily_reward_claimed',
+  HOME_DAILY_REWARD_CLAIMED = 'home_daily_reward_claimed',
   STICKER_BOOK_MENU_TAP = 'sticker_book_menu_tap',
   STICKER_BOOK_PAGE_NEXT = 'sticker_book_page_next',
   STICKER_BOOK_PAGE_PREV = 'sticker_book_page_prev',
@@ -966,6 +972,7 @@ export enum EVENTS {
   LIVE_UPDATE_APPLIED = 'live_update_applied',
   LIVE_UPDATE_STARTED = 'live_update_started',
   LIVE_UPDATE_ERROR = 'live_update_error',
+  USER_ACTIVATION_LESSON = 'user_activation_lesson',
   ASSESSMENT_ABORTED = 'assessment_aborted',
   ASSESSMENT_COMPLETED = 'assessment_completed',
   RESULTS_SAVED = 'results_saved',
@@ -974,6 +981,8 @@ export enum EVENTS {
   STICKER_PREVIEW_POPUP_CLOSED = 'sticker_preview_popup_closed',
   PATHWAY_STICKER_BOX_TAPPED = 'pathway_sticker_box_tapped',
   PATHWAY_MYSTERY_BOX_TAPPED = 'pathway_mystery_box_tapped',
+  HW_PATHWAY_STICKER_COLLECTED = 'hw_pathway_sticker_collected',
+  HOME_PATHWAY_STICKER_COLLECTED = 'home_pathway_sticker_collected',
   STICKER_DRAG_POPUP_SHOWN = 'sticker_drag_popup_shown',
   STICKER_DRAG_POPUP_EXPANDED = 'sticker_drag_popup_expanded',
   STICKER_DRAG_POPUP_CLOSED = 'sticker_drag_popup_closed',
@@ -1048,12 +1057,13 @@ export const CACHE_IMAGE = 'cacheImage';
 
 export const IS_MIGRATION_CHECKED = 'isMigrationChecked';
 
-export const HOT_UPDATE_SERVER = process.env.REACT_APP_HOT_UPDATE_SERVER;
+export const HOT_UPDATE_SERVER = import.meta.env.VITE_HOT_UPDATE_SERVER;
 
 export const COPIED_BUNDLE_FILES_INDEX = 'copiedBundleFilesIndex';
 
 export const NUMBER_REGEX = /^[0-9]+$/;
 export const DOWNLOADED_LESSON_ID = 'downloadedLessonId';
+export const DOWNLOADED_LESSONS_SIZE = 'downloaded_lessons_size';
 export enum SnackbarType {
   Success = 'success',
   Error = 'error',
@@ -1216,6 +1226,8 @@ export const BULK_UPLOAD_TEMPLATE_URL =
   'https://aeakbcdznktpsbrfsgys.supabase.co/storage/v1/object/public/common-files//Bulk%20School%20&%20Students%20Upload%20Template.xlsx';
 export const BUNDLE_ZIP_URLS = 'bundle_zip_urls';
 export const LIDO_BUNDLE_ZIP_URLS = 'lido_bundle_zip_urls';
+export const CURRENT_HEADER = 'currentHeader';
+export const SEARCH_TERM = 'searchTerm';
 export const FORM_MODES = {
   ALL_REQUIRED: 'all-required',
   NAME_REQUIRED: 'name-required',
@@ -1360,7 +1372,9 @@ export const REWARD_MODAL_SHOWN_DATE = 'RewardModalShownDate';
 export const DAILY_USER_REWARD = 'DailyUserReward';
 export const IDLE_REWARD_ID = '5dfa8e34-14a3-42de-ae3a-977862712b1e';
 export const REWARD_LESSON = 'RewardLesson';
+export const STUDENT_RESULT = 'studentResult';
 export const REWARD_LEARNING_PATH = 'RewardLearningPath';
+export const ACTIVATION_REWARD_FLOW_KEY = 'ActivationRewardFlow';
 export enum RewardBoxState {
   IDLE = 'idle',
   SHAKING = 'shaking',
@@ -1380,7 +1394,25 @@ export const CAMPAIGN_ACCESS_ROLES = [
   RoleType.OPERATIONAL_DIRECTOR,
   RoleType.PROGRAM_MANAGER,
 ];
+
+export const CAMPAIGN_OBJECTIVE = {
+  HOMEWORK: 'homework_campaign',
+  HOMEPAGE_LEARNING_PATHWAY: 'homepage_learning_pathway_campaign',
+} as const;
+export const CAMPAIGN_STATUS = {
+  ACTIVE: 'active' as EnumType<'campaign_status'>,
+  INACTIVE: 'inactive' as EnumType<'campaign_status'>,
+} as const;
+export const CAMPAIGN_LISTING_STATUS = {
+  NOT_STARTED: 'Not Started',
+  IN_PROGRESS: 'In Progress',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
+} as const;
+export type CampaignListingStatus =
+  (typeof CAMPAIGN_LISTING_STATUS)[keyof typeof CAMPAIGN_LISTING_STATUS];
 export const CAN_HOT_UPDATE = 'can-Hot-Update';
+export const READY_FOR_HOT_UPDATE = 'readyForHotUpdate';
 export const VERSION_KEY = 'last_native_version';
 export enum SupportLevelMap {
   'Doing Good' = 'doing_good',
@@ -1550,9 +1582,9 @@ export const STICKER_BOOK_NOTIFICATION_DOT_ENABLED =
 export const ENABLE_SAVE_AND_SHARE_STICKER_BOOK =
   'enable_save_and_share_sticker_book';
 export const SCHOOL_PERFORMANCE_STATUS = {
-  PERFORMING_WELL: 'Performing Well',
-  NEEDS_ATTENTION: 'Needs Attention',
-  NEEDS_SUPPORT: 'Needs Support',
+  PERFORMING_WELL: 'High Performing',
+  NEEDS_ATTENTION: 'Medium Performing',
+  NEEDS_SUPPORT: 'Low Performing',
 } as const;
 export const PERCENTAGE_BAND = {
   LOW: 'low',

@@ -31,6 +31,35 @@ export type HomeworkPathwayItem = {
 };
 
 /**
+ * Fetches each unique lesson in one batch so stale-homework validation does not
+ * issue duplicate per-lesson API requests when multiple assignments point at
+ * the same lesson.
+ */
+export const fetchLessonsById = async <
+  TLesson extends HomeworkPathwayLesson = HomeworkPathwayLesson,
+>(
+  lessonIds: Array<string | null | undefined>,
+  getLessonsBylessonIds: (
+    lessonIds: string[],
+  ) => Promise<TLesson[] | null | undefined>,
+): Promise<Map<string, TLesson>> => {
+  const uniqueLessonIds = Array.from(
+    new Set(lessonIds.filter((id): id is string => !!id)),
+  );
+
+  if (uniqueLessonIds.length === 0) {
+    return new Map();
+  }
+
+  const lessons = (await getLessonsBylessonIds(uniqueLessonIds)) ?? [];
+
+  return lessons.reduce<Map<string, TLesson>>((lessonMap, lesson) => {
+    if (lesson?.id) lessonMap.set(lesson.id, lesson);
+    return lessonMap;
+  }, new Map());
+};
+
+/**
  * Represents the stored homework path along with progress metadata.
  */
 export interface HomeworkPath {
@@ -72,7 +101,7 @@ export const mergeHomeworkPathWithPendingAssignments = async (
   pendingAssignmentIds: string[],
   normalizeAssignment: (
     assignment: HomeworkPathwayAssignment,
-  ) => Promise<HomeworkPathwayItem>,
+  ) => Promise<HomeworkPathwayItem | null>,
 ): Promise<HomeworkPath> => {
   // Keep every completed lesson before the active index exactly as-is.
   const completedCount = Math.min(
@@ -110,11 +139,13 @@ export const mergeHomeworkPathWithPendingAssignments = async (
   });
 
   // Normalize the final playable slice before saving it back to local storage.
-  const normalizedPendingLessons = await Promise.all(
-    mergedPendingAssignments
-      .slice(0, remainingSlots)
-      .map(async (assignment) => normalizeAssignment(assignment)),
-  );
+  const normalizedPendingLessons = (
+    await Promise.all(
+      mergedPendingAssignments
+        .slice(0, remainingSlots)
+        .map(async (assignment) => normalizeAssignment(assignment)),
+    )
+  ).filter((lesson): lesson is HomeworkPathwayItem => lesson !== null);
 
   return {
     ...existingPath,
@@ -126,6 +157,19 @@ export const mergeHomeworkPathWithPendingAssignments = async (
     pendingAssignmentIds,
   };
 };
+
+/**
+ * Removes homework nodes that no longer have enough lesson metadata to be played.
+ */
+export const filterPlayableHomeworkItems = (
+  lessons: Array<HomeworkPathwayItem | null | undefined>,
+): HomeworkPathwayItem[] =>
+  lessons.filter((lesson): lesson is HomeworkPathwayItem => {
+    if (!lesson) return false;
+
+    const lessonId = lesson.lesson_id ?? lesson.lesson?.id ?? null;
+    return Boolean(lessonId && lesson.lesson?.id);
+  });
 
 /**
  * Detects whether the stored path actually changed before we overwrite local storage.

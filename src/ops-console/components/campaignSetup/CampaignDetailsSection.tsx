@@ -17,6 +17,33 @@ import { requiredLabel } from './constants';
 import { CampaignDetailsSectionProps } from './types';
 import './CampaignDetailsSection.css';
 
+const formatCampaignDateDisplay = (value: string) => {
+  if (!value) {
+    return '';
+  }
+
+  const [year, month, day] = value.split('-');
+
+  if (!year || !month || !day) {
+    return value;
+  }
+
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+    .format(date)
+    .replace(/ /g, '-');
+};
+
 export const CampaignDetailsSection: React.FC<CampaignDetailsSectionProps> = ({
   form,
   managers,
@@ -105,69 +132,95 @@ export const CampaignDetailsSection: React.FC<CampaignDetailsSectionProps> = ({
           <Typography className="campaign-setup-label">
             {requiredLabel('Start Date')}
           </Typography>
-          <TextField
-            type="date"
-            value={form.startDate}
-            onChange={onTextChange('startDate')}
-            error={!!fieldError('startDate')}
-            helperText={fieldError('startDate')}
-            inputRef={startDateInputRef}
-            inputProps={{ 'aria-label': 'Start Date', min: today }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment
-                  position="end"
-                  className="campaign-setup-date-adornment"
-                >
-                  <IconButton
-                    type="button"
-                    aria-label="Open start date picker"
-                    className="campaign-setup-date-button"
-                    onClick={() => openDatePicker(startDateInputRef.current)}
-                    edge="end"
-                    size="small"
+          <Box className="campaign-details-section-date-field-wrap">
+            <TextField
+              className={`campaign-details-section-date-input ${
+                form.startDate
+                  ? 'campaign-details-section-date-input-has-value'
+                  : ''
+              }`}
+              fullWidth
+              type="date"
+              value={form.startDate}
+              onChange={onTextChange('startDate')}
+              error={!!fieldError('startDate')}
+              helperText={fieldError('startDate')}
+              inputRef={startDateInputRef}
+              inputProps={{ 'aria-label': 'Start Date', min: today }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment
+                    position="end"
+                    className="campaign-setup-date-adornment"
                   >
-                    <CalendarToday className="campaign-setup-date-icon" />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            size="small"
-          />
+                    <IconButton
+                      type="button"
+                      aria-label="Open start date picker"
+                      className="campaign-setup-date-button"
+                      onClick={() => openDatePicker(startDateInputRef.current)}
+                      edge="end"
+                      size="small"
+                    >
+                      <CalendarToday className="campaign-setup-date-icon" />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              size="small"
+            />
+            {form.startDate && (
+              <Typography className="campaign-details-section-date-display">
+                {formatCampaignDateDisplay(form.startDate)}
+              </Typography>
+            )}
+          </Box>
         </Box>
         <Box className="campaign-setup-field campaign-details-section-end-date-field">
           <Typography className="campaign-setup-label">
             {requiredLabel('End Date')}
           </Typography>
-          <TextField
-            type="date"
-            value={form.endDate}
-            onChange={onTextChange('endDate')}
-            error={!!fieldError('endDate')}
-            helperText={fieldError('endDate')}
-            inputRef={endDateInputRef}
-            inputProps={{ 'aria-label': 'End Date', min: endDateMin }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment
-                  position="end"
-                  className="campaign-setup-date-adornment"
-                >
-                  <IconButton
-                    type="button"
-                    aria-label="Open end date picker"
-                    className="campaign-setup-date-button"
-                    onClick={() => openDatePicker(endDateInputRef.current)}
-                    edge="end"
-                    size="small"
+          <Box className="campaign-details-section-date-field-wrap">
+            <TextField
+              className={`campaign-details-section-date-input ${
+                form.endDate
+                  ? 'campaign-details-section-date-input-has-value'
+                  : ''
+              }`}
+              fullWidth
+              type="date"
+              value={form.endDate}
+              onChange={onTextChange('endDate')}
+              error={!!fieldError('endDate')}
+              helperText={fieldError('endDate')}
+              inputRef={endDateInputRef}
+              inputProps={{ 'aria-label': 'End Date', min: endDateMin }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment
+                    position="end"
+                    className="campaign-setup-date-adornment"
                   >
-                    <CalendarToday className="campaign-setup-date-icon" />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            size="small"
-          />
+                    <IconButton
+                      type="button"
+                      aria-label="Open end date picker"
+                      className="campaign-setup-date-button"
+                      onClick={() => openDatePicker(endDateInputRef.current)}
+                      edge="end"
+                      size="small"
+                    >
+                      <CalendarToday className="campaign-setup-date-icon" />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              size="small"
+            />
+            {form.endDate && (
+              <Typography className="campaign-details-section-date-display">
+                {formatCampaignDateDisplay(form.endDate)}
+              </Typography>
+            )}
+          </Box>
         </Box>
       </Box>
     </Box>

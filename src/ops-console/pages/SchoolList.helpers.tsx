@@ -229,6 +229,14 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     orderBy: 'student_parent_calls',
   },
   {
+    key: 'inpersonStudentsParents',
+    label: t('In-Person - Students / Parents'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'student_parent_inperson',
+  },
+  {
     key: 'phoneCallsTeachersHms',
     label: t('Phone Calls - Teachers & HMs'),
     width: '7.78%',
@@ -281,6 +289,8 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
 // Export columns intentionally mirror the UI while keeping paired % columns.
 export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
   { key: 'name', label: t('School Name'), part: 'value' },
+  { key: 'udise', label: t('UDISE'), part: 'value' },
+  { key: 'block', label: t('Block'), part: 'value' },
   {
     key: 'schoolPerformance',
     label: t('School Performance'),
@@ -316,6 +326,11 @@ export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
   {
     key: 'phoneCallsStudentsParents',
     label: t('Phone Calls - Students / Parents'),
+    part: 'value',
+  },
+  {
+    key: 'inpersonStudentsParents',
+    label: t('In-Person - Students / Parents'),
     part: 'value',
   },
   {

@@ -7,7 +7,7 @@ import UserTabs from '../../components/userRoles/UserTabs';
 import AddUserPopUp from '../../components/userRoles/AddUserPopUp';
 import { t } from 'i18next';
 import CircularButton from '../../components/CircularButton';
-import User from '../../models/user';
+import User from '../../models/User';
 import UserImageWithName from '../../components/UserImageWithName';
 import { useHistory } from 'react-router-dom';
 interface UserRolesProps {}

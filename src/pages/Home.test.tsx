@@ -10,6 +10,7 @@ import Home from './Home';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import {
+  CURRENT_HEADER,
   IS_CONECTED,
   IS_REWARD_FEATURE_ON,
   LIVE_QUIZ,
@@ -111,6 +112,7 @@ const mockApi = {
   getStudentClassesAndSchools: jest.fn(),
   getPendingAssignments: jest.fn(),
   getLesson: jest.fn(),
+  getLessonsBylessonIds: jest.fn(),
   assignmentListner: jest.fn(),
   assignmentUserListner: jest.fn(),
   authHandler: { getCurrentUser: jest.fn() },
@@ -149,6 +151,14 @@ describe('Home page (Home tab)', () => {
     });
     mockApi.getPendingAssignments.mockResolvedValue([]);
     mockApi.getLesson.mockResolvedValue({ id: 'l-1', subject_id: 'sub-1' });
+    mockApi.getLessonsBylessonIds.mockImplementation(
+      async (lessonIds: string[]) => {
+        const lessons = await Promise.all(
+          lessonIds.map((lessonId) => mockApi.getLesson(lessonId)),
+        );
+        return lessons.filter(Boolean);
+      },
+    );
     mockApi.assignmentListner.mockResolvedValue(undefined);
     mockApi.assignmentUserListner.mockResolvedValue(undefined);
     (useFeatureIsOn as jest.Mock).mockReturnValue(false);
@@ -459,6 +469,42 @@ describe('Home page (Home tab)', () => {
       expect(mockApi.getPendingAssignments).toHaveBeenCalledWith(
         'class-2',
         'stu-1',
+      );
+    });
+  });
+
+  test('excludes stale homework assignments from the header assignment count', async () => {
+    mockApi.getStudentClassesAndSchools.mockResolvedValue({
+      classes: [{ id: 'class-1' }],
+      schools: [{ id: 'school-1', name: 'School One' }],
+    });
+    mockApi.getPendingAssignments.mockResolvedValue([
+      {
+        id: 'a-valid',
+        type: 'HOMEWORK',
+        lesson_id: 'l-valid',
+        course_id: 'c-1',
+      },
+      {
+        id: 'a-stale',
+        type: 'HOMEWORK',
+        lesson_id: 'l-stale',
+        course_id: 'c-1',
+      },
+    ]);
+    mockApi.getLesson.mockImplementation((lessonId: string) => {
+      if (lessonId === 'l-stale') return Promise.resolve(undefined);
+      return Promise.resolve({
+        id: 'l-valid',
+        subject_id: 'sub-1',
+      });
+    });
+
+    render(<Home />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('header-assignment-count')).toHaveTextContent(
+        '1',
       );
     });
   });
@@ -778,7 +824,7 @@ describe('Home page (Home tab)', () => {
     render(<Home />);
     fireEvent.click(await screen.findByText('go-assignment'));
     await waitFor(() => {
-      expect(localStorage.getItem('currentHeader')).toBe('ASSIGNMENT');
+      expect(localStorage.getItem(CURRENT_HEADER)).toBe('ASSIGNMENT');
     });
   });
 });

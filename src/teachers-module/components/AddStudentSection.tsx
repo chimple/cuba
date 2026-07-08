@@ -105,8 +105,11 @@ const AddStudentSection: React.FC<AddStudentSectionProps> = ({
                 {t('female')}
               </label>
               <label className="radio-label">
-                <IonRadio value="other" className="add-student-radio-btn" />{' '}
-                {t('Other')}
+                <IonRadio
+                  value="unspecified"
+                  className="add-student-radio-btn"
+                />{' '}
+                {t('Unspecified')}
               </label>
             </div>
           </IonRadioGroup>

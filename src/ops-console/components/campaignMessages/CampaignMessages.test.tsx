@@ -1,0 +1,207 @@
+import React from 'react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import CampaignMessages from './CampaignMessages';
+import {
+  buildCampaignMessageSavePayload,
+  buildCampaignMessagesData,
+  CampaignMessageRow,
+} from './CampaignMessagesLogic';
+import {
+  CampaignMessagingResponse,
+  CampaignMessagingRow,
+} from '../../../services/api/ServiceApi';
+import { mockApiHandler } from '../../../tests/__mocks__/serviceConfigMock';
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
+
+type CampaignMessagingApiMock = typeof mockApiHandler & {
+  getCampaignMessaging: jest.Mock<
+    Promise<CampaignMessagingResponse>,
+    [string, { page?: number; pageSize?: number }?]
+  >;
+  updateCampaignMessaging: jest.Mock<Promise<boolean>, [CampaignMessageRow[]]>;
+};
+
+const apiHandler = mockApiHandler as CampaignMessagingApiMock;
+
+const buildMessagingRow = (
+  overrides: Partial<CampaignMessagingRow> = {},
+): CampaignMessagingRow =>
+  ({
+    id: 'message-1',
+    campaign_id: 'campaign-1',
+    message_time: '2026-06-10T15:00:00+00:00',
+    poll_time: '2026-06-10T10:00:00+00:00',
+    message: 'Class 1 Digital',
+    media_link: 'https://drive.example/media',
+    poll: {
+      question: 'Is this useful?',
+      options: ['Yes', 'No'],
+    },
+    message_status: 'pending',
+    poll_status: 'pending',
+    is_deleted: false,
+    ...overrides,
+  }) as CampaignMessagingRow;
+
+const buildResponse = (
+  rows: CampaignMessagingRow[],
+): CampaignMessagingResponse => ({
+  data: rows,
+  total: rows.length,
+  page: 1,
+  pageSize: 20,
+});
+
+describe('CampaignMessages', () => {
+  beforeEach(() => {
+    Object.assign(apiHandler, {
+      getCampaignMessaging: jest.fn(),
+      updateCampaignMessaging: jest.fn(),
+    });
+  });
+
+  it('fetches campaign messages by campaign id and shows empty state after loading', async () => {
+    let resolveResponse: (response: CampaignMessagingResponse) => void = () =>
+      undefined;
+    apiHandler.getCampaignMessaging.mockReturnValue(
+      new Promise((resolve) => {
+        resolveResponse = resolve;
+      }),
+    );
+
+    render(<CampaignMessages campaignId="campaign-1" />);
+
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(apiHandler.getCampaignMessaging).toHaveBeenCalledWith('campaign-1', {
+      page: 1,
+      pageSize: 20,
+    });
+
+    resolveResponse(buildResponse([]));
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('No configured communication days.'),
+      ).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+  });
+
+  it('renders rows returned from the campaign messaging API', async () => {
+    apiHandler.getCampaignMessaging.mockResolvedValue(
+      buildResponse([buildMessagingRow()]),
+    );
+
+    render(<CampaignMessages campaignId="campaign-1" />);
+
+    expect(await screen.findByText('Class 1 Digital')).toBeInTheDocument();
+    expect(screen.getByText('https://drive.example/media')).toBeInTheDocument();
+    expect(screen.getByText('Is this useful?')).toBeInTheDocument();
+    expect(screen.getByText('Yes')).toBeInTheDocument();
+    expect(screen.getByText('No')).toBeInTheDocument();
+    expect(screen.getByText('03:00 PM')).toBeInTheDocument();
+    expect(screen.getByText('10:00 AM')).toBeInTheDocument();
+  });
+
+  it('shows no-change toast and does not update when save is clicked without edits', async () => {
+    apiHandler.getCampaignMessaging.mockResolvedValue(
+      buildResponse([buildMessagingRow()]),
+    );
+    apiHandler.updateCampaignMessaging.mockResolvedValue(true);
+
+    render(<CampaignMessages campaignId="campaign-1" />);
+
+    await screen.findByText('Class 1 Digital');
+    fireEvent.click(screen.getByLabelText('Edit global send schedule'));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    expect(await screen.findByText('No changes made.')).toBeInTheDocument();
+    expect(apiHandler.updateCampaignMessaging).not.toHaveBeenCalled();
+  });
+});
+
+describe('CampaignMessagesLogic', () => {
+  it('builds display data from API rows without inventing missing times', () => {
+    const data = buildCampaignMessagesData({
+      messages: [
+        buildMessagingRow({
+          message_time: null,
+          poll_time: null,
+          message: 'Only message text',
+          media_link: null,
+          poll: null,
+        }),
+      ],
+    });
+
+    expect(data.messageTime).toBe('--');
+    expect(data.pollTime).toBe('--');
+    expect(data.rows[0].message).toBe('Only message text');
+    expect(data.rows[0].mediaLink).toBe('');
+  });
+
+  it('does not create a save payload when only ISO formatting changes', () => {
+    const currentRow: CampaignMessageRow = {
+      id: 'message-1',
+      dayLabel: 'Day 1',
+      dateLabel: '10 June',
+      message: 'Class 1 Digital',
+      mediaLink: '',
+      messageTimeIso: '2026-06-10T15:00:00+00:00',
+      pollTimeIso: '2026-06-10T10:00:00+00:00',
+      pollQuestion: 'Is this useful?',
+      pollOptions: ['Yes', 'No'],
+      messageStatus: 'pending',
+      pollStatus: 'pending',
+      isEditable: true,
+    };
+    const nextRow: CampaignMessageRow = {
+      ...currentRow,
+      messageTimeIso: '2026-06-10T15:00:00.000Z',
+      pollTimeIso: '2026-06-10T10:00:00.000Z',
+    };
+
+    expect(buildCampaignMessageSavePayload([currentRow], [nextRow])).toEqual(
+      [],
+    );
+  });
+
+  it('builds a save payload for changed editable row content', () => {
+    const currentRow: CampaignMessageRow = {
+      id: 'message-1',
+      dayLabel: 'Day 1',
+      dateLabel: '10 June',
+      message: 'Class 1 Digital',
+      mediaLink: '',
+      messageTimeIso: '2026-06-10T15:00:00+00:00',
+      pollTimeIso: '2026-06-10T10:00:00+00:00',
+      pollQuestion: 'Is this useful?',
+      pollOptions: ['Yes', 'No'],
+      messageStatus: 'pending',
+      pollStatus: 'pending',
+      isEditable: true,
+    };
+    const nextRow: CampaignMessageRow = {
+      ...currentRow,
+      message: 'Updated message',
+      pollOptions: ['Yes', 'No', 'Maybe', ''],
+    };
+
+    expect(buildCampaignMessageSavePayload([currentRow], [nextRow])).toEqual([
+      {
+        id: 'message-1',
+        message: 'Updated message',
+        mediaLink: '',
+        messageTime: '2026-06-10T15:00:00+00:00',
+        pollTime: '2026-06-10T10:00:00+00:00',
+        pollQuestion: 'Is this useful?',
+        pollOptions: ['Yes', 'No', 'Maybe'],
+      },
+    ]);
+  });
+});

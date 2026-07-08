@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Box, CircularProgress } from '@mui/material';
 import { useHistory } from 'react-router-dom';
+import { PAGES } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import type {
   CampaignObjective,
   CampaignRewardType,
   CampaignTargetType,
 } from '../../services/api/ServiceApi';
+import { CAMPAIGN_OBJECTIVE } from '../../common/constants';
 import {
   CampaignCommunicationTimelineStep,
   CampaignAssignmentStep,
@@ -62,8 +64,12 @@ const CampaignSetupPage: React.FC = () => {
   const selectedAssignmentSchoolIds = campaignSetup.selectedAssignmentSchoolIds;
 
   const communicationTimelineDates = useMemo(
-    () => buildCommunicationTimelineDates(campaignSetup.assignmentDrafts),
-    [campaignSetup.assignmentDrafts],
+    () =>
+      buildCommunicationTimelineDates(
+        campaignSetup.assignmentDrafts,
+        campaignSetup.form,
+      ),
+    [campaignSetup.assignmentDrafts, campaignSetup.form],
   );
 
   const communicationValidation = useMemo(
@@ -97,6 +103,15 @@ const CampaignSetupPage: React.FC = () => {
     !campaignSetup.loadingAudienceSummary && targetAudienceStudentCount === 0;
   const canProceedFromCampaignSetup =
     campaignSetup.isFormValid && !hasNoTargetAudienceStudents;
+  const isHomepageLearningPathwayCampaign =
+    campaignSetup.form.objective ===
+    CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY;
+  const stepperSteps = isHomepageLearningPathwayCampaign
+    ? ['Setup', 'Rewards', 'Messaging', 'Review']
+    : ['Setup', 'Assignments', 'Rewards', 'Messaging', 'Review'];
+  const stepperActiveStep = isHomepageLearningPathwayCampaign
+    ? [0, 2, 3, 4].indexOf(campaignSetup.activeStep)
+    : campaignSetup.activeStep;
 
   const messagingRows = useMemo(
     () =>
@@ -192,7 +207,8 @@ const CampaignSetupPage: React.FC = () => {
     setActiveStepSafe(
       campaignSetup.activeStep === 1 ||
         (campaignSetup.activeStep === 2 &&
-          campaignSetup.form.objective === 'homepage_learning_pathway_campaign')
+          campaignSetup.form.objective ===
+            CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY)
         ? 0
         : campaignSetup.activeStep - 1,
     );
@@ -208,8 +224,12 @@ const CampaignSetupPage: React.FC = () => {
       return;
     }
 
-    history.goBack();
+    history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`);
   }, [campaignSetup.activeStep, handleBackStep, history]);
+
+  const handleOpenCampaignListing = useCallback(() => {
+    history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`);
+  }, [history]);
 
   const handleCommunicationContinue = useCallback(() => {
     setCommunicationAttempted(true);
@@ -243,7 +263,10 @@ const CampaignSetupPage: React.FC = () => {
       });
       return;
     }
-    if (!isAssignmentComplete || campaignSetup.assignmentDrafts.length === 0) {
+    if (
+      !isHomepageLearningPathwayCampaign &&
+      (!isAssignmentComplete || campaignSetup.assignmentDrafts.length === 0)
+    ) {
       setLaunchMessage({
         type: 'error',
         text: t('Complete assignment setup before launching.'),
@@ -271,14 +294,14 @@ const CampaignSetupPage: React.FC = () => {
         campaignName: campaignSetup.form.campaignName.trim(),
         objective: campaignSetup.form.objective as CampaignObjective,
         targetType:
-          campaignSetup.form.objective === 'homework_campaign'
+          campaignSetup.form.objective === CAMPAIGN_OBJECTIVE.HOMEWORK
             ? (campaignSetup.form.targetType as CampaignTargetType)
             : undefined,
         targetValue:
-          campaignSetup.form.objective === 'homework_campaign'
+          campaignSetup.form.objective === CAMPAIGN_OBJECTIVE.HOMEWORK
             ? Number(campaignSetup.form.targetValue)
             : campaignSetup.form.objective ===
-                'homepage_learning_pathway_campaign'
+                CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY
               ? Number(campaignSetup.form.learningPathCount)
               : undefined,
         managerId: campaignSetup.form.managerId,
@@ -315,6 +338,7 @@ const CampaignSetupPage: React.FC = () => {
       await ServiceConfig.getI().apiHandler.launchCampaign({
         campaignId,
         currentUserId: currentUser.id,
+        objective: campaign.objective,
         rewards,
         assignments: campaignSetup.assignmentDrafts.map((assignment) => ({
           gradeId: assignment.gradeId,
@@ -340,7 +364,7 @@ const CampaignSetupPage: React.FC = () => {
         type: 'success',
         text: t('Campaign launched successfully.'),
       });
-      history.goBack();
+      history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`);
     } catch (error) {
       logger.error('Failed to launch campaign:', error);
       setLaunchMessage({
@@ -361,6 +385,7 @@ const CampaignSetupPage: React.FC = () => {
     communicationValidation.isValid,
     history,
     isAssignmentComplete,
+    isHomepageLearningPathwayCampaign,
     messagingRows,
     campaignSetup.saveGroup,
     campaignSetup.selectedGradeIds,
@@ -387,7 +412,10 @@ const CampaignSetupPage: React.FC = () => {
 
   return (
     <Box className="campaign-setup-page">
-      <CampaignSetupHeader onBack={handleHeaderBack} />
+      <CampaignSetupHeader
+        onBack={handleHeaderBack}
+        onOpenCampaignListing={handleOpenCampaignListing}
+      />
 
       {(campaignSetup.message || launchMessage) && (
         <Alert
@@ -404,7 +432,10 @@ const CampaignSetupPage: React.FC = () => {
         onSubmit={campaignSetup.handleSubmit}
       >
         <Box className="campaign-setup-scroll-area">
-          <CampaignSetupStepper activeStep={campaignSetup.activeStep} />
+          <CampaignSetupStepper
+            activeStep={Math.max(0, stepperActiveStep)}
+            steps={stepperSteps}
+          />
 
           {campaignSetup.activeStep === 0 ? (
             <>

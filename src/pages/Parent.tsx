@@ -30,7 +30,7 @@ import { TfiWorld } from 'react-icons/tfi';
 import i18n from '../i18n';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Box } from '@mui/material';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import CustomAppBar from '../components/studentProgress/CustomAppBar';
 import { Util } from '../utility/util';
 import { schoolUtil } from '../utility/schoolUtil';
@@ -48,13 +48,23 @@ import { Browser } from '@capacitor/browser';
 import { ClearCacheData } from '../components/parent/DataClear';
 import { logAuthDebug } from '../utility/authDebug';
 
+const parentHeaderIconList = [
+  { header: 'profile', displayName: 'Profile' },
+  { header: 'settings', displayName: 'Settings' },
+  { header: 'help', displayName: 'Help' },
+  { header: 'faq', displayName: 'FAQ' },
+] as const;
+
+const DEFAULT_PARENT_TAB = parentHeaderIconList[0].header;
+
 const Parent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [soundFlag, setSoundFlag] = useState<number>();
   const [musicFlag, setMusicFlag] = useState<number>();
   const [userProfile, setUserProfile] = useState<TableTypes<'user'>[]>([]);
-  const [tabIndex, setTabIndex] = useState<any>();
+  const location = useLocation<{ activeTab?: string }>();
+  const [tabIndex, setTabIndex] = useState<string>(DEFAULT_PARENT_TAB);
   const dispatch = useAppDispatch();
 
   const [langList, setLangList] = useState<
@@ -90,15 +100,21 @@ const Parent: React.FC = () => {
   const localAppLang = localStorage.getItem(LANGUAGE);
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  const parentHeaderIconList = [
-    { header: 'profile', displayName: 'Profile' },
-    { header: 'settings', displayName: 'Settings' },
-    { header: 'help', displayName: 'Help' },
-    { header: 'faq', displayName: 'FAQ' },
-  ];
   const [tabs, setTabs] = useState({});
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
+
+  const normalizeTabValue = (value?: string) => {
+    if (!value) {
+      return DEFAULT_PARENT_TAB;
+    }
+
+    const matchedTab = parentHeaderIconList.find(
+      (item) => item.header === value || t(item.header) === value,
+    );
+
+    return matchedTab?.header ?? DEFAULT_PARENT_TAB;
+  };
 
   const switchToTeacherMode = () => {
     schoolUtil.setCurrMode(MODES.TEACHER);
@@ -108,9 +124,10 @@ const Parent: React.FC = () => {
   useEffect(() => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
+    setTabIndex(normalizeTabValue(location.state?.activeTab));
     init();
     getStudentProfile();
-  }, [reloadProfiles]);
+  }, [reloadProfiles, location]);
 
   useEffect(() => {
     const handleDocumentClick = (event: MouseEvent) => {
@@ -207,7 +224,7 @@ const Parent: React.FC = () => {
 
       // ✅ FIX: set initial tabIndex so content renders immediately
       if (!tabIndex) {
-        setTabIndex(t(parentHeaderIconList[0].header));
+        setTabIndex(DEFAULT_PARENT_TAB);
       }
 
       setIsLoading(false);
@@ -259,7 +276,7 @@ const Parent: React.FC = () => {
       localStorage.setItem(LANGUAGE, langDoc.code ?? '');
       await i18n.changeLanguage(langDoc.code ?? '');
       const currentUser = await auth.getCurrentUser();
-      setTabIndex(t(parentHeaderIconList[1].header));
+      setTabIndex(parentHeaderIconList[1].header);
 
       if (!currentUser || !currentUser.id) return;
       if (selectedLangDocId) {
@@ -328,7 +345,15 @@ const Parent: React.FC = () => {
     const handleTermsClick = () => {
       history.push({
         pathname: PAGES.TERMS_AND_CONDITIONS,
-        state: { from: window.location.pathname },
+        state: {
+          from: window.location.pathname,
+          returnLocation: {
+            pathname: window.location.pathname,
+            state: {
+              activeTab: 'settings',
+            },
+          },
+        },
       });
     };
 
@@ -701,13 +726,14 @@ const Parent: React.FC = () => {
   }
 
   const handleChange = (newValue: string) => {
+    const normalizedTabValue = normalizeTabValue(newValue);
     const selectedHeader = parentHeaderIconList.find(
-      (item) => item.header === newValue,
+      (item) => item.header === normalizedTabValue,
     );
     if (selectedHeader) {
       setCurrentHeader(selectedHeader.header);
     }
-    setTabIndex(newValue);
+    setTabIndex(normalizedTabValue);
   };
 
   const handleBackButton = () => {
@@ -716,13 +742,13 @@ const Parent: React.FC = () => {
 
   useEffect(() => {
     if (!tabIndex && parentHeaderIconList.length > 0) {
-      setTabIndex(t(parentHeaderIconList[0].header));
+      setTabIndex(DEFAULT_PARENT_TAB);
     }
   }, []);
   useEffect(() => {
     const updatedTabs: Record<string, string> = {};
     parentHeaderIconList.forEach((item) => {
-      updatedTabs[t(item.header)] = t(item.header);
+      updatedTabs[item.header] = t(item.header);
     });
     setTabs(updatedTabs);
   }, [localAppLang]);
@@ -742,10 +768,10 @@ const Parent: React.FC = () => {
             isLanguageMenuOpen ? ' parent-page-scroll-content--locked' : ''
           }`}
         >
-          {tabIndex === t('profile') && <div>{profileUI()}</div>}
-          {tabIndex === t('settings') && <div>{settingUI()}</div>}
-          {tabIndex === t('help') && <div>{helpUI()}</div>}
-          {tabIndex === t('faq') && <div>{faqUI()}</div>}
+          {tabIndex === 'profile' && <div>{profileUI()}</div>}
+          {tabIndex === 'settings' && <div>{settingUI()}</div>}
+          {tabIndex === 'help' && <div>{helpUI()}</div>}
+          {tabIndex === 'faq' && <div>{faqUI()}</div>}
           <TeacherAuthenticationPopup
             isOpen={isTeacherAuthPopupOpen}
             sourceEntryPoint={

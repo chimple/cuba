@@ -2,8 +2,8 @@ import { FirebaseRemoteConfig } from '@capacitor-firebase/remote-config';
 
 const getAppEnvironment = (): 'dev' | 'prod' => {
   const env = (
-    process.env.REACT_APP_ENVIRONMENT ??
-    process.env.REACT_APP_ENV ??
+    import.meta.env.VITE_ENVIRONMENT ??
+    import.meta.env.VITE_ENV ??
     'dev'
   )
     .trim()
@@ -17,11 +17,13 @@ const APP_ENVIRONMENT: AppEnvironment = getAppEnvironment();
 
 const BUNDLE_ZIP_URLS_BY_ENV = {
   dev: [
+    'https://pub-ea1c3bce75704acdadd2eb5e79dbdd04.r2.dev/',
     'https://cuba-zip-bundle-dev.web.app/',
     'https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/',
     'https://raw.githubusercontent.com/chimple/chimple-zips/main/',
   ],
   prod: [
+    'https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/',
     'https://cuba-stage-zip-bundle.web.app/',
     'https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/',
     'https://raw.githubusercontent.com/chimple/chimple-zips/main/',

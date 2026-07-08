@@ -1,4 +1,4 @@
-import React, { FC, ReactNode } from 'react';
+import React, { FC, ReactNode, useState, useRef, useEffect } from 'react';
 import './InputWithIcons.css';
 
 type InputProps = {
@@ -30,9 +30,24 @@ const InputWithIcons: FC<InputProps> = ({
   id,
   labelOffsetClass = '',
 }) => {
+  const labelRef = useRef<HTMLDivElement>(null);
+  const [labelWidth, setLabelWidth] = useState(0);
+
+  useEffect(() => {
+    if (labelRef.current) {
+      setLabelWidth(labelRef.current.offsetWidth);
+    }
+  }, [label]);
+
   return (
-    <div className="with-icon-input-wrapper">
-      <div className={`with-icon-input-label ${labelOffsetClass ?? ''}`}>
+    <div
+      className="with-icon-input-wrapper"
+      style={{ '--label-width': `${labelWidth}px` } as React.CSSProperties}
+    >
+      <div
+        className={`with-icon-input-label ${labelOffsetClass ?? ''}`}
+        ref={labelRef}
+      >
         {label}
         {required && <span className="with-icon-required">*</span>}
       </div>

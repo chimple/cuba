@@ -18,7 +18,7 @@ import './DataTableBody.css';
 
 export interface Column<T extends object> {
   key: keyof T | string;
-  label: string;
+  label: React.ReactNode;
   align?: 'left' | 'right' | 'center' | 'justify' | 'inherit';
   headerAlign?: 'left' | 'center' | 'right';
   headerIcon?: 'sort' | 'filter' | 'none';
