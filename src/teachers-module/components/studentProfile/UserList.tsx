@@ -20,17 +20,16 @@ const UserList: React.FC<{
   userType: CLASS_USERS;
 }> = ({ schoolDoc, classDoc, userType }) => {
   const api = ServiceConfig.getI()?.apiHandler;
-  const auth = ServiceConfig.getI()?.authHandler;
   const [allStudents, setAllStudents] = useState<TableTypes<'user'>[]>();
   const [allTeachers, setAllTeachers] = useState<TableTypes<'user'>[]>();
-  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
-    null,
-  );
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSelfDeleteError, setShowSelfDeleteError] = useState(false);
   const [selectedUser, setSelectedUser] = useState<TableTypes<'user'> | null>(
     null,
   );
+  const currentUser = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  ).user;
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
@@ -42,14 +41,6 @@ const UserList: React.FC<{
   useEffect(() => {
     init();
   }, []);
-
-  useEffect(() => {
-    const loadCurrentUser = async () => {
-      const user = await auth?.getCurrentUser();
-      setCurrentUser(user ?? null);
-    };
-    loadCurrentUser();
-  }, [auth]);
 
   const canDelete = useMemo(
     () =>

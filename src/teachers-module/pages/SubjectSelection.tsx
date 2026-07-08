@@ -151,9 +151,10 @@ const SubjectSelection: React.FC = () => {
         (schoolCourse) => schoolCourse.course_id,
       );
       // Filter courseDocs based on the context
-      const filteredCourseDocs = schoolId
-        ? courseDocs.filter((course) => schoolCourseIds.includes(course.id))
-        : courseDocs;
+      const filteredCourseDocs =
+        context === CLASS
+          ? courseDocs.filter((course) => schoolCourseIds.includes(course.id))
+          : courseDocs;
 
       // Map courses to curriculums and grades
       const curriculumWithCourses = curriculumDocs.reduce<
