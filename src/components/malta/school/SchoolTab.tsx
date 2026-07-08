@@ -6,7 +6,7 @@ import SwitchSchool from './SwitchSchool';
 import CommonButton from '../common/CommonButton';
 import AddEditDeleteFab from './AddEditDeleteFab';
 import { t } from 'i18next';
-import School from '../../../models/school';
+import School from '../../../models/School';
 
 interface SchoolTabProps {
   isSchoolEdit: boolean;

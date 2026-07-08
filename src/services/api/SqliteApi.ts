@@ -75,8 +75,8 @@ import {
   StickerMeta,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
-import Course from '../../models/course';
-import Lesson from '../../models/lesson';
+import Course from '../../models/Course';
+import Lesson from '../../models/Lesson';
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,

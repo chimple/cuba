@@ -23,6 +23,7 @@ import {
   IS_REWARD_FEATURE_ON,
   RESULT_STATUS,
   SOURCE,
+  CURRENT_HEADER,
 } from '../common/constants';
 import Loading from '../components/Loading';
 import ScoreCard from '../components/scorecards/ScoreCard';
@@ -137,7 +138,7 @@ const LidoPlayer: FC = () => {
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get('lessonid') ?? state?.lessonId;
   const assignmentType = state?.assignment?.type || 'self-played';
-  const playedFrom = localStorage.getItem('currentHeader');
+  const playedFrom = localStorage.getItem(CURRENT_HEADER);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [basePath, setBasePath] = useState<string>();
