@@ -35,6 +35,8 @@ describe('buildSchoolListExportSheetRows', () => {
     expect(buildSchoolListExportSheetRows(rows)).toEqual([
       [
         'School Name',
+        'UDISE',
+        'Block',
         'School Performance',
         'Onboarded Students',
         'Activated Students',
@@ -56,8 +58,10 @@ describe('buildSchoolListExportSheetRows', () => {
         'In Group',
       ],
       [
-        'Alpha School\n1234567890 - Pune',
-        'Performing Well',
+        'Alpha School',
+        '1234567890',
+        '--',
+        'High Performing',
         '100',
         '80',
         '80%',
@@ -107,6 +111,8 @@ describe('buildSchoolListExportSheetRows', () => {
 
     expect(buildSchoolListExportSheetRows(rows)[1]).toEqual([
       'Beta School',
+      '--',
+      '--',
       '--',
       '--',
       '--',

@@ -1,6 +1,5 @@
 import { type SchoolListSourceRow } from './SchoolList.fetcher';
 import {
-  buildSchoolUdiseLocationLabel,
   formatCompactNumber,
   formatPercent,
   getSchoolListExportColumns,
@@ -54,13 +53,18 @@ const buildExportCellTextMap = (school: SchoolListSourceRow) => {
     school.avg_assignments_completed,
   );
   const completionActivities = pickFirstNumber(school.avg_activities_completed);
-  const udiseLocation = buildSchoolUdiseLocationLabel(school);
   const performanceStatus = resolvePerformanceStatus(school) || '--';
   const metricTextByKey: Record<string, ExportMetricText> = {
     name: {
-      valueText: udiseLocation
-        ? `${school.school_name}\n${udiseLocation}`
-        : school.school_name,
+      valueText: school.school_name,
+      percentText: '--',
+    },
+    udise: {
+      valueText: school.udise?.trim() || '--',
+      percentText: '--',
+    },
+    block: {
+      valueText: school.block?.trim() || '--',
       percentText: '--',
     },
     schoolPerformance: {
