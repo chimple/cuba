@@ -4049,11 +4049,15 @@ export class SqliteApi implements ServiceApi {
               `,
               [now, currentClassUserId],
             );
-            this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
-              id: currentClassUserId,
-              is_deleted: true,
-              updated_at: now,
-            });
+            await this.updatePushChanges(
+              TABLES.ClassUser,
+              MUTATE_TYPES.UPDATE,
+              {
+                id: currentClassUserId,
+                is_deleted: true,
+                updated_at: now,
+              },
+            );
           }
 
           if (parentId) {
@@ -4096,11 +4100,15 @@ export class SqliteApi implements ServiceApi {
                   `,
                   [now, parentClassUserId],
                 );
-                this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
-                  id: parentClassUserId,
-                  is_deleted: true,
-                  updated_at: now,
-                });
+                await this.updatePushChanges(
+                  TABLES.ClassUser,
+                  MUTATE_TYPES.UPDATE,
+                  {
+                    id: parentClassUserId,
+                    is_deleted: true,
+                    updated_at: now,
+                  },
+                );
               }
             }
           }
@@ -9338,6 +9346,7 @@ order by
       );
     } catch (error) {
       logger.error('Error in addParentToNewClass (SQLite):', error);
+      throw error;
     }
   }
   async getOpsRequests(
