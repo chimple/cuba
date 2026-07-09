@@ -268,11 +268,8 @@ export class SupabaseAuth implements ServiceAuth {
           },
         });
       } else {
-        const loginPath = `${BASE_NAME}${PAGES.LOGIN}`.replace(/\/{2,}/g, '/');
-        const redirectTo = new URL(
-          loginPath,
-          window.location.origin,
-        ).toString();
+        const redirectTo = window.location.origin;
+        console.log('Redirect URL for Google OAuth:', redirectTo);
         const { data, error } = await this._auth.signInWithOAuth({
           provider: 'google',
           options: {
