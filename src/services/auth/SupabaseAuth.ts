@@ -269,7 +269,6 @@ export class SupabaseAuth implements ServiceAuth {
         });
       } else {
         const redirectTo = window.location.origin;
-        console.log('Redirect URL for Google OAuth:', redirectTo);
         const { data, error } = await this._auth.signInWithOAuth({
           provider: 'google',
           options: {
