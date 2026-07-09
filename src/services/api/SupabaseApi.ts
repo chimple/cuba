@@ -15957,22 +15957,20 @@ export class SupabaseApi implements ServiceApi {
         .limit(50);
 
       const { data, error } = await abortQuery;
-
+      logger.info('Abort query result:', data);
       if (error) {
         logger.error('Abort query error:', error);
         return {} as TableTypes<'subject_lesson'>;
       }
 
-      if (!data || data.length === 0) {
-        return {} as TableTypes<'subject_lesson'>;
-      }
+      const resultRows = (data ?? []) as ResultStatusRow[];
 
       /* -----------------------------------------
         Keep latest result per unique lesson
       ------------------------------------------ */
       const uniqueMap = new Map<string, ResultStatusRow>();
 
-      for (const row of data as ResultStatusRow[]) {
+      for (const row of resultRows as ResultStatusRow[]) {
         if (!row.lesson_id) continue;
         if (!uniqueMap.has(row.lesson_id)) {
           uniqueMap.set(row.lesson_id, row);
@@ -15987,7 +15985,7 @@ export class SupabaseApi implements ServiceApi {
       /* -----------------------------------------
         Abort check
       ------------------------------------------ */
-      const isAssessmentTerminated = (data as ResultStatusRow[]).some(
+      const isAssessmentTerminated = resultRows.some(
         (r) => r.status === 'assessment_terminated',
       );
       const isAborted =
@@ -15995,6 +15993,7 @@ export class SupabaseApi implements ServiceApi {
         lastTwoUniqueLessons.every((r) => r.status === 'system_exit');
 
       if (isAssessmentTerminated || isAborted) {
+        logger.info('Assessment is terminated or aborted.');
         return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
       }
 
