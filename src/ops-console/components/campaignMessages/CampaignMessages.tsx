@@ -152,23 +152,25 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({
           <p className="campaign-messages-schedule-note campaign-messages-schedule-note-desktop">
             {t('Applied globally across all campaign days.')}
           </p>
-          <button
-            className={`campaign-messages-schedule-edit${
-              !controller.hasEditableRows
-                ? ' campaign-messages-schedule-edit-disabled'
-                : ''
-            }`}
-            type="button"
-            aria-label={String(t('Edit global send schedule'))}
-            disabled={!controller.hasEditableRows || controller.isEditMode}
-            onClick={controller.handleEdit}
-          >
-            <img
-              src={CAMPAIGN_MESSAGES_EDIT_ICON_SRC}
-              alt=""
-              aria-hidden="true"
-            />
-          </button>
+          {controller.canEdit && (
+            <button
+              className={`campaign-messages-schedule-edit${
+                !controller.hasEditableRows
+                  ? ' campaign-messages-schedule-edit-disabled'
+                  : ''
+              }`}
+              type="button"
+              aria-label={String(t('Edit global send schedule'))}
+              disabled={!controller.hasEditableRows || controller.isEditMode}
+              onClick={controller.handleEdit}
+            >
+              <img
+                src={CAMPAIGN_MESSAGES_EDIT_ICON_SRC}
+                alt=""
+                aria-hidden="true"
+              />
+            </button>
+          )}
         </div>
       </div>
 

@@ -10,12 +10,19 @@ import {
   CampaignMessagingResponse,
   CampaignMessagingRow,
 } from '../../../services/api/ServiceApi';
+import { RoleType } from '../../../interface/modelInterfaces';
 import { mockApiHandler } from '../../../tests/__mocks__/serviceConfigMock';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
+}));
+
+const mockUseAppSelector = jest.fn();
+
+jest.mock('../../../redux/hooks', () => ({
+  useAppSelector: (selector: unknown) => mockUseAppSelector(selector),
 }));
 
 type CampaignMessagingApiMock = typeof mockApiHandler & {
@@ -75,6 +82,13 @@ const buildResponse = (
 
 describe('CampaignMessages', () => {
   beforeEach(() => {
+    mockUseAppSelector.mockImplementation((selector) =>
+      selector({
+        auth: {
+          roles: [RoleType.SUPER_ADMIN],
+        },
+      }),
+    );
     Object.assign(apiHandler, {
       getCampaignMessaging: jest.fn(),
       updateCampaignMessaging: jest.fn(),
@@ -195,6 +209,26 @@ describe('CampaignMessages', () => {
 
     expect(await screen.findByText('No changes made.')).toBeInTheDocument();
     expect(apiHandler.updateCampaignMessaging).not.toHaveBeenCalled();
+  });
+
+  it('keeps field coordinators in view-only mode', async () => {
+    mockUseAppSelector.mockImplementation((selector) =>
+      selector({
+        auth: {
+          roles: [RoleType.FIELD_COORDINATOR],
+        },
+      }),
+    );
+    apiHandler.getCampaignMessaging.mockResolvedValue(
+      buildResponse([buildMessagingRow()]),
+    );
+
+    render(<CampaignMessages campaignId="campaign-1" />);
+
+    expect(await screen.findByText('Class 1 Digital')).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText('Edit global send schedule'),
+    ).not.toBeInTheDocument();
   });
 });
 
