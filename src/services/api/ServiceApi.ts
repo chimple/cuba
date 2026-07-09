@@ -198,6 +198,8 @@ export type UpdateCampaignMessagingRowPayload = {
   pollTime: string | null;
   pollQuestion: string;
   pollOptions: string[];
+  messageStatus?: string | null;
+  pollStatus?: string | null;
 };
 
 type OpsRequestsResponse = {

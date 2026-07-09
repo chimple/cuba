@@ -17461,6 +17461,7 @@ export class SupabaseApi implements ServiceApi {
 
     const normalizedRows = rows.filter(
       (row) =>
+        String(row.id ?? '').trim().length > 0 ||
         String(row.message ?? '').trim().length > 0 ||
         String(row.mediaLink ?? '').trim().length > 0 ||
         String(row.pollQuestion ?? '').trim().length > 0 ||
@@ -17493,6 +17494,8 @@ export class SupabaseApi implements ServiceApi {
               media_link: row.mediaLink.trim() || null,
               message_time: row.messageTime,
               poll_time: row.pollTime,
+              message_status: row.messageStatus ?? null,
+              poll_status: row.pollStatus ?? null,
               poll:
                 pollQuestion.length > 0 || pollOptions.length > 0
                   ? {

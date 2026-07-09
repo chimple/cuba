@@ -121,6 +121,7 @@ interface UseCampaignMessagesControllerParams {
 }
 
 interface CampaignMessageSavePayload {
+  campaignId: string;
   id?: string;
   message: string;
   mediaLink: string;
@@ -128,6 +129,8 @@ interface CampaignMessageSavePayload {
   pollTime: string | null;
   pollQuestion: string;
   pollOptions: string[];
+  messageStatus?: string | null;
+  pollStatus?: string | null;
 }
 
 interface CampaignMessagePoll {
@@ -305,9 +308,9 @@ const applyScheduleTimeToDate = (
 
 const getTodayDateKey = (): string => {
   const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
+  const year = today.getUTCFullYear();
+  const month = String(today.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(today.getUTCDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
@@ -572,6 +575,8 @@ export const buildCampaignMessageSavePayload = (
       pollTime: row.pollTimeIso ?? null,
       pollQuestion: normalizeText(row.pollQuestion),
       pollOptions: normalizePollOptions(row.pollOptions),
+      messageStatus: row.messageStatus || null,
+      pollStatus: row.pollStatus || null,
     }));
 };
 
@@ -961,7 +966,7 @@ export const useCampaignMessagesController = ({
   };
 
   const handleSave = async (): Promise<void> => {
-    if (!canEdit || isSaving) return;
+    if (!canEdit || isSaving || !campaignId) return;
 
     const rowsForSaveById = [
       ...messagesData.rows.filter((row) => row.isEditable),

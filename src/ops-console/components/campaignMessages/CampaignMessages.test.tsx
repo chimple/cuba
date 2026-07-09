@@ -360,6 +360,8 @@ describe('CampaignMessagesLogic', () => {
         pollTime: '2026-06-10T10:00:00+00:00',
         pollQuestion: 'Is this useful?',
         pollOptions: ['Yes', 'No', 'Maybe'],
+        messageStatus: 'pending',
+        pollStatus: 'pending',
       },
     ]);
   });
