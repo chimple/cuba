@@ -12,6 +12,8 @@ const GB_STALE_TTL_MS = 1000 * 60 * 5;
 const GB_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 365;
 
 export const createGrowthBookClient = () => {
+  const clientKey = import.meta.env.VITE_GROWTHBOOK_ID;
+
   configureCache({
     staleTTL: GB_STALE_TTL_MS,
     maxAge: GB_MAX_AGE_MS,
@@ -19,7 +21,7 @@ export const createGrowthBookClient = () => {
 
   return new GrowthBook({
     apiHost: GB_API_HOST,
-    clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
+    clientKey,
     enableDevMode: true,
     trackingCallback: async (experiment, result) => {
       try {
@@ -47,11 +49,12 @@ export const createGrowthBookClient = () => {
 };
 
 export const initializeGrowthBook = async (growthbook: GrowthBook) => {
+  const clientKey = import.meta.env.VITE_GROWTHBOOK_ID;
   const initResult = await growthbook.init({ streaming: true });
   if (!initResult?.success) {
     await tryRestoreGrowthbookPayloadFromCache(
       growthbook,
-      process.env.REACT_APP_GROWTHBOOK_ID,
+      clientKey,
       GB_API_HOST,
     );
   }
