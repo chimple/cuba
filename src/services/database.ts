@@ -6176,6 +6176,10 @@ export type Database = {
         Args: { p_days: number; p_school_id?: string };
         Returns: undefined;
       };
+      compute_program_metrics: {
+        Args: { p_days: number; p_program_id?: string };
+        Returns: undefined;
+      };
       count_users_by_school: {
         Args: { p_school_id: string };
         Returns: {
