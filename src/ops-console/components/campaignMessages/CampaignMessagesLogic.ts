@@ -12,7 +12,11 @@ import {
   CampaignMessagingQueryParams,
   CampaignMessagingRow,
 } from '../../../services/api/ServiceApi';
+import { hasCampaignWriteAccess } from '../../../services/api/campaignListingHelpers';
 import { Json } from '../../../services/database';
+import { useAppSelector } from '../../../redux/hooks';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RootState } from '../../../redux/store';
 import logger from '../../../utility/logger';
 
 const EMPTY_VALUE = '--';
@@ -69,6 +73,7 @@ export interface CampaignMessagesData {
 
 export interface CampaignMessagesController {
   messagesData: CampaignMessagesData;
+  canEdit: boolean;
   isLoading: boolean;
   isEditMode: boolean;
   page: number;
@@ -190,6 +195,58 @@ const formatDate = (dateText?: string | null): string => {
   }).format(date);
 };
 
+const normalizeUtcDate = (dateText?: string | null): Date | null => {
+  if (!dateText) return null;
+
+  const date = new Date(dateText);
+  if (Number.isNaN(date.getTime())) return null;
+
+  return new Date(
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+  );
+};
+
+const addUtcDays = (date: Date, days: number): Date => {
+  const nextDate = new Date(date);
+  nextDate.setUTCDate(nextDate.getUTCDate() + days);
+  return nextDate;
+};
+
+const isUtcSunday = (date: Date): boolean => date.getUTCDay() === 0;
+
+const getCommunicationDayNumber = ({
+  firstDateText,
+  currentDateText,
+  rowOffset,
+  rowIndex,
+}: {
+  firstDateText?: string | null;
+  currentDateText?: string | null;
+  rowOffset: number;
+  rowIndex: number;
+}): number => {
+  const fallbackDayNumber = rowOffset + rowIndex + 1;
+  const firstDate = normalizeUtcDate(firstDateText);
+  const currentDate = normalizeUtcDate(currentDateText);
+
+  if (!firstDate || !currentDate || currentDate < firstDate) {
+    return fallbackDayNumber;
+  }
+
+  let communicationDayCount = 0;
+  for (
+    let dateCursor = firstDate;
+    dateCursor <= currentDate;
+    dateCursor = addUtcDays(dateCursor, 1)
+  ) {
+    if (!isUtcSunday(dateCursor)) {
+      communicationDayCount += 1;
+    }
+  }
+
+  return rowOffset + communicationDayCount;
+};
+
 const formatTime = (dateText?: string | null): string => {
   if (!dateText) return EMPTY_VALUE;
   const date = new Date(dateText);
@@ -289,6 +346,10 @@ export const buildCampaignMessagesData = (
   const messages = getMessages(data).filter(
     (row) => row.message_time || row.poll_time || row.message || row.poll,
   );
+  const firstDatedMessage =
+    messages.find((row) => row.message_time || row.poll_time) ?? null;
+  const firstMessageDateText =
+    firstDatedMessage?.message_time ?? firstDatedMessage?.poll_time ?? null;
 
   return {
     messageTime: formatTime(messages[0]?.message_time),
@@ -300,7 +361,13 @@ export const buildCampaignMessagesData = (
 
       return {
         id: row.id || `${dateValue || 'message'}-${index}`,
-        dayLabel: `Day ${rowOffset + index + 1}`,
+        // Communication day numbers skip Sundays even when persisted rows span calendar gaps.
+        dayLabel: `Day ${getCommunicationDayNumber({
+          firstDateText: firstMessageDateText,
+          currentDateText: dateValue,
+          rowOffset,
+          rowIndex: index,
+        })}`,
         dateLabel: formatDate(dateValue),
         message: formatMultilineValue(row.message),
         mediaLink: formatEditableValue(row.media_link),
@@ -475,6 +542,10 @@ export const useCampaignMessagesController = ({
   campaignId,
   translate,
 }: UseCampaignMessagesControllerParams): CampaignMessagesController => {
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const canEdit = hasCampaignWriteAccess(roles || []);
   const [messagesData, setMessagesData] = useState<CampaignMessagesData>(
     () => emptyCampaignMessagesData,
   );
@@ -552,6 +623,15 @@ export const useCampaignMessagesController = ({
     },
     [],
   );
+
+  useEffect(() => {
+    if (canEdit) return;
+
+    setEditedRowsById({});
+    setOriginalOptionCountByRowId({});
+    setOpenSchedulePicker(null);
+    setIsEditMode(false);
+  }, [canEdit]);
 
   useEffect(() => {
     if (!isEditMode) return;
@@ -732,7 +812,7 @@ export const useCampaignMessagesController = ({
   };
 
   const handleEdit = (): void => {
-    if (!hasEditableRows) return;
+    if (!canEdit || !hasEditableRows) return;
     setEditedMessageTime(getEditableScheduleTime(messagesData.messageTime));
     setEditedPollTime(getEditableScheduleTime(messagesData.pollTime));
     setOpenSchedulePicker(null);
@@ -761,7 +841,7 @@ export const useCampaignMessagesController = ({
   };
 
   const handleSave = async (): Promise<void> => {
-    if (isSaving) return;
+    if (!canEdit || isSaving) return;
 
     const rowsForSaveById = [
       ...messagesData.rows.filter((row) => row.isEditable),
@@ -861,6 +941,7 @@ export const useCampaignMessagesController = ({
 
   return {
     messagesData,
+    canEdit,
     isLoading,
     isEditMode,
     page,

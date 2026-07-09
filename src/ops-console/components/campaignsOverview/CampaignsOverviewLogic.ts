@@ -197,7 +197,10 @@ const formatPhrase = (value: CampaignsOverviewDisplayValue): string =>
 
 const parseDateOnly = (dateText?: string | null): Date | null => {
   if (!dateText) return null;
-  const parts = dateText.split('-').map(Number);
+  const normalizedDateText = dateText.trim().match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+  if (!normalizedDateText) return null;
+
+  const parts = normalizedDateText.split('-').map(Number);
   if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
   return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
 };
@@ -223,19 +226,42 @@ const formatDateTime = (dateText?: string | null): string => {
   }).format(date);
 };
 
+const addUtcDays = (date: Date, days: number): Date => {
+  const nextDate = new Date(date);
+  nextDate.setUTCDate(nextDate.getUTCDate() + days);
+  return nextDate;
+};
+
+const isUtcSunday = (date: Date): boolean => date.getUTCDay() === 0;
+
+const countCampaignDaysWithoutSundays = (
+  startDate?: string | null,
+  endDate?: string | null,
+): number | null => {
+  const start = parseDateOnly(startDate);
+  const end = parseDateOnly(endDate);
+  if (!start || !end || end < start) return null;
+
+  let dayCount = 0;
+  for (
+    let dateCursor = start;
+    dateCursor <= end;
+    dateCursor = addUtcDays(dateCursor, 1)
+  ) {
+    if (!isUtcSunday(dateCursor)) {
+      dayCount += 1;
+    }
+  }
+
+  return dayCount;
+};
+
 const formatCampaignDuration = (
   startDate?: string | null,
   endDate?: string | null,
 ): string => {
-  const start = parseDateOnly(startDate);
-  const end = parseDateOnly(endDate);
-  if (!start || !end) return EMPTY_VALUE;
-
-  const durationDays =
-    Math.max(
-      0,
-      Math.round((end.getTime() - start.getTime()) / DAYS_IN_MILLISECONDS),
-    ) + 1;
+  const durationDays = countCampaignDaysWithoutSundays(startDate, endDate);
+  if (durationDays === null) return EMPTY_VALUE;
 
   return `${formatDateOnly(startDate)} to ${formatDateOnly(endDate)} (${durationDays} Days)`;
 };
