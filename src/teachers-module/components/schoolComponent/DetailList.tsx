@@ -14,6 +14,7 @@ import { AuthState } from '../../../redux/slices/auth/authSlice';
 import { RootState } from '../../../redux/store';
 import { schoolUtil } from '../../../utility/schoolUtil';
 import './DetailList.css';
+import { parsePath } from 'history';
 
 interface DetailListProps {
   type: IconType;
@@ -38,31 +39,46 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
 
   const handleItemClick = (item: any) => {
     if (type === IconType.SCHOOL) {
-      history.replace(PAGES.SCHOOL_PROFILE, {
-        school: item.school,
-        role: item.role,
+      history.replace({
+        ...parsePath(PAGES.SCHOOL_PROFILE),
+        state: {
+          school: item.school,
+          role: item.role,
+        },
       });
     } else {
-      history.replace(PAGES.CLASS_PROFILE, { school, classDoc: item });
+      history.replace({
+        ...parsePath(PAGES.CLASS_PROFILE),
+        state: { school, classDoc: item },
+      });
     }
   };
 
   const handleUserIconClick = (item: any) => {
     if (type === IconType.SCHOOL) {
-      history.replace(PAGES.SCHOOL_USERS, {
-        school: item.school,
-        role: item.role,
+      history.replace({
+        ...parsePath(PAGES.SCHOOL_USERS),
+        state: {
+          school: item.school,
+          role: item.role,
+        },
       });
     } else {
-      history.replace(PAGES.CLASS_USERS, item);
+      history.replace({ ...parsePath(PAGES.CLASS_USERS), state: item });
     }
   };
 
   const handleSubjectIconClick = (item: any) => {
     if (type === IconType.SCHOOL) {
-      history.replace(PAGES.SUBJECTS_PAGE, { schoolId: item.school.id });
+      history.replace({
+        ...parsePath(PAGES.SUBJECTS_PAGE),
+        state: { schoolId: item.school.id },
+      });
     } else {
-      history.replace(PAGES.SUBJECTS_PAGE, { classId: item.id });
+      history.replace({
+        ...parsePath(PAGES.SUBJECTS_PAGE),
+        state: { classId: item.id },
+      });
     }
   };
 

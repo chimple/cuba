@@ -25,6 +25,7 @@ import {
   resolveStickerBookSvgUrl,
 } from '../utility/stickerBookAssets';
 import { useStickerBookSave } from '../hooks/useStickerBookSave';
+import { parsePath } from 'history';
 
 type CurrentProgress = {
   bookId: string;
@@ -251,12 +252,15 @@ const StickerBook: React.FC = () => {
   const onPaint = () => {
     if (!selectedBook) return;
     const svgUrl = resolveStickerBookSvgUrl(selectedBook.svg_url ?? '');
-    history.push(PAGES.COLORING_BOARD, {
-      stickerBookId: selectedBook.id,
-      svgRaw: svgRaw ?? undefined,
-      svgUrl,
-      artworkTitle: selectedBook.title ?? t('Sticker Book'),
-      returnTo: PAGES.STICKER_BOOK,
+    history.push({
+      ...parsePath(PAGES.COLORING_BOARD),
+      state: {
+        stickerBookId: selectedBook.id,
+        svgRaw: svgRaw ?? undefined,
+        svgUrl,
+        artworkTitle: selectedBook.title ?? t('Sticker Book'),
+        returnTo: PAGES.STICKER_BOOK,
+      },
     });
   };
 

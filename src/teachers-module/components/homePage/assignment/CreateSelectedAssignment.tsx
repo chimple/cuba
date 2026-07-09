@@ -30,6 +30,7 @@ import {
   getStreakTargetRect,
   triggerStreakRewardPulse,
 } from '../../../../common/streakRewardBridge';
+import { parsePath } from 'history';
 
 interface LessonDetail {
   subject: string;
@@ -916,11 +917,17 @@ const CreateSelectedAssignment = ({
           leftButtonText={t('Cancel') ?? ''}
           leftButtonHandler={() => {
             setShowConfirm(false);
-            history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+            history.replace({
+              ...parsePath(PAGES.HOME_PAGE),
+              state: { tabValue: 2 },
+            });
           }}
           onDidDismiss={() => {
             setShowConfirm(false);
-            history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+            history.replace({
+              ...parsePath(PAGES.HOME_PAGE),
+              state: { tabValue: 2 },
+            });
           }}
           rightButtonText={t('Share') ?? ''}
           rightButtonHandler={async () => {
@@ -930,7 +937,10 @@ const CreateSelectedAssignment = ({
               text,
               'Assignment Assigned',
             );
-            history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+            history.replace({
+              ...parsePath(PAGES.HOME_PAGE),
+              state: { tabValue: 2 },
+            });
           }}
         ></CommonDialogBox>
       </div>

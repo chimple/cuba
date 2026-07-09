@@ -29,6 +29,7 @@ import { schoolUtil } from '../utility/schoolUtil';
 import { LessonNode } from './useLearningPath';
 import logger from '../utility/logger';
 import { AudioUtil } from '../utility/AudioUtil';
+import { parsePath } from 'history';
 
 export interface MascotProps {
   stateMachine: string;
@@ -382,9 +383,11 @@ export const usePathwayData = () => {
         if (!lesson) return;
 
         if (lesson.plugin_type === LIVE_QUIZ) {
-          history.replace(
-            PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
-            {
+          history.replace({
+            ...parsePath(
+              PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+            ),
+            state: {
               courseId: course.course_id,
               lesson: JSON.stringify(lesson),
               from: history.location.pathname + `?${CONTINUE}=true`,
@@ -394,26 +397,29 @@ export const usePathwayData = () => {
               is_assessment: isAssessment,
               source: pathItem?.source ?? SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
             },
-          );
+          });
         } else {
           const playableLessonId = Util.getLessonBundleId(lesson);
           if (!playableLessonId) {
             return;
           }
           const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
-          history.replace(PAGES.LIDO_PLAYER + params, {
-            lessonId: playableLessonId,
-            courseDocId: course.course_id,
-            course: JSON.stringify(currentCourse),
-            lesson: JSON.stringify(lesson),
-            chapter: JSON.stringify(currentChapter),
-            from: history.location.pathname + `?${CONTINUE}=true`,
-            learning_path: true,
-            reward: true,
-            skillId: pathItem?.skill_id,
-            is_assessment: isAssessment,
-            assessmentId,
-            source: pathItem?.source ?? SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
+          history.replace({
+            ...parsePath(PAGES.LIDO_PLAYER + params),
+            state: {
+              lessonId: playableLessonId,
+              courseDocId: course.course_id,
+              course: JSON.stringify(currentCourse),
+              lesson: JSON.stringify(lesson),
+              chapter: JSON.stringify(currentChapter),
+              from: history.location.pathname + `?${CONTINUE}=true`,
+              learning_path: true,
+              reward: true,
+              skillId: pathItem?.skill_id,
+              is_assessment: isAssessment,
+              assessmentId,
+              source: pathItem?.source ?? SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
+            },
           });
         }
       } catch (error) {

@@ -15,6 +15,7 @@ import './ActivitiesPage.css';
 import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
 import { OpsUtil } from '../OpsUtility/OpsUtil';
 import logger from '../../utility/logger';
+import { parsePath } from 'history';
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -239,10 +240,12 @@ const ActivitiesPage: React.FC = () => {
       visitDetails: row.visitDetails || null,
     };
 
-    history.push(
-      `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}${PAGES.SCHOOL_ACTIVITIES}`,
-      data,
-    );
+    history.push({
+      ...parsePath(
+        `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}${PAGES.SCHOOL_ACTIVITIES}`,
+      ),
+      state: data,
+    });
   };
 
   const pageCount = Math.ceil(total / DEFAULT_PAGE_SIZE);

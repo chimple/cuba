@@ -48,6 +48,7 @@ import {
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
 import { getAppPathname, getAppSearchParams } from '../utility/routerLocation';
+import { parsePath } from 'history';
 
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
@@ -534,7 +535,7 @@ const LidoPlayer: FC = () => {
       targetPath = `${fromPath}${separator}isReload=true`;
     }
 
-    history.replace(targetPath, returnState);
+    history.replace({ ...parsePath(targetPath), state: returnState });
     setIsLoading(false);
     setTimeout(() => {
       isExitingRef.current = false;

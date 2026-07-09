@@ -129,6 +129,7 @@ import {
   getAppSearchParams,
   replaceAppUrl,
 } from './routerLocation';
+import { parsePath } from 'history';
 
 type LessonBundleDownloadOptions = {
   lessonId: string;
@@ -2248,10 +2249,13 @@ export class Util {
     origin: PAGES,
     classId?: string,
   ) {
-    history.replace(redirectPage, {
-      classId: classId,
-      origin: origin,
-      isSelect: true,
+    history.replace({
+      ...parsePath(redirectPage),
+      state: {
+        classId: classId,
+        origin: origin,
+        isSelect: true,
+      },
     });
   }
   public static async handleClassAndSubjects(
@@ -2265,18 +2269,24 @@ export class Util {
     const schoolCourses = await api.getCoursesBySchoolId(schoolId);
     if (schoolCourses.length === 0) {
       this.setNavigationState(School_Creation_Stages.SCHOOL_COURSE);
-      history.replace(PAGES.SUBJECTS_PAGE, {
-        schoolId: schoolId,
-        origin: originPage,
-        isSelect: true,
+      history.replace({
+        ...parsePath(PAGES.SUBJECTS_PAGE),
+        state: {
+          schoolId: schoolId,
+          origin: originPage,
+          isSelect: true,
+        },
       });
       return;
     }
     const fetchedClasses = await api.getClassesForSchool(schoolId, userId);
     if (fetchedClasses.length === 0) {
-      history.replace(PAGES.ADD_CLASS, {
-        school: { id: schoolId },
-        origin: originPage,
+      history.replace({
+        ...parsePath(PAGES.ADD_CLASS),
+        state: {
+          school: { id: schoolId },
+          origin: originPage,
+        },
       });
       return;
     }

@@ -20,6 +20,7 @@ import { getAppPathname } from '../../utility/routerLocation';
 import { fetchStickerBookSvgText } from '../../utility/stickerBookAssets';
 import { useStickerBookSave } from '../../hooks/useStickerBookSave';
 import { resolveStickerBookSvgUrl } from '../../utility/stickerBookAssets';
+import { parsePath } from 'history';
 
 export interface StickerBookModalData {
   source: 'learning_pathway' | 'homework_pathway';
@@ -774,12 +775,15 @@ export const useStickerBookPreviewModalLogic = ({
       onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
     }
 
-    history.push(PAGES.COLORING_BOARD, {
-      stickerBookId: data.stickerBookId,
-      svgRaw,
-      svgUrl: resolveStickerBookSvgUrl(data.stickerBookSvgUrl),
-      artworkTitle: data.stickerBookTitle || t('Sticker Book'),
-      returnTo: getAppPathname(),
+    history.push({
+      ...parsePath(PAGES.COLORING_BOARD),
+      state: {
+        stickerBookId: data.stickerBookId,
+        svgRaw,
+        svgUrl: resolveStickerBookSvgUrl(data.stickerBookSvgUrl),
+        artworkTitle: data.stickerBookTitle || t('Sticker Book'),
+        returnTo: getAppPathname(),
+      },
     });
   };
 

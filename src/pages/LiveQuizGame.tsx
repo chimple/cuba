@@ -22,6 +22,7 @@ import { Capacitor } from '@capacitor/core';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { useGrowthBook } from '@growthbook/growthbook-react';
 import { getAppSearchParams } from '../utility/routerLocation';
+import { parsePath } from 'history';
 
 const LiveQuizGame: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -139,16 +140,25 @@ const LiveQuizGame: FC = () => {
       fromLiveQuiz: true,
     };
     if (Capacitor.isNativePlatform()) {
-      history.replace(fromPath + '&isReload=false', returnState);
+      history.replace({
+        ...parsePath(fromPath + '&isReload=false'),
+        state: returnState,
+      });
     } else {
       if (!!urlParams.get('isReload')) {
         if (fromPath.includes('?')) {
-          history.replace(fromPath + '&isReload=true', returnState);
+          history.replace({
+            ...parsePath(fromPath + '&isReload=true'),
+            state: returnState,
+          });
         } else {
-          history.replace(fromPath + '?isReload=true', returnState);
+          history.replace({
+            ...parsePath(fromPath + '?isReload=true'),
+            state: returnState,
+          });
         }
       } else {
-        history.replace(fromPath, returnState);
+        history.replace({ ...parsePath(fromPath), state: returnState });
       }
     }
   };

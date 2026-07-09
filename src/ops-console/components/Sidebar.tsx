@@ -35,6 +35,8 @@ import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import { logAuthDebug } from '../../utility/authDebug';
 import { getAppPathname } from '../../utility/routerLocation';
+import { KEYS_TO_PRESERVE } from '../../components/parent/DataClear';
+import { parsePath } from 'history';
 
 interface SidebarProps {
   name: string;
@@ -116,7 +118,10 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
   const switchUserToTeacher = async () => {
     if (localSchool && localClass) {
       schoolUtil.setCurrMode(MODES.TEACHER);
-      history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+      history.replace({
+        ...parsePath(PAGES.HOME_PAGE),
+        state: { tabValue: 0 },
+      });
     } else if (schools && schools.length > 0) {
       if (schools.length === 1) {
         Util.setCurrentSchool(schools[0].school, schools[0].role);
@@ -127,7 +132,10 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
         if (tempClasses.length > 0) {
           Util.setCurrentClass(tempClasses[0]);
           schoolUtil.setCurrMode(MODES.TEACHER);
-          history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+          history.replace({
+            ...parsePath(PAGES.HOME_PAGE),
+            state: { tabValue: 0 },
+          });
         }
       } else {
         schoolUtil.setCurrMode(MODES.TEACHER);
@@ -170,7 +178,12 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     });
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
-    localStorage.clear();
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && !KEYS_TO_PRESERVE.has(key)) {
+        localStorage.removeItem(key);
+      }
+    }
     const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
     serviceInstance.switchMode(APIMode.SQLITE);
     logAuthDebug('Navigating to login after ops console logout.', {

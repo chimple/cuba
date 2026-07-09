@@ -23,6 +23,8 @@ import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
 import BrandLogoIcon from './assets/brandLogoIcon.svg?raw';
 import './DisplayStudents.css';
+import { parsePath } from 'history';
+
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<'user'>[]>();
@@ -69,8 +71,11 @@ const DisplayStudents: FC<{}> = () => {
       storedMapStr,
     );
     if (!mergedStudents || mergedStudents.length < 1) {
-      history.replace(PAGES.CREATE_STUDENT, {
-        showBackButton: false,
+      history.replace({
+        ...parsePath(PAGES.CREATE_STUDENT),
+        state: {
+          showBackButton: false,
+        },
       });
       return;
     }
@@ -105,8 +110,11 @@ const DisplayStudents: FC<{}> = () => {
     });
     setGbUpdated(true);
     if (!student.language_id) {
-      history.replace(PAGES.EDIT_STUDENT, {
-        from: history.location.pathname,
+      history.replace({
+        ...parsePath(PAGES.EDIT_STUDENT),
+        state: {
+          from: history.location.pathname,
+        },
       });
     } else {
       history.replace(PAGES.HOME + getAppSearch());
