@@ -418,7 +418,6 @@ export class SqliteApi implements ServiceApi {
       document.body.appendChild(jeepEl);
 
       await customElements.whenDefined('jeep-sqlite');
-      await jeepEl.componentOnReady?.();
 
       await this._sqlite.initWebStore();
     }
