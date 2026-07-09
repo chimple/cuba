@@ -47,6 +47,7 @@ import {
   getBundleZipUrlsForEnv,
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
+import { getAppPathname, getAppSearchParams } from '../utility/routerLocation';
 
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
@@ -135,7 +136,7 @@ const LidoPlayer: FC = () => {
     SOURCE.LEARNING_PATHWAY_HOME_PAL,
     SOURCE.INITIAL_ASSESSMENT,
   ].includes(source);
-  const urlSearchParams = new URLSearchParams(window.location.search);
+  const urlSearchParams = getAppSearchParams();
   const lessonId = urlSearchParams.get('lessonid') ?? state?.lessonId;
   const assignmentType = state?.assignment?.type || 'self-played';
   const playedFrom = localStorage.getItem(CURRENT_HEADER);
@@ -521,7 +522,7 @@ const LidoPlayer: FC = () => {
     if (isExitingRef.current) return;
     isExitingRef.current = true;
     localStorage.removeItem(LIDO_SCORES_KEY);
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = getAppSearchParams();
     const fromPath: string = state?.from ?? PAGES.HOME;
     const returnState = {
       ...(state?.returnState ?? state),
@@ -1328,7 +1329,7 @@ const LidoPlayer: FC = () => {
   useEffect(() => {
     const unregister = registerBackButtonHandler(
       () => {
-        if (window.location.pathname !== PAGES.LIDO_PLAYER) return false;
+        if (getAppPathname() !== PAGES.LIDO_PLAYER) return false;
         push();
         return true;
       },
@@ -1364,7 +1365,7 @@ const LidoPlayer: FC = () => {
     if (typeof window !== 'undefined') {
       window.__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
-    const urlSearchParams = new URLSearchParams(window.location.search);
+    const urlSearchParams = getAppSearchParams();
     const lessonToDownload = lessonDetail;
     const lessonId =
       Util.getLessonBundleId(lessonToDownload) ??

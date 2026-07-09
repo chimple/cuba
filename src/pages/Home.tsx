@@ -50,6 +50,7 @@ import {
   HomeworkPathwayLesson,
 } from '../components/assignment/homeworkPathwayHelpers';
 import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
+import { getAppSearchParams } from '../utility/routerLocation';
 
 const localData: any = {};
 
@@ -297,7 +298,7 @@ const Home: FC = () => {
     };
     updateAtb();
 
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = getAppSearchParams();
     if (urlParams.get('page') === PAGES.JOIN_CLASS) {
       setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
       setTimeout(() => {

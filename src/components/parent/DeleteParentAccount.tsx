@@ -11,6 +11,7 @@ import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import Loading from '../Loading';
 import { logAuthDebug } from '../../utility/authDebug';
+import { getAppPathname } from '../../utility/routerLocation';
 
 const DeleteParentAccount: React.FC = () => {
   const [showDialogBox, setShowDialogBox] = useState(false);
@@ -45,7 +46,7 @@ const DeleteParentAccount: React.FC = () => {
     logAuthDebug('Navigating to login after parent account deletion.', {
       source: 'DeleteParentAccount.ondelete',
       reason: 'account_deleted_navigate_login',
-      from_page: window.location.pathname,
+      from_page: getAppPathname(),
       to_page: PAGES.LOGIN,
       user_id: user?.id,
     });

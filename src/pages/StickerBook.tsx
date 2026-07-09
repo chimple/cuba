@@ -19,6 +19,7 @@ import StickerBookSaveModal from '../components/stickerBook/StickerBookSaveModal
 import StickerBookToast from '../components/stickerBook/StickerBookToast';
 import { t } from 'i18next';
 import NewBackButton from '../components/common/NewBackButton';
+import { getAppPathname } from '../utility/routerLocation';
 import {
   fetchStickerBookSvgText,
   resolveStickerBookSvgUrl,
@@ -203,7 +204,7 @@ const StickerBook: React.FC = () => {
       book_title: selectedBook?.title ?? null,
       collected_count: collectedStickers.length,
       total_elements: allStickerIds.length,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
     }),
     [selectedBook, collectedStickers.length, allStickerIds.length],
   );
@@ -286,7 +287,7 @@ const StickerBook: React.FC = () => {
       total_elements: total,
       colored_elements: colored,
       uncolored_elements: uncolored,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
     });
   }, [selectedBook, allStickerIds, collectedStickers]);
 

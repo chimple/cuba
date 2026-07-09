@@ -7,6 +7,7 @@ import { PAGES, TableTypes } from '../common/constants';
 import { t } from 'i18next';
 import { useHistory } from 'react-router';
 import NextButton from '../components/common/NextButton';
+import { getAppSearchParams } from '../utility/routerLocation';
 import { Util } from '../utility/util';
 import logger from '../utility/logger';
 
@@ -29,7 +30,7 @@ const LiveQuizLeaderBoard: React.FC = () => {
   const [students, setStudents] = useState(
     new Map<string, TableTypes<'user'>>(),
   );
-  const urlSearchParams = new URLSearchParams(window.location.search);
+  const urlSearchParams = getAppSearchParams();
   const paramLiveRoomId = urlSearchParams.get('liveRoomId') ?? '';
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();

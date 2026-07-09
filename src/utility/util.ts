@@ -124,6 +124,11 @@ import logger from './logger';
 import type { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
 import { AudioUtil } from './AudioUtil';
 import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
+import {
+  getAppPathname,
+  getAppSearchParams,
+  replaceAppUrl,
+} from './routerLocation';
 
 type LessonBundleDownloadOptions = {
   lessonId: string;
@@ -1097,8 +1102,8 @@ export class Util {
       });
 
       await FirebaseAnalytics.setScreenName({
-        screenName: window.location.pathname,
-        nameOverride: window.location.pathname,
+        screenName: getAppPathname(),
+        nameOverride: getAppPathname(),
       });
 
       await FirebaseAnalytics.logEvent({
@@ -1147,8 +1152,8 @@ export class Util {
 
     //Setting Screen Name
     await FirebaseAnalytics.setScreenName({
-      screenName: window.location.pathname,
-      nameOverride: window.location.pathname,
+      screenName: getAppPathname(),
+      nameOverride: getAppPathname(),
     });
   }
 
@@ -1159,8 +1164,9 @@ export class Util {
     logger.info('[Lifecycle] App state changed', { isActive });
 
     // Handling app state changes (reloading pages, updating URLs, etc.)
-    const url = new URL(window.location.toString());
-    const urlParams = new URLSearchParams(window.location.search);
+    const currentPath = getAppPathname();
+    const continueValue = getAppSearchParams().get(CONTINUE);
+    const urlParams = getAppSearchParams();
     if (!!urlParams.get(CONTINUE)) {
       urlParams.delete(CONTINUE);
     }
@@ -1172,29 +1178,37 @@ export class Util {
     if (isActive) {
       if (
         Capacitor.isNativePlatform() &&
-        url.searchParams.get(CONTINUE) === 'true' &&
-        url.pathname !== PAGES.LOGIN &&
-        url.pathname !== PAGES.EDIT_STUDENT
+        continueValue === 'true' &&
+        currentPath !== PAGES.LOGIN &&
+        currentPath !== PAGES.EDIT_STUDENT
       ) {
         if (
-          url.pathname === PAGES.DISPLAY_SUBJECTS ||
-          url.pathname === PAGES.DISPLAY_CHAPTERS
+          currentPath === PAGES.DISPLAY_SUBJECTS ||
+          currentPath === PAGES.DISPLAY_CHAPTERS
         ) {
-          url.searchParams.set('isReload', 'true');
+          urlParams.set('isReload', 'true');
         }
-        url.searchParams.delete(CONTINUE);
-        window.history.replaceState(window.history.state, '', url.toString());
+        urlParams.delete(CONTINUE);
+        replaceAppUrl({
+          pathname: currentPath,
+          search: urlParams.toString() ? `?${urlParams.toString()}` : '',
+          hash: '',
+        });
         window.location.reload();
       } else {
-        url.searchParams.set('isReload', 'true');
-        url.searchParams.delete(CONTINUE);
-        window.history.replaceState(window.history.state, '', url.toString());
+        urlParams.set('isReload', 'true');
+        urlParams.delete(CONTINUE);
+        replaceAppUrl({
+          pathname: currentPath,
+          search: urlParams.toString() ? `?${urlParams.toString()}` : '',
+          hash: '',
+        });
       }
     }
   };
 
   public static setPathToBackButton(path: string, history: any) {
-    const url = new URLSearchParams(window.location.search);
+    const url = getAppSearchParams();
     if (url.get(CONTINUE)) {
       history.replace(`${path}?${CONTINUE}=true`);
     } else {
@@ -1780,7 +1794,7 @@ export class Util {
     // Determine target page for logging
     let destinationPage = '';
     const newSearchParams = new URLSearchParams(url.search);
-    const currentParams = new URLSearchParams(window.location.search);
+    const currentParams = getAppSearchParams();
     currentParams.set('classCode', newSearchParams.get('classCode') ?? '');
     currentParams.set('page', PAGES.JOIN_CLASS);
     const currentStudent = Util.getCurrentStudent();

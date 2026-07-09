@@ -21,6 +21,7 @@ import { schoolUtil } from '../../utility/schoolUtil';
 import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
 import logger from '../../utility/logger';
 import { logAuthDebug } from '../../utility/authDebug';
+import { getAppPathname } from '../../utility/routerLocation';
 interface LocationState {
   school?: SchoolWithRole['school'];
   role?: RoleType;
@@ -129,7 +130,7 @@ const ReqEditSchool: React.FC = () => {
     logAuthDebug('Navigating to login after teacher school-request logout.', {
       source: 'ReqEditSchool.onSignOut',
       reason: 'logout_complete_navigate_login',
-      from_page: window.location.pathname,
+      from_page: getAppPathname(),
       to_page: PAGES.LOGIN,
     });
     history.replace(PAGES.LOGIN);

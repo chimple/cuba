@@ -16,7 +16,7 @@
  */
 
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
-import { IonReactRouter } from '@ionic/react-router';
+import { IonReactHashRouter } from '@ionic/react-router';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -39,7 +39,6 @@ import './theme/variables.css';
 import './App.css';
 
 import React from 'react';
-import { BASE_NAME } from './common/constants';
 import TermsGate from './components/termsandconditons/TermsGate';
 import { HardwareBackButtonHandler } from './common/backButtonRegistry';
 import { useAppSelector } from './redux/hooks';
@@ -78,7 +77,7 @@ const App: React.FC = () => {
 
   return (
     <IonApp>
-      <IonReactRouter basename={BASE_NAME}>
+      <IonReactHashRouter>
         <AppRouteEffects />
         <TermsGate />
         <HardwareBackButtonHandler
@@ -101,7 +100,7 @@ const App: React.FC = () => {
           showBreakToast={usageLimit.showToast}
           onDismissBreakToast={() => usageLimit.setShowToast(false)}
         />
-      </IonReactRouter>
+      </IonReactHashRouter>
     </IonApp>
   );
 };

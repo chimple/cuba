@@ -34,6 +34,7 @@ import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import { logAuthDebug } from '../../utility/authDebug';
+import { getAppPathname } from '../../utility/routerLocation';
 
 interface SidebarProps {
   name: string;
@@ -175,7 +176,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     logAuthDebug('Navigating to login after ops console logout.', {
       source: 'OpsSidebar.onSignOut',
       reason: 'logout_complete_navigate_login',
-      from_page: window.location.pathname,
+      from_page: getAppPathname(),
       to_page: PAGES.LOGIN,
     });
     history.replace(PAGES.LOGIN);

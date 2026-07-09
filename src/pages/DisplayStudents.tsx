@@ -18,6 +18,7 @@ import InlineSvg from '../components/InlineSvg';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import { ServiceConfig } from '../services/ServiceConfig';
 import logger from '../utility/logger';
+import { getAppSearch } from '../utility/routerLocation';
 import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
 import BrandLogoIcon from './assets/brandLogoIcon.svg?raw';
@@ -108,7 +109,7 @@ const DisplayStudents: FC<{}> = () => {
         from: history.location.pathname,
       });
     } else {
-      history.replace(PAGES.HOME + window.location.search);
+      history.replace(PAGES.HOME + getAppSearch());
     }
   };
   return (

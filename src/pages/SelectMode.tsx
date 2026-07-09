@@ -53,6 +53,7 @@ import {
   isTeacherAppRole,
   resolveTeacherAppModeForRole,
 } from '../utility/roleUtil';
+import { getAppSearchParams } from '../utility/routerLocation';
 import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
 import BrandLogoIcon from './assets/brandLogoIcon.svg?raw';
@@ -296,7 +297,7 @@ const SelectMode: FC = () => {
     }
   };
   const init = async () => {
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = getAppSearchParams();
     const setTab = urlParams.get('tab');
     const currentMode = await schoolUtil.getCurrMode();
     const isSchoolMode =
