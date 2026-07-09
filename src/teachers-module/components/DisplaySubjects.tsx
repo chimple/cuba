@@ -5,6 +5,8 @@ import React, { useEffect, useState } from 'react';
 import { TableTypes } from '../../common/constants';
 import CachedImage from '../../components/common/CachedImage';
 import { RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
 import logger from '../../utility/logger';
 import { schoolUtil } from '../../utility/schoolUtil';
 import { Util } from '../../utility/util';
@@ -15,10 +17,6 @@ interface CurriculumWithCourses {
   courses: TableTypes<'course'>[];
 }
 
-type ClassWithRole = TableTypes<'class'> & {
-  role?: RoleType;
-};
-
 interface DisplaySubjectsProps {
   curriculumsWithCourses: CurriculumWithCourses[];
   selectedSubjects: string[];
@@ -27,6 +25,7 @@ interface DisplaySubjectsProps {
   isModalOpen: boolean;
   currentSubject: string | null;
   setIsModalOpen: (open: boolean) => void;
+  schoolId?: string;
 }
 
 const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
@@ -37,21 +36,33 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
   isModalOpen,
   currentSubject,
   setIsModalOpen,
+  schoolId,
 }) => {
   // State to track whether the last subject warning should be shown
   const [isLastSubjectAlertOpen, setIsLastSubjectAlertOpen] = useState(false);
   const [canModify, setCanModify] = useState(true);
   const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
+  const roleMap = useAppSelector(
+    (state: RootState) =>
+      state.growthbook.attributes?.roleMap as
+        | Record<string, string>
+        | undefined,
+  );
 
   useEffect(() => {
-    const checkClassRole = async () => {
-      const cls = (await Util.getCurrentClass()) as ClassWithRole | undefined;
-      if (cls?.role === RoleType.TEACHER || isTeacherSchoolMode) {
-        setCanModify(false);
-      }
-    };
-    checkClassRole();
-  }, [isTeacherSchoolMode]);
+    const selectedSchoolId = Util.getCurrentSchool()?.id;
+    const activeSchoolRole = selectedSchoolId
+      ? roleMap?.[`${selectedSchoolId}_role`]
+      : undefined;
+    const normalizedRole = (activeSchoolRole ?? '').toLowerCase();
+    const schoolMatches =
+      !schoolId || !selectedSchoolId || schoolId === selectedSchoolId;
+    setCanModify(
+      !isTeacherSchoolMode &&
+        schoolMatches &&
+        normalizedRole === RoleType.PRINCIPAL,
+    );
+  }, [isTeacherSchoolMode, roleMap, schoolId]);
 
   // Trigger subject removal logic
   const triggerRemoveSubject = (subject: string) => {
