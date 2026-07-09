@@ -1,5 +1,5 @@
-import { Timestamp } from "firebase/firestore";
-import BaseObject from "./baseObject";
+import { Timestamp } from 'firebase/firestore';
+import BaseObject from './baseObject';
 
 export default class Language extends BaseObject {
   private _code: string;
@@ -10,7 +10,7 @@ export default class Language extends BaseObject {
     title: string,
     updatedAt: Timestamp,
     createdAt: Timestamp,
-    docId: string
+    docId: string,
   ) {
     super(updatedAt, createdAt, docId);
     this._code = code;

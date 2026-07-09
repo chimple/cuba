@@ -1,11 +1,11 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import AssignmentNextButton from "../../components/homePage/assignment/AssignmentNextButton";
+import type { Meta, StoryObj } from '@storybook/react';
+import AssignmentNextButton from '../../components/homePage/assignment/AssignmentNextButton';
 
 const meta = {
-  title: "teachers-module/components/homePage/assignment/AssignmentNextButton",
+  title: 'teachers-module/components/homePage/assignment/AssignmentNextButton',
   component: AssignmentNextButton,
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {},
 
   args: {

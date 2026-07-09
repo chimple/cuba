@@ -1,0 +1,236 @@
+// ClassDetailsPage.tsx
+import React, { useEffect, useMemo, useState } from 'react';
+import { Box, Button, useMediaQuery } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
+import ClassInfoCard from './ClassInfoCard';
+import SchoolStudents from './SchoolStudents';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import './ClassDetailsPage.css';
+import { t } from 'i18next';
+import { StudentInfo, TableTypes } from '../../../common/constants';
+import { ClassRow, SchoolDetailsData } from './SchoolClass';
+import AddNoteModal from '../SchoolDetailsComponents/AddNoteModal'; // <<-- imported
+import { NOTES_UPDATED_EVENT } from '../../../common/constants';
+import WhatsAppInfoCard from './WhatsAppInfoCard';
+import logger from '../../../utility/logger';
+import { parseGradeSection, toCommaString } from './ClassDetailsPageUtils';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+
+type ApiStudent = StudentInfo;
+const ROWS_PER_PAGE = 20;
+
+type Props = {
+  data?: SchoolDetailsData;
+  schoolId: TableTypes<'school'>['id'];
+  classId: TableTypes<'class'>['id'];
+  classRow: ClassRow | null;
+  classCodeOverride?: string;
+  totalStudentsOverride?: number;
+  onGroupLinked?: (classId: string, groupId: string) => void;
+  onBack?: () => void;
+};
+
+const ClassDetailsPage: React.FC<Props> = ({
+  data,
+  schoolId,
+  classId,
+  classRow,
+  classCodeOverride,
+  totalStudentsOverride,
+  onGroupLinked,
+  onBack,
+}) => {
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const classDataArray = (data?.classData ?? []) as ClassRow[];
+  const onlyClassRow =
+    classDataArray.find((r) => r?.id === classId) ?? classRow ?? null;
+
+  const [initialStudents, setInitialStudents] = useState<ApiStudent[]>([]);
+  const [initialTotal, setInitialTotal] = useState<number>(0);
+  const [activeStudentCount, setActiveStudentCount] = useState<number>(0);
+
+  const [showAddModal, setShowAddModal] = useState(false); // <<-- modal state
+
+  const classNameSt = (classRow?.name ?? '').toString().trim() || '';
+  const subjectsSt = useMemo(
+    () => toCommaString(classRow?.subjectsNames),
+    [classRow],
+  );
+  const curriculumSt = useMemo(
+    () => toCommaString(classRow?.curriculumNames),
+    [classRow],
+  );
+
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+
+  const { grade: parsedGrade, section: parsedSection } = useMemo(
+    () =>
+      parseGradeSection(
+        classRow?.name,
+        classRow?.grade,
+        classRow?.section ?? '',
+      ),
+    [classRow],
+  );
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const api = ServiceConfig.getI().apiHandler;
+        const res = await api.getStudentInfoBySchoolId(
+          schoolId,
+          1,
+          ROWS_PER_PAGE,
+          classId,
+        );
+        logger.info('Loaded class details:', {
+          students: res?.data,
+          total: res?.total,
+        });
+        setInitialStudents(res?.data || []);
+        setInitialTotal(res?.total || 0);
+        const active = await api.getActiveStudentsCountByClass(classId);
+        setActiveStudentCount(Number(active) || 0);
+      } catch (e) {
+        logger.error('Failed to load class details:', e);
+        setActiveStudentCount(0);
+      }
+    })();
+  }, [schoolId, classId]);
+
+  const finalClassCode =
+    (classCodeOverride ?? '').toString().trim() || t('Not Generated');
+  const finalTotalStudentsSt = String(totalStudentsOverride);
+  const finalActiveStudentsSt = String(activeStudentCount);
+
+  // UPDATED: call the API and dispatch NOTES_UPDATED_EVENT so SchoolNotes will update and open preview
+  const handleAddNoteSave = async (payload: {
+    text: string;
+    mediaLinks?: string[] | null;
+  }) => {
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      if (!api || !api.createNoteForSchool) {
+        logger.error('Notes API not available');
+        setShowAddModal(false);
+        return;
+      }
+
+      // call backend API (this will create fc_user_forms row and return normalized object)
+      const created = await api.createNoteForSchool({
+        schoolId,
+        classId,
+        content: payload.text,
+        mediaLinks: payload.mediaLinks ?? null,
+      });
+
+      // created should be the structured object returned by your supabase API
+      // e.g. { id, visitId, schoolId, classId, className, content, createdAt, createdBy: { userId, name, role } }
+
+      // Inform Notes tab (SchoolNotes listens to this)
+      window.dispatchEvent(
+        new CustomEvent(NOTES_UPDATED_EVENT, { detail: created }),
+      );
+
+      // close modal
+      setShowAddModal(false);
+
+      // Optional: you can show a toast/notification here
+      logger.info('Note created:', created);
+    } catch (err) {
+      logger.error('Failed to create class note:', err);
+      // close modal anyway, or keep open if you want user to retry — here we close
+      setShowAddModal(false);
+    }
+  };
+
+  const handleAddNoteCancel = () => {
+    setShowAddModal(false);
+  };
+
+  return (
+    <Box className="classdetailspage-root">
+      {/* Header row: Back button (left) and Add Notes (right) */}
+      <Box className="classdetailspage-header">
+        <Button
+          variant="text"
+          startIcon={<ArrowBack />}
+          onClick={onBack}
+          className="classdetailspage-back-btn"
+        >
+          {t('Back to Classes')}
+        </Button>
+
+        {/* + Add Notes button on the right */}
+        {!isExternalUser && (
+          <Button
+            variant="outlined"
+            onClick={() => setShowAddModal(true)}
+            className="classdetailspage-addnote-btn"
+            aria-label="+ Add Notes"
+          >
+            + {t('Add Notes')}
+          </Button>
+        )}
+      </Box>
+
+      {/* AddNoteModal */}
+      <AddNoteModal
+        isOpen={showAddModal}
+        onClose={handleAddNoteCancel}
+        onSave={handleAddNoteSave}
+        source="class"
+        schoolId={schoolId}
+      />
+
+      <Box className="classdetailspage-info-grid">
+        <ClassInfoCard
+          classRow={onlyClassRow}
+          subjects={subjectsSt}
+          curriculum={curriculumSt}
+          totalStudents={finalTotalStudentsSt}
+          activeStudents={finalActiveStudentsSt}
+          classCode={finalClassCode}
+        />
+        {classRow && (
+          <WhatsAppInfoCard
+            classData={classRow}
+            schoolData={data?.schoolData}
+            onGroupLinked={onGroupLinked}
+          />
+        )}
+      </Box>
+
+      <Box className="classdetailspage-students-sticky classdetailspage-students-card">
+        <SchoolStudents
+          data={{
+            schoolData: data?.schoolData,
+            students: initialStudents,
+            totalStudentCount: initialTotal,
+            classData: [onlyClassRow].filter(Boolean) as ClassRow[],
+            totalCount: initialTotal,
+          }}
+          schoolId={schoolId}
+          isMobile={isMobile}
+          isTotal={false}
+          isFilter={false}
+          optionalClassId={classId}
+          customTitle={
+            classNameSt ? `Students in ${classNameSt}` : 'Students in Class'
+          }
+          optionalGrade={parsedGrade}
+          optionalSection={parsedSection}
+        />
+      </Box>
+    </Box>
+  );
+};
+
+export default ClassDetailsPage;

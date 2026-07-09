@@ -1,14 +1,14 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import SelectAll from "../../components/malta/assignment/SelectAll";
+import type { Meta, StoryObj } from '@storybook/react';
+import SelectAll from '../../components/malta/assignment/SelectAll';
 
 const meta = {
-  title: "Component/malta/assignment/SelectAll",
+  title: 'Component/malta/assignment/SelectAll',
   component: SelectAll,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {},
   args: {},
 } satisfies Meta<typeof SelectAll>;

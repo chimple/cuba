@@ -1,57 +1,58 @@
-import React, { useEffect, useRef, useState } from "react";
-import "./Library.css";
-import CourseComponent from "./CourseComponent";
-import { useHistory } from "react-router";
-import { PAGES, TableTypes } from "../../../common/constants";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import { Util } from "../../../utility/util";
-import { t } from "i18next";
+import React, { useCallback, useEffect, useState } from 'react';
+import './Library.css';
+import CourseComponent from './CourseComponent';
+import { useHistory } from 'react-router';
+import { PAGES, TableTypes } from '../../../common/constants';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import { Util } from '../../../utility/util';
+import { t } from 'i18next';
 
 const Library: React.FC = () => {
-  const [courses, setCourses] = useState<TableTypes<"course">[]>([]);
+  const [courses, setCourses] = useState<TableTypes<'course'>[]>([]);
+  const [grades, setGrades] = useState<TableTypes<'grade'>[]>([]);
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  const inputEl = useRef(null);
 
-  useEffect(() => {
-    init();
-  }, []);
-
-  const init = async () => {
+  const init = useCallback(async () => {
     const current_class = await Util.getCurrentClass();
     const course_res = await api.getCoursesForClassStudent(
-      current_class?.id ?? ""
+      current_class?.id ?? '',
     );
 
     course_res.sort(
-      (a, b) => (a.sort_index ?? Infinity) - (b.sort_index ?? Infinity)
+      (a, b) => (a.sort_index ?? Infinity) - (b.sort_index ?? Infinity),
     );
+    const grade_res = await api.getAllGrades();
+    setGrades(grade_res);
     setCourses(course_res);
-  };
+  }, [api]);
+
+  useEffect(() => {
+    init();
+  }, [init]);
 
   return (
-    <div className="library-container">
-      <div style={{ display: "flex", flexDirection: "column-reverse" }}>
-        <div
-          className="lesson-search"
-          onClick={() => history.replace(PAGES.SEARCH_LESSON)}
-        >
-          <SearchOutlinedIcon style={{ color: "black" }} />
-          <span className="text">{t("Search")}...</span>
-        </div>
-        <span className="library-title"> {t("Library")}</span>
+    <div id="library-container" className="library-container">
+      <div id="library-subtitle" className="library-subtitle">
+        {t('Choose any subject to view the assignments')}
       </div>
-      <div className="course-grid">
-        {courses.map((course) => (
-          <CourseComponent
-            key={course.id}
-            course={course}
-            handleCourseCLick={() => {
-              history.replace(PAGES.SHOW_CHAPTERS, { course });
-            }}
-          />
-        ))}
+      <div id="library-subtitle-divider" className="library-subtitle-divider" />
+      <div id="library-course-grid" className="library-course-grid">
+        {courses.map((course) => {
+          const gradeName = grades.find(
+            (grade) => grade.id === course.grade_id,
+          )?.name;
+          return (
+            <CourseComponent
+              key={course.id}
+              course={course}
+              gradeName={gradeName}
+              handleCourseCLick={() => {
+                history.replace(PAGES.SHOW_CHAPTERS, { course, gradeName });
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );

@@ -1,8 +1,8 @@
-import * as React from "react";
-import { IonBackButton, IonButtons, IonLabel, IonToolbar } from "@ionic/react";
-import { t } from "i18next";
-import ProfileAvatar from "./ProfileAvatar";
-import "./CommonAppBar.css";
+import * as React from 'react';
+import { IonBackButton, IonButtons, IonLabel, IonToolbar } from '@ionic/react';
+import { t } from 'i18next';
+import ProfileAvatar from './ProfileAvatar';
+import './CommonAppBar.css';
 interface CommonAppBarProps {
   title: string;
   loc: string;

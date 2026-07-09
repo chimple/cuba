@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Box,
   Typography,
@@ -12,10 +12,10 @@ import {
   Drawer,
   useMediaQuery,
   useTheme,
-} from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import "./FilterSlider.css";
-import { t } from "i18next";
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import './FilterSlider.css';
+import { t } from 'i18next';
 
 interface FilterSliderProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ interface FilterSliderProps {
   onApply: () => void;
   onCancel: () => void;
   autocompleteStyles?: object;
-  filterConfigs: { key: string; label: string }[];
+  filterConfigs: { key: string; label: string; placeholder?: string }[];
 }
 
 const FilterSlider: React.FC<FilterSliderProps> = ({
@@ -41,27 +41,27 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
   filterConfigs,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); 
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   return (
     <Drawer
       anchor="right"
       open={isOpen}
       onClose={onClose}
-      classes={{ paper: "filter-slider-drawer-FilterSlider" }}
+      classes={{ paper: 'filter-slider-drawer-FilterSlider' }}
       PaperProps={{
         sx: {
-          width: isMobile ? "100%" : 400,
+          width: isMobile ? '100%' : 400,
           padding: 2,
-          boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.1)",
-          display: "flex",
-          flexDirection: "column",
-          height: "100vh",
+          boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          // Height is controlled by CSS for proper dvh support
         },
       }}
     >
       <Box className="filter-header-FilterSlider">
-        <Typography variant="h6">{t("Filters")}</Typography>
+        <Typography variant="h6">{t('Filters')}</Typography>
         <IconButton onClick={onClose}>
           <CloseIcon />
         </IconButton>
@@ -69,7 +69,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
       <Divider sx={{ mb: 3 }} />
 
       <Stack className="filter-content-FilterSlider">
-        {filterConfigs.map(({ key, label }) => (
+        {filterConfigs.map(({ key, label, placeholder }) => (
           <Autocomplete
             key={key}
             multiple
@@ -89,12 +89,18 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
               <TextField
                 {...params}
                 label={label}
-                placeholder={t("Search {{key}}...", { key }) ?? ""}
+                placeholder={
+                  (placeholder
+                    ? t('Search {{placeholder}}...', { placeholder })
+                    : t('Search {{key}}...', { key })) ?? ''
+                }
                 variant="outlined"
               />
             )}
             className={`filter-autocomplete${
-              filters[key]?.length > 0 ? " filter-autocomplete-selected-FilterSlider" : ""
+              filters[key]?.length > 0
+                ? ' filter-autocomplete-selected-FilterSlider'
+                : ''
             }`}
             sx={autocompleteStyles}
           />
@@ -108,7 +114,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
           onClick={onCancel}
           className="filter-outlined-button-FilterSlider"
         >
-          {t("Clear All")}
+          {t('Clear All')}
         </Button>
         <Button
           fullWidth
@@ -116,7 +122,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
           onClick={onApply}
           className="filter-contained-button-FilterSlider"
         >
-          {t("Apply")}
+          {t('Apply')}
         </Button>
       </Box>
     </Drawer>

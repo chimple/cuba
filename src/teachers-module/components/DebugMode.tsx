@@ -1,22 +1,44 @@
-import React, { useEffect, useRef, useState } from "react";
-import "./DebugMode.css"; // Import external CSS
-import { useHistory } from "react-router-dom";
-import { DOWNLOADED_LESSON_ID } from "../../common/constants";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { Capacitor, registerPlugin } from "@capacitor/core";
-import { Directory, Filesystem } from "@capacitor/filesystem";
-import { Util } from "../../utility/util";
-import { toPng } from "html-to-image";
+import React, { useEffect, useRef, useState } from 'react';
+import './DebugMode.css'; // Import external CSS
+import { useHistory } from 'react-router-dom';
+import { CAN_HOT_UPDATE, DOWNLOADED_LESSON_ID } from '../../common/constants';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { HotUpdateState, Util } from '../../utility/util';
+import { toPng } from 'html-to-image';
+import { LiveUpdate } from '@capawesome/capacitor-live-update';
+import { useGrowthBook } from '@growthbook/growthbook-react';
+import { t } from 'i18next';
+import logger from '../../utility/logger';
 
 const DebugPage: React.FC = () => {
   const history = useHistory();
   const [syncLogs, setSyncLogs] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
-  const PortPlugin = registerPlugin<any>("Port");
+  const PortPlugin = registerPlugin<any>('Port');
   const [data, setData] = useState<any[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
   const ref = useRef<HTMLDivElement>(null);
+  const [isHotUpdating, setIsHotUpdating] = useState(false);
+  const [hotUpdateState, setHotUpdateStateUI] = useState<HotUpdateState>({
+    status: 'Idle',
+    progress: 0,
+    channel: 'N/A',
+    lastChecked: 'N/A',
+    lastUpdated: 'N/A',
+    error: '',
+    isAuto: false,
+  });
+  const [hotUpdateMeta, setHotUpdateMeta] = useState({
+    versionName: 'N/A',
+    versionCode: 'N/A',
+    currentBundleId: 'N/A',
+    latestBundleId: 'N/A',
+    isUpdateAvailable: false,
+  });
+
   const [classData, setClassData] = useState<
     {
       studentId: string;
@@ -29,8 +51,8 @@ const DebugPage: React.FC = () => {
   >([]);
 
   const [totals, setTotals] = useState({
-    parentId: "",
-    parentName: "",
+    parentId: '',
+    parentName: '',
     rowsPushed: 0,
     rowsPulled: 0,
     dataTransferredMB: 0,
@@ -39,10 +61,31 @@ const DebugPage: React.FC = () => {
     lessonsDownloaded: 0,
     lessonsSize: 0,
   });
+  const growthbook = useGrowthBook();
 
   useEffect(() => {
     fetchData();
     init();
+    loadHotUpdateMeta();
+  }, []);
+
+  useEffect(() => {
+    // initial load
+    setHotUpdateStateUI(Util.getHotUpdateState());
+    const handler = () => {
+      const state = Util.getHotUpdateState();
+      setHotUpdateStateUI(state);
+      setIsHotUpdating(state.progress > 0 && state.progress < 100);
+      if (state.progress === 100) {
+        loadHotUpdateMeta(); // refresh bundle info
+      }
+    };
+
+    window.addEventListener('hot-update-progress', handler);
+
+    return () => {
+      window.removeEventListener('hot-update-progress', handler);
+    };
   }, []);
 
   async function init() {
@@ -50,13 +93,13 @@ const DebugPage: React.FC = () => {
 
     const studentData = debug.map((user) => ({
       id: user.id,
-      name: user.name ?? "",
+      name: user.name ?? '',
     }));
 
     const classDataMapped = await Promise.all(
       studentData.map(async (student) => {
         const class1 = await api.getClassByUserId(student.id);
-        const school = await api.getSchoolById(class1?.school_id ?? "");
+        const school = await api.getSchoolById(class1?.school_id ?? '');
 
         return {
           studentId: student.id,
@@ -66,7 +109,7 @@ const DebugPage: React.FC = () => {
           schoolId: class1?.school_id,
           schoolName: school?.name,
         };
-      })
+      }),
     );
 
     setClassData(classDataMapped);
@@ -78,13 +121,13 @@ const DebugPage: React.FC = () => {
     }
 
     const lessonData = JSON.parse(
-      localStorage.getItem("downloaded_lessons_size") || "{}"
+      localStorage.getItem('downloaded_lessons_size') || '{}',
     ) as { [lessonId: string]: { size: number } };
 
     const lessonsDownloaded = Object.keys(lessonData).length;
     const lessonsSizeInByte = Object.values(lessonData).reduce(
       (acc, lesson) => acc + lesson.size,
-      0
+      0,
     );
     const lessonsSize = lessonsSizeInByte / (1024 * 1024);
 
@@ -114,20 +157,20 @@ const DebugPage: React.FC = () => {
         // Optional: sum if more than one day
         const totalPushed = result.reduce(
           (sum, row) => sum + (row.total_pushed || 0),
-          0
+          0,
         );
         const totalPulled = result.reduce(
           (sum, row) => sum + (row.total_pulled || 0),
-          0
+          0,
         );
         const totalTransferred = result.reduce(
           (sum, row) => sum + (row.total_transferred || 0),
-          0
+          0,
         );
 
         setTotals({
           parentId,
-          parentName: parentName ?? "",
+          parentName: parentName ?? '',
           rowsPushed: totalPushed,
           rowsPulled: totalPulled,
           dataTransferredMB: totalTransferred / 1024,
@@ -141,14 +184,14 @@ const DebugPage: React.FC = () => {
   };
   const handleSyncNow = async () => {
     setIsSyncing(true);
-    setSyncLogs("");
+    setSyncLogs('');
 
     try {
       await api.syncDB();
       await fetchData();
       await init();
     } catch (err: any) {
-      const errorMessage = err?.message || "An error occurred during sync.";
+      const errorMessage = err?.message || 'An error occurred during sync.';
       setSyncLogs(`Sync failed: ${errorMessage}`);
     } finally {
       setIsSyncing(false);
@@ -159,26 +202,26 @@ const DebugPage: React.FC = () => {
     if (!Capacitor.isNativePlatform()) return;
     try {
       await Filesystem.rmdir({
-        path: "/",
+        path: '/',
         directory: Directory.External,
         recursive: true,
       });
 
-      localStorage.removeItem("downloaded_lessons_size");
+      localStorage.removeItem('downloaded_lessons_size');
       localStorage.removeItem(DOWNLOADED_LESSON_ID);
 
       await init();
       return true;
     } catch (error) {
-      console.error("Error deleting all lessons:", error);
+      logger.error('Error deleting all lessons:', error);
       return false;
     }
   };
 
   function dataURLtoFile(dataUrl: string, filename: string): File {
-    const arr = dataUrl.split(",");
+    const arr = dataUrl.split(',');
     const mimeMatch = arr[0].match(/:(.*?);/);
-    const mime = mimeMatch ? mimeMatch[1] : "image/png";
+    const mime = mimeMatch ? mimeMatch[1] : 'image/png';
     const bstr = atob(arr[1]);
     let n = bstr.length;
     const u8arr = new Uint8Array(n);
@@ -194,22 +237,22 @@ const DebugPage: React.FC = () => {
     if (ref.current === null) return;
 
     try {
-      const dataUrl = await toPng(ref.current, { backgroundColor: "white" });
+      const dataUrl = await toPng(ref.current, { backgroundColor: 'white' });
 
       if (!Capacitor.isNativePlatform()) {
-        const file = dataURLtoFile(dataUrl, "debug-screenshot.png");
+        const file = dataURLtoFile(dataUrl, 'debug-screenshot.png');
 
         await Util.sendContentToAndroidOrWebShare(
-          "Debug info attached.",
-          "Debug Screenshot",
+          'Debug info attached.',
+          'Debug Screenshot',
           undefined,
-          [file]
+          [file],
         );
         return;
       }
 
       // Strip the base64 header
-      const base64Data = dataUrl.replace(/^data:image\/png;base64,/, "");
+      const base64Data = dataUrl.replace(/^data:image\/png;base64,/, '');
       const fileName = `debug-screenshot-${Date.now()}.png`;
 
       // Save the file to app's cache directory
@@ -223,18 +266,113 @@ const DebugPage: React.FC = () => {
 
       // Now share using plugin
       await PortPlugin.shareContentWithAndroidShare({
-        text: "Debug info attached.",
-        title: "Debug Screenshot",
-        url: "",
+        text: 'Debug info attached.',
+        title: 'Debug Screenshot',
+        url: '',
         imageFile: {
           name: fileName,
-          path: fileUri.replace("file://", ""), // Make sure it's a proper File path
+          path: fileUri.replace('file://', ''), // Make sure it's a proper File path
         },
       });
     } catch (err) {
-      console.error("Failed to capture or save screenshot:", err);
+      logger.error('Failed to capture or save screenshot:', err);
     }
   };
+  async function getHotUpdateChannel() {
+    const { versionName } = await LiveUpdate.getVersionName();
+    const majorVersion = versionName.split('.')[0];
+    return `${process.env.REACT_APP_ENV}-${majorVersion}`;
+  }
+
+  const handleManualHotUpdate = async () => {
+    if (!Capacitor.isNativePlatform()) return;
+    const isAllowed = growthbook?.isOn(CAN_HOT_UPDATE) ?? false;
+
+    const channel = await getHotUpdateChannel();
+
+    if (!isAllowed) {
+      Util.setHotUpdateState({
+        status: 'Hot Update disabled for this user',
+        progress: 0,
+        error: 'User not included in GrowthBook rollout',
+        isAuto: false,
+        lastChecked: new Date().toLocaleString(),
+      });
+      return;
+    }
+    try {
+      const latest = await LiveUpdate.fetchLatestBundle({ channel });
+      Util.setHotUpdateState({ progress: 40 });
+
+      const { bundleId: currentBundleId } = await LiveUpdate.getCurrentBundle();
+      const { versionName } = await LiveUpdate.getVersionName();
+      let isUpdateAllowed = false;
+      if (latest.customProperties && latest.customProperties.version) {
+        isUpdateAllowed = Util.isVersionAllowed(
+          latest.customProperties.version,
+          versionName,
+        );
+      }
+
+      if (
+        !latest.bundleId ||
+        latest.bundleId === currentBundleId ||
+        !isUpdateAllowed
+      ) {
+        Util.setHotUpdateState({
+          status: 'Already up to date',
+          progress: 100,
+        });
+        return;
+      }
+
+      Util.setHotUpdateState({ status: 'Downloading...', progress: 70 });
+
+      await LiveUpdate.sync({ channel });
+
+      Util.setHotUpdateState({
+        status: 'Updated successfully',
+        progress: 100,
+        lastUpdated: new Date().toLocaleString(),
+      });
+
+      await LiveUpdate.reload();
+    } catch (err: any) {
+      Util.setHotUpdateState({
+        status: 'Update failed',
+        progress: 0,
+        error: err?.message || 'Manual update failed',
+      });
+    }
+  };
+
+  async function loadHotUpdateMeta() {
+    if (!Capacitor.isNativePlatform()) return;
+    const channel = await getHotUpdateChannel();
+    const version = await LiveUpdate.getVersionName();
+    const code = await LiveUpdate.getVersionCode();
+    const current = await LiveUpdate.getCurrentBundle();
+    const latest = await LiveUpdate.fetchLatestBundle({ channel });
+
+    let isUpdateAllowed = false;
+    if (latest.customProperties && latest.customProperties.version) {
+      isUpdateAllowed = Util.isVersionAllowed(
+        latest.customProperties.version,
+        version.versionName,
+      );
+    }
+
+    setHotUpdateMeta({
+      versionName: version.versionName,
+      versionCode: String(code.versionCode),
+      currentBundleId: current.bundleId ?? 'None',
+      latestBundleId: latest.bundleId ?? 'None',
+      isUpdateAvailable:
+        !!latest.bundleId &&
+        latest.bundleId !== current.bundleId &&
+        isUpdateAllowed,
+    });
+  }
 
   return (
     <div className="debug-debug-page">
@@ -245,7 +383,7 @@ const DebugPage: React.FC = () => {
             onClick={handleSyncNow}
             disabled={isSyncing}
           >
-            {isSyncing ? "Syncing..." : "Sync Now"}
+            {isSyncing ? 'Syncing...' : 'Sync Now'}
           </button>
           <button
             className="debug-btn debug-clear-btn"
@@ -259,7 +397,32 @@ const DebugPage: React.FC = () => {
           >
             Capture & Share Screenshot
           </button>
+          <button
+            className="debug-btn debugmode-debug-hotupdate-btn"
+            onClick={handleManualHotUpdate}
+            disabled={isHotUpdating || !hotUpdateMeta.isUpdateAvailable}
+          >
+            {isHotUpdating ? 'Updating App...' : 'Manual Hot Update'}
+          </button>
         </div>
+        {isHotUpdating && (
+          <div className="debug-card">
+            <strong>{t('Hot Update Progress')}</strong>
+            <p>{hotUpdateState.progress}%</p>
+
+            <div className="debugmode-progress-bar-container">
+              <div
+                className="debugmode-progress-bar-fill"
+                style={{ width: `${hotUpdateState.progress}%` }}
+              />
+            </div>
+
+            <p>
+              {t('Status') + ' '}
+              {hotUpdateState.status}
+            </p>
+          </div>
+        )}
 
         {syncLogs && (
           <div className="debug-card debug-log-card">
@@ -299,7 +462,7 @@ const DebugPage: React.FC = () => {
               <div className="debug-stat">
                 <strong>Lessons Downloaded:</strong>
                 <p>
-                  {totals.lessonsDownloaded} ({totals.lessonsSize.toFixed(2)}{" "}
+                  {totals.lessonsDownloaded} ({totals.lessonsSize.toFixed(2)}{' '}
                   MB)
                 </p>
               </div>
@@ -318,17 +481,17 @@ const DebugPage: React.FC = () => {
                         <strong>Student Name:</strong> {entry.studentName}
                       </div>
                       <div className="debug-detail">
-                        <strong>Class ID:</strong> {entry.classId || "N/A"}
+                        <strong>Class ID:</strong> {entry.classId || 'N/A'}
                       </div>
                       <div className="debug-detail">
-                        <strong>Class Name:</strong> {entry.className || "N/A"}
+                        <strong>Class Name:</strong> {entry.className || 'N/A'}
                       </div>
                       <div className="debug-detail">
-                        <strong>School ID:</strong> {entry.schoolId || "N/A"}
+                        <strong>School ID:</strong> {entry.schoolId || 'N/A'}
                       </div>
                       <div className="debug-detail">
-                        <strong>School Name:</strong>{" "}
-                        {entry.schoolName || "N/A"}
+                        <strong>School Name:</strong>{' '}
+                        {entry.schoolName || 'N/A'}
                       </div>
                     </li>
                   ))}
@@ -336,6 +499,70 @@ const DebugPage: React.FC = () => {
               </div>
             )}
           </div>
+          {/* 🔥 Hot Update Info Card */}
+          <div className="debug-card">
+            <div className="debug-card-content">
+              <div className="debug-stat">
+                <strong>Hot Update Channel:</strong>
+                <p>{hotUpdateState.channel}</p>
+              </div>
+              <div className="debug-stat">
+                <strong>Update Mode:</strong>
+                <p>{hotUpdateState.isAuto ? 'Auto' : 'Manual'}</p>
+              </div>
+              <div className="debug-stat">
+                <strong>App Version Name:</strong>
+                <p>{hotUpdateMeta.versionName}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>App Version Code:</strong>
+                <p>{hotUpdateMeta.versionCode}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Update Available:</strong>
+                <p>{String(hotUpdateMeta.isUpdateAvailable)}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Status:</strong>
+                <p>{hotUpdateState.status}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Current Bundle ID:</strong>
+                <p style={{ wordBreak: 'break-all' }}>
+                  {hotUpdateMeta.currentBundleId}
+                </p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Latest Bundle ID:</strong>
+                <p style={{ wordBreak: 'break-all' }}>
+                  {hotUpdateMeta.latestBundleId}
+                </p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Last Checked:</strong>
+                <p>{hotUpdateState.lastChecked}</p>
+              </div>
+
+              <div className="debug-stat">
+                <strong>Last Update Applied:</strong>
+                <p>{hotUpdateState.lastUpdated}</p>
+              </div>
+
+              {hotUpdateState.error && (
+                <div className="debug-stat">
+                  <strong>Hot Update Error:</strong>
+                  <p style={{ color: 'red' }}>{hotUpdateState.error}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="debug-info-container">
             <h2>📊 30-Day Sync Summary</h2>
             {data.length > 0 ? (

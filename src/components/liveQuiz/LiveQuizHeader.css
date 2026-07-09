@@ -1,6 +1,6 @@
 .live-quiz-header {
-    display: flex;
-    overflow: scroll;
-    flex-direction: row;
-    gap: 5px;
+  display: flex;
+  overflow: scroll;
+  flex-direction: row;
+  gap: 5px;
 }

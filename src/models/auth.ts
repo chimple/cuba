@@ -1,6 +1,5 @@
-import { Capacitor } from "@capacitor/core";
 // import { AccountManager } from "account-manager";
-import { IS_USER_LOGED_IN, PAGES, USER_TOKEN } from "../common/constants";
+import { IS_USER_LOGED_IN, USER_TOKEN } from '../common/constants';
 
 export default class Auth {
   private static instance: Auth;
@@ -16,7 +15,7 @@ export default class Auth {
     authToken: string,
     accountType: string,
     sourcedId: string,
-    endpointUrl: string
+    endpointUrl: string,
   ) {
     this._userAccountName = userAccountName;
     this._authToken = authToken;
@@ -38,46 +37,21 @@ export default class Auth {
 
   public async VSOLogin(): Promise<boolean> {
     let response: any;
-    // try {
-    //   response = await AccountManager.accountPicker();
-    //   if (response) {
-    //     this._userAccountName = response.authAccount;
-    //     this._accountType = response.addedType;
-    //     this._authToken = response.authToken;
-    //     this._sourcedId = response.sourcedId;
-    //     this._endpointUrl = response.endpointUrl;
+    localStorage.setItem(IS_USER_LOGED_IN, 'true');
+    localStorage.setItem(
+      USER_TOKEN,
+      JSON.stringify({
+        authAccount: 'student',
+        sourcedId: '4334700840729898',
+        endpointUrl: 'http://192.168.88.99:8087/',
+        addedType: 'com.ustadmobile',
+        authToken: 'VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY',
+      }),
+    );
+    return true;
 
-    //     localStorage.setItem(IS_USER_LOGED_IN, "true");
-    //     localStorage.setItem(USER_TOKEN, JSON.stringify(response));
-    //     // history.replace(PAGES.HOME);
-    //     return true;
-    //   } else {
-    //     localStorage.setItem(IS_USER_LOGED_IN, "false");
-    //     return false;
-    //   }
-    // } catch (error: any) {
-      // if (
-      //   error.message === "Method not implemented." &&
-      //   (Capacitor.getPlatform() === "web" || Capacitor.getPlatform() === "ios")
-      // ) {
-        localStorage.setItem(IS_USER_LOGED_IN, "true");
-        localStorage.setItem(
-          USER_TOKEN,
-          JSON.stringify({
-            authAccount: "student",
-            sourcedId: "4334700840729898",
-            endpointUrl: "http://192.168.88.99:8087/",
-            addedType: "com.ustadmobile",
-            authToken: "VcisaeK2MhuAxpUCvWUcmVoGyxe1NKY",
-          })
-        );
-        return true;
-        // history.replace(PAGES.HOME);
-      // }
-
-      localStorage.setItem(IS_USER_LOGED_IN, "false");
-      return false;
-    // }
+    localStorage.setItem(IS_USER_LOGED_IN, 'false');
+    return false;
   }
 
   public isUserLoggedIn(): boolean {
@@ -86,15 +60,15 @@ export default class Auth {
       this._authToken != undefined &&
       this._accountType != undefined &&
       this._sourcedId != undefined &&
-      this._endpointUrl != undefined 
+      this._endpointUrl != undefined
     ) {
       return true;
     }
 
     const isUserLogedIn = localStorage.getItem(IS_USER_LOGED_IN);
 
-    let userData = localStorage.getItem(USER_TOKEN) || "";
-    if (isUserLogedIn == "true" && userData && userData != "null") {
+    let userData = localStorage.getItem(USER_TOKEN) || '';
+    if (isUserLogedIn == 'true' && userData && userData != 'null') {
       const res = JSON.parse(userData);
       this._userAccountName = res.authAccount;
       this._accountType = res.addedType;
@@ -106,7 +80,7 @@ export default class Auth {
         this._authToken != undefined &&
         this._accountType != undefined &&
         this._sourcedId != undefined &&
-        this._endpointUrl != undefined 
+        this._endpointUrl != undefined
       ) {
         return true;
       }
@@ -128,8 +102,8 @@ export default class Auth {
       this._accountType = null!;
       this._sourcedId = null!;
       this._endpointUrl = null!;
-      localStorage.setItem(USER_TOKEN, "null");
-      localStorage.setItem("isUserLogedIn", "false");
+      localStorage.setItem(USER_TOKEN, 'null');
+      localStorage.setItem('isUserLogedIn', 'false');
       return true;
     } catch (error) {
       return false;

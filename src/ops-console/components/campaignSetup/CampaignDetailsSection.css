@@ -1,0 +1,54 @@
+.campaign-details-section-grid {
+  grid-template-columns: repeat(2, minmax(13.75rem, 1fr));
+  max-width: min(61.4375rem, 100%);
+}
+
+.campaign-details-section-half-width {
+  max-width: 30.75rem;
+}
+
+.campaign-details-section-start-date-field {
+  grid-column: 1;
+}
+
+.campaign-details-section-end-date-field {
+  grid-column: 2;
+}
+
+.campaign-details-section-date-field-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.campaign-details-section-date-input {
+  width: 100%;
+}
+
+.campaign-details-section-date-input-has-value
+  .MuiInputBase-input[type='date'] {
+  color: transparent;
+  caret-color: transparent;
+}
+
+.campaign-details-section-date-display {
+  position: absolute;
+  top: 50%;
+  left: 0.875rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #21272a;
+  font-size: 0.875rem !important;
+  line-height: 1.0625rem !important;
+  z-index: 1;
+}
+
+@media (max-width: 56.25rem) {
+  .campaign-details-section-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-details-section-start-date-field,
+  .campaign-details-section-end-date-field {
+    grid-column: auto;
+  }
+}

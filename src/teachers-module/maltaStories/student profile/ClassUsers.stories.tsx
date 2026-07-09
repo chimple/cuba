@@ -1,14 +1,14 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import ClassUsers from "../../pages/ClassUsers";
+import type { Meta, StoryObj } from '@storybook/react';
+import ClassUsers from '../../pages/ClassUsers';
 
 const meta: Meta<typeof ClassUsers> = {
-  title: "teachers-module/pages/ClassUsers",
+  title: 'teachers-module/pages/ClassUsers',
   component: ClassUsers,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {},
 };
 

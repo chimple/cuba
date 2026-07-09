@@ -1,13 +1,13 @@
-school-request-container{
+school-request-container {
   width: 100%;
   position: relative !important;
   display: flex;
   flex-direction: column;
   height: 100vh;
-  overflow-y: auto; 
- }
+  overflow-y: auto;
+}
 
- .school-common-header {
+.school-common-header {
   width: calc(100% - 32px);
   margin: 0 auto;
   height: 65px;
@@ -33,13 +33,12 @@ school-request-container{
   min-width: 0;
   overflow: hidden;
 }
-.school-request{
+.school-request {
   margin: 24px;
 }
 .request-action-buttons {
   display: flex;
-  justify-content: space-between; 
+  justify-content: space-between;
   margin-top: 20px;
   padding-bottom: 0;
 }
-

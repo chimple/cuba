@@ -1,7 +1,7 @@
-import "../common/TextField.css";
-import { useEffect, useRef, useState } from "react";
-import { Keyboard } from "@capacitor/keyboard";
-import { Capacitor } from "@capacitor/core";
+import '../common/TextField.css';
+import { useEffect, useRef, useState } from 'react';
+import { Keyboard } from '@capacitor/keyboard';
+import { Capacitor } from '@capacitor/core';
 
 const TextField: React.FC<{
   value: string;
@@ -13,17 +13,17 @@ const TextField: React.FC<{
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      Keyboard.addListener("keyboardWillShow", (info) => {
+      Keyboard.addListener('keyboardWillShow', (info) => {
         setIsInputFocus(true);
         setTimeout(() => {
           scollToRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-            inline: "nearest",
+            behavior: 'smooth',
+            block: 'start',
+            inline: 'nearest',
           });
         }, 50);
       });
-      Keyboard.addListener("keyboardWillHide", () => {
+      Keyboard.addListener('keyboardWillHide', () => {
         setIsInputFocus(false);
       });
     }
@@ -32,18 +32,20 @@ const TextField: React.FC<{
     <div>
       <input
         aria-label="Name Text Box"
-        className={"text-box "}
+        className={'text-box '}
         type="text"
         value={value}
         // ref={scollToRef}
         onChange={onChange}
         onKeyDown={(event) => {
-          if (event.key === "Enter") {
+          if (event.key === 'Enter') {
             onEnterDown();
           }
         }}
       ></input>
-      {isInputFocus ? <div ref={scollToRef} className="keyboard-spacer" id="scroll"></div> : null}
+      {isInputFocus ? (
+        <div ref={scollToRef} className="keyboard-spacer" id="scroll"></div>
+      ) : null}
     </div>
   );
 };

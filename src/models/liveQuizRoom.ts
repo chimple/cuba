@@ -1,5 +1,5 @@
-import { DocumentReference, Timestamp } from "firebase/firestore";
-import BaseObject from "./baseObject";
+import { DocumentReference, Timestamp } from 'firebase/firestore';
+import BaseObject from './baseObject';
 
 interface LiveQuizRoomSchema {
   assignment: DocumentReference;
@@ -36,7 +36,7 @@ export default class LiveQuizRoomObject extends BaseObject {
     data: LiveQuizRoomSchema,
     updatedAt: Timestamp,
     createdAt: Timestamp,
-    docId: string
+    docId: string,
   ) {
     super(updatedAt, createdAt, docId);
     this._assignment = data.assignment;
@@ -78,7 +78,7 @@ export default class LiveQuizRoomObject extends BaseObject {
 
   public set course(value: DocumentReference) {
     this._course = value;
-  } 
+  }
 
   public get participants(): string[] {
     return this._participants;

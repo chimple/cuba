@@ -1,27 +1,76 @@
-import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { useHistory } from "react-router-dom";
-import DataTableBody, { Column } from "../DataTableBody";
-import DataTablePagination from "../DataTablePagination";
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
+import DataTableBody, { Column } from '../DataTableBody';
+import DataTablePagination from '../DataTablePagination';
 import {
   Button as MuiButton,
   Typography,
   Box,
   useMediaQuery,
   CircularProgress,
-} from "@mui/material";
-import { Add as AddIcon } from "@mui/icons-material";
-import { t } from "i18next";
-import SearchAndFilter from "../SearchAndFilter";
-import FilterSlider from "../FilterSlider";
-import SelectedFilters from "../SelectedFilters";
-import "./SchoolTeachers.css";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import { TeacherInfo } from "../../../common/constants";
+  Chip,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+} from '@mui/material';
 import {
-  getGradeOptions,
-  filterBySearchAndFilters,
-  sortSchoolTeachers,
-} from "../../OpsUtility/SearchFilterUtility";
+  Add as AddIcon,
+  MoreHoriz,
+  BorderColor as BorderColorIcon,
+} from '@mui/icons-material';
+import { t } from 'i18next';
+import SearchAndFilter from '../SearchAndFilter';
+import FilterSlider from '../FilterSlider';
+import SelectedFilters from '../SelectedFilters';
+import './SchoolTeachers.css';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import {
+  ContactTarget,
+  EnumType,
+  PERFORMANCE_UI,
+  PerformanceLevel,
+  StudentInfo,
+  TeacherInfo,
+  WHATSAPP_GROUP_STATUS_KEYS,
+  WHATSAPP_GROUP_STATUS,
+  WHATSAPP_GROUP_TICK_ICON,
+} from '../../../common/constants';
+import { filterBySearchAndFilters } from '../../OpsUtility/SearchFilterUtility';
+import FormCard, { FieldConfig, MessageConfig } from './FormCard';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { emailRegex, normalizePhone10 } from '../../pages/NewUserPageOps';
+import { ClassRow, SchoolData } from './SchoolClass';
+import FcInteractPopUp from '../fcInteractComponents/FcInteractPopUp';
+import ActionMenu from './ActionMenu';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import CloseIcon from '@mui/icons-material/Close';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import OpsGenericPopup from '../../common/OpsGenericPopup';
+import DeleteIcon from '../../assets/icons/deleteicon.svg';
+import logger from '../../../utility/logger';
+import {
+  filterByProgramGrades,
+  getClassDisplayLabel,
+  getExactClassName,
+  getProgramAllowedGrades,
+  isProgramGradeAllowed,
+  ProgramGradeScopeData,
+} from './ClassDetailsPageUtils';
+import {
+  getTeacherClassAssignmentDiff,
+  normalizeClassIds,
+  parseClassIdsFromCsv,
+  toClassIdsCsv,
+} from './TeacherClassAssignmentUtils';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+
+// Keys used to select the WhatsApp status label + chip styling.
+type WhatsappGroupStatusKey = keyof typeof WHATSAPP_GROUP_STATUS;
 
 interface DisplayTeacher {
   id: string;
@@ -31,12 +80,30 @@ interface DisplayTeacher {
   classSection: string;
   phoneNumber: string;
   emailDisplay: string;
+  phoneEmailDisplay: string;
+  class: string;
+  classId: string;
+  interactData: string;
+  performance: EnumType<'fc_support_level'>;
+  interactPayload: TeacherInfo;
+  whatsappGroupStatus?: WhatsappGroupStatusKey;
+  teacher_actions?: string;
+}
+
+// Tracks the selected teacher and their current class links while editing assignments.
+interface EditTeacherAssignmentState {
+  teacher: TeacherInfo;
+  assignedClassIds: string[];
 }
 
 interface SchoolTeachersProps {
   data: {
+    schoolData?: SchoolData;
+    programData?: ProgramGradeScopeData;
     teachers?: TeacherInfo[];
     totalTeacherCount?: number;
+    classData?: ClassRow[];
+    students?: StudentInfo[];
   };
   isMobile: boolean;
   schoolId: string;
@@ -44,88 +111,426 @@ interface SchoolTeachersProps {
 
 const ROWS_PER_PAGE = 20;
 
+type TeacherListCacheEntry = {
+  data: TeacherInfo[];
+  total: number;
+};
+
+// Keeps tab switches silent after the first scoped table load.
+const teacherListCache = new Map<string, TeacherListCacheEntry>();
+
+// Separates cached teacher lists by school and active program class scope.
+const getTeacherListCacheKey = (
+  schoolId: string,
+  classIds: string[] | undefined,
+): string => {
+  return `${schoolId}|classes:${classIds?.join(',') ?? 'all'}`;
+};
+
+// Map logical WhatsApp statuses to CSS chip classes.
+const getWhatsappChipClass = (status: WhatsappGroupStatusKey): string => {
+  switch (status) {
+    case WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP:
+      return 'schoolteachers-whatsapp-chip-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP:
+      return 'schoolteachers-whatsapp-chip-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP:
+      return 'schoolteachers-whatsapp-chip-not-in-group';
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_AVAILABLE:
+      return 'schoolteachers-whatsapp-chip-not-on-whatsapp';
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP:
+      return 'schoolteachers-whatsapp-chip-not-on-whatsapp';
+    case WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED:
+    default:
+      return 'schoolteachers-whatsapp-chip-not-checked';
+  }
+};
+
+// Shared renderer for WhatsApp group pills to keep UI consistent.
+const renderWhatsappGroupChip = (statusKey?: WhatsappGroupStatusKey) => {
+  const key = statusKey ?? WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+  return (
+    <Chip
+      icon={
+        key === WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP ? (
+          <img
+            src={WHATSAPP_GROUP_TICK_ICON}
+            alt=""
+            aria-hidden="true"
+            className="schoolteachers-whatsapp-chip-icon"
+          />
+        ) : undefined
+      }
+      label={t(WHATSAPP_GROUP_STATUS[key])}
+      size="small"
+      className={`schoolteachers-whatsapp-chip schoolteachers-whatsapp-chip-base ${getWhatsappChipClass(key)}`}
+    />
+  );
+};
+
+const getPerformancePillClass = (
+  performance: EnumType<'fc_support_level'>,
+): string => {
+  switch (performance) {
+    case PerformanceLevel.NOT_ASSIGNING:
+      return 'schoolTeachers-performance-pill-not-assigning';
+    case PerformanceLevel.ONE_TO_TWO_ASSIGNED:
+      return 'schoolTeachers-performance-pill-one-to-two';
+    case PerformanceLevel.THREE_TO_FOUR_ASSIGNED:
+      return 'schoolTeachers-performance-pill-three-to-four';
+    case PerformanceLevel.FOUR_PLUS_ASSIGNED:
+      return 'schoolTeachers-performance-pill-four-plus';
+    default:
+      return 'schoolTeachers-performance-pill-not-tracked';
+  }
+};
+
+// Normalize mixed "yes"/"no"/boolean/null API flags into a strict union.
+const normalizeWhatsappContactFlag = (value: unknown): 'yes' | 'no' | null => {
+  if (value == null) return null;
+  if (typeof value === 'boolean') return value ? 'yes' : 'no';
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === 'yes' || normalized === 'true') return 'yes';
+  if (normalized === 'no' || normalized === 'false') return 'no';
+  return null;
+};
+
+const getWhatsappAvailabilityStatus = (
+  waContactRaw: unknown,
+): WhatsappGroupStatusKey => {
+  const waContact = normalizeWhatsappContactFlag(waContactRaw);
+  if (waContact === 'yes') return WHATSAPP_GROUP_STATUS_KEYS.ON_WHATSAPP;
+  if (waContact === 'no') return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
+  return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+};
+
 const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
   data,
   schoolId,
   isMobile,
 }) => {
   const history = useHistory();
-  const isSmallScreen = useMediaQuery("(max-width: 768px)");
-  const [teachers, setTeachers] = useState<TeacherInfo[]>(data.teachers || []);
-  const [totalCount, setTotalCount] = useState<number>(
-    data.totalTeacherCount || 0
+  const isSmallScreen = useMediaQuery('(max-width: 768px)');
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  // Derives the active program grade scope before loading teacher rows.
+  const allowedGrades = useMemo(
+    () => getProgramAllowedGrades(data.programData),
+    [data.programData],
+  );
+  const programScopedClasses = useMemo(
+    () => filterByProgramGrades(data.classData, allowedGrades),
+    [data.classData, allowedGrades],
+  );
+  // Converts scoped classes to IDs for server-side teacher filtering.
+  const programScopedClassIds = useMemo(() => {
+    if (!allowedGrades) return undefined;
+    return programScopedClasses
+      .map((classRow) => String(classRow.id ?? '').trim())
+      .filter((classId) => classId !== '');
+  }, [allowedGrades, programScopedClasses]);
+  const hasProgramClassScope = allowedGrades !== null;
+  const initialTeacherCacheKey = getTeacherListCacheKey(
+    schoolId,
+    programScopedClassIds,
+  );
+  const cachedInitialTeachers = teacherListCache.get(initialTeacherCacheKey);
+  const [teachers, setTeachers] = useState<TeacherInfo[]>(
+    cachedInitialTeachers?.data ??
+      (hasProgramClassScope ? [] : data.teachers || []),
+  );
+  const [totalCount, setTotalCount] = useState<number>(
+    cachedInitialTeachers?.total ??
+      (hasProgramClassScope ? 0 : data.totalTeacherCount || 0),
+  );
+  const [isLoading, setIsLoading] = useState<boolean>(
+    hasProgramClassScope && !cachedInitialTeachers,
+  );
   const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [filters, setFilters] = useState<Record<string, string[]>>({
-    grade: [],
-    section: [],
+    class: [],
   });
-  const [orderBy, setOrderBy] = useState<string | null>("name");
-  const [order, setOrder] = useState<"asc" | "desc">("asc");
+  const [orderBy, setOrderBy] = useState<string | null>('name');
+  const [order, setOrder] = useState<'asc' | 'desc'>('asc');
   const [tempFilters, setTempFilters] = useState<Record<string, string[]>>({
-    grade: [],
-    section: [],
+    class: [],
   });
   const [isFilterSliderOpen, setIsFilterSliderOpen] = useState(false);
+  const [isAddTeacherModalOpen, setIsAddTeacherModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<MessageConfig | undefined>();
+  const api = ServiceConfig.getI().apiHandler;
+  const [openPopup, setOpenPopup] = useState(false);
+  const [currentTeachers, setcurrentTeachers] = useState<TeacherInfo>();
+  const [teacherStatus, setTeacherStatus] =
+    useState<EnumType<'fc_support_level'>>();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTargetTeacher, setDeleteTargetTeacher] =
+    useState<TeacherInfo | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  // Controls the edit-assignment popup visibility for teacher class updates.
+  const [isEditTeacherModalOpen, setIsEditTeacherModalOpen] = useState(false);
+  // Stores edit context so save can compare initial vs final class selections.
+  const [editTeacherState, setEditTeacherState] =
+    useState<EditTeacherAssignmentState | null>(null);
+  // Shows inline success/error feedback specific to the edit-assignment form.
+  const [editTeacherMessage, setEditTeacherMessage] = useState<
+    MessageConfig | undefined
+  >();
+  // Prevents duplicate save clicks while assignment changes are being persisted.
+  const [isUpdatingClassAssignment, setIsUpdatingClassAssignment] =
+    useState(false);
+  const getTeacherInfo = useCallback(
+    (userId: string, classId: string): TeacherInfo | null => {
+      if (!Array.isArray(teachers)) return null;
 
+      return (
+        teachers.find(
+          (t) => t.user?.id === userId && t.classWithidname.id === classId,
+        ) || null
+      );
+    },
+    [teachers],
+  );
+  const [popup, setPopup] = useState({
+    open: false,
+    image: '',
+    heading: '',
+    text: '',
+    autoCloseSeconds: 0,
+  });
+
+  const [teachersWithPerformance, setTeachersWithPerformance] = useState<
+    DisplayTeacher[]
+  >([]);
+  // Cache: classId -> normalized WhatsApp member phone numbers.
+  const [whatsappMembersByClass, setWhatsappMembersByClass] = useState<
+    Map<string, Set<string>>
+  >(new Map());
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fetchTeachers = useMemo(() => {
     let debounceTimer: NodeJS.Timeout | null = null;
-    return (currentPage: number, search: string) => {
+    return (currentPage: number, search: string, silent = false) => {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(async () => {
-        setIsLoading(true);
+        if (!silent) {
+          setIsLoading(true);
+        }
         const api = ServiceConfig.getI().apiHandler;
+        const cacheKey = getTeacherListCacheKey(
+          schoolId,
+          programScopedClassIds,
+        );
+        const shouldCache = currentPage === 1 && search.trim() === '';
+        // Empty scoped class IDs mean the program intentionally has no teacher rows.
+        if (programScopedClassIds && programScopedClassIds.length === 0) {
+          setTeachers([]);
+          setTotalCount(0);
+          if (shouldCache) {
+            teacherListCache.set(cacheKey, { data: [], total: 0 });
+          }
+          setIsLoading(false);
+          return;
+        }
         try {
           let response;
-          if (search && search.trim() !== "") {
-            const result = await api.searchTeachersInSchool(schoolId, search, currentPage, ROWS_PER_PAGE);
+          if (search && search.trim() !== '') {
+            const result = await api.searchTeachersInSchool(
+              schoolId,
+              search,
+              currentPage,
+              ROWS_PER_PAGE,
+              programScopedClassIds,
+            );
             setTeachers(result.data);
             setTotalCount(result.total);
+            if (shouldCache) {
+              teacherListCache.set(cacheKey, {
+                data: result.data,
+                total: result.total,
+              });
+            }
           } else {
             response = await api.getTeacherInfoBySchoolId(
               schoolId,
               currentPage,
-              ROWS_PER_PAGE
+              ROWS_PER_PAGE,
+              programScopedClassIds,
             );
             setTeachers(response.data);
             setTotalCount(response.total);
+            if (shouldCache) {
+              teacherListCache.set(cacheKey, {
+                data: response.data,
+                total: response.total,
+              });
+            }
           }
         } catch (error) {
-          console.error("Failed to fetch teachers:", error);
+          logger.error('Failed to fetch teachers:', error);
         } finally {
           setIsLoading(false);
         }
       }, 500);
     };
-  }, [schoolId]);
+  }, [schoolId, programScopedClassIds]);
 
   useEffect(() => {
-    if (
-      page === 1 &&
-      !searchTerm &&
-      filters.grade.length === 0 &&
-      filters.section.length === 0
-    ) {
-      setTeachers(data.teachers || []);
-      setTotalCount(data.totalTeacherCount || 0);
-      return;
+    if (isAddTeacherModalOpen) {
+      setErrorMessage({
+        text: t(
+          '*    Provide at least one contact method (phone number or email address) for the teacher.',
+        ),
+        type: 'error',
+      });
+    } else {
+      setErrorMessage(undefined);
     }
-    fetchTeachers(page, searchTerm);
+  }, [isAddTeacherModalOpen]);
+
+  useEffect(() => {
+    const isInitial = page === 1 && !searchTerm && filters.class.length === 0;
+
+    // Reuses prefetched school teachers only when no program scope is active.
+    if (isInitial && !allowedGrades) {
+      const cacheKey = getTeacherListCacheKey(schoolId, programScopedClassIds);
+      const prefetchedTeachers = data.teachers || [];
+      const prefetchedTotal =
+        data.totalTeacherCount ?? prefetchedTeachers.length;
+
+      setTeachers(prefetchedTeachers);
+      setTotalCount(prefetchedTotal);
+      teacherListCache.set(cacheKey, {
+        data: prefetchedTeachers,
+        total: prefetchedTotal,
+      });
+
+      if (prefetchedTeachers.length > 0 || data.totalTeacherCount === 0) {
+        setIsLoading(false);
+      } else {
+        fetchTeachers(page, searchTerm, true);
+      }
+      return;
+    } else {
+      const cacheKey = getTeacherListCacheKey(schoolId, programScopedClassIds);
+      fetchTeachers(
+        page,
+        searchTerm,
+        (isInitial && teacherListCache.has(cacheKey)) ||
+          (isInitial && !allowedGrades),
+      );
+    }
   }, [
     page,
     fetchTeachers,
     data.teachers,
     data.totalTeacherCount,
     searchTerm,
-    filters,
+    filters.class,
+    allowedGrades,
+    programScopedClassIds,
+    schoolId,
   ]);
+
+  // Fold classId + group_id into one key so the fetch effect reruns on link changes.
+  const classGroupKey = useMemo(() => {
+    return programScopedClasses
+      .map((row) => `${row?.id ?? ''}:${row?.group_id ?? ''}`)
+      .join('|');
+  }, [programScopedClasses]);
+
+  // Restricts WhatsApp group lookups to classes visible in the current program.
+  const classGroupIdMap = useMemo(() => {
+    const map = new Map<string, string>();
+    programScopedClasses.forEach((row) => {
+      if (row?.id) map.set(row.id, String(row?.group_id ?? '').trim());
+    });
+    return map;
+  }, [programScopedClasses]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const bot = data?.schoolData?.whatsapp_bot_number;
+    const groupTargets = programScopedClasses.filter(
+      (row) => row?.id && row?.group_id && String(row.group_id).trim() !== '',
+    );
+
+    // Fetch member lists only for classes that already have linked WhatsApp groups.
+    if (!bot || !api?.getWhatsappGroupDetails || groupTargets.length === 0) {
+      setWhatsappMembersByClass(new Map());
+      return;
+    }
+
+    (async () => {
+      try {
+        // Fetch group members for each class in parallel, keep classId -> group map.
+        const results = await Promise.all(
+          groupTargets.map(async (row) => {
+            try {
+              const group = await api.getWhatsappGroupDetails(
+                row.group_id as string,
+                bot,
+              );
+              return [row.id as string, group] as const;
+            } catch (error) {
+              logger.error('Failed to fetch WhatsApp group members:', error);
+              return [row.id as string, null] as const;
+            }
+          }),
+        );
+
+        if (cancelled) return;
+        const next = new Map<string, Set<string>>();
+        results.forEach(([classId, group]) => {
+          const parsedGroup =
+            typeof group === 'object' && group !== null && !Array.isArray(group)
+              ? (group as { members?: string[] })
+              : null;
+          const members = Array.isArray(parsedGroup?.members)
+            ? (parsedGroup?.members ?? [])
+            : [];
+          // Normalize to 10-digit numbers so comparisons are consistent.
+          const normalizedMembers = new Set<string>(
+            members
+              .map((member: unknown) => normalizePhone10(String(member)))
+              .filter((member): member is string => Boolean(member)),
+          );
+          next.set(classId, normalizedMembers);
+        });
+        setWhatsappMembersByClass(next);
+      } catch (error) {
+        logger.error('Failed to fetch WhatsApp group members:', error);
+        if (!cancelled) {
+          setWhatsappMembersByClass(new Map());
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    api,
+    classGroupKey,
+    data?.schoolData?.whatsapp_bot_number,
+    programScopedClasses,
+  ]);
+
+  const getGroupIdForClass = useCallback(
+    (classId?: string) => {
+      if (!classId) return '';
+      return String(classGroupIdMap.get(classId) ?? '').trim();
+    },
+    [classGroupIdMap],
+  );
 
   const handlePageChange = (newPage: number) => setPage(newPage);
   const handleSort = (key: string) => {
-    const isAsc = orderBy === key && order === "asc";
-    setOrder(isAsc ? "desc" : "asc");
+    const isAsc = orderBy === key && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(key);
   };
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,103 +563,326 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
             email: user.email ?? undefined,
             student_id: user.student_id ?? undefined,
             phone: user.phone ?? undefined,
-            gender: user.gender ?? "N/A",
+            gender: user.gender ?? 'N/A',
+            is_wa_contact: user.is_wa_contact ?? undefined,
           },
-          grade: t.grade ?? (t.grade ?? 0),
-          classSection: t.classSection ?? "N/A",
-          parent:
-            t.parent ?? {
-              id: t.parent_id ?? undefined,
-              name: t.parent_name ?? "",
-              phone: t.phone ?? undefined,
-            },
+          grade: t.grade ?? t.grade ?? 0,
+          classSection: t.classSection ?? 'N/A',
+          parent: t.parent ?? {
+            id: t.parent_id ?? undefined,
+            name: t.parent_name ?? '',
+            phone: t.phone ?? undefined,
+          },
         };
       }),
-    [teachers]
+    [teachers],
   );
 
-
-  const filteredTeachers = useMemo(
-    () =>
-      filterBySearchAndFilters(
-        normalizedTeachers,
-        filters,
-        searchTerm,
-        "teacher"
+  const filteredTeachers = useMemo(() => {
+    const searchableTeachers = normalizedTeachers.map((teacher, index) => ({
+      ...teacher,
+      index,
+      class: getClassDisplayLabel(
+        teacher.grade,
+        teacher.classSection,
+        getExactClassName(teacher.classWithidname),
       ),
-    [normalizedTeachers, filters, searchTerm]
-  );
+    }));
+
+    const searchFiltered = filterBySearchAndFilters(
+      searchableTeachers,
+      { grade: [], section: [] },
+      searchTerm,
+      'teacher',
+    );
+
+    return searchFiltered
+      .filter((teacher) => {
+        const classFilters = filters.class ?? [];
+        if (classFilters.length === 0) return true;
+        return classFilters.includes(teacher.class);
+      })
+      .map((teacher) => normalizedTeachers[teacher.index]);
+  }, [normalizedTeachers, filters, searchTerm]);
+
+  // Applies client-side program filtering to prefetched or search result rows.
+  const programFilteredTeachers = useMemo(() => {
+    if (!allowedGrades) return filteredTeachers;
+    return filteredTeachers.filter((teacher) => {
+      return isProgramGradeAllowed(allowedGrades, {
+        name: getExactClassName(teacher.classWithidname),
+        grade: teacher.grade,
+        section: teacher.classSection,
+      });
+    });
+  }, [filteredTeachers, allowedGrades]);
+
+  const classFilterOptions = useMemo(() => {
+    const labels = new Set<string>();
+    programFilteredTeachers.forEach((teacher) => {
+      const classLabel = getClassDisplayLabel(
+        teacher.grade,
+        teacher.classSection,
+        getExactClassName(teacher.classWithidname),
+      );
+      if (String(classLabel).trim() !== '') labels.add(classLabel);
+    });
+    return Array.from(labels).sort((a, b) => a.localeCompare(b));
+  }, [programFilteredTeachers]);
+
   const sortedTeachers = useMemo(() => {
-    return [...filteredTeachers].sort((a, b) => {
+    return [...programFilteredTeachers].sort((a, b) => {
       let aValue, bValue;
       switch (orderBy) {
-        case "name":
-          aValue = a.user.name || "";
-          bValue = b.user.name || "";
-          return order === "asc"
+        case 'name':
+          aValue = a.user.name || '';
+          bValue = b.user.name || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "gender":
-          aValue = a.user.gender || "";
-          bValue = b.user.gender || "";
-          return order === "asc"
+        case 'class': {
+          const gradeCompare = (a.grade || 0) - (b.grade || 0);
+          if (gradeCompare !== 0) {
+            return order === 'asc' ? gradeCompare : -gradeCompare;
+          }
+          return order === 'asc'
+            ? (a.classSection || '').localeCompare(b.classSection || '')
+            : (b.classSection || '').localeCompare(a.classSection || '');
+        }
+        case 'classSection':
+          aValue = a.classSection || '';
+          bValue = b.classSection || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "grade":
-          aValue = a.grade || 0;
-          bValue = b.grade || 0;
-          return order === "asc" ? aValue - bValue : bValue - aValue;
-        case "classSection":
-          aValue = a.classSection || "";
-          bValue = b.classSection || "";
-          return order === "asc"
+        case 'phoneNumber':
+          aValue = a.user.phone || '';
+          bValue = b.user.phone || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "phoneNumber":
-          aValue = a.user.phone || "";
-          bValue = b.user.phone || "";
-          return order === "asc"
+        case 'emailDisplay':
+          aValue = a.user.email || '';
+          bValue = b.user.email || '';
+          return order === 'asc'
             ? aValue.localeCompare(bValue)
             : bValue.localeCompare(aValue);
-        case "emailDisplay":
-          aValue = a.user.email || "";
-          bValue = b.user.email || "";
-          return order === "asc"
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
+        case 'phoneEmailDisplay': {
+          const aPhone = (a.user.phone || '').trim();
+          const bPhone = (b.user.phone || '').trim();
+          const phoneCompare = aPhone.localeCompare(bPhone);
+          if (phoneCompare !== 0) {
+            return order === 'asc' ? phoneCompare : -phoneCompare;
+          }
+
+          const aEmail = (a.user.email || '').trim();
+          const bEmail = (b.user.email || '').trim();
+          return order === 'asc'
+            ? aEmail.localeCompare(bEmail)
+            : bEmail.localeCompare(aEmail);
+        }
         default:
           return 0;
       }
     });
-  }, [filteredTeachers, orderBy, order]);
+  }, [programFilteredTeachers, orderBy, order]);
+
+  // Compare the teacher's phone to the WhatsApp members set for the class.
+  const isTeacherInWhatsappGroup = useCallback(
+    (teacher: TeacherInfo) => {
+      const classId = teacher.classWithidname?.id;
+      if (!classId) return false;
+      const members = whatsappMembersByClass.get(classId);
+      if (!members || members.size === 0) return false;
+      const phone = normalizePhone10(String(teacher.user?.phone ?? ''));
+      return !!phone && members.has(phone);
+    },
+    [whatsappMembersByClass],
+  );
+
+  // Gate group membership by the teacher is_wa_contact flag.
+  const getWhatsappGroupStatus = useCallback(
+    (teacher: TeacherInfo): WhatsappGroupStatusKey => {
+      const classId = teacher.classWithidname?.id;
+      if (!classId) return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+      const waContactRaw =
+        (teacher.user as { is_wa_contact?: unknown } | null)?.is_wa_contact ??
+        null;
+      const groupId = getGroupIdForClass(classId);
+      // No class group: show user-level WhatsApp availability from is_wa_contact.
+      if (!groupId) return getWhatsappAvailabilityStatus(waContactRaw);
+
+      // WhatsApp status rules: group linked + member match => In Group; group linked + no member match + is_wa_contact yes/no/null => Not in group/Not on whatsapp/Not Checked; no group + is_wa_contact yes/no/null => On Whatsapp/Not on whatsapp/Not Checked.
+      if (isTeacherInWhatsappGroup(teacher)) {
+        return WHATSAPP_GROUP_STATUS_KEYS.IN_GROUP;
+      }
+
+      const waContact = normalizeWhatsappContactFlag(waContactRaw);
+      if (waContact === 'yes') {
+        return WHATSAPP_GROUP_STATUS_KEYS.NOT_IN_GROUP;
+      }
+      if (waContact === 'no') {
+        return WHATSAPP_GROUP_STATUS_KEYS.NOT_ON_WHATSAPP;
+      }
+      return WHATSAPP_GROUP_STATUS_KEYS.NOT_CHECKED;
+    },
+    [getGroupIdForClass, isTeacherInWhatsappGroup],
+  );
 
   const displayTeachers = useMemo((): DisplayTeacher[] => {
-    return sortedTeachers.map(
-      (apiTeacher): DisplayTeacher => ({
-        id: apiTeacher.user.id,
-        name: apiTeacher.user.name || "N/A",
-        gender: apiTeacher.user.gender || "N/A",
-        grade: apiTeacher.grade,
-        classSection: apiTeacher.classSection,
-        phoneNumber: apiTeacher.user.phone || "N/A",
-        emailDisplay: apiTeacher.user.email || "N/A",
-      })
-    );
+    return sortedTeachers.map((apiTeacher) => ({
+      id: apiTeacher.user.id,
+      name: apiTeacher.user.name || 'N/A',
+      gender: apiTeacher.user.gender || 'N/A',
+      grade: apiTeacher.grade,
+      classSection: apiTeacher.classSection,
+      phoneNumber: apiTeacher.user.phone || '—',
+      emailDisplay: apiTeacher.user.email || '—',
+      phoneEmailDisplay: `${apiTeacher.user.phone || '—'} / ${apiTeacher.user.email || '—'}`,
+      class: getClassDisplayLabel(
+        apiTeacher.grade,
+        apiTeacher.classSection,
+        getExactClassName(apiTeacher.classWithidname),
+      ),
+      classId: apiTeacher.classWithidname?.id ?? '',
+      interactData: '',
+      interactPayload: apiTeacher,
+      performance:
+        teachersWithPerformance.find(
+          (t) =>
+            t.id === apiTeacher.user.id &&
+            t.classId === apiTeacher.classWithidname?.id,
+        )?.performance ?? 'not_assigning',
+    }));
+  }, [sortedTeachers, teachersWithPerformance]);
+
+  useEffect(() => {
+    if (!sortedTeachers.length) {
+      setTeachersWithPerformance([]);
+      return;
+    }
+    let cancelled = false;
+    async function loadPerformance() {
+      const enriched: DisplayTeacher[] = await Promise.all(
+        sortedTeachers.map(async (apiTeacher) => {
+          const teacherId = apiTeacher.user?.id;
+          const classId =
+            apiTeacher.classId ?? apiTeacher.classWithidname?.id ?? '';
+
+          if (!teacherId || !classId) {
+            return {
+              id: teacherId ?? '',
+              name: apiTeacher.user?.name || 'N/A',
+              gender: apiTeacher.user?.gender || 'N/A',
+              grade: apiTeacher.grade,
+              classSection: apiTeacher.classSection,
+              phoneNumber: apiTeacher.user?.phone || '—',
+              emailDisplay: apiTeacher.user?.email || '—',
+              phoneEmailDisplay: `${apiTeacher.user?.phone?.trim() || '—'} / ${apiTeacher.user?.email?.trim() || '—'}`,
+              class: getClassDisplayLabel(
+                apiTeacher.grade,
+                apiTeacher.classSection,
+                getExactClassName(apiTeacher.classWithidname),
+              ),
+              classId: '',
+              interactData: '',
+              interactPayload: apiTeacher,
+              performance:
+                PerformanceLevel.NOT_ASSIGNING as EnumType<'fc_support_level'>,
+            };
+          }
+
+          let perfLevel = PerformanceLevel.NOT_TRACKED;
+          try {
+            const activeApi = ServiceConfig.getI().apiHandler;
+            const count = await activeApi.getRecentAssignmentCountByTeacher(
+              teacherId,
+              classId,
+            );
+            perfLevel = mapCountToPerformance(count);
+          } catch (error) {
+            logger.error('Failed to load teacher performance count:', {
+              teacherId,
+              classId,
+              error,
+            });
+          }
+
+          return {
+            id: teacherId,
+            name: apiTeacher.user?.name || 'N/A',
+            gender: apiTeacher.user?.gender || 'N/A',
+            grade: apiTeacher.grade,
+            classSection: apiTeacher.classSection,
+            phoneNumber: apiTeacher.user?.phone || '—',
+            emailDisplay: apiTeacher.user?.email || '—',
+            phoneEmailDisplay: `${apiTeacher.user?.phone?.trim() || '—'} / ${apiTeacher.user?.email?.trim() || '—'}`,
+            class: getClassDisplayLabel(
+              apiTeacher.grade,
+              apiTeacher.classSection,
+              getExactClassName(apiTeacher.classWithidname),
+            ),
+            classId,
+            interactData: '',
+            interactPayload: apiTeacher,
+            performance: perfLevel as EnumType<'fc_support_level'>,
+          };
+        }),
+      );
+
+      if (!cancelled) {
+        setTeachersWithPerformance(enriched);
+      }
+    }
+
+    loadPerformance();
+    return () => {
+      cancelled = true;
+    };
   }, [sortedTeachers]);
 
+  // Add WhatsApp status to the rows used by the table.
+  const teachersWithWhatsappStatus = useMemo(
+    () =>
+      teachersWithPerformance.map((row) => ({
+        ...row,
+        whatsappGroupStatus: getWhatsappGroupStatus(row.interactPayload),
+      })),
+    [teachersWithPerformance, getWhatsappGroupStatus],
+  );
+
+  const mapCountToPerformance = (count: number | null): PerformanceLevel => {
+    if (count === null) return PerformanceLevel.NOT_TRACKED;
+    if (count === 0) return PerformanceLevel.NOT_ASSIGNING;
+    if (count >= 1 && count <= 2) return PerformanceLevel.ONE_TO_TWO_ASSIGNED;
+    if (count >= 3 && count <= 4)
+      return PerformanceLevel.THREE_TO_FOUR_ASSIGNED;
+    if (count >= 5) return PerformanceLevel.FOUR_PLUS_ASSIGNED;
+    return PerformanceLevel.NOT_TRACKED;
+  };
+
   const pageCount = useMemo(() => {
-    if (searchTerm || filters.grade.length > 0) {
-      return Math.ceil(filteredTeachers.length / ROWS_PER_PAGE);
+    if (searchTerm || filters.class.length > 0) {
+      return Math.ceil(programFilteredTeachers.length / ROWS_PER_PAGE);
     }
     return Math.ceil(totalCount / ROWS_PER_PAGE);
-  }, [totalCount, filters, searchTerm, filteredTeachers.length]);
+  }, [totalCount, filters, searchTerm, programFilteredTeachers.length]);
 
-  const isDataPresent = displayTeachers.length > 0;
+  const isDataPresent = teachersWithWhatsappStatus.length > 0;
   const isFilteringOrSearching =
-    searchTerm.trim() !== "" ||
+    searchTerm.trim() !== '' ||
     Object.values(filters).some((f) => f.length > 0);
 
-  const handleAddNewTeacher = useCallback(() => {}, [history]);
+  const hasAnyTeachers = (totalCount ?? 0) > 0;
+  const isNoTeachersState = !isLoading && !hasAnyTeachers;
+  const isFilteredEmptyState =
+    !isLoading && hasAnyTeachers && !isDataPresent && isFilteringOrSearching;
+  const hideHeaderActions = isNoTeachersState || isFilteredEmptyState;
+
+  const handleAddNewTeacher = useCallback(() => {
+    setErrorMessage(undefined);
+    setIsAddTeacherModalOpen(true);
+  }, []);
   const handleFilterIconClick = useCallback(() => {
     setTempFilters(filters);
     setIsFilterSliderOpen(true);
@@ -265,65 +893,692 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       [name]: Array.isArray(value) ? value : [value],
     }));
   }, []);
-  const handleCancelFilters = useCallback(
-    () => setIsFilterSliderOpen(false),
-    []
+  const handleCancelFilters = useCallback(() => {
+    setFilters({ class: [] });
+    setTempFilters({ class: [] });
+    setPage(1);
+    setIsFilterSliderOpen(false);
+  }, []);
+
+  const handleCloseAddTeacherModal = () => {
+    setIsAddTeacherModalOpen(false);
+    setErrorMessage(undefined);
+  };
+
+  const handleTeacherSubmit = useCallback(
+    async (values: Record<string, string>) => {
+      try {
+        const name = (values.name ?? '').toString().trim();
+        const classIdsString = (values.class ?? '').toString().trim();
+        const rawEmail = (values.email ?? '').toString().trim();
+        const rawPhone = (values.phoneNumber ?? '').toString();
+
+        if (!name) {
+          setErrorMessage({
+            text: t('Teacher name is required.'),
+            type: 'error',
+          });
+          return;
+        }
+        if (!classIdsString) {
+          setErrorMessage({
+            text: t('At least one class is required.'),
+            type: 'error',
+          });
+          return;
+        }
+
+        const classIds = classIdsString
+          .split(',')
+          .map((id) => id.trim())
+          .filter(Boolean);
+
+        if (classIds.length === 0) {
+          setErrorMessage({
+            text: t('At least one class is required.'),
+            type: 'error',
+          });
+          return;
+        }
+
+        const email = (values.email ?? '').toString().trim().toLowerCase();
+        const hasEmail = !!email;
+        const hasPhone =
+          (values.phoneNumber ?? '').toString().replace(/\D/g, '').length > 2;
+
+        const normalizedPhone = normalizePhone10(rawPhone);
+
+        const digitsOnly = rawPhone.replace(/\D/g, '');
+        const isValidPhone = digitsOnly.length == 12;
+
+        const localPhone = isValidPhone ? digitsOnly.slice(-10) : '';
+
+        let finalEmail = '';
+        let finalPhone = '';
+
+        if (hasPhone) {
+          if (!isValidPhone && localPhone.length !== 10) {
+            setErrorMessage({
+              text: t('Phone number must be 10 digits.'),
+              type: 'error',
+            });
+            return;
+          }
+          finalPhone = normalizedPhone;
+        }
+
+        if (hasEmail) {
+          if (!emailRegex.test(email)) {
+            setErrorMessage({
+              text: t('Please enter a valid email address.'),
+              type: 'error',
+            });
+            return;
+          }
+          finalEmail = email;
+        }
+
+        setIsSubmitting(true); // start loading
+        setErrorMessage(undefined);
+
+        await api.getOrcreateschooluser({
+          name,
+          phoneNumber: finalPhone || undefined,
+          email: finalEmail.trim() === '' ? undefined : finalEmail,
+          role: RoleType.TEACHER,
+          classId: classIds,
+          schoolId: schoolId,
+        });
+
+        // Show success message for 2 seconds
+        setErrorMessage({
+          text: t('Teacher added successfully'),
+          type: 'success',
+        });
+        setTimeout(() => {
+          setIsAddTeacherModalOpen(false); // close modal
+          setPage(1);
+          fetchTeachers(1, ''); // refresh teacher list
+        }, 2000);
+      } catch (e: any) {
+        const message = e instanceof Error ? e.message : String(e);
+        setErrorMessage({ text: message, type: 'error' });
+        logger.error('Failed to add teacher:', e);
+      } finally {
+        setIsSubmitting(false); // stop loading
+      }
+    },
+    [schoolId, fetchTeachers, api],
+  );
+
+  // Shows only program-visible classes in add/edit teacher class pickers.
+  const classOptions = useMemo(() => {
+    if (programScopedClasses.length === 0) return [];
+    return programScopedClasses
+      .map((classRow) => ({
+        value: classRow.id,
+        label:
+          typeof classRow.name === 'string'
+            ? classRow.name
+            : String(classRow.name ?? ''),
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [programScopedClasses]);
+
+  const teacherFormFields: FieldConfig[] = useMemo(
+    () => [
+      {
+        name: 'name',
+        label: 'Teacher Name',
+        kind: 'text',
+        required: true,
+        placeholder: 'Enter teacher name',
+        column: 2,
+      },
+      {
+        name: 'class',
+        label: 'Class',
+        kind: 'select',
+        required: true,
+        column: 0,
+        options: classOptions,
+        multi: true,
+      },
+      {
+        name: 'phoneNumber',
+        label: 'Phone Number',
+        kind: 'phone',
+        placeholder: 'Enter phone number',
+        column: 2,
+      },
+      {
+        name: 'email',
+        label: 'Email',
+        kind: 'email',
+        placeholder: 'Enter email address',
+        column: 2,
+      },
+    ],
+    [classOptions],
+  );
+
+  const editTeacherFields: FieldConfig[] = useMemo(
+    () => [
+      {
+        name: 'name',
+        label: 'Teacher Name',
+        kind: 'text',
+        required: true,
+        column: 2,
+        disabled: true,
+      },
+      {
+        name: 'class',
+        label: 'Class',
+        kind: 'select',
+        required: true,
+        // Keeps the class selector half-width as requested for the edit popup.
+        column: 0,
+        options: classOptions,
+        multi: true,
+      },
+      {
+        name: 'phoneNumber',
+        label: 'Phone Number',
+        kind: 'text',
+        column: 2,
+        disabled: true,
+      },
+      {
+        name: 'email',
+        label: 'Email Address',
+        kind: 'text',
+        column: 2,
+        disabled: true,
+      },
+    ],
+    [classOptions],
+  );
+
+  // Pre-fills edit form values from the selected teacher and normalized class set.
+  const editTeacherInitialValues = useMemo(() => {
+    if (!editTeacherState) {
+      return undefined;
+    }
+
+    return {
+      name: editTeacherState.teacher.user?.name ?? '',
+      class: toClassIdsCsv(editTeacherState.assignedClassIds),
+      phoneNumber: editTeacherState.teacher.user?.phone ?? '',
+      email: editTeacherState.teacher.user?.email ?? '',
+    };
+  }, [editTeacherState]);
+
+  // Clears edit modal state to avoid stale selections/messages on next open.
+  const handleCloseEditTeacherModal = useCallback(() => {
+    setIsEditTeacherModalOpen(false);
+    setEditTeacherState(null);
+    setEditTeacherMessage(undefined);
+    setIsUpdatingClassAssignment(false);
+  }, []);
+
+  // Resolves all classes linked to the teacher, with local fallback if fetch fails.
+  const getTeacherAssignedClassIds = useCallback(
+    async (teacher: TeacherInfo): Promise<string[]> => {
+      const teacherId = teacher.user?.id?.trim() ?? '';
+      if (!teacherId) return [];
+
+      const fallbackClassIds = normalizeClassIds(
+        teachers
+          .filter((teacherItem) => teacherItem.user?.id === teacherId)
+          .map((teacherItem) => teacherItem.classWithidname?.id ?? ''),
+      );
+
+      try {
+        const assignedClasses = await api.getClassesForSchool(
+          schoolId,
+          teacherId,
+        );
+        const assignedClassIds = normalizeClassIds(
+          assignedClasses.map((assignedClass) => assignedClass.id),
+        );
+
+        return assignedClassIds.length > 0
+          ? assignedClassIds
+          : fallbackClassIds;
+      } catch (error) {
+        logger.error('Failed to fetch teacher assigned classes:', error);
+        return fallbackClassIds;
+      }
+    },
+    [api, schoolId, teachers],
+  );
+
+  // Opens edit modal with fresh assignment state for the selected teacher row.
+  const handleOpenEditTeacherModal = useCallback(
+    async (row: DisplayTeacher) => {
+      const teacher =
+        row.interactPayload ?? getTeacherInfo(row.id, row.classId);
+      if (!teacher?.user?.id) return;
+
+      const assignedClassIds = await getTeacherAssignedClassIds(teacher);
+      setEditTeacherState({
+        teacher,
+        assignedClassIds,
+      });
+      setEditTeacherMessage(undefined);
+      setIsEditTeacherModalOpen(true);
+    },
+    [getTeacherAssignedClassIds, getTeacherInfo],
+  );
+
+  // Persists only assignment diffs so non-class profile fields remain unchanged.
+  const handleEditTeacherSubmit = useCallback(
+    async (values: Record<string, string>) => {
+      if (!editTeacherState) return;
+
+      const teacherId = editTeacherState.teacher.user?.id?.trim() ?? '';
+      if (!teacherId) {
+        setEditTeacherMessage({
+          text: t(
+            'Failed to update teacher class assignments. Please try again.',
+          ),
+          type: 'error',
+        });
+        return;
+      }
+
+      const selectedClassIds = parseClassIdsFromCsv(values.class ?? '');
+      const { classIdsToAdd, classIdsToRemove, hasChanges } =
+        getTeacherClassAssignmentDiff(
+          editTeacherState.assignedClassIds,
+          selectedClassIds,
+        );
+
+      if (!hasChanges) return;
+
+      try {
+        setIsUpdatingClassAssignment(true);
+        setEditTeacherMessage(undefined);
+
+        for (const classId of classIdsToAdd) {
+          await api.addTeacherToClass(
+            schoolId,
+            classId,
+            editTeacherState.teacher.user,
+          );
+        }
+
+        for (const classId of classIdsToRemove) {
+          await api.deleteUserFromClass(teacherId, classId);
+        }
+
+        handleCloseEditTeacherModal();
+        fetchTeachers(page, searchTerm);
+      } catch (error) {
+        logger.error('Failed to update teacher class assignments:', error);
+        setEditTeacherMessage({
+          text: t(
+            'Failed to update teacher class assignments. Please try again.',
+          ),
+          type: 'error',
+        });
+      } finally {
+        setIsUpdatingClassAssignment(false);
+      }
+    },
+    [
+      api,
+      editTeacherState,
+      fetchTeachers,
+      handleCloseEditTeacherModal,
+      page,
+      schoolId,
+      searchTerm,
+    ],
   );
 
   const columns: Column<DisplayTeacher>[] = [
     {
-      key: "name",
-      label: t("Teacher Name"),
-      renderCell: (t) => (
-        <Typography variant="body2" className="teacher-name-data">
-          {t.name}
+      key: 'name',
+      label: t('Teacher Name'),
+      align: 'left',
+      headerAlign: 'left',
+      width: 160,
+      render: (teacher: DisplayTeacher) => (
+        <Typography
+          variant="body2"
+          className="teacher-name-data schoolTeachers-firstColText"
+        >
+          {teacher.name}
         </Typography>
       ),
     },
-    { key: "gender", label: t("Gender") },
-    { key: "grade", label: t("Grade") },
-    { key: "classSection", label: t("Class Section") },
-    { key: "phoneNumber", label: t("Phone Number") },
+    ...(!isExternalUser
+      ? [
+          {
+            key: 'interactData',
+            label: t('Interact'),
+            align: 'center',
+            width: 60,
+            sortable: false,
+            render: (row) => (
+              <Box className="schoolTeachers-interactCell">
+                <IconButton
+                  size="small"
+                  onClick={async () => {
+                    setOpenPopup(true);
+                    const currentTeacher = getTeacherInfo(row.id, row.classId);
+                    if (currentTeacher) {
+                      setcurrentTeachers(currentTeacher);
+                    }
+                    const performance =
+                      teachersWithPerformance.find(
+                        (t) => t.id === row.id && t.classId === row.classId,
+                      )?.performance ?? null;
+                    if (performance) setTeacherStatus(performance);
+                  }}
+                >
+                  <img
+                    src="/assets/icons/Interact.svg"
+                    alt="Interact"
+                    className="schoolTeachers-interactIcon"
+                  />
+                </IconButton>
+              </Box>
+            ),
+          } as Column<DisplayTeacher>,
+        ]
+      : []),
     {
-      key: "emailDisplay",
-      label: t("Email"),
-      renderCell: (t) => (
-        <Typography variant="body2" className="truncate-text">
-          {t.emailDisplay}
+      key: 'class',
+      label: t('Class Name'),
+      sortable: true,
+      renderCell: (teacher: DisplayTeacher) => (
+        <Typography variant="body2" className="student-name-data">
+          {teacher.class}
         </Typography>
       ),
     },
+    {
+      key: 'performance',
+      label: t('Performance (15 days)'),
+      align: 'center',
+      width: 120,
+      sortable: false,
+      render: (row) => {
+        if (!row.performance) return <span>--</span>;
+
+        const ui = PERFORMANCE_UI[row.performance];
+
+        return (
+          <Box
+            className={`schoolTeachers-performance-pill ${getPerformancePillClass(
+              row.performance,
+            )}`}
+          >
+            {t(ui.label)}
+          </Box>
+        );
+      },
+    },
+    {
+      key: 'whatsappGroupStatus',
+      label: t('WhatsApp Group'),
+      sortable: false,
+      render: (row) => renderWhatsappGroupChip(row.whatsappGroupStatus),
+    },
+    ...(!isExternalUser
+      ? [
+          {
+            key: 'phoneEmailDisplay',
+            label: t('Phone / Email'),
+            renderCell: (row: DisplayTeacher) => (
+              <Typography variant="body2" className="truncate-text">
+                {row.phoneEmailDisplay}
+              </Typography>
+            ),
+          } as Column<DisplayTeacher>,
+        ]
+      : []),
+    ...(!isExternalUser
+      ? [
+          {
+            key: 'teacher_actions',
+            label: '',
+            sortable: false,
+            render: (row: DisplayTeacher) => (
+              <Box className="schoolTeachers-actionsCell">
+                <ActionMenu
+                  items={[
+                    {
+                      // Opens assignment-only edit mode from the row action menu.
+                      name: t('Edit Details'),
+                      icon: (
+                        <BorderColorIcon
+                          fontSize="small"
+                          className="schoolTeachers-actionEditIcon"
+                        />
+                      ),
+                      onClick: () => {
+                        void handleOpenEditTeacherModal(row);
+                      },
+                    },
+                    {
+                      name: t('Delete'),
+                      icon: (
+                        <DeleteOutlineIcon
+                          fontSize="small"
+                          className="schoolTeachers-actionDeleteIcon"
+                        />
+                      ),
+                      onClick: () => {
+                        const fullTeacher =
+                          row.interactPayload ??
+                          getTeacherInfo(row.id, row.classId);
+                        if (!fullTeacher) return;
+                        setDeleteTargetTeacher(fullTeacher);
+                        setIsDeleteModalOpen(true);
+                      },
+                    },
+                  ]}
+                  renderTrigger={(open) => (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        open(e);
+                      }}
+                      className="schoolTeachers-actionTrigger"
+                      id={`schoolTeachers-actionTrigger-${row.id}-${row.classId}`}
+                    >
+                      <MoreHoriz className="schoolTeachers-actionTriggerIcon" />
+                    </IconButton>
+                  )}
+                />
+              </Box>
+            ),
+          } as Column<DisplayTeacher>,
+        ]
+      : []),
   ];
 
   const handleClearFilters = useCallback(() => {
-    setFilters({ grade: [], section: [] });
-    setTempFilters({ grade: [], section: [] });
+    setFilters({ class: [] });
+    setTempFilters({ class: [] });
     setPage(1);
   }, []);
 
-  const filterConfigsForTeachers = [{ key: "grade", label: "Grade" }];
+  const filterConfigsForTeachers = [{ key: 'class', label: 'Class' }];
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetTeacher) return;
+
+    try {
+      setIsDeleting(true);
+
+      const teacherId =
+        deleteTargetTeacher.user?.id ||
+        (deleteTargetTeacher as { id?: string }).id ||
+        '';
+      const classId =
+        deleteTargetTeacher.classWithidname?.id ||
+        (deleteTargetTeacher as { classId?: string }).classId ||
+        (deleteTargetTeacher as { class_id?: string }).class_id ||
+        '';
+      const teacherName = deleteTargetTeacher.user.name;
+      if (!teacherId || !classId) {
+        logger.error('Missing teacherId or classId');
+        return;
+      }
+
+      const res = await api.deleteUserFromClass(teacherId, classId);
+      if (res) {
+        const message = t(
+          "{{teacherName}}'s profile has been deleted and is no longer available.",
+          { teacherName: teacherName ?? '' },
+        );
+        setPopup({
+          open: true,
+          image: DeleteIcon,
+          heading: 'Profile Deleted Successfully',
+          text: message, // dynamic
+          autoCloseSeconds: 5,
+        });
+      }
+      setIsDeleteModalOpen(false);
+      setDeleteTargetTeacher(null);
+      fetchTeachers(page, searchTerm);
+    } catch (error) {
+      logger.error('Delete teacher failed:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+  const deleteClassDisplay = deleteTargetTeacher
+    ? getClassDisplayLabel(
+        deleteTargetTeacher.grade,
+        deleteTargetTeacher.classSection,
+        getExactClassName(deleteTargetTeacher.classWithidname),
+      )
+    : '';
+  const deleteContactDisplay = deleteTargetTeacher
+    ? deleteTargetTeacher.user?.phone?.trim() ||
+      deleteTargetTeacher.user?.email?.trim() ||
+      'N/A'
+    : 'N/A';
 
   return (
     // The JSX remains the same
     <div className="schoolTeachers-pageContainer">
+      <OpsGenericPopup
+        isOpen={popup.open}
+        imageSrc={popup.image}
+        heading={popup.heading}
+        text={popup.text}
+        autoCloseSeconds={5}
+        onClose={() =>
+          setPopup((prev) => ({
+            ...prev,
+            open: false,
+          }))
+        }
+      />
+      <Dialog
+        open={isDeleteModalOpen}
+        onClose={() => {
+          if (isDeleting) return;
+          setIsDeleteModalOpen(false);
+        }}
+        disableEscapeKeyDown={isDeleting}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ className: 'schoolTeachers-deleteDialogPaper' }}
+      >
+        <DialogTitle className="schoolTeachers-deleteDialogTitle">
+          <Box className="schoolTeachers-deleteDialogTitleLeft">
+            <ErrorOutlineIcon className="schoolTeachers-deleteDialogAlertIcon" />
+            {t('Delete Teacher?')}
+          </Box>
+
+          <IconButton
+            size="small"
+            onClick={() => setIsDeleteModalOpen(false)}
+            disabled={isDeleting}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent className="schoolTeachers-deleteDialogContent">
+          <Typography
+            variant="body2"
+            className="schoolTeachers-deleteDialogText"
+          >
+            {t(
+              "You're about to permanently delete {{name}}'s record. This action cannot be undone.",
+              { name: deleteTargetTeacher?.user?.name ?? '' },
+            )}
+          </Typography>
+
+          {deleteTargetTeacher && (
+            <Box className="schoolTeachers-deleteDetails">
+              <Typography className="schoolTeachers-deleteName">
+                {deleteTargetTeacher.user?.name ?? 'N/A'}
+              </Typography>
+              <Typography>{deleteClassDisplay || 'N/A'}</Typography>
+              <Typography>{deleteContactDisplay}</Typography>
+            </Box>
+          )}
+
+          <Box className="schoolTeachers-deleteWarning">
+            {t('This cannot be reversed. Please be certain.')}
+          </Box>
+        </DialogContent>
+
+        <DialogActions className="schoolTeachers-deleteDialogActions">
+          <Button
+            variant="outlined"
+            onClick={() => setIsDeleteModalOpen(false)}
+            disabled={isDeleting}
+            className="schoolTeachers-deleteCancelButton"
+          >
+            {t('Cancel')}
+          </Button>
+
+          <Button
+            variant="contained"
+            color="error"
+            onClick={handleConfirmDelete}
+            disabled={isDeleting}
+            className="schoolTeachers-deleteConfirmButton"
+          >
+            {isDeleting ? t('Deleting...') : t('Delete Teacher')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Box className="schoolTeachers-headerActionsRow">
         <Box className="schoolTeachers-titleArea">
           <Typography variant="h5" className="schoolTeachers-titleHeading">
-            {t("Teachers")}
+            {t('Teachers')}
           </Typography>
           <Typography variant="body2" className="schoolTeachers-totalText">
-            {t("Total")}: {totalCount} {t("teachers")}
+            {t('Total')}: {totalCount} {t('teachers')}
           </Typography>
         </Box>
         <Box className="schoolTeachers-actionsGroup">
-          <MuiButton
-            variant="outlined"
-            onClick={handleAddNewTeacher}
-            className="schoolTeachers-newTeacherButton-outlined"
-          >
-            <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
-            {!isSmallScreen && t("New Teacher")}
-          </MuiButton>
+          {!isExternalUser && (
+            <MuiButton
+              variant="outlined"
+              onClick={handleAddNewTeacher}
+              className="schoolTeachers-newTeacherButton-outlined"
+            >
+              <AddIcon className="schoolTeachers-newTeacherButton-outlined-icon" />
+              {!isSmallScreen && t('New Teacher')}
+            </MuiButton>
+          )}
+
           <SearchAndFilter
             searchTerm={searchTerm}
             onSearchChange={handleSearchChange}
@@ -345,7 +1600,8 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
         onClose={() => setIsFilterSliderOpen(false)}
         filters={tempFilters}
         filterOptions={{
-          grade: getGradeOptions(teachers),
+          // Keeps class filter options aligned with the current program scope.
+          class: classFilterOptions,
         }}
         onFilterChange={handleSliderFilterChange}
         onApply={handleApplyFilters}
@@ -367,13 +1623,25 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
           <div className="schoolTeachers-table-container">
             <DataTableBody
               columns={columns}
-              rows={displayTeachers}
+              rows={teachersWithWhatsappStatus}
               orderBy={orderBy}
               order={order}
               onSort={handleSort}
               onRowClick={() => {}}
+              getRowId={(row) =>
+                `${row.id}-${row.classId || row.interactPayload?.classWithidname?.id || 'unassigned'}`
+              }
             />
           </div>
+          {openPopup && currentTeachers && (
+            <FcInteractPopUp
+              teacherData={currentTeachers}
+              schoolId={schoolId}
+              status={teacherStatus}
+              onClose={() => setOpenPopup(false)}
+              initialUserType={ContactTarget.TEACHER}
+            />
+          )}
           {pageCount > 1 && (
             <div className="schoolTeachers-footer">
               <DataTablePagination
@@ -387,14 +1655,14 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
       ) : (
         <Box className="schoolTeachers-emptyStateContainer">
           <Typography variant="h6" className="schoolTeachers-emptyStateTitle">
-            {t("Teachers")}
+            {t('Teachers')}
           </Typography>
           <Typography className="schoolTeachers-emptyStateMessage">
             {isFilteringOrSearching
-              ? t("No teachers found matching your criteria.")
-              : t("No teachers data found for the selected school")}
+              ? t('No teachers found matching your criteria.')
+              : t('No teachers data found for the selected school')}
           </Typography>
-          {!isFilteringOrSearching && (
+          {!isFilteringOrSearching && !isExternalUser && (
             <MuiButton
               variant="text"
               onClick={handleAddNewTeacher}
@@ -403,11 +1671,34 @@ const SchoolTeachers: React.FC<SchoolTeachersProps> = ({
                 <AddIcon className="schoolTeachers-emptyStateAddButton-icon" />
               }
             >
-              {t("Add Teacher")}
+              {t('Add Teacher')}
             </MuiButton>
           )}
         </Box>
       )}
+
+      <FormCard
+        open={isAddTeacherModalOpen}
+        title={t('Add New Teacher')}
+        submitLabel={isSubmitting ? t('Adding...') : t('Add Teacher')}
+        fields={teacherFormFields}
+        onClose={handleCloseAddTeacherModal}
+        onSubmit={handleTeacherSubmit}
+        message={errorMessage}
+      />
+      <FormCard
+        open={isEditTeacherModalOpen}
+        // Reuses FormCard in edit mode for class assignment updates only.
+        title={t('Edit Teacher Details')}
+        submitLabel={
+          isUpdatingClassAssignment ? t('Saving...') : t('Save Changes')
+        }
+        fields={editTeacherFields}
+        initialValues={editTeacherInitialValues}
+        onClose={handleCloseEditTeacherModal}
+        onSubmit={handleEditTeacherSubmit}
+        message={editTeacherMessage}
+      />
     </div>
   );
 };

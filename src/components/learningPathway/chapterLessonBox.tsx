@@ -1,65 +1,173 @@
-import React, { useEffect, useState } from "react";
-import "./chpaterLessonBox.css";
-import { Util } from "../../utility/util";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { t } from "i18next";
+import React, { useEffect, useState } from 'react';
+import './chpaterLessonBox.css';
+import { Util } from '../../utility/util';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { COURSE_CHANGED, COURSES, TableTypes } from '../../common/constants';
+import { useTranslation } from 'react-i18next';
+import { LessonNode } from '../../hooks/useLearningPath';
+import logger from '../../utility/logger';
 
 interface ChapterLessonBoxProps {
   containerStyle?: React.CSSProperties;
+  chapterName?: string;
+  lessonName?: string;
+  courseCode?: string;
 }
+
+const getSessionStorageItem = <T,>(
+  key: string,
+): { found: boolean; value: T | null } => {
+  try {
+    const cachedValue = sessionStorage.getItem(key);
+    if (cachedValue === null) {
+      return { found: false, value: null };
+    }
+
+    return {
+      found: true,
+      value: JSON.parse(cachedValue) as T,
+    };
+  } catch {
+    return { found: false, value: null };
+  }
+};
+
+const setSessionStorageItem = (key: string, value: unknown): void => {
+  try {
+    sessionStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    logger.warn('Unable to persist chapter lesson cache', { key, error });
+  }
+};
 
 const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   containerStyle,
+  chapterName,
+  lessonName,
+  courseCode,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
-  const [chapterName, setChapterName] = useState<string>("Default Chapter");
-  const [lessonName, setLessonName] = useState<string>("Default Lesson");
+  const [currentChapterName, setCurrentChapterName] = useState<string>('');
+  const { t } = useTranslation();
+  const getCachedLesson = async (lessonId: string) => {
+    const cacheKey = `lesson_${lessonId}`;
+    const cachedLesson = getSessionStorageItem<TableTypes<'lesson'>>(cacheKey);
+    if (cachedLesson.found) return cachedLesson.value;
+
+    const lesson = await api.getLesson(lessonId);
+    setSessionStorageItem(cacheKey, lesson ?? null);
+    return lesson;
+  };
+
+  const getCachedChapter = async (chapterId: string) => {
+    const cacheKey = `chapter_${chapterId}`;
+    const cachedChapter =
+      getSessionStorageItem<TableTypes<'chapter'>>(cacheKey);
+    if (cachedChapter.found) return cachedChapter.value;
+
+    const chapter = await api.getChapterById(chapterId);
+    setSessionStorageItem(cacheKey, chapter ?? null);
+    return chapter;
+  };
+
+  const getRenderedChapterLessonText = (
+    rawChapterName: string | null,
+    rawLessonName: string | null,
+    resolvedCourseCode: string | null,
+  ) => {
+    const isEnglishSubject =
+      resolvedCourseCode === COURSES.ENGLISH ||
+      resolvedCourseCode === COURSES.MATHS;
+    const translatedChapterName = rawChapterName
+      ? isEnglishSubject
+        ? rawChapterName
+        : t(rawChapterName)
+      : null;
+    const translatedLessonName = rawLessonName
+      ? isEnglishSubject
+        ? rawLessonName
+        : t(rawLessonName)
+      : null;
+
+    if (translatedChapterName) {
+      return `${translatedChapterName} : ${translatedLessonName ?? ''}`;
+    }
+
+    return isEnglishSubject ? (rawLessonName ?? '') : t(rawLessonName ?? '');
+  };
 
   useEffect(() => {
-    const updateChapter = async (currentStudent: any) => {
+    // SCENARIO 1: Props are provided (Homework Page)
+    if (chapterName && lessonName) {
+      const renderedText = getRenderedChapterLessonText(
+        chapterName,
+        lessonName,
+        courseCode ?? null,
+      );
+
+      setCurrentChapterName(renderedText);
+      return; // Stop here, don't do the API fetch
+    }
+    const updateChapter = async () => {
+      const currentStudent = Util.getCurrentStudent();
       if (!currentStudent || !currentStudent.learning_path) return;
 
-      const learningPath = JSON.parse(currentStudent.learning_path);
+      const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
+      let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
       const currentCourseIndex = learningPath?.courses.currentCourseIndex;
       const course = learningPath?.courses.courseList[currentCourseIndex];
-      const { currentIndex } = course;
 
-      const chapter = await api.getChapterById(
-        learningPath.courses.courseList[currentCourseIndex].path[currentIndex]
-          .chapter_id
-      );
-      const lesson = await api.getLesson(
-        learningPath.courses.courseList[currentCourseIndex].path[currentIndex]
-          .lesson_id
+      const pathItem =
+        course?.path?.find((p: LessonNode) => p.isPlayed === false) ??
+        (course?.path?.length ? course.path[course.path.length - 1] : null);
+      if (!pathItem?.lesson_id) {
+        setCurrentChapterName('');
+        return;
+      }
+
+      let lesson: TableTypes<'lesson'> | undefined | null = null;
+      let chapter: TableTypes<'chapter'> | undefined | null = null;
+
+      try {
+        lesson = await getCachedLesson(pathItem.lesson_id);
+        chapter = pathItem.chapter_id
+          ? await getCachedChapter(pathItem.chapter_id)
+          : null;
+      } catch (error) {
+        logger.error('Error fetching lesson or chapter details:', error);
+      }
+
+      const rawChapterName = chapter?.name ?? null;
+      const rawLessonName = lesson?.name ?? null;
+      const resolvedCourseCode =
+        courseCode ?? course?.course_code ?? course?.code ?? null;
+      const renderedText = getRenderedChapterLessonText(
+        rawChapterName,
+        rawLessonName,
+        resolvedCourseCode,
       );
 
-      setChapterName(chapter?.name || "Default Chapter");
-      setLessonName(lesson?.name || "Default Lesson");
+      setCurrentChapterName(renderedText);
     };
 
-    const handleCourseChange = async (event: CustomEvent) => {
-      const currentStudent = event.detail.currentStudent;
-      await updateChapter(currentStudent);
-    };
-
-    // Fetch initial chapter and lesson
+    // Fetch the initial chapter on component mount
     (async () => {
-      const currentStudent = await Util.getCurrentStudent();
-      await updateChapter(currentStudent);
+      await updateChapter();
     })();
 
+    // Listen for course changes
     const syncHandleCourseChange = (event: Event) => {
-      handleCourseChange(event as CustomEvent).catch((err) =>
-        console.error("Error handling course change:", err)
+      updateChapter().catch((err) =>
+        logger.error('Error handling course change:', err),
       );
     };
 
-    window.addEventListener("courseChanged", syncHandleCourseChange);
+    window.addEventListener(COURSE_CHANGED, syncHandleCourseChange);
 
     return () => {
-      window.removeEventListener("courseChanged", syncHandleCourseChange);
+      window.removeEventListener(COURSE_CHANGED, syncHandleCourseChange);
     };
-  }, []);
+  }, [chapterName, lessonName, courseCode, t]);
 
   return (
     <div
@@ -68,9 +176,7 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
         ...containerStyle,
       }}
     >
-      <div className="chapter-lesson-text">
-        {t(chapterName)} : {t(lessonName)}
-      </div>
+      <div className="chapter-lesson-text">{currentChapterName}</div>
     </div>
   );
 };

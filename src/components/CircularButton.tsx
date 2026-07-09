@@ -1,6 +1,6 @@
-import { t } from "i18next";
-import React from "react";
-import { IoIosAddCircle, IoIosRemoveCircle } from "react-icons/io";
+import { t } from 'i18next';
+import React from 'react';
+import { IoIosAddCircle, IoIosRemoveCircle } from 'react-icons/io';
 
 interface CircularButtonProps {
   onClick: () => void;
@@ -16,13 +16,13 @@ const CircularButton: React.FC<CircularButtonProps> = ({
       {isAddAction ? (
         <IoIosAddCircle
           id="common-back-button"
-          aria-label={String(t("Back"))}
+          aria-label={String(t('Back'))}
           onClick={onClick}
         />
       ) : (
         <IoIosRemoveCircle
           id="common-back-button"
-          aria-label={String(t("Back"))}
+          aria-label={String(t('Back'))}
           onClick={onClick}
         />
       )}

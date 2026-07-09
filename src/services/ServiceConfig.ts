@@ -1,12 +1,12 @@
-import { ApiHandler } from "./api/ApiHandler";
-import { FirebaseApi } from "./api/FirebaseApi";
-import { OneRosterApi } from "./api/OneRosterApi";
-import { SqliteApi } from "./api/SqliteApi";
-import { AuthHandler } from "./auth/AuthHandler";
-import { FirebaseAuth } from "./auth/FirebaseAuth";
-import { OneRosterAuth } from "./auth/OneRosterAuth";
-import { SupabaseAuth } from "./auth/SupabaseAuth";
-import { SupabaseApi } from "./api/SupabaseApi";
+import { ApiHandler } from './api/ApiHandler';
+import { FirebaseApi } from './api/FirebaseApi';
+import { OneRosterApi } from './api/OneRosterApi';
+import { SqliteApi } from './api/SqliteApi';
+import { AuthHandler } from './auth/AuthHandler';
+import { FirebaseAuth } from './auth/FirebaseAuth';
+import { OneRosterAuth } from './auth/OneRosterAuth';
+import { SupabaseAuth } from './auth/SupabaseAuth';
+import { SupabaseApi } from './api/SupabaseApi';
 
 export enum APIMode {
   ONEROSTER,
@@ -79,8 +79,8 @@ export class ServiceConfig {
     this._authHandler = AuthHandler.getInstance(FirebaseAuth.getInstance());
   }
 
-  private async initializeSqlite() {
-    this._apiHandler = ApiHandler.getInstance(await SqliteApi.getInstance());
+  private initializeSqlite() {
+    this._apiHandler = ApiHandler.getInstance(SqliteApi.getI());
     this._authHandler = AuthHandler.getInstance(SupabaseAuth.getInstance());
   }
 

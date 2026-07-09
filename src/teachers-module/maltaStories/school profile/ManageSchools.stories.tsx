@@ -1,14 +1,14 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import ManageSchools from "../../pages/ManageSchools";
+import type { Meta, StoryObj } from '@storybook/react';
+import ManageSchools from '../../pages/ManageSchools';
 
 const meta: Meta = {
-  title: "teachers-module/pages/ManageSchools",
+  title: 'teachers-module/pages/ManageSchools',
   component: ManageSchools,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {},
 };
 

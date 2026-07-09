@@ -1,0 +1,479 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useHistory } from 'react-router';
+import { t } from 'i18next';
+import { useFeatureIsOn } from '@growthbook/growthbook-react';
+
+import {
+  CAN_ACCESS_REMOTE_ASSETS,
+  CHIMPLE_MASCOT_ANIMATION_IDLE,
+  CHIMPLE_MASCOT_INPUT_CELEBRATE,
+  CHIMPLE_MASCOT_INPUT_NORMAL,
+  CHIMPLE_MASCOT_STATE_MACHINE_CELEBRATE,
+  CHIMPLE_MASCOT_STATE_MACHINE_NORMAL,
+  IDLE_REWARD_ID,
+  IS_REWARD_FEATURE_ON,
+  REWARD_MODAL_SHOWN_DATE,
+  RewardBoxState,
+  TableTypes,
+  LIVE_QUIZ,
+  PAGES,
+  SOURCE,
+  CONTINUE,
+  COURSE_CHANGED,
+  CAMPAIGN_SEQUENCE_FINISHED,
+} from '../common/constants';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { Util } from '../utility/util';
+import { useReward } from './useReward';
+import { schoolUtil } from '../utility/schoolUtil';
+import { LessonNode } from './useLearningPath';
+import logger from '../utility/logger';
+import { AudioUtil } from '../utility/AudioUtil';
+
+export interface MascotProps {
+  stateMachine: string;
+  inputName: string;
+  stateValue: number;
+  animationName?: string;
+}
+
+export const usePathwayData = () => {
+  const api = ServiceConfig.getI().apiHandler;
+  const history = useHistory();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Portal containers
+  const [riveContainer, setRiveContainer] = useState<HTMLDivElement | null>(
+    null,
+  );
+  const [rewardRiveContainer, setRewardRiveContainer] =
+    useState<HTMLDivElement | null>(null);
+
+  // Reward rive
+  const [rewardRiveState, setRewardRiveState] = useState<
+    RewardBoxState.IDLE | RewardBoxState.SHAKING | RewardBoxState.BLAST
+  >(RewardBoxState.IDLE);
+
+  // Modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalText, setModalText] = useState('');
+
+  const inactiveText = t(
+    'This lesson is locked. Play the current active lesson.',
+  );
+  const rewardText = t('Complete these 5 lessons to earn rewards');
+  const shouldAnimate = modalText === rewardText;
+
+  const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
+  const isRewardFeatureOn: boolean =
+    localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
+
+  const {
+    hasTodayReward,
+    setHasTodayReward,
+    checkAndUpdateReward,
+    shouldShowDailyRewardModal,
+  } = useReward();
+
+  // Course + chapter
+  const [currentCourse, setCurrentCourse] = useState<TableTypes<'course'>>();
+  const [currentChapter, setCurrentChapter] = useState<TableTypes<'chapter'>>();
+
+  // Reward modal
+  const [rewardModalOpen, setRewardModalOpen] = useState(false);
+  const [isRewardPathLoaded, setIsRewardPathLoaded] = useState(false);
+  const [isCampaignFinished, setIsCampaignFinished] = useState(false);
+
+  // Mascot state
+  const [chimpleRiveStateMachineName, setChimpleRiveStateMachineName] =
+    useState<string>(CHIMPLE_MASCOT_STATE_MACHINE_NORMAL);
+  const [chimpleRiveInputName, setChimpleRiveInputName] = useState<string>(
+    CHIMPLE_MASCOT_INPUT_NORMAL,
+  );
+  const [chimpleRiveStateValue, setChimpleRiveStateValue] = useState<number>(1);
+  const [chimpleRiveAnimationName, setChimpleRiveAnimationName] = useState<
+    string | undefined
+  >(CHIMPLE_MASCOT_ANIMATION_IDLE);
+
+  const [mascotKey, setMascotKey] = useState(0);
+  const mascotStateRef = useRef<{
+    stateMachine: string;
+    inputName: string;
+    stateValue: number;
+    animationName?: string;
+  } | null>(null);
+  const mascotSpeakRequestIdRef = useRef(0);
+
+  // Lesson cache
+  const lessonCacheRef = useRef<Map<string, any>>(new Map());
+
+  const getCachedLesson = useCallback(
+    async (lessonId: string): Promise<any> => {
+      const lessonCache = lessonCacheRef.current;
+      if (lessonCache.has(lessonId)) return lessonCache.get(lessonId);
+
+      const key = `lesson_${lessonId}`;
+      const cached = sessionStorage.getItem(key);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        lessonCache.set(lessonId, parsed);
+        return parsed;
+      }
+
+      const lesson = await api.getLesson(lessonId);
+      lessonCache.set(lessonId, lesson);
+      sessionStorage.setItem(key, JSON.stringify(lesson));
+      return lesson;
+    },
+    [api],
+  );
+
+  //  MASCOT: NORMAL STATE (IDLE)
+  const updateMascotToNormalState = useCallback(
+    async (rewardId: string) => {
+      const rewardRecord = await api.getRewardById(rewardId);
+      if (rewardRecord && rewardRecord.type === 'normal') {
+        setChimpleRiveStateMachineName(
+          rewardRecord.state_machine || CHIMPLE_MASCOT_STATE_MACHINE_NORMAL,
+        );
+        setChimpleRiveInputName(
+          rewardRecord.state_input_name || CHIMPLE_MASCOT_INPUT_NORMAL,
+        );
+        setChimpleRiveStateValue(rewardRecord.state_number_input || 1);
+        setChimpleRiveAnimationName(undefined);
+        setMascotKey((prev) => prev + 1);
+      } else {
+        setChimpleRiveAnimationName(CHIMPLE_MASCOT_ANIMATION_IDLE);
+        setMascotKey((prev) => prev + 1);
+      }
+    },
+    [api],
+  );
+
+  //  MASCOT: CELEBRATION STATE
+  const invokeMascotCelebration = useCallback(
+    async (state_number_input: number) => {
+      setChimpleRiveStateMachineName(CHIMPLE_MASCOT_STATE_MACHINE_CELEBRATE);
+      setChimpleRiveInputName(CHIMPLE_MASCOT_INPUT_CELEBRATE);
+      setChimpleRiveStateValue(state_number_input || 1);
+      setChimpleRiveAnimationName(undefined);
+      setMascotKey((prev) => prev + 1);
+    },
+    [],
+  );
+
+  const playMascotAudioFromLocalPath = useCallback(
+    async (
+      localAudioPath: string,
+      stateConfig?: {
+        stateMachine?: string;
+        inputName?: string;
+        stateValue?: number;
+        animationName?: string;
+      },
+      playbackOptions?: {
+        onPlaybackStop?: () => void;
+      },
+    ): Promise<boolean> => {
+      const normalizedPath = localAudioPath?.trim();
+      if (!normalizedPath) {
+        playbackOptions?.onPlaybackStop?.();
+        return false;
+      }
+
+      const requestId = mascotSpeakRequestIdRef.current + 1;
+      mascotSpeakRequestIdRef.current = requestId;
+
+      const previousState = {
+        stateMachine: chimpleRiveStateMachineName,
+        inputName: chimpleRiveInputName,
+        stateValue: chimpleRiveStateValue,
+        animationName: chimpleRiveAnimationName,
+      };
+      mascotStateRef.current = previousState;
+
+      setChimpleRiveStateMachineName(
+        stateConfig?.stateMachine ?? previousState.stateMachine,
+      );
+      setChimpleRiveInputName(
+        stateConfig?.inputName ?? previousState.inputName,
+      );
+      setChimpleRiveStateValue(
+        stateConfig?.stateValue ?? previousState.stateValue,
+      );
+      setChimpleRiveAnimationName(stateConfig?.animationName);
+      setMascotKey((prev) => prev + 1);
+
+      return AudioUtil.playAudioOrTts({
+        audioUrl: normalizedPath,
+        onStop: () => {
+          if (mascotSpeakRequestIdRef.current !== requestId) {
+            playbackOptions?.onPlaybackStop?.();
+            return;
+          }
+
+          const restoreState = mascotStateRef.current;
+          if (restoreState) {
+            setChimpleRiveStateMachineName(restoreState.stateMachine);
+            setChimpleRiveInputName(restoreState.inputName);
+            setChimpleRiveStateValue(restoreState.stateValue);
+            setChimpleRiveAnimationName(restoreState.animationName);
+            setMascotKey((prev) => prev + 1);
+          }
+          playbackOptions?.onPlaybackStop?.();
+        },
+        onComplete: () => {
+          if (mascotSpeakRequestIdRef.current !== requestId) {
+            playbackOptions?.onPlaybackStop?.();
+            return;
+          }
+
+          const restoreState = mascotStateRef.current;
+          if (restoreState) {
+            setChimpleRiveStateMachineName(restoreState.stateMachine);
+            setChimpleRiveInputName(restoreState.inputName);
+            setChimpleRiveStateValue(restoreState.stateValue);
+            setChimpleRiveAnimationName(restoreState.animationName);
+            setMascotKey((prev) => prev + 1);
+          }
+          playbackOptions?.onPlaybackStop?.();
+        },
+      });
+    },
+    [
+      chimpleRiveAnimationName,
+      chimpleRiveInputName,
+      chimpleRiveStateMachineName,
+      chimpleRiveStateValue,
+    ],
+  );
+
+  // INITIALIZE PATHWAY
+  const initializePathway = useCallback(async () => {
+    try {
+      const todaysReward = await Promise.all([
+        checkAndUpdateReward(),
+        Util.fetchTodaysReward(),
+      ]).then(([, result]) => result);
+
+      const currentReward = Util.retrieveUserReward();
+      const today = new Date().toISOString().split('T')[0];
+
+      const receivedTodayReward =
+        currentReward?.timestamp &&
+        new Date(currentReward.timestamp).toISOString().split('T')[0] ===
+          today &&
+        todaysReward?.id === currentReward?.reward_id;
+
+      setHasTodayReward(!receivedTodayReward);
+
+      if (currentReward.reward_id !== IDLE_REWARD_ID) {
+        await updateMascotToNormalState(currentReward.reward_id);
+      }
+    } catch (err) {
+      logger.error('Error in initializePathway:', err);
+    }
+  }, [checkAndUpdateReward, updateMascotToNormalState, setHasTodayReward]);
+
+  // 🟡 Decide campaign applicability per student
+  const currentStudentId = Util.getCurrentStudent()?.id;
+
+  useEffect(() => {
+    const student = Util.getCurrentStudent();
+    const school = schoolUtil.getCurrentClass();
+
+    // No student → campaign irrelevant
+    if (!student?.id) {
+      setIsCampaignFinished(true);
+      return;
+    }
+
+    // Student exists but no school → campaign irrelevant
+    if (!school?.school_id) {
+      setIsCampaignFinished(true);
+      return;
+    }
+
+    // Student has a school → wait for WinterCampaignPopupGating
+    setIsCampaignFinished(false);
+  }, [currentStudentId]);
+
+  // COURSE CHANGE RELOAD
+  useEffect(() => {
+    const handleCourseChange = () => {
+      (window as any).__triggerPathwayReload__?.();
+    };
+    window.addEventListener(COURSE_CHANGED, handleCourseChange);
+    return () => window.removeEventListener(COURSE_CHANGED, handleCourseChange);
+  }, []);
+
+  useEffect(() => {
+    const handleFinished = () => {
+      setIsCampaignFinished(true);
+    };
+    window.addEventListener(CAMPAIGN_SEQUENCE_FINISHED, handleFinished);
+    return () =>
+      window.removeEventListener(CAMPAIGN_SEQUENCE_FINISHED, handleFinished);
+  }, []);
+
+  // INITIALIZE REWARD PATH
+  useEffect(() => {
+    if (isRewardFeatureOn) {
+      initializePathway();
+    }
+  }, [isRewardPathLoaded, isRewardFeatureOn, initializePathway]);
+
+  // DAILY REWARD MODAL
+  const hasRunDailyCheckRef = useRef(false);
+
+  useEffect(() => {
+    if (!isRewardFeatureOn) return;
+    if (!isCampaignFinished) return;
+
+    if (hasRunDailyCheckRef.current) return;
+
+    hasRunDailyCheckRef.current = true;
+
+    const showModalIfNeeded = async () => {
+      const showModal = await shouldShowDailyRewardModal();
+      setRewardModalOpen(showModal);
+      hasRunDailyCheckRef.current = true;
+    };
+
+    showModalIfNeeded();
+  }, [isCampaignFinished, isRewardFeatureOn, shouldShowDailyRewardModal]);
+
+  const handleRewardBoxOpen = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const today = new Date().toISOString().split('T')[0];
+    sessionStorage.setItem(REWARD_MODAL_SHOWN_DATE, today);
+    setRewardModalOpen(true);
+  }, []);
+
+  const handleRewardModalClose = useCallback((e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setRewardModalOpen(false);
+    sessionStorage.setItem(REWARD_MODAL_SHOWN_DATE, new Date().toISOString());
+  }, []);
+
+  const handleRewardModalPlay = useCallback(
+    async (e?: React.MouseEvent) => {
+      if (e) e.stopPropagation();
+      setRewardModalOpen(false);
+      sessionStorage.setItem(REWARD_MODAL_SHOWN_DATE, new Date().toISOString());
+
+      try {
+        const currentStudent = Util.getCurrentStudent();
+        if (!currentStudent?.learning_path) return;
+        const pathToParse =
+          Util.getLatestLearningPathByUpdatedAt(currentStudent);
+        let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
+        const currentCourseIndex = learningPath?.courses.currentCourseIndex;
+        const course = learningPath?.courses.courseList[currentCourseIndex];
+        const pathItem = course?.path.find(
+          (p: LessonNode) => p.isPlayed === false,
+        );
+        if (!course || !pathItem) return;
+
+        const isAssessment = pathItem?.is_assessment;
+        const assessmentId = pathItem?.assignment_id;
+
+        const lesson = await api.getLesson(pathItem.lesson_id);
+        if (!lesson) return;
+
+        if (lesson.plugin_type === LIVE_QUIZ) {
+          history.replace(
+            PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+            {
+              courseId: course.course_id,
+              lesson: JSON.stringify(lesson),
+              from: history.location.pathname + `?${CONTINUE}=true`,
+              learning_path: true,
+              reward: true,
+              skillId: pathItem?.skill_id,
+              is_assessment: isAssessment,
+              source: pathItem?.source ?? SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
+            },
+          );
+        } else {
+          const playableLessonId = Util.getLessonBundleId(lesson);
+          if (!playableLessonId) {
+            return;
+          }
+          const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
+          history.replace(PAGES.LIDO_PLAYER + params, {
+            lessonId: playableLessonId,
+            courseDocId: course.course_id,
+            course: JSON.stringify(currentCourse),
+            lesson: JSON.stringify(lesson),
+            chapter: JSON.stringify(currentChapter),
+            from: history.location.pathname + `?${CONTINUE}=true`,
+            learning_path: true,
+            reward: true,
+            skillId: pathItem?.skill_id,
+            is_assessment: isAssessment,
+            assessmentId,
+            source: pathItem?.source ?? SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
+          });
+        }
+      } catch (error) {
+        logger.error('Error in playLesson:', error);
+      }
+    },
+    [api, currentChapter, currentCourse, history],
+  );
+
+  const mascotProps: MascotProps = {
+    stateMachine: chimpleRiveStateMachineName,
+    inputName: chimpleRiveInputName,
+    stateValue: chimpleRiveStateValue,
+    animationName: chimpleRiveAnimationName,
+  };
+
+  return {
+    containerRef,
+
+    // For SVG hook
+    getCachedLesson,
+    updateMascotToNormalState,
+    invokeMascotCelebration,
+    playMascotAudioFromLocalPath,
+    setRewardRiveState,
+    setRiveContainer,
+    setRewardRiveContainer,
+    setHasTodayReward,
+    setCurrentCourse,
+    setCurrentChapter,
+    setIsRewardPathLoaded,
+    isRewardPathLoaded,
+    checkAndUpdateReward,
+
+    // Mascot UI
+    mascotKey,
+    mascotProps,
+
+    // Reward
+    rewardRiveContainer,
+    riveContainer,
+    rewardRiveState,
+    hasTodayReward,
+    isRewardFeatureOn,
+
+    // Modals
+    modalOpen,
+    modalText,
+    setModalOpen,
+    setModalText,
+    shouldAnimate,
+    rewardModalOpen,
+    isCampaignFinished,
+    handleRewardBoxOpen,
+    handleRewardModalClose,
+    handleRewardModalPlay,
+
+    // Misc
+    inactiveText,
+    rewardText,
+    shouldShowRemoteAssets,
+  };
+};

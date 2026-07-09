@@ -1,34 +1,57 @@
-import { UserAttributes } from "@supabase/supabase-js";
-import { TableTypes } from "../../common/constants";
+import { Session, User, UserAttributes } from '@supabase/supabase-js';
+import { TableTypes } from '../../common/constants';
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 
 export interface ServiceAuth {
   loginWithEmailAndPassword(
     email: string,
-    password: string
-  ): Promise<{ success: boolean; isSpl: boolean }>;
+    password: string,
+    tcAgreedVersion?: number,
+  ): Promise<{
+    user?: User;
+    success: boolean;
+    isSpl: boolean;
+    userData?: TableTypes<'user'> | null;
+  }>;
 
-  googleSign(): Promise<{ success: boolean; isSpl: boolean }>;
+  googleSign(tcAgreedVersion?: number): Promise<{
+    user?: User;
+    success: boolean;
+    isSpl: boolean;
+    userData?: TableTypes<'user'> | null;
+  }>;
 
-  getCurrentUser(): Promise<TableTypes<"user"> | undefined>;
+  getCurrentUser(): Promise<TableTypes<'user'> | undefined>;
 
-  set currentUser(user: TableTypes<"user">);
+  set currentUser(user: TableTypes<'user'>);
 
   isUserLoggedIn(): Promise<boolean>;
 
-  phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any>;
+  phoneNumberSignIn(
+    phoneNumber: string,
+    recaptchaVerifier: object,
+  ): Promise<unknown>;
 
   resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined>;
 
   generateOtp(
     phoneNumber: string,
-    appName: string
-  ): Promise<{ success: boolean; error?: any }>;
+    appName: string,
+  ): Promise<{ success: boolean; error?: unknown }>;
 
   proceedWithVerificationCode(
-    verificationId,
-    verificationCode
-  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined>;
+    verificationId: string,
+    verificationCode: string,
+    tcAgreedVersion?: number,
+  ): Promise<
+    | {
+        user: User | null;
+        isUserExist: boolean;
+        isSpl: boolean;
+        userData?: TableTypes<'user'> | null;
+      }
+    | undefined
+  >;
 
   logOut(): Promise<void>;
   doRefreshSession(): Promise<void>;
@@ -44,8 +67,14 @@ export interface ServiceAuth {
    */
   signInWithEmail(
     email: string,
-    password: string
-  ): Promise<{ success: boolean; isSpl: boolean }>;
+    password: string,
+    tcAgreedVersion?: number,
+  ): Promise<{
+    user?: User;
+    success: boolean;
+    isSpl: boolean;
+    userData?: TableTypes<'user'> | null;
+  }>;
   /**
    * Sends a password reset email to the given address.
    *
@@ -60,4 +89,7 @@ export interface ServiceAuth {
    * @returns A promise that resolves to `true` if the update was successful, otherwise `false`.
    */
   updateUser(attributes: UserAttributes): Promise<boolean>;
+
+  getUser(): Promise<{ data: { user: User | null }; error: unknown }>;
+  getSession(): Promise<{ data: { session: Session | null }; error: unknown }>;
 }

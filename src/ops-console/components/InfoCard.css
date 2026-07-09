@@ -6,8 +6,12 @@
 
 .info-card-title {
   font-weight: 900; /* bold */
-  width: 100%;
   text-align: left;
+  /* take remaining header space and support ellipsis */
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .info-card-divider {
@@ -19,4 +23,16 @@
   flex-direction: column;
   gap: 8px; /* approx gap:1 */
   padding-top: 10px;
+}
+
+.info-card-edit-icon {
+  cursor: pointer;
+}
+
+.info-card-header-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }

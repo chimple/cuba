@@ -10,7 +10,146 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)";
+    PostgrestVersion: '12.2.3 (519615d)';
+  };
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
+  pgmq_public: {
+    Tables: {
+      whatsapp_invite_logs: {
+        Row: {
+          bot_phone: string;
+          class_id: string;
+          error_message: string | null;
+          group_id: string;
+          id: string;
+          phone: string;
+          school_udise: string;
+          sent_at: string | null;
+          status: string;
+        };
+        Insert: {
+          bot_phone: string;
+          class_id: string;
+          error_message?: string | null;
+          group_id: string;
+          id?: string;
+          phone: string;
+          school_udise: string;
+          sent_at?: string | null;
+          status: string;
+        };
+        Update: {
+          bot_phone?: string;
+          class_id?: string;
+          error_message?: string | null;
+          group_id?: string;
+          id?: string;
+          phone?: string;
+          school_udise?: string;
+          sent_at?: string | null;
+          status?: string;
+        };
+        Relationships: [];
+      };
+      whatsapp_invite_school_status: {
+        Row: {
+          completed_at: string | null;
+          created_at: string | null;
+          id: string;
+          school_udise: string;
+          status: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          completed_at?: string | null;
+          created_at?: string | null;
+          id?: string;
+          school_udise: string;
+          status: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          completed_at?: string | null;
+          created_at?: string | null;
+          id?: string;
+          school_udise?: string;
+          status?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      archive: {
+        Args: { message_id: number; queue_name: string };
+        Returns: boolean;
+      };
+      delete: {
+        Args: { message_id: number; queue_name: string };
+        Returns: boolean;
+      };
+      pop: {
+        Args: { queue_name: string };
+        Returns: unknown[];
+        SetofOptions: {
+          from: '*';
+          to: 'message_record';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      read: {
+        Args: { n: number; queue_name: string; sleep_seconds: number };
+        Returns: unknown[];
+        SetofOptions: {
+          from: '*';
+          to: 'message_record';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      send: {
+        Args: { message: Json; queue_name: string; sleep_seconds?: number };
+        Returns: number[];
+      };
+      send_batch: {
+        Args: { messages: Json[]; queue_name: string; sleep_seconds?: number };
+        Returns: number[];
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
   public: {
     Tables: {
@@ -66,6 +205,7 @@ export type Database = {
           is_firebase: boolean | null;
           lesson_id: string;
           school_id: string;
+          set_number: number | null;
           source: string | null;
           starts_at: string;
           type: string | null;
@@ -86,6 +226,7 @@ export type Database = {
           is_firebase?: boolean | null;
           lesson_id: string;
           school_id: string;
+          set_number?: number | null;
           source?: string | null;
           starts_at?: string;
           type?: string | null;
@@ -106,6 +247,7 @@ export type Database = {
           is_firebase?: boolean | null;
           lesson_id?: string;
           school_id?: string;
+          set_number?: number | null;
           source?: string | null;
           starts_at?: string;
           type?: string | null;
@@ -113,46 +255,109 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "assignment_chapter_id_fkey";
-            columns: ["chapter_id"];
+            foreignKeyName: 'assignment_chapter_id_fkey';
+            columns: ['chapter_id'];
             isOneToOne: false;
-            referencedRelation: "chapter";
-            referencedColumns: ["id"];
+            referencedRelation: 'chapter';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "assignment_course_id_fkey";
-            columns: ["course_id"];
+            foreignKeyName: 'assignment_course_id_fkey';
+            columns: ['course_id'];
             isOneToOne: false;
-            referencedRelation: "course";
-            referencedColumns: ["id"];
+            referencedRelation: 'course';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_assignment_class_id_fkey";
-            columns: ["class_id"];
+            foreignKeyName: 'public_assignment_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "class";
-            referencedColumns: ["id"];
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_assignment_created_by_fkey";
-            columns: ["created_by"];
+            foreignKeyName: 'public_assignment_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['class_id'];
           },
           {
-            foreignKeyName: "public_assignment_lesson_id_fkey";
-            columns: ["lesson_id"];
+            foreignKeyName: 'public_assignment_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "lesson";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['class_id'];
           },
           {
-            foreignKeyName: "public_assignment_school_id_fkey";
-            columns: ["school_id"];
+            foreignKeyName: 'public_assignment_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "school";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['class_id_real'];
+          },
+          {
+            foreignKeyName: 'public_assignment_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'public_assignment_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_assignment_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_assignment_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'public_assignment_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_assignment_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_assignment_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_assignment_lesson_id_fkey';
+            columns: ['lesson_id'];
+            isOneToOne: false;
+            referencedRelation: 'lesson';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_assignment_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -163,7 +368,7 @@ export type Database = {
           is_deleted: boolean | null;
           is_firebase: boolean | null;
           lessons: string | null;
-          source: Database["public"]["Enums"]["assignment_source"] | null;
+          source: Database['public']['Enums']['assignment_source'] | null;
           updated_at: string | null;
         };
         Insert: {
@@ -172,7 +377,7 @@ export type Database = {
           is_deleted?: boolean | null;
           is_firebase?: boolean | null;
           lessons?: string | null;
-          source?: Database["public"]["Enums"]["assignment_source"] | null;
+          source?: Database['public']['Enums']['assignment_source'] | null;
           updated_at?: string | null;
         };
         Update: {
@@ -181,16 +386,51 @@ export type Database = {
           is_deleted?: boolean | null;
           is_firebase?: boolean | null;
           lessons?: string | null;
-          source?: Database["public"]["Enums"]["assignment_source"] | null;
+          source?: Database['public']['Enums']['assignment_source'] | null;
           updated_at?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "assignment_cart_id_fkey";
-            columns: ["id"];
+            foreignKeyName: 'assignment_cart_id_fkey';
+            columns: ['id'];
             isOneToOne: true;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'assignment_cart_id_fkey';
+            columns: ['id'];
+            isOneToOne: true;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'assignment_cart_id_fkey';
+            columns: ['id'];
+            isOneToOne: true;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'assignment_cart_id_fkey';
+            columns: ['id'];
+            isOneToOne: true;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'assignment_cart_id_fkey';
+            columns: ['id'];
+            isOneToOne: true;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'assignment_cart_id_fkey';
+            columns: ['id'];
+            isOneToOne: true;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -224,18 +464,53 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "public_assignment_user_assignment_id_fkey";
-            columns: ["assignment_id"];
+            foreignKeyName: 'public_assignment_user_assignment_id_fkey';
+            columns: ['assignment_id'];
             isOneToOne: false;
-            referencedRelation: "assignment";
-            referencedColumns: ["id"];
+            referencedRelation: 'assignment';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_assignment_user_user_id_fkey";
-            columns: ["user_id"];
+            foreignKeyName: 'public_assignment_user_user_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_assignment_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_assignment_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'public_assignment_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_assignment_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_assignment_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -266,11 +541,11 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "public_auto_chatbot_school_id_fkey";
-            columns: ["school_id"];
+            foreignKeyName: 'public_auto_chatbot_school_id_fkey';
+            columns: ['school_id'];
             isOneToOne: false;
-            referencedRelation: "school";
-            referencedColumns: ["id"];
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -303,6 +578,331 @@ export type Database = {
           updated_at?: string | null;
         };
         Relationships: [];
+      };
+      campaign: {
+        Row: {
+          created_at: string | null;
+          end_date: string;
+          id: string;
+          is_deleted: boolean | null;
+          learning_path_count: number | null;
+          manager_id: string | null;
+          name: string;
+          objective: string;
+          program_id: string | null;
+          rewards: string | null;
+          start_date: string;
+          target_audience_id: string | null;
+          target_type: Database['public']['Enums']['target_type'] | null;
+          target_value: number | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          end_date: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          learning_path_count?: number | null;
+          manager_id?: string | null;
+          name: string;
+          objective: string;
+          program_id?: string | null;
+          rewards?: string | null;
+          start_date: string;
+          target_audience_id?: string | null;
+          target_type?: Database['public']['Enums']['target_type'] | null;
+          target_value?: number | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          end_date?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          learning_path_count?: number | null;
+          manager_id?: string | null;
+          name?: string;
+          objective?: string;
+          program_id?: string | null;
+          rewards?: string | null;
+          start_date?: string;
+          target_audience_id?: string | null;
+          target_type?: Database['public']['Enums']['target_type'] | null;
+          target_value?: number | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_manager_id_fkey';
+            columns: ['manager_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_manager_id_fkey';
+            columns: ['manager_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_manager_id_fkey';
+            columns: ['manager_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'campaign_manager_id_fkey';
+            columns: ['manager_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_manager_id_fkey';
+            columns: ['manager_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_manager_id_fkey';
+            columns: ['manager_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_target_audience_id_fkey';
+            columns: ['target_audience_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaign_target_audience';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      campaign_messaging: {
+        Row: {
+          campaign_id: string;
+          created_at: string | null;
+          id: string;
+          is_deleted: boolean | null;
+          media_link: string | null;
+          message: string | null;
+          message_status: string | null;
+          message_time: string | null;
+          poll: Json | null;
+          poll_status: string | null;
+          poll_time: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          campaign_id: string;
+          created_at?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          media_link?: string | null;
+          message?: string | null;
+          message_status?: string | null;
+          message_time?: string | null;
+          poll?: Json | null;
+          poll_status?: string | null;
+          poll_time?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          campaign_id?: string;
+          created_at?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          media_link?: string | null;
+          message?: string | null;
+          message_status?: string | null;
+          message_time?: string | null;
+          poll?: Json | null;
+          poll_status?: string | null;
+          poll_time?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_messaging_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaign';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      campaign_target_audience: {
+        Row: {
+          created_at: string | null;
+          created_by: string | null;
+          id: string;
+          is_all_grades: boolean | null;
+          is_all_schools: boolean | null;
+          is_deleted: boolean | null;
+          is_saved: boolean | null;
+          name: string | null;
+          program_id: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          created_by?: string | null;
+          id?: string;
+          is_all_grades?: boolean | null;
+          is_all_schools?: boolean | null;
+          is_deleted?: boolean | null;
+          is_saved?: boolean | null;
+          name?: string | null;
+          program_id?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          created_by?: string | null;
+          id?: string;
+          is_all_grades?: boolean | null;
+          is_all_schools?: boolean | null;
+          is_deleted?: boolean | null;
+          is_saved?: boolean | null;
+          name?: string | null;
+          program_id?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_target_audience_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_target_audience_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_target_audience_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'campaign_target_audience_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_target_audience_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_target_audience_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_target_audience_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      campaign_target_audience_grade: {
+        Row: {
+          grade_id: string | null;
+          id: string;
+          is_deleted: boolean | null;
+          target_audience_id: string | null;
+        };
+        Insert: {
+          grade_id?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          target_audience_id?: string | null;
+        };
+        Update: {
+          grade_id?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          target_audience_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_target_audience_grade_grade_id_fkey';
+            columns: ['grade_id'];
+            isOneToOne: false;
+            referencedRelation: 'grade';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_target_audience_grade_target_audience_id_fkey';
+            columns: ['target_audience_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaign_target_audience';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      campaign_target_audience_school: {
+        Row: {
+          id: string;
+          is_deleted: boolean | null;
+          school_id: string | null;
+          target_audience_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          is_deleted?: boolean | null;
+          school_id?: string | null;
+          target_audience_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          is_deleted?: boolean | null;
+          school_id?: string | null;
+          target_audience_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_target_audience_school_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_target_audience_school_target_audience_id_fkey';
+            columns: ['target_audience_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaign_target_audience';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       chapter: {
         Row: {
@@ -340,11 +940,11 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "public_chapter_course_id_fkey";
-            columns: ["course_id"];
+            foreignKeyName: 'public_chapter_course_id_fkey';
+            columns: ['course_id'];
             isOneToOne: false;
-            referencedRelation: "course";
-            referencedColumns: ["id"];
+            referencedRelation: 'course';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -354,7 +954,9 @@ export type Database = {
           created_at: string;
           id: string;
           is_deleted: boolean | null;
+          language_id: string | null;
           lesson_id: string;
+          locale_id: string | null;
           sort_index: number | null;
           updated_at: string | null;
         };
@@ -363,7 +965,9 @@ export type Database = {
           created_at?: string;
           id?: string;
           is_deleted?: boolean | null;
+          language_id?: string | null;
           lesson_id: string;
+          locale_id?: string | null;
           sort_index?: number | null;
           updated_at?: string | null;
         };
@@ -372,24 +976,47 @@ export type Database = {
           created_at?: string;
           id?: string;
           is_deleted?: boolean | null;
+          language_id?: string | null;
           lesson_id?: string;
+          locale_id?: string | null;
           sort_index?: number | null;
           updated_at?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "public_chapter_lesson_chapter_id_fkey";
-            columns: ["chapter_id"];
+            foreignKeyName: 'chapter_lesson_language_id_fkey';
+            columns: ['language_id'];
             isOneToOne: false;
-            referencedRelation: "chapter";
-            referencedColumns: ["id"];
+            referencedRelation: 'language';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_chapter_lesson_lesson_id_fkey";
-            columns: ["lesson_id"];
+            foreignKeyName: 'chapter_lesson_language_id_fkey1';
+            columns: ['language_id'];
             isOneToOne: false;
-            referencedRelation: "lesson";
-            referencedColumns: ["id"];
+            referencedRelation: 'language';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'chapter_lesson_locale_id_fkey';
+            columns: ['locale_id'];
+            isOneToOne: false;
+            referencedRelation: 'locale';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_chapter_lesson_chapter_id_fkey';
+            columns: ['chapter_id'];
+            isOneToOne: false;
+            referencedRelation: 'chapter';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_chapter_lesson_lesson_id_fkey';
+            columns: ['lesson_id'];
+            isOneToOne: false;
+            referencedRelation: 'lesson';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -429,32 +1056,32 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "chapter_links_chapter_id_fkey";
-            columns: ["chapter_id"];
+            foreignKeyName: 'chapter_links_chapter_id_fkey';
+            columns: ['chapter_id'];
             isOneToOne: false;
-            referencedRelation: "chapter";
-            referencedColumns: ["id"];
+            referencedRelation: 'chapter';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "chapter_links_course_id_fkey";
-            columns: ["course_id"];
+            foreignKeyName: 'chapter_links_course_id_fkey';
+            columns: ['course_id'];
             isOneToOne: false;
-            referencedRelation: "course";
-            referencedColumns: ["id"];
+            referencedRelation: 'course';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "chapter_links_curriculum_id_fkey";
-            columns: ["curriculum_id"];
+            foreignKeyName: 'chapter_links_curriculum_id_fkey';
+            columns: ['curriculum_id'];
             isOneToOne: false;
-            referencedRelation: "curriculum";
-            referencedColumns: ["id"];
+            referencedRelation: 'curriculum';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "chapter_links_grade_id_fkey";
-            columns: ["grade_id"];
+            foreignKeyName: 'chapter_links_grade_id_fkey';
+            columns: ['grade_id'];
             isOneToOne: false;
-            referencedRelation: "grade";
-            referencedColumns: ["id"];
+            referencedRelation: 'grade';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -490,67 +1117,118 @@ export type Database = {
           academic_year: string | null;
           created_at: string;
           firebase_id: string | null;
+          grade_id: string | null;
           group_id: string | null;
           id: string;
           image: string | null;
           is_deleted: boolean | null;
           is_firebase: boolean | null;
           is_ops: boolean | null;
+          migrated_count: number | null;
           name: string;
           ops_created_by: string | null;
           school_id: string;
           standard: string | null;
           status: string | null;
           updated_at: string | null;
+          whatsapp_invite_link: string | null;
         };
         Insert: {
           academic_year?: string | null;
           created_at?: string;
           firebase_id?: string | null;
+          grade_id?: string | null;
           group_id?: string | null;
           id?: string;
           image?: string | null;
           is_deleted?: boolean | null;
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
+          migrated_count?: number | null;
           name: string;
           ops_created_by?: string | null;
           school_id: string;
           standard?: string | null;
           status?: string | null;
           updated_at?: string | null;
+          whatsapp_invite_link?: string | null;
         };
         Update: {
           academic_year?: string | null;
           created_at?: string;
           firebase_id?: string | null;
+          grade_id?: string | null;
           group_id?: string | null;
           id?: string;
           image?: string | null;
           is_deleted?: boolean | null;
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
+          migrated_count?: number | null;
           name?: string;
           ops_created_by?: string | null;
           school_id?: string;
           standard?: string | null;
           status?: string | null;
           updated_at?: string | null;
+          whatsapp_invite_link?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "class_ops_created_by_fkey";
-            columns: ["ops_created_by"];
+            foreignKeyName: 'class_grade_id_fkey';
+            columns: ['grade_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'grade';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_class_school_id_fkey";
-            columns: ["school_id"];
+            foreignKeyName: 'class_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "school";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'class_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_class_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -590,25 +1268,88 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "class_course_ops_created_by_fkey";
-            columns: ["ops_created_by"];
+            foreignKeyName: 'class_course_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
           },
           {
-            foreignKeyName: "public_class_course_class_id_fkey";
-            columns: ["class_id"];
+            foreignKeyName: 'class_course_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "class";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
           },
           {
-            foreignKeyName: "public_class_course_course_id_fkey";
-            columns: ["course_id"];
+            foreignKeyName: 'class_course_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "course";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'class_course_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_course_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_course_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_class_course_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_class_course_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'public_class_course_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'public_class_course_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['class_id_real'];
+          },
+          {
+            foreignKeyName: 'public_class_course_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'public_class_course_course_id_fkey';
+            columns: ['course_id'];
+            isOneToOne: false;
+            referencedRelation: 'course';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -648,11 +1389,39 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "public_class_invite_code_class_id_fkey";
-            columns: ["class_id"];
+            foreignKeyName: 'public_class_invite_code_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "class";
-            referencedColumns: ["id"];
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_class_invite_code_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'public_class_invite_code_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'public_class_invite_code_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['class_id_real'];
+          },
+          {
+            foreignKeyName: 'public_class_invite_code_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['class_id'];
           },
         ];
       };
@@ -665,7 +1434,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           ops_created_by: string | null;
-          role: Database["public"]["Enums"]["role"];
+          role: Database['public']['Enums']['role'];
           updated_at: string | null;
           user_id: string;
         };
@@ -677,7 +1446,7 @@ export type Database = {
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
           ops_created_by?: string | null;
-          role: Database["public"]["Enums"]["role"];
+          role: Database['public']['Enums']['role'];
           updated_at?: string | null;
           user_id: string;
         };
@@ -689,31 +1458,173 @@ export type Database = {
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
           ops_created_by?: string | null;
-          role?: Database["public"]["Enums"]["role"];
+          role?: Database['public']['Enums']['role'];
           updated_at?: string | null;
           user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "class_user_class_id_fkey";
-            columns: ["class_id"];
+            foreignKeyName: 'class_user_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "class";
-            referencedColumns: ["id"];
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "class_user_ops_created_by_fkey";
-            columns: ["ops_created_by"];
+            foreignKeyName: 'class_user_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['class_id'];
           },
           {
-            foreignKeyName: "class_user_user_id_fkey";
-            columns: ["user_id"];
+            foreignKeyName: 'class_user_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'class_user_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['class_id_real'];
+          },
+          {
+            foreignKeyName: 'class_user_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'class_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'class_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'class_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'class_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      competency: {
+        Row: {
+          code: string;
+          created_at: string;
+          description: string | null;
+          domain_id: string;
+          id: string;
+          is_deleted: boolean | null;
+          name: string;
+          sort_index: number | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          description?: string | null;
+          domain_id: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          name: string;
+          sort_index?: number | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          description?: string | null;
+          domain_id?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          name?: string;
+          sort_index?: number | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'public_competency_domain_id_fkey';
+            columns: ['domain_id'];
+            isOneToOne: false;
+            referencedRelation: 'domain';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -743,6 +1654,7 @@ export type Database = {
           curriculum_id: string | null;
           description: string | null;
           firebase_id: string | null;
+          framework_id: string | null;
           grade_id: string | null;
           id: string;
           image: string | null;
@@ -759,6 +1671,7 @@ export type Database = {
           curriculum_id?: string | null;
           description?: string | null;
           firebase_id?: string | null;
+          framework_id?: string | null;
           grade_id?: string | null;
           id?: string;
           image?: string | null;
@@ -775,6 +1688,7 @@ export type Database = {
           curriculum_id?: string | null;
           description?: string | null;
           firebase_id?: string | null;
+          framework_id?: string | null;
           grade_id?: string | null;
           id?: string;
           image?: string | null;
@@ -786,27 +1700,55 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "public_course_curriculum_id_fkey";
-            columns: ["curriculum_id"];
+            foreignKeyName: 'course_framework_id_fkey';
+            columns: ['framework_id'];
             isOneToOne: false;
-            referencedRelation: "curriculum";
-            referencedColumns: ["id"];
+            referencedRelation: 'framework';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_course_grade_id_fkey";
-            columns: ["grade_id"];
+            foreignKeyName: 'public_course_curriculum_id_fkey';
+            columns: ['curriculum_id'];
             isOneToOne: false;
-            referencedRelation: "grade";
-            referencedColumns: ["id"];
+            referencedRelation: 'curriculum';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_course_subject_id_fkey";
-            columns: ["subject_id"];
+            foreignKeyName: 'public_course_grade_id_fkey';
+            columns: ['grade_id'];
             isOneToOne: false;
-            referencedRelation: "subject";
-            referencedColumns: ["id"];
+            referencedRelation: 'grade';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_course_subject_id_fkey';
+            columns: ['subject_id'];
+            isOneToOne: false;
+            referencedRelation: 'subject';
+            referencedColumns: ['id'];
           },
         ];
+      };
+      course_backup: {
+        Row: {
+          backup_data: Json | null;
+          backup_taken_at: string | null;
+          id: number;
+          original_course_id: string | null;
+        };
+        Insert: {
+          backup_data?: Json | null;
+          backup_taken_at?: string | null;
+          id?: number;
+          original_course_id?: string | null;
+        };
+        Update: {
+          backup_data?: Json | null;
+          backup_taken_at?: string | null;
+          id?: number;
+          original_course_id?: string | null;
+        };
+        Relationships: [];
       };
       curriculum: {
         Row: {
@@ -844,6 +1786,54 @@ export type Database = {
         };
         Relationships: [];
       };
+      domain: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          framework_id: string;
+          id: string;
+          is_deleted: boolean | null;
+          name: string;
+          subject_id: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          framework_id: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          name: string;
+          subject_id: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          framework_id?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          name?: string;
+          subject_id?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'domain_framework_id_fkey';
+            columns: ['framework_id'];
+            isOneToOne: false;
+            referencedRelation: 'framework';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'domain_subject_id_fkey';
+            columns: ['subject_id'];
+            isOneToOne: false;
+            referencedRelation: 'subject';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       error_logs: {
         Row: {
           created_at: string;
@@ -865,11 +1855,46 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "error_logs_user_id_fkey";
-            columns: ["user_id"];
+            foreignKeyName: 'error_logs_user_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'error_logs_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'error_logs_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'error_logs_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'error_logs_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'error_logs_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -903,20 +1928,489 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "favorite_lesson_lesson_id_fkey";
-            columns: ["lesson_id"];
+            foreignKeyName: 'favorite_lesson_lesson_id_fkey';
+            columns: ['lesson_id'];
             isOneToOne: false;
-            referencedRelation: "lesson";
-            referencedColumns: ["id"];
+            referencedRelation: 'lesson';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "favorite_lesson_user_id_fkey";
-            columns: ["user_id"];
+            foreignKeyName: 'favorite_lesson_user_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'favorite_lesson_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'favorite_lesson_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'favorite_lesson_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'favorite_lesson_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'favorite_lesson_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
+      };
+      fc_question: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_deleted: boolean;
+          question_text: string;
+          sort_order: number;
+          status: Database['public']['Enums']['fc_questions_status'];
+          target_type: Database['public']['Enums']['fc_engagement_target'];
+          type: Database['public']['Enums']['fc_support_level'] | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean;
+          question_text: string;
+          sort_order?: number;
+          status?: Database['public']['Enums']['fc_questions_status'];
+          target_type: Database['public']['Enums']['fc_engagement_target'];
+          type?: Database['public']['Enums']['fc_support_level'] | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean;
+          question_text?: string;
+          sort_order?: number;
+          status?: Database['public']['Enums']['fc_questions_status'];
+          target_type?: Database['public']['Enums']['fc_engagement_target'];
+          type?: Database['public']['Enums']['fc_support_level'] | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      fc_school_visit: {
+        Row: {
+          check_in_at: string;
+          check_in_lat: number | null;
+          check_in_lng: number | null;
+          check_out_at: string | null;
+          check_out_lat: number | null;
+          check_out_lng: number | null;
+          created_at: string;
+          distance_check_out: string | null;
+          distance_from_school: string | null;
+          id: string;
+          is_deleted: boolean;
+          notes: string | null;
+          number_of_parents: number | null;
+          school_id: string;
+          type: Database['public']['Enums']['school_visit_type'] | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          check_in_at: string;
+          check_in_lat?: number | null;
+          check_in_lng?: number | null;
+          check_out_at?: string | null;
+          check_out_lat?: number | null;
+          check_out_lng?: number | null;
+          created_at?: string;
+          distance_check_out?: string | null;
+          distance_from_school?: string | null;
+          id?: string;
+          is_deleted?: boolean;
+          notes?: string | null;
+          number_of_parents?: number | null;
+          school_id: string;
+          type?: Database['public']['Enums']['school_visit_type'] | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          check_in_at?: string;
+          check_in_lat?: number | null;
+          check_in_lng?: number | null;
+          check_out_at?: string | null;
+          check_out_lat?: number | null;
+          check_out_lng?: number | null;
+          created_at?: string;
+          distance_check_out?: string | null;
+          distance_from_school?: string | null;
+          id?: string;
+          is_deleted?: boolean;
+          notes?: string | null;
+          number_of_parents?: number | null;
+          school_id?: string;
+          type?: Database['public']['Enums']['school_visit_type'] | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'fc_visit_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fc_visit_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_visit_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_visit_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'fc_visit_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_visit_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_visit_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      fc_user_forms: {
+        Row: {
+          call_status: Database['public']['Enums']['fc_call_result'] | null;
+          class_id: string | null;
+          comment: string | null;
+          contact_method: Database['public']['Enums']['fc_contact_method'];
+          contact_target: Database['public']['Enums']['fc_engagement_target'];
+          contact_user_id: string | null;
+          created_at: string;
+          id: string;
+          is_deleted: boolean;
+          media_links: string | null;
+          question_response: string | null;
+          school_id: string;
+          support_level: Database['public']['Enums']['fc_support_level'] | null;
+          tech_issue_comment: string | null;
+          tech_issues_reported: boolean;
+          updated_at: string;
+          user_id: string;
+          visit_id: string | null;
+        };
+        Insert: {
+          call_status?: Database['public']['Enums']['fc_call_result'] | null;
+          class_id?: string | null;
+          comment?: string | null;
+          contact_method: Database['public']['Enums']['fc_contact_method'];
+          contact_target: Database['public']['Enums']['fc_engagement_target'];
+          contact_user_id?: string | null;
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean;
+          media_links?: string | null;
+          question_response?: string | null;
+          school_id: string;
+          support_level?:
+            | Database['public']['Enums']['fc_support_level']
+            | null;
+          tech_issue_comment?: string | null;
+          tech_issues_reported?: boolean;
+          updated_at?: string;
+          user_id: string;
+          visit_id?: string | null;
+        };
+        Update: {
+          call_status?: Database['public']['Enums']['fc_call_result'] | null;
+          class_id?: string | null;
+          comment?: string | null;
+          contact_method?: Database['public']['Enums']['fc_contact_method'];
+          contact_target?: Database['public']['Enums']['fc_engagement_target'];
+          contact_user_id?: string | null;
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean;
+          media_links?: string | null;
+          question_response?: string | null;
+          school_id?: string;
+          support_level?:
+            | Database['public']['Enums']['fc_support_level']
+            | null;
+          tech_issue_comment?: string | null;
+          tech_issues_reported?: boolean;
+          updated_at?: string;
+          user_id?: string;
+          visit_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'fc_user_forms_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['class_id_real'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_contact_user_id_fkey';
+            columns: ['contact_user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_contact_user_id_fkey';
+            columns: ['contact_user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_contact_user_id_fkey';
+            columns: ['contact_user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_contact_user_id_fkey';
+            columns: ['contact_user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_contact_user_id_fkey';
+            columns: ['contact_user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_contact_user_id_fkey';
+            columns: ['contact_user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_fc_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_fc_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_fc_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_fc_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_fc_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_fc_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fc_user_forms_visit_id_fkey';
+            columns: ['visit_id'];
+            isOneToOne: false;
+            referencedRelation: 'fc_school_visit';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      framework: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          id: string;
+          image: string | null;
+          is_deleted: boolean | null;
+          name: string;
+          sort_index: number | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          image?: string | null;
+          is_deleted?: boolean | null;
+          name: string;
+          sort_index?: number | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          image?: string | null;
+          is_deleted?: boolean | null;
+          name?: string;
+          sort_index?: number | null;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
+      gb_response: {
+        Row: {
+          content: Json | null;
+        };
+        Insert: {
+          content?: Json | null;
+        };
+        Update: {
+          content?: Json | null;
+        };
+        Relationships: [];
       };
       geo_locations: {
         Row: {
@@ -1056,6 +2550,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      language_locale: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_deleted: boolean | null;
+          language_id: string;
+          lido_common_audio_url: string | null;
+          locale_id: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          language_id: string;
+          lido_common_audio_url?: string | null;
+          locale_id: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          language_id?: string;
+          lido_common_audio_url?: string | null;
+          locale_id?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'public_language_locale_language_id_fkey';
+            columns: ['language_id'];
+            isOneToOne: false;
+            referencedRelation: 'language';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_language_locale_locale_id_fkey';
+            columns: ['locale_id'];
+            isOneToOne: false;
+            referencedRelation: 'locale';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       lesson: {
         Row: {
           cocos_chapter_code: string | null;
@@ -1068,6 +2607,8 @@ export type Database = {
           image: string | null;
           is_deleted: boolean | null;
           language_id: string | null;
+          lido_lesson_id: string | null;
+          metadata: string | null;
           name: string | null;
           outcome: string | null;
           plugin_type: string | null;
@@ -1076,6 +2617,7 @@ export type Database = {
           target_age_from: number | null;
           target_age_to: number | null;
           updated_at: string | null;
+          version: number | null;
         };
         Insert: {
           cocos_chapter_code?: string | null;
@@ -1088,6 +2630,8 @@ export type Database = {
           image?: string | null;
           is_deleted?: boolean | null;
           language_id?: string | null;
+          lido_lesson_id?: string | null;
+          metadata?: string | null;
           name?: string | null;
           outcome?: string | null;
           plugin_type?: string | null;
@@ -1096,6 +2640,7 @@ export type Database = {
           target_age_from?: number | null;
           target_age_to?: number | null;
           updated_at?: string | null;
+          version?: number | null;
         };
         Update: {
           cocos_chapter_code?: string | null;
@@ -1108,6 +2653,8 @@ export type Database = {
           image?: string | null;
           is_deleted?: boolean | null;
           language_id?: string | null;
+          lido_lesson_id?: string | null;
+          metadata?: string | null;
           name?: string | null;
           outcome?: string | null;
           plugin_type?: string | null;
@@ -1116,21 +2663,22 @@ export type Database = {
           target_age_from?: number | null;
           target_age_to?: number | null;
           updated_at?: string | null;
+          version?: number | null;
         };
         Relationships: [
           {
-            foreignKeyName: "public_lesson_language_id_fkey";
-            columns: ["language_id"];
+            foreignKeyName: 'public_lesson_language_id_fkey';
+            columns: ['language_id'];
             isOneToOne: false;
-            referencedRelation: "language";
-            referencedColumns: ["id"];
+            referencedRelation: 'language';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_lesson_subject_id_fkey";
-            columns: ["subject_id"];
+            foreignKeyName: 'public_lesson_subject_id_fkey';
+            columns: ['subject_id'];
             isOneToOne: false;
-            referencedRelation: "subject";
-            referencedColumns: ["id"];
+            referencedRelation: 'subject';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -1179,41 +2727,105 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "assignment_id_fkey";
-            columns: ["assignment_id"];
+            foreignKeyName: 'assignment_id_fkey';
+            columns: ['assignment_id'];
             isOneToOne: false;
-            referencedRelation: "assignment";
-            referencedColumns: ["id"];
+            referencedRelation: 'assignment';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "class_id_fkey";
-            columns: ["class_id"];
+            foreignKeyName: 'class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "class";
-            referencedColumns: ["id"];
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "course_id_fkey";
-            columns: ["course_id"];
+            foreignKeyName: 'class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "course";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['class_id'];
           },
           {
-            foreignKeyName: "lesson_id_fkey";
-            columns: ["lesson_id"];
+            foreignKeyName: 'class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "lesson";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['class_id'];
           },
           {
-            foreignKeyName: "school_id_fkey";
-            columns: ["school_id"];
+            foreignKeyName: 'class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "school";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['class_id_real'];
+          },
+          {
+            foreignKeyName: 'class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'course_id_fkey';
+            columns: ['course_id'];
+            isOneToOne: false;
+            referencedRelation: 'course';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lesson_id_fkey';
+            columns: ['lesson_id'];
+            isOneToOne: false;
+            referencedRelation: 'lesson';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
           },
         ];
+      };
+      locale: {
+        Row: {
+          code: string | null;
+          created_at: string;
+          description: string | null;
+          id: string;
+          image: string | null;
+          is_deleted: boolean | null;
+          name: string;
+          sort_index: number | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          code?: string | null;
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          image?: string | null;
+          is_deleted?: boolean | null;
+          name: string;
+          sort_index?: number | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          code?: string | null;
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          image?: string | null;
+          is_deleted?: boolean | null;
+          name?: string;
+          sort_index?: number | null;
+          updated_at?: string | null;
+        };
+        Relationships: [];
       };
       ops_requests: {
         Row: {
@@ -1226,9 +2838,9 @@ export type Database = {
           request_ends_at: string | null;
           request_id: string | null;
           request_status:
-            | Database["public"]["Enums"]["ops_request_status"]
+            | Database['public']['Enums']['ops_request_status']
             | null;
-          request_type: Database["public"]["Enums"]["ops_request_type"] | null;
+          request_type: Database['public']['Enums']['ops_request_type'] | null;
           requested_by: string | null;
           requested_to: string | null;
           responded_by: string | null;
@@ -1245,9 +2857,9 @@ export type Database = {
           request_ends_at?: string | null;
           request_id?: string | null;
           request_status?:
-            | Database["public"]["Enums"]["ops_request_status"]
+            | Database['public']['Enums']['ops_request_status']
             | null;
-          request_type?: Database["public"]["Enums"]["ops_request_type"] | null;
+          request_type?: Database['public']['Enums']['ops_request_type'] | null;
           requested_by?: string | null;
           requested_to?: string | null;
           responded_by?: string | null;
@@ -1264,9 +2876,9 @@ export type Database = {
           request_ends_at?: string | null;
           request_id?: string | null;
           request_status?:
-            | Database["public"]["Enums"]["ops_request_status"]
+            | Database['public']['Enums']['ops_request_status']
             | null;
-          request_type?: Database["public"]["Enums"]["ops_request_type"] | null;
+          request_type?: Database['public']['Enums']['ops_request_type'] | null;
           requested_by?: string | null;
           requested_to?: string | null;
           responded_by?: string | null;
@@ -1275,39 +2887,226 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "opps_requests_class_id_fkey";
-            columns: ["class_id"];
+            foreignKeyName: 'opps_requests_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "class";
-            referencedColumns: ["id"];
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "opps_requests_requested_by_fkey";
-            columns: ["requested_by"];
+            foreignKeyName: 'opps_requests_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['class_id'];
           },
           {
-            foreignKeyName: "opps_requests_requested_to_fkey";
-            columns: ["requested_to"];
+            foreignKeyName: 'opps_requests_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['class_id'];
           },
           {
-            foreignKeyName: "opps_requests_responded_by_fkey";
-            columns: ["responded_by"];
+            foreignKeyName: 'opps_requests_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['class_id_real'];
           },
           {
-            foreignKeyName: "opps_requests_school_id_fkey";
-            columns: ["school_id"];
+            foreignKeyName: 'opps_requests_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "school";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_requested_by_fkey';
+            columns: ['requested_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_requested_by_fkey';
+            columns: ['requested_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_requested_by_fkey';
+            columns: ['requested_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'opps_requests_requested_by_fkey';
+            columns: ['requested_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_requested_by_fkey';
+            columns: ['requested_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_requested_by_fkey';
+            columns: ['requested_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_requested_to_fkey';
+            columns: ['requested_to'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_requested_to_fkey';
+            columns: ['requested_to'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_requested_to_fkey';
+            columns: ['requested_to'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'opps_requests_requested_to_fkey';
+            columns: ['requested_to'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_requested_to_fkey';
+            columns: ['requested_to'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_requested_to_fkey';
+            columns: ['requested_to'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_responded_by_fkey';
+            columns: ['responded_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_responded_by_fkey';
+            columns: ['responded_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_responded_by_fkey';
+            columns: ['responded_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'opps_requests_responded_by_fkey';
+            columns: ['responded_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_responded_by_fkey';
+            columns: ['responded_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_responded_by_fkey';
+            columns: ['responded_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'opps_requests_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      outcome: {
+        Row: {
+          code: string;
+          competency_id: string;
+          created_at: string;
+          description: string | null;
+          grade_id: string;
+          id: string;
+          is_deleted: boolean | null;
+          name: string;
+          sort_index: number | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          code: string;
+          competency_id: string;
+          created_at?: string;
+          description?: string | null;
+          grade_id: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          name: string;
+          sort_index?: number | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          code?: string;
+          competency_id?: string;
+          created_at?: string;
+          description?: string | null;
+          grade_id?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          name?: string;
+          sort_index?: number | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'outcome_competency_id_fkey';
+            columns: ['competency_id'];
+            isOneToOne: false;
+            referencedRelation: 'competency';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'outcome_grade_id_fkey';
+            columns: ['grade_id'];
+            isOneToOne: false;
+            referencedRelation: 'grade';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -1347,25 +3146,130 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "parent_user_ops_created_by_fkey";
-            columns: ["ops_created_by"];
+            foreignKeyName: 'parent_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
           },
           {
-            foreignKeyName: "parent_user_parent_id_fkey";
-            columns: ["parent_id"];
+            foreignKeyName: 'parent_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
           },
           {
-            foreignKeyName: "parent_user_student_id_fkey";
-            columns: ["student_id"];
+            foreignKeyName: 'parent_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'parent_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'parent_user_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'parent_user_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -1379,6 +3283,7 @@ export type Database = {
           district: string | null;
           end_date: string | null;
           funding_partner: string | null;
+          handle_classes: string | null;
           id: string;
           implementation_partner: string | null;
           institute_partner: string | null;
@@ -1387,7 +3292,7 @@ export type Database = {
           is_ops: boolean | null;
           model: string | null;
           name: string;
-          program_type: Database["public"]["Enums"]["program_type"] | null;
+          program_type: Database['public']['Enums']['program_type'] | null;
           start_date: string | null;
           state: string | null;
           students_count: string | null;
@@ -1403,6 +3308,7 @@ export type Database = {
           district?: string | null;
           end_date?: string | null;
           funding_partner?: string | null;
+          handle_classes?: string | null;
           id?: string;
           implementation_partner?: string | null;
           institute_partner?: string | null;
@@ -1411,7 +3317,7 @@ export type Database = {
           is_ops?: boolean | null;
           model?: string | null;
           name: string;
-          program_type?: Database["public"]["Enums"]["program_type"] | null;
+          program_type?: Database['public']['Enums']['program_type'] | null;
           start_date?: string | null;
           state?: string | null;
           students_count?: string | null;
@@ -1427,6 +3333,7 @@ export type Database = {
           district?: string | null;
           end_date?: string | null;
           funding_partner?: string | null;
+          handle_classes?: string | null;
           id?: string;
           implementation_partner?: string | null;
           institute_partner?: string | null;
@@ -1435,7 +3342,7 @@ export type Database = {
           is_ops?: boolean | null;
           model?: string | null;
           name?: string;
-          program_type?: Database["public"]["Enums"]["program_type"] | null;
+          program_type?: Database['public']['Enums']['program_type'] | null;
           start_date?: string | null;
           state?: string | null;
           students_count?: string | null;
@@ -1451,7 +3358,7 @@ export type Database = {
           is_deleted: boolean;
           is_ops: boolean | null;
           program_id: string;
-          role: Database["public"]["Enums"]["role"] | null;
+          role: Database['public']['Enums']['role'] | null;
           updated_at: string;
           user: string | null;
         };
@@ -1461,7 +3368,7 @@ export type Database = {
           is_deleted?: boolean;
           is_ops?: boolean | null;
           program_id: string;
-          role?: Database["public"]["Enums"]["role"] | null;
+          role?: Database['public']['Enums']['role'] | null;
           updated_at?: string;
           user?: string | null;
         };
@@ -1471,26 +3378,82 @@ export type Database = {
           is_deleted?: boolean;
           is_ops?: boolean | null;
           program_id?: string;
-          role?: Database["public"]["Enums"]["role"] | null;
+          role?: Database['public']['Enums']['role'] | null;
           updated_at?: string;
           user?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "program_user_program_id_fkey";
-            columns: ["program_id"];
+            foreignKeyName: 'program_user_program_id_fkey';
+            columns: ['program_id'];
             isOneToOne: false;
-            referencedRelation: "program";
-            referencedColumns: ["id"];
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "program_user_user_fkey";
-            columns: ["user"];
+            foreignKeyName: 'program_user_user_fkey';
+            columns: ['user'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'program_user_user_fkey';
+            columns: ['user'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'program_user_user_fkey';
+            columns: ['user'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'program_user_user_fkey';
+            columns: ['user'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'program_user_user_fkey';
+            columns: ['user'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'program_user_user_fkey';
+            columns: ['user'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
+      };
+      qa_test: {
+        Row: {
+          created_at: string | null;
+          id: number;
+          name: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: number;
+          name: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: number;
+          name?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
       };
       req_new_school: {
         Row: {
@@ -1537,121 +3500,338 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "req_new_school_user_id_fkey";
-            columns: ["user_id"];
+            foreignKeyName: 'req_new_school_user_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'req_new_school_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'req_new_school_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'req_new_school_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'req_new_school_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'req_new_school_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
       result: {
         Row: {
+          activities_scores: string | null;
           assignment_id: string | null;
           chapter_id: string | null;
           class_id: string | null;
+          competency_ability: number | null;
+          competency_id: string | null;
           correct_moves: number | null;
           course_id: string | null;
           created_at: string;
+          domain_ability: number | null;
+          domain_id: string | null;
           firebase_id: string | null;
           id: string;
           is_deleted: boolean | null;
           is_firebase: boolean | null;
           lesson_id: string | null;
+          outcome_ability: number | null;
+          outcome_id: string | null;
+          source: Database['public']['Enums']['source'] | null;
           school_id: string | null;
           score: number | null;
+          skill_ability: number | null;
+          skill_id: string | null;
+          status: Database['public']['Enums']['result_status'] | null;
           student_id: string;
+          subject_ability: number | null;
+          subject_id: string | null;
           time_spent: number | null;
           updated_at: string | null;
+          user_id: string | null;
           wrong_moves: number | null;
         };
         Insert: {
+          activities_scores?: string | null;
           assignment_id?: string | null;
           chapter_id?: string | null;
           class_id?: string | null;
+          competency_ability?: number | null;
+          competency_id?: string | null;
           correct_moves?: number | null;
           course_id?: string | null;
           created_at?: string;
+          domain_ability?: number | null;
+          domain_id?: string | null;
           firebase_id?: string | null;
           id?: string;
           is_deleted?: boolean | null;
           is_firebase?: boolean | null;
           lesson_id?: string | null;
+          outcome_ability?: number | null;
+          outcome_id?: string | null;
+          source?: Database['public']['Enums']['source'] | null;
           school_id?: string | null;
           score?: number | null;
+          skill_ability?: number | null;
+          skill_id?: string | null;
+          status?: Database['public']['Enums']['result_status'] | null;
           student_id: string;
+          subject_ability?: number | null;
+          subject_id?: string | null;
           time_spent?: number | null;
           updated_at?: string | null;
+          user_id?: string | null;
           wrong_moves?: number | null;
         };
         Update: {
+          activities_scores?: string | null;
           assignment_id?: string | null;
           chapter_id?: string | null;
           class_id?: string | null;
+          competency_ability?: number | null;
+          competency_id?: string | null;
           correct_moves?: number | null;
           course_id?: string | null;
           created_at?: string;
+          domain_ability?: number | null;
+          domain_id?: string | null;
           firebase_id?: string | null;
           id?: string;
           is_deleted?: boolean | null;
           is_firebase?: boolean | null;
           lesson_id?: string | null;
+          outcome_ability?: number | null;
+          outcome_id?: string | null;
+          source?: Database['public']['Enums']['source'] | null;
           school_id?: string | null;
           score?: number | null;
+          skill_ability?: number | null;
+          skill_id?: string | null;
+          status?: Database['public']['Enums']['result_status'] | null;
           student_id?: string;
+          subject_ability?: number | null;
+          subject_id?: string | null;
           time_spent?: number | null;
           updated_at?: string | null;
+          user_id?: string | null;
           wrong_moves?: number | null;
         };
         Relationships: [
           {
-            foreignKeyName: "public_result_assignment_id_fkey";
-            columns: ["assignment_id"];
+            foreignKeyName: 'public_result_assignment_id_fkey';
+            columns: ['assignment_id'];
             isOneToOne: false;
-            referencedRelation: "assignment";
-            referencedColumns: ["id"];
+            referencedRelation: 'assignment';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_result_lesson_fkey";
-            columns: ["lesson_id"];
+            foreignKeyName: 'public_result_lesson_fkey';
+            columns: ['lesson_id'];
             isOneToOne: false;
-            referencedRelation: "lesson";
-            referencedColumns: ["id"];
+            referencedRelation: 'lesson';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_result_school_id_fkey";
-            columns: ["school_id"];
+            foreignKeyName: 'public_result_school_id_fkey';
+            columns: ['school_id'];
             isOneToOne: false;
-            referencedRelation: "school";
-            referencedColumns: ["id"];
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "result_chapter_id_fkey";
-            columns: ["chapter_id"];
+            foreignKeyName: 'result_chapter_id_fkey';
+            columns: ['chapter_id'];
             isOneToOne: false;
-            referencedRelation: "chapter";
-            referencedColumns: ["id"];
+            referencedRelation: 'chapter';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "result_class_id_fkey";
-            columns: ["class_id"];
+            foreignKeyName: 'result_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "class";
-            referencedColumns: ["id"];
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "result_course_id_fkey";
-            columns: ["course_id"];
+            foreignKeyName: 'result_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "course";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['class_id'];
           },
           {
-            foreignKeyName: "result_student_id_fkey";
-            columns: ["student_id"];
+            foreignKeyName: 'result_class_id_fkey';
+            columns: ['class_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'result_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['class_id_real'];
+          },
+          {
+            foreignKeyName: 'result_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'result_competency_id_fkey';
+            columns: ['competency_id'];
+            isOneToOne: false;
+            referencedRelation: 'competency';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'result_course_id_fkey';
+            columns: ['course_id'];
+            isOneToOne: false;
+            referencedRelation: 'course';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'result_domain_id_fkey';
+            columns: ['domain_id'];
+            isOneToOne: false;
+            referencedRelation: 'domain';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'result_outcome_id_fkey';
+            columns: ['outcome_id'];
+            isOneToOne: false;
+            referencedRelation: 'outcome';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'result_skill_id_fkey';
+            columns: ['skill_id'];
+            isOneToOne: false;
+            referencedRelation: 'skill';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'result_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'result_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'result_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'result_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'result_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'result_student_id_fkey';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'result_subject_id_fkey';
+            columns: ['subject_id'];
+            isOneToOne: false;
+            referencedRelation: 'subject';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'result_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'result_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'result_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'result_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'result_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'result_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -1699,7 +3879,7 @@ export type Database = {
           state_input_name: string | null;
           state_machine: string | null;
           state_number_input: number | null;
-          type: Database["public"]["Enums"]["rive_type"];
+          type: Database['public']['Enums']['rive_type'];
           updated_at: string | null;
         };
         Insert: {
@@ -1712,7 +3892,7 @@ export type Database = {
           state_input_name?: string | null;
           state_machine?: string | null;
           state_number_input?: number | null;
-          type?: Database["public"]["Enums"]["rive_type"];
+          type?: Database['public']['Enums']['rive_type'];
           updated_at?: string | null;
         };
         Update: {
@@ -1725,7 +3905,7 @@ export type Database = {
           state_input_name?: string | null;
           state_machine?: string | null;
           state_number_input?: number | null;
-          type?: Database["public"]["Enums"]["rive_type"];
+          type?: Database['public']['Enums']['rive_type'];
           updated_at?: string | null;
         };
         Relationships: [];
@@ -1764,16 +3944,18 @@ export type Database = {
           is_deleted: boolean | null;
           is_firebase: boolean | null;
           is_ops: boolean | null;
-          key_contacts: Json | null;
+          key_contacts: string | null;
           language: string | null;
-          model: Database["public"]["Enums"]["program_model"] | null;
+          location_link: string | null;
+          model: Database['public']['Enums']['program_model'] | null;
           name: string;
           ops_created_by: string | null;
           program_id: string | null;
-          status: Database["public"]["Enums"]["status"] | null;
-          student_login_type: Database["public"]["Enums"]["login_type"] | null;
+          status: Database['public']['Enums']['status'] | null;
+          student_login_type: Database['public']['Enums']['login_type'] | null;
           udise: string | null;
           updated_at: string | null;
+          whatsapp_bot_number: string | null;
         };
         Insert: {
           academic_year?: string | null;
@@ -1790,16 +3972,18 @@ export type Database = {
           is_deleted?: boolean | null;
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
-          key_contacts?: Json | null;
+          key_contacts?: string | null;
           language?: string | null;
-          model?: Database["public"]["Enums"]["program_model"] | null;
+          location_link?: string | null;
+          model?: Database['public']['Enums']['program_model'] | null;
           name: string;
           ops_created_by?: string | null;
           program_id?: string | null;
-          status?: Database["public"]["Enums"]["status"] | null;
-          student_login_type?: Database["public"]["Enums"]["login_type"] | null;
+          status?: Database['public']['Enums']['status'] | null;
+          student_login_type?: Database['public']['Enums']['login_type'] | null;
           udise?: string | null;
           updated_at?: string | null;
+          whatsapp_bot_number?: string | null;
         };
         Update: {
           academic_year?: string | null;
@@ -1816,38 +4000,75 @@ export type Database = {
           is_deleted?: boolean | null;
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
-          key_contacts?: Json | null;
+          key_contacts?: string | null;
           language?: string | null;
-          model?: Database["public"]["Enums"]["program_model"] | null;
+          location_link?: string | null;
+          model?: Database['public']['Enums']['program_model'] | null;
           name?: string;
           ops_created_by?: string | null;
           program_id?: string | null;
-          status?: Database["public"]["Enums"]["status"] | null;
-          student_login_type?: Database["public"]["Enums"]["login_type"] | null;
+          status?: Database['public']['Enums']['status'] | null;
+          student_login_type?: Database['public']['Enums']['login_type'] | null;
           udise?: string | null;
           updated_at?: string | null;
+          whatsapp_bot_number?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "school_language_fkey";
-            columns: ["language"];
+            foreignKeyName: 'school_language_fkey';
+            columns: ['language'];
             isOneToOne: false;
-            referencedRelation: "language";
-            referencedColumns: ["id"];
+            referencedRelation: 'language';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "school_ops_created_by_fkey";
-            columns: ["ops_created_by"];
+            foreignKeyName: 'school_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
           },
           {
-            foreignKeyName: "school_program_id_fkey";
-            columns: ["program_id"];
+            foreignKeyName: 'school_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "program";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'school_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'school_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -1887,25 +4108,60 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "public_school_course_course_id_fkey";
-            columns: ["course_id"];
+            foreignKeyName: 'public_school_course_course_id_fkey';
+            columns: ['course_id'];
             isOneToOne: false;
-            referencedRelation: "course";
-            referencedColumns: ["id"];
+            referencedRelation: 'course';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_school_course_school_id_fkey";
-            columns: ["school_id"];
+            foreignKeyName: 'public_school_course_school_id_fkey';
+            columns: ['school_id'];
             isOneToOne: false;
-            referencedRelation: "school";
-            referencedColumns: ["id"];
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "school_course_ops_created_by_fkey";
-            columns: ["ops_created_by"];
+            foreignKeyName: 'school_course_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_course_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_course_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'school_course_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_course_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_course_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -1972,6 +4228,117 @@ export type Database = {
         };
         Relationships: [];
       };
+      school_metrics: {
+        Row: {
+          activated_students: number | null;
+          active_students: number | null;
+          active_teachers: number | null;
+          activities_assigned: number | null;
+          avg_activities_completed: number | null;
+          avg_assignments_completed: number | null;
+          avg_time_spent: number | null;
+          block: string | null;
+          cluster: string | null;
+          created_at: string | null;
+          district: string | null;
+          field_coordinators: string[] | null;
+          id: string;
+          is_deleted: boolean;
+          metric_window: string | null;
+          onboarded_students: number | null;
+          partners: string[] | null;
+          parents_reached: number | null;
+          program_id: string | null;
+          program_managers: string[] | null;
+          program_name: string | null;
+          program_type: Database['public']['Enums']['program_type'] | null;
+          school_id: string | null;
+          school_model: Database['public']['Enums']['program_model'] | null;
+          school_name: string | null;
+          school_performance: string | null;
+          state: string | null;
+          udise: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          activated_students?: number | null;
+          active_students?: number | null;
+          active_teachers?: number | null;
+          activities_assigned?: number | null;
+          avg_activities_completed?: number | null;
+          avg_assignments_completed?: number | null;
+          avg_time_spent?: number | null;
+          block?: string | null;
+          cluster?: string | null;
+          created_at?: string | null;
+          district?: string | null;
+          field_coordinators?: string[] | null;
+          id?: string;
+          is_deleted?: boolean;
+          metric_window?: string | null;
+          onboarded_students?: number | null;
+          partners?: string[] | null;
+          parents_reached?: number | null;
+          program_id?: string | null;
+          program_managers?: string[] | null;
+          program_name?: string | null;
+          program_type?: Database['public']['Enums']['program_type'] | null;
+          school_id?: string | null;
+          school_model?: Database['public']['Enums']['program_model'] | null;
+          school_name?: string | null;
+          school_performance?: string | null;
+          state?: string | null;
+          udise?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          activated_students?: number | null;
+          active_students?: number | null;
+          active_teachers?: number | null;
+          activities_assigned?: number | null;
+          avg_activities_completed?: number | null;
+          avg_assignments_completed?: number | null;
+          avg_time_spent?: number | null;
+          block?: string | null;
+          cluster?: string | null;
+          created_at?: string | null;
+          district?: string | null;
+          field_coordinators?: string[] | null;
+          id?: string;
+          is_deleted?: boolean;
+          metric_window?: string | null;
+          onboarded_students?: number | null;
+          partners?: string[] | null;
+          parents_reached?: number | null;
+          program_id?: string | null;
+          program_managers?: string[] | null;
+          program_name?: string | null;
+          program_type?: Database['public']['Enums']['program_type'] | null;
+          school_id?: string | null;
+          school_model?: Database['public']['Enums']['program_model'] | null;
+          school_name?: string | null;
+          school_performance?: string | null;
+          state?: string | null;
+          udise?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'school_metrics_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'school_metrics_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       school_user: {
         Row: {
           created_at: string;
@@ -1980,7 +4347,7 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           ops_created_by: string | null;
-          role: Database["public"]["Enums"]["role"];
+          role: Database['public']['Enums']['role'];
           school_id: string;
           updated_at: string | null;
           user_id: string;
@@ -1992,7 +4359,7 @@ export type Database = {
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
           ops_created_by?: string | null;
-          role: Database["public"]["Enums"]["role"];
+          role: Database['public']['Enums']['role'];
           school_id: string;
           updated_at?: string | null;
           user_id: string;
@@ -2004,32 +4371,256 @@ export type Database = {
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
           ops_created_by?: string | null;
-          role?: Database["public"]["Enums"]["role"];
+          role?: Database['public']['Enums']['role'];
           school_id?: string;
           updated_at?: string | null;
           user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "school_user_ops_created_by_fkey";
-            columns: ["ops_created_by"];
+            foreignKeyName: 'school_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
           },
           {
-            foreignKeyName: "school_user_school_id_fkey";
-            columns: ["school_id"];
+            foreignKeyName: 'school_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "school";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
           },
           {
-            foreignKeyName: "school_user_user_id_fkey";
-            columns: ["user_id"];
+            foreignKeyName: 'school_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'school_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'school_user_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'school_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'school_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'school_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      skill: {
+        Row: {
+          code: string;
+          created_at: string;
+          description: string | null;
+          difficulty: number;
+          id: string;
+          is_deleted: boolean | null;
+          name: string;
+          outcome_id: string;
+          sort_index: number | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          code: string;
+          created_at?: string;
+          description?: string | null;
+          difficulty: number;
+          id?: string;
+          is_deleted?: boolean | null;
+          name: string;
+          outcome_id: string;
+          sort_index?: number | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          code?: string;
+          created_at?: string;
+          description?: string | null;
+          difficulty?: number;
+          id?: string;
+          is_deleted?: boolean | null;
+          name?: string;
+          outcome_id?: string;
+          sort_index?: number | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'skill_outcome_id_fkey';
+            columns: ['outcome_id'];
+            isOneToOne: false;
+            referencedRelation: 'outcome';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      skill_lesson: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_deleted: boolean | null;
+          language_id: string | null;
+          lesson_id: string;
+          locale_id: string | null;
+          skill_id: string;
+          sort_index: number | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          language_id?: string | null;
+          lesson_id: string;
+          locale_id?: string | null;
+          skill_id: string;
+          sort_index?: number | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          language_id?: string | null;
+          lesson_id?: string;
+          locale_id?: string | null;
+          skill_id?: string;
+          sort_index?: number | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'skill_lesson_language_id_fkey';
+            columns: ['language_id'];
+            isOneToOne: false;
+            referencedRelation: 'language';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'skill_lesson_lesson_id_fkey';
+            columns: ['lesson_id'];
+            isOneToOne: false;
+            referencedRelation: 'lesson';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'skill_lesson_locale_id_fkey';
+            columns: ['locale_id'];
+            isOneToOne: false;
+            referencedRelation: 'locale';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'skill_lesson_skill_id_fkey';
+            columns: ['skill_id'];
+            isOneToOne: false;
+            referencedRelation: 'skill';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      skill_relation: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_deleted: boolean | null;
+          source_skill_id: string;
+          target_skill_id: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          source_skill_id: string;
+          target_skill_id: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean | null;
+          source_skill_id?: string;
+          target_skill_id?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'skill_relation_source_skill_id_fkey';
+            columns: ['source_skill_id'];
+            isOneToOne: false;
+            referencedRelation: 'skill';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'skill_relation_target_skill_id_fkey';
+            columns: ['target_skill_id'];
+            isOneToOne: false;
+            referencedRelation: 'skill';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -2038,7 +4629,7 @@ export type Database = {
           created_at: string;
           id: string;
           is_deleted: boolean | null;
-          role: Database["public"]["Enums"]["special_roles"] | null;
+          role: Database['public']['Enums']['special_roles'] | null;
           updated_at: string | null;
           user_id: string | null;
         };
@@ -2046,7 +4637,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           is_deleted?: boolean | null;
-          role?: Database["public"]["Enums"]["special_roles"] | null;
+          role?: Database['public']['Enums']['special_roles'] | null;
           updated_at?: string | null;
           user_id?: string | null;
         };
@@ -2054,17 +4645,52 @@ export type Database = {
           created_at?: string;
           id?: string;
           is_deleted?: boolean | null;
-          role?: Database["public"]["Enums"]["special_roles"] | null;
+          role?: Database['public']['Enums']['special_roles'] | null;
           updated_at?: string | null;
           user_id?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "special_users_user_id_fkey";
-            columns: ["user_id"];
+            foreignKeyName: 'special_users_user_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'special_users_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'special_users_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'special_users_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'special_users_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'special_users_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -2094,6 +4720,42 @@ export type Database = {
           image?: string | null;
           is_deleted?: boolean | null;
           name?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
+      sticker_book: {
+        Row: {
+          created_at: string | null;
+          id: string;
+          is_deleted: boolean | null;
+          sort_index: number;
+          stickers_metadata: Json;
+          svg_url: string;
+          title: string;
+          total_stickers: number;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          sort_index: number;
+          stickers_metadata: Json;
+          svg_url: string;
+          title: string;
+          total_stickers: number;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          sort_index?: number;
+          stickers_metadata?: Json;
+          svg_url?: string;
+          title?: string;
+          total_stickers?: number;
           updated_at?: string | null;
         };
         Relationships: [];
@@ -2130,6 +4792,84 @@ export type Database = {
           updated_at?: string | null;
         };
         Relationships: [];
+      };
+      subject_lesson: {
+        Row: {
+          created_at: string;
+          framework_id: string | null;
+          id: string;
+          is_deleted: boolean | null;
+          language_id: string | null;
+          lesson_id: string;
+          locale_id: string | null;
+          set_number: number | null;
+          sort_index: number | null;
+          subject_id: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          framework_id?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          language_id?: string | null;
+          lesson_id: string;
+          locale_id?: string | null;
+          set_number?: number | null;
+          sort_index?: number | null;
+          subject_id: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          framework_id?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          language_id?: string | null;
+          lesson_id?: string;
+          locale_id?: string | null;
+          set_number?: number | null;
+          sort_index?: number | null;
+          subject_id?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'subject_lesson_chaptersubject_id_fkey';
+            columns: ['subject_id'];
+            isOneToOne: false;
+            referencedRelation: 'subject';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'subject_lesson_framework_id_fkey';
+            columns: ['framework_id'];
+            isOneToOne: false;
+            referencedRelation: 'framework';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'subject_lesson_language_id_fkey';
+            columns: ['language_id'];
+            isOneToOne: false;
+            referencedRelation: 'language';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'subject_lesson_lesson_id_fkey';
+            columns: ['lesson_id'];
+            isOneToOne: false;
+            referencedRelation: 'lesson';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'subject_lesson_locale_id_fkey';
+            columns: ['locale_id'];
+            isOneToOne: false;
+            referencedRelation: 'locale';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       upload_queue: {
         Row: {
@@ -2182,11 +4922,46 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "upload_queue_uploading_user_fkey";
-            columns: ["uploading_user"];
+            foreignKeyName: 'upload_queue_uploading_user_fkey';
+            columns: ['uploading_user'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'upload_queue_uploading_user_fkey';
+            columns: ['uploading_user'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'upload_queue_uploading_user_fkey';
+            columns: ['uploading_user'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'upload_queue_uploading_user_fkey';
+            columns: ['uploading_user'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'upload_queue_uploading_user_fkey';
+            columns: ['uploading_user'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'upload_queue_uploading_user_fkey';
+            columns: ['uploading_user'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -2207,8 +4982,10 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          is_wa_contact: Database['public']['Enums']['wa_validate'] | null;
           language_id: string | null;
           learning_path: string | null;
+          locale_id: string | null;
           music_off: boolean | null;
           name: string | null;
           ops_created_by: string | null;
@@ -2217,6 +4994,7 @@ export type Database = {
           sfx_off: boolean | null;
           stars: number | null;
           student_id: string | null;
+          tc_agreed_version: number;
           updated_at: string | null;
         };
         Insert: {
@@ -2235,8 +5013,10 @@ export type Database = {
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
           is_tc_accepted?: boolean | null;
+          is_wa_contact?: Database['public']['Enums']['wa_validate'] | null;
           language_id?: string | null;
           learning_path?: string | null;
+          locale_id?: string | null;
           music_off?: boolean | null;
           name?: string | null;
           ops_created_by?: string | null;
@@ -2245,6 +5025,7 @@ export type Database = {
           sfx_off?: boolean | null;
           stars?: number | null;
           student_id?: string | null;
+          tc_agreed_version?: number;
           updated_at?: string | null;
         };
         Update: {
@@ -2263,8 +5044,10 @@ export type Database = {
           is_firebase?: boolean | null;
           is_ops?: boolean | null;
           is_tc_accepted?: boolean | null;
+          is_wa_contact?: Database['public']['Enums']['wa_validate'] | null;
           language_id?: string | null;
           learning_path?: string | null;
+          locale_id?: string | null;
           music_off?: boolean | null;
           name?: string | null;
           ops_created_by?: string | null;
@@ -2273,36 +5056,216 @@ export type Database = {
           sfx_off?: boolean | null;
           stars?: number | null;
           student_id?: string | null;
+          tc_agreed_version?: number;
           updated_at?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "public_user_curriculum_id_fkey";
-            columns: ["curriculum_id"];
+            foreignKeyName: 'public_user_curriculum_id_fkey';
+            columns: ['curriculum_id'];
             isOneToOne: false;
-            referencedRelation: "curriculum";
-            referencedColumns: ["id"];
+            referencedRelation: 'curriculum';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_user_language_id_fkey";
-            columns: ["language_id"];
+            foreignKeyName: 'public_user_language_id_fkey';
+            columns: ['language_id'];
             isOneToOne: false;
-            referencedRelation: "language";
-            referencedColumns: ["id"];
+            referencedRelation: 'language';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "user_grade_id_fkey";
-            columns: ["grade_id"];
+            foreignKeyName: 'user_grade_id_fkey';
+            columns: ['grade_id'];
             isOneToOne: false;
-            referencedRelation: "grade";
-            referencedColumns: ["id"];
+            referencedRelation: 'grade';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "user_ops_created_by_fkey";
-            columns: ["ops_created_by"];
+            foreignKeyName: 'user_locale_id_fkey';
+            columns: ['locale_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'locale';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_ops_created_by_fkey';
+            columns: ['ops_created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      user_achievements: {
+        Row: {
+          class_id: string | null;
+          coins: number;
+          created_at: string | null;
+          is_deleted: boolean | null;
+          last_penalty_week: string | null;
+          last_rewarded_week: string | null;
+          program_id: string | null;
+          school_id: string | null;
+          streak: number;
+          updated_at: string | null;
+          user_id: string;
+          id?: string;
+        };
+        Insert: {
+          class_id?: string | null;
+          coins?: number;
+          created_at?: string | null;
+          is_deleted?: boolean | null;
+          last_penalty_week?: string | null;
+          last_rewarded_week?: string | null;
+          program_id?: string | null;
+          school_id?: string | null;
+          streak?: number;
+          updated_at?: string | null;
+          user_id: string;
+          id?: string;
+        };
+        Update: {
+          class_id?: string | null;
+          coins?: number;
+          created_at?: string | null;
+          is_deleted?: boolean | null;
+          last_penalty_week?: string | null;
+          last_rewarded_week?: string | null;
+          program_id?: string | null;
+          school_id?: string | null;
+          streak?: number;
+          updated_at?: string | null;
+          user_id?: string;
+          id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_achievements_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_achievements_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'user_achievements_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'user_achievements_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['class_id_real'];
+          },
+          {
+            foreignKeyName: 'user_achievements_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'user_achievements_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_achievements_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_achievements_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_achievements_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_achievements_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'user_achievements_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_achievements_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_achievements_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -2339,18 +5302,53 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "public_user_badge_badge_id_fkey";
-            columns: ["badge_id"];
+            foreignKeyName: 'public_user_badge_badge_id_fkey';
+            columns: ['badge_id'];
             isOneToOne: false;
-            referencedRelation: "badge";
-            referencedColumns: ["id"];
+            referencedRelation: 'badge';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_user_badge_parent_id_fkey";
-            columns: ["user_id"];
+            foreignKeyName: 'public_user_badge_parent_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_badge_parent_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_badge_parent_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'public_user_badge_parent_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_badge_parent_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_badge_parent_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -2387,18 +5385,53 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "public_user_bonus_bonus_id_fkey";
-            columns: ["bonus_id"];
+            foreignKeyName: 'public_user_bonus_bonus_id_fkey';
+            columns: ['bonus_id'];
             isOneToOne: false;
-            referencedRelation: "lesson";
-            referencedColumns: ["id"];
+            referencedRelation: 'lesson';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_user_bonus_user_id_fkey";
-            columns: ["user_id"];
+            foreignKeyName: 'public_user_bonus_user_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_bonus_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_bonus_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'public_user_bonus_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_bonus_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_bonus_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -2432,18 +5465,53 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "public_user_course_course_id_fkey";
-            columns: ["course_id"];
+            foreignKeyName: 'public_user_course_course_id_fkey';
+            columns: ['course_id'];
             isOneToOne: false;
-            referencedRelation: "course";
-            referencedColumns: ["id"];
+            referencedRelation: 'course';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_user_course_user_id_fkey";
-            columns: ["user_id"];
+            foreignKeyName: 'public_user_course_user_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_course_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_course_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'public_user_course_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_course_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_course_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -2480,20 +5548,237 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "public_user_sticker_sticker_id_fkey";
-            columns: ["sticker_id"];
+            foreignKeyName: 'public_user_sticker_sticker_id_fkey';
+            columns: ['sticker_id'];
             isOneToOne: false;
-            referencedRelation: "sticker";
-            referencedColumns: ["id"];
+            referencedRelation: 'sticker';
+            referencedColumns: ['id'];
           },
           {
-            foreignKeyName: "public_user_sticker_user_id_fkey";
-            columns: ["user_id"];
+            foreignKeyName: 'public_user_sticker_user_id_fkey';
+            columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: "user";
-            referencedColumns: ["id"];
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_sticker_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_sticker_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'public_user_sticker_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_sticker_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'public_user_sticker_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
           },
         ];
+      };
+      user_sticker_book: {
+        Row: {
+          created_at: string | null;
+          id: string;
+          is_deleted: boolean | null;
+          is_seen: boolean | null;
+          status: string;
+          sticker_book_id: string;
+          stickers_collected: string[] | null;
+          updated_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          is_seen?: boolean | null;
+          status?: string;
+          sticker_book_id: string;
+          stickers_collected?: string[] | null;
+          updated_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          is_deleted?: boolean | null;
+          is_seen?: boolean | null;
+          status?: string;
+          sticker_book_id?: string;
+          stickers_collected?: string[] | null;
+          updated_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_sticker_book_sticker_book_id_fkey';
+            columns: ['sticker_book_id'];
+            isOneToOne: false;
+            referencedRelation: 'sticker_book';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'user_sticker_book_user_id_fkey1';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      v_api_key: {
+        Row: {
+          decrypted_secret: string | null;
+        };
+        Insert: {
+          decrypted_secret?: string | null;
+        };
+        Update: {
+          decrypted_secret?: string | null;
+        };
+        Relationships: [];
+      };
+      v_base_url: {
+        Row: {
+          decrypted_secret: string | null;
+        };
+        Insert: {
+          decrypted_secret?: string | null;
+        };
+        Update: {
+          decrypted_secret?: string | null;
+        };
+        Relationships: [];
+      };
+      whatsapp_invite_logs: {
+        Row: {
+          bot_phone: string;
+          class_id: string;
+          error_message: string | null;
+          group_id: string;
+          id: string;
+          is_deleted: boolean;
+          phone: string;
+          school_udise: string;
+          sent_at: string | null;
+          status: string;
+          type: string | null;
+        };
+        Insert: {
+          bot_phone: string;
+          class_id: string;
+          error_message?: string | null;
+          group_id: string;
+          id?: string;
+          is_deleted?: boolean;
+          phone: string;
+          school_udise: string;
+          sent_at?: string | null;
+          status: string;
+          type?: string | null;
+        };
+        Update: {
+          bot_phone?: string;
+          class_id?: string;
+          error_message?: string | null;
+          group_id?: string;
+          id?: string;
+          is_deleted?: boolean;
+          phone?: string;
+          school_udise?: string;
+          sent_at?: string | null;
+          status?: string;
+          type?: string | null;
+        };
+        Relationships: [];
+      };
+      whatsapp_invite_school_status: {
+        Row: {
+          completed_at: string | null;
+          created_at: string | null;
+          id: string;
+          is_deleted: boolean;
+          school_udise: string;
+          status: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          completed_at?: string | null;
+          created_at?: string | null;
+          id?: string;
+          is_deleted?: boolean;
+          school_udise: string;
+          status: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          completed_at?: string | null;
+          created_at?: string | null;
+          id?: string;
+          is_deleted?: boolean;
+          school_udise?: string;
+          status?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
       };
     };
     Views: {
@@ -2508,24 +5793,344 @@ export type Database = {
         };
         Relationships: [];
       };
+      get_leaderboard_generic_data_test: {
+        Row: {
+          lessons_played: number | null;
+          name: string | null;
+          student_id: string | null;
+          total_score: number | null;
+          total_time_spent: number | null;
+          type: string | null;
+        };
+        Relationships: [];
+      };
+      leaderboard_mv: {
+        Row: {
+          lessons_played: number | null;
+          name: string | null;
+          student_id: string | null;
+          total_score: number | null;
+          total_time_spent: number | null;
+          type: string | null;
+        };
+        Relationships: [];
+      };
+      student_flat_view: {
+        Row: {
+          class_id: string | null;
+          class_name: string | null;
+          class_user_id: string | null;
+          class_user_is_deleted: boolean | null;
+          parent_email: string | null;
+          parent_id: string | null;
+          parent_name: string | null;
+          role: Database['public']['Enums']['role'] | null;
+          school_id: string | null;
+          student_email: string | null;
+          student_id: string | null;
+          student_name: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_class_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      student_performance_mv: {
+        Row: {
+          class_id: string | null;
+          class_name: string | null;
+          created_at: string | null;
+          is_deleted: boolean | null;
+          performance:
+            | Database['public']['Enums']['student_performance_metric']
+            | null;
+          student_id: string | null;
+          student_name: string | null;
+          time_spent_seconds_7d: number | null;
+          updated_at: string | null;
+        };
+        Relationships: [];
+      };
+      student_sorted_view: {
+        Row: {
+          class_id: string | null;
+          class_id_real: string | null;
+          class_name: string | null;
+          class_user_id: string | null;
+          class_user_is_deleted: boolean | null;
+          parent_email: string | null;
+          parent_id: string | null;
+          parent_id_real: string | null;
+          parent_name: string | null;
+          parent_phone: string | null;
+          role: Database['public']['Enums']['role'] | null;
+          school_id: string | null;
+          student_created_at: string | null;
+          student_email: string | null;
+          student_id: string | null;
+          student_name: string | null;
+          student_phone: string | null;
+          user_id: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'class_user_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'class_user_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'class_user_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'class_user_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['class_id_real'];
+          },
+          {
+            foreignKeyName: 'class_user_class_id_fkey';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['class_id'];
+          },
+          {
+            foreignKeyName: 'class_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'class_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'class_user_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_class_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      student_sorted_view1: {
+        Row: {
+          class_id: string | null;
+          class_name: string | null;
+          class_user_id: string | null;
+          class_user_is_deleted: boolean | null;
+          parent_email: string | null;
+          parent_id: string | null;
+          parent_name: string | null;
+          role: Database['public']['Enums']['role'] | null;
+          school_id: string | null;
+          student_email: string | null;
+          student_id: string | null;
+          student_name: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'parent_user_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'public_class_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Functions: {
       add_parent_to_newclass: {
         Args: { _class_id: string; _student_id: string };
         Returns: undefined;
       };
-      call_send_badges: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
+      call_send_badges: { Args: never; Returns: undefined };
+      call_send_bonuses: { Args: never; Returns: undefined };
+      can_soft_delete_ops_request: {
+        Args: {
+          is_sponsor_enabled: boolean;
+          p_class_id: string;
+          p_user_id: string;
+        };
+        Returns: boolean;
       };
-      call_send_bonuses: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
-      // can_access_class: {
-      //   Args: { p_class_id: string; p_school_id: string; p_user: string }
-      //   Returns: boolean
-      // }
       check_class_exists_by_name_and_school: {
         Args: { class_name: string; input_school_udise_code: string };
         Returns: Json;
@@ -2547,6 +6152,18 @@ export type Database = {
         };
         Returns: Json;
       };
+      clear_assignment_info_queue: {
+        Args: { p_class_id: string; p_school_id: string };
+        Returns: undefined;
+      };
+      clear_queue_message: {
+        Args: { msg_id: number; queue_name: string };
+        Returns: boolean;
+      };
+      compute_school_metrics: {
+        Args: { p_days: number; p_school_id?: string };
+        Returns: undefined;
+      };
       count_users_by_school: {
         Args: { p_school_id: string };
         Returns: {
@@ -2564,6 +6181,7 @@ export type Database = {
           phone: string;
         }[];
       };
+      current_auto_user_school_id: { Args: never; Returns: string };
       delete_class_firebase_trigger: {
         Args: { input_firebase_id: string };
         Returns: string;
@@ -2576,32 +6194,24 @@ export type Database = {
         Args: { input_firebase_id: string };
         Returns: string;
       };
-      delete_student: {
-        Args: { student_id: string };
-        Returns: undefined;
-      };
+      delete_student: { Args: { student_id: string }; Returns: undefined };
       delete_student_profile: {
         Args: { p_student_id: string };
         Returns: undefined;
       };
-      delete_user: {
-        Args: { uuid: string };
+      delete_user: { Args: { uuid: string }; Returns: boolean };
+      delete_user_from_class: {
+        Args: { p_class_id: string; p_user_id: string };
         Returns: boolean;
       };
-      dump_user_table_policies: {
-        Args: Record<PropertyKey, never>;
-        Returns: string;
-      };
+      dump_user_table_policies: { Args: never; Returns: string };
       enqueue_message: {
         Args: { delay_seconds?: number; payload: Json; queue_name: string };
         Returns: number;
       };
-      execute_saved_query: {
-        Args: { p_query_id: string };
-        Returns: Json;
-      };
+      execute_saved_query: { Args: { p_query_id: string }; Returns: Json };
       fetch_leaderboard_data: {
-        Args: Record<PropertyKey, never>;
+        Args: never;
         Returns: {
           lessons_played: number;
           name: string;
@@ -2610,6 +6220,10 @@ export type Database = {
           total_time_spent: number;
           type: string;
         }[];
+      };
+      fetch_parent_whatsapp_msg91_report: {
+        Args: { p_end_date: string; p_start_date: string };
+        Returns: Json;
       };
       find_similar_lessons: {
         Args: { search_text: string };
@@ -2634,12 +6248,13 @@ export type Database = {
           updated_at: string;
         }[];
       };
-      generate_custom_request_id: {
-        Args: Record<PropertyKey, never>;
-        Returns: string;
-      };
+      generate_custom_request_id: { Args: never; Returns: string };
       generate_unique_class_code: {
         Args: { class_id_input: string };
+        Returns: number;
+      };
+      get_active_students_count_by_class: {
+        Args: { p_class_id: string; p_days: number };
         Returns: number;
       };
       get_class_leaderboard: {
@@ -2659,20 +6274,33 @@ export type Database = {
           academic_year: string | null;
           created_at: string;
           firebase_id: string | null;
+          grade_id: string | null;
           group_id: string | null;
           id: string;
           image: string | null;
           is_deleted: boolean | null;
           is_firebase: boolean | null;
           is_ops: boolean | null;
+          migrated_count: number | null;
           name: string;
           ops_created_by: string | null;
           school_id: string;
           standard: string | null;
           status: string | null;
           updated_at: string | null;
+          whatsapp_invite_link: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'class';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
+      get_client_country_code: { Args: never; Returns: string };
+      get_external_user_schools_dummy:
+        | { Args: never; Returns: Json }
+        | { Args: { filters?: Json; order_dir?: string }; Returns: Json };
       get_filtered_schools_with_optional_program: {
         Args: {
           _program_id?: string;
@@ -2697,27 +6325,47 @@ export type Database = {
       get_latest_results_by_student: {
         Args: { student_uuid: string };
         Returns: {
+          activities_scores: string | null;
           assignment_id: string | null;
           chapter_id: string | null;
           class_id: string | null;
+          competency_ability: number | null;
+          competency_id: string | null;
           correct_moves: number | null;
           course_id: string | null;
           created_at: string;
+          domain_ability: number | null;
+          domain_id: string | null;
           firebase_id: string | null;
           id: string;
           is_deleted: boolean | null;
           is_firebase: boolean | null;
           lesson_id: string | null;
+          outcome_ability: number | null;
+          outcome_id: string | null;
+          source: Database['public']['Enums']['source'] | null;
           school_id: string | null;
           score: number | null;
+          skill_ability: number | null;
+          skill_id: string | null;
+          status: Database['public']['Enums']['result_status'] | null;
           student_id: string;
+          subject_ability: number | null;
+          subject_id: string | null;
           time_spent: number | null;
           updated_at: string | null;
+          user_id: string | null;
           wrong_moves: number | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'result';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       get_leaderboard: {
-        Args: Record<PropertyKey, never>;
+        Args: never;
         Returns: {
           lessons_played: number;
           name: string;
@@ -2727,18 +6375,25 @@ export type Database = {
           type: string;
         }[];
       };
+      get_ops_requests: {
+        Args: {
+          p_limit?: number;
+          p_order_by?: string;
+          p_order_dir?: string;
+          p_page?: number;
+          p_request_status: string;
+          p_request_types?: string[];
+          p_school_ids?: string[];
+          p_search_term?: string;
+        };
+        Returns: Json;
+      };
       get_program_activity_stats: {
         Args: { p_program_id: string };
         Returns: Json;
       };
-      get_program_filter_options: {
-        Args: Record<PropertyKey, never>;
-        Returns: Json;
-      };
-      get_program_filters: {
-        Args: Record<PropertyKey, never>;
-        Returns: Json;
-      };
+      get_program_filter_options: { Args: never; Returns: Json };
+      get_program_filters: { Args: never; Returns: Json };
       get_program_for_user_v2: {
         Args: {
           _current_user_id: string;
@@ -2757,7 +6412,7 @@ export type Database = {
         }[];
       };
       get_program_managers: {
-        Args: Record<PropertyKey, never>;
+        Args: never;
         Returns: {
           id: string;
           name: string;
@@ -2785,18 +6440,12 @@ export type Database = {
           total_count: number;
         }[];
       };
-      get_query_data: {
-        Args: { p_query_id: string };
-        Returns: Json;
-      };
+      get_query_data: { Args: { p_query_id: string }; Returns: Json };
       get_query_data_v2: {
         Args: { p_query: string; p_secret: string };
         Returns: Json;
       };
-      get_query_metadata: {
-        Args: { p_query_id: string };
-        Returns: Json;
-      };
+      get_query_metadata: { Args: { p_query_id: string }; Returns: Json };
       get_query_metadata_v2: {
         Args: { p_query: string; p_secret: string };
         Returns: Json;
@@ -2804,16 +6453,17 @@ export type Database = {
       get_results_by_assignment: {
         Args: { _assignment_id: string };
         Returns: {
-          result_data: Database["public"]["Tables"]["result"]["Row"][];
-          user_data: Database["public"]["Tables"]["user"]["Row"][];
+          result_data: Database['public']['Tables']['result']['Row'][];
+          user_data: Database['public']['Tables']['user']['Row'][];
         }[];
       };
       get_school_activity_stats: {
         Args: { p_school_id: string };
         Returns: Json;
       };
-      get_school_filter_options: {
-        Args: Record<PropertyKey, never>;
+      get_school_filter_options: { Args: never; Returns: Json };
+      get_school_filter_options_for_program: {
+        Args: { input_program_id: string };
         Returns: Json;
       };
       get_schools_by_filters_with_program_id: {
@@ -2835,10 +6485,50 @@ export type Database = {
           school: Json;
         }[];
       };
-      get_unique_geo_data: {
-        Args: Record<PropertyKey, never>;
+      get_schools_with_program_access:
+        | {
+            Args: {
+              _academic_years?: string[];
+              _filters?: Json;
+              _order_by?: string;
+              _order_dir?: string;
+              _page?: number;
+              _page_size?: number;
+              _search?: string;
+            };
+            Returns: Json;
+          }
+        | {
+            Args: {
+              _academic_years?: string[];
+              _filters?: Json;
+              _include_migrated_counts?: boolean;
+              _order_by?: string;
+              _order_dir?: string;
+              _page?: number;
+              _page_size?: number;
+              _search?: string;
+            };
+            Returns: Json;
+          };
+      get_schools_with_program_access2: {
+        Args: {
+          _academic_years?: string[];
+          _filters?: Json;
+          _include_migrated_counts?: boolean;
+          _order_by?: string;
+          _order_dir?: string;
+          _page?: number;
+          _page_size?: number;
+          _search?: string;
+        };
         Returns: Json;
       };
+      get_sorted_students: {
+        Args: { p_limit: number; p_offset: number; p_school_id: string };
+        Returns: Json;
+      };
+      get_unique_geo_data: { Args: never; Returns: Json };
       get_user_by_email: {
         Args: { p_email: string };
         Returns: {
@@ -2857,8 +6547,10 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          is_wa_contact: Database['public']['Enums']['wa_validate'] | null;
           language_id: string | null;
           learning_path: string | null;
+          locale_id: string | null;
           music_off: boolean | null;
           name: string | null;
           ops_created_by: string | null;
@@ -2867,7 +6559,14 @@ export type Database = {
           sfx_off: boolean | null;
           stars: number | null;
           student_id: string | null;
+          tc_agreed_version: number;
           updated_at: string | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'user';
+          isOneToOne: true;
+          isSetofReturn: false;
         };
       };
       get_user_by_phone: {
@@ -2895,8 +6594,10 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          is_wa_contact: Database['public']['Enums']['wa_validate'] | null;
           language_id: string | null;
           learning_path: string | null;
+          locale_id: string | null;
           music_off: boolean | null;
           name: string | null;
           ops_created_by: string | null;
@@ -2905,7 +6606,14 @@ export type Database = {
           sfx_off: boolean | null;
           stars: number | null;
           student_id: string | null;
+          tc_agreed_version: number;
           updated_at: string | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'user';
+          isOneToOne: true;
+          isSetofReturn: false;
         };
       };
       get_users_for_parent_or_self_or_school: {
@@ -2926,8 +6634,10 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          is_wa_contact: Database['public']['Enums']['wa_validate'] | null;
           language_id: string | null;
           learning_path: string | null;
+          locale_id: string | null;
           music_off: boolean | null;
           name: string | null;
           ops_created_by: string | null;
@@ -2936,13 +6646,18 @@ export type Database = {
           sfx_off: boolean | null;
           stars: number | null;
           student_id: string | null;
+          tc_agreed_version: number;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'user';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
-      getDataByInviteCode: {
-        Args: { invite_code: number };
-        Returns: Json;
-      };
+      getDataByInviteCode: { Args: { invite_code: number }; Returns: Json };
+      getDataByInviteCodeNew: { Args: { invite_code: number }; Returns: Json };
       getfiltered_schools: {
         Args: { filters: Json };
         Returns: {
@@ -3079,10 +6794,14 @@ export type Database = {
         };
         Returns: string;
       };
-      invoke_master_checker_edge_function: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
+      invoke_common_cron_runner: { Args: never; Returns: undefined };
+      invoke_master_checker_edge_function: { Args: never; Returns: undefined };
+      is_auto_user: { Args: never; Returns: boolean };
+      is_course_in_auto_user_school: {
+        Args: { target_course_id: string };
+        Returns: boolean;
       };
+      is_external_user: { Args: never; Returns: boolean };
       is_program_admin_for_class: {
         Args: { p_class_id: string; p_user_id: string };
         Returns: boolean;
@@ -3099,24 +6818,21 @@ export type Database = {
         Args: { p_school_user_id: string; p_user_id: string };
         Returns: boolean;
       };
-      is_program_manager_or_field_coordinator: {
-        Args: Record<PropertyKey, never>;
-        Returns: boolean;
-      };
-      is_special_or_program_user: {
-        Args: Record<PropertyKey, never>;
-        Returns: boolean;
-      };
-      is_special_user_privileged: {
-        Args: Record<PropertyKey, never>;
-        Returns: boolean;
-      };
+      is_program_manager_or_field_coordinator:
+        | { Args: never; Returns: boolean }
+        | { Args: { p_user_id: string }; Returns: boolean };
+      is_special_or_program_user: { Args: never; Returns: boolean };
+      is_special_user_privileged: { Args: never; Returns: boolean };
       is_student_already_in_class: {
         Args: { _class_id: string; _user_id: string };
         Returns: boolean;
       };
       is_super_admin_or_operational_director: {
         Args: { p_user_id: string };
+        Returns: boolean;
+      };
+      is_user_in_auto_user_school: {
+        Args: { target_user_id: string };
         Returns: boolean;
       };
       isUserExists: {
@@ -3131,7 +6847,32 @@ export type Database = {
         Args: { invite_code: number; student_id: string };
         Returns: boolean;
       };
-      read_group_assignment_queue: {
+      new_link_student: {
+        Args: { invite_code: number; student_id: string };
+        Returns: {
+          class_id: string;
+          created_at: string | null;
+          id: string;
+          is_deleted: boolean | null;
+          is_firebase: boolean | null;
+          is_ops: boolean | null;
+          ops_created_by: string | null;
+          role: Database['public']['Enums']['role'];
+          updated_at: string | null;
+          user_id: string;
+        }[];
+        SetofOptions: {
+          from: '*';
+          to: 'class_user';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      parent_wa_get_group_details: {
+        Args: { p_group_id: string };
+        Returns: Json;
+      };
+      read_group_assignment_queue_v2: {
         Args: { qty: number; queue_name: string; vt: number };
         Returns: {
           enqueued_at: string;
@@ -3143,6 +6884,25 @@ export type Database = {
       };
       read_group_notification_queue: {
         Args: { queue_name: string; vt: number };
+        Returns: {
+          enqueued_at: string;
+          message: Json;
+          msg_id: number;
+          read_ct: number;
+          visible_at: string;
+        }[];
+      };
+      read_queue_generic: {
+        Args: { queue_name: string; read_limit?: number; vt_seconds?: number };
+        Returns: {
+          enqueued_at: string;
+          message: Json;
+          msg_id: number;
+          read_ct: number;
+        }[];
+      };
+      reading_queue: {
+        Args: { qty: number; queue_name: string; vt: number };
         Returns: {
           enqueued_at: string;
           message: Json;
@@ -3173,14 +6933,8 @@ export type Database = {
           total_count: number;
         }[];
       };
-      resend_otp: {
-        Args: { phone_number: string };
-        Returns: Json;
-      };
-      run_both_notifications: {
-        Args: Record<PropertyKey, never>;
-        Returns: undefined;
-      };
+      resend_otp: { Args: { phone_number: string }; Returns: Json };
+      run_both_notifications: { Args: never; Returns: undefined };
       search_schools: {
         Args: {
           p_block?: string;
@@ -3233,36 +6987,26 @@ export type Database = {
           phone: string;
         }[];
       };
-      send_otp_request: {
-        Args: { input_data: Json };
+      send_otp_request: { Args: { input_data: Json }; Returns: Json };
+      send_parent_whatsapp_msg91_invites: {
+        Args: { p_batch_size?: number; p_invite_rows: Json };
+        Returns: Json;
+      };
+      send_parent_whatsapp_template_message: {
+        Args: {
+          p_media_id?: string;
+          p_media_type?: string;
+          p_message_type?: string;
+          p_template_lang: string;
+          p_template_name: string;
+          p_to: string;
+        };
         Returns: Json;
       };
       set_confirmation: {
         Args: { code: string; phone_number: string };
         Returns: string;
       };
-      // sql_get_accessible_ops_requests: {
-      //   Args: { p_updated_at?: string }
-      //   Returns: {
-      //     class_id: string | null
-      //     created_at: string
-      //     id: string
-      //     is_deleted: boolean | null
-      //     rejected_reason_description: string | null
-      //     rejected_reason_type: string | null
-      //     request_ends_at: string | null
-      //     request_id: string | null
-      //     request_status:
-      //       | Database["public"]["Enums"]["ops_request_status"]
-      //       | null
-      //     request_type: Database["public"]["Enums"]["ops_request_type"] | null
-      //     requested_by: string | null
-      //     requested_to: string | null
-      //     responded_by: string | null
-      //     school_id: string | null
-      //     updated_at: string
-      //   }[]
-      // }
       sql_get_assignment_cart: {
         Args: { p_updated_at?: string };
         Returns: {
@@ -3271,9 +7015,15 @@ export type Database = {
           is_deleted: boolean | null;
           is_firebase: boolean | null;
           lessons: string | null;
-          source: Database["public"]["Enums"]["assignment_source"] | null;
+          source: Database['public']['Enums']['assignment_source'] | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'assignment_cart';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_assignment_users: {
         Args: { p_updated_at: string };
@@ -3286,6 +7036,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'assignment_user';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_assignments: {
         Args: { p_updated_at: string };
@@ -3304,11 +7060,18 @@ export type Database = {
           is_firebase: boolean | null;
           lesson_id: string;
           school_id: string;
+          set_number: number | null;
           source: string | null;
           starts_at: string;
           type: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'assignment';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_badge: {
         Args: { p_updated_at?: string };
@@ -3321,6 +7084,12 @@ export type Database = {
           name: string;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'badge';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_chapter: {
         Args: { p_updated_at?: string };
@@ -3335,6 +7104,12 @@ export type Database = {
           sub_topics: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'chapter';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_chapter_lesson: {
         Args: { p_updated_at?: string };
@@ -3343,10 +7118,18 @@ export type Database = {
           created_at: string;
           id: string;
           is_deleted: boolean | null;
+          language_id: string | null;
           lesson_id: string;
+          locale_id: string | null;
           sort_index: number | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'chapter_lesson';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_class: {
         Args: { p_updated_at: string };
@@ -3354,19 +7137,28 @@ export type Database = {
           academic_year: string | null;
           created_at: string;
           firebase_id: string | null;
+          grade_id: string | null;
           group_id: string | null;
           id: string;
           image: string | null;
           is_deleted: boolean | null;
           is_firebase: boolean | null;
           is_ops: boolean | null;
+          migrated_count: number | null;
           name: string;
           ops_created_by: string | null;
           school_id: string;
           standard: string | null;
           status: string | null;
           updated_at: string | null;
+          whatsapp_invite_link: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'class';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_class_course: {
         Args: { p_updated_at: string };
@@ -3381,6 +7173,12 @@ export type Database = {
           ops_created_by: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'class_course';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_class_invite_codes: {
         Args: { p_updated_at: string };
@@ -3395,6 +7193,12 @@ export type Database = {
           is_firebase: boolean | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'class_invite_code';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_class_user: {
         Args: { p_updated_at?: string };
@@ -3406,10 +7210,16 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           ops_created_by: string | null;
-          role: Database["public"]["Enums"]["role"];
+          role: Database['public']['Enums']['role'];
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'class_user';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_course: {
         Args: { p_updated_at?: string };
@@ -3420,6 +7230,7 @@ export type Database = {
           curriculum_id: string | null;
           description: string | null;
           firebase_id: string | null;
+          framework_id: string | null;
           grade_id: string | null;
           id: string;
           image: string | null;
@@ -3429,6 +7240,12 @@ export type Database = {
           subject_id: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'course';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_curriculum: {
         Args: { p_updated_at?: string };
@@ -3443,6 +7260,12 @@ export type Database = {
           sort_index: number | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'curriculum';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_favorite_lessons: {
         Args: { p_updated_at?: string };
@@ -3455,6 +7278,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'favorite_lesson';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_grade: {
         Args: { p_updated_at?: string };
@@ -3470,6 +7299,12 @@ export type Database = {
           test: string | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'grade';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_language: {
         Args: { p_updated_at?: string };
@@ -3485,6 +7320,12 @@ export type Database = {
           sort_index: number | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'language';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_lessons: {
         Args: { p_updated_at?: string };
@@ -3499,6 +7340,8 @@ export type Database = {
           image: string | null;
           is_deleted: boolean | null;
           language_id: string | null;
+          lido_lesson_id: string | null;
+          metadata: string | null;
           name: string | null;
           outcome: string | null;
           plugin_type: string | null;
@@ -3507,7 +7350,14 @@ export type Database = {
           target_age_from: number | null;
           target_age_to: number | null;
           updated_at: string | null;
+          version: number | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'lesson';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_live_quiz_rooms: {
         Args: { p_updated_at?: string };
@@ -3525,6 +7375,40 @@ export type Database = {
           starts_at: string;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'live_quiz_room';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      sql_get_ops_requests: {
+        Args: { p_updated_at?: string };
+        Returns: {
+          class_id: string | null;
+          created_at: string;
+          id: string;
+          is_deleted: boolean | null;
+          rejected_reason_description: string | null;
+          rejected_reason_type: string | null;
+          request_ends_at: string | null;
+          request_id: string | null;
+          request_status:
+            | Database['public']['Enums']['ops_request_status']
+            | null;
+          request_type: Database['public']['Enums']['ops_request_type'] | null;
+          requested_by: string | null;
+          requested_to: string | null;
+          responded_by: string | null;
+          school_id: string | null;
+          updated_at: string;
+        }[];
+        SetofOptions: {
+          from: '*';
+          to: 'ops_requests';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_parent_users: {
         Args: { p_updated_at?: string };
@@ -3539,28 +7423,54 @@ export type Database = {
           student_id: string;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'parent_user';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_results: {
         Args: { p_updated_at: string };
         Returns: {
+          activities_scores: string | null;
           assignment_id: string | null;
           chapter_id: string | null;
           class_id: string | null;
+          competency_ability: number | null;
+          competency_id: string | null;
           correct_moves: number | null;
           course_id: string | null;
           created_at: string;
+          domain_ability: number | null;
+          domain_id: string | null;
           firebase_id: string | null;
           id: string;
           is_deleted: boolean | null;
           is_firebase: boolean | null;
           lesson_id: string | null;
+          outcome_ability: number | null;
+          outcome_id: string | null;
+          source: Database['public']['Enums']['source'] | null;
           school_id: string | null;
           score: number | null;
+          skill_ability: number | null;
+          skill_id: string | null;
+          status: Database['public']['Enums']['result_status'] | null;
           student_id: string;
+          subject_ability: number | null;
+          subject_id: string | null;
           time_spent: number | null;
           updated_at: string | null;
+          user_id: string | null;
           wrong_moves: number | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'result';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_reward: {
         Args: { p_updated_at?: string };
@@ -3574,6 +7484,12 @@ export type Database = {
           weeklySticker: string | null;
           year: number;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'reward';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_school_courses: {
         Args: { p_updated_at: string };
@@ -3588,6 +7504,12 @@ export type Database = {
           school_id: string;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'school_course';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_school_user: {
         Args: { p_updated_at?: string };
@@ -3598,11 +7520,17 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           ops_created_by: string | null;
-          role: Database["public"]["Enums"]["role"];
+          role: Database['public']['Enums']['role'];
           school_id: string;
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'school_user';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_schools: {
         Args: { p_updated_at: string };
@@ -3621,17 +7549,25 @@ export type Database = {
           is_deleted: boolean | null;
           is_firebase: boolean | null;
           is_ops: boolean | null;
-          key_contacts: Json | null;
+          key_contacts: string | null;
           language: string | null;
-          model: Database["public"]["Enums"]["program_model"] | null;
+          location_link: string | null;
+          model: Database['public']['Enums']['program_model'] | null;
           name: string;
           ops_created_by: string | null;
           program_id: string | null;
-          status: Database["public"]["Enums"]["status"] | null;
-          student_login_type: Database["public"]["Enums"]["login_type"] | null;
+          status: Database['public']['Enums']['status'] | null;
+          student_login_type: Database['public']['Enums']['login_type'] | null;
           udise: string | null;
           updated_at: string | null;
+          whatsapp_bot_number: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'school';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_sticker: {
         Args: { p_updated_at?: string };
@@ -3644,6 +7580,12 @@ export type Database = {
           name: string;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'sticker';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_subject: {
         Args: { p_updated_at?: string };
@@ -3657,6 +7599,12 @@ export type Database = {
           sort_index: number | null;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'subject';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_user_badges: {
         Args: { p_updated_at: string };
@@ -3670,6 +7618,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'user_badge';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_user_bonus: {
         Args: { p_updated_at: string };
@@ -3683,6 +7637,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'user_bonus';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_user_courses: {
         Args: { p_updated_at: string };
@@ -3695,6 +7655,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'user_course';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_user_stickers: {
         Args: { p_updated_at: string };
@@ -3708,6 +7674,12 @@ export type Database = {
           updated_at: string | null;
           user_id: string;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'user_sticker';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_users: {
         Args: { p_updated_at: string };
@@ -3727,8 +7699,10 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          is_wa_contact: Database['public']['Enums']['wa_validate'] | null;
           language_id: string | null;
           learning_path: string | null;
+          locale_id: string | null;
           music_off: boolean | null;
           name: string | null;
           ops_created_by: string | null;
@@ -3737,8 +7711,15 @@ export type Database = {
           sfx_off: boolean | null;
           stars: number | null;
           student_id: string | null;
+          tc_agreed_version: number;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'user';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
       };
       sql_get_users_test: {
         Args: { p_updated_at: string };
@@ -3758,8 +7739,10 @@ export type Database = {
           is_firebase: boolean | null;
           is_ops: boolean | null;
           is_tc_accepted: boolean | null;
+          is_wa_contact: Database['public']['Enums']['wa_validate'] | null;
           language_id: string | null;
           learning_path: string | null;
+          locale_id: string | null;
           music_off: boolean | null;
           name: string | null;
           ops_created_by: string | null;
@@ -3768,8 +7751,43 @@ export type Database = {
           sfx_off: boolean | null;
           stars: number | null;
           student_id: string | null;
+          tc_agreed_version: number;
           updated_at: string | null;
         }[];
+        SetofOptions: {
+          from: '*';
+          to: 'user';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      sql_sync_all: {
+        Args: {
+          p_is_first_time?: boolean;
+          p_tables?: string[];
+          p_updated_at?: Json;
+        };
+        Returns: Json;
+      };
+      sql_sync_all_2: {
+        Args: { p_tables?: string[]; p_updated_at?: Json };
+        Returns: Json;
+      };
+      sql_sync_all_reserarc: {
+        Args: {
+          p_is_first_time?: boolean;
+          p_tables?: string[];
+          p_updated_at?: Json;
+        };
+        Returns: Json;
+      };
+      sql_sync_all2: {
+        Args: {
+          p_is_first_time?: boolean;
+          p_tables?: string[];
+          p_updated_at?: Json;
+        };
+        Returns: Json;
       };
       update_class_firebase_trigger: {
         Args: {
@@ -3788,6 +7806,10 @@ export type Database = {
           student_id: string;
           time_spent: number;
         };
+        Returns: undefined;
+      };
+      update_queue_visibility_time: {
+        Args: { interval_days?: number; msg_id: number; queue_name: string };
         Returns: undefined;
       };
       update_school_firebase_trigger: {
@@ -3820,10 +7842,11 @@ export type Database = {
         };
         Returns: string;
       };
-      user_exists: {
-        Args: { user_id: string };
-        Returns: boolean;
+      upload_parent_whatsapp_media: {
+        Args: { p_file_b64: string; p_filename: string; p_mime_type?: string };
+        Returns: Json;
       };
+      user_exists: { Args: { user_id: string }; Returns: boolean };
       validate_class_existence_rpc: {
         Args: {
           input_class_name: string;
@@ -3853,31 +7876,78 @@ export type Database = {
       };
     };
     Enums: {
-      assignment_source: "manual" | "recommended" | "qr_code" | "chatbot";
-      login_type: "student_id" | "parent_phone_number";
-      ops_request_status: "requested" | "rejected" | "approved";
-      ops_request_type: "student" | "teacher" | "principal" | "school";
-      program_model: "hybrid" | "at_home" | "at_school";
-      program_type: "government" | "private" | "learning_centers";
-      rive_type: "idle" | "normal" | "celebrating";
+      assignment_source: 'manual' | 'recommended' | 'qr_code' | 'chatbot';
+      fc_call_result: 'call_picked' | 'call_later' | 'call_not_reachable';
+      fc_contact_method: 'call' | 'in_person';
+      fc_engagement_target:
+        | 'student'
+        | 'teacher'
+        | 'principal'
+        | 'parent'
+        | 'school'
+        | 'class';
+      fc_questions_status: 'active' | 'in_active';
+      fc_support_level:
+        | 'need_help'
+        | 'still_learning'
+        | 'doing_good'
+        | 'not_tracked'
+        | 'not_assigning'
+        | 'once_to_two'
+        | 'three_to_four'
+        | 'four_plus';
+      login_type: 'student_id' | 'parent_phone_number';
+      ops_request_status: 'requested' | 'rejected' | 'approved' | 'flagged';
+      ops_request_type: 'student' | 'teacher' | 'principal' | 'school';
+      program_model: 'hybrid' | 'at_home' | 'at_school';
+      program_type: 'government' | 'private' | 'learning_centers';
+      source:
+        | 'initial_assessment'
+        | 'learning_pathway_home_no_pal'
+        | 'learning_pathway_home_pal'
+        | 'learning_pathway_homework'
+        | 'live_quiz_room'
+        | 'no_learning_pathway_homework'
+        | 'subject_page'
+        | 'teacher_mode';
+      result_status:
+        | 'user_exit'
+        | 'system_exit'
+        | 'completed'
+        | 'assessment_terminated';
+      rive_type: 'idle' | 'normal' | 'celebrating';
       role:
-        | "coordinator"
-        | "principal"
-        | "sponsor"
-        | "teacher"
-        | "parent"
-        | "student"
-        | "autouser"
-        | "program_manager"
-        | "operational_director"
-        | "field_coordinator"
-        | "super_admin";
+        | 'coordinator'
+        | 'principal'
+        | 'sponsor'
+        | 'teacher'
+        | 'parent'
+        | 'student'
+        | 'autouser'
+        | 'program_manager'
+        | 'operational_director'
+        | 'field_coordinator'
+        | 'super_admin'
+        | 'external_user';
+      school_visit_type:
+        | 'teacher_training_meeting'
+        | 'parents_teacher_meeting'
+        | 'regular_visit'
+        | 'community_visit';
       special_roles:
-        | "super_admin"
-        | "operational_director"
-        | "program_manager"
-        | "field_coordinator";
-      status: "active" | "rejected" | "requested" | "migrated";
+        | 'super_admin'
+        | 'operational_director'
+        | 'program_manager'
+        | 'field_coordinator'
+        | 'external_user';
+      status: 'active' | 'rejected' | 'requested' | 'migrated' | 'in_active';
+      student_performance_metric:
+        | 'grey_band'
+        | 'red_band'
+        | 'green_band'
+        | 'yellow_band';
+      target_type: 'number_of_lessons' | 'percentage_completion';
+      wa_validate: 'yes' | 'no';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -3885,36 +7955,36 @@ export type Database = {
   };
 };
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
+type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
 
 type DefaultSchema = DatabaseWithoutInternals[Extract<
   keyof Database,
-  "public"
+  'public'
 >];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R;
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])
+    ? (DefaultSchema['Tables'] &
+        DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R;
       }
       ? R
@@ -3923,23 +7993,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I;
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I;
       }
       ? I
@@ -3948,23 +8018,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
+    | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U;
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U;
       }
       ? U
@@ -3973,68 +8043,127 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
+    | keyof DefaultSchema['Enums']
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
     : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
+    | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  pgmq_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
-      assignment_source: ["manual", "recommended", "qr_code", "chatbot"],
-      login_type: ["student_id", "parent_phone_number"],
-      ops_request_status: ["requested", "rejected", "approved"],
-      ops_request_type: ["student", "teacher", "principal", "school"],
-      program_model: ["hybrid", "at_home", "at_school"],
-      program_type: ["government", "private", "learning_centers"],
-      rive_type: ["idle", "normal", "celebrating"],
+      assignment_source: ['manual', 'recommended', 'qr_code', 'chatbot'],
+      fc_call_result: ['call_picked', 'call_later', 'call_not_reachable'],
+      fc_contact_method: ['call', 'in_person'],
+      fc_engagement_target: [
+        'student',
+        'teacher',
+        'principal',
+        'parent',
+        'school',
+        'class',
+      ],
+      fc_questions_status: ['active', 'in_active'],
+      fc_support_level: [
+        'need_help',
+        'still_learning',
+        'doing_good',
+        'not_tracked',
+        'not_assigning',
+        'once_to_two',
+        'three_to_four',
+        'four_plus',
+      ],
+      login_type: ['student_id', 'parent_phone_number'],
+      ops_request_status: ['requested', 'rejected', 'approved', 'flagged'],
+      ops_request_type: ['student', 'teacher', 'principal', 'school'],
+      program_model: ['hybrid', 'at_home', 'at_school'],
+      program_type: ['government', 'private', 'learning_centers'],
+      source: [
+        'initial_assessment',
+        'learning_pathway_home_no_pal',
+        'learning_pathway_home_pal',
+        'learning_pathway_homework',
+        'live_quiz_room',
+        'no_learning_pathway_homework',
+        'subject_page',
+        'teacher_mode',
+      ],
+      result_status: [
+        'user_exit',
+        'system_exit',
+        'completed',
+        'assessment_terminated',
+      ],
+      rive_type: ['idle', 'normal', 'celebrating'],
       role: [
-        "coordinator",
-        "principal",
-        "sponsor",
-        "teacher",
-        "parent",
-        "student",
-        "autouser",
-        "program_manager",
-        "operational_director",
-        "field_coordinator",
-        "super_admin",
+        'coordinator',
+        'principal',
+        'sponsor',
+        'teacher',
+        'parent',
+        'student',
+        'autouser',
+        'program_manager',
+        'operational_director',
+        'field_coordinator',
+        'super_admin',
+        'external_user',
+      ],
+      school_visit_type: [
+        'teacher_training_meeting',
+        'parents_teacher_meeting',
+        'regular_visit',
+        'community_visit',
       ],
       special_roles: [
-        "super_admin",
-        "operational_director",
-        "program_manager",
-        "field_coordinator",
+        'super_admin',
+        'operational_director',
+        'program_manager',
+        'field_coordinator',
+        'external_user',
       ],
-      status: ["active", "rejected", "requested", "migrated"],
+      status: ['active', 'rejected', 'requested', 'migrated', 'in_active'],
+      student_performance_metric: [
+        'grey_band',
+        'red_band',
+        'green_band',
+        'yellow_band',
+      ],
+      target_type: ['number_of_lessons', 'percentage_completion'],
+      wa_validate: ['yes', 'no'],
     },
   },
 } as const;

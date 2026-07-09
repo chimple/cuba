@@ -1,6 +1,6 @@
-import { LeaderboardRewardsType } from "../common/constants";
-import BaseObject from "./baseObject";
-import { Timestamp } from "firebase/firestore";
+import { LeaderboardRewardsType } from '../common/constants';
+import BaseObject from './baseObject';
+import { Timestamp } from 'firebase/firestore';
 
 export default class Rewards extends BaseObject {
   private _monthly: {

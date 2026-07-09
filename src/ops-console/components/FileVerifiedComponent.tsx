@@ -1,6 +1,6 @@
-import React from "react";
-import { ReactComponent as VerifyIcon } from "../assets/icons/verifiedicon.svg";
-import "./FileVerifiedComponent.css";
+import React from 'react';
+import { ReactComponent as VerifyIcon } from '../assets/icons/verifiedicon.svg';
+import './FileVerifiedComponent.css';
 
 interface VerifiedPageProps {
   title: string;

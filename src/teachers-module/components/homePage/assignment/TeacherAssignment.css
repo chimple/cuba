@@ -102,6 +102,22 @@
   text-align: center;
 }
 
+.assignment-list-item-thumb {
+  width: 50px;
+  height: 40px;
+  border: 2px solid #f50;
+  border-radius: 4px;
+  background-color: #fff;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.assignment-list-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
 .collapse-button {
   background: none;
 }
@@ -119,7 +135,7 @@
   justify-content: space-between;
   position: relative;
   margin: 0vw 5vw;
-  border-bottom: 2px solid #EFF2F4;
+  border-bottom: 2px solid #eff2f4;
 }
 
 .manual-assignments-header hr,
@@ -168,7 +184,7 @@
 }
 
 .select-all-container-checkbox:checked::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -199,7 +215,7 @@
 }
 
 .assignment-list-item-checkbox:checked::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -231,7 +247,8 @@
   justify-content: center;
   gap: 5px;
 }
-.TeacherAssignment-addAssignment-icon1, .TeacherAssignment-addAssignment-icon2 {
+.TeacherAssignment-addAssignment-icon1,
+.TeacherAssignment-addAssignment-icon2 {
   max-width: 80px;
   max-height: 80px;
   width: 80px !important;

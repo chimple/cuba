@@ -1,36 +1,31 @@
 //@ts-nocheck
-import { FC, useEffect, useState } from "react";
-import Course from "../models/course";
-import Lesson from "../models/lesson";
+import { FC, useEffect, useState } from 'react';
+import Course from '../models/course';
+import Lesson from '../models/lesson';
 
-import { Chapter, StudentLessonResult } from "../common/courseConstants";
-import { useHistory, useLocation } from "react-router";
-import { ServiceConfig } from "../services/ServiceConfig";
+import { Chapter } from '../common/courseConstants';
+import { useHistory, useLocation } from 'react-router';
+import { ServiceConfig } from '../services/ServiceConfig';
 import {
   CONTINUE,
-  CURRENT_CLASS,
-  CURRENT_MODE,
-  // DISPLAY_SUBJECTS_STORE,
   GRADE_MAP,
   MODES,
   PAGES,
   TableTypes,
-} from "../common/constants";
-import { IonIcon, IonPage } from "@ionic/react";
-import { chevronBackCircleSharp } from "ionicons/icons";
-import "./DisplaySubjects.css";
-import { t } from "i18next";
-import SelectCourse from "../components/displaySubjects/SelectCourse";
-import Loading from "../components/Loading";
-import SelectChapter from "../components/displaySubjects/SelectChapter";
-import LessonSlider from "../components/LessonSlider";
-import Grade from "../models/grade";
-import BackButton from "../components/common/BackButton";
-import { Util } from "../utility/util";
-import Class from "../models/class";
-import { schoolUtil } from "../utility/schoolUtil";
-import DropDown from "../components/DropDown";
-import { Timestamp } from "firebase/firestore";
+} from '../common/constants';
+import { IonPage } from '@ionic/react';
+import './DisplaySubjects.css';
+import { t } from 'i18next';
+import SelectCourse from '../components/displaySubjects/SelectCourse';
+import Loading from '../components/Loading';
+import SelectChapter from '../components/displaySubjects/SelectChapter';
+import LessonSlider from '../components/LessonSlider';
+import Grade from '../models/grade';
+import BackButton from '../components/common/BackButton';
+import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
+import DropDown from '../components/DropDown';
+import { Timestamp } from 'firebase/firestore';
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -42,24 +37,24 @@ const DisplaySubjects: FC<{}> = () => {
   }
   const [stage, setStage] = useState(STAGES.SUBJECTS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [courses, setCourses] = useState<TableTypes<"course">[]>();
-  const [currentCourse, setCurrentCourse] = useState<TableTypes<"course">>();
-  const [currentChapter, setCurrentChapter] = useState<TableTypes<"chapter">>();
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
-  const [lessons, setLessons] = useState<TableTypes<"lesson">[]>();
+  const [courses, setCourses] = useState<TableTypes<'course'>[]>();
+  const [currentCourse, setCurrentCourse] = useState<TableTypes<'course'>>();
+  const [currentChapter, setCurrentChapter] = useState<TableTypes<'chapter'>>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
+  const [lessons, setLessons] = useState<TableTypes<'lesson'>[]>();
   // const [gradesMap, setGradesMap] = useState<{
   //   grades: Grade[];
   //   courses: Course[];
   // }>();
 
   const [localGradeMap, setLocalGradeMap] = useState<{
-    grades: TableTypes<"grade">[];
-    courses: TableTypes<"course">[];
+    grades: TableTypes<'grade'>[];
+    courses: TableTypes<'course'>[];
   }>();
-  
-  const [currentGrade, setCurrentGrade] = useState<TableTypes<"grade">>();
+
+  const [currentGrade, setCurrentGrade] = useState<TableTypes<'grade'>>();
   const [lessonResultMap, setLessonResultMap] = useState<{
-    [lessonDocId: string]: TableTypes<"result">;
+    [lessonDocId: string]: TableTypes<'result'>;
   }>();
   const history = useHistory();
   const location = useLocation();
@@ -111,80 +106,11 @@ const DisplaySubjects: FC<{}> = () => {
       !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
       localStorageData.lessonResultMap = localData.lessonResultMap;
       localStorageData.stage = STAGES.LESSONS;
-      // addDataToLocalStorage();
+
       setStage(STAGES.LESSONS);
 
       setIsLoading(false);
-    } else if (!!urlParams.get("isReload")) {
-      // let strLocalStoreData = localStorage.getItem(DISPLAY_SUBJECTS_STORE);
-      // if (!!strLocalStoreData) {
-      //   localStorageData = JSON.parse(strLocalStoreData);
-
-      //   if (!!localStorageData.courses) {
-      //     let tmpCourses: Course[] = Util.convertCourses(
-      //       localStorageData.courses
-      //     );
-      //     localData.courses = tmpCourses;
-      //     setCourses(tmpCourses);
-      //     if (
-      //       !!localStorageData.stage &&
-      //       localStorageData.stage !== STAGES.SUBJECTS &&
-      //       !!localStorageData.currentCourseId
-      //     ) {
-      //       setStage(localStorageData.stage);
-      //       let cc: Course = localData.courses.find(
-      //         (cour) => localStorageData.currentCourseId === cour.docId
-      //       );
-
-      //       let _localMap = getLocalGradeMap();
-
-      //       if (!!_localMap) {
-      //         if (!!localStorageData.currentGrade) {
-      //           localData.currentGrade = localStorageData.currentGrade;
-      //           setCurrentGrade(localStorageData.currentGrade);
-      //           const tmpCurrentCourse = _localMap?.courses.find(
-      //             (course) => course.grade.id === localData.currentGrade.docId
-      //           );
-
-      //           if (!!tmpCurrentCourse) cc = tmpCurrentCourse;
-      //         }
-      //       }
-
-      //       localData.currentCourse = cc;
-      //       setCurrentCourse(cc);
-
-      //       if (!!localStorageData.currentChapterId) {
-      //         let cChap: Chapter = localData.currentCourse.chapters.find(
-      //           (chap) => localStorageData.currentChapterId === chap.id
-      //         );
-      //         localData.currentChapter = cChap;
-      //         setCurrentChapter(cChap);
-      //       }
-
-      //       if (!!localStorageData.lessonResultMap) {
-      //         let tmpStdMap: { [lessonDocId: string]: StudentLessonResult } =
-      //           localStorageData.lessonResultMap;
-      //         for (const value of Object.values(tmpStdMap)) {
-      //           if (!!value.course) value.course = Util.getRef(value.course);
-      //         }
-      //         localData.lessonResultMap = tmpStdMap;
-      //         setLessonResultMap(tmpStdMap);
-      //       }
-
-      //       if (localStorageData.stage === STAGES.LESSONS) {
-      //         getLessonsForChapter(localData.currentChapter);
-      //       } else {
-      //         setIsLoading(false);
-      //       }
-      //     } else {
-      //       setIsLoading(false);
-      //     }
-      //   } else {
-      //     await getCourses();
-      //   }
-      // } else {
-      //   await getCourses();
-      // }
+    } else if (!!urlParams.get('isReload')) {
     } else {
       await getCourses();
     }
@@ -210,22 +136,14 @@ const DisplaySubjects: FC<{}> = () => {
     }
   }
 
-  // function addDataToLocalStorage() {
-  //   localStorage.setItem(
-  //     DISPLAY_SUBJECTS_STORE,
-  //     JSON.stringify(localStorageData)
-  //   );
-  // }
-
   const getCourses = async (): Promise<Course[]> => {
     setIsLoading(true);
     const currentStudent = await Util.getCurrentStudent();
     if (!currentStudent) {
-      // history.replace(PAGES.DISPLAY_STUDENT);
       history.replace(PAGES.SELECT_MODE);
       return [];
     }
-    // const currClass = localStorage.getItem(CURRENT_CLASS);
+
     const currClass = schoolUtil.getCurrentClass();
     if (!!currClass) setCurrentClass(currClass);
     api.getStudentResultInMap(currentStudent.docId).then(async (res) => {
@@ -262,7 +180,6 @@ const DisplaySubjects: FC<{}> = () => {
   const onBackButton = () => {
     switch (stage) {
       case STAGES.SUBJECTS:
-        // localStorage.removeItem(DISPLAY_SUBJECTS_STORE);
         history.replace(PAGES.HOME);
         break;
       case STAGES.CHAPTERS:
@@ -270,14 +187,14 @@ const DisplaySubjects: FC<{}> = () => {
         delete localStorageData.currentChapterId;
         setCurrentChapter(undefined);
         localStorageData.stage = STAGES.SUBJECTS;
-        // addDataToLocalStorage();
+
         setStage(STAGES.SUBJECTS);
         break;
       case STAGES.LESSONS:
         delete localData.lessons;
         setLessons(undefined);
         localStorageData.stage = STAGES.CHAPTERS;
-        // addDataToLocalStorage();
+
         setStage(STAGES.CHAPTERS);
 
         break;
@@ -289,7 +206,7 @@ const DisplaySubjects: FC<{}> = () => {
     const gradesMap: { grades: Grade[]; courses: Course[] } =
       await api.getDifferentGradesForCourse(course);
     const currentGrade = gradesMap.grades.find(
-      (grade) => grade.docId === course.grade.id
+      (grade) => grade.docId === course.grade.id,
     );
     localStorage.setItem(GRADE_MAP, JSON.stringify(gradesMap));
     localData.currentGrade = currentGrade ?? gradesMap.grades[0];
@@ -308,7 +225,7 @@ const DisplaySubjects: FC<{}> = () => {
 
   const onGradeChanges = async (grade: Grade) => {
     const currentCourse = localGradeMap?.courses.find(
-      (course) => course.grade.id === grade.docId
+      (course) => course.grade.id === grade.docId,
     );
     localData.currentGrade = grade;
     localStorageData.currentGrade = grade;
@@ -358,7 +275,7 @@ const DisplaySubjects: FC<{}> = () => {
         </div>
         <div className="subject-name">
           {stage === STAGES.SUBJECTS
-            ? t("Subjects")
+            ? t('Subjects')
             : stage === STAGES.CHAPTERS
               ? currentCourse?.title
               : currentChapter?.title}
@@ -374,7 +291,7 @@ const DisplaySubjects: FC<{}> = () => {
             onValueChange={(evt) => {
               {
                 const tempGrade = localGradeMap.grades.find(
-                  (grade) => grade.docId === evt
+                  (grade) => grade.docId === evt,
                 );
                 onGradeChanges(tempGrade ?? currentGrade);
               }

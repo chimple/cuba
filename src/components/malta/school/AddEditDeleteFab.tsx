@@ -1,9 +1,8 @@
-import { IonFab, IonFabButton, IonFabList, IonIcon } from "@ionic/react";
-import { add, arrowUpCircle, create, trash } from "ionicons/icons";
-import { FC } from "react";
-import CommonDialog from "../common/CommonDialog";
-import AddSchool from "./AddSchool";
-import { t } from "i18next";
+import { IonFab, IonFabButton, IonFabList, IonIcon } from '@ionic/react';
+import { add, arrowUpCircle, create, trash } from 'ionicons/icons';
+import { FC } from 'react';
+import CommonDialog from '../common/CommonDialog';
+import { t } from 'i18next';
 interface AddEditDeleteFabProps {
   onAddClick: React.MouseEventHandler<HTMLIonIconElement>;
   onEditClick: React.MouseEventHandler<HTMLIonIconElement>;
@@ -30,7 +29,7 @@ const AddEditDeleteFab: FC<AddEditDeleteFabProps> = ({
           </IonFabButton>
           <IonFabButton>
             <CommonDialog
-              alertMsg={t("Are you sure to delete the school?")}
+              alertMsg={t('Are you sure to delete the school?')}
               ionIcon={trash}
             ></CommonDialog>
           </IonFabButton>

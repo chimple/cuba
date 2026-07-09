@@ -1,16 +1,16 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import TeacherProfileSection from "../../components/addTeacher/TeacherProfileSection";
-import { TableTypes } from "../../../common/constants";
+import type { Meta, StoryObj } from '@storybook/react';
+import TeacherProfileSection from '../../components/addTeacher/TeacherProfileSection';
+import { TableTypes } from '../../../common/constants';
 
-const mockTeacher: TableTypes<"user"> = {
-  id: "teacher-1",
-  name: "John Doe",
-  image: "assets/icons/userIcon.png",
-  email: "john.doe@example.com",
+const mockTeacher: TableTypes<'user'> = {
+  id: 'teacher-1',
+  name: 'John Doe',
+  image: 'assets/icons/userIcon.png',
+  email: 'john.doe@example.com',
   age: null,
   avatar: null,
-  created_at: "",
+  created_at: '',
   curriculum_id: null,
   fcm_token: null,
   gender: null,
@@ -29,16 +29,16 @@ const mockTeacher: TableTypes<"user"> = {
   learning_path: null,
   ops_created_by: null,
   stars: null,
-  reward: null
+  reward: null,
 };
 
-const mockClassDoc: TableTypes<"class"> = {
-  id: "class-1",
-  name: "Mathematics Class",
-  created_at: "",
+const mockClassDoc: TableTypes<'class'> = {
+  id: 'class-1',
+  name: 'Mathematics Class',
+  created_at: '',
   image: null,
   is_deleted: null,
-  school_id: "",
+  school_id: '',
   updated_at: null,
   academic_year: null,
   firebase_id: null,
@@ -47,21 +47,21 @@ const mockClassDoc: TableTypes<"class"> = {
   ops_created_by: null,
   standard: null,
   status: null,
-  group_id: null
+  group_id: null,
 };
 
 const meta: Meta<typeof TeacherProfileSection> = {
-  title: "components/addTeacher/TeacherProfileSection",
+  title: 'components/addTeacher/TeacherProfileSection',
   component: TeacherProfileSection,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
   argTypes: {
     teacher: {
-      control: "object",
+      control: 'object',
     },
     classDoc: {
-      control: "object",
+      control: 'object',
     },
   },
 };
@@ -80,8 +80,8 @@ export const Test1: Story = {
   args: {
     teacher: {
       ...mockTeacher,
-      name: "Jane Smith",
-      image: "/components/addTeacher/TeacherProfileSection",
+      name: 'Jane Smith',
+      image: '/components/addTeacher/TeacherProfileSection',
     },
     classDoc: mockClassDoc,
   },
@@ -91,8 +91,8 @@ export const Test2: Story = {
   args: {
     teacher: {
       ...mockTeacher,
-      name: "Tommy Lee",
-      image: "/components/addTeacher/TeacherProfileSection",
+      name: 'Tommy Lee',
+      image: '/components/addTeacher/TeacherProfileSection',
     },
     classDoc: mockClassDoc,
   },
@@ -102,8 +102,8 @@ export const Test3: Story = {
   args: {
     teacher: {
       ...mockTeacher,
-      name: "Hubert Blaine Wolfeschlegelsteinhausenbergerdorff Sr",
-      image: "/components/addTeacher/TeacherProfileSection",
+      name: 'Hubert Blaine Wolfeschlegelsteinhausenbergerdorff Sr',
+      image: '/components/addTeacher/TeacherProfileSection',
     },
     classDoc: mockClassDoc,
   },

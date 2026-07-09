@@ -1,44 +1,51 @@
-import { IonContent, IonPage, useIonToast } from "@ionic/react";
-import { FC, useEffect, useState } from "react";
-import ChimpleLogo from "../components/ChimpleLogo";
-import "./DisplayStudents.css";
-import Loading from "../components/Loading";
-import User from "../models/user";
+import { Capacitor } from '@capacitor/core';
+import { ScreenOrientation } from '../utility/screenOrientation';
+import { IonPage } from '@ionic/react';
+import { t } from 'i18next';
+import { FC, useEffect, useState } from 'react';
+import { useHistory } from 'react-router';
 import {
   AVATARS,
-  MAX_STUDENTS_ALLOWED,
-  PAGES,
-  MODES,
-  CONTINUE,
-  TableTypes,
-  CURRENT_CLASS,
   EDIT_STUDENTS_MAP,
-  CURRENT_STUDENT,
-  LANG,
-  LANGUAGE,
-} from "../common/constants";
-import { IoAddCircleSharp } from "react-icons/io5";
-import { useHistory } from "react-router";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { t } from "i18next";
-import { Util } from "../utility/util";
-import ParentalLock from "../components/parent/ParentalLock";
-import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
-import { schoolUtil } from "../utility/schoolUtil";
-import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
-import SkeltonLoading from "../components/SkeltonLoading";
-import { Capacitor } from "@capacitor/core";
-import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+  EVENTS,
+  MODES,
+  PAGES,
+  TableTypes,
+} from '../common/constants';
+import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
+import ParentalLock from '../components/parent/ParentalLock';
+import SkeltonLoading from '../components/SkeltonLoading';
+import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
+import { ServiceConfig } from '../services/ServiceConfig';
+import logger from '../utility/logger';
+import { schoolUtil } from '../utility/schoolUtil';
+import { Util } from '../utility/util';
+import { ReactComponent as BrandLogoIcon } from './assets/brandLogoIcon.svg';
+import './DisplayStudents.css';
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [students, setStudents] = useState<TableTypes<"user">[]>();
+  const [students, setStudents] = useState<TableTypes<'user'>[]>();
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
   const { setGbUpdated } = useGbContext();
+  const isWebPlatform = Capacitor.getPlatform() === 'web';
+  const getProfileCardPlayActionParams = (
+    student: TableTypes<'user'>,
+  ): Record<string, string> => {
+    const currentClass = Util.getCurrentClass();
+    return {
+      action_type: 'play',
+      target_student_id: student.id,
+      target_student_grade: student.grade_id ?? '',
+      ...(studentMode === MODES.TEACHER_SCHOOL && currentClass?.id
+        ? { class_id: currentClass.id }
+        : {}),
+    };
+  };
+
   useEffect(() => {
     Util.loadBackgroundImage();
     getStudents();
@@ -49,7 +56,7 @@ const DisplayStudents: FC<{}> = () => {
   }, []);
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
-      ScreenOrientation.lock({ orientation: "landscape" });
+      ScreenOrientation.lock({ orientation: 'landscape' });
     }
   };
   const getStudents = async () => {
@@ -59,7 +66,7 @@ const DisplayStudents: FC<{}> = () => {
     const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
     const mergedStudents = Util.mergeStudentsByUpdatedAt(
       tempStudents,
-      storedMapStr
+      storedMapStr,
     );
     if (!mergedStudents || mergedStudents.length < 1) {
       history.replace(PAGES.CREATE_STUDENT, {
@@ -72,29 +79,36 @@ const DisplayStudents: FC<{}> = () => {
     setGbUpdated(true);
     setIsLoading(false);
   };
-  const onStudentClick = async (student: TableTypes<"user">) => {
+  const onStudentClick = async (student: TableTypes<'user'>) => {
+    schoolUtil.setCurrMode(MODES.PARENT);
     await Util.setCurrentStudent(student, undefined, true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
-    if (linkedData.classes && linkedData.classes.length > 0) {
+    void Util.ensureLidoCommonAudioForStudent(student).catch((error) => {
+      logger.warn('Failed to prefetch Lido common audio in background.', error);
+    });
+    let resolvedSchoolIds: string[] = [];
+    if (linkedData?.classes && linkedData.classes.length > 0) {
       const firstClass = linkedData.classes[0];
       const currClass = await api.getClassById(firstClass.id);
       await schoolUtil.setCurrentClass(currClass ?? undefined);
+      resolvedSchoolIds = currClass?.school_id ? [currClass.school_id] : [];
     } else {
-      console.warn("No classes found for the student.");
+      logger.warn('No classes found for the student.');
       await schoolUtil.setCurrentClass(undefined);
     }
-    if (
-      // !student.curriculum_id ||
-      !student.language_id
-      //  ||
-      // !student.grade_id ||
-      // !student.courses
-    ) {
+    // Sync GrowthBook with the selected child's current school linkage.
+    updateLocalAttributes({
+      student_id: student.id,
+      age: student.age ?? null,
+      grade_id: student.grade_id ?? null,
+      school_ids: resolvedSchoolIds,
+    });
+    setGbUpdated(true);
+    if (!student.language_id) {
       history.replace(PAGES.EDIT_STUDENT, {
         from: history.location.pathname,
       });
     } else {
-      // Util.setPathToBackButton(PAGES.HOME + history.location.search, history);
       history.replace(PAGES.HOME + window.location.search);
     }
   };
@@ -102,13 +116,13 @@ const DisplayStudents: FC<{}> = () => {
     if (!online) {
       presentToast({
         message: t(`Device is offline. Cannot create a new child profile`),
-        color: "danger",
+        color: 'danger',
         duration: 3000,
-        position: "bottom",
+        position: 'bottom',
         buttons: [
           {
-            text: "Dismiss",
-            role: "cancel",
+            text: 'Dismiss',
+            role: 'cancel',
           },
         ],
       });
@@ -122,51 +136,45 @@ const DisplayStudents: FC<{}> = () => {
     history.replace(PAGES.CREATE_STUDENT, locationState);
   };
   return (
-    <IonPage id="display-students">
-      {/* <IonContent> */} 
+    <IonPage
+      id="display-students"
+      className={isWebPlatform ? 'display-students-web' : undefined}
+    >
       <div id="display-students-chimple-logo">
-        <div id="display-students-parent-icon">
-          {Util.getCurrentStudent() &&<img
-            src="/assets/icons/BackButtonIcon.svg"
-            alt="BackButtonIcon"
-            onClick={() => {
-              Util.setPathToBackButton(PAGES.HOME, history);
-            }}
-          />
-          }
+        <div id="display-students-parent-icon"></div>
+        <div className="display-students-title">
+          <div className="display-students-welcome-title">
+            <BrandLogoIcon className="display-students-brand-logo" />
+            <span>{t('Welcome to Chimple!')}</span>
+          </div>
+          <span className="display-students-subtitle">
+            {t("Select the child's profile")}
+          </span>
         </div>
-        <ChimpleLogo
-          header={t("Welcome to Chimple!")}
-          msg={[
-            t("Select the child’s profile"),
-            // t("where curiosity meets education!"),
-          ]}
-        />
         <button
           id="display-students-parent-button"
+          type="button"
           onClick={() => {
-            // history.replace(PAGES.PARENT);
             setShowDialogBox(true);
           }}
         >
-          {t("Parent")}
-          <img id="parent-icon" src={"assets/icons/user.png"} alt="" />
+          {t('Parent')}
+          <img id="parent-icon" src={'assets/icons/user.png'} alt="" />
         </button>
       </div>
       {!isLoading && students && (
         <div className="display-student-content">
           <div className="avatar-container">
             {students.map((student) => (
-              <div
+              <article
                 key={student.id}
-                onClick={() => onStudentClick(student)}
-                className="display-students-avatar"
+                className="display-students-card display-students-avatar"
               >
                 <img
-                  className="avatar-img"
+                  className="avatar-img display-students-avatar-img"
                   src={
                     (studentMode === MODES.SCHOOL && student.image) ||
-                    "assets/avatars/" + (student.avatar ?? AVATARS[0]) + ".png"
+                    'assets/avatars/' + (student.avatar ?? AVATARS[0]) + '.png'
                   }
                   alt=""
                 />
@@ -174,27 +182,31 @@ const DisplayStudents: FC<{}> = () => {
                   <span className="display-student-name-profile">Profile:</span>
                 )}
                 <span className="display-student-name">
-                  {student.name ? student.name : "\u00A0"}
+                  {student.name ? student.name : '\u00A0'}
                 </span>
-              </div>
+                <div id="play-button-shadow" className="play-button-shadow">
+                  <button
+                    id={`display-students-play-${student.id}`}
+                    type="button"
+                    className="display-students-play-button"
+                    onClick={() => {
+                      void Util.logEvent(
+                        EVENTS.PROFILE_CARD_ACTION_CLICKED,
+                        getProfileCardPlayActionParams(student),
+                      );
+                      onStudentClick(student);
+                    }}
+                  >
+                    {t('Play')}
+                  </button>
+                </div>
+              </article>
             ))}
           </div>
-          {/* {students.length < MAX_STUDENTS_ALLOWED && (
-            <div className="add-new-button">
-              <IoAddCircleSharp
-                color="white"
-                size="10vh"
-                onClick={onCreateNewStudent}
-              />
-              {t("Create a New Child Profile")}
-            </div>
-          )} */}
+
           {showDialogBox ? (
             <ParentalLock
               showDialogBox={showDialogBox}
-              handleClose={() => {
-                setShowDialogBox(true);
-              }}
               onHandleClose={() => {
                 setShowDialogBox(false);
               }}
@@ -203,7 +215,6 @@ const DisplayStudents: FC<{}> = () => {
         </div>
       )}
       <SkeltonLoading isLoading={isLoading} header={PAGES.DISPLAY_STUDENT} />
-      {/* </IonContent> */}
     </IonPage>
   );
 };

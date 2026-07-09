@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
-import "./JoinSchool.css";
-import Header from "../teachers-module/components/homePage/Header";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { useHistory, useLocation } from "react-router-dom";
-import { RequestTypes } from "../common/constants";
-import { t } from "i18next";
+import React, { useEffect, useState } from 'react';
+import './JoinSchool.css';
+import Header from '../teachers-module/components/homePage/Header';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { useHistory, useLocation } from 'react-router-dom';
+import { PAGES, RequestTypes } from '../common/constants';
+import { t } from 'i18next';
+import logger from '../utility/logger';
 
 const JoinSchool: React.FC = () => {
   const [requestType, setRequestType] = useState<RequestTypes>();
@@ -13,42 +14,47 @@ const JoinSchool: React.FC = () => {
   const history = useHistory();
   const location = useLocation<{ school: any }>();
   const [classList, setClassList] = useState<any>([]);
+  const [sending, setSending] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
 
-  useEffect(() => {
-    async function fetchRequest() {
-      try {
-        const currentSchool = location.state?.school;
-        setSchool(currentSchool);
+  const fetchRequest = async () => {
+    try {
+      const currentSchool = location.state?.school;
+      setSchool(currentSchool);
 
-        const allClasses = await api.getAllClassesBySchoolId(currentSchool?.id);
-        setClassList(allClasses);
+      const allClasses = await api.getAllClassesBySchoolId(currentSchool?.id);
+      setClassList(allClasses);
 
-        // Set default Teacher and First Class
-        if (allClasses && allClasses.length > 0) {
-          setRequestType(RequestTypes.TEACHER);
-          setSelectedClass(allClasses[0]);
-        }
-      } catch (error) {
-        console.error("Error fetching request data:", error);
+      // Set default Teacher and First Class
+      if (allClasses && allClasses.length > 0) {
+        setRequestType(RequestTypes.TEACHER);
+        setSelectedClass(allClasses[0]);
       }
+    } catch (error) {
+      logger.error('Error fetching request data:', error);
     }
+  };
+  useEffect(() => {
     fetchRequest();
   }, []);
 
   const handleSendRequest = async () => {
-    const schoolId = school?.id;
-    if (!schoolId || !requestType) return;
-
-    const classId =
-      requestType === RequestTypes.TEACHER
-        ? selectedClass.id ?? undefined
-        : undefined;
-
     try {
+      setSending(true);
+      const schoolId = school?.id;
+      if (!schoolId || !requestType) return;
+
+      const classId =
+        requestType === RequestTypes.TEACHER
+          ? (selectedClass.id ?? undefined)
+          : undefined;
+
       await api.sendJoinSchoolRequest(schoolId, requestType, classId);
+      history.replace(PAGES.POST_SUCCESS);
     } catch (error) {
-      console.error("Error sending join school request:", error);
+      logger.error('Error sending join school request:', error);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -62,7 +68,7 @@ const JoinSchool: React.FC = () => {
       </div>
       <div className="join-school-container">
         <div className="join-school-box">
-          <h2 className="join-school-page-title">{t("Join School")}</h2>
+          <h2 className="join-school-page-title">{t('Join School')}</h2>
 
           <div className="join-school-icon">
             <img src="/assets/icons/School_image.svg" />
@@ -71,27 +77,27 @@ const JoinSchool: React.FC = () => {
           <div className="join-school-card">
             <div className="join-school-row">
               <span className="join-school-label">UDISE ID</span>
-              <span className="join-school-value">{school?.udise || "-"}</span>
+              <span className="join-school-value">{school?.udise || '-'}</span>
             </div>
 
             <div className="join-school-row">
-              <span className="join-school-label">{t("School Name")}</span>
+              <span className="join-school-label">{t('School Name')}</span>
               <span className="join-school-value">{school?.name}</span>
             </div>
             <div className="join-school-row">
-              <span className="join-school-label">{t("Block")}</span>
-              <span className="join-school-value">{school?.group4 || "-"}</span>
+              <span className="join-school-label">{t('Block')}</span>
+              <span className="join-school-value">{school?.group3 || '-'}</span>
             </div>
             <div className="join-school-row">
-              <span className="join-school-label">{t("District")}</span>
-              <span className="join-school-value">{school?.group3}</span>
+              <span className="join-school-label">{t('District')}</span>
+              <span className="join-school-value">{school?.group2}</span>
             </div>
             <div className="join-school-row">
-              <span className="join-school-label">{t("State")}</span>
+              <span className="join-school-label">{t('State')}</span>
               <span className="join-school-value">{school?.group1}</span>
             </div>
-            <div className="join-school-row" style={{ borderBottom: "none" }}>
-              <span className="join-school-label">{t("Country")}</span>
+            <div className="join-school-row" style={{ borderBottom: 'none' }}>
+              <span className="join-school-label">{t('Country')}</span>
               <span className="join-school-value">{school?.country}</span>
             </div>
           </div>
@@ -99,7 +105,7 @@ const JoinSchool: React.FC = () => {
           <div className="join-school-role-container">
             <div
               className={`join-school-role-card ${
-                requestType === RequestTypes.TEACHER ? "selected-teacher" : ""
+                requestType === RequestTypes.TEACHER ? 'selected-teacher' : ''
               }`}
               onClick={() => setRequestType(RequestTypes.TEACHER)}
             >
@@ -109,8 +115,8 @@ const JoinSchool: React.FC = () => {
             <div
               className={`join-school-role-card ${
                 requestType === RequestTypes.PRINCIPAL
-                  ? "selected-principal"
-                  : ""
+                  ? 'selected-principal'
+                  : ''
               }`}
               onClick={() => setRequestType(RequestTypes.PRINCIPAL)}
             >
@@ -120,15 +126,15 @@ const JoinSchool: React.FC = () => {
 
           <div
             className={`join-school-class-container ${
-              requestType === RequestTypes.TEACHER ? "" : "hidden"
+              requestType === RequestTypes.TEACHER ? '' : 'hidden'
             }`}
           >
             {requestType === RequestTypes.TEACHER &&
-              classList.map((cls) => (
+              classList.map((cls: { id: string; name: string }) => (
                 <button
-                  key={cls}
+                  key={cls.id}
                   className={`join-school-class-btn ${
-                    selectedClass === cls ? "join-school-selected-class" : ""
+                    selectedClass === cls ? 'join-school-selected-class' : ''
                   }`}
                   onClick={() => setSelectedClass(cls)}
                 >
@@ -137,16 +143,22 @@ const JoinSchool: React.FC = () => {
               ))}
           </div>
 
-          <button
-            className="join-school-send-btn"
-            disabled={
-              !requestType ||
-              (requestType === RequestTypes.TEACHER && !selectedClass)
-            }
-            onClick={handleSendRequest}
-          >
-            {t("Send Request")}
-          </button>
+          {sending ? (
+            <button className="join-school-send-btn" disabled>
+              {t('Sending...')}
+            </button>
+          ) : (
+            <button
+              className="join-school-send-btn"
+              disabled={
+                !requestType ||
+                (requestType === RequestTypes.TEACHER && !selectedClass)
+              }
+              onClick={() => handleSendRequest()}
+            >
+              {t('Send Request')}
+            </button>
+          )}
         </div>
       </div>
     </div>

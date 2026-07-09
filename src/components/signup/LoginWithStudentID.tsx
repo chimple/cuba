@@ -1,10 +1,10 @@
-import { t } from "i18next";
-import React from "react";
+import { t } from 'i18next';
+import React from 'react';
 
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
-import "./LoginWithStudentID.css";
+import './LoginWithStudentID.css';
 
 interface LoginWithStudentIDProps {
   onLogin: () => void;
@@ -27,28 +27,32 @@ const LoginWithStudentID: React.FC<LoginWithStudentIDProps> = ({
   studentPassword,
   setStudentPassword,
   errorMessage,
-  checkbox
+  checkbox,
 }) => {
-  const isFormValid = schoolCode && studentId && studentPassword.length >= 6 && checkbox;
+  const isFormValid =
+    schoolCode && studentId && studentPassword.length >= 6 && checkbox;
 
   const buttonColors = {
-    Default: "#8A8A8A",
-    Valid: "#F34D08",
+    Default: '#8A8A8A',
+    Valid: '#F34D08',
   };
 
   return (
     <div className="LoginWithStudentID-login-method-student-id">
       <div className="LoginWithStudentID-login-method-content-student-id">
-        <span className="LoginWithStudentID-login-with-student-text">{t("Login / SignUp")}</span>
+        <span className="LoginWithStudentID-login-with-student-text">
+          {t('Login / SignUp')}
+        </span>
 
         <div className="LoginWithStudentID-student-input-wrapper">
           <div className="LoginWithStudentID-input-icon-wrapper-student-id">
-            <SchoolOutlinedIcon sx={{ color: "var(--text-color)", fontSize: "22px" }}
+            <SchoolOutlinedIcon
+              sx={{ color: 'var(--text-color)', fontSize: '22px' }}
               className="LoginWithStudentID-input-icon-student-id"
             />
             <input
               type="text"
-              placeholder={t("Enter your School Code") || ""}
+              placeholder={t('Enter your School Code') || ''}
               value={schoolCode}
               onChange={(e) => setSchoolCode(e.target.value)}
               className="LoginWithStudentID-login-student-input"
@@ -63,7 +67,7 @@ const LoginWithStudentID: React.FC<LoginWithStudentIDProps> = ({
             />
             <input
               type="text"
-              placeholder={t("Enter your Student ID") || ""}
+              placeholder={t('Enter your Student ID') || ''}
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
               className="LoginWithStudentID-login-student-input"
@@ -71,12 +75,13 @@ const LoginWithStudentID: React.FC<LoginWithStudentIDProps> = ({
           </div>
 
           <div className="LoginWithStudentID-input-icon-wrapper-student-id">
-            <LockOutlinedIcon sx={{ color: "var(--text-color)", fontSize: "22px" }}
+            <LockOutlinedIcon
+              sx={{ color: 'var(--text-color)', fontSize: '22px' }}
               className="LoginWithStudentID-input-icon-student-id"
             />
             <input
               type="password"
-              placeholder={t("Enter your password") || ""}
+              placeholder={t('Enter your password') || ''}
               value={studentPassword}
               onChange={(e) => setStudentPassword(e.target.value)}
               className="LoginWithStudentID-login-student-input"
@@ -99,7 +104,7 @@ const LoginWithStudentID: React.FC<LoginWithStudentIDProps> = ({
             }}
             className="LoginWithStudentID-login-with-student-button"
           >
-          {t("START")}
+            {t('START')}
           </button>
         </div>
       </div>

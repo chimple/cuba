@@ -1,39 +1,66 @@
-import { IonContent, IonPage } from "@ionic/react";
-import { FC, useEffect, useState } from "react";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { useHistory } from "react-router";
-import { LESSONS_PLAYED_COUNT, PAGES, TableTypes } from "../common/constants";
-import "./LiveQuizGame.css";
-import LiveQuizCountdownTimer from "../components/liveQuiz/LiveQuizCountdownTimer";
-import LiveQuizQuestion from "../components/liveQuiz/LiveQuizQuestion";
-import LiveQuiz from "../models/liveQuiz";
-import LiveQuizHeader from "../components/liveQuiz/LiveQuizHeader";
-import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErrorMessageHandler";
-import ScoreCard from "../components/parent/ScoreCard";
-import { Util } from "../utility/util";
-import { t } from "i18next";
-import { Capacitor } from "@capacitor/core";
+import { IonContent, IonPage } from '@ionic/react';
+import { FC, useEffect, useState } from 'react';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { useHistory } from 'react-router';
+import {
+  IS_REWARD_FEATURE_ON,
+  LESSONS_PLAYED_COUNT,
+  PAGES,
+  SOURCE,
+  TableTypes,
+} from '../common/constants';
+import './LiveQuizGame.css';
+import LiveQuizCountdownTimer from '../components/liveQuiz/LiveQuizCountdownTimer';
+import LiveQuizQuestion from '../components/liveQuiz/LiveQuizQuestion';
+import LiveQuiz from '../models/liveQuiz';
+import LiveQuizHeader from '../components/liveQuiz/LiveQuizHeader';
+import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
+import ScoreCard from '../components/scorecards/ScoreCard';
+import { Util } from '../utility/util';
+import { t } from 'i18next';
+import { Capacitor } from '@capacitor/core';
+import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
+import { useGrowthBook } from '@growthbook/growthbook-react';
 
 const LiveQuizGame: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const paramLiveRoomId = urlSearchParams.get("liveRoomId");
-  const [roomDoc, setRoomDoc] = useState<TableTypes<"live_quiz_room">>();
+  const paramLiveRoomId = urlSearchParams.get('liveRoomId');
+  const [roomDoc, setRoomDoc] = useState<TableTypes<'live_quiz_room'>>();
   const [isTimeOut, setIsTimeOut] = useState(false);
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState<number>();
   const [showAnswer, setShowAnswer] = useState(false);
-  const [lesson, setLesson] = useState<TableTypes<"lesson">>();
+  const [lesson, setLesson] = useState<TableTypes<'lesson'>>();
   const { presentToast } = useOnlineOfflineErrorMessageHandler();
-  const paramLessonId = urlSearchParams.get("lessonId");
+  const paramLessonId = urlSearchParams.get('lessonId');
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [showScoreCard, setShowScoreCard] = useState<boolean>(false);
   const state = history.location.state as any;
   const [quizData, setQuizData] = useState<any>();
   const [scoreData, setScoreData] = useState<any>();
   let initialCount = Number(localStorage.getItem(LESSONS_PLAYED_COUNT)) || 0;
+  // Check if the game was played from `learning_pathway`
+  const learning_path: boolean = state?.learning_path ?? false;
+  const isReward: boolean = state?.reward ?? false;
+  const source: SOURCE =
+    state?.source ??
+    (learning_path
+      ? state?.is_assessment
+        ? SOURCE.INITIAL_ASSESSMENT
+        : SOURCE.LEARNING_PATHWAY_HOME_NO_PAL
+      : SOURCE.SUBJECT_PAGE);
+  const shouldShowDailyRewardProgressRow =
+    localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
+  const shouldShowScoreCardProgressRows = [
+    SOURCE.LEARNING_PATHWAY_HOMEWORK,
+    SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
+    SOURCE.LEARNING_PATHWAY_HOME_PAL,
+    SOURCE.INITIAL_ASSESSMENT,
+  ].includes(source);
+  const growthbook = useGrowthBook();
 
   useEffect(() => {
     if (!paramLiveRoomId && !paramLessonId) {
@@ -64,18 +91,18 @@ const LiveQuizGame: FC = () => {
   }, [paramLessonId]);
 
   const handleRoomChange = async (
-    roomDoc: TableTypes<"live_quiz_room"> | undefined
+    roomDoc: TableTypes<'live_quiz_room'> | undefined,
   ) => {
     if (!roomDoc) {
       presentToast({
         message: `Device is offline. Cannot join live quiz`,
-        color: "danger",
+        color: 'danger',
         duration: 10000,
-        position: "bottom",
+        position: 'bottom',
         buttons: [
           {
-            text: "Dismiss",
-            role: "cancel",
+            text: 'Dismiss',
+            role: 'cancel',
           },
         ],
       });
@@ -95,22 +122,32 @@ const LiveQuizGame: FC = () => {
   const handleQuizEnd = () => {
     setShowScoreCard(true);
     setShowDialogBox(true);
+
+    const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
+
+    if (popupConfig) {
+      PopupManager.onGameComplete(popupConfig);
+    }
   };
 
   const push = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const fromPath: string = state?.from ?? PAGES.HOME;
+    const returnState = {
+      ...(state?.returnState ?? state),
+      fromLiveQuiz: true,
+    };
     if (Capacitor.isNativePlatform()) {
-      history.replace(fromPath + "&isReload=false");
+      history.replace(fromPath + '&isReload=false', returnState);
     } else {
-      if (!!urlParams.get("isReload")) {
-        if (fromPath.includes("?")) {
-          history.replace(fromPath + "&isReload=true");
+      if (!!urlParams.get('isReload')) {
+        if (fromPath.includes('?')) {
+          history.replace(fromPath + '&isReload=true', returnState);
         } else {
-          history.replace(fromPath + "?isReload=true");
+          history.replace(fromPath + '?isReload=true', returnState);
         }
       } else {
-        history.replace(fromPath);
+        history.replace(fromPath, returnState);
       }
     }
   };
@@ -118,7 +155,7 @@ const LiveQuizGame: FC = () => {
   const saveLikedStatus = async () => {
     const api = ServiceConfig.getI().apiHandler;
     const currentStudent = api.currentStudent!;
-    await api.updateFavoriteLesson(currentStudent.id, lesson?.id ?? "");
+    await api.updateFavoriteLesson(currentStudent.id, lesson?.id ?? '');
   };
 
   return (
@@ -130,6 +167,7 @@ const LiveQuizGame: FC = () => {
             {paramLessonId && quizData && (
               <LiveQuizQuestion
                 lessonId={paramLessonId}
+                lesson={lesson}
                 quizData={quizData}
                 isTimeOut={true}
                 onNewQuestionChange={(newQuestionIndex) => {
@@ -143,33 +181,34 @@ const LiveQuizGame: FC = () => {
                   setScoreData(scoreData);
                 }}
                 onQuizEnd={handleQuizEnd}
+                isLearningPathway={learning_path}
+                isReward={isReward}
+                source={source}
               />
             )}
           </div>
           <IonContent>
             {showScoreCard ? (
               <ScoreCard
-                title={t("🎉Congratulations🎊")}
                 score={scoreData ?? 0}
-                message={t("You Completed the Lesson:")}
+                message={t('You Completed the Lesson:')}
                 showDialogBox={showDialogBox}
-                yesText={t("Like the Game")}
-                lessonName={lesson?.name ?? ""}
-                noText={t("Continue Playing")}
+                lessonName={lesson?.name ?? ''}
+                noText={t('Continue Playing')}
                 handleClose={() => setShowDialogBox(true)}
-                onYesButtonClicked={() => {
-                  setShowDialogBox(false);
-                  saveLikedStatus();
-                  if (initialCount >= 5) {
-                    Util.showInAppReview();
-                    initialCount = 0;
-                    localStorage.setItem(
-                      LESSONS_PLAYED_COUNT,
-                      initialCount.toString()
-                    );
-                  }
-                  push();
-                }}
+                progressContext={
+                  shouldShowScoreCardProgressRows
+                    ? {
+                        completedCourseId: state?.courseId,
+                        completedLessonId:
+                          lesson?.id ?? paramLessonId ?? undefined,
+                        animateDailyReward: Boolean(state?.reward),
+                        showDailyReward: shouldShowDailyRewardProgressRow,
+                      }
+                    : undefined
+                }
+                showProgressRows={shouldShowScoreCardProgressRows}
+                variant="progress"
                 onContinueButtonClicked={() => {
                   setShowDialogBox(false);
                   if (initialCount >= 5) {
@@ -177,7 +216,7 @@ const LiveQuizGame: FC = () => {
                     initialCount = 0;
                     localStorage.setItem(
                       LESSONS_PLAYED_COUNT,
-                      initialCount.toString()
+                      initialCount.toString(),
                     );
                   }
                   push();
@@ -227,10 +266,11 @@ const LiveQuizGame: FC = () => {
                 onQuizEnd={() => {
                   history.replace(
                     PAGES.LIVE_QUIZ_ROOM_RESULT +
-                      "?liveRoomId=" +
-                      paramLiveRoomId
+                      '?liveRoomId=' +
+                      paramLiveRoomId,
                   );
                 }}
+                source={state?.source ?? SOURCE.LIVE_QUIZ_ROOM}
               />
             )}
           </div>

@@ -1,18 +1,18 @@
-import React from "react";
-import "./StudentProfile.css";
-import { CURRENT_TEACHER, PAGES, TableTypes } from "../../common/constants";
-import Header from "../components/homePage/Header";
-import { IonPage } from "@ionic/react";
-import TeacherProfileSection from "../components/addTeacher/TeacherProfileSection";
-import { useHistory, useLocation } from "react-router-dom";
+import React from 'react';
+import './StudentProfile.css';
+import { CURRENT_TEACHER, PAGES, TableTypes } from '../../common/constants';
+import Header from '../components/homePage/Header';
+import { IonPage } from '@ionic/react';
+import TeacherProfileSection from '../components/addTeacher/TeacherProfileSection';
+import { useHistory, useLocation } from 'react-router-dom';
 
 const TeacherProfile: React.FC = () => {
   const localTeacher = localStorage.getItem(CURRENT_TEACHER);
   const selectedTeacher = JSON.parse(localTeacher!);
   const history = useHistory();
   const location = useLocation<{
-    classDoc: TableTypes<"class">;
-    school: TableTypes<"school">;
+    classDoc: TableTypes<'class'>;
+    school: TableTypes<'school'>;
   }>();
   const { classDoc, school } = location.state || {};
 

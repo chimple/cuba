@@ -1,28 +1,28 @@
 .add-studentsection__container {
   padding: 2vw;
-  margin: 0 auto; 
+  margin: 0 auto;
   border-radius: 15px;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
   width: 300px;
 }
 .add-studentsection__group {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 .add-studentsection__groupInput {
-    border: none;
-    text-align: center;
-    color: #707070;
-    font-size: 20px;
-    font-weight: 400;
-    background: #FFF;
+  border: none;
+  text-align: center;
+  color: #707070;
+  font-size: 20px;
+  font-weight: 400;
+  background: #fff;
 }
 .add-studentsection__group label {
-    color: #707070;
+  color: #707070;
 }
 .addstudentsection__form {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 .add-studentsection__groupInput:focus {
   outline: none;
@@ -41,7 +41,7 @@
   transition: none;
 }
 
-.add-student-radio-btn[aria-checked="true"]::part(container) {
+.add-student-radio-btn[aria-checked='true']::part(container) {
   background-color: transparent !important;
   border: 1px solid #333 !important;
   box-shadow: none !important;
@@ -51,7 +51,7 @@
   display: none;
 }
 
-.add-student-radio-btn[aria-checked="true"]::part(mark) {
+.add-student-radio-btn[aria-checked='true']::part(mark) {
   display: block;
   width: 8px;
   height: 8px;

@@ -1,539 +1,1136 @@
-import React, { useEffect, useRef, useState } from "react";
-import ReactDOM from "react-dom";
-import "./PathwayStructure.css";
-import { Util } from "../../utility/util";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { useHistory } from "react-router";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import Confetti from 'react-confetti';
+import './PathwayStructure.css';
+
+import PathwayModal from './PathwayModal';
+import ChimpleRiveMascot from './ChimpleRiveMascot';
+import RewardBox from './RewardBox';
+import DailyRewardModal from './DailyRewardModal';
+import RewardRive from './RewardRive';
+import StickerBookPreviewModal, {
+  StickerBookModalData,
+} from './StickerBookPreviewModal';
+import SkeltonLoading, {
+  PATHWAY_STRUCTURE_SKELETON_HEADER,
+} from '../SkeltonLoading';
+
+import { useHistory } from 'react-router';
+import { usePathwayData } from '../../hooks/usePathwayData';
+import { usePathwaySVG } from '../../hooks/usePathwaySVG';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { Util } from '../../utility/util';
 import {
-  CAN_ACCESS_REMOTE_ASSETS,
-  CONTINUE,
-  LIDO,
-  PAGES,
-} from "../../common/constants";
-import PathwayModal from "./PathwayModal";
-import { t } from "i18next";
-import { Directory, Filesystem } from "@capacitor/filesystem";
-import { Capacitor } from "@capacitor/core";
-import { useFeatureIsOn } from "@growthbook/growthbook-react";
-import ChimpleRiveMascot from "./ChimpleRiveMascot";
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
+  AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  CHIMPLE_MASCOT_INPUT_REWARD,
+  CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
+  COURSE_CHANGED,
+  CURRENT_STUDENT_CHANGED_EVENT,
+  EVENTS,
+  PENDING_PATHWAY_STICKER_REWARD_KEY,
+  PATHWAY_REWARD_AUDIO_READY_EVENT,
+  PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+  REWARD_LEARNING_PATH,
+  ACTIVATION_REWARD_FLOW_KEY,
+  STICKER_BOOK_COMPLETION_READY_EVENT,
+} from '../../common/constants';
+import { t } from 'i18next';
+import { AudioUtil } from '../../utility/AudioUtil';
+
+const STICKER_COLLECT_MASCOT_AUDIO_BASE_PATH = '/assets/audios';
+const STICKER_COLLECT_MASCOT_AUDIO_FILE_SUFFIX =
+  'congrats_on_sticker_collection.mp3';
+const STICKER_REWARD_BOX_SELECTOR = '.PathwayStructure-end-reward-box--sticker';
+const STICKER_REWARD_BOX_OPEN_CLASS =
+  'PathwayStructure-end-reward-box--sticker-open';
+const STICKER_REWARD_BOX_CLOSE_CLASS =
+  'PathwayStructure-end-reward-box--sticker-close-anim';
+const STICKER_REWARD_BOX_TILT_CLASS =
+  'PathwayStructure-end-reward-box--sticker-clicked';
+const CROWD_CHEER_AUDIO_URL = '/assets/audios/common/crowd_cheer.mp3';
+const PATHWAY_LOADING_DELAY_MS = 1200;
+type DailyRewardAudioClipName = 'reward_01' | 'reward_02';
+
+const getStickerCollectMascotAudioPath = (languageCode?: string) => {
+  const normalizedLanguageCode = languageCode?.toLowerCase().split('-')[0];
+  const resolvedLanguageCode = normalizedLanguageCode || 'en';
+  return `${STICKER_COLLECT_MASCOT_AUDIO_BASE_PATH}/${resolvedLanguageCode}_${STICKER_COLLECT_MASCOT_AUDIO_FILE_SUFFIX}`;
+};
 
 const PathwayStructure: React.FC = () => {
-  const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [modalText, setModalText] = useState("");
-  const [riveContainer, setRiveContainer] = useState<HTMLDivElement | null>(
-    null
+  const [isPathwaySvgLoading, setIsPathwaySvgLoading] =
+    React.useState<boolean>(false);
+  const [showRewardConfetti, setShowRewardConfetti] =
+    React.useState<boolean>(false);
+  const rewardConfettiTimerRef = React.useRef<number | null>(null);
+  const [stickerPreviewData, setStickerPreviewData] =
+    React.useState<StickerBookModalData | null>(null);
+  const [isStickerPreviewOpen, setIsStickerPreviewOpen] =
+    React.useState<boolean>(false);
+  const [stickerPreviewTrigger, setStickerPreviewTrigger] = React.useState<
+    'sticker_click' | 'pathway_completion_auto'
+  >('sticker_click');
+  const [stickerPreviewLaunchMotion, setStickerPreviewLaunchMotion] =
+    React.useState<{
+      offsetX: number;
+      offsetY: number;
+      startScale: number;
+    } | null>(null);
+  const [stickerPreviewFlyoutMotion, setStickerPreviewFlyoutMotion] =
+    React.useState<{
+      offsetX: number;
+      offsetY: number;
+      endScale: number;
+    } | null>(null);
+  const [stickerCompletionData, setStickerCompletionData] =
+    React.useState<StickerBookModalData | null>(null);
+  const [isStickerCompletionOpen, setIsStickerCompletionOpen] =
+    React.useState<boolean>(false);
+  const [isStickerCollectSpeaking, setIsStickerCollectSpeaking] =
+    React.useState<boolean>(false);
+  const [
+    shouldCelebrateAfterPathwayReload,
+    setShouldCelebrateAfterPathwayReload,
+  ] = React.useState<boolean>(false);
+  const lastStickerCompletionOpenKeyRef = React.useRef<string | null>(null);
+  const shouldRefreshPathAfterCompletionRef = React.useRef<boolean>(false);
+  const isStickerCollectSpeakingRef = React.useRef<boolean>(false);
+  const hasCollectedStickerRef = React.useRef<boolean>(false);
+  const hasCheckedStickerReplayEligibilityRef = React.useRef<boolean>(false);
+  const pendingCelebrationRiveContainerRef = React.useRef<Element | null>(null);
+  const latestRiveContainerRef = React.useRef<Element | null>(null);
+  const rewardAudioSequenceRef = React.useRef({
+    rewardId: null as string | null,
+    crowdComplete: false,
+    rewardReady: false,
+    suppressed: false,
+    stateValue: null as number | null,
+    dailyRewardAudioClipName: 'reward_01' as DailyRewardAudioClipName,
+    onRewardAudioComplete: null as (() => void) | null,
+    token: 0,
+  });
+  const currentMascotStateValueRef = React.useRef<number>(1);
+  const pathwayLoadingDelayRef = React.useRef<{
+    timerId: number | null;
+  }>({
+    timerId: null,
+  });
+
+  const {
+    // refs
+    containerRef,
+
+    // modal
+    modalOpen,
+    modalText,
+    setModalOpen,
+    setModalText,
+    shouldAnimate,
+
+    // rive containers
+    riveContainer,
+    rewardRiveContainer,
+
+    // mascot
+    mascotProps,
+    mascotKey,
+
+    // reward rive box animation
+    rewardRiveState,
+
+    // reward logic
+    hasTodayReward,
+    isRewardFeatureOn,
+    rewardModalOpen,
+    handleRewardBoxOpen,
+    handleRewardModalClose,
+    handleRewardModalPlay,
+    inactiveText,
+    rewardText,
+
+    // NEW — functions for SVG to use instead of window globals
+    getCachedLesson,
+    updateMascotToNormalState,
+    invokeMascotCelebration,
+    playMascotAudioFromLocalPath,
+    setRewardRiveState,
+    setRiveContainer,
+    setRewardRiveContainer,
+    setHasTodayReward,
+    setCurrentCourse,
+    setCurrentChapter,
+    setIsRewardPathLoaded,
+    isRewardPathLoaded,
+    checkAndUpdateReward,
+  } = usePathwayData();
+
+  const playMascotAudioFromLocalPathRef = React.useRef(
+    playMascotAudioFromLocalPath,
   );
 
-  const inactiveText = t(
-    "This lesson is locked. Play the current active lesson."
-  );
-  const rewardText = t("Complete these 5 lessons to earn rewards");
-  const shouldShowRemoteAssets = useFeatureIsOn(CAN_ACCESS_REMOTE_ASSETS);
+  React.useEffect(() => {
+    playMascotAudioFromLocalPathRef.current = playMascotAudioFromLocalPath;
+  }, [playMascotAudioFromLocalPath]);
 
-  const shouldAnimate = modalText === rewardText;
-  const fetchLocalSVGGroup = async (
-    path: string,
-    className?: string
-  ): Promise<SVGGElement> => {
-    const file = await Filesystem.readFile({
-      path,
-      directory: Directory.External,
-    });
-    const svgText = atob(file.data as string);
-    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    group.innerHTML = svgText;
-    if (className) group.setAttribute("class", className);
-    return group;
-  };
-  const loadPathwayContent = async (
-    path: string,
-    webPath: string
-  ): Promise<string> => {
-    if (shouldShowRemoteAssets && Capacitor.isNativePlatform()) {
-      try {
-        const file = await Filesystem.readFile({
-          path,
-          directory: Directory.External,
-        });
-        return atob(file.data as string);
-      } catch {
-        const res = await fetch(webPath);
-        return await res.text();
-      }
-    } else {
-      const res = await fetch(webPath);
-      return await res.text();
-    }
-  };
+  React.useEffect(() => {
+    currentMascotStateValueRef.current = mascotProps.stateValue;
+  }, [mascotProps.stateValue]);
 
-  const loadHaloAnimation = async (
-    localPath: string,
-    webPath: string
-  ): Promise<string> => {
-    if (Capacitor.isNativePlatform() && shouldShowRemoteAssets) {
-      try {
-        const file = await Filesystem.readFile({
-          path: localPath,
-          directory: Directory.External,
-        });
-        return `data:image/svg+xml;base64,${file.data}`;
-      } catch (err) {
-        console.warn("Fallback to web asset for:", webPath, err);
-        return webPath;
-      }
-    }
-    return webPath;
-  };
-
-  const tryFetchSVG = async (
-    localPath: string,
-    webPath: string,
-    name: string
-  ) => {
-    if (Capacitor.isNativePlatform() && shouldShowRemoteAssets) {
-      try {
-        return await fetchLocalSVGGroup(localPath, name);
-      } catch {
-        return await fetchSVGGroup(webPath, name);
-      }
-    } else {
-      return await fetchSVGGroup(webPath, name);
-    }
-  };
-
-  const fetchSVGGroup = async (
-    url: string,
-    className?: string
-  ): Promise<SVGGElement> => {
-    const res = await fetch(url);
-    const svgContent = await res.text();
-    const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    group.innerHTML = svgContent;
-    if (className) group.setAttribute("class", className);
-    return group;
-  };
-
-  const createSVGImage = (
-    href: string,
-    width?: number,
-    height?: number,
-    x?: number,
-    y?: number,
-    opacity?: number
-  ) => {
-    const image = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "image"
-    );
-    image.setAttribute("href", href);
-    if (width) image.setAttribute("width", `${width}`);
-    if (height) image.setAttribute("height", `${height}`);
-    if (x) image.setAttribute("x", `${x}`);
-    if (y) image.setAttribute("y", `${y}`);
-    if (opacity !== undefined) {
-      image.setAttribute("opacity", opacity.toString());
-    }
-    // ✅ Add onerror fallback
-    image.onerror = () => {
-      image.setAttribute("href", "assets/icons/DefaultIcon.png");
-    };
-    return image;
-  };
-
-  const placeElement = (
-    svg: SVGSVGElement,
-    element: SVGGElement | SVGImageElement,
-    x: number,
-    y: number
-  ) => {
-    element.setAttribute("transform", `translate(${x}, ${y})`);
-    svg.appendChild(element);
-  };
-
-  useEffect(() => {
-    // Cache lesson data
-    const lessonCache = new Map<string, any>();
-
-    const getCachedLesson = async (lessonId: string): Promise<any> => {
-      if (lessonCache.has(lessonId)) return lessonCache.get(lessonId);
-
-      const key = `lesson_${lessonId}`;
-      const cached = sessionStorage.getItem(key);
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        lessonCache.set(lessonId, parsed);
-        return parsed;
-      }
-
-      const lesson = await api.getLesson(lessonId);
-      lessonCache.set(lessonId, lesson);
-      sessionStorage.setItem(key, JSON.stringify(lesson));
-      return lesson;
-    };
-
-    const preloadImage = (src: string): Promise<void> => {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.src = src;
-        img.onload = () => resolve();
-        img.onerror = () => resolve();
-      });
-    };
-
-    const preloadAllLessonImages = async (lessons: any[]) => {
-      await Promise.all(
-        lessons.map((lesson) => {
-          let src: string;
-          src = `assets/icons/${lesson.cocos_lesson_id}.png`;
-          return preloadImage(src);
-        })
-      );
-    };
-
-    const loadSVG = async (updatedStudent?: any) => {
-      if (!containerRef.current) return;
-
-      try {
-        const startTime = performance.now();
-
-        const currentStudent =
-          updatedStudent || (await Util.getCurrentStudent());
-        const learningPath = currentStudent?.learning_path
-          ? JSON.parse(currentStudent.learning_path)
-          : null;
-        if (!learningPath) return;
-
-        const currentCourseIndex = learningPath?.courses.currentCourseIndex;
-        const course = learningPath?.courses.courseList[currentCourseIndex];
-        const { startIndex, currentIndex, pathEndIndex } = course;
-
-        const [
-          svgContent,
-          lessons,
-          flowerActive,
-          flowerInactive,
-          playedLessonSVG,
-          giftSVG,
-          giftSVG2,
-          giftSVG3,
-          haloPath,
-        ] = await Promise.all([
-          loadPathwayContent(
-            "remoteAsset/Pathway.svg",
-            "/pathwayAssets/English/Pathway.svg"
-          ),
-          Promise.all(
-            course.path
-              .slice(startIndex, pathEndIndex + 1)
-              .map(({ lesson_id }) => getCachedLesson(lesson_id))
-          ),
-          tryFetchSVG(
-            "remoteAsset/FlowerActive.svg",
-            "/pathwayAssets/English/FlowerActive.svg",
-            "flowerActive isSelected"
-          ),
-          fetchSVGGroup("/pathwayAssets/FlowerInactive.svg", "flowerInactive"),
-          tryFetchSVG(
-            "remoteAsset/PlayedLesson.svg",
-            "/pathwayAssets/English/PlayedLesson.svg",
-            "playedLessonSVG"
-          ),
-          tryFetchSVG(
-            "remoteAsset/pathGift1.svg",
-            "/pathwayAssets/English/pathGift1.svg",
-            "giftSVG"
-          ),
-          tryFetchSVG(
-            "remoteAsset/pathGift2.svg",
-            "/pathwayAssets/English/pathGift2.svg",
-            "giftSVG2"
-          ),
-          tryFetchSVG(
-            "remoteAsset/pathGift3.svg",
-            "/pathwayAssets/English/pathGift3.svg",
-            "giftSVG3"
-          ),
-          loadHaloAnimation(
-            "remoteAsset/halo.svg",
-            "/pathwayAssets/English/halo.svg"
-          ),
-        ]);
-
-        await preloadAllLessonImages(lessons);
-
-        requestAnimationFrame(() => {
-          containerRef.current!.innerHTML = svgContent;
-          const svg = containerRef.current!.querySelector(
-            "svg"
-          ) as SVGSVGElement;
-          if (!svg) return;
-
-          const pathGroups = svg.querySelectorAll("g > path");
-          const paths = Array.from(pathGroups) as SVGPathElement[];
-          const startPoint = paths[0].getPointAtLength(0);
-          const xValues = [27, 155, 276, 387, 496];
-
-          const fragment = document.createDocumentFragment();
-
-          lessons.forEach((lesson, idx) => {
-            const path = paths[idx];
-            const point = path.getPointAtLength(0);
-            const flowerX = point.x - 40;
-            const flowerY = point.y - 40;
-            const x = xValues[idx] ?? 0;
-
-            const isValidUrl = (url: string) =>
-              typeof url === "string" && /^(https?:\/\/|\/)/.test(url);
-            const lesson_image = lesson.cocos_lesson_id
-              ? `assets/icons/${lesson.cocos_lesson_id}.png`
-              : isValidUrl(lesson.image)
-                ? lesson.image
-                : "assets/icons/DefaultIcon.png";
-
-            const positionMappings = {
-              playedLesson: {
-                x: [flowerX - 5, flowerX - 10, flowerX - 7, flowerX, flowerX],
-                y: [
-                  flowerY - 4,
-                  flowerY - 7,
-                  flowerY - 10,
-                  flowerY - 5,
-                  flowerY,
-                ],
-              },
-              activeGroup: {
-                x: [
-                  flowerX - 20,
-                  flowerX - 20,
-                  260,
-                  flowerX - 10,
-                  flowerX - 15,
-                ],
-                y: [flowerY - 23, 5, 10, 5, 10],
-              },
-              flowerInactive: {
-                x: [flowerX - 20, flowerX, flowerX, flowerX + 5, flowerX + 10],
-                y: [
-                  flowerY - 20,
-                  flowerY + 5,
-                  flowerY - 6,
-                  flowerY + 3,
-                  flowerY - 5,
-                ],
-              },
-            };
-
-            if (startIndex + idx < currentIndex) {
-              const playedLesson = document.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "g"
-              );
-              const lessonImage = createSVGImage(lesson_image, 30, 30, 28, 30);
-              playedLesson.appendChild(
-                playedLessonSVG.cloneNode(true) as SVGGElement
-              );
-              playedLesson.appendChild(lessonImage);
-              placeElement(
-                playedLesson as SVGGElement,
-                positionMappings.playedLesson.x[idx] ?? flowerX - 20,
-                positionMappings.playedLesson.y[idx] ?? flowerY - 20
-              );
-              fragment.appendChild(playedLesson);
-            } else if (startIndex + idx === currentIndex) {
-              const activeGroup = document.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "g"
-              );
-              activeGroup.setAttribute(
-                "transform",
-                `translate(${
-                  positionMappings.activeGroup.x[idx] ?? flowerX - 20
-                }, ${positionMappings.activeGroup.y[idx] ?? flowerY - 20})`
-              );
-
-              const halo = createSVGImage(haloPath, 140, 140, -15, -12);
-              const pointer = createSVGImage(
-                "/pathwayAssets/touchPointer.gif",
-                130,
-                130,
-                60,
-                30
-              );
-              const lessonImage = createSVGImage(lesson_image, 30, 30, 40, 40);
-
-              activeGroup.appendChild(halo);
-              activeGroup.appendChild(
-                flowerActive.cloneNode(true) as SVGGElement
-              );
-              activeGroup.appendChild(lessonImage);
-              activeGroup.appendChild(pointer);
-              activeGroup.setAttribute("style", "cursor: pointer;");
-
-              activeGroup.addEventListener("click", () => {
-                if (lesson.plugin_type === "cocos") {
-                  const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-                  history.replace(PAGES.GAME + params, {
-                    url: "chimple-lib/index.html" + params,
-                    lessonId: lesson.cocos_lesson_id,
-                    courseDocId: course.course_id,
-                    lesson: JSON.stringify(lesson),
-                    chapter: JSON.stringify({ chapter_id: lesson.chapter_id }),
-                    from: history.location.pathname + `?continue=true`,
-                    learning_path: true,
-                  });
-                } else if (lesson.plugin_type === LIDO) {
-                  const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
-                  history.replace(PAGES.LIDO_PLAYER + parmas, {
-                    lessonId: lesson.cocos_lesson_id,
-                    courseDocId: course.course_id,
-                    lesson: JSON.stringify(lesson),
-                    chapter: JSON.stringify({ chapter_id: lesson.chapter_id }),
-                    from: history.location.pathname + `?${CONTINUE}=true`,
-                    learning_path: true,
-                  });
-                }
-              });
-
-              const foreignObject = document.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "foreignObject"
-              );
-              foreignObject.setAttribute("width", "33%");
-              foreignObject.setAttribute("height", "84%");
-              foreignObject.setAttribute("x", `${x - 87}`);
-              foreignObject.setAttribute("y", `${startPoint.y + 5}`);
-
-              const riveDiv = document.createElement("div");
-              riveDiv.style.width = "100%";
-              riveDiv.style.height = "100%";
-              foreignObject.appendChild(riveDiv);
-
-              fragment.appendChild(activeGroup);
-              fragment.appendChild(foreignObject);
-
-              setRiveContainer(riveDiv);
-            } else {
-              const flower_Inactive = document.createElementNS(
-                "http://www.w3.org/2000/svg",
-                "g"
-              );
-              const lessonImage = createSVGImage(lesson_image, 30, 30, 21, 23);
-              flower_Inactive.appendChild(
-                flowerInactive.cloneNode(true) as SVGGElement
-              );
-              flower_Inactive.appendChild(lessonImage);
-              flower_Inactive.addEventListener("click", () => {
-                setModalOpen(true);
-                setModalText(inactiveText);
-              });
-              flower_Inactive.setAttribute(
-                "style",
-                "cursor: pointer; -webkit-filter: grayscale(100%); filter:grayscale(100%);"
-              );
-
-              placeElement(
-                flower_Inactive as SVGGElement,
-                positionMappings.flowerInactive.x[idx] ?? flowerX - 20,
-                positionMappings.flowerInactive.y[idx] ?? flowerY - 20
-              );
-              fragment.appendChild(flower_Inactive);
-            }
-          });
-
-          const endPath = paths[paths.length - 1];
-          const endPoint = endPath.getPointAtLength(endPath.getTotalLength());
-          const Gift_Svg = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "g"
-          );
-          Gift_Svg.setAttribute("style", "cursor: pointer;");
-          Gift_Svg.appendChild(giftSVG.cloneNode(true));
-          placeElement(Gift_Svg, endPoint.x - 25, endPoint.y - 40);
-
-          if (currentIndex < pathEndIndex + 1) {
-            Gift_Svg.addEventListener("click", () => {
-              const replaceGiftContent = (newContent: SVGElement) => {
-                while (Gift_Svg.firstChild) {
-                  Gift_Svg.removeChild(Gift_Svg.firstChild);
-                }
-                Gift_Svg.appendChild(newContent.cloneNode(true));
-              };
-
-              const animationSequence = [
-                { content: giftSVG2, delay: 300 },
-                { content: giftSVG3, delay: 500 },
-                { content: giftSVG2, delay: 700 },
-                { content: giftSVG3, delay: 900 },
-                {
-                  callback: () => {
-                    setModalText(rewardText);
-                    setModalOpen(true);
-                    replaceGiftContent(giftSVG);
-                  },
-                  delay: 1100,
-                },
-              ];
-
-              animationSequence.forEach(({ content, callback, delay }) => {
-                setTimeout(() => {
-                  if (content) replaceGiftContent(content);
-                  if (callback) callback();
-                }, delay);
-              });
-            });
-          }
-
-          fragment.appendChild(Gift_Svg);
-          svg.appendChild(fragment);
-
-          const endTime = performance.now();
-          console.log(`SVG loaded in ${(endTime - startTime).toFixed(2)}ms`);
-        });
-      } catch (error) {
-        console.error("Failed to load SVG:", error);
-      }
-    };
-
-    // Reusable position helper
-    const placeElement = (element: SVGGElement, x: number, y: number) => {
-      element.setAttribute("transform", `translate(${x}, ${y})`);
-    };
-
-    // Initial load
-    loadSVG();
-
-    // Listen for course changes
-    const handleCourseChange = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      loadSVG(customEvent.detail.currentStudent);
-    };
-
-    window.addEventListener(
-      "courseChanged",
-      handleCourseChange as EventListener
-    );
-
+  React.useEffect(() => {
+    const loadingDelayState = pathwayLoadingDelayRef.current;
     return () => {
-      window.removeEventListener("courseChanged", handleCourseChange);
+      if (loadingDelayState.timerId !== null) {
+        window.clearTimeout(loadingDelayState.timerId);
+        loadingDelayState.timerId = null;
+      }
     };
   }, []);
 
+  const handlePathwayLoadingChange = React.useCallback((isLoading: boolean) => {
+    if (isLoading) {
+      if (pathwayLoadingDelayRef.current.timerId !== null) {
+        return;
+      }
+      pathwayLoadingDelayRef.current.timerId = window.setTimeout(() => {
+        pathwayLoadingDelayRef.current.timerId = null;
+        setIsPathwaySvgLoading(true);
+      }, PATHWAY_LOADING_DELAY_MS);
+      return;
+    }
+
+    if (pathwayLoadingDelayRef.current.timerId !== null) {
+      window.clearTimeout(pathwayLoadingDelayRef.current.timerId);
+      pathwayLoadingDelayRef.current.timerId = null;
+    }
+    setIsPathwaySvgLoading(false);
+  }, []);
+
+  const openStickerCompletion = React.useCallback(
+    (data: StickerBookModalData) => {
+      const completionKey = [
+        data.source,
+        data.stickerBookId,
+        data.collectedStickerIds.length,
+        data.totalStickerCount,
+      ].join(':');
+
+      if (lastStickerCompletionOpenKeyRef.current === completionKey) {
+        return;
+      }
+
+      lastStickerCompletionOpenKeyRef.current = completionKey;
+      if (data.collectedStickerIds.length > 0) {
+        hasCollectedStickerRef.current = true;
+        hasCheckedStickerReplayEligibilityRef.current = true;
+      }
+      setStickerCompletionData(data);
+      setIsStickerCompletionOpen(true);
+      Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_OPEN, {
+        user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+        source: data.source,
+        sticker_book_id: data.stickerBookId,
+        sticker_book_title: data.stickerBookTitle,
+        collected_count: data.collectedStickerIds.length,
+        total_stickers: data.totalStickerCount,
+      });
+    },
+    [],
+  );
+
+  const handleStickerPreviewReady = React.useCallback(
+    (
+      data: StickerBookModalData,
+      trigger: 'sticker_click' | 'pathway_completion_auto',
+    ) => {
+      if (data.collectedStickerIds.length > 0) {
+        hasCollectedStickerRef.current = true;
+        hasCheckedStickerReplayEligibilityRef.current = true;
+      }
+      const rewardBoxRect = containerRef.current
+        ?.querySelector('.PathwayStructure-end-reward-box--sticker')
+        ?.getBoundingClientRect();
+      if (trigger === 'pathway_completion_auto' && rewardBoxRect) {
+        setStickerPreviewLaunchMotion({
+          offsetX:
+            rewardBoxRect.left +
+            rewardBoxRect.width / 2 -
+            window.innerWidth / 2,
+          offsetY:
+            rewardBoxRect.top +
+            rewardBoxRect.height / 2 -
+            window.innerHeight / 2,
+          startScale: Math.max(0.12, Math.min(0.28, rewardBoxRect.width / 736)),
+        });
+      } else {
+        setStickerPreviewLaunchMotion(null);
+      }
+
+      const profileAvatarRect = document
+        .querySelector('[data-profile-avatar-anchor="true"]')
+        ?.getBoundingClientRect();
+      if (profileAvatarRect) {
+        setStickerPreviewFlyoutMotion({
+          offsetX:
+            profileAvatarRect.right -
+            profileAvatarRect.width * 0.25 -
+            window.innerWidth / 2,
+          offsetY:
+            profileAvatarRect.top +
+            profileAvatarRect.height * 0.3 -
+            window.innerHeight / 2,
+          endScale: Math.max(
+            0.1,
+            Math.min(0.24, profileAvatarRect.width / 736),
+          ),
+        });
+      } else {
+        setStickerPreviewFlyoutMotion(null);
+      }
+      setStickerPreviewData(data);
+      setStickerPreviewTrigger(trigger);
+      setIsStickerPreviewOpen(true);
+      const isDragPopup = trigger === 'pathway_completion_auto';
+      Util.logEvent(
+        isDragPopup
+          ? EVENTS.STICKER_DRAG_POPUP_SHOWN
+          : EVENTS.STICKER_PREVIEW_POPUP_SHOWN,
+        {
+          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+          sticker_book_id: data.stickerBookId,
+          sticker_id: data.nextStickerId,
+          source: data.source,
+          trigger,
+        },
+      );
+    },
+    [containerRef],
+  );
+
+  const handleStickerCompletionReadyInternal = React.useCallback(
+    (data: StickerBookModalData) => {
+      openStickerCompletion(data);
+    },
+    [openStickerCompletion],
+  );
+
+  const getStickerRewardBoxElement = React.useCallback(
+    () => containerRef.current?.querySelector(STICKER_REWARD_BOX_SELECTOR),
+    [containerRef],
+  );
+
+  // OPTIMIZED: merged tilt animation + tilt loop into one toggle — eliminates
+  // redundant DOM lookups
+  const setStickerCollectTiltActive = React.useCallback(
+    (active: boolean) => {
+      isStickerCollectSpeakingRef.current = active;
+      setIsStickerCollectSpeaking(active);
+      const rewardBox = getStickerRewardBoxElement();
+      if (!rewardBox) return;
+      if (active) {
+        rewardBox.classList.remove(
+          STICKER_REWARD_BOX_OPEN_CLASS,
+          STICKER_REWARD_BOX_CLOSE_CLASS,
+        );
+        rewardBox.classList.add(STICKER_REWARD_BOX_TILT_CLASS);
+      } else {
+        rewardBox.classList.remove(STICKER_REWARD_BOX_TILT_CLASS);
+      }
+    },
+    [getStickerRewardBoxElement],
+  );
+
+  const resetStickerCelebrationState = React.useCallback(() => {
+    pendingCelebrationRiveContainerRef.current = null;
+    latestRiveContainerRef.current = null;
+    hasCollectedStickerRef.current = false;
+    hasCheckedStickerReplayEligibilityRef.current = false;
+    isStickerCollectSpeakingRef.current = false;
+    setShouldCelebrateAfterPathwayReload(false);
+    setStickerCollectTiltActive(false);
+    setIsStickerPreviewOpen(false);
+    setStickerPreviewData(null);
+    setStickerPreviewLaunchMotion(null);
+    setStickerPreviewFlyoutMotion(null);
+    setStickerPreviewTrigger('sticker_click');
+    setIsStickerCompletionOpen(false);
+    setStickerCompletionData(null);
+    shouldRefreshPathAfterCompletionRef.current = false;
+  }, [setStickerCollectTiltActive]);
+
+  // Play mascot audio from a local path and sync tilt with playback.
+  const playStickerCollectMascotAudio = React.useCallback(
+    (localAudioPath: string) => {
+      if (!localAudioPath) return;
+      setStickerCollectTiltActive(true);
+      void (async () => {
+        const didStartPlayback = await playMascotAudioFromLocalPath(
+          localAudioPath,
+          {
+            stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
+            inputName: CHIMPLE_MASCOT_INPUT_REWARD,
+          },
+          { onPlaybackStop: () => setStickerCollectTiltActive(false) },
+        );
+        if (!didStartPlayback) {
+          setStickerCollectTiltActive(false);
+        }
+      })();
+    },
+    [playMascotAudioFromLocalPath, setStickerCollectTiltActive],
+  );
+
+  const hasPendingPathwayStickerReward = React.useCallback(() => {
+    const raw = sessionStorage.getItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+    const currentStudentId = Util.getCurrentStudent()?.id;
+    if (!raw || !currentStudentId) return false;
+
+    try {
+      const parsed = JSON.parse(raw);
+      return Boolean(
+        parsed?.studentId === currentStudentId && parsed?.awardedStickerId,
+      );
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const clearPendingPathwayStickerReward = React.useCallback(() => {
+    sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+  }, []);
+
+  const resetRewardAudioSequence = React.useCallback(() => {
+    rewardAudioSequenceRef.current = {
+      ...rewardAudioSequenceRef.current,
+      rewardId: null,
+      crowdComplete: false,
+      rewardReady: false,
+      suppressed: false,
+      stateValue: null,
+      dailyRewardAudioClipName: 'reward_01',
+      onRewardAudioComplete: null,
+    };
+  }, []);
+
+  const shouldSuppressRewardAudioForStickerBook = React.useCallback(() => {
+    const currentStudentId = Util.getCurrentStudent()?.id;
+    if (!currentStudentId) return false;
+
+    const hasMatchingAwardedSticker = (raw: string | null) => {
+      if (!raw) return false;
+
+      try {
+        const parsed = JSON.parse(raw);
+        return Boolean(
+          parsed?.studentId === currentStudentId && parsed?.awardedStickerId,
+        );
+      } catch {
+        return false;
+      }
+    };
+
+    return hasMatchingAwardedSticker(
+      sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY),
+    );
+  }, []);
+
+  const playRewardCollectMascotAudio = React.useCallback(
+    (
+      localAudioPath: string,
+      stateValue?: number,
+      onPlaybackStop?: () => void,
+    ) => {
+      if (!localAudioPath) {
+        onPlaybackStop?.();
+        return;
+      }
+
+      void (async () => {
+        const didStartPlayback = await playMascotAudioFromLocalPathRef.current(
+          localAudioPath,
+          {
+            stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
+            inputName: CHIMPLE_MASCOT_INPUT_REWARD,
+            stateValue: stateValue ?? currentMascotStateValueRef.current ?? 1,
+          },
+          { onPlaybackStop },
+        );
+
+        if (!didStartPlayback) {
+          onPlaybackStop?.();
+        }
+      })();
+    },
+    [],
+  );
+
+  const playRewardAudio = React.useCallback(
+    async (
+      stateValue?: number,
+      onPlaybackStop?: () => void,
+      clipName: DailyRewardAudioClipName = 'reward_01',
+    ) => {
+      let localAudioPath: string | null = null;
+      const pendingActivationRewardFlow = sessionStorage.getItem(
+        ACTIVATION_REWARD_FLOW_KEY,
+      );
+
+      if (pendingActivationRewardFlow) {
+        if (pendingActivationRewardFlow === 'true') {
+          const languageCode = await AudioUtil.getAudioLanguageCode();
+          localAudioPath = `/assets/audios/activationLesson/complete/${languageCode}_activation_lesson_complete.mp3`;
+          sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+        } else {
+          try {
+            const parsed = JSON.parse(pendingActivationRewardFlow);
+            if (parsed) {
+              const languageCode = await AudioUtil.getAudioLanguageCode();
+              localAudioPath = `/assets/audios/activationLesson/complete/${languageCode}_activation_lesson_complete.mp3`;
+              sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+            }
+          } catch {
+            sessionStorage.removeItem(ACTIVATION_REWARD_FLOW_KEY);
+          }
+        }
+      }
+
+      if (!localAudioPath) {
+        localAudioPath = await AudioUtil.getLocalizedAudioUrl(
+          'dailyReward',
+          clipName,
+        );
+      }
+
+      if (localAudioPath) {
+        playRewardCollectMascotAudio(
+          localAudioPath,
+          stateValue,
+          onPlaybackStop,
+        );
+      } else {
+        onPlaybackStop?.();
+      }
+    },
+    [playRewardCollectMascotAudio],
+  );
+
+  // Plays the sticker-collect audio using the student's language.
+  const playStickerAudio = React.useCallback(async () => {
+    if (!hasCollectedStickerRef.current) return;
+    const studentLanguageCode = await AudioUtil.getAudioLanguageCode();
+    const localAudioPath =
+      getStickerCollectMascotAudioPath(studentLanguageCode);
+    if (localAudioPath) playStickerCollectMascotAudio(localAudioPath);
+  }, [playStickerCollectMascotAudio]);
+
+  const playStickerAudioAndClearPending = React.useCallback(() => {
+    clearPendingPathwayStickerReward();
+    void playStickerAudio();
+  }, [clearPendingPathwayStickerReward, playStickerAudio]);
+
+  const canReplayStickerAudio =
+    React.useCallback(async (): Promise<boolean> => {
+      if (hasCollectedStickerRef.current) return true;
+      if (hasCheckedStickerReplayEligibilityRef.current) return false;
+      const student = Util.getCurrentStudent();
+      if (!student?.id) return false;
+      try {
+        const current =
+          await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+            student.id,
+          );
+        const hasAnySticker =
+          (current?.progress?.stickers_collected?.length ?? 0) > 0;
+        hasCollectedStickerRef.current = hasAnySticker;
+        hasCheckedStickerReplayEligibilityRef.current = true;
+        return hasAnySticker;
+      } catch {
+        return false;
+      }
+    }, []);
+
+  const handleMascotReplayClick = React.useCallback(() => {
+    if (isStickerCollectSpeakingRef.current) return;
+    void (async () => {
+      if (!(await canReplayStickerAudio())) return;
+      playStickerAudio();
+    })();
+  }, [canReplayStickerAudio, playStickerAudio]);
+
+  // Queue audio to play after the pathway reload swaps in a fresh rive container.
+  const playStickerAudioAfterReload = React.useCallback(() => {
+    pendingCelebrationRiveContainerRef.current = latestRiveContainerRef.current;
+    setShouldCelebrateAfterPathwayReload(true);
+  }, []);
+
+  // Cleanup tilt on unmount
+  React.useEffect(
+    () => () => setStickerCollectTiltActive(false),
+    [setStickerCollectTiltActive],
+  );
+
+  React.useEffect(
+    () => () => {
+      rewardAudioSequenceRef.current.token += 1;
+      resetRewardAudioSequence();
+      if (rewardConfettiTimerRef.current !== null) {
+        window.clearTimeout(rewardConfettiTimerRef.current);
+      }
+    },
+    [resetRewardAudioSequence],
+  );
+
+  React.useEffect(() => {
+    const handleStudentChanged = () => {
+      resetRewardAudioSequence();
+      clearPendingPathwayStickerReward();
+      resetStickerCelebrationState();
+    };
+
+    window.addEventListener(
+      CURRENT_STUDENT_CHANGED_EVENT,
+      handleStudentChanged as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        CURRENT_STUDENT_CHANGED_EVENT,
+        handleStudentChanged as EventListener,
+      );
+    };
+  }, [
+    clearPendingPathwayStickerReward,
+    resetRewardAudioSequence,
+    resetStickerCelebrationState,
+  ]);
+
+  // Trigger audio after pathway reloads with a new riveContainer
+  React.useEffect(() => {
+    latestRiveContainerRef.current = riveContainer;
+    if (
+      !shouldCelebrateAfterPathwayReload ||
+      !riveContainer ||
+      riveContainer === pendingCelebrationRiveContainerRef.current
+    )
+      return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      pendingCelebrationRiveContainerRef.current = null;
+      setShouldCelebrateAfterPathwayReload(false);
+      playStickerAudioAndClearPending();
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, [
+    playStickerAudioAndClearPending,
+    riveContainer,
+    shouldCelebrateAfterPathwayReload,
+  ]);
+
+  React.useEffect(() => {
+    const playRewardAudioIfReady = (token: number, rewardId: string) => {
+      const rewardAudioSequence = rewardAudioSequenceRef.current;
+      if (
+        rewardAudioSequence.token !== token ||
+        rewardAudioSequence.rewardId !== rewardId ||
+        rewardAudioSequence.suppressed
+      ) {
+        return;
+      }
+
+      const onRewardAudioComplete = rewardAudioSequence.onRewardAudioComplete;
+      resetRewardAudioSequence();
+      void playRewardAudio(
+        rewardAudioSequence.stateValue ?? currentMascotStateValueRef.current,
+        onRewardAudioComplete ?? undefined,
+        rewardAudioSequence.dailyRewardAudioClipName,
+      );
+    };
+
+    const handleRewardCelebrationStarted = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        rewardId?: string;
+        stateValue?: number;
+        forceRewardAudio?: boolean;
+        dailyRewardAudioClipName?: DailyRewardAudioClipName;
+      }>;
+      const rewardId = customEvent.detail?.rewardId;
+      if (!rewardId) return;
+      const rewardStateValue =
+        customEvent.detail?.stateValue ?? currentMascotStateValueRef.current;
+
+      const nextToken = rewardAudioSequenceRef.current.token + 1;
+      const shouldSuppress =
+        !customEvent.detail?.forceRewardAudio &&
+        shouldSuppressRewardAudioForStickerBook();
+      setShowRewardConfetti(true);
+      if (rewardConfettiTimerRef.current !== null) {
+        window.clearTimeout(rewardConfettiTimerRef.current);
+      }
+      rewardConfettiTimerRef.current = window.setTimeout(() => {
+        setShowRewardConfetti(false);
+      }, 4500);
+
+      rewardAudioSequenceRef.current = {
+        rewardId,
+        crowdComplete: false,
+        rewardReady: false,
+        suppressed: shouldSuppress,
+        stateValue: rewardStateValue,
+        dailyRewardAudioClipName:
+          customEvent.detail?.dailyRewardAudioClipName ?? 'reward_01',
+        onRewardAudioComplete: null,
+        token: nextToken,
+      };
+
+      void AudioUtil.playAudioOrTts({
+        audioUrl: CROWD_CHEER_AUDIO_URL,
+        onComplete: () => {
+          const rewardAudioSequence = rewardAudioSequenceRef.current;
+          if (
+            rewardAudioSequence.token !== nextToken ||
+            rewardAudioSequence.rewardId !== rewardId ||
+            rewardAudioSequence.suppressed
+          ) {
+            return;
+          }
+
+          rewardAudioSequence.crowdComplete = true;
+          if (rewardAudioSequence.rewardReady) {
+            playRewardAudioIfReady(nextToken, rewardId);
+          }
+        },
+      });
+    };
+
+    const handleRewardAudioReady = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        rewardId?: string;
+        stateValue?: number;
+        forceRewardAudio?: boolean;
+        dailyRewardAudioClipName?: DailyRewardAudioClipName;
+        onRewardAudioComplete?: () => void;
+      }>;
+      const rewardId = customEvent.detail?.rewardId;
+      if (!rewardId) return;
+
+      const rewardAudioSequence = rewardAudioSequenceRef.current;
+      if (rewardAudioSequence.rewardId !== rewardId) return;
+      rewardAudioSequence.stateValue =
+        customEvent.detail?.stateValue ??
+        rewardAudioSequence.stateValue ??
+        currentMascotStateValueRef.current;
+      rewardAudioSequence.dailyRewardAudioClipName =
+        customEvent.detail?.dailyRewardAudioClipName ??
+        rewardAudioSequence.dailyRewardAudioClipName;
+      rewardAudioSequence.onRewardAudioComplete =
+        customEvent.detail?.onRewardAudioComplete ?? null;
+
+      if (
+        rewardAudioSequence.suppressed ||
+        (!customEvent.detail?.forceRewardAudio &&
+          shouldSuppressRewardAudioForStickerBook())
+      ) {
+        rewardAudioSequence.onRewardAudioComplete?.();
+        resetRewardAudioSequence();
+        return;
+      }
+
+      if (rewardAudioSequence.crowdComplete) {
+        playRewardAudioIfReady(rewardAudioSequence.token, rewardId);
+        return;
+      }
+
+      rewardAudioSequence.rewardReady = true;
+    };
+
+    window.addEventListener(
+      PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+      handleRewardCelebrationStarted as EventListener,
+    );
+    window.addEventListener(
+      PATHWAY_REWARD_AUDIO_READY_EVENT,
+      handleRewardAudioReady as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        PATHWAY_REWARD_CELEBRATION_STARTED_EVENT,
+        handleRewardCelebrationStarted as EventListener,
+      );
+      window.removeEventListener(
+        PATHWAY_REWARD_AUDIO_READY_EVENT,
+        handleRewardAudioReady as EventListener,
+      );
+    };
+  }, [
+    playRewardAudio,
+    resetRewardAudioSequence,
+    shouldSuppressRewardAudioForStickerBook,
+  ]);
+
+  // Keep tilt in sync with reward box when mascot is speaking
+  React.useEffect(() => {
+    if (!isStickerCollectSpeaking) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    const syncTilt = () => {
+      const rewardBox = getStickerRewardBoxElement();
+      if (!rewardBox || !isStickerCollectSpeakingRef.current) return;
+      rewardBox.classList.remove(
+        STICKER_REWARD_BOX_OPEN_CLASS,
+        STICKER_REWARD_BOX_CLOSE_CLASS,
+      );
+      rewardBox.classList.add(STICKER_REWARD_BOX_TILT_CLASS);
+    };
+
+    syncTilt();
+
+    const observer = new MutationObserver(syncTilt);
+    observer.observe(container, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, [containerRef, getStickerRewardBoxElement, isStickerCollectSpeaking]);
+
+  const getDeferredStickerCompletionPayload = React.useCallback(() => {
+    const raw = sessionStorage.getItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+    if (!raw) return null;
+
+    try {
+      const parsed = JSON.parse(raw);
+      const payload = parsed?.payload;
+      if (
+        !payload ||
+        typeof payload !== 'object' ||
+        !payload.stickerBookId ||
+        !Array.isArray(payload.collectedStickerIds)
+      ) {
+        return null;
+      }
+
+      return {
+        source: payload.source ?? 'learning_pathway',
+        stickerBookId: payload.stickerBookId,
+        stickerBookTitle: payload.stickerBookTitle || 'Sticker Book',
+        stickerBookSvgUrl: payload.stickerBookSvgUrl || '',
+        collectedStickerIds: payload.collectedStickerIds,
+        totalStickerCount:
+          typeof payload.totalStickerCount === 'number'
+            ? payload.totalStickerCount
+            : payload.collectedStickerIds.length,
+      } as StickerBookModalData;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const refreshPathAfterRewardModal = React.useCallback(() => {
+    if (!sessionStorage.getItem(REWARD_LEARNING_PATH)) return;
+
+    sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+    }, 0);
+  }, []);
+
+  const closePathwayModal = React.useCallback(() => {
+    setModalOpen(false);
+    refreshPathAfterRewardModal();
+  }, [refreshPathAfterRewardModal, setModalOpen]);
+
+  const confirmPathwayModal = React.useCallback(() => {
+    setModalOpen(false);
+    refreshPathAfterRewardModal();
+  }, [refreshPathAfterRewardModal, setModalOpen]);
+
+  // Mounts SVG with everything needed
+  usePathwaySVG({
+    containerRef,
+    setModalOpen,
+    setModalText,
+
+    history,
+    getCachedLesson,
+    updateMascotToNormalState,
+    invokeMascotCelebration,
+    setRewardRiveState,
+    setRiveContainer,
+    setRewardRiveContainer,
+    setHasTodayReward,
+    setCurrentCourse,
+    setCurrentChapter,
+    setIsRewardPathLoaded,
+    isRewardPathLoaded,
+    checkAndUpdateReward,
+    onStickerPreviewReady: handleStickerPreviewReady,
+    onStickerCompletionReady: handleStickerCompletionReadyInternal,
+    setPathwayLoading: handlePathwayLoadingChange,
+  });
+
+  const closeStickerPreview = React.useCallback(
+    (reason: 'close_button' | 'backdrop' | 'acknowledge_button') => {
+      if (!stickerPreviewData) return;
+      const isDragPopup = stickerPreviewTrigger === 'pathway_completion_auto';
+      Util.logEvent(
+        isDragPopup
+          ? EVENTS.STICKER_DRAG_POPUP_CLOSED
+          : EVENTS.STICKER_PREVIEW_POPUP_CLOSED,
+        {
+          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+          sticker_book_id: stickerPreviewData.stickerBookId,
+          sticker_id: stickerPreviewData.nextStickerId,
+          source: stickerPreviewData.source,
+          close_reason: reason,
+          trigger: stickerPreviewTrigger,
+        },
+      );
+      setIsStickerPreviewOpen(false);
+      setStickerPreviewLaunchMotion(null);
+      setStickerPreviewFlyoutMotion(null);
+      if (stickerPreviewTrigger === 'pathway_completion_auto') {
+        hasCollectedStickerRef.current = true;
+        hasCheckedStickerReplayEligibilityRef.current = true;
+        sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+        sessionStorage.removeItem(REWARD_LEARNING_PATH);
+        const deferredCompletionPayload = getDeferredStickerCompletionPayload();
+        if (deferredCompletionPayload) {
+          shouldRefreshPathAfterCompletionRef.current = true;
+          window.setTimeout(() => {
+            window.dispatchEvent(
+              new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+                detail: deferredCompletionPayload,
+              }),
+            );
+          }, 0);
+        } else {
+          playStickerAudioAfterReload();
+          window.setTimeout(() => {
+            window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+          }, 0);
+        }
+      }
+    },
+    [
+      getDeferredStickerCompletionPayload,
+      playStickerAudioAfterReload,
+      stickerPreviewData,
+      stickerPreviewTrigger,
+    ],
+  );
+
+  const closeStickerCompletion = React.useCallback(
+    (reason: 'backdrop' | 'close_button') => {
+      if (stickerCompletionData && reason === 'close_button') {
+        Util.logEvent(EVENTS.STICKER_BOOK_COMPLETION_POPUP_CLOSE, {
+          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
+          source: stickerCompletionData.source,
+          sticker_book_id: stickerCompletionData.stickerBookId,
+          sticker_book_title: stickerCompletionData.stickerBookTitle,
+          collected_count: stickerCompletionData.collectedStickerIds.length,
+          total_stickers: stickerCompletionData.totalStickerCount,
+        });
+      }
+      setIsStickerCompletionOpen(false);
+      if (shouldRefreshPathAfterCompletionRef.current) {
+        shouldRefreshPathAfterCompletionRef.current = false;
+        playStickerAudioAfterReload();
+        window.setTimeout(() => {
+          window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+        }, 0);
+      } else if (
+        sessionStorage.getItem(AUTO_OPEN_STICKER_PREVIEW_KEY) ||
+        hasPendingPathwayStickerReward()
+      ) {
+        playStickerAudioAfterReload();
+        window.setTimeout(() => {
+          (window as any).__triggerPathwayReload__?.();
+        }, 0);
+      } else {
+        playStickerAudioAndClearPending();
+      }
+    },
+    [
+      hasPendingPathwayStickerReward,
+      playStickerAudioAndClearPending,
+      playStickerAudioAfterReload,
+      stickerCompletionData,
+    ],
+  );
+
+  // OPTIMIZED: two effects merged into one; { once: true } replaces manual
+  // removeEventListener — self-cleaning, no memory leak
+  React.useEffect(() => {
+    const rewardBox = containerRef.current?.querySelector(
+      '.PathwayStructure-end-reward-box--sticker',
+    );
+    if (!rewardBox) return;
+
+    if (isStickerPreviewOpen) {
+      rewardBox.classList.remove(
+        'PathwayStructure-end-reward-box--sticker-close-anim',
+      );
+      rewardBox.classList.add('PathwayStructure-end-reward-box--sticker-open');
+    } else {
+      if (
+        rewardBox.classList.contains(
+          'PathwayStructure-end-reward-box--sticker-open',
+        )
+      ) {
+        rewardBox.classList.remove(
+          'PathwayStructure-end-reward-box--sticker-open',
+        );
+        rewardBox.classList.add(
+          'PathwayStructure-end-reward-box--sticker-close-anim',
+        );
+        setTimeout(() => {
+          rewardBox.classList.remove(
+            'PathwayStructure-end-reward-box--sticker-close-anim',
+          );
+        }, 500);
+      }
+    }
+  }, [isStickerPreviewOpen, containerRef]);
+
+  React.useEffect(() => {
+    const handleStickerCompletionReady = (event: Event) => {
+      const customEvent = event as CustomEvent<StickerBookModalData>;
+      const data = customEvent.detail;
+      if (!data?.stickerBookId) return;
+
+      sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+      openStickerCompletion(data);
+    };
+
+    window.addEventListener(
+      STICKER_BOOK_COMPLETION_READY_EVENT,
+      handleStickerCompletionReady as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        STICKER_BOOK_COMPLETION_READY_EVENT,
+        handleStickerCompletionReady as EventListener,
+      );
+    };
+  }, [openStickerCompletion]);
+
   return (
     <>
-      {isModalOpen && (
+      {/* Modal */}
+      {modalOpen && (
         <PathwayModal
           text={modalText}
-          onClose={() => setModalOpen(false)}
-          onConfirm={() => setModalOpen(false)}
+          onClose={closePathwayModal}
+          onConfirm={confirmPathwayModal}
           animate={shouldAnimate}
+          audioFolder={
+            modalText === inactiveText
+              ? 'lessonLocked'
+              : modalText === rewardText
+                ? 'completeLesson'
+                : undefined
+          }
+          audioClipName={
+            modalText === inactiveText
+              ? 'lesson_locked'
+              : modalText === rewardText
+                ? 'complete_lesson_to_get_reward'
+                : undefined
+          }
         />
       )}
-      <div className="pathway-structure-div" ref={containerRef}></div>
+      {/* SVG Root Container */}
+      <div
+        className="PathwayStructure-div"
+        ref={containerRef}
+        style={{
+          opacity: isPathwaySvgLoading ? 0 : 1,
+        }}
+      />
+      <SkeltonLoading
+        isLoading={isPathwaySvgLoading}
+        header={PATHWAY_STRUCTURE_SKELETON_HEADER}
+      />
+
+      {/* Chimple Mascot */}
       {riveContainer &&
-        ReactDOM.createPortal(<ChimpleRiveMascot />, riveContainer)}
+        ReactDOM.createPortal(
+          <ChimpleRiveMascot
+            key={mascotKey}
+            stateMachine={mascotProps.stateMachine}
+            inputName={mascotProps.inputName}
+            stateValue={mascotProps.stateValue}
+            animationName={mascotProps.animationName}
+            onClick={handleMascotReplayClick}
+            overlayRules={[
+              {
+                stateMachine: CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
+                inputName: CHIMPLE_MASCOT_INPUT_REWARD,
+              },
+            ]}
+          />,
+          riveContainer,
+        )}
+
+      {/* Reward Box Rive */}
+      {rewardRiveContainer &&
+        ReactDOM.createPortal(
+          <RewardRive rewardRiveState={rewardRiveState} />,
+          rewardRiveContainer,
+        )}
+
+      {showRewardConfetti && (
+        <Confetti
+          className="PathwayStructure-reward-confetti"
+          width={window.innerWidth}
+          height={window.innerHeight}
+          recycle={false}
+          numberOfPieces={180}
+          gravity={0.28}
+        />
+      )}
+
+      {/* Daily reward icon */}
+      {hasTodayReward && isRewardFeatureOn && (
+        <RewardBox onRewardClick={handleRewardBoxOpen} />
+      )}
+
+      {/* Daily Reward modal */}
+      {rewardModalOpen && isRewardFeatureOn && (
+        <DailyRewardModal
+          text={t('Play one lesson and collect your daily reward!')}
+          onClose={handleRewardModalClose}
+          onPlay={handleRewardModalPlay}
+        />
+      )}
+
+      {isStickerPreviewOpen && stickerPreviewData && (
+        <StickerBookPreviewModal
+          data={stickerPreviewData}
+          variant={
+            stickerPreviewTrigger === 'pathway_completion_auto'
+              ? 'drag_collect'
+              : 'preview'
+          }
+          launchMotion={stickerPreviewLaunchMotion}
+          flyoutMotion={stickerPreviewFlyoutMotion}
+          onClose={closeStickerPreview}
+        />
+      )}
+
+      {isStickerCompletionOpen && stickerCompletionData && (
+        <StickerBookPreviewModal
+          data={stickerCompletionData}
+          mode="completion"
+          onClose={
+            closeStickerCompletion as (
+              reason: 'close_button' | 'backdrop' | 'acknowledge_button',
+            ) => void
+          }
+        />
+      )}
     </>
   );
 };

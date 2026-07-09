@@ -1,16 +1,15 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
-import UserProfile from "../pages/UserProfile";
+import type { Meta, StoryObj } from '@storybook/react';
+import UserProfile from '../pages/UserProfile';
 // import { UserProfile } from "../../common/chimplePrivatePages";
 
 const meta: Meta = {
-  title: "Pages/Malta/UserProfile",
+  title: 'Pages/Malta/UserProfile',
   component: UserProfile,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {},
 };
 

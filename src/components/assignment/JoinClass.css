@@ -1,10 +1,13 @@
 .join-class-parent-container {
+  width: 100%;
+  min-height: 100%;
+  height: auto;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  margin-top: -40px;
+  margin-top: 3%;
 }
 
 .join-class-parent-container h2 {
@@ -20,7 +23,6 @@
   width: clamp(360px, 45vw, 700px);
   justify-self: center !important;
 }
-
 
 .join-class-message {
   font-size: 15px;
@@ -66,19 +68,8 @@
 }
 
 .assignment-join-class-container-scroll {
-  transition: transform  0.3s ease-in-out;
+  overflow-y: auto;
+  height: auto;
+  transition: transform 0.3s ease-in-out;
   position: relative;
 }
-
-.assignment-join-class-container-scroll.shift-up {
-  transform: translateY(-46%);
-}
-
-
-
-
-
-
-
-
-

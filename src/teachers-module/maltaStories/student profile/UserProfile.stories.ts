@@ -1,22 +1,22 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import UserProfile from "../../components/studentProfile/UserProfile";
-import { TableTypes } from "../../../common/constants";
+import type { Meta, StoryObj } from '@storybook/react';
+import UserProfile from '../../components/studentProfile/UserProfile';
+import { TableTypes } from '../../../common/constants';
 
-const mockStudent: TableTypes<"user"> = {
-  id: "student-1",
+const mockStudent: TableTypes<'user'> = {
+  id: 'student-1',
   age: 5,
-  avatar: "donkey",
-  created_at: "2023-01-01T12:00:00Z",
+  avatar: 'donkey',
+  created_at: '2023-01-01T12:00:00Z',
   curriculum_id: null,
-  email: "john.doe@example.com",
+  email: 'john.doe@example.com',
   fcm_token: null,
-  gender: "male",
-  grade_id: "grade-1",
+  gender: 'male',
+  grade_id: 'grade-1',
   language_id: null,
-  name: "John Doe",
+  name: 'John Doe',
   phone: null,
-  updated_at: "2023-01-01T12:00:00Z",
+  updated_at: '2023-01-01T12:00:00Z',
   image: null,
   is_deleted: null,
   is_tc_accepted: null,
@@ -29,17 +29,17 @@ const mockStudent: TableTypes<"user"> = {
   learning_path: null,
   ops_created_by: null,
   stars: null,
-  reward: null
+  reward: null,
 };
 
-const mockClass: TableTypes<"class"> = {
-  id: "class-1",
-  name: "Class 1",
-  created_at: "2023-01-01T12:00:00Z",
-  updated_at: "2023-01-01T12:00:00Z",
+const mockClass: TableTypes<'class'> = {
+  id: 'class-1',
+  name: 'Class 1',
+  created_at: '2023-01-01T12:00:00Z',
+  updated_at: '2023-01-01T12:00:00Z',
   image: null,
   is_deleted: null,
-  school_id: "school-1",
+  school_id: 'school-1',
   academic_year: null,
   firebase_id: null,
   is_firebase: null,
@@ -47,22 +47,22 @@ const mockClass: TableTypes<"class"> = {
   ops_created_by: null,
   standard: null,
   status: null,
-  group_id: null
+  group_id: null,
 };
 
 const meta: Meta<typeof UserProfile> = {
-  title: "components/studentProfile/UserProfile",
+  title: 'components/studentProfile/UserProfile',
   component: UserProfile,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {
     student: {
-      control: "object",
+      control: 'object',
     },
     classDoc: {
-      control: "object",
+      control: 'object',
     },
   },
 };
@@ -79,8 +79,8 @@ export const Default: Story = {
 
 export const WithDifferentStudent: Story = {
   args: {
-    student: { ...mockStudent, name: "Jane Smith", avatar: "snake" },
-    classDoc: { ...mockClass, name: "Class 2" },
+    student: { ...mockStudent, name: 'Jane Smith', avatar: 'snake' },
+    classDoc: { ...mockClass, name: 'Class 2' },
   },
 };
 
@@ -88,10 +88,10 @@ export const WithLongName: Story = {
   args: {
     student: {
       ...mockStudent,
-      name: "Hubert Blaine Wolfeschlegelsteinhausenbergerdorff Sr",
-      avatar: "zebra",
+      name: 'Hubert Blaine Wolfeschlegelsteinhausenbergerdorff Sr',
+      avatar: 'zebra',
     },
-    classDoc: { ...mockClass, name: "Class 3" },
+    classDoc: { ...mockClass, name: 'Class 3' },
   },
 };
 
@@ -99,9 +99,9 @@ export const WithImage: Story = {
   args: {
     student: {
       ...mockStudent,
-      image: "assets/avatars/rabbit.png", // Example image URL
-      avatar: "fox",
+      image: 'assets/avatars/rabbit.png', // Example image URL
+      avatar: 'fox',
     },
-    classDoc: { ...mockClass, name: "Class 4" },
+    classDoc: { ...mockClass, name: 'Class 4' },
   },
 };

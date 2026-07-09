@@ -1,0 +1,58 @@
+.homeworkpathway-structure-div {
+  position: absolute;
+  top: 38%;
+  left: 18%;
+  height: 40vh;
+  width: 100vw;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.homeworkpathway-mascot-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transform: scale(1.05); /* increase size on large screen */
+  transform-origin: bottom center;
+  pointer-events: none;
+}
+
+@media (max-width: 620px) and (orientation: landscape) {
+  .homeworkpathway-mascot-wrapper {
+    transform: scale(0.8); /* Increase size */
+  }
+}
+
+@media (orientation: landscape) and (max-height: 450px) {
+  .homeworkpathway-structure-div {
+    z-index: 1;
+  }
+}
+
+.homeworkpathway-structure-animated-pointer {
+  animation: diagonal-move 1.4s infinite ease-in-out;
+}
+
+.HomeworkPathwayStructure-reward-confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+@keyframes diagonal-move {
+  0% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(
+      5px,
+      5px
+    ); /* adjust these values to your desired diagonal distance */
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}

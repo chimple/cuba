@@ -1,8 +1,8 @@
 .pending-live-quiz {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-color);
-    position: relative;
-    top: 25vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color);
+  position: relative;
+  top: 25vh;
 }

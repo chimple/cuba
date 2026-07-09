@@ -1,27 +1,38 @@
-import React from "react";
-import { useHistory } from "react-router-dom";
-import SchoolIcon from "@mui/icons-material/School";
+import SchoolIcon from '@mui/icons-material/School';
+import { t } from 'i18next';
+import React from 'react';
+import { useHistory } from 'react-router-dom';
 import {
   IconType,
   PAGES,
   SchoolWithRole,
   TableTypes,
-} from "../../../common/constants";
-import { t } from "i18next";
-import "./DetailList.css";
+} from '../../../common/constants';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RootState } from '../../../redux/store';
+import { schoolUtil } from '../../../utility/schoolUtil';
+import './DetailList.css';
 
 interface DetailListProps {
   type: IconType;
-  school?: TableTypes<"school">;
-  data: SchoolWithRole[] | TableTypes<"class">[];
+  school?: TableTypes<'school'>;
+  data: SchoolWithRole[] | TableTypes<'class'>[];
 }
 
 const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
   const history = useHistory();
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
 
   if (data.length === 0) {
     return (
-      <div className="no-school-available">{t("School is not Available")}</div>
+      <div className="no-school-available">{t('School is not Available')}</div>
     );
   }
 
@@ -56,62 +67,58 @@ const DetailList: React.FC<DetailListProps> = ({ type, school, data }) => {
   };
 
   return (
-    <div className="detail-list-div">
-      <div className="detail-list__header">
-        <div />
-        <div className="detail-list__icon-container">
-          <div className="detail-list__icon-container-users">{t("Users")}</div>
-          <div className="detail-list__icon-container-subjects">
-            {t("Subjects")}
-          </div>
-        </div>
-      </div>
+    <div className="main-list">
+      {data.map((item) => {
+        const name =
+          type === IconType.SCHOOL
+            ? (item as SchoolWithRole).school.name
+            : (item as TableTypes<'class'>).name;
 
-      <div className="main-list">
-        {data.map((item) => {
-          const name =
-            type === IconType.SCHOOL
-              ? (item as SchoolWithRole).school.name
-              : (item as TableTypes<"class">).name;
+        const id =
+          type === IconType.SCHOOL
+            ? (item as SchoolWithRole).school.id
+            : (item as TableTypes<'class'>).id;
 
-          const id =
-            type === IconType.SCHOOL
-              ? (item as SchoolWithRole).school.id
-              : (item as TableTypes<"class">).id;
+        return (
+          <div key={id}>
+            <div className="detail-container">
+              <div
+                className={`detail-section ${
+                  isExternalUser
+                    ? 'detail-section-disabled'
+                    : 'detail-section-clickable'
+                }`}
+                onClick={
+                  isExternalUser ? undefined : () => handleItemClick(item)
+                }
+              >
+                {type === IconType.SCHOOL && (
+                  <SchoolIcon className="list-icon" />
+                )}
+                <span className="detail-school-name">{name}</span>
+              </div>
 
-          return (
-            <div key={id}>
-              <div className="detail-container">
-                <div
-                  className="detail-section"
-                  onClick={() => handleItemClick(item)}
-                >
-                  {type === IconType.SCHOOL && (
-                    <SchoolIcon className="list-icon" />
-                  )}
-                  <span className="detail-school-name">{name}</span>
-                </div>
-
-                <div className="class-icons">
-                  <img
-                    src="assets/icons/schoolUserIcon.svg"
-                    alt="User_Icon"
-                    onClick={() => handleUserIconClick(item)}
-                    className="class-user-icon"
-                  />
+              <div className="class-icons">
+                <img
+                  src="assets/icons/schoolUserIcon.svg"
+                  alt="User_Icon"
+                  onClick={() => handleUserIconClick(item)}
+                  className="class-user-icon"
+                />
+                {!isExternalUser && !isTeacherSchoolMode && (
                   <img
                     src="assets/icons/subjectUserIcon.svg"
                     alt="User_Subject"
                     onClick={() => handleSubjectIconClick(item)}
                     className="class-subjects-icon"
                   />
-                </div>
+                )}
               </div>
-              <hr className="detail-horizontal-line" />
             </div>
-          );
-        })}
-      </div>
+            <hr className="detail-horizontal-line" />
+          </div>
+        );
+      })}
     </div>
   );
 };

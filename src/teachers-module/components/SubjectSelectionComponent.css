@@ -15,7 +15,7 @@
   gap: 3vw;
 }
 .curriculum-header {
-  background-color: #F2EBFE;
+  background-color: #f2ebfe;
   color: #707070;
   font-weight: bold;
   padding: 1.2vh;
@@ -83,7 +83,7 @@
 }
 
 .subject-selection-container .curriculum-header {
-  background-color: #F2EBFE;
+  background-color: #f2ebfe;
   color: #707070;
   font-weight: bold;
   padding: 1.2vh;
@@ -140,7 +140,11 @@
   justify-content: center;
   background-color: transparent;
   padding: 3% 0;
+  pointer-events: none;
+}
 
+.subject-selection-actions ion-button {
+  pointer-events: auto;
 }
 
 .subject-page-checkbox {
@@ -152,7 +156,7 @@
   border-radius: 50%;
   padding: 0;
   box-sizing: border-box;
-  font-size: 24px; 
+  font-size: 24px;
   color: #ccc;
 }
 

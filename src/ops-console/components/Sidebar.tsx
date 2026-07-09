@@ -1,42 +1,39 @@
-import React, { useState, useEffect, useRef } from "react";
-import { NavLink, useHistory, useLocation } from "react-router-dom";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import SchoolIcon from "@mui/icons-material/School";
-import CampaignIcon from "@mui/icons-material/Campaign";
-import GroupsIcon from "@mui/icons-material/Groups";
-import DevicesIcon from "@mui/icons-material/Devices";
-import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
-import BookIcon from "@mui/icons-material/Book";
-import MenuIcon from "@mui/icons-material/Menu";
-import CloseIcon from "@mui/icons-material/Close";
-import "./Sidebar.css";
+import React, { useState, useEffect, useRef } from 'react';
+import { NavLink, useHistory, useLocation } from 'react-router-dom';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import SchoolIcon from '@mui/icons-material/School';
+import CampaignIcon from '@mui/icons-material/Campaign';
+import GroupsIcon from '@mui/icons-material/Groups';
+import DevicesIcon from '@mui/icons-material/Devices';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
+import BookIcon from '@mui/icons-material/Book';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import './Sidebar.css';
 import {
   NavItems,
   PAGES,
   TableTypes,
   SCHOOL,
   MODES,
-  USER_ROLE,
   CLASS,
-  CURRENT_USER,
-  CURRENT_MODE,
-  IS_OPS_USER,
-  USER_DATA,
-} from "../../common/constants";
-import { RoleType } from "../../interface/modelInterfaces";
-import ToggleButton from "../../components/parent/ToggleButton";
-import { schoolUtil } from "../../utility/schoolUtil";
-import { Util } from "../../utility/util";
-import { APIMode, ServiceConfig } from "../../services/ServiceConfig";
-import { IonItem } from "@ionic/react";
-import CommonToggle from "../../common/CommonToggle";
-import { Capacitor } from "@capacitor/core";
-import {
-  IoGitPullRequestOutline,
-  IoGitPullRequestSharp,
-} from "react-icons/io5";
-import { t } from "i18next";
-import DialogBoxButtons from "../../components/parent/DialogBoxButtons​";
+  CAMPAIGN_ACCESS_ROLES,
+} from '../../common/constants';
+import { RoleType } from '../../interface/modelInterfaces';
+import { schoolUtil } from '../../utility/schoolUtil';
+import { Util } from '../../utility/util';
+import { APIMode, ServiceConfig } from '../../services/ServiceConfig';
+import { IonItem } from '@ionic/react';
+import CommonToggle from '../../common/CommonToggle';
+import { Capacitor } from '@capacitor/core';
+import { IoGitPullRequestSharp } from 'react-icons/io5';
+import { t } from 'i18next';
+import DialogBoxButtons from '../../components/parent/DialogBoxButtons';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
+import { logAuthDebug } from '../../utility/authDebug';
 
 interface SidebarProps {
   name: string;
@@ -65,11 +62,16 @@ const navItems = [
     route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_COMPAIGNS,
     icon: <CampaignIcon />,
   },
-  // {
-  //   label: NavItems.REQUESTS,
-  //   route: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
-  //   icon: <IoGitPullRequestSharp />,
-  // },
+  {
+    label: NavItems.REQUESTS,
+    route: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
+    icon: <IoGitPullRequestSharp />,
+  },
+  {
+    label: NavItems.OpsMODULE,
+    route: PAGES.SIDEBAR_PAGE + PAGES.OPS_MODULE_PAGE,
+    icon: <ViewModuleIcon />,
+  },
   {
     label: NavItems.USERS,
     route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_USERS,
@@ -95,14 +97,19 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
   const api = ServiceConfig.getI().apiHandler;
   const [showDialogBox, setShowDialogBox] = useState(false);
   const [currentUser, setCurrentUser] = useState<
-    TableTypes<"user"> | undefined
+    TableTypes<'user'> | undefined
   >();
   const [schools, setSchools] = useState<
     {
-      school: TableTypes<"school">;
+      school: TableTypes<'school'>;
       role: RoleType;
     }[]
   >();
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
   const switchUserToTeacher = async () => {
@@ -114,7 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
         Util.setCurrentSchool(schools[0].school, schools[0].role);
         const tempClasses = await api.getClassesForSchool(
           schools[0].school.id,
-          currentUser?.id!
+          currentUser?.id!,
         );
         if (tempClasses.length > 0) {
           Util.setCurrentClass(tempClasses[0]);
@@ -143,9 +150,9 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
 
@@ -156,16 +163,27 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
 
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
+    logAuthDebug('User initiated ops console logout.', {
+      source: 'OpsSidebar.onSignOut',
+      reason: 'ops_logout_button',
+    });
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.clear();
     const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
     serviceInstance.switchMode(APIMode.SQLITE);
+    logAuthDebug('Navigating to login after ops console logout.', {
+      source: 'OpsSidebar.onSignOut',
+      reason: 'logout_complete_navigate_login',
+      from_page: window.location.pathname,
+      to_page: PAGES.LOGIN,
+    });
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
+
   return (
-    <>
+    <div className="sidebar-scroll-container">
       {!isOpen && (
         <button
           className="sidebar-hamburger-outside"
@@ -174,7 +192,8 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
           <MenuIcon />
         </button>
       )}
-      <aside ref={sidebarRef} className={`nav-sidebar ${isOpen ? "open" : ""}`}>
+
+      <aside ref={sidebarRef} className={`nav-sidebar ${isOpen ? 'open' : ''}`}>
         <button
           className="sidebar-hamburger-inside"
           onClick={() => setIsOpen(!isOpen)}
@@ -192,15 +211,32 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
 
         <ul className="sidebar-nav-list">
           {navItems.map((item) => {
-            const userRoles = JSON.parse(
-              localStorage.getItem(USER_ROLE) || "[]"
+            const rolesWithAccess = [
+              RoleType.SUPER_ADMIN,
+              RoleType.OPERATIONAL_DIRECTOR,
+              RoleType.PROGRAM_MANAGER,
+            ];
+            const canAccessUsersPage = userRoles.some((role) =>
+              rolesWithAccess.includes(role as RoleType),
             );
-            if (
-              item.label === NavItems.USERS &&
-              userRoles.includes(RoleType.FIELD_COORDINATOR)
-            ) {
+            const moduleRolesWithAccess = [
+              RoleType.SUPER_ADMIN,
+              RoleType.OPERATIONAL_DIRECTOR,
+            ];
+            const canAccessModulePage = userRoles.some((role) =>
+              moduleRolesWithAccess.includes(role as RoleType),
+            );
+            const canAccessCampaignPage = userRoles.some((role) =>
+              CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
+            );
+            if (isExternalUser && item.label !== NavItems.SCHOOLS) return null;
+            if (item.label === NavItems.COMPAIGNS && !canAccessCampaignPage)
               return null;
-            }
+            if (item.label === NavItems.USERS && !canAccessUsersPage)
+              return null;
+            if (item.label === NavItems.OpsMODULE && !canAccessModulePage)
+              return null;
+
             return (
               <li key={item.label} className="sidebar-item-list">
                 <NavLink
@@ -217,6 +253,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             );
           })}
         </ul>
+
         <div className="ops-side-menu-switch-user-toggle">
           <IonItem className="ops-side-menu-ion-item-container">
             <img src="assets/icons/userSwitch.svg" alt="OPS" className="icon" />
@@ -226,29 +263,29 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             />
           </IonItem>
         </div>
+
         {isOpen && (
-          <>
-            <div
-              className="sidebar-logout-btn"
-              onClick={() => setShowDialogBox(true)}
-            >
-              {t("Logout")}
-            </div>
-          </>
+          <div
+            className="sidebar-logout-btn"
+            onClick={() => setShowDialogBox(true)}
+          >
+            {t('Logout')}
+          </div>
         )}
+
         <DialogBoxButtons
           width="100%"
           height="20%"
-          message={t("Are you sure you want to logout?")}
+          message={t('Are you sure you want to logout?')}
           showDialogBox={showDialogBox}
-          yesText={t("Cancel")}
-          noText={t("Logout")}
+          yesText={t('Cancel')}
+          noText={t('Logout')}
           handleClose={() => setShowDialogBox(false)}
           onYesButtonClicked={() => setShowDialogBox(false)}
           onNoButtonClicked={onSignOut}
         />
       </aside>
-    </>
+    </div>
   );
 };
 

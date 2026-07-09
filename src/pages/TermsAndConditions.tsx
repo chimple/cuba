@@ -1,66 +1,134 @@
-import React, { useEffect, useRef, useState } from "react";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { Redirect, Route, useHistory } from "react-router";
-import { PAGES } from "../common/constants";
-import { t } from "i18next";
-import "../pages/TermsAndConditions.css";
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
+import { useFeatureValue } from '@growthbook/growthbook-react';
+import CloseIcon from '@mui/icons-material/Close';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useHistory, useLocation } from 'react-router';
+
+import { PAGES, TC_HTML_URL } from '../common/constants';
+import { ServiceConfig } from '../services/ServiceConfig';
+import {
+  buildTermsUrl,
+  getCurrentTermsAppMode,
+  getEnglishTermsUrl,
+  getTermsLanguageCode,
+  resolveTermsBaseUrl,
+} from '../utility/termsAndConditions';
+import './TermsAndConditions.css';
+
+type TermsPageLocationState = {
+  from?: string;
+  returnLocation?: {
+    pathname: string;
+    search?: string;
+    hash?: string;
+    state?: unknown;
+  };
+};
+
+const LEGACY_TERMS_URL =
+  'assets/termsandconditions/TermsandConditionsofChimple.html';
+const CLOSE_ICON_SRC = '/assets/loginAssets/TermsConditionsClose.svg';
 
 const TermsAndConditions: React.FC = () => {
   const history = useHistory();
-  // const [iframeSrc, setIframeSrc] = useState('');
-  // const setIframeSrcAsync = async () => {
-  //   try {
-  //     const tcUrl = await RemoteConfig.getString(
-  //       REMOTE_CONFIG_KEYS.TERMS_AND_CONDITIONS_URL
-  //     );
-  //     setIframeSrc(tcUrl);
-  //   } catch (error) {
-  //     console.error('Error fetching URL:', error);
-  //   }
-  // };
+  const location = useLocation<TermsPageLocationState>();
+  const { t } = useTranslation();
+  const tcHtmlUrlFeature = useFeatureValue<string>(TC_HTML_URL, '');
+  const [iframeSrc, setIframeSrc] = useState(LEGACY_TERMS_URL);
+  const appMode = getCurrentTermsAppMode();
+
+  const redirectTarget = location.state?.from || PAGES.SELECT_MODE;
+  const returnLocation = location.state?.returnLocation;
+  const baseTermsUrl = useMemo(
+    () => resolveTermsBaseUrl(tcHtmlUrlFeature),
+    [tcHtmlUrlFeature],
+  );
+  const localizedTermsUrl = useMemo(() => {
+    if (!baseTermsUrl) {
+      return LEGACY_TERMS_URL;
+    }
+
+    return buildTermsUrl(baseTermsUrl, getTermsLanguageCode());
+  }, [baseTermsUrl]);
 
   useEffect(() => {
-    checkAuth();
-    // setIframeSrcAsync();
-  }, []);
-  const checkAuth = async () => {
-    try {
-      const authHandler = ServiceConfig.getI()?.authHandler;
-      const currentUser = await authHandler?.getCurrentUser();
-      if (!!currentUser) {
-        if (!!currentUser?.is_tc_accepted) {
-          history.replace(PAGES.SELECT_MODE);
-        }
-      } else {
-        history.replace(PAGES.LOGIN);
-      }
-    } catch (error) {
+    void loadCurrentUser();
+  });
+
+  useEffect(() => {
+    setIframeSrc(localizedTermsUrl || LEGACY_TERMS_URL);
+  }, [localizedTermsUrl]);
+
+  const loadCurrentUser = async () => {
+    const authHandler = ServiceConfig.getI()?.authHandler;
+    const user = await authHandler?.getCurrentUser();
+    if (!user) {
+      history.replace(PAGES.LOGIN);
+      return;
     }
   };
 
-  const handleAgreeButtonClick = async () => {
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    if (currentUser) {
-      await ServiceConfig.getI().apiHandler.updateTcAccept(currentUser.id);
-      history.replace(PAGES.SELECT_MODE);
+  const handleIframeError = () => {
+    if (!baseTermsUrl) {
+      setIframeSrc(LEGACY_TERMS_URL);
+      return;
     }
+
+    const englishTermsUrl = getEnglishTermsUrl(baseTermsUrl);
+    if (iframeSrc !== englishTermsUrl) {
+      setIframeSrc(englishTermsUrl);
+    }
+  };
+
+  const handleClose = () => {
+    if (returnLocation?.pathname) {
+      history.replace(
+        `${returnLocation.pathname}${returnLocation.search ?? ''}${returnLocation.hash ?? ''}`,
+        returnLocation.state,
+      );
+      return;
+    }
+
+    history.replace(redirectTarget);
   };
 
   return (
-    <div>
-      <div className="tc-content">
-        <iframe
-          src="assets/termsandconditions/TermsandConditionsofChimple.html"
-          title="Web Page"
-          allowFullScreen={true}
-          style={{ height: "80vh", width: "100%", border: "none" }}
-        />
+    <div className="terms-and-conditions-page">
+      <div className="terms-and-conditions-header">
+        <button
+          type="button"
+          className={`terms-and-conditions-close-button ${
+            appMode === 'ops' ? 'terms-and-conditions-close-button--ops' : ''
+          }`}
+          onClick={handleClose}
+          aria-label={String(t('Close'))}
+        >
+          {appMode === 'ops' ? (
+            <CloseIcon aria-hidden="true" />
+          ) : (
+            <img
+              src={CLOSE_ICON_SRC}
+              alt=""
+              aria-hidden="true"
+              style={
+                appMode === 'teacher'
+                  ? { filter: 'brightness(0) saturate(100%)' }
+                  : undefined
+              }
+            />
+          )}
+        </button>
       </div>
-      <div className="button-content">
-        <div className="tc-agree-button" onClick={handleAgreeButtonClick}>
-          <p className="agree-text">{t("Agree")}</p>
-        </div>
+
+      <div className="terms-and-conditions-content">
+        <iframe
+          className="terms-and-conditions-frame"
+          src={iframeSrc}
+          title="Terms and Conditions"
+          allowFullScreen={true}
+          onError={handleIframeError}
+          style={{ width: '100%', border: 'none' }}
+        />
       </div>
     </div>
   );

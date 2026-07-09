@@ -28,7 +28,7 @@
 .chimple-logo {
   width: 159px;
   height: 25px;
-  background-image: url("../../assets/icons/chimple_logo.png");
+  background-image: url('../../assets/icons/chimple_logo.png');
   background-size: contain; /* This ensures the image covers the entire area of the div */
 }
 .help-icon {
@@ -77,8 +77,25 @@
   height: 10vh;
   padding: 0;
   position: static;
+  font-weight: 500;
 }
 .header-custom-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sizeXL);
+  padding: 4vh;
+}
+
+.header-custom-text-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.header-custom-text-library {
+  transform: translateX(-30px);
   font-size: var(--text-sizeXL);
   padding: 4vh;
 }
@@ -86,24 +103,45 @@
 .search-section {
   display: flex;
   flex-direction: row;
-  justify-content: flex-end;
   gap: 1rem;
   align-items: center;
+}
+
+.header-actions-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-search-icon-button {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-search-action-icon {
+  color: #fff;
+  font-size: 2rem !important;
 }
 
 .header-search-container {
   display: flex;
   align-items: center;
-  background: #fff;                
-  border: 1px solid #ccc;          
+  background: #fff;
+  border: 1px solid #ccc;
   border-radius: 10px;
-  padding: 4px 8px;               
+  padding: 4px 8px;
   gap: 0.5rem;
 }
 
-.search-icon-inside {
+.header-search-icon-inside {
   color: black;
-  font-size: 1.2rem;             
+  font-size: 1.2rem;
 }
 
 .header-search-input {
@@ -116,8 +154,103 @@
   color-scheme: light;
 }
 
-.help-icon-container {
+.header-share-icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 4px;
+}
+
+.header-info-icon-button {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  cursor: pointer;
+  padding: 0;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.header-info-icon {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+
+.streak-container {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #ff6b00;
+  border-radius: 50%;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.streak-icon {
+  max-width: 170%;
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+}
+
+.streak-container.streak-container--reward-pulse {
+  animation: streak-container-reward-pulse 700ms ease-out;
+}
+
+.streak-icon.streak-icon--reward-pulse {
+  animation: streak-icon-reward-pulse 700ms ease-out;
+}
+
+@keyframes streak-container-reward-pulse {
+  0% {
+    transform: scale(1);
+    border-color: #ff6b00;
+    box-shadow: 0 0 0 rgba(255, 107, 0, 0);
+  }
+  45% {
+    transform: scale(1.2);
+    border-color: #ff8e2b;
+    box-shadow: 0 0 14px rgba(255, 107, 0, 0.85);
+  }
+  100% {
+    transform: scale(1);
+    border-color: #ff6b00;
+    box-shadow: 0 0 0 rgba(255, 107, 0, 0);
+  }
+}
+
+@keyframes streak-icon-reward-pulse {
+  0% {
+    transform: scale(1);
+    filter: saturate(1);
+  }
+  45% {
+    transform: scale(1.15);
+    filter: saturate(1.35) drop-shadow(0 0 10px rgba(255, 106, 0, 0.9));
+  }
+  100% {
+    transform: scale(1);
+    filter: saturate(1);
+  }
+}
+
+.header-recommended-text {
+  padding: 12px 5px;
+  line-height: 1;
+  font-size: var(--text-sizeXL);
+}
+@media (max-width: 480px) {
+  .header-recommended-text {
+    width: 215px;
+  }
 }

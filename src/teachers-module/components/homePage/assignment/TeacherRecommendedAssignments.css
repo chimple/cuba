@@ -1,0 +1,13 @@
+.teacher-recommended-assignments-page {
+  height: 100%;
+  width: 100%;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.teacher-recommended-content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 110px;
+}

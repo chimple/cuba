@@ -1,0 +1,335 @@
+.rewards-config-section {
+  border-bottom: 0.0625rem solid var(--campaign-divider);
+  padding: 1.8125rem 0.4375rem 2.9375rem var(--campaign-section-left);
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.rewards-config-title {
+  color: var(--campaign-text);
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  line-height: 1.125rem !important;
+  margin: 0 !important;
+  text-align: left !important;
+}
+
+.rewards-config-copy {
+  color: var(--campaign-muted);
+  font-size: 0.8125rem !important;
+  line-height: 1rem !important;
+  margin-top: 0.3125rem !important;
+  text-align: left !important;
+}
+
+.rewards-config-type-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4375rem;
+  width: min(14.5rem, 100%);
+  margin-top: 1.75rem;
+}
+
+.rewards-config-label {
+  color: var(--campaign-text);
+  font-size: 0.8125rem !important;
+  font-weight: 700 !important;
+  line-height: 0.9375rem !important;
+  text-align: left !important;
+}
+
+.rewards-config-select-placeholder {
+  color: var(--campaign-placeholder);
+}
+
+.rewards-config-table {
+  width: min(51rem, 100%);
+  border: 0.0625rem solid var(--campaign-divider);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin-top: 2rem;
+  background: #ffffff;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.rewards-config-row {
+  display: grid;
+  grid-template-columns: 5.875rem minmax(9rem, 12rem) minmax(14rem, 1fr);
+  column-gap: 1.125rem;
+  align-items: start;
+  min-height: 3.875rem;
+  padding: 0.75rem 1rem;
+  border-top: 0.0625rem solid var(--campaign-divider);
+  box-sizing: border-box;
+}
+
+.rewards-config-row:first-child {
+  border-top: none;
+}
+
+.rewards-config-head {
+  min-height: 2.75rem;
+  align-items: center;
+  background: #f2f4f8;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.rewards-config-head .MuiTypography-root,
+.rewards-config-rank {
+  color: var(--campaign-text);
+  font-size: 0.8125rem !important;
+  font-weight: 700 !important;
+  line-height: 1rem !important;
+  text-align: left !important;
+}
+
+.rewards-config-head .MuiTypography-root {
+  justify-self: start;
+}
+
+.rewards-config-rank-badge {
+  display: none;
+}
+
+.rewards-config-rank-title {
+  display: none;
+}
+
+.rewards-config-rank::after {
+  content: attr(data-desktop-label);
+}
+
+.rewards-config-rank {
+  display: flex;
+  align-items: center;
+}
+
+.rewards-config-rank .rewards-config-rank-badge {
+  display: none;
+}
+
+.rewards-config-rank .rewards-config-rank-title {
+  display: none;
+}
+
+.rewards-config-rank {
+  font-size: 0 !important;
+}
+
+.rewards-config-rank::before {
+  content: '';
+}
+
+.rewards-config-row:not(.rewards-config-head) .rewards-config-rank {
+  font-size: 0.8125rem !important;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+}
+
+.rewards-config-row:not(.rewards-config-head)
+  .rewards-config-rank
+  .rewards-config-rank-badge {
+  display: inline;
+}
+
+.rewards-config-row .MuiTextField-root {
+  width: 100%;
+}
+
+.rewards-config-mobile-label {
+  display: none;
+}
+
+.rewards-config-row .MuiFormHelperText-root {
+  margin-left: 0;
+}
+
+.rewards-config-ranking-error {
+  margin-top: 0.5rem !important;
+}
+
+.rewards-config-note {
+  width: min(51rem, 100%);
+  color: var(--campaign-muted);
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
+  margin-top: 0.8125rem !important;
+  text-align: left !important;
+}
+
+.rewards-config-preview {
+  width: min(51rem, 100%);
+  border: 0.0625rem solid var(--campaign-divider);
+  border-radius: 0.5rem;
+  background: #f2f4f8;
+  margin-top: 1rem;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.rewards-config-preview .MuiTypography-root {
+  color: var(--campaign-muted);
+  font-size: 0.8125rem !important;
+  line-height: 1.375rem !important;
+  text-align: left !important;
+}
+
+.rewards-config-preview .rewards-config-preview-title {
+  color: var(--campaign-text);
+  font-weight: 700 !important;
+  margin-bottom: 0.375rem !important;
+  text-align: left !important;
+}
+
+@media (max-width: 56.25rem) {
+  .rewards-config-section {
+    padding: 1.5rem 0;
+  }
+}
+
+@media (max-width: 48rem) {
+  .rewards-config-section {
+    padding: 1rem 0 4rem;
+    overflow-x: hidden;
+  }
+
+  .rewards-config-title {
+    font-size: 0.9375rem !important;
+    font-weight: 700 !important;
+    line-height: 1.125rem !important;
+  }
+
+  .rewards-config-copy {
+    color: #000000;
+    font-size: 0.75rem !important;
+    line-height: 1.125rem !important;
+    margin-top: 0.1875rem !important;
+  }
+
+  .rewards-config-label {
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    line-height: 0.875rem !important;
+  }
+
+  .rewards-config-type-field,
+  .rewards-config-table,
+  .rewards-config-note,
+  .rewards-config-preview {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .rewards-config-table {
+    border: none;
+    border-radius: 0;
+    margin-top: 1.25rem;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .rewards-config-row {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    border: 0.0625rem solid var(--campaign-divider);
+    border-radius: 0.75rem;
+    background: #ffffff;
+    overflow: hidden;
+    margin-bottom: 0.875rem;
+  }
+
+  .rewards-config-head {
+    display: none;
+  }
+
+  .rewards-config-rank {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 2.5rem;
+    padding: 0 0.75rem;
+    background: #edf5ff;
+    color: var(--campaign-text);
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    line-height: 1rem !important;
+    box-sizing: border-box;
+  }
+
+  .rewards-config-rank .rewards-config-rank-badge {
+    width: 1.875rem;
+    height: 1.875rem;
+    border-radius: 50%;
+    background: #ffe1aa;
+    color: #f28c28;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    font-size: 0.625rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .rewards-config-row:nth-child(3)
+    .rewards-config-rank
+    .rewards-config-rank-badge {
+    background: #e4f0ff;
+    color: #2a73d9;
+  }
+
+  .rewards-config-row:nth-child(4)
+    .rewards-config-rank
+    .rewards-config-rank-badge {
+    background: #ffe4d6;
+    color: #f06a2a;
+  }
+
+  .rewards-config-rank .rewards-config-rank-title {
+    display: inline !important;
+  }
+
+  .rewards-config-field-cell {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 0.625rem 0.75rem 0;
+    box-sizing: border-box;
+  }
+
+  .rewards-config-field-cell .MuiFormControl-root,
+  .rewards-config-field-cell .MuiTextField-root {
+    width: 100%;
+  }
+
+  .rewards-config-field-cell:last-child {
+    padding-bottom: 0.75rem;
+  }
+
+  .rewards-config-mobile-label {
+    display: block;
+    color: var(--campaign-text);
+    font-size: 0.6875rem !important;
+    font-weight: 700 !important;
+    line-height: 0.875rem !important;
+    margin-bottom: 0.375rem !important;
+    text-align: left !important;
+  }
+
+  .rewards-config-preview {
+    padding: 0.875rem;
+  }
+}

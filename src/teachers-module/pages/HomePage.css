@@ -34,12 +34,14 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   margin: 0;
   background-color: #7c5db0;
 }
 
 .container-footer {
   height: 10vh;
+  flex: 0 0 10vh;
   color: #7c5db0;
   align-items: center;
   justify-content: center;
@@ -47,18 +49,21 @@
 }
 
 .home-container-body {
-  height: 80vh;
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
-
-.footerIcons{
+.footerIcons {
   width: clamp(30px, 3vw, 40px);
   margin-bottom: 4px;
 }
-.assignSelectedIcon{
+.assignSelectedIcon {
   width: clamp(40px, 3.5vw, 50px);
 }
 .homepage-bottom-nav .MuiBottomNavigationAction-label {

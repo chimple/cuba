@@ -1,8 +1,9 @@
-import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
-import { Directory, Encoding, Filesystem } from "@capacitor/filesystem";
-import { Toast } from "@capacitor/toast";
-import createFilesystem from "capacitor-fs";
-import { unzip } from "zip2";
+import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
+import { Device } from '@capacitor/device';
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
+import { Toast } from '@capacitor/toast';
+import createFilesystem from 'capacitor-fs';
+import { unzip } from 'zip2';
 import {
   CURRENT_STUDENT,
   COURSES,
@@ -23,14 +24,10 @@ import {
   SOUND,
   MUSIC,
   MODES,
-  // APP_LANG,
   CONTINUE,
   DOWNLOADED_LESSON_ID,
   LAST_FUNCTION_CALL,
   LeaderboardRewardsType,
-  LEADERBOARD_REWARD_LIST,
-  // APP_LANG,
-  LeaderboardRewards,
   unlockedRewardsInfo,
   DOWNLOAD_LESSON_BATCH_SIZE,
   MAX_DOWNLOAD_LESSON_ATTEMPTS,
@@ -38,10 +35,7 @@ import {
   ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
   CHAPTER_ID_LESSON_ID_MAP,
   DOWNLOADING_CHAPTER_ID,
-  TABLES,
-  REFRESH_TOKEN,
   SCHOOL,
-  USER_ROLE,
   CLASS,
   CURRENT_COURSE,
   CLASS_OR_SCHOOL_CHANGE_EVENT,
@@ -55,90 +49,174 @@ import {
   QUIZ_POPUP_SHOWN,
   SCHOOL_LOGIN,
   SHOULD_SHOW_REMOTE_ASSETS,
-  IS_OPS_USER,
   CHIMPLE_RIVE_STATE_MACHINE_MAX,
-  USER_DATA,
-} from "../common/constants";
+  LOCAL_LESSON_BUNDLES_PATH,
+  DAILY_USER_REWARD,
+  IS_REWARD_FEATURE_ON,
+  REWARD_LEARNING_PATH,
+  HOMEWORK_PATHWAY,
+  STARS_COUNT,
+  LATEST_STARS,
+  CURRENT_CLASS,
+  RECOMMENDATION_TYPE,
+  LIDO_COMMON_AUDIO_DIR,
+  LEARNING_PATHWAY_MODE,
+  CURRENT_PATHWAY_MODE,
+  HOT_UPDATE_STATE_KEY,
+  LIDO_ASSESSMENT,
+  LATEST_LEARNING_PATH,
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
+  AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  PENDING_PATHWAY_STICKER_REWARD_KEY,
+  STICKER_BOOK_COMPLETION_READY_EVENT,
+  CURRENT_STUDENT_CHANGED_EVENT,
+} from '../common/constants';
 import {
   Chapter as curriculamInterfaceChapter,
   Course as curriculamInterfaceCourse,
   Lesson as curriculamInterfaceLesson,
-} from "../interface/curriculumInterfaces";
-import { GUIDRef, RoleType } from "../interface/modelInterfaces";
-import { OneRosterApi } from "../services/api/OneRosterApi";
-import { APIMode, ServiceConfig } from "../services/ServiceConfig";
-import i18n from "../i18n";
-import { FirebaseMessaging } from "@capacitor-firebase/messaging";
-import { FirebaseAnalytics } from "@capacitor-community/firebase-analytics";
-// import {
-//   DocumentReference,
-//   doc,
-//   getFirestore,
-//   enableNetwork,
-//   disableNetwork,
-// } from "firebase/firestore";
-import { Keyboard } from "@capacitor/keyboard";
+} from '../interface/curriculumInterfaces';
+import { GUIDRef, RoleType } from '../interface/modelInterfaces';
+import { OneRosterApi } from '../services/api/OneRosterApi';
+import { APIMode, ServiceConfig } from '../services/ServiceConfig';
+import i18n from '../i18n';
+import { FirebaseMessaging } from '@capacitor-firebase/messaging';
+import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
+import { Keyboard } from '@capacitor/keyboard';
 import {
   AppUpdate,
   AppUpdateAvailability,
   AppUpdateResultCode,
-} from "@capawesome/capacitor-app-update";
-import { LocalNotifications } from "@capacitor/local-notifications";
-import { getFunctions, httpsCallable } from "firebase/functions";
-// import { CollectionIds } from "../common/courseConstants";
-import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
-import { schoolUtil } from "./schoolUtil";
-import { TextToSpeech } from "@capacitor-community/text-to-speech";
-import { URLOpenListenerEvent } from "@capacitor/app";
-import { t } from "i18next";
-import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
-import CryptoJS from "crypto-js";
-import { InAppReview } from "@capacitor-community/in-app-review";
+} from '@capawesome/capacitor-app-update';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import {
+  getBundleZipUrlsForEnv,
+  getLidoBundleZipUrlsForEnv,
+  REMOTE_CONFIG_KEYS,
+} from '../services/RemoteConfig';
+import { schoolUtil } from './schoolUtil';
+import { URLOpenListenerEvent } from '@capacitor/app';
+import { t } from 'i18next';
+import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
+import CryptoJS from 'crypto-js';
+import { InAppReview } from '@capacitor-community/in-app-review';
+import { ASSIGNMENT_COMPLETED_IDS } from '../common/courseConstants';
+import { buildGlobalEventBaseContext } from '../common/eventBaseContext';
+import { v4 as uuidv4 } from 'uuid';
+import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
+import { updateLocalAttributes } from '../growthbook/Growthbook';
+import {
+  CoursePath,
+  LessonNode,
+  recommendNextLesson,
+  shouldUseAssessment,
+} from '../hooks/useLearningPath';
+import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
+import { store } from '../redux/store';
+import {
+  addRole,
+  setIsOpsUser,
+  setRefreshToken,
+  setUser,
+} from '../redux/slices/auth/authSlice';
+import logger from './logger';
+import type { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
+import { AudioUtil } from './AudioUtil';
+import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
+
+type LessonBundleDownloadOptions = {
+  lessonId: string;
+  zipUrls: string[];
+  dbVersion: number;
+};
+
+type LessonBundleDownloadResult = {
+  byteLength: number;
+  sha256Hex?: string;
+};
+
+type LessonBundlePlugin = {
+  downloadAndExtract: (
+    options: LessonBundleDownloadOptions,
+  ) => Promise<LessonBundleDownloadResult>;
+};
+
+let lessonBundlePluginInstance: LessonBundlePlugin | null = null;
+
+const getBundleZipUrlsFallback = (
+  bundleZipUrlsKey: REMOTE_CONFIG_KEYS,
+): string[] =>
+  bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+    ? getLidoBundleZipUrlsForEnv()
+    : getBundleZipUrlsForEnv();
+
+const mergeBundleZipUrls = (...zipUrlLists: (string[] | null | undefined)[]) =>
+  Array.from(
+    new Set(
+      zipUrlLists.flatMap((zipUrls) =>
+        Array.isArray(zipUrls) ? zipUrls.filter(Boolean) : [],
+      ),
+    ),
+  );
+
+const getLessonBundlePlugin = (): LessonBundlePlugin | null => {
+  if (lessonBundlePluginInstance) {
+    return lessonBundlePluginInstance;
+  }
+  if (typeof registerPlugin !== 'function') {
+    return null;
+  }
+  lessonBundlePluginInstance =
+    registerPlugin<LessonBundlePlugin>('LessonBundle');
+  return lessonBundlePluginInstance;
+};
+
 declare global {
   interface Window {
-    cc: any;
-    _CCSettings: any;
+    __LIDO_COMMON_AUDIO_PATH__?: string;
   }
 }
-enum NotificationType {
-  REWARD = "reward",
+
+export interface HotUpdateState {
+  status: string;
+  progress: number;
+  channel: string;
+  lastChecked: string;
+  lastUpdated: string;
+  error: string;
+  isAuto: boolean;
 }
 
 export class Util {
   public static port: PortPlugin;
   static TIME_LIMIT = 25 * 60;
-  static LAST_MODAL_SHOWN_KEY = "lastModalShown";
-
-  // public static convertCourses(_courses: Course1[]): Course1[] {
-  //   let courses: Course1[] = [];
-  //   _courses.forEach((course) => {
-  //     course.chapters.forEach((chapter) => {
-  //       chapter.lessons = this.convertDoc(chapter.lessons);
-  //     });
-
-  //     course.curriculum = Util.getRef(course.curriculum);
-  //     course.grade = Util.getRef(course.grade);
-  //     course.subject = Util.getRef(course.subject);
-  //   });
-  //   return _courses;
-  // }
+  static LAST_MODAL_SHOWN_KEY = 'lastModalShown';
+  private static lessonBundleDownloadQueue: Promise<void> = Promise.resolve();
+  // Normalize GrowthBook attributes that may come as a scalar or array into a consistent array.
+  public static normalizeGrowthbookArrayAttribute<T>(
+    value: T | T[] | null | undefined,
+  ): T[] {
+    if (Array.isArray(value)) {
+      return value;
+    }
+    return value ? [value] : [];
+  }
 
   public static async getNextLessonFromGivenChapter(
-    chapters,
-    currentChapterId,
-    currentLessonId,
-    ChapterDetail
-  ) {
+    chapters: curriculamInterfaceChapter[],
+    currentChapterId: string,
+    currentLessonId: string,
+    ChapterDetail: curriculamInterfaceChapter | undefined,
+  ): Promise<TableTypes<'lesson'> | undefined> {
     const api = ServiceConfig.getI().apiHandler;
-    // let ChapterDetail: Chapter | undefined;
     const currentChapter = ChapterDetail;
-    const currentStudentDocId: string = Util.getCurrentStudent()?.id || "";
+    const currentStudentDocId: string = Util.getCurrentStudent()?.id || '';
 
     if (!currentChapter) return undefined;
-    let currentLessonIndex;
+    let currentLessonIndex = -1;
 
-    // currentChapter.lessons = Util.convertDoc(currentChapter.lessons);
-    const cChapter = await api.getLessonsForChapter(currentChapter);
+    const cChapter = await api.getLessonsForChapter(currentChapter.id);
 
     for (let i = 0; i < cChapter.length - 1; i++) {
       const currentLesson = cChapter[i];
@@ -148,15 +226,17 @@ export class Util {
       }
     }
 
-    if (currentLessonIndex < currentChapter.lessons.length - 1) {
+    if (
+      currentLessonIndex >= 0 &&
+      currentLessonIndex < currentChapter.lessons.length - 1
+    ) {
       let nextLesson = currentChapter.lessons[currentLessonIndex + 1];
       let lessonId = nextLesson.id;
       let studentResult:
-        | { [lessonDocId: string]: TableTypes<"result"> }
+        | { [lessonDocId: string]: TableTypes<'result'> }
         | undefined = {};
-      const studentProfile = await api.getStudentResultInMap(
-        currentStudentDocId
-      );
+      const studentProfile =
+        await api.getStudentResultInMap(currentStudentDocId);
       studentResult = studentProfile;
 
       if (!studentResult) return undefined;
@@ -168,8 +248,8 @@ export class Util {
       }
       if (nextLesson) {
         const lessonObj = (await api.getLesson(
-          nextLesson.id
-        )) as TableTypes<"lesson">;
+          nextLesson.id,
+        )) as TableTypes<'lesson'>;
         if (lessonObj) {
           return lessonObj;
         }
@@ -177,13 +257,10 @@ export class Util {
     }
 
     const nextChapterIndex =
-      chapters.findIndex((chapter) => chapter.id === currentChapterId) + 1;
+      chapters.findIndex((chapter: curriculamInterfaceChapter) => {
+        return chapter.id === currentChapterId;
+      }) + 1;
     if (nextChapterIndex < chapters.length) {
-      const nextChapter = chapters[nextChapterIndex];
-      const firstLessonId = nextChapter.lessons[0];
-      // if (firstLessonId instanceof TableTypes<"lesson">) {
-      //   return firstLessonId;
-      // }
       return undefined;
     }
   }
@@ -191,74 +268,44 @@ export class Util {
   public static handleAppStateChange = (state: any) => {
     if (state.isActive && Capacitor.isNativePlatform()) {
       const currentTime = Date.now();
-      const startTime = Number(localStorage.getItem("startTime") || "0");
+      const startTime = Number(localStorage.getItem('startTime') || '0');
       const timeElapsed = (currentTime - startTime) / 1000; // in seconds
       if (timeElapsed >= Util.TIME_LIMIT) {
-        const lastShownDate = localStorage.getItem(Util.LAST_MODAL_SHOWN_KEY);
-        const today = new Date().toISOString().split("T")[0];
+        const today = new Date().toISOString().split('T')[0];
 
-        if ("2024-11-05" !== today) {
-          // if (STAGES.MODE === "parent") {
-          const showModalEvent = new CustomEvent("shouldShowModal", {
+        if ('2024-11-05' !== today) {
+          const showModalEvent = new CustomEvent('shouldShowModal', {
             detail: true,
           });
           document.dispatchEvent(showModalEvent);
-          // const showModalEvent = new CustomEvent("shouldShowModal", { detail: true });
+
           window.dispatchEvent(showModalEvent);
           localStorage.setItem(Util.LAST_MODAL_SHOWN_KEY, today);
-          // }
+
           return;
         }
       }
     }
-    const showModalEvent = new CustomEvent("shouldShowModal", {
+    const showModalEvent = new CustomEvent('shouldShowModal', {
       detail: false,
     });
     window.dispatchEvent(showModalEvent);
   };
 
-  // public static convertDoc(refs: any[]): DocumentReference[] {
-  //   const data: DocumentReference[] = [];
-  //   for (let ref of refs) {
-  //     const newCourseRef = Util.getRef(ref);
-
-  //     data.push(newCourseRef);
-  //   }
-  //   return data;
-  // }
-
   public static checkLessonPresentInCourse(
-    course: TableTypes<"course">,
-    lessonDoc: String
+    course: TableTypes<'course'>,
+    lessonDoc: String,
   ): boolean {
-    // if (!course || !course) return false;
-    // for (const chapter of course?.chapters) {
-    //   for (const lesson of chapter.lessons) {
-    //     if (lesson.id === lessonDoc) {
-    //       return true;
-    //     }
-    //   }
-    // }
     return false;
   }
 
-  // public static getRef(ref): DocumentReference {
-  //   const db = getFirestore();
-  //   const newCourseRef = doc(
-  //     db,
-  //     ref["_key"].path.segments.at(-2),
-  //     ref["_key"].path.segments.at(-1)
-  //   );
-  //   return newCourseRef;
-  // }
-
-  public static getCurrentStudent(): TableTypes<"user"> | undefined {
+  public static getCurrentStudent(): TableTypes<'user'> | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentStudent) return api.currentStudent;
     const temp = localStorage.getItem(CURRENT_STUDENT);
 
     if (!temp) return;
-    const currentStudent = JSON.parse(temp) as TableTypes<"user">;
+    const currentStudent = JSON.parse(temp) as TableTypes<'user'>;
     api.currentStudent = currentStudent;
     return currentStudent;
   }
@@ -271,10 +318,10 @@ export class Util {
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateSoundFlag(
         currUser.id,
-        currSound === "0" ? false : true
+        currSound === '0' ? false : true,
       );
     }
-    return currSound === "0" ? 0 : 1;
+    return currSound === '0' ? 0 : 1;
   }
   public static setCurrentSound = async (currSound: number) => {
     const auth = ServiceConfig.getI().authHandler;
@@ -282,7 +329,7 @@ export class Util {
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateSoundFlag(
         currUser.id,
-        currSound === 1
+        currSound === 1,
       );
     }
     localStorage.setItem(SOUND, currSound.toString());
@@ -297,10 +344,10 @@ export class Util {
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateMusicFlag(
         currUser.id,
-        currMusic === "0" ? false : true
+        currMusic === '0' ? false : true,
       );
     }
-    return currMusic === "0" ? 0 : 1;
+    return currMusic === '0' ? 0 : 1;
   }
   public static setCurrentMusic = async (currMusic: number) => {
     const auth = ServiceConfig.getI().authHandler;
@@ -308,7 +355,7 @@ export class Util {
     if (currUser) {
       ServiceConfig.getI().apiHandler.updateMusicFlag(
         currUser.id,
-        currMusic === 1
+        currMusic === 1,
       );
     }
     localStorage.setItem(MUSIC, currMusic.toString());
@@ -319,10 +366,10 @@ export class Util {
 
   public static storeLessonIdToLocalStorage = (
     id: string | string[],
-    lessonIdStorageKey: string
+    lessonIdStorageKey: string,
   ) => {
     const storedItems = JSON.parse(
-      localStorage.getItem(lessonIdStorageKey) || "[]"
+      localStorage.getItem(lessonIdStorageKey) || '[]',
     );
 
     const updatedItems = [
@@ -336,7 +383,7 @@ export class Util {
 
   public static getStoredLessonIds = () => {
     const storedItems = JSON.parse(
-      localStorage.getItem(DOWNLOADED_LESSON_ID) || JSON.stringify([])
+      localStorage.getItem(DOWNLOADED_LESSON_ID) || JSON.stringify([]),
     );
 
     return storedItems;
@@ -344,10 +391,10 @@ export class Util {
 
   public static removeLessonIdFromLocalStorage = (
     id: string | string[],
-    lessonIdStorageKey: string
+    lessonIdStorageKey: string,
   ): void => {
     const storedItems = JSON.parse(
-      localStorage.getItem(lessonIdStorageKey) || "[]"
+      localStorage.getItem(lessonIdStorageKey) || '[]',
     );
 
     let idsToRemove: string[];
@@ -364,214 +411,275 @@ export class Util {
 
     localStorage.setItem(lessonIdStorageKey, JSON.stringify(updatedItems));
   };
-
   public static async getLessonPath({
-    lessonId: lessonId,
+    lessonId,
+  }: {
+    lessonId: string;
   }): Promise<string | null> {
-    const gameUrl = localStorage.getItem("gameUrl");
+    const gameUrl = localStorage.getItem('gameUrl');
 
-    // ✅ 1. Try gameUrl from localStorage
-    if (gameUrl) {
-      if (
-        gameUrl.startsWith(
-          "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/"
-        )
-      ) {
-        const androidPath = `${gameUrl}${lessonId}/index.xml`;
-        try {
-          const res = await fetch(androidPath);
-          if (res.ok) {
-            return `${gameUrl}${lessonId}/`;
-          }
-        } catch (err) {
-          console.warn("Error accessing Android path from localStorage:", err);
-        }
+    const exists = async (path: string) => {
+      try {
+        const res = await fetch(path);
+        return res.ok;
+      } catch {
+        return false;
       }
-
-      if (gameUrl.startsWith(LOCAL_BUNDLES_PATH)) {
-        const webPath = `${"/assets/lessonBundles/"}${lessonId}/index.xml`;
-        try {
-          const res = await fetch(webPath);
-          if (res.ok) {
-            return `/assets/lessonBundles/${lessonId}`;
-          }
-        } catch (err) {
-          console.warn("Error accessing web path from localStorage:", err);
-        }
-      }
+    };
+    if (gameUrl?.startsWith(LOCAL_BUNDLES_PATH)) {
+      const path = `/assets/lessonBundles/${lessonId}/index.xml`;
+      if (await exists(path)) return `/assets/lessonBundles/${lessonId}/`;
     }
 
-    // 🧪 2. Try public/assets path directly
-    try {
-      const publicPath = `/assets/lessonBundles/${lessonId}/index.xml`;
-      const res = await fetch(publicPath);
-      if (res.ok) {
-        return `/assets/lessonBundles/${lessonId}/`;
-      }
-    } catch (err) {
-      console.warn("Error accessing public path:", err);
+    if (await exists(`/assets/lessonBundles/${lessonId}/index.xml`)) {
+      return `/assets/lessonBundles/${lessonId}/`;
     }
 
-    // 📱 3. Try dynamic Android path
-    try {
-      const androidBasePath = await this.getAndroidBundlePath();
-      const fullAndroidPath = `${androidBasePath}${lessonId}/index.xml`;
-      const res = await fetch(fullAndroidPath);
-      if (res.ok) {
-        return `${androidBasePath}${lessonId}/`;
-      }
-    } catch (err) {
-      console.warn("Error accessing dynamic Android path:", err);
+    const androidBase = await this.getAndroidBundlePath();
+    if (androidBase && (await exists(`${androidBase}${lessonId}/index.xml`))) {
+      return `${androidBase}${lessonId}/`;
     }
-    console.error("Lesson bundle not found in any known location:", lessonId);
+
+    logger.error('Lesson bundle not found :', lessonId);
     return null;
   }
+  public static getLessonBundleId(
+    lesson?: Partial<
+      Pick<TableTypes<'lesson'>, 'cocos_lesson_id' | 'lido_lesson_id'>
+    >,
+  ): string | null {
+    return lesson?.lido_lesson_id ?? lesson?.cocos_lesson_id ?? null;
+  }
+
   public static async downloadZipBundle(
-    lessonIds: string[],
-    chapterId?: string
+    lessons: TableTypes<'lesson'>[],
+    chapterId?: string,
+    bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+  ): Promise<boolean> {
+    return Util.enqueueLessonBundleDownload(() =>
+      Util.runDownloadZipBundle(lessons, chapterId, bundleZipUrlsKey),
+    );
+  }
+
+  private static async enqueueLessonBundleDownload(
+    downloadTask: () => Promise<boolean>,
+  ): Promise<boolean> {
+    const previousDownload = Util.lessonBundleDownloadQueue;
+    let releaseQueue: () => void = () => {};
+
+    Util.lessonBundleDownloadQueue = new Promise<void>((resolve) => {
+      releaseQueue = resolve;
+    });
+
+    try {
+      await previousDownload.catch(() => undefined);
+      return await downloadTask();
+    } finally {
+      releaseQueue();
+    }
+  }
+
+  private static async runDownloadZipBundle(
+    lessons: TableTypes<'lesson'>[],
+    chapterId?: string,
+    bundleZipUrlsKey: REMOTE_CONFIG_KEYS = REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
   ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) {
         return true;
       }
 
-      for (let i = 0; i < lessonIds.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
-        const lessonIdsChunk = lessonIds.slice(
-          i,
-          i + DOWNLOAD_LESSON_BATCH_SIZE
-        );
+      const downloadStartedAt = Date.now();
+      logger.info('Starting download for lessons:', {
+        count: lessons.length,
+        chapterId: chapterId ?? null,
+      });
+      for (let i = 0; i < lessons.length; i += DOWNLOAD_LESSON_BATCH_SIZE) {
+        const lessonsChunk = lessons.slice(i, i + DOWNLOAD_LESSON_BATCH_SIZE);
         const results = await Promise.all(
-          lessonIdsChunk.map(async (lessonId) => {
-            try {
-              let lessonDownloadSuccess = true;
-              const fs = createFilesystem(Filesystem, {
-                rootDir: "/",
-                directory: Directory.External,
-              });
-              const androidPath = await this.getAndroidBundlePath();
-              try {
-                const file = await Filesystem.readFile({
-                  path: lessonId + "/config.json",
-                  directory: Directory.External,
-                });
-                const decoded =
-                  typeof file.data === "string"
-                    ? atob(file.data)
-                    : await this.blobToString(file.data as Blob);
-                this.setGameUrl(androidPath);
-                this.storeLessonIdToLocalStorage(
-                  lessonId,
-                  DOWNLOADED_LESSON_ID
-                );
-                return true;
-              } catch {
-                console.error(
-                  `[LessonDownloader] Lesson ${lessonId} not found at Android path`
-                );
-              }
-              const localBundlePath = `/assets/lessonBundles/${lessonId}/config.json`;
-              try {
-                const response = await fetch(localBundlePath);
-                if (response.ok) {
-                  return true;
-                }
-              } catch {
-                console.error(
-                  `[LessonDownloader] Lesson ${lessonId} not found at local bundle path`
-                );
-              }
-              const bundleZipUrls: string[] = await RemoteConfig.getJSON(
-                REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS
-              );
-              if (!bundleZipUrls || bundleZipUrls.length < 1) {
-                console.error("[LessonDownloader] No remote ZIP URLs found");
-                return false;
-              }
-
-              let zip: any;
-              let downloadAttempts = 0;
-
-              while (downloadAttempts < MAX_DOWNLOAD_LESSON_ATTEMPTS) {
-                for (const bundleUrl of bundleZipUrls) {
-                  const zipUrl = bundleUrl + lessonId + ".zip";
-                  try {
-                    zip = await CapacitorHttp.get({
-                      url: zipUrl,
-                      responseType: "blob",
-                      headers: {},
-                    });
-                    if (zip && zip.data && zip.status === 200) {
-                      break;
-                    }
-                  } catch (err) {
-                    console.error(
-                      `[LessonDownloader] Error downloading ${zipUrl}:`,
-                      err
-                    );
-                  }
-                }
-                downloadAttempts++;
-              }
-
-              if (!zip || !zip.data || zip.status !== 200) {
-                console.error(
-                  `[LessonDownloader] Failed to download lesson ${lessonId}`
-                );
-                return false;
-              }
-              const zipDataStr =
-                typeof zip.data === "string"
-                  ? zip.data
-                  : await this.blobToString(zip.data as Blob);
-              const buffer = Uint8Array.from(atob(zipDataStr), (c) =>
-                c.charCodeAt(0)
-              );
-
-              await unzip({
-                fs,
-                extractTo: lessonId,
-                filepaths: ["."],
-                filter: (filepath) => !filepath.startsWith("dist/"),
-                onProgress: (event) =>
-                  console.log(
-                    "[LessonDownloader] Unzipping progress:",
-                    event.filename,
-                    event.loaded,
-                    event.total
-                  ),
-                data: buffer,
-              });
-
-              const lessonData = JSON.parse(
-                localStorage.getItem("downloaded_lessons_size") || "{}"
-              );
-              lessonData[lessonId] = { size: buffer.byteLength };
-              localStorage.setItem(
-                "downloaded_lessons_size",
-                JSON.stringify(lessonData)
-              );
-              this.setGameUrl(androidPath);
-              this.storeLessonIdToLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
-              window.dispatchEvent(
-                new CustomEvent(LESSON_DOWNLOAD_SUCCESS_EVENT, {
-                  detail: { lessonId },
-                })
-              );
-              return lessonDownloadSuccess;
-            } catch (err) {
-              console.error(
-                `[LessonDownloader] Error processing lesson ${lessonId}:`,
-                err
+          lessonsChunk.map(async (lesson) => {
+            const lessonId = this.getLessonBundleId(lesson);
+            if (!lessonId) {
+              logger.error(
+                '[LessonDownloader] Missing bundle lesson id for lesson:',
+                lesson.id,
               );
               return false;
             }
-          })
+
+            const lessonStartedAt = Date.now();
+            try {
+              let lessonDownloadSuccess = true;
+              const androidPath = await this.getAndroidBundlePath();
+              logger.info('full lesson object for download:', lesson);
+              logger.info('lesson version for download:', lesson.version);
+              // 🔥 GET DB VERSION ONCE
+              let dbVersion = Number(lesson.version ?? 1);
+              logger.info(
+                `[Version] Using lesson version for ${lessonId}:`,
+                lesson.version,
+              );
+
+              let localVersion = 0;
+
+              // 🔥 EXISTENCE + VERSION CHECK (MAIN CHANGE)
+              try {
+                await Filesystem.readFile({
+                  path: lessonId + '/config.json',
+                  directory: Directory.External,
+                });
+
+                localVersion = await this.getLocalLessonVersion(lessonId);
+
+                logger.info(
+                  `[Version] ${lessonId} → Local: ${localVersion}, DB: ${dbVersion}`,
+                );
+
+                if (localVersion >= dbVersion) {
+                  // ✅ UP-TO-DATE → SKIP
+                  this.setGameUrl(androidPath);
+                  this.storeLessonIdToLocalStorage(
+                    lessonId,
+                    DOWNLOADED_LESSON_ID,
+                  );
+                  return true;
+                }
+
+                logger.info(`[Version] ${lessonId} outdated → updating`);
+              } catch {
+                logger.info(`[Version] ${lessonId} not found → downloading`);
+              }
+
+              // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
+              const localBundlePath =
+                LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/config.json`;
+
+              try {
+                const response = await fetch(localBundlePath);
+                if (response.ok && localVersion === 0) {
+                  this.setGameUrl(LOCAL_BUNDLES_PATH);
+                  return true;
+                }
+              } catch {
+                logger.error(
+                  `[LessonDownloader] Local bundle not found, downloading...`,
+                );
+              }
+
+              // 🔥 DOWNLOAD LOGIC (UNCHANGED)
+              const fallbackBundleZipUrls =
+                getBundleZipUrlsFallback(bundleZipUrlsKey);
+              const cachedBundleZipUrls = getCachedGrowthBookFeatureValue<
+                string[] | null
+              >(bundleZipUrlsKey, null);
+              const fallbackGeneralBundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? getBundleZipUrlsForEnv()
+                  : [];
+              const cachedGeneralBundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? getCachedGrowthBookFeatureValue<string[] | null>(
+                      REMOTE_CONFIG_KEYS.BUNDLE_ZIP_URLS,
+                      null,
+                    )
+                  : null;
+              const bundleZipUrls =
+                bundleZipUrlsKey === REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS
+                  ? mergeBundleZipUrls(
+                      cachedBundleZipUrls,
+                      fallbackBundleZipUrls,
+                      cachedGeneralBundleZipUrls,
+                      fallbackGeneralBundleZipUrls,
+                    )
+                  : (cachedBundleZipUrls ?? fallbackBundleZipUrls);
+
+              logger.warn('[LessonDownloader] Resolved bundle ZIP URLs', {
+                lessonId,
+                bundleZipUrlsKey,
+                cachedBundleZipUrls,
+                fallbackBundleZipUrls,
+                cachedGeneralBundleZipUrls,
+                fallbackGeneralBundleZipUrls,
+                resolvedBundleZipUrls: bundleZipUrls,
+                usedCachedBundleZipUrls: cachedBundleZipUrls !== null,
+              });
+
+              if (!bundleZipUrls || bundleZipUrls.length < 1) {
+                logger.error('[LessonDownloader] No remote ZIP URLs found');
+                return false;
+              }
+
+              const lessonBundlePlugin = getLessonBundlePlugin();
+              if (!lessonBundlePlugin) {
+                logger.warn(
+                  '[LessonDownloader] LessonBundle plugin unavailable',
+                  { lessonId },
+                );
+                return false;
+              }
+
+              const nativeBundleResult =
+                await lessonBundlePlugin.downloadAndExtract({
+                  lessonId,
+                  zipUrls: bundleZipUrls,
+                  dbVersion,
+                });
+
+              if (!nativeBundleResult?.byteLength) {
+                logger.warn('[LessonDownloader] Native bundle returned empty', {
+                  lessonId,
+                  dbVersion,
+                });
+                return false;
+              }
+              logger.info('[LessonDownloader] Native bundle finished', {
+                lessonId,
+                dbVersion,
+                byteLength: nativeBundleResult.byteLength,
+                durationMs: Date.now() - lessonStartedAt,
+              });
+
+              // ✅ KEEP ORIGINAL METADATA + EVENTS
+              const lessonData = JSON.parse(
+                localStorage.getItem('downloaded_lessons_size') || '{}',
+              );
+              lessonData[lessonId] = {
+                size: nativeBundleResult.byteLength,
+                sha256: nativeBundleResult.sha256Hex || undefined,
+              };
+              localStorage.setItem(
+                'downloaded_lessons_size',
+                JSON.stringify(lessonData),
+              );
+              this.setGameUrl(androidPath);
+              this.storeLessonIdToLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
+
+              window.dispatchEvent(
+                new CustomEvent(LESSON_DOWNLOAD_SUCCESS_EVENT, {
+                  detail: { lessonId },
+                }),
+              );
+              return lessonDownloadSuccess;
+            } catch (err) {
+              logger.error(
+                `[LessonDownloader] Error processing lesson ${lessonId}:`,
+                err,
+              );
+              logger.warn('[LessonDownloader] Download failed metrics', {
+                lessonId,
+                durationMs: Date.now() - lessonStartedAt,
+              });
+              return false;
+            }
+          }),
         );
 
         if (!results.every((r) => r === true)) {
-          console.error(
-            "[LessonDownloader] Some lessons in chunk failed to download:",
-            lessonIdsChunk
+          logger.error(
+            '[LessonDownloader] Some lessons in chunk failed to download:',
+            lessonsChunk.map(
+              (lesson) => this.getLessonBundleId(lesson) ?? lesson.id,
+            ),
           );
           return false;
         }
@@ -580,23 +688,26 @@ export class Util {
       window.dispatchEvent(
         new CustomEvent(ALL_LESSON_DOWNLOAD_SUCCESS_EVENT, {
           detail: { chapterId },
-        })
+        }),
       );
-      if (chapterId)
-        this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
 
+      if (chapterId) {
+        this.removeLessonIdFromLocalStorage(chapterId, DOWNLOADING_CHAPTER_ID);
+      }
+
+      logger.info('[LessonDownloader] Chapter download complete', {
+        chapterId: chapterId ?? null,
+        lessonCount: lessons.length,
+        durationMs: Date.now() - downloadStartedAt,
+      });
       return true;
-    } catch (err) {
-      console.error(
-        "[LessonDownloader] Unexpected error in downloadZipBundle:",
-        err
-      );
+    } catch {
       return false;
     }
   }
 
   public static async blobToString(data: string | Blob): Promise<string> {
-    if (typeof data === "string") {
+    if (typeof data === 'string') {
       return data;
     }
 
@@ -604,8 +715,8 @@ export class Util {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
-          const result = reader.result?.toString() ?? "";
-          const base64 = result.split(",")[1] || "";
+          const result = reader.result?.toString() ?? '';
+          const base64 = result.split(',')[1] || '';
           resolve(base64);
         };
         reader.onerror = reject;
@@ -613,95 +724,124 @@ export class Util {
       });
     }
 
-    throw new Error("Invalid data type — expected string or Blob");
+    throw new Error('Invalid data type — expected string or Blob');
   }
 
-  public static async DownloadLearningPathAssets(
+  // In your Util.ts file
+
+  // ✅ Renamed and made generic
+  public static async DownloadRemoteAssets(
     zipUrl: string,
-    uniqueId: string
+    uniqueId: string,
+    destinationPath: string, // e.g., 'remoteAsset'
+    assetType: string, // e.g., 'Learning Path'
   ): Promise<boolean> {
     try {
       if (!Capacitor.isNativePlatform()) return true;
 
       const fs = createFilesystem(Filesystem, {
-        rootDir: "",
+        rootDir: '',
         directory: Directory.External,
-        // base64Alway: false, // property does not exist
       });
       const androidPath = await this.getAndroidBundlePath();
 
-      //logic for read config.json
+      // ✅ Use the dynamic destinationPath parameter
+      const configPath = `${destinationPath}/config.json`;
+
+      // Logic for reading config.json
       try {
-        const res = await fetch("remoteAsset/config.json");
+        const res = await fetch(configPath); // ✅ Use dynamic path
         const isExists = res.ok;
         if (isExists) {
           const configFile = await Filesystem.readFile({
-            path: "remoteAsset/config.json",
+            path: configPath, // ✅ Use dynamic path
             directory: Directory.External,
           });
 
           const base64Data = await this.blobToString(configFile.data);
-
-          const decoded = atob(base64Data); // base64 → string
-          const config = JSON.parse(decoded); // string → object
+          const decoded = atob(base64Data);
+          const config = JSON.parse(decoded);
 
           if (config.uniqueId === uniqueId) {
+            logger.info(`✅ ${assetType} assets are already up to date.`);
             this.setGameUrl(androidPath);
             return true;
           }
         }
       } catch (err) {
-        console.error(`❌ Failed to read config for remoteAsset:`, err);
+        logger.warn(
+          `Could not read existing config for ${assetType}, proceeding with download.`,
+        );
       }
 
       // Download and unzip
       const response = await CapacitorHttp.get({
         url: zipUrl,
-        responseType: "blob",
+        responseType: 'blob',
       });
 
       if (!response?.data || response.status !== 200) return false;
-      const buffer = Uint8Array.from(atob(response.data), (c) =>
-        c.charCodeAt(0)
-      );
+      let buffer: Uint8Array;
+      try {
+        const prepared = await runBackgroundWorkerTask(
+          'PREPARE_BINARY_FROM_BASE64',
+          {
+            base64: response.data,
+            algorithm: 'SHA-256',
+          },
+        );
+        buffer = new Uint8Array(prepared.arrayBuffer);
+      } catch (workerError) {
+        logger.warn(
+          `[${assetType}] Worker decode failed, falling back to main thread decode.`,
+          workerError,
+        );
+        buffer = Uint8Array.from(atob(response.data), (c) => c.charCodeAt(0));
+      }
       await unzip({
         fs,
-        extractTo: "",
-        filepaths: ["."],
-        filter: (filepath: string) => !filepath.startsWith("dist/"),
+        extractTo: '', // The zip file itself should contain the destination folder
+        filepaths: ['.'],
+        filter: (filepath: string) => !filepath.startsWith('dist/'),
         onProgress: (event) => {
-          console.log("Unzipping LearningPath assets:", event.filename);
+          // ✅ Use the dynamic assetType parameter for clearer logging
+          logger.info(`Unzipping ${assetType} assets:`, event.filename);
         },
         data: buffer,
       });
 
       // After unzip and extraction
       const configFile = await Filesystem.readFile({
-        path: "remoteAsset/config.json",
+        path: configPath, // ✅ Use dynamic path
         directory: Directory.External,
       });
       const decoded = atob(await this.blobToString(configFile.data));
       const config = JSON.parse(decoded);
-      if (typeof config.riveMax === "number") {
+
+      // Important Note: Decide if this logic applies to BOTH asset types
+      if (typeof config.riveMax === 'number') {
         localStorage.setItem(
           CHIMPLE_RIVE_STATE_MACHINE_MAX,
-          config.riveMax.toString()
+          config.riveMax.toString(),
         );
       }
       this.setGameUrl(androidPath);
       return true;
     } catch (err) {
-      console.error("Unexpected error in DownloadLearningPathAssets:", err);
+      logger.error(
+        `Unexpected error in DownloadRemoteAssets for ${assetType}:`,
+        err,
+      );
       return false;
     }
   }
 
   public static async deleteDownloadedLesson(
-    lessonIds: string[]
+    lessonIds: string[],
   ): Promise<boolean> {
     try {
       const lessonData = JSON.parse(
-        localStorage.getItem("downloaded_lessons_size") || "{}"
+        localStorage.getItem('downloaded_lessons_size') || '{}',
       );
       for (const lessonId of lessonIds) {
         const lessonPath = `${lessonId}`;
@@ -714,14 +854,14 @@ export class Util {
         // Remove the lesson and size from the single object in localStorage
         delete lessonData[lessonId];
         localStorage.setItem(
-          "downloaded_lessons_size",
-          JSON.stringify(lessonData)
+          'downloaded_lessons_size',
+          JSON.stringify(lessonData),
         );
 
         this.removeLessonIdFromLocalStorage(lessonId, DOWNLOADED_LESSON_ID);
       }
     } catch (error) {
-      console.error("Error deleting lesson:", error);
+      logger.error('Error deleting lesson:', error);
     }
     return false;
   }
@@ -730,21 +870,21 @@ export class Util {
     try {
       // Retrieve all lesson data stored in localStorage
       const lessonData = JSON.parse(
-        localStorage.getItem("downloaded_lessons_size") || "{}"
+        localStorage.getItem('downloaded_lessons_size') || '{}',
       );
 
       await Filesystem.rmdir({
-        path: "/",
+        path: '/',
         directory: Directory.External,
         recursive: true,
       });
 
       // Clear the lessons data from localStorage
-      localStorage.removeItem("downloaded_lessons_size");
+      localStorage.removeItem('downloaded_lessons_size');
       localStorage.removeItem(DOWNLOADED_LESSON_ID);
       return true;
     } catch (error) {
-      console.error("Error deleting all lessons:", error);
+      logger.error('Error deleting all lessons:', error);
       return false;
     }
   }
@@ -764,7 +904,7 @@ export class Util {
         if (!Capacitor.isNativePlatform()) return null;
 
         const contents = await Filesystem.readdir({
-          path: "",
+          path: '',
           directory: Directory.External,
         });
 
@@ -776,12 +916,12 @@ export class Util {
         localStorage.setItem(DOWNLOADED_LESSON_ID, JSON.stringify([]));
         this.storeLessonIdToLocalStorage(
           folderNamesArray,
-          DOWNLOADED_LESSON_ID
+          DOWNLOADED_LESSON_ID,
         );
         lastRendered = new Date().getTime();
         localStorage.setItem(LAST_FUNCTION_CALL, lastRendered.toString());
       } catch (error) {
-        console.error("Error listing folders:", error);
+        logger.error('Error listing folders:', error);
         return null;
       }
 
@@ -790,24 +930,23 @@ export class Util {
 
   public static async isChapterDownloaded(chapterId: string): Promise<boolean> {
     const chapterLessonIdMap = JSON.parse(
-      localStorage.getItem(CHAPTER_ID_LESSON_ID_MAP) || "{}"
+      localStorage.getItem(CHAPTER_ID_LESSON_ID_MAP) || '{}',
     );
     const downloadedLessonIds = JSON.parse(
-      localStorage.getItem(DOWNLOADED_LESSON_ID) || "[]"
+      localStorage.getItem(DOWNLOADED_LESSON_ID) || '[]',
     );
-    let lessonIdsForChapter = chapterLessonIdMap[chapterId];
-    if (!lessonIdsForChapter) {
-      const api = ServiceConfig.getI().apiHandler;
-      const storedLessonDoc = await api.getLessonsForChapter(chapterId);
-      lessonIdsForChapter = storedLessonDoc.map((id) => id.cocos_lesson_id);
-      chapterLessonIdMap[chapterId] = lessonIdsForChapter;
-      localStorage.setItem(
-        CHAPTER_ID_LESSON_ID_MAP,
-        JSON.stringify(chapterLessonIdMap)
-      );
-    }
+    const api = ServiceConfig.getI().apiHandler;
+    const storedLessonDoc = await api.getLessonsForChapter(chapterId);
+    const lessonIdsForChapter = storedLessonDoc
+      .map((lesson) => Util.getLessonBundleId(lesson))
+      .filter((lessonId): lessonId is string => Boolean(lessonId));
+    chapterLessonIdMap[chapterId] = lessonIdsForChapter;
+    localStorage.setItem(
+      CHAPTER_ID_LESSON_ID_MAP,
+      JSON.stringify(chapterLessonIdMap),
+    );
     const allLessonIdsDownloaded = lessonIdsForChapter.every(
-      (lessonId: string) => downloadedLessonIds.includes(lessonId)
+      (lessonId: string) => downloadedLessonIds.includes(lessonId),
     );
     return !allLessonIdsDownloaded;
   }
@@ -823,76 +962,11 @@ export class Util {
     return JSON.stringify(value);
   }
 
-  public static async launchCocosGame(): Promise<void> {
-    try {
-      if (!window.cc) {
-        return;
-      }
-      const settings = window._CCSettings;
-      const launchScene = settings.launchScene;
-      const bundle = window.cc.assetManager.bundles.find(function (b) {
-        return b.getSceneInfo(launchScene);
-      });
-
-      await new Promise((resolve, reject) => {
-        bundle.loadScene(launchScene, null, null, function (err, scene) {
-          if (!err) {
-            window.cc.director.runSceneImmediate(scene);
-            if (window.cc.sys.isBrowser) {
-              Util.checkingIfGameCanvasAvailable();
-              // show canvas
-              var canvas = document.getElementById("GameCanvas");
-              if (canvas) {
-                canvas.style.visibility = "";
-                canvas.style.display = "";
-              }
-              const container = document.getElementById("Cocos2dGameContainer");
-              if (container) {
-                container.style.display = "";
-                container.style.width = "100%";
-                container.style.height = "100%";
-              }
-              var div = document.getElementById("GameDiv");
-              if (div) {
-                div.style.backgroundImage = "";
-              }
-            }
-            resolve(scene);
-          } else {
-            reject(err);
-          }
-        });
-      });
-    } catch (error) {
-      console.error("launchCocosGame(): error ", error);
-    }
-  }
-
-  public static killCocosGame(): void {
-    if (!window.cc) {
-      return;
-    }
-    window.cc.game.pause();
-    window.cc.audioEngine.stopAll();
-    const canvas = document.getElementById("GameCanvas");
-    if (canvas) {
-      canvas.style.visibility = "none";
-      canvas.style.display = "none";
-    }
-    const container = document.getElementById("Cocos2dGameContainer");
-    if (container) {
-      container.style.display = "none";
-      container.style.width = "0px";
-      container.style.height = "0px";
-      container.style.overflow = "hidden";
-    }
-  }
-
   public static async getLastPlayedLessonIndex(
     subjectCode: string,
     lessons: curriculamInterfaceLesson[],
     chapters: curriculamInterfaceChapter[] = [],
-    lessonResultMap: { [key: string]: TableTypes<"result"> } = {}
+    lessonResultMap: { [key: string]: TableTypes<'result'> } = {},
   ): Promise<number> {
     const currentLessonJson = localStorage.getItem(CURRENT_LESSON_LEVEL());
     let currentLessonLevel: any = {};
@@ -902,54 +976,44 @@ export class Util {
     const currentLessonId = currentLessonLevel[subjectCode];
     if (currentLessonId) {
       const lessonIndex: number = lessons.findIndex(
-        (lesson: any) => lesson.id === currentLessonId
+        (lesson: any) => lesson.id === currentLessonId,
       );
       if (lessonIndex >= 0) return lessonIndex;
     }
 
     if (subjectCode === COURSES.PUZZLE) {
-      // let currentIndex = -1;
       if (Object.keys(lessonResultMap).length <= 0) return 0;
       const currentIndex = Util.getLastPlayedLessonIndexForLessons(
         lessons,
-        lessonResultMap
+        lessonResultMap,
       );
-      // for (let i = 0; i < lessons.length; i++) {
-      //   if (lessonResultMap[lessons[i].id]) {
-      //     currentIndex = i;
-      //   }
-      // }
+
       return currentIndex <= 0 ? -1 : currentIndex;
     }
     const apiInstance = OneRosterApi.getInstance();
-    const preQuiz = lessonResultMap[subjectCode + "_" + PRE_QUIZ];
+    const preQuiz = lessonResultMap[subjectCode + '_' + PRE_QUIZ];
     if (!preQuiz) return -1;
     const tempLevelChapter = await apiInstance.getChapterForPreQuizScore(
       subjectCode,
       preQuiz.score ?? 0,
-      chapters
+      chapters,
     );
-    // let tempCurrentIndex = 0;
-    // for (let i = 0; i < tempLevelChapter.lessons.length; i++) {
-    //   if (lessonResultMap[tempLevelChapter.lessons[i].id]) {
-    //     tempCurrentIndex = i;
-    //   }
-    // }
+
     const tempCurrentIndex = Util.getLastPlayedLessonIndexForLessons(
       tempLevelChapter.lessons,
-      lessonResultMap
+      lessonResultMap,
     );
     let currentIndex: number = lessons.findIndex(
       (lesson: any) =>
-        lesson.id === tempLevelChapter.lessons[tempCurrentIndex].id
+        lesson.id === tempLevelChapter.lessons[tempCurrentIndex].id,
     );
-    // currentIndex--;
+
     return currentIndex < 0 ? 0 : currentIndex;
   }
 
   public static getLastPlayedLessonIndexForLessons(
     lessons: curriculamInterfaceLesson[],
-    lessonResultMap: { [key: string]: TableTypes<"result"> } = {}
+    lessonResultMap: { [key: string]: TableTypes<'result'> } = {},
   ): number {
     let tempCurrentIndex = 0;
     for (let i = 0; i < lessons.length; i++) {
@@ -960,7 +1024,7 @@ export class Util {
     return tempCurrentIndex;
   }
 
-  public static getCourseByGrade(courseId): string {
+  public static getCourseByGrade(courseId: string): string {
     let selectedGrade = localStorage.getItem(SELECTED_GRADE());
     let gradeMap = {};
     if (!selectedGrade) {
@@ -970,28 +1034,16 @@ export class Util {
     }
 
     return courseId;
-
-    // if (courseId === HEADERLIST.ENGLISH) {
-    //   return gradeMap[HEADERLIST.ENGLISH] === SL_GRADES.GRADE1
-    //     ? COURSES.ENGLISH_G1
-    //     : COURSES.ENGLISH_G2;
-    // } else if (courseId === HEADERLIST.MATHS) {
-    //   return gradeMap[HEADERLIST.MATHS] === SL_GRADES.GRADE1
-    //     ? COURSES.MATHS_G1
-    //     : COURSES.MATHS_G2;
-    // } else {
-    //   return courseId;
-    // }
   }
 
-  public static async showLog(msg): Promise<void> {
-    if (Capacitor.getPlatform() !== "android") return;
-    if (typeof msg !== "string") {
+  public static async showLog(msg: string | object): Promise<void> {
+    if (Capacitor.getPlatform() !== 'android') return;
+    if (typeof msg !== 'string') {
       msg = JSON.stringify(msg);
     }
     await Toast.show({
       text: msg,
-      duration: "long",
+      duration: 'long',
     });
   }
 
@@ -999,23 +1051,34 @@ export class Util {
     eventName: EVENTS,
     params: {
       [key: string]: any;
-    }
+    },
   ) {
     try {
+      const baseContext = buildGlobalEventBaseContext();
+      const mergedParams = {
+        ...baseContext,
+        ...params,
+      };
       const normalizedParams: { [key: string]: string } = Object.fromEntries(
-        Object.entries(params).map(([key, value]) => [
+        Object.entries(mergedParams).map(([key, value]) => [
           key,
-          typeof value === "number" ? value.toString() : String(value),
-        ])
+          String(value),
+        ]),
       );
       //Setting User Id in User Properites
       await FirebaseAnalytics.setUserId({
-        userId: params.user_id,
+        userId: normalizedParams.user_id,
       });
-      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-      Util.port.shareUserId({ userId: params.user_id });
+      try {
+        if (!Util.port) Util.port = registerPlugin<PortPlugin>('Port');
+        await Promise.resolve(
+          Util.port.shareUserId({ userId: normalizedParams.user_id }),
+        );
+      } catch (e) {
+        logger.warn('Port.shareUserId skipped:', e);
+      }
       await FirebaseCrashlytics.setUserId({
-        userId: params.user_id,
+        userId: normalizedParams.user_id,
       });
 
       await FirebaseAnalytics.setScreenName({
@@ -1025,49 +1088,41 @@ export class Util {
 
       await FirebaseAnalytics.logEvent({
         name: eventName,
-        params: params,
+        params: normalizedParams,
       });
     } catch (error) {
-      console.error(
-        "Error logging event to firebase analytics ",
+      logger.error(
+        'Error logging event to firebase analytics ',
         eventName,
-        ":",
-        error
+        ':',
+        error,
       );
     }
   }
-  public static async setUserProperties(currentUser: TableTypes<"user">) {
+  public static async setUserProperties(currentUser: TableTypes<'user'>) {
     try {
       await FirebaseAnalytics.setUserProperty({
-        name: "parent user_id",
+        name: 'parent user_id',
         value: currentUser.id,
       });
       await FirebaseAnalytics.setUserProperty({
-        name: "name",
-        value: currentUser.name ?? "",
+        name: 'name',
+        value: currentUser.name ?? '',
       });
       await FirebaseAnalytics.setUserProperty({
-        name: "age",
-        value: currentUser.age?.toLocaleString() || "",
+        name: 'age',
+        value: currentUser.age?.toLocaleString() || '',
       });
       await FirebaseAnalytics.setUserProperty({
-        name: "gender",
-        value: currentUser.gender?.toLocaleString() || "",
+        name: 'gender',
+        value: currentUser.gender?.toLocaleString() || '',
       });
-      // await FirebaseAnalytics.setUserProperty({
-      //   name: "user_type",
-      //   value: currentUser.role,
-      // });
-      // await FirebaseAnalytics.setUserProperty({
-      //   name: "username",
-      //   value: currentUser.username,
-      // });
     } catch (error) {
-      console.error("Set User Properties Error ", error);
+      logger.error('Set User Properties Error ', error);
     }
   }
 
-  public static async logCurrentPageEvents(user: TableTypes<"user">) {
+  public static async logCurrentPageEvents(user: TableTypes<'user'>) {
     //Setting User Id in User Properites
     await FirebaseAnalytics.setUserId({
       userId: user.id,
@@ -1082,11 +1137,11 @@ export class Util {
     });
   }
 
-  public static onAppStateChange = ({ isActive }) => {
-    // Existing logic for stopping TextToSpeech when app is inactive
+  public static onAppStateChange = ({ isActive }: { isActive: boolean }) => {
     if (!isActive) {
-      TextToSpeech.stop();
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
     }
+    logger.info('[Lifecycle] App state changed', { isActive });
 
     // Handling app state changes (reloading pages, updating URLs, etc.)
     const url = new URL(window.location.toString());
@@ -1102,8 +1157,7 @@ export class Util {
     if (isActive) {
       if (
         Capacitor.isNativePlatform() &&
-        url.searchParams.get(CONTINUE) === "true" &&
-        url.pathname !== PAGES.GAME &&
+        url.searchParams.get(CONTINUE) === 'true' &&
         url.pathname !== PAGES.LOGIN &&
         url.pathname !== PAGES.EDIT_STUDENT
       ) {
@@ -1111,144 +1165,16 @@ export class Util {
           url.pathname === PAGES.DISPLAY_SUBJECTS ||
           url.pathname === PAGES.DISPLAY_CHAPTERS
         ) {
-          url.searchParams.set("isReload", "true");
+          url.searchParams.set('isReload', 'true');
         }
         url.searchParams.delete(CONTINUE);
-        window.history.replaceState(window.history.state, "", url.toString());
+        window.history.replaceState(window.history.state, '', url.toString());
         window.location.reload();
       } else {
-        url.searchParams.set("isReload", "true");
+        url.searchParams.set('isReload', 'true');
         url.searchParams.delete(CONTINUE);
-        window.history.replaceState(window.history.state, "", url.toString());
-        Util.checkingIfGameCanvasAvailable();
+        window.history.replaceState(window.history.state, '', url.toString());
       }
-    }
-    // Util.handleAppStateChange(isActive);
-  };
-
-  public static checkingIfGameCanvasAvailable = async (): Promise<boolean> => {
-    try {
-      const canvas = document.getElementById("GameCanvas") as HTMLCanvasElement;
-
-      if (canvas) {
-        const gl = canvas.getContext("webgl") as WebGLRenderingContext | null;
-
-        if (!gl) {
-          console.error("WebGL is not supported on this device or browser.");
-          return false;
-        }
-
-        // Helper function to create and validate shaders
-        const createAndValidateShader = (
-          type: GLenum,
-          source: string
-        ): WebGLShader | null => {
-          const shader = gl.createShader(type);
-          if (!shader) {
-            console.error("Failed to create shader.");
-            return null;
-          }
-          gl.shaderSource(shader, source);
-          gl.compileShader(shader);
-
-          // Check for shader compilation errors
-          if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            console.error(
-              `Error compiling shader: ${gl.getShaderInfoLog(shader)}`
-            );
-            gl.deleteShader(shader);
-            return null;
-          }
-
-          return shader;
-        };
-
-        // Example vertex and fragment shader source code
-        const vertexShaderSource = `
-          attribute vec4 position;
-          void main() {
-            gl_Position = position;
-          }
-        `;
-
-        const fragmentShaderSource = `
-          precision mediump float;
-          void main() {
-            gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red color
-          }
-        `;
-
-        // Create and validate shaders
-        const vertexShader = createAndValidateShader(
-          gl.VERTEX_SHADER,
-          vertexShaderSource
-        );
-        const fragmentShader = createAndValidateShader(
-          gl.FRAGMENT_SHADER,
-          fragmentShaderSource
-        );
-
-        if (!vertexShader || !fragmentShader) {
-          console.error("Shader creation or validation failed.");
-          return false;
-        }
-
-        // Handle WebGL context lost
-        canvas.addEventListener(
-          "webglcontextlost",
-          (event) => {
-            try {
-              console.error("WebGL context lost detected.");
-              event.preventDefault(); // Prevent the browser from handling context loss
-              const webglContext = canvas.getContext(
-                "webgl"
-              ) as WebGLRenderingContext | null;
-
-              if (webglContext) {
-                const rest = webglContext.getExtension("WEBGL_lose_context");
-
-                // If the context cannot be restored, reload the page
-                if (!rest) {
-                  console.error(
-                    "Unable to restore WebGL context. Reloading page..."
-                  );
-                  window.location.reload();
-                }
-              }
-            } catch (error) {
-              console.error("Error handling webglcontextlost:", error);
-            }
-          },
-          false
-        );
-
-        // Handle WebGL context restored
-        canvas.addEventListener(
-          "webglcontextrestored",
-          (event) => {
-            try {
-              event.preventDefault(); // Prevent the browser from restoring automatically
-              const webglContext = canvas.getContext(
-                "webgl"
-              ) as WebGLRenderingContext | null;
-
-              if (webglContext) {
-              }
-            } catch (error) {
-              console.error("Error handling webglcontextrestored:", error);
-            }
-          },
-          false
-        );
-
-        return true; // Return true if canvas exists and WebGL is initialized
-      } else {
-        console.warn("GameCanvas element not found.");
-        return false;
-      }
-    } catch (error) {
-      console.error("Error in checkingIfGameCanvasAvailable:", error);
-      return false;
     }
   };
 
@@ -1262,43 +1188,24 @@ export class Util {
   }
 
   public static switchToOpsUser(history: any): void {
-    localStorage.setItem(IS_OPS_USER, "true");
+    store.dispatch(setIsOpsUser(true));
     ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
     schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
     history.replace(PAGES.SIDEBAR_PAGE);
   }
 
   public static setCurrentStudent = async (
-    student: TableTypes<"user"> | null,
+    student: TableTypes<'user'> | null,
     languageCode?: string,
     langFlag: boolean = true,
-    isStudent: boolean = true
+    isStudent: boolean = true,
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentStudent = student !== null ? student : undefined;
 
-    localStorage.setItem(
-      CURRENT_STUDENT,
-      JSON.stringify(student)
-      // JSON.stringify({
-      //   age: student?.age ?? null,
-      //   avatar: student?.avatar ?? null,
-      //   board: student?.board ?? null,
-      //   courses: student?.courses,
-      //   createdAt: student?.createdAt,
-      //   updatedAt: student?.updatedAt,
-      //   gender: student?.gender ?? null,
-      //   grade: student?.grade ?? null,
-      //   image: student?.image ?? null,
-      //   language: student?.language ?? null,
-      //   name: student?.name,
-      //   role: student?.role,
-      //   uid: student?.uid,
-      //   rewards: student?.rewards,
-      //   username: student?.username,
-      //   users: student?.users,
-      //   docId: student?.id,
-      // })
+    localStorage.setItem(CURRENT_STUDENT, JSON.stringify(student));
+    window.dispatchEvent(
+      new CustomEvent(CURRENT_STUDENT_CHANGED_EVENT, { detail: student }),
     );
 
     if (!languageCode && !!student?.language_id) {
@@ -1310,27 +1217,20 @@ export class Util {
     const tempLangCode = languageCode ?? LANG.ENGLISH;
     if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
-
-    //Setting Student Id in User Properites
-    // if (student)
-    //   await FirebaseAnalytics.setUserId({
-    //     userId: student?.id,
-    //   });
-    // if (student) await Util.setUserProperties(student);
   };
 
-  public static randomBetween(min, max) {
+  public static randomBetween(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
-  public static isEmail(username) {
+  public static isEmail(username: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValid = emailRegex.test(username);
     return isValid;
   }
   public static async subscribeToClassTopic(
     classId: string,
-    schoolId: string
+    schoolId: string,
   ): Promise<void> {
     const classToken = `${classId}-assignments`;
     const schoolToken = `${schoolId}-assignments`;
@@ -1365,31 +1265,8 @@ export class Util {
   }
 
   public static async subscribeToClassTopicForAllStudents(
-    currentUser: TableTypes<"user">
-  ): Promise<void> {
-    // if (!Capacitor.isNativePlatform()) return;
-    // const students: DocumentReference[] = currentUser.users;
-    // if (!students || students.length < 1) return;
-    // const api = ServiceConfig.getI().apiHandler;
-    // for (let studentRef of students) {
-    //   if (!studentRef.id) continue;
-    //   api.getStudentResult(studentRef.id).then((studentProfile) => {
-    //     if (
-    //       !!studentProfile &&
-    //       !!studentProfile.classes &&
-    //       studentProfile.classes.length > 0 &&
-    //       studentProfile.classes.length === studentProfile.schools.length
-    //     ) {
-    //       for (let i = 0; i < studentProfile.classes.length; i++) {
-    //         const classId = studentProfile.classes[i];
-    //         const schoolId = studentProfile.schools[i];
-    //         if (!this.isClassTokenSubscribed(classId))
-    //           this.subscribeToClassTopic(classId, schoolId);
-    //       }
-    //     }
-    //   });
-    // }
-  }
+    currentUser: TableTypes<'user'>,
+  ): Promise<void> {}
 
   public static isClassTokenSubscribed(classId: string): boolean {
     const subscribedTokens = localStorage.getItem(FCM_TOKENS);
@@ -1398,7 +1275,7 @@ export class Util {
       tokens = JSON.parse(subscribedTokens) ?? [];
     }
     const foundToken = tokens.find((token: string) =>
-      token.startsWith(classId)
+      token.startsWith(classId),
     );
     return !!foundToken;
   }
@@ -1420,20 +1297,25 @@ export class Util {
     return result.token;
   }
 
-  public static isTextFieldFocus(scollToRef, setIsInputFocus) {
+  public static isTextFieldFocus(
+    scollToRef: {
+      current?: { scrollIntoView: (options: ScrollIntoViewOptions) => void };
+    },
+    setIsInputFocus: (isFocused: boolean) => void,
+  ) {
     if (Capacitor.isNativePlatform()) {
-      Keyboard.addListener("keyboardWillShow", (info) => {
+      Keyboard.addListener('keyboardWillShow', (info) => {
         setIsInputFocus(true);
 
         setTimeout(() => {
           scollToRef.current?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-            inline: "nearest",
+            behavior: 'smooth',
+            block: 'start',
+            inline: 'nearest',
           });
         }, 50);
       });
-      Keyboard.addListener("keyboardWillHide", () => {
+      Keyboard.addListener('keyboardWillHide', () => {
         setIsInputFocus(false);
       });
     }
@@ -1460,9 +1342,9 @@ export class Util {
         }
       }
     } catch (error) {
-      console.error(
-        "🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ error:",
-        JSON.stringify(error)
+      logger.error(
+        '🚀 ~ file: util.ts:482 ~ startFlexibleUpdate ~ error:',
+        JSON.stringify(error),
       );
     }
   }
@@ -1470,20 +1352,20 @@ export class Util {
   public static notificationsCount = 0;
 
   public static async notificationListener(
-    onNotification: (extraData?: object) => void
+    onNotification: (extraData?: object) => void,
   ) {
     if (!Capacitor.isNativePlatform()) return;
     try {
       FirebaseMessaging.addListener(
-        "notificationReceived",
+        'notificationReceived',
         async ({ notification }) => {
           try {
             const res = await LocalNotifications.schedule({
               notifications: [
                 {
                   id: Util.notificationsCount++,
-                  body: notification.body ?? "",
-                  title: notification.title ?? "Chimple",
+                  body: notification.body ?? '',
+                  title: notification.title ?? 'Chimple',
                   attachments: !!notification.image
                     ? [{ id: notification.image, url: notification.image }]
                     : undefined,
@@ -1492,29 +1374,29 @@ export class Util {
               ],
             });
             LocalNotifications.addListener(
-              "localNotificationActionPerformed",
+              'localNotificationActionPerformed',
               (notification) => {
                 const extraData = notification.notification.extra;
                 onNotification(extraData);
-              }
+              },
             );
           } catch (error) {
-            console.error(
-              "🚀 ~ file: util.ts:630 ~ error:",
-              JSON.stringify(error)
+            logger.error(
+              '🚀 ~ file: util.ts:630 ~ error:',
+              JSON.stringify(error),
             );
           }
-        }
+        },
       );
       const canCheckPermission = Util.canCheckUpdate(LAST_PERMISSION_CHECKED);
       if (!canCheckPermission) return;
       const result = await FirebaseMessaging.checkPermissions();
-      if (result.receive === "granted") return;
+      if (result.receive === 'granted') return;
       await FirebaseMessaging.requestPermissions();
     } catch (error) {
-      console.error(
-        "🚀 ~ file: util.ts:514 ~ checkNotificationPermissionsAndType ~ error:",
-        JSON.stringify(error)
+      logger.error(
+        '🚀 ~ file: util.ts:514 ~ checkNotificationPermissionsAndType ~ error:',
+        JSON.stringify(error),
       );
     }
   }
@@ -1526,7 +1408,9 @@ export class Util {
       const rewardProfileId = data.rewardProfileId;
       if (rewardProfileId)
         if (currentStudent?.id === rewardProfileId) {
-          window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+          replaceWithNavigationTarget(
+            PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME,
+          );
         } else {
           await this.setCurrentStudent(null);
           const students = await api.getParentStudentProfiles();
@@ -1534,13 +1418,15 @@ export class Util {
             students.find((user) => user.id === rewardProfileId) || students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.HOME);
+            replaceWithNavigationTarget(
+              PAGES.HOME + '?tab=' + HOMEHEADERLIST.HOME,
+            );
           } else {
             return;
           }
         }
     } else if (data && data.notificationType === ASSIGNMENT_TYPE.ASSIGNMENT) {
-      sessionStorage.setItem(ASSIGNMENT_POPUP_SHOWN, "false");
+      sessionStorage.setItem(ASSIGNMENT_POPUP_SHOWN, 'false');
       if (data.classId) {
         const classId = data.classId;
         if (!classId) return;
@@ -1552,9 +1438,6 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            window.location.replace(
-              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
-            );
             foundMatch = true;
             break;
           }
@@ -1567,19 +1450,19 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(
-              PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+            replaceWithNavigationTarget(
+              PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
             );
           }
         } else {
-          window.location.replace(
-            PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT
+          replaceWithNavigationTarget(
+            PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT,
           );
           return;
         }
       }
     } else if (data && data.notificationType === ASSIGNMENT_TYPE.LIVEQUIZ) {
-      sessionStorage.setItem(QUIZ_POPUP_SHOWN, "false");
+      sessionStorage.setItem(QUIZ_POPUP_SHOWN, 'false');
       if (data.classId) {
         const classId = data.classId;
         const studentsData = await api.getStudentsForClass(classId);
@@ -1590,10 +1473,10 @@ export class Util {
         let foundMatch = false;
         for (let studentId of tempStudentIds) {
           if (currentStudent?.id === studentId) {
-            window.location.replace(
+            replaceWithNavigationTarget(
               data.assignmentId
                 ? PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${data.assignmentId}`
-                : PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ
+                : PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
             );
             foundMatch = true;
             break;
@@ -1607,13 +1490,15 @@ export class Util {
             students[0];
           if (matchingUser) {
             await this.setCurrentStudent(matchingUser, undefined, true);
-            window.location.replace(
-              PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ
+            replaceWithNavigationTarget(
+              PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
             );
           }
         }
       } else {
-        window.location.replace(PAGES.HOME + "?tab=" + HOMEHEADERLIST.LIVEQUIZ);
+        replaceWithNavigationTarget(
+          PAGES.HOME + '?tab=' + HOMEHEADERLIST.LIVEQUIZ,
+        );
         return;
       }
     }
@@ -1630,10 +1515,10 @@ export class Util {
       localStorage.setItem(updateFor, now.toString());
       return true;
     }
-    const lessThanOneHourAgo = (date) => {
-      const now: any = new Date();
+    const lessThanOneHourAgo = (date: Date): boolean => {
+      const now = new Date();
       const ONE_HOUR = 60 * 60 * 1000; /* ms */
-      const res = now - date < ONE_HOUR;
+      const res = now.getTime() - date.getTime() < ONE_HOUR;
       return res;
     };
     const _canCheckUpdate = !lessThanOneHourAgo(lastUpdateChecked);
@@ -1643,36 +1528,20 @@ export class Util {
     return _canCheckUpdate;
   }
 
-  public static listenToNetwork() {
-    // try {
-    //   const _db = getFirestore();
-    //   if (navigator.onLine) {
-    //     enableNetwork(_db);
-    //   } else {
-    //     disableNetwork(_db);
-    //   }
-    //   window.addEventListener("online", (e) => {
-    //     enableNetwork(_db);
-    //   });
-    //   window.addEventListener("offline", (e) => {
-    //     disableNetwork(_db);
-    //   });
-    // } catch (err) {
-    // }
-  }
+  public static listenToNetwork() {}
 
   public static async showInAppReview() {
     try {
       await InAppReview.requestReview();
     } catch (error) {
-      console.error(
-        "🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:",
-        JSON.stringify(error)
+      logger.error(
+        '🚀 ~ file: util.ts:694 ~ showInAppReview ~ error:',
+        JSON.stringify(error),
       );
     }
   }
   public static async fetchNotificationData() {
-    if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+    if (!Util.port) Util.port = registerPlugin<PortPlugin>('Port');
     return Util.port.fetchNotificationData();
   }
   public static async migrate() {
@@ -1683,36 +1552,27 @@ export class Util {
       return { migrated: false };
     const path = await Filesystem.getUri({
       directory: Directory.Data,
-      path: "",
+      path: '',
     });
-    const filePath = path.uri.replace("/files", "/databases/") + "jsb.sqlite";
+    const filePath = path.uri.replace('/files', '/databases/') + 'jsb.sqlite';
     const url = Capacitor.convertFileSrc(filePath);
     const res = await fetch(url);
     const isExists = res.ok;
     if (!isExists) return { migrated: false };
 
     if (!Util.port) {
-      Util.port = registerPlugin<PortPlugin>("Port");
+      Util.port = registerPlugin<PortPlugin>('Port');
     }
     try {
       const port = await Util.port.getMigrateUsers();
       const functions = getFunctions();
-      const migrateUsers = httpsCallable(functions, "MigrateUsers");
+      const migrateUsers = httpsCallable(functions, 'MigrateUsers');
       const result = await migrateUsers({
         users: port.users,
       });
       const res: any = result.data;
-      // if (res.migrated) {
-      //   const _db = getFirestore();
-      //   const newStudents: DocumentReference[] = res.studentIds.map(
-      //     (studentId) => doc(_db, CollectionIds.USER, studentId)
-      //   );
-      //   await Filesystem.deleteFile({ path: filePath });
-      //   localStorage.setItem(IS_MIGRATION_CHECKED, "true");
-      //   return { migrated: true, newStudents: newStudents };
-      // }
     } catch (error) {
-      console.error("🚀 ~ file: util.ts:707 ~ migrate ~ error:", error);
+      logger.error('🚀 ~ file: util.ts:707 ~ migrate ~ error:', error);
       return { migrated: false };
     }
   }
@@ -1728,17 +1588,12 @@ export class Util {
       const student = await Util.getCurrentStudent();
 
       if (!student) {
-        console.error("Student is undefined or null");
+        logger.error('Student is undefined or null');
         return false;
       }
 
       const api = ServiceConfig.getI().apiHandler;
       const studentResult = await api.getStudentClassesAndSchools(student.id);
-
-      // if (!studentResult || studentResult.classes.length === 0) {
-      //   console.error("Student result is undefined or classes array is empty");
-      //   return false;
-      // }
 
       if (
         studentResult &&
@@ -1748,19 +1603,12 @@ export class Util {
         return true;
       }
 
-      // if (studentResult.last5Lessons && Object.keys(studentResult.last5Lessons).length > 0) {
-      //   return false;
-      // }
-
       // If Remote Config allows showing avatar, return true
       const canShowAvatarValue = false;
-      // await RemoteConfig.getBoolean(
-      //   REMOTE_CONFIG_KEYS.CAN_SHOW_AVATAR
-      // );
 
       return canShowAvatarValue;
     } catch (error) {
-      console.error("Error in getCanShowAvatar:", error);
+      logger.error('Error in getCanShowAvatar:', error);
       return false;
     }
   }
@@ -1768,13 +1616,9 @@ export class Util {
     newFileURL: string,
     oldFilePath: string,
     newFilePathLocation: string,
-    localStorageNameForFilePath: string
+    localStorageNameForFilePath: string,
   ) {
     try {
-      // if (!Capacitor.isNativePlatform()) {
-      //   return;
-      // }
-
       if (!newFileURL) {
         return;
       }
@@ -1798,32 +1642,35 @@ export class Util {
         encoding: Encoding.UTF8,
         recursive: true,
       });
-      localStorage.setItem(
-        localStorageNameForFilePath,
-        res.uri
-        // res.uri.slice(1, res.uri.length)
-      );
+      localStorage.setItem(localStorageNameForFilePath, res.uri);
     } catch (error) {
-      console.error("Json File Migration failed ", error);
+      logger.error('Json File Migration failed ', error);
 
       throw error;
     }
   }
 
   public static async getNextUnlockStickers(): Promise<
-    TableTypes<"sticker">[]
+    TableTypes<'sticker'>[]
   > {
     const date = new Date();
     const api = ServiceConfig.getI().apiHandler;
     const rewardsDoc = await api.getRewardsById(
       date.getFullYear(),
-      "weeklySticker"
+      'weeklySticker',
     );
     if (!rewardsDoc) return [];
     const currentWeek = Util.getCurrentWeekNumber();
     const stickerIds: string[] = [];
     const weeklyData = rewardsDoc.weeklySticker;
-    weeklyData?.[currentWeek.toString()]?.forEach((value) => {
+    const parsedWeeklyData: Record<string, { type: string; id: string }[]> =
+      typeof weeklyData === 'string'
+        ? JSON.parse(weeklyData)
+        : typeof weeklyData === 'object' && weeklyData !== null
+          ? (weeklyData as Record<string, { type: string; id: string }[]>)
+          : {};
+    const weeklyRewards = parsedWeeklyData[currentWeek.toString()] ?? [];
+    weeklyRewards.forEach((value: { type: string; id: string }) => {
       if (value.type === LeaderboardRewardsType.STICKER) {
         stickerIds.push(value.id);
       }
@@ -1876,46 +1723,31 @@ export class Util {
       const date = new Date();
       const rewardsDoc = await api.getRewardsById(
         date.getFullYear(),
-        "weeklySticker"
+        'weeklySticker',
       );
       if (!rewardsDoc) return false;
       const currentWeek = Util.getCurrentWeekNumber();
       const weeklyData = rewardsDoc.weeklySticker;
       let currentReward;
 
-      weeklyData?.[currentWeek.toString()].forEach(async (value) => {
+      const parsedWeeklyData: Record<string, { type: string; id: string }[]> =
+        typeof weeklyData === 'string'
+          ? JSON.parse(weeklyData)
+          : typeof weeklyData === 'object' && weeklyData !== null
+            ? (weeklyData as Record<string, { type: string; id: string }[]>)
+            : {};
+      const weeklyRewards = parsedWeeklyData[currentWeek.toString()] ?? [];
+      weeklyRewards.forEach(async (value: { type: string; id: string }) => {
         currentReward = value;
       });
-      // if (!currentUser.rewards) {
-      //   let leaderboardReward: LeaderboardRewards = {
-      //     badges: [],
-      //     bonus: [],
-      //     sticker: [],
-      //   };
-      //   currentUser.rewards = leaderboardReward;
-      // }
-      // if (!currentUser.rewards.sticker) {
-      //   currentUser.rewards.sticker = [];
-      // }
+
       if (!currentReward) {
         return false;
       }
-      // let canPushCurrentReward = true;
-      // for (let i = 0; i < currentUser.rewards.sticker.length; i++) {
-      //   const element = currentUser.rewards.sticker[i];
-      //   if (element.id === currentReward.id) {
-      //     canPushCurrentReward = false;
-      //   }
-      // }
-      // if (canPushCurrentReward)
-      //   currentUser.rewards.sticker.push({
-      //     id: currentReward.id,
-      //     seen: false,
-      //   });
-      // await api.updateRewardsForStudent(currentUser.id, currentUser.rewards);
+
       return true;
     } catch (error) {
-      console.error("unlockWeeklySticker() error ", error);
+      logger.error('unlockWeeklySticker() error ', error);
       return false;
     }
   }
@@ -1923,72 +1755,26 @@ export class Util {
   public static async getAllUnlockedRewards(): Promise<
     unlockedRewardsInfo[] | undefined
   > {
-    //   await this.getStudentFromServer();
-    //   const api = ServiceConfig.getI().apiHandler;
-    //   const currentStudent = this.getCurrentStudent();
-    //   if (!currentStudent || !currentStudent.rewards) return;
-    //   const processRewards = async (
-    //     rewards: any[],
-    //     type: LeaderboardRewardsType,
-    //     apiGetter: (id: string) => Promise<any>,
-    //     rewardList: LEADERBOARD_REWARD_LIST
-    //   ) => {
-    //     for (const element of rewards) {
-    //       if (!element.seen) {
-    //         const reward = await apiGetter(element.id);
-    //         if (reward) {
-    //           allUnlockedRewards.push({
-    //             id: element.id,
-    //             type,
-    //             image: reward.image || reward.thumbnail,
-    //             name: reward.name || reward.title,
-    //             leaderboardRewardList: rewardList,
-    //           });
-    //         }
-    //       }
-    //     }
-    //   };
-    //   const allUnlockedRewards: unlockedRewardsInfo[] = [];
-    //   await processRewards(
-    //     currentStudent.rewards.badges || [],
-    //     LeaderboardRewardsType.BADGE,
-    //     (id) => api.getBadgeById(id),
-    //     LEADERBOARD_REWARD_LIST.BADGES
-    //   );
-    //   await processRewards(
-    //     currentStudent.rewards.bonus || [],
-    //     LeaderboardRewardsType.BONUS,
-    //     (id) => api.getLesson(id),
-    //     LEADERBOARD_REWARD_LIST.BONUS
-    //   );
-    //   await processRewards(
-    //     currentStudent.rewards.sticker || [],
-    //     LeaderboardRewardsType.STICKER,
-    //     (id) => api.getStickerById(id),
-    //     LEADERBOARD_REWARD_LIST.STICKER
-    //   );
-    //   return allUnlockedRewards;
     return;
   }
 
   public static async onAppUrlOpen(event: URLOpenListenerEvent) {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     const url = new URL(event.url);
-    const slug = event.url.split(".cc").pop();
+    const slug = event.url.split('.cc').pop();
     // Determine target page for logging
-    let destinationPage = "";
-
+    let destinationPage = '';
+    const newSearchParams = new URLSearchParams(url.search);
+    const currentParams = new URLSearchParams(window.location.search);
+    currentParams.set('classCode', newSearchParams.get('classCode') ?? '');
+    currentParams.set('page', PAGES.JOIN_CLASS);
+    const currentStudent = Util.getCurrentStudent();
     if (slug?.includes(PAGES.ASSIGNMENT)) {
-      destinationPage = PAGES.HOME + "?tab=" + HOMEHEADERLIST.ASSIGNMENT;
+      destinationPage = PAGES.HOME + '?tab=' + HOMEHEADERLIST.ASSIGNMENT;
     } else if (slug?.includes(PAGES.JOIN_CLASS)) {
-      const newSearchParams = new URLSearchParams(url.search);
-      const currentParams = new URLSearchParams(window.location.search);
-      currentParams.set("classCode", newSearchParams.get("classCode") ?? "");
-      currentParams.set("page", PAGES.JOIN_CLASS);
-      const currentStudent = Util.getCurrentStudent();
       destinationPage = currentStudent
-        ? PAGES.HOME + "?" + currentParams.toString()
-        : PAGES.DISPLAY_STUDENT + "?" + currentParams.toString();
+        ? PAGES.HOME + '?' + currentParams.toString()
+        : PAGES.DISPLAY_STUDENT + '?' + currentParams.toString();
     } else {
       // Fallback for other deeplinks
       destinationPage = PAGES.HOME;
@@ -1996,63 +1782,278 @@ export class Util {
 
     await Util.handleDeeplinkClick(
       url,
-      currentUser as TableTypes<"user">,
-      destinationPage
+      currentUser as TableTypes<'user'>,
+      destinationPage,
     );
-
-    if (destinationPage && currentUser) {
-      window.location.replace(destinationPage);
+    if (destinationPage && currentStudent) {
+      replaceWithNavigationTarget(destinationPage);
+    } else {
+      replaceWithNavigationTarget(
+        PAGES.DISPLAY_STUDENT + '?' + currentParams.toString(),
+      );
     }
   }
-  public static addRefreshTokenToLocalStorage(refreshToken: string) {
+  public static addRefreshTokenToStore(refreshToken: string) {
     const data = {
       token: refreshToken,
       savedAt: new Date().toISOString(), // store current date/time in ISO format
     };
-    localStorage.setItem(REFRESH_TOKEN, JSON.stringify(data));
+    try {
+      // store refreshToken in Redux store as JSON string
+      store.dispatch(setRefreshToken(JSON.stringify(data)));
+    } catch (e) {
+      logger.error('Unable to store refresh token to Redux store', e);
+    }
+  }
+
+  // get refresh token from Redux store, if not available or error occurs return null
+  public static getRefreshTokenFromStore(): {
+    token?: string;
+    savedAt?: string;
+  } | null {
+    try {
+      const reduxVal = store.getState()?.auth?.refreshToken;
+      if (!reduxVal) return null;
+      const parsed = JSON.parse(reduxVal);
+      return { token: parsed.token, savedAt: parsed.savedAt };
+    } catch (e) {
+      logger.error('Unable to read refresh token from Redux store', e);
+      return null;
+    }
   }
 
   public static setCurrentSchool = async (
-    school: TableTypes<"school">,
-    role: RoleType
+    school: TableTypes<'school'>,
+    role: RoleType,
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentSchool = school !== null ? school : undefined;
     localStorage.setItem(SCHOOL, JSON.stringify(school));
-    localStorage.setItem(USER_ROLE, JSON.stringify([role]));
+    store.dispatch(addRole(role));
   };
-
-  public static getCurrentSchool(): TableTypes<"school"> | undefined {
+  public static getCurrentSchool(): TableTypes<'school'> | undefined {
     const api = ServiceConfig.getI().apiHandler;
-    if (!!api.currentSchool) return api.currentSchool;
+
+    if (api.currentSchool) {
+      return api.currentSchool;
+    }
+
+    const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
+      const roles = store.getState()?.auth?.roles ?? [];
+      const isOpsUser = store.getState()?.auth?.isOpsUser === true;
+      if (
+        isOpsUser ||
+        [
+          RoleType.SUPER_ADMIN,
+          RoleType.FIELD_COORDINATOR,
+          RoleType.PROGRAM_MANAGER,
+          RoleType.OPERATIONAL_DIRECTOR,
+        ].some((role) => roles.includes(role))
+      ) {
+        return true;
+      }
+      try {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const currentUser = await authHandler.getCurrentUser();
+        if (!currentUser) return false;
+
+        const userId = currentUser.id;
+        const schools = await api.getSchoolsForUser(userId);
+
+        return schools.some((item) => item.school.id === schoolId);
+      } catch (error) {
+        logger.error('Error checking school via user:', error);
+        return false;
+      }
+    };
+
+    const isClassConnected = async (
+      schoolId: string,
+      classId: string,
+    ): Promise<{ classExists: boolean; classCount: number } | undefined> => {
+      try {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const currentUser = await authHandler.getCurrentUser();
+        if (!currentUser) return;
+
+        const userId = currentUser.id;
+
+        const classes = await api.getClassesForSchool(schoolId, userId);
+
+        return {
+          classExists: classes.some((cls) => cls.id === classId),
+          classCount: classes.length,
+        };
+      } catch (error) {
+        logger.error('Error checking class via user:', error);
+        return;
+      }
+    };
+
     const temp = localStorage.getItem(SCHOOL);
     if (!temp) return;
-    const currentSchool = JSON.parse(temp) as TableTypes<"school">;
+
+    const currentSchool = JSON.parse(temp) as TableTypes<'school'>;
     api.currentSchool = currentSchool;
+
+    const storedClass = localStorage.getItem(CLASS);
+    let classId: string | undefined;
+
+    if (storedClass && storedClass !== 'undefined' && storedClass !== 'null') {
+      try {
+        classId =
+          (JSON.parse(storedClass) as TableTypes<'class'> | null)?.id ??
+          undefined;
+      } catch (error) {
+        logger.warn('Failed to parse stored class while validating school', {
+          storedClass,
+          error,
+        });
+      }
+    }
+
+    // SCHOOL CHECK
+    isSchoolConnected(currentSchool.id).then((res) => {
+      if (!res) {
+        api.currentSchool = undefined;
+
+        localStorage.removeItem(SCHOOL);
+        localStorage.removeItem(CLASS);
+        return;
+      }
+
+      // CLASS CHECK
+      if (classId) {
+        isClassConnected(currentSchool.id, classId).then((cls) => {
+          if (!cls) return;
+
+          const { classExists, classCount } = cls;
+
+          if (!classExists) {
+            localStorage.removeItem(CLASS);
+
+            if (classCount === 1) {
+              api.currentSchool = undefined;
+              localStorage.removeItem(SCHOOL);
+            }
+          }
+        });
+      }
+    });
+
     return currentSchool;
   }
 
   public static setCurrentClass = async (
-    classDoc: TableTypes<"class"> | null
+    classDoc: TableTypes<'class'> | null,
   ) => {
     const api = ServiceConfig.getI().apiHandler;
     api.currentClass = classDoc !== null ? classDoc : undefined;
     localStorage.setItem(CLASS, JSON.stringify(classDoc));
   };
 
-  public static getCurrentClass(): TableTypes<"class"> | undefined {
+  public static getCurrentClass(): TableTypes<'class'> | undefined {
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentClass) return api.currentClass;
-    const temp = localStorage.getItem(CLASS);
-    if (!temp || temp === "undefined") return;
+    // 🔹 Try CLASS first, then CURRENT_CLASS as fallback
+    let temp = localStorage.getItem(CLASS);
+    if ((!temp || temp === 'undefined') && CURRENT_CLASS) {
+      temp = localStorage.getItem(CURRENT_CLASS) || null;
+    }
+    if (!temp || temp === 'undefined') return;
 
     try {
-      const currentClass = JSON.parse(temp) as TableTypes<"class">;
+      const currentClass = JSON.parse(temp) as TableTypes<'class'>;
       api.currentClass = currentClass;
       return currentClass;
     } catch (err) {
-      console.error("Failed to parse currentClass from localStorage", err);
+      logger.error('Failed to parse currentClass from localStorage', err);
       return;
+    }
+  }
+
+  public static async validateCurrentSchoolContext(): Promise<void> {
+    const api = ServiceConfig.getI().apiHandler;
+    const currentSchool = Util.getCurrentSchool();
+    const currentClass = Util.getCurrentClass();
+
+    if (!currentSchool) {
+      return;
+    }
+
+    const isSchoolConnected = async (schoolId: string): Promise<boolean> => {
+      const roles = store.getState()?.auth?.roles ?? [];
+      const isOpsUser = store.getState()?.auth?.isOpsUser === true;
+      if (
+        isOpsUser ||
+        [
+          RoleType.SUPER_ADMIN,
+          RoleType.FIELD_COORDINATOR,
+          RoleType.PROGRAM_MANAGER,
+          RoleType.OPERATIONAL_DIRECTOR,
+        ].some((role) => roles.includes(role))
+      ) {
+        return true;
+      }
+      try {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const currentUser = await authHandler.getCurrentUser();
+        if (!currentUser) return false;
+
+        const schools = await api.getSchoolsForUser(currentUser.id);
+        return schools.some((item) => item.school.id === schoolId);
+      } catch (error) {
+        logger.error('Error checking school via user:', error);
+        return false;
+      }
+    };
+
+    const isClassConnected = async (
+      schoolId: string,
+      classId: string,
+    ): Promise<{ classExists: boolean; classCount: number } | undefined> => {
+      try {
+        const authHandler = ServiceConfig.getI().authHandler;
+        const currentUser = await authHandler.getCurrentUser();
+        if (!currentUser) return;
+
+        const classes = await api.getClassesForSchool(schoolId, currentUser.id);
+        return {
+          classExists: classes.some((cls) => cls.id === classId),
+          classCount: classes.length,
+        };
+      } catch (error) {
+        logger.error('Error checking class via user:', error);
+        return;
+      }
+    };
+
+    const schoolIsConnected = await isSchoolConnected(currentSchool.id);
+    if (!schoolIsConnected) {
+      api.currentSchool = undefined;
+      api.currentClass = undefined;
+      localStorage.removeItem(SCHOOL);
+      localStorage.removeItem(CLASS);
+      return;
+    }
+
+    if (!currentClass?.id) {
+      return;
+    }
+
+    const classCheck = await isClassConnected(
+      currentSchool.id,
+      currentClass.id,
+    );
+    if (!classCheck) return;
+
+    if (!classCheck.classExists) {
+      localStorage.removeItem(CLASS);
+      api.currentClass = undefined;
+      if (classCheck.classCount === 1) {
+        api.currentSchool = undefined;
+        localStorage.removeItem(SCHOOL);
+      }
     }
   }
 
@@ -2060,7 +2061,7 @@ export class Util {
     text: string,
     title: string,
     url?: string,
-    imageFile?: File[]
+    imageFile?: File[],
   ) {
     if (Capacitor.isNativePlatform()) {
       // Convert File object to a blob URL, then extract path for Android
@@ -2074,12 +2075,12 @@ export class Util {
           imageFile: imageFile, // Pass the File object for Android
         })
         .then(() => {})
-        .catch((error) => console.error("Error sharing content:", error));
+        .catch((error) => logger.error('Error sharing content:', error));
     } else {
       // Web sharing
       const shareData: ShareData = {
-        text: t(text) || "",
-        title: t(title) || "",
+        text: t(text) || '',
+        title: t(title) || '',
         url: url,
         files: imageFile,
       };
@@ -2087,17 +2088,52 @@ export class Util {
       await navigator
         .share(shareData)
         .then(() => {})
-        .catch((error) => console.error("Error sharing content:", error));
+        .catch((error) => logger.error('Error sharing content:', error));
+    }
+  }
+
+  public static async saveImage(file: File) {
+    // Native builds save images to the public gallery via MediaStore.
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const base64Data = await Util.blobToString(file);
+
+        if (!Util.port) {
+          Util.port = registerPlugin<PortPlugin>('Port');
+        }
+
+        await Util.port.saveImageToGallery({
+          fileData: base64Data,
+          fileName: file.name,
+          mimeType: file.type || 'image/png',
+        });
+      } catch (error) {
+        logger.error('Error saving file natively:', error);
+        await Toast.show({ text: t('Failed to save image') });
+      }
+    } else {
+      try {
+        const url = URL.createObjectURL(file);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.name;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+      } catch (error) {
+        logger.error('Error saving file in web:', error);
+      }
     }
   }
 
   public static setCurrentCourse = async (
     classId: string | undefined,
-    courseDoc: TableTypes<"course"> | null
+    courseDoc: TableTypes<'course'> | null,
   ) => {
     if (!classId) return;
     const api = ServiceConfig.getI().apiHandler;
-    const courseMap: Map<string, TableTypes<"course"> | undefined> = new Map();
+    const courseMap: Map<string, TableTypes<'course'> | undefined> = new Map();
     courseMap.set(classId, courseDoc ?? undefined);
     api.currentCourse = courseMap;
     const mapObject = Object.fromEntries(courseMap);
@@ -2105,8 +2141,8 @@ export class Util {
   };
 
   public static getCurrentCourse(
-    classId: string | undefined
-  ): TableTypes<"course"> | undefined {
+    classId: string | undefined,
+  ): TableTypes<'course'> | undefined {
     if (!classId) return;
     const api = ServiceConfig.getI().apiHandler;
     if (!!api.currentCourse) return api.currentCourse.get(classId);
@@ -2115,7 +2151,7 @@ export class Util {
     const tempObject = JSON.parse(temp);
     const currentCourse = new Map(Object.entries(tempObject)) as Map<
       string,
-      TableTypes<"course">
+      TableTypes<'course'>
     >;
     return currentCourse.get(classId);
   }
@@ -2126,7 +2162,7 @@ export class Util {
   public static getNavigationState(): {
     stage: string;
   } | null {
-    return JSON.parse(localStorage.getItem(NAVIGATION_STATE) || "null");
+    return JSON.parse(localStorage.getItem(NAVIGATION_STATE) || 'null');
   }
 
   public static setNavigationState(stage: string) {
@@ -2143,19 +2179,19 @@ export class Util {
       try {
         const path = await Filesystem.getUri({
           directory: Directory.External,
-          path: "",
+          path: '',
         });
 
         if (path && path.uri) {
           const uri = Capacitor.convertFileSrc(path.uri);
-          return uri + "/"; // file:///data/user/0/org.chimple.bahama/cache
+          return uri + '/'; // file:///data/user/0/org.chimple.bahama/cache
         }
       } catch (error) {
-        console.error("path error", error);
+        logger.error('path error', error);
       }
-      throw new Error("Failed to retrieve Android bundle path.");
+      throw new Error('Failed to retrieve Android bundle path.');
     }
-    throw new Error("Not running on a native platform.");
+    throw new Error('Not running on a native platform.');
   }
 
   public static setGameUrl(path: string) {
@@ -2167,21 +2203,21 @@ export class Util {
   }) {
     try {
       if (!Util.port) {
-        Util.port = registerPlugin<PortPlugin>("Port");
+        Util.port = registerPlugin<PortPlugin>('Port');
       }
       await Util.port.saveProceesedXlsxFile({
         fileData: data.fileData,
         fileName: data.fileName,
       });
     } catch (error) {
-      console.error("Download failed:", error);
+      logger.error('Download failed:', error);
     }
   }
   public static handleMissingEntities(
     history: any,
     redirectPage: string,
     origin: PAGES,
-    classId?: string
+    classId?: string,
   ) {
     history.replace(redirectPage, {
       classId: classId,
@@ -2193,8 +2229,9 @@ export class Util {
     schoolId: string,
     userId: string,
     history: any,
-    originPage: PAGES
+    originPage: PAGES,
   ) {
+    if (schoolId == undefined) return;
     const api = ServiceConfig.getI().apiHandler;
     const schoolCourses = await api.getCoursesBySchoolId(schoolId);
     if (schoolCourses.length === 0) {
@@ -2215,17 +2252,26 @@ export class Util {
       return;
     }
 
+    const currentClass = this.getCurrentClass();
+    const validCurrentClass = currentClass
+      ? fetchedClasses.find((classItem) => classItem.id === currentClass.id)
+      : undefined;
+
+    if (!validCurrentClass) {
+      await this.setCurrentClass(fetchedClasses[0]);
+    }
+
     const classCoursesData = await Promise.all(
       fetchedClasses.map((classItem) =>
         api.getCoursesByClassId(classItem.id).then((courses) => ({
           classId: classItem.id,
           courses,
-        }))
-      )
+        })),
+      ),
     );
 
     const classWithoutSubjects = classCoursesData.find(
-      (data) => data.courses.length === 0
+      (data) => data.courses.length === 0,
     );
 
     if (classWithoutSubjects) {
@@ -2234,7 +2280,7 @@ export class Util {
         history,
         PAGES.SUBJECTS_PAGE,
         originPage,
-        classWithoutSubjects.classId
+        classWithoutSubjects.classId,
       );
       return;
     }
@@ -2245,22 +2291,22 @@ export class Util {
       const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
 
       if (!ENCRYPTION_KEY) {
-        throw new Error("ENCRYPTION_KEY is not set.");
+        throw new Error('ENCRYPTION_KEY is not set.');
       }
       return CryptoJS.AES.encrypt(stringData, ENCRYPTION_KEY).toString();
     } catch (error) {
-      console.error("Encryption failed:", error);
+      logger.error('Encryption failed:', error);
       return null;
     }
   }
 
   public static async decryptData(
-    ciphertext: string
+    ciphertext: string,
   ): Promise<{ email: string; password: string } | null> {
     try {
       const ENCRYPTION_KEY = process.env.REACT_APP_ENCRYPTION_KEY;
       if (!ENCRYPTION_KEY) {
-        throw new Error("ENCRYPTION_KEY is not set.");
+        throw new Error('ENCRYPTION_KEY is not set.');
       }
 
       const bytes = CryptoJS.AES.decrypt(ciphertext, ENCRYPTION_KEY);
@@ -2268,14 +2314,14 @@ export class Util {
 
       return JSON.parse(decrypted);
     } catch (error) {
-      console.error("Decryption failed:", error);
+      logger.error('Decryption failed:', error);
       return null;
     }
   }
 
   public static async storeLoginDetails(
     email: string,
-    password: string
+    password: string,
   ): Promise<void> {
     if (!Capacitor.isNativePlatform()) {
       return;
@@ -2287,7 +2333,7 @@ export class Util {
         localStorage.setItem(SCHOOL_LOGIN, encryptedData);
       }
     } catch (error) {
-      console.error("Failed to encrypt and store login details:", error);
+      logger.error('Failed to encrypt and store login details:', error);
     }
   }
 
@@ -2296,24 +2342,24 @@ export class Util {
       const response = await fetch(fileUrl);
 
       // ✅ Validate content type to avoid corrupted files
-      const contentType = response.headers.get("content-type") || "";
+      const contentType = response.headers.get('content-type') || '';
       if (
-        contentType.includes("text/html") ||
-        contentType.includes("application/json")
+        contentType.includes('text/html') ||
+        contentType.includes('application/json')
       ) {
         const text = await response.text();
-        console.error(
-          "Unexpected content instead of a file:",
-          text.slice(0, 100)
+        logger.error(
+          'Unexpected content instead of a file:',
+          text.slice(0, 100),
         );
         throw new Error(
-          "Invalid file download. Check if the link is direct and the file is public."
+          'Invalid file download. Check if the link is direct and the file is public.',
         );
       }
       const blob = await response.blob();
-      this.handleBlobDownloadAndSave(blob, "BulkUploadTemplate.xlsx");
+      this.handleBlobDownloadAndSave(blob, 'BulkUploadTemplate.xlsx');
     } catch (error) {
-      console.error("Download failed:", error);
+      logger.error('Download failed:', error);
     }
   }
 
@@ -2323,7 +2369,7 @@ export class Util {
       reader.readAsDataURL(blob);
       reader.onloadend = () => {
         const base64Data = reader.result as string;
-        resolve(base64Data.split(",")[1]);
+        resolve(base64Data.split(',')[1]);
       };
       reader.onerror = reject;
     });
@@ -2339,23 +2385,23 @@ export class Util {
         });
       } else {
         const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
-        a.download = fileName || "ProcessedFile.xlsx";
+        a.download = fileName || 'ProcessedFile.xlsx';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error("Failed to save or download file:", error);
+      logger.error('Failed to save or download file:', error);
     }
   }
   public static mergeStudentsByUpdatedAt(
-    apiStudents: TableTypes<"user">[],
-    storedMapStr: string | null
-  ): TableTypes<"user">[] {
-    const studentsMap: Record<string, TableTypes<"user">> = storedMapStr
+    apiStudents: TableTypes<'user'>[],
+    storedMapStr: string | null,
+  ): TableTypes<'user'>[] {
+    const studentsMap: Record<string, TableTypes<'user'>> = storedMapStr
       ? JSON.parse(storedMapStr)
       : {};
 
@@ -2373,53 +2419,51 @@ export class Util {
     return mergedStudents;
   }
   public static async loadBackgroundImage() {
-    const body = document.querySelector("body");
+    const body = document.querySelector('body');
     if (
       Capacitor.isNativePlatform() &&
-      localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === "true"
+      localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === 'true'
     ) {
       try {
         const result = await Filesystem.readFile({
-          path: "remoteAsset/remoteBackground.svg",
+          path: 'remoteAsset/remoteBackground.svg',
           directory: Directory.External,
         });
         const res = await this.blobToString(result.data);
-        console.log("llllllllllllllllllllllll", res);
-
         const svgData = atob(res); // decode base64
 
         if (body) {
           body.style.backgroundImage = `url('data:image/svg+xml;utf8,${encodeURIComponent(
-            svgData
+            svgData,
           )}')`;
-          body.style.backgroundRepeat = "no-repeat";
-          body.style.backgroundSize = "cover";
-          body.style.backgroundPosition = "center center";
+          body.style.backgroundRepeat = 'no-repeat';
+          body.style.backgroundSize = 'cover';
+          body.style.backgroundPosition = 'center center';
         }
       } catch (e) {
         body?.style.setProperty(
-          "background-image",
-          "url(/pathwayAssets/pathwayBackground.svg)"
+          'background-image',
+          'url(/pathwayAssets/pathwayBackground.svg)',
         );
-        body?.style.setProperty("background-repeat", "no-repeat");
-        body?.style.setProperty("background-size", "cover");
-        body?.style.setProperty("background-position", "center center");
-        console.error("Failed to load remote background image:", e);
+        body?.style.setProperty('background-repeat', 'no-repeat');
+        body?.style.setProperty('background-size', 'cover');
+        body?.style.setProperty('background-position', 'center center');
+        logger.error('Failed to load remote background image:', e);
       }
     } else {
       body?.style.setProperty(
-        "background-image",
-        "url(/pathwayAssets/pathwayBackground.svg)"
+        'background-image',
+        'url(/pathwayAssets/pathwayBackground.svg)',
       );
-      body?.style.setProperty("background-repeat", "no-repeat");
-      body?.style.setProperty("background-size", "cover");
-      body?.style.setProperty("background-position", "center center");
+      body?.style.setProperty('background-repeat', 'no-repeat');
+      body?.style.setProperty('background-size', 'cover');
+      body?.style.setProperty('background-position', 'center center');
     }
   }
   public static async handleDeeplinkClick(
     url: URL,
-    currentUser: TableTypes<"user"> | null,
-    destinationPage: string
+    currentUser: TableTypes<'user'> | null,
+    destinationPage: string,
   ) {
     const timestamp = new Date().toISOString();
 
@@ -2430,8 +2474,8 @@ export class Util {
     }
 
     const eventData = {
-      user_id: currentUser?.id ?? "anonymous",
-      user_name: currentUser?.name ?? "",
+      user_id: currentUser?.id ?? 'anonymous',
+      user_name: currentUser?.name ?? '',
       phone: currentUser?.phone || null,
       email: currentUser?.email || null,
       timestamp,
@@ -2464,7 +2508,7 @@ export class Util {
 
       const allLanguages = await api.getAllLanguages();
       const selectedLanguage = allLanguages.find(
-        (lang) => lang.code === languageCode
+        (lang) => lang.code === languageCode,
       );
 
       // Skip if no language found or already set to the same language
@@ -2473,17 +2517,1651 @@ export class Util {
 
       await api.updateLanguage(currentUser.id, selectedLanguage.id);
       localStorage.setItem(LANGUAGE, languageCode);
-      await i18n.changeLanguage(languageCode ?? "");
+      await i18n.changeLanguage(languageCode ?? '');
 
-      const updatedUserData: TableTypes<"user"> = {
+      const updatedUserData: TableTypes<'user'> = {
         ...currentUser,
         language_id: selectedLanguage.id,
       };
 
-      localStorage.setItem(USER_DATA, JSON.stringify(updatedUserData));
+      store.dispatch(setUser(updatedUserData));
       auth.currentUser = updatedUserData;
     } catch (error) {
-      console.error("Failed to update user language:", error);
+      logger.error('Failed to update user language:', error);
+    }
+  }
+  public static async fetchTodaysReward() {
+    try {
+      const allRewards = await ServiceConfig.getI().apiHandler.getAllRewards();
+      if (allRewards.length === 0) return;
+      const today = new Date();
+      const day = today.getDate();
+      let chimpleRiveMaxState = allRewards[0].max_state_value ?? 8;
+      if (localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === 'true') {
+        chimpleRiveMaxState =
+          parseInt(
+            localStorage.getItem(CHIMPLE_RIVE_STATE_MACHINE_MAX) as string,
+          ) ?? chimpleRiveMaxState;
+      }
+
+      const mappedState = ((day - 1) % chimpleRiveMaxState) + 1;
+      const todaysReward = allRewards.find(
+        (reward) =>
+          reward.state_number_input === mappedState && reward.type === 'normal',
+      );
+      return todaysReward;
+    } catch (error) {
+      logger.error('Error fetching Chimple Rive config:', error);
+    }
+  }
+  public static async shouldGiveDailyReward(): Promise<boolean> {
+    try {
+      const isRewardFeatureOn =
+        localStorage.getItem(IS_REWARD_FEATURE_ON) === 'true';
+      if (!isRewardFeatureOn) return false;
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent) return false;
+
+      const dailyUserReward = currentStudent.reward
+        ? JSON.parse(currentStudent.reward as string)
+        : {};
+      const todaysReward = await Util.fetchTodaysReward();
+      if (!todaysReward) return false;
+
+      const today = new Date().toISOString().split('T')[0];
+      const rewardDate = dailyUserReward.timestamp
+        ? new Date(dailyUserReward.timestamp).toISOString().split('T')[0]
+        : null;
+      const hasReceivedTodayReward =
+        todaysReward.id === dailyUserReward.reward_id && rewardDate === today;
+
+      return !hasReceivedTodayReward;
+    } catch (error) {
+      logger.error('Error checking daily reward eligibility:', error);
+      return false;
+    }
+  }
+  public static async updateUserReward() {
+    try {
+      // Get daily user reward from localStorage
+      const dailyUserReward = JSON.parse(
+        localStorage.getItem(DAILY_USER_REWARD) ?? '{}',
+      );
+
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent) return;
+      // Fetch current reward
+      const currentReward = currentStudent.reward
+        ? JSON.parse(currentStudent.reward as string)
+        : null;
+      if (!currentReward) return;
+
+      // Initialize student's reward object if it doesn't exist
+      if (!dailyUserReward[currentStudent.id]) {
+        dailyUserReward[currentStudent.id] = {};
+      }
+
+      if (
+        !dailyUserReward[currentStudent.id].timestamp ||
+        new Date(dailyUserReward[currentStudent.id].timestamp)
+          .toISOString()
+          .split('T')[0] !== new Date().toISOString().split('T')[0] ||
+        dailyUserReward[currentStudent.id].reward_id !==
+          currentReward?.reward_id
+      ) {
+        // Update localStorage
+        dailyUserReward[currentStudent.id].reward_id = currentReward.reward_id;
+        dailyUserReward[currentStudent.id].timestamp = currentReward.timestamp;
+        localStorage.setItem(
+          DAILY_USER_REWARD,
+          JSON.stringify(dailyUserReward),
+        );
+      }
+    } catch (error) {
+      logger.error('Error updating student reward:', error);
+    }
+  }
+  public static retrieveUserReward() {
+    const currentStudent = Util.getCurrentStudent();
+    if (!currentStudent) return {};
+    const studentId = currentStudent.id;
+    try {
+      const allRewards = JSON.parse(
+        localStorage.getItem(DAILY_USER_REWARD) || '{}',
+      );
+
+      if (!allRewards[studentId]) {
+        allRewards[studentId] = {};
+      }
+      const currentReward = allRewards[studentId];
+
+      return currentReward;
+    } catch (error) {
+      logger.error('Error managing daily user reward in localStorage:', error);
+      return {};
+    }
+  }
+  public static async updateHomeworkPath(completedIndex?: number) {
+    try {
+      const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
+      if (!storedPath) {
+        logger.error('Could not find homework path in localStorage to update.');
+        return;
+      }
+
+      // Snapshot path early to avoid races
+      const homeworkPath = JSON.parse(storedPath) as {
+        path_id?: string;
+        lessons?: any[];
+        currentIndex?: number;
+      };
+
+      const student = Util.getCurrentStudent();
+      const studentId = student?.id ?? null;
+
+      // If caller provided which index completed, use that
+      if (typeof completedIndex === 'number') {
+        const lessons = homeworkPath.lessons ?? [];
+        const completedLesson = lessons[completedIndex] ?? null;
+
+        // --- 1) LOG ASSIGNMENT COMPLETED (deduped locally) ---
+        try {
+          const assignmentId = completedLesson?.assignment_id ?? null;
+          if (assignmentId && studentId) {
+            const completedKey = ASSIGNMENT_COMPLETED_IDS;
+            const temp = localStorage.getItem(completedKey);
+            const completedMap = temp ? JSON.parse(temp) : {};
+            const studentCompleted = completedMap[studentId] || [];
+
+            if (!studentCompleted.includes(assignmentId)) {
+              const assignmentPayload = {
+                user_id: studentId,
+                student_id: studentId,
+                path_id: homeworkPath.path_id ?? null,
+                assignment_id: assignmentId,
+                lesson_id:
+                  completedLesson?.lesson_id ??
+                  completedLesson?.lesson?.id ??
+                  null,
+                chapter_id: completedLesson?.chapter_id ?? null,
+                course_id: completedLesson?.course_id ?? null,
+                index_in_path: completedIndex,
+                completed_at: new Date().toISOString(),
+              };
+
+              try {
+                Util.logEvent(
+                  EVENTS.HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED,
+                  assignmentPayload,
+                );
+              } catch (e) {
+                logger.warn(
+                  '[Analytics] Failed to log HOMEWORK_PATHWAY_ASSIGNMENT_COMPLETED',
+                  e,
+                );
+              }
+
+              // mark as logged locally
+              studentCompleted.push(assignmentId);
+              completedMap[studentId] = studentCompleted;
+              localStorage.setItem(completedKey, JSON.stringify(completedMap));
+            }
+          }
+        } catch (e) {
+          logger.warn('[Analytics] assignment-completed block failed', e);
+        }
+
+        // --- 2) Decide if this was the last lesson in the path ---
+        const lessonsLen = homeworkPath.lessons?.length ?? 0;
+        const newCurrentIndex = completedIndex + 1;
+        const isNowComplete = newCurrentIndex >= lessonsLen;
+
+        if (isNowComplete) {
+          if (studentId) {
+            let preAwardCollectedStickerIds: string[] = [];
+            try {
+              const currentBookWithProgress =
+                await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+                  studentId,
+                );
+              preAwardCollectedStickerIds =
+                currentBookWithProgress?.progress?.stickers_collected ?? [];
+            } catch {
+              preAwardCollectedStickerIds = [];
+            }
+
+            const stickerAwardResult =
+              await Util.tryAwardStickerForCompletedPathway(
+                studentId,
+                'homework_pathway',
+              );
+            Util.seedPathwayStickerRewardSession({
+              studentId,
+              stickerAwardResult,
+              preAwardCollectedStickerIds,
+            });
+          } else {
+            Util.clearPathwayStickerRewardSession();
+          }
+
+          // Build and log pathway completed event (using snapshot)
+          try {
+            const prevIndex = Math.max(completedIndex, 0); // the lesson just completed
+            const prev = homeworkPath.lessons?.[prevIndex] ?? null;
+
+            const lessonIds = (homeworkPath.lessons ?? []).map(
+              (l: any) => l.lesson_id ?? l.lesson?.id ?? null,
+            );
+            const assignmentIds = (homeworkPath.lessons ?? []).map(
+              (l: any) => l.assignment_id ?? l.id ?? null,
+            );
+
+            const completedEvent = {
+              user_id: studentId,
+              student_id: studentId,
+              completed_path_id: homeworkPath.path_id ?? null,
+              completed_course_id: prev?.course_id ?? null,
+              completed_lesson_id: prev?.lesson_id ?? prev?.lesson?.id ?? null,
+              assignment_id: prev?.assignment_id ?? null,
+              completed_chapter_id: prev?.chapter_id ?? null,
+              total_lessons_in_path: lessonsLen,
+              lesson_ids: lessonIds,
+              assignment_ids: assignmentIds,
+              completed_at: new Date().toISOString(),
+              source: 'updateHomeworkPath',
+            };
+
+            try {
+              Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COMPLETED, completedEvent);
+            } catch (e) {
+              logger.warn(
+                '[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED',
+                e,
+              );
+            }
+          } catch (e) {
+            logger.warn('[Analytics] pathway-completed block failed', e);
+          }
+
+          // finally remove the path from storage
+          localStorage.removeItem(HOMEWORK_PATHWAY);
+        } else {
+          // Not complete → advance index and persist
+          homeworkPath.currentIndex = newCurrentIndex;
+          localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
+        }
+
+        return; // finished handling completedIndex case
+      }
+
+      // --- fallback: no completedIndex provided — preserve existing behaviour ---
+      const newCurrentIndexFallback = (homeworkPath.currentIndex ?? 0) + 1;
+      if (newCurrentIndexFallback >= (homeworkPath.lessons?.length ?? 0)) {
+        // path finished
+        if (studentId) {
+          let preAwardCollectedStickerIds: string[] = [];
+          try {
+            const currentBookWithProgress =
+              await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+                studentId,
+              );
+            preAwardCollectedStickerIds =
+              currentBookWithProgress?.progress?.stickers_collected ?? [];
+          } catch {
+            preAwardCollectedStickerIds = [];
+          }
+
+          const stickerAwardResult =
+            await Util.tryAwardStickerForCompletedPathway(
+              studentId,
+              'homework_pathway',
+            );
+          Util.seedPathwayStickerRewardSession({
+            studentId,
+            stickerAwardResult,
+            preAwardCollectedStickerIds,
+          });
+        } else {
+          Util.clearPathwayStickerRewardSession();
+        }
+
+        try {
+          // log completed event similar to above (best-effort)
+          const lessons = homeworkPath.lessons ?? [];
+          const prevIndex = Math.max((homeworkPath.currentIndex ?? 0) - 1, 0);
+          const prev = lessons[prevIndex] ?? null;
+
+          const lessonIds = lessons.map(
+            (l: any) => l.lesson_id ?? l.lesson?.id ?? null,
+          );
+          const assignmentIds = lessons.map(
+            (l: any) => l.assignment_id ?? l.id ?? null,
+          );
+
+          const completedEvent = {
+            user_id: studentId,
+            student_id: studentId,
+            completed_path_id: homeworkPath.path_id ?? null,
+            completed_course_id: prev?.course_id ?? null,
+            completed_lesson_id: prev?.lesson_id ?? prev?.lesson?.id ?? null,
+            assignment_id: prev?.assignment_id ?? null,
+            completed_chapter_id: prev?.chapter_id ?? null,
+            total_lessons_in_path: lessons.length,
+            lesson_ids: lessonIds,
+            assignment_ids: assignmentIds,
+            completed_at: new Date().toISOString(),
+            source: 'updateHomeworkPath',
+          };
+
+          try {
+            Util.logEvent(EVENTS.HOMEWORK_PATHWAY_COMPLETED, completedEvent);
+          } catch (e) {
+            logger.warn(
+              '[Analytics] Failed to log HOMEWORK_PATHWAY_COMPLETED (fallback)',
+              e,
+            );
+          }
+        } catch (e) {
+          logger.warn('[Analytics] pathway completed (fallback) failed', e);
+        }
+
+        localStorage.removeItem(HOMEWORK_PATHWAY);
+      } else {
+        homeworkPath.currentIndex = newCurrentIndexFallback;
+        localStorage.setItem(HOMEWORK_PATHWAY, JSON.stringify(homeworkPath));
+      }
+    } catch (error) {
+      logger.error('Failed to update homework path:', error);
+    }
+  }
+  public static async updateLearningPath(
+    currentStudent: TableTypes<'user'>,
+    isRewardLesson: boolean,
+    isFullPathwayTerminated: boolean = false,
+    abortCourseId?: string,
+    isAssessmentLesson: boolean = false,
+  ) {
+    if (!currentStudent) return;
+    const storedPathwayMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
+    const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
+    const learningPath = pathToParse ? JSON.parse(pathToParse) : null;
+
+    if (!learningPath) return;
+    learningPath.updated_at = new Date().toISOString();
+    // ABORT CASE: refresh current lesson with PAL recommendation only
+    // ABORT CASE: Assessment aborted → rebuild learning path (legacy flow)
+    if (isFullPathwayTerminated && abortCourseId && isAssessmentLesson) {
+      const courses = learningPath.courses as {
+        courseList: CoursePath[];
+        currentCourseIndex: number;
+      };
+      let courseIndex = courses.courseList.findIndex(
+        (coursePath: CoursePath) => coursePath.course_id === abortCourseId,
+      );
+
+      if (courseIndex === -1) return;
+
+      let course = courses.courseList[courseIndex];
+      const courseCodeById = new Map<string, string | null>();
+      const getCourseCode = async (coursePath: CoursePath) => {
+        const storedCode = coursePath.course_code?.trim().toLowerCase();
+        if (storedCode) return storedCode;
+
+        const courseId = coursePath.course_id;
+        if (courseCodeById.has(courseId)) {
+          return courseCodeById.get(courseId) ?? null;
+        }
+
+        try {
+          const courseMeta =
+            await ServiceConfig.getI().apiHandler.getCourse(courseId);
+          const code = courseMeta?.code?.trim().toLowerCase() || null;
+          courseCodeById.set(courseId, code);
+          return code;
+        } catch (error) {
+          logger.warn('[LearningPath] Unable to resolve course code', {
+            courseId,
+            error,
+          });
+          courseCodeById.set(courseId, null);
+          return null;
+        }
+      };
+      course.path.length = 0;
+      const nextQueuedLesson = course.path.find(
+        (lesson: LessonNode) => lesson.isPlayed === false,
+      );
+      const nextLesson =
+        nextQueuedLesson ??
+        (await recommendNextLesson({
+          student: currentStudent,
+          course: {
+            id: course.course_id,
+            subject_id: course.subject_id,
+            framework_id:
+              course.type === RECOMMENDATION_TYPE.FRAMEWORK
+                ? 'framework'
+                : null,
+          },
+          mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+          coursePath: course,
+          skipAssessment: true,
+        }));
+
+      if (nextLesson && !nextQueuedLesson) {
+        course.path.push(nextLesson);
+      }
+
+      if (
+        shouldUseAssessment(
+          storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+        ) &&
+        course.subject_id
+      ) {
+        const activeCourseCode = await getCourseCode(course);
+        for (const peerCourse of courses.courseList) {
+          const peerCourseCode = await getCourseCode(peerCourse);
+          if (
+            peerCourse === course ||
+            peerCourse.subject_id !== course.subject_id ||
+            !activeCourseCode ||
+            peerCourseCode !== activeCourseCode
+          ) {
+            continue;
+          }
+
+          peerCourse.path.length = 0;
+          const peerNextLesson = await recommendNextLesson({
+            student: currentStudent,
+            course: {
+              id: peerCourse.course_id,
+              subject_id: peerCourse.subject_id,
+              framework_id:
+                peerCourse.type === RECOMMENDATION_TYPE.FRAMEWORK
+                  ? 'framework'
+                  : null,
+            },
+            mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+            coursePath: peerCourse,
+            skipAssessment: true,
+          });
+
+          if (peerNextLesson) {
+            peerCourse.path.push(peerNextLesson);
+          }
+        }
+      }
+
+      courseIndex += 1;
+      if (courseIndex >= courses.courseList.length) {
+        courseIndex = 0;
+      }
+      courses.currentCourseIndex = courseIndex;
+
+      // 5️⃣ Save FULL learning path
+      await ServiceConfig.getI().apiHandler.updateLearningPath(
+        currentStudent,
+        JSON.stringify(learningPath),
+      );
+
+      const updatedStudent =
+        await ServiceConfig.getI().apiHandler.getUserByDocId(currentStudent.id);
+
+      if (updatedStudent) {
+        Util.setCurrentStudent(updatedStudent);
+      }
+
+      return; // EXIT — do not continue normal flow
+    }
+
+    try {
+      const PATH_SIZE = 5;
+      const api = ServiceConfig.getI().apiHandler;
+
+      const courses = learningPath.courses as {
+        courseList: CoursePath[];
+        currentCourseIndex: number;
+      };
+      let courseIndex = courses.currentCourseIndex;
+      let course = courses.courseList[courseIndex];
+      if (!course) return;
+      const courseCodeById = new Map<string, string | null>();
+      const getCourseCode = async (coursePath: CoursePath) => {
+        const storedCode = coursePath.course_code?.trim().toLowerCase();
+        if (storedCode) return storedCode;
+
+        const courseId = coursePath.course_id;
+        if (courseCodeById.has(courseId)) {
+          return courseCodeById.get(courseId) ?? null;
+        }
+
+        try {
+          const courseMeta = await api.getCourse(courseId);
+          const code = courseMeta?.code?.trim().toLowerCase() || null;
+          courseCodeById.set(courseId, code);
+          return code;
+        } catch (error) {
+          logger.warn('[LearningPath] Unable to resolve course code', {
+            courseId,
+            error,
+          });
+          courseCodeById.set(courseId, null);
+          return null;
+        }
+      };
+
+      /* 1️⃣ Identify active lesson */
+      const activeLessonIndex = course.path.findIndex(
+        (lesson: LessonNode) => lesson.isPlayed === false,
+      );
+      const activeLesson =
+        activeLessonIndex !== -1 ? course.path[activeLessonIndex] : null;
+      if (!activeLesson) {
+        logger.warn(
+          '[LearningPath] No active lesson found while updating pathway',
+          {
+            studentId: currentStudent.id,
+            courseId: course.course_id,
+            courseIndex,
+            pathLength: course.path?.length ?? 0,
+          },
+        );
+        return;
+      }
+      const prevData = {
+        pathId: course.path_id,
+        courseId: course.course_id,
+        lessonId: activeLesson.lesson_id,
+        chapterId: activeLesson.chapter_id,
+        prevPath_id: course.path_id,
+      };
+
+      /* 2️⃣ Mark active lesson as played */
+      course.path[activeLessonIndex] = {
+        ...activeLesson,
+        isPlayed: true,
+      };
+
+      const hasQueuedAssessmentInPath = course.path
+        .slice(activeLessonIndex + 1)
+        .some(
+          (lesson: LessonNode) =>
+            lesson.isPlayed === false &&
+            lesson.is_assessment === true &&
+            !!lesson.assignment_id,
+        );
+
+      const syncSameSubjectAssessmentPaths = async (
+        nextAssessmentLesson: LessonNode | null,
+      ) => {
+        if (
+          !shouldUseAssessment(
+            storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+          ) ||
+          !activeLesson ||
+          !activeLesson.is_assessment ||
+          (!course.subject_id && !course.framework_id)
+        ) {
+          return;
+        }
+
+        const activeCourseCode = await getCourseCode(course);
+        if (!activeCourseCode) return;
+
+        for (const peerCourse of courses.courseList) {
+          const isSameAssessmentGroup =
+            !!course.framework_id &&
+            !!peerCourse.framework_id &&
+            peerCourse.framework_id === course.framework_id
+              ? true
+              : !!course.subject_id &&
+                peerCourse.subject_id === course.subject_id;
+
+          if (peerCourse === course || !isSameAssessmentGroup) {
+            continue;
+          }
+
+          const peerCourseCode = await getCourseCode(peerCourse);
+          if (!peerCourseCode || peerCourseCode !== activeCourseCode) {
+            continue;
+          }
+
+          const peerActiveLessonIndex = peerCourse.path.findIndex(
+            (lesson: LessonNode) =>
+              lesson.isPlayed === false &&
+              lesson.is_assessment === true &&
+              lesson.lesson_id === activeLesson.lesson_id,
+          );
+
+          if (peerActiveLessonIndex === -1) continue;
+
+          const peerActiveLesson = peerCourse.path[peerActiveLessonIndex];
+          peerCourse.path[peerActiveLessonIndex] = {
+            ...peerActiveLesson,
+            isPlayed: true,
+          };
+
+          if (nextAssessmentLesson) {
+            peerCourse.path.push({ ...nextAssessmentLesson });
+          }
+
+          if (peerCourse.path.length > PATH_SIZE) {
+            const peerActive = peerCourse.path.find(
+              (lesson: LessonNode) => !lesson.isPlayed,
+            );
+            peerCourse.path.length = 0;
+            if (peerActive) peerCourse.path.push(peerActive);
+            peerCourse.path_id = uuidv4();
+            peerCourse.completedPath = (peerCourse.completedPath ?? 0) + 1;
+          }
+        }
+      };
+
+      const completedPathwaySnapshot = JSON.stringify(learningPath);
+
+      /* 3️⃣ Compute next active lesson */
+      const nextLesson = hasQueuedAssessmentInPath
+        ? null
+        : await recommendNextLesson({
+            student: currentStudent,
+            course: {
+              id: course.course_id,
+              subject_id: course.subject_id,
+              framework_id:
+                course.type === RECOMMENDATION_TYPE.FRAMEWORK
+                  ? 'framework'
+                  : null,
+            },
+            mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+            coursePath: course,
+          });
+
+      if (nextLesson) {
+        course.path.push(nextLesson);
+      }
+
+      /* 4️⃣ Check path overflow */
+      await syncSameSubjectAssessmentPaths(nextLesson);
+
+      let pathCompleted = false;
+
+      if (course.path.length > PATH_SIZE) {
+        // if exceeding max path size i.e '5', remove played lessons from old path keep active lesson from currentPath
+        const active = course.path.find(
+          (lesson: LessonNode) => !lesson.isPlayed,
+        );
+        course.path.length = 0;
+        if (active) course.path.push(active);
+        pathCompleted = true;
+      }
+
+      /* 5️⃣ Move course index if path completed */
+      if (pathCompleted) {
+        let preAwardCollectedStickerIds: string[] = [];
+        try {
+          // The active API handler already resolves to sqlite while offline,
+          // so use it for the drag-popup seed data in both modes.
+          const currentBookWithProgress =
+            await ServiceConfig.getI().apiHandler.getCurrentStickerBookWithProgress(
+              currentStudent.id,
+            );
+          preAwardCollectedStickerIds =
+            currentBookWithProgress?.progress?.stickers_collected ?? [];
+        } catch {
+          preAwardCollectedStickerIds = [];
+        }
+        const newpathId = uuidv4();
+        course.path_id = newpathId;
+        prevData.pathId = newpathId;
+        course.completedPath += 1;
+        courseIndex += 1;
+        await ServiceConfig.getI().apiHandler.setStarsForStudents(
+          currentStudent.id,
+          10,
+        );
+        // If stickers are available (and we're online), award the next sticker for completing this pathway.
+        const stickerAwardResult =
+          await Util.tryAwardStickerForCompletedPathway(currentStudent.id);
+        Util.seedPathwayStickerRewardSession({
+          studentId: currentStudent.id,
+          stickerAwardResult,
+          preAwardCollectedStickerIds,
+          rewardLearningPathSnapshot: completedPathwaySnapshot,
+        });
+        if (courseIndex >= courses.courseList.length) {
+          courseIndex = 0;
+        }
+        courses.currentCourseIndex = courseIndex;
+      }
+
+      /* 6️⃣ Event collection */
+      const newCourse = courses.courseList[courses.currentCourseIndex];
+      const newActiveLesson = newCourse.path.find(
+        (lesson: LessonNode) => lesson.isPlayed === false,
+      );
+
+      const eventPayload = {
+        user_id: currentStudent.id,
+        current_path_id: newCourse.path_id,
+        current_course_id: newCourse.course_id,
+        current_lesson_id: newActiveLesson?.lesson_id ?? null,
+        current_chapter_id: newActiveLesson?.chapter_id ?? null,
+        path_id: prevData.pathId,
+        prev_path_id: prevData.prevPath_id,
+        prev_course_id: prevData.courseId,
+        lesson_id: prevData.lessonId,
+        prev_chapter_id: prevData.chapterId,
+        timestamp: new Date().toISOString(),
+      };
+
+      const events: EVENTS[] = [EVENTS.PATHWAY_LESSON_END];
+      if (pathCompleted) {
+        events.push(EVENTS.PATHWAY_COMPLETED, EVENTS.PATHWAY_COURSE_CHANGED);
+      }
+
+      /* 7️⃣ Persist + log */
+      await Promise.all([
+        api.updateLearningPath(currentStudent, JSON.stringify(learningPath)),
+        ...events.map((e) => Util.logEvent(e, eventPayload)),
+      ]);
+
+      const updatedStudent = await api.getUserByDocId(currentStudent.id);
+      if (updatedStudent) {
+        Util.setCurrentStudent(updatedStudent);
+      }
+    } catch (error) {
+      logger.error('Error updating learning path:', error);
+    }
+  }
+
+  private static clearPathwayStickerRewardSession() {
+    sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+    sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+    sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+  }
+
+  private static seedPathwayStickerRewardSession({
+    studentId,
+    stickerAwardResult,
+    preAwardCollectedStickerIds,
+    rewardLearningPathSnapshot,
+  }: {
+    studentId: string;
+    stickerAwardResult: {
+      completed: boolean;
+      stickerBookId: string | null;
+      awardedStickerId: string | null;
+      payload: StickerBookModalData | null;
+    };
+    preAwardCollectedStickerIds: string[];
+    rewardLearningPathSnapshot?: string | null;
+  }) {
+    const awardedStickerId = stickerAwardResult.awardedStickerId;
+    const stickerBookId = stickerAwardResult.stickerBookId;
+    const createdAt = new Date().toISOString();
+
+    if (awardedStickerId && rewardLearningPathSnapshot) {
+      sessionStorage.setItem(REWARD_LEARNING_PATH, rewardLearningPathSnapshot);
+    } else {
+      sessionStorage.removeItem(REWARD_LEARNING_PATH);
+    }
+
+    if (!awardedStickerId) {
+      sessionStorage.removeItem(AUTO_OPEN_STICKER_PREVIEW_KEY);
+      sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+      sessionStorage.removeItem(PENDING_PATHWAY_STICKER_REWARD_KEY);
+      return;
+    }
+
+    sessionStorage.setItem(
+      PENDING_PATHWAY_STICKER_REWARD_KEY,
+      JSON.stringify({
+        studentId,
+        awardedStickerId,
+        stickerBookId,
+        createdAt,
+      }),
+    );
+
+    if (stickerAwardResult.completed) {
+      sessionStorage.setItem(
+        AUTO_OPEN_STICKER_PREVIEW_KEY,
+        JSON.stringify({
+          studentId,
+          createdAt,
+          awardedStickerId,
+          preAwardCollectedStickerIds,
+          stickerBookId,
+          stickerBookTitle:
+            stickerAwardResult.payload?.stickerBookTitle ?? null,
+          stickerBookSvgUrl:
+            stickerAwardResult.payload?.stickerBookSvgUrl ?? null,
+        }),
+      );
+      sessionStorage.setItem(
+        AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+        JSON.stringify({
+          studentId,
+          stickerBookId,
+          createdAt,
+          payload: stickerAwardResult.payload,
+        }),
+      );
+
+      if (stickerAwardResult.payload) {
+        window.dispatchEvent(
+          new CustomEvent(STICKER_BOOK_COMPLETION_READY_EVENT, {
+            detail: stickerAwardResult.payload,
+          }),
+        );
+      }
+      return;
+    }
+
+    sessionStorage.setItem(
+      AUTO_OPEN_STICKER_PREVIEW_KEY,
+      JSON.stringify({
+        studentId,
+        awardedStickerId,
+        preAwardCollectedStickerIds,
+        createdAt,
+      }),
+    );
+    sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
+  }
+
+  private static async tryAwardStickerForCompletedPathway(
+    studentId: string,
+    source: StickerBookModalData['source'] = 'learning_pathway',
+  ): Promise<{
+    completed: boolean;
+    stickerBookId: string | null;
+    awardedStickerId: string | null;
+    payload: StickerBookModalData | null;
+  }> {
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      const current = await api.getCurrentStickerBookWithProgress(studentId);
+      if (!current?.book?.id) {
+        return {
+          completed: false,
+          stickerBookId: null,
+          awardedStickerId: null,
+          payload: null,
+        };
+      }
+
+      const nextStickerId = await api.getNextWinnableSticker(
+        current.book.id,
+        studentId,
+      );
+      if (!nextStickerId) {
+        return {
+          completed: false,
+          stickerBookId: current.book.id,
+          awardedStickerId: null,
+          payload: null,
+        };
+      }
+
+      const currentCollectedStickerIds =
+        current.progress?.stickers_collected ?? [];
+      const totalStickerCount =
+        current.book?.total_stickers ||
+        current.book?.stickers_metadata?.length ||
+        0;
+      const nextCollectedStickerIds = currentCollectedStickerIds.includes(
+        nextStickerId,
+      )
+        ? currentCollectedStickerIds
+        : [...currentCollectedStickerIds, nextStickerId];
+      const completed =
+        totalStickerCount > 0 &&
+        nextCollectedStickerIds.length >= totalStickerCount;
+
+      await api.updateStickerWon(current.book.id, nextStickerId, studentId);
+
+      return {
+        completed,
+        stickerBookId: current.book.id,
+        awardedStickerId: nextStickerId,
+        payload: completed
+          ? {
+              source,
+              stickerBookId: current.book.id,
+              stickerBookTitle: current.book.title || 'Sticker Book',
+              stickerBookSvgUrl: current.book.svg_url || '',
+              collectedStickerIds: nextCollectedStickerIds,
+              totalStickerCount,
+            }
+          : null,
+      };
+    } catch (error) {
+      logger.warn('[StickerBook] Failed to award pathway sticker:', error);
+      return {
+        completed: false,
+        stickerBookId: null,
+        awardedStickerId: null,
+        payload: null,
+      };
+    }
+  }
+
+  // this function is created because local sqlite database was updating after UI rendering,
+  // so it was showing old learning path until we refresh the page,
+  // to avoid this checking the updated_at of learning path in session storage and database and returning the latest one
+  public static getLatestLearningPathByUpdatedAt(
+    student: TableTypes<'user'>,
+  ): string | null {
+    try {
+      const rewardLearningPath = sessionStorage.getItem(REWARD_LEARNING_PATH);
+      if (rewardLearningPath) {
+        return rewardLearningPath;
+      }
+
+      const latestLearningPathKey = `${LATEST_LEARNING_PATH}:${student.id}`;
+      const sessionData = localStorage.getItem(latestLearningPathKey);
+
+      // If nothing in local storage, return DB value
+      if (!sessionData) {
+        return student?.learning_path ?? null;
+      }
+      const studentLearningPath = student.learning_path
+        ? JSON.parse(student.learning_path)
+        : null;
+      const parsed = JSON.parse(sessionData);
+
+      // If session data belongs to different student, ignore it
+      if (parsed.studentId !== student.id) {
+        return student?.learning_path ?? null;
+      }
+
+      const sessionUpdatedAt = new Date(parsed.updated_at).getTime();
+      const dbUpdatedAt = studentLearningPath?.updated_at
+        ? new Date(studentLearningPath.updated_at).getTime()
+        : 0;
+
+      // Compare timestamps
+      if (sessionUpdatedAt > dbUpdatedAt) {
+        return parsed.learningPath;
+      }
+
+      return student?.learning_path ?? null;
+    } catch (error) {
+      logger.error('Error resolving latest learning path:', error);
+      return student?.learning_path ?? null;
+    }
+  }
+
+  // In Util.ts or your utility file
+  public static getLocalStarsForStudent(
+    studentId: string,
+    fallback: number = 0,
+  ): number {
+    try {
+      const storedStarsJson = localStorage.getItem(STARS_COUNT);
+      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+      const localStarsRaw = storedStarsMap[studentId];
+
+      const latestStarsRaw = localStorage.getItem(LATEST_STARS(studentId));
+
+      const localStars = Number.isFinite(+localStarsRaw)
+        ? parseInt(localStarsRaw, 10)
+        : 0;
+      const latestStars = Number.isFinite(+(latestStarsRaw ?? '0'))
+        ? parseInt(latestStarsRaw ?? '0', 10)
+        : 0;
+
+      // ✅ FIXED: Prioritize local > latest > fallback, seed local if needed
+      let bestLocal = Math.max(localStars, latestStars);
+
+      if (bestLocal === 0 && fallback > 0) {
+        // First load: seed localStorage with DB value
+        bestLocal = fallback;
+        Util.setLocalStarsForStudent(studentId, bestLocal);
+      }
+      return bestLocal;
+    } catch (e) {
+      logger.warn('[Util.getLocalStarsForStudent] failed, using fallback', e);
+      return fallback;
+    }
+  }
+
+  public static async fetchCurrentClassAndSchool(): Promise<{
+    className: string;
+    schoolName: string;
+  }> {
+    const currentStudent = Util.getCurrentStudent();
+    let className = '';
+    let schoolName = '';
+    if (currentStudent?.id) {
+      try {
+        const api = ServiceConfig.getI().apiHandler;
+        const linkedData = await api.getStudentClassesAndSchools(
+          currentStudent.id,
+        );
+        if (linkedData && linkedData.classes.length > 0) {
+          const classDoc = linkedData.classes[0];
+          className = classDoc.name || '';
+
+          const schoolDoc = linkedData.schools.find(
+            (s: any) => s.id === classDoc.school_id,
+          );
+          schoolName = schoolDoc?.name || '';
+        }
+      } catch (error) {
+        logger.error('Error fetching class/school details:', error);
+      }
+    }
+    return { className, schoolName };
+  }
+
+  // Write a specific star count into BOTH STARS_COUNT and LATEST_STARS
+  public static setLocalStarsForStudent(
+    studentId: string,
+    stars: number,
+  ): void {
+    try {
+      const storedStarsJson = localStorage.getItem(STARS_COUNT);
+      const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
+      storedStarsMap[studentId] = stars;
+      localStorage.setItem(STARS_COUNT, JSON.stringify(storedStarsMap));
+
+      localStorage.setItem(LATEST_STARS(studentId), stars.toString());
+    } catch (e) {
+      logger.warn('[Util.setLocalStarsForStudent] failed', e);
+    }
+  }
+
+  // Add delta to local stars and fire a DOM event so React screens can react immediately
+  public static bumpLocalStarsForStudent(
+    studentId: string,
+    delta: number,
+    fallback: number = 0,
+  ): number {
+    const current = Util.getLocalStarsForStudent(studentId, fallback);
+    const next = current + delta;
+    Util.setLocalStarsForStudent(studentId, next);
+
+    try {
+      window.dispatchEvent(
+        new CustomEvent('starsUpdated', {
+          detail: { studentId, newStars: next },
+        }),
+      );
+    } catch (e) {
+      logger.warn('[Util.bumpLocalStarsForStudent] event dispatch failed', e);
+    }
+
+    return next;
+  }
+
+  public static isVersionAllowed(upto: string, current: string): boolean {
+    const u = upto.split('.').map((n) => parseInt(n, 10));
+    const c = current.split('.').map((n) => parseInt(n, 10));
+
+    for (let i = 0; i < Math.max(u.length, c.length); i++) {
+      const nu = u[i] || 0;
+      const nc = c[i] || 0;
+
+      if (nu > nc) return true;
+      if (nu < nc) return false;
+    }
+
+    return true;
+  }
+  public static async refreshHomeworkPathWithLatestAfterIndex(
+    completedIndex: number,
+  ) {
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      const storedPath = localStorage.getItem(HOMEWORK_PATHWAY);
+      if (!storedPath) return;
+
+      const path = JSON.parse(storedPath);
+      const originalLessons = path.lessons ?? [];
+      if (completedIndex >= originalLessons.length) return;
+
+      // 1. Maintain visual consistency: Keep the path length the same
+      const originalLength = originalLessons.length;
+
+      // 2. Identify the Subject of the current path
+      const currentSubjectId =
+        originalLessons[0]?.lesson?.subjectid || originalLessons[0]?.course_id;
+
+      const student = Util.getCurrentStudent();
+      const currClass = Util.getCurrentClass();
+      if (!student?.id || !currClass?.id || !currentSubjectId) return;
+
+      // 3. Fetch Pending from DB
+      const all = await api.getPendingAssignments(currClass.id, student.id);
+
+      // 4. Filter strictly by current subject
+      const eligibleFromDB = all.filter((a: any) => {
+        const isSameSubject =
+          String(a.course_id || a.subject_id) === String(currentSubjectId);
+        return a.type !== 'LIVEQUIZ' && isSameSubject;
+      });
+
+      // 5. Preserve Played History: Node 2 (A) stays exactly where it is
+      const history = originalLessons.slice(0, completedIndex + 1);
+      const playedAssignmentIds = new Set(
+        history.map((l: any) => l.assignment_id),
+      );
+
+      //6. Sort new ones: LIFO batches, FIFO inside batch (using your getTs helper)
+      const getTs = (a: any) => {
+        const v =
+          a.assigned_at ?? a.created_at ?? a.createdAt ?? a.timestamp ?? null;
+        const t = v ? new Date(v).getTime() : 0;
+        return isNaN(t) ? 0 : t;
+      };
+
+      // 7. Get Future candidates and sort LIFO (Newest first)
+      const candidates = eligibleFromDB.filter(
+        (a: any) => !playedAssignmentIds.has(a.id),
+      );
+      candidates.sort((a, b) => getTs(b) - getTs(a));
+
+      // 8. Calculate slots remaining for the "Future" part of the path
+      const remainingSlotsCount = originalLength - history.length;
+      if (remainingSlotsCount <= 0) return;
+
+      // Take only the number of assignments needed to fill original slots
+      const assignmentsToInject = candidates.slice(0, remainingSlotsCount);
+
+      // 9. Fetch Full Lesson Details
+      const newLessons = await Promise.all(
+        assignmentsToInject.map(async (assignment: any) => {
+          if (!assignment.lesson_id) {
+            return null;
+          }
+          const fullLesson = await api.getLesson(assignment.lesson_id);
+          if (!fullLesson?.id) {
+            logger.warn(
+              '[HomeworkPathway] Skipping stale assignment while refreshing homework tail',
+              {
+                assignmentId: assignment.id ?? null,
+                lessonId: assignment.lesson_id ?? null,
+              },
+            );
+            return null;
+          }
+          return {
+            assignment_id: assignment.id,
+            lesson_id: assignment.lesson_id,
+            chapter_id: assignment.chapter_id,
+            course_id: assignment.course_id,
+            lesson: fullLesson,
+            raw_assignment: assignment,
+          };
+        }),
+      );
+      const playableNewLessons = newLessons.filter(
+        (lesson): lesson is NonNullable<(typeof newLessons)[number]> =>
+          lesson !== null,
+      );
+
+      // 10. REBUILD while preserving original path length.
+      // If DB doesn't return enough replacements, keep existing future lessons
+      // so UI index progression does not collapse back to 0.
+      type LessonWithAssignmentId = { assignment_id?: string | null };
+      const existingFutureLessons = originalLessons.slice(completedIndex + 1);
+      const usedAssignmentIds = new Set<string>(
+        [...history, ...playableNewLessons]
+          .map((l) => (l as LessonWithAssignmentId)?.assignment_id)
+          .filter(
+            (id): id is string => typeof id === 'string' && id.length > 0,
+          ),
+      );
+      const fallbackFutureLessons = existingFutureLessons.filter(
+        (lesson: unknown) => {
+          const typedLesson = lesson as LessonWithAssignmentId;
+          const assignmentId = typedLesson.assignment_id;
+          return !assignmentId || !usedAssignmentIds.has(assignmentId);
+        },
+      );
+
+      const filledFutureLessons = [...playableNewLessons];
+      if (filledFutureLessons.length < remainingSlotsCount) {
+        const missingCount = remainingSlotsCount - filledFutureLessons.length;
+        filledFutureLessons.push(
+          ...fallbackFutureLessons.slice(0, missingCount),
+        );
+      }
+
+      const updatedLessons = [
+        ...history,
+        ...filledFutureLessons.slice(0, remainingSlotsCount),
+      ];
+
+      localStorage.setItem(
+        HOMEWORK_PATHWAY,
+        JSON.stringify({
+          ...path,
+          lessons: updatedLessons,
+        }),
+      );
+    } catch (error) {
+      logger.error('Failed to refresh homework path with latest:', error);
+    }
+  }
+  public static pickFiveHomeworkLessons(
+    assignments: any[],
+    completedCountBySubject: { [key: string]: number } = {},
+  ): any[] {
+    // Helper: timestamp (oldest = smaller)
+    const getTs = (a: any) => {
+      const v =
+        a.assigned_at ?? a.created_at ?? a.createdAt ?? a.timestamp ?? null;
+      const t = v ? new Date(v).getTime() : 0;
+      return isNaN(t) ? 0 : t;
+    };
+
+    // 1) Only pending
+    const pending = assignments.filter((a) => !a.completed);
+    if (!pending.length) return [];
+
+    // 2) Global FIFO sort (oldest first). This guarantees FIFO within buckets.
+    const pendingSorted = [...pending].sort((a, b) => getTs(b) - getTs(a));
+
+    // 3) Group by subject, maintaining FIFO order inside manual & other buckets
+    const bySubject: {
+      [sid: string]: {
+        manual: any[];
+        other: any[];
+        total: number;
+        manualCount: number;
+      };
+    } = {};
+
+    for (const a of pendingSorted) {
+      const sid = a.subject_id;
+      if (!sid) continue;
+      if (!bySubject[sid])
+        bySubject[sid] = { manual: [], other: [], total: 0, manualCount: 0 };
+      if (a.source === 'manual') {
+        bySubject[sid].manual.push(a);
+        bySubject[sid].manualCount++;
+      } else {
+        bySubject[sid].other.push(a);
+      }
+      bySubject[sid].total++;
+    }
+
+    const subjectIds = Object.keys(bySubject);
+    if (subjectIds.length === 0) return [];
+
+    // NOTE: Removed mixed-case return for totalPendingAll <= 5.
+    // We will ALWAYS pick one subject only (manual priority + tie-breaks) and
+    // return up to 5 assignments from that subject only.
+
+    // 4) Choose single subject according to your rules:
+    //    a) highest manualCount (manual priority)
+    //    b) tie -> higher total pending
+    //    c) tie -> smaller completedCountBySubject (played less)
+    //    d) final deterministic fallback: subject id (string compare)
+    let bestSubject: string | null = null;
+    let bestManual = -1;
+    let bestTotal = -1;
+    let bestCompleted = Number.MAX_SAFE_INTEGER;
+
+    for (const sid of subjectIds) {
+      const { manualCount, total } = bySubject[sid];
+      const completed = completedCountBySubject[sid] ?? 0;
+
+      if (manualCount > bestManual) {
+        bestSubject = sid;
+        bestManual = manualCount;
+        bestTotal = total;
+        bestCompleted = completed;
+      } else if (manualCount === bestManual) {
+        if (total > bestTotal) {
+          bestSubject = sid;
+          bestTotal = total;
+          bestCompleted = completed;
+        } else if (total === bestTotal) {
+          if (completed < bestCompleted) {
+            bestSubject = sid;
+            bestCompleted = completed;
+          } else if (completed === bestCompleted) {
+            if (bestSubject === null || String(sid) < String(bestSubject)) {
+              bestSubject = sid;
+            }
+          }
+        }
+      }
+    }
+
+    if (!bestSubject) return [];
+
+    // 5) Take up to 5 from chosen subject ONLY:
+    //    - manual FIFO first, then other FIFO (both already FIFO due to earlier sort)
+    const result: any[] = [];
+    const manualBucket = bySubject[bestSubject].manual || [];
+    const otherBucket = bySubject[bestSubject].other || [];
+
+    for (const a of manualBucket) {
+      if (result.length >= 5) break;
+      result.push(a);
+    }
+    for (const a of otherBucket) {
+      if (result.length >= 5) break;
+      result.push(a);
+    }
+
+    return result.slice(0, 5);
+  }
+
+  public static async downloadLidoCommonAudio(
+    audioZipUrl: string,
+    languageId: string,
+  ): Promise<boolean> {
+    try {
+      if (!Capacitor.isNativePlatform()) {
+        return true;
+      }
+
+      const langSpecificDir = `${LIDO_COMMON_AUDIO_DIR}/${languageId}`;
+
+      try {
+        // Check if directory exists
+        await Filesystem.stat({
+          path: langSpecificDir,
+          directory: Directory.Data,
+        });
+        // If stat doesn't throw, directory exists.
+        return true;
+      } catch (e) {
+        // Directory does not exist, proceed to download.
+      }
+      const fs = createFilesystem(Filesystem, {
+        rootDir: '/',
+        directory: Directory.Data,
+      });
+
+      // 🔽 Download ZIP
+      const download = await CapacitorHttp.get({
+        url: audioZipUrl,
+        responseType: 'blob',
+        readTimeout: 15000,
+        connectTimeout: 15000,
+      });
+
+      if (!download || download.status !== 200 || !download.data) {
+        logger.error('[LidoCommonAudio] ZIP download failed');
+        return false;
+      }
+
+      const zipDataStr =
+        typeof download.data === 'string'
+          ? download.data
+          : await this.blobToString(download.data as Blob);
+
+      let buffer: Uint8Array;
+      try {
+        const prepared = await runBackgroundWorkerTask(
+          'PREPARE_BINARY_FROM_BASE64',
+          {
+            base64: zipDataStr,
+            algorithm: 'SHA-256',
+          },
+        );
+        buffer = new Uint8Array(prepared.arrayBuffer);
+      } catch (workerError) {
+        logger.warn(
+          '[LidoCommonAudio] Worker decode failed, falling back to main thread decode.',
+          workerError,
+        );
+        buffer = Uint8Array.from(atob(zipDataStr), (c) => c.charCodeAt(0));
+      }
+
+      // 📦 Unzip to /Lido-CommonAudios/{languageId}
+      await unzip({
+        fs,
+        extractTo: langSpecificDir,
+        filepaths: ['.'],
+        data: buffer,
+      });
+
+      return true;
+    } catch (err) {
+      logger.error(
+        '[LidoCommonAudio] Unexpected error while downloading audio:',
+        err,
+      );
+      return false;
+    }
+  }
+  static async ensureLidoCommonAudioForStudent(student: TableTypes<'user'>) {
+    try {
+      if (!student?.language_id) {
+        logger.warn('[LidoCommonAudio] Student has no language');
+        return;
+      }
+
+      const api = ServiceConfig.getI().apiHandler;
+
+      const audioConfig = await api.getLidoCommonAudioUrl(
+        student.language_id,
+        student.locale_id ?? null,
+      );
+
+      if (!audioConfig?.lido_common_audio_url) {
+        logger.warn('[LidoCommonAudio] No audio config found');
+        return;
+      }
+      await Util.downloadLidoCommonAudio(
+        audioConfig.lido_common_audio_url,
+        student.language_id,
+      );
+    } catch (err) {
+      logger.error('[LidoCommonAudio] ensure failed:', err);
+    }
+  }
+
+  public static getHotUpdateState(): HotUpdateState {
+    const raw = localStorage.getItem(HOT_UPDATE_STATE_KEY);
+    return raw
+      ? JSON.parse(raw)
+      : {
+          status: 'Idle',
+          progress: 0,
+          channel: 'N/A',
+          lastChecked: 'N/A',
+          lastUpdated: 'N/A',
+          error: '',
+          isAuto: false,
+        };
+  }
+
+  public static setHotUpdateState(partial: Partial<HotUpdateState>) {
+    const current = this.getHotUpdateState();
+    const updated = { ...current, ...partial };
+    localStorage.setItem(HOT_UPDATE_STATE_KEY, JSON.stringify(updated));
+
+    window.dispatchEvent(new Event('hot-update-progress'));
+  }
+  static async removeCourseScopedKey(
+    baseKey: string,
+    userId: string,
+    courseId: string,
+  ) {
+    if (!baseKey || !userId || !courseId) return;
+
+    const storageKey = `${baseKey}_${userId}`;
+
+    let map: Record<string, any> = {};
+    try {
+      map = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    } catch {
+      map = {};
+    }
+
+    if (!map || typeof map !== 'object') return;
+
+    delete map[courseId];
+
+    Object.keys(map).length === 0
+      ? localStorage.removeItem(storageKey)
+      : localStorage.setItem(storageKey, JSON.stringify(map));
+  }
+  static upsertResultWithAggregation(
+    resultsBucket: any[],
+    result: any,
+    lesson?: TableTypes<'lesson'>,
+  ) {
+    // LIDO → aggregate per lesson
+    if (lesson?.plugin_type === LIDO_ASSESSMENT) {
+      const existing = resultsBucket.find(
+        (r) => r.lesson_id === result.lesson_id,
+      );
+
+      if (existing) {
+        const total =
+          (existing._totalScore ?? existing.score ?? 0) + (result.score ?? 0);
+
+        const count = (existing._count ?? 1) + 1;
+
+        existing._totalScore = total;
+        existing._count = count;
+        existing.score = Math.round(total / count);
+      } else {
+        resultsBucket.push({
+          ...result,
+          score: result.score ?? 0,
+          _totalScore: result.score ?? 0,
+          _count: 1,
+        });
+      }
+    } else {
+      // Non-LIDO → keep all attempts
+      resultsBucket.push(result);
+    }
+  }
+  public static async updateSchStdAttb(): Promise<any[]> {
+    try {
+      const student = Util.getCurrentStudent();
+      if (!student?.id) return [];
+      const api = ServiceConfig.getI().apiHandler;
+      const linkedData = await api.getStudentClassesAndSchools(student.id);
+      if (!linkedData) {
+        api.currentClass = undefined;
+        localStorage.removeItem(CURRENT_CLASS);
+        // Clear school targeting when the active student has no linkage data.
+        updateLocalAttributes({
+          student_id: student.id,
+          school_ids: [],
+          schools: [],
+          classes: [],
+          school_name: null,
+        });
+        return [];
+      }
+      const device = await Util.logDeviceInfo();
+      const resolvedSchoolIds = linkedData.schools.map(
+        (item: TableTypes<'school'>) => item.id,
+      );
+      if (linkedData.classes.length === 0) {
+        api.currentClass = undefined;
+        localStorage.removeItem(CURRENT_CLASS);
+      }
+      const attributeParams = {
+        studentDetails: student,
+        schools: resolvedSchoolIds,
+        school_ids: resolvedSchoolIds,
+        school_name: linkedData.schools[0]?.name,
+        classes: linkedData.classes.map((item: any) => item.id),
+        ...device,
+      };
+      updateLocalAttributes(attributeParams);
+      return [];
+    } catch (error) {
+      logger.error('[Util.updateSchStdAttb] failed:', error);
+      return [];
+    }
+  }
+
+  public static async logDeviceInfo(): Promise<any> {
+    const info = await Device.getInfo();
+    const device_language = await Device.getLanguageCode();
+    const device = {
+      model: info.model,
+      manufacturer: info.manufacturer,
+      platform: info.platform,
+      os_version: info.osVersion,
+      operating_system: info.operatingSystem,
+      is_virtual: info.isVirtual,
+      device_language: device_language.value,
+    };
+    return device;
+  }
+
+  public static migrateSupabaseSession() {
+    try {
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+
+      if (!supabaseUrl) {
+        logger.warn('Supabase URL missing, skipping session migration');
+        return;
+      }
+
+      const projectRef = supabaseUrl.split('//')[1]?.split('.')[0];
+      if (!projectRef) {
+        logger.warn('Invalid Supabase URL format, skipping session migration');
+        return;
+      }
+
+      const newKey = `sb-${projectRef}-auth-token`;
+      const oldKey = Object.keys(localStorage).find(
+        (key) => key.endsWith('auth-token') && key !== newKey,
+      );
+
+      if (oldKey) {
+        const oldSession = localStorage.getItem(oldKey);
+
+        if (oldSession && !localStorage.getItem(newKey)) {
+          localStorage.setItem(newKey, oldSession);
+          localStorage.removeItem(oldKey);
+        }
+      }
+    } catch (error) {
+      logger.error('Session migration failed', error);
+    }
+  }
+
+  public static async getLocalLessonVersion(lessonId: string): Promise<number> {
+    try {
+      const file = await Filesystem.readFile({
+        path: `${lessonId}/.version`,
+        directory: Directory.External,
+      });
+
+      let versionStr: string;
+
+      if (typeof file.data === 'string') {
+        // 🔥 Try decode base64 safely
+        try {
+          versionStr = atob(file.data);
+        } catch {
+          versionStr = file.data; // fallback if already plain text
+        }
+      } else {
+        versionStr = await this.blobToString(file.data as Blob);
+      }
+
+      const cleaned = versionStr.trim(); // 🔥 IMPORTANT
+      const version = parseInt(cleaned, 10);
+
+      logger.warn(`[Version] Raw: "${versionStr}" Parsed: ${version}`);
+
+      return isNaN(version) ? 1 : version;
+    } catch (err) {
+      logger.warn(
+        `[Version] No .version file for ${lessonId}, defaulting to 1`,
+      );
+      return 1;
     }
   }
 }

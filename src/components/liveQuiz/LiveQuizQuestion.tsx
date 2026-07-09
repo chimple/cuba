@@ -1,28 +1,38 @@
-import { FC, useEffect, useState } from "react";
-import LiveQuizRoomObject from "../../models/liveQuizRoom";
+import { FC, useEffect, useState } from 'react';
+import { Encoding } from '@capacitor/filesystem';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import LiveQuiz, {
   LIVE_QUIZ_QUESTION_TIME,
   LiveQuizOption,
   LiveQuizQuestion as LiveQuizQuestionType,
-} from "../../models/liveQuiz";
-import "./LiveQuizQuestion.css";
-import { Capacitor } from "@capacitor/core";
-import { Util } from "../../utility/util";
-import { PAGES, TableTypes } from "../../common/constants";
-import { useHistory } from "react-router";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { HiSpeakerWave } from "react-icons/hi2";
-import { TextToSpeech } from "@capacitor-community/text-to-speech";
-import LiveQuizNavigationDots from "./LiveQuizNavigationDots";
-import { schoolUtil } from "../../utility/schoolUtil";
+} from '../../models/liveQuiz';
+import './LiveQuizQuestion.css';
+import { Capacitor } from '@capacitor/core';
+import { Util } from '../../utility/util';
+import {
+  BUNDLE_ZIP_URLS,
+  PAGES,
+  SOURCE,
+  REWARD_LESSON,
+  TableTypes,
+} from '../../common/constants';
+import { useHistory } from 'react-router';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { HiSpeakerWave } from 'react-icons/hi2';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import LiveQuizNavigationDots from './LiveQuizNavigationDots';
+import { schoolUtil } from '../../utility/schoolUtil';
+import logger from '../../utility/logger';
+import { getCachedGrowthBookFeatureValue } from '../../growthbook/Growthbook';
+import { getBundleZipUrlsForEnv } from '../../services/RemoteConfig';
 
-let questionInterval;
+let questionInterval: ReturnType<typeof setInterval> | undefined;
 let audiosMap: { [key: string]: HTMLAudioElement } = {};
 let totalLessonScore = 0;
 let totalLessonTimeSpent = 0;
 let lessonCorrectMoves = 0;
 const LiveQuizQuestion: FC<{
-  roomDoc?: TableTypes<"live_quiz_room">;
+  roomDoc?: TableTypes<'live_quiz_room'>;
   showQuiz: boolean;
   isTimeOut: boolean;
   cocosLessonId?: string | null;
@@ -32,8 +42,12 @@ const LiveQuizQuestion: FC<{
   onRemainingTimeChange?: (remainingTime: number) => void;
   onShowAnswer?: (canShow: boolean) => void;
   lessonId?: string;
+  lesson?: TableTypes<'lesson'>;
   quizData?: any;
-  onTotalScoreChange?;
+  onTotalScoreChange?: (totalScore: number) => void;
+  isLearningPathway?: boolean;
+  isReward?: boolean;
+  source?: SOURCE;
 }> = ({
   roomDoc,
   onNewQuestionChange,
@@ -45,13 +59,21 @@ const LiveQuizQuestion: FC<{
   onShowAnswer,
   isTimeOut,
   lessonId,
+  lesson,
   quizData,
   onTotalScoreChange,
+  isLearningPathway,
+  isReward = false,
+  source = SOURCE.SUBJECT_PAGE,
 }) => {
+  const quizPathBase =
+    localStorage.getItem('gameUrl') ??
+    'http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/';
+
   const quizPath =
-    (localStorage.getItem("gameUrl") ??
-      "http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/") +
-    (lessonId || cocosLessonId);
+    lessonId || cocosLessonId
+      ? quizPathBase + (lessonId || cocosLessonId)
+      : quizPathBase;
   const [liveQuizConfig, setLiveQuizConfig] = useState<LiveQuiz>();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>();
   const [remainingTime, setRemainingTime] = useState(LIVE_QUIZ_QUESTION_TIME);
@@ -104,7 +126,7 @@ const LiveQuizQuestion: FC<{
   useEffect(() => {
     if (liveQuizConfig) {
       const correctAnswersList = liveQuizConfig.data.map((question) =>
-        question.options.findIndex((option) => option.isCorrect)
+        question.options.findIndex((option) => option.isCorrect),
       );
       setCorrectAnswers(correctAnswersList);
     }
@@ -122,7 +144,7 @@ const LiveQuizQuestion: FC<{
         totalLessonScore += calculateScoreForQuestion(
           true,
           liveQuizConfig?.data.length || 0,
-          LIVE_QUIZ_QUESTION_TIME - remainingTime
+          LIVE_QUIZ_QUESTION_TIME - remainingTime,
         );
         lessonCorrectMoves++;
       }
@@ -131,12 +153,41 @@ const LiveQuizQuestion: FC<{
     }
   };
 
-  const downloadQuiz = async (lessonId: string) => {
-    const dow = await Util.downloadZipBundle([lessonId]);
+  const downloadQuiz = async (lessonToDownload: TableTypes<'lesson'>) => {
+    const dow = await Util.downloadZipBundle([lessonToDownload]);
+    return dow;
   };
 
+  const readLocalConfig = async (
+    path: string,
+  ): Promise<LiveQuiz | undefined> => {
+    try {
+      const file = await Filesystem.readFile({
+        path,
+        directory: Directory.External,
+        encoding: Encoding.UTF8, // 🔑 Hindi safe
+      });
+
+      return JSON.parse(file.data as string) as LiveQuiz;
+    } catch (err) {
+      return undefined;
+    }
+  };
   const getConfigJson = async () => {
     if (liveQuizConfig) return liveQuizConfig;
+    const lessonKey = lessonId || cocosLessonId;
+    if (lessonKey) {
+      const cachedConfig = localStorage.getItem(
+        `live_quiz_config_${lessonKey}`,
+      );
+      if (cachedConfig) {
+        const config = JSON.parse(cachedConfig) as LiveQuiz;
+        setLiveQuizConfig(config);
+        if (onConfigLoaded) onConfigLoaded(config);
+        preLoadAudiosWithLiveQuizConfig(config);
+        return config;
+      }
+    }
     if (!Capacitor.isNativePlatform()) {
       //TODO remove FOR testing
       const config = {
@@ -144,178 +195,212 @@ const LiveQuizQuestion: FC<{
           {
             options: [
               {
-                text: "Lion",
+                text: 'Lion',
                 isCorrect: true,
               },
               {
-                text: "Tiger",
+                text: 'Tiger',
               },
               {
-                text: "Elephant",
+                text: 'Elephant',
               },
               {
-                text: "Giraffe",
+                text: 'Giraffe',
               },
             ],
-            optionsType: "text",
+            optionsType: 'text',
             question: {
-              id: "question_1",
-              text: "Which animal is known as the king of the jungle?",
+              id: 'question_1',
+              text: 'Which animal is known as the king of the jungle?',
               // audio:
               //   "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
             },
-            questionType: "audio",
+            questionType: 'audio',
           },
           {
             options: [
               {
-                text: "Blue",
+                text: 'Blue',
               },
               {
-                text: "Orange",
+                text: 'Orange',
               },
               {
-                text: "red",
+                text: 'red',
                 isCorrect: true,
               },
               {
-                text: "Pink",
+                text: 'Pink',
               },
             ],
-            optionsType: "text",
+            optionsType: 'text',
             question: {
-              id: "question_2",
-              text: " What is the colour of an apple?",
+              id: 'question_2',
+              text: ' What is the colour of an apple?',
               // image:
               // "https://fastly.picsum.photos/id/1012/3973/2639.jpg?hmac=s2eybz51lnKy2ZHkE2wsgc6S81fVD1W2NKYOSh8bzDc",
             },
-            questionType: "text",
+            questionType: 'text',
           },
           {
             options: [
               {
-                text: "7",
+                text: '7',
                 isCorrect: true,
               },
               {
-                text: "8",
+                text: '8',
               },
               {
-                text: "5",
+                text: '5',
               },
               {
-                text: "6",
+                text: '6',
               },
             ],
-            optionsType: "text",
+            optionsType: 'text',
             question: {
-              id: "question_3",
-              text: "How many days are there in a week?",
+              id: 'question_3',
+              text: 'How many days are there in a week?',
               // image: "https://picsum.photos/200/300",
             },
-            questionType: "text",
+            questionType: 'text',
           },
           {
             options: [
               {
-                text: "X",
+                text: 'X',
               },
               {
-                text: "T",
+                text: 'T',
               },
               {
-                text: "K",
+                text: 'K',
                 isCorrect: true,
               },
               {
-                text: "P",
+                text: 'P',
               },
             ],
-            optionsType: "text",
+            optionsType: 'text',
             question: {
-              id: "question_4",
-              text: "Fill in the blanks? H, I, J, _,L, M, N",
+              id: 'question_4',
+              text: 'Fill in the blanks? H, I, J, _,L, M, N',
             },
-            questionType: "text",
+            questionType: 'text',
           },
           {
             options: [
               {
-                text: "E,K,S,T,P",
+                text: 'E,K,S,T,P',
               },
               {
-                text: "A,E,I,O,U",
+                text: 'A,E,I,O,U',
                 isCorrect: true,
               },
               {
-                text: "A,O,T,S,Y",
+                text: 'A,O,T,S,Y',
               },
               {
-                text: "O,I,V,Z,E",
+                text: 'O,I,V,Z,E',
               },
             ],
-            optionsType: "text",
+            optionsType: 'text',
             question: {
-              id: "question_5",
-              text: "Which are vowels?",
+              id: 'question_5',
+              text: 'Which are vowels?',
             },
-            questionType: "text",
+            questionType: 'text',
           },
           {
             options: [
               {
-                text: "Kitten",
+                text: 'Kitten',
                 isCorrect: true,
               },
               {
-                text: "Puppy",
+                text: 'Puppy',
               },
               {
-                text: "Cub",
+                text: 'Cub',
               },
               {
-                text: "Joey",
+                text: 'Joey',
               },
             ],
-            optionsType: "text",
+            optionsType: 'text',
             question: {
-              id: "question_6",
-              text: "A baby cat is called _",
+              id: 'question_6',
+              text: 'A baby cat is called _',
             },
-            questionType: "text",
+            questionType: 'text',
           },
         ],
 
-        type: "multiOptions",
+        type: 'multiOptions',
       } as LiveQuiz;
       preLoadAudiosWithLiveQuizConfig(config);
       setLiveQuizConfig(config);
       if (onConfigLoaded) onConfigLoaded(config);
       if (currentQuestionIndex == undefined && showQuiz)
         changeQuestion(config, true);
+
       return config;
     }
-    let response = await fetch(quizPath + "/config.json");
-    if (!response.ok) {
-      if (response.status === 404) {
-        if (lessonId) await downloadQuiz(lessonId); // Trigger the downloadQuiz function if the file is missing
 
-        response = await fetch(quizPath + "/config.json");
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch config file after downloadQuiz. Status: ${response.status}`
-          );
-        }
-      } else {
-        throw new Error(
-          `Failed to fetch config file. Status: ${response.status}`
+    let configFile: LiveQuiz | undefined;
+
+    /* =====================
+     REMOTE FETCH (UNCHANGED)
+     ===================== */
+    const remoteUrls = getCachedGrowthBookFeatureValue<string[]>(
+      BUNDLE_ZIP_URLS,
+      getBundleZipUrlsForEnv(),
+    );
+
+    for (const baseUrl of remoteUrls) {
+      try {
+        const response = await fetch(
+          baseUrl + (lessonId || cocosLessonId) + '/config.json',
         );
+        if (response.ok) {
+          configFile = (await response.json()) as LiveQuiz;
+          break;
+        }
+      } catch {
+        logger.warn('Failed to fetch from remote:', baseUrl);
       }
     }
 
-    const configFile: LiveQuiz = (await response.json()) as LiveQuiz;
+    /* =====================
+     🔥 EXACT HELPER BLOCK 
+     ===================== */
+    if (!configFile) {
+      const configPath = (lessonId || cocosLessonId) + '/config.json';
+
+      configFile = await readLocalConfig(configPath);
+
+      if (!configFile && lessonId && lesson) {
+        logger.warn('[LiveQuiz] Config not found locally, downloading...');
+        await downloadQuiz(lesson);
+
+        // Retry reading after download
+        configFile = await readLocalConfig(configPath);
+      } else if (!configFile && lessonId) {
+        logger.warn('[LiveQuiz] Lesson data required for bundle download');
+      }
+    }
+
+    /* =====================
+     SAFETY (NO ! CRASH)
+     ===================== */
+    if (!configFile) {
+      throw new Error('Failed to load live quiz config.');
+    }
+
     setLiveQuizConfig(configFile);
     if (onConfigLoaded) onConfigLoaded(configFile);
+
     return configFile;
   };
 
@@ -335,7 +420,7 @@ const LiveQuizQuestion: FC<{
         }
         return accumulator;
       },
-      0
+      0,
     );
     if (roomDoc.participants) {
       if (participantsPlayedCount === roomDoc.participants.length) {
@@ -353,7 +438,7 @@ const LiveQuizQuestion: FC<{
 
   const changeQuestion = async (
     _liveQuizConfig?: LiveQuiz,
-    isStart: boolean = false
+    isStart: boolean = false,
   ) => {
     const tempLiveQuizConfig = _liveQuizConfig || liveQuizConfig;
     if (!tempLiveQuizConfig) return;
@@ -408,7 +493,7 @@ const LiveQuizQuestion: FC<{
   function calculateScoreForQuestion(
     correct: boolean,
     totalQuestions: number,
-    timeSpent: number
+    timeSpent: number,
   ): number {
     if (!correct) return 0;
     const maxTotalScore = 100;
@@ -417,7 +502,7 @@ const LiveQuizQuestion: FC<{
     const timeScore = Math.max(
       0,
       maxScoreForQuestion / 2 -
-        (maxScoreForQuestion / 2) * (timeSpent / LIVE_QUIZ_QUESTION_TIME)
+        (maxScoreForQuestion / 2) * (timeSpent / LIVE_QUIZ_QUESTION_TIME),
     );
     const totalScoreForQuestion = baseScoreForQuestion + timeScore;
     return totalScoreForQuestion;
@@ -428,12 +513,20 @@ const LiveQuizQuestion: FC<{
     let totalTimeSpent = 0;
     const totalQuestions = liveQuizConfig?.data.length || 0;
     let correctMoves = 0;
+    const _currentUser =
+      await ServiceConfig.getI().authHandler.getCurrentUser();
     if (lessonId) {
-      onTotalScoreChange(totalLessonScore);
+      if (onTotalScoreChange) {
+        onTotalScoreChange(totalLessonScore);
+      }
       const classData = schoolUtil.getCurrentClass();
-
+      const shouldGiveDailyReward =
+        isReward || (isLearningPathway && (await Util.shouldGiveDailyReward()));
+      if (shouldGiveDailyReward) {
+        sessionStorage.setItem(REWARD_LESSON, 'true');
+      }
       await api.updateResult(
-        student!.id,
+        student!,
         quizData.courseId,
         quizData.lessonid,
         Math.round(totalLessonScore),
@@ -443,14 +536,38 @@ const LiveQuizQuestion: FC<{
         undefined,
         quizData.chapterId,
         classData?.id,
-        classData?.school_id
+        classData?.school_id,
+        undefined, // isImediateSync
+        undefined, // isHomework
+        undefined, // skill_id
+        undefined, // skill_ability
+        undefined, // outcome_id
+        undefined, // outcome_ability
+        undefined, // competency_id
+        undefined, // competency_ability
+        undefined, // domain_id
+        undefined, // domain_ability
+        undefined, // subject_id
+        undefined, // subject_ability
+        undefined, // activities_scores
+        _currentUser?.id, // ✅ now correctly maps to user_id
+        undefined, // status
+        source,
       );
       totalLessonScore = 0;
       totalLessonTimeSpent = 0;
       lessonCorrectMoves = 0;
+      // Update the learning path
+      if (isLearningPathway) {
+        const currentStudent = Util.getCurrentStudent() as TableTypes<'user'>;
+        await Util.updateLearningPath(currentStudent, isReward);
+      }
     } else {
       if (!roomDoc?.results) return;
-      for (let result of roomDoc.results[student!.id]) {
+      const roomResults = roomDoc.results as
+        | Record<string, { score: number; timeSpent: number }[]>
+        | undefined;
+      for (let result of roomResults?.[student!.id] ?? []) {
         totalScore += result.score || 0;
         totalTimeSpent += result.timeSpent || 0;
         if (result.score > 0) {
@@ -459,7 +576,7 @@ const LiveQuizQuestion: FC<{
       }
       var _assignment = await api.getAssignmentById(roomDoc.assignment_id);
       await api.updateResult(
-        student!.id,
+        student!,
         roomDoc.course_id,
         roomDoc.lesson_id,
         Math.round(totalScore),
@@ -467,15 +584,31 @@ const LiveQuizQuestion: FC<{
         totalQuestions - correctMoves,
         totalTimeSpent,
         roomDoc.assignment_id,
-        _assignment?.chapter_id ?? "",
+        _assignment?.chapter_id ?? '',
         roomDoc.class_id,
-        roomDoc.school_id
+        roomDoc.school_id,
+        undefined, // isImediateSync
+        undefined, // isHomework
+        undefined, // skill_id
+        undefined, // skill_ability
+        undefined, // outcome_id
+        undefined, // outcome_ability
+        undefined, // competency_id
+        undefined, // competency_ability
+        undefined, // domain_id
+        undefined, // domain_ability
+        undefined, // subject_id
+        undefined, // subject_ability
+        undefined, // activities_scores
+        _currentUser?.id, // ✅ now correctly maps to user_id
+        undefined, // status
+        source,
       );
     }
   }
 
   const playLiveQuizAudio = async (
-    data: LiveQuizOption | LiveQuizQuestionType
+    data: LiveQuizOption | LiveQuizQuestionType,
   ) => {
     try {
       setAudio(true);
@@ -497,7 +630,7 @@ const LiveQuizQuestion: FC<{
         setAudio(false);
       }
     } catch (error) {
-      console.error("🚀 ~ file: LiveQuizQuestion.tsx:348 ~ error:", error);
+      logger.error('🚀 ~ file: LiveQuizQuestion.tsx:348 ~ error:', error);
     }
   };
 
@@ -519,10 +652,10 @@ const LiveQuizQuestion: FC<{
   const preLoadAudio = (url: string): HTMLAudioElement => {
     let newUrl = url;
     if (Capacitor.isNativePlatform()) {
-      newUrl = quizPath + "/" + url;
+      newUrl = quizPath + '/' + url;
     }
     const audio = new Audio(newUrl);
-    audio.preload = "auto";
+    audio.preload = 'auto';
     audio.load();
     audiosMap[url] = audio;
     return audio;
@@ -532,9 +665,9 @@ const LiveQuizQuestion: FC<{
     try {
       await TextToSpeech.stop();
     } catch (error) {
-      console.error(
-        "🚀 ~ file: LiveQuizQuestion.tsx:384 ~ stopAllAudios ~ error:",
-        error
+      logger.error(
+        '🚀 ~ file: LiveQuizQuestion.tsx:384 ~ stopAllAudios ~ error:',
+        error,
       );
     }
     if (!audiosMap) return;
@@ -544,9 +677,9 @@ const LiveQuizQuestion: FC<{
         audio.currentTime = 0;
       });
     } catch (error) {
-      console.error(
-        "🚀 ~ file: LiveQuizQuestion.tsx:393 ~ stopAllAudios ~ error:",
-        error
+      logger.error(
+        '🚀 ~ file: LiveQuizQuestion.tsx:393 ~ stopAllAudios ~ error:',
+        error,
       );
     }
   };
@@ -555,7 +688,7 @@ const LiveQuizQuestion: FC<{
     <div>
       <div
         className="live-quiz-navigation-dots"
-        style={lessonId ? { paddingTop: "5vh", paddingBottom: "5vh" } : {}}
+        style={lessonId ? { paddingTop: '5vh', paddingBottom: '5vh' } : {}}
       >
         {isTimeOut && liveQuizConfig && currentQuestionIndex != null && (
           <LiveQuizNavigationDots
@@ -577,10 +710,10 @@ const LiveQuizQuestion: FC<{
                     onClick={(e) => {
                       e.stopPropagation();
                       playLiveQuizAudio(
-                        liveQuizConfig.data[currentQuestionIndex].question
+                        liveQuizConfig.data[currentQuestionIndex].question,
                       );
                     }}
-                    className={audio ? "audio-playing" : ""}
+                    className={audio ? 'audio-playing' : ''}
                   />
                 </div>
               )}
@@ -595,7 +728,7 @@ const LiveQuizQuestion: FC<{
                   src={
                     Capacitor.isNativePlatform()
                       ? quizPath +
-                        "/" +
+                        '/' +
                         liveQuizConfig.data[currentQuestionIndex]?.question
                           .image
                       : liveQuizConfig.data[currentQuestionIndex]?.question
@@ -621,37 +754,37 @@ const LiveQuizQuestion: FC<{
                       const score = calculateScoreForQuestion(
                         option.isCorrect === true,
                         liveQuizConfig.data.length,
-                        LIVE_QUIZ_QUESTION_TIME - remainingTime
+                        LIVE_QUIZ_QUESTION_TIME - remainingTime,
                       );
                       await api.updateLiveQuiz(
-                        lessonId ?? roomDoc?.id ?? "",
+                        lessonId ?? roomDoc?.id ?? '',
                         student?.id!,
                         liveQuizConfig.data[currentQuestionIndex].question.id,
                         LIVE_QUIZ_QUESTION_TIME - remainingTime,
-                        score
+                        score,
                       );
                     }}
                     className={
-                      "live-quiz-option-box " +
+                      'live-quiz-option-box ' +
                       (selectedAnswerIndex === index && !showAnswer
-                        ? "selected-option "
-                        : "") +
+                        ? 'selected-option '
+                        : '') +
                       (showAnswer
                         ? option.isCorrect
-                          ? "live-quiz-option-box-correct"
+                          ? 'live-quiz-option-box-correct'
                           : selectedAnswerIndex === index
-                            ? "live-quiz-option-box-incorrect"
-                            : ""
-                        : "")
+                            ? 'live-quiz-option-box-incorrect'
+                            : ''
+                        : '')
                     }
                   >
                     {(option.audio || option.text) && (
                       <div
                         className={
-                          "live-quiz-audio-button-option " +
+                          'live-quiz-audio-button-option ' +
                           (selectedAnswerIndex === index && !showAnswer
-                            ? "selected--option-audio-button"
-                            : "")
+                            ? 'selected--option-audio-button'
+                            : '')
                         }
                       >
                         <HiSpeakerWave
@@ -659,7 +792,7 @@ const LiveQuizQuestion: FC<{
                             e.stopPropagation();
                             playLiveQuizAudio(option);
                           }}
-                          className={audio ? "audio-playing" : ""}
+                          className={audio ? 'audio-playing' : ''}
                         />
                       </div>
                     )}
@@ -670,7 +803,7 @@ const LiveQuizQuestion: FC<{
                         className="live-quiz-option-image"
                         src={
                           Capacitor.isNativePlatform()
-                            ? quizPath + "/" + option.image
+                            ? quizPath + '/' + option.image
                             : option.image
                         }
                         alt=""
@@ -678,7 +811,7 @@ const LiveQuizQuestion: FC<{
                     )}
                   </div>
                 );
-              }
+              },
             )}
           </div>
         </div>

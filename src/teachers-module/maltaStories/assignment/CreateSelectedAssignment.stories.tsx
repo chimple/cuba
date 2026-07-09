@@ -1,14 +1,14 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import CreateSelectedAssignment from "../../components/homePage/assignment/CreateSelectedAssignment";
+import type { Meta, StoryObj } from '@storybook/react';
+import CreateSelectedAssignment from '../../components/homePage/assignment/CreateSelectedAssignment';
 const meta: Meta = {
   title:
-    "teachers-module/components/homePage/assignment/CreateSelectedAssignment",
+    'teachers-module/components/homePage/assignment/CreateSelectedAssignment',
   component: CreateSelectedAssignment,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {},
 } satisfies Meta<typeof CreateSelectedAssignment>;
 

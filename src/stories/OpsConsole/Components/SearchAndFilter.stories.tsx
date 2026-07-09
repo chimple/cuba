@@ -12,12 +12,18 @@ const meta: Meta<typeof SearchAndFilter> = {
       control: 'text',
       description: 'Current value of the search input',
     },
-    onSearchChange: { action: 'searchChanged', description: 'Search input change handler' },
+    onSearchChange: {
+      action: 'searchChanged',
+      description: 'Search input change handler',
+    },
     filters: {
       control: 'object',
       description: 'Active filters',
     },
-    onFilterClick: { action: 'filterClicked', description: 'Filter button click handler' },
+    onFilterClick: {
+      action: 'filterClicked',
+      description: 'Filter button click handler',
+    },
   },
 } satisfies Meta<typeof SearchAndFilter>;
 
@@ -37,9 +43,7 @@ const InteractiveTemplate = (args: any) => {
     args.onFilterClick?.();
     // Example: toggle a dummy filter for demonstration
     setFilters((prev: any) =>
-      Object.keys(prev).length === 0
-        ? { example: ['value'] }
-        : {}
+      Object.keys(prev).length === 0 ? { example: ['value'] } : {},
     );
   };
 

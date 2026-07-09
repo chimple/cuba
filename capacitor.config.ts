@@ -30,6 +30,12 @@ const config: CapacitorConfig = {
       // Hidden manually in src/index.tsx so the in-app splash can show the message.
       launchAutoHide: false,
     },
+    LiveUpdate: {
+      appId: process.env.REACT_APP_CAPACITOR_HOT_UPDATE_APP_ID,
+      autoDeleteBundles: true,
+      readyTimeout: 50000,
+      httpTimeout: 300000,
+    }
   },
 };
 

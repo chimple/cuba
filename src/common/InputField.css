@@ -1,11 +1,11 @@
 .custom-search-bar {
-  position: relative;         
+  position: relative;
   background: white;
   padding: 10px;
   border-radius: 10px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);  
-  width: auto;           
-  height: auto;              
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+  width: auto;
+  height: auto;
   display: flex;
   align-items: center;
   margin-top: 5vh;
@@ -21,8 +21,8 @@
   padding-right: 40px;
 }
 
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -57,6 +57,6 @@ input[type="number"]::-webkit-outer-spin-button {
 
 .field-error-text {
   margin-top: 5px;
-  color: #d31010; 
+  color: #d31010;
   font-size: var(--text-size);
 }

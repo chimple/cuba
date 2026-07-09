@@ -51,6 +51,7 @@
 
 .assignments-list {
   margin-top: 20px;
+  margin-bottom: 60px;
 }
 
 .assignment-category {
@@ -66,6 +67,14 @@
   cursor: pointer;
   padding: 0px 20px;
   border-radius: 12px;
+}
+
+.category-header h4 {
+  margin: 12px 0;
+  color: #4e4d4d;
+  font-size: clamp(14px, 2.6vw, 17px);
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .students-list {
@@ -100,7 +109,7 @@
   width: 50vw;
   height: 50px;
   padding: 10px;
-  background-color: #7C5DB0;
+  background-color: #7c5db0;
   color: white;
   border: none;
   border-radius: 8px;
@@ -108,9 +117,62 @@
   font-size: 22px;
   font-weight: bolder;
 }
+
 .assign-selected-button:hover:not(:disabled) {
   background-color: #6b4c9f;
   color: white;
+}
+
+.assign-selected-button:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.assignment-interaction-lock-active {
+  overflow: hidden;
+  touch-action: none;
+}
+
+.assignment-interaction-lock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1150;
+  background: transparent;
+  cursor: wait;
+}
+
+.assign-reward-indicator {
+  position: fixed;
+  min-width: 66px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #e7f9ea;
+  border: 1px solid #53b864;
+  color: #189a33;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1;
+  z-index: 1200;
+  pointer-events: none;
+  opacity: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition:
+    transform 1600ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 1600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.assign-reward-indicator.is-flying {
+  opacity: 0.95;
+}
+
+.assign-reward-coin-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .vertical-line {
   border-left: 1px solid gray;
@@ -145,7 +207,7 @@
 }
 
 .select-all-checkbox:checked::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -176,7 +238,7 @@
 }
 
 .student-item-checkbox:checked::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 50%;
   left: 50%;
@@ -187,6 +249,6 @@
   transform: translate(-50%, -50%) rotate(45deg); /* Draw checkmark */
 }
 
-.select-all-student-count{
+.select-all-student-count {
   text-align: left;
 }

@@ -1,0 +1,37 @@
+.StickerBookCompletionFooter-root {
+  min-height: clamp(80px, 14vh, 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(230px, 6vw, 60px);
+  padding: clamp(10px, 2vh, 20px) 20px;
+  background: #fffdee;
+  /* As requested: 0 30px 30px 0 in prompt, but logically mapped to bottom radius for vertical layout */
+  border-radius: 0 0 30px 30px;
+  flex-shrink: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.StickerBookCompletionFooter-root .StickerBookActions-root {
+  flex-direction: row;
+  gap: clamp(40px, 8vw, 80px);
+}
+
+.StickerBookCompletionFooter-btn {
+  /* Override the StickerBookActions buttons to be more robust for the popup */
+  width: clamp(120px, 20vw, 160px) !important;
+  height: clamp(55px, 9vh, 75px) !important;
+  font-size: clamp(14px, 2.2vw, 18px) !important;
+  border-radius: 12px !important;
+  border-bottom-width: 6px !important;
+}
+
+.StickerBookCompletionFooter-btn img {
+  width: clamp(20px, 3vw, 24px) !important;
+  height: clamp(20px, 3vw, 24px) !important;
+}
+
+.StickerBookCompletionFooter-btn:active {
+  border-bottom-width: 0 !important;
+}

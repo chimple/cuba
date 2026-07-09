@@ -1,5 +1,5 @@
-import BaseObject from "./baseObject";
-import { DocumentReference, Timestamp } from "firebase/firestore";
+import BaseObject from './baseObject';
+import { DocumentReference, Timestamp } from 'firebase/firestore';
 
 export default class Assignment extends BaseObject {
   private _assigner: DocumentReference;
@@ -34,7 +34,7 @@ export default class Assignment extends BaseObject {
     docId: string,
     type: string,
     startsAt: Timestamp,
-    endsAt: Timestamp
+    endsAt: Timestamp,
   ) {
     super(updatedAt, createdAt, docId);
     this._assigner = assigner;

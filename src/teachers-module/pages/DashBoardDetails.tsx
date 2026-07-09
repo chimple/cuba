@@ -1,28 +1,38 @@
-import React, { useEffect, useState } from "react";
-import "./DashBoardDetails.css";
-import { useHistory, useLocation } from "react-router";
-import Header from "../components/homePage/Header";
-import { BANDWISECOLOR, PAGES, TableTypes } from "../../common/constants";
-import { t } from "i18next";
-import DashBoardStudentProgres from "../components/homePage/DashBoardStudentProgres";
-import { Util } from "../../utility/util";
+import React, { useEffect, useState } from 'react';
+import './DashBoardDetails.css';
+import { useHistory } from 'react-router';
+import Header from '../components/homePage/Header';
+import {
+  getBandTitleByColor,
+  PAGES,
+  StudentProgressData,
+  TableTypes,
+} from '../../common/constants';
+import { t } from 'i18next';
+import DashBoardStudentProgres from '../components/homePage/DashBoardStudentProgres';
+import { Util } from '../../utility/util';
+import logger from '../../utility/logger';
 
 interface DashBoardDetailsProps {}
+type DashBoardDetailsState = {
+  bandcolor?: string;
+  studentProgress?: StudentProgressData[];
+  studentLength?: string;
+};
 const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
+    null,
+  );
   const history = useHistory();
-  const bandcolor: string = history.location.state!["bandcolor"] as string;
-  const studentsProgress: Map<
-    string,
-    TableTypes<"user"> | TableTypes<"result">[]
-  >[] = history.location.state!["studentProgress"] as Map<
-    string,
-    TableTypes<"user"> | TableTypes<"result">[]
-  >[];
-  const studentLength: string = history.location.state![
-    "studentLength"
-  ] as string;
-  
+  const state = (history.location.state ?? {}) as DashBoardDetailsState;
+  const bandcolor: string = state.bandcolor ?? '';
+  const studentsProgress: StudentProgressData[] = state.studentProgress ?? [];
+  const studentLength: string = state.studentLength ?? '';
+  const bandTitle = getBandTitleByColor(
+    bandcolor,
+    t as (key: string) => string,
+  );
+
   const currentSchool = Util.getCurrentSchool();
 
   useEffect(() => {
@@ -31,7 +41,7 @@ const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
         const tempClass = await Util.getCurrentClass();
         setCurrentClass(tempClass || null);
       } catch (err) {
-        console.error("DashBoardDetails → Failed to load current class:", err);
+        logger.error('DashBoardDetails → Failed to load current class:', err);
         setCurrentClass(null);
       }
     };
@@ -55,14 +65,8 @@ const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
           className="dashboard-group-wise-header"
           style={{ backgroundColor: bandcolor }}
         >
-          {bandcolor === BANDWISECOLOR.RED
-            ? t("Need Help")
-            : bandcolor === BANDWISECOLOR.YELLOW
-              ? t("Still Learning")
-              : bandcolor === BANDWISECOLOR.GREEN
-                ? t("Doing Good")
-                : t("Not Tracked")}
-          <span style={{ marginLeft: "10px" }}>
+          <span>{bandTitle}</span>
+          <span>
             {studentsProgress?.length} / {studentLength}
           </span>
         </div>

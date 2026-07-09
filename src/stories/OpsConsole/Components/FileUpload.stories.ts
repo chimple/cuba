@@ -1,14 +1,14 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import FileUpload from "../../../ops-console/components/FileUpload";
+import type { Meta, StoryObj } from '@storybook/react';
+import FileUpload from '../../../ops-console/components/FileUpload';
 
 const meta = {
-  title: "OpsConsole/Component/FileUpload",
+  title: 'OpsConsole/Component/FileUpload',
   component: FileUpload,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
 } satisfies Meta<typeof FileUpload>;
 
 export default meta;
