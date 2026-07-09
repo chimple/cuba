@@ -20,7 +20,7 @@ const REQUIRED_FIREBASE_ENV_KEYS = [
 
 export const initializeFireBase = async () => {
   const missingKeys = REQUIRED_FIREBASE_ENV_KEYS.filter(
-    (key) => !import.meta.env[key],
+    (key) => !(import.meta.env as Record<string, string | undefined>)[key],
   );
 
   if (missingKeys.length > 0) {
