@@ -102,15 +102,7 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
           <CampaignAssignmentTab campaignId={resolvedCampaignId} />
         )}
         {shouldShowMessages && (
-          <CampaignMessages
-            campaignId={resolvedCampaignId}
-            campaignStartDate={
-              campaignOverviewData?.data?.campaign?.start_date ?? undefined
-            }
-            campaignEndDate={
-              campaignOverviewData?.data?.campaign?.end_date ?? undefined
-            }
-          />
+          <CampaignMessages campaignId={resolvedCampaignId} />
         )}
       </div>
     </main>

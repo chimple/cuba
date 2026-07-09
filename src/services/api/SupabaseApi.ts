@@ -17460,29 +17460,14 @@ export class SupabaseApi implements ServiceApi {
   ): Promise<boolean> {
     if (!this.supabase) return false;
 
-    const normalizedRows = rows.filter(
-      (row) =>
-        String(row.message ?? '').trim().length > 0 ||
-        String(row.mediaLink ?? '').trim().length > 0 ||
-        String(row.pollQuestion ?? '').trim().length > 0 ||
-        row.pollOptions.some(
-          (option) => String(option ?? '').trim().length > 0,
-        ),
-    );
-    if (normalizedRows.length === 0) return true;
+    const editableRows = rows.filter((row) => String(row.id ?? '').trim());
+    if (editableRows.length === 0) return true;
 
     const updatedAt = new Date().toISOString();
 
     try {
-      const rowsToUpdate = normalizedRows.filter(
-        (row) => String(row.id ?? '').trim().length > 0,
-      );
-      const rowsToInsert = normalizedRows.filter(
-        (row) => String(row.id ?? '').trim().length === 0,
-      );
-
-      const updateResults = await Promise.all(
-        rowsToUpdate.map((row) => {
+      const results = await Promise.all(
+        editableRows.map((row) => {
           const pollQuestion = row.pollQuestion.trim();
           const pollOptions = row.pollOptions
             .map((option) => option.trim())
@@ -17503,52 +17488,15 @@ export class SupabaseApi implements ServiceApi {
                   : null,
               updated_at: updatedAt,
             })
-            .eq('id', row.id!)
+            .eq('id', row.id)
             .eq('is_deleted', false);
         }),
       );
 
-      const insertRows = rowsToInsert.map((row) => {
-        const pollQuestion = row.pollQuestion.trim();
-        const pollOptions = row.pollOptions
-          .map((option) => option.trim())
-          .filter((option) => option.length > 0);
-
-        return {
-          campaign_id: row.campaignId,
-          message: row.message.trim() || null,
-          media_link: row.mediaLink.trim() || null,
-          message_time: row.messageTime,
-          poll_time: row.pollTime,
-          poll:
-            pollQuestion.length > 0 || pollOptions.length > 0
-              ? {
-                  question: pollQuestion,
-                  options: pollOptions,
-                }
-              : null,
-          message_status: 'pending',
-          poll_status: 'pending',
-          is_deleted: false,
-          updated_at: updatedAt,
-        };
-      });
-
-      const updateFailure = updateResults.find((result) => result.error);
-      if (updateFailure?.error) {
-        logger.error('Error updating campaign messaging:', updateFailure.error);
+      const failedResult = results.find((result) => result.error);
+      if (failedResult?.error) {
+        logger.error('Error updating campaign messaging:', failedResult.error);
         return false;
-      }
-
-      if (insertRows.length > 0) {
-        const { error: insertError } = await this.supabase
-          .from('campaign_messaging')
-          .insert(insertRows);
-
-        if (insertError) {
-          logger.error('Error inserting campaign messaging:', insertError);
-          return false;
-        }
       }
 
       return true;

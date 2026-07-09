@@ -12,20 +12,12 @@ import './CampaignMessages.css';
 
 interface CampaignMessagesProps {
   campaignId?: string;
-  campaignStartDate?: string;
-  campaignEndDate?: string;
 }
 
-const CampaignMessages: React.FC<CampaignMessagesProps> = ({
-  campaignId,
-  campaignStartDate,
-  campaignEndDate,
-}) => {
+const CampaignMessages: React.FC<CampaignMessagesProps> = ({ campaignId }) => {
   const { t } = useTranslation();
   const controller = useCampaignMessagesController({
     campaignId,
-    campaignStartDate,
-    campaignEndDate,
     translate: (key) => String(t(key)),
   });
 

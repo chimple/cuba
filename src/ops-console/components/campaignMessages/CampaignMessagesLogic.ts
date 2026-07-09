@@ -13,10 +13,10 @@ import {
   CampaignMessagingRow,
 } from '../../../services/api/ServiceApi';
 import { Json } from '../../../services/database';
-import { buildCampaignDurationTimelineDates } from '../campaignSetup/campaignCommunicationUtils';
 import logger from '../../../utility/logger';
 
 const EMPTY_VALUE = '--';
+const PENDING_STATUS = 'pending';
 const DEFAULT_POLL_OPTIONS = ['', ''];
 const CAMPAIGN_MESSAGES_PAGE_SIZE = 20;
 export const CAMPAIGN_MESSAGES_NO_CHANGES_TOAST = 'No changes made.';
@@ -26,6 +26,16 @@ export const HOUR_OPTIONS = Array.from({ length: 12 }, (_, index) =>
   String(index + 1).padStart(2, '0'),
 );
 export const PERIOD_OPTIONS = ['AM', 'PM'] as const;
+const NON_EDITABLE_STATUS_VALUES = new Set([
+  'sent',
+  'delivered',
+  'failed',
+  'processing',
+  'completed',
+  'cancelled',
+  'canceled',
+]);
+
 export type CampaignMessagesScheduleType = 'message' | 'poll';
 export type CampaignMessagesTimePeriod = (typeof PERIOD_OPTIONS)[number];
 export type CampaignMessagesTimePart = 'hour' | 'period';
@@ -37,7 +47,6 @@ export type CampaignMessagesScheduleTimeParts = {
 
 export interface CampaignMessageRow {
   id: string;
-  scheduledDate: string;
   dayLabel: string;
   dateLabel: string;
   message: string;
@@ -49,7 +58,6 @@ export interface CampaignMessageRow {
   messageStatus: string;
   pollStatus: string;
   isEditable: boolean;
-  isPersisted: boolean;
 }
 
 export interface CampaignMessagesData {
@@ -110,13 +118,11 @@ export interface CampaignMessagesController {
 
 interface UseCampaignMessagesControllerParams {
   campaignId?: string;
-  campaignStartDate?: string;
-  campaignEndDate?: string;
   translate: (key: string) => string;
 }
 
 interface CampaignMessageSavePayload {
-  id?: string;
+  id: string;
   message: string;
   mediaLink: string;
   messageTime: string | null;
@@ -196,67 +202,6 @@ const formatTime = (dateText?: string | null): string => {
   }).format(date);
 };
 
-const formatDateKey = (dateText?: string | null): string | null => {
-  if (!dateText) return null;
-  const date = new Date(dateText);
-  if (Number.isNaN(date.getTime())) return null;
-  return date.toISOString().slice(0, 10);
-};
-
-const parseScheduleTimeText = (
-  timeText: string,
-): { hour: number; minute: number } | null => {
-  const match = timeText.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-  if (!match) return null;
-
-  const hour = Number(match[1]);
-  const minute = Number(match[2]);
-  const period = match[3].toUpperCase();
-
-  if (
-    Number.isNaN(hour) ||
-    Number.isNaN(minute) ||
-    hour < 1 ||
-    hour > 12 ||
-    minute < 0 ||
-    minute > 59
-  ) {
-    return null;
-  }
-
-  const normalizedHour = period === 'AM' ? hour % 12 : (hour % 12) + 12;
-
-  return {
-    hour: normalizedHour,
-    minute,
-  };
-};
-
-const applyScheduleTimeToDate = (
-  dateValue: string,
-  scheduleTime: string,
-): string | null => {
-  const parsedTime = parseScheduleTimeText(scheduleTime);
-  if (!parsedTime) return null;
-
-  const date = new Date(`${dateValue}T00:00:00.000Z`);
-  if (Number.isNaN(date.getTime())) return null;
-
-  date.setUTCHours(parsedTime.hour, parsedTime.minute, 0, 0);
-  return date.toISOString();
-};
-
-const getTodayDateKey = (): string => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const isBeforeToday = (dateKey: string): boolean =>
-  dateKey.localeCompare(getTodayDateKey()) < 0;
-
 const formatJsonText = (value: Json | undefined): string | null => {
   if (typeof value === 'string') return value;
   if (typeof value === 'number' || typeof value === 'boolean') {
@@ -310,86 +255,51 @@ const getMessages = (
   data?: CampaignMessagesApiData | null,
 ): CampaignMessageApiRow[] => data?.messages ?? [];
 
-const getDateKeyForRow = (row: CampaignMessageApiRow): string | null =>
-  formatDateKey(row.message_time) ?? formatDateKey(row.poll_time);
+const isPendingStatus = (status?: string | null): boolean =>
+  String(status ?? '')
+    .trim()
+    .toLowerCase() === PENDING_STATUS;
+
+const isNonEditableStatus = (status?: string | null): boolean =>
+  NON_EDITABLE_STATUS_VALUES.has(
+    String(status ?? '')
+      .trim()
+      .toLowerCase(),
+  );
+
+const isEditableCampaignMessage = (row: CampaignMessageApiRow): boolean => {
+  const messageStatus = String(row.message_status ?? '')
+    .trim()
+    .toLowerCase();
+  const pollStatus = String(row.poll_status ?? '')
+    .trim()
+    .toLowerCase();
+  const statuses = [messageStatus, pollStatus].filter(Boolean);
+
+  if (statuses.length === 0) return false;
+  if (statuses.some(isNonEditableStatus)) return false;
+
+  return statuses.every(isPendingStatus);
+};
 
 export const buildCampaignMessagesData = (
   data?: CampaignMessagesApiData | null,
-  timelineDates: readonly string[] = [],
   rowOffset = 0,
 ): CampaignMessagesData => {
-  const messages = getMessages(data);
-
-  if (timelineDates.length > 0) {
-    const messagesByDate = new Map<string, CampaignMessageApiRow>();
-    messages.forEach((row) => {
-      const dateKey = getDateKeyForRow(row);
-      if (!dateKey || messagesByDate.has(dateKey)) return;
-      messagesByDate.set(dateKey, row);
-    });
-
-    const firstMessage = messages[0];
-    const firstMessageSchedule = formatTime(firstMessage?.message_time);
-    const firstPollSchedule = formatTime(firstMessage?.poll_time);
-    const rows = timelineDates.map((date, index) => {
-      const matchedRow = messagesByDate.get(date);
-      const poll = parseCampaignMessagePoll(matchedRow?.poll ?? null);
-      const placeholderIso = `${date}T00:00:00.000Z`;
-      const rowMessageTimeIso =
-        matchedRow?.message_time ??
-        applyScheduleTimeToDate(date, firstMessageSchedule) ??
-        placeholderIso;
-      const rowPollTimeIso =
-        matchedRow?.poll_time ??
-        applyScheduleTimeToDate(date, firstPollSchedule) ??
-        placeholderIso;
-
-      return {
-        id:
-          matchedRow?.id ||
-          `${date}-${index + rowOffset + 1}`.replace(/\s+/g, '-'),
-        scheduledDate: date,
-        dayLabel: `Day ${rowOffset + index + 1}`,
-        dateLabel: formatDate(date),
-        message: matchedRow ? formatMultilineValue(matchedRow.message) : '',
-        mediaLink: matchedRow ? formatEditableValue(matchedRow.media_link) : '',
-        messageTimeIso: rowMessageTimeIso,
-        pollTimeIso: rowPollTimeIso,
-        pollQuestion: matchedRow ? formatEditableValue(poll?.question) : '',
-        pollOptions: matchedRow
-          ? (poll?.options ?? []).map((option) => formatEditableValue(option))
-          : [],
-        messageStatus: matchedRow ? formatValue(matchedRow.message_status) : '',
-        pollStatus: matchedRow ? formatValue(matchedRow.poll_status) : '',
-        isEditable: !isBeforeToday(date),
-        isPersisted: Boolean(matchedRow),
-      };
-    });
-
-    return {
-      messageTime: formatTime(firstMessage?.message_time),
-      pollTime: formatTime(firstMessage?.poll_time),
-      total: timelineDates.length,
-      rows,
-    };
-  }
-
-  const filteredMessages = messages.filter(
+  const messages = getMessages(data).filter(
     (row) => row.message_time || row.poll_time || row.message || row.poll,
   );
 
   return {
-    messageTime: formatTime(filteredMessages[0]?.message_time),
-    pollTime: formatTime(filteredMessages[0]?.poll_time),
-    total: filteredMessages.length,
-    rows: filteredMessages.map((row, index) => {
+    messageTime: formatTime(messages[0]?.message_time),
+    pollTime: formatTime(messages[0]?.poll_time),
+    total: messages.length,
+    rows: messages.map((row, index) => {
       const dateValue = row.message_time || row.poll_time;
-      const dateKey = formatDateKey(dateValue);
       const poll = parseCampaignMessagePoll(row.poll ?? null);
 
       return {
         id: row.id || `${dateValue || 'message'}-${index}`,
-        scheduledDate: dateKey ?? '',
         dayLabel: `Day ${rowOffset + index + 1}`,
         dateLabel: formatDate(dateValue),
         message: formatMultilineValue(row.message),
@@ -402,8 +312,7 @@ export const buildCampaignMessagesData = (
         ),
         messageStatus: formatValue(row.message_status),
         pollStatus: formatValue(row.poll_status),
-        isEditable: dateKey ? !isBeforeToday(dateKey) : true,
-        isPersisted: true,
+        isEditable: isEditableCampaignMessage(row),
       };
     }),
   };
@@ -411,7 +320,6 @@ export const buildCampaignMessagesData = (
 
 export const loadCampaignMessagesData = async (
   campaignId: string,
-  timelineDates: readonly string[] = [],
   params?: CampaignMessagingQueryParams,
 ): Promise<CampaignMessagesData> => {
   try {
@@ -425,10 +333,9 @@ export const loadCampaignMessagesData = async (
         {
           messages: response.data.map(mapCampaignMessagingRow),
         },
-        timelineDates,
         (response.page - 1) * response.pageSize,
       ),
-      total: timelineDates.length > 0 ? timelineDates.length : response.total,
+      total: response.total,
     };
   } catch (error) {
     logger.error('Failed to load campaign messages:', error);
@@ -475,7 +382,6 @@ const areCampaignMessageRowsEqual = (
   );
 
 export const buildCampaignMessageSavePayload = (
-  campaignId: string,
   currentRows: readonly CampaignMessageRow[],
   nextRows: readonly CampaignMessageRow[],
 ): CampaignMessageSavePayload[] => {
@@ -497,8 +403,7 @@ export const buildCampaignMessageSavePayload = (
       return !areCampaignMessageRowsEqual(currentRow, row);
     })
     .map((row) => ({
-      campaignId,
-      id: row.isPersisted ? row.id : undefined,
+      id: row.id,
       message: normalizeText(row.message),
       mediaLink: normalizeText(row.mediaLink),
       messageTime: row.messageTimeIso ?? null,
@@ -568,8 +473,6 @@ const getIsoWithScheduleTime = (
 
 export const useCampaignMessagesController = ({
   campaignId,
-  campaignStartDate,
-  campaignEndDate,
   translate,
 }: UseCampaignMessagesControllerParams): CampaignMessagesController => {
   const [messagesData, setMessagesData] = useState<CampaignMessagesData>(
@@ -597,13 +500,6 @@ export const useCampaignMessagesController = ({
   const [collapsedRowIds, setCollapsedRowIds] = useState<
     Record<string, boolean>
   >({});
-  const timelineDates = useMemo(
-    () =>
-      campaignStartDate && campaignEndDate
-        ? buildCampaignDurationTimelineDates(campaignStartDate, campaignEndDate)
-        : [],
-    [campaignEndDate, campaignStartDate],
-  );
   const hourOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const periodOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const toastTimeoutRef = useRef<number | null>(null);
@@ -630,15 +526,10 @@ export const useCampaignMessagesController = ({
       }
 
       setIsLoading(true);
-      const pageSize = timelineDates.length > 0 ? timelineDates.length : 20;
-      const loadedMessagesData = await loadCampaignMessagesData(
-        campaignId,
-        timelineDates,
-        {
-          page: 1,
-          pageSize,
-        },
-      );
+      const loadedMessagesData = await loadCampaignMessagesData(campaignId, {
+        page,
+        pageSize: CAMPAIGN_MESSAGES_PAGE_SIZE,
+      });
 
       if (isMounted) {
         setMessagesData(loadedMessagesData);
@@ -651,7 +542,7 @@ export const useCampaignMessagesController = ({
     return () => {
       isMounted = false;
     };
-  }, [campaignId, timelineDates.length]);
+  }, [campaignId, page]);
 
   useEffect(
     () => () => {
@@ -718,32 +609,21 @@ export const useCampaignMessagesController = ({
   }, [editedMessageTime, editedPollTime, openSchedulePicker]);
 
   const hasEditableRows = useMemo(
-    () => messagesData.rows.some((row) => row.isEditable),
-    [messagesData.rows],
+    () => messagesData.rows.length > 0,
+    [messagesData.rows.length],
   );
 
-  const displayedRows = useMemo(() => {
-    const rows = isEditMode
-      ? messagesData.rows.map((row) => editedRowsById[row.id] ?? row)
-      : messagesData.rows;
-    if (timelineDates.length === 0) return rows;
-
-    const startIndex = (page - 1) * CAMPAIGN_MESSAGES_PAGE_SIZE;
-    return rows.slice(startIndex, startIndex + CAMPAIGN_MESSAGES_PAGE_SIZE);
-  }, [
-    editedRowsById,
-    isEditMode,
-    messagesData.rows,
-    page,
-    timelineDates.length,
-  ]);
+  const displayedRows = useMemo(
+    () =>
+      isEditMode
+        ? messagesData.rows.map((row) => editedRowsById[row.id] ?? row)
+        : messagesData.rows,
+    [editedRowsById, isEditMode, messagesData.rows],
+  );
 
   const pageCount = useMemo(
-    () =>
-      timelineDates.length > 0
-        ? Math.ceil(timelineDates.length / CAMPAIGN_MESSAGES_PAGE_SIZE)
-        : Math.ceil(messagesData.total / CAMPAIGN_MESSAGES_PAGE_SIZE),
-    [messagesData.total, timelineDates.length],
+    () => Math.ceil(messagesData.total / CAMPAIGN_MESSAGES_PAGE_SIZE),
+    [messagesData.total],
   );
 
   useEffect(() => {
@@ -904,7 +784,6 @@ export const useCampaignMessagesController = ({
     }));
 
     const rowsToUpdate = buildCampaignMessageSavePayload(
-      campaignId,
       messagesData.rows,
       nextRows,
     );
@@ -935,29 +814,40 @@ export const useCampaignMessagesController = ({
         return;
       }
 
-      const refreshedData = await loadCampaignMessagesData(
-        campaignId,
-        timelineDates,
-        {
-          page: 1,
-          pageSize:
-            timelineDates.length > 0
-              ? timelineDates.length
-              : CAMPAIGN_MESSAGES_PAGE_SIZE,
-        },
+      const savedRowsById = nextRows.reduce<Record<string, CampaignMessageRow>>(
+        (rowsById, row) => ({
+          ...rowsById,
+          [row.id]: row,
+        }),
+        {},
       );
 
-      setMessagesData({
-        ...refreshedData,
+      setMessagesData((currentData) => ({
+        ...currentData,
         messageTime:
           editedMessageTime.trim().length > 0
             ? editedMessageTime
-            : refreshedData.messageTime,
+            : currentData.messageTime,
         pollTime:
           editedPollTime.trim().length > 0
             ? editedPollTime
-            : refreshedData.pollTime,
-      });
+            : currentData.pollTime,
+        rows: currentData.rows.map((row) => {
+          const savedRow = savedRowsById[row.id] ?? row;
+
+          return {
+            ...savedRow,
+            messageTimeIso: getIsoWithScheduleTime(
+              savedRow.messageTimeIso,
+              editedMessageTime,
+            ),
+            pollTimeIso: getIsoWithScheduleTime(
+              savedRow.pollTimeIso,
+              editedPollTime,
+            ),
+          };
+        }),
+      }));
       setEditedRowsById({});
       setOriginalOptionCountByRowId({});
       setOpenSchedulePicker(null);
