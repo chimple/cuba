@@ -130,14 +130,28 @@ const SidebarPage: React.FC = () => {
 
     const schoolListPath = `${path}${PAGES.SCHOOL_LIST}`;
     const schoolDetailsPrefix = `${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/`;
+    const campaignsPath = `${path}${PAGES.ADMIN_CAMPAIGNS}`;
+    const campaignDetailsPrefix = `${campaignsPath}/`;
+    const campaignCreatePath = `${path}${PAGES.ADMIN_CAMPAIGNS_NEW}`;
     const isAllowedPath =
       location.pathname === schoolListPath ||
-      location.pathname.startsWith(schoolDetailsPrefix);
+      location.pathname.startsWith(schoolDetailsPrefix) ||
+      (canAccessCampaignPage &&
+        (location.pathname === campaignsPath ||
+          location.pathname === campaignCreatePath ||
+          location.pathname.startsWith(campaignDetailsPrefix)));
 
     if (!isAllowedPath) {
       history.replace(schoolListPath);
     }
-  }, [canAccessProgramPage, history, isExternalUser, location.pathname, path]);
+  }, [
+    canAccessCampaignPage,
+    canAccessProgramPage,
+    history,
+    isExternalUser,
+    location.pathname,
+    path,
+  ]);
 
   const fetchData = async () => {
     try {
