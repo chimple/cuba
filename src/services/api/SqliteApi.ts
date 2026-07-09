@@ -4011,33 +4011,101 @@ export class SqliteApi implements ServiceApi {
       const currentClassId = currentClassRes?.values?.[0]?.class_id;
 
       if (currentClassId !== newClassId) {
-        // Update class_user table to set previous record as deleted
-        const currentClassUserId = `
-          SELECT id FROM class_user
-          WHERE user_id = ? AND class_id = ? AND is_deleted = 0
-        `;
+        if (currentClassId) {
+          const parentResult = await this.executeQuery(
+            `
+              SELECT parent_id
+              FROM parent_user
+              WHERE student_id = ?
+                AND is_deleted = 0
+              LIMIT 1
+            `,
+            [student.id],
+          );
+          const parentId = String(
+            parentResult?.values?.[0]?.parent_id ?? '',
+          ).trim();
 
-        const data = await this.executeQuery(currentClassUserId, [
-          student.id,
-          currentClassId,
-        ]);
+          const currentClassUserRes = await this.executeQuery(
+            `
+              SELECT id
+              FROM class_user
+              WHERE user_id = ?
+                AND class_id = ?
+                AND role = 'student'
+                AND is_deleted = 0
+              LIMIT 1
+            `,
+            [student.id, currentClassId],
+          );
+          const currentClassUserId = currentClassUserRes?.values?.[0]?.id;
 
-        const deleteOldClassUserQuery = `
-          UPDATE class_user
-          SET is_deleted = 1, updated_at = ?
-          WHERE id = ? AND is_deleted = 0;
-        `;
+          if (currentClassUserId) {
+            await this.executeQuery(
+              `
+                UPDATE class_user
+                SET is_deleted = 1, updated_at = ?
+                WHERE id = ? AND is_deleted = 0
+              `,
+              [now, currentClassUserId],
+            );
+            this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+              id: currentClassUserId,
+              is_deleted: true,
+              updated_at: now,
+            });
+          }
 
-        await this.executeQuery(deleteOldClassUserQuery, [
-          now,
-          data?.values?.[0]?.id,
-        ]);
-        // Push changes for the update (marking the old class_user as deleted)
-        this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
-          id: data?.values?.[0]?.id,
-          is_deleted: true,
-          updated_at: now,
-        });
+          if (parentId) {
+            const remainingActiveChildren = await this.executeQuery(
+              `
+                SELECT 1
+                FROM class_user cu
+                JOIN parent_user pu ON cu.user_id = pu.student_id
+                WHERE cu.class_id = ?
+                  AND pu.parent_id = ?
+                  AND pu.student_id != ?
+                  AND cu.role = 'student'
+                  AND cu.is_deleted = 0
+                  AND pu.is_deleted = 0
+                LIMIT 1
+              `,
+              [currentClassId, parentId, student.id],
+            );
+
+            if ((remainingActiveChildren?.values ?? []).length === 0) {
+              const parentClassUserRes = await this.executeQuery(
+                `
+                  SELECT id
+                  FROM class_user
+                  WHERE class_id = ?
+                    AND user_id = ?
+                    AND role = 'parent'
+                    AND is_deleted = 0
+                  LIMIT 1
+                `,
+                [currentClassId, parentId],
+              );
+              const parentClassUserId = parentClassUserRes?.values?.[0]?.id;
+              if (parentClassUserId) {
+                await this.executeQuery(
+                  `
+                    UPDATE class_user
+                    SET is_deleted = 1, updated_at = ?
+                    WHERE id = ? AND is_deleted = 0
+                  `,
+                  [now, parentClassUserId],
+                );
+                this.updatePushChanges(TABLES.ClassUser, MUTATE_TYPES.UPDATE, {
+                  id: parentClassUserId,
+                  is_deleted: true,
+                  updated_at: now,
+                });
+              }
+            }
+          }
+        }
+
         // Create new class_user entry
         const newClassUserId = uuidv4();
         const newClassUser: TableTypes<'class_user'> = {
@@ -4072,7 +4140,7 @@ export class SqliteApi implements ServiceApi {
           MUTATE_TYPES.INSERT,
           newClassUser,
         );
-        await this._serverApi.addParentToNewClass(newClassId, student.id);
+        await this.addParentToNewClass(newClassId, student.id);
       }
 
       return updatedStudent;
@@ -9198,7 +9266,79 @@ order by
     }
   }
   async addParentToNewClass(classID: string, studentId: string) {
-    throw new Error('Method not implemented.');
+    try {
+      const now = new Date().toISOString();
+
+      const parentResult = await this.executeQuery(
+        `
+          SELECT parent_id
+          FROM parent_user
+          WHERE student_id = ?
+            AND is_deleted = 0
+          LIMIT 1
+        `,
+        [studentId],
+      );
+      const parentId = String(
+        parentResult?.values?.[0]?.parent_id ?? '',
+      ).trim();
+
+      if (!parentId) {
+        return;
+      }
+
+      const existingParentClassUserRes = await this.executeQuery(
+        `
+          SELECT id
+          FROM class_user
+          WHERE class_id = ?
+            AND user_id = ?
+            AND role = 'parent'
+            AND is_deleted = 0
+          LIMIT 1
+        `,
+        [classID, parentId],
+      );
+
+      if ((existingParentClassUserRes?.values ?? []).length > 0) {
+        return;
+      }
+
+      const classUserId = uuidv4();
+      const classUser = {
+        id: classUserId,
+        class_id: classID,
+        user_id: parentId,
+        role: 'parent',
+        created_at: now,
+        updated_at: now,
+        is_deleted: false,
+      };
+
+      await this.executeQuery(
+        `
+          INSERT INTO class_user (id, class_id, user_id, role, created_at, updated_at, is_deleted)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `,
+        [
+          classUser.id,
+          classUser.class_id,
+          classUser.user_id,
+          classUser.role,
+          classUser.created_at,
+          classUser.updated_at,
+          classUser.is_deleted,
+        ],
+      );
+
+      await this.updatePushChanges(
+        TABLES.ClassUser,
+        MUTATE_TYPES.INSERT,
+        classUser,
+      );
+    } catch (error) {
+      logger.error('Error in addParentToNewClass (SQLite):', error);
+    }
   }
   async getOpsRequests(
     requestStatus: EnumType<'ops_request_status'>,
