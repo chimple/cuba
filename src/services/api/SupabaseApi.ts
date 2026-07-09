@@ -15963,6 +15963,8 @@ export class SupabaseApi implements ServiceApi {
         return {} as TableTypes<'subject_lesson'>;
       }
 
+      // Empty result set is expected for first-time.
+      // Only block assessment if it was previously terminated or aborted.
       const resultRows = (data ?? []) as ResultStatusRow[];
 
       /* -----------------------------------------
