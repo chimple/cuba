@@ -190,7 +190,8 @@ export type CampaignMessagingResponse = {
 };
 
 export type UpdateCampaignMessagingRowPayload = {
-  id: string;
+  campaignId: string;
+  id?: string;
   message: string;
   mediaLink: string;
   messageTime: string | null;

@@ -34,8 +34,8 @@ const buildMessagingRow = (
   ({
     id: 'message-1',
     campaign_id: 'campaign-1',
-    message_time: '2026-06-10T15:00:00+00:00',
-    poll_time: '2026-06-10T10:00:00+00:00',
+    message_time: '2099-06-10T15:00:00+00:00',
+    poll_time: '2099-06-10T10:00:00+00:00',
     message: 'Class 1 Digital',
     media_link: 'https://drive.example/media',
     poll: {
@@ -45,8 +45,24 @@ const buildMessagingRow = (
     message_status: 'pending',
     poll_status: 'pending',
     is_deleted: false,
+    isPersisted: true,
     ...overrides,
   }) as CampaignMessagingRow;
+
+const buildDatedMessagingRow = (
+  dayOffset: number,
+  overrides: Partial<CampaignMessagingRow> = {},
+): CampaignMessagingRow => {
+  const day = String(10 + dayOffset).padStart(2, '0');
+
+  return buildMessagingRow({
+    id: `message-${dayOffset + 1}`,
+    message_time: `2099-06-${day}T15:00:00+00:00`,
+    poll_time: `2099-06-${day}T10:00:00+00:00`,
+    message: `Class 1 Digital ${dayOffset + 1}`,
+    ...overrides,
+  });
+};
 
 const buildResponse = (
   rows: CampaignMessagingRow[],
@@ -97,7 +113,13 @@ describe('CampaignMessages', () => {
       buildResponse([buildMessagingRow()]),
     );
 
-    render(<CampaignMessages campaignId="campaign-1" />);
+    render(
+      <CampaignMessages
+        campaignId="campaign-1"
+        campaignStartDate="2099-06-10"
+        campaignEndDate="2099-06-12"
+      />,
+    );
 
     expect(await screen.findByText('Class 1 Digital')).toBeInTheDocument();
     expect(screen.getByText('https://drive.example/media')).toBeInTheDocument();
@@ -108,13 +130,64 @@ describe('CampaignMessages', () => {
     expect(screen.getByText('10:00 AM')).toBeInTheDocument();
   });
 
+  it('renders all campaign days even when only some rows have messages', async () => {
+    apiHandler.getCampaignMessaging.mockResolvedValue(
+      buildResponse([buildMessagingRow()]),
+    );
+
+    render(
+      <CampaignMessages
+        campaignId="campaign-1"
+        campaignStartDate="2099-06-10"
+        campaignEndDate="2099-06-12"
+      />,
+    );
+
+    expect(await screen.findAllByText('Day 1')).not.toHaveLength(0);
+    expect(screen.getAllByText('Day 2').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Day 3').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('--').length).toBeGreaterThan(0);
+  });
+
+  it('paginates campaign days across the full campaign range', async () => {
+    const rows = Array.from({ length: 21 }, (_, index) =>
+      buildDatedMessagingRow(index, {
+        message: `Message ${index + 1}`,
+      }),
+    );
+
+    apiHandler.getCampaignMessaging.mockResolvedValue(buildResponse(rows));
+
+    render(
+      <CampaignMessages
+        campaignId="campaign-1"
+        campaignStartDate="2099-06-10"
+        campaignEndDate="2099-06-30"
+      />,
+    );
+
+    expect(await screen.findByText('Message 1')).toBeInTheDocument();
+    expect(screen.getByLabelText('Go to next page')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Go to next page'));
+
+    expect(await screen.findByText('Message 21')).toBeInTheDocument();
+    expect(screen.queryByText('Message 1')).not.toBeInTheDocument();
+  });
+
   it('shows no-change toast and does not update when save is clicked without edits', async () => {
     apiHandler.getCampaignMessaging.mockResolvedValue(
       buildResponse([buildMessagingRow()]),
     );
     apiHandler.updateCampaignMessaging.mockResolvedValue(true);
 
-    render(<CampaignMessages campaignId="campaign-1" />);
+    render(
+      <CampaignMessages
+        campaignId="campaign-1"
+        campaignStartDate="2099-06-10"
+        campaignEndDate="2099-06-12"
+      />,
+    );
 
     await screen.findByText('Class 1 Digital');
     fireEvent.click(screen.getByLabelText('Edit global send schedule'));
@@ -145,9 +218,55 @@ describe('CampaignMessagesLogic', () => {
     expect(data.rows[0].mediaLink).toBe('');
   });
 
+  it('fills in missing timeline days when dates are provided', () => {
+    const data = buildCampaignMessagesData(
+      {
+        messages: [
+          buildMessagingRow({
+            message_time: '2099-06-10T15:00:00+00:00',
+            poll_time: '2099-06-10T10:00:00+00:00',
+            message: 'Day 1',
+          }),
+        ],
+      },
+      ['2099-06-10', '2099-06-11', '2099-06-12'],
+    );
+
+    expect(data.total).toBe(3);
+    expect(data.rows).toHaveLength(3);
+    expect(data.rows[0].message).toBe('Day 1');
+    expect(data.rows[1].message).toBe('');
+    expect(data.rows[2].message).toBe('');
+  });
+
+  it('keeps past campaign days read-only and future days editable', () => {
+    const data = buildCampaignMessagesData(
+      {
+        messages: [
+          buildMessagingRow({
+            message_time: '2000-01-01T15:00:00+00:00',
+            poll_time: '2000-01-01T10:00:00+00:00',
+            message: 'Past day',
+          }),
+          buildMessagingRow({
+            id: 'message-2',
+            message_time: '2099-06-11T15:00:00+00:00',
+            poll_time: '2099-06-11T10:00:00+00:00',
+            message: 'Future day',
+          }),
+        ],
+      },
+      ['2000-01-01', '2099-06-11'],
+    );
+
+    expect(data.rows[0].isEditable).toBe(false);
+    expect(data.rows[1].isEditable).toBe(true);
+  });
+
   it('does not create a save payload when only ISO formatting changes', () => {
     const currentRow: CampaignMessageRow = {
       id: 'message-1',
+      scheduledDate: '2099-06-10',
       dayLabel: 'Day 1',
       dateLabel: '10 June',
       message: 'Class 1 Digital',
@@ -159,6 +278,7 @@ describe('CampaignMessagesLogic', () => {
       messageStatus: 'pending',
       pollStatus: 'pending',
       isEditable: true,
+      isPersisted: true,
     };
     const nextRow: CampaignMessageRow = {
       ...currentRow,
@@ -166,14 +286,15 @@ describe('CampaignMessagesLogic', () => {
       pollTimeIso: '2026-06-10T10:00:00.000Z',
     };
 
-    expect(buildCampaignMessageSavePayload([currentRow], [nextRow])).toEqual(
-      [],
-    );
+    expect(
+      buildCampaignMessageSavePayload('campaign-1', [currentRow], [nextRow]),
+    ).toEqual([]);
   });
 
   it('builds a save payload for changed editable row content', () => {
     const currentRow: CampaignMessageRow = {
       id: 'message-1',
+      scheduledDate: '2099-06-10',
       dayLabel: 'Day 1',
       dateLabel: '10 June',
       message: 'Class 1 Digital',
@@ -185,6 +306,7 @@ describe('CampaignMessagesLogic', () => {
       messageStatus: 'pending',
       pollStatus: 'pending',
       isEditable: true,
+      isPersisted: true,
     };
     const nextRow: CampaignMessageRow = {
       ...currentRow,
@@ -192,8 +314,11 @@ describe('CampaignMessagesLogic', () => {
       pollOptions: ['Yes', 'No', 'Maybe', ''],
     };
 
-    expect(buildCampaignMessageSavePayload([currentRow], [nextRow])).toEqual([
+    expect(
+      buildCampaignMessageSavePayload('campaign-1', [currentRow], [nextRow]),
+    ).toEqual([
       {
+        campaignId: 'campaign-1',
         id: 'message-1',
         message: 'Updated message',
         mediaLink: '',
