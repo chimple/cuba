@@ -7,9 +7,11 @@ import { TableTypes } from '../common/constants';
 import logger from '../utility/logger';
 
 export const initializeErrorReporting = () => {
+  const dsn = import.meta.env.VITE_SENTRY_DSN;
+
   Sentry.init(
     {
-      dsn: process.env.REACT_APP_SENTRY_DSN,
+      dsn,
       sendDefaultPii: true,
       integrations: [Sentry.browserTracingIntegration()],
     },

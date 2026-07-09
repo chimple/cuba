@@ -26,7 +26,7 @@
 			"launchAutoHide": false
 		},
 		"LiveUpdate": {
-			"appId": "09b4be47-2f8d-4273-a657-8e8e6b8bab61",
+			"appId": "4eb3b6dc-cfc8-4da1-b5a7-b11c9b0ea9e9",
 			"autoDeleteBundles": true,
 			"readyTimeout": 50000,
 			"httpTimeout": 300000
