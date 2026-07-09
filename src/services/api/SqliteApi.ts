@@ -414,7 +414,8 @@ export class SqliteApi implements ServiceApi {
     const platform = Capacitor.getPlatform();
     this._sqlite = new SQLiteConnection(CapacitorSQLite);
     if (platform === 'web') {
-      const jeepEl = this.ensureJeepSqliteHostElement();
+      const jeepEl = document.createElement('jeep-sqlite');
+      document.body.appendChild(jeepEl);
 
       await customElements.whenDefined('jeep-sqlite');
       await jeepEl.componentOnReady?.();
@@ -534,21 +535,6 @@ export class SqliteApi implements ServiceApi {
       throw err;
     }
     await this.setUpDatabase();
-  }
-
-  private ensureJeepSqliteHostElement(): HTMLJeepSqliteElement {
-    const existingElement = document.querySelector(
-      'jeep-sqlite',
-    ) as HTMLJeepSqliteElement | null;
-    if (existingElement) {
-      return existingElement;
-    }
-
-    const jeepEl = document.createElement(
-      'jeep-sqlite',
-    ) as HTMLJeepSqliteElement;
-    document.body.appendChild(jeepEl);
-    return jeepEl;
   }
 
   public async close(): Promise<void> {
