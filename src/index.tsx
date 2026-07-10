@@ -16,6 +16,7 @@
  */
 
 import { createRoot } from "react-dom/client";
+import { useEffect, useState } from "react";
 import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 // import reportWebVitals from "./reportWebVitals";
@@ -81,6 +82,50 @@ declare global {
 }
 defineCustomElements(window);
 
+const SPLASH_DELAY_MS = 2000;
+const SPLASH_IMAGE_SRC = "assets/icons/Pangolim1.png";
+const SPLASH_MESSAGE =
+  "This application has been developed by VSO and Chimple with financial support from UNICEF.";
+
+const StartupApp: React.FC = () => {
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    SplashScreen.hide().catch(() => {
+      // The splash may already be hidden on web or by the host platform.
+    });
+
+    const timeoutId = window.setTimeout(() => {
+      setShowSplash(false);
+    }, SPLASH_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  if (showSplash) {
+    return (
+      <div className="startup-splash" role="status" aria-live="polite">
+        <img
+          className="startup-splash__image"
+          src={SPLASH_IMAGE_SRC}
+          alt="Chimple splash"
+        />
+        <p className="startup-splash__text">{SPLASH_MESSAGE}</p>
+      </div>
+    );
+  }
+
+  return (
+    <GrowthBookProvider growthbook={gb}>
+      <GbProvider>
+        <App />
+      </GbProvider>
+    </GrowthBookProvider>
+  );
+};
+
 initializeFireBase();
 
 // Conditionally attach only if the native APIs are missing (optional)
@@ -92,7 +137,6 @@ if (typeof window !== "undefined") {
     (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
   }
 }
-SplashScreen.hide();
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
 }
@@ -150,26 +194,11 @@ const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
 
 if (isOpsUser) {
   serviceInstance.switchMode(APIMode.SUPABASE);
-  root.render(
-    <GrowthBookProvider growthbook={gb}>
-      <GbProvider>
-        <App />
-      </GbProvider>
-    </GrowthBookProvider>
-  );
-  SplashScreen.hide();
+  root.render(<StartupApp />);
 } else {
-  SplashScreen.hide();
   SqliteApi.getInstance().then(() => {
     serviceInstance.switchMode(APIMode.SQLITE);
-    root.render(
-      <GrowthBookProvider growthbook={gb}>
-        <GbProvider>
-          <App />
-        </GbProvider>
-      </GrowthBookProvider>
-    );
-    SplashScreen.hide();
+    root.render(<StartupApp />);
   });
 }
 
