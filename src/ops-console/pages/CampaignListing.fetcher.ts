@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useHistory, useLocation } from 'react-router';
 import {
   CampaignListingParams,
   ServiceApi,
@@ -130,11 +131,40 @@ export const useCampaignListingData = ({
 };
 
 export const useCampaignListingPageState = (api: ServiceApi) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const history = useHistory();
+  const location = useLocation();
+  const queryParams = useMemo(
+    () => new URLSearchParams(location.search),
+    [location.search],
+  );
+  const [searchTerm, setSearchTerm] = useState(
+    () => queryParams.get('search') || '',
+  );
   const debouncedSearchTerm = useDebouncedValue(searchTerm, 500);
-  const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState<CampaignSortColumn>('startDate');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [page, setPage] = useState(() => {
+    const pageParam = Number.parseInt(queryParams.get('page') || '', 10);
+    return Number.isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
+  });
+  const [sortBy, setSortBy] = useState<CampaignSortColumn>(() => {
+    const sortByParam = queryParams.get('sortBy');
+    const supportedSortColumns: CampaignSortColumn[] = [
+      'campaignName',
+      'manager',
+      'programName',
+      'avgWeeklyActiveUsers',
+      'avgWeeklyEngagementTime',
+      'startDate',
+      'endDate',
+    ];
+
+    return supportedSortColumns.includes(sortByParam as CampaignSortColumn)
+      ? (sortByParam as CampaignSortColumn)
+      : 'startDate';
+  });
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>(() => {
+    const sortOrderParam = queryParams.get('sortOrder');
+    return sortOrderParam === 'desc' ? 'desc' : 'asc';
+  });
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
     null,
@@ -148,6 +178,7 @@ export const useCampaignListingPageState = (api: ServiceApi) => {
   const [campaignStatusOverrides, setCampaignStatusOverrides] = useState<
     Record<string, CampaignListingStatus>
   >({});
+  const isFirstSearchRenderRef = useRef(true);
 
   const { campaigns, total, isLoading } = useCampaignListingData({
     api,
@@ -160,9 +191,36 @@ export const useCampaignListingPageState = (api: ServiceApi) => {
   });
 
   useEffect(() => {
+    if (isFirstSearchRenderRef.current) {
+      isFirstSearchRenderRef.current = false;
+      return;
+    }
+
     // Every new search starts from the first page to avoid empty later-page results.
     setPage(1);
   }, [searchTerm]);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    if (searchTerm.trim()) {
+      params.set('search', searchTerm);
+    }
+
+    if (page !== 1) {
+      params.set('page', String(page));
+    }
+
+    if (sortBy !== 'startDate') {
+      params.set('sortBy', sortBy);
+    }
+
+    if (sortOrder !== 'asc') {
+      params.set('sortOrder', sortOrder);
+    }
+
+    history.replace({ search: params.toString() });
+  }, [history, page, searchTerm, sortBy, sortOrder]);
 
   const campaignsWithStatusOverrides = useMemo(
     // Reflect local cancel actions immediately without waiting for a full refetch.

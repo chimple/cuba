@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { Add, WarningAmberOutlined } from '@mui/icons-material';
 import { BsFillBellFill } from 'react-icons/bs';
-import { useHistory } from 'react-router';
+import { useHistory, useLocation } from 'react-router';
 import { t } from 'i18next';
 import { PAGES } from '../../common/constants';
 import { useAppSelector } from '../../redux/hooks';
@@ -35,6 +35,7 @@ import './CampaignListingPage.css';
 
 const CampaignListingPage: React.FC = () => {
   const history = useHistory();
+  const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
@@ -94,6 +95,10 @@ const CampaignListingPage: React.FC = () => {
       )}`,
       state: selectedCampaignData
         ? {
+            returnTo: {
+              pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`,
+              search: location.search,
+            },
             campaignOverviewData:
               mapCampaignListingItemToOverviewData(selectedCampaignData),
           }
