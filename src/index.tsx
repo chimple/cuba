@@ -25,20 +25,47 @@ import {
   createGrowthBookClient,
   initializeGrowthBook,
 } from './startup/growthbookClient';
-import { initializeNativeRuntime } from './startup/nativeRuntime';
+import {
+  initializeNativeRuntime,
+  isNativePlatform,
+} from './startup/nativeRuntime';
 import { initializePlatformSetup } from './startup/platformSetup';
 import { createAppRoot, renderRoot } from './startup/renderRoot';
 import { bootstrapServicesAndRender } from './startup/serviceBootstrap';
+import Loading from './components/Loading';
+import {
+  clearWebGoogleLoginPending,
+  isWebGoogleLoginPending,
+} from './services/auth/webGoogleLoginLoading';
 initializeErrorReporting();
 initializePlatformSetup();
 
 const root = createAppRoot();
 const growthbook = createGrowthBookClient();
+const shouldShowWebGoogleLoginLoading =
+  !isNativePlatform && isWebGoogleLoginPending();
+let hasRenderedApp = false;
+let webGoogleLoginLoadingTimeout: number | undefined;
+
+const renderApp = () => {
+  if (hasRenderedApp) return;
+  hasRenderedApp = true;
+
+  if (webGoogleLoginLoadingTimeout !== undefined) {
+    window.clearTimeout(webGoogleLoginLoadingTimeout);
+  }
+  if (shouldShowWebGoogleLoginLoading) clearWebGoogleLoginPending();
+
+  renderRoot(root, growthbook);
+};
+
+if (shouldShowWebGoogleLoginLoading) {
+  root.render(<Loading isLoading={true} />);
+  webGoogleLoginLoadingTimeout = window.setTimeout(renderApp, 30_000);
+}
 
 void initializeGrowthBook(growthbook);
 initializeNativeRuntime();
 
-bootstrapServicesAndRender(() => {
-  renderRoot(root, growthbook);
-});
+bootstrapServicesAndRender(renderApp);
 serviceWorkerRegistration.unregister();

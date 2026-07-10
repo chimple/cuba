@@ -33,6 +33,10 @@ import logger from '../../utility/logger';
 import { isRecoverableStorageError } from '../../utility/recoverableStorageError';
 import { logAuthDebug } from '../../utility/authDebug';
 import { normalizeTcVersion } from '../../utility/termsAndConditions';
+import {
+  clearWebGoogleLoginPending,
+  markWebGoogleLoginPending,
+} from './webGoogleLoginLoading';
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -271,6 +275,7 @@ export class SupabaseAuth implements ServiceAuth {
         });
       } else {
         const redirectTo = window.location.origin;
+        markWebGoogleLoginPending();
         const { error } = await this._auth.signInWithOAuth({
           provider: 'google',
           options: {
@@ -282,6 +287,7 @@ export class SupabaseAuth implements ServiceAuth {
         });
 
         if (error) {
+          clearWebGoogleLoginPending();
           logger.error('Web Google login failed:', error);
           return { success: false, isSpl: false, userData: null };
         }
@@ -330,6 +336,7 @@ export class SupabaseAuth implements ServiceAuth {
         userData,
       };
     } catch (error: any) {
+      if (!Capacitor.isNativePlatform()) clearWebGoogleLoginPending();
       logger.error(
         '🚀 ~ SupabaseAuth ~ googleSign ~ error:',
         error?.stack || error,
