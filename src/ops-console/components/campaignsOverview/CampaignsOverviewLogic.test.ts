@@ -188,10 +188,6 @@ describe('CampaignsOverviewLogic', () => {
           objective: 'homework_campaign',
           start_date: '2026-05-25',
           end_date: '2026-05-30',
-          updated_at: '2026-05-25T11:39:22.148553+00:00',
-          cancelled_by_user: {
-            name: 'Ops Admin',
-          },
           manager: {
             name: 'Teacher 11 22',
           },
@@ -200,6 +196,11 @@ describe('CampaignsOverviewLogic', () => {
             institutes_count: null,
             students_count: null,
           },
+        },
+        cancellationData: {
+          canceledBy: 'Ops Admin',
+          canceledOn: '2026-05-25T11:39:22.148553+00:00',
+          messageToAdmin: null,
         },
       },
     };

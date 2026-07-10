@@ -40,10 +40,17 @@ export interface CampaignsOverviewApiResponse {
 export interface CampaignsOverviewApiData {
   campaignId?: string | null;
   campaign?: CampaignsOverviewApiCampaign | null;
+  cancellationData?: CampaignsOverviewApiCancellationData | null;
   dashboardMetrics?: CampaignsOverviewDashboardMetrics | null;
   avgWeeklyActiveUsers?: number | null;
   avgWeeklyEngagementTimeMinutes?: number | null;
   status?: CampaignListingStatus | string | null;
+}
+
+export interface CampaignsOverviewApiCancellationData {
+  canceledBy?: string | null;
+  canceledOn?: string | null;
+  messageToAdmin?: string | null;
 }
 
 export interface CampaignsOverviewDashboardMetrics {
@@ -67,7 +74,6 @@ export interface CampaignsOverviewApiCampaign {
   end_date?: string | null;
   updated_at?: string | null;
   campaign_status?: CampaignStatus | null;
-  cancelled_by_user?: CampaignsOverviewApiPerson | null;
   manager?: CampaignsOverviewApiPerson | null;
   program?: CampaignsOverviewApiProgram | null;
 }
@@ -377,6 +383,7 @@ export const buildCampaignsOverviewViewModel = (
   response?: CampaignsOverviewApiResponse,
 ): CampaignsOverviewViewModel => {
   const campaign = response?.data?.campaign;
+  const cancellationData = response?.data?.cancellationData;
   const metrics = response?.data?.dashboardMetrics;
   const program = campaign?.program;
   const status = normalizeCampaignListingStatus(
@@ -418,9 +425,9 @@ export const buildCampaignsOverviewViewModel = (
         metrics?.active_students ?? response?.data?.avgWeeklyActiveUsers,
     },
     cancellationDetails: {
-      canceledBy: formatValue(campaign?.cancelled_by_user?.name),
-      canceledOn: formatDateTime(campaign?.updated_at),
-      messageToAdmin: formatValue(campaign?.comments),
+      canceledBy: formatValue(cancellationData?.canceledBy),
+      canceledOn: formatDateTime(cancellationData?.canceledOn),
+      messageToAdmin: formatValue(cancellationData?.messageToAdmin),
     },
   };
 };

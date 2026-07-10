@@ -80,6 +80,7 @@ import {
   CampaignSchoolOption,
   CampaignSetupOptions,
   ClassMetricsForClassListingRow,
+  CampaignCancellationDetails,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
   LaunchCampaignPayload,
@@ -352,7 +353,6 @@ type CampaignListingAudienceRow = Pick<
 };
 
 type CampaignListingQueryRow = TableTypes<'campaign'> & {
-  cancelled_by_user?: TableTypes<'user'> | TableTypes<'user'>[] | null;
   manager?: TableTypes<'user'> | TableTypes<'user'>[] | null;
   program?: TableTypes<'program'> | TableTypes<'program'>[] | null;
   target_audience?:
@@ -9986,7 +9986,7 @@ export class SupabaseApi implements ServiceApi {
       const nativeSortColumn = CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS[orderBy];
       const shouldUseDatabasePagination =
         !isFieldCoordinator && Boolean(nativeSortColumn);
-      const campaignListingSelect = `*, cancelled_by_user:cancelled_by(*), manager:manager_id(*), program:program_id(*),
+      const campaignListingSelect = `*, manager:manager_id(*), program:program_id(*),
         target_audience:target_audience_id(
           id,
           is_all_schools,
@@ -10030,6 +10030,7 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const mappedCampaigns = (data ?? []) as CampaignListingQueryRow[];
+
       // Apply field-coordinator visibility after the base campaign query so audience links can be inspected.
       const visibleCampaigns = shouldUseDatabasePagination
         ? mappedCampaigns
@@ -10132,6 +10133,57 @@ export class SupabaseApi implements ServiceApi {
       logger.error('Error cancelling campaign:', error);
       throw error;
     }
+  }
+
+  async getCampaignCancellationDetails(
+    campaignId: string,
+  ): Promise<CampaignCancellationDetails | null> {
+    if (!this.supabase || !campaignId) {
+      return null;
+    }
+
+    const { data, error } = await this.supabase
+      .from('campaign')
+      .select('updated_at, comments, cancelled_by')
+      .eq('id', campaignId)
+      .eq('is_deleted', false)
+      .maybeSingle();
+
+    if (error) {
+      logger.error('Error fetching campaign cancellation details:', error);
+      return null;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    let canceledBy: string | null = null;
+
+    if (data.cancelled_by) {
+      const { data: cancelledByUser, error: cancelledByUserError } =
+        await this.supabase
+          .from('user')
+          .select('name')
+          .eq('id', data.cancelled_by)
+          .eq('is_deleted', false)
+          .maybeSingle();
+
+      if (cancelledByUserError) {
+        logger.error(
+          'Error fetching campaign cancelled by user:',
+          cancelledByUserError,
+        );
+      } else {
+        canceledBy = cancelledByUser?.name ?? null;
+      }
+    }
+
+    return {
+      canceledBy,
+      canceledOn: data.updated_at ?? null,
+      messageToAdmin: data.comments ?? null,
+    };
   }
 
   async getCampaignAudienceOptions(
