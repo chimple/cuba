@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./LessonComponent.css"; // Assuming you have some basic styles
-import { COURSES,TableTypes } from "../../../common/constants";
+import { TableTypes } from "../../../common/constants";
 import SelectIconImage from "../../../components/displaySubjects/SelectIconImage";
 import SelectIcon from "../SelectIcon";
 import { t } from "i18next";
@@ -11,7 +11,6 @@ interface LessonComponentProps {
   handleSelect: Function;
   isSelcted: boolean;
   isSelButton: boolean;
-  courseCode?: String;
 }
 
 const LessonComponent: React.FC<LessonComponentProps> = ({
@@ -20,11 +19,11 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
   handleSelect,
   isSelcted,
   isSelButton,
-  courseCode,
 }) => {
   const [isTicked, setIsTicked] = useState(isSelcted);
 
   const handleImageClick = () => {
+    console.log("Image clicked");
     // Add your image click logic here
   };
 
@@ -62,13 +61,10 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
       </div>
       <div className="text-container">
         <div className="lesson-details">
-          {courseCode === COURSES.ENGLISH
-            ? lesson.name!.length > 15
-              ? lesson.name?.substring(0, 15) + "..."
-              : lesson.name
-            : t(lesson.name ?? "").length > 15
-              ? t(lesson.name ?? "").substring(0, 15) + "..."
-              : t(lesson.name ?? "")}
+          {" "}
+          {lesson.name!.length > 15
+            ? lesson.name?.substring(0, 15) + "..."
+            : lesson.name}
         </div>
         {isSelButton ? (
           <SelectIcon isSelected={isTicked} onClick={handleTickClick} />

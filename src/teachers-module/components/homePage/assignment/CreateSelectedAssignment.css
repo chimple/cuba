@@ -15,30 +15,25 @@
 
 .assignments-dates {
   padding: 15px;
+  border: 2px solid gray;
   border-radius: 8px;
-  margin-top: 10px;
+  margin-top: 20px;
   box-shadow: 1px 1px 3px gray;
 }
 
-.date-created-assignment {
+.date-selection {
   background-color: #f3edff;
   display: flex;
   justify-content: space-between;
   padding: 10px;
   border-radius: 10px;
   color: black;
-  display: flex;
-  flex-direction: row;
-}
-.date-created-assignment b {
-  color: #707070;
 }
 
-.createselectAssignmentDate-input {
+.date-input {
   display: flex;
   align-items: center;
   gap: 5px;
-  color: #707070;
 }
 
 .select-all {
@@ -54,7 +49,9 @@
 }
 
 .assignment-category {
-  margin: 15px 0px;
+  margin-bottom: 15px;
+  padding: 10px;
+  /* border: 1px solid #ddd; */
   border-radius: 8px;
   color: black;
 }
@@ -64,7 +61,7 @@
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  padding: 0px 20px;
+  padding: 0px 10px;
   border-radius: 12px;
 }
 
@@ -94,18 +91,17 @@
 
 .assign-selected-button {
   position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50vw;
-  height: 50px;
+  top: 90vh;
+  left: 15vw;
+  width: 70vw;
   padding: 10px;
-  background-color: #7C5DB0;
+  background-color: #7a5aaf;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 22px;
+  margin-top: 20px;
+  font-size: 25px;
   font-weight: bolder;
 }
 .assign-selected-button:hover:not(:disabled) {
@@ -117,10 +113,10 @@
 }
 
 #create-assignment-heading {
-  color: #707070;
-  font-size: 24px;
-  font-weight: 600;
+  color: black;
+  font-size: 30px;
   text-align: start;
+  padding: 20px 20px 0px 20px;
 }
 
 .select-all-checkbox {
@@ -185,8 +181,4 @@
   border: solid white;
   border-width: 0 3px 3px 0;
   transform: translate(-50%, -50%) rotate(45deg); /* Draw checkmark */
-}
-
-.select-all-student-count{
-  text-align: left;
 }

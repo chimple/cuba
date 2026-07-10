@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import "./chpaterLessonBox.css";
 import { Util } from "../../utility/util";
 import { ServiceConfig } from "../../services/ServiceConfig";
-import { t } from "i18next";
 
 interface ChapterLessonBoxProps {
   containerStyle?: React.CSSProperties;
@@ -12,8 +11,7 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
   containerStyle,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
-  const [chapterName, setChapterName] = useState<string>("Default Chapter");
-  const [lessonName, setLessonName] = useState<string>("Default Lesson");
+  const [currentChapterName, setCurrentChapterName] = useState<string>("");
 
   useEffect(() => {
     const updateChapter = async (currentStudent: any) => {
@@ -32,9 +30,9 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
         learningPath.courses.courseList[currentCourseIndex].path[currentIndex]
           .lesson_id
       );
+      let chapterName = chapter?.name + ": " + lesson?.name;
 
-      setChapterName(chapter?.name || "Default Chapter");
-      setLessonName(lesson?.name || "Default Lesson");
+      setCurrentChapterName(chapterName || "Default Chapter");
     };
 
     const handleCourseChange = async (event: CustomEvent) => {
@@ -42,12 +40,13 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
       await updateChapter(currentStudent);
     };
 
-    // Fetch initial chapter and lesson
+    // Fetch the initial chapter on component mount
     (async () => {
       const currentStudent = await Util.getCurrentStudent();
       await updateChapter(currentStudent);
     })();
 
+    // Listen for course changes
     const syncHandleCourseChange = (event: Event) => {
       handleCourseChange(event as CustomEvent).catch((err) =>
         console.error("Error handling course change:", err)
@@ -68,9 +67,7 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
         ...containerStyle,
       }}
     >
-      <div className="chapter-lesson-text">
-        {t(chapterName)} : {t(lessonName)}
-      </div>
+      <div className="chapter-lesson-text">{currentChapterName}</div>
     </div>
   );
 };

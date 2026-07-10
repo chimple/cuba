@@ -40,24 +40,23 @@ const AddTeacher: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    setUser(undefined);
-    setShowUserNotFoundAlert(false);
-    setIsLoading(true);
-
     try {
+      setIsLoading(true);
+
       let fetchedUser;
+
       if (useEmail) {
         fetchedUser = await api?.getUserByEmail(inputValue);
       } else {
         fetchedUser = await api?.getUserByPhoneNumber(inputValue);
       }
 
-      if (school && classDoc && fetchedUser && fetchedUser.id) {
-        const userInClass = await api?.checkTeacherExistInClass(
-          school.id,
-          classDoc.id,
+      if (school && fetchedUser) {
+        const userInClass = await api?.checkUserExistInSchool(
+          school?.id,
           fetchedUser.id
         );
+
         if (userInClass) {
           setShowAlert(true);
           setUser(undefined);
@@ -70,26 +69,23 @@ const AddTeacher: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to fetch user", error);
-      setShowUserNotFoundAlert(true);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleAddTeacher = async () => {
-    if (!classDoc || !user || !school) return;
-
     setIsLoading(true);
-    try {
-      await api.addTeacherToClass(classDoc.id, user);
+
+    if (classDoc && user) {
+      await api.addTeacherToClass(classDoc.id, user.id);
+
       await api.updateSchoolLastModified(school.id);
       await api.updateClassLastModified(classDoc.id);
       await api.updateUserLastModified(user.id);
-      history.replace(`${PAGES.CLASS_USERS}?tab=Teachers`, classDoc);
-    } catch (error) {
-      console.error("Failed to add teacher", error);
-    } finally {
+
       setIsLoading(false);
+      history.replace(`${PAGES.CLASS_USERS}?tab=Teachers`, classDoc);
     }
   };
 
@@ -119,7 +115,7 @@ const AddTeacher: React.FC = () => {
           <div className="user-details">
             <hr className="horizontal-line" />
 
-            <div className="add-teacher-container">
+            <div className="user-info-container">
               <img
                 src={user.image ? user.image : "assets/icons/userIcon.png"}
                 className="user-image"
@@ -129,13 +125,14 @@ const AddTeacher: React.FC = () => {
                 }}
               />
               <p>{user.name}</p>
-              <button
+              <IonButton
+                color="#7C5DB0"
                 onClick={handleAddTeacher}
                 disabled={isLoading}
-                className="add-teacher-btn"
+                className="add-user-btn"
               >
                 {isLoading ? t("Adding") + "..." : t("Add")}
-              </button>
+              </IonButton>
             </div>
           </div>
         )}

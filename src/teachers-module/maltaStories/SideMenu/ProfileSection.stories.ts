@@ -1,5 +1,3 @@
-//@ts-nocheck
-//@ts-nocheck
 import { Meta, StoryObj } from "@storybook/react";
 import ProfileSection from "../../components/homePage/ProfileDetail";
 

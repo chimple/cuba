@@ -21,20 +21,6 @@ const SchoolUsers: React.FC = () => {
     init();
   }, []);
 
-  const canAddPrincipalOrCoordinator = [
-    RoleType.PRINCIPAL,
-    RoleType.COORDINATOR,
-    RoleType.SUPER_ADMIN,
-    RoleType.OPERATIONAL_DIRECTOR,
-    RoleType.PROGRAM_MANAGER,
-    RoleType.FIELD_COORDINATOR,
-  ].includes(role);
-
-  const canAddSponsor = [
-    RoleType.PRINCIPAL,
-    RoleType.COORDINATOR,
-  ].includes(role);
-
   const init = async () => {
     const queryParams = new URLSearchParams(location.search);
     const tab = queryParams.get("tab");
@@ -111,17 +97,19 @@ const SchoolUsers: React.FC = () => {
               />
             )}
           </div>
-          <>
-            {selectedTab === SCHOOL_USERS.PRINCIPALS && canAddPrincipalOrCoordinator && (
-              <AddButton onClick={addPrincipal} />
-            )}
-            {selectedTab === SCHOOL_USERS.COORDINATORS && canAddPrincipalOrCoordinator && (
-              <AddButton onClick={addCoordinator} />
-            )}
-            {selectedTab === SCHOOL_USERS.SPONSORS && canAddSponsor && (
-              <AddButton onClick={addSponsor} />
-            )}
-          </>
+          {(role === RoleType.PRINCIPAL || role === RoleType.COORDINATOR) && (
+            <>
+              {selectedTab === SCHOOL_USERS.PRINCIPALS && (
+                <AddButton onClick={addPrincipal} />
+              )}
+              {selectedTab === SCHOOL_USERS.COORDINATORS && (
+                <AddButton onClick={addCoordinator} />
+              )}
+              {selectedTab === SCHOOL_USERS.SPONSORS && (
+                <AddButton onClick={addSponsor} />
+              )}
+            </>
+          )}
         </IonPage>
       )}
     </>

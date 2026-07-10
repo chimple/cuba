@@ -100,23 +100,4 @@ For Chimple Generic Dashboard link [Click Here](https://lookerstudio.google.com/
 ```sh
 INSERT INTO `bahama-stage.proc.teacher` values ('20230802','2023-08-02 05:14:57.932000 UTC','UUID','User Name','School Name','SchoolId','CSeI4m0bA3psWz3Kf62','emailId@gmail.org')
 ```
-## 🌍 Translations
 
-We use **[Weblate](https://weblate.org/)** for managing translations of this project. No coding required — just create a free account and start translating. 
-Everyone is welcome to help translate into more languages!  
-
-👉 Our translation platform: [Translate on Weblate](https://hosted.weblate.org/projects/chimple-learning/)  
-
-### How to contribute
-1. Create a free account on [Weblate](https://hosted.weblate.org/).  
-2. Open our project page: [Chimple Learning](https://hosted.weblate.org/projects/chimple-learning/).  
-3. Select your language (or add a new one if it’s missing).  
-4. Start translating strings directly in your browser.  
-5. Save your work — Weblate will automatically send translations back to our repository.  
-
-### Why Weblate?
-- Friendly web UI for contributors.  
-- Automatic synchronization with our GitHub repository.  
-- Quality checks, suggestions, and optional machine translation.  
-
-🙌 Thanks to all translators for making this project available to more people!

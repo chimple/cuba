@@ -118,16 +118,14 @@
 }
 
 .add-button.disabled {
-  background-color: #7C5DB0;
-  cursor: pointer;
-  height: 50px;
-  width: 250px;
+  background-color: #c4c5c1;
+  cursor: not-allowed;
 }
 
 .gender-options {
   display: flex;
   justify-content: space-around;
-  padding-bottom : 10px;
+  margin-top: 1vh;
 }
 
 .gender-options label {
@@ -151,8 +149,6 @@
   font-size: 3vh;
   font-weight: bold;
   cursor: pointer;
-  height: 50px;
-  width: 250px;
 }
 
 .main-page {
@@ -212,10 +208,6 @@ ion-radio.radio-checked::part(mark) {
 /* Additional styles to ensure consistent spacing */
 .add-student-form {
   padding: 2vw;
-  margin: 0px 15px;
-  border: 1px solid #ccc;
-  border-radius: 15px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
   /* Padding around the form to adjust to screen size */
 }
 
@@ -239,30 +231,4 @@ form {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.profile-details-centered {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  margin: 20px auto;
-  gap: 16px;
-}
-
-.add-student-text {
-  position: absolute;
-  right: 100%;
-  margin-right: 16px;
-  margin-top: 20px;
-  transform: translateY(-50%);
-  font-size: 18px;
-  font-weight: bold;
-  color: #707070;
-  white-space: nowrap;
-  font-size: 16px;
-  display: inline-block;
-  max-width: 113px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }

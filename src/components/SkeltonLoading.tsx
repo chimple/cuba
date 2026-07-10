@@ -76,8 +76,6 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       return isLoading ? skeletonLiveQuizRoom() : null;
     case PAGES.STUDENT_PROGRESS:
       return isLoading ? skeletonStudentProgress() : null;
-    case PAGES.SCHOOL_LIST:
-      return isLoading ? skeletonSchoolList() : null;
     default:
       return isLoading ? skeltonSubjectCards() : null;
   }
@@ -104,7 +102,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       <>
         {[...Array(8)].map((_, index) => (
           <div
-            key={`skeleton-${index}`}
+            key={index} // Don't forget to add a unique key for each mapped element
             className={
               header === HOMEHEADERLIST.SUBJECTS
                 ? "skelton-subject-card-size"
@@ -113,7 +111,6 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
           >
             <div className="skelton-card-display">
               <Skeleton
-                key={`skeleton-main-${index}`}
                 style={skeletonStyle}
                 className={
                   header === HOMEHEADERLIST.SUBJECTS
@@ -122,7 +119,6 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
                 }
               />
               <Skeleton
-                key={`skeleton-text-${index}`}
                 style={skeletonStyle}
                 width={
                   header === HOMEHEADERLIST.SUBJECTS
@@ -132,11 +128,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
               />
               {header === HOMEHEADERLIST.SUBJECTS ||
               header === PAGES.DISPLAY_CHAPTERS ? null : (
-                <Skeleton
-                  key={`skeleton-extra-${index}`}
-                  style={skeletonStyle}
-                  width={textWidth}
-                />
+                <Skeleton style={skeletonStyle} width={textWidth} />
               )}
             </div>
           </div>
@@ -175,14 +167,14 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   function skeltonHome() {
     return (
       <div className="skelton-home-screen">
-        {/* <div id="skelton-home-screen-div">
+        <div id="skelton-home-screen-div">
           <img
             id="skelton-home-screen-char"
             src={"/assets/animation/chimple_avatar.png"}
             loading="lazy"
             alt=""
           />
-        </div> */}
+        </div>
         {/* <Skeleton className="skelton-home-screen-avatar" /> */}
         {/* <Skeleton className="skelton-home-screen-diloag" /> */}
       </div>
@@ -213,7 +205,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
         {isChapter ? (
           <div className="skelton-display-chapters">
             {[...Array(30)].map((_, index) => (
-              <div key={index}>
+              <div>
                 <Skeleton className="skelton-chapter-icon" />
                 <Skeleton className="skelton-chapter-name" />
               </div>
@@ -273,15 +265,6 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
           <Skeleton className="skeleton-student-score" />
           <Skeleton className="skeleton-student-score" />
         </IonCol>
-      </div>
-    );
-  }
-  function skeletonSchoolList() {
-    return (
-      <div className="skeleton-school-list-wrapper">
-        {[...Array(10)].map((_, i) => (
-          <Skeleton key={i} className="skeleton-rectangle"></Skeleton>
-        ))}
       </div>
     );
   }

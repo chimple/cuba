@@ -5,33 +5,29 @@ ion-select {
   text-align: left;
 }
 
-.custom-dropdown-container {
+.sort-type-container {
   display: flex;
   border-bottom: 4px solid black;
   align-items: center;
-  justify-content: space-between;
 }
 
 ion-select::part(placeholder),
 ion-select::part(text) {
-  color: #7b7676;
+  color: #707070;
   flex: 0 0 auto;
   padding-right: 0;
-  font-size: clamp(20px, 2.5vw, 23px);
+  font-size: 2vh;
 }
 
 .icon-container {
   display: flex;
   color: #707070;
-  margin-left: 4px;
 }
 
 ion-select::part(text) {
   color: #707070;
   text-align: left;
-  width: clamp(151px, 7vw, 300px);
-  overflow: hidden;
-  text-overflow: ellipsis;
+  width: clamp(150px, 7vw, 300px);
 }
 
 ion-select::part(icon) {
@@ -40,20 +36,19 @@ ion-select::part(icon) {
   display: none;
 }
 
-.customdropdown-select {
+.custom-select {
   --placeholder-color: #999;
   --color: #333;
+  --background: #f0f0f0;
   --border-radius: 8px;
   padding: 0.8vh 1vw;
   display: flex;
   align-items: center;
-  --highlight-color-focused: none;
-  --highlight-color-hover: none;
 }
 
 ion-modal,
 ion-popover {
-  --width: clamp(200px, 60vw, 260px);
+  --width: 34vh;
   --max-height: 90%;
   --backdrop-opacity: 0.32;
   --ion-background-color: white;

@@ -3,15 +3,16 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 20px 5px 20px;
+  width: 100%;
   box-sizing: border-box;
 }
 
 .report-student-details {
   display: flex;
   flex-direction: row;
+  flex-grow: 1;
   overflow: hidden;
   align-items: center;
-  width: auto;
 }
 
 .report-student-info {
@@ -53,5 +54,5 @@
 
 .report-student-dropdown {
   margin-left: 10px;
-  width: auto;
+  flex-shrink: 0;
 }

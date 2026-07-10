@@ -15,8 +15,8 @@
   gap: 3vw;
 }
 .curriculum-header {
-  background-color: #F2EBFE;
-  color: #707070;
+  background-color: #e6d8ff;
+  color: #4b0082;
   font-weight: bold;
   padding: 1.2vh;
   border-radius: 1vh;
@@ -43,8 +43,8 @@
 }
 
 .subject-icon {
-  width: 60px;
-  height: 60px;
+  width: 20%;
+  height: 20%;
   margin-right: 1.5vh;
 }
 
@@ -83,8 +83,8 @@
 }
 
 .subject-selection-container .curriculum-header {
-  background-color: #F2EBFE;
-  color: #707070;
+  background-color: #e6d8ff;
+  color: #4b0082;
   font-weight: bold;
   padding: 1.2vh;
   border-radius: 1vh;
@@ -133,44 +133,30 @@
 }
 
 .subject-selection-actions {
-  position: sticky;
+  position: fixed;
   bottom: 0;
-  margin: auto;
+  left: 0;
+  width: 100%;
   display: flex;
   justify-content: center;
   background-color: transparent;
   padding: 3% 0;
-
+  /* z-index: 1000; */
 }
 
 .subject-page-checkbox {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  padding: 0;
-  box-sizing: border-box;
-  font-size: 24px; 
-  color: #ccc;
+  --background: #f0f0f0;
+  --checkmark-color: #f0f0f0;
+  --background-checked: #019541 !important;
 }
 
-.subject-page-checkbox.selected {
-  color: #019541;
-}
-.confirm-button-in-subject-page {
-  width: 50vw;
-  height: 50px;
-  font-size: 22px;
-  font-weight: 600;
-  text-transform: none;
-  line-height: 130%;
+.subject-selection-actions .confirm-button-in-subject-page {
   --background: #7c5db0;
   --background-activated: #7c5db0;
   --color: white;
 }
-.disabled-confirm-button {
+
+.subject-selection-actions .disabled-confirm-button {
   opacity: 0.6;
   pointer-events: none;
   cursor: not-allowed;

@@ -15,7 +15,6 @@ import {
   PAGES,
   EDIT_STUDENT_STORE,
   TableTypes,
-  EDIT_STUDENTS_MAP,
 } from "../common/constants";
 import { chevronForward } from "ionicons/icons";
 import Curriculum from "../models/curriculum";
@@ -83,7 +82,6 @@ const EditStudent = () => {
   const [grades, setGrades] = useState<TableTypes<"grade">[]>();
   const [languages, setLanguages] = useState<TableTypes<"language">[]>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isCreatingProfile, setIsCreatingProfile] = useState<boolean>(false);
   const [checkResults, setCheckResults] = useState<boolean>(false);
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
 
@@ -114,10 +112,6 @@ const EditStudent = () => {
           grade ?? currentStudent.grade_id!,
           language ?? currentStudent.language_id!
         );
-        const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
-        const studentsMap = storedMapStr ? JSON.parse(storedMapStr) : {};
-        studentsMap[student.id] = student;
-        sessionStorage.setItem(EDIT_STUDENTS_MAP, JSON.stringify(studentsMap));
         Util.logEvent(EVENTS.USER_PROFILE, {
           user_id: currentStudent.id,
           // user_type: currentStudent.role,
@@ -222,34 +216,6 @@ const EditStudent = () => {
   const [isInputFocus, setIsInputFocus] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      // Check if parent has any student profiles
-      const students = await api.getParentStudentProfiles();
-      if (!students || students.length === 0) {
-        setIsCreatingProfile(true);
-        try {
-          // Get language id for app language
-          const languageCode = localStorage.getItem(LANGUAGE);
-          const allLanguages = await api.getAllLanguages();
-          const selectedLanguage = allLanguages.find(
-            (lang) => lang.code === languageCode
-          );
-          // Create auto profile with default/null values
-          const student = await api.createAutoProfile(selectedLanguage?.id);
-          // Set as current student
-          await Util.setCurrentStudent(
-            student,
-            selectedLanguage?.code ?? undefined,
-            true
-          );
-          history.replace(PAGES.HOME);
-        } catch (err) {
-          console.error("Auto profile creation failed", err);
-        } finally {
-          setIsCreatingProfile(false);
-        }
-      }
-    })();
     if (Capacitor.isNativePlatform()) {
       Keyboard.addListener("keyboardWillShow", (info) => {
         setIsInputFocus(true);
@@ -303,195 +269,176 @@ const EditStudent = () => {
   }
 
   return (
-    <>
-      {isCreatingProfile ? (
-        <IonContent className="ion-padding">
-          <Loading isLoading={isCreatingProfile} />
-        </IonContent>
-      ) : (
-        <IonPage id="Edit-student-page">
-          <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
-            {!isEdit && !state?.showBackButton ? null : (
+    <IonPage id="Edit-student-page">
+      <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
+        {!isEdit && !state?.showBackButton ? null : (
+          <BackButton
+            aria-label={t("Back")}
+            onClicked={() => {
+              localStorage.removeItem(EDIT_STUDENT_STORE);
+              history.replace(PAGES.DISPLAY_STUDENT);
+            }}
+          />
+        )}
+      </div>
+
+      <div id="next-button">
+        <NextButton
+          disabled={!isNextButtonEnabled()}
+          onClicked={() => {
+            if (stage === STAGES.GRADE && !online) {
+              presentToast({
+                message: t(`Device is offline. Cannot complete a profile`),
+                color: "danger",
+                duration: 3000,
+                position: "bottom",
+                buttons: [
+                  {
+                    text: "Dismiss",
+                    role: "cancel",
+                  },
+                ],
+              });
+              return;
+            }
+            onNextButton();
+          }}
+        />
+      </div>
+      <div
+        className={
+          "header " + isInputFocus && stage === STAGES.NAME
+            ? "scroll-header"
+            : ""
+        }
+      >
+        {stage == STAGES.NAME && (
+          <ChimpleLogo
+            header={t("Welcome to Chimple!")}
+            msg={t("").toString()}
+          />
+        )}
+
+        {stage === STAGES.NAME && (
+          <StudentNameBox
+            studentName={studentName!}
+            onValueChange={(val) =>
+              handleValueChange("studentName", val, setStudentName)
+            }
+            onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
+          />
+        )}
+      </div>
+      {stage === STAGES.AVATAR && (
+        <>
+          <>
+            <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
               <BackButton
                 aria-label={t("Back")}
                 onClicked={() => {
-                  localStorage.removeItem(EDIT_STUDENT_STORE);
-                  history.replace(PAGES.DISPLAY_STUDENT);
+                  localStoreData.stage = STAGES.GENDER_AND_AGE;
+                  addDataToLocalStorage();
+                  setStage(STAGES.GENDER_AND_AGE);
                 }}
               />
-            )}
-          </div>
+            </div>
 
-          <div id="next-button">
-            <NextButton
-              disabled={!isNextButtonEnabled()}
-              onClicked={() => {
-                if (stage === STAGES.GRADE && !online) {
-                  presentToast({
-                    message: t(`Device is offline. Cannot complete a profile`),
-                    color: "danger",
-                    duration: 3000,
-                    position: "bottom",
-                    buttons: [
-                      {
-                        text: "Dismiss",
-                        role: "cancel",
-                      },
-                    ],
-                  });
-                  return;
-                }
-                onNextButton();
-              }}
-            />
-          </div>
-          <div
-            className={
-              "header " + isInputFocus && stage === STAGES.NAME
-                ? "scroll-header"
-                : ""
-            }
-          >
-            {stage == STAGES.NAME && (
-              <ChimpleLogo
-                header={t("Welcome to Chimple!")}
-                msg={t("").toString()}
+            <div id="common-div">
+              <ChimpleLogo header={t("")} msg={t("").toString()} />
+            </div>
+            <div className="avatar-title">
+              {t("Choose an avatar for your child")}
+            </div>
+          </>
+        </>
+      )}
+      <div className="content">
+        {stage === STAGES.GENDER_AND_AGE && (
+          <>
+            <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
+              <span className="back-button-ignore">Back</span>
+              <BackButton
+                aria-label={t("Back")}
+                onClicked={() => {
+                  localStoreData.stage = STAGES.NAME;
+                  addDataToLocalStorage();
+                  setStage(STAGES.NAME);
+                }}
               />
-            )}
-
-            {stage === STAGES.NAME && (
-              <StudentNameBox
-                studentName={studentName!}
-                onValueChange={(val) =>
-                  handleValueChange("studentName", val, setStudentName)
-                }
-                onEnterDown={isNextButtonEnabled() ? onNextButton : () => {}}
-              />
-            )}
-          </div>
-          {stage === STAGES.AVATAR && (
+            </div>
             <>
               <>
-                <div
-                  id="Edit-student-back-button"
-                  aria-label={String(t("Back"))}
-                >
-                  <BackButton
-                    aria-label={t("Back")}
-                    onClicked={() => {
-                      localStoreData.stage = STAGES.GENDER_AND_AGE;
-                      addDataToLocalStorage();
-                      setStage(STAGES.GENDER_AND_AGE);
-                    }}
-                  />
-                </div>
-
                 <div id="common-div">
                   <ChimpleLogo header={t("")} msg={t("").toString()} />
                 </div>
-                <div className="avatar-title">
-                  {t("Choose an avatar for your child")}
-                </div>
               </>
-            </>
-          )}
-          <div className="content">
-            {stage === STAGES.GENDER_AND_AGE && (
-              <>
-                <div
-                  id="Edit-student-back-button"
-                  aria-label={String(t("Back"))}
-                >
-                  <span className="back-button-ignore">Back</span>
-                  <BackButton
-                    aria-label={t("Back")}
-                    onClicked={() => {
-                      localStoreData.stage = STAGES.NAME;
-                      addDataToLocalStorage();
-                      setStage(STAGES.NAME);
-                    }}
-                  />
-                </div>
-                <>
-                  <>
-                    <div id="common-div">
-                      <ChimpleLogo header={t("")} msg={t("").toString()} />
-                    </div>
-                  </>
-                  <GenderAndAge
-                    age={age}
-                    gender={gender}
-                    onAgeChange={(val) => handleValueChange("age", val, setAge)}
-                    onGenderChange={(val) =>
-                      handleValueChange("gender", val, setGender)
-                    }
-                  />
-                </>
-              </>
-            )}
-            {stage === STAGES.AVATAR && (
-              <SelectAvatar
-                avatar={avatar}
-                onAvatarChange={(val) =>
-                  handleValueChange("avatar", val, setAvatar)
+              <GenderAndAge
+                age={age}
+                gender={gender}
+                onAgeChange={(val) => handleValueChange("age", val, setAge)}
+                onGenderChange={(val) =>
+                  handleValueChange("gender", val, setGender)
                 }
               />
-            )}
-            {stage === STAGES.GRADE && (
+            </>
+          </>
+        )}
+        {stage === STAGES.AVATAR && (
+          <SelectAvatar
+            avatar={avatar}
+            onAvatarChange={(val) =>
+              handleValueChange("avatar", val, setAvatar)
+            }
+          />
+        )}
+        {stage === STAGES.GRADE && (
+          <>
+            <>
+              <div id="Edit-student-back-button" aria-label={String(t("Back"))}>
+                <BackButton
+                  aria-label={t("Back")}
+                  onClicked={() => {
+                    localStoreData.stage = STAGES.AVATAR;
+                    addDataToLocalStorage();
+                    setStage(STAGES.AVATAR);
+                  }}
+                />
+              </div>
+            </>
+            <>
               <>
                 <>
-                  <div
-                    id="Edit-student-back-button"
-                    aria-label={String(t("Back"))}
-                  >
-                    <BackButton
-                      aria-label={t("Back")}
-                      onClicked={() => {
-                        localStoreData.stage = STAGES.AVATAR;
-                        addDataToLocalStorage();
-                        setStage(STAGES.AVATAR);
-                      }}
+                  <div id="common-div">
+                    <ChimpleLogo
+                      header={t("")}
+                      msg={t("Choose your child’s class details").toString()}
                     />
                   </div>
                 </>
-                <>
-                  <>
-                    <>
-                      <div id="common-div">
-                        <ChimpleLogo
-                          header={t("")}
-                          msg={t(
-                            "Choose your child’s class details"
-                          ).toString()}
-                        />
-                      </div>
-                    </>
-                    <GradeBoardAndLangDropdown
-                      boards={boards}
-                      grades={grades}
-                      languages={languages}
-                      onBoardChange={(val) =>
-                        handleValueChange("board", val, setBoard)
-                      }
-                      onGradeChange={(val) =>
-                        handleValueChange("grade", val, setGrade)
-                      }
-                      onLangChange={(val) =>
-                        handleValueChange("language", val, setLanguage)
-                      }
-                      currentlySelectedBoard={board}
-                      currentlySelectedGrade={grade}
-                      currentlySelectedLang={language}
-                    />
-                  </>
-                </>
+                <GradeBoardAndLangDropdown
+                  boards={boards}
+                  grades={grades}
+                  languages={languages}
+                  onBoardChange={(val) =>
+                    handleValueChange("board", val, setBoard)
+                  }
+                  onGradeChange={(val) =>
+                    handleValueChange("grade", val, setGrade)
+                  }
+                  onLangChange={(val) =>
+                    handleValueChange("language", val, setLanguage)
+                  }
+                  currentlySelectedBoard={board}
+                  currentlySelectedGrade={grade}
+                  currentlySelectedLang={language}
+                />
               </>
-            )}
-          </div>
-          <Loading isLoading={isLoading} />
-        </IonPage>
-      )}
-    </>
+            </>
+          </>
+        )}
+      </div>
+      <Loading isLoading={isLoading} />
+    </IonPage>
   );
 };
 export default EditStudent;

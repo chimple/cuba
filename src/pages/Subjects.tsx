@@ -153,11 +153,11 @@ const Subjects: React.FC<{}> = ({}) => {
       //     }
       //   } else {
       //     await getCourses();
-
+      
       //   }
       // } else {
       //   await getCourses();
-
+      
       // }
     } else {
       let result = await getCourses();
@@ -183,15 +183,13 @@ const Subjects: React.FC<{}> = ({}) => {
       return [];
     }
 
+    // const currClass = localStorage.getItem(CURRENT_CLASS);
     let currClass;
-
-    const linkedData = await api.isStudentLinked(currentStudent.id);
-    setStudentLinked(!!linkedData);
-
-    if (linkedData) {
+    const result = await api.getStudentResult(currentStudent.id, true);
+    if (result) {
       currClass = schoolUtil.getCurrentClass();
+    } else {
     }
-
     if (!!currClass) setCurrentClass(currClass);
 
     const res = await api.getStudentResultInMap(currentStudent.id);
@@ -199,9 +197,15 @@ const Subjects: React.FC<{}> = ({}) => {
     localStorageData.lessonResultMap = res;
     setLessonResultMap(res);
 
-    const currMode = await schoolUtil.getCurrMode();
+    const linkedData = await api.isStudentLinked(currentStudent.id);
+    if (linkedData) {
+      setStudentLinked(true);
+    } else setStudentLinked(false);
 
-    setUserMode(((currMode === MODES.PARENT) == true && !linkedData) ?? true);
+    const currMode = await schoolUtil.getCurrMode();
+    setUserMode(
+      ((currMode === MODES.PARENT) == true && !studentLinked) ?? true
+    );
 
     const courses = await (!!currClass
       ? api.getCoursesForClassStudent(currClass.id)

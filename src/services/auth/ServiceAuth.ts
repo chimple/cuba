@@ -3,12 +3,9 @@ import { TableTypes } from "../../common/constants";
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
 
 export interface ServiceAuth {
-  loginWithEmailAndPassword(
-    email: string,
-    password: string
-  ): Promise<{ success: boolean; isSpl: boolean }>;
+  loginWithEmailAndPassword(email, password): Promise<boolean>;
 
-  googleSign(): Promise<{ success: boolean; isSpl: boolean }>;
+  googleSign(): Promise<boolean>;
 
   getCurrentUser(): Promise<TableTypes<"user"> | undefined>;
 
@@ -23,12 +20,12 @@ export interface ServiceAuth {
   generateOtp(
     phoneNumber: string,
     appName: string
-  ): Promise<{ success: boolean; error?: any }>;
+  ): Promise<boolean | undefined>;
 
   proceedWithVerificationCode(
     verificationId,
     verificationCode
-  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined>;
+  ): Promise<{ user: any; isUserExist: boolean } | undefined>;
 
   logOut(): Promise<void>;
   doRefreshSession(): Promise<void>;
@@ -37,15 +34,9 @@ export interface ServiceAuth {
    *
    * @param email - The user's email address.
    * @param password - The user's password.
-   * @returns A promise that resolves to an object containing:
-   *  - `success`: `true` if sign-in is successful, otherwise `false`.
-   *  - `isSpl`: `true` if the user is a special user (e.g., super admin or operational director)
-   *             or belongs to a program, otherwise `false`.
+   * @returns A promise that resolves to `true` if sign-in is successful, otherwise `false`.
    */
-  signInWithEmail(
-    email: string,
-    password: string
-  ): Promise<{ success: boolean; isSpl: boolean }>;
+  signInWithEmail(email, password): Promise<boolean>;
   /**
    * Sends a password reset email to the given address.
    *

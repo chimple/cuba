@@ -11,7 +11,6 @@
         android:supportsRtl="true"
         android:usesCleartextTraffic="true"
         android:largeHeap="true"
-        android:extractNativeLibs="false"
         android:theme="@style/AppTheme"
         android:hardwareAccelerated="true">
 
@@ -64,6 +63,14 @@
             </intent-filter>
         </receiver>
 
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false"
+            android:directBootAware="true">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
     </application>
 
     <!-- Permissions -->

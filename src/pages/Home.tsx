@@ -14,8 +14,6 @@ import {
   TableTypes,
   RECOMMENDATIONS,
   STARS_COUNT,
-  LANGUAGE,
-  LANG,
 } from "../common/constants";
 import "./Home.css";
 import LessonSlider from "../components/LessonSlider";
@@ -32,7 +30,6 @@ import { schoolUtil } from "../utility/schoolUtil";
 import { AppBar, Box, Tab, Tabs } from "@mui/material";
 import { t } from "i18next";
 import { App } from "@capacitor/app";
-import { Capacitor } from "@capacitor/core";
 // import ChimpleAvatar from "../components/animation/ChimpleAvatar";
 import SearchLesson from "./SearchLesson";
 import AssignmentPage from "./Assignment";
@@ -40,10 +37,8 @@ import Subjects from "./Subjects";
 import LiveQuiz from "./LiveQuiz";
 import SkeltonLoading from "../components/SkeltonLoading";
 import { AvatarObj } from "../components/animation/Avatar";
+import { useGrowthBook } from "@growthbook/growthbook-react";
 import LearningPathway from "../components/LearningPathway";
-import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
-import { Device } from "@capacitor/device";
-import i18n from "../i18n";
 
 const localData: any = {};
 const Home: FC = () => {
@@ -78,8 +73,7 @@ const Home: FC = () => {
   const [recommendedLessonCourseMap, setRecommendedLessonCourseMap] = useState<{
     [lessonId: string]: { course_id: string };
   }>({});
-  let currentStudent: TableTypes<"user"> | undefined;
-  const { setGbUpdated } = useGbContext();
+  const growthbook = useGrowthBook();
 
   let tempPageNumber = 1;
   const location = useLocation();
@@ -104,33 +98,12 @@ const Home: FC = () => {
   const appStateChange = (isActive) => {
     Util.onAppStateChange({ isActive });
   };
-
-  const [from, setFrom] = useState<number>(0);
-  const [to, setTo] = useState<number>(0);
-  const logDeviceInfo = async () => {
-    const info = await Device.getInfo();
-    const device_language = await Device.getLanguageCode();
-    const device = {
-      model: info.model,
-      manufacturer: info.manufacturer,
-      platform: info.platform,
-      os_version: info.osVersion,
-      operating_system: info.operatingSystem,
-      is_virtual: info.isVirtual,
-      device_language: device_language.value,
-    };
-    return device;
-  };
-
   useEffect(() => {
     const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-    const studentDetails = student;
-    updateLocalAttributes({ studentDetails });
-    setGbUpdated(true);
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, "true");
     Util.checkDownloadedLessonsFromLocal();
     initData();
@@ -166,7 +139,11 @@ const Home: FC = () => {
   }, [currentHeader]);
   // adding background image for learning-pathway
   useEffect(() => {
-    Util.loadBackgroundImage();
+    const body = document.querySelector("body");
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
   }, [currentHeader, canShowAvatar]);
   const handleJoinClassEvent = async (event) => {
     await getAssignments();
@@ -181,35 +158,9 @@ const Home: FC = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-    const langDoc = await api.getLanguageWithId(student.language_id ?? "");
-    if (langDoc) {
-      const tempLangCode = langDoc.code ?? LANG.ENGLISH;
-      localStorage.setItem(LANGUAGE, tempLangCode);
-      await i18n.changeLanguage(tempLangCode);
-    }
     const studentResult = await api.getStudentResultInMap(student.id);
     if (!!studentResult) {
       setLessonResultMap(studentResult);
-      const count_of_lessons_played = Object.values(studentResult).filter(
-        (item) => item.assignment_id === null
-      );
-      const total_assignments_played = Object.values(studentResult).filter(
-        (item) => item.assignment_id !== null
-      );
-      let latestDate = null;
-      for (const lessonId in studentResult) {
-        const currentDate: any = studentResult[lessonId].updated_at;
-        if (!latestDate || new Date(currentDate) > new Date(latestDate)) {
-          latestDate = currentDate;
-        }
-      }
-      const attributes = {
-        count_of_lessons_played: count_of_lessons_played.length,
-        count_of_assignment_played: total_assignments_played.length,
-        last_assignment_played_at: latestDate,
-      };
-      updateLocalAttributes(attributes);
-      setGbUpdated(true);
     }
     const lessonCourseMap = Object.fromEntries(
       Object.entries(studentResult).map(([lessonDocId, details]) => [
@@ -297,7 +248,6 @@ const Home: FC = () => {
     const classDoc = linkedData?.classes[0];
     if (classDoc?.id) await api.assignmentListner(classDoc?.id, () => {});
     if (student) await api.assignmentUserListner(student.id, () => {});
-
     if (
       student != null &&
       !!linkedData &&
@@ -314,19 +264,12 @@ const Home: FC = () => {
       );
       let assignmentCount = 0;
       let liveQuizCount = 0;
-
-      const counts: Record<string, number> = {};
-
       await Promise.all(
         allAssignments.map(async (_assignment) => {
           const res = await api.getLesson(_assignment.lesson_id);
           const now = new Date().toISOString();
           if (_assignment.type !== LIVE_QUIZ) {
             assignmentCount++;
-            const subject_id = res?.subject_id;
-            if (!subject_id) return;
-            const key = `count_of_subject_${subject_id}_pending`;
-            counts[key] = (counts[key] || 0) + 1;
           } else {
             if (_assignment.ends_at && _assignment.starts_at) {
               if (_assignment.starts_at <= now && _assignment.ends_at > now) {
@@ -341,11 +284,9 @@ const Home: FC = () => {
           }
         })
       );
-
       setPendingLiveQuizCount(liveQuizCount);
       setPendingAssignmentCount(assignmentCount);
       setPendingAssignments(allAssignments);
-
       const courseCount = allAssignments.reduce((accumulator, current: any) => {
         if (accumulator[current.course_id]) {
           accumulator[current.course_id] += 1;
@@ -355,22 +296,18 @@ const Home: FC = () => {
         return accumulator;
       }, {});
       const result = Object.keys(courseCount).reduce((acc, courseId) => {
-        acc[`count_of_course_${courseId}_pending`] = courseCount[courseId];
+        acc[`count_of_${courseId}`] = courseCount[courseId];
         return acc;
       }, {});
-      const device = await logDeviceInfo();
       const attributeParams = {
         studentDetails: student,
         schools: linkedData.schools.map((item: any) => item.id),
         classes: linkedData.classes.map((item: any) => item.id),
         liveQuizCount: liveQuizCount,
         assignmentCount: assignmentCount,
-        pending_course_counts: result,
-        pending_subject_counts: counts,
-        ...device,
-      };
-      updateLocalAttributes(attributeParams);
-      setGbUpdated(true);
+        countOfPendingIds: result
+      }
+      setGrowthbookAttributes(attributeParams);
       setDataCourse(reqLes);
       // storeRecommendationsInLocalStorage(reqLes);
       // setIsLoading(true);
@@ -380,6 +317,27 @@ const Home: FC = () => {
       return [];
     }
   }
+
+  const setGrowthbookAttributes = (student: any) => {
+    const {studentDetails, schools, classes, liveQuizCount, assignmentCount, countOfPendingIds} = student;
+
+    growthbook.setAttributes({
+      id: studentDetails.id,
+      age: studentDetails.age,
+      curriculum_id: studentDetails.curriculum_id,
+      grade_id: studentDetails.grade_id,
+      gender: studentDetails.gender,
+      parent_id: studentDetails.parent_id,
+      subject_id: studentDetails.subject_id,
+      school_ids: schools,
+      class_ids: classes,
+      language: localStorage.getItem("language") || "en",
+      stars: studentDetails.stars,
+      pending_live_quiz: liveQuizCount,
+      pending_assignments: assignmentCount,
+      ...countOfPendingIds,
+    });
+  };
 
   async function getRecommendeds(
     subjectCode: string
@@ -488,7 +446,6 @@ const Home: FC = () => {
       return;
     }
     const studentResult = await api.getStudentResult(currentStudent.id, false);
-    const courseCounts: any = {};
 
     if (studentResult) {
       const playedLessonData = studentResult;
@@ -496,19 +453,6 @@ const Home: FC = () => {
       const allValidPlayedLessonDocIds = sortedLessonDocIds.filter(
         (lessonDoc) => lessonDoc !== undefined
       );
-      for (const course of studentResult) {
-        const courseId = course.course_id;
-        if (!courseId) {
-          continue;
-        }
-        const key = `${courseId}_course_completed`;
-        courseCounts[key] = (courseCounts[key] || 0) + 1;
-      }
-      updateLocalAttributes({
-        courseCounts,
-        total_assignments_played: allValidPlayedLessonDocIds.length,
-      });
-      setGbUpdated(true);
       return allValidPlayedLessonDocIds;
     }
   };
@@ -699,13 +643,20 @@ const Home: FC = () => {
             {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
             {currentHeader === HOMEHEADERLIST.ASSIGNMENT && (
-              <AssignmentPage assignmentCount={setPendingAssignmentCount} />
+              <AssignmentPage
+                onNewAssignment={(newAssignment) => {
+                  setPendingAssignments((prev) => {
+                    if (!prev.some((a) => a.id === newAssignment.id)) {
+                      return [...prev, newAssignment];
+                    }
+                    return prev;
+                  });
+                }}
+              />
             )}
 
             {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
-            {currentHeader === HOMEHEADERLIST.LIVEQUIZ && (
-              <LiveQuiz liveQuizCount={setPendingLiveQuizCount} />
-            )}
+            {currentHeader === HOMEHEADERLIST.LIVEQUIZ && <LiveQuiz />}
 
             {/* 
             {value === SUBTAB.SUGGESTIONS &&

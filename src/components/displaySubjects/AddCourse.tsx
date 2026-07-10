@@ -114,9 +114,8 @@ const AddCourse: FC<{
             if (course.course.curriculum_id === curr) {
               const grade = gradesMap.get(course.course.grade_id!);
               const gradeTitle = grade ? grade.name : "";
-
               return (
-                <SplideSlide className="slide" key={course.course.id}>
+                <SplideSlide className="slide">
                   <div
                     onClick={async () => {
                       const newCourses = allCourses.map((c) => {
@@ -124,10 +123,12 @@ const AddCourse: FC<{
                           c.selected = !c.selected;
                         return c;
                       });
+
                       setAllCourses(newCourses);
                       handleClick(course.course!);
                     }}
                     className="subject-button"
+                    key={course.course.id}
                   >
                     {course.selected ? (
                       <div id="subject-card-select-icon">
@@ -140,11 +141,9 @@ const AddCourse: FC<{
                         </div>
                       </div>
                     ) : null}
-
                     <div id="subject-card-subject-name">
-                      <p>{t(gradeTitle)}</p>
+                      <p>{gradeTitle}</p>
                     </div>
-
                     <div
                       className="course-icon"
                       style={{
@@ -163,14 +162,13 @@ const AddCourse: FC<{
                         imageHeight={"auto"}
                       />
                     </div>
-
-                    <div>
-                      <p> {t(course?.course.name)}</p>
-                    </div>
-
+                    {t(course?.course.name)}
+                    {/* {course.title === "English" ? course.title : course.title} */}
                     {currt ? (
                       <div id="ignore">
-                        <p id="ignore">{currt} Curriculum</p>
+                        <div id="ignore">
+                          <p id="ignore">{currt} Curriculum</p>
+                        </div>
                       </div>
                     ) : null}
                   </div>
@@ -178,7 +176,6 @@ const AddCourse: FC<{
               );
             }
           })}
-
           <Loading isLoading={isLoading} />
         </Splide>
       </div>

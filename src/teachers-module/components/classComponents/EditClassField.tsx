@@ -14,7 +14,7 @@ const EditClassField: FC<EditClassFieldProps> = ({
 }) => {
   return (
     <div className="edit-classname-div">
-      <div className="edit-class-name">{t("Class")}</div>
+      <div className="name-div">{t("Class Name")}</div>
       <IonInput
         className="class-text-field"
         value={className}

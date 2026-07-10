@@ -35,7 +35,7 @@ function getColor(studentResults: any[], belongsToClass: boolean, isIndividually
     return "#FFFFFF";
   }
 
-  return "#FFFFFF"; 
+  return "#C4C4C4"; 
 }
 
 function TableStudentData({ studentData, isScore, assignmentMap, assignmentUserRecords, selectedType }: TableStudentDataProps) {

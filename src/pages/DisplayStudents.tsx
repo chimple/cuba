@@ -12,10 +12,6 @@ import {
   CONTINUE,
   TableTypes,
   CURRENT_CLASS,
-  EDIT_STUDENTS_MAP,
-  CURRENT_STUDENT,
-  LANG,
-  LANGUAGE,
 } from "../common/constants";
 import { IoAddCircleSharp } from "react-icons/io5";
 import { useHistory } from "react-router";
@@ -29,7 +25,7 @@ import { useOnlineOfflineErrorMessageHandler } from "../common/onlineOfflineErro
 import SkeltonLoading from "../components/SkeltonLoading";
 import { Capacitor } from "@capacitor/core";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
-import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<"user">[]>();
@@ -38,9 +34,12 @@ const DisplayStudents: FC<{}> = () => {
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
-  const { setGbUpdated } = useGbContext();
   useEffect(() => {
-    Util.loadBackgroundImage();
+    const body = document.querySelector("body");
+    body?.style.setProperty(
+      "background-image",
+      "url(/pathwayAssets/pathwayBackground.svg)"
+    );
     getStudents();
     lockOrientation();
     return () => {
@@ -55,22 +54,42 @@ const DisplayStudents: FC<{}> = () => {
   const getStudents = async () => {
     const currMode = await schoolUtil.getCurrMode();
     setStudentMode(currMode);
-    const tempStudents = await api.getParentStudentProfiles();
-    const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
-    const mergedStudents = Util.mergeStudentsByUpdatedAt(
-      tempStudents,
-      storedMapStr
-    );
-    if (!mergedStudents || mergedStudents.length < 1) {
+    const tempStudents =
+      await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
+
+    if (!tempStudents || tempStudents.length < 1) {
       history.replace(PAGES.CREATE_STUDENT, {
         showBackButton: false,
       });
       return;
     }
-    setStudents(mergedStudents);
-    updateLocalAttributes({ count_of_children: mergedStudents.length });
-    setGbUpdated(true);
+    setStudents(tempStudents);
     setIsLoading(false);
+
+    // const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    // if (!currentUser) {
+    //   return;
+    // }
+
+    // await FirebaseAnalytics.setUserId({
+    //   userId: currentUser.id,
+    // });
+
+    // Util.setUserProperties(currentUser);
+
+    // setStudents([students[0]]);
+
+    // setStudents([...students, students[0]]);
+
+    // const currentUser = await FirebaseAuth.getInstance().getCurrentUser();
+    // const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    //  const iseTeacher = await FirebaseApi.getInstance().isUserTeacher(
+    //   currentUser!
+    // );
+    //  if (!currentUser) return;
+    // const iseTeacher = await ServiceConfig.getI().apiHandler.isUserTeacher(
+    //   currentUser
+    // );
   };
   const onStudentClick = async (student: TableTypes<"user">) => {
     await Util.setCurrentStudent(student, undefined, true);
@@ -84,7 +103,7 @@ const DisplayStudents: FC<{}> = () => {
       await schoolUtil.setCurrentClass(undefined);
     }
     if (
-      // !student.curriculum_id ||
+      !student.curriculum_id ||
       !student.language_id
       //  ||
       // !student.grade_id ||
@@ -123,18 +142,9 @@ const DisplayStudents: FC<{}> = () => {
   };
   return (
     <IonPage id="display-students">
-      {/* <IonContent> */} 
+      {/* <IonContent> */}
       <div id="display-students-chimple-logo">
-        <div id="display-students-parent-icon">
-          {Util.getCurrentStudent() &&<img
-            src="/assets/icons/BackButtonIcon.svg"
-            alt="BackButtonIcon"
-            onClick={() => {
-              Util.setPathToBackButton(PAGES.HOME, history);
-            }}
-          />
-          }
-        </div>
+        <div id="display-students-parent-icon"></div>
         <ChimpleLogo
           header={t("Welcome to Chimple!")}
           msg={[
@@ -173,9 +183,9 @@ const DisplayStudents: FC<{}> = () => {
                 {student.name && (
                   <span className="display-student-name-profile">Profile:</span>
                 )}
-                <span className="display-student-name">
-                  {student.name ? student.name : "\u00A0"}
-                </span>
+                {student.name && (
+                  <span className="display-student-name">{student?.name}</span>
+                )}
               </div>
             ))}
           </div>

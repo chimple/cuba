@@ -12,9 +12,6 @@
 }
 #scroll {
   height: 57vh;
-  background-color: transparent;
+  background-color: #e2dede;
   overflow: scroll;
-}
-.keyboard-spacer {
-  height: 1px;
 }

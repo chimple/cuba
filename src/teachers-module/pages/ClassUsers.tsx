@@ -21,7 +21,7 @@ const ClassUsers: React.FC = () => {
   const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const classData = (location.state as TableTypes<"class">) || {};
   const currentSchool = Util.getCurrentSchool();
-  const currentRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+  const currentRole = JSON.parse(localStorage.getItem(USER_ROLE)!);
   useEffect(() => {
     init();
   }, []);
@@ -57,6 +57,7 @@ const ClassUsers: React.FC = () => {
   };
 
   const tabLabels = Object.values(CLASS_USERS).map((key) => key);
+  console.log("tab names..", tabLabels);
   const onBackButtonClick = () => {
     Util.setPathToBackButton(PAGES.MANAGE_CLASS, history);
   };
@@ -100,9 +101,9 @@ const ClassUsers: React.FC = () => {
             <AddButton onClick={addStudent} />
           )}
           {selectedTab === CLASS_USERS.TEACHERS &&
-            !currentRoles.includes(RoleType.TEACHER) && (
-            <AddButton onClick={addTeacher} />
-          )}
+            !(currentRole === RoleType.TEACHER) && (
+              <AddButton onClick={addTeacher} />
+            )}
         </div>
       )}
     </>

@@ -57,13 +57,14 @@ const ExpandedTable: React.FC<ExpandedTableProps> = ({ expandedData }) => {
   const api = ServiceConfig.getI().apiHandler;
   const init = async () => {
     const _lessonIdsByDay = await getLessonScoresByDay(expandedData, api);
+    console.log(_lessonIdsByDay);
     setLessonIdsByDay(_lessonIdsByDay);
   };
   return (
     <>
       {Object.values(lessonIdsByDay).map((lesson: any, lessonIndex) => (
         <tr key={lessonIndex}>
-          <td style={{backgroundColor: "#EFE8F8"}}>
+          <td>
             <div className="expanded-table-lesson-details">
               <span className="lesson-name-text">{lesson.name}</span>
               {
@@ -83,7 +84,7 @@ const ExpandedTable: React.FC<ExpandedTableProps> = ({ expandedData }) => {
             <td
               key={dayIndex}
               className="square-cell"
-              style={{ color: getColor(lesson.scoresByDay[day]), backgroundColor: "#EFE8F8" }}
+              style={{ color: getColor(lesson.scoresByDay[day]) }}
             >
               {lesson.scoresByDay[day] !== null
                 ? `${lesson.scoresByDay[day]}`

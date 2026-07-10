@@ -25,6 +25,8 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
       classCode = await api.createClassCode(classId);
       if (classCode) {
         setClassCode(classCode);
+      } else {
+        console.log("Failed to get class code");
       }
     }
   };
@@ -51,11 +53,13 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
   return (
     <div className="class-code">
       <IonItem lines="none">
-        <div>{t("Class Code")} {" : "}</div>
+        <div>{t("Class Code")}:</div>
         {classCode ? (
           <div className="share-code">
             <div className="code">{classCode}</div>
-            <img src="assets/icons/shareClassCode.svg" alt="Share_Code" onClick={shareClassCode} style={{ width: "18px", height: "18px" }} />
+            <IonButton onClick={shareClassCode} fill="clear" color="dark">
+              <TfiSharethis />
+            </IonButton>
           </div>
         ) : null}
       </IonItem>

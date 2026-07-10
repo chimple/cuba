@@ -135,6 +135,7 @@ export class schoolUtil {
 
     if (!!api.currentMode) return api.currentMode;
     const currMode = localStorage.getItem(CURRENT_MODE);
+    console.log(currMode);
     if (!currMode) {
       const currUser = await auth.getCurrentUser();
       if (!currUser) return undefined;
@@ -171,6 +172,7 @@ export class schoolUtil {
         credentials.email,
         credentials.password
       );
+      console.log("resultresultresultresult", result);
       if (result) {
         localStorage.setItem(CURRENT_USER, JSON.stringify(result));
         window.history.replaceState(

@@ -1,4 +1,3 @@
-//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import EditSchool from "../../components/malta/school/EditSchool";
 import { fn } from "@storybook/test";

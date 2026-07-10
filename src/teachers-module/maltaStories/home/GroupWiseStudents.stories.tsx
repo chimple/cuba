@@ -1,4 +1,3 @@
-//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import { number, object } from "prop-types";
 import GroupWiseStudents from "../../components/homePage/GroupWiseStudents";
@@ -23,13 +22,6 @@ const mockStudent: TableTypes<"user"> = {
   music_off: null,
   sfx_off: null,
   student_id: null,
-  firebase_id: null,
-  is_firebase: null,
-  is_ops: null,
-  learning_path: null,
-  ops_created_by: null,
-  stars: null,
-  reward: null
 };
 const result: TableTypes<"result"> = {
   id: "student-1",
@@ -46,9 +38,7 @@ const result: TableTypes<"result"> = {
   wrong_moves: 3,
   chapter_id: "chapter_id",
   course_id: "course_id",
-  class_id: null,
-  firebase_id: null,
-  is_firebase: null
+  class_id: null
 };
 const meta = {
   title: "teachers-module/home/GroupWiseStudents",

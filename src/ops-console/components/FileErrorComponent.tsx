@@ -40,11 +40,13 @@ const ErrorPage: React.FC<ErrorPageProps> = ({
             </button>
           )}
         </div>
-        <button className="download-template" onClick={reUplod}>
-          <FaCloudUploadAlt />
-          &nbsp; &nbsp;
-          {t("Re-Upload")}
-        </button>
+        {!title && (
+          <button className="download-template" onClick={reUplod}>
+            <FaCloudUploadAlt />
+            &nbsp; &nbsp;
+            {t("Re-Upload")}
+          </button>
+        )}
       </div>
     </div>
   );

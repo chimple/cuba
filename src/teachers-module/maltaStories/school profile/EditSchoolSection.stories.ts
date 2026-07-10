@@ -1,4 +1,3 @@
-//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import EditSchoolSection from "../../components/schoolComponent/EditSchoolSection";
 import { action } from "@storybook/addon-actions";

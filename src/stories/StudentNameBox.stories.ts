@@ -1,4 +1,3 @@
-//@ts-nocheck
 import { fn } from "@storybook/test";
 import type { Meta, StoryObj } from "@storybook/react";
 import StudentNameBox from "../components/editStudent/StudentNameBox";

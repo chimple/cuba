@@ -27,7 +27,7 @@ const SchoolUserList: React.FC<{
     null
   );
   const auth = ServiceConfig.getI()?.authHandler;
-  const currentUserRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+  const currentUserRole = JSON.parse(localStorage.getItem(USER_ROLE)!);
   useEffect(() => {
     init();
   }, []);
@@ -38,12 +38,15 @@ const SchoolUserList: React.FC<{
     if (userType === SCHOOL_USERS.PRINCIPALS) {
       const principalDocs = await api?.getPrincipalsForSchool(schoolDoc.id);
       setAllPrincipals(principalDocs);
+      console.log("principalDocs", principalDocs);
     } else if (userType === SCHOOL_USERS.COORDINATORS) {
       const coordinatorsDoc = await api?.getCoordinatorsForSchool(schoolDoc.id);
       setAllCoordinators(coordinatorsDoc);
+      console.log("coordinatorsDoc", coordinatorsDoc);
     } else {
       const sponsorsDoc = await api?.getSponsorsForSchool(schoolDoc.id);
       setAllSponsors(sponsorsDoc);
+      console.log("sponsorsDoc", sponsorsDoc);
     }
   };
 
@@ -112,8 +115,8 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
-                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
+                {(currentUserRole === RoleType.PRINCIPAL ||
+                  currentUserRole === RoleType.COORDINATOR) && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(principal)}
@@ -141,8 +144,8 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
-                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
+                {(currentUserRole === RoleType.PRINCIPAL ||
+                  currentUserRole === RoleType.COORDINATOR) && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(coordinator)}
@@ -170,8 +173,8 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
-                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
+                {(currentUserRole === RoleType.PRINCIPAL ||
+                  currentUserRole === RoleType.COORDINATOR) && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(sponsor)}

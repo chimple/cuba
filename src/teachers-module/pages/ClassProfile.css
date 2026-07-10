@@ -10,16 +10,16 @@
 }
 .class-name-div {
   font-size: clamp(20px, 5vh, 30px);
-  color: #707070;
+  color: grey;
   padding: 20px 20px 0 20px;
   margin-bottom: 5vh;
 }
-.class-profile-horizontal-line {
+.horizontal-line {
   height: 0.6px;
   border-width: 0;
   box-sizing: border-box;
   background: lightgrey;
-  margin: 5px 30px;
+  margin: 5px 0;
 }
 .class-profile-page {
   background: white;
@@ -35,20 +35,20 @@
 }
 .name-div {
   font-size: clamp(18px, 5vh, 22px);
-  color: #707070;
+  color: var(--text-color);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  width: 150px;
 }
 .class-profile-header {
   font-size: clamp(18px, 5vh, 22px);
-  color: #707070;
-  align-self: flex-start;
+  color: var(--text-color);
 }
 .profile-div {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  gap: 5vw;
   justify-content: center;
-  padding-left: 30px;
 }

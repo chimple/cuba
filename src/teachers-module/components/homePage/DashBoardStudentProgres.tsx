@@ -25,6 +25,7 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
   const init = async () => {
     const resultList = studentProgress.get("results") as TableTypes<"result">[];
     const promises = resultList.map(async (result) => {
+      // console.log(result);
       const _res = new Map<string, string>();
       try {
         const lesson = await api.getLesson(result.lesson_id ?? "");
@@ -52,7 +53,7 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
     <div className="dashboard-student-progress-container">
       <div className="dashboard-student-avatar-container" key={"avatar"}>
         <img
-          src={student?.image || `assets/avatars/${student?.avatar}.png`}
+          src={student?.image ?? ""}
           alt="Profile"
           className="dashboard-avatar"
           onError={(e) => {
@@ -77,8 +78,8 @@ const DashBoardStudentProgres: React.FC<DashBoardStudentProgresProps> = ({
                       parseInt(result.get("score") ?? "0", 10) >= 70
                         ? "green"
                         : parseInt(result.get("score") ?? "0", 10) <= 49
-                        ? "red"
-                        : "orange",
+                          ? "red"
+                          : "orange",
                     trailColor: "#f1f1f1",
                     textColor: "#333",
                     textSize: "20px",

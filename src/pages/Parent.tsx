@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import "./Parent.css";
 import {
   CLASS,
-  EDIT_STUDENTS_MAP,
   LANGUAGE,
   MAX_STUDENTS_ALLOWED,
   MODES,
@@ -40,7 +39,6 @@ import { RoleType } from "../interface/modelInterfaces";
 import DeleteParentAccount from "../components/parent/DeleteParentAccount";
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
 import DebugMode from "../teachers-module/components/DebugMode";
-import { Capacitor } from "@capacitor/core";
 // import { EmailComposer } from "@ionic-native/email-composer";
 // import Share from "react";
 const Parent: React.FC = () => {
@@ -50,10 +48,10 @@ const Parent: React.FC = () => {
   const [musicFlag, setMusicFlag] = useState<number>();
   const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
   const [tabIndex, setTabIndex] = useState<any>();
-  // Commented out because Debug Mode has been moved to the Leaderboard page
-  // const clickCount = useRef(0);
-  // const [showDialogBox, setShowDialogBox] = useState(false);
-  // const [showDebug, setShowDebug] = useState(false);
+  const clickCount = useRef(0);
+  const [showDialogBox, setShowDialogBox] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -102,15 +100,11 @@ const Parent: React.FC = () => {
     const userProfilePromise: TableTypes<"user">[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
-    const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
-    const mergedStudents = Util.mergeStudentsByUpdatedAt(
-      userProfilePromise,
-      storedMapStr
-    );
     for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
-      finalUser.push(mergedStudents[i]);
+      finalUser.push(userProfilePromise[i]);
     }
     setUserProfile(finalUser);
+    // });
   }
   async function init(): Promise<void> {
     const parentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -193,7 +187,7 @@ const Parent: React.FC = () => {
             <DropDown
               currentValue={currentAppLang}
               optionList={langList}
-              placeholder=""
+              placeholder="Select Language"
               width="26vw"
               onValueChange={async (selectedLangDocId) => {
                 // setIsLoading(true);
@@ -250,17 +244,16 @@ const Parent: React.FC = () => {
                     v.detail?.checked
                   );
                 }
-                // Commented out because Debug Mode has been moved to the Leaderboard page
-                // clickCount.current += 1;
-                // // If clicked 7 times, show popup for debug mode
-                // if (clickCount.current === 7) {
-                //   setShowDialogBox(true);
-                //   clickCount.current = 0;
-                // }
+
+                clickCount.current += 1;
+                // If clicked 7 times, show popup for debug mode
+                if (clickCount.current === 7) {
+                  setShowDialogBox(true);
+                  clickCount.current = 0;
+                }
               }}
             ></ToggleButton>
-            {/* Commented out because Debug Mode has been moved to the Leaderboard page */}
-            {/* {showDialogBox && (
+            {showDialogBox && (
               <DialogBoxButtons
                 width={"40vw"}
                 height={"30vh"}
@@ -289,7 +282,7 @@ const Parent: React.FC = () => {
                   setShowDialogBox(false);
                 }}
               />
-            )} */}
+            )}
 
             <ToggleButton
               flag={musicFlag!}
@@ -321,12 +314,9 @@ const Parent: React.FC = () => {
               title={"Switch to Teacher's Mode"}
               layout="vertical"
               onIonChangeClick={async () => {
-                const isNativePlatform = Capacitor.isNativePlatform();
                 if (localSchool && localClass) {
                   schoolUtil.setCurrMode(MODES.TEACHER);
                   history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-                  isNativePlatform && window.location.reload();
-                  isNativePlatform && window.location.reload();
                 } else if (schools && schools.length > 0) {
                   if (schools?.length === 1) {
                     Util.setCurrentSchool(schools[0].school, schools[0].role);
@@ -338,19 +328,14 @@ const Parent: React.FC = () => {
                       Util.setCurrentClass(tempClasses[0]);
                       schoolUtil.setCurrMode(MODES.TEACHER);
                       history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-                      isNativePlatform && window.location.reload();
                     }
                   } else {
                     schoolUtil.setCurrMode(MODES.TEACHER);
                     history.replace(PAGES.DISPLAY_SCHOOLS);
-                    isNativePlatform && window.location.reload();
-                    isNativePlatform && window.location.reload();
                   }
                 } else {
                   schoolUtil.setCurrMode(MODES.TEACHER);
                   history.replace(PAGES.DISPLAY_SCHOOLS);
-                  isNativePlatform && window.location.reload();
-                  isNativePlatform && window.location.reload();
                 }
               }}
             />
@@ -507,9 +492,9 @@ const Parent: React.FC = () => {
     );
   }
 
-  // function debugModeUI() {
-  //   return <DebugMode />;
-  // }
+  function debugModeUI() {
+    return <DebugMode />;
+  }
   const handleChange = (newValue: string) => {
     const selectedHeader = parentHeaderIconList.find(
       (item) => item.header === newValue
@@ -551,8 +536,7 @@ const Parent: React.FC = () => {
         {tabIndex === t("setting") && <div>{settingUI()}</div>}
         {tabIndex === t("help") && <div>{helpUI()}</div>}
         {tabIndex === t("faq") && <div>{faqUI()}</div>}
-        {/* Commented out because Debug Mode has been moved to the Leaderboard pagex */}
-        {/* {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>} */}
+        {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>}
       </div>
     </Box>
   );

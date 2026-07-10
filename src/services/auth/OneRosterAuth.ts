@@ -11,10 +11,7 @@ export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
 
   private constructor() {}
-  loginWithEmailAndPassword(
-    email: string,
-    password: string
-  ): Promise<{ success: boolean; isSpl: boolean }> {
+  loginWithEmailAndPassword(email: any, password: any): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
 
@@ -36,7 +33,7 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  googleSign(): Promise<{ success: boolean; isSpl: boolean }> {
+  googleSign(): Promise<any> {
     throw new Error("Method not implemented.");
   }
 
@@ -46,7 +43,7 @@ export class OneRosterAuth implements ServiceAuth {
   generateOtp(
     phoneNumber: string,
     appName: string
-  ): Promise<{ success: boolean; error?: any }> {
+  ): Promise<boolean | undefined> {
     throw new Error("Method not implemented.");
   }
   resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
@@ -55,7 +52,7 @@ export class OneRosterAuth implements ServiceAuth {
   proceedWithVerificationCode(
     verificationId: any,
     verificationCode: any
-  ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined> {
+  ): Promise<{ user: any; isUserExist: boolean } | undefined> {
     throw new Error("Method not implemented.");
   }
 
@@ -67,10 +64,7 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error("Method not implemented.");
   }
 
-  signInWithEmail(
-    email: string,
-    password: string
-  ): Promise<{ success: boolean; isSpl: boolean }> {
+  signInWithEmail(email, password): Promise<boolean> {
     throw new Error("Method not implemented.");
   }
   sendResetPasswordEmail(email: string): Promise<boolean> {

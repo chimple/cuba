@@ -3,8 +3,6 @@ import { IonButton } from "@ionic/react";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import EditClassField from "../components/classComponents/EditClassField";
 import {
-  CLASS_OR_SCHOOL_CHANGE_EVENT,
-  CLASSES,
   PAGES,
   School_Creation_Stages,
   TableTypes,
@@ -15,17 +13,10 @@ import { Util } from "../../utility/util";
 import "./EditClass.css";
 import { t } from "i18next";
 
-type LocationState = {
-  school?: TableTypes<"school">;
-  classDoc?: TableTypes<"class">;
-  origin?: string;
-};
-
 const EditClass: FC = () => {
-  const location = useLocation<LocationState>();
+  const location = useLocation();
   const api = ServiceConfig.getI()?.apiHandler;
-  const incoming = location.state?.classDoc ?? Util.getCurrentClass();
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
   const [className, setClassName] = useState<string>("");
   const { school: localSchool = null, classDoc: tempClass = null } =
     (location.state || {}) as any;
@@ -52,14 +43,13 @@ const EditClass: FC = () => {
   }, [isEditMode]);
 
   const fetchClassDetails = async () => {
-  try {
-    let classToUse = tempClass ?? Util.getCurrentClass();
-      if (classToUse) {
-        setCurrentClass(classToUse);
-        setClassName(classToUse.name);
+    try {
+      if (tempClass) {
+        setCurrentClass(tempClass);
+        setClassName(tempClass.name);
       }
     } catch (error) {
-      console.error("Failed to load class details.",error);
+      console.log("Failed to load class details.");
     }
   };
 
@@ -77,31 +67,30 @@ const EditClass: FC = () => {
         });
       }
     } catch (error) {
-      console.error("unable to create a class", error);
+      console.log("unable to create a class", error);
     }
   };
-
   const handleUpdateClass = async () => {
-    if (!currentClass) return;
     try {
-      setIsSaving(true);
-      await api.updateClass(currentClass.id, className);
-      const raw = localStorage.getItem(CLASSES) || "[]";
-      const temp: Array<{ id: string; name: string }> = JSON.parse(raw);
-      const updatedList = temp.map(c =>
-        c.id === currentClass.id
-          ? { ...c, name: className }
-          : c
-      );
-      localStorage.setItem(CLASSES, JSON.stringify(updatedList));
-      const updatedClass = { ...currentClass, name: className };
-      Util.setCurrentClass(updatedClass);
-      window.dispatchEvent(new Event(CLASS_OR_SCHOOL_CHANGE_EVENT));
-      history.replace(PAGES.MANAGE_CLASS);
+      if (currentClass) {
+        await api.updateClass(currentClass.id, className);
+        const updatedClass = { ...currentClass, name: className };
+        if (navigationState?.stage === School_Creation_Stages.CREATE_CLASS) {
+          Util.setNavigationState(School_Creation_Stages.CLASS_COURSE);
+          history.replace(PAGES.SUBJECTS_PAGE, {
+            classId: updatedClass.id,
+            origin: PAGES.ADD_CLASS,
+            isSelect: true,
+          });
+        } else {
+          history.replace(PAGES.CLASS_PROFILE, {
+            school: currentSchool,
+            classDoc: updatedClass,
+          });
+        }
+      }
     } catch (error) {
-      console.error("unable to update a class", error);
-    } finally {
-      setIsSaving(false);
+      console.log("unable to update a class", error);
     }
   };
 
@@ -133,20 +122,16 @@ const EditClass: FC = () => {
         isBackButton={true}
         onBackButtonClick={onBackButtonClick}
         showSchool={true}
-        showClass={true}
         schoolName={currentSchool?.name}
-        className={currentClass?.name}
       />
       <div className="class-div">
         {isEditMode ? t("Edit Class") : t("Create Class")}
       </div>
-      <hr className="class-profile-horizontal-line" />
 
       <EditClassField className={className} setClassName={setClassName} />
-      <hr className="class-profile-horizontal-line" />
 
       <div className="update-button-container">
-        <button
+        <IonButton
           color="#7C5DB0"
           onClick={isEditMode ? handleUpdateClass : handleCreateClass}
           className="view-progress-btn-2"
@@ -155,9 +140,9 @@ const EditClass: FC = () => {
           {isSaving
             ? t("Creating") + "..."
             : isEditMode
-              ? t("Save")
+              ? t("Update")
               : t("Create")}
-        </button>
+        </IonButton>
       </div>
     </div>
   );

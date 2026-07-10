@@ -1,4 +1,3 @@
-//@ts-nocheck
 import GenderAndAge from "../components/editStudent/GenderAndAge";
 import { fn } from "@storybook/test";
 import type { Meta, StoryObj } from "@storybook/react";

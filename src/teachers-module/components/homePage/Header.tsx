@@ -21,7 +21,6 @@ import { Util } from "../../../utility/util";
 import SideMenu from "./SideMenu";
 import { t } from "i18next";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import { IoShareSocialSharp } from "react-icons/io5";
 
 // Updated DrawerOptions to include User Profile
 const iconMapping: Record<DrawerOptions, SvgIconComponent> = {
@@ -42,7 +41,6 @@ interface HeaderProps {
   showSideMenu?: boolean;
   customText?: string;
   onSearchChange?: (value: string) => void; // New prop for search input changes
-  onShareClick?: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -57,7 +55,6 @@ const Header: React.FC<HeaderProps> = ({
   showSideMenu = false,
   customText = "",
   onSearchChange,
-  onShareClick,
 }) => {
   const history = useHistory();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -103,18 +100,16 @@ const Header: React.FC<HeaderProps> = ({
       <div className="header">
         <div aria-label={String(t("Menu"))} id="header-menu-element">
           {isBackButton ? (
-            <img
-              src="assets/icons/HeaderBackBtn.svg"
-              alt={String(t("Back"))}
+            <KeyboardBackspaceIcon
+              aria-label={String(t("Back"))}
+              fontSize="large"
               onClick={handleBackButtonClick}
               className={disableBackButton ? "disabled-back-button" : ""}
             />
           ) : showSideMenu ? (
             <SideMenu
               aria-label={t("Menu")}
-              handleManageSchoolClick={() =>
-                history.replace(PAGES.MANAGE_SCHOOL)
-              }
+              handleManageSchoolClick={() => history.replace(PAGES.MANAGE_SCHOOL)}
               handleManageClassClick={() => history.replace(PAGES.MANAGE_CLASS)}
             />
           ) : null}
@@ -158,48 +153,28 @@ const Header: React.FC<HeaderProps> = ({
         </Drawer>
 
         <div className="search-section">
-          {onSearchChange && (
-            <div className="header-search-container">
-              <SearchOutlinedIcon className="search-icon-inside" />
-              <input
-                type="text"
-                className="header-search-input"
-                placeholder={String(t("Search School"))}
-                onChange={(e) => onSearchChange(e.target.value)}
-              />
-            </div>
-          )}
-          <div
-            className="help-icon-container"
-            style={{ display: "flex", alignItems: "center" }}
-          >
-            {onShareClick && (
-              <button
-                onClick={onShareClick}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  padding: 0,
-                  marginLeft: 8,
-                  marginTop: 4,
-                }}
-              >
-                <IoShareSocialSharp size={28} color="white" />
-              </button>
-            )}
-           
-          </div>
+        {onSearchChange && (
+          <div className="header-search-container">
+            <SearchOutlinedIcon className="search-icon-inside" />
+            <input
+              type="text"
+              className="header-search-input"
+              placeholder={String(t("Search School"))}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
         </div>
-         <div className="help-icon-container">
-              <img
-                src="assets/icons/helpIcon.svg"
-                alt={String(t("Menu"))}
-                className="help-icon"
-              />
-            </div>
+        )}
+
+        <div className="help-icon-container">
+          <HelpOutlineOutlinedIcon
+          fontSize="large"
+          aria-label={String(t("Help"))}
+          className="help-icon"
+        />
       </div>
-    </header>
+    </div>
+    </div>
+  </header>
   );
 };
 

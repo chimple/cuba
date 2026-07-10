@@ -1,4 +1,3 @@
-//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import UploadPage from "../../../ops-console/pages/UploadPage";
 

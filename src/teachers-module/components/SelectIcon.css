@@ -1,19 +1,14 @@
 .select-icon-container {
   width: fit-content;
 }
-.select-Assignmenticon {
-  width: 75px;
-  height: 25px;
+.select-icon {
+  height: auto;
   border: 1px solid #7c5db0;
   border-radius: 7px;
+  padding-left: 10px;
+  padding-right: 10px;
   display: flex;
-  justify-content: center;
-  gap: 3px;
-  align-items: center;
-}
-.select-Assignmenticon img {
-  width: 13px;
-  height: 14px;
+  justify-content: space-around;
 }
 .select-text {
   font-size: 12px;

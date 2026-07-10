@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
   appId: "org.chimple.bahama",
   appName: "Chimple",
   webDir: "build",
-  // bundledWebRuntime: false,
+  bundledWebRuntime: false,
   plugins: {
     FirebaseAuthentication: {
       skipNativeAuth: false,
@@ -25,9 +25,13 @@ const config: CapacitorConfig = {
     LocalNotifications: {
       smallIcon: "chimple_monkey_icon",
     },
+    GoogleAuth: {
+      scopes: ["profile", "email"],
+      androidClientId: process.env.REACT_APP_CLIENT_ID,
+      forceCodeForRefreshToken: true,
+    },
     SplashScreen: {
-      launchShowDuration: 2000,
-      // Hidden manually in src/index.tsx so the in-app splash can show the message.
+      launchShowDuration: 5000,
       launchAutoHide: false,
     },
   },

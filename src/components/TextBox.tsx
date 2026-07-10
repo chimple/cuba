@@ -11,19 +11,10 @@ const TextBox: React.FC<{
   onFocus?;
   maxLength: number;
   inputValue: string;
-  icon?: React.JSX.Element; // Define icon prop as JSX.Element
+  icon?: JSX.Element; // Define icon prop as JSX.Element
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   // onChange: (event: IonInputCustomEvent<InputChangeEventDetail>) => void;
-}> = ({
-  inputText,
-  inputType,
-  inputValue,
-  maxLength,
-  icon,
-  onChange,
-  onFocus,
-  ref,
-}) => {
+}> = ({ inputText, inputType, inputValue, maxLength, icon, onChange, onFocus, ref}) => {
   return (
     <div id="text-box">
       <div id="text-box-elements">

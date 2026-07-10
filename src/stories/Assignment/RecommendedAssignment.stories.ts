@@ -1,4 +1,4 @@
-//@ts-nocheck
+import { fn } from "@storybook/test";
 import type { Meta, StoryObj } from "@storybook/react";
 import RecommendedAssignment from "../../components/malta/assignment/RecommendedAssignment";
 

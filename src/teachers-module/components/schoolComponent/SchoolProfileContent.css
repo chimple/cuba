@@ -60,7 +60,7 @@
 }
 
 .profile-value {
-  color: #707070;
+  color: var(--text-color);
   max-width: 80%;
   white-space: nowrap;
   overflow: hidden;

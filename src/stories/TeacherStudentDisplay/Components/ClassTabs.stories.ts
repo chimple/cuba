@@ -1,5 +1,4 @@
 
-//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import ClassTabs from "../../../components/TeachersStudentDisplay/ClassTabs";
 import { USERTYPES } from "../../../common/constants";

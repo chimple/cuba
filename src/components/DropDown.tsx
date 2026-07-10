@@ -1,6 +1,5 @@
 import { MenuItem, Select } from "@mui/material";
 import "./DropDown.css";
-import { t } from "i18next";
 
 const placeholderTextItem = "placeholderText";
 const DropDown: React.FC<{
@@ -12,29 +11,24 @@ const DropDown: React.FC<{
   onValueChange;
   placeholder: string | undefined;
   width: string;
-}> = ({
-  optionList,
-  currentValue = placeholderTextItem,
-  onValueChange,
-  width,
-  placeholder,
-}) => {
+}> = ({ optionList, currentValue = placeholderTextItem, onValueChange, width, placeholder }) => {
   return (
     <Select
+
       className="dropdown-outer"
       sx={{
         color: currentValue === placeholderTextItem ? "gray" : "black",
         width: width,
         borderRadius: "0.8vw",
         fontFamily: "BalooRegular",
-        ".MuiOutlinedInput-notchedOutline": {
-          borderColor: "gray",
+        '.MuiOutlinedInput-notchedOutline': {
+          borderColor: 'gray',
         },
-        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-          borderColor: "gray",
+        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+          borderColor: 'gray',
         },
-        "&:hover .MuiOutlinedInput-notchedOutline": {
-          borderColor: "gray",
+        '&:hover .MuiOutlinedInput-notchedOutline': {
+          borderColor: 'gray',
         },
       }}
       variant="outlined"
@@ -43,7 +37,7 @@ const DropDown: React.FC<{
       }}
       value={currentValue}
       MenuProps={{
-        sx: { marginTop: "0.8vh" },
+        sx: { marginTop: "0.8vh", },
         PaperProps: {
           className: "dropdown-inner",
           sx: {
@@ -52,29 +46,32 @@ const DropDown: React.FC<{
             borderRadius: "0.8vw",
             width: width,
             backgroundColor: "#e2dede",
-          },
+          }
         },
         anchorOrigin: {
           vertical: "bottom",
-          horizontal: "center",
+          horizontal: "center"
         },
         transformOrigin: {
           vertical: "top",
-          horizontal: "center",
+          horizontal: "center"
         },
-      }}
+      }
+      }
     >
+      <MenuItem hidden={true} value={placeholderTextItem} >
+        {placeholder}
+      </MenuItem>
+
       {optionList.map((option, index) => (
-        <MenuItem
-          className="dropdown-item"
-          sx={{ fontFamily: "BalooRegular" }}
-          key={index}
-          value={option.id}
-        >
-          {t(option.displayName)}
+
+        <MenuItem className="dropdown-item" sx={{ fontFamily: "BalooRegular", }} key={index} value={option.id}>
+          {option.displayName}
         </MenuItem>
       ))}
+
     </Select>
+
   );
 };
 export default DropDown;

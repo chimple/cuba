@@ -2,7 +2,6 @@
   font-size: clamp(20px, 5vh, 30px);
   color: grey;
   padding: 20px 20px 0 20px;
-  margin-bottom: 5vh;
 }
 .edit-class-div {
   background: white;
@@ -16,10 +15,6 @@
   cursor: pointer;
   border-radius: 5px;
   margin-top: 2vh;
-  font-size: 20px;
-  width: 40vw;
-  height: 50px;
-  margin-top: 5vh;
 }
 
 .update-button-container {

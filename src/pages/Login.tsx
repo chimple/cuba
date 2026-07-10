@@ -10,17 +10,15 @@ import {
   CURRENT_USER,
   DOMAIN,
   EVENTS,
-  IS_OPS_USER,
   LANGUAGE,
   MODES,
   NUMBER_REGEX,
   PAGES,
   TableTypes,
   USER_DATA,
-  USER_ROLE,
 } from "../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
-import { APIMode, ServiceConfig } from "../services/ServiceConfig";
+import { ServiceConfig } from "../services/ServiceConfig";
 import TextBox from "../components/TextBox";
 import React from "react";
 import Loading from "../components/Loading";
@@ -47,7 +45,6 @@ import {
 import { RoleType } from "../interface/modelInterfaces";
 import { schoolUtil } from "../utility/schoolUtil";
 import LoginWithEmail from "../components/LoginWithEmail";
-import SkeltonLoading from "../components/SkeltonLoading";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -128,10 +125,10 @@ const Login: React.FC = () => {
   const scollToRef = useRef<null | HTMLDivElement>(null);
   const [currentStudent, setStudent] = useState<TableTypes<"user">>();
 
-  const otpBtnRef = useRef<any>(null);
-  const getOtpBtnRef = useRef<any>(null);
-  const parentNameRef = useRef<any>(null);
-  const phoneNumberErrorRef = useRef<any>(null);
+  const otpBtnRef = useRef<any>();
+  const getOtpBtnRef = useRef<any>();
+  const parentNameRef = useRef<any>();
+  const phoneNumberErrorRef = useRef<any>();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isPromptNumbers, setIsPromptNumbers] = useState<boolean>(false);
   let verificationCodeMessageFlags = {
@@ -405,21 +402,6 @@ const Login: React.FC = () => {
       role: RoleType;
     }[]
   ) {
-    const userRoles: string[] = JSON.parse(
-      localStorage.getItem(USER_ROLE) ?? "[]"
-    );
-    const isOpsRole =
-      userRoles.includes(RoleType.SUPER_ADMIN) ||
-      userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
-
-    const isProgramUser = await api.isProgramUser();
-    if (isOpsRole || isProgramUser) {
-      localStorage.setItem(IS_OPS_USER, "true");
-      ServiceConfig.getInstance(APIMode.SQLITE).switchMode(APIMode.SUPABASE);
-      history.replace(PAGES.SIDEBAR_PAGE);
-      return;
-    }
-
     if (userSchools.length > 0) {
       const autoUserSchool = userSchools.find(
         (school) => school.role === RoleType.AUTOUSER
@@ -558,11 +540,10 @@ const Login: React.FC = () => {
       setIsLoading(true);
       setIsInitialLoading(true);
       // const _authHandler = ServiceConfig.getI().authHandler;
-      const { success: result, isSpl: isOps } =
-        await authInstance.loginWithEmailAndPassword(
-          schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
-          studentPassword.trimEnd()
-        );
+      const result: boolean = await authInstance.loginWithEmailAndPassword(
+        schoolCode.trimEnd() + studentId.trimEnd() + DOMAIN,
+        studentPassword.trimEnd()
+      );
       if (result) {
         setIsLoading(false);
         setIsInitialLoading(false);
@@ -587,9 +568,10 @@ const Login: React.FC = () => {
       setEmailClick(false);
       setIsLoading(true);
       setIsInitialLoading(true);
-      const { success: result, isSpl: isOpsUser } =
-        await authInstance.signInWithEmail(email, password);
-
+      const result: boolean = await authInstance.signInWithEmail(
+        email,
+        password
+      );
       if (result) {
         setIsLoading(true);
         setIsInitialLoading(true);
@@ -714,7 +696,7 @@ const Login: React.FC = () => {
                         setIsInitialLoading(true);
                         setEmailClick(false);
                         const _authHandler = ServiceConfig.getI().authHandler;
-                        const result = await _authHandler.googleSign();
+                        const result: boolean = await _authHandler.googleSign();
 
                         if (result) {
                           setIsLoading(false);
@@ -881,13 +863,13 @@ const Login: React.FC = () => {
                   {isInputFocus ? (
                     <div ref={scollToRef} id="scroll"></div>
                   ) : null}
-                  {/* <IonLoading
+                  <IonLoading
                     id="custom-loading"
                     // trigger="open-loading"
                     message="Loading"
                     // duration={3000}
                     isOpen={spinnerLoading}
-                  /> */}
+                  />
 
                   <div id="Google-horizontal-line-main-container">
                     <div id="Google-horizontal-line"></div>
@@ -926,7 +908,8 @@ const Login: React.FC = () => {
                             setIsInitialLoading(true);
                             const _authHandler =
                               ServiceConfig.getI().authHandler;
-                            const result = await _authHandler.googleSign();
+                            const result: boolean =
+                              await _authHandler.googleSign();
                             if (result) {
                               setIsLoading(false);
                               setIsInitialLoading(false);

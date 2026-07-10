@@ -1,4 +1,3 @@
-//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import CommonAppBar from "../../components/malta/common/CommonAppBar";
 

@@ -1,4 +1,3 @@
-//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import { number, object } from "prop-types";
 import WeeklySummary from "../../components/homePage/WeeklySummary";

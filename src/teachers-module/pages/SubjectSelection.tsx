@@ -20,12 +20,12 @@ import {
   SCHOOL,
   School_Creation_Stages,
 } from "../../common/constants";
+import { useHistory, useLocation } from "react-router";
 import { Util } from "../../utility/util";
 import { t } from "i18next";
 import SubjectSelectionComponent from "../components/SubjectSelectionComponent";
 import AddButton from "../../common/AddButton";
 import { RoleType } from "../../interface/modelInterfaces";
-import { useHistory, useLocation } from "react-router-dom";
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
@@ -82,27 +82,17 @@ const SubjectSelection: React.FC = () => {
     message: "",
   });
   const navigationState = Util.getNavigationState();
-  const [canModify, setCanModify] = useState(true);
 
   useEffect(() => {
-    const init = async () => {
-      const cls = await Util.getCurrentClass();
-      if ((cls as any)?.role === RoleType.TEACHER) {
-        setCanModify(false);
-      }
-
-      if (paramClassId) {
-        await fetchSchoolAndClassSubjects(paramClassId, CLASS);
-        await fetchClassDetails();
-        if (isSelectSubject) setIsSelecting(true);
-      } else if (paramSchoolId) {
-        await fetchCurriculumsAndCourses(SCHOOL);
-        await fetchSchoolAndClassSubjects(paramSchoolId, SCHOOL);
-        if (isSelectSubject) setIsSelecting(true);
-      }
-    };
-
-    init();
+    if (paramClassId) {
+      fetchSchoolAndClassSubjects(paramClassId, CLASS);
+      fetchClassDetails();
+      if (isSelectSubject) setIsSelecting(true);
+    } else if (paramSchoolId) {
+      fetchCurriculumsAndCourses(SCHOOL);
+      fetchSchoolAndClassSubjects(paramSchoolId, SCHOOL);
+      if (isSelectSubject) setIsSelecting(true);
+    }
   }, [paramClassId, paramSchoolId]);
 
   const fetchCurriculumsAndCourses = async (
@@ -519,6 +509,7 @@ const SubjectSelection: React.FC = () => {
   const onBackButtonClick = () => {
     // if (navigationState?.stage === School_Creation_Stages.SCHOOL_COURSE) {
     //   Util.setNavigationState(School_Creation_Stages.CREATE_SCHOOL);
+    //   console.log("ha ha ha 1",currentSchool,currentClass);
     //   history.replace(PAGES.EDIT_SCHOOL, {
     //     school: currentSchool,
     //     role: RoleType.PRINCIPAL,
@@ -602,9 +593,7 @@ const SubjectSelection: React.FC = () => {
         ]}
         cssClass="custom-alert-in-subject-selection-page"
       />
-      {!isSelecting && canModify && (
-        <AddButton onClick={() => setIsSelecting(true)} />
-      )}
+      {!isSelecting && <AddButton onClick={() => setIsSelecting(true)} />}
     </div>
   );
 };

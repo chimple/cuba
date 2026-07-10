@@ -1,6 +1,5 @@
-
+import { AiTwotoneHeart } from "react-icons/ai";
 import "./LovedIcon.css";
-import { Favorite } from "@mui/icons-material";
 
 const LovedIcon: React.FC<{
   isLoved: boolean | undefined;
@@ -10,8 +9,10 @@ const LovedIcon: React.FC<{
     <div className="lovedicon">
       {isLoved && (
         <div className={`fav-icon ${hasChapterTitle ? 'with-chapter-title' : ''}`}>
-          <Favorite className="fav-icon-image"
-            id="fav-icon-image" />
+          <AiTwotoneHeart
+            className="fav-icon-image"
+            id="fav-icon-image"
+          />
         </div>
       )}
     </div>

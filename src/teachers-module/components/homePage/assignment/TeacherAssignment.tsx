@@ -2,28 +2,24 @@ import { FC, MouseEvent, useEffect, useState } from "react";
 import { useHistory } from "react-router";
 import "./TeacherAssignment.css";
 import { ServiceConfig } from "../../../../services/ServiceConfig";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import SelectIconImage from "../../../../components/displaySubjects/SelectIconImage";
-import { AssignmentSource, CAMERAPERMISSION, COURSES, PAGES, TableTypes } from "../../../../common/constants";
+import { CAMERAPERMISSION, PAGES, TableTypes } from "../../../../common/constants";
 import { Util } from "../../../../utility/util";
 import { t } from "i18next";
 import { Toast } from "@capacitor/toast";
 import AssignmentNextButton from "./AssignmentNextButton";
-import {
-  CapacitorBarcodeScanner,
-  CapacitorBarcodeScannerTypeHint,
-} from "@capacitor/barcode-scanner";
+import { BarcodeScanner } from "@capacitor-community/barcode-scanner";
 import { App } from '@capacitor/app';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Loading from "../../../../components/Loading";
-import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
-import { IonIcon } from "@ionic/react";
 
 declare global {
   interface Window {
     __qrBackListener?: { remove: () => void } | null;
   }
 }
-
 
 export enum TeacherAssignmentPageType {
   MANUAL = "manual",
@@ -64,78 +60,45 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
     }
     const courseList = await api.getCoursesForClassStudent(current_class.id);
 
-   const previous_sync_lesson = currUser?.id
-     ? await api.getUserAssignmentCart(currUser?.id)
-     : null;
+    const previous_sync_lesson = currUser?.id
+      ? await api.getUserAssignmentCart(currUser?.id)
+      : null;
+    if (previous_sync_lesson?.lessons) {
+      const all_sync_lesson: Map<string, string> = new Map(
+        Object.entries(JSON.parse(previous_sync_lesson?.lessons))
+      );
+      const sync_lesson_data = all_sync_lesson.get(current_class?.id ?? "");
+      let sync_lesson: Map<string, string[]> = new Map(
+        Object.entries(sync_lesson_data ? JSON.parse(sync_lesson_data) : {})
+      );
 
-   if (previous_sync_lesson?.lessons) {
-     const all_sync_lesson: Map<string, string> = new Map(
-       Object.entries(JSON.parse(previous_sync_lesson.lessons))
-     );
+      for (const [chapter, lesson] of sync_lesson.entries()) {
+        for (const lessonId of lesson) {
+          const l: {
+            lesson: any[];
+            course: TableTypes<"course">[];
+          } = await api.getLessonFromChapter(chapter, lessonId);
 
-     const sync_lesson_data = all_sync_lesson.get(current_class.id);
-     const parsed_chapter_data = sync_lesson_data
-       ? JSON.parse(sync_lesson_data)
-       : {};
+          const courseId = l.course[0].id;
 
-     const sync_lesson: Map<string, any> = new Map(
-       Object.entries(parsed_chapter_data)
-     );
-
-     for (const [chapterId, sourceMapOrArray] of sync_lesson.entries()) {
-       const allLessonIdsSet = new Set<string>();
-
-       if (Array.isArray(sourceMapOrArray)) {
-         // 🟡 Old format — directly lesson ID array
-         sourceMapOrArray.forEach((id: string) => allLessonIdsSet.add(id));
-       } else if (
-         typeof sourceMapOrArray === "object" &&
-         sourceMapOrArray !== null
-       ) {
-         // ✅ New format — source-keyed map (manual/qr_code)
-         if (sourceMapOrArray[AssignmentSource.MANUAL]) {
-           sourceMapOrArray[AssignmentSource.MANUAL].forEach((id: string) =>
-             allLessonIdsSet.add(id)
-           );
-         }
-         if (sourceMapOrArray[AssignmentSource.QR_CODE]) {
-           sourceMapOrArray[AssignmentSource.QR_CODE].forEach((id: string) =>
-             allLessonIdsSet.add(id)
-           );
-         }
-       }
-
-       for (const lessonId of allLessonIdsSet) {
-         const l: {
-           lesson: any[];
-           course: TableTypes<"course">[];
-         } = await api.getLessonFromChapter(chapterId, lessonId);
-
-         const courseId = l.course[0].id;
-
-         if (!tempLessons[courseId]) {
-           tempLessons[courseId] = {
-             name: l.course[0].name,
-             courseCode: l.course[0].code,
-             lessons: [],
-             isCollapsed: false,
-             sort_index: l.course[0].sort_index,
-           };
-         }
-
-         l.lesson[0].selected = true;
-         tempLessons[courseId].lessons.push(l.lesson[0]);
-       }
-     }
-
-     updateSelectedLesson(TeacherAssignmentPageType.MANUAL, tempLessons);
-
-     if (Object.keys(tempLessons).length === 0) {
-       setRecommendedCollapsed(false);
-     }
-
-     setManualAssignments(tempLessons);
-   }
+          if (!tempLessons[courseId]) {
+            tempLessons[courseId] = {
+              name: l.course[0].name,
+              lessons: [],
+              isCollapsed: false,
+              sort_index: l.course[0].sort_index,
+            };
+          }
+          l.lesson[0].selected = true;
+          tempLessons[courseId].lessons.push(l.lesson[0]);
+        }
+        updateSelectedLesson(TeacherAssignmentPageType.MANUAL, tempLessons);
+      }
+      if (tempLessons && Object.keys(tempLessons).length === 0) {
+        setRecommendedCollapsed(false);
+      }
+      setManualAssignments(tempLessons);
+    }
     const lastAssignmentsCourseWise: TableTypes<"assignment">[] | undefined =
       await api.getLastAssignmentsForRecommendations(current_class.id);
     getRecommendedAssignments(courseList, lastAssignmentsCourseWise, tempLessons);
@@ -151,7 +114,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
       if (!recommendedAssignments[course.id]) {
         recommendedAssignments[course.id] = {
           name: course.name,
-          courseCode:course.code,
           lessons: [],
           sort_index: course.sort_index, // Added sort_index here
         };
@@ -186,6 +148,7 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           const i = allChapters.findIndex((chapter) => chapter.id === chapterId);
           const nextChapter = allChapters[i + 1];
 
+          console.log("Getting first lesson for next chapter");
           const lessonList = await api.getLessonsForChapter(nextChapter.id);
           recommendedAssignments[course.id].lessons.push(lessonList[0]);
         }
@@ -198,7 +161,6 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           updatedRecommendedAssignments[subjectId].lessons.map((assignment) => ({
             ...assignment,
             selected: false,
-            source: AssignmentSource.RECOMMENDED,
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);
@@ -213,10 +175,10 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
           updatedRecommendedAssignments[subjectId].lessons.map((assignment) => ({
             ...assignment,
             selected: true,
-            source: AssignmentSource.RECOMMENDED,
           }));
       });
       setRecommendedAssignments(updatedRecommendedAssignments);
+      console.log("Updated Recommended Assignments:", updatedRecommendedAssignments);
       updateSelectedLesson(
         TeacherAssignmentPageType.RECOMMENDED,
         updatedRecommendedAssignments
@@ -373,15 +335,15 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
         >
           <h4>{assignments[subjectId]?.name}</h4>
           {assignments[subjectId].isCollapsed ? (
-            <img src="assets/icons/iconDown.png" alt="DropDown_Icon" style={{width: "16px", height: "16px", marginLeft: "auto"}} />
+            <KeyboardArrowDownIcon style={{ marginLeft: "auto" }} />
           ) : (
-            <img src="assets/icons/iconDown.png" alt="DropDown_Icon" style={{width: "16px", height: "16px", marginLeft: "auto"}} />
+            <KeyboardArrowUpIcon style={{ marginLeft: "auto" }} />
           )}
-          {/* <h4>
+          <h4>
             {selectedLessonsCount?.[type]?.[subjectId]?.count?.length ?? 0}/
             {assignments[subjectId]?.lessons?.length ?? 0}
-          </h4> */}
-          {/* {!assignments[subjectId].isCollapsed && (
+          </h4>
+          {!assignments[subjectId].isCollapsed && (
             <div className="select-all-container">
               <input
                 className="select-all-container-checkbox"
@@ -398,32 +360,26 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
                 }
               />
             </div>
-          )} */}
+          )}
         </div>
         {!assignments[subjectId].isCollapsed && (
-        <div>
-        {assignments[subjectId].lessons.map(
-          (assignment: any, index: number) => {
-            const isSelected = assignment?.selected;
-            const courseCode = assignments[subjectId]?.courseCode;
-            return (
+          <div>
+            {assignments[subjectId].lessons.map((assignment: any, index: number) => (
               <div key={index} className="assignment-list-item">
                 <SelectIconImage
                   defaultSrc={"assets/icons/DefaultIcon.png"}
                   webSrc={assignment?.image}
                   imageWidth="100px"
-                  imageHeight="100px"
+                  imageHeight="auto"
                 />
                 <span className="assignment-list-item-name">
-                  {courseCode ===COURSES.ENGLISH
-                    ? assignment?.name ?? ""
-                    : t(assignment?.name ?? "")}
+                  {assignment?.name}
                 </span>
-
-                <IonIcon
-                  icon={isSelected ? checkmarkCircle : ellipseOutline}
-                  className={`subject-page-checkbox ${isSelected ? "selected" : ""}`}
-                  onClick={() =>
+                <input
+                  className="assignment-list-item-checkbox"
+                  type="checkbox"
+                  checked={assignment?.selected}
+                  onChange={() =>
                     toggleAssignmentSelection(
                       type,
                       assignments,
@@ -434,36 +390,55 @@ const TeacherAssignment: FC<{ onLibraryClick: () => void }> = ({
                   }
                 />
               </div>
-            );
-          }
-        )}
-      </div>
+            ))}
+          </div>
         )}
       </div>
     ));
   };
 
-  const startScan = async () => {
-    try {
-      setLoading(true);
-
-      // Start scanning (permissions handled automatically)
-      const result = await CapacitorBarcodeScanner.scanBarcode({
-        hint: CapacitorBarcodeScannerTypeHint.ALL, // QR + all barcodes
-      });
-
-      if (result.ScanResult) {
-        await processScannedData(result.ScanResult);
-      } else {
-        Toast.show({ text: "No QR code detected." });
-      }
-
-    } catch (err) {
-      console.error("Scan failed:", err);
-    } finally {
-      setLoading(false);
+    const stopScan = async () => {
+    // Hide the camera preview and stop scanning
+    await BarcodeScanner.stopScan();
+    BarcodeScanner.showBackground();
+    document.querySelector("html")?.style.setProperty("display", "block");
+    // Remove back button listener if exists
+    if (window.__qrBackListener) {
+      window.__qrBackListener.remove();
+      window.__qrBackListener = null;
     }
   };
+
+  const startScan = async () => {
+    // Prepare the scanner
+    setLoading(true);
+    const permission = await BarcodeScanner.checkPermission({ force: true });
+    setTimeout(() => setLoading(false), 100);
+    if (!permission.granted) {
+      Toast.show({ text: t("Camera permission denied. Please enable it in settings") });
+      return;
+    }
+    // Only allow scan if permission is granted
+    if (!localStorage.getItem(CAMERAPERMISSION) || localStorage.getItem(CAMERAPERMISSION) !== "true") {
+      localStorage.setItem(CAMERAPERMISSION, permission.granted ? "true" : "false");
+      return;
+    }
+    await BarcodeScanner.hideBackground(); // Make background transparent
+    document.querySelector("html")?.style.setProperty("display", "none");
+
+    // Add Android back button listener
+    window.__qrBackListener = App.addListener('backButton', async () => {
+      await stopScan();
+    });
+
+    const result = await BarcodeScanner.startScan(); // Start scanning
+    if (result.hasContent) {
+      await processScannedData(result.content);
+    }
+    // Always stop scan and restore UI
+    await stopScan();
+  };
+
 const processScannedData = async (scannedText: string) => {
   try {
     // Ensure scannedText uses https if it starts with http
@@ -483,70 +458,51 @@ const processScannedData = async (scannedText: string) => {
       return;
     }
     // Get course info for this chapter
-    const course = await api.getCourse(result.course_id?? "");
+    const course = await api.getCourse(result.course_id);
     if (!course) {
       Toast.show({ text: t("Course not found for this chapter") });
       return;
     }
     const current_class = await Util.getCurrentClass();
     const classId = current_class?.id ?? "";
-    // Step 1: Load existing assignment cart
-    const previousCart = currentUser?.id
+    // 1. Get previous assignment cart
+    let previous_sync_lesson = currentUser?.id
       ? await api.getUserAssignmentCart(currentUser?.id)
       : null;
-
-    let lessonsMap: Map<string, string>; // classId → JSON string of ChapterLessonMap
-    if (previousCart?.lessons) {
-      lessonsMap = new Map(Object.entries(JSON.parse(previousCart.lessons)));
+      
+      let classSelectedLesson: Map<string, string>;
+      if (previous_sync_lesson?.lessons) {
+        classSelectedLesson = new Map(
+          Object.entries(JSON.parse(previous_sync_lesson.lessons))
+        );
+      } else {
+        classSelectedLesson = new Map();
+      }
+      
+      // 2. Merge new lessons for this chapter into the class's lessons
+      let chapterLessonsMap: Map<string, string[]>;
+      if (classSelectedLesson.has(classId)) {
+      chapterLessonsMap = new Map(
+        Object.entries(JSON.parse(classSelectedLesson.get(classId) || "{}"))
+      );
     } else {
-      lessonsMap = new Map();
+      chapterLessonsMap = new Map();
     }
-
-    // Step 2: Parse or init the chapterLessonMap for this class
-    let chapterLessonMap: Record<
-      string,
-      Partial<Record<AssignmentSource, string[]>>
-    > = {};
-
-    if (lessonsMap.has(classId)) {
-      chapterLessonMap = JSON.parse(lessonsMap.get(classId)!);
-    }
-
-    const chapterId = result.chapter_id;
+    
+    // Add or merge lessons for the scanned chapter
     const newLessonIds = lessonList.map((l: any) => l.id);
+    const prevLessonIds = chapterLessonsMap.get(result.chapter_id) || [];
+    // Merge and deduplicate
+    const mergedLessonIds = Array.from(new Set([...(prevLessonIds as string[]), ...newLessonIds]));
+    chapterLessonsMap.set(result.chapter_id, mergedLessonIds);
+    
+    // Update the classSelectedLesson map
+    classSelectedLesson.set(classId, JSON.stringify(Object.fromEntries(chapterLessonsMap)));
+    const lessonsJson = JSON.stringify(Object.fromEntries(classSelectedLesson));
+    
+    await api.createOrUpdateAssignmentCart(currentUser?.id!, lessonsJson);
 
-    // Step 3: Normalize old format (array) to new format (manual source map)
-    if (
-      Array.isArray(chapterLessonMap[chapterId])
-    ) {
-      const oldLessonIds = chapterLessonMap[chapterId] as string[];
-      chapterLessonMap[chapterId] = {
-        [AssignmentSource.MANUAL]: oldLessonIds,
-      };
-    }
-
-    // Step 4: Merge new QR lessons
-    if (!chapterLessonMap[chapterId]) {
-      chapterLessonMap[chapterId] = {};
-    }
-
-    const existingQR = (chapterLessonMap[chapterId] as any)?.[
-      AssignmentSource.QR_CODE
-    ] ?? [];
-
-    const mergedQRLessons = Array.from(new Set([...existingQR, ...newLessonIds]));
-
-    (chapterLessonMap[chapterId] as any)[AssignmentSource.QR_CODE] = mergedQRLessons;
-
-    // Step 5: Store updated data
-    lessonsMap.set(classId, JSON.stringify(chapterLessonMap));
-
-    const finalLessonsJson = JSON.stringify(Object.fromEntries(lessonsMap));
-
-    await api.createOrUpdateAssignmentCart(currentUser?.id!, finalLessonsJson);
-
-    history.push(PAGES.SCAN_REDIRECT);
-    // await init();
+    await init();
   } catch (error) {
     Toast.show({ text: t("Something Went wrong") });
     console.error("Error processing scanned data:", error);
@@ -570,12 +526,15 @@ const processScannedData = async (scannedText: string) => {
           </p>
           <div>
             {manualCollapsed ? (
-              <img src="assets/icons/iconDown.png" alt="DropDown_Icon" style={{width: "16px", height: "16px"}} />
+              <KeyboardArrowDownIcon />
             ) : (
               <div className="select-all-container">
-                <label className="recommended-assignments-headings">
-                  {t("Select All")}
-                </label>
+                <h3 className="recommended-assignments-headings">
+                  {selectedLessonsCount?.[TeacherAssignmentPageType.MANUAL]?.count ?? 0}/
+                  {Object.keys(manualAssignments).reduce((total, subjectId) => {
+                    return total + manualAssignments[subjectId].lessons.length;
+                  }, 0)}
+                </h3>
                 <input
                   className="select-all-container-checkbox"
                   type="checkbox"
@@ -589,6 +548,9 @@ const processScannedData = async (scannedText: string) => {
                     )
                   }
                 />
+                <label className="recommended-assignments-headings">
+                  {t("Select All")}
+                </label>
               </div>
             )}
           </div>
@@ -699,18 +661,15 @@ const processScannedData = async (scannedText: string) => {
           </p>
           <div>
             {recommendedCollapsed ? (
-              <img src="assets/icons/iconDown.png" alt="DropDown_Icon" style={{width: "16px", height: "16px"}} />
+              <KeyboardArrowDownIcon />
             ) : (
               <div className="select-all-container">
-                {/* <h3 className="recommended-assignments-headings">
+                <h3 className="recommended-assignments-headings">
                   {selectedLessonsCount?.[TeacherAssignmentPageType.RECOMMENDED]?.count ?? 0}/
                   {Object.keys(recommendedAssignments).reduce((total, subjectId) => {
                     return total + recommendedAssignments[subjectId].lessons.length;
                   }, 0)}
-                </h3> */}
-                <label className="recommended-assignments-headings">
-                  {t("Select All")}
-                </label>
+                </h3>
                 <input
                   className="select-all-container-checkbox"
                   type="checkbox"
@@ -724,6 +683,9 @@ const processScannedData = async (scannedText: string) => {
                     )
                   }
                 />
+                <label className="recommended-assignments-headings">
+                  {t("Select All")}
+                </label>
               </div>
             )}
           </div>

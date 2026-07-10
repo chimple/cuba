@@ -1,24 +1,11 @@
 .custom-search-bar {
-  position: relative;         
-  background: white;
+  --background: white;
   padding: 10px;
   border-radius: 10px;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);  
-  width: auto;           
-  height: auto;              
-  display: flex;
-  align-items: center;
-  margin-top: 5vh;
 }
 
-.plain-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  font-size: 16px;
-  color: #000;
-  background: transparent;
-  padding-right: 40px;
+.inputField-toggle-text {
+  text-transform: none;
 }
 
 input[type="number"]::-webkit-inner-spin-button,
@@ -27,36 +14,38 @@ input[type="number"]::-webkit-outer-spin-button {
   margin: 0;
 }
 
-.search-icon-container {
+.icon-inside-search {
   position: absolute;
   right: 15px;
-  top: 60%;
+  top: 50%;
   transform: translateY(-50%);
   font-size: 24px;
   color: black;
-  cursor: pointer;
-  z-index: 10;
-}
-
-.search-icon-container.disabled-icon {
-  color: gray;
-  pointer-events: none;
 }
 
 .toggle-text {
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
-  margin-top: 5px;
 }
-
-.inputField-toggle-text {
-  text-transform: none;
-  font-size: 14px;
+.search-icon-container.disabled-icon {
+  color: gray;
+  pointer-events: none;
 }
-
+.search-icon-container {
+  position: absolute;
+  font-size: 24px;
+  color: black;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+}
 .field-error-text {
   margin-top: 5px;
-  color: #d31010; 
   font-size: var(--text-size);
+}
+.custom-ion-input .native-input.sc-ion-input-ios {
+  padding-inline-start: 30px;
+  padding-inline-end: 40px;
 }

@@ -14,6 +14,8 @@ interface ProfileDetailsProps {
 }
 
 const ProfileDetails: React.FC<ProfileDetailsProps> = ({
+  width = "120px",
+  height = "120px",
   imgSrc,
   imgAlt = "",
   onImageChange,
@@ -22,17 +24,16 @@ const ProfileDetails: React.FC<ProfileDetailsProps> = ({
 }) => {
   return (
     <div className={`profile-details ${className || ""}`}>
-      <label htmlFor="profilePic" className="profile-details-data">
+      <label htmlFor="profilePic" className="label">
         <img
           src={imgSrc}
-          alt=''
-          className="profile-details-img"
+          alt={imgAlt}
+          className="profile-container"
+          style={{ width, height }}
         />
-        {isEditMode &&
-          <div className="overlay">
-            <IonIcon className="camera-icon" icon={camera} size="large" />
-          </div>
-        }
+        <div className="overlay">
+          <IonIcon className="camera-icon" icon={camera} size="large" />
+        </div>
       </label>
       {isEditMode && (
         <input

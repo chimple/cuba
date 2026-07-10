@@ -23,11 +23,11 @@ const Tabs: React.FC<{
         TabIndicatorProps={{ style: { background: "#7c5db0" } }}
         sx={{
           "& .MuiTab-root": {
-            // padding: "0 3vw",
-            margin: "1vh 0",
+            padding: "0 3vw",
+            margin: "1vh 1vh",
             minHeight: "37px",
             textTransform: "none",
-            fontSize: "12.5px",
+            fontSize: "var(--text-size)",
             color: "#707070 !important",
             "&:hover": {
               backgroundColor: "transparent",

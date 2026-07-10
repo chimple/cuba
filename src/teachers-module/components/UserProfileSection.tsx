@@ -53,7 +53,6 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
             onChange={(e) => onFullNameChange(e.target.value)}
             disabled={!isEditMode}
           />
-          <hr className="horizontal-line" />
         </div>
 
         {isEditMode ? (
@@ -84,7 +83,6 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
                 value={email || (t("Email not available") as string)}
                 disabled
               />
-              <hr className="horizontal-line" />
             </div>
 
             <div className="input-group">
@@ -96,7 +94,6 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
                 value={phoneNum || (t("Phone number not available") as string)}
                 disabled
               />
-              <hr className="horizontal-line" />
             </div>
 
             <div className="input-group">
@@ -111,7 +108,6 @@ const UserProfileSection: React.FC<UserProfileSectionProps> = ({
                 }
                 disabled
               />
-
             </div>
           </>
         )}

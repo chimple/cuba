@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   IonButton,
   IonModal,
@@ -6,12 +6,10 @@ import {
   IonIcon,
   IonAlert,
 } from "@ionic/react";
-import { checkmarkCircle, closeCircleOutline } from "ionicons/icons";
+import { closeCircleOutline } from "ionicons/icons";
 import { t } from "i18next";
 import "./DisplaySubjects.css";
 import { TableTypes } from "../../common/constants";
-import { Util } from "../../utility/util";
-import { RoleType } from "../../interface/modelInterfaces";
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
@@ -38,22 +36,11 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
   setIsModalOpen,
 }) => {
   // State to track whether the last subject warning should be shown
-  const [isLastSubjectAlertOpen, setIsLastSubjectAlertOpen] = useState(false);
-  const [canModify, setCanModify] = useState(true);
-
-  useEffect(() => {
-    const checkClassRole = async () => {
-      const cls = await Util.getCurrentClass();
-      if ((cls as any)?.role === RoleType.TEACHER) {
-        setCanModify(false);
-      }
-    };
-    checkClassRole();
-  }, []);
+  const [isLastSubjectAlertOpen, setIsLastSubjectAlertOpen] =
+    React.useState(false);
 
   // Trigger subject removal logic
   const triggerRemoveSubject = (subject: string) => {
-    if (!canModify) return;
     if (selectedSubjects.length === 1) {
       // If only one subject is left, show the "cannot delete" alert
       setIsLastSubjectAlertOpen(true);
@@ -89,7 +76,9 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
           const selectedCourses = courses.filter((course) =>
             selectedSubjects.includes(course.id)
           );
+
           if (selectedCourses.length === 0) return null;
+
           return (
             <div
               key={`${curriculum.id}-${curriculum.grade}`}
@@ -101,27 +90,18 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
               {selectedCourses.map((course) => (
                 <div
                   key={course.id}
-                  className={
-                    "subject-item-in-display-subject-page selected-subject" +
-                    (canModify ? "" : " disabled-subject")
-                  }
-                  onClick={() => triggerRemoveSubject(course.id)}
-                  style={{ cursor: canModify ? "pointer" : "not-allowed" }}
+                  className="subject-item-in-display-subject-page selected-subject"
+                  onClick={() => triggerRemoveSubject(course.id)} // Trigger subject removal logic
                 >
-                  <div className="display-subject-name">
+                  <div className="subject-name-div">
                     <img
                       src={course?.image || "assets/icons/DefaultIcon.png"}
                       alt={course.name || "Default Subject Icon"}
                       className="subject-icon-in-display-subject-page"
                     />
-                    <span> {t(course.name)}</span>
+                    <div> {course.name}</div>
                   </div>
-                  {canModify && (
-                    <IonIcon
-                      icon={checkmarkCircle}
-                      className="display-subIcon"
-                    />
-                  )}
+                  <IonIcon icon={closeCircleOutline} />
                 </div>
               ))}
             </div>
@@ -162,11 +142,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
         isOpen={isLastSubjectAlertOpen}
         onDidDismiss={() => setIsLastSubjectAlertOpen(false)}
         header={t("Action Not Allowed") || ""}
-        message={
-          t(
-            "The Subject you have chosen is the last one left and cannot be deleted"
-          ) || ""
-        }
+        message={t("The Subject you have chosen is the last one left and cannot be deleted") || ""}
         cssClass="custom-alert"
         buttons={[
           {

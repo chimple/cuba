@@ -17,7 +17,7 @@
 .student-report-date-selection {
   border-radius: 10px;
   background: white;
-  color: #707070;
+  color: var(--text-color);
   padding: 1vh 2vh 0;
   margin-bottom: 2vh;
   margin-top: 2vh;

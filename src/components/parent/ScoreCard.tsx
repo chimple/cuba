@@ -17,7 +17,6 @@ import { PAGES } from "../../common/constants";
 import { AiTwotoneHeart } from "react-icons/ai";
 import { GrFormNext } from "react-icons/gr";
 import ScoreCardStarIcons from "./ScoreCardStarIcons";
-import { Favorite } from "@mui/icons-material";
 
 const ScoreCard: React.FC<{
   showDialogBox: boolean;
@@ -93,7 +92,7 @@ const ScoreCard: React.FC<{
             <div className="yes-text-field">
               {yesText}
               <div className="heart-icon-field">
-                <Favorite className="heart-icon" />
+                <AiTwotoneHeart className="heart-icon" />
               </div>
             </div>
           </div>

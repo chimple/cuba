@@ -1,4 +1,3 @@
-//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import CreateSelectedAssignment from "../../components/homePage/assignment/CreateSelectedAssignment";
 const meta: Meta = {

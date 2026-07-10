@@ -63,11 +63,9 @@ const AddSchoolUser: React.FC = () => {
   };
 
   const handleSearch = async () => {
-    setUser(undefined);
-    setShowUserNotFoundAlert(false);
-    setIsLoading(true);
-
     try {
+      setIsLoading(true);
+
       let fetchedUser;
       if (useEmail) {
         fetchedUser = await api?.getUserByEmail(inputValue);
@@ -75,7 +73,7 @@ const AddSchoolUser: React.FC = () => {
         fetchedUser = await api?.getUserByPhoneNumber(inputValue);
       }
 
-      if (school && fetchedUser && fetchedUser.id) {
+      if (school && fetchedUser) {
         const userInSchool = await api?.checkUserExistInSchool(
           school?.id,
           fetchedUser.id
@@ -92,28 +90,26 @@ const AddSchoolUser: React.FC = () => {
       }
     } catch (error) {
       console.error("Failed to fetch user", error);
-      setShowUserNotFoundAlert(true);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleAddSchoolUser = async () => {
-    if (!school || !user) {
-      console.error("Cannot add user: school or user is missing.");
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      await api?.addUserToSchool(school.id, user, currentRole);
-      await api.updateSchoolLastModified(school.id);
-      await api.updateUserLastModified(user.id);
+      setIsLoading(true);
 
-      history.replace(`${PAGES.SCHOOL_USERS}?tab=${tempTabName}`, {
-        school: school,
-        role: role,
-      });
+      if (school && user) {
+        await api?.addUserToSchool(school.id, user.id, currentRole);
+
+        await api.updateSchoolLastModified(school.id);
+        await api.updateUserLastModified(user.id);
+
+        history.replace(`${PAGES.SCHOOL_USERS}?tab=${tempTabName}`, {
+          school: school,
+          role: role,
+        });
+      }
     } catch (error) {
       console.error("Failed to add user to school", error);
     } finally {

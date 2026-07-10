@@ -1,5 +1,4 @@
 
-//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import { number, string } from "prop-types";
 import UserImageWithName from "../../components/UserImageWithName";

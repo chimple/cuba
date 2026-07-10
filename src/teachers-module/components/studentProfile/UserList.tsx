@@ -20,7 +20,8 @@ const UserList: React.FC<{
   const [selectedUser, setSelectedUser] = useState<TableTypes<"user"> | null>(
     null
   );
-  const currentUserRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+  const currentUserRole = JSON.parse(localStorage.getItem(USER_ROLE)!);
+
   useEffect(() => {
     init();
   }, []);
@@ -29,9 +30,11 @@ const UserList: React.FC<{
     if (userType === CLASS_USERS.STUDENTS) {
       const studentsDoc = await api?.getStudentsForClass(classDoc.id);
       setAllStudents(studentsDoc);
+      console.log("all students..", studentsDoc);
     } else {
       const teachersDoc = await api?.getTeachersForClass(classDoc.id);
       setAllTeachers(teachersDoc);
+      console.log("all teachers..", teachersDoc);
     }
   };
 
@@ -44,7 +47,8 @@ const UserList: React.FC<{
     if (selectedUser) {
       try {
         if (userType === CLASS_USERS.STUDENTS) {
-          await api?.deleteUserFromClass(selectedUser.id, classDoc.id);
+          await api?.deleteUserFromClass(selectedUser.id);
+          console.log("selected student removed from class", selectedUser);
           setAllStudents((prev) =>
             prev?.filter((student) => student.id !== selectedUser.id)
           );
@@ -55,6 +59,7 @@ const UserList: React.FC<{
           await api.updateClassLastModified(classDoc.id);
           await api.updateUserLastModified(selectedUser.id);
 
+          console.log("selected teacher removed from class");
           setAllTeachers((prev) =>
             prev?.filter((teacher) => teacher.id !== selectedUser.id)
           );
@@ -112,8 +117,8 @@ const UserList: React.FC<{
                   />
                 </div>
 
-                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
-                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
+                {(currentUserRole === RoleType.PRINCIPAL ||
+                  currentUserRole === RoleType.COORDINATOR) && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(teacher)}

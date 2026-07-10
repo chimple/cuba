@@ -10,8 +10,8 @@
 
 #student-progress-display-progress-content {
   margin: 3vw 1vw 1vw 8vw;
-  max-height: 51vh;
-  height: auto;
+  height: 80vh;
+  max-height: 200px;
   overflow-y: auto;
 }
 
@@ -30,7 +30,6 @@
 .grade-text {
   font-size: 15px;
   text-transform: none;
-  color: #707070;
 }
 .curriculum-text {
   font-size: 14px;

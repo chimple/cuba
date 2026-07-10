@@ -18,7 +18,6 @@ import User from "../models/user";
 import { useHistory } from "react-router";
 import { schoolUtil } from "../utility/schoolUtil";
 import { REMOTE_CONFIG_KEYS, RemoteConfig } from "../services/RemoteConfig";
-import ProfileMenu from "./ProfileMenu/ProfileMenu";
 
 const HomeHeader: React.FC<{
   currentHeader: string;
@@ -40,7 +39,6 @@ const HomeHeader: React.FC<{
   const [student, setStudent] = useState<TableTypes<"user">>();
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>();
-  const [isProfileMenuOpen, setProfileMenuOpen] = useState(false);
 
   const [isLinked, setIsLinked] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
@@ -146,17 +144,12 @@ const HomeHeader: React.FC<{
           pendingAssignmentCount={0}
           pendingLiveQuizCount={0}
           onHeaderIconClick={() => {
-            setProfileMenuOpen(true)
+            if (currentHeader != HOMEHEADERLIST.PROFILE) {
+              onHeaderIconClick(HOMEHEADERLIST.PROFILE);
+            }
           }}
         />
       </div>
-      {isProfileMenuOpen && (
-        <div className="home-header-menu-overlay" onClick={() => setProfileMenuOpen(false)}>
-          <div onClick={(e) => e.stopPropagation()}>
-            <ProfileMenu onClose={() => setProfileMenuOpen(false)} />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
