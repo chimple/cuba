@@ -352,6 +352,7 @@ type CampaignListingAudienceRow = Pick<
 };
 
 type CampaignListingQueryRow = TableTypes<'campaign'> & {
+  cancelled_by_user?: TableTypes<'user'> | TableTypes<'user'>[] | null;
   manager?: TableTypes<'user'> | TableTypes<'user'>[] | null;
   program?: TableTypes<'program'> | TableTypes<'program'>[] | null;
   target_audience?:
@@ -9985,7 +9986,7 @@ export class SupabaseApi implements ServiceApi {
       const nativeSortColumn = CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS[orderBy];
       const shouldUseDatabasePagination =
         !isFieldCoordinator && Boolean(nativeSortColumn);
-      const campaignListingSelect = `*, manager:manager_id(*), program:program_id(*),
+      const campaignListingSelect = `*, cancelled_by_user:cancelled_by(*), manager:manager_id(*), program:program_id(*),
         target_audience:target_audience_id(
           id,
           is_all_schools,
@@ -10112,11 +10113,15 @@ export class SupabaseApi implements ServiceApi {
       return;
     }
 
+    const {
+      data: { user },
+    } = await this.supabase.auth.getUser();
     const timestamp = new Date().toISOString();
     const { error } = await this.supabase
       .from('campaign')
       .update({
         campaign_status: CAMPAIGN_STATUS.INACTIVE,
+        cancelled_by: user?.id ?? null,
         comments: trimmedReason,
         updated_at: timestamp,
       })

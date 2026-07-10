@@ -143,6 +143,7 @@ export const sortCampaignListingItems = (
 
 export const mapCampaignListingItem = (
   row: TableTypes<'campaign'> & {
+    cancelled_by_user?: TableTypes<'user'> | TableTypes<'user'>[] | null;
     manager?: TableTypes<'user'> | TableTypes<'user'>[] | null;
     program?: TableTypes<'program'> | TableTypes<'program'>[] | null;
   },
@@ -396,6 +397,9 @@ export const mapCampaignListingItemToOverviewData = (
     // Reuse listing payload data for overview so we do not issue a second API request on row click.
     campaign: {
       ...campaign.campaign,
+      cancelled_by_user: getSingleCampaignRelationValue(
+        campaign.campaign.cancelled_by_user,
+      ),
       manager: getSingleCampaignRelationValue(campaign.campaign.manager),
       program: getSingleCampaignRelationValue(campaign.campaign.program),
     },
