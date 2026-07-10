@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import CampaignAssignmentTab from '../../pages/CampaignAssignmentTab';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import logger from '../../../utility/logger';
 import CampaignMessages from '../campaignMessages/CampaignMessages';
 import './CampaignsOverview.css';
 import CampaignsOverviewHeaderBar from './CampaignsOverviewHeaderBar';
 import {
   buildCampaignsOverviewViewModel,
+  CAMPAIGN_LISTING_STATUS,
   CampaignsOverviewApiResponse,
   DEFAULT_CAMPAIGNS_OVERVIEW_BREADCRUMB,
   DEFAULT_CAMPAIGNS_OVERVIEW_TABS,
@@ -39,13 +42,16 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
 }) => {
   const history = useHistory();
   const [selectedTab, setSelectedTab] = useState(activeTab);
-  const campaignViewModel =
-    buildCampaignsOverviewViewModel(campaignOverviewData);
   const resolvedCampaignId = [
     campaignId,
     campaignOverviewData?.data?.campaignId,
     campaignOverviewData?.data?.dashboardMetrics?.campaign_id,
   ].find((id): id is string => typeof id === 'string' && id.trim().length > 0);
+  const [resolvedCampaignOverviewData, setResolvedCampaignOverviewData] =
+    useState(campaignOverviewData);
+  const campaignViewModel = buildCampaignsOverviewViewModel(
+    resolvedCampaignOverviewData,
+  );
 
   useEffect(() => {
     document.body.classList.add('campaigns-overview-active');
@@ -53,6 +59,47 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
       document.body.classList.remove('campaigns-overview-active');
     };
   }, []);
+
+  useEffect(() => {
+    setResolvedCampaignOverviewData(campaignOverviewData);
+  }, [campaignOverviewData]);
+
+  useEffect(() => {
+    const loadCampaignCancellationDetails = async () => {
+      if (
+        !resolvedCampaignId ||
+        !campaignOverviewData ||
+        campaignOverviewData.data?.status !== CAMPAIGN_LISTING_STATUS.CANCELLED
+      ) {
+        return;
+      }
+
+      try {
+        const cancellationData =
+          await ServiceConfig.getI().apiHandler.getCampaignCancellationDetails(
+            resolvedCampaignId,
+          );
+
+        setResolvedCampaignOverviewData((currentData) => {
+          if (!currentData?.data) {
+            return currentData;
+          }
+
+          return {
+            ...currentData,
+            data: {
+              ...currentData.data,
+              cancellationData,
+            },
+          };
+        });
+      } catch (error) {
+        logger.error('Error loading campaign cancellation details:', error);
+      }
+    };
+
+    void loadCampaignCancellationDetails();
+  }, [campaignOverviewData, resolvedCampaignId]);
 
   const handleTabClick = (tab: string): void => {
     setSelectedTab(tab);
@@ -81,7 +128,9 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
       <CampaignsOverviewHeaderBar
         title={title}
         breadcrumb={
-          campaignOverviewData ? campaignViewModel.breadcrumb : breadcrumb
+          resolvedCampaignOverviewData
+            ? campaignViewModel.breadcrumb
+            : breadcrumb
         }
         tabs={tabs}
         activeTab={selectedTab}
