@@ -67,6 +67,7 @@ export interface CampaignsOverviewApiCampaign {
   end_date?: string | null;
   updated_at?: string | null;
   campaign_status?: CampaignStatus | null;
+  cancelled_by_user?: CampaignsOverviewApiPerson | null;
   manager?: CampaignsOverviewApiPerson | null;
   program?: CampaignsOverviewApiProgram | null;
 }
@@ -94,6 +95,7 @@ const STATUS_KEY = 'status';
 const INFO_SUFFIX = 'Info';
 const CAMPAIGN_DURATION_KEY = 'campaign duration';
 const DAYS_IN_MILLISECONDS = 24 * 60 * 60 * 1000;
+const INDIA_TIME_ZONE = 'Asia/Kolkata';
 const MONTH_NAMES = [
   'Jan',
   'Feb',
@@ -222,7 +224,7 @@ const formatDateTime = (dateText?: string | null): string => {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
-    timeZone: 'UTC',
+    timeZone: INDIA_TIME_ZONE,
   }).format(date);
 };
 
@@ -416,7 +418,7 @@ export const buildCampaignsOverviewViewModel = (
         metrics?.active_students ?? response?.data?.avgWeeklyActiveUsers,
     },
     cancellationDetails: {
-      canceledBy: formatValue(campaign?.manager?.name),
+      canceledBy: formatValue(campaign?.cancelled_by_user?.name),
       canceledOn: formatDateTime(campaign?.updated_at),
       messageToAdmin: formatValue(campaign?.comments),
     },
