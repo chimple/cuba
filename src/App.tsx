@@ -45,12 +45,14 @@ import { useGrowthBookFeatureCache } from './hooks/useGrowthBookFeatureCache';
 import { useHotUpdate } from './hooks/useHotUpdate';
 import { useNativeAppListeners } from './hooks/useNativeAppListeners';
 import { useRemoteAssetFlags } from './hooks/useRemoteAssetFlags';
+import { normalizeInitialHashRouteEntry } from './utility/routerLocation';
 
 import AppContent from './app/AppContent';
 
 setupIonicReact();
 
 const App: React.FC = () => {
+  normalizeInitialHashRouteEntry();
   useGrowthBookFeatureCache();
   useRemoteAssetFlags();
   useGlobalBrowserEffects();

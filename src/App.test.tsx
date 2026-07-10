@@ -61,6 +61,16 @@ describe('App Component', () => {
     });
   });
 
+  // Covers: rewrites legacy pathname deep links into hash-router URLs before router mount.
+  it('rewrites legacy pathname deep links to hash routes on startup', () => {
+    window.history.replaceState({}, '', '/join-class?classCode=123');
+
+    renderWithProviders(<App />);
+
+    expect(window.location.pathname).toBe('/');
+    expect(window.location.hash).toBe('#/join-class?classCode=123');
+  });
+
   const popupConfigBase = {
     id: 'gb-popup-app-1',
     isActive: true,
@@ -117,7 +127,7 @@ describe('App Component', () => {
         (key, defaultValue) =>
           key === GENERIC_POP_UP ? popupConfig : defaultValue,
       );
-      window.history.replaceState({}, '', `/?tab=${tab}`);
+      window.history.replaceState({}, '', `/#/?tab=${tab}`);
 
       renderWithProviders(<App />);
 
@@ -143,7 +153,7 @@ describe('App Component', () => {
       (key, defaultValue) =>
         key === GENERIC_POP_UP ? popupConfig : defaultValue,
     );
-    window.history.replaceState({}, '', '/?tab=home');
+    window.history.replaceState({}, '', '/#/?tab=home');
 
     renderWithProviders(<App />);
     await new Promise((resolve) => setTimeout(resolve, 50));
@@ -164,7 +174,7 @@ describe('App Component', () => {
           key === GENERIC_POP_UP ? payload : defaultValue,
       );
 
-      window.history.replaceState({}, '', '/?tab=leaderboard');
+      window.history.replaceState({}, '', '/#/?tab=leaderboard');
 
       renderWithProviders(<App />);
       await new Promise((resolve) => setTimeout(resolve, 50));

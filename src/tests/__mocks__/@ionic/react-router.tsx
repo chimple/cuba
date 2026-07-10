@@ -10,7 +10,7 @@ const getInitialEntry = () => {
     return window.location.hash.slice(1);
   }
 
-  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  return '/';
 };
 
 const MockIonicRouter: React.FC<{ children: React.ReactNode }> = ({

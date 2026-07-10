@@ -1,3 +1,4 @@
+import React from 'react';
 import { IonRouterOutlet } from '@ionic/react';
 import { HardwareBackButtonHandler } from '../common/backButtonRegistry';
 import TermsGate from '../components/termsandconditons/TermsGate';

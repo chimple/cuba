@@ -1,6 +1,6 @@
 import { createPath, parsePath } from 'history';
 
-import { BASE_NAME } from '../common/constants';
+import { BASE_NAME, PAGES } from '../common/constants';
 
 type AppLocationParts = {
   pathname: string;
@@ -59,6 +59,15 @@ const addBasename = (pathname: string) => {
 
   return pathname === '/' ? basename : `${basename}${pathname}`;
 };
+
+const pageRoutes =
+  PAGES && typeof PAGES === 'object' ? (PAGES as Record<string, unknown>) : {};
+
+const KNOWN_APP_ROUTE_PATHS = new Set<string>(
+  Object.values(pageRoutes)
+    .map((path) => String(path))
+    .filter((path) => path.startsWith('/') && path !== '/' && path !== '/#'),
+);
 
 const isHashRoutedUrl = () =>
   typeof window !== 'undefined' && window.location.hash.startsWith('#/');
@@ -122,6 +131,26 @@ export const getAppSearchParams = () => new URLSearchParams(getAppSearch());
 
 export const getAppPath = () => createPath(readCurrentAppLocation());
 
+export const buildHashAppUrl = (
+  nextLocation: Partial<AppLocationParts> = {},
+  origin?: string,
+) => {
+  const fallbackOrigin =
+    origin ??
+    (typeof window !== 'undefined'
+      ? window.location.origin
+      : 'http://localhost');
+  const url = new URL(addBasename('/'), fallbackOrigin);
+
+  url.hash = createPath({
+    pathname: normalizePathname(nextLocation.pathname ?? '/'),
+    search: normalizeSearch(nextLocation.search ?? ''),
+    hash: normalizeHash(nextLocation.hash ?? ''),
+  });
+
+  return url;
+};
+
 export const buildAppUrl = (nextLocation: Partial<AppLocationParts> = {}) => {
   if (typeof window === 'undefined') {
     return new URL('http://localhost/');
@@ -146,6 +175,33 @@ export const buildAppUrl = (nextLocation: Partial<AppLocationParts> = {}) => {
 };
 
 export const getAppHref = () => buildAppUrl().toString();
+
+export const normalizeInitialHashRouteEntry = () => {
+  if (typeof window === 'undefined' || isHashRoutedUrl()) {
+    return false;
+  }
+
+  const legacyPathname = normalizePathname(
+    stripBasename(window.location.pathname || '/'),
+  );
+
+  if (!KNOWN_APP_ROUTE_PATHS.has(legacyPathname)) {
+    return false;
+  }
+
+  const rewrittenUrl = buildHashAppUrl({
+    pathname: legacyPathname,
+    search: window.location.search,
+    hash: window.location.hash,
+  });
+
+  window.history.replaceState(
+    window.history.state,
+    '',
+    rewrittenUrl.toString(),
+  );
+  return true;
+};
 
 export const replaceAppUrl = (nextLocation: Partial<AppLocationParts>) => {
   const url = buildAppUrl(nextLocation);

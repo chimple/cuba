@@ -31,6 +31,7 @@ import {
   triggerStreakRewardPulse,
 } from '../../../../common/streakRewardBridge';
 import { parsePath } from 'history';
+import { buildHashAppUrl } from '../../../../utility/routerLocation';
 
 interface LessonDetail {
   subject: string;
@@ -479,9 +480,17 @@ const CreateSelectedAssignment = ({
       text += `\n`;
     });
 
+    const assignmentUrl = buildHashAppUrl(
+      {
+        pathname: PAGES.ASSIGNMENT,
+        search: `?batch_id=${encodeURIComponent(assignmentBatchId ?? '')}&source=teacher`,
+      },
+      'https://chimple.cc',
+    ).toString();
+
     text += `${translate(
       'Please click this link to access your Homework',
-    )}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}&source=teacher`;
+    )}: ${assignmentUrl}`;
 
     return text.trim();
   };
