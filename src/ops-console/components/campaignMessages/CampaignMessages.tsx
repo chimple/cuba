@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import DataTablePagination from '../DataTablePagination';
 import {
@@ -28,6 +28,36 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({
     campaignEndDate,
     translate: (key) => String(t(key)),
   });
+  const timePickerWrapperRefs = useRef<
+    Partial<Record<CampaignMessagesScheduleType, HTMLDivElement | null>>
+  >({});
+
+  useEffect(() => {
+    if (!controller.openSchedulePicker) {
+      return;
+    }
+
+    const activeSchedulePicker = controller.openSchedulePicker;
+
+    const handlePointerDownOutsidePicker = (event: MouseEvent): void => {
+      const activeWrapper = timePickerWrapperRefs.current[activeSchedulePicker];
+      const targetNode = event.target;
+
+      if (
+        activeWrapper &&
+        targetNode instanceof Node &&
+        !activeWrapper.contains(targetNode)
+      ) {
+        controller.setOpenSchedulePicker(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDownOutsidePicker);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDownOutsidePicker);
+    };
+  }, [controller, controller.openSchedulePicker]);
 
   const renderScheduleTimePicker = (
     scheduleType: CampaignMessagesScheduleType,
@@ -42,7 +72,12 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({
     const isTimeEditable = currentParts !== null;
 
     return (
-      <div className="campaign-messages-time-picker-wrapper">
+      <div
+        className="campaign-messages-time-picker-wrapper"
+        ref={(element) => {
+          timePickerWrapperRefs.current[scheduleType] = element;
+        }}
+      >
         <button
           className="campaign-messages-time campaign-messages-time-button campaign-messages-time-editable"
           type="button"
@@ -76,9 +111,10 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({
                       `${scheduleType}-hour-${hour}`
                     ] = element;
                   }}
-                  onClick={() =>
-                    controller.updateScheduleTime(scheduleType, 'hour', hour)
-                  }
+                  onClick={() => {
+                    controller.updateScheduleTime(scheduleType, 'hour', hour);
+                    controller.setOpenSchedulePicker(null);
+                  }}
                 >
                   {hour}
                 </button>
@@ -96,13 +132,14 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({
                       `${scheduleType}-period-${period}`
                     ] = element;
                   }}
-                  onClick={() =>
+                  onClick={() => {
                     controller.updateScheduleTime(
                       scheduleType,
                       'period',
                       period,
-                    )
-                  }
+                    );
+                    controller.setOpenSchedulePicker(null);
+                  }}
                 >
                   {period}
                 </button>

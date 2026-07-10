@@ -69,15 +69,24 @@ const ProgramConnectedSchoolRoute: React.FC = () => {
 
 type CampaignOverviewRouteState = {
   campaignOverviewData?: CampaignsOverviewApiResponse;
+  returnTo?: {
+    pathname: string;
+    search?: string;
+  };
 };
 
 const CampaignOverviewRoute: React.FC = () => {
   const history = useHistory();
   const location = useLocation<CampaignOverviewRouteState>();
   const campaignOverviewData = location.state?.campaignOverviewData;
+  const returnTo = location.state?.returnTo;
 
   const handleOpenCampaignListing = () => {
-    history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`);
+    history.replace({
+      pathname:
+        returnTo?.pathname || `${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`,
+      search: returnTo?.search || '',
+    });
   };
 
   if (!campaignOverviewData) {

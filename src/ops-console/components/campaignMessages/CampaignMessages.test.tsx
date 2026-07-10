@@ -230,6 +230,54 @@ describe('CampaignMessages', () => {
       screen.queryByLabelText('Edit global send schedule'),
     ).not.toBeInTheDocument();
   });
+
+  it('closes the message time picker after selecting a time value', async () => {
+    apiHandler.getCampaignMessaging.mockResolvedValue(
+      buildResponse([buildMessagingRow()]),
+    );
+
+    render(<CampaignMessages campaignId="campaign-1" />);
+
+    await screen.findByText('Class 1 Digital');
+    fireEvent.click(screen.getByLabelText('Edit global send schedule'));
+    fireEvent.click(screen.getByRole('button', { name: 'Message Time' }));
+
+    expect(
+      screen.getByRole('group', { name: 'Message Time' }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '09' }));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('group', { name: 'Message Time' }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it('closes the poll time picker when clicking outside the dropdown', async () => {
+    apiHandler.getCampaignMessaging.mockResolvedValue(
+      buildResponse([buildMessagingRow()]),
+    );
+
+    render(<CampaignMessages campaignId="campaign-1" />);
+
+    await screen.findByText('Class 1 Digital');
+    fireEvent.click(screen.getByLabelText('Edit global send schedule'));
+    fireEvent.click(screen.getByRole('button', { name: 'Poll Time' }));
+
+    expect(
+      screen.getByRole('group', { name: 'Poll Time' }),
+    ).toBeInTheDocument();
+
+    fireEvent.mouseDown(document.body);
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('group', { name: 'Poll Time' }),
+      ).not.toBeInTheDocument(),
+    );
+  });
 });
 
 describe('CampaignMessagesLogic', () => {
