@@ -199,8 +199,10 @@ describe('ProfileMenu Notification Logic', () => {
     });
 
     expect(mockPush).toHaveBeenCalledWith(
-      PAGES.STICKER_BOOK,
-      expect.any(Object),
+      expect.objectContaining({
+        pathname: PAGES.STICKER_BOOK,
+        state: expect.any(Object),
+      }),
     );
   });
 
