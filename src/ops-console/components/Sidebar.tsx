@@ -35,7 +35,6 @@ import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import { logAuthDebug } from '../../utility/authDebug';
 import { getAppPathname } from '../../utility/routerLocation';
-import { KEYS_TO_PRESERVE } from '../../components/parent/DataClear';
 import { parsePath } from 'history';
 
 interface SidebarProps {
@@ -178,12 +177,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     });
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const key = localStorage.key(i);
-      if (key && !KEYS_TO_PRESERVE.has(key)) {
-        localStorage.removeItem(key);
-      }
-    }
+    localStorage.clear();
     const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
     serviceInstance.switchMode(APIMode.SQLITE);
     logAuthDebug('Navigating to login after ops console logout.', {

@@ -1,11 +1,11 @@
 // Coverage: App-level GrowthBook popup routing by URL tab/screen, trigger payload variants, false-positive mismatch blocking, and malformed/null payload negatives.
 import { waitFor } from '@testing-library/react';
 import { act } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
 import { renderWithProviders } from './tests/test-utils';
 import App from './App';
 import PopupManager from './components/GenericPopUp/GenericPopUpManager';
 import * as growthbookModule from '@growthbook/growthbook-react';
+import { GENERIC_POP_UP } from './common/constants';
 
 jest.mock('@growthbook/growthbook-react', () => ({
   GrowthBookProvider: ({ children }: any) => children,
@@ -50,11 +50,7 @@ describe('App Component', () => {
 
     act(() => {
       mockGrowthbook.getFeatureValue.mockReturnValue(null);
-      const result = renderWithProviders(
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>,
-      );
+      const result = renderWithProviders(<App />);
       unmount = result.unmount;
     });
 
@@ -117,14 +113,13 @@ describe('App Component', () => {
         triggers: trigger,
       };
 
-      mockGrowthbook.getFeatureValue.mockReturnValue(popupConfig);
+      (growthbookModule.useFeatureValue as jest.Mock).mockImplementation(
+        (key, defaultValue) =>
+          key === GENERIC_POP_UP ? popupConfig : defaultValue,
+      );
       window.history.replaceState({}, '', `/?tab=${tab}`);
 
-      renderWithProviders(
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>,
-      );
+      renderWithProviders(<App />);
 
       await waitFor(() =>
         expect(PopupManager.onAppOpen).toHaveBeenCalledWith(popupConfig),
@@ -144,14 +139,13 @@ describe('App Component', () => {
       triggers: { type: 'APP_OPEN', value: 1 },
     };
 
-    mockGrowthbook.getFeatureValue.mockReturnValue(popupConfig);
+    (growthbookModule.useFeatureValue as jest.Mock).mockImplementation(
+      (key, defaultValue) =>
+        key === GENERIC_POP_UP ? popupConfig : defaultValue,
+    );
     window.history.replaceState({}, '', '/?tab=home');
 
-    renderWithProviders(
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>,
-    );
+    renderWithProviders(<App />);
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     expect(PopupManager.onAppOpen).not.toHaveBeenCalled();
@@ -165,15 +159,14 @@ describe('App Component', () => {
   ])(
     'does not route popup when growthbook payload is malformed: $name',
     async ({ payload }) => {
-      mockGrowthbook.getFeatureValue.mockReturnValue(payload);
+      (growthbookModule.useFeatureValue as jest.Mock).mockImplementation(
+        (key, defaultValue) =>
+          key === GENERIC_POP_UP ? payload : defaultValue,
+      );
 
       window.history.replaceState({}, '', '/?tab=leaderboard');
 
-      renderWithProviders(
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>,
-      );
+      renderWithProviders(<App />);
       await new Promise((resolve) => setTimeout(resolve, 50));
 
       expect(PopupManager.onAppOpen).not.toHaveBeenCalled();

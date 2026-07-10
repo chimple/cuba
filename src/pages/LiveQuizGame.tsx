@@ -3,6 +3,7 @@ import { FC, useEffect, useState } from 'react';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { useHistory } from 'react-router';
 import {
+  GENERIC_POP_UP,
   IS_REWARD_FEATURE_ON,
   LESSONS_PLAYED_COUNT,
   PAGES,
@@ -20,9 +21,10 @@ import { Util } from '../utility/util';
 import { t } from 'i18next';
 import { Capacitor } from '@capacitor/core';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
-import { useGrowthBook } from '@growthbook/growthbook-react';
+import { useFeatureValue } from '@growthbook/growthbook-react';
 import { getAppSearchParams } from '../utility/routerLocation';
 import { parsePath } from 'history';
+import { PopupConfig } from '../components/GenericPopUp/GenericPopUpType';
 
 const LiveQuizGame: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -62,7 +64,7 @@ const LiveQuizGame: FC = () => {
     SOURCE.LEARNING_PATHWAY_HOME_PAL,
     SOURCE.INITIAL_ASSESSMENT,
   ].includes(source);
-  const growthbook = useGrowthBook();
+  const popupConfig = useFeatureValue<PopupConfig | null>(GENERIC_POP_UP, null);
 
   useEffect(() => {
     if (!paramLiveRoomId && !paramLessonId) {
@@ -124,8 +126,6 @@ const LiveQuizGame: FC = () => {
   const handleQuizEnd = () => {
     setShowScoreCard(true);
     setShowDialogBox(true);
-
-    const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
 
     if (popupConfig) {
       PopupManager.onGameComplete(popupConfig);

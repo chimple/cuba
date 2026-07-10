@@ -1,8 +1,22 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
-export const IonReactRouter: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  return <MemoryRouter>{children}</MemoryRouter>;
+const getInitialEntry = () => {
+  if (typeof window === 'undefined') {
+    return '/';
+  }
+
+  if (window.location.hash.startsWith('#/')) {
+    return window.location.hash.slice(1);
+  }
+
+  return `${window.location.pathname}${window.location.search}${window.location.hash}`;
 };
+
+const MockIonicRouter: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => (
+  <MemoryRouter initialEntries={[getInitialEntry()]}>{children}</MemoryRouter>
+);
+
+export const IonReactHashRouter = MockIonicRouter;

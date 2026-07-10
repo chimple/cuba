@@ -18,7 +18,7 @@ const KEYS_TO_CLEAR = [
   CURRENT_STUDENT,
 ] as const;
 
-export const KEYS_TO_PRESERVE = new Set([
+const KEYS_TO_PRESERVE = new Set([
   BUNDLED_IMPORT_APP_VERSION_KEY,
   CURRENT_SQLITE_VERSION,
 ]);
