@@ -12,12 +12,20 @@ import './CampaignMessages.css';
 
 interface CampaignMessagesProps {
   campaignId?: string;
+  campaignStartDate?: string;
+  campaignEndDate?: string;
 }
 
-const CampaignMessages: React.FC<CampaignMessagesProps> = ({ campaignId }) => {
+const CampaignMessages: React.FC<CampaignMessagesProps> = ({
+  campaignId,
+  campaignStartDate,
+  campaignEndDate,
+}) => {
   const { t } = useTranslation();
   const controller = useCampaignMessagesController({
     campaignId,
+    campaignStartDate,
+    campaignEndDate,
     translate: (key) => String(t(key)),
   });
 
@@ -179,7 +187,13 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({ campaignId }) => {
         </div>
         <div className="campaign-messages-table-body">
           {controller.displayedRows.map((row) => {
-            const isRowDisabled = controller.isEditMode && !row.isEditable;
+            const isMessageDisabled =
+              controller.isEditMode && !row.messageEditable;
+            const isPollDisabled = controller.isEditMode && !row.pollEditable;
+            const isRowDisabled =
+              controller.isEditMode &&
+              !row.messageEditable &&
+              !row.pollEditable;
             const pollOptions = controller.getPollOptionsForEdit(row);
             const originalOptionCount =
               controller.originalOptionCountByRowId[row.id] ??
@@ -222,7 +236,7 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({ campaignId }) => {
                     className="campaign-messages-edit-field campaign-messages-message-edit-field"
                     value={row.message}
                     placeholder={String(t('Enter daily campaign message...'))}
-                    disabled={isRowDisabled}
+                    disabled={isMessageDisabled}
                     onChange={(event) =>
                       controller.updateRowField(
                         row.id,
@@ -243,7 +257,7 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({ campaignId }) => {
                       className="campaign-messages-edit-field campaign-messages-media-link-edit-field"
                       value={row.mediaLink}
                       placeholder={String(t('Paste media drive link...'))}
-                      disabled={isRowDisabled}
+                      disabled={isMessageDisabled}
                       onChange={(event) =>
                         controller.updateRowField(
                           row.id,
@@ -266,7 +280,7 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({ campaignId }) => {
                         className="campaign-messages-edit-field campaign-messages-poll-question-edit-field"
                         value={row.pollQuestion}
                         placeholder={String(t('Poll question...'))}
-                        disabled={isRowDisabled}
+                        disabled={isPollDisabled}
                         onChange={(event) =>
                           controller.updateRowField(
                             row.id,
@@ -292,7 +306,7 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({ campaignId }) => {
                               placeholder={String(
                                 t(`Option ${optionIndex + 1}`),
                               )}
-                              disabled={isRowDisabled}
+                              disabled={isPollDisabled}
                               onChange={(event) =>
                                 controller.updatePollOption(
                                   row.id,
@@ -306,7 +320,7 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({ campaignId }) => {
                                 className="campaign-messages-remove-option-button"
                                 type="button"
                                 aria-label={String(t('Remove option'))}
-                                disabled={isRowDisabled}
+                                disabled={isPollDisabled}
                                 onClick={() =>
                                   controller.removePollOption(
                                     row.id,
@@ -324,7 +338,7 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({ campaignId }) => {
                         <button
                           className="campaign-messages-add-option-button"
                           type="button"
-                          disabled={isRowDisabled}
+                          disabled={isPollDisabled}
                           onClick={() => controller.addPollOption(row.id)}
                         >
                           {t('+ Option')}
