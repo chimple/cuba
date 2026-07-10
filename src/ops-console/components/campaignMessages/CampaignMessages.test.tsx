@@ -164,7 +164,7 @@ describe('CampaignMessages', () => {
   });
 
   it('paginates campaign days across the full campaign range', async () => {
-    const rows = Array.from({ length: 21 }, (_, index) =>
+    const rows = Array.from({ length: 25 }, (_, index) =>
       buildDatedMessagingRow(index, {
         message: `Message ${index + 1}`,
       }),
@@ -176,7 +176,7 @@ describe('CampaignMessages', () => {
       <CampaignMessages
         campaignId="campaign-1"
         campaignStartDate="2099-06-10"
-        campaignEndDate="2099-06-30"
+        campaignEndDate="2099-07-10"
       />,
     );
 
@@ -185,7 +185,7 @@ describe('CampaignMessages', () => {
 
     fireEvent.click(screen.getByLabelText('Go to next page'));
 
-    expect(await screen.findByText('Message 21')).toBeInTheDocument();
+    expect(await screen.findAllByText('Day 21')).not.toHaveLength(0);
     expect(screen.queryByText('Message 1')).not.toBeInTheDocument();
   });
 
@@ -271,6 +271,44 @@ describe('CampaignMessagesLogic', () => {
     expect(data.rows[0].message).toBe('Day 1');
     expect(data.rows[1].message).toBe('');
     expect(data.rows[2].message).toBe('');
+  });
+
+  it('skips sunday from the campaign timeline', () => {
+    const data = buildCampaignMessagesData(
+      {
+        messages: [
+          buildMessagingRow({
+            message_time: '2026-07-10T15:00:00+00:00',
+            poll_time: '2026-07-10T10:00:00+00:00',
+            message: 'Friday row',
+          }),
+          buildMessagingRow({
+            id: 'message-2',
+            message_time: '2026-07-12T15:00:00+00:00',
+            poll_time: '2026-07-12T10:00:00+00:00',
+            message: 'Sunday row',
+          }),
+          buildMessagingRow({
+            id: 'message-3',
+            message_time: '2026-07-13T15:00:00+00:00',
+            poll_time: '2026-07-13T10:00:00+00:00',
+            message: 'Monday row',
+          }),
+        ],
+      },
+      ['2026-07-10', '2026-07-12', '2026-07-13'],
+    );
+
+    expect(data.total).toBe(2);
+    expect(data.rows).toHaveLength(2);
+    expect(data.rows.map((row) => row.scheduledDate)).toEqual([
+      '2026-07-10',
+      '2026-07-13',
+    ]);
+    expect(data.rows.map((row) => row.message)).toEqual([
+      'Friday row',
+      'Monday row',
+    ]);
   });
 
   it('keeps past campaign days read-only and future days editable', () => {
