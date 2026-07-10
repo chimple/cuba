@@ -18,6 +18,7 @@ import {
   GENDER,
   LANGUAGE,
   LATEST_TC_VERSION,
+  MODES,
   PAGES,
   PROFILE_DETAILS_GROWTHBOOK_VARIATION,
   TableTypes,
@@ -225,6 +226,13 @@ const ProfileDetails = () => {
     const { className, schoolName } = await Util.fetchCurrentClassAndSchool();
     setClassName(className);
     setSchoolName(schoolName);
+  };
+
+  const normalizeModeBeforeHomeNavigation = async () => {
+    const currMode = await schoolUtil.getCurrMode();
+    if (currMode === MODES.TEACHER) {
+      await schoolUtil.setCurrMode(MODES.PARENT);
+    }
   };
 
   const lockOrientation = () => {
@@ -444,6 +452,7 @@ const ProfileDetails = () => {
       setGbUpdated(true);
 
       await Util.ensureLidoCommonAudioForStudent(student);
+      await normalizeModeBeforeHomeNavigation();
       history.replace(PAGES.HOME);
     } catch (err) {
       logger.error('Error saving profile:', err);
@@ -498,6 +507,7 @@ const ProfileDetails = () => {
         action_type: ACTION_TYPES.PROFILE_CREATED,
       });
 
+      await normalizeModeBeforeHomeNavigation();
       history.replace(PAGES.HOME);
     } catch (err) {
       logger.error('Error skipping profile:', err);
