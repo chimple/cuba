@@ -229,9 +229,13 @@ const ProfileDetails = () => {
   };
 
   const normalizeModeBeforeHomeNavigation = async () => {
-    const currMode = await schoolUtil.getCurrMode();
-    if (currMode === MODES.TEACHER) {
-      await schoolUtil.setCurrMode(MODES.PARENT);
+    try {
+      const currMode = await schoolUtil.getCurrMode();
+      if (currMode === MODES.TEACHER) {
+        await schoolUtil.setCurrMode(MODES.PARENT);
+      }
+    } catch (error) {
+      logger.error('Failed to normalize mode before home navigation:', error);
     }
   };
 
