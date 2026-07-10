@@ -27,6 +27,17 @@ const emptyAudienceSummary: CampaignAudienceSummary = {
   grades: [],
 };
 
+const areStringArraysEqual = (left: string[], right: string[]) =>
+  left.length === right.length &&
+  left.every((value, index) => value === right[index]);
+
+const areOptionIdArraysEqual = <T extends { id: string }>(
+  left: T[],
+  right: T[],
+) =>
+  left.length === right.length &&
+  left.every((value, index) => value.id === right[index]?.id);
+
 type UseCampaignAudienceSelectionParams = {
   api: ServiceApi;
   form: CampaignSetupFormState;
@@ -75,7 +86,7 @@ export const useCampaignAudienceSelection = ({
     setAudienceSummary(emptyAudienceSummary);
     setLoadingAudience(false);
     setLoadingAudienceSummary(false);
-    setSaveGroup(true);
+    setSaveGroup(false);
     setMessage(null);
     setForm((current) => ({
       ...current,
@@ -124,29 +135,38 @@ export const useCampaignAudienceSelection = ({
   }, [api, form.programId, setMessage]);
 
   useEffect(() => {
-    if (
-      selectedSavedGroupId ||
-      !form.programId ||
-      selectedBlocks.length > 0 ||
-      selectedSchools.length > 0 ||
-      selectedGrades.length > 0
-    ) {
-      return;
+    if (selectedSavedGroupId || !form.programId) return;
+
+    if (!hasCustomBlockSelection) {
+      setSelectedBlocks((current) =>
+        areStringArraysEqual(current, audienceOptions.blocks)
+          ? current
+          : audienceOptions.blocks,
+      );
     }
 
-    setSelectedBlocks(audienceOptions.blocks);
-    setSelectedSchools(audienceOptions.schools);
-    setSelectedGrades(audienceOptions.grades);
-    setHasCustomBlockSelection(false);
-    setHasCustomSchoolSelection(false);
-    setHasCustomGradeSelection(false);
+    if (!hasCustomSchoolSelection) {
+      setSelectedSchools((current) =>
+        areOptionIdArraysEqual(current, audienceOptions.schools)
+          ? current
+          : audienceOptions.schools,
+      );
+    }
+
+    if (!hasCustomGradeSelection) {
+      setSelectedGrades((current) =>
+        areOptionIdArraysEqual(current, audienceOptions.grades)
+          ? current
+          : audienceOptions.grades,
+      );
+    }
   }, [
     audienceOptions,
     form.programId,
-    selectedBlocks.length,
-    selectedGrades.length,
+    hasCustomBlockSelection,
+    hasCustomGradeSelection,
+    hasCustomSchoolSelection,
     selectedSavedGroupId,
-    selectedSchools.length,
   ]);
 
   const schoolsForSelectedBlocks = useMemo(
@@ -158,12 +178,18 @@ export const useCampaignAudienceSelection = ({
   );
 
   useEffect(() => {
-    setSelectedSchools((current) =>
-      current.filter((school) =>
-        schoolsForSelectedBlocks.some((option) => option.id === school.id),
-      ),
-    );
-  }, [schoolsForSelectedBlocks]);
+    setSelectedSchools((current) => {
+      const nextSchools = hasCustomSchoolSelection
+        ? current.filter((school) =>
+            schoolsForSelectedBlocks.some((option) => option.id === school.id),
+          )
+        : schoolsForSelectedBlocks;
+
+      return areOptionIdArraysEqual(current, nextSchools)
+        ? current
+        : nextSchools;
+    });
+  }, [hasCustomSchoolSelection, schoolsForSelectedBlocks]);
 
   const selectedSavedGroup = useMemo(
     () => savedGroups.find((group) => group.id === selectedSavedGroupId),
@@ -298,6 +324,7 @@ export const useCampaignAudienceSelection = ({
     const fetchAudienceSummary = async () => {
       if (summarySchoolIds.length === 0 || summaryGradeIds.length === 0) {
         setAudienceSummary(emptyAudienceSummary);
+        setLoadingAudienceSummary(false);
         return;
       }
 
