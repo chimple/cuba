@@ -319,6 +319,12 @@ const getTodayDateKey = (): string => {
 const isBeforeToday = (dateKey: string): boolean =>
   dateKey.localeCompare(getTodayDateKey()) < 0;
 
+const isSundayDateKey = (dateKey: string): boolean => {
+  const date = new Date(`${dateKey}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return false;
+  return date.getUTCDay() === 0;
+};
+
 const isDateTimeExpired = (dateTimeIso?: string | null): boolean => {
   if (!dateTimeIso) return false;
 
@@ -437,8 +443,11 @@ export const buildCampaignMessagesData = (
   rowOffset = 0,
 ): CampaignMessagesData => {
   const messages = getMessages(data);
+  const activeTimelineDates = timelineDates.filter(
+    (date) => !isSundayDateKey(date),
+  );
 
-  if (timelineDates.length > 0) {
+  if (activeTimelineDates.length > 0) {
     const messagesByDate = new Map<string, CampaignMessageApiRow>();
     messages.forEach((row) => {
       const dateKey = getDateKeyForRow(row);
@@ -449,7 +458,7 @@ export const buildCampaignMessagesData = (
     const firstMessage = messages[0];
     const firstMessageSchedule = formatTime(firstMessage?.message_time);
     const firstPollSchedule = formatTime(firstMessage?.poll_time);
-    const rows = timelineDates.map((date, index) => {
+    const rows = activeTimelineDates.map((date, index) => {
       const matchedRow = messagesByDate.get(date);
       const poll = parseCampaignMessagePoll(matchedRow?.poll ?? null);
       const placeholderIso = `${date}T00:00:00.000Z`;
@@ -472,21 +481,6 @@ export const buildCampaignMessagesData = (
         pollStatus: matchedRow?.poll_status ?? null,
         pollTimeIso: rowPollTimeIso,
         isTimelineRow: true,
-      });
-
-      logger.info('CampaignMessages timeline row editability', {
-        rowId:
-          matchedRow?.id ||
-          `${date}-${index + rowOffset + 1}`.replace(/\s+/g, '-'),
-        date,
-        messageStatus: matchedRow?.message_status ?? null,
-        pollStatus: matchedRow?.poll_status ?? null,
-        messageTimeIso: rowMessageTimeIso,
-        pollTimeIso: rowPollTimeIso,
-        todayKey: getTodayDateKey(),
-        isBeforeToday: isBeforeToday(date),
-        messageEditable,
-        pollEditable,
       });
 
       return {
@@ -516,7 +510,7 @@ export const buildCampaignMessagesData = (
     return {
       messageTime: formatTime(firstMessage?.message_time),
       pollTime: formatTime(firstMessage?.poll_time),
-      total: timelineDates.length,
+      total: activeTimelineDates.length,
       rows,
     };
   }
@@ -592,6 +586,9 @@ export const loadCampaignMessagesData = async (
   params?: CampaignMessagingQueryParams,
 ): Promise<CampaignMessagesData> => {
   try {
+    const activeTimelineDates = timelineDates.filter(
+      (date) => !isSundayDateKey(date),
+    );
     const response = await ServiceConfig.getI().apiHandler.getCampaignMessaging(
       campaignId,
       params,
@@ -602,10 +599,13 @@ export const loadCampaignMessagesData = async (
         {
           messages: response.data.map(mapCampaignMessagingRow),
         },
-        timelineDates,
+        activeTimelineDates,
         (response.page - 1) * response.pageSize,
       ),
-      total: timelineDates.length > 0 ? timelineDates.length : response.total,
+      total:
+        activeTimelineDates.length > 0
+          ? activeTimelineDates.length
+          : response.total,
     };
   } catch (error) {
     logger.error('Failed to load campaign messages:', error);
@@ -787,6 +787,10 @@ export const useCampaignMessagesController = ({
         : [],
     [campaignEndDate, campaignStartDate],
   );
+  const displayTimelineDates = useMemo(
+    () => timelineDates.filter((date) => !isSundayDateKey(date)),
+    [timelineDates],
+  );
   const hourOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const periodOptionRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const toastTimeoutRef = useRef<number | null>(null);
@@ -813,10 +817,13 @@ export const useCampaignMessagesController = ({
       }
 
       setIsLoading(true);
-      const pageSize = timelineDates.length > 0 ? timelineDates.length : 20;
+      const pageSize =
+        displayTimelineDates.length > 0
+          ? displayTimelineDates.length
+          : CAMPAIGN_MESSAGES_PAGE_SIZE;
       const loadedMessagesData = await loadCampaignMessagesData(
         campaignId,
-        timelineDates,
+        displayTimelineDates,
         {
           page: 1,
           pageSize,
@@ -834,7 +841,7 @@ export const useCampaignMessagesController = ({
     return () => {
       isMounted = false;
     };
-  }, [campaignId, timelineDates.length]);
+  }, [campaignId, displayTimelineDates, timelineDates.length]);
 
   useEffect(
     () => () => {
@@ -918,7 +925,7 @@ export const useCampaignMessagesController = ({
     const rows = isEditMode
       ? messagesData.rows.map((row) => editedRowsById[row.id] ?? row)
       : messagesData.rows;
-    if (timelineDates.length === 0) return rows;
+    if (displayTimelineDates.length === 0) return rows;
 
     const startIndex = (page - 1) * CAMPAIGN_MESSAGES_PAGE_SIZE;
     return rows.slice(startIndex, startIndex + CAMPAIGN_MESSAGES_PAGE_SIZE);
@@ -927,15 +934,15 @@ export const useCampaignMessagesController = ({
     isEditMode,
     messagesData.rows,
     page,
-    timelineDates.length,
+    displayTimelineDates.length,
   ]);
 
   const pageCount = useMemo(
     () =>
-      timelineDates.length > 0
-        ? Math.ceil(timelineDates.length / CAMPAIGN_MESSAGES_PAGE_SIZE)
+      displayTimelineDates.length > 0
+        ? Math.ceil(displayTimelineDates.length / CAMPAIGN_MESSAGES_PAGE_SIZE)
         : Math.ceil(messagesData.total / CAMPAIGN_MESSAGES_PAGE_SIZE),
-    [messagesData.total, timelineDates.length],
+    [messagesData.total, displayTimelineDates.length],
   );
 
   useEffect(() => {
@@ -1129,12 +1136,12 @@ export const useCampaignMessagesController = ({
 
       const refreshedData = await loadCampaignMessagesData(
         campaignId,
-        timelineDates,
+        displayTimelineDates,
         {
           page: 1,
           pageSize:
-            timelineDates.length > 0
-              ? timelineDates.length
+            displayTimelineDates.length > 0
+              ? displayTimelineDates.length
               : CAMPAIGN_MESSAGES_PAGE_SIZE,
         },
       );
