@@ -9986,7 +9986,7 @@ export class SupabaseApi implements ServiceApi {
       const nativeSortColumn = CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS[orderBy];
       const shouldUseDatabasePagination =
         !isFieldCoordinator && Boolean(nativeSortColumn);
-      const campaignListingSelect = `*, cancelled_by_user:cancelled_by(*), manager:manager_id(*), program:program_id(*),
+      const campaignListingSelect = `*, manager:manager_id(*), program:program_id(*),
         target_audience:target_audience_id(
           id,
           is_all_schools,
@@ -10030,11 +10030,47 @@ export class SupabaseApi implements ServiceApi {
       }
 
       const mappedCampaigns = (data ?? []) as CampaignListingQueryRow[];
+      const cancelledByIds = Array.from(
+        new Set(
+          mappedCampaigns
+            .map((campaign) => campaign.cancelled_by)
+            .filter((id): id is string => Boolean(id)),
+        ),
+      );
+      let campaignsWithCancelledByUser = mappedCampaigns;
+
+      if (cancelledByIds.length > 0) {
+        const { data: cancelledByUsers, error: cancelledByUsersError } =
+          await supabase
+            .from('user')
+            .select('*')
+            .in('id', cancelledByIds)
+            .eq('is_deleted', false);
+
+        if (cancelledByUsersError) {
+          logger.error(
+            'Error fetching campaign cancelled by users:',
+            cancelledByUsersError,
+          );
+        } else {
+          const cancelledByUserMap = new Map(
+            (cancelledByUsers ?? []).map((user) => [user.id, user]),
+          );
+
+          campaignsWithCancelledByUser = mappedCampaigns.map((campaign) => ({
+            ...campaign,
+            cancelled_by_user: campaign.cancelled_by
+              ? (cancelledByUserMap.get(campaign.cancelled_by) ?? null)
+              : null,
+          }));
+        }
+      }
+
       // Apply field-coordinator visibility after the base campaign query so audience links can be inspected.
       const visibleCampaigns = shouldUseDatabasePagination
-        ? mappedCampaigns
+        ? campaignsWithCancelledByUser
         : isFieldCoordinator
-          ? mappedCampaigns.filter((campaign) => {
+          ? campaignsWithCancelledByUser.filter((campaign) => {
               const targetAudience = getSingleRelationValue(
                 campaign.target_audience,
               );
