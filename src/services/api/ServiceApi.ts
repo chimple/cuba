@@ -401,6 +401,7 @@ export type CampaignAssignmentOptions = {
 export type CampaignListingItem = {
   campaignId: string;
   campaign: TableTypes<'campaign'> & {
+    cancelled_by_user?: TableTypes<'user'> | TableTypes<'user'>[] | null;
     manager?: TableTypes<'user'> | TableTypes<'user'>[] | null;
     program?: TableTypes<'program'> | TableTypes<'program'>[] | null;
   };
