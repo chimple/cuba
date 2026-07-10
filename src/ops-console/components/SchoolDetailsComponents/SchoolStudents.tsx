@@ -1358,14 +1358,40 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     return programScopedClasses
       .map((classRow) => ({
         value: classRow.id,
-        label:
-          typeof classRow.name === 'string'
-            ? classRow.name
-            : String(classRow.name ?? ''),
+        label: getClassDisplayLabel(
+          classRow.grade,
+          classRow.section,
+          classRow.name,
+        ),
       }))
       .filter((option) => option.value && option.label)
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [programScopedClasses]);
+
+  const editClassOptions = useMemo(() => {
+    const options = [...classOptions];
+    const currentClassId = String(
+      editStudentData?.classWithidname?.id ?? '',
+    ).trim();
+    const currentClassLabel = getClassDisplayLabel(
+      editStudentData?.grade,
+      editStudentData?.classSection,
+      editStudentData?.classWithidname?.class_name,
+    );
+
+    if (
+      currentClassId &&
+      currentClassLabel &&
+      !options.some((option) => option.value === currentClassId)
+    ) {
+      options.push({
+        value: currentClassId,
+        label: currentClassLabel,
+      });
+    }
+
+    return options.sort((a, b) => a.label.localeCompare(b.label));
+  }, [classOptions, editStudentData]);
 
   const currentClass = useMemo(() => {
     if (!issTotal) {
@@ -1606,9 +1632,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     {
       name: 'classAndSection',
       label: 'Class And Section',
-      kind: 'text',
+      kind: 'select',
+      required: true,
       column: 0,
-      disabled: true,
+      options: editClassOptions,
     },
 
     // 5️⃣ Age – right
@@ -1649,17 +1676,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     if (!editStudentData) return; // ✅ null safety
 
     const user = editStudentData.user;
-    const classId = editStudentData.classWithidname?.id;
+    const selectedClassId = String(values.classAndSection ?? '').trim();
     const avatarToSend =
       user.avatar && user.avatar.trim() !== ''
         ? user.avatar
         : getRandomAvatar();
 
-    if (!classId) {
-      logger.error('Class ID missing for student');
+    if (!selectedClassId) {
+      logger.error('Selected class ID missing for student');
       return;
     }
-    await api.updateStudentFromSchoolMode(
+
+    const baseArgs = [
       user,
       values.studentName,
       Number(values.ageGroup),
@@ -1669,8 +1697,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       user.curriculum_id || user.curriculum_id!,
       user.grade_id || user.grade_id!,
       user.language_id || user.language_id!,
+    ] as const;
+
+    await api.updateStudentFromSchoolMode(
+      ...baseArgs,
       user.student_id || user.student_id!,
-      classId,
+      selectedClassId,
     );
 
     setIsEditStudentModalOpen(false);
@@ -1920,9 +1952,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           gender: editStudentData?.user?.gender ?? '',
           ageGroup: String(editStudentData?.user?.age ?? ''),
           studentID: editStudentData?.user?.student_id ?? '',
-          classAndSection: `${editStudentData?.grade ?? ''}${
-            editStudentData?.classSection ?? ''
-          }`,
+          classAndSection: String(editStudentData?.classWithidname?.id ?? ''),
           // Show all merged contacts in edit details as chips.
           phone: getStudentContactValues(editStudentData).join(' / '),
         }}
