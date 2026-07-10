@@ -8,6 +8,7 @@ import './CampaignsOverview.css';
 import CampaignsOverviewHeaderBar from './CampaignsOverviewHeaderBar';
 import {
   buildCampaignsOverviewViewModel,
+  CAMPAIGN_LISTING_STATUS,
   CampaignsOverviewApiResponse,
   DEFAULT_CAMPAIGNS_OVERVIEW_BREADCRUMB,
   DEFAULT_CAMPAIGNS_OVERVIEW_TABS,
@@ -65,7 +66,11 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
 
   useEffect(() => {
     const loadCampaignCancellationDetails = async () => {
-      if (!resolvedCampaignId || !campaignOverviewData) {
+      if (
+        !resolvedCampaignId ||
+        !campaignOverviewData ||
+        campaignOverviewData.data?.status !== CAMPAIGN_LISTING_STATUS.CANCELLED
+      ) {
         return;
       }
 
