@@ -22,6 +22,7 @@ jest.mock('i18next', () => ({
 }));
 
 const mockPush = jest.fn();
+const mockLocation = { search: '' };
 const mockUseAppSelector = jest.fn();
 const mockUseCampaignListingPageState = jest.fn();
 
@@ -47,6 +48,7 @@ type DataTableBodyMockProps = {
 
 jest.mock('react-router', () => ({
   useHistory: () => ({ push: mockPush }),
+  useLocation: () => mockLocation,
 }));
 
 jest.mock('../../redux/hooks', () => ({
@@ -237,6 +239,7 @@ const renderPage = ({
 describe('CampaignListingPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLocation.search = '';
   });
 
   it('renders campaign rows and summary values', () => {
@@ -276,6 +279,7 @@ describe('CampaignListingPage', () => {
   });
 
   it('navigates to the campaign overview page when a campaign row is clicked', () => {
+    mockLocation.search = '?search=summer&page=2';
     renderPage();
 
     fireEvent.click(screen.getByTestId('row-campaign-1'));
@@ -284,6 +288,10 @@ describe('CampaignListingPage', () => {
       expect.objectContaining({
         pathname: '/admin-home-page/campaigns/campaign-1',
         state: expect.objectContaining({
+          returnTo: {
+            pathname: '/admin-home-page/campaigns',
+            search: '?search=summer&page=2',
+          },
           campaignOverviewData: expect.objectContaining({
             data: expect.objectContaining({
               campaignId: 'campaign-1',
