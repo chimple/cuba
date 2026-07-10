@@ -62,7 +62,8 @@ export const AppUpdater = {
   sync: async (
     webServerURL: string,
     statusCallback: (status: HotUpdateStatus) => void,
-    checkDelay: number = 1000 * 60 * 60
+    // checkDelay: number = 1000 * 60 * 60
+    checkDelay: number = 0
   ): Promise<boolean> => {
     // Do not run the sync job on non-native platforms. On Web the service worker will manage caching file instead.
     if (!Capacitor.isNativePlatform()) {
@@ -202,7 +203,6 @@ export const AppUpdater = {
       // Report that the app was successfully updated.
       return true;
     } catch (error) {
-
       // Report that the app did not update.
       return false;
     } finally {
@@ -242,7 +242,7 @@ async function getCurrentRelease(): Promise<Release | null> {
 
     if (result.data) {
       // Get the active release summary details.
-      const data = JSON.parse(result.data) as Release;
+      const data = JSON.parse(result.data as string) as Release;
 
       // Get the checksum for the active release.
       const checksum = JSON.parse(
@@ -252,7 +252,7 @@ async function getCurrentRelease(): Promise<Release | null> {
             directory: Directory.Data,
             encoding: Encoding.UTF8,
           })
-        ).data
+        ).data as string
       ) as Checksum;
 
       // Return the release version details.
@@ -431,8 +431,7 @@ async function deleteOldReleases(activeReleaseName: string): Promise<void> {
             directory: Directory.Data,
             recursive: true,
           });
-        } catch (error) {
-        }
+        } catch (error) {}
       }
     }
   }
@@ -522,8 +521,7 @@ async function copyFromPreviousRelease(
       to: toPath,
       directory: directory,
     });
-  } catch (error) {
-  }
+  } catch (error) {}
 }
 
 /**
@@ -555,7 +553,6 @@ async function downloadFileFromWebServer(
     //   url: url,
     //   responseType: "blob",
     // });
-    
 
     // const writeFile = await Filesystem.writeFile({
     //   data: res.data,
@@ -684,8 +681,7 @@ export async function downloadFileFromAppBundle(
           directory: directory,
           data: base64Data,
         });
-      } catch (error) {
-      }
+      } catch (error) {}
     }
     localStorage.setItem(COPIED_BUNDLE_FILES_INDEX, index.toString());
   } catch (error) {

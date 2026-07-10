@@ -1,4 +1,4 @@
-
+//@ts-nocheck
 import { type Meta, type StoryObj } from "@storybook/react";
 import TeachersStudentDisplay from "../../../pages/Malta/TeachersStudentDisplay";
 

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
 import "./UserProfile.css";
 import Header from "../components/homePage/Header";
 import { PAGES, TableTypes } from "../../common/constants";
@@ -9,6 +8,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import UserProfileSection from "../components/UserProfileSection";
 import { Util } from "../../utility/util";
 import ProfileDetails from "../components/library/ProfileDetails";
+import { useHistory } from "react-router-dom";
 
 const UserProfile: React.FC = () => {
   const history = useHistory();
@@ -68,7 +68,6 @@ const UserProfile: React.FC = () => {
       if (tempSchool) setCurrentSchool(tempSchool);
       const tempClass = Util.getCurrentClass();
       if (tempClass) {
-        console.log("fdsfsds 1", tempClass);
         setCurrentClass(tempClass);
       }
     } catch (error) {
@@ -81,7 +80,6 @@ const UserProfile: React.FC = () => {
     fetchLanguages();
   }, []);
 
-  console.log("fdsfsds", currentClass);
   if (!currentClass?.id) {
     console.error("No current class selected.");
     return null;
@@ -111,11 +109,12 @@ const UserProfile: React.FC = () => {
     setIsEditMode(false);
   };
 
-  const handleLanguageChange = (languageCode: string) => {
+  const handleLanguageChange = async(languageCode: string) => {
     const selectedLanguage = languages.find(
       (lang) => lang.value === languageCode
     );
     if (selectedLanguage) {
+      await Util.updateUserLanguage(languageCode);
       setLanguage(selectedLanguage.value);
       setLanguageId(selectedLanguage.id);
     }

@@ -1,0 +1,102 @@
+.school-form-main-container {
+  height: 100vh;
+  width: 100%;          
+  overflow-y: auto;
+  padding: 16px;          
+  box-sizing: border-box;
+  background-color: #F9FAFB;
+}
+
+.school-form-header {
+  width: calc(100%);
+  margin: 0 auto;
+  height: 65px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.school-form-secondary-header {
+  width: calc(100%);
+  margin: 0 auto;
+  padding-left: 11px;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.school-form-secondary-header > * {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.school-form-container {
+  background-color: #FFFFFF;
+  padding: 20px;
+}
+
+.school-form-dropdown-container {
+  background-color: #f9fafb;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.school-form-dropdown-title {
+  margin-bottom: 16px !important;
+  color: #222;
+  font-weight: 600 !important;
+  font-size: 1.1rem !important;
+  text-align: left;
+}
+
+.school-form-dropdown-label {
+  margin-bottom: 4px !important;
+  text-align: left;
+  color: #111827;
+  font-size: 1rem;
+}
+
+/* .school-form-dropdown-required {
+  color: red;
+} */
+
+.school-form-dropdown-placeholder {
+  color: #9ca3af;
+}
+
+.school-form-dropdown-form-control .MuiOutlinedInput-root {
+  background-color: #ffffff;
+  border-radius: 8px;
+}
+
+.school-form-dropdown-form-control .MuiOutlinedInput-notchedOutline {
+  border-color: #e5e7eb;
+}
+
+.school-form-dropdown-form-control .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: #d1d5db;
+}
+
+.school-form-dropdown-form-control .Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: #2563eb;
+}
+
+.school-form-dropdown-form-control .MuiSelect-select {
+  padding: 10px 12px;
+  min-height: 0;
+}
+
+.school-form-dropdown-menu-item {
+  font-size: 0.95rem;
+}
+
+.user-details-save-btn:disabled,
+.user-details-save-btn.disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}

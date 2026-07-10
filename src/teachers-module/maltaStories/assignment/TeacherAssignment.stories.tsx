@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import TeacherAssignment from "../../components/homePage/assignment/TeacherAssignment";
 const meta: Meta = {

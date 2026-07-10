@@ -46,6 +46,8 @@
 }
 .icon-style {
   color: #707070;
+  width: 18px;
+  height: 18px;
 }
 .grid-container {
   display: grid;

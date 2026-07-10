@@ -1,0 +1,131 @@
+.profile-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 260px;
+  height: 100vh;
+  border-radius: 20px 0 0 20px;
+  background: #fffdee;
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  z-index: 999;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.3s ease forwards;
+}
+
+.slide-out-right {
+  animation: slideOutRight 0.3s ease forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.profile-menu-header {
+  position: relative;
+  text-align: left;
+  padding: 16px 16px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.profile-menu-close-icon {
+  position: absolute;
+  top: 15px;
+  right: 25px;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+}
+.profile-menu-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 10px;
+}
+
+.profile-menu-item {
+  display: flex;
+  gap: 0.5vh;
+  padding: 0 0.6vw;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.profile-menu-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.profile-menu-label {
+  color: #182a4f;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+}
+.profile-menu-item:hover {
+  background-color: #fff3e0;
+}
+
+.profile-menu-item-row {
+  display: flex;
+  align-items: center;
+  padding: clamp(10px, 2.8vh, 13px) 18px;
+}
+
+.profile-menu-icon {
+  margin-right: 16px;
+}
+.profile-header-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.profile-header-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #182a4f;
+  width: 100%; 
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; 
+}
+.profile-header-center .profile-header-name {
+  text-align: center;
+}
+.profile-header-left .profile-header-name {
+  text-align: left;
+}
+
+.profile-header-content img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+}
+
+.profile-menu-horizontal-line {
+  width: 223px;
+  height: 1px;
+  background: #dff2f2;
+  margin: 0 18px;
+}

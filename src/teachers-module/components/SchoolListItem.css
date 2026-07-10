@@ -1,0 +1,85 @@
+.school-list-item {
+  border-bottom: 1px solid #e0e0e0;
+  background-color: #fff;
+  transition: background-color 0.3s ease;
+}
+
+.school-list-item.expanded {
+  background-color: #f4eeff;
+}
+
+.school-list-item-header {
+  display: flex;
+  align-items: center;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+}
+.school-list-school-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-right: 1rem;
+}
+
+.school-list-school-name {
+  flex-grow: 1;
+  font-weight: 500;
+  color: #333;
+}
+
+.school-list-school-name strong {
+  font-weight: 700;
+  color: #000;
+}
+
+.school-list-expand-arrow {
+  font-size: 1.2rem;
+  color: #888;
+  transition: transform 0.3s ease;
+}
+
+.school-list-item.expanded .school-list-expand-arrow {
+  transform: rotate(180deg);
+}
+
+.school-list-school-item-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0.3rem 1rem;
+  border-top: 1px dashed #d1c4e9;
+  margin: 0 0.5rem;
+}
+
+.school-list-school-details-text p {
+  margin: 0;
+  font-size: 1rem;
+  color: #555;
+  text-align: left;
+  line-height: 1em;
+}
+
+.school-list-school-details-text p:first-child {
+  margin-bottom: 0.25rem;
+  line-height: 1em;
+}
+
+.school-list-join-button {
+  --background: #7c5db0;
+  --background-activated: #7c5db0;
+  --border-radius: 8px;
+  text-transform: none;
+  font-weight: 600;
+  height: 2.5rem;
+  flex-shrink: 0;
+}
+
+.school-list-school-name-udise-wrapper {
+  flex-grow: 1;
+}
+
+.school-list-school-udise-collapsed {
+  font-size: 0.79rem;
+  color: #4a4949;
+  line-height: 0.5rem;
+}

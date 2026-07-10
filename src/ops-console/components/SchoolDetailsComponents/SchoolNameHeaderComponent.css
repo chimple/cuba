@@ -1,0 +1,53 @@
+.school-header-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.school-header-title {
+  color: #000;
+  background: none;
+  font-weight: 600;
+  margin: 0;
+  font-size: 1.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+.school-header-bell {
+  color: #000;
+  font-size: 20px;
+  margin-left: 16px;
+  margin-right: 0;
+}
+
+@media (max-width: 600px) {
+  .school-header-row {
+    padding: 10px;
+    justify-content: center;
+    position: relative;
+  }
+  .school-header-title {
+    font-size: x-large;
+    max-width: 80vw;
+    text-align: center;
+    margin: 7px 0 0 0;
+    padding-bottom: 8px;
+    flex: 1 1 auto;
+  }
+  .school-header-bell {
+    font-size: large;
+    margin-left: 0;
+    position: absolute;
+    right: 10px;
+    top: 48%;
+    transform: translateY(-50%);
+  }
+}

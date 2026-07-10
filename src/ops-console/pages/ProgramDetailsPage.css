@@ -1,0 +1,131 @@
+.program-detail-page {
+  display: flex;
+  padding: 0 2% 2% 2%;
+  flex-direction: column;
+  background-color: white;
+  height: 100%;
+  overflow: auto;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* Sticky header */
+.program-detail-page-header {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 100;
+  font-size: 2rem;
+  font-weight: 600;
+  padding-top: 16px;
+  padding-bottom: 10px;
+  color: black;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+}
+
+/* Title: left-aligned by default */
+.program-detail-page-header-title {
+  flex-grow: 1;
+  text-align: left;
+}
+
+/* Bell icon on the right */
+.program-detail-page-header-icon {
+  margin-left: auto;
+}
+
+/* Breadcrumb */
+.program-detail-page-Breadcrumb {
+  padding-top: 12px;
+  padding-left: 2%;
+}
+
+/* Loading & error containers */
+.program-detail-page-loading-container,
+.program-detail-page-error-container {
+  padding: 24px;
+  text-align: center;
+}
+
+/* Layout containers */
+.program-detail-page-column-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 20px;
+}
+
+.program-detail-page-managers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.program-detail-page-full-width-button {
+  margin-top: 16px;
+  display: block;
+  width: 60%;
+}
+
+.program-detail-page-detail-item {
+  margin-bottom: 12px;
+}
+
+/* Location grid */
+.program-detail-page-location-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 24px;
+  padding: 8px 16px;
+}
+
+.program-detail-page-location-details-item {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  align-items: flex-start;
+}
+
+.program-detail-page-location-details-label {
+  font-weight: 500;
+  color: #555;
+  font-size: 0.875rem;
+}
+
+.program-detail-page-location-details-value {
+  font-size: 1rem;
+  color: #000;
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .program-detail-page-header {
+    font-size: 1.5rem;
+    position: relative;
+    height: 10%; 
+    align-items: center;
+    justify-content: center;
+  }
+
+  .program-detail-page-header-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 65%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+  }
+
+  .program-detail-page-header-icon {
+    position: absolute;
+    right: -45%;
+    transform: none;
+    z-index: 2;
+  }
+}
+

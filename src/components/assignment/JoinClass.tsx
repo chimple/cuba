@@ -5,12 +5,13 @@ import Loading from "../Loading";
 import DialogBoxButtons from "../parent/DialogBoxButtons​";
 import { ServiceConfig } from "../../services/ServiceConfig";
 import { Util } from "../../utility/util";
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, PluginListenerHandle } from "@capacitor/core";
 import { Keyboard } from "@capacitor/keyboard";
 import { NUMBER_REGEX, PAGES } from "../../common/constants";
 import { useHistory, useLocation } from "react-router";
 import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
 import { schoolUtil } from "../../utility/schoolUtil";
+import InputWithIcons from "../common/InputWithIcons";
 const urlClassCode: any = {};
 
 const JoinClass: FC<{
@@ -18,16 +19,19 @@ const JoinClass: FC<{
 }> = ({ onClassJoin }) => {
   const [loading, setLoading] = useState(false);
   const [showDialogBox, setShowDialogBox] = useState(false);
-  const [inviteCode, setInviteCode] = useState<number>();
+  const [inviteCode, setInviteCode] = useState("");
   const [codeResult, setCodeResult] = useState();
   const [error, setError] = useState("");
   const [schoolName, setSchoolName] = useState<string>();
   const [isInputFocus, setIsInputFocus] = useState(false);
-  const scollToRef = useRef<null | HTMLDivElement>(null);
+  const scrollToRef = useRef<null | HTMLDivElement>(null);
   const history = useHistory();
   const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const [fullName, setFullName] = useState("");
+  const [currStudent] = useState<any>(Util.getCurrentStudent());
 
   const api = ServiceConfig.getI().apiHandler;
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const isNextButtonEnabled = () => {
     let tempInviteCode = urlClassCode.inviteCode
@@ -53,19 +57,18 @@ const JoinClass: FC<{
       return;
     } else {
       if (!!error) setError("");
-      if (!isNextButtonEnabled()) return;
+      // if (!isNextButtonEnabled()) return;
       setLoading(true);
       try {
-        const result = await api.getDataByInviteCode(
-          urlClassCode.inviteCode ? urlClassCode.inviteCode : inviteCode
-        );
+        const codeToVerify = urlClassCode.inviteCode || inviteCode;
+        const result = await api.getDataByInviteCode(parseInt(codeToVerify, 10));
         setCodeResult(result);
         setShowDialogBox(true);
       } catch (error) {
         if (error instanceof Object) {
           let eMsg: string =
             "Error: Invalid inviteCode" === error.toString()
-              ? t("Invalid Code. Please contact your teacher")
+              ? t("Invalid code. Please check and Try again.")
               : error.toString();
           setError(eMsg);
         }
@@ -74,14 +77,30 @@ const JoinClass: FC<{
     }
   };
   const onJoin = async () => {
-    setShowDialogBox(false);
+    // setShowDialogBox(false);
+    if (loading) return;
     setLoading(true);
-    const student = Util.getCurrentStudent();
+
     try {
-      if (!student || inviteCode == null) {
+      const student = Util.getCurrentStudent();
+
+      if (!student || inviteCode.length !== 6) {
         throw new Error("Student or invite code is missing.");
       }
-      await api.linkStudent(inviteCode, student.id);
+      if (student.name == null || student.name === "") {
+        await api.updateStudent(
+          student,
+          fullName,
+          student.age!,
+          student.gender!,
+          student.avatar!,
+          student.image!,
+          student.curriculum_id!,
+          student.grade_id!,
+          student.language_id!
+        );
+      }
+      await api.linkStudent(parseInt(inviteCode, 10), student.id);
       if (!!codeResult) {
         Util.subscribeToClassTopic(
           codeResult["class_id"],
@@ -104,106 +123,156 @@ const JoinClass: FC<{
       // history.replace("/");
       // window.location.reload();
     } catch (error) {
+      console.error("Join class failed:", error);
       if (error instanceof Object) setError(error.toString());
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
   const location = useLocation();
 
   useEffect(() => {
-    //Util.isTextFieldFocus(scollToRef, setIsInputFocus);
+    setFullName(currStudent?.name || "");
 
     const urlParams = new URLSearchParams(location.search);
     const joinClassParam = urlParams.get("join-class");
     const classCode = urlParams.get("classCode");
 
-    if (classCode != "") {
-      let tempClassCode =
-        !!classCode && !isNaN(parseInt(classCode))
-          ? parseInt(classCode)
-          : undefined;
-      setInviteCode(tempClassCode);
-      urlClassCode.inviteCode = tempClassCode;
-      if (classCode != "") {
+    if (classCode && /^\d{1,6}$/.test(classCode)) {
+      setInviteCode(classCode);
+      urlClassCode.inviteCode = classCode;
+      if (classCode.length === 6) {
         getClassData();
       }
     }
   }, []);
 
-  return (
-    <div className="join-class-main-header">
-      <div className="join-class-header" aria-label="Join Class Header">
-        {/* <div className="join-class-title">
-          {t("Enter the 6 digit code your teacher has given to join the class")}
-        </div> */}
-        <input
-          aria-label="Join Class Header"
-          onChange={(evt) => {
-            const inviteCode = evt.target.value.slice(0, 6);
-            if (!inviteCode) {
-              setInviteCode(undefined);
-              return;
-            }
-            if (!NUMBER_REGEX.test(inviteCode)) {
-              return;
-            }
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.setScroll({ isDisabled: true });
 
-            setInviteCode(parseInt(inviteCode));
-          }}
-          className="join-class-text-box"
-          defaultValue={inviteCode ?? ""}
-          type="tel"
-          placeholder={t("Enter the class code to join the class") as string}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              getClassData();
+      const handleKeyboardShow = () => {
+        setIsInputFocus(true);
+      };
+
+      const handleKeyboardHide = () => {
+        setIsInputFocus(false);
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      };
+
+      let showSub: PluginListenerHandle;
+      let hideSub: PluginListenerHandle;
+
+      // Use an async IIFE to await the subscriptions
+      (async () => {
+        showSub = await Keyboard.addListener(
+          "keyboardWillShow",
+          handleKeyboardShow
+        );
+        hideSub = await Keyboard.addListener(
+          "keyboardWillHide",
+          handleKeyboardHide
+        );
+      })();
+
+      return () => {
+        showSub?.remove();
+        hideSub?.remove();
+      };
+    }
+  }, []);
+
+  useEffect(() => {
+    if (inviteCode && inviteCode.length === 6) {
+      getClassData();
+    }
+  }, [inviteCode]);
+
+  const isFormValid =
+    !!codeResult &&
+    !error &&
+    (fullName.length >= 3 || fullName === currStudent.name) &&
+    inviteCode?.length === 6;
+
+  return (
+    <div className="join-class-parent-container">
+      <div
+        className={`assignment-join-class-container-scroll ${
+          isInputFocus ? "shift-up" : ""
+        }`}
+        ref={containerRef}
+      >
+        <h2>{t("Join a Class by entering the details below")}</h2>
+        <div className="join-class-container">
+          <InputWithIcons
+            label={t("Full Name")}
+            placeholder={t("Enter the child’s full name") ?? ""}
+            value={fullName}
+            setValue={setFullName}
+            icon="assets/icons/BusinessCard.svg"
+            readOnly={fullName === currStudent.name}
+            statusIcon={
+              fullName.length == 0 ? null : fullName &&
+                (fullName.length >= 3 || fullName === currStudent.name) ? (
+                <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
+              ) : (
+                <img src="assets/icons/Vector.svg" alt="Status icon" />
+              )
             }
-          }}
-          value={inviteCode ?? ""}
-          style={{ width: "63vw" }}
-        />
-        <p className={"error-text "}>{error}</p>
+            required={true}
+            labelOffsetClass="with-icon-label-offset-small"
+          />
+
+          <InputWithIcons
+            label={t("Class Code")}
+            placeholder={t("Enter the code to join a class") ?? ""}
+            value={inviteCode}
+            setValue={(val: string) => {
+              // Only allow digits to be entered.
+              if (/^\d*$/.test(val)) {
+                setInviteCode(val);
+              }
+            }}
+            icon="assets/icons/OpenBook.svg"
+            type="text"
+            maxLength={6}
+            statusIcon={
+              inviteCode?.length === 6 ? (
+                codeResult && !error ? (
+                  <img src="assets/icons/CheckIcon.svg" alt="Status icon" />
+                ) : error && error !== "" ? (
+                  <img src="assets/icons/Vector.svg" alt="Status icon" />
+                ) : null
+              ) : null
+            }
+            required={true}
+            labelOffsetClass="with-icon-label-offset-small"
+          />
+        </div>
+
+        <div className="join-class-message">
+          {codeResult &&
+          !error &&
+          error == "" &&
+          inviteCode?.length === 6
+            ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${
+                codeResult["class_name"]
+              }`
+            : error && inviteCode?.length === 6
+            ? error
+            : null}
+        </div>
         <button
-          className={
-            "okay-button " + (!isNextButtonEnabled() ? "disabled-btn" : "")
-          }
-          disabled={!isNextButtonEnabled()}
-          onClick={getClassData}
+          className="join-class-confirm-button"
+          onClick={onJoin}
+          disabled={loading || !isFormValid}
         >
-          {t("Okay")}
+          <span className="join-class-confirm-text">{t("Confirm")}</span>
         </button>
-        {isInputFocus ? <div ref={scollToRef} id="scroll"></div> : null}
       </div>
-      <Loading isLoading={loading} />
-      <DialogBoxButtons
-        width={"40vw"}
-        height={"30vh"}
-        message={
-          t("You are Joining ") +
-          (!!codeResult
-            ? t("School") +
-                ": " +
-                codeResult["school_name"] +
-                ", " +
-                t("Class") +
-                ": " +
-                codeResult["class_name"] ?? ""
-            : "")
-        }
-        showDialogBox={showDialogBox}
-        yesText={t("Cancel")}
-        noText={t("Enter the Class")}
-        handleClose={() => {
-          setShowDialogBox(false);
-        }}
-        onYesButtonClicked={() => {
-          setShowDialogBox(false);
-        }}
-        onNoButtonClicked={async () => {
-          await onJoin();
-        }}
-      />
     </div>
   );
 };

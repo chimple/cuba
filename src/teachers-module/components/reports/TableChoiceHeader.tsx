@@ -39,6 +39,7 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
   dateRangeValue,
   isAssignmentReport,
 }) => {
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [selectedValue, setSelectedValue] = useState<string | undefined>();
 
   const [isAssignmentsOnly, setIsAssignmentsOnly] = useState(
@@ -119,25 +120,38 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
 
   return (
     <div className="date-range-selector">
-      {!isAssignmentReport && (<div className="toggle-container">
-        <div className="table-choice-header-toggle">
-          <label className="switch">
-            <input
-              type="checkbox"
-              checked={isAssignmentsOnly}
-              onChange={toggleAssignmentsOnly}
-            />
-            <span className="slider"></span>
-          </label>
-
-          <span className="toggle-label">
-            {isAssignmentsOnly ? t("Assignments Only") : t("All activities")}
-          </span>
+      {!isAssignmentReport && (
+        <div className="toggle-container">
+          <div className="pill-toggle">
+            <div
+              className={`pill-option ${isAssignmentsOnly ? "active" : ""}`}
+              onClick={() => {
+                if (!isAssignmentsOnly) {
+                  setIsAssignmentsOnly(true);
+                  onIsAssignments(true);
+                }
+              }}
+            >
+              {t("Assignments")}
+            </div>
+            <div
+              className={`pill-option ${!isAssignmentsOnly ? "active" : ""}`}
+              onClick={() => {
+                if (isAssignmentsOnly) {
+                  setIsAssignmentsOnly(false);
+                  onIsAssignments(false);
+                }
+              }}
+            >
+              {t("All activities")}
+            </div>
+          </div>
         </div>
-      </div>
       )}
       <div className="date-range-container">
-        <p>{t("Click date to select Date Range")}</p>
+        <p className="table-date-range-text">
+          {t("Click date to select Date Range")}
+        </p>
         <div className="date-range-controls">
           <button className="nav-btn" onClick={handlePrevDateRange}>
             {"<"}
@@ -147,12 +161,10 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
               dateRange.startDate.getMonth() + 1
             )
               .toString()
-              .padStart(
-                2,
-                "0"
-              )} - ${dateRange.endDate.getDate().toString().padStart(2, "0")}/${(
-              dateRange.endDate.getMonth() + 1
-            )
+              .padStart(2, "0")} - ${dateRange.endDate
+              .getDate()
+              .toString()
+              .padStart(2, "0")}/${(dateRange.endDate.getMonth() + 1)
               .toString()
               .padStart(2, "0")}`}
           </div>
@@ -166,18 +178,36 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
         </div>
       </div>
       <div className="table-sort-divider"></div>
-      <div>
-        <CustomDropdown
-          options={Object.entries(TABLESORTBY).map(([key, value]) => ({
-            id: key,
-            name: value,
-          }))}
-          placeholder={t(sortBy)??""}
-          onOptionSelect={handleNameSort}
-          selectedValue={sortBy}
-          isDownBorder={false}
-          icon={funnel}
-        />
+
+      <div className="tablechoice-custom-dropdown-wrapper">
+        <div
+          className="tablechoice-custom-dropdown-header"
+          onClick={() => setDropdownOpen(!isDropdownOpen)}
+        >
+          <span>{sortBy ? t(sortBy) : t("Sort By")}</span>
+          <img src="assets/icons/filterArrow.svg" alt="Filter_icon" />
+        </div>
+
+        {isDropdownOpen && (
+          <div className="tablechoice-custom-dropdown-menu">
+            {Object.entries(TABLESORTBY).map(([key, value]) => {
+              return (
+                <div
+                  key={key}
+                  className={`tablechoice-custom-dropdown-item ${
+                    sortBy === value ? "selected" : ""
+                  }`}
+                  onClick={() => {
+                    handleNameSort({ id: key, name: value });
+                    setDropdownOpen(false);
+                  }}
+                >
+                  {t(value)}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

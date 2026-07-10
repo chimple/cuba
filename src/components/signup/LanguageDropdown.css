@@ -1,0 +1,117 @@
+.LanguageDropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.LanguageDropdown-selected {
+  width: 23vw;
+  height: 3.8vh;
+  min-width: 100px;
+  min-height: 35px;
+  max-width: 100px;
+  max-height: 35px;
+  background: #fff;
+  border: 2.5px solid #f34d08;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 16px;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  outline: none;
+  transition: border 0.2s;
+  position: relative;
+  z-index: 11;
+}
+
+.LanguageDropdown-selected.open {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.LanguageDropdown-title {
+  min-width: 54px;
+  text-align: start;
+  margin-left: -7px;
+  font-weight: 500;
+}
+
+.LanguageDropdown-arrow {
+  font-size: 18px;
+  color: #ff6600;
+  object-fit: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+  transform: rotate(0deg);
+}
+
+.LanguageDropdown-selected.open .LanguageDropdown-arrow {
+  transform: rotate(180deg);
+}
+
+/* Dropdown animation */
+.LanguageDropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 2px solid #F34D08;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 0;
+  margin-top: 0;
+
+  opacity: 0;
+  transform: scaleY(0.95);
+  transform-origin: top;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.LanguageDropdown-menu.show {
+  opacity: 1;
+  transform: scaleY(1);
+  pointer-events: auto;
+}
+
+.LanguageDropdown-menu.hide {
+  opacity: 0;
+  transform: scaleY(0.95);
+  pointer-events: none;
+}
+
+.LanguageDropdown-option {
+  padding: 6px 10px;
+  font-size: 16px;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  background: #fff;
+}
+
+.LanguageDropdown-option:last-child {
+  border-bottom: none;
+}
+
+/* .LanguageDropdown-option:hover,
+.LanguageDropdown-option.selected {
+  background: #ffe5cc;
+  color: #F34D08;
+} */
+
+@media screen and (max-width: 768px) {
+  .LanguageDropdown-container {
+    position: absolute;
+    top: 79px;
+    right: 23px;
+  }
+}

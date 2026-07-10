@@ -1,0 +1,161 @@
+.search-school-page ion-content {
+  --background: #ffffff;
+}
+.search-school-page ion-header ion-toolbar {
+  --background: #7c5db0; 
+  --color: white;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 0;
+  --padding-bottom: 0;
+  height: 10vh;
+  display: flex;
+  align-items: center;
+}
+
+.search-school-fixed-top-area {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--ion-background-color, white);
+  padding: 1rem 1.5rem 0.5rem 1.5rem; 
+  background-color: #ffffff;
+}
+
+.search-school-scrollable-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding-bottom: 1rem;
+}
+
+.search-school-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #4e4d4d;
+  margin: 0 0 0.5rem 0;
+}
+
+.search-school-required-text {
+  color: #4e4d4d;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.search-school-results-list-cards {
+  --ion-list-padding: 0px;
+  /* padding-top: 8px; Small space between header and list */
+  padding-left: 1.5rem; 
+  padding-right: 1.5rem; 
+  background-color: white;
+}
+.search-school-asterisk {
+  color: red;
+}
+
+.search-school-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.search-school-row {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.search-school-field-wrapper {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+.search-school-field-wrapper.required::before {
+  content: "*";
+  color: red;
+  position: absolute;
+  top: 0.6rem;
+  left: -0.7rem;
+  font-size: 1rem;
+  z-index: 10;
+}
+
+.search-school-item {
+  --min-height: 1.8rem;
+  --max-width: 220px;
+  --background: #ffffff !important;
+  --border-radius: 6px;
+  --border-color: #7c5db0;
+  --border-width: 1px;
+  --padding-start: 0.8rem;
+  --inner-padding-end: 0.8rem;
+  border: 1px solid #7c5db0;
+  border-radius: 8px;
+}
+
+ .search-school-select {
+  width: 100%;
+  padding-right: 2rem; 
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.search-school-select::part(text) {
+  max-width: 5ch;        
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+}
+
+.search-school-input-container {
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+.search-school-clear-icon {
+  cursor: pointer;
+}
+
+.search-school-results-list {
+  background: transparent;
+  padding-top: 1rem;
+}
+
+.search-school-center-message {
+  text-align: center;
+  color: #888;
+  margin-top: 3rem;
+  font-size: 1rem;
+}
+
+.search-school-results-summary {
+  margin-top: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+.search-school-found-results-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #3455db;
+  margin: 0;
+}
+.search-school-refine-results-text {
+  font-size: 0.7rem;
+  color: #4e4d4d;
+  /* margin-top: 0.25rem; */
+}
+
+.search-school-dropdown-arrow-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #555;
+  font-size: 1.2rem;
+  pointer-events: none;
+}
+
+.search-school-select::part(icon) {
+  display: none;
+}

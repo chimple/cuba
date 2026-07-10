@@ -1,0 +1,205 @@
+/* StudentRejectedRequestDetails.css */
+.ops-rejected-request-details-layout {
+  min-height: 100vh;
+  background: #fcfcff;
+  padding: 2vw 3vw 0 3vw;
+  width: 100vw;
+  box-sizing: border-box;
+}
+
+.ops-rejected-request-details-page-title {
+  font-weight: 700;
+  margin-bottom: 0.8vw;
+  font-size: 2.1rem;
+  color: #1b1b28;
+  margin-top: 1.5vw;
+}
+
+.ops-rejected-request-details-breadcrumbs {
+  color: #888;
+  margin-bottom: 2vw;
+  font-size: 1.05rem;
+}
+.ops-rejected-request-details-breadcrumbs .link {
+  color: #3799fd;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-right: 0.7vw;
+}
+.ops-rejected-request-details-breadcrumbs .active {
+  color: #232323;
+  font-weight: 600;
+  margin-left: 0.7vw;
+}
+
+.ops-rejected-request-details-main-content-row {
+  margin-top: 0vw;
+}
+
+.ops-rejected-request-details-details-card {
+  border-radius: 1.5rem;
+  background: #fff;
+  padding: 2.5vw 2vw 2vw 2vw;
+  min-width: 320px;
+  max-width: 31vw;
+  margin-bottom: 2vw;
+  box-shadow: 0 2px 32px rgba(75, 79, 112, 0.07);
+}
+
+.ops-rejected-request-details-card-title {
+  color: #26244d;
+  letter-spacing: 0.03rem;
+  margin-bottom: 1.2rem;
+  font-weight: 700 !important;
+  font-family: Roboto;
+  font-size: 1.25rem;
+}
+
+.ops-rejected-request-details-field-stack {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 2.3vh;
+}
+.ops-rejected-request-details-field-stack .label {
+  font-size: 0.99rem;
+  color: #606072;
+  font-weight: 500;
+  margin-bottom: 0.3em;
+}
+.ops-rejected-request-details-field-stack .value {
+  font-size: 1.13rem;
+  color: #232323;
+  font-weight: 600;
+  padding-left: 0.05em;
+  word-break: break-all;
+}
+
+.ops-rejected-request-details-label-sm {
+  font-size: 0.95rem;
+  color: #555;
+  font-weight: 500;
+}
+.ops-rejected-request-details-value-sm {
+  font-size: 1.06rem;
+  color: #222;
+  font-weight: 600;
+}
+
+.ops-rejected-request-details-label-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
+  color: #2c2c34;
+  font-size: 1.07rem;
+  font-family: inherit;
+  font-weight: 500;
+}
+.ops-rejected-request-details-label-row span:first-child {
+  color: #606072;
+  font-weight: 500;
+  min-width: 110px;
+  margin-right: 1vw;
+}
+.ops-rejected-request-details-label-row span:last-child {
+  text-align: right;
+  min-width: 110px;
+  color: #232323;
+}
+
+/* .ops-rejected-request-details-link {
+  color: #3799fd;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-right: 0.7vw;
+} */
+
+.ops-rejected-request-details-active {
+  color: #232323;
+  font-weight: 600;
+  margin-left: 0.7vw;
+}
+
+.ops-rejected-request-details-rejection-card {
+  background: #fbeaea !important;
+  border: 1.3px solid #f0b8b8;
+  margin-bottom: 2vw;
+}
+.ops-rejected-request-details-rejection-title {
+  color: #b12424 !important;
+  font-weight: 700;
+}
+.ops-rejected-request-details-label-reject {
+  color: #b12424 !important;
+  font-weight: 500;
+}
+.ops-rejected-request-details-value-reject {
+  color: #b12424 !important;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+  .ops-rejected-request-details-details-card {
+    max-width: unset;
+    padding: 4vw 2.5vw;
+    min-width: 230px;
+  }
+}
+@media (max-width: 900px) {
+  .ops-rejected-request-details-details-card {
+    max-width: unset;
+    min-width: unset;
+    padding: 6vw 2vw 3vw 2vw;
+  }
+  .ops-rejected-request-details-main-content-row {
+    flex-direction: column !important;
+  }
+}
+@media (max-width: 600px) {
+  .ops-rejected-request-details-details-card {
+    border-radius: 1.2rem;
+    padding: 4vw 2vw 3vw 2vw;
+    margin-bottom: 3vw;
+    font-size: 1rem;
+  }
+  .ops-rejected-request-details-field-stack .label {
+    font-size: 0.99rem;
+  }
+  .ops-rejected-request-details-field-stack .value {
+    font-size: 1.08rem;
+  }
+  .ops-rejected-request-details-label-row {
+    flex-direction: column;
+    align-items: flex-start;
+    font-size: 0.98rem;
+  }
+  .ops-rejected-request-details-label-row span {
+    min-width: unset;
+  }
+  .ops-rejected-request-details-breadcrumbs {
+    font-size: 0.98rem;
+  }
+}
+
+.ops-rejected-request-details-centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+  flex-direction: column;
+}
+.ops-rejected-request-details-link {
+  color: blue;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ops-rejected-request-details-link:hover {
+  text-decoration: underline;
+}
+
+.ops-rejected-request-details-active {
+  color: #333; /* or your theme active color */
+  font-weight: bold;
+  cursor: default;
+}

@@ -1,17 +1,32 @@
+/*
+ * Copyright (C) 2015 Chimple
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import { createRoot } from "react-dom/client";
+import { useEffect, useState } from "react";
 import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
-import reportWebVitals from "./reportWebVitals";
+// import reportWebVitals from "./reportWebVitals";
 import "./index.css";
 import "./i18n";
 import { APIMode, ServiceConfig } from "./services/ServiceConfig";
-import {
-  defineCustomElements as jeepSqlite,
-  applyPolyfills,
-} from "jeep-sqlite/loader";
+import { defineCustomElements as jeepSqlite } from "jeep-sqlite/loader";
 import { FirebaseCrashlytics } from "@capacitor-firebase/crashlytics";
 import { SqliteApi } from "./services/api/SqliteApi";
-import { GoogleAuth } from "@codetrix-studio/capacitor-google-auth";
+import { SocialLogin } from "@capgo/capacitor-social-login";
 import { IonLoading } from "@ionic/react";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { ScreenOrientation } from "@capacitor/screen-orientation";
@@ -21,6 +36,43 @@ import {
   SpeechSynthesis,
   SpeechSynthesisUtterance,
 } from "./utility/WindowsSpeech";
+import { GrowthBook, GrowthBookProvider } from "@growthbook/growthbook-react";
+import { Util } from "./utility/util";
+import { CURRENT_USER, EVENTS, IS_OPS_USER } from "./common/constants";
+import { GbProvider } from "./growthbook/Growthbook";
+import { initializeFireBase } from "./services/Firebase";
+import * as Sentry from "@sentry/capacitor";
+import * as SentryReact from "@sentry/react";
+
+Sentry.init(
+  {
+    dsn: process.env.REACT_APP_SENTRY_DSN,
+
+    sendDefaultPii: true,
+    // enableLogs: true,
+    // // Logs requires @sentry/capacitor 2.0.0 or newer.
+    // _experiments: {
+    //   enableLogs: true,
+    //   beforeSendLog: (log) => {
+    //     return log;
+    //   },
+    // },
+
+    integrations: [
+      Sentry.browserTracingIntegration(),
+
+      // send console.log, console.warn, and console.error calls as logs to Sentry
+      // SentryReact.consoleLoggingIntegration({
+      //   levels: ["log", "warn", "error"],
+      // }),
+    ],
+  },
+  // Forward the init method from @sentry/react
+  SentryReact.init
+);
+const userData = localStorage.getItem(CURRENT_USER);
+const userId = userData ? JSON.parse(userData).id : undefined;
+if (userId) Sentry.setUser({ id: userId });
 
 // Extend React's JSX namespace to include Stencil components
 declare global {
@@ -29,6 +81,52 @@ declare global {
   }
 }
 defineCustomElements(window);
+
+const SPLASH_DELAY_MS = 2000;
+const SPLASH_IMAGE_SRC = "assets/icons/Pangolim1.png";
+const SPLASH_MESSAGE =
+  "This application has been developed by VSO and Chimple with financial support from UNICEF.";
+
+const StartupApp: React.FC = () => {
+  const [showSplash, setShowSplash] = useState(true);
+
+  useEffect(() => {
+    SplashScreen.hide().catch(() => {
+      // The splash may already be hidden on web or by the host platform.
+    });
+
+    const timeoutId = window.setTimeout(() => {
+      setShowSplash(false);
+    }, SPLASH_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  if (showSplash) {
+    return (
+      <div className="startup-splash" role="status" aria-live="polite">
+        <img
+          className="startup-splash__image"
+          src={SPLASH_IMAGE_SRC}
+          alt="Chimple splash"
+        />
+        <p className="startup-splash__text">{SPLASH_MESSAGE}</p>
+      </div>
+    );
+  }
+
+  return (
+    <GrowthBookProvider growthbook={gb}>
+      <GbProvider>
+        <App />
+      </GbProvider>
+    </GrowthBookProvider>
+  );
+};
+
+initializeFireBase();
 
 // Conditionally attach only if the native APIs are missing (optional)
 if (typeof window !== "undefined") {
@@ -39,13 +137,11 @@ if (typeof window !== "undefined") {
     (window as any).SpeechSynthesisUtterance = SpeechSynthesisUtterance;
   }
 }
-
 if (Capacitor.isNativePlatform()) {
   await ScreenOrientation.lock({ orientation: "landscape" });
 }
-applyPolyfills().then(() => {
-  jeepSqlite(window);
-});
+jeepSqlite(window);
+
 const recordExecption = (message: string, error: string) => {
   if (Capacitor.getPlatform() != "web") {
     FirebaseCrashlytics.recordException({ message: message, domain: error });
@@ -55,35 +151,56 @@ window.onunhandledrejection = (event: PromiseRejectionEvent) => {
   recordExecption(event.reason.toString(), event.type.toString());
 };
 window.onerror = (message, source, lineno, colno, error) => {
-  recordExecption(message.toString, error.toString());
+  recordExecption(message.toString(), error.toString());
 };
-SplashScreen.hide();
 const container = document.getElementById("root");
-const root = createRoot(container!);
-GoogleAuth.initialize({
-  clientId: process.env.REACT_APP_CLIENT_ID,
-  scopes: ["profile", "email"],
-  // grantOfflineAccess: true,
+const root = createRoot(container!, {
+  onUncaughtError: SentryReact.reactErrorHandler((error, errorInfo) => {
+    console.warn("Uncaught error", error, errorInfo.componentStack);
+  }),
+  onCaughtError: SentryReact.reactErrorHandler(),
+  // Callback called when React automatically recovers from errors.
+  onRecoverableError: SentryReact.reactErrorHandler(),
 });
-SqliteApi.getInstance().then(() => {
-  ServiceConfig.getInstance(APIMode.SQLITE);
-  root.render(
-    <>
-      <App />
-    </>
-  );
-  // initializeFireBase();
+await SocialLogin.initialize({
+  google: {
+    webClientId: process.env.REACT_APP_CLIENT_ID,
+  },
 });
 
-root.render(
-  <>
-    <IonLoading
-      message={`<img class="loading" src="assets/icons/Pangolim1.png"></img>`}
-      isOpen={true}
-      spinner={null}
-    />
-  </>
-);
+const gb = new GrowthBook({
+  apiHost: "https://cdn.growthbook.io",
+  clientKey: process.env.REACT_APP_GROWTHBOOK_ID,
+  enableDevMode: true,
+  trackingCallback: async (experiment, result) => {
+    try {
+      const userData = localStorage.getItem(CURRENT_USER);
+      const userId = userData ? JSON.parse(userData).id : undefined;
+      await Util.logEvent(EVENTS.EXPERIMENT_VIEWED, {
+        user_id: userId,
+        experimentId: experiment.key,
+        variationId: result.key,
+      });
+    } catch (error) {
+      console.error("Error in GrowthBook tracking callback:", error);
+    }
+  },
+});
+gb.init({
+  streaming: true,
+});
+const isOpsUser = localStorage.getItem(IS_OPS_USER) === "true";
+const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
+
+if (isOpsUser) {
+  serviceInstance.switchMode(APIMode.SUPABASE);
+  root.render(<StartupApp />);
+} else {
+  SqliteApi.getInstance().then(() => {
+    serviceInstance.switchMode(APIMode.SQLITE);
+    root.render(<StartupApp />);
+  });
+}
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
@@ -93,4 +210,4 @@ serviceWorkerRegistration.unregister();
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();
+// reportWebVitals();

@@ -1,9 +1,8 @@
-/* ImageDropdown.css */
 .imageDropdown-container {
   display: flex;
   align-items: center;
-  border-bottom: 4px solid black;
-  width: clamp(170px, 200px, 300px);
+  border-bottom: 2px solid #9473CB;
+  width: clamp(160px, 30vw, 200px);
   height: min(5vh, 40px);
   min-height: 35px;
 }
@@ -15,7 +14,7 @@
   border-radius: 8px solid transparent;
   padding: 0.8vh 1vw;
   color: #333;
-  font-size: 2vh;
+  font-size: 2.7vh;
   height: 5vh;
 }
 
@@ -27,19 +26,19 @@
   color: #333;
 }
 
-.dropdown-icon {
+.imageDropdown-icon {
   width: auto;
   max-width: 5vh;
   height: min(4vh, 30px);
   min-height: 25px;
-  margin-right: 1rem;
+  /* margin-right: 1rem; */
   border-radius: 50%;
 }
 
 .icon-container {
   display: flex;
   align-items: center;
-  margin-left: 10px;
+  /* margin-left: 10px; */
   color: #707070;
 }
 .imageDropdown-container
@@ -48,22 +47,24 @@
   border-color: none;
   border-width: 0;
 }
-.selected-value {
+.imageDropdown-selected {
   display: flex;
   align-items: center;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  margin-left: 1rem;
+  margin-left: -15px;
+  color:#333;
+  font-weight: 400;
 }
-.dropdown-text {
+.imageDropdown-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   line-height: 1.2;
 }
 
-.subject-text {
+.imageDropdown-subject-text {
   font-size: 2vh;
   font-weight: 500;
   color: #333;

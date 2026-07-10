@@ -1,4 +1,5 @@
 
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import { number, string } from "prop-types";
 import TeacherHeader from "../../../components/TeachersStudentDisplay/TeacherHeader";

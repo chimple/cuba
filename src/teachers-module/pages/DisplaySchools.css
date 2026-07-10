@@ -76,7 +76,7 @@
 .display-user-switch-user-toggle {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-around;
   gap: 10px;
   margin-top: 2vh;
   padding: 8px 15px 0 15px;
@@ -88,6 +88,13 @@
 }
 
 .display-school-switch-text {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-color);
+  font-size: var(--text-sizeL);
+}
+.display-schools-toggle-ops-switch-text {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -129,4 +136,20 @@
 .school-image-p {
   aspect-ratio: 1 / 1;
   border-radius: 8px;
+}
+
+.display-loading-text {
+  text-align: center;
+  padding: 8px;
+}
+
+.display-no-more-schools {
+  text-align: center;
+  padding: 8px;
+  color: #888;
+}
+
+.display-all-schools-scroll {
+  overflow-y: auto;
+  max-height: calc(100vh - 200px);
 }

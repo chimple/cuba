@@ -33,7 +33,6 @@ const StudentProgressHeader: React.FC<{
       ></BackButton>
       <div id="student-progress-header-middle-icons">
         {headerIconList.map((element) => {
-          //   console.log("Dyanamic Parent Header List ", element);
           return (
             <RectangularIconButton
               buttonWidth={18}

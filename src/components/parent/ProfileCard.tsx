@@ -106,7 +106,7 @@ const ProfileCard: React.FC<{
             }
             alt=""
           />
-          <p id="profile-card-user-name">{user.name}</p>
+          <p id="profile-card-user-name">{user.name ? user.name : "\u00A0"}</p>
         </div>
       ) : (
         <div id="profile-card-new-user">
@@ -151,7 +151,8 @@ const ProfileCard: React.FC<{
             Util.setPathToBackButton(PAGES.STUDENT_PROGRESS, history);
           }}
         >
-          {t("Progress Report")}
+          {/* {t("Progress Report")} */}
+          Progress
         </div>
       ) : (
         // <></>

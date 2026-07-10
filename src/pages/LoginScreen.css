@@ -1,0 +1,333 @@
+/* LoginScreen.css */
+
+.Loginscreen-login-screen {
+  background-image: url("/public/assets/loginAssets/LoginBG1.svg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: top center;
+  /* background-size: 1613px 1000px; */
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.Loginscreen-login-header {
+  width: 100%;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.Loginscreen-chimple-login-logo {
+  margin: 0 auto;
+}
+
+.other-ways {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.Loginscreen-chimple-login-logo-otp-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 28px;
+  z-index: 12;
+  margin-top: -25px;
+}
+
+@media screen and (max-width: 600px) {
+  .Loginscreen-otp-back-button {
+    position: absolute;
+    top: 79px;
+    left: 30px;
+  }
+  .Loginscreen-chimple-login-logo {
+    margin-top: 21.5%;
+  }
+  .Loginscreen-login-header {
+    padding: 12px;
+  }
+  .Loginscreen-otp-back-button {
+    width: 48px;
+    height: 32px;
+    margin-right: 8px;
+  }
+}
+@media screen and (max-width: 768px) {
+  .Loginscreen-chimple-login-logo-otp-container{
+    position: absolute;
+    top: 23%;
+    gap: 20px;
+    z-index: 12;
+  }
+}
+@media screen and (max-height: 500px) {
+  .Loginscreen-chimple-login-logo-otp-container {
+    z-index: 12;
+    max-height: 125px;
+    font-size: 16px;
+    margin-top: -50px;
+  }
+  .Loginscreen-chimple-login-logo-otp {
+    max-width: 78px;
+  }
+}
+@media screen and (max-height: 620px) {
+  .Loginscreen-chimple-login-logo {
+    position: absolute;
+    max-width: 150px;
+    top:12%;
+  }
+}
+@media screen and (max-height: 540px) {
+  .Loginscreen-chimple-login-logo {
+    position: absolute;
+    max-width: 120px;
+    top:5%;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .Loginscreen-login-screen {
+    background-size: 1860px 1300px;
+  }
+}
+
+.Loginscreen-otp-back-button {
+  background: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  width: 60px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2.5px solid #f34d08;
+  /* box-shadow: 0 2px 0 #8a2901; */
+  cursor: pointer;
+  margin-right: 12px;
+  transition: box-shadow 0.1s;
+}
+
+.Loginscreen-otp-back-button:active {
+  box-shadow: none;
+}
+
+.Loginscreen-otp-back-arrow-img {
+  font-size: x-large;
+  display: block;
+}
+
+.Loginscreen-tc-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  z-index: 15;
+}
+
+.Loginscreen-tc-header {
+  padding: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.Loginscreen-tc-close-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+.Loginscreen-tc-content {
+  height: calc(100% - 60px);
+  overflow: auto;
+}
+
+.login-terms-link {
+  color: var(--text-color);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Loading Animation Styles */
+.Loginscreen-initial-loading-ui {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  margin-top: 12vh;
+  width: 100%;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: var(--ion-background-color);
+}
+
+.Loginscreen-initial-homework-icon {
+  height: 45vh;
+}
+
+.Loginscreen-initial-loading-spinner {
+  width: 15vh;
+  height: 15vh;
+}
+
+.Loginscreen-initial-loading-text {
+  font-size: 5vh;
+  color: var(--text-color);
+}
+
+@media screen and (min-height: 950px) {
+  .Loginscreen-chimple-login-logo-otp-container {
+    top: 26%;
+  }
+}
+/* Mobile Responsive Styles for Loading Animation */
+@media screen and (max-width: 768px) {
+  .Loginscreen-initial-loading-ui {
+    margin-top: 0;
+    padding: 0 20px;
+  }
+
+  .Loginscreen-initial-homework-icon {
+    height: 35vh;
+    max-width: 100%;
+  }
+
+  .Loginscreen-initial-loading-spinner {
+    width: 12vh;
+    height: 12vh;
+  }
+
+  .Loginscreen-initial-loading-text {
+    font-size: 4vh;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .Loginscreen-initial-loading-ui {
+    margin-top: 0;
+  }
+
+  .Loginscreen-initial-homework-icon {
+    height: 30vh;
+  }
+
+  .Loginscreen-initial-loading-spinner {
+    width: 10vh;
+    height: 10vh;
+  }
+
+  .Loginscreen-initial-loading-text {
+    font-size: 3vh;
+  }
+}
+
+@media screen and (max-height: 600px) {
+  .Loginscreen-initial-loading-ui {
+    margin-top: 4vh;
+  }
+
+  .Loginscreen-initial-homework-icon {
+    height: 25vh;
+  }
+
+  .Loginscreen-initial-loading-spinner {
+    width: 8vh;
+    height: 8vh;
+  }
+
+  .Loginscreen-initial-loading-text {
+    font-size: 2.5vh;
+  }
+}
+
+/* Landscape Mode Styles */
+@media screen and (orientation: landscape) {
+  .Loginscreen-initial-loading-ui {
+    margin-top: 0;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .Loginscreen-initial-homework-icon {
+    height: 40vh;
+    max-height: 300px;
+  }
+
+  .Loginscreen-initial-loading-spinner {
+    width: 12vh;
+    height: 12vh;
+    max-width: 100px;
+    max-height: 100px;
+  }
+
+  .Loginscreen-initial-loading-text {
+    font-size: 3vh;
+    margin: 1vh 0;
+  }
+
+  /* Adjust for very short landscape screens */
+  @media screen and (max-height: 400px) {
+    .Loginscreen-initial-loading-ui {
+      justify-content: flex-start;
+      padding-top: 2vh;
+    }
+
+    .Loginscreen-initial-homework-icon {
+      height: 25vh;
+      max-height: 200px;
+    }
+
+    .Loginscreen-initial-loading-spinner {
+      width: 8vh;
+      height: 8vh;
+      max-width: 80px;
+      max-height: 80px;
+    }
+
+    .Loginscreen-initial-loading-text {
+      font-size: 2.5vh;
+      margin: 0.5vh 0;
+    }
+  }
+}
+
+@media (max-width: 400px) and (max-height: 800px) {
+  .Loginscreen-chimple-login-logo {
+    margin-top: 12.5%;
+  }
+  .Loginscreen-chimple-login-logo-otp-container{
+    font-size: 20px;
+  }
+  .Loginscreen-chimple-login-logo-otp{
+    max-width: 150px;
+  }
+}
+
+@media screen and (min-width: 533px) and (max-width: 700px) and (min-height: 940px) and (max-height: 1200px) {
+  .Loginscreen-chimple-login-logo{
+    margin-top: 20%;
+    max-width: 180px !important;
+  }
+  .Loginscreen-otp-back-button{
+    position: absolute;
+    top: 79px;
+  }
+}
+

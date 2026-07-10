@@ -38,9 +38,15 @@ const CustomDropdown: FC<{
 
   return (
     <IonList mode="ios" ref={dropdownRef}>
-      <IonItem lines="none" fill="outline" mode="ios" onClick={handleSelectOpen}>
+      <IonItem
+        lines="none"
+        className="custom-dropdown-custom-outline"
+        mode="ios"
+        onClick={handleSelectOpen}
+      >
         {currentlySelected
-          ? options.find((option) => option.id === currentlySelected)?.displayName
+          ? options.find((option) => option.id === currentlySelected)
+              ?.displayName
           : placeholder}
       </IonItem>
 

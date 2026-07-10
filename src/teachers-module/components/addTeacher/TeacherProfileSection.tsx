@@ -270,18 +270,24 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
         />
         <div className="teacher-info">
           <div className="teacher-name">{teacher.name}</div>
-          <p className="joined-date">
-            {joinedDate ? t("Joined on") + "  :  " + joinedDate : ""}
+          <p className="joined-date" style={{ fontSize: "18px" }}>
+           {joinedDate ? (
+           <>
+           <span style={{ fontSize: "14px" }}>{t("Joined Date")} :</span>{" "}
+           <span style={{ fontSize: "18px" }}>{joinedDate}</span>
+           </>
+          ) : null}
           </p>
+
         </div>
       </div>
 
       {/* Date selection section */}
       <div className="date-selection">
         <div>
-          <p>
+          <span className="teacherprofile-title">
             <Trans i18nKey="assignments_date_message" />
-          </p>
+          </span>
         </div>
         <div className="date-icons">
           <div>
@@ -290,21 +296,25 @@ const TeacherProfileSection: React.FC<TeacherProfileSectionProps> = ({
               {startDate ? format(new Date(startDate), "dd/MM/yyyy") : ""}
             </div>
           </div>
-          <IonIcon
+          {/* <IonIcon
             icon={calendarOutline}
             className="calendar-icon"
             onClick={() => setShowStartDatePicker(true)}
-          />
+          /> */}
+          <img src="/assets/icons/calender.svg" alt="Calendar_Icon"
+          onClick={() => setShowStartDatePicker(true)} className="calendar-icon" />
           <div className="vertical-line"></div>
           <div>
             <div>{t("End Date")}</div>
             <div>{endDate ? format(new Date(endDate), "dd/MM/yyyy") : ""}</div>
           </div>
-          <IonIcon
+          {/* <IonIcon
             icon={calendarOutline}
             className="calendar-icon"
             onClick={() => setShowEndDatePicker(true)}
-          />
+          /> */}
+          <img src="/assets/icons/calender.svg" alt="Calendar_Icon"
+          onClick={() => setShowEndDatePicker(true)} className="calendar-icon" />
         </div>
       </div>
 

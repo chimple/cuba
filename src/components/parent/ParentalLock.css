@@ -1,19 +1,23 @@
 #parent-lock-header {
-  display: flex;
-  align-items: center;
-  flex-direction: row;
+  position: relative;
   width: 100%;
-  justify-content: flex-start;
   user-select: none;
+  text-align: center; /* center the text */
+  padding-top: 50px;  /* push text below cross */
 }
 
 #parental-lock-close-icon {
-  color: gray;
-  opacity: 0.25;
-  display: block;
+  position: absolute;
+  top: 15px;
+  right: 25px;
+  cursor: pointer;
 }
 
 #parent-screen {
-  padding: 0 8vw;
   width: 100%;
+  color: #182A4F;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
 }

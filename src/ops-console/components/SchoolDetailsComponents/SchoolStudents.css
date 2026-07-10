@@ -1,0 +1,205 @@
+.schoolStudents-pageContainer {
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 1.5rem;
+  gap: 1.5rem;
+}
+
+.schoolStudents-headerActionsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.schoolStudents-titleArea {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.schoolStudents-titleHeading.MuiTypography-root {
+  font-weight: 600 !important;
+  color: #1d2939 !important;
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.schoolStudents-totalText.MuiTypography-root {
+  color: #475467 !important;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.schoolStudents-actionsGroup {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: nowrap;
+}
+
+.schoolStudents-newStudentButton-outlined.MuiButton-root {
+  border-color: #e0e0e0 !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-radius: 1.25rem !important;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05) !important;
+  height: 2.25rem !important;
+  color: black !important;
+  background-color: white !important;
+  padding: 0.375rem 1rem !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  line-height: normal !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  white-space: nowrap;
+}
+
+.schoolStudents-newStudentButton-outlined.MuiButton-root:hover {
+  background-color: #f5f5f5 !important;
+}
+
+.schoolStudents-newStudentButton-outlined-icon.MuiSvgIcon-root {
+  color: #1976d2 !important;
+  margin-right: 0.5rem !important;
+  font-size: 1.25rem !important;
+}
+
+.schoolStudents-table-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  border: 1px solid #eaecf0;
+  border-radius: 0.5rem;
+}
+
+.schoolStudents-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 43.75rem;
+}
+
+.schoolStudents-table-container th,
+.schoolStudents-table-container td {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.schoolStudents-table-container th {
+  background-color: #f9fafb;
+  color: #667085;
+  font-weight: 500;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.schoolStudents-table-container td {
+  color: #344054;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.schoolStudents-table-container tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.schoolStudents-table-container .student-name-data.MuiTypography-root {
+  font-weight: 500 !important;
+  color: #1d2939 !important;
+}
+
+.schoolStudents-footer {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0.75rem 0;
+}
+
+.schoolStudents-emptyStateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex-grow: 1;
+}
+
+.schoolStudents-emptyStateTitle.MuiTypography-root {
+  font-weight: 600 !important;
+  color: #1d2939 !important;
+  margin-bottom: 1rem !important;
+  font-size: 1.125rem;
+}
+
+.schoolStudents-emptyStateMessage.MuiTypography-root {
+  color: #475467 !important;
+  font-size: 0.875rem !important;
+  max-width: 20rem;
+  line-height: 1.5;
+}
+
+.schoolStudents-emptyStateAddButton.MuiButton-root {
+  font-weight: 500 !important;
+  text-transform: none !important;
+  color: #1976d2 !important;
+  margin-top: 1rem !important;
+}
+
+.schoolStudents-emptyStateAddButton-icon.MuiSvgIcon-root {
+  color: #1976d2 !important;
+}
+
+@media (max-width: 768px) {
+  .schoolStudents-pageContainer {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .schoolStudents-headerActionsRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+
+  .schoolStudents-titleHeading.MuiTypography-root {
+    font-size: 1.25rem;
+  }
+
+  .schoolStudents-actionsGroup {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .schoolStudents-newStudentButton-outlined.MuiButton-root {
+    min-width: 2.25rem !important;
+    padding: 0.375rem !important;
+  }
+
+  .schoolStudents-newStudentButton-outlined-icon.MuiSvgIcon-root {
+    margin-right: 0 !important;
+  }
+
+  .schoolStudents-table-container {
+    overflow-x: auto;
+  }
+
+  .schoolStudents-table-container th,
+  .schoolStudents-table-container td {
+    padding: 0.625rem 1rem;
+  }
+}

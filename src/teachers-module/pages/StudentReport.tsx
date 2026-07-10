@@ -17,7 +17,6 @@ import { ClassUtil } from "../../utility/classUtil";
 const StudentReport: React.FC = () => {
   const history = useHistory();
   const currentSchool = Util.getCurrentSchool();
-  const currentClass = Util.getCurrentClass();
   const student = history.location.state!["student"] as TableTypes<"user">;
   const tempClass = history.location.state!["classDoc"] as TableTypes<"class">;
   const isStudentProfilePage = history.location.state![
@@ -28,10 +27,10 @@ const StudentReport: React.FC = () => {
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const api = ServiceConfig.getI().apiHandler;
   const [subjects, setSubjects] = useState<TableTypes<"course">[]>();
-  const current_class = Util.getCurrentClass();
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
 
   const [mappedSubjectOptions, setMappedSubjectOptions] = useState<
-    { id: string; name: string }[]
+    { icon: string; id: string; name: string; subjectDetail: string }[]
   >([]);
   const [selectedSubject, setSelectedSubject] =
     useState<TableTypes<"course">>();
@@ -50,37 +49,88 @@ const StudentReport: React.FC = () => {
     format(history.location.state!["endDate"], "yyyy-MM-dd")
   );
   let maxEndDate: string;
+
+  const toDate = (dateStr: string | null): Date => {
+    const d = new Date(dateStr || "");
+    return isNaN(d.getTime()) ? new Date() : d;
+  };
+
+  const todayDate = new Date();
+
   useEffect(() => {
+    fetchClassDetails();
     init();
   }, []);
   useEffect(() => {
     initData();
   }, [selectedSubject, startDate, endDate]);
 
+  const fetchClassDetails = async () => {
+    try {
+      let classToUse = tempClass ?? Util.getCurrentClass();
+      if (classToUse) {
+        setCurrentClass(classToUse);
+      }
+    } catch (error) {
+      console.log("Failed to load class details.");
+    }
+  };
+
   const today = new Date().toISOString().split("T")[0];
   const initData = async () => {
     var _classUtil = new ClassUtil();
+    const classToUse = tempClass ?? Util.getCurrentClass();
     var result = await _classUtil.getStudentProgressForStudentTable(
       student.id,
-      selectedSubject?.id ?? "",
+      [selectedSubject?.id ?? ""],
       startDate ?? "",
-      endDate ?? ""
+      endDate ?? "",
+      classToUse?.id
     );
 
     setStudentResult(result ?? []);
   };
 
   const init = async () => {
-    const _subjects = await api.getCoursesForClassStudent(
-      current_class?.id ?? ""
-    );
-    var _mappedSubjectOptions = _subjects?.map((option) => ({
-      id: option.id,
-      name: option.name,
-    }));
-    setMappedSubjectOptions(_mappedSubjectOptions);
+    const classToUse = tempClass ?? Util.getCurrentClass();
+    const _subjects = await api.getCoursesForClassStudent(classToUse?.id ?? "");
     setSubjects(_subjects);
-    var current_course = Util.getCurrentCourse(current_class?.id);
+
+    const curriculumIds = Array.from(
+      new Set(_subjects.map((s) => s.curriculum_id))
+    ).filter((id): id is string => id !== null);
+
+    const gradeIds = Array.from(
+      new Set(_subjects.map((s) => s.grade_id))
+    ).filter((id): id is string => id !== null);
+
+    try {
+      const [curriculums, grades] = await Promise.all([
+        api.getCurriculumsByIds(curriculumIds),
+        api.getGradesByIds(gradeIds),
+      ]);
+
+      const curriculumMap = new Map(curriculums.map((c) => [c.id, c]));
+      const gradeMap = new Map(grades.map((g) => [g.id, g]));
+
+      const _mappedSubjectOptions = _subjects.map((subject) => {
+        const curriculum = curriculumMap.get(subject.curriculum_id ?? "");
+        const grade = gradeMap.get(subject.grade_id ?? "");
+        return {
+          id: subject.id,
+          name: subject.name,
+          icon: subject?.image || "/assets/icons/DefaultIcon.png",
+          subjectDetail: `${subject.name} ${curriculum?.name ?? "Unknown"}-${grade?.name ?? "Unknown"}`,
+        };
+      });
+
+      setMappedSubjectOptions(_mappedSubjectOptions);
+    } catch (error) {
+      console.error("Error fetching curriculums or grades:", error);
+      setMappedSubjectOptions([]);
+    }
+
+    const current_course = Util.getCurrentCourse(classToUse?.id);
     setSelectedSubject(current_course ?? _subjects[0]);
   };
   const handleDateConfirm = (type: "start" | "end", date: string) => {
@@ -124,7 +174,7 @@ const StudentReport: React.FC = () => {
             isBackButton={true}
             showSchool={true}
             showClass={true}
-            className={tempClass?.name}
+            className={currentClass?.name}
             schoolName={currentSchool?.name}
             onBackButtonClick={handleBackButton}
           />
@@ -150,8 +200,9 @@ const StudentReport: React.FC = () => {
                   {startDate ? format(new Date(startDate), "dd/MM/yyyy") : ""}
                 </div>
               </div>
-              <IonIcon
-                icon={calendarOutline}
+              <img
+                src="/assets/icons/calender.svg"
+                alt="Calendar_Icon"
                 className="student-report-calendar-icon"
               />
             </div>
@@ -166,8 +217,9 @@ const StudentReport: React.FC = () => {
                   {endDate ? format(new Date(endDate), "dd/MM/yyyy") : ""}
                 </div>
               </div>
-              <IonIcon
-                icon={calendarOutline}
+              <img
+                src="/assets/icons/calender.svg"
+                alt="Calendar_Icon"
                 className="student-report-calendar-icon"
               />
             </div>
@@ -177,7 +229,7 @@ const StudentReport: React.FC = () => {
       </div>
       {showStartDatePicker && (
         <CalendarPicker
-          value={format(startDate ?? "", "yyyy-MM-dd")}
+          value={startDate}
           onConfirm={(date) => handleDateConfirm("start", date)}
           onCancel={() => setShowStartDatePicker(false)}
           mode="start"
@@ -186,20 +238,16 @@ const StudentReport: React.FC = () => {
       )}
       {showEndDatePicker && (
         <CalendarPicker
-          value={format(endDate ?? "", "yyyy-MM-dd")}
+          value={endDate}
           onConfirm={(date) => handleDateConfirm("end", date)}
           onCancel={() => setShowEndDatePicker(false)}
           mode="end"
           startDate={startDate}
-          minDate={
-            format(startDate ?? "", "yyyy-MM-dd")
-              ? format(startDate ?? "", "yyyy-MM-dd")
-              : new Date().toISOString().split("T")[0]
-          }
+          minDate={format(toDate(startDate), "yyyy-MM-dd")}
           maxDate={
-            isAfter(format(addMonths(startDate ?? "", 6), "yyyy-MM-dd"), today)
-              ? today
-              : format(addMonths(startDate ?? "", 6), "yyyy-MM-dd")
+            isAfter(addMonths(toDate(startDate), 6), todayDate)
+              ? format(todayDate, "yyyy-MM-dd")
+              : format(addMonths(toDate(startDate), 6), "yyyy-MM-dd")
           }
         />
       )}

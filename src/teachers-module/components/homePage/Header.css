@@ -45,22 +45,24 @@
 }
 
 .header-class-name {
-  font-size: clamp(20px, 5vh, 30px); /* Dynamic font size */
-  font-weight: bolder;
+  font-size: clamp(18px, 5vh, 18px); /* Dynamic font size */
+  font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 100%;
+  /* width: 100%; */
 }
 
 .header-school-name {
-  font-size: clamp(15px, 5vh, 20px); /* Dynamic font size */
+  font-size: clamp(15px, 5vh, 22px); /* Dynamic font size */
+  width: 60vw;
+  text-align: left;
+  font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 100%;
 }
 
 #header-menu-element {
@@ -109,7 +111,7 @@
   color: #000 !important;
   border: none;
   outline: none;
-  width: 220px;
+  width: auto;
   font-size: 1rem;
   color-scheme: light;
 }
@@ -117,4 +119,5 @@
 .help-icon-container {
   display: flex;
   align-items: center;
+  gap: 1rem;
 }

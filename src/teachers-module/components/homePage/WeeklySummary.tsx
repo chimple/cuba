@@ -94,7 +94,7 @@ const WeeklySummary: React.FC<WeeklySummaryProps> = ({ weeklySummary }) => {
   return (
     <div className="weekly-summary-container">
       <h3 className="weekly-summary-header">
-        {t("Weekly Assignments Summary")} {oneWeekBackDate} - {currentDate}
+        {t("Weekly Summary")} {oneWeekBackDate} - {currentDate}
       </h3>
       <div className="weekly-summary">
         {getData().map((item, index) => (
@@ -125,7 +125,7 @@ const WeeklySummary: React.FC<WeeklySummaryProps> = ({ weeklySummary }) => {
                     : `${item.numerator}/${item.denominator}`}
               </strong>
               <br />
-              <div style={{ color: "black" }}>{item.label}</div>
+              <div style={{ color: "#707070", fontSize: "10px", fontWeight: "600" }}>{item.label}</div>
             </div>
           </div>
         ))}

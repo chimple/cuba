@@ -4,7 +4,7 @@ import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import Header from "../components/homePage/Header";
 import { IonSearchbar } from "@ionic/react";
 import { useHistory } from "react-router";
-import { PAGES, TableTypes } from "../../common/constants";
+import { PAGES, TableTypes, AssignmentSource } from "../../common/constants"; 
 import { ServiceConfig } from "../../services/ServiceConfig";
 import LessonComponent from "../components/library/LessonComponent";
 import AssigmentCount from "../components/library/AssignmentCount";
@@ -12,6 +12,8 @@ import { Util } from "../../utility/util";
 import { t } from "i18next";
 
 const SearchLesson: React.FC = ({}) => {
+  const [currentClass, setCurrentClass] = useState<TableTypes<"class"> | null>(null);
+  const currentSchool = Util.getCurrentSchool();
   const dataToContinue: any = {};
   const history = useHistory();
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,6 +26,20 @@ const SearchLesson: React.FC = ({}) => {
   const [selectedLesson, setSelectedLesson] = useState<Map<string, string>>(
     new Map()
   );
+
+  useEffect(() => {
+    const fetchClassDetails = async () => {
+      try {
+        const tempClass = await Util.getCurrentClass();
+        setCurrentClass(tempClass || null);
+      } catch (err) {
+        console.error("ShowChapters → Failed to load current class:", err);
+        setCurrentClass(null);
+      }
+    };
+    fetchClassDetails();
+  }, []);
+
   useEffect(() => {
     if (inputEl.current) {
       inputEl.current.setFocus();
@@ -51,24 +67,38 @@ const SearchLesson: React.FC = ({}) => {
     const previous_selected_lessons = current_user?.id
       ? await api.getUserAssignmentCart(current_user?.id)
       : null;
-    if (previous_selected_lessons?.lessons) {
-      if (!current_class?.id) {
-        return;
-      }
+
+    if (previous_selected_lessons?.lessons && current_class?.id) {
       const all_sync_lesson: Map<string, string> = new Map(
-        Object.entries(JSON.parse(previous_selected_lessons?.lessons))
+        Object.entries(JSON.parse(previous_selected_lessons.lessons))
       );
       setSelectedLesson(all_sync_lesson);
-      const sync_lesson_data = all_sync_lesson.get(current_class?.id);
-      const sync_lesson: Map<string, string[]> = new Map(
-        Object.entries(sync_lesson_data ? JSON.parse(sync_lesson_data) : {})
-      );
-      const _assignmentLength = Array.from(sync_lesson.values()).reduce(
-        (acc, array) => acc + array.length,
-        0
-      );
-      setAssignmentCount(_assignmentLength);
+
+      const sync_lesson_data = all_sync_lesson.get(current_class.id);
+      if (!sync_lesson_data) return;
+
+      const chapterLessonMap: Record<
+        string,
+        Partial<Record<AssignmentSource, string[]>> | string[]
+      > = JSON.parse(sync_lesson_data);
+
+      let _assignmentLength = 0;
+
+    for (const chapterId in chapterLessonMap) {
+      const entry = chapterLessonMap[chapterId];
+
+      if (Array.isArray(entry)) {
+        // old format: just an array of lessonIds
+        _assignmentLength += entry.length;
+      } else if (typeof entry === "object" && entry !== null) {
+        // new format: { manual: [], qr_code: [] }
+        const manualLessons = entry[AssignmentSource.MANUAL] || [];
+        const qrLessons = entry[AssignmentSource.QR_CODE] || [];
+        _assignmentLength += manualLessons.length + qrLessons.length;
+      }
     }
+   setAssignmentCount(_assignmentLength);
+ }
   };
   return (
     <div className="chapter-container-in-search-lesson">
@@ -77,6 +107,10 @@ const SearchLesson: React.FC = ({}) => {
         onButtonClick={() => {
           history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
         }}
+        showSchool={true}
+        showClass={true}
+        className={currentClass?.name}
+        schoolName={currentSchool?.name}
       />
       <main className="container-body">
         <IonSearchbar
@@ -117,7 +151,6 @@ const SearchLesson: React.FC = ({}) => {
                   handleLessonCLick={() => {
                     history.replace(PAGES.LESSON_DETAILS, {
                       course: null,
-                      classId: "49d6cc2f-1c1c-4211-bc11-6e2c9b2a0858",
                       lesson: lesson,
                       selectedLesson: selectedLesson,
                     });

@@ -30,14 +30,15 @@
 }
 
 .teacher-logout-btn {
-  width: 80%;
+  width: 250px;
+  height: 50px;
   padding: 1.5vh 3vw;
   margin: 20px auto;
   background-color: #7c5db0;
   color: white;
   text-align: center;
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 24px;
+  font-weight: 600;
   transition: background-color 0.3s ease;
   display: flex;
   justify-content: center;
@@ -48,4 +49,10 @@
 
 .teacher-logout-btn:hover {
   background-color: #7350b1;
+}
+
+.sidemenu-hamburger {
+  cursor: pointer;
+  width: 30px;
+  height: 24px;
 }

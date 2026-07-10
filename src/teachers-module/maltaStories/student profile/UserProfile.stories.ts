@@ -1,3 +1,4 @@
+//@ts-nocheck
 import type { Meta, StoryObj } from "@storybook/react";
 import UserProfile from "../../components/studentProfile/UserProfile";
 import { TableTypes } from "../../../common/constants";
@@ -22,6 +23,13 @@ const mockStudent: TableTypes<"user"> = {
   music_off: null,
   sfx_off: null,
   student_id: null,
+  firebase_id: null,
+  is_firebase: null,
+  is_ops: null,
+  learning_path: null,
+  ops_created_by: null,
+  stars: null,
+  reward: null
 };
 
 const mockClass: TableTypes<"class"> = {
@@ -32,6 +40,14 @@ const mockClass: TableTypes<"class"> = {
   image: null,
   is_deleted: null,
   school_id: "school-1",
+  academic_year: null,
+  firebase_id: null,
+  is_firebase: null,
+  is_ops: null,
+  ops_created_by: null,
+  standard: null,
+  status: null,
+  group_id: null
 };
 
 const meta: Meta<typeof UserProfile> = {

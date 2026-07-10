@@ -27,7 +27,6 @@ const ParentHeader: React.FC<{
       ></BackButton>
       <div id="parent-header-middle-icons">
         {parentHeaderIconList.map((element) => {
-          //   console.log("Dyanamic Parent Header List ", element);
           return (
             <RectangularIconButton
               buttonWidth={18}

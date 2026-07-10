@@ -37,4 +37,49 @@ export class OpsUtil {
       nationalWithoutZero: phone.nationalNumber.replace(/^0/, ""),    //'9876543210'
     };
   }
+
+  public static parseClassName(
+    className: string
+  ): { grade: number; section: string } {
+    const cleanedName = className.trim();
+    if (!cleanedName) {
+      return { grade: 0, section: "" };
+    }
+
+    let grade = 0;
+    let section = "";
+
+    // Match only digits → e.g. "5"
+    const numericMatch = cleanedName.match(/^(\d+)$/);
+    if (numericMatch) {
+      grade = parseInt(numericMatch[1], 10);
+      return { grade: isNaN(grade) ? 0 : grade, section: "" };
+    }
+
+    // Match digits + optional letters → e.g. "10B" or "10 B"
+    const alphanumericMatch = cleanedName.match(/(\d+)\s*(\w+)/i);
+    if (alphanumericMatch) {
+      grade = parseInt(alphanumericMatch[1], 10);
+      section = alphanumericMatch[2];
+      return { grade: isNaN(grade) ? 0 : grade, section };
+    }
+
+    // Fallback if nothing matches
+    console.warn(
+      `--- parseClassName: Could not parse grade from class name: "${cleanedName}". Assigning grade 0.`
+    );
+    return { grade: 0, section: cleanedName };
+  }
+
+  public static formatDT(dateString: string): string {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
 }

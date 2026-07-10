@@ -1,3 +1,5 @@
+//@ts-nocheck
+//@ts-nocheck
 import { Meta, StoryObj } from "@storybook/react";
 import HamburgerMenu from "../../components/homePage/SideMenu";
 

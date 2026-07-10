@@ -1,0 +1,32 @@
+.no-schools-found-container {
+  /* margin-top: 3rem; */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+.no-schools-found-image {
+  width: 8rem;
+  height: auto;
+}
+
+.no-schools-found-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #3880ff;
+  margin: 0;
+}
+
+.no-schools-found-subtitle {
+  font-size: 0.7rem;
+  color: #666;
+}
+
+.no-schools-found-divider {
+  width: 100%;
+  border: 0;
+  border-top: 2px solid #707070;
+  margin: 1rem 0;
+}

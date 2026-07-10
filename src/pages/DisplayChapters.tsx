@@ -30,6 +30,7 @@ import { schoolUtil } from "../utility/schoolUtil";
 import DropDown from "../components/DropDown";
 import { Timestamp } from "firebase/firestore";
 import SkeltonLoading from "../components/SkeltonLoading";
+import { ScreenOrientation } from "@capacitor/screen-orientation";
 
 const localData: any = {};
 // let localStorageData: any = {};
@@ -70,12 +71,9 @@ const DisplayChapters: FC<{}> = () => {
     (course) => courseDocId == course.id
   );
   useEffect(() => {
-    const body = document.querySelector("body");
-    body?.style.setProperty(
-      "background-image",
-      "url(/pathwayAssets/pathwayBackground.svg)"
-    );
+    Util.loadBackgroundImage();
     init();
+    ScreenOrientation.lock({ orientation: "landscape" });
   }, []);
   useEffect(() => {
     if (getCourseByUrl && !currentCourse) {

@@ -31,11 +31,20 @@
 .course-name {
   font-size: 18px;
   margin-top: 8px; /* Space above course name */
-  line-height: 1.2; /* Adjust line-height for better spacing */
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 19vw; /* Adjust line-height for better spacing */
 }
 
 .grade-name {
   font-size: 12px;
   margin-top: 4px; /* Space above grade name */
   line-height: 1.2; /* Ensure spacing between lines */
+}
+.course-divider {
+  width: 100%;
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 0.5rem 0;
 }

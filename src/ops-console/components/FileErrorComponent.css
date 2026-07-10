@@ -62,7 +62,7 @@
 }
 
 .error-page-btn {
-  background-color: #7c5db0;
+  background-color: #1a71f6;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -74,14 +74,14 @@
 }
 
 .error-page-btn:hover {
-  background-color: #7c5db0;
+  background-color: #1a71f6;
 }
 
 .download-template {
   display: inline-flex;
   align-items: center;
   color: white;
-  background-color: #7c5db0;
+  background-color: #1a71f6;
   text-decoration: none;
   font-size: 1em;
   transition: color 0.3s ease;
@@ -95,5 +95,5 @@
 }
 
 .download-upload-template:hover {
-  color: #7c5db0;
+  color: #1a71f6;
 }

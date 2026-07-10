@@ -12,6 +12,13 @@
 #   public *;
 #}
 
+# --- Chromium/WebView ProGuard rules ---
+# Keep all Chromium WebView classes (prevents obfuscation issues)
+-keep class org.chromium.** { *; }
+-keep class com.android.webview.chromium.** { *; }
+-keep class android.webkit.** { *; }
+# --- End Chromium/WebView ProGuard rules ---
+
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable

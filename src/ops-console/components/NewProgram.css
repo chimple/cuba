@@ -1,0 +1,7 @@
+.new-program-mandatory {
+  color: red;
+  font-weight: 600;
+  display: inline-block;
+  line-height: 1;
+  vertical-align: middle;
+}

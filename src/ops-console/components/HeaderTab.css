@@ -1,0 +1,45 @@
+.HeaderTab-tabs-container {
+  min-height: 7vh;
+  overflow: hidden;
+  height: 100%;
+}
+
+.HeaderTab-custom-tab-indicator {
+  background-color: #1976d2;
+  height: 0.3vh;
+}
+
+.HeaderTab-tab-item {
+  text-transform: none;
+  color: black !important;
+  font-weight: 600 !important;
+  font-size: 14px;
+  padding: 0.8vh 1.2vw;
+  min-width: auto;
+  min-height: auto;
+}
+
+.HeaderTab-tab-item.active {
+  color: #1976d2;
+}
+
+.HeaderTab-tab-item:hover {
+  background-color: rgba(25, 118, 210, 0.04);
+}
+
+@media (max-width: 768px) {
+  .HeaderTab-tab-item {
+    font-size: clamp(0.65rem, 1.3vw, 0.85rem);
+    padding: 0.8vh 1.3vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .HeaderTab-tabs-container {
+    min-height: 5vh;
+  }
+  .HeaderTab-tab-item {
+    font-size: clamp(0.55rem, 1.5vw, 0.7rem);
+    padding: 0.6vh 0.8vw;
+  }
+}

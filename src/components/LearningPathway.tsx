@@ -15,6 +15,7 @@ import {
   STARS_COUNT,
   TableTypes,
 } from "../common/constants";
+import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
 
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -22,6 +23,7 @@ const LearningPathway: React.FC = () => {
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
   const currentStudent = Util.getCurrentStudent();
+  const { setGbUpdated } = useGbContext();
 
   useEffect(() => {
     if (!currentStudent?.id) return;
@@ -65,8 +67,11 @@ const LearningPathway: React.FC = () => {
   };
 
   const fetchLearningPathway = async (student: any) => {
-    const currClass = schoolUtil.getCurrentClass();
-
+    let currClass;
+    const isLinked = await api.isStudentLinked(student.id);
+    if (isLinked) {
+      currClass = schoolUtil.getCurrentClass();
+    }
     try {
       const userCourses = currClass
         ? await api.getCoursesForClassStudent(currClass.id)
@@ -75,7 +80,6 @@ const LearningPathway: React.FC = () => {
       let learningPath = student.learning_path
         ? JSON.parse(student.learning_path)
         : null;
-
       if (!learningPath || !learningPath.courses?.courseList?.length) {
         setLoading(true);
         learningPath = await buildInitialLearningPath(userCourses);
@@ -86,6 +90,18 @@ const LearningPathway: React.FC = () => {
           learningPath,
           userCourses
         );
+
+        let learning_path_completed: { [key: string]: number } = {};
+        learningPath.courses.courseList.forEach((course) => {
+          const { subject_id, currentIndex } = course;
+          if (subject_id && currentIndex !== undefined) {
+            learning_path_completed[`${subject_id}_path_completed`] =
+              currentIndex;
+          }
+        });
+        updateLocalAttributes({ learning_path_completed });
+        setGbUpdated(true);
+
         if (updated) await saveLearningPath(student, learningPath);
       }
     } catch (error) {
@@ -131,7 +147,6 @@ const LearningPathway: React.FC = () => {
 
     // Check if any course is missing path_id
     const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
-
     if (isSameLengthAndOrder && !isPathIdMissing) {
       return false; // No need to rebuild
     }
@@ -215,9 +230,9 @@ const LearningPathway: React.FC = () => {
 
       <div className="chapter-egg-container">
         <ChapterLessonBox
-        // containerStyle={{
-        //   width: "30vw",
-        // }}
+          containerStyle={{
+            width: "35vw",
+          }}
         />
         <TressureBox startNumber={from} endNumber={to} />
       </div>

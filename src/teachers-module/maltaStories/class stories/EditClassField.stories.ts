@@ -1,3 +1,4 @@
+//@ts-nocheck
 import { Meta, StoryObj } from "@storybook/react";
 import EditClassField from "../../components/classComponents/EditClassField";
 

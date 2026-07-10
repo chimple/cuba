@@ -1,0 +1,219 @@
+.LoginSwitch-other-ways {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  height: 29vh;
+  min-height: 135px;
+  width: 100%;
+  background-image: url("/public/assets/loginAssets/LoginBG3.svg");
+  background-color: transparent;
+  background-size: cover;
+  background-repeat: no-repeat;
+  justify-content: start;
+  align-items: center;
+  margin-top: 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-top: 40px;
+  padding-bottom: 24px;
+  z-index: 10;
+}
+
+.LoginSwitch-other-ways-options {
+  position: absolute;
+  top: 38%;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  background-color: transparent;
+  background-size: cover;
+  background-repeat: no-repeat;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0;
+}
+
+.LoginSwitch-other-ways-header {
+  position: absolute;
+  top: 15%;
+  color: var(--text-color);
+  display: flex;
+  gap: 15px;
+}
+
+.LoginSwitch-switch-option {
+  color: var(--text-color);
+  width: 2vw;
+  min-width: 126px;
+  min-height: 60px;
+  max-width: 135px;
+  max-height: 65px;
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.LoginSwitch-switch-option-img {
+  width: 29.5px;
+  height: 29.5px;
+  max-height: 29.5px;
+  max-width: 29.5px;
+}
+
+.LoginSwitch-switch-option.disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.LoginSwitch-terms-condition {
+  position: absolute;
+  top: 75%;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 5px;
+  width: 75%;
+  max-width: 500px;
+}
+
+.LoginSwitch-terms-checkbox-label {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-color);
+  gap: 8px;
+}
+
+.LoginSwitch-terms-checkbox-label label {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.LoginSwitch-terms-checkbox-input {
+  display: none;
+}
+
+.LoginSwitch-terms-custom-checkbox {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #02c1c1;
+  accent-color: var(--text-color);
+  border-radius: 4px;
+  background: #fff;
+  position: relative;
+  display: inline-block;
+}
+
+.LoginSwitch-terms-checkbox-input:checked
+  + .LoginSwitch-terms-custom-checkbox::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 8px;
+  height: 14px;
+  border: solid var(--text-color);
+  border-width: 0 3px 3px 0;
+  transform: rotate(45deg);
+}
+
+.LoginSwitch-terms-link {
+  text-decoration: underline;
+  color: var(--text-color);
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+/* OTP Expiry UI Styles */
+.LoginSwitch-otp-expiry-container {
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 400px;
+  gap: 12px;
+}
+
+.LoginSwitch-otp-expiry-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.LoginSwitch-otp-expiry-text {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-color);
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+
+.LoginSwitch-otp-resend-link {
+  background: none !important;
+  border: none;
+  outline: none;
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--text-color);
+  text-decoration: underline;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    background 0.2s;
+  padding: 5px 10px;
+  border-radius: 6px;
+  box-shadow: none;
+}
+
+.LoginSwitch-otp-resend-link:disabled,
+.LoginSwitch-otp-resend-link[disabled] {
+  cursor: not-allowed !important;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+@media (max-width: 500px) {
+  .LoginSwitch-otp-expiry-container {
+    padding: 24px 8px 20px 8px;
+    max-width: 95vw;
+    margin-top: 15px;
+  }
+
+  .LoginSwitch-otp-expiry-header {
+    margin-bottom: 20px;
+  }
+
+  .LoginSwitch-otp-expiry-stripe {
+    width: 30px;
+    margin: 0 6px;
+  }
+
+  .LoginSwitch-otp-expiry-text {
+    font-size: 1rem;
+  }
+}
+
+@media (orientation: portrait) {
+  .LoginSwitch-other-ways {
+    border-top-right-radius: 25% 32px;
+  }
+}

@@ -63,7 +63,30 @@ export enum RoleType {
   SPONSOR = "sponsor",
   COORDINATOR = "coordinator",
   AUTOUSER = "autouser",
-  PROGRAM_MANAGER="program_manager",
+  PROGRAM_MANAGER = "program_manager",
   OPERATIONAL_DIRECTOR = "operational_director",
+  SUPER_ADMIN = "super_admin",
   FIELD_COORDINATOR = "field_coordinator",
+}
+
+export const RoleLabels: Record<RoleType, string> = {
+  [RoleType.PROGRAM_MANAGER]: "Program Manager",
+  [RoleType.OPERATIONAL_DIRECTOR]: "Operational Director",
+  [RoleType.SUPER_ADMIN]: "Super Admin",
+  [RoleType.FIELD_COORDINATOR]: "Field Coordinator",
+  [RoleType.PARENT]: "Parent",
+  [RoleType.STUDENT]: "Student",
+  [RoleType.TEACHER]: "Teacher",
+  [RoleType.PRINCIPAL]: "Principal",
+  [RoleType.SPONSOR]: "Sponsor",
+  [RoleType.COORDINATOR]: "Coordinator",
+  [RoleType.AUTOUSER]: "Autouser",
+};
+
+export enum SchoolTabs {
+  Overview = "Overview",
+  Students = "Students",
+  Teachers = "Teachers",
+  Principals = "Principals",
+  Coordinators = "Coordinators",
 }

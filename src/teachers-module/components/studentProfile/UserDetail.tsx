@@ -16,7 +16,6 @@ const UserDetail: React.FC<{
   userType: CLASS_USERS;
 }> = ({ user, classDoc, schoolDoc, userType }) => {
   const history = useHistory();
-  console.log("usertype..", userType);
 
   const handleStudentClick = (studentId: string) => {
     history.replace(PAGES.STUDENT_PROFILE, {

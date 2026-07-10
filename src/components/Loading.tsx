@@ -1,23 +1,24 @@
-import { IonLoading, LoadingOptions } from "@ionic/react";
 import React from "react";
 import "./Loading.css";
 import { t } from "i18next";
 
-interface LoadingProps extends LoadingOptions {
+interface LoadingProps {
   isLoading: boolean;
   msg?: string;
 }
 
 const Loading: React.FC<LoadingProps> = ({ isLoading, msg = "" }) => {
-  return isLoading ? (
-    <div>
-      <IonLoading
-        isOpen={isLoading}
-        spinner={null}
-        message={`<img class="loading" src="assets/icons/Pangolim1.png"></img> <br/><p class="loading-msg">${t(msg)}</p>`}
-      />
+  if (!isLoading) return null;
+
+  return (
+    <div className="loading-overlay">
+      <div className="loading-container">
+        <img src="assets/loading.gif" alt="loading" className="loading-img" />
+
+        {msg && <p className="loading-msg">{t(msg)}</p>}
+      </div>
     </div>
-  ) : null;
+  );
 };
 
 export default Loading;

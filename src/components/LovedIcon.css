@@ -14,6 +14,9 @@
   /* top: -115%; */
   /* left: 88%; */
   border-radius: 30vh;
+  display: flex;
+  justify-content: center;
+  align-items: anchor-center;
 }
 
 .fav-icon-image {

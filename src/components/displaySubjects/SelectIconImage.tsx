@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from "react";
-import './SelectIconImage.css';
+import "./SelectIconImage.css";
 
 const SelectIconImage: FC<{
   localSrc?: string;
@@ -18,66 +18,78 @@ const SelectIconImage: FC<{
   webImageWidth = "100%",
   webImageHeight = "100%",
 }) => {
-    const [activeSrc, setActiveSrc] = useState<string>("");
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [activeSrc, setActiveSrc] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-    useEffect(() => {
-      const preloadImage = (src: string): Promise<boolean> =>
-        new Promise((resolve) => {
-          const img = new Image();
-          img.src = src;
-          img.onload = () => resolve(true);
-          img.onerror = () => resolve(false);
-        });
+  useEffect(() => {
+    const preloadImage = (src: string): Promise<boolean> => {
+      return new Promise((resolve) => {
+        const img = new Image();
 
-      const loadImages = async () => {
-        setIsLoading(true);
+        img.onload = () => {
+          img.onload = null;
+          img.onerror = null;
+          resolve(true);
+        };
 
-        // Check localSrc first
-        if (localSrc) {
-          const localLoaded = await preloadImage(localSrc);
-          if (localLoaded) {
-            setActiveSrc(localSrc);
-            setIsLoading(false);
-            return;
-          }
-        }
+        img.onerror = () => {
+          img.onload = null;
+          img.onerror = null;
+          resolve(false);
+        };
 
-        // Check webSrc if localSrc failed
-        if (webSrc) {
-          const webLoaded = await preloadImage(webSrc);
-          if (webLoaded) {
-            setActiveSrc(webSrc);
-            setIsLoading(false);
-            return;
-          }
-        }
-        // Fallback to defaultSrc if both localSrc and webSrc failed
+        img.src = src;
+      });
+    };
+
+    const loadImages = async () => {
+      setIsLoading(true);
+
+      try {
+        // Load both sources in parallel for maximum speed
+        const [localLoaded, webLoaded] = await Promise.all([
+          localSrc ? preloadImage(localSrc) : Promise.resolve(false),
+          webSrc ? preloadImage(webSrc) : Promise.resolve(false),
+        ]);
+
+        setActiveSrc(
+          localLoaded && localSrc
+            ? localSrc
+            : webLoaded && webSrc
+            ? webSrc
+            : defaultSrc
+        );
+      } catch (error) {
+        console.error("Image loading failed:", error);
         setActiveSrc(defaultSrc);
+      } finally {
         setIsLoading(false);
-      };
+      }
+    };
 
-      loadImages();
-    }, [localSrc, webSrc, defaultSrc]);
+    loadImages();
+  }, [localSrc, webSrc, defaultSrc]);
 
-    return (
-      <div style={{ position: "relative", width: imageWidth, height: imageHeight }}>
-        {isLoading && (
-          <div className="placeholder" />
-        )}
+  return (
+    <div
+      style={{ position: "relative", width: imageWidth, height: imageHeight }}
+    >
+      {isLoading && <div className="placeholder" />}
+      {activeSrc && (
         <img
           src={activeSrc}
           alt=""
-          className={`select-icon-image ${!isLoading ? 'imageLoaded' : ''}`}
+          className={`select-icon-image ${!isLoading ? "imageLoaded" : ""}`}
           style={{
             width: imageWidth,
             height: imageHeight,
-            objectFit: 'contain'
+            objectFit: "contain",
           }}
           onLoad={() => setIsLoading(false)}
         />
-      </div>
-    );
-  };
+      )}
+    </div>
+  );
+};
 
 export default SelectIconImage;

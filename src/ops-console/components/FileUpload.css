@@ -7,12 +7,12 @@
   flex-direction: column;
   font-weight: bold;
   overflow-y: auto;
-  padding-top: clamp(40px, 3vh, 50px);
+  padding-top: clamp(19px, 5vh, 50px);
   background-color: #f5f5f5;
 }
 
 .file-upload-container {
-  width: clamp(200px, 50%, 500px);
+  width: clamp(200px, 40%, 500px);
   background: white;
   padding: clamp(10px, 2vw, 24px);
   border-radius: 10px;
@@ -42,17 +42,17 @@
   flex-direction: column;
   align-items: center;
   border-radius: 8px;
-  padding: clamp(12px, 2vh, 20px);
+  padding: clamp(10px, 5vh, 29px);
   text-align: center;
   cursor: pointer;
   transition: border 0.3s ease-in-out;
-  margin-top: clamp(10px, 2vw, 20px);
-  background-color: rgba(0, 0, 0, 0.05);
-  border: 2px dashed #ccc;
+  margin-top: clamp(29px, 4vh, 40px);
+  background-color: rgba(0, 0, 0, 0.09);
+  border: 2px #ccc;
 }
 
 .file-upload-box:hover {
-  border-color: #7c5db0;
+  border-color: #1a71f6;
 }
 
 .file-upload-box img {
@@ -69,8 +69,9 @@
 
 .file-upload-text span {
   text-decoration: underline;
-  color: #7c5db0;
+  color: #070808;
   cursor: pointer;
+  font-weight: bold;
 }
 
 .upload-file-size {
@@ -137,7 +138,7 @@
 
 .file-upload-progress {
   height: 100%;
-  background: #7c5db0;
+  background: #1a71f6;
   transition: width 0.3s ease-in-out;
 }
 
@@ -165,7 +166,7 @@
 
 .download-upload-template {
   margin-top: clamp(20px, 3vh, 30px);
-  color: #7c5db0;
+  color: #1a71f6;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -175,11 +176,11 @@
 }
 
 .download-Upload-Template:hover {
-  color: #5a3e88;
+  color: #1a71f6;
 }
 .file-upload-button-group {
   width: 100%;
-  padding-top: clamp(5px, 5%, 30px);
+  padding-top: clamp(6px, 8%, 32px);
 }
 
 .file-upload-actions {
@@ -225,12 +226,12 @@
 
 .file-upload-next-btn {
   border: none;
-  background: #7c5db0;
+  background: #1a71f6;
   color: white;
   width: clamp(70px, 30%, 150px);
 }
 
 .file-upload-next-btn:hover {
-  background: #5a3e88;
+  background: #1a71f6;
   transform: scale(1.02);
 }

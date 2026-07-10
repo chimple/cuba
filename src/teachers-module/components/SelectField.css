@@ -1,0 +1,58 @@
+.select-field-row {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  border-bottom: 1px solid #eff2f4;
+  padding: 2vh 0;
+}
+
+.select-field-row.no-border {
+  border-bottom: none;
+}
+
+.select-field-label {
+  width: 130px;
+  font-weight: 400;
+  color: #676767;
+  flex-shrink: 0;
+}
+.select-field-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.select-field-display {
+  font-size: 15px !important;
+  font-weight: 600;
+  color: #4a4949;
+  height: 100%;
+  width: calc(100% - 40px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  line-height: 1.4;
+}
+
+.select-field-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.select-field-arrow {
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: #676767;
+  pointer-events: none;
+}
