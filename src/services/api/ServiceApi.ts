@@ -190,13 +190,16 @@ export type CampaignMessagingResponse = {
 };
 
 export type UpdateCampaignMessagingRowPayload = {
-  id: string;
+  campaignId: string;
+  id?: string;
   message: string;
   mediaLink: string;
   messageTime: string | null;
   pollTime: string | null;
   pollQuestion: string;
   pollOptions: string[];
+  messageStatus?: string | null;
+  pollStatus?: string | null;
 };
 
 type OpsRequestsResponse = {
