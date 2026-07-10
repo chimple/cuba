@@ -297,6 +297,82 @@ describe('CampaignMessagesLogic', () => {
     expect(data.rows[1].isEditable).toBe(true);
   });
 
+  it('locks only the field whose status is non-editable', () => {
+    const data = buildCampaignMessagesData(
+      {
+        messages: [
+          buildMessagingRow({
+            message_time: '2099-06-10T15:00:00+00:00',
+            poll_time: '2099-06-10T10:00:00+00:00',
+            message_status: 'sent',
+            poll_status: 'pending',
+          }),
+          buildMessagingRow({
+            id: 'message-2',
+            message_time: '2099-06-11T15:00:00+00:00',
+            poll_time: '2099-06-11T10:00:00+00:00',
+            message_status: 'pending',
+            poll_status: 'completed',
+          }),
+        ],
+      },
+      ['2099-06-10', '2099-06-11'],
+    );
+
+    expect(data.rows[0].messageEditable).toBe(false);
+    expect(data.rows[0].pollEditable).toBe(true);
+    expect(data.rows[0].isEditable).toBe(true);
+    expect(data.rows[1].messageEditable).toBe(true);
+    expect(data.rows[1].pollEditable).toBe(false);
+    expect(data.rows[1].isEditable).toBe(true);
+  });
+
+  it('keeps poll editable when message is sent but poll is still pending', () => {
+    const data = buildCampaignMessagesData(
+      {
+        messages: [
+          buildMessagingRow({
+            message_time: '2099-06-10T15:00:00+00:00',
+            poll_time: '2099-06-10T10:00:00+00:00',
+            message_status: 'sent',
+            poll_status: 'pending',
+          }),
+        ],
+      },
+      ['2099-06-10'],
+    );
+
+    expect(data.rows[0].messageEditable).toBe(false);
+    expect(data.rows[0].pollEditable).toBe(true);
+    expect(data.rows[0].isEditable).toBe(true);
+  });
+
+  it('keeps today message locked when its status is sent even before the time passes', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-07-10T06:00:00Z'));
+
+    try {
+      const data = buildCampaignMessagesData(
+        {
+          messages: [
+            buildMessagingRow({
+              message_time: '2026-07-10T07:00:00+00:00',
+              poll_time: '2026-07-10T19:00:00+00:00',
+              message_status: 'sent',
+              poll_status: 'pending',
+            }),
+          ],
+        },
+        ['2026-07-10'],
+      );
+
+      expect(data.rows[0].messageEditable).toBe(false);
+      expect(data.rows[0].pollEditable).toBe(true);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('does not create a save payload when only ISO formatting changes', () => {
     const currentRow: CampaignMessageRow = {
       id: 'message-1',
@@ -311,6 +387,8 @@ describe('CampaignMessagesLogic', () => {
       pollOptions: ['Yes', 'No'],
       messageStatus: 'pending',
       pollStatus: 'pending',
+      messageEditable: true,
+      pollEditable: true,
       isEditable: true,
       isPersisted: true,
     };
@@ -339,6 +417,8 @@ describe('CampaignMessagesLogic', () => {
       pollOptions: ['Yes', 'No'],
       messageStatus: 'pending',
       pollStatus: 'pending',
+      messageEditable: true,
+      pollEditable: true,
       isEditable: true,
       isPersisted: true,
     };

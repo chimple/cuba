@@ -52,6 +52,8 @@ export interface CampaignMessageRow {
   pollOptions: string[];
   messageStatus: string;
   pollStatus: string;
+  messageEditable: boolean;
+  pollEditable: boolean;
   isEditable: boolean;
   isPersisted: boolean;
 }
@@ -317,6 +319,62 @@ const getTodayDateKey = (): string => {
 const isBeforeToday = (dateKey: string): boolean =>
   dateKey.localeCompare(getTodayDateKey()) < 0;
 
+const isDateTimeExpired = (dateTimeIso?: string | null): boolean => {
+  if (!dateTimeIso) return false;
+
+  const date = new Date(dateTimeIso);
+  if (Number.isNaN(date.getTime())) return false;
+
+  return date.getTime() <= Date.now();
+};
+
+const NON_EDITABLE_STATUS_VALUES = new Set([
+  'sent',
+  'delivered',
+  'failed',
+  'processing',
+  'completed',
+  'cancelled',
+  'canceled',
+]);
+
+const isNonEditableStatus = (status?: string | null): boolean =>
+  NON_EDITABLE_STATUS_VALUES.has(
+    String(status ?? '')
+      .trim()
+      .toLowerCase(),
+  );
+
+const isMessageLocked = (row: {
+  dateKey?: string;
+  messageStatus?: string | null;
+  messageTimeIso?: string | null;
+  isTimelineRow?: boolean;
+}): boolean => {
+  if (isNonEditableStatus(row.messageStatus)) return true;
+  if (row.isTimelineRow && row.dateKey && isBeforeToday(row.dateKey))
+    return true;
+  if (row.dateKey && row.dateKey === getTodayDateKey()) {
+    return isDateTimeExpired(row.messageTimeIso);
+  }
+  return false;
+};
+
+const isPollLocked = (row: {
+  dateKey?: string;
+  pollStatus?: string | null;
+  pollTimeIso?: string | null;
+  isTimelineRow?: boolean;
+}): boolean => {
+  if (isNonEditableStatus(row.pollStatus)) return true;
+  if (row.isTimelineRow && row.dateKey && isBeforeToday(row.dateKey))
+    return true;
+  if (row.dateKey && row.dateKey === getTodayDateKey()) {
+    return isDateTimeExpired(row.pollTimeIso);
+  }
+  return false;
+};
+
 const formatJsonText = (value: Json | undefined): string | null => {
   if (typeof value === 'string') return value;
   if (typeof value === 'number' || typeof value === 'boolean') {
@@ -403,6 +461,33 @@ export const buildCampaignMessagesData = (
         matchedRow?.poll_time ??
         applyScheduleTimeToDate(date, firstPollSchedule) ??
         placeholderIso;
+      const messageEditable = !isMessageLocked({
+        dateKey: date,
+        messageStatus: matchedRow?.message_status ?? null,
+        messageTimeIso: rowMessageTimeIso,
+        isTimelineRow: true,
+      });
+      const pollEditable = !isPollLocked({
+        dateKey: date,
+        pollStatus: matchedRow?.poll_status ?? null,
+        pollTimeIso: rowPollTimeIso,
+        isTimelineRow: true,
+      });
+
+      logger.info('CampaignMessages timeline row editability', {
+        rowId:
+          matchedRow?.id ||
+          `${date}-${index + rowOffset + 1}`.replace(/\s+/g, '-'),
+        date,
+        messageStatus: matchedRow?.message_status ?? null,
+        pollStatus: matchedRow?.poll_status ?? null,
+        messageTimeIso: rowMessageTimeIso,
+        pollTimeIso: rowPollTimeIso,
+        todayKey: getTodayDateKey(),
+        isBeforeToday: isBeforeToday(date),
+        messageEditable,
+        pollEditable,
+      });
 
       return {
         id:
@@ -421,7 +506,9 @@ export const buildCampaignMessagesData = (
           : [],
         messageStatus: matchedRow ? formatValue(matchedRow.message_status) : '',
         pollStatus: matchedRow ? formatValue(matchedRow.poll_status) : '',
-        isEditable: !isBeforeToday(date),
+        messageEditable,
+        pollEditable,
+        isEditable: messageEditable || pollEditable,
         isPersisted: Boolean(matchedRow),
       };
     });
@@ -472,7 +559,27 @@ export const buildCampaignMessagesData = (
         ),
         messageStatus: formatValue(row.message_status),
         pollStatus: formatValue(row.poll_status),
-        isEditable: dateKey ? !isBeforeToday(dateKey) : true,
+        messageEditable: !isMessageLocked({
+          dateKey: dateKey ?? undefined,
+          messageStatus: row.message_status,
+          messageTimeIso: row.message_time ?? null,
+        }),
+        pollEditable: !isPollLocked({
+          dateKey: dateKey ?? undefined,
+          pollStatus: row.poll_status,
+          pollTimeIso: row.poll_time ?? null,
+        }),
+        isEditable:
+          !isMessageLocked({
+            dateKey: dateKey ?? undefined,
+            messageStatus: row.message_status,
+            messageTimeIso: row.message_time ?? null,
+          }) ||
+          !isPollLocked({
+            dateKey: dateKey ?? undefined,
+            pollStatus: row.poll_status,
+            pollTimeIso: row.poll_time ?? null,
+          }),
         isPersisted: true,
       };
     }),
