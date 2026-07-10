@@ -401,7 +401,6 @@ export type CampaignAssignmentOptions = {
 export type CampaignListingItem = {
   campaignId: string;
   campaign: TableTypes<'campaign'> & {
-    cancelled_by_user?: TableTypes<'user'> | TableTypes<'user'>[] | null;
     manager?: TableTypes<'user'> | TableTypes<'user'>[] | null;
     program?: TableTypes<'program'> | TableTypes<'program'>[] | null;
   };
@@ -411,6 +410,12 @@ export type CampaignListingItem = {
   avgWeeklyActiveUsers: number | null;
   avgWeeklyEngagementTimeMinutes: number | null;
   status: CampaignListingStatus;
+};
+
+export type CampaignCancellationDetails = {
+  canceledBy: string | null;
+  canceledOn: string | null;
+  messageToAdmin: string | null;
 };
 
 export type CampaignListingParams = {
@@ -2450,6 +2455,13 @@ export interface ServiceApi {
    * The reason is supplied by the UI for cancellation auditing and validation.
    */
   cancelCampaign(campaignId: string, reason: string): Promise<void>;
+
+  /**
+   * Fetches campaign cancellation details for a given campaign ID.
+   */
+  getCampaignCancellationDetails(
+    campaignId: string,
+  ): Promise<CampaignCancellationDetails | null>;
   /**
    * Fetches campaign assignments for a given campaign ID, with optional filters for school, grade, subject, chapter, and lesson.
    * @param {string} campaignId - The ID of the campaign to fetch assignments for.

@@ -101,6 +101,7 @@ import {
   AssignmentBatchGroupRow,
   AssignmentCartData,
   AssignmentDateRangeData,
+  CampaignCancellationDetails,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
   CampaignListingItem,
@@ -8054,6 +8055,13 @@ order by
   async cancelCampaign(campaignId: string, reason: string): Promise<void> {
     return await this._serverApi.cancelCampaign(campaignId, reason);
   }
+
+  async getCampaignCancellationDetails(
+    campaignId: string,
+  ): Promise<CampaignCancellationDetails | null> {
+    return await this._serverApi.getCampaignCancellationDetails(campaignId);
+  }
+
   async getCampaignAssignments(
     campaignId: string,
     filters: CampaignAssignmentFilters,

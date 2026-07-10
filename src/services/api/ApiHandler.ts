@@ -1,6 +1,7 @@
 import {
   AssignmentCartData,
   AssignmentDateRangeData,
+  CampaignCancellationDetails,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
   CampaignListingItem,
@@ -1640,6 +1641,13 @@ export class ApiHandler implements ServiceApi {
   ): Promise<void> {
     return await this.s.cancelCampaign(campaignId, reason);
   }
+
+  public async getCampaignCancellationDetails(
+    campaignId: string,
+  ): Promise<CampaignCancellationDetails | null> {
+    return await this.s.getCampaignCancellationDetails(campaignId);
+  }
+
   public async getCampaignAssignments(
     campaignId: string,
     filters: CampaignAssignmentFilters,
