@@ -14,6 +14,7 @@ export interface FieldConfig {
   kind: FieldKind;
   required?: boolean;
   placeholder?: string;
+  suppressPlaceholderOption?: boolean;
   options?: { value: string; label: string }[];
   column?: FieldColumn;
   multi?: boolean;
@@ -321,11 +322,13 @@ const FormCard: React.FC<EntityModalProps> = ({
                 setOpenSelect(null);
               }}
             >
-              <option value="">
-                {field.placeholder
-                  ? t(field.placeholder)
-                  : `${t('Select ')} ${t(field.label)}`}
-              </option>
+              {!field.suppressPlaceholderOption && (
+                <option value="">
+                  {field.placeholder
+                    ? t(field.placeholder)
+                    : `${t('Select ')} ${t(field.label)}`}
+                </option>
+              )}
               {field.options?.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {t(opt.label)}

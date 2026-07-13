@@ -1634,6 +1634,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       label: 'Class And Section',
       kind: 'select',
       required: true,
+      suppressPlaceholderOption: true,
       column: 0,
       options: editClassOptions,
     },
