@@ -735,6 +735,60 @@ describe('SelectMode page', () => {
     });
   });
 
+  it('renders Principal mode and handles Principal flow end-to-end', async () => {
+    const user = userEvent.setup();
+
+    mockGetCurrMode.mockResolvedValue(undefined);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+      name: 'Principal User',
+    });
+
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'PRINCIPAL' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'PRINCIPAL' },
+    ]);
+
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+      { id: 'school-2' },
+    ]);
+
+    render(<SelectMode />);
+
+    await waitFor(() => {
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+    });
+  });
+
+  it('renders Coordinator mode and handles Coordinator flow end-to-end', async () => {
+    const user = userEvent.setup();
+
+    mockGetCurrMode.mockResolvedValue(undefined);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+      name: 'Coordinator User',
+    });
+
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: { id: 'school-1', name: 'School 1' }, role: 'COORDINATOR' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'COORDINATOR' },
+    ]);
+
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+      { id: 'school-2' },
+    ]);
+
+    render(<SelectMode />);
+
+    await waitFor(() => {
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+    });
+  });
+
   it('routes to teacher dashboard with TEACHER_SCHOOL mode after biometric authentication from class mode', async () => {
     const user = userEvent.setup();
 
