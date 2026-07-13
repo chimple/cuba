@@ -167,6 +167,12 @@ const LidoPlayer: FC = () => {
   const courseDetail: TableTypes<'course'> = state?.course
     ? JSON.parse(state.course)
     : undefined;
+  const courseDetailWithPathFields = courseDetail as
+    | (Partial<TableTypes<'course'>> & {
+        course_id?: string | null;
+        course_code?: string | null;
+      })
+    | undefined;
   const chapterDetail: TableTypes<'chapter'> = state?.chapter
     ? JSON.parse(state.chapter)
     : undefined;
@@ -190,10 +196,27 @@ const LidoPlayer: FC = () => {
   const isExitingRef = useRef(false);
 
   const getAssessmentProgressKey = () => {
-    if (isAssessmentLesson && courseDetail?.subject_id) {
-      return `subject:${courseDetail.subject_id}`;
+    if (isAssessmentLesson && courseDetailWithPathFields?.subject_id) {
+      const courseCode = (
+        courseDetailWithPathFields.code ??
+        courseDetailWithPathFields.course_code
+      )
+        ?.trim()
+        ?.toLowerCase();
+      const courseId =
+        courseDetailWithPathFields.id ??
+        courseDetailWithPathFields.course_id ??
+        courseDocId;
+      return courseCode
+        ? `subject:${courseDetailWithPathFields.subject_id}:course:${courseCode}`
+        : `subject:${courseDetailWithPathFields.subject_id}:course:${courseId}`;
     }
-    return courseDetail?.id ?? courseDocId ?? '';
+    return (
+      courseDetailWithPathFields?.id ??
+      courseDetailWithPathFields?.course_id ??
+      courseDocId ??
+      ''
+    );
   };
 
   const resolveStudentContext = async (): Promise<{
