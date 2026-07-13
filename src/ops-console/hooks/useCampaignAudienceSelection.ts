@@ -145,14 +145,6 @@ export const useCampaignAudienceSelection = ({
       );
     }
 
-    if (!hasCustomSchoolSelection) {
-      setSelectedSchools((current) =>
-        areOptionIdArraysEqual(current, audienceOptions.schools)
-          ? current
-          : audienceOptions.schools,
-      );
-    }
-
     if (!hasCustomGradeSelection) {
       setSelectedGrades((current) =>
         areOptionIdArraysEqual(current, audienceOptions.grades)
@@ -165,7 +157,6 @@ export const useCampaignAudienceSelection = ({
     form.programId,
     hasCustomBlockSelection,
     hasCustomGradeSelection,
-    hasCustomSchoolSelection,
     selectedSavedGroupId,
   ]);
 
