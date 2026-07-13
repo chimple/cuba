@@ -10704,54 +10704,20 @@ export class SupabaseApi implements ServiceApi {
       };
     }
 
-    const page = filters.page ?? 1;
-    const pageSize = filters.pageSize ?? 10;
+    const { data, error } = await this.supabase.rpc(
+      'get_campaign_assignments',
+      {
+        p_campaign_id: campaignId,
+        p_grade_ids: filters.gradeIds?.length ? filters.gradeIds : null,
+        p_subject_ids: filters.subjectIds?.length ? filters.subjectIds : null,
+        p_page: filters.page ?? 1,
+        p_page_size: filters.pageSize ?? 10,
+      },
+    );
 
-    const from = (page - 1) * pageSize;
-    const to = from + pageSize - 1;
-
-    logger.info('page', page, 'pageSize', pageSize, 'from', from, 'to', to);
-
-    let query = this.supabase
-      .from('assignment')
-      .select(
-        `
-          id,
-          starts_at,
-          lesson (
-            id,
-            name
-          ),
-          class!inner (
-            grade!inner (
-              id,
-              name
-            )
-          ),
-          course!inner (
-            subject!inner (
-              id,
-              name
-            )
-          )
-        `,
-        { count: 'exact' },
-      )
-      .eq('campaign_id', campaignId)
-      .eq('is_deleted', false);
-
-    // Apply filters only if provided
-    if (filters.gradeIds?.length) {
-      query = query.in('class.grade.id', filters.gradeIds);
-    }
-
-    if (filters.subjectIds?.length) {
-      query = query.in('course.subject.id', filters.subjectIds);
-    }
-
-    query = query.order('starts_at', { ascending: true }).range(from, to);
-
-    const { data, count, error } = await query;
+    logger.info(
+      `Fetched ${data?.length ?? 0} campaign assignments for campaign ${campaignId}`,
+    );
 
     if (error) {
       throw error;
@@ -10759,20 +10725,20 @@ export class SupabaseApi implements ServiceApi {
 
     return {
       assignments:
-        data?.map((assignment) => ({
-          assignmentId: assignment.id,
-          assignmentDate: assignment.starts_at,
+        data?.map((row) => ({
+          assignmentId: row.assignment_id,
+          assignmentDate: row.assignment_date,
 
-          gradeId: assignment.class?.grade?.id ?? '',
-          gradeName: assignment.class?.grade?.name ?? '',
+          gradeId: row.grade_id,
+          gradeName: row.grade_name,
 
-          subjectId: assignment.course?.subject?.id ?? '',
-          subjectName: assignment.course?.subject?.name ?? '',
+          subjectId: row.subject_id,
+          subjectName: row.subject_name,
 
-          lessonId: assignment.lesson?.id ?? '',
-          lessonName: assignment.lesson?.name ?? '',
+          lessonId: row.lesson_id,
+          lessonName: row.lesson_name,
         })) ?? [],
-      total: count ?? 0,
+      total: data?.length ? Number(data[0].total_count) : 0,
     };
   }
 
@@ -13016,18 +12982,39 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], totalCount: 0 };
       }
       const programIds = programs.map((p) => p.program_id);
+      const { data: coordinatorLinks, error: coordinatorLinksError } =
+        await this.supabase
+          .from('program_user')
+          .select('user')
+          .in('program_id', programIds)
+          .eq('role', RoleType.FIELD_COORDINATOR)
+          .eq('is_deleted', false)
+          .not('user', 'is', null);
+
+      if (coordinatorLinksError) {
+        logger.error(
+          'Error fetching field coordinator program links:',
+          coordinatorLinksError,
+        );
+        return { data: [], totalCount: 0 };
+      }
+
+      const coordinatorUserIds = Array.from(
+        new Set(
+          (coordinatorLinks ?? [])
+            .map((link) => link.user)
+            .filter((id): id is string => !!id),
+        ),
+      );
+
+      if (coordinatorUserIds.length === 0) {
+        return { data: [], totalCount: 0 };
+      }
+
       let query = this.supabase
         .from('user')
-        .select(
-          `
-        *,
-        program_user!inner(role)
-        `,
-          { count: 'exact' },
-        )
-        .in('program_user.program_id', programIds)
-        .eq('program_user.role', RoleType.FIELD_COORDINATOR)
-        .eq('program_user.is_deleted', false)
+        .select('*', { count: 'exact' })
+        .in('id', coordinatorUserIds)
         .eq('is_deleted', false);
       if (search) {
         query = query.ilike('name', `%${search}%`);
@@ -13046,14 +13033,10 @@ export class SupabaseApi implements ServiceApi {
       if (!users) {
         return { data: [], totalCount: 0 };
       }
-      const result = users.map((u) => {
-        const { program_user, ...userObject } = u;
-        const role = program_user[0]?.role || RoleType.FIELD_COORDINATOR;
-        return {
-          user: userObject as TableTypes<'user'>,
-          role,
-        };
-      });
+      const result = users.map((userObject) => ({
+        user: userObject as TableTypes<'user'>,
+        role: RoleType.FIELD_COORDINATOR,
+      }));
       return { data: result, totalCount: count || 0 };
     }
     return { data: [], totalCount: 0 };
