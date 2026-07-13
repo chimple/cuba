@@ -720,11 +720,12 @@ const buildScheduleTimeText = ({
 
 const getIsoWithScheduleTime = (
   isoValue: string | null,
+  scheduledDate: string,
   scheduleTime: string,
 ): string | null => {
-  if (!isoValue) return null;
+  const dateValue = isoValue || `${scheduledDate}T00:00:00.000Z`;
 
-  const date = new Date(isoValue);
+  const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) return isoValue;
 
   const scheduleTimeParts = getScheduleTimeParts(scheduleTime);
@@ -1096,9 +1097,14 @@ export const useCampaignMessagesController = ({
       ...row,
       messageTimeIso: getIsoWithScheduleTime(
         row.messageTimeIso,
+        row.scheduledDate,
         editedMessageTime,
       ),
-      pollTimeIso: getIsoWithScheduleTime(row.pollTimeIso, editedPollTime),
+      pollTimeIso: getIsoWithScheduleTime(
+        row.pollTimeIso,
+        row.scheduledDate,
+        editedPollTime,
+      ),
       pollOptions: row.pollOptions.filter((option) => option.trim().length > 0),
     }));
 
