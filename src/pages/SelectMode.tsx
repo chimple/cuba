@@ -54,6 +54,7 @@ import {
   resolveTeacherAppModeForRole,
 } from '../utility/roleUtil';
 import { schoolUtil } from '../utility/schoolUtil';
+import { isWebGoogleLoginPending } from '../services/auth/webGoogleLoginLoading';
 import { Util } from '../utility/util';
 import BrandLogoIcon from './assets/brandLogoIcon.svg?raw';
 import LeftArrowIcon from './assets/leftArrowIcon.svg?raw';
@@ -443,7 +444,7 @@ const SelectMode: FC = () => {
     }));
     setTeacherAppSchoolList(teacherAppSchoolOptions);
 
-    if (teacherRoleEntries.length > 0) {
+    if (isWebGoogleLoginPending() && teacherRoleEntries.length > 0) {
       await applyOrientationForMode(MODES.TEACHER);
       schoolUtil.setCurrMode(MODES.TEACHER);
 
