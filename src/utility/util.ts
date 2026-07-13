@@ -110,6 +110,7 @@ import {
   CoursePath,
   LessonNode,
   recommendNextLesson,
+  shouldUseAssessment,
 } from '../hooks/useLearningPath';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import { store } from '../redux/store';
@@ -2916,6 +2917,31 @@ export class Util {
       if (courseIndex === -1) return;
 
       let course = courses.courseList[courseIndex];
+      const courseCodeById = new Map<string, string | null>();
+      const getCourseCode = async (coursePath: CoursePath) => {
+        const storedCode = coursePath.course_code?.trim().toLowerCase();
+        if (storedCode) return storedCode;
+
+        const courseId = coursePath.course_id;
+        if (courseCodeById.has(courseId)) {
+          return courseCodeById.get(courseId) ?? null;
+        }
+
+        try {
+          const courseMeta =
+            await ServiceConfig.getI().apiHandler.getCourse(courseId);
+          const code = courseMeta?.code?.trim().toLowerCase() || null;
+          courseCodeById.set(courseId, code);
+          return code;
+        } catch (error) {
+          logger.warn('[LearningPath] Unable to resolve course code', {
+            courseId,
+            error,
+          });
+          courseCodeById.set(courseId, null);
+          return null;
+        }
+      };
       course.path.length = 0;
       const nextQueuedLesson = course.path.find(
         (lesson: LessonNode) => lesson.isPlayed === false,
@@ -2942,13 +2968,19 @@ export class Util {
       }
 
       if (
-        storedPathwayMode === LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY &&
+        shouldUseAssessment(
+          storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+        ) &&
         course.subject_id
       ) {
+        const activeCourseCode = await getCourseCode(course);
         for (const peerCourse of courses.courseList) {
+          const peerCourseCode = await getCourseCode(peerCourse);
           if (
             peerCourse === course ||
-            peerCourse.subject_id !== course.subject_id
+            peerCourse.subject_id !== course.subject_id ||
+            !activeCourseCode ||
+            peerCourseCode !== activeCourseCode
           ) {
             continue;
           }
@@ -2964,7 +2996,7 @@ export class Util {
                   ? 'framework'
                   : null,
             },
-            mode: storedPathwayMode,
+            mode: storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
             coursePath: peerCourse,
             skipAssessment: true,
           });
@@ -3078,7 +3110,9 @@ export class Util {
         nextAssessmentLesson: LessonNode | null,
       ) => {
         if (
-          storedPathwayMode !== LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY ||
+          !shouldUseAssessment(
+            storedPathwayMode || LEARNING_PATHWAY_MODE.DISABLED,
+          ) ||
           !activeLesson ||
           !activeLesson.is_assessment ||
           (!course.subject_id && !course.framework_id)
