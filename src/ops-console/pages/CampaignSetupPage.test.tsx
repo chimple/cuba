@@ -156,6 +156,12 @@ const openSelectAndChoose = async (triggerText: string, optionText: string) => {
   fireEvent.click(await screen.findByRole('option', { name: optionText }));
 };
 
+const enableSaveGroupReuse = () => {
+  fireEvent.click(
+    screen.getByRole('checkbox', { name: 'Save this group for reuse' }),
+  );
+};
+
 const getDateValueDaysFromToday = (daysFromToday: number) => {
   const date = new Date();
   date.setDate(date.getDate() + daysFromToday);
@@ -208,9 +214,6 @@ const completeSetupStep = async () => {
 
   expect(await screen.findByText('Students:')).toBeInTheDocument();
   expect(await screen.findByText(/Grade 1/)).toBeInTheDocument();
-  fireEvent.change(screen.getByPlaceholderText('Enter group name'), {
-    target: { value: 'Group A' },
-  });
 
   await waitFor(() =>
     expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
@@ -230,6 +233,9 @@ describe('CampaignSetupPage', () => {
     expect(screen.getByText('Campaign Details')).toBeInTheDocument();
     expect(screen.getByText('Target Audience')).toBeInTheDocument();
     expect(screen.getByText('Save this group for reuse')).toBeInTheDocument();
+    expect(
+      screen.getByRole('checkbox', { name: 'Save this group for reuse' }),
+    ).not.toBeChecked();
     expect(
       within(getCampaignStepper()).getByText('Assignments'),
     ).toBeInTheDocument();
@@ -259,16 +265,73 @@ describe('CampaignSetupPage', () => {
       target: { value: getDateValueDaysFromToday(30) },
     });
     await openSelectAndChoose('Select Program', 'Early Learning');
-    fireEvent.change(screen.getByPlaceholderText('Enter group name'), {
-      target: { value: 'Group A' },
-    });
 
+    await waitFor(() =>
+      expect(mockApiHandler.getCampaignAudienceSummary).toHaveBeenCalled(),
+    );
     expect(
       await screen.findByText(
         'Unable to proceed. The selected Target Audience has 0 students.',
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+  });
+
+  it('shows 0 instead of loading when the selected program has no grades', async () => {
+    mockApiHandler.getCampaignAudienceOptions.mockResolvedValueOnce({
+      blocks: ['Block A'],
+      schools: [{ id: 'school-1', name: 'School One', block: 'Block A' }],
+      grades: [],
+    });
+
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await openSelectAndChoose('Select Program', 'Early Learning');
+
+    await waitFor(() =>
+      expect(mockApiHandler.getCampaignAudienceOptions).toHaveBeenCalledWith(
+        'program-1',
+      ),
+    );
+
+    expect(await screen.findByText('Blocks:')).toBeInTheDocument();
+    expect(screen.getByText('Schools:')).toBeInTheDocument();
+    expect(screen.getByText('Students:')).toBeInTheDocument();
+    expect(screen.getByText('0')).toBeInTheDocument();
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    expect(mockApiHandler.getCampaignAudienceSummary).not.toHaveBeenCalled();
+  });
+
+  it('preselects schools after choosing a program', async () => {
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await openSelectAndChoose('Select Program', 'Early Learning');
+
+    await waitFor(() =>
+      expect(mockApiHandler.getCampaignAudienceOptions).toHaveBeenCalledWith(
+        'program-1',
+      ),
+    );
+
+    expect(screen.queryByText('Select Blocks')).not.toBeInTheDocument();
+    expect(screen.queryByText('Select Schools')).not.toBeInTheDocument();
+    expect(screen.queryByText('Select Grade')).not.toBeInTheDocument();
+
+    const schoolField = screen
+      .getByText('School')
+      .closest('.campaign-setup-field') as HTMLElement | null;
+    const schoolSelect = schoolField
+      ? within(schoolField).getByRole('combobox')
+      : null;
+
+    fireEvent.mouseDown(schoolSelect as HTMLElement);
+
+    const schoolOption = await screen.findByRole('option', {
+      name: 'School One',
+    });
+    expect(within(schoolOption).getByRole('checkbox')).toBeChecked();
   });
 
   it('switches dynamic objective fields when homepage pathway campaign is selected', async () => {
@@ -348,6 +411,7 @@ describe('CampaignSetupPage', () => {
 
     await screen.findByRole('heading', { name: 'New Campaign' });
     await openSelectAndChoose('Select Program', 'Early Learning');
+    enableSaveGroupReuse();
     fireEvent.change(screen.getByPlaceholderText('Enter group name'), {
       target: { value: ' reusable   group ' },
     });
@@ -391,9 +455,6 @@ describe('CampaignSetupPage', () => {
 
     expect(await screen.findByText('Students:')).toBeInTheDocument();
     expect(await screen.findByText(/Grade 1/)).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText('Enter group name'), {
-      target: { value: 'Group A' },
-    });
 
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
@@ -600,9 +661,6 @@ describe('CampaignSetupPage', () => {
     });
     await openSelectAndChoose('Select Program', 'Early Learning');
     expect(await screen.findByText('Students:')).toBeInTheDocument();
-    fireEvent.change(screen.getByPlaceholderText('Enter group name'), {
-      target: { value: 'Group A' },
-    });
 
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
@@ -674,6 +732,9 @@ describe('CampaignSetupPage', () => {
 
     await screen.findByRole('heading', { name: 'New Campaign' });
     expect(screen.getByText('Save this group for reuse')).toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText('Enter group name'),
+    ).not.toBeInTheDocument();
 
     await openSelectAndChoose('Select a saved group', 'Reusable Group');
 
@@ -697,7 +758,9 @@ describe('CampaignSetupPage', () => {
     expect(
       await screen.findByText('Save this group for reuse'),
     ).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter group name')).toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText('Enter group name'),
+    ).not.toBeInTheDocument();
     expect(await screen.findByText('Select Program')).toBeInTheDocument();
   });
 

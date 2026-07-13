@@ -70,7 +70,7 @@ export const useCampaignSetupForm = () => {
   const [savedGroups, setSavedGroups] = useState<CampaignSavedAudienceGroup[]>(
     [],
   );
-  const [saveGroup, setSaveGroup] = useState(true);
+  const [saveGroup, setSaveGroup] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [savingGroup, setSavingGroup] = useState(false);
   const [submitting] = useState(false);
