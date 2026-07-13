@@ -292,6 +292,13 @@
   box-sizing: border-box;
 }
 
+.school-list-table-container .data-tablebody-column-inpersonStudentsParents {
+  min-width: 200px !important;
+  max-width: 200px !important;
+  width: 200px !important;
+  box-sizing: border-box;
+}
+
 @media (max-width: 768px) {
   /* Mobile keeps a fixed name column while every metric column remains individually scrollable. */
   .school-list-table-container .data-tablebody-head-cell:not(:first-child),
