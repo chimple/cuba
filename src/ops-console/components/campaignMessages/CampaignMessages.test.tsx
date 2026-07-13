@@ -278,6 +278,39 @@ describe('CampaignMessages', () => {
       ).not.toBeInTheDocument(),
     );
   });
+
+  it('applies an updated global time when a row time is missing', async () => {
+    const rows = [
+      buildMessagingRow(),
+      buildMessagingRow({
+        id: 'message-2',
+        message_time: null,
+        poll_time: '2099-06-11T10:00:00+00:00',
+      }),
+    ];
+    apiHandler.getCampaignMessaging.mockResolvedValue(buildResponse(rows));
+    apiHandler.updateCampaignMessaging.mockResolvedValue(true);
+
+    render(<CampaignMessages campaignId="campaign-1" />);
+
+    await screen.findAllByText('Class 1 Digital');
+    fireEvent.click(screen.getByLabelText('Edit global send schedule'));
+    fireEvent.click(screen.getByRole('button', { name: 'Message Time' }));
+    fireEvent.click(screen.getByRole('button', { name: '09' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(() =>
+      expect(apiHandler.updateCampaignMessaging).toHaveBeenCalled(),
+    );
+    expect(apiHandler.updateCampaignMessaging).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: 'message-2',
+          messageTime: '2099-06-11T21:00:00.000Z',
+        }),
+      ]),
+    );
+  });
 });
 
 describe('CampaignMessagesLogic', () => {
