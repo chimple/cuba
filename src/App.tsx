@@ -48,6 +48,7 @@ import { useRemoteAssetFlags } from './hooks/useRemoteAssetFlags';
 import { normalizeInitialHashRouteEntry } from './utility/routerLocation';
 
 import AppContent from './app/AppContent';
+import { BASE_NAME } from './common/constants';
 
 setupIonicReact();
 
@@ -61,7 +62,7 @@ const App: React.FC = () => {
 
   return (
     <IonApp>
-      <IonReactHashRouter>
+      <IonReactHashRouter basename={BASE_NAME}>
         <AppContent />
       </IonReactHashRouter>
     </IonApp>
