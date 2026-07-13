@@ -7827,6 +7827,26 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_campaign_assignments: {
+        Args: {
+          p_campaign_id: string;
+          p_grade_ids?: string[] | null;
+          p_subject_ids?: string[] | null;
+          p_page?: number;
+          p_page_size?: number;
+        };
+        Returns: {
+          assignment_id: string;
+          assignment_date: string;
+          grade_id: string;
+          grade_name: string;
+          subject_id: string;
+          subject_name: string;
+          lesson_id: string;
+          lesson_name: string;
+          total_count: number;
+        }[];
+      };
       update_class_firebase_trigger: {
         Args: {
           p_course_firebase_ids: string[];
