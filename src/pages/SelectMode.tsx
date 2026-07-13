@@ -443,6 +443,20 @@ const SelectMode: FC = () => {
     }));
     setTeacherAppSchoolList(teacherAppSchoolOptions);
 
+    if (teacherRoleEntries.length > 0) {
+      await applyOrientationForMode(MODES.TEACHER);
+      schoolUtil.setCurrMode(MODES.TEACHER);
+
+      const currentTeacherUser = await auth.getCurrentUser();
+      if (!currentTeacherUser?.name || currentTeacherUser.name.trim() === '') {
+        history.replace(PAGES.ADD_TEACHER_NAME);
+        return;
+      }
+
+      history.replace(PAGES.DISPLAY_SCHOOLS);
+      return;
+    }
+
     const hasStudentsInSchool = async (schoolId: string, userId: string) => {
       try {
         const classes = await api.getClassesForSchool(schoolId, userId);
