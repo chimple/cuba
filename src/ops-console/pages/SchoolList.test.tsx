@@ -644,7 +644,7 @@ describe('SchoolList sorting', () => {
       ).toHaveBeenCalledWith(
         expect.objectContaining({
           page: 3,
-          page_size: 8,
+          page_size: 20,
           order_by: '',
           order_dir: 'asc',
         }),
@@ -660,7 +660,7 @@ describe('SchoolList sorting', () => {
       ).toHaveBeenLastCalledWith(
         expect.objectContaining({
           page: 1,
-          page_size: 8,
+          page_size: 20,
           order_by: 'student_parent_calls',
           order_dir: 'desc',
         }),
