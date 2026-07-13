@@ -274,7 +274,7 @@ export class SupabaseAuth implements ServiceAuth {
           },
         });
       } else {
-        const redirectTo = window.location.origin;
+        const redirectTo = `${window.location.origin}/login`;
         markWebGoogleLoginPending();
         const { error } = await this._auth.signInWithOAuth({
           provider: 'google',
