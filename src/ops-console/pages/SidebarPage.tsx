@@ -144,6 +144,7 @@ const SidebarPage: React.FC = () => {
     const campaignDetailsPrefix = `${campaignsPath}/`;
     const campaignCreatePath = `${path}${PAGES.ADMIN_CAMPAIGNS_NEW}`;
     const requestListPath = `${path}${PAGES.REQUEST_LIST}`;
+    const requestDetailsPrefix = `${requestListPath}/`;
     const devicesPath = `${path}${PAGES.ADMIN_DEVICES}`;
     const resourcesPath = `${path}${PAGES.ADMIN_RESOURCES}`;
     const isAllowedPath =
@@ -153,7 +154,9 @@ const SidebarPage: React.FC = () => {
         (location.pathname === campaignsPath ||
           location.pathname === campaignCreatePath ||
           location.pathname.startsWith(campaignDetailsPrefix))) ||
-      (canAccessRequestPage && location.pathname === requestListPath) ||
+      (canAccessRequestPage &&
+        (location.pathname === requestListPath ||
+          location.pathname.startsWith(requestDetailsPrefix))) ||
       location.pathname === devicesPath ||
       location.pathname === resourcesPath;
 
