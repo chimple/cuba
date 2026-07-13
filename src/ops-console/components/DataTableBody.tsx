@@ -470,7 +470,7 @@ function DataTableBodyInner<T extends object>(
                 <TableCell
                   key={columnKey}
                   align={col.align || 'left'}
-                  className="data-tablebody-head-cell"
+                  className={`data-tablebody-head-cell data-tablebody-column-${columnKey}`}
                   sx={{
                     width: col.width ?? 'auto',
                     textAlign: resolvedHeaderAlign,
@@ -574,7 +574,7 @@ function DataTableBodyInner<T extends object>(
                       id="data-tablebody-content-cell"
                       key={String(col.key)}
                       align={col.align || 'left'}
-                      className="data-tablebody-cell"
+                      className={`data-tablebody-cell data-tablebody-column-${String(col.key)}`}
                       sx={{
                         width: col.width ?? 'auto',
                         maxWidth: customHeaderIcons ? 'none' : col.width,

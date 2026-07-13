@@ -229,14 +229,6 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     orderBy: 'student_parent_calls',
   },
   {
-    key: 'inpersonStudentsParents',
-    label: t('In-Person - Students / Parents'),
-    width: '7.78%',
-    align: 'center',
-    sortable: true,
-    orderBy: 'student_parent_inperson',
-  },
-  {
     key: 'phoneCallsTeachersHms',
     label: t('Phone Calls - Teachers & HMs'),
     width: '7.78%',
@@ -267,6 +259,14 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     align: 'center',
     sortable: true,
     orderBy: 'school_visits',
+  },
+  {
+    key: 'inpersonStudentsParents',
+    label: t('In-Person - Students / Parents'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'student_parent_inperson',
   },
   {
     key: 'parentsOnWhatsapp',
@@ -329,11 +329,6 @@ export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
     part: 'value',
   },
   {
-    key: 'inpersonStudentsParents',
-    label: t('In-Person - Students / Parents'),
-    part: 'value',
-  },
-  {
     key: 'phoneCallsTeachersHms',
     label: t('Phone Calls - Teachers & HMs'),
     part: 'value',
@@ -349,6 +344,11 @@ export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
     part: 'value',
   },
   { key: 'schoolVisits', label: t('School Visits'), part: 'value' },
+  {
+    key: 'inpersonStudentsParents',
+    label: t('In-Person - Students / Parents'),
+    part: 'value',
+  },
   { key: 'parentsOnWhatsapp', label: t('On WhatsApp'), part: 'value' },
   { key: 'parentsInWhatsappGroup', label: t('In Group'), part: 'value' },
 ];
