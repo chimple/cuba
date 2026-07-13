@@ -137,6 +137,7 @@ const CampaignListingPage: React.FC = () => {
               isFilter={false}
               variantType="outlined"
               searchPlaceholder={String(t('Search Campaigns'))}
+              debounceMs={250}
             />
           </Box>
         </Box>

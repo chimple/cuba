@@ -24,6 +24,7 @@ interface SearchAndFilterProps {
   variantType?: 'outlined' | 'standard';
   filterIconSrc?: string;
   searchPlaceholder?: string;
+  debounceMs?: number;
 }
 
 const DEBOUNCE_MS = 800;
@@ -39,6 +40,7 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
   variantType,
   filterIconSrc,
   searchPlaceholder,
+  debounceMs = DEBOUNCE_MS,
 }) => {
   const { t } = useTranslation();
   const isMobile = useMediaQuery('(max-width: 900px)');
@@ -61,9 +63,9 @@ const SearchAndFilter: React.FC<SearchAndFilterProps> = ({
           target: { value: inputValue },
         } as React.ChangeEvent<HTMLInputElement>);
       }
-    }, DEBOUNCE_MS);
+    }, debounceMs);
     return () => clearTimeout(handler);
-  }, [inputValue]);
+  }, [debounceMs, inputValue, onSearchChange, searchTerm]);
 
   const [showMobileSearch, setShowMobileSearch] = useState(forceOpenSearch);
 
