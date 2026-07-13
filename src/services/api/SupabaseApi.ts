@@ -400,6 +400,15 @@ const CAMPAIGN_LISTING_VISIBILITY_SELECT = [
   'target_audience:target_audience_id(id,is_all_schools,campaign_target_audience_school(school_id))',
 ].join(',');
 
+const CAMPAIGN_LISTING_ACCESS_CACHE_TTL_MS = 5 * 60 * 1000;
+
+type CachedCampaignAccessScope = {
+  accessibleProgramIds: Set<string>;
+  accessibleSchoolIds: Set<string>;
+  fieldCoordinatorProgramIds: Set<string>;
+  fetchedAt: number;
+};
+
 type CampaignSchoolRow = Pick<TableTypes<'school'>, 'id' | 'name' | 'group3'>;
 
 type CampaignGradeRow = Pick<TableTypes<'grade'>, 'id' | 'name' | 'sort_index'>;
@@ -791,6 +800,14 @@ export class SupabaseApi implements ServiceApi {
   private _currentCourse:
     | Map<string, TableTypes<'course'> | undefined>
     | undefined;
+  private _specialRolesCache = new Map<
+    string,
+    { roles: string[]; fetchedAt: number }
+  >();
+  private _campaignAccessScopeCache = new Map<
+    string,
+    CachedCampaignAccessScope
+  >();
 
   public static getInstance(): SupabaseApi {
     if (!SupabaseApi.i) {
@@ -9816,6 +9833,99 @@ export class SupabaseApi implements ServiceApi {
     };
   }
 
+  private isCampaignListingAccessCacheFresh(fetchedAt: number) {
+    return Date.now() - fetchedAt < CAMPAIGN_LISTING_ACCESS_CACHE_TTL_MS;
+  }
+
+  private async getCampaignAccessScope(
+    userId: string,
+  ): Promise<CachedCampaignAccessScope> {
+    const cachedAccessScope = this._campaignAccessScopeCache.get(userId);
+    if (
+      cachedAccessScope &&
+      this.isCampaignListingAccessCacheFresh(cachedAccessScope.fetchedAt)
+    ) {
+      return cachedAccessScope;
+    }
+
+    if (!this.supabase) {
+      return {
+        accessibleProgramIds: new Set(),
+        accessibleSchoolIds: new Set(),
+        fieldCoordinatorProgramIds: new Set(),
+        fetchedAt: Date.now(),
+      };
+    }
+
+    const [schoolAccessResult, programAccessResult] = await Promise.all([
+      this.supabase
+        .from(TABLES.SchoolUser)
+        .select('school_id, school:school_id(program_id)')
+        .eq('user_id', userId)
+        .eq('is_deleted', false),
+      this.supabase
+        .from(TABLES.ProgramUser)
+        .select('program_id')
+        .eq('user', userId)
+        .eq('role', RoleType.FIELD_COORDINATOR)
+        .eq('is_deleted', false),
+    ]);
+
+    if (schoolAccessResult.error) {
+      logger.error(
+        'Error fetching school_user campaign access list:',
+        schoolAccessResult.error,
+      );
+      return {
+        accessibleProgramIds: new Set(),
+        accessibleSchoolIds: new Set(),
+        fieldCoordinatorProgramIds: new Set(),
+        fetchedAt: Date.now(),
+      };
+    }
+
+    if (programAccessResult.error) {
+      logger.error(
+        'Error fetching program_user campaign access list:',
+        programAccessResult.error,
+      );
+      return {
+        accessibleProgramIds: new Set(),
+        accessibleSchoolIds: new Set(),
+        fieldCoordinatorProgramIds: new Set(),
+        fetchedAt: Date.now(),
+      };
+    }
+
+    const accessibleSchoolIds = new Set(
+      ((schoolAccessResult.data ?? []) as CampaignAccessSchoolRow[])
+        .map((row) => row.school_id)
+        .filter((id): id is string => !!id),
+    );
+    const programIdsFromSchools = (
+      (schoolAccessResult.data ?? []) as CampaignAccessSchoolRow[]
+    )
+      .map((row) => getSingleRelationValue(row.school)?.program_id ?? null)
+      .filter((id): id is string => !!id);
+    const fieldCoordinatorProgramIds = new Set(
+      (programAccessResult.data ?? [])
+        .map((row) => row.program_id)
+        .filter((id): id is string => !!id),
+    );
+    const accessScope: CachedCampaignAccessScope = {
+      accessibleProgramIds: new Set([
+        ...programIdsFromSchools,
+        ...fieldCoordinatorProgramIds,
+      ]),
+      accessibleSchoolIds,
+      fieldCoordinatorProgramIds,
+      fetchedAt: Date.now(),
+    };
+
+    this._campaignAccessScopeCache.set(userId, accessScope);
+    return accessScope;
+  }
+
   async getCampaignListing({
     page = 1,
     pageSize = 10,
@@ -9931,66 +10041,17 @@ export class SupabaseApi implements ServiceApi {
         !hasGlobalCampaignAccess;
 
       // Field coordinators can only see campaigns tied to their linked schools/programs.
-      const [schoolAccessResult, programAccessResult] = isFieldCoordinator
-        ? await Promise.all([
-            supabase
-              .from(TABLES.SchoolUser)
-              .select('school_id, school:school_id(program_id)')
-              .eq('user_id', authUser.id)
-              .eq('is_deleted', false),
-            supabase
-              .from(TABLES.ProgramUser)
-              .select('program_id')
-              .eq('user', authUser.id)
-              .eq('role', RoleType.FIELD_COORDINATOR)
-              .eq('is_deleted', false),
-          ])
-        : [
-            {
-              data: [] as CampaignAccessSchoolRow[],
-              error: null,
-            },
-            {
-              data: [] as Array<{ program_id?: string | null }>,
-              error: null,
-            },
-          ];
-
-      if (schoolAccessResult.error) {
-        logger.error(
-          'Error fetching school_user campaign access list:',
-          schoolAccessResult.error,
-        );
-        return { data: [], totalCount: 0 };
-      }
-
-      if (programAccessResult.error) {
-        logger.error(
-          'Error fetching program_user campaign access list:',
-          programAccessResult.error,
-        );
-        return { data: [], totalCount: 0 };
-      }
-
-      const accessibleSchoolIds = new Set(
-        ((schoolAccessResult.data ?? []) as CampaignAccessSchoolRow[])
-          .map((row) => row.school_id)
-          .filter((id): id is string => !!id),
-      );
-      const programIdsFromSchools = (
-        (schoolAccessResult.data ?? []) as CampaignAccessSchoolRow[]
-      )
-        .map((row) => getSingleRelationValue(row.school)?.program_id ?? null)
-        .filter((id): id is string => !!id);
-      const fieldCoordinatorProgramIds = new Set(
-        (programAccessResult.data ?? [])
-          .map((row) => row.program_id)
-          .filter((id): id is string => !!id),
-      );
-      const accessibleProgramIds = new Set([
-        ...programIdsFromSchools,
-        ...fieldCoordinatorProgramIds,
-      ]);
+      const {
+        accessibleProgramIds,
+        accessibleSchoolIds,
+        fieldCoordinatorProgramIds,
+      } = isFieldCoordinator
+        ? await this.getCampaignAccessScope(authUser.id)
+        : {
+            accessibleProgramIds: new Set<string>(),
+            accessibleSchoolIds: new Set<string>(),
+            fieldCoordinatorProgramIds: new Set<string>(),
+          };
 
       if (
         isFieldCoordinator &&
@@ -13321,6 +13382,14 @@ export class SupabaseApi implements ServiceApi {
       return [];
     }
 
+    const cachedRoles = this._specialRolesCache.get(userId);
+    if (
+      cachedRoles &&
+      this.isCampaignListingAccessCacheFresh(cachedRoles.fetchedAt)
+    ) {
+      return cachedRoles.roles;
+    }
+
     try {
       const { data, error } = await this.supabase
         .from('special_users')
@@ -13343,6 +13412,11 @@ export class SupabaseApi implements ServiceApi {
       const roles = (data ?? [])
         .map((item) => item.role)
         .filter((role): role is NonNullable<typeof role> => role !== null);
+
+      this._specialRolesCache.set(userId, {
+        roles,
+        fetchedAt: Date.now(),
+      });
 
       return roles;
     } catch (e) {
