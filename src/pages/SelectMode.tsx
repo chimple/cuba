@@ -453,6 +453,11 @@ const SelectMode: FC = () => {
         return;
       }
 
+      if (teacherRoleEntries.length === 1) {
+        history.replace(PAGES.HOME_PAGE);
+        return;
+      }
+
       history.replace(PAGES.DISPLAY_SCHOOLS);
       return;
     }
