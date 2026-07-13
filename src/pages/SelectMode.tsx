@@ -444,7 +444,7 @@ const SelectMode: FC = () => {
     }));
     setTeacherAppSchoolList(teacherAppSchoolOptions);
 
-    if (isWebGoogleLoginPending() && teacherRoleEntries.length > 0) {
+    if (teacherRoleEntries.length > 0) {
       await applyOrientationForMode(MODES.TEACHER);
       schoolUtil.setCurrMode(MODES.TEACHER);
 
