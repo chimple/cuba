@@ -13016,18 +13016,39 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], totalCount: 0 };
       }
       const programIds = programs.map((p) => p.program_id);
+      const { data: coordinatorLinks, error: coordinatorLinksError } =
+        await this.supabase
+          .from('program_user')
+          .select('user')
+          .in('program_id', programIds)
+          .eq('role', RoleType.FIELD_COORDINATOR)
+          .eq('is_deleted', false)
+          .not('user', 'is', null);
+
+      if (coordinatorLinksError) {
+        logger.error(
+          'Error fetching field coordinator program links:',
+          coordinatorLinksError,
+        );
+        return { data: [], totalCount: 0 };
+      }
+
+      const coordinatorUserIds = Array.from(
+        new Set(
+          (coordinatorLinks ?? [])
+            .map((link) => link.user)
+            .filter((id): id is string => !!id),
+        ),
+      );
+
+      if (coordinatorUserIds.length === 0) {
+        return { data: [], totalCount: 0 };
+      }
+
       let query = this.supabase
         .from('user')
-        .select(
-          `
-        *,
-        program_user!inner(role)
-        `,
-          { count: 'exact' },
-        )
-        .in('program_user.program_id', programIds)
-        .eq('program_user.role', RoleType.FIELD_COORDINATOR)
-        .eq('program_user.is_deleted', false)
+        .select('*', { count: 'exact' })
+        .in('id', coordinatorUserIds)
         .eq('is_deleted', false);
       if (search) {
         query = query.ilike('name', `%${search}%`);
@@ -13046,14 +13067,10 @@ export class SupabaseApi implements ServiceApi {
       if (!users) {
         return { data: [], totalCount: 0 };
       }
-      const result = users.map((u) => {
-        const { program_user, ...userObject } = u;
-        const role = program_user[0]?.role || RoleType.FIELD_COORDINATOR;
-        return {
-          user: userObject as TableTypes<'user'>,
-          role,
-        };
-      });
+      const result = users.map((userObject) => ({
+        user: userObject as TableTypes<'user'>,
+        role: RoleType.FIELD_COORDINATOR,
+      }));
       return { data: result, totalCount: count || 0 };
     }
     return { data: [], totalCount: 0 };
