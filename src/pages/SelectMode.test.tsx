@@ -669,8 +669,8 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
-      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'AUTOUSER' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1102,8 +1102,8 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
-      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'AUTOUSER' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
@@ -1484,8 +1484,8 @@ describe('SelectMode page', () => {
     mockGetCurrMode.mockResolvedValue(undefined);
     mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
-      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'AUTOUSER' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
       { id: 'school-1' },
