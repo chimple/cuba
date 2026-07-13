@@ -379,6 +379,27 @@ const CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS: Partial<
   endDate: 'end_date',
 };
 
+const CAMPAIGN_LISTING_DETAIL_SELECT = [
+  'id',
+  'name',
+  'objective',
+  'start_date',
+  'end_date',
+  'updated_at',
+  'campaign_status',
+  'comments',
+  'manager_id',
+  'program_id',
+  'target_audience_id',
+  'manager:manager_id(name)',
+  'program:program_id(name, institutes_count, students_count)',
+].join(',');
+
+const CAMPAIGN_LISTING_VISIBILITY_SELECT = [
+  CAMPAIGN_LISTING_DETAIL_SELECT,
+  'target_audience:target_audience_id(id,is_all_schools,campaign_target_audience_school(school_id))',
+].join(',');
+
 type CampaignSchoolRow = Pick<TableTypes<'school'>, 'id' | 'name' | 'group3'>;
 
 type CampaignGradeRow = Pick<TableTypes<'grade'>, 'id' | 'name' | 'sort_index'>;
@@ -9860,7 +9881,7 @@ export class SupabaseApi implements ServiceApi {
       try {
         const { data: campaignRows, error: campaignRowsError } = await supabase
           .from('campaign')
-          .select('*, manager:manager_id(*), program:program_id(*)')
+          .select(CAMPAIGN_LISTING_DETAIL_SELECT)
           .in('id', campaignIds)
           .eq('is_deleted', false);
 
@@ -9873,10 +9894,9 @@ export class SupabaseApi implements ServiceApi {
         }
 
         return new Map(
-          ((campaignRows ?? []) as CampaignListingQueryRow[]).map((row) => [
-            row.id,
-            row,
-          ]),
+          ((campaignRows ?? []) as unknown as CampaignListingQueryRow[]).map(
+            (row) => [row.id, row],
+          ),
         );
       } catch (campaignRowsError) {
         logger.error(
@@ -10025,9 +10045,11 @@ export class SupabaseApi implements ServiceApi {
       const nativeSortColumn = CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS[orderBy];
       const shouldUseDatabasePagination =
         !isFieldCoordinator && Boolean(nativeSortColumn);
-      const campaignListingSelect = isFieldCoordinator
-        ? '*,target_audience:target_audience_id(id,is_all_schools,campaign_target_audience_school(school_id))'
-        : '*';
+      const campaignListingSelect = shouldUseDatabasePagination
+        ? 'id'
+        : isFieldCoordinator
+          ? CAMPAIGN_LISTING_VISIBILITY_SELECT
+          : CAMPAIGN_LISTING_DETAIL_SELECT;
 
       const campaignQuery = this.supabase
         .from('campaign')
@@ -10113,10 +10135,10 @@ export class SupabaseApi implements ServiceApi {
       let totalCount = 0;
 
       if (shouldUseDatabasePagination) {
-        const campaignDetailMap =
-          await fetchCampaignListingDetails(visibleCampaignIds);
-        const campaignMetricsMap =
-          await fetchCampaignListingMetrics(visibleCampaignIds);
+        const [campaignDetailMap, campaignMetricsMap] = await Promise.all([
+          fetchCampaignListingDetails(visibleCampaignIds),
+          fetchCampaignListingMetrics(visibleCampaignIds),
+        ]);
         listingItems = visibleCampaignIds
           .map((campaignId) => {
             const resolvedCampaign =
@@ -10135,18 +10157,12 @@ export class SupabaseApi implements ServiceApi {
           );
         totalCount = count ?? 0;
       } else {
-        const campaignDetailMap =
-          await fetchCampaignListingDetails(visibleCampaignIds);
-        const resolveCampaignRow = (campaignId: string) =>
-          campaignDetailMap.get(campaignId) ??
-          visibleCampaignMap.get(campaignId);
-
         if (requiresMetricsForSort) {
           const campaignMetricsMap =
             await fetchCampaignListingMetrics(visibleCampaignIds);
           const visibleListingItems = visibleCampaignIds
             .map((campaignId) => {
-              const resolvedCampaign = resolveCampaignRow(campaignId);
+              const resolvedCampaign = visibleCampaignMap.get(campaignId);
               if (!resolvedCampaign) return null;
 
               return mapCampaignListingItem(
@@ -10168,7 +10184,7 @@ export class SupabaseApi implements ServiceApi {
         } else {
           const visibleListingItems = visibleCampaignIds
             .map((campaignId) => {
-              const resolvedCampaign = resolveCampaignRow(campaignId);
+              const resolvedCampaign = visibleCampaignMap.get(campaignId);
               if (!resolvedCampaign) return null;
 
               return mapCampaignListingItem(resolvedCampaign, now, null);
@@ -10191,7 +10207,9 @@ export class SupabaseApi implements ServiceApi {
 
           listingItems = pagedListingItems
             .map((campaign) => {
-              const resolvedCampaign = resolveCampaignRow(campaign.campaignId);
+              const resolvedCampaign = visibleCampaignMap.get(
+                campaign.campaignId,
+              );
               if (!resolvedCampaign) return null;
 
               return mapCampaignListingItem(
