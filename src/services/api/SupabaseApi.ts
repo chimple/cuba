@@ -9813,6 +9813,9 @@ export class SupabaseApi implements ServiceApi {
     const supabase = this.supabase;
     const normalizedSearchTerm = searchTerm.trim();
     const now = new Date();
+    const requiresMetricsForSort =
+      orderBy === 'avgWeeklyActiveUsers' ||
+      orderBy === 'avgWeeklyEngagementTimeMinutes';
     const fetchCampaignListingMetrics = async (
       campaignIds: string[],
     ): Promise<Map<string, CampaignListingItem['dashboardMetrics']>> => {
@@ -9843,6 +9846,42 @@ export class SupabaseApi implements ServiceApi {
         logger.error(
           'Unexpected error fetching campaign dashboard metrics for listing:',
           metricsError,
+        );
+        return new Map();
+      }
+    };
+    const fetchCampaignListingDetails = async (
+      campaignIds: string[],
+    ): Promise<Map<string, CampaignListingQueryRow>> => {
+      if (campaignIds.length === 0) {
+        return new Map();
+      }
+
+      try {
+        const { data: campaignRows, error: campaignRowsError } = await supabase
+          .from('campaign')
+          .select('*, manager:manager_id(*), program:program_id(*)')
+          .in('id', campaignIds)
+          .eq('is_deleted', false);
+
+        if (campaignRowsError) {
+          logger.error(
+            'Error fetching campaign listing detail rows:',
+            campaignRowsError,
+          );
+          return new Map();
+        }
+
+        return new Map(
+          ((campaignRows ?? []) as CampaignListingQueryRow[]).map((row) => [
+            row.id,
+            row,
+          ]),
+        );
+      } catch (campaignRowsError) {
+        logger.error(
+          'Unexpected error fetching campaign listing detail rows:',
+          campaignRowsError,
         );
         return new Map();
       }
@@ -9986,12 +10025,9 @@ export class SupabaseApi implements ServiceApi {
       const nativeSortColumn = CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS[orderBy];
       const shouldUseDatabasePagination =
         !isFieldCoordinator && Boolean(nativeSortColumn);
-      const campaignListingSelect = `*, manager:manager_id(*), program:program_id(*),
-        target_audience:target_audience_id(
-          id,
-          is_all_schools,
-          campaign_target_audience_school(school_id)
-        )`;
+      const campaignListingSelect = isFieldCoordinator
+        ? '*,target_audience:target_audience_id(id,is_all_schools,campaign_target_audience_school(school_id))'
+        : '*';
 
       const campaignQuery = this.supabase
         .from('campaign')
@@ -10029,7 +10065,8 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], totalCount: 0 };
       }
 
-      const mappedCampaigns = (data ?? []) as CampaignListingQueryRow[];
+      const mappedCampaigns = (data ??
+        []) as unknown as CampaignListingQueryRow[];
 
       // Apply field-coordinator visibility after the base campaign query so audience links can be inspected.
       const visibleCampaigns = shouldUseDatabasePagination
@@ -10065,36 +10102,108 @@ export class SupabaseApi implements ServiceApi {
       const currentPage = Math.max(page, 1);
       const currentPageSize = Math.max(pageSize, 1);
       const from = (currentPage - 1) * currentPageSize;
+      const visibleCampaignIds = visibleCampaigns.map(
+        (campaign) => campaign.id,
+      );
+      const visibleCampaignMap = new Map(
+        visibleCampaigns.map((campaign) => [campaign.id, campaign]),
+      );
 
       let listingItems: CampaignListingItem[] = [];
       let totalCount = 0;
-      const campaignMetricsMap = await fetchCampaignListingMetrics(
-        visibleCampaigns.map((campaign) => campaign.id),
-      );
 
       if (shouldUseDatabasePagination) {
-        listingItems = visibleCampaigns.map((campaign) =>
-          mapCampaignListingItem(
-            campaign,
-            now,
-            campaignMetricsMap.get(campaign.id) ?? null,
-          ),
-        );
+        const campaignDetailMap =
+          await fetchCampaignListingDetails(visibleCampaignIds);
+        const campaignMetricsMap =
+          await fetchCampaignListingMetrics(visibleCampaignIds);
+        listingItems = visibleCampaignIds
+          .map((campaignId) => {
+            const resolvedCampaign =
+              campaignDetailMap.get(campaignId) ??
+              visibleCampaignMap.get(campaignId);
+            if (!resolvedCampaign) return null;
+
+            return mapCampaignListingItem(
+              resolvedCampaign,
+              now,
+              campaignMetricsMap.get(campaignId) ?? null,
+            );
+          })
+          .filter(
+            (campaign): campaign is CampaignListingItem => campaign !== null,
+          );
         totalCount = count ?? 0;
       } else {
-        const visibleListingItems = visibleCampaigns.map((campaign) =>
-          mapCampaignListingItem(
-            campaign,
-            now,
-            campaignMetricsMap.get(campaign.id) ?? null,
-          ),
-        );
-        totalCount = visibleListingItems.length;
-        listingItems = sortCampaignListingItems(
-          visibleListingItems,
-          orderBy,
-          orderDir,
-        ).slice(from, from + currentPageSize);
+        const campaignDetailMap =
+          await fetchCampaignListingDetails(visibleCampaignIds);
+        const resolveCampaignRow = (campaignId: string) =>
+          campaignDetailMap.get(campaignId) ??
+          visibleCampaignMap.get(campaignId);
+
+        if (requiresMetricsForSort) {
+          const campaignMetricsMap =
+            await fetchCampaignListingMetrics(visibleCampaignIds);
+          const visibleListingItems = visibleCampaignIds
+            .map((campaignId) => {
+              const resolvedCampaign = resolveCampaignRow(campaignId);
+              if (!resolvedCampaign) return null;
+
+              return mapCampaignListingItem(
+                resolvedCampaign,
+                now,
+                campaignMetricsMap.get(campaignId) ?? null,
+              );
+            })
+            .filter(
+              (campaign): campaign is CampaignListingItem => campaign !== null,
+            );
+
+          totalCount = visibleListingItems.length;
+          listingItems = sortCampaignListingItems(
+            visibleListingItems,
+            orderBy,
+            orderDir,
+          ).slice(from, from + currentPageSize);
+        } else {
+          const visibleListingItems = visibleCampaignIds
+            .map((campaignId) => {
+              const resolvedCampaign = resolveCampaignRow(campaignId);
+              if (!resolvedCampaign) return null;
+
+              return mapCampaignListingItem(resolvedCampaign, now, null);
+            })
+            .filter(
+              (campaign): campaign is CampaignListingItem => campaign !== null,
+            );
+
+          totalCount = visibleListingItems.length;
+          const pagedListingItems = sortCampaignListingItems(
+            visibleListingItems,
+            orderBy,
+            orderDir,
+          ).slice(from, from + currentPageSize);
+          const pageCampaignIds = pagedListingItems.map(
+            (campaign) => campaign.campaignId,
+          );
+          const pageMetricsMap =
+            await fetchCampaignListingMetrics(pageCampaignIds);
+
+          listingItems = pagedListingItems
+            .map((campaign) => {
+              const resolvedCampaign = resolveCampaignRow(campaign.campaignId);
+              if (!resolvedCampaign) return null;
+
+              return mapCampaignListingItem(
+                resolvedCampaign,
+                now,
+                pageMetricsMap.get(campaign.campaignId) ?? null,
+              );
+            })
+            .filter(
+              (campaign): campaign is CampaignListingItem => campaign !== null,
+            );
+        }
       }
 
       return {
