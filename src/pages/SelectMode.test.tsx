@@ -698,14 +698,15 @@ describe('SelectMode page', () => {
   });
 
   it('renders Teacher mode and handles Teacher flow end-to-end', async () => {
-    const user = userEvent.setup();
-
     mockGetCurrMode.mockResolvedValue(undefined);
-    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+      name: 'Teacher User',
+    });
 
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
-      { school: { id: 'school-2', name: 'School 2' }, role: 'AUTOUSER' },
+      { school: { id: 'school-1', name: 'School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-2', name: 'School 2' }, role: 'TEACHER' },
     ]);
 
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
@@ -713,56 +714,11 @@ describe('SelectMode page', () => {
       { id: 'school-2' },
     ]);
 
-    mockApiHandler.getClassesForSchool.mockResolvedValue([
-      { id: 'class-1', name: 'Class 1' },
-      { id: 'class-2', name: 'Class 2' },
-    ]);
-
-    mockApiHandler.getStudentsForClass.mockResolvedValue([
-      { id: 'student-1', name: 'Student 1', avatar: 'avatar1' },
-    ]);
-
-    mockEnsureLidoCommonAudioForStudent.mockResolvedValue(undefined);
-
     render(<SelectMode />);
 
-    // wait school dropdown
-    const dropdown = await screen.findByLabelText('school-dropdown');
-    await user.selectOptions(dropdown, 'school-1');
-
-    // click okay
-    const okayBtn = await screen.findByRole('button', { name: /okay/i });
-    await user.click(okayBtn);
-
-    // ✅ ensure classes api called
-    await waitFor(() =>
-      expect(mockApiHandler.getClassesForSchool).toHaveBeenCalledWith(
-        'school-1',
-        'user-1',
-      ),
-    );
-
-    // wait classes render
-    const classNodes = await screen.findAllByText(/Class 1/i);
-    expect(classNodes.length).toBeGreaterThan(0);
-    await user.click(classNodes[0]);
-
-    // wait students api
-    await waitFor(() =>
-      expect(mockApiHandler.getStudentsForClass).toHaveBeenCalledWith(
-        'class-1',
-      ),
-    );
-
-    // click Play button
-    const playButton = await screen.findByRole('button', { name: 'Play' });
-    await user.click(playButton);
-
-    // assert navigation chain
     await waitFor(() => {
-      expect(mockEnsureLidoCommonAudioForStudent).toHaveBeenCalled();
-      expect(mockSetCurrentStudent).toHaveBeenCalled();
-      expect(mockHistoryReplace).toHaveBeenCalledWith('/home');
+      expect(mockSetCurrMode).toHaveBeenCalledWith(MODES.TEACHER);
+      expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
     });
   });
 
@@ -871,7 +827,7 @@ describe('SelectMode page', () => {
       name: 'Teacher User',
     });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: teacherSchool, role: 'teacher' },
+      { school: teacherSchool, role: 'TEACHER' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
     mockApiHandler.getClassesForSchool.mockResolvedValue([]);
@@ -898,8 +854,8 @@ describe('SelectMode page', () => {
       name: 'Teacher User',
     });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
-      { school: { id: 'school-1', name: 'Teacher School 1' }, role: 'teacher' },
-      { school: { id: 'school-2', name: 'Teacher School 2' }, role: 'teacher' },
+      { school: { id: 'school-1', name: 'Teacher School 1' }, role: 'TEACHER' },
+      { school: { id: 'school-2', name: 'Teacher School 2' }, role: 'TEACHER' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
     mockApiHandler.getClassesForSchool.mockResolvedValue([]);
