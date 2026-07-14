@@ -32,6 +32,21 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
   campaignId,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
+  const getViewportWidth = () =>
+    typeof window === 'undefined' ? 1024 : window.innerWidth;
+  const [viewportWidth, setViewportWidth] = useState(getViewportWidth);
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(getViewportWidth());
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const isSmallScreen = viewportWidth <= 600;
+  const isMediumScreen = viewportWidth > 600 && viewportWidth <= 900;
 
   const [grades, setGrades] = useState<CampaignOption[]>([]);
   const [subjects, setSubjects] = useState<CampaignOption[]>([]);
@@ -154,32 +169,43 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
     [subjects],
   );
 
+  const dateColumnWidth = isSmallScreen ? 180 : isMediumScreen ? 240 : 280;
+  const gradeColumnWidth = isSmallScreen ? 100 : 140;
+  const subjectColumnWidth = isSmallScreen ? 120 : 180;
+  const tableMinWidth = isSmallScreen ? 760 : isMediumScreen ? 960 : 1260;
+
+  const assignmentDateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(undefined, {
+        weekday: isSmallScreen ? 'short' : 'long',
+        year: 'numeric',
+        month: isSmallScreen ? 'short' : 'long',
+        day: 'numeric',
+      }),
+    [isSmallScreen],
+  );
+
   const columns = useMemo<Column<CampaignAssignmentSummaryRow>[]>(
     () => [
       {
         key: 'assignmentDate',
         label: t('Date'),
         sortable: false,
-        width: 210,
+        width: dateColumnWidth,
         render: (row) =>
-          new Date(row.assignmentDate).toLocaleDateString(undefined, {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          }),
+          assignmentDateFormatter.format(new Date(row.assignmentDate)),
       },
       {
         key: 'gradeName',
         label: t('Grade'),
         sortable: false,
-        width: 140,
+        width: gradeColumnWidth,
       },
       {
         key: 'subjectName',
         label: t('Subject'),
         sortable: false,
-        width: 180,
+        width: subjectColumnWidth,
       },
       {
         key: 'lessonName',
@@ -187,7 +213,12 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
         sortable: false,
       },
     ],
-    [],
+    [
+      assignmentDateFormatter,
+      dateColumnWidth,
+      gradeColumnWidth,
+      subjectColumnWidth,
+    ],
   );
 
   const selectedGradeLabel = (id: string) => gradeNameById.get(id) ?? id;
@@ -307,7 +338,7 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
               order="asc"
               onSort={() => {}}
               loading={false}
-              tableMinWidth={820}
+              tableMinWidth={tableMinWidth}
               tableWidth="100%"
               headerNoEllipsis
             />
