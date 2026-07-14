@@ -9920,7 +9920,6 @@ export class SupabaseApi implements ServiceApi {
       ) {
         return { data: [], totalCount: 0 };
       }
-
       const nativeSortColumn = CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS[orderBy];
       const shouldUseRelationSort = isCampaignListingRelationSort(orderBy);
       const allowedCampaignIds = isFieldCoordinator
@@ -10256,6 +10255,37 @@ export class SupabaseApi implements ServiceApi {
 
     if (error) {
       logger.error('Error cancelling campaign:', error);
+      throw error;
+    }
+
+    try {
+      await this.deleteCampaignAssignments(campaignId);
+    } catch (assignmentCleanupError) {
+      logger.error(
+        'Campaign cancelled but campaign assignments could not be deleted:',
+        assignmentCleanupError,
+      );
+    }
+  }
+
+  async deleteCampaignAssignments(campaignId: string): Promise<void> {
+    if (!this.supabase || !campaignId) {
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    const { error } = await this.supabase
+      .from(TABLES.Assignment)
+      .update({
+        is_deleted: true,
+        updated_at: nowIso,
+      })
+      .eq('campaign_id', campaignId)
+      .eq('is_deleted', false)
+      .gte('starts_at', nowIso);
+
+    if (error) {
+      logger.error('Error deleting campaign assignments:', error);
       throw error;
     }
   }

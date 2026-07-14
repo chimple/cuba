@@ -8063,6 +8063,10 @@ order by
     return await this._serverApi.cancelCampaign(campaignId, reason);
   }
 
+  async deleteCampaignAssignments(campaignId: string): Promise<void> {
+    return await this._serverApi.deleteCampaignAssignments(campaignId);
+  }
+
   async getCampaignCancellationDetails(
     campaignId: string,
   ): Promise<CampaignCancellationDetails | null> {

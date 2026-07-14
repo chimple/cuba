@@ -2468,6 +2468,12 @@ export interface ServiceApi {
   cancelCampaign(campaignId: string, reason: string): Promise<void>;
 
   /**
+   * Marks campaign assignments deleted for records scheduled from the current
+   * time onward by setting `is_deleted` to true.
+   */
+  deleteCampaignAssignments(campaignId: string): Promise<void>;
+
+  /**
    * Fetches campaign cancellation details for a given campaign ID.
    */
   getCampaignCancellationDetails(
