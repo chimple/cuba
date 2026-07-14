@@ -59,6 +59,7 @@ jest.mock('../../analytics/profileClickUtil', () => ({
 const mockApi = {
   getAllLanguages: jest.fn(),
   getParentStudentProfiles: jest.fn(),
+  getSchoolsForUser: jest.fn(),
   createProfile: jest.fn(),
   updateStudent: jest.fn(),
   createAutoProfile: jest.fn(),
@@ -120,6 +121,7 @@ beforeEach(() => {
   ]);
 
   mockApi.getParentStudentProfiles.mockResolvedValue([]);
+  mockApi.getSchoolsForUser.mockResolvedValue([]);
   mockAuth.getCurrentUser.mockResolvedValue({ id: 'user-1' });
 
   (Util.getCurrentStudent as jest.Mock).mockReturnValue(null);

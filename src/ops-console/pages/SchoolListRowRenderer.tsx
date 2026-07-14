@@ -3,6 +3,7 @@ import { Box, Chip, Typography } from '@mui/material';
 import { t } from 'i18next';
 import {
   buildSchoolUdiseLocationLabel,
+  getSchoolPerformanceLabel,
   getSchoolCoordinatorList,
   getStatusMeta,
   resolvePerformanceStatus,
@@ -33,6 +34,7 @@ export const mapSchoolRowsToRenderRows = (
     const activatedStudents = pickFirstNumber(school.activated_students);
     const activeStudents = pickFirstNumber(school.active_students);
     const activeTeachers = pickFirstNumber(school.active_teachers);
+    const totalTeachers = pickFirstNumber(school.total_teachers);
     const completionAssignments = pickFirstNumber(
       school.avg_assignments_completed,
     );
@@ -96,7 +98,11 @@ export const mapSchoolRowsToRenderRows = (
           exportPercentText: '',
           render: (
             <Chip
-              label={performanceStatus ? t(performanceStatus) : '--'}
+              label={
+                performanceStatus
+                  ? getSchoolPerformanceLabel(performanceStatus)
+                  : '--'
+              }
               size="small"
               sx={{
                 backgroundColor: `${meta.bg} !important`,
@@ -138,7 +144,11 @@ export const mapSchoolRowsToRenderRows = (
       ),
       activeTeachers: renderMetricWithPercentCell(
         activeTeachers,
-        activeTeachers && activeTeachers > 0 ? 100 : null,
+        activeTeachers != undefined &&
+          totalTeachers != undefined &&
+          totalTeachers > 0
+          ? (activeTeachers / totalTeachers) * 100
+          : null,
       ),
       activitiesAssigned: renderMetricCell(
         pickFirstNumber(
@@ -152,6 +162,9 @@ export const mapSchoolRowsToRenderRows = (
       avgActivitiesCompleted: renderMetricCell(completionActivities),
       phoneCallsStudentsParents: renderMetricCell(
         pickFirstNumber(school.phone_calls_students_parents),
+      ),
+      inpersonStudentsParents: renderMetricCell(
+        pickFirstNumber(school.inperson_students_parents),
       ),
       phoneCallsTeachersHms: renderMetricCell(
         pickFirstNumber(school.phone_calls_teachers_hms),

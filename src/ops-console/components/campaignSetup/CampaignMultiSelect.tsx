@@ -45,12 +45,43 @@ export const CampaignMultiSelect = <T,>({
     <Autocomplete
       multiple
       disableCloseOnSelect
+      disablePortal
       openOnFocus
       options={options}
       value={value}
       loading={loading}
       getOptionLabel={getOptionLabel}
       isOptionEqualToValue={isOptionEqualToValue}
+      slotProps={{
+        popper: {
+          placement: 'bottom-start',
+          modifiers: [
+            {
+              name: 'flip',
+              enabled: false,
+            },
+            {
+              name: 'preventOverflow',
+              options: {
+                altAxis: true,
+                padding: 8,
+                tether: true,
+              },
+            },
+          ],
+        },
+        paper: {
+          sx: {
+            marginTop: 0.5,
+          },
+        },
+      }}
+      ListboxProps={{
+        style: {
+          maxHeight: '16rem',
+          overflowY: 'auto',
+        },
+      }}
       renderOption={(props, option, { selected }) => {
         const { key, ...optionProps } = props as AutocompleteOptionProps;
         const label = getOptionLabel ? getOptionLabel(option) : String(option);

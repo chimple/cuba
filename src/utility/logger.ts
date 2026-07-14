@@ -35,13 +35,13 @@ const LEVEL_ORDER: Record<LogLevel, number> = {
 };
 
 const getEnvLogLevel = (): LogLevel => {
-  const envLevel = process.env.REACT_APP_LOG_LEVEL as LogLevel;
+  const envLevel = import.meta.env.VITE_LOG_LEVEL as LogLevel;
 
   if (envLevel && LEVEL_ORDER[envLevel] !== undefined) {
     return envLevel;
   }
 
-  return process.env.NODE_ENV === 'production' ? 'warn' : 'debug';
+  return import.meta.env.PROD ? 'warn' : 'debug';
 };
 
 let currentLevel: LogLevel = getEnvLogLevel();

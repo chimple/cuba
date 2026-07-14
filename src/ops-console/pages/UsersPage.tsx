@@ -33,7 +33,7 @@ const columns = [
   { key: 'role', label: 'Roles', width: '70%', sortable: false },
 ];
 
-const ROWS_PER_PAGE = 8;
+const ROWS_PER_PAGE = 20;
 
 function useDebouncedValue<T>(value: T, delay = 300): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
