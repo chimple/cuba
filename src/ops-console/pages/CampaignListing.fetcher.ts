@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useHistory, useLocation } from 'react-router';
 import {
   CampaignListingItem,
@@ -356,12 +356,17 @@ export const useCampaignListingPageState = (api: ServiceApi) => {
     setPage(1);
   };
 
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const nextSearchTerm = normalizeCampaignSearchTerm(event.target.value);
-    setSearchTerm((currentSearchTerm) =>
-      currentSearchTerm === nextSearchTerm ? currentSearchTerm : nextSearchTerm,
-    );
-  };
+  const handleSearchChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const nextSearchTerm = normalizeCampaignSearchTerm(event.target.value);
+      setSearchTerm((currentSearchTerm) =>
+        currentSearchTerm === nextSearchTerm
+          ? currentSearchTerm
+          : nextSearchTerm,
+      );
+    },
+    [],
+  );
 
   const handleOpenMenu = (
     event: React.MouseEvent<HTMLButtonElement>,
