@@ -277,7 +277,7 @@ const formatCampaignDuration = (
 
 const formatMinutes = (minutes?: number | null): string =>
   typeof minutes === 'number' && Number.isFinite(minutes)
-    ? `${Math.max(0, Math.round(minutes))}m`
+    ? `${Math.max(0, minutes)}m`
     : EMPTY_VALUE;
 
 const normalizeCampaignListingStatus = (
