@@ -573,6 +573,13 @@ const areCampaignMessageRowsEqual = (
     normalizePollOptions(nextRow.pollOptions),
   );
 
+// Missing timeline dates are display placeholders and must not create time-only records.
+const hasConfiguredContent = (row: CampaignMessageRow): boolean =>
+  normalizeText(row.message).length > 0 ||
+  normalizeText(row.mediaLink).length > 0 ||
+  normalizeText(row.pollQuestion).length > 0 ||
+  normalizePollOptions(row.pollOptions).length > 0;
+
 export const buildCampaignMessageSavePayload = (
   campaignId: string,
   currentRows: readonly CampaignMessageRow[],
@@ -590,6 +597,7 @@ export const buildCampaignMessageSavePayload = (
 
   return nextRows
     .filter((row) => row.isEditable && row.id.trim().length > 0)
+    .filter((row) => row.isPersisted || hasConfiguredContent(row))
     .filter((row) => {
       const currentRow = currentRowsById[row.id];
       if (!currentRow) return true;

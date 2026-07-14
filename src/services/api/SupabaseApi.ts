@@ -17714,8 +17714,6 @@ export class SupabaseApi implements ServiceApi {
         String(row.id ?? '').trim().length > 0 ||
         String(row.message ?? '').trim().length > 0 ||
         String(row.mediaLink ?? '').trim().length > 0 ||
-        String(row.messageTime ?? '').trim().length > 0 ||
-        String(row.pollTime ?? '').trim().length > 0 ||
         String(row.pollQuestion ?? '').trim().length > 0 ||
         row.pollOptions.some(
           (option) => String(option ?? '').trim().length > 0,
