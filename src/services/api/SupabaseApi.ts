@@ -10099,7 +10099,8 @@ export class SupabaseApi implements ServiceApi {
         await this.supabase
           .from('campaign_target_audience_school')
           .select('target_audience_id')
-          .in('school_id', accessibleSchoolIds);
+          .in('school_id', accessibleSchoolIds)
+          .eq('is_deleted', false);
 
       if (audienceAccessError) {
         logger.error(
