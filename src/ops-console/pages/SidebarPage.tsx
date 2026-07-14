@@ -149,6 +149,7 @@ const SidebarPage: React.FC = () => {
     const requestDetailsPrefix = `${requestListPath}/`;
     const devicesPath = `${path}${PAGES.ADMIN_DEVICES}`;
     const resourcesPath = `${path}${PAGES.ADMIN_RESOURCES}`;
+    const dashboardPath = `${path}${PAGES.ADMIN_DASHBOARD}`;
     const isAllowedPath =
       location.pathname === schoolListPath ||
       location.pathname.startsWith(schoolDetailsPrefix) ||
@@ -161,7 +162,7 @@ const SidebarPage: React.FC = () => {
           location.pathname.startsWith(requestDetailsPrefix) ||
           location.pathname === devicesPath ||
           location.pathname === resourcesPath ||
-          location.pathname === `${path}${PAGES.ADMIN_DASHBOARD}`));
+          location.pathname === dashboardPath));
 
     if (!isAllowedPath) {
       history.replace(schoolListPath);
