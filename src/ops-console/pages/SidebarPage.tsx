@@ -130,6 +130,9 @@ const SidebarPage: React.FC = () => {
     CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
   );
   const canAccessRequestPage = userRoles.includes(RoleType.FIELD_COORDINATOR);
+  const canAccessDashboardPage = userRoles.includes(RoleType.FIELD_COORDINATOR);
+  const canAccessDevicesPage = userRoles.includes(RoleType.FIELD_COORDINATOR);
+  const canAccessResourcesPage = userRoles.includes(RoleType.FIELD_COORDINATOR);
 
   useEffect(() => {
     fetchData();
@@ -147,6 +150,7 @@ const SidebarPage: React.FC = () => {
     const requestDetailsPrefix = `${requestListPath}/`;
     const devicesPath = `${path}${PAGES.ADMIN_DEVICES}`;
     const resourcesPath = `${path}${PAGES.ADMIN_RESOURCES}`;
+    const dashboardPath = `${path}${PAGES.ADMIN_DASHBOARD}`;
     const isAllowedPath =
       location.pathname === schoolListPath ||
       location.pathname.startsWith(schoolDetailsPrefix) ||
@@ -156,9 +160,11 @@ const SidebarPage: React.FC = () => {
           location.pathname.startsWith(campaignDetailsPrefix))) ||
       (canAccessRequestPage &&
         (location.pathname === requestListPath ||
-          location.pathname.startsWith(requestDetailsPrefix))) ||
-      location.pathname === devicesPath ||
-      location.pathname === resourcesPath;
+          location.pathname.startsWith(requestDetailsPrefix) ||
+          location.pathname === dashboardPath)) ||
+      (canAccessDevicesPage && location.pathname === devicesPath) ||
+      (canAccessResourcesPage && location.pathname === resourcesPath) ||
+      (canAccessDashboardPage && location.pathname === dashboardPath);
 
     if (!isAllowedPath) {
       history.replace(schoolListPath);
@@ -166,6 +172,9 @@ const SidebarPage: React.FC = () => {
   }, [
     canAccessCampaignPage,
     canAccessProgramPage,
+    canAccessDashboardPage,
+    canAccessDevicesPage,
+    canAccessResourcesPage,
     canAccessRequestPage,
     history,
     isExternalUser,
