@@ -292,6 +292,10 @@ type ProgramMetricsTableRow = Omit<
   target_teacher_count?: number | string | null;
   program_type?: ProgramType | null;
   program_model?: PROGRAM_TAB | PROGRAM_TAB[] | string | null;
+  program?: {
+    students_count?: number | string | null;
+    teachers_count?: number | string | null;
+  } | null;
   updated_at?: string | null;
   created_at?: string | null;
   is_deleted?: boolean | null;
@@ -12449,13 +12453,15 @@ export class SupabaseApi implements ServiceApi {
     ): ProgramListingProgramRow => {
       const onboardedStudents = getProgramMetricNumber(row.onboarded_students);
       const targetStudentCount = getProgramConfiguredTargetCount(
-        row.target_student_count,
+        row.target_student_count ?? row.program?.students_count,
       );
       const activatedStudents = getProgramMetricNumber(row.activated_students);
       const activeStudents = getProgramMetricNumber(row.active_students);
       const onboardedTeachers = getProgramMetricNumber(row.onboarded_teachers);
       const targetTeachersCount = getProgramConfiguredTargetCount(
-        row.target_teacher_count ?? row.target_teachers_count,
+        row.target_teacher_count ??
+          row.target_teachers_count ??
+          row.program?.teachers_count,
       );
       const activatedTeachers = getProgramMetricNumber(row.activated_teachers);
       const activeTeachers = getProgramMetricNumber(row.active_teachers);
@@ -12556,7 +12562,9 @@ export class SupabaseApi implements ServiceApi {
         .supabase as SupabaseClient<ProgramMetricsDatabase>;
       let query = programMetricsClient
         .from('program_metrics')
-        .select('*', { count: 'exact' })
+        .select('*, program:program_id(students_count, teachers_count)', {
+          count: 'exact',
+        })
         .eq('is_deleted', false);
 
       // Needed so the listing and export reflect the selected metric window.
@@ -17676,6 +17684,8 @@ export class SupabaseApi implements ServiceApi {
         String(row.id ?? '').trim().length > 0 ||
         String(row.message ?? '').trim().length > 0 ||
         String(row.mediaLink ?? '').trim().length > 0 ||
+        String(row.messageTime ?? '').trim().length > 0 ||
+        String(row.pollTime ?? '').trim().length > 0 ||
         String(row.pollQuestion ?? '').trim().length > 0 ||
         row.pollOptions.some(
           (option) => String(option ?? '').trim().length > 0,
