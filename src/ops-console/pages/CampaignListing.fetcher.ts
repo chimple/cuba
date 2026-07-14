@@ -8,6 +8,7 @@ import {
 } from '../../services/api/ServiceApi';
 import { CampaignListingStatus } from '../../common/constants';
 import {
+  CAMPAIGN_LISTING_ORDER_BY,
   CAMPAIGN_LISTING_PAGE_SIZE,
   CampaignSortColumn,
   getCampaignListingPageCount,
@@ -87,8 +88,8 @@ export const useCampaignListingData = ({
   searchTerm: string;
 }) => {
   const shouldDeferMetrics =
-    orderBy !== 'avgWeeklyActiveUsers' &&
-    orderBy !== 'avgWeeklyEngagementTimeMinutes';
+    orderBy !== CAMPAIGN_LISTING_ORDER_BY.AVG_WEEKLY_ACTIVE_USERS &&
+    orderBy !== CAMPAIGN_LISTING_ORDER_BY.AVG_WEEKLY_ENGAGEMENT_TIME_MINUTES;
   const [campaigns, setCampaigns] = useState<
     Awaited<ReturnType<ServiceApi['getCampaignListing']>>['data']
   >([]);
