@@ -21,7 +21,7 @@ const CampaignRewardsSummaryCards: React.FC<
         sx={{
           border: '1px solid #DDE1E6',
           borderRadius: '8px',
-          background: '#F8FAFD',
+          background: card.key === 'totalStudents' ? '#F8FAFD' : '#EFF6FF',
           minHeight: 86,
           px: 1.5,
           py: 1.25,
@@ -39,7 +39,7 @@ const CampaignRewardsSummaryCards: React.FC<
           </Typography>
           <CampaignsOverviewInfoTooltip
             alignment="left"
-            color="#2C2C2E"
+            color="#1a71f6"
             label={card.label}
             message={card.info}
           />

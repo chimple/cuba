@@ -154,8 +154,42 @@ describe('Campaign rewards TSX components', () => {
           student_name: 'Rahul Sharma',
           updated_at: '2026-07-10T10:00:00.000Z',
         },
+        {
+          calculated_at: '2026-07-10T10:00:00.000Z',
+          campaign_id: 'campaign-1',
+          class_id: 'class-2',
+          class_name: '2B',
+          completion_percentage: 88,
+          created_at: '2026-07-10T10:00:00.000Z',
+          id: 'performance-2',
+          is_deleted: false,
+          program_id: 'program-1',
+          rank: 2,
+          school_id: 'school-1',
+          school_name: 'Delhi Public School',
+          student_id: 'student-2',
+          student_name: 'Priya Verma',
+          updated_at: '2026-07-10T10:00:00.000Z',
+        },
+        {
+          calculated_at: '2026-07-10T10:00:00.000Z',
+          campaign_id: 'campaign-1',
+          class_id: 'class-3',
+          class_name: '3A',
+          completion_percentage: 72,
+          created_at: '2026-07-10T10:00:00.000Z',
+          id: 'performance-3',
+          is_deleted: false,
+          program_id: 'program-1',
+          rank: 3,
+          school_id: 'school-2',
+          school_name: 'Modern School Noida',
+          student_id: 'student-3',
+          student_name: 'Amit Kumar',
+          updated_at: '2026-07-10T10:00:00.000Z',
+        },
       ],
-      total: 1,
+      total: 3,
     });
   });
 
@@ -246,7 +280,7 @@ describe('Campaign rewards TSX components', () => {
     expect(onPageChange).toHaveBeenCalledWith(2);
   });
 
-  it('loads rewards report data and resets class filter when All Schools is selected', async () => {
+  it('loads rewards report data once and scopes classes to the selected school', async () => {
     render(
       <CampaignRewardsReport
         campaignId="campaign-1"
@@ -259,22 +293,22 @@ describe('Campaign rewards TSX components', () => {
 
     expect(apiHandler.getCampaignRewardsReport).toHaveBeenCalledWith(
       'campaign-1',
-      expect.objectContaining({
-        className: undefined,
-        schoolName: undefined,
-      }),
     );
     await screen.findByText('Rahul Sharma');
 
-    fireEvent.mouseDown(screen.getAllByRole('combobox')[1]);
-    fireEvent.click(within(screen.getByRole('listbox')).getByText('1A'));
+    fireEvent.mouseDown(screen.getAllByRole('combobox')[0]);
+    fireEvent.click(
+      within(screen.getByRole('listbox')).getByText('Delhi Public School'),
+    );
 
-    await waitFor(() => {
-      expect(apiHandler.getCampaignRewardsReport).toHaveBeenLastCalledWith(
-        'campaign-1',
-        expect.objectContaining({ className: '1A' }),
-      );
-    });
+    fireEvent.mouseDown(screen.getAllByRole('combobox')[1]);
+    expect(
+      within(screen.getByRole('listbox')).queryByText('3A'),
+    ).not.toBeInTheDocument();
+    fireEvent.click(within(screen.getByRole('listbox')).getByText('2B'));
+
+    expect(screen.getByText('Priya Verma')).toBeInTheDocument();
+    expect(screen.queryByText('Amit Kumar')).not.toBeInTheDocument();
 
     fireEvent.mouseDown(screen.getAllByRole('combobox')[0]);
     fireEvent.click(
@@ -282,13 +316,10 @@ describe('Campaign rewards TSX components', () => {
     );
 
     await waitFor(() => {
-      expect(apiHandler.getCampaignRewardsReport).toHaveBeenLastCalledWith(
-        'campaign-1',
-        expect.objectContaining({
-          className: undefined,
-          schoolName: undefined,
-        }),
-      );
+      expect(screen.getByText('Amit Kumar')).toBeInTheDocument();
     });
+
+    expect(screen.getByDisplayValue('All Classes')).toBeInTheDocument();
+    expect(apiHandler.getCampaignRewardsReport).toHaveBeenCalledTimes(1);
   });
 });

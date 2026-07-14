@@ -13,10 +13,14 @@ import {
   buildCampaignRewardSummaryCards,
   filterCampaignRewardRows,
   formatCampaignRewardLastUpdated,
+  getCampaignRewardClassOptions,
   getCampaignRewardFilterOptions,
+  getNextClassFilter,
+  getNextSchoolAndClassFilters,
   getCampaignRewardTypeLabel,
   getLatestCalculatedAt,
   mapCampaignPerformanceRowsToRewardRows,
+  paginateCampaignRewardRows,
   parseCampaignRewards,
   sortCampaignRewardRows,
   type CampaignRewardRow,
@@ -434,11 +438,24 @@ describe('CampaignRewardsReport helpers', () => {
     );
   });
 
-  it('should build stable school and class dropdown options from all rows', () => {
+  it('should build stable school dropdown options from all rows', () => {
     expect(getCampaignRewardFilterOptions(mappedRows)).toEqual({
       schools: ['All Schools', 'Delhi Public School', 'Modern School Noida'],
-      classes: ['All Classes', '1A', '2B'],
     });
+  });
+
+  it('should scope class dropdown options to the selected school', () => {
+    expect(getCampaignRewardClassOptions(mappedRows, 'All Schools')).toEqual([
+      'All Classes',
+      '1A',
+      '2B',
+    ]);
+    expect(
+      getCampaignRewardClassOptions(mappedRows, 'Delhi Public School'),
+    ).toEqual(['All Classes', '1A', '2B']);
+    expect(
+      getCampaignRewardClassOptions(mappedRows, 'Modern School Noida'),
+    ).toEqual(['All Classes', '1A']);
   });
 
   it('should filter reward rows by selected school and class', () => {
@@ -469,6 +486,73 @@ describe('CampaignRewardsReport helpers', () => {
         (row) => row.studentName,
       ),
     ).toEqual(['Amit Kumar', 'Priya Verma', 'Rahul Sharma']);
+  });
+
+  it('should always place null values at the end for string sorting', () => {
+    expect(
+      sortCampaignRewardRows(
+        [
+          ...mappedRows,
+          {
+            ...mappedRows[0],
+            id: 'row-4',
+            studentId: 'student-4',
+            studentName: 'Zara',
+            school: 'Jaipur Public School',
+            className: '3A',
+            rewardLabel: 'Medal',
+            calculatedAt: '2026-07-12T10:00:00.000Z',
+          },
+          {
+            ...mappedRows[0],
+            id: 'row-5',
+            studentId: 'student-5',
+            studentName: 'Neha',
+            school: null as unknown as string,
+            className: '3B',
+            rewardLabel: 'Badge',
+            calculatedAt: '2026-07-12T10:00:00.000Z',
+          },
+        ],
+        'school',
+        'asc',
+      ).map((row) => row.studentName),
+    ).toEqual(['Rahul Sharma', 'Amit Kumar', 'Zara', 'Priya Verma', 'Neha']);
+  });
+
+  it('should derive safe filter transitions and pagination slices', () => {
+    expect(
+      getNextSchoolAndClassFilters({
+        allClassesLabel: 'All Classes',
+        allSchoolsLabel: 'All Schools',
+        currentClassFilter: '2B',
+        nextSchoolFilter: 'Modern School Noida',
+        rows: mappedRows,
+      }),
+    ).toEqual({
+      schoolFilter: 'Modern School Noida',
+      classFilter: 'All Classes',
+    });
+
+    expect(
+      getNextClassFilter({
+        allClassesLabel: 'All Classes',
+        classFilter: '2B',
+        classOptions: ['All Classes', '1A'],
+      }),
+    ).toBe('All Classes');
+
+    expect(
+      paginateCampaignRewardRows(
+        Array.from({ length: 12 }, (_, index) => ({
+          ...mappedRows[0],
+          id: `row-${index}`,
+          studentId: `student-${index}`,
+          studentName: `Student ${index}`,
+        })),
+        2,
+      ),
+    ).toHaveLength(2);
   });
 
   it('should build campaign reward summary cards', () => {

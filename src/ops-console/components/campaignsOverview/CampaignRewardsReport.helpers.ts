@@ -1,5 +1,4 @@
 import type {
-  CampaignRewardsReportSortKey,
   CampaignRewardsPayload,
   CampaignStudentPerformanceRow,
 } from '../../../services/api/ServiceApi';
@@ -72,8 +71,7 @@ export const parseCampaignRewards = (
 
 export const getCampaignRewardTypeLabel = (
   rewards?: CampaignRewardsPayload | null,
-) =>
-  rewards?.type === 'physical_rewards' ? t('Physical Reward') : t('Reward');
+) => (rewards?.type === 'digital_rewards' ? t('Reward') : t('Physical Reward'));
 
 const getRewardLabelForRank = (
   rewards: CampaignRewardsPayload | null,
@@ -169,13 +167,96 @@ export const getCampaignRewardFilterOptions = (rows: CampaignRewardRow[]) => ({
       (school) => school !== EMPTY_VALUE,
     ),
   ],
-  classes: [
+});
+
+export const getCampaignRewardClassOptions = (
+  rows: CampaignRewardRow[],
+  schoolFilter: string,
+) => {
+  const scopedRows =
+    schoolFilter === t('All Schools')
+      ? rows
+      : rows.filter((row) => row.school === schoolFilter);
+
+  return [
     t('All Classes'),
-    ...Array.from(new Set(rows.map((row) => row.className))).filter(
+    ...Array.from(new Set(scopedRows.map((row) => row.className))).filter(
       (className) => className !== EMPTY_VALUE,
     ),
-  ],
-});
+  ];
+};
+
+const compareNullableValues = (
+  leftValue: CampaignRewardRow[keyof CampaignRewardRow],
+  rightValue: CampaignRewardRow[keyof CampaignRewardRow],
+) => {
+  if (leftValue === null && rightValue === null) return 0;
+  if (leftValue === null) return 1;
+  if (rightValue === null) return -1;
+
+  if (typeof leftValue === 'number' && typeof rightValue === 'number') {
+    return leftValue - rightValue;
+  }
+
+  return String(leftValue).localeCompare(String(rightValue), undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  });
+};
+
+export const paginateCampaignRewardRows = (
+  rows: CampaignRewardRow[],
+  page: number,
+) =>
+  rows.slice(
+    (page - 1) * CAMPAIGN_REWARD_PAGE_SIZE,
+    page * CAMPAIGN_REWARD_PAGE_SIZE,
+  );
+
+export const getSafeCampaignRewardPage = (page: number, pageCount: number) =>
+  Math.min(Math.max(page, 1), Math.max(pageCount, 1));
+
+export const getNextSchoolAndClassFilters = ({
+  allClassesLabel,
+  allSchoolsLabel,
+  currentClassFilter,
+  nextSchoolFilter,
+  rows,
+}: {
+  allClassesLabel: string;
+  allSchoolsLabel: string;
+  currentClassFilter: string;
+  nextSchoolFilter: string;
+  rows: CampaignRewardRow[];
+}) => {
+  if (nextSchoolFilter === allSchoolsLabel) {
+    return {
+      schoolFilter: nextSchoolFilter,
+      classFilter: allClassesLabel,
+    };
+  }
+
+  const nextClassOptions = getCampaignRewardClassOptions(
+    rows,
+    nextSchoolFilter,
+  );
+  return {
+    schoolFilter: nextSchoolFilter,
+    classFilter: nextClassOptions.includes(currentClassFilter)
+      ? currentClassFilter
+      : allClassesLabel,
+  };
+};
+
+export const getNextClassFilter = ({
+  allClassesLabel,
+  classFilter,
+  classOptions,
+}: {
+  allClassesLabel: string;
+  classFilter: string;
+  classOptions: string[];
+}) => (classOptions.includes(classFilter) ? classFilter : allClassesLabel);
 
 export const filterCampaignRewardRows = (
   rows: CampaignRewardRow[],
@@ -198,25 +279,7 @@ export const sortCampaignRewardRows = (
   const sortedRows = [...rows].sort((left, right) => {
     const leftValue = left[orderBy as keyof CampaignRewardRow];
     const rightValue = right[orderBy as keyof CampaignRewardRow];
-    const normalizedLeft =
-      leftValue === null ? Number.POSITIVE_INFINITY : leftValue;
-    const normalizedRight =
-      rightValue === null ? Number.POSITIVE_INFINITY : rightValue;
-
-    if (
-      typeof normalizedLeft === 'number' &&
-      typeof normalizedRight === 'number'
-    ) {
-      return normalizedLeft - normalizedRight;
-    }
-
-    return String(normalizedLeft).localeCompare(
-      String(normalizedRight),
-      undefined,
-      {
-        sensitivity: 'base',
-      },
-    );
+    return compareNullableValues(leftValue, rightValue);
   });
   return order === 'asc' ? sortedRows : sortedRows.reverse();
 };
@@ -454,9 +517,6 @@ export const useCampaignRewardsReportState = (
   const [performanceRows, setPerformanceRows] = useState<CampaignRewardRow[]>(
     [],
   );
-  const [filterOptionRows, setFilterOptionRows] = useState<CampaignRewardRow[]>(
-    [],
-  );
   const [loading, setLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const parsedRewards = useMemo(() => parseCampaignRewards(rewards), [rewards]);
@@ -464,9 +524,13 @@ export const useCampaignRewardsReportState = (
     () => getCampaignRewardTypeLabel(parsedRewards),
     [parsedRewards],
   );
-  const filterOptions = useMemo(
-    () => getCampaignRewardFilterOptions(filterOptionRows),
-    [filterOptionRows],
+  const schoolOptions = useMemo(
+    () => getCampaignRewardFilterOptions(performanceRows).schools,
+    [performanceRows],
+  );
+  const classOptions = useMemo(
+    () => getCampaignRewardClassOptions(performanceRows, schoolFilter),
+    [performanceRows, schoolFilter],
   );
   const filteredRows = useMemo(
     () => filterCampaignRewardRows(performanceRows, schoolFilter, classFilter),
@@ -489,9 +553,9 @@ export const useCampaignRewardsReportState = (
     1,
     Math.ceil(sortedRows.length / CAMPAIGN_REWARD_PAGE_SIZE),
   );
-  const paginatedRows = sortedRows.slice(
-    (page - 1) * CAMPAIGN_REWARD_PAGE_SIZE,
-    page * CAMPAIGN_REWARD_PAGE_SIZE,
+  const paginatedRows = paginateCampaignRewardRows(
+    sortedRows,
+    getSafeCampaignRewardPage(page, pageCount),
   );
 
   useEffect(() => {
@@ -503,7 +567,6 @@ export const useCampaignRewardsReportState = (
     const loadRewardsReport = async () => {
       if (!campaignId) {
         setPerformanceRows([]);
-        setFilterOptionRows([]);
         return;
       }
 
@@ -512,14 +575,6 @@ export const useCampaignRewardsReportState = (
         const response =
           await ServiceConfig.getI().apiHandler.getCampaignRewardsReport(
             campaignId,
-            {
-              schoolName:
-                schoolFilter === allSchoolsLabel ? undefined : schoolFilter,
-              className:
-                classFilter === allClassesLabel ? undefined : classFilter,
-              orderBy: orderBy as CampaignRewardsReportSortKey,
-              order,
-            },
           );
         if (!active) return;
         const nextRows = mapCampaignPerformanceRowsToRewardRows(
@@ -527,12 +582,6 @@ export const useCampaignRewardsReportState = (
           parsedRewards,
         );
         setPerformanceRows(nextRows);
-        if (
-          schoolFilter === allSchoolsLabel &&
-          classFilter === allClassesLabel
-        ) {
-          setFilterOptionRows(nextRows);
-        }
       } catch (error) {
         if (!active) return;
         logger.error('Error loading campaign rewards report:', error);
@@ -546,16 +595,19 @@ export const useCampaignRewardsReportState = (
     return () => {
       active = false;
     };
-  }, [
-    allClassesLabel,
-    allSchoolsLabel,
-    campaignId,
-    classFilter,
-    order,
-    orderBy,
-    parsedRewards,
-    schoolFilter,
-  ]);
+  }, [campaignId, parsedRewards]);
+
+  useEffect(() => {
+    const nextClassFilter = getNextClassFilter({
+      allClassesLabel,
+      classFilter,
+      classOptions,
+    });
+
+    if (nextClassFilter !== classFilter) {
+      setClassFilter(nextClassFilter);
+    }
+  }, [allClassesLabel, classFilter, classOptions]);
 
   const handleSort = (key: string) => {
     setPage(1);
@@ -572,10 +624,15 @@ export const useCampaignRewardsReportState = (
   };
 
   const handleSchoolFilterChange = (value: string) => {
-    setSchoolFilter(value);
-    if (value === allSchoolsLabel) {
-      setClassFilter(allClassesLabel);
-    }
+    const nextFilters = getNextSchoolAndClassFilters({
+      allClassesLabel,
+      allSchoolsLabel,
+      currentClassFilter: classFilter,
+      nextSchoolFilter: value,
+      rows: performanceRows,
+    });
+    setSchoolFilter(nextFilters.schoolFilter);
+    setClassFilter(nextFilters.classFilter);
     setPage(1);
   };
 
@@ -598,7 +655,10 @@ export const useCampaignRewardsReportState = (
 
   return {
     classFilter,
-    filterOptions,
+    filterOptions: {
+      schools: schoolOptions,
+      classes: classOptions,
+    },
     handleClassFilterChange,
     handleExport,
     handleSchoolFilterChange,
