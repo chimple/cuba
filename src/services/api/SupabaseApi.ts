@@ -371,6 +371,20 @@ type CampaignAccessSchoolRow = Pick<TableTypes<'school_user'>, 'school_id'> & {
 const getSingleRelationValue = <T>(value: T | T[] | null | undefined) =>
   Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
 
+const campaignListingMatchesSearch = (
+  campaign: CampaignListingQueryRow,
+  normalizedSearchTerm: string,
+) => {
+  if (!normalizedSearchTerm) return true;
+  const search = normalizedSearchTerm.toLowerCase();
+  const manager = getSingleRelationValue(campaign.manager);
+  const program = getSingleRelationValue(campaign.program);
+
+  return [campaign.name, manager?.name, program?.name].some((value) =>
+    value?.toLowerCase().includes(search),
+  );
+};
+
 const CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS: Partial<
   Record<NonNullable<CampaignListingParams['orderBy']>, string>
 > = {
@@ -9941,51 +9955,11 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], totalCount: 0 };
       }
 
-      // Search is supported across campaign name, manager name, and program name.
-      const [managerSearchResponse, programSearchResponse] =
-        normalizedSearchTerm.length > 0
-          ? await Promise.all([
-              this.supabase
-                .from(TABLES.User)
-                .select('id')
-                .ilike('name', `%${normalizedSearchTerm}%`)
-                .eq('is_deleted', false)
-                .limit(50),
-              this.supabase
-                .from(TABLES.Program)
-                .select('id')
-                .ilike('name', `%${normalizedSearchTerm}%`)
-                .eq('is_deleted', false)
-                .limit(50),
-            ])
-          : [
-              { data: [], error: null },
-              { data: [], error: null },
-            ];
-
-      if (managerSearchResponse.error) {
-        logger.error(
-          'Error searching campaign managers for listing:',
-          managerSearchResponse.error,
-        );
-      }
-
-      if (programSearchResponse.error) {
-        logger.error(
-          'Error searching campaign programs for listing:',
-          programSearchResponse.error,
-        );
-      }
-
-      const managerIds = (managerSearchResponse.data ?? []).map(
-        (row) => row.id,
-      );
-      const programIds = (programSearchResponse.data ?? []).map(
-        (row) => row.id,
-      );
       const nativeSortColumn = CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS[orderBy];
       const shouldUseDatabasePagination =
-        !isFieldCoordinator && Boolean(nativeSortColumn);
+        !isFieldCoordinator &&
+        normalizedSearchTerm.length === 0 &&
+        Boolean(nativeSortColumn);
       const campaignListingSelect = `*, manager:manager_id(*), program:program_id(*),
         target_audience:target_audience_id(
           id,
@@ -9999,19 +9973,6 @@ export class SupabaseApi implements ServiceApi {
           count: shouldUseDatabasePagination ? 'exact' : undefined,
         })
         .eq('is_deleted', false);
-
-      if (normalizedSearchTerm.length > 0) {
-        // Escape quoted search text before building the PostgREST OR filter expression.
-        const escapedSearchTerm = normalizedSearchTerm.replace(/"/g, '\\"');
-        const orFilters = [`name.ilike."%${escapedSearchTerm}%"`];
-        if (managerIds.length > 0) {
-          orFilters.push(`manager_id.in.(${managerIds.join(',')})`);
-        }
-        if (programIds.length > 0) {
-          orFilters.push(`program_id.in.(${programIds.join(',')})`);
-        }
-        campaignQuery.or(orFilters.join(','));
-      }
 
       if (shouldUseDatabasePagination && nativeSortColumn) {
         campaignQuery
@@ -10032,7 +9993,7 @@ export class SupabaseApi implements ServiceApi {
       const mappedCampaigns = (data ?? []) as CampaignListingQueryRow[];
 
       // Apply field-coordinator visibility after the base campaign query so audience links can be inspected.
-      const visibleCampaigns = shouldUseDatabasePagination
+      const accessVisibleCampaigns = shouldUseDatabasePagination
         ? mappedCampaigns
         : isFieldCoordinator
           ? mappedCampaigns.filter((campaign) => {
@@ -10062,6 +10023,12 @@ export class SupabaseApi implements ServiceApi {
               );
             })
           : mappedCampaigns;
+      const visibleCampaigns =
+        normalizedSearchTerm.length > 0
+          ? accessVisibleCampaigns.filter((campaign) =>
+              campaignListingMatchesSearch(campaign, normalizedSearchTerm),
+            )
+          : accessVisibleCampaigns;
       const currentPage = Math.max(page, 1);
       const currentPageSize = Math.max(pageSize, 1);
       const from = (currentPage - 1) * currentPageSize;
@@ -10131,6 +10098,37 @@ export class SupabaseApi implements ServiceApi {
 
     if (error) {
       logger.error('Error cancelling campaign:', error);
+      throw error;
+    }
+
+    try {
+      await this.deleteCampaignAssignments(campaignId);
+    } catch (assignmentCleanupError) {
+      logger.error(
+        'Campaign cancelled but campaign assignments could not be deleted:',
+        assignmentCleanupError,
+      );
+    }
+  }
+
+  async deleteCampaignAssignments(campaignId: string): Promise<void> {
+    if (!this.supabase || !campaignId) {
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    const { error } = await this.supabase
+      .from(TABLES.Assignment)
+      .update({
+        is_deleted: true,
+        updated_at: nowIso,
+      })
+      .eq('campaign_id', campaignId)
+      .eq('is_deleted', false)
+      .gte('starts_at', nowIso);
+
+    if (error) {
+      logger.error('Error deleting campaign assignments:', error);
       throw error;
     }
   }

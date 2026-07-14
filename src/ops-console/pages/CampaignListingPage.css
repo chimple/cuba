@@ -6,6 +6,8 @@
   height: 100vh;
   width: 100%;
   overflow: hidden;
+  padding-top: env(safe-area-inset-top, 0);
+  box-sizing: border-box;
 }
 
 .campaign-listing-header {
@@ -131,20 +133,26 @@
   align-items: center;
   display: flex;
   gap: 6px;
+  justify-content: center;
+  width: 100%;
 }
 
 .campaign-listing-head-metric .ops-campaigns-info-tooltip {
   line-height: 0;
+  position: relative;
+  z-index: 30;
 }
 
 .campaign-listing-head-metric .ops-campaigns-info-tooltip-icon {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
 }
 
 .campaign-listing-head-metric .ops-campaigns-info-tooltip-message {
+  z-index: 1600;
   top: 27px;
   width: 320px;
+  max-width: min(320px, calc(100vw - 48px));
   padding: 16px 18px;
   border-width: 1px;
   border-radius: 10px;
@@ -160,18 +168,36 @@
   background-color: #f8fafc !important;
   border-bottom: 1px solid #e3e8f1;
   color: #121619;
-  font-size: 12px;
+  font-size: 11px;
   overflow: visible;
   padding: 14px 16px;
+  z-index: 3;
+  vertical-align: middle;
 }
 
 .campaign-listing-table-container .data-tablebody-head-cell:first-child {
   background-color: #f8fafc !important;
+  left: auto;
+  position: static;
+  z-index: 3;
 }
 
 .campaign-listing-table-container .data-tablebody-head-cell:hover,
 .campaign-listing-table-container .data-tablebody-head-cell:focus-within {
-  z-index: 6;
+  z-index: 12;
+}
+
+.campaign-listing-table-container .data-tablebody-head-cell > .MuiBox-root {
+  align-items: center;
+}
+
+.campaign-listing-table-container .MuiTableSortLabel-root img {
+  width: 12px;
+  height: 12px;
+}
+
+.campaign-listing-table-container .MuiTableSortLabel-root {
+  align-items: center;
 }
 
 .campaign-listing-table-container .data-tablebody-cell {
@@ -182,8 +208,16 @@
   vertical-align: middle;
 }
 
+.campaign-listing-table-container .data-tablebody-cell:nth-child(5),
+.campaign-listing-table-container .data-tablebody-cell:nth-child(6) {
+  text-align: center;
+}
+
 .campaign-listing-table-container .data-tablebody-cell:first-child {
   background-color: #ffffff;
+  border-left: none;
+  left: auto;
+  position: static;
 }
 
 .campaign-listing-table-container .data-tablebody-row {
@@ -425,43 +459,63 @@
 }
 
 @media (max-width: 600px) and (orientation: portrait) {
+  .campaign-listing-table-shell {
+    overflow: visible;
+  }
+
+  .campaign-listing-table-container .data-tablebody-head-cell:first-child {
+    left: 0;
+    position: sticky;
+    z-index: 14;
+  }
+
+  .campaign-listing-table-container .data-tablebody-cell:first-child {
+    left: 0;
+    position: sticky;
+    z-index: 2;
+  }
+
   .campaign-listing-header {
-    position: relative;
-    justify-content: center;
-    padding: 14px 16px 10px;
-    min-height: 48px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 12px;
+    min-height: 52px;
   }
 
   .campaign-listing-header-title {
-    position: absolute;
-    left: 0;
-    right: 0;
-    margin: auto;
-    width: 100%;
-    text-align: center;
-    pointer-events: none;
+    flex: 1 1 auto;
+    min-width: 0;
     line-height: 1.2;
-    font-size: 24px !important;
+    font-size: 22px !important;
+    padding-right: 12px;
+    text-align: left;
   }
 
   .campaign-listing-notification-button.MuiIconButton-root {
-    margin-left: auto;
     position: relative;
     z-index: 1;
+    flex-shrink: 0;
   }
 
   .campaign-listing-toolbar {
-    padding: 0 16px 12px;
+    gap: 10px;
+    padding: 0 16px 14px;
   }
 
   .campaign-listing-toolbar-actions {
     align-items: center;
     flex-wrap: nowrap;
+    gap: 10px;
     width: 100%;
   }
 
   .campaign-listing-table-shell {
     padding: 0 16px;
+  }
+
+  .campaign-listing-table-container {
+    border-radius: 10px;
+    overflow: auto;
   }
 
   .campaign-listing-search-shell {
@@ -498,5 +552,25 @@
 
   .campaign-listing-new-button .MuiSvgIcon-root {
     font-size: 18px;
+  }
+
+  .campaign-listing-head-metric .ops-campaigns-info-tooltip-message {
+    position: fixed;
+    left: 50%;
+    top: calc(env(safe-area-inset-top, 0px) + 172px);
+    width: min(220px, calc(100vw - 32px));
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.4;
+    transform: translateX(-50%);
+    z-index: 1600;
+  }
+
+  .campaign-listing-head-metric .ops-campaigns-info-tooltip-message::before {
+    display: none;
+  }
+
+  .campaign-listing-pagination {
+    padding: 8px 0 14px;
   }
 }

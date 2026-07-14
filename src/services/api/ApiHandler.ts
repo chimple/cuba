@@ -1642,6 +1642,10 @@ export class ApiHandler implements ServiceApi {
     return await this.s.cancelCampaign(campaignId, reason);
   }
 
+  public async deleteCampaignAssignments(campaignId: string): Promise<void> {
+    return await this.s.deleteCampaignAssignments(campaignId);
+  }
+
   public async getCampaignCancellationDetails(
     campaignId: string,
   ): Promise<CampaignCancellationDetails | null> {

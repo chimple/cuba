@@ -168,7 +168,7 @@ const CampaignListingPage: React.FC = () => {
                   ),
                 )
               }
-              loading={isLoading}
+              loading={isLoading && rows.length === 0}
               tableMinWidth={1500}
               headerClampLines={3}
               headerNoEllipsis
