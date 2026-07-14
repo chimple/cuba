@@ -127,6 +127,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ServiceConfig } from '../ServiceConfig';
 import { SqliteApi } from './SqliteApi';
 import {
+  CAMPAIGN_LISTING_ORDER_BY,
   mapCampaignListingItem,
   sortCampaignListingItems,
 } from './campaignListingHelpers';
@@ -10034,8 +10035,9 @@ export class SupabaseApi implements ServiceApi {
       let totalCount = 0;
       const shouldIncludeMetrics =
         includeMetrics ||
-        orderBy === 'avgWeeklyActiveUsers' ||
-        orderBy === 'avgWeeklyEngagementTimeMinutes';
+        orderBy === CAMPAIGN_LISTING_ORDER_BY.AVG_WEEKLY_ACTIVE_USERS ||
+        orderBy ===
+          CAMPAIGN_LISTING_ORDER_BY.AVG_WEEKLY_ENGAGEMENT_TIME_MINUTES;
       const campaignMetricsMap = shouldIncludeMetrics
         ? await this.getCampaignListingMetrics(
             visibleCampaigns.map((campaign) => campaign.id),
