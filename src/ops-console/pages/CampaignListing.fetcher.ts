@@ -140,7 +140,7 @@ export const useCampaignListingPageState = (api: ServiceApi) => {
   const [searchTerm, setSearchTerm] = useState(
     () => queryParams.get('search') || '',
   );
-  const debouncedSearchTerm = useDebouncedValue(searchTerm, 300);
+  const debouncedSearchTerm = useDebouncedValue(searchTerm, 500);
   const [page, setPage] = useState(() => {
     const pageParam = Number.parseInt(queryParams.get('page') || '', 10);
     return Number.isNaN(pageParam) || pageParam < 1 ? 1 : pageParam;
