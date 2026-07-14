@@ -163,14 +163,22 @@ const PathwayStructure: React.FC = () => {
       const key = `lesson_${lessonId}`;
       const cached = sessionStorage.getItem(key);
       if (cached) {
-        const parsed = JSON.parse(cached);
-        lessonCache.set(lessonId, parsed);
-        return parsed;
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed) {
+            lessonCache.set(lessonId, parsed);
+            return parsed;
+          }
+        } catch {
+          sessionStorage.removeItem(key);
+        }
       }
 
       const lesson = await api.getLesson(lessonId);
-      lessonCache.set(lessonId, lesson);
-      sessionStorage.setItem(key, JSON.stringify(lesson));
+      if (lesson) {
+        lessonCache.set(lessonId, lesson);
+        sessionStorage.setItem(key, JSON.stringify(lesson));
+      }
       return lesson;
     };
 
@@ -186,8 +194,9 @@ const PathwayStructure: React.FC = () => {
     const preloadAllLessonImages = async (lessons: any[]) => {
       await Promise.all(
         lessons.map((lesson) => {
-          let src: string;
-          src = `assets/icons/${lesson.cocos_lesson_id}.png`;
+          const src = lesson?.cocos_lesson_id
+            ? `assets/icons/${lesson.cocos_lesson_id}.png`
+            : "assets/icons/DefaultIcon.png";
           return preloadImage(src);
         })
       );
@@ -273,6 +282,7 @@ const PathwayStructure: React.FC = () => {
 
           const pathGroups = svg.querySelectorAll("g > path");
           const paths = Array.from(pathGroups) as SVGPathElement[];
+          if (paths.length === 0) return;
           const startPoint = paths[0].getPointAtLength(0);
           const xValues = [27, 155, 276, 387, 496];
 
@@ -280,6 +290,7 @@ const PathwayStructure: React.FC = () => {
 
           lessons.forEach((lesson, idx) => {
             const path = paths[idx];
+            if (!path) return;
             const point = path.getPointAtLength(0);
             const flowerX = point.x - 40;
             const flowerY = point.y - 40;
@@ -287,9 +298,9 @@ const PathwayStructure: React.FC = () => {
 
             const isValidUrl = (url: string) =>
               typeof url === "string" && /^(https?:\/\/|\/)/.test(url);
-            const lesson_image = lesson.cocos_lesson_id
+            const lesson_image = lesson?.cocos_lesson_id
               ? `assets/icons/${lesson.cocos_lesson_id}.png`
-              : isValidUrl(lesson.image)
+              : isValidUrl(lesson?.image)
                 ? lesson.image
                 : "assets/icons/DefaultIcon.png";
 
@@ -373,6 +384,7 @@ const PathwayStructure: React.FC = () => {
               activeGroup.setAttribute("style", "cursor: pointer;");
 
               activeGroup.addEventListener("click", () => {
+                if (!lesson) return;
                 if (lesson.plugin_type === "cocos") {
                   const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${lesson.cocos_lesson_id}`;
                   history.replace(PAGES.GAME + params, {

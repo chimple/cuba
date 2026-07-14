@@ -40,7 +40,7 @@ const LidoPlayer: FC = () => {
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get("lessonId") ?? state.lessonId;
 
-  const onNextContainer = (e: any) => {};
+  const onNextContainer = (e: any) => { };
 
   const gameCompleted = (e: any) => {
     console.log("Game completed", e.detail);
@@ -63,7 +63,7 @@ const LidoPlayer: FC = () => {
     setIsLoading(false);
   };
 
-  const onActivityEnd = (e: any) => {};
+  const onActivityEnd = (e: any) => { };
 
   const courseDetail: TableTypes<"course"> = state.course
     ? JSON.parse(state.course)
@@ -77,6 +77,7 @@ const LidoPlayer: FC = () => {
 
   const onLessonEnd = async (e: any) => {
     const lessonData = e.detail;
+    console.log("onLessonEnd", lessonData);
     const api = ServiceConfig.getI().apiHandler;
     const courseDocId: string | undefined = state.courseDocId;
     const lesson: Lesson = JSON.parse(state.lesson);
@@ -226,7 +227,7 @@ const LidoPlayer: FC = () => {
     window.addEventListener(LidoGameCompletedKey, gameCompleted);
     window.addEventListener(LidoActivityChangeKey, onActivityEnd);
     window.addEventListener(LidoLessonEndKey, onLessonEnd);
-    window.addEventListener(LidoActivityEndKey, (e: any) => {});
+    window.addEventListener(LidoActivityEndKey, (e: any) => { });
 
     return () => {
       CapApp.addListener("appStateChange", Util.onAppStateChange);
@@ -236,7 +237,7 @@ const LidoPlayer: FC = () => {
       window.removeEventListener(LidoGameCompletedKey, gameCompleted);
       window.removeEventListener(LidoActivityChangeKey, onActivityEnd);
       window.removeEventListener(LidoLessonEndKey, onLessonEnd);
-      window.removeEventListener(LidoActivityEndKey, (e: any) => {});
+      window.removeEventListener(LidoActivityEndKey, (e: any) => { });
     };
   }, []);
 
@@ -306,9 +307,10 @@ const LidoPlayer: FC = () => {
       )}
       {xmlPath || basePath
         ? React.createElement("lido-standalone", {
-            "xml-path": xmlPath,
-            "base-url": basePath,
-          })
+          "xml-path": xmlPath,
+          "base-url": basePath,
+          "exitButtonUrl": "",
+        })
         : null}
     </IonPage>
   );

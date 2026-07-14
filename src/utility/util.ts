@@ -1011,15 +1011,18 @@ export class Util {
           typeof value === "number" ? value.toString() : String(value),
         ])
       );
-      //Setting User Id in User Properites
+      // Setting User Id in User Properties
       await FirebaseAnalytics.setUserId({
         userId: params.user_id,
       });
-      if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
-      Util.port.shareUserId({ userId: params.user_id });
-      await FirebaseCrashlytics.setUserId({
-        userId: params.user_id,
-      });
+
+      if (Capacitor.isNativePlatform()) {
+        if (!Util.port) Util.port = registerPlugin<PortPlugin>("Port");
+        await Util.port.shareUserId({ userId: params.user_id });
+        await FirebaseCrashlytics.setUserId({
+          userId: params.user_id,
+        });
+      }
 
       await FirebaseAnalytics.setScreenName({
         screenName: window.location.pathname,

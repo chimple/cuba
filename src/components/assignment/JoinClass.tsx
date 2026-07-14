@@ -200,9 +200,8 @@ const JoinClass: FC<{
   return (
     <div className="join-class-parent-container">
       <div
-        className={`assignment-join-class-container-scroll ${
-          isInputFocus ? "shift-up" : ""
-        }`}
+        className={`assignment-join-class-container-scroll ${isInputFocus ? "shift-up" : ""
+          }`}
         ref={containerRef}
       >
         <h2>{t("Join a Class by entering the details below")}</h2>
@@ -255,15 +254,14 @@ const JoinClass: FC<{
 
         <div className="join-class-message">
           {codeResult &&
-          !error &&
-          error == "" &&
-          inviteCode?.length === 6
-            ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${
-                codeResult["class_name"]
-              }`
+            !error &&
+            error == "" &&
+            inviteCode?.length === 6
+            ? `${t("School")}: ${codeResult["school_name"]}, ${t("Class")}: ${codeResult["class_name"]
+            }`
             : error && inviteCode?.length === 6
-            ? error
-            : null}
+              ? error
+              : null}
         </div>
         <button
           className="join-class-confirm-button"

@@ -21,6 +21,20 @@ const SelectIconImage: FC<{
   const [activeSrc, setActiveSrc] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  const normalizeSrc = (src?: string): string | undefined => {
+    const trimmedSrc = src?.trim();
+    if (!trimmedSrc) return undefined;
+
+    if (
+      /^(https?:|data:|blob:|capacitor:|file:)/i.test(trimmedSrc) ||
+      trimmedSrc.startsWith("/")
+    ) {
+      return trimmedSrc;
+    }
+
+    return "/" + trimmedSrc;
+  };
+
   useEffect(() => {
     const preloadImage = (src: string): Promise<boolean> => {
       return new Promise((resolve) => {
@@ -45,23 +59,31 @@ const SelectIconImage: FC<{
     const loadImages = async () => {
       setIsLoading(true);
 
+      const normalizedLocalSrc = normalizeSrc(localSrc);
+      const normalizedWebSrc = normalizeSrc(webSrc);
+      const normalizedDefaultSrc = normalizeSrc(defaultSrc) ?? defaultSrc;
+
       try {
         // Load both sources in parallel for maximum speed
         const [localLoaded, webLoaded] = await Promise.all([
-          localSrc ? preloadImage(localSrc) : Promise.resolve(false),
-          webSrc ? preloadImage(webSrc) : Promise.resolve(false),
+          normalizedLocalSrc
+            ? preloadImage(normalizedLocalSrc)
+            : Promise.resolve(false),
+          normalizedWebSrc
+            ? preloadImage(normalizedWebSrc)
+            : Promise.resolve(false),
         ]);
 
         setActiveSrc(
-          localLoaded && localSrc
-            ? localSrc
-            : webLoaded && webSrc
-            ? webSrc
-            : defaultSrc
+          localLoaded && normalizedLocalSrc
+            ? normalizedLocalSrc
+            : webLoaded && normalizedWebSrc
+            ? normalizedWebSrc
+            : normalizedDefaultSrc
         );
       } catch (error) {
         console.error("Image loading failed:", error);
-        setActiveSrc(defaultSrc);
+        setActiveSrc(normalizedDefaultSrc);
       } finally {
         setIsLoading(false);
       }
@@ -86,6 +108,13 @@ const SelectIconImage: FC<{
             objectFit: "contain",
           }}
           onLoad={() => setIsLoading(false)}
+          onError={() => {
+            const normalizedDefaultSrc = normalizeSrc(defaultSrc) ?? defaultSrc;
+            if (activeSrc !== normalizedDefaultSrc) {
+              setActiveSrc(normalizedDefaultSrc);
+            }
+            setIsLoading(false);
+          }}
         />
       )}
     </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRive, Layout, Fit, Alignment, useStateMachineInput } from "@rive-app/react-canvas";
 import { CHIMPLE_RIVE_STATE_MACHINE_MAX, SHOULD_SHOW_REMOTE_ASSETS } from "../../common/constants";
 import { Capacitor } from "@capacitor/core";
@@ -6,10 +6,14 @@ import { Filesystem, Directory } from "@capacitor/filesystem";
 
 export default function ChimpleRiveMascot() {
 
-  const should_show_remote_asset = (Capacitor.isNativePlatform() && localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS)==="true")? true : false;
+  const should_show_remote_asset = (Capacitor.isNativePlatform() && localStorage.getItem(SHOULD_SHOW_REMOTE_ASSETS) === "true") ? true : false;
 
   const chimple_rive_state_machine_max = localStorage.getItem(CHIMPLE_RIVE_STATE_MACHINE_MAX);
-  const [riveSrc, setRiveSrc] = useState<string>("/pathwayAssets/chimpleRive.riv");
+  const localRiveSrc = useMemo(
+    () => "/pathwayAssets/chimpleRive.riv?v=" + Date.now(),
+    []
+  );
+  const [riveSrc, setRiveSrc] = useState<string>(localRiveSrc);
 
   const CHIMPLE_RIVE_STATE_MIN = 1;
   const CHIMPLE_RIVE_STATE_MAX = should_show_remote_asset
@@ -17,7 +21,7 @@ export default function ChimpleRiveMascot() {
     : 8;
 
   const { rive, RiveComponent } = useRive({
-    src: should_show_remote_asset? riveSrc : "/pathwayAssets/chimpleRive.riv",
+    src: should_show_remote_asset ? riveSrc : localRiveSrc,
     artboard: "Artboard",
     // stateMachines: "State Machine 2",
     animations: "id",
@@ -45,7 +49,7 @@ export default function ChimpleRiveMascot() {
           directory: Directory.External,
           path: "remoteAsset/chimpleRive.riv"
         });
-        
+
         if (fileContent.data) {
           // Convert to data URL that useRive can load
           const dataUrl = `data:application/octet-stream;base64,${fileContent.data}`;
@@ -70,5 +74,9 @@ export default function ChimpleRiveMascot() {
   //   }
   // }, [value, numberInput]);
 
-  return <RiveComponent key={riveSrc} style={{ width: "100%", height: "100%" }} />;
+  return (
+    <div style={{ width: "50%", height: "50%", margin: "25% auto" }}>
+      <RiveComponent key={riveSrc} style={{ width: "100%", height: "100%" }} />
+    </div>
+  );
 }

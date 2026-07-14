@@ -78,6 +78,10 @@ export enum TABLES {
   SpecialUsers = "special_users",
   OpsRequests = "ops_requests",
   GeoLocations = "geo_locations",
+  SchoolMetrics = 'school_metrics',
+  FcQuestion = 'fc_question',
+  FcSchoolVisit = 'fc_school_visit',
+  FcUserForms = 'fc_user_forms',
 }
 export enum CLASS_USERS {
   STUDENTS = "Students",
