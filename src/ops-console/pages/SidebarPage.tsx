@@ -129,10 +129,11 @@ const SidebarPage: React.FC = () => {
   const canAccessCampaignPage = userRoles.some((role) =>
     CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
   );
-  const canAccessRequestPage = userRoles.includes(RoleType.FIELD_COORDINATOR);
-  const canAccessDashboardPage = userRoles.includes(RoleType.FIELD_COORDINATOR);
-  const canAccessDevicesPage = userRoles.includes(RoleType.FIELD_COORDINATOR);
-  const canAccessResourcesPage = userRoles.includes(RoleType.FIELD_COORDINATOR);
+  const isFieldCoordinator = userRoles.includes(RoleType.FIELD_COORDINATOR);
+  const canAccessRequestPage = isFieldCoordinator;
+  const canAccessDashboardPage = isFieldCoordinator;
+  const canAccessDevicesPage = isFieldCoordinator;
+  const canAccessResourcesPage = isFieldCoordinator;
 
   useEffect(() => {
     fetchData();
