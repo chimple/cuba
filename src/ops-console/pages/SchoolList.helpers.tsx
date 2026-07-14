@@ -132,7 +132,7 @@ export const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(
   }),
 );
 
-export const DEFAULT_PAGE_SIZE = 8;
+export const DEFAULT_PAGE_SIZE = 20;
 
 // Centralized column config keeps the page component focused on behavior.
 export const getSchoolListColumns = (): Column<SchoolListRow>[] => [

@@ -210,7 +210,7 @@ export type CampaignSortColumn =
   | 'startDate'
   | 'endDate';
 
-export const CAMPAIGN_LISTING_PAGE_SIZE = 8;
+export const CAMPAIGN_LISTING_PAGE_SIZE = 20;
 
 export const hasCampaignWriteAccess = (roles: string[]) =>
   roles.some((role) =>
