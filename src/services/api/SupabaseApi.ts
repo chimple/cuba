@@ -9667,13 +9667,8 @@ export class SupabaseApi implements ServiceApi {
     tab = PROGRAM_TAB.ALL,
     limit = 10,
     offset = 0,
-    orderBy = 'program_name',
+    orderBy = 'name',
     order = 'asc',
-    page,
-    page_size,
-    order_by,
-    order_dir,
-    search,
     date_range,
   }: {
     currentUserId?: string;
@@ -9684,11 +9679,6 @@ export class SupabaseApi implements ServiceApi {
     offset?: number;
     orderBy?: string;
     order?: 'asc' | 'desc';
-    page?: number;
-    page_size?: number;
-    order_by?: string;
-    order_dir?: 'asc' | 'desc';
-    search?: string;
     date_range?: string;
   }): Promise<{ data: ProgramListingProgramRow[]; total: number }> {
     if (!this.supabase) {
@@ -9706,15 +9696,17 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], total: 0 };
       }
 
+      // The public API uses limit/offset pagination while the existing metrics
+      // implementation uses page/page_size internally.
       return await this.getProgramsFromProgramMetrics({
         currentUserId: authUserId,
         filters,
         tab,
-        page: page ?? Math.floor(offset / limit) + 1,
-        page_size: page_size ?? limit,
-        order_by: order_by ?? orderBy,
-        order_dir: order_dir ?? order,
-        search: search ?? searchTerm,
+        page: Math.floor(Math.max(offset, 0) / Math.max(limit, 1)) + 1,
+        page_size: Math.max(limit, 1),
+        order_by: orderBy === 'name' ? 'program_name' : orderBy,
+        order_dir: order,
+        search: searchTerm,
         date_range,
       });
     } catch (err) {
@@ -12063,15 +12055,6 @@ export class SupabaseApi implements ServiceApi {
         : 'school_name';
       const sortAscending = order_dir !== 'desc';
 
-      const { data, error } = await query;
-
-      if (error) {
-        logger.error('Error fetching school_metrics listing:', error);
-        return { data: [], total: 0 };
-      }
-
-      let rows = (data ?? []) as Array<Record<string, unknown>>;
-
       const percentageFilters = Object.fromEntries(
         Object.entries(percentage_filters ?? {}).filter(
           ([key, value]) =>
@@ -12079,6 +12062,31 @@ export class SupabaseApi implements ServiceApi {
             PERCENTAGE_BAND_VALUES.includes(value as SchoolListPercentBand),
         ),
       ) as Record<string, SchoolListPercentBand>;
+      const schoolPerformanceFilter =
+        typeof school_performance_filter === 'string' &&
+        isSchoolPerformanceStatusValue(school_performance_filter)
+          ? school_performance_filter
+          : null;
+      const requiresCalculatedFiltering =
+        Object.keys(percentageFilters).length > 0 || !!schoolPerformanceFilter;
+      const normalizedPageSize = Math.max(Math.trunc(page_size), 1);
+      const from = Math.max(Math.trunc(page) - 1, 0) * normalizedPageSize;
+
+      // Calculated percentage and fallback performance filters compare multiple
+      // columns, which PostgREST cannot express without a database function.
+      const pagedQuery = requiresCalculatedFiltering
+        ? query
+        : query
+            .order(sortBy, { ascending: sortAscending })
+            .range(from, from + normalizedPageSize - 1);
+      const { data, error, count } = await pagedQuery;
+
+      if (error) {
+        logger.error('Error fetching school_metrics listing:', error);
+        return { data: [], total: 0 };
+      }
+
+      let rows = (data ?? []) as Array<Record<string, unknown>>;
 
       if (Object.keys(percentageFilters).length > 0) {
         rows = rows.filter((row) =>
@@ -12100,12 +12108,6 @@ export class SupabaseApi implements ServiceApi {
         );
       }
 
-      const schoolPerformanceFilter =
-        typeof school_performance_filter === 'string' &&
-        isSchoolPerformanceStatusValue(school_performance_filter)
-          ? school_performance_filter
-          : null;
-
       if (schoolPerformanceFilter) {
         rows = rows.filter(
           (row) =>
@@ -12114,33 +12116,36 @@ export class SupabaseApi implements ServiceApi {
         );
       }
 
-      rows.sort((leftRow, rightRow) => {
-        const leftValue = getSchoolMetricsSortValue(leftRow, sortBy);
-        const rightValue = getSchoolMetricsSortValue(rightRow, sortBy);
+      if (requiresCalculatedFiltering) {
+        rows.sort((leftRow, rightRow) => {
+          const leftValue = getSchoolMetricsSortValue(leftRow, sortBy);
+          const rightValue = getSchoolMetricsSortValue(rightRow, sortBy);
 
-        if (leftValue == null && rightValue == null) return 0;
-        if (leftValue == null) return 1;
-        if (rightValue == null) return -1;
+          if (leftValue == null && rightValue == null) return 0;
+          if (leftValue == null) return 1;
+          if (rightValue == null) return -1;
 
-        if (typeof leftValue === 'string' || typeof rightValue === 'string') {
-          const result = String(leftValue).localeCompare(
-            String(rightValue),
-            undefined,
-            {
-              sensitivity: 'base',
-              numeric: true,
-            },
-          );
+          if (typeof leftValue === 'string' || typeof rightValue === 'string') {
+            const result = String(leftValue).localeCompare(
+              String(rightValue),
+              undefined,
+              {
+                sensitivity: 'base',
+                numeric: true,
+              },
+            );
+            return sortAscending ? result : -result;
+          }
+
+          const result =
+            leftValue === rightValue ? 0 : leftValue > rightValue ? 1 : -1;
           return sortAscending ? result : -result;
-        }
+        });
+      }
 
-        const result =
-          leftValue === rightValue ? 0 : leftValue > rightValue ? 1 : -1;
-        return sortAscending ? result : -result;
-      });
-
-      const from = Math.max(page - 1, 0) * page_size;
-      const pagedRows = rows.slice(from, from + page_size);
+      const pagedRows = requiresCalculatedFiltering
+        ? rows.slice(from, from + normalizedPageSize)
+        : rows;
 
       const mappedRows = pagedRows.map((row: Record<string, unknown>) => ({
         ...row,
@@ -12180,7 +12185,7 @@ export class SupabaseApi implements ServiceApi {
 
       return {
         data: mappedRows,
-        total: rows.length,
+        total: requiresCalculatedFiltering ? rows.length : (count ?? 0),
       };
     } catch (error) {
       logger.error(
@@ -12309,77 +12314,6 @@ export class SupabaseApi implements ServiceApi {
       return Math.round((getProgramMetricNumber(value) / totalSchools) * 100);
     };
 
-    // Needed because partner, manager, coordinator, and model fields can be JSON strings.
-    const normalizeProgramMetricsStringList = (
-      value: string[] | string | null | undefined,
-    ): string[] => {
-      const normalizeString = (item: string): string[] => {
-        const trimmedItem = item.trim();
-        if (!trimmedItem || trimmedItem === 'null') return [];
-        if (!trimmedItem.startsWith('[')) return [trimmedItem];
-        try {
-          const parsed = JSON.parse(trimmedItem) as Json;
-          if (!Array.isArray(parsed)) return [trimmedItem];
-          return parsed.filter(
-            (entry): entry is string =>
-              typeof entry === 'string' &&
-              entry.trim() !== '' &&
-              entry !== 'null',
-          );
-        } catch {
-          return [trimmedItem];
-        }
-      };
-
-      if (Array.isArray(value)) {
-        return value.flatMap((item) =>
-          typeof item === 'string' ? normalizeString(item) : [],
-        );
-      }
-      return typeof value === 'string' ? normalizeString(value) : [];
-    };
-
-    // Needed so multi-select filters work for both array and JSON-string fields.
-    const programMetricsListHasSelection = (
-      value: string[] | string | null | undefined,
-      selectedValues: string[] | undefined,
-    ): boolean => {
-      if (!selectedValues?.length) return true;
-      const normalizedValues = normalizeProgramMetricsStringList(value);
-      return selectedValues.some((selectedValue) =>
-        normalizedValues.includes(selectedValue),
-      );
-    };
-
-    // Needed because these list-like filters cannot be safely handled by DB operators alone.
-    const matchesProgramMetricsDimensionFilters = (
-      row: ProgramMetricsTableRow,
-      rowFilters: Record<string, string[]>,
-      selectedTab: PROGRAM_TAB,
-    ): boolean => {
-      const selectedModels = rowFilters.model?.filter((value) =>
-        Object.values(PROGRAM_TAB).includes(value as PROGRAM_TAB),
-      );
-      const modelFilter = selectedModels?.length
-        ? selectedModels
-        : selectedTab !== PROGRAM_TAB.ALL
-          ? [selectedTab]
-          : [];
-
-      return (
-        programMetricsListHasSelection(row.program_model, modelFilter) &&
-        programMetricsListHasSelection(row.partners, rowFilters.partner) &&
-        programMetricsListHasSelection(
-          row.program_managers,
-          rowFilters.programManager,
-        ) &&
-        programMetricsListHasSelection(
-          row.field_coordinators,
-          rowFilters.fieldCoordinator,
-        )
-      );
-    };
-
     // Needed to keep the Program Listing response stable while reading from program_metrics.
     const mapProgramMetricsRow = (
       row: ProgramMetricsTableRow,
@@ -12449,52 +12383,6 @@ export class SupabaseApi implements ServiceApi {
       };
     };
 
-    // Needed because Low/Mid/High filters depend on calculated percentages.
-    const matchesProgramPercentFilters = (
-      row: ProgramListingProgramRow,
-      rowFilters: Record<string, string[]>,
-    ): boolean => {
-      const filterEntries: Array<[keyof ProgramListingProgramRow, string]> = [
-        ['onboarded_students_pct', 'onboardedStudentsPct'],
-        ['activated_students_pct', 'activatedStudentsPct'],
-        ['active_students_pct', 'activeStudentsPct'],
-        ['onboarded_teachers_pct', 'onboardedTeachersPct'],
-        ['activated_teachers_pct', 'activatedTeachersPct'],
-        ['active_teachers_pct', 'activeTeachersPct'],
-      ];
-
-      return filterEntries.every(([metricKey, filterKey]) => {
-        const selectedBands = rowFilters[filterKey] ?? [];
-        if (selectedBands.length === 0) return true;
-        const value = row[metricKey];
-        if (typeof value !== 'number') return false;
-        const band = value >= 70 ? 'High' : value >= 31 ? 'Mid' : 'Low';
-        return selectedBands.includes(band);
-      });
-    };
-
-    // Needed so all sortable Program columns use one consistent ordering path.
-    const sortProgramMetricsRows = (
-      first: ProgramListingProgramRow,
-      second: ProgramListingProgramRow,
-      orderBy: string,
-      orderDir: 'asc' | 'desc',
-    ): number => {
-      const dir = orderDir === 'desc' ? -1 : 1;
-      const firstValue = first[orderBy as keyof ProgramListingProgramRow];
-      const secondValue = second[orderBy as keyof ProgramListingProgramRow];
-      if (typeof firstValue === 'number' || typeof secondValue === 'number') {
-        return (
-          (((firstValue as number | null) ?? 0) -
-            ((secondValue as number | null) ?? 0)) *
-          dir
-        );
-      }
-      return (
-        String(firstValue ?? '').localeCompare(String(secondValue ?? '')) * dir
-      );
-    };
-
     // Needed to decide whether the current user can see all programs or only linked programs.
     const specialRoles = await this.getUserSpecialRoles(currentUserId);
     const isAdminOrDirector = specialRoles.some((role) =>
@@ -12539,7 +12427,7 @@ export class SupabaseApi implements ServiceApi {
         .supabase as SupabaseClient<ProgramMetricsDatabase>;
       let query = programMetricsClient
         .from('program_metrics')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('is_deleted', false);
 
       // Needed so the listing and export reflect the selected metric window.
@@ -12562,6 +12450,40 @@ export class SupabaseApi implements ServiceApi {
         ),
       );
 
+      // PostgREST OR filters require quoted values when user-facing labels can
+      // contain commas, parentheses, or other filter syntax characters.
+      const quotePostgrestValue = (value: string): string =>
+        `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+      const buildListFilter = (
+        column: string,
+        values: string[] | undefined,
+      ): string =>
+        (values ?? [])
+          .flatMap((value) => [
+            `${column}.eq.${quotePostgrestValue(value)}`,
+            `${column}.ilike.${quotePostgrestValue(`%"${value}"%`)}`,
+          ])
+          .join(',');
+
+      const selectedModels = cleanedFilters.model?.filter((value) =>
+        Object.values(PROGRAM_TAB).includes(value as PROGRAM_TAB),
+      );
+      const modelFilters = selectedModels?.length
+        ? selectedModels
+        : tab !== PROGRAM_TAB.ALL
+          ? [tab]
+          : [];
+      const listFilters: Array<[string, string[] | undefined]> = [
+        ['program_model', modelFilters],
+        ['partners', cleanedFilters.partner],
+        ['program_managers', cleanedFilters.programManager],
+        ['field_coordinators', cleanedFilters.fieldCoordinator],
+      ];
+      listFilters.forEach(([column, values]) => {
+        const filter = buildListFilter(column, values);
+        if (filter) query = query.or(filter);
+      });
+
       // Needed to apply simple scalar filters at the database layer.
       if (cleanedFilters.state?.length)
         query = query.in('state', cleanedFilters.state);
@@ -12580,40 +12502,73 @@ export class SupabaseApi implements ServiceApi {
           query = query.in('program_type', programTypeValues);
         }
       }
+
+      const percentFilters: Array<[string, string]> = [
+        ['onboarded_students_pct', 'onboardedStudentsPct'],
+        ['activated_students_pct', 'activatedStudentsPct'],
+        ['active_students_pct', 'activeStudentsPct'],
+        ['onboarded_teachers_pct', 'onboardedTeachersPct'],
+        ['activated_teachers_pct', 'activatedTeachersPct'],
+        ['active_teachers_pct', 'activeTeachersPct'],
+      ];
+      percentFilters.forEach(([column, filterKey]) => {
+        const bands = cleanedFilters[filterKey] ?? [];
+        const conditions = bands.flatMap((band) => {
+          if (band === 'Low') return [`${column}.lt.31`];
+          if (band === 'Mid') return [`and(${column}.gte.31,${column}.lt.70)`];
+          if (band === 'High') return [`${column}.gte.70`];
+          return [];
+        });
+        if (conditions.length > 0) query = query.or(conditions.join(','));
+      });
+
       // Needed to keep search behavior consistent across program and location fields.
       if (search) {
+        const searchPattern = quotePostgrestValue(`%${search}%`);
         query = query.or(
           [
-            `program_name.ilike.%${search}%`,
-            `state.ilike.%${search}%`,
-            `district.ilike.%${search}%`,
-            `block.ilike.%${search}%`,
-            `cluster.ilike.%${search}%`,
+            `program_name.ilike.${searchPattern}`,
+            `state.ilike.${searchPattern}`,
+            `district.ilike.${searchPattern}`,
+            `block.ilike.${searchPattern}`,
+            `cluster.ilike.${searchPattern}`,
           ].join(','),
         );
       }
 
-      // Needed to fetch the filtered program_metrics rows before calculated filters run.
-      const { data, error } = await query;
+      const allowedOrderColumns = new Set([
+        'program_name',
+        'total_schools',
+        'onboarded_students',
+        'activated_students',
+        'active_students',
+        'avg_time_spent',
+        'onboarded_teachers',
+        'activated_teachers',
+        'active_teachers',
+      ]);
+      const safeOrderBy = allowedOrderColumns.has(order_by)
+        ? order_by
+        : 'program_name';
+      const normalizedPageSize = Math.max(Math.trunc(page_size), 1);
+      const from = Math.max(Math.trunc(page) - 1, 0) * normalizedPageSize;
+      const to = from + normalizedPageSize - 1;
+
+      // Filtering, ordering, counting, and range are applied before execution
+      // so only the requested page is transferred from Supabase.
+      const { data, error, count } = await query
+        .order(safeOrderBy, { ascending: order_dir === 'asc' })
+        .range(from, to);
       if (error) {
         logger.error('Error fetching program_metrics listing:', error);
         return { data: [], total: 0 };
       }
 
-      // Needed to apply normalized list filters, calculated percentages, sorting, and paging.
-      const rows = ((data ?? []) as ProgramMetricsTableRow[])
-        .filter((row) =>
-          matchesProgramMetricsDimensionFilters(row, cleanedFilters, tab),
-        )
-        .map((row) => mapProgramMetricsRow(row))
-        .filter((row) => matchesProgramPercentFilters(row, cleanedFilters))
-        .sort((a, b) => sortProgramMetricsRows(a, b, order_by, order_dir));
-      // Needed to return only the requested page while preserving the total filtered count.
-      const from = Math.max(page - 1, 0) * page_size;
-
       return {
-        data: rows.slice(from, from + page_size),
-        total: rows.length,
+        data: ((data ?? []) as ProgramMetricsTableRow[]).map((row) =>
+          mapProgramMetricsRow(row),
+        ),
+        total: count ?? 0,
       };
     } catch (error) {
       logger.error('Unexpected error in getProgramsFromProgramMetrics:', error);
@@ -12894,7 +12849,7 @@ export class SupabaseApi implements ServiceApi {
   async getManagersAndCoordinators(
     page: number = 1,
     search: string = '',
-    limit: number = 10,
+    limit: number = 20,
     sortBy: keyof TableTypes<'user'> = 'name',
     sortOrder: 'asc' | 'desc' = 'asc',
   ): Promise<{
