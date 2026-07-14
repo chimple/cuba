@@ -14,7 +14,7 @@ import type { Column } from '../../ops-console/components/DataTableBody';
 import type { CampaignsOverviewApiResponse } from '../../ops-console/components/campaignsOverview/CampaignsOverviewLogic';
 import CampaignsOverviewInfoTooltip from '../../ops-console/components/campaignsOverview/CampaignsOverviewInfoTooltip';
 
-const CAMPAIGN_LISTING_ORDER_BY = {
+export const CAMPAIGN_LISTING_ORDER_BY = {
   NAME: 'name',
   MANAGER: 'manager',
   PROGRAM_NAME: 'programName',
