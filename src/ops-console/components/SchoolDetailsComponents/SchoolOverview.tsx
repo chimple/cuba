@@ -100,14 +100,6 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
   ].filter((item) => item.value !== undefined && item.value !== null);
   const [programName, programType, model] = programDetailsItems;
 
-  //school performance
-  const activeStudents =
-    data.schoolStats?.active_student_percentage?.toFixed(2) ?? '0.00';
-  const avgWeekTime =
-    data.schoolStats?.avg_weekly_time_minutes?.toFixed(2) ?? '0.00';
-  const activeTeachers =
-    data.schoolStats?.active_teacher_percentage?.toFixed(2) ?? '0.00';
-
   const interactionItems = [
     { label: 'Number of Visits', value: data.interactionStats?.visits ?? 0 },
     {
@@ -194,12 +186,6 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     </InfoCard>
   );
 
-  const schoolPerformanceItems = [
-    { label: 'Active Students', value: `${activeStudents}%` },
-    { label: 'Avg week time in mins', value: `${avgWeekTime} mins` },
-    { label: 'Active Teachers', value: `${activeTeachers}%` },
-  ].filter((item) => item.value !== undefined && item.value !== null);
-
   const history = useHistory();
   let keyContacts: Array<any> = [];
   const rawKeyContacts = data?.schoolData?.key_contacts;
@@ -229,36 +215,6 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
       {isMobile ? (
         <Box className="column-container">
           <InteractionMetricsSection />
-          <InfoCard
-            title={t('School Performance')}
-            className="performance-card"
-          >
-            <Box className="info-card-items">
-              {schoolPerformanceItems.map((item, idx) => (
-                <Box
-                  key={idx}
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  mb={1}
-                >
-                  <Typography variant="subtitle2">{t(item.label)}</Typography>
-                  <Typography variant="body1">{item.value}</Typography>
-                </Box>
-              ))}
-            </Box>
-            {!isExternalUser && (
-              <Button
-                fullWidth
-                size="small"
-                className="full-width-button"
-                variant="outlined"
-                sx={{ mt: 2, textTransform: 'none' }}
-              >
-                {t('View Detailed Analytics')}
-              </Button>
-            )}
-          </InfoCard>
           <InfoCard
             title={t('Key Contacts')}
             children={
@@ -351,42 +307,10 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
         </Box>
       ) : (
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, md: 8 }}>
+          <Grid size={{ xs: 12, md: 12 }}>
             <Box className="column-container">
               <InteractionMetricsSection />
             </Box>
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <InfoCard
-              title={t('School Performance')}
-              className="performance-card"
-            >
-              <Box className="info-card-items">
-                {schoolPerformanceItems.map((item, idx) => (
-                  <Box
-                    key={idx}
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    mb={1}
-                  >
-                    <Typography variant="subtitle2">{t(item.label)}</Typography>
-                    <Typography variant="body1">{item.value}</Typography>
-                  </Box>
-                ))}
-              </Box>
-              {!isExternalUser && (
-                <Button
-                  fullWidth
-                  size="small"
-                  className="full-width-button"
-                  variant="outlined"
-                  sx={{ mt: 2, textTransform: 'none' }}
-                >
-                  {t('View Detailed Analytics')}
-                </Button>
-              )}
-            </InfoCard>
           </Grid>
 
           <Grid size={{ xs: 12, md: 12 }}>

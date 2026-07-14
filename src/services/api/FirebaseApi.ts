@@ -44,27 +44,28 @@ import {
   grade1,
   grade2,
   grade3,
+  COURSE_LESSONS,
 } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
-import User from '../../models/user';
+import User from '../../models/User';
 import { ServiceConfig } from '../ServiceConfig';
-import Curriculum from '../../models/curriculum';
-import Grade from '../../models/grade';
-import Language from '../../models/language';
+import Curriculum from '../../models/Curriculum';
+import Grade from '../../models/Grade';
+import Language from '../../models/Language';
 import {
   ASSIGNMENT_COMPLETED_IDS,
   CollectionIds,
   StudentLessonResult,
 } from '../../common/courseConstants';
-import Course from '../../models/course';
-import Lesson from '../../models/lesson';
-import Result from '../../models/result';
-import Subject from '../../models/subject';
+import Course from '../../models/Course';
+import Lesson from '../../models/Lesson';
+import Result from '../../models/Result';
+import Subject from '../../models/Subject';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import StudentProfile from '../../models/studentProfile';
-import Class from '../../models/class';
-import School from '../../models/school';
-import Assignment from '../../models/assignment';
+import StudentProfile from '../../models/StudentProfile';
+import Class from '../../models/Class';
+import School from '../../models/School';
+import Assignment from '../../models/Assignment';
 import { AvatarObj } from '../../components/animation/Avatar';
 import Badge from '../../models/Badge';
 import Rewards from '../../models/Rewards';
@@ -674,7 +675,7 @@ export class FirebaseApi implements ServiceApi {
       [key: string]: {
         [key: string]: Lesson;
       };
-    } = JSON.parse(localStorage.getItem('CourseLessons')!);
+    } = JSON.parse(localStorage.getItem(COURSE_LESSONS)!);
     if (!lessons) {
       lessons = {};
     }
@@ -701,7 +702,7 @@ export class FirebaseApi implements ServiceApi {
     }
     lessons[course.courseCode] = lesMap;
 
-    localStorage.setItem('CourseLessons', JSON.stringify(lessons));
+    localStorage.setItem(COURSE_LESSONS, JSON.stringify(lessons));
     return lessons;
   }
 
@@ -714,7 +715,7 @@ export class FirebaseApi implements ServiceApi {
         [key: string]: {
           [key: string]: Lesson;
         };
-      } = JSON.parse(localStorage.getItem('CourseLessons')!);
+      } = JSON.parse(localStorage.getItem(COURSE_LESSONS)!);
       if (!lessons) {
         lessons = {};
       }
@@ -2047,6 +2048,8 @@ export class FirebaseApi implements ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<FilteredSchoolsForSchoolListingOps[]> {
     throw new Error('getFilteredSchoolsForSchoolListing() is not implemented.');
   }
@@ -2060,6 +2063,8 @@ export class FirebaseApi implements ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<{
     data: FilteredSchoolsForSchoolListingOps[];
     total: number;

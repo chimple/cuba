@@ -754,6 +754,21 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const classDataRef = useMemo(() => {
     return Array.isArray(data.classData) ? data.classData[0] : undefined;
   }, [data.classData]);
+  const performanceClassIdsKey = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          normalizedStudents
+            .map((student) =>
+              issTotal
+                ? student.classWithidname?.id
+                : (classDataRef?.id ?? student.classWithidname?.id),
+            )
+            .filter((value): value is string => Boolean(value)),
+        ),
+      ).join(','),
+    [classDataRef?.id, issTotal, normalizedStudents],
+  );
 
   // Fold classId + group_id into one key so the fetch effect reruns on link changes.
   const classGroupKey = useMemo(() => {
@@ -969,7 +984,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       }
     };
     fetchStudentPerformance();
-  }, [api, classDataRef?.id, issTotal, studentIdsKey]);
+  }, [api, classDataRef?.id, issTotal, performanceClassIdsKey, studentIdsKey]);
   const getStudentInfoById = useCallback(
     (id: string): StudentInfo | null => {
       if (!Array.isArray(students)) return null;
@@ -1074,7 +1089,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
   const isDataPresent = studentsForCurrentPage.length > 0;
   const isFilteringOrSearching =
     searchTerm.trim() !== '' ||
-    Object.values(filters).some((f) => f.length > 0);
+    Object.values(filters).some((f) => f.length > 0) ||
+    performanceFilter !== PerformanceLevel.ALL;
 
   const handleFilterIconClick = useCallback(() => {
     setTempFilters(filters);
@@ -1099,6 +1115,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     setPage(1);
     setIsFilterSliderOpen(false);
   }, []);
+
+  const handlePerformanceFilterChange = useCallback(
+    (value: PerformanceLevel) => {
+      setPerformanceFilter(value);
+      setPage(1);
+    },
+    [],
+  );
 
   const hasAnyStudents = (totalCount ?? 0) > 0;
   const isNoStudentsState = !isLoading && !hasAnyStudents;
@@ -1334,14 +1358,40 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     return programScopedClasses
       .map((classRow) => ({
         value: classRow.id,
-        label:
-          typeof classRow.name === 'string'
-            ? classRow.name
-            : String(classRow.name ?? ''),
+        label: getClassDisplayLabel(
+          classRow.grade,
+          classRow.section,
+          classRow.name,
+        ),
       }))
       .filter((option) => option.value && option.label)
       .sort((a, b) => a.label.localeCompare(b.label));
   }, [programScopedClasses]);
+
+  const editClassOptions = useMemo(() => {
+    const options = [...classOptions];
+    const currentClassId = String(
+      editStudentData?.classWithidname?.id ?? '',
+    ).trim();
+    const currentClassLabel = getClassDisplayLabel(
+      editStudentData?.grade,
+      editStudentData?.classSection,
+      editStudentData?.classWithidname?.class_name,
+    );
+
+    if (
+      currentClassId &&
+      currentClassLabel &&
+      !options.some((option) => option.value === currentClassId)
+    ) {
+      options.push({
+        value: currentClassId,
+        label: currentClassLabel,
+      });
+    }
+
+    return options.sort((a, b) => a.label.localeCompare(b.label));
+  }, [classOptions, editStudentData]);
 
   const currentClass = useMemo(() => {
     if (!issTotal) {
@@ -1582,9 +1632,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     {
       name: 'classAndSection',
       label: 'Class And Section',
-      kind: 'text',
+      kind: 'select',
+      required: true,
+      suppressPlaceholderOption: true,
       column: 0,
-      disabled: true,
+      options: editClassOptions,
     },
 
     // 5️⃣ Age – right
@@ -1625,17 +1677,18 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     if (!editStudentData) return; // ✅ null safety
 
     const user = editStudentData.user;
-    const classId = editStudentData.classWithidname?.id;
+    const selectedClassId = String(values.classAndSection ?? '').trim();
     const avatarToSend =
       user.avatar && user.avatar.trim() !== ''
         ? user.avatar
         : getRandomAvatar();
 
-    if (!classId) {
-      logger.error('Class ID missing for student');
+    if (!selectedClassId) {
+      logger.error('Selected class ID missing for student');
       return;
     }
-    await api.updateStudentFromSchoolMode(
+
+    const baseArgs = [
       user,
       values.studentName,
       Number(values.ageGroup),
@@ -1645,8 +1698,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       user.curriculum_id || user.curriculum_id!,
       user.grade_id || user.grade_id!,
       user.language_id || user.language_id!,
+    ] as const;
+
+    await api.updateStudentFromSchoolMode(
+      ...baseArgs,
       user.student_id || user.student_id!,
-      classId,
+      selectedClassId,
     );
 
     setIsEditStudentModalOpen(false);
@@ -1896,9 +1953,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           gender: editStudentData?.user?.gender ?? '',
           ageGroup: String(editStudentData?.user?.age ?? ''),
           studentID: editStudentData?.user?.student_id ?? '',
-          classAndSection: `${editStudentData?.grade ?? ''}${
-            editStudentData?.classSection ?? ''
-          }`,
+          classAndSection: String(editStudentData?.classWithidname?.id ?? ''),
           // Show all merged contacts in edit details as chips.
           phone: getStudentContactValues(editStudentData).join(' / '),
         }}
@@ -2080,8 +2135,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
         </Box>
       </Box>
 
-      {/* Keep as-is, but hide when no students overall */}
-      {!issTotal && !isNoStudentsState && (
+      {!hideFilterUI && (
         <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
           {performanceFilters.map((filter) => {
             const isActive = performanceFilter === filter.key;
@@ -2111,7 +2165,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
               <Chip
                 key={filter.key}
                 label={filter.label}
-                onClick={() => setPerformanceFilter(filter.key)}
+                onClick={() => handlePerformanceFilterChange(filter.key)}
                 className={className}
                 sx={{
                   fontWeight: isActive ? 600 : 400,

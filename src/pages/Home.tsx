@@ -17,6 +17,7 @@ import {
   GENERIC_POP_UP,
   SOURCE,
   STUDENT_RESULT,
+  CURRENT_HEADER,
 } from '../common/constants';
 import './Home.css';
 import HomeHeader from '../components/HomeHeader';
@@ -96,7 +97,7 @@ const Home: FC = () => {
     ) {
       return currPage as HOMEHEADERLIST;
     } else {
-      return localStorage.getItem('currentHeader') || HOMEHEADERLIST.HOME;
+      return localStorage.getItem(CURRENT_HEADER) || HOMEHEADERLIST.HOME;
     }
   });
   const appStateChange = (isActive: boolean) => {
@@ -204,7 +205,7 @@ const Home: FC = () => {
         ? HOMEHEADERLIST.HOME
         : currentHeader,
     );
-    localStorage.setItem('currentHeader', currentHeader);
+    localStorage.setItem(CURRENT_HEADER, currentHeader);
     if (currentHeader !== HOMEHEADERLIST.HOME) {
       fetchData();
     }
@@ -536,7 +537,7 @@ const Home: FC = () => {
       headerIconList.push(element);
     });
     setCurrentHeader(selectedHeader);
-    localStorage.setItem('currentHeader', selectedHeader);
+    localStorage.setItem(CURRENT_HEADER, selectedHeader);
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
     DEFAULT_HEADER_ICON_CONFIGS.get(selectedHeader);
     switch (selectedHeader) {

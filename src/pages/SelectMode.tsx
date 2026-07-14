@@ -28,6 +28,7 @@ import DropDown from '../components/DropDown';
 import Loading from '../components/Loading';
 import TeacherAuthenticationPopup from '../components/parent/TeacherAuthenticationPopup';
 import SelectModeButton from '../components/selectMode/SelectModeButton';
+import InlineSvg from '../components/InlineSvg';
 import i18n from '../i18n';
 import { RoleType } from '../interface/modelInterfaces';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
@@ -54,8 +55,8 @@ import {
 } from '../utility/roleUtil';
 import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
-import { ReactComponent as BrandLogoIcon } from './assets/brandLogoIcon.svg';
-import { ReactComponent as LeftArrowIcon } from './assets/leftArrowIcon.svg';
+import BrandLogoIcon from './assets/brandLogoIcon.svg?raw';
+import LeftArrowIcon from './assets/leftArrowIcon.svg?raw';
 import './SelectMode.css';
 import { logClassTabClassChanged } from './selectModeAnalytics';
 
@@ -194,12 +195,10 @@ const SelectMode: FC = () => {
   const [currentClasses, setCurrentClasses] = useState<TableTypes<'class'>[]>();
   const [currentStudents, setCurrentStudents] =
     useState<TableTypes<'user'>[]>();
-  const [currStudent, setCurrStudent] = useState<TableTypes<'user'>>();
   const [currClass, setCurrClass] = useState<TableTypes<'class'>>();
   const [classWindowStartIndex, setClassWindowStartIndex] = useState(0);
   const [isTeacherAuthPopupOpen, setIsTeacherAuthPopupOpen] = useState(false);
   const [isAutoUser, setIsAutoUser] = useState<boolean>(false);
-  let count = 1;
   const tempSchoolList: SchoolModeOption[] = [];
   useEffect(() => {
     Util.loadBackgroundImage();
@@ -346,7 +345,7 @@ const SelectMode: FC = () => {
       setCurrentStudents(JSON.parse(displayStudent));
     }
 
-    if (currentMode == MODES.PARENT) {
+    if (currentMode === MODES.PARENT) {
       const student = Util.getCurrentStudent();
       if (student) {
         history.replace(PAGES.HOME);
@@ -444,6 +443,25 @@ const SelectMode: FC = () => {
     }));
     setTeacherAppSchoolList(teacherAppSchoolOptions);
 
+    if (teacherRoleEntries.length > 0) {
+      await applyOrientationForMode(MODES.TEACHER);
+      schoolUtil.setCurrMode(MODES.TEACHER);
+
+      const currentTeacherUser = await auth.getCurrentUser();
+      if (!currentTeacherUser?.name || currentTeacherUser.name.trim() === '') {
+        history.replace(PAGES.ADD_TEACHER_NAME);
+        return;
+      }
+
+      if (teacherRoleEntries.length === 1) {
+        history.replace(PAGES.HOME_PAGE);
+        return;
+      }
+
+      history.replace(PAGES.DISPLAY_SCHOOLS);
+      return;
+    }
+
     const hasStudentsInSchool = async (schoolId: string, userId: string) => {
       try {
         const classes = await api.getClassesForSchool(schoolId, userId);
@@ -494,7 +512,7 @@ const SelectMode: FC = () => {
         await applyOrientationForMode(MODES.PARENT);
         api.currentMode = MODES.PARENT;
         schoolUtil.setCurrMode(MODES.PARENT);
-        if (!!students && students.length == 0) {
+        if (students && students.length === 0) {
           history.replace(PAGES.CREATE_STUDENT);
         } else history.replace(PAGES.DISPLAY_STUDENT);
         return;
@@ -622,15 +640,11 @@ const SelectMode: FC = () => {
     const languageDocId = localStorage.getItem(LANGUAGE);
     if (!!languageDocId) await i18n.changeLanguage(languageDocId);
   }
-  const onSchoolSelect = async () => {
-    await applyOrientationForMode(MODES.TEACHER);
-    history.replace(PAGES.DISPLAY_SCHOOLS);
-  };
   const onParentSelect = async () => {
     await applyOrientationForMode(MODES.PARENT);
     api.currentMode = MODES.PARENT;
     const students = await api.getParentStudentProfiles();
-    if (!!students && students.length == 0) {
+    if (students && students.length === 0) {
       history.replace(PAGES.CREATE_STUDENT);
     } else history.replace(PAGES.DISPLAY_STUDENT);
     schoolUtil.setCurrMode(MODES.PARENT);
@@ -858,7 +872,6 @@ const SelectMode: FC = () => {
     return `assets/avatars/${student.avatar ?? AVATARS[randomValue()]}.png`;
   };
   const handleStudentSelect = (student: TableTypes<'user'>) => {
-    setCurrStudent(student);
     localStorage.setItem(USER_SELECTION_STAGE, 'true');
     void onStudentClick(student);
   };
@@ -991,7 +1004,10 @@ const SelectMode: FC = () => {
               <div className="class-main class-main-school-mode">
                 <div className="school-mode-header class-header">
                   <div className="school-mode-welcome">
-                    <BrandLogoIcon className="school-mode-brand-logo" />
+                    <InlineSvg
+                      svg={BrandLogoIcon}
+                      className="school-mode-brand-logo"
+                    />
                     <span>{t('Welcome to Chimple!')}</span>
                   </div>
                   <button
@@ -1012,7 +1028,10 @@ const SelectMode: FC = () => {
                       disabled={isPreviousClassNavigationDisabled}
                       onClick={() => onClassNavigation('previous')}
                     >
-                      <LeftArrowIcon className="school-mode-nav-arrow" />
+                      <InlineSvg
+                        svg={LeftArrowIcon}
+                        className="school-mode-nav-arrow"
+                      />
                     </button>
                   )}
                   <div className="school-mode-class-tabs">
@@ -1042,7 +1061,10 @@ const SelectMode: FC = () => {
                       disabled={isNextClassNavigationDisabled}
                       onClick={() => onClassNavigation('next')}
                     >
-                      <LeftArrowIcon className="school-mode-nav-arrow school-mode-nav-arrow-right" />
+                      <InlineSvg
+                        svg={LeftArrowIcon}
+                        className="school-mode-nav-arrow school-mode-nav-arrow-right"
+                      />
                     </button>
                   )}
                 </div>
@@ -1059,7 +1081,10 @@ const SelectMode: FC = () => {
                 <div className="school-mode-student-stage">
                   <div className="school-mode-header class-header">
                     <div className="school-mode-welcome">
-                      <BrandLogoIcon className="school-mode-brand-logo" />
+                      <InlineSvg
+                        svg={BrandLogoIcon}
+                        className="school-mode-brand-logo"
+                      />
                       <span>{t('Welcome to Chimple!')}</span>
                     </div>
                     <button
@@ -1080,7 +1105,10 @@ const SelectMode: FC = () => {
                         disabled={isPreviousClassNavigationDisabled}
                         onClick={() => onClassNavigation('previous')}
                       >
-                        <LeftArrowIcon className="school-mode-nav-arrow" />
+                        <InlineSvg
+                          svg={LeftArrowIcon}
+                          className="school-mode-nav-arrow"
+                        />
                       </button>
                     )}
                     <div className="school-mode-class-tabs">
@@ -1110,7 +1138,10 @@ const SelectMode: FC = () => {
                         disabled={isNextClassNavigationDisabled}
                         onClick={() => onClassNavigation('next')}
                       >
-                        <LeftArrowIcon className="school-mode-nav-arrow school-mode-nav-arrow-right" />
+                        <InlineSvg
+                          svg={LeftArrowIcon}
+                          className="school-mode-nav-arrow school-mode-nav-arrow-right"
+                        />
                       </button>
                     )}
                   </div>

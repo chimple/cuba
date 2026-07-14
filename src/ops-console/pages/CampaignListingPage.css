@@ -1,0 +1,578 @@
+.campaign-listing-page {
+  background: #ffffff;
+  color: #121619;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  padding-top: env(safe-area-inset-top, 0);
+  box-sizing: border-box;
+}
+
+.campaign-listing-header {
+  align-items: center;
+  background: #ffffff;
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: space-between;
+  padding: 12px 20px;
+}
+
+.campaign-listing-header-title {
+  color: #121619;
+  font-size: 28px !important;
+  font-weight: 600 !important;
+}
+
+.campaign-listing-notification-icon {
+  color: #121619;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+.campaign-listing-notification-button.MuiIconButton-root {
+  color: #121619;
+}
+
+.campaign-listing-toolbar {
+  align-items: center;
+  background: #ffffff;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 0 20px 12px;
+}
+
+.campaign-listing-toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.campaign-listing-toolbar-actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.campaign-listing-new-button.MuiButton-root {
+  background: #ffffff;
+  border: 1px solid #eceff4;
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(31, 41, 55, 0.08);
+  color: #121619;
+  font-size: 14px;
+  font-weight: 500;
+  min-height: 40px;
+  padding: 8px 18px;
+  text-transform: none;
+}
+
+.campaign-listing-new-button.MuiButton-root:hover {
+  background: #f9fafb;
+  border-color: #e2e8f0;
+  box-shadow: 0 8px 20px rgba(31, 41, 55, 0.12);
+}
+
+.campaign-listing-new-button .MuiButton-startIcon {
+  color: #1a71f6;
+  margin-right: 6px;
+}
+
+.campaign-listing-search-shell {
+  min-width: 260px;
+}
+
+.campaign-listing-search-shell .search-filter-container-SearchAndFilter {
+  gap: 0;
+  padding-left: 0;
+}
+
+.campaign-listing-search-shell .search-input-SearchAndFilter {
+  width: 100%;
+}
+
+.campaign-listing-search-shell
+  .search-input-SearchAndFilter
+  .MuiOutlinedInput-root {
+  background: #ffffff;
+  border-radius: 10px;
+  font-size: 14px;
+  height: 40px;
+}
+
+.campaign-listing-search-shell
+  .search-input-SearchAndFilter
+  .MuiOutlinedInput-notchedOutline {
+  border-color: #dde3ee;
+}
+
+.campaign-listing-search-shell .search-input-SearchAndFilter .MuiSvgIcon-root {
+  color: #7b8794;
+}
+
+.campaign-listing-table-shell {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 0 20px;
+}
+
+.campaign-listing-table-container {
+  border: 1px solid #e3e8f1;
+  border-radius: 12px;
+  box-shadow: 0px 4px 18px rgba(18, 22, 25, 0.04);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.campaign-listing-head-metric {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  width: 100%;
+}
+
+.campaign-listing-head-metric .ops-campaigns-info-tooltip {
+  line-height: 0;
+  position: relative;
+  z-index: 30;
+}
+
+.campaign-listing-head-metric .ops-campaigns-info-tooltip-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.campaign-listing-head-metric .ops-campaigns-info-tooltip-message {
+  z-index: 1600;
+  top: 27px;
+  width: 320px;
+  max-width: min(320px, calc(100vw - 48px));
+  padding: 16px 18px;
+  border-width: 1px;
+  border-radius: 10px;
+  box-shadow: 0px 8px 18px rgba(18, 22, 25, 0.08);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.campaign-listing-head-metric .ops-campaigns-info-tooltip-message::before {
+  top: -4px;
+}
+.campaign-listing-table-container .data-tablebody-head-cell {
+  background-color: #f8fafc !important;
+  border-bottom: 1px solid #e3e8f1;
+  color: #121619;
+  font-size: 11px;
+  overflow: visible;
+  padding: 14px 16px;
+  z-index: 3;
+  vertical-align: middle;
+}
+
+.campaign-listing-table-container .data-tablebody-head-cell:first-child {
+  background-color: #f8fafc !important;
+  left: auto;
+  position: static;
+  z-index: 3;
+}
+
+.campaign-listing-table-container .data-tablebody-head-cell:hover,
+.campaign-listing-table-container .data-tablebody-head-cell:focus-within {
+  z-index: 12;
+}
+
+.campaign-listing-table-container .data-tablebody-head-cell > .MuiBox-root {
+  align-items: center;
+}
+
+.campaign-listing-table-container .MuiTableSortLabel-root img {
+  width: 12px;
+  height: 12px;
+}
+
+.campaign-listing-table-container .MuiTableSortLabel-root {
+  align-items: center;
+}
+
+.campaign-listing-table-container .data-tablebody-cell {
+  border-bottom: 1px solid #edf1f7;
+  color: #121619;
+  font-size: 13px;
+  padding: 14px 16px;
+  vertical-align: middle;
+}
+
+.campaign-listing-table-container .data-tablebody-cell:nth-child(5),
+.campaign-listing-table-container .data-tablebody-cell:nth-child(6) {
+  text-align: center;
+}
+
+.campaign-listing-table-container .data-tablebody-cell:first-child {
+  background-color: #ffffff;
+  border-left: none;
+  left: auto;
+  position: static;
+}
+
+.campaign-listing-table-container .data-tablebody-row {
+  height: 58px;
+}
+
+.campaign-listing-cell-strong {
+  font-weight: 500;
+}
+
+.campaign-listing-status-pill {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.campaign-listing-status-in-progress {
+  background: #e6f7ec;
+  color: #257942;
+}
+
+.campaign-listing-status-not-started {
+  background: #fff1de;
+  color: #c26b14;
+}
+
+.campaign-listing-status-completed {
+  background: #eceef2;
+  color: #5f6875;
+}
+
+.campaign-listing-status-cancelled {
+  background: #ffe8e8;
+  color: #d74747;
+}
+
+.campaign-listing-row-menu-button.MuiIconButton-root {
+  color: #121619;
+}
+
+.campaign-listing-empty-state {
+  align-items: center;
+  border: 1px solid #e3e8f1;
+  border-radius: 12px;
+  box-shadow: 0px 4px 18px rgba(18, 22, 25, 0.04);
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.campaign-listing-empty-state-title {
+  color: #121619;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
+
+.campaign-listing-empty-state-subtitle {
+  color: #6b7280;
+  font-size: 14px !important;
+  margin-top: 6px !important;
+}
+
+.campaign-listing-pagination {
+  background: #ffffff;
+  flex: 0 0 auto;
+  padding: 4px 0 12px;
+}
+
+.campaign-listing-actions-menu.MuiPaper-root {
+  border-radius: 10px;
+  box-shadow: 0px 10px 24px rgba(18, 22, 25, 0.12);
+  min-width: 168px;
+}
+
+.campaign-listing-cancel-dialog.MuiDialog-paper {
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.campaign-listing-cancel-dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 0 !important;
+}
+
+.campaign-listing-cancel-banner {
+  align-items: flex-start;
+  background: #fff3f3;
+  border-radius: 12px;
+  display: flex;
+  gap: 14px;
+  padding: 18px 16px;
+}
+
+.campaign-listing-cancel-banner-icon {
+  color: #e53935;
+  font-size: 34px !important;
+  margin-top: 2px;
+}
+
+.campaign-listing-cancel-banner-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.campaign-listing-cancel-banner-title {
+  color: #9f2f2f;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  text-align: left;
+}
+
+.campaign-listing-cancel-banner-subtitle {
+  color: #d74747;
+  font-size: 13px !important;
+  text-align: left;
+  font-weight: 500 !important;
+}
+
+.campaign-listing-cancel-field-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campaign-listing-cancel-field-label {
+  color: #374151;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  text-align: left;
+}
+
+.campaign-listing-cancel-dialog-copy {
+  color: #5f6875;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+}
+
+.campaign-listing-cancel-textarea .MuiOutlinedInput-root {
+  border-radius: 10px;
+  min-height: 132px;
+}
+
+.campaign-listing-cancel-textarea .MuiOutlinedInput-root fieldset {
+  border-color: #d7e3f8;
+}
+
+.campaign-listing-cancel-textarea .MuiOutlinedInput-root:hover fieldset {
+  border-color: #b7caee;
+}
+
+.campaign-listing-cancel-textarea .MuiOutlinedInput-root.Mui-focused fieldset {
+  border-color: #1a71f6;
+}
+
+.campaign-listing-cancel-textarea .MuiInputBase-inputMultiline {
+  font-size: 14px;
+  padding: 14px 16px;
+}
+
+.campaign-listing-cancel-textarea .MuiFormHelperText-root {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.campaign-listing-cancel-dialog-actions {
+  display: flex;
+  gap: 18px;
+  justify-content: stretch !important;
+  padding: 18px 0 0 !important;
+}
+
+.campaign-listing-cancel-secondary-button.MuiButton-root {
+  border: 1px solid #1a71f6;
+  border-radius: 10px;
+  color: #1a71f6;
+  flex: 1 1 0;
+  font-size: 15px;
+  font-weight: 600;
+  min-height: 52px;
+  padding: 8px 18px;
+  text-transform: none;
+}
+
+.campaign-listing-cancel-primary-button.MuiButton-root {
+  background: #ef3340;
+  border-radius: 10px;
+  box-shadow: none;
+  color: #ffffff;
+  flex: 1 1 0;
+  font-size: 15px;
+  font-weight: 600;
+  min-height: 52px;
+  padding: 8px 18px;
+  text-transform: none;
+}
+
+.campaign-listing-cancel-primary-button.MuiButton-root:hover {
+  background: #d92c38;
+  box-shadow: none;
+}
+
+.campaign-listing-cancel-primary-button.MuiButton-root.Mui-disabled,
+.campaign-listing-cancel-secondary-button.MuiButton-root.Mui-disabled {
+  opacity: 0.6;
+}
+
+@media (max-width: 900px) {
+  .campaign-listing-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .campaign-listing-toolbar-spacer {
+    display: none;
+  }
+
+  .campaign-listing-toolbar-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .campaign-listing-search-shell {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) and (orientation: portrait) {
+  .campaign-listing-table-shell {
+    overflow: visible;
+  }
+
+  .campaign-listing-table-container .data-tablebody-head-cell:first-child {
+    left: 0;
+    position: sticky;
+    z-index: 14;
+  }
+
+  .campaign-listing-table-container .data-tablebody-cell:first-child {
+    left: 0;
+    position: sticky;
+    z-index: 2;
+  }
+
+  .campaign-listing-header {
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px 12px;
+    min-height: 52px;
+  }
+
+  .campaign-listing-header-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    line-height: 1.2;
+    font-size: 22px !important;
+    padding-right: 12px;
+    text-align: left;
+  }
+
+  .campaign-listing-notification-button.MuiIconButton-root {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+
+  .campaign-listing-toolbar {
+    gap: 10px;
+    padding: 0 16px 14px;
+  }
+
+  .campaign-listing-toolbar-actions {
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .campaign-listing-table-shell {
+    padding: 0 16px;
+  }
+
+  .campaign-listing-table-container {
+    border-radius: 10px;
+    overflow: auto;
+  }
+
+  .campaign-listing-search-shell {
+    flex: 1 1 auto;
+    min-width: 0;
+    order: 1;
+  }
+
+  .campaign-listing-search-shell
+    .search-input-SearchAndFilter
+    .MuiOutlinedInput-root {
+    border-radius: 8px;
+    height: 34px;
+  }
+
+  .campaign-listing-search-shell .search-input-SearchAndFilter input {
+    font-size: 11px;
+    padding: 7px 0;
+  }
+
+  .campaign-listing-new-button.MuiButton-root {
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(31, 41, 55, 0.1);
+    min-height: 34px;
+    min-width: 34px;
+    order: 2;
+    padding: 0;
+    width: 34px;
+  }
+
+  .campaign-listing-new-button .MuiButton-startIcon {
+    margin: 0;
+  }
+
+  .campaign-listing-new-button .MuiSvgIcon-root {
+    font-size: 18px;
+  }
+
+  .campaign-listing-head-metric .ops-campaigns-info-tooltip-message {
+    position: fixed;
+    left: 50%;
+    top: calc(env(safe-area-inset-top, 0px) + 172px);
+    width: min(220px, calc(100vw - 32px));
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.4;
+    transform: translateX(-50%);
+    z-index: 1600;
+  }
+
+  .campaign-listing-head-metric .ops-campaigns-info-tooltip-message::before {
+    display: none;
+  }
+
+  .campaign-listing-pagination {
+    padding: 8px 0 14px;
+  }
+}

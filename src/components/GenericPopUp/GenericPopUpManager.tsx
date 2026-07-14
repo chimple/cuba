@@ -8,6 +8,8 @@ import { Browser } from '@capacitor/browser';
 import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
+import { replaceLocation } from './navigation';
+
 class PopupManager {
   private static instance: PopupManager;
   private isPopupActive = false;
@@ -160,12 +162,12 @@ class PopupManager {
           normalizedTarget === 'rewards' || normalizedTarget === 'leaderboard'
             ? '/leaderboard'
             : '/home';
-        window.location.replace(`${baseRoute}?tab=${rawTarget}`);
+        replaceLocation(`${baseRoute}?tab=${rawTarget}`);
         return;
       }
 
       if (rawTarget.startsWith('/')) {
-        window.location.replace(rawTarget);
+        replaceLocation(rawTarget);
         return;
       }
 
