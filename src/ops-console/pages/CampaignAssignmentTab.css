@@ -129,6 +129,8 @@
 .campaign-assignment-table-container th,
 .campaign-assignment-table-container td {
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .campaign-assignment-table-container .data-tablebody-head-cell {
@@ -207,6 +209,6 @@
   }
 
   .campaign-assignment-table-container table {
-    min-width: 40rem;
+    min-width: 47.5rem;
   }
 }
