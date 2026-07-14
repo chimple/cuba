@@ -316,69 +316,13 @@ const getTodayDateKey = (): string => {
   return `${year}-${month}-${day}`;
 };
 
-const isBeforeToday = (dateKey: string): boolean =>
-  dateKey.localeCompare(getTodayDateKey()) < 0;
+const isCampaignDateEditable = (dateKey?: string | null): boolean =>
+  Boolean(dateKey && dateKey.localeCompare(getTodayDateKey()) > 0);
 
 const isSundayDateKey = (dateKey: string): boolean => {
   const date = new Date(`${dateKey}T00:00:00.000Z`);
   if (Number.isNaN(date.getTime())) return false;
   return date.getUTCDay() === 0;
-};
-
-const isDateTimeExpired = (dateTimeIso?: string | null): boolean => {
-  if (!dateTimeIso) return false;
-
-  const date = new Date(dateTimeIso);
-  if (Number.isNaN(date.getTime())) return false;
-
-  return date.getTime() <= Date.now();
-};
-
-const NON_EDITABLE_STATUS_VALUES = new Set([
-  'sent',
-  'delivered',
-  'failed',
-  'processing',
-  'completed',
-  'cancelled',
-  'canceled',
-]);
-
-const isNonEditableStatus = (status?: string | null): boolean =>
-  NON_EDITABLE_STATUS_VALUES.has(
-    String(status ?? '')
-      .trim()
-      .toLowerCase(),
-  );
-
-const isMessageLocked = (row: {
-  dateKey?: string;
-  messageStatus?: string | null;
-  messageTimeIso?: string | null;
-  isTimelineRow?: boolean;
-}): boolean => {
-  if (isNonEditableStatus(row.messageStatus)) return true;
-  if (row.isTimelineRow && row.dateKey && isBeforeToday(row.dateKey))
-    return true;
-  if (row.dateKey && row.dateKey === getTodayDateKey()) {
-    return isDateTimeExpired(row.messageTimeIso);
-  }
-  return false;
-};
-
-const isPollLocked = (row: {
-  dateKey?: string;
-  pollStatus?: string | null;
-  pollTimeIso?: string | null;
-  isTimelineRow?: boolean;
-}): boolean => {
-  if (isNonEditableStatus(row.pollStatus)) return true;
-  if (row.isTimelineRow && row.dateKey && isBeforeToday(row.dateKey))
-    return true;
-  if (row.dateKey && row.dateKey === getTodayDateKey()) {
-    return isDateTimeExpired(row.pollTimeIso);
-  }
-  return false;
 };
 
 const formatJsonText = (value: Json | undefined): string | null => {
@@ -446,6 +390,13 @@ export const buildCampaignMessagesData = (
   const activeTimelineDates = timelineDates.filter(
     (date) => !isSundayDateKey(date),
   );
+  const firstMessageTime =
+    messages.find((row) =>
+      isCampaignDateEditable(formatDateKey(row.message_time)),
+    )?.message_time ?? messages.find((row) => row.message_time)?.message_time;
+  const firstPollTime =
+    messages.find((row) => isCampaignDateEditable(formatDateKey(row.poll_time)))
+      ?.poll_time ?? messages.find((row) => row.poll_time)?.poll_time;
 
   if (activeTimelineDates.length > 0) {
     const messagesByDate = new Map<string, CampaignMessageApiRow>();
@@ -455,9 +406,8 @@ export const buildCampaignMessagesData = (
       messagesByDate.set(dateKey, row);
     });
 
-    const firstMessage = messages[0];
-    const firstMessageSchedule = formatTime(firstMessage?.message_time);
-    const firstPollSchedule = formatTime(firstMessage?.poll_time);
+    const firstMessageSchedule = formatTime(firstMessageTime);
+    const firstPollSchedule = formatTime(firstPollTime);
     const rows = activeTimelineDates.map((date, index) => {
       const matchedRow = messagesByDate.get(date);
       const poll = parseCampaignMessagePoll(matchedRow?.poll ?? null);
@@ -470,18 +420,7 @@ export const buildCampaignMessagesData = (
         matchedRow?.poll_time ??
         applyScheduleTimeToDate(date, firstPollSchedule) ??
         placeholderIso;
-      const messageEditable = !isMessageLocked({
-        dateKey: date,
-        messageStatus: matchedRow?.message_status ?? null,
-        messageTimeIso: rowMessageTimeIso,
-        isTimelineRow: true,
-      });
-      const pollEditable = !isPollLocked({
-        dateKey: date,
-        pollStatus: matchedRow?.poll_status ?? null,
-        pollTimeIso: rowPollTimeIso,
-        isTimelineRow: true,
-      });
+      const isEditable = isCampaignDateEditable(date);
 
       return {
         id:
@@ -500,16 +439,16 @@ export const buildCampaignMessagesData = (
           : [],
         messageStatus: matchedRow ? formatValue(matchedRow.message_status) : '',
         pollStatus: matchedRow ? formatValue(matchedRow.poll_status) : '',
-        messageEditable,
-        pollEditable,
-        isEditable: messageEditable || pollEditable,
+        messageEditable: isEditable,
+        pollEditable: isEditable,
+        isEditable,
         isPersisted: Boolean(matchedRow),
       };
     });
 
     return {
-      messageTime: formatTime(firstMessage?.message_time),
-      pollTime: formatTime(firstMessage?.poll_time),
+      messageTime: firstMessageSchedule,
+      pollTime: firstPollSchedule,
       total: activeTimelineDates.length,
       rows,
     };
@@ -524,13 +463,14 @@ export const buildCampaignMessagesData = (
     firstDatedMessage?.message_time ?? firstDatedMessage?.poll_time ?? null;
 
   return {
-    messageTime: formatTime(filteredMessages[0]?.message_time),
-    pollTime: formatTime(filteredMessages[0]?.poll_time),
+    messageTime: formatTime(firstMessageTime),
+    pollTime: formatTime(firstPollTime),
     total: filteredMessages.length,
     rows: filteredMessages.map((row, index) => {
       const dateValue = row.message_time || row.poll_time;
       const dateKey = formatDateKey(dateValue);
       const poll = parseCampaignMessagePoll(row.poll ?? null);
+      const isEditable = isCampaignDateEditable(dateKey);
 
       return {
         id: row.id || `${dateValue || 'message'}-${index}`,
@@ -553,27 +493,9 @@ export const buildCampaignMessagesData = (
         ),
         messageStatus: formatValue(row.message_status),
         pollStatus: formatValue(row.poll_status),
-        messageEditable: !isMessageLocked({
-          dateKey: dateKey ?? undefined,
-          messageStatus: row.message_status,
-          messageTimeIso: row.message_time ?? null,
-        }),
-        pollEditable: !isPollLocked({
-          dateKey: dateKey ?? undefined,
-          pollStatus: row.poll_status,
-          pollTimeIso: row.poll_time ?? null,
-        }),
-        isEditable:
-          !isMessageLocked({
-            dateKey: dateKey ?? undefined,
-            messageStatus: row.message_status,
-            messageTimeIso: row.message_time ?? null,
-          }) ||
-          !isPollLocked({
-            dateKey: dateKey ?? undefined,
-            pollStatus: row.poll_status,
-            pollTimeIso: row.poll_time ?? null,
-          }),
+        messageEditable: isEditable,
+        pollEditable: isEditable,
+        isEditable,
         isPersisted: true,
       };
     }),
@@ -818,9 +740,11 @@ export const useCampaignMessagesController = ({
       }
 
       setIsLoading(true);
+      // Fetch the full calendar range so persisted Sunday rows cannot displace
+      // later non-Sunday campaign dates from the paginated response.
       const pageSize =
-        displayTimelineDates.length > 0
-          ? displayTimelineDates.length
+        timelineDates.length > 0
+          ? timelineDates.length
           : CAMPAIGN_MESSAGES_PAGE_SIZE;
       const loadedMessagesData = await loadCampaignMessagesData(
         campaignId,
@@ -1146,8 +1070,8 @@ export const useCampaignMessagesController = ({
         {
           page: 1,
           pageSize:
-            displayTimelineDates.length > 0
-              ? displayTimelineDates.length
+            timelineDates.length > 0
+              ? timelineDates.length
               : CAMPAIGN_MESSAGES_PAGE_SIZE,
         },
       );
