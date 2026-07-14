@@ -25,7 +25,10 @@ import {
   sortCampaignRewardRows,
   type CampaignRewardRow,
 } from './CampaignRewardsReport.helpers';
-import type { CampaignStudentPerformanceRow } from '../../../services/api/ServiceApi';
+import type {
+  CampaignRewardsPayload,
+  CampaignStudentPerformanceRow,
+} from '../../../services/api/ServiceApi';
 
 describe('CampaignsOverviewLogic', () => {
   it('should normalize generic summary object keys and values', () => {
@@ -274,8 +277,8 @@ describe('CampaignsOverviewLogic', () => {
 });
 
 describe('CampaignRewardsReport helpers', () => {
-  const rewards = {
-    type: 'physical_rewards' as const,
+  const rewards: CampaignRewardsPayload = {
+    type: 'physical_rewards',
     rules: [
       { rank: 1, min: 85, reward: 'Book' },
       { rank: 2, min: 75, reward: 'Pen' },
@@ -353,7 +356,7 @@ describe('CampaignRewardsReport helpers', () => {
     ).toBeNull();
   });
 
-  it('should label physical rewards separately from generic rewards', () => {
+  it('should default reward labels to physical unless the payload is digital', () => {
     expect(getCampaignRewardTypeLabel(rewards)).toBe('Physical Reward');
     expect(
       getCampaignRewardTypeLabel({
@@ -361,7 +364,7 @@ describe('CampaignRewardsReport helpers', () => {
         rules: [{ rank: 1, min: 90, reward: 'Badge' }],
       }),
     ).toBe('Reward');
-    expect(getCampaignRewardTypeLabel(null)).toBe('Reward');
+    expect(getCampaignRewardTypeLabel(null)).toBe('Physical Reward');
   });
 
   it('should map student performance rows into display rows with reward labels', () => {
