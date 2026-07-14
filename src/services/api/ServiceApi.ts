@@ -415,6 +415,9 @@ export type CampaignListingItem = {
   status: CampaignListingStatus;
 };
 
+export type CampaignDashboardMetric =
+  Database['public']['Functions']['get_campaign_dashboard_metrics']['Returns'][number];
+
 export type CampaignCancellationDetails = {
   canceledBy: string | null;
   canceledOn: string | null;
@@ -434,6 +437,7 @@ export type CampaignListingParams = {
     | 'startDate'
     | 'endDate';
   orderDir?: 'asc' | 'desc';
+  includeMetrics?: boolean;
 };
 export type CampaignAssignmentFilters = {
   page: number;
@@ -2452,6 +2456,10 @@ export interface ServiceApi {
   getCampaignListing(
     params: CampaignListingParams,
   ): Promise<PaginatedResponse<CampaignListingItem>>;
+
+  getCampaignListingMetrics(
+    campaignIds: string[],
+  ): Promise<Map<string, CampaignDashboardMetric>>;
 
   /**
    * Cancels an existing campaign and persists the inactive status update in the database.

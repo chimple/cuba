@@ -116,6 +116,8 @@
 .campaign-listing-table-shell {
   display: flex;
   flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
   min-height: 0;
   padding: 0 20px;
 }
