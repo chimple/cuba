@@ -122,6 +122,30 @@ describe('CampaignMessages', () => {
     expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
   });
 
+  it('fetches the full campaign range and excludes Sundays from display', async () => {
+    apiHandler.getCampaignMessaging.mockResolvedValue(buildResponse([]));
+
+    render(
+      <CampaignMessages
+        campaignId="campaign-1"
+        campaignStartDate="2026-07-10"
+        campaignEndDate="2026-07-13"
+      />,
+    );
+
+    await waitFor(() =>
+      expect(apiHandler.getCampaignMessaging).toHaveBeenCalledWith(
+        'campaign-1',
+        {
+          page: 1,
+          pageSize: 4,
+        },
+      ),
+    );
+    expect(screen.queryByText('12 July')).not.toBeInTheDocument();
+    expect(screen.getAllByText('13 July').length).toBeGreaterThan(0);
+  });
+
   it('renders rows returned from the campaign messaging API', async () => {
     apiHandler.getCampaignMessaging.mockResolvedValue(
       buildResponse([buildMessagingRow()]),
@@ -333,6 +357,24 @@ describe('CampaignMessagesLogic', () => {
     expect(data.rows[0].mediaLink).toBe('');
   });
 
+  it('resolves message and poll display times independently', () => {
+    const data = buildCampaignMessagesData({
+      messages: [
+        buildMessagingRow({
+          poll_time: null,
+        }),
+        buildMessagingRow({
+          id: 'message-2',
+          message_time: null,
+          poll_time: '2099-06-11T10:00:00+00:00',
+        }),
+      ],
+    });
+
+    expect(data.messageTime).toBe('03:00 PM');
+    expect(data.pollTime).toBe('10:00 AM');
+  });
+
   it('fills in missing timeline days when dates are provided', () => {
     const data = buildCampaignMessagesData(
       {
@@ -416,7 +458,7 @@ describe('CampaignMessagesLogic', () => {
     expect(data.rows[1].isEditable).toBe(true);
   });
 
-  it('locks only the field whose status is non-editable', () => {
+  it('keeps future rows editable regardless of message and poll status', () => {
     const data = buildCampaignMessagesData(
       {
         messages: [
@@ -438,35 +480,34 @@ describe('CampaignMessagesLogic', () => {
       ['2099-06-10', '2099-06-11'],
     );
 
-    expect(data.rows[0].messageEditable).toBe(false);
+    expect(data.rows[0].messageEditable).toBe(true);
     expect(data.rows[0].pollEditable).toBe(true);
     expect(data.rows[0].isEditable).toBe(true);
     expect(data.rows[1].messageEditable).toBe(true);
-    expect(data.rows[1].pollEditable).toBe(false);
+    expect(data.rows[1].pollEditable).toBe(true);
     expect(data.rows[1].isEditable).toBe(true);
   });
 
-  it('keeps poll editable when message is sent but poll is still pending', () => {
-    const data = buildCampaignMessagesData(
-      {
-        messages: [
-          buildMessagingRow({
-            message_time: '2099-06-10T15:00:00+00:00',
-            poll_time: '2099-06-10T10:00:00+00:00',
-            message_status: 'sent',
-            poll_status: 'pending',
-          }),
-        ],
-      },
-      ['2099-06-10'],
-    );
+  it('uses the first upcoming row times for the editable schedule', () => {
+    const data = buildCampaignMessagesData({
+      messages: [
+        buildMessagingRow({
+          message_time: '2000-01-01T15:00:00+00:00',
+          poll_time: '2000-01-01T10:00:00+00:00',
+        }),
+        buildMessagingRow({
+          id: 'message-2',
+          message_time: '2099-06-10T17:00:00+00:00',
+          poll_time: '2099-06-10T12:00:00+00:00',
+        }),
+      ],
+    });
 
-    expect(data.rows[0].messageEditable).toBe(false);
-    expect(data.rows[0].pollEditable).toBe(true);
-    expect(data.rows[0].isEditable).toBe(true);
+    expect(data.messageTime).toBe('05:00 PM');
+    expect(data.pollTime).toBe('12:00 PM');
   });
 
-  it('keeps today message locked when its status is sent even before the time passes', () => {
+  it('keeps all fields read-only for today even before their times pass', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-07-10T06:00:00Z'));
 
@@ -486,7 +527,8 @@ describe('CampaignMessagesLogic', () => {
       );
 
       expect(data.rows[0].messageEditable).toBe(false);
-      expect(data.rows[0].pollEditable).toBe(true);
+      expect(data.rows[0].pollEditable).toBe(false);
+      expect(data.rows[0].isEditable).toBe(false);
     } finally {
       jest.useRealTimers();
     }
