@@ -606,4 +606,76 @@ describe('CampaignMessagesLogic', () => {
       },
     ]);
   });
+
+  it('does not create a record for a missing date with only time changes', () => {
+    const currentRow: CampaignMessageRow = {
+      id: '2099-06-11-2',
+      scheduledDate: '2099-06-11',
+      dayLabel: 'Day 2',
+      dateLabel: '11 June',
+      message: '',
+      mediaLink: '',
+      messageTimeIso: '2099-06-11T15:00:00.000Z',
+      pollTimeIso: '2099-06-11T10:00:00.000Z',
+      pollQuestion: '',
+      pollOptions: [],
+      messageStatus: '',
+      pollStatus: '',
+      messageEditable: true,
+      pollEditable: true,
+      isEditable: true,
+      isPersisted: false,
+    };
+    const nextRow: CampaignMessageRow = {
+      ...currentRow,
+      messageTimeIso: '2099-06-11T16:00:00.000Z',
+      pollTimeIso: '2099-06-11T11:00:00.000Z',
+    };
+
+    expect(
+      buildCampaignMessageSavePayload('campaign-1', [currentRow], [nextRow]),
+    ).toEqual([]);
+  });
+
+  it('creates a record for a configured missing date', () => {
+    const currentRow: CampaignMessageRow = {
+      id: '2099-06-11-2',
+      scheduledDate: '2099-06-11',
+      dayLabel: 'Day 2',
+      dateLabel: '11 June',
+      message: '',
+      mediaLink: '',
+      messageTimeIso: '2099-06-11T15:00:00.000Z',
+      pollTimeIso: '2099-06-11T10:00:00.000Z',
+      pollQuestion: '',
+      pollOptions: [],
+      messageStatus: '',
+      pollStatus: '',
+      messageEditable: true,
+      pollEditable: true,
+      isEditable: true,
+      isPersisted: false,
+    };
+    const nextRow: CampaignMessageRow = {
+      ...currentRow,
+      message: 'Configured message',
+    };
+
+    expect(
+      buildCampaignMessageSavePayload('campaign-1', [currentRow], [nextRow]),
+    ).toEqual([
+      {
+        campaignId: 'campaign-1',
+        id: undefined,
+        message: 'Configured message',
+        mediaLink: '',
+        messageTime: '2099-06-11T15:00:00.000Z',
+        pollTime: '2099-06-11T10:00:00.000Z',
+        pollQuestion: '',
+        pollOptions: [],
+        messageStatus: null,
+        pollStatus: null,
+      },
+    ]);
+  });
 });
