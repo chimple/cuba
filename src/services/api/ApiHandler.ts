@@ -4,6 +4,7 @@ import {
   CampaignCancellationDetails,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignDashboardMetric,
   CampaignListingItem,
   CampaignListingParams,
   CampaignAudienceOptions,
@@ -1633,6 +1634,12 @@ export class ApiHandler implements ServiceApi {
     params: CampaignListingParams,
   ): Promise<PaginatedResponse<CampaignListingItem>> {
     return await this.s.getCampaignListing(params);
+  }
+
+  public async getCampaignListingMetrics(
+    campaignIds: string[],
+  ): Promise<Map<string, CampaignDashboardMetric>> {
+    return await this.s.getCampaignListingMetrics(campaignIds);
   }
 
   public async cancelCampaign(
