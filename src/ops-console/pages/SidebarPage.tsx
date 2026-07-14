@@ -161,8 +161,7 @@ const SidebarPage: React.FC = () => {
           location.pathname.startsWith(campaignDetailsPrefix))) ||
       (canAccessRequestPage &&
         (location.pathname === requestListPath ||
-          location.pathname.startsWith(requestDetailsPrefix) ||
-          location.pathname === dashboardPath)) ||
+          location.pathname.startsWith(requestDetailsPrefix))) ||
       (canAccessDevicesPage && location.pathname === devicesPath) ||
       (canAccessResourcesPage && location.pathname === resourcesPath) ||
       (canAccessDashboardPage && location.pathname === dashboardPath);
