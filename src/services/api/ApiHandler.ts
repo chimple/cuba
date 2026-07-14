@@ -23,6 +23,8 @@ import {
   SchoolProgramAccessResponse,
   ServiceApi,
   CampaignAssignmentsResponse,
+  CampaignRewardsReportParams,
+  CampaignRewardsReportResponse,
   CampaignOption,
   CampaignAssignmentFilters,
   CampaignMessagingQueryParams,
@@ -1653,6 +1655,13 @@ export class ApiHandler implements ServiceApi {
     filters: CampaignAssignmentFilters,
   ): Promise<CampaignAssignmentsResponse> {
     return await this.s.getCampaignAssignments(campaignId, filters);
+  }
+
+  public async getCampaignRewardsReport(
+    campaignId: string,
+    params?: CampaignRewardsReportParams,
+  ): Promise<CampaignRewardsReportResponse> {
+    return await this.s.getCampaignRewardsReport(campaignId, params);
   }
 
   public async getCampaignSubjectsByCampaignId(

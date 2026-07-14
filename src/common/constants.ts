@@ -50,6 +50,8 @@ export enum LOGIN_TYPES {
 
 export enum TABLES {
   Curriculum = 'curriculum',
+  Campaign = 'campaign',
+  CampaignStudentPerformance = 'campaign_student_performance',
   Subject = 'subject',
   Grade = 'grade',
   Language = 'language',

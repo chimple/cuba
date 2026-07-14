@@ -97,6 +97,8 @@ import {
   CampaignAssignmentsResponse,
   CampaignAssignmentSummaryRow,
   CampaignAssignmentFilters,
+  CampaignRewardsReportParams,
+  CampaignRewardsReportResponse,
   CampaignOption,
   CampaignMessagingQueryParams,
   CampaignMessagingResponse,
@@ -10739,6 +10741,64 @@ export class SupabaseApi implements ServiceApi {
           lessonName: row.lesson_name,
         })) ?? [],
       total: data?.length ? Number(data[0].total_count) : 0,
+    };
+  }
+
+  async getCampaignRewardsReport(
+    campaignId: string,
+    params: CampaignRewardsReportParams = {},
+  ): Promise<CampaignRewardsReportResponse> {
+    if (!this.supabase || !campaignId) {
+      return { rows: [], total: 0 };
+    }
+
+    const sortColumnByKey: Record<
+      NonNullable<CampaignRewardsReportParams['orderBy']>,
+      string
+    > = {
+      studentName: 'student_name',
+      school: 'school_name',
+      className: 'class_name',
+      completionPercent: 'completion_percentage',
+      rewardRank: 'rank',
+      rewardLabel: 'rank',
+    };
+    const orderBy = params.orderBy ?? 'completionPercent';
+    const sortColumn = sortColumnByKey[orderBy] ?? 'completion_percentage';
+    const ascending = params.order === 'asc';
+
+    let query = this.supabase
+      .from(TABLES.CampaignStudentPerformance)
+      .select('*', { count: 'exact' })
+      .eq('campaign_id', campaignId)
+      .eq('is_deleted', false);
+
+    if (params.schoolName && params.schoolName !== 'All Schools') {
+      query = query.eq('school_name', params.schoolName);
+    }
+
+    if (params.className && params.className !== 'All Classes') {
+      query = query.eq('class_name', params.className);
+    }
+
+    const { data, error, count } = await query
+      .order(sortColumn, { ascending, nullsFirst: false })
+      .order('rank', { ascending: true, nullsFirst: false })
+      .order('completion_percentage', { ascending: false })
+      .order('student_name', { ascending: true });
+
+    if (error) {
+      logger.error('Error fetching campaign rewards report:', {
+        campaignId,
+        params,
+        error,
+      });
+      return { rows: [], total: 0 };
+    }
+
+    return {
+      rows: data ?? [],
+      total: count ?? data?.length ?? 0,
     };
   }
 

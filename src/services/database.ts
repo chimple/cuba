@@ -755,6 +755,96 @@ export type Database = {
           },
         ];
       };
+      campaign_student_performance: {
+        Row: {
+          calculated_at: string | null;
+          campaign_id: string;
+          class_id: string;
+          class_name: string | null;
+          completion_percentage: number | null;
+          created_at: string;
+          id: string;
+          is_deleted: boolean;
+          program_id: string;
+          rank: number | null;
+          school_id: string | null;
+          school_name: string | null;
+          student_id: string;
+          student_name: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          calculated_at?: string | null;
+          campaign_id: string;
+          class_id: string;
+          class_name?: string | null;
+          completion_percentage?: number | null;
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean;
+          program_id: string;
+          rank?: number | null;
+          school_id?: string | null;
+          school_name?: string | null;
+          student_id: string;
+          student_name?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          calculated_at?: string | null;
+          campaign_id?: string;
+          class_id?: string;
+          class_name?: string | null;
+          completion_percentage?: number | null;
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean;
+          program_id?: string;
+          rank?: number | null;
+          school_id?: string | null;
+          school_name?: string | null;
+          student_id?: string;
+          student_name?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_student_performance_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_student_performance_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fk_campaign_student_performance_campaign';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaign';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fk_campaign_student_performance_class';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fk_campaign_student_performance_student';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       campaign_target_audience: {
         Row: {
           created_at: string | null;
@@ -6145,6 +6235,13 @@ export type Database = {
           p_user_id: string;
         };
         Returns: boolean;
+      };
+      calculate_campaign_student_performance: {
+        Args: never;
+        Returns: {
+          processed_campaigns: number;
+          upserted_rows: number;
+        }[];
       };
       check_class_exists_by_name_and_school: {
         Args: { class_name: string; input_school_udise_code: string };
