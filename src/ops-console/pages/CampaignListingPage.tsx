@@ -137,6 +137,7 @@ const CampaignListingPage: React.FC = () => {
               isFilter={false}
               variantType="outlined"
               searchPlaceholder={String(t('Search Campaigns'))}
+              debounceMs={0}
             />
           </Box>
         </Box>
@@ -168,7 +169,7 @@ const CampaignListingPage: React.FC = () => {
                   ),
                 )
               }
-              loading={isLoading}
+              loading={isLoading && rows.length === 0}
               tableMinWidth={1500}
               headerClampLines={3}
               headerNoEllipsis

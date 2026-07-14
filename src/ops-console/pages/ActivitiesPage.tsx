@@ -16,7 +16,7 @@ import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/Sch
 import { OpsUtil } from '../OpsUtility/OpsUtil';
 import logger from '../../utility/logger';
 
-const DEFAULT_PAGE_SIZE = 10;
+const DEFAULT_PAGE_SIZE = 20;
 
 const ActivitiesPage: React.FC = () => {
   const history = useHistory();

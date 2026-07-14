@@ -104,6 +104,7 @@ import {
   CampaignCancellationDetails,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignDashboardMetric,
   CampaignListingItem,
   CampaignListingParams,
   CampaignAudienceOptions,
@@ -8054,8 +8055,18 @@ order by
     return await this._serverApi.getCampaignListing(params);
   }
 
+  async getCampaignListingMetrics(
+    campaignIds: string[],
+  ): Promise<Map<string, CampaignDashboardMetric>> {
+    return await this._serverApi.getCampaignListingMetrics(campaignIds);
+  }
+
   async cancelCampaign(campaignId: string, reason: string): Promise<void> {
     return await this._serverApi.cancelCampaign(campaignId, reason);
+  }
+
+  async deleteCampaignAssignments(campaignId: string): Promise<void> {
+    return await this._serverApi.deleteCampaignAssignments(campaignId);
   }
 
   async getCampaignCancellationDetails(

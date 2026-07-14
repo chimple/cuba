@@ -4,6 +4,7 @@ import {
   CampaignCancellationDetails,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignDashboardMetric,
   CampaignListingItem,
   CampaignListingParams,
   CampaignAudienceOptions,
@@ -1637,11 +1638,21 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCampaignListing(params);
   }
 
+  public async getCampaignListingMetrics(
+    campaignIds: string[],
+  ): Promise<Map<string, CampaignDashboardMetric>> {
+    return await this.s.getCampaignListingMetrics(campaignIds);
+  }
+
   public async cancelCampaign(
     campaignId: string,
     reason: string,
   ): Promise<void> {
     return await this.s.cancelCampaign(campaignId, reason);
+  }
+
+  public async deleteCampaignAssignments(campaignId: string): Promise<void> {
+    return await this.s.deleteCampaignAssignments(campaignId);
   }
 
   public async getCampaignCancellationDetails(
