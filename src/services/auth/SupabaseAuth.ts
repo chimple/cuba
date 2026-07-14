@@ -469,6 +469,25 @@ export class SupabaseAuth implements ServiceAuth {
       });
       return;
     }
+    if (!Capacitor.isNativePlatform()) {
+      try {
+        const currentSession = await this._auth?.getSession();
+        if (currentSession?.data?.session?.refresh_token) {
+          Util.addRefreshTokenToStore(
+            currentSession.data.session.refresh_token,
+          );
+        }
+        if (currentSession?.error) {
+          logger.error(
+            'Unable to resolve web Supabase session:',
+            currentSession.error,
+          );
+        }
+      } catch (error) {
+        logger.error('Unexpected error while resolving web session:', error);
+      }
+      return;
+    }
     // Read refresh token from Redux (preferred) with localStorage fallback
     const stored = Util.getRefreshTokenFromStore();
     if (!stored || !stored.token) return;
