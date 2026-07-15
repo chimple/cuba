@@ -4498,6 +4498,7 @@ export class SqliteApi implements ServiceApi {
   FROM ${TABLES.Assignment} a
   LEFT JOIN ${TABLES.Assignment_user} au
     ON a.id = au.assignment_id
+    AND au.user_id = "${studentId}"
     AND au.is_deleted = 0
   LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
   WHERE a.class_id = '${classId}'
@@ -5812,6 +5813,7 @@ export class SqliteApi implements ServiceApi {
     FROM ${TABLES.Assignment} a
     LEFT JOIN ${TABLES.Assignment_user} au
       ON a.id = au.assignment_id
+      AND au.user_id = '${studentId}'
       AND au.is_deleted = 0
     LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = '${studentId}'
     WHERE a.lesson_id = '${lessonId}'
