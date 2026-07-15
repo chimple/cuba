@@ -112,7 +112,13 @@ const CampaignsOverviewInfoTooltip: React.FC<
       type="button"
       aria-label={`${label} info`}
       aria-expanded={resolvedIsOpen}
-      onClick={handleToggle}
+      onClick={(event) => {
+        event.stopPropagation();
+        handleToggle();
+      }}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+      }}
       onFocus={keepTooltipWithinParent}
       onMouseEnter={keepTooltipWithinParent}
     >

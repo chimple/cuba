@@ -109,9 +109,7 @@ const CampaignListingPage: React.FC = () => {
   return (
     <Box className="campaign-listing-page">
       <Box className="campaign-listing-header">
-        <Typography className="campaign-listing-header-title">
-          {t('Campaigns')}
-        </Typography>
+        <span className="campaign-listing-header-title">{t('Campaigns')}</span>
         <IconButton className="campaign-listing-notification-button">
           <BsFillBellFill className="campaign-listing-notification-icon" />
         </IconButton>
