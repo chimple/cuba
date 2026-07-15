@@ -6,7 +6,6 @@
   scrollbar-gutter: stable;
   margin-bottom: 8px;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
   touch-action: pan-x pan-y;
 }
 

@@ -462,6 +462,29 @@ export type CampaignAssignmentsResponse = {
   total: number;
 };
 
+export type CampaignStudentPerformanceRow =
+  TableTypes<'campaign_student_performance'>;
+
+export type CampaignRewardsReportSortKey =
+  | 'studentName'
+  | 'school'
+  | 'className'
+  | 'completionPercent'
+  | 'rewardRank'
+  | 'rewardLabel';
+
+export type CampaignRewardsReportParams = {
+  schoolName?: string;
+  className?: string;
+  orderBy?: CampaignRewardsReportSortKey;
+  order?: 'asc' | 'desc';
+};
+
+export type CampaignRewardsReportResponse = {
+  rows: CampaignStudentPerformanceRow[];
+  total: number;
+};
+
 export interface ServiceApi {
   /**
    * Creates a AutoUser for at_school and hybrid school models when a new school is created
@@ -2489,6 +2512,11 @@ export interface ServiceApi {
     campaignId: string,
     filters: CampaignAssignmentFilters,
   ): Promise<CampaignAssignmentsResponse>;
+
+  getCampaignRewardsReport(
+    campaignId: string,
+    params?: CampaignRewardsReportParams,
+  ): Promise<CampaignRewardsReportResponse>;
 
   /**
    * Fetches the unique subjects used by a campaign's assignments.

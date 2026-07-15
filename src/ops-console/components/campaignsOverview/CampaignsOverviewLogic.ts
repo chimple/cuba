@@ -72,6 +72,7 @@ export interface CampaignsOverviewApiCampaign {
   objective?: string | null;
   start_date?: string | null;
   end_date?: string | null;
+  rewards?: string | null;
   updated_at?: string | null;
   campaign_status?: CampaignStatus | null;
   manager?: CampaignsOverviewApiPerson | null;

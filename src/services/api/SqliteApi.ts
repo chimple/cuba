@@ -125,6 +125,8 @@ import {
   SchoolProgramAccessResponse,
   ServiceApi,
   CampaignAssignmentsResponse,
+  CampaignRewardsReportParams,
+  CampaignRewardsReportResponse,
   CampaignOption,
   CampaignAssignmentFilters,
   CampaignMessagingQueryParams,
@@ -8078,6 +8080,13 @@ order by
     filters: CampaignAssignmentFilters,
   ): Promise<CampaignAssignmentsResponse> {
     return await this._serverApi.getCampaignAssignments(campaignId, filters);
+  }
+
+  async getCampaignRewardsReport(
+    campaignId: string,
+    params?: CampaignRewardsReportParams,
+  ): Promise<CampaignRewardsReportResponse> {
+    return await this._serverApi.getCampaignRewardsReport(campaignId, params);
   }
 
   async getCampaignSubjectsByCampaignId(
