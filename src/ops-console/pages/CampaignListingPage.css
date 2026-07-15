@@ -170,7 +170,6 @@
   background-color: #f8fafc !important;
   border-bottom: 1px solid #e3e8f1;
   color: #121619;
-  font-size: 11px;
   overflow: visible;
   padding: 14px 16px;
   z-index: 3;
@@ -478,19 +477,24 @@
   }
 
   .campaign-listing-header {
+    position: relative;
+    display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 14px 16px 12px;
-    min-height: 52px;
+    justify-content: flex-end;
+    font-size: 24px;
+    padding: 5%;
   }
 
   .campaign-listing-header-title {
-    flex: 1 1 auto;
-    min-width: 0;
-    line-height: 1.2;
-    font-size: 22px !important;
-    padding-right: 12px;
-    text-align: left;
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width: max-content;
+    text-align: center;
+    pointer-events: none;
+    font-size: 24px;
+    font-weight: 600;
   }
 
   .campaign-listing-notification-button.MuiIconButton-root {
