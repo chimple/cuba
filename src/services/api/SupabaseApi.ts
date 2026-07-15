@@ -12640,15 +12640,18 @@ export class SupabaseApi implements ServiceApi {
         : tab !== PROGRAM_TAB.ALL
           ? [tab]
           : [];
-      const listFilters: Array<[string, string[] | undefined]> = [
-        ['program_model', modelFilters],
+      const modelFilter = buildListFilter('program_model', modelFilters);
+      if (modelFilter) query = query.or(modelFilter);
+
+      // Array-backed columns must use PostgreSQL's overlap operator. Applying
+      // ilike to these text[] fields fails with error 42883.
+      const arrayFilters: Array<[string, string[] | undefined]> = [
         ['partners', cleanedFilters.partner],
         ['program_managers', cleanedFilters.programManager],
         ['field_coordinators', cleanedFilters.fieldCoordinator],
       ];
-      listFilters.forEach(([column, values]) => {
-        const filter = buildListFilter(column, values);
-        if (filter) query = query.or(filter);
+      arrayFilters.forEach(([column, values]) => {
+        if (values?.length) query = query.overlaps(column, values);
       });
 
       // Needed to apply simple scalar filters at the database layer.
