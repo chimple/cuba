@@ -12673,7 +12673,14 @@ export class SupabaseApi implements ServiceApi {
         }
       }
 
-      const percentFilters: Array<[string, string]> = [
+      type ProgramPercentColumn =
+        | 'onboarded_students_pct'
+        | 'activated_students_pct'
+        | 'active_students_pct'
+        | 'onboarded_teachers_pct'
+        | 'activated_teachers_pct'
+        | 'active_teachers_pct';
+      const percentFilters: Array<[ProgramPercentColumn, string]> = [
         ['onboarded_students_pct', 'onboardedStudentsPct'],
         ['activated_students_pct', 'activatedStudentsPct'],
         ['active_students_pct', 'activeStudentsPct'],
@@ -12681,16 +12688,31 @@ export class SupabaseApi implements ServiceApi {
         ['activated_teachers_pct', 'activatedTeachersPct'],
         ['active_teachers_pct', 'activeTeachersPct'],
       ];
-      percentFilters.forEach(([column, filterKey]) => {
-        const bands = cleanedFilters[filterKey] ?? [];
-        const conditions = bands.flatMap((band) => {
-          if (band === 'Low') return [`${column}.lt.31`];
-          if (band === 'Mid') return [`and(${column}.gte.31,${column}.lt.70)`];
-          if (band === 'High') return [`${column}.gte.70`];
-          return [];
-        });
-        if (conditions.length > 0) query = query.or(conditions.join(','));
-      });
+      const activePercentFilters = percentFilters
+        .map(
+          ([column, filterKey]) =>
+            [
+              column,
+              (cleanedFilters[filterKey] ?? []).filter((band) =>
+                ['Low', 'Mid', 'High'].includes(band),
+              ),
+            ] as const,
+        )
+        .filter(([, bands]) => bands.length > 0);
+      const requiresCalculatedPercentageFiltering =
+        activePercentFilters.length > 0;
+
+      // Percentage fields are derived from multiple stored counts, so they
+      // cannot be filtered as program_metrics columns through PostgREST.
+      const isProgramPercentWithinBand = (
+        percent: number | null | undefined,
+        band: string,
+      ): boolean => {
+        if (percent == null) return false;
+        if (band === 'Low') return percent < 31;
+        if (band === 'Mid') return percent >= 31 && percent < 70;
+        return percent >= 70;
+      };
 
       // Needed to keep search behavior consistent across program and location fields.
       if (search) {
@@ -12724,21 +12746,38 @@ export class SupabaseApi implements ServiceApi {
       const from = Math.max(Math.trunc(page) - 1, 0) * normalizedPageSize;
       const to = from + normalizedPageSize - 1;
 
-      // Filtering, ordering, counting, and range are applied before execution
-      // so only the requested page is transferred from Supabase.
-      const { data, error, count } = await query
-        .order(safeOrderBy, { ascending: order_dir === 'asc' })
-        .range(from, to);
+      const orderedQuery = query.order(safeOrderBy, {
+        ascending: order_dir === 'asc',
+      });
+      const pagedQuery = requiresCalculatedPercentageFiltering
+        ? orderedQuery
+        : orderedQuery.range(from, to);
+      const { data, error, count } = await pagedQuery;
       if (error) {
         logger.error('Error fetching program_metrics listing:', error);
         return { data: [], total: 0 };
       }
 
+      const mappedRows = ((data ?? []) as ProgramMetricsTableRow[]).map((row) =>
+        mapProgramMetricsRow(row),
+      );
+      const filteredRows = requiresCalculatedPercentageFiltering
+        ? mappedRows.filter((row) =>
+            activePercentFilters.every(([column, bands]) =>
+              bands.some((band) =>
+                isProgramPercentWithinBand(row[column], band),
+              ),
+            ),
+          )
+        : mappedRows;
+
       return {
-        data: ((data ?? []) as ProgramMetricsTableRow[]).map((row) =>
-          mapProgramMetricsRow(row),
-        ),
-        total: count ?? 0,
+        data: requiresCalculatedPercentageFiltering
+          ? filteredRows.slice(from, to + 1)
+          : filteredRows,
+        total: requiresCalculatedPercentageFiltering
+          ? filteredRows.length
+          : (count ?? 0),
       };
     } catch (error) {
       logger.error('Unexpected error in getProgramsFromProgramMetrics:', error);
