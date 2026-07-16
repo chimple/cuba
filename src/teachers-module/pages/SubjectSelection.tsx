@@ -129,8 +129,8 @@ const SubjectSelection: React.FC = () => {
       roles.includes(role),
     );
     setCanModify(
-      schoolMatches &&
-        (normalizedRole === RoleType.PRINCIPAL || hasSubjectModificationRole),
+      hasSubjectModificationRole ||
+        (schoolMatches && normalizedRole === RoleType.PRINCIPAL),
     );
   }, [currentSchool?.id, paramSchoolId, roleMap, roles]);
 

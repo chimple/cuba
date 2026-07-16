@@ -6276,6 +6276,20 @@ export type Database = {
         Args: { p_class_id: string; p_days: number };
         Returns: number;
       };
+      get_campaign_audience_summary: {
+        Args: {
+          p_grade_ids: string[];
+          p_school_ids: string[];
+        };
+        Returns: {
+          grades: {
+            gradeId: string;
+            gradeName: string;
+            studentCount: number;
+          }[];
+          totalStudents: number;
+        };
+      };
       get_campaign_dashboard_metrics: {
         Args: {
           p_campaign_ids: string[];
