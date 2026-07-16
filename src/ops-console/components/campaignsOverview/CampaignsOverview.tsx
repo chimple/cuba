@@ -153,6 +153,10 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
         {shouldShowMessages && (
           <CampaignMessages
             campaignId={resolvedCampaignId}
+            isCampaignCancelled={
+              campaignOverviewData?.data?.status ===
+              CAMPAIGN_LISTING_STATUS.CANCELLED
+            }
             campaignStartDate={
               campaignOverviewData?.data?.campaign?.start_date ?? undefined
             }
