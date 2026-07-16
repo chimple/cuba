@@ -89,10 +89,9 @@ const ProgramListControls: React.FC<ProgramListTableProps> = (props) => (
           isExporting={props.isExporting}
           onClick={props.onExport}
         />
-        <ProgramActionsMenu
-          canCreateProgram={props.canCreateProgram}
-          onNewProgram={props.onNewProgram}
-        />
+        {props.canCreateProgram ? (
+          <ProgramActionsMenu onNewProgram={props.onNewProgram} />
+        ) : null}
         <SchoolListDateRangeDropdown
           value={props.selectedDateRange}
           onChange={props.onDateRangeChange}

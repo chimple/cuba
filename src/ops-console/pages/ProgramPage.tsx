@@ -11,17 +11,14 @@ import type { AuthState } from '../../redux/slices/auth/authSlice';
 import './ProgramPage.css';
 import './SchoolList.css';
 
-const ProgramPageContent: React.FC = () => {
+type ProgramPageContentProps = {
+  canCreateProgram: boolean;
+};
+
+const ProgramPageContent: React.FC<ProgramPageContentProps> = ({
+  canCreateProgram,
+}) => {
   const logic = useProgramPageLogic();
-  const { roles } = useAppSelector(
-    (state: RootState) => state.auth as AuthState,
-  );
-  const userRoles = roles || [];
-  const canCreateProgram = userRoles.some((role) =>
-    [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
-      role as RoleType,
-    ),
-  );
 
   return (
     <div className="program-page">
@@ -111,13 +108,18 @@ const ProgramsPage: React.FC = () => {
       RoleType.PROGRAM_MANAGER,
     ].includes(role as RoleType),
   );
+  const canCreateProgram = userRoles.some((role) =>
+    [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
+      role as RoleType,
+    ),
+  );
 
   // Program listing is restricted to approved roles so blocked users do not see or fetch page data.
   if (!canViewProgramPage) {
     return null;
   }
 
-  return <ProgramPageContent />;
+  return <ProgramPageContent canCreateProgram={canCreateProgram} />;
 };
 
 export default ProgramsPage;
