@@ -443,7 +443,9 @@ const SelectMode: FC = () => {
     }));
     setTeacherAppSchoolList(teacherAppSchoolOptions);
 
-    if (teacherRoleEntries.length > 0) {
+    const shouldAutoEnterTeacherApp = currentMode === MODES.TEACHER;
+
+    if (shouldAutoEnterTeacherApp && teacherRoleEntries.length > 0) {
       await applyOrientationForMode(MODES.TEACHER);
       schoolUtil.setCurrMode(MODES.TEACHER);
 
@@ -581,7 +583,7 @@ const SelectMode: FC = () => {
         }
       } else if (allSchool.length === 0) {
         onParentSelect();
-      } else if (teacherRoleEntries.length === 1) {
+      } else if (shouldAutoEnterTeacherApp && teacherRoleEntries.length === 1) {
         const fallbackTeacherSchool = teacherRoleEntries[0];
         setCurrentSchool(fallbackTeacherSchool.school);
         setCurrentSchoolRole(fallbackTeacherSchool.role);
@@ -592,12 +594,12 @@ const SelectMode: FC = () => {
         );
         setCurrentSchoolName(fallbackTeacherSchool.school.name);
         setStage(STAGES.MODE);
-      } else if (teacherRoleEntries.length > 1) {
+      } else if (shouldAutoEnterTeacherApp && teacherRoleEntries.length > 1) {
         await applyOrientationForMode(MODES.TEACHER);
         schoolUtil.setCurrMode(MODES.TEACHER);
         history.replace(PAGES.DISPLAY_SCHOOLS);
         return;
-      } else {
+      } else if (shouldAutoEnterTeacherApp) {
         // Teacher logic
         await applyOrientationForMode(MODES.TEACHER);
         schoolUtil.setCurrMode(MODES.TEACHER);
