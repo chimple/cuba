@@ -8030,6 +8030,12 @@ order by
     return await this._serverApi.getCampaignAudienceOptions(programId);
   }
 
+  async getCampaignGradesForSchools(
+    schoolIds: string[],
+  ): Promise<CampaignOption[]> {
+    return await this._serverApi.getCampaignGradesForSchools(schoolIds);
+  }
+
   async getCampaignAudienceSummary(
     params: CampaignAudienceSummaryParams,
   ): Promise<CampaignAudienceSummary> {
