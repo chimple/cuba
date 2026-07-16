@@ -34,7 +34,9 @@ export const CampaignSetupActions: React.FC<CampaignSetupActionsProps> = ({
       ? !isFormValid || isSubmitting
       : activeStep === 1
         ? !isAssignmentComplete
-        : false;
+        : activeStep === 4
+          ? isSubmitting
+          : false;
 
   const handleNextClick = () => {
     if (activeStep === 0) {
