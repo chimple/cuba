@@ -21,7 +21,7 @@ export const useCampaignReach = (selectedSchoolIds: string[]) => {
       if (
         selectedSchoolIds.length === 0 ||
         !api.getParentWhatsappClassesBySchoolId ||
-        !api.getParentWhatsappParentPhonesByClassId
+        !api.getCampaignParentsInGroupBySchoolIds
       ) {
         setCampaignReach(emptyReach);
         return;
@@ -42,26 +42,13 @@ export const useCampaignReach = (selectedSchoolIds: string[]) => {
               classRow.group_id && String(classRow.group_id).trim() !== '',
           );
 
-        const memberLists = await Promise.all(
-          groupedClasses.map(async (classRow) => {
-            try {
-              const phones = await api.getParentWhatsappParentPhonesByClassId!(
-                classRow.id,
-              );
-              return Array.from(new Set(phones));
-            } catch {
-              return [];
-            }
-          }),
-        );
+        const memberCount =
+          await api.getCampaignParentsInGroupBySchoolIds(selectedSchoolIds);
 
         if (!mounted) return;
         setCampaignReach({
           groupCount: groupedClasses.length,
-          memberCount: memberLists.reduce(
-            (total, members) => total + members.length,
-            0,
-          ),
+          memberCount,
         });
       } catch (error) {
         logger.error('Failed to load campaign reach:', error);

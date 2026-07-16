@@ -390,6 +390,8 @@ const CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS: Partial<
   endDate: 'end_date',
 };
 
+const CAMPAIGN_REACH_METRIC_WINDOW = '7d';
+
 const isCampaignListingRelationSort = (
   orderBy: NonNullable<CampaignListingParams['orderBy']>,
 ) => orderBy === 'manager' || orderBy === 'programName';
@@ -4440,6 +4442,33 @@ export class SupabaseApi implements ServiceApi {
     });
 
     return Array.from(phoneSet);
+  }
+
+  async getCampaignParentsInGroupBySchoolIds(
+    schoolIds: string[],
+  ): Promise<number> {
+    if (!this.supabase || schoolIds.length === 0) return 0;
+
+    const uniqueSchoolIds = Array.from(new Set(schoolIds));
+    const { data, error } = await this.supabase
+      .from(TABLES.SchoolMetrics)
+      .select('school_id, parents_in_group')
+      .in('school_id', uniqueSchoolIds)
+      .eq('metric_window', CAMPAIGN_REACH_METRIC_WINDOW)
+      .eq('is_deleted', false);
+
+    if (error) {
+      logger.error(
+        'Error fetching campaign parents-in-group school metrics:',
+        error,
+      );
+      throw error;
+    }
+
+    return (data ?? []).reduce(
+      (total, row) => total + (row.parents_in_group ?? 0),
+      0,
+    );
   }
 
   async getUsersByIds(userIds: string[]): Promise<TableTypes<'user'>[]> {

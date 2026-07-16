@@ -2871,6 +2871,13 @@ export interface ServiceApi {
   ) => Promise<string[]>;
 
   /**
+   * Returns the seven-day parents-in-group total for selected campaign schools.
+   */
+  getCampaignParentsInGroupBySchoolIds?: (
+    schoolIds: string[],
+  ) => Promise<number>;
+
+  /**
    * Creates a auto student profile for a parent and returns the student object
    * @param {string} languageDocId -  languageDocId is `Language` doc id
    * @returns {User} Student User Object

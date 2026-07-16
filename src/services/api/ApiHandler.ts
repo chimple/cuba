@@ -1940,6 +1940,18 @@ export class ApiHandler implements ServiceApi {
     }
     return await this.s.getParentWhatsappParentPhonesByClassId(classId);
   }
+
+  public async getCampaignParentsInGroupBySchoolIds(
+    schoolIds: string[],
+  ): Promise<number> {
+    if (!this.s.getCampaignParentsInGroupBySchoolIds) {
+      throw new Error(
+        'Campaign parents-in-group metrics lookup is not implemented in current API service.',
+      );
+    }
+    return await this.s.getCampaignParentsInGroupBySchoolIds(schoolIds);
+  }
+
   public async createAutoProfile(
     languageDocId: string | undefined,
     tcVersion: number,

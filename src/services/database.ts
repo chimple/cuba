@@ -4259,6 +4259,7 @@ export type Database = {
           metric_window: string | null;
           onboarded_students: number | null;
           partners: string[] | null;
+          parents_in_group: number | null;
           parents_reached: number | null;
           program_id: string | null;
           program_managers: string[] | null;
@@ -4291,6 +4292,7 @@ export type Database = {
           metric_window?: string | null;
           onboarded_students?: number | null;
           partners?: string[] | null;
+          parents_in_group?: number | null;
           parents_reached?: number | null;
           program_id?: string | null;
           program_managers?: string[] | null;
@@ -4323,6 +4325,7 @@ export type Database = {
           metric_window?: string | null;
           onboarded_students?: number | null;
           partners?: string[] | null;
+          parents_in_group?: number | null;
           parents_reached?: number | null;
           program_id?: string | null;
           program_managers?: string[] | null;
