@@ -9,12 +9,16 @@ import {
 } from 'react';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import {
+  CampaignFrequency,
   CampaignMessagingQueryParams,
   CampaignMessagingRow,
 } from '../../../services/api/ServiceApi';
 import { hasCampaignWriteAccess } from '../../../services/api/campaignListingHelpers';
 import { Json } from '../../../services/database';
-import { buildCampaignDurationTimelineDates } from '../campaignSetup/campaignCommunicationUtils';
+import {
+  buildFrequencyTimelineDates,
+  DEFAULT_FREQUENCY,
+} from '../campaignSetup/campaignAssignmentUtils';
 import { useAppSelector } from '../../../redux/hooks';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
 import { RootState } from '../../../redux/store';
@@ -119,6 +123,7 @@ interface UseCampaignMessagesControllerParams {
   campaignId?: string;
   campaignStartDate?: string;
   campaignEndDate?: string;
+  campaignFrequency?: CampaignFrequency;
   isCampaignCancelled?: boolean;
   translate: (key: string) => string;
 }
@@ -681,6 +686,7 @@ export const useCampaignMessagesController = ({
   campaignId,
   campaignStartDate,
   campaignEndDate,
+  campaignFrequency = DEFAULT_FREQUENCY,
   isCampaignCancelled = false,
   translate,
 }: UseCampaignMessagesControllerParams): CampaignMessagesController => {
@@ -718,9 +724,13 @@ export const useCampaignMessagesController = ({
   const timelineDates = useMemo(
     () =>
       campaignStartDate && campaignEndDate
-        ? buildCampaignDurationTimelineDates(campaignStartDate, campaignEndDate)
+        ? buildFrequencyTimelineDates(
+            campaignStartDate,
+            campaignEndDate,
+            campaignFrequency,
+          )
         : [],
-    [campaignEndDate, campaignStartDate],
+    [campaignEndDate, campaignFrequency, campaignStartDate],
   );
   const displayTimelineDates = useMemo(
     () => timelineDates.filter((date) => !isSundayDateKey(date)),

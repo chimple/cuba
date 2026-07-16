@@ -588,6 +588,7 @@ export type Database = {
           comments: string | null;
           created_at: string | null;
           end_date: string;
+          frequency: 'daily' | 'alternate_days' | 'alternate_week';
           id: string;
           is_deleted: boolean | null;
           manager_id: string | null;
@@ -609,6 +610,7 @@ export type Database = {
           comments?: string | null;
           created_at?: string | null;
           end_date: string;
+          frequency?: 'daily' | 'alternate_days' | 'alternate_week';
           id?: string;
           is_deleted?: boolean | null;
           manager_id?: string | null;
@@ -630,6 +632,7 @@ export type Database = {
           comments?: string | null;
           created_at?: string | null;
           end_date?: string;
+          frequency?: 'daily' | 'alternate_days' | 'alternate_week';
           id?: string;
           is_deleted?: boolean | null;
           manager_id?: string | null;
