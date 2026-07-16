@@ -402,11 +402,6 @@ type CampaignClassGradeRow = Pick<TableTypes<'class'>, 'id' | 'grade_id'> & {
   grade?: CampaignGradeRow | CampaignGradeRow[] | null;
 };
 
-type CampaignClassUserRow = Pick<
-  TableTypes<'class_user'>,
-  'class_id' | 'user_id'
->;
-
 type CampaignSchoolCourseGradeRow = {
   course?:
     | {
@@ -10384,93 +10379,20 @@ export class SupabaseApi implements ServiceApi {
       return { totalStudents: 0, grades: [] };
     }
 
-    const { data: classRows, error: classError } = await this.supabase
-      .from('class')
-      .select('id, grade_id, grade:grade_id(id, name, sort_index)')
-      .in('school_id', schoolIds)
-      .in('grade_id', gradeIds)
-      .eq('is_deleted', false);
+    const { data, error } = await this.supabase.rpc(
+      'get_campaign_audience_summary',
+      {
+        p_school_ids: schoolIds,
+        p_grade_ids: gradeIds,
+      },
+    );
 
-    if (classError) {
-      logger.error('Error fetching campaign summary classes:', classError);
+    if (error) {
+      logger.error('Error fetching campaign audience summary:', error);
       return { totalStudents: 0, grades: [] };
     }
 
-    const classGradeMap = new Map<
-      string,
-      { gradeId: string; gradeName: string; sort: number }
-    >();
-
-    ((classRows ?? []) as CampaignClassGradeRow[]).forEach((row) => {
-      const grade = firstOrSelf(row.grade);
-      if (!row.id || !row.grade_id || !grade?.name) return;
-      classGradeMap.set(String(row.id), {
-        gradeId: String(row.grade_id),
-        gradeName: String(grade.name),
-        sort: Number(grade.sort_index ?? 9999),
-      });
-    });
-
-    const classIds = Array.from(classGradeMap.keys());
-    if (classIds.length === 0) return { totalStudents: 0, grades: [] };
-
-    const classUserRows: CampaignClassUserRow[] = [];
-    for (const classIdBatch of chunkArray(classIds, 500)) {
-      const { data, error: classUserError } = await this.supabase
-        .from('class_user')
-        .select('class_id, user_id')
-        .in('class_id', classIdBatch)
-        .eq('role', RoleType.STUDENT)
-        .eq('is_deleted', false);
-
-      if (classUserError) {
-        logger.error(
-          'Error fetching campaign summary class users:',
-          classUserError,
-        );
-        return { totalStudents: 0, grades: [] };
-      }
-
-      classUserRows.push(...((data ?? []) as CampaignClassUserRow[]));
-    }
-
-    const studentsByGrade = new Map<string, Set<string>>();
-    const gradeMeta = new Map<string, { gradeName: string; sort: number }>();
-
-    (classUserRows ?? []).forEach((row) => {
-      const classMeta = classGradeMap.get(String(row.class_id));
-      if (!classMeta || !row.user_id) return;
-      if (!studentsByGrade.has(classMeta.gradeId)) {
-        studentsByGrade.set(classMeta.gradeId, new Set<string>());
-        gradeMeta.set(classMeta.gradeId, {
-          gradeName: classMeta.gradeName,
-          sort: classMeta.sort,
-        });
-      }
-      studentsByGrade.get(classMeta.gradeId)?.add(String(row.user_id));
-    });
-
-    const grades = Array.from(studentsByGrade.entries())
-      .map(([gradeId, students]) => ({
-        gradeId,
-        gradeName: gradeMeta.get(gradeId)?.gradeName ?? 'Grade',
-        sort: gradeMeta.get(gradeId)?.sort ?? 9999,
-        studentCount: students.size,
-      }))
-      .sort((a, b) => a.sort - b.sort || a.gradeName.localeCompare(b.gradeName))
-      .map(({ gradeId, gradeName, studentCount }) => ({
-        gradeId,
-        gradeName,
-        studentCount,
-      }));
-
-    return {
-      totalStudents: grades.reduce(
-        (total, grade) => total + grade.studentCount,
-        0,
-      ),
-      grades,
-    };
+    return data ?? { totalStudents: 0, grades: [] };
   }
 
   async createCampaignAudienceGroup(
