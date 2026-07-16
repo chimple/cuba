@@ -2406,6 +2406,13 @@ export interface ServiceApi {
   ): Promise<CampaignAudienceOptions>;
 
   /**
+   * Loads grades available for the selected schools.
+   * Grades are derived from active classes linked to those schools.
+   * @param {string[]} schoolIds - Selected school IDs.
+   */
+  getCampaignGradesForSchools(schoolIds: string[]): Promise<CampaignOption[]>;
+
+  /**
    * Returns a grade-wise student count summary for the selected schools and grades.
    * Used by the campaign setup audience summary box.
    * @param {CampaignAudienceSummaryParams} params - School and grade IDs to summarize.

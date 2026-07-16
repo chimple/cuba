@@ -1602,6 +1602,12 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCampaignAudienceOptions(programId);
   }
 
+  public async getCampaignGradesForSchools(
+    schoolIds: string[],
+  ): Promise<CampaignOption[]> {
+    return await this.s.getCampaignGradesForSchools(schoolIds);
+  }
+
   public async getCampaignAudienceSummary(
     params: CampaignAudienceSummaryParams,
   ): Promise<CampaignAudienceSummary> {

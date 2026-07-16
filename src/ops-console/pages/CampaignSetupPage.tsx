@@ -140,7 +140,7 @@ const CampaignSetupPage: React.FC = () => {
         ? campaignSetup.audienceOptions.schools
         : campaignSetup.selectedSchools,
       selectedGrades: campaignSetup.isAllGrades
-        ? campaignSetup.audienceOptions.grades
+        ? campaignSetup.availableGrades
         : campaignSetup.selectedGrades,
       audienceSummary: campaignSetup.audienceSummary,
       assignmentDrafts: campaignSetup.assignmentDrafts,
@@ -156,7 +156,7 @@ const CampaignSetupPage: React.FC = () => {
       campaignReach,
       campaignSetup.assignmentConfigs,
       campaignSetup.assignmentDrafts,
-      campaignSetup.audienceOptions.grades,
+      campaignSetup.availableGrades,
       campaignSetup.audienceOptions.schools,
       campaignSetup.audienceSummary,
       campaignSetup.campaignRewards,
@@ -461,6 +461,7 @@ const CampaignSetupPage: React.FC = () => {
                 savedGroups={campaignSetup.savedGroups}
                 selectedSavedGroupId={campaignSetup.selectedSavedGroupId}
                 audienceOptions={campaignSetup.audienceOptions}
+                availableGrades={campaignSetup.availableGrades}
                 selectedBlocks={campaignSetup.selectedBlocks}
                 selectedSchools={campaignSetup.selectedSchools}
                 selectedGrades={campaignSetup.selectedGrades}
@@ -473,6 +474,7 @@ const CampaignSetupPage: React.FC = () => {
                   campaignSetup.schoolsForSelectedBlocks
                 }
                 loadingAudience={campaignSetup.loadingAudience}
+                loadingGrades={campaignSetup.loadingGrades}
                 selectedProgramName={campaignSetup.selectedProgramName}
                 summaryBlockCount={campaignSetup.summaryBlockCount}
                 summarySchoolCount={campaignSetup.summarySchoolCount}

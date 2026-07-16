@@ -10374,11 +10374,17 @@ export class SupabaseApi implements ServiceApi {
       new Set(schools.map((school) => school.block).filter(Boolean)),
     ).sort((a, b) => a.localeCompare(b));
 
-    const grades = await this.getCampaignGradesForSchools(
+    const grades = await this.getCampaignAudienceOptionGradesForSchools(
       schools.map((school) => school.id),
     );
 
     return { blocks, schools, grades };
+  }
+
+  async getCampaignGradesForSchools(
+    schoolIds: string[],
+  ): Promise<CampaignOption[]> {
+    return await this.fetchDistinctClassGradesForSchools(schoolIds);
   }
 
   async getCampaignAudienceSummary({
@@ -10977,7 +10983,36 @@ export class SupabaseApi implements ServiceApi {
     };
   }
 
-  private async getCampaignGradesForSchools(
+  private async fetchDistinctClassGradesForSchools(
+    schoolIds: string[],
+  ): Promise<{ id: string; name: string }[]> {
+    if (!this.supabase || schoolIds.length === 0) return [];
+
+    const { data: gradeRows, error: gradeError } = await this.supabase
+      .from('grade')
+      .select('id, name, sort_index, class!inner()')
+      .in('class.school_id', schoolIds)
+      .eq('class.is_deleted', false)
+      .eq('is_deleted', false);
+
+    if (gradeError) {
+      logger.error('Error fetching school grades for campaign:', gradeError);
+    }
+
+    return ((gradeRows ?? []) as CampaignGradeRow[])
+      .filter((grade) => grade.id && grade.name)
+      .sort(
+        (a, b) =>
+          Number(a.sort_index ?? 9999) - Number(b.sort_index ?? 9999) ||
+          String(a.name).localeCompare(String(b.name)),
+      )
+      .map((grade) => ({
+        id: String(grade.id),
+        name: String(grade.name),
+      }));
+  }
+
+  private async getCampaignAudienceOptionGradesForSchools(
     schoolIds: string[],
   ): Promise<{ id: string; name: string }[]> {
     if (!this.supabase || schoolIds.length === 0) return [];
