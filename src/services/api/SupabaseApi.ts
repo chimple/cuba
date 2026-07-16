@@ -4099,11 +4099,57 @@ export class SupabaseApi implements ServiceApi {
         return (allSchools ?? []).map((school) => ({ school, role }));
       }
 
-      // --- PROGRAM MANAGER / FIELD COORDINATOR ---
-      if (
-        role === RoleType.PROGRAM_MANAGER ||
-        role === RoleType.FIELD_COORDINATOR
-      ) {
+      // --- FIELD COORDINATOR ---
+      if (role === RoleType.FIELD_COORDINATOR) {
+        const { data: schoolUsers, error: schoolUserErr } = await this.supabase
+          .from(TABLES.SchoolUser)
+          .select('role, school:school_id(*)')
+          .eq('user_id', userId)
+          .eq('role', RoleType.FIELD_COORDINATOR)
+          .eq('is_deleted', false);
+
+        if (schoolUserErr) {
+          logger.error(
+            'Error fetching field coordinator school_user rows:',
+            schoolUserErr,
+          );
+          return [];
+        }
+
+        const unique = new Map<
+          string,
+          { school: TableTypes<'school'>; role: RoleType }
+        >();
+        for (const row of schoolUsers ?? []) {
+          const school = firstOrSelf(row.school);
+          if (
+            !school?.id ||
+            school.is_deleted ||
+            (search &&
+              !String(school.name ?? '')
+                .toLowerCase()
+                .includes(search.toLowerCase()))
+          ) {
+            continue;
+          }
+
+          unique.set(String(school.id), {
+            school: school as TableTypes<'school'>,
+            role,
+          });
+        }
+
+        return Array.from(unique.values())
+          .sort((a, b) =>
+            String(a.school.name ?? '').localeCompare(
+              String(b.school.name ?? ''),
+            ),
+          )
+          .slice(from, to + 1);
+      }
+
+      // --- PROGRAM MANAGER ---
+      if (role === RoleType.PROGRAM_MANAGER) {
         const { data: progUsers, error: puErr } = await this.supabase
           .from(TABLES.ProgramUser)
           .select('program_id')
