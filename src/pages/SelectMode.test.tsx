@@ -70,7 +70,12 @@ jest.mock('./assets/leftArrowIcon.svg', () => ({
 }));
 
 const mockHistoryReplace = jest.fn();
-let mockLocationState: { fromKidsAppLocationSchool?: boolean } | undefined;
+let mockLocationState:
+  | {
+      fromKidsAppLocationSchool?: boolean;
+      fromSchoolModeSwitchProfile?: boolean;
+    }
+  | undefined;
 jest.mock('react-router', () => {
   const actual = jest.requireActual('react-router');
   return {
@@ -887,6 +892,41 @@ describe('SelectMode page', () => {
       school_id: teacherSchool.id,
     };
     mockLocationState = { fromKidsAppLocationSchool: true };
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+      name: 'Teacher User',
+    });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: teacherSchool, role: 'TEACHER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([classDoc]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    await waitFor(() => {
+      expect(mockApiHandler.getClassesForSchool).toHaveBeenCalledWith(
+        teacherSchool.id,
+        'user-1',
+      );
+    });
+    expect(mockSetCurrMode).not.toHaveBeenCalledWith(MODES.TEACHER);
+    expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.HOME_PAGE);
+    expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+  });
+
+  it('keeps school-mode switch profile in school flow for teacher-role users', async () => {
+    const teacherSchool = { id: 'school-1', name: 'Teacher School' };
+    const classDoc = {
+      id: 'class-1',
+      name: 'Class 1',
+      school_id: teacherSchool.id,
+    };
+    mockLocationState = { fromSchoolModeSwitchProfile: true };
     mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
     mockAuthHandler.getCurrentUser.mockResolvedValue({
       id: 'user-1',
