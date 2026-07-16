@@ -10278,6 +10278,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.Assignment)
       .update({
         is_deleted: true,
+        ends_at: nowIso,
         updated_at: nowIso,
       })
       .eq('campaign_id', campaignId)

@@ -13,6 +13,15 @@ import './SchoolList.css';
 
 const ProgramPageContent: React.FC = () => {
   const logic = useProgramPageLogic();
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const canCreateProgram = userRoles.some((role) =>
+    [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
+      role as RoleType,
+    ),
+  );
 
   return (
     <div className="program-page">
@@ -66,6 +75,7 @@ const ProgramPageContent: React.FC = () => {
         isExportDisabled={logic.isExportDisabled}
         isExporting={logic.isExporting}
         onExport={logic.handleExportPrograms}
+        canCreateProgram={canCreateProgram}
         onNewProgram={() => logic.history.push(logic.newProgramPath)}
         columns={logic.columns}
         rows={logic.rows}

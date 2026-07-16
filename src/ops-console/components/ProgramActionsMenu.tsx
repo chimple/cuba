@@ -12,10 +12,12 @@ import { Add } from '@mui/icons-material';
 import { t } from 'i18next';
 
 type ProgramActionsMenuProps = {
+  canCreateProgram: boolean;
   onNewProgram: () => void;
 };
 
 const ProgramActionsMenu: React.FC<ProgramActionsMenuProps> = ({
+  canCreateProgram,
   onNewProgram,
 }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -44,6 +46,10 @@ const ProgramActionsMenu: React.FC<ProgramActionsMenuProps> = ({
     handleClose();
     onNewProgram();
   }, [handleClose, onNewProgram]);
+
+  if (!canCreateProgram) {
+    return null;
+  }
 
   return (
     <>
