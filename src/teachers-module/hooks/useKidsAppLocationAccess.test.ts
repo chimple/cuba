@@ -22,6 +22,7 @@ const createAuthState = (roles: string[]): AuthState => ({
   isOpsUser: false,
   roles,
   loading: false,
+  globalLoading: false,
   error: {
     phone: null,
     student: null,

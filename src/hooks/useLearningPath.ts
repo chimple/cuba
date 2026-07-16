@@ -159,7 +159,14 @@ const buildSameFrameworkAssessmentPath = (
   const activeIndex = assessmentPath.findIndex(
     (node) => node.isPlayed === false,
   );
-  if (activeIndex === -1) return null;
+  if (activeIndex === -1) {
+    const alreadyExists = assessmentPath.some(
+      (node) => node.lesson_id === activeLesson.lesson_id,
+    );
+    return alreadyExists
+      ? assessmentPath
+      : [...assessmentPath, { ...activeLesson }];
+  }
 
   return assessmentPath.map((node, index) =>
     index === activeIndex ? { ...activeLesson } : { ...node },
@@ -371,8 +378,7 @@ export async function recommendNextLesson({
     shouldUseAssessment(mode) &&
     !skipAssessment &&
     !hasCompletedInitialAssessment &&
-    course.subject_id &&
-    course.framework_id != null
+    course.subject_id
   ) {
     const res = await api.getSubjectLessonsBySubjectId(
       course.subject_id,
@@ -791,6 +797,22 @@ export const useLearningPath = (opts?: {
       return learningPath;
     }
     if (mode != pathMode) {
+      if (shouldUseAssessment(pathMode) && shouldUseAssessment(mode)) {
+        learningPath.pathMode = mode;
+        const res = await updateLearningPathIfNeeded(
+          learningPath,
+          courses,
+          currentStudent,
+          mode,
+          classId,
+        );
+        if (res.updated) learningPath = res.learningPath;
+        learningPath.pathMode = mode;
+        learningPath.updated_at = new Date().toISOString();
+        await saveLearningPath(currentStudent, learningPath);
+        return learningPath;
+      }
+
       learningPath = await buildPath({
         student: currentStudent,
         courses,
@@ -951,11 +973,10 @@ export const useLearningPath = (opts?: {
       userCourses.map((course) => [course.id, course]),
     );
 
-    const findSameFrameworkAssessmentPath = (
-      course: LearningPathCourseInput,
-    ) => {
+    const findSameAssessmentPath = (course: LearningPathCourseInput) => {
       const frameworkId = course.framework_id;
-      if (!frameworkId) return null;
+      const courseCode = normalizeCourseToken(course.code);
+      if (!frameworkId && (!course.subject_id || !courseCode)) return null;
 
       return (
         oldCourseList.find((coursePath) => {
@@ -967,14 +988,19 @@ export const useLearningPath = (opts?: {
             coursePath.course_code ??
               courseInputMap.get(coursePath.course_id)?.code,
           );
-          const courseCode = normalizeCourseToken(course.code);
 
-          return (
-            pathFrameworkId === frameworkId &&
-            coursePath.subject_id === (course.subject_id ?? null) &&
-            (!pathCourseCode || !courseCode || pathCourseCode === courseCode) &&
-            hasAssessmentProgress(coursePath.path)
-          );
+          if (!hasAssessmentProgress(coursePath.path)) return false;
+          if (coursePath.subject_id !== (course.subject_id ?? null)) {
+            return false;
+          }
+          if (pathCourseCode && courseCode && pathCourseCode !== courseCode) {
+            return false;
+          }
+          if (!frameworkId && (!pathCourseCode || !courseCode)) {
+            return false;
+          }
+
+          return frameworkId ? pathFrameworkId === frameworkId : true;
         }) ?? null
       );
     };
@@ -994,8 +1020,7 @@ export const useLearningPath = (opts?: {
         });
       } else {
         // ➕ New course → build fresh
-        const sameFrameworkAssessmentSource =
-          findSameFrameworkAssessmentPath(course);
+        const sameFrameworkAssessmentSource = findSameAssessmentPath(course);
         const activeLesson = await recommendNextLesson({
           student,
           course,

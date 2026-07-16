@@ -8,7 +8,7 @@ import {
   signInWithCustomToken,
   signInWithPhoneNumber,
 } from 'firebase/auth';
-import User from '../../models/user';
+import User from '../../models/User';
 import {
   Timestamp,
   doc,

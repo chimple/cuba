@@ -19,7 +19,7 @@ jobs:
       - name: Setup java
         uses: actions/setup-java@v1
         with:
-          java-version: "21"
+          java-version: '21'
 
       - name: Setup Node.js
         uses: actions/setup-node@v1
@@ -32,7 +32,7 @@ jobs:
       - name: Store variables
         run: |
           touch .env
-          echo 'REACT_APP_GITHUB_BASE=/cuba' >> .env
+          echo 'VITE_GITHUB_BASE=/cuba' >> .env
 
       - name: Build
         run: npm run build
@@ -43,7 +43,7 @@ jobs:
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.ACCESS_TOKEN }}
-          publish_dir: ./build
+          publish_dir: ./dist
 
       - name: Make gradlew executable
         working-directory: ./android/

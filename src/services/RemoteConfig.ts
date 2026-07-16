@@ -2,8 +2,8 @@ import { FirebaseRemoteConfig } from '@capacitor-firebase/remote-config';
 
 const getAppEnvironment = (): 'dev' | 'prod' => {
   const env = (
-    process.env.REACT_APP_ENVIRONMENT ??
-    process.env.REACT_APP_ENV ??
+    import.meta.env.VITE_ENVIRONMENT ??
+    import.meta.env.VITE_ENV ??
     'dev'
   )
     .trim()

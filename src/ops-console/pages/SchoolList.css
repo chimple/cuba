@@ -105,6 +105,12 @@
   flex-shrink: 0;
 }
 
+.school-list-filter-control {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 /* Keep the date-range control visually aligned with the Actions menu button. */
 .school-list-date-range-button.MuiButton-root {
   min-width: 140px !important;
@@ -236,6 +242,28 @@
   margin: 0 !important;
 }
 
+.school-list-percent-filter-menu.MuiPaper-root {
+  margin-top: 8px;
+  border-radius: 12px;
+  min-width: 156px;
+  max-width: 188px;
+  box-shadow: 0px 10px 24px rgba(18, 22, 25, 0.12);
+  overflow: hidden;
+}
+
+.school-list-percent-filter-menu-item {
+  min-height: 48px !important;
+  padding: 10px 14px !important;
+}
+
+.school-list-percent-filter-menu-item.Mui-selected {
+  background-color: rgba(26, 113, 246, 0.08) !important;
+}
+
+.school-list-percent-filter-menu-item.Mui-selected:hover {
+  background-color: rgba(26, 113, 246, 0.12) !important;
+}
+
 .school-list-table-container {
   overflow-y: hidden;
   padding: 0 20px;
@@ -250,6 +278,10 @@
 .school-list-table-container .data-tablebody-container {
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x pan-y;
+  border-top: 1px solid rgba(224, 224, 224, 1);
+  border-left: 1px solid rgba(224, 224, 224, 1);
+  border-top-left-radius: 28px;
+  background-color: #ffffff;
 }
 
 .school-list-table-container .data-tablebody-head-cell:first-child,
@@ -257,6 +289,13 @@
   min-width: 220px;
   max-width: 220px;
   width: 220px;
+  box-sizing: border-box;
+}
+
+.school-list-table-container .data-tablebody-column-inpersonStudentsParents {
+  min-width: 200px !important;
+  max-width: 200px !important;
+  width: 200px !important;
   box-sizing: border-box;
 }
 

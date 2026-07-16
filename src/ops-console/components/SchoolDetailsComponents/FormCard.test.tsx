@@ -178,4 +178,37 @@ describe('FormCard', () => {
       }),
     );
   });
+
+  it('does not render a placeholder option for edit-mode class selection', () => {
+    render(
+      <FormCard
+        open={true}
+        title="Edit Student Details"
+        submitLabel="Save Changes"
+        fields={[
+          {
+            name: 'classAndSection',
+            label: 'Class And Section',
+            kind: 'select',
+            required: true,
+            suppressPlaceholderOption: true,
+            options: [
+              { value: 'class-1', label: 'Class A' },
+              { value: 'class-2', label: 'Class B' },
+            ],
+          },
+        ]}
+        initialValues={{
+          classAndSection: 'class-1',
+        }}
+        onClose={onClose}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    expect(
+      screen.queryByText('Select Class And Section'),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toHaveValue('class-1');
+  });
 });

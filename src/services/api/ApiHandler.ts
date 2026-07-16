@@ -1,14 +1,19 @@
 import {
   AssignmentCartData,
   AssignmentDateRangeData,
+  CampaignCancellationDetails,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignDashboardMetric,
+  CampaignListingItem,
+  CampaignListingParams,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
   CampaignAudienceSummaryParams,
   CampaignSavedAudienceGroup,
   CampaignSetupOptions,
+  ClassMetricsForClassListingRow,
   CreateCampaignSetupPayload,
   CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
@@ -18,6 +23,14 @@ import {
   OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
+  CampaignAssignmentsResponse,
+  CampaignRewardsReportParams,
+  CampaignRewardsReportResponse,
+  CampaignOption,
+  CampaignAssignmentFilters,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
+  UpdateCampaignMessagingRowPayload,
 } from './ServiceApi';
 import {
   SOURCE,
@@ -26,8 +39,8 @@ import {
   SchoolVisitType,
 } from '../../common/constants';
 import { StudentLessonResult } from '../../common/courseConstants';
-import Course from '../../models/course';
-import Lesson from '../../models/lesson';
+import Course from '../../models/Course';
+import Lesson from '../../models/Lesson';
 import {
   FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
@@ -1556,7 +1569,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getProgramFilterOptions();
   }
   async getPrograms(params: {
-    currentUserId: string;
+    currentUserId?: string;
     filters?: Record<string, string[]>;
     searchTerm?: string;
     tab?: TabType;
@@ -1564,7 +1577,13 @@ export class ApiHandler implements ServiceApi {
     offset?: number;
     orderBy?: string;
     order?: 'asc' | 'desc';
-  }): Promise<{ data: any[] }> {
+    page?: number;
+    page_size?: number;
+    order_by?: string;
+    order_dir?: 'asc' | 'desc';
+    search?: string;
+    date_range?: string;
+  }) {
     return await this.s.getPrograms(params);
   }
 
@@ -1611,6 +1630,55 @@ export class ApiHandler implements ServiceApi {
     params: CampaignAssignmentOptionsParams,
   ): Promise<CampaignAssignmentOptions> {
     return await this.s.getCampaignAssignmentOptions(params);
+  }
+
+  public async getCampaignListing(
+    params: CampaignListingParams,
+  ): Promise<PaginatedResponse<CampaignListingItem>> {
+    return await this.s.getCampaignListing(params);
+  }
+
+  public async getCampaignListingMetrics(
+    campaignIds: string[],
+  ): Promise<Map<string, CampaignDashboardMetric>> {
+    return await this.s.getCampaignListingMetrics(campaignIds);
+  }
+
+  public async cancelCampaign(
+    campaignId: string,
+    reason: string,
+  ): Promise<void> {
+    return await this.s.cancelCampaign(campaignId, reason);
+  }
+
+  public async deleteCampaignAssignments(campaignId: string): Promise<void> {
+    return await this.s.deleteCampaignAssignments(campaignId);
+  }
+
+  public async getCampaignCancellationDetails(
+    campaignId: string,
+  ): Promise<CampaignCancellationDetails | null> {
+    return await this.s.getCampaignCancellationDetails(campaignId);
+  }
+
+  public async getCampaignAssignments(
+    campaignId: string,
+    filters: CampaignAssignmentFilters,
+  ): Promise<CampaignAssignmentsResponse> {
+    return await this.s.getCampaignAssignments(campaignId, filters);
+  }
+
+  public async getCampaignRewardsReport(
+    campaignId: string,
+    params?: CampaignRewardsReportParams,
+  ): Promise<CampaignRewardsReportResponse> {
+    return await this.s.getCampaignRewardsReport(campaignId, params);
+  }
+
+  public async getCampaignSubjectsByCampaignId(
+    campaignId: string,
+  ): Promise<CampaignOption[]> {
+    return await this.s.getCampaignSubjectsByCampaignId(campaignId);
   }
 
   public async getUniqueGeoData(): Promise<{
@@ -1714,6 +1782,8 @@ export class ApiHandler implements ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this.s.getFilteredSchoolsForSchoolListing(params);
   }
@@ -1727,8 +1797,17 @@ export class ApiHandler implements ServiceApi {
     order_dir?: 'asc' | 'desc';
     search?: string;
     date_range?: string;
+    percentage_filters?: Record<string, 'low' | 'mid' | 'high'>;
+    school_performance_filter?: string | null;
   }): Promise<{ data: FilteredSchoolsForSchoolListingOps[]; total: number }> {
     return await this.s.getSchoolMetricsForSchoolListing(params);
+  }
+
+  async getClassMetricsForClassListing(params: {
+    schoolId: string;
+    date_range?: string;
+  }): Promise<ClassMetricsForClassListingRow[]> {
+    return await this.s.getClassMetricsForClassListing(params);
   }
 
   async getSchoolsWithProgramAccess(
@@ -2486,5 +2565,18 @@ export class ApiHandler implements ServiceApi {
   }
   public async isSplUser(): Promise<boolean> {
     return await this.s.isSplUser();
+  }
+
+  public async getCampaignMessaging(
+    campaignId: string,
+    params?: CampaignMessagingQueryParams,
+  ): Promise<CampaignMessagingResponse> {
+    return await this.s.getCampaignMessaging(campaignId, params);
+  }
+
+  public async updateCampaignMessaging(
+    rows: UpdateCampaignMessagingRowPayload[],
+  ): Promise<boolean> {
+    return await this.s.updateCampaignMessaging(rows);
   }
 }
