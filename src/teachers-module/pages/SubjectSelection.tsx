@@ -28,6 +28,13 @@ interface CurriculumWithCourses {
   courses: TableTypes<'course'>[];
 }
 
+const SUBJECT_MODIFICATION_ROLES = [
+  RoleType.SUPER_ADMIN,
+  RoleType.OPERATIONAL_DIRECTOR,
+  RoleType.PROGRAM_MANAGER,
+  RoleType.FIELD_COORDINATOR,
+];
+
 const SubjectSelection: React.FC = () => {
   const [curriculumsWithCourses, setCurriculumsWithCourses] = useState<
     CurriculumWithCourses[]
@@ -118,8 +125,14 @@ const SubjectSelection: React.FC = () => {
       !currentSchool?.id ||
       !selectedSchoolId ||
       currentSchool.id === selectedSchoolId;
-    setCanModify(schoolMatches && normalizedRole === RoleType.PRINCIPAL);
-  }, [currentSchool?.id, paramSchoolId, roleMap]);
+    const hasSubjectModificationRole = SUBJECT_MODIFICATION_ROLES.some((role) =>
+      roles.includes(role),
+    );
+    setCanModify(
+      schoolMatches &&
+        (normalizedRole === RoleType.PRINCIPAL || hasSubjectModificationRole),
+    );
+  }, [currentSchool?.id, paramSchoolId, roleMap, roles]);
 
   const fetchCurriculumsAndCourses = async (
     context: 'school' | 'class',
