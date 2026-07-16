@@ -9937,9 +9937,7 @@ export class SupabaseApi implements ServiceApi {
         return { data: [], totalCount: 0 };
       }
 
-      const shouldUseDatabasePagination = Boolean(
-        nativeSortColumn || shouldUseRelationSort,
-      );
+      const shouldUseDatabasePagination = Boolean(nativeSortColumn);
       const searchRelationSelect =
         normalizedSearchTerm.length > 0
           ? `,
@@ -9990,16 +9988,6 @@ export class SupabaseApi implements ServiceApi {
         if (nativeSortColumn) {
           campaignQuery.order(nativeSortColumn, {
             ascending: orderDir === 'asc',
-          });
-        } else if (orderBy === 'manager') {
-          campaignQuery.order('name', {
-            ascending: orderDir === 'asc',
-            foreignTable: TABLES.User,
-          });
-        } else if (orderBy === 'programName') {
-          campaignQuery.order('name', {
-            ascending: orderDir === 'asc',
-            foreignTable: TABLES.Program,
           });
         }
 
@@ -10278,6 +10266,7 @@ export class SupabaseApi implements ServiceApi {
       .from(TABLES.Assignment)
       .update({
         is_deleted: true,
+        ends_at: nowIso,
         updated_at: nowIso,
       })
       .eq('campaign_id', campaignId)

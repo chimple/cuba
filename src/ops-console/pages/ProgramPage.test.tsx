@@ -34,6 +34,7 @@ type MockProgramListTableProps = {
   isExportDisabled: boolean;
   isExporting: boolean;
   onExport: () => void | Promise<void>;
+  canCreateProgram: boolean;
   onNewProgram: () => void;
   columns: Column<ProgramListRow>[];
   rows: ProgramListRow[];
@@ -95,9 +96,11 @@ jest.mock('../components/ProgramListTable', () => {
         <button type="button" onClick={() => props.onExport()}>
           export
         </button>
-        <button type="button" onClick={props.onNewProgram}>
-          new program
-        </button>
+        {props.canCreateProgram ? (
+          <button type="button" onClick={props.onNewProgram}>
+            new program
+          </button>
+        ) : null}
         <button type="button" onClick={() => props.onSort('totalSchools')}>
           sort
         </button>
@@ -262,4 +265,16 @@ it('does not render Program page for non-admin roles', () => {
 
   expect(screen.queryByText('Programs')).not.toBeInTheDocument();
   expect(screen.queryByTestId('program-list-table')).not.toBeInTheDocument();
+});
+
+it('hides program creation for program managers', () => {
+  mockRoles = [RoleType.PROGRAM_MANAGER];
+
+  render(<ProgramPage />);
+
+  expect(screen.getByText('Programs')).toBeInTheDocument();
+  expect(screen.getByTestId('program-list-table')).toBeInTheDocument();
+  expect(
+    screen.queryByRole('button', { name: 'new program' }),
+  ).not.toBeInTheDocument();
 });
