@@ -29,18 +29,13 @@ export const useCampaignReach = (selectedSchoolIds: string[]) => {
 
       setLoadingReach(true);
       try {
-        const schoolClasses = await Promise.all(
-          selectedSchoolIds.map((schoolId) =>
-            api.getParentWhatsappClassesBySchoolId!(schoolId),
-          ),
-        );
+        const schoolClasses =
+          await api.getParentWhatsappClassesBySchoolId(selectedSchoolIds);
 
-        const groupedClasses = schoolClasses
-          .flat()
-          .filter(
-            (classRow) =>
-              classRow.group_id && String(classRow.group_id).trim() !== '',
-          );
+        const groupedClasses = schoolClasses.filter(
+          (classRow) =>
+            classRow.group_id && String(classRow.group_id).trim() !== '',
+        );
 
         const memberCount =
           await api.getCampaignParentsInGroupBySchoolIds(selectedSchoolIds);

@@ -4380,7 +4380,7 @@ export class SupabaseApi implements ServiceApi {
   }
 
   // Parent WhatsApp Invitation: class lookup with group and invite fields.
-  async getParentWhatsappClassesBySchoolId(schoolId: string): Promise<
+  async getParentWhatsappClassesBySchoolId(schoolIds: string[]): Promise<
     {
       id: string;
       name: string;
@@ -4388,17 +4388,18 @@ export class SupabaseApi implements ServiceApi {
       whatsapp_invite_link?: string | null;
     }[]
   > {
-    if (!this.supabase) return [];
+    if (!this.supabase || schoolIds.length === 0) return [];
 
+    const uniqueSchoolIds = Array.from(new Set(schoolIds));
     const { data, error } = await this.supabase
       .from(TABLES.Class)
       .select('id, name, group_id, whatsapp_invite_link')
-      .eq('school_id', schoolId)
+      .in('school_id', uniqueSchoolIds)
       .eq('is_deleted', false);
 
     if (error) {
       logger.error(
-        'Error in parent WhatsApp class lookup by school ID:',
+        'Error in parent WhatsApp class lookup by school IDs:',
         error,
       );
       throw error;

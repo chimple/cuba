@@ -1914,7 +1914,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getClassesBySchoolId(schoolId);
   }
 
-  public async getParentWhatsappClassesBySchoolId(schoolId: string): Promise<
+  public async getParentWhatsappClassesBySchoolId(schoolIds: string[]): Promise<
     {
       id: string;
       name: string;
@@ -1927,7 +1927,7 @@ export class ApiHandler implements ServiceApi {
         'Parent WhatsApp class lookup is not implemented in current API service.',
       );
     }
-    return await this.s.getParentWhatsappClassesBySchoolId(schoolId);
+    return await this.s.getParentWhatsappClassesBySchoolId(schoolIds);
   }
 
   public async getParentWhatsappParentPhonesByClassId(

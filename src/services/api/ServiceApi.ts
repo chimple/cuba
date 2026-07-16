@@ -2855,8 +2855,8 @@ export interface ServiceApi {
 
   getClassesBySchoolId(schoolId: string): Promise<TableTypes<'class'>[]>;
 
-  // Parent WhatsApp Invitation: lightweight class lookup for invite workflow.
-  getParentWhatsappClassesBySchoolId?: (schoolId: string) => Promise<
+  // Parent WhatsApp Invitation: lightweight class lookup for selected schools.
+  getParentWhatsappClassesBySchoolId?: (schoolIds: string[]) => Promise<
     {
       id: string;
       name: string;
