@@ -101,6 +101,7 @@ interface SchoolModeOption {
 
 interface SelectModeLocationState {
   fromKidsAppLocationSchool?: boolean;
+  fromSchoolModeSwitchProfile?: boolean;
 }
 
 const SUPPORTED_LANGUAGE_CODES = new Set<string>(Object.values(LANG));
@@ -450,7 +451,8 @@ const SelectMode: FC = () => {
 
     const shouldSuppressTeacherAutoEntry =
       currentMode === MODES.TEACHER_SCHOOL &&
-      location.state?.fromKidsAppLocationSchool === true;
+      (location.state?.fromKidsAppLocationSchool === true ||
+        location.state?.fromSchoolModeSwitchProfile === true);
     const shouldAutoEnterTeacherApp =
       teacherRoleEntries.length > 0 && !shouldSuppressTeacherAutoEntry;
     const shouldUseEmptySchoolFallback = !shouldSuppressTeacherAutoEntry;
