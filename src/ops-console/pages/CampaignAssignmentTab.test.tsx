@@ -139,7 +139,7 @@ describe('CampaignAssignmentTab', () => {
     );
 
     expect(api.getAllGrades).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('data-table')).toBeInTheDocument();
+    expect(await screen.findByTestId('data-table')).toBeInTheDocument();
     expect(screen.getByText('Lesson Alpha')).toBeInTheDocument();
   });
 
