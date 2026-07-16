@@ -443,9 +443,10 @@ const SelectMode: FC = () => {
     }));
     setTeacherAppSchoolList(teacherAppSchoolOptions);
 
-    const shouldAutoEnterTeacherApp = currentMode === MODES.TEACHER;
+    const shouldAutoEnterTeacherApp =
+      currentMode !== MODES.TEACHER_SCHOOL && teacherRoleEntries.length > 0;
 
-    if (shouldAutoEnterTeacherApp && teacherRoleEntries.length > 0) {
+    if (shouldAutoEnterTeacherApp) {
       await applyOrientationForMode(MODES.TEACHER);
       schoolUtil.setCurrMode(MODES.TEACHER);
 
