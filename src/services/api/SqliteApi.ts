@@ -7316,7 +7316,7 @@ order by
   }
 
   // Parent WhatsApp Invitation: class lookup with group/invite fields.
-  async getParentWhatsappClassesBySchoolId(schoolId: string): Promise<
+  async getParentWhatsappClassesBySchoolId(schoolIds: string[]): Promise<
     {
       id: string;
       name: string;
@@ -7329,7 +7329,7 @@ order by
         'Parent WhatsApp class lookup is not implemented in Supabase API.',
       );
     }
-    return await this._serverApi.getParentWhatsappClassesBySchoolId(schoolId);
+    return await this._serverApi.getParentWhatsappClassesBySchoolId(schoolIds);
   }
 
   // Parent WhatsApp Invitation: parent phones from class_user -> user join.
