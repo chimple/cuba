@@ -62,7 +62,6 @@ jest.mock('../components/DataTablePagination', () => ({
 describe('CampaignAssignmentTab', () => {
   const api = {
     getAllGrades: jest.fn(),
-    getCampaignSubjectsByCampaignId: jest.fn(),
     getCampaignAssignments: jest.fn(),
   };
 
@@ -85,41 +84,38 @@ describe('CampaignAssignmentTab', () => {
     },
   ];
 
+  const defaultUniqueSubjects = defaultSubjects;
+
   const renderTab = (campaignId?: string) =>
     render(<CampaignAssignmentTab campaignId={campaignId} />);
 
   const primeApi = ({
     grades = defaultGrades,
-    subjects = defaultSubjects,
     assignments = defaultAssignments,
+    uniqueSubjects = defaultUniqueSubjects,
     total = 1,
     gradeError = null,
-    subjectError = null,
     assignmentError = null,
   }: {
     grades?: Array<{ id: string; name: string }>;
-    subjects?: Array<{ id: string; name: string }>;
     assignments?: Array<{
       assignmentDate: string;
       gradeName: string;
       subjectName: string;
       lessonName: string;
     }>;
+    uniqueSubjects?: Array<{ id: string; name: string }>;
     total?: number;
     gradeError?: Error | null;
-    subjectError?: Error | null;
     assignmentError?: Error | null;
   } = {}) => {
     api.getAllGrades.mockImplementation(() =>
       gradeError ? Promise.reject(gradeError) : Promise.resolve(grades),
     );
-    api.getCampaignSubjectsByCampaignId.mockImplementation(() =>
-      subjectError ? Promise.reject(subjectError) : Promise.resolve(subjects),
-    );
     api.getCampaignAssignments.mockImplementation(() =>
       assignmentError
         ? Promise.reject(assignmentError)
-        : Promise.resolve({ assignments, total }),
+        : Promise.resolve({ assignments, uniqueSubjects, total }),
     );
   };
 
@@ -135,11 +131,6 @@ describe('CampaignAssignmentTab', () => {
 
     renderTab('campaign-1');
 
-    await waitFor(() =>
-      expect(api.getCampaignSubjectsByCampaignId).toHaveBeenCalledWith(
-        'campaign-1',
-      ),
-    );
     await waitFor(() =>
       expect(api.getCampaignAssignments).toHaveBeenCalledWith('campaign-1', {
         page: 1,
@@ -173,7 +164,6 @@ describe('CampaignAssignmentTab', () => {
 
     expect(await screen.findByText('No Assignments Found')).toBeInTheDocument();
     expect(api.getAllGrades).not.toHaveBeenCalled();
-    expect(api.getCampaignSubjectsByCampaignId).not.toHaveBeenCalled();
     expect(api.getCampaignAssignments).not.toHaveBeenCalled();
   });
 
@@ -270,9 +260,6 @@ describe('CampaignAssignmentTab', () => {
 
   it('shows the loading spinner while requests are pending', () => {
     api.getAllGrades.mockImplementation(() => new Promise(() => undefined));
-    api.getCampaignSubjectsByCampaignId.mockImplementation(
-      () => new Promise(() => undefined),
-    );
     api.getCampaignAssignments.mockImplementation(
       () => new Promise(() => undefined),
     );

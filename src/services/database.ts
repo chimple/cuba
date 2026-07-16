@@ -7844,6 +7844,10 @@ export type Database = {
           subject_name: string;
           lesson_id: string;
           lesson_name: string;
+          unique_subjects: {
+            subject_id: string;
+            subject_name: string;
+          }[];
           total_count: number;
         }[];
       };
