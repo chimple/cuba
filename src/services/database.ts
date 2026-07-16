@@ -581,15 +581,11 @@ export type Database = {
       };
       campaign: {
         Row: {
-          campaign_status:
-            | Database['public']['Enums']['campaign_status']
-            | null;
-          cancelled_by: string | null;
-          comments: string | null;
           created_at: string | null;
           end_date: string;
           id: string;
           is_deleted: boolean | null;
+          learning_path_count: number | null;
           manager_id: string | null;
           name: string;
           objective: string;
@@ -602,15 +598,11 @@ export type Database = {
           updated_at: string | null;
         };
         Insert: {
-          campaign_status?:
-            | Database['public']['Enums']['campaign_status']
-            | null;
-          cancelled_by?: string | null;
-          comments?: string | null;
           created_at?: string | null;
           end_date: string;
           id?: string;
           is_deleted?: boolean | null;
+          learning_path_count?: number | null;
           manager_id?: string | null;
           name: string;
           objective: string;
@@ -623,15 +615,11 @@ export type Database = {
           updated_at?: string | null;
         };
         Update: {
-          campaign_status?:
-            | Database['public']['Enums']['campaign_status']
-            | null;
-          cancelled_by?: string | null;
-          comments?: string | null;
           created_at?: string | null;
           end_date?: string;
           id?: string;
           is_deleted?: boolean | null;
+          learning_path_count?: number | null;
           manager_id?: string | null;
           name?: string;
           objective?: string;
@@ -751,96 +739,6 @@ export type Database = {
             columns: ['campaign_id'];
             isOneToOne: false;
             referencedRelation: 'campaign';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      campaign_student_performance: {
-        Row: {
-          calculated_at: string | null;
-          campaign_id: string;
-          class_id: string;
-          class_name: string | null;
-          completion_percentage: number | null;
-          created_at: string;
-          id: string;
-          is_deleted: boolean;
-          program_id: string;
-          rank: number | null;
-          school_id: string | null;
-          school_name: string | null;
-          student_id: string;
-          student_name: string | null;
-          updated_at: string;
-        };
-        Insert: {
-          calculated_at?: string | null;
-          campaign_id: string;
-          class_id: string;
-          class_name?: string | null;
-          completion_percentage?: number | null;
-          created_at?: string;
-          id?: string;
-          is_deleted?: boolean;
-          program_id: string;
-          rank?: number | null;
-          school_id?: string | null;
-          school_name?: string | null;
-          student_id: string;
-          student_name?: string | null;
-          updated_at?: string;
-        };
-        Update: {
-          calculated_at?: string | null;
-          campaign_id?: string;
-          class_id?: string;
-          class_name?: string | null;
-          completion_percentage?: number | null;
-          created_at?: string;
-          id?: string;
-          is_deleted?: boolean;
-          program_id?: string;
-          rank?: number | null;
-          school_id?: string | null;
-          school_name?: string | null;
-          student_id?: string;
-          student_name?: string | null;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'campaign_student_performance_school_id_fkey';
-            columns: ['school_id'];
-            isOneToOne: false;
-            referencedRelation: 'school';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'campaign_student_performance_program_id_fkey';
-            columns: ['program_id'];
-            isOneToOne: false;
-            referencedRelation: 'program';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'fk_campaign_student_performance_campaign';
-            columns: ['campaign_id'];
-            isOneToOne: false;
-            referencedRelation: 'campaign';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'fk_campaign_student_performance_class';
-            columns: ['class_id'];
-            isOneToOne: false;
-            referencedRelation: 'class';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'fk_campaign_student_performance_student';
-            columns: ['student_id'];
-            isOneToOne: false;
-            referencedRelation: 'user';
             referencedColumns: ['id'];
           },
         ];
@@ -4359,7 +4257,6 @@ export type Database = {
           school_name: string | null;
           school_performance: string | null;
           state: string | null;
-          total_teachers: number | null;
           udise: string | null;
           updated_at: string | null;
         };
@@ -4391,7 +4288,6 @@ export type Database = {
           school_name?: string | null;
           school_performance?: string | null;
           state?: string | null;
-          total_teachers?: number | null;
           udise?: string | null;
           updated_at?: string | null;
         };
@@ -4423,7 +4319,6 @@ export type Database = {
           school_name?: string | null;
           school_performance?: string | null;
           state?: string | null;
-          total_teachers?: number | null;
           udise?: string | null;
           updated_at?: string | null;
         };
@@ -6236,13 +6131,6 @@ export type Database = {
         };
         Returns: boolean;
       };
-      calculate_campaign_student_performance: {
-        Args: never;
-        Returns: {
-          processed_campaigns: number;
-          upserted_rows: number;
-        }[];
-      };
       check_class_exists_by_name_and_school: {
         Args: { class_name: string; input_school_udise_code: string };
         Returns: Json;
@@ -6274,10 +6162,6 @@ export type Database = {
       };
       compute_school_metrics: {
         Args: { p_days: number; p_school_id?: string };
-        Returns: undefined;
-      };
-      compute_program_metrics: {
-        Args: { p_days: number; p_program_id?: string };
         Returns: undefined;
       };
       count_users_by_school: {
@@ -6372,25 +6256,6 @@ export type Database = {
       get_active_students_count_by_class: {
         Args: { p_class_id: string; p_days: number };
         Returns: number;
-      };
-      get_campaign_dashboard_metrics: {
-        Args: {
-          p_campaign_ids: string[];
-          p_metric_window?: string;
-          p_today?: string;
-        };
-        Returns: {
-          active_students: number;
-          average_weekly_engagement_time: number;
-          campaign_id: string;
-          campaign_name: string;
-          is_all_grades: boolean;
-          is_all_schools: boolean;
-          participating_schools: number;
-          program_id: string;
-          target_audience_id: string;
-          total_students: number;
-        }[];
       };
       get_class_leaderboard: {
         Args: { current_class_id: string };
@@ -7924,26 +7789,6 @@ export type Database = {
         };
         Returns: Json;
       };
-      get_campaign_assignments: {
-        Args: {
-          p_campaign_id: string;
-          p_grade_ids?: string[] | null;
-          p_subject_ids?: string[] | null;
-          p_page?: number;
-          p_page_size?: number;
-        };
-        Returns: {
-          assignment_id: string;
-          assignment_date: string;
-          grade_id: string;
-          grade_name: string;
-          subject_id: string;
-          subject_name: string;
-          lesson_id: string;
-          lesson_name: string;
-          total_count: number;
-        }[];
-      };
       update_class_firebase_trigger: {
         Args: {
           p_course_firebase_ids: string[];
@@ -8032,7 +7877,6 @@ export type Database = {
     };
     Enums: {
       assignment_source: 'manual' | 'recommended' | 'qr_code' | 'chatbot';
-      campaign_status: 'active' | 'inactive';
       fc_call_result: 'call_picked' | 'call_later' | 'call_not_reachable';
       fc_contact_method: 'call' | 'in_person';
       fc_engagement_target:
@@ -8241,7 +8085,6 @@ export const Constants = {
   public: {
     Enums: {
       assignment_source: ['manual', 'recommended', 'qr_code', 'chatbot'],
-      campaign_status: ['active', 'inactive'],
       fc_call_result: ['call_picked', 'call_later', 'call_not_reachable'],
       fc_contact_method: ['call', 'in_person'],
       fc_engagement_target: [

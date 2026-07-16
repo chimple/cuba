@@ -39,6 +39,10 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
         (lesson) => !lesson.id || !assignedLessonIds?.has(lesson.id),
       );
 
+  if (lessons.length === 0) {
+    return null;
+  }
+
   const visibleLessonIds = visibleLessons
     .map((lesson) => lesson.id)
     .filter((lessonId): lessonId is string => Boolean(lessonId));
@@ -158,30 +162,26 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
                 }
               }}
             >
-              {visibleLessons.length > 0 ? (
-                <>
-                  <span
-                    id="chaptercontainer-chapter-select-all-text"
-                    className="chaptercontainer-chapter-select-all-text"
-                  >
-                    {t('Select All')}
-                  </span>
-                  <span
-                    id="chaptercontainer-chapter-select-all-icon"
-                    className="chaptercontainer-chapter-select-all-icon"
-                    aria-hidden="true"
-                  >
-                    {isAllSelected ? (
-                      <img
-                        src="/assets/icons/checkbox.png"
-                        alt=""
-                        id="chaptercontainer-chapter-select-all-icon-image"
-                        className="chaptercontainer-chapter-select-all-icon-image"
-                      />
-                    ) : null}
-                  </span>
-                </>
-              ) : null}
+              <span
+                id="chaptercontainer-chapter-select-all-text"
+                className="chaptercontainer-chapter-select-all-text"
+              >
+                {t('Select All')}
+              </span>
+              <span
+                id="chaptercontainer-chapter-select-all-icon"
+                className="chaptercontainer-chapter-select-all-icon"
+                aria-hidden="true"
+              >
+                {isAllSelected ? (
+                  <img
+                    src="/assets/icons/checkbox.png"
+                    alt=""
+                    id="chaptercontainer-chapter-select-all-icon-image"
+                    className="chaptercontainer-chapter-select-all-icon-image"
+                  />
+                ) : null}
+              </span>
             </div>
             <span
               id="chaptercontainer-expand-arrow"
@@ -193,7 +193,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
           </div>
         </div>
       </div>
-      {isExpanded && visibleLessons.length > 0 ? (
+      {isExpanded ? (
         <div
           id="chaptercontainer-grid-container"
           className="chaptercontainer-grid-container"

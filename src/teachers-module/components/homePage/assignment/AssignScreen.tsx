@@ -1,7 +1,6 @@
 import { FC } from 'react';
 import { t } from 'i18next';
-import InlineSvg from '../../../../components/InlineSvg';
-import AssignScreenArrowIcon from '../../../assets/icons/assign-screen-arrow.svg?raw';
+import { ReactComponent as AssignScreenArrowIcon } from '../../../assets/icons/assign-screen-arrow.svg';
 import './AssignScreen.css';
 import { useHistory } from 'react-router-dom';
 import {
@@ -118,12 +117,11 @@ const AssignScreen: FC<AssignScreenProps> = ({
                   id="assign-screen-arrow-wrap"
                   className="assign-screen-arrow-wrap"
                 >
-                  <InlineSvg
-                    svg={AssignScreenArrowIcon}
+                  <AssignScreenArrowIcon
                     id="assign-screen-arrow"
                     className="assign-screen-arrow"
-                    ariaHidden
-                    focusable={false}
+                    aria-hidden="true"
+                    focusable="false"
                   />
                 </span>
               </div>
@@ -165,12 +163,11 @@ const AssignScreen: FC<AssignScreenProps> = ({
                   id="assign-screen-arrow-wrap"
                   className="assign-screen-arrow-wrap"
                 >
-                  <InlineSvg
-                    svg={AssignScreenArrowIcon}
+                  <AssignScreenArrowIcon
                     id="assign-screen-arrow"
                     className="assign-screen-arrow"
-                    ariaHidden
-                    focusable={false}
+                    aria-hidden="true"
+                    focusable="false"
                   />
                 </span>
               </div>
@@ -210,12 +207,11 @@ const AssignScreen: FC<AssignScreenProps> = ({
                   id="assign-screen-arrow-wrap"
                   className="assign-screen-arrow-wrap"
                 >
-                  <InlineSvg
-                    svg={AssignScreenArrowIcon}
+                  <AssignScreenArrowIcon
                     id="assign-screen-arrow"
                     className="assign-screen-arrow"
-                    ariaHidden
-                    focusable={false}
+                    aria-hidden="true"
+                    focusable="false"
                   />
                 </span>
               </div>

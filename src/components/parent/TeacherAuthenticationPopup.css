@@ -1,3 +1,11 @@
+html:has(.teacher-authentication-popup-overlay),
+body:has(.teacher-authentication-popup-overlay),
+ion-app:has(.teacher-authentication-popup-overlay),
+ion-router-outlet:has(.teacher-authentication-popup-overlay) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 .teacher-authentication-popup-overlay {
   position: fixed;
   inset: 0;

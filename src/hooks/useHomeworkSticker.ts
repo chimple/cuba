@@ -21,7 +21,6 @@ import {
 } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
-import { getPathwayStickerCollectedEvent } from '../analytics/rewardEvents';
 import { AudioUtil } from '../utility/AudioUtil';
 import {
   StickerBookModalData,
@@ -638,15 +637,6 @@ export function useHomeworkSticker({
           trigger,
         },
       );
-      if (isDragPopup) {
-        Util.logEvent(getPathwayStickerCollectedEvent(data.source), {
-          user_id: Util.getCurrentStudent()?.id ?? 'unknown',
-          sticker_book_id: data.stickerBookId,
-          sticker_id: data.nextStickerId,
-          source: data.source,
-          trigger,
-        });
-      }
     },
     [getStickerRewardBoxElement],
   );

@@ -21,7 +21,6 @@ import Sidebar from '../components/Sidebar';
 import ParentWhatsappInvitationPage from '../pages/Parentwhatsappinvite/ParentWhatsappInvitationPage';
 import ActivitiesPage from './ActivitiesPage';
 import AddSchoolPage from './AddSchoolPage';
-import CampaignListingPage from './CampaignListingPage';
 import CampaignSetupPage from './CampaignSetupPage';
 import MigrateSchoolsPage from './MigrateSchoolsPage';
 import NewUserPage from './NewUserPageOps';
@@ -38,8 +37,6 @@ import SchoolActivities from './SchoolActivities';
 import SchoolApprovedRequest from './SchoolApprovedRequest';
 import SchoolDetailsPage from './SchoolDetailsPage';
 import SchoolFormPage from './SchoolFormPage';
-import CampaignsOverview from '../components/campaignsOverview/CampaignsOverview';
-import { CampaignsOverviewApiResponse } from '../components/campaignsOverview/CampaignsOverviewLogic';
 import SchoolList from './SchoolList';
 import SchoolPendingRequest from './SchoolPendingRequest';
 import SchoolRejectedRequest from './SchoolRejectedRequest';
@@ -67,45 +64,6 @@ const ProgramConnectedSchoolRoute: React.FC = () => {
   return <ProgramConnectedSchoolPage id={program_id} />;
 };
 
-type CampaignOverviewRouteState = {
-  campaignOverviewData?: CampaignsOverviewApiResponse;
-  returnTo?: {
-    pathname: string;
-    search?: string;
-  };
-};
-
-const CampaignOverviewRoute: React.FC = () => {
-  const history = useHistory();
-  const location = useLocation<CampaignOverviewRouteState>();
-  const campaignOverviewData = location.state?.campaignOverviewData;
-  const returnTo = location.state?.returnTo;
-
-  const handleOpenCampaignListing = () => {
-    history.replace({
-      pathname:
-        returnTo?.pathname || `${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`,
-      search: returnTo?.search || '',
-    });
-  };
-
-  if (!campaignOverviewData) {
-    return <Redirect to={`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`} />;
-  }
-
-  return (
-    <CampaignsOverview
-      campaignOverviewData={campaignOverviewData}
-      onBackClick={handleOpenCampaignListing}
-      onBreadcrumbClick={(_, index) => {
-        if (index === 0) {
-          handleOpenCampaignListing();
-        }
-      }}
-    />
-  );
-};
-
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
   const history = useHistory();
@@ -119,59 +77,27 @@ const SidebarPage: React.FC = () => {
   );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
-  const canAccessProgramPage = userRoles.some((role) =>
-    [
-      RoleType.SUPER_ADMIN,
-      RoleType.OPERATIONAL_DIRECTOR,
-      RoleType.PROGRAM_MANAGER,
-    ].includes(role as RoleType),
-  );
   const canAccessCampaignPage = userRoles.some((role) =>
     CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
   );
-  const canAccessRequestPage = userRoles.includes(RoleType.FIELD_COORDINATOR);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   useEffect(() => {
-    if (canAccessProgramPage && !isExternalUser) return;
+    if (!isExternalUser) return;
 
     const schoolListPath = `${path}${PAGES.SCHOOL_LIST}`;
     const schoolDetailsPrefix = `${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/`;
-    const campaignsPath = `${path}${PAGES.ADMIN_CAMPAIGNS}`;
-    const campaignDetailsPrefix = `${campaignsPath}/`;
-    const campaignCreatePath = `${path}${PAGES.ADMIN_CAMPAIGNS_NEW}`;
-    const requestListPath = `${path}${PAGES.REQUEST_LIST}`;
-    const requestDetailsPrefix = `${requestListPath}/`;
-    const devicesPath = `${path}${PAGES.ADMIN_DEVICES}`;
-    const resourcesPath = `${path}${PAGES.ADMIN_RESOURCES}`;
     const isAllowedPath =
       location.pathname === schoolListPath ||
-      location.pathname.startsWith(schoolDetailsPrefix) ||
-      (canAccessCampaignPage &&
-        (location.pathname === campaignsPath ||
-          location.pathname === campaignCreatePath ||
-          location.pathname.startsWith(campaignDetailsPrefix))) ||
-      (canAccessRequestPage &&
-        (location.pathname === requestListPath ||
-          location.pathname.startsWith(requestDetailsPrefix))) ||
-      location.pathname === devicesPath ||
-      location.pathname === resourcesPath;
+      location.pathname.startsWith(schoolDetailsPrefix);
 
     if (!isAllowedPath) {
       history.replace(schoolListPath);
     }
-  }, [
-    canAccessCampaignPage,
-    canAccessProgramPage,
-    canAccessRequestPage,
-    history,
-    isExternalUser,
-    location.pathname,
-    path,
-  ]);
+  }, [history, isExternalUser, location.pathname, path]);
 
   const fetchData = async () => {
     try {
@@ -208,9 +134,7 @@ const SidebarPage: React.FC = () => {
               <Redirect
                 to={`${
                   path +
-                  (canAccessProgramPage
-                    ? PAGES.PROGRAM_PAGE
-                    : PAGES.SCHOOL_LIST)
+                  (isExternalUser ? PAGES.SCHOOL_LIST : PAGES.PROGRAM_PAGE)
                 }`}
               />
             </ProtectedRoute>
@@ -227,31 +151,11 @@ const SidebarPage: React.FC = () => {
               <SchoolList />
             </ProtectedRoute>
             <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_CAMPAIGNS_NEW}`}
+              path={`${path}${PAGES.ADMIN_COMPAIGNS}`}
               exact={true}
             >
               {canAccessCampaignPage ? (
                 <CampaignSetupPage />
-              ) : (
-                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
-              )}
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_CAMPAIGNS}/:campaignId`}
-              exact={true}
-            >
-              {canAccessCampaignPage ? (
-                <CampaignOverviewRoute />
-              ) : (
-                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
-              )}
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_CAMPAIGNS}`}
-              exact={true}
-            >
-              {canAccessCampaignPage ? (
-                <CampaignListingPage />
               ) : (
                 <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
               )}

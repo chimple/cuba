@@ -5,19 +5,11 @@ import './SelectedFilters.css';
 interface SelectedFiltersProps {
   filters: Record<string, string[]>;
   onDeleteFilter: (key: string, value: string) => void;
-  extraFilters?: Array<{
-    key: string;
-    value: string;
-    label: string;
-  }>;
-  getFilterLabel?: (key: string, value: string) => React.ReactNode;
 }
 
 const SelectedFilters: React.FC<SelectedFiltersProps> = ({
   filters,
   onDeleteFilter,
-  extraFilters = [],
-  getFilterLabel,
 }) => {
   return (
     <Box className="selected-filters-container-SelectedFilters">
@@ -26,21 +18,13 @@ const SelectedFilters: React.FC<SelectedFiltersProps> = ({
           ? values.map((value, index) => (
               <Chip
                 key={`${key}-${index}`}
-                label={getFilterLabel?.(key, value) ?? value}
+                label={`${value}`}
                 onDelete={() => onDeleteFilter(key, value)}
                 className="filter-chip-SelectedFilters"
               />
             ))
           : null,
       )}
-      {extraFilters.map((filter) => (
-        <Chip
-          key={`${filter.key}-${filter.value}`}
-          label={filter.label}
-          onDelete={() => onDeleteFilter(filter.key, filter.value)}
-          className="filter-chip-SelectedFilters"
-        />
-      ))}
     </Box>
   );
 };

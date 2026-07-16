@@ -14,14 +14,13 @@
   height: 36px;
   min-height: 36px;
   border-radius: 24px !important;
-  padding: 0 18px !important;
+  padding: 0 24px;
   text-transform: none;
   border-color: #e0e0e0;
   color: #6b778c;
   margin-left: 0 !important;
   text-transform: none !important;
   box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
-  min-width: fit-content !important;
 }
 
 .filter-button-SearchAndFilter.has-filters {
@@ -36,7 +35,7 @@
 
 .filter-button-SearchAndFilter .MuiButton-startIcon {
   margin-right: 8px;
-  margin-left: 0;
+  margin-left: -4px;
 }
 
 .filter-icon-image-SearchAndFilter {

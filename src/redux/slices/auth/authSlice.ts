@@ -18,7 +18,6 @@ export interface AuthState {
   isOpsUser: boolean;
   roles: string[];
   loading: boolean;
-  globalLoading: boolean;
   error: AuthErrors;
 }
 
@@ -37,7 +36,6 @@ const initialState: AuthState = {
   isOpsUser: false,
   roles: [],
   loading: false,
-  globalLoading: false,
   error: initialErrorState,
 };
 
@@ -47,9 +45,6 @@ export const authSlice = createSlice({
   reducers: {
     setAuthLoading: (state, action: PayloadAction<boolean>) => {
       state.loading = action.payload;
-    },
-    setGlobalLoading: (state, action: PayloadAction<boolean>) => {
-      state.globalLoading = action.payload;
     },
 
     // Allows setting a specific error by key
@@ -118,14 +113,12 @@ export const authTransform = createTransform(
       general: null,
     },
     loading: false,
-    globalLoading: false,
   }),
   { whitelist: ['auth'] },
 );
 
 export const {
   setAuthLoading,
-  setGlobalLoading,
   setAuthError,
   setAuthUser,
   setUser,

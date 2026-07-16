@@ -9,12 +9,7 @@ import {
   fetchSchoolListPage,
   type SchoolListSourceRow,
 } from './SchoolList.fetcher';
-import {
-  type DateRangeValue,
-  type Filters,
-  type PercentageFilters,
-  type SchoolPerformanceFilterValue,
-} from './SchoolList.helpers';
+import { type DateRangeValue, type Filters } from './SchoolList.helpers';
 import { buildSchoolListExportSheetRows } from './SchoolList.export';
 import {
   applyFreezePanesToWorkbook,
@@ -40,8 +35,6 @@ type UseSchoolListExportParams = {
   orderDir: 'asc' | 'desc';
   searchTerm: string;
   selectedDateRange: DateRangeValue;
-  percentageFilters: PercentageFilters;
-  schoolPerformanceFilter: SchoolPerformanceFilterValue | null;
   total: number;
   isLoading: boolean;
   isSearchPending: boolean;
@@ -310,8 +303,6 @@ const fetchAllSchoolsForExport = async ({
   orderDir,
   searchTerm,
   selectedDateRange,
-  percentageFilters,
-  schoolPerformanceFilter,
 }: FetchAllSchoolsForExportParams) => {
   const allSchools: SchoolListSourceRow[] = [];
   let currentPage = 1;
@@ -328,8 +319,6 @@ const fetchAllSchoolsForExport = async ({
       orderDir,
       searchTerm,
       selectedDateRange,
-      percentageFilters,
-      schoolPerformanceFilter,
     });
 
     const pageRows = (response?.data || []) as SchoolListSourceRow[];
@@ -358,8 +347,6 @@ export const useSchoolListExport = ({
   orderDir,
   searchTerm,
   selectedDateRange,
-  percentageFilters,
-  schoolPerformanceFilter,
   total,
   isLoading,
   isSearchPending,
@@ -382,8 +369,6 @@ export const useSchoolListExport = ({
         orderDir,
         searchTerm,
         selectedDateRange,
-        percentageFilters,
-        schoolPerformanceFilter,
       });
       const exportSheetRows = buildSchoolListExportSheetRows(exportSchools);
       const output = await buildExportWorkbook(exportSheetRows);

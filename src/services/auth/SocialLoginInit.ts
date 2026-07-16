@@ -6,7 +6,7 @@ export function ensureSocialLoginInitialized(): Promise<void> {
   if (!initPromise) {
     initPromise = SocialLogin.initialize({
       google: {
-        webClientId: import.meta.env.VITE_CLIENT_ID,
+        webClientId: process.env.REACT_APP_CLIENT_ID,
       },
     }).catch((error) => {
       // Reset promise on failure to allow retries on subsequent calls.

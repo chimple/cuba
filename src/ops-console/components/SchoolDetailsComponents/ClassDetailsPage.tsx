@@ -214,7 +214,7 @@ const ClassDetailsPage: React.FC<Props> = ({
             schoolData: data?.schoolData,
             students: initialStudents,
             totalStudentCount: initialTotal,
-            classData: classDataArray,
+            classData: [onlyClassRow].filter(Boolean) as ClassRow[],
             totalCount: initialTotal,
           }}
           schoolId={schoolId}

@@ -8,12 +8,12 @@ import {
   TableTypes,
 } from '../../common/constants';
 import { Chapter } from '../../interface/curriculumInterfaces';
-import Assignment from '../../models/Assignment';
-import Auth from '../../models/Auth';
-import Class from '../../models/Class';
-import CurriculumController from '../../models/CurriculumController';
-import Result from '../../models/Result';
-import User from '../../models/User';
+import Assignment from '../../models/assignment';
+import Auth from '../../models/auth';
+import Class from '../../models/class';
+import CurriculumController from '../../models/curriculumController';
+import Result from '../../models/result';
+import User from '../../models/user';
 import {
   AssignmentDateRangeData,
   JoinClassInviteLookupResult,
@@ -21,12 +21,12 @@ import {
   ServiceApi,
 } from './ServiceApi';
 // import { Chapter } from "../../common/courseConstants";
-import Course from '../../models/Course';
-import Lesson from '../../models/Lesson';
+import Course from '../../models/course';
+import Lesson from '../../models/lesson';
 import { StudentLessonResult } from '../../common/courseConstants';
 import { Unsubscribe } from '@firebase/firestore';
 import { AvatarObj } from '../../components/animation/Avatar';
-import LiveQuizRoomObject from '../../models/LiveQuizRoom';
+import LiveQuizRoomObject from '../../models/liveQuizRoom';
 import { DocumentData } from 'firebase/firestore';
 import { RoleType } from '../../interface/modelInterfaces';
 import logger from '../../utility/logger';
@@ -919,6 +919,12 @@ export class OneRosterApi implements ServiceApi {
     page: number,
     limit: number,
   ): Promise<StudentAPIResponse> {
+    throw new Error('Method not implemented.');
+  }
+
+  getStudentAndParentByStudentId(
+    studentId: string,
+  ): Promise<{ user: any; parents: any[] }> {
     throw new Error('Method not implemented.');
   }
 

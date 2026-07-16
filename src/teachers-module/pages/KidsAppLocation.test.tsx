@@ -110,7 +110,7 @@ describe('KidsAppLocation', () => {
   test('logs home selection before opening home kids app', async () => {
     render(React.createElement(KidsAppLocation));
 
-    fireEvent.click(screen.getByRole('button', { name: /home/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Home' }));
 
     await waitFor(() =>
       expect(logEventMock).toHaveBeenCalledWith(
@@ -128,7 +128,7 @@ describe('KidsAppLocation', () => {
   test('logs school selection before opening school kids app', async () => {
     render(React.createElement(KidsAppLocation));
 
-    fireEvent.click(screen.getByRole('button', { name: /school/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'School' }));
 
     await waitFor(() =>
       expect(logEventMock).toHaveBeenCalledWith(
@@ -152,10 +152,10 @@ describe('KidsAppLocation', () => {
     render(React.createElement(KidsAppLocation));
 
     expect(
-      screen.queryByRole('button', { name: /home/i }),
+      screen.queryByRole('button', { name: 'Home' }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: /school/i }),
+      screen.queryByRole('button', { name: 'School' }),
     ).not.toBeInTheDocument();
   });
 });

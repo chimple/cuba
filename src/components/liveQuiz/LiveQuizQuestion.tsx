@@ -5,7 +5,7 @@ import LiveQuiz, {
   LIVE_QUIZ_QUESTION_TIME,
   LiveQuizOption,
   LiveQuizQuestion as LiveQuizQuestionType,
-} from '../../models/LiveQuiz';
+} from '../../models/liveQuiz';
 import './LiveQuizQuestion.css';
 import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';
@@ -15,7 +15,6 @@ import {
   SOURCE,
   REWARD_LESSON,
   TableTypes,
-  GAME_URL,
 } from '../../common/constants';
 import { useHistory } from 'react-router';
 import { ServiceConfig } from '../../services/ServiceConfig';
@@ -68,7 +67,7 @@ const LiveQuizQuestion: FC<{
   source = SOURCE.SUBJECT_PAGE,
 }) => {
   const quizPathBase =
-    localStorage.getItem(GAME_URL) ??
+    localStorage.getItem('gameUrl') ??
     'http://localhost/_capacitor_file_/storage/emulated/0/Android/data/org.chimple.bahama/files/';
 
   const quizPath =

@@ -10,7 +10,7 @@ import LiveQuizQuestion from './LiveQuizQuestion';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { schoolUtil } from '../../utility/schoolUtil';
-import { LIVE_QUIZ_QUESTION_TIME } from '../../models/LiveQuiz';
+import { LIVE_QUIZ_QUESTION_TIME } from '../../models/liveQuiz';
 import { PAGES } from '../../common/constants';
 import logger from '../../utility/logger';
 

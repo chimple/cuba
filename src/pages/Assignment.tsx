@@ -12,7 +12,6 @@ import {
   SOURCE,
   TABLES,
   TableTypes,
-  STUDENT_RESULT,
 } from '../common/constants';
 import { useHistory } from 'react-router';
 import { App } from '@capacitor/app';
@@ -148,21 +147,7 @@ const AssignmentPage: React.FC<AssignmentPageProps> = ({
         typeof api.hasStudentResult === 'function'
           ? await api.hasStudentResult(student.id)
           : true;
-
-      let playedNow = false;
-      try {
-        const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
-        if (studentResultStr) {
-          const studentResultObj = JSON.parse(studentResultStr);
-          if (studentResultObj && studentResultObj[student.id] === true) {
-            playedNow = true;
-          }
-        }
-      } catch (e) {
-        logger.error('Failed to parse studentResult from sessionStorage', e);
-      }
-
-      setShowActivationLessonBanner(!hasStudentResult && !playedNow);
+      setShowActivationLessonBanner(!hasStudentResult);
       const linkedData = await api.getStudentClassesAndSchools(student.id);
       if (!linkedData?.classes.length) {
         setIsLinked(false);

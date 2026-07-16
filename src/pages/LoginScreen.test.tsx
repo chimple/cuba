@@ -2,10 +2,13 @@ import { act } from 'react';
 import { fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Capacitor, registerPlugin } from '@capacitor/core';
-import { useFeatureValue } from '@growthbook/growthbook-react';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Toast } from '@capacitor/toast';
 import { createTestStore, renderWithProviders } from '../tests/test-utils';
+import {
+  __resetGrowthBookMock,
+  __setGrowthBookMock,
+} from '../tests/__mocks__/@growthbook/growthbook-react';
 
 import LoginScreen from './LoginScreen';
 import { ServiceConfig } from '../services/ServiceConfig';
@@ -96,7 +99,6 @@ jest.mock('../i18n', () => ({
 jest.mock('../common/onlineOfflineErrorMessageHandler', () => ({
   useOnlineOfflineErrorMessageHandler: jest.fn(),
 }));
-jest.mock('@growthbook/growthbook-react');
 
 jest.mock('../growthbook/Growthbook', () => ({
   useGbContext: () => ({ setGbUpdated: mockSetGbUpdated }),
@@ -381,15 +383,6 @@ const eventually = async (assertion: () => void, timeoutMs = 2500) => {
   throw lastError;
 };
 
-const mockGrowthBookFeatures = (features: Record<string, unknown> = {}) => {
-  (useFeatureValue as jest.Mock).mockImplementation(
-    (key: string, fallback: unknown) =>
-      Object.prototype.hasOwnProperty.call(features, key)
-        ? features[key]
-        : fallback,
-  );
-};
-
 const renderReady = async () => {
   const mockStore = createTestStore();
   const view = renderWithProviders(<LoginScreen />, { store: mockStore });
@@ -406,9 +399,9 @@ describe('LoginScreen', () => {
     jest.useRealTimers();
     localStorage.clear();
     jest.clearAllMocks();
+    __resetGrowthBookMock();
     mockMigrateSupabaseSession.mockReset();
     mockCurrentLanguage = 'en';
-    mockGrowthBookFeatures();
 
     window.matchMedia = jest.fn().mockImplementation((query) => ({
       matches: false,
@@ -557,9 +550,11 @@ describe('LoginScreen', () => {
 
     // Terms & Conditions: when clicked should open the page
     it('opens Terms & Conditions page when clicked', async () => {
-      mockGrowthBookFeatures({
-        [TC_HTML_URL]: {
-          en: 'https://cdn.example.com/terms',
+      __setGrowthBookMock({
+        features: {
+          [TC_HTML_URL]: {
+            en: 'https://cdn.example.com/terms',
+          },
         },
       });
       const user = userEvent.setup();
@@ -945,7 +940,9 @@ describe('LoginScreen', () => {
     });
 
     it('does not verify for less than 6 digits and verifies for exactly 6 digits', async () => {
-      mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 3 });
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 3 },
+      });
       const user = userEvent.setup();
       const { view } = await renderReady();
 
@@ -969,7 +966,9 @@ describe('LoginScreen', () => {
     });
 
     it('auto picks OTP from plugin event and triggers verification', async () => {
-      mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 4 });
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 4 },
+      });
       mockPortPlugin.otpRetrieve.mockResolvedValueOnce({ otp: '654321' });
       const addListenerSpy = jest.spyOn(document, 'addEventListener');
       const user = userEvent.setup();
@@ -998,7 +997,9 @@ describe('LoginScreen', () => {
 
     // 5. OTP verification flow
     it('runs OTP verify success path and redirects', async () => {
-      mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 5 });
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 5 },
+      });
       (
         mockAuthHandler.proceedWithVerificationCode as jest.Mock
       ).mockResolvedValue({
@@ -1154,7 +1155,9 @@ describe('LoginScreen', () => {
     });
 
     it('handles successful native google sign in and redirects', async () => {
-      mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 6 });
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 6 },
+      });
       jest.spyOn(Capacitor, 'isNativePlatform').mockReturnValue(true);
       (mockAuthHandler.googleSign as jest.Mock).mockResolvedValue({
         success: true,
@@ -1199,7 +1202,9 @@ describe('LoginScreen', () => {
     it.each([RoleType.TEACHER, RoleType.PRINCIPAL, RoleType.COORDINATOR])(
       'redirects mixed auto-user %s accounts to DISPLAY_SCHOOLS after google sign in',
       async (teacherAppRole) => {
-        mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 6 });
+        __setGrowthBookMock({
+          features: { [LATEST_TC_VERSION]: 6 },
+        });
         jest.spyOn(Capacitor, 'isNativePlatform').mockReturnValue(true);
         (mockAuthHandler.googleSign as jest.Mock).mockResolvedValue({
           success: true,
@@ -1290,7 +1295,9 @@ describe('LoginScreen', () => {
 
     // Email Login: valid email format
     it('accepts valid email format and triggers email login', async () => {
-      mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 7 });
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 7 },
+      });
       const user = userEvent.setup();
       const { view } = await renderReady();
       await user.click(view.getByRole('button', { name: 'switch-email' }));
@@ -1466,7 +1473,9 @@ describe('LoginScreen', () => {
     });
 
     it('submits student credentials format', async () => {
-      mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 8 });
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 8 },
+      });
       const user = userEvent.setup();
       const { view } = await renderReady();
       await user.click(view.getByRole('button', { name: 'switch-student' }));

@@ -59,14 +59,6 @@ import {
 } from '../utility/termsAndConditions';
 import { isTeacherAppRole } from '../utility/roleUtil';
 
-const NATIVE_LOADING_ANIMATIONS = ['/assets/home.gif'];
-const WEB_LOADING_ANIMATIONS = [
-  '/assets/home.gif',
-  '/assets/hw-book.gif',
-  '/assets/profiles-grid.gif',
-  '/assets/subjects-book.gif',
-];
-
 const LoginScreen: React.FC = () => {
   const history = useHistory();
   const tcHtmlUrlFeature = useFeatureValue<string>(TC_HTML_URL, '');
@@ -127,7 +119,6 @@ const LoginScreen: React.FC = () => {
   const loginTermsUrl = loginTermsBaseUrl
     ? buildTermsUrl(loginTermsBaseUrl, currentLang)
     : 'assets/termsandconditions/TermsandConditionsofChimple.html';
-  const isNativePlatform = Capacitor.isNativePlatform();
 
   const loadingMessages = [
     t('Track your learning progress.'),
@@ -135,11 +126,12 @@ const LoginScreen: React.FC = () => {
     t('Customize your profiles.'),
     t('Assign or get regular homework.'),
   ];
-  // Native WebView GIF decoding happens beside Capacitor bridge work, so keep
-  // Android on one animation instead of cycling through every large GIF.
-  const loadingAnimations = isNativePlatform
-    ? NATIVE_LOADING_ANIMATIONS
-    : WEB_LOADING_ANIMATIONS;
+  const loadingAnimations = [
+    '/assets/home.gif',
+    '/assets/hw-book.gif',
+    '/assets/profiles-grid.gif',
+    '/assets/subjects-book.gif',
+  ];
   const [loadingAnimationsIndex, setLoadingAnimationsIndex] = useState(0);
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
 
@@ -154,7 +146,7 @@ const LoginScreen: React.FC = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [loadingAnimations.length, loadingMessages.length]);
+  }, [loadingMessages.length]);
 
   useEffect(() => {
     const initialize = async () => {
@@ -688,6 +680,7 @@ const LoginScreen: React.FC = () => {
         );
         return;
       }
+      setAnimatedLoading(false);
       dispatch(setAuthLoading(false));
       dispatch(setAuthUser(authUser));
       dispatch(setUser(userData));

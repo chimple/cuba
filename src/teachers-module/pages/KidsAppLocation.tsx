@@ -17,13 +17,12 @@ import {
   SELECTED_STUDENTS,
   USER_SELECTION_STAGE,
 } from '../../common/constants';
-import InlineSvg from '../../components/InlineSvg';
 import ChimpleRiveMascot from '../../components/learningPathway/ChimpleRiveMascot';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
 import { schoolUtil } from '../../utility/schoolUtil';
-import HomeLocationIcon from '../assets/icons/homeLocationIcon.svg?raw';
-import SchoolLocationIcon from '../assets/icons/schoolLocationIcon.svg?raw';
+import { ReactComponent as HomeLocationIcon } from '../assets/icons/homeLocationIcon.svg';
+import { ReactComponent as SchoolLocationIcon } from '../assets/icons/schoolLocationIcon.svg';
 import { useKidsAppLocationAccess } from '../hooks/useKidsAppLocationAccess';
 import { logKidsAppLocationSelected } from '../utils/kidsAppLocationAnalytics';
 import './KidsAppLocation.css';
@@ -113,8 +112,7 @@ const KidsAppLocation: FC = () => {
             className="kids-app-location-btn kids-app-location-btn-home"
             onClick={onHomeClick}
           >
-            <InlineSvg
-              svg={HomeLocationIcon}
+            <HomeLocationIcon
               id="kids-app-location-btn-icon"
               className="kids-app-location-btn-icon"
             />
@@ -126,8 +124,7 @@ const KidsAppLocation: FC = () => {
             className="kids-app-location-btn kids-app-location-btn-school"
             onClick={onSchoolClick}
           >
-            <InlineSvg
-              svg={SchoolLocationIcon}
+            <SchoolLocationIcon
               id="kids-app-location-btn-icon"
               className="kids-app-location-btn-icon"
             />

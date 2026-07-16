@@ -8,9 +8,6 @@ import {
   mockAuthHandler,
 } from './tests/__mocks__/serviceConfigMock';
 
-process.env.BASE_URL ??= '/';
-process.env.PROD ??= '';
-
 jest.mock('@testing-library/react', () => {
   const originalModule = jest.requireActual('@testing-library/react');
   const React = require('react');

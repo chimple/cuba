@@ -256,22 +256,9 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
           {/* Profile Image with fixed gap */}
           <div className="profile-image-container">
             <img
-              src={
-                student?.image ||
-                `/assets/avatars/${student?.avatar ?? AVATARS[0]}.png`
-              }
+              src={`/assets/avatars/${student?.avatar ?? AVATARS[0]}.png`}
               alt="Profile"
               className="profile-avatar-img"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                const fallback = `/assets/avatars/${student?.avatar ?? AVATARS[0]}.png`;
-                if (
-                  target.src !== window.location.origin + fallback &&
-                  target.src !== fallback
-                ) {
-                  target.src = fallback;
-                }
-              }}
             />
           </div>
 

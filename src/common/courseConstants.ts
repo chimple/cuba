@@ -1,5 +1,5 @@
 import { DocumentReference, Timestamp } from 'firebase/firestore';
-import Lesson from '../models/Lesson';
+import Lesson from '../models/lesson';
 
 export interface Chapter {
   id: string;

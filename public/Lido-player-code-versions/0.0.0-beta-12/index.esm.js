@@ -1,2 +1,1 @@
-export { $ as format } from './p-B1uwYUL1.js';
-import './p-Dq-Z8Dx0.js';
+export{$ as format}from"./p-B1uwYUL1.js";import"./p-Dq-Z8Dx0.js";

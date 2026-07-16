@@ -4,10 +4,6 @@ import {
   FilteredSchoolsForSchoolListingOps,
 } from '../../common/constants';
 import { ServiceApi } from '../../services/api/ServiceApi';
-import type {
-  PercentageFilters,
-  SchoolPerformanceFilterValue,
-} from './SchoolList.helpers';
 
 type SchoolListApiRequest = {
   filters: Record<string, string[]>;
@@ -17,8 +13,6 @@ type SchoolListApiRequest = {
   order_dir: 'asc' | 'desc';
   search: string;
   date_range: string;
-  percentage_filters: PercentageFilters;
-  school_performance_filter: SchoolPerformanceFilterValue | null;
 };
 
 export type SchoolMetricCell = {
@@ -39,7 +33,6 @@ export type SchoolListSourceRow = FilteredSchoolsForSchoolListingOps & {
   total_activities_assigned?: number | null;
   assignments_assigned?: number | null;
   community_parents_reached?: number | null;
-  active_teacher_percentage?: number | null;
 };
 
 export type SchoolListRow = SchoolListSourceRow & {
@@ -58,7 +51,6 @@ export type SchoolListRow = SchoolListSourceRow & {
   avgAssignmentsCompleted: SchoolMetricCell;
   avgActivitiesCompleted: SchoolMetricCell;
   phoneCallsStudentsParents: SchoolMetricCell;
-  inpersonStudentsParents: SchoolMetricCell;
   phoneCallsTeachersHms: SchoolMetricCell;
   communityVisits: SchoolMetricCell;
   schoolVisits: SchoolMetricCell;
@@ -69,7 +61,6 @@ export type SchoolListRow = SchoolListSourceRow & {
 const ORDER_BY_MAP: Record<string, string> = {
   name: 'school_name',
   schoolName: 'school_name',
-  schoolPerformance: 'school_performance',
   onboardedStudents: 'onboarded_students',
   activatedStudents: 'activated_students',
   activeStudents: 'active_students',
@@ -78,14 +69,6 @@ const ORDER_BY_MAP: Record<string, string> = {
   activitiesAssigned: 'activities_assigned',
   avgAssignmentsCompleted: 'avg_assignments_completed',
   avgActivitiesCompleted: 'avg_activities_completed',
-  phoneCallsStudentsParents: 'student_parent_calls',
-  inpersonStudentsParents: 'student_parent_inperson',
-  phoneCallsTeachersHms: 'teacher_hm_calls',
-  communityVisits: 'community_visits',
-  parentsReached: 'community_parents_reached',
-  schoolVisits: 'school_visits',
-  parentsOnWhatsapp: 'parents_on_whatsapp',
-  parentsInWhatsappGroup: 'parents_in_group',
 };
 
 export const useDebouncedValue = <T,>(value: T, delay: number) => {
@@ -108,8 +91,6 @@ export const buildSchoolListRequest = ({
   orderDir,
   searchTerm,
   selectedDateRange,
-  percentageFilters,
-  schoolPerformanceFilter,
 }: {
   filters: Record<string, string[]>;
   selectedTab: PROGRAM_TAB;
@@ -119,8 +100,6 @@ export const buildSchoolListRequest = ({
   orderDir: 'asc' | 'desc';
   searchTerm: string;
   selectedDateRange: string;
-  percentageFilters: PercentageFilters;
-  schoolPerformanceFilter: SchoolPerformanceFilterValue | null;
 }): SchoolListApiRequest => {
   const cleanedFilters = Object.fromEntries(
     Object.entries(filters).filter(
@@ -140,8 +119,6 @@ export const buildSchoolListRequest = ({
     order_dir: orderDir,
     search: searchTerm,
     date_range: selectedDateRange,
-    percentage_filters: percentageFilters,
-    school_performance_filter: schoolPerformanceFilter,
   };
 };
 
@@ -155,8 +132,6 @@ export const fetchSchoolListPage = async ({
   orderDir,
   searchTerm,
   selectedDateRange,
-  percentageFilters,
-  schoolPerformanceFilter,
 }: {
   api: ServiceApi;
   filters: Record<string, string[]>;
@@ -167,8 +142,6 @@ export const fetchSchoolListPage = async ({
   orderDir: 'asc' | 'desc';
   searchTerm: string;
   selectedDateRange: string;
-  percentageFilters: PercentageFilters;
-  schoolPerformanceFilter: SchoolPerformanceFilterValue | null;
 }) => {
   const getSchoolListing =
     api.getSchoolMetricsForSchoolListing?.bind(api) ??
@@ -188,8 +161,6 @@ export const fetchSchoolListPage = async ({
       orderDir,
       searchTerm,
       selectedDateRange,
-      percentageFilters,
-      schoolPerformanceFilter,
     }),
   );
 };
@@ -204,8 +175,6 @@ export const useSchoolListData = ({
   orderDir,
   searchTerm,
   selectedDateRange,
-  percentageFilters,
-  schoolPerformanceFilter,
 }: {
   api: ServiceApi;
   filters: Record<string, string[]>;
@@ -216,8 +185,6 @@ export const useSchoolListData = ({
   orderDir: 'asc' | 'desc';
   searchTerm: string;
   selectedDateRange: string;
-  percentageFilters: PercentageFilters;
-  schoolPerformanceFilter: SchoolPerformanceFilterValue | null;
 }) => {
   const [schools, setSchools] = useState<SchoolListSourceRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -239,8 +206,6 @@ export const useSchoolListData = ({
           orderDir,
           searchTerm,
           selectedDateRange,
-          percentageFilters,
-          schoolPerformanceFilter,
         });
 
         if (!active) return;
@@ -274,8 +239,6 @@ export const useSchoolListData = ({
     searchTerm,
     selectedDateRange,
     selectedTab,
-    percentageFilters,
-    schoolPerformanceFilter,
   ]);
 
   return { schools, total, isLoading };

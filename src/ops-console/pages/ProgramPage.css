@@ -1,21 +1,12 @@
 .program-page {
-  background-color: rgba(250, 250, 250, 1);
-  color: #121619;
+  background-color: white;
+  color: black;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  font-family: 'Baloo 2', 'BalooRegular', cursive;
   height: 100vh;
   width: 100%;
   overflow: hidden;
-}
-
-.program-page *,
-.program-page .MuiTypography-root,
-.program-page .MuiButton-root,
-.program-page .MuiInputBase-root,
-.program-page .MuiTab-root,
-.program-page .MuiTableCell-root {
-  font-family: 'Baloo 2', 'BalooRegular', cursive !important;
 }
 
 .program-page-header {
@@ -23,466 +14,34 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 62px;
-  padding: 24px 24px 0;
-  width: 100%;
-  background: rgba(250, 250, 250, 1);
-}
-
-.program-page-header-title {
+  padding-top: 12px;
+  padding-left: 21px;
+  padding-right: 20px;
   font-size: 28px;
+  width: 100%;
   font-weight: 600;
+  background: white;
 }
 
 .program-header-and-search-filter {
   flex: 0 0 auto;
   width: 100%;
   display: flex;
+  max-height: 100%;
   flex-direction: column;
-  background-color: rgba(250, 250, 250, 1);
-  padding: 24px 24px 24px;
-}
-
-.program-search-filter {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 24px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-}
-
-.program-search-filter::-webkit-scrollbar {
-  display: none;
-}
-
-.program-tab-wrapper {
-  flex-shrink: 0;
-}
-
-.program-list-tab.MuiTab-root {
-  min-width: auto;
-  height: 48px;
-  padding: 16px 0;
-  margin-right: 24px;
-  color: #21272a;
-  font-size: 16px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  line-height: 1;
-  text-transform: none;
-}
-
-.program-list-tab.Mui-selected {
-  color: #1a71f6;
-}
-
-.program-list-tabs-div .MuiTabs-indicator {
-  background-color: #1a71f6;
-  height: 2px;
-}
-
-.program-button-and-search-filter {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 15px;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.program-button-and-search-filter .search-filter-container-SearchAndFilter {
-  padding-left: 0;
-  gap: 15px;
-}
-
-.program-button-and-search-filter .search-input-SearchAndFilter {
-  width: 233px;
-}
-
-.program-button-and-search-filter .search-input-SearchAndFilter .MuiInput-root {
-  background-color: rgba(255, 255, 255, 1);
-  height: 36px;
-  color: #697077;
-  padding: 0 8px;
-}
-
-.program-button-and-search-filter .filter-button-SearchAndFilter,
-.program-button-and-search-filter .program-list-filter-button,
-.program-button-and-search-filter .school-list-actions-button.MuiButton-root {
-  height: 36px !important;
-  border: none !important;
-  border-radius: 20px !important;
-  background: #fff !important;
-  color: #121619 !important;
-  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1) !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  padding: 6px 16px !important;
-}
-
-.program-button-and-search-filter .program-list-filter-button {
-  min-width: 110px !important;
-  text-transform: none;
-  min-height: 36px !important;
-}
-
-.program-list-filter-icon {
-  height: 14px !important;
-  width: 14px !important;
-}
-
-.program-button-and-search-filter
-  .school-list-date-range-button.MuiButton-root {
-  min-width: 140px !important;
-}
-
-.program-button-and-search-filter .school-list-export-button.MuiButton-root {
-  min-width: 110px !important;
-}
-
-.program-button-and-search-filter .program-list-actions-button.MuiButton-root {
-  min-width: 110px !important;
-}
-
-.program-header-and-search-filter
-  .selected-filters-container-SelectedFilters:empty {
-  display: none;
-  margin: 0;
+  background-color: white;
+  padding: 0 20px;
+  border-radius: 8px;
 }
 
 .program-table {
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
-  padding: 0 24px;
+  padding: 0 20px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-.program-table .data-tablebody-container,
-.program-table .MuiTable-root,
-.program-table .MuiTableCell-root {
-  border-radius: 0 !important;
-}
-
-.program-table .data-tablebody-head-cell {
-  background-color: #f2f4f8 !important;
-  border-top: 0.667px solid #dde1e6;
-  border-bottom: 0 !important;
-  color: #121619;
-  height: 48px;
-  padding: 8px 12px;
-
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 16.8px;
-  text-align: left !important;
-}
-
-.program-table .MuiTableCell-root {
-  border-right: 0.667px solid #dde1e6 !important;
-  border-left: 0.667px solid #dde1e6 !important;
-}
-
-.program-table .data-tablebody-cell {
-  border-top: 0.667px solid #dde1e6;
-  border-bottom: 0 !important;
-  height: auto;
-  min-height: 56px;
-  padding: 8px 12px;
-
-  text-align: left !important;
-}
-
-.program-table .data-tablebody-head-cell:nth-child(2),
-.program-table .data-tablebody-cell:nth-child(2),
-.program-table .data-tablebody-head-cell:nth-child(n + 4),
-.program-table .data-tablebody-cell:nth-child(n + 4) {
-  text-align: center !important;
-}
-
-.program-table
-  .data-tablebody-head-cell:nth-child(2)
-  .data-tablebody-head-button,
-.program-table
-  .data-tablebody-head-cell:nth-child(n + 4)
-  .data-tablebody-head-button {
-  justify-content: center !important;
-}
-
-.program-table .data-tablebody-head-cell:nth-child(2) > .MuiBox-root,
-.program-table
-  .data-tablebody-head-cell:nth-child(2)
-  > .MuiBox-root
-  > .MuiBox-root {
-  justify-content: center !important;
-  width: 100%;
-}
-
-.program-table
-  .data-tablebody-head-cell:nth-child(2)
-  .data-tablebody-head-button-left {
-  justify-content: center !important;
-  width: 100%;
-}
-
-.program-table
-  .data-tablebody-head-cell:nth-child(2)
-  .data-tablebody-head-button
-  .data-tablebody-head-label,
-.program-table
-  .data-tablebody-head-cell:nth-child(n + 4)
-  .data-tablebody-head-button
-  .data-tablebody-head-label {
-  flex: 0 1 auto;
-  text-align: center !important;
-}
-
-.program-table .data-tablebody-cell:nth-child(2) .program-metric-value,
-.program-table .data-tablebody-cell:nth-child(n + 4) .program-metric-value {
-  text-align: center !important;
-}
-
-.program-table
-  .data-tablebody-cell:nth-child(n + 4)
-  .program-metric-with-percent {
-  justify-content: center;
-  text-align: center;
-}
-
-.program-table .data-tablebody-head-cell:first-child,
-.program-table .data-tablebody-cell:first-child {
-  min-width: 256px;
-  max-width: none;
-  width: 256px;
-  box-sizing: border-box;
-}
-
-.program-table .data-tablebody-cell:first-child {
-  padding-left: 12px;
-  vertical-align: top;
-}
-
-.program-table .data-tablebody-row {
-  height: auto;
-  min-height: 56px;
-}
-
-.program-table .data-tablebody-row .data-tablebody-cell {
-  vertical-align: middle;
-}
-
-.program-table .MuiTableSortLabel-label,
-.program-table .data-tablebody-head-label {
-  font-weight: 500 !important;
-  line-height: 16.8px !important;
-}
-
-.program-table .data-tablebody-head-button {
-  all: unset;
-  color: #121619;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: space-between;
-  width: 100%;
-
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 500;
-  line-height: 16.8px;
-}
-
-.program-table .data-tablebody-head-sort-trigger {
-  all: unset;
-  align-items: center;
-  color: #121619;
-  cursor: pointer;
-  display: flex;
-  flex: 1 1 auto;
-  gap: 8px;
-  justify-content: space-between;
-  min-width: 0;
-}
-
-.program-table .data-tablebody-head-sort-trigger:disabled {
-  cursor: default;
-}
-
-.program-table .data-tablebody-head-button-center {
-  justify-content: center;
-}
-
-.program-table .data-tablebody-head-button-right {
-  justify-content: flex-end;
-}
-
-.program-table .data-tablebody-head-icon {
-  display: inline-flex;
-  flex: 0 0 auto;
-  height: 14px;
-  justify-content: center;
-  line-height: 14px;
-  width: 14px;
-}
-
-.program-table .data-tablebody-head-icon-sort {
-  align-items: center;
-  color: #121619;
-  font-size: 16px;
-  font-weight: 400;
-}
-
-.program-table .data-tablebody-head-sort-image {
-  display: block;
-  height: 10px;
-  transition: transform 0.15s ease;
-  width: 10px;
-}
-
-.program-table .data-tablebody-head-icon-desc .data-tablebody-head-sort-image {
-  transform: rotate(180deg);
-}
-
-.program-table .data-tablebody-head-filter-trigger {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  display: inline-flex;
-  height: 24px;
-  justify-content: center;
-  padding: 0;
-  width: 24px;
-}
-
-.program-table .data-tablebody-head-sort-icon-trigger {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  display: inline-flex;
-  height: 24px;
-  justify-content: center;
-  padding: 0;
-  width: 24px;
-}
-
-.program-table .data-tablebody-head-button .data-tablebody-head-label {
-  flex: 1 1 auto;
-}
-
-.program-table .data-tablebody-head-icon-filter {
-  display: block;
-  height: 14px;
-  width: 14px;
-}
-
-.program-header-filter-menu.MuiPaper-root {
-  border: 1px solid #dde1e6;
-  border-radius: 12px !important;
-  box-sizing: border-box;
-  box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.08) !important;
-  max-width: 160px !important;
-  min-width: 160px !important;
-  width: 160px !important;
-  overflow: visible !important;
-}
-
-.program-header-filter-menu.MuiPaper-root::before {
-  background: white;
-  border-left: 1px solid #dde1e6;
-  border-top: 1px solid #dde1e6;
-  content: '';
-  height: 10px;
-  width: 10px;
-  position: absolute;
-  top: -6px;
-  left: calc(100% - 28px) !important;
-  right: auto !important;
-  transform: rotate(45deg) !important;
-  z-index: 1;
-}
-
-.program-header-filter-options {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
-  gap: 5px;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.program-header-filter-row {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  color: #2c2c2e;
-  cursor: pointer;
-  display: flex;
-
-  font-size: 13px;
-  font-weight: 400;
-  justify-content: space-between;
-  line-height: 1.2;
-  min-height: 36px;
-  padding: 4px 6px;
-  text-align: left;
-  width: 100%;
-  box-sizing: border-box;
-  border-radius: 8px;
-  transition: background-color 0.15s ease;
-}
-
-.program-header-filter-row:hover {
-  background-color: #f4f5f7;
-}
-
-.program-header-filter-range {
-  white-space: nowrap;
-  color: #121619;
-}
-
-.program-header-filter-chip {
-  align-items: center;
-  border-radius: 999px;
-  display: inline-flex;
-  font-size: 11px;
-  font-weight: 600;
-  height: 22px;
-  justify-content: center;
-  min-width: 44px;
-  padding: 0 8px;
-}
-
-.program-header-filter-chip-low {
-  background: #fce8e6;
-  color: #c5221f;
-}
-
-.program-header-filter-chip-mid {
-  background: #fef7e0;
-  color: #b95000;
-}
-
-.program-header-filter-chip-high {
-  background: #e6f4ea;
-  color: #137333;
-}
-
-.program-table .data-tablebody-head-cell:not(:first-child),
-.program-table .data-tablebody-cell:not(:first-child) {
-  min-width: 160px;
-  max-width: none;
-  width: auto;
-  box-sizing: border-box;
 }
 
 .program-page-pagination {
@@ -490,171 +49,69 @@
   justify-content: center;
   width: 100%;
   flex: 0 0 auto;
-  background-color: rgba(250, 250, 250, 1);
+  background-color: white;
 }
 
-.program-loading-container,
-.program-table-empty {
-  flex: 1;
+.program-search-filter {
   display: flex;
+  width: 100%;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  color: #697077;
-  font-size: 18px;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 10px;
 }
 
-.program-name-cell {
+.program-tab-wrapper {
+  flex-shrink: 0;
+}
+
+.program-button-and-search-filter {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: flex-start;
+  gap: 10px;
+  flex-wrap: nowrap;
+  flex: 1 1 auto;
   min-width: 0;
-  text-align: left;
-  width: 100%;
+  justify-content: flex-end;
 }
 
-.program-name-cell > div {
+.program-button-and-search-filter > * {
+  flex-shrink: 1;
   min-width: 0;
-  max-width: 100%;
-  width: 100%;
 }
 
-.program-name-title {
-  color: #21272a;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  line-height: 15.4px !important;
-  overflow-wrap: break-word;
-  text-align: left;
-  white-space: normal;
-  word-break: normal;
-}
-
-.program-name-subtitle {
-  color: #697077;
-  font-size: 12px !important;
-  font-weight: 400 !important;
-  line-height: 16.8px !important;
-  overflow-wrap: break-word;
-  text-align: left;
-  white-space: normal;
-  word-break: normal;
-}
-
-.program-metric-value {
-  color: #121619;
-  display: inline-block;
-  font-size: 14px !important;
-  font-weight: 400 !important;
-  line-height: 19.6px !important;
-  text-align: left !important;
+.program-button-and-search-filter button {
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.program-metric-with-percent {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  justify-content: flex-start;
-  text-align: left;
-  width: 100%;
+.program-search-filter::-webkit-scrollbar {
+  display: none;
 }
-
-.program-percent-chip.MuiChip-root,
-.program-na-chip.MuiChip-root {
-  height: 16px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 400;
-  min-width: 34.28px;
-}
-
-.program-percent-chip .MuiChip-label,
-.program-na-chip .MuiChip-label {
-  padding-left: 6px;
-  padding-right: 6px;
-  line-height: 12px;
-}
-
-.program-percent-chip-high {
-  background-color: rgba(22, 163, 74, 0.08) !important;
-  color: #16a34a !important;
-}
-
-.program-percent-chip-mid {
-  background-color: rgba(202, 138, 4, 0.08) !important;
-  color: #ca8a04 !important;
-}
-
-.program-percent-chip-low,
-.program-na-chip {
-  background-color: rgba(220, 38, 38, 0.08) !important;
-  color: #dc2626 !important;
-}
-
-.program-division-cell {
-  width: 136px;
-  margin: 0;
-  text-align: left;
-}
-
-.program-division-bar {
-  display: block;
-  width: 136px;
-  height: 6px;
-  border-radius: 3px;
-  overflow: hidden;
-  background: #f2f4f8;
-}
-
-.program-division-red {
-  fill: #dc2626;
-}
-
-.program-division-yellow {
-  fill: #ca8a04;
-}
-
-.program-division-green {
-  fill: #16a34a;
-}
-
-.program-division-labels {
-  display: flex;
-  gap: 6px;
-  justify-content: flex-start;
-  margin-top: 4px;
-  font-size: 10px;
-  line-height: 12px;
-}
-
-.program-division-red-text {
-  color: #dc2626;
-}
-
-.program-division-yellow-text {
-  color: #ca8a04;
-}
-
-.program-division-green-text {
-  color: #16a34a;
-}
-
-.bell-icon {
-  color: black !important;
+.program-search-filter {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 @media (max-width: 600px) and (orientation: portrait) {
   .program-page {
     height: 100vh;
-    width: 100%;
-    overflow: hidden;
+    width: 100vw;
+    overflow-y: hidden;
+    overflow-x: hidden;
   }
 
   .program-page-header {
     position: relative;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    height: 56px;
-    padding: 12px 16px;
+    font-size: 24px;
+    padding: 5%;
   }
 
   .program-page-header-title {
@@ -666,311 +123,59 @@
     text-align: center;
     pointer-events: none;
     font-size: 24px;
+    font-weight: 600;
   }
-
   .program-page-header .bell-icon {
     margin-left: auto;
     position: relative;
     pointer-events: auto;
   }
 
-  .program-header-and-search-filter {
-    padding: 0;
+  .program-header-and-search-filter,
+  .program-page-pagination {
+    padding: 0 0 !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .program-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .program-table table {
+    width: 100%;
   }
 
   .program-search-filter {
     flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-    overflow: visible;
+    width: 100%;
+    /* gap: 8px; */
   }
 
-  /* Tabs centered + horizontal scroll */
+  .program-button-and-search-filter {
+    padding-left: 4%;
+    padding-right: 4%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    /* gap: 4px; */
+    /* flex-wrap: nowrap; */
+  }
+
+  .program-button-and-search-filter button {
+    flex: 0 1 1;
+    overflow: hidden;
+  }
+
   .program-tab-wrapper {
     width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding: 0 16px;
-    box-sizing: border-box;
-  }
-
-  .program-tab-wrapper::-webkit-scrollbar {
-    display: none;
-  }
-
-  .program-tab-wrapper .MuiTabs-root {
-    min-height: 48px;
-    width: 100%;
-  }
-
-  .program-tab-wrapper .MuiTabs-scroller {
-    overflow-x: auto !important;
-  }
-
-  .program-tab-wrapper .MuiTabs-list,
-  .program-tab-wrapper .MuiTabs-flexContainer {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    justify-content: center !important;
-    min-width: max-content;
-    width: max-content;
-    margin: 0 auto;
-  }
-
-  .program-list-tab.MuiTab-root {
-    flex: 0 0 auto;
-    min-width: max-content;
-    height: 48px;
-    margin-right: 0;
-    padding: 12px 8px;
-    font-size: 14px;
-    white-space: nowrap;
-    text-align: center;
-  }
-
-  .program-list-tab.MuiTab-root + .program-list-tab.MuiTab-root {
-    margin-left: 8px;
-  }
-
-  /*
-    Mobile layout:
-    Row 1: Search + filter icon
-    Row 2: Last 7 Days + Export + Actions
-  */
-  .program-button-and-search-filter {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 10px;
-    width: 100%;
-    padding: 0 16px 12px;
-    align-items: center;
-    box-sizing: border-box;
-  }
-
-  .program-button-and-search-filter .search-filter-container-SearchAndFilter {
-    display: contents;
-  }
-
-  .program-button-and-search-filter .search-input-SearchAndFilter {
-    grid-column: 1 / 6 !important;
-    grid-row: 1 !important;
-    width: 100%;
-    min-width: 0;
-  }
-
-  .program-button-and-search-filter
-    .search-input-SearchAndFilter
-    .MuiInput-root {
-    width: 100%;
-    height: 36px;
-    background-color: #fff;
-  }
-
-  /* Filter button: icon only inside circle */
-  .program-button-and-search-filter .filter-button-SearchAndFilter,
-  .program-button-and-search-filter .program-list-filter-button.MuiButton-root {
-    grid-column: 6 !important;
-    grid-row: 1 !important;
-    justify-self: center !important;
-
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-
-    min-width: 36px !important;
-    width: 36px !important;
-    max-width: 36px !important;
-    height: 36px !important;
-    min-height: 36px !important;
-
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    border-radius: 50% !important;
-
-    background: #fff !important;
-    color: transparent !important;
-    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.14) !important;
-
-    overflow: hidden !important;
-    white-space: nowrap !important;
-    font-size: 0 !important;
-    line-height: 0 !important;
-    text-indent: -9999px !important;
-  }
-
-  .program-button-and-search-filter
-    .filter-button-SearchAndFilter
-    .MuiButton-startIcon,
-  .program-button-and-search-filter
-    .filter-button-SearchAndFilter
-    .MuiButton-endIcon,
-  .program-button-and-search-filter
-    .program-list-filter-button.MuiButton-root
-    .MuiButton-startIcon,
-  .program-button-and-search-filter
-    .program-list-filter-button.MuiButton-root
-    .MuiButton-endIcon {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-
-    width: 18px !important;
-    min-width: 18px !important;
-    height: 18px !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-
-    color: #1a71f6 !important;
-    text-indent: 0 !important;
-    font-size: 18px !important;
-    line-height: 18px !important;
-  }
-
-  .program-button-and-search-filter .filter-button-SearchAndFilter svg,
-  .program-button-and-search-filter .filter-button-SearchAndFilter img,
-  .program-button-and-search-filter
-    .program-list-filter-button.MuiButton-root
-    svg,
-  .program-button-and-search-filter
-    .program-list-filter-button.MuiButton-root
-    img,
-  .program-list-filter-icon {
-    display: block !important;
-    width: 18px !important;
-    min-width: 18px !important;
-    height: 18px !important;
-
-    margin: 0 !important;
-    padding: 0 !important;
-
-    color: #1a71f6 !important;
-    text-indent: 0 !important;
-    font-size: 18px !important;
-    line-height: 18px !important;
-  }
-
-  .program-button-and-search-filter
-    .filter-button-SearchAndFilter
-    span:not(.MuiButton-startIcon):not(.MuiButton-endIcon),
-  .program-button-and-search-filter .filter-button-SearchAndFilter p,
-  .program-button-and-search-filter
-    .filter-button-SearchAndFilter
-    .MuiTypography-root,
-  .program-button-and-search-filter
-    .program-list-filter-button.MuiButton-root
-    span:not(.MuiButton-startIcon):not(.MuiButton-endIcon),
-  .program-button-and-search-filter
-    .program-list-filter-button.MuiButton-root
-    p,
-  .program-button-and-search-filter
-    .program-list-filter-button.MuiButton-root
-    .MuiTypography-root {
-    display: none !important;
-  }
-
-  /* Row 2: Last 7 Days + Export + Actions in one row */
-  .program-button-and-search-filter
-    .school-list-date-range-button.MuiButton-root,
-  .program-button-and-search-filter .school-list-export-button.MuiButton-root,
-  .program-button-and-search-filter
-    .program-list-actions-button.MuiButton-root {
-    grid-row: 2 !important;
-
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    height: 36px !important;
-    min-height: 36px !important;
-
-    padding: 6px 4px !important;
-    font-size: 11px !important;
-    line-height: 14px !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-
-    border-radius: 18px !important;
-    box-sizing: border-box !important;
-  }
-
-  .program-button-and-search-filter
-    .school-list-date-range-button.MuiButton-root {
-    grid-column: 1 / 3 !important;
-  }
-
-  .program-button-and-search-filter .school-list-export-button.MuiButton-root {
-    grid-column: 3 / 5 !important;
-  }
-
-  .program-button-and-search-filter
-    .program-list-actions-button.MuiButton-root {
-    grid-column: 5 / 7 !important;
-  }
-
-  .program-button-and-search-filter
-    .school-list-date-range-button.MuiButton-root
-    .MuiButton-startIcon,
-  .program-button-and-search-filter
-    .school-list-export-button.MuiButton-root
-    .MuiButton-startIcon,
-  .program-button-and-search-filter
-    .program-list-actions-button.MuiButton-root
-    .MuiButton-startIcon,
-  .program-button-and-search-filter
-    .school-list-date-range-button.MuiButton-root
-    .MuiButton-endIcon,
-  .program-button-and-search-filter
-    .school-list-export-button.MuiButton-root
-    .MuiButton-endIcon,
-  .program-button-and-search-filter
-    .program-list-actions-button.MuiButton-root
-    .MuiButton-endIcon {
-    margin-left: 2px !important;
-    margin-right: 2px !important;
-  }
-
-  /* Selected filters: horizontal scroll on mobile */
-  .program-header-and-search-filter .selected-filters-container-SelectedFilters,
-  .program-header-and-search-filter
-    .selected-filters-container-SelectedFilters.MuiBox-root,
-  .program-header-and-search-filter
-    .css-0.selected-filters-container-SelectedFilters {
-    width: 100%;
-    max-width: 100%;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    gap: 8px;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    padding: 0 16px 8px;
-    box-sizing: border-box;
-  }
-
-  .program-header-and-search-filter
-    .selected-filters-container-SelectedFilters::-webkit-scrollbar {
-    display: none;
-  }
-
-  .program-header-and-search-filter
-    .selected-filters-container-SelectedFilters
-    > * {
-    flex: 0 0 auto !important;
-    white-space: nowrap !important;
-  }
-
-  .program-table {
-    padding: 0 16px;
   }
 
   .program-page-pagination {
-    padding: 0 0 16px;
     overflow-x: auto;
     justify-content: center;
+    padding-bottom: 16px;
   }
 }

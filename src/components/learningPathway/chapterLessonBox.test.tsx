@@ -60,7 +60,6 @@ const buildLearningPath = (opts?: {
 describe('chapterLessonBox', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    sessionStorage.clear();
     jest
       .spyOn(ServiceConfig, 'getI')
       .mockReturnValue({ apiHandler: mockApi } as any);
@@ -143,7 +142,6 @@ describe('chapterLessonBox', () => {
     render(<ChapterLessonBox />);
     await screen.findByText('tr:Chapter Active : tr:Lesson Active');
 
-    sessionStorage.clear();
     mockApi.getLesson.mockRejectedValue(new Error('fetch-fail'));
 
     act(() => {
@@ -152,7 +150,7 @@ describe('chapterLessonBox', () => {
 
     await waitFor(() => {
       expect(errSpy).toHaveBeenCalledWith(
-        'Error fetching lesson or chapter details:',
+        'Error handling course change:',
         expect.any(Error),
       );
     });

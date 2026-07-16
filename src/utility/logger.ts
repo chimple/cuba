@@ -1,10 +1,5 @@
 /* eslint-disable no-console */
 
-import {
-  NativeBridgePayload,
-  sanitizeNativeBridgePayload,
-} from './safeNativeBridgePayload';
-
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent';
 type LogMethod = 'debug' | 'info' | 'warn' | 'error';
 type LogContext = Record<string, unknown>;
@@ -35,13 +30,13 @@ const LEVEL_ORDER: Record<LogLevel, number> = {
 };
 
 const getEnvLogLevel = (): LogLevel => {
-  const envLevel = import.meta.env.VITE_LOG_LEVEL as LogLevel;
+  const envLevel = process.env.REACT_APP_LOG_LEVEL as LogLevel;
 
   if (envLevel && LEVEL_ORDER[envLevel] !== undefined) {
     return envLevel;
   }
 
-  return import.meta.env.PROD ? 'warn' : 'debug';
+  return process.env.NODE_ENV === 'production' ? 'warn' : 'debug';
 };
 
 let currentLevel: LogLevel = getEnvLogLevel();
@@ -195,8 +190,7 @@ const buildPayload = (level: LogMethod, args: unknown[]): LogPayload => {
 
 const formatForNative = (obj: unknown): string => {
   try {
-    const safePayload = sanitizeNativeBridgePayload(obj as NativeBridgePayload);
-    return JSON.stringify(safePayload, null, 2);
+    return JSON.stringify(obj, null, 2);
   } catch {
     return '[Object]';
   }
@@ -239,9 +233,7 @@ const emit = (level: LogMethod, args: unknown[]) => {
 
     if (IS_NATIVE) {
       const serialized = cleanedArgs.map((a) =>
-        a && typeof a === 'object'
-          ? formatForNative(a)
-          : sanitizeNativeBridgePayload(a as NativeBridgePayload),
+        a && typeof a === 'object' ? formatForNative(a) : a,
       );
       return console.log(`[${level.toUpperCase()}] ${message}`, ...serialized);
     }

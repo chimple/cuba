@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Box, CircularProgress } from '@mui/material';
 import { useHistory } from 'react-router-dom';
-import { PAGES } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import type {
   CampaignObjective,
@@ -224,12 +223,8 @@ const CampaignSetupPage: React.FC = () => {
       return;
     }
 
-    history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`);
+    history.goBack();
   }, [campaignSetup.activeStep, handleBackStep, history]);
-
-  const handleOpenCampaignListing = useCallback(() => {
-    history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`);
-  }, [history]);
 
   const handleCommunicationContinue = useCallback(() => {
     setCommunicationAttempted(true);
@@ -364,7 +359,7 @@ const CampaignSetupPage: React.FC = () => {
         type: 'success',
         text: t('Campaign launched successfully.'),
       });
-      history.replace(`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`);
+      history.goBack();
     } catch (error) {
       logger.error('Failed to launch campaign:', error);
       setLaunchMessage({
@@ -412,10 +407,7 @@ const CampaignSetupPage: React.FC = () => {
 
   return (
     <Box className="campaign-setup-page">
-      <CampaignSetupHeader
-        onBack={handleHeaderBack}
-        onOpenCampaignListing={handleOpenCampaignListing}
-      />
+      <CampaignSetupHeader onBack={handleHeaderBack} />
 
       {(campaignSetup.message || launchMessage) && (
         <Alert

@@ -30,7 +30,7 @@ import ActivityDetailsPanel from './ActivityDetailsPanel';
 import { FcActivity } from '../../interface/modelInterfaces';
 import logger from '../../utility/logger';
 
-const DEFAULT_PAGE_SIZE = 20;
+const DEFAULT_PAGE_SIZE = 10;
 
 const SchoolActivities: React.FC = () => {
   const history = useHistory();

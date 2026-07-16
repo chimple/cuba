@@ -16,8 +16,6 @@ import {
   IS_REWARD_FEATURE_ON,
   GENERIC_POP_UP,
   SOURCE,
-  STUDENT_RESULT,
-  CURRENT_HEADER,
 } from '../common/constants';
 import './Home.css';
 import HomeHeader from '../components/HomeHeader';
@@ -49,8 +47,6 @@ import {
   fetchLessonsById,
   HomeworkPathwayLesson,
 } from '../components/assignment/homeworkPathwayHelpers';
-import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
-
 const localData: any = {};
 
 const Home: FC = () => {
@@ -97,7 +93,7 @@ const Home: FC = () => {
     ) {
       return currPage as HOMEHEADERLIST;
     } else {
-      return localStorage.getItem(CURRENT_HEADER) || HOMEHEADERLIST.HOME;
+      return localStorage.getItem('currentHeader') || HOMEHEADERLIST.HOME;
     }
   });
   const appStateChange = (isActive: boolean) => {
@@ -108,30 +104,12 @@ const Home: FC = () => {
   const [to, setTo] = useState<number>(0);
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const tabFromUrl = params.get('tab');
-
-    if (
-      tabFromUrl &&
-      Object.values(HOMEHEADERLIST).includes(tabFromUrl as HOMEHEADERLIST) &&
-      tabFromUrl !== currentHeader
-    ) {
-      setCurrentHeader(tabFromUrl as HOMEHEADERLIST);
+    if (currentHeader) {
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('tab', currentHeader);
+      window.history.replaceState({}, '', newUrl.toString());
     }
-  }, [location.search, currentHeader]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (currentHeader && params.get('tab') !== currentHeader) {
-      history.replace({
-        pathname: location.pathname,
-        search: `?${new URLSearchParams({
-          ...Object.fromEntries(params.entries()),
-          tab: currentHeader,
-        }).toString()}`,
-      });
-    }
-  }, [currentHeader, history, location.pathname, location.search]);
+  }, [currentHeader]);
 
   const growthbook = useGrowthBook();
   useEffect(() => {
@@ -181,6 +159,7 @@ const Home: FC = () => {
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, 'true');
     Util.checkDownloadedLessonsFromLocal();
     initData();
+    setCurrentHeader(HOMEHEADERLIST.HOME);
     setSubTab(SUBTAB.SUGGESTIONS);
     getCanShowAvatar();
     if (!!urlParams.get(CONTINUE)) {
@@ -205,7 +184,7 @@ const Home: FC = () => {
         ? HOMEHEADERLIST.HOME
         : currentHeader,
     );
-    localStorage.setItem(CURRENT_HEADER, currentHeader);
+    localStorage.setItem('currentHeader', currentHeader);
     if (currentHeader !== HOMEHEADERLIST.HOME) {
       fetchData();
     }
@@ -240,21 +219,7 @@ const Home: FC = () => {
       typeof api.hasStudentResult === 'function'
         ? await api.hasStudentResult(student.id)
         : true;
-
-    let playedNow = false;
-    try {
-      const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
-      if (studentResultStr) {
-        const studentResultObj = JSON.parse(studentResultStr);
-        if (studentResultObj && studentResultObj[student.id] === true) {
-          playedNow = true;
-        }
-      }
-    } catch (e) {
-      logger.error('Failed to parse studentResult from sessionStorage', e);
-    }
-
-    setShowActivationLessonBanner(!hasStudentResult && !playedNow);
+    setShowActivationLessonBanner(!hasStudentResult);
     const studentResult = await api.getStudentResultInMap(student.id);
     if (!!studentResult) {
       setLessonResultMap(studentResult);
@@ -537,7 +502,7 @@ const Home: FC = () => {
       headerIconList.push(element);
     });
     setCurrentHeader(selectedHeader);
-    localStorage.setItem(CURRENT_HEADER, selectedHeader);
+    localStorage.setItem('currentHeader', selectedHeader);
     localStorage.setItem(PREVIOUS_SELECTED_COURSE(), selectedHeader);
     DEFAULT_HEADER_ICON_CONFIGS.get(selectedHeader);
     switch (selectedHeader) {

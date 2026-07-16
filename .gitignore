@@ -10,9 +10,6 @@
 
 # production
 /build
-/dist
-/storybook-static
-/android/app/build
 
 # misc
 .DS_Store

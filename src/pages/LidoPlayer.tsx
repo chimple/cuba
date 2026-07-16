@@ -23,7 +23,6 @@ import {
   IS_REWARD_FEATURE_ON,
   RESULT_STATUS,
   SOURCE,
-  CURRENT_HEADER,
 } from '../common/constants';
 import Loading from '../components/Loading';
 import ScoreCard from '../components/scorecards/ScoreCard';
@@ -138,7 +137,7 @@ const LidoPlayer: FC = () => {
   const urlSearchParams = new URLSearchParams(window.location.search);
   const lessonId = urlSearchParams.get('lessonid') ?? state?.lessonId;
   const assignmentType = state?.assignment?.type || 'self-played';
-  const playedFrom = localStorage.getItem(CURRENT_HEADER);
+  const playedFrom = localStorage.getItem('currentHeader');
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [basePath, setBasePath] = useState<string>();
@@ -167,12 +166,6 @@ const LidoPlayer: FC = () => {
   const courseDetail: TableTypes<'course'> = state?.course
     ? JSON.parse(state.course)
     : undefined;
-  const courseDetailWithPathFields = courseDetail as
-    | (Partial<TableTypes<'course'>> & {
-        course_id?: string | null;
-        course_code?: string | null;
-      })
-    | undefined;
   const chapterDetail: TableTypes<'chapter'> = state?.chapter
     ? JSON.parse(state.chapter)
     : undefined;
@@ -196,27 +189,10 @@ const LidoPlayer: FC = () => {
   const isExitingRef = useRef(false);
 
   const getAssessmentProgressKey = () => {
-    if (isAssessmentLesson && courseDetailWithPathFields?.subject_id) {
-      const courseCode = (
-        courseDetailWithPathFields.code ??
-        courseDetailWithPathFields.course_code
-      )
-        ?.trim()
-        ?.toLowerCase();
-      const courseId =
-        courseDetailWithPathFields.id ??
-        courseDetailWithPathFields.course_id ??
-        courseDocId;
-      return courseCode
-        ? `subject:${courseDetailWithPathFields.subject_id}:course:${courseCode}`
-        : `subject:${courseDetailWithPathFields.subject_id}:course:${courseId}`;
+    if (isAssessmentLesson && courseDetail?.subject_id) {
+      return `subject:${courseDetail.subject_id}`;
     }
-    return (
-      courseDetailWithPathFields?.id ??
-      courseDetailWithPathFields?.course_id ??
-      courseDocId ??
-      ''
-    );
+    return courseDetail?.id ?? courseDocId ?? '';
   };
 
   const resolveStudentContext = async (): Promise<{
@@ -638,16 +614,12 @@ const LidoPlayer: FC = () => {
         const activitiesScoresStr = group.resultsList.join(',');
 
         let abilityUpdates: Partial<AbilityUpdates> = {};
-        let courseSubjectIdForResult: string | undefined =
-          courseDetail?.subject_id ?? undefined;
         try {
           const currentCourseId = courseDetail?.id ?? courseDocId ?? '';
           const {
             subjectId: courseSubjectId,
             hasFramework: courseHasFramework,
           } = await getCoursePalContext(currentCourseId);
-          courseSubjectIdForResult =
-            courseSubjectId ?? courseSubjectIdForResult;
           const skillData = await api.getSkillById(skillId);
           const currentOutcomeId = skillData?.outcome_id;
           const canUpdateAbility =
@@ -707,9 +679,7 @@ const LidoPlayer: FC = () => {
           abilityUpdates.competency_ability,
           abilityUpdates.domain_id,
           abilityUpdates.domain_ability,
-          isAssessmentLesson
-            ? (abilityUpdates.subject_id ?? courseSubjectIdForResult)
-            : abilityUpdates.subject_id,
+          abilityUpdates.subject_id,
           abilityUpdates.subject_ability,
           activitiesScoresStr,
           parentUserId,

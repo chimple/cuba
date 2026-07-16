@@ -10,7 +10,6 @@ import Home from './Home';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
 import {
-  CURRENT_HEADER,
   IS_CONECTED,
   IS_REWARD_FEATURE_ON,
   LIVE_QUIZ,
@@ -824,7 +823,7 @@ describe('Home page (Home tab)', () => {
     render(<Home />);
     fireEvent.click(await screen.findByText('go-assignment'));
     await waitFor(() => {
-      expect(localStorage.getItem(CURRENT_HEADER)).toBe('ASSIGNMENT');
+      expect(localStorage.getItem('currentHeader')).toBe('ASSIGNMENT');
     });
   });
 });

@@ -4,6 +4,8 @@
   " to choose and assign.": " निवडण्यासाठी आणि नियुक्त करण्यासाठी ",
   "***Be among the top performers in your class to win an exciting reward": "***तुमच्या वर्गातील सर्वोत्तम कामगिरी करणाऱ्यांपैकी एक बना आणि आकर्षक  बक्षीस जिंका",
   "🎉Congratulations🎊": "🎉अभिनंदन🎊",
+  "Lesson starts in :": "धडा यामध्ये सुरू होतो:",
+  "Let's play and learn! Complete first lesson and earn a reward!": "चला खेळूया आणि शिकूया! तुमचा पहिला धडा पूर्ण करा आणि बक्षीस मिळवा!",
   "10 years": "१० वर्ष",
   "10's Subtraction": "१० ची वजाबाकी",
   "2D & 3D Shapes": "२डी आणि ३डी आकार",
@@ -195,6 +197,8 @@
   "Cluster is required": "क्लस्टर आवश्यक आहे",
   "Cluster": "क्लस्टर",
   "Collect your reward": "तुमचे बक्षीस घ्या",
+  "Collect today’s reward.": "आजचे बक्षीस मिळवा.",
+  "Collect sticker by completing a pathway.": "मार्ग पूर्ण करून स्टिकर मिळवा.",
   "COMING SOON": "लवकरच येत आहे",
   "Compare and Add": "तुलना करा आणि जोडा",
   "Compare With 10": "१० च्या बरोबरीत तुलना करा",
@@ -1116,9 +1120,5 @@
   "Account": "खाते",
   "For Teachers": "शिक्षकांसाठी",
   "Teachers App": "शिक्षक ॲप",
-  "Submit": "सादर करा",
-  "Collect today’s reward.": "आजचे बक्षीस मिळवा.",
-  "Collect sticker by completing a pathway.": "मार्ग पूर्ण करून स्टिकर मिळवा.",
-  "Lesson starts in :": "धडा यामध्ये सुरू होतो:",
-  "Let's play and learn! Complete first lesson and earn a reward!": "चला खेळूया आणि शिकूया! तुमचा पहिला धडा पूर्ण करा आणि बक्षीस मिळवा!"
+  "Submit": "सादर करा"
 }

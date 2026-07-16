@@ -1,5 +1,4 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { useFeatureValue } from '@growthbook/growthbook-react';
 import { Provider } from 'react-redux';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -17,12 +16,14 @@ import TermsAndConditions from '../../pages/TermsAndConditions';
 import authReducer from '../../redux/slices/auth/authSlice';
 import growthbookReducer from '../../redux/slices/growthbook/growthbookSlice';
 import {
+  __resetGrowthBookMock,
+  __setGrowthBookMock,
+} from '../../tests/__mocks__/@growthbook/growthbook-react';
+import {
   mockApiHandler,
   mockAuthHandler,
 } from '../../tests/__mocks__/serviceConfigMock';
 import TermsGate from './TermsGate';
-
-jest.mock('@growthbook/growthbook-react');
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -57,15 +58,6 @@ const { Util } = jest.requireMock('../../utility/util') as {
   Util: { logEvent: jest.Mock };
 };
 
-const mockGrowthBookFeatures = (features: Record<string, unknown> = {}) => {
-  (useFeatureValue as jest.Mock).mockImplementation(
-    (key: string, fallback: unknown) =>
-      Object.prototype.hasOwnProperty.call(features, key)
-        ? features[key]
-        : fallback,
-  );
-};
-
 describe('TermsGate', () => {
   const renderWithStore = (ui: ReactElement, userVersion = 1) => {
     const store = createStore(userVersion);
@@ -90,7 +82,6 @@ describe('TermsGate', () => {
           isOpsUser: false,
           roles: [],
           loading: false,
-          globalLoading: false,
           error: {
             phone: null,
             student: null,
@@ -122,8 +113,8 @@ describe('TermsGate', () => {
   };
 
   beforeEach(() => {
+    __resetGrowthBookMock();
     jest.clearAllMocks();
-    mockGrowthBookFeatures();
     mockAuthHandler.isUserLoggedIn.mockResolvedValue(true);
     mockAuthHandler.getCurrentUser.mockResolvedValue({
       id: 'parent-1',
@@ -134,7 +125,9 @@ describe('TermsGate', () => {
   });
 
   it('dismisses the modal immediately after agree without waiting for API completion', async () => {
-    mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 3 });
+    __setGrowthBookMock({
+      features: { [LATEST_TC_VERSION]: 3 },
+    });
     mockApiHandler.updateTcAgreedVersion.mockReturnValue(new Promise(() => {}));
 
     const user = userEvent.setup();
@@ -164,7 +157,9 @@ describe('TermsGate', () => {
   });
 
   it('rolls back the optimistic agreement and skips TC_AGREED analytics on persistence failure', async () => {
-    mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 3 });
+    __setGrowthBookMock({
+      features: { [LATEST_TC_VERSION]: 3 },
+    });
     mockApiHandler.updateTcAgreedVersion.mockRejectedValue(
       new Error('persist failed'),
     );
@@ -200,7 +195,9 @@ describe('TermsGate', () => {
   });
 
   it('renders only one modal even when nested protected routes are mounted', async () => {
-    mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 3 });
+    __setGrowthBookMock({
+      features: { [LATEST_TC_VERSION]: 3 },
+    });
 
     renderWithStore(
       <MemoryRouter initialEntries={['/outer/inner']}>
@@ -225,7 +222,9 @@ describe('TermsGate', () => {
   });
 
   it('restores search params and route state after closing the terms page', async () => {
-    mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 3 });
+    __setGrowthBookMock({
+      features: { [LATEST_TC_VERSION]: 3 },
+    });
 
     const user = userEvent.setup();
 
@@ -277,7 +276,9 @@ describe('TermsGate', () => {
   });
 
   it('does not show the modal on deferred gameplay routes', async () => {
-    mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 3 });
+    __setGrowthBookMock({
+      features: { [LATEST_TC_VERSION]: 3 },
+    });
 
     renderWithStore(
       <MemoryRouter initialEntries={[PAGES.LIDO_PLAYER]}>
@@ -300,7 +301,9 @@ describe('TermsGate', () => {
   it('retries auth checks for recoverable resume-time storage errors instead of redirecting to login', async () => {
     jest.useFakeTimers();
     try {
-      mockGrowthBookFeatures({ [LATEST_TC_VERSION]: 1 });
+      __setGrowthBookMock({
+        features: { [LATEST_TC_VERSION]: 1 },
+      });
 
       mockAuthHandler.isUserLoggedIn
         .mockRejectedValueOnce(new Error('database is locked'))

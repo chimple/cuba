@@ -83,22 +83,21 @@ const SubjectSelection: React.FC = () => {
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
-  const roleMap = useAppSelector(
-    (state: RootState) =>
-      state.growthbook.attributes?.roleMap as
-        | Record<string, string>
-        | undefined,
-  );
   const userRoles = roles || [];
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   useEffect(() => {
     const init = async () => {
+      const cls = await Util.getCurrentClass();
+      if ((cls as any)?.role === RoleType.TEACHER) {
+        setCanModify(false);
+      }
+
       if (paramClassId) {
         await fetchSchoolAndClassSubjects(paramClassId, CLASS);
         await fetchClassDetails();
         if (isSelectSubject) setIsSelecting(true);
       } else if (paramSchoolId) {
-        await fetchCurriculumsAndCourses(SCHOOL, paramSchoolId);
+        await fetchCurriculumsAndCourses(SCHOOL);
         await fetchSchoolAndClassSubjects(paramSchoolId, SCHOOL);
         if (isSelectSubject) setIsSelecting(true);
       }
@@ -106,20 +105,6 @@ const SubjectSelection: React.FC = () => {
 
     init();
   }, [paramClassId, paramSchoolId]);
-
-  useEffect(() => {
-    const selectedSchoolId = Util.getCurrentSchool()?.id;
-    const activeSchoolId = currentSchool?.id ?? paramSchoolId;
-    const activeSchoolRole = activeSchoolId
-      ? roleMap?.[`${activeSchoolId}_role`]
-      : undefined;
-    const normalizedRole = (activeSchoolRole ?? '').toLowerCase();
-    const schoolMatches =
-      !currentSchool?.id ||
-      !selectedSchoolId ||
-      currentSchool.id === selectedSchoolId;
-    setCanModify(schoolMatches && normalizedRole === RoleType.PRINCIPAL);
-  }, [currentSchool?.id, paramSchoolId, roleMap]);
 
   const fetchCurriculumsAndCourses = async (
     context: 'school' | 'class',
@@ -134,7 +119,7 @@ const SubjectSelection: React.FC = () => {
       ]);
       // Fetch school-specific courses for class context
       const schoolCourses =
-        schoolId && (context === CLASS || context === SCHOOL)
+        context === CLASS && schoolId
           ? await api.getCoursesBySchoolId(schoolId)
           : [];
       // Extract course IDs for filtering
@@ -209,7 +194,12 @@ const SubjectSelection: React.FC = () => {
         return match ? parseInt(match[0], 10) : 0;
       }
 
-      setCurriculumsWithCourses(sortedCurriculums);
+      // Update state based on context
+      if (context === SCHOOL) {
+        setCurriculumsWithCourses(sortedCurriculums);
+      } else {
+        setCurriculumsWithCourses(sortedCurriculums);
+      }
     } catch (error) {
       logger.error(t('Failed to fetch curriculums and courses'), error);
     }
@@ -609,7 +599,6 @@ const SubjectSelection: React.FC = () => {
           isModalOpen={isModalOpen}
           currentSubject={currentSubject}
           setIsModalOpen={setIsModalOpen}
-          schoolId={currentSchool?.id ?? paramSchoolId ?? undefined}
         />
       ) : (
         <SubjectSelectionComponent

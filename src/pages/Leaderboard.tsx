@@ -419,19 +419,6 @@ const Leaderboard: React.FC = () => {
                   (currentStudent?.avatar ?? AVATARS[0]) +
                   '.png'
               }
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                const fallback =
-                  'assets/avatars/' +
-                  (currentStudent?.avatar ?? AVATARS[0]) +
-                  '.png';
-                if (
-                  target.src !== window.location.origin + '/' + fallback &&
-                  target.src !== fallback
-                ) {
-                  target.src = fallback;
-                }
-              }}
               alt=""
             />
             <span id="leaderboard-student-name">{currentStudent?.name}</span>

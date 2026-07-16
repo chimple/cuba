@@ -5,7 +5,7 @@ import './SearchLesson.css';
 import LessonSlider from '../components/LessonSlider';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { useHistory, useLocation } from 'react-router';
-import { CONTINUE, PAGES, SEARCH_TERM, TableTypes } from '../common/constants';
+import { CONTINUE, PAGES, TableTypes } from '../common/constants';
 import { Util } from '../utility/util';
 import { IonSearchbar } from '@ionic/react';
 
@@ -29,7 +29,7 @@ function SearchLesson() {
     const results = await api.searchLessons(term);
     dataToContinue.lessons = results;
     dataToContinue.search = term;
-    localStorage.setItem(SEARCH_TERM, dataToContinue.search);
+    localStorage.setItem('searchTerm', dataToContinue.search);
     setLessons(results);
   };
 
@@ -64,13 +64,13 @@ function SearchLesson() {
       setSearchTerm(dataToContinue.search);
       setLessonResultMap(dataToContinue.lessonResultMap);
     }
-    const savedSearchTerm = localStorage.getItem(SEARCH_TERM);
+    const savedSearchTerm = localStorage.getItem('searchTerm');
     if (savedSearchTerm !== null) {
       setSearchTerm(savedSearchTerm);
       onSearch(savedSearchTerm);
     }
     return () => {
-      localStorage.removeItem(SEARCH_TERM);
+      localStorage.removeItem('searchTerm');
     };
   }, []);
 

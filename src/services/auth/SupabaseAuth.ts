@@ -1,10 +1,9 @@
+import { SupabaseAuthClient } from '@supabase/supabase-js/dist/module/lib/SupabaseAuthClient';
 import { SupabaseApi } from '../api/SupabaseApi';
 import { ServiceAuth } from './ServiceAuth';
 import { Database } from '../database';
 import {
   REFRESH_TABLES_ON_LOGIN,
-  BASE_NAME,
-  PAGES,
   TABLES,
   TableTypes,
 } from '../../common/constants';
@@ -14,7 +13,6 @@ import {
   Session,
   AuthSession,
   User,
-  AuthChangeEvent,
 } from '@supabase/supabase-js';
 import { APIMode, ServiceConfig } from '../ServiceConfig';
 import { SocialLogin } from '@capgo/capacitor-social-login';
@@ -33,10 +31,6 @@ import logger from '../../utility/logger';
 import { isRecoverableStorageError } from '../../utility/recoverableStorageError';
 import { logAuthDebug } from '../../utility/authDebug';
 import { normalizeTcVersion } from '../../utility/termsAndConditions';
-import {
-  clearWebGoogleLoginPending,
-  markWebGoogleLoginPending,
-} from './webGoogleLoginLoading';
 
 export class SupabaseAuth implements ServiceAuth {
   public static i: SupabaseAuth;
@@ -51,7 +45,7 @@ export class SupabaseAuth implements ServiceAuth {
   > | null = null;
   private _emailPasswordLoginInProgress = false;
 
-  private _auth: SupabaseClient<Database>['auth'] | undefined;
+  private _auth: SupabaseAuthClient | undefined;
   private _supabaseDb: SupabaseClient<Database> | undefined;
   private static readonly PASSWORD_LOGIN_SESSION_MISSING_ERROR =
     'Password login completed without a Supabase session.';
@@ -63,20 +57,18 @@ export class SupabaseAuth implements ServiceAuth {
       SupabaseAuth.i = new SupabaseAuth();
       SupabaseAuth.i._supabaseDb = SupabaseApi.getInstance().supabase;
       SupabaseAuth.i._auth = SupabaseAuth.i._supabaseDb?.auth;
-      SupabaseAuth?.i?._auth?.onAuthStateChange(
-        (event: AuthChangeEvent, session: Session | null) => {
-          logAuthDebug('Supabase auth state changed.', {
-            source: 'SupabaseAuth.onAuthStateChange',
-            event,
-            has_session: !!session,
-            has_refresh_token: !!session?.refresh_token,
-          });
-          if (event === 'TOKEN_REFRESHED') {
-            if (session?.refresh_token)
-              Util.addRefreshTokenToStore(session?.refresh_token);
-          }
-        },
-      );
+      SupabaseAuth?.i?._auth?.onAuthStateChange((event, session) => {
+        logAuthDebug('Supabase auth state changed.', {
+          source: 'SupabaseAuth.onAuthStateChange',
+          event,
+          has_session: !!session,
+          has_refresh_token: !!session?.refresh_token,
+        });
+        if (event === 'TOKEN_REFRESHED') {
+          if (session?.refresh_token)
+            Util.addRefreshTokenToStore(session?.refresh_token);
+        }
+      });
     }
 
     return SupabaseAuth.i;
@@ -228,7 +220,7 @@ export class SupabaseAuth implements ServiceAuth {
   async sendResetPasswordEmail(email: string): Promise<boolean> {
     try {
       if (!this._auth) return false;
-      const { error } = await this._auth.resetPasswordForEmail(email);
+      const { data, error } = await this._auth.resetPasswordForEmail(email);
 
       if (error) {
         logger.error('Reset password error:', error.message);
@@ -244,7 +236,7 @@ export class SupabaseAuth implements ServiceAuth {
   async updateUser(attributes: UserAttributes): Promise<boolean> {
     if (!this._auth) return false;
 
-    const { error } = await this._auth.updateUser(attributes);
+    const { data, error } = await this._auth.updateUser(attributes);
 
     if (error) {
       logger.error('Error updating user:', error.message);
@@ -274,12 +266,10 @@ export class SupabaseAuth implements ServiceAuth {
           },
         });
       } else {
-        const redirectTo = window.location.origin;
-        markWebGoogleLoginPending();
-        const { error } = await this._auth.signInWithOAuth({
+        const { data, error } = await this._auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo,
+            redirectTo: window.location.origin,
             queryParams: {
               prompt: 'select_account',
             },
@@ -287,7 +277,6 @@ export class SupabaseAuth implements ServiceAuth {
         });
 
         if (error) {
-          clearWebGoogleLoginPending();
           logger.error('Web Google login failed:', error);
           return { success: false, isSpl: false, userData: null };
         }
@@ -306,16 +295,11 @@ export class SupabaseAuth implements ServiceAuth {
       ) {
         return { success: false, isSpl: false, userData: null };
       }
-      const { data, error: signInError } = await this._auth.signInWithIdToken({
+      const { data, error } = await this._auth.signInWithIdToken({
         provider: 'google',
         token: authentication.idToken,
         access_token: authentication.accessToken?.token,
       });
-
-      if (signInError) {
-        logger.error('Google sign in failed:', signInError);
-        return { success: false, isSpl: false, userData: null };
-      }
 
       if (data.session?.refresh_token) {
         Util.addRefreshTokenToStore(data.session?.refresh_token);
@@ -336,7 +320,6 @@ export class SupabaseAuth implements ServiceAuth {
         userData,
       };
     } catch (error: any) {
-      if (!Capacitor.isNativePlatform()) clearWebGoogleLoginPending();
       logger.error(
         '🚀 ~ SupabaseAuth ~ googleSign ~ error:',
         error?.stack || error,
@@ -467,25 +450,6 @@ export class SupabaseAuth implements ServiceAuth {
         source: 'SupabaseAuth.doRefreshSession',
         reason: 'offline',
       });
-      return;
-    }
-    if (!Capacitor.isNativePlatform()) {
-      try {
-        const currentSession = await this._auth?.getSession();
-        if (currentSession?.data?.session?.refresh_token) {
-          Util.addRefreshTokenToStore(
-            currentSession.data.session.refresh_token,
-          );
-        }
-        if (currentSession?.error) {
-          logger.error(
-            'Unable to resolve web Supabase session:',
-            currentSession.error,
-          );
-        }
-      } catch (error) {
-        logger.error('Unexpected error while resolving web session:', error);
-      }
       return;
     }
     // Read refresh token from Redux (preferred) with localStorage fallback
@@ -769,7 +733,7 @@ export class SupabaseAuth implements ServiceAuth {
     try {
       if (!this._auth) return;
       const api = ServiceConfig.getI().apiHandler;
-      const agreedVersion = normalizeTcVersion(tcAgreedVersion) ?? 0;
+      const agreedVersion = normalizeTcVersion(tcAgreedVersion);
 
       const { data: user, error } = await this._auth.verifyOtp({
         phone: phoneNumber,
@@ -895,7 +859,7 @@ export class SupabaseAuth implements ServiceAuth {
     try {
       if (!this._supabaseDb || !session.user) return null;
       let api = ServiceConfig.getI().apiHandler;
-      const agreedVersion = normalizeTcVersion(tcAgreedVersion) ?? 0;
+      const agreedVersion = normalizeTcVersion(tcAgreedVersion);
       const user = session.user;
       const email = user.email;
       const id = user.id;

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import * as XLSX from 'xlsx-js-style';
 import './FileUpload.css';
 import UploadIcon from '../assets/icons/upload_icon.png';
 import { FaCloudDownloadAlt } from 'react-icons/fa';
@@ -16,20 +17,6 @@ import {
   FileUploadStep,
 } from '../../common/constants';
 import logger from '../../utility/logger';
-
-type XlsxModule = typeof import('xlsx-js-style');
-
-let xlsxModulePromise: Promise<XlsxModule> | null = null;
-
-const getXlsx = async (): Promise<XlsxModule> => {
-  if (!xlsxModulePromise) {
-    xlsxModulePromise = import('xlsx-js-style').catch((error) => {
-      xlsxModulePromise = null;
-      throw error;
-    });
-  }
-  return xlsxModulePromise;
-};
 
 type NamedContact = {
   name: string;
@@ -221,7 +208,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
         'XLSX parsing failed in worker, falling back to main thread parsing.',
         workerError,
       );
-      const XLSX = await getXlsx();
       const workbook = XLSX.read(fileBuffer, { type: 'array' });
       workbookSheetNames = workbook.SheetNames;
       for (const sheetName of workbook.SheetNames) {
@@ -1139,12 +1125,8 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
           if (!studentName) errors.push('Missing STUDENT NAME.');
           if (!gender) {
             errors.push('Missing GENDER.');
-          } else if (
-            !['MALE', 'FEMALE', 'UNSPECIFIED'].includes(gender.toUpperCase())
-          ) {
-            errors.push(
-              'Invalid GENDER. Must be "MALE", "FEMALE", or "UNSPECIFIED".',
-            );
+          } else if (!['MALE', 'FEMALE'].includes(gender.toUpperCase())) {
+            errors.push('Invalid GENDER. Must be "MALE" or "FEMALE".');
           }
           if (!/^\d+$/.test(age)) {
             errors.push('AGE must be a whole number.');
@@ -1341,7 +1323,6 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
         'XLSX generation failed in worker, falling back to main thread generation.',
         workerError,
       );
-      const XLSX = await getXlsx();
       const fallbackWorkbook = XLSX.utils.book_new();
       for (const sheetName of workbookSheetNames) {
         const rows = processedSheetsForExport[sheetName] ?? [];

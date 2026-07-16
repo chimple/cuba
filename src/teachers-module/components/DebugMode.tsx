@@ -1,11 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './DebugMode.css'; // Import external CSS
 import { useHistory } from 'react-router-dom';
-import {
-  CAN_HOT_UPDATE,
-  DOWNLOADED_LESSON_ID,
-  DOWNLOADED_LESSONS_SIZE,
-} from '../../common/constants';
+import { CAN_HOT_UPDATE, DOWNLOADED_LESSON_ID } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
@@ -125,7 +121,7 @@ const DebugPage: React.FC = () => {
     }
 
     const lessonData = JSON.parse(
-      localStorage.getItem(DOWNLOADED_LESSONS_SIZE) || '{}',
+      localStorage.getItem('downloaded_lessons_size') || '{}',
     ) as { [lessonId: string]: { size: number } };
 
     const lessonsDownloaded = Object.keys(lessonData).length;
@@ -285,7 +281,7 @@ const DebugPage: React.FC = () => {
   async function getHotUpdateChannel() {
     const { versionName } = await LiveUpdate.getVersionName();
     const majorVersion = versionName.split('.')[0];
-    return `${import.meta.env.VITE_ENV}-${majorVersion}`;
+    return `${process.env.REACT_APP_ENV}-${majorVersion}`;
   }
 
   const handleManualHotUpdate = async () => {
