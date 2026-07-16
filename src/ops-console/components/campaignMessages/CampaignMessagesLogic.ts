@@ -119,6 +119,7 @@ interface UseCampaignMessagesControllerParams {
   campaignId?: string;
   campaignStartDate?: string;
   campaignEndDate?: string;
+  isCampaignCancelled?: boolean;
   translate: (key: string) => string;
 }
 
@@ -680,12 +681,15 @@ export const useCampaignMessagesController = ({
   campaignId,
   campaignStartDate,
   campaignEndDate,
+  isCampaignCancelled = false,
   translate,
 }: UseCampaignMessagesControllerParams): CampaignMessagesController => {
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
   );
-  const canEdit = hasCampaignWriteAccess(roles || []);
+  // A cancelled campaign must become read-only even when the user's role
+  // normally grants campaign write access.
+  const canEdit = !isCampaignCancelled && hasCampaignWriteAccess(roles || []);
   const [messagesData, setMessagesData] = useState<CampaignMessagesData>(
     () => emptyCampaignMessagesData,
   );

@@ -14,18 +14,21 @@ interface CampaignMessagesProps {
   campaignId?: string;
   campaignStartDate?: string;
   campaignEndDate?: string;
+  isCampaignCancelled?: boolean;
 }
 
 const CampaignMessages: React.FC<CampaignMessagesProps> = ({
   campaignId,
   campaignStartDate,
   campaignEndDate,
+  isCampaignCancelled,
 }) => {
   const { t } = useTranslation();
   const controller = useCampaignMessagesController({
     campaignId,
     campaignStartDate,
     campaignEndDate,
+    isCampaignCancelled,
     translate: (key) => String(t(key)),
   });
   const timePickerWrapperRefs = useRef<
