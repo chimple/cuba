@@ -457,8 +457,11 @@ export type CampaignAssignmentSummaryRow = {
   lessonName: string;
 };
 
+export type CampaignAssignmentUniqueSubject = CampaignOption;
+
 export type CampaignAssignmentsResponse = {
   assignments: CampaignAssignmentSummaryRow[];
+  uniqueSubjects: CampaignAssignmentUniqueSubject[];
   total: number;
 };
 

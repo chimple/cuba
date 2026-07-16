@@ -75,10 +75,7 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
 
       setIsLoadingFilters(true);
       try {
-        const [nextGrades, nextSubjects] = await Promise.all([
-          api.getAllGrades(),
-          api.getCampaignSubjectsByCampaignId(campaignId),
-        ]);
+        const nextGrades = await api.getAllGrades();
 
         if (cancelled) return;
 
@@ -86,12 +83,6 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
           nextGrades.map((grade) => ({
             id: String(grade.id),
             name: String(grade.name),
-          })),
-        );
-        setSubjects(
-          nextSubjects.map((subject) => ({
-            id: String(subject.id),
-            name: String(subject.name),
           })),
         );
       } catch (err) {
@@ -131,11 +122,13 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
         if (cancelled) return;
 
         setAssignments(response.assignments ?? []);
+        setSubjects(response.uniqueSubjects ?? []);
         setTotal(response.total ?? 0);
       } catch (err) {
         logger.error('Failed to load campaign assignments:', err);
         if (!cancelled) {
           setAssignments([]);
+          setSubjects([]);
           setTotal(0);
         }
       } finally {

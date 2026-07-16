@@ -10844,9 +10844,26 @@ export class SupabaseApi implements ServiceApi {
     if (!this.supabase || !campaignId) {
       return {
         assignments: [],
+        uniqueSubjects: [],
         total: 0,
       };
     }
+
+    type CampaignAssignmentRpcRow = {
+      assignment_id: string;
+      assignment_date: string;
+      grade_id: string;
+      grade_name: string;
+      subject_id: string;
+      subject_name: string;
+      lesson_id: string;
+      lesson_name: string;
+      unique_subjects?: Array<{
+        subject_id: string;
+        subject_name: string;
+      }> | null;
+      total_count: string | number;
+    };
 
     const { data, error } = await this.supabase.rpc(
       'get_campaign_assignments',
@@ -10867,9 +10884,18 @@ export class SupabaseApi implements ServiceApi {
       throw error;
     }
 
+    const rpcRows = data as CampaignAssignmentRpcRow[] | null | undefined;
+    const firstRow = rpcRows?.[0];
+    const uniqueSubjects = Array.isArray(firstRow?.unique_subjects)
+      ? firstRow.unique_subjects.map((subject) => ({
+          id: String(subject.subject_id),
+          name: String(subject.subject_name),
+        }))
+      : [];
+
     return {
       assignments:
-        data?.map((row) => ({
+        rpcRows?.map((row) => ({
           assignmentId: row.assignment_id,
           assignmentDate: row.assignment_date,
 
@@ -10882,7 +10908,8 @@ export class SupabaseApi implements ServiceApi {
           lessonId: row.lesson_id,
           lessonName: row.lesson_name,
         })) ?? [],
-      total: data?.length ? Number(data[0].total_count) : 0,
+      uniqueSubjects,
+      total: rpcRows?.length ? Number(firstRow?.total_count ?? 0) : 0,
     };
   }
 
