@@ -237,6 +237,8 @@ export type CampaignTargetType = 'percentage_completion' | 'number_of_lessons';
 
 export type CampaignRewardType = 'digital_rewards' | 'physical_rewards';
 
+export type CampaignFrequency = 'daily' | 'alternate_days' | 'alternate_week';
+
 export type CampaignOption = {
   id: string;
   name: string;
@@ -296,6 +298,7 @@ export type CampaignAudiencePayload = {
 
 export type CreateCampaignSetupPayload = CampaignAudiencePayload & {
   campaignName: string;
+  frequency: CampaignFrequency;
   objective: CampaignObjective;
   targetType?: CampaignTargetType;
   targetValue?: number;
@@ -457,7 +460,9 @@ export type CampaignAssignmentSummaryRow = {
   lessonName: string;
 };
 
-export type CampaignAssignmentUniqueSubject = CampaignOption;
+export type CampaignAssignmentUniqueSubject = CampaignOption & {
+  gradeIds: string[];
+};
 
 export type CampaignAssignmentsResponse = {
   assignments: CampaignAssignmentSummaryRow[];

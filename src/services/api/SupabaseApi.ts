@@ -10015,7 +10015,7 @@ export class SupabaseApi implements ServiceApi {
         manager_search:user!campaign_manager_id_fkey(),
         program_search:program!campaign_program_id_fkey()`
           : '';
-      const campaignListingSelect = `id, name, objective, start_date, end_date,
+      const campaignListingSelect = `id, name, objective, start_date, end_date, frequency,
         campaign_status, manager_id, program_id, target_audience_id,
         created_at, updated_at, is_deleted, target_type, target_value, rewards,
         manager:user!campaign_manager_id_fkey(id, name),
@@ -10508,6 +10508,7 @@ export class SupabaseApi implements ServiceApi {
       manager_id: payload.managerId,
       start_date: payload.startDate,
       end_date: payload.endDate,
+      frequency: payload.frequency,
       rewards: payload.rewards ? JSON.stringify(payload.rewards) : null,
     };
 
@@ -10865,6 +10866,7 @@ export class SupabaseApi implements ServiceApi {
       unique_subjects?: Array<{
         subject_id: string;
         subject_name: string;
+        grade_ids?: string[] | null;
       }> | null;
       total_count: string | number;
     };
@@ -10894,6 +10896,9 @@ export class SupabaseApi implements ServiceApi {
       ? firstRow.unique_subjects.map((subject) => ({
           id: String(subject.subject_id),
           name: String(subject.subject_name),
+          gradeIds: Array.isArray(subject.grade_ids)
+            ? subject.grade_ids.map(String)
+            : [],
         }))
       : [];
 

@@ -93,6 +93,16 @@
   padding-bottom: 0.375rem;
 }
 
+.campaign-assignment-menu
+  .MuiMenuItem-root.campaign-assignment-menu-item-selected {
+  background-color: rgba(25, 118, 210, 0.08);
+}
+
+.campaign-assignment-menu
+  .MuiMenuItem-root.campaign-assignment-menu-item-selected:hover {
+  background-color: rgba(25, 118, 210, 0.12);
+}
+
 .campaign-assignment-filterField .campaign-assignment-filterLabel {
   white-space: nowrap;
 }

@@ -9,11 +9,16 @@ import {
 } from 'react';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import {
+  CampaignFrequency,
   CampaignMessagingQueryParams,
   CampaignMessagingRow,
 } from '../../../services/api/ServiceApi';
 import { hasCampaignWriteAccess } from '../../../services/api/campaignListingHelpers';
 import { Json } from '../../../services/database';
+import {
+  buildFrequencyTimelineDates,
+  DEFAULT_FREQUENCY,
+} from '../campaignSetup/campaignAssignmentUtils';
 import { buildCampaignDurationTimelineDates } from '../campaignSetup/campaignCommunicationUtils';
 import { useAppSelector } from '../../../redux/hooks';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
@@ -119,6 +124,7 @@ interface UseCampaignMessagesControllerParams {
   campaignId?: string;
   campaignStartDate?: string;
   campaignEndDate?: string;
+  campaignFrequency?: CampaignFrequency;
   isCampaignCancelled?: boolean;
   translate: (key: string) => string;
 }
@@ -681,6 +687,7 @@ export const useCampaignMessagesController = ({
   campaignId,
   campaignStartDate,
   campaignEndDate,
+  campaignFrequency = DEFAULT_FREQUENCY,
   isCampaignCancelled = false,
   translate,
 }: UseCampaignMessagesControllerParams): CampaignMessagesController => {
@@ -716,6 +723,17 @@ export const useCampaignMessagesController = ({
     Record<string, boolean>
   >({});
   const timelineDates = useMemo(
+    () =>
+      campaignStartDate && campaignEndDate
+        ? buildFrequencyTimelineDates(
+            campaignStartDate,
+            campaignEndDate,
+            campaignFrequency,
+          )
+        : [],
+    [campaignEndDate, campaignFrequency, campaignStartDate],
+  );
+  const campaignRangeDates = useMemo(
     () =>
       campaignStartDate && campaignEndDate
         ? buildCampaignDurationTimelineDates(campaignStartDate, campaignEndDate)
@@ -755,8 +773,8 @@ export const useCampaignMessagesController = ({
       // Fetch the full calendar range so persisted Sunday rows cannot displace
       // later non-Sunday campaign dates from the paginated response.
       const pageSize =
-        timelineDates.length > 0
-          ? timelineDates.length
+        campaignRangeDates.length > 0
+          ? campaignRangeDates.length
           : CAMPAIGN_MESSAGES_PAGE_SIZE;
       const loadedMessagesData = await loadCampaignMessagesData(
         campaignId,
@@ -778,7 +796,7 @@ export const useCampaignMessagesController = ({
     return () => {
       isMounted = false;
     };
-  }, [campaignId, displayTimelineDates, timelineDates.length]);
+  }, [campaignId, campaignRangeDates.length, displayTimelineDates]);
 
   useEffect(
     () => () => {
@@ -1082,8 +1100,8 @@ export const useCampaignMessagesController = ({
         {
           page: 1,
           pageSize:
-            timelineDates.length > 0
-              ? timelineDates.length
+            campaignRangeDates.length > 0
+              ? campaignRangeDates.length
               : CAMPAIGN_MESSAGES_PAGE_SIZE,
         },
       );

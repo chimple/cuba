@@ -163,6 +163,9 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
             campaignEndDate={
               campaignOverviewData?.data?.campaign?.end_date ?? undefined
             }
+            campaignFrequency={
+              campaignOverviewData?.data?.campaign?.frequency ?? undefined
+            }
           />
         )}
       </div>

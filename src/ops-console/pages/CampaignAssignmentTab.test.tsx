@@ -71,8 +71,8 @@ describe('CampaignAssignmentTab', () => {
   ];
 
   const defaultSubjects = [
-    { id: '11', name: 'Math' },
-    { id: '12', name: 'Science' },
+    { id: '11', name: 'Math', gradeIds: ['1'] },
+    { id: '12', name: 'Science', gradeIds: ['2'] },
   ];
 
   const defaultAssignments = [
@@ -104,7 +104,11 @@ describe('CampaignAssignmentTab', () => {
       subjectName: string;
       lessonName: string;
     }>;
-    uniqueSubjects?: Array<{ id: string; name: string }>;
+    uniqueSubjects?: Array<{
+      id: string;
+      name: string;
+      gradeIds: string[];
+    }>;
     total?: number;
     gradeError?: Error | null;
     assignmentError?: Error | null;
@@ -269,6 +273,22 @@ describe('CampaignAssignmentTab', () => {
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
+  it('keeps filters disabled until campaign grade metadata is loaded', async () => {
+    api.getAllGrades.mockResolvedValue(defaultGrades);
+    api.getCampaignAssignments.mockImplementation(
+      () => new Promise(() => undefined),
+    );
+
+    renderTab('campaign-1');
+
+    await waitFor(() => expect(api.getAllGrades).toHaveBeenCalled());
+    screen
+      .getAllByRole('combobox')
+      .forEach((combobox) =>
+        expect(combobox).toHaveAttribute('aria-disabled', 'true'),
+      );
+  });
+
   it('renders the default grade filter value', async () => {
     primeApi();
 
@@ -277,12 +297,111 @@ describe('CampaignAssignmentTab', () => {
     expect(await screen.findByText('All grades')).toBeInTheDocument();
   });
 
+  it('shows only campaign grades from getAllGrades by default', async () => {
+    primeApi({
+      grades: [...defaultGrades, { id: '3', name: 'Grade 3' }],
+    });
+
+    renderTab('campaign-1');
+
+    const [gradeSelect] = await screen.findAllByRole('combobox');
+    fireEvent.mouseDown(gradeSelect);
+
+    expect(await screen.findByText('Grade 1')).toBeInTheDocument();
+    expect(screen.getByText('Grade 2')).toBeInTheDocument();
+    expect(screen.queryByText('Grade 3')).not.toBeInTheDocument();
+  });
+
   it('renders the default subject filter value', async () => {
     primeApi();
 
     renderTab('campaign-1');
 
     expect(await screen.findByText('All subjects')).toBeInTheDocument();
+  });
+
+  it('shows every campaign subject as selected when the subject menu opens', async () => {
+    primeApi();
+
+    renderTab('campaign-1');
+
+    const [, subjectSelect] = await screen.findAllByRole('combobox');
+    fireEvent.mouseDown(subjectSelect);
+
+    expect(await screen.findByText('Math')).toBeInTheDocument();
+    expect(screen.getByText('Science')).toBeInTheDocument();
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+    screen
+      .getAllByRole('checkbox')
+      .forEach((checkbox) => expect(checkbox).toBeChecked());
+
+    fireEvent.click(screen.getAllByRole('checkbox')[0]);
+
+    await waitFor(() =>
+      expect(screen.getAllByRole('checkbox')[0]).not.toBeChecked(),
+    );
+    expect(screen.getAllByRole('checkbox')[1]).toBeChecked();
+    expect(api.getCampaignAssignments).toHaveBeenLastCalledWith('campaign-1', {
+      page: 1,
+      pageSize: 20,
+      subjectIds: ['12'],
+    });
+  });
+
+  it('keeps every campaign subject visible when grades are selected', async () => {
+    primeApi();
+
+    renderTab('campaign-1');
+
+    const [gradeSelect] = await screen.findAllByRole('combobox');
+    fireEvent.mouseDown(gradeSelect);
+    fireEvent.click(screen.getAllByRole('checkbox')[1]);
+    fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' });
+
+    await waitFor(() =>
+      expect(api.getCampaignAssignments).toHaveBeenLastCalledWith(
+        'campaign-1',
+        {
+          page: 1,
+          pageSize: 20,
+          gradeIds: ['1'],
+        },
+      ),
+    );
+
+    const [, subjectSelect] = screen.getAllByRole('combobox');
+    fireEvent.mouseDown(subjectSelect);
+
+    expect(await screen.findByText('Math')).toBeInTheDocument();
+    expect(screen.getByText('Science')).toBeInTheDocument();
+  });
+
+  it('keeps every campaign grade visible when subjects are selected', async () => {
+    primeApi();
+
+    renderTab('campaign-1');
+
+    const [, subjectSelect] = await screen.findAllByRole('combobox');
+    fireEvent.mouseDown(subjectSelect);
+    fireEvent.click(screen.getAllByRole('checkbox')[0]);
+    fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' });
+
+    await waitFor(() =>
+      expect(api.getCampaignAssignments).toHaveBeenLastCalledWith(
+        'campaign-1',
+        {
+          page: 1,
+          pageSize: 20,
+          subjectIds: ['12'],
+        },
+      ),
+    );
+
+    const [gradeSelect] = screen.getAllByRole('combobox');
+    fireEvent.mouseDown(gradeSelect);
+
+    expect(await screen.findByText('Grade 1')).toBeInTheDocument();
+    expect(screen.getByText('Grade 2')).toBeInTheDocument();
   });
 
   it('renders both filter comboboxes', async () => {

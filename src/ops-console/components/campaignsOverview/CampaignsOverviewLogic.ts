@@ -1,3 +1,5 @@
+import type { CampaignFrequency } from '../../../services/api/ServiceApi';
+
 export type CampaignsOverviewDisplayValue =
   | string
   | number
@@ -72,6 +74,7 @@ export interface CampaignsOverviewApiCampaign {
   objective?: string | null;
   start_date?: string | null;
   end_date?: string | null;
+  frequency?: CampaignFrequency | null;
   updated_at?: string | null;
   campaign_status?: CampaignStatus | null;
   manager?: CampaignsOverviewApiPerson | null;
