@@ -273,6 +273,22 @@ describe('CampaignAssignmentTab', () => {
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
+  it('keeps filters disabled until campaign grade metadata is loaded', async () => {
+    api.getAllGrades.mockResolvedValue(defaultGrades);
+    api.getCampaignAssignments.mockImplementation(
+      () => new Promise(() => undefined),
+    );
+
+    renderTab('campaign-1');
+
+    await waitFor(() => expect(api.getAllGrades).toHaveBeenCalled());
+    screen
+      .getAllByRole('combobox')
+      .forEach((combobox) =>
+        expect(combobox).toHaveAttribute('aria-disabled', 'true'),
+      );
+  });
+
   it('renders the default grade filter value', async () => {
     primeApi();
 
