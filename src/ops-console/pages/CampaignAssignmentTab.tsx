@@ -180,9 +180,7 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
       subjects.flatMap((subject) => subject.gradeIds),
     );
 
-    return relevantGradeIds.size === 0
-      ? grades
-      : grades.filter((grade) => relevantGradeIds.has(grade.id));
+    return grades.filter((grade) => relevantGradeIds.has(grade.id));
   }, [grades, subjects]);
 
   useEffect(() => {
@@ -302,7 +300,10 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
             <FormControl
               size="small"
               className="campaign-assignment-filter"
-              disabled={isLoadingFilters}
+              disabled={
+                isLoadingFilters ||
+                (isLoadingAssignments && subjects.length === 0)
+              }
             >
               <Select
                 multiple
@@ -362,7 +363,10 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
             <FormControl
               size="small"
               className="campaign-assignment-filter campaign-assignment-filterField"
-              disabled={isLoadingFilters}
+              disabled={
+                isLoadingFilters ||
+                (isLoadingAssignments && subjects.length === 0)
+              }
             >
               <Select
                 multiple
