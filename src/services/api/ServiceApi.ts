@@ -460,7 +460,9 @@ export type CampaignAssignmentSummaryRow = {
   lessonName: string;
 };
 
-export type CampaignAssignmentUniqueSubject = CampaignOption;
+export type CampaignAssignmentUniqueSubject = CampaignOption & {
+  gradeIds: string[];
+};
 
 export type CampaignAssignmentsResponse = {
   assignments: CampaignAssignmentSummaryRow[];
