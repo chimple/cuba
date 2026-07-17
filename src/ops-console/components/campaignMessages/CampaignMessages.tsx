@@ -8,12 +8,14 @@ import {
   useCampaignMessagesController,
 } from './CampaignMessagesLogic';
 import type { CampaignMessagesScheduleType } from './CampaignMessagesLogic';
+import type { CampaignFrequency } from '../../../services/api/ServiceApi';
 import './CampaignMessages.css';
 
 interface CampaignMessagesProps {
   campaignId?: string;
   campaignStartDate?: string;
   campaignEndDate?: string;
+  campaignFrequency?: CampaignFrequency;
   isCampaignCancelled?: boolean;
 }
 
@@ -21,6 +23,7 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({
   campaignId,
   campaignStartDate,
   campaignEndDate,
+  campaignFrequency,
   isCampaignCancelled,
 }) => {
   const { t } = useTranslation();
@@ -28,6 +31,7 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({
     campaignId,
     campaignStartDate,
     campaignEndDate,
+    campaignFrequency,
     isCampaignCancelled,
     translate: (key) => String(t(key)),
   });

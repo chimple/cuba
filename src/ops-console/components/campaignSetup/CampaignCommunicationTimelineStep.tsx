@@ -18,6 +18,7 @@ const CampaignCommunicationTimelineStep: React.FC<
   CampaignCommunicationTimelineStepProps
 > = ({
   form,
+  frequency,
   assignmentDrafts,
   selectedSchoolIds,
   communicationState,
@@ -31,8 +32,8 @@ const CampaignCommunicationTimelineStep: React.FC<
   const { t } = useTranslation();
   const timeOptions = useMemo(() => buildTimeOptions(), []);
   const timelineDates = useMemo(
-    () => buildCommunicationTimelineDates(assignmentDrafts, form),
-    [assignmentDrafts, form],
+    () => buildCommunicationTimelineDates(assignmentDrafts, form, frequency),
+    [assignmentDrafts, form, frequency],
   );
   const { campaignReach, loadingReach } = useCampaignReach(selectedSchoolIds);
 
