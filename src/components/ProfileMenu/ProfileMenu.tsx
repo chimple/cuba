@@ -177,6 +177,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     setGbUpdated(true);
     history.replace(PAGES.SELECT_MODE, {
       from: history.location.pathname,
+      fromSchoolModeSwitchProfile: true,
     });
   };
 

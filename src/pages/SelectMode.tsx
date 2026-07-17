@@ -5,7 +5,7 @@ import { t } from 'i18next';
 import { FC, useEffect, useMemo, useState } from 'react';
 import { GiTeacher } from 'react-icons/gi';
 import { IoMdPeople } from 'react-icons/io';
-import { useHistory } from 'react-router';
+import { useHistory, useLocation } from 'react-router';
 import {
   AVATARS,
   CURRENT_CLASS_NAME,
@@ -97,6 +97,11 @@ interface SchoolModeOption {
   displayName: string;
   school: TableTypes<'school'>;
   role: RoleType;
+}
+
+interface SelectModeLocationState {
+  fromKidsAppLocationSchool?: boolean;
+  fromSchoolModeSwitchProfile?: boolean;
 }
 
 const SUPPORTED_LANGUAGE_CODES = new Set<string>(Object.values(LANG));
@@ -212,6 +217,7 @@ const SelectMode: FC = () => {
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const history = useHistory();
+  const location = useLocation<SelectModeLocationState | undefined>();
   const { setGbUpdated } = useGbContext();
   const [stage, setStage] = useState(STAGES.MODE);
   const [isOkayButtonDisabled, setIsOkayButtonDisabled] = useState(true);
@@ -443,7 +449,15 @@ const SelectMode: FC = () => {
     }));
     setTeacherAppSchoolList(teacherAppSchoolOptions);
 
-    if (teacherRoleEntries.length > 0) {
+    const shouldSuppressTeacherAutoEntry =
+      currentMode === MODES.TEACHER_SCHOOL &&
+      (location.state?.fromKidsAppLocationSchool === true ||
+        location.state?.fromSchoolModeSwitchProfile === true);
+    const shouldAutoEnterTeacherApp =
+      teacherRoleEntries.length > 0 && !shouldSuppressTeacherAutoEntry;
+    const shouldUseEmptySchoolFallback = !shouldSuppressTeacherAutoEntry;
+
+    if (shouldAutoEnterTeacherApp) {
       await applyOrientationForMode(MODES.TEACHER);
       schoolUtil.setCurrMode(MODES.TEACHER);
 
@@ -581,7 +595,7 @@ const SelectMode: FC = () => {
         }
       } else if (allSchool.length === 0) {
         onParentSelect();
-      } else if (teacherRoleEntries.length === 1) {
+      } else if (shouldAutoEnterTeacherApp && teacherRoleEntries.length === 1) {
         const fallbackTeacherSchool = teacherRoleEntries[0];
         setCurrentSchool(fallbackTeacherSchool.school);
         setCurrentSchoolRole(fallbackTeacherSchool.role);
@@ -592,12 +606,12 @@ const SelectMode: FC = () => {
         );
         setCurrentSchoolName(fallbackTeacherSchool.school.name);
         setStage(STAGES.MODE);
-      } else if (teacherRoleEntries.length > 1) {
+      } else if (shouldAutoEnterTeacherApp && teacherRoleEntries.length > 1) {
         await applyOrientationForMode(MODES.TEACHER);
         schoolUtil.setCurrMode(MODES.TEACHER);
         history.replace(PAGES.DISPLAY_SCHOOLS);
         return;
-      } else {
+      } else if (shouldUseEmptySchoolFallback) {
         // Teacher logic
         await applyOrientationForMode(MODES.TEACHER);
         schoolUtil.setCurrMode(MODES.TEACHER);

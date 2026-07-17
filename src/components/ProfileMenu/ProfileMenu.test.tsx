@@ -7,11 +7,14 @@ import { Util } from '../../utility/util';
 import { useAppSelector } from '../../redux/hooks';
 import { MemoryRouter } from 'react-router-dom';
 import {
+  CURRENT_MODE,
   EVENTS,
+  MODES,
   PAGES,
   STICKER_BOOK_NOTIFICATION_DOT_ENABLED,
   ENABLE_STICKER_BOOK,
 } from '../../common/constants';
+import { schoolUtil } from '../../utility/schoolUtil';
 
 // --- Mocks ---
 
@@ -36,13 +39,20 @@ jest.mock('../../i18n', () => ({
 }));
 
 const mockPush = jest.fn();
+const mockReplace = jest.fn();
 jest.mock('react-router', () => ({
   ...jest.requireActual('react-router'),
   useHistory: () => ({
     push: mockPush,
-    replace: jest.fn(),
+    replace: mockReplace,
     location: { pathname: '/' },
   }),
+}));
+
+jest.mock('../../utility/schoolUtil', () => ({
+  schoolUtil: {
+    setCurrentClass: jest.fn(),
+  },
 }));
 
 // Mock useGbContext
@@ -60,10 +70,12 @@ const mockApi = {
 };
 
 const mockStudent = { id: 'student-123', name: 'Test Student' };
+const mockSetCurrentClass = schoolUtil.setCurrentClass as jest.Mock;
 
 describe('ProfileMenu Notification Logic', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    localStorage.clear();
     mockApi.getUserStickerBook.mockReset();
     mockApi.getUserStickerBook.mockResolvedValue([]);
     mockApi.markStciekercolledasTrue.mockReset();
@@ -190,5 +202,31 @@ describe('ProfileMenu Notification Logic', () => {
       PAGES.STICKER_BOOK,
       expect.any(Object),
     );
+  });
+
+  test('keeps school-mode switch profile on SelectMode selection flow', async () => {
+    localStorage.setItem(CURRENT_MODE, MODES.TEACHER_SCHOOL);
+
+    render(
+      <MemoryRouter>
+        <ProfileMenu onClose={jest.fn()} />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(mockApi.getUserStickerBook).toHaveBeenCalled());
+
+    const switchProfileItem = screen
+      .getByText(/Switch Profile/i)
+      .closest('.profile-menu-item');
+    fireEvent.click(switchProfileItem!);
+
+    await waitFor(() => {
+      expect(Util.setCurrentStudent).toHaveBeenCalledWith(null);
+    });
+    expect(mockSetCurrentClass).not.toHaveBeenCalled();
+    expect(mockReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE, {
+      from: '/',
+      fromSchoolModeSwitchProfile: true,
+    });
   });
 });

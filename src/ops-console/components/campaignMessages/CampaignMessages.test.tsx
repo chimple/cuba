@@ -255,6 +255,36 @@ describe('CampaignMessages', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('revokes message editing immediately when the campaign is cancelled', async () => {
+    apiHandler.getCampaignMessaging.mockResolvedValue(
+      buildResponse([buildMessagingRow()]),
+    );
+
+    const { rerender } = render(
+      <CampaignMessages campaignId="campaign-1" isCampaignCancelled={false} />,
+    );
+
+    await screen.findByText('Class 1 Digital');
+    fireEvent.click(screen.getByLabelText('Edit global send schedule'));
+    expect(
+      screen.getByRole('button', { name: 'Save Changes' }),
+    ).toBeInTheDocument();
+
+    rerender(<CampaignMessages campaignId="campaign-1" isCampaignCancelled />);
+
+    await waitFor(() =>
+      expect(
+        screen.queryByLabelText('Edit global send schedule'),
+      ).not.toBeInTheDocument(),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Save Changes' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(apiHandler.updateCampaignMessaging).not.toHaveBeenCalled();
+  });
+
   it('closes the message time picker after selecting a time value', async () => {
     apiHandler.getCampaignMessaging.mockResolvedValue(
       buildResponse([buildMessagingRow()]),

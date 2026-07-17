@@ -6,7 +6,8 @@
   scrollbar-gutter: stable;
   margin-bottom: 8px;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-x pan-y;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y pinch-zoom;
 }
 
 .data-tablebody-head-cell {
