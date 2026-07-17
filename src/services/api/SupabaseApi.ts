@@ -10866,6 +10866,7 @@ export class SupabaseApi implements ServiceApi {
       unique_subjects?: Array<{
         subject_id: string;
         subject_name: string;
+        grade_ids?: string[] | null;
       }> | null;
       total_count: string | number;
     };
@@ -10895,6 +10896,9 @@ export class SupabaseApi implements ServiceApi {
       ? firstRow.unique_subjects.map((subject) => ({
           id: String(subject.subject_id),
           name: String(subject.subject_name),
+          gradeIds: Array.isArray(subject.grade_ids)
+            ? subject.grade_ids.map(String)
+            : [],
         }))
       : [];
 
