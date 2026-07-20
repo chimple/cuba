@@ -1,0 +1,13 @@
+﻿export { SqliteApiAssignment } from './SqliteApi.assignment';
+export { SqliteApiCampaign } from './SqliteApi.campaign';
+export { SqliteApiCore } from './SqliteApi.core';
+export { SqliteApiCourse } from './SqliteApi.course';
+export { SqliteApiOps } from './SqliteApi.ops';
+export { SqliteApiPal } from './SqliteApi.pal';
+export { SqliteApiProgram } from './SqliteApi.program';
+export { SqliteApiRewards } from './SqliteApi.rewards';
+export { SqliteApiResults } from './SqliteApi.results';
+export { SqliteApiSchool } from './SqliteApi.school';
+export { SqliteApiSticker } from './SqliteApi.sticker';
+export { SqliteApiUser } from './SqliteApi.user';
+export { SqliteApiWhatsApp } from './SqliteApi.whatsapp';

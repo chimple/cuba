@@ -1,0 +1,13 @@
+﻿export { SupabaseApiAssignment } from './SupabaseApi.assignment';
+export { SupabaseApiCampaign } from './SupabaseApi.campaign';
+export { SupabaseApiCore } from './SupabaseApi.core';
+export { SupabaseApiCourse } from './SupabaseApi.course';
+export { SupabaseApiOps } from './SupabaseApi.ops';
+export { SupabaseApiPal } from './SupabaseApi.pal';
+export { SupabaseApiProgram } from './SupabaseApi.program';
+export { SupabaseApiRewards } from './SupabaseApi.rewards';
+export { SupabaseApiResults } from './SupabaseApi.results';
+export { SupabaseApiSchool } from './SupabaseApi.school';
+export { SupabaseApiSticker } from './SupabaseApi.sticker';
+export { SupabaseApiUser } from './SupabaseApi.user';
+export { SupabaseApiWhatsApp } from './SupabaseApi.whatsapp';

@@ -1,4 +1,3 @@
-import User from '../../models/User';
 import Course from '../../models/Course';
 import Lesson from '../../models/Lesson';
 import { StudentLessonResult } from '../../common/courseConstants';
@@ -31,7 +30,6 @@ import {
   CampaignListingStatus,
 } from '../../common/constants';
 import { AvatarObj } from '../../components/animation/Avatar';
-import { DocumentData } from 'firebase/firestore';
 import {
   RoleType,
   CreateSchoolNoteInput,
@@ -48,7 +46,6 @@ import {
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
 import { Database, Json } from '../database';
-import logger from '../../utility/logger';
 
 export interface LeaderboardInfo {
   weekly: StudentLeaderboardInfo[];
