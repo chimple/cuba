@@ -1604,6 +1604,12 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCampaignAudienceOptions(programId);
   }
 
+  public async getCampaignGradesForSchools(
+    schoolIds: string[],
+  ): Promise<CampaignOption[]> {
+    return await this.s.getCampaignGradesForSchools(schoolIds);
+  }
+
   public async getCampaignAudienceSummary(
     params: CampaignAudienceSummaryParams,
   ): Promise<CampaignAudienceSummary> {
@@ -1917,7 +1923,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getClassesBySchoolId(schoolId);
   }
 
-  public async getParentWhatsappClassesBySchoolId(schoolId: string): Promise<
+  public async getParentWhatsappClassesBySchoolId(schoolIds: string[]): Promise<
     {
       id: string;
       name: string;
@@ -1930,7 +1936,7 @@ export class ApiHandler implements ServiceApi {
         'Parent WhatsApp class lookup is not implemented in current API service.',
       );
     }
-    return await this.s.getParentWhatsappClassesBySchoolId(schoolId);
+    return await this.s.getParentWhatsappClassesBySchoolId(schoolIds);
   }
 
   public async getParentWhatsappParentPhonesByClassId(
@@ -1943,6 +1949,18 @@ export class ApiHandler implements ServiceApi {
     }
     return await this.s.getParentWhatsappParentPhonesByClassId(classId);
   }
+
+  public async getCampaignParentsInGroupBySchoolIds(
+    schoolIds: string[],
+  ): Promise<number> {
+    if (!this.s.getCampaignParentsInGroupBySchoolIds) {
+      throw new Error(
+        'Campaign parents-in-group metrics lookup is not implemented in current API service.',
+      );
+    }
+    return await this.s.getCampaignParentsInGroupBySchoolIds(schoolIds);
+  }
+
   public async createAutoProfile(
     languageDocId: string | undefined,
     tcVersion: number,

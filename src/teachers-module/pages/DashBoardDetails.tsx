@@ -12,6 +12,7 @@ import { t } from 'i18next';
 import DashBoardStudentProgres from '../components/homePage/DashBoardStudentProgres';
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
+import { parsePath } from 'history';
 
 interface DashBoardDetailsProps {}
 type DashBoardDetailsState = {
@@ -53,7 +54,10 @@ const DashBoardDetails: React.FC<DashBoardDetailsProps> = ({}) => {
       <Header
         isBackButton={true}
         onButtonClick={() => {
-          history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+          history.replace({
+            ...parsePath(PAGES.HOME_PAGE),
+            state: { tabValue: 0 },
+          });
         }}
         showSchool={true}
         showClass={true}

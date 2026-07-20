@@ -30,6 +30,8 @@ import {
   getStreakTargetRect,
   triggerStreakRewardPulse,
 } from '../../../../common/streakRewardBridge';
+import { parsePath } from 'history';
+import { buildHashAppUrl } from '../../../../utility/routerLocation';
 
 interface LessonDetail {
   subject: string;
@@ -478,9 +480,17 @@ const CreateSelectedAssignment = ({
       text += `\n`;
     });
 
+    const assignmentUrl = buildHashAppUrl(
+      {
+        pathname: PAGES.ASSIGNMENT,
+        search: `?batch_id=${encodeURIComponent(assignmentBatchId ?? '')}&source=teacher`,
+      },
+      'https://chimple.cc',
+    ).toString();
+
     text += `${translate(
       'Please click this link to access your Homework',
-    )}: https://chimple.cc/assignment?batch_id=${assignmentBatchId}&source=teacher`;
+    )}: ${assignmentUrl}`;
 
     return text.trim();
   };
@@ -916,11 +926,17 @@ const CreateSelectedAssignment = ({
           leftButtonText={t('Cancel') ?? ''}
           leftButtonHandler={() => {
             setShowConfirm(false);
-            history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+            history.replace({
+              ...parsePath(PAGES.HOME_PAGE),
+              state: { tabValue: 2 },
+            });
           }}
           onDidDismiss={() => {
             setShowConfirm(false);
-            history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+            history.replace({
+              ...parsePath(PAGES.HOME_PAGE),
+              state: { tabValue: 2 },
+            });
           }}
           rightButtonText={t('Share') ?? ''}
           rightButtonHandler={async () => {
@@ -930,7 +946,10 @@ const CreateSelectedAssignment = ({
               text,
               'Assignment Assigned',
             );
-            history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+            history.replace({
+              ...parsePath(PAGES.HOME_PAGE),
+              state: { tabValue: 2 },
+            });
           }}
         ></CommonDialogBox>
       </div>

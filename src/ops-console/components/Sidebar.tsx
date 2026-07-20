@@ -34,6 +34,8 @@ import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import { logAuthDebug } from '../../utility/authDebug';
+import { getAppPathname } from '../../utility/routerLocation';
+import { parsePath } from 'history';
 
 interface SidebarProps {
   name: string;
@@ -115,7 +117,10 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
   const switchUserToTeacher = async () => {
     if (localSchool && localClass) {
       schoolUtil.setCurrMode(MODES.TEACHER);
-      history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+      history.replace({
+        ...parsePath(PAGES.HOME_PAGE),
+        state: { tabValue: 0 },
+      });
     } else if (schools && schools.length > 0) {
       if (schools.length === 1) {
         Util.setCurrentSchool(schools[0].school, schools[0].role);
@@ -126,7 +131,10 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
         if (tempClasses.length > 0) {
           Util.setCurrentClass(tempClasses[0]);
           schoolUtil.setCurrMode(MODES.TEACHER);
-          history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+          history.replace({
+            ...parsePath(PAGES.HOME_PAGE),
+            state: { tabValue: 0 },
+          });
         }
       } else {
         schoolUtil.setCurrMode(MODES.TEACHER);
@@ -175,7 +183,7 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     logAuthDebug('Navigating to login after ops console logout.', {
       source: 'OpsSidebar.onSignOut',
       reason: 'logout_complete_navigate_login',
-      from_page: window.location.pathname,
+      from_page: getAppPathname(),
       to_page: PAGES.LOGIN,
     });
     history.replace(PAGES.LOGIN);

@@ -8,6 +8,7 @@ import { useFeatureValue, useFeatureIsOn } from '@growthbook/growthbook-react';
 import { ServiceConfig } from '../services/ServiceConfig';
 import Loading from '../components/Loading';
 import { logAuthDebug } from '../utility/authDebug';
+import { getAppPathname } from '../utility/routerLocation';
 
 const HotUpdate: FC<{}> = () => {
   const history = useHistory();
@@ -54,7 +55,7 @@ const HotUpdate: FC<{}> = () => {
       logAuthDebug('Navigating to login from hot update entry point.', {
         source: 'HotUpdate.push',
         reason: 'language_not_set',
-        from_page: window.location.pathname,
+        from_page: getAppPathname(),
         to_page: PAGES.LOGIN,
       });
       history.replace(PAGES.LOGIN);

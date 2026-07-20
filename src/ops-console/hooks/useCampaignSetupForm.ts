@@ -94,6 +94,13 @@ export const useCampaignSetupForm = () => {
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [rewardSubmitAttempted, setRewardSubmitAttempted] = useState(false);
   const [message, setMessage] = useState<CampaignSetupMessage>(null);
+  const assignmentFrequency = useMemo(
+    () =>
+      assignmentConfigs[activeAssignmentGradeId]?.frequency ??
+      Object.values(assignmentConfigs)[0]?.frequency ??
+      DEFAULT_FREQUENCY,
+    [activeAssignmentGradeId, assignmentConfigs],
+  );
 
   const audience = useCampaignAudienceSelection({
     api,
@@ -431,6 +438,7 @@ export const useCampaignSetupForm = () => {
     assignmentOptions,
     areRewardsValid,
     assignmentConfigs,
+    assignmentFrequency,
     assignmentDrafts,
     campaignRewards,
     createdCampaignId,

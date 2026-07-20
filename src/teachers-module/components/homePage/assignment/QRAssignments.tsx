@@ -13,6 +13,7 @@ import AssigmentCount from '../../library/AssignmentCount';
 import logger from '../../../../utility/logger';
 import AssignedVisibilityToggle from '../../AssignedVisibilityToggle';
 import AssignedBadgeIcon from '../../AssignedBadgeIcon';
+import { parsePath } from 'history';
 
 type LessonUI = {
   id: string;
@@ -129,7 +130,10 @@ const QRAssignments: React.FC = () => {
             isBackButton={true}
             onBackButtonClick={() => {
               if (location.state?.fromPage === PAGES.HOME_PAGE) {
-                history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+                history.replace({
+                  ...parsePath(PAGES.HOME_PAGE),
+                  state: { tabValue: 2 },
+                });
                 return;
               }
               history.goBack();
@@ -273,24 +277,27 @@ const QRAssignments: React.FC = () => {
                   },
                 };
 
-                history.push(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE, {
-                  fromPage: PAGES.QR_ASSIGNMENTS,
-                  selectedAssignments,
-                  manualAssignments: {
-                    [location.state.courseId]: {
-                      lessons: lessons
-                        .filter((l) => selectedLessonIds.includes(l.id))
-                        .map((l) => ({
-                          ...l,
-                          source: AssignmentSource.QR_CODE,
-                        })),
+                history.push({
+                  ...parsePath(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE),
+                  state: {
+                    fromPage: PAGES.QR_ASSIGNMENTS,
+                    selectedAssignments,
+                    manualAssignments: {
+                      [location.state.courseId]: {
+                        lessons: lessons
+                          .filter((l) => selectedLessonIds.includes(l.id))
+                          .map((l) => ({
+                            ...l,
+                            source: AssignmentSource.QR_CODE,
+                          })),
+                      },
                     },
-                  },
-                  recommendedAssignments: {},
-                  qrAssignmentNavigationState: {
-                    chapterId: location.state.chapterId,
-                    courseId: location.state.courseId,
-                    fromPage: location.state.fromPage,
+                    recommendedAssignments: {},
+                    qrAssignmentNavigationState: {
+                      chapterId: location.state.chapterId,
+                      courseId: location.state.courseId,
+                      fromPage: location.state.fromPage,
+                    },
                   },
                 });
               }}

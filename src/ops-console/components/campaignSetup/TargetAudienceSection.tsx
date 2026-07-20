@@ -21,6 +21,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
   savedGroups,
   selectedSavedGroupId,
   audienceOptions,
+  availableGrades,
   selectedBlocks,
   selectedSchools,
   selectedGrades,
@@ -29,6 +30,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
   hasCustomGradeSelection,
   schoolsForSelectedBlocks,
   loadingAudience,
+  loadingGrades,
   selectedProgramName,
   summaryBlockCount,
   summarySchoolCount,
@@ -55,6 +57,23 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
     () => new Map(programs.map((program) => [program.id, program.name])),
     [programs],
   );
+  const gradeSelectScopeKey = useMemo(() => {
+    const schoolKey =
+      selectedSchools.length === audienceOptions.schools.length
+        ? 'all-schools'
+        : selectedSchools
+            .map((school) => school.id)
+            .sort()
+            .join('|');
+    const gradeKey = availableGrades.map((grade) => grade.id).join('|');
+
+    return `${schoolKey}:${gradeKey}`;
+  }, [audienceOptions.schools.length, availableGrades, selectedSchools]);
+  const scopedSelectedGrades = useMemo(() => {
+    const availableGradeIds = new Set(availableGrades.map((grade) => grade.id));
+
+    return selectedGrades.filter((grade) => availableGradeIds.has(grade.id));
+  }, [availableGrades, selectedGrades]);
 
   return (
     <Box className="campaign-setup-section">
@@ -166,9 +185,10 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
         <Box className="campaign-setup-field">
           <Typography className="campaign-setup-label">Grade</Typography>
           <CampaignMultiSelect
-            options={audienceOptions.grades}
-            value={selectedGrades}
-            loading={loadingAudience}
+            key={gradeSelectScopeKey}
+            options={availableGrades}
+            value={scopedSelectedGrades}
+            loading={loadingAudience || loadingGrades}
             placeholder="Select Grade"
             preventMobileKeyboard
             getOptionLabel={(option) => option.name}

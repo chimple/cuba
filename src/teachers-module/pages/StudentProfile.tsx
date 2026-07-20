@@ -10,6 +10,7 @@ import { Util } from '../../utility/util';
 import { subDays } from 'date-fns';
 import { useHistory } from 'react-router-dom';
 import logger from '../../utility/logger';
+import { parsePath } from 'history';
 
 const StudentProfile: React.FC = () => {
   const history = useHistory();
@@ -36,12 +37,15 @@ const StudentProfile: React.FC = () => {
   const handleViewProgressClick = () => {
     var startDate = subDays(new Date(), 6);
     var endDate = new Date();
-    history.replace(PAGES.STUDENT_REPORT, {
-      student: student,
-      startDate: startDate,
-      endDate: endDate,
-      isStudentProfilePage: true,
-      classDoc: tempClass,
+    history.replace({
+      ...parsePath(PAGES.STUDENT_REPORT),
+      state: {
+        student: student,
+        startDate: startDate,
+        endDate: endDate,
+        isStudentProfilePage: true,
+        classDoc: tempClass,
+      },
     });
   };
 
@@ -65,7 +69,7 @@ const StudentProfile: React.FC = () => {
   };
 
   const onBackButtonClick = () => {
-    history.replace(PAGES.CLASS_USERS, currentClass);
+    history.replace({ ...parsePath(PAGES.CLASS_USERS), state: currentClass });
   };
 
   const handleUpdateClick = async () => {

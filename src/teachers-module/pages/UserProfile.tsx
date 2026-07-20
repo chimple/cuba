@@ -11,6 +11,7 @@ import Header from '../components/homePage/Header';
 import ProfileDetails from '../components/library/ProfileDetails';
 import UserProfileSection from '../components/UserProfileSection';
 import './UserProfile.css';
+import { parsePath } from 'history';
 
 const UserProfile: React.FC = () => {
   const history = useHistory();
@@ -154,7 +155,7 @@ const UserProfile: React.FC = () => {
 
   const placeholderImgBase64 = 'data:image/png;base64,....';
   const onBackButtonClick = () => {
-    history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+    history.replace({ ...parsePath(PAGES.HOME_PAGE), state: { tabValue: 0 } });
   };
   return (
     <div className="main-page">

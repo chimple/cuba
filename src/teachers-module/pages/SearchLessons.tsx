@@ -18,6 +18,7 @@ import ChapterWiseLessons from '../components/ChapterWiseLessons';
 import { readAssignmentCartFromStorage } from './AssignmentCartStorage';
 import logger from '../../utility/logger';
 import AssignedVisibilityToggle from '../components/AssignedVisibilityToggle';
+import { parsePath } from 'history';
 
 type LessonMeta = {
   chapterId: string | null;
@@ -654,7 +655,12 @@ const SearchLesson: React.FC = () => {
     <div id="search-lesson-container" className="search-lesson-container">
       <Header
         isBackButton
-        onButtonClick={() => history.replace(PAGES.HOME_PAGE, { tabValue: 1 })}
+        onButtonClick={() =>
+          history.replace({
+            ...parsePath(PAGES.HOME_PAGE),
+            state: { tabValue: 1 },
+          })
+        }
         customText={t('Search') ?? 'Search'}
         schoolName={currentSchool?.name}
         className={currentClass?.name}

@@ -31,6 +31,7 @@ import { t } from 'i18next';
 import { useHistory } from 'react-router';
 import { schoolUtil } from '../../utility/schoolUtil';
 import Header from '../components/homePage/Header';
+import { parsePath } from 'history';
 
 const PAGE_LIMIT = 50;
 
@@ -75,9 +76,15 @@ const SearchSchool: FC = () => {
       currentUser?.id as string,
     );
     if (existingRequest?.request_status === STATUS.REQUESTED) {
-      history.replace(PAGES.POST_SUCCESS, { tabValue: 0 });
+      history.replace({
+        ...parsePath(PAGES.POST_SUCCESS),
+        state: { tabValue: 0 },
+      });
     } else {
-      history.replace(PAGES.SEARCH_SCHOOL, { tabValue: 0 });
+      history.replace({
+        ...parsePath(PAGES.SEARCH_SCHOOL),
+        state: { tabValue: 0 },
+      });
     }
   };
   useEffect(() => {

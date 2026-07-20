@@ -16,6 +16,7 @@ import PaintTopBar from './PaintTopBar';
 // import { ReactComponent as SceneSvg } from "../../assets/images/tinyfriends_original.svg";
 import logger from '../../utility/logger';
 import { parseSvg, ParsedSvg, sanitizeSvg } from '../common/SvgHelpers';
+import { getAppPathname } from '../../utility/routerLocation';
 import { Util } from '../../utility/util';
 import {
   ENABLE_SAVE_AND_SHARE_STICKER_BOOK,
@@ -118,7 +119,7 @@ const ColoringBoard: React.FC = () => {
   const saveAnalyticsPayload = useMemo(
     () => ({
       user_id: Util.getCurrentStudent()?.id ?? null,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
       source: PAGES.COLORING_BOARD,
       artwork_title: artworkTitle,
       return_to: location.state?.returnTo ?? null,
@@ -316,7 +317,7 @@ const ColoringBoard: React.FC = () => {
   useEffect(() => {
     Util.logEvent(EVENTS.PAINT_MODE_PAGE_VIEW, {
       user_id: Util.getCurrentStudent()?.id ?? null,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
       return_to: location.state?.returnTo ?? null,
     });
   }, [location.state]);
@@ -395,17 +396,17 @@ const ColoringBoard: React.FC = () => {
   const handleSave = () => {
     Util.logEvent(EVENTS.PAINT_SAVE_TAP, {
       user_id: Util.getCurrentStudent()?.id ?? null,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
       source: PAGES.COLORING_BOARD,
     });
     Util.logEvent(EVENTS.PAINT_IMAGE_SAVED, {
       user_id: Util.getCurrentStudent()?.id ?? null,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
       source: PAGES.COLORING_BOARD,
     });
     Util.logEvent(EVENTS.STICKER_BOOK_SAVE_CLICKED, {
       user_id: Util.getCurrentStudent()?.id ?? null,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
       source: PAGES.COLORING_BOARD,
     });
     logger.info('save');
@@ -431,7 +432,7 @@ const ColoringBoard: React.FC = () => {
           onExit={() => {
             Util.logEvent(EVENTS.PAINT_EXIT_TAP, {
               user_id: Util.getCurrentStudent()?.id ?? null,
-              page_path: window.location.pathname,
+              page_path: getAppPathname(),
             });
             setShowExitConfirm(true);
           }}
@@ -499,21 +500,21 @@ const ColoringBoard: React.FC = () => {
         onClose={() => {
           Util.logEvent(EVENTS.PAINT_EXIT_CLOSE_TAP, {
             user_id: Util.getCurrentStudent()?.id ?? null,
-            page_path: window.location.pathname,
+            page_path: getAppPathname(),
           });
           setShowExitConfirm(false);
         }}
         onStay={() => {
           Util.logEvent(EVENTS.PAINT_EXIT_STAY_TAP, {
             user_id: Util.getCurrentStudent()?.id ?? null,
-            page_path: window.location.pathname,
+            page_path: getAppPathname(),
           });
           setShowExitConfirm(false);
         }}
         onExit={() => {
           Util.logEvent(EVENTS.PAINT_EXIT_CONFIRM_TAP, {
             user_id: Util.getCurrentStudent()?.id ?? null,
-            page_path: window.location.pathname,
+            page_path: getAppPathname(),
           });
           void handleExit();
         }}

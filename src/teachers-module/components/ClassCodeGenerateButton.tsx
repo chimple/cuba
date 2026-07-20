@@ -5,6 +5,8 @@ import { t } from 'i18next';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import './ClassCodeGenerateButton.css'; // Ensure this still styles your component appropriately.
 import { Util } from '../../utility/util';
+import { buildHashAppUrl } from '../../utility/routerLocation';
+import { PAGES } from '../../common/constants';
 
 interface ClassCodeProps {
   currentClassId: string;
@@ -35,6 +37,13 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
   const shareClassCode = async () => {
     if (classCode) {
       const classCodeString = classCode.toString();
+      const joinClassUrl = buildHashAppUrl(
+        {
+          pathname: PAGES.JOIN_CLASS,
+          search: `?classCode=${encodeURIComponent(classCodeString)}`,
+        },
+        'https://chimple.cc',
+      ).toString();
       const message = `${t('Hi Students')},
   
   ${t('To join the class')} "${className}", ${t('please install the Chimple Kids app:')} https://play.google.com/store/apps/details?id=org.chimple.bahama.
@@ -46,7 +55,7 @@ const ClassCodeGenerateButton: React.FC<ClassCodeProps> = ({
       Util.sendContentToAndroidOrWebShare(
         message,
         t('Hi Students'),
-        `https://chimple.cc/join-class?classCode=${classCodeString}`,
+        joinClassUrl,
       );
     }
   };

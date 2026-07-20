@@ -9,6 +9,7 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { RoleType } from '../../interface/modelInterfaces';
 import SchoolUserList from '../components/schoolUsers/SchoolUserList';
 import { IonPage } from '@ionic/react';
+import { parsePath } from 'history';
 
 const SchoolUsers: React.FC = () => {
   const history = useHistory();
@@ -58,21 +59,30 @@ const SchoolUsers: React.FC = () => {
     setSelectedTab(SCHOOL_USERS.PRINCIPALS);
   };
   const addPrincipal = () => {
-    history.replace(PAGES.ADD_PRINCIPAL, {
-      school: school,
-      role: role,
+    history.replace({
+      ...parsePath(PAGES.ADD_PRINCIPAL),
+      state: {
+        school: school,
+        role: role,
+      },
     });
   };
   const addCoordinator = () => {
-    history.replace(PAGES.ADD_COORDINATOR, {
-      school: school,
-      role: role,
+    history.replace({
+      ...parsePath(PAGES.ADD_COORDINATOR),
+      state: {
+        school: school,
+        role: role,
+      },
     });
   };
   const addSponsor = () => {
-    history.replace(PAGES.ADD_SPONSOR, {
-      school: school,
-      role: role,
+    history.replace({
+      ...parsePath(PAGES.ADD_SPONSOR),
+      state: {
+        school: school,
+        role: role,
+      },
     });
   };
 

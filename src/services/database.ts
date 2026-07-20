@@ -588,6 +588,7 @@ export type Database = {
           comments: string | null;
           created_at: string | null;
           end_date: string;
+          frequency: 'daily' | 'alternate_days' | 'alternate_week';
           id: string;
           is_deleted: boolean | null;
           manager_id: string | null;
@@ -609,6 +610,7 @@ export type Database = {
           comments?: string | null;
           created_at?: string | null;
           end_date: string;
+          frequency?: 'daily' | 'alternate_days' | 'alternate_week';
           id?: string;
           is_deleted?: boolean | null;
           manager_id?: string | null;
@@ -630,6 +632,7 @@ export type Database = {
           comments?: string | null;
           created_at?: string | null;
           end_date?: string;
+          frequency?: 'daily' | 'alternate_days' | 'alternate_week';
           id?: string;
           is_deleted?: boolean | null;
           manager_id?: string | null;
@@ -4349,6 +4352,7 @@ export type Database = {
           metric_window: string | null;
           onboarded_students: number | null;
           partners: string[] | null;
+          parents_in_group: number | null;
           parents_reached: number | null;
           program_id: string | null;
           program_managers: string[] | null;
@@ -4381,6 +4385,7 @@ export type Database = {
           metric_window?: string | null;
           onboarded_students?: number | null;
           partners?: string[] | null;
+          parents_in_group?: number | null;
           parents_reached?: number | null;
           program_id?: string | null;
           program_managers?: string[] | null;
@@ -4413,6 +4418,7 @@ export type Database = {
           metric_window?: string | null;
           onboarded_students?: number | null;
           partners?: string[] | null;
+          parents_in_group?: number | null;
           parents_reached?: number | null;
           program_id?: string | null;
           program_managers?: string[] | null;
@@ -6373,6 +6379,20 @@ export type Database = {
         Args: { p_class_id: string; p_days: number };
         Returns: number;
       };
+      get_campaign_audience_summary: {
+        Args: {
+          p_grade_ids: string[];
+          p_school_ids: string[];
+        };
+        Returns: {
+          grades: {
+            gradeId: string;
+            gradeName: string;
+            studentCount: number;
+          }[];
+          totalStudents: number;
+        };
+      };
       get_campaign_dashboard_metrics: {
         Args: {
           p_campaign_ids: string[];
@@ -7941,6 +7961,10 @@ export type Database = {
           subject_name: string;
           lesson_id: string;
           lesson_name: string;
+          unique_subjects: {
+            subject_id: string;
+            subject_name: string;
+          }[];
           total_count: number;
         }[];
       };

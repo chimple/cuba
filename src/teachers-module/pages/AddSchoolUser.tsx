@@ -15,6 +15,7 @@ import { t } from 'i18next';
 import { RoleType } from '../../interface/modelInterfaces';
 import CommonDialogBox from '../../common/CommonDialogBox';
 import logger from '../../utility/logger';
+import { parsePath } from 'history';
 
 const AddSchoolUser: React.FC = () => {
   const history = useHistory();
@@ -53,9 +54,12 @@ const AddSchoolUser: React.FC = () => {
   };
 
   const onBackButtonClick = () => {
-    history.replace(`${PAGES.SCHOOL_USERS}?tab=${tempTabName}`, {
-      school: school,
-      role: role,
+    history.replace({
+      ...parsePath(`${PAGES.SCHOOL_USERS}?tab=${tempTabName}`),
+      state: {
+        school: school,
+        role: role,
+      },
     });
   };
 
@@ -107,9 +111,12 @@ const AddSchoolUser: React.FC = () => {
       await api.updateSchoolLastModified(school.id);
       await api.updateUserLastModified(user.id);
 
-      history.replace(`${PAGES.SCHOOL_USERS}?tab=${tempTabName}`, {
-        school: school,
-        role: role,
+      history.replace({
+        ...parsePath(`${PAGES.SCHOOL_USERS}?tab=${tempTabName}`),
+        state: {
+          school: school,
+          role: role,
+        },
       });
     } catch (error) {
       logger.error('Failed to add user to school', error);

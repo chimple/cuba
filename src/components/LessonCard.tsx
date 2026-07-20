@@ -24,6 +24,8 @@ import DownloadLesson from './DownloadChapterAndLesson';
 import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
 import logger from '../utility/logger';
 
+import { parsePath } from 'history';
+
 const LessonCard: React.FC<{
   width: string;
   height: string;
@@ -170,23 +172,28 @@ const LessonCard: React.FC<{
               }
 
               if (assignment) {
-                history.push(
-                  PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignment?.id}`,
-                  {
+                history.push({
+                  ...parsePath(
+                    PAGES.LIVE_QUIZ_JOIN + `?assignmentId=${assignment?.id}`,
+                  ),
+                  state: {
                     assignment: JSON.stringify(assignment),
                     source: source,
                   },
-                );
+                });
               } else {
-                history.push(
-                  PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
-                  {
+                history.push({
+                  ...parsePath(
+                    PAGES.LIVE_QUIZ_GAME +
+                      `?lessonId=${lesson.cocos_lesson_id}`,
+                  ),
+                  state: {
                     courseId: resolvedCourse?.id,
                     lesson: JSON.stringify(lesson),
                     from: history.location.pathname + `?${CONTINUE}=true`,
                     source: source,
                   },
-                );
+                });
               }
             } else {
               const playableLessonId = Util.getLessonBundleId(lesson);
@@ -194,15 +201,18 @@ const LessonCard: React.FC<{
                 return;
               }
               const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
-              history.push(PAGES.LIDO_PLAYER + parmas, {
-                lessonId: playableLessonId,
-                courseDocId: resolvedCourse?.id,
-                course: JSON.stringify(resolvedCourse),
-                lesson: JSON.stringify(lesson),
-                assignment: assignment,
-                chapter: JSON.stringify(chapter),
-                from: history.location.pathname + `?${CONTINUE}=true`,
-                source: source,
+              history.push({
+                ...parsePath(PAGES.LIDO_PLAYER + parmas),
+                state: {
+                  lessonId: playableLessonId,
+                  courseDocId: resolvedCourse?.id,
+                  course: JSON.stringify(resolvedCourse),
+                  lesson: JSON.stringify(lesson),
+                  assignment: assignment,
+                  chapter: JSON.stringify(chapter),
+                  from: history.location.pathname + `?${CONTINUE}=true`,
+                  source: source,
+                },
               });
             }
           }

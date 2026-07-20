@@ -13,6 +13,7 @@ import { PAGES, TableTypes } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { ClassUtil } from '../../utility/classUtil';
 import logger from '../../utility/logger';
+import { parsePath } from 'history';
 
 type StudentReportLocationState = {
   student?: TableTypes<'user'>;
@@ -194,20 +195,29 @@ const StudentReport: React.FC = () => {
   };
   const handleBackButton = () => {
     if (isStudentProfilePage) {
-      history.replace(PAGES.STUDENT_PROFILE, {
-        studentId: student.id,
-        classDoc: tempClass,
+      history.replace({
+        ...parsePath(PAGES.STUDENT_PROFILE),
+        state: {
+          studentId: student.id,
+          classDoc: tempClass,
+        },
       });
     } else if (fromDashboardBand) {
-      history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+      history.replace({
+        ...parsePath(PAGES.HOME_PAGE),
+        state: { tabValue: 0 },
+      });
     } else {
-      history.replace(PAGES.HOME_PAGE, {
-        tabValue: 3,
-        startDate: locationState.startDate,
-        endDate: locationState.endDate,
-        selectedType: locationState.selectedType,
-        isAssignments: locationState.isAssignments,
-        sortType: locationState.sortType,
+      history.replace({
+        ...parsePath(PAGES.HOME_PAGE),
+        state: {
+          tabValue: 3,
+          startDate: locationState.startDate,
+          endDate: locationState.endDate,
+          selectedType: locationState.selectedType,
+          isAssignments: locationState.isAssignments,
+          sortType: locationState.sortType,
+        },
       });
     }
   };
