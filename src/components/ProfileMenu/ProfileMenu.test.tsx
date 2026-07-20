@@ -199,8 +199,10 @@ describe('ProfileMenu Notification Logic', () => {
     });
 
     expect(mockPush).toHaveBeenCalledWith(
-      PAGES.STICKER_BOOK,
-      expect.any(Object),
+      expect.objectContaining({
+        pathname: PAGES.STICKER_BOOK,
+        state: expect.any(Object),
+      }),
     );
   });
 
@@ -224,9 +226,14 @@ describe('ProfileMenu Notification Logic', () => {
       expect(Util.setCurrentStudent).toHaveBeenCalledWith(null);
     });
     expect(mockSetCurrentClass).not.toHaveBeenCalled();
-    expect(mockReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE, {
-      from: '/',
-      fromSchoolModeSwitchProfile: true,
-    });
+    expect(mockReplace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pathname: PAGES.SELECT_MODE,
+        state: {
+          from: '/',
+          fromSchoolModeSwitchProfile: true,
+        },
+      }),
+    );
   });
 });

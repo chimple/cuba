@@ -2,6 +2,7 @@ import { Util } from '../utility/util';
 import { EVENTS, PAGES } from '../common/constants';
 import { RoleType } from '../interface/modelInterfaces';
 import { SupabaseAuth } from '../services/auth/SupabaseAuth';
+import { getAppHref, getAppPathname } from '../utility/routerLocation';
 
 const storedStudent: {
   id?: string;
@@ -59,7 +60,7 @@ const handleClick = async (event: MouseEvent) => {
         if (textContent) break;
         target = target.parentElement as HTMLElement;
       }
-      if (PAGES.EDIT_STUDENT === window.location.pathname) {
+      if (PAGES.EDIT_STUDENT === getAppPathname()) {
         textContent = target
           .getAttribute('src')
           ?.trim()
@@ -100,9 +101,9 @@ const handleClick = async (event: MouseEvent) => {
     user_type: storedStudent.type,
     click_value: textContent,
     click_identifier: id || className || 'null',
-    page_name: window.location.pathname.replace('/', ''),
-    page_path: window.location.pathname,
-    complete_path: window.location.href,
+    page_name: getAppPathname().replace('/', ''),
+    page_path: getAppPathname(),
+    complete_path: getAppHref(),
     action_type: event.type,
   };
 

@@ -22,6 +22,7 @@ import Loading from '../../../../components/Loading';
 import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
 import logger from '../../../../utility/logger';
+import { parsePath } from 'history';
 
 declare global {
   interface Window {
@@ -636,9 +637,12 @@ const TeacherAssignment: FC<{
         finalLessonsJson,
       );
 
-      history.push(PAGES.QR_ASSIGNMENTS, {
-        chapterId: result.chapter_id,
-        courseId: result.course_id,
+      history.push({
+        ...parsePath(PAGES.QR_ASSIGNMENTS),
+        state: {
+          chapterId: result.chapter_id,
+          courseId: result.course_id,
+        },
       });
       // await init();
     } catch (error) {
@@ -861,10 +865,13 @@ const TeacherAssignment: FC<{
                     .count >
                 0
               ) {
-                history.replace(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE, {
-                  selectedAssignments: selectedLessonsCount,
-                  manualAssignments: manualAssignments,
-                  recommendedAssignments: recommendedAssignments,
+                history.replace({
+                  ...parsePath(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE),
+                  state: {
+                    selectedAssignments: selectedLessonsCount,
+                    manualAssignments: manualAssignments,
+                    recommendedAssignments: recommendedAssignments,
+                  },
                 });
               } else {
                 await Toast.show({

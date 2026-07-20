@@ -27,6 +27,7 @@ import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
 import logger from '../../utility/logger';
+import { parsePath } from 'history';
 
 interface SchoolWithRole {
   school: TableTypes<'school'>;
@@ -172,15 +173,27 @@ const DisplaySchools: FC = () => {
         existingRequest?.request_status === STATUS.REQUESTED ||
         existingRequest?.request_status === STATUS.FLAGGED
       ) {
-        history.replace(PAGES.POST_SUCCESS, { tabValue: 0 });
+        history.replace({
+          ...parsePath(PAGES.POST_SUCCESS),
+          state: { tabValue: 0 },
+        });
       } else if (existingRequest?.request_status === STATUS.REJECTED) {
-        history.replace(PAGES.SEARCH_SCHOOL, { tabValue: 0 });
+        history.replace({
+          ...parsePath(PAGES.SEARCH_SCHOOL),
+          state: { tabValue: 0 },
+        });
       } else if (existingRequest?.request_status === STATUS.APPROVED) {
         // If approved but school not in list, go to Search School to avoid flicker/loop
-        history.replace(PAGES.SEARCH_SCHOOL, { tabValue: 0 });
+        history.replace({
+          ...parsePath(PAGES.SEARCH_SCHOOL),
+          state: { tabValue: 0 },
+        });
       } else {
-        history.replace(PAGES.SEARCH_SCHOOL, {
-          origin: PAGES.DISPLAY_SCHOOLS,
+        history.replace({
+          ...parsePath(PAGES.SEARCH_SCHOOL),
+          state: {
+            origin: PAGES.DISPLAY_SCHOOLS,
+          },
         });
       }
       setLoading(false);
@@ -261,12 +274,18 @@ const DisplaySchools: FC = () => {
     localStorage.setItem(USER_SELECTION_STAGE, JSON.stringify(true));
     const tempClass = Util.getCurrentClass();
     if (tempClass) {
-      history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+      history.replace({
+        ...parsePath(PAGES.HOME_PAGE),
+        state: { tabValue: 0 },
+      });
     } else {
       const classes = await getClasses(school.school.id, currentUser?.id);
       if (classes.length > 0) {
         Util.setCurrentClass(classes[0]);
-        history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+        history.replace({
+          ...parsePath(PAGES.HOME_PAGE),
+          state: { tabValue: 0 },
+        });
       }
     }
     void Util.validateCurrentSchoolContext();
@@ -304,8 +323,11 @@ const DisplaySchools: FC = () => {
               <div className="create-school-button">
                 <IonFabButton
                   onClick={() =>
-                    history.replace(PAGES.REQ_ADD_SCHOOL, {
-                      origin: PAGES.DISPLAY_SCHOOLS,
+                    history.replace({
+                      ...parsePath(PAGES.REQ_ADD_SCHOOL),
+                      state: {
+                        origin: PAGES.DISPLAY_SCHOOLS,
+                      },
                     })
                   }
                 >

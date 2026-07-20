@@ -7,6 +7,7 @@ import { AudioUtil } from '../../utility/AudioUtil';
 import logger from '../../utility/logger';
 import { Util } from '../../utility/util';
 import './ActivationLessonBanner.css';
+import { parsePath } from 'history';
 
 const ENTRY_SOUND_EFFECT = '/assets/audios/common/generic_sound_effect.mp3';
 const ACTIVATION_COUNTDOWN_SECONDS = 5;
@@ -121,14 +122,17 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
 
         const params = `?courseid=${randomLesson.cocos_subject_code}&chapterid=${randomLesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
         launchTimeoutRef.current = window.setTimeout(() => {
-          history.push(PAGES.LIDO_PLAYER + params, {
-            lessonId: playableLessonId,
-            courseDocId: CHIMPLE_DIGITAL_SKILLS,
-            lesson: JSON.stringify(randomLesson),
-            reward: true,
-            isDefaultLesson: true,
-            source,
-            from: history.location.pathname + history.location.search,
+          history.push({
+            ...parsePath(PAGES.LIDO_PLAYER + params),
+            state: {
+              lessonId: playableLessonId,
+              courseDocId: CHIMPLE_DIGITAL_SKILLS,
+              lesson: JSON.stringify(randomLesson),
+              reward: true,
+              isDefaultLesson: true,
+              source,
+              from: history.location.pathname + history.location.search,
+            },
           });
         }, ACTIVATION_LAUNCH_DELAY_MS);
       } catch (error) {

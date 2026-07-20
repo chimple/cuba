@@ -19,11 +19,13 @@ import StickerBookSaveModal from '../components/stickerBook/StickerBookSaveModal
 import StickerBookToast from '../components/stickerBook/StickerBookToast';
 import { t } from 'i18next';
 import NewBackButton from '../components/common/NewBackButton';
+import { getAppPathname } from '../utility/routerLocation';
 import {
   fetchStickerBookSvgText,
   resolveStickerBookSvgUrl,
 } from '../utility/stickerBookAssets';
 import { useStickerBookSave } from '../hooks/useStickerBookSave';
+import { parsePath } from 'history';
 
 type CurrentProgress = {
   bookId: string;
@@ -203,7 +205,7 @@ const StickerBook: React.FC = () => {
       book_title: selectedBook?.title ?? null,
       collected_count: collectedStickers.length,
       total_elements: allStickerIds.length,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
     }),
     [selectedBook, collectedStickers.length, allStickerIds.length],
   );
@@ -250,12 +252,15 @@ const StickerBook: React.FC = () => {
   const onPaint = () => {
     if (!selectedBook) return;
     const svgUrl = resolveStickerBookSvgUrl(selectedBook.svg_url ?? '');
-    history.push(PAGES.COLORING_BOARD, {
-      stickerBookId: selectedBook.id,
-      svgRaw: svgRaw ?? undefined,
-      svgUrl,
-      artworkTitle: selectedBook.title ?? t('Sticker Book'),
-      returnTo: PAGES.STICKER_BOOK,
+    history.push({
+      ...parsePath(PAGES.COLORING_BOARD),
+      state: {
+        stickerBookId: selectedBook.id,
+        svgRaw: svgRaw ?? undefined,
+        svgUrl,
+        artworkTitle: selectedBook.title ?? t('Sticker Book'),
+        returnTo: PAGES.STICKER_BOOK,
+      },
     });
   };
 
@@ -286,7 +291,7 @@ const StickerBook: React.FC = () => {
       total_elements: total,
       colored_elements: colored,
       uncolored_elements: uncolored,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
     });
   }, [selectedBook, allStickerIds, collectedStickers]);
 

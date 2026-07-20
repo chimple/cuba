@@ -25,6 +25,7 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { parsePath } from 'history';
 
 interface ReportTableProps {
   handleButtonClick?: (isOpen: boolean) => void;
@@ -360,13 +361,16 @@ const ReportTable: React.FC<ReportTableProps> = ({
     if (selected) setSelectedChapter(selected);
   };
   const handleViewClickDetails = (student: TableTypes<'user'>) => {
-    history.replace(PAGES.STUDENT_REPORT, {
-      student: student,
-      startDate: dateRange.startDate,
-      endDate: dateRange.endDate,
-      selectedType: selectedType,
-      isAssignments: isAssignments,
-      sortType: sortType,
+    history.push({
+      ...parsePath(PAGES.STUDENT_REPORT),
+      state: {
+        student: student,
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        selectedType: selectedType,
+        isAssignments: isAssignments,
+        sortType: sortType,
+      },
     });
   };
 

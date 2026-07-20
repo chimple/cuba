@@ -25,6 +25,7 @@ import { RootState } from '../../../redux/store';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 import { logAuthDebug } from '../../../utility/authDebug';
 import logger from '../../../utility/logger';
+import { getAppPathname } from '../../../utility/routerLocation';
 import { Util } from '../../../utility/util';
 import ClassSection from './ClassSection';
 import ProfileSection from './ProfileDetail';
@@ -101,7 +102,7 @@ const SideMenu: React.FC<{
 
   const api = ServiceConfig.getI()?.apiHandler;
   const getSwitchToKidsAppSourceScreen = (): SwitchToKidsAppSourceScreen => {
-    if (window.location.pathname.startsWith(PAGES.SIDEBAR_PAGE)) {
+    if (getAppPathname().startsWith(PAGES.SIDEBAR_PAGE)) {
       return SWITCH_TO_KIDS_APP_SOURCE_SCREEN.OPS_CONSOLE;
     }
     return SWITCH_TO_KIDS_APP_SOURCE_SCREEN.TEACHER_DASHBOARD;
@@ -335,7 +336,7 @@ const SideMenu: React.FC<{
     logAuthDebug('Navigating to login after teacher side-menu logout.', {
       source: 'TeacherSideMenu.onSignOut',
       reason: 'logout_complete_navigate_login',
-      from_page: window.location.pathname,
+      from_page: getAppPathname(),
       to_page: PAGES.LOGIN,
     });
     history.replace(PAGES.LOGIN);

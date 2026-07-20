@@ -22,6 +22,7 @@ import { AuthState } from '../../redux/slices/auth/authSlice';
 import { RootState } from '../../redux/store';
 import logger from '../../utility/logger';
 import { getCachedImageSrc } from '../../utility/imageCache';
+import { parsePath } from 'history';
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
@@ -454,22 +455,31 @@ const SubjectSelection: React.FC = () => {
       const finalRole: RoleType = userRole ?? RoleType.PRINCIPAL;
       if (previousOrigin === PAGES.DISPLAY_SCHOOLS) {
         Util.setNavigationState(School_Creation_Stages.CREATE_CLASS);
-        history.replace(PAGES.ADD_CLASS, {
-          school: currentSchool,
-          origin: PAGES.SUBJECTS_PAGE,
+        history.replace({
+          ...parsePath(PAGES.ADD_CLASS),
+          state: {
+            school: currentSchool,
+            origin: PAGES.SUBJECTS_PAGE,
+          },
         });
       } else if (previousOrigin === PAGES.HOME_PAGE) {
         Util.setCurrentSchool(currentSchool!, finalRole);
         Util.setCurrentClass(currentClass!);
         Util.clearNavigationState();
-        history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+        history.replace({
+          ...parsePath(PAGES.HOME_PAGE),
+          state: { tabValue: 0 },
+        });
         void Util.validateCurrentSchoolContext();
       } else {
         if (navigationState?.stage === School_Creation_Stages.CLASS_COURSE) {
           Util.setCurrentSchool(currentSchool!, finalRole);
           Util.setCurrentClass(currentClass!);
           Util.clearNavigationState();
-          history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+          history.replace({
+            ...parsePath(PAGES.HOME_PAGE),
+            state: { tabValue: 0 },
+          });
           void Util.validateCurrentSchoolContext();
         }
         setIsSelecting(false);
@@ -571,9 +581,12 @@ const SubjectSelection: React.FC = () => {
     }
     if (navigationState?.stage === School_Creation_Stages.CLASS_COURSE) {
       Util.setNavigationState(School_Creation_Stages.CREATE_CLASS);
-      history.replace(PAGES.EDIT_CLASS, {
-        school: currentSchool,
-        classDoc: currentClass,
+      history.replace({
+        ...parsePath(PAGES.EDIT_CLASS),
+        state: {
+          school: currentSchool,
+          classDoc: currentClass,
+        },
       });
     } else {
       paramSchoolId

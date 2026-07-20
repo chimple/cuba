@@ -33,6 +33,7 @@ import { Box } from '@mui/material';
 import { useHistory, useLocation } from 'react-router-dom';
 import CustomAppBar from '../components/studentProgress/CustomAppBar';
 import { Util } from '../utility/util';
+import { getAppPathname } from '../utility/routerLocation';
 import { schoolUtil } from '../utility/schoolUtil';
 import { RoleType } from '../interface/modelInterfaces';
 import { setUser } from '../redux/slices/auth/authSlice';
@@ -346,9 +347,9 @@ const Parent: React.FC = () => {
       history.push({
         pathname: PAGES.TERMS_AND_CONDITIONS,
         state: {
-          from: window.location.pathname,
+          from: getAppPathname(),
           returnLocation: {
-            pathname: window.location.pathname,
+            pathname: getAppPathname(),
             state: {
               activeTab: 'settings',
             },
@@ -362,6 +363,7 @@ const Parent: React.FC = () => {
       logAuthDebug('User initiated parent logout.', {
         source: 'Parent.settingUI.handleSignOut',
         reason: 'parent_logout_button',
+        from_page: getAppPathname(),
       });
       await auth.logOut();
       Util.unSubscribeToClassTopicForAllStudents();
@@ -373,7 +375,7 @@ const Parent: React.FC = () => {
       logAuthDebug('Navigating to login after parent logout.', {
         source: 'Parent.settingUI.handleSignOut',
         reason: 'logout_complete_navigate_login',
-        from_page: window.location.pathname,
+        from_page: getAppPathname(),
         to_page: PAGES.LOGIN,
       });
       history.replace(PAGES.LOGIN);

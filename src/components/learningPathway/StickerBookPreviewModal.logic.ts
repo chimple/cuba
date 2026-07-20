@@ -16,9 +16,11 @@ import {
 import { Util } from '../../utility/util';
 import logger from '../../utility/logger';
 import { AudioUtil } from '../../utility/AudioUtil';
+import { getAppPathname } from '../../utility/routerLocation';
 import { fetchStickerBookSvgText } from '../../utility/stickerBookAssets';
 import { useStickerBookSave } from '../../hooks/useStickerBookSave';
 import { resolveStickerBookSvgUrl } from '../../utility/stickerBookAssets';
+import { parsePath } from 'history';
 
 export interface StickerBookModalData {
   source: 'learning_pathway' | 'homework_pathway';
@@ -173,7 +175,7 @@ export const useStickerBookPreviewModalLogic = ({
       book_title: data.stickerBookTitle,
       collected_count: data.collectedStickerIds.length,
       total_elements: data.totalStickerCount ?? data.collectedStickerIds.length,
-      page_path: window.location.pathname,
+      page_path: getAppPathname(),
     }),
     [data],
   );
@@ -773,12 +775,15 @@ export const useStickerBookPreviewModalLogic = ({
       onClose(STICKER_BOOK_PREVIEW_ACKNOWLEDGE_CLOSE_REASON);
     }
 
-    history.push(PAGES.COLORING_BOARD, {
-      stickerBookId: data.stickerBookId,
-      svgRaw,
-      svgUrl: resolveStickerBookSvgUrl(data.stickerBookSvgUrl),
-      artworkTitle: data.stickerBookTitle || t('Sticker Book'),
-      returnTo: window.location.pathname,
+    history.push({
+      ...parsePath(PAGES.COLORING_BOARD),
+      state: {
+        stickerBookId: data.stickerBookId,
+        svgRaw,
+        svgUrl: resolveStickerBookSvgUrl(data.stickerBookSvgUrl),
+        artworkTitle: data.stickerBookTitle || t('Sticker Book'),
+        returnTo: getAppPathname(),
+      },
     });
   };
 
