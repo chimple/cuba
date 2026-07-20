@@ -588,6 +588,7 @@ export type Database = {
           comments: string | null;
           created_at: string | null;
           end_date: string;
+          frequency: 'daily' | 'alternate_days' | 'alternate_week';
           id: string;
           is_deleted: boolean | null;
           manager_id: string | null;
@@ -609,6 +610,7 @@ export type Database = {
           comments?: string | null;
           created_at?: string | null;
           end_date: string;
+          frequency?: 'daily' | 'alternate_days' | 'alternate_week';
           id?: string;
           is_deleted?: boolean | null;
           manager_id?: string | null;
@@ -630,6 +632,7 @@ export type Database = {
           comments?: string | null;
           created_at?: string | null;
           end_date?: string;
+          frequency?: 'daily' | 'alternate_days' | 'alternate_week';
           id?: string;
           is_deleted?: boolean | null;
           manager_id?: string | null;
@@ -751,6 +754,96 @@ export type Database = {
             columns: ['campaign_id'];
             isOneToOne: false;
             referencedRelation: 'campaign';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      campaign_student_performance: {
+        Row: {
+          calculated_at: string | null;
+          campaign_id: string;
+          class_id: string;
+          class_name: string | null;
+          completion_percentage: number | null;
+          created_at: string;
+          id: string;
+          is_deleted: boolean;
+          program_id: string;
+          rank: number | null;
+          school_id: string | null;
+          school_name: string | null;
+          student_id: string;
+          student_name: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          calculated_at?: string | null;
+          campaign_id: string;
+          class_id: string;
+          class_name?: string | null;
+          completion_percentage?: number | null;
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean;
+          program_id: string;
+          rank?: number | null;
+          school_id?: string | null;
+          school_name?: string | null;
+          student_id: string;
+          student_name?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          calculated_at?: string | null;
+          campaign_id?: string;
+          class_id?: string;
+          class_name?: string | null;
+          completion_percentage?: number | null;
+          created_at?: string;
+          id?: string;
+          is_deleted?: boolean;
+          program_id?: string;
+          rank?: number | null;
+          school_id?: string | null;
+          school_name?: string | null;
+          student_id?: string;
+          student_name?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_student_performance_school_id_fkey';
+            columns: ['school_id'];
+            isOneToOne: false;
+            referencedRelation: 'school';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_student_performance_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fk_campaign_student_performance_campaign';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'campaign';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fk_campaign_student_performance_class';
+            columns: ['class_id'];
+            isOneToOne: false;
+            referencedRelation: 'class';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'fk_campaign_student_performance_student';
+            columns: ['student_id'];
+            isOneToOne: false;
+            referencedRelation: 'user';
             referencedColumns: ['id'];
           },
         ];
@@ -4259,6 +4352,7 @@ export type Database = {
           metric_window: string | null;
           onboarded_students: number | null;
           partners: string[] | null;
+          parents_in_group: number | null;
           parents_reached: number | null;
           program_id: string | null;
           program_managers: string[] | null;
@@ -4291,6 +4385,7 @@ export type Database = {
           metric_window?: string | null;
           onboarded_students?: number | null;
           partners?: string[] | null;
+          parents_in_group?: number | null;
           parents_reached?: number | null;
           program_id?: string | null;
           program_managers?: string[] | null;
@@ -4323,6 +4418,7 @@ export type Database = {
           metric_window?: string | null;
           onboarded_students?: number | null;
           partners?: string[] | null;
+          parents_in_group?: number | null;
           parents_reached?: number | null;
           program_id?: string | null;
           program_managers?: string[] | null;
@@ -6146,6 +6242,13 @@ export type Database = {
         };
         Returns: boolean;
       };
+      calculate_campaign_student_performance: {
+        Args: never;
+        Returns: {
+          processed_campaigns: number;
+          upserted_rows: number;
+        }[];
+      };
       check_class_exists_by_name_and_school: {
         Args: { class_name: string; input_school_udise_code: string };
         Returns: Json;
@@ -6275,6 +6378,20 @@ export type Database = {
       get_active_students_count_by_class: {
         Args: { p_class_id: string; p_days: number };
         Returns: number;
+      };
+      get_campaign_audience_summary: {
+        Args: {
+          p_grade_ids: string[];
+          p_school_ids: string[];
+        };
+        Returns: {
+          grades: {
+            gradeId: string;
+            gradeName: string;
+            studentCount: number;
+          }[];
+          totalStudents: number;
+        };
       };
       get_campaign_dashboard_metrics: {
         Args: {
@@ -7844,6 +7961,10 @@ export type Database = {
           subject_name: string;
           lesson_id: string;
           lesson_name: string;
+          unique_subjects: {
+            subject_id: string;
+            subject_name: string;
+          }[];
           total_count: number;
         }[];
       };

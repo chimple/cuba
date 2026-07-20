@@ -68,8 +68,13 @@ const CampaignSetupPage: React.FC = () => {
       buildCommunicationTimelineDates(
         campaignSetup.assignmentDrafts,
         campaignSetup.form,
+        campaignSetup.assignmentFrequency,
       ),
-    [campaignSetup.assignmentDrafts, campaignSetup.form],
+    [
+      campaignSetup.assignmentDrafts,
+      campaignSetup.assignmentFrequency,
+      campaignSetup.form,
+    ],
   );
 
   const communicationValidation = useMemo(
@@ -140,7 +145,7 @@ const CampaignSetupPage: React.FC = () => {
         ? campaignSetup.audienceOptions.schools
         : campaignSetup.selectedSchools,
       selectedGrades: campaignSetup.isAllGrades
-        ? campaignSetup.audienceOptions.grades
+        ? campaignSetup.availableGrades
         : campaignSetup.selectedGrades,
       audienceSummary: campaignSetup.audienceSummary,
       assignmentDrafts: campaignSetup.assignmentDrafts,
@@ -156,7 +161,7 @@ const CampaignSetupPage: React.FC = () => {
       campaignReach,
       campaignSetup.assignmentConfigs,
       campaignSetup.assignmentDrafts,
-      campaignSetup.audienceOptions.grades,
+      campaignSetup.availableGrades,
       campaignSetup.audienceOptions.schools,
       campaignSetup.audienceSummary,
       campaignSetup.campaignRewards,
@@ -292,6 +297,7 @@ const CampaignSetupPage: React.FC = () => {
       const campaign = {
         programId: campaignSetup.form.programId,
         campaignName: campaignSetup.form.campaignName.trim(),
+        frequency: campaignSetup.assignmentFrequency,
         objective: campaignSetup.form.objective as CampaignObjective,
         targetType:
           campaignSetup.form.objective === CAMPAIGN_OBJECTIVE.HOMEWORK
@@ -461,6 +467,7 @@ const CampaignSetupPage: React.FC = () => {
                 savedGroups={campaignSetup.savedGroups}
                 selectedSavedGroupId={campaignSetup.selectedSavedGroupId}
                 audienceOptions={campaignSetup.audienceOptions}
+                availableGrades={campaignSetup.availableGrades}
                 selectedBlocks={campaignSetup.selectedBlocks}
                 selectedSchools={campaignSetup.selectedSchools}
                 selectedGrades={campaignSetup.selectedGrades}
@@ -473,6 +480,7 @@ const CampaignSetupPage: React.FC = () => {
                   campaignSetup.schoolsForSelectedBlocks
                 }
                 loadingAudience={campaignSetup.loadingAudience}
+                loadingGrades={campaignSetup.loadingGrades}
                 selectedProgramName={campaignSetup.selectedProgramName}
                 summaryBlockCount={campaignSetup.summaryBlockCount}
                 summarySchoolCount={campaignSetup.summarySchoolCount}
@@ -523,6 +531,7 @@ const CampaignSetupPage: React.FC = () => {
           ) : campaignSetup.activeStep === 3 ? (
             <CampaignCommunicationTimelineStep
               form={campaignSetup.form}
+              frequency={campaignSetup.assignmentFrequency}
               assignmentDrafts={campaignSetup.assignmentDrafts}
               selectedSchoolIds={selectedAssignmentSchoolIds}
               communicationState={communicationState}

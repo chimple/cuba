@@ -109,9 +109,7 @@ const CampaignListingPage: React.FC = () => {
   return (
     <Box className="campaign-listing-page">
       <Box className="campaign-listing-header">
-        <Typography className="campaign-listing-header-title">
-          {t('Campaigns')}
-        </Typography>
+        <span className="campaign-listing-header-title">{t('Campaigns')}</span>
         <IconButton className="campaign-listing-notification-button">
           <BsFillBellFill className="campaign-listing-notification-icon" />
         </IconButton>
@@ -137,6 +135,7 @@ const CampaignListingPage: React.FC = () => {
               isFilter={false}
               variantType="outlined"
               searchPlaceholder={String(t('Search Campaigns'))}
+              debounceMs={0}
             />
           </Box>
         </Box>
@@ -168,7 +167,7 @@ const CampaignListingPage: React.FC = () => {
                   ),
                 )
               }
-              loading={isLoading}
+              loading={isLoading && rows.length === 0}
               tableMinWidth={1500}
               headerClampLines={3}
               headerNoEllipsis

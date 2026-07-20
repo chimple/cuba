@@ -140,7 +140,9 @@ describe('KidsAppLocation', () => {
       ),
     );
     expect(setCurrModeMock).toHaveBeenCalledWith(MODES.TEACHER_SCHOOL);
-    expect(mockReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE);
+    expect(mockReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE, {
+      fromKidsAppLocationSchool: true,
+    });
   });
 
   test('does not show location options when access is blocked', () => {

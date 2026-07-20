@@ -71,9 +71,8 @@ export class SupabaseAuth implements ServiceAuth {
             has_session: !!session,
             has_refresh_token: !!session?.refresh_token,
           });
-          if (event === 'TOKEN_REFRESHED') {
-            if (session?.refresh_token)
-              Util.addRefreshTokenToStore(session?.refresh_token);
+          if (session?.refresh_token) {
+            Util.addRefreshTokenToStore(session.refresh_token);
           }
         },
       );
@@ -467,6 +466,55 @@ export class SupabaseAuth implements ServiceAuth {
         source: 'SupabaseAuth.doRefreshSession',
         reason: 'offline',
       });
+      return;
+    }
+    if (!Capacitor.isNativePlatform()) {
+      try {
+        const currentSession = await this._auth?.getSession();
+        if (currentSession?.data?.session?.refresh_token) {
+          Util.addRefreshTokenToStore(
+            currentSession.data.session.refresh_token,
+          );
+          return;
+        }
+        if (currentSession?.error) {
+          logger.error(
+            'Unable to resolve web Supabase session:',
+            currentSession.error,
+          );
+        }
+
+        const stored = Util.getRefreshTokenFromStore();
+        if (!stored?.token) return;
+
+        const refreshToken = String(stored.token).replace(/"/g, '');
+        const response = await this._auth?.refreshSession({
+          refresh_token: refreshToken,
+        });
+        if (response?.error) {
+          throw new Error(
+            'Web session refresh failed: ' + response.error.message,
+          );
+        }
+        if (response?.data?.session) {
+          const { access_token, refresh_token } = response.data.session;
+          await this._auth?.setSession({ access_token, refresh_token });
+          Util.addRefreshTokenToStore(refresh_token);
+        }
+      } catch (error) {
+        if (this.isInvalidRefreshTokenError(error)) {
+          store.dispatch(setRefreshToken(null));
+          logAuthDebug(
+            'Cleared stale web refresh token after refresh failure.',
+            {
+              source: 'SupabaseAuth.doRefreshSession',
+              reason: 'web_invalid_refresh_token',
+            },
+          );
+          return;
+        }
+        logger.error('Unexpected error while resolving web session:', error);
+      }
       return;
     }
     // Read refresh token from Redux (preferred) with localStorage fallback

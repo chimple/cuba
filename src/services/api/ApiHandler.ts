@@ -4,6 +4,7 @@ import {
   CampaignCancellationDetails,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignDashboardMetric,
   CampaignListingItem,
   CampaignListingParams,
   CampaignAudienceOptions,
@@ -23,6 +24,8 @@ import {
   SchoolProgramAccessResponse,
   ServiceApi,
   CampaignAssignmentsResponse,
+  CampaignRewardsReportParams,
+  CampaignRewardsReportResponse,
   CampaignOption,
   CampaignAssignmentFilters,
   CampaignMessagingQueryParams,
@@ -1601,6 +1604,12 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCampaignAudienceOptions(programId);
   }
 
+  public async getCampaignGradesForSchools(
+    schoolIds: string[],
+  ): Promise<CampaignOption[]> {
+    return await this.s.getCampaignGradesForSchools(schoolIds);
+  }
+
   public async getCampaignAudienceSummary(
     params: CampaignAudienceSummaryParams,
   ): Promise<CampaignAudienceSummary> {
@@ -1635,11 +1644,21 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getCampaignListing(params);
   }
 
+  public async getCampaignListingMetrics(
+    campaignIds: string[],
+  ): Promise<Map<string, CampaignDashboardMetric>> {
+    return await this.s.getCampaignListingMetrics(campaignIds);
+  }
+
   public async cancelCampaign(
     campaignId: string,
     reason: string,
   ): Promise<void> {
     return await this.s.cancelCampaign(campaignId, reason);
+  }
+
+  public async deleteCampaignAssignments(campaignId: string): Promise<void> {
+    return await this.s.deleteCampaignAssignments(campaignId);
   }
 
   public async getCampaignCancellationDetails(
@@ -1653,6 +1672,13 @@ export class ApiHandler implements ServiceApi {
     filters: CampaignAssignmentFilters,
   ): Promise<CampaignAssignmentsResponse> {
     return await this.s.getCampaignAssignments(campaignId, filters);
+  }
+
+  public async getCampaignRewardsReport(
+    campaignId: string,
+    params?: CampaignRewardsReportParams,
+  ): Promise<CampaignRewardsReportResponse> {
+    return await this.s.getCampaignRewardsReport(campaignId, params);
   }
 
   public async getCampaignSubjectsByCampaignId(
@@ -1897,7 +1923,7 @@ export class ApiHandler implements ServiceApi {
     return await this.s.getClassesBySchoolId(schoolId);
   }
 
-  public async getParentWhatsappClassesBySchoolId(schoolId: string): Promise<
+  public async getParentWhatsappClassesBySchoolId(schoolIds: string[]): Promise<
     {
       id: string;
       name: string;
@@ -1910,7 +1936,7 @@ export class ApiHandler implements ServiceApi {
         'Parent WhatsApp class lookup is not implemented in current API service.',
       );
     }
-    return await this.s.getParentWhatsappClassesBySchoolId(schoolId);
+    return await this.s.getParentWhatsappClassesBySchoolId(schoolIds);
   }
 
   public async getParentWhatsappParentPhonesByClassId(
@@ -1923,6 +1949,18 @@ export class ApiHandler implements ServiceApi {
     }
     return await this.s.getParentWhatsappParentPhonesByClassId(classId);
   }
+
+  public async getCampaignParentsInGroupBySchoolIds(
+    schoolIds: string[],
+  ): Promise<number> {
+    if (!this.s.getCampaignParentsInGroupBySchoolIds) {
+      throw new Error(
+        'Campaign parents-in-group metrics lookup is not implemented in current API service.',
+      );
+    }
+    return await this.s.getCampaignParentsInGroupBySchoolIds(schoolIds);
+  }
+
   public async createAutoProfile(
     languageDocId: string | undefined,
     tcVersion: number,

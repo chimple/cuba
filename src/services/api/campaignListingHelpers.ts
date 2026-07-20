@@ -14,7 +14,7 @@ import type { Column } from '../../ops-console/components/DataTableBody';
 import type { CampaignsOverviewApiResponse } from '../../ops-console/components/campaignsOverview/CampaignsOverviewLogic';
 import CampaignsOverviewInfoTooltip from '../../ops-console/components/campaignsOverview/CampaignsOverviewInfoTooltip';
 
-const CAMPAIGN_LISTING_ORDER_BY = {
+export const CAMPAIGN_LISTING_ORDER_BY = {
   NAME: 'name',
   MANAGER: 'manager',
   PROGRAM_NAME: 'programName',
@@ -210,7 +210,7 @@ export type CampaignSortColumn =
   | 'startDate'
   | 'endDate';
 
-export const CAMPAIGN_LISTING_PAGE_SIZE = 8;
+export const CAMPAIGN_LISTING_PAGE_SIZE = 20;
 
 export const hasCampaignWriteAccess = (roles: string[]) =>
   roles.some((role) =>
@@ -280,9 +280,10 @@ export const getCampaignListingColumns = (
       translate(
         'The average number of unique users who were active in the past 7 days.',
       ),
-      'left',
+      'center',
     ),
-    align: 'left',
+    align: 'center',
+    headerAlign: 'center',
     sortable: true,
     width: 180,
   },
@@ -293,9 +294,10 @@ export const getCampaignListingColumns = (
       translate(
         'The average time users spent actively using the app in the past 7 days.',
       ),
-      'right',
+      'center',
     ),
-    align: 'left',
+    align: 'center',
+    headerAlign: 'center',
     sortable: true,
     width: 190,
   },

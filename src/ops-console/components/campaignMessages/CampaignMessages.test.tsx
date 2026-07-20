@@ -122,6 +122,30 @@ describe('CampaignMessages', () => {
     expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
   });
 
+  it('fetches the full campaign range and excludes Sundays from display', async () => {
+    apiHandler.getCampaignMessaging.mockResolvedValue(buildResponse([]));
+
+    render(
+      <CampaignMessages
+        campaignId="campaign-1"
+        campaignStartDate="2026-07-10"
+        campaignEndDate="2026-07-13"
+      />,
+    );
+
+    await waitFor(() =>
+      expect(apiHandler.getCampaignMessaging).toHaveBeenCalledWith(
+        'campaign-1',
+        {
+          page: 1,
+          pageSize: 4,
+        },
+      ),
+    );
+    expect(screen.queryByText('12 July')).not.toBeInTheDocument();
+    expect(screen.getAllByText('13 July').length).toBeGreaterThan(0);
+  });
+
   it('renders rows returned from the campaign messaging API', async () => {
     apiHandler.getCampaignMessaging.mockResolvedValue(
       buildResponse([buildMessagingRow()]),
@@ -231,6 +255,36 @@ describe('CampaignMessages', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('revokes message editing immediately when the campaign is cancelled', async () => {
+    apiHandler.getCampaignMessaging.mockResolvedValue(
+      buildResponse([buildMessagingRow()]),
+    );
+
+    const { rerender } = render(
+      <CampaignMessages campaignId="campaign-1" isCampaignCancelled={false} />,
+    );
+
+    await screen.findByText('Class 1 Digital');
+    fireEvent.click(screen.getByLabelText('Edit global send schedule'));
+    expect(
+      screen.getByRole('button', { name: 'Save Changes' }),
+    ).toBeInTheDocument();
+
+    rerender(<CampaignMessages campaignId="campaign-1" isCampaignCancelled />);
+
+    await waitFor(() =>
+      expect(
+        screen.queryByLabelText('Edit global send schedule'),
+      ).not.toBeInTheDocument(),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('button', { name: 'Save Changes' }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(apiHandler.updateCampaignMessaging).not.toHaveBeenCalled();
+  });
+
   it('closes the message time picker after selecting a time value', async () => {
     apiHandler.getCampaignMessaging.mockResolvedValue(
       buildResponse([buildMessagingRow()]),
@@ -333,6 +387,24 @@ describe('CampaignMessagesLogic', () => {
     expect(data.rows[0].mediaLink).toBe('');
   });
 
+  it('resolves message and poll display times independently', () => {
+    const data = buildCampaignMessagesData({
+      messages: [
+        buildMessagingRow({
+          poll_time: null,
+        }),
+        buildMessagingRow({
+          id: 'message-2',
+          message_time: null,
+          poll_time: '2099-06-11T10:00:00+00:00',
+        }),
+      ],
+    });
+
+    expect(data.messageTime).toBe('03:00 PM');
+    expect(data.pollTime).toBe('10:00 AM');
+  });
+
   it('fills in missing timeline days when dates are provided', () => {
     const data = buildCampaignMessagesData(
       {
@@ -416,7 +488,7 @@ describe('CampaignMessagesLogic', () => {
     expect(data.rows[1].isEditable).toBe(true);
   });
 
-  it('locks only the field whose status is non-editable', () => {
+  it('keeps future rows editable regardless of message and poll status', () => {
     const data = buildCampaignMessagesData(
       {
         messages: [
@@ -438,35 +510,34 @@ describe('CampaignMessagesLogic', () => {
       ['2099-06-10', '2099-06-11'],
     );
 
-    expect(data.rows[0].messageEditable).toBe(false);
+    expect(data.rows[0].messageEditable).toBe(true);
     expect(data.rows[0].pollEditable).toBe(true);
     expect(data.rows[0].isEditable).toBe(true);
     expect(data.rows[1].messageEditable).toBe(true);
-    expect(data.rows[1].pollEditable).toBe(false);
+    expect(data.rows[1].pollEditable).toBe(true);
     expect(data.rows[1].isEditable).toBe(true);
   });
 
-  it('keeps poll editable when message is sent but poll is still pending', () => {
-    const data = buildCampaignMessagesData(
-      {
-        messages: [
-          buildMessagingRow({
-            message_time: '2099-06-10T15:00:00+00:00',
-            poll_time: '2099-06-10T10:00:00+00:00',
-            message_status: 'sent',
-            poll_status: 'pending',
-          }),
-        ],
-      },
-      ['2099-06-10'],
-    );
+  it('uses the first upcoming row times for the editable schedule', () => {
+    const data = buildCampaignMessagesData({
+      messages: [
+        buildMessagingRow({
+          message_time: '2000-01-01T15:00:00+00:00',
+          poll_time: '2000-01-01T10:00:00+00:00',
+        }),
+        buildMessagingRow({
+          id: 'message-2',
+          message_time: '2099-06-10T17:00:00+00:00',
+          poll_time: '2099-06-10T12:00:00+00:00',
+        }),
+      ],
+    });
 
-    expect(data.rows[0].messageEditable).toBe(false);
-    expect(data.rows[0].pollEditable).toBe(true);
-    expect(data.rows[0].isEditable).toBe(true);
+    expect(data.messageTime).toBe('05:00 PM');
+    expect(data.pollTime).toBe('12:00 PM');
   });
 
-  it('keeps today message locked when its status is sent even before the time passes', () => {
+  it('keeps all fields read-only for today even before their times pass', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-07-10T06:00:00Z'));
 
@@ -486,7 +557,8 @@ describe('CampaignMessagesLogic', () => {
       );
 
       expect(data.rows[0].messageEditable).toBe(false);
-      expect(data.rows[0].pollEditable).toBe(true);
+      expect(data.rows[0].pollEditable).toBe(false);
+      expect(data.rows[0].isEditable).toBe(false);
     } finally {
       jest.useRealTimers();
     }
@@ -561,6 +633,78 @@ describe('CampaignMessagesLogic', () => {
         pollOptions: ['Yes', 'No', 'Maybe'],
         messageStatus: 'pending',
         pollStatus: 'pending',
+      },
+    ]);
+  });
+
+  it('does not create a record for a missing date with only time changes', () => {
+    const currentRow: CampaignMessageRow = {
+      id: '2099-06-11-2',
+      scheduledDate: '2099-06-11',
+      dayLabel: 'Day 2',
+      dateLabel: '11 June',
+      message: '',
+      mediaLink: '',
+      messageTimeIso: '2099-06-11T15:00:00.000Z',
+      pollTimeIso: '2099-06-11T10:00:00.000Z',
+      pollQuestion: '',
+      pollOptions: [],
+      messageStatus: '',
+      pollStatus: '',
+      messageEditable: true,
+      pollEditable: true,
+      isEditable: true,
+      isPersisted: false,
+    };
+    const nextRow: CampaignMessageRow = {
+      ...currentRow,
+      messageTimeIso: '2099-06-11T16:00:00.000Z',
+      pollTimeIso: '2099-06-11T11:00:00.000Z',
+    };
+
+    expect(
+      buildCampaignMessageSavePayload('campaign-1', [currentRow], [nextRow]),
+    ).toEqual([]);
+  });
+
+  it('creates a record for a configured missing date', () => {
+    const currentRow: CampaignMessageRow = {
+      id: '2099-06-11-2',
+      scheduledDate: '2099-06-11',
+      dayLabel: 'Day 2',
+      dateLabel: '11 June',
+      message: '',
+      mediaLink: '',
+      messageTimeIso: '2099-06-11T15:00:00.000Z',
+      pollTimeIso: '2099-06-11T10:00:00.000Z',
+      pollQuestion: '',
+      pollOptions: [],
+      messageStatus: '',
+      pollStatus: '',
+      messageEditable: true,
+      pollEditable: true,
+      isEditable: true,
+      isPersisted: false,
+    };
+    const nextRow: CampaignMessageRow = {
+      ...currentRow,
+      message: 'Configured message',
+    };
+
+    expect(
+      buildCampaignMessageSavePayload('campaign-1', [currentRow], [nextRow]),
+    ).toEqual([
+      {
+        campaignId: 'campaign-1',
+        id: undefined,
+        message: 'Configured message',
+        mediaLink: '',
+        messageTime: '2099-06-11T15:00:00.000Z',
+        pollTime: '2099-06-11T10:00:00.000Z',
+        pollQuestion: '',
+        pollOptions: [],
+        messageStatus: null,
+        pollStatus: null,
       },
     ]);
   });
