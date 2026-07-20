@@ -126,10 +126,17 @@ const SidebarPage: React.FC = () => {
       RoleType.PROGRAM_MANAGER,
     ].includes(role as RoleType),
   );
+  const canCreateProgram = userRoles.some((role) =>
+    [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
+      role as RoleType,
+    ),
+  );
   const canAccessCampaignPage = userRoles.some((role) =>
     CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
   );
-  const canAccessRequestPage = userRoles.includes(RoleType.FIELD_COORDINATOR);
+  const canAccessCoordinatorPages = userRoles.includes(
+    RoleType.FIELD_COORDINATOR,
+  );
 
   useEffect(() => {
     fetchData();
@@ -147,6 +154,7 @@ const SidebarPage: React.FC = () => {
     const requestDetailsPrefix = `${requestListPath}/`;
     const devicesPath = `${path}${PAGES.ADMIN_DEVICES}`;
     const resourcesPath = `${path}${PAGES.ADMIN_RESOURCES}`;
+    const dashboardPath = `${path}${PAGES.ADMIN_DASHBOARD}`;
     const isAllowedPath =
       location.pathname === schoolListPath ||
       location.pathname.startsWith(schoolDetailsPrefix) ||
@@ -154,11 +162,12 @@ const SidebarPage: React.FC = () => {
         (location.pathname === campaignsPath ||
           location.pathname === campaignCreatePath ||
           location.pathname.startsWith(campaignDetailsPrefix))) ||
-      (canAccessRequestPage &&
+      (canAccessCoordinatorPages &&
         (location.pathname === requestListPath ||
-          location.pathname.startsWith(requestDetailsPrefix))) ||
-      location.pathname === devicesPath ||
-      location.pathname === resourcesPath;
+          location.pathname.startsWith(requestDetailsPrefix) ||
+          location.pathname === devicesPath ||
+          location.pathname === resourcesPath ||
+          location.pathname === dashboardPath));
 
     if (!isAllowedPath) {
       history.replace(schoolListPath);
@@ -166,7 +175,7 @@ const SidebarPage: React.FC = () => {
   }, [
     canAccessCampaignPage,
     canAccessProgramPage,
-    canAccessRequestPage,
+    canAccessCoordinatorPages,
     history,
     isExternalUser,
     location.pathname,
@@ -338,7 +347,11 @@ const SidebarPage: React.FC = () => {
               <ProgramDetailsRoute />
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
-              <NewProgram />
+              {canCreateProgram ? (
+                <NewProgram />
+              ) : (
+                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+              )}
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
               <UsersPage />

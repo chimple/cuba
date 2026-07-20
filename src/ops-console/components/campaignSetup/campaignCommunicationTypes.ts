@@ -1,4 +1,4 @@
-import { CampaignAssignmentDraft } from './campaignAssignmentUtils';
+import { CampaignAssignmentDraft, Frequency } from './campaignAssignmentUtils';
 import {
   CampaignCommunicationRowState,
   CampaignCommunicationState,
@@ -8,6 +8,7 @@ import { CampaignSetupFormState } from './types';
 
 export type CampaignCommunicationTimelineStepProps = {
   form: CampaignSetupFormState;
+  frequency: Frequency;
   assignmentDrafts: CampaignAssignmentDraft[];
   selectedSchoolIds: string[];
   communicationState: CampaignCommunicationState;

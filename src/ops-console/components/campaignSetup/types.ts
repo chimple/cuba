@@ -73,6 +73,7 @@ export type TargetAudienceSectionProps = {
   savedGroups: CampaignSavedAudienceGroup[];
   selectedSavedGroupId: string;
   audienceOptions: CampaignAudienceOptions;
+  availableGrades: CampaignOption[];
   selectedBlocks: string[];
   selectedSchools: CampaignSchoolOption[];
   selectedGrades: CampaignOption[];
@@ -81,6 +82,7 @@ export type TargetAudienceSectionProps = {
   hasCustomGradeSelection: boolean;
   schoolsForSelectedBlocks: CampaignSchoolOption[];
   loadingAudience: boolean;
+  loadingGrades: boolean;
   selectedProgramName: string;
   summaryBlockCount: number;
   summarySchoolCount: number;

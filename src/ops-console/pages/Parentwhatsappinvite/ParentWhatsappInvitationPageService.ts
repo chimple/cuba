@@ -464,7 +464,7 @@ const fetchClassesForSchool = async (
   api: ApiHandler,
   schoolId: string,
 ): Promise<DirectClassRow[]> => {
-  return await api.getParentWhatsappClassesBySchoolId(schoolId);
+  return await api.getParentWhatsappClassesBySchoolId([schoolId]);
 };
 
 // Fetches WhatsApp group details via parent WhatsApp dedicated RPC path.

@@ -149,7 +149,7 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     label: t('School Performance'),
     width: '7.78%',
     align: 'center',
-    sortable: true,
+    sortable: false,
     orderBy: 'school_performance',
     schoolPerformanceFilterKey: 'schoolPerformance',
   },
