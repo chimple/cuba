@@ -344,7 +344,11 @@ const FormCard: React.FC<EntityModalProps> = ({
           <PhoneInput
             defaultCountry="in"
             value={values[field.name] ?? ''}
-            onChange={(value) => handleChange(field.name, value)}
+            onChange={(value) => {
+              const digits = value.replace(/\D/g, '');
+              const isCountryCodeOnly = digits === '91';
+              handleChange(field.name, isCountryCodeOnly ? '' : value);
+            }}
             disabled={field.disabled}
             disableCountryGuess
             className="formcard-phone-input"
