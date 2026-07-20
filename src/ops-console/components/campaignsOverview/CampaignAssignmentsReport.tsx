@@ -97,7 +97,7 @@ const CampaignAssignmentsReport: React.FC<CampaignAssignmentsReportProps> = ({
 
         {isMobile ? (
           <Box mt={1.5} display="grid" gap={1}>
-            {report.mobileRows.map((row) => (
+            {report.rows.map((row) => (
               <Box
                 key={row.id}
                 border="1px solid #DDE1E6"

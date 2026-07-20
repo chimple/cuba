@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { t } from 'i18next';
 import { ServiceConfig } from '../../../services/ServiceConfig';
+import type { CampaignAssignmentsReportResponse } from '../../../services/api/ServiceApi';
 import logger from '../../../utility/logger';
 
 export type CampaignAssignmentsSummaryCard = {
@@ -33,7 +34,7 @@ export const buildCampaignAssignmentsSummaryCards = ({
   {
     key: 'totalAssignments',
     label: t('Total Assignments'),
-    value: String(totalAssignments),
+    value: String(totalAssignments ?? 0),
     info: t(
       'Total number of assignments assigned through the campaign while creating the campaign.',
     ),
@@ -41,7 +42,7 @@ export const buildCampaignAssignmentsSummaryCards = ({
   {
     key: 'assignedStudents',
     label: t('Assigned Students'),
-    value: assignedStudents.toLocaleString('en-IN'),
+    value: (assignedStudents ?? 0).toLocaleString('en-IN'),
     info: t(
       'Total number of students who received at least one assignment through the campaign.',
     ),
@@ -49,7 +50,7 @@ export const buildCampaignAssignmentsSummaryCards = ({
   {
     key: 'activeStudents',
     label: t('Active Students'),
-    value: activeStudents.toLocaleString('en-IN'),
+    value: (activeStudents ?? 0).toLocaleString('en-IN'),
     info: t(
       'Total number of students who completed at least one assignment during the campaign period.',
     ),
@@ -57,7 +58,7 @@ export const buildCampaignAssignmentsSummaryCards = ({
   {
     key: 'averageAssignmentsCompletion',
     label: t('Average Assignments Completion'),
-    value: `${averageAssignmentsCompletion.toLocaleString('en-IN', {
+    value: `${(averageAssignmentsCompletion ?? 0).toLocaleString('en-IN', {
       maximumFractionDigits: 1,
     })}%`,
     info: t(
@@ -77,8 +78,8 @@ export const mapAssignmentReportRows = (
   rows.map((row) => ({
     id: row.subjectId,
     subject: row.subjectName,
-    lessonsAssigned: row.lessonsAssigned,
-    completionPercent: `${Math.round(row.completionPercent)}%`,
+    lessonsAssigned: row.lessonsAssigned ?? 0,
+    completionPercent: `${Math.round(row.completionPercent ?? 0)}%`,
   }));
 
 export const useCampaignAssignmentsReportState = (
@@ -86,25 +87,15 @@ export const useCampaignAssignmentsReportState = (
   totalStudents?: number | null,
 ) => {
   const [loading, setLoading] = useState(false);
-  const [rows, setRows] = useState<CampaignAssignmentsTableRow[]>([]);
-  const [summaryCards, setSummaryCards] = useState<
-    CampaignAssignmentsSummaryCard[]
-  >([]);
+  const [reportData, setReportData] =
+    useState<CampaignAssignmentsReportResponse | null>(null);
 
   useEffect(() => {
     let active = true;
 
     const loadReport = async () => {
       if (!campaignId) {
-        setRows([]);
-        setSummaryCards(
-          buildCampaignAssignmentsSummaryCards({
-            totalAssignments: 0,
-            assignedStudents: 0,
-            activeStudents: 0,
-            averageAssignmentsCompletion: 0,
-          }),
-        );
+        setReportData(null);
         return;
       }
 
@@ -116,28 +107,11 @@ export const useCampaignAssignmentsReportState = (
             { totalStudents: totalStudents ?? 0 },
           );
         if (!active) return;
-        setRows(mapAssignmentReportRows(response.rows));
-        setSummaryCards(
-          buildCampaignAssignmentsSummaryCards({
-            totalAssignments: response.summary.totalAssignments,
-            assignedStudents: response.summary.assignedStudents,
-            activeStudents: response.summary.activeStudents,
-            averageAssignmentsCompletion:
-              response.summary.averageAssignmentsCompletion,
-          }),
-        );
+        setReportData(response);
       } catch (error) {
         if (!active) return;
         logger.error('Error loading campaign assignments report:', error);
-        setRows([]);
-        setSummaryCards(
-          buildCampaignAssignmentsSummaryCards({
-            totalAssignments: 0,
-            assignedStudents: totalStudents ?? 0,
-            activeStudents: 0,
-            averageAssignmentsCompletion: 0,
-          }),
-        );
+        setReportData(null);
       } finally {
         if (active) setLoading(false);
       }
@@ -149,11 +123,35 @@ export const useCampaignAssignmentsReportState = (
     };
   }, [campaignId, totalStudents]);
 
-  const mobileRows = useMemo(() => rows, [rows]);
+  const summaryCards = useMemo(() => {
+    if (!reportData) {
+      return buildCampaignAssignmentsSummaryCards({
+        totalAssignments: 0,
+        assignedStudents: totalStudents ?? 0,
+        activeStudents: 0,
+        averageAssignmentsCompletion: 0,
+      });
+    }
+
+    return buildCampaignAssignmentsSummaryCards({
+      totalAssignments: reportData.summary.totalAssignments,
+      assignedStudents: reportData.summary.assignedStudents,
+      activeStudents: reportData.summary.activeStudents,
+      averageAssignmentsCompletion:
+        reportData.summary.averageAssignmentsCompletion,
+    });
+  }, [reportData, totalStudents]);
+
+  const rows = useMemo(() => {
+    if (!reportData) {
+      return [];
+    }
+
+    return mapAssignmentReportRows(reportData.rows);
+  }, [reportData]);
 
   return {
     loading,
-    mobileRows,
     rows,
     summaryCards,
   };
