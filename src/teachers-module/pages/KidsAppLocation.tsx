@@ -84,7 +84,7 @@ const KidsAppLocation: FC = () => {
     // Clear all school mode data for a completely fresh selection
     clearSchoolModeData(false);
     schoolUtil.setCurrMode(MODES.TEACHER_SCHOOL);
-    history.replace(PAGES.SELECT_MODE);
+    history.replace(PAGES.SELECT_MODE, { fromKidsAppLocationSchool: true });
   };
 
   if (isCheckingAccess || !isAccessAllowed) {

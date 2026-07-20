@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Autocomplete,
   Checkbox,
+  ClickAwayListener,
   TextField,
   useMediaQuery,
 } from '@mui/material';
@@ -40,80 +41,99 @@ export const CampaignMultiSelect = <T,>({
 }: CampaignMultiSelectProps<T>) => {
   const isMobileView = useMediaQuery('(max-width:48rem)');
   const shouldPreventKeyboard = preventMobileKeyboard && isMobileView;
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const handleClickAway = (event: MouseEvent | TouchEvent) => {
+    const target = event.target as Node | null;
+    if (target && rootRef.current?.contains(target)) {
+      return;
+    }
+
+    setOpen(false);
+  };
 
   return (
-    <Autocomplete
-      multiple
-      disableCloseOnSelect
-      disablePortal
-      openOnFocus
-      options={options}
-      value={value}
-      loading={loading}
-      getOptionLabel={getOptionLabel}
-      isOptionEqualToValue={isOptionEqualToValue}
-      slotProps={{
-        popper: {
-          placement: 'bottom-start',
-          modifiers: [
-            {
-              name: 'flip',
-              enabled: false,
+    <ClickAwayListener onClickAway={handleClickAway}>
+      <div ref={rootRef} className="campaign-multi-select-root">
+        <Autocomplete
+          multiple
+          disableCloseOnSelect
+          disablePortal
+          open={open}
+          openOnFocus
+          onOpen={() => setOpen(true)}
+          onClose={() => setOpen(false)}
+          options={options}
+          value={value}
+          loading={loading}
+          getOptionLabel={getOptionLabel}
+          isOptionEqualToValue={isOptionEqualToValue}
+          slotProps={{
+            popper: {
+              placement: 'bottom-start',
+              modifiers: [
+                {
+                  name: 'flip',
+                  enabled: false,
+                },
+                {
+                  name: 'preventOverflow',
+                  options: {
+                    altAxis: true,
+                    padding: 8,
+                    tether: true,
+                  },
+                },
+              ],
             },
-            {
-              name: 'preventOverflow',
-              options: {
-                altAxis: true,
-                padding: 8,
-                tether: true,
+            paper: {
+              sx: {
+                marginTop: 0.5,
               },
             },
-          ],
-        },
-        paper: {
-          sx: {
-            marginTop: 0.5,
-          },
-        },
-      }}
-      ListboxProps={{
-        style: {
-          maxHeight: '16rem',
-          overflowY: 'auto',
-        },
-      }}
-      renderOption={(props, option, { selected }) => {
-        const { key, ...optionProps } = props as AutocompleteOptionProps;
-        const label = getOptionLabel ? getOptionLabel(option) : String(option);
-        return (
-          <li key={key} {...optionProps}>
-            <Checkbox checked={selected} sx={{ marginRight: 1 }} />
-            {label}
-          </li>
-        );
-      }}
-      onChange={(_, nextValue) => onChange(nextValue)}
-      renderTags={(selected) =>
-        renderSelectedLabel
-          ? renderSelectedLabel(selected)
-          : CampaignCountPlaceholder(selected, placeholder)
-      }
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          placeholder={value.length ? '' : placeholder}
-          error={error}
-          helperText={helperText}
-          size="small"
-          inputProps={{
-            ...params.inputProps,
-            readOnly: shouldPreventKeyboard,
-            inputMode: shouldPreventKeyboard
-              ? 'none'
-              : params.inputProps.inputMode,
           }}
+          ListboxProps={{
+            style: {
+              maxHeight: '16rem',
+              overflowY: 'auto',
+            },
+          }}
+          renderOption={(props, option, { selected }) => {
+            const { key, ...optionProps } = props as AutocompleteOptionProps;
+            const label = getOptionLabel
+              ? getOptionLabel(option)
+              : String(option);
+            return (
+              <li key={key} {...optionProps}>
+                <Checkbox checked={selected} sx={{ marginRight: 1 }} />
+                {label}
+              </li>
+            );
+          }}
+          onChange={(_, nextValue) => onChange(nextValue)}
+          renderTags={(selected) =>
+            renderSelectedLabel
+              ? renderSelectedLabel(selected)
+              : CampaignCountPlaceholder(selected, placeholder)
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              placeholder={value.length ? '' : placeholder}
+              error={error}
+              helperText={helperText}
+              size="small"
+              inputProps={{
+                ...params.inputProps,
+                readOnly: shouldPreventKeyboard,
+                inputMode: shouldPreventKeyboard
+                  ? 'none'
+                  : params.inputProps.inputMode,
+              }}
+            />
+          )}
         />
-      )}
-    />
+      </div>
+    </ClickAwayListener>
   );
 };

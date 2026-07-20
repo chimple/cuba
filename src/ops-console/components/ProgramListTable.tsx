@@ -40,6 +40,7 @@ type ProgramListTableProps = {
   isExportDisabled: boolean;
   isExporting: boolean;
   onExport: () => void | Promise<void>;
+  canCreateProgram: boolean;
   onNewProgram: () => void;
   columns: Column<ProgramListRow>[];
   rows: ProgramListRow[];
@@ -88,7 +89,9 @@ const ProgramListControls: React.FC<ProgramListTableProps> = (props) => (
           isExporting={props.isExporting}
           onClick={props.onExport}
         />
-        <ProgramActionsMenu onNewProgram={props.onNewProgram} />
+        {props.canCreateProgram ? (
+          <ProgramActionsMenu onNewProgram={props.onNewProgram} />
+        ) : null}
         <SchoolListDateRangeDropdown
           value={props.selectedDateRange}
           onChange={props.onDateRangeChange}

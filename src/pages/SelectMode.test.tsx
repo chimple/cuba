@@ -70,12 +70,21 @@ jest.mock('./assets/leftArrowIcon.svg', () => ({
 }));
 
 const mockHistoryReplace = jest.fn();
+let mockLocationState:
+  | {
+      fromKidsAppLocationSchool?: boolean;
+      fromSchoolModeSwitchProfile?: boolean;
+    }
+  | undefined;
 jest.mock('react-router', () => {
   const actual = jest.requireActual('react-router');
   return {
     ...actual,
     useHistory: () => ({
       replace: mockHistoryReplace,
+    }),
+    useLocation: () => ({
+      state: mockLocationState,
     }),
   };
 });
@@ -314,6 +323,7 @@ describe('SelectMode page', () => {
     jest.clearAllMocks();
     localStorage.clear();
     sessionStorage.clear();
+    mockLocationState = undefined;
 
     // Mock Redux hooks
     useAppDispatch.mockReturnValue(jest.fn());
@@ -551,9 +561,6 @@ describe('SelectMode page', () => {
     });
     mockApiHandler.getSchoolsForUser.mockResolvedValue([
       { school: { id: 'school-1', name: 'School 1' }, role: 'AUTOUSER' },
-    ]);
-    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
-      { id: 'school-1' },
     ]);
     mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
 
@@ -875,6 +882,76 @@ describe('SelectMode page', () => {
     });
     expect(mockApiHandler.getClassesForSchool).not.toHaveBeenCalled();
     expect(screen.queryByText('Teacher School')).not.toBeInTheDocument();
+  });
+
+  it('keeps explicit kids school entry in school flow for teacher-role users', async () => {
+    const teacherSchool = { id: 'school-1', name: 'Teacher School' };
+    const classDoc = {
+      id: 'class-1',
+      name: 'Class 1',
+      school_id: teacherSchool.id,
+    };
+    mockLocationState = { fromKidsAppLocationSchool: true };
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+      name: 'Teacher User',
+    });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: teacherSchool, role: 'TEACHER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([classDoc]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    await waitFor(() => {
+      expect(mockApiHandler.getClassesForSchool).toHaveBeenCalledWith(
+        teacherSchool.id,
+        'user-1',
+      );
+    });
+    expect(mockSetCurrMode).not.toHaveBeenCalledWith(MODES.TEACHER);
+    expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.HOME_PAGE);
+    expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+  });
+
+  it('keeps school-mode switch profile in school flow for teacher-role users', async () => {
+    const teacherSchool = { id: 'school-1', name: 'Teacher School' };
+    const classDoc = {
+      id: 'class-1',
+      name: 'Class 1',
+      school_id: teacherSchool.id,
+    };
+    mockLocationState = { fromSchoolModeSwitchProfile: true };
+    mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({
+      id: 'user-1',
+      name: 'Teacher User',
+    });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school: teacherSchool, role: 'TEACHER' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([classDoc]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1' },
+    ]);
+
+    render(<SelectMode />);
+
+    await waitFor(() => {
+      expect(mockApiHandler.getClassesForSchool).toHaveBeenCalledWith(
+        teacherSchool.id,
+        'user-1',
+      );
+    });
+    expect(mockSetCurrMode).not.toHaveBeenCalledWith(MODES.TEACHER);
+    expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.HOME_PAGE);
+    expect(mockHistoryReplace).not.toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
   });
 
   it('uses the school picker when multiple teacher schools remain after stored school is removed', async () => {
