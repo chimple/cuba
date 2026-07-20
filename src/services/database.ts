@@ -7968,6 +7968,26 @@ export type Database = {
           total_count: number;
         }[];
       };
+      get_campaign_assignments_report: {
+        Args: {
+          p_campaign_id: string;
+          p_total_students?: number | null;
+        };
+        Returns: {
+          rows: {
+            completionPercent: number;
+            lessonsAssigned: number;
+            subjectId: string;
+            subjectName: string;
+          }[];
+          summary: {
+            activeStudents: number;
+            assignedStudents: number;
+            averageAssignmentsCompletion: number;
+            totalAssignments: number;
+          };
+        };
+      };
       update_class_firebase_trigger: {
         Args: {
           p_course_firebase_ids: string[];

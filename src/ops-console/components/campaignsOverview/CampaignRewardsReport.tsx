@@ -1,11 +1,13 @@
 import React from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { t } from 'i18next';
+import CampaignAssignmentsReport from './CampaignAssignmentsReport';
 import CampaignRewardsSummaryCards from './CampaignRewardsSummaryCards';
 import CampaignRewardsTable, {
   CampaignRewardsReportHeader,
 } from './CampaignRewardsTable';
 import {
+  CAMPAIGN_REPORT_SUBTAB_KEYS,
   CAMPAIGN_REPORT_SUBTABS,
   useCampaignRewardsReportState,
 } from './CampaignRewardsReport.helpers';
@@ -14,11 +16,13 @@ import type { CampaignRewardsPayload } from '../../../services/api/ServiceApi';
 interface CampaignRewardsReportProps {
   campaignId?: string;
   rewards?: string | CampaignRewardsPayload | null;
+  totalStudents?: number | null;
 }
 
 const CampaignRewardsReport: React.FC<CampaignRewardsReportProps> = ({
   campaignId,
   rewards,
+  totalStudents,
 }) => {
   const report = useCampaignRewardsReportState(campaignId, rewards);
 
@@ -55,7 +59,12 @@ const CampaignRewardsReport: React.FC<CampaignRewardsReportProps> = ({
         ))}
       </Box>
 
-      {report.selectedSubtab !== 'Rewards' ? (
+      {report.selectedSubtab === CAMPAIGN_REPORT_SUBTAB_KEYS.ASSIGNMENTS ? (
+        <CampaignAssignmentsReport
+          campaignId={campaignId}
+          totalStudents={totalStudents}
+        />
+      ) : report.selectedSubtab !== CAMPAIGN_REPORT_SUBTAB_KEYS.REWARDS ? (
         <Box
           border="1px solid #DDE1E6"
           borderRadius="10px"

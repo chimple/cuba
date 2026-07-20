@@ -493,6 +493,27 @@ export type CampaignRewardsReportResponse = {
   total: number;
 };
 
+export type CampaignAssignmentsReportParams = {
+  totalStudents?: number;
+};
+
+export type CampaignAssignmentsReportRow = {
+  subjectId: string;
+  subjectName: string;
+  lessonsAssigned: number;
+  completionPercent: number;
+};
+
+export type CampaignAssignmentsReportResponse = {
+  summary: {
+    totalAssignments: number;
+    assignedStudents: number;
+    activeStudents: number;
+    averageAssignmentsCompletion: number;
+  };
+  rows: CampaignAssignmentsReportRow[];
+};
+
 export interface ServiceApi {
   /**
    * Creates a AutoUser for at_school and hybrid school models when a new school is created
@@ -2528,10 +2549,30 @@ export interface ServiceApi {
     filters: CampaignAssignmentFilters,
   ): Promise<CampaignAssignmentsResponse>;
 
+  /**
+   * Fetches the rewards report rows for a campaign.
+   * Supports optional school/class filtering and table sorting.
+   * @param {string} campaignId - The campaign ID.
+   * @param {CampaignRewardsReportParams} params - Optional filters and sorting controls.
+   * @returns {Promise<CampaignRewardsReportResponse>} - Reward report rows with total count.
+   */
   getCampaignRewardsReport(
     campaignId: string,
     params?: CampaignRewardsReportParams,
   ): Promise<CampaignRewardsReportResponse>;
+
+  /**
+   * Fetches the assignments report for a campaign.
+   * Returns summary widgets and subject-wise assignment completion rows.
+   * `assignedStudents` is derived from the overview page total passed in params.
+   * @param {string} campaignId - The campaign ID.
+   * @param {CampaignAssignmentsReportParams} params - Optional overview-derived values.
+   * @returns {Promise<CampaignAssignmentsReportResponse>} - Assignment report summary and rows.
+   */
+  getCampaignAssignmentsReport(
+    campaignId: string,
+    params?: CampaignAssignmentsReportParams,
+  ): Promise<CampaignAssignmentsReportResponse>;
 
   /**
    * Fetches the unique subjects used by a campaign's assignments.

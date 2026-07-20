@@ -174,6 +174,15 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
           <CampaignRewardsReport
             campaignId={resolvedCampaignId}
             rewards={resolvedCampaignOverviewData?.data?.campaign?.rewards}
+            totalStudents={
+              Number(
+                resolvedCampaignOverviewData?.data?.dashboardMetrics
+                  ?.total_students ??
+                  resolvedCampaignOverviewData?.data?.campaign?.program
+                    ?.students_count ??
+                  0,
+              ) || 0
+            }
           />
         )}
       </div>

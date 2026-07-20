@@ -104,6 +104,8 @@ import {
   CampaignCancellationDetails,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignAssignmentsReportParams,
+  CampaignAssignmentsReportResponse,
   CampaignDashboardMetric,
   CampaignListingItem,
   CampaignListingParams,
@@ -8104,6 +8106,16 @@ order by
     params?: CampaignRewardsReportParams,
   ): Promise<CampaignRewardsReportResponse> {
     return await this._serverApi.getCampaignRewardsReport(campaignId, params);
+  }
+
+  async getCampaignAssignmentsReport(
+    campaignId: string,
+    params?: CampaignAssignmentsReportParams,
+  ): Promise<CampaignAssignmentsReportResponse> {
+    return await this._serverApi.getCampaignAssignmentsReport(
+      campaignId,
+      params,
+    );
   }
 
   async getCampaignSubjectsByCampaignId(

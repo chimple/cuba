@@ -4,6 +4,8 @@ import {
   CampaignCancellationDetails,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
+  CampaignAssignmentsReportParams,
+  CampaignAssignmentsReportResponse,
   CampaignDashboardMetric,
   CampaignListingItem,
   CampaignListingParams,
@@ -1679,6 +1681,13 @@ export class ApiHandler implements ServiceApi {
     params?: CampaignRewardsReportParams,
   ): Promise<CampaignRewardsReportResponse> {
     return await this.s.getCampaignRewardsReport(campaignId, params);
+  }
+
+  public async getCampaignAssignmentsReport(
+    campaignId: string,
+    params?: CampaignAssignmentsReportParams,
+  ): Promise<CampaignAssignmentsReportResponse> {
+    return await this.s.getCampaignAssignmentsReport(campaignId, params);
   }
 
   public async getCampaignSubjectsByCampaignId(
