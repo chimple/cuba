@@ -4,6 +4,7 @@ export { SqliteApiCore } from './SqliteApi.core';
 export { SqliteApiCourse } from './SqliteApi.course';
 export { SqliteApiOps } from './SqliteApi.ops';
 export { SqliteApiPal } from './SqliteApi.pal';
+export { SqliteApiProgram } from './SqliteApi.program';
 export { SqliteApiRewards } from './SqliteApi.rewards';
 export { SqliteApiResults } from './SqliteApi.results';
 export { SqliteApiSchool } from './SqliteApi.school';

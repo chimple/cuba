@@ -432,66 +432,6 @@ export class SqliteApiUser extends SqliteApiCore {
     return res?.values?.length ? res.values[0] : null;
   }
 
-  async deleteApprovedOpsRequestsForUser(
-    requested_by: string,
-    school_id?: string,
-    class_id?: string,
-  ): Promise<void> {
-    await this.ensureInitialized();
-    if (!this._db) return;
-
-    const query1 = `
-    SELECT *
-    FROM ${TABLES.OpsRequests}
-    WHERE requested_by = ? AND class_id = ? AND school_id = ?`;
-
-    const res1 = await this._db?.query(query1, [
-      requested_by,
-      class_id,
-      school_id,
-    ]);
-
-    let ops_rq;
-    if (res1 && res1.values && res1.values.length > 0) {
-      ops_rq = res1.values[0];
-    }
-    if (!ops_rq) {
-      return;
-    }
-
-    let query = `
-    UPDATE ${TABLES.OpsRequests}
-    SET is_deleted = 1,
-        updated_at = ?
-    WHERE requested_by = ?
-      AND is_deleted = 0
-  `;
-
-    const params: any[] = [new Date().toISOString(), requested_by];
-
-    if (school_id) {
-      query += ` AND school_id = ?`;
-      params.push(school_id);
-    }
-
-    if (class_id) {
-      query += ` AND class_id = ?`;
-      params.push(class_id);
-    }
-
-    // Execute the UPDATE
-    await this._db.run(query, params);
-
-    // Push sync mutation
-    await this.updatePushChanges(TABLES.OpsRequests, MUTATE_TYPES.UPDATE, {
-      id: ops_rq.id,
-      requested_by,
-      school_id: school_id ?? null,
-      class_id: class_id ?? null,
-      is_deleted: 1,
-    });
-  }
-
   async createStudentProfile(
     name: string,
     age: number | undefined,
