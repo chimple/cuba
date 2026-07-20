@@ -274,7 +274,7 @@ export class SupabaseApiPal extends SupabaseApiWhatsApp {
     if (!this.supabase) return;
 
     const { data, error } = await this.supabase
-      .from('skill') // ?? Check if your table is named "skill" or "skills" in Supabase
+      .from('skill') // ⚠️ Check if your table is named "skill" or "skills" in Supabase
       .select('*')
       .eq('id', skillId)
       .eq('is_deleted', false)
@@ -395,7 +395,7 @@ export class SupabaseApiPal extends SupabaseApiWhatsApp {
 
       if (assessmentLessonsError) {
         logger.error(
-          '? Error fetching assessment lessons for PAL history:',
+          '❌ Error fetching assessment lessons for PAL history:',
           assessmentLessonsError,
         );
         return false;
@@ -441,7 +441,7 @@ export class SupabaseApiPal extends SupabaseApiWhatsApp {
       const { data: results, error } = await resultsQuery;
 
       if (error) {
-        logger.error('? Error checking PAL assessment history:', error);
+        logger.error('❌ Error checking PAL assessment history:', error);
         return false;
       }
 
@@ -478,7 +478,7 @@ export class SupabaseApiPal extends SupabaseApiWhatsApp {
           assessmentLessonIdSet.has(result.lesson_id),
       );
     } catch (error) {
-      logger.error('? Error checking PAL assessment history:', error);
+      logger.error('❌ Error checking PAL assessment history:', error);
       return false;
     }
   }

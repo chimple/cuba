@@ -37,9 +37,7 @@ export class SupabaseApiCourse extends SupabaseApiSchool {
     }
 
     let courseIds: TableTypes<'course'>[] = [];
-    const gradeCourses = (await this.getCoursesByGrade(
-      gradeDocId,
-    )) as TableTypes<'course'>[];
+    const gradeCourses = await this.getCoursesByGrade(gradeDocId);
     const curriculumCourses = gradeCourses.filter(
       (course: TableTypes<'course'>) => course.curriculum_id === boardDocId,
     );
@@ -48,7 +46,7 @@ export class SupabaseApiCourse extends SupabaseApiSchool {
 
     const subjectIds = curriculumCourses
       .map((course: TableTypes<'course'>) => course.subject_id)
-      .filter((id: string | null | undefined): id is string => !!id);
+      .filter((id: string | null): id is string => !!id);
 
     const remainingSubjects = DEFAULT_SUBJECT_IDS.filter(
       (subjectId) => !subjectIds.includes(subjectId),
@@ -685,7 +683,7 @@ export class SupabaseApiCourse extends SupabaseApiSchool {
     }
 
     try {
-      // ? Build OR conditions safely
+      // ✅ Build OR conditions safely
       const orConditions: string[] = [];
 
       if (languageId && localeId) {
@@ -720,7 +718,7 @@ export class SupabaseApiCourse extends SupabaseApiSchool {
 
       if (!data || data.length === 0) return null;
 
-      // ? Priority sort (exact ? fallback)
+      // ✅ Priority sort (exact → fallback)
       const priority = (r: any) => {
         if (r.language_id === languageId && r.locale_id === localeId) return 1;
         if (r.language_id === languageId && r.locale_id === null) return 2;
@@ -803,7 +801,7 @@ export class SupabaseApiCourse extends SupabaseApiSchool {
       }
 
       /* ==========================================
-       * 1?? Fetch all available set_numbers (+ language/locale for in-memory preference)
+       * 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
        * ========================================== */
       const { data: setRows, error: setError } = await this.supabase
         .from('subject_lesson')
@@ -885,7 +883,7 @@ export class SupabaseApiCourse extends SupabaseApiSchool {
       }
 
       /* ==========================================
-       * 2?? Abort Check (assignment_id IS NULL)
+       * 2️⃣ Abort Check (assignment_id IS NULL)
        * ========================================== */
       const abortQuery = this.supabase
         .from('result')
@@ -938,11 +936,11 @@ export class SupabaseApiCourse extends SupabaseApiSchool {
 
       if (isAssessmentTerminated || isAborted) {
         logger.info('Assessment is terminated or aborted.');
-        return {} as TableTypes<'subject_lesson'>; // ?? Aborted group
+        return {} as TableTypes<'subject_lesson'>; // 🚫 Aborted group
       }
 
       /* ==========================================
-       * 3?? Fetch lessons from selected set
+       * 3️⃣ Fetch lessons from selected set
        * ========================================== */
       let lessonsQuery = this.supabase
         .from('subject_lesson')
@@ -1024,7 +1022,7 @@ export class SupabaseApiCourse extends SupabaseApiSchool {
       }
 
       /* ==========================================
-       * 4?? Remove completed lessons
+       * 4️⃣ Remove completed lessons
        * (assignment_id IS NULL only)
        * ========================================== */
       const lessonIds = candidateLessons.map((lesson) => lesson.lesson_id);
@@ -1051,7 +1049,7 @@ export class SupabaseApiCourse extends SupabaseApiSchool {
         : ({} as TableTypes<'subject_lesson'>);
     } catch (error) {
       logger.error(
-        '? Error fetching subject lessons by subject (Supabase):',
+        '❌ Error fetching subject lessons by subject (Supabase):',
         error,
       );
       return {} as TableTypes<'subject_lesson'>;

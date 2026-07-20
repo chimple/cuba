@@ -196,6 +196,10 @@ type ProgramMetricsTableRow = Omit<
   target_teacher_count?: number | string | null;
   program_type?: ProgramType | null;
   program_model?: PROGRAM_TAB | PROGRAM_TAB[] | string | null;
+  program?: {
+    students_count?: number | string | null;
+    teachers_count?: number | string | null;
+  } | null;
   updated_at?: string | null;
   created_at?: string | null;
   is_deleted?: boolean | null;
@@ -258,6 +262,9 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
         return false;
       }
       const programId = uuidv4();
+      const _currentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+
       const record: any = {
         id: programId,
         name: payload.programName,
@@ -286,7 +293,7 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
       };
 
       // Step 1: Insert the program
-      const { error } = await this.supabase
+      const { data, error } = await this.supabase
         .from(TABLES.Program)
         .insert(record)
         .single();
@@ -1285,15 +1292,6 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
         : 'school_name';
       const sortAscending = order_dir !== 'desc';
 
-      const { data, error } = await query;
-
-      if (error) {
-        logger.error('Error fetching school_metrics listing:', error);
-        return { data: [], total: 0 };
-      }
-
-      let rows = (data ?? []) as Array<Record<string, unknown>>;
-
       const percentageFilters = Object.fromEntries(
         Object.entries(percentage_filters ?? {}).filter(
           ([key, value]) =>
@@ -1301,6 +1299,31 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
             PERCENTAGE_BAND_VALUES.includes(value as SchoolListPercentBand),
         ),
       ) as Record<string, SchoolListPercentBand>;
+      const schoolPerformanceFilter =
+        typeof school_performance_filter === 'string' &&
+        isSchoolPerformanceStatusValue(school_performance_filter)
+          ? school_performance_filter
+          : null;
+      const requiresCalculatedFiltering =
+        Object.keys(percentageFilters).length > 0 || !!schoolPerformanceFilter;
+      const normalizedPageSize = Math.max(Math.trunc(page_size), 1);
+      const from = Math.max(Math.trunc(page) - 1, 0) * normalizedPageSize;
+
+      // Calculated percentage and fallback performance filters compare multiple
+      // columns, which PostgREST cannot express without a database function.
+      const pagedQuery = requiresCalculatedFiltering
+        ? query
+        : query
+            .order(sortBy, { ascending: sortAscending })
+            .range(from, from + normalizedPageSize - 1);
+      const { data, error, count } = await pagedQuery;
+
+      if (error) {
+        logger.error('Error fetching school_metrics listing:', error);
+        return { data: [], total: 0 };
+      }
+
+      let rows = (data ?? []) as Array<Record<string, unknown>>;
 
       if (Object.keys(percentageFilters).length > 0) {
         rows = rows.filter((row) =>
@@ -1322,12 +1345,6 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
         );
       }
 
-      const schoolPerformanceFilter =
-        typeof school_performance_filter === 'string' &&
-        isSchoolPerformanceStatusValue(school_performance_filter)
-          ? school_performance_filter
-          : null;
-
       if (schoolPerformanceFilter) {
         rows = rows.filter(
           (row) =>
@@ -1336,33 +1353,36 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
         );
       }
 
-      rows.sort((leftRow, rightRow) => {
-        const leftValue = getSchoolMetricsSortValue(leftRow, sortBy);
-        const rightValue = getSchoolMetricsSortValue(rightRow, sortBy);
+      if (requiresCalculatedFiltering) {
+        rows.sort((leftRow, rightRow) => {
+          const leftValue = getSchoolMetricsSortValue(leftRow, sortBy);
+          const rightValue = getSchoolMetricsSortValue(rightRow, sortBy);
 
-        if (leftValue == null && rightValue == null) return 0;
-        if (leftValue == null) return 1;
-        if (rightValue == null) return -1;
+          if (leftValue == null && rightValue == null) return 0;
+          if (leftValue == null) return 1;
+          if (rightValue == null) return -1;
 
-        if (typeof leftValue === 'string' || typeof rightValue === 'string') {
-          const result = String(leftValue).localeCompare(
-            String(rightValue),
-            undefined,
-            {
-              sensitivity: 'base',
-              numeric: true,
-            },
-          );
+          if (typeof leftValue === 'string' || typeof rightValue === 'string') {
+            const result = String(leftValue).localeCompare(
+              String(rightValue),
+              undefined,
+              {
+                sensitivity: 'base',
+                numeric: true,
+              },
+            );
+            return sortAscending ? result : -result;
+          }
+
+          const result =
+            leftValue === rightValue ? 0 : leftValue > rightValue ? 1 : -1;
           return sortAscending ? result : -result;
-        }
+        });
+      }
 
-        const result =
-          leftValue === rightValue ? 0 : leftValue > rightValue ? 1 : -1;
-        return sortAscending ? result : -result;
-      });
-
-      const from = Math.max(page - 1, 0) * page_size;
-      const pagedRows = rows.slice(from, from + page_size);
+      const pagedRows = requiresCalculatedFiltering
+        ? rows.slice(from, from + normalizedPageSize)
+        : rows;
 
       const mappedRows = pagedRows.map((row: Record<string, unknown>) => ({
         ...row,
@@ -1402,7 +1422,7 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
 
       return {
         data: mappedRows,
-        total: rows.length,
+        total: requiresCalculatedFiltering ? rows.length : (count ?? 0),
       };
     } catch (error) {
       logger.error(
@@ -1531,90 +1551,21 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
       return Math.round((getProgramMetricNumber(value) / totalSchools) * 100);
     };
 
-    // Needed because partner, manager, coordinator, and model fields can be JSON strings.
-    const normalizeProgramMetricsStringList = (
-      value: string[] | string | null | undefined,
-    ): string[] => {
-      const normalizeString = (item: string): string[] => {
-        const trimmedItem = item.trim();
-        if (!trimmedItem || trimmedItem === 'null') return [];
-        if (!trimmedItem.startsWith('[')) return [trimmedItem];
-        try {
-          const parsed = JSON.parse(trimmedItem) as Json;
-          if (!Array.isArray(parsed)) return [trimmedItem];
-          return parsed.filter(
-            (entry): entry is string =>
-              typeof entry === 'string' &&
-              entry.trim() !== '' &&
-              entry !== 'null',
-          );
-        } catch {
-          return [trimmedItem];
-        }
-      };
-
-      if (Array.isArray(value)) {
-        return value.flatMap((item) =>
-          typeof item === 'string' ? normalizeString(item) : [],
-        );
-      }
-      return typeof value === 'string' ? normalizeString(value) : [];
-    };
-
-    // Needed so multi-select filters work for both array and JSON-string fields.
-    const programMetricsListHasSelection = (
-      value: string[] | string | null | undefined,
-      selectedValues: string[] | undefined,
-    ): boolean => {
-      if (!selectedValues?.length) return true;
-      const normalizedValues = normalizeProgramMetricsStringList(value);
-      return selectedValues.some((selectedValue) =>
-        normalizedValues.includes(selectedValue),
-      );
-    };
-
-    // Needed because these list-like filters cannot be safely handled by DB operators alone.
-    const matchesProgramMetricsDimensionFilters = (
-      row: ProgramMetricsTableRow,
-      rowFilters: Record<string, string[]>,
-      selectedTab: PROGRAM_TAB,
-    ): boolean => {
-      const selectedModels = rowFilters.model?.filter((value) =>
-        Object.values(PROGRAM_TAB).includes(value as PROGRAM_TAB),
-      );
-      const modelFilter = selectedModels?.length
-        ? selectedModels
-        : selectedTab !== PROGRAM_TAB.ALL
-          ? [selectedTab]
-          : [];
-
-      return (
-        programMetricsListHasSelection(row.program_model, modelFilter) &&
-        programMetricsListHasSelection(row.partners, rowFilters.partner) &&
-        programMetricsListHasSelection(
-          row.program_managers,
-          rowFilters.programManager,
-        ) &&
-        programMetricsListHasSelection(
-          row.field_coordinators,
-          rowFilters.fieldCoordinator,
-        )
-      );
-    };
-
     // Needed to keep the Program Listing response stable while reading from program_metrics.
     const mapProgramMetricsRow = (
       row: ProgramMetricsTableRow,
     ): ProgramListingProgramRow => {
       const onboardedStudents = getProgramMetricNumber(row.onboarded_students);
       const targetStudentCount = getProgramConfiguredTargetCount(
-        row.target_student_count,
+        row.target_student_count ?? row.program?.students_count,
       );
       const activatedStudents = getProgramMetricNumber(row.activated_students);
       const activeStudents = getProgramMetricNumber(row.active_students);
       const onboardedTeachers = getProgramMetricNumber(row.onboarded_teachers);
       const targetTeachersCount = getProgramConfiguredTargetCount(
-        row.target_teacher_count ?? row.target_teachers_count,
+        row.target_teacher_count ??
+          row.target_teachers_count ??
+          row.program?.teachers_count,
       );
       const activatedTeachers = getProgramMetricNumber(row.activated_teachers);
       const activeTeachers = getProgramMetricNumber(row.active_teachers);
@@ -1671,52 +1622,6 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
       };
     };
 
-    // Needed because Low/Mid/High filters depend on calculated percentages.
-    const matchesProgramPercentFilters = (
-      row: ProgramListingProgramRow,
-      rowFilters: Record<string, string[]>,
-    ): boolean => {
-      const filterEntries: Array<[keyof ProgramListingProgramRow, string]> = [
-        ['onboarded_students_pct', 'onboardedStudentsPct'],
-        ['activated_students_pct', 'activatedStudentsPct'],
-        ['active_students_pct', 'activeStudentsPct'],
-        ['onboarded_teachers_pct', 'onboardedTeachersPct'],
-        ['activated_teachers_pct', 'activatedTeachersPct'],
-        ['active_teachers_pct', 'activeTeachersPct'],
-      ];
-
-      return filterEntries.every(([metricKey, filterKey]) => {
-        const selectedBands = rowFilters[filterKey] ?? [];
-        if (selectedBands.length === 0) return true;
-        const value = row[metricKey];
-        if (typeof value !== 'number') return false;
-        const band = value >= 70 ? 'High' : value >= 31 ? 'Mid' : 'Low';
-        return selectedBands.includes(band);
-      });
-    };
-
-    // Needed so all sortable Program columns use one consistent ordering path.
-    const sortProgramMetricsRows = (
-      first: ProgramListingProgramRow,
-      second: ProgramListingProgramRow,
-      orderBy: string,
-      orderDir: 'asc' | 'desc',
-    ): number => {
-      const dir = orderDir === 'desc' ? -1 : 1;
-      const firstValue = first[orderBy as keyof ProgramListingProgramRow];
-      const secondValue = second[orderBy as keyof ProgramListingProgramRow];
-      if (typeof firstValue === 'number' || typeof secondValue === 'number') {
-        return (
-          (((firstValue as number | null) ?? 0) -
-            ((secondValue as number | null) ?? 0)) *
-          dir
-        );
-      }
-      return (
-        String(firstValue ?? '').localeCompare(String(secondValue ?? '')) * dir
-      );
-    };
-
     // Needed to decide whether the current user can see all programs or only linked programs.
     const specialRoles = await this.getUserSpecialRoles(currentUserId);
     const isAdminOrDirector = specialRoles.some((role) =>
@@ -1761,7 +1666,9 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
         .supabase as SupabaseClient<ProgramMetricsDatabase>;
       let query = programMetricsClient
         .from('program_metrics')
-        .select('*')
+        .select('*, program:program_id(students_count, teachers_count)', {
+          count: 'exact',
+        })
         .eq('is_deleted', false);
 
       // Needed so the listing and export reflect the selected metric window.
@@ -1784,6 +1691,43 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
         ),
       );
 
+      // PostgREST OR filters require quoted values when user-facing labels can
+      // contain commas, parentheses, or other filter syntax characters.
+      const quotePostgrestValue = (value: string): string =>
+        `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+      const buildListFilter = (
+        column: string,
+        values: string[] | undefined,
+      ): string =>
+        (values ?? [])
+          .flatMap((value) => [
+            `${column}.eq.${quotePostgrestValue(value)}`,
+            `${column}.ilike.${quotePostgrestValue(`%"${value}"%`)}`,
+          ])
+          .join(',');
+
+      const selectedModels = cleanedFilters.model?.filter((value) =>
+        Object.values(PROGRAM_TAB).includes(value as PROGRAM_TAB),
+      );
+      const modelFilters = selectedModels?.length
+        ? selectedModels
+        : tab !== PROGRAM_TAB.ALL
+          ? [tab]
+          : [];
+      const modelFilter = buildListFilter('program_model', modelFilters);
+      if (modelFilter) query = query.or(modelFilter);
+
+      // Array-backed columns must use PostgreSQL's overlap operator. Applying
+      // ilike to these text[] fields fails with error 42883.
+      const arrayFilters: Array<[string, string[] | undefined]> = [
+        ['partners', cleanedFilters.partner],
+        ['program_managers', cleanedFilters.programManager],
+        ['field_coordinators', cleanedFilters.fieldCoordinator],
+      ];
+      arrayFilters.forEach(([column, values]) => {
+        if (values?.length) query = query.overlaps(column, values);
+      });
+
       // Needed to apply simple scalar filters at the database layer.
       if (cleanedFilters.state?.length)
         query = query.in('state', cleanedFilters.state);
@@ -1802,40 +1746,112 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
           query = query.in('program_type', programTypeValues);
         }
       }
+
+      type ProgramPercentColumn =
+        | 'onboarded_students_pct'
+        | 'activated_students_pct'
+        | 'active_students_pct'
+        | 'onboarded_teachers_pct'
+        | 'activated_teachers_pct'
+        | 'active_teachers_pct';
+      const percentFilters: Array<[ProgramPercentColumn, string]> = [
+        ['onboarded_students_pct', 'onboardedStudentsPct'],
+        ['activated_students_pct', 'activatedStudentsPct'],
+        ['active_students_pct', 'activeStudentsPct'],
+        ['onboarded_teachers_pct', 'onboardedTeachersPct'],
+        ['activated_teachers_pct', 'activatedTeachersPct'],
+        ['active_teachers_pct', 'activeTeachersPct'],
+      ];
+      const activePercentFilters = percentFilters
+        .map(
+          ([column, filterKey]) =>
+            [
+              column,
+              (cleanedFilters[filterKey] ?? []).filter((band) =>
+                ['Low', 'Mid', 'High'].includes(band),
+              ),
+            ] as const,
+        )
+        .filter(([, bands]) => bands.length > 0);
+      const requiresCalculatedPercentageFiltering =
+        activePercentFilters.length > 0;
+
+      // Percentage fields are derived from multiple stored counts, so they
+      // cannot be filtered as program_metrics columns through PostgREST.
+      const isProgramPercentWithinBand = (
+        percent: number | null | undefined,
+        band: string,
+      ): boolean => {
+        if (percent == null) return false;
+        if (band === 'Low') return percent < 31;
+        if (band === 'Mid') return percent >= 31 && percent < 70;
+        return percent >= 70;
+      };
+
       // Needed to keep search behavior consistent across program and location fields.
       if (search) {
+        const searchPattern = quotePostgrestValue(`%${search}%`);
         query = query.or(
           [
-            `program_name.ilike.%${search}%`,
-            `state.ilike.%${search}%`,
-            `district.ilike.%${search}%`,
-            `block.ilike.%${search}%`,
-            `cluster.ilike.%${search}%`,
+            `program_name.ilike.${searchPattern}`,
+            `state.ilike.${searchPattern}`,
+            `district.ilike.${searchPattern}`,
+            `block.ilike.${searchPattern}`,
+            `cluster.ilike.${searchPattern}`,
           ].join(','),
         );
       }
 
-      // Needed to fetch the filtered program_metrics rows before calculated filters run.
-      const { data, error } = await query;
+      const allowedOrderColumns = new Set([
+        'program_name',
+        'total_schools',
+        'onboarded_students',
+        'activated_students',
+        'active_students',
+        'avg_time_spent',
+        'onboarded_teachers',
+        'activated_teachers',
+        'active_teachers',
+      ]);
+      const safeOrderBy = allowedOrderColumns.has(order_by)
+        ? order_by
+        : 'program_name';
+      const normalizedPageSize = Math.max(Math.trunc(page_size), 1);
+      const from = Math.max(Math.trunc(page) - 1, 0) * normalizedPageSize;
+      const to = from + normalizedPageSize - 1;
+
+      const orderedQuery = query.order(safeOrderBy, {
+        ascending: order_dir === 'asc',
+      });
+      const pagedQuery = requiresCalculatedPercentageFiltering
+        ? orderedQuery
+        : orderedQuery.range(from, to);
+      const { data, error, count } = await pagedQuery;
       if (error) {
         logger.error('Error fetching program_metrics listing:', error);
         return { data: [], total: 0 };
       }
 
-      // Needed to apply normalized list filters, calculated percentages, sorting, and paging.
-      const rows = ((data ?? []) as ProgramMetricsTableRow[])
-        .filter((row) =>
-          matchesProgramMetricsDimensionFilters(row, cleanedFilters, tab),
-        )
-        .map((row) => mapProgramMetricsRow(row))
-        .filter((row) => matchesProgramPercentFilters(row, cleanedFilters))
-        .sort((a, b) => sortProgramMetricsRows(a, b, order_by, order_dir));
-      // Needed to return only the requested page while preserving the total filtered count.
-      const from = Math.max(page - 1, 0) * page_size;
+      const mappedRows = ((data ?? []) as ProgramMetricsTableRow[]).map((row) =>
+        mapProgramMetricsRow(row),
+      );
+      const filteredRows = requiresCalculatedPercentageFiltering
+        ? mappedRows.filter((row) =>
+            activePercentFilters.every(([column, bands]) =>
+              bands.some((band) =>
+                isProgramPercentWithinBand(row[column], band),
+              ),
+            ),
+          )
+        : mappedRows;
 
       return {
-        data: rows.slice(from, from + page_size),
-        total: rows.length,
+        data: requiresCalculatedPercentageFiltering
+          ? filteredRows.slice(from, to + 1)
+          : filteredRows,
+        total: requiresCalculatedPercentageFiltering
+          ? filteredRows.length
+          : (count ?? 0),
       };
     } catch (error) {
       logger.error('Unexpected error in getProgramsFromProgramMetrics:', error);
@@ -2132,7 +2148,7 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
   async getManagersAndCoordinators(
     page: number = 1,
     search: string = '',
-    limit: number = 10,
+    limit: number = 20,
     sortBy: keyof TableTypes<'user'> = 'name',
     sortOrder: 'asc' | 'desc' = 'asc',
   ): Promise<{
@@ -2786,7 +2802,7 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
 
           const studentFilter = `name.ilike.%${searchTerm}%,student_id.ilike.%${searchTerm}%`;
 
-          // ? ADDED phone IN SELECT
+          // ✅ ADDED phone IN SELECT
           const { data: studentRows } = await supabase
             .from('class_user')
             .select(
@@ -2958,7 +2974,7 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
           });
 
           const mergedRows = Array.from(uniqueMap.values());
-          // ? GET ALL STUDENT IDS
+          // ✅ GET ALL STUDENT IDS
           const allStudentIds = mergedRows.map((r) => r.user.id);
 
           // Fetch every linked parent contact for matched students.
@@ -3008,7 +3024,7 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
               parentContactsByStudentId.get(row.user.id) ?? [];
             const parentContact = parentContacts[0] ?? {};
 
-            // ? FALLBACK FLATTEN LOGIC (ONLY ADDITION)
+            // ✅ FALLBACK FLATTEN LOGIC (ONLY ADDITION)
             const phone = row.user.phone || parentContact.phone || '';
 
             const email = row.user.email || parentContact.email || '';
@@ -3343,7 +3359,7 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
     const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
     const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
 
-    // Case 1: Super Admin or Ops Director ? fetch ALL programs
+    // Case 1: Super Admin or Ops Director → fetch ALL programs
     if (isSuperAdmin || isOpsDirector) {
       const { data, error } = await this.supabase
         .from('program')
@@ -3358,7 +3374,7 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
       return { data: data || [] };
     }
 
-    // Case 2: Program Manager ? fetch only programs assigned to them
+    // Case 2: Program Manager → fetch only programs assigned to them
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {
       const { data: programUsers, error: programUsersError } =
         await this.supabase
@@ -3561,7 +3577,7 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
     ]);
 
     if (error) {
-      logger.error('? Error inserting join school request:', error);
+      logger.error('❌ Error inserting join school request:', error);
       throw error;
     }
   }
@@ -3660,7 +3676,7 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
       }
       Util.setCurrentStudent(currentUser);
     } catch (error) {
-      logger.error('? Error updating user reward:', error);
+      logger.error('❌ Error updating user reward:', error);
     }
   }
   async getActiveStudentsCountByClass(
@@ -4233,7 +4249,7 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
     try {
       let languageId;
       if (schoolId) {
-        const { data: schoolData } = await this.supabase
+        const { data: schoolData, error: schoolError } = await this.supabase
           .from(TABLES.School)
           .select('language')
           .eq('id', schoolId)
@@ -4581,7 +4597,7 @@ export class SupabaseApiProgram extends SupabaseApiCampaign {
     const { data, error } = await this.supabase
       .from('fc_school_visit')
       .select('*')
-      .in('id', visitIds) // ? pass array directly
+      .in('id', visitIds) // ✅ pass array directly
       .eq('is_deleted', false)
       .order('check_in_at', { ascending: true });
 

@@ -78,7 +78,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
         is_deleted: true,
       });
     } catch (error) {
-      logger.error('?? ~ SqliteApi ~ deleteTeacher ~ error:', error);
+      logger.error('🚀 ~ SqliteApi ~ deleteTeacher ~ error:', error);
     }
   }
   async getClassCodeById(class_id: string): Promise<number | undefined> {
@@ -281,7 +281,6 @@ export class SqliteApiOps extends SqliteApiCampaign {
 
     return res?.values ?? [];
   }
-
   async getCoordinatorsForSchool(
     schoolId: string,
   ): Promise<TableTypes<'user'>[] | undefined> {
@@ -485,15 +484,15 @@ export class SqliteApiOps extends SqliteApiCampaign {
         is_deleted: true,
       });
 
-      // ? Success return added
+      // ✅ Success return added
       return {
         success: true,
         message: 'User removed from school successfully.',
       };
     } catch (error: any) {
-      logger.error('?? ~ SqliteApi ~ deleteUserFromSchool ~ error:', error);
+      logger.error('🚀 ~ SqliteApi ~ deleteUserFromSchool ~ error:', error);
 
-      // ? Error return added
+      // ✅ Error return added
       return {
         success: false,
         message: error?.message || 'Unexpected error occurred.',
@@ -679,6 +678,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
   ): Promise<void> {
     if (!studentId) return;
     try {
+      const be = await this.getUserByDocId(studentId);
       const latestStarsKey = LATEST_STARS(studentId);
       const currentLocalStars = parseInt(
         localStorage.getItem(latestStarsKey) || '0',
@@ -781,7 +781,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
       res = (await this._db.query(tablePushSync)).values ?? [];
       return res.length;
     } catch (error) {
-      logger.error('? Failed to count pending changes:', error);
+      logger.error('❌ Failed to count pending changes:', error);
       return 0;
     }
   }
@@ -815,7 +815,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
     return result?.values || [];
   }
 
-  protected async createDebugInfoTables() {
+  private async createDebugInfoTables() {
     const createDebugInfoTable = `
       CREATE TABLE IF NOT EXISTS debug_info (
         id TEXT NOT NULL PRIMARY KEY,
@@ -1476,7 +1476,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
       const newContact =
         newParents?.[0]?.phone || newParents?.[0]?.email || null;
 
-      // 4. Transfer results (?? FIXED: you had reversed IDs before)
+      // 4. Transfer results (⚠️ FIXED: you had reversed IDs before)
       const resultRes = await this._db.query(
         `SELECT * FROM result WHERE student_id = ? AND is_deleted = 0`,
         [existingStudentId],
@@ -1546,7 +1546,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
         );
       }
 
-      // ? SUCCESS RETURN
+      // ✅ SUCCESS RETURN
       return {
         success: true,
         message: 'Students merged successfully.',
@@ -1913,7 +1913,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
       whereClause += ` AND cu.class_id IN (${classScopePlaceholders})`;
       params.push(...classIds);
     }
-    // ? SEARCH FILTER
+    // ✅ SEARCH FILTER
     if (searchTerm && searchTerm.trim() !== '') {
       whereClause += `
       AND (
@@ -1926,7 +1926,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
       params.push(likeTerm, likeTerm, likeTerm);
     }
     const offset = (page - 1) * limit;
-    // ? COUNT QUERY
+    // ✅ COUNT QUERY
     const countQuery = `
     SELECT COUNT(*) as total
     FROM class_user cu
@@ -1936,7 +1936,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
   `;
     const countResult = await this._db.query(countQuery, params);
     const total = countResult?.values?.[0]?.total ?? 0;
-    // ? DATA QUERY
+    // ✅ DATA QUERY
     const query = `
     SELECT
       u.id,
@@ -2252,7 +2252,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
       );
       Util.setCurrentStudent(currentUser);
     } catch (error) {
-      logger.error('? Error updating user reward:', error);
+      logger.error('❌ Error updating user reward:', error);
     }
   }
   async getActiveStudentsCountByClass(classId: string): Promise<string> {
@@ -2352,7 +2352,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
         pushObject,
       );
     } catch (error) {
-      logger.error('? Error inserting school details:', error);
+      logger.error('❌ Error inserting school details:', error);
     }
   }
 
@@ -2376,7 +2376,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
         numberOfParents,
       );
     } catch (error) {
-      logger.error('? Error recording school visit:', error);
+      logger.error('❌ Error recording school visit:', error);
       return null;
     }
   }
@@ -2434,7 +2434,7 @@ export class SqliteApiOps extends SqliteApiCampaign {
         });
       }
     } catch (error) {
-      logger.error('? Error replacing class courses:', error);
+      logger.error('❌ Error replacing class courses:', error);
     }
   }
   public async addStudentWithParentValidation(params: {

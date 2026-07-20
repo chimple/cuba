@@ -18,8 +18,9 @@ export class SqliteApiWhatsApp extends SqliteApiSticker {
     }
     return await this._serverApi.getParentWhatsappSchoolByUdise(udiseCode);
   }
+
   // Parent WhatsApp Invitation: class lookup with group/invite fields.
-  async getParentWhatsappClassesBySchoolId(schoolId: string): Promise<
+  async getParentWhatsappClassesBySchoolId(schoolIds: string[]): Promise<
     {
       id: string;
       name: string;
@@ -32,7 +33,7 @@ export class SqliteApiWhatsApp extends SqliteApiSticker {
         'Parent WhatsApp class lookup is not implemented in Supabase API.',
       );
     }
-    return await this._serverApi.getParentWhatsappClassesBySchoolId(schoolId);
+    return await this._serverApi.getParentWhatsappClassesBySchoolId(schoolIds);
   }
 
   // Parent WhatsApp Invitation: parent phones from class_user -> user join.

@@ -23,7 +23,6 @@ export class SqliteApiRewards extends SqliteApiOps {
       return [];
     }
   }
-
   async getBonusesByIds(ids: string[]): Promise<TableTypes<'lesson'>[]> {
     await this.ensureInitialized();
     if (ids.length === 0) return [];
@@ -64,7 +63,6 @@ export class SqliteApiRewards extends SqliteApiOps {
       return undefined;
     }
   }
-
   async getUserBadge(userId: string): Promise<TableTypes<'user_badge'>[]> {
     await this.ensureInitialized();
     try {

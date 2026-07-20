@@ -296,7 +296,7 @@ export class SupabaseApiCore {
     const folderName = encodeURIComponent(String(id));
     const filePath = `${profileType}/${folderName}/${newName}`; // Path inside the bucket
     // Attempt to delete existing files
-    await this.supabase?.storage
+    const removeResponse = await this.supabase?.storage
       .from('profile-images')
       .remove(
         (
@@ -332,7 +332,7 @@ export class SupabaseApiCore {
       throw new Error('Supabase client not initialized.');
     }
 
-    const { file } = params;
+    const { schoolId, file } = params;
     const filePath = `${file.name}`;
 
     const uploadResponse = await this.supabase.storage
@@ -366,6 +366,7 @@ export class SupabaseApiCore {
     const uploadingUser = currentuserData?.id;
     return new Promise(async (resolve) => {
       let uploadId: string | undefined;
+      let directChannel: RealtimeChannel | null = null;
       let subscriptionFailCount = 0;
       const subscribeToDirectChannel = (): RealtimeChannel => {
         const channel = supabase
@@ -380,7 +381,7 @@ export class SupabaseApiCore {
             },
             async (payload) => {
               const status = payload.new?.status;
-              logger.info('?? Realtime update received:', status);
+              logger.info('🔄 Realtime update received:', status);
               if ((status === 'success' || status === 'failed') && !resolved) {
                 resolved = true;
                 await channel.unsubscribe();
@@ -390,17 +391,17 @@ export class SupabaseApiCore {
           )
           .subscribe(async (status) => {
             if (status === 'SUBSCRIBED') {
-              logger.info('?? Realtime subscription active.');
+              logger.info('📡 Realtime subscription active.');
               subscriptionFailCount = 0;
             } else {
               subscriptionFailCount++;
-              logger.warn('?? Subscription status:', status);
+              logger.warn('⚠️ Subscription status:', status);
               if (subscriptionFailCount > 2) {
                 logger.warn(
-                  '?? Reinitializing subscription due to failures...',
+                  '🔁 Reinitializing subscription due to failures...',
                 );
                 await channel.unsubscribe();
-                subscribeToDirectChannel();
+                directChannel = subscribeToDirectChannel();
               }
             }
           });
@@ -421,7 +422,7 @@ export class SupabaseApiCore {
                 const status = payload.new?.status;
                 const id = payload.new?.id;
                 logger.info(
-                  '?? [Fallback] Realtime update:',
+                  '🔄 [Fallback] Realtime update:',
                   status,
                   'ID:',
                   id,
@@ -432,19 +433,24 @@ export class SupabaseApiCore {
                 ) {
                   resolved = true;
                   await fallbackChannel?.unsubscribe();
-                  logger.info(`? / ? Fallback resolved with status: ${status}`);
+                  logger.info(
+                    `✅ / ❌ Fallback resolved with status: ${status}`,
+                  );
                   resolve(status === 'success');
                 }
               },
             )
             .subscribe()
         : null;
-      const { data } = await supabase.functions.invoke('ops-data-insert', {
-        body: payload,
-      });
+      const { data, error: functionError } = await supabase.functions.invoke(
+        'ops-data-insert',
+        {
+          body: payload,
+        },
+      );
       uploadId = data?.upload_id;
       if (uploadId) {
-        logger.info('?? Received upload_id:', uploadId);
+        logger.info('📡 Received upload_id:', uploadId);
         if (fallbackChannel) {
           await fallbackChannel.unsubscribe();
         }
@@ -459,9 +465,9 @@ export class SupabaseApiCore {
         if (row?.status === 'failed') {
           return resolve(false);
         }
-        subscribeToDirectChannel();
+        directChannel = subscribeToDirectChannel();
       } else {
-        logger.warn('? No upload_id returned � using fallback listener.');
+        logger.warn('❗ No upload_id returned — using fallback listener.');
       }
     });
   }

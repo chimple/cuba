@@ -250,15 +250,15 @@ export class SqliteApiCore {
     await this._initPromise;
   }
 
-  protected isRecoverableInitError(error: unknown): boolean {
+  private isRecoverableInitError(error: unknown): boolean {
     return isRecoverableStorageError(error);
   }
 
-  protected resetDbHandles(): void {
+  private resetDbHandles(): void {
     this._db = undefined;
   }
 
-  protected async initializeWithRetry(
+  private async initializeWithRetry(
     attempts = 3,
     delayMs = 400,
   ): Promise<void> {
@@ -295,7 +295,7 @@ export class SqliteApiCore {
     throw lastError;
   }
 
-  protected async init(): Promise<void> {
+  private async init(): Promise<void> {
     SupabaseApi.getInstance();
     const platform = Capacitor.getPlatform();
     this._sqlite = new SQLiteConnection(CapacitorSQLite);
@@ -454,7 +454,7 @@ export class SqliteApiCore {
     }
   }
 
-  protected async setUpDatabase() {
+  private async setUpDatabase() {
     if (!this._db || !this._sqlite) return;
 
     let res1: DBSQLiteValues | undefined = undefined;
@@ -546,7 +546,7 @@ export class SqliteApiCore {
     await this.checkAndSyncData();
   }
 
-  protected async importBundledDataAfterUpgrade(): Promise<void> {
+  private async importBundledDataAfterUpgrade(): Promise<void> {
     if (!this._db || !this._sqlite) return;
 
     const currentAppVersion = await this.getCurrentAppVersionMarker();
@@ -628,7 +628,7 @@ export class SqliteApiCore {
     }
   }
 
-  protected async getCurrentAppVersionMarker(): Promise<string> {
+  private async getCurrentAppVersionMarker(): Promise<string> {
     if (!Capacitor.isNativePlatform()) {
       return `web-sqlite-${this.DB_VERSION}`;
     }
@@ -651,7 +651,7 @@ export class SqliteApiCore {
     }
   }
 
-  protected async getCurrentLiveUpdateBundleId(): Promise<string | undefined> {
+  private async getCurrentLiveUpdateBundleId(): Promise<string | undefined> {
     try {
       const bundle = await LiveUpdate.getCurrentBundle();
       return bundle.bundleId || undefined;
@@ -664,7 +664,7 @@ export class SqliteApiCore {
     }
   }
 
-  protected shouldImportBundledDataForAppVersion(
+  private shouldImportBundledDataForAppVersion(
     storedAppVersion: string | null,
     currentAppVersion: string,
   ): boolean {
@@ -679,7 +679,7 @@ export class SqliteApiCore {
     );
   }
 
-  protected compareAppVersionMarkers(current: string, stored: string): number {
+  private compareAppVersionMarkers(current: string, stored: string): number {
     // Parse both markers so native version/build can be compared before considering hot-update bundle changes.
     const currentVersion = this.parseAppVersionMarker(current);
     const storedVersion = this.parseAppVersionMarker(stored);
@@ -715,7 +715,7 @@ export class SqliteApiCore {
     return 1;
   }
 
-  protected parseAppVersionMarker(
+  private parseAppVersionMarker(
     marker: string,
   ): { versionParts: number[]; build: number; bundleId?: string } | undefined {
     // Current markers use pipes so semantic versions like 3.5.0 and bundle ids stay separate.
@@ -756,11 +756,11 @@ export class SqliteApiCore {
     };
   }
 
-  protected quoteSqlIdentifier(identifier: string): string {
+  private quoteSqlIdentifier(identifier: string): string {
     return `"${identifier.replace(/"/g, '""')}"`;
   }
 
-  protected getBundledPullSyncInfo(
+  private getBundledPullSyncInfo(
     importJson: ImportJsonData,
   ): Map<string, string> {
     const pullSyncTable = (importJson.tables ?? []).find(
@@ -797,7 +797,7 @@ export class SqliteApiCore {
     return bundledPullSyncInfo;
   }
 
-  protected async upsertBundledImportTables(
+  private async upsertBundledImportTables(
     tables: ImportJsonTable[],
   ): Promise<string[]> {
     if (!this._db) return [];
@@ -886,7 +886,7 @@ export class SqliteApiCore {
     return importedTableNames;
   }
 
-  protected async markBundledImportTablesPulled(
+  private async markBundledImportTablesPulled(
     tableNames: string[],
     bundledPullSyncInfo: Map<string, string>,
   ): Promise<void> {
@@ -910,7 +910,7 @@ export class SqliteApiCore {
     }
   }
 
-  protected async checkAndSyncData() {
+  private async checkAndSyncData() {
     try {
       const config = ServiceConfig.getInstance(APIMode.SQLITE);
       const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
@@ -946,7 +946,7 @@ export class SqliteApiCore {
     return res;
   }
 
-  protected normalizeSqliteValue(value: unknown): unknown {
+  private normalizeSqliteValue(value: unknown): unknown {
     if (Array.isArray(value)) return JSON.stringify(value);
     if (
       value &&
@@ -958,11 +958,11 @@ export class SqliteApiCore {
     return value;
   }
 
-  protected isWebPlatform(): boolean {
+  private isWebPlatform(): boolean {
     return Capacitor.getPlatform() === 'web';
   }
 
-  protected getSyncWriteTuning(): {
+  private getSyncWriteTuning(): {
     defaultBatchSize: number;
     userTableBatchSize: number;
     rowsPerChunk: number;
@@ -1016,7 +1016,7 @@ export class SqliteApiCore {
     };
   }
 
-  protected async executeSqlStatementBatch(
+  private async executeSqlStatementBatch(
     batch: SqlStatement[],
     useImplicitTransaction = true,
   ) {
@@ -1024,7 +1024,7 @@ export class SqliteApiCore {
     await this._db.executeSet(batch as any, useImplicitTransaction);
   }
 
-  protected async isSqliteTransactionActive(): Promise<boolean> {
+  private async isSqliteTransactionActive(): Promise<boolean> {
     if (!this._db) return false;
 
     try {
@@ -1034,7 +1034,7 @@ export class SqliteApiCore {
     }
   }
 
-  protected schedulePostSyncAssetPrefetch(): void {
+  private schedulePostSyncAssetPrefetch(): void {
     if (!Capacitor.isNativePlatform() || this._postSyncAssetPrefetchScheduled) {
       return;
     }
@@ -1050,7 +1050,7 @@ export class SqliteApiCore {
     }, 30000);
   }
 
-  protected async runPostSyncAssetPrefetch(): Promise<void> {
+  private async runPostSyncAssetPrefetch(): Promise<void> {
     const startedAt = Date.now();
     try {
       if (document.visibilityState !== 'visible') {
@@ -1086,7 +1086,7 @@ export class SqliteApiCore {
     }
   }
 
-  protected async showToastWithRetry(
+  private async showToastWithRetry(
     message: string,
     actionLabel = 'Retry',
     duration = 15000,
@@ -1186,7 +1186,7 @@ export class SqliteApiCore {
     });
   }
 
-  protected async pullChanges(
+  private async pullChanges(
     tableNames: TABLES[],
     isFirstSync?: boolean,
     isRefreshSync = false,
@@ -1580,7 +1580,7 @@ export class SqliteApiCore {
     return columns;
   }
 
-  protected async reconcileCurrentClassSelection() {
+  private async reconcileCurrentClassSelection() {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
     const currentSchool = Util.getCurrentSchool();
     const storedClass = Util.getCurrentClass();
@@ -1589,10 +1589,10 @@ export class SqliteApiCore {
       return;
     }
 
-    const classes = (await this.getClassesForSchool(
+    const classes = await this.getClassesForSchool(
       currentSchool.id,
       currentUser.id,
-    )) as TableTypes<'class'>[];
+    );
 
     if (!classes.length) {
       await Util.setCurrentClass(null);
@@ -1600,8 +1600,9 @@ export class SqliteApiCore {
     }
 
     const resolvedClass = storedClass
-      ? (classes.find((classItem) => classItem.id === storedClass.id) ??
-        classes[0])
+      ? (classes.find(
+          (classItem: TableTypes<'class'>) => classItem.id === storedClass.id,
+        ) ?? classes[0])
       : classes[0];
 
     if (storedClass?.id !== resolvedClass.id) {
@@ -1609,8 +1610,10 @@ export class SqliteApiCore {
     }
   }
 
-  protected async pushChanges(tableNames: TABLES[]) {
+  private async pushChanges(tableNames: TABLES[]) {
     if (!this._db) return false;
+    const tables = "'" + tableNames.join("', '") + "'";
+
     const tablePushSync = `SELECT * FROM push_sync_info ORDER BY created_at;`;
     let res: any[] = [];
     try {
@@ -1756,7 +1759,7 @@ export class SqliteApiCore {
     // logger.info("logs to check synced tables2", JSON.stringify(tables));
   }
 
-  protected async createSyncTables() {
+  private async createSyncTables() {
     const createPullSyncInfoTable = `CREATE TABLE IF NOT EXISTS pull_sync_info (
       table_name TEXT NOT NULL PRIMARY KEY,
       last_pulled TIMESTAMP NOT NULL

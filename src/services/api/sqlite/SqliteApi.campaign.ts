@@ -19,11 +19,14 @@ import {
   CampaignAudienceSummary,
   CampaignAudienceSummaryParams,
   CampaignCancellationDetails,
+  CampaignDashboardMetric,
   CampaignListingItem,
   CampaignListingParams,
   CampaignMessagingQueryParams,
   CampaignMessagingResponse,
   CampaignOption,
+  CampaignRewardsReportParams,
+  CampaignRewardsReportResponse,
   CampaignSavedAudienceGroup,
   CampaignSetupOptions,
   ClassMetricsForClassListingRow,
@@ -320,5 +323,28 @@ export class SqliteApiCampaign extends SqliteApiAssignment {
     rows: UpdateCampaignMessagingRowPayload[],
   ): Promise<boolean> {
     return await this._serverApi.updateCampaignMessaging(rows);
+  }
+
+  async getCampaignGradesForSchools(
+    schoolIds: string[],
+  ): Promise<CampaignOption[]> {
+    return await this._serverApi.getCampaignGradesForSchools(schoolIds);
+  }
+
+  async getCampaignListingMetrics(
+    campaignIds: string[],
+  ): Promise<Map<string, CampaignDashboardMetric>> {
+    return await this._serverApi.getCampaignListingMetrics(campaignIds);
+  }
+
+  async deleteCampaignAssignments(campaignId: string): Promise<void> {
+    return await this._serverApi.deleteCampaignAssignments(campaignId);
+  }
+
+  async getCampaignRewardsReport(
+    campaignId: string,
+    params?: CampaignRewardsReportParams,
+  ): Promise<CampaignRewardsReportResponse> {
+    return await this._serverApi.getCampaignRewardsReport(campaignId, params);
   }
 }

@@ -320,7 +320,7 @@ order by
       const serverResults = await this._serverApi.searchLessons(searchString);
       res.push(...serverResults);
     } catch (error) {
-      logger.error('?? ~ SqliteApi ~ searchLessons ~ error:', error);
+      logger.error('🚀 ~ SqliteApi ~ searchLessons ~ error:', error);
     }
 
     if (res.length > 0) return res;
@@ -336,7 +336,7 @@ order by
       limit,
     ]);
     if (nameResults.values) res.push(...nameResults.values);
-    logger.info('?? ~ SqliteApi ~ searchLessons ~ dat:', nameResults);
+    logger.info('🚀 ~ SqliteApi ~ searchLessons ~ dat:', nameResults);
     const outcomeSearchQuery = `
     SELECT *
     FROM lesson
@@ -349,7 +349,7 @@ order by
       outcomeLength,
     ]);
     if (outcomeResults.values) res.push(...outcomeResults.values);
-    logger.info('?? ~ SqliteApi ~ searchLessons ~ dat1:', outcomeResults);
+    logger.info('🚀 ~ SqliteApi ~ searchLessons ~ dat1:', outcomeResults);
     return res;
   }
 
@@ -479,6 +479,7 @@ order by
     classId: string,
   ): Promise<TableTypes<'result'>[]> {
     await this.ensureInitialized();
+    const assignmentholders = assignmentIds.map(() => '?').join(', ');
     const courseholders = courseIds.map(() => '?').join(', ');
     const res = await this._db?.query(
       `
@@ -492,7 +493,7 @@ order by
           AND r.is_deleted = false
       ),
 
-      -- LIDO lessons ? average score per lesson (same lesson counted once)
+      -- LIDO lessons → average score per lesson (same lesson counted once)
         lido_results AS (
           SELECT
             lesson_id,
@@ -504,7 +505,7 @@ order by
           GROUP BY lesson_id, assignment_id
         ),
 
-        -- Non-LIDO lessons ? return ALL attempts (duplicate rows allowed)
+        -- Non-LIDO lessons → return ALL attempts (duplicate rows allowed)
         non_lido_results AS (
           SELECT
             lesson_id,
@@ -1135,6 +1136,7 @@ order by
       return [];
     }
   }
+
   async hasPendingAbortedAssessment(
     studentId: string,
     courseId: string,
@@ -1224,7 +1226,7 @@ order by
 
       return latestStatus === 'system_exit';
     } catch (error) {
-      logger.error('? Error checking pending aborted assessment:', error);
+      logger.error('❌ Error checking pending aborted assessment:', error);
       return false;
     }
   }
@@ -1395,7 +1397,7 @@ order by
         lastTwoResults.every((r) => r.status === 'system_exit'));
 
     if (isAborted) {
-      // ?? Assessment group is aborted
+      // 🚫 Assessment group is aborted
       return [];
     }
 

@@ -255,13 +255,13 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
             if (onDataChange) {
               onDataChange(payload.new as TableTypes<'assignment_user'>);
             } else {
-              logger.error('?? onDataChange is undefined for assignment_user!');
+              logger.error('🛑 onDataChange is undefined for assignment_user!');
             }
           },
         )
         .subscribe();
     } catch (error) {
-      logger.error('?? Error in Supabase assignment_user listener:', error);
+      logger.error('🛑 Error in Supabase assignment_user listener:', error);
     }
   }
 
@@ -292,13 +292,13 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
             if (onDataChange) {
               onDataChange(payload.new as TableTypes<'assignment'>);
             } else {
-              logger.error('?? onDataChange is undefined!');
+              logger.error('🛑 onDataChange is undefined!');
             }
           },
         )
         .subscribe();
     } catch (error) {
-      logger.error('?? Error in Supabase listener:', error);
+      logger.error('🛑 Error in Supabase listener:', error);
     }
   }
   async removeAssignmentChannel() {
@@ -327,7 +327,7 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
         throw new Error('Failed to establish channel for live quiz room');
       }
 
-      this._liveQuizRealTime
+      const res = this._liveQuizRealTime
         .on(
           'postgres_changes',
           {
@@ -1057,7 +1057,7 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
       return [];
     }
 
-    // Flatten: class_user[] ? user ? result[]
+    // Flatten: class_user[] → user → result[]
     return data?.flatMap((row) => row.user?.result ?? []) ?? [];
   }
   async getLastAssignmentsForRecommendations(
@@ -1293,28 +1293,28 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
 
     // Fetch user doc from your server API
     // const user_doc = await this.getUserByDocId(userId);
-    await this.supabase
+    const { error: schoolUpdateError } = await this.supabase
       .from(TABLES.School)
       .update({ updated_at: now })
       .eq('id', schoolId)
       .eq('is_deleted', false);
 
-    // ?? Update 'school_course' table
-    await this.supabase
+    // 🔹 Update 'school_course' table
+    const { error: schoolCourseUpdateError } = await this.supabase
       .from(TABLES.SchoolCourse)
       .update({ updated_at: now })
       .eq('school_id', schoolId)
       .eq('is_deleted', false);
     // Insert into user table with upsert logic (on conflict do nothing)
 
-    await this.supabase
+    const { error: classUpdateError } = await this.supabase
       .from(TABLES.Class)
       .update({ updated_at: now })
       .eq('id', classId)
       .eq('is_deleted', false);
 
-    // ?? Update 'school_course' table
-    await this.supabase
+    // 🔹 Update 'school_course' table
+    const { error: classCourseUpdateError } = await this.supabase
       .from(TABLES.ClassCourse)
       .update({ updated_at: now })
       .eq('class_id', classId)
@@ -1788,7 +1788,6 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
 
     return (data ?? []) as OpsStudentPerformanceBandRow[];
   }
-
   async hasPendingAbortedAssessment(
     studentId: string,
     courseId: string,
@@ -1836,7 +1835,7 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
 
       if (assessmentLessonsError) {
         logger.error(
-          '? Error fetching assessment lessons for pending abort check:',
+          '❌ Error fetching assessment lessons for pending abort check:',
           assessmentLessonsError,
         );
         return false;
@@ -1878,13 +1877,13 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
         .limit(1);
 
       if (error) {
-        logger.error('? Error checking pending aborted assessment:', error);
+        logger.error('❌ Error checking pending aborted assessment:', error);
         return false;
       }
 
       return pendingAbortResults?.[0]?.status === 'system_exit';
     } catch (error) {
-      logger.error('? Error checking pending aborted assessment:', error);
+      logger.error('❌ Error checking pending aborted assessment:', error);
       return false;
     }
   }
@@ -1915,7 +1914,7 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
       );
 
     /* ==========================================
-     * STEP 1??  Get latest valid batch for course
+     * STEP 1️⃣  Get latest valid batch for course
      * ========================================== */
     const { data: latestBatchData, error: batchError } = await this.supabase
       .from(TABLES.Assignment)
@@ -2016,7 +2015,7 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
     }
 
     /* ==========================================
-     * STEP 2??  Abort check
+     * STEP 2️⃣  Abort check
      * ========================================== */
     const { data, error: abortError } = await this.supabase
       .from(TABLES.Result)
@@ -2073,7 +2072,7 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
     }
 
     /* ==========================================
-     * STEP 3??  Get incomplete assignments
+     * STEP 3️⃣  Get incomplete assignments
      * ========================================== */
     const { data: assignments, error: lessonError } = await this.supabase
       .from(TABLES.Assignment)
@@ -2118,7 +2117,7 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
     if (!incompleteAssignments.length) return [];
 
     /* ==========================================
-     * STEP 4??  subject_lesson validation
+     * STEP 4️⃣  subject_lesson validation
      * (lesson_id + set_number + language)
      * ========================================== */
     const lessonIds = incompleteAssignments.map((a) => a.lesson_id);
@@ -2143,7 +2142,7 @@ export class SupabaseApiAssignment extends SupabaseApiUser {
     if (!validAssignments.length) return [];
 
     /* ==========================================
-     * STEP 5??  Sort by subject_lesson.sort_index
+     * STEP 5️⃣  Sort by subject_lesson.sort_index
      * ========================================== */
     validAssignments.sort((a, b) => {
       const slA = subjectLessons.find(

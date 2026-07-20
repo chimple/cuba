@@ -42,7 +42,7 @@ export class SupabaseApiSticker extends SupabaseApiRewards {
   } | null> {
     if (!this.supabase) return null;
 
-    // 1?? Try existing in_progress row
+    // 1️⃣ Try existing in_progress row
     const { data: progress } = await this.supabase
       .from('user_sticker_book')
       .select('*')
@@ -51,7 +51,7 @@ export class SupabaseApiSticker extends SupabaseApiRewards {
       .or('is_deleted.is.false,is_deleted.is.null')
       .maybeSingle();
 
-    // 2?? If user already has active progress
+    // 2️⃣ If user already has active progress
     if (progress) {
       const { data: book } = await this.supabase
         .from('sticker_book')
@@ -68,7 +68,7 @@ export class SupabaseApiSticker extends SupabaseApiRewards {
       };
     }
 
-    // 3?? No active row ? pick the first unfinished book by sort_index.
+    // 3️⃣ No active row → pick the first unfinished book by sort_index.
     const { data: completedRows } = await this.supabase
       .from('user_sticker_book')
       .select('sticker_book_id')
@@ -109,7 +109,7 @@ export class SupabaseApiSticker extends SupabaseApiRewards {
       };
     }
 
-    // 4?? All books are completed ? no active sticker book remains.
+    // 4️⃣ All books are completed → no active sticker book remains.
     return null;
   }
 
@@ -143,7 +143,6 @@ export class SupabaseApiSticker extends SupabaseApiRewards {
       .filter((book): book is TableTypes<'sticker_book'> => Boolean(book))
       .map(mapStickerBookRow);
   }
-
   async getStickersByIds(ids: string[]): Promise<TableTypes<'sticker'>[]> {
     if (!this.supabase || ids.length === 0) return [];
 
@@ -160,7 +159,6 @@ export class SupabaseApiSticker extends SupabaseApiRewards {
 
     return data ?? [];
   }
-
   async getUserSticker(userId: string): Promise<TableTypes<'user_sticker'>[]> {
     if (!this.supabase) return [];
 
@@ -346,6 +344,7 @@ export class SupabaseApiSticker extends SupabaseApiRewards {
       .eq('id', progress.id)
       .or('is_deleted.is.false,is_deleted.is.null');
   }
+
   async markAllStickersAsSeen(userId: string): Promise<void> {
     if (!this.supabase) return;
 

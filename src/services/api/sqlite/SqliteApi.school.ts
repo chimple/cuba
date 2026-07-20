@@ -61,7 +61,7 @@ export class SqliteApiSchool extends SqliteApiResults {
   );
     `;
     const res = await this._db?.query(query);
-    logger.info('?? ~ SqliteApi ~ getStudentResultInMap ~ res:', res?.values);
+    logger.info('🚀 ~ SqliteApi ~ getStudentResultInMap ~ res:', res?.values);
     if (!res || !res.values || res.values.length < 1) return {};
     const resultMap: { [lessonDocId: string]: TableTypes<'result'> } = {};
     for (const data of res.values) {
@@ -127,7 +127,6 @@ export class SqliteApiSchool extends SqliteApiResults {
     if (!res || !res.values || res.values.length < 1) return;
     return res.values[0];
   }
-
   public async getUserRoleForSchool(
     userId: string,
     schoolId: string,
@@ -145,7 +144,7 @@ export class SqliteApiSchool extends SqliteApiResults {
       where user_id = "${studentId}"
       and role = "${RoleType.STUDENT}" and is_deleted = 0`,
     );
-    logger.info('?? ~ SqliteApi ~ isStudentLinked ~ res:', res);
+    logger.info('🚀 ~ SqliteApi ~ isStudentLinked ~ res:', res);
     if (!res || !res.values || res.values.length < 1) return false;
     return true;
   }
@@ -159,9 +158,13 @@ export class SqliteApiSchool extends SqliteApiResults {
     const query = `
   SELECT a.*
   FROM ${TABLES.Assignment} a
-  LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
+  LEFT JOIN ${TABLES.Assignment_user} au
+    ON a.id = au.assignment_id
+    AND au.user_id = "${studentId}"
+    AND au.is_deleted = 0
   LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = "${studentId}"
   WHERE a.class_id = '${classId}'
+    AND a.is_deleted = 0
     AND (a.is_class_wise = 1 OR au.user_id = "${studentId}")
     AND r.assignment_id IS NULL
     AND a.type <> 'assessment'
@@ -456,13 +459,13 @@ export class SqliteApiSchool extends SqliteApiResults {
       throw new Error('User ID and Class ID are required');
     }
 
-    // 1?? Call server (RPC)
+    // 1️⃣ Call server (RPC)
     const res = await this._serverApi.deleteUserFromClass(userId, class_id);
     if (res === false) {
       throw new Error('Failed to delete user from class');
     }
 
-    // 2?? Sync local DB (pull latest)
+    // 2️⃣ Sync local DB (pull latest)
     this.syncDB();
   }
 
@@ -513,7 +516,7 @@ export class SqliteApiSchool extends SqliteApiResults {
     };
   }
 
-  protected async upsertJoinLookupRow(
+  private async upsertJoinLookupRow(
     tableName: TABLES.Class | TABLES.School | TABLES.ClassUser,
     row: TableTypes<'class'> | TableTypes<'school'> | TableTypes<'class_user'>,
   ): Promise<void> {
@@ -723,7 +726,7 @@ export class SqliteApiSchool extends SqliteApiResults {
     updatedClassQuery += ` WHERE id = "${classId}";`;
 
     const res = await this.executeQuery(updatedClassQuery);
-    logger.info('?? ~ SqliteApi ~ updateClass ~ res:', res);
+    logger.info('🚀 ~ SqliteApi ~ updateClass ~ res:', res);
 
     // Include group_id in push only if provided
     const updatedData: any = { id: classId, name: className };
@@ -1268,9 +1271,16 @@ export class SqliteApiSchool extends SqliteApiResults {
     const query = `
     SELECT a.*
     FROM ${TABLES.Assignment} a
-    LEFT JOIN ${TABLES.Assignment_user} au ON a.id = au.assignment_id
+    LEFT JOIN ${TABLES.Assignment_user} au
+      ON a.id = au.assignment_id
+      AND au.user_id = '${studentId}'
+      AND au.is_deleted = 0
     LEFT JOIN result r ON a.id = r.assignment_id AND r.student_id = '${studentId}'
-    WHERE a.lesson_id = '${lessonId}' AND a.class_id = '${classId}' and (a.is_class_wise = 1 or au.user_id = '${studentId}') and r.assignment_id IS NULL
+    WHERE a.lesson_id = '${lessonId}'
+      AND a.class_id = '${classId}'
+      AND a.is_deleted = 0
+      AND (a.is_class_wise = 1 or au.user_id = '${studentId}')
+      AND r.assignment_id IS NULL
     ORDER BY a.updated_at DESC
     LIMIT 1;
     `;
@@ -1338,7 +1348,7 @@ export class SqliteApiSchool extends SqliteApiResults {
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
-    logger.info('?? ~ SqliteApi ~ updateFCM Token:', res);
+    logger.info('🚀 ~ SqliteApi ~ updateFCM Token:', res);
     await this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       fcm_token: token,
       id: userId,
@@ -1518,7 +1528,7 @@ export class SqliteApiSchool extends SqliteApiResults {
       await this.syncDbNow(tableNames, refreshTables, isFirstSync);
       return true;
     } catch (error) {
-      logger.error('?? ~ SqliteApi ~ syncDB ~ error:', error);
+      logger.error('🚀 ~ SqliteApi ~ syncDB ~ error:', error);
       return false;
     }
   }

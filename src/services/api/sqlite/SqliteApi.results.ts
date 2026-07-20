@@ -104,7 +104,7 @@ export class SqliteApiResults extends SqliteApiCourse {
       status: (status ?? null) as TableTypes<'result'>['status'],
       source: source ?? null,
     };
-    await this.executeQuery(
+    const res = await this.executeQuery(
       `
     INSERT INTO result (id, assignment_id, correct_moves, lesson_id, school_id, score, student_id, time_spent, wrong_moves, created_at, updated_at, is_deleted, course_id, chapter_id , class_id, skill_id, skill_ability, outcome_id, outcome_ability, competency_id, competency_ability, domain_id, domain_ability, subject_id, subject_ability, activities_scores,user_id, status, source)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
@@ -141,7 +141,7 @@ export class SqliteApiResults extends SqliteApiCourse {
         newResult.source,
       ],
     );
-    // ? reward update
+    // ⭐ reward update
     const currentUser = await this.getUserByDocId(student.id);
     const rewardLesson = sessionStorage.getItem(REWARD_LESSON);
     let newReward: { reward_id: string; timestamp: string } | null = null;
@@ -330,7 +330,7 @@ export class SqliteApiResults extends SqliteApiCourse {
     });
     return updatedUser;
   }
-  protected async assignCoursesToStudent(
+  private async assignCoursesToStudent(
     studentId: string,
     gradeDocId?: string,
     boardDocId?: string,
@@ -379,6 +379,8 @@ export class SqliteApiResults extends SqliteApiCourse {
     // Insert only if not exists
     for (let idx = 0; idx < coursesToAdd.length; idx++) {
       const course = coursesToAdd[idx];
+      const isLast = idx === coursesToAdd.length - 1;
+
       // Prevent duplicates
       const result = await this.executeQuery(
         `

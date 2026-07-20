@@ -613,6 +613,8 @@ export class SqliteApiUser extends SqliteApiCore {
 
     for (let idx = 0; idx < selectedCourseIds.length; idx++) {
       const courseId = selectedCourseIds[idx];
+      const isLast = idx === selectedCourseIds.length - 1; // ✅ last index check
+
       // Check if the course is already assigned to the school
       const isExist = await this._db?.query(
         `SELECT * FROM school_course WHERE school_id = ? AND course_id = ?;`,
@@ -644,7 +646,7 @@ export class SqliteApiUser extends SqliteApiCore {
           ],
         );
 
-        // If not last index ? isLast = false, otherwise true
+        // If not last index → isLast = false, otherwise true
         this.updatePushChanges(
           TABLES.SchoolCourse,
           MUTATE_TYPES.INSERT,
@@ -690,6 +692,8 @@ export class SqliteApiUser extends SqliteApiCore {
     const currentDate = new Date().toISOString();
     for (let idx = 0; idx < selectedCourseIds.length; idx++) {
       const courseId = selectedCourseIds[idx];
+      const isLast = idx === selectedCourseIds.length - 1; // ✅ last item check
+
       // Check if the course is already assigned to the class
       const isExist = await this._db?.query(
         `SELECT * FROM class_course WHERE class_id = ? AND course_id = ?;`,
@@ -721,7 +725,7 @@ export class SqliteApiUser extends SqliteApiCore {
           ],
         );
 
-        // Insert notification � pass isLast
+        // Insert notification — pass isLast
         this.updatePushChanges(
           TABLES.ClassCourse,
           MUTATE_TYPES.INSERT,
@@ -828,7 +832,7 @@ export class SqliteApiUser extends SqliteApiCore {
       // Clear only this student's cached latest pathway snapshot.
       localStorage.removeItem(`${LATEST_LEARNING_PATH}:${studentId}`);
     } catch (error) {
-      logger.error('?? ~ SqliteApi ~ deleteProfile ~ error:', error);
+      logger.error('🚀 ~ SqliteApi ~ deleteProfile ~ error:', error);
     }
   }
 

@@ -39,7 +39,7 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
   }
 
   // Parent WhatsApp Invitation: class lookup with group and invite fields.
-  async getParentWhatsappClassesBySchoolId(schoolId: string): Promise<
+  async getParentWhatsappClassesBySchoolId(schoolIds: string[]): Promise<
     {
       id: string;
       name: string;
@@ -47,17 +47,18 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
       whatsapp_invite_link?: string | null;
     }[]
   > {
-    if (!this.supabase) return [];
+    if (!this.supabase || schoolIds.length === 0) return [];
 
+    const uniqueSchoolIds = Array.from(new Set(schoolIds));
     const { data, error } = await this.supabase
       .from(TABLES.Class)
       .select('id, name, group_id, whatsapp_invite_link')
-      .eq('school_id', schoolId)
+      .in('school_id', uniqueSchoolIds)
       .eq('is_deleted', false);
 
     if (error) {
       logger.error(
-        'Error in parent WhatsApp class lookup by school ID:',
+        'Error in parent WhatsApp class lookup by school IDs:',
         error,
       );
       throw error;
@@ -130,6 +131,13 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
       if (data?.working === true) {
         return { status: 'success' };
       }
+      const stateInfo =
+        data?.wa_state || typeof data?.is_ready === 'boolean'
+          ? ` (wa_state: ${data?.wa_state ?? 'unknown'}, is_ready: ${String(
+              data?.is_ready,
+            )})`
+          : '';
+
       return {
         status: 'error',
         errors: [
@@ -188,7 +196,6 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
       };
     }
   }
-
   async getWhatsappGroupDetails(groupId: string, bot: string) {
     if (!this.supabase) return [];
 

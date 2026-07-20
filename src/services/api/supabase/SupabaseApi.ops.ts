@@ -18,7 +18,7 @@ export interface SupabaseApiOps {
 }
 export class SupabaseApiOps extends SupabaseApiAssignment {
   async getLessonsBylessonIds(
-    lessonIds: string[],
+    lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {
     if (!this.supabase || !lessonIds || lessonIds.length === 0) return;
 
@@ -521,13 +521,13 @@ export class SupabaseApiOps extends SupabaseApiAssignment {
       logger.error('Error inserting into school_user:', insertError);
       return;
     }
-    await this.supabase
+    const { error: schoolUpdateError } = await this.supabase
       .from(TABLES.School)
       .update({ updated_at: timestamp })
       .eq('id', schoolId)
       .eq('is_deleted', false);
-    // ?? Update 'school_course' table
-    await this.supabase
+    // 🔹 Update 'school_course' table
+    const { error: schoolCourseUpdateError } = await this.supabase
       .from(TABLES.SchoolCourse)
       .update({ updated_at: timestamp })
       .eq('school_id', schoolId)
@@ -696,7 +696,7 @@ export class SupabaseApiOps extends SupabaseApiAssignment {
     }
 
     try {
-      const { data } = await this.supabase.rpc(
+      const { data, error } = await this.supabase.rpc(
         'check_parent_and_student_in_class',
         {
           phone_number: phoneNumber,
@@ -738,7 +738,7 @@ export class SupabaseApiOps extends SupabaseApiAssignment {
     }
 
     try {
-      const { data } = await this.supabase.rpc('validate_program_name', {
+      const { data, error } = await this.supabase.rpc('validate_program_name', {
         input_program_name: programName,
       });
       // Narrow the type from Json to expected shape
@@ -775,9 +775,12 @@ export class SupabaseApiOps extends SupabaseApiAssignment {
     }
 
     try {
-      const { data } = await this.supabase.rpc('validate_school_udise_code', {
-        input_school_udise_code: schoolId,
-      });
+      const { data, error } = await this.supabase.rpc(
+        'validate_school_udise_code',
+        {
+          input_school_udise_code: schoolId,
+        },
+      );
       // Narrow the type from Json to expected shape
       if (
         typeof data === 'object' &&
@@ -812,7 +815,7 @@ export class SupabaseApiOps extends SupabaseApiAssignment {
     }
 
     try {
-      const { data } = await this.supabase.rpc(
+      const { data, error } = await this.supabase.rpc(
         'check_class_exists_by_name_and_school',
         {
           class_name: className,
@@ -854,7 +857,7 @@ export class SupabaseApiOps extends SupabaseApiAssignment {
     }
 
     try {
-      const { data } = await this.supabase.rpc(
+      const { data, error } = await this.supabase.rpc(
         'check_student_duplicate_in_class_without_phone_number',
         {
           student_name: studentName,

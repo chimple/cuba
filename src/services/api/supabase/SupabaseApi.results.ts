@@ -118,7 +118,7 @@ export class SupabaseApiResults extends SupabaseApiCourse {
       return {} as TableTypes<'result'>;
     }
 
-    // ? reward update
+    // ⭐ reward update
     const currentUser = await this.getUserByDocId(student.id);
     const rewardLesson = sessionStorage.getItem(REWARD_LESSON);
     let newReward: { reward_id: string; timestamp: string } | null = null;
@@ -176,7 +176,7 @@ export class SupabaseApiResults extends SupabaseApiCourse {
     if (updatedStudent) {
       Util.setCurrentStudent(updatedStudent);
     }
-    // 8?? Log reward event if any
+    // 8️⃣ Log reward event if any
     if (newReward && currentUser) {
       await Util.logEvent(getDailyRewardClaimedEvent(source), {
         user_id: currentUser.id,
@@ -247,7 +247,7 @@ export class SupabaseApiResults extends SupabaseApiCourse {
     if (courses && courses.length > 0) {
       // Batch fetch existing user_course entries for this student and these courses
       const courseIds = courses.map((c) => c.id);
-      const { data: existingUserCourses } = await this.supabase
+      const { data: existingUserCourses, error } = await this.supabase
         .from('user_course')
         .select('course_id')
         .eq('user_id', student.id)
@@ -280,7 +280,7 @@ export class SupabaseApiResults extends SupabaseApiCourse {
     return updatedStudent;
   }
 
-  protected async getDefaultCoursesForLanguage(
+  private async getDefaultCoursesForLanguage(
     languageDocId?: string | null,
   ): Promise<TableTypes<'course'>[]> {
     const [englishCourse, mathsCourse, digitalSkillsCourse] = await Promise.all(

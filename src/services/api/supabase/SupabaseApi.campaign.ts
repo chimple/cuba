@@ -9,6 +9,7 @@ import {
   TableTypes,
 } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
+import { store } from '../../../redux/store';
 import logger from '../../../utility/logger';
 import { Database, Json } from '../../database';
 import {
@@ -21,11 +22,14 @@ import {
   CampaignAudienceSummary,
   CampaignAudienceSummaryParams,
   CampaignCancellationDetails,
+  CampaignDashboardMetric,
   CampaignListingItem,
   CampaignListingParams,
   CampaignMessagingQueryParams,
   CampaignMessagingResponse,
   CampaignOption,
+  CampaignRewardsReportParams,
+  CampaignRewardsReportResponse,
   CampaignSavedAudienceGroup,
   CampaignSchoolOption,
   CampaignSetupOptions,
@@ -36,6 +40,7 @@ import {
   UpdateCampaignMessagingRowPayload,
 } from '../ServiceApi';
 import {
+  CAMPAIGN_LISTING_ORDER_BY,
   mapCampaignListingItem,
   sortCampaignListingItems,
 } from '../campaignListingHelpers';
@@ -101,6 +106,11 @@ type CampaignListingAudienceRow = Pick<
   campaign_target_audience_school?: CampaignAudienceSchoolLinkRow[] | null;
 };
 
+type CampaignAudienceAccessRow = Pick<
+  TableTypes<'campaign_target_audience_school'>,
+  'target_audience_id'
+>;
+
 type CampaignListingQueryRow = TableTypes<'campaign'> & {
   manager?: TableTypes<'user'> | TableTypes<'user'>[] | null;
   program?: TableTypes<'program'> | TableTypes<'program'>[] | null;
@@ -127,6 +137,12 @@ const CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS: Partial<
   startDate: 'start_date',
   endDate: 'end_date',
 };
+
+const CAMPAIGN_REACH_METRIC_WINDOW = '7d';
+
+const isCampaignListingRelationSort = (
+  orderBy: NonNullable<CampaignListingParams['orderBy']>,
+) => orderBy === 'manager' || orderBy === 'programName';
 
 type CampaignSchoolRow = Pick<TableTypes<'school'>, 'id' | 'name' | 'group3'>;
 
@@ -290,13 +306,8 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     tab = PROGRAM_TAB.ALL,
     limit = 10,
     offset = 0,
-    orderBy = 'program_name',
+    orderBy = 'name',
     order = 'asc',
-    page,
-    page_size,
-    order_by,
-    order_dir,
-    search,
     date_range,
   }: {
     currentUserId?: string;
@@ -307,11 +318,6 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     offset?: number;
     orderBy?: string;
     order?: 'asc' | 'desc';
-    page?: number;
-    page_size?: number;
-    order_by?: string;
-    order_dir?: 'asc' | 'desc';
-    search?: string;
     date_range?: string;
   }): Promise<{ data: ProgramListingProgramRow[]; total: number }> {
     if (!this.supabase) {
@@ -329,15 +335,17 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
         return { data: [], total: 0 };
       }
 
+      // The public API uses limit/offset pagination while the existing metrics
+      // implementation uses page/page_size internally.
       return await this.getProgramsFromProgramMetrics({
         currentUserId: authUserId,
         filters,
         tab,
-        page: page ?? Math.floor(offset / limit) + 1,
-        page_size: page_size ?? limit,
-        order_by: order_by ?? orderBy,
-        order_dir: order_dir ?? order,
-        search: search ?? searchTerm,
+        page: Math.floor(Math.max(offset, 0) / Math.max(limit, 1)) + 1,
+        page_size: Math.max(limit, 1),
+        order_by: orderBy === 'name' ? 'program_name' : orderBy,
+        order_dir: order,
+        search: searchTerm,
         date_range,
       });
     } catch (err) {
@@ -424,6 +432,7 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     searchTerm = '',
     orderBy = 'startDate',
     orderDir = 'desc',
+    includeMetrics = true,
   }: CampaignListingParams): Promise<{
     data: CampaignListingItem[];
     totalCount: number;
@@ -436,53 +445,25 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     const supabase = this.supabase;
     const normalizedSearchTerm = searchTerm.trim();
     const now = new Date();
-    const fetchCampaignListingMetrics = async (
-      campaignIds: string[],
-    ): Promise<Map<string, CampaignListingItem['dashboardMetrics']>> => {
-      if (campaignIds.length === 0) {
-        return new Map();
-      }
-
-      try {
-        const { data: metricsData, error: metricsError } = await supabase.rpc(
-          'get_campaign_dashboard_metrics',
-          {
-            p_campaign_ids: campaignIds,
-          },
-        );
-
-        if (metricsError) {
-          logger.error(
-            'Error fetching campaign dashboard metrics for listing:',
-            metricsError,
-          );
-          return new Map();
-        }
-
-        return new Map(
-          (metricsData ?? []).map((metric) => [metric.campaign_id, metric]),
-        );
-      } catch (metricsError) {
-        logger.error(
-          'Unexpected error fetching campaign dashboard metrics for listing:',
-          metricsError,
-        );
-        return new Map();
-      }
-    };
 
     try {
-      const {
-        data: { user: authUser },
-      } = await supabase.auth.getUser();
+      const authState = store.getState().auth;
+      const authUserId =
+        authState.authUser?.id ||
+        (await supabase.auth.getUser()).data.user?.id ||
+        '';
 
-      if (!authUser?.id) {
+      if (!authUserId) {
         logger.error('Current user is not available for campaign listing');
         return { data: [], totalCount: 0 };
       }
 
-      // Campaign listing access is role-based: admins/managers see all, field coordinators are scoped.
-      const specialRoles = await this.getUserSpecialRoles(authUser.id);
+      // Prefer already-loaded Redux roles so the listing does not refetch special_users on every search.
+      const storeRoles = authState.roles ?? [];
+      const specialRoles =
+        storeRoles.length > 0
+          ? storeRoles
+          : await this.getUserSpecialRoles(authUserId);
       const hasGlobalCampaignAccess = specialRoles.some((role: string) =>
         [
           RoleType.SUPER_ADMIN,
@@ -500,12 +481,12 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
             supabase
               .from(TABLES.SchoolUser)
               .select('school_id, school:school_id(program_id)')
-              .eq('user_id', authUser.id)
+              .eq('user_id', authUserId)
               .eq('is_deleted', false),
             supabase
               .from(TABLES.ProgramUser)
               .select('program_id')
-              .eq('user', authUser.id)
+              .eq('user', authUserId)
               .eq('role', RoleType.FIELD_COORDINATOR)
               .eq('is_deleted', false),
           ])
@@ -563,53 +544,35 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
       ) {
         return { data: [], totalCount: 0 };
       }
-
-      // Search is supported across campaign name, manager name, and program name.
-      const [managerSearchResponse, programSearchResponse] =
-        normalizedSearchTerm.length > 0
-          ? await Promise.all([
-              this.supabase
-                .from(TABLES.User)
-                .select('id')
-                .ilike('name', `%${normalizedSearchTerm}%`)
-                .eq('is_deleted', false)
-                .limit(50),
-              this.supabase
-                .from(TABLES.Program)
-                .select('id')
-                .ilike('name', `%${normalizedSearchTerm}%`)
-                .eq('is_deleted', false)
-                .limit(50),
-            ])
-          : [
-              { data: [], error: null },
-              { data: [], error: null },
-            ];
-
-      if (managerSearchResponse.error) {
-        logger.error(
-          'Error searching campaign managers for listing:',
-          managerSearchResponse.error,
-        );
-      }
-
-      if (programSearchResponse.error) {
-        logger.error(
-          'Error searching campaign programs for listing:',
-          programSearchResponse.error,
-        );
-      }
-
-      const managerIds = (managerSearchResponse.data ?? []).map(
-        (row) => row.id,
-      );
-      const programIds = (programSearchResponse.data ?? []).map(
-        (row) => row.id,
-      );
       const nativeSortColumn = CAMPAIGN_LISTING_NATIVE_SORT_COLUMNS[orderBy];
-      const shouldUseDatabasePagination =
-        !isFieldCoordinator && Boolean(nativeSortColumn);
-      const campaignListingSelect = `*, manager:manager_id(*), program:program_id(*),
+      const shouldUseRelationSort = isCampaignListingRelationSort(orderBy);
+      const allowedCampaignIds = isFieldCoordinator
+        ? await this.getFieldCoordinatorAccessibleCampaignIds({
+            accessibleSchoolIds: Array.from(accessibleSchoolIds),
+            accessibleProgramIds: Array.from(accessibleProgramIds),
+            directProgramIds: Array.from(fieldCoordinatorProgramIds),
+          })
+        : null;
+
+      if (
+        isFieldCoordinator &&
+        (!allowedCampaignIds || allowedCampaignIds.length === 0)
+      ) {
+        return { data: [], totalCount: 0 };
+      }
+
+      const shouldUseDatabasePagination = Boolean(nativeSortColumn);
+      const searchRelationSelect =
+        normalizedSearchTerm.length > 0
+          ? `,
+        manager_search:user!campaign_manager_id_fkey(),
+        program_search:program!campaign_program_id_fkey()`
+          : '';
+      const campaignListingSelect = `id, name, objective, start_date, end_date, frequency,
+        campaign_status, manager_id, program_id, target_audience_id,
+        created_at, updated_at, is_deleted, target_type, target_value, rewards,
+        manager:user!campaign_manager_id_fkey(id, name),
+        program:program!campaign_program_id_fkey(id, name)${searchRelationSelect},
         target_audience:target_audience_id(
           id,
           is_all_schools,
@@ -623,22 +586,37 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
         })
         .eq('is_deleted', false);
 
-      if (normalizedSearchTerm.length > 0) {
-        // Escape quoted search text before building the PostgREST OR filter expression.
-        const escapedSearchTerm = normalizedSearchTerm.replace(/"/g, '\\"');
-        const orFilters = [`name.ilike."%${escapedSearchTerm}%"`];
-        if (managerIds.length > 0) {
-          orFilters.push(`manager_id.in.(${managerIds.join(',')})`);
-        }
-        if (programIds.length > 0) {
-          orFilters.push(`program_id.in.(${programIds.join(',')})`);
-        }
-        campaignQuery.or(orFilters.join(','));
+      if (allowedCampaignIds) {
+        campaignQuery.in('id', allowedCampaignIds);
       }
 
-      if (shouldUseDatabasePagination && nativeSortColumn) {
+      if (normalizedSearchTerm.length > 0) {
+        const escapedSearchTerm = normalizedSearchTerm
+          .replace(/\\/g, '\\\\')
+          .replace(/,/g, '\\,')
+          .replace(/\(/g, '\\(')
+          .replace(/\)/g, '\\)');
         campaignQuery
-          .order(nativeSortColumn, { ascending: orderDir === 'asc' })
+          .ilike('manager_search.name', `%${normalizedSearchTerm}%`)
+          .ilike('program_search.name', `%${normalizedSearchTerm}%`);
+        campaignQuery.or(
+          [
+            `name.ilike.%${escapedSearchTerm}%`,
+            'manager_search.not.is.null',
+            'program_search.not.is.null',
+          ].join(','),
+        );
+      }
+
+      if (shouldUseDatabasePagination) {
+        if (nativeSortColumn) {
+          campaignQuery.order(nativeSortColumn, {
+            ascending: orderDir === 'asc',
+          });
+        }
+
+        campaignQuery
+          .order('id', { ascending: orderDir === 'asc' })
           .range(
             (Math.max(page, 1) - 1) * Math.max(pageSize, 1),
             Math.max(page, 1) * Math.max(pageSize, 1) - 1,
@@ -652,48 +630,26 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
         return { data: [], totalCount: 0 };
       }
 
-      const mappedCampaigns = (data ?? []) as CampaignListingQueryRow[];
+      const mappedCampaigns = (data ??
+        []) as unknown as CampaignListingQueryRow[];
 
-      // Apply field-coordinator visibility after the base campaign query so audience links can be inspected.
-      const visibleCampaigns = shouldUseDatabasePagination
-        ? mappedCampaigns
-        : isFieldCoordinator
-          ? mappedCampaigns.filter((campaign) => {
-              const targetAudience = getSingleRelationValue(
-                campaign.target_audience,
-              );
-              const audienceSchoolIds = (
-                targetAudience?.campaign_target_audience_school ?? []
-              )
-                .map((row) => row.school_id)
-                .filter((id): id is string => !!id);
-              const hasProgramAccess =
-                !!campaign.program_id &&
-                accessibleProgramIds.has(campaign.program_id);
-              const hasSchoolAccess = audienceSchoolIds.some((schoolId) =>
-                accessibleSchoolIds.has(schoolId),
-              );
-              const hasDirectProgramAssignment =
-                !!campaign.program_id &&
-                fieldCoordinatorProgramIds.has(campaign.program_id);
-
-              return (
-                hasSchoolAccess ||
-                (hasProgramAccess &&
-                  (Boolean(targetAudience?.is_all_schools) ||
-                    hasDirectProgramAssignment))
-              );
-            })
-          : mappedCampaigns;
+      const visibleCampaigns = mappedCampaigns;
       const currentPage = Math.max(page, 1);
       const currentPageSize = Math.max(pageSize, 1);
       const from = (currentPage - 1) * currentPageSize;
 
       let listingItems: CampaignListingItem[] = [];
       let totalCount = 0;
-      const campaignMetricsMap = await fetchCampaignListingMetrics(
-        visibleCampaigns.map((campaign) => campaign.id),
-      );
+      const shouldIncludeMetrics =
+        includeMetrics ||
+        orderBy === CAMPAIGN_LISTING_ORDER_BY.AVG_WEEKLY_ACTIVE_USERS ||
+        orderBy ===
+          CAMPAIGN_LISTING_ORDER_BY.AVG_WEEKLY_ENGAGEMENT_TIME_MINUTES;
+      const campaignMetricsMap = shouldIncludeMetrics
+        ? await this.getCampaignListingMetrics(
+            visibleCampaigns.map((campaign) => campaign.id),
+          )
+        : new Map<string, CampaignDashboardMetric>();
 
       if (shouldUseDatabasePagination) {
         listingItems = visibleCampaigns.map((campaign) =>
@@ -755,6 +711,15 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     if (error) {
       logger.error('Error cancelling campaign:', error);
       throw error;
+    }
+
+    try {
+      await this.deleteCampaignAssignments(campaignId);
+    } catch (assignmentCleanupError) {
+      logger.error(
+        'Campaign cancelled but campaign assignments could not be deleted:',
+        assignmentCleanupError,
+      );
     }
   }
 
@@ -842,7 +807,7 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
       new Set(schools.map((school) => school.block).filter(Boolean)),
     ).sort((a, b) => a.localeCompare(b));
 
-    const grades = await this.getCampaignGradesForSchools(
+    const grades = await this.getCampaignAudienceOptionGradesForSchools(
       schools.map((school) => school.id),
     );
 
@@ -857,93 +822,20 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
       return { totalStudents: 0, grades: [] };
     }
 
-    const { data: classRows, error: classError } = await this.supabase
-      .from('class')
-      .select('id, grade_id, grade:grade_id(id, name, sort_index)')
-      .in('school_id', schoolIds)
-      .in('grade_id', gradeIds)
-      .eq('is_deleted', false);
+    const { data, error } = await this.supabase.rpc(
+      'get_campaign_audience_summary',
+      {
+        p_school_ids: schoolIds,
+        p_grade_ids: gradeIds,
+      },
+    );
 
-    if (classError) {
-      logger.error('Error fetching campaign summary classes:', classError);
+    if (error) {
+      logger.error('Error fetching campaign audience summary:', error);
       return { totalStudents: 0, grades: [] };
     }
 
-    const classGradeMap = new Map<
-      string,
-      { gradeId: string; gradeName: string; sort: number }
-    >();
-
-    ((classRows ?? []) as CampaignClassGradeRow[]).forEach((row) => {
-      const grade = firstOrSelf(row.grade);
-      if (!row.id || !row.grade_id || !grade?.name) return;
-      classGradeMap.set(String(row.id), {
-        gradeId: String(row.grade_id),
-        gradeName: String(grade.name),
-        sort: Number(grade.sort_index ?? 9999),
-      });
-    });
-
-    const classIds = Array.from(classGradeMap.keys());
-    if (classIds.length === 0) return { totalStudents: 0, grades: [] };
-
-    const classUserRows: CampaignClassUserRow[] = [];
-    for (const classIdBatch of chunkArray(classIds, 500)) {
-      const { data, error: classUserError } = await this.supabase
-        .from('class_user')
-        .select('class_id, user_id')
-        .in('class_id', classIdBatch)
-        .eq('role', RoleType.STUDENT)
-        .eq('is_deleted', false);
-
-      if (classUserError) {
-        logger.error(
-          'Error fetching campaign summary class users:',
-          classUserError,
-        );
-        return { totalStudents: 0, grades: [] };
-      }
-
-      classUserRows.push(...((data ?? []) as CampaignClassUserRow[]));
-    }
-
-    const studentsByGrade = new Map<string, Set<string>>();
-    const gradeMeta = new Map<string, { gradeName: string; sort: number }>();
-
-    (classUserRows ?? []).forEach((row) => {
-      const classMeta = classGradeMap.get(String(row.class_id));
-      if (!classMeta || !row.user_id) return;
-      if (!studentsByGrade.has(classMeta.gradeId)) {
-        studentsByGrade.set(classMeta.gradeId, new Set<string>());
-        gradeMeta.set(classMeta.gradeId, {
-          gradeName: classMeta.gradeName,
-          sort: classMeta.sort,
-        });
-      }
-      studentsByGrade.get(classMeta.gradeId)?.add(String(row.user_id));
-    });
-
-    const grades = Array.from(studentsByGrade.entries())
-      .map(([gradeId, students]) => ({
-        gradeId,
-        gradeName: gradeMeta.get(gradeId)?.gradeName ?? 'Grade',
-        sort: gradeMeta.get(gradeId)?.sort ?? 9999,
-        studentCount: students.size,
-      }))
-      .sort((a, b) => a.sort - b.sort || a.gradeName.localeCompare(b.gradeName))
-      .map(({ gradeId, gradeName, studentCount }) => ({
-        gradeId,
-        gradeName,
-        studentCount,
-      }));
-
-    return {
-      totalStudents: grades.reduce(
-        (total, grade) => total + grade.studentCount,
-        0,
-      ),
-      grades,
-    };
+    return data ?? { totalStudents: 0, grades: [] };
   }
 
   async createCampaignAudienceGroup(
@@ -983,6 +875,7 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
       manager_id: payload.managerId,
       start_date: payload.startDate,
       end_date: payload.endDate,
+      frequency: payload.frequency,
       rewards: payload.rewards ? JSON.stringify(payload.rewards) : null,
     };
 
@@ -1323,9 +1216,27 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     if (!this.supabase || !campaignId) {
       return {
         assignments: [],
+        uniqueSubjects: [],
         total: 0,
       };
     }
+
+    type CampaignAssignmentRpcRow = {
+      assignment_id: string;
+      assignment_date: string;
+      grade_id: string;
+      grade_name: string;
+      subject_id: string;
+      subject_name: string;
+      lesson_id: string;
+      lesson_name: string;
+      unique_subjects?: Array<{
+        subject_id: string;
+        subject_name: string;
+        grade_ids?: string[] | null;
+      }> | null;
+      total_count: string | number;
+    };
 
     const { data, error } = await this.supabase.rpc(
       'get_campaign_assignments',
@@ -1346,9 +1257,21 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
       throw error;
     }
 
+    const rpcRows = data as CampaignAssignmentRpcRow[] | null | undefined;
+    const firstRow = rpcRows?.[0];
+    const uniqueSubjects = Array.isArray(firstRow?.unique_subjects)
+      ? firstRow.unique_subjects.map((subject) => ({
+          id: String(subject.subject_id),
+          name: String(subject.subject_name),
+          gradeIds: Array.isArray(subject.grade_ids)
+            ? subject.grade_ids.map(String)
+            : [],
+        }))
+      : [];
+
     return {
       assignments:
-        data?.map((row) => ({
+        rpcRows?.map((row) => ({
           assignmentId: row.assignment_id,
           assignmentDate: row.assignment_date,
 
@@ -1361,7 +1284,8 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
           lessonId: row.lesson_id,
           lessonName: row.lesson_name,
         })) ?? [],
-      total: data?.length ? Number(data[0].total_count) : 0,
+      uniqueSubjects,
+      total: rpcRows?.length ? Number(firstRow?.total_count ?? 0) : 0,
     };
   }
 
@@ -1420,7 +1344,7 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     );
   }
 
-  protected mapCampaignSavedAudienceGroup(
+  private mapCampaignSavedAudienceGroup(
     group: CampaignSavedAudienceGroupRow,
   ): CampaignSavedAudienceGroup {
     const schoolLinks = Array.isArray(group.campaign_target_audience_school)
@@ -1445,75 +1369,13 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     };
   }
 
-  protected async getCampaignGradesForSchools(
+  async getCampaignGradesForSchools(
     schoolIds: string[],
-  ): Promise<{ id: string; name: string }[]> {
-    if (!this.supabase || schoolIds.length === 0) return [];
-
-    const gradeMap = new Map<
-      string,
-      { id: string; name: string; sort: number }
-    >();
-
-    const { data: classRows, error: classError } = await this.supabase
-      .from('class')
-      .select('grade_id, grade:grade_id(id, name, sort_index)')
-      .in('school_id', schoolIds)
-      .eq('is_deleted', false)
-      .not('grade_id', 'is', null);
-
-    if (classError) {
-      logger.error('Error fetching class grades for campaign:', classError);
-    }
-
-    ((classRows ?? []) as CampaignClassGradeRow[]).forEach((row) => {
-      const grade = firstOrSelf(row.grade);
-      if (!grade?.id || !grade?.name) return;
-      gradeMap.set(String(grade.id), {
-        id: String(grade.id),
-        name: String(grade.name),
-        sort: Number(grade.sort_index ?? 9999),
-      });
-    });
-
-    for (const schoolIdBatch of chunkArray(schoolIds, 500)) {
-      const { data: schoolCourseRows, error: schoolCourseError } =
-        await this.supabase
-          .from('school_course')
-          .select(
-            'course:course_id(grade_id, grade:grade_id(id, name, sort_index))',
-          )
-          .in('school_id', schoolIdBatch)
-          .eq('is_deleted', false);
-
-      if (schoolCourseError) {
-        logger.error(
-          'Error fetching school course grades for campaign:',
-          schoolCourseError,
-        );
-        continue;
-      }
-
-      ((schoolCourseRows ?? []) as CampaignSchoolCourseGradeRow[]).forEach(
-        (row) => {
-          const course = firstOrSelf(row.course);
-          const grade = firstOrSelf(course?.grade);
-          if (!grade?.id || !grade?.name) return;
-          gradeMap.set(String(grade.id), {
-            id: String(grade.id),
-            name: String(grade.name),
-            sort: Number(grade.sort_index ?? 9999),
-          });
-        },
-      );
-    }
-
-    return Array.from(gradeMap.values())
-      .sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name))
-      .map(({ id, name }) => ({ id, name }));
+  ): Promise<CampaignOption[]> {
+    return await this.fetchDistinctClassGradesForSchools(schoolIds);
   }
 
-  protected async insertCampaignTargetAudience(
+  private async insertCampaignTargetAudience(
     payload: CampaignAudiencePayload,
   ): Promise<string> {
     if (!this.supabase) {
@@ -1590,7 +1452,7 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     return targetAudienceId;
   }
 
-  protected async deleteCampaignTargetAudience(targetAudienceId: string) {
+  private async deleteCampaignTargetAudience(targetAudienceId: string) {
     if (!this.supabase) return;
 
     const cleanupSteps = [
@@ -1615,6 +1477,7 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
       }
     }
   }
+
   async getCampaignMessaging(
     campaignId: string,
     {
@@ -1776,5 +1639,367 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
       logger.error('Exception updating campaign messaging:', error);
       return false;
     }
+  }
+
+  async getCampaignParentsInGroupBySchoolIds(
+    schoolIds: string[],
+  ): Promise<number> {
+    if (!this.supabase || schoolIds.length === 0) return 0;
+
+    const uniqueSchoolIds = Array.from(new Set(schoolIds));
+    const { data, error } = await this.supabase
+      .from(TABLES.SchoolMetrics)
+      .select('school_id, parents_in_group')
+      .in('school_id', uniqueSchoolIds)
+      .eq('metric_window', CAMPAIGN_REACH_METRIC_WINDOW)
+      .eq('is_deleted', false);
+
+    if (error) {
+      logger.error(
+        'Error fetching campaign parents-in-group school metrics:',
+        error,
+      );
+      throw error;
+    }
+
+    return (data ?? []).reduce(
+      (total, row) => total + (row.parents_in_group ?? 0),
+      0,
+    );
+  }
+
+  private async getFieldCoordinatorAccessibleCampaignIds({
+    accessibleSchoolIds,
+    accessibleProgramIds,
+    directProgramIds,
+  }: {
+    accessibleSchoolIds: string[];
+    accessibleProgramIds: string[];
+    directProgramIds: string[];
+  }): Promise<string[]> {
+    if (!this.supabase) {
+      return [];
+    }
+
+    const allowedCampaignIds = new Set<string>();
+
+    if (accessibleSchoolIds.length > 0) {
+      const { data: audienceAccessRows, error: audienceAccessError } =
+        await this.supabase
+          .from('campaign_target_audience_school')
+          .select('target_audience_id')
+          .in('school_id', accessibleSchoolIds)
+          .eq('is_deleted', false);
+
+      if (audienceAccessError) {
+        logger.error(
+          'Error fetching field coordinator audience access rows:',
+          audienceAccessError,
+        );
+        return [];
+      }
+
+      const audienceIds = Array.from(
+        new Set(
+          ((audienceAccessRows ?? []) as CampaignAudienceAccessRow[])
+            .map((row) => row.target_audience_id)
+            .filter((id): id is string => !!id),
+        ),
+      );
+
+      if (audienceIds.length > 0) {
+        const { data: schoolCampaignRows, error: schoolCampaignError } =
+          await this.supabase
+            .from('campaign')
+            .select('id')
+            .eq('is_deleted', false)
+            .in('target_audience_id', audienceIds);
+
+        if (schoolCampaignError) {
+          logger.error(
+            'Error fetching field coordinator school-access campaign ids:',
+            schoolCampaignError,
+          );
+          return [];
+        }
+
+        ((schoolCampaignRows ?? []) as Array<{ id?: string | null }>).forEach(
+          (row) => {
+            if (row.id) {
+              allowedCampaignIds.add(row.id);
+            }
+          },
+        );
+      }
+    }
+
+    if (accessibleProgramIds.length > 0) {
+      const { data: allSchoolsCampaignRows, error: allSchoolsCampaignError } =
+        await this.supabase
+          .from('campaign')
+          .select(
+            'id, target_audience:target_audience_id!inner(is_all_schools)',
+          )
+          .eq('is_deleted', false)
+          .in('program_id', accessibleProgramIds)
+          .eq('target_audience.is_all_schools', true);
+
+      if (allSchoolsCampaignError) {
+        logger.error(
+          'Error fetching field coordinator all-schools campaign ids:',
+          allSchoolsCampaignError,
+        );
+        return [];
+      }
+
+      ((allSchoolsCampaignRows ?? []) as Array<{ id?: string | null }>).forEach(
+        (row) => {
+          if (row.id) {
+            allowedCampaignIds.add(row.id);
+          }
+        },
+      );
+    }
+
+    if (directProgramIds.length > 0) {
+      const { data: directProgramCampaignRows, error: directProgramError } =
+        await this.supabase
+          .from('campaign')
+          .select('id')
+          .eq('is_deleted', false)
+          .in('program_id', directProgramIds);
+
+      if (directProgramError) {
+        logger.error(
+          'Error fetching field coordinator direct-program campaign ids:',
+          directProgramError,
+        );
+        return [];
+      }
+
+      (
+        (directProgramCampaignRows ?? []) as Array<{ id?: string | null }>
+      ).forEach((row) => {
+        if (row.id) {
+          allowedCampaignIds.add(row.id);
+        }
+      });
+    }
+
+    return Array.from(allowedCampaignIds);
+  }
+
+  async getCampaignListingMetrics(
+    campaignIds: string[],
+  ): Promise<Map<string, CampaignDashboardMetric>> {
+    if (!this.supabase || campaignIds.length === 0) {
+      return new Map();
+    }
+
+    try {
+      const { data: metricsData, error: metricsError } =
+        await this.supabase.rpc('get_campaign_dashboard_metrics', {
+          p_campaign_ids: campaignIds,
+        });
+
+      if (metricsError) {
+        logger.error(
+          'Error fetching campaign dashboard metrics for listing:',
+          metricsError,
+        );
+        return new Map();
+      }
+
+      return new Map(
+        ((metricsData ?? []) as CampaignDashboardMetric[]).map((metric) => [
+          metric.campaign_id,
+          metric,
+        ]),
+      );
+    } catch (metricsError) {
+      logger.error(
+        'Unexpected error fetching campaign dashboard metrics for listing:',
+        metricsError,
+      );
+      return new Map();
+    }
+  }
+
+  async deleteCampaignAssignments(campaignId: string): Promise<void> {
+    if (!this.supabase || !campaignId) {
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    const { error } = await this.supabase
+      .from(TABLES.Assignment)
+      .update({
+        is_deleted: true,
+        ends_at: nowIso,
+        updated_at: nowIso,
+      })
+      .eq('campaign_id', campaignId)
+      .eq('is_deleted', false)
+      .gte('starts_at', nowIso);
+
+    if (error) {
+      logger.error('Error deleting campaign assignments:', error);
+      throw error;
+    }
+  }
+
+  async getCampaignRewardsReport(
+    campaignId: string,
+    params: CampaignRewardsReportParams = {},
+  ): Promise<CampaignRewardsReportResponse> {
+    if (!this.supabase || !campaignId) {
+      return { rows: [], total: 0 };
+    }
+
+    const sortColumnByKey: Record<
+      NonNullable<CampaignRewardsReportParams['orderBy']>,
+      string
+    > = {
+      studentName: 'student_name',
+      school: 'school_name',
+      className: 'class_name',
+      completionPercent: 'completion_percentage',
+      rewardRank: 'rank',
+      rewardLabel: 'rank',
+    };
+    const orderBy = params.orderBy ?? 'completionPercent';
+    const sortColumn = sortColumnByKey[orderBy] ?? 'completion_percentage';
+    const ascending = params.order === 'asc';
+
+    let query = this.supabase
+      .from(TABLES.CampaignStudentPerformance)
+      .select('*', { count: 'exact' })
+      .eq('campaign_id', campaignId)
+      .eq('is_deleted', false);
+
+    if (params.schoolName && params.schoolName !== 'All Schools') {
+      query = query.eq('school_name', params.schoolName);
+    }
+
+    if (params.className && params.className !== 'All Classes') {
+      query = query.eq('class_name', params.className);
+    }
+
+    const { data, error, count } = await query
+      .order(sortColumn, { ascending, nullsFirst: false })
+      .order('rank', { ascending: true, nullsFirst: false })
+      .order('completion_percentage', { ascending: false })
+      .order('student_name', { ascending: true });
+
+    if (error) {
+      logger.error('Error fetching campaign rewards report:', {
+        campaignId,
+        params,
+        error,
+      });
+      return { rows: [], total: 0 };
+    }
+
+    return {
+      rows: data ?? [],
+      total: count ?? data?.length ?? 0,
+    };
+  }
+
+  private async fetchDistinctClassGradesForSchools(
+    schoolIds: string[],
+  ): Promise<{ id: string; name: string }[]> {
+    if (!this.supabase || schoolIds.length === 0) return [];
+
+    const { data: gradeRows, error: gradeError } = await this.supabase
+      .from('grade')
+      .select('id, name, sort_index, class!inner()')
+      .in('class.school_id', schoolIds)
+      .eq('class.is_deleted', false)
+      .eq('is_deleted', false);
+
+    if (gradeError) {
+      logger.error('Error fetching school grades for campaign:', gradeError);
+    }
+
+    return ((gradeRows ?? []) as CampaignGradeRow[])
+      .filter((grade) => grade.id && grade.name)
+      .sort(
+        (a, b) =>
+          Number(a.sort_index ?? 9999) - Number(b.sort_index ?? 9999) ||
+          String(a.name).localeCompare(String(b.name)),
+      )
+      .map((grade) => ({
+        id: String(grade.id),
+        name: String(grade.name),
+      }));
+  }
+
+  private async getCampaignAudienceOptionGradesForSchools(
+    schoolIds: string[],
+  ): Promise<{ id: string; name: string }[]> {
+    if (!this.supabase || schoolIds.length === 0) return [];
+
+    const gradeMap = new Map<
+      string,
+      { id: string; name: string; sort: number }
+    >();
+
+    const { data: classRows, error: classError } = await this.supabase
+      .from('class')
+      .select('grade_id, grade:grade_id(id, name, sort_index)')
+      .in('school_id', schoolIds)
+      .eq('is_deleted', false)
+      .not('grade_id', 'is', null);
+
+    if (classError) {
+      logger.error('Error fetching class grades for campaign:', classError);
+    }
+
+    ((classRows ?? []) as CampaignClassGradeRow[]).forEach((row) => {
+      const grade = firstOrSelf(row.grade);
+      if (!grade?.id || !grade?.name) return;
+      gradeMap.set(String(grade.id), {
+        id: String(grade.id),
+        name: String(grade.name),
+        sort: Number(grade.sort_index ?? 9999),
+      });
+    });
+
+    for (const schoolIdBatch of chunkArray(schoolIds, 500)) {
+      const { data: schoolCourseRows, error: schoolCourseError } =
+        await this.supabase
+          .from('school_course')
+          .select(
+            'course:course_id(grade_id, grade:grade_id(id, name, sort_index))',
+          )
+          .in('school_id', schoolIdBatch)
+          .eq('is_deleted', false);
+
+      if (schoolCourseError) {
+        logger.error(
+          'Error fetching school course grades for campaign:',
+          schoolCourseError,
+        );
+        continue;
+      }
+
+      ((schoolCourseRows ?? []) as CampaignSchoolCourseGradeRow[]).forEach(
+        (row) => {
+          const course = firstOrSelf(row.course);
+          const grade = firstOrSelf(course?.grade);
+          if (!grade?.id || !grade?.name) return;
+          gradeMap.set(String(grade.id), {
+            id: String(grade.id),
+            name: String(grade.name),
+            sort: Number(grade.sort_index ?? 9999),
+          });
+        },
+      );
+    }
+
+    return Array.from(gradeMap.values())
+      .sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name))
+      .map(({ id, name }) => ({ id, name }));
   }
 }

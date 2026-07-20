@@ -570,7 +570,7 @@ export class SupabaseApiSchool extends SupabaseApiCore {
       await ServiceConfig.getI().authHandler.getCurrentUser();
     if (!_currentUser) throw new Error('User is not logged in');
 
-    // ? Select id, created_at, updated_at to avoid TS error
+    // ✅ Select id, created_at, updated_at to avoid TS error
     const { data: existingRequests, error: selectError } = await this.supabase
       .from(TABLES.ReqNewSchool)
       .select('id, created_at, updated_at')
@@ -754,7 +754,9 @@ export class SupabaseApiSchool extends SupabaseApiCore {
           is_deleted: false,
           is_firebase: null,
         };
-        await this.supabase.from(TABLES.UserCourse).insert([newUserCourse]);
+        const { error: userCourseInsertError } = await this.supabase
+          .from(TABLES.UserCourse)
+          .insert([newUserCourse]);
       }
     } else {
       const [englishCourse, mathsCourse, digitalSkillsCourse] =
@@ -794,7 +796,9 @@ export class SupabaseApiSchool extends SupabaseApiCore {
           is_deleted: false,
           is_firebase: null,
         };
-        await this.supabase.from(TABLES.UserCourse).insert([newUserCourse]);
+        const { error: userCourseInsertError } = await this.supabase
+          .from(TABLES.UserCourse)
+          .insert([newUserCourse]);
       }
     }
     return newStudent;
@@ -983,7 +987,6 @@ export class SupabaseApiSchool extends SupabaseApiCore {
 
     return students;
   }
-
   async updateSchoolProgram(
     schoolId: string,
     programId: string,

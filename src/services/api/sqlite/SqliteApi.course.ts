@@ -35,9 +35,7 @@ export class SqliteApiCourse extends SqliteApiUser {
     }
 
     let courseIds: TableTypes<'course'>[] = [];
-    const gradeCourses = (await this.getCoursesByGrade(
-      gradeDocId,
-    )) as TableTypes<'course'>[];
+    const gradeCourses = await this.getCoursesByGrade(gradeDocId);
     const curriculumCourses = gradeCourses.filter(
       (course: TableTypes<'course'>) => {
         return course.curriculum_id === boardDocId;
@@ -68,7 +66,7 @@ export class SqliteApiCourse extends SqliteApiUser {
           course.curriculum_id === OTHER_CURRICULUM
         );
       });
-      courses.forEach((course) => {
+      courses.forEach((course: TableTypes<'course'>) => {
         courseIds.push(course);
       });
     });
@@ -81,7 +79,7 @@ export class SqliteApiCourse extends SqliteApiUser {
     const res = await this._db?.query(
       `SELECT * FROM ${TABLES.Curriculum} ORDER BY name ASC`,
     );
-    logger.info('?? ~ SqliteApi ~ getAllCurriculums ~ res:', res);
+    logger.info('🚀 ~ SqliteApi ~ getAllCurriculums ~ res:', res);
     return res?.values ?? [];
   }
   async getAllGrades(): Promise<TableTypes<'grade'>[]> {
@@ -162,7 +160,7 @@ export class SqliteApiCourse extends SqliteApiUser {
   async getAllLanguages(): Promise<TableTypes<'language'>[]> {
     await this.ensureInitialized();
     const res = await this._db?.query('select * from ' + TABLES.Language);
-    logger.info('?? ~ SqliteApi ~ getAllLanguages ~ res:', res);
+    logger.info('🚀 ~ SqliteApi ~ getAllLanguages ~ res:', res);
     return res?.values ?? [];
   }
 
@@ -241,7 +239,7 @@ export class SqliteApiCourse extends SqliteApiUser {
     SET sfx_off = ${value ? 1 : 0}
     WHERE id = "${userId}";
   `;
-    await this.executeQuery(query);
+    const res = await this.executeQuery(query);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       sfx_off: value ? 1 : 0,
       id: userId,
@@ -254,7 +252,7 @@ export class SqliteApiCourse extends SqliteApiUser {
     WHERE id = "${userId}";
   `;
     const res = await this.executeQuery(query);
-    logger.info('?? ~ SqliteApi ~ updateMusicFlag ~ res:', res);
+    logger.info('🚀 ~ SqliteApi ~ updateMusicFlag ~ res:', res);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       music_off: value ? 1 : 0,
       id: userId,
@@ -271,7 +269,7 @@ export class SqliteApiCourse extends SqliteApiUser {
       WHERE id = ?;
     `;
     const res = await this.executeQuery(query, [value, localeId, userId]);
-    logger.info('?? ~ SqliteApi ~ updateLanguage ~ res:', res);
+    logger.info('🚀 ~ SqliteApi ~ updateLanguage ~ res:', res);
     this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
       language_id: value,
       locale_id: localeId,
@@ -286,7 +284,7 @@ export class SqliteApiCourse extends SqliteApiUser {
   `;
     const res = await this.executeQuery(query);
     logger.info(
-      '?? ~ SqliteApi ~ updateTcAccept ~ res:',
+      '🚀 ~ SqliteApi ~ updateTcAccept ~ res:',
       res,
       ServiceConfig.getI().authHandler.currentUser,
     );
@@ -642,7 +640,7 @@ export class SqliteApiCourse extends SqliteApiUser {
         is_deleted: false,
         is_firebase: false,
       };
-      await this.executeQuery(
+      const res = await this.executeQuery(
         `
       INSERT INTO favorite_lesson (id, lesson_id, user_id, created_at, updated_at, is_deleted)
       VALUES (?, ?, ?, ?, ?, ?);
@@ -819,7 +817,7 @@ export class SqliteApiCourse extends SqliteApiUser {
         }
       }
 
-      // 1?? Fetch all available set_numbers (+ language/locale for in-memory preference)
+      // 1️⃣ Fetch all available set_numbers (+ language/locale for in-memory preference)
       const setQuery = `
       SELECT DISTINCT set_number, language_id, locale_id, lesson_id
       FROM subject_lesson
@@ -840,7 +838,7 @@ export class SqliteApiCourse extends SqliteApiUser {
         return {} as TableTypes<'subject_lesson'>;
       }
 
-      // 2?? Prefer sets that have student's language, fallback to all sets
+      // 2️⃣ Prefer sets that have student's language, fallback to all sets
       const preferredSets = langId
         ? Array.from(
             new Set(
@@ -899,7 +897,7 @@ export class SqliteApiCourse extends SqliteApiUser {
       }
 
       /* ==========================================
-       * 3?? Abort Check (with assignment_id IS NULL)
+       * 3️⃣ Abort Check (with assignment_id IS NULL)
        * ========================================== */
       const abortLessonPlaceholders = assessmentLessonIds
         .map(() => '?')
@@ -947,7 +945,7 @@ export class SqliteApiCourse extends SqliteApiUser {
       }
 
       /* ==========================================
-       * 4?? Fetch all candidate lessons from set
+       * 4️⃣ Fetch all candidate lessons from set
        * ========================================== */
       const lessonLanguageFilter = useStrictLanguageTrack
         ? localeId
@@ -1058,12 +1056,15 @@ export class SqliteApiCourse extends SqliteApiUser {
         ? pendingLessons[0]
         : ({} as TableTypes<'subject_lesson'>);
     } catch (error) {
-      logger.error('? Error fetching subject lessons by subject (SQL):', error);
+      logger.error(
+        '❌ Error fetching subject lessons by subject (SQL):',
+        error,
+      );
       return {} as TableTypes<'subject_lesson'>;
     }
   }
 
-  protected async prefetchLidoCommonAudioAfterSync(): Promise<void> {
+  private async prefetchLidoCommonAudioAfterSync(): Promise<void> {
     if (!this._db || !Capacitor.isNativePlatform()) return;
 
     try {

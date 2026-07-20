@@ -130,7 +130,7 @@ export class SqliteApiPal extends SqliteApiWhatsApp {
           assessmentLessonIdSet.has(result.lesson_id),
       );
     } catch (error) {
-      logger.error('? Error checking PAL assessment history:', error);
+      logger.error('❌ Error checking PAL assessment history:', error);
       return false;
     }
   }
@@ -333,6 +333,7 @@ export class SqliteApiPal extends SqliteApiWhatsApp {
     );
     return res?.values ?? [];
   }
+
   async getSkillById(
     skillId: string,
   ): Promise<TableTypes<'skill'> | undefined> {

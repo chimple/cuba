@@ -69,6 +69,9 @@ const pushLeaderboardRow = (leaderBoardList: LeaderboardInfo, result: any) => {
   }
 };
 
+const firstOrSelf = <T>(value: T | T[] | null | undefined): T | null =>
+  Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
+
 export interface SupabaseApiUser {
   [key: string]: any;
 }
@@ -102,13 +105,12 @@ export class SupabaseApiUser extends SupabaseApiResults {
     }
     return data ?? undefined;
   }
-
   async isStudentLinked(
     studentId: string,
     fromCache: boolean,
   ): Promise<boolean> {
     if (!this.supabase) return false;
-    const { error } = await this.supabase
+    const { data, error } = await this.supabase
       .from(TABLES.ClassUser)
       .select('*')
       .eq('user_id', studentId)
@@ -213,11 +215,57 @@ export class SupabaseApiUser extends SupabaseApiResults {
         return (allSchools ?? []).map((school) => ({ school, role }));
       }
 
-      // --- PROGRAM MANAGER / FIELD COORDINATOR ---
-      if (
-        role === RoleType.PROGRAM_MANAGER ||
-        role === RoleType.FIELD_COORDINATOR
-      ) {
+      // --- FIELD COORDINATOR ---
+      if (role === RoleType.FIELD_COORDINATOR) {
+        const { data: schoolUsers, error: schoolUserErr } = await this.supabase
+          .from(TABLES.SchoolUser)
+          .select('role, school:school_id(*)')
+          .eq('user_id', userId)
+          .eq('role', RoleType.FIELD_COORDINATOR)
+          .eq('is_deleted', false);
+
+        if (schoolUserErr) {
+          logger.error(
+            'Error fetching field coordinator school_user rows:',
+            schoolUserErr,
+          );
+          return [];
+        }
+
+        const unique = new Map<
+          string,
+          { school: TableTypes<'school'>; role: RoleType }
+        >();
+        for (const row of schoolUsers ?? []) {
+          const school = firstOrSelf(row.school);
+          if (
+            !school?.id ||
+            school.is_deleted ||
+            (search &&
+              !String(school.name ?? '')
+                .toLowerCase()
+                .includes(search.toLowerCase()))
+          ) {
+            continue;
+          }
+
+          unique.set(String(school.id), {
+            school: school as TableTypes<'school'>,
+            role,
+          });
+        }
+
+        return Array.from(unique.values())
+          .sort((a, b) =>
+            String(a.school.name ?? '').localeCompare(
+              String(b.school.name ?? ''),
+            ),
+          )
+          .slice(from, to + 1);
+      }
+
+      // --- PROGRAM MANAGER ---
+      if (role === RoleType.PROGRAM_MANAGER) {
         const { data: progUsers, error: puErr } = await this.supabase
           .from(TABLES.ProgramUser)
           .select('program_id')
@@ -1099,7 +1147,7 @@ export class SupabaseApiUser extends SupabaseApiResults {
       );
     }
 
-    // ?? FIX: Force class_user update so other devices sync it
+    // 🔥 FIX: Force class_user update so other devices sync it
     const { error: classUserSyncError } = await this.supabase
       .from('class_user')
       .update({ updated_at: now })
@@ -1611,14 +1659,14 @@ export class SupabaseApiUser extends SupabaseApiResults {
           const newHasAssignedAssessment = hasAssignedAssessment(newCourse);
 
           /**
-           * If assessment completed ? prefer that student
+           * If assessment completed → prefer that student
            */
           if (oldAssessmentCompleted !== newAssessmentCompleted) {
             return oldAssessmentCompleted ? oldCourse : newCourse;
           }
 
           /**
-           * If both have assigned assessment ? choose more progress.
+           * If both have assigned assessment → choose more progress.
            */
           if (oldHasAssignedAssessment && newHasAssignedAssessment) {
             return chooseByProgress();
@@ -1830,7 +1878,7 @@ export class SupabaseApiUser extends SupabaseApiResults {
       .single();
     if (schoolUser?.role) return schoolUser.role as RoleType;
 
-    // Check class_user ? teacher
+    // Check class_user → teacher
     const { data: classUsers } = await this.supabase
       .from(TABLES.ClassUser)
       .select('class_id')

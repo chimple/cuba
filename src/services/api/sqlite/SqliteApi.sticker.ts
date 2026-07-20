@@ -322,6 +322,7 @@ export class SqliteApiSticker extends SqliteApiRewards {
       return [];
     }
   }
+
   async getUserSticker(userId: string): Promise<TableTypes<'user_sticker'>[]> {
     await this.ensureInitialized();
     try {
@@ -361,7 +362,8 @@ export class SqliteApiSticker extends SqliteApiRewards {
       return [];
     }
   }
-  protected parseSqliteJsonArray<T>(value: unknown): T[] {
+
+  private parseSqliteJsonArray<T>(value: unknown): T[] {
     if (Array.isArray(value)) return value as T[];
     if (typeof value !== 'string') return [];
 
@@ -385,7 +387,7 @@ export class SqliteApiSticker extends SqliteApiRewards {
     return commaSeparated as T[];
   }
 
-  protected mapStickerBookRow(row: any): StickerBook {
+  private mapStickerBookRow(row: any): StickerBook {
     return {
       ...row,
       sort_index: Number(row?.sort_index ?? 0),
@@ -396,7 +398,7 @@ export class SqliteApiSticker extends SqliteApiRewards {
     };
   }
 
-  protected async resolveStickerBookAssets(
+  private async resolveStickerBookAssets(
     book: StickerBook,
   ): Promise<StickerBook> {
     if (!book?.svg_url) return book;
@@ -416,7 +418,7 @@ export class SqliteApiSticker extends SqliteApiRewards {
     }
   }
 
-  protected async prefetchStickerBookAssetsAfterSync(): Promise<void> {
+  private async prefetchStickerBookAssetsAfterSync(): Promise<void> {
     if (!this._db || !Capacitor.isNativePlatform()) return;
 
     try {
@@ -450,7 +452,7 @@ export class SqliteApiSticker extends SqliteApiRewards {
     }
   }
 
-  protected mapUserStickerBookRow(row: any): UserStickerProgress {
+  private mapUserStickerBookRow(row: any): UserStickerProgress {
     return {
       id: row.id,
       user_id: row.user_id,
@@ -461,6 +463,7 @@ export class SqliteApiSticker extends SqliteApiRewards {
       status: row.status,
     };
   }
+
   async markStciekercolledasTrue(userId: string): Promise<void> {
     await this.ensureInitialized();
     try {
