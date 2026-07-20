@@ -24,6 +24,7 @@ import {
   RESULT_STATUS,
   SOURCE,
   CURRENT_HEADER,
+  GENERIC_POP_UP,
 } from '../common/constants';
 import Loading from '../components/Loading';
 import ScoreCard from '../components/scorecards/ScoreCard';
@@ -39,7 +40,7 @@ import React from 'react';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { palUtil } from '../utility/palUtil';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
-import { useGrowthBook } from '@growthbook/growthbook-react';
+import { useFeatureValue } from '@growthbook/growthbook-react';
 import { registerBackButtonHandler } from '../common/backButtonRegistry';
 import logger from '../utility/logger';
 import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
@@ -47,6 +48,9 @@ import {
   getBundleZipUrlsForEnv,
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
+import { getAppPathname, getAppSearchParams } from '../utility/routerLocation';
+import { parsePath } from 'history';
+import { PopupConfig } from '../components/GenericPopUp/GenericPopUpType';
 
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
@@ -135,7 +139,7 @@ const LidoPlayer: FC = () => {
     SOURCE.LEARNING_PATHWAY_HOME_PAL,
     SOURCE.INITIAL_ASSESSMENT,
   ].includes(source);
-  const urlSearchParams = new URLSearchParams(window.location.search);
+  const urlSearchParams = getAppSearchParams();
   const lessonId = urlSearchParams.get('lessonid') ?? state?.lessonId;
   const assignmentType = state?.assignment?.type || 'self-played';
   const playedFrom = localStorage.getItem(CURRENT_HEADER);
@@ -153,7 +157,7 @@ const LidoPlayer: FC = () => {
   });
   const [isReady, setIsReady] = useState<boolean>(false);
   const [gameResult, setGameResult] = useState<any>(null);
-  const growthbook = useGrowthBook();
+  const popupConfig = useFeatureValue<PopupConfig | null>(GENERIC_POP_UP, null);
 
   // Data Objects
   // Ensure we handle String vs string here if needed, but usually these are safe if parsed from JSON
@@ -510,8 +514,6 @@ const LidoPlayer: FC = () => {
 
   const onNextContainer = (e: any) => logger.info('Next', e);
   const gameCompleted = () => {
-    const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
-
     if (popupConfig) {
       PopupManager.onGameComplete(popupConfig);
     }
@@ -521,7 +523,7 @@ const LidoPlayer: FC = () => {
     if (isExitingRef.current) return;
     isExitingRef.current = true;
     localStorage.removeItem(LIDO_SCORES_KEY);
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = getAppSearchParams();
     const fromPath: string = state?.from ?? PAGES.HOME;
     const returnState = {
       ...(state?.returnState ?? state),
@@ -533,7 +535,7 @@ const LidoPlayer: FC = () => {
       targetPath = `${fromPath}${separator}isReload=true`;
     }
 
-    history.replace(targetPath, returnState);
+    history.replace({ ...parsePath(targetPath), state: returnState });
     setIsLoading(false);
     setTimeout(() => {
       isExitingRef.current = false;
@@ -1328,7 +1330,7 @@ const LidoPlayer: FC = () => {
   useEffect(() => {
     const unregister = registerBackButtonHandler(
       () => {
-        if (window.location.pathname !== PAGES.LIDO_PLAYER) return false;
+        if (getAppPathname() !== PAGES.LIDO_PLAYER) return false;
         push();
         return true;
       },
@@ -1364,7 +1366,7 @@ const LidoPlayer: FC = () => {
     if (typeof window !== 'undefined') {
       window.__LIDO_COMMON_AUDIO_PATH__ = undefined;
     }
-    const urlSearchParams = new URLSearchParams(window.location.search);
+    const urlSearchParams = getAppSearchParams();
     const lessonToDownload = lessonDetail;
     const lessonId =
       Util.getLessonBundleId(lessonToDownload) ??

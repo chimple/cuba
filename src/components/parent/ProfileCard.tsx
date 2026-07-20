@@ -18,6 +18,7 @@ import { Util } from '../../utility/util';
 import Loading from '../Loading';
 import DialogBoxButtons from './DialogBoxButtons';
 import './ProfileCard.css';
+import { parsePath } from 'history';
 
 const EDIT_PROFILE_ICON_SRC = '/assets/edit-profile-icon.svg';
 const EDIT_PROFILE_DIALOG_ICON_SRC =
@@ -196,9 +197,12 @@ const ProfileCard: React.FC<{
                 return;
               }
               void Util.logEvent(EVENTS.PROFILE_CREATION_CLICKED, {});
-              history.push(PAGES.CREATE_STUDENT, {
-                isEdit: false,
-                from: `${history.location.pathname}${history.location.search}`,
+              history.push({
+                ...parsePath(PAGES.CREATE_STUDENT),
+                state: {
+                  isEdit: false,
+                  from: `${history.location.pathname}${history.location.search}`,
+                },
               });
             }}
           >
@@ -227,8 +231,11 @@ const ProfileCard: React.FC<{
             logProfileCardAction('edit_profile');
             // Passing false to not change the student language as it is not required for edit student screen
             await Util.setCurrentStudent(user, undefined, false, false);
-            history.replace(PAGES.EDIT_STUDENT, {
-              from: history.location.pathname,
+            history.replace({
+              ...parsePath(PAGES.EDIT_STUDENT),
+              state: {
+                from: history.location.pathname,
+              },
             });
             setShowDialogBox(false);
           }}

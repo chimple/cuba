@@ -42,6 +42,7 @@ import { t } from 'i18next';
 import { getCachedImageSrc } from '../utility/imageCache';
 import { mapInBatches } from '../utility/batch';
 import { schoolUtil } from '../utility/schoolUtil';
+import { parsePath } from 'history';
 
 interface UsePathwaySVGParams {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -1917,9 +1918,11 @@ export function usePathwaySVG({
     const currentChapter = (window as any).__currentChapterForPathway__;
 
     if (lesson.plugin_type === LIVE_QUIZ) {
-      history.replace(
-        PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
-        {
+      history.replace({
+        ...parsePath(
+          PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+        ),
+        state: {
           courseId: course.course_id,
           lesson: JSON.stringify(lesson),
           from: history.location.pathname + `?${CONTINUE}=true`,
@@ -1928,7 +1931,7 @@ export function usePathwaySVG({
           is_assessment: is_assessment,
           source: source,
         },
-      );
+      });
       return;
     }
 
@@ -1938,18 +1941,21 @@ export function usePathwaySVG({
     }
 
     const p = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
-    history.replace(PAGES.LIDO_PLAYER + p, {
-      lessonId: playableLessonId,
-      courseDocId: course.course_id,
-      course: JSON.stringify(currentCourse),
-      lesson: JSON.stringify(lesson),
-      chapter: JSON.stringify(currentChapter),
-      from: history.location.pathname + `?${CONTINUE}=true`,
-      learning_path: true,
-      skillId: skillId,
-      is_assessment: is_assessment,
-      assessmentId: assessmentId,
-      source: source,
+    history.replace({
+      ...parsePath(PAGES.LIDO_PLAYER + p),
+      state: {
+        lessonId: playableLessonId,
+        courseDocId: course.course_id,
+        course: JSON.stringify(currentCourse),
+        lesson: JSON.stringify(lesson),
+        chapter: JSON.stringify(currentChapter),
+        from: history.location.pathname + `?${CONTINUE}=true`,
+        learning_path: true,
+        skillId: skillId,
+        is_assessment: is_assessment,
+        assessmentId: assessmentId,
+        source: source,
+      },
     });
   }
 

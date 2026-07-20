@@ -19,6 +19,7 @@ import DataTableBody, { type Column } from '../components/DataTableBody';
 import DataTablePagination from '../components/DataTablePagination';
 import type {
   CampaignAssignmentSummaryRow,
+  CampaignAssignmentUniqueSubject,
   CampaignOption,
 } from '../../services/api/ServiceApi';
 
@@ -32,9 +33,26 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
   campaignId,
 }) => {
   const api = ServiceConfig.getI().apiHandler;
+  const getViewportWidth = () =>
+    typeof window === 'undefined' ? 1024 : window.innerWidth;
+  const [viewportWidth, setViewportWidth] = useState(getViewportWidth);
+
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(getViewportWidth());
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const isSmallScreen = viewportWidth <= 600;
+  const isMediumScreen = viewportWidth > 600 && viewportWidth <= 900;
 
   const [grades, setGrades] = useState<CampaignOption[]>([]);
-  const [subjects, setSubjects] = useState<CampaignOption[]>([]);
+  const [subjects, setSubjects] = useState<CampaignAssignmentUniqueSubject[]>(
+    [],
+  );
   const [assignments, setAssignments] = useState<
     CampaignAssignmentSummaryRow[]
   >([]);
@@ -60,10 +78,7 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
 
       setIsLoadingFilters(true);
       try {
-        const [nextGrades, nextSubjects] = await Promise.all([
-          api.getAllGrades(),
-          api.getCampaignSubjectsByCampaignId(campaignId),
-        ]);
+        const nextGrades = await api.getAllGrades();
 
         if (cancelled) return;
 
@@ -71,12 +86,6 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
           nextGrades.map((grade) => ({
             id: String(grade.id),
             name: String(grade.name),
-          })),
-        );
-        setSubjects(
-          nextSubjects.map((subject) => ({
-            id: String(subject.id),
-            name: String(subject.name),
           })),
         );
       } catch (err) {
@@ -92,6 +101,13 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
       cancelled = true;
     };
   }, [api, campaignId]);
+
+  useEffect(() => {
+    setSelectedGrades([]);
+    setSelectedSubjects([]);
+    setSubjects([]);
+    setPage(1);
+  }, [campaignId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -116,6 +132,9 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
         if (cancelled) return;
 
         setAssignments(response.assignments ?? []);
+        if (selectedGrades.length === 0 && selectedSubjects.length === 0) {
+          setSubjects(response.uniqueSubjects ?? []);
+        }
         setTotal(response.total ?? 0);
       } catch (err) {
         logger.error('Failed to load campaign assignments:', err);
@@ -154,32 +173,86 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
     [subjects],
   );
 
+  const availableSubjects = subjects;
+
+  const availableGrades = useMemo(() => {
+    const relevantGradeIds = new Set(
+      subjects.flatMap((subject) => subject.gradeIds),
+    );
+
+    return grades.filter((grade) => relevantGradeIds.has(grade.id));
+  }, [grades, subjects]);
+
+  useEffect(() => {
+    const availableGradeIds = new Set(availableGrades.map((grade) => grade.id));
+    setSelectedGrades((current) => {
+      if (current.length === 0) return current;
+      const next = current.filter((id) => availableGradeIds.has(id));
+      return next.length === current.length ? current : next;
+    });
+  }, [availableGrades]);
+
+  useEffect(() => {
+    const availableSubjectIds = new Set(
+      availableSubjects.map((subject) => subject.id),
+    );
+    setSelectedSubjects((current) => {
+      if (current.length === 0) return current;
+      const next = current.filter((id) => availableSubjectIds.has(id));
+      return next.length === current.length ? current : next;
+    });
+  }, [availableSubjects]);
+
+  const gradeOptionIds = useMemo(
+    () => availableGrades.map((grade) => grade.id),
+    [availableGrades],
+  );
+  const subjectOptionIds = useMemo(
+    () => availableSubjects.map((subject) => subject.id),
+    [availableSubjects],
+  );
+  const gradeSelectValues =
+    selectedGrades.length === 0 ? gradeOptionIds : selectedGrades;
+  const subjectSelectValues =
+    selectedSubjects.length === 0 ? subjectOptionIds : selectedSubjects;
+
+  const dateColumnWidth = isSmallScreen ? 180 : isMediumScreen ? 240 : 280;
+  const gradeColumnWidth = isSmallScreen ? 100 : 140;
+  const subjectColumnWidth = isSmallScreen ? 120 : 180;
+  const tableMinWidth = isSmallScreen ? 760 : isMediumScreen ? 960 : 1260;
+
+  const assignmentDateFormatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(undefined, {
+        weekday: isSmallScreen ? 'short' : 'long',
+        year: 'numeric',
+        month: isSmallScreen ? 'short' : 'long',
+        day: 'numeric',
+      }),
+    [isSmallScreen],
+  );
+
   const columns = useMemo<Column<CampaignAssignmentSummaryRow>[]>(
     () => [
       {
         key: 'assignmentDate',
         label: t('Date'),
         sortable: false,
-        width: 210,
+        width: dateColumnWidth,
         render: (row) =>
-          new Date(row.assignmentDate).toLocaleDateString(undefined, {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          }),
+          assignmentDateFormatter.format(new Date(row.assignmentDate)),
       },
       {
         key: 'gradeName',
         label: t('Grade'),
         sortable: false,
-        width: 140,
+        width: gradeColumnWidth,
       },
       {
         key: 'subjectName',
         label: t('Subject'),
         sortable: false,
-        width: 180,
+        width: subjectColumnWidth,
       },
       {
         key: 'lessonName',
@@ -187,17 +260,28 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
         sortable: false,
       },
     ],
-    [],
+    [
+      assignmentDateFormatter,
+      dateColumnWidth,
+      gradeColumnWidth,
+      subjectColumnWidth,
+    ],
   );
 
   const selectedGradeLabel = (id: string) => gradeNameById.get(id) ?? id;
   const selectedSubjectLabel = (id: string) => subjectNameById.get(id) ?? id;
 
   const handleMultiSelectChange =
-    (setter: React.Dispatch<React.SetStateAction<string[]>>) =>
+    (
+      options: CampaignOption[],
+      setter: React.Dispatch<React.SetStateAction<string[]>>,
+    ) =>
     (event: SelectChangeEvent<string[]>) => {
       const value = event.target.value;
-      setter(typeof value === 'string' ? value.split(',') : value);
+      const nextValues = typeof value === 'string' ? value.split(',') : value;
+      const optionIds = options.map((option) => option.id);
+
+      setter(nextValues.length === optionIds.length ? [] : nextValues);
       setPage(1);
     };
 
@@ -216,17 +300,28 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
             <FormControl
               size="small"
               className="campaign-assignment-filter"
-              disabled={isLoadingFilters}
+              disabled={
+                isLoadingFilters ||
+                (isLoadingAssignments && subjects.length === 0)
+              }
             >
               <Select
                 multiple
                 displayEmpty
-                value={selectedGrades}
-                onChange={handleMultiSelectChange(setSelectedGrades)}
+                value={gradeSelectValues}
+                onChange={handleMultiSelectChange(
+                  availableGrades,
+                  setSelectedGrades,
+                )}
                 input={<OutlinedInput />}
                 renderValue={(selected) => {
                   const values = selected as string[];
-                  if (values.length === 0) return t('All grades');
+                  if (
+                    values.length === 0 ||
+                    values.length === gradeOptionIds.length
+                  ) {
+                    return t('All grades');
+                  }
                   return values.map(selectedGradeLabel).join(', ');
                 }}
                 className="campaign-assignment-select"
@@ -234,9 +329,23 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
                   PaperProps: { className: 'campaign-assignment-menu' },
                 }}
               >
-                {grades.map((grade) => (
-                  <MenuItem key={grade.id} value={grade.id}>
-                    <Checkbox checked={selectedGrades.includes(grade.id)} />
+                {availableGrades.map((grade) => (
+                  <MenuItem
+                    key={grade.id}
+                    value={grade.id}
+                    className={
+                      selectedGrades.length === 0 ||
+                      selectedGrades.includes(grade.id)
+                        ? 'campaign-assignment-menu-item-selected'
+                        : undefined
+                    }
+                  >
+                    <Checkbox
+                      checked={
+                        selectedGrades.length === 0 ||
+                        selectedGrades.includes(grade.id)
+                      }
+                    />
                     <ListItemText primary={grade.name} />
                   </MenuItem>
                 ))}
@@ -254,17 +363,28 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
             <FormControl
               size="small"
               className="campaign-assignment-filter campaign-assignment-filterField"
-              disabled={isLoadingFilters}
+              disabled={
+                isLoadingFilters ||
+                (isLoadingAssignments && subjects.length === 0)
+              }
             >
               <Select
                 multiple
                 displayEmpty
-                value={selectedSubjects}
-                onChange={handleMultiSelectChange(setSelectedSubjects)}
+                value={subjectSelectValues}
+                onChange={handleMultiSelectChange(
+                  availableSubjects,
+                  setSelectedSubjects,
+                )}
                 input={<OutlinedInput />}
                 renderValue={(selected) => {
                   const values = selected as string[];
-                  if (values.length === 0) return t('All subjects');
+                  if (
+                    values.length === 0 ||
+                    values.length === subjectOptionIds.length
+                  ) {
+                    return t('All subjects');
+                  }
                   return values.map(selectedSubjectLabel).join(', ');
                 }}
                 className="campaign-assignment-select"
@@ -272,9 +392,23 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
                   PaperProps: { className: 'campaign-assignment-menu' },
                 }}
               >
-                {subjects.map((subject) => (
-                  <MenuItem key={subject.id} value={subject.id}>
-                    <Checkbox checked={selectedSubjects.includes(subject.id)} />
+                {availableSubjects.map((subject) => (
+                  <MenuItem
+                    key={subject.id}
+                    value={subject.id}
+                    className={
+                      selectedSubjects.length === 0 ||
+                      selectedSubjects.includes(subject.id)
+                        ? 'campaign-assignment-menu-item-selected'
+                        : undefined
+                    }
+                  >
+                    <Checkbox
+                      checked={
+                        selectedSubjects.length === 0 ||
+                        selectedSubjects.includes(subject.id)
+                      }
+                    />
                     <ListItemText primary={subject.name} />
                   </MenuItem>
                 ))}
@@ -307,7 +441,7 @@ const CampaignAssignmentTab: React.FC<CampaignAssignmentTabProps> = ({
               order="asc"
               onSort={() => {}}
               loading={false}
-              tableMinWidth={820}
+              tableMinWidth={tableMinWidth}
               tableWidth="100%"
               headerNoEllipsis
             />

@@ -1,6 +1,10 @@
 import { t } from 'i18next';
 import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
-import { CampaignAssignmentDraft } from './campaignAssignmentUtils';
+import {
+  buildFrequencyTimelineDates,
+  CampaignAssignmentDraft,
+  Frequency,
+} from './campaignAssignmentUtils';
 import { CampaignSetupFormState } from './types';
 
 export type CampaignCommunicationRowState = {
@@ -51,9 +55,14 @@ export const createEmptyCommunicationRow =
 export const buildCommunicationTimelineDates = (
   assignmentDrafts: CampaignAssignmentDraft[],
   form?: CampaignSetupFormState,
+  frequency?: Frequency,
 ): string[] => {
   if (form?.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY) {
     return buildCampaignDurationTimelineDates(form.startDate, form.endDate);
+  }
+
+  if (form && frequency) {
+    return buildFrequencyTimelineDates(form.startDate, form.endDate, frequency);
   }
 
   return Array.from(new Set(assignmentDrafts.map((draft) => draft.startsAt)))

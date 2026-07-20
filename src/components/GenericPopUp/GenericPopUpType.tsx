@@ -1,6 +1,8 @@
+import type { JSONValue } from '@growthbook/growthbook-react';
+
 export type TriggerType = 'APP_OPEN' | 'GAME_COMPLETE' | 'TIME_ELAPSED';
 
-export interface PopupConfig {
+export type PopupConfig = {
   id: string;
   isActive: boolean;
   priority: number;
@@ -38,4 +40,6 @@ export interface PopupConfig {
     type: 'DEEP_LINK';
     target: string;
   };
-}
+} & {
+  [key: string]: JSONValue;
+};

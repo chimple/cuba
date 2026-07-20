@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -43,6 +44,7 @@ jest.mock('react-router-dom', () => ({
 const mockApiHandler = {
   getCampaignSetupOptions: jest.fn(),
   getCampaignAudienceOptions: jest.fn(),
+  getCampaignGradesForSchools: jest.fn(),
   getCampaignAudienceSummary: jest.fn(),
   createCampaignAudienceGroup: jest.fn(),
   createCampaignSetup: jest.fn(),
@@ -120,6 +122,9 @@ const setupApiMocks = () => {
     schools: [{ id: 'school-1', name: 'School One', block: 'Block A' }],
     grades: [{ id: 'grade-1', name: 'Grade 1' }],
   });
+  mockApiHandler.getCampaignGradesForSchools.mockResolvedValue([
+    { id: 'grade-1', name: 'Grade 1' },
+  ]);
   mockApiHandler.getCampaignAudienceSummary.mockResolvedValue({
     totalStudents: 10,
     grades: [{ gradeId: 'grade-1', gradeName: 'Grade 1', studentCount: 10 }],
@@ -332,6 +337,195 @@ describe('CampaignSetupPage', () => {
       name: 'School One',
     });
     expect(within(schoolOption).getByRole('checkbox')).toBeChecked();
+  });
+
+  it('refreshes grade options after narrowing the selected schools', async () => {
+    mockApiHandler.getCampaignAudienceOptions.mockResolvedValueOnce({
+      blocks: ['Block A'],
+      schools: [
+        { id: 'school-1', name: 'School One', block: 'Block A' },
+        { id: 'school-2', name: 'School Two', block: 'Block A' },
+      ],
+      grades: [
+        { id: 'grade-1', name: 'Grade 1' },
+        { id: 'grade-2', name: 'Grade 2' },
+      ],
+    });
+    mockApiHandler.getCampaignGradesForSchools.mockImplementation(
+      (schoolIds: string[]) =>
+        Promise.resolve(
+          schoolIds.includes('school-2')
+            ? [{ id: 'grade-1', name: 'Grade 1' }]
+            : [
+                { id: 'grade-1', name: 'Grade 1' },
+                { id: 'grade-2', name: 'Grade 2' },
+              ],
+        ),
+    );
+
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await openSelectAndChoose('Select Program', 'Early Learning');
+
+    const schoolField = screen
+      .getByText('School')
+      .closest('.campaign-setup-field') as HTMLElement | null;
+    const schoolSelect = schoolField
+      ? within(schoolField).getByRole('combobox')
+      : null;
+
+    fireEvent.mouseDown(schoolSelect as HTMLElement);
+    fireEvent.click(await screen.findByRole('option', { name: 'School One' }));
+    fireEvent.keyDown(screen.getByRole('listbox'), {
+      key: 'Escape',
+      code: 'Escape',
+    });
+
+    await waitFor(() =>
+      expect(mockApiHandler.getCampaignGradesForSchools).toHaveBeenCalledWith([
+        'school-2',
+      ]),
+    );
+
+    const gradeField = screen
+      .getByText('Grade')
+      .closest('.campaign-setup-field') as HTMLElement | null;
+    const gradeSelect = gradeField
+      ? within(gradeField).getByRole('combobox')
+      : null;
+
+    fireEvent.mouseDown(gradeSelect as HTMLElement);
+
+    const gradeOneOption = await screen.findByRole('option', {
+      name: 'Grade 1',
+    });
+    expect(within(gradeOneOption).getByRole('checkbox')).toBeChecked();
+    expect(
+      screen.queryByRole('option', { name: 'Grade 2' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('preserves selected grades that remain available after a school refresh', async () => {
+    let resolveGrades:
+      | ((grades: Array<{ id: string; name: string }>) => void)
+      | undefined;
+
+    mockApiHandler.getCampaignAudienceOptions.mockResolvedValueOnce({
+      blocks: ['Block A'],
+      schools: [
+        { id: 'school-1', name: 'School One', block: 'Block A' },
+        { id: 'school-2', name: 'School Two', block: 'Block A' },
+      ],
+      grades: [
+        { id: 'grade-1', name: 'Grade 1' },
+        { id: 'grade-2', name: 'Grade 2' },
+      ],
+    });
+    mockApiHandler.getCampaignGradesForSchools.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveGrades = resolve;
+        }),
+    );
+
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await openSelectAndChoose('Select Program', 'Early Learning');
+    expect(await screen.findByText(/Grade 1/)).toBeInTheDocument();
+
+    const gradeField = screen
+      .getByText('Grade')
+      .closest('.campaign-setup-field') as HTMLElement | null;
+    const gradeSelect = gradeField
+      ? within(gradeField).getByRole('combobox')
+      : null;
+
+    fireEvent.mouseDown(gradeSelect as HTMLElement);
+    fireEvent.click(await screen.findByRole('option', { name: 'Grade 2' }));
+    fireEvent.keyDown(screen.getByRole('listbox'), {
+      key: 'Escape',
+      code: 'Escape',
+    });
+
+    const schoolField = screen
+      .getByText('School')
+      .closest('.campaign-setup-field') as HTMLElement | null;
+    const schoolSelect = schoolField
+      ? within(schoolField).getByRole('combobox')
+      : null;
+
+    fireEvent.mouseDown(schoolSelect as HTMLElement);
+    fireEvent.click(await screen.findByRole('option', { name: 'School One' }));
+
+    await waitFor(() =>
+      expect(mockApiHandler.getCampaignGradesForSchools).toHaveBeenCalledWith([
+        'school-2',
+      ]),
+    );
+
+    await act(async () => {
+      resolveGrades?.([{ id: 'grade-1', name: 'Grade 1' }]);
+    });
+
+    const refreshedGradeField = screen
+      .getByText('Grade')
+      .closest('.campaign-setup-field') as HTMLElement | null;
+    const refreshedGradeSelect = refreshedGradeField
+      ? within(refreshedGradeField).getByRole('combobox')
+      : null;
+
+    fireEvent.mouseDown(refreshedGradeSelect as HTMLElement);
+
+    const gradeOneOption = await screen.findByRole('option', {
+      name: 'Grade 1',
+    });
+    expect(within(gradeOneOption).getByRole('checkbox')).toBeChecked();
+  });
+
+  it('closes the grade dropdown after all grades are manually unchecked', async () => {
+    mockApiHandler.getCampaignAudienceOptions.mockResolvedValueOnce({
+      blocks: ['Block A'],
+      schools: [{ id: 'school-1', name: 'School One', block: 'Block A' }],
+      grades: [
+        { id: 'grade-1', name: 'Grade 1' },
+        { id: 'grade-2', name: 'Grade 2' },
+      ],
+    });
+    mockApiHandler.getCampaignAudienceSummary.mockResolvedValue({
+      totalStudents: 20,
+      grades: [
+        { gradeId: 'grade-1', gradeName: 'Grade 1', studentCount: 10 },
+        { gradeId: 'grade-2', gradeName: 'Grade 2', studentCount: 10 },
+      ],
+    });
+
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await openSelectAndChoose('Select Program', 'Early Learning');
+    expect(await screen.findByText(/Grade 1/)).toBeInTheDocument();
+
+    const gradeField = screen
+      .getByText('Grade')
+      .closest('.campaign-setup-field') as HTMLElement | null;
+    const gradeSelect = gradeField
+      ? within(gradeField).getByRole('combobox')
+      : null;
+
+    fireEvent.mouseDown(gradeSelect as HTMLElement);
+    fireEvent.click(await screen.findByRole('option', { name: 'Grade 1' }));
+    fireEvent.click(await screen.findByRole('option', { name: 'Grade 2' }));
+    fireEvent.mouseDown(document.body);
+    fireEvent.click(document.body);
+
+    await waitFor(() =>
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/Grade 1 -/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Grade 2 -/)).not.toBeInTheDocument();
+    expect(screen.getByText('0')).toBeInTheDocument();
   });
 
   it('switches dynamic objective fields when homepage pathway campaign is selected', async () => {

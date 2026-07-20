@@ -30,6 +30,7 @@ import { schoolUtil } from '../../utility/schoolUtil';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import logger from '../../utility/logger';
+import { parsePath } from 'history';
 
 type ProfileMenuProps = {
   onClose: () => void;
@@ -116,11 +117,21 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
     }
   };
   const onEdit = () => {
-    history.replace(PAGES.EDIT_STUDENT, { from: history.location.pathname });
+    history.replace({
+      ...parsePath(PAGES.EDIT_STUDENT),
+      state: {
+        from: history.location.pathname,
+      },
+    });
   };
 
   const onLeaderboard = () => {
-    history.push(PAGES.LEADERBOARD, { from: history.location.pathname });
+    history.push({
+      ...parsePath(PAGES.LEADERBOARD),
+      state: {
+        from: history.location.pathname,
+      },
+    });
   };
 
   const onStickerBook = async () => {
@@ -139,7 +150,12 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
         });
       }
     }
-    history.push(PAGES.STICKER_BOOK, { from: history.location.pathname });
+    history.push({
+      ...parsePath(PAGES.STICKER_BOOK),
+      state: {
+        from: history.location.pathname,
+      },
+    });
   };
 
   const onReward = () => {
@@ -162,7 +178,12 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       school_ids: [],
     });
     setGbUpdated(true);
-    history.replace(PAGES.DISPLAY_STUDENT, { from: history.location.pathname });
+    history.replace({
+      ...parsePath(PAGES.DISPLAY_STUDENT),
+      state: {
+        from: history.location.pathname,
+      },
+    });
   };
 
   const onSchoolModeSwitchUser = async () => {
@@ -175,8 +196,12 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       school_ids: [],
     });
     setGbUpdated(true);
-    history.replace(PAGES.SELECT_MODE, {
-      from: history.location.pathname,
+    history.replace({
+      ...parsePath(PAGES.SELECT_MODE),
+      state: {
+        from: history.location.pathname,
+        fromSchoolModeSwitchProfile: true,
+      },
     });
   };
 

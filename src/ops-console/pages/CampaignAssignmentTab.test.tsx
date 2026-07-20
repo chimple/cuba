@@ -62,7 +62,6 @@ jest.mock('../components/DataTablePagination', () => ({
 describe('CampaignAssignmentTab', () => {
   const api = {
     getAllGrades: jest.fn(),
-    getCampaignSubjectsByCampaignId: jest.fn(),
     getCampaignAssignments: jest.fn(),
   };
 
@@ -72,8 +71,8 @@ describe('CampaignAssignmentTab', () => {
   ];
 
   const defaultSubjects = [
-    { id: '11', name: 'Math' },
-    { id: '12', name: 'Science' },
+    { id: '11', name: 'Math', gradeIds: ['1'] },
+    { id: '12', name: 'Science', gradeIds: ['2'] },
   ];
 
   const defaultAssignments = [
@@ -85,41 +84,42 @@ describe('CampaignAssignmentTab', () => {
     },
   ];
 
+  const defaultUniqueSubjects = defaultSubjects;
+
   const renderTab = (campaignId?: string) =>
     render(<CampaignAssignmentTab campaignId={campaignId} />);
 
   const primeApi = ({
     grades = defaultGrades,
-    subjects = defaultSubjects,
     assignments = defaultAssignments,
+    uniqueSubjects = defaultUniqueSubjects,
     total = 1,
     gradeError = null,
-    subjectError = null,
     assignmentError = null,
   }: {
     grades?: Array<{ id: string; name: string }>;
-    subjects?: Array<{ id: string; name: string }>;
     assignments?: Array<{
       assignmentDate: string;
       gradeName: string;
       subjectName: string;
       lessonName: string;
     }>;
+    uniqueSubjects?: Array<{
+      id: string;
+      name: string;
+      gradeIds: string[];
+    }>;
     total?: number;
     gradeError?: Error | null;
-    subjectError?: Error | null;
     assignmentError?: Error | null;
   } = {}) => {
     api.getAllGrades.mockImplementation(() =>
       gradeError ? Promise.reject(gradeError) : Promise.resolve(grades),
     );
-    api.getCampaignSubjectsByCampaignId.mockImplementation(() =>
-      subjectError ? Promise.reject(subjectError) : Promise.resolve(subjects),
-    );
     api.getCampaignAssignments.mockImplementation(() =>
       assignmentError
         ? Promise.reject(assignmentError)
-        : Promise.resolve({ assignments, total }),
+        : Promise.resolve({ assignments, uniqueSubjects, total }),
     );
   };
 
@@ -136,11 +136,6 @@ describe('CampaignAssignmentTab', () => {
     renderTab('campaign-1');
 
     await waitFor(() =>
-      expect(api.getCampaignSubjectsByCampaignId).toHaveBeenCalledWith(
-        'campaign-1',
-      ),
-    );
-    await waitFor(() =>
       expect(api.getCampaignAssignments).toHaveBeenCalledWith('campaign-1', {
         page: 1,
         pageSize: 20,
@@ -148,7 +143,7 @@ describe('CampaignAssignmentTab', () => {
     );
 
     expect(api.getAllGrades).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId('data-table')).toBeInTheDocument();
+    expect(await screen.findByTestId('data-table')).toBeInTheDocument();
     expect(screen.getByText('Lesson Alpha')).toBeInTheDocument();
   });
 
@@ -173,7 +168,6 @@ describe('CampaignAssignmentTab', () => {
 
     expect(await screen.findByText('No Assignments Found')).toBeInTheDocument();
     expect(api.getAllGrades).not.toHaveBeenCalled();
-    expect(api.getCampaignSubjectsByCampaignId).not.toHaveBeenCalled();
     expect(api.getCampaignAssignments).not.toHaveBeenCalled();
   });
 
@@ -270,9 +264,6 @@ describe('CampaignAssignmentTab', () => {
 
   it('shows the loading spinner while requests are pending', () => {
     api.getAllGrades.mockImplementation(() => new Promise(() => undefined));
-    api.getCampaignSubjectsByCampaignId.mockImplementation(
-      () => new Promise(() => undefined),
-    );
     api.getCampaignAssignments.mockImplementation(
       () => new Promise(() => undefined),
     );
@@ -280,6 +271,22 @@ describe('CampaignAssignmentTab', () => {
     renderTab('campaign-1');
 
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
+
+  it('keeps filters disabled until campaign grade metadata is loaded', async () => {
+    api.getAllGrades.mockResolvedValue(defaultGrades);
+    api.getCampaignAssignments.mockImplementation(
+      () => new Promise(() => undefined),
+    );
+
+    renderTab('campaign-1');
+
+    await waitFor(() => expect(api.getAllGrades).toHaveBeenCalled());
+    screen
+      .getAllByRole('combobox')
+      .forEach((combobox) =>
+        expect(combobox).toHaveAttribute('aria-disabled', 'true'),
+      );
   });
 
   it('renders the default grade filter value', async () => {
@@ -290,12 +297,111 @@ describe('CampaignAssignmentTab', () => {
     expect(await screen.findByText('All grades')).toBeInTheDocument();
   });
 
+  it('shows only campaign grades from getAllGrades by default', async () => {
+    primeApi({
+      grades: [...defaultGrades, { id: '3', name: 'Grade 3' }],
+    });
+
+    renderTab('campaign-1');
+
+    const [gradeSelect] = await screen.findAllByRole('combobox');
+    fireEvent.mouseDown(gradeSelect);
+
+    expect(await screen.findByText('Grade 1')).toBeInTheDocument();
+    expect(screen.getByText('Grade 2')).toBeInTheDocument();
+    expect(screen.queryByText('Grade 3')).not.toBeInTheDocument();
+  });
+
   it('renders the default subject filter value', async () => {
     primeApi();
 
     renderTab('campaign-1');
 
     expect(await screen.findByText('All subjects')).toBeInTheDocument();
+  });
+
+  it('shows every campaign subject as selected when the subject menu opens', async () => {
+    primeApi();
+
+    renderTab('campaign-1');
+
+    const [, subjectSelect] = await screen.findAllByRole('combobox');
+    fireEvent.mouseDown(subjectSelect);
+
+    expect(await screen.findByText('Math')).toBeInTheDocument();
+    expect(screen.getByText('Science')).toBeInTheDocument();
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+    screen
+      .getAllByRole('checkbox')
+      .forEach((checkbox) => expect(checkbox).toBeChecked());
+
+    fireEvent.click(screen.getAllByRole('checkbox')[0]);
+
+    await waitFor(() =>
+      expect(screen.getAllByRole('checkbox')[0]).not.toBeChecked(),
+    );
+    expect(screen.getAllByRole('checkbox')[1]).toBeChecked();
+    expect(api.getCampaignAssignments).toHaveBeenLastCalledWith('campaign-1', {
+      page: 1,
+      pageSize: 20,
+      subjectIds: ['12'],
+    });
+  });
+
+  it('keeps every campaign subject visible when grades are selected', async () => {
+    primeApi();
+
+    renderTab('campaign-1');
+
+    const [gradeSelect] = await screen.findAllByRole('combobox');
+    fireEvent.mouseDown(gradeSelect);
+    fireEvent.click(screen.getAllByRole('checkbox')[1]);
+    fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' });
+
+    await waitFor(() =>
+      expect(api.getCampaignAssignments).toHaveBeenLastCalledWith(
+        'campaign-1',
+        {
+          page: 1,
+          pageSize: 20,
+          gradeIds: ['1'],
+        },
+      ),
+    );
+
+    const [, subjectSelect] = screen.getAllByRole('combobox');
+    fireEvent.mouseDown(subjectSelect);
+
+    expect(await screen.findByText('Math')).toBeInTheDocument();
+    expect(screen.getByText('Science')).toBeInTheDocument();
+  });
+
+  it('keeps every campaign grade visible when subjects are selected', async () => {
+    primeApi();
+
+    renderTab('campaign-1');
+
+    const [, subjectSelect] = await screen.findAllByRole('combobox');
+    fireEvent.mouseDown(subjectSelect);
+    fireEvent.click(screen.getAllByRole('checkbox')[0]);
+    fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' });
+
+    await waitFor(() =>
+      expect(api.getCampaignAssignments).toHaveBeenLastCalledWith(
+        'campaign-1',
+        {
+          page: 1,
+          pageSize: 20,
+          subjectIds: ['12'],
+        },
+      ),
+    );
+
+    const [gradeSelect] = screen.getAllByRole('combobox');
+    fireEvent.mouseDown(gradeSelect);
+
+    expect(await screen.findByText('Grade 1')).toBeInTheDocument();
+    expect(screen.getByText('Grade 2')).toBeInTheDocument();
   });
 
   it('renders both filter comboboxes', async () => {

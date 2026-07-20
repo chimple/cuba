@@ -39,10 +39,9 @@ import { AvatarObj } from '../components/animation/Avatar';
 import LearningPathway from '../components/LearningPathway';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import i18n from '../i18n';
-import { useFeatureIsOn } from '@growthbook/growthbook-react';
+import { useFeatureIsOn, useFeatureValue } from '@growthbook/growthbook-react';
 import WinterCampaignPopupGating from '../components/WinterCampaignPopup/WinterCampaignPopupGating';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
-import { useGrowthBook } from '@growthbook/growthbook-react';
 import ActivationLessonBanner from '../components/activationLesson/ActivationLessonBanner';
 import logger from '../utility/logger';
 import {
@@ -50,6 +49,8 @@ import {
   HomeworkPathwayLesson,
 } from '../components/assignment/homeworkPathwayHelpers';
 import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
+import { getAppSearchParams } from '../utility/routerLocation';
+import { PopupConfig } from '../components/GenericPopUp/GenericPopUpType';
 
 const localData: any = {};
 
@@ -133,12 +134,8 @@ const Home: FC = () => {
     }
   }, [currentHeader, history, location.pathname, location.search]);
 
-  const growthbook = useGrowthBook();
+  const popupConfig = useFeatureValue<PopupConfig | null>(GENERIC_POP_UP, null);
   useEffect(() => {
-    if (!growthbook) return;
-
-    const popupConfig = growthbook.getFeatureValue(GENERIC_POP_UP, null) as any;
-
     if (!popupConfig) return;
 
     if (
@@ -149,7 +146,7 @@ const Home: FC = () => {
       PopupManager.onAppOpen(popupConfig);
       PopupManager.onTimeElapsed(popupConfig);
     }
-  }, [growthbook, currentHeader]);
+  }, [currentHeader, popupConfig]);
 
   useEffect(() => {
     const student = Util.getCurrentStudent();
@@ -297,7 +294,7 @@ const Home: FC = () => {
     };
     updateAtb();
 
-    const urlParams = new URLSearchParams(window.location.search);
+    const urlParams = getAppSearchParams();
     if (urlParams.get('page') === PAGES.JOIN_CLASS) {
       setCurrentHeader(HOMEHEADERLIST.ASSIGNMENT);
       setTimeout(() => {

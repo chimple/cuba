@@ -15,8 +15,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
-import { IonReactRouter } from '@ionic/react-router';
+import { IonApp, setupIonicReact } from '@ionic/react';
+import { IonReactHashRouter } from '@ionic/react-router';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -39,37 +39,21 @@ import './theme/variables.css';
 import './App.css';
 
 import React from 'react';
-import { BASE_NAME } from './common/constants';
-import TermsGate from './components/termsandconditons/TermsGate';
-import { HardwareBackButtonHandler } from './common/backButtonRegistry';
-import { useAppSelector } from './redux/hooks';
-import { useNavigationHandler } from './helper/navigation/NavigationHandler';
-import AppRoutes from './app/AppRoutes';
-import AppOverlays from './app/AppOverlays';
-import { useGenericPopup } from './hooks/useGenericPopup';
+
 import { useGlobalBrowserEffects } from './hooks/useGlobalBrowserEffects';
 import { useGrowthBookFeatureCache } from './hooks/useGrowthBookFeatureCache';
 import { useHotUpdate } from './hooks/useHotUpdate';
 import { useNativeAppListeners } from './hooks/useNativeAppListeners';
-import { useOpsConsoleBodyClass } from './hooks/useOpsConsoleBodyClass';
 import { useRemoteAssetFlags } from './hooks/useRemoteAssetFlags';
-import { useRouteAudioCleanup } from './hooks/useRouteAudioCleanup';
-import { useUsageLimitModal } from './hooks/useUsageLimitModal';
+import { normalizeInitialHashRouteEntry } from './utility/routerLocation';
+
+import AppContent from './app/AppContent';
+import { BASE_NAME } from './common/constants';
 
 setupIonicReact();
 
-const AppRouteEffects = () => {
-  useNavigationHandler();
-  useOpsConsoleBodyClass();
-  useRouteAudioCleanup();
-  return null;
-};
-
 const App: React.FC = () => {
-  const isGlobalLoading = useAppSelector((state) => state.auth.globalLoading);
-  const popup = useGenericPopup();
-  const usageLimit = useUsageLimitModal();
-
+  normalizeInitialHashRouteEntry();
   useGrowthBookFeatureCache();
   useRemoteAssetFlags();
   useGlobalBrowserEffects();
@@ -78,30 +62,9 @@ const App: React.FC = () => {
 
   return (
     <IonApp>
-      <IonReactRouter basename={BASE_NAME}>
-        <AppRouteEffects />
-        <TermsGate />
-        <HardwareBackButtonHandler
-          popupDataRef={popup.popupDataRef}
-          setPopupData={popup.setPopupData}
-          popupManager={popup.popupManager}
-          showModalRef={usageLimit.showModalRef}
-          setShowModal={usageLimit.setShowModal}
-        />
-        <IonRouterOutlet>
-          <AppRoutes />
-        </IonRouterOutlet>
-        <AppOverlays
-          isGlobalLoading={isGlobalLoading}
-          popupData={popup.popupData}
-          onPopupClose={popup.closePopup}
-          onPopupAction={popup.actOnPopup}
-          showBreakModal={usageLimit.showModal}
-          onContinueFromBreak={usageLimit.continueAfterBreak}
-          showBreakToast={usageLimit.showToast}
-          onDismissBreakToast={() => usageLimit.setShowToast(false)}
-        />
-      </IonReactRouter>
+      <IonReactHashRouter basename={BASE_NAME}>
+        <AppContent />
+      </IonReactHashRouter>
     </IonApp>
   );
 };

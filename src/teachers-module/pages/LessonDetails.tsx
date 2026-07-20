@@ -20,6 +20,8 @@ import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { useOnlineOfflineErrorMessageHandler } from '../../common/onlineOfflineErrorMessageHandler';
 import logger from '../../utility/logger';
+import { parsePath } from 'history';
+
 interface LessonDetailsProps {}
 type LessonDetailsState = {
   course?: TableTypes<'course'>;
@@ -101,9 +103,11 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         });
         return;
       }
-      history.push(
-        PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
-        {
+      history.push({
+        ...parsePath(
+          PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+        ),
+        state: {
           courseId: course?.id,
           lesson: JSON.stringify(lesson),
           selectedLesson: selectedLessonMap,
@@ -111,22 +115,25 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
           returnState: lessonDetailsReturnState,
           source: SOURCE.TEACHER_MODE,
         },
-      );
+      });
     } else {
       const playableLessonId = Util.getLessonBundleId(lesson);
       if (!playableLessonId) {
         return;
       }
       const parmas = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
-      history.push(PAGES.LIDO_PLAYER + parmas, {
-        lessonId: playableLessonId,
-        courseDocId: course?.id,
-        course: JSON.stringify(course!),
-        lesson: JSON.stringify(lesson),
-        selectedLesson: selectedLessonMap,
-        from: history.location.pathname + `?${CONTINUE}=true`,
-        returnState: lessonDetailsReturnState,
-        source: SOURCE.TEACHER_MODE,
+      history.push({
+        ...parsePath(PAGES.LIDO_PLAYER + parmas),
+        state: {
+          lessonId: playableLessonId,
+          courseDocId: course?.id,
+          course: JSON.stringify(course!),
+          lesson: JSON.stringify(lesson),
+          selectedLesson: selectedLessonMap,
+          from: history.location.pathname + `?${CONTINUE}=true`,
+          returnState: lessonDetailsReturnState,
+          source: SOURCE.TEACHER_MODE,
+        },
       });
     }
   };
@@ -256,11 +263,17 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         isBackButton={true}
         onButtonClick={() => {
           course
-            ? history.replace(state.from || PAGES.SEARCH_LESSON, {
-                course: course,
-                chapterId: chapterId,
+            ? history.replace({
+                ...parsePath(state.from || PAGES.SEARCH_LESSON),
+                state: {
+                  course: course,
+                  chapterId: chapterId,
+                },
               })
-            : history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
+            : history.replace({
+                ...parsePath(PAGES.HOME_PAGE),
+                state: { tabValue: 1 },
+              });
         }}
         showSideMenu={false}
         customText={t('Learning Outcome') ?? 'Learning Outcome'}
@@ -389,11 +402,17 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
         assignments={assignmentCount}
         onClick={() => {
           course
-            ? history.replace(PAGES.SHOW_CHAPTERS, {
-                course,
-                chapterId,
+            ? history.replace({
+                ...parsePath(PAGES.SHOW_CHAPTERS),
+                state: {
+                  course,
+                  chapterId,
+                },
               })
-            : history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+            : history.replace({
+                ...parsePath(PAGES.HOME_PAGE),
+                state: { tabValue: 2 },
+              });
         }}
       />
     </div>

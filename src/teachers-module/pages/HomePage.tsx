@@ -43,6 +43,7 @@ import Library from '../components/library/Library';
 import ReportTable from '../components/reports/ReportsTable';
 import './HomePage.css';
 import { format, subDays } from 'date-fns';
+import { parsePath } from 'history';
 
 const HomePage: React.FC = () => {
   const history = useHistory();
@@ -274,7 +275,7 @@ const HomePage: React.FC = () => {
   const handleLibraryBack = () => {
     setShowAssignOptionsScreen(true);
     setTabValue(2);
-    history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+    history.replace({ ...parsePath(PAGES.HOME_PAGE), state: { tabValue: 2 } });
   };
   const isLibraryTab = tabValue === 1;
   const footerTabValue = tabValue === 1 ? 2 : tabValue;

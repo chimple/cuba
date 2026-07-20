@@ -59,6 +59,7 @@ import {
 } from '../../utility/homeworkStickerFlow';
 import { getCachedImageSrc } from '../../utility/imageCache';
 import { mapInBatches } from '../../utility/batch';
+import { parsePath } from 'history';
 
 interface HomeworkPathwayStructureProps {
   selectedSubject?: string | null;
@@ -1427,9 +1428,12 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
               const shouldMarkRewardLesson =
                 isRewardFeatureOn && hasTodayRewardRef.current;
               if (lesson.plugin_type === LIVE_QUIZ) {
-                history.push(
-                  PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
-                  {
+                history.push({
+                  ...parsePath(
+                    PAGES.LIVE_QUIZ_GAME +
+                      `?lessonId=${lesson.cocos_lesson_id}`,
+                  ),
+                  state: {
                     courseId: fetchedCourse?.id,
                     lesson: JSON.stringify(lesson),
                     from: history.location.pathname + `?${CONTINUE}=true`,
@@ -1438,24 +1442,27 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                     reward: shouldMarkRewardLesson,
                     source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
                   },
-                );
+                });
               } else {
                 const playableLessonId = Util.getLessonBundleId(lesson);
                 if (!playableLessonId) {
                   return;
                 }
                 const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
-                history.push(PAGES.LIDO_PLAYER + params, {
-                  lessonId: playableLessonId,
-                  courseDocId: fetchedCourse?.id,
-                  course: JSON.stringify(fetchedCourse),
-                  lesson: JSON.stringify(lesson),
-                  chapter: JSON.stringify(fetchedChapter),
-                  from: history.location.pathname + `?${CONTINUE}=true`,
-                  isHomework: true,
-                  homeworkIndex: lessonIdx,
-                  reward: shouldMarkRewardLesson,
-                  source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
+                history.push({
+                  ...parsePath(PAGES.LIDO_PLAYER + params),
+                  state: {
+                    lessonId: playableLessonId,
+                    courseDocId: fetchedCourse?.id,
+                    course: JSON.stringify(fetchedCourse),
+                    lesson: JSON.stringify(lesson),
+                    chapter: JSON.stringify(fetchedChapter),
+                    from: history.location.pathname + `?${CONTINUE}=true`,
+                    isHomework: true,
+                    homeworkIndex: lessonIdx,
+                    reward: shouldMarkRewardLesson,
+                    source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
+                  },
                 });
               }
             });
@@ -2401,9 +2408,11 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           : await api.getChapterById(chapterDocId).catch(() => currentChapter);
 
       if (lesson.plugin_type === LIVE_QUIZ) {
-        history.push(
-          PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
-          {
+        history.push({
+          ...parsePath(
+            PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
+          ),
+          state: {
             courseId: courseDocId,
             lesson: JSON.stringify(lesson),
             from: history.location.pathname + `?${CONTINUE}=true`,
@@ -2412,24 +2421,27 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             reward: true,
             source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
           },
-        );
+        });
       } else {
         const playableLessonId = Util.getLessonBundleId(lesson);
         if (!playableLessonId) {
           return;
         }
         const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
-        history.push(PAGES.LIDO_PLAYER + params, {
-          lessonId: playableLessonId,
-          courseDocId,
-          course: JSON.stringify(nextCourse),
-          lesson: JSON.stringify(lesson),
-          chapter: JSON.stringify(nextChapter),
-          from: history.location.pathname + `?${CONTINUE}=true`,
-          isHomework: true,
-          homeworkIndex: homeworkPath.currentIndex,
-          reward: true,
-          source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
+        history.push({
+          ...parsePath(PAGES.LIDO_PLAYER + params),
+          state: {
+            lessonId: playableLessonId,
+            courseDocId,
+            course: JSON.stringify(nextCourse),
+            lesson: JSON.stringify(lesson),
+            chapter: JSON.stringify(nextChapter),
+            from: history.location.pathname + `?${CONTINUE}=true`,
+            isHomework: true,
+            homeworkIndex: homeworkPath.currentIndex,
+            reward: true,
+            source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
+          },
         });
       }
     } catch (error) {

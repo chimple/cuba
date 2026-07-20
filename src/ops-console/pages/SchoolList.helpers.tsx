@@ -132,7 +132,7 @@ export const tabOptions = Object.entries(PROGRAM_TAB_LABELS).map(
   }),
 );
 
-export const DEFAULT_PAGE_SIZE = 8;
+export const DEFAULT_PAGE_SIZE = 20;
 
 // Centralized column config keeps the page component focused on behavior.
 export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
@@ -149,7 +149,7 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
     label: t('School Performance'),
     width: '7.78%',
     align: 'center',
-    sortable: true,
+    sortable: false,
     orderBy: 'school_performance',
     schoolPerformanceFilterKey: 'schoolPerformance',
   },

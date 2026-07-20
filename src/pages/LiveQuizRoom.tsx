@@ -12,6 +12,9 @@ import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErro
 import BackButton from '../components/common/BackButton';
 import SkeltonLoading from '../components/SkeltonLoading';
 import { ServiceConfig } from '../services/ServiceConfig';
+import { getAppSearchParams } from '../utility/routerLocation';
+import { parsePath } from 'history';
+
 const LiveQuizRoom: React.FC = () => {
   const [students, setStudents] = useState(
     new Map<String, TableTypes<'user'>>(),
@@ -26,7 +29,7 @@ const LiveQuizRoom: React.FC = () => {
     useState<TableTypes<'assignment'>>();
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  const urlSearchParams = new URLSearchParams(window.location.search);
+  const urlSearchParams = getAppSearchParams();
   const paramAssignmentId = urlSearchParams.get('assignmentId') ?? '';
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
@@ -158,7 +161,10 @@ const LiveQuizRoom: React.FC = () => {
     } else {
       const gamePath = PAGES.LIVE_QUIZ_GAME + '?liveRoomId=' + res;
       if (state.source) {
-        history.replace(gamePath, { source: state.source });
+        history.replace({
+          ...parsePath(gamePath),
+          state: { source: state.source },
+        });
       } else {
         history.replace(gamePath);
       }

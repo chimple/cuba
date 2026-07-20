@@ -429,6 +429,9 @@ const AddSchoolPage: React.FC = () => {
             RoleType.FIELD_COORDINATOR,
           );
         }
+
+        // Refresh derived school metrics so the listing picks up the renamed school.
+        await api.computeSchoolMetricsForSchool(editData.schoolData.id);
       } else {
         const school = await api.createSchool(
           schoolName,

@@ -8,6 +8,7 @@ import { NOTES_UPDATED_EVENT } from '../../../common/constants';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import { Pagination } from '@mui/material';
 import logger from '../../../utility/logger';
+import { getAppPathname } from '../../../utility/routerLocation';
 
 type ApiNote = {
   id: string;
@@ -47,7 +48,7 @@ function parseDateForDisplay(isoOrString?: string) {
 
 function detectSchoolIdFromUrl(): string | null {
   try {
-    const parts = window.location.pathname.split('/').filter(Boolean);
+    const parts = getAppPathname().split('/').filter(Boolean);
     return parts[parts.length - 1]?.split('?')[0] ?? null;
   } catch {
     return null;

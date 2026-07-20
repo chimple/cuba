@@ -1,3 +1,5 @@
+import type { CampaignFrequency } from '../../../services/api/ServiceApi';
+
 export type CampaignsOverviewDisplayValue =
   | string
   | number
@@ -72,6 +74,8 @@ export interface CampaignsOverviewApiCampaign {
   objective?: string | null;
   start_date?: string | null;
   end_date?: string | null;
+  frequency?: CampaignFrequency | null;
+  rewards?: string | null;
   updated_at?: string | null;
   campaign_status?: CampaignStatus | null;
   manager?: CampaignsOverviewApiPerson | null;
@@ -276,7 +280,7 @@ const formatCampaignDuration = (
 
 const formatMinutes = (minutes?: number | null): string =>
   typeof minutes === 'number' && Number.isFinite(minutes)
-    ? `${Math.max(0, Math.round(minutes))}m`
+    ? `${Math.max(0, minutes)}m`
     : EMPTY_VALUE;
 
 const normalizeCampaignListingStatus = (

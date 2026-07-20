@@ -14,6 +14,7 @@ import SubjectCurriculumCard from '../SubjectCurriculumCard';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { parsePath } from 'history';
 
 interface SchoolOverviewProps {
   data: any;
@@ -137,10 +138,12 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             className="schooloverview-view-all-interactions-btn"
             sx={{ textTransform: 'none' }}
             onClick={() =>
-              history.replace(
-                `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`,
-                data.schoolData,
-              )
+              history.replace({
+                ...parsePath(
+                  `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`,
+                ),
+                state: data.schoolData,
+              })
             }
           >
             {t('View All Interactions')}
@@ -174,10 +177,12 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
           variant="outlined"
           sx={{ mt: 2, textTransform: 'none' }}
           onClick={() =>
-            history.replace(
-              `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`,
-              data.schoolData,
-            )
+            history.replace({
+              ...parsePath(
+                `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`,
+              ),
+              state: data.schoolData,
+            })
           }
         >
           {t('View All Interactions')}
@@ -258,10 +263,12 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             items={schoolDetailsItems}
             showEditIcon={isExternalUser ? false : haveAccess}
             onEditClick={() =>
-              history.replace(
-                `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
-                data,
-              )
+              history.replace({
+                ...parsePath(
+                  `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
+                ),
+                state: data,
+              })
             }
           />
           <SubjectCurriculumCard schoolId={data.schoolData?.id} />
@@ -326,10 +333,12 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
                 items={schoolDetailsItems}
                 showEditIcon={isExternalUser ? false : haveAccess}
                 onEditClick={() =>
-                  history.replace(
-                    `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
-                    data,
-                  )
+                  history.replace({
+                    ...parsePath(
+                      `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`,
+                    ),
+                    state: data,
+                  })
                 }
               />
               <Box mb={5}>

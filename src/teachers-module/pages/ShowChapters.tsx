@@ -20,6 +20,7 @@ import {
 } from './ShowChaptersLogic';
 import logger from '../../utility/logger';
 import AssignedVisibilityToggle from '../components/AssignedVisibilityToggle';
+import { parsePath } from 'history';
 
 const ShowChapters: React.FC = () => {
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
@@ -176,14 +177,17 @@ const ShowChapters: React.FC = () => {
     lesson: TableTypes<'lesson'>,
     chapter: TableTypes<'chapter'>,
   ) => {
-    history.replace(PAGES.LESSON_DETAILS, {
-      course: course,
-      lesson: lesson,
-      chapterId: chapter.id,
-      selectedLesson: selectedLesson,
-      chapterName: chapter.name,
-      gradeName: selectedCourseGrade,
-      from: PAGES.SHOW_CHAPTERS,
+    history.replace({
+      ...parsePath(PAGES.LESSON_DETAILS),
+      state: {
+        course: course,
+        lesson: lesson,
+        chapterId: chapter.id,
+        selectedLesson: selectedLesson,
+        chapterName: chapter.name,
+        gradeName: selectedCourseGrade,
+        from: PAGES.SHOW_CHAPTERS,
+      },
     });
   };
   //   if (lessonIds !== undefined) {
@@ -387,7 +391,10 @@ const ShowChapters: React.FC = () => {
       <Header
         isBackButton={true}
         onBackButtonClick={() => {
-          history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
+          history.replace({
+            ...parsePath(PAGES.HOME_PAGE),
+            state: { tabValue: 1 },
+          });
         }}
         customText="Library"
         showSearchIcon={true}

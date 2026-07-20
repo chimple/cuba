@@ -17,6 +17,8 @@ import Loading from '../../../../components/Loading';
 import { useHistory } from 'react-router';
 import { Util } from '../../../../utility/util';
 import { subDays } from 'date-fns';
+import { parsePath } from 'history';
+
 type SubjectOption = TableTypes<'course'> | typeof ALL_SUBJECT;
 
 const DashBoard: React.FC = ({}) => {
@@ -85,12 +87,15 @@ const DashBoard: React.FC = ({}) => {
     const startDate = subDays(new Date(), 6);
     const endDate = new Date();
 
-    history.replace(PAGES.STUDENT_REPORT, {
-      student,
-      startDate,
-      endDate,
-      classDoc: current_class,
-      fromDashboardBand: true,
+    history.push({
+      ...parsePath(PAGES.STUDENT_REPORT),
+      state: {
+        student,
+        startDate,
+        endDate,
+        classDoc: current_class,
+        fromDashboardBand: true,
+      },
     });
   };
 
