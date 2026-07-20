@@ -1949,14 +1949,14 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
 
       return {
         summary: {
-          totalAssignments: payload.summary?.totalAssignments ?? 0,
+          totalAssignments: payload?.summary?.totalAssignments ?? 0,
           assignedStudents:
-            payload.summary?.assignedStudents ?? params.totalStudents ?? 0,
-          activeStudents: payload.summary?.activeStudents ?? 0,
+            payload?.summary?.assignedStudents ?? params.totalStudents ?? 0,
+          activeStudents: payload?.summary?.activeStudents ?? 0,
           averageAssignmentsCompletion:
-            payload.summary?.averageAssignmentsCompletion ?? 0,
+            payload?.summary?.averageAssignmentsCompletion ?? 0,
         },
-        rows: payload.rows ?? [],
+        rows: payload?.rows ?? [],
       };
     } catch (error) {
       logger.error('Exception fetching campaign assignments report rpc:', {
