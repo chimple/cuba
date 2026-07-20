@@ -226,9 +226,14 @@ describe('ProfileMenu Notification Logic', () => {
       expect(Util.setCurrentStudent).toHaveBeenCalledWith(null);
     });
     expect(mockSetCurrentClass).not.toHaveBeenCalled();
-    expect(mockReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE, {
-      from: '/',
-      fromSchoolModeSwitchProfile: true,
-    });
+    expect(mockReplace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pathname: PAGES.SELECT_MODE,
+        state: {
+          from: '/',
+          fromSchoolModeSwitchProfile: true,
+        },
+      }),
+    );
   });
 });
