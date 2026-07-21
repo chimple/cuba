@@ -319,7 +319,7 @@ const StickerBookBoard: React.FC<Props> = ({
               {/* Header/Title Area */}
               <foreignObject {...TITLE_AREA_COORDS}>
                 <div id="sb-board-title" className="sticker-book-board-title">
-                  {t('STICKER BOOK')}: {title}
+                  {t('STICKER BOOK')}: {t(title)}
                 </div>
               </foreignObject>
 
