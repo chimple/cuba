@@ -173,6 +173,12 @@ const CampaignsOverview: React.FC<CampaignsOverviewProps> = ({
         {shouldShowReports && (
           <CampaignRewardsReport
             campaignId={resolvedCampaignId}
+            campaignName={
+              resolvedCampaignOverviewData?.data?.campaign?.name ?? ''
+            }
+            campaignStartDate={
+              campaignOverviewData?.data?.campaign?.start_date ?? undefined
+            }
             rewards={resolvedCampaignOverviewData?.data?.campaign?.rewards}
             totalStudents={
               Number(

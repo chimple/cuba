@@ -29,9 +29,12 @@ import {
   CampaignListingParams,
   CampaignMessagingQueryParams,
   CampaignMessagingResponse,
+  CampaignMessageReportParams,
+  CampaignMessageReportResponse,
   CampaignOption,
   CampaignRewardsReportParams,
   CampaignRewardsReportResponse,
+  CampaignWhatsappLabelData,
   CampaignSavedAudienceGroup,
   CampaignSchoolOption,
   CampaignSetupOptions,
@@ -46,7 +49,120 @@ import {
   mapCampaignListingItem,
   sortCampaignListingItems,
 } from '../campaignListingHelpers';
+import {
+  asRecord,
+  buildCampaignMessageReport,
+  getArray,
+  getInteger,
+  getString,
+  mergeProviderChats,
+  normalizePeriskopeMessage,
+  providerResult,
+  type CampaignMessagingProviderSource,
+  type CampaignProviderData,
+  type ProviderChat,
+  type ProviderJsonRecord,
+  type ProviderJsonValue,
+} from '../../../ops-console/components/campaignsOverview/CampaignReports_Messages/CampaignMessageReport.helpers';
 import { SupabaseApiOps } from './SupabaseApi.ops';
+
+const PERISKOPE_BASE_URL =
+  import.meta.env.VITE_PERISKOPE_API_BASE_URL ?? 'https://api.periskope.app/v1';
+const PROVIDER_PAGE_SIZE = 1999;
+
+export const fetchCampaignProviderData = async (
+  campaignId: string,
+  botNumbers: string[],
+): Promise<CampaignProviderData> => {
+  const label = `campaign_${campaignId}`;
+  const periskopeData = await fetchPeriskopeCampaignData(label, botNumbers);
+  logger.info('Campaign WhatsApp report loaded from Periskope.', {
+    campaignId,
+    chatCount: periskopeData.chats.length,
+  });
+  return periskopeData;
+};
+
+const fetchPeriskopeCampaignData = async (
+  label: string,
+  botNumbers: string[],
+): Promise<CampaignProviderData> => {
+  if (botNumbers.length === 0) {
+    throw new Error('No Periskope phone is configured for this campaign.');
+  }
+  const apiKey = requiredEnv('VITE_PERISKOPE_API_KEY');
+  const chats = mergeProviderChats(
+    (
+      await Promise.all(
+        botNumbers.map(async (botNumber): Promise<ProviderChat[]> => {
+          const url = new URL(`${PERISKOPE_BASE_URL}/chats`);
+          url.searchParams.set('chat_type', 'group');
+          url.searchParams.set('label', label);
+          url.searchParams.set('offset', '0');
+          url.searchParams.set('limit', String(PROVIDER_PAGE_SIZE));
+          const payload = await fetchRecord(url.toString(), {
+            Authorization: `Bearer ${apiKey}`,
+            'x-phone': botNumber,
+          });
+          return getArray(payload.chats).flatMap((value) => {
+            const chat = asRecord(value);
+            const chatId = getString(chat?.chat_id);
+            if (!chatId) return [];
+            return [
+              {
+                botNumber,
+                chatId,
+                memberCount: getInteger(chat?.member_count),
+                name: getString(chat?.chat_name),
+                provider: 'periskope',
+                providers: ['periskope'],
+              },
+            ];
+          });
+        }),
+      )
+    ).flat(),
+  );
+  const messages = (
+    await Promise.all(
+      chats.map(async (chat) => {
+        const url = new URL(
+          `${PERISKOPE_BASE_URL}/chats/${encodeURIComponent(chat.chatId)}/messages`,
+        );
+        url.searchParams.set('offset', '0');
+        url.searchParams.set('limit', String(PROVIDER_PAGE_SIZE));
+        const payload = await fetchRecord(url.toString(), {
+          Authorization: `Bearer ${apiKey}`,
+          'x-phone': chat.botNumber,
+        });
+        return getArray(payload.messages).flatMap((value) =>
+          normalizePeriskopeMessage(value, chat),
+        );
+      }),
+    )
+  ).flat();
+  return providerResult(label, chats, messages);
+};
+
+const fetchRecord = async (
+  url: string,
+  headers: Record<string, string>,
+): Promise<ProviderJsonRecord> => {
+  const response = await fetch(url, { headers });
+  const text = await response.text();
+  const payload: ProviderJsonValue = text ? JSON.parse(text) : {};
+  if (!response.ok)
+    throw new Error(`Provider request failed: ${response.status}`);
+  return asRecord(payload) ?? {};
+};
+
+const requiredEnv = (name: string): string => {
+  const value = (import.meta.env as Record<string, string | undefined>)[
+    name
+  ]?.trim();
+  if (!value) throw new Error(`Missing client provider configuration: ${name}`);
+  return value;
+};
 
 type CampaignProgramRow = Pick<TableTypes<'program'>, 'id' | 'name'>;
 
@@ -1905,6 +2021,122 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     return {
       rows: data ?? [],
       total: count ?? data?.length ?? 0,
+    };
+  }
+
+  async getCampaignWhatsappLabelData(
+    campaignId: string,
+  ): Promise<CampaignWhatsappLabelData> {
+    if (!this.supabase || !campaignId.trim()) {
+      return { chats: [], total: 0, label: '', providerErrors: 0 };
+    }
+    const context = await this.getCampaignWhatsappReportContext(
+      campaignId.trim(),
+    );
+    return (
+      await fetchCampaignProviderData(campaignId.trim(), context.botNumbers)
+    ).labelData;
+  }
+
+  async getCampaignMessageReport(
+    campaignId: string,
+    params: CampaignMessageReportParams = {},
+  ): Promise<CampaignMessageReportResponse> {
+    if (!this.supabase || !campaignId.trim()) {
+      throw new Error('A campaign ID is required for the message report.');
+    }
+    if (params.fromDate && params.toDate && params.fromDate > params.toDate) {
+      throw new Error('From Date cannot be later than To Date.');
+    }
+
+    const normalizedCampaignId = campaignId.trim();
+    const context =
+      await this.getCampaignWhatsappReportContext(normalizedCampaignId);
+    const [providerData, classResult, metricsResult, messagingResult] =
+      await Promise.all([
+        fetchCampaignProviderData(normalizedCampaignId, context.botNumbers),
+        this.supabase
+          .from('class')
+          .select('id, status, whatsapp_invite_link, is_deleted')
+          .in('school_id', context.schoolIds)
+          .eq('is_deleted', false),
+        this.supabase
+          .from(TABLES.SchoolMetrics)
+          .select('school_id, parents_in_group')
+          .in('school_id', context.schoolIds)
+          .eq('metric_window', CAMPAIGN_REACH_METRIC_WINDOW)
+          .eq('is_deleted', false),
+        this.supabase
+          .from('campaign_messaging')
+          .select(
+            'id, message, message_status, message_time, poll, poll_status, poll_time',
+          )
+          .eq('campaign_id', normalizedCampaignId)
+          .eq('is_deleted', false),
+      ]);
+
+    if (classResult.error) throw classResult.error;
+    if (metricsResult.error) throw metricsResult.error;
+    if (messagingResult.error) throw messagingResult.error;
+
+    const whatsappGroups = (classResult.data ?? []).filter(
+      (row) =>
+        row.status !== 'migrated' && Boolean(row.whatsapp_invite_link?.trim()),
+    ).length;
+    const totalMembersReachable = (metricsResult.data ?? []).reduce(
+      (total, row) => total + (row.parents_in_group ?? 0),
+      0,
+    );
+    const messagingRows: CampaignMessagingProviderSource[] = (
+      messagingResult.data ?? []
+    ).map((row) => ({
+      id: row.id,
+      message: row.message,
+      messageStatus: row.message_status,
+      messageTime: row.message_time,
+      poll: row.poll,
+      pollStatus: row.poll_status,
+      pollTime: row.poll_time,
+    }));
+
+    return buildCampaignMessageReport(
+      providerData,
+      messagingRows,
+      whatsappGroups,
+      totalMembersReachable,
+      params,
+    );
+  }
+
+  public async getCampaignWhatsappReportContext(
+    campaignId: string,
+  ): Promise<{ botNumbers: string[]; schoolIds: string[] }> {
+    if (!this.supabase) return { botNumbers: [], schoolIds: [] };
+    const { data: campaign, error: campaignError } = await this.supabase
+      .from('campaign')
+      .select('program_id')
+      .eq('id', campaignId)
+      .eq('is_deleted', false)
+      .maybeSingle();
+    if (campaignError) throw campaignError;
+    if (!campaign?.program_id) throw new Error('Campaign not found.');
+
+    const { data: schools, error: schoolsError } = await this.supabase
+      .from('school')
+      .select('id, whatsapp_bot_number')
+      .eq('program_id', campaign.program_id)
+      .eq('is_deleted', false);
+    if (schoolsError) throw schoolsError;
+
+    return {
+      botNumbers: Array.from(
+        new Set(
+          (schools ?? [])
+            .map((school) => school.whatsapp_bot_number?.trim())
+            .filter((value): value is string => Boolean(value)),
+        ),
+      ),
+      schoolIds: (schools ?? []).map((school) => school.id),
     };
   }
 

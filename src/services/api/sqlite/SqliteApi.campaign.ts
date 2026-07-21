@@ -17,9 +17,12 @@ import {
   CampaignListingParams,
   CampaignMessagingQueryParams,
   CampaignMessagingResponse,
+  CampaignMessageReportParams,
+  CampaignMessageReportResponse,
   CampaignOption,
   CampaignRewardsReportParams,
   CampaignRewardsReportResponse,
+  CampaignWhatsappLabelData,
   CampaignSavedAudienceGroup,
   CampaignSetupOptions,
   CreateCampaignSetupPayload,
@@ -160,6 +163,19 @@ export class SqliteApiCampaign extends SqliteApiAssignment {
     params?: CampaignRewardsReportParams,
   ): Promise<CampaignRewardsReportResponse> {
     return await this._serverApi.getCampaignRewardsReport(campaignId, params);
+  }
+
+  async getCampaignWhatsappLabelData(
+    campaignId: string,
+  ): Promise<CampaignWhatsappLabelData> {
+    return await this._serverApi.getCampaignWhatsappLabelData(campaignId);
+  }
+
+  async getCampaignMessageReport(
+    campaignId: string,
+    params?: CampaignMessageReportParams,
+  ): Promise<CampaignMessageReportResponse> {
+    return await this._serverApi.getCampaignMessageReport(campaignId, params);
   }
 
   async getCampaignAssignmentsReport(
