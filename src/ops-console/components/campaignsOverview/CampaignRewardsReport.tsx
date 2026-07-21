@@ -66,6 +66,7 @@ const CampaignRewardsReport: React.FC<CampaignRewardsReportProps> = ({
 
       {report.selectedSubtab === 'Messages' ? (
         <CampaignMessageReport
+          key={campaignId}
           campaignId={campaignId}
           campaignName={campaignName}
           campaignStartDate={campaignStartDate}

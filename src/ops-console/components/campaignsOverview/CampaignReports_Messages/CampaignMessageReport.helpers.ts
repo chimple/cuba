@@ -24,7 +24,6 @@ type CampaignMessageExportCell = string | number;
 let xlsxModulePromise: Promise<XlsxModule> | null = null;
 
 export const CAMPAIGN_MESSAGE_PAGE_SIZE = 10;
-export const CAMPAIGN_MESSAGE_EXPORT_PAGE_SIZE = 20;
 const CAMPAIGN_MESSAGE_REPORT_TIME_ZONE = 'Asia/Kolkata';
 const CAMPAIGN_MESSAGE_EXPORT_SHEET_NAME = 'Campaign Messages';
 export const EMPTY_CAMPAIGN_MESSAGE_SUMMARY: CampaignMessageReportSummary = {
@@ -312,9 +311,14 @@ export const buildCampaignMessageReport = (
     params.sortBy ?? 'date',
     params.sortOrder ?? 'desc',
   );
-  const pageSize = Math.min(Math.max(params.pageSize ?? 10, 1), 20);
-  const page = Math.max(params.page ?? 1, 1);
-  const pageRows = sortedRows.slice((page - 1) * pageSize, page * pageSize);
+  const exportAll = params.exportAll === true;
+  const pageSize = exportAll
+    ? Math.max(sortedRows.length, 1)
+    : Math.min(Math.max(params.pageSize ?? 10, 1), 20);
+  const page = exportAll ? 1 : Math.max(params.page ?? 1, 1);
+  const pageRows = exportAll
+    ? sortedRows
+    : sortedRows.slice((page - 1) * pageSize, page * pageSize);
   const messagesSent = sum(rows, 'messagesSent');
   const deliveredMessages = sum(rows, 'delivered');
   const readMessages = sum(rows, 'read');
@@ -340,7 +344,9 @@ export const buildCampaignMessageReport = (
       page,
       pageSize,
       totalRows: sortedRows.length,
-      totalPages: Math.ceil(sortedRows.length / pageSize),
+      totalPages: exportAll
+        ? Number(sortedRows.length > 0)
+        : Math.ceil(sortedRows.length / pageSize),
     },
     filters: { fromDate, toDate },
   };
@@ -457,6 +463,7 @@ export const providerResult = (
   label: string,
   chats: ProviderChat[],
   messages: ProviderMessage[],
+  providerErrors = 0,
 ): CampaignProviderData => ({
   chats,
   messages,
@@ -468,7 +475,7 @@ export const providerResult = (
       providers,
     })),
     label,
-    providerErrors: 0,
+    providerErrors,
     total: chats.length,
   },
 });

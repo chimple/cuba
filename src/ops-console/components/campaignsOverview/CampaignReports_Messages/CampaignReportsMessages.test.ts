@@ -268,6 +268,26 @@ describe('CampaignReports_Messages module', () => {
     });
     expect(report.rows[1].pollParticipationRate).toBe(60);
     expect(mergeProviderChats([])).toEqual([]);
+
+    const exportReport = buildCampaignMessageReport(
+      providerData,
+      sources,
+      2,
+      100,
+      {
+        exportAll: true,
+        page: 2,
+        pageSize: 1,
+        sortBy: 'date',
+        sortOrder: 'asc',
+      },
+    );
+    expect(exportReport.rows).toHaveLength(2);
+    expect(exportReport.pagination).toMatchObject({
+      page: 1,
+      pageSize: 2,
+      totalPages: 1,
+    });
   });
 
   it('renders summary cards and wires table sorting and pagination', () => {

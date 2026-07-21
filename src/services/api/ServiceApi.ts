@@ -536,6 +536,7 @@ export type CampaignMessageReportSortKey =
   | 'pollParticipationRate';
 
 export type CampaignMessageReportParams = {
+  exportAll?: boolean;
   fromDate?: string;
   toDate?: string;
   page?: number;

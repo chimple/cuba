@@ -53,9 +53,6 @@ import {
   asRecord,
   buildCampaignMessageReport,
   getArray,
-  getInteger,
-  getString,
-  mergeProviderChats,
   normalizePeriskopeMessage,
   providerResult,
   type CampaignMessagingProviderSource,
@@ -69,79 +66,100 @@ import { SupabaseApiOps } from './SupabaseApi.ops';
 const PERISKOPE_BASE_URL =
   import.meta.env.VITE_PERISKOPE_API_BASE_URL ?? 'https://api.periskope.app/v1';
 const PROVIDER_PAGE_SIZE = 1999;
+const PROVIDER_CACHE_TTL_MS = 60_000;
+type CampaignWhatsappGroupTarget = {
+  botNumber: string;
+  groupId: string;
+  name: string;
+};
+type CampaignProviderCacheEntry = {
+  expiresAt: number;
+  request: Promise<CampaignProviderData>;
+};
+const campaignProviderCache = new Map<string, CampaignProviderCacheEntry>();
 
 export const fetchCampaignProviderData = async (
   campaignId: string,
-  botNumbers: string[],
+  groupTargets: CampaignWhatsappGroupTarget[],
 ): Promise<CampaignProviderData> => {
   const label = `campaign_${campaignId}`;
-  const periskopeData = await fetchPeriskopeCampaignData(label, botNumbers);
-  logger.info('Campaign WhatsApp report loaded from Periskope.', {
-    campaignId,
-    chatCount: periskopeData.chats.length,
+  const cacheKey = `${campaignId}:${groupTargets
+    .map(({ botNumber, groupId }) => `${botNumber}:${groupId}`)
+    .sort()
+    .join(',')}`;
+  const now = Date.now();
+  const cached = campaignProviderCache.get(cacheKey);
+  if (cached && cached.expiresAt > now) return cached.request;
+
+  const request = fetchPeriskopeCampaignData(label, groupTargets);
+  campaignProviderCache.set(cacheKey, {
+    expiresAt: now + PROVIDER_CACHE_TTL_MS,
+    request,
   });
-  return periskopeData;
+  try {
+    const periskopeData = await request;
+    if (periskopeData.labelData.providerErrors > 0) {
+      campaignProviderCache.delete(cacheKey);
+    }
+    logger.info('Campaign WhatsApp report loaded from Periskope.', {
+      campaignId,
+      chatCount: periskopeData.chats.length,
+      providerErrors: periskopeData.labelData.providerErrors,
+    });
+    return periskopeData;
+  } catch (error) {
+    campaignProviderCache.delete(cacheKey);
+    throw error;
+  }
 };
 
 const fetchPeriskopeCampaignData = async (
   label: string,
-  botNumbers: string[],
+  groupTargets: CampaignWhatsappGroupTarget[],
 ): Promise<CampaignProviderData> => {
-  if (botNumbers.length === 0) {
-    throw new Error('No Periskope phone is configured for this campaign.');
+  if (groupTargets.length === 0) return providerResult(label, [], []);
+  const apiKey = import.meta.env.VITE_PERISKOPE_API_KEY?.trim();
+  if (!apiKey) {
+    throw new Error(
+      'Missing client provider configuration: VITE_PERISKOPE_API_KEY',
+    );
   }
-  const apiKey = requiredEnv('VITE_PERISKOPE_API_KEY');
-  const chats = mergeProviderChats(
-    (
-      await Promise.all(
-        botNumbers.map(async (botNumber): Promise<ProviderChat[]> => {
-          const url = new URL(`${PERISKOPE_BASE_URL}/chats`);
-          url.searchParams.set('chat_type', 'group');
-          url.searchParams.set('label', label);
-          url.searchParams.set('offset', '0');
-          url.searchParams.set('limit', String(PROVIDER_PAGE_SIZE));
-          const payload = await fetchRecord(url.toString(), {
-            Authorization: `Bearer ${apiKey}`,
-            'x-phone': botNumber,
-          });
-          return getArray(payload.chats).flatMap((value) => {
-            const chat = asRecord(value);
-            const chatId = getString(chat?.chat_id);
-            if (!chatId) return [];
-            return [
-              {
-                botNumber,
-                chatId,
-                memberCount: getInteger(chat?.member_count),
-                name: getString(chat?.chat_name),
-                provider: 'periskope',
-                providers: ['periskope'],
-              },
-            ];
-          });
-        }),
-      )
-    ).flat(),
+  let providerErrors = 0;
+  const chats: ProviderChat[] = groupTargets.map(
+    ({ botNumber, groupId, name }) => ({
+      botNumber,
+      chatId: groupId,
+      memberCount: 0,
+      name,
+      provider: 'periskope',
+      providers: ['periskope'],
+    }),
   );
   const messages = (
     await Promise.all(
       chats.map(async (chat) => {
-        const url = new URL(
-          `${PERISKOPE_BASE_URL}/chats/${encodeURIComponent(chat.chatId)}/messages`,
-        );
-        url.searchParams.set('offset', '0');
-        url.searchParams.set('limit', String(PROVIDER_PAGE_SIZE));
-        const payload = await fetchRecord(url.toString(), {
-          Authorization: `Bearer ${apiKey}`,
-          'x-phone': chat.botNumber,
-        });
-        return getArray(payload.messages).flatMap((value) =>
-          normalizePeriskopeMessage(value, chat),
-        );
+        try {
+          const url = new URL(
+            `${PERISKOPE_BASE_URL}/chats/${encodeURIComponent(chat.chatId)}/messages`,
+          );
+          url.searchParams.set('offset', '0');
+          url.searchParams.set('limit', String(PROVIDER_PAGE_SIZE));
+          const payload = await fetchRecord(url.toString(), {
+            Authorization: `Bearer ${apiKey}`,
+            'x-phone': chat.botNumber,
+          });
+          return getArray(payload.messages).flatMap((value) =>
+            normalizePeriskopeMessage(value, chat),
+          );
+        } catch (error) {
+          providerErrors += 1;
+          logger.error('Failed to fetch messages for a campaign group.', error);
+          return [];
+        }
       }),
     )
   ).flat();
-  return providerResult(label, chats, messages);
+  return providerResult(label, chats, messages, providerErrors);
 };
 
 const fetchRecord = async (
@@ -154,14 +172,6 @@ const fetchRecord = async (
   if (!response.ok)
     throw new Error(`Provider request failed: ${response.status}`);
   return asRecord(payload) ?? {};
-};
-
-const requiredEnv = (name: string): string => {
-  const value = (import.meta.env as Record<string, string | undefined>)[
-    name
-  ]?.trim();
-  if (!value) throw new Error(`Missing client provider configuration: ${name}`);
-  return value;
 };
 
 type CampaignProgramRow = Pick<TableTypes<'program'>, 'id' | 'name'>;
@@ -2034,7 +2044,7 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
       campaignId.trim(),
     );
     return (
-      await fetchCampaignProviderData(campaignId.trim(), context.botNumbers)
+      await fetchCampaignProviderData(campaignId.trim(), context.groupTargets)
     ).labelData;
   }
 
@@ -2052,37 +2062,27 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     const normalizedCampaignId = campaignId.trim();
     const context =
       await this.getCampaignWhatsappReportContext(normalizedCampaignId);
-    const [providerData, classResult, metricsResult, messagingResult] =
-      await Promise.all([
-        fetchCampaignProviderData(normalizedCampaignId, context.botNumbers),
-        this.supabase
-          .from('class')
-          .select('id, status, whatsapp_invite_link, is_deleted')
-          .in('school_id', context.schoolIds)
-          .eq('is_deleted', false),
-        this.supabase
-          .from(TABLES.SchoolMetrics)
-          .select('school_id, parents_in_group')
-          .in('school_id', context.schoolIds)
-          .eq('metric_window', CAMPAIGN_REACH_METRIC_WINDOW)
-          .eq('is_deleted', false),
-        this.supabase
-          .from('campaign_messaging')
-          .select(
-            'id, message, message_status, message_time, poll, poll_status, poll_time',
-          )
-          .eq('campaign_id', normalizedCampaignId)
-          .eq('is_deleted', false),
-      ]);
+    const [providerData, metricsResult, messagingResult] = await Promise.all([
+      fetchCampaignProviderData(normalizedCampaignId, context.groupTargets),
+      this.supabase
+        .from(TABLES.SchoolMetrics)
+        .select('school_id, parents_in_group')
+        .in('school_id', context.schoolIds)
+        .eq('metric_window', CAMPAIGN_REACH_METRIC_WINDOW)
+        .eq('is_deleted', false),
+      this.supabase
+        .from('campaign_messaging')
+        .select(
+          'id, message, message_status, message_time, poll, poll_status, poll_time',
+        )
+        .eq('campaign_id', normalizedCampaignId)
+        .eq('is_deleted', false),
+    ]);
 
-    if (classResult.error) throw classResult.error;
     if (metricsResult.error) throw metricsResult.error;
     if (messagingResult.error) throw messagingResult.error;
 
-    const whatsappGroups = (classResult.data ?? []).filter(
-      (row) =>
-        row.status !== 'migrated' && Boolean(row.whatsapp_invite_link?.trim()),
-    ).length;
+    const whatsappGroups = context.groupTargets.length;
     const totalMembersReachable = (metricsResult.data ?? []).reduce(
       (total, row) => total + (row.parents_in_group ?? 0),
       0,
@@ -2108,35 +2108,113 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     );
   }
 
-  public async getCampaignWhatsappReportContext(
-    campaignId: string,
-  ): Promise<{ botNumbers: string[]; schoolIds: string[] }> {
-    if (!this.supabase) return { botNumbers: [], schoolIds: [] };
+  public async getCampaignWhatsappReportContext(campaignId: string): Promise<{
+    groupTargets: CampaignWhatsappGroupTarget[];
+    schoolIds: string[];
+  }> {
+    if (!this.supabase) return { groupTargets: [], schoolIds: [] };
     const { data: campaign, error: campaignError } = await this.supabase
       .from('campaign')
-      .select('program_id')
+      .select('program_id, target_audience_id')
       .eq('id', campaignId)
       .eq('is_deleted', false)
       .maybeSingle();
     if (campaignError) throw campaignError;
-    if (!campaign?.program_id) throw new Error('Campaign not found.');
+    if (!campaign?.program_id || !campaign.target_audience_id) {
+      throw new Error('Campaign audience is not configured.');
+    }
 
-    const { data: schools, error: schoolsError } = await this.supabase
+    const { data: audience, error: audienceError } = await this.supabase
+      .from('campaign_target_audience')
+      .select('is_all_schools, is_all_grades')
+      .eq('id', campaign.target_audience_id)
+      .eq('is_deleted', false)
+      .maybeSingle();
+    if (audienceError) throw audienceError;
+    if (!audience) throw new Error('Campaign audience is not configured.');
+    const isAllSchools = audience.is_all_schools ?? true;
+    const isAllGrades = audience.is_all_grades ?? false;
+
+    let selectedSchoolIds: string[] = [];
+    if (!isAllSchools) {
+      const { data, error } = await this.supabase
+        .from('campaign_target_audience_school')
+        .select('school_id')
+        .eq('target_audience_id', campaign.target_audience_id)
+        .eq('is_deleted', false);
+      if (error) throw error;
+      selectedSchoolIds = (data ?? []).flatMap(({ school_id }) =>
+        school_id ? [school_id] : [],
+      );
+    }
+
+    let schoolsQuery = this.supabase
       .from('school')
       .select('id, whatsapp_bot_number')
       .eq('program_id', campaign.program_id)
       .eq('is_deleted', false);
+    if (!isAllSchools) {
+      if (selectedSchoolIds.length === 0) {
+        return { groupTargets: [], schoolIds: [] };
+      }
+      schoolsQuery = schoolsQuery.in('id', selectedSchoolIds);
+    }
+    const { data: schools, error: schoolsError } = await schoolsQuery;
     if (schoolsError) throw schoolsError;
 
+    const schoolIds = (schools ?? []).map(({ id }) => id);
+    if (schoolIds.length === 0) return { groupTargets: [], schoolIds: [] };
+
+    let selectedGradeIds: string[] = [];
+    if (!isAllGrades) {
+      const { data, error } = await this.supabase
+        .from('campaign_target_audience_grade')
+        .select('grade_id')
+        .eq('target_audience_id', campaign.target_audience_id)
+        .eq('is_deleted', false);
+      if (error) throw error;
+      selectedGradeIds = (data ?? []).flatMap(({ grade_id }) =>
+        grade_id ? [grade_id] : [],
+      );
+      if (selectedGradeIds.length === 0) {
+        return { groupTargets: [], schoolIds };
+      }
+    }
+
+    let classesQuery = this.supabase
+      .from('class')
+      .select('group_id, name, school_id')
+      .in('school_id', schoolIds)
+      .eq('is_deleted', false)
+      .or('status.is.null,status.neq.migrated')
+      .not('group_id', 'is', null);
+    if (!isAllGrades) {
+      classesQuery = classesQuery.in('grade_id', selectedGradeIds);
+    }
+    const { data: classes, error: classesError } = await classesQuery;
+    if (classesError) throw classesError;
+
+    const botNumberBySchoolId = new Map(
+      (schools ?? []).flatMap(({ id, whatsapp_bot_number }) => {
+        const botNumber = whatsapp_bot_number?.trim();
+        return botNumber ? [[id, botNumber] as const] : [];
+      }),
+    );
+    const groupTargets = Array.from(
+      new Map(
+        (classes ?? []).flatMap(({ group_id, name, school_id }) => {
+          const groupId = group_id?.trim();
+          const botNumber = botNumberBySchoolId.get(school_id);
+          return groupId && botNumber
+            ? [[groupId, { botNumber, groupId, name }] as const]
+            : [];
+        }),
+      ).values(),
+    );
+
     return {
-      botNumbers: Array.from(
-        new Set(
-          (schools ?? [])
-            .map((school) => school.whatsapp_bot_number?.trim())
-            .filter((value): value is string => Boolean(value)),
-        ),
-      ),
-      schoolIds: (schools ?? []).map((school) => school.id),
+      groupTargets,
+      schoolIds,
     };
   }
 

@@ -3,13 +3,11 @@ import { t } from 'i18next';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   CampaignMessageReportResponse,
-  CampaignMessageReportRow,
   CampaignMessageReportSortKey,
 } from '../../../../services/api/ServiceApi';
 import { ServiceConfig } from '../../../../services/ServiceConfig';
 import logger from '../../../../utility/logger';
 import {
-  CAMPAIGN_MESSAGE_EXPORT_PAGE_SIZE,
   CAMPAIGN_MESSAGE_PAGE_SIZE,
   EMPTY_CAMPAIGN_MESSAGE_REPORT,
   exportCampaignMessageRows,
@@ -40,12 +38,6 @@ export const useCampaignMessageReport = (
   const [retryKey, setRetryKey] = useState(0);
   const requestSequence = useRef(0);
   const invalidDateRange = isInvalidCampaignMessageDateRange(fromDate, toDate);
-
-  useEffect(() => {
-    setFromDate(defaultFromDate);
-    setToDate(getCampaignMessageReportToday());
-    setPage(1);
-  }, [campaignId, defaultFromDate]);
 
   useEffect(() => {
     if (!campaignId || invalidDateRange) return;
@@ -104,28 +96,19 @@ export const useCampaignMessageReport = (
     if (!campaignId || isExporting || invalidDateRange) return;
     setIsExporting(true);
     try {
-      const rows: CampaignMessageReportRow[] = [];
-      let exportPage = 1;
-      let totalPages = 1;
-      do {
-        const response =
-          await ServiceConfig.getI().apiHandler.getCampaignMessageReport(
-            campaignId,
-            {
-              fromDate: fromDate || undefined,
-              toDate: toDate || undefined,
-              page: exportPage,
-              pageSize: CAMPAIGN_MESSAGE_EXPORT_PAGE_SIZE,
-              sortBy,
-              sortOrder,
-            },
-          );
-        rows.push(...response.rows);
-        totalPages = response.pagination.totalPages;
-        exportPage += 1;
-      } while (exportPage <= totalPages);
+      const response =
+        await ServiceConfig.getI().apiHandler.getCampaignMessageReport(
+          campaignId,
+          {
+            exportAll: true,
+            fromDate: fromDate || undefined,
+            toDate: toDate || undefined,
+            sortBy,
+            sortOrder,
+          },
+        );
       await exportCampaignMessageRows(
-        rows,
+        response.rows,
         getCampaignMessageExportFileName(campaignName, fromDate, toDate),
       );
     } catch (exportError) {
