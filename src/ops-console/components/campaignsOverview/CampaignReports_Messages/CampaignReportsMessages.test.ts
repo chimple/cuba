@@ -49,6 +49,9 @@ jest.mock('../../../../utility/logger', () => ({
   __esModule: true,
   default: { error: jest.fn(), info: jest.fn(), warn: jest.fn() },
 }));
+jest.mock('../../../../utility/util', () => ({
+  Util: { handleBlobDownloadAndSave: jest.fn() },
+}));
 jest.mock('../CampaignsOverviewInfoTooltip', () => ({
   __esModule: true,
   default: ({ label }: { label: string }) => {
