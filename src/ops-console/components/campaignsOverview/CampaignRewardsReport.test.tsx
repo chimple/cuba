@@ -14,7 +14,15 @@ import CampaignRewardsTable, {
 import type { CampaignRewardRow } from './CampaignRewardsReport.helpers';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 
-const mockDownload = jest.fn();
+const mockDownload = jest.fn<(blob: Blob, fileName: string) => void>();
+
+jest.mock('@mui/material', () => {
+  const actual = jest.requireActual('@mui/material');
+  return {
+    ...actual,
+    useMediaQuery: jest.fn(() => false),
+  };
+});
 
 jest.mock('i18next', () => ({
   t: (key: string) => key,
@@ -28,9 +36,14 @@ jest.mock('../../../services/ServiceConfig', () => ({
 
 jest.mock('../../../utility/util', () => ({
   Util: {
-    handleBlobDownloadAndSave: (...args: unknown[]) => mockDownload(...args),
+    handleBlobDownloadAndSave: (...args: [Blob, string]) =>
+      mockDownload(...args),
   },
 }));
+
+type MockTableRow = CampaignRewardRow & {
+  [key: string]: React.ReactNode | string | number | undefined;
+};
 
 jest.mock('../DataTableBody', () => ({
   __esModule: true,
@@ -45,9 +58,9 @@ jest.mock('../DataTableBody', () => ({
     columns: Array<{
       key: string;
       label: string;
-      render?: (row: CampaignRewardRow) => React.ReactNode;
+      render?: (row: MockTableRow) => React.ReactNode;
     }>;
-    rows: CampaignRewardRow[];
+    rows: MockTableRow[];
     loading: boolean;
     onSort: (key: string) => void;
     order: 'asc' | 'desc';
@@ -66,13 +79,10 @@ jest.mock('../DataTableBody', () => ({
         </button>
       ))}
       {rows.map((row) => (
-        <div key={row.id}>
-          <span>{row.studentName}</span>
-          <span>{row.school}</span>
-          <span>{row.className}</span>
-          <span>{row.rewardLabel}</span>
-          <span>{columnText(columns, 'completionPercent', row)}</span>
-          <span>{columnText(columns, 'rewardRank', row)}</span>
+        <div key={String(row.id ?? Math.random())}>
+          {columns.map((column) => (
+            <span key={column.key}>{columnText(columns, column.key, row)}</span>
+          ))}
         </div>
       ))}
     </div>
@@ -99,16 +109,16 @@ jest.mock('../DataTablePagination', () => ({
 const columnText = (
   columns: Array<{
     key: string;
-    render?: (row: CampaignRewardRow) => React.ReactNode;
+    render?: (row: MockTableRow) => React.ReactNode;
   }>,
   key: string,
-  row: CampaignRewardRow,
+  row: MockTableRow,
 ) => {
   const rendered = columns.find((column) => column.key === key)?.render?.(row);
   if (React.isValidElement(rendered)) {
     return rendered.props.label ?? rendered.props.children;
   }
-  return rendered ?? '';
+  return rendered ?? row[key] ?? '';
 };
 
 const buildRewardRow = (
@@ -128,6 +138,7 @@ const buildRewardRow = (
 });
 
 const apiHandler = {
+  getCampaignAssignmentsReport: jest.fn(),
   getCampaignRewardsReport: jest.fn(),
 };
 
@@ -190,6 +201,28 @@ describe('Campaign rewards TSX components', () => {
         },
       ],
       total: 3,
+    });
+    apiHandler.getCampaignAssignmentsReport.mockResolvedValue({
+      summary: {
+        totalAssignments: 120,
+        assignedStudents: 3942,
+        activeStudents: 2723,
+        averageAssignmentsCompletion: 38,
+      },
+      rows: [
+        {
+          subjectId: 'subject-1',
+          subjectName: 'Mathematics',
+          lessonsAssigned: 23,
+          completionPercent: 57,
+        },
+        {
+          subjectId: 'subject-2',
+          subjectName: 'Science',
+          lessonsAssigned: 31,
+          completionPercent: 55,
+        },
+      ],
     });
   });
 
@@ -321,5 +354,31 @@ describe('Campaign rewards TSX components', () => {
 
     expect(screen.getByDisplayValue('All Classes')).toBeInTheDocument();
     expect(apiHandler.getCampaignRewardsReport).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the assignments report subtab with summary cards and subject rows', async () => {
+    render(
+      <CampaignRewardsReport
+        campaignId="campaign-1"
+        rewards={null}
+        totalStudents={3942}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Assignments' }));
+
+    expect(await screen.findByText('Assignment Report')).toBeInTheDocument();
+    expect(screen.getByText('Total Assignments')).toBeInTheDocument();
+    expect(screen.getByText('Assigned Students')).toBeInTheDocument();
+    expect(screen.getByText('Active Students')).toBeInTheDocument();
+    expect(
+      screen.getByText('Average Assignments Completion'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Mathematics')).toBeInTheDocument();
+    expect(screen.getByText('Science')).toBeInTheDocument();
+    expect(apiHandler.getCampaignAssignmentsReport).toHaveBeenCalledWith(
+      'campaign-1',
+      { totalStudents: 3942 },
+    );
   });
 });

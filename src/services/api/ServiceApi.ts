@@ -467,6 +467,27 @@ export type CampaignAssignmentsResponse = {
   total: number;
 };
 
+export type CampaignAssignmentsReportParams = {
+  totalStudents?: number;
+};
+
+export type CampaignAssignmentsReportRow = {
+  subjectId: string;
+  subjectName: string;
+  lessonsAssigned: number;
+  completionPercent: number;
+};
+
+export type CampaignAssignmentsReportResponse = {
+  summary: {
+    totalAssignments: number;
+    assignedStudents: number;
+    activeStudents: number;
+    averageAssignmentsCompletion: number;
+  };
+  rows: CampaignAssignmentsReportRow[];
+};
+
 export type CampaignStudentPerformanceRow =
   TableTypes<'campaign_student_performance'>;
 
@@ -2525,6 +2546,20 @@ export interface ServiceApi {
     filters: CampaignAssignmentFilters,
   ): Promise<CampaignAssignmentsResponse>;
 
+  /**
+   * Fetches campaign assignment summary widgets and subject-wise completion rows.
+   * The optional totalStudents value is forwarded to the backend so assigned-student
+   * counts can stay aligned with the campaign overview source of truth.
+   */
+  getCampaignAssignmentsReport(
+    campaignId: string,
+    params?: CampaignAssignmentsReportParams,
+  ): Promise<CampaignAssignmentsReportResponse>;
+
+  /**
+   * Fetches campaign student reward-performance rows for the Rewards report subtab.
+   * Supports optional client-side filters that are translated into the underlying query.
+   */
   getCampaignRewardsReport(
     campaignId: string,
     params?: CampaignRewardsReportParams,
