@@ -17,6 +17,8 @@ import {
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
   CampaignAssignmentsResponse,
+  CampaignAssignmentsReportParams,
+  CampaignAssignmentsReportResponse,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -1904,6 +1906,66 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
       rows: data ?? [],
       total: count ?? data?.length ?? 0,
     };
+  }
+
+  async getCampaignAssignmentsReport(
+    campaignId: string,
+    params: CampaignAssignmentsReportParams = {},
+  ): Promise<CampaignAssignmentsReportResponse> {
+    const emptyResponse: CampaignAssignmentsReportResponse = {
+      summary: {
+        totalAssignments: 0,
+        assignedStudents: params.totalStudents ?? 0,
+        activeStudents: 0,
+        averageAssignmentsCompletion: 0,
+      },
+      rows: [],
+    };
+
+    if (!this.supabase || !campaignId) {
+      return emptyResponse;
+    }
+
+    try {
+      const { data, error } = await this.supabase.rpc(
+        'get_campaign_assignments_report',
+        {
+          p_campaign_id: campaignId,
+          p_total_students: params.totalStudents ?? 0,
+        },
+      );
+
+      if (error) {
+        logger.error('Error fetching campaign assignments report rpc:', {
+          campaignId,
+          params,
+          error,
+        });
+        return emptyResponse;
+      }
+
+      const payload =
+        data as Database['public']['Functions']['get_campaign_assignments_report']['Returns'];
+
+      return {
+        summary: {
+          totalAssignments: payload?.summary?.totalAssignments ?? 0,
+          assignedStudents:
+            payload?.summary?.assignedStudents ?? params.totalStudents ?? 0,
+          activeStudents: payload?.summary?.activeStudents ?? 0,
+          averageAssignmentsCompletion:
+            payload?.summary?.averageAssignmentsCompletion ?? 0,
+        },
+        rows: payload?.rows ?? [],
+      };
+    } catch (error) {
+      logger.error('Exception fetching campaign assignments report rpc:', {
+        campaignId,
+        params,
+        error,
+      });
+      return emptyResponse;
+    }
   }
 
   private async fetchDistinctClassGradesForSchools(

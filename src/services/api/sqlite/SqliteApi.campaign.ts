@@ -5,6 +5,8 @@ import {
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
   CampaignAssignmentsResponse,
+  CampaignAssignmentsReportParams,
+  CampaignAssignmentsReportResponse,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -158,5 +160,15 @@ export class SqliteApiCampaign extends SqliteApiAssignment {
     params?: CampaignRewardsReportParams,
   ): Promise<CampaignRewardsReportResponse> {
     return await this._serverApi.getCampaignRewardsReport(campaignId, params);
+  }
+
+  async getCampaignAssignmentsReport(
+    campaignId: string,
+    params?: CampaignAssignmentsReportParams,
+  ): Promise<CampaignAssignmentsReportResponse> {
+    return await this._serverApi.getCampaignAssignmentsReport(
+      campaignId,
+      params,
+    );
   }
 }
