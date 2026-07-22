@@ -1,6 +1,6 @@
+import { SupabaseApiProgram } from './SupabaseApi.program';
 import { TABLES, TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
-import { SupabaseApiProgram } from './SupabaseApi.program';
 
 export interface SupabaseApiRewards {
   [key: string]: any;
