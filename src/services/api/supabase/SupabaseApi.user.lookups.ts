@@ -2,7 +2,7 @@ import { MODES, TABLES, TableTypes } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { sortBySchoolSearchRelevance } from '../../../utility/schoolSearchUtil';
-import { SupabaseApiResults } from './SupabaseApi.results';
+import { SupabaseApiResultsProgress } from './SupabaseApi.results.progress';
 
 const firstOrSelf = <T>(value: T | T[] | null | undefined): T | null =>
   Array.isArray(value) ? (value[0] ?? null) : (value ?? null);
@@ -10,7 +10,7 @@ const firstOrSelf = <T>(value: T | T[] | null | undefined): T | null =>
 export interface SupabaseApiUserLookups {
   [key: string]: any;
 }
-export class SupabaseApiUserLookups extends SupabaseApiResults {
+export class SupabaseApiUserLookups extends SupabaseApiResultsProgress {
   async getClassById(id: string): Promise<TableTypes<'class'> | undefined> {
     if (!this.supabase) return;
     const { data, error } = await this.supabase

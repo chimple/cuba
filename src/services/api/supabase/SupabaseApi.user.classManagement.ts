@@ -6,6 +6,7 @@ import { Util } from '../../../utility/util';
 import { ServiceConfig } from '../../ServiceConfig';
 import { JoinClassInviteLookupResult } from '../ServiceApi';
 import { SupabaseApiUserSchoolRoles } from './SupabaseApi.user.schoolRoles';
+
 export interface SupabaseApiUserClassManagement {
   [key: string]: any;
 }

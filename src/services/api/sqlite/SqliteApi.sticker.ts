@@ -31,7 +31,7 @@ export class SqliteApiSticker extends SqliteApiRewards {
         this.mapStickerBookRow(row),
       );
       return await Promise.all(
-        books.map((book) => this.resolveStickerBookAssets(book)),
+        books.map((book: any) => this.resolveStickerBookAssets(book)),
       );
     } catch (error) {
       logger.error('Error fetching sticker books from sqlite:', error);
@@ -79,11 +79,11 @@ export class SqliteApiSticker extends SqliteApiRewards {
          WHERE user_id = ? AND status = ? AND is_deleted = 0`,
         [userId, 'completed'],
       );
-      const completedBookIds = Array.from(
+      const completedBookIds: string[] = Array.from(
         new Set(
           (completedRes?.values ?? [])
-            .map((row: any) => row.sticker_book_id)
-            .filter(Boolean),
+            .map((row: any) => row.sticker_book_id as string | undefined)
+            .filter((id: string | undefined): id is string => Boolean(id)),
         ),
       );
 
@@ -132,7 +132,7 @@ export class SqliteApiSticker extends SqliteApiRewards {
         this.mapStickerBookRow(row),
       );
       return await Promise.all(
-        books.map((book) => this.resolveStickerBookAssets(book)),
+        books.map((book: any) => this.resolveStickerBookAssets(book)),
       );
     } catch (error) {
       logger.error(
@@ -310,7 +310,7 @@ export class SqliteApiSticker extends SqliteApiRewards {
     await this.ensureInitialized();
     if (ids.length === 0) return [];
 
-    const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
+    const quotedIds = ids.map((id: any) => `"${id}"`).join(`, `);
     try {
       const res = await this._db?.query(
         `select * FROM ${TABLES.Sticker} WHERE id IN (${quotedIds})`,
@@ -382,7 +382,7 @@ export class SqliteApiSticker extends SqliteApiRewards {
 
     const commaSeparated = trimmed
       .split(',')
-      .map((item) => item.trim().replace(/^"(.*)"$/, '$1'))
+      .map((item: any) => item.trim().replace(/^"(.*)"$/, '$1'))
       .filter(Boolean);
     return commaSeparated as T[];
   }
@@ -475,7 +475,7 @@ export class SqliteApiSticker extends SqliteApiRewards {
       const rowIds =
         rowsToUpdate?.values
           ?.map((row: { id?: string }) => row.id)
-          .filter((id): id is string => Boolean(id)) ?? [];
+          .filter((id: string | undefined): id is string => Boolean(id)) ?? [];
 
       if (!rowIds.length) {
         return;

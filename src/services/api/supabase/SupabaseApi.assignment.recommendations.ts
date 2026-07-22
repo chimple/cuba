@@ -3,6 +3,7 @@ import { readAssignmentCartFromStorage } from '../../../teachers-module/pages/As
 import logger from '../../../utility/logger';
 import { AssignmentCartData } from '../ServiceApi';
 import { SupabaseApiAssignmentSchoolLookups } from './SupabaseApi.assignment.schoolLookups';
+
 export interface SupabaseApiAssignmentRecommendations {
   [key: string]: any;
 }

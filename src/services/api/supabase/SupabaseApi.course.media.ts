@@ -1,6 +1,7 @@
 import { COURSES, TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { SupabaseApiCourseGradeOptions } from './SupabaseApi.course.gradeOptions';
+
 export interface SupabaseApiCourseMedia {
   [key: string]: any;
 }

@@ -5,6 +5,7 @@ import {
 } from '../../../teachers-module/pages/AssignmentCartStorage';
 import logger from '../../../utility/logger';
 import { SupabaseApiAssignmentCourseLookups } from './SupabaseApi.assignment.courseLookups';
+
 export interface SupabaseApiAssignmentSchoolLookups {
   [key: string]: any;
 }

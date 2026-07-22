@@ -14,6 +14,7 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { Database } from '../../database';
 import { SqliteApi } from '../SqliteApi';
+
 export interface SupabaseApiCoreFoundation {
   [key: string]: any;
 }

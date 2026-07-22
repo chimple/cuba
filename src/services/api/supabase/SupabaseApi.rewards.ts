@@ -1,11 +1,11 @@
-import { SupabaseApiProgram } from './SupabaseApi.program';
+import { SupabaseApiProgramSchoolStats } from './SupabaseApi.program.schoolStats';
 import { TABLES, TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
 
 export interface SupabaseApiRewards {
   [key: string]: any;
 }
-export class SupabaseApiRewards extends SupabaseApiProgram {
+export class SupabaseApiRewards extends SupabaseApiProgramSchoolStats {
   async getBadgesByIds(ids: string[]): Promise<TableTypes<'badge'>[]> {
     if (!this.supabase || ids.length === 0) return [];
 

@@ -1,6 +1,7 @@
 import { TABLES, TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { SupabaseApiSchoolVisits } from './SupabaseApi.school.visits';
+
 export interface SupabaseApiSchoolCourses {
   [key: string]: any;
 }

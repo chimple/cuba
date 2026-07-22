@@ -8,12 +8,12 @@ import {
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
-import { SupabaseApiCampaign } from './SupabaseApi.campaign';
+import { SupabaseApiCampaignReports } from './SupabaseApi.campaign.reports';
 
 export interface SupabaseApiProgramFoundation {
   [key: string]: any;
 }
-export class SupabaseApiProgramFoundation extends SupabaseApiCampaign {
+export class SupabaseApiProgramFoundation extends SupabaseApiCampaignReports {
   async getUniqueGeoData(): Promise<{
     Country: string[];
     State: string[];

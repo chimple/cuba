@@ -2,11 +2,12 @@ import { TABLES, TableTypes } from '../../../common/constants';
 import Course from '../../../models/Course';
 import Lesson from '../../../models/Lesson';
 import logger from '../../../utility/logger';
-import { SupabaseApiUser } from './SupabaseApi.user';
+import { SupabaseApiUserLeaderboards } from './SupabaseApi.user.leaderboards';
+
 export interface SupabaseApiAssignmentCourseLookups {
   [key: string]: any;
 }
-export class SupabaseApiAssignmentCourseLookups extends SupabaseApiUser {
+export class SupabaseApiAssignmentCourseLookups extends SupabaseApiUserLeaderboards {
   async getAllLessonsForCourse(
     courseId: string,
   ): Promise<TableTypes<'lesson'>[]> {

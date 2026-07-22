@@ -9,6 +9,7 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
 import { SupabaseApiSchoolCourses } from './SupabaseApi.school.courses';
+
 const SCHOOL_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
 const PROGRAM_METRICS_DAY_WINDOWS = [7, 15, 30] as const;
 export interface SupabaseApiSchoolCreation {

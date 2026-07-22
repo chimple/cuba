@@ -1,16 +1,16 @@
 import { TABLES, TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
-import { SqliteApiOps } from './SqliteApi.ops';
+import { SqliteApiOpsLearningPath } from './SqliteApi.ops.learningPath';
 
 export interface SqliteApiRewards {
   [key: string]: any;
 }
-export class SqliteApiRewards extends SqliteApiOps {
+export class SqliteApiRewards extends SqliteApiOpsLearningPath {
   async getBadgesByIds(ids: string[]): Promise<TableTypes<'badge'>[]> {
     await this.ensureInitialized();
     if (ids.length === 0) return [];
 
-    const quotedIds = ids.map((id) => `"${id}"`).join(', ');
+    const quotedIds = ids.map((id: any) => `"${id}"`).join(', ');
     try {
       const res = await this._db?.query(
         `SELECT * FROM ${TABLES.Badge} WHERE id IN (${quotedIds})`,
@@ -27,7 +27,7 @@ export class SqliteApiRewards extends SqliteApiOps {
     await this.ensureInitialized();
     if (ids.length === 0) return [];
 
-    const quotedIds = ids.map((id) => `"${id}"`).join(`, `);
+    const quotedIds = ids.map((id: any) => `"${id}"`).join(`, `);
     try {
       const res = await this._db?.query(
         `select * FROM ${TABLES.Lesson} WHERE id IN (${quotedIds})`,

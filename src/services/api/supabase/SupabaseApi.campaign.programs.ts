@@ -9,12 +9,12 @@ import {
   type ProgramMetricsDatabase,
   type ProgramMetricsTableRow,
 } from './SupabaseApi.campaign.helpers';
-import { SupabaseApiOps } from './SupabaseApi.ops';
+import { SupabaseApiOpsLearningPath } from './SupabaseApi.ops.learningPath';
 
 export interface SupabaseApiCampaignPrograms {
   [key: string]: any;
 }
-export class SupabaseApiCampaignPrograms extends SupabaseApiOps {
+export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {
     if (!this.supabase) {
       logger.error('Supabase client is not initialized');

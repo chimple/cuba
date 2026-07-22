@@ -2,6 +2,7 @@ import { EnumType, RequestTypes, STATUS } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
 import { SupabaseApiUserStudentLists } from './SupabaseApi.user.studentLists';
+
 export interface SupabaseApiUserStudentMerge {
   [key: string]: any;
 }

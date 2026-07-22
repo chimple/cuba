@@ -7,11 +7,12 @@ import {
   TableTypes,
 } from '../../../common/constants';
 import logger from '../../../utility/logger';
-import { SupabaseApiAssignment } from './SupabaseApi.assignment';
+import { SupabaseApiAssignmentAssessments } from './SupabaseApi.assignment.assessments';
+
 export interface SupabaseApiSchoolVisits {
   [key: string]: any;
 }
-export class SupabaseApiSchoolVisits extends SupabaseApiAssignment {
+export class SupabaseApiSchoolVisits extends SupabaseApiAssignmentAssessments {
   async updateSchoolLocation(
     schoolId: string,
     lat: number,

@@ -4,6 +4,7 @@ import { StudentLessonResult } from '../../../common/courseConstants';
 import { AvatarObj } from '../../../components/animation/Avatar';
 import logger from '../../../utility/logger';
 import { SupabaseApiCourseCatalog } from './SupabaseApi.course.catalog';
+
 export interface SupabaseApiCourseGradeOptions {
   [key: string]: any;
 }

@@ -10,7 +10,7 @@ import {
 import logger from '../../../utility/logger';
 import { Util } from '../../../utility/util';
 import { ServiceConfig } from '../../ServiceConfig';
-import { SupabaseApiCore } from './SupabaseApi.core';
+import { SupabaseApiCoreSync } from './SupabaseApi.core.sync';
 
 type ChapterLessonRow = {
   lesson: TableTypes<'lesson'> | null;
@@ -18,7 +18,7 @@ type ChapterLessonRow = {
 export interface SupabaseApiCourseCatalog {
   [key: string]: any;
 }
-export class SupabaseApiCourseCatalog extends SupabaseApiCore {
+export class SupabaseApiCourseCatalog extends SupabaseApiCoreSync {
   async getCourseByUserGradeId(
     gradeDocId: string | null | undefined,
     boardDocId: string | null | undefined,

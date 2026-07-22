@@ -6,6 +6,7 @@ import {
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { SupabaseApiUserPathwayMerge } from './SupabaseApi.user.pathwayMerge';
+
 export interface SupabaseApiUserSchoolRoles {
   [key: string]: any;
 }

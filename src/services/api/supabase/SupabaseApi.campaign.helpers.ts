@@ -16,6 +16,7 @@ import {
 import logger from '../../../utility/logger';
 import { Database } from '../../database';
 import { CampaignListingParams, ProgramListingProgramRow } from '../ServiceApi';
+
 export const PERISKOPE_BASE_URL =
   import.meta.env.VITE_PERISKOPE_API_BASE_URL ?? 'https://api.periskope.app/v1';
 export const PROVIDER_PAGE_SIZE = 1999;

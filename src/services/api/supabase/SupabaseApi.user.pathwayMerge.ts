@@ -1,6 +1,7 @@
 import { LEARNING_PATHWAY_MODE, TABLES } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { SupabaseApiUserStudentMerge } from './SupabaseApi.user.studentMerge';
+
 export interface SupabaseApiUserPathwayMerge {
   [key: string]: any;
 }

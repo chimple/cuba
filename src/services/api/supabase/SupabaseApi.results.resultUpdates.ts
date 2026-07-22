@@ -8,7 +8,7 @@ import {
 } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { Util } from '../../../utility/util';
-import { SupabaseApiCourse } from './SupabaseApi.course';
+import { SupabaseApiCourseMedia } from './SupabaseApi.course.media';
 
 type StudentProgressRowWithLesson = TableTypes<'result'> & {
   lesson?: {
@@ -27,7 +27,7 @@ type StudentProgressRowWithLesson = TableTypes<'result'> & {
 export interface SupabaseApiResultsResultUpdates {
   [key: string]: any;
 }
-export class SupabaseApiResultsResultUpdates extends SupabaseApiCourse {
+export class SupabaseApiResultsResultUpdates extends SupabaseApiCourseMedia {
   async updateResult(
     student: TableTypes<'user'>,
     courseId: string | undefined,

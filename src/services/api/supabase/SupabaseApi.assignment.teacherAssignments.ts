@@ -4,6 +4,7 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { Database } from '../../database';
 import { SupabaseApiAssignmentRecommendations } from './SupabaseApi.assignment.recommendations';
+
 export interface SupabaseApiAssignmentTeacherAssignments {
   [key: string]: any;
 }
