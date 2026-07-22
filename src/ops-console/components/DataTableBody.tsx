@@ -1,7 +1,6 @@
 import {
   Box,
   Checkbox,
-  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -15,6 +14,7 @@ import { useHistory } from 'react-router';
 import { PAGES } from '../../common/constants';
 import logger from '../../utility/logger';
 import './DataTableBody.css';
+import { TableSkeleton } from './DataTableSkeleton';
 
 export interface Column<T extends object> {
   key: keyof T | string;
@@ -78,58 +78,6 @@ interface Props<T extends object> {
   customHeaderIcons?: boolean;
   activeHeaderFilterKey?: string | null;
   onHeaderFilterClick?: (anchorEl: HTMLElement, key: string) => void;
-}
-
-function TableSkeleton<T extends object>({
-  columns,
-  rows = 10,
-  showSelectionColumn = false,
-}: {
-  columns: Column<T>[];
-  rows?: number;
-  showSelectionColumn?: boolean;
-}) {
-  return (
-    <TableBody>
-      {Array.from({ length: rows }).map((_, i) => (
-        <TableRow key={i}>
-          {showSelectionColumn && (
-            <TableCell
-              id="data-tablebody-skeleton-selection-cell"
-              className="data-tablebody-skeleton-selection-cell"
-            >
-              <Skeleton
-                id="data-tablebody-skeleton-selection-icon"
-                variant="circular"
-                className="data-tablebody-skeleton-selection-icon"
-              />
-            </TableCell>
-          )}
-          {columns.map((col) => (
-            <TableCell
-              key={String(col.key)}
-              align="left"
-              sx={{
-                py: 0.25,
-                px: 1,
-                height: 32,
-                transform: 'none',
-              }}
-            >
-              <div style={{ width: '90%' }}>
-                <Skeleton
-                  variant="rectangular"
-                  height={24}
-                  width="100%"
-                  sx={{ mx: 0, ml: 0, transform: 'none' }}
-                />
-              </div>
-            </TableCell>
-          ))}
-        </TableRow>
-      ))}
-    </TableBody>
-  );
 }
 
 function DataTableBodyInner<T extends object>(

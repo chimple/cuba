@@ -6,6 +6,7 @@ import {
 } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { SupabaseApiUserLookups } from './SupabaseApi.user.lookups';
+
 export interface SupabaseApiUserStudentLists {
   [key: string]: any;
 }

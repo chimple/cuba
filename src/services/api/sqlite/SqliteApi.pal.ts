@@ -1,8 +1,8 @@
 import { DBSQLiteValues } from '@capacitor-community/sqlite';
 import { COURSES, TABLES, TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
-
 import { SqliteApiWhatsApp } from './SqliteApi.whatsapp';
+
 export interface SqliteApiPal {
   [key: string]: any;
 }
@@ -60,24 +60,27 @@ export class SqliteApiPal extends SqliteApiWhatsApp {
               lesson_id?: string | null;
               language_id?: string | null;
             }[]
-          ).some((lesson) => lesson.language_id === langId)
+          ).some((lesson: any) => lesson.language_id === langId)
             ? (
                 ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
                   []) as {
                   lesson_id?: string | null;
                   language_id?: string | null;
                 }[]
-              ).filter((lesson) => lesson.language_id === langId)
+              ).filter((lesson: any) => lesson.language_id === langId)
             : (
                 ((assessmentLessonsRes as DBSQLiteValues | undefined)?.values ??
                   []) as {
                   lesson_id?: string | null;
                   language_id?: string | null;
                 }[]
-              ).filter((lesson) => lesson.language_id == null)
+              ).filter((lesson: any) => lesson.language_id == null)
           )
-            .map((lesson) => lesson.lesson_id)
-            .filter((lessonId): lessonId is string => !!lessonId),
+            .map((lesson: any) => lesson.lesson_id)
+            .filter(
+              (lessonId: string | null | undefined): lessonId is string =>
+                !!lessonId,
+            ),
         ),
       );
 
@@ -103,7 +106,9 @@ export class SqliteApiPal extends SqliteApiWhatsApp {
         status?: string | null;
       }[];
 
-      if (rows.some((result) => result.status === 'assessment_terminated')) {
+      if (
+        rows.some((result: any) => result.status === 'assessment_terminated')
+      ) {
         return true;
       }
 
@@ -111,12 +116,12 @@ export class SqliteApiPal extends SqliteApiWhatsApp {
       const systemExitAssessmentLessonIds = new Set(
         rows
           .filter(
-            (result) =>
+            (result: any) =>
               result.status === 'system_exit' &&
               !!result.lesson_id &&
               assessmentLessonIdSet.has(result.lesson_id),
           )
-          .map((result) => result.lesson_id),
+          .map((result: any) => result.lesson_id),
       );
 
       if (systemExitAssessmentLessonIds.size >= 2) {
@@ -124,7 +129,7 @@ export class SqliteApiPal extends SqliteApiWhatsApp {
       }
 
       return rows.some(
-        (result) =>
+        (result: any) =>
           result.status !== 'system_exit' &&
           !!result.lesson_id &&
           assessmentLessonIdSet.has(result.lesson_id),
@@ -240,13 +245,15 @@ export class SqliteApiPal extends SqliteApiWhatsApp {
     const skillIds = Array.from(
       new Set(
         (skillLessonRes?.values ?? [])
-          .map((row) => row.skill_id)
-          .filter((skillId): skillId is string => !!skillId),
+          .map((row: any) => row.skill_id)
+          .filter(
+            (skillId: string | undefined): skillId is string => !!skillId,
+          ),
       ),
     );
     const skills = await Promise.all(
       skillIds.map(
-        async (skillId) =>
+        async (skillId: any) =>
           (await this.getSkillById(skillId)) ??
           ({ id: skillId } as TableTypes<'skill'>),
       ),

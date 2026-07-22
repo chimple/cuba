@@ -14,6 +14,7 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
 import { SupabaseApiSchoolRequests } from './SupabaseApi.school.requests';
+
 export interface SupabaseApiSchoolProfiles {
   [key: string]: any;
 }

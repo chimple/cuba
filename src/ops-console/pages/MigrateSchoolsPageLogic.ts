@@ -1,251 +1,39 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { Box, Typography } from '@mui/material';
-import { t } from 'i18next';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useHistory, useLocation } from 'react-router';
-import { PROGRAM_TAB, PROGRAM_TAB_LABELS } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import { Column } from '../components/DataTableBody';
 import logger from '../../utility/logger';
+import {
+  buildMigrateSchoolsColumns,
+  getMigrateSchoolsFilterConfigs,
+} from './MigrateSchoolsPageColumns';
+import {
+  buildNameCell,
+  FILTER_KEYS,
+  Filters,
+  INITIAL_FILTERS,
+  MigrationTab,
+  normalizeAcademicYear,
+  normalizeFiltersFromQuery,
+  normalizeLatestAcademicYear,
+  normalizeProgramModel,
+  parseJSONParam,
+  resolveMigratedMetricValue,
+} from './MigrateSchoolsPageHelpers';
 
-export type Filters = Record<string, string[]>;
-export type MigrationTab = 'migrate' | 'migrated';
 type RowData = Record<string, any>;
 
 const DEFAULT_PAGE_SIZE = 20;
 
-export const INITIAL_FILTERS: Filters = {
-  program: [],
-  programType: [],
-  state: [],
-  district: [],
-  cluster: [],
-  block: [],
-};
-
-export const FILTER_KEYS = [
-  'program',
-  'programType',
-  'state',
-  'district',
-  'cluster',
-  'block',
-] as const;
-
-export const parseJSONParam = <T>(param: string | null, fallback: T): T => {
-  try {
-    return param ? (JSON.parse(param) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-};
-
-export const normalizeFiltersFromQuery = (value: unknown): Filters => {
-  if (!value || typeof value !== 'object') return INITIAL_FILTERS;
-  const source = value as Record<string, unknown>;
-  return FILTER_KEYS.reduce<Filters>(
-    (acc, key) => {
-      acc[key] = Array.isArray(source[key])
-        ? (source[key] as unknown[]).filter(
-            (item): item is string =>
-              typeof item === 'string' && item.trim().length > 0,
-          )
-        : [];
-      return acc;
-    },
-    { ...INITIAL_FILTERS },
-  );
-};
-
-export const normalizeAcademicYear = (value: any): string => {
-  if (Array.isArray(value)) {
-    const years = value
-      .map((item) => String(item ?? '').trim())
-      .filter((item) => item.length > 0);
-    return years.join(', ');
-  }
-
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    if (!trimmed) return '';
-
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) {
-          return parsed
-            .map((item) => String(item ?? '').trim())
-            .filter((item) => item.length > 0)
-            .join(', ');
-        }
-      } catch (_err) {
-        return trimmed;
-      }
-    }
-
-    return trimmed;
-  }
-
-  return '';
-};
-
-const normalizeLatestAcademicYear = (value: any): string => {
-  if (Array.isArray(value)) {
-    const years = value
-      .map((item) => String(item ?? '').trim())
-      .filter((item) => item.length > 0);
-    return years.at(-1) || '';
-  }
-
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    if (!trimmed) return '';
-
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) {
-          const years = parsed
-            .map((item) => String(item ?? '').trim())
-            .filter((item) => item.length > 0);
-          return years.at(-1) || '';
-        }
-      } catch (_err) {
-        return trimmed;
-      }
-    }
-
-    return trimmed;
-  }
-
-  return '';
-};
-
-export const normalizeProgramModel = (value: any): string => {
-  const toLabel = (model: string): string => {
-    const normalized = model.trim().toLowerCase();
-    if (normalized === PROGRAM_TAB.AT_HOME) {
-      return PROGRAM_TAB_LABELS[PROGRAM_TAB.AT_HOME].replace(/\s+/g, '-');
-    }
-    if (normalized === PROGRAM_TAB.AT_SCHOOL) {
-      return PROGRAM_TAB_LABELS[PROGRAM_TAB.AT_SCHOOL].replace(/\s+/g, '-');
-    }
-    if (normalized === PROGRAM_TAB.HYBRID) {
-      return PROGRAM_TAB_LABELS[PROGRAM_TAB.HYBRID];
-    }
-    return model;
-  };
-
-  if (Array.isArray(value)) {
-    const models = value
-      .map((item) => String(item ?? '').trim())
-      .filter((item) => item.length > 0)
-      .map(toLabel);
-    return models.join(', ');
-  }
-
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    if (!trimmed) return '';
-
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) {
-          return parsed
-            .map((item) => String(item ?? '').trim())
-            .filter((item) => item.length > 0)
-            .map(toLabel)
-            .join(', ');
-        }
-      } catch (_err) {
-        return toLabel(trimmed);
-      }
-    }
-
-    return toLabel(trimmed);
-  }
-
-  return '';
-};
-
-type MigratedMetricKey =
-  | 'ukg_student_count'
-  | 'class_1_student_count'
-  | 'class_2_student_count'
-  | 'class_3_student_count'
-  | 'class_4_student_count'
-  | 'class_5_student_count';
-type MigratedMetricValue = number | null | undefined;
-type MigratedMetricSource = Partial<
-  Record<MigratedMetricKey, MigratedMetricValue>
->;
-
-const normalizeMigratedMetricValue = (
-  value: MigratedMetricValue,
-): string | number => {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-
-  return 'NA';
-};
-
-const resolveMigratedMetricValue = (
-  row: MigratedMetricSource,
-  school: MigratedMetricSource,
-  program: MigratedMetricSource,
-  migrationMetrics: MigratedMetricSource,
-  candidateKeys: readonly MigratedMetricKey[],
-): string | number => {
-  const sources = [migrationMetrics, row, school, program];
-
-  for (const source of sources) {
-    for (const key of candidateKeys) {
-      if (source && Object.prototype.hasOwnProperty.call(source, key)) {
-        return normalizeMigratedMetricValue(source[key]);
-      }
-    }
-  }
-
-  return 'NA';
-};
-
-export const buildNameCell = (
-  schoolName: string,
-  schoolUdise: string,
-  schoolState: string,
-) => {
-  const subtitle =
-    schoolUdise || schoolState
-      ? `${schoolUdise ?? ''} - ${schoolState ?? ''}`.trim()
-      : '--';
-
-  return {
-    value: schoolName,
-    render: React.createElement(
-      Box,
-      {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-      },
-      React.createElement(
-        Typography,
-        { className: 'migrate-schools-name' },
-        schoolName,
-      ),
-      React.createElement(
-        Typography,
-        { className: 'migrate-schools-subname' },
-        subtitle,
-      ),
-    ),
-  };
-};
+export type { Filters, MigrationTab } from './MigrateSchoolsPageHelpers';
+export {
+  buildNameCell,
+  FILTER_KEYS,
+  INITIAL_FILTERS,
+  normalizeAcademicYear,
+  normalizeFiltersFromQuery,
+  normalizeProgramModel,
+  parseJSONParam,
+} from './MigrateSchoolsPageHelpers';
 
 export const useMigrateSchoolsPageLogic = () => {
   const api = ServiceConfig.getI().apiHandler;
@@ -541,129 +329,12 @@ export const useMigrateSchoolsPageLogic = () => {
     setSelectedSchoolIds([]);
   }, [activeTab, academicYears, migratedAcademicYears]);
 
-  const columns: Column<Record<string, any>>[] = useMemo(
-    () =>
-      activeTab === 'migrated'
-        ? [
-            {
-              key: 'name',
-              label: t('School Name'),
-              width: '24%',
-              sortable: false,
-            },
-            {
-              key: 'programName',
-              label: t('Program Name'),
-              width: '16%',
-              sortable: false,
-            },
-            {
-              key: 'programModel',
-              label: t('Program Model'),
-              width: '14%',
-              sortable: false,
-            },
-            {
-              key: 'academicYear',
-              label: t('Academic Year'),
-              width: '13%',
-              sortable: false,
-            },
-            {
-              key: 'ukg',
-              label: t('UKG'),
-              width: '8%',
-              sortable: false,
-            },
-            {
-              key: 'class1',
-              label: t('Class 1'),
-              width: '8%',
-              sortable: false,
-            },
-            {
-              key: 'class2',
-              label: t('Class 2'),
-              width: '8%',
-              sortable: false,
-            },
-            {
-              key: 'class3',
-              label: t('Class 3'),
-              width: '8%',
-              sortable: false,
-            },
-            {
-              key: 'class4',
-              label: t('Class 4'),
-              width: '8%',
-              sortable: false,
-            },
-            {
-              key: 'class5',
-              label: t('Class 5'),
-              width: '8%',
-              sortable: false,
-            },
-          ]
-        : [
-            {
-              key: 'name',
-              label: t('School Name'),
-              width: '24%',
-              sortable: false,
-            },
-            {
-              key: 'programName',
-              label: t('Program Name'),
-              width: '16%',
-              sortable: false,
-            },
-            {
-              key: 'programModel',
-              label: t('Program Model'),
-              width: '14%',
-              sortable: false,
-            },
-            {
-              key: 'academicYear',
-              label: t('Academic Year'),
-              width: '13%',
-              sortable: false,
-            },
-            {
-              key: 'district',
-              label: t('District'),
-              width: '12%',
-              sortable: false,
-            },
-            {
-              key: 'cluster',
-              label: t('Cluster'),
-              width: '11%',
-              sortable: false,
-            },
-            {
-              key: 'block',
-              label: t('Block'),
-              width: '10%',
-              sortable: false,
-            },
-          ],
+  const columns = useMemo(
+    () => buildMigrateSchoolsColumns(activeTab),
     [activeTab],
   );
 
-  const filterConfigsForSchool = useMemo(
-    () => [
-      { key: 'program', label: t('Select Program') },
-      { key: 'programType', label: t('Select Program Type') },
-      { key: 'state', label: t('Select State') },
-      { key: 'district', label: t('Select District') },
-      { key: 'cluster', label: t('Select Cluster') },
-      { key: 'block', label: t('Select Block') },
-    ],
-    [],
-  );
+  const filterConfigsForSchool = useMemo(getMigrateSchoolsFilterConfigs, []);
 
   const handleSort = useCallback(
     (columnKey: string) => {

@@ -26,48 +26,15 @@ import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
 import { parsePath } from 'history';
-
-interface ReportTableProps {
-  handleButtonClick?: (isOpen: boolean) => void;
-  startDateProp?: Date;
-  endDateProp?: Date;
-  selectedTypeProp?: TABLEDROPDOWN;
-  isAssignmentsProp?: boolean;
-  sortTypeProp?: TABLESORTBY;
-}
-
-type SubjectSelection =
-  | TableTypes<'course'>
-  | {
-      id: string;
-      name: string;
-      icon?: string;
-      subjectDetail?: string;
-      code?: string;
-      disabled?: boolean;
-    };
-
-type DropdownOption = {
-  id: string | number;
-  name: string;
-  icon?: string;
-  subjectDetail?: string;
-};
-
-type DateRangeValue = {
-  startDate: Date;
-  endDate: Date;
-  isStudentProfilePage?: boolean;
-};
-
-type AssignmentHeader = {
-  headerName: string;
-  startAt: string;
-  endAt: string;
-  belongsToClass?: boolean;
-  subjectName?: string; // Add subject name to the header data
-  courseId?: string; // Add subject name to the header data
-};
+import type {
+  AssignmentHeader,
+  DateRangeValue,
+  DropdownOption,
+  ReportTableProps,
+  SubjectSelection,
+} from './ReportsTableTypes';
+import { ReportsNoReportFound } from './ReportsNoReportFound';
+import { getAssignmentMapObject } from './ReportsTableHelpers';
 
 const ReportTable: React.FC<ReportTableProps> = ({
   handleButtonClick,
@@ -422,20 +389,7 @@ const ReportTable: React.FC<ReportTableProps> = ({
       setExpandedRow(key);
     }
   };
-  function getAssignmentMapObject() {
-    const assignmentMapObject: Record<string, { belongsToClass: boolean }> = {};
-
-    headerData.forEach((mapItem) => {
-      mapItem.forEach((value, assignmentId) => {
-        assignmentMapObject[assignmentId] = {
-          belongsToClass: value.belongsToClass ?? true, // no error now
-        };
-      });
-    });
-
-    return assignmentMapObject;
-  }
-  const assignmentMapObject = getAssignmentMapObject();
+  const assignmentMapObject = getAssignmentMapObject(headerData);
   return !isLoading ? (
     reportData.size == 0 ? (
       <div className="no-students-container ">
@@ -619,29 +573,12 @@ const ReportTable: React.FC<ReportTableProps> = ({
               </tbody>
             </table>
             {headerData.length == 0 ? (
-              <div className="no-report-found">
-                <div>
-                  {t("Sorry, Couldn't find any matches for the Date Range ")}'
-                  {dateRange.startDate.getDate()}/
-                  {dateRange.startDate.getMonth() + 1} -{' '}
-                  {dateRange.endDate.getDate()}/
-                  {dateRange.endDate.getMonth() + 1}
-                  '<br />
-                  <div>
-                    {t(
-                      'If you would like to assign assignments, please go to the',
-                    )}{' '}
-                  </div>
-                  {!isExternalUser && (
-                    <div
-                      onClick={() => handleButtonClick?.(true)}
-                      className="library-button"
-                    >
-                      {t('Library')}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <ReportsNoReportFound
+                startDate={dateRange.startDate}
+                endDate={dateRange.endDate}
+                isExternalUser={isExternalUser}
+                onLibraryClick={() => handleButtonClick?.(true)}
+              />
             ) : (
               <></>
             )}

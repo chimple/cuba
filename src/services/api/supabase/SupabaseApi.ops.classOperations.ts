@@ -1,12 +1,12 @@
 import { TABLES, TableTypes } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
-import { SupabaseApiSchool } from './SupabaseApi.school';
+import { SupabaseApiSchoolReferenceData } from './SupabaseApi.school.referenceData';
 
 export interface SupabaseApiOpsClassOperations {
   [key: string]: any;
 }
-export class SupabaseApiOpsClassOperations extends SupabaseApiSchool {
+export class SupabaseApiOpsClassOperations extends SupabaseApiSchoolReferenceData {
   async getLessonsBylessonIds(
     lessonIds: string[], // Expect an array of strings
   ): Promise<TableTypes<'lesson'>[] | undefined> {

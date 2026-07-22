@@ -2,6 +2,7 @@ import { TABLES, TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
 import { SupabaseApiSchoolProfiles } from './SupabaseApi.school.profiles';
+
 export interface SupabaseApiSchoolReferenceData {
   [key: string]: any;
 }

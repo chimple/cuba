@@ -14,7 +14,7 @@ import CampaignRewardsTable, {
 import type { CampaignRewardRow } from './CampaignRewardsReport.helpers';
 import { ServiceConfig } from '../../../services/ServiceConfig';
 
-const mockDownload = jest.fn<(blob: Blob, fileName: string) => void>();
+const mockDownload = jest.fn<void, [Blob, string]>();
 
 jest.mock('@mui/material', () => {
   const actual = jest.requireActual('@mui/material');
@@ -115,7 +115,12 @@ const columnText = (
   row: MockTableRow,
 ) => {
   const rendered = columns.find((column) => column.key === key)?.render?.(row);
-  if (React.isValidElement(rendered)) {
+  if (
+    React.isValidElement<{
+      label?: React.ReactNode;
+      children?: React.ReactNode;
+    }>(rendered)
+  ) {
     return rendered.props.label ?? rendered.props.children;
   }
   return rendered ?? row[key] ?? '';

@@ -9,6 +9,7 @@ import {
 } from '../../../common/constants';
 import { Database } from '../../database';
 import { ProgramListingProgramRow } from '../ServiceApi';
+
 export type SchoolListPercentBand = PercentageBandValue;
 
 export const SCHOOL_LIST_PERCENTAGE_FILTER_KEYS = new Set([

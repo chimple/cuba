@@ -8,6 +8,7 @@ import {
 import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
 import { SupabaseApiSchoolCreation } from './SupabaseApi.school.creation';
+
 export interface SupabaseApiSchoolRequests {
   [key: string]: any;
 }
