@@ -1,3 +1,4 @@
+import { SupabaseApiRewards } from './SupabaseApi.rewards';
 import { TABLES, TableTypes } from '../../../common/constants';
 import {
   StickerBook,
@@ -6,7 +7,6 @@ import {
 } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
-import { SupabaseApiRewards } from './SupabaseApi.rewards';
 
 const mapStickerBookRow = (book: TableTypes<'sticker_book'>): StickerBook => ({
   id: book.id,

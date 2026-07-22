@@ -1,7 +1,7 @@
+import { SupabaseApiWhatsApp } from './SupabaseApi.whatsapp';
 import { COURSES, TABLES, TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
 
-import { SupabaseApiWhatsApp } from './SupabaseApi.whatsapp';
 export interface SupabaseApiPal {
   [key: string]: any;
 }

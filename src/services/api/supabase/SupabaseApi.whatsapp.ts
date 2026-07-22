@@ -1,8 +1,8 @@
+import { SupabaseApiSticker } from './SupabaseApi.sticker';
 import { TABLES } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { Json } from '../../database';
-import { SupabaseApiSticker } from './SupabaseApi.sticker';
 
 export interface SupabaseApiWhatsApp {
   [key: string]: any;
