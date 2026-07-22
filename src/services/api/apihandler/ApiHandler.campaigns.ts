@@ -23,6 +23,8 @@ import type {
   CampaignAssignmentsResponse,
   CampaignAssignmentsReportParams,
   CampaignAssignmentsReportResponse,
+  CampaignSchoolPerformanceReportParams,
+  CampaignSchoolPerformanceReportResponse,
   CampaignRewardsReportParams,
   CampaignRewardsReportResponse,
   CampaignWhatsappLabelData,
@@ -114,6 +116,17 @@ export class ApiHandlerCampaigns extends ApiHandlerPrograms {
     params?: CampaignAssignmentsReportParams,
   ): Promise<CampaignAssignmentsReportResponse> {
     return await this.s.getCampaignAssignmentsReport(campaignId, params);
+  }
+
+  /**
+   * Keeps campaign school performance retrieval behind the shared API handler
+   * so web and local implementations stay interchangeable for the UI.
+   */
+  async getCampaignSchoolPerformanceReport(
+    campaignId: string,
+    params?: CampaignSchoolPerformanceReportParams,
+  ): Promise<CampaignSchoolPerformanceReportResponse> {
+    return await this.s.getCampaignSchoolPerformanceReport(campaignId, params);
   }
 
   async getCampaignRewardsReport(

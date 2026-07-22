@@ -35,6 +35,8 @@ import {
   CampaignDashboardMetric,
   CampaignMessageReportParams,
   CampaignMessageReportResponse,
+  CampaignSchoolPerformanceReportParams,
+  CampaignSchoolPerformanceReportResponse,
   CampaignRewardsReportParams,
   CampaignRewardsReportResponse,
   CampaignWhatsappLabelData,
@@ -190,6 +192,16 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     params?: CampaignAssignmentsReportParams,
   ): Promise<CampaignAssignmentsReportResponse> {
     return await this._serverApi.getCampaignAssignmentsReport(
+      campaignId,
+      params,
+    );
+  }
+
+  async getCampaignSchoolPerformanceReport(
+    campaignId: string,
+    params?: CampaignSchoolPerformanceReportParams,
+  ): Promise<CampaignSchoolPerformanceReportResponse> {
+    return await this._serverApi.getCampaignSchoolPerformanceReport(
       campaignId,
       params,
     );
