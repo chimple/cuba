@@ -23,6 +23,8 @@ import type {
   CampaignAssignmentsResponse,
   CampaignAssignmentsReportParams,
   CampaignAssignmentsReportResponse,
+  CampaignSchoolPerformanceReportParams,
+  CampaignSchoolPerformanceReportResponse,
   CampaignRewardsReportParams,
   CampaignRewardsReportResponse,
   CampaignWhatsappLabelData,
@@ -82,6 +84,15 @@ export interface ServiceApiCampaigns {
     campaignId: string,
     params?: CampaignAssignmentsReportParams,
   ): Promise<CampaignAssignmentsReportResponse>;
+
+  /**
+   * Returns the school-level metrics already computed for a campaign window.
+   * The client derives presentation-only percentages from the raw values.
+   */
+  getCampaignSchoolPerformanceReport(
+    campaignId: string,
+    params?: CampaignSchoolPerformanceReportParams,
+  ): Promise<CampaignSchoolPerformanceReportResponse>;
 
   getCampaignRewardsReport(
     campaignId: string,

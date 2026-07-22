@@ -1,4 +1,4 @@
-﻿export { SupabaseApiAssignment } from './SupabaseApi.assignment';
+export { SupabaseApiAssignment } from './SupabaseApi.assignment';
 export { SupabaseApiCampaign } from './SupabaseApi.campaign';
 export { SupabaseApiCore } from './SupabaseApi.core';
 export { SupabaseApiCourse } from './SupabaseApi.course';

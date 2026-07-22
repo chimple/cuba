@@ -7,6 +7,8 @@ import {
   CampaignAssignmentsResponse,
   CampaignAssignmentsReportParams,
   CampaignAssignmentsReportResponse,
+  CampaignSchoolPerformanceReportParams,
+  CampaignSchoolPerformanceReportResponse,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
@@ -32,9 +34,7 @@ import {
 } from '../ServiceApi';
 
 import { SqliteApiAssignment } from './SqliteApi.assignment';
-export interface SqliteApiCampaign {
-  [key: string]: any;
-}
+export interface SqliteApiCampaign {}
 export class SqliteApiCampaign extends SqliteApiAssignment {
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {
     return await this._serverApi.getProgramFilterOptions();
@@ -183,6 +183,20 @@ export class SqliteApiCampaign extends SqliteApiAssignment {
     params?: CampaignAssignmentsReportParams,
   ): Promise<CampaignAssignmentsReportResponse> {
     return await this._serverApi.getCampaignAssignmentsReport(
+      campaignId,
+      params,
+    );
+  }
+
+  /**
+   * For local mode, campaign school performance is delegated to the server API
+   * so the UI receives the same shape as the hosted Supabase implementation.
+   */
+  async getCampaignSchoolPerformanceReport(
+    campaignId: string,
+    params?: CampaignSchoolPerformanceReportParams,
+  ): Promise<CampaignSchoolPerformanceReportResponse> {
+    return await this._serverApi.getCampaignSchoolPerformanceReport(
       campaignId,
       params,
     );

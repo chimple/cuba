@@ -1,0 +1,268 @@
+.campaign-school-performance-report {
+  background: #fff;
+  border: 1px solid #dde1e6;
+  border-radius: 10px;
+}
+
+.campaign-school-performance-report__header {
+  border-bottom: 1px solid #eaecef;
+  padding: 16px 20px;
+}
+
+.campaign-school-performance-report__toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.campaign-school-performance-report__title {
+  color: #21272a;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.campaign-school-performance-report__controls {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.campaign-school-performance-report__search {
+  width: 290px;
+}
+
+.campaign-school-performance-report__actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.campaign-school-performance-report__date,
+.campaign-school-performance-report__export {
+  min-width: 0;
+}
+
+.campaign-school-performance-report__date {
+  flex: 0 0 auto;
+}
+
+.campaign-school-performance-report__export {
+  flex: 0 0 auto;
+}
+
+.campaign-school-performance-report__date
+  .school-list-date-range-button.MuiButton-root {
+  font-size: 14px;
+  justify-content: space-between;
+  min-width: 140px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  width: auto;
+}
+
+.campaign-school-performance-report__export
+  .school-list-export-button.MuiButton-root {
+  font-size: 14px;
+  min-width: 124px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  width: auto;
+}
+
+.campaign-school-performance-report__body {
+  padding: 16px;
+}
+
+.campaign-school-performance-report__table {
+  height: 520px;
+  overflow: hidden;
+}
+
+.campaign-school-performance-report__table .data-tablebody-container {
+  -webkit-overflow-scrolling: touch;
+  height: 100%;
+  margin-bottom: 0;
+  max-height: 100%;
+  overflow: auto;
+  touch-action: pan-x pan-y;
+}
+
+.campaign-school-performance-report__table .MuiTableCell-stickyHeader,
+.campaign-school-performance-report__table .data-tablebody-head-cell {
+  overflow: visible;
+  z-index: 4;
+}
+
+.campaign-school-performance-report__table .data-tablebody-column-schoolName,
+.campaign-school-performance-report__table
+  .data-tablebody-column-schoolName
+  .MuiTableSortLabel-root,
+.campaign-school-performance-report__table
+  .data-tablebody-column-schoolName
+  .data-tablebody-head-button,
+.campaign-school-performance-report__table
+  .data-tablebody-column-schoolName
+  .data-tablebody-head-label,
+.campaign-school-performance-report__table
+  .data-tablebody-column-schoolName#data-tablebody-content-cell {
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+.campaign-school-performance-report__table
+  .data-tablebody-head-cell:first-child {
+  z-index: 11;
+}
+
+.campaign-school-performance-report__table .ops-campaigns-info-tooltip-message {
+  z-index: 2000;
+}
+
+.campaign-school-performance-report__header-label {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.campaign-school-performance-report__school {
+  text-align: left;
+}
+
+.campaign-school-performance-report__school-name {
+  color: #121619;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.campaign-school-performance-report__school-meta {
+  color: #667085;
+  font-size: 11px;
+}
+
+.campaign-school-performance-report__active-cell {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.campaign-school-performance-report__header-action {
+  color: #1a1a1a !important;
+  padding: 2px !important;
+}
+
+.campaign-school-performance-report__header-action-icon {
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid #1a1a1a;
+  display: inline-block;
+  height: 0;
+  width: 0;
+}
+
+.campaign-school-performance-report__footer {
+  background: #fff;
+  border-top: 1px solid #eaecef;
+  bottom: 0;
+  padding: 4px 16px;
+  position: sticky;
+  z-index: 1;
+}
+
+.campaign-school-performance-report__menu-paper {
+  border: 1px solid #dde1e6;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+  width: 176px;
+}
+
+.campaign-school-performance-report__menu-title {
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.campaign-school-performance-report__menu-title-text {
+  color: #1a71f6;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.campaign-school-performance-report__menu-item {
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  text-align: left;
+}
+
+.campaign-school-performance-report__menu-filter-item {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between !important;
+}
+
+@media (max-width: 900px) {
+  .campaign-school-performance-report__header {
+    padding: 16px 12px;
+  }
+
+  .campaign-school-performance-report__toolbar {
+    align-items: stretch;
+  }
+
+  .campaign-school-performance-report__controls {
+    align-items: flex-end;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .campaign-school-performance-report__search {
+    width: 100%;
+  }
+
+  .campaign-school-performance-report__actions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .campaign-school-performance-report__body {
+    padding: 12px;
+  }
+
+  .campaign-school-performance-report__table {
+    height: 420px;
+  }
+
+  .campaign-school-performance-report__date {
+    flex: 1 1 0;
+  }
+
+  .campaign-school-performance-report__export {
+    flex: 0 0 92px;
+  }
+
+  .campaign-school-performance-report__date
+    .school-list-date-range-button.MuiButton-root,
+  .campaign-school-performance-report__export
+    .school-list-export-button.MuiButton-root {
+    font-size: 11px;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    width: 100%;
+  }
+
+  .campaign-school-performance-report__date
+    .school-list-date-range-button.MuiButton-root {
+    min-width: 0 !important;
+  }
+
+  .campaign-school-performance-report__export
+    .school-list-export-button.MuiButton-root {
+    min-width: 0 !important;
+  }
+}

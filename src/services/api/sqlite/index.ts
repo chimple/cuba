@@ -1,4 +1,4 @@
-﻿export { SqliteApiAssignment } from './SqliteApi.assignment';
+export { SqliteApiAssignment } from './SqliteApi.assignment';
 export { SqliteApiCampaign } from './SqliteApi.campaign';
 export { SqliteApiCore } from './SqliteApi.core';
 export { SqliteApiCourse } from './SqliteApi.course';

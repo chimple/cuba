@@ -11,6 +11,9 @@ import {
   CampaignDashboardMetric,
   CampaignMessageReportParams,
   CampaignMessageReportResponse,
+  CampaignSchoolPerformanceReportParams,
+  CampaignSchoolPerformanceReportResponse,
+  CampaignSchoolPerformanceReportRow,
   CampaignRewardsReportParams,
   CampaignRewardsReportResponse,
   CampaignWhatsappLabelData,
@@ -27,9 +30,17 @@ import {
 } from './SupabaseApi.campaign.helpers';
 import { SupabaseApiCampaignMessaging } from './SupabaseApi.campaign.messaging';
 
-export interface SupabaseApiCampaignReports {
-  [key: string]: any;
-}
+export interface SupabaseApiCampaignReports {}
+
+/**
+ * Campaign school metrics are persisted with the campaign id in metric_window
+ * so both 7-day and campaign-day views can resolve from the same row set later.
+ */
+const buildCampaignSchoolMetricWindow = (
+  campaignId: string,
+  _metricWindow: '7d' | 'campaign_days',
+) => campaignId;
+
 export class SupabaseApiCampaignReports extends SupabaseApiCampaignMessaging {
   async getCampaignListingMetrics(
     campaignIds: string[],
@@ -384,6 +395,70 @@ export class SupabaseApiCampaignReports extends SupabaseApiCampaignMessaging {
         params,
         error,
       });
+      return emptyResponse;
+    }
+  }
+
+  /**
+   * Reads the stored campaign school metrics row and returns only the fields
+   * needed by the report UI. Presentation math stays outside the API layer.
+   */
+  async getCampaignSchoolPerformanceReport(
+    campaignId: string,
+    params: CampaignSchoolPerformanceReportParams = {},
+  ): Promise<CampaignSchoolPerformanceReportResponse> {
+    const emptyResponse: CampaignSchoolPerformanceReportResponse = { rows: [] };
+
+    if (!this.supabase || !campaignId.trim()) {
+      return emptyResponse;
+    }
+
+    const metricWindow = params.metricWindow ?? '7d';
+
+    try {
+      const { data, error } = await this.supabase
+        .from(TABLES.SchoolMetrics)
+        .select('*')
+        .eq(
+          'metric_window',
+          buildCampaignSchoolMetricWindow(campaignId.trim(), metricWindow),
+        )
+        .eq('is_deleted', false)
+        .order('school_name', { ascending: true });
+
+      if (error) {
+        logger.error('Error fetching campaign school performance report:', {
+          campaignId,
+          metricWindow,
+          error,
+        });
+        return emptyResponse;
+      }
+
+      const rows = (data ?? []).map<CampaignSchoolPerformanceReportRow>(
+        (row) => {
+          return {
+            schoolId: row.school_id ?? '',
+            schoolName: row.school_name ?? '',
+            udise: row.udise ?? null,
+            block: row.block ?? null,
+            activeStudents: row.active_students ?? 0,
+            activatedStudents: row.activated_students ?? 0,
+            activeStudentsHomework: row.active_students_homework ?? 0,
+            activeStudentsLearningPathway:
+              row.active_students_learning_pathway ?? 0,
+            avgTimeSpent: Number(row.avg_time_spent ?? 0),
+            avgActivitiesCompleted: Number(row.avg_activities_completed ?? 0),
+          };
+        },
+      );
+
+      return { rows };
+    } catch (error) {
+      logger.error(
+        'Exception fetching campaign school performance report:',
+        error,
+      );
       return emptyResponse;
     }
   }
