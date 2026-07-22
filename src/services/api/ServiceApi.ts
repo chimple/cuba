@@ -511,6 +511,78 @@ export type CampaignRewardsReportResponse = {
   total: number;
 };
 
+export type CampaignWhatsappLabelChat = {
+  chatId: string;
+  name: string;
+  memberCount: number;
+  providers: Array<'periskope' | 'maytapi'>;
+};
+
+export type CampaignWhatsappLabelData = {
+  chats: CampaignWhatsappLabelChat[];
+  total: number;
+  label: string;
+  providerErrors: number;
+};
+
+export type CampaignMessageReportSortKey =
+  | 'date'
+  | 'messageType'
+  | 'messagesSent'
+  | 'delivered'
+  | 'read'
+  | 'deliveryRate'
+  | 'readRate'
+  | 'pollParticipationRate';
+
+export type CampaignMessageReportParams = {
+  exportAll?: boolean;
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  pageSize?: number;
+  sortBy?: CampaignMessageReportSortKey;
+  sortOrder?: 'asc' | 'desc';
+};
+
+export type CampaignMessageReportSummary = {
+  whatsappGroups: number;
+  totalMembersReachable: number;
+  messagesSent: number;
+  deliveredMessages: number;
+  readMessages: number;
+  deliveredPollMessages: number;
+  pollResponses: number;
+  deliveryRate: number;
+  readRate: number;
+  pollParticipationRate: number;
+};
+
+export type CampaignMessageReportRow = {
+  id: string;
+  date: string;
+  messageType: 'daily_message' | 'poll';
+  messagesSent: number;
+  delivered: number;
+  read: number;
+  pollResponses: number;
+  deliveryRate: number;
+  readRate: number;
+  pollParticipationRate: number | null;
+};
+
+export type CampaignMessageReportResponse = {
+  summary: CampaignMessageReportSummary;
+  rows: CampaignMessageReportRow[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalRows: number;
+    totalPages: number;
+  };
+  filters: { fromDate: string | null; toDate: string | null };
+};
+
 export interface ServiceApi {
   /**
    * Creates a AutoUser for at_school and hybrid school models when a new school is created
@@ -2564,6 +2636,15 @@ export interface ServiceApi {
     campaignId: string,
     params?: CampaignRewardsReportParams,
   ): Promise<CampaignRewardsReportResponse>;
+
+  getCampaignWhatsappLabelData(
+    campaignId: string,
+  ): Promise<CampaignWhatsappLabelData>;
+
+  getCampaignMessageReport(
+    campaignId: string,
+    params?: CampaignMessageReportParams,
+  ): Promise<CampaignMessageReportResponse>;
 
   /**
    * Fetches the unique subjects used by a campaign's assignments.

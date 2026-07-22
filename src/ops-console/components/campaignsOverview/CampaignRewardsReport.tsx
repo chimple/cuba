@@ -12,15 +12,20 @@ import {
   useCampaignRewardsReportState,
 } from './CampaignRewardsReport.helpers';
 import type { CampaignRewardsPayload } from '../../../services/api/ServiceApi';
+import CampaignMessageReport from './CampaignReports_Messages/CampaignMessageReport';
 
 interface CampaignRewardsReportProps {
   campaignId?: string;
+  campaignName?: string;
+  campaignStartDate?: string;
   rewards?: string | CampaignRewardsPayload | null;
   totalStudents?: number | null;
 }
 
 const CampaignRewardsReport: React.FC<CampaignRewardsReportProps> = ({
   campaignId,
+  campaignName = '',
+  campaignStartDate,
   rewards,
   totalStudents,
 }) => {
@@ -59,7 +64,14 @@ const CampaignRewardsReport: React.FC<CampaignRewardsReportProps> = ({
         ))}
       </Box>
 
-      {report.selectedSubtab === CAMPAIGN_REPORT_SUBTAB_KEYS.ASSIGNMENTS ? (
+      {report.selectedSubtab === 'Messages' ? (
+        <CampaignMessageReport
+          key={campaignId}
+          campaignId={campaignId}
+          campaignName={campaignName}
+          campaignStartDate={campaignStartDate}
+        />
+      ) : report.selectedSubtab === CAMPAIGN_REPORT_SUBTAB_KEYS.ASSIGNMENTS ? (
         <CampaignAssignmentsReport
           campaignId={campaignId}
           totalStudents={totalStudents}

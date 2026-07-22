@@ -1,0 +1,501 @@
+.campaign-message-report {
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #21272a;
+}
+.campaign-message-report-header {
+  position: relative;
+  display: flex;
+  min-height: 77px;
+  box-sizing: border-box;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #d1d5db;
+}
+.campaign-message-report-header h2 {
+  margin: 0;
+  color: #1f1f1f;
+  font-size: 15px;
+  font-weight: 700;
+}
+.campaign-message-report-filters {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 8px;
+  min-width: 0;
+}
+.campaign-message-report-date-field {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+  color: #666;
+  font-size: 12px;
+  font-weight: 500;
+}
+.campaign-message-report-date-control {
+  position: relative;
+  display: block;
+  width: 120px;
+  min-width: 0;
+  height: 30px;
+  box-sizing: border-box;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.campaign-message-report-date-value {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  align-items: center;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0 26px 0 7px;
+  background: #fff;
+  color: #1f1f1f;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.campaign-message-report-calendar-icon {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  width: 12px !important;
+  height: 12px !important;
+  font-size: 12px !important;
+  color: #21272a;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+.campaign-message-report-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.campaign-message-report-actions::before {
+  width: 1px;
+  height: 24px;
+  background: #d1d5db;
+  content: '';
+}
+.campaign-message-report-actions button,
+.campaign-message-report-error button {
+  min-height: 30px;
+  border-radius: 6px;
+  padding: 0 13px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.campaign-message-report-clear {
+  width: 58px;
+  min-height: 29px !important;
+  height: 29px;
+  box-sizing: border-box;
+  border: 1px solid #1a71f6;
+  padding: 0 !important;
+  background: #fff;
+  color: #1a71f6;
+}
+.campaign-message-report-clear:disabled {
+  border-color: #d0d5dd;
+  color: #98a2b3;
+  cursor: default;
+}
+.campaign-message-report-export {
+  margin-left: 42px;
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  background: #fff;
+  color: #666;
+  gap: 8px;
+}
+.campaign-message-report-export {
+  min-width: 105px;
+  min-height: 29px !important;
+  height: 29px;
+  justify-content: center;
+  border-radius: 999px !important;
+  box-shadow: 0 2px 5px rgba(16, 24, 40, 0.08);
+  font-size: 14px !important;
+}
+.campaign-message-report-export svg {
+  color: #1a71f6;
+}
+.campaign-message-report-export:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.campaign-message-report-validation {
+  position: absolute;
+  right: 20px;
+  bottom: 2px;
+  margin: 0;
+  color: #d92d20;
+  font-size: 12px;
+}
+.campaign-message-report-content {
+  padding: 20px 14px 0;
+}
+.campaign-message-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.campaign-message-summary-card {
+  position: relative;
+  min-height: 95px;
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 17px 18px;
+  background: #f0f4fa;
+}
+.campaign-message-summary-card strong {
+  display: block;
+  margin-top: 17px;
+  color: #1a71f6;
+  font-size: 24px;
+  line-height: 24px;
+}
+.campaign-message-summary-label {
+  display: flex;
+  min-height: 15px;
+  align-items: flex-start;
+  justify-content: space-between;
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  gap: 5px;
+}
+.campaign-message-summary-skeleton,
+.campaign-message-table-skeleton {
+  display: block;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #dce8f8, #f5f8fc, #dce8f8);
+  background-size: 200% 100%;
+  animation: campaign-message-shimmer 1.2s infinite;
+}
+.campaign-message-summary-skeleton {
+  width: 72px;
+  height: 24px;
+  margin-bottom: 13px;
+}
+.campaign-message-report-table-frame {
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid #cfd5dc;
+  border-radius: 0;
+  background: #fff;
+}
+.campaign-message-report-table .data-tablebody-container {
+  width: 100%;
+  height: auto;
+  max-height: none;
+  box-sizing: border-box;
+  overflow-y: hidden;
+  overflow-x: auto;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  margin-bottom: 0;
+  scrollbar-gutter: auto;
+  box-shadow: none;
+}
+.campaign-message-report-table .MuiTable-root {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border-bottom: 0 !important;
+}
+.campaign-message-report-table .data-tablebody-head-cell {
+  height: 32px !important;
+  box-sizing: border-box;
+  padding: 0 8px !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 1px solid #dde1e6 !important;
+  background: #f0f4fa !important;
+  color: #21272a !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.2px;
+  text-transform: uppercase !important;
+  transform: none;
+  writing-mode: horizontal-tb;
+  box-shadow: none;
+}
+.campaign-message-report-table .data-tablebody-head-cell:last-child,
+.campaign-message-report-table .data-tablebody-cell:last-child,
+.campaign-message-report-table tbody .MuiTableCell-root:last-child {
+  border-right: 0 !important;
+}
+.campaign-message-report-table .data-tablebody-head-cell:first-child,
+.campaign-message-report-table .data-tablebody-head-cell:nth-child(2),
+.campaign-message-report-table .data-tablebody-cell:first-child,
+.campaign-message-report-table .data-tablebody-cell:nth-child(2),
+.campaign-message-report-table tbody .MuiTableCell-root:first-child,
+.campaign-message-report-table tbody .MuiTableCell-root:nth-child(2) {
+  text-align: left !important;
+}
+.campaign-message-report-table .data-tablebody-head-cell:first-child,
+.campaign-message-report-table .data-tablebody-cell:first-child,
+.campaign-message-report-table tbody .MuiTableCell-root:first-child {
+  border-left: 0 !important;
+}
+.campaign-message-report-table .data-tablebody-head-cell:nth-child(n + 3),
+.campaign-message-report-table .data-tablebody-cell:nth-child(n + 3),
+.campaign-message-report-table tbody .MuiTableCell-root:nth-child(n + 3) {
+  text-align: center !important;
+}
+.campaign-message-report-table .MuiTableSortLabel-root {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  text-transform: uppercase !important;
+}
+.campaign-message-report-table .MuiTableSortLabel-root img {
+  width: 6px !important;
+  height: 8px !important;
+  margin-left: 4px !important;
+}
+.campaign-message-report-table .data-tablebody-cell,
+.campaign-message-report-table tbody .MuiTableCell-root {
+  height: 32px !important;
+  box-sizing: border-box;
+  padding: 5px 8px !important;
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  background: #fff !important;
+  color: #21272a !important;
+  font-size: 11px !important;
+  line-height: 1.2;
+  transform: none;
+  writing-mode: horizontal-tb;
+  box-shadow: none;
+}
+.campaign-message-report-table .data-tablebody-row {
+  height: 32px !important;
+}
+.campaign-message-report-table tbody tr:not(:last-child) .MuiTableCell-root {
+  border-bottom: 1px solid #edf0f3 !important;
+}
+.campaign-message-report-table .data-tablebody-cell:first-child,
+.campaign-message-report-table .data-tablebody-cell:nth-child(2),
+.campaign-message-report-table tbody .MuiTableCell-root:first-child,
+.campaign-message-report-table tbody .MuiTableCell-root:nth-child(2) {
+  padding-left: 8px !important;
+}
+.campaign-message-report-table .data-tablebody-cell:nth-child(2),
+.campaign-message-report-table tbody .MuiTableCell-root:nth-child(2) {
+  font-weight: 500 !important;
+}
+.campaign-message-report-table
+  .data-tablebody-row:last-child
+  .data-tablebody-cell,
+.campaign-message-report-table tbody tr:last-child .MuiTableCell-root {
+  border-bottom: 0 !important;
+  box-shadow: none;
+}
+.campaign-message-report-table .data-tablebody-cell:nth-child(n + 6),
+.campaign-message-report-table tbody .MuiTableCell-root:nth-child(n + 6) {
+  font-weight: 500 !important;
+}
+.campaign-message-report-table > .MuiBox-root {
+  display: flex;
+  min-height: 59px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
+  border-top: 0;
+  color: #1a71f6;
+}
+.campaign-message-report-table .MuiPaginationItem-root {
+  color: #1a71f6;
+  font-size: 14px;
+  font-weight: 500;
+}
+.campaign-message-report-table .MuiPaginationItem-root.Mui-selected {
+  background: #f0f4fa;
+}
+.campaign-message-report-table .MuiPaginationItem-root.Mui-disabled {
+  color: #a7a7a7;
+}
+.campaign-message-table-empty {
+  margin-top: 0;
+  padding: 40px !important;
+  border: 0;
+  border-top: 1px solid #edf0f3;
+  background: #fff;
+  color: #667085 !important;
+  text-align: center !important;
+}
+.campaign-message-report-error {
+  padding: 48px 24px;
+  color: #b42318;
+  text-align: center;
+}
+.campaign-message-report-error button {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 13px;
+  background: #1a71f6;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+@keyframes campaign-message-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (max-width: 1100px) {
+  .campaign-message-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .campaign-message-report {
+    width: calc(100% - 32px);
+    box-sizing: border-box;
+    margin: 0 16px;
+  }
+  .campaign-message-report-header {
+    min-height: auto;
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .campaign-message-report-header,
+  .campaign-message-report-content {
+    padding: 16px;
+  }
+  .campaign-message-report-header h2 {
+    margin-bottom: 18px;
+  }
+  .campaign-message-report-filters,
+  .campaign-message-report-date-field {
+    width: 100%;
+  }
+  .campaign-message-report-filters {
+    margin-left: 0;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .campaign-message-report-date-field {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .campaign-message-report-date-control {
+    width: 100%;
+    height: 40px;
+  }
+  .campaign-message-report-calendar-icon {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .campaign-message-report-actions {
+    width: 100%;
+    margin-left: 0;
+    gap: 8px;
+    justify-content: space-between;
+  }
+  .campaign-message-report-actions::before {
+    display: none;
+  }
+  .campaign-message-report-actions button {
+    width: 105px;
+    min-width: 105px;
+    flex: 0 0 105px;
+  }
+  .campaign-message-report-export {
+    margin-left: 0;
+  }
+  .campaign-message-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .campaign-message-summary-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 96px;
+    padding: 16px 12px;
+    background: #eff6ff;
+  }
+  .campaign-message-summary-card strong,
+  .campaign-message-summary-card .campaign-message-summary-skeleton {
+    order: 1;
+  }
+  .campaign-message-summary-card strong {
+    margin-top: 0;
+  }
+  .campaign-message-summary-label {
+    order: 2;
+    margin-top: auto;
+  }
+  .campaign-message-summary-label .ops-campaigns-info-tooltip {
+    position: absolute;
+    top: 16px;
+    right: 12px;
+  }
+  .campaign-message-report-table .data-tablebody-container {
+    position: relative;
+    width: 100%;
+    margin-left: 0;
+  }
+  .campaign-message-report-table .data-tablebody-head-cell:first-child,
+  .campaign-message-report-table .data-tablebody-cell:first-child,
+  .campaign-message-report-table tbody .MuiTableCell-root:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    width: 132px !important;
+    min-width: 132px !important;
+    max-width: 132px !important;
+    box-shadow: none;
+    white-space: nowrap;
+  }
+  .campaign-message-report-table .data-tablebody-head-cell:first-child {
+    z-index: 3;
+    background: #f0f4fa !important;
+  }
+  .campaign-message-report-table .data-tablebody-cell:first-child {
+    background: #fff !important;
+  }
+  .campaign-message-report-table .data-tablebody-head-cell:nth-child(2),
+  .campaign-message-report-table .data-tablebody-cell:nth-child(2),
+  .campaign-message-report-table tbody .MuiTableCell-root:nth-child(2) {
+    min-width: 140px;
+    white-space: nowrap;
+  }
+  .campaign-message-report-table .data-tablebody-head-label,
+  .campaign-message-report-table .MuiTableSortLabel-label {
+    white-space: nowrap !important;
+  }
+  .campaign-message-report-table .data-tablebody-head-cell:nth-child(n + 3) {
+    min-width: 120px;
+  }
+  .campaign-message-report-table > .MuiBox-root {
+    margin: 0 !important;
+  }
+  .campaign-message-report-validation {
+    position: static;
+    margin: 8px 0 0;
+  }
+}
