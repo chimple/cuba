@@ -2066,15 +2066,13 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
       fetchCampaignProviderData(normalizedCampaignId, context.groupTargets),
       this.supabase
         .from(TABLES.SchoolMetrics)
-        .select('school_id, parents_in_group')
+        .select('parents_in_group')
         .in('school_id', context.schoolIds)
         .eq('metric_window', CAMPAIGN_REACH_METRIC_WINDOW)
         .eq('is_deleted', false),
       this.supabase
         .from('campaign_messaging')
-        .select(
-          'id, message, message_status, message_time, poll, poll_status, poll_time',
-        )
+        .select('id, message, message_time, poll, poll_time')
         .eq('campaign_id', normalizedCampaignId)
         .eq('is_deleted', false),
     ]);
@@ -2092,10 +2090,8 @@ export class SupabaseApiCampaign extends SupabaseApiOps {
     ).map((row) => ({
       id: row.id,
       message: row.message,
-      messageStatus: row.message_status,
       messageTime: row.message_time,
       poll: row.poll,
-      pollStatus: row.poll_status,
       pollTime: row.poll_time,
     }));
 

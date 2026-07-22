@@ -232,19 +232,15 @@ describe('CampaignReports_Messages module', () => {
       {
         id: 'source-1',
         message: 'Daily update',
-        messageStatus: 'sent',
         messageTime: '2026-07-20',
         poll: null,
-        pollStatus: null,
         pollTime: null,
       },
       {
         id: 'source-2',
         message: null,
-        messageStatus: null,
         messageTime: null,
         poll: { question: 'Ready?' },
-        pollStatus: 'sent',
         pollTime: '2026-07-21',
       },
     ];

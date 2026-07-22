@@ -260,10 +260,8 @@ type ProviderName = 'periskope';
 export type CampaignMessagingProviderSource = {
   id: string;
   message: string | null;
-  messageStatus: string | null;
   messageTime: string | null;
   poll: ProviderJsonValue;
-  pollStatus: string | null;
   pollTime: string | null;
 };
 
@@ -394,7 +392,7 @@ const buildSourceRows = (
   const rows: CampaignMessageReportRow[] = [];
   const dailyDate = dateKey(source.messageTime);
   const dailyBody = source.message?.trim() ?? '';
-  if (dailyDate && source.messageStatus === 'sent') {
+  if (dailyDate && dailyBody) {
     rows.push(
       aggregateSourceMessages(
         `${dailyDate}-daily_message-${source.id}`,
@@ -413,7 +411,7 @@ const buildSourceRows = (
   const poll = asRecord(source.poll ?? null);
   const pollQuestion =
     getString(poll?.question) || getString(poll?.pollName) || dailyBody;
-  if (pollDate && source.pollStatus === 'sent') {
+  if (pollDate && poll) {
     rows.push(
       aggregateSourceMessages(
         `${pollDate}-poll-${source.id}`,
