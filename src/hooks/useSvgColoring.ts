@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Util } from '../../utility/util';
-import { EVENTS } from '../../common/constants';
-import { getAppPathname } from '../../utility/routerLocation';
+import { Util } from '../utility/util';
+import { EVENTS } from '../common/constants';
+import { getAppPathname } from '../utility/routerLocation';
 
 export type ColoredRegions = Record<string, string>;
 

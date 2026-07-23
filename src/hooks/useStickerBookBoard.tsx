@@ -1,0 +1,304 @@
+import React, { useEffect, useMemo, useRef, useState, useId } from 'react';
+import { t } from 'i18next';
+import { EVENTS } from '../common/constants';
+import { Util } from '../utility/util';
+import { SVGScene } from '../components/coloring/SVGScene';
+import {
+  ParsedSvg,
+  parseSvg,
+  ensureNavImage,
+  applyStickerVisibilityStrict,
+  sanitizeSvg,
+} from '../components/common/SvgHelpers';
+import NewBackButton from '../components/common/NewBackButton';
+import logger from '../utility/logger';
+import { getAppPathname } from '../utility/routerLocation';
+import StickerBookActions from '../components/stickerBook/StickerBookActions';
+
+type Props = {
+  title: string;
+  svgRaw: string | null;
+  svgUrl?: string;
+  collectedStickers: string[];
+  nextStickerId?: string;
+  isLocked: boolean;
+  canPaint?: boolean;
+  canSave: boolean;
+  onSave?: () => void;
+  canGoPrev: boolean;
+  canGoNext: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+  onBack: () => void;
+  onPaint?: () => void;
+};
+
+// Renders raw SVG markup inline so we can manipulate the DOM later.
+const InlineSvg = React.forwardRef<
+  SVGSVGElement,
+  {
+    svg: ParsedSvg;
+    className?: string;
+    style?: React.CSSProperties;
+    hideUntilReady?: boolean;
+    overrideAttrs?: Record<string, string>;
+  }
+>(({ svg, className, style, hideUntilReady, overrideAttrs }, ref) => {
+  const localRef = useRef<SVGSVGElement | null>(null);
+
+  // Expose the SVG element to parent components.
+  React.useImperativeHandle(ref, () => localRef.current as SVGSVGElement, []);
+
+  useEffect(() => {
+    const el = localRef.current;
+    if (!el) return;
+    // Apply base attrs, but allow overrides (and skip inline styles).
+    if (className) el.setAttribute('class', className);
+    const overrideKeys = new Set(Object.keys(overrideAttrs ?? {}));
+    Object.entries(svg.attrs).forEach(([name, value]) => {
+      if (name === 'style') return;
+      if (overrideKeys.has(name)) return;
+      el.setAttribute(name, value);
+    });
+    Object.entries(overrideAttrs ?? {}).forEach(([name, value]) => {
+      el.setAttribute(name, value);
+    });
+  }, [svg, className, overrideAttrs]);
+  const safeSvg = sanitizeSvg(svg.inner);
+  // Allow the caller to temporarily hide the SVG until styling is applied.
+  const mergedStyle: React.CSSProperties = hideUntilReady
+    ? { visibility: 'hidden', ...style }
+    : style || {};
+  return (
+    <svg
+      ref={localRef}
+      className="sticker-book-svg"
+      style={mergedStyle}
+      dangerouslySetInnerHTML={{ __html: safeSvg }}
+    />
+  );
+});
+
+InlineSvg.displayName = 'InlineSvg';
+
+export const useStickerBookBoard = ({
+  title,
+  svgRaw,
+  svgUrl,
+  collectedStickers,
+  nextStickerId,
+  isLocked,
+  canPaint = false,
+  canSave,
+  onSave,
+  canGoPrev,
+  canGoNext,
+  onPrev,
+  onNext,
+  onBack,
+  onPaint,
+}: Props) => {
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  const boardSvgRef = useRef<SVGSVGElement | null>(null);
+  const clipPathId = useId();
+  const [boardSvgRaw, setBoardSvgRaw] = useState<string | null>(null);
+  const [fallbackSvgRaw, setFallbackSvgRaw] = useState<string | null>(null);
+  const [showLockedSvg, setShowLockedSvg] = useState<boolean>(true);
+  const STICKER_BOOK_CLIP_PATH =
+    'M 587 57 C 590.314 57 593 59.6863 593 63 V 340.2 H 91 V 63 C 91 59.6863 93.6863 57 97 57 H 587 Z';
+  const TITLE_AREA_COORDS = { x: '68', y: '1', width: '547', height: '56' };
+  const logPayload = {
+    user_id: Util.getCurrentStudent()?.id ?? null,
+    book_title: title,
+    collected_count: collectedStickers.length,
+    next_sticker_id: nextStickerId ?? null,
+  };
+
+  const handlePrev = () => {
+    Util.logEvent(EVENTS.STICKER_BOOK_PAGE_PREV, logPayload);
+    onPrev();
+  };
+
+  const handleNext = () => {
+    Util.logEvent(EVENTS.STICKER_BOOK_PAGE_NEXT, logPayload);
+    onNext();
+  };
+
+  const handleBack = () => {
+    Util.logEvent(EVENTS.STICKER_BOOK_PAGE_BACK, logPayload);
+    onBack();
+  };
+
+  const handlePaint = () => {
+    Util.logEvent(EVENTS.PAINT_MODE_BUTTON_TAP, {
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      book_title: title,
+      page_path: getAppPathname(),
+      source: 'sticker_book',
+    });
+    if (onPaint) onPaint();
+  };
+
+  const handleSave = () => {
+    Util.logEvent(EVENTS.PAINT_SAVE_TAP, {
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      book_title: title,
+      page_path: getAppPathname(),
+      source: 'sticker_book',
+    });
+    Util.logEvent(EVENTS.PAINT_IMAGE_SAVED, {
+      user_id: Util.getCurrentStudent()?.id ?? null,
+      book_title: title,
+      page_path: getAppPathname(),
+      source: 'sticker_book',
+    });
+    if (onSave) onSave();
+  };
+
+  const parsedBoardSvg = useMemo(() => {
+    if (!boardSvgRaw) return null;
+    return parseSvg(boardSvgRaw);
+  }, [boardSvgRaw]);
+  const boardViewBox = parsedBoardSvg?.attrs?.viewBox;
+
+  // Load board frame SVG once.
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/assets/icons/StickerBookBoard.svg')
+      .then((res) => res.text())
+      .then((text) => {
+        if (isMounted) setBoardSvgRaw(text);
+      })
+      .catch((e) => logger.error('Failed to load board svg:', e));
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Reset any previous fallback SVG when the source changes to avoid flashing
+  // stale artwork while the next SVG loads.
+  useEffect(() => {
+    setFallbackSvgRaw(null);
+  }, [svgUrl, svgRaw]);
+
+  // Fallback: ensure we have an SVG for locked mode even if parent hasn't cached it yet.
+  useEffect(() => {
+    let isMounted = true;
+    if (isLocked || svgRaw || !svgUrl) return;
+    fetch(svgUrl)
+      .then((res) => res.text())
+      .then((text) => {
+        if (isMounted) setFallbackSvgRaw(text);
+      })
+      .catch((e) => logger.error('Failed to load sticker book svg:', e));
+    return () => {
+      isMounted = false;
+    };
+  }, [isLocked, svgRaw, svgUrl]);
+
+  // In locked mode, show SVG immediately once available.
+  useEffect(() => {
+    if (!isLocked) {
+      setShowLockedSvg(true);
+      return;
+    }
+    if (!svgRaw) {
+      setShowLockedSvg(false);
+      return;
+    }
+    setShowLockedSvg(true);
+  }, [isLocked, svgRaw]);
+
+  const preparedSvgRaw = useMemo(() => {
+    if (!svgRaw || isLocked) return svgRaw;
+
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svgRaw, 'image/svg+xml');
+      const svg = doc.querySelector('svg') as SVGSVGElement | null;
+      if (!svg) return svgRaw;
+
+      applyStickerVisibilityStrict(
+        svg,
+        collectedStickers,
+        nextStickerId,
+        true,
+        false,
+      );
+
+      return new XMLSerializer().serializeToString(svg);
+    } catch {
+      return svgRaw;
+    }
+  }, [collectedStickers, isLocked, nextStickerId, svgRaw]);
+
+  const unlockedSvgRaw = preparedSvgRaw ?? fallbackSvgRaw;
+
+  const parsedSvg = useMemo(() => {
+    const effectiveSvgRaw = isLocked ? (svgRaw ?? null) : unlockedSvgRaw;
+    if (!effectiveSvgRaw) return null;
+    return parseSvg(effectiveSvgRaw);
+  }, [isLocked, svgRaw, unlockedSvgRaw]);
+
+  // Inject navigation arrows into the board SVG.
+  useEffect(() => {
+    const svg = boardSvgRef.current;
+    if (!svg || !parsedBoardSvg) return;
+
+    ensureNavImage(
+      svg,
+      'sticker-book-nav-left',
+      canGoPrev
+        ? '/assets/icons/StickerBookBackward.svg'
+        : '/assets/icons/InactiveStickerBookBackward.svg',
+      26,
+      180,
+      48,
+      48,
+      canGoPrev,
+      handlePrev,
+    );
+
+    ensureNavImage(
+      svg,
+      'sticker-book-nav-right',
+      canGoNext
+        ? '/assets/icons/StickerBookForward.svg'
+        : '/assets/icons/InactiveStickerBookForward.svg',
+      609,
+      180,
+      48,
+      48,
+      canGoNext,
+      handleNext,
+    );
+  }, [canGoPrev, canGoNext, handlePrev, handleNext, parsedBoardSvg]);
+  return {
+    InlineSvg,
+    NewBackButton,
+    STICKER_BOOK_CLIP_PATH,
+    SVGScene,
+    StickerBookActions,
+    TITLE_AREA_COORDS,
+    boardSvgRef,
+    boardViewBox,
+    canPaint,
+    canSave,
+    clipPathId,
+    collectedStickers,
+    handleBack,
+    handlePaint,
+    handleSave,
+    isLocked,
+    nextStickerId,
+    onSave,
+    parsedBoardSvg,
+    parsedSvg,
+    sanitizeSvg,
+    showLockedSvg,
+    svgRef,
+    svgUrl,
+    t,
+    title,
+  };
+};

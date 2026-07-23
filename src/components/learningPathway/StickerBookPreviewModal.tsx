@@ -6,7 +6,6 @@ import StickerBookPreviewStage from './StickerBookPreviewStage';
 import StickerBookPreviewFooter from './StickerBookPreviewFooter';
 import StickerBookSaveModal from '../stickerBook/StickerBookSaveModal';
 import StickerBookToast from '../stickerBook/StickerBookToast';
-import StickerBookCompletionModal from './StickerBookCompletionModal';
 import AudioButton from '../common/AudioButton';
 import { AudioUtil } from '../../utility/AudioUtil';
 import {
@@ -15,47 +14,12 @@ import {
   type StickerBookPreviewMode,
   type StickerBookPreviewVariant,
 } from './StickerBookPreviewModal.logic';
-
-const STICKER_BOOK_POPUP_SOUND_EFFECT_URL =
-  '/assets/audios/common/generic_sound_effect.mp3';
-
-async function playStickerBookPopupAudio(
-  folder: string,
-  clipName: string,
-  fallbackText: string,
-) {
-  const audioUrl = await AudioUtil.getLocalizedAudioUrl(folder, clipName);
-
-  return AudioUtil.playAudioOrTts({
-    audioUrl,
-    text: fallbackText,
-  });
-}
-
-function getStickerBookAudioConfig(
-  mode: StickerBookPreviewMode,
-  variant: StickerBookPreviewVariant,
-) {
-  if (mode === 'completion') {
-    return {
-      folder: 'stickerbookThirdPopup',
-      clipName: 'popup_all_stickers_collected',
-    };
-  }
-
-  if (variant === 'drag_collect') {
-    return {
-      folder: 'stickerbookSecondPopup',
-      clipName: 'popup_sticker_collected',
-    };
-  }
-
-  return {
-    folder: 'stickerbookFirstPopup',
-    clipName: 'popup_current_sticker',
-  };
-}
-
+import StickerBookPreviewCompletionLayer from './StickerBookPreviewCompletionLayer';
+import {
+  getStickerBookAudioConfig,
+  playStickerBookPopupAudio,
+  STICKER_BOOK_POPUP_SOUND_EFFECT_URL,
+} from './StickerBookPreviewModal.audio';
 interface StickerBookPreviewModalProps {
   data: StickerBookModalData;
   variant?: StickerBookPreviewVariant;
@@ -72,7 +36,6 @@ interface StickerBookPreviewModalProps {
     endScale: number;
   } | null;
 }
-
 const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
   data,
   variant = 'preview',
@@ -86,23 +49,19 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
     () => getStickerBookAudioConfig(mode, variant),
     [mode, variant],
   );
-
   const fallbackText = useMemo(() => {
     if (mode === 'completion') {
       return t(
         'Congratulations! Your Stickerbook Page is complete! You can either save & share this page with your family & friends or start coloring this page.',
       );
     }
-
     if (variant === 'drag_collect') {
       return t('Yay! You have earned a sticker!');
     }
-
     return `${t('Finish the pathway & collect this')} ${
       data.nextStickerName || t('Sticker')
     }.`;
   }, [data.nextStickerName, mode, variant]);
-
   useEffect(() => {
     void AudioUtil.playAudioOrTts({
       audioUrl: STICKER_BOOK_POPUP_SOUND_EFFECT_URL,
@@ -116,12 +75,10 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
         );
       },
     });
-
     return () => {
       void AudioUtil.stopAudioUrlOrTtsPlayback();
     };
   }, [audioConfig.clipName, audioConfig.folder, fallbackText]);
-
   const handleReplayAudio = () => {
     void AudioUtil.stopAudioUrlOrTtsPlayback();
     void playStickerBookPopupAudio(
@@ -130,35 +87,28 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
       fallbackText,
     );
   };
-
   const handleClose = (
     reason: 'close_button' | 'backdrop' | 'acknowledge_button',
   ) => {
     void AudioUtil.stopAudioUrlOrTtsPlayback();
     onClose(reason);
   };
-
   useEffect(() => {
     const calculateScale = () => {
       //Desktop default values: 46rem width (736px), 39rem height (~624px)
-
       const baseWidth = 736;
       const baseHeight = 624;
-
       const maxWidth = window.innerWidth * 0.96;
       const maxHeight = window.innerHeight * 0.92;
-
       const scaleX = maxWidth / baseWidth;
       const scaleY = maxHeight / baseHeight;
       const newScale = Math.min(1, scaleX, scaleY);
       setScale(newScale);
     };
-
     calculateScale();
     window.addEventListener('resize', calculateScale);
     return () => window.removeEventListener('resize', calculateScale);
   }, []);
-
   const {
     isDragVariant,
     isCompletionMode,
@@ -199,42 +149,25 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
     mode,
     scale,
   });
-
   if (isCompletionMode) {
     return (
-      <>
-        {!showSaveModal && !isSaving && (
-          <StickerBookCompletionModal
-            svgMarkup={sceneSvgMarkup}
-            isSaving={isSaving}
-            bookSvgRef={bookSvgRef}
-            onClose={() => handleClose('close_button')}
-            onBackdropClose={() => handleClose('backdrop')}
-            onReplayAudio={handleReplayAudio}
-            onSave={handleSave}
-            onPaint={handlePaint}
-          />
-        )}
-        <StickerBookSaveModal
-          open={showSaveModal}
-          svgMarkup={savedSvgMarkup}
-          onClose={closeCompletionSaveModal}
-          onAnimationComplete={handleSaveAndShare}
-          autoClose={false}
-        />
-        <StickerBookToast
-          isOpen={showSaveToast}
-          text={t(
-            'Yay! Your creation is saved, share it with your family & friends!',
-          )}
-          image="/assets/icons/Confirmation.svg"
-          duration={4000}
-          onClose={closeSaveToast}
-        />
-      </>
+      <StickerBookPreviewCompletionLayer
+        bookSvgRef={bookSvgRef}
+        closeCompletionSaveModal={closeCompletionSaveModal}
+        closeSaveToast={closeSaveToast}
+        handleClose={handleClose}
+        handlePaint={handlePaint}
+        handleReplayAudio={handleReplayAudio}
+        handleSave={handleSave}
+        handleSaveAndShare={handleSaveAndShare}
+        isSaving={isSaving}
+        savedSvgMarkup={savedSvgMarkup}
+        sceneSvgMarkup={sceneSvgMarkup}
+        showSaveModal={showSaveModal}
+        showSaveToast={showSaveToast}
+      />
     );
   }
-
   return (
     <div
       className="StickerBookPreviewModal-overlay"
@@ -305,7 +238,6 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
                 data-testid="StickerBookPreviewModal-close-icon"
               />
             </button>
-
             <StickerBookPreviewStage
               isDragVariant={isDragVariant}
               isLoading={isLoading}
@@ -328,7 +260,6 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
               onDragPointerUp={handleDragPointerUp}
               onDragPointerCancel={handleDragPointerCancel}
             />
-
             <StickerBookPreviewFooter
               isCompletionMode={isCompletionMode}
               isDragVariant={isDragVariant}
@@ -359,7 +290,5 @@ const StickerBookPreviewModal: FC<StickerBookPreviewModalProps> = ({
     </div>
   );
 };
-
 export default StickerBookPreviewModal;
-
 export type { StickerBookModalData };

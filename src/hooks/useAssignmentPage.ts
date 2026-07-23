@@ -1,0 +1,572 @@
+import { IonButton } from '@ionic/react';
+import JoinClass from '../components/assignment/JoinClass';
+import { useCallback, useEffect, useState, useRef } from 'react';
+import {
+  ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+  DOWNLOADED_LESSON_ID,
+  DOWNLOAD_BUTTON_LOADING_STATUS,
+  HOMEHEADERLIST,
+  LIVE_QUIZ,
+  PAGES,
+  SOURCE,
+  TABLES,
+  TableTypes,
+  STUDENT_RESULT,
+} from '../common/constants';
+import { useHistory } from 'react-router';
+import { App } from '@capacitor/app';
+import LessonSlider from '../components/LessonSlider';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { t } from 'i18next';
+import { Util } from '../utility/util';
+import { Keyboard } from '@capacitor/keyboard';
+import { Capacitor } from '@capacitor/core';
+import SkeltonLoading from '../components/SkeltonLoading';
+import { TfiDownload } from 'react-icons/tfi';
+import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
+import HomeworkPathway from '../components/assignment/HomeworkPathway';
+import { useFeatureIsOn, useGrowthBook } from '@growthbook/growthbook-react';
+import HomeworkCompleteModal from '../components/assignment/HomeworkCompleteModal';
+import { useGbContext } from '../growthbook/Growthbook';
+import logger from '../utility/logger';
+import ActivationLessonBanner from '../components/activationLesson/ActivationLessonBanner';
+import { fetchLessonsById } from '../components/assignment/homeworkPathwayHelpers';
+
+const waitForJoinRefresh = (delayMs: number) =>
+  new Promise((resolve) => setTimeout(resolve, delayMs));
+
+// Extend props to accept a callback for new assignments.
+interface AssignmentPageProps {
+  assignmentCount: any;
+  onPlayMoreHomework?: () => void;
+}
+
+export const useAssignmentPage = ({
+  assignmentCount,
+  onPlayMoreHomework, // ✅ grab it from props
+}: AssignmentPageProps) => {
+  const growthbook = useGrowthBook();
+  const [loading, setLoading] = useState(true);
+  const [showActivationLessonBanner, setShowActivationLessonBanner] =
+    useState<boolean>(false);
+  const [isLinked, setIsLinked] = useState(true);
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
+  const [lessons, setLessons] = useState<TableTypes<'lesson'>[]>([]);
+  const [lessonChapterMap, setLessonChapterMap] = useState<{
+    [lessonId: string]: TableTypes<'chapter'>;
+  }>({});
+  const [schoolName, setSchoolName] = useState<string>('');
+  const history = useHistory();
+  const api = ServiceConfig.getI().apiHandler;
+  const [lessonResultMap, setLessonResultMap] = useState<{
+    [lessonDocId: string]: TableTypes<'result'>;
+  }>({});
+  const [downloadButtonLoading, setDownloadButtonLoading] = useState(false);
+  const [isInputFocus, setIsInputFocus] = useState(false);
+  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
+  const [showDownloadHomeworkButton, setShowDownloadHomeworkButton] =
+    useState(true);
+  const [assignments, setAssignments] = useState<TableTypes<'assignment'>[]>(
+    [],
+  );
+  const [assignmentLessonCourseMap, setAssignmentLessonCourseMap] = useState<{
+    [lessonId: string]: { course_id: string };
+  }>({});
+  const [showHomeworkCompleteModal, setShowHomeworkCompleteModal] =
+    useState(false);
+  const [assignmentRefreshToken, setAssignmentRefreshToken] = useState(0);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+  const isMounted = useRef(true);
+  const { gbUpdated, setGbUpdated } = useGbContext();
+
+  const isHomeworkPathwayOnHook = useFeatureIsOn('homework-learning-pathway');
+  const [isHomeworkPathwayOnLocal, setIsHomeworkPathwayOnLocal] =
+    useState<boolean>(false);
+
+  // used to avoid re-evaluating for same student repeatedly
+  const lastEvaluatedStudentId = useRef<string | null>(null);
+  const [assignmentSyncDone, setAssignmentSyncDone] = useState(false);
+
+  const updateLessonChapterAndCourseMaps = useCallback(
+    async (assignments: TableTypes<'assignment'>[]) => {
+      // Update lessonChapterMap
+      const chapterIds = Array.from(
+        new Set(
+          assignments
+            .map((assignment) => assignment.chapter_id)
+            .filter((id): id is string => !!id), // Filter out any null or undefined ids
+        ),
+      );
+
+      const chapters = await api.getChaptersByIds(chapterIds);
+
+      const chapterIdMap = chapters.reduce(
+        (acc, chapter) => {
+          acc[chapter.id] = chapter;
+          return acc;
+        },
+        {} as { [id: string]: TableTypes<'chapter'> },
+      );
+
+      // Build the final lessonChapterMap by iterating through assignments
+      const chapterMap: { [lessonId: string]: TableTypes<'chapter'> } = {};
+      assignments.forEach((assignment) => {
+        if (assignment.lesson_id && assignment.chapter_id) {
+          const chapter = chapterIdMap[assignment.chapter_id];
+          if (chapter) {
+            chapterMap[assignment.lesson_id] = chapter;
+          }
+        }
+      });
+      setLessonChapterMap(chapterMap);
+
+      // Update assignmentLessonCourseMap
+      const lessonCourseMap: { [lessonId: string]: { course_id: string } } = {};
+      assignments.forEach((assignment) => {
+        if (assignment.lesson_id && assignment.course_id) {
+          lessonCourseMap[assignment.lesson_id] = {
+            course_id: assignment.course_id,
+          };
+        }
+      });
+      setAssignmentLessonCourseMap(lessonCourseMap);
+    },
+    [api],
+  );
+
+  const init = useCallback(
+    async (fromCache: boolean = true, fullRefresh: boolean = true) => {
+      if (fullRefresh) setLoading(true);
+
+      const student = Util.getCurrentStudent();
+      if (!student) {
+        history.replace(PAGES.SELECT_MODE);
+        return;
+      }
+      const hasStudentResult =
+        typeof api.hasStudentResult === 'function'
+          ? await api.hasStudentResult(student.id)
+          : true;
+
+      let playedNow = false;
+      try {
+        const studentResultStr = sessionStorage.getItem(STUDENT_RESULT);
+        if (studentResultStr) {
+          const studentResultObj = JSON.parse(studentResultStr);
+          if (studentResultObj && studentResultObj[student.id] === true) {
+            playedNow = true;
+          }
+        }
+      } catch (e) {
+        logger.error('Failed to parse studentResult from sessionStorage', e);
+      }
+
+      setShowActivationLessonBanner(!hasStudentResult && !playedNow);
+      const linkedData = await api.getStudentClassesAndSchools(student.id);
+      if (!linkedData?.classes.length) {
+        setIsLinked(false);
+        setLoading(false);
+        return;
+      }
+      const classDoc = linkedData.classes[0];
+      setCurrentClass(classDoc);
+      Util.setCurrentClass(classDoc);
+      setSchoolName(
+        linkedData.schools.find((s) => s.id === classDoc.school_id)?.name || '',
+      );
+      const classId = classDoc.id;
+      const studentId = student.id;
+      // Fetch assignments
+      try {
+        const all = await api.getPendingAssignments(classId, studentId);
+        const homeworkAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
+        const lessonById = await fetchLessonsById(
+          homeworkAssignments.map((assignment) => assignment.lesson_id),
+          api.getLessonsBylessonIds.bind(api),
+        );
+        const resolvedAssignments = homeworkAssignments.map((assignment) => {
+          const lesson = assignment.lesson_id
+            ? lessonById.get(assignment.lesson_id)
+            : null;
+          if (!lesson) {
+            logger.warn(
+              '[AssignmentPage] Skipping stale pending homework assignment with missing lesson metadata',
+              {
+                assignmentId: assignment.id ?? null,
+                lessonId: assignment.lesson_id ?? null,
+              },
+            );
+            return null;
+          }
+
+          return { assignment, lesson };
+        });
+        const validAssignments = resolvedAssignments
+          .filter(
+            (
+              item,
+            ): item is {
+              assignment: TableTypes<'assignment'>;
+              lesson: TableTypes<'lesson'>;
+            } => item !== null,
+          )
+          .map((item) => item.assignment);
+        // Update only if length or content has changed
+        const assignmentIds = assignments.map((a) => a.id);
+        const newAssignments = validAssignments.filter(
+          (a) => !assignmentIds.includes(a.id),
+        );
+        const updatedAssignments = fullRefresh
+          ? validAssignments
+          : [...assignments, ...newAssignments];
+
+        setAssignments(updatedAssignments);
+        assignmentCount(updatedAssignments.length);
+
+        await updateLessonChapterAndCourseMaps(updatedAssignments);
+
+        const newLessonMap = new Map(
+          resolvedAssignments
+            .filter(
+              (
+                item,
+              ): item is {
+                assignment: TableTypes<'assignment'>;
+                lesson: TableTypes<'lesson'>;
+              } => item !== null,
+            )
+            .map((item) => [item.assignment.id, item.lesson] as const),
+        );
+        const filteredLessons = newAssignments
+          .map((assignment) => newLessonMap.get(assignment.id))
+          .filter(
+            (lesson): lesson is TableTypes<'lesson'> => lesson !== undefined,
+          );
+        const mergedLessons = fullRefresh
+          ? filteredLessons
+          : [...lessons, ...filteredLessons];
+        setLessons(mergedLessons);
+      } catch (error) {
+        logger.error('Failed to load pending assignments:', error);
+        if (fullRefresh) {
+          setAssignments([]);
+          assignmentCount(0);
+          setLessonChapterMap({});
+          setAssignmentLessonCourseMap({});
+        }
+      }
+      setLoading(false);
+      setIsLinked(true);
+    },
+    [api, history, assignmentCount, updateLessonChapterAndCourseMaps],
+  );
+
+  // --- Debounced handler for assignment updates ---
+  const handleAssignmentUpdate = useCallback(() => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    debounceTimer.current = setTimeout(() => {
+      if (isMounted.current) {
+        // One debounced refresh token is enough to tell HomeworkPathway to
+        // re-read the current assignments without triggering duplicate reloads.
+        setAssignmentRefreshToken((prev) => prev + 1);
+        init();
+      }
+    }, 1000);
+  }, [init]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+
+    const appStateListener = App.addListener(
+      'appStateChange',
+      async ({ isActive }) => {
+        if (!isActive || !isMounted.current) return;
+
+        try {
+          await api.syncDB([TABLES.Assignment]);
+          setAssignmentRefreshToken((prev) => prev + 1);
+          await init(false, true);
+        } catch {
+          // Ignore resume sync failures and let the next refresh retry.
+        }
+      },
+    );
+
+    return () => {
+      void Promise.resolve(appStateListener).then((listener) =>
+        listener?.remove?.(),
+      );
+    };
+  }, [api, init]);
+
+  const refreshAssignmentPageAfterJoin = useCallback(async () => {
+    const student = Util.getCurrentStudent();
+    if (!student) {
+      history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+
+    setLoading(true);
+
+    const retryDelays = [0, 500, 1000, 2000];
+    for (const delayMs of retryDelays) {
+      if (delayMs > 0) {
+        await waitForJoinRefresh(delayMs);
+      }
+
+      const linkedData = await api.getStudentClassesAndSchools(student.id);
+      if (linkedData?.classes?.length) {
+        await init(false, true);
+        return;
+      }
+    }
+
+    await init(false, true);
+  }, [api, history, init]);
+
+  useEffect(() => {
+    if (assignmentSyncDone && !loading) {
+      setShowHomeworkCompleteModal(assignments.length === 0);
+    }
+  }, [assignmentSyncDone, loading, assignments.length]);
+
+  // --- Listener setup ---
+  useEffect(() => {
+    isMounted.current = true;
+    const student = Util.getCurrentStudent();
+    if (!currentClass || !student) return;
+
+    api.assignmentListner(currentClass.id, async (payload) => {
+      if (payload && payload.type !== LIVE_QUIZ) {
+        await updateLessonChapterAndCourseMaps([...assignments, payload]);
+        handleAssignmentUpdate();
+      }
+    });
+
+    api.assignmentUserListner(student.id, async (assignmentUser) => {
+      if (assignmentUser) {
+        const assignment = await api.getAssignmentById(
+          assignmentUser.assignment_id,
+        );
+        if (isMounted.current && assignment && assignment.type !== LIVE_QUIZ) {
+          await updateLessonChapterAndCourseMaps([...assignments, assignment]);
+          handleAssignmentUpdate();
+        }
+      }
+    });
+
+    return () => {
+      isMounted.current = false;
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+      api.removeAssignmentChannel();
+    };
+  }, [
+    currentClass,
+    api,
+    handleAssignmentUpdate,
+    assignments,
+    updateLessonChapterAndCourseMaps,
+  ]);
+
+  useEffect(() => {
+    Util.loadBackgroundImage();
+    init(false, true);
+
+    api
+      .syncDB([TABLES.Assignment])
+      .then(() => {
+        setAssignmentSyncDone(true);
+        init(false, false);
+      })
+      .catch((error) => {
+        logger.error('Error syncing assignments:', error);
+      });
+  }, []);
+
+  useEffect(() => {
+    checkAllHomeworkDownloaded();
+  }, [lessons]);
+
+  const checkAllHomeworkDownloaded = async () => {
+    if (lessons.length === 0) {
+      setShowDownloadHomeworkButton(false);
+      return;
+    }
+    const downloadedLessonIds = JSON.parse(
+      localStorage.getItem(DOWNLOADED_LESSON_ID) || '[]',
+    );
+    const allLessonIdPresent = lessons.every((lesson) =>
+      downloadedLessonIds.includes(lesson.cocos_lesson_id),
+    );
+    setShowDownloadHomeworkButton(!allLessonIdPresent);
+    setDownloadButtonLoading(
+      JSON.parse(
+        localStorage.getItem(DOWNLOAD_BUTTON_LOADING_STATUS) || 'false',
+      ),
+    );
+    window.removeEventListener(
+      ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+      checkAllHomeworkDownloaded,
+    );
+  };
+  async function downloadAllHomeWork(lessons: TableTypes<'lesson'>[]) {
+    setDownloadButtonLoading(true);
+    localStorage.setItem(DOWNLOAD_BUTTON_LOADING_STATUS, JSON.stringify(true));
+    try {
+      const storedLessonIds = Util.getStoredLessonIds();
+      const filteredLessons = lessons.filter((lesson) => {
+        const lessonId = Util.getLessonBundleId(lesson);
+        return !!lessonId && !storedLessonIds.includes(lessonId);
+      });
+      const uniqueFilteredLessons = Array.from(
+        new Map(
+          filteredLessons.map((lesson) => [
+            Util.getLessonBundleId(lesson) ?? lesson.id,
+            lesson,
+          ]),
+        ).values(),
+      );
+      await Util.downloadZipBundle(uniqueFilteredLessons);
+
+      localStorage.setItem(
+        DOWNLOAD_BUTTON_LOADING_STATUS,
+        JSON.stringify(false),
+      );
+      setDownloadButtonLoading(false);
+      checkAllHomeworkDownloaded();
+    } catch (error) {
+      logger.error('Error downloading homework:', error);
+      localStorage.setItem(
+        DOWNLOAD_BUTTON_LOADING_STATUS,
+        JSON.stringify(false),
+      );
+      setDownloadButtonLoading(false);
+    }
+  }
+
+  window.addEventListener(
+    ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+    checkAllHomeworkDownloaded,
+  );
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      Keyboard.addListener('keyboardWillShow', () => {
+        setIsInputFocus(true);
+      });
+      Keyboard.addListener('keyboardWillHide', () => {
+        setIsInputFocus(false);
+      });
+    }
+  }, []);
+
+  // GrowthBook: detect student change and re-evaluate feature
+  useEffect(() => {
+    try {
+      const student = Util.getCurrentStudent();
+      const studentId = student?.id ?? null;
+
+      // If no student — make sure local flag is false
+      if (!studentId) {
+        lastEvaluatedStudentId.current = null;
+        setIsHomeworkPathwayOnLocal(false);
+        // If gbUpdated was used as a trigger, clear it now (optional)
+        if (gbUpdated && typeof setGbUpdated === 'function')
+          setGbUpdated(false);
+        return;
+      }
+
+      // If nothing changed and no manual refresh requested, skip
+      if (lastEvaluatedStudentId.current === studentId && !gbUpdated) {
+        return;
+      }
+
+      // Build attributes (defensive)
+      // Read once so we preserve previously-set targeting attributes.
+      const existingAttributes = growthbook.getAttributes?.() ?? {};
+      const attrs = {
+        student_id: studentId,
+        age: student?.age ?? null,
+        grade_id: student?.grade_id ?? null,
+      };
+
+      // Preserve existing targeting attributes (e.g. school_ids, parent_id)
+      // while updating student-scoped fields used here.
+      growthbook.setAttributes({
+        ...existingAttributes,
+        ...attrs,
+      });
+
+      // Synchronously evaluate feature
+      const val = (growthbook.getFeatureValue?.(
+        'homework-learning-pathway',
+        false,
+      ) ?? false) as boolean;
+
+      setIsHomeworkPathwayOnLocal(Boolean(val));
+      lastEvaluatedStudentId.current = studentId;
+
+      // reset the gbUpdated flag after handling it
+      if (gbUpdated && typeof setGbUpdated === 'function') setGbUpdated(false);
+    } catch (e) {
+      logger.warn('GrowthBook evaluation error:', e);
+    }
+    // Run on mount and whenever gbUpdated changes
+  }, [growthbook, gbUpdated]);
+
+  // ⬆ inside AssignmentPage component, before JSX:
+  const bodyClass = !isLinked
+    ? 'lesson-body'
+    : !isHomeworkPathwayOnLocal
+      ? // 🔹 Flag ON → Slider flow (keep old behaviour)
+        lessons.length < 1
+        ? 'lesson-body'
+        : 'assignment-body'
+      : // 🔹 Flag OFF → HomeworkPathway flow → always use assignment layout
+        'assignment-body';
+
+  return {
+    ActivationLessonBanner,
+    Capacitor,
+    HOMEHEADERLIST,
+    HomeworkCompleteModal,
+    HomeworkPathway,
+    IonButton,
+    JoinClass,
+    LessonSlider,
+    SOURCE,
+    SkeltonLoading,
+    TfiDownload,
+    assignmentLessonCourseMap,
+    assignmentRefreshToken,
+    assignments,
+    bodyClass,
+    checkAllHomeworkDownloaded,
+    currentClass,
+    downloadAllHomeWork,
+    downloadButtonLoading,
+    isHomeworkPathwayOnLocal,
+    isLinked,
+    lessonChapterMap,
+    lessonResultMap,
+    lessons,
+    loading,
+    onPlayMoreHomework,
+    online,
+    presentToast,
+    refreshAssignmentPageAfterJoin,
+    schoolName,
+    setLoading,
+    setShowHomeworkCompleteModal,
+    showActivationLessonBanner,
+    showDownloadHomeworkButton,
+    showHomeworkCompleteModal,
+    t,
+  };
+};

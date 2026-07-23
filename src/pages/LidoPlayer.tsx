@@ -554,7 +554,7 @@ const LidoPlayer: FC = () => {
         userId,
       } = await resolveStudentContext();
       if (scoresList.length === 0) {
-        logger.warn('⚠️ No stored data found.');
+        logger.warn('?? No stored data found.');
         return;
       }
       if (!currentStudent || !studentId) {
@@ -594,7 +594,7 @@ const LidoPlayer: FC = () => {
         const rawScore = record.score;
         const resultBin = record.result;
 
-        // 🔑 Skill resolved by ARRAY POSITION
+        // ?? Skill resolved by ARRAY POSITION
         const activityMeta = activitiesMeta[idx];
         const skillId =
           typeof activityMeta?.skill_id === 'string'
@@ -740,7 +740,7 @@ const LidoPlayer: FC = () => {
           course_id: courseDetail?.id ?? courseDocId ?? '',
           is_assessment: true,
           played_from: playedFrom,
-          time_spent: totalLessonTime, // ✅ correct total
+          time_spent: totalLessonTime, // ? correct total
         });
       }
 
@@ -755,7 +755,7 @@ const LidoPlayer: FC = () => {
       }
       localStorage.removeItem(LIDO_SCORES_KEY);
     } catch (error) {
-      logger.error('❌ Failed to process lesson end', error);
+      logger.error('? Failed to process lesson end', error);
       push();
     }
   };
@@ -811,7 +811,7 @@ const LidoPlayer: FC = () => {
       localStorage.getItem(streakKey) || '{}',
     );
     let failStreak = streakMap[courseKey] || 0;
-    /* ✅ Correct answer → reset streak */
+    /* ? Correct answer ? reset streak */
     if (!isFail) {
       streakMap[courseKey] = 0;
       localStorage.setItem(streakKey, JSON.stringify(streakMap));
@@ -1010,7 +1010,7 @@ const LidoPlayer: FC = () => {
       const is_homework: boolean = state?.isHomework ?? false;
       const homeworkIndex: number | undefined = state?.homeworkIndex;
       const lessonTimeSpent = parseNumericValue(data.timeSpendForLesson) ?? 0;
-      // 🔹 PRE-CHECK: figure out *before* updating path if this is the last homework lesson
+      // ?? PRE-CHECK: figure out *before* updating path if this is the last homework lesson
       let shouldGiveHomeworkBonus = false;
       if (is_homework) {
         try {
@@ -1238,7 +1238,7 @@ const LidoPlayer: FC = () => {
       });
       setShowDialogBox(true);
     } catch (error) {
-      logger.error('❌ Failed to process lesson end', error);
+      logger.error('? Failed to process lesson end', error);
       localStorage.removeItem(LIDO_SCORES_KEY);
       push();
     }
