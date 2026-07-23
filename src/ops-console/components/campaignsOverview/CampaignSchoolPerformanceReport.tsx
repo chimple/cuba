@@ -120,18 +120,16 @@ const CampaignSchoolPerformanceReport: React.FC<
                   report.setSearchTerm(event.target.value)
                 }
                 isFilter={false}
-                searchPlaceholder={t('Search School')}
+                searchPlaceholder={String(t('Search School'))}
               />
             </Box>
             <Box className="campaign-school-performance-report__actions">
               <Box className="campaign-school-performance-report__date">
                 <SchoolListDateRangeDropdown
                   value={report.daysFilter}
-                  onChange={(nextValue) =>
-                    report.setDaysFilter(nextValue as 'last7' | 'campaignDays')
-                  }
+                  onChange={report.setDaysFilter}
                   options={SCHOOL_PERFORMANCE_DAY_FILTERS.map((option) => ({
-                    label: t(option.label),
+                    label: String(t(option.label)),
                     value: option.key,
                   }))}
                 />

@@ -15,17 +15,20 @@ type DropdownOption<T extends string> = {
   value: T;
 };
 
-type SchoolListDateRangeDropdownProps = {
-  value: string;
-  onChange: (nextValue: string) => void;
-  options?: readonly DropdownOption<string>[];
+type SchoolListDateRangeDropdownProps<T extends string> = {
+  value: T;
+  onChange: (nextValue: T) => void;
+  options?: readonly DropdownOption<T>[];
 };
 
 // Small self-contained control so the SchoolList page stays easy to scan.
-const SchoolListDateRangeDropdown: React.FC<
-  SchoolListDateRangeDropdownProps
-> = ({ value, onChange, options }) => {
-  const resolvedOptions = options ?? DATE_RANGE_OPTIONS;
+const SchoolListDateRangeDropdown = <T extends string>({
+  value,
+  onChange,
+  options,
+}: SchoolListDateRangeDropdownProps<T>) => {
+  const resolvedOptions = (options ??
+    DATE_RANGE_OPTIONS) as readonly DropdownOption<T>[];
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isCloseShine, setIsCloseShine] = useState(false);
   const closeShineTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -80,7 +83,7 @@ const SchoolListDateRangeDropdown: React.FC<
     };
   }, []);
 
-  const handleSelect = (nextValue: string) => {
+  const handleSelect = (nextValue: T) => {
     handleClose();
     onChange(nextValue);
   };
