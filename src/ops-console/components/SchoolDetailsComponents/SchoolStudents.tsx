@@ -1598,6 +1598,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }
   }, [issTotal, classOptions, isAtSchool, baseStudents]);
 
+  const hasContact =
+    !!editStudentData?.parent?.phone || !!editStudentData?.parent?.email;
+
   const editStudentFields: FieldConfig[] = [
     {
       name: 'studentName',
@@ -1653,12 +1656,13 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     },
 
     // 6️⃣ Phone – full width
+
     {
       name: 'phone',
-      label: 'Phone / Email',
-      kind: 'chips',
+      label: hasContact ? 'Phone / Email' : 'Phone Number',
+      kind: !isAtSchool && !hasContact ? 'phone' : 'chips',
       column: 2,
-      disabled: true,
+      required: !hasContact,
     },
   ];
 
@@ -1704,6 +1708,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       ...baseArgs,
       user.student_id || user.student_id!,
       selectedClassId,
+      normalizePhone10(values.phone),
     );
 
     setIsEditStudentModalOpen(false);
