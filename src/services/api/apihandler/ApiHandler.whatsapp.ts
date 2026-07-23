@@ -15,13 +15,21 @@ export class ApiHandlerWhatsApp extends ApiHandlerFieldActivities {
     return await this.s.getParentWhatsappGroupDetails(groupId);
   }
 
-  async getParentWhatsappMsg91SendResult(inviteRows: Json, batchSize: number) {
+  async getParentWhatsappMsg91SendResult(
+    inviteRows: Json,
+    languageCode: string,
+    batchSize: number,
+  ) {
     if (!this.s.getParentWhatsappMsg91SendResult) {
       throw new Error(
         'Parent WhatsApp MSG91 send RPC is not implemented in current API service.',
       );
     }
-    return await this.s.getParentWhatsappMsg91SendResult(inviteRows, batchSize);
+    return await this.s.getParentWhatsappMsg91SendResult(
+      inviteRows,
+      languageCode,
+      batchSize,
+    );
   }
 
   async getParentWhatsappMsg91ReportRows(startDate: string, endDate: string) {

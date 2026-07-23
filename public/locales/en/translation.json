@@ -613,6 +613,7 @@
   "Failed MSG91 Batches": "Failed MSG91 Batches",
   "Failed to create authentication credentials. Please try again.": "Failed to create authentication credentials. Please try again.",
   "Failed to fetch MSG91 report.": "Failed to fetch MSG91 report.",
+  "Failed to load languages.": "Failed to load languages.",
   "Failed to load request details. Please try again.": "Failed to load request details. Please try again.",
   "Failed to merge student profile.": "Failed to merge student profile.",
   "Failed to process UDISE codes.": "Failed to process UDISE codes.",

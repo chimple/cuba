@@ -27,6 +27,7 @@ import {
 
 const MIN_WHATSAPP_PHONE_LIMIT = 1;
 const DEFAULT_WHATSAPP_PHONE_LIMIT = 1000;
+const INVITE_LANGUAGE_CODES = new Set(['hi', 'kn']);
 
 const normalizeWhatsappPhoneLimit = (rawLimit: number): number => {
   if (!Number.isFinite(rawLimit)) {
@@ -70,6 +71,9 @@ export type ParentWhatsappInvitationPageLogic = {
   isSendingSms: boolean;
   smsFeedback: Feedback | null;
   smsResult: ParentWhatsappSmsSendResult | null;
+  inviteLanguages: { code: string; name: string }[];
+  selectedInviteLanguageCode: string;
+  setSelectedInviteLanguageCode: React.Dispatch<React.SetStateAction<string>>;
   startDate: string;
   setStartDate: React.Dispatch<React.SetStateAction<string>>;
   endDate: string;
@@ -127,6 +131,11 @@ export const useParentWhatsappInvitationPageLogic =
     const [smsFeedback, setSmsFeedback] = useState<Feedback | null>(null);
     const [smsResult, setSmsResult] =
       useState<ParentWhatsappSmsSendResult | null>(null);
+    const [inviteLanguages, setInviteLanguages] = useState<
+      { code: string; name: string }[]
+    >([]);
+    const [selectedInviteLanguageCode, setSelectedInviteLanguageCode] =
+      useState('');
 
     const [startDate, setStartDate] = useState(getTodayDateValue());
     const [endDate, setEndDate] = useState(getTodayDateValue());
@@ -163,6 +172,39 @@ export const useParentWhatsappInvitationPageLogic =
     useEffect(() => {
       setManualValidation(parseIndianPhoneInput(phoneInput));
     }, [phoneInput]);
+
+    useEffect(() => {
+      if (!api) return;
+
+      const loadInviteLanguages = async (): Promise<void> => {
+        try {
+          const languages = (await api.getAllLanguages())
+            .filter(
+              (language) =>
+                Boolean(language.code?.trim()) &&
+                Boolean(language.name?.trim()) &&
+                INVITE_LANGUAGE_CODES.has(language.code!.trim().toLowerCase()),
+            )
+            .map((language) => ({
+              code: language.code!.trim().toLowerCase(),
+              name: language.name!.trim(),
+            }))
+            .sort((left, right) => left.name.localeCompare(right.name));
+
+          setInviteLanguages(languages);
+          setSelectedInviteLanguageCode(
+            (currentCode) => currentCode || languages[0]?.code || '',
+          );
+        } catch (error) {
+          setAnalysisFeedback({
+            severity: 'error',
+            text: toApiError(error, t('Failed to load languages.')).message,
+          });
+        }
+      };
+
+      void loadInviteLanguages();
+    }, [api]);
     const parsedWhatsappPhoneLimit = Number.parseInt(whatsappPhoneLimit, 10);
     const isWhatsappPhoneLimitValueInvalid =
       !whatsappPhoneLimit.trim() ||
@@ -241,11 +283,20 @@ export const useParentWhatsappInvitationPageLogic =
         return;
       }
 
+      if (!selectedInviteLanguageCode) {
+        setSmsFeedback({
+          severity: 'warning',
+          text: t('Select Language'),
+        });
+        return;
+      }
+
       try {
         setIsSendingSms(true);
         const result = await sendParentWhatsappMsg91Invites(
           api,
           analysisResult.inviteList,
+          selectedInviteLanguageCode,
         );
         setSmsResult(result);
         setSmsFeedback({
@@ -501,6 +552,9 @@ export const useParentWhatsappInvitationPageLogic =
       isSendingSms,
       smsFeedback,
       smsResult,
+      inviteLanguages,
+      selectedInviteLanguageCode,
+      setSelectedInviteLanguageCode,
       startDate,
       setStartDate,
       endDate,

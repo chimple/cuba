@@ -86,10 +86,15 @@ export class SqliteApiWhatsApp extends SqliteApiSticker {
       ? await this._serverApi.getParentWhatsappGroupDetails(groupId)
       : [];
   }
-  async getParentWhatsappMsg91SendResult(inviteRows: Json, batchSize: number) {
+  async getParentWhatsappMsg91SendResult(
+    inviteRows: Json,
+    languageCode: string,
+    batchSize: number,
+  ) {
     return this._serverApi.getParentWhatsappMsg91SendResult
       ? await this._serverApi.getParentWhatsappMsg91SendResult(
           inviteRows,
+          languageCode,
           batchSize,
         )
       : {

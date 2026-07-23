@@ -170,7 +170,9 @@ const createFileList = (files: File[]): FileList =>
   }) as unknown as FileList;
 
 const createLogicState = (overrides: Partial<any> = {}) => ({
-  uploadInputRef: { current: { click: jest.fn() } },
+  uploadInputRef: {
+    current: { click: jest.fn() } as unknown as HTMLInputElement,
+  },
   isWhatsappMode: false,
   setIsWhatsappMode: jest.fn(),
   showMsg91Report: false,
@@ -187,6 +189,12 @@ const createLogicState = (overrides: Partial<any> = {}) => ({
   isSendingSms: false,
   smsFeedback: null,
   smsResult: null,
+  inviteLanguages: [
+    { code: 'hi', name: 'Hindi' },
+    { code: 'kn', name: 'Kannada' },
+  ],
+  selectedInviteLanguageCode: 'hi',
+  setSelectedInviteLanguageCode: jest.fn(),
   startDate: '2026-03-17',
   setStartDate: jest.fn(),
   endDate: '2026-03-17',
@@ -196,13 +204,16 @@ const createLogicState = (overrides: Partial<any> = {}) => ({
   isLoadingReport: false,
   phoneInput: '',
   setPhoneInput: jest.fn(),
-  whatsappPhoneLimit: 1000,
+  whatsappPhoneLimit: '1000',
+  isWhatsappPhoneLimitInvalid: false,
   handleWhatsappPhoneLimitChange: jest.fn(),
+  handleWhatsappPhoneLimitFocus: jest.fn(),
+  handleWhatsappPhoneLimitBlur: jest.fn(),
   templateName: '',
   setTemplateName: jest.fn(),
   templateLang: '',
   setTemplateLang: jest.fn(),
-  messageType: 'utility',
+  messageType: 'utility' as const,
   setMessageType: jest.fn(),
   uploadedMedia: null,
   setUploadedMedia: jest.fn(),
@@ -527,7 +538,7 @@ describe('ParentWhatsappInvitationPage component', () => {
   });
 
   // Covers analysis output rendering and send invitation button enable/disable behavior.
-  it('renders analysis output and toggles send invitation button based on invite list length', () => {
+  it('renders the language dropdown and gates invitation sending', () => {
     const analysisResult = {
       processedUdise: ['01111111111'],
       totalMissing: 0,
@@ -563,6 +574,37 @@ describe('ParentWhatsappInvitationPage component', () => {
             },
           ],
         },
+        inviteLanguages: [
+          { code: 'hi', name: 'Hindi' },
+          { code: 'kn', name: 'Kannada' },
+        ],
+        selectedInviteLanguageCode: '',
+      }),
+    );
+    rerender(<ParentWhatsappInvitationPage />);
+
+    expect(screen.getByLabelText('Language')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Send Invitation to Parents' }),
+    ).toBeDisabled();
+
+    mockUseParentWhatsappInvitationPageLogic.mockReturnValue(
+      createLogicState({
+        isWhatsappMode: false,
+        showMsg91Report: false,
+        analysisResult: {
+          ...analysisResult,
+          inviteList: [
+            {
+              udise: '01111111111',
+              school: 'S1',
+              className: 'C1',
+              mobile: '919876543210',
+              inviteLink: 'https://chat.whatsapp.com/demo',
+            },
+          ],
+        },
+        selectedInviteLanguageCode: 'hi',
       }) as any,
     );
     rerender(<ParentWhatsappInvitationPage />);
@@ -986,10 +1028,18 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     totalMissing: 1,
   };
 
-  const mockApi = { id: 'mock-api' };
+  const mockApi = {
+    id: 'mock-api',
+    getAllLanguages: jest.fn(),
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockApi.getAllLanguages.mockResolvedValue([
+      { code: 'kn', name: 'Kannada' },
+      { code: 'en', name: 'English' },
+      { code: 'hi', name: 'Hindi' },
+    ]);
     jest.spyOn(ServiceConfig, 'getI').mockReturnValue({
       apiHandler: mockApi,
     } as any);
@@ -1015,6 +1065,20 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+  });
+
+  it('shows only Hindi and Kannada alphabetically and selects Hindi by default', async () => {
+    const { result } = renderHook(() =>
+      useParentWhatsappInvitationPageLogicActual(),
+    );
+
+    await waitFor(() => {
+      expect(result.current.selectedInviteLanguageCode).toBe('hi');
+    });
+    expect(result.current.inviteLanguages).toEqual([
+      { code: 'hi', name: 'Hindi' },
+      { code: 'kn', name: 'Kannada' },
+    ]);
   });
 
   // Covers warning feedback when analysis is triggered without configured API.
@@ -1252,7 +1316,9 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
     });
 
     expect(result.current.smsFeedback?.severity).toBe('success');
-
+    expect(
+      parentWhatsappInvitationService.sendParentWhatsappMsg91Invites,
+    ).toHaveBeenCalledWith(mockApi, baseAnalysisResult.inviteList, 'hi');
     jest
       .spyOn(parentWhatsappInvitationService, 'sendParentWhatsappMsg91Invites')
       .mockResolvedValueOnce({
@@ -1911,6 +1977,7 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       await parentWhatsappInvitationService.sendParentWhatsappMsg91Invites(
         api as any,
         [],
+        'hi',
       ),
     ).toEqual({ successCount: 0, failedBatches: [] });
 
@@ -1932,10 +1999,16 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       await parentWhatsappInvitationService.sendParentWhatsappMsg91Invites(
         api as any,
         inviteRows,
+        'hi',
       );
     expect(mapped.successCount).toBe(0);
     expect(mapped.failedBatches[0].batchIndex).toBe(1);
     expect(mapped.failedBatches[0].recipients).toEqual(['919876543210']);
+    expect(api.getParentWhatsappMsg91SendResult).toHaveBeenCalledWith(
+      inviteRows,
+      'hi',
+      100,
+    );
   });
 
   // Covers failed-batch recipient mapping using explicit recipients and no-failure fallback.
@@ -1973,6 +2046,7 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       await parentWhatsappInvitationService.sendParentWhatsappMsg91Invites(
         api as any,
         inviteRows,
+        'hi',
       );
     expect(withRecipients.failedBatches[0].recipients).toEqual([
       '919000000000',
@@ -1985,6 +2059,7 @@ describe('ParentWhatsappInvitationPage service exports', () => {
       await parentWhatsappInvitationService.sendParentWhatsappMsg91Invites(
         api as any,
         inviteRows,
+        'hi',
       );
     expect(noFailures.failedBatches).toEqual([]);
   });

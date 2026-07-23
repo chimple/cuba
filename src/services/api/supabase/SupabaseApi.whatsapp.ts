@@ -252,7 +252,11 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
 
     return data;
   }
-  async getParentWhatsappMsg91SendResult(inviteRows: Json, batchSize: number) {
+  async getParentWhatsappMsg91SendResult(
+    inviteRows: Json,
+    languageCode: string,
+    batchSize: number,
+  ) {
     if (!this.supabase)
       return {
         successCount: 0,
@@ -262,6 +266,7 @@ export class SupabaseApiWhatsApp extends SupabaseApiSticker {
       'send_parent_whatsapp_msg91_invites',
       {
         p_invite_rows: inviteRows,
+        p_language_code: languageCode,
         p_batch_size: batchSize,
       },
     );

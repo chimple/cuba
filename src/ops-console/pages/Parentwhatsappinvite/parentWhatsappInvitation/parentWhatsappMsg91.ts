@@ -75,6 +75,7 @@ export const fetchParentWhatsappMsg91Report = async (params: {
 export const sendParentWhatsappMsg91Invites = async (
   api: ApiHandler,
   inviteRows: ParentWhatsappInviteRow[],
+  languageCode: string,
 ): Promise<ParentWhatsappSmsSendResult> => {
   if (!inviteRows.length) {
     return {
@@ -85,6 +86,7 @@ export const sendParentWhatsappMsg91Invites = async (
 
   const rpcPayload = await api.getParentWhatsappMsg91SendResult(
     inviteRows,
+    languageCode,
     MSG91_BATCH_SIZE,
   );
   const payload =
