@@ -1030,15 +1030,16 @@ describe('ParentWhatsappInvitationPage hook handlers', () => {
 
   const mockApi = {
     id: 'mock-api',
-    getAllLanguages: jest.fn().mockResolvedValue([
-      { code: 'kn', name: 'Kannada' },
-      { code: 'en', name: 'English' },
-      { code: 'hi', name: 'Hindi' },
-    ]),
+    getAllLanguages: jest.fn(),
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockApi.getAllLanguages.mockResolvedValue([
+      { code: 'kn', name: 'Kannada' },
+      { code: 'en', name: 'English' },
+      { code: 'hi', name: 'Hindi' },
+    ]);
     jest.spyOn(ServiceConfig, 'getI').mockReturnValue({
       apiHandler: mockApi,
     } as any);
