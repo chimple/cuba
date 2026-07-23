@@ -4337,6 +4337,8 @@ export type Database = {
         Row: {
           activated_students: number | null;
           active_students: number | null;
+          active_students_homework: number;
+          active_students_learning_pathway: number;
           active_teachers: number | null;
           activities_assigned: number | null;
           avg_activities_completed: number | null;
@@ -4344,6 +4346,8 @@ export type Database = {
           avg_time_spent: number | null;
           block: string | null;
           cluster: string | null;
+          community_parents_reached: number | null;
+          community_visits: number | null;
           created_at: string | null;
           district: string | null;
           field_coordinators: string[] | null;
@@ -4351,9 +4355,9 @@ export type Database = {
           is_deleted: boolean;
           metric_window: string | null;
           onboarded_students: number | null;
-          partners: string[] | null;
           parents_in_group: number | null;
-          parents_reached: number | null;
+          parents_on_whatsapp: number | null;
+          partners: string[] | null;
           program_id: string | null;
           program_managers: string[] | null;
           program_name: string | null;
@@ -4362,7 +4366,11 @@ export type Database = {
           school_model: Database['public']['Enums']['program_model'] | null;
           school_name: string | null;
           school_performance: string | null;
+          school_visits: number | null;
           state: string | null;
+          student_parent_calls: number | null;
+          student_parent_inperson: number | null;
+          teacher_hm_calls: number | null;
           total_teachers: number | null;
           udise: string | null;
           updated_at: string | null;
@@ -4370,6 +4378,8 @@ export type Database = {
         Insert: {
           activated_students?: number | null;
           active_students?: number | null;
+          active_students_homework?: number;
+          active_students_learning_pathway?: number;
           active_teachers?: number | null;
           activities_assigned?: number | null;
           avg_activities_completed?: number | null;
@@ -4377,6 +4387,8 @@ export type Database = {
           avg_time_spent?: number | null;
           block?: string | null;
           cluster?: string | null;
+          community_parents_reached?: number | null;
+          community_visits?: number | null;
           created_at?: string | null;
           district?: string | null;
           field_coordinators?: string[] | null;
@@ -4384,9 +4396,9 @@ export type Database = {
           is_deleted?: boolean;
           metric_window?: string | null;
           onboarded_students?: number | null;
-          partners?: string[] | null;
           parents_in_group?: number | null;
-          parents_reached?: number | null;
+          parents_on_whatsapp?: number | null;
+          partners?: string[] | null;
           program_id?: string | null;
           program_managers?: string[] | null;
           program_name?: string | null;
@@ -4395,7 +4407,11 @@ export type Database = {
           school_model?: Database['public']['Enums']['program_model'] | null;
           school_name?: string | null;
           school_performance?: string | null;
+          school_visits?: number | null;
           state?: string | null;
+          student_parent_calls?: number | null;
+          student_parent_inperson?: number | null;
+          teacher_hm_calls?: number | null;
           total_teachers?: number | null;
           udise?: string | null;
           updated_at?: string | null;
@@ -4403,6 +4419,8 @@ export type Database = {
         Update: {
           activated_students?: number | null;
           active_students?: number | null;
+          active_students_homework?: number;
+          active_students_learning_pathway?: number;
           active_teachers?: number | null;
           activities_assigned?: number | null;
           avg_activities_completed?: number | null;
@@ -4410,6 +4428,8 @@ export type Database = {
           avg_time_spent?: number | null;
           block?: string | null;
           cluster?: string | null;
+          community_parents_reached?: number | null;
+          community_visits?: number | null;
           created_at?: string | null;
           district?: string | null;
           field_coordinators?: string[] | null;
@@ -4417,9 +4437,9 @@ export type Database = {
           is_deleted?: boolean;
           metric_window?: string | null;
           onboarded_students?: number | null;
-          partners?: string[] | null;
           parents_in_group?: number | null;
-          parents_reached?: number | null;
+          parents_on_whatsapp?: number | null;
+          partners?: string[] | null;
           program_id?: string | null;
           program_managers?: string[] | null;
           program_name?: string | null;
@@ -4428,7 +4448,11 @@ export type Database = {
           school_model?: Database['public']['Enums']['program_model'] | null;
           school_name?: string | null;
           school_performance?: string | null;
+          school_visits?: number | null;
           state?: string | null;
+          student_parent_calls?: number | null;
+          student_parent_inperson?: number | null;
+          teacher_hm_calls?: number | null;
           total_teachers?: number | null;
           udise?: string | null;
           updated_at?: string | null;
@@ -6282,6 +6306,7 @@ export type Database = {
         Args: { p_days: number; p_school_id?: string };
         Returns: undefined;
       };
+      compute_campaign_school_metrics: { Args: {}; Returns: void };
       compute_program_metrics: {
         Args: { p_days: number; p_program_id?: string };
         Returns: undefined;

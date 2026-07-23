@@ -446,6 +446,29 @@ export type CampaignAssignmentsReportResponse = {
   rows: CampaignAssignmentsReportRow[];
 };
 
+export type CampaignSchoolPerformanceMetricWindow = '7d' | 'campaign_days';
+
+export type CampaignSchoolPerformanceReportParams = {
+  metricWindow?: CampaignSchoolPerformanceMetricWindow;
+};
+
+export type CampaignSchoolPerformanceReportRow = {
+  schoolId: string;
+  schoolName: string;
+  udise: string | null;
+  block: string | null;
+  activeStudents: number;
+  activatedStudents: number;
+  activeStudentsHomework: number;
+  activeStudentsLearningPathway: number;
+  avgTimeSpent: number;
+  avgActivitiesCompleted: number;
+};
+
+export type CampaignSchoolPerformanceReportResponse = {
+  rows: CampaignSchoolPerformanceReportRow[];
+};
+
 export type CampaignStudentPerformanceRow =
   TableTypes<'campaign_student_performance'>;
 

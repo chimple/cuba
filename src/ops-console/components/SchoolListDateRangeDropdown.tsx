@@ -8,20 +8,24 @@ import React, {
 import { Button, Divider, ListItemText, Menu, MenuItem } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { t } from 'i18next';
-import {
-  DATE_RANGE_OPTIONS,
-  type DateRangeValue,
-} from '../pages/SchoolList.helpers';
+import { DATE_RANGE_OPTIONS } from '../pages/SchoolList.helpers';
+
+type DropdownOption<T extends string> = {
+  label: string;
+  value: T;
+};
 
 type SchoolListDateRangeDropdownProps = {
-  value: DateRangeValue;
-  onChange: (nextValue: DateRangeValue) => void;
+  value: string;
+  onChange: (nextValue: string) => void;
+  options?: readonly DropdownOption<string>[];
 };
 
 // Small self-contained control so the SchoolList page stays easy to scan.
 const SchoolListDateRangeDropdown: React.FC<
   SchoolListDateRangeDropdownProps
-> = ({ value, onChange }) => {
+> = ({ value, onChange, options }) => {
+  const resolvedOptions = options ?? DATE_RANGE_OPTIONS;
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [isCloseShine, setIsCloseShine] = useState(false);
   const closeShineTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -33,8 +37,8 @@ const SchoolListDateRangeDropdown: React.FC<
   const open = Boolean(anchorEl);
 
   const selectedLabel = useMemo(
-    () => DATE_RANGE_OPTIONS.find((option) => option.value === value)?.label,
-    [value],
+    () => resolvedOptions.find((option) => option.value === value)?.label,
+    [resolvedOptions, value],
   );
 
   const triggerCloseShine = useCallback(() => {
@@ -76,7 +80,7 @@ const SchoolListDateRangeDropdown: React.FC<
     };
   }, []);
 
-  const handleSelect = (nextValue: DateRangeValue) => {
+  const handleSelect = (nextValue: string) => {
     handleClose();
     onChange(nextValue);
   };
@@ -119,7 +123,7 @@ const SchoolListDateRangeDropdown: React.FC<
         PaperProps={{ className: 'school-list-actions-menu' }}
         slotProps={{ list: { disablePadding: true } }}
       >
-        {DATE_RANGE_OPTIONS.flatMap((option, index) => {
+        {resolvedOptions.flatMap((option, index) => {
           const nodes = [
             <MenuItem
               key={option.value}
@@ -135,7 +139,7 @@ const SchoolListDateRangeDropdown: React.FC<
             </MenuItem>,
           ];
 
-          if (index < DATE_RANGE_OPTIONS.length - 1) {
+          if (index < resolvedOptions.length - 1) {
             nodes.push(
               <Divider
                 key={`${option.value}-divider`}

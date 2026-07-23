@@ -2,6 +2,7 @@ import React from 'react';
 import { Box, Button, Typography } from '@mui/material';
 import { t } from 'i18next';
 import CampaignAssignmentsReport from './CampaignAssignmentsReport';
+import CampaignSchoolPerformanceReport from './CampaignSchoolPerformanceReport';
 import CampaignRewardsSummaryCards from './CampaignRewardsSummaryCards';
 import CampaignRewardsTable, {
   CampaignRewardsReportHeader,
@@ -64,13 +65,16 @@ const CampaignRewardsReport: React.FC<CampaignRewardsReportProps> = ({
         ))}
       </Box>
 
-      {report.selectedSubtab === 'Messages' ? (
+      {report.selectedSubtab === CAMPAIGN_REPORT_SUBTAB_KEYS.MESSAGES ? (
         <CampaignMessageReport
           key={campaignId}
           campaignId={campaignId}
           campaignName={campaignName}
           campaignStartDate={campaignStartDate}
         />
+      ) : report.selectedSubtab ===
+        CAMPAIGN_REPORT_SUBTAB_KEYS.SCHOOL_PERFORMANCE ? (
+        <CampaignSchoolPerformanceReport campaignId={campaignId} />
       ) : report.selectedSubtab === CAMPAIGN_REPORT_SUBTAB_KEYS.ASSIGNMENTS ? (
         <CampaignAssignmentsReport
           campaignId={campaignId}
