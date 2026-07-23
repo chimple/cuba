@@ -45,6 +45,15 @@ export type CampaignSchoolPerformanceRow = {
   avgActivitiesCompleted: number;
 };
 
+type SchoolPerformanceColumn = {
+  key: SchoolPerformanceColumnKey;
+  label: string;
+  width: number;
+  align: 'left' | 'center';
+  headerAlign: 'left' | 'center';
+  tooltip?: string;
+};
+
 export const SCHOOL_PERFORMANCE_PAGE_SIZE = 20;
 export const CAMPAIGN_SCHOOL_EXPORT_FILE_NAME =
   'CampaignSchoolPerformance.xlsx';
@@ -79,7 +88,7 @@ export const SCHOOL_PERFORMANCE_ACTIVE_STUDENT_FILTERS = [
   },
 ] as const;
 
-export const SCHOOL_PERFORMANCE_COLUMNS = [
+export const SCHOOL_PERFORMANCE_COLUMNS: readonly SchoolPerformanceColumn[] = [
   {
     key: 'schoolName',
     label: 'School Name',
@@ -261,15 +270,15 @@ export const getActiveStudentTone = (percent: number) => {
 
 const buildExportSheetRows = (rows: CampaignSchoolPerformanceRow[]) => [
   [
-    t('School Name'),
-    t('UDISE'),
-    t('Block'),
-    t('Active Students'),
-    t('Active Students %'),
-    t('Active Students Homework'),
-    t('Active Students Learning Pathway'),
-    t('Average Time Spent'),
-    t('Average Activities Completed'),
+    String(t('School Name')),
+    String(t('UDISE')),
+    String(t('Block')),
+    String(t('Active Students')),
+    String(t('Active Students %')),
+    String(t('Active Students Homework')),
+    String(t('Active Students Learning Pathway')),
+    String(t('Average Time Spent')),
+    String(t('Average Activities Completed')),
   ],
   ...rows.map((row) => [
     row.schoolName,
@@ -392,10 +401,14 @@ const getAppliedSortLabel = (
   sortOrder: 'asc' | 'desc',
 ) => {
   if (sortKey === 'schoolName') {
-    return sortOrder === 'asc' ? t('Sort A → Z') : t('Sort Z → A');
+    return sortOrder === 'asc'
+      ? String(t('Sort A → Z'))
+      : String(t('Sort Z → A'));
   }
 
-  return sortOrder === 'asc' ? t('Sort Low → High') : t('Sort High → Low');
+  return sortOrder === 'asc'
+    ? String(t('Sort Low → High'))
+    : String(t('Sort High → Low'));
 };
 
 /**
