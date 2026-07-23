@@ -7219,16 +7219,26 @@ export class SupabaseApi implements ServiceApi {
   } | null> {
     if (!this.supabase) return null;
 
+    const normalizedUdiseCode = udiseCode.trim();
     try {
       // Fetch student_login_type and program_model directly from school table
       const { data: schoolData, error } = await this.supabase
         .from('school')
         .select('id, student_login_type, model, whatsapp_bot_number')
-        .eq('udise', udiseCode)
+        .eq('udise', normalizedUdiseCode)
         .eq('is_deleted', false)
-        .single();
-      if (error || !schoolData) {
-        logger.error('Error fetching school data:', error);
+        .limit(1)
+        .maybeSingle();
+      if (error) {
+        logger.error('Error fetching school data by UDISE:', error, {
+          udiseCode: normalizedUdiseCode,
+        });
+        return null;
+      }
+      if (!schoolData) {
+        logger.warn('No active school found for UDISE:', {
+          udiseCode: normalizedUdiseCode,
+        });
         return null;
       }
 
