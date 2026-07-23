@@ -1708,7 +1708,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       ...baseArgs,
       user.student_id || user.student_id!,
       selectedClassId,
-      values.phone,
+      normalizePhone10(values.phone),
     );
 
     setIsEditStudentModalOpen(false);
