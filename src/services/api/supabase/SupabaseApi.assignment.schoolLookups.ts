@@ -42,16 +42,8 @@ export class SupabaseApiAssignmentSchoolLookups extends SupabaseApiAssignmentCou
         .eq('is_deleted', false)
         .limit(1)
         .maybeSingle();
-      if (error) {
-        logger.error('Error fetching school data by UDISE:', error, {
-          udiseCode: normalizedUdiseCode,
-        });
-        return null;
-      }
-      if (!schoolData) {
-        logger.warn('No active school found for UDISE:', {
-          udiseCode: normalizedUdiseCode,
-        });
+      if (error || !schoolData) {
+        logger.error('Error fetching school data:', error);
         return null;
       }
 
