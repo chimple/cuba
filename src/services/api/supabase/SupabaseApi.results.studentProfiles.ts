@@ -162,6 +162,7 @@ export class SupabaseApiResultsStudentProfiles extends SupabaseApiResultsResultU
     languageDocId: string,
     student_id: string,
     newClassId: string,
+    phoneNumber?: string,
   ): Promise<TableTypes<'user'>> {
     if (!this.supabase) return student;
     const now = new Date().toISOString();
@@ -224,6 +225,73 @@ export class SupabaseApiResultsStudentProfiles extends SupabaseApiResultsResultU
 
         await this.supabase.from(TABLES.ClassUser).insert(newClassUser);
         await this.addParentToNewClass(newClassId, student.id);
+      }
+
+      if (phoneNumber) {
+        const { data, error } = await this.supabase.functions.invoke(
+          'get_or_create_user',
+          {
+            body: {
+              name,
+              phone: phoneNumber,
+            },
+          },
+        );
+
+        if (error) {
+          throw error;
+        }
+
+        const parentUser = data.user;
+        logger.info('Parent User:', parentUser);
+
+        const { data: existingParentUser } = await this.supabase
+          .from(TABLES.ParentUser)
+          .select('id')
+          .eq('parent_id', parentUser.id)
+          .eq('student_id', student.id)
+          .eq('is_deleted', false)
+          .maybeSingle();
+
+        logger.info('Existing Parent User:', existingParentUser);
+
+        if (!existingParentUser) {
+          await this.supabase.from(TABLES.ParentUser).insert({
+            id: uuidv4(),
+            parent_id: parentUser.id,
+            student_id: student.id,
+            created_at: now,
+            updated_at: now,
+            is_deleted: false,
+            is_firebase: null,
+            is_ops: null,
+            ops_created_by: null,
+          });
+        }
+
+        const { data: existingClassUser } = await this.supabase
+          .from(TABLES.ClassUser)
+          .select('id')
+          .eq('is_deleted', false)
+          .eq('user_id', parentUser.id)
+          .eq('class_id', newClassId)
+          .eq('role', RoleType.PARENT)
+          .maybeSingle();
+
+        if (!existingClassUser) {
+          await this.supabase.from(TABLES.ClassUser).insert({
+            id: uuidv4(),
+            class_id: newClassId,
+            user_id: parentUser.id,
+            role: RoleType.PARENT,
+            created_at: now,
+            updated_at: now,
+            is_deleted: false,
+            is_firebase: null,
+            is_ops: null,
+            ops_created_by: null,
+          });
+        }
       }
 
       return updatedStudent;

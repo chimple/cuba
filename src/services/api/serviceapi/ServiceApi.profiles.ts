@@ -61,6 +61,7 @@ export interface ServiceApiUserProfiles {
     languageDocId: string,
     student_id: string,
     newClassId: string,
+    phoneNumber?: string,
   ): Promise<TableTypes<'user'>>;
 
   updateUserProfile(

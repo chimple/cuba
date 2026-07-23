@@ -120,6 +120,7 @@ export class ApiHandlerUserProfiles {
     languageDocId: string,
     student_id: string,
     newClassId: string,
+    phoneNumber?: string,
   ): Promise<TableTypes<'user'>> {
     return await this.s.updateStudentFromSchoolMode(
       student,
@@ -133,6 +134,7 @@ export class ApiHandlerUserProfiles {
       languageDocId,
       student_id,
       newClassId,
+      phoneNumber,
     );
   }
 
