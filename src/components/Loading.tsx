@@ -13,7 +13,11 @@ const Loading: React.FC<LoadingProps> = ({ isLoading, msg = '' }) => {
   return (
     <div className="loading-overlay">
       <div className="loading-container">
-        <img src="assets/loading.gif" alt="loading" className="loading-img" />
+        <img
+          src="assets/new_splash.png"
+          alt="Chimple loading"
+          className="loading-img"
+        />
 
         {msg && <p className="loading-msg">{t(msg)}</p>}
       </div>

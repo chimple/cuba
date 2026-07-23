@@ -26,7 +26,7 @@ const config: CapacitorConfig = {
       smallIcon: 'chimple_monkey_icon',
     },
     SplashScreen: {
-      launchShowDuration: 5000,
+      launchShowDuration: 3000,
       launchAutoHide: false,
     },
     LiveUpdate: {

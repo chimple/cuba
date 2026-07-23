@@ -8,6 +8,7 @@ import { ensureSocialLoginInitialized } from '../services/auth/SocialLoginInit';
 import logger from '../utility/logger';
 
 export const isNativePlatform = Capacitor.isNativePlatform();
+const SPLASH_DISPLAY_DURATION_MS = 3000;
 
 export const initializeNativeRuntime = () => {
   if (!isNativePlatform) return;
@@ -19,8 +20,13 @@ export const initializeNativeRuntime = () => {
 };
 
 export const finalizeFirstRenderNativeRuntime = () => {
-  SplashScreen.hide();
   if (isNativePlatform) {
+    window.setTimeout(() => {
+      void SplashScreen.hide().catch((error) => {
+        logger.error('SplashScreen hide failed', error);
+      });
+    }, SPLASH_DISPLAY_DURATION_MS);
+
     void ScreenOrientation.lock({ orientation: 'landscape' }).catch((error) => {
       logger.error('ScreenOrientation lock failed', error);
     });
