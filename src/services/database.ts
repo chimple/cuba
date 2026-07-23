@@ -7169,7 +7169,11 @@ export type Database = {
       };
       send_otp_request: { Args: { input_data: Json }; Returns: Json };
       send_parent_whatsapp_msg91_invites: {
-        Args: { p_batch_size?: number; p_invite_rows: Json };
+        Args: {
+          p_batch_size?: number;
+          p_invite_rows: Json;
+          p_language_code: string;
+        };
         Returns: Json;
       };
       send_parent_whatsapp_template_message: {

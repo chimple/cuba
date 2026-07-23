@@ -176,6 +176,9 @@ const ParentWhatsappInvitationPage: React.FC = () => {
     isSendingSms,
     smsFeedback,
     smsResult,
+    inviteLanguages,
+    selectedInviteLanguageCode,
+    setSelectedInviteLanguageCode,
     startDate,
     setStartDate,
     endDate,
@@ -817,10 +820,31 @@ const ParentWhatsappInvitationPage: React.FC = () => {
                     showWhenEmpty
                   />
 
+                  <TextField
+                    select
+                    label={t('Language')}
+                    value={selectedInviteLanguageCode}
+                    onChange={(event) =>
+                      setSelectedInviteLanguageCode(event.target.value)
+                    }
+                    id="parent-whatsapp-page-invite-language"
+                    className="parent-whatsapp-page-invite-language"
+                  >
+                    {inviteLanguages.map((language) => (
+                      <MenuItem key={language.code} value={language.code}>
+                        {language.name}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+
                   <Button
                     variant="outlined"
                     startIcon={<SendOutlined />}
-                    disabled={isSendingSms || !analysisResult.inviteList.length}
+                    disabled={
+                      isSendingSms ||
+                      !analysisResult.inviteList.length ||
+                      !selectedInviteLanguageCode
+                    }
                     onClick={handleSendSmsInvites}
                     id="parent-whatsapp-page-action-button parent-whatsapp-page-analysis-send-button"
                     className="parent-whatsapp-page-action-button parent-whatsapp-page-analysis-send-button"

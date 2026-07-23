@@ -7,6 +7,7 @@ export interface ServiceApiWhatsApp {
 
   getParentWhatsappMsg91SendResult?: (
     inviteRows: Json,
+    languageCode: string,
     batchSize: number,
   ) => Promise<Json>;
 
