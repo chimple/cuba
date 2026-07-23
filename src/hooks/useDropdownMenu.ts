@@ -1,0 +1,423 @@
+import { FC, useEffect, useRef, useState } from 'react';
+import {
+  COURSE_CHANGED,
+  EVENTS,
+  LIVE_QUIZ,
+  TableTypes,
+} from '../common/constants';
+import SelectIconImage from '../components/displaySubjects/SelectIconImage';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { Util } from '../utility/util';
+import { LessonNode } from './useLearningPath';
+import logger from '../utility/logger';
+import { downloadMissingCourseIcons } from '../utility/courseIconDeviceCache';
+import { getCachedImageSrc } from '../utility/imageCache';
+import { fetchLessonsById } from '../components/assignment/homeworkPathwayHelpers';
+
+interface CourseDetails {
+  course: TableTypes<'course'>;
+  grade?: TableTypes<'grade'> | null;
+  curriculum?: TableTypes<'curriculum'> | null;
+  displayName?: string;
+}
+const ImageUrlCache: Record<string, string> = {};
+
+interface DropdownMenuProps {
+  disabled?: boolean;
+  hideArrow?: boolean;
+  onCourseChange?: () => void; // used by LearningPathway
+  onSubjectChange?: (subjectId: string) => void; // used by HomeworkPathway & LP
+  selectedSubject?: string | null; // external controlled value (Homework)
+  syncWithLearningPath?: boolean;
+}
+
+export const useDropdownMenu = ({
+  disabled = false,
+  hideArrow = false,
+  onCourseChange,
+  onSubjectChange,
+  selectedSubject = null,
+  syncWithLearningPath = true,
+}: DropdownMenuProps) => {
+  const [expanded, setExpanded] = useState<boolean>(false);
+  const [courseDetails, setCourseDetails] = useState<CourseDetails[]>([]);
+  const [selected, setSelected] = useState<CourseDetails | null>(null);
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const api = ServiceConfig.getI().apiHandler;
+
+  useEffect(() => {
+    fetchLearningPathCourseDetails();
+  }, []);
+
+  useEffect(() => {
+    if (!syncWithLearningPath) return;
+
+    const syncLearningPathCourse = () => {
+      fetchLearningPathCourseDetails().catch((error) => {
+        logger.error('Error syncing learning path dropdown:', error);
+      });
+    };
+
+    window.addEventListener(COURSE_CHANGED, syncLearningPathCourse);
+
+    return () => {
+      window.removeEventListener(COURSE_CHANGED, syncLearningPathCourse);
+    };
+  }, [syncWithLearningPath]);
+
+  useEffect(() => {
+    // For HomeworkPathway: keep internal "selected" in sync with selectedSubject
+    if (!syncWithLearningPath && selectedSubject && courseDetails.length) {
+      const matched = courseDetails.find(
+        (detail) => String(detail.course.id) === String(selectedSubject),
+      );
+      if (matched) {
+        setSelected(matched);
+      }
+    }
+  }, [selectedSubject, courseDetails, syncWithLearningPath]);
+
+  const loadCourseDetails = async (
+    courseIds: string[],
+  ): Promise<CourseDetails[]> => {
+    const uniqueCourseIds = Array.from(new Set(courseIds.filter(Boolean)));
+    const coursePromises: Promise<CourseDetails | null>[] = uniqueCourseIds.map(
+      async (courseId) => {
+        try {
+          const course = await api.getCourse(courseId);
+          if (!course) return null;
+
+          const [gradeDoc, curriculumDoc] = await Promise.all([
+            course.grade_id
+              ? api.getGradeById(course.grade_id)
+              : Promise.resolve(null),
+            course.curriculum_id
+              ? api.getCurriculumById(course.curriculum_id)
+              : Promise.resolve(null),
+          ]);
+
+          return { course, grade: gradeDoc, curriculum: curriculumDoc };
+        } catch (err) {
+          logger.error('Failed to fetch homework course', err);
+          return null;
+        }
+      },
+    );
+
+    return (await Promise.all(coursePromises)).filter(
+      Boolean,
+    ) as CourseDetails[];
+  };
+
+  const fetchLearningPathCourseDetails = async () => {
+    try {
+      const currentStudent = await Util.getCurrentStudent();
+
+      // ?? HOMEWORK MODE: don't depend on HOMEWORK_PATHWAY at all
+      if (!syncWithLearningPath) {
+        const currClass = Util.getCurrentClass();
+        if (!currentStudent?.id || !currClass?.id) {
+          setCourseDetails([]);
+          return;
+        }
+
+        // ?? Get ALL pending assignments for this class & student
+        const all = await api.getPendingAssignments(
+          currClass.id,
+          currentStudent.id,
+        );
+        const pendingAssignments = all.filter((a) => a.type !== LIVE_QUIZ);
+        const lessonById = await fetchLessonsById(
+          pendingAssignments.map((assignment) => assignment.lesson_id),
+          api.getLessonsBylessonIds.bind(api),
+        );
+        const resolvedPendingAssignments = pendingAssignments.filter(
+          (assignment) => {
+            if (!assignment.lesson_id) return false;
+            if (!lessonById.has(assignment.lesson_id)) {
+              logger.warn(
+                '[DropdownMenu] Skipping stale pending homework assignment with missing lesson metadata',
+                {
+                  assignmentId: assignment.id ?? null,
+                  lessonId: assignment.lesson_id ?? null,
+                },
+              );
+              return false;
+            }
+            return true;
+          },
+        );
+        const pendingCourseIds = resolvedPendingAssignments
+          .map((assignment) => assignment.course_id)
+          .filter((id): id is string => !!id);
+        const fallbackCourses =
+          pendingCourseIds.length > 0
+            ? []
+            : await api.getCoursesForClassStudent(currClass.id);
+        const detailedCourses = await loadCourseDetails(
+          pendingCourseIds.length > 0
+            ? pendingCourseIds
+            : fallbackCourses.map((course) => String(course.id)),
+        );
+
+        setCourseDetails(detailedCourses);
+
+        // initial selection in homework mode
+        setSelected((prev) => {
+          if (prev) return prev;
+
+          if (selectedSubject) {
+            const matched = detailedCourses.find(
+              (detail) => String(detail.course.id) === String(selectedSubject),
+            );
+            if (matched) return matched;
+          }
+
+          return detailedCourses[0] || null;
+        });
+
+        return;
+      }
+
+      // ?? LEARNING PATHWAY MODE (original behaviour)
+      const pathToParse = currentStudent
+        ? Util.getLatestLearningPathByUpdatedAt(currentStudent)
+        : null;
+      if (!pathToParse) {
+        logger.error('No learning path found for the user');
+        return;
+      }
+      let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
+      if (!learningPath) return;
+      const { courseList } = learningPath.courses;
+      const currentIndex = learningPath.courses.currentCourseIndex ?? 0;
+
+      const coursePromises: Promise<CourseDetails | null>[] = [];
+
+      for (const entry of courseList) {
+        const promise = (async () => {
+          try {
+            const course = await api.getCourse(entry.course_id);
+            if (!course) return null;
+
+            const [gradeDoc, curriculumDoc] = await Promise.all([
+              course.grade_id
+                ? api.getGradeById(course.grade_id)
+                : Promise.resolve(null),
+              course.curriculum_id
+                ? api.getCurriculumById(course.curriculum_id)
+                : Promise.resolve(null),
+            ]);
+
+            return {
+              course,
+              grade: gradeDoc,
+              curriculum: curriculumDoc,
+              displayName: entry.display_name,
+            };
+          } catch (error) {
+            logger.error(
+              `Failed to fetch details for course ${entry.course_id}`,
+              error,
+            );
+            return null;
+          }
+        })();
+
+        coursePromises.push(promise);
+      }
+
+      const detailedCourses = (await Promise.all(coursePromises)).filter(
+        Boolean,
+      ) as CourseDetails[];
+
+      setCourseDetails(detailedCourses);
+
+      // INITIAL SELECTION LOGIC
+      if (!syncWithLearningPath) {
+        setSelected((prev) => {
+          if (prev) return prev;
+          if (selectedSubject) {
+            const matched = detailedCourses.find(
+              (detail) => String(detail.course.id) === String(selectedSubject),
+            );
+            if (matched) return matched;
+          }
+          return detailedCourses[0] || null;
+        });
+        return;
+      }
+
+      setSelected(detailedCourses[currentIndex] || detailedCourses[0] || null);
+    } catch (error) {
+      logger.error('Error in fetchLearningPathCourseDetails:', error);
+    }
+  };
+
+  const handleSelect = async (subject: CourseDetails, index: number) => {
+    if (disabled) return;
+    try {
+      setSelected(subject);
+      setExpanded(false);
+
+      // ?? HOMEWORK MODE: DO NOT touch learning_path, only notify subject change
+      if (!syncWithLearningPath) {
+        if (onSubjectChange) {
+          onSubjectChange(subject.course.id);
+        }
+        return;
+      }
+
+      // ?? LEARNING PATHWAY MODE (original behaviour)
+      const currentStudent = Util.getCurrentStudent();
+      if (!currentStudent?.learning_path) return;
+
+      const pathToParse = Util.getLatestLearningPathByUpdatedAt(currentStudent);
+      let learningPath = pathToParse ? JSON.parse(pathToParse) : null;
+      if (!learningPath) return;
+      const { courseList, currentCourseIndex } = learningPath.courses;
+
+      const prevCourse = courseList[currentCourseIndex];
+      const prevPathItem = prevCourse?.path?.find(
+        (p: LessonNode) => p.isPlayed === false,
+      );
+
+      const prevCourseId = prevCourse?.course_id;
+      const prevLessonId = prevPathItem?.lesson_id;
+      const prevChapterId = prevPathItem?.chapter_id;
+      const prevPathId = prevCourse?.path_id;
+
+      learningPath.courses.currentCourseIndex = index;
+      learningPath.updated_at = new Date().toISOString();
+
+      Util.setCurrentStudent(
+        { ...currentStudent, learning_path: JSON.stringify(learningPath) },
+        undefined,
+      );
+      await api.updateLearningPath(
+        currentStudent,
+        JSON.stringify(learningPath),
+      );
+      window.dispatchEvent(new CustomEvent(COURSE_CHANGED));
+
+      const currentCourse = courseList[index];
+      const currentPathItem = currentCourse?.path?.find(
+        (p: LessonNode) => p.isPlayed === false,
+      );
+
+      const eventData = {
+        user_id: currentStudent.id,
+        current_path_id: currentCourse?.path_id,
+        current_course_id: currentCourse?.course_id,
+        current_lesson_id: currentPathItem?.lesson_id,
+        current_chapter_id: currentPathItem?.chapter_id,
+        prev_path_id: prevPathId,
+        prev_course_id: prevCourseId,
+        prev_lesson_id: prevLessonId,
+        prev_chapter_id: prevChapterId,
+      };
+
+      Util.logEvent(EVENTS.PATHWAY_COURSE_CHANGED, eventData);
+
+      if (onSubjectChange) {
+        onSubjectChange(subject.course.id);
+      }
+      if (onCourseChange) onCourseChange();
+    } catch (error) {
+      logger.error('Error in handleSelect:', error);
+    }
+  };
+
+  const truncateName = (name: string) => {
+    const parts = name.split(' ');
+    return parts.length > 1 ? parts[1] : name;
+  };
+
+  const getDisplayName = (detail: CourseDetails) =>
+    detail.displayName || detail.course.name;
+
+  const handleToggleExpand = () => {
+    if (hideArrow) return;
+    requestAnimationFrame(() => setExpanded((prev) => !prev));
+  };
+
+  useEffect(() => {
+    const preloadImage = async (src: string): Promise<boolean> => {
+      const resolvedSrc = await getCachedImageSrc(src);
+
+      return await new Promise<boolean>((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = resolvedSrc;
+      });
+    };
+
+    // Download online icons in background into the same localSrc path for offline reuse.
+    const preloadTasks: Promise<unknown>[] = [];
+    const processedSources = new Set<string>();
+    const missingIconDownloadTargets: {
+      localRelativePath: string;
+      remoteUrl: string;
+    }[] = [];
+
+    courseDetails.forEach((detail) => {
+      const localSrc = `courses/chapter_icons/${detail.course.id}.webp`;
+      if (!processedSources.has(localSrc)) {
+        processedSources.add(localSrc);
+        preloadTasks.push(preloadImage(localSrc));
+      }
+
+      const onlineSrc = detail.course.image?.trim() || '';
+      if (onlineSrc && !processedSources.has(onlineSrc)) {
+        processedSources.add(onlineSrc);
+        preloadTasks.push(preloadImage(onlineSrc));
+      }
+
+      if (onlineSrc) {
+        missingIconDownloadTargets.push({
+          localRelativePath: localSrc,
+          remoteUrl: onlineSrc,
+        });
+      }
+    });
+
+    preloadTasks.push(downloadMissingCourseIcons(missingIconDownloadTargets));
+    void Promise.allSettled(preloadTasks);
+  }, [courseDetails]);
+
+  useEffect(() => {
+    if (!expanded || !selected) return;
+    requestAnimationFrame(() => {
+      const ref = itemRefs.current[selected.course.id];
+      ref?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }, [expanded]);
+
+  const getCachedImageUrl = (course: TableTypes<'course'>): string => {
+    const key = course.id;
+
+    // Already cached ? return
+    if (ImageUrlCache[key]) return ImageUrlCache[key];
+
+    // Missing ? store immediately (public URLs are static)
+    const url = course.image || '';
+    ImageUrlCache[key] = url;
+
+    return url;
+  };
+  return {
+    SelectIconImage,
+    courseDetails,
+    disabled,
+    expanded,
+    getCachedImageUrl,
+    getDisplayName,
+    handleSelect,
+    handleToggleExpand,
+    hideArrow,
+    itemRefs,
+    selected,
+    truncateName,
+  };
+};

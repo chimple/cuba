@@ -151,7 +151,7 @@ const PathwayStructure: React.FC = () => {
     inactiveText,
     rewardText,
 
-    // NEW â€” functions for SVG to use instead of window globals
+    // NEW — functions for SVG to use instead of window globals
     getCachedLesson,
     updateMascotToNormalState,
     invokeMascotCelebration,
@@ -330,7 +330,7 @@ const PathwayStructure: React.FC = () => {
     [containerRef],
   );
 
-  // OPTIMIZED: merged tilt animation + tilt loop into one toggle â€” eliminates
+  // OPTIMIZED: merged tilt animation + tilt loop into one toggle — eliminates
   // redundant DOM lookups
   const setStickerCollectTiltActive = React.useCallback(
     (active: boolean) => {
@@ -970,7 +970,7 @@ const PathwayStructure: React.FC = () => {
   );
 
   // OPTIMIZED: two effects merged into one; { once: true } replaces manual
-  // removeEventListener â€” self-cleaning, no memory leak
+  // removeEventListener — self-cleaning, no memory leak
   React.useEffect(() => {
     const rewardBox = containerRef.current?.querySelector(
       '.PathwayStructure-end-reward-box--sticker',

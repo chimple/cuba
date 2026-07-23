@@ -1,347 +1,47 @@
-import { Capacitor } from '@capacitor/core';
-import { IonItem, IonMenu } from '@ionic/react';
-import { t } from 'i18next';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useHistory } from 'react-router';
-import { registerBackButtonHandler } from '../../../common/backButtonRegistry';
-import CommonToggle from '../../../common/CommonToggle';
-import {
-  CLASS_OR_SCHOOL_CHANGE_EVENT,
-  CURRENT_MODE,
-  EVENTS,
-  OPS_ROLES,
-  PAGES,
-} from '../../../common/constants';
-import { ClearCacheData } from '../../../components/parent/DataClear';
-import DialogBoxButtons from '../../../components/parent/DialogBoxButtons';
-import {
-  updateLocalAttributes,
-  useGbContext,
-} from '../../../growthbook/Growthbook';
-import { RoleType } from '../../../interface/modelInterfaces';
-import { useAppSelector } from '../../../redux/hooks';
-import { AuthState } from '../../../redux/slices/auth/authSlice';
-import { RootState } from '../../../redux/store';
-import { ServiceConfig } from '../../../services/ServiceConfig';
-import { logAuthDebug } from '../../../utility/authDebug';
-import logger from '../../../utility/logger';
-import { getAppPathname } from '../../../utility/routerLocation';
-import { Util } from '../../../utility/util';
-import ClassSection from './ClassSection';
-import ProfileSection from './ProfileDetail';
-import SchoolSection from './SchoolSection';
+import { useSideMenu } from '../../hooks/useSideMenu';
 import './SideMenu.css';
 
-const SWITCH_TO_KIDS_APP_SOURCE_SCREEN = {
-  TEACHER_DASHBOARD: 'teacher_dashboard',
-  OPS_CONSOLE: 'ops_console',
-} as const;
+const SideMenu = (props: Parameters<typeof useSideMenu>[0]) => {
+  const viewProps = useSideMenu(props);
 
-type SwitchToKidsAppSourceScreen =
-  (typeof SWITCH_TO_KIDS_APP_SOURCE_SCREEN)[keyof typeof SWITCH_TO_KIDS_APP_SOURCE_SCREEN];
-
-const SideMenu: React.FC<{
-  handleManageSchoolClick: () => void;
-  handleManageClassClick: () => void;
-}> = ({ handleManageSchoolClick, handleManageClassClick }) => {
-  const menuRef = useRef<HTMLIonMenuElement>(null);
-  const [fullName, setFullName] = useState<string>('');
-  const [email, setEmail] = useState<string>('');
-  const [currentUserId, setCurrentUserId] = useState<string>('');
-  const [schoolData, setSchoolData] = useState<
-    { id: string | number; name: string }[]
-  >([]);
-  const [classData, setClassData] = useState<
-    { id: string | number; name: string }[]
-  >([]);
-  const [schoolRoles, setSchoolRoles] = useState<
-    { schoolId: string; role: RoleType }[]
-  >([]);
-
-  const [classCode, setClassCode] = useState<number>();
-  const [currentSchoolDetail, setsetcurrentSchoolDetail] = useState<{
-    id: string | number;
-    name: string;
-  }>({ id: '', name: '' });
-  const [currentClassDetail, setcurrentClassDetail] = useState<{
-    id: string | number;
-    name: string;
-  }>({ id: '', name: '' });
-  const [currentClassId, setCurrentClassId] = useState<string>('');
-  const history = useHistory();
-  const { setGbUpdated } = useGbContext();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [schoolSearchResetToken, setSchoolSearchResetToken] = useState(0);
-  const { roles, isOpsUser } = useAppSelector(
-    (state: RootState) => state.auth as AuthState,
-  );
-  const userRoles = roles || [];
-  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
-  const isAuthorizedForOpsMode = useMemo(() => {
-    const hasOpsRole = OPS_ROLES.some((role) => roles.includes(role));
-    return isOpsUser || hasOpsRole;
-  }, [isOpsUser, roles]);
-
-  useEffect(() => {
-    if (!isMenuOpen) return;
-    const unregister = registerBackButtonHandler(() => {
-      menuRef.current?.close();
-      return true;
-    });
-    return () => unregister();
-  }, [isMenuOpen]);
-
-  useEffect(() => {
-    fetchData();
-    const handler = () => fetchData();
-    window.addEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, handler);
-    return () => {
-      window.removeEventListener(CLASS_OR_SCHOOL_CHANGE_EVENT, handler);
-    };
-  }, []);
-
-  const api = ServiceConfig.getI()?.apiHandler;
-  const getSwitchToKidsAppSourceScreen = (): SwitchToKidsAppSourceScreen => {
-    if (getAppPathname().startsWith(PAGES.SIDEBAR_PAGE)) {
-      return SWITCH_TO_KIDS_APP_SOURCE_SCREEN.OPS_CONSOLE;
-    }
-    return SWITCH_TO_KIDS_APP_SOURCE_SCREEN.TEACHER_DASHBOARD;
-  };
-
-  const fetchData = async () => {
-    try {
-      const currentUser =
-        await ServiceConfig.getI()?.authHandler.getCurrentUser();
-      if (!currentUser) {
-        logger.error('No user is logged in.');
-        return;
-      }
-      setFullName(currentUser.name || '');
-      setEmail(currentUser.email || currentUser.phone || '');
-      setCurrentUserId(currentUser.id);
-      let teacher_class_ids: string[] = [];
-      const schoolList: any = [];
-      const roleMap: Record<string, RoleType> = {};
-
-      const tempSchool = Util.getCurrentSchool();
-      if (tempSchool) {
-        setsetcurrentSchoolDetail({ id: tempSchool.id, name: tempSchool.name });
-
-        const updatedClass = Util.getCurrentClass();
-
-        // Fetch classes for the current school
-        const classes = await api.getClassesForSchool(
-          tempSchool.id,
-          currentUser.id,
-        );
-        teacher_class_ids = classes.map((item) => item.id);
-        const classMap = classes.map((classItem: any) => ({
-          id: classItem.id,
-          name: classItem.name,
-        }));
-        const patchedList = updatedClass
-          ? classMap.map((c) => (c.id === updatedClass.id ? updatedClass : c))
-          : classMap;
-        setClassData(patchedList);
-
-        if (!updatedClass) {
-          return;
-        }
-
-        setCurrentClassId(updatedClass.id);
-        setcurrentClassDetail({
-          id: updatedClass.id,
-          name: updatedClass.name,
-        });
-        const classCode = await getClassCodeById(updatedClass?.id!);
-        setClassCode(classCode);
-      }
-
-      const allSchools = await api.getSchoolsForUser(currentUser.id, {
-        page: 1,
-        page_size: 20,
-      });
-
-      if (allSchools && allSchools.length > 0) {
-        const schoolMap = allSchools.map(({ school }: any) => ({
-          id: school.id,
-          name: school.name,
-        }));
-        setSchoolData(schoolMap);
-
-        const roles = allSchools.map(({ school, role }: any) => ({
-          schoolId: school.id,
-          role,
-        }));
-        roles.forEach((obj) => {
-          schoolList.push(obj.schoolId);
-          roleMap[`${obj.schoolId}_role`] = obj.role;
-        });
-        const teacher_school_and_classes = {
-          teacher_school_list: schoolList,
-          roleMap,
-          teacher_class_ids,
-        };
-        updateLocalAttributes(teacher_school_and_classes);
-        setGbUpdated(true);
-        setSchoolRoles(roles);
-      }
-    } catch (error) {
-      logger.error('Error fetching data:', error);
-    }
-  };
-  const switchUser = async () => {
-    await Util.logEvent(EVENTS.SWITCH_TO_KIDS_APP_CLICKED, {
-      source_screen: getSwitchToKidsAppSourceScreen(),
-    });
-    history.replace(PAGES.KIDS_APP_LOCATION);
-  };
-
-  const getClassCodeById = async (class_id: string) => {
-    if (class_id) {
-      const classCode = await api.getClassCodeById(class_id);
-      return classCode;
-    }
-    return;
-  };
-
-  const handleSchoolSelect = async ({
-    id,
-    name,
-    role,
-  }: { id?: string | number; name?: string; role?: RoleType } = {}) => {
-    try {
-      if (!id) {
-        logger.warn('Invalid ID or no ID provided for school selection');
-        return;
-      }
-      const school = await api.getSchoolById(String(id));
-      if (!school?.id) {
-        logger.warn('School not found');
-        return;
-      }
-      const schoolRole =
-        role || schoolRoles.find((item) => item.schoolId === id)?.role;
-      if (!schoolRole) {
-        return;
-      }
-      Util.setCurrentSchool(school, schoolRole);
-
-      setsetcurrentSchoolDetail({
-        id: school.id,
-        name: name || school.name,
-      });
-      const classes = await api.getClassesForSchool(school.id, currentUserId);
-      if (!classes || classes.length === 0) {
-        logger.warn('No classes found for the selected school');
-        Util.setCurrentClass(null);
-        setCurrentClassId('');
-        setcurrentClassDetail({ id: '', name: '' });
-        setClassCode(undefined);
-        setClassData([]);
-        Util.dispatchClassOrSchoolChangeEvent();
-        return;
-      }
-      const firstClass = classes[0];
-      Util.setCurrentClass(firstClass);
-      const classMap = classes.map((classItem: any) => ({
-        id: classItem.id,
-        name: classItem.name,
-      }));
-      setClassData(classMap);
-      // Auto-select the first class if available
-      setCurrentClassId(firstClass.id);
-      setcurrentClassDetail({
-        id: firstClass.id,
-        name: firstClass.name,
-      });
-      const classCode = await getClassCodeById(firstClass.id);
-      setClassCode(classCode);
-      Util.dispatchClassOrSchoolChangeEvent();
-      void Util.validateCurrentSchoolContext();
-    } catch (error) {
-      logger.error('Error handling school selection:', error);
-    }
-  };
-
-  const handleClassSelect = async ({
-    id,
-    name,
-  }: { id?: string | number; name?: string } = {}) => {
-    try {
-      if (!id || id === currentClassId) {
-        logger.warn('Invalid ID or duplicate selection');
-        return;
-      }
-
-      const classIdStr = String(id).trim();
-      if (!classIdStr) {
-        logger.warn('Class ID is empty after conversion');
-        return;
-      }
-
-      const currentClass = await api.getClassById(classIdStr);
-      if (!currentClass || !currentClass.id) {
-        logger.warn('Class not found or invalid response');
-        return;
-      }
-
-      Util.setCurrentClass(currentClass);
-
-      if (!currentClass.id) {
-        logger.warn('Missing class ID after setting current class');
-        return;
-      }
-
-      setCurrentClassId(currentClass.id);
-      setcurrentClassDetail({
-        id: currentClass.id,
-        name: name || currentClass.name,
-      });
-
-      const classCode = await getClassCodeById(currentClass.id);
-      if (classCode !== undefined && classCode !== null) {
-        setClassCode(classCode);
-      } else {
-        setClassCode(undefined);
-        logger.warn('Class code is null or undefined');
-      }
-
-      Util.dispatchClassOrSchoolChangeEvent();
-      void Util.validateCurrentSchoolContext();
-    } catch (error) {
-      logger.error('Error handling class selection:', error);
-    }
-  };
-
-  const [showDialogBox, setShowDialogBox] = useState(false);
-  const [openLogoutDialogAfterMenuClose, setOpenLogoutDialogAfterMenuClose] =
-    useState(false);
-
-  const handleLogoutClick = () => {
-    setOpenLogoutDialogAfterMenuClose(true);
-    menuRef.current?.close();
-  };
-
-  const onSignOut = async () => {
-    const auth = ServiceConfig.getI().authHandler;
-    logAuthDebug('User initiated teacher side-menu logout.', {
-      source: 'TeacherSideMenu.onSignOut',
-      reason: 'teacher_logout_button',
-    });
-    await auth.logOut();
-    Util.unSubscribeToClassTopicForAllStudents();
-    localStorage.removeItem(CURRENT_MODE);
-    await ClearCacheData();
-    logAuthDebug('Navigating to login after teacher side-menu logout.', {
-      source: 'TeacherSideMenu.onSignOut',
-      reason: 'logout_complete_navigate_login',
-      from_page: getAppPathname(),
-      to_page: PAGES.LOGIN,
-    });
-    history.replace(PAGES.LOGIN);
-    if (Capacitor.isNativePlatform()) window.location.reload();
-  };
+  const {
+    ClassSection,
+    CommonToggle,
+    DialogBoxButtons,
+    IonItem,
+    IonMenu,
+    ProfileSection,
+    SchoolSection,
+    Util,
+    classCode,
+    classData,
+    currentClassDetail,
+    currentClassId,
+    currentSchoolDetail,
+    email,
+    fullName,
+    handleClassSelect,
+    handleLogoutClick,
+    handleManageClassClick,
+    handleManageSchoolClick,
+    handleSchoolSelect,
+    history,
+    isAuthorizedForOpsMode,
+    isExternalUser,
+    menuRef,
+    onSignOut,
+    openLogoutDialogAfterMenuClose,
+    schoolData,
+    schoolSearchResetToken,
+    setClassCode,
+    setIsMenuOpen,
+    setOpenLogoutDialogAfterMenuClose,
+    setSchoolSearchResetToken,
+    setShowDialogBox,
+    showDialogBox,
+    switchUser,
+    t,
+  } = viewProps;
 
   return (
     <>

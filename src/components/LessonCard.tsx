@@ -1,115 +1,50 @@
-import { IonCard } from '@ionic/react';
-import { useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import {
-  CONTINUE,
-  COURSES,
-  LESSON_CARD_COLORS,
-  LIVE_QUIZ,
-  PAGES,
-  SOURCE,
-  TYPE,
-  TableTypes,
-} from '../common/constants';
-import { Capacitor } from '@capacitor/core';
+import { useLessonCard } from '../hooks/useLessonCard';
 import './LessonCard.css';
-import LessonCardStarIcons from './LessonCardStarIcons';
-import React from 'react';
-import { ServiceConfig } from '../services/ServiceConfig';
-import { t } from 'i18next';
-import LovedIcon from './LovedIcon';
-import SelectIconImage from './displaySubjects/SelectIconImage';
-import { Util } from '../utility/util';
-import DownloadLesson from './DownloadChapterAndLesson';
-import { useOnlineOfflineErrorMessageHandler } from '../common/onlineOfflineErrorMessageHandler';
-import logger from '../utility/logger';
-
-import { parsePath } from 'history';
-
-const LessonCard: React.FC<{
-  width: string;
-  height: string;
-  lesson: TableTypes<'lesson'>;
-  course: TableTypes<'course'> | undefined;
-  isPlayed: boolean;
-  isUnlocked: boolean;
-  showSubjectName: boolean;
-  showText?: boolean;
-  showScoreCard?: boolean;
-  score: any;
-  isLoved: boolean | undefined;
-  showChapterName: boolean;
-  downloadButtonLoading?: boolean;
-  showDate?: boolean;
-  onDownloadOrDelete?: () => void;
-  chapter?: TableTypes<'chapter'>;
-  assignment?: TableTypes<'assignment'>;
-  lessonCourseMap?: {
-    [lessonId: string]: { course_id: string };
-  };
-}> = ({
-  width,
-  height,
-  lesson,
-  course,
-  isPlayed,
-  isUnlocked,
-  showSubjectName = false,
-  showText = true,
-  showScoreCard = true,
-  score,
-  isLoved,
-  showChapterName = false,
-  downloadButtonLoading,
-  showDate,
-  onDownloadOrDelete,
-  chapter,
-  assignment,
-  lessonCourseMap,
-}) => {
-  const history = useHistory();
-  const [currentCourse, setCurrentCourse] = useState<TableTypes<'course'>>();
-  const { online, presentToast } = useOnlineOfflineErrorMessageHandler();
-  const [date, setDate] = useState<Date>();
-
-  useEffect(() => {
-    getCurrentCourse();
-    getDate();
-  }, [lesson]);
-
-  const getDate = () => {
-    const res = assignment?.starts_at;
-    if (!!res) {
-      const dateObj = new Date(res);
-      setDate(dateObj);
-    }
-  };
-
-  const getCurrentCourse = async () => {
-    const api = ServiceConfig.getI().apiHandler;
-    try {
-      if (lessonCourseMap) {
-        const lessonData = lessonCourseMap[lesson.id];
-        if (lessonData?.course_id) {
-          const course = await api.getCourse(lessonData.course_id);
-          setCurrentCourse(course);
-          return course;
-        }
-      }
-    } catch (error) {
-      logger.error('Error fetching course data:', error);
-    }
-  };
-
-  const [lessonCardColor, setLessonCardColor] = useState('');
-  const isMathCourse = course?.code?.toLowerCase().includes('math');
-
-  useEffect(() => {
-    setLessonCardColor(
-      LESSON_CARD_COLORS[Math.floor(Math.random() * LESSON_CARD_COLORS.length)],
-    );
-  }, []);
-
+const LessonCard = (props: Parameters<typeof useLessonCard>[0]) => {
+  const viewProps = useLessonCard(props);
+  const {
+    CONTINUE,
+    COURSES,
+    Capacitor,
+    DownloadLesson,
+    IonCard,
+    JSON,
+    LIVE_QUIZ,
+    LessonCardStarIcons,
+    LovedIcon,
+    PAGES,
+    SOURCE,
+    SelectIconImage,
+    TYPE,
+    Util,
+    assignment,
+    chapter,
+    course,
+    currentCourse,
+    date,
+    downloadButtonLoading,
+    getCurrentCourse,
+    height,
+    history,
+    isLoved,
+    isMathCourse,
+    isPlayed,
+    isUnlocked,
+    lesson,
+    lessonCardColor,
+    onDownloadOrDelete,
+    online,
+    parsePath,
+    presentToast,
+    score,
+    showChapterName,
+    showDate,
+    showScoreCard,
+    showSubjectName,
+    showText,
+    t,
+    width,
+  } = viewProps;
   return (
     <>
       <div className="assigned-date-div">
@@ -132,7 +67,6 @@ const LessonCard: React.FC<{
           </div>
         ) : null}
       </div>
-
       <IonCard
         id="lesson-card"
         style={{
@@ -143,11 +77,9 @@ const LessonCard: React.FC<{
           if (isUnlocked) {
             const resolvedCourse =
               course ?? currentCourse ?? (await getCurrentCourse());
-
             const source = assignment
               ? SOURCE.NO_LEARNING_PATHWAY_HOMEWORK
               : SOURCE.SUBJECT_PAGE;
-
             if (lesson.plugin_type === LIVE_QUIZ) {
               const lessonId = lesson.cocos_lesson_id;
               if (lessonId && Capacitor.isNativePlatform()) {
@@ -155,7 +87,7 @@ const LessonCard: React.FC<{
                 if (!isDownloaded) {
                   if (!online) {
                     presentToast({
-                      message: t(`Device is offline`),
+                      message: t(`Device is orrline`),
                       color: 'danger',
                       duration: 3000,
                       position: 'bottom',
@@ -170,7 +102,6 @@ const LessonCard: React.FC<{
                   return;
                 }
               }
-
               if (assignment) {
                 history.push({
                   ...parsePath(
@@ -178,7 +109,7 @@ const LessonCard: React.FC<{
                   ),
                   state: {
                     assignment: JSON.stringify(assignment),
-                    source: source,
+                    source,
                   },
                 });
               } else {
@@ -191,7 +122,7 @@ const LessonCard: React.FC<{
                     courseId: resolvedCourse?.id,
                     lesson: JSON.stringify(lesson),
                     from: history.location.pathname + `?${CONTINUE}=true`,
-                    source: source,
+                    source,
                   },
                 });
               }
@@ -208,10 +139,10 @@ const LessonCard: React.FC<{
                   courseDocId: resolvedCourse?.id,
                   course: JSON.stringify(resolvedCourse),
                   lesson: JSON.stringify(lesson),
-                  assignment: assignment,
+                  assignment,
                   chapter: JSON.stringify(chapter),
                   from: history.location.pathname + `?${CONTINUE}=true`,
-                  source: source,
+                  source,
                 },
               });
             }
@@ -230,8 +161,8 @@ const LessonCard: React.FC<{
                   ? lesson.color
                   : lessonCardColor,
               borderRadius: '7vh',
-              width: width,
-              height: height,
+              width,
+              height,
               display: 'grid',
               justifyContent: 'center',
               alignItems: 'center',
@@ -259,7 +190,6 @@ const LessonCard: React.FC<{
                   </div>
                 ))}
             </div>
-
             {showSubjectName && currentCourse?.name ? (
               <div id="lesson-card-subject-name">
                 <p className="ignore">
@@ -267,7 +197,6 @@ const LessonCard: React.FC<{
                     ? lesson?.name
                     : t(lesson?.name ?? '')}
                 </p>
-
                 <p>{currentCourse?.name}</p>
               </div>
             ) : null}
@@ -287,7 +216,6 @@ const LessonCard: React.FC<{
                 }
               />
             </div>
-
             <div id="lesson-card-image">
               <SelectIconImage
                 localSrc={
@@ -363,5 +291,4 @@ const LessonCard: React.FC<{
     </>
   );
 };
-
 export default LessonCard;

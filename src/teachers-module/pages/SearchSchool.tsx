@@ -1,22 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import {
-  IonPage,
-  IonHeader,
-  IonToolbar,
-  IonContent,
-  IonSelect,
-  IonSelectOption,
-  IonItem,
-  IonInput,
-  IonIcon,
-  IonList,
-  IonInfiniteScroll,
-  IonInfiniteScrollContent,
-  IonSpinner,
-} from '@ionic/react';
-import { searchOutline, close, chevronDownOutline } from 'ionicons/icons';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import SchoolListItem from '../components/SchoolListItem';
 import {
   MODES,
   PAGES,
@@ -26,12 +9,11 @@ import {
 } from '../../common/constants';
 
 import './SearchSchool.css';
-import CreateSchoolPrompt from '../components/CreateSchoolPrompt';
 import { t } from 'i18next';
 import { useHistory } from 'react-router';
 import { schoolUtil } from '../../utility/schoolUtil';
-import Header from '../components/homePage/Header';
 import { parsePath } from 'history';
+import SearchSchoolContent from './SearchSchoolContent';
 
 const PAGE_LIMIT = 50;
 
@@ -239,205 +221,42 @@ const SearchSchool: FC = () => {
     });
   };
 
-  const renderDropdown = (
-    placeholderKey: string,
-    value: any,
-    setValue: (val: any) => void,
-    options: string[],
-    isLoading: boolean,
-    required = false,
-    disabled = false,
-  ) => (
-    <div
-      className={`search-school-field-wrapper ${required ? 'required' : ''}`}
-    >
-      <IonItem lines="none" className="search-school-item">
-        {isLoading ? (
-          <IonSpinner name="dots" className="search-school-spinner" />
-        ) : (
-          <>
-            <IonSelect
-              value={value}
-              placeholder={t(placeholderKey) as string} // <-- Add 'as string'
-              onIonChange={(e) => setValue(e.detail.value)}
-              interface="popover"
-              className="search-school-select"
-              disabled={disabled || isLoading}
-            >
-              {options.map((opt) => (
-                <IonSelectOption key={opt} value={opt}>
-                  {opt}
-                </IonSelectOption>
-              ))}
-            </IonSelect>
-            <IonIcon
-              icon={chevronDownOutline}
-              className="search-school-dropdown-arrow-icon"
-            />
-          </>
-        )}
-      </IonItem>
-    </div>
-  );
-
-  const showCreateSchoolPrompt =
-    !isSearchingSchools &&
-    country &&
-    state &&
-    district &&
-    (schools.length === 0 || !hasMoreSchools);
-
   return (
-    <IonPage className="search-school-page">
-      <IonHeader mode="ios">
-        <IonToolbar>
-          <Header isBackButton={true} onBackButtonClick={switchUser} />
-        </IonToolbar>
-      </IonHeader>
-
-      <IonContent fullscreen>
-        {/* Fixed top area */}
-        <div className="search-school-fixed-top-area">
-          <h1 className="search-school-title">{t('Search Your School')}</h1>
-          <p className="search-school-required-text">
-            <span className="search-school-asterisk">*</span>
-            {t('Required Fields')}
-          </p>
-
-          <div className="search-school-form">
-            <div className="search-school-row">
-              {renderDropdown(
-                'Country',
-                country,
-                setCountry,
-                countries,
-                isCountriesLoading,
-                true,
-              )}
-              {renderDropdown(
-                'State',
-                state,
-                setState,
-                states,
-                isStatesLoading,
-                true,
-                !country,
-              )}
-              {renderDropdown(
-                'District',
-                district,
-                setDistrict,
-                districts,
-                isDistrictsLoading,
-                true,
-                !state,
-              )}
-            </div>
-            <div className="search-school-row">
-              {renderDropdown(
-                'Block',
-                block,
-                setBlock,
-                blocks,
-                isBlocksLoading,
-                false,
-                !district,
-              )}
-              {renderDropdown(
-                'Cluster',
-                cluster,
-                setCluster,
-                clusters,
-                isClustersLoading,
-                false,
-                !block,
-              )}
-            </div>
-          </div>
-
-          <div className="search-school-input-container">
-            <IonItem
-              disabled={country && state && district ? false : true}
-              lines="none"
-              className="search-school-item"
-            >
-              <IonIcon icon={searchOutline} slot="start" />
-              <IonInput
-                value={searchText}
-                placeholder={t('School Name or UDISE') as string}
-                onIonChange={(e) => setSearchText(e.detail.value!)}
-              />
-              {searchText && (
-                <IonIcon
-                  icon={close}
-                  slot="end"
-                  className="search-school-clear-icon"
-                  onClick={clearSearchText}
-                />
-              )}
-            </IonItem>
-          </div>
-
-          {totalResults > 0 && (
-            <div className="search-school-results-summary">
-              <h3 className="search-school-found-results-text">
-                {t('Found {{count}} results..', { count: totalResults })}
-              </h3>
-              <p className="search-school-refine-results-text">
-                {t(
-                  'Refine your results using filters or by rephrasing your school name',
-                )}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Scrollable list area */}
-        {isSearchingSchools && schools.length === 0 && (
-          <div className="search-school-center-message">
-            <IonSpinner />
-          </div>
-        )}
-
-        {schools.length > 0 && (
-          <IonList className="search-school-results-list-cards" lines="none">
-            {schools.map((school) => (
-              <SchoolListItem
-                key={school.id}
-                school={school}
-                isExpanded={expandedSchoolId === school.id}
-                onToggle={() => handleToggleSchool(school.id)}
-                onJoin={handleJoinSchool}
-                searchText={searchText}
-              />
-            ))}
-          </IonList>
-        )}
-
-        {schools.length > 0 && hasMoreSchools && (
-          <IonInfiniteScroll
-            onIonInfinite={loadMoreSchools}
-            threshold="200px"
-            disabled={!hasMoreSchools || isSearchingSchools}
-          >
-            <IonInfiniteScrollContent
-              loadingSpinner="bubbles"
-              loadingText={t('Loading more schools...') as string}
-            />
-          </IonInfiniteScroll>
-        )}
-
-        {showCreateSchoolPrompt && (
-          <CreateSchoolPrompt
-            country={country}
-            state={state}
-            district={district}
-            block={block}
-          />
-        )}
-      </IonContent>
-    </IonPage>
+    <SearchSchoolContent
+      block={block ?? ''}
+      blocks={blocks}
+      clearSearchText={clearSearchText}
+      cluster={cluster ?? ''}
+      clusters={clusters}
+      countries={countries}
+      country={country ?? ''}
+      district={district ?? ''}
+      districts={districts}
+      expandedSchoolId={expandedSchoolId}
+      handleJoinSchool={handleJoinSchool}
+      handleToggleSchool={handleToggleSchool}
+      hasMoreSchools={hasMoreSchools}
+      isBlocksLoading={isBlocksLoading}
+      isClustersLoading={isClustersLoading}
+      isCountriesLoading={isCountriesLoading}
+      isDistrictsLoading={isDistrictsLoading}
+      isSearchingSchools={isSearchingSchools}
+      isStatesLoading={isStatesLoading}
+      loadMoreSchools={loadMoreSchools}
+      schools={schools}
+      searchText={searchText}
+      setBlock={setBlock}
+      setCluster={setCluster}
+      setCountry={setCountry}
+      setDistrict={setDistrict}
+      setSearchText={setSearchText}
+      setState={setState}
+      state={state ?? ''}
+      states={states}
+      switchUser={switchUser}
+      t={t}
+      totalResults={totalResults}
+    />
   );
 };
-
 export default SearchSchool;

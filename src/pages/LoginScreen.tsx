@@ -596,7 +596,7 @@ const LoginScreen: React.FC = () => {
         return history.replace(PAGES.DISPLAY_STUDENT);
       }
 
-      // AUTOUSER → school‐mode
+      // AUTOUSER ? school-mode
       const hasTeacherAppRole = schools.some((school) =>
         isTeacherAppRole(school.role),
       );

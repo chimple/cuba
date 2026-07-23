@@ -558,7 +558,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             currentIndex?: number;
           };
 
-          const lessons = existingPath.lessons ?? []; // 👈 safe fallback
+          const lessons = existingPath.lessons ?? []; // ?? safe fallback
 
           const hasLessons = lessons.length > 0;
           const notFinished =
@@ -582,7 +582,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             return;
           }
 
-          // ❌ Path empty or finished → remove it
+          // ? Path empty or finished ? remove it
           localStorage.removeItem(HOMEWORK_PATHWAY);
         } catch (err) {
           logger.warn('Invalid cached path, rebuilding...', err);
