@@ -97,7 +97,12 @@ const CampaignRewardsReport: React.FC<CampaignRewardsReportProps> = ({
           </Typography>
         </Box>
       ) : (
-        <Box border="1px solid #DDE1E6" borderRadius="10px" bgcolor="#fff">
+        <Box
+          component="article"
+          border="1px solid #DDE1E6"
+          borderRadius="10px"
+          bgcolor="#fff"
+        >
           <CampaignRewardsReportHeader
             classFilter={report.classFilter}
             classOptions={report.filterOptions.classes}

@@ -179,7 +179,29 @@ const CampaignRewardsTable: React.FC<CampaignRewardsTableProps> = ({
   );
 
   return (
-    <Box>
+    <Box
+      component="article"
+      sx={{
+        '.data-tablebody-container': {
+          height: { xs: 420, md: 520 },
+          maxHeight: { xs: 420, md: 520 },
+          marginBottom: 0,
+          overflow: 'auto',
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-x pan-y',
+        },
+        '.MuiTableCell-stickyHeader, .data-tablebody-head-cell': {
+          overflow: 'visible',
+          zIndex: 4,
+        },
+        '.data-tablebody-head-cell:first-child': {
+          zIndex: 11,
+        },
+        '.ops-campaigns-info-tooltip-message': {
+          zIndex: 2000,
+        },
+      }}
+    >
       <DataTableBody
         columns={columns}
         rows={rows}
