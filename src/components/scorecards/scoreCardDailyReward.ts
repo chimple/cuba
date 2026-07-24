@@ -1,5 +1,3 @@
-import type { TableTypes } from '../../common/constants';
-import type { ScoreCardProgressRowData } from './ScoreCardProgressRows';
 import {
   DAILY_REWARD_ANIMATION_RECENCY_MS,
   DAILY_REWARD_ANIMATION_SEEN_KEY,
@@ -7,7 +5,9 @@ import {
   DAILY_REWARD_ICON_SRC,
   DAILY_REWARD_LABEL,
   DAILY_REWARD_ROW_ID,
-} from './scoreCardConstants';
+} from '../../common/constants';
+import type { TableTypes } from '../../common/constants';
+import type { ScoreCardProgressRowData } from './ScoreCardProgressRows';
 import type { DailyRewardSnapshot } from './scoreCardTypes';
 
 const parseDailyRewardSnapshot = (

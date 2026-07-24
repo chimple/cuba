@@ -2,17 +2,15 @@ import {
   AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
   AUTO_OPEN_STICKER_PREVIEW_KEY,
   PENDING_PATHWAY_STICKER_REWARD_KEY,
-} from '../../common/constants';
-import { extractStickerSvg } from '../common/SvgHelpers';
-import { fetchStickerBookSvgText } from '../../utility/stickerBookAssets';
-import type { ScoreCardProgressRowData } from './ScoreCardProgressRows';
-import {
   STICKER_COMPLETION_ANIMATION_SEEN_KEY,
   STICKER_ICON_ALT,
   STICKER_PROGRESS_TOTAL,
   STICKER_ROW_ID,
   STICKER_ROW_LABEL,
-} from './scoreCardConstants';
+} from '../../common/constants';
+import { extractStickerSvg } from '../common/SvgHelpers';
+import { fetchStickerBookSvgText } from '../../utility/stickerBookAssets';
+import type { ScoreCardProgressRowData } from './ScoreCardProgressRows';
 import { getDailyRewardDay, shouldAnimateOnce } from './scoreCardDailyReward';
 import { getCurrentPathwayStickerProgress } from './scoreCardLearningPathProgress';
 import type {
