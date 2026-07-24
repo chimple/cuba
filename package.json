@@ -135,6 +135,7 @@
     "lint:fix": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,json,md}\"",
     "fix-staged": "lint-staged -c .lintstagedrc-fix.json --no-stash",
+    "check:file-size": "node scripts/check-file-size-limits.js",
     "check:new-any": "node scripts/check-new-explicit-any.js",
     "prepare": "husky"
   },
@@ -216,7 +217,8 @@
     "src/**/*.{js,jsx,ts,tsx}": [
       "eslint",
       "prettier --check",
-      "npm run check:new-any"
+      "npm run check:new-any",
+      "npm run check:file-size"
     ],
     "*.{js,jsx,ts,tsx,css,json,md}": [
       "prettier --check"
