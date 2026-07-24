@@ -10,9 +10,10 @@ const cardStyles = {
   border: '1px solid #DDE1E6',
   borderRadius: '8px',
   background: '#F8FAFD',
-  minHeight: 86,
+  minHeight: 72,
+  position: 'relative',
   px: 1.5,
-  py: 1.25,
+  py: 1.1,
 } as const;
 
 type CampaignAssignmentsReportProps = {
@@ -29,71 +30,126 @@ const CampaignAssignmentsReport: React.FC<CampaignAssignmentsReportProps> = ({
     noSsr: true,
   });
   const report = useCampaignAssignmentsReportState(campaignId, totalStudents);
+
   const columns = useMemo<Column<CampaignAssignmentsTableRow>[]>(
     () => [
-      { key: 'subject', label: t('Subject'), sortable: false, width: '40%' },
+      {
+        key: 'subject',
+        label: t('SUBJECTS'),
+        sortable: false,
+        width: '10%',
+        align: 'left',
+        headerAlign: 'left',
+      },
       {
         key: 'lessonsAssigned',
-        label: t('Lessons Assigned'),
+        label: t('LESSONS ASSIGNED'),
         sortable: false,
-        width: '30%',
+        width: '10%',
+        align: 'center',
+        headerAlign: 'center',
       },
       {
         key: 'completionPercent',
-        label: t('Completion %'),
+        label: t('COMPLETION %'),
         sortable: false,
-        width: '30%',
+        width: '24%',
+        align: 'center',
+        headerAlign: 'center',
       },
     ],
     [],
   );
 
   return (
-    <Box border="1px solid #DDE1E6" borderRadius="10px" bgcolor="#fff">
-      <Box px={{ xs: 1.5, sm: 2.5 }} py={2} borderBottom="1px solid #EAECEF">
-        <Typography
-          fontSize={16}
-          fontWeight={700}
-          color="#21272A"
-          textAlign="left"
-        >
-          {t('Assignment Report')}
-        </Typography>
-      </Box>
+    <Box
+      component="article"
+      border="1px solid #DDE1E6"
+      borderRadius="10px"
+      bgcolor="#fff"
+    >
+      {!isMobile ? (
+        <Box px={{ xs: 1.5, sm: 2.5 }} py={2} borderBottom="1px solid #EAECEF">
+          <Typography
+            fontSize={16}
+            fontWeight={700}
+            color="#21272A"
+            textAlign="left"
+          >
+            {t('Assignment Report')}
+          </Typography>
+        </Box>
+      ) : null}
 
       <Box p={{ xs: 1.25, sm: 2.5 }}>
-        <Box
-          display="grid"
-          gridTemplateColumns={{
-            xs: 'repeat(2, minmax(0, 1fr))',
-            md: 'repeat(4, minmax(0, 1fr))',
+        <Typography
+          component="div"
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: 'repeat(2, minmax(0, 1fr))',
+              md: 'repeat(4, minmax(0, 1fr))',
+            },
+            gap: 1.5,
           }}
-          gap={1.5}
         >
-          {report.summaryCards.map((card) => (
+          {(isMobile
+            ? [
+                report.summaryCards[0],
+                report.summaryCards[3],
+                report.summaryCards[1],
+                report.summaryCards[2],
+              ].filter(Boolean)
+            : report.summaryCards
+          ).map((card) => (
             <Box key={card.key} sx={cardStyles}>
-              <Box display="flex" alignItems="center" gap={0.75} mb={0.5}>
-                <Typography color="#667085" fontSize={11} lineHeight="16px">
-                  {card.label}
-                </Typography>
+              <Box position="absolute" top={10} right={10}>
                 <CampaignsOverviewInfoTooltip
-                  alignment="left"
+                  alignment="right"
                   color="#1A71F6"
                   label={card.label}
                   message={card.info}
                 />
               </Box>
+
+              {!isMobile ? (
+                <Typography
+                  color="#667085"
+                  fontSize={11}
+                  fontWeight={500}
+                  lineHeight="16px"
+                  mb={0.75}
+                  textAlign="left"
+                >
+                  {card.label}
+                </Typography>
+              ) : null}
+
               <Typography
                 color="#1A71F6"
-                fontSize={28}
+                fontSize={{ xs: 24, sm: 28 }}
                 fontWeight={700}
                 textAlign="left"
+                mt={isMobile ? 0.25 : 0}
               >
                 {card.value}
               </Typography>
+
+              {isMobile ? (
+                <Typography
+                  color="#667085"
+                  fontSize={10}
+                  fontWeight={700}
+                  lineHeight="16px"
+                  mt={0.75}
+                  textAlign="left"
+                >
+                  {card.label}
+                </Typography>
+              ) : null}
             </Box>
           ))}
-        </Box>
+        </Typography>
 
         {isMobile ? (
           <Box mt={1.5} display="grid" gap={1}>
@@ -109,30 +165,90 @@ const CampaignAssignmentsReport: React.FC<CampaignAssignmentsReportProps> = ({
                 gap={1}
                 alignItems="center"
               >
-                <Typography fontSize={13} fontWeight={600} color="#21272A">
+                <Typography
+                  fontSize={13}
+                  fontWeight={700}
+                  color="#21272A"
+                  textAlign="left"
+                >
                   {row.subject}
                 </Typography>
                 <Box>
-                  <Typography fontSize={13} fontWeight={700} color="#21272A">
+                  <Typography
+                    fontSize={13}
+                    fontWeight={700}
+                    color="#21272A"
+                    textAlign="left"
+                  >
                     {row.lessonsAssigned}
                   </Typography>
-                  <Typography fontSize={10} color="#667085">
-                    {t('Lessons Assigned')}
+                  <Typography
+                    fontSize={10}
+                    fontWeight={700}
+                    color="#667085"
+                    textAlign="left"
+                  >
+                    {t('Lessons')}
                   </Typography>
                 </Box>
                 <Box>
-                  <Typography fontSize={13} fontWeight={700} color="#21272A">
+                  <Typography
+                    fontSize={13}
+                    fontWeight={700}
+                    color="#21272A"
+                    textAlign="left"
+                  >
                     {row.completionPercent}
                   </Typography>
-                  <Typography fontSize={10} color="#667085">
-                    {t('Completion %')}
+                  <Typography
+                    fontSize={10}
+                    fontWeight={700}
+                    color="#667085"
+                    textAlign="left"
+                  >
+                    {t('Completion')}
                   </Typography>
                 </Box>
               </Box>
             ))}
           </Box>
         ) : (
-          <Box mt={2.5}>
+          <Box
+            mt={2.5}
+            sx={{
+              '.data-tablebody-container': {
+                overscrollBehavior: 'auto',
+              },
+              '.data-tablebody-column-subject#data-tablebody-content-cell': {
+                textAlign: 'left',
+              },
+              '.data-tablebody-column-lessonsAssigned#data-tablebody-content-cell, .data-tablebody-column-completionPercent#data-tablebody-content-cell':
+                {
+                  textAlign: 'center',
+                },
+              '.data-tablebody-column-subject .MuiTableSortLabel-root': {
+                justifyContent: 'flex-start',
+              },
+              '.data-tablebody-column-lessonsAssigned .MuiTableSortLabel-root, .data-tablebody-column-completionPercent .MuiTableSortLabel-root':
+                {
+                  justifyContent: 'center',
+                },
+              '.data-tablebody-column-subject .data-tablebody-head-button': {
+                justifyContent: 'flex-start',
+              },
+              '.data-tablebody-column-lessonsAssigned .data-tablebody-head-button, .data-tablebody-column-completionPercent .data-tablebody-head-button':
+                {
+                  justifyContent: 'center',
+                },
+              '.data-tablebody-column-subject .data-tablebody-head-label': {
+                textAlign: 'left',
+              },
+              '.data-tablebody-column-lessonsAssigned .data-tablebody-head-label, .data-tablebody-column-completionPercent .data-tablebody-head-label':
+                {
+                  textAlign: 'center',
+                },
+            }}
+          >
             <DataTableBody
               columns={columns}
               rows={report.rows}
