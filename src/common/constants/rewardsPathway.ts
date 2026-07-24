@@ -125,6 +125,16 @@ export const SHOULD_SHOW_HOMEWORK_REMOTE_ASSETS =
   'shouldShowHomeworkRemoteAssets';
 export const HOMEWORK_PATHWAY_DROPDOWN = 'homework_pathway_dropdown';
 export const HOMEWORK_PATHWAY = 'homework_pathway';
+export const HOMEWORK_REWARD_COMPLETED_INDEX_KEY =
+  'homework_reward_completed_index';
+export const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
+  'pending_homework_reward_transition';
+export const MASCOT_X_OFFSET = -155;
+export const REWARD_FLIGHT_TARGET_X_OFFSET = MASCOT_X_OFFSET + 84;
+export const REWARD_FLIGHT_DURATION_MS = 4000;
+export const REWARD_FLIGHT_ARC_Y_OFFSET = 150;
+export const FINAL_HOMEWORK_REWARD_AUDIO_DELAY_MS = 1000;
+export const FINAL_HOMEWORK_REWARD_AUDIO_TIMEOUT_MS = 6000;
 export const AUTO_OPEN_STICKER_PREVIEW_KEY = 'auto_open_sticker_preview';
 export const AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY =
   'auto_open_sticker_completion_popup';
@@ -137,6 +147,19 @@ export const STICKER_BOOK_COMPLETION_READY_EVENT =
 export const PATHWAY_REWARD_CELEBRATION_STARTED_EVENT =
   'pathway_reward_celebration_started';
 export const PATHWAY_REWARD_AUDIO_READY_EVENT = 'pathway_reward_audio_ready';
+export const STICKER_PROGRESS_TOTAL = 5;
+export const STICKER_ROW_ID = 'sticker';
+export const STICKER_ROW_LABEL = 'Collect sticker by completing a pathway.';
+export const STICKER_ICON_ALT = 'Sticker';
+export const DAILY_REWARD_ROW_ID = 'dailyReward';
+export const DAILY_REWARD_LABEL = 'Collect todayâ€™s reward.';
+export const DAILY_REWARD_ICON_SRC = 'assets/icons/reward.svg';
+export const DAILY_REWARD_ICON_ALT = 'Reward';
+export const DAILY_REWARD_ANIMATION_SEEN_KEY =
+  'score_card_daily_reward_animation_seen';
+export const DAILY_REWARD_ANIMATION_RECENCY_MS = 2 * 60 * 1000;
+export const STICKER_COMPLETION_ANIMATION_SEEN_KEY =
+  'score_card_sticker_completion_animation_seen';
 export const ENABLE_PAINT_MODE = 'enable-paint-mode';
 export const CHIMPLE_ENGLISH = '63e40488-3c1a-47ab-aa8a-6f07ad21709f';
 export const CHIMPLE_MATHS = '9d2474bd-b9c6-43ea-8415-242668807ba0';

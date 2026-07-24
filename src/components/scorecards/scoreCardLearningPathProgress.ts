@@ -1,10 +1,10 @@
 import {
   LATEST_LEARNING_PATH,
   REWARD_LEARNING_PATH,
+  STICKER_PROGRESS_TOTAL,
 } from '../../common/constants';
 import type { TableTypes } from '../../common/constants';
 import { Util } from '../../utility/util';
-import { STICKER_PROGRESS_TOTAL } from './scoreCardConstants';
 import type { LearningPathCourse, LearningPathData } from './scoreCardTypes';
 
 const parseLearningPath = (value: unknown): LearningPathData | null => {
