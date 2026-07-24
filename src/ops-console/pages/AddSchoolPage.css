@@ -30,6 +30,13 @@
   padding: 20px;
 }
 
+.add-school-section-box {
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 20px;
+  background-color: #f9fbfd;
+}
+
 .add-school-dropdown-container {
   background-color: #f9fafb;
   border-radius: 8px;

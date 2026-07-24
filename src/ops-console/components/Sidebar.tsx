@@ -36,7 +36,6 @@ import { AuthState } from '../../redux/slices/auth/authSlice';
 import { logAuthDebug } from '../../utility/authDebug';
 import { getAppPathname } from '../../utility/routerLocation';
 import { parsePath } from 'history';
-
 interface SidebarProps {
   name: string;
   email: string;
@@ -274,7 +273,6 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             />
           </IonItem>
         </div>
-
         {isOpen && (
           <div
             className="sidebar-logout-btn"
@@ -283,7 +281,6 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
             {t('Logout')}
           </div>
         )}
-
         <DialogBoxButtons
           width="100%"
           height="20%"
@@ -299,5 +296,4 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     </div>
   );
 };
-
 export default Sidebar;

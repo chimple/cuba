@@ -32,7 +32,6 @@ type Props = {
   onBack: () => void;
   onPaint?: () => void;
 };
-
 // Renders raw SVG markup inline so we can manipulate the DOM later.
 const InlineSvg = React.forwardRef<
   SVGSVGElement,
@@ -45,7 +44,6 @@ const InlineSvg = React.forwardRef<
   }
 >(({ svg, className, style, hideUntilReady, overrideAttrs }, ref) => {
   const localRef = useRef<SVGSVGElement | null>(null);
-
   // Expose the SVG element to parent components.
   React.useImperativeHandle(ref, () => localRef.current as SVGSVGElement, []);
 
@@ -113,17 +111,14 @@ export const useStickerBookBoard = ({
     collected_count: collectedStickers.length,
     next_sticker_id: nextStickerId ?? null,
   };
-
   const handlePrev = () => {
     Util.logEvent(EVENTS.STICKER_BOOK_PAGE_PREV, logPayload);
     onPrev();
   };
-
   const handleNext = () => {
     Util.logEvent(EVENTS.STICKER_BOOK_PAGE_NEXT, logPayload);
     onNext();
   };
-
   const handleBack = () => {
     Util.logEvent(EVENTS.STICKER_BOOK_PAGE_BACK, logPayload);
     onBack();

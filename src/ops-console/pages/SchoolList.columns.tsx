@@ -1,0 +1,227 @@
+import { t } from 'i18next';
+import type { Column } from '../components/DataTableBody';
+import type { SchoolListRow } from './SchoolList.fetcher';
+
+export type SchoolListExportColumn = {
+  key: keyof SchoolListRow;
+  label: string;
+  part: 'value' | 'percent';
+};
+
+export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
+  {
+    key: 'name',
+    label: t('School Name'),
+    width: '20%',
+    headerAlign: 'left',
+    sortable: true,
+    orderBy: 'name',
+  },
+  {
+    key: 'schoolPerformance',
+    label: t('School Performance'),
+    width: '7.78%',
+    align: 'center',
+    sortable: false,
+    orderBy: 'school_performance',
+    schoolPerformanceFilterKey: 'schoolPerformance',
+  },
+  {
+    key: 'onboardedStudents',
+    label: t('Onboarded Students'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'onboarded_students',
+  },
+  {
+    key: 'activatedStudents',
+    label: t('Activated Students'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'activated_students',
+    percentageFilterKey: 'activatedStudents',
+  },
+  {
+    key: 'activeStudents',
+    label: t('Active Students'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'active_students',
+    percentageFilterKey: 'activeStudents',
+  },
+  {
+    key: 'avgTimeSpent',
+    label: t('Avg Time Spent'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'avg_time_spent',
+  },
+  {
+    key: 'activeTeachers',
+    label: t('Active Teachers'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'active_teachers',
+    percentageFilterKey: 'activeTeachers',
+  },
+  {
+    key: 'activitiesAssigned',
+    label: t('Activities Assigned'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'activities_assigned',
+  },
+  {
+    key: 'avgAssignmentsCompleted',
+    label: t('Avg Assignments Completed'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'avg_assignments_completed',
+  },
+  {
+    key: 'avgActivitiesCompleted',
+    label: t('Avg Activities Completed'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'avg_activities_completed',
+  },
+  {
+    key: 'phoneCallsStudentsParents',
+    label: t('Phone Calls - Students / Parents'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'student_parent_calls',
+  },
+  {
+    key: 'phoneCallsTeachersHms',
+    label: t('Phone Calls - Teachers & HMs'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'teacher_hm_calls',
+  },
+  {
+    key: 'communityVisits',
+    label: t('Community Visits'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'community_visits',
+  },
+  {
+    key: 'parentsReached',
+    label: t('Parents Reached'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'community_parents_reached',
+  },
+  {
+    key: 'schoolVisits',
+    label: t('School Visits'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'school_visits',
+  },
+  {
+    key: 'inpersonStudentsParents',
+    label: t('In-Person - Students / Parents'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'student_parent_inperson',
+  },
+  {
+    key: 'parentsOnWhatsapp',
+    label: t('On WhatsApp'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'parents_on_whatsapp',
+  },
+  {
+    key: 'parentsInWhatsappGroup',
+    label: t('In Group'),
+    width: '7.78%',
+    align: 'center',
+    sortable: true,
+    orderBy: 'parents_in_group',
+  },
+];
+
+// Export columns intentionally mirror the UI while keeping paired % columns.
+export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
+  { key: 'name', label: t('School Name'), part: 'value' },
+  { key: 'udise', label: t('UDISE'), part: 'value' },
+  { key: 'block', label: t('Block'), part: 'value' },
+  {
+    key: 'schoolPerformance',
+    label: t('School Performance'),
+    part: 'value',
+  },
+  { key: 'onboardedStudents', label: t('Onboarded Students'), part: 'value' },
+  { key: 'activatedStudents', label: t('Activated Students'), part: 'value' },
+  {
+    key: 'activatedStudents',
+    label: t('Activated Students'),
+    part: 'percent',
+  },
+  { key: 'activeStudents', label: t('Active Students'), part: 'value' },
+  { key: 'activeStudents', label: t('Active Students'), part: 'percent' },
+  { key: 'avgTimeSpent', label: t('Avg Time Spent'), part: 'value' },
+  { key: 'activeTeachers', label: t('Active Teachers'), part: 'value' },
+  { key: 'activeTeachers', label: t('Active Teachers'), part: 'percent' },
+  {
+    key: 'activitiesAssigned',
+    label: t('Activities Assigned'),
+    part: 'value',
+  },
+  {
+    key: 'avgAssignmentsCompleted',
+    label: t('Avg Assignments Completed'),
+    part: 'value',
+  },
+  {
+    key: 'avgActivitiesCompleted',
+    label: t('Avg Activities Completed'),
+    part: 'value',
+  },
+  {
+    key: 'phoneCallsStudentsParents',
+    label: t('Phone Calls - Students / Parents'),
+    part: 'value',
+  },
+  {
+    key: 'phoneCallsTeachersHms',
+    label: t('Phone Calls - Teachers & HMs'),
+    part: 'value',
+  },
+  {
+    key: 'communityVisits',
+    label: t('Community Visits'),
+    part: 'value',
+  },
+  {
+    key: 'parentsReached',
+    label: t('Parents Reached'),
+    part: 'value',
+  },
+  { key: 'schoolVisits', label: t('School Visits'), part: 'value' },
+  {
+    key: 'inpersonStudentsParents',
+    label: t('In-Person - Students / Parents'),
+    part: 'value',
+  },
+  { key: 'parentsOnWhatsapp', label: t('On WhatsApp'), part: 'value' },
+  { key: 'parentsInWhatsappGroup', label: t('In Group'), part: 'value' },
+];
