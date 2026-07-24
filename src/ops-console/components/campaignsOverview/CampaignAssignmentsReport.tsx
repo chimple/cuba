@@ -37,15 +37,15 @@ const CampaignAssignmentsReport: React.FC<CampaignAssignmentsReportProps> = ({
         key: 'subject',
         label: t('SUBJECTS'),
         sortable: false,
-        width: '10%',
-        align: 'left',
-        headerAlign: 'left',
+        width: '30%',
+        align: 'center',
+        headerAlign: 'center',
       },
       {
         key: 'lessonsAssigned',
         label: t('LESSONS ASSIGNED'),
         sortable: false,
-        width: '10%',
+        width: '30%',
         align: 'center',
         headerAlign: 'center',
       },
@@ -53,7 +53,7 @@ const CampaignAssignmentsReport: React.FC<CampaignAssignmentsReportProps> = ({
         key: 'completionPercent',
         label: t('COMPLETION %'),
         sortable: false,
-        width: '24%',
+        width: '30%',
         align: 'center',
         headerAlign: 'center',
       },
@@ -219,29 +219,29 @@ const CampaignAssignmentsReport: React.FC<CampaignAssignmentsReportProps> = ({
               '.data-tablebody-container': {
                 overscrollBehavior: 'auto',
               },
-              '.data-tablebody-column-subject#data-tablebody-content-cell': {
-                textAlign: 'left',
+              '.data-tablebody-head-cell:first-child': {
+                borderLeft: 'none',
+                zIndex: 2,
               },
-              '.data-tablebody-column-lessonsAssigned#data-tablebody-content-cell, .data-tablebody-column-completionPercent#data-tablebody-content-cell':
-                {
-                  textAlign: 'center',
-                },
+              '.data-tablebody-column-subject#data-tablebody-content-cell': {
+                textAlign: 'center',
+              },
               '.data-tablebody-column-subject .MuiTableSortLabel-root': {
-                justifyContent: 'flex-start',
+                justifyContent: 'center',
               },
               '.data-tablebody-column-lessonsAssigned .MuiTableSortLabel-root, .data-tablebody-column-completionPercent .MuiTableSortLabel-root':
                 {
                   justifyContent: 'center',
                 },
               '.data-tablebody-column-subject .data-tablebody-head-button': {
-                justifyContent: 'flex-start',
+                justifyContent: 'center',
               },
               '.data-tablebody-column-lessonsAssigned .data-tablebody-head-button, .data-tablebody-column-completionPercent .data-tablebody-head-button':
                 {
                   justifyContent: 'center',
                 },
               '.data-tablebody-column-subject .data-tablebody-head-label': {
-                textAlign: 'left',
+                textAlign: 'center',
               },
               '.data-tablebody-column-lessonsAssigned .data-tablebody-head-label, .data-tablebody-column-completionPercent .data-tablebody-head-label':
                 {
