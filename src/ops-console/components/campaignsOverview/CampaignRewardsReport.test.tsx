@@ -244,7 +244,7 @@ describe('Campaign rewards TSX components', () => {
           },
           {
             key: 'total',
-            label: 'Total No. Students',
+            label: 'Total Students',
             count: 10,
             percent: null,
             info: 'Total info',
@@ -256,7 +256,7 @@ describe('Campaign rewards TSX components', () => {
     expect(screen.getByText('Reward Rank 1')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
     expect(screen.getByText('30%')).toBeInTheDocument();
-    expect(screen.getByText('Total No. Students')).toBeInTheDocument();
+    expect(screen.getByText('Total Students')).toBeInTheDocument();
     expect(screen.getByText('10')).toBeInTheDocument();
   });
 

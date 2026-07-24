@@ -5,6 +5,7 @@ const INFO_ICON_SRC = '/assets/ops-info-icon.svg';
 const TOOLTIP_BOUNDARY_SELECTOR = 'article';
 const TOOLTIP_MAX_WIDTH_PROPERTY = '--ops-campaigns-info-tooltip-max-width';
 const TOOLTIP_SHIFT_PROPERTY = '--ops-campaigns-info-tooltip-shift';
+const TOOLTIP_OPEN_EVENT = 'ops-campaigns-info-tooltip-open';
 
 export interface CampaignsOverviewInfoTooltipProps {
   alignment?: 'left' | 'center' | 'right';
@@ -73,10 +74,23 @@ const CampaignsOverviewInfoTooltip: React.FC<
       }
     };
 
+    const handleTooltipOpened = (event: Event): void => {
+      const customEvent = event as CustomEvent<{ source: HTMLButtonElement }>;
+      const sourceTooltip = customEvent.detail?.source;
+
+      if (!sourceTooltip || sourceTooltip === tooltipRef.current) {
+        return;
+      }
+
+      setInternalIsOpen(false);
+    };
+
     document.addEventListener('pointerdown', handleDocumentPointerDown);
+    document.addEventListener(TOOLTIP_OPEN_EVENT, handleTooltipOpened);
 
     return () => {
       document.removeEventListener('pointerdown', handleDocumentPointerDown);
+      document.removeEventListener(TOOLTIP_OPEN_EVENT, handleTooltipOpened);
     };
   }, [isControlled]);
 
@@ -96,7 +110,19 @@ const CampaignsOverviewInfoTooltip: React.FC<
       return;
     }
 
-    setInternalIsOpen((current) => !current);
+    setInternalIsOpen((current) => {
+      const nextIsOpen = !current;
+
+      if (nextIsOpen && tooltipRef.current) {
+        document.dispatchEvent(
+          new CustomEvent(TOOLTIP_OPEN_EVENT, {
+            detail: { source: tooltipRef.current },
+          }),
+        );
+      }
+
+      return nextIsOpen;
+    });
     keepTooltipWithinParent();
   };
 

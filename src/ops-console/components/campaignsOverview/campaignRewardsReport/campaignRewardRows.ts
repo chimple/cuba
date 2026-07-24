@@ -257,32 +257,40 @@ export const buildCampaignRewardSummaryCards = (
       label: t('Reward Rank 1'),
       count: rank1,
       percent: createPercent(rank1),
-      info: t('Students currently qualifying for reward rank 1.'),
+      info: t(
+        'Total number and percentage of students currently qualifying for Rank 1 based on the campaign reward criteria.',
+      ),
     },
     {
       key: 'rank2',
       label: t('Reward Rank 2'),
       count: rank2,
       percent: createPercent(rank2),
-      info: t('Students currently qualifying for reward rank 2.'),
+      info: t(
+        'Total number and percentage of students currently qualifying for Rank 2 based on the campaign reward criteria.',
+      ),
     },
     {
       key: 'rank3',
       label: t('Reward Rank 3'),
       count: rank3,
       percent: createPercent(rank3),
-      info: t('Students currently qualifying for reward rank 3.'),
+      info: t(
+        'Total number and percentage of students currently qualifying for Rank 3 based on the campaign reward criteria.',
+      ),
     },
     {
       key: 'nonRank',
       label: t('Non-rank holders'),
       count: nonRankHolders,
       percent: createPercent(nonRankHolders),
-      info: t('Students who do not currently qualify for any reward rank.'),
+      info: t(
+        'Total number and percentage of students who currently do not meet the minimum reward qualification criteria.',
+      ),
     },
     {
       key: 'totalStudents',
-      label: t('Total No. Students'),
+      label: t('Total Students'),
       count: totalStudents,
       percent: null,
       info: t('Total number of students included in this campaign.'),
