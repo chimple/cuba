@@ -88,7 +88,6 @@ jest.mock('../../../utility/logger', () => ({
   __esModule: true,
   default: {
     error: jest.fn(),
-    info: jest.fn(),
   },
 }));
 
@@ -370,19 +369,25 @@ describe('CampaignAssignmentsReport desktop rendering', () => {
         key: 'subject',
         label: 'SUBJECTS',
         sortable: false,
-        width: '45%',
+        width: '10%',
+        align: 'left',
+        headerAlign: 'left',
       },
       {
         key: 'lessonsAssigned',
         label: 'LESSONS ASSIGNED',
         sortable: false,
-        width: '27.5%',
+        width: '10%',
+        align: 'center',
+        headerAlign: 'center',
       },
       {
         key: 'completionPercent',
         label: 'COMPLETION %',
         sortable: false,
-        width: '27.5%',
+        width: '24%',
+        align: 'center',
+        headerAlign: 'center',
       },
     ]);
     expect(props?.rows).toEqual([
@@ -529,7 +534,7 @@ describe('CampaignAssignmentsReport mobile rendering', () => {
     expect(screen.getByText('English')).toBeInTheDocument();
     expect(screen.getByText('Hindi')).toBeInTheDocument();
     expect(screen.getAllByText('Lessons').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('Completion %').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Completion').length).toBeGreaterThan(0);
     expect(
       screen.queryByTestId('assignments-data-table'),
     ).not.toBeInTheDocument();
