@@ -22,7 +22,7 @@ import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import logger from './logger';
 import { UtilLessonDownloads } from './util.lessonDownloads';
-
+import { StorageManager } from '../utility/storageManager';
 type LessonBundleDownloadOptions = {
   lessonId: string;
   zipUrls: string[];
@@ -111,7 +111,7 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
       if (!Capacitor.isNativePlatform()) {
         return true;
       }
-
+      await StorageManager.checkStorageLimit();
       const downloadStartedAt = Date.now();
       logger.info('Starting download for lessons:', {
         count: lessons.length,

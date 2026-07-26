@@ -9,6 +9,8 @@ import { setCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
 import {
   getBundleZipUrlsForEnv,
   getLidoBundleZipUrlsForEnv,
+  REMOTE_CONFIG_KEYS,
+  REMOTE_CONFIG_DEFAULTS,
 } from '../services/RemoteConfig';
 import { logger } from '../utility/logger';
 
@@ -26,6 +28,10 @@ export const useGrowthBookFeatureCache = () => {
   const palLearningRatesConfig = useFeatureValue<GrowthBookJsonConfig>(
     PAL_LEARNING_RATES_CONFIG,
     {},
+  );
+  const maxAssetStorageMb = useFeatureValue<number>(
+    REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB,
+    REMOTE_CONFIG_DEFAULTS[REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB],
   );
   const bundleZipUrls = useFeatureValue<string[]>(
     BUNDLE_ZIP_URLS,
@@ -48,6 +54,18 @@ export const useGrowthBookFeatureCache = () => {
       );
     }
   }, [palLearningRatesConfig]);
+
+  useEffect(() => {
+    if (
+      typeof maxAssetStorageMb === 'number' &&
+      Number.isFinite(maxAssetStorageMb)
+    ) {
+      setCachedGrowthBookFeatureValue(
+        REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB,
+        maxAssetStorageMb,
+      );
+    }
+  }, [maxAssetStorageMb]);
 
   useEffect(() => {
     if (!growthbook) return;

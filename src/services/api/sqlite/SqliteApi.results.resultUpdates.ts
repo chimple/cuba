@@ -265,4 +265,31 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
 
     return newResult;
   }
+
+  public async getLessonLastPlayed(lessonIds: string[]): Promise<
+    {
+      lesson_id: string;
+      last_played: string | null;
+    }[]
+  > {
+    if (lessonIds.length === 0) {
+      return [];
+    }
+
+    const placeholders = lessonIds.map(() => '?').join(',');
+
+    const result = await this.executeQuery(
+      `
+      SELECT
+        lesson_id,
+        MAX(updated_at) AS last_played
+      FROM result
+      WHERE lesson_id IN (${placeholders})
+      GROUP BY lesson_id
+      `,
+      lessonIds,
+    );
+
+    return result?.values ?? [];
+  }
 }

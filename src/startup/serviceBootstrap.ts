@@ -2,6 +2,7 @@ import { APIMode, ServiceConfig } from '../services/ServiceConfig';
 import { SqliteApi } from '../services/api/SqliteApi';
 import { persistor, store } from '../redux/store';
 import logger from '../utility/logger';
+import { StorageManager } from '../utility/storageManager';
 import { isNativePlatform } from './nativeRuntime';
 
 const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
@@ -29,11 +30,17 @@ const bootstrapAndRender = async (renderApp: () => void) => {
 
   if (isNativePlatform) {
     serviceInstance.switchMode(APIMode.SQLITE);
+    try {
+      await SqliteApi.getInstance();
+    } catch (error) {
+      logger.error('Native bootstrap warmup failed', error);
+    }
     renderApp();
-
-    void SqliteApi.getInstance().catch((error) => {
-      logger.error('Sqlite init failed during bootstrap', error);
-    });
+    window.setTimeout(() => {
+      void StorageManager.checkStorageLimit().catch((error) => {
+        logger.error('Native storage warmup failed', error);
+      });
+    }, 0);
     return;
   }
 

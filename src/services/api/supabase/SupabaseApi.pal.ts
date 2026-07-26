@@ -6,6 +6,19 @@ export interface SupabaseApiPal {
   [key: string]: any;
 }
 export class SupabaseApiPal extends SupabaseApiWhatsApp {
+  async getLessonLastPlayed(lessonIds: string[]): Promise<
+    {
+      lesson_id: string;
+      last_played: string | null;
+    }[]
+  > {
+    // This API is only used by StorageManager for SQLite eviction logic.
+    // Supabase does not need to provide real data here, but it must satisfy
+    // the shared ServiceApi contract.
+    logger.warn('SupabaseApi.getLessonLastPlayed called; returning empty list');
+    return [];
+  }
+
   async getDomainsBySubjectAndFramework(
     subjectId: string,
     frameworkId: string,
