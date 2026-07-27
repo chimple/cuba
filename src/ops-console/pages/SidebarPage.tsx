@@ -2,7 +2,6 @@ import { IonPage } from '@ionic/react';
 import React, { useEffect, useState } from 'react';
 import {
   Redirect,
-  Switch,
   useParams,
   useRouteMatch,
   useHistory,
@@ -13,44 +12,20 @@ import {
   PAGES,
   TableTypes,
 } from '../../common/constants';
-import ProtectedRoute from '../../ProtectedRoute';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
-import NewProgram from '../components/NewProgram';
 import Sidebar from '../components/Sidebar';
-import ParentWhatsappInvitationPage from '../pages/Parentwhatsappinvite/ParentWhatsappInvitationPage';
-import ActivitiesPage from './ActivitiesPage';
-import AddSchoolPage from './AddSchoolPage';
-import CampaignListingPage from './CampaignListingPage';
-import CampaignSetupPage from './CampaignSetupPage';
-import MigrateSchoolsPage from './MigrateSchoolsPage';
-import NewUserPage from './NewUserPageOps';
-import OpsApprovedRequestDetails from './OpsApprovedRequestDetails';
-import OpsFlaggedRequestDetails from './OpsFlaggedRequestDetails';
-import OpsModulePage from './OpsModulePage';
-import OpsRejectedRequestDetails from './OpsRejectedRequestDetails';
-import PrincipalTeacherPendingRequest from './PrincipalTeacherPendingRequest';
 import ProgramConnectedSchoolPage from './ProgramConnectedSchoolPageOps';
 import ProgramDetailsPage from './ProgramDetailsPage';
-import ProgramsPage from './ProgramPage';
-import RequestList from './RequestList';
-import SchoolActivities from './SchoolActivities';
-import SchoolApprovedRequest from './SchoolApprovedRequest';
 import SchoolDetailsPage from './SchoolDetailsPage';
-import SchoolFormPage from './SchoolFormPage';
 import CampaignsOverview from '../components/campaignsOverview/CampaignsOverview';
 import { CampaignsOverviewApiResponse } from '../components/campaignsOverview/CampaignsOverviewLogic';
-import SchoolList from './SchoolList';
-import SchoolPendingRequest from './SchoolPendingRequest';
-import SchoolRejectedRequest from './SchoolRejectedRequest';
 import './SidebarPage.css';
-import StudentPendingRequest from './StudentPendingRequest';
-import UserDetailsPage from './UserDetailsPage';
-import UsersPage from './UsersPage';
 import { RoleType } from '../../interface/modelInterfaces';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import { SidebarRoutes } from './SidebarRoutes';
 
 const SchoolDetailsRoute: React.FC = () => {
   const { school_id } = useParams<{ school_id: string }>();
@@ -212,193 +187,17 @@ const SidebarPage: React.FC = () => {
           photo={currentUser?.image || ''}
         />
         <div className="sidebarpage-render">
-          <Switch>
-            <ProtectedRoute exact path={path}>
-              <Redirect
-                to={`${
-                  path +
-                  (canAccessProgramPage
-                    ? PAGES.PROGRAM_PAGE
-                    : PAGES.SCHOOL_LIST)
-                }`}
-              />
-            </ProtectedRoute>
-            {/* <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_DASHBOARD}`}
-              exact={true}
-            >
-              <Dashboard />
-            </ProtectedRoute> */}
-            <ProtectedRoute path={`${path}${PAGES.PROGRAM_PAGE}`} exact={true}>
-              <ProgramsPage />
-            </ProtectedRoute>
-            <ProtectedRoute path={`${path}${PAGES.SCHOOL_LIST}`} exact={true}>
-              <SchoolList />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_CAMPAIGNS_NEW}`}
-              exact={true}
-            >
-              {canAccessCampaignPage ? (
-                <CampaignSetupPage />
-              ) : (
-                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
-              )}
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_CAMPAIGNS}/:campaignId`}
-              exact={true}
-            >
-              {canAccessCampaignPage ? (
-                <CampaignOverviewRoute />
-              ) : (
-                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
-              )}
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_CAMPAIGNS}`}
-              exact={true}
-            >
-              {canAccessCampaignPage ? (
-                <CampaignListingPage />
-              ) : (
-                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
-              )}
-            </ProtectedRoute>
-            <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
-              <RequestList />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.OPS_MODULE_PAGE}`}
-              exact={true}
-            >
-              <OpsModulePage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.OPS_MODULE_PAGE}${PAGES.PARENT_WHATSAPP_INVITATION}`}
-              exact={true}
-            >
-              <ParentWhatsappInvitationPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}/:id`}
-              exact={true}
-            >
-              <SchoolPendingRequest />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_APPROVED_REQUEST}/:id`}
-              exact={true}
-            >
-              <SchoolApprovedRequest />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_REJECTED_REQUEST}/:id`}
-              exact={true}
-            >
-              <SchoolRejectedRequest />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}${PAGES.SCHOOL_FORM_PAGE}/:id`}
-              exact={true}
-            >
-              <SchoolFormPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.STUDENT_PENDING_REQUEST}/:id`}
-              exact={true}
-            >
-              <StudentPendingRequest />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.OPS_APPROVED_REQUEST}/:id`}
-              exact={true}
-            >
-              <OpsApprovedRequestDetails />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.OPS_REJECTED_REQUEST}/:id`}
-              exact={true}
-            >
-              <OpsRejectedRequestDetails />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.OPS_REJECTED_FLAGGED}/:id`}
-              exact={true}
-            >
-              <OpsFlaggedRequestDetails />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.REQUEST_LIST}${PAGES.PRINCIPAL_TEACHER_PENDING_REQUEST}/:id`}
-              exact={true}
-            >
-              <PrincipalTeacherPendingRequest />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/:school_id`}
-              exact={true}
-            >
-              <SchoolDetailsRoute />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/:program_id`}
-              exact={true}
-            >
-              <ProgramDetailsRoute />
-            </ProtectedRoute>
-            <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
-              {canCreateProgram ? (
-                <NewProgram />
-              ) : (
-                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
-              )}
-            </ProtectedRoute>
-            <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
-              <UsersPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/:program_id`}
-              exact={true}
-            >
-              <ProgramConnectedSchoolRoute />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.USERS}${PAGES.NEW_USERS_OPS}`}
-              exact={true}
-            >
-              <NewUserPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.ADMIN_USERS}${PAGES.USER_DETAILS}`}
-              exact={true}
-            >
-              <UserDetailsPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`}
-              exact={true}
-            >
-              <AddSchoolPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`}
-              exact={true}
-            >
-              <MigrateSchoolsPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`}
-              exact={true}
-            >
-              <ActivitiesPage />
-            </ProtectedRoute>
-            <ProtectedRoute
-              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}${PAGES.SCHOOL_ACTIVITIES}`}
-              exact={true}
-            >
-              <SchoolActivities />
-            </ProtectedRoute>
-          </Switch>
+          {' '}
+          <SidebarRoutes
+            CampaignOverviewRoute={CampaignOverviewRoute}
+            ProgramConnectedSchoolRoute={ProgramConnectedSchoolRoute}
+            ProgramDetailsRoute={ProgramDetailsRoute}
+            SchoolDetailsRoute={SchoolDetailsRoute}
+            canAccessCampaignPage={canAccessCampaignPage}
+            canAccessProgramPage={canAccessProgramPage}
+            canCreateProgram={canCreateProgram}
+            path={path}
+          />
         </div>
       </div>
     </IonPage>

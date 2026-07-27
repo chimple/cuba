@@ -1,12 +1,10 @@
 import React from 'react';
 import Grid from '@mui/material/Grid';
 import './SchoolOverview.css';
-import { Box, Button, Divider, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 import './SchoolInfoCard.css';
 import { t } from 'i18next';
 import InfoCard from '../InfoCard';
-import DetailItem from '../DetailItem';
-import ContactCard from '../ContactCard';
 import { PAGES, PROGRAM_TAB_LABELS } from '../../../common/constants';
 import { useHistory } from 'react-router';
 import { RoleType } from '../../../interface/modelInterfaces';
@@ -15,6 +13,11 @@ import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
 import { parsePath } from 'history';
+import {
+  InteractionMetricsSection,
+  SchoolOverviewKeyContacts,
+  SchoolOverviewProgramDetails,
+} from './SchoolOverviewSections';
 
 interface SchoolOverviewProps {
   data: any;
@@ -99,8 +102,6 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
       })(),
     },
   ].filter((item) => item.value !== undefined && item.value !== null);
-  const [programName, programType, model] = programDetailsItems;
-
   const interactionItems = [
     { label: 'Number of Visits', value: data.interactionStats?.visits ?? 0 },
     {
@@ -124,72 +125,6 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
       value: data.interactionStats?.teachers_interacted ?? 0,
     },
   ];
-
-  const InteractionMetricsSection = () => (
-    <InfoCard
-      title={t('Interaction Metrics')}
-      className="interaction-card"
-      hideDivider={true}
-      headerAction={
-        !isMobile && !isExternalUser ? (
-          <Button
-            size="small"
-            variant="outlined"
-            className="schooloverview-view-all-interactions-btn"
-            sx={{ textTransform: 'none' }}
-            onClick={() =>
-              history.replace({
-                ...parsePath(
-                  `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`,
-                ),
-                state: data.schoolData,
-              })
-            }
-          >
-            {t('View All Interactions')}
-          </Button>
-        ) : undefined
-      }
-    >
-      <Grid container spacing={2} mt={0.5}>
-        {interactionItems.map((item, idx) => (
-          <Grid key={idx} size={{ xs: 6, sm: 6, md: 4 }}>
-            <Box className="schooloverview-interaction-item">
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                className="schooloverview-interaction-item-label"
-              >
-                {t(item.label)}
-              </Typography>
-              <Typography variant="h4" fontWeight="700" color="text.primary">
-                {item.value}
-              </Typography>
-            </Box>
-          </Grid>
-        ))}
-      </Grid>
-      {isMobile && !isExternalUser && (
-        <Button
-          fullWidth
-          size="small"
-          className="full-width-button"
-          variant="outlined"
-          sx={{ mt: 2, textTransform: 'none' }}
-          onClick={() =>
-            history.replace({
-              ...parsePath(
-                `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`,
-              ),
-              state: data.schoolData,
-            })
-          }
-        >
-          {t('View All Interactions')}
-        </Button>
-      )}
-    </InfoCard>
-  );
 
   const history = useHistory();
   let keyContacts: Array<any> = [];
@@ -219,44 +154,14 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
     <div className="school">
       {isMobile ? (
         <Box className="column-container">
-          <InteractionMetricsSection />
-          <InfoCard
-            title={t('Key Contacts')}
-            children={
-              <Box className="principal-list">
-                {(() => {
-                  const contactsToShow =
-                    keyContacts && keyContacts.length
-                      ? keyContacts.map((c: any) => ({
-                          name: c.name,
-                          phone: c.phone || c.email,
-                          role: c.role || t('Key Contact'),
-                        }))
-                      : [
-                          ...(data.principals?.map((p: any) => ({
-                            name: p.name,
-                            phone: p.phone || p.email,
-                            role: t('Principal'),
-                          })) || []),
-                          ...(data.coordinators?.map((c: any) => ({
-                            name: c.name,
-                            phone: c.phone || c.email,
-                            role: t('Coordinator'),
-                          })) || []),
-                        ];
-
-                  return contactsToShow.map((contact: any, idx: number) => (
-                    <ContactCard
-                      key={idx}
-                      name={contact.name}
-                      role={contact.role}
-                      phone={contact.phone}
-                    />
-                  ));
-                })()}
-              </Box>
-            }
+          <InteractionMetricsSection
+            data={data}
+            history={history}
+            interactionItems={interactionItems}
+            isExternalUser={isExternalUser}
+            isMobile={isMobile}
           />
+          <SchoolOverviewKeyContacts data={data} keyContacts={keyContacts} />
           <InfoCard
             title={t('School Details')}
             className="school-detail-infocard school-card"
@@ -272,51 +177,23 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
             }
           />
           <SubjectCurriculumCard schoolId={data.schoolData?.id} />
-          <InfoCard title={t('Program Details')} className="program-card">
-            <Box className="info-card-items">
-              {programDetailsItems.map((item, idx) => (
-                <DetailItem key={idx} {...item} />
-              ))}
-            </Box>
-            <Divider className="info-card-section-divider" />
-            <Box mt={2}>
-              <Typography
-                variant="subtitle1"
-                className="info-card-section-title"
-                gutterBottom
-                align="left"
-                fontWeight={500}
-              >
-                {t('Program Manager')}
-              </Typography>
-              <Box>
-                {data.programManagers?.map(
-                  (
-                    manager: {
-                      name?: string;
-                      role?: string;
-                      phone?: string;
-                      email?: string;
-                    },
-                    idx: number,
-                  ) => (
-                    <ContactCard
-                      key={idx}
-                      name={manager.name || ''}
-                      role={manager.role || t('Program Manager')}
-                      phone={manager.phone || manager.email || ''}
-                    />
-                  ),
-                )}
-              </Box>
-            </Box>
-          </InfoCard>
+          <SchoolOverviewProgramDetails
+            data={data}
+            isMobile
+            programDetailsItems={programDetailsItems}
+          />
         </Box>
       ) : (
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, md: 12 }}>
             <Box className="column-container">
-              <InteractionMetricsSection />
+              <InteractionMetricsSection
+                data={data}
+                history={history}
+                interactionItems={interactionItems}
+                isExternalUser={isExternalUser}
+                isMobile={isMobile}
+              />
             </Box>
           </Grid>
 
@@ -348,148 +225,17 @@ const SchoolOverview: React.FC<SchoolOverviewProps> = ({ data, isMobile }) => {
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
             <Box className="column-container">
-              <InfoCard
-                title={t('Key Contacts')}
-                children={
-                  <Box className="principal-list">
-                    {(() => {
-                      const contactsToShow =
-                        keyContacts && keyContacts.length
-                          ? keyContacts.map((c: any) => ({
-                              name: c.name,
-                              phone: c.phone || c.email,
-                              role: c.role || t('Key Contact'),
-                            }))
-                          : [
-                              ...(data.principals?.map((p: any) => ({
-                                name: p.name,
-                                phone: p.phone || p.email,
-                                role: t('Principal'),
-                              })) || []),
-                              ...(data.coordinators?.map((c: any) => ({
-                                name: c.name,
-                                phone: c.phone || c.email,
-                                role: t('Coordinator'),
-                              })) || []),
-                            ];
-
-                      return contactsToShow.map((contact: any, idx: number) => (
-                        <ContactCard
-                          key={idx}
-                          name={contact.name}
-                          role={contact.role}
-                          phone={contact.phone}
-                        />
-                      ));
-                    })()}
-                  </Box>
-                }
+              <SchoolOverviewKeyContacts
+                data={data}
+                keyContacts={keyContacts}
               />
             </Box>
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
-            <InfoCard title={t('Program Details')} className="program-card">
-              <Box height={4} />
-              <Box
-                display="flex"
-                flexDirection="row"
-                width="100%"
-                gap={4}
-                mb={2}
-              >
-                <Box
-                  flex={1}
-                  display="flex"
-                  flexDirection="column"
-                  alignItems="flex-start"
-                  minWidth={0}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight={500}
-                    textAlign="left"
-                  >
-                    {t(programName?.label)}
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    gutterBottom
-                    textAlign="left"
-                    sx={{ wordBreak: 'break-word', width: '100%' }}
-                  >
-                    {programName?.value}
-                  </Typography>
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight={500}
-                    textAlign="left"
-                  >
-                    {t(programType?.label)}
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    textAlign="left"
-                    sx={{ wordBreak: 'break-word', width: '100%' }}
-                  >
-                    {programType?.value}
-                  </Typography>
-                </Box>
-                <Box
-                  flex={1}
-                  display="flex"
-                  flexDirection="column"
-                  alignItems="flex-start"
-                  minWidth={0}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    fontWeight={500}
-                    textAlign="left"
-                  >
-                    {t(model?.label)}
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    textAlign="left"
-                    sx={{ wordBreak: 'break-word', width: '100%' }}
-                  >
-                    {model?.value}
-                  </Typography>
-                </Box>
-              </Box>
-              <Divider className="info-card-section-divider" />
-              <Box mt={2}>
-                <Typography
-                  variant="subtitle2"
-                  className="info-card-section-title"
-                  gutterBottom
-                  align="left"
-                  fontWeight={600}
-                >
-                  {t('Program Manager')}
-                </Typography>
-                <Box>
-                  {data.programManagers?.map(
-                    (
-                      manager: {
-                        name?: string;
-                        role?: string;
-                        phone?: string;
-                        email?: string;
-                      },
-                      idx: number,
-                    ) => (
-                      <ContactCard
-                        key={idx}
-                        name={manager.name || ''}
-                        role={manager.role || t('Program Manager')}
-                        phone={manager.phone || manager.email || ''}
-                      />
-                    ),
-                  )}
-                </Box>
-              </Box>
-            </InfoCard>
+            <SchoolOverviewProgramDetails
+              data={data}
+              programDetailsItems={programDetailsItems}
+            />
           </Grid>
         </Grid>
       )}
