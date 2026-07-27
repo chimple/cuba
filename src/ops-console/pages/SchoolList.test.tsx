@@ -141,18 +141,50 @@ jest.mock('../components/SearchAndFilter', () => {
 });
 
 jest.mock('../components/FilterSlider', () => {
-  return function MockFilterSlider() {
-    return <div data-testid="filter-slider" />;
+  return function MockFilterSlider(props: {
+    filters?: Record<string, string[]>;
+    onFilterChange?: (name: string, value: string[]) => void;
+    onApply?: () => void;
+  }) {
+    return (
+      <div data-testid="filter-slider">
+        <div data-testid="filter-slider-grades">
+          {(props.filters?.grade ?? []).join(',')}
+        </div>
+        <button
+          type="button"
+          onClick={() => props.onFilterChange?.('grade', ['Grade 1'])}
+        >
+          select grade 1
+        </button>
+        <button type="button" onClick={props.onApply}>
+          apply filters
+        </button>
+      </div>
+    );
   };
 });
 
 jest.mock('../components/SelectedFilters', () => {
   return function MockSelectedFilters(props: {
+    filters?: Record<string, string[]>;
     extraFilters?: Array<{ key: string; value: string; label: string }>;
     onDeleteFilter?: (key: string, value: string) => void;
   }) {
     return (
       <div data-testid="selected-filters">
+        {Object.entries(props.filters ?? {}).flatMap(([key, values]) =>
+          values.map((value) => (
+            <button
+              key={`${key}-${value}`}
+              type="button"
+              data-testid={`selected-filter-${key}`}
+              onClick={() => props.onDeleteFilter?.(key, value)}
+            >
+              {value}
+            </button>
+          )),
+        )}
         {(props.extraFilters ?? []).map((filter) => (
           <button
             key={`${filter.key}-${filter.value}`}
@@ -202,6 +234,7 @@ beforeEach(() => {
   mockLocationSearch = '';
 
   mockApiHandler.getSchoolFilterOptionsForSchoolListing.mockResolvedValue({
+    grade: ['Grade 1', 'Grade 2'],
     programType: [],
     partner: [],
     programManager: [],
@@ -359,6 +392,56 @@ describe('SchoolList actions menu', () => {
   });
 });
 
+describe('SchoolList grade filter', () => {
+  it('shows all grade options selected by default without applying a grade request filter', async () => {
+    renderPage();
+
+    await waitFor(() =>
+      expect(screen.getByTestId('filter-slider-grades')).toHaveTextContent(
+        'Grade 1,Grade 2',
+      ),
+    );
+    expect(
+      mockApiHandler.getSchoolMetricsForSchoolListing,
+    ).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        filters: expect.not.objectContaining({
+          grade: expect.any(Array),
+        }),
+      }),
+    );
+  });
+
+  it('applies selected grades to the school metrics request and chip list', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'select grade 1' }));
+    await user.click(screen.getByRole('button', { name: 'apply filters' }));
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          filters: expect.objectContaining({
+            grade: ['Grade 1'],
+          }),
+        }),
+      ),
+    );
+    expect(screen.getByTestId('selected-filter-grade')).toHaveTextContent(
+      'Grade 1',
+    );
+  });
+});
+
 describe('SchoolList export', () => {
   it('disables export when there are no schools in the table', async () => {
     renderPage();
@@ -370,6 +453,9 @@ describe('SchoolList export', () => {
 
   it('exports the filtered school metrics rows to an xlsx file', async () => {
     const user = userEvent.setup();
+    mockLocationSearch = `?filters=${encodeURIComponent(
+      JSON.stringify({ grade: ['Grade 1'] }),
+    )}`;
     mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
       data: [
         {
@@ -422,6 +508,9 @@ describe('SchoolList export', () => {
         page: 1,
         page_size: 500,
         date_range: '7d',
+        filters: expect.objectContaining({
+          grade: ['Grade 1'],
+        }),
       }),
     );
     expect(mockRunBackgroundWorkerTask).toHaveBeenCalledWith(

@@ -1,4 +1,4 @@
-import { OPS_ROLES } from '../../../common/constants';
+import { OPS_ROLES, TABLES } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { Json } from '../../database';
@@ -139,6 +139,7 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
     }
 
     const emptyOptions: Record<string, string[]> = {
+      grade: [],
       state: [],
       district: [],
       block: [],
@@ -167,8 +168,36 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
       }
 
       const rpcData = data as Record<string, Json>;
+      const rpcGrades = Array.isArray(rpcData.grade)
+        ? (rpcData.grade as string[])
+        : [];
+      let gradeOptions = rpcGrades;
+
+      if (gradeOptions.length === 0) {
+        const { data: gradeRows, error: gradeError } = await this.supabase
+          .from(TABLES.Grade)
+          .select('name, sort_index')
+          .eq('is_deleted', false);
+
+        if (gradeError) {
+          logger.error(
+            'Error fetching grade options for school listing:',
+            gradeError,
+          );
+        } else {
+          gradeOptions = (gradeRows ?? [])
+            .map((grade) => ({
+              name: typeof grade.name === 'string' ? grade.name.trim() : '',
+              sort: Number(grade.sort_index ?? 9999),
+            }))
+            .filter((grade) => grade.name.length > 0)
+            .sort((a, b) => a.sort - b.sort || a.name.localeCompare(b.name))
+            .map((grade) => grade.name);
+        }
+      }
 
       return {
+        grade: gradeOptions,
         state: Array.isArray(rpcData.state) ? (rpcData.state as string[]) : [],
         district: Array.isArray(rpcData.district)
           ? (rpcData.district as string[])

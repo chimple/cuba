@@ -21,10 +21,12 @@ import {
   resolveSchoolMetricsPerformanceStatus,
   type SchoolListPercentBand,
 } from './SupabaseApi.program.helpers';
+import { getSchoolListingMetricsByGrades } from './SupabaseApi.program.schoolMetricsByGrades';
 
 export interface SupabaseApiProgramSchoolMetrics {
   [key: string]: any;
 }
+
 export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
   async getFilteredSchoolsForSchoolListing(params: {
     filters?: Record<string, string[]>;
@@ -117,15 +119,6 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
     }
 
     const {
-      data: { user: authUser },
-      error: authError,
-    } = await this.supabase.auth.getUser();
-    if (authError || !authUser) {
-      logger.error('Current user is not available for school metrics query');
-      return { data: [], total: 0 };
-    }
-
-    const {
       filters,
       programId,
       page = 1,
@@ -137,6 +130,40 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
       percentage_filters,
       school_performance_filter,
     } = params;
+    const selectedGradeValues = (filters?.grade ?? []).filter(
+      (value) => typeof value === 'string' && value.trim().length > 0,
+    );
+
+    if (selectedGradeValues.length > 0) {
+      const gradeMetricsResponse = await getSchoolListingMetricsByGrades(
+        this.supabase,
+        {
+          filters,
+          programId,
+          page,
+          pageSize: page_size,
+          orderBy: order_by,
+          orderDir: order_dir,
+          search,
+          dateRange: date_range,
+          percentageFilters: percentage_filters,
+          schoolPerformanceFilter: school_performance_filter,
+        },
+      );
+
+      if (gradeMetricsResponse) return gradeMetricsResponse;
+
+      return { data: [], total: 0 };
+    }
+
+    const {
+      data: { user: authUser },
+      error: authError,
+    } = await this.supabase.auth.getUser();
+    if (authError || !authUser) {
+      logger.error('Current user is not available for school metrics query');
+      return { data: [], total: 0 };
+    }
 
     const specialRoles = await this.getUserSpecialRoles(authUser.id);
     const isAdminOrDirector = specialRoles.some((role: string) =>

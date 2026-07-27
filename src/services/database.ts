@@ -6493,6 +6493,22 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_school_listing_metrics_by_grades: {
+        Args: {
+          p_filters?: Json;
+          p_grade_ids: string[];
+          p_days?: number;
+          p_order_by?: string;
+          p_order_dir?: string;
+          p_page?: number;
+          p_page_size?: number;
+          p_percentage_filters?: Json;
+          p_program_id?: string | null;
+          p_school_performance_filter?: string | null;
+          p_search?: string;
+        };
+        Returns: Json;
+      };
       get_geo_data: {
         Args: {
           p_block?: string;
