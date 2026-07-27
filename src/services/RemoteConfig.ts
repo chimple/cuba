@@ -108,7 +108,7 @@ export const REMOTE_CONFIG_DEFAULTS: { [key: string]: any } = {
   [REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS]: getLidoBundleZipUrlsForEnv(),
   [REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW]: {
     size: 100,
-    isEnabled: true,
+    isEnabled: false,
   },
   // [REMOTE_CONFIG_KEYS.TERMS_AND_CONDITIONS_URL]: [
   //   "https://www.chimple.org/privacy-policy"

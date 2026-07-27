@@ -1,4 +1,4 @@
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
 import logger from './logger';
 import { REMOTE_CONFIG_KEYS } from '../services/RemoteConfig';
 import { SqliteApi } from '../services/api/SqliteApi';
@@ -14,28 +14,8 @@ interface StorageLimitConfig {
   isEnabled: boolean;
 }
 
-type NativeStorageManagerPlugin = {
-  getLessonFolders: () => Promise<{ folders: string[] }>;
-  getDirectorySize: (options: { path?: string }) => Promise<{ size: number }>;
-  deleteLessonFolder: (options: { lessonId: string }) => Promise<void>;
-};
-
-let nativeStorageManagerPlugin: NativeStorageManagerPlugin | null = null;
-
-const getNativeStorageManagerPlugin = () => {
-  if (Capacitor.getPlatform() !== 'android') {
-    return null;
-  }
-
-  if (!nativeStorageManagerPlugin) {
-    nativeStorageManagerPlugin =
-      registerPlugin<NativeStorageManagerPlugin>('StorageManager');
-  }
-
-  return nativeStorageManagerPlugin;
-};
-
 export class StorageManager {
+  private static readonly ROOT_DIRECTORY = Directory.External;
   private static readonly PROTECTED_FOLDERS = new Set([
     'stickerBookAssetCache',
     'homeworkRemoteAsset',
@@ -43,11 +23,6 @@ export class StorageManager {
 
   public static async checkStorageLimit(): Promise<void> {
     try {
-      if (Capacitor.getPlatform() !== 'android') {
-        logger.warn('[StorageManager] Native storage cleanup is Android-only');
-        return;
-      }
-
       const storageLimitConfig = this.getStorageLimitConfig();
       if (!storageLimitConfig) {
         logger.warn('[StorageManager] Invalid storage config');
@@ -87,6 +62,14 @@ export class StorageManager {
 
       const evictionQueue = await this.buildEvictionQueue();
 
+      logger.warn(
+        `[StorageManager] Eviction queue: ${evictionQueue
+          .map(
+            (l) =>
+              `${l.lessonId} (${l.lastPlayed ? 'played' : 'never played'})`,
+          )
+          .join(' -> ')}`,
+      );
       let currentSizeBytes = totalBytes;
       const limitBytes = storageLimitMB * 1024 * 1024;
 
@@ -117,21 +100,31 @@ export class StorageManager {
   }
 
   private static async getDirectorySize(path: string): Promise<number> {
-    const nativePlugin = getNativeStorageManagerPlugin();
-    if (!nativePlugin) {
-      throw new Error('StorageManager plugin is unavailable on this platform');
-    }
+    let totalSize = 0;
 
     try {
-      const { size } = await nativePlugin.getDirectorySize({ path });
-      return size ?? 0;
+      const { files } = await Filesystem.readdir({
+        path,
+        directory: this.ROOT_DIRECTORY,
+      });
+
+      for (const file of files) {
+        const childPath = path ? `${path}/${file.name}` : file.name;
+
+        if (file.type === 'directory') {
+          totalSize += await this.getDirectorySize(childPath);
+        } else {
+          totalSize += file.size;
+        }
+      }
     } catch (error) {
-      logger.warn('[StorageManager] Native directory size lookup failed', {
+      logger.warn('[StorageManager] Failed to read directory', {
         path,
         error,
       });
-      throw error;
     }
+
+    return totalSize;
   }
 
   private static getStorageLimitConfig(): StorageLimitConfig | null {
@@ -140,14 +133,13 @@ export class StorageManager {
       null,
     );
 
-    logger.warn('[StorageManager] Cached max_asset_storage_mb_new value', {
-      featureKey: REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW,
-      value: config,
-    });
+    // logger.warn('[StorageManager] Cached max_asset_storage_mb_new value', {
+    //   featureKey: REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW,
+    //   value: config,
+    // });
 
     if (
       !config ||
-      config.isEnabled !== true ||
       typeof config.size !== 'number' ||
       !Number.isFinite(config.size)
     ) {
@@ -158,30 +150,29 @@ export class StorageManager {
   }
 
   private static async getLessonFolders(): Promise<string[]> {
-    const nativePlugin = getNativeStorageManagerPlugin();
-    if (!nativePlugin) {
-      throw new Error('StorageManager plugin is unavailable on this platform');
-    }
+    const { files } = await Filesystem.readdir({
+      path: '',
+      directory: this.ROOT_DIRECTORY,
+    });
 
-    try {
-      const { folders } = await nativePlugin.getLessonFolders();
-      return folders ?? [];
-    } catch (error) {
-      logger.warn('[StorageManager] Native lesson folder lookup failed', {
-        error,
-      });
-      throw error;
-    }
+    return files
+      .filter((file) => file.type === 'directory')
+      .map((file) => file.name);
   }
 
   private static async buildEvictionQueue(): Promise<
     LessonEvictionCandidate[]
   > {
-    const lessonFolders = await this.getLessonFolders();
+    const lessonFolders = (await this.getLessonFolders()).filter(
+      (folder) => !this.PROTECTED_FOLDERS.has(folder),
+    );
 
     const api = await SqliteApi.getInstance();
     const playedLessons = await api.getLessonLastPlayed(lessonFolders);
 
+    logger.warn(
+      `[StorageManager] Played lessons from DB: ${JSON.stringify(playedLessons)}`,
+    );
     const playedMap = new Map(
       playedLessons.map((lesson) => [lesson.lesson_id, lesson.last_played]),
     );
@@ -206,6 +197,16 @@ export class StorageManager {
       }
     }
 
+    logger.warn(
+      `[StorageManager] Never played: ${neverPlayed.map((l) => l.lessonId).join(', ')}`,
+    );
+
+    logger.warn(
+      `[StorageManager] Played: ${played
+        .map((l) => `${l.lessonId} (${l.lastPlayed})`)
+        .join(', ')}`,
+    );
+
     played.sort(
       (a, b) =>
         new Date(a.lastPlayed!).getTime() - new Date(b.lastPlayed!).getTime(),
@@ -215,22 +216,18 @@ export class StorageManager {
   }
 
   private static async deleteLessonFolder(lessonId: string): Promise<void> {
-    const nativePlugin = getNativeStorageManagerPlugin();
-    if (!nativePlugin) {
-      throw new Error('StorageManager plugin is unavailable on this platform');
-    }
-
     try {
-      await nativePlugin.deleteLessonFolder({ lessonId });
-      logger.warn('[StorageManager] Deleted lesson folder', {
-        lessonId,
+      await Filesystem.rmdir({
+        path: lessonId,
+        directory: this.ROOT_DIRECTORY,
+        recursive: true,
       });
+
+      logger.warn(`[StorageManager] Deleted lesson folder=${lessonId}`);
     } catch (error) {
-      logger.warn('[StorageManager] Native lesson folder delete failed', {
-        lessonId,
-        error,
-      });
-      throw error;
+      logger.warn(
+        `[StorageManager] Failed to delete lesson folder lessonId =${lessonId} error=${error}`,
+      );
     }
   }
 }

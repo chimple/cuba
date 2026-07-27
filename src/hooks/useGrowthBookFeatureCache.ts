@@ -66,10 +66,9 @@ export const useGrowthBookFeatureCache = () => {
       typeof maxAssetStorageMb.size === 'number' &&
       Number.isFinite(maxAssetStorageMb.size)
     ) {
-      logger.warn('[GrowthBook] max_asset_storage_mb_new evaluated', {
-        featureKey: REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW,
-        value: maxAssetStorageMb,
-      });
+      logger.warn(
+        `[GrowthBook] max_asset_storage_mb_new evaluated: featureKey=${REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW}, value=${JSON.stringify(maxAssetStorageMb)}`,
+      );
 
       setCachedGrowthBookFeatureValue(
         REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW,

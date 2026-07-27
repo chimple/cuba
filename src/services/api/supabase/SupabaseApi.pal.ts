@@ -18,10 +18,11 @@ export class SupabaseApiPal extends SupabaseApiWhatsApp {
 
     const { data, error } = await this.supabase
       .from(TABLES.Result)
-      .select('lesson_id, updated_at')
+      .select('updated_at, lesson:lesson_id(lido_lesson_id)')
       .eq('student_id', this._currentStudent.id)
-      .in('lesson_id', lessonIds)
       .eq('is_deleted', false)
+      .not('updated_at', 'is', null)
+      .in('lesson.lido_lesson_id', lessonIds)
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -31,11 +32,12 @@ export class SupabaseApiPal extends SupabaseApiWhatsApp {
 
     const lastPlayedByLesson = new Map<string, string>();
     for (const row of data ?? []) {
-      if (!row?.lesson_id || lastPlayedByLesson.has(row.lesson_id)) {
+      const lessonId = row?.lesson?.lido_lesson_id;
+      if (!lessonId || lastPlayedByLesson.has(lessonId)) {
         continue;
       }
       lastPlayedByLesson.set(
-        row.lesson_id,
+        lessonId,
         row.updated_at ?? new Date().toISOString(),
       );
     }
