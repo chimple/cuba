@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next';
 import DataTablePagination from '../DataTablePagination';
 import {
   CAMPAIGN_MESSAGES_EDIT_ICON_SRC,
-  HOUR_OPTIONS,
-  PERIOD_OPTIONS,
   useCampaignMessagesController,
 } from './CampaignMessagesLogic';
 import type { CampaignMessagesScheduleType } from './CampaignMessagesLogic';
 import type { CampaignFrequency } from '../../../services/api/ServiceApi';
 import './CampaignMessages.css';
+import CampaignMessageRowItem from './CampaignMessageRowItem';
+import CampaignScheduleTimePicker from './CampaignScheduleTimePicker';
 
 interface CampaignMessagesProps {
   campaignId?: string;
@@ -66,98 +66,6 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({
     };
   }, [controller, controller.openSchedulePicker]);
 
-  const renderScheduleTimePicker = (
-    scheduleType: CampaignMessagesScheduleType,
-    label: string,
-  ) => {
-    const currentTime =
-      scheduleType === 'message'
-        ? controller.editedMessageTime
-        : controller.editedPollTime;
-    const currentParts = controller.getScheduleTimeParts(currentTime);
-    const isPickerOpen = controller.openSchedulePicker === scheduleType;
-    const isTimeEditable = currentParts !== null;
-
-    return (
-      <div
-        className="campaign-messages-time-picker-wrapper"
-        ref={(element) => {
-          timePickerWrapperRefs.current[scheduleType] = element;
-        }}
-      >
-        <button
-          className="campaign-messages-time campaign-messages-time-button campaign-messages-time-editable"
-          type="button"
-          aria-label={label}
-          aria-expanded={isPickerOpen}
-          disabled={!isTimeEditable}
-          onClick={() =>
-            controller.setOpenSchedulePicker((currentPicker) =>
-              currentPicker === scheduleType ? null : scheduleType,
-            )
-          }
-        >
-          {currentTime}
-        </button>
-
-        {isPickerOpen && isTimeEditable && (
-          <div
-            className="campaign-messages-time-picker"
-            role="group"
-            aria-label={label}
-          >
-            <div className="campaign-messages-time-picker-column">
-              {HOUR_OPTIONS.map((hour) => (
-                <button
-                  className="campaign-messages-time-picker-option"
-                  type="button"
-                  aria-selected={currentParts?.hour === hour}
-                  key={`${scheduleType}-hour-${hour}`}
-                  ref={(element) => {
-                    controller.hourOptionRefs.current[
-                      `${scheduleType}-hour-${hour}`
-                    ] = element;
-                  }}
-                  onClick={() => {
-                    controller.updateScheduleTime(scheduleType, 'hour', hour);
-                    controller.setOpenSchedulePicker(null);
-                  }}
-                >
-                  {hour}
-                </button>
-              ))}
-            </div>
-            <div className="campaign-messages-time-picker-column campaign-messages-time-picker-period-column">
-              {PERIOD_OPTIONS.map((period) => (
-                <button
-                  className="campaign-messages-time-picker-option"
-                  type="button"
-                  aria-selected={currentParts?.period === period}
-                  key={`${scheduleType}-period-${period}`}
-                  ref={(element) => {
-                    controller.periodOptionRefs.current[
-                      `${scheduleType}-period-${period}`
-                    ] = element;
-                  }}
-                  onClick={() => {
-                    controller.updateScheduleTime(
-                      scheduleType,
-                      'period',
-                      period,
-                    );
-                    controller.setOpenSchedulePicker(null);
-                  }}
-                >
-                  {period}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <section
       className={`campaign-messages${
@@ -173,7 +81,12 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({
           <div className="campaign-messages-field-block">
             <p className="campaign-messages-field-label">{t('Message Time')}</p>
             {controller.isEditMode ? (
-              renderScheduleTimePicker('message', String(t('Message Time')))
+              <CampaignScheduleTimePicker
+                controller={controller}
+                label={String(t('Message Time'))}
+                scheduleType="message"
+                wrapperRefs={timePickerWrapperRefs}
+              />
             ) : (
               <p className="campaign-messages-time">
                 {controller.messagesData.messageTime}
@@ -183,7 +96,12 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({
           <div className="campaign-messages-field-block">
             <p className="campaign-messages-field-label">{t('Poll Time')}</p>
             {controller.isEditMode ? (
-              renderScheduleTimePicker('poll', String(t('Poll Time')))
+              <CampaignScheduleTimePicker
+                controller={controller}
+                label={String(t('Poll Time'))}
+                scheduleType="poll"
+                wrapperRefs={timePickerWrapperRefs}
+              />
             ) : (
               <p className="campaign-messages-time">
                 {controller.messagesData.pollTime}
@@ -230,196 +148,13 @@ const CampaignMessages: React.FC<CampaignMessagesProps> = ({
           <span>{t('Poll')}</span>
         </div>
         <div className="campaign-messages-table-body">
-          {controller.displayedRows.map((row) => {
-            const isMessageDisabled =
-              controller.isEditMode && !row.messageEditable;
-            const isPollDisabled = controller.isEditMode && !row.pollEditable;
-            const isRowDisabled =
-              controller.isEditMode &&
-              !row.messageEditable &&
-              !row.pollEditable;
-            const pollOptions = controller.getPollOptionsForEdit(row);
-            const originalOptionCount =
-              controller.originalOptionCountByRowId[row.id] ??
-              pollOptions.length;
-            const isRowCollapsed = controller.collapsedRowIds[row.id] ?? false;
-
-            return (
-              <article
-                className={`campaign-messages-row${
-                  isRowDisabled ? ' campaign-messages-row-disabled' : ''
-                }${row.isEditable ? ' campaign-messages-row-editable' : ''}${
-                  isRowCollapsed ? ' campaign-messages-row-collapsed' : ''
-                }`}
-                key={row.id}
-              >
-                <button
-                  className="campaign-messages-mobile-row-head"
-                  type="button"
-                  aria-expanded={!isRowCollapsed}
-                  onClick={() => controller.toggleRowCollapsed(row.id)}
-                >
-                  <div>
-                    <p className="campaign-messages-date-label">
-                      {row.dayLabel}
-                    </p>
-                    <p className="campaign-messages-date-subtext">
-                      {row.dateLabel}
-                    </p>
-                  </div>
-                </button>
-                <div className="campaign-messages-date-cell">
-                  <p className="campaign-messages-date-label">{row.dayLabel}</p>
-                  <p className="campaign-messages-date-subtext">
-                    {row.dateLabel}
-                  </p>
-                </div>
-
-                {controller.isEditMode ? (
-                  <textarea
-                    className="campaign-messages-edit-field campaign-messages-message-edit-field"
-                    value={row.message}
-                    placeholder={String(t('Enter daily campaign message...'))}
-                    disabled={isMessageDisabled}
-                    onChange={(event) =>
-                      controller.updateRowField(
-                        row.id,
-                        'message',
-                        event.target.value,
-                      )
-                    }
-                  />
-                ) : (
-                  <p className="campaign-messages-cell campaign-messages-message-cell">
-                    {controller.getReadonlyText(row.message)}
-                  </p>
-                )}
-
-                <div className="campaign-messages-cell campaign-messages-media-cell">
-                  {controller.isEditMode ? (
-                    <textarea
-                      className="campaign-messages-edit-field campaign-messages-media-link-edit-field"
-                      value={row.mediaLink}
-                      placeholder={String(t('Paste media drive link...'))}
-                      disabled={isMessageDisabled}
-                      onChange={(event) =>
-                        controller.updateRowField(
-                          row.id,
-                          'mediaLink',
-                          event.target.value,
-                        )
-                      }
-                    />
-                  ) : (
-                    <p className="campaign-messages-readonly-field campaign-messages-media-link-field">
-                      {controller.getReadonlyText(row.mediaLink)}
-                    </p>
-                  )}
-                </div>
-
-                <div className="campaign-messages-poll-cell">
-                  {controller.isEditMode ? (
-                    <>
-                      <input
-                        className="campaign-messages-edit-field campaign-messages-poll-question-edit-field"
-                        value={row.pollQuestion}
-                        placeholder={String(t('Poll question...'))}
-                        disabled={isPollDisabled}
-                        onChange={(event) =>
-                          controller.updateRowField(
-                            row.id,
-                            'pollQuestion',
-                            event.target.value,
-                          )
-                        }
-                      />
-                      {pollOptions.map((option, optionIndex) => {
-                        const canRemoveOption =
-                          row.isEditable &&
-                          optionIndex > 1 &&
-                          optionIndex >= originalOptionCount;
-
-                        return (
-                          <div
-                            className="campaign-messages-poll-option-edit-row"
-                            key={`${row.id}-poll-option-${optionIndex}`}
-                          >
-                            <input
-                              className="campaign-messages-edit-field campaign-messages-poll-option-edit-field"
-                              value={option}
-                              placeholder={String(
-                                t(`Option ${optionIndex + 1}`),
-                              )}
-                              disabled={isPollDisabled}
-                              onChange={(event) =>
-                                controller.updatePollOption(
-                                  row.id,
-                                  optionIndex,
-                                  event.target.value,
-                                )
-                              }
-                            />
-                            {canRemoveOption && (
-                              <button
-                                className="campaign-messages-remove-option-button"
-                                type="button"
-                                aria-label={String(t('Remove option'))}
-                                disabled={isPollDisabled}
-                                onClick={() =>
-                                  controller.removePollOption(
-                                    row.id,
-                                    optionIndex,
-                                  )
-                                }
-                              >
-                                &times;
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                      {row.isEditable && (
-                        <button
-                          className="campaign-messages-add-option-button"
-                          type="button"
-                          disabled={isPollDisabled}
-                          onClick={() => controller.addPollOption(row.id)}
-                        >
-                          {t('+ Option')}
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <p className="campaign-messages-readonly-field campaign-messages-poll-question">
-                        {controller.getReadonlyText(row.pollQuestion)}
-                      </p>
-                      {pollOptions.map((option, optionIndex) => (
-                        <p
-                          className="campaign-messages-readonly-field campaign-messages-poll-option"
-                          key={`${row.id}-poll-option-${optionIndex}`}
-                        >
-                          {controller.getReadonlyText(option)}
-                        </p>
-                      ))}
-                    </>
-                  )}
-                </div>
-
-                {controller.isEditMode && row.isEditable && (
-                  <div className="campaign-messages-row-actions">
-                    <button
-                      className="campaign-messages-clear-row-button"
-                      type="button"
-                      onClick={() => controller.clearRow(row.id)}
-                    >
-                      {t('Clear')}
-                    </button>
-                  </div>
-                )}
-              </article>
-            );
-          })}
+          {controller.displayedRows.map((row) => (
+            <CampaignMessageRowItem
+              controller={controller}
+              key={row.id}
+              row={row}
+            />
+          ))}
           {controller.isLoading && (
             <div className="campaign-messages-loading-state">
               <p>{t('Loading...')}</p>

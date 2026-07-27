@@ -1,217 +1,38 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import {
-  Typography,
-  Paper,
-  Grid,
-  Divider,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-} from '@mui/material';
-import { IonCheckbox } from '@ionic/react';
-import { useHistory, useParams, useLocation } from 'react-router-dom';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import {
-  DEFAULT_PAGE_SIZE,
-  PAGES,
-  REQUEST_TABS,
-  TableTypes,
-} from '../../common/constants';
+import React from 'react';
+import { Typography, Paper, Grid, Divider, Button } from '@mui/material';
+import { PAGES } from '../../common/constants';
 import './StudentPendingRequest.css';
-import { Constants } from '../../services/database';
 import { useTranslation } from 'react-i18next';
 import { OpsUtil } from '../OpsUtility/OpsUtil';
 import RejectRequestPopup from '../components/SchoolRequestComponents/RejectRequestPopup';
-import SearchAndFilter from '../components/SearchAndFilter';
-import logger from '../../utility/logger';
+import StudentPendingStudentsTable from '../components/StudentPendingStudentsTable';
+import { useStudentPendingRequestDetails } from '../hooks/useStudentPendingRequestDetails';
 
 const StudentPendingRequestDetails = () => {
-  const { id } = useParams<{ id: string }>();
-  const history = useHistory();
-  const location = useLocation();
-  const api = ServiceConfig.getI().apiHandler;
   const { t } = useTranslation();
+  const {
+    currentPage,
+    displayedStudents,
+    filteredTotalStudents,
+    handleConfirmApprove,
+    handlePageChange,
+    handleRadioChange,
+    history,
+    id,
+    loading,
+    pageSize,
+    requestData,
+    searchTerm,
+    selectedStudent,
+    setSearchTerm,
+    setShowRejectPopup,
+    showRejectPopup,
+    studentDetails,
+  } = useStudentPendingRequestDetails();
 
-  const [requestData, setRequestData] = useState<any>(null);
-  const [students, setStudents] = useState<any[]>([]);
-  const [totalStudents, setTotalStudents] = useState(0);
-  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
-  const [loading, setLoading] = useState(true);
-  const [studentDetails, setStudentDetails] = useState<any>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const fetchStudents = useCallback(
-    async (classId: string, page: number, size: number) => {
-      setLoading(true);
-      const response = await api.getStudentsAndParentsByClassId(
-        classId,
-        page,
-        size,
-      );
-      if (requestData?.requested_by) {
-        const studentData = await api.getStudentAndParentByStudentId(
-          requestData.requested_by,
-        );
-        setStudentDetails(studentData);
-      } else {
-        logger.warn(
-          'requestData.requested_by was undefined when fetching student details.',
-        );
-      }
-      setStudents(response?.data || []);
-      setTotalStudents(response?.total || 0);
-      setLoading(false);
-    },
-    [api, requestData],
-  );
-
-  useEffect(() => {
-    async function fetchRequest() {
-      setLoading(true);
-      try {
-        const state = location.state as { request?: any } | undefined;
-        const authHandler = ServiceConfig.getI().authHandler;
-        const respondedBy = await authHandler.getCurrentUser();
-
-        if (state?.request && state.request.request_id === id) {
-          state.request.responded_by = respondedBy?.id;
-          state.request.respondedBy = respondedBy;
-          setRequestData(state.request);
-        } else {
-          const [pendingRequests, approvedRequests, rejectedRequests] =
-            await Promise.all([
-              api.getOpsRequests(
-                Constants.public.Enums.ops_request_status[0],
-                1,
-                DEFAULT_PAGE_SIZE,
-              ),
-              api.getOpsRequests(
-                Constants.public.Enums.ops_request_status[2],
-                1,
-                DEFAULT_PAGE_SIZE,
-              ),
-              api.getOpsRequests(
-                Constants.public.Enums.ops_request_status[1],
-                1,
-                DEFAULT_PAGE_SIZE,
-              ),
-            ]);
-
-          const allRequests = [
-            ...(pendingRequests?.data || []),
-            ...(approvedRequests?.data || []),
-            ...(rejectedRequests?.data || []),
-          ];
-          const req = allRequests.find(
-            (r: TableTypes<'ops_requests'> | Record<string, unknown>) =>
-              'request_id' in r && r.request_id === id,
-          );
-
-          if (req) {
-            setRequestData(req);
-          } else {
-            setRequestData(null);
-          }
-        }
-      } catch (error) {
-        logger.error('Error fetching request data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchRequest();
-  }, [id, api, location.state]);
-
-  useEffect(() => {
-    if (requestData?.class_id) {
-      fetchStudents(requestData.class_id, currentPage, pageSize);
-    }
-  }, [requestData, currentPage, pageSize, fetchStudents]);
-
-  const handleRadioChange = (studentId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedStudent(studentId);
-    } else {
-      setSelectedStudent(null);
-    }
-  };
-
-  const handlePageChange = (event: unknown, newPage: number) =>
-    setCurrentPage(newPage + 1);
-
-  const handleConfirmApprove = async () => {
-    const currentRequestId = requestData?.id;
-    const currentRequest_Id = requestData?.request_id;
-    const currentSelectedStudent = selectedStudent;
-    const newStudentUserId =
-      requestData?.requested_by || requestData?.requestedBy?.id;
-    const isMergeFlow = Boolean(currentSelectedStudent && newStudentUserId);
-    // RespondedBy: whoever is logged in
-    const auth = ServiceConfig.getI().authHandler;
-    const user = await auth.getCurrentUser();
-    if (!user?.id) {
-      throw new Error('No logged-in user found. Cannot approve request.');
-    }
-    const respondedBy = user?.id;
-
-    if (!currentRequestId) {
-      logger.error(t('Missing request row ID for approval.'));
-      return;
-    }
-
-    setLoading(true);
-    try {
-      if (isMergeFlow) {
-        if (!currentSelectedStudent || !newStudentUserId) {
-          logger.error(
-            t('Missing student identifiers required for merge approval.'),
-          );
-          return;
-        }
-        // MERGE & APPROVE logic
-        // Keep requested profile as source and selected student as destination.
-        const mergeResult = await api.mergeStudentRequest(
-          newStudentUserId,
-          currentSelectedStudent,
-          currentRequest_Id,
-          respondedBy,
-        );
-
-        if (!mergeResult?.success) {
-          const mergeErrorMessage =
-            mergeResult?.message ||
-            t('Unable to merge this student request during approval.');
-          logger.error(mergeErrorMessage);
-          return;
-        }
-      } else {
-        const requestRole = requestData?.request_type; // e.g., 'student'
-        await api.approveOpsRequest(currentRequestId, respondedBy, requestRole);
-      }
-
-      history.push(
-        `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.APPROVED}`,
-      );
-    } catch (error) {
-      logger.error(t('Error approving/merging request:'), error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const [showRejectPopup, setShowRejectPopup] = useState(false);
   const handleRemoveClick = () => {
     setShowRejectPopup(true);
   };
-
   const formatFirstLetterUpper = (value?: string) => {
     const trimmed = (value ?? '').toString().trim();
     if (!trimmed) return t('N/A');
@@ -246,26 +67,6 @@ const StudentPendingRequestDetails = () => {
       </span>
     </div>
   );
-
-  // Filter out the requesting student from the students list
-  const filteredStudents = students.filter(
-    (stu) => stu.user.id !== requestData?.requested_by,
-  );
-  // Also update the total students count for display
-  const filteredTotalStudents =
-    totalStudents - (students.length - filteredStudents.length);
-  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-  const displayedStudents = filteredStudents.filter((stu) => {
-    if (!normalizedSearchTerm) return true;
-    const studentName = (stu.user?.name ?? '').toString().toLowerCase();
-    const studentId = (stu.user?.student_id ?? '').toString().toLowerCase();
-    const phoneNumber = (stu.parent?.phone ?? '').toString().toLowerCase();
-    return (
-      studentName.includes(normalizedSearchTerm) ||
-      studentId.includes(normalizedSearchTerm) ||
-      phoneNumber.includes(normalizedSearchTerm)
-    );
-  });
 
   return (
     <>
@@ -406,109 +207,20 @@ const StudentPendingRequestDetails = () => {
 
           {/* Right Side Table */}
           <Grid size={{ xs: 12, md: 7, lg: 7.5 }}>
-            <Paper
-              className="student-pending-request-details-table-card"
-              elevation={0}
-            >
-              <div className="student-pending-request-details-table-header-row">
-                <Typography
-                  variant="subtitle1"
-                  className="student-pending-request-details-section-title"
-                >
-                  {t(
-                    `Students in Grade ${
-                      parsedGrade > 0 ? parsedGrade : 'N/A'
-                    } - ${parsedSection || 'N/A'}`,
-                  )}
-                </Typography>
-                <div className="student-pending-request-details-table-search">
-                  <SearchAndFilter
-                    searchTerm={searchTerm}
-                    onSearchChange={(e) => setSearchTerm(e.target.value)}
-                    filters={{}}
-                    onFilterClick={() => undefined}
-                    isFilter={false}
-                  />
-                </div>
-              </div>
-              <Typography className="student-pending-request-details-total-students-count">
-                {t(`Total: ${filteredTotalStudents} students`)}
-              </Typography>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell className="student-pending-request-details-table-header-cell">
-                        {t('Student ID')}
-                      </TableCell>
-                      <TableCell className="student-pending-request-details-table-header-cell">
-                        {t('Student Name')}
-                      </TableCell>
-                      <TableCell className="student-pending-request-details-table-header-cell">
-                        {t('Gender')}
-                      </TableCell>
-                      {/* <TableCell className="student-pending-request-details-table-header-cell">
-                        {t("Grade")}
-                      </TableCell> */}
-                      <TableCell className="student-pending-request-details-table-header-cell">
-                        {t('Phone Number')}
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {displayedStudents.map((stu) => {
-                      const fullStudentClassName = `${stu.grade || ''}${
-                        stu.classSection || ''
-                      }`;
-                      const {
-                        grade: studentParsedGrade,
-                        section: studentParsedSection,
-                      } = OpsUtil.parseClassName(fullStudentClassName);
-
-                      return (
-                        <TableRow key={stu.user.id}>
-                          <TableCell>
-                            <IonCheckbox
-                              className="radio-like-checkbox"
-                              checked={selectedStudent === stu.user.id}
-                              onIonChange={(e) =>
-                                handleRadioChange(stu.user.id, e.detail.checked)
-                              }
-                              value={stu.user.id}
-                              color="primary"
-                            />
-                            {stu.user.student_id || t('N/A')}
-                          </TableCell>
-                          <TableCell>{stu.user.name || t('N/A')}</TableCell>
-                          <TableCell>
-                            {formatFirstLetterUpper(stu.user.gender) ||
-                              t('N/A')}
-                          </TableCell>
-                          {/* <TableCell>
-                            {t(
-                              `${
-                                studentParsedGrade > 0
-                                  ? studentParsedGrade
-                                  : "N/A"
-                              } - ${studentParsedSection || "N/A"}`
-                            )}
-                          </TableCell> */}
-                          <TableCell>{stu.parent?.phone || t('N/A')}</TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              <TablePagination
-                component="div"
-                count={filteredTotalStudents}
-                page={currentPage - 1}
-                onPageChange={handlePageChange}
-                rowsPerPage={pageSize}
-                className="student-pending-request-details-table-pagination"
-              />
-            </Paper>
+            <StudentPendingStudentsTable
+              currentPage={currentPage}
+              displayedStudents={displayedStudents}
+              filteredTotalStudents={filteredTotalStudents}
+              formatFirstLetterUpper={formatFirstLetterUpper}
+              handlePageChange={handlePageChange}
+              handleRadioChange={handleRadioChange}
+              pageSize={pageSize}
+              parsedGrade={parsedGrade}
+              parsedSection={parsedSection}
+              searchTerm={searchTerm}
+              selectedStudent={selectedStudent}
+              setSearchTerm={setSearchTerm}
+            />
           </Grid>
         </Grid>
       </div>

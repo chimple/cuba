@@ -10,24 +10,24 @@ import {
   type CampaignRewardsDraftPayload,
   usesLessonRewardCriteria,
 } from '../../hooks/campaignSetupFormHelpers';
-import {
-  RANK_LABELS,
-  REWARD_TYPE_OPTIONS,
-  TARGET_TYPE_LABEL_BY_VALUE,
-} from './constants';
+import { REWARD_TYPE_OPTIONS, TARGET_TYPE_LABEL_BY_VALUE } from './constants';
 import {
   CampaignAssignmentDraft,
   frequencyLabels,
   GradeAssignmentConfig,
 } from './campaignAssignmentUtils';
 import {
-  CampaignMessagingRowPayload,
+  type CampaignMessagingRowPayload,
   getCampaignDurationDays,
 } from './campaignCommunicationUtils';
 import { CampaignReachSummary } from './campaignCommunicationTypes';
 import { CampaignSetupFormState } from './types';
 import { ReviewCard, ReviewRow } from './CampaignReviewComponents';
 import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
+import {
+  CampaignReviewCommunicationCard,
+  CampaignReviewRewardsCard,
+} from './CampaignReviewCards';
 import './CampaignReviewStep.css';
 
 export type CampaignReviewData = {
@@ -157,9 +157,6 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
       ),
     );
 
-  const visibleMessagingRows = reviewData.messagingRows.slice(0, 3);
-  const hiddenMessagingDayCount =
-    reviewData.messagingRows.length - visibleMessagingRows.length;
   const usesLessonCriteria = usesLessonRewardCriteria(reviewData.form);
   const isHomepageLearningPathwayCampaign =
     reviewData.form.objective === CAMPAIGN_OBJECTIVE.HOMEPAGE_LEARNING_PATHWAY;
@@ -255,138 +252,32 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
           </Box>
         </ReviewCard>
       )}
-
-      <ReviewCard title="Rewards" editStep={2} onEditStep={onEditStep}>
-        <ReviewRow
-          label="Reward Type"
-          value={getRewardTypeLabel(reviewData.form.rewardType)}
-        />
-        <Box className="campaign-review-reward-list">
-          {(reviewData.campaignRewards?.rules ?? []).map((rule) => (
-            <Box key={rule.rank} className="campaign-review-reward-item">
-              <Typography className="campaign-review-reward-rank-label">
-                {t(RANK_LABELS[rule.rank])}
-              </Typography>
-              <Box
-                className={`campaign-review-rank-badge campaign-review-rank-${rule.rank}`}
-              >
-                {t(RANK_LABELS[rule.rank])}
-              </Box>
-              <Box className="campaign-review-reward-copy">
-                <Typography className="campaign-review-reward-name">
-                  <span className="campaign-review-reward-threshold-text">
-                    {t('Threshold')}:{' '}
-                    {formatRewardThreshold(rule.min, usesLessonCriteria)}
-                  </span>{' '}
-                  <span className="campaign-review-reward-separator">·</span>{' '}
-                  {rule.reward || emptyValue}
-                </Typography>
-                <Typography className="campaign-review-reward-threshold">
-                  {t('Threshold')}:{' '}
-                  {formatRewardThreshold(rule.min, usesLessonCriteria)}
-                </Typography>
-              </Box>
-            </Box>
-          ))}
-        </Box>
-      </ReviewCard>
-
-      <ReviewCard
-        title="Communication"
-        editStep={3}
+      <CampaignReviewRewardsCard
+        campaignRewards={reviewData.campaignRewards}
+        editStep={2}
+        emptyValue={emptyValue}
+        formatRewardThreshold={formatRewardThreshold}
+        getRewardTypeLabel={(value) =>
+          getRewardTypeLabel(value as CampaignSetupFormState['rewardType'])
+        }
         onEditStep={onEditStep}
-        className="campaign-review-communication-card"
-      >
-        <Box className="campaign-review-reach">
-          <Typography className="campaign-review-subheading">
-            {t('Campaign Reach')}
-          </Typography>
-          <Box className="campaign-review-reach-values">
-            <Typography className="campaign-review-reach-value">
-              <strong>{reviewData.campaignReach.groupCount}</strong>{' '}
-              {t('Groups')}
-            </Typography>
-            <Typography className="campaign-review-reach-value">
-              <strong>{reviewData.campaignReach.memberCount}</strong>{' '}
-              {t('Members')}
-            </Typography>
-          </Box>
-        </Box>
-        <ReviewRow label="Total Days" value={totalDays || 0} />
-        <ReviewRow
-          label="Days Configured"
-          value={`${reviewData.configuredCommunicationDayCount} / ${totalDays || 0}`}
-        />
-        <ReviewRow
-          label="Message Time"
-          value={reviewData.messageTime || emptyValue}
-        />
-        <ReviewRow
-          label="Poll Time"
-          value={reviewData.pollTime || emptyValue}
-        />
-
-        <Typography className="campaign-review-subheading campaign-review-message-heading">
-          {t('Configured Messages')}
-        </Typography>
-        <Box className="campaign-review-message-list">
-          {visibleMessagingRows.map((row, index) => (
-            <Box key={row.scheduled_date} className="campaign-review-message">
-              <Box className="campaign-review-message-header">
-                <Typography className="campaign-review-message-day">
-                  {t('Day {{day}}', { day: index + 1 })}
-                </Typography>
-                <span className="campaign-review-reward-separator">·</span>{' '}
-                <Typography className="campaign-review-message-date">
-                  {formatDate(row.scheduled_date)}
-                </Typography>
-              </Box>
-              {row.message && (
-                <Typography className="campaign-review-message-line">
-                  <strong>
-                    {t('Message')}
-                    <span className="campaign-review-label-colon">:</span>
-                  </strong>{' '}
-                  <span>{row.message}</span>
-                </Typography>
-              )}
-              {row.media_link && (
-                <Typography className="campaign-review-message-line">
-                  <strong>
-                    {t('Media Link')}
-                    <span className="campaign-review-label-colon">:</span>
-                  </strong>{' '}
-                  <span>{row.media_link}</span>
-                </Typography>
-              )}
-              {row.poll && (
-                <Typography className="campaign-review-message-line">
-                  <strong>
-                    {t('Poll')}
-                    <span className="campaign-review-label-colon">:</span>
-                  </strong>{' '}
-                  <span>
-                    {row.poll.question} ({row.poll.options.length}{' '}
-                    {t('options')})
-                  </span>
-                </Typography>
-              )}
-            </Box>
-          ))}
-          {hiddenMessagingDayCount > 0 && (
-            <Typography className="campaign-review-message-overflow">
-              {t('...and {{count}} more days configured.', {
-                count: hiddenMessagingDayCount,
-              })}
-            </Typography>
-          )}
-          {reviewData.messagingRows.length === 0 && (
-            <Typography className="campaign-review-empty">
-              {t('No configured communication days.')}
-            </Typography>
-          )}
-        </Box>
-      </ReviewCard>
+        rewardType={reviewData.form.rewardType}
+        usesLessonCriteria={usesLessonCriteria}
+      />
+      <CampaignReviewCommunicationCard
+        campaignReach={reviewData.campaignReach}
+        configuredCommunicationDayCount={
+          reviewData.configuredCommunicationDayCount
+        }
+        editStep={3}
+        emptyValue={emptyValue}
+        formatDate={formatDate}
+        messageTime={reviewData.messageTime}
+        messagingRows={reviewData.messagingRows}
+        onEditStep={onEditStep}
+        pollTime={reviewData.pollTime}
+        totalDays={totalDays}
+      />
     </Box>
   );
 };
