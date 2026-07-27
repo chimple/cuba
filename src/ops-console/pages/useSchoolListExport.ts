@@ -406,9 +406,11 @@ export const useSchoolListExport = ({
     isSearchPending,
     orderBy,
     orderDir,
+    percentageFilters,
     searchTerm,
     selectedDateRange,
     selectedTab,
+    schoolPerformanceFilter,
     total,
   ]);
 

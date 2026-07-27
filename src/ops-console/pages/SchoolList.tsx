@@ -180,6 +180,34 @@ const SchoolList: React.FC = () => {
 
   const isLoading = isFilterLoading || isDataLoading;
   const columns = useMemo(() => getSchoolListColumns(), []);
+  const gradeOptions = useMemo(
+    () => filterOptions.grade ?? [],
+    [filterOptions],
+  );
+  // Show all grades selected in the drawer while keeping filters.grade empty.
+  const displayedTempFilters = useMemo(() => {
+    if (gradeOptions.length === 0 || (tempFilters.grade?.length ?? 0) > 0) {
+      return tempFilters;
+    }
+
+    return {
+      ...tempFilters,
+      grade: gradeOptions,
+    };
+  }, [gradeOptions, tempFilters]);
+  // Selecting every grade is the same as the default fast all-grades state.
+  const normalizeAppliedFilters = useCallback(
+    (nextFilters: Filters) => {
+      const selectedGrades = nextFilters.grade ?? [];
+      const isAllGradesSelected =
+        gradeOptions.length > 0 &&
+        selectedGrades.length === gradeOptions.length &&
+        gradeOptions.every((grade) => selectedGrades.includes(grade));
+
+      return isAllGradesSelected ? { ...nextFilters, grade: [] } : nextFilters;
+    },
+    [gradeOptions],
+  );
   const { isExporting, isExportDisabled, handleExportSchools } =
     useSchoolListExport({
       api,
@@ -729,13 +757,15 @@ const SchoolList: React.FC = () => {
               setIsFilterOpen(false);
               setTempFilters(filters);
             }}
-            filters={tempFilters}
+            filters={displayedTempFilters}
             filterOptions={filterOptions}
             onFilterChange={(name, value) =>
               setTempFilters((prev) => ({ ...prev, [name]: value }))
             }
             onApply={() => {
-              setFilters(tempFilters);
+              const appliedFilters = normalizeAppliedFilters(tempFilters);
+              setFilters(appliedFilters);
+              setTempFilters(appliedFilters);
               setIsFilterOpen(false);
               setPage(1);
             }}
