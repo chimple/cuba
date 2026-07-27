@@ -111,7 +111,15 @@ export class UtilRemoteAssets extends UtilLessonDownloads {
       if (!Capacitor.isNativePlatform()) {
         return true;
       }
-      await StorageManager.checkStorageLimit();
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          void StorageManager.checkStorageLimit();
+        });
+      } else {
+        setTimeout(() => {
+          void StorageManager.checkStorageLimit();
+        }, 0);
+      }
       const downloadStartedAt = Date.now();
       logger.info('Starting download for lessons:', {
         count: lessons.length,

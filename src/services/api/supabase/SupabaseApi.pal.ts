@@ -12,11 +12,38 @@ export class SupabaseApiPal extends SupabaseApiWhatsApp {
       last_played: string | null;
     }[]
   > {
-    // This API is only used by StorageManager for SQLite eviction logic.
-    // Supabase does not need to provide real data here, but it must satisfy
-    // the shared ServiceApi contract.
-    logger.warn('SupabaseApi.getLessonLastPlayed called; returning empty list');
-    return [];
+    if (!this.supabase || lessonIds.length === 0 || !this._currentStudent?.id) {
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Result)
+      .select('lesson_id, updated_at')
+      .eq('student_id', this._currentStudent.id)
+      .in('lesson_id', lessonIds)
+      .eq('is_deleted', false)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      logger.error('Error fetching lesson last played from Supabase:', error);
+      return [];
+    }
+
+    const lastPlayedByLesson = new Map<string, string>();
+    for (const row of data ?? []) {
+      if (!row?.lesson_id || lastPlayedByLesson.has(row.lesson_id)) {
+        continue;
+      }
+      lastPlayedByLesson.set(
+        row.lesson_id,
+        row.updated_at ?? new Date().toISOString(),
+      );
+    }
+
+    return lessonIds.map((lessonId) => ({
+      lesson_id: lessonId,
+      last_played: lastPlayedByLesson.get(lessonId) ?? null,
+    }));
   }
 
   async getDomainsBySubjectAndFramework(

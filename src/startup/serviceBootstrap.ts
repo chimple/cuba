@@ -30,17 +30,10 @@ const bootstrapAndRender = async (renderApp: () => void) => {
 
   if (isNativePlatform) {
     serviceInstance.switchMode(APIMode.SQLITE);
-    try {
-      await SqliteApi.getInstance();
-    } catch (error) {
-      logger.error('Native bootstrap warmup failed', error);
-    }
     renderApp();
-    window.setTimeout(() => {
-      void StorageManager.checkStorageLimit().catch((error) => {
-        logger.error('Native storage warmup failed', error);
-      });
-    }, 0);
+    void SqliteApi.getInstance().catch((error) => {
+      logger.error('Sqlite init failed during bootstrap', error);
+    });
     return;
   }
 

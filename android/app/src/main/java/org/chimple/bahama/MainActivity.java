@@ -47,6 +47,7 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         });
         registerPlugin(PortPlugin.class);
         registerPlugin(LessonBundlePlugin.class);
+        registerPlugin(StorageManagerPlugin.class);
         super.onCreate(savedInstanceState);
         this.bridge.setWebViewClient(new MyCustomWebViewClient(this.bridge, this));
         appContext = this;

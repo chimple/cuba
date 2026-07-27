@@ -15,6 +15,10 @@ import {
 import { logger } from '../utility/logger';
 
 type GrowthBookJsonConfig = Record<string, unknown>;
+type GrowthBookStorageLimitConfig = {
+  size: number;
+  isEnabled: boolean;
+};
 type GrowthBookFeatureDebugResult<T> = {
   value: T | null;
   source: string;
@@ -29,9 +33,9 @@ export const useGrowthBookFeatureCache = () => {
     PAL_LEARNING_RATES_CONFIG,
     {},
   );
-  const maxAssetStorageMb = useFeatureValue<number>(
-    REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB,
-    REMOTE_CONFIG_DEFAULTS[REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB],
+  const maxAssetStorageMb = useFeatureValue<GrowthBookStorageLimitConfig>(
+    REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW,
+    REMOTE_CONFIG_DEFAULTS[REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW],
   );
   const bundleZipUrls = useFeatureValue<string[]>(
     BUNDLE_ZIP_URLS,
@@ -57,11 +61,18 @@ export const useGrowthBookFeatureCache = () => {
 
   useEffect(() => {
     if (
-      typeof maxAssetStorageMb === 'number' &&
-      Number.isFinite(maxAssetStorageMb)
+      maxAssetStorageMb &&
+      typeof maxAssetStorageMb === 'object' &&
+      typeof maxAssetStorageMb.size === 'number' &&
+      Number.isFinite(maxAssetStorageMb.size)
     ) {
+      logger.warn('[GrowthBook] max_asset_storage_mb_new evaluated', {
+        featureKey: REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW,
+        value: maxAssetStorageMb,
+      });
+
       setCachedGrowthBookFeatureValue(
-        REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB,
+        REMOTE_CONFIG_KEYS.MAX_ASSET_STORAGE_MB_NEW,
         maxAssetStorageMb,
       );
     }
