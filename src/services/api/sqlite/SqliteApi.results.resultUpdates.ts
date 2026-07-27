@@ -281,14 +281,14 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
     const result = await this.executeQuery(
       `
       SELECT
-        l.lido_lesson_id AS lesson_id,
+        COALESCE(l.lido_lesson_id, l.cocos_lesson_id) AS lesson_id,
         MAX(r.updated_at) AS last_played
       FROM lesson l
       LEFT JOIN result r
         ON r.lesson_id = l.id
       WHERE r.updated_at IS NOT NULL
-        AND l.lido_lesson_id IN (${placeholders})
-      GROUP BY l.lido_lesson_id
+        AND COALESCE(l.lido_lesson_id, l.cocos_lesson_id) IN (${placeholders})
+      GROUP BY COALESCE(l.lido_lesson_id, l.cocos_lesson_id)
       `,
       lessonIds,
     );
