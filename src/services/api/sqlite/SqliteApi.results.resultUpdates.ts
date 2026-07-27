@@ -265,4 +265,34 @@ export class SqliteApiResultsResultUpdates extends SqliteApiCourseMedia {
 
     return newResult;
   }
+
+  public async getLessonLastPlayed(lessonIds: string[]): Promise<
+    {
+      lesson_id: string;
+      last_played: string | null;
+    }[]
+  > {
+    if (lessonIds.length === 0) {
+      return [];
+    }
+
+    const placeholders = lessonIds.map(() => '?').join(',');
+
+    const result = await this.executeQuery(
+      `
+      SELECT
+        COALESCE(l.lido_lesson_id, l.cocos_lesson_id) AS lesson_id,
+        MAX(r.updated_at) AS last_played
+      FROM lesson l
+      LEFT JOIN result r
+        ON r.lesson_id = l.id
+      WHERE r.updated_at IS NOT NULL
+        AND COALESCE(l.lido_lesson_id, l.cocos_lesson_id) IN (${placeholders})
+      GROUP BY COALESCE(l.lido_lesson_id, l.cocos_lesson_id)
+      `,
+      lessonIds,
+    );
+
+    return result?.values ?? [];
+  }
 }
