@@ -26,7 +26,7 @@ const parseWhatsAppGroupDetails = (group: Json): WhatsAppGroupDetails | null =>
 // Count only class contacts found in the group to exclude unrelated participants.
 const countMatchingWhatsAppMembers = (
   groupMembers: string[],
-  parentPhones: string[],
+  contactPhones: string[],
 ): number => {
   const normalizedGroupMembers = new Set<string>();
   groupMembers.forEach((member) => {
@@ -34,14 +34,14 @@ const countMatchingWhatsAppMembers = (
     if (phone) normalizedGroupMembers.add(phone);
   });
 
-  const matchedParentPhones = new Set<string>();
-  parentPhones.forEach((parentPhone) => {
-    const phone = normalizeIndianPhone10(parentPhone);
+  const matchedContactPhones = new Set<string>();
+  contactPhones.forEach((contactPhone) => {
+    const phone = normalizeIndianPhone10(contactPhone);
     if (phone && normalizedGroupMembers.has(phone)) {
-      matchedParentPhones.add(phone);
+      matchedContactPhones.add(phone);
     }
   });
-  return matchedParentPhones.size;
+  return matchedContactPhones.size;
 };
 
 const fetchMatchedMemberCount = async (
@@ -49,10 +49,16 @@ const fetchMatchedMemberCount = async (
   classId: string,
   groupMembers: string[],
 ): Promise<number> => {
-  // Fetch every class parent phone so the count is not limited by table pagination.
-  const parentPhones =
-    await api.getParentWhatsappParentPhonesByClassId(classId);
-  return countMatchingWhatsAppMembers(groupMembers, parentPhones);
+  // Fetch every parent and teacher phone so the count covers all class contacts.
+  const [parentPhones, teachers] = await Promise.all([
+    api.getParentWhatsappParentPhonesByClassId(classId),
+    api.getTeachersForClass(classId),
+  ]);
+  const contactPhones = [
+    ...parentPhones,
+    ...(teachers ?? []).map((teacher) => teacher.phone ?? ''),
+  ];
+  return countMatchingWhatsAppMembers(groupMembers, contactPhones);
 };
 
 export const useWhatsAppInfoCard = ({
