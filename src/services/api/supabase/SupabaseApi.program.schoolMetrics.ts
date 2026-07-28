@@ -26,10 +26,58 @@ import {
   getGradeIdsForSchoolMetricsFilter,
 } from './SupabaseApi.program.schoolGradeMetrics';
 
+type SchoolMetricsQueryResponse = {
+  data: Array<Record<string, unknown>> | null;
+  error: unknown;
+  count: number | null;
+};
+
+type SchoolMetricsRangeQuery = {
+  range: (from: number, to: number) => PromiseLike<SchoolMetricsQueryResponse>;
+};
+
+const SCHOOL_METRICS_BATCH_SIZE = 1000;
+
+// Supabase can cap a single response at the API max rows limit, so client-side
+// aggregation paths must page through every matching row before grouping.
+const fetchAllSchoolMetricRows = async (
+  query: SchoolMetricsRangeQuery,
+): Promise<SchoolMetricsQueryResponse> => {
+  const rows: Array<Record<string, unknown>> = [];
+  let from = 0;
+  let total: number | null = null;
+
+  while (true) {
+    // Reuse the same filtered query and advance only the requested range.
+    const { data, error, count } = await query.range(
+      from,
+      from + SCHOOL_METRICS_BATCH_SIZE - 1,
+    );
+
+    if (error) {
+      return { data: rows, error, count: total ?? count };
+    }
+
+    const batch = data ?? [];
+    rows.push(...batch);
+    total = total ?? count;
+
+    if (
+      batch.length < SCHOOL_METRICS_BATCH_SIZE ||
+      (typeof total === 'number' && rows.length >= total)
+    ) {
+      return { data: rows, error: null, count: total ?? rows.length };
+    }
+
+    from += SCHOOL_METRICS_BATCH_SIZE;
+  }
+};
+
 export interface SupabaseApiProgramSchoolMetrics {
   [key: string]: any;
 }
 export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
+  // Legacy RPC-backed school lookup used by older call sites.
   async getFilteredSchoolsForSchoolListing(params: {
     filters?: Record<string, string[]>;
     programId?: string;
@@ -100,6 +148,8 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
     }
   }
 
+  // Main School Listing data source. Default/all grades reads school-level rows;
+  // selected grades reads grade rows and aggregates them back to one row per school.
   async getSchoolMetricsForSchoolListing(params: {
     filters?: Record<string, string[]>;
     programId?: string;
@@ -247,6 +297,9 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
           ([, values]) => Array.isArray(values) && values.length > 0,
         ),
       );
+
+      // Grade filters are handled separately because school_metrics stores
+      // selected-grade rows by grade_id, while the UI filter works with names.
       const selectedGradeValues = (cleanedFilters.grade ?? []).filter(
         (value) => typeof value === 'string' && value.trim().length > 0,
       );
@@ -264,6 +317,8 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         return { data: [], total: 0 };
       }
 
+      // No explicit grade filter means "all grades", which uses the precomputed
+      // school-level row. Partial grade selections use grade-level rows.
       if (hasSelectedGradeFilter) {
         query = query.in('grade_id', selectedGradeIds);
       } else {
@@ -368,18 +423,19 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
           : null;
       const requiresCalculatedFiltering =
         Object.keys(percentageFilters).length > 0 || !!schoolPerformanceFilter;
+      // Percentage/performance filters and selected-grade aggregation need the
+      // complete result set before sorting and slicing the requested page.
       const requiresClientSideProcessing =
         hasSelectedGradeFilter || requiresCalculatedFiltering;
       const normalizedPageSize = Math.max(Math.trunc(page_size), 1);
       const from = Math.max(Math.trunc(page) - 1, 0) * normalizedPageSize;
 
       // Selected grade rows are aggregated per school before sorting/filtering.
-      const pagedQuery = requiresClientSideProcessing
-        ? query.range(0, 99999)
-        : query
+      const { data, error, count } = requiresClientSideProcessing
+        ? await fetchAllSchoolMetricRows(query)
+        : await query
             .order(sortBy, { ascending: sortAscending })
             .range(from, from + normalizedPageSize - 1);
-      const { data, error, count } = await pagedQuery;
 
       if (error) {
         logger.error('Error fetching school_metrics listing:', error);
@@ -392,6 +448,8 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
           )
         : ((data ?? []) as Array<Record<string, unknown>>);
 
+      // These filters are calculated from multiple columns, so they run after
+      // optional grade aggregation instead of being pushed into PostgREST.
       if (Object.keys(percentageFilters).length > 0) {
         rows = rows.filter((row) =>
           Object.entries(percentageFilters).every(([key, band]) => {
