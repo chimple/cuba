@@ -78,17 +78,19 @@
 }
 
 .campaign-school-performance-report__table {
-  height: 520px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .campaign-school-performance-report__table .data-tablebody-container {
   -webkit-overflow-scrolling: touch;
-  height: 100%;
+  height: auto;
   margin-bottom: 0;
-  max-height: 100%;
-  overflow: auto;
-  touch-action: pan-x pan-y;
+  max-height: none;
+  overscroll-behavior: auto;
+  overflow-x: auto;
+  overflow-y: visible;
+  touch-action: pan-x;
 }
 
 .campaign-school-performance-report__table .MuiTableCell-stickyHeader,
@@ -235,7 +237,7 @@
   }
 
   .campaign-school-performance-report__table {
-    height: 420px;
+    height: auto;
   }
 
   .campaign-school-performance-report__date {

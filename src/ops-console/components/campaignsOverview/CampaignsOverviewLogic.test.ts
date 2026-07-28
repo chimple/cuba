@@ -356,15 +356,15 @@ describe('CampaignRewardsReport helpers', () => {
     ).toBeNull();
   });
 
-  it('should default reward labels to physical unless the payload is digital', () => {
+  it('should label reward columns by physical or digital reward type', () => {
     expect(getCampaignRewardTypeLabel(rewards)).toBe('Physical Reward');
     expect(
       getCampaignRewardTypeLabel({
         type: 'digital_rewards',
         rules: [{ rank: 1, min: 90, reward: 'Badge' }],
       }),
-    ).toBe('Reward');
-    expect(getCampaignRewardTypeLabel(null)).toBe('Physical Reward');
+    ).toBe('Digital Reward');
+    expect(getCampaignRewardTypeLabel(null)).toBe('Digital Reward');
   });
 
   it('should map student performance rows into display rows with reward labels', () => {
