@@ -35,6 +35,7 @@ const CampaignSetupPage: React.FC = () => {
     isAssignmentComplete,
     launchMessage,
     launching,
+    loadingReach,
     reviewData,
     selectedAssignmentSchoolIds,
     setActiveStepSafe,
@@ -167,7 +168,8 @@ const CampaignSetupPage: React.FC = () => {
               form={campaignSetup.form}
               frequency={campaignSetup.assignmentFrequency}
               assignmentDrafts={campaignSetup.assignmentDrafts}
-              selectedSchoolIds={selectedAssignmentSchoolIds}
+              campaignReach={reviewData.campaignReach}
+              loadingReach={loadingReach}
               communicationState={communicationState}
               communicationValidation={communicationValidation}
               showValidation={communicationAttempted}

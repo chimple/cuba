@@ -8,7 +8,10 @@ const emptyReach: CampaignReachSummary = {
   memberCount: 0,
 };
 
-export const useCampaignReach = (selectedSchoolIds: string[]) => {
+export const useCampaignReach = (
+  selectedSchoolIds: string[],
+  enabled = true,
+) => {
   const api = ServiceConfig.getI().apiHandler;
   const [campaignReach, setCampaignReach] =
     useState<CampaignReachSummary>(emptyReach);
@@ -19,11 +22,13 @@ export const useCampaignReach = (selectedSchoolIds: string[]) => {
 
     const loadReach = async () => {
       if (
+        !enabled ||
         selectedSchoolIds.length === 0 ||
         !api.getParentWhatsappClassesBySchoolId ||
         !api.getCampaignParentsInGroupBySchoolIds
       ) {
         setCampaignReach(emptyReach);
+        setLoadingReach(false);
         return;
       }
 
@@ -56,7 +61,7 @@ export const useCampaignReach = (selectedSchoolIds: string[]) => {
     return () => {
       mounted = false;
     };
-  }, [api, selectedSchoolIds]);
+  }, [api, enabled, selectedSchoolIds]);
 
   return {
     campaignReach,

@@ -15,10 +15,7 @@ import {
 } from './SchoolClassMetrics';
 import { getSchoolClassColumns } from './SchoolClassColumns';
 import type { ClassMetricsForClassListingRow } from '../../../services/api/ServiceApi';
-import type {
-  ClassRow,
-  SchoolClassTableRowData,
-} from './SchoolClass.types';
+import type { ClassRow, SchoolClassTableRowData } from './SchoolClass.types';
 
 type SchoolClassTableProps = {
   classMetrics: Record<string, ClassMetricsForClassListingRow>;
@@ -53,7 +50,7 @@ export default function SchoolClassTable({
       const metrics = classMetrics[c.id];
       const metricValues = getClassMetricValues(metrics, c.studentCount);
 
-      const rawCodeVal = codes[c.id] ?? metrics?.class_code ?? null;
+      const rawCodeVal = c.code ?? codes[c.id] ?? metrics?.class_code ?? null;
       const codeVal =
         rawCodeVal === null || rawCodeVal === undefined
           ? null

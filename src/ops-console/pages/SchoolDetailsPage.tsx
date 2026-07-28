@@ -56,6 +56,7 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     isFirstTimeCheckIn,
     isMobile,
     loading,
+    loadSchoolDetailsTabData,
     openMenu,
     schoolLocation,
     selectedVisitType,
@@ -215,11 +216,14 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
           isMobile={isMobile}
           schoolId={id}
           refreshClasses={() => {
-            void fetchAll();
+            void loadSchoolDetailsTabData(SchoolTabs.Classes, {
+              force: true,
+            });
             setGoToClassesTab(true);
           }}
           goToClassesTab={goToClassesTab}
           onTabChange={(tab) => setActiveTab(tab)}
+          onLoadTabData={loadSchoolDetailsTabData}
         />
       </div>
       <div className="school-detail-columns-gap" />

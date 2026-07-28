@@ -21,6 +21,7 @@ import {
 } from './RequestList.constants';
 import type {
   OpsRequestItem,
+  RequestListFilterOptions,
   RequestListFilters,
   RequestRow,
 } from './RequestList.types';
@@ -138,8 +139,14 @@ export function useRequestListPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [tempFilters, setTempFilters] =
     useState<RequestListFilters>(INITIAL_FILTERS);
-  const [filterOptions, setFilterOptions] = useState(INITIAL_FILTER_OPTIONS);
+  const [filterOptions, setFilterOptions] = useState<RequestListFilterOptions>(
+    () => ({
+      ...INITIAL_FILTER_OPTIONS,
+      request_type: [...Constants.public.Enums.ops_request_type],
+    }),
+  );
   const schoolNameToIdMapRef = React.useRef<Map<string, string>>(new Map());
+  const isFilterOptionsLoadingRef = React.useRef(false);
   const [isFilterOptionsLoaded, setIsFilterOptionsLoaded] = useState(false);
   const [orderBy, setOrderBy] = useState('requested_date');
   const [orderDir, setOrderDir] = useState<'desc' | 'asc'>('desc');
@@ -147,7 +154,10 @@ export function useRequestListPage() {
   const isSchoolFilterReady =
     filters.school.length === 0 || isFilterOptionsLoaded;
   const isLoading = isFilterLoading || isDataLoading;
-  const columns = useMemo(() => getRequestListColumns(selectedTab), [selectedTab]);
+  const columns = useMemo(
+    () => getRequestListColumns(selectedTab),
+    [selectedTab],
+  );
   const pageCount = Math.ceil(total / pageSize);
   const filterOptionsForSlider: Record<string, string[]> = {
     request_type: filterOptions.request_type,
@@ -178,36 +188,46 @@ export function useRequestListPage() {
     history.replace({ search: params.toString() });
   }, [selectedTab, debouncedSearchTerm, filters, page, history]);
 
-  useEffect(() => {
-    const fetchFilterOptions = async () => {
-      setIsFilterLoading(true);
-      try {
-        const data = await api.getRequestFilterOptions();
-        if (data) {
-          setFilterOptions({
-            request_type: (data.requestType || []).filter(
-              (value): value is string => Boolean(value),
-            ),
-            school: data.school || [],
-          });
-          const nameToIdMap = new Map<string, string>();
-          (data.school || []).forEach(
-            (school: { id: string; name: string }) => {
-              nameToIdMap.set(school.name, school.id);
-            },
-          );
-          schoolNameToIdMapRef.current = nameToIdMap;
-        }
-      } catch (error) {
-        logger.error('Failed to fetch filter options', error);
-      } finally {
-        setIsFilterOptionsLoaded(true);
-        setIsFilterLoading(false);
-      }
-    };
+  const loadFilterOptions = React.useCallback(async () => {
+    if (isFilterOptionsLoaded || isFilterOptionsLoadingRef.current) return;
 
-    fetchFilterOptions();
-  }, [api]);
+    isFilterOptionsLoadingRef.current = true;
+    setIsFilterLoading(true);
+    try {
+      const data = await api.getRequestFilterOptions();
+      if (data) {
+        setFilterOptions({
+          request_type: (data.requestType || []).filter(
+            (value): value is string => Boolean(value),
+          ),
+          school: data.school || [],
+        });
+        const nameToIdMap = new Map<string, string>();
+        (data.school || []).forEach((school: { id: string; name: string }) => {
+          nameToIdMap.set(school.name, school.id);
+        });
+        schoolNameToIdMapRef.current = nameToIdMap;
+      }
+    } catch (error) {
+      logger.error('Failed to fetch filter options', error);
+    } finally {
+      setIsFilterOptionsLoaded(true);
+      setIsFilterLoading(false);
+      isFilterOptionsLoadingRef.current = false;
+    }
+  }, [api, isFilterOptionsLoaded]);
+
+  useEffect(() => {
+    if (filters.school.length > 0) {
+      void loadFilterOptions();
+    }
+  }, [filters.school.length, loadFilterOptions]);
+
+  const handleOpenFilters = React.useCallback(() => {
+    setIsFilterOpen(true);
+    setTempFilters(filters);
+    void loadFilterOptions();
+  }, [filters, loadFilterOptions]);
 
   useEffect(() => {
     if (!isSchoolFilterReady) return;
@@ -399,6 +419,7 @@ export function useRequestListPage() {
     filters,
     handleCancelFilters,
     handleDeleteFilter,
+    handleOpenFilters,
     handleRowClick,
     handleSort,
     handleTabChange,

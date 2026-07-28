@@ -6,6 +6,10 @@ import {
 import logger from '../../../utility/logger';
 import { SqliteApiProgramClassManagement } from './SqliteApi.program.classManagement';
 import { FCSchoolStats } from '../../../ops-console/pages/SchoolDetailsPage';
+import type {
+  TeacherAssignmentCountMap,
+  TeacherAssignmentCountPair,
+} from '../serviceapi/ServiceApi.fieldActivities';
 
 export class SqliteApiProgramFieldCoordinator extends SqliteApiProgramClassManagement {
   [key: string]: any;
@@ -85,17 +89,13 @@ export class SqliteApiProgramFieldCoordinator extends SqliteApiProgramClassManag
     return this._serverApi.getNotesBySchoolId(schoolId, limit, offset, sortBy);
   }
 
-  async getRecentAssignmentCountByTeacher(
-    teacherId: string,
-    classId: string,
-  ): Promise<number | null> {
+  async getRecentAssignmentCountsByTeachers(
+    pairs: TeacherAssignmentCountPair[],
+  ): Promise<TeacherAssignmentCountMap> {
     logger.warn(
-      'getRecentAssignmentCountByTeacher is not supported in SQLite mode',
+      'getRecentAssignmentCountsByTeachers is not supported in SQLite mode',
     );
-    return this._serverApi.getRecentAssignmentCountByTeacher(
-      teacherId,
-      classId,
-    );
+    return this._serverApi.getRecentAssignmentCountsByTeachers(pairs);
   }
 
   public async getSchoolStatsForSchool(
