@@ -209,7 +209,8 @@ export const useProgramPageLogic = () => {
 
   useEffect(() => setTempFilters(filters), [filters]);
 
-  const loadFilterOptions = useCallback(async (): Promise<void> => {
+  const handleOpenFilters = useCallback(async (): Promise<void> => {
+    setIsFilterOpen(true);
     if (hasLoadedFilterOptionsRef.current) return;
 
     setIsFilterLoading(true);
@@ -224,11 +225,6 @@ export const useProgramPageLogic = () => {
       setIsFilterLoading(false);
     }
   }, [api]);
-
-  const handleOpenFilters = useCallback(() => {
-    setIsFilterOpen(true);
-    void loadFilterOptions();
-  }, [loadFilterOptions]);
 
   useEffect(() => {
     const params = new URLSearchParams();

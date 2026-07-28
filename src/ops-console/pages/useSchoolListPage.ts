@@ -219,7 +219,8 @@ export function useSchoolListPage() {
     setPage(1);
   }, [searchTerm]);
 
-  const loadFilterOptions = useCallback(async () => {
+  const handleOpenFilters = useCallback(async () => {
+    setIsFilterOpen(true);
     if (hasLoadedFilterOptionsRef.current) return;
 
     setIsFilterLoading(true);
@@ -235,11 +236,6 @@ export function useSchoolListPage() {
       setIsFilterLoading(false);
     }
   }, [api]);
-
-  const handleOpenFilters = useCallback(() => {
-    setIsFilterOpen(true);
-    void loadFilterOptions();
-  }, [loadFilterOptions]);
 
   const handleSort = (colKey: string) => {
     const column = columns.find((col) => String(col.key) === colKey);
