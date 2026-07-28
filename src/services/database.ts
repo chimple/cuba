@@ -4351,6 +4351,7 @@ export type Database = {
           created_at: string | null;
           district: string | null;
           field_coordinators: string[] | null;
+          grade_id: string | null;
           id: string;
           is_deleted: boolean;
           metric_window: string | null;
@@ -4392,6 +4393,7 @@ export type Database = {
           created_at?: string | null;
           district?: string | null;
           field_coordinators?: string[] | null;
+          grade_id?: string | null;
           id?: string;
           is_deleted?: boolean;
           metric_window?: string | null;
@@ -4433,6 +4435,7 @@ export type Database = {
           created_at?: string | null;
           district?: string | null;
           field_coordinators?: string[] | null;
+          grade_id?: string | null;
           id?: string;
           is_deleted?: boolean;
           metric_window?: string | null;

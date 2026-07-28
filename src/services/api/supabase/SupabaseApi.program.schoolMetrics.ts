@@ -21,6 +21,10 @@ import {
   resolveSchoolMetricsPerformanceStatus,
   type SchoolListPercentBand,
 } from './SupabaseApi.program.helpers';
+import {
+  aggregateSchoolGradeMetricRows,
+  getGradeIdsForSchoolMetricsFilter,
+} from './SupabaseApi.program.schoolGradeMetrics';
 
 export interface SupabaseApiProgramSchoolMetrics {
   [key: string]: any;
@@ -243,6 +247,28 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
           ([, values]) => Array.isArray(values) && values.length > 0,
         ),
       );
+      const selectedGradeValues = (cleanedFilters.grade ?? []).filter(
+        (value) => typeof value === 'string' && value.trim().length > 0,
+      );
+      delete cleanedFilters.grade;
+      const selectedGradeIds =
+        selectedGradeValues.length > 0
+          ? await getGradeIdsForSchoolMetricsFilter(
+              this.supabase,
+              selectedGradeValues,
+            )
+          : [];
+      const hasSelectedGradeFilter = selectedGradeValues.length > 0;
+
+      if (hasSelectedGradeFilter && selectedGradeIds.length === 0) {
+        return { data: [], total: 0 };
+      }
+
+      if (hasSelectedGradeFilter) {
+        query = query.in('grade_id', selectedGradeIds);
+      } else {
+        query = query.is('grade_id', null);
+      }
 
       if (cleanedFilters.state?.length) {
         query = query.in('state', cleanedFilters.state);
@@ -342,13 +368,14 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
           : null;
       const requiresCalculatedFiltering =
         Object.keys(percentageFilters).length > 0 || !!schoolPerformanceFilter;
+      const requiresClientSideProcessing =
+        hasSelectedGradeFilter || requiresCalculatedFiltering;
       const normalizedPageSize = Math.max(Math.trunc(page_size), 1);
       const from = Math.max(Math.trunc(page) - 1, 0) * normalizedPageSize;
 
-      // Calculated percentage and fallback performance filters compare multiple
-      // columns, which PostgREST cannot express without a database function.
-      const pagedQuery = requiresCalculatedFiltering
-        ? query
+      // Selected grade rows are aggregated per school before sorting/filtering.
+      const pagedQuery = requiresClientSideProcessing
+        ? query.range(0, 99999)
         : query
             .order(sortBy, { ascending: sortAscending })
             .range(from, from + normalizedPageSize - 1);
@@ -359,7 +386,11 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         return { data: [], total: 0 };
       }
 
-      let rows = (data ?? []) as Array<Record<string, unknown>>;
+      let rows = hasSelectedGradeFilter
+        ? aggregateSchoolGradeMetricRows(
+            (data ?? []) as Array<Record<string, unknown>>,
+          )
+        : ((data ?? []) as Array<Record<string, unknown>>);
 
       if (Object.keys(percentageFilters).length > 0) {
         rows = rows.filter((row) =>
@@ -389,7 +420,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         );
       }
 
-      if (requiresCalculatedFiltering) {
+      if (requiresClientSideProcessing) {
         rows.sort((leftRow, rightRow) => {
           const leftValue = getSchoolMetricsSortValue(leftRow, sortBy);
           const rightValue = getSchoolMetricsSortValue(rightRow, sortBy);
@@ -416,7 +447,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         });
       }
 
-      const pagedRows = requiresCalculatedFiltering
+      const pagedRows = requiresClientSideProcessing
         ? rows.slice(from, from + normalizedPageSize)
         : rows;
 
@@ -458,7 +489,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
 
       return {
         data: mappedRows,
-        total: requiresCalculatedFiltering ? rows.length : (count ?? 0),
+        total: requiresClientSideProcessing ? rows.length : (count ?? 0),
       };
     } catch (error) {
       logger.error(

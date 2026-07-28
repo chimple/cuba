@@ -139,6 +139,7 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
     }
 
     const emptyOptions: Record<string, string[]> = {
+      grade: [],
       state: [],
       district: [],
       block: [],
@@ -150,9 +151,15 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
     };
 
     try {
-      const { data, error } = await this.supabase.rpc(
-        'get_school_filter_options',
-      );
+      const [{ data, error }, gradeResult] = await Promise.all([
+        this.supabase.rpc('get_school_filter_options'),
+        this.supabase
+          .from('grade')
+          .select('name, sort_index')
+          .eq('is_deleted', false)
+          .order('sort_index', { ascending: true })
+          .order('name', { ascending: true }),
+      ]);
 
       if (error) {
         logger.error(
@@ -167,8 +174,12 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
       }
 
       const rpcData = data as Record<string, Json>;
+      const gradeOptions = (gradeResult.data ?? [])
+        .map((grade) => (typeof grade.name === 'string' ? grade.name : ''))
+        .filter((name) => name.trim().length > 0);
 
       return {
+        grade: gradeOptions,
         state: Array.isArray(rpcData.state) ? (rpcData.state as string[]) : [],
         district: Array.isArray(rpcData.district)
           ? (rpcData.district as string[])
