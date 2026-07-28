@@ -146,14 +146,16 @@ export function useRequestListPage() {
     }),
   );
   const schoolNameToIdMapRef = React.useRef<Map<string, string>>(new Map());
-  const isFilterOptionsLoadingRef = React.useRef(false);
+  const hasRequestedFilterOptionsRef = React.useRef(false);
   const [isFilterOptionsLoaded, setIsFilterOptionsLoaded] = useState(false);
   const [orderBy, setOrderBy] = useState('requested_date');
   const [orderDir, setOrderDir] = useState<'desc' | 'asc'>('desc');
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
-  const isSchoolFilterReady =
-    filters.school.length === 0 || isFilterOptionsLoaded;
-  const isLoading = isFilterLoading || isDataLoading;
+  const hasSchoolFilter = filters.school.length > 0;
+  const isSchoolFilterReady = !hasSchoolFilter || isFilterOptionsLoaded;
+  const shouldLoadFilterOptions = isFilterOpen || hasSchoolFilter;
+  const isLoading =
+    isDataLoading || (!isFilterOpen && hasSchoolFilter && isFilterLoading);
   const columns = useMemo(
     () => getRequestListColumns(selectedTab),
     [selectedTab],
@@ -188,46 +190,45 @@ export function useRequestListPage() {
     history.replace({ search: params.toString() });
   }, [selectedTab, debouncedSearchTerm, filters, page, history]);
 
-  const loadFilterOptions = React.useCallback(async () => {
-    if (isFilterOptionsLoaded || isFilterOptionsLoadingRef.current) return;
+  useEffect(() => {
+    if (!shouldLoadFilterOptions || hasRequestedFilterOptionsRef.current) {
+      return;
+    }
 
-    isFilterOptionsLoadingRef.current = true;
+    hasRequestedFilterOptionsRef.current = true;
     setIsFilterLoading(true);
-    try {
-      const data = await api.getRequestFilterOptions();
-      if (data) {
+
+    api
+      .getRequestFilterOptions()
+      .then((data) => {
+        if (!data) return;
+
         setFilterOptions({
           request_type: (data.requestType || []).filter(
             (value): value is string => Boolean(value),
           ),
           school: data.school || [],
         });
+
         const nameToIdMap = new Map<string, string>();
         (data.school || []).forEach((school: { id: string; name: string }) => {
           nameToIdMap.set(school.name, school.id);
         });
         schoolNameToIdMapRef.current = nameToIdMap;
-      }
-    } catch (error) {
-      logger.error('Failed to fetch filter options', error);
-    } finally {
-      setIsFilterOptionsLoaded(true);
-      setIsFilterLoading(false);
-      isFilterOptionsLoadingRef.current = false;
-    }
-  }, [api, isFilterOptionsLoaded]);
-
-  useEffect(() => {
-    if (filters.school.length > 0) {
-      void loadFilterOptions();
-    }
-  }, [filters.school.length, loadFilterOptions]);
+      })
+      .catch((error) => {
+        logger.error('Failed to fetch filter options', error);
+      })
+      .finally(() => {
+        setIsFilterOptionsLoaded(true);
+        setIsFilterLoading(false);
+      });
+  }, [api, shouldLoadFilterOptions]);
 
   const handleOpenFilters = React.useCallback(() => {
     setIsFilterOpen(true);
     setTempFilters(filters);
-    void loadFilterOptions();
-  }, [filters, loadFilterOptions]);
+  }, [filters]);
 
   useEffect(() => {
     if (!isSchoolFilterReady) return;
