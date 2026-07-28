@@ -1,25 +1,32 @@
-import React from "react";
-import "./SelectIcon.css";
-import { useHistory } from "react-router";
-import AssignmentRoundedIcon from "@mui/icons-material/AssignmentRounded";
-import { t } from "i18next";
+import React from 'react';
+import './SelectIcon.css';
+import { t } from 'i18next';
+
 interface SelectIconProps {
   isSelected: boolean;
-  onClick;
+  onClick: React.MouseEventHandler<HTMLDivElement>;
 }
+
 const SelectIcon: React.FC<SelectIconProps> = ({ onClick, isSelected }) => {
+  const label = t(isSelected ? 'Remove' : 'Add');
+
   return (
-    <div className="select-icon-container" onClick={onClick}>
+    <div className="select-icon-container">
       <div
-        className="select-Assignmenticon"
-        style={{ backgroundColor: isSelected ? "#7c5db0" : "#fff" }}
+        id="select-Assignmenticon"
+        className={`select-Assignmenticon${isSelected ? ' is-selected' : ''}`}
+        onClick={onClick}
       >
-        <img src="assets/icons/assignmentSelect.svg" alt="Assignment_Icon" />
         <span
-          style={{ color: isSelected ? "white" : "#4A4949" }}
-          className="select-text"
+          id="select-Assignmenticon-image"
+          className="select-Assignmenticon-image"
+          aria-hidden="true"
         >
-          {isSelected ? t("Remove") : t("Add")}
+          {isSelected ? '-' : '+'}
+        </span>
+
+        <span id="select-text" className="select-text">
+          {label}
         </span>
       </div>
     </div>

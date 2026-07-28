@@ -1,6 +1,7 @@
-import React from "react";
-import { ReactComponent as VerifyIcon } from "../assets/icons/verifiedicon.svg";
-import "./FileVerifiedComponent.css";
+import React from 'react';
+import InlineSvg from '../../components/InlineSvg';
+import VerifyIcon from '../assets/icons/verifiedicon.svg?raw';
+import './FileVerifiedComponent.css';
 
 interface VerifiedPageProps {
   title: string;
@@ -14,7 +15,7 @@ const VerifiedPage: React.FC<VerifiedPageProps> = ({ title, message }) => {
         <div className="verified-page-container">
           <div className="verified-icon-container">
             <div className="verified-image">
-              <VerifyIcon />
+              <InlineSvg svg={VerifyIcon} />
             </div>
             <div className="verified-text">
               <p>{title}</p>

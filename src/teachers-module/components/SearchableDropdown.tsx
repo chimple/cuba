@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import "./SearchableDropdown.css";
-import { t } from "i18next";
-import { RoleType } from "../../interface/modelInterfaces";
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import './SearchableDropdown.css';
+import { t } from 'i18next';
+import { RoleType } from '../../interface/modelInterfaces';
 
 interface Option {
   id: string | number;
@@ -15,6 +15,7 @@ interface SearchableDropdownProps {
   selectedValue: Option | null;
   onOptionSelect: (option: Option) => void;
   onClear: () => void;
+  resetTrigger?: number;
 }
 
 const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
@@ -23,8 +24,9 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
   selectedValue,
   onOptionSelect,
   onClear,
+  resetTrigger,
 }) => {
-  const [inputValue, setInputValue] = useState(selectedValue?.name || "");
+  const [inputValue, setInputValue] = useState(selectedValue?.name || '');
   const [options, setOptions] = useState<Option[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -44,7 +46,7 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
       const newOptions = await fetchOptions(inputValue, page);
       if (!isCancelled) {
         setOptions((prev) =>
-          page === 1 ? newOptions : [...prev, ...newOptions]
+          page === 1 ? newOptions : [...prev, ...newOptions],
         );
         setHasMore(newOptions.length >= 20);
       }
@@ -62,6 +64,14 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
       setInputValue(selectedValue.name);
     }
   }, [selectedValue?.id, selectedValue?.name]);
+
+  useEffect(() => {
+    setInputValue(selectedValue?.name || '');
+    setOptions([]);
+    setPage(1);
+    setHasMore(true);
+    setIsOpen(false);
+  }, [resetTrigger, selectedValue?.name]);
 
   // 🔁 Scroll-based pagination
   const handleScroll = useCallback(() => {
@@ -82,12 +92,12 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
 
   const handleToggleDropdown = () => {
     if (inputValue) {
-      setInputValue("");
+      setInputValue('');
       setOptions([]);
       setPage(1);
       setHasMore(true);
       onClear();
-      onOptionSelect({ id: "", name: "" });
+      onOptionSelect({ id: '', name: '' });
       setIsOpen(true);
       setTimeout(() => inputRef.current?.focus(), 0);
     } else {
@@ -136,7 +146,7 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
           onClick={handleToggleDropdown}
           type="button"
         >
-          {isOpen ? "×" : "▾"}
+          {isOpen ? '×' : '▾'}
         </button>
       </div>
 
@@ -146,7 +156,7 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
             <div
               key={option.id}
               className={`searchable-option ${
-                selectedValue?.id === option.id ? "selected" : ""
+                selectedValue?.id === option.id ? 'selected' : ''
               }`}
               onClick={() => handleSelect(option)}
             >
@@ -154,10 +164,10 @@ const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
             </div>
           ))}
           {isLoading && (
-            <div className="searchable-option">{t("Loading...")}</div>
+            <div className="searchable-option">{t('Loading...')}</div>
           )}
           {!isLoading && options.length === 0 && (
-            <div className="searchable-option">{t("No Results Found")}</div>
+            <div className="searchable-option">{t('No Results Found')}</div>
           )}
         </div>
       )}

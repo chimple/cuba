@@ -1,0 +1,116 @@
+.streak-info-popup-modal {
+  --width: 100%;
+  --height: 100%;
+  --max-width: 100%;
+  --max-height: 100%;
+  --border-radius: 0;
+  --background: transparent;
+}
+
+.streak-info-popup-modal::part(backdrop) {
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.streak-info-popup-overlay {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 16px;
+}
+
+.streak-info-popup {
+  width: clamp(280px, 90vw, 550px);
+  max-height: clamp(360px, 88vh, 760px);
+  overflow: hidden;
+  border: 1px solid #d7d7d7;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.streak-info-popup-header {
+  padding: 14px clamp(14px, 3vw, 20px) 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.streak-info-popup-title {
+  margin: 0;
+  color: #3f3f3f;
+  font-size: clamp(18px, 3.4vw, 22px);
+  line-height: 1.25;
+  font-weight: 800;
+  text-align: left;
+}
+
+.streak-info-popup-close-btn {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.streak-info-popup-close-icon {
+  width: 24px;
+  height: 24px;
+  display: block;
+  filter: brightness(0) saturate(100%);
+}
+
+.streak-info-popup-body {
+  overflow-y: auto;
+  padding: 14px clamp(14px, 3vw, 20px) 18px;
+  text-align: left;
+}
+
+.streak-info-popup-section {
+  margin-bottom: 14px;
+  text-align: left;
+}
+
+.streak-info-popup-section:last-child {
+  margin-bottom: 0;
+}
+
+.streak-info-popup-section-title {
+  margin: 0 0 4px;
+  color: #4e4d4d;
+  font-size: clamp(15px, 2.7vw, 17px);
+  line-height: 1.25;
+  font-weight: 800;
+  text-align: left;
+}
+
+.streak-info-popup-list {
+  margin: 0;
+  padding-left: 20px;
+  list-style-position: outside;
+  text-align: left;
+}
+
+.streak-info-popup-list-item {
+  margin: 0 0 6px;
+  color: #4e4d4d;
+  font-size: clamp(14px, 2.5vw, 16px);
+  line-height: 1.4;
+  text-align: left;
+}
+
+.streak-info-popup-list-item:last-child {
+  margin-bottom: 0;
+}
+
+.streak-info-popup-bold {
+  font-weight: 600;
+}

@@ -1,38 +1,44 @@
-import { t } from "i18next";
-import "./ParentLogout.css";
-import { ImSwitch } from "react-icons/im";
-import { useState } from "react";
-import DialogBoxButtons from "./DialogBoxButtons​";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { useHistory } from "react-router";
+import { t } from 'i18next';
+import './ParentLogout.css';
+import { ImSwitch } from 'react-icons/im';
+import { useState } from 'react';
+import DialogBoxButtons from './DialogBoxButtons';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { useHistory } from 'react-router';
 import {
   CLASS,
   CURRENT_MODE,
-  CURRENT_STUDENT,
-  CURRENT_USER,
   PAGES,
   SCHOOL,
   SCHOOL_LOGIN,
-  USER_ROLE,
-} from "../../common/constants";
-import { Capacitor } from "@capacitor/core";
-import { Util } from "../../utility/util";
-import { ClearCacheData } from "./DataClear";
+} from '../../common/constants';
+import { Capacitor } from '@capacitor/core';
+import { Util } from '../../utility/util';
+import { ClearCacheData } from './DataClear';
+import { logAuthDebug } from '../../utility/authDebug';
 
 const ParentLogout: React.FC<{}> = ({}) => {
   const [showDialogBox, setShowDialogBox] = useState(false);
   const history = useHistory();
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
+    logAuthDebug('User initiated parent logout.', {
+      source: 'ParentLogout.onSignOut',
+      reason: 'parent_logout_button',
+    });
     await auth.logOut();
     Util.unSubscribeToClassTopicForAllStudents();
     localStorage.removeItem(SCHOOL);
     localStorage.removeItem(CLASS);
-    localStorage.removeItem(USER_ROLE);
-    localStorage.removeItem(CURRENT_USER);
     localStorage.removeItem(CURRENT_MODE);
     localStorage.removeItem(SCHOOL_LOGIN);
     await ClearCacheData();
+    logAuthDebug('Navigating to login after parent logout.', {
+      source: 'ParentLogout.onSignOut',
+      reason: 'logout_complete_navigate_login',
+      from_page: window.location.pathname,
+      to_page: PAGES.LOGIN,
+    });
     history.replace(PAGES.LOGIN);
     if (Capacitor.isNativePlatform()) window.location.reload();
   };
@@ -44,14 +50,14 @@ const ParentLogout: React.FC<{}> = ({}) => {
       className="parent-logout-btn"
     >
       <ImSwitch className="parent-logout-icon" />
-      <div>{t("Sign out as a Parent")}</div>
+      <div>{t('Sign out as a Parent')}</div>
       <DialogBoxButtons
-        width={"40vw"}
-        height={"30vh"}
-        message={t("Do you want to sign out")}
+        width={'40vw'}
+        height={'30vh'}
+        message={t('Do you want to sign out')}
         showDialogBox={showDialogBox}
-        yesText={t("Cancel")}
-        noText={t("Sign Out")}
+        yesText={t('Cancel')}
+        noText={t('Sign Out')}
         handleClose={() => {
           setShowDialogBox(false);
         }}

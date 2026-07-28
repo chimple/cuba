@@ -1,13 +1,13 @@
-import React from "react";
-import "./LoginSwitch.css";
-import { t } from "i18next";
-import { Trans } from "react-i18next";
-import { LOGIN_TYPES } from "../../common/constants";
+import React from 'react';
+import './LoginSwitch.css';
+import { t } from 'i18next';
+import { Trans } from 'react-i18next';
+import { LOGIN_TYPES } from '../../common/constants';
 
 interface LoginSwitchProps {
   loginType: LOGIN_TYPES;
   onSwitch: (
-    type: LOGIN_TYPES.PHONE | LOGIN_TYPES.STUDENT | LOGIN_TYPES.EMAIL
+    type: LOGIN_TYPES.PHONE | LOGIN_TYPES.STUDENT | LOGIN_TYPES.EMAIL,
   ) => void;
   checkbox: boolean;
   onCheckboxChange: (checked: boolean) => void;
@@ -31,7 +31,8 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
   counter,
   showResendOtp,
 }) => {
-  if (loginType === LOGIN_TYPES.FORGET_PASS) return <div className="LoginSwitch-other-ways"></div>;
+  if (loginType === LOGIN_TYPES.FORGET_PASS)
+    return <div className="LoginSwitch-other-ways"></div>;
 
   return (
     <div className="LoginSwitch-other-ways">
@@ -40,7 +41,7 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
           <div className="LoginSwitch-otp-expiry-header">
             <img src="/assets/loginAssets/LoginStripe1.svg" alt="" />
             <span className="LoginSwitch-otp-expiry-text">
-              {t("Your OTP will expire in {{minutes}} minutes", {
+              {t('Your OTP will expire in {{minutes}} minutes', {
                 minutes: otpExpiryCounter,
               })}
             </span>
@@ -51,25 +52,25 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
             className="LoginSwitch-otp-resend-link"
             onClick={onResend}
           >
-            {t("Resend OTP")}
+            {t('Resend OTP')}
           </button>
         </div>
       ) : (
         <>
           <div className="LoginSwitch-other-ways-header">
             <img src="/assets/loginAssets/LoginStripe1.svg" alt="" />
-            <span>{t("Other ways to login")}</span>
+            <span>{t('Other ways to login')}</span>
             <img src="/assets/loginAssets/LoginStripe2.svg" alt="" />
           </div>
 
           <div className="LoginSwitch-other-ways-options">
             {/* Google Login - Always show */}
             <div
-              className={`LoginSwitch-switch-option ${!checkbox ? "disabled" : ""}`}
+              className={`LoginSwitch-switch-option ${!checkbox ? 'disabled' : ''}`}
               onClick={() => checkbox && onGoogleSignIn()}
               style={{
                 opacity: checkbox ? 1 : 0.5,
-                cursor: checkbox ? "pointer" : "not-allowed",
+                cursor: checkbox ? 'pointer' : 'not-allowed',
               }}
             >
               <img
@@ -77,7 +78,7 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
                 src="/assets/loginAssets/Google.svg"
                 alt="google"
               />
-              <span>{t("Google")}</span>
+              <span>{t('Google')}</span>
             </div>
 
             {/* Student ID Login - only if not active */}
@@ -91,7 +92,7 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
                   src="/assets/loginAssets/Student_ID.svg"
                   alt="studentId"
                 />
-                <span>{t("Student Id")}</span>
+                <span>{t('Student Id')}</span>
               </div>
             )}
 
@@ -106,7 +107,7 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
                   src="/assets/loginAssets/Email.svg"
                   alt="email"
                 />
-                <span>{t("Email")}</span>
+                <span>{t('Email')}</span>
               </div>
             )}
 
@@ -121,7 +122,7 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
                   src="/assets/loginAssets/Mobile.svg"
                   alt="phone"
                 />
-                <span>{t("Phone")}</span>
+                <span>{t('Phone')}</span>
               </div>
             )}
           </div>

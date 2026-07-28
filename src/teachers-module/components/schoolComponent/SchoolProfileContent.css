@@ -28,15 +28,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+  box-sizing: border-box;
 }
 .school-profile-card {
-  width: 300px;
+  width: 100%;
+  max-width: 320px;
   border: 1px solid #ccc;
   padding: 25px;
-  margin: 1vh 0;
+  margin: 1vh auto 0;
   text-align: left;
   border-radius: 2vh;
   box-shadow: 1px 1px 2px 0;
+  box-sizing: border-box;
 }
 .schoolProfile-edit-icon-container {
   color: black;
@@ -76,4 +83,8 @@
 }
 .single-container {
   margin-top: 15px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }

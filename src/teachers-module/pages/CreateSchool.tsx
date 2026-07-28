@@ -1,19 +1,34 @@
-import React, { useState, useEffect } from "react";
-import "./CreateSchool.css";
-import { useHistory } from "react-router-dom";
-import { t } from "i18next";
-import Header from "../components/homePage/Header";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { RequestTypes } from "../../common/constants";
-import SelectField from "../components/SelectField";
+import React, { useState, useEffect, useRef } from 'react';
+import './CreateSchool.css';
+import { useHistory, useLocation } from 'react-router-dom';
+import { t } from 'i18next';
+import Header from '../components/homePage/Header';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { PAGES, RequestTypes, STATUS } from '../../common/constants';
+import SelectField from '../components/SelectField';
+import logger from '../../utility/logger';
+
+interface CreateSchoolLocationState {
+  country?: string;
+  state?: string;
+  district?: string;
+  block?: string;
+}
 
 const CreateSchool: React.FC = () => {
-  const [country, setCountry] = useState("");
-  const [state, setState] = useState("");
-  const [district, setDistrict] = useState("");
-  const [block, setBlock] = useState("");
-  const [schoolName, setSchoolName] = useState("");
-  const [udise, setUdise] = useState("");
+  const history = useHistory();
+  const location = useLocation<CreateSchoolLocationState>();
+  const api = ServiceConfig.getI().apiHandler;
+
+  const prefilledData = location.state || {};
+  const isInitialLoad = useRef(true);
+
+  const [country, setCountry] = useState(prefilledData.country || '');
+  const [state, setState] = useState(prefilledData.state || '');
+  const [district, setDistrict] = useState(prefilledData.district || '');
+  const [block, setBlock] = useState(prefilledData.block || '');
+  const [schoolName, setSchoolName] = useState('');
+  const [udise, setUdise] = useState('');
   const [sending, setSending] = useState(false);
 
   const [countries, setCountries] = useState<string[]>([]);
@@ -25,9 +40,6 @@ const CreateSchool: React.FC = () => {
   const [isStatesLoading, setStatesLoading] = useState(false);
   const [isDistrictsLoading, setDistrictsLoading] = useState(false);
   const [isBlocksLoading, setBlocksLoading] = useState(false);
-
-  const history = useHistory();
-  const api = ServiceConfig.getI().apiHandler;
 
   // Load countries
   useEffect(() => {
@@ -42,8 +54,15 @@ const CreateSchool: React.FC = () => {
 
   // Load states when country changes
   useEffect(() => {
-    setState("");
-    setStates([]);
+    // On user interaction (not initial load), clear dependent fields
+    if (!isInitialLoad.current) {
+      setState('');
+      setDistrict('');
+      setBlock('');
+      setStates([]);
+      setDistricts([]);
+      setBlocks([]);
+    }
     if (country) {
       const loadStates = async () => {
         setStatesLoading(true);
@@ -57,8 +76,13 @@ const CreateSchool: React.FC = () => {
 
   // Load districts when state changes
   useEffect(() => {
-    setDistrict("");
-    setDistricts([]);
+    // On user interaction (not initial load), clear dependent fields
+    if (!isInitialLoad.current) {
+      setDistrict('');
+      setBlock('');
+      setDistricts([]);
+      setBlocks([]);
+    }
     if (country && state) {
       const loadDistricts = async () => {
         setDistrictsLoading(true);
@@ -75,8 +99,11 @@ const CreateSchool: React.FC = () => {
 
   // Load blocks when district changes
   useEffect(() => {
-    setBlock("");
-    setBlocks([]);
+    // On user interaction (not initial load), clear dependent fields
+    if (!isInitialLoad.current) {
+      setBlock('');
+      setBlocks([]);
+    }
     if (state && district) {
       const loadBlocks = async () => {
         setBlocksLoading(true);
@@ -92,22 +119,38 @@ const CreateSchool: React.FC = () => {
     }
   }, [district, state, country, api]);
 
+  // This effect runs only once after the initial render
+  useEffect(() => {
+    // After all initial effects have run, set the ref to false.
+    // Any subsequent changes will be from user interaction.
+    isInitialLoad.current = false;
+  }, []); // <-- 2. Empty dependency array ensures this runs only once
+
   const handleSendRequest = async () => {
-    setSending(true);
-    const school = await api.createSchool(
-      schoolName,
-      state,
-      district,
-      block,
-      null,
-      null,
-      null,
-      udise,
-      null,
-      country
-    );
-    await api.sendJoinSchoolRequest(school.id, RequestTypes.SCHOOL);
-    setSending(false);
+    try {
+      setSending(true);
+      const school = await api.createSchool(
+        schoolName,
+        state,
+        district,
+        block,
+        null,
+        STATUS.REQUESTED,
+        null,
+        null,
+        udise,
+        null,
+        country,
+        true,
+        false,
+      );
+      await api.sendJoinSchoolRequest(school.id, RequestTypes.SCHOOL);
+      history.replace(PAGES.POST_SUCCESS);
+    } catch (error) {
+      logger.error('Error creating school:', error);
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -118,7 +161,7 @@ const CreateSchool: React.FC = () => {
 
       <div className="create-school-container">
         <div className="create-school-box">
-          <h2 className="create-school-title">{t("Create School")}</h2>
+          <h2 className="create-school-title">{t('Create School')}</h2>
 
           <div className="create-school-icon">
             <img src="/assets/icons/School_image.svg" alt="School" />
@@ -126,41 +169,41 @@ const CreateSchool: React.FC = () => {
 
           <div className="create-school-card">
             <SelectField
-              label={t("Country")}
+              label={t('Country')}
               value={country}
               options={countries}
-              placeholder={t("Select Country") || ""}
+              placeholder={t('Select Country') || ''}
               disabled={isCountriesLoading}
               onChange={setCountry}
             />
             <SelectField
-              label={t("State")}
+              label={t('State')}
               value={state}
               options={states}
-              placeholder={t("Select State") || ""}
+              placeholder={t('Select State') || ''}
               disabled={!country || isStatesLoading}
               onChange={setState}
             />
             <SelectField
-              label={t("District")}
+              label={t('District')}
               value={district}
               options={districts}
-              placeholder={t("Select District") || ""}
+              placeholder={t('Select District') || ''}
               disabled={!state || isDistrictsLoading}
               onChange={setDistrict}
             />
             <SelectField
-              label={t("Block")}
+              label={t('Block')}
               value={block}
               options={blocks}
-              placeholder={t("Select Block") || ""}
+              placeholder={t('Select Block') || ''}
               disabled={!district || isBlocksLoading}
               onChange={setBlock}
             />
 
             {/* School Name */}
             <div className="create-school-row">
-              <span className="create-school-label">{t("School Name")}</span>
+              <span className="create-school-label">{t('School Name')}</span>
               <input
                 className="create-school-input"
                 value={schoolName}
@@ -192,7 +235,7 @@ const CreateSchool: React.FC = () => {
             }
             onClick={handleSendRequest}
           >
-            {sending ? t("Sending...") : t("Send Request")}
+            {sending ? t('Sending...') : t('Send Request')}
           </button>
         </div>
       </div>

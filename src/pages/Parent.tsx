@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import "./Parent.css";
+import { useEffect, useRef, useState } from 'react';
+import './Parent.css';
 import {
   CLASS,
+  CURRENT_MODE,
+  DEFAULT_LANGUAGE_ID_EN,
   EDIT_STUDENTS_MAP,
   LANGUAGE,
   MAX_STUDENTS_ALLOWED,
@@ -9,51 +11,62 @@ import {
   PAGES,
   PARENTHEADERLIST,
   SCHOOL,
+  SCHOOL_LOGIN,
   TableTypes,
-  USER_DATA,
-} from "../common/constants";
-import ProfileCard from "../components/parent/ProfileCard";
-import User from "../models/user";
-import ToggleButton from "../components/parent/ToggleButton";
+  TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS,
+} from '../common/constants';
+import ProfileCard from '../components/parent/ProfileCard';
 
-// import LeftTitleRectangularIconButton from "../components/parent/LeftTitleRectangularIconButton";
 import {
   EmailIcon,
   EmailShareButton,
   FacebookIcon,
   TwitterIcon,
   WhatsappIcon,
-} from "react-share";
-import { FaInstagramSquare } from "react-icons/fa";
-import { t } from "i18next";
-import { TfiWorld } from "react-icons/tfi";
-import i18n from "../i18n";
-import { ServiceConfig } from "../services/ServiceConfig";
-import ParentLogout from "../components/parent/ParentLogout";
-import { Box } from "@mui/material";
-import { useHistory } from "react-router-dom";
-import CustomAppBar from "../components/studentProgress/CustomAppBar";
-import { Util } from "../utility/util";
-import { schoolUtil } from "../utility/schoolUtil";
-import DropDown from "../components/DropDown";
-import { RoleType } from "../interface/modelInterfaces";
-import DeleteParentAccount from "../components/parent/DeleteParentAccount";
-import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
-import DebugMode from "../teachers-module/components/DebugMode";
-import { Capacitor } from "@capacitor/core";
-// import { EmailComposer } from "@ionic-native/email-composer";
-// import Share from "react";
+} from 'react-share';
+import { FaInstagramSquare } from 'react-icons/fa';
+import { t } from 'i18next';
+import { TfiWorld } from 'react-icons/tfi';
+import i18n from '../i18n';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { Box } from '@mui/material';
+import { useHistory, useLocation } from 'react-router-dom';
+import CustomAppBar from '../components/studentProgress/CustomAppBar';
+import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
+import { RoleType } from '../interface/modelInterfaces';
+import { setUser } from '../redux/slices/auth/authSlice';
+import { useAppDispatch } from '../redux/hooks';
+import TeacherAuthenticationPopup from '../components/parent/TeacherAuthenticationPopup';
+import {
+  requireTeacherModeAuth,
+  TeacherModeAuthResult,
+} from '../services/TeacherModeAuth';
+import DialogBoxButtons from '../components/parent/DialogBoxButtons';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
+import { ClearCacheData } from '../components/parent/DataClear';
+import { logAuthDebug } from '../utility/authDebug';
+
+const parentHeaderIconList = [
+  { header: 'profile', displayName: 'Profile' },
+  { header: 'settings', displayName: 'Settings' },
+  { header: 'help', displayName: 'Help' },
+  { header: 'faq', displayName: 'FAQ' },
+] as const;
+
+const DEFAULT_PARENT_TAB = parentHeaderIconList[0].header;
+
 const Parent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentHeader, setCurrentHeader] = useState<any>(undefined);
   const [soundFlag, setSoundFlag] = useState<number>();
   const [musicFlag, setMusicFlag] = useState<number>();
-  const [userProfile, setUserProfile] = useState<TableTypes<"user">[]>([]);
-  const [tabIndex, setTabIndex] = useState<any>();
-  // Commented out because Debug Mode has been moved to the Leaderboard page
-  // const clickCount = useRef(0);
-  // const [showDialogBox, setShowDialogBox] = useState(false);
-  // const [showDebug, setShowDebug] = useState(false);
+  const [userProfile, setUserProfile] = useState<TableTypes<'user'>[]>([]);
+  const location = useLocation<{ activeTab?: string }>();
+  const [tabIndex, setTabIndex] = useState<string>(DEFAULT_PARENT_TAB);
+  const dispatch = useAppDispatch();
+
   const [langList, setLangList] = useState<
     {
       id: string;
@@ -62,50 +75,93 @@ const Parent: React.FC = () => {
   >([]);
   const [langDocIds, setLangDocIds] = useState<Map<string, string>>(new Map());
   const [currentAppLang, setCurrentAppLang] = useState<string>();
-  //  const [localLangDocId, setLocalLangDocId] = useState<any>();
+  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false);
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
+
   const [reloadProfiles, setReloadProfiles] = useState<boolean>(false);
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const [currentUser, setCurrentUser] = useState<
-    TableTypes<"user"> | undefined
+    TableTypes<'user'> | undefined
   >();
+  const [isTeacherAuthPopupOpen, setIsTeacherAuthPopupOpen] = useState(false);
   const [schools, setSchools] = useState<
     {
-      school: TableTypes<"school">;
+      school: TableTypes<'school'>;
       role: RoleType;
     }[]
   >();
+  const languageDropdownRef = useRef<HTMLDivElement | null>(null);
   let tempLangList: {
     id: string;
     displayName: string;
   }[] = [];
-  // let langDocIds: Map<string, string> = new Map();
+
   const localAppLang = localStorage.getItem(LANGUAGE);
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  const parentHeaderIconList = [
-    { header: "profile", displayName: "Profile" },
-    { header: "setting", displayName: "Setting" },
-    { header: "help", displayName: "Help" },
-    { header: "faq", displayName: "FAQ" },
-  ];
   const [tabs, setTabs] = useState({});
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
+
+  const normalizeTabValue = (value?: string) => {
+    if (!value) {
+      return DEFAULT_PARENT_TAB;
+    }
+
+    const matchedTab = parentHeaderIconList.find(
+      (item) => item.header === value || t(item.header) === value,
+    );
+
+    return matchedTab?.header ?? DEFAULT_PARENT_TAB;
+  };
+
+  const switchToTeacherMode = () => {
+    schoolUtil.setCurrMode(MODES.TEACHER);
+    history.replace(PAGES.DISPLAY_SCHOOLS);
+  };
+
   useEffect(() => {
     setIsLoading(true);
     setCurrentHeader(PARENTHEADERLIST.PROFILE);
+    setTabIndex(normalizeTabValue(location.state?.activeTab));
     init();
     getStudentProfile();
-  }, [reloadProfiles]);
+  }, [reloadProfiles, location]);
+
+  useEffect(() => {
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (
+        languageDropdownRef.current &&
+        !languageDropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsLanguageMenuOpen(false);
+      }
+    };
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsLanguageMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleDocumentClick);
+    document.addEventListener('keydown', handleEscapeKey);
+
+    return () => {
+      document.removeEventListener('mousedown', handleDocumentClick);
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, []);
 
   async function getStudentProfile() {
-    const userProfilePromise: TableTypes<"user">[] =
+    const userProfilePromise: TableTypes<'user'>[] =
       await ServiceConfig.getI().apiHandler.getParentStudentProfiles();
     let finalUser: any[] = [];
     const storedMapStr = sessionStorage.getItem(EDIT_STUDENTS_MAP);
     const mergedStudents = Util.mergeStudentsByUpdatedAt(
       userProfilePromise,
-      storedMapStr
+      storedMapStr,
     );
     for (let i = 0; i < MAX_STUDENTS_ALLOWED; i++) {
       finalUser.push(mergedStudents[i]);
@@ -130,8 +186,12 @@ const Parent: React.FC = () => {
       const allLang = await ServiceConfig.getI().apiHandler.getAllLanguages();
       let tempLangDocIds: Map<string, string> = new Map();
       let keytempLangDocIds: Map<string, string> = new Map();
-      for (let i = 0; i < allLang.length; i++) {
-        const element = allLang[i];
+      if (!allLang || allLang.length == 0) return;
+      const sortedLanguages = [...allLang].sort(
+        (left, right) => (left.sort_index ?? 0) - (right.sort_index ?? 0),
+      );
+      for (let i = 0; i < sortedLanguages.length; i++) {
+        const element = sortedLanguages[i];
 
         tempLangList.push({
           id: element.id,
@@ -144,33 +204,46 @@ const Parent: React.FC = () => {
       setLangDocIds(tempLangDocIds);
       setLangList(tempLangList);
 
-      const element = allLang.find((obj) => obj.code === localAppLang);
+      // If the parent has no saved language, default to English.
+      const userLangId = parentUser.language_id ?? DEFAULT_LANGUAGE_ID_EN;
+
+      // Find the language object from allLang using the language_id
+      const element =
+        allLang.find((obj) => obj.id === userLangId) || allLang[0];
+
       if (!element) return;
 
+      // Set the current language ID
       setCurrentAppLang(element.id);
+
+      // Also update i18n language using its code
+      if (element.code) {
+        await i18n.changeLanguage(element.code);
+        localStorage.setItem(LANGUAGE, element.code);
+      }
+
+      // ✅ FIX: set initial tabIndex so content renders immediately
+      if (!tabIndex) {
+        setTabIndex(DEFAULT_PARENT_TAB);
+      }
 
       setIsLoading(false);
     }
   }
 
-  function onHeaderIconClick(selectedHeader: any) {
-    setCurrentHeader(selectedHeader);
-  }
-
   function profileUI() {
-    // setIsLoading(false);
-
     return (
       <div id="parent-page-profile">
-        {userProfile.map((element) => {
+        {userProfile.map((element, index) => {
           let studentUserType: boolean = true;
           if (element === undefined) {
             studentUserType = false;
           }
           return (
             <ProfileCard
-              width={"27vw"}
-              height={"50vh"}
+              key={element?.id ?? `empty-profile-${index}`}
+              width={'var(--profile-card-width)'}
+              height={'auto'}
               userType={studentUserType}
               user={element}
               showText={true}
@@ -185,177 +258,352 @@ const Parent: React.FC = () => {
   }
 
   function settingUI() {
+    const soundEnabled = soundFlag === 0;
+    const musicEnabled = musicFlag === 0;
+    const selectedLanguage =
+      langList.find((lang) => lang.id === currentAppLang)?.displayName ?? '';
+
+    const handleLanguageSelect = async (
+      selectedLangDocId: string,
+    ): Promise<void> => {
+      const api = ServiceConfig.getI().apiHandler;
+      const auth = ServiceConfig.getI().authHandler;
+      const allLang = await api.getAllLanguages();
+
+      const langDoc = allLang.find((obj) => obj.id === selectedLangDocId);
+
+      if (!langDoc) return;
+      localStorage.setItem(LANGUAGE, langDoc.code ?? '');
+      await i18n.changeLanguage(langDoc.code ?? '');
+      const currentUser = await auth.getCurrentUser();
+      setTabIndex(parentHeaderIconList[1].header);
+
+      if (!currentUser || !currentUser.id) return;
+      if (selectedLangDocId) {
+        api.updateLanguage(currentUser.id, selectedLangDocId);
+      }
+      setCurrentAppLang(selectedLangDocId);
+      setIsLanguageMenuOpen(false);
+      const updatedUserData: TableTypes<'user'> = {
+        ...currentUser,
+        language_id: selectedLangDocId,
+      };
+      dispatch(setUser(updatedUserData));
+      auth.currentUser = updatedUserData;
+    };
+
+    const handleSoundToggle = async () => {
+      const nextEnabled = !soundEnabled;
+      const nextFlag = nextEnabled ? 0 : 1;
+      setSoundFlag(nextFlag);
+      const resolvedCurrentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+      Util.setCurrentSound(nextFlag);
+      if (resolvedCurrentUser) {
+        ServiceConfig.getI().apiHandler.updateSoundFlag(
+          resolvedCurrentUser.id,
+          nextEnabled,
+        );
+      }
+    };
+
+    const handleMusicToggle = async () => {
+      const nextEnabled = !musicEnabled;
+      const nextFlag = nextEnabled ? 0 : 1;
+      setMusicFlag(nextFlag);
+      const resolvedCurrentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+      Util.setCurrentMusic(nextFlag);
+      if (resolvedCurrentUser) {
+        ServiceConfig.getI().apiHandler.updateMusicFlag(
+          resolvedCurrentUser.id,
+          nextEnabled,
+        );
+      }
+    };
+
+    const handleTeachersAppClick = async () => {
+      if (!currentUser?.name || currentUser.name.trim() === '') {
+        history.replace(PAGES.ADD_TEACHER_NAME);
+        return;
+      }
+
+      const teacherModeAuthResult = await requireTeacherModeAuth();
+
+      if (teacherModeAuthResult === TeacherModeAuthResult.success) {
+        switchToTeacherMode();
+        return;
+      }
+
+      if (
+        teacherModeAuthResult === TeacherModeAuthResult.popupFallbackRequired
+      ) {
+        setIsTeacherAuthPopupOpen(true);
+      }
+    };
+
+    const handleTermsClick = () => {
+      history.push({
+        pathname: PAGES.TERMS_AND_CONDITIONS,
+        state: {
+          from: window.location.pathname,
+          returnLocation: {
+            pathname: window.location.pathname,
+            state: {
+              activeTab: 'settings',
+            },
+          },
+        },
+      });
+    };
+
+    const handleSignOut = async () => {
+      const auth = ServiceConfig.getI().authHandler;
+      logAuthDebug('User initiated parent logout.', {
+        source: 'Parent.settingUI.handleSignOut',
+        reason: 'parent_logout_button',
+      });
+      await auth.logOut();
+      Util.unSubscribeToClassTopicForAllStudents();
+      localStorage.removeItem(SCHOOL);
+      localStorage.removeItem(CLASS);
+      localStorage.removeItem(CURRENT_MODE);
+      localStorage.removeItem(SCHOOL_LOGIN);
+      await ClearCacheData();
+      logAuthDebug('Navigating to login after parent logout.', {
+        source: 'Parent.settingUI.handleSignOut',
+        reason: 'logout_complete_navigate_login',
+        from_page: window.location.pathname,
+        to_page: PAGES.LOGIN,
+      });
+      history.replace(PAGES.LOGIN);
+      if (Capacitor.isNativePlatform()) {
+        window.location.reload();
+      }
+    };
+
+    const handleDeleteAccount = async () => {
+      await Browser.open({
+        url: 'https://docs.google.com/forms/d/e/1FAIpQLSd0q3StMO49k_MvBQ68F_Ygdytpmxv-vNuF5jqsk6dY-4N0BA/viewform?pli=1',
+      });
+    };
+
     return (
-      <div>
-        <div id="parent-page-setting">
-          <div id="parent-page-setting-div">
-            <p id="parent-page-setting-lang-text">{t("Language")}</p>
-            <DropDown
-              currentValue={currentAppLang}
-              optionList={langList}
-              placeholder=""
-              width="26vw"
-              onValueChange={async (selectedLangDocId) => {
-                // setIsLoading(true);
+      <div className="parent-settings-layout">
+        <div className="parent-settings-top-grid">
+          <section className="parent-settings-card parent-settings-application-card">
+            <h2 className="parent-settings-card-title">{t('Application')}</h2>
 
-                const api = ServiceConfig.getI().apiHandler;
-                const auth = ServiceConfig.getI().authHandler;
-                // api.deleteAllUserData
-                // const langDoc = await api.getLanguageWithId(selectedLangDocId);
-                const allLang = await api.getAllLanguages();
-
-                const langDoc = allLang.find(
-                  (obj) => obj.id === selectedLangDocId
-                );
-
-                if (!langDoc) return;
-                localStorage.setItem(LANGUAGE, langDoc.code ?? "");
-                await i18n.changeLanguage(langDoc.code ?? "");
-                const currentUser = await auth.getCurrentUser();
-                setTabIndex(t(parentHeaderIconList[1].header));
-
-                const langId = langDocIds.get(langDoc.code ?? "");
-
-                if (currentUser && selectedLangDocId) {
-                  api.updateLanguage(currentUser.id, selectedLangDocId);
-                }
-                setCurrentAppLang(selectedLangDocId);
-                const updatedUserData: TableTypes<"user"> | undefined =
-                  currentUser
-                    ? { ...currentUser, language_id: selectedLangDocId }
-                    : undefined;
-                localStorage.setItem(
-                  USER_DATA,
-                  JSON.stringify(updatedUserData)
-                );
-                if (updatedUserData) {
-                  auth.currentUser = updatedUserData;
-                }
-                // window.location.reload();
-              }}
-            />
-          </div>
-          <div id="parent-page-setting-div">
-            <ToggleButton
-              flag={soundFlag!}
-              title={t("Sound")}
-              onIonChangeClick={async (v) => {
-                setSoundFlag(v.detail?.checked ? 0 : 1);
-                const currentUser =
-                  await ServiceConfig.getI().authHandler.getCurrentUser();
-                Util.setCurrentSound(v.detail?.checked ? 0 : 1);
-                if (currentUser) {
-                  ServiceConfig.getI().apiHandler.updateSoundFlag(
-                    currentUser.id,
-                    v.detail?.checked
-                  );
-                }
-                // Commented out because Debug Mode has been moved to the Leaderboard page
-                // clickCount.current += 1;
-                // // If clicked 7 times, show popup for debug mode
-                // if (clickCount.current === 7) {
-                //   setShowDialogBox(true);
-                //   clickCount.current = 0;
-                // }
-              }}
-            ></ToggleButton>
-            {/* Commented out because Debug Mode has been moved to the Leaderboard page */}
-            {/* {showDialogBox && (
-              <DialogBoxButtons
-                width={"40vw"}
-                height={"30vh"}
-                message={t("Do you want to Open Debug Mode?")}
-                showDialogBox={true}
-                yesText={t("Cancel")}
-                noText={t("debugMode")}
-                handleClose={() => {
-                  setShowDialogBox(true);
-                }}
-                onYesButtonClicked={() => {
-                  setShowDialogBox(false);
-                }}
-                onNoButtonClicked={() => {
-                  setShowDebug(true);
-                  parentHeaderIconList.push({
-                    header: "debugMode",
-                    displayName: t("debugMode"),
-                  });
-
-                  setTabs((prevTabs: any) => ({
-                    ...prevTabs,
-                    [t("debugMode")]: t("debugMode"),
-                  }));
-                  setTabIndex(t("debugMode"));
-                  setShowDialogBox(false);
-                }}
-              />
-            )} */}
-
-            <ToggleButton
-              flag={musicFlag!}
-              title={t("Music")}
-              onIonChangeClick={async (v) => {
-                setMusicFlag(v.detail?.checked ? 0 : 1);
-                const currentUser =
-                  await ServiceConfig.getI().authHandler.getCurrentUser();
-                Util.setCurrentMusic(v.detail?.checked ? 0 : 1);
-                if (currentUser) {
-                  ServiceConfig.getI().apiHandler.updateMusicFlag(
-                    currentUser.id,
-                    v.detail?.checked
-                  );
-                }
-              }}
-            ></ToggleButton>
-          </div>
-        </div>
-        <div id="logout-delete-button">
-          <div id="parent-logout">
-            <ParentLogout />
-          </div>
-          <div id="parent_logout-btn">
-            <DeleteParentAccount />
-          </div>
-          <div className="parent-teachermode-toggle">
-            <ToggleButton
-              title={"Switch to Teacher's Mode"}
-              layout="vertical"
-              onIonChangeClick={async () => {
-                const isNativePlatform = Capacitor.isNativePlatform();
-                if (localSchool && localClass) {
-                  schoolUtil.setCurrMode(MODES.TEACHER);
-                  history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-                  isNativePlatform && window.location.reload();
-                  isNativePlatform && window.location.reload();
-                } else if (schools && schools.length > 0) {
-                  if (schools?.length === 1) {
-                    Util.setCurrentSchool(schools[0].school, schools[0].role);
-                    const tempClasses = await api.getClassesForSchool(
-                      schools[0].school.id,
-                      currentUser?.id!
-                    );
-                    if (tempClasses.length > 0) {
-                      Util.setCurrentClass(tempClasses[0]);
-                      schoolUtil.setCurrMode(MODES.TEACHER);
-                      history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
-                      isNativePlatform && window.location.reload();
+            <div className="parent-settings-application-content">
+              <div className="parent-settings-language-block">
+                <label
+                  htmlFor="parent-language-select"
+                  className="parent-settings-field-label"
+                >
+                  {t("Parent's Language")}
+                </label>
+                <div
+                  ref={languageDropdownRef}
+                  className={`parent-settings-language-dropdown${
+                    isLanguageMenuOpen ? ' is-open' : ''
+                  }`}
+                >
+                  <button
+                    id="parent-language-select"
+                    type="button"
+                    className="parent-settings-language-trigger"
+                    aria-haspopup="listbox"
+                    aria-expanded={isLanguageMenuOpen}
+                    onClick={() =>
+                      setIsLanguageMenuOpen((previousState) => !previousState)
                     }
-                  } else {
-                    schoolUtil.setCurrMode(MODES.TEACHER);
-                    history.replace(PAGES.DISPLAY_SCHOOLS);
-                    isNativePlatform && window.location.reload();
-                    isNativePlatform && window.location.reload();
-                  }
-                } else {
-                  schoolUtil.setCurrMode(MODES.TEACHER);
-                  history.replace(PAGES.DISPLAY_SCHOOLS);
-                  isNativePlatform && window.location.reload();
-                  isNativePlatform && window.location.reload();
-                }
-              }}
-            />
-          </div>
+                  >
+                    <span className="parent-settings-language-trigger-label">
+                      {selectedLanguage}
+                    </span>
+                    <span
+                      className="parent-settings-language-trigger-arrow"
+                      aria-hidden="true"
+                    />
+                  </button>
+
+                  {isLanguageMenuOpen && (
+                    <div
+                      className="parent-settings-language-menu"
+                      role="listbox"
+                      aria-labelledby="parent-language-select"
+                    >
+                      {langList.map((option) => {
+                        const isSelected = option.id === currentAppLang;
+
+                        return (
+                          <button
+                            key={option.id}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            className={`parent-settings-language-option${
+                              isSelected ? ' is-selected' : ''
+                            }`}
+                            onClick={() => handleLanguageSelect(option.id)}
+                          >
+                            {option.displayName}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="parent-settings-toggle-column">
+                <div className="parent-settings-toggle-group">
+                  <p className="parent-settings-toggle-title">{t('Sound')}</p>
+                  <div className="parent-settings-toggle-row">
+                    <span className="parent-settings-toggle-state">
+                      {t('OFF')}
+                    </span>
+                    <button
+                      type="button"
+                      className={`parent-settings-switch${soundEnabled ? ' is-on' : ''}`}
+                      onClick={handleSoundToggle}
+                      aria-label={String(t('Sound'))}
+                      aria-pressed={soundEnabled}
+                    >
+                      <span className="parent-settings-switch-thumb" />
+                    </button>
+                    <span className="parent-settings-toggle-state">
+                      {t('ON')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="parent-settings-toggle-group">
+                  <p className="parent-settings-toggle-title">{t('Music')}</p>
+                  <div className="parent-settings-toggle-row">
+                    <span className="parent-settings-toggle-state">
+                      {t('OFF')}
+                    </span>
+                    <button
+                      type="button"
+                      className={`parent-settings-switch${musicEnabled ? ' is-on' : ''}`}
+                      onClick={handleMusicToggle}
+                      aria-label={String(t('Music'))}
+                      aria-pressed={musicEnabled}
+                    >
+                      <span className="parent-settings-switch-thumb" />
+                    </button>
+                    <span className="parent-settings-toggle-state">
+                      {t('ON')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="parent-settings-card parent-settings-teachers-card">
+            <h2 className="parent-settings-card-title">{t('For Teachers')}</h2>
+            <button
+              type="button"
+              className="parent-settings-teachers-button"
+              onClick={handleTeachersAppClick}
+            >
+              <img
+                src="/assets/icons/teacherAppIcon.svg"
+                alt=""
+                aria-hidden="true"
+                className="parent-settings-teachers-button-icon"
+              />
+              <span>{t('Teachers App')}</span>
+            </button>
+          </section>
         </div>
+
+        <section className="parent-settings-card parent-settings-account-card">
+          <h2 className="parent-settings-card-title">{t('Account')}</h2>
+          <div className="parent-settings-account-actions">
+            <button
+              type="button"
+              className="parent-settings-account-button parent-settings-account-button--terms"
+              onClick={handleTermsClick}
+            >
+              <img
+                src="/assets/icons/tAndCIcon.svg"
+                alt=""
+                aria-hidden="true"
+                className="parent-settings-account-button-icon"
+              />
+              <span>{t('Terms & Conditions')}</span>
+            </button>
+
+            <button
+              type="button"
+              className="parent-settings-account-button parent-settings-account-button--signout"
+              onClick={() => setShowSignOutDialog(true)}
+            >
+              <img
+                src="/assets/icons/signOut.svg"
+                alt=""
+                aria-hidden="true"
+                className="parent-settings-account-button-icon"
+              />
+              <span>{t('Sign out')}</span>
+            </button>
+
+            <button
+              type="button"
+              className="parent-settings-account-button parent-settings-account-button--delete"
+              onClick={() => setShowDeleteAccountDialog(true)}
+            >
+              <img
+                src="/assets/icons/deleteAccountIcon.svg"
+                alt=""
+                aria-hidden="true"
+                className="parent-settings-account-button-icon"
+              />
+              <span>{t('Delete Account')}</span>
+            </button>
+          </div>
+
+          <DialogBoxButtons
+            width={'40vw'}
+            height={'30vh'}
+            message={t('Do you want to sign out')}
+            showDialogBox={showSignOutDialog}
+            yesText={t('Cancel')}
+            noText={t('Sign Out')}
+            handleClose={() => {
+              setShowSignOutDialog(false);
+            }}
+            onYesButtonClicked={() => {
+              setShowSignOutDialog(false);
+            }}
+            onNoButtonClicked={async () => {
+              setShowSignOutDialog(false);
+              await handleSignOut();
+            }}
+          />
+
+          <DialogBoxButtons
+            width={'40vw'}
+            height={'30vh'}
+            message={t("Do you want to delete the parent's account?")}
+            showDialogBox={showDeleteAccountDialog}
+            yesText={t('Cancel')}
+            noText={t('Delete')}
+            handleClose={() => {
+              setShowDeleteAccountDialog(false);
+            }}
+            onYesButtonClicked={() => {
+              setShowDeleteAccountDialog(false);
+            }}
+            onNoButtonClicked={async () => {
+              setShowDeleteAccountDialog(false);
+              await handleDeleteAccount();
+            }}
+          />
+        </section>
       </div>
     );
   }
@@ -363,68 +611,56 @@ const Parent: React.FC = () => {
   function helpUI() {
     return (
       <div id="parent-page-help">
-        <h1 id="parent-page-help-title">{t("Chimple Help Desk")}</h1>
+        <h1 id="parent-page-help-title">{t('Chimple Help Desk')}</h1>
         <div id="parent-page-help-title-container">
           <div id="parent-page-help-title-link">
             <div id="parent-page-help-title-e1">
               <div id="parent-page-help-share-button">
                 <EmailShareButton
-                  url={"help@sutara.org"}
-                  subject={"Chimple Kids app- Help Desk"}
+                  url={'help@sutara.org'}
+                  subject={'Chimple Kids app- Help Desk'}
                   body=""
                   className="Demo__some-network__share-button"
                 >
                   {/* Email Us */}
-                  {t("Email Us")}
+                  {t('Email Us')}
                 </EmailShareButton>
-                <EmailIcon size={"2vw"} round />
+                <EmailIcon size={'2vw'} round />
               </div>
               <div
                 id="parent-page-help-share-button"
                 onClick={() => {
-                  window.open("https://www.chimple.org/", "_system");
+                  window.open('https://www.chimple.org/', '_system');
                 }}
               >
                 {/* Visit Website */}
-                {t("Visit Website")}
-                <TfiWorld size={"2vw"} />
+                {t('Visit Website')}
+                <TfiWorld size={'2vw'} />
                 {/* <IonIcon name="globe-outline" size={"2vw"}></IonIcon> */}
               </div>
               <div
                 id="parent-page-help-share-button"
                 onClick={() => {
-                  let message = "Hiii !!!!";
+                  let message = 'Hiii !!!!';
                   window.open(
                     `https://api.whatsapp.com/send?phone=919606018552&text=${message}`,
-                    "_system"
+                    '_system',
                   );
                 }}
               >
-                {/* <WhatsappShareButton
-              // https://api.whatsapp.com/send?phone=917981611434&text=${message}
-              url={"send?phone=917981611434&"}
-              title={"hi"}
-              className="Demo__some-network__share-button"
-            >
-              WhatsApp Us
-            </WhatsappShareButton> */}
-                {/* WhatsApp Us */}
-                {t("WhatsApp Us")}
-                <WhatsappIcon size={"2vw"} round />
+                {t('WhatsApp Us')}
+                <WhatsappIcon size={'2vw'} round />
               </div>
             </div>
             <div id="parent-page-help-title-e2">
-              <div id="help">{t("Help Video")}</div>
+              <div id="help">{t('Help Video')}</div>
               <div id="parent-page-help-title-e2-video">
                 <iframe
                   id="parent-page-help-title-e2-video-youtude"
                   className="embed-responsive-item"
                   allowFullScreen={true}
-                  // width="50%"
-                  // height="50%"
                   src="https://www.youtube.com/embed/Ez9oouE2pOE"
                   title="YouTube video player"
-                  // frameborder="0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   // allowfullscreen
                 ></iframe>
@@ -437,7 +673,7 @@ const Parent: React.FC = () => {
                   // let message = "Hiii !!!!";
                   window.open(
                     `https://api.instagram.com/chimple_learning/`,
-                    "_system"
+                    '_system',
                   );
                   // https://api.instagram.com/chimple_learning/
 
@@ -445,44 +681,26 @@ const Parent: React.FC = () => {
                 }}
               >
                 {/* Instagram */}
-                {t("Instagram")}
-                <FaInstagramSquare size={"2vw"} />
+                {t('Instagram')}
+                <FaInstagramSquare size={'2vw'} />
               </div>
               <div
                 id="parent-page-help-share-button-e3"
                 onClick={() => {
-                  // let message = "Hiii !!!!";
-                  window.open(`https://www.facebook.com/chimple`, "_system");
+                  window.open(`https://www.facebook.com/chimple`, '_system');
                 }}
               >
-                {/* <FacebookShareButton
-              url={"https://www.facebook.com/chimple"}
-              quote={"Chimple Learning"}
-              className="Demo__some-network__share-button"
-            >
-              Fackbook
-            </FacebookShareButton> */}
-                {/* Facebook */}
-                {t("Facebook")}
-                <FacebookIcon size={"2vw"} round />
+                {t('Facebook')}
+                <FacebookIcon size={'2vw'} round />
               </div>
               <div
                 id="parent-page-help-share-button-e3"
                 onClick={() => {
-                  // let message = "Hiii !!!!";
-                  window.open(`https://twitter.com/chimple_org`, "_system");
+                  window.open(`https://twitter.com/chimple_org`, '_system');
                 }}
               >
-                {/* <TwitterShareButton
-              url={"https://twitter.com/chimple_org"}
-              title={"Chimple Learning"}
-              className="Demo__some-network__share-button"
-            >
-              Twitter
-            </TwitterShareButton> */}
-                {/* Twitter */}
-                {t("Twitter")}
-                <TwitterIcon size={"2vw"} round />
+                {t('Twitter')}
+                <TwitterIcon size={'2vw'} round />
               </div>
             </div>
           </div>
@@ -496,28 +714,26 @@ const Parent: React.FC = () => {
         id="faq-page"
         onClick={() => {
           window.open(
-            "https://www.chimple.org/in-school-guide-for-teachers",
-            "_system"
+            'https://www.chimple.org/in-school-guide-for-teachers',
+            '_system',
           );
         }}
       >
-        <p>{t("Please Visit Our Website")}</p>
-        <TfiWorld size={"3vw"} />
+        <p>{t('Please Visit Our Website')}</p>
+        <TfiWorld size={'3vw'} />
       </div>
     );
   }
 
-  // function debugModeUI() {
-  //   return <DebugMode />;
-  // }
   const handleChange = (newValue: string) => {
+    const normalizedTabValue = normalizeTabValue(newValue);
     const selectedHeader = parentHeaderIconList.find(
-      (item) => item.header === newValue
+      (item) => item.header === normalizedTabValue,
     );
     if (selectedHeader) {
       setCurrentHeader(selectedHeader.header);
     }
-    setTabIndex(newValue);
+    setTabIndex(normalizedTabValue);
   };
 
   const handleBackButton = () => {
@@ -526,20 +742,20 @@ const Parent: React.FC = () => {
 
   useEffect(() => {
     if (!tabIndex && parentHeaderIconList.length > 0) {
-      setTabIndex(t(parentHeaderIconList[0].header));
+      setTabIndex(DEFAULT_PARENT_TAB);
     }
   }, []);
   useEffect(() => {
-    const updatedTabs = {};
+    const updatedTabs: Record<string, string> = {};
     parentHeaderIconList.forEach((item) => {
-      updatedTabs[t(item.header)] = t(item.header);
+      updatedTabs[item.header] = t(item.header);
     });
     setTabs(updatedTabs);
   }, [localAppLang]);
 
   return (
-    <Box>
-      <div>
+    <Box className="parent-page-shell">
+      <div className="parent-page-main">
         <CustomAppBar
           tabs={tabs}
           value={tabIndex}
@@ -547,12 +763,27 @@ const Parent: React.FC = () => {
           handleBackButton={handleBackButton}
           customStyle={true}
         />
-        {tabIndex === t("profile") && <div>{profileUI()}</div>}
-        {tabIndex === t("setting") && <div>{settingUI()}</div>}
-        {tabIndex === t("help") && <div>{helpUI()}</div>}
-        {tabIndex === t("faq") && <div>{faqUI()}</div>}
-        {/* Commented out because Debug Mode has been moved to the Leaderboard pagex */}
-        {/* {tabIndex === t("debugMode") && <div>{debugModeUI()}</div>} */}
+        <div
+          className={`parent-page-scroll-content${
+            isLanguageMenuOpen ? ' parent-page-scroll-content--locked' : ''
+          }`}
+        >
+          {tabIndex === 'profile' && <div>{profileUI()}</div>}
+          {tabIndex === 'settings' && <div>{settingUI()}</div>}
+          {tabIndex === 'help' && <div>{helpUI()}</div>}
+          {tabIndex === 'faq' && <div>{faqUI()}</div>}
+          <TeacherAuthenticationPopup
+            isOpen={isTeacherAuthPopupOpen}
+            sourceEntryPoint={
+              TEACHER_AUTH_GATE_SOURCE_ENTRY_POINTS.PARENT_SETTINGS_TAB
+            }
+            onClose={() => setIsTeacherAuthPopupOpen(false)}
+            onAuthenticated={() => {
+              setIsTeacherAuthPopupOpen(false);
+              switchToTeacherMode();
+            }}
+          />
+        </div>
       </div>
     </Box>
   );

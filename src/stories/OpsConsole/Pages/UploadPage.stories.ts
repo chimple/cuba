@@ -1,15 +1,15 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import UploadPage from "../../../ops-console/pages/UploadPage";
+import type { Meta, StoryObj } from '@storybook/react';
+import UploadPage from '../../../ops-console/pages/UploadPage';
 
 const meta = {
-  title: "OpsConsole/Pages/UploadPage",
+  title: 'OpsConsole/Pages/UploadPage',
   component: UploadPage,
   parameters: {
-    layout: "fullscreen",
+    layout: 'fullscreen',
   },
 
-  tags: ["autodocs"],
+  tags: ['autodocs'],
 } satisfies Meta<typeof UploadPage>;
 
 export default meta;

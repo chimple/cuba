@@ -1,16 +1,16 @@
-import React, { FC } from "react";
-import { IonIcon, IonItem, IonButton } from "@ionic/react";
-import { chevronDown } from "ionicons/icons";
-import { TableTypes } from "../../common/constants";
-import schoolImage from "../assets/images/school.svg";
-import "./SchoolListItem.css";
-import { t } from "i18next";
+import React, { FC } from 'react';
+import { IonIcon, IonButton } from '@ionic/react';
+import { chevronDown } from 'ionicons/icons';
+import { TableTypes } from '../../common/constants';
+import schoolImage from '../assets/images/school.svg';
+import './SchoolListItem.css';
+import { t } from 'i18next';
 
 interface SchoolListItemProps {
-  school: TableTypes<"school">;
+  school: TableTypes<'school'>;
   isExpanded: boolean;
   onToggle: () => void;
-  onJoin: (school: TableTypes<"school">) => void;
+  onJoin: (school: TableTypes<'school'>) => void;
   searchText: string;
 }
 
@@ -19,7 +19,7 @@ const highlightText = (text: string, highlight: string) => {
   if (!highlight.trim()) {
     return <span>{text}</span>;
   }
-  const parts = text.split(new RegExp(`(${highlight})`, "gi"));
+  const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
   return (
     <span>
       {parts.map((part, i) =>
@@ -27,7 +27,7 @@ const highlightText = (text: string, highlight: string) => {
           <strong key={i}>{part}</strong>
         ) : (
           part
-        )
+        ),
       )}
     </span>
   );
@@ -45,7 +45,7 @@ const SchoolListItem: FC<SchoolListItemProps> = ({
   const iconPath = `assets/icons/school-icon-${iconIndex}.png`;
 
   return (
-    <div className={`school-list-item ${isExpanded ? "expanded" : ""}`}>
+    <div className={`school-list-item ${isExpanded ? 'expanded' : ''}`}>
       <div className="school-list-item-header" onClick={onToggle}>
         <img
           src={schoolImage}
@@ -57,7 +57,7 @@ const SchoolListItem: FC<SchoolListItemProps> = ({
             {highlightText(school.name, searchText)}
           </div>
           <div className="school-list-school-udise-collapsed">
-            UDISE: {school.udise || "N/A"}
+            UDISE: {school.udise || 'N/A'}
           </div>
         </div>
         <IonIcon icon={chevronDown} className="school-list-expand-arrow" />
@@ -67,16 +67,16 @@ const SchoolListItem: FC<SchoolListItemProps> = ({
         <div className="school-list-school-item-details">
           <div className="school-list-school-details-text">
             <p>
-              {t("Block")}: {school.group3 || "N/A"}, {t("Cluster")}:{" "}
-              {school.group4 || "N/A"}, {t("Village Name")}:
+              {t('Block')}: {school.group3 || 'N/A'}, {t('Cluster')}:{' '}
+              {school.group4 || 'N/A'}, {t('Village Name')}:
             </p>
-            <p>UDISE: {school.udise || "N/A"}</p>
+            <p>UDISE: {school.udise || 'N/A'}</p>
           </div>
           <IonButton
             className="school-list-join-button"
             onClick={() => onJoin(school)}
           >
-            {t("Join")}
+            {t('Join')}
           </IonButton>
         </div>
       )}

@@ -1,40 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   IonPage,
   IonContent,
   IonInfiniteScroll,
   IonInfiniteScrollContent,
-  IonSpinner,
-} from "@ionic/react";
-import { IconType, PAGES, TableTypes } from "../../common/constants";
-import { useHistory } from "react-router-dom";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { RoleType } from "../../interface/modelInterfaces";
-import Header from "../components/homePage/Header";
-import AddButton from "../../common/AddButton";
-import "./ManageSchools.css";
-import { t } from "i18next";
-import DetailList from "../components/schoolComponent/DetailList";
-import { Util } from "../../utility/util";
-import UploadButton from "../../ops-console/components/UploadButton";
-import DetailListHeader from "../components/schoolComponent/DetailListHeader";
-import Loading from "../../components/Loading";
+} from '@ionic/react';
+import { IconType, PAGES, TableTypes } from '../../common/constants';
+import { useHistory } from 'react-router-dom';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { RoleType } from '../../interface/modelInterfaces';
+import Header from '../components/homePage/Header';
+import './ManageSchools.css';
+import { t } from 'i18next';
+import DetailList from '../components/schoolComponent/DetailList';
+import { Util } from '../../utility/util';
+import DetailListHeader from '../components/schoolComponent/DetailListHeader';
+import Loading from '../../components/Loading';
+import logger from '../../utility/logger';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
 
 const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 500;
 
 let isManagerOrDirector = false;
 interface SchoolWithRole {
-  school: TableTypes<"school">;
+  school: TableTypes<'school'>;
   role: RoleType;
 }
 
 const ManageSchools: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
-    null
+  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
+    null,
   );
   const [allSchools, setAllSchools] = useState<SchoolWithRole[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filteredSchools, setFilteredSchools] = useState<SchoolWithRole[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchedSchools, setSearchedSchools] = useState<
+    SchoolWithRole[] | null
+  >(null);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
 
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +48,9 @@ const ManageSchools: React.FC = () => {
   const history = useHistory();
   const api = ServiceConfig.getI()?.apiHandler;
   const auth = ServiceConfig.getI()?.authHandler;
+  const { isOpsUser } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
 
   const init = async () => {
     try {
@@ -59,7 +67,7 @@ const ManageSchools: React.FC = () => {
       if (school) {
         isManagerOrDirector = await api.checkUserIsManagerOrDirector(
           school.id,
-          user.id
+          user.id,
         );
       }
 
@@ -76,7 +84,7 @@ const ManageSchools: React.FC = () => {
         }
       }
     } catch (error) {
-      console.error("Error initializing data:", error);
+      logger.error('Error initializing data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -107,7 +115,7 @@ const ManageSchools: React.FC = () => {
         setHasMore(false);
       }
     } catch (error) {
-      console.error("Error loading more schools:", error);
+      logger.error('Error loading more schools:', error);
     } finally {
       setIsLoading(false);
       event.target.complete();
@@ -124,12 +132,61 @@ const ManageSchools: React.FC = () => {
     init();
   }, []);
 
+  const locallyFilteredSchools = useMemo(
+    () =>
+      allSchools.filter((item) =>
+        item.school.name.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
+    [allSchools, searchQuery],
+  );
+
   useEffect(() => {
-    const filtered = allSchools.filter((item) =>
-      item.school.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredSchools(filtered);
-  }, [allSchools, searchQuery]);
+    const query = searchQuery.trim();
+    if (!query || !isOpsUser) {
+      setSearchedSchools(null);
+      setIsSearchLoading(false);
+      return;
+    }
+    if (!currentUser?.id || !api) return;
+
+    let cancelled = false;
+
+    const runSearch = async () => {
+      setIsSearchLoading(true);
+      try {
+        const result = await api.getSchoolsForUserBySearchTerm(
+          currentUser.id,
+          query,
+        );
+        if (!cancelled) {
+          setSearchedSchools(result);
+        }
+      } catch (error) {
+        logger.error('Error searching schools from Supabase:', error);
+        if (!cancelled) {
+          setSearchedSchools([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsSearchLoading(false);
+        }
+      }
+    };
+
+    const debounceTimer = setTimeout(() => {
+      void runSearch();
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(debounceTimer);
+    };
+  }, [searchQuery, isOpsUser, currentUser?.id, api]);
+
+  const schoolsToRender =
+    isOpsUser && !!searchQuery.trim()
+      ? (searchedSchools ?? allSchools)
+      : locallyFilteredSchools;
 
   return (
     <IonPage className="main-page">
@@ -140,46 +197,34 @@ const ManageSchools: React.FC = () => {
           onSearchChange={setSearchQuery}
         />
       </div>
-      <div className="school-div">{t("Schools")}</div>
-      {!(isLoading && allSchools.length === 0) && <DetailListHeader />}
+      <div className="school-div">{t('Schools')}</div>
+      {!((isLoading || isSearchLoading) && allSchools.length === 0) && (
+        <DetailListHeader />
+      )}
       <IonContent className="content-background">
-        {isLoading && allSchools.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "40px" }}>
+        {(isLoading || isSearchLoading) && allSchools.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px' }}>
             <Loading isLoading={true} />
           </div>
         ) : (
           <>
             <div className="school-list">
-              <DetailList data={filteredSchools} type={IconType.SCHOOL} />
+              <DetailList data={schoolsToRender} type={IconType.SCHOOL} />
             </div>
 
             <IonInfiniteScroll
               onIonInfinite={loadMoreSchools}
               threshold="100px"
-              disabled={!hasMore}
+              disabled={!hasMore || (!!searchQuery.trim() && isOpsUser)}
             >
               <IonInfiniteScrollContent
                 loadingSpinner="bubbles"
-                loadingText={t("Loading more schools...") as string}
+                loadingText={t('Loading more schools...') as string}
               ></IonInfiniteScrollContent>
             </IonInfiniteScroll>
           </>
         )}
       </IonContent>
-
-      {/* Original commented out code */}
-      {/* {isManagerOrDirector && (
-        <UploadButton
-          onClick={() => {
-            history.replace(PAGES.UPLOAD_PAGE);
-          }}
-        />
-      )} */}
-      {/* <AddButton
-        onClick={() => {
-          history.replace(PAGES.REQ_ADD_SCHOOL);
-        }}
-      /> */}
     </IonPage>
   );
 };

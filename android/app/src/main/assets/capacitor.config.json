@@ -1,7 +1,7 @@
 {
 	"appId": "org.chimple.bahama",
 	"appName": "Chimple",
-	"webDir": "build",
+	"webDir": "dist",
 	"plugins": {
 		"FirebaseAuthentication": {
 			"skipNativeAuth": false,
@@ -22,8 +22,14 @@
 			"smallIcon": "chimple_monkey_icon"
 		},
 		"SplashScreen": {
-			"launchShowDuration": 2000,
+			"launchShowDuration": 5000,
 			"launchAutoHide": false
+		},
+		"LiveUpdate": {
+			"appId": "4eb3b6dc-cfc8-4da1-b5a7-b11c9b0ea9e9",
+			"autoDeleteBundles": true,
+			"readyTimeout": 50000,
+			"httpTimeout": 300000
 		}
 	}
 }

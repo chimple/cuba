@@ -64,11 +64,11 @@
   justify-content: center;
   border-radius: 10vh;
   min-height: 37px;
-  padding: "0 3vw";
-  margin: "1vh 1vh";
+  padding: '0 3vw';
+  margin: '1vh 1vh';
   width: 40%;
   height: 8vh;
-  align-self: "center";
+  align-self: 'center';
 }
 .skelton-home-page-app-ba-div {
   text-align: -webkit-center;
@@ -257,6 +257,27 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.skeleton-pathway-wrapper {
+  position: absolute;
+  top: 40%;
+  left: 12%;
+  width: 100vw;
+  height: 51vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.skeleton-pathway-svg {
+  width: 95vw;
+  max-width: 95vw;
+  height: auto;
+  display: block;
+  overflow: visible;
 }
 
 .skeleton-rectangle {

@@ -1,25 +1,29 @@
-import React, { useState } from "react";
-import EditIcon from "@mui/icons-material/Edit";
-import "./UserProfile.css";
-import { PAGES, TableTypes } from "../../../common/constants";
-import { t } from "i18next";
-import { useHistory } from "react-router-dom";
-import ProfileDetails from "../library/ProfileDetails";
-import CustomDropdown from "../CustomDropdown";
+import { t } from 'i18next';
+import React, { useState } from 'react';
+import { useHistory } from 'react-router-dom';
+import { TableTypes } from '../../../common/constants';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RootState } from '../../../redux/store';
+import { schoolUtil } from '../../../utility/schoolUtil';
+import CustomDropdown from '../CustomDropdown';
+import ProfileDetails from '../library/ProfileDetails';
+import './UserProfile.css';
 
 const UserProfile: React.FC<{
-  student: TableTypes<"user">;
-  classDoc: TableTypes<"class"> | undefined;
+  student: TableTypes<'user'>;
+  classDoc: TableTypes<'class'> | undefined;
   isEditing: boolean;
   setStudent: React.Dispatch<
-    React.SetStateAction<TableTypes<"user"> | undefined>
+    React.SetStateAction<TableTypes<'user'> | undefined>
   >;
   setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
   setCurrentClass: React.Dispatch<
-    React.SetStateAction<TableTypes<"class"> | undefined>
+    React.SetStateAction<TableTypes<'class'> | undefined>
   >;
   setSelectedFile: React.Dispatch<React.SetStateAction<File | null>>;
-  allClasses: TableTypes<"class">[];
+  allClasses: TableTypes<'class'>[];
 }> = ({
   student,
   classDoc,
@@ -33,7 +37,12 @@ const UserProfile: React.FC<{
   const history = useHistory();
   const [profilePic, setProfilePic] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
-
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
   const handleEditClick = () => {
     setIsEditing(true);
   };
@@ -45,7 +54,7 @@ const UserProfile: React.FC<{
 
       let updatedValue: any = value;
 
-      if (name === "age") {
+      if (name === 'age') {
         const ageValue = parseInt(value);
         updatedValue =
           ageValue >= 0 && ageValue <= 99 ? ageValue : prevState.age;
@@ -69,7 +78,7 @@ const UserProfile: React.FC<{
     });
   };
   const handleProfilePicChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -97,12 +106,14 @@ const UserProfile: React.FC<{
     <>
       <div className="first-content">
         <div className="profile-details-container">
-          {isEditing && <span className="add-student-text">{t("Edit Student")}</span>}
+          {isEditing && (
+            <span className="add-student-text">{t('Edit Student')}</span>
+          )}
           <ProfileDetails
             imgSrc={
               profilePic ||
               student.image ||
-              "assets/avatars/" + (student.avatar ?? "") + ".png"
+              'assets/avatars/' + (student.avatar ?? '') + '.png'
             }
             imgAlt="Profile Pic"
             onImageChange={handleProfilePicChange}
@@ -110,8 +121,8 @@ const UserProfile: React.FC<{
           />
         </div>
         <div className="profile-info">
-          <div className="student-name1">{isEditing ? "" : student.name}</div>
-          {!isEditing && (
+          <div className="student-name1">{isEditing ? '' : student.name}</div>
+          {!isEditing && !isExternalUser && !isTeacherSchoolMode && (
             <img
               src="assets/icons/editIcon.svg"
               alt="Edit_Icon"
@@ -126,14 +137,14 @@ const UserProfile: React.FC<{
           {/* Name */}
           <div className="userprofile-row">
             <span className="userprofile-label">
-              <span>{t("Name") + ":"}</span>
+              <span>{t('Name') + ':'}</span>
             </span>
             <span className="userprofile-value">
               {isEditing ? (
                 <input
                   type="text"
                   name="name"
-                  value={student.name || ""}
+                  value={student.name || ''}
                   onChange={handleInputChange}
                 />
               ) : (
@@ -145,14 +156,14 @@ const UserProfile: React.FC<{
           {/* Age */}
           <div className="userprofile-row">
             <span className="userprofile-label">
-              <span>{t("Age") + ":"}</span>
+              <span>{t('Age') + ':'}</span>
             </span>
             <span className="userprofile-value">
               {isEditing ? (
                 <input
                   type="number"
                   name="age"
-                  value={student.age !== null ? student.age.toString() : ""}
+                  value={student.age !== null ? student.age.toString() : ''}
                   onChange={handleInputChange}
                 />
               ) : (
@@ -164,7 +175,7 @@ const UserProfile: React.FC<{
           {/* Class */}
           <div className="userprofile-row">
             <span className="userprofile-label">
-              <span>{t("Class") + ":"}</span>
+              <span>{t('Class') + ':'}</span>
             </span>
             <span className="userprofile-value">
               {isEditing ? (
@@ -175,8 +186,8 @@ const UserProfile: React.FC<{
                       name: cls.name,
                     }))}
                     selectedValue={{
-                      id: classDoc?.id ?? "",
-                      name: classDoc?.name ?? t("Select Class"),
+                      id: classDoc?.id ?? '',
+                      name: classDoc?.name ?? t('Select Class'),
                     }}
                     onOptionSelect={(selected) =>
                       handleClassChange(selected?.id)
@@ -193,14 +204,14 @@ const UserProfile: React.FC<{
           {/* Student ID */}
           <div className="userprofile-row">
             <span className="userprofile-label">
-              <span>{t("Student Id") + ":"}</span>
+              <span>{t('Student Id') + ':'}</span>
             </span>
             <span className="userprofile-value">
               {isEditing ? (
                 <input
                   type="text"
                   name="student_id"
-                  value={student.student_id || ""}
+                  value={student.student_id || ''}
                   onChange={handleInputChange}
                 />
               ) : (
@@ -212,7 +223,7 @@ const UserProfile: React.FC<{
           {/* Gender */}
           <div className="userprofile-row">
             <span className="userprofile-label">
-              <span>{t("Gender") + ":"}</span>
+              <span>{t('Gender') + ':'}</span>
             </span>
             <span className="userprofile-value">
               {isEditing ? (
@@ -222,34 +233,34 @@ const UserProfile: React.FC<{
                       type="radio"
                       name="gender"
                       value="male"
-                      checked={student.gender === "male"}
-                      onChange={() => handleGenderChange("male")}
-                    />{" "}
-                    {t("male")}
+                      checked={student.gender === 'male'}
+                      onChange={() => handleGenderChange('male')}
+                    />{' '}
+                    {t('male')}
                   </label>
                   <label>
                     <input
                       type="radio"
                       name="gender"
                       value="female"
-                      checked={student.gender === "female"}
-                      onChange={() => handleGenderChange("female")}
-                    />{" "}
-                    {t("female")}
+                      checked={student.gender === 'female'}
+                      onChange={() => handleGenderChange('female')}
+                    />{' '}
+                    {t('female')}
                   </label>
                   <label>
                     <input
                       type="radio"
                       name="gender"
-                      value="other"
-                      checked={student.gender === "other"}
-                      onChange={() => handleGenderChange("other")}
-                    />{" "}
-                    {t("Other")}
+                      value="unspecified"
+                      checked={student.gender === 'unspecified'}
+                      onChange={() => handleGenderChange('unspecified')}
+                    />{' '}
+                    {t('Unspecified')}
                   </label>
                 </div>
               ) : (
-                t(student.gender ?? "")
+                t(student.gender ?? '')
               )}
             </span>
           </div>

@@ -1,8 +1,8 @@
-import React, { useMemo, useState } from "react";
-import "./StudentReportTable.css";
-import { t } from "i18next";
-import { SwapVert } from "@mui/icons-material";
-import { SCORECOLOR } from "../../../common/constants";
+import React, { useMemo, useState } from 'react';
+import './StudentReportTable.css';
+import { t } from 'i18next';
+import { SwapVert } from '@mui/icons-material';
+import { SCORECOLOR } from '../../../common/constants';
 
 interface StudentReportTableProps {
   report: {
@@ -19,7 +19,7 @@ const StudentReportTable: React.FC<StudentReportTableProps> = ({ report }) => {
   const [isNameSort, setIsNameSort] = useState(false);
 
   const parseDate = (date: string) => {
-    const [day, month, year] = date.split("/");
+    const [day, month, year] = date.split('/');
     return new Date(`${year}-${month}-${day}`);
   };
 
@@ -27,22 +27,22 @@ const StudentReportTable: React.FC<StudentReportTableProps> = ({ report }) => {
     if (isNameSort) {
       if (isActivityAscending) {
         return [...report].sort((a, b) =>
-          a.lessonName.localeCompare(b.lessonName)
+          a.lessonName.localeCompare(b.lessonName),
         );
       }
       if (!isActivityAscending) {
         return [...report].sort((a, b) =>
-          b.lessonName.localeCompare(a.lessonName)
+          b.lessonName.localeCompare(a.lessonName),
         );
       }
     } else {
       if (isDateAscending) {
         return [...report].sort(
-          (a, b) => parseDate(a.date).getTime() - parseDate(b.date).getTime()
+          (a, b) => parseDate(a.date).getTime() - parseDate(b.date).getTime(),
         );
       } else {
         return [...report].sort(
-          (a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime()
+          (a, b) => parseDate(b.date).getTime() - parseDate(a.date).getTime(),
         );
       }
     }
@@ -70,17 +70,17 @@ const StudentReportTable: React.FC<StudentReportTableProps> = ({ report }) => {
                 className="student-report-table-swap"
                 onClick={handleActivitySwapVert}
               >
-                {t("Activity")}
+                {t('Activity')}
                 <SwapVert />
               </div>
             </div>
-            <div className="student-report-table-cell">{t("Score")}</div>
+            <div className="student-report-table-cell">{t('Score')}</div>
             <div className="student-report-table-cell">
               <div
                 className="student-report-table-swap"
                 onClick={handleDateSwapVert}
               >
-                {t("Date")}
+                {t('Date')}
                 <SwapVert />
               </div>
             </div>
@@ -95,8 +95,8 @@ const StudentReportTable: React.FC<StudentReportTableProps> = ({ report }) => {
                   <img
                     src={
                       row.isAssignment
-                        ? "assets/icons/assignment.png"
-                        : "assets/icons/self_played.png"
+                        ? 'assets/icons/assignment.png'
+                        : 'assets/icons/self_played.png'
                     }
                     alt="assignment icon"
                     className="assignment-icon"

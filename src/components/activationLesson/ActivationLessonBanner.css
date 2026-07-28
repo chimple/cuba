@@ -1,0 +1,140 @@
+.activation-lesson-banner {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+  padding: clamp(10px, 2vh, 24px) clamp(10px, 2vw, 24px) 0;
+  box-sizing: border-box;
+}
+
+.activation-lesson-banner--launching {
+  opacity: 0.84;
+}
+
+.activation-lesson-banner__frame {
+  position: relative;
+  width: min(92vw, calc((100vh - 130px) * 2.1069958848), 1080px);
+  aspect-ratio: 2.1069958848 / 1;
+}
+
+.activation-lesson-banner__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 3vw;
+  filter: drop-shadow(0 4.749px 4.749px rgba(0, 0, 0, 0.25));
+}
+
+.activation-lesson-banner__content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.activation-lesson-banner__title {
+  margin-top: 5%;
+  color: #182a4f;
+  font-size: clamp(14px, 1.8vw, 26px);
+  font-weight: 600;
+  line-height: normal;
+  text-align: center;
+}
+
+.activation-lesson-banner__sun-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(95px, 12vw, 200px);
+}
+
+.activation-lesson-banner__sun {
+  width: 100%;
+  height: auto;
+  transform-origin: center center;
+  transition: transform 220ms ease-out;
+}
+
+@keyframes activation-lesson-count-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.88);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.activation-lesson-banner__count {
+  position: absolute;
+  color: #182a4f;
+  font-size: clamp(24px, 3.4vw, 44px);
+  font-weight: 600;
+  line-height: normal;
+  animation: activation-lesson-count-pop 260ms ease-out;
+}
+
+.activation-lesson-banner__footer {
+  position: absolute;
+  right: 6%;
+  bottom: clamp(12px, 3.2%, 22px);
+  left: 6%;
+  color: #182a4f;
+  font-size: clamp(14px, 1.8vw, 26px);
+  font-weight: 600;
+  line-height: 1.15;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .activation-lesson-banner {
+    padding-top: 8px;
+  }
+
+  .activation-lesson-banner__frame {
+    width: min(94vw, calc((100vh - 118px) * 2.1069958848));
+  }
+
+  .activation-lesson-banner__title {
+    font-size: clamp(12px, 2.5vw, 18px);
+  }
+
+  .activation-lesson-banner__footer {
+    left: 5%;
+    right: 5%;
+    bottom: 10px;
+    font-size: clamp(12px, 2.5vw, 18px);
+  }
+
+  .activation-lesson-banner__count {
+    font-size: clamp(20px, 5vw, 34px);
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .activation-lesson-banner {
+    padding-top: 6px;
+  }
+
+  .activation-lesson-banner__frame {
+    width: min(92vw, calc((100vh - 112px) * 2.1069958848));
+  }
+
+  .activation-lesson-banner__footer {
+    bottom: 3%;
+    font-size: clamp(13px, 1.65vw, 17px);
+  }
+
+  .activation-lesson-banner__title {
+    font-size: clamp(15px, 1.8vw, 17px);
+  }
+}
+
+@media (max-height: 380px) and (orientation: landscape) {
+  .activation-lesson-banner__sun-wrap {
+    width: clamp(88px, 11vw, 200px) !important;
+  }
+}

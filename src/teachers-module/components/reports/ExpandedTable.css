@@ -14,7 +14,7 @@ td:first-child {
   align-content: center;
   height: 50px;
   padding-left: 5vw;
-  color: #4A4949;
+  color: #4a4949;
 }
 
 .lesson-name-text {
@@ -22,7 +22,7 @@ td:first-child {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.expanded-table-lesson-details{
+.expanded-table-lesson-details {
   display: flex;
   justify-content: space-between;
   margin: 10px;

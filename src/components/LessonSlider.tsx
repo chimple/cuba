@@ -1,28 +1,29 @@
-import "./LessonSlider.css";
-import "./LessonCard.css";
-import LessonCard from "./LessonCard";
-import { Splide, SplideSlide } from "@splidejs/react-splide";
-import { useEffect, useState, useRef } from "react";
-import { TableTypes } from "../common/constants";
-import { ServiceConfig } from "../services/ServiceConfig";
-import { Util } from "../utility/util";
+import './LessonSlider.css';
+import './LessonCard.css';
+import LessonCard from './LessonCard';
+import { Splide, SplideSlide } from '@splidejs/react-splide';
+import { Splide as SplideInstance } from '@splidejs/splide';
+import { useEffect, useState, useRef } from 'react';
+import { TableTypes } from '../common/constants';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { Util } from '../utility/util';
 
 const LessonSlider: React.FC<{
-  lessonData: TableTypes<"lesson">[];
-  course: TableTypes<"course"> | undefined;
+  lessonData: TableTypes<'lesson'>[];
+  course: TableTypes<'course'> | undefined;
   isHome: boolean;
-  lessonsScoreMap: { [lessonDocId: string]: TableTypes<"result"> };
+  lessonsScoreMap: { [lessonDocId: string]: TableTypes<'result'> };
   startIndex: number;
   showSubjectName: boolean;
   showChapterName: boolean;
   onEndReached?: () => void;
-  onMoved?: (splide: any) => any;
+  onMoved?: (splide: SplideInstance) => void;
   downloadButtonLoading?: boolean;
   showDate?: boolean;
   onDownloadOrDelete?: () => void;
-  assignments?: TableTypes<"assignment">[];
-  chapter?: TableTypes<"chapter">;
-  lessonChapterMap?: { [lessonId: string]: TableTypes<"chapter"> };
+  assignments?: TableTypes<'assignment'>[];
+  chapter?: TableTypes<'chapter'>;
+  lessonChapterMap?: { [lessonId: string]: TableTypes<'chapter'> };
   lessonCourseMap?: {
     [lessonId: string]: { course_id: string };
   };
@@ -45,22 +46,22 @@ const LessonSlider: React.FC<{
   lessonCourseMap,
 }) => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState<number>(0);
-  const [loadedLessons, setLoadedLessons] = useState<TableTypes<"lesson">[]>(
-    []
+  const [loadedLessons, setLoadedLessons] = useState<TableTypes<'lesson'>[]>(
+    [],
   );
   const [favLessonMap, setFavLessonMap] = useState<{
     [lessonId: string]: boolean;
   }>({});
   let width: string;
   let height: string;
-  width = "45.5vh";
-  height = "35vh";
+  width = '45.5vh';
+  height = '35vh';
   const lessonSwiperRef = useRef<any>(null);
   const checkSplideInstance = () => {
     if (startIndex) lessonSwiperRef?.current.go(startIndex);
   };
 
-  const handleMoved = (splide) => {
+  const handleMoved = (splide: SplideInstance) => {
     const newIndex = splide.index;
     setCurrentSlideIndex(newIndex);
 
@@ -84,7 +85,7 @@ const LessonSlider: React.FC<{
     const student = Util.getCurrentStudent();
     if (!student || !student.id) return;
     api.getFavouriteLessons(student.id).then((val) => {
-      const data = {};
+      const data: Record<string, boolean> = {};
       val.forEach((lesson) => {
         data[lesson.id] = true;
       });
@@ -92,7 +93,12 @@ const LessonSlider: React.FC<{
     });
   };
 
-  const assignmentMap = {};
+  const assignmentMap: Record<string, string> = {};
+  const assignmentLookup:
+    | { [key: string]: TableTypes<'assignment'> }
+    | undefined = assignments as
+    | { [key: string]: TableTypes<'assignment'> }
+    | undefined;
   return isHome ? (
     <div className="Lesson-slider-content">
       <Splide
@@ -103,22 +109,22 @@ const LessonSlider: React.FC<{
           arrows: false,
           wheel: true,
           lazyLoad: true,
-          direction: "ltr",
+          direction: 'ltr',
           pagination: false,
         }}
       >
-        {lessonData.map((m: TableTypes<"lesson">, i: number) => {
+        {lessonData.map((m: TableTypes<'lesson'>, i: number) => {
           if (!m) return;
           const isPlayed =
             !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score! > 0;
           const assignmentFound = assignments?.find(
-            (val) => val.lesson_id === m.id && assignmentMap[val.id] == null
+            (val) => val.lesson_id === m.id && assignmentMap[val.id] == null,
           );
           if (assignmentFound) {
             assignmentMap[assignmentFound.id] = m.id;
           }
-          width = "66.66vh";
-          height = "50vh";
+          width = '66.66vh';
+          height = '50vh';
           return (
             <SplideSlide onLoad={checkSplideInstance} className="slide" key={i}>
               <LessonCard
@@ -156,11 +162,11 @@ const LessonSlider: React.FC<{
           arrows: false,
           wheel: true,
           lazyLoad: true,
-          direction: "ltr",
+          direction: 'ltr',
           pagination: false,
         }}
       >
-        {lessonData.map((m: TableTypes<"lesson">, i: number) => {
+        {lessonData.map((m: TableTypes<'lesson'>, i: number) => {
           if (!m) return;
           const isPlayed =
             !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score! > 0;
@@ -178,7 +184,7 @@ const LessonSlider: React.FC<{
                 showScoreCard={isPlayed}
                 score={lessonsScoreMap[m.id]?.score}
                 showChapterName={showChapterName}
-                assignment={assignments?.[m.id]}
+                assignment={assignmentLookup?.[m.id]}
                 downloadButtonLoading={downloadButtonLoading}
                 showDate={showDate}
                 onDownloadOrDelete={onDownloadOrDelete}

@@ -1,6 +1,6 @@
-import React from "react";
-import { CiRedo } from "react-icons/ci";
-import "./VerificationInProgress.css"; // Optional: if needed for styles
+import React from 'react';
+import { CiRedo } from 'react-icons/ci';
+import './VerificationInProgress.css'; // Optional: if needed for styles
 
 interface VerificationInProgressProps {
   progress: number;

@@ -1,21 +1,20 @@
-import React, { useEffect, useState } from "react";
-import {
-  IonButton,
-  IonModal,
-  IonContent,
-  IonIcon,
-  IonAlert,
-} from "@ionic/react";
-import { checkmarkCircle, closeCircleOutline } from "ionicons/icons";
-import { t } from "i18next";
-import "./DisplaySubjects.css";
-import { TableTypes } from "../../common/constants";
-import { Util } from "../../utility/util";
-import { RoleType } from "../../interface/modelInterfaces";
+import { IonAlert, IonIcon } from '@ionic/react';
+import { t } from 'i18next';
+import { checkmarkCircle } from 'ionicons/icons';
+import React, { useEffect, useState } from 'react';
+import { TableTypes } from '../../common/constants';
+import CachedImage from '../../components/common/CachedImage';
+import { RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import logger from '../../utility/logger';
+import { schoolUtil } from '../../utility/schoolUtil';
+import { Util } from '../../utility/util';
+import './DisplaySubjects.css';
 
 interface CurriculumWithCourses {
   curriculum: { id: string; name: string; grade?: string };
-  courses: TableTypes<"course">[];
+  courses: TableTypes<'course'>[];
 }
 
 interface DisplaySubjectsProps {
@@ -26,6 +25,7 @@ interface DisplaySubjectsProps {
   isModalOpen: boolean;
   currentSubject: string | null;
   setIsModalOpen: (open: boolean) => void;
+  schoolId?: string;
 }
 
 const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
@@ -36,20 +36,33 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
   isModalOpen,
   currentSubject,
   setIsModalOpen,
+  schoolId,
 }) => {
   // State to track whether the last subject warning should be shown
   const [isLastSubjectAlertOpen, setIsLastSubjectAlertOpen] = useState(false);
   const [canModify, setCanModify] = useState(true);
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
+  const roleMap = useAppSelector(
+    (state: RootState) =>
+      state.growthbook.attributes?.roleMap as
+        | Record<string, string>
+        | undefined,
+  );
 
   useEffect(() => {
-    const checkClassRole = async () => {
-      const cls = await Util.getCurrentClass();
-      if ((cls as any)?.role === RoleType.TEACHER) {
-        setCanModify(false);
-      }
-    };
-    checkClassRole();
-  }, []);
+    const selectedSchoolId = Util.getCurrentSchool()?.id;
+    const activeSchoolRole = selectedSchoolId
+      ? roleMap?.[`${selectedSchoolId}_role`]
+      : undefined;
+    const normalizedRole = (activeSchoolRole ?? '').toLowerCase();
+    const schoolMatches =
+      !schoolId || !selectedSchoolId || schoolId === selectedSchoolId;
+    setCanModify(
+      !isTeacherSchoolMode &&
+        schoolMatches &&
+        normalizedRole === RoleType.PRINCIPAL,
+    );
+  }, [isTeacherSchoolMode, roleMap, schoolId]);
 
   // Trigger subject removal logic
   const triggerRemoveSubject = (subject: string) => {
@@ -57,12 +70,12 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
     if (selectedSubjects.length === 1) {
       // If only one subject is left, show the "cannot delete" alert
       setIsLastSubjectAlertOpen(true);
-      console.debug("Cannot delete the last remaining subject.");
+      logger.debug('Cannot delete the last remaining subject.');
     } else {
       // Otherwise, proceed with the removal confirmation
       onSubjectClick(subject); // Set the current subject
       setIsModalOpen(true); // Open the confirmation modal
-      console.debug("Delete confirmation triggered for subject:", subject);
+      logger.debug('Delete confirmation triggered for subject:', subject);
     }
   };
 
@@ -70,7 +83,7 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
   const handleRemoveSubject = () => {
     if (currentSubject) {
       onRemoveSubject(currentSubject); // Remove the subject
-      console.debug("Subject removed:", currentSubject);
+      logger.debug('Subject removed:', currentSubject);
     }
     setIsModalOpen(false); // Close the modal after removal
   };
@@ -78,16 +91,16 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
   return (
     <div className="display-subject-curriculum-container">
       <div className="display-subject-header">
-        <h3 className="main-title-in-display-subject-page">{t("Subjects")}</h3>
+        <h3 className="main-title-in-display-subject-page">{t('Subjects')}</h3>
         <p className="sub-title-in-display-subject-page">
-          {t("Below are the chosen subjects")}
+          {t('Below are the chosen subjects')}
         </p>
       </div>
 
       {selectedSubjects.length > 0 ? (
         curriculumsWithCourses.map(({ curriculum, courses }) => {
           const selectedCourses = courses.filter((course) =>
-            selectedSubjects.includes(course.id)
+            selectedSubjects.includes(course.id),
           );
           if (selectedCourses.length === 0) return null;
           return (
@@ -102,16 +115,16 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
                 <div
                   key={course.id}
                   className={
-                    "subject-item-in-display-subject-page selected-subject" +
-                    (canModify ? "" : " disabled-subject")
+                    'subject-item-in-display-subject-page selected-subject' +
+                    (canModify ? '' : ' disabled-subject')
                   }
                   onClick={() => triggerRemoveSubject(course.id)}
-                  style={{ cursor: canModify ? "pointer" : "not-allowed" }}
+                  style={{ cursor: canModify ? 'pointer' : 'not-allowed' }}
                 >
                   <div className="display-subject-name">
-                    <img
-                      src={course?.image || "assets/icons/DefaultIcon.png"}
-                      alt={course.name || "Default Subject Icon"}
+                    <CachedImage
+                      src={course?.image || 'assets/icons/DefaultIcon.png'}
+                      alt={course.name || 'Default Subject Icon'}
                       className="subject-icon-in-display-subject-page"
                     />
                     <span> {t(course.name)}</span>
@@ -128,28 +141,28 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
           );
         })
       ) : (
-        <p className="no-subjects-message">{t("No selected subjects")}</p>
+        <p className="no-subjects-message">{t('No selected subjects')}</p>
       )}
 
       {/* Confirmation Alert for Multiple Subjects */}
       <IonAlert
         isOpen={isModalOpen}
         onDidDismiss={() => setIsModalOpen(false)}
-        header={t("Remove Subject") || ""}
-        message={t("Are you sure you want to remove this subject?") || ""}
+        header={t('Remove Subject') || ''}
+        message={t('Are you sure you want to remove this subject?') || ''}
         cssClass="custom-alert"
         buttons={[
           {
-            text: t("Cancel") || "",
-            role: "cancel",
-            cssClass: "alert-cancel-button",
+            text: t('Cancel') || '',
+            role: 'cancel',
+            cssClass: 'alert-cancel-button',
             handler: () => {
               setIsModalOpen(false); // Close the modal on cancel
             },
           },
           {
-            text: t("Remove") || "",
-            cssClass: "alert-remove-button",
+            text: t('Remove') || '',
+            cssClass: 'alert-remove-button',
             handler: () => {
               handleRemoveSubject(); // Call the remove handler
             },
@@ -161,20 +174,20 @@ const DisplaySubjects: React.FC<DisplaySubjectsProps> = ({
       <IonAlert
         isOpen={isLastSubjectAlertOpen}
         onDidDismiss={() => setIsLastSubjectAlertOpen(false)}
-        header={t("Action Not Allowed") || ""}
+        header={t('Action Not Allowed') || ''}
         message={
           t(
-            "The Subject you have chosen is the last one left and cannot be deleted"
-          ) || ""
+            'The Subject you have chosen is the last one left and cannot be deleted',
+          ) || ''
         }
         cssClass="custom-alert"
         buttons={[
           {
-            text: t("OK") || "",
-            cssClass: "alert-ok-button",
+            text: t('OK') || '',
+            cssClass: 'alert-ok-button',
             handler: () => {
               setIsLastSubjectAlertOpen(false); // Close the alert
-              console.debug("Last subject alert closed.");
+              logger.debug('Last subject alert closed.');
             },
           },
         ]}
