@@ -26,7 +26,6 @@ const WhatsAppInviteLinkInput: React.FC<Props> = ({
     <div className="wa-info-invite-link-div" id="wa-info-invite-link-id">
       <input
         className="wa-input"
-        autoFocus
         value={inviteInput}
         onChange={(e) => setInviteInput(e.target.value)}
         placeholder="https://chat.whatsapp.com/..."
