@@ -129,7 +129,7 @@ export class ApiHandlerPrograms extends ApiHandlerSchoolOperations {
   }
 
   async getSchoolFilterOptionsForSchoolListing(): Promise<
-    Record<string, string[]>
+    Record<string, unknown[]>
   > {
     return await this.s.getSchoolFilterOptionsForSchoolListing();
   }

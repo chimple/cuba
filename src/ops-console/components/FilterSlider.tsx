@@ -16,18 +16,34 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import './FilterSlider.css';
 import { t } from 'i18next';
+import type { SchoolFilterOption } from '../pages/SchoolList.helpers';
 
 interface FilterSliderProps {
   isOpen: boolean;
   onClose: () => void;
   filters: Record<string, string[]>;
-  filterOptions: Record<string, string[]>;
+  filterOptions: Record<string, SchoolFilterOption[]>;
   onFilterChange: (name: string, value: string[]) => void;
   onApply: () => void;
   onCancel: () => void;
   autocompleteStyles?: object;
   filterConfigs: { key: string; label: string; placeholder?: string }[];
 }
+
+const isObjectFilterOption = (
+  option: SchoolFilterOption,
+): option is { id: string; name: string } =>
+  typeof option === 'object' &&
+  option !== null &&
+  !Array.isArray(option) &&
+  'id' in option &&
+  'name' in option;
+
+const getFilterOptionLabel = (option: SchoolFilterOption) =>
+  typeof option === 'string' ? option : option.name;
+
+const getFilterOptionId = (option: SchoolFilterOption) =>
+  typeof option === 'string' ? option : option.id;
 
 const FilterSlider: React.FC<FilterSliderProps> = ({
   isOpen,
@@ -69,42 +85,75 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
       <Divider sx={{ mb: 3 }} />
 
       <Stack className="filter-content-FilterSlider">
-        {filterConfigs.map(({ key, label, placeholder }) => (
-          <Autocomplete
-            key={key}
-            multiple
-            options={filterOptions[key] || []}
-            disableCloseOnSelect
-            getOptionLabel={(option) => option}
-            value={filters[key] ?? []}
-            onChange={(e, value) => onFilterChange(key, value)}
-            renderOption={(props, option, { selected }) => (
-              <li {...props}>
-                <Checkbox checked={selected} sx={{ marginRight: 1 }} />
-                {option}
-              </li>
-            )}
-            renderTags={() => null}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label={label}
-                placeholder={
-                  (placeholder
-                    ? t('Search {{placeholder}}...', { placeholder })
-                    : t('Search {{key}}...', { key })) ?? ''
-                }
-                variant="outlined"
-              />
-            )}
-            className={`filter-autocomplete${
-              filters[key]?.length > 0
-                ? ' filter-autocomplete-selected-FilterSlider'
-                : ''
-            }`}
-            sx={autocompleteStyles}
-          />
-        ))}
+        {filterConfigs.map(({ key, label, placeholder }) => {
+          const options = filterOptions[key] || [];
+          const objectOptions = options.filter(isObjectFilterOption);
+          const usesObjectOptions = objectOptions.length > 0;
+          const selectedIds = filters[key] ?? [];
+          const selectedObjectValues = usesObjectOptions
+            ? objectOptions.filter((option) => selectedIds.includes(option.id))
+            : [];
+
+          return (
+            <Autocomplete<SchoolFilterOption, true, false, false>
+              key={key}
+              multiple
+              options={options}
+              disableCloseOnSelect
+              getOptionLabel={getFilterOptionLabel}
+              value={usesObjectOptions ? selectedObjectValues : selectedIds}
+              getOptionDisabled={
+                key === 'program'
+                  ? (option) =>
+                      selectedIds.length > 0 &&
+                      !selectedIds.includes(getFilterOptionId(option))
+                  : undefined
+              }
+              onChange={(e, value) =>
+                onFilterChange(
+                  key,
+                  key === 'program'
+                    ? value.length > 0
+                      ? [getFilterOptionId(value[0])]
+                      : []
+                    : value.map((option) => getFilterOptionId(option)),
+                )
+              }
+              isOptionEqualToValue={(option, value) =>
+                typeof option === 'string' && typeof value === 'string'
+                  ? option === value
+                  : isObjectFilterOption(option) && isObjectFilterOption(value)
+                    ? option.id === value.id
+                    : false
+              }
+              renderOption={(props, option, { selected }) => (
+                <li {...props}>
+                  <Checkbox checked={selected} sx={{ marginRight: 1 }} />
+                  {getFilterOptionLabel(option)}
+                </li>
+              )}
+              renderTags={() => null}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={label}
+                  placeholder={
+                    (placeholder
+                      ? t('Search {{placeholder}}...', { placeholder })
+                      : t('Search {{key}}...', { key })) ?? ''
+                  }
+                  variant="outlined"
+                />
+              )}
+              className={`filter-autocomplete${
+                filters[key]?.length > 0
+                  ? ' filter-autocomplete-selected-FilterSlider'
+                  : ''
+              }`}
+              sx={autocompleteStyles}
+            />
+          );
+        })}
       </Stack>
 
       <Box className="filter-footer-FilterSlider">

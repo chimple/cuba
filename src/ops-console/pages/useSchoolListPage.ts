@@ -18,6 +18,7 @@ import {
   type PercentBand,
   type PercentageFilters,
   type PercentageFilterKey,
+  type SchoolFilterOptions,
   type SchoolPerformanceFilterValue,
   SCHOOL_PERFORMANCE_FILTER_OPTIONS,
 } from './SchoolList.helpers';
@@ -75,7 +76,7 @@ export function useSchoolListPage() {
   const [tempFilters, setTempFilters] = useState<Filters>(() =>
     createEmptySchoolFilters(),
   );
-  const [filterOptions, setFilterOptions] = useState<Filters>(() =>
+  const [filterOptions, setFilterOptions] = useState<SchoolFilterOptions>(() =>
     createEmptySchoolFilters(),
   );
   const [orderBy, setOrderBy] = useState('');

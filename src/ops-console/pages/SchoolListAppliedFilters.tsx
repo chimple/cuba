@@ -10,12 +10,13 @@ import {
   type Filters,
   type PercentageFilterKey,
   type PercentageFilters,
+  type SchoolFilterOptions,
   type SchoolPerformanceFilterValue,
 } from './SchoolList.helpers';
 
 type SchoolListAppliedFiltersProps = {
   columns: any[];
-  filterOptions: Filters;
+  filterOptions: SchoolFilterOptions;
   filters: Filters;
   isFilterOpen: boolean;
   percentageFilters: PercentageFilters;
@@ -23,9 +24,7 @@ type SchoolListAppliedFiltersProps = {
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   setIsFilterOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setPage: React.Dispatch<React.SetStateAction<number>>;
-  setPercentageFilters: React.Dispatch<
-    React.SetStateAction<PercentageFilters>
-  >;
+  setPercentageFilters: React.Dispatch<React.SetStateAction<PercentageFilters>>;
   setSchoolPerformanceFilter: React.Dispatch<
     React.SetStateAction<SchoolPerformanceFilterValue | null>
   >;
@@ -79,10 +78,25 @@ export default function SchoolListAppliedFilters({
     return items;
   }, [columns, percentageFilters, schoolPerformanceFilter]);
 
+  const getFilterLabel = useMemo(() => {
+    return (key: string, value: string) => {
+      if (key !== 'program') return value;
+      const programOption = filterOptions.program.find((option) => {
+        if (typeof option === 'string') return option === value;
+        return option.id === value;
+      });
+      if (!programOption) return value;
+      return typeof programOption === 'string'
+        ? programOption
+        : programOption.name;
+    };
+  }, [filterOptions.program]);
+
   return (
     <>
       <SelectedFilters
         filters={filters}
+        getFilterLabel={getFilterLabel}
         onDeleteFilter={(key, value) => {
           if (key === 'schoolPerformanceFilter') {
             setSchoolPerformanceFilter(null);

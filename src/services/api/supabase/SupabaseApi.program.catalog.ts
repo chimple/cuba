@@ -131,14 +131,14 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
     }
   }
   async getSchoolFilterOptionsForSchoolListing(): Promise<
-    Record<string, string[]>
+    Record<string, unknown[]>
   > {
     if (!this.supabase) {
       logger.error('Supabase client is not initialized');
       return {};
     }
 
-    const emptyOptions: Record<string, string[]> = {
+    const emptyOptions: Record<string, unknown[]> = {
       state: [],
       district: [],
       block: [],
@@ -147,6 +147,7 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
       programManager: [],
       fieldCoordinator: [],
       cluster: [],
+      program: [],
     };
 
     try {
@@ -167,6 +168,33 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
       }
 
       const rpcData = data as Record<string, Json>;
+
+      const programOptions = Array.isArray(rpcData.program)
+        ? rpcData.program
+            .map((item) => {
+              if (typeof item === 'string') {
+                return { id: item, name: item };
+              }
+              if (
+                item &&
+                typeof item === 'object' &&
+                !Array.isArray(item) &&
+                'id' in item &&
+                'name' in item &&
+                typeof (item as { id?: unknown }).id === 'string' &&
+                typeof (item as { name?: unknown }).name === 'string'
+              ) {
+                return {
+                  id: (item as { id: string }).id,
+                  name: (item as { name: string }).name,
+                };
+              }
+              return null;
+            })
+            .filter(
+              (value): value is { id: string; name: string } => value !== null,
+            )
+        : [];
 
       return {
         state: Array.isArray(rpcData.state) ? (rpcData.state as string[]) : [],
@@ -189,6 +217,7 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
         cluster: Array.isArray(rpcData.cluster)
           ? (rpcData.cluster as string[])
           : [],
+        program: programOptions,
       };
     } catch (err) {
       logger.error('Unexpected error in getSchoolFilterOptions:', err);

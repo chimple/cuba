@@ -21,6 +21,7 @@ import {
   type DateRangeValue,
   type Filters,
   type PercentageFilters,
+  type SchoolFilterOptions,
   type SchoolPerformanceFilterValue,
 } from './SchoolList.helpers';
 import SchoolListAppliedFilters from './SchoolListAppliedFilters';
@@ -28,7 +29,7 @@ import SchoolListAppliedFilters from './SchoolListAppliedFilters';
 type SchoolListHeaderControlsProps = {
   actionsAnchorEl: HTMLElement | null;
   columns: any[];
-  filterOptions: Filters;
+  filterOptions: SchoolFilterOptions;
   filters: Filters;
   handleCancelFilters: () => void;
   handleCloseActionsMenu: () => void;
@@ -53,9 +54,7 @@ type SchoolListHeaderControlsProps = {
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   setIsFilterOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setPage: React.Dispatch<React.SetStateAction<number>>;
-  setPercentageFilters: React.Dispatch<
-    React.SetStateAction<PercentageFilters>
-  >;
+  setPercentageFilters: React.Dispatch<React.SetStateAction<PercentageFilters>>;
   setSchoolPerformanceFilter: React.Dispatch<
     React.SetStateAction<SchoolPerformanceFilterValue | null>
   >;

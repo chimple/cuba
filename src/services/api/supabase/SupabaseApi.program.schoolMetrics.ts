@@ -289,6 +289,9 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
           query = query.in('program_type', programTypeValues);
         }
       }
+      if (cleanedFilters.program?.length) {
+        query = query.in('program_id', cleanedFilters.program);
+      }
 
       if (search) {
         query = query.or(

@@ -23,6 +23,8 @@ export const DATE_RANGE_OPTIONS = [
 export type DateRangeValue = (typeof DATE_RANGE_OPTIONS)[number]['value'];
 
 export type Filters = Record<string, string[]>;
+export type SchoolFilterOption = string | { id: string; name: string };
+export type SchoolFilterOptions = Record<string, SchoolFilterOption[]>;
 export type PercentBand = PercentageBandValue;
 export type SchoolPerformanceFilterValue = SchoolPerformanceStatusValue;
 export type PercentageFilterKey =
@@ -59,6 +61,7 @@ export const SCHOOL_PERFORMANCE_FILTER_OPTIONS: SchoolPerformanceFilterValue[] =
 
 // Shared filter metadata for the school listing drawer.
 export const filterConfigsForSchool = [
+  { key: 'program', label: t('Select Program') },
   { key: 'partner', label: t('Select Partner') },
   { key: 'programManager', label: t('Select Program Manager') },
   { key: 'fieldCoordinator', label: t('Select Field Coordinator') },
@@ -79,6 +82,7 @@ export const createEmptySchoolFilters = (): Filters => ({
   district: [],
   block: [],
   cluster: [],
+  program: [],
 });
 
 // Query-string parsing stays defensive so broken URLs do not break the page.
@@ -98,16 +102,40 @@ export const hasSchoolListFilters = (filters: Filters) =>
 
 // Normalizes API filter payloads back into the UI filter shape.
 export const mapSchoolListFilterOptions = (
-  data?: Record<string, string[]>,
-): Filters => ({
-  programType: data?.programType || [],
-  partner: data?.partner || [],
-  programManager: data?.programManager || [],
-  fieldCoordinator: data?.fieldCoordinator || [],
-  state: data?.state || [],
-  district: data?.district || [],
-  block: data?.block || [],
-  cluster: data?.cluster || [],
+  data?: Record<string, unknown[]>,
+): SchoolFilterOptions => ({
+  programType: (data?.programType as string[]) || [],
+  partner: (data?.partner as string[]) || [],
+  programManager: (data?.programManager as string[]) || [],
+  fieldCoordinator: (data?.fieldCoordinator as string[]) || [],
+  state: (data?.state as string[]) || [],
+  district: (data?.district as string[]) || [],
+  block: (data?.block as string[]) || [],
+  cluster: (data?.cluster as string[]) || [],
+  program: Array.isArray(data?.program)
+    ? data.program
+        .map((item) => {
+          if (typeof item === 'string') {
+            return { id: item, name: item };
+          }
+          if (
+            item &&
+            typeof item === 'object' &&
+            !Array.isArray(item) &&
+            'id' in item &&
+            'name' in item &&
+            typeof (item as { id?: unknown }).id === 'string' &&
+            typeof (item as { name?: unknown }).name === 'string'
+          ) {
+            return {
+              id: (item as { id: string }).id,
+              name: (item as { name: string }).name,
+            };
+          }
+          return null;
+        })
+        .filter((item): item is { id: string; name: string } => item !== null)
+    : [],
 });
 
 // Tabs shown across the top of the school listing.
