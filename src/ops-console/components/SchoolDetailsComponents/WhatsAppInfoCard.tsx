@@ -200,7 +200,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                   className="wa-value"
                   fontWeight={700}
                 >
-                  {members ? members - 1 : 0} {t('Members')}
+                  {members ?? 0} {t('Members')}
                 </Typography>
               </Box>
 
