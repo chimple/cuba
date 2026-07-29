@@ -462,6 +462,7 @@ describe('SchoolList export', () => {
             [
               'School Name',
               'UDISE',
+              'Field Coordinator',
               'Block',
               'School Performance',
               'Onboarded Students',
@@ -487,6 +488,7 @@ describe('SchoolList export', () => {
             [
               'Alpha School',
               '1234567890',
+              'Field Coordinator 1',
               '--',
               'High Performing',
               '100',
@@ -528,16 +530,16 @@ describe('SchoolList export', () => {
         sheetMerges: {
           Schools: [
             {
-              s: { r: 0, c: 5 },
-              e: { r: 0, c: 6 },
+              s: { r: 0, c: 6 },
+              e: { r: 0, c: 7 },
             },
             {
-              s: { r: 0, c: 7 },
-              e: { r: 0, c: 8 },
+              s: { r: 0, c: 8 },
+              e: { r: 0, c: 9 },
             },
             {
-              s: { r: 0, c: 10 },
-              e: { r: 0, c: 11 },
+              s: { r: 0, c: 11 },
+              e: { r: 0, c: 12 },
             },
           ],
         },
