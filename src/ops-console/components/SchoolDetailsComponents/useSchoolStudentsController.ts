@@ -20,11 +20,7 @@ import { useSchoolStudentsColumns } from './useSchoolStudentsColumns';
 import { useSchoolStudentsList } from './useSchoolStudentsList';
 import { useSchoolStudentsRows } from './useSchoolStudentsRows';
 import { useSchoolStudentsStatus } from './useSchoolStudentsStatus';
-import type {
-  ApiStudentData,
-  DisplayStudent,
-  WhatsappGroupStatusKey,
-} from './SchoolStudents.types';
+import type { ApiStudentData, DisplayStudent } from './SchoolStudents.types';
 
 export interface SchoolStudentsProps {
   data: {
@@ -140,9 +136,10 @@ export const useSchoolStudentsController = ({
     PerformanceLevel.ALL,
   );
 
-  const classDataRef = useMemo(() => {
-    return Array.isArray(data.classData) ? data.classData[0] : undefined;
-  }, [data.classData]);
+  // Resolve the opened class instead of defaulting its status lookup to the first class.
+  const classDataRef = data.classData?.find(
+    (classRow) => !optionalClassId || classRow.id === optionalClassId,
+  );
 
   const {
     getWhatsappGroupStatus,
