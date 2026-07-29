@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { t } from 'i18next';
+import type { Column } from '../components/DataTableBody';
 import FilterSlider from '../components/FilterSlider';
 import SelectedFilters from '../components/SelectedFilters';
+import type { SchoolListRow } from './SchoolList.fetcher';
 import {
   createEmptySchoolFilters,
   filterConfigsForSchool,
@@ -14,7 +16,7 @@ import {
 } from './SchoolList.helpers';
 
 type SchoolListAppliedFiltersProps = {
-  columns: any[];
+  columns: Column<SchoolListRow>[];
   filterOptions: Filters;
   filters: Filters;
   isFilterOpen: boolean;
@@ -23,9 +25,7 @@ type SchoolListAppliedFiltersProps = {
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   setIsFilterOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setPage: React.Dispatch<React.SetStateAction<number>>;
-  setPercentageFilters: React.Dispatch<
-    React.SetStateAction<PercentageFilters>
-  >;
+  setPercentageFilters: React.Dispatch<React.SetStateAction<PercentageFilters>>;
   setSchoolPerformanceFilter: React.Dispatch<
     React.SetStateAction<SchoolPerformanceFilterValue | null>
   >;
@@ -48,6 +48,36 @@ export default function SchoolListAppliedFilters({
   setTempFilters,
   tempFilters,
 }: SchoolListAppliedFiltersProps) {
+  const gradeOptions = useMemo(
+    () => filterOptions.grade ?? [],
+    [filterOptions],
+  );
+
+  // Show all grades selected while the default request uses school-wise metrics.
+  const displayedTempFilters = useMemo(() => {
+    if (gradeOptions.length === 0 || (tempFilters.grade?.length ?? 0) > 0) {
+      return tempFilters;
+    }
+
+    return {
+      ...tempFilters,
+      grade: gradeOptions,
+    };
+  }, [gradeOptions, tempFilters]);
+
+  const normalizeAppliedFilters = useCallback(
+    (nextFilters: Filters) => {
+      const selectedGrades = nextFilters.grade ?? [];
+      const isAllGradesSelected =
+        gradeOptions.length > 0 &&
+        selectedGrades.length === gradeOptions.length &&
+        gradeOptions.every((grade) => selectedGrades.includes(grade));
+
+      return isAllGradesSelected ? { ...nextFilters, grade: [] } : nextFilters;
+    },
+    [gradeOptions],
+  );
+
   const selectedHeaderFilters = useMemo(() => {
     const items: Array<{ key: string; value: string; label: string }> = [];
     if (schoolPerformanceFilter) {
@@ -121,13 +151,15 @@ export default function SchoolListAppliedFilters({
           setIsFilterOpen(false);
           setTempFilters(filters);
         }}
-        filters={tempFilters}
+        filters={displayedTempFilters}
         filterOptions={filterOptions}
         onFilterChange={(name, value) =>
           setTempFilters((prev) => ({ ...prev, [name]: value }))
         }
         onApply={() => {
-          setFilters(tempFilters);
+          const appliedFilters = normalizeAppliedFilters(tempFilters);
+          setFilters(appliedFilters);
+          setTempFilters(appliedFilters);
           setIsFilterOpen(false);
           setPage(1);
         }}

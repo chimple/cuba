@@ -59,6 +59,7 @@ export const SCHOOL_PERFORMANCE_FILTER_OPTIONS: SchoolPerformanceFilterValue[] =
 
 // Shared filter metadata for the school listing drawer.
 export const filterConfigsForSchool = [
+  { key: 'grade', label: t('Select Grades') },
   { key: 'partner', label: t('Select Partner') },
   { key: 'programManager', label: t('Select Program Manager') },
   { key: 'fieldCoordinator', label: t('Select Field Coordinator') },
@@ -71,6 +72,7 @@ export const filterConfigsForSchool = [
 
 // Fresh filter objects keep reset flows predictable across the page.
 export const createEmptySchoolFilters = (): Filters => ({
+  grade: [],
   programType: [],
   partner: [],
   programManager: [],
@@ -100,6 +102,7 @@ export const hasSchoolListFilters = (filters: Filters) =>
 export const mapSchoolListFilterOptions = (
   data?: Record<string, string[]>,
 ): Filters => ({
+  grade: data?.grade || [],
   programType: data?.programType || [],
   partner: data?.partner || [],
   programManager: data?.programManager || [],

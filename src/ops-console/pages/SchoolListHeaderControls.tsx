@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Button,
   Divider,
-  IconButton,
   ListItemIcon,
   ListItemText,
   Menu,
@@ -14,9 +13,12 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { FileUploadOutlined, Add } from '@mui/icons-material';
 import { t } from 'i18next';
+import { PROGRAM_TAB } from '../../common/constants';
+import type { Column } from '../components/DataTableBody';
 import SearchAndFilter from '../components/SearchAndFilter';
 import SchoolListDateRangeDropdown from '../components/SchoolListDateRangeDropdown';
 import SchoolListExportButton from '../components/SchoolListExportButton';
+import type { SchoolListRow } from './SchoolList.fetcher';
 import {
   type DateRangeValue,
   type Filters,
@@ -27,7 +29,7 @@ import SchoolListAppliedFilters from './SchoolListAppliedFilters';
 
 type SchoolListHeaderControlsProps = {
   actionsAnchorEl: HTMLElement | null;
-  columns: any[];
+  columns: Column<SchoolListRow>[];
   filterOptions: Filters;
   filters: Filters;
   handleCancelFilters: () => void;
@@ -50,7 +52,7 @@ type SchoolListHeaderControlsProps = {
   schoolPerformanceFilter: SchoolPerformanceFilterValue | null;
   searchTerm: string;
   selectedDateRange: DateRangeValue;
-  selectedTab: string;
+  selectedTab: PROGRAM_TAB;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   setIsFilterOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setPage: React.Dispatch<React.SetStateAction<number>>;
@@ -59,7 +61,7 @@ type SchoolListHeaderControlsProps = {
     React.SetStateAction<SchoolPerformanceFilterValue | null>
   >;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  setSelectedTab: React.Dispatch<React.SetStateAction<any>>;
+  setSelectedTab: React.Dispatch<React.SetStateAction<PROGRAM_TAB>>;
   setTempFilters: React.Dispatch<React.SetStateAction<Filters>>;
   tabOptions: Array<{ label: string; value: string }>;
   tempFilters: Filters;
