@@ -46,7 +46,6 @@ export function useSchoolClassAddStudent({
         name: 'gender',
         label: 'Gender',
         kind: 'select' as const,
-        required: true,
         column: 0 as const,
         options: [
           { label: t('GIRL'), value: GENDER.GIRL },
@@ -58,11 +57,13 @@ export function useSchoolClassAddStudent({
         name: 'ageGroup',
         label: 'Age',
         kind: 'select' as const,
-        required: true,
         placeholder: 'Select Age Group',
         column: 1 as const,
         options: [
-          { value: AGE_OPTIONS.LESS_THAN_EQUAL_4, label: `â‰¤${t('4 years')}` },
+          {
+            value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
+            label: `${t('Up to')} ${t('4 years')}`,
+          },
           { value: AGE_OPTIONS.FIVE, label: t('5 years') },
           { value: AGE_OPTIONS.SIX, label: t('6 years') },
           { value: AGE_OPTIONS.SEVEN, label: t('7 years') },
@@ -70,7 +71,7 @@ export function useSchoolClassAddStudent({
           { value: AGE_OPTIONS.NINE, label: t('9 years') },
           {
             value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-            label: `â‰¥${t('10 years')}`,
+            label: `${t('10 years')}+`,
           },
         ],
       },

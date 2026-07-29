@@ -144,8 +144,8 @@ export const FormCardField = ({
             {displayText || placeholderText}
           </span>
           <span className="formcard-select-arrow-flipper">
-            <span className="formcard-arrow-down">â–¾</span>
-            <span className="formcard-arrow-up">â–´</span>
+            <span className="formcard-arrow-down" />
+            <span className="formcard-arrow-up" />
           </span>
         </div>
         {isThisSelectOpen && (
@@ -229,8 +229,8 @@ export const FormCardField = ({
             {displayText || placeholderText}
           </span>
           <span className="formcard-select-arrow-flipper">
-            <span className="formcard-arrow-down">â–¾</span>
-            <span className="formcard-arrow-up">â–´</span>
+            <span className="formcard-arrow-down" />
+            <span className="formcard-arrow-up" />
           </span>
         </div>
         {isThisSelectOpen && (
@@ -284,8 +284,8 @@ export const FormCardField = ({
         ))}
       </select>
       <span className="formcard-select-arrow-flipper">
-        <span className="formcard-arrow-down">â–¾</span>
-        <span className="formcard-arrow-up">â–´</span>
+        <span className="formcard-arrow-down" />
+        <span className="formcard-arrow-up" />
       </span>
     </div>
   );
