@@ -21,6 +21,7 @@ import {
 } from './RequestList.constants';
 import type {
   OpsRequestItem,
+  RequestListFilterOptions,
   RequestListFilters,
   RequestRow,
 } from './RequestList.types';
@@ -138,16 +139,27 @@ export function useRequestListPage() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [tempFilters, setTempFilters] =
     useState<RequestListFilters>(INITIAL_FILTERS);
-  const [filterOptions, setFilterOptions] = useState(INITIAL_FILTER_OPTIONS);
+  const [filterOptions, setFilterOptions] = useState<RequestListFilterOptions>(
+    () => ({
+      ...INITIAL_FILTER_OPTIONS,
+      request_type: [...Constants.public.Enums.ops_request_type],
+    }),
+  );
   const schoolNameToIdMapRef = React.useRef<Map<string, string>>(new Map());
+  const hasRequestedFilterOptionsRef = React.useRef(false);
   const [isFilterOptionsLoaded, setIsFilterOptionsLoaded] = useState(false);
   const [orderBy, setOrderBy] = useState('requested_date');
   const [orderDir, setOrderDir] = useState<'desc' | 'asc'>('desc');
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
-  const isSchoolFilterReady =
-    filters.school.length === 0 || isFilterOptionsLoaded;
-  const isLoading = isFilterLoading || isDataLoading;
-  const columns = useMemo(() => getRequestListColumns(selectedTab), [selectedTab]);
+  const hasSchoolFilter = filters.school.length > 0;
+  const isSchoolFilterReady = !hasSchoolFilter || isFilterOptionsLoaded;
+  const shouldLoadFilterOptions = isFilterOpen || hasSchoolFilter;
+  const isLoading =
+    isDataLoading || (!isFilterOpen && hasSchoolFilter && isFilterLoading);
+  const columns = useMemo(
+    () => getRequestListColumns(selectedTab),
+    [selectedTab],
+  );
   const pageCount = Math.ceil(total / pageSize);
   const filterOptionsForSlider: Record<string, string[]> = {
     request_type: filterOptions.request_type,
@@ -179,35 +191,44 @@ export function useRequestListPage() {
   }, [selectedTab, debouncedSearchTerm, filters, page, history]);
 
   useEffect(() => {
-    const fetchFilterOptions = async () => {
-      setIsFilterLoading(true);
-      try {
-        const data = await api.getRequestFilterOptions();
-        if (data) {
-          setFilterOptions({
-            request_type: (data.requestType || []).filter(
-              (value): value is string => Boolean(value),
-            ),
-            school: data.school || [],
-          });
-          const nameToIdMap = new Map<string, string>();
-          (data.school || []).forEach(
-            (school: { id: string; name: string }) => {
-              nameToIdMap.set(school.name, school.id);
-            },
-          );
-          schoolNameToIdMapRef.current = nameToIdMap;
-        }
-      } catch (error) {
+    if (!shouldLoadFilterOptions || hasRequestedFilterOptionsRef.current) {
+      return;
+    }
+
+    hasRequestedFilterOptionsRef.current = true;
+    setIsFilterLoading(true);
+
+    api
+      .getRequestFilterOptions()
+      .then((data) => {
+        if (!data) return;
+
+        setFilterOptions({
+          request_type: (data.requestType || []).filter(
+            (value): value is string => Boolean(value),
+          ),
+          school: data.school || [],
+        });
+
+        const nameToIdMap = new Map<string, string>();
+        (data.school || []).forEach((school: { id: string; name: string }) => {
+          nameToIdMap.set(school.name, school.id);
+        });
+        schoolNameToIdMapRef.current = nameToIdMap;
+      })
+      .catch((error) => {
         logger.error('Failed to fetch filter options', error);
-      } finally {
+      })
+      .finally(() => {
         setIsFilterOptionsLoaded(true);
         setIsFilterLoading(false);
-      }
-    };
+      });
+  }, [api, shouldLoadFilterOptions]);
 
-    fetchFilterOptions();
-  }, [api]);
+  const handleOpenFilters = React.useCallback(() => {
+    setIsFilterOpen(true);
+    setTempFilters(filters);
+  }, [filters]);
 
   useEffect(() => {
     if (!isSchoolFilterReady) return;
@@ -399,6 +420,7 @@ export function useRequestListPage() {
     filters,
     handleCancelFilters,
     handleDeleteFilter,
+    handleOpenFilters,
     handleRowClick,
     handleSort,
     handleTabChange,

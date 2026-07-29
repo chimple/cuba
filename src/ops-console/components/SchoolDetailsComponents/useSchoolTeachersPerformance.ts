@@ -23,6 +23,28 @@ type UseSchoolTeachersPerformanceProps = {
   sortedTeachers: TeacherInfo[];
 };
 
+type AssignmentCountPair = {
+  teacherId: string;
+  classId: string;
+};
+
+const getTeacherClassPair = (
+  apiTeacher: TeacherInfo,
+): AssignmentCountPair | null => {
+  const teacherId = apiTeacher.user?.id;
+  const classId =
+    (apiTeacher as { classId?: string }).classId ??
+    apiTeacher.classWithidname?.id ??
+    '';
+
+  if (!teacherId || !classId) return null;
+
+  return { teacherId, classId };
+};
+
+const getAssignmentPairKey = ({ teacherId, classId }: AssignmentCountPair) =>
+  `${teacherId}:${classId}`;
+
 const toDisplayTeacher = (
   apiTeacher: TeacherInfo,
   performance: EnumType<'fc_support_level'>,
@@ -89,45 +111,51 @@ export const useSchoolTeachersPerformance = ({
     }
     let cancelled = false;
     async function loadPerformance() {
-      const enriched: DisplayTeacher[] = await Promise.all(
-        sortedTeachers.map(async (apiTeacher) => {
-          const teacherId = apiTeacher.user?.id;
-          const classId =
-            (apiTeacher as { classId?: string }).classId ??
-            apiTeacher.classWithidname?.id ??
-            '';
+      const pairByKey = new Map<string, AssignmentCountPair>();
+      sortedTeachers.forEach((apiTeacher) => {
+        const pair = getTeacherClassPair(apiTeacher);
+        if (pair) {
+          pairByKey.set(getAssignmentPairKey(pair), pair);
+        }
+      });
 
-          if (!teacherId || !classId) {
-            return toDisplayTeacher(
-              apiTeacher,
-              PerformanceLevel.NOT_ASSIGNING as EnumType<'fc_support_level'>,
-              '',
-            );
-          }
+      const countsByPair: Record<string, number | null> = {};
+      const activeApi = ServiceConfig.getI().apiHandler;
+      const pairs = Array.from(pairByKey.values());
 
-          let perfLevel = PerformanceLevel.NOT_TRACKED;
-          try {
-            const activeApi = ServiceConfig.getI().apiHandler;
-            const count = await activeApi.getRecentAssignmentCountByTeacher(
-              teacherId,
-              classId,
-            );
-            perfLevel = mapCountToPerformance(count);
-          } catch (error) {
-            logger.error('Failed to load teacher performance count:', {
-              teacherId,
-              classId,
-              error,
-            });
-          }
+      if (pairs.length > 0) {
+        try {
+          Object.assign(
+            countsByPair,
+            await activeApi.getRecentAssignmentCountsByTeachers(pairs),
+          );
+        } catch (error) {
+          logger.error('Failed to load teacher performance counts:', {
+            error,
+          });
+        }
+      }
 
+      const enriched: DisplayTeacher[] = sortedTeachers.map((apiTeacher) => {
+        const pair = getTeacherClassPair(apiTeacher);
+
+        if (!pair) {
           return toDisplayTeacher(
             apiTeacher,
-            perfLevel as EnumType<'fc_support_level'>,
-            classId,
+            PerformanceLevel.NOT_ASSIGNING as EnumType<'fc_support_level'>,
+            '',
           );
-        }),
-      );
+        }
+
+        const pairKey = getAssignmentPairKey(pair);
+        const perfLevel = mapCountToPerformance(countsByPair[pairKey] ?? null);
+
+        return toDisplayTeacher(
+          apiTeacher,
+          perfLevel as EnumType<'fc_support_level'>,
+          pair.classId,
+        );
+      });
 
       if (!cancelled) {
         setTeachersWithPerformance(enriched);

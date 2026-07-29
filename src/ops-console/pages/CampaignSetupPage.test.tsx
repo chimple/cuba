@@ -51,6 +51,7 @@ const mockApiHandler = {
   launchCampaign: jest.fn(),
   getCampaignAssignmentOptions: jest.fn(),
   getParentWhatsappClassesBySchoolId: jest.fn(),
+  getCampaignParentsInGroupBySchoolIds: jest.fn(),
   getParentWhatsappParentPhonesByClassId: jest.fn(),
 };
 const mockAuthHandler = {
@@ -153,6 +154,7 @@ const setupApiMocks = () => {
     ],
   });
   mockApiHandler.getParentWhatsappClassesBySchoolId.mockResolvedValue([]);
+  mockApiHandler.getCampaignParentsInGroupBySchoolIds.mockResolvedValue(0);
   mockApiHandler.getParentWhatsappParentPhonesByClassId.mockResolvedValue([]);
 };
 
@@ -649,6 +651,7 @@ describe('CampaignSetupPage', () => {
 
     expect(await screen.findByText('Students:')).toBeInTheDocument();
     expect(await screen.findByText(/Grade 1/)).toBeInTheDocument();
+    expect(mockApiHandler.getCampaignAssignmentOptions).not.toHaveBeenCalled();
 
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
@@ -658,6 +661,13 @@ describe('CampaignSetupPage', () => {
     expect(
       await screen.findByText('Assignment Configuration'),
     ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(mockApiHandler.getCampaignAssignmentOptions).toHaveBeenCalledWith({
+        programId: 'program-1',
+        schoolIds: ['school-1'],
+        gradeIds: ['grade-1'],
+      }),
+    );
     expect(mockApiHandler.createCampaignSetup).not.toHaveBeenCalled();
     expect(screen.queryByText('Campaign setup saved.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
@@ -710,6 +720,12 @@ describe('CampaignSetupPage', () => {
 
     await screen.findByRole('heading', { name: 'New Campaign' });
     await completeSetupStep();
+    expect(
+      mockApiHandler.getParentWhatsappClassesBySchoolId,
+    ).not.toHaveBeenCalled();
+    expect(
+      mockApiHandler.getCampaignParentsInGroupBySchoolIds,
+    ).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
     await openSelectAndChoose('Select Reward Type', 'Digital Rewards');
@@ -783,6 +799,14 @@ describe('CampaignSetupPage', () => {
     expect(
       screen.getByRole('heading', { name: 'Campaign Communication Timeline' }),
     ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getParentWhatsappClassesBySchoolId,
+      ).toHaveBeenCalledTimes(1),
+    );
+    expect(
+      mockApiHandler.getCampaignParentsInGroupBySchoolIds,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('requires at least one configured communication day before proceeding to summary', async () => {
@@ -855,6 +879,7 @@ describe('CampaignSetupPage', () => {
     });
     await openSelectAndChoose('Select Program', 'Early Learning');
     expect(await screen.findByText('Students:')).toBeInTheDocument();
+    expect(mockApiHandler.getCampaignAssignmentOptions).not.toHaveBeenCalled();
 
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
@@ -895,6 +920,7 @@ describe('CampaignSetupPage', () => {
     expect(
       screen.getByRole('heading', { name: 'Campaign Communication Timeline' }),
     ).toBeInTheDocument();
+    expect(mockApiHandler.getCampaignAssignmentOptions).not.toHaveBeenCalled();
     expect(
       screen.queryByText(
         'No campaign days are available yet. Complete assignment setup to generate the communication schedule.',

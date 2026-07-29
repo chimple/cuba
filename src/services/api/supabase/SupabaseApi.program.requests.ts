@@ -1,3 +1,4 @@
+import { Constants } from '../../database';
 import { EnumType, TABLES } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { SupabaseApiProgramActivityStats } from './SupabaseApi.program.activityStats';
@@ -66,45 +67,34 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
     try {
       if (!this.supabase) return null;
 
-      const [requestTypeResponse, schoolResponse] = await Promise.all([
-        this.supabase
-          .from(TABLES.OpsRequests)
-          .select('request_type')
-          .eq('is_deleted', false),
+      const requestTypes = [...Constants.public.Enums.ops_request_type];
 
-        this.supabase
-          .from(TABLES.OpsRequests)
-          .select('school_id, school:school(id, name)')
-          .eq('is_deleted', false)
-          .not('school_id', 'is', null),
-      ]);
-
-      if (requestTypeResponse.error) {
-        logger.error(
-          'Failed to fetch request types:',
-          requestTypeResponse.error.message,
-        );
-        throw requestTypeResponse.error;
-      }
+      const schoolResponse = await this.supabase
+        .from(TABLES.School)
+        .select(
+          `
+          id,
+          name,
+          ops_requests!inner()
+        `,
+        )
+        .eq('is_deleted', false)
+        .eq('ops_requests.is_deleted', false)
+        .not('ops_requests.school_id', 'is', null)
+        .order('name', { ascending: true });
 
       if (schoolResponse.error) {
         logger.error('Failed to fetch schools:', schoolResponse.error.message);
         throw schoolResponse.error;
       }
-      // 1. Get unique request types
-      const allRequestTypes = (requestTypeResponse.data || []).map(
-        (item) => item.request_type,
-      );
-      const uniqueRequestTypes = [...new Set(allRequestTypes)];
 
-      // 2. Get unique schools with id and name
       const schoolMap = new Map<string, { id: string; name: string }>();
 
       ((schoolResponse.data as any[]) || []).forEach((item) => {
-        if (item.school && item.school.id && item.school.name) {
-          schoolMap.set(item.school.id, {
-            id: item.school.id,
-            name: item.school.name,
+        if (item?.id && item?.name) {
+          schoolMap.set(item.id, {
+            id: item.id,
+            name: item.name,
           });
         }
       });
@@ -112,7 +102,7 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
       const uniqueSchools = Array.from(schoolMap.values());
 
       return {
-        requestType: uniqueRequestTypes,
+        requestType: requestTypes,
         school: uniqueSchools,
       };
     } catch (error) {

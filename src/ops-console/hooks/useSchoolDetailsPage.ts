@@ -1,6 +1,6 @@
 import { Toast } from '@capacitor/toast';
 import { t } from 'i18next';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router';
 import {
   NOTES_UPDATED_EVENT,
@@ -69,6 +69,34 @@ const useIsMobile = () => {
   return isMobile;
 };
 
+const resolveSettled = <T>(
+  label: string,
+  settled: PromiseSettledResult<T>,
+  fallback: T,
+): T => {
+  if (settled.status === 'fulfilled') return settled.value;
+  logger.error(`SchoolDetailsPage fetch failed: ${label}`, settled.reason);
+  return fallback;
+};
+
+const emptyPaged = { data: [], total: 0 };
+
+const emptySchoolActivityStats: SchoolStats = {
+  active_student_percentage: 0,
+  active_teacher_percentage: 0,
+  avg_weekly_time_minutes: 0,
+};
+
+const emptyInteractionStats: FCSchoolStats = {
+  visits: 0,
+  calls_made: 0,
+  tech_issues: 0,
+  parents_interacted: 0,
+  parents_reached: 0,
+  students_interacted: 0,
+  teachers_interacted: 0,
+};
+
 export const useSchoolDetailsPage = (id: string) => {
   const [data, setData] = useState<{
     schoolData?: any;
@@ -113,6 +141,8 @@ export const useSchoolDetailsPage = (id: string) => {
   const [activeVisitType, setActiveVisitType] = useState<
     SchoolVisitType | undefined
   >(undefined);
+  const loadedTabsRef = useRef<Set<SchoolTabs>>(new Set());
+  const loadingTabsRef = useRef<Set<SchoolTabs>>(new Set());
   const openMenu = Boolean(anchorEl);
 
   const handleAddNoteHeader = async (payload: {
@@ -269,30 +299,6 @@ export const useSchoolDetailsPage = (id: string) => {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     const api = ServiceConfig.getI().apiHandler;
-    const resolveSettled = <T>(
-      label: string,
-      settled: PromiseSettledResult<T>,
-      fallback: T,
-    ): T => {
-      if (settled.status === 'fulfilled') return settled.value;
-      logger.error(`SchoolDetailsPage fetch failed: ${label}`, settled.reason);
-      return fallback;
-    };
-    const emptyPaged = { data: [], total: 0 };
-    const emptySchoolActivityStats: SchoolStats = {
-      active_student_percentage: 0,
-      active_teacher_percentage: 0,
-      avg_weekly_time_minutes: 0,
-    };
-    const emptyInteractionStats: FCSchoolStats = {
-      visits: 0,
-      calls_made: 0,
-      tech_issues: 0,
-      parents_interacted: 0,
-      parents_reached: 0,
-      students_interacted: 0,
-      teachers_interacted: 0,
-    };
 
     try {
       const [
@@ -301,9 +307,6 @@ export const useSchoolDetailsPage = (id: string) => {
         programManagersSettled,
         principalsResponseSettled,
         coordinatorsResponseSettled,
-        teachersResponseSettled,
-        studentsResponseSettled,
-        classResponseSettled,
       ] = await Promise.allSettled([
         api.getSchoolById(id),
         api.getProgramForSchool(id),
@@ -312,9 +315,6 @@ export const useSchoolDetailsPage = (id: string) => {
           ? Promise.resolve(emptyPaged)
           : api.getPrincipalsForSchoolPaginated(id, 1, 20),
         api.getCoordinatorsForSchoolPaginated(id, 1, 20),
-        api.getTeacherInfoBySchoolId(id, 1, 20),
-        api.getStudentInfoBySchoolId(id, 1, 20),
-        api.getClassesBySchoolId(id),
       ]);
 
       const school = resolveSettled('getSchoolById', schoolSettled, undefined);
@@ -338,21 +338,6 @@ export const useSchoolDetailsPage = (id: string) => {
         coordinatorsResponseSettled,
         emptyPaged,
       );
-      const teachersResponse = resolveSettled(
-        'getTeacherInfoBySchoolId',
-        teachersResponseSettled,
-        emptyPaged,
-      );
-      const studentsResponse = resolveSettled(
-        'getStudentInfoBySchoolId',
-        studentsResponseSettled,
-        emptyPaged,
-      );
-      const classResponse = resolveSettled(
-        'getClassesBySchoolId',
-        classResponseSettled,
-        [],
-      );
       const [schoolActivityStatsSettled, interactionStatsSettled] =
         await Promise.allSettled([
           api.school_activity_stats(id),
@@ -373,91 +358,9 @@ export const useSchoolDetailsPage = (id: string) => {
       const stats = Array.isArray(interactionStat)
         ? interactionStat[0]
         : interactionStat;
-      const classData = Array.isArray(classResponse) ? classResponse : [];
-      const classDataWithDetails = await Promise.all(
-        classData.map(async (clasS) => {
-          try {
-            let classwiseTotal = 0;
-            try {
-              const raw = await api.getStudentsForClass(clasS.id);
-              const total = Number(raw.length);
-              classwiseTotal = Number.isFinite(total) ? total : 0;
-            } catch {
-              classwiseTotal = 0;
-            }
-            const links = (await api.getCoursesByClassId(clasS.id)) ?? [];
-            const detailArrays = await Promise.all(
-              links.map((link) =>
-                api.getCourse((link as { course_id: string }).course_id),
-              ),
-            );
-            const courses = detailArrays
-              .flatMap((courseRows) =>
-                Array.isArray(courseRows) ? courseRows : [courseRows],
-              )
-              .filter(Boolean);
-            const curIds = [
-              ...new Set(
-                courses
-                  .map((course) => course?.curriculum_id)
-                  .filter(
-                    (courseId): courseId is string =>
-                      typeof courseId === 'string' && courseId.length > 0,
-                  ),
-              ),
-            ];
-            const curriculum: TableTypes<'curriculum'>[] = [];
-            if (curIds.length > 0) {
-              const fetched = await api.getCurriculumsByIds(curIds);
-              const seen = new Set<string>();
-              for (const row of Array.isArray(fetched) ? fetched : []) {
-                const curriculumId = row?.id;
-                if (
-                  typeof curriculumId === 'string' &&
-                  !seen.has(curriculumId)
-                ) {
-                  seen.add(curriculumId);
-                  curriculum.push(row);
-                }
-              }
-            }
-            const subjectsNames = [
-              ...new Set(
-                courses
-                  .map((course) =>
-                    typeof course?.name === 'string' ? course.name.trim() : '',
-                  )
-                  .filter((subjectName: string) => subjectName.length > 0),
-              ),
-            ].join(', ');
-            const curriculumNames = [
-              ...new Set(
-                curriculum
-                  .map((curriculumRow) =>
-                    typeof curriculumRow?.name === 'string'
-                      ? curriculumRow.name.trim()
-                      : '',
-                  )
-                  .filter((name: string) => name.length > 0),
-              ),
-            ].join(', ');
-            return {
-              ...clasS,
-              subjects: courses,
-              subjectsNames,
-              curriculumNames,
-              course_links: links,
-              courses,
-              curriculum,
-              studentCount: classwiseTotal,
-            };
-          } catch {
-            return { ...clasS };
-          }
-        }),
-      );
 
-      setData({
+      setData((prev) => ({
+        ...prev,
         schoolData: school,
         programData: program,
         programManagers,
@@ -465,10 +368,6 @@ export const useSchoolDetailsPage = (id: string) => {
         totalPrincipalCount: principalsResponse?.total ?? 0,
         coordinators: coordinatorsResponse?.data ?? [],
         totalCoordinatorCount: coordinatorsResponse?.total ?? 0,
-        teachers: teachersResponse?.data ?? [],
-        totalTeacherCount: teachersResponse?.total ?? 0,
-        students: studentsResponse?.data ?? [],
-        totalStudentCount: studentsResponse?.total ?? 0,
         schoolStats: {
           active_student_percentage:
             schoolStatsResult?.active_student_percentage ?? 0,
@@ -477,8 +376,6 @@ export const useSchoolDetailsPage = (id: string) => {
           avg_weekly_time_minutes:
             schoolStatsResult?.avg_weekly_time_minutes ?? 0,
         },
-        classData: classDataWithDetails,
-        totalClassCount: classData.length,
         interactionStats: {
           visits: stats?.visits ?? 0,
           calls_made: stats?.calls_made ?? 0,
@@ -488,11 +385,60 @@ export const useSchoolDetailsPage = (id: string) => {
           students_interacted: stats?.students_interacted ?? 0,
           teachers_interacted: stats?.teachers_interacted ?? 0,
         },
-      });
+      }));
     } finally {
       setLoading(false);
     }
   }, [id, isExternalUser]);
+
+  const fetchClassesData = useCallback(
+    async (force = false) => {
+      if (!force && loadedTabsRef.current.has(SchoolTabs.Classes)) return;
+      if (loadingTabsRef.current.has(SchoolTabs.Classes)) return;
+
+      loadingTabsRef.current.add(SchoolTabs.Classes);
+      const api = ServiceConfig.getI().apiHandler;
+
+      try {
+        const classResponse = await api.getClassesBySchoolId(id);
+        const classData = Array.isArray(classResponse) ? classResponse : [];
+
+        loadedTabsRef.current.add(SchoolTabs.Classes);
+        setData((prev) => ({
+          ...prev,
+          classData,
+          totalClassCount: classData.length,
+        }));
+      } catch (error) {
+        logger.error(
+          'SchoolDetailsPage fetch failed: getClassesBySchoolId',
+          error,
+        );
+      } finally {
+        loadingTabsRef.current.delete(SchoolTabs.Classes);
+      }
+    },
+    [id],
+  );
+
+  const loadSchoolDetailsTabData = useCallback(
+    async (tab: SchoolTabs, options?: { force?: boolean }) => {
+      if (
+        tab === SchoolTabs.Classes ||
+        tab === SchoolTabs.Students ||
+        tab === SchoolTabs.Teachers
+      ) {
+        await fetchClassesData(options?.force ?? false);
+      }
+    },
+    [fetchClassesData],
+  );
+
+  useEffect(() => {
+    loadedTabsRef.current.clear();
+    loadingTabsRef.current.clear();
+    setData({});
+  }, [id]);
 
   useEffect(() => {
     void fetchAll();
@@ -518,6 +464,7 @@ export const useSchoolDetailsPage = (id: string) => {
     isFirstTimeCheckIn,
     isMobile,
     loading,
+    loadSchoolDetailsTabData,
     openMenu,
     schoolLocation,
     selectedVisitType,

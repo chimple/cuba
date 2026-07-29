@@ -77,7 +77,10 @@ export const useCampaignSetupPage = () => {
     [communicationState.rows, communicationTimelineDates],
   );
 
-  const { campaignReach } = useCampaignReach(selectedAssignmentSchoolIds);
+  const { campaignReach, loadingReach } = useCampaignReach(
+    selectedAssignmentSchoolIds,
+    campaignSetup.activeStep >= 3,
+  );
 
   const targetAudienceStudentCount = useMemo(
     () =>
@@ -433,6 +436,7 @@ export const useCampaignSetupPage = () => {
     isAssignmentComplete,
     launchMessage,
     launching,
+    loadingReach,
     reviewData,
     selectedAssignmentSchoolIds,
     setActiveStepSafe,

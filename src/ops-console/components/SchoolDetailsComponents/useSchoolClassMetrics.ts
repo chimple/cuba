@@ -27,6 +27,7 @@ export function useSchoolClassMetrics({
     Record<string, ClassMetricsForClassListingRow>
   >({});
   const [classMetricsLoading, setClassMetricsLoading] = useState(false);
+  const [hasLoadedClassMetrics, setHasLoadedClassMetrics] = useState(false);
   const [codes, setCodes] = useState<Record<string, string | null>>({});
   const [loadingIds, setLoadingIds] = useState<Record<string, boolean>>({});
 
@@ -34,6 +35,7 @@ export function useSchoolClassMetrics({
     let cancelled = false;
 
     (async () => {
+      setHasLoadedClassMetrics(false);
       setClassMetricsLoading(true);
       try {
         const metricRows = await api.getClassMetricsForClassListing({
@@ -59,7 +61,10 @@ export function useSchoolClassMetrics({
         logger.error('Failed to fetch class listing metrics:', error);
         if (!cancelled) setClassMetrics({});
       } finally {
-        if (!cancelled) setClassMetricsLoading(false);
+        if (!cancelled) {
+          setClassMetricsLoading(false);
+          setHasLoadedClassMetrics(true);
+        }
       }
     })();
 
@@ -73,13 +78,19 @@ export function useSchoolClassMetrics({
       setCodes({});
       return;
     }
+    if (!hasLoadedClassMetrics) return;
 
     let cancelled = false;
     (async () => {
       const seeded: Record<string, string | null> = {};
       for (const c of safeClasses) {
         const v = c.code == null ? null : String(c.code);
-        if (v) seeded[c.id] = v;
+        const metricCode = classMetrics[c.id]?.class_code;
+        if (v) {
+          seeded[c.id] = v;
+        } else if (metricCode !== null && metricCode !== undefined) {
+          seeded[c.id] = String(metricCode);
+        }
       }
       const missingIds = safeClasses
         .map((c) => c.id)
@@ -119,7 +130,13 @@ export function useSchoolClassMetrics({
     return () => {
       cancelled = true;
     };
-  }, [api, safeClasses, shouldShowClassCode]);
+  }, [
+    api,
+    classMetrics,
+    hasLoadedClassMetrics,
+    safeClasses,
+    shouldShowClassCode,
+  ]);
 
   const handleGenerateCode = async (classId: string) => {
     try {

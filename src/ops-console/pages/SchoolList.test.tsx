@@ -247,6 +247,35 @@ const mockRunBackgroundWorkerTask =
   >;
 
 describe('SchoolList actions menu', () => {
+  it('loads school filter options only after opening filters and caches them', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+
+    expect(
+      mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+    ).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+      ).toHaveBeenCalledTimes(1),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+
+    expect(
+      mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+    ).toHaveBeenCalledTimes(1);
+  });
+
   it('shows migrate, upload and add school actions for privileged users', async () => {
     renderPage();
 

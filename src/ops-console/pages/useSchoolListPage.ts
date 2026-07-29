@@ -93,6 +93,7 @@ export function useSchoolListPage() {
     useState<HTMLElement | null>(null);
   const actionsButtonCloseShineTimeoutRef = useRef<number | null>(null);
   const actionsButtonCloseShineRafRef = useRef<number | null>(null);
+  const hasLoadedFilterOptionsRef = useRef(false);
   const isFirstSearchRenderRef = useRef(true);
   const { roles } = useAppSelector(
     (state: RootState) => state.auth as AuthState,
@@ -218,21 +219,22 @@ export function useSchoolListPage() {
     setPage(1);
   }, [searchTerm]);
 
-  useEffect(() => {
-    const fetchFilterOptions = async () => {
-      setIsFilterLoading(true);
-      try {
-        const data = await api.getSchoolFilterOptionsForSchoolListing();
-        if (data) {
-          setFilterOptions(mapSchoolListFilterOptions(data));
-        }
-      } catch (error) {
-        logger.error('Failed to fetch filter options', error);
-      } finally {
-        setIsFilterLoading(false);
+  const handleOpenFilters = useCallback(async () => {
+    setIsFilterOpen(true);
+    if (hasLoadedFilterOptionsRef.current) return;
+
+    setIsFilterLoading(true);
+    try {
+      const data = await api.getSchoolFilterOptionsForSchoolListing();
+      if (data) {
+        setFilterOptions(mapSchoolListFilterOptions(data));
+        hasLoadedFilterOptionsRef.current = true;
       }
-    };
-    fetchFilterOptions();
+    } catch (error) {
+      logger.error('Failed to fetch filter options', error);
+    } finally {
+      setIsFilterLoading(false);
+    }
   }, [api]);
 
   const handleSort = (colKey: string) => {
@@ -357,6 +359,7 @@ export function useSchoolListPage() {
     handleExportSchools,
     handleOpenActionsMenu,
     handleOpenAddSchoolPage,
+    handleOpenFilters,
     handleOpenMigratePage,
     handleOpenPercentageFilter,
     handleOpenSchoolPerformanceFilter,
