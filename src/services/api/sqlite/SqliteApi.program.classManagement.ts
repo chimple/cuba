@@ -129,7 +129,7 @@ export class SqliteApiProgramClassManagement extends SqliteApiProgramDiscovery {
     phone?: string;
     name: string;
     gender: string;
-    age: string;
+    age: string | null;
     classId: string;
     schoolId?: string;
     parentName?: string;

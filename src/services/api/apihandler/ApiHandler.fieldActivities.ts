@@ -53,7 +53,7 @@ export class ApiHandlerFieldActivities extends ApiHandlerOpsUsers {
     phone?: string;
     name: string;
     gender: string;
-    age: string;
+    age: string | null;
     classId: string;
     schoolId?: string;
     parentName?: string;
