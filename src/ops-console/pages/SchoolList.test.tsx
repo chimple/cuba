@@ -141,18 +141,94 @@ jest.mock('../components/SearchAndFilter', () => {
 });
 
 jest.mock('../components/FilterSlider', () => {
-  return function MockFilterSlider() {
-    return <div data-testid="filter-slider" />;
+  return function MockFilterSlider(props: {
+    isOpen?: boolean;
+    filterConfigs?: Array<{ key: string; label: string }>;
+    filterOptions?: Record<
+      string,
+      Array<string | { id: string; name: string }>
+    >;
+    filters?: Record<string, string[]>;
+    onFilterChange?: (key: string, values: string[]) => void;
+    onApply?: () => void;
+    onCancel?: () => void;
+    onClose?: () => void;
+  }) {
+    if (!props.isOpen) return null;
+
+    return (
+      <div data-testid="filter-slider">
+        {(props.filterConfigs ?? []).map((config) => (
+          <div key={config.key} data-testid={`filter-group-${config.key}`}>
+            <div>{config.label}</div>
+            {(props.filterOptions?.[config.key] ?? []).map((option) => {
+              const value = typeof option === 'string' ? option : option.id;
+              const label = typeof option === 'string' ? option : option.name;
+              const isSelected = (props.filters?.[config.key] ?? []).includes(
+                value,
+              );
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  data-testid={`filter-option-${config.key}-${value}`}
+                  data-selected={isSelected ? 'true' : 'false'}
+                  onClick={() =>
+                    props.onFilterChange?.(
+                      config.key,
+                      config.key === 'program'
+                        ? isSelected
+                          ? []
+                          : [value]
+                        : isSelected
+                          ? (props.filters?.[config.key] ?? []).filter(
+                              (item) => item !== value,
+                            )
+                          : [...(props.filters?.[config.key] ?? []), value],
+                    )
+                  }
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+        <button type="button" onClick={props.onCancel}>
+          clear
+        </button>
+        <button type="button" onClick={props.onApply}>
+          apply
+        </button>
+        <button type="button" onClick={props.onClose}>
+          close
+        </button>
+      </div>
+    );
   };
 });
 
 jest.mock('../components/SelectedFilters', () => {
   return function MockSelectedFilters(props: {
+    filters?: Record<string, string[]>;
     extraFilters?: Array<{ key: string; value: string; label: string }>;
     onDeleteFilter?: (key: string, value: string) => void;
+    getFilterLabel?: (key: string, value: string) => React.ReactNode;
   }) {
     return (
       <div data-testid="selected-filters">
+        {Object.entries(props.filters ?? {}).flatMap(([key, values]) =>
+          values.map((value, index) => (
+            <button
+              key={`${key}-${index}`}
+              type="button"
+              data-testid={`selected-filter-${key}`}
+              onClick={() => props.onDeleteFilter?.(key, value)}
+            >
+              {props.getFilterLabel?.(key, value) ?? value}
+            </button>
+          )),
+        )}
         {(props.extraFilters ?? []).map((filter) => (
           <button
             key={`${filter.key}-${filter.value}`}
@@ -202,6 +278,10 @@ beforeEach(() => {
   mockLocationSearch = '';
 
   mockApiHandler.getSchoolFilterOptionsForSchoolListing.mockResolvedValue({
+    program: [
+      { id: 'program-a', name: 'Program A' },
+      { id: 'program-b', name: 'Program B' },
+    ],
     programType: [],
     partner: [],
     programManager: [],
@@ -699,6 +779,57 @@ describe('SchoolList sorting', () => {
 });
 
 describe('SchoolList percentage filters', () => {
+  it('applies the selected program filter by id and shows the program name in the chip', async () => {
+    const user = userEvent.setup();
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
+      data: [
+        {
+          school_id: 'school-1',
+          school_name: 'Alpha School',
+          district: 'Pune',
+          udise: '1234567890',
+          program_id: 'program-a',
+          program_name: 'Program A',
+          program_managers: [],
+          field_coordinators: [],
+        },
+      ],
+      total: 1,
+    });
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenCalled(),
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Filter' }));
+
+    await screen.findByTestId('filter-option-program-program-a');
+
+    await user.click(screen.getByTestId('filter-option-program-program-a'));
+    await user.click(screen.getByRole('button', { name: 'apply' }));
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolMetricsForSchoolListing,
+      ).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          page: 1,
+          filters: expect.objectContaining({
+            program: ['program-a'],
+          }),
+        }),
+      ),
+    );
+
+    expect(screen.getByTestId('selected-filter-program')).toHaveTextContent(
+      'Program A',
+    );
+  });
+
   it('sends selected percentage bucket filters to the global listing request', async () => {
     const user = userEvent.setup();
     mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
