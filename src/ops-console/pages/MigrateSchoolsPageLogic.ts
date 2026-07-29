@@ -145,9 +145,18 @@ export const useMigrateSchoolsPageLogic = () => {
                       typeof value === 'string' && value.trim().length > 0,
                   )
               : [];
+          const incomingProgramOptions = toStringArray(data.program);
 
           setFilterOptions((prev) => ({
-            program: toStringArray(data.program),
+            program:
+              incomingProgramOptions.length > 0
+                ? Array.from(
+                    new Set([
+                      ...(prev.program || []),
+                      ...incomingProgramOptions,
+                    ]),
+                  )
+                : prev.program || [],
             programType: toStringArray(data.programType),
             state: toStringArray(data.state),
             district: toStringArray(data.district),
