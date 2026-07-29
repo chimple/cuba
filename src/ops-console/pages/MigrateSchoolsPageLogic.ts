@@ -124,16 +124,44 @@ export const useMigrateSchoolsPageLogic = () => {
       try {
         const data = await api.getSchoolFilterOptionsForSchoolListing();
         if (data) {
+          const toStringArray = (values: unknown[] | undefined) =>
+            Array.isArray(values)
+              ? values
+                  .map((item) => {
+                    if (typeof item === 'string') return item;
+                    if (
+                      item &&
+                      typeof item === 'object' &&
+                      !Array.isArray(item) &&
+                      'name' in item &&
+                      typeof (item as { name?: unknown }).name === 'string'
+                    ) {
+                      return (item as { name: string }).name;
+                    }
+                    return '';
+                  })
+                  .filter(
+                    (value): value is string =>
+                      typeof value === 'string' && value.trim().length > 0,
+                  )
+              : [];
+          const incomingProgramOptions = toStringArray(data.program);
+
           setFilterOptions((prev) => ({
             program:
-              Array.isArray(data.program) && data.program.length > 0
-                ? data.program
+              incomingProgramOptions.length > 0
+                ? Array.from(
+                    new Set([
+                      ...(prev.program || []),
+                      ...incomingProgramOptions,
+                    ]),
+                  )
                 : prev.program || [],
-            programType: data.programType || [],
-            state: data.state || [],
-            district: data.district || [],
-            cluster: data.cluster || [],
-            block: data.block || [],
+            programType: toStringArray(data.programType),
+            state: toStringArray(data.state),
+            district: toStringArray(data.district),
+            cluster: toStringArray(data.cluster),
+            block: toStringArray(data.block),
           }));
         }
       } catch (error) {
