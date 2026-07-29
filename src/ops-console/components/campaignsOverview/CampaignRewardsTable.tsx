@@ -39,7 +39,13 @@ const renderFilterSelect = (
   const selectValues = values.includes(value) ? values : [value, ...values];
 
   return (
-    <FormControl size="small" sx={{ minWidth: 150 }}>
+    <FormControl
+      size="small"
+      sx={{
+        flex: { xs: '1 1 0', sm: '0 0 auto' },
+        minWidth: { xs: 0, sm: 150 },
+      }}
+    >
       <Select
         value={value}
         onChange={(event) => onChange(String(event.target.value))}
@@ -47,7 +53,7 @@ const renderFilterSelect = (
         sx={{
           borderRadius: '999px',
           background: '#fff',
-          fontSize: 13,
+          fontSize: { xs: 11, sm: 13 },
           '& .MuiOutlinedInput-notchedOutline': { borderColor: '#E0E4E8' },
         }}
       >
@@ -102,7 +108,12 @@ export const CampaignRewardsReportHeader: React.FC<
         )
       </Typography>
     </Box>
-    <Box display="flex" gap={1.25} flexWrap="wrap">
+    <Box
+      display="flex"
+      gap={{ xs: 0.75, sm: 1.25 }}
+      flexWrap="nowrap"
+      sx={{ width: { xs: '100%', sm: 'auto' } }}
+    >
       {renderFilterSelect(schoolFilter, schoolOptions, onSchoolFilterChange)}
       {renderFilterSelect(classFilter, classOptions, onClassFilterChange)}
       <Button
@@ -113,8 +124,15 @@ export const CampaignRewardsReportHeader: React.FC<
           borderRadius: '999px',
           border: '1px solid #E0E4E8',
           color: '#1A71F6',
-          px: 2,
+          flex: { xs: '0 0 auto', sm: '0 0 auto' },
+          fontSize: { xs: 11, sm: 13 },
+          minWidth: { xs: 74, sm: 96 },
+          px: { xs: 1, sm: 2 },
           textTransform: 'none',
+          whiteSpace: 'nowrap',
+          '& .MuiButton-startIcon': {
+            mr: { xs: 0.25, sm: 1 },
+          },
         }}
       >
         {isExporting ? t('Exporting...') : t('Export')}
@@ -183,12 +201,14 @@ const CampaignRewardsTable: React.FC<CampaignRewardsTableProps> = ({
       component="article"
       sx={{
         '.data-tablebody-container': {
-          height: { xs: 420, md: 520 },
-          maxHeight: { xs: 420, md: 520 },
+          height: 'auto',
+          maxHeight: 'none',
           marginBottom: 0,
-          overflow: 'auto',
+          overflowX: 'auto',
+          overflowY: 'visible',
+          overscrollBehavior: 'auto',
           WebkitOverflowScrolling: 'touch',
-          touchAction: 'pan-x pan-y',
+          touchAction: 'pan-x',
         },
         '.MuiTableCell-stickyHeader, .data-tablebody-head-cell': {
           overflow: 'visible',

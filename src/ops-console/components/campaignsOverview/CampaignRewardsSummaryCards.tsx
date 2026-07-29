@@ -62,9 +62,9 @@ const CampaignRewardsSummaryCards: React.FC<
             <Typography
               sx={{
                 color: '#121619',
-                fontSize: 28,
+                fontSize: { xs: 22, sm: 28 },
                 fontWeight: 700,
-                lineHeight: '30px',
+                lineHeight: { xs: '26px', sm: '30px' },
               }}
             >
               {card.count}
@@ -73,9 +73,9 @@ const CampaignRewardsSummaryCards: React.FC<
               <Typography
                 sx={{
                   color: '#1A71F6',
-                  fontSize: 22,
+                  fontSize: { xs: 22, sm: 28 },
                   fontWeight: 700,
-                  lineHeight: '26px',
+                  lineHeight: { xs: '26px', sm: '30px' },
                 }}
               >
                 {card.percent}%
