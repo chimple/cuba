@@ -13,6 +13,7 @@ describe('buildSchoolListExportSheetRows', () => {
         school_performance: 'green',
         district: 'Pune',
         udise: '1234567890',
+        field_coordinators: ['Field Coordinator 1'],
         onboarded_students: 100,
         activated_students: 80,
         active_students: 60,
@@ -37,6 +38,7 @@ describe('buildSchoolListExportSheetRows', () => {
       [
         'School Name',
         'UDISE',
+        'Field Coordinator',
         'Block',
         'School Performance',
         'Onboarded Students',
@@ -62,6 +64,7 @@ describe('buildSchoolListExportSheetRows', () => {
       [
         'Alpha School',
         '1234567890',
+        'Field Coordinator 1',
         '--',
         'High Performing',
         '100',
@@ -118,6 +121,7 @@ describe('buildSchoolListExportSheetRows', () => {
     expect(exportRows[1]).toHaveLength(exportRows[0].length);
     expect(exportRows[1]).toEqual([
       'Beta School',
+      '--',
       '--',
       '--',
       '--',

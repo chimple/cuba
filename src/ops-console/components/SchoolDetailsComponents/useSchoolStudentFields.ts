@@ -19,7 +19,7 @@ type UseSchoolStudentFieldsParams = {
 const getAgeOptions = () => [
   {
     value: AGE_OPTIONS.LESS_THAN_EQUAL_4,
-    label: `â‰¤${t('4 years')}`,
+    label: `${t('Up to')} ${t('4 years')}`,
   },
   { value: AGE_OPTIONS.FIVE, label: t('5 years') },
   { value: AGE_OPTIONS.SIX, label: t('6 years') },
@@ -28,7 +28,7 @@ const getAgeOptions = () => [
   { value: AGE_OPTIONS.NINE, label: t('9 years') },
   {
     value: AGE_OPTIONS.GREATER_THAN_EQUAL_10,
-    label: `â‰¥${t('10 years')}`,
+    label: `${t('10 years')}+`,
   },
 ];
 
@@ -69,7 +69,6 @@ export const useSchoolStudentFields = ({
         name: 'gender',
         label: 'Gender',
         kind: 'select',
-        required: true,
         column: issTotal ? 1 : 0,
         options: genderOptions(),
       },
@@ -89,7 +88,6 @@ export const useSchoolStudentFields = ({
         name: 'ageGroup',
         label: 'Age',
         kind: 'select',
-        required: true,
         placeholder: 'Select Age Group',
         column: issTotal ? 1 : 1,
         options: getAgeOptions(),

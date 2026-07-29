@@ -177,7 +177,7 @@ export const useSchoolStudentActions = ({
           phone: normalizedPhone,
           name: formValues.studentName || '',
           gender: formValues.gender || '',
-          age: formValues.ageGroup || '',
+          age: formValues.ageGroup || null,
           classId: classId,
           schoolId: schoolId,
           studentID: formValues.studentID || '',
