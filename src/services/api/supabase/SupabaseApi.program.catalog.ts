@@ -1,8 +1,19 @@
-import { OPS_ROLES } from '../../../common/constants';
+import { OPS_ROLES, TABLES } from '../../../common/constants';
 import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { Json } from '../../database';
 import { SupabaseApiProgramFoundation } from './SupabaseApi.program.foundation';
+
+const SCHOOL_METRIC_GRADE_BATCH_SIZE = 1000;
+
+const mergeGradeIds = (
+  gradeIds: Set<string>,
+  rows: Array<{ grade_id?: string | null }>,
+) => {
+  rows.forEach((row) => {
+    if (row.grade_id) gradeIds.add(row.grade_id);
+  });
+};
 
 export interface SupabaseApiProgramCatalog {
   [key: string]: any;
@@ -151,14 +162,14 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
     };
 
     try {
-      const [{ data, error }, gradeResult] = await Promise.all([
+      const [{ data, error }, metricGradeResult] = await Promise.all([
         this.supabase.rpc('get_school_filter_options'),
         this.supabase
-          .from('grade')
-          .select('name, sort_index')
+          .from(TABLES.SchoolMetrics)
+          .select('grade_id', { count: 'exact' })
           .eq('is_deleted', false)
-          .order('sort_index', { ascending: true })
-          .order('name', { ascending: true }),
+          .not('grade_id', 'is', null)
+          .range(0, SCHOOL_METRIC_GRADE_BATCH_SIZE - 1),
       ]);
 
       if (error) {
@@ -174,6 +185,59 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
       }
 
       const rpcData = data as Record<string, Json>;
+      const gradeIds = new Set<string>();
+      mergeGradeIds(gradeIds, metricGradeResult.data ?? []);
+
+      let fetchedGradeRows = metricGradeResult.data?.length ?? 0;
+      const totalGradeRows = metricGradeResult.count ?? fetchedGradeRows;
+      while (fetchedGradeRows < totalGradeRows) {
+        const { data: nextGradeRows, error: nextGradeRowsError } =
+          await this.supabase
+            .from(TABLES.SchoolMetrics)
+            .select('grade_id')
+            .eq('is_deleted', false)
+            .not('grade_id', 'is', null)
+            .range(
+              fetchedGradeRows,
+              fetchedGradeRows + SCHOOL_METRIC_GRADE_BATCH_SIZE - 1,
+            );
+
+        if (nextGradeRowsError) {
+          logger.error(
+            'Error fetching grade ids from school_metrics:',
+            nextGradeRowsError,
+          );
+          break;
+        }
+
+        const rows = nextGradeRows ?? [];
+        if (rows.length === 0) break;
+
+        mergeGradeIds(gradeIds, rows);
+        fetchedGradeRows += rows.length;
+      }
+
+      const gradeResult =
+        gradeIds.size > 0
+          ? await this.supabase
+              .from('grade')
+              .select('id, name, sort_index')
+              .in('id', Array.from(gradeIds))
+              .eq('is_deleted', false)
+              .order('sort_index', { ascending: true })
+              .order('name', { ascending: true })
+          : { data: [], error: null };
+
+      if (metricGradeResult.error) {
+        logger.error(
+          'Error fetching grade ids from school_metrics:',
+          metricGradeResult.error,
+        );
+      }
+      if (gradeResult.error) {
+        logger.error('Error fetching grade labels:', gradeResult.error);
+      }
+
       const gradeOptions = (gradeResult.data ?? [])
         .map((grade) => (typeof grade.name === 'string' ? grade.name : ''))
         .filter((name) => name.trim().length > 0);
