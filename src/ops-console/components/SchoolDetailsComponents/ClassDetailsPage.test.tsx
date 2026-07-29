@@ -90,8 +90,15 @@ describe('ClassDetailsPage', () => {
 
     await waitFor(() => expect(mockSchoolStudents).toHaveBeenCalled());
 
+    await waitFor(() =>
+      expect(mockApiHandler.getActiveStudentsCountByClass).toHaveBeenCalledWith(
+        'class-1',
+      ),
+    );
+    expect(mockApiHandler.getStudentInfoBySchoolId).not.toHaveBeenCalled();
     expect(mockSchoolStudents.mock.calls[0][0]).toEqual(
       expect.objectContaining({
+        optionalClassId: 'class-1',
         data: expect.objectContaining({
           classData: classRows,
         }),

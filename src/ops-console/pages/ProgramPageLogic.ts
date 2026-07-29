@@ -10,12 +10,6 @@ import {
   DEFAULT_DATE_RANGE,
   DEFAULT_PROGRAM_PAGE_SIZE,
   createEmptyProgramFilters,
-  getProgramSelectedFilterLabel,
-  getProgramSelectedFilterText,
-  programFilterConfigs,
-  programTabOptions,
-  PROGRAM_HEADER_PERCENT_FILTER_BY_COLUMN,
-  PROGRAM_PERCENT_FILTERS,
   type DateRangeValue,
   type Filters,
 } from './ProgramPageConfig';
@@ -176,6 +170,7 @@ export const useProgramPageLogic = () => {
   const [orderBy, setOrderBy] = useState('programName');
   const [orderDir, setOrderDir] = useState<'asc' | 'desc'>('asc');
   const tableScrollRef = useRef<HTMLDivElement>(null);
+  const hasLoadedFilterOptionsRef = useRef(false);
   const debouncedSearchTerm = useDebouncedValue(searchTerm, 500);
   const isSearchPending = searchTerm !== debouncedSearchTerm;
   const pageSize = DEFAULT_PROGRAM_PAGE_SIZE;
@@ -214,20 +209,21 @@ export const useProgramPageLogic = () => {
 
   useEffect(() => setTempFilters(filters), [filters]);
 
-  useEffect(() => {
-    const fetchFilterOptions = async (): Promise<void> => {
-      setIsFilterLoading(true);
-      try {
-        setFilterOptions(
-          mapProgramFilterOptions(await api.getProgramFilterOptions()),
-        );
-      } catch (error) {
-        logger.error('Failed to fetch program filters', error);
-      } finally {
-        setIsFilterLoading(false);
-      }
-    };
-    fetchFilterOptions();
+  const handleOpenFilters = useCallback(async (): Promise<void> => {
+    setIsFilterOpen(true);
+    if (hasLoadedFilterOptionsRef.current) return;
+
+    setIsFilterLoading(true);
+    try {
+      setFilterOptions(
+        mapProgramFilterOptions(await api.getProgramFilterOptions()),
+      );
+      hasLoadedFilterOptionsRef.current = true;
+    } catch (error) {
+      logger.error('Failed to fetch program filters', error);
+    } finally {
+      setIsFilterLoading(false);
+    }
   }, [api]);
 
   useEffect(() => {
@@ -287,6 +283,7 @@ export const useProgramPageLogic = () => {
     filterOptions,
     handleClearFilters,
     handleExportPrograms,
+    handleOpenFilters,
     handleHeaderFilterChange,
     handleSort,
     history,

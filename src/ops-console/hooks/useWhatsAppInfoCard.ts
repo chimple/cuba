@@ -6,7 +6,60 @@ import { AuthState } from '../../redux/slices/auth/authSlice';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { ServiceConfig } from '../../services/ServiceConfig';
+import type { ApiHandler } from '../../services/api/ApiHandler';
+import type { Json } from '../../services/database';
 import logger from '../../utility/logger';
+import { normalizeIndianPhone10 } from '../utils/phoneNormalization';
+
+type WhatsAppGroupDetails = {
+  name?: string;
+  members?: string[];
+  inviteLink?: string;
+};
+
+// Narrow the external group response before reading its optional fields.
+const parseWhatsAppGroupDetails = (group: Json): WhatsAppGroupDetails | null =>
+  typeof group === 'object' && group !== null && !Array.isArray(group)
+    ? (group as WhatsAppGroupDetails)
+    : null;
+
+// Count only class contacts found in the group to exclude unrelated participants.
+const countMatchingWhatsAppMembers = (
+  groupMembers: string[],
+  contactPhones: string[],
+): number => {
+  const normalizedGroupMembers = new Set<string>();
+  groupMembers.forEach((member) => {
+    const phone = normalizeIndianPhone10(member);
+    if (phone) normalizedGroupMembers.add(phone);
+  });
+
+  const matchedContactPhones = new Set<string>();
+  contactPhones.forEach((contactPhone) => {
+    const phone = normalizeIndianPhone10(contactPhone);
+    if (phone && normalizedGroupMembers.has(phone)) {
+      matchedContactPhones.add(phone);
+    }
+  });
+  return matchedContactPhones.size;
+};
+
+const fetchMatchedMemberCount = async (
+  api: ApiHandler,
+  classId: string,
+  groupMembers: string[],
+): Promise<number> => {
+  // Fetch every parent and teacher phone so the count covers all class contacts.
+  const [parentPhones, teachers] = await Promise.all([
+    api.getParentWhatsappParentPhonesByClassId(classId),
+    api.getTeachersForClass(classId),
+  ]);
+  const contactPhones = [
+    ...parentPhones,
+    ...(teachers ?? []).map((teacher) => teacher.phone ?? ''),
+  ];
+  return countMatchingWhatsAppMembers(groupMembers, contactPhones);
+};
 
 export const useWhatsAppInfoCard = ({
   classData,
@@ -77,14 +130,7 @@ export const useWhatsAppInfoCard = ({
         );
         if (!isMounted) return;
 
-        const parsedGroup =
-          typeof group === 'object' && group !== null && !Array.isArray(group)
-            ? (group as {
-                name?: string;
-                members?: string[];
-                inviteLink?: string;
-              })
-            : null;
+        const parsedGroup = parseWhatsAppGroupDetails(group);
 
         if (parsedGroup === null) {
           setGroupName(null);
@@ -96,14 +142,20 @@ export const useWhatsAppInfoCard = ({
           return;
         }
 
-        const parsedMembers = Array.isArray(parsedGroup?.members)
-          ? (parsedGroup?.members ?? [])
+        const groupMembers = Array.isArray(parsedGroup.members)
+          ? parsedGroup.members
           : [];
+        const matchedMemberCount = await fetchMatchedMemberCount(
+          api,
+          updatedClass.id,
+          groupMembers,
+        );
+        if (!isMounted) return;
 
-        setGroupName(parsedGroup?.name ?? null);
-        setEditedGroupName(parsedGroup?.name ?? '');
-        setMembers(parsedMembers.length);
-        setInviteLink(parsedGroup?.inviteLink ?? null);
+        setGroupName(parsedGroup.name ?? null);
+        setEditedGroupName(parsedGroup.name ?? '');
+        setMembers(matchedMemberCount);
+        setInviteLink(parsedGroup.inviteLink ?? null);
         setIsChangingGroup(false);
         setIsDisconnectedGroup(false);
       } catch (err) {
@@ -199,8 +251,17 @@ export const useWhatsAppInfoCard = ({
         linkedClassId,
       );
       if (result) {
+        // Refresh the linked group because invite lookup returns only a raw count.
+        const group = await api.getWhatsappGroupDetails(result.group_id, bot);
+        const parsedGroup = parseWhatsAppGroupDetails(group);
+        const groupMembers = Array.isArray(parsedGroup?.members)
+          ? parsedGroup.members
+          : [];
+        const matchedMemberCount = linkedClassId
+          ? await fetchMatchedMemberCount(api, linkedClassId, groupMembers)
+          : 0;
         setGroupName(result.group_name);
-        setMembers(result.members);
+        setMembers(matchedMemberCount);
         setInviteLink(normalized);
         setClassDoc((prev) =>
           prev ? { ...prev, group_id: result.group_id } : prev,

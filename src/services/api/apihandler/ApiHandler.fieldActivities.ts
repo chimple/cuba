@@ -9,6 +9,10 @@ import {
   UserSchoolClassResult,
 } from '../../../ops-console/pages/NewUserPageOps';
 import { FCSchoolStats } from '../../../ops-console/pages/SchoolDetailsPage';
+import type {
+  TeacherAssignmentCountMap,
+  TeacherAssignmentCountPair,
+} from '../serviceapi/ServiceApi.fieldActivities';
 
 export class ApiHandlerFieldActivities extends ApiHandlerOpsUsers {
   async getActiveStudentsCountByClass(classId: string): Promise<string> {
@@ -116,11 +120,10 @@ export class ApiHandlerFieldActivities extends ApiHandlerOpsUsers {
     return this.s.getActivitiesFilterOptions();
   }
 
-  async getRecentAssignmentCountByTeacher(
-    teacherId: string,
-    classId: string,
-  ): Promise<number | null> {
-    return await this.s.getRecentAssignmentCountByTeacher(teacherId, classId);
+  async getRecentAssignmentCountsByTeachers(
+    pairs: TeacherAssignmentCountPair[],
+  ): Promise<TeacherAssignmentCountMap> {
+    return await this.s.getRecentAssignmentCountsByTeachers(pairs);
   }
 
   async createNoteForSchool(params: {

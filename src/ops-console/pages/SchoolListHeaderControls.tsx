@@ -37,6 +37,7 @@ type SchoolListHeaderControlsProps = {
   handleExportSchools: () => void;
   handleOpenActionsMenu: (event: React.MouseEvent<HTMLButtonElement>) => void;
   handleOpenAddSchoolPage: () => void;
+  handleOpenFilters: () => void;
   handleOpenMigratePage: () => void;
   handleOpenUploadPage: () => void;
   handleSelectDateRange: (nextRange: DateRangeValue) => void;
@@ -76,6 +77,7 @@ export default function SchoolListHeaderControls({
   handleExportSchools,
   handleOpenActionsMenu,
   handleOpenAddSchoolPage,
+  handleOpenFilters,
   handleOpenMigratePage,
   handleOpenUploadPage,
   handleSelectDateRange,
@@ -265,7 +267,7 @@ export default function SchoolListHeaderControls({
             <Button
               startIcon={<FilterListIcon fontSize="small" />}
               className="filter-button-SearchAndFilter school-list-top-filter-button"
-              onClick={() => setIsFilterOpen(true)}
+              onClick={handleOpenFilters}
             >
               <span style={{ color: 'black' }}>{t('Filter')}</span>
             </Button>

@@ -2,6 +2,10 @@ import { EnumType, TABLES, TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
 import { SupabaseApiProgramClassManagement } from './SupabaseApi.program.classManagement';
+import type {
+  TeacherAssignmentCountMap,
+  TeacherAssignmentCountPair,
+} from '../serviceapi/ServiceApi.fieldActivities';
 
 export interface SupabaseApiProgramFieldCoordinator {
   [key: string]: any;
@@ -184,32 +188,73 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     }
   }
 
-  async getRecentAssignmentCountByTeacher(
-    teacherId: string,
-    classId: string,
-  ): Promise<number | null> {
-    if (!this.supabase) return null;
+  async getRecentAssignmentCountsByTeachers(
+    pairs: TeacherAssignmentCountPair[],
+  ): Promise<TeacherAssignmentCountMap> {
+    const normalizedPairs = Array.from(
+      new Map(
+        pairs
+          .map((pair) => ({
+            teacherId: String(pair.teacherId ?? '').trim(),
+            classId: String(pair.classId ?? '').trim(),
+          }))
+          .filter((pair) => pair.teacherId && pair.classId)
+          .map((pair) => [`${pair.teacherId}:${pair.classId}`, pair]),
+      ).values(),
+    );
+    const counts: TeacherAssignmentCountMap = {};
+    normalizedPairs.forEach((pair) => {
+      counts[`${pair.teacherId}:${pair.classId}`] = 0;
+    });
 
+    if (!this.supabase || normalizedPairs.length === 0) return counts;
+
+    const teacherIds = Array.from(
+      new Set(normalizedPairs.map((pair) => pair.teacherId)),
+    );
+    const classIds = Array.from(
+      new Set(normalizedPairs.map((pair) => pair.classId)),
+    );
+    const requestedPairKeys = new Set(Object.keys(counts));
+    const batchIdsByPair = new Map<string, Set<string | null>>();
     const SEVEN_DAYS_AGO = new Date(
       Date.now() - 7 * 24 * 60 * 60 * 1000,
     ).toISOString();
 
     const { data, error } = await this.supabase
       .from(TABLES.Assignment)
-      .select('batch_id')
-      .eq('created_by', teacherId)
-      .eq('class_id', classId)
+      .select('created_by, class_id, batch_id')
+      .in('created_by', teacherIds)
+      .in('class_id', classIds)
       .eq('is_deleted', false)
       .gte('created_at', SEVEN_DAYS_AGO);
 
     if (error) {
-      logger.error('Error fetching assignments:', error);
-      return null;
+      logger.error('Error fetching assignment counts:', error);
+      return Object.fromEntries(
+        normalizedPairs.map((pair) => [
+          `${pair.teacherId}:${pair.classId}`,
+          null,
+        ]),
+      );
     }
 
-    if (!data || data.length === 0) return 0;
+    (data ?? []).forEach((row) => {
+      const teacherId = String(row.created_by ?? '').trim();
+      const classId = String(row.class_id ?? '').trim();
+      const pairKey = `${teacherId}:${classId}`;
+      if (!requestedPairKeys.has(pairKey)) return;
+      if (!batchIdsByPair.has(pairKey)) {
+        batchIdsByPair.set(pairKey, new Set());
+      }
+      batchIdsByPair.get(pairKey)?.add(row.batch_id ?? null);
+    });
 
-    return new Set(data.map((row) => row.batch_id)).size;
+    batchIdsByPair.forEach((batchIds, pairKey) => {
+      counts[pairKey] = batchIds.size;
+    });
+
+    return counts;
   }
 
   async createNoteForSchool(params: {
