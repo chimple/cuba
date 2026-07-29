@@ -138,7 +138,7 @@ export function useSchoolClassAddStudent({
         phone: normalizedPhone,
         name: formValues.studentName || '',
         gender: formValues.gender || '',
-        age: formValues.ageGroup || '',
+        age: formValues.ageGroup || null,
         classId: classForStudent.id,
         schoolId: schoolId,
         studentID: formValues.studentID || '',

@@ -84,7 +84,7 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
     phone?: string;
     name: string;
     gender: string;
-    age: string;
+    age: string | null;
     classId: string;
     schoolId?: string;
     parentName?: string;
@@ -110,6 +110,8 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
     } = params;
     const timestamp = new Date().toISOString();
     const finalAvatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
+    const parsedAge = age === null || age === '' ? NaN : Number(age);
+    const normalizedAge = Number.isNaN(parsedAge) ? null : parsedAge;
     try {
       let languageId;
       if (schoolId) {
@@ -135,7 +137,7 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
             id: childId,
             name: name,
             gender: gender,
-            age: parseInt(age) || 0,
+            age: normalizedAge,
             language_id: languageId,
             avatar: finalAvatar,
             created_at: timestamp,
@@ -227,7 +229,7 @@ export class SupabaseApiProgramClassManagement extends SupabaseApiProgramEnrollm
           id: childId,
           name: name,
           gender: gender,
-          age: parseInt(age) || 0,
+          age: normalizedAge,
           language_id: languageId,
           avatar: finalAvatar,
           created_at: timestamp,
