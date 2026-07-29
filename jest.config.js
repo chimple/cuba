@@ -60,6 +60,7 @@ module.exports = {
       '<rootDir>/src/tests/__mocks__/@capacitor-firebase/messaging.ts',
     '^@capacitor-firebase/remote-config$':
       '<rootDir>/src/tests/__mocks__/@capacitor-firebase/remote-config.ts',
+    '^@sentry/capacitor$': '<rootDir>/src/tests/__mocks__/@sentry/capacitor.ts',
     '^@capawesome/capacitor-app-update$':
       '<rootDir>/src/tests/__mocks__/@capawesome/capacitor-app-update.ts',
     '^@capawesome/capacitor-live-update$':

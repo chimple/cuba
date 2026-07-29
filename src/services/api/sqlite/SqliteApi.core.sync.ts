@@ -11,6 +11,10 @@ import {
 } from '../../../common/constants';
 import Lesson from '../../../models/Lesson';
 import logger from '../../../utility/logger';
+import {
+  createSyncPhaseTimer,
+  reportSyncError,
+} from '../../../utility/syncTelemetry';
 import { Util } from '../../../utility/util';
 import type { SqlStatement } from '../../../workers/background.worker.types';
 import { runBackgroundWorkerStreamingSync } from '../../../workers/backgroundWorkerClient';
@@ -90,15 +94,18 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
       await this.createSyncTables();
     }
     let data = new Map<string, any[]>();
+    let pullWatermark = new Date().toISOString();
     if (isInitialFetch === true) {
       let attempt = 1;
       const maxAttempts = 5;
       while (true) {
         try {
+          pullWatermark = new Date().toISOString();
           data = await this._serverApi.getTablesData(
             orderedTableNames,
             lastPullTables,
             isInitialFetch,
+            pullWatermark,
           );
           break;
         } catch (err) {
@@ -109,22 +116,12 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
             attempt += 1;
             continue;
           }
-          logger.warn('? All retries failed. Truncating local tables...');
-          if (!this._db) return;
-          const query = `PRAGMA foreign_keys=OFF;`;
-          const result = await this._db?.query(query);
-          logger.info(result);
-          for (const table of orderedTableNames) {
-            const tableDel = `DELETE FROM "${table}";`;
-            const res = await this._db.query(tableDel);
-            logger.info(res);
-          }
-          const vaccum = `VACUUM;`;
-          const resv = await this._db.query(vaccum);
-          logger.info(resv);
-          const querys = `PRAGMA foreign_keys=ON;`;
-          const results = await this._db?.query(querys);
-          logger.info(results);
+          logger.warn('? All retries failed. Keeping local data unchanged.');
+          await reportSyncError('pull_curriculum_retry_exhausted', err, {
+            attempt_count: attempt,
+            is_initial_fetch: true,
+            table_count: orderedTableNames.length,
+          });
           const userWantsRetry = await this.showToastWithRetry(
             'Sync failed. Retry now?',
           );
@@ -138,14 +135,16 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
         }
       }
     } else {
+      pullWatermark = new Date().toISOString();
       data = await this._serverApi.getTablesData(
         orderedTableNames,
         lastPullTables,
         isInitialFetch,
+        pullWatermark,
       );
     }
 
-    const lastPulled = new Date().toISOString();
+    const lastPulled = pullWatermark;
     const syncWriteTuning = this.getSyncWriteTuning();
     const DEFAULT_DB_BATCH_SIZE = syncWriteTuning.defaultBatchSize;
     const SAFE_USER_BATCH_SIZE = syncWriteTuning.userTableBatchSize;
@@ -178,6 +177,7 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
     const isWebPlatform = this.isWebPlatform();
     let syncWriteTransactionOpen = false;
     let webStoreDirty = false;
+    let syncBatchesWritten = 0;
 
     const beginSyncWriteTransaction = async () => {
       if (!this._db || syncWriteTransactionOpen) return;
@@ -219,7 +219,19 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
       if (isWebPlatform) {
         webStoreDirty = true;
       }
+      syncBatchesWritten += 1;
+      if (syncBatchesWritten % 3 === 0) {
+        await new Promise<void>((resolve) => window.setTimeout(resolve, 0));
+      }
     };
+    const totalRowsToWrite = Object.values(tablesForWorker).reduce(
+      (count, rows) => count + rows.length,
+      0,
+    );
+    const sqliteTimer = createSyncPhaseTimer('pull_sqlite_transaction', {
+      table_count: Object.keys(tablesForWorker).length,
+      row_count: totalRowsToWrite,
+    });
 
     try {
       await beginSyncWriteTransaction();
@@ -342,8 +354,15 @@ export class SqliteApiCoreSync extends SqliteApiCoreBundledImport {
 
       await writeSyncBatch(pullSyncStatements);
       await commitSyncWriteTransaction();
+      sqliteTimer.finish('success');
     } catch (error) {
       await rollbackSyncWriteTransaction();
+      const durationMs = sqliteTimer.finish('error');
+      await reportSyncError('pull_sqlite_transaction', error, {
+        duration_ms: durationMs,
+        table_count: Object.keys(tablesForWorker).length,
+        row_count: totalRowsToWrite,
+      });
       throw error;
     }
 

@@ -9,6 +9,10 @@ import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
 } from '../../../teachers-module/pages/AssignmentCartStorage';
+import {
+  createSyncPhaseTimer,
+  reportSyncError,
+} from '../../../utility/syncTelemetry';
 import { Util } from '../../../utility/util';
 import { Json } from '../../database';
 
@@ -22,6 +26,8 @@ const TABLES_EXCLUDED_FROM_SYNC = new Set<TABLES>([
   TABLES.FcSchoolVisit,
   TABLES.FcUserForms,
 ]);
+
+const SYNC_RPC_TIMEOUT_MS = 60000;
 
 export class SupabaseApiCoreSync extends SupabaseApiCoreFoundation {
   async addProfileImages(
@@ -365,26 +371,56 @@ export class SupabaseApiCoreSync extends SupabaseApiCoreFoundation {
     tableNames: TABLES[] = Object.values(TABLES),
     tablesLastModifiedTime: Map<string, string> = new Map(),
     isInitialFetch = false,
+    syncUntil?: string,
   ): Promise<Map<string, any[]>> {
+    const DEFAULT_LAST_MODIFIED = '2024-01-01T00:00:00.000Z';
+    const syncTableNames = tableNames.filter(
+      (tableName) => !TABLES_EXCLUDED_FROM_SYNC.has(tableName),
+    );
+    const updatedAtPayload: Record<string, string> = {};
+    for (const tableName of syncTableNames) {
+      updatedAtPayload[tableName] =
+        tablesLastModifiedTime.get(tableName) ?? DEFAULT_LAST_MODIFIED;
+    }
+
     try {
       const data = new Map<string, any[]>();
-      const DEFAULT_LAST_MODIFIED = '2024-01-01T00:00:00.000Z';
-      const syncTableNames = tableNames.filter(
-        (tableName) => !TABLES_EXCLUDED_FROM_SYNC.has(tableName),
-      );
-      const updatedAtPayload: Record<string, string> = {};
-      for (const tableName of syncTableNames) {
-        // TABLES.User -> "user", TABLES.Class -> "class", etc.
-        updatedAtPayload[tableName] =
-          tablesLastModifiedTime.get(tableName) ?? DEFAULT_LAST_MODIFIED;
-      }
-      const res = await this.supabase?.rpc('sql_sync_all', {
+      const networkTimer = createSyncPhaseTimer('pull_network_request', {
+        is_initial_fetch: isInitialFetch,
+        table_count: syncTableNames.length,
+      });
+      const payloadTimer = createSyncPhaseTimer('pull_json_parse', {
+        table_count: syncTableNames.length,
+      });
+      const request = this.supabase?.rpc('sql_sync_all', {
         p_updated_at: updatedAtPayload,
         p_tables: syncTableNames,
-        p_is_first_time: isInitialFetch, // TABLES[] should be string[] under the hood
+        p_is_first_time: isInitialFetch,
       });
-      logger.warn('pulled results', res);
+      const rpcAbortController = new AbortController();
+      const rpcTimeoutId = window.setTimeout(() => {
+        rpcAbortController.abort();
+      }, SYNC_RPC_TIMEOUT_MS);
+      let res;
+      try {
+        res = await request?.abortSignal(rpcAbortController.signal);
+      } catch (rpcError) {
+        networkTimer.finish('error');
+        if (
+          rpcError instanceof DOMException &&
+          rpcError.name === 'AbortError'
+        ) {
+          throw new Error(
+            `sql_sync_all timed out after ${SYNC_RPC_TIMEOUT_MS}ms`,
+          );
+        }
+        throw rpcError;
+      } finally {
+        window.clearTimeout(rpcTimeoutId);
+      }
+
       if (res == null || res.error || !res.data) {
+        networkTimer.finish('error');
         let parent_user;
         try {
           parent_user = await ServiceConfig.getI().authHandler.getCurrentUser();
@@ -401,13 +437,28 @@ export class SupabaseApiCoreSync extends SupabaseApiCoreFoundation {
           error_hint: res?.error?.hint || null,
           error_message: res?.error?.message || null,
         });
+        throw (
+          res?.error ?? new Error('sql_sync_all returned an empty response')
+        );
       }
-      syncTableNames.map(async (tableName) => {
-        const payload =
-          res?.data && typeof res.data === 'object' && !Array.isArray(res.data)
-            ? (res.data as Record<string, Json>)
-            : {};
-        data.set(tableName, (payload[tableName] as Json[]) ?? []);
+
+      const payload =
+        res.data && typeof res.data === 'object' && !Array.isArray(res.data)
+          ? (res.data as Record<string, Json>)
+          : {};
+      let totalRows = 0;
+      for (const tableName of syncTableNames) {
+        const tableRows = (payload[tableName] as Json[]) ?? [];
+        totalRows += tableRows.length;
+        data.set(tableName, tableRows);
+      }
+
+      const networkDurationMs = networkTimer.finish('success', {
+        row_count: totalRows,
+      });
+      payloadTimer.finish('success', {
+        duration_ms: networkDurationMs,
+        row_count: totalRows,
       });
       return data;
     } catch (err: any) {
@@ -423,6 +474,11 @@ export class SupabaseApiCoreSync extends SupabaseApiCoreFoundation {
         user_username: parent_user?.email || null,
         last_modified_date: 'not found',
         error_message: err || 'Unknown error',
+      });
+      await reportSyncError('pull_network_request', err, {
+        is_initial_fetch: isInitialFetch,
+        table_count: syncTableNames.length,
+        sync_until: syncUntil ?? null,
       });
       logger.error(':rocket: ~ Api ~ getTablesData ~ error:', err);
       throw err;
