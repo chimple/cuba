@@ -32,6 +32,13 @@ export interface ServiceApiStudentProgress {
     source?: SOURCE | undefined,
   ): Promise<TableTypes<'result'>>;
 
+  getLessonLastPlayed(lessonIds: string[]): Promise<
+    {
+      lesson_id: string;
+      last_played: string | null;
+    }[]
+  >;
+
   getStudentResult(
     studentId: string,
     fromCache?: boolean,

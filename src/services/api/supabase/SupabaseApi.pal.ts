@@ -6,6 +6,48 @@ export interface SupabaseApiPal {
   [key: string]: any;
 }
 export class SupabaseApiPal extends SupabaseApiWhatsApp {
+  async getLessonLastPlayed(lessonIds: string[]): Promise<
+    {
+      lesson_id: string;
+      last_played: string | null;
+    }[]
+  > {
+    if (!this.supabase || lessonIds.length === 0 || !this._currentStudent?.id) {
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Result)
+      .select('updated_at, lesson:lesson_id(lido_lesson_id, cocos_lesson_id)')
+      .eq('student_id', this._currentStudent.id)
+      .eq('is_deleted', false)
+      .not('updated_at', 'is', null)
+      .order('updated_at', { ascending: false });
+
+    if (error) {
+      logger.error('Error fetching lesson last played from Supabase:', error);
+      return [];
+    }
+
+    const lastPlayedByLesson = new Map<string, string>();
+    for (const row of data ?? []) {
+      const lessonId =
+        row?.lesson?.lido_lesson_id ?? row?.lesson?.cocos_lesson_id;
+      if (!lessonId || lastPlayedByLesson.has(lessonId)) {
+        continue;
+      }
+      lastPlayedByLesson.set(
+        lessonId,
+        row.updated_at ?? new Date().toISOString(),
+      );
+    }
+
+    return lessonIds.map((lessonId) => ({
+      lesson_id: lessonId,
+      last_played: lastPlayedByLesson.get(lessonId) ?? null,
+    }));
+  }
+
   async getDomainsBySubjectAndFramework(
     subjectId: string,
     frameworkId: string,

@@ -145,4 +145,10 @@ export class ApiHandlerStudentProgress extends ApiHandlerContentCatalog {
   ): Promise<TableTypes<'assignment'>[]> {
     return this.s.getLatestAssessmentGroup(classId, student, courseId);
   }
+
+  async getLessonLastPlayed(
+    lessonIds: string[],
+  ): Promise<{ lesson_id: string; last_played: string | null }[]> {
+    return this.s.getLessonLastPlayed(lessonIds);
+  }
 }
