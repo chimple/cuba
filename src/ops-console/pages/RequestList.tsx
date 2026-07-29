@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  IconButton,
-  Tab,
-  Tabs,
-  Typography,
-} from '@mui/material';
+import { Box, IconButton, Tab, Tabs, Typography } from '@mui/material';
 import { REQUEST_TABS } from '../../common/constants';
 import DataTablePagination from '../components/DataTablePagination';
 import DataTableBody from '../components/DataTableBody';
@@ -28,6 +22,7 @@ const RequestList: React.FC = () => {
     filters,
     handleCancelFilters,
     handleDeleteFilter,
+    handleOpenFilters,
     handleRowClick,
     handleSort,
     handleTabChange,
@@ -90,7 +85,7 @@ const RequestList: React.FC = () => {
                   setSearchTerm(e.target.value);
                 }}
                 filters={filters}
-                onFilterClick={() => setIsFilterOpen(true)}
+                onFilterClick={handleOpenFilters}
                 onClearFilters={handleCancelFilters}
               />
             </div>

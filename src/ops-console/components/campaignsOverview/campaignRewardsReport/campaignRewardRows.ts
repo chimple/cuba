@@ -27,7 +27,10 @@ export const parseCampaignRewards = (
 
 export const getCampaignRewardTypeLabel = (
   rewards?: CampaignRewardsPayload | null,
-) => (rewards?.type === 'digital_rewards' ? t('Reward') : t('Physical Reward'));
+) =>
+  rewards?.type === 'physical_rewards'
+    ? t('Physical Reward')
+    : t('Digital Reward');
 
 const getRewardLabelForRank = (
   rewards: CampaignRewardsPayload | null,
@@ -96,14 +99,14 @@ export const buildCampaignRewardColumns = (
   {
     key: 'completionPercent',
     label: t('COMPLETION %'),
-    width: 140,
+    width: 170,
     sortable: true,
     align: 'center',
   },
   {
     key: 'rewardRank',
     label: t('REWARD RANK'),
-    width: 120,
+    width: 160,
     sortable: true,
     align: 'center',
   },

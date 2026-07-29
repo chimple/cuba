@@ -43,7 +43,7 @@ const ProgramPageContent: React.FC<ProgramPageContentProps> = ({
         tempFilters={logic.tempFilters}
         filterOptions={logic.filterOptions}
         isFilterOpen={logic.isFilterOpen}
-        onOpenFilters={() => logic.setIsFilterOpen(true)}
+        onOpenFilters={logic.handleOpenFilters}
         onCloseFilters={() => {
           logic.setIsFilterOpen(false);
           logic.setTempFilters(logic.filters);

@@ -11,7 +11,6 @@ import {
   getCampaignDurationDays,
 } from './campaignCommunicationUtils';
 import { CampaignCommunicationTimelineStepProps } from './campaignCommunicationTypes';
-import { useCampaignReach } from './useCampaignReach';
 import './CampaignCommunicationTimelineStep.css';
 
 const CampaignCommunicationTimelineStep: React.FC<
@@ -20,7 +19,8 @@ const CampaignCommunicationTimelineStep: React.FC<
   form,
   frequency,
   assignmentDrafts,
-  selectedSchoolIds,
+  campaignReach,
+  loadingReach,
   communicationState,
   communicationValidation,
   showValidation,
@@ -35,7 +35,6 @@ const CampaignCommunicationTimelineStep: React.FC<
     () => buildCommunicationTimelineDates(assignmentDrafts, form, frequency),
     [assignmentDrafts, form, frequency],
   );
-  const { campaignReach, loadingReach } = useCampaignReach(selectedSchoolIds);
 
   const getRow = (date: string) =>
     communicationState.rows[date] ?? createEmptyCommunicationRow();

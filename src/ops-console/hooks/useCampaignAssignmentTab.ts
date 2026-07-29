@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type React from 'react';
 import { type SelectChangeEvent } from '@mui/material';
 import { ServiceConfig } from '../../services/ServiceConfig';
@@ -30,6 +30,7 @@ export const useCampaignAssignmentTab = (campaignId?: string) => {
   const [total, setTotal] = useState(0);
   const [isLoadingFilters, setIsLoadingFilters] = useState(true);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
+  const lastAssignmentsRequestKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     const handleResize = () => setViewportWidth(getViewportWidth());
@@ -78,14 +79,30 @@ export const useCampaignAssignmentTab = (campaignId?: string) => {
   }, [api, campaignId]);
 
   useEffect(() => {
-    setSelectedGrades([]);
-    setSelectedSubjects([]);
-    setSubjects([]);
-    setPage(1);
+    lastAssignmentsRequestKeyRef.current = null;
+    setSelectedGrades((current) => (current.length > 0 ? [] : current));
+    setSelectedSubjects((current) => (current.length > 0 ? [] : current));
+    setSubjects((current) => (current.length > 0 ? [] : current));
+    setPage((current) => (current === 1 ? current : 1));
   }, [campaignId]);
+
+  const selectedGradesKey = useMemo(
+    () => selectedGrades.join(','),
+    [selectedGrades],
+  );
+  const selectedSubjectsKey = useMemo(
+    () => selectedSubjects.join(','),
+    [selectedSubjects],
+  );
 
   useEffect(() => {
     let cancelled = false;
+    const requestKey = JSON.stringify({
+      campaignId,
+      page,
+      selectedGrades,
+      selectedSubjects,
+    });
 
     async function loadAssignments() {
       if (!campaignId) {
@@ -94,6 +111,11 @@ export const useCampaignAssignmentTab = (campaignId?: string) => {
         setIsLoadingAssignments(false);
         return;
       }
+
+      if (lastAssignmentsRequestKeyRef.current === requestKey) {
+        return;
+      }
+      lastAssignmentsRequestKeyRef.current = requestKey;
 
       setIsLoadingAssignments(true);
       try {
@@ -127,7 +149,15 @@ export const useCampaignAssignmentTab = (campaignId?: string) => {
     return () => {
       cancelled = true;
     };
-  }, [api, campaignId, page, selectedGrades, selectedSubjects]);
+  }, [
+    api,
+    campaignId,
+    page,
+    selectedGrades,
+    selectedGradesKey,
+    selectedSubjects,
+    selectedSubjectsKey,
+  ]);
 
   const isSmallScreen = viewportWidth <= 600;
   const isMediumScreen = viewportWidth > 600 && viewportWidth <= 900;

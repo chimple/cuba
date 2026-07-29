@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Button,
   Divider,
-  IconButton,
   ListItemIcon,
   ListItemText,
   Menu,
@@ -14,9 +13,12 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { FileUploadOutlined, Add } from '@mui/icons-material';
 import { t } from 'i18next';
+import { PROGRAM_TAB } from '../../common/constants';
+import type { Column } from '../components/DataTableBody';
 import SearchAndFilter from '../components/SearchAndFilter';
 import SchoolListDateRangeDropdown from '../components/SchoolListDateRangeDropdown';
 import SchoolListExportButton from '../components/SchoolListExportButton';
+import type { SchoolListRow } from './SchoolList.fetcher';
 import {
   type DateRangeValue,
   type Filters,
@@ -27,7 +29,7 @@ import SchoolListAppliedFilters from './SchoolListAppliedFilters';
 
 type SchoolListHeaderControlsProps = {
   actionsAnchorEl: HTMLElement | null;
-  columns: any[];
+  columns: Column<SchoolListRow>[];
   filterOptions: Filters;
   filters: Filters;
   handleCancelFilters: () => void;
@@ -35,6 +37,7 @@ type SchoolListHeaderControlsProps = {
   handleExportSchools: () => void;
   handleOpenActionsMenu: (event: React.MouseEvent<HTMLButtonElement>) => void;
   handleOpenAddSchoolPage: () => void;
+  handleOpenFilters: () => void;
   handleOpenMigratePage: () => void;
   handleOpenUploadPage: () => void;
   handleSelectDateRange: (nextRange: DateRangeValue) => void;
@@ -49,18 +52,16 @@ type SchoolListHeaderControlsProps = {
   schoolPerformanceFilter: SchoolPerformanceFilterValue | null;
   searchTerm: string;
   selectedDateRange: DateRangeValue;
-  selectedTab: string;
+  selectedTab: PROGRAM_TAB;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   setIsFilterOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setPage: React.Dispatch<React.SetStateAction<number>>;
-  setPercentageFilters: React.Dispatch<
-    React.SetStateAction<PercentageFilters>
-  >;
+  setPercentageFilters: React.Dispatch<React.SetStateAction<PercentageFilters>>;
   setSchoolPerformanceFilter: React.Dispatch<
     React.SetStateAction<SchoolPerformanceFilterValue | null>
   >;
   setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  setSelectedTab: React.Dispatch<React.SetStateAction<any>>;
+  setSelectedTab: React.Dispatch<React.SetStateAction<PROGRAM_TAB>>;
   setTempFilters: React.Dispatch<React.SetStateAction<Filters>>;
   tabOptions: Array<{ label: string; value: string }>;
   tempFilters: Filters;
@@ -76,6 +77,7 @@ export default function SchoolListHeaderControls({
   handleExportSchools,
   handleOpenActionsMenu,
   handleOpenAddSchoolPage,
+  handleOpenFilters,
   handleOpenMigratePage,
   handleOpenUploadPage,
   handleSelectDateRange,
@@ -265,7 +267,7 @@ export default function SchoolListHeaderControls({
             <Button
               startIcon={<FilterListIcon fontSize="small" />}
               className="filter-button-SearchAndFilter school-list-top-filter-button"
-              onClick={() => setIsFilterOpen(true)}
+              onClick={handleOpenFilters}
             >
               <span style={{ color: 'black' }}>{t('Filter')}</span>
             </Button>

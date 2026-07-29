@@ -14,6 +14,13 @@ import type {
   ActivitiesFilterOptions,
 } from './ServiceApi.types';
 
+export type TeacherAssignmentCountPair = {
+  teacherId: string;
+  classId: string;
+};
+
+export type TeacherAssignmentCountMap = Record<string, number | null>;
+
 export interface ServiceApiFieldActivities {
   getActiveStudentsCountByClass(classId: string): Promise<string>;
 
@@ -85,10 +92,9 @@ export interface ServiceApiFieldActivities {
 
   getActivitiesFilterOptions(): Promise<ActivitiesFilterOptions | null>;
 
-  getRecentAssignmentCountByTeacher(
-    teacherId: string,
-    classId: string,
-  ): Promise<number | null>;
+  getRecentAssignmentCountsByTeachers(
+    pairs: TeacherAssignmentCountPair[],
+  ): Promise<TeacherAssignmentCountMap>;
 
   createNoteForSchool(params: {
     schoolId: string;
