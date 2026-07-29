@@ -16,12 +16,13 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import './FilterSlider.css';
 import { t } from 'i18next';
+import type { SchoolFilterOption } from '../pages/SchoolList.helpers';
 
 interface FilterSliderProps {
   isOpen: boolean;
   onClose: () => void;
   filters: Record<string, string[]>;
-  filterOptions: Record<string, string[]>;
+  filterOptions: Record<string, SchoolFilterOption[]>;
   onFilterChange: (name: string, value: string[]) => void;
   onApply: () => void;
   onCancel: () => void;
@@ -42,6 +43,11 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const getOptionLabel = (option: SchoolFilterOption) =>
+    typeof option === 'string' ? option : option.name;
+  const getOptionValue = (option: SchoolFilterOption) =>
+    typeof option === 'string' ? option : option.id;
 
   return (
     <Drawer
@@ -75,13 +81,35 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
             multiple
             options={filterOptions[key] || []}
             disableCloseOnSelect
-            getOptionLabel={(option) => option}
-            value={filters[key] ?? []}
-            onChange={(e, value) => onFilterChange(key, value)}
+            getOptionLabel={getOptionLabel}
+            isOptionEqualToValue={(option, value) =>
+              getOptionValue(option) === getOptionValue(value)
+            }
+            value={
+              key === 'program'
+                ? (filterOptions[key] || []).filter((option) =>
+                    (filters[key] ?? []).includes(getOptionValue(option)),
+                  )
+                : (filters[key] ?? [])
+            }
+            onChange={(e, value) => {
+              const nextValues = Array.isArray(value)
+                ? value.map(getOptionValue)
+                : [];
+              onFilterChange(
+                key,
+                key === 'program' ? nextValues.slice(0, 1) : nextValues,
+              );
+            }}
+            getOptionDisabled={(option) =>
+              key === 'program' &&
+              (filters[key]?.length ?? 0) > 0 &&
+              !(filters[key] ?? []).includes(getOptionValue(option))
+            }
             renderOption={(props, option, { selected }) => (
               <li {...props}>
                 <Checkbox checked={selected} sx={{ marginRight: 1 }} />
-                {option}
+                {getOptionLabel(option)}
               </li>
             )}
             renderTags={() => null}

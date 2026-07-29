@@ -337,6 +337,9 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
       if (cleanedFilters.cluster?.length) {
         query = query.in('cluster', cleanedFilters.cluster);
       }
+      if (cleanedFilters.program?.length) {
+        query = query.in('program_id', cleanedFilters.program);
+      }
       if (cleanedFilters.model?.length) {
         const schoolModelValues = cleanedFilters.model.filter(
           (value): value is 'hybrid' | 'at_home' | 'at_school' =>
