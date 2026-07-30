@@ -203,6 +203,7 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
     limit: number = 20,
     sortBy: keyof TableTypes<'user'> = 'name',
     sortOrder: 'asc' | 'desc' = 'asc',
+    role?: RoleType,
   ): Promise<{
     data: { user: TableTypes<'user'>; role: string }[];
     totalCount: number;
@@ -218,6 +219,27 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
     const roles: string[] = store.getState().auth.roles || [];
     const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
     const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    const allowedRoleFilters = isSuperAdmin
+      ? [
+          RoleType.SUPER_ADMIN,
+          RoleType.OPERATIONAL_DIRECTOR,
+          RoleType.PROGRAM_MANAGER,
+          RoleType.FIELD_COORDINATOR,
+          RoleType.EXTERNAL_USER,
+        ]
+      : isOpsDirector
+        ? [
+            RoleType.OPERATIONAL_DIRECTOR,
+            RoleType.PROGRAM_MANAGER,
+            RoleType.FIELD_COORDINATOR,
+            RoleType.EXTERNAL_USER,
+          ]
+        : roles.includes(RoleType.PROGRAM_MANAGER)
+          ? [RoleType.FIELD_COORDINATOR]
+          : [];
+    if (role && !allowedRoleFilters.includes(role)) {
+      return { data: [], totalCount: 0 };
+    }
     const from = (page - 1) * limit;
     const to = from + limit - 1;
     if (isSuperAdmin || isOpsDirector) {
@@ -228,6 +250,9 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
         .not('user_id', 'is', null);
       if (isOpsDirector && !isSuperAdmin) {
         specialUsersQuery = specialUsersQuery.neq('role', RoleType.SUPER_ADMIN);
+      }
+      if (role) {
+        specialUsersQuery = specialUsersQuery.eq('role', role);
       }
       const { data: specialUsers, error: specialUsersError } =
         await specialUsersQuery;
@@ -271,6 +296,9 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
       return { data: result, totalCount: search ? count || 0 : userIds.length };
     }
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {
+      if (role && role !== RoleType.FIELD_COORDINATOR) {
+        return { data: [], totalCount: 0 };
+      }
       const { data: programs, error: programsError } = await this.supabase
         .from('program_user')
         .select('program_id')
