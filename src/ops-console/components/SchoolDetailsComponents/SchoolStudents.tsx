@@ -68,7 +68,10 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
-import { getStudentContactValues } from '../../utils/studentContactNumbers';
+import {
+  getStudentContactValues,
+  getStudentPhoneNumbers,
+} from '../../utils/studentContactNumbers';
 
 type ApiStudentData = StudentInfo;
 type StudentPerformanceBand =
@@ -1598,8 +1601,10 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }
   }, [issTotal, classOptions, isAtSchool, baseStudents]);
 
-  const hasContact =
-    !!editStudentData?.parent?.phone || !!editStudentData?.parent?.email;
+  const parentEmail = String(editStudentData?.parent?.email ?? '').trim();
+  const hasPhone = getStudentPhoneNumbers(editStudentData).length > 0;
+  const hasEmail = parentEmail !== '';
+  const shouldEditPhone = !hasPhone;
 
   const editStudentFields: FieldConfig[] = [
     {
@@ -1658,10 +1663,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     // 6️⃣ Phone – full width
     {
       name: 'phone',
-      label: hasContact ? 'Phone / Email' : 'Phone Number',
-      kind: !isAtSchool && !hasContact ? 'phone' : 'chips',
+      label: shouldEditPhone
+        ? 'Phone Number'
+        : hasEmail
+          ? 'Phone / Email'
+          : 'Phone Number',
+      kind: shouldEditPhone ? 'phone' : 'chips',
       column: 2,
-      required: !hasContact,
+      required: shouldEditPhone,
     },
   ];
 
@@ -1958,8 +1967,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           ageGroup: String(editStudentData?.user?.age ?? ''),
           studentID: editStudentData?.user?.student_id ?? '',
           classAndSection: String(editStudentData?.classWithidname?.id ?? ''),
-          // Show all merged contacts in edit details as chips.
-          phone: getStudentContactValues(editStudentData).join(' / '),
+          phone: shouldEditPhone
+            ? ''
+            : getStudentContactValues(editStudentData).join(' / '),
         }}
         onClose={() => {
           setIsEditStudentModalOpen(false);
