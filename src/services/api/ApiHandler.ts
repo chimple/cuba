@@ -2430,6 +2430,7 @@ export class ApiHandler implements ServiceApi {
 
   public async getParentWhatsappMsg91SendResult(
     inviteRows: Json,
+    languageCode: string,
     batchSize: number,
   ) {
     if (!this.s.getParentWhatsappMsg91SendResult) {
@@ -2437,7 +2438,11 @@ export class ApiHandler implements ServiceApi {
         'Parent WhatsApp MSG91 send RPC is not implemented in current API service.',
       );
     }
-    return await this.s.getParentWhatsappMsg91SendResult(inviteRows, batchSize);
+    return await this.s.getParentWhatsappMsg91SendResult(
+      inviteRows,
+      languageCode,
+      batchSize,
+    );
   }
 
   public async getParentWhatsappMsg91ReportRows(

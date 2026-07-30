@@ -3472,6 +3472,7 @@ export interface ServiceApi {
   // Parent WhatsApp Invitation: send MSG91 invites via dedicated Supabase RPC.
   getParentWhatsappMsg91SendResult?: (
     inviteRows: Json,
+    languageCode: string,
     batchSize: number,
   ) => Promise<Json>;
 
