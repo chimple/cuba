@@ -4,6 +4,7 @@
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 9px;
+  margin-left: 30px;
 }
 
 .filter-chip-SelectedFilters {

@@ -12,12 +12,13 @@ import {
   type Filters,
   type PercentageFilterKey,
   type PercentageFilters,
+  type SchoolFilterOptions,
   type SchoolPerformanceFilterValue,
 } from './SchoolList.helpers';
 
 type SchoolListAppliedFiltersProps = {
   columns: Column<SchoolListRow>[];
-  filterOptions: Filters;
+  filterOptions: SchoolFilterOptions;
   filters: Filters;
   isFilterOpen: boolean;
   percentageFilters: PercentageFilters;
@@ -52,6 +53,20 @@ export default function SchoolListAppliedFilters({
     () => filterOptions.grade ?? [],
     [filterOptions],
   );
+  const getFilterLabel = useMemo(
+    () => (key: string, value: string) => {
+      if (key === 'program') {
+        const programOption = (filterOptions.program ?? []).find((option) =>
+          typeof option === 'string' ? option === value : option.id === value,
+        );
+        if (programOption && typeof programOption !== 'string') {
+          return programOption.name;
+        }
+      }
+      return value;
+    },
+    [filterOptions.program],
+  );
 
   // Show all grades selected while the default request uses school-wise metrics.
   const displayedTempFilters = useMemo(() => {
@@ -61,7 +76,9 @@ export default function SchoolListAppliedFilters({
 
     return {
       ...tempFilters,
-      grade: gradeOptions,
+      grade: gradeOptions.map((grade) =>
+        typeof grade === 'string' ? grade : grade.id,
+      ),
     };
   }, [gradeOptions, tempFilters]);
 
@@ -71,7 +88,9 @@ export default function SchoolListAppliedFilters({
       const isAllGradesSelected =
         gradeOptions.length > 0 &&
         selectedGrades.length === gradeOptions.length &&
-        gradeOptions.every((grade) => selectedGrades.includes(grade));
+        gradeOptions.every((grade) =>
+          selectedGrades.includes(typeof grade === 'string' ? grade : grade.id),
+        );
 
       return isAllGradesSelected ? { ...nextFilters, grade: [] } : nextFilters;
     },
@@ -113,6 +132,7 @@ export default function SchoolListAppliedFilters({
     <>
       <SelectedFilters
         filters={filters}
+        getFilterLabel={getFilterLabel}
         onDeleteFilter={(key, value) => {
           if (key === 'schoolPerformanceFilter') {
             setSchoolPerformanceFilter(null);

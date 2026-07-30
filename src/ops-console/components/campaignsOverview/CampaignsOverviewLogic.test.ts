@@ -18,7 +18,7 @@ import {
   getNextClassFilter,
   getNextSchoolAndClassFilters,
   getCampaignRewardTypeLabel,
-  getLatestCalculatedAt,
+  getEarliestCalculatedAt,
   mapCampaignPerformanceRowsToRewardRows,
   paginateCampaignRewardRows,
   parseCampaignRewards,
@@ -572,8 +572,10 @@ describe('CampaignRewardsReport helpers', () => {
     ]);
   });
 
-  it('should find and format the latest calculated timestamp', () => {
-    expect(getLatestCalculatedAt(mappedRows)).toBe('2026-07-11T10:00:00.000Z');
+  it('should find and format the earliest calculated timestamp', () => {
+    expect(getEarliestCalculatedAt(mappedRows)).toBe(
+      '2026-07-10T10:00:00.000Z',
+    );
     expect(formatCampaignRewardLastUpdated('2026-07-10T10:00:00.000Z')).toBe(
       '10 July 2026',
     );

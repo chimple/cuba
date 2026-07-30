@@ -90,18 +90,18 @@ const SchoolCheckInModal: React.FC<SchoolCheckInModalProps> = ({
             userLocation={state.userLocation}
           />
 
-          <SchoolCheckInMap
-            isSchoolLocationMissing={state.isSchoolLocationMissing}
-            targetLocation={state.targetLocation}
-            userLocation={state.userLocation}
-          />
-
           {state.isSchoolLocationMissing && state.isCheckIn && (
             <SchoolCheckInConfirmation
               isConfirmedInSchool={state.isConfirmedInSchool}
               setIsConfirmedInSchool={state.setIsConfirmedInSchool}
             />
           )}
+
+          <SchoolCheckInMap
+            isSchoolLocationMissing={state.isSchoolLocationMissing}
+            targetLocation={state.targetLocation}
+            userLocation={state.userLocation}
+          />
         </div>
 
         <SchoolCheckInActions

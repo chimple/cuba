@@ -163,6 +163,11 @@ export const getSchoolListColumns = (): Column<SchoolListRow>[] => [
 export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
   { key: 'name', label: t('School Name'), part: 'value' },
   { key: 'udise', label: t('UDISE'), part: 'value' },
+  {
+    key: 'fieldCoordinators',
+    label: t('Field Coordinator'),
+    part: 'value',
+  },
   { key: 'block', label: t('Block'), part: 'value' },
   {
     key: 'schoolPerformance',

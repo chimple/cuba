@@ -23,7 +23,7 @@ type CampaignMessageExportCell = string | number;
 
 let xlsxModulePromise: Promise<XlsxModule> | null = null;
 
-export const CAMPAIGN_MESSAGE_PAGE_SIZE = 10;
+export const CAMPAIGN_MESSAGE_PAGE_SIZE = 20;
 const CAMPAIGN_MESSAGE_REPORT_TIME_ZONE = 'Asia/Kolkata';
 const CAMPAIGN_MESSAGE_EXPORT_SHEET_NAME = 'Campaign Messages';
 export const EMPTY_CAMPAIGN_MESSAGE_SUMMARY: CampaignMessageReportSummary = {
@@ -41,7 +41,12 @@ export const EMPTY_CAMPAIGN_MESSAGE_SUMMARY: CampaignMessageReportSummary = {
 export const EMPTY_CAMPAIGN_MESSAGE_REPORT: CampaignMessageReportResponse = {
   summary: EMPTY_CAMPAIGN_MESSAGE_SUMMARY,
   rows: [],
-  pagination: { page: 1, pageSize: 10, totalRows: 0, totalPages: 0 },
+  pagination: {
+    page: 1,
+    pageSize: CAMPAIGN_MESSAGE_PAGE_SIZE,
+    totalRows: 0,
+    totalPages: 0,
+  },
   filters: { fromDate: null, toDate: null },
 };
 export const formatReportInteger = (value: number): string =>

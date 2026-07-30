@@ -16,7 +16,7 @@ import {
   getCampaignRewardClassOptions,
   getCampaignRewardFilterOptions,
   getCampaignRewardTypeLabel,
-  getLatestCalculatedAt,
+  getEarliestCalculatedAt,
   getNextClassFilter,
   getNextSchoolAndClassFilters,
   getSafeCampaignRewardPage,
@@ -67,7 +67,7 @@ export const useCampaignRewardsReportState = (
   );
   const lastUpdated = useMemo(
     () =>
-      formatCampaignRewardLastUpdated(getLatestCalculatedAt(performanceRows)),
+      formatCampaignRewardLastUpdated(getEarliestCalculatedAt(performanceRows)),
     [performanceRows],
   );
   const sortedRows = useMemo(

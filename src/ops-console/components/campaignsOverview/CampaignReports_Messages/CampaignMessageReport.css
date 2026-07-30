@@ -223,7 +223,7 @@
   box-sizing: border-box;
   padding: 0 8px !important;
   border-left: 0 !important;
-  border-right: 0 !important;
+  border-right: 1px solid #dde1e6 !important;
   border-bottom: 1px solid #dde1e6 !important;
   background: #f0f4fa !important;
   color: #21272a !important;
@@ -275,7 +275,7 @@
   box-sizing: border-box;
   padding: 5px 8px !important;
   border-left: 0 !important;
-  border-right: 0 !important;
+  border-right: 1px solid #dde1e6 !important;
   border-bottom: 0 !important;
   background: #fff !important;
   color: #21272a !important;
@@ -319,18 +319,10 @@
   justify-content: center;
   margin: 0 !important;
   border-top: 0;
-  color: #1a71f6;
 }
 .campaign-message-report-table .MuiPaginationItem-root {
-  color: #1a71f6;
   font-size: 14px;
   font-weight: 500;
-}
-.campaign-message-report-table .MuiPaginationItem-root.Mui-selected {
-  background: #f0f4fa;
-}
-.campaign-message-report-table .MuiPaginationItem-root.Mui-disabled {
-  color: #a7a7a7;
 }
 .campaign-message-table-empty {
   margin-top: 0;

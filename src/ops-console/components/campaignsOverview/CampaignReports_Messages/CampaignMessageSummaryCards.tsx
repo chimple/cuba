@@ -29,17 +29,17 @@ const CampaignMessageSummaryCards: React.FC<Props> = ({ loading, summary }) => {
       'Total number of campaign messages sent during the selected period, including daily messages and polls.',
     ],
     [
-      'Delivery Rate',
+      'Delivery Rate %',
       formatReportPercent(summary.deliveryRate),
       'Percentage of sent messages that were successfully delivered.',
     ],
     [
-      'Read Rate',
+      'Read Rate %',
       formatReportPercent(summary.readRate),
       'Percentage of delivered messages that were read by recipients.',
     ],
     [
-      'Poll Participation',
+      'Poll Participation Rate %',
       formatReportPercent(summary.pollParticipationRate),
       'Percentage of recipients who responded to campaign polls during the selected period.',
     ],

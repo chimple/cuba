@@ -89,7 +89,7 @@ export interface ServiceApiPrograms {
     }[];
   } | null>;
 
-  getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, string[]>>;
+  getSchoolFilterOptionsForSchoolListing(): Promise<Record<string, unknown[]>>;
 
   getSchoolFilterOptionsForProgram(
     programId: string,

@@ -131,14 +131,15 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
     }
   }
   async getSchoolFilterOptionsForSchoolListing(): Promise<
-    Record<string, string[]>
+    Record<string, unknown[]>
   > {
     if (!this.supabase) {
       logger.error('Supabase client is not initialized');
       return {};
     }
 
-    const emptyOptions: Record<string, string[]> = {
+    const emptyOptions: Record<string, unknown[]> = {
+      program: [],
       grade: [],
       state: [],
       district: [],
@@ -169,8 +170,37 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
 
       const rpcData = data as Record<string, Json>;
 
+      const programOptions = Array.isArray(rpcData.program)
+        ? (rpcData.program as unknown[])
+            .map((item) => {
+              if (typeof item === 'string') {
+                return { id: item, name: item };
+              }
+              if (
+                item &&
+                typeof item === 'object' &&
+                !Array.isArray(item) &&
+                'id' in item &&
+                'name' in item
+              ) {
+                const option = item as { id?: unknown; name?: unknown };
+                if (
+                  typeof option.id === 'string' &&
+                  typeof option.name === 'string'
+                ) {
+                  return { id: option.id, name: option.name };
+                }
+              }
+              return null;
+            })
+            .filter(
+              (item): item is { id: string; name: string } => item !== null,
+            )
+        : [];
+
       return {
         grade: Array.isArray(rpcData.grade) ? (rpcData.grade as string[]) : [],
+        program: programOptions,
         state: Array.isArray(rpcData.state) ? (rpcData.state as string[]) : [],
         district: Array.isArray(rpcData.district)
           ? (rpcData.district as string[])

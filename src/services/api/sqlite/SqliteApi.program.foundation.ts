@@ -116,7 +116,7 @@ export class SqliteApiProgramFoundation extends SqliteApiCampaignManagement {
   }
 
   async getSchoolFilterOptionsForSchoolListing(): Promise<
-    Record<string, string[]>
+    Record<string, unknown[]>
   > {
     return await this._serverApi.getSchoolFilterOptionsForSchoolListing();
   }
