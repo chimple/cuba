@@ -95,12 +95,14 @@ const LearningPathway: React.FC = () => {
         const isLinked = await api.isStudentLinked(student.id);
         const currClass = isLinked ? schoolUtil.getCurrentClass() : null;
 
-        const latest = await api.getUserByDocId(student.id);
+        const [latest, courses] = await Promise.all([
+          api.getUserByDocId(student.id),
+          currClass
+            ? api.getCoursesForClassStudent(currClass.id)
+            : api.getCoursesForPathway(student.id),
+        ]);
         student = getPreferredStudent(student, latest);
         await Util.setCurrentStudent(student);
-        const courses = currClass
-          ? await api.getCoursesForClassStudent(currClass.id)
-          : await api.getCoursesForPathway(student.id);
 
         const sortedCourses = await sortCoursesByStudentLanguage(
           courses,
@@ -121,13 +123,15 @@ const LearningPathway: React.FC = () => {
             ? learningPath?.courses?.courseList?.[selectedCourseIndex]
                 ?.course_id
             : null;
-        await updateCourseCodeFromSubject(selectedCourseId);
-        updateStarCount(student);
         await getPath({
           courses: pathwayCourses,
           mode,
           classId: currClass?.id,
         });
+        void Promise.allSettled([
+          updateCourseCodeFromSubject(selectedCourseId),
+          updateStarCount(student),
+        ]);
       } catch (e) {
         logger.error('Error in init() learningPathway', e);
       }
