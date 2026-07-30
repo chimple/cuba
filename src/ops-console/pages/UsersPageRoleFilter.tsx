@@ -47,11 +47,13 @@ export const UsersPageRoleFilter: React.FC<UsersPageRoleFilterProps> = ({
     <>
       <IconButton
         size="small"
-        aria-label={t('Filter Roles')}
+        aria-label={String(t('Filter Roles'))}
         className={`users-page-role-filter-button${
           selectedRole ? ' users-page-role-filter-button-active' : ''
         }`}
-        onClick={(event) => setAnchorEl(event.currentTarget)}
+        onClick={(event: React.MouseEvent<HTMLButtonElement>) =>
+          setAnchorEl(event.currentTarget)
+        }
       >
         <FilterListIcon fontSize="small" />
       </IconButton>

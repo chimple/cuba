@@ -232,7 +232,12 @@ const UsersPage: React.FC = () => {
 
         <SelectedFilters
           filters={{ role: roleFilter ? [roleFilter] : [] }}
-          getFilterLabel={(_, value) => RoleLabels[value as RoleType] || value}
+          getFilterLabel={(_, value) => (
+            <>
+              {t('Role')}:{' '}
+              <strong>{RoleLabels[value as RoleType] || value}</strong>
+            </>
+          )}
           onDeleteFilter={() => {
             setRoleFilter(null);
             setPage(1);

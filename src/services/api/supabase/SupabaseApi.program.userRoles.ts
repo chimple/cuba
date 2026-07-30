@@ -16,6 +16,8 @@ import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
 import { SupabaseApiProgramClassMetrics } from './SupabaseApi.program.classMetrics';
 
+type SpecialUserRole = NonNullable<TableTypes<'special_users'>['role']>;
+
 export interface SupabaseApiProgramUserRoles {
   [key: string]: any;
 }
@@ -219,7 +221,7 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
     const roles: string[] = store.getState().auth.roles || [];
     const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
     const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
-    const allowedRoleFilters = isSuperAdmin
+    const allowedRoleFilters: SpecialUserRole[] = isSuperAdmin
       ? [
           RoleType.SUPER_ADMIN,
           RoleType.OPERATIONAL_DIRECTOR,
@@ -237,7 +239,10 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
         : roles.includes(RoleType.PROGRAM_MANAGER)
           ? [RoleType.FIELD_COORDINATOR]
           : [];
-    if (role && !allowedRoleFilters.includes(role)) {
+    const roleFilter = role
+      ? allowedRoleFilters.find((allowedRole) => allowedRole === role)
+      : undefined;
+    if (role && !roleFilter) {
       return { data: [], totalCount: 0 };
     }
     const from = (page - 1) * limit;
@@ -251,8 +256,8 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
       if (isOpsDirector && !isSuperAdmin) {
         specialUsersQuery = specialUsersQuery.neq('role', RoleType.SUPER_ADMIN);
       }
-      if (role) {
-        specialUsersQuery = specialUsersQuery.eq('role', role);
+      if (roleFilter) {
+        specialUsersQuery = specialUsersQuery.eq('role', roleFilter);
       }
       const { data: specialUsers, error: specialUsersError } =
         await specialUsersQuery;
