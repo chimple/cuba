@@ -28,6 +28,7 @@ interface FilterSliderProps {
   onCancel: () => void;
   autocompleteStyles?: object;
   filterConfigs: { key: string; label: string; placeholder?: string }[];
+  singleSelectKeys?: string[];
 }
 
 const FilterSlider: React.FC<FilterSliderProps> = ({
@@ -40,6 +41,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
   onCancel,
   autocompleteStyles = {},
   filterConfigs,
+  singleSelectKeys = [],
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -98,11 +100,13 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
                 : [];
               onFilterChange(
                 key,
-                key === 'program' ? nextValues.slice(0, 1) : nextValues,
+                key === 'program' || singleSelectKeys.includes(key)
+                  ? nextValues.slice(0, 1)
+                  : nextValues,
               );
             }}
             getOptionDisabled={(option) =>
-              key === 'program' &&
+              (key === 'program' || singleSelectKeys.includes(key)) &&
               (filters[key]?.length ?? 0) > 0 &&
               !(filters[key] ?? []).includes(getOptionValue(option))
             }

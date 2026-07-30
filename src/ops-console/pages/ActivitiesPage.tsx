@@ -1,5 +1,6 @@
 import React from 'react';
-import { Box, Chip, Typography } from '@mui/material';
+import { Box, Button, Chip, Typography } from '@mui/material';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import { parsePath } from 'history';
 import { t } from 'i18next';
 import { useHistory, useLocation } from 'react-router';
@@ -7,8 +8,13 @@ import { PAGES } from '../../common/constants';
 import Breadcrumb from '../components/Breadcrumb';
 import DataTableBody, { Column } from '../components/DataTableBody';
 import DataTablePagination from '../components/DataTablePagination';
+import FilterSlider from '../components/FilterSlider';
+import SelectedFilters from '../components/SelectedFilters';
 import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
-import { useActivitiesPageData } from '../hooks/useActivitiesPageData';
+import {
+  useActivitiesPageData,
+  type ActivityFilters,
+} from '../hooks/useActivitiesPageData';
 import './ActivitiesPage.css';
 
 const ActivitiesPage: React.FC = () => {
@@ -17,13 +23,23 @@ const ActivitiesPage: React.FC = () => {
   const school: any = location.state;
   const {
     activities,
+    filterOptions,
+    filters,
+    handleApplyFilters,
+    handleCancelFilters,
+    handleDeleteFilter,
+    handleFilterChange,
+    handleCloseFilters,
+    handleOpenFilters,
     handleSort,
+    isFilterOpen,
     loadingData,
     orderBy,
     orderDir,
     page,
     pageCount,
     setPage,
+    tempFilters,
   } = useActivitiesPageData(school);
 
   const columns: Column<Record<string, any>>[] = [
@@ -90,7 +106,72 @@ const ActivitiesPage: React.FC = () => {
             { label: t('Interactions') },
           ]}
         />
+        <div className="activities-secondary-actions">
+          <Button
+            variant="outlined"
+            onClick={handleOpenFilters}
+            startIcon={<FilterListIcon fontSize="small" />}
+            className="activities-filter-button"
+            aria-label={t('Open filters')}
+            sx={{
+              textTransform: 'none',
+              borderRadius: '999px',
+              px: 2,
+              py: 0.9,
+              minWidth: 'unset',
+              borderColor: '#E5E7EB',
+              color: '#111827',
+              backgroundColor: '#fff',
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.06)',
+              '&:hover': {
+                borderColor: '#CBD5E1',
+                backgroundColor: '#F8FAFC',
+              },
+              '& .MuiButton-startIcon': {
+                color: '#1A71F6',
+                marginRight: '6px',
+              },
+            }}
+          >
+            {t('Filter')}
+          </Button>
+        </div>
       </div>
+
+      <SelectedFilters
+        filters={filters}
+        onDeleteFilter={(key, value) =>
+          handleDeleteFilter(key as keyof ActivityFilters, value)
+        }
+        getFilterLabel={(key, value) =>
+          `${key === 'techIssues' ? t('Tech Issues') : t('Visit Type')}: ${value}`
+        }
+      />
+
+      <FilterSlider
+        isOpen={isFilterOpen}
+        onClose={handleCloseFilters}
+        filters={tempFilters}
+        filterOptions={filterOptions}
+        onFilterChange={(name: string, value: string[]) =>
+          handleFilterChange(name as 'techIssues' | 'visitType', value)
+        }
+        onApply={handleApplyFilters}
+        onCancel={handleCancelFilters}
+        singleSelectKeys={['visitType', 'techIssues']}
+        filterConfigs={[
+          {
+            key: 'visitType',
+            label: t('Visit Type'),
+            placeholder: t('Visit Type'),
+          },
+          {
+            key: 'techIssues',
+            label: t('Tech Issues'),
+            placeholder: t('Tech Issues'),
+          },
+        ]}
+      />
 
       <div className="activities-table-container" id="act-table">
         {!loadingData && activities.length === 0 ? (
