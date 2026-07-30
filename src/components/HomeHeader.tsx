@@ -22,7 +22,6 @@ import { useHistory } from 'react-router';
 import { schoolUtil } from '../utility/schoolUtil';
 import ProfileMenu from './ProfileMenu/ProfileMenu';
 import logger from '../utility/logger';
-
 interface StarsCounterProps {
   starsCount: number;
 }
@@ -39,7 +38,6 @@ const StarsCounter: React.FC<StarsCounterProps> = ({ starsCount }) => {
     </div>
   );
 };
-
 const getStoredHeaderIconList = (): HeaderIconConfig[] => {
   const currMode = localStorage.getItem(CURRENT_MODE) || undefined;
   const currentStudent = Util.getCurrentStudent();
@@ -68,7 +66,29 @@ const getStoredHeaderIconList = (): HeaderIconConfig[] => {
     return true;
   });
 };
-
+const buildHeaderIconList = (
+  linked: boolean,
+  canShowAvatarValue?: boolean,
+  currMode?: string,
+): HeaderIconConfig[] =>
+  Array.from(DEFAULT_HEADER_ICON_CONFIGS.values()).filter((element) => {
+    if (
+      currMode === MODES.SCHOOL &&
+      element.headerList === HOMEHEADERLIST.ASSIGNMENT
+    ) {
+      return false;
+    }
+    if (
+      canShowAvatarValue === false &&
+      element.headerList === HOMEHEADERLIST.SUGGESTIONS
+    ) {
+      return false;
+    }
+    if (!linked && element.headerList === HOMEHEADERLIST.LIVEQUIZ) {
+      return false;
+    }
+    return true;
+  });
 const HomeHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
@@ -101,8 +121,7 @@ const HomeHeader: React.FC<{
   const [starsCount, setStarsCount] = useState<number>(() => {
     const curr = Util.getCurrentStudent();
     return curr?.stars || 0;
-  }); // State for stars count
-
+  });
   const [isLinked, setIsLinked] = useState(false);
   const isHomeHeaderSpecialsEnabled = useFeatureIsOn(
     HOME_HEADER_SPECIALS_ENABLED,
@@ -142,28 +161,9 @@ const HomeHeader: React.FC<{
 
       refreshStarsFromLocal();
 
-      const headerIconList = Array.from(
-        DEFAULT_HEADER_ICON_CONFIGS.values(),
-      ).filter((element) => {
-        if (
-          currMode === MODES.SCHOOL &&
-          element.headerList === HOMEHEADERLIST.ASSIGNMENT
-        ) {
-          return false;
-        }
-        if (
-          canShowAvatarValue === false &&
-          element.headerList === HOMEHEADERLIST.SUGGESTIONS
-        ) {
-          return false;
-        }
-        if (!linked && element.headerList === HOMEHEADERLIST.LIVEQUIZ) {
-          return false;
-        }
-        return true;
-      });
-
-      setCurrentHeaderIconList(headerIconList);
+      setCurrentHeaderIconList(
+        buildHeaderIconList(linked, canShowAvatarValue, currMode),
+      );
       setStudent(student);
     } catch (error) {
       logger.error('Error in init:', error);
@@ -194,6 +194,9 @@ const HomeHeader: React.FC<{
 
   const handleJoinClassListner = () => {
     setIsLinked(true);
+    setCurrentHeaderIconList(
+      buildHeaderIconList(true, canShowAvatar, studentMode),
+    );
     window.removeEventListener('JoinClassListner', handleJoinClassListner);
   };
 
@@ -203,12 +206,10 @@ const HomeHeader: React.FC<{
       const curr = studentRef.current || Util.getCurrentStudent();
       if (!curr?.id) return;
 
-      // if event has studentId, ignore for other profiles
       if (custom.detail?.studentId && custom.detail.studentId !== curr.id) {
         return;
       }
 
-      // setStarsCount(custom.detail.newStars);
       refreshStarsFromLocal();
     };
 
@@ -216,7 +217,6 @@ const HomeHeader: React.FC<{
     return () => {
       window.removeEventListener('starsUpdated', handler);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <div id="home-header-icons">

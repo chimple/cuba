@@ -158,7 +158,7 @@ describe('LearningPathway', () => {
     });
   });
 
-  test('shows loading state while async init is in progress', async () => {
+  test('renders pathway shell immediately while async init resolves', async () => {
     let resolver: any;
     mockApi.getCoursesForPathway.mockReturnValue(
       new Promise((res) => {
@@ -167,11 +167,13 @@ describe('LearningPathway', () => {
     );
 
     render(<LearningPathway />);
-    expect(screen.getByTestId('loading')).toBeInTheDocument();
+    expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
+    expect(screen.getByTestId('pathway-structure')).toBeInTheDocument();
+    expect(screen.getByTestId('chapter-lesson-box')).toBeInTheDocument();
 
     resolver([{ id: 'c1', name: 'Course 1' }]);
     await waitFor(() => {
-      expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
+      expect(mockApi.getCoursesForPathway).toHaveBeenCalledWith('stu-1');
     });
   });
 
@@ -182,7 +184,6 @@ describe('LearningPathway', () => {
 
     await waitFor(() => {
       expect(spy).toHaveBeenCalled();
-      expect(screen.queryByTestId('loading')).not.toBeInTheDocument();
       expect(screen.getByTestId('dropdown-menu')).toBeInTheDocument();
     });
     spy.mockRestore();
