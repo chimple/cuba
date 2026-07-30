@@ -83,9 +83,7 @@ const PathwayStructure: React.FC = () => {
       <div
         className="PathwayStructure-div"
         ref={containerRef}
-        style={{
-          opacity: isPathwaySvgLoading ? 0 : 1,
-        }}
+        aria-busy={isPathwaySvgLoading}
       />
       <SkeltonLoading
         isLoading={isPathwaySvgLoading}

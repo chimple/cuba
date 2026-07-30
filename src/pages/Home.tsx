@@ -41,33 +41,31 @@ const Home = () => {
         />
       </IonHeader>
       <div className="slider-content">
-        {!isLoading ? (
-          <div className="space-between">
-            {currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar ? (
-              showActivationLessonBanner ? (
-                <ActivationLessonBanner source={SOURCE.INITIAL_ASSESSMENT} />
-              ) : (
-                <LearningPathway />
-              )
-            ) : null}
+        <div className="space-between">
+          {currentHeader === HOMEHEADERLIST.HOME && !!canShowAvatar ? (
+            showActivationLessonBanner ? (
+              <ActivationLessonBanner source={SOURCE.INITIAL_ASSESSMENT} />
+            ) : (
+              <LearningPathway />
+            )
+          ) : null}
 
-            {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
+          {currentHeader === HOMEHEADERLIST.SUBJECTS && <Subjects />}
 
-            {currentHeader === HOMEHEADERLIST.ASSIGNMENT && (
-              <AssignmentPage
-                assignmentCount={setPendingAssignmentCount}
-                onPlayMoreHomework={() => {
-                  setCurrentHeader(HOMEHEADERLIST.HOME);
-                }}
-              />
-            )}
+          {currentHeader === HOMEHEADERLIST.ASSIGNMENT && (
+            <AssignmentPage
+              assignmentCount={setPendingAssignmentCount}
+              onPlayMoreHomework={() => {
+                setCurrentHeader(HOMEHEADERLIST.HOME);
+              }}
+            />
+          )}
 
-            {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
-            {currentHeader === HOMEHEADERLIST.LIVEQUIZ && (
-              <LiveQuiz liveQuizCount={setPendingLiveQuizCount} />
-            )}
-          </div>
-        ) : null}
+          {currentHeader === HOMEHEADERLIST.SEARCH && <SearchLesson />}
+          {currentHeader === HOMEHEADERLIST.LIVEQUIZ && (
+            <LiveQuiz liveQuizCount={setPendingLiveQuizCount} />
+          )}
+        </div>
         <SkeltonLoading isLoading={isLoading} header={currentHeader} />
       </div>
       <WinterCampaignPopupGating />

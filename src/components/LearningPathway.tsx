@@ -4,7 +4,6 @@ import ChapterLessonBox from './learningPathway/chapterLessonBox';
 import PathwayStructure from './learningPathway/PathwayStructure';
 import './LearningPathway.css';
 import DropdownMenu from './Home/DropdownMenu';
-import Loading from './Loading';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { schoolUtil } from '../utility/schoolUtil';
 import {
@@ -27,8 +26,6 @@ const LearningPathway: React.FC = () => {
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
   const gb = useGrowthBook();
-
-  const [loading, setLoading] = useState<boolean>(false);
   const [mode, setMode] = useState<string>(LEARNING_PATHWAY_MODE.DISABLED);
   const [isModeResolved, setIsModeResolved] = useState(false);
   const [courseCode, setCourseCode] = useState<string | undefined>(undefined);
@@ -93,8 +90,6 @@ const LearningPathway: React.FC = () => {
     if (!student?.id || !isModeResolved) return;
 
     const init = async () => {
-      setLoading(true);
-
       try {
         if (!student?.id) return;
         const isLinked = await api.isStudentLinked(student.id);
@@ -135,8 +130,6 @@ const LearningPathway: React.FC = () => {
         });
       } catch (e) {
         logger.error('Error in init() learningPathway', e);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -175,8 +168,6 @@ const LearningPathway: React.FC = () => {
     }
   };
 
-  if (loading) return <Loading isLoading={true} />;
-
   return (
     <div className="learning-pathway-container">
       <div className="pathway_section">
@@ -187,7 +178,6 @@ const LearningPathway: React.FC = () => {
         />
         <PathwayStructure />
       </div>
-
       <div className="chapter-egg-container">
         <ChapterLessonBox courseCode={courseCode} />
       </div>
