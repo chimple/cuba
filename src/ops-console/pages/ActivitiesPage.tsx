@@ -112,7 +112,7 @@ const ActivitiesPage: React.FC = () => {
             onClick={handleOpenFilters}
             startIcon={<FilterListIcon fontSize="small" />}
             className="activities-filter-button"
-            aria-label={t('Open filters')}
+            aria-label={String(t('Open filters'))}
             sx={{
               textTransform: 'none',
               borderRadius: '999px',
@@ -162,13 +162,13 @@ const ActivitiesPage: React.FC = () => {
         filterConfigs={[
           {
             key: 'visitType',
-            label: t('Visit Type'),
-            placeholder: t('Visit Type'),
+            label: String(t('Visit Type')),
+            placeholder: String(t('Visit Type')),
           },
           {
             key: 'techIssues',
-            label: t('Tech Issues'),
-            placeholder: t('Tech Issues'),
+            label: String(t('Tech Issues')),
+            placeholder: String(t('Tech Issues')),
           },
         ]}
       />
