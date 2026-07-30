@@ -1015,6 +1015,7 @@ export interface ServiceApi {
     student_id: string,
     newClassId: string,
     phoneNumber?: string,
+    email?: string,
   ): Promise<TableTypes<'user'>>;
 
   updateUserProfile(

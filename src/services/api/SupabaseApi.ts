@@ -3159,6 +3159,7 @@ export class SupabaseApi implements ServiceApi {
     student_id: string,
     newClassId: string,
     phoneNumber?: string,
+    email?: string,
   ): Promise<TableTypes<'user'>> {
     if (!this.supabase) return student;
     const now = new Date().toISOString();
@@ -3230,6 +3231,7 @@ export class SupabaseApi implements ServiceApi {
             body: {
               name,
               phone: phoneNumber,
+              email: email || undefined,
             },
           },
         );

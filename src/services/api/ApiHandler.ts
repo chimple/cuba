@@ -569,6 +569,7 @@ export class ApiHandler implements ServiceApi {
     student_id: string,
     newClassId: string,
     phoneNumber?: string,
+    email?: string,
   ): Promise<TableTypes<'user'>> {
     return await this.s.updateStudentFromSchoolMode(
       student,
@@ -583,6 +584,7 @@ export class ApiHandler implements ServiceApi {
       student_id,
       newClassId,
       phoneNumber,
+      email,
     );
   }
 

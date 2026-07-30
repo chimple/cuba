@@ -3912,6 +3912,8 @@ export class SqliteApi implements ServiceApi {
     languageDocId: string,
     student_id: string,
     newClassId: string,
+    phoneNumber?: string,
+    email?: string,
   ): Promise<TableTypes<'user'>> {
     const languageChanged = student.language_id !== languageDocId;
     let localeId = student.locale_id;

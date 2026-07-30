@@ -1717,6 +1717,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       user.student_id || user.student_id!,
       selectedClassId,
       normalizePhone10(values.phone),
+      hasEmail ? parentEmail : undefined,
     );
 
     setIsEditStudentModalOpen(false);
