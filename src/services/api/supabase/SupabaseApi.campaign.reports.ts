@@ -193,6 +193,7 @@ export class SupabaseApiCampaignReports extends SupabaseApiCampaignMessaging {
         .from(TABLES.SchoolMetrics)
         .select('parents_in_group')
         .in('school_id', context.schoolIds)
+        .is('grade_id', null)
         .eq('metric_window', CAMPAIGN_REACH_METRIC_WINDOW)
         .eq('is_deleted', false),
       this.supabase
