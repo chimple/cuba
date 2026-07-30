@@ -7,8 +7,6 @@ import {
   DEFAULT_LOCALE_ID,
   GRADE1_KANNADA,
   GRADE1_MARATHI,
-  LATEST_LEARNING_PATH,
-  REWARD_LEARNING_PATH,
   TABLES,
   TableTypes,
 } from '../../../common/constants';
@@ -64,15 +62,10 @@ export class SupabaseApiResultsStudentProfiles extends SupabaseApiResultsResultU
       const countryCode = await this.getClientCountryCode();
       const locale = await this.getLocaleByIdOrCode(undefined, countryCode);
       updatedFields.locale_id = locale?.id ?? DEFAULT_LOCALE_ID;
-      updatedFields.learning_path = null;
     }
 
     await this.supabase.from('user').update(updatedFields).eq('id', student.id);
     const updatedStudent = { ...student, ...updatedFields };
-    if (languageChanged) {
-      localStorage.removeItem(`${LATEST_LEARNING_PATH}:${student.id}`);
-      sessionStorage.removeItem(REWARD_LEARNING_PATH);
-    }
 
     const courses =
       gradeDocId && boardDocId
