@@ -68,7 +68,10 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
-import { getStudentContactValues } from '../../utils/studentContactNumbers';
+import {
+  getStudentContactValues,
+  getStudentPhoneNumbers,
+} from '../../utils/studentContactNumbers';
 
 type ApiStudentData = StudentInfo;
 type StudentPerformanceBand =
@@ -1598,6 +1601,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }
   }, [issTotal, classOptions, isAtSchool, baseStudents]);
 
+  const parentEmail = String(editStudentData?.parent?.email ?? '').trim();
+  const hasPhone = getStudentPhoneNumbers(editStudentData).length > 0;
+  const hasEmail = parentEmail !== '';
+  const shouldEditPhone = !hasPhone;
+
   const editStudentFields: FieldConfig[] = [
     {
       name: 'studentName',
@@ -1655,10 +1663,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     // 6️⃣ Phone – full width
     {
       name: 'phone',
-      label: 'Phone / Email',
-      kind: 'chips',
+      label: shouldEditPhone
+        ? 'Phone Number'
+        : hasEmail
+          ? 'Phone / Email'
+          : 'Phone Number',
+      kind: shouldEditPhone ? 'phone' : 'chips',
       column: 2,
-      disabled: true,
+      required: shouldEditPhone,
     },
   ];
 
@@ -1704,6 +1716,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       ...baseArgs,
       user.student_id || user.student_id!,
       selectedClassId,
+      normalizePhone10(values.phone),
+      hasEmail ? parentEmail : undefined,
     );
 
     setIsEditStudentModalOpen(false);
@@ -1954,8 +1968,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           ageGroup: String(editStudentData?.user?.age ?? ''),
           studentID: editStudentData?.user?.student_id ?? '',
           classAndSection: String(editStudentData?.classWithidname?.id ?? ''),
-          // Show all merged contacts in edit details as chips.
-          phone: getStudentContactValues(editStudentData).join(' / '),
+          phone: shouldEditPhone
+            ? ''
+            : getStudentContactValues(editStudentData).join(' / '),
         }}
         onClose={() => {
           setIsEditStudentModalOpen(false);
