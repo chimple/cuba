@@ -1,8 +1,6 @@
 import {
   DEFAULT_LOCALE_ID,
-  LATEST_LEARNING_PATH,
   MUTATE_TYPES,
-  REWARD_LEARNING_PATH,
   TABLES,
   TableTypes,
 } from '../../../common/constants';
@@ -45,7 +43,6 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
       language_id = ?,
       locale_id = ?,
       updated_at = ?
-      ${languageChanged ? ', learning_path = ?' : ''}
     WHERE id = ?;
   `;
     const params = [
@@ -60,9 +57,6 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
       localeId,
       now,
     ];
-    if (languageChanged) {
-      params.push(null);
-    }
     params.push(student.id);
     await this.executeQuery(updateUserQuery, params);
 
@@ -78,7 +72,6 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
       language_id: languageDocId,
       locale_id: localeId,
       updated_at: now,
-      ...(languageChanged && { learning_path: null }),
     };
 
     await this.assignCoursesToStudent(
@@ -100,12 +93,7 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
       language_id: languageDocId,
       locale_id: localeId,
       updated_at: now,
-      ...(languageChanged && { learning_path: null }),
     });
-    if (languageChanged) {
-      localStorage.removeItem(`${LATEST_LEARNING_PATH}:${student.id}`);
-      sessionStorage.removeItem(REWARD_LEARNING_PATH);
-    }
     return updatedStudent;
   }
 
@@ -163,7 +151,6 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
         locale_id = ?,
         student_id = ?,
         updated_at = ?
-        ${languageChanged ? ', learning_path = ?' : ''}
       WHERE id = ?;
     `;
 
@@ -181,10 +168,6 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
         student_id,
         now,
       ];
-
-      if (languageChanged) {
-        params.push(JSON.stringify([])); // keep your existing logic
-      }
 
       params.push(student.id);
 
@@ -205,10 +188,6 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
         updated_at: now,
       };
 
-      if (languageChanged) {
-        updatedStudent.learning_path = JSON.stringify([]);
-      }
-
       this.updatePushChanges(TABLES.User, MUTATE_TYPES.UPDATE, {
         name,
         age,
@@ -221,7 +200,6 @@ export class SqliteApiResultsStudentProfiles extends SqliteApiResultsResultUpdat
         student_id: student_id,
         locale_id: localeId,
         updated_at: now,
-        ...(languageChanged && { learning_path: JSON.stringify([]) }),
         id: student.id,
       });
       // Check if the class has changed
