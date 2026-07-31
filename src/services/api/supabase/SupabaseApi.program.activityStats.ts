@@ -208,7 +208,9 @@ export class SupabaseApiProgramActivityStats extends SupabaseApiProgramUserRoles
 
       if (error) {
         logger.error('Error updating role in special_users:', error.message);
+        return;
       }
+      this.invalidateSpecialUsersCache();
     } catch (e) {
       logger.error('Unexpected error while updating user role:', e);
     }
@@ -226,7 +228,9 @@ export class SupabaseApiProgramActivityStats extends SupabaseApiProgramUserRoles
         .eq('is_deleted', false);
       if (error) {
         logger.error('Error deleting user in special_users:', error.message);
+        return;
       }
+      this.invalidateSpecialUsersCache();
     } catch (e) {
       logger.error('Unexpected error while deleting user:', e);
     }

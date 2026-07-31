@@ -31,6 +31,10 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
     { expiresAt: number; users: CachedSpecialUser[] }
   >();
 
+  protected invalidateSpecialUsersCache(): void {
+    this.specialUsersCache.clear();
+  }
+
   async createAutoProfile(
     languageDocId: string | undefined,
     tcVersion: number,
