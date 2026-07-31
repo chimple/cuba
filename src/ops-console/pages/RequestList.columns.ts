@@ -60,12 +60,7 @@ const approvedColumns: Column<RequestRow>[] = [
     sortable: true,
     orderBy: 'approved_date',
   },
-  {
-    key: 'approved_by',
-    label: t('Approved By'),
-    width: '10%',
-    sortable: false,
-  },
+  { key: 'approved_by', label: t('Approved By'), width: '10%', sortable: false },
 ];
 
 const rejectedColumns: Column<RequestRow>[] = [
@@ -92,12 +87,7 @@ const rejectedColumns: Column<RequestRow>[] = [
     sortable: true,
     orderBy: 'rejected_date',
   },
-  {
-    key: 'rejected_by',
-    label: t('Rejected By'),
-    width: '20%',
-    sortable: false,
-  },
+  { key: 'rejected_by', label: t('Rejected By'), width: '20%', sortable: false },
 ];
 
 const flaggedColumns: Column<RequestRow>[] = [
