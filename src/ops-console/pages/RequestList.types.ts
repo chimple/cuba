@@ -39,6 +39,7 @@ export type RequestRow = {
   class: string;
   from: string;
   requested_date?: string;
+  auto_approves_on?: string;
   approved_date?: string;
   approved_by?: string;
   rejected_date?: string;
