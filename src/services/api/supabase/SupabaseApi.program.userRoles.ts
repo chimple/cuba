@@ -265,19 +265,19 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
         logger.error('Error fetching special users:', specialUsersError);
         return { data: [], totalCount: 0 };
       }
-      if (!specialUsers || specialUsers.length === 0) {
-        return { data: [], totalCount: 0 };
-      }
       const roleByUserId = new Map<string, string>();
-      specialUsers.forEach((specialUser) => {
+      specialUsers?.forEach((specialUser) => {
         if (specialUser.user_id && specialUser.role) {
           roleByUserId.set(specialUser.user_id, specialUser.role);
         }
       });
       const userIds = Array.from(roleByUserId.keys());
+      if (userIds.length === 0) {
+        return { data: [], totalCount: 0 };
+      }
       let query = this.supabase
         .from('user')
-        .select('*', search ? { count: 'exact' } : undefined)
+        .select('*', { count: 'exact' })
         .in('id', userIds)
         .eq('is_deleted', false);
       if (search) {
@@ -292,13 +292,13 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
       }
       if (!data) return { data: [], totalCount: 0 };
       const result = data.map((userObject) => {
-        const role = roleByUserId.get(userObject.id) || '';
+        const role = roleByUserId.get(userObject.id) ?? '';
         return {
           user: userObject as TableTypes<'user'>,
           role,
         };
       });
-      return { data: result, totalCount: search ? count || 0 : userIds.length };
+      return { data: result, totalCount: count || 0 };
     }
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {
       if (role && role !== RoleType.FIELD_COORDINATOR) {
