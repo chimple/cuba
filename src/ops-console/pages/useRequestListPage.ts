@@ -34,7 +34,7 @@ function parseJSONParam<T>(param: string | null, fallback: T): T {
   }
 }
 
-function formatDateOnly(dateStr?: string | null) {
+function formatDateOnly(dateStr?: string) {
   if (!dateStr) return '-';
   return new Date(dateStr).toLocaleDateString('en-US', {
     year: 'numeric',
