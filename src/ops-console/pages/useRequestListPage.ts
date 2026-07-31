@@ -43,6 +43,19 @@ function formatDateOnly(dateStr?: string) {
   });
 }
 
+function formatAutoApprovesOn(
+  requestType?: string | null,
+  requestEndsAt?: string | null,
+) {
+  if (requestType !== 'student' || !requestEndsAt) return 'NA';
+  return new Date(requestEndsAt).toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
 function mapRequests(
   requestItems: OpsRequestItem[],
   selectedTab: REQUEST_TABS,
@@ -100,6 +113,10 @@ function mapRequests(
           class: req.classInfo?.name || '-',
           from: req.requestedBy?.name || '-',
           requested_date: requestedDate,
+          auto_approves_on: formatAutoApprovesOn(
+            req.request_type,
+            req.request_ends_at,
+          ),
         };
       });
   }
@@ -269,6 +286,7 @@ export function useRequestListPage() {
           approved_date: 'updated_at',
           rejected_date: 'updated_at',
           requested_date: 'created_at',
+          auto_approves_on: 'request_ends_at',
           flagged_date: 'updated_at',
           school_name: 'school(name)',
         };
