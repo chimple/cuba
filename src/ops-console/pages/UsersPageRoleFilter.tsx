@@ -28,9 +28,7 @@ const getRoleFilterOptions = (roles: string[]): RoleType[] => {
       RoleType.EXTERNAL_USER,
     ];
   }
-  return roles.includes(RoleType.PROGRAM_MANAGER)
-    ? [RoleType.FIELD_COORDINATOR]
-    : [];
+  return [];
 };
 
 export const UsersPageRoleFilter: React.FC<UsersPageRoleFilterProps> = ({
