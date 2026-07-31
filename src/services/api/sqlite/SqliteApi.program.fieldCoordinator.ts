@@ -60,6 +60,7 @@ export class SqliteApiProgramFieldCoordinator extends SqliteApiProgramClassManag
   async getActivitiesFilterOptions(): Promise<{
     contactType: Array<string | null>;
     performance: Array<string | null>;
+    visitType?: Array<string | null>;
   } | null> {
     throw new Error('Method not implemented.');
   }

@@ -158,14 +158,22 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     try {
       if (!this.supabase) return null;
 
-      const { data, error } = await this.supabase
-        .from('fc_user_forms')
-        .select('contact_target, support_level')
-        .eq('is_deleted', false);
+      const [
+        { data: forms, error: formsError },
+        { data: visits, error: visitsError },
+      ] = await Promise.all([
+        this.supabase
+          .from('fc_user_forms')
+          .select('contact_target, support_level')
+          .eq('is_deleted', false),
+        this.supabase
+          .from('fc_school_visit')
+          .select('type')
+          .eq('is_deleted', false),
+      ]);
 
-      if (error) throw error;
-
-      const forms = data || [];
+      if (formsError) throw formsError;
+      if (visitsError) throw visitsError;
 
       const contactTypes = [
         ...new Set(forms.map((f) => f.contact_target).filter(Boolean)),
@@ -173,10 +181,14 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
       const performance = [
         ...new Set(forms.map((f) => f.support_level).filter(Boolean)),
       ];
+      const visitType = [
+        ...new Set(visits.map((visit) => visit.type).filter(Boolean)),
+      ];
 
       return {
         contactType: contactTypes,
         performance: performance,
+        visitType,
       };
     } catch (error) {
       logger.error('Error in getActivitiesFilterOptions:', error);

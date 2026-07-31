@@ -54,6 +54,8 @@ const mapSchoolVisitType = (
       return SchoolVisitType.TeacherTraining;
     case SchoolVisitType.Community:
       return SchoolVisitType.Community;
+    case SchoolVisitType.WorkFromHome:
+      return SchoolVisitType.WorkFromHome;
     default:
       return undefined;
   }
