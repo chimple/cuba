@@ -174,7 +174,7 @@ const formatInteger = (value: number) => value.toLocaleString('en-IN');
 
 const formatDurationMinutes = (value: number) =>
   `${Number(value || 0).toLocaleString('en-IN', {
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 0,
   })}m`;
 
 const matchesLevel = (percent: number, level: ActiveStudentsLevel | null) => {
@@ -242,7 +242,7 @@ export const mapCampaignSchoolPerformanceRows = (
   (response?.rows ?? []).map((row) => {
     const activeStudents = row.activeStudents ?? 0;
     const activatedStudents = row.activatedStudents ?? 0;
-    const avgTimeSpentMinutes = row.avgTimeSpent ?? 0;
+    const avgTimeSpentMinutes = Math.round(row.avgTimeSpent ?? 0);
 
     return {
       id: row.schoolId,
