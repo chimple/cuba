@@ -17,11 +17,20 @@ import { ServiceConfig } from '../../ServiceConfig';
 import { SupabaseApiProgramClassMetrics } from './SupabaseApi.program.classMetrics';
 
 type SpecialUserRole = NonNullable<TableTypes<'special_users'>['role']>;
+type SpecialUsersCacheKey = 'super-admin' | 'operational-director';
+type CachedSpecialUser = { role: SpecialUserRole; userId: string };
+
+const SPECIAL_USERS_CACHE_TTL_MS = 300_000;
 
 export interface SupabaseApiProgramUserRoles {
   [key: string]: any;
 }
 export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics {
+  private specialUsersCache = new Map<
+    SpecialUsersCacheKey,
+    { expiresAt: number; users: CachedSpecialUser[] }
+  >();
+
   async createAutoProfile(
     languageDocId: string | undefined,
     tcVersion: number,
@@ -248,28 +257,47 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
     const from = (page - 1) * limit;
     const to = from + limit - 1;
     if (isSuperAdmin || isOpsDirector) {
-      let specialUsersQuery = this.supabase
-        .from('special_users')
-        .select('user_id, role')
-        .eq('is_deleted', false)
-        .not('user_id', 'is', null);
-      if (isOpsDirector && !isSuperAdmin) {
-        specialUsersQuery = specialUsersQuery.neq('role', RoleType.SUPER_ADMIN);
-      }
-      if (roleFilter) {
-        specialUsersQuery = specialUsersQuery.eq('role', roleFilter);
-      }
-      const { data: specialUsers, error: specialUsersError } =
-        await specialUsersQuery;
-      if (specialUsersError) {
-        logger.error('Error fetching special users:', specialUsersError);
-        return { data: [], totalCount: 0 };
-      }
-      const roleByUserId = new Map<string, string>();
-      specialUsers?.forEach((specialUser) => {
-        if (specialUser.user_id && specialUser.role) {
-          roleByUserId.set(specialUser.user_id, specialUser.role);
+      const cacheKey: SpecialUsersCacheKey = isSuperAdmin
+        ? 'super-admin'
+        : 'operational-director';
+      const cachedSpecialUsers = this.specialUsersCache.get(cacheKey);
+      let specialUsers: CachedSpecialUser[];
+
+      if (cachedSpecialUsers && cachedSpecialUsers.expiresAt > Date.now()) {
+        specialUsers = cachedSpecialUsers.users;
+      } else {
+        let specialUsersQuery = this.supabase
+          .from('special_users')
+          .select('user_id, role')
+          .eq('is_deleted', false)
+          .not('user_id', 'is', null);
+        if (isOpsDirector && !isSuperAdmin) {
+          specialUsersQuery = specialUsersQuery.neq(
+            'role',
+            RoleType.SUPER_ADMIN,
+          );
         }
+        const { data, error } = await specialUsersQuery;
+        if (error) {
+          logger.error('Error fetching special users:', error);
+          return { data: [], totalCount: 0 };
+        }
+        specialUsers = (data ?? []).flatMap((specialUser) =>
+          specialUser.user_id && specialUser.role
+            ? [{ userId: specialUser.user_id, role: specialUser.role }]
+            : [],
+        );
+        this.specialUsersCache.set(cacheKey, {
+          expiresAt: Date.now() + SPECIAL_USERS_CACHE_TTL_MS,
+          users: specialUsers,
+        });
+      }
+      const filteredSpecialUsers = roleFilter
+        ? specialUsers.filter((specialUser) => specialUser.role === roleFilter)
+        : specialUsers;
+      const roleByUserId = new Map<string, string>();
+      filteredSpecialUsers.forEach((specialUser) => {
+        roleByUserId.set(specialUser.userId, specialUser.role);
       });
       const userIds = Array.from(roleByUserId.keys());
       if (userIds.length === 0) {
