@@ -17,8 +17,10 @@ import {
   GENDER,
   LANGUAGE,
   LATEST_TC_VERSION,
+  CURRENT_PATHWAY_MODE,
   MODES,
   PAGES,
+  LEARNING_PATHWAY_MODE,
   PROFILE_DETAILS_GROWTHBOOK_VARIATION,
   TableTypes,
 } from '../common/constants';
@@ -33,15 +35,14 @@ import {
   reinitializeHardwareBackButton,
 } from '../common/backButtonRegistry';
 import logger from '../utility/logger';
-import {
-  getAppPathname,
-  getAppSearchParams,
-} from '../utility/routerLocation';
+import { getAppPathname, getAppSearchParams } from '../utility/routerLocation';
 import { schoolUtil } from '../utility/schoolUtil';
 import {
-  updateLocalAttributes,
-  useGbContext,
-} from '../growthbook/Growthbook';
+  buildPath,
+  consolidatePalEnabledCourses,
+  sortCoursesByStudentLanguage,
+} from '../hooks/useLearningPath';
+import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 
 const getModeFromFeature = (variation: string) => {
   switch (variation) {
@@ -74,7 +75,6 @@ export const useProfileDetails = () => {
   const backRegistrationRef = useRef<(() => void) | null>(null);
   const isNavigatingBackRef = useRef(false);
 
-  // Sync State to Refs
   useEffect(() => {
     isCreatingProfileRef.current = isCreatingProfile;
   }, [isCreatingProfile]);
@@ -242,6 +242,41 @@ export const useProfileDetails = () => {
     }
   };
 
+  const seedInitialLearningPath = async (
+    student: TableTypes<'user'>,
+    languageCode?: string,
+  ) => {
+    try {
+      const resolvedMode =
+        localStorage.getItem(CURRENT_PATHWAY_MODE) ||
+        LEARNING_PATHWAY_MODE.DISABLED;
+      const courses = await api.getCoursesForPathway(student.id);
+      const sortedCourses = await sortCoursesByStudentLanguage(
+        courses,
+        student,
+      );
+      const pathwayCourses = await consolidatePalEnabledCourses(
+        sortedCourses,
+        resolvedMode,
+      );
+      const learningPath = await buildPath({
+        student,
+        courses: pathwayCourses,
+        mode: resolvedMode,
+      });
+      const learningPathStr = JSON.stringify(learningPath);
+
+      await api.updateLearningPath(student, learningPathStr);
+      await Util.setCurrentStudent(
+        { ...student, learning_path: learningPathStr },
+        languageCode,
+        true,
+      );
+    } catch (error) {
+      logger.error('Failed to seed initial learning path:', error);
+    }
+  };
+
   const lockOrientation = () => {
     if (Capacitor.isNativePlatform()) {
       ScreenOrientation.lock({ orientation: 'landscape' });
@@ -257,18 +292,15 @@ export const useProfileDetails = () => {
   };
 
   const executeBackLogic = () => {
-    // Check Locks (Refs)
     if (isCreatingProfileRef.current || isNavigatingBackRef.current) {
       return;
     }
     isNavigatingBackRef.current = true;
 
     try {
-      // Determine Mode based on Live Pathname (Not State)
       const currentPath = getAppPathname();
       const isEditMode = currentPath.startsWith(PAGES.EDIT_STUDENT);
 
-      // EDIT MODE Logic
       if (isEditMode) {
         const state = history.location.state as any;
         if (state?.from) {
@@ -281,7 +313,6 @@ export const useProfileDetails = () => {
         return;
       }
 
-      // CREATE MODE Logic
       const state = history.location.state as any;
       const createFallbackPath = parentHasStudentRef.current
         ? PAGES.DISPLAY_STUDENT
@@ -458,7 +489,10 @@ export const useProfileDetails = () => {
       });
       setGbUpdated(true);
 
-      await Util.ensureLidoCommonAudioForStudent(student);
+      await Promise.all([
+        seedInitialLearningPath(student, resolvedLanguageCode),
+        Util.ensureLidoCommonAudioForStudent(student),
+      ]);
       await normalizeModeBeforeHomeNavigation();
       history.replace(PAGES.HOME);
     } catch (err) {
@@ -503,6 +537,11 @@ export const useProfileDetails = () => {
         school_ids: [],
       });
       setGbUpdated(true);
+
+      await Promise.all([
+        seedInitialLearningPath(student, selectedLanguage?.code ?? undefined),
+        Util.ensureLidoCommonAudioForStudent(student),
+      ]);
 
       const user = await auth.getCurrentUser();
 
