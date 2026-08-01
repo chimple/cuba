@@ -68,12 +68,16 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
       if (!this.supabase) return null;
 
       const requestTypes = [...Constants.public.Enums.ops_request_type];
+      const isRequestedStatus =
+        requestStatus === Constants.public.Enums.ops_request_status[0];
 
       const schoolResponse = await this.supabase
         .from('ops_requests')
         .select(
           `
           school_id,
+          request_type,
+          request_ends_at,
           school:school_id (
             id,
             name
@@ -90,8 +94,22 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
       }
 
       const schoolMap = new Map<string, { id: string; name: string }>();
+      const now = Date.now();
 
       ((schoolResponse.data as any[]) || []).forEach((item) => {
+        if (
+          isRequestedStatus &&
+          item?.request_type === Constants.public.Enums.ops_request_type[0]
+        ) {
+          const requestEndsAt = item?.request_ends_at
+            ? Date.parse(item.request_ends_at)
+            : NaN;
+
+          if (!Number.isFinite(requestEndsAt) || requestEndsAt <= now) {
+            return;
+          }
+        }
+
         const school = item?.school;
         if (!school?.id || !school?.name) return;
 

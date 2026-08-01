@@ -116,17 +116,37 @@ export function useRequestListPage() {
   );
   const userRoles = roles || [];
   const tabOptions = useMemo(() => getRequestTabOptions(userRoles), []);
-  const [selectedTab, setSelectedTab] = useState<REQUEST_TABS>(() => {
+  const initialSelectedTab = (() => {
     const v = qs.get('tab') as REQUEST_TABS | null;
     return v && Object.values(REQUEST_TABS).includes(v)
       ? v
       : REQUEST_TABS.PENDING;
-  });
+  })();
+  const [selectedTab, setSelectedTab] =
+    useState<REQUEST_TABS>(initialSelectedTab);
   const [searchTerm, setSearchTerm] = useState(() => qs.get('search') || '');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
-  const [filters, setFilters] = useState<RequestListFilters>(() =>
-    parseJSONParam(qs.get('filters'), INITIAL_FILTERS),
-  );
+  const [filtersByTab, setFiltersByTab] = useState<
+    Record<REQUEST_TABS, RequestListFilters>
+  >(() => ({
+    [REQUEST_TABS.PENDING]:
+      initialSelectedTab === REQUEST_TABS.PENDING
+        ? parseJSONParam(qs.get('filters'), INITIAL_FILTERS)
+        : INITIAL_FILTERS,
+    [REQUEST_TABS.APPROVED]:
+      initialSelectedTab === REQUEST_TABS.APPROVED
+        ? parseJSONParam(qs.get('filters'), INITIAL_FILTERS)
+        : INITIAL_FILTERS,
+    [REQUEST_TABS.REJECTED]:
+      initialSelectedTab === REQUEST_TABS.REJECTED
+        ? parseJSONParam(qs.get('filters'), INITIAL_FILTERS)
+        : INITIAL_FILTERS,
+    [REQUEST_TABS.FLAGGED]:
+      initialSelectedTab === REQUEST_TABS.FLAGGED
+        ? parseJSONParam(qs.get('filters'), INITIAL_FILTERS)
+        : INITIAL_FILTERS,
+  }));
+  const filters = filtersByTab[selectedTab] ?? INITIAL_FILTERS;
   const [page, setPage] = useState(() => {
     const p = parseInt(qs.get('page') || '', 10);
     return isNaN(p) || p < 1 ? 1 : p;
@@ -137,8 +157,45 @@ export function useRequestListPage() {
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [tempFilters, setTempFilters] =
-    useState<RequestListFilters>(INITIAL_FILTERS);
+  const [tempFiltersByTab, setTempFiltersByTab] = useState<
+    Record<REQUEST_TABS, RequestListFilters>
+  >(() => ({
+    [REQUEST_TABS.PENDING]: INITIAL_FILTERS,
+    [REQUEST_TABS.APPROVED]: INITIAL_FILTERS,
+    [REQUEST_TABS.REJECTED]: INITIAL_FILTERS,
+    [REQUEST_TABS.FLAGGED]: INITIAL_FILTERS,
+  }));
+  const tempFilters = tempFiltersByTab[selectedTab] ?? INITIAL_FILTERS;
+  const setFilters = React.useCallback(
+    (value: React.SetStateAction<RequestListFilters>) => {
+      setFiltersByTab((prev) => {
+        const current = prev[selectedTab] ?? INITIAL_FILTERS;
+        const next =
+          typeof value === 'function'
+            ? (value as (prevState: RequestListFilters) => RequestListFilters)(
+                current,
+              )
+            : value;
+        return { ...prev, [selectedTab]: next };
+      });
+    },
+    [selectedTab],
+  );
+  const setTempFilters = React.useCallback(
+    (value: React.SetStateAction<RequestListFilters>) => {
+      setTempFiltersByTab((prev) => {
+        const current = prev[selectedTab] ?? INITIAL_FILTERS;
+        const next =
+          typeof value === 'function'
+            ? (value as (prevState: RequestListFilters) => RequestListFilters)(
+                current,
+              )
+            : value;
+        return { ...prev, [selectedTab]: next };
+      });
+    },
+    [selectedTab],
+  );
   const [filterOptions, setFilterOptions] = useState<RequestListFilterOptions>(
     () => ({
       ...INITIAL_FILTER_OPTIONS,
@@ -245,7 +302,7 @@ export function useRequestListPage() {
   const handleOpenFilters = React.useCallback(() => {
     setIsFilterOpen(true);
     setTempFilters(filters);
-  }, [filters]);
+  }, [filters, selectedTab]);
 
   useEffect(() => {
     if (!isSchoolFilterReady) return;
@@ -339,10 +396,10 @@ export function useRequestListPage() {
   };
 
   const handleDeleteFilter = (key: string, value: string) => {
-    setFilters((prev) => {
+    setFilters((current) => {
       const updated = {
-        ...prev,
-        [key]: prev[key].filter((v) => v !== value),
+        ...current,
+        [key]: current[key].filter((v) => v !== value),
       };
       setTempFilters(updated);
       return updated;
