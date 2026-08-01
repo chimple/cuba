@@ -63,25 +63,26 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
     }
   }
 
-  async getRequestFilterOptions() {
+  async getRequestFilterOptions(requestStatus: EnumType<'ops_request_status'>) {
     try {
       if (!this.supabase) return null;
 
       const requestTypes = [...Constants.public.Enums.ops_request_type];
 
       const schoolResponse = await this.supabase
-        .from(TABLES.School)
+        .from('ops_requests')
         .select(
           `
-          id,
-          name,
-          ops_requests!inner()
+          school_id,
+          school:school_id (
+            id,
+            name
+          )
         `,
         )
         .eq('is_deleted', false)
-        .eq('ops_requests.is_deleted', false)
-        .not('ops_requests.school_id', 'is', null)
-        .order('name', { ascending: true });
+        .eq('request_status', requestStatus)
+        .not('school_id', 'is', null);
 
       if (schoolResponse.error) {
         logger.error('Failed to fetch schools:', schoolResponse.error.message);
@@ -91,15 +92,18 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
       const schoolMap = new Map<string, { id: string; name: string }>();
 
       ((schoolResponse.data as any[]) || []).forEach((item) => {
-        if (item?.id && item?.name) {
-          schoolMap.set(item.id, {
-            id: item.id,
-            name: item.name,
-          });
-        }
+        const school = item?.school;
+        if (!school?.id || !school?.name) return;
+
+        schoolMap.set(school.id, {
+          id: school.id,
+          name: school.name,
+        });
       });
 
-      const uniqueSchools = Array.from(schoolMap.values());
+      const uniqueSchools = Array.from(schoolMap.values()).sort((a, b) =>
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+      );
 
       return {
         requestType: requestTypes,

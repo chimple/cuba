@@ -45,6 +45,7 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [schoolSearchValue, setSchoolSearchValue] = React.useState('');
 
   const getOptionLabel = (option: SchoolFilterOption) =>
     typeof option === 'string' ? option : option.name;
@@ -82,7 +83,39 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
             key={key}
             multiple
             options={filterOptions[key] || []}
+            filterOptions={
+              key === 'school'
+                ? (options, state) => {
+                    const query = state.inputValue.trim().toLowerCase();
+                    if (!query) return options;
+
+                    const rank = (name: string) => {
+                      const lower = name.toLowerCase();
+                      if (lower.startsWith(query)) return 0;
+                      if (lower.includes(` ${query}`)) return 1;
+                      if (lower.includes(query)) return 2;
+                      return 3;
+                    };
+
+                    return [...options]
+                      .filter((option) =>
+                        getOptionLabel(option).toLowerCase().includes(query),
+                      )
+                      .sort((a, b) => {
+                        const left = getOptionLabel(a);
+                        const right = getOptionLabel(b);
+                        return (
+                          rank(left) - rank(right) ||
+                          left.localeCompare(right, undefined, {
+                            sensitivity: 'base',
+                          })
+                        );
+                      });
+                  }
+                : undefined
+            }
             disableCloseOnSelect
+            filterSelectedOptions={false}
             getOptionLabel={getOptionLabel}
             isOptionEqualToValue={(option, value) =>
               getOptionValue(option) === getOptionValue(value)
@@ -94,6 +127,23 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
                   )
                 : (filters[key] ?? [])
             }
+            inputValue={key === 'school' ? schoolSearchValue : undefined}
+            onInputChange={(_, newInputValue, reason) => {
+              if (key !== 'school') return;
+
+              if (reason === 'clear') {
+                setSchoolSearchValue('');
+                return;
+              }
+
+              if (reason === 'input') {
+                setSchoolSearchValue(newInputValue);
+                return;
+              }
+
+              // Keep the current search text after a selection so the filtered
+              // result set stays visible for additional picks.
+            }}
             onChange={(e, value) => {
               const nextValues = Array.isArray(value)
                 ? value.map(getOptionValue)

@@ -253,8 +253,8 @@ export class ApiHandlerOpsUsers extends ApiHandlerCampaigns {
     );
   }
 
-  async getRequestFilterOptions() {
-    return this.s.getRequestFilterOptions();
+  async getRequestFilterOptions(requestStatus: EnumType<'ops_request_status'>) {
+    return this.s.getRequestFilterOptions(requestStatus);
   }
 
   async searchTeachersInSchool(

@@ -156,7 +156,9 @@ export interface ServiceApiOpsUsers {
     searchTerm?: string,
   ): Promise<OpsRequestsResponse>;
 
-  getRequestFilterOptions(): Promise<RequestFilterOptions | null>;
+  getRequestFilterOptions(
+    requestStatus: EnumType<'ops_request_status'>,
+  ): Promise<RequestFilterOptions | null>;
 
   searchTeachersInSchool(
     schoolId: string,

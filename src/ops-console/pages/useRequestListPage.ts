@@ -146,13 +146,28 @@ export function useRequestListPage() {
     }),
   );
   const schoolNameToIdMapRef = React.useRef<Map<string, string>>(new Map());
-  const hasRequestedFilterOptionsRef = React.useRef(false);
-  const [isFilterOptionsLoaded, setIsFilterOptionsLoaded] = useState(false);
+  const hasRequestedFilterOptionsRef =
+    React.useRef<EnumType<'ops_request_status'> | null>(null);
   const [orderBy, setOrderBy] = useState('requested_date');
   const [orderDir, setOrderDir] = useState<'desc' | 'asc'>('desc');
   const [pageSize] = useState(DEFAULT_PAGE_SIZE);
+  const requestStatus = useMemo<EnumType<'ops_request_status'>>(() => {
+    switch (selectedTab) {
+      case REQUEST_TABS.PENDING:
+        return Constants.public.Enums.ops_request_status[0];
+      case REQUEST_TABS.APPROVED:
+        return Constants.public.Enums.ops_request_status[2];
+      case REQUEST_TABS.REJECTED:
+        return Constants.public.Enums.ops_request_status[1];
+      case REQUEST_TABS.FLAGGED:
+        return Constants.public.Enums.ops_request_status[3];
+      default:
+        return Constants.public.Enums.ops_request_status[0];
+    }
+  }, [selectedTab]);
   const hasSchoolFilter = filters.school.length > 0;
-  const isSchoolFilterReady = !hasSchoolFilter || isFilterOptionsLoaded;
+  const isSchoolFilterReady =
+    !hasSchoolFilter || hasRequestedFilterOptionsRef.current === requestStatus;
   const shouldLoadFilterOptions = isFilterOpen || hasSchoolFilter;
   const isLoading =
     isDataLoading || (!isFilterOpen && hasSchoolFilter && isFilterLoading);
@@ -191,15 +206,18 @@ export function useRequestListPage() {
   }, [selectedTab, debouncedSearchTerm, filters, page, history]);
 
   useEffect(() => {
-    if (!shouldLoadFilterOptions || hasRequestedFilterOptionsRef.current) {
+    if (
+      !shouldLoadFilterOptions ||
+      hasRequestedFilterOptionsRef.current === requestStatus
+    ) {
       return;
     }
 
-    hasRequestedFilterOptionsRef.current = true;
+    hasRequestedFilterOptionsRef.current = requestStatus;
     setIsFilterLoading(true);
 
     api
-      .getRequestFilterOptions()
+      .getRequestFilterOptions(requestStatus)
       .then((data) => {
         if (!data) return;
 
@@ -220,10 +238,9 @@ export function useRequestListPage() {
         logger.error('Failed to fetch filter options', error);
       })
       .finally(() => {
-        setIsFilterOptionsLoaded(true);
         setIsFilterLoading(false);
       });
-  }, [api, shouldLoadFilterOptions]);
+  }, [api, requestStatus, shouldLoadFilterOptions]);
 
   const handleOpenFilters = React.useCallback(() => {
     setIsFilterOpen(true);
@@ -236,24 +253,6 @@ export function useRequestListPage() {
     const fetchData = async () => {
       setIsDataLoading(true);
       try {
-        let tempTab: EnumType<'ops_request_status'>;
-        switch (selectedTab) {
-          case REQUEST_TABS.PENDING:
-            tempTab = Constants.public.Enums.ops_request_status[0];
-            break;
-          case REQUEST_TABS.APPROVED:
-            tempTab = Constants.public.Enums.ops_request_status[2];
-            break;
-          case REQUEST_TABS.REJECTED:
-            tempTab = Constants.public.Enums.ops_request_status[1];
-            break;
-          case REQUEST_TABS.FLAGGED:
-            tempTab = Constants.public.Enums.ops_request_status[3];
-            break;
-          default:
-            tempTab = Constants.public.Enums.ops_request_status[0];
-        }
-
         const filtersWithSchoolIds = {
           ...filters,
           school: filters.school
@@ -274,7 +273,7 @@ export function useRequestListPage() {
         };
         const backendOrderBy = orderByMapping[orderBy] || orderBy;
         const { data, total } = await api.getOpsRequests(
-          tempTab,
+          requestStatus,
           page,
           pageSize,
           backendOrderBy,
@@ -298,6 +297,7 @@ export function useRequestListPage() {
     tableScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [
     api,
+    requestStatus,
     selectedTab,
     page,
     pageSize,
