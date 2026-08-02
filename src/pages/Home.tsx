@@ -23,6 +23,7 @@ const Home = () => {
     pendingAssignmentCount,
     pendingLiveQuizCount,
     refreshKey,
+    isReturnFromLesson,
     setCurrentHeader,
     setPendingAssignmentCount,
     setPendingLiveQuizCount,
@@ -38,6 +39,7 @@ const Home = () => {
           onHeaderIconClick={onHeaderIconClick}
           pendingAssignmentCount={pendingAssignmentCount}
           pendingLiveQuizCount={pendingLiveQuizCount}
+          isReturnFromLesson={isReturnFromLesson}
         />
       </IonHeader>
       <div className="slider-content">

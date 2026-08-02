@@ -83,12 +83,14 @@ export const useHome = () => {
   }
 
   let tempPageNumber = 1;
-  const location = useLocation();
+  const location = useLocation<{ fromLido?: boolean }>();
   const getCanShowAvatar = async () => {
     setCanShowAvatar(true);
   };
   const urlParams = new URLSearchParams(location.search);
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>(true);
+  const isReturnFromLesson =
+    location.state?.fromLido === true || urlParams.get('isReload') === 'true';
   const [currentHeader, setCurrentHeader] = useState(() => {
     const currPage = urlParams.get('tab');
     if (
@@ -151,6 +153,10 @@ export const useHome = () => {
     const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+    if (isReturnFromLesson) {
+      setIsLoading(false);
       return;
     }
     const studentDetails = student;
@@ -570,6 +576,7 @@ export const useHome = () => {
     pendingAssignmentCount,
     pendingLiveQuizCount,
     refreshKey,
+    isReturnFromLesson,
     setCurrentHeader,
     setPendingAssignmentCount,
     setPendingLiveQuizCount,
