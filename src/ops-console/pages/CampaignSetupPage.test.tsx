@@ -1220,7 +1220,7 @@ describe('CampaignSetupPage', () => {
     expect(rewardsStep).toBeDisabled();
     expect(messagingStep).toBeDisabled();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+    fireEvent.click(screen.getByText('Back'));
     expect(
       await screen.findByText('Assignment Configuration'),
     ).toBeInTheDocument();
