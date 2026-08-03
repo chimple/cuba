@@ -42,7 +42,7 @@ const AppLangSelection: React.FC = () => {
   const handleNextClick = async () => {
     const appLang = localStorage.getItem(LANGUAGE);
     if (!appLang) {
-      const tempLangCode = LANG.ENGLISH;
+      const tempLangCode = LANG.PORTUGUESE;
       localStorage.setItem(LANGUAGE, tempLangCode);
       await i18n.changeLanguage(tempLangCode);
     }

@@ -164,6 +164,7 @@ export enum LeaderboardDropdownList {
 }
 
 export enum APP_LANGUAGES {
+  pt = 'Português',
   en = 'English',
   hi = 'हिन्दी',
   kn = 'ಕನ್ನಡ',
@@ -565,6 +566,7 @@ export enum LANG {
   HINDI = 'hi',
   KANNADA = 'kn',
   MARATHI = 'mr',
+  PORTUGUESE = 'pt',
   SIERRA_LEONE = 'sl_en',
 }
 export enum SCORECOLOR {
