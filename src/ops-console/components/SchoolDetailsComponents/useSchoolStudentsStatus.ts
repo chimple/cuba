@@ -28,6 +28,7 @@ type UseSchoolStudentsStatusParams = {
   issTotal: boolean;
   normalizedStudents: ApiStudentData[];
   programScopedClasses: ClassRow[];
+  selectedClassId: string;
   sortedStudents: ApiStudentData[];
 };
 
@@ -38,6 +39,7 @@ export const useSchoolStudentsStatus = ({
   issTotal,
   normalizedStudents,
   programScopedClasses,
+  selectedClassId,
   sortedStudents,
 }: UseSchoolStudentsStatusParams) => {
   const [studentPerformanceMap, setStudentPerformanceMap] = useState<
@@ -60,12 +62,12 @@ export const useSchoolStudentsStatus = ({
             .map((student) =>
               issTotal
                 ? student.classWithidname?.id
-                : (classDataRef?.id ?? student.classWithidname?.id),
+                : selectedClassId || student.classWithidname?.id,
             )
             .filter((value): value is string => Boolean(value)),
         ),
       ).join(','),
-    [classDataRef?.id, issTotal, normalizedStudents],
+    [issTotal, normalizedStudents, selectedClassId],
   );
 
   const classGroupKey = useMemo(() => {
@@ -224,7 +226,7 @@ export const useSchoolStudentsStatus = ({
             .map((student) =>
               issTotal
                 ? student.classWithidname?.id
-                : (classDataRef?.id ?? student.classWithidname?.id),
+                : selectedClassId || student.classWithidname?.id,
             )
             .filter((value): value is string => Boolean(value)),
         ),
@@ -260,7 +262,7 @@ export const useSchoolStudentsStatus = ({
       }
     };
     fetchStudentPerformance();
-  }, [api, classDataRef?.id, issTotal, performanceClassIdsKey, studentIdsKey]);
+  }, [api, issTotal, performanceClassIdsKey, selectedClassId, studentIdsKey]);
 
   return {
     getWhatsappGroupStatus,
