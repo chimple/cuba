@@ -755,8 +755,23 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     [sortedStudents],
   );
   const classDataRef = useMemo(() => {
-    return Array.isArray(data.classData) ? data.classData[0] : undefined;
-  }, [data.classData]);
+    if (!Array.isArray(data.classData)) return undefined;
+
+    const selectedClassId = String(optionalClassId ?? '').trim();
+    if (selectedClassId) {
+      return (
+        data.classData.find(
+          (classRow) => String(classRow?.id ?? '').trim() === selectedClassId,
+        ) ?? undefined
+      );
+    }
+
+    return data.classData[0];
+  }, [data.classData, optionalClassId]);
+  const selectedClassId = useMemo(
+    () => String(optionalClassId ?? classDataRef?.id ?? '').trim(),
+    [classDataRef?.id, optionalClassId],
+  );
   const performanceClassIdsKey = useMemo(
     () =>
       Array.from(
@@ -765,12 +780,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             .map((student) =>
               issTotal
                 ? student.classWithidname?.id
-                : (classDataRef?.id ?? student.classWithidname?.id),
+                : selectedClassId || student.classWithidname?.id,
             )
             .filter((value): value is string => Boolean(value)),
         ),
       ).join(','),
-    [classDataRef?.id, issTotal, normalizedStudents],
+    [issTotal, normalizedStudents, selectedClassId],
   );
 
   // Fold classId + group_id into one key so the fetch effect reruns on link changes.
@@ -945,7 +960,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             .map((student) =>
               issTotal
                 ? student.classWithidname?.id
-                : (classDataRef?.id ?? student.classWithidname?.id),
+                : selectedClassId || student.classWithidname?.id,
             )
             .filter((value): value is string => Boolean(value)),
         ),
@@ -987,7 +1002,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       }
     };
     fetchStudentPerformance();
-  }, [api, classDataRef?.id, issTotal, performanceClassIdsKey, studentIdsKey]);
+  }, [api, issTotal, performanceClassIdsKey, selectedClassId, studentIdsKey]);
   const getStudentInfoById = useCallback(
     (id: string): StudentInfo | null => {
       if (!Array.isArray(students)) return null;
@@ -1028,7 +1043,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       const rowClassId = String(
         issTotal
           ? (s_api.classWithidname?.id ?? '')
-          : (classDataRef?.id ?? s_api.classWithidname?.id ?? ''),
+          : selectedClassId || s_api.classWithidname?.id || '',
       ).trim();
       return {
         id: s_api.user.id,
@@ -1062,8 +1077,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }
     return filtered;
   }, [
-    classDataRef?.id,
     issTotal,
+    selectedClassId,
     sortedStudents,
     performanceFilter,
     studentPerformanceMap,
