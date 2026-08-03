@@ -105,6 +105,9 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
                 )
               }
               size="small"
+              MenuProps={{
+                PaperProps: { className: 'campaign-setup-dropdown-menu' },
+              }}
             >
               <MenuItem value="">Select a saved group</MenuItem>
               {savedGroups.map((group) => (
@@ -133,6 +136,9 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
                 )
               }
               size="small"
+              MenuProps={{
+                PaperProps: { className: 'campaign-setup-dropdown-menu' },
+              }}
             >
               <MenuItem value="" disabled>
                 Select Program
@@ -154,6 +160,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             loading={loadingAudience}
             placeholder="Select Blocks"
             preventMobileKeyboard
+            selectAllLabel="Select All"
             onChange={onBlocksChange}
           />
           {!!form.programId && !hasCustomBlockSelection && (
@@ -171,6 +178,7 @@ export const TargetAudienceSection: React.FC<TargetAudienceSectionProps> = ({
             loading={loadingAudience}
             placeholder="Select Schools"
             preventMobileKeyboard
+            selectAllLabel="Select All"
             getOptionLabel={(option) => option.name}
             isOptionEqualToValue={(option, value) => option.id === value.id}
             onChange={onSchoolsChange}
