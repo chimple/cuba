@@ -36,59 +36,12 @@ import { AuthState } from '../../redux/slices/auth/authSlice';
 import { logAuthDebug } from '../../utility/authDebug';
 import { getAppPathname } from '../../utility/routerLocation';
 import { parsePath } from 'history';
+import { hasSidebarAccess, sidebarNavItems } from './Sidebar.config';
 interface SidebarProps {
   name: string;
   email: string;
   photo: string;
 }
-
-const navItems = [
-  {
-    label: NavItems.DASHBOARD,
-    route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_DASHBOARD,
-    icon: <DashboardIcon />,
-  },
-  {
-    label: NavItems.PROGRAMS,
-    route: PAGES.SIDEBAR_PAGE + PAGES.PROGRAM_PAGE,
-    icon: <BookIcon />,
-  },
-  {
-    label: NavItems.SCHOOLS,
-    route: PAGES.SIDEBAR_PAGE + PAGES.SCHOOL_LIST,
-    icon: <SchoolIcon />,
-  },
-  {
-    label: NavItems.CAMPAIGNS,
-    route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_CAMPAIGNS,
-    icon: <CampaignIcon />,
-  },
-  {
-    label: NavItems.REQUESTS,
-    route: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
-    icon: <IoGitPullRequestSharp />,
-  },
-  {
-    label: NavItems.OpsMODULE,
-    route: PAGES.SIDEBAR_PAGE + PAGES.OPS_MODULE_PAGE,
-    icon: <ViewModuleIcon />,
-  },
-  {
-    label: NavItems.USERS,
-    route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_USERS,
-    icon: <GroupsIcon />,
-  },
-  {
-    label: NavItems.DEVICES,
-    route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_DEVICES,
-    icon: <DevicesIcon />,
-  },
-  {
-    label: NavItems.RESOURCES,
-    route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_RESOURCES,
-    icon: <LibraryBooksIcon />,
-  },
-];
 
 const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -110,6 +63,12 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     (state: RootState) => state.auth as AuthState,
   );
   const userRoles = roles || [];
+  const {
+    canAccessUsersPage,
+    canAccessModulePage,
+    canAccessMessagesPage,
+    canAccessCampaignPage,
+  } = hasSidebarAccess(userRoles as RoleType[]);
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
@@ -168,6 +127,13 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     setIsOpen(false);
   }, [location?.pathname]);
 
+  useEffect(() => {
+    document.body.classList.toggle('ops-sidebar-open', isOpen);
+    return () => {
+      document.body.classList.remove('ops-sidebar-open');
+    };
+  }, [isOpen]);
+
   const onSignOut = async () => {
     const auth = ServiceConfig.getI().authHandler;
     logAuthDebug('User initiated ops console logout.', {
@@ -217,30 +183,14 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
         </div>
 
         <ul className="sidebar-nav-list">
-          {navItems.map((item) => {
-            const rolesWithAccess = [
-              RoleType.SUPER_ADMIN,
-              RoleType.OPERATIONAL_DIRECTOR,
-              RoleType.PROGRAM_MANAGER,
-            ];
-            const canAccessUsersPage = userRoles.some((role) =>
-              rolesWithAccess.includes(role as RoleType),
-            );
-            const moduleRolesWithAccess = [
-              RoleType.SUPER_ADMIN,
-              RoleType.OPERATIONAL_DIRECTOR,
-            ];
-            const canAccessModulePage = userRoles.some((role) =>
-              moduleRolesWithAccess.includes(role as RoleType),
-            );
-            const canAccessCampaignPage = userRoles.some((role) =>
-              CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
-            );
+          {sidebarNavItems.map((item) => {
             if (isExternalUser && item.label !== NavItems.SCHOOLS) return null;
             // Program listing is only available to roles approved for Program page access.
             if (item.label === NavItems.PROGRAMS && !canAccessUsersPage)
               return null;
             if (item.label === NavItems.CAMPAIGNS && !canAccessCampaignPage)
+              return null;
+            if (item.label === NavItems.MESSAGES && !canAccessMessagesPage)
               return null;
             if (item.label === NavItems.USERS && !canAccessUsersPage)
               return null;

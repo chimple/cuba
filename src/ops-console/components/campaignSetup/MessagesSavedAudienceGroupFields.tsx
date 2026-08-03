@@ -12,11 +12,12 @@ import {
   CampaignSetupTextChangeHandler,
 } from './types';
 
-type SavedAudienceGroupFieldsProps = {
+type MessagesSavedAudienceGroupFieldsProps = {
   form: Pick<CampaignSetupFormState, 'groupName'>;
   selectedSavedGroupId: string;
   saveGroup: boolean;
   savingGroup: boolean;
+  canSaveGroup: boolean;
   groupNameError?: string;
   onSaveGroupChange: (saveGroup: boolean) => void;
   onGroupNameChange: CampaignSetupTextChangeHandler;
@@ -24,20 +25,21 @@ type SavedAudienceGroupFieldsProps = {
   onCancelSaveGroup: () => void;
 };
 
-export const SavedAudienceGroupFields: React.FC<
-  SavedAudienceGroupFieldsProps
+export const MessagesSavedAudienceGroupFields: React.FC<
+  MessagesSavedAudienceGroupFieldsProps
 > = ({
   form,
   selectedSavedGroupId,
   saveGroup,
   savingGroup,
+  canSaveGroup,
   groupNameError,
   onSaveGroupChange,
   onGroupNameChange,
   onSaveGroup,
   onCancelSaveGroup,
 }) => (
-  <Box className="target-audience-section-save-group">
+  <Box className="messages-page__save-group">
     {!selectedSavedGroupId && (
       <FormControlLabel
         control={
@@ -50,35 +52,49 @@ export const SavedAudienceGroupFields: React.FC<
       />
     )}
     {!selectedSavedGroupId && saveGroup && (
-      <Box className="target-audience-section-save-group-fields">
-        <Box className="campaign-setup-field">
-          <Typography className="campaign-setup-label">Group Name</Typography>
+      <Box className="messages-page__save-group-fields">
+        <Box className="messages-page__save-group-main">
+          <Typography className="messages-page__field-label">
+            Group Name
+          </Typography>
           <TextField
             value={form.groupName}
             onChange={onGroupNameChange}
             error={!!groupNameError}
-            helperText={groupNameError}
             placeholder="Enter group name"
             inputProps={{ 'aria-label': 'Group Name' }}
             size="small"
           />
+          {!!groupNameError && (
+            <Typography
+              className="messages-page__save-group-error"
+              variant="caption"
+              component="p"
+            >
+              {groupNameError}
+            </Typography>
+          )}
         </Box>
-        <Button
-          type="button"
-          className="target-audience-section-text-button target-audience-section-save-button"
-          disabled={savingGroup}
-          onClick={onSaveGroup}
-        >
-          Save
-        </Button>
-        <Button
-          type="button"
-          className="target-audience-section-text-button target-audience-section-cancel-button"
-          onClick={onCancelSaveGroup}
-        >
-          Cancel
-        </Button>
+        <Box className="messages-page__save-group-actions">
+          <Button
+            type="button"
+            className="messages-page__save-button messages-page__save-group-text-button"
+            disabled={savingGroup}
+            onClick={onSaveGroup}
+          >
+            Save
+          </Button>
+          <Button
+            type="button"
+            className="messages-page__cancel-button"
+            onClick={onCancelSaveGroup}
+          >
+            Cancel
+          </Button>
+        </Box>
       </Box>
     )}
   </Box>
 );
+
+export default MessagesSavedAudienceGroupFields;

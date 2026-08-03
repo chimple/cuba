@@ -269,6 +269,74 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     return counts;
   }
 
+  async getActiveTeachersCountForProgram7d(
+    programId: string,
+  ): Promise<number | null> {
+    if (!this.supabase || !programId) return null;
+
+    const sevenDaysAgo = new Date(
+      Date.now() - 7 * 24 * 60 * 60 * 1000,
+    ).toISOString();
+
+    const { data: schoolMetrics, error: schoolMetricsError } =
+      await this.supabase
+        .from(TABLES.SchoolMetrics)
+        .select('school_id')
+        .eq('program_id', programId)
+        .eq('is_deleted', false);
+
+    if (schoolMetricsError) {
+      logger.error(
+        'Error fetching school metrics for program:',
+        schoolMetricsError,
+      );
+      return null;
+    }
+
+    const schoolIds = (schoolMetrics ?? [])
+      .map((row) => row.school_id)
+      .filter((value): value is string => Boolean(value));
+
+    if (schoolIds.length === 0) return 0;
+
+    const { data: classes, error: classError } = await this.supabase
+      .from(TABLES.Class)
+      .select('id, school_id')
+      .in('school_id', schoolIds)
+      .eq('is_deleted', false);
+
+    if (classError) {
+      logger.error('Error fetching classes for program:', classError);
+      return null;
+    }
+
+    const classIds = (classes ?? [])
+      .map((row) => row.id)
+      .filter((value): value is string => Boolean(value));
+
+    if (classIds.length === 0) return 0;
+
+    const { data, error } = await this.supabase
+      .from(TABLES.Assignment)
+      .select('created_by')
+      .in('class_id', classIds)
+      .eq('is_deleted', false)
+      .gte('created_at', sevenDaysAgo);
+
+    if (error) {
+      logger.error('Error fetching active teachers count for program:', error);
+      return null;
+    }
+
+    const teacherIds = new Set<string>();
+    (data ?? []).forEach((row) => {
+      const teacherId = String(row.created_by ?? '').trim();
+      if (teacherId) teacherIds.add(teacherId);
+    });
+
+    return teacherIds.size;
+  }
+
   async createNoteForSchool(params: {
     schoolId: string;
     classId?: string | null;
