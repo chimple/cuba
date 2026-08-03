@@ -138,8 +138,13 @@ export const useSchoolStudentsController = ({
 
   // Resolve the opened class instead of defaulting its status lookup to the first class.
   const classDataRef = data.classData?.find(
-    (classRow) => !optionalClassId || classRow.id === optionalClassId,
+    (classRow) =>
+      !optionalClassId ||
+      String(classRow.id ?? '').trim() === String(optionalClassId).trim(),
   );
+  const selectedClassId = String(
+    optionalClassId ?? classDataRef?.id ?? '',
+  ).trim();
 
   const {
     getWhatsappGroupStatus,
@@ -152,6 +157,7 @@ export const useSchoolStudentsController = ({
     issTotal,
     normalizedStudents,
     programScopedClasses,
+    selectedClassId,
     sortedStudents,
   });
 
@@ -201,7 +207,7 @@ export const useSchoolStudentsController = ({
     pageCount,
     studentsForCurrentPage,
   } = useSchoolStudentsRows({
-    classDataRefId: classDataRef?.id,
+    classDataRefId: selectedClassId,
     filters,
     getWhatsappGroupStatus,
     isLoading,
