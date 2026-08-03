@@ -30,6 +30,7 @@ type NewUserFormProps = {
   handleRoleChange: (event: SelectChangeEvent<string>) => void;
   handleSubmit: (event: React.FormEvent) => void;
   isMobile: boolean;
+  isSaveDisabled: boolean;
   roles: { label: string; value: string }[];
 };
 
@@ -41,6 +42,7 @@ export const NewUserForm = ({
   handleRoleChange,
   handleSubmit,
   isMobile,
+  isSaveDisabled,
   roles,
 }: NewUserFormProps) => (
   <form onSubmit={handleSubmit} autoComplete="off">
@@ -50,12 +52,16 @@ export const NewUserForm = ({
       className="ops-new-user-form_grid"
     >
       <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
-        <Typography className="ops-new-user-form_label">{t('Name')}</Typography>
+        <Typography className="ops-new-user-form_label">
+          {t('Name')}
+          <span className="ops-new-user-form_required-star"> *</span>
+        </Typography>
         <TextField
           fullWidth
           size="small"
           value={form.name}
           onChange={handleInputChange('name')}
+          required
         />
       </Grid>
       <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
@@ -99,6 +105,7 @@ export const NewUserForm = ({
       <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
         <Typography className="ops-new-user-form_label">
           {t('Roles')}
+          <span className="ops-new-user-form_required-star"> *</span>
         </Typography>
         <Select
           fullWidth
@@ -106,6 +113,7 @@ export const NewUserForm = ({
           displayEmpty
           value={form.role}
           onChange={handleRoleChange}
+          required
           renderValue={(selected) =>
             selected
               ? roles.find((role) => role.value === selected)?.label
@@ -136,9 +144,20 @@ export const NewUserForm = ({
         type="submit"
         variant="contained"
         className="ops-new-user-form-actions_button--save"
+        disabled={isSaveDisabled}
       >
         {t('Save')}
       </Button>
     </Box>
+    {isSaveDisabled && (
+      <Box className="ops-new-user-form-inline-error">
+        <Typography className="ops-new-user-form-inline-error_text">
+          <span className="ops-new-user-form-inline-error_star">*</span>
+          {t(
+            'Provide at least one contact method (phone number or email address) for the user.',
+          )}
+        </Typography>
+      </Box>
+    )}
   </form>
 );
