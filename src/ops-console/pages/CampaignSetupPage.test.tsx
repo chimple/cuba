@@ -1213,25 +1213,19 @@ describe('CampaignSetupPage', () => {
     await screen.findByText('Rewards Configuration');
 
     const stepper = getCampaignStepper();
-    expect(
-      within(stepper).getByRole('button', { name: 'Setup' }),
-    ).toBeEnabled();
-    expect(
-      within(stepper).getByRole('button', { name: 'Assignments' }),
-    ).toBeEnabled();
-    expect(
-      within(stepper).getByRole('button', { name: 'Rewards' }),
-    ).toBeDisabled();
-    expect(
-      within(stepper).getByRole('button', { name: 'Messaging' }),
-    ).toBeDisabled();
+    const [setupStep, assignmentsStep, rewardsStep, messagingStep] =
+      within(stepper).getAllByRole('button');
+    expect(setupStep).toBeEnabled();
+    expect(assignmentsStep).toBeEnabled();
+    expect(rewardsStep).toBeDisabled();
+    expect(messagingStep).toBeDisabled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(
       await screen.findByText('Assignment Configuration'),
     ).toBeInTheDocument();
 
-    fireEvent.click(within(stepper).getByRole('button', { name: 'Setup' }));
+    fireEvent.click(setupStep);
     expect(await screen.findByText('Objective & Goal')).toBeInTheDocument();
   });
 
