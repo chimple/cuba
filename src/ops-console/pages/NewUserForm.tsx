@@ -12,6 +12,9 @@ import {
 import { t } from 'i18next';
 import { PhoneInput } from 'react-international-phone';
 
+const CONTACT_METHOD_NOTE =
+  'Provide at least one contact method (phone number or email address) for the user';
+
 type NewUserFormProps = {
   form: {
     name: string;
@@ -101,6 +104,14 @@ export const NewUserForm = ({
           value={form.email}
           onChange={handleInputChange('email')}
         />
+        {isSaveDisabled && (
+          <Box className="ops-new-user-form-inline-error">
+            <Typography className="ops-new-user-form-inline-error_text">
+              <span className="ops-new-user-form-inline-error_star">*</span>
+              {t(CONTACT_METHOD_NOTE)}
+            </Typography>
+          </Box>
+        )}
       </Grid>
       <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
         <Typography className="ops-new-user-form_label">
@@ -149,15 +160,5 @@ export const NewUserForm = ({
         {t('Save')}
       </Button>
     </Box>
-    {isSaveDisabled && (
-      <Box className="ops-new-user-form-inline-error">
-        <Typography className="ops-new-user-form-inline-error_text">
-          <span className="ops-new-user-form-inline-error_star">*</span>
-          {t(
-            'Provide at least one contact method (phone number or email address) for the user.',
-          )}
-        </Typography>
-      </Box>
-    )}
   </form>
 );
