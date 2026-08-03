@@ -431,7 +431,12 @@ export const useSelectModeController = () => {
       school_ids: resolvedSchoolIds,
     });
     setGbUpdated(true);
-    history.replace(PAGES.HOME);
+    history.replace({
+      pathname: PAGES.HOME,
+      state: location.state?.fromSchoolModeSwitchProfile
+        ? { fromSchoolModeSwitchProfile: true }
+        : undefined,
+    });
   };
   const onClassSelect = async (
     selectedClass: TableTypes<'class'>,

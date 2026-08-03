@@ -1434,6 +1434,47 @@ describe('SelectMode page', () => {
     expect(screen.getByText('Student 1')).toBeInTheDocument();
   });
 
+  it('preserves school-mode switch profile flag when selecting a student', async () => {
+    const school = { id: 'school-1', name: 'School 1' };
+    const classData = { id: 'class-1', name: 'Class 1', school_id: school.id };
+    mockLocationState = { fromSchoolModeSwitchProfile: true };
+    localStorage.setItem(CURRENT_SCHOOL_NAME, JSON.stringify(school.name));
+    localStorage.setItem(CURRENT_CLASS_NAME, JSON.stringify(classData));
+    localStorage.setItem(USER_SELECTION_STAGE, 'true');
+    localStorage.setItem(
+      SELECTED_STUDENTS,
+      JSON.stringify([
+        { id: 'student-1', name: 'Student 1', avatar: 'avatar1' },
+      ]),
+    );
+    mockGetCurrMode.mockResolvedValue(MODES.SCHOOL);
+    mockAuthHandler.getCurrentUser.mockResolvedValue({ id: 'user-1' });
+    mockApiHandler.getSchoolsForUser.mockResolvedValue([
+      { school, role: 'PARENT' },
+    ]);
+    mockApiHandler.getSchoolsWithRoleAutouser.mockResolvedValue([
+      { id: 'school-1' },
+    ]);
+    mockApiHandler.getClassesForSchool.mockResolvedValue([classData]);
+    mockApiHandler.getStudentsForClass.mockResolvedValue([
+      { id: 'student-1', name: 'Student 1', avatar: 'avatar1' },
+    ]);
+
+    render(<SelectMode />);
+
+    await waitFor(() =>
+      expect(document.querySelector('.class-container')).not.toBeNull(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+
+    await waitFor(() =>
+      expect(mockHistoryReplace).toHaveBeenCalledWith({
+        pathname: PAGES.HOME,
+        state: { fromSchoolModeSwitchProfile: true },
+      }),
+    );
+  });
+
   it('handles MODES.SCHOOL with schoolName and className, no selectedUser -> STAGES.CLASS', async () => {
     const school = { id: 'school-1', name: 'School 1' };
     const classData = { id: 'class-1', name: 'Class 1' };
