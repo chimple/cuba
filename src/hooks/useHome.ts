@@ -74,17 +74,17 @@ export const useHome = () => {
   const isRewardFeatureOn = useFeatureIsOn(IS_REWARD_FEATURE_ON);
   const location = useLocation<{
     fromLido?: boolean;
-    fromSchoolModeSwitchProfile?: boolean;
+    fromSwitchProfileReturn?: boolean;
   }>();
   const urlParams = new URLSearchParams(location.search);
-  const isReturnFromSchoolModeSwitchProfile =
-    location.state?.fromSchoolModeSwitchProfile === true;
-  const isReturnFromLesson =
+  const isReturnFromSwitchProfileReturn =
+    location.state?.fromSwitchProfileReturn === true;
+  const isReturnFromLidoOrSwitchProfile =
     location.state?.fromLido === true ||
-    isReturnFromSchoolModeSwitchProfile ||
+    isReturnFromSwitchProfileReturn ||
     urlParams.get('isReload') === 'true';
   const [isLoading, setIsLoading] = useState<boolean>(
-    !isReturnFromSchoolModeSwitchProfile,
+    !isReturnFromSwitchProfileReturn,
   );
   if (isRewardFeatureOn === true) {
     localStorage.setItem(IS_REWARD_FEATURE_ON, 'true');
@@ -96,9 +96,9 @@ export const useHome = () => {
     setCanShowAvatar(true);
   };
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>(true);
-  const hasSkippedSchoolModeSwitchProfileTabSyncRef = useRef(false);
+  const hasSkippedSwitchProfileReturnTabSyncRef = useRef(false);
   const [currentHeader, setCurrentHeader] = useState(() => {
-    if (isReturnFromLesson) {
+    if (isReturnFromLidoOrSwitchProfile) {
       return HOMEHEADERLIST.HOME;
     }
     const currPage = urlParams.get('tab');
@@ -118,10 +118,10 @@ export const useHome = () => {
   const [to, setTo] = useState<number>(0);
   useEffect(() => {
     if (
-      isReturnFromSchoolModeSwitchProfile &&
-      !hasSkippedSchoolModeSwitchProfileTabSyncRef.current
+      isReturnFromSwitchProfileReturn &&
+      !hasSkippedSwitchProfileReturnTabSyncRef.current
     ) {
-      hasSkippedSchoolModeSwitchProfileTabSyncRef.current = true;
+      hasSkippedSwitchProfileReturnTabSyncRef.current = true;
       return;
     }
     const params = new URLSearchParams(location.search);
@@ -164,7 +164,7 @@ export const useHome = () => {
       history.replace(PAGES.SELECT_MODE);
       return;
     }
-    if (isReturnFromLesson) {
+    if (isReturnFromLidoOrSwitchProfile) {
       setIsLoading(false);
       return;
     }
@@ -582,8 +582,8 @@ export const useHome = () => {
     pendingAssignmentCount,
     pendingLiveQuizCount,
     refreshKey,
-    isReturnFromSchoolModeSwitchProfile,
-    isReturnFromLesson,
+    isReturnFromSwitchProfileReturn,
+    isReturnFromLidoOrSwitchProfile,
     setCurrentHeader,
     setPendingAssignmentCount,
     setPendingLiveQuizCount,

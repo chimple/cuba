@@ -69,7 +69,7 @@ interface SchoolModeOption {
 
 interface SelectModeLocationState {
   fromKidsAppLocationSchool?: boolean;
-  fromSchoolModeSwitchProfile?: boolean;
+  fromSwitchProfileReturn?: boolean;
 }
 
 export const useSelectModeController = () => {
@@ -433,8 +433,8 @@ export const useSelectModeController = () => {
     setGbUpdated(true);
     history.replace({
       pathname: PAGES.HOME,
-      state: location.state?.fromSchoolModeSwitchProfile
-        ? { fromSchoolModeSwitchProfile: true }
+      state: location.state?.fromSwitchProfileReturn
+        ? { fromSwitchProfileReturn: true }
         : undefined,
     });
   };

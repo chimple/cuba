@@ -44,15 +44,15 @@ const HomeHeader: React.FC<{
   onHeaderIconClick: Function;
   pendingAssignmentCount: number;
   pendingLiveQuizCount: number;
-  isReturnFromLesson?: boolean;
-  isReturnFromSchoolModeSwitchProfile?: boolean;
+  isReturnFromLidoOrSwitchProfile?: boolean;
+  isReturnFromSwitchProfileReturn?: boolean;
 }> = ({
   currentHeader,
   onHeaderIconClick,
   pendingAssignmentCount,
   pendingLiveQuizCount,
-  isReturnFromLesson,
-  isReturnFromSchoolModeSwitchProfile,
+  isReturnFromLidoOrSwitchProfile,
+  isReturnFromSwitchProfileReturn,
 }) => {
   const { t } = useTranslation();
   const currentStudent = Util.getCurrentStudent();
@@ -158,7 +158,7 @@ const HomeHeader: React.FC<{
     }
   };
   useEffect(() => {
-    if (!isReturnFromLesson && !isReturnFromSchoolModeSwitchProfile) {
+    if (!isReturnFromLidoOrSwitchProfile && !isReturnFromSwitchProfileReturn) {
       init();
     }
     window.addEventListener('JoinClassListner', handleJoinClassListner);
@@ -181,8 +181,8 @@ const HomeHeader: React.FC<{
     };
   }, [
     isHomeHeaderSpecialsEnabled,
-    isReturnFromLesson,
-    isReturnFromSchoolModeSwitchProfile,
+    isReturnFromLidoOrSwitchProfile,
+    isReturnFromSwitchProfileReturn,
   ]);
 
   const handleJoinClassListner = () => {

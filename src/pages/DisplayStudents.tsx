@@ -32,7 +32,7 @@ const DisplayStudents: FC<{}> = () => {
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
-  const location = useLocation<{ fromSchoolModeSwitchProfile?: boolean }>();
+  const location = useLocation<{ fromSwitchProfileReturn?: boolean }>();
   const { setGbUpdated } = useGbContext();
   const isWebPlatform = Capacitor.getPlatform() === 'web';
   const getProfileCardPlayActionParams = (
@@ -121,8 +121,8 @@ const DisplayStudents: FC<{}> = () => {
     } else {
       history.replace({
         ...parsePath(PAGES.HOME),
-        state: location.state?.fromSchoolModeSwitchProfile
-          ? { fromSchoolModeSwitchProfile: true }
+        state: location.state?.fromSwitchProfileReturn
+          ? { fromSwitchProfileReturn: true }
           : undefined,
       });
     }
