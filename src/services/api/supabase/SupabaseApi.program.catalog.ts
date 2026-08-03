@@ -369,6 +369,7 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
           error: insertSpecialError.message,
         };
       }
+      this.invalidateSpecialUsersCache();
       const successMessage = isNew
         ? 'success-created'
         : 'success-added-to-special_users';

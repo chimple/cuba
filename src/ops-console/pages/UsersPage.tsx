@@ -15,23 +15,23 @@ import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import DataTableBody from '../components/DataTableBody';
 import DataTablePagination from '../components/DataTablePagination';
+import SelectedFilters from '../components/SelectedFilters';
 import { PAGES } from '../../common/constants';
 import { t } from 'i18next';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { RoleLabels, RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
 import './UsersPage.css';
 import { useHistory, useLocation } from 'react-router-dom';
 import queryString from 'query-string';
+import { UsersPageRoleFilter } from './UsersPageRoleFilter';
 
 interface User {
   fullName: string;
   role: string;
 }
-
-const columns = [
-  { key: 'fullName', label: 'Full Name', width: '30%' },
-  { key: 'role', label: 'Roles', width: '70%', sortable: false },
-];
 
 const ROWS_PER_PAGE = 20;
 
@@ -50,6 +50,9 @@ const UsersPage: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
   const api = ServiceConfig.getI().apiHandler;
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
 
   // Extract query params
   const {
@@ -72,6 +75,28 @@ const UsersPage: React.FC = () => {
   const [pageCount, setPageCount] = useState(1);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [roleFilter, setRoleFilter] = useState<RoleType | null>(null);
+  const columns = [
+    { key: 'fullName', label: 'Full Name', width: '30%' },
+    {
+      key: 'role',
+      label: (
+        <span className="users-page-role-header">
+          {t('Roles')}
+          <UsersPageRoleFilter
+            roles={roles || []}
+            selectedRole={roleFilter}
+            onSelect={(role) => {
+              setRoleFilter(role);
+              setPage(1);
+            }}
+          />
+        </span>
+      ),
+      width: '70%',
+      sortable: false,
+    },
+  ];
 
   useEffect(() => {
     const query = queryString.stringify({
@@ -92,6 +117,7 @@ const UsersPage: React.FC = () => {
         ROWS_PER_PAGE,
         sortBy === 'fullName' || !sortBy ? 'name' : 'name',
         sortOrder,
+        roleFilter ?? undefined,
       );
 
       if (result) {
@@ -116,7 +142,7 @@ const UsersPage: React.FC = () => {
     };
 
     fetchUsers();
-  }, [page, debouncedSearch, sortBy, sortOrder]);
+  }, [page, debouncedSearch, sortBy, sortOrder, roleFilter]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -203,6 +229,20 @@ const UsersPage: React.FC = () => {
             />
           </Box>
         )}
+
+        <SelectedFilters
+          filters={{ role: roleFilter ? [roleFilter] : [] }}
+          getFilterLabel={(_, value) => (
+            <>
+              {t('Role')}:{' '}
+              <strong>{RoleLabels[value as RoleType] || value}</strong>
+            </>
+          )}
+          onDeleteFilter={() => {
+            setRoleFilter(null);
+            setPage(1);
+          }}
+        />
       </Box>
 
       <div className="user-table">

@@ -10,6 +10,7 @@ import {
   TABLES,
   TableTypes,
 } from '../../../common/constants';
+import { RoleType } from '../../../interface/modelInterfaces';
 import { ServiceConfig } from '../../ServiceConfig';
 import { v4 as uuidv4 } from 'uuid';
 import { SqliteApiProgramFoundation } from './SqliteApi.program.foundation';
@@ -172,6 +173,7 @@ export class SqliteApiProgramUserRoles extends SqliteApiProgramFoundation {
     limit: number = 10,
     sortBy: keyof TableTypes<'user'> = 'name',
     sortOrder: 'asc' | 'desc' = 'asc',
+    role?: RoleType,
   ): Promise<{
     data: { user: TableTypes<'user'>; role: string }[];
     totalCount: number;
@@ -182,6 +184,7 @@ export class SqliteApiProgramUserRoles extends SqliteApiProgramFoundation {
       limit,
       sortBy,
       sortOrder,
+      role,
     );
   }
 }

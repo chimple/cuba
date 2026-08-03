@@ -108,6 +108,7 @@ export interface ServiceApiOpsUsers {
     limit?: number,
     sortBy?: keyof TableTypes<'user'>,
     sortOrder?: 'asc' | 'desc',
+    role?: RoleType,
   ): Promise<{
     data: { user: TableTypes<'user'>; role: string }[];
     totalCount: number;

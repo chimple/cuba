@@ -16,10 +16,25 @@ import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
 import { SupabaseApiProgramClassMetrics } from './SupabaseApi.program.classMetrics';
 
+type SpecialUserRole = NonNullable<TableTypes<'special_users'>['role']>;
+type SpecialUsersCacheKey = 'super-admin' | 'operational-director';
+type CachedSpecialUser = { role: SpecialUserRole; userId: string };
+
+const SPECIAL_USERS_CACHE_TTL_MS = 300_000;
+
 export interface SupabaseApiProgramUserRoles {
   [key: string]: any;
 }
 export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics {
+  private specialUsersCache = new Map<
+    SpecialUsersCacheKey,
+    { expiresAt: number; users: CachedSpecialUser[] }
+  >();
+
+  protected invalidateSpecialUsersCache(): void {
+    this.specialUsersCache.clear();
+  }
+
   async createAutoProfile(
     languageDocId: string | undefined,
     tcVersion: number,
@@ -203,6 +218,7 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
     limit: number = 20,
     sortBy: keyof TableTypes<'user'> = 'name',
     sortOrder: 'asc' | 'desc' = 'asc',
+    role?: RoleType,
   ): Promise<{
     data: { user: TableTypes<'user'>; role: string }[];
     totalCount: number;
@@ -218,36 +234,82 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
     const roles: string[] = store.getState().auth.roles || [];
     const isSuperAdmin = roles.includes(RoleType.SUPER_ADMIN);
     const isOpsDirector = roles.includes(RoleType.OPERATIONAL_DIRECTOR);
+    const allowedRoleFilters: SpecialUserRole[] = isSuperAdmin
+      ? [
+          RoleType.SUPER_ADMIN,
+          RoleType.OPERATIONAL_DIRECTOR,
+          RoleType.PROGRAM_MANAGER,
+          RoleType.FIELD_COORDINATOR,
+          RoleType.EXTERNAL_USER,
+        ]
+      : isOpsDirector
+        ? [
+            RoleType.OPERATIONAL_DIRECTOR,
+            RoleType.PROGRAM_MANAGER,
+            RoleType.FIELD_COORDINATOR,
+            RoleType.EXTERNAL_USER,
+          ]
+        : roles.includes(RoleType.PROGRAM_MANAGER)
+          ? [RoleType.FIELD_COORDINATOR]
+          : [];
+    const roleFilter = role
+      ? allowedRoleFilters.find((allowedRole) => allowedRole === role)
+      : undefined;
+    if (role && !roleFilter) {
+      return { data: [], totalCount: 0 };
+    }
     const from = (page - 1) * limit;
     const to = from + limit - 1;
     if (isSuperAdmin || isOpsDirector) {
-      let specialUsersQuery = this.supabase
-        .from('special_users')
-        .select('user_id, role')
-        .eq('is_deleted', false)
-        .not('user_id', 'is', null);
-      if (isOpsDirector && !isSuperAdmin) {
-        specialUsersQuery = specialUsersQuery.neq('role', RoleType.SUPER_ADMIN);
-      }
-      const { data: specialUsers, error: specialUsersError } =
-        await specialUsersQuery;
-      if (specialUsersError) {
-        logger.error('Error fetching special users:', specialUsersError);
-        return { data: [], totalCount: 0 };
-      }
-      if (!specialUsers || specialUsers.length === 0) {
-        return { data: [], totalCount: 0 };
-      }
-      const roleByUserId = new Map<string, string>();
-      specialUsers.forEach((specialUser) => {
-        if (specialUser.user_id && specialUser.role) {
-          roleByUserId.set(specialUser.user_id, specialUser.role);
+      const cacheKey: SpecialUsersCacheKey = isSuperAdmin
+        ? 'super-admin'
+        : 'operational-director';
+      const cachedSpecialUsers = this.specialUsersCache.get(cacheKey);
+      let specialUsers: CachedSpecialUser[];
+
+      if (cachedSpecialUsers && cachedSpecialUsers.expiresAt > Date.now()) {
+        specialUsers = cachedSpecialUsers.users;
+      } else {
+        let specialUsersQuery = this.supabase
+          .from('special_users')
+          .select('user_id, role')
+          .eq('is_deleted', false)
+          .not('user_id', 'is', null);
+        if (isOpsDirector && !isSuperAdmin) {
+          specialUsersQuery = specialUsersQuery.neq(
+            'role',
+            RoleType.SUPER_ADMIN,
+          );
         }
+        const { data, error } = await specialUsersQuery;
+        if (error) {
+          logger.error('Error fetching special users:', error);
+          return { data: [], totalCount: 0 };
+        }
+        specialUsers = (data ?? []).flatMap((specialUser) =>
+          specialUser.user_id && specialUser.role
+            ? [{ userId: specialUser.user_id, role: specialUser.role }]
+            : [],
+        );
+        this.specialUsersCache.set(cacheKey, {
+          expiresAt: Date.now() + SPECIAL_USERS_CACHE_TTL_MS,
+          users: specialUsers,
+        });
+      }
+      const filteredSpecialUsers = roleFilter
+        ? specialUsers.filter((specialUser) => specialUser.role === roleFilter)
+        : specialUsers;
+      const roleByUserId = new Map<string, string>();
+      filteredSpecialUsers.forEach((specialUser) => {
+        roleByUserId.set(specialUser.userId, specialUser.role);
       });
       const userIds = Array.from(roleByUserId.keys());
+      if (userIds.length === 0) {
+        return { data: [], totalCount: 0 };
+      }
       let query = this.supabase
         .from('user')
-        .select('*', search ? { count: 'exact' } : undefined)
+        .select('*', { count: 'exact' })
         .in('id', userIds)
         .eq('is_deleted', false);
       if (search) {
@@ -262,15 +324,18 @@ export class SupabaseApiProgramUserRoles extends SupabaseApiProgramClassMetrics 
       }
       if (!data) return { data: [], totalCount: 0 };
       const result = data.map((userObject) => {
-        const role = roleByUserId.get(userObject.id) || '';
+        const role = roleByUserId.get(userObject.id) ?? '';
         return {
           user: userObject as TableTypes<'user'>,
           role,
         };
       });
-      return { data: result, totalCount: search ? count || 0 : userIds.length };
+      return { data: result, totalCount: count || 0 };
     }
     if (roles.includes(RoleType.PROGRAM_MANAGER)) {
+      if (role && role !== RoleType.FIELD_COORDINATOR) {
+        return { data: [], totalCount: 0 };
+      }
       const { data: programs, error: programsError } = await this.supabase
         .from('program_user')
         .select('program_id')
