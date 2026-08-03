@@ -20,11 +20,45 @@ import { useSchoolActivities } from '../hooks/useSchoolActivities';
 import ActivityDetailsPanel from './ActivityDetailsPanel';
 import './SchoolActivities.css';
 
+type SchoolData = {
+  id: string;
+  name?: string;
+};
+
+type SchoolActivitiesLocationState = {
+  schoolData?: SchoolData;
+  schoolName?: string;
+  date?: string;
+  activities?: unknown[];
+  visitDetails?: unknown[] | null;
+};
+
+export const buildSchoolActivitiesRoutes = (
+  activityData: SchoolActivitiesLocationState,
+) => {
+  const schoolData = activityData?.schoolData;
+  const schoolListPath = `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`;
+  const activitiesPath = `${schoolListPath}${PAGES.ACTIVITIES_PAGE}`;
+  const schoolDetailsPath = schoolData?.id
+    ? `${schoolListPath}${PAGES.SCHOOL_DETAILS}/${schoolData.id}`
+    : activitiesPath;
+
+  return {
+    schoolData,
+    schoolListPath,
+    activitiesPath,
+    schoolDetailsPath,
+  };
+};
+
 const SchoolActivities: React.FC = () => {
   const history = useHistory();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const activityData: any = useLocation().state;
+  const activityData =
+    (useLocation().state as SchoolActivitiesLocationState | undefined) ?? {};
+  const { schoolData, schoolListPath, activitiesPath, schoolDetailsPath } =
+    buildSchoolActivitiesRoutes(activityData);
   const {
     activities,
     columns,
@@ -83,15 +117,25 @@ const SchoolActivities: React.FC = () => {
               crumbs={[
                 {
                   label: t('Schools'),
-                  onClick: () =>
-                    history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`),
+                  onClick: () => history.push(schoolListPath),
                 },
                 {
-                  label: activityData.schoolName,
-                  onClick: () => history.goBack(),
+                  label: activityData.schoolName ?? '',
+                  onClick: () =>
+                    history.replace({
+                      pathname: schoolDetailsPath,
+                      state: schoolData ?? undefined,
+                    }),
                 },
-                { label: t('Interactions'), onClick: () => history.goBack() },
-                { label: activityData.date },
+                {
+                  label: t('Interactions'),
+                  onClick: () =>
+                    history.replace({
+                      pathname: activitiesPath,
+                      state: schoolData ?? undefined,
+                    }),
+                },
+                { label: activityData.date ?? '' },
               ]}
             />
           )}
