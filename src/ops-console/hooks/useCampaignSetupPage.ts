@@ -140,6 +140,7 @@ export const useCampaignSetupPage = () => {
       campaignReach,
       messageTime: communicationState.messageTime,
       pollTime: communicationState.pollTime,
+      applicableMessageDayCount: communicationTimelineDates.length,
       configuredCommunicationDayCount,
       messagingRows,
     }),
@@ -161,6 +162,7 @@ export const useCampaignSetupPage = () => {
       campaignSetup.selectedSchools,
       communicationState.messageTime,
       communicationState.pollTime,
+      communicationTimelineDates.length,
       configuredCommunicationDayCount,
       messagingRows,
     ],
@@ -214,6 +216,18 @@ export const useCampaignSetupPage = () => {
       campaignSetup.setActiveStep(nextStep);
     },
     [campaignSetup],
+  );
+
+  const handleCompletedStepClick = useCallback(
+    (stepIndex: number) => {
+      if (stepIndex < 0 || stepIndex >= stepperActiveStep) return;
+
+      const activeStep = isHomepageLearningPathwayCampaign
+        ? [0, 2, 3, 4][stepIndex]
+        : stepIndex;
+      setActiveStepSafe(activeStep);
+    },
+    [isHomepageLearningPathwayCampaign, setActiveStepSafe, stepperActiveStep],
   );
 
   const handleBackStep = useCallback(() => {
@@ -426,6 +440,7 @@ export const useCampaignSetupPage = () => {
     handleAssignmentCompletionChange,
     handleBackStep,
     handleClearCommunicationRow,
+    handleCompletedStepClick,
     handleCommunicationContinue,
     handleCommunicationRowChange,
     handleHeaderBack,

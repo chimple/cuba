@@ -44,6 +44,7 @@ export type CampaignReviewData = {
   campaignReach: CampaignReachSummary;
   messageTime: string;
   pollTime: string;
+  applicableMessageDayCount: number;
   configuredCommunicationDayCount: number;
   messagingRows: CampaignMessagingRowPayload[];
 };
@@ -265,6 +266,7 @@ export const CampaignReviewStep: React.FC<CampaignReviewStepProps> = ({
         usesLessonCriteria={usesLessonCriteria}
       />
       <CampaignReviewCommunicationCard
+        applicableMessageDayCount={reviewData.applicableMessageDayCount}
         campaignReach={reviewData.campaignReach}
         configuredCommunicationDayCount={
           reviewData.configuredCommunicationDayCount
