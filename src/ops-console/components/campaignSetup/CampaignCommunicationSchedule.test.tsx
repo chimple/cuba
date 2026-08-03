@@ -12,6 +12,16 @@ type RenderScheduleProps = {
   onPollTimeChange?: jest.Mock;
 };
 
+type ControlledScheduleProps = {
+  initialMessageTime: string;
+  initialPollTime: string;
+  timeOptions?: string[];
+  messageTimeError?: string;
+  pollTimeError?: string;
+  onMessageTimeChange: (value: string) => void;
+  onPollTimeChange: (value: string) => void;
+};
+
 const defaultTimeOptions = [
   '08:00 AM',
   '08:30 AM',
@@ -23,14 +33,45 @@ const defaultTimeOptions = [
   '06:00 PM',
 ];
 
+const ControlledSchedule: React.FC<ControlledScheduleProps> = ({
+  initialMessageTime,
+  initialPollTime,
+  timeOptions,
+  messageTimeError,
+  pollTimeError,
+  onMessageTimeChange,
+  onPollTimeChange,
+}) => {
+  const [messageTime, setMessageTime] = React.useState(initialMessageTime);
+  const [pollTime, setPollTime] = React.useState(initialPollTime);
+
+  return (
+    <CampaignCommunicationSchedule
+      messageTime={messageTime}
+      pollTime={pollTime}
+      timeOptions={timeOptions}
+      messageTimeError={messageTimeError}
+      pollTimeError={pollTimeError}
+      onMessageTimeChange={(value) => {
+        setMessageTime(value);
+        onMessageTimeChange(value);
+      }}
+      onPollTimeChange={(value) => {
+        setPollTime(value);
+        onPollTimeChange(value);
+      }}
+    />
+  );
+};
+
 const renderSchedule = (props: RenderScheduleProps = {}) => {
   const onMessageTimeChange = props.onMessageTimeChange ?? jest.fn();
   const onPollTimeChange = props.onPollTimeChange ?? jest.fn();
 
   const view = render(
-    <CampaignCommunicationSchedule
-      messageTime={props.messageTime ?? ''}
-      pollTime={props.pollTime ?? ''}
+    <ControlledSchedule
+      initialMessageTime={props.messageTime ?? ''}
+      initialPollTime={props.pollTime ?? ''}
       timeOptions={props.timeOptions ?? defaultTimeOptions}
       messageTimeError={props.messageTimeError}
       pollTimeError={props.pollTimeError}
@@ -57,16 +98,16 @@ const openPollTimeMenu = async () => {
 };
 
 const selectTime = (hour: string, meridiem: string) => {
-  if (meridiem === 'PM') {
-    const picker = screen.getByRole('listbox');
-    const label = picker.getAttribute('aria-label')?.replace(' picker', '');
-    if (!label) throw new Error('Time picker label is missing.');
-
-    fireEvent.click(screen.getByRole('option', { name: meridiem }));
-    fireEvent.click(screen.getByLabelText(label));
-  }
+  const picker = screen.getByRole('listbox');
+  const label = picker.getAttribute('aria-label')?.replace(' picker', '');
+  if (!label) throw new Error('Time picker label is missing.');
 
   fireEvent.click(screen.getByRole('option', { name: `Hour ${hour}` }));
+
+  if (meridiem === 'PM') {
+    fireEvent.click(screen.getByLabelText(label));
+    fireEvent.click(screen.getByRole('option', { name: meridiem }));
+  }
 };
 
 describe('CampaignCommunicationSchedule', () => {
