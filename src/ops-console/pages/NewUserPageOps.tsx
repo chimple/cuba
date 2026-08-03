@@ -18,6 +18,9 @@ import { t } from 'i18next';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import 'react-international-phone/style.css';
 import { RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import type { RootState } from '../../redux/store';
+import type { AuthState } from '../../redux/slices/auth/authSlice';
 import { NewUserDialogs } from './NewUserDialogs';
 import { NewUserForm } from './NewUserForm';
 
@@ -39,7 +42,8 @@ export type UserSchoolClassResult = {
 
 export const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const roles = [
+const allRoles = [
+  { label: 'Operational Director', value: 'operational_director' },
   { label: 'Program Manager', value: 'program_manager' },
   { label: 'Field Coordinator', value: 'field_coordinator' },
   { label: 'External User', value: 'external_user' },
@@ -51,6 +55,21 @@ export const normalizePhone10 = (raw: string): string => {
   if (digits.startsWith('0') && digits.length > 10) digits = digits.slice(1);
   if (digits.length > 10) digits = digits.slice(-10);
   return digits;
+};
+
+const hasValidContactMethod = (params: {
+  email: string;
+  phone: string;
+  phoneDialCode: string;
+}) => {
+  const { email, phone, phoneDialCode } = params;
+  const hasEmail = !!email.trim();
+  const normalizedPhone10 = normalizePhone10(phone);
+  const phoneDigits = (phone || '').replace(/\D/g, '');
+  const hasPhoneInput = phoneDigits.length > phoneDialCode.length;
+  const hasPhone = hasPhoneInput && !!normalizedPhone10;
+
+  return { hasEmail, hasPhone, hasPhoneInput, normalizedPhone10 };
 };
 
 const NewUserPage: React.FC = () => {
@@ -66,8 +85,26 @@ const NewUserPage: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
+  const { roles: currentUserRoles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = currentUserRoles || [];
+  const canCreateNewUser = userRoles.some((role) =>
+    [
+      RoleType.SUPER_ADMIN,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.PROGRAM_MANAGER,
+    ].includes(role as RoleType),
+  );
+  const isProgramManager = userRoles.includes(RoleType.PROGRAM_MANAGER);
+  const roles = isProgramManager
+    ? allRoles.filter((role) =>
+        [RoleType.PROGRAM_MANAGER, RoleType.FIELD_COORDINATOR].includes(
+          role.value as RoleType,
+        ),
+      )
+    : allRoles;
 
-  const [showAlert, setShowAlert] = useState(false);
   const [successDialog, setSuccessDialog] = useState({
     open: false,
     message: '',
@@ -77,6 +114,13 @@ const NewUserPage: React.FC = () => {
     message: '',
   });
   const [errorDialog, setErrorDialog] = useState({ open: false, message: '' });
+  const contactMethodState = hasValidContactMethod({
+    email: form.email,
+    phone: form.phone,
+    phoneDialCode,
+  });
+  const contactMethodProvided =
+    contactMethodState.hasEmail || contactMethodState.hasPhone;
 
   const handleInputChange =
     (field: 'name' | 'email') =>
@@ -105,19 +149,18 @@ const NewUserPage: React.FC = () => {
     const { name, email, phone, role } = form;
 
     if (!name.trim() || !role.trim()) {
-      setShowAlert(true);
       return;
     }
 
-    const hasEmail = !!email.trim();
+    const { hasEmail, hasPhone, hasPhoneInput, normalizedPhone10 } =
+      hasValidContactMethod({
+        email: form.email,
+        phone: form.phone,
+        phoneDialCode,
+      });
     const chosenEmail = hasEmail ? email.trim().toLowerCase() : '';
-    const normalizedPhone10 = normalizePhone10(phone);
-    const phoneDigits = (phone || '').replace(/\D/g, '');
-    const hasPhoneInput = phoneDigits.length > phoneDialCode.length;
-    const hasPhone = hasPhoneInput && !!normalizedPhone10;
 
     if (!hasEmail && !hasPhone) {
-      setShowAlert(true);
       return;
     }
 
@@ -188,6 +231,10 @@ const NewUserPage: React.FC = () => {
 
   const handleCancel = () => history.goBack();
 
+  if (!canCreateNewUser) {
+    return null;
+  }
+
   return (
     <Box className="ops-new-user-page-container">
       <Box className="ops-new-user-header">
@@ -229,6 +276,7 @@ const NewUserPage: React.FC = () => {
           handleRoleChange={handleRoleChange}
           handleSubmit={handleSubmit}
           isMobile={isMobile}
+          isSaveDisabled={!contactMethodProvided}
           roles={roles}
         />
       </Box>
@@ -240,10 +288,8 @@ const NewUserPage: React.FC = () => {
           history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.USERS}`);
         }}
         setErrorDialog={setErrorDialog}
-        setShowAlert={setShowAlert}
         setSuccessDialog={setSuccessDialog}
         setValidationDialog={setValidationDialog}
-        showAlert={showAlert}
         successDialog={successDialog}
         validationDialog={validationDialog}
       />
