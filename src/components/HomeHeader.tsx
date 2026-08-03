@@ -22,12 +22,10 @@ import { useHistory } from 'react-router';
 import { schoolUtil } from '../utility/schoolUtil';
 import ProfileMenu from './ProfileMenu/ProfileMenu';
 import logger from '../utility/logger';
-
 // Define the Props for StarsCounter
 interface StarsCounterProps {
   starsCount: number;
 }
-
 // StarsCounter Component
 const StarsCounter: React.FC<StarsCounterProps> = ({ starsCount }) => {
   return (
@@ -41,7 +39,6 @@ const StarsCounter: React.FC<StarsCounterProps> = ({ starsCount }) => {
     </div>
   );
 };
-
 const HomeHeader: React.FC<{
   currentHeader: string;
   onHeaderIconClick: Function;
@@ -57,14 +54,20 @@ const HomeHeader: React.FC<{
 }) => {
   const { t } = useTranslation();
   const currentStudent = Util.getCurrentStudent();
+  const currentMode = localStorage.getItem(CURRENT_MODE);
   const [currentHeaderIconList, setCurrentHeaderIconList] = useState<
     HeaderIconConfig[] | undefined
   >(() =>
-    Array.from(DEFAULT_HEADER_ICON_CONFIGS.values()).filter(
-      (element) =>
-        localStorage.getItem(CURRENT_MODE) !== MODES.SCHOOL ||
-        element.headerList !== HOMEHEADERLIST.ASSIGNMENT,
-    ),
+    Array.from(DEFAULT_HEADER_ICON_CONFIGS.values()).filter((element) => {
+      if (
+        currentMode === MODES.SCHOOL &&
+        element.headerList === HOMEHEADERLIST.ASSIGNMENT
+      ) {
+        return false;
+      }
+
+      return true;
+    }),
   );
   var headerIconList: HeaderIconConfig[] = [];
 
