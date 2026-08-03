@@ -183,6 +183,7 @@ export type FcUserFormSaveResult = {
 export type ActivitiesFilterOptions = {
   contactType: Array<string | null>;
   performance: Array<string | null>;
+  visitType?: Array<string | null>;
 };
 
 export type CampaignObjective =

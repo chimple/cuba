@@ -96,6 +96,7 @@ export enum SchoolVisitType {
   ParentsTeacherMeeting = 'parents_teacher_meeting',
   TeacherTraining = 'teacher_training_meeting',
   Community = 'community_visit',
+  WorkFromHome = 'work_from_home',
 }
 
 export const SchoolVisitTypeLabels: Record<SchoolVisitType, string> = {
@@ -103,6 +104,7 @@ export const SchoolVisitTypeLabels: Record<SchoolVisitType, string> = {
   [SchoolVisitType.ParentsTeacherMeeting]: 'Parents Teacher Meeting',
   [SchoolVisitType.TeacherTraining]: 'Teacher Training Meeting',
   [SchoolVisitType.Community]: 'Community Visit',
+  [SchoolVisitType.WorkFromHome]: 'Work from Home',
 };
 
 export enum SchoolVisitStatus {
