@@ -126,27 +126,9 @@ export function useRequestListPage() {
     useState<REQUEST_TABS>(initialSelectedTab);
   const [searchTerm, setSearchTerm] = useState(() => qs.get('search') || '');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
-  const [filtersByTab, setFiltersByTab] = useState<
-    Record<REQUEST_TABS, RequestListFilters>
-  >(() => ({
-    [REQUEST_TABS.PENDING]:
-      initialSelectedTab === REQUEST_TABS.PENDING
-        ? parseJSONParam(qs.get('filters'), INITIAL_FILTERS)
-        : INITIAL_FILTERS,
-    [REQUEST_TABS.APPROVED]:
-      initialSelectedTab === REQUEST_TABS.APPROVED
-        ? parseJSONParam(qs.get('filters'), INITIAL_FILTERS)
-        : INITIAL_FILTERS,
-    [REQUEST_TABS.REJECTED]:
-      initialSelectedTab === REQUEST_TABS.REJECTED
-        ? parseJSONParam(qs.get('filters'), INITIAL_FILTERS)
-        : INITIAL_FILTERS,
-    [REQUEST_TABS.FLAGGED]:
-      initialSelectedTab === REQUEST_TABS.FLAGGED
-        ? parseJSONParam(qs.get('filters'), INITIAL_FILTERS)
-        : INITIAL_FILTERS,
-  }));
-  const filters = filtersByTab[selectedTab] ?? INITIAL_FILTERS;
+  const [filters, setFilters] = useState<RequestListFilters>(() =>
+    parseJSONParam(qs.get('filters'), INITIAL_FILTERS),
+  );
   const [page, setPage] = useState(() => {
     const p = parseInt(qs.get('page') || '', 10);
     return isNaN(p) || p < 1 ? 1 : p;
@@ -157,44 +139,8 @@ export function useRequestListPage() {
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [total, setTotal] = useState(0);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [tempFiltersByTab, setTempFiltersByTab] = useState<
-    Record<REQUEST_TABS, RequestListFilters>
-  >(() => ({
-    [REQUEST_TABS.PENDING]: INITIAL_FILTERS,
-    [REQUEST_TABS.APPROVED]: INITIAL_FILTERS,
-    [REQUEST_TABS.REJECTED]: INITIAL_FILTERS,
-    [REQUEST_TABS.FLAGGED]: INITIAL_FILTERS,
-  }));
-  const tempFilters = tempFiltersByTab[selectedTab] ?? INITIAL_FILTERS;
-  const setFilters = React.useCallback(
-    (value: React.SetStateAction<RequestListFilters>) => {
-      setFiltersByTab((prev) => {
-        const current = prev[selectedTab] ?? INITIAL_FILTERS;
-        const next =
-          typeof value === 'function'
-            ? (value as (prevState: RequestListFilters) => RequestListFilters)(
-                current,
-              )
-            : value;
-        return { ...prev, [selectedTab]: next };
-      });
-    },
-    [selectedTab],
-  );
-  const setTempFilters = React.useCallback(
-    (value: React.SetStateAction<RequestListFilters>) => {
-      setTempFiltersByTab((prev) => {
-        const current = prev[selectedTab] ?? INITIAL_FILTERS;
-        const next =
-          typeof value === 'function'
-            ? (value as (prevState: RequestListFilters) => RequestListFilters)(
-                current,
-              )
-            : value;
-        return { ...prev, [selectedTab]: next };
-      });
-    },
-    [selectedTab],
+  const [tempFilters, setTempFilters] = useState<RequestListFilters>(() =>
+    parseJSONParam(qs.get('filters'), INITIAL_FILTERS),
   );
   const [filterOptions, setFilterOptions] = useState<RequestListFilterOptions>(
     () => ({
@@ -252,6 +198,10 @@ export function useRequestListPage() {
   }, [debouncedSearchTerm, filters]);
 
   useEffect(() => {
+    setTempFilters(filters);
+  }, [filters]);
+
+  useEffect(() => {
     const params = new URLSearchParams();
     if (selectedTab !== REQUEST_TABS.PENDING)
       params.set('tab', String(selectedTab));
@@ -270,7 +220,6 @@ export function useRequestListPage() {
       return;
     }
 
-    hasRequestedFilterOptionsRef.current = requestStatus;
     setIsFilterLoading(true);
 
     api
@@ -290,6 +239,7 @@ export function useRequestListPage() {
           nameToIdMap.set(school.name, school.id);
         });
         schoolNameToIdMapRef.current = nameToIdMap;
+        hasRequestedFilterOptionsRef.current = requestStatus;
       })
       .catch((error) => {
         logger.error('Failed to fetch filter options', error);
@@ -302,7 +252,7 @@ export function useRequestListPage() {
   const handleOpenFilters = React.useCallback(() => {
     setIsFilterOpen(true);
     setTempFilters(filters);
-  }, [filters, selectedTab]);
+  }, [filters]);
 
   useEffect(() => {
     if (!isSchoolFilterReady) return;

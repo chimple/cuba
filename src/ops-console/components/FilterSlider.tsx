@@ -47,6 +47,10 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [schoolSearchValue, setSchoolSearchValue] = React.useState('');
 
+  React.useEffect(() => {
+    if (!isOpen) setSchoolSearchValue('');
+  }, [isOpen]);
+
   const getOptionLabel = (option: SchoolFilterOption) =>
     typeof option === 'string' ? option : option.name;
   const getOptionValue = (option: SchoolFilterOption) =>
