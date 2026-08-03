@@ -181,6 +181,7 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
       ...parsePath(PAGES.DISPLAY_STUDENT),
       state: {
         from: history.location.pathname,
+        fromSchoolModeSwitchProfile: true,
       },
     });
   };

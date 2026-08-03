@@ -3,7 +3,7 @@ import { ScreenOrientation } from '../utility/screenOrientation';
 import { IonPage } from '@ionic/react';
 import { t } from 'i18next';
 import { FC, useEffect, useState } from 'react';
-import { useHistory } from 'react-router';
+import { useHistory, useLocation } from 'react-router';
 import {
   AVATARS,
   EDIT_STUDENTS_MAP,
@@ -32,6 +32,7 @@ const DisplayStudents: FC<{}> = () => {
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
+  const location = useLocation<{ fromSchoolModeSwitchProfile?: boolean }>();
   const { setGbUpdated } = useGbContext();
   const isWebPlatform = Capacitor.getPlatform() === 'web';
   const getProfileCardPlayActionParams = (
@@ -85,7 +86,8 @@ const DisplayStudents: FC<{}> = () => {
     setIsLoading(false);
   };
   const onStudentClick = async (student: TableTypes<'user'>) => {
-    schoolUtil.setCurrMode(MODES.PARENT);
+    if (studentMode !== MODES.SCHOOL && studentMode !== MODES.TEACHER_SCHOOL)
+      schoolUtil.setCurrMode(MODES.PARENT);
     await Util.setCurrentStudent(student, undefined, true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
     void Util.ensureLidoCommonAudioForStudent(student).catch((error) => {
@@ -117,7 +119,12 @@ const DisplayStudents: FC<{}> = () => {
         },
       });
     } else {
-      history.replace(PAGES.HOME + getAppSearch());
+      history.replace({
+        ...parsePath(PAGES.HOME),
+        state: location.state?.fromSchoolModeSwitchProfile
+          ? { fromSchoolModeSwitchProfile: true }
+          : undefined,
+      });
     }
   };
   return (
