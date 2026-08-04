@@ -117,9 +117,8 @@ export const reportSyncError = async (
 
   if (Capacitor.getPlatform() !== 'web') {
     try {
-      await FirebaseCrashlytics.recordException({
+      await FirebaseCrashlytics.log({
         message: reportMessage,
-        domain: serializedPayload.slice(0, 1000),
       });
     } catch (crashlyticsError) {
       logger.warn(

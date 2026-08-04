@@ -19,7 +19,7 @@ describe('syncTelemetry', () => {
     );
   });
 
-  test('reports sync errors to Sentry and Crashlytics on native', async () => {
+  test('reports sync errors to Sentry and logs to Crashlytics on native', async () => {
     jest
       .mocked(Capacitor.getPlatform)
       .mockReturnValueOnce(
@@ -32,7 +32,7 @@ describe('syncTelemetry', () => {
     });
 
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
-    expect(FirebaseCrashlytics.recordException).toHaveBeenCalledWith(
+    expect(FirebaseCrashlytics.log).toHaveBeenCalledWith(
       expect.objectContaining({
         message: expect.stringContaining(
           '[Sync] pull_sqlite_transaction failed',
