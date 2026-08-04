@@ -62,7 +62,7 @@ const MessagesPage: React.FC = () => {
         <IconButton
           className="messages-page__mobile-back-button"
           onClick={handleBack}
-          aria-label={t('Back')}
+          aria-label={String(t('Back'))}
         >
           <ArrowBack />
         </IconButton>
@@ -70,10 +70,13 @@ const MessagesPage: React.FC = () => {
           <h1 id="ops-messages-page-title">{t('New Push Notification')}</h1>
           <div
             className="messages-page__breadcrumb"
-            aria-label={t('Breadcrumb')}
+            aria-label={String(t('Breadcrumb'))}
           >
             <span>{t(MESSAGES_BREADCRUMB[0])}</span>
-            <span className="messages-page__breadcrumb-separator">â–¸</span>
+            <span
+              className="messages-page__breadcrumb-separator"
+              aria-hidden="true"
+            />
             <strong>{t(MESSAGES_BREADCRUMB[1])}</strong>
           </div>
         </div>
@@ -84,7 +87,7 @@ const MessagesPage: React.FC = () => {
 
       <div
         className="messages-page__stepper"
-        aria-label={t('Notification steps')}
+        aria-label={String(t('Notification steps'))}
       >
         <div className="messages-page__stepper-wrap">
           {MESSAGES_TABS.map((step, index) => {
@@ -149,8 +152,8 @@ const MessagesPage: React.FC = () => {
               <div className="messages-page__composer-grid">
                 <TextField
                   fullWidth
-                  label={t('Notification Title')}
-                  placeholder={t('Enter notification title')}
+                  label={String(t('Notification Title'))}
+                  placeholder={String(t('Enter notification title'))}
                   value={notificationTitle}
                   onChange={(event) => setNotificationTitle(event.target.value)}
                   size="small"
@@ -159,8 +162,8 @@ const MessagesPage: React.FC = () => {
                   fullWidth
                   multiline
                   minRows={8}
-                  label={t('Message')}
-                  placeholder={t('Write the notification message')}
+                  label={String(t('Message'))}
+                  placeholder={String(t('Write the notification message'))}
                   value={notificationMessage}
                   onChange={(event) =>
                     setNotificationMessage(event.target.value)

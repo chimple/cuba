@@ -125,6 +125,7 @@ const CampaignSetupPage: React.FC = () => {
                 audienceSummary={campaignSetup.audienceSummary}
                 saveGroup={campaignSetup.saveGroup}
                 savingGroup={campaignSetup.savingGroup}
+                canSaveGroup={campaignSetup.canSaveGroup}
                 onSavedGroupChange={campaignSetup.handleSavedGroupChange}
                 onProgramChange={campaignSetup.handleProgramChange}
                 onBlocksChange={campaignSetup.handleBlocksChange}

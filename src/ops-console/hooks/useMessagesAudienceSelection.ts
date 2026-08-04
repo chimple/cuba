@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { SelectChangeEvent } from '@mui/material';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import {
+  CampaignAudienceOptions,
+  CampaignAudienceSummary,
   CampaignOption,
   CampaignSavedAudienceGroup,
   CampaignSchoolOption,
