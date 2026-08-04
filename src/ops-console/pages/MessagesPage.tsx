@@ -1,30 +1,50 @@
-import React, { useMemo, useState } from 'react';
-import { Button, IconButton, TextField, Typography } from '@mui/material';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Button, IconButton, Typography } from '@mui/material';
 import { ArrowBack, Notifications } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
+import { ServiceConfig } from '../../services/ServiceConfig';
 import MessagesTargetAudienceSection from '../components/campaignSetup/MessagesTargetAudienceSection';
 import { useMessagesAudienceSelection } from '../hooks/useMessagesAudienceSelection';
+import MessagesStepper, { MESSAGES_TABS } from './messagesPage/MessagesStepper';
+import {
+  PushNotificationLivePreview,
+  type PushNotificationDraft,
+} from './pushNotificationCompose/PushNotificationComposeComponents';
+import { PushNotificationFields } from './pushNotificationCompose/PushNotificationComposeForm';
 import './MessagesPage.css';
+import './PushNotificationComposeForm.css';
+import './PushNotificationComposePreview.css';
 
 const MESSAGES_BREADCRUMB = ['Messages', 'New Push Notification'] as const;
-const MESSAGES_TABS = [
-  'Select Audience',
-  'Compose Notification',
-  'Review & Send',
-] as const;
+
+const emptyDraft: PushNotificationDraft = {
+  label: '',
+  title: '',
+  body: '',
+  imageName: '',
+  imageUrl: '',
+};
 
 const MessagesPage: React.FC = () => {
   const { t } = useTranslation();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [activeTab, setActiveTab] = useState<(typeof MESSAGES_TABS)[number]>(
     MESSAGES_TABS[0],
   );
   const [isAudienceValid, setIsAudienceValid] = useState(false);
-  const [notificationTitle, setNotificationTitle] = useState('');
-  const [notificationMessage, setNotificationMessage] = useState('');
+  const [draft, setDraft] = useState<PushNotificationDraft>(emptyDraft);
+  const [labelOptions, setLabelOptions] = useState<string[]>([]);
+  const [loadingLabels, setLoadingLabels] = useState(false);
   const audience = useMessagesAudienceSelection();
   const activeStepIndex = MESSAGES_TABS.indexOf(activeTab);
   const isFirstStep = activeStepIndex === 0;
   const isLastStep = activeStepIndex === MESSAGES_TABS.length - 1;
+  const isComposeValid = Boolean(
+    draft.label && draft.title.trim() && draft.body.trim(),
+  );
+  const previewTitle = draft.title.trim() || t('Notification Title');
+  const previewBody =
+    draft.body.trim() || t('Notification body text will appear here.');
   const audienceSummaryText = useMemo(() => {
     const schoolCount = audience.summarySchoolCount;
     const blockCount = audience.summaryBlockCount;
@@ -35,6 +55,34 @@ const MessagesPage: React.FC = () => {
     audience.summaryBlockCount,
     audience.summarySchoolCount,
   ]);
+
+  useEffect(() => {
+    let active = true;
+    setLoadingLabels(true);
+    // Labels are sourced from previously created campaign notifications.
+    const loadLabels = async () => {
+      try {
+        const labels =
+          await ServiceConfig.getI().apiHandler.getCampaignNotificationLabels();
+        if (active) setLabelOptions(labels);
+      } catch {
+        if (active) setLabelOptions([]);
+      } finally {
+        if (active) setLoadingLabels(false);
+      }
+    };
+    void loadLabels();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (draft.imageUrl) URL.revokeObjectURL(draft.imageUrl);
+    },
+    [draft.imageUrl],
+  );
 
   const handleNext = () => {
     if (!isLastStep) {
@@ -50,6 +98,16 @@ const MessagesPage: React.FC = () => {
 
   const handleSend = () => {
     setActiveTab(MESSAGES_TABS[MESSAGES_TABS.length - 1]);
+  };
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const nextImageUrl = URL.createObjectURL(file);
+    setDraft((current) => {
+      if (current.imageUrl) URL.revokeObjectURL(current.imageUrl);
+      return { ...current, imageUrl: nextImageUrl, imageName: file.name };
+    });
   };
 
   return (
@@ -85,38 +143,10 @@ const MessagesPage: React.FC = () => {
         </IconButton>
       </header>
 
-      <div
-        className="messages-page__stepper"
-        aria-label={String(t('Notification steps'))}
-      >
-        <div className="messages-page__stepper-wrap">
-          {MESSAGES_TABS.map((step, index) => {
-            const isActive = index === activeStepIndex;
-            const isComplete = index < activeStepIndex;
-            return (
-              <React.Fragment key={step}>
-                <button
-                  type="button"
-                  className={`messages-page__step ${
-                    isActive ? 'messages-page__step--active' : ''
-                  } ${isComplete ? 'messages-page__step--complete' : ''}`}
-                  onClick={() => setActiveTab(step)}
-                  aria-current={isActive ? 'step' : undefined}
-                >
-                  <span className="messages-page__step-index">{index + 1}</span>
-                  <span className="messages-page__step-label">{t(step)}</span>
-                </button>
-                {index < MESSAGES_TABS.length - 1 && (
-                  <span
-                    className="messages-page__step-line"
-                    aria-hidden="true"
-                  />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
+      <MessagesStepper
+        activeStepIndex={activeStepIndex}
+        onStepClick={setActiveTab}
+      />
 
       <div className="ops-campaigns-overview-content messages-page__content">
         <div className="messages-page__shell">
@@ -136,54 +166,21 @@ const MessagesPage: React.FC = () => {
             aria-hidden={activeTab !== 'Compose Notification'}
             hidden={activeTab !== 'Compose Notification'}
           >
-            <div className="messages-page__composer-card">
-              <Typography
-                variant="h2"
-                className="messages-page__section-heading"
-              >
-                {t('Compose Notification')}
-              </Typography>
-              <Typography className="messages-page__section-copy">
-                {t(
-                  'Draft the push notification content that will be sent to the selected audience.',
-                )}
-              </Typography>
-
-              <div className="messages-page__composer-grid">
-                <TextField
-                  fullWidth
-                  label={String(t('Notification Title'))}
-                  placeholder={String(t('Enter notification title'))}
-                  value={notificationTitle}
-                  onChange={(event) => setNotificationTitle(event.target.value)}
-                  size="small"
+            <div className="messages-page__compose-shell">
+              <div className="messages-page__compose-grid">
+                <PushNotificationFields
+                  draft={draft}
+                  fileInputRef={fileInputRef}
+                  labelOptions={labelOptions}
+                  loadingLabels={loadingLabels}
+                  onDraftChange={setDraft}
+                  onImageChange={handleImageChange}
                 />
-                <TextField
-                  fullWidth
-                  multiline
-                  minRows={8}
-                  label={String(t('Message'))}
-                  placeholder={String(t('Write the notification message'))}
-                  value={notificationMessage}
-                  onChange={(event) =>
-                    setNotificationMessage(event.target.value)
-                  }
+                <PushNotificationLivePreview
+                  title={previewTitle}
+                  body={previewBody}
+                  imageUrl={draft.imageUrl}
                 />
-              </div>
-
-              <div className="messages-page__composer-preview">
-                <Typography className="messages-page__composer-preview-label">
-                  {t('Live Preview')}
-                </Typography>
-                <div className="messages-page__composer-preview-card">
-                  <Typography className="messages-page__composer-preview-title">
-                    {notificationTitle || t('Notification title preview')}
-                  </Typography>
-                  <Typography className="messages-page__composer-preview-copy">
-                    {notificationMessage ||
-                      t('Your notification text will appear here.')}
-                  </Typography>
-                </div>
               </div>
             </div>
           </section>
@@ -234,10 +231,10 @@ const MessagesPage: React.FC = () => {
                     {t('Message')}
                   </Typography>
                   <Typography className="messages-page__review-value">
-                    {notificationTitle || t('Untitled notification')}
+                    {draft.title || t('Untitled notification')}
                   </Typography>
                   <Typography className="messages-page__review-copy">
-                    {notificationMessage || t('No message content added yet.')}
+                    {draft.body || t('No message content added yet.')}
                   </Typography>
                 </div>
               </div>
@@ -260,7 +257,10 @@ const MessagesPage: React.FC = () => {
             variant="contained"
             className="messages-page__next-button"
             onClick={isLastStep ? handleSend : handleNext}
-            disabled={activeTab === 'Select Audience' && !isAudienceValid}
+            disabled={
+              (activeTab === 'Select Audience' && !isAudienceValid) ||
+              (activeTab === 'Compose Notification' && !isComposeValid)
+            }
           >
             {isLastStep ? t('Send') : t('Next')}
           </Button>

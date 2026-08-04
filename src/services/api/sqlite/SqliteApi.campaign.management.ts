@@ -75,6 +75,10 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
     return await this._serverApi.getCampaignSetupOptions();
   }
 
+  async getCampaignNotificationLabels(): Promise<string[]> {
+    return await this._serverApi.getCampaignNotificationLabels();
+  }
+
   async getCampaignListing(
     params: CampaignListingParams,
   ): Promise<PaginatedResponse<CampaignListingItem>> {
