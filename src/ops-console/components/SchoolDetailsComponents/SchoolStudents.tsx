@@ -1,5 +1,8 @@
 import React from 'react';
-import { Add as AddIcon } from '@mui/icons-material';
+import {
+  Add as AddIcon,
+  FileDownloadOutlined as FileDownloadOutlinedIcon,
+} from '@mui/icons-material';
 import {
   Box,
   Button as MuiButton,
@@ -55,6 +58,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = (props) => {
     handleCancelFilters,
     handleClearFilters,
     handleDeleteAppliedFilter,
+    handleExportStudents,
     handleFilterIconClick,
     handlePageChange,
     handlePerformanceFilterChange,
@@ -64,6 +68,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = (props) => {
     hideFilterUI,
     isDataPresent,
     isExternalUser,
+    isExportDisabled,
+    isExporting,
     isFilterSliderOpen,
     isFilteringOrSearching,
     isLoading,
@@ -102,6 +108,15 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = (props) => {
         </Box>
 
         <Box className="schoolStudents-actionsGroup">
+          <MuiButton
+            variant="outlined"
+            onClick={handleExportStudents}
+            disabled={isExportDisabled}
+            className="schoolStudents-newStudentButton-outlined schoolStudents-exportButton"
+          >
+            <FileDownloadOutlinedIcon className="schoolStudents-newStudentButton-outlined-icon" />
+            {isExporting ? t('Exporting...') : t('Export')}
+          </MuiButton>
           {!isExternalUser && (
             <MuiButton
               variant="outlined"

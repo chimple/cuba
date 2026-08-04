@@ -67,10 +67,22 @@
   background-color: #f5f5f5 !important;
 }
 
+.schoolStudents-newStudentButton-outlined.MuiButton-root.Mui-disabled {
+  color: #98a2b3 !important;
+  border-color: #eaecf0 !important;
+  background-color: #f9fafb !important;
+  box-shadow: none !important;
+}
+
 .schoolStudents-newStudentButton-outlined-icon.MuiSvgIcon-root {
   color: #1976d2 !important;
   margin-right: 0.5rem !important;
   font-size: 1.25rem !important;
+}
+
+.schoolStudents-newStudentButton-outlined.Mui-disabled
+  .schoolStudents-newStudentButton-outlined-icon.MuiSvgIcon-root {
+  color: #98a2b3 !important;
 }
 
 .schoolStudents-table-container {

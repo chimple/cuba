@@ -17,6 +17,7 @@ import { useSchoolStudentActions } from './useSchoolStudentActions';
 import { useSchoolStudentClassContext } from './useSchoolStudentClassContext';
 import { useSchoolStudentFields } from './useSchoolStudentFields';
 import { useSchoolStudentsColumns } from './useSchoolStudentsColumns';
+import { useSchoolStudentsExport } from './useSchoolStudentsExport';
 import { useSchoolStudentsList } from './useSchoolStudentsList';
 import { useSchoolStudentsRows } from './useSchoolStudentsRows';
 import { useSchoolStudentsStatus } from './useSchoolStudentsStatus';
@@ -205,6 +206,7 @@ export const useSchoolStudentsController = ({
     isDataPresent,
     isFilteringOrSearching,
     pageCount,
+    processedStudents,
     studentsForCurrentPage,
   } = useSchoolStudentsRows({
     classDataRefId: selectedClassId,
@@ -225,6 +227,13 @@ export const useSchoolStudentsController = ({
     tempFilters,
     totalCount,
   });
+
+  const { handleExportStudents, isExportDisabled, isExporting } =
+    useSchoolStudentsExport({
+      isLoading,
+      isPerformanceLoading,
+      students: processedStudents,
+    });
 
   const {
     deleteTargetStudent,
@@ -330,6 +339,7 @@ export const useSchoolStudentsController = ({
       handleCancelFilters,
       handleClearFilters,
       handleDeleteAppliedFilter,
+      handleExportStudents,
       handleFilterIconClick,
       handlePageChange,
       handlePerformanceFilterChange,
@@ -339,6 +349,8 @@ export const useSchoolStudentsController = ({
       hideFilterUI,
       isDataPresent,
       isExternalUser,
+      isExportDisabled,
+      isExporting,
       isFilterSliderOpen,
       isFilteringOrSearching,
       isLoading,
