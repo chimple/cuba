@@ -35,6 +35,12 @@ import type {
 export interface ServiceApiCampaigns {
   getCampaignSetupOptions(): Promise<CampaignSetupOptions>;
 
+  /**
+   * Returns the unique labels already used for campaign push notifications.
+   * These values populate the compose notification label dropdown.
+   */
+  getCampaignNotificationLabels(): Promise<string[]>;
+
   getCampaignAudienceOptions(
     programId: string,
   ): Promise<CampaignAudienceOptions>;

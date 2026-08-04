@@ -1,5 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
-import { PROGRAM_TAB, TabType } from '../../../common/constants';
+import { PROGRAM_TAB, TABLES, TabType } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { Json } from '../../database';
 import { CampaignSetupOptions, ProgramListingProgramRow } from '../ServiceApi';
@@ -233,5 +233,31 @@ export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
       managers,
       savedGroups,
     };
+  }
+
+  async getCampaignNotificationLabels(): Promise<string[]> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized.');
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from(TABLES.CampaignNotification)
+      .select('label')
+      .eq('is_deleted', false)
+      .order('label', { ascending: true });
+
+    if (error) {
+      logger.error('Error fetching campaign notification labels:', error);
+      return [];
+    }
+
+    return Array.from(
+      new Set(
+        (data ?? [])
+          .map((row) => row.label?.trim())
+          .filter((label): label is string => Boolean(label)),
+      ),
+    );
   }
 }

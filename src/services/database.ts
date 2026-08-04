@@ -758,6 +758,120 @@ export type Database = {
           },
         ];
       };
+      campaign_notification: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          end_date: string | null;
+          id: string;
+          image_url: string | null;
+          is_deleted: boolean;
+          label: string;
+          message: string;
+          program_id: string;
+          recurring_days: number[] | null;
+          send_date: string | null;
+          send_time: string | null;
+          status: string;
+          target_audience: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          end_date?: string | null;
+          id?: string;
+          image_url?: string | null;
+          is_deleted?: boolean;
+          label: string;
+          message: string;
+          program_id: string;
+          recurring_days?: number[] | null;
+          send_date?: string | null;
+          send_time?: string | null;
+          status?: string;
+          target_audience: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          end_date?: string | null;
+          id?: string;
+          image_url?: string | null;
+          is_deleted?: boolean;
+          label?: string;
+          message?: string;
+          program_id?: string;
+          recurring_days?: number[] | null;
+          send_date?: string | null;
+          send_time?: string | null;
+          status?: string;
+          target_audience?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_target_audience_fkey';
+            columns: ['target_audience'];
+            isOneToOne: false;
+            referencedRelation: 'campaign_target_audience';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       campaign_student_performance: {
         Row: {
           calculated_at: string | null;

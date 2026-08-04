@@ -38,6 +38,10 @@ export class ApiHandlerCampaigns extends ApiHandlerPrograms {
     return await this.s.getCampaignSetupOptions();
   }
 
+  async getCampaignNotificationLabels(): Promise<string[]> {
+    return await this.s.getCampaignNotificationLabels();
+  }
+
   async getCampaignAudienceOptions(
     programId: string,
   ): Promise<CampaignAudienceOptions> {

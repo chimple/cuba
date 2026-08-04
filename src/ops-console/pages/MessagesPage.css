@@ -298,15 +298,26 @@ body.ops-sidebar-open .messages-page__audience-summary-card {
   line-height: 1rem;
 }
 
-.messages-page__composer-card,
 .messages-page__review-card {
   max-width: 38rem;
   padding: 0;
 }
 
-body.ops-sidebar-open .messages-page__composer-card,
 body.ops-sidebar-open .messages-page__review-card {
   max-width: 32rem;
+}
+
+.messages-page__compose-shell {
+  width: 100%;
+}
+
+.messages-page__compose-grid {
+  display: grid;
+  gap: 3rem;
+  grid-template-columns: minmax(18rem, 28.75rem) minmax(20rem, 27rem);
+  justify-content: space-between;
+  max-width: 68.25rem;
+  width: 100%;
 }
 
 .messages-page__section-heading {
@@ -324,17 +335,6 @@ body.ops-sidebar-open .messages-page__review-card {
   line-height: 1.25rem !important;
 }
 
-.messages-page__composer-grid {
-  display: grid;
-  gap: 1rem;
-  margin-top: 1.25rem;
-}
-
-.messages-page__composer-preview {
-  margin-top: 1.25rem;
-}
-
-.messages-page__composer-preview-label,
 .messages-page__review-label {
   color: var(--messages-muted);
   font-size: 0.75rem;
@@ -344,15 +344,6 @@ body.ops-sidebar-open .messages-page__review-card {
   text-transform: uppercase;
 }
 
-.messages-page__composer-preview-card {
-  margin-top: 0.5rem;
-  padding: 1rem;
-  border: 1px solid var(--messages-divider);
-  border-radius: 0.5rem;
-  background: #f8fafc;
-}
-
-.messages-page__composer-preview-title,
 .messages-page__review-value {
   color: var(--messages-text);
   font-size: 1rem !important;
@@ -360,7 +351,6 @@ body.ops-sidebar-open .messages-page__review-card {
   line-height: 1.4 !important;
 }
 
-.messages-page__composer-preview-copy,
 .messages-page__review-copy,
 .messages-page__review-meta {
   margin-top: 0.25rem !important;
@@ -1004,6 +994,11 @@ body.ops-sidebar-open .messages-page .MuiOutlinedInput-root {
     padding-left: 0;
     padding-bottom: 1rem;
     overflow: visible;
+  }
+
+  .messages-page__compose-grid {
+    gap: 1rem;
+    grid-template-columns: 1fr;
   }
 
   .messages-page__audience-section {
