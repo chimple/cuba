@@ -269,6 +269,41 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     return counts;
   }
 
+  async getActiveTeachersCountForProgram7d(
+    programId: string,
+    gradeIds?: string[],
+  ): Promise<number | null> {
+    if (!this.supabase || !programId) return null;
+
+    let query = this.supabase
+      .from(TABLES.SchoolMetrics)
+      .select('active_teachers')
+      .eq('program_id', programId)
+      .eq('metric_window', '7d')
+      .eq('is_deleted', false);
+
+    if (gradeIds && gradeIds.length > 0) {
+      query = query.in('grade_id', gradeIds);
+    } else {
+      query = query.is('grade_id', null);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      logger.error(
+        'Error fetching 7d active teachers from school metrics for program:',
+        error,
+      );
+      return null;
+    }
+
+    return (data ?? []).reduce(
+      (total, row) => total + (Number(row.active_teachers) || 0),
+      0,
+    );
+  }
+
   async createNoteForSchool(params: {
     schoolId: string;
     classId?: string | null;

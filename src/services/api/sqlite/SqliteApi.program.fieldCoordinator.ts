@@ -99,6 +99,19 @@ export class SqliteApiProgramFieldCoordinator extends SqliteApiProgramClassManag
     return this._serverApi.getRecentAssignmentCountsByTeachers(pairs);
   }
 
+  async getActiveTeachersCountForProgram7d(
+    programId: string,
+    gradeIds?: string[],
+  ): Promise<number | null> {
+    logger.warn(
+      'getActiveTeachersCountForProgram7d is not supported in SQLite mode',
+    );
+    return this._serverApi.getActiveTeachersCountForProgram7d(
+      programId,
+      gradeIds,
+    );
+  }
+
   public async getSchoolStatsForSchool(
     schoolId: string,
   ): Promise<FCSchoolStats> {

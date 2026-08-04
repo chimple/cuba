@@ -96,6 +96,11 @@ export interface ServiceApiFieldActivities {
     pairs: TeacherAssignmentCountPair[],
   ): Promise<TeacherAssignmentCountMap>;
 
+  getActiveTeachersCountForProgram7d(
+    programId: string,
+    gradeIds?: string[],
+  ): Promise<number | null>;
+
   createNoteForSchool(params: {
     schoolId: string;
     classId?: string | null;

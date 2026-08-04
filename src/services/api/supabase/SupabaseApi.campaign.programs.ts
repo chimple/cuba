@@ -188,7 +188,7 @@ export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
       [
         this.supabase
           .from('program')
-          .select('id, name')
+          .select('id, name, model')
           .eq('is_deleted', false)
           .order('name', { ascending: true }),
         this.getProgramManagers(),
@@ -219,6 +219,7 @@ export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
       .map((program) => ({
         id: String(program.id),
         name: String(program.name),
+        model: program.model ? String(program.model) : null,
       }));
 
     const savedGroups = (
