@@ -48,9 +48,9 @@
 .messages-page__heading-block h1 {
   margin: 0;
   color: var(--messages-text);
-  font-size: 1.75rem;
-  font-weight: 700;
-  line-height: 1.15;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.2;
   letter-spacing: 0;
   margin-bottom: 1rem;
 }
@@ -58,19 +58,35 @@
 .messages-page__breadcrumb {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #888888;
+  gap: 0.5rem;
+  color: #8d8d8d;
   font-size: 0.8125rem;
   line-height: 1.125rem;
 }
 
 .messages-page__breadcrumb strong {
-  color: #454545;
+  color: #343a3f;
   font-weight: 700;
 }
 
 .messages-page__breadcrumb-separator {
-  color: #888888;
+  position: relative;
+  width: 0.5rem;
+  height: 0.5rem;
+  display: inline-block;
+  flex: 0 0 auto;
+}
+
+.messages-page__breadcrumb-separator::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 0.3125rem;
+  height: 0.3125rem;
+  border-top: 0.125rem solid #8d8d8d;
+  border-right: 0.125rem solid #8d8d8d;
+  transform: rotate(45deg);
 }
 
 /* Stepper */
@@ -1188,6 +1204,7 @@ body.ops-sidebar-open .messages-page .MuiOutlinedInput-root {
     font-weight: 600 !important;
     flex: 1 1 0;
     max-width: none;
+    appearance: none !important;
     -webkit-appearance: none !important;
   }
 

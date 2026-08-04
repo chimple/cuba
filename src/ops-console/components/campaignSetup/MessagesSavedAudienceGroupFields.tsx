@@ -65,8 +65,8 @@ export const MessagesSavedAudienceGroupFields: React.FC<
               value={form.groupName}
               onChange={onGroupNameChange}
               error={!!groupNameError}
-              placeholder={t('Enter group name')}
-              inputProps={{ 'aria-label': t('Group Name') }}
+              placeholder={String(t('Enter group name'))}
+              inputProps={{ 'aria-label': String(t('Group Name')) }}
               size="small"
             />
             {!!groupNameError && (

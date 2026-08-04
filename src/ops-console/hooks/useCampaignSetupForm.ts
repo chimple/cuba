@@ -362,6 +362,10 @@ export const useCampaignSetupForm = () => {
     () => getCampaignRewardsValidationErrors(form),
     [form],
   );
+  const canSaveGroup =
+    saveGroup &&
+    form.programId.trim().length > 0 &&
+    form.groupName.trim().length > 0;
 
   const isFormValid = Object.keys(validationErrors).length === 0;
   const areRewardsValid = Object.keys(rewardValidationErrors).length === 0;
@@ -477,5 +481,6 @@ export const useCampaignSetupForm = () => {
     updateRewardRank,
     rewardFieldError,
     ...audience,
+    canSaveGroup,
   };
 };
