@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Button, IconButton, TextField, Typography } from '@mui/material';
 import { ArrowBack, Notifications } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import MessagesTargetAudienceSection from '../components/campaignSetup/MessagesTargetAudienceSection';
 import { useMessagesAudienceSelection } from '../hooks/useMessagesAudienceSelection';
 import './MessagesPage.css';
@@ -13,6 +14,7 @@ const MESSAGES_TABS = [
 ] as const;
 
 const MessagesPage: React.FC = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<(typeof MESSAGES_TABS)[number]>(
     MESSAGES_TABS[0],
   );
@@ -60,16 +62,19 @@ const MessagesPage: React.FC = () => {
         <IconButton
           className="messages-page__mobile-back-button"
           onClick={handleBack}
-          aria-label="Back"
+          aria-label={t('Back')}
         >
           <ArrowBack />
         </IconButton>
         <div className="messages-page__heading-block">
-          <h1 id="ops-messages-page-title">New Push Notification</h1>
-          <div className="messages-page__breadcrumb" aria-label="Breadcrumb">
-            <span>{MESSAGES_BREADCRUMB[0]}</span>
-            <span className="messages-page__breadcrumb-separator">▸</span>
-            <strong>{MESSAGES_BREADCRUMB[1]}</strong>
+          <h1 id="ops-messages-page-title">{t('New Push Notification')}</h1>
+          <div
+            className="messages-page__breadcrumb"
+            aria-label={t('Breadcrumb')}
+          >
+            <span>{t(MESSAGES_BREADCRUMB[0])}</span>
+            <span className="messages-page__breadcrumb-separator">â–¸</span>
+            <strong>{t(MESSAGES_BREADCRUMB[1])}</strong>
           </div>
         </div>
         <IconButton className="messages-page__notification-button">
@@ -77,7 +82,10 @@ const MessagesPage: React.FC = () => {
         </IconButton>
       </header>
 
-      <div className="messages-page__stepper" aria-label="Notification steps">
+      <div
+        className="messages-page__stepper"
+        aria-label={t('Notification steps')}
+      >
         <div className="messages-page__stepper-wrap">
           {MESSAGES_TABS.map((step, index) => {
             const isActive = index === activeStepIndex;
@@ -93,7 +101,7 @@ const MessagesPage: React.FC = () => {
                   aria-current={isActive ? 'step' : undefined}
                 >
                   <span className="messages-page__step-index">{index + 1}</span>
-                  <span className="messages-page__step-label">{step}</span>
+                  <span className="messages-page__step-label">{t(step)}</span>
                 </button>
                 {index < MESSAGES_TABS.length - 1 && (
                   <span
@@ -130,18 +138,19 @@ const MessagesPage: React.FC = () => {
                 variant="h2"
                 className="messages-page__section-heading"
               >
-                Compose Notification
+                {t('Compose Notification')}
               </Typography>
               <Typography className="messages-page__section-copy">
-                Draft the push notification content that will be sent to the
-                selected audience.
+                {t(
+                  'Draft the push notification content that will be sent to the selected audience.',
+                )}
               </Typography>
 
               <div className="messages-page__composer-grid">
                 <TextField
                   fullWidth
-                  label="Notification Title"
-                  placeholder="Enter notification title"
+                  label={t('Notification Title')}
+                  placeholder={t('Enter notification title')}
                   value={notificationTitle}
                   onChange={(event) => setNotificationTitle(event.target.value)}
                   size="small"
@@ -150,8 +159,8 @@ const MessagesPage: React.FC = () => {
                   fullWidth
                   multiline
                   minRows={8}
-                  label="Message"
-                  placeholder="Write the notification message"
+                  label={t('Message')}
+                  placeholder={t('Write the notification message')}
                   value={notificationMessage}
                   onChange={(event) =>
                     setNotificationMessage(event.target.value)
@@ -161,15 +170,15 @@ const MessagesPage: React.FC = () => {
 
               <div className="messages-page__composer-preview">
                 <Typography className="messages-page__composer-preview-label">
-                  Live Preview
+                  {t('Live Preview')}
                 </Typography>
                 <div className="messages-page__composer-preview-card">
                   <Typography className="messages-page__composer-preview-title">
-                    {notificationTitle || 'Notification title preview'}
+                    {notificationTitle || t('Notification title preview')}
                   </Typography>
                   <Typography className="messages-page__composer-preview-copy">
                     {notificationMessage ||
-                      'Your notification text will appear here.'}
+                      t('Your notification text will appear here.')}
                   </Typography>
                 </div>
               </div>
@@ -186,17 +195,18 @@ const MessagesPage: React.FC = () => {
                 variant="h2"
                 className="messages-page__section-heading"
               >
-                Review & Send
+                {t('Review & Send')}
               </Typography>
               <Typography className="messages-page__section-copy">
-                Confirm the audience and content before sending the
-                notification.
+                {t(
+                  'Confirm the audience and content before sending the notification.',
+                )}
               </Typography>
 
               <div className="messages-page__review-grid">
                 <div className="messages-page__review-block">
                   <Typography className="messages-page__review-label">
-                    Audience
+                    {t('Audience')}
                   </Typography>
                   <Typography className="messages-page__review-value">
                     {audience.selectedProgramName}
@@ -208,23 +218,23 @@ const MessagesPage: React.FC = () => {
 
                 <div className="messages-page__review-block">
                   <Typography className="messages-page__review-label">
-                    Saved Target Group
+                    {t('Saved Target Group')}
                   </Typography>
                   <Typography className="messages-page__review-value">
                     {audience.selectedSavedGroup?.name ||
-                      'No saved group selected'}
+                      t('No saved group selected')}
                   </Typography>
                 </div>
 
                 <div className="messages-page__review-block messages-page__review-block--message">
                   <Typography className="messages-page__review-label">
-                    Message
+                    {t('Message')}
                   </Typography>
                   <Typography className="messages-page__review-value">
-                    {notificationTitle || 'Untitled notification'}
+                    {notificationTitle || t('Untitled notification')}
                   </Typography>
                   <Typography className="messages-page__review-copy">
-                    {notificationMessage || 'No message content added yet.'}
+                    {notificationMessage || t('No message content added yet.')}
                   </Typography>
                 </div>
               </div>
@@ -239,7 +249,7 @@ const MessagesPage: React.FC = () => {
               className="messages-page__back-button"
               onClick={handleBack}
             >
-              Back
+              {t('Back')}
             </Button>
           )}
           <Button
@@ -249,7 +259,7 @@ const MessagesPage: React.FC = () => {
             onClick={isLastStep ? handleSend : handleNext}
             disabled={activeTab === 'Select Audience' && !isAudienceValid}
           >
-            {isLastStep ? 'Send' : 'Next'}
+            {isLastStep ? t('Send') : t('Next')}
           </Button>
         </div>
       </div>

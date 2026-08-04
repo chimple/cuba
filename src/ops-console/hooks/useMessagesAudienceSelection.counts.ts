@@ -8,6 +8,7 @@ import type {
 type Params = {
   programId: string;
   summarySchoolIds: string[];
+  summaryGradeIds: string[];
   userType: UserType;
   activityRecency: ActivityRecency;
   estimatedRecipientCount: number;
@@ -16,6 +17,7 @@ type Params = {
 export const useMessagesRecipientCount = ({
   programId,
   summarySchoolIds,
+  summaryGradeIds,
   userType,
   activityRecency,
   estimatedRecipientCount,
@@ -88,7 +90,10 @@ export const useMessagesRecipientCount = ({
             return;
           }
           const activeTeacherCount =
-            await api.getActiveTeachersCountForProgram7d(programId);
+            await api.getActiveTeachersCountForProgram7d(
+              programId,
+              summaryGradeIds,
+            );
           if (requestIdRef.current !== requestId) return;
           if (activityRecency === 'active_7d') {
             setRoleBasedRecipientCount(activeTeacherCount ?? teacherCount);
@@ -125,7 +130,14 @@ export const useMessagesRecipientCount = ({
     };
 
     void fetchRoleBasedCount();
-  }, [activityRecency, api, programId, summarySchoolIds, userType]);
+  }, [
+    activityRecency,
+    api,
+    programId,
+    summaryGradeIds,
+    summarySchoolIds,
+    userType,
+  ]);
 
   const displayRecipientCount =
     userType === 'student'

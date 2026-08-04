@@ -128,8 +128,9 @@ export class ApiHandlerFieldActivities extends ApiHandlerOpsUsers {
 
   async getActiveTeachersCountForProgram7d(
     programId: string,
+    gradeIds?: string[],
   ): Promise<number | null> {
-    return await this.s.getActiveTeachersCountForProgram7d(programId);
+    return await this.s.getActiveTeachersCountForProgram7d(programId, gradeIds);
   }
 
   async createNoteForSchool(params: {

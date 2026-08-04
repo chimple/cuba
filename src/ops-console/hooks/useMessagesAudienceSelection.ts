@@ -29,7 +29,6 @@ export const useMessagesAudienceSelection = () => {
   const [programId, setProgramId] = useState('');
   const [programModel, setProgramModel] = useState<string>('');
   const [userType, setUserType] = useState<UserType>('student');
-  const [appVersion, setAppVersion] = useState<string>('all');
   const [activityRecency, setActivityRecency] =
     useState<ActivityRecency>('all');
 
@@ -313,6 +312,7 @@ export const useMessagesAudienceSelection = () => {
       activityRecency,
       estimatedRecipientCount,
       programId,
+      summaryGradeIds,
       summarySchoolIds,
       userType,
     },
@@ -505,10 +505,8 @@ export const useMessagesAudienceSelection = () => {
 
     // Refine filters
     userType,
-    appVersion,
     activityRecency,
     setUserType,
-    setAppVersion,
     setActivityRecency,
 
     // Save group

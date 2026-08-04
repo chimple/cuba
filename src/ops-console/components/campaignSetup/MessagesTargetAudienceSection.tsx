@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { Box, FormControl, MenuItem, Select, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { CampaignSelectPlaceholder } from './CampaignPlaceholder';
 import { requiredLabel } from './constants';
 import { CampaignMultiSelect } from './CampaignMultiSelect';
@@ -16,6 +17,7 @@ type MessagesTargetAudienceSectionProps = {
 export const MessagesTargetAudienceSection: React.FC<
   MessagesTargetAudienceSectionProps
 > = ({ onValidityChange, audience: audienceProp }) => {
+  const { t } = useTranslation();
   const fallbackAudience = useMessagesAudienceSelection();
   const audience = audienceProp ?? fallbackAudience;
 
@@ -79,16 +81,16 @@ export const MessagesTargetAudienceSection: React.FC<
     <Box className="messages-page__messages-audience-shell">
       <Box className="campaign-setup-section">
         <Typography variant="h6" className="campaign-setup-section-title">
-          Target Audience
+          {t('Target Audience')}
         </Typography>
         <Typography className="campaign-setup-section-copy">
-          Define your notification audience using hierarchical filters.
+          {t('Define your notification audience using hierarchical filters.')}
         </Typography>
 
         <Box className="target-audience-section-grid">
           <Box className="campaign-setup-field">
             <Typography className="campaign-setup-label messages-page__program-label">
-              Saved Target Group
+              {t('Saved Target Group')}
             </Typography>
             <FormControl fullWidth>
               <Select
@@ -98,13 +100,13 @@ export const MessagesTargetAudienceSection: React.FC<
                 renderValue={(value) =>
                   CampaignSelectPlaceholder(
                     value,
-                    'Select a saved group',
+                    t('Select a saved group'),
                     savedGroupNameById.get(value),
                   )
                 }
                 size="small"
               >
-                <MenuItem value="">Select a saved group</MenuItem>
+                <MenuItem value="">{t('Select a saved group')}</MenuItem>
                 {audience.savedGroups.map((group) => (
                   <MenuItem key={group.id} value={group.id}>
                     {group.name}
@@ -126,14 +128,14 @@ export const MessagesTargetAudienceSection: React.FC<
                 renderValue={(value) =>
                   CampaignSelectPlaceholder(
                     value,
-                    'Select Program',
+                    t('Select Program'),
                     programNameById.get(value),
                   )
                 }
                 size="small"
               >
                 <MenuItem value="" disabled>
-                  Select Program
+                  {t('Select Program')}
                 </MenuItem>
                 {audience.programs.map((program) => (
                   <MenuItem key={program.id} value={program.id}>
@@ -155,7 +157,7 @@ export const MessagesTargetAudienceSection: React.FC<
 
           <Box className="campaign-setup-field messages-page__program-model-field">
             <Typography className="campaign-setup-label messages-page__program-label">
-              Program Model
+              {t('Program Model')}
             </Typography>
             <FormControl fullWidth>
               <Select
@@ -167,29 +169,29 @@ export const MessagesTargetAudienceSection: React.FC<
                 renderValue={(value) =>
                   CampaignSelectPlaceholder(
                     value,
-                    'Select Program Model',
+                    t('Select Program Model'),
                     value || undefined,
                   )
                 }
                 size="small"
               >
-                <MenuItem value="">Select Program Model</MenuItem>
-                <MenuItem value="At School">At School</MenuItem>
-                <MenuItem value="At Home">At Home</MenuItem>
-                <MenuItem value="Hybrid">Hybrid</MenuItem>
+                <MenuItem value="">{t('Select Program Model')}</MenuItem>
+                <MenuItem value="At School">{t('At School')}</MenuItem>
+                <MenuItem value="At Home">{t('At Home')}</MenuItem>
+                <MenuItem value="Hybrid">{t('Hybrid')}</MenuItem>
               </Select>
             </FormControl>
           </Box>
 
           <Box className="campaign-setup-field">
             <Typography className="campaign-setup-label messages-page__program-label">
-              Block
+              {t('Block')}
             </Typography>
             <CampaignMultiSelect
               options={audience.audienceOptions.blocks}
               value={audience.selectedBlocks}
               loading={audience.loadingAudience}
-              placeholder="Select Blocks"
+              placeholder={t('Select Blocks')}
               preventMobileKeyboard
               onChange={audience.handleBlocksChange}
             />
@@ -197,40 +199,40 @@ export const MessagesTargetAudienceSection: React.FC<
 
           <Box className="campaign-setup-field">
             <Typography className="campaign-setup-label messages-page__program-label">
-              School
+              {t('School')}
             </Typography>
             <CampaignMultiSelect
               options={audience.schoolsForSelectedBlocks}
               value={audience.selectedSchools}
               loading={audience.loadingAudience}
-              placeholder="Select Schools"
+              placeholder={t('Select Schools')}
               preventMobileKeyboard
               getOptionLabel={(option) => option.name}
               isOptionEqualToValue={(option, value) => option.id === value.id}
               onChange={audience.handleSchoolsChange}
             />
             <Typography className="target-audience-section-field-note messages-page__field-note">
-              All schools under selected blocks are included.
+              {t('All schools under selected blocks are included.')}
             </Typography>
           </Box>
 
           <Box className="campaign-setup-field">
             <Typography className="campaign-setup-label messages-page__program-label">
-              Grade
+              {t('Grade')}
             </Typography>
             <CampaignMultiSelect
               key={gradeSelectScopeKey}
               options={audience.availableGrades}
               value={scopedSelectedGrades}
               loading={audience.loadingAudience || audience.loadingGrades}
-              placeholder="Select Grade"
+              placeholder={t('Select Grade')}
               preventMobileKeyboard
               getOptionLabel={(option) => option.name}
               isOptionEqualToValue={(option, value) => option.id === value.id}
               onChange={audience.handleGradesChange}
             />
             <Typography className="target-audience-section-field-note messages-page__field-note">
-              All grades under selected schools are included.
+              {t('All grades under selected schools are included.')}
             </Typography>
           </Box>
         </Box>
@@ -242,9 +244,6 @@ export const MessagesTargetAudienceSection: React.FC<
           audience.setActivityRecency(
             event.target.value as 'all' | 'active_7d' | 'inactive_7d',
           )
-        }
-        onAppVersionChange={(event) =>
-          audience.setAppVersion(event.target.value)
         }
         onUserTypeChange={(event) => {
           const nextUserType = event.target.value as

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { CampaignAudienceSummary } from '../../../services/api/ServiceApi';
 
 type MessagesAudienceSummaryProps = {
@@ -35,6 +36,7 @@ export const MessagesAudienceSummary: React.FC<
   summary,
   recipientCount,
 }) => {
+  const { t } = useTranslation();
   const hasNoStudents = recipientCount === 0;
   const emptyAudienceMessage = getEmptyAudienceMessage(userType);
   const gradeLabel =
@@ -45,34 +47,40 @@ export const MessagesAudienceSummary: React.FC<
     <>
       <Box className="messages-page__audience-summary-card">
         <Box className="messages-page__audience-summary-title">
-          AUDIENCE SUMMARY
+          {t('AUDIENCE SUMMARY')}
         </Box>
 
         <Box className="messages-page__audience-summary-grid">
-          <span className="messages-page__audience-summary-label">Program</span>
+          <span className="messages-page__audience-summary-label">
+            {t('Program')}
+          </span>
           <strong className="messages-page__audience-summary-value">
             {programName || '-'}
           </strong>
 
-          <span className="messages-page__audience-summary-label">Block</span>
+          <span className="messages-page__audience-summary-label">
+            {t('Block')}
+          </span>
           <strong className="messages-page__audience-summary-value">
             {blockCount}
           </strong>
 
           <span className="messages-page__audience-summary-label">
-            Number of Schools
+            {t('Number of Schools')}
           </span>
           <strong className="messages-page__audience-summary-value">
             {schoolCount}
           </strong>
 
-          <span className="messages-page__audience-summary-label">Grade</span>
+          <span className="messages-page__audience-summary-label">
+            {t('Grade')}
+          </span>
           <strong className="messages-page__audience-summary-value">
             {gradeLabel}
           </strong>
 
           <span className="messages-page__audience-summary-label">
-            User Type
+            {t('User Type')}
           </span>
           <strong className="messages-page__audience-summary-value">
             {userType}
@@ -80,7 +88,7 @@ export const MessagesAudienceSummary: React.FC<
         </Box>
 
         <Box className="messages-page__audience-summary-footer">
-          <span>Estimated Recipient Count:</span>
+          <span>{t('Estimated Recipient Count:')}</span>
           <strong>{recipientCount ?? ''}</strong>
         </Box>
       </Box>
