@@ -1014,6 +1014,8 @@ export interface ServiceApi {
     languageDocId: string,
     student_id: string,
     newClassId: string,
+    phoneNumber?: string,
+    email?: string,
   ): Promise<TableTypes<'user'>>;
 
   updateUserProfile(
@@ -3472,6 +3474,7 @@ export interface ServiceApi {
   // Parent WhatsApp Invitation: send MSG91 invites via dedicated Supabase RPC.
   getParentWhatsappMsg91SendResult?: (
     inviteRows: Json,
+    languageCode: string,
     batchSize: number,
   ) => Promise<Json>;
 

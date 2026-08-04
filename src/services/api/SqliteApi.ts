@@ -3912,6 +3912,8 @@ export class SqliteApi implements ServiceApi {
     languageDocId: string,
     student_id: string,
     newClassId: string,
+    phoneNumber?: string,
+    email?: string,
   ): Promise<TableTypes<'user'>> {
     const languageChanged = student.language_id !== languageDocId;
     let localeId = student.locale_id;
@@ -10832,10 +10834,15 @@ order by
       ? await this._serverApi.getParentWhatsappGroupDetails(groupId)
       : [];
   }
-  async getParentWhatsappMsg91SendResult(inviteRows: Json, batchSize: number) {
+  async getParentWhatsappMsg91SendResult(
+    inviteRows: Json,
+    languageCode: string,
+    batchSize: number,
+  ) {
     return this._serverApi.getParentWhatsappMsg91SendResult
       ? await this._serverApi.getParentWhatsappMsg91SendResult(
           inviteRows,
+          languageCode,
           batchSize,
         )
       : {

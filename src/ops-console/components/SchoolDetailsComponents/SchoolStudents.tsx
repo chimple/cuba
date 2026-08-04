@@ -68,7 +68,10 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import { useAppSelector } from '../../../redux/hooks';
 import { RootState } from '../../../redux/store';
 import { AuthState } from '../../../redux/slices/auth/authSlice';
-import { getStudentContactValues } from '../../utils/studentContactNumbers';
+import {
+  getStudentContactValues,
+  getStudentPhoneNumbers,
+} from '../../utils/studentContactNumbers';
 
 type ApiStudentData = StudentInfo;
 type StudentPerformanceBand =
@@ -752,8 +755,23 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     [sortedStudents],
   );
   const classDataRef = useMemo(() => {
-    return Array.isArray(data.classData) ? data.classData[0] : undefined;
-  }, [data.classData]);
+    if (!Array.isArray(data.classData)) return undefined;
+
+    const selectedClassId = String(optionalClassId ?? '').trim();
+    if (selectedClassId) {
+      return (
+        data.classData.find(
+          (classRow) => String(classRow?.id ?? '').trim() === selectedClassId,
+        ) ?? undefined
+      );
+    }
+
+    return data.classData[0];
+  }, [data.classData, optionalClassId]);
+  const selectedClassId = useMemo(
+    () => String(optionalClassId ?? classDataRef?.id ?? '').trim(),
+    [classDataRef?.id, optionalClassId],
+  );
   const performanceClassIdsKey = useMemo(
     () =>
       Array.from(
@@ -762,12 +780,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             .map((student) =>
               issTotal
                 ? student.classWithidname?.id
-                : (classDataRef?.id ?? student.classWithidname?.id),
+                : selectedClassId || student.classWithidname?.id,
             )
             .filter((value): value is string => Boolean(value)),
         ),
       ).join(','),
-    [classDataRef?.id, issTotal, normalizedStudents],
+    [issTotal, normalizedStudents, selectedClassId],
   );
 
   // Fold classId + group_id into one key so the fetch effect reruns on link changes.
@@ -942,7 +960,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
             .map((student) =>
               issTotal
                 ? student.classWithidname?.id
-                : (classDataRef?.id ?? student.classWithidname?.id),
+                : selectedClassId || student.classWithidname?.id,
             )
             .filter((value): value is string => Boolean(value)),
         ),
@@ -984,7 +1002,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       }
     };
     fetchStudentPerformance();
-  }, [api, classDataRef?.id, issTotal, performanceClassIdsKey, studentIdsKey]);
+  }, [api, issTotal, performanceClassIdsKey, selectedClassId, studentIdsKey]);
   const getStudentInfoById = useCallback(
     (id: string): StudentInfo | null => {
       if (!Array.isArray(students)) return null;
@@ -1025,7 +1043,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       const rowClassId = String(
         issTotal
           ? (s_api.classWithidname?.id ?? '')
-          : (classDataRef?.id ?? s_api.classWithidname?.id ?? ''),
+          : selectedClassId || s_api.classWithidname?.id || '',
       ).trim();
       return {
         id: s_api.user.id,
@@ -1059,8 +1077,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }
     return filtered;
   }, [
-    classDataRef?.id,
     issTotal,
+    selectedClassId,
     sortedStudents,
     performanceFilter,
     studentPerformanceMap,
@@ -1598,6 +1616,11 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     }
   }, [issTotal, classOptions, isAtSchool, baseStudents]);
 
+  const parentEmail = String(editStudentData?.parent?.email ?? '').trim();
+  const hasPhone = getStudentPhoneNumbers(editStudentData).length > 0;
+  const hasEmail = parentEmail !== '';
+  const shouldEditPhone = !hasPhone;
+
   const editStudentFields: FieldConfig[] = [
     {
       name: 'studentName',
@@ -1655,10 +1678,14 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
     // 6️⃣ Phone – full width
     {
       name: 'phone',
-      label: 'Phone / Email',
-      kind: 'chips',
+      label: shouldEditPhone
+        ? 'Phone Number'
+        : hasEmail
+          ? 'Phone / Email'
+          : 'Phone Number',
+      kind: shouldEditPhone ? 'phone' : 'chips',
       column: 2,
-      disabled: true,
+      required: shouldEditPhone,
     },
   ];
 
@@ -1704,6 +1731,8 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
       ...baseArgs,
       user.student_id || user.student_id!,
       selectedClassId,
+      normalizePhone10(values.phone),
+      hasEmail ? parentEmail : undefined,
     );
 
     setIsEditStudentModalOpen(false);
@@ -1954,8 +1983,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = ({
           ageGroup: String(editStudentData?.user?.age ?? ''),
           studentID: editStudentData?.user?.student_id ?? '',
           classAndSection: String(editStudentData?.classWithidname?.id ?? ''),
-          // Show all merged contacts in edit details as chips.
-          phone: getStudentContactValues(editStudentData).join(' / '),
+          phone: shouldEditPhone
+            ? ''
+            : getStudentContactValues(editStudentData).join(' / '),
         }}
         onClose={() => {
           setIsEditStudentModalOpen(false);

@@ -568,6 +568,8 @@ export class ApiHandler implements ServiceApi {
     languageDocId: string,
     student_id: string,
     newClassId: string,
+    phoneNumber?: string,
+    email?: string,
   ): Promise<TableTypes<'user'>> {
     return await this.s.updateStudentFromSchoolMode(
       student,
@@ -581,6 +583,8 @@ export class ApiHandler implements ServiceApi {
       languageDocId,
       student_id,
       newClassId,
+      phoneNumber,
+      email,
     );
   }
 
@@ -2430,6 +2434,7 @@ export class ApiHandler implements ServiceApi {
 
   public async getParentWhatsappMsg91SendResult(
     inviteRows: Json,
+    languageCode: string,
     batchSize: number,
   ) {
     if (!this.s.getParentWhatsappMsg91SendResult) {
@@ -2437,7 +2442,11 @@ export class ApiHandler implements ServiceApi {
         'Parent WhatsApp MSG91 send RPC is not implemented in current API service.',
       );
     }
-    return await this.s.getParentWhatsappMsg91SendResult(inviteRows, batchSize);
+    return await this.s.getParentWhatsappMsg91SendResult(
+      inviteRows,
+      languageCode,
+      batchSize,
+    );
   }
 
   public async getParentWhatsappMsg91ReportRows(
