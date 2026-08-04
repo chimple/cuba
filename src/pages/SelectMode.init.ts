@@ -199,7 +199,7 @@ export const initializeSelectMode = async (ctx: any) => {
   const shouldSuppressTeacherAutoEntry =
     currentMode === MODES.TEACHER_SCHOOL &&
     (location.state?.fromKidsAppLocationSchool === true ||
-      location.state?.fromSchoolModeSwitchProfile === true);
+      location.state?.fromSwitchProfileReturn === true);
   const shouldAutoEnterTeacherApp =
     teacherRoleEntries.length > 0 && !shouldSuppressTeacherAutoEntry;
   const shouldUseEmptySchoolFallback = !shouldSuppressTeacherAutoEntry;

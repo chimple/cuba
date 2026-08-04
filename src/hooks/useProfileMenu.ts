@@ -181,6 +181,7 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
       ...parsePath(PAGES.DISPLAY_STUDENT),
       state: {
         from: history.location.pathname,
+        fromSwitchProfileReturn: true,
       },
     });
   };
@@ -199,7 +200,7 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
       ...parsePath(PAGES.SELECT_MODE),
       state: {
         from: history.location.pathname,
-        fromSchoolModeSwitchProfile: true,
+        fromSwitchProfileReturn: true,
       },
     });
   };

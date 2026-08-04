@@ -1,5 +1,5 @@
 import { IonPage, IonHeader, useIonViewWillEnter } from '@ionic/react';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import {
   HOMEHEADERLIST,
   PAGES,
@@ -50,12 +50,9 @@ import {
 import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
 import { getAppSearchParams } from '../utility/routerLocation';
 import { PopupConfig } from '../components/GenericPopUp/GenericPopUpType';
-
 const localData: any = {};
-
 export const useHome = () => {
   const [dataCourse, setDataCourse] = useState<HomeworkPathwayLesson[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isStudentLinked, setIsStudentLinked] = useState<boolean>();
   const [refreshKey, setRefreshKey] = useState(0);
   const [lessonCourseMap, setLessonCourseMap] = useState<{
@@ -75,21 +72,35 @@ export const useHome = () => {
   const history = useHistory();
   const { setGbUpdated } = useGbContext();
   const isRewardFeatureOn = useFeatureIsOn(IS_REWARD_FEATURE_ON);
-
+  const location = useLocation<{
+    fromLido?: boolean;
+    fromSwitchProfileReturn?: boolean;
+  }>();
+  const urlParams = new URLSearchParams(location.search);
+  const isReturnFromSwitchProfileReturn =
+    location.state?.fromSwitchProfileReturn === true;
+  const isReturnFromLidoOrSwitchProfile =
+    location.state?.fromLido === true ||
+    isReturnFromSwitchProfileReturn ||
+    urlParams.get('isReload') === 'true';
+  const [isLoading, setIsLoading] = useState<boolean>(
+    !isReturnFromSwitchProfileReturn,
+  );
   if (isRewardFeatureOn === true) {
     localStorage.setItem(IS_REWARD_FEATURE_ON, 'true');
   } else if (isRewardFeatureOn === false) {
     localStorage.setItem(IS_REWARD_FEATURE_ON, 'false');
   }
-
   let tempPageNumber = 1;
-  const location = useLocation();
   const getCanShowAvatar = async () => {
     setCanShowAvatar(true);
   };
-  const urlParams = new URLSearchParams(location.search);
   const [canShowAvatar, setCanShowAvatar] = useState<boolean>(true);
+  const hasSkippedSwitchProfileReturnTabSyncRef = useRef(false);
   const [currentHeader, setCurrentHeader] = useState(() => {
+    if (isReturnFromLidoOrSwitchProfile) {
+      return HOMEHEADERLIST.HOME;
+    }
     const currPage = urlParams.get('tab');
     if (
       currPage &&
@@ -103,14 +114,18 @@ export const useHome = () => {
   const appStateChange = (isActive: boolean) => {
     Util.onAppStateChange({ isActive });
   };
-
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
-
   useEffect(() => {
+    if (
+      isReturnFromSwitchProfileReturn &&
+      !hasSkippedSwitchProfileReturnTabSyncRef.current
+    ) {
+      hasSkippedSwitchProfileReturnTabSyncRef.current = true;
+      return;
+    }
     const params = new URLSearchParams(location.search);
     const tabFromUrl = params.get('tab');
-
     if (
       tabFromUrl &&
       Object.values(HOMEHEADERLIST).includes(tabFromUrl as HOMEHEADERLIST) &&
@@ -119,7 +134,6 @@ export const useHome = () => {
       setCurrentHeader(tabFromUrl as HOMEHEADERLIST);
     }
   }, [location.search, currentHeader]);
-
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (currentHeader && params.get('tab') !== currentHeader) {
@@ -132,11 +146,9 @@ export const useHome = () => {
       });
     }
   }, [currentHeader, history, location.pathname, location.search]);
-
   const popupConfig = useFeatureValue<PopupConfig | null>(GENERIC_POP_UP, null);
   useEffect(() => {
     if (!popupConfig) return;
-
     if (
       currentHeader &&
       popupConfig.screen_name &&
@@ -146,11 +158,14 @@ export const useHome = () => {
       PopupManager.onTimeElapsed(popupConfig);
     }
   }, [currentHeader, popupConfig]);
-
   useEffect(() => {
     const student = Util.getCurrentStudent();
     if (!student) {
       history.replace(PAGES.SELECT_MODE);
+      return;
+    }
+    if (isReturnFromLidoOrSwitchProfile) {
+      setIsLoading(false);
       return;
     }
     const studentDetails = student;
@@ -162,10 +177,8 @@ export const useHome = () => {
         parent = await ServiceConfig.getI()?.authHandler.getCurrentUser();
         (updatedStudentDetails as any).parent_id = parent?.id;
       }
-
       // Get Device Info
       const device = await Util.logDeviceInfo();
-
       // Initial Update with Student and Device info
       updateLocalAttributes({
         studentDetails: updatedStudentDetails,
@@ -173,7 +186,6 @@ export const useHome = () => {
       });
       setGbUpdated(true);
     })();
-
     localStorage.setItem(SHOW_DAILY_PROGRESS_FLAG, 'true');
     Util.checkDownloadedLessonsFromLocal();
     initData();
@@ -570,6 +582,8 @@ export const useHome = () => {
     pendingAssignmentCount,
     pendingLiveQuizCount,
     refreshKey,
+    isReturnFromSwitchProfileReturn,
+    isReturnFromLidoOrSwitchProfile,
     setCurrentHeader,
     setPendingAssignmentCount,
     setPendingLiveQuizCount,

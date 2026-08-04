@@ -231,7 +231,7 @@ describe('ProfileMenu Notification Logic', () => {
         pathname: PAGES.SELECT_MODE,
         state: {
           from: '/',
-          fromSchoolModeSwitchProfile: true,
+          fromSwitchProfileReturn: true,
         },
       }),
     );
