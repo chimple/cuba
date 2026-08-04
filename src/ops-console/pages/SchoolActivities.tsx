@@ -20,11 +20,27 @@ import { useSchoolActivities } from '../hooks/useSchoolActivities';
 import ActivityDetailsPanel from './ActivityDetailsPanel';
 import './SchoolActivities.css';
 
+type SchoolActivitiesLocationState = {
+  schoolData?: {
+    id: string;
+    name?: string;
+  };
+  schoolName?: string;
+  date?: string;
+  activities?: unknown[];
+  visitDetails?: unknown[] | null;
+};
+
 const SchoolActivities: React.FC = () => {
   const history = useHistory();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const activityData: any = useLocation().state;
+  const activityData = useLocation<SchoolActivitiesLocationState>().state ?? {};
+  const schoolListPath = `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`;
+  const activitiesPath = `${schoolListPath}${PAGES.ACTIVITIES_PAGE}`;
+  const schoolDetailsPath = activityData.schoolData?.id
+    ? `${schoolListPath}${PAGES.SCHOOL_DETAILS}/${activityData.schoolData.id}`
+    : activitiesPath;
   const {
     activities,
     columns,
@@ -83,15 +99,24 @@ const SchoolActivities: React.FC = () => {
               crumbs={[
                 {
                   label: t('Schools'),
-                  onClick: () =>
-                    history.push(`${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}`),
+                  onClick: () => history.push(schoolListPath),
                 },
                 {
-                  label: activityData.schoolName,
-                  onClick: () => history.goBack(),
+                  label: activityData.schoolName ?? '',
+                  onClick: () => history.replace(schoolDetailsPath),
                 },
-                { label: t('Interactions'), onClick: () => history.goBack() },
-                { label: activityData.date },
+                {
+                  label: t('Interactions'),
+                  onClick: () =>
+                    history.replace({
+                      pathname: activitiesPath,
+                      state: {
+                        id: activityData.schoolData?.id ?? '',
+                        name: activityData.schoolName ?? '',
+                      },
+                    }),
+                },
+                { label: activityData.date ?? '' },
               ]}
             />
           )}

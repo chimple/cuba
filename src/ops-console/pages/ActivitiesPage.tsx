@@ -17,10 +17,31 @@ import {
 } from '../hooks/useActivitiesPageData';
 import './ActivitiesPage.css';
 
+type SchoolRecord = {
+  id: string;
+  name: string;
+};
+
+type ActivitySummaryRow = {
+  date: string;
+  visitType: string;
+  f2f: number;
+  calls: number;
+  issues: number;
+  checkIn: string;
+  checkOut: string;
+  distance: string;
+  activitiesList: unknown[];
+  visitDetails: unknown[] | null;
+};
+
 const ActivitiesPage: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
-  const school: any = location.state;
+  const school = (location.state as SchoolRecord | undefined) ?? {
+    id: '',
+    name: '',
+  };
   const {
     activities,
     filterOptions,
@@ -42,7 +63,7 @@ const ActivitiesPage: React.FC = () => {
     tempFilters,
   } = useActivitiesPageData(school);
 
-  const columns: Column<Record<string, any>>[] = [
+  const columns: Column<ActivitySummaryRow>[] = [
     { key: 'date', label: t('Date'), sortable: true, orderBy: 'date' },
     { key: 'visitType', label: t('Visit Type'), sortable: false },
     { key: 'f2f', label: t('F2F- Discussions'), sortable: false },
@@ -51,7 +72,7 @@ const ActivitiesPage: React.FC = () => {
       key: 'issues',
       label: t('Tech Issues'),
       sortable: false,
-      render: (row: any) => (
+      render: (row) => (
         <Chip
           label={row.issues}
           size="small"
@@ -69,12 +90,13 @@ const ActivitiesPage: React.FC = () => {
     { key: 'distance', label: t('Distance'), sortable: false },
   ];
 
-  const handleRowClick = (_id: string | number, row: any) => {
+  const handleRowClick = (_id: string | number, row: ActivitySummaryRow) => {
     history.push({
       ...parsePath(
         `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}${PAGES.SCHOOL_ACTIVITIES}`,
       ),
       state: {
+        schoolData: school,
         schoolName: school.name,
         date: row.date,
         activities: row.activitiesList,
