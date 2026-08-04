@@ -773,7 +773,7 @@ body.ops-sidebar-open .messages-page__save-group-fields {
 }
 
 body.ops-sidebar-open .messages-page .MuiOutlinedInput-root {
-  max-width: 37rem;
+  max-width: 32rem;
 }
 
 .messages-page .MuiOutlinedInput-notchedOutline {
