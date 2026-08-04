@@ -22,7 +22,9 @@ export class SqliteApiProgramRequests extends SqliteApiProgramActivityStats {
     throw new Error('Method not implemented.');
   }
 
-  async getRequestFilterOptions(): Promise<{
+  async getRequestFilterOptions(
+    requestStatus: EnumType<'ops_request_status'>,
+  ): Promise<{
     requestType: Array<string | null>;
     school: { id: string; name: string }[];
   } | null> {
