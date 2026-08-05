@@ -106,6 +106,7 @@ export interface PortPlugin {
   saveProceesedXlsxFile(options: {
     fileData: string;
     fileName?: string;
+    mimeType?: string;
   }): Promise<void>;
   saveImageToGallery(options: {
     fileData: string;

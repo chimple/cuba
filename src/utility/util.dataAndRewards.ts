@@ -35,6 +35,7 @@ export class UtilDataAndRewards extends UtilFileStorage {
   public static async triggerSaveProceesedXlsxFile(data: {
     fileData: string;
     fileName?: string;
+    mimeType?: string;
   }) {
     try {
       if (!this.port) {
@@ -43,6 +44,7 @@ export class UtilDataAndRewards extends UtilFileStorage {
       await this.port.saveProceesedXlsxFile({
         fileData: data.fileData,
         fileName: data.fileName,
+        mimeType: data.mimeType,
       });
     } catch (error) {
       logger.error('Download failed:', error);
@@ -222,13 +224,18 @@ export class UtilDataAndRewards extends UtilFileStorage {
     });
   }
 
-  public static async handleBlobDownloadAndSave(blob: Blob, fileName?: string) {
+  public static async handleBlobDownloadAndSave(
+    blob: Blob,
+    fileName?: string,
+    mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ) {
     try {
       if (Capacitor.isNativePlatform()) {
         const base64 = await this.blobToBase64(blob);
         await this.triggerSaveProceesedXlsxFile({
           fileData: base64,
           fileName: fileName,
+          mimeType,
         });
       } else {
         const url = URL.createObjectURL(blob);

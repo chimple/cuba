@@ -20,6 +20,7 @@ import { useSchoolStudentsColumns } from './useSchoolStudentsColumns';
 import { useSchoolStudentsList } from './useSchoolStudentsList';
 import { useSchoolStudentsRows } from './useSchoolStudentsRows';
 import { useSchoolStudentsStatus } from './useSchoolStudentsStatus';
+import { useSchoolStudentsExport } from './useSchoolStudentsExport';
 import type { ApiStudentData, DisplayStudent } from './SchoolStudents.types';
 
 export interface SchoolStudentsProps {
@@ -204,6 +205,7 @@ export const useSchoolStudentsController = ({
     hideFilterUI,
     isDataPresent,
     isFilteringOrSearching,
+    processedStudents,
     pageCount,
     studentsForCurrentPage,
   } = useSchoolStudentsRows({
@@ -224,6 +226,11 @@ export const useSchoolStudentsController = ({
     studentPerformanceMap,
     tempFilters,
     totalCount,
+  });
+
+  const { handleExportStudents, isExporting } = useSchoolStudentsExport({
+    schoolName: data.schoolData?.name ?? undefined,
+    students: processedStudents,
   });
 
   const {
@@ -331,6 +338,7 @@ export const useSchoolStudentsController = ({
       handleClearFilters,
       handleDeleteAppliedFilter,
       handleFilterIconClick,
+      handleExportStudents,
       handlePageChange,
       handlePerformanceFilterChange,
       handleSearchChange,
@@ -341,6 +349,7 @@ export const useSchoolStudentsController = ({
       isExternalUser,
       isFilterSliderOpen,
       isFilteringOrSearching,
+      isExporting,
       isLoading,
       isPerformanceLoading,
       isSmallScreen,
