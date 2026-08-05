@@ -76,6 +76,8 @@
     "identity-obj-proxy": "^3.0.0",
     "ionicons": "^8.0.13",
     "jeep-sqlite": "^2.8.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "leaflet": "^1.9.4",
     "libphonenumber-js": "^1.12.18",
     "lido-player": "^0.0.2-alpha-77",

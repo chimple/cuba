@@ -16,6 +16,7 @@ import SearchAndFilter from '../SearchAndFilter';
 import SelectedFilters from '../SelectedFilters';
 import './SchoolStudents.css';
 import { SchoolStudentsDialogs } from './SchoolStudentsDialogs';
+import SchoolStudentsExportButton from './SchoolStudentsExportButton';
 import {
   SchoolStudentsProps,
   useSchoolStudentsController,
@@ -56,6 +57,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = (props) => {
     handleClearFilters,
     handleDeleteAppliedFilter,
     handleFilterIconClick,
+    handleExportStudents,
     handlePageChange,
     handlePerformanceFilterChange,
     handleSearchChange,
@@ -64,6 +66,7 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = (props) => {
     hideFilterUI,
     isDataPresent,
     isExternalUser,
+    isExporting,
     isFilterSliderOpen,
     isFilteringOrSearching,
     isLoading,
@@ -111,6 +114,12 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = (props) => {
               <AddIcon className="schoolStudents-newStudentButton-outlined-icon" />
               {!isSmallScreen && t('New Student')}
             </MuiButton>
+          )}
+          {!isExternalUser && (
+            <SchoolStudentsExportButton
+              isExporting={isExporting}
+              onClick={handleExportStudents}
+            />
           )}
           <SearchAndFilter
             searchTerm={searchTerm}
