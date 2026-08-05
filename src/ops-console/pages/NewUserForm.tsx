@@ -104,14 +104,6 @@ export const NewUserForm = ({
           value={form.email}
           onChange={handleInputChange('email')}
         />
-        {isSaveDisabled && (
-          <Box className="ops-new-user-form-inline-error">
-            <Typography className="ops-new-user-form-inline-error_text">
-              <span className="ops-new-user-form-inline-error_star">*</span>
-              {t(CONTACT_METHOD_NOTE)}
-            </Typography>
-          </Box>
-        )}
       </Grid>
       <Grid size={{ xs: 12 }} className="ops-new-user-form_group">
         <Typography className="ops-new-user-form_label">
@@ -160,5 +152,13 @@ export const NewUserForm = ({
         {t('Save')}
       </Button>
     </Box>
+    {isSaveDisabled && (
+      <Box className="ops-new-user-form-inline-error">
+        <Typography className="ops-new-user-form-inline-error_text">
+          <span className="ops-new-user-form-inline-error_star">*</span>
+          {t(CONTACT_METHOD_NOTE)}
+        </Typography>
+      </Box>
+    )}
   </form>
 );
