@@ -5,9 +5,8 @@ import {
   type StudentExportRow,
 } from './SchoolStudents.export';
 
-export const downloadStudentListPdf = (
+export const buildStudentListPdfBlob = (
   rows: StudentExportRow[],
-  fileName = 'StudentsListing.pdf',
   schoolName?: string,
 ) => {
   const document = new jsPDF({ orientation: 'landscape' });
@@ -63,5 +62,5 @@ export const downloadStudentListPdf = (
     },
   });
 
-  document.save(fileName);
+  return document.output('blob') as Blob;
 };

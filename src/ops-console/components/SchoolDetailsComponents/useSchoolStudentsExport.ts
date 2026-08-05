@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { DisplayStudent } from './SchoolStudents.types';
 import { buildStudentListExportRows } from './SchoolStudents.export';
+import { Util } from '../../../utility/util';
 
 type UseSchoolStudentsExportParams = {
   schoolName?: string;
@@ -20,8 +21,13 @@ export const useSchoolStudentsExport = ({
 
     try {
       const rows = buildStudentListExportRows(students);
-      const { downloadStudentListPdf } = await import('./SchoolStudents.pdf');
-      downloadStudentListPdf(rows, undefined, schoolName);
+      const { buildStudentListPdfBlob } = await import('./SchoolStudents.pdf');
+      const pdfBlob = buildStudentListPdfBlob(rows, schoolName);
+      await Util.handleBlobDownloadAndSave(
+        pdfBlob,
+        'StudentsListing.pdf',
+        'application/pdf',
+      );
     } finally {
       setIsExporting(false);
     }
