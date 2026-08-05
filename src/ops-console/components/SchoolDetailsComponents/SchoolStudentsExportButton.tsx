@@ -5,7 +5,7 @@ import { t } from 'i18next';
 
 type SchoolStudentsExportButtonProps = {
   isExporting: boolean;
-  onClick: () => void;
+  onClick: () => void | Promise<void>;
 };
 
 const SchoolStudentsExportButton: React.FC<SchoolStudentsExportButtonProps> = ({

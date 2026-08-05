@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import type { DisplayStudent } from './SchoolStudents.types';
 import { buildStudentListExportRows } from './SchoolStudents.export';
-import { downloadStudentListPdf } from './SchoolStudents.pdf';
 
 type UseSchoolStudentsExportParams = {
   schoolName?: string;
@@ -14,11 +13,12 @@ export const useSchoolStudentsExport = ({
 }: UseSchoolStudentsExportParams) => {
   const [isExporting, setIsExporting] = useState(false);
 
-  const handleExportStudents = useCallback(() => {
+  const handleExportStudents = useCallback(async () => {
     setIsExporting(true);
 
     try {
       const rows = buildStudentListExportRows(students);
+      const { downloadStudentListPdf } = await import('./SchoolStudents.pdf');
       downloadStudentListPdf(rows, undefined, schoolName);
     } finally {
       setIsExporting(false);

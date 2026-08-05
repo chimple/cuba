@@ -35,14 +35,24 @@ const LEVEL_ORDER: Record<LogLevel, number> = {
   silent: 4,
 };
 
+type LoggerEnvironment = {
+  VITE_LOG_LEVEL?: string;
+  PROD?: boolean;
+};
+
 const getEnvLogLevel = (): LogLevel => {
-  const envLevel = import.meta.env.VITE_LOG_LEVEL as LogLevel;
+  try {
+    const env = (import.meta as ImportMeta & { env?: LoggerEnvironment }).env;
+    const envLevel = env?.VITE_LOG_LEVEL as LogLevel | undefined;
 
-  if (envLevel && LEVEL_ORDER[envLevel] !== undefined) {
-    return envLevel;
+    if (envLevel && LEVEL_ORDER[envLevel] !== undefined) {
+      return envLevel;
+    }
+
+    return env?.PROD ? 'warn' : 'debug';
+  } catch {
+    return 'debug';
   }
-
-  return import.meta.env.PROD ? 'warn' : 'debug';
 };
 
 let currentLevel: LogLevel = getEnvLogLevel();
