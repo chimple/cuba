@@ -53,11 +53,10 @@ export const downloadStudentListPdf = (
       3: { cellWidth: 75 },
     },
     didDrawPage: (hookData) => {
-      const pageCount = document.getNumberOfPages();
       document.setFontSize(8);
       document.text(
-        `Page ${hookData.pageNumber} of ${pageCount}`,
-        document.internal.pageSize.getWidth() - 34,
+        `Page ${hookData.pageNumber}`,
+        document.internal.pageSize.getWidth() - 20,
         document.internal.pageSize.getHeight() - 8,
         { align: 'right' },
       );
