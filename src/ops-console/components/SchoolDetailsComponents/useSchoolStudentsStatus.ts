@@ -1,14 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  OPS_PERFORMANCE_BANDS,
-  WHATSAPP_GROUP_STATUS_KEYS,
-} from '../../../common/constants';
+import { WHATSAPP_GROUP_STATUS_KEYS } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { normalizePhone10 } from '../../pages/NewUserPageOps';
 import type { ClassRow, SchoolData } from './SchoolClass';
 import type {
   ApiStudentData,
-  DisplayStudent,
   WhatsappGroupStatusKey,
 } from './SchoolStudents.types';
 import {
@@ -49,6 +45,7 @@ export const useSchoolStudentsStatus = ({
     Map<string, Set<string>>
   >(new Map());
   const [isPerformanceLoading, setIsPerformanceLoading] = useState(false);
+  const [isWhatsappStatusLoading, setIsWhatsappStatusLoading] = useState(false);
 
   const studentIdsKey = useMemo(
     () => sortedStudents.map((s) => s.user.id).join(','),
@@ -103,10 +100,12 @@ export const useSchoolStudentsStatus = ({
     );
 
     if (!bot || !api?.getWhatsappGroupDetails || groupTargets.length === 0) {
+      setIsWhatsappStatusLoading(false);
       setWhatsappMembersByClass(new Map());
       return;
     }
 
+    setIsWhatsappStatusLoading(true);
     (async () => {
       try {
         const results = await Promise.all(
@@ -145,6 +144,8 @@ export const useSchoolStudentsStatus = ({
       } catch (error) {
         logger.error('Failed to fetch WhatsApp group members:', error);
         if (!cancelled) setWhatsappMembersByClass(new Map());
+      } finally {
+        if (!cancelled) setIsWhatsappStatusLoading(false);
       }
     })();
 
@@ -267,6 +268,7 @@ export const useSchoolStudentsStatus = ({
   return {
     getWhatsappGroupStatus,
     isPerformanceLoading,
+    isWhatsappStatusLoading,
     studentPerformanceMap,
   };
 };

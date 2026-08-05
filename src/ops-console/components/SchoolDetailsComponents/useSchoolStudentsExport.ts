@@ -192,15 +192,21 @@ const buildExportWorkbook = async (sheetRows: string[][]) => {
 export const useSchoolStudentsExport = ({
   isLoading,
   isPerformanceLoading,
+  isWhatsappStatusLoading,
   students,
 }: {
   isLoading: boolean;
   isPerformanceLoading: boolean;
+  isWhatsappStatusLoading: boolean;
   students: DisplayStudent[];
 }) => {
   const [isExporting, setIsExporting] = useState(false);
   const isExportDisabled =
-    isLoading || isPerformanceLoading || isExporting || students.length === 0;
+    isLoading ||
+    isPerformanceLoading ||
+    isWhatsappStatusLoading ||
+    isExporting ||
+    students.length === 0;
 
   const handleExportStudents = useCallback(async () => {
     if (isExportDisabled) return;

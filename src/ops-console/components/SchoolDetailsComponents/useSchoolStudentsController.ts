@@ -150,6 +150,7 @@ export const useSchoolStudentsController = ({
   const {
     getWhatsappGroupStatus,
     isPerformanceLoading,
+    isWhatsappStatusLoading,
     studentPerformanceMap,
   } = useSchoolStudentsStatus({
     api,
@@ -232,6 +233,7 @@ export const useSchoolStudentsController = ({
     useSchoolStudentsExport({
       isLoading,
       isPerformanceLoading,
+      isWhatsappStatusLoading,
       students: processedStudents,
     });
 
@@ -355,6 +357,7 @@ export const useSchoolStudentsController = ({
       isFilteringOrSearching,
       isLoading,
       isPerformanceLoading,
+      isWhatsappStatusLoading,
       isSmallScreen,
       issFilter,
       issTotal,
