@@ -36,7 +36,7 @@ describe('student list export', () => {
       'Performance',
       'WhatsApp',
     ]);
-    expect(rows).toEqual([['1A', 'Alice', 'High Engagement', 'ON_WHATSAPP']]);
+    expect(rows).toEqual([['1A', 'Alice', 'High Engagement', 'On WhatsApp']]);
   });
 
   it('sorts naturally by class and alphabetically by name within each class', () => {

@@ -1,3 +1,4 @@
+import { WHATSAPP_GROUP_STATUS } from '../../../common/constants/opsSchoolModels';
 import type { DisplayStudent } from './SchoolStudents.types';
 
 export const STUDENT_EXPORT_COLUMNS = [
@@ -48,9 +49,15 @@ export const buildStudentListExportRows = (
         sensitivity: 'base',
       });
     })
-    .map((student) => [
-      student.class || missingValue,
-      student.name || missingValue,
-      student.schstudents_performance || missingValue,
-      student.whatsappGroupStatus || missingValue,
-    ]);
+    .map((student) => {
+      const whatsappStatus = student.whatsappGroupStatus
+        ? WHATSAPP_GROUP_STATUS[student.whatsappGroupStatus]
+        : undefined;
+
+      return [
+        student.class || missingValue,
+        student.name || missingValue,
+        student.schstudents_performance || missingValue,
+        whatsappStatus || missingValue,
+      ];
+    });

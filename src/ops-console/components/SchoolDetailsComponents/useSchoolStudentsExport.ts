@@ -14,6 +14,8 @@ export const useSchoolStudentsExport = ({
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExportStudents = useCallback(async () => {
+    if (students.length === 0) return;
+
     setIsExporting(true);
 
     try {

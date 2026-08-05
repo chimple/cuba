@@ -117,6 +117,9 @@ const SchoolStudents: React.FC<SchoolStudentsProps> = (props) => {
           )}
           {!isExternalUser && (
             <SchoolStudentsExportButton
+              hasStudents={isDataPresent}
+              isLoading={isLoading}
+              isPerformanceLoading={isPerformanceLoading}
               isExporting={isExporting}
               onClick={handleExportStudents}
             />
