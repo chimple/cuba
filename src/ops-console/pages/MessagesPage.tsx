@@ -117,13 +117,15 @@ const MessagesPage: React.FC = () => {
       aria-labelledby="ops-messages-page-title"
     >
       <header className="messages-page__header">
-        <IconButton
-          className="messages-page__mobile-back-button"
-          onClick={handleBack}
-          aria-label={String(t('Back'))}
-        >
-          <ArrowBack />
-        </IconButton>
+        {!isFirstStep && (
+          <IconButton
+            className="messages-page__mobile-back-button"
+            onClick={handleBack}
+            aria-label={String(t('Back'))}
+          >
+            <ArrowBack />
+          </IconButton>
+        )}
         <div className="messages-page__heading-block">
           <h1 id="ops-messages-page-title">{t('New Push Notification')}</h1>
           <div
