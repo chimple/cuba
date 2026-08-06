@@ -31,6 +31,7 @@ import type {
   CampaignMessageReportParams,
   CampaignMessageReportResponse,
 } from './ServiceApi.types';
+import type { CampaignNotificationPayload } from './ServiceApi.notifications';
 
 export interface ServiceApiCampaigns {
   getCampaignSetupOptions(): Promise<CampaignSetupOptions>;
@@ -40,6 +41,21 @@ export interface ServiceApiCampaigns {
    * These values populate the compose notification label dropdown.
    */
   getCampaignNotificationLabels(): Promise<string[]>;
+
+  /**
+   * Uploads a push notification image to Supabase Storage and returns the
+   * public URL to be stored on the `campaign_notification.image_url` column.
+   */
+  uploadPushNotificationImage(file: File): Promise<string>;
+
+  /**
+   * Persists a new row in `campaign_notification` (creating the ad-hoc target
+   * audience record for it) so it can be delivered by the push worker.
+   * Returns the created `campaign_notification` id.
+   */
+  sendCampaignNotification(
+    payload: CampaignNotificationPayload,
+  ): Promise<string>;
 
   getCampaignAudienceOptions(
     programId: string,

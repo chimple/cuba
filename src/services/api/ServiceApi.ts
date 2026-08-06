@@ -16,6 +16,7 @@ import type { ServiceApiWhatsApp } from './serviceapi/ServiceApi.whatsapp';
 import type { ServiceApiStickerBooks } from './serviceapi/ServiceApi.stickerBooks';
 
 export * from './serviceapi/ServiceApi.types';
+export * from './serviceapi/ServiceApi.notifications';
 
 export interface ServiceApi
   extends

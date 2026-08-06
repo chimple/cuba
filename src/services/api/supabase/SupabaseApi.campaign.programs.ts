@@ -3,6 +3,7 @@ import { PROGRAM_TAB, TABLES, TabType } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import { Json } from '../../database';
 import { CampaignSetupOptions, ProgramListingProgramRow } from '../ServiceApi';
+import type { CampaignNotificationPayload } from '../ServiceApi';
 import {
   type CampaignProgramRow,
   type CampaignSavedAudienceGroupRow,
@@ -15,6 +16,12 @@ export interface SupabaseApiCampaignPrograms {
   [key: string]: any;
 }
 export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
+  /**
+   * Supabase Storage bucket used for push notification images.
+   * Must be created in the Supabase dashboard (or via the API) before uploads work.
+   */
+  private static readonly PUSH_NOTIFICATIONS_BUCKET = 'push-notifications';
+
   async getProgramFilterOptions(): Promise<Record<string, string[]>> {
     if (!this.supabase) {
       logger.error('Supabase client is not initialized');
@@ -259,5 +266,219 @@ export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
           .filter((label): label is string => Boolean(label)),
       ),
     );
+  }
+
+  /**
+   * Ensures the `push-notifications` storage bucket exists.
+   * Creates it (public) if it doesn't — no-op if it already exists.
+   */
+  private async ensurePushNotificationsBucket(): Promise<void> {
+    if (!this.supabase) return;
+
+    const bucket = SupabaseApiCampaignPrograms.PUSH_NOTIFICATIONS_BUCKET;
+
+    try {
+      const { data: buckets, error: listError } =
+        await this.supabase.storage.listBuckets();
+
+      if (listError) {
+        logger.error(
+          `Failed to list storage buckets while ensuring '${bucket}':`,
+          listError,
+        );
+        return;
+      }
+
+      const exists = buckets.some((b: { name: string }) => b.name === bucket);
+      if (!exists) {
+        const { error: createError } = await this.supabase.storage.createBucket(
+          bucket,
+          { public: true },
+        );
+        if (createError) {
+          logger.error(
+            `Failed to create storage bucket '${bucket}'. Check Supabase dashboard > Storage > Buckets. Error: ${createError.message}`,
+            createError,
+          );
+        } else {
+        }
+      }
+    } catch (error) {
+      logger.error(
+        `Unexpected error ensuring storage bucket '${bucket}':`,
+        error,
+      );
+    }
+  }
+
+  async uploadPushNotificationImage(file: File): Promise<string> {
+    if (!this.supabase) {
+      throw new Error('Supabase client is not initialized.');
+    }
+
+    await this.ensurePushNotificationsBucket();
+
+    const bucket = SupabaseApiCampaignPrograms.PUSH_NOTIFICATIONS_BUCKET;
+    const { data: authData } = await this.supabase.auth.getUser();
+    const extension = file.name.split('.').pop() || 'png';
+    const folder = authData.user?.id || 'anonymous';
+    const filePath = `${folder}/push-notification_${Date.now()}.${extension}`;
+
+    const { error } = await this.supabase.storage
+      .from('push-notifications')
+      .upload(filePath, file, { upsert: true });
+
+    if (error) {
+      logger.error('Error uploading push notification image:', error);
+      throw error;
+    }
+
+    const { data: urlData } = this.supabase.storage
+      .from('push-notifications')
+      .getPublicUrl(filePath);
+
+    const publicUrl = urlData?.publicUrl;
+    if (!publicUrl) {
+      throw new Error(
+        'Failed to generate public URL for push notification image.',
+      );
+    }
+    return publicUrl;
+  }
+
+  async sendCampaignNotification(
+    payload: CampaignNotificationPayload,
+  ): Promise<string> {
+    if (!this.supabase) {
+      throw new Error('Supabase client is not initialized.');
+    }
+
+    const DAY_INDEX: Record<string, number> = {
+      Sun: 7,
+      Mon: 1,
+      Tue: 2,
+      Wed: 3,
+      Thu: 4,
+      Fri: 5,
+      Sat: 6,
+    };
+
+    const {
+      data: { user },
+    } = await this.supabase.auth.getUser();
+
+    // Materialise the ad-hoc audience selection into a campaign_target_audience row.
+    const { data: audienceRow, error: audienceError } = await this.supabase
+      .from('campaign_target_audience')
+      .insert({
+        name: null,
+        program_id: payload.programId,
+        is_all_schools: payload.isAllSchools,
+        is_all_grades: payload.isAllGrades,
+        is_saved: false,
+        created_by: user?.id ?? null,
+      })
+      .select('id')
+      .single();
+
+    if (audienceError) {
+      logger.error(
+        'Error creating campaign notification audience:',
+        audienceError,
+      );
+      throw audienceError;
+    }
+
+    const targetAudienceId = String(audienceRow.id);
+
+    try {
+      if (!payload.isAllSchools && payload.schoolIds.length > 0) {
+        const { error: schoolError } = await this.supabase
+          .from('campaign_target_audience_school')
+          .insert(
+            payload.schoolIds.map((schoolId) => ({
+              target_audience_id: targetAudienceId,
+              school_id: schoolId,
+            })),
+          );
+        if (schoolError) throw schoolError;
+      }
+
+      if (!payload.isAllGrades && payload.gradeIds.length > 0) {
+        const { error: gradeError } = await this.supabase
+          .from('campaign_target_audience_grade')
+          .insert(
+            payload.gradeIds.map((gradeId) => ({
+              target_audience_id: targetAudienceId,
+              grade_id: gradeId,
+            })),
+          );
+        if (gradeError) throw gradeError;
+      }
+    } catch (error) {
+      await this.supabase
+        .from('campaign_target_audience')
+        .update({ is_deleted: true })
+        .eq('id', targetAudienceId);
+      throw error;
+    }
+
+    const recurringDays =
+      payload.deliveryMode === 'recurring' && payload.recurringDays?.length
+        ? payload.recurringDays
+            .map((day: keyof typeof DAY_INDEX) => DAY_INDEX[day])
+            .filter(
+              (index: number | undefined): index is number =>
+                index !== undefined,
+            )
+        : null;
+
+    const isSendNow = payload.deliveryMode === 'send_now';
+    const now = new Date().toISOString();
+    const currentDate = new Date();
+    const currentDateString = currentDate.toLocaleDateString('en-CA');
+    const currentTimeString = currentDate.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    const campaignNotificationInsert = {
+      label: payload.label,
+      title: payload.title,
+      message: payload.message,
+      user_type: payload.userType,
+      target_type: payload.activityRecency,
+      image_url: payload.imageUrl?.trim() || null,
+      program_id: payload.programId,
+      target_audience: targetAudienceId,
+      send_date: isSendNow ? currentDateString : (payload.startDate ?? null),
+      send_time: isSendNow ? currentTimeString : (payload.sendTime ?? null),
+      end_date:
+        payload.deliveryMode === 'recurring' && payload.endDate
+          ? payload.endDate
+          : null,
+      recurring_days: recurringDays,
+      status: 'active',
+      is_deleted: false,
+      created_by: user?.id ?? null,
+      created_at: now,
+      updated_at: now,
+    };
+
+    const { data, error } = await this.supabase
+      .from(TABLES.CampaignNotification)
+      .insert(campaignNotificationInsert)
+      .select('id')
+      .single();
+
+    if (error) {
+      logger.error('Failed to send campaign notification:', {
+        error,
+        payload: campaignNotificationInsert,
+      });
+      throw error;
+    }
+    return String(data.id);
   }
 }

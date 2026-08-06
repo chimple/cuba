@@ -298,15 +298,6 @@ body.ops-sidebar-open .messages-page__audience-summary-card {
   line-height: 1rem;
 }
 
-.messages-page__review-card {
-  max-width: 38rem;
-  padding: 0;
-}
-
-body.ops-sidebar-open .messages-page__review-card {
-  max-width: 32rem;
-}
-
 .messages-page__compose-shell {
   width: 100%;
 }
@@ -333,55 +324,6 @@ body.ops-sidebar-open .messages-page__review-card {
   color: var(--messages-muted) !important;
   font-size: 0.875rem !important;
   line-height: 1.25rem !important;
-}
-
-.messages-page__review-label {
-  color: var(--messages-muted);
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1rem;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-.messages-page__review-value {
-  color: var(--messages-text);
-  font-size: 1rem !important;
-  font-weight: 700 !important;
-  line-height: 1.4 !important;
-}
-
-.messages-page__review-copy,
-.messages-page__review-meta {
-  margin-top: 0.25rem !important;
-  color: var(--messages-muted) !important;
-  font-size: 0.875rem !important;
-  line-height: 1.4 !important;
-}
-
-.messages-page__review-grid {
-  display: grid;
-  gap: 1rem;
-  margin-top: 1.25rem;
-}
-
-.messages-page__review-block {
-  padding: 0.875rem 1rem;
-  border: 1px solid var(--messages-divider);
-  border-radius: 0.5rem;
-  background: #ffffff;
-}
-
-.messages-page__review-block--message {
-  background: #f8fafc;
-}
-
-.messages-page__review-value {
-  margin-top: 0.25rem !important;
-}
-
-.messages-page__review-copy {
-  margin-top: 0.375rem !important;
 }
 
 .messages-page__required {

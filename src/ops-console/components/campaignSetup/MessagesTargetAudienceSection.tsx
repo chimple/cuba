@@ -242,7 +242,7 @@ export const MessagesTargetAudienceSection: React.FC<
         audience={audience}
         onActivityRecencyChange={(event) =>
           audience.setActivityRecency(
-            event.target.value as 'all' | 'active_7d' | 'inactive_7d',
+            event.target.value as 'all' | 'active_7days' | 'inactive_7days',
           )
         }
         onUserTypeChange={(event) => {

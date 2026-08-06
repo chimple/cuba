@@ -68,10 +68,10 @@ const MessagesAudienceRefineSection: React.FC<Props> = ({
                 size="small"
               >
                 <MenuItem value="all">{t('All')}</MenuItem>
-                <MenuItem value="active_7d">
+                <MenuItem value="active_7days">
                   {t('Active within last 7 days')}
                 </MenuItem>
-                <MenuItem value="inactive_7d">
+                <MenuItem value="inactive_7days">
                   {t('Inactive within last 7 days')}
                 </MenuItem>
               </Select>
