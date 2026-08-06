@@ -43,22 +43,34 @@ export const ClassCourseSelector = ({
               a.grade_name.localeCompare(b.grade_name) ||
               a.name.localeCompare(b.name),
           )
-          .map((course: any) => (
-            <label key={course.id} className="class-form-multi-option">
-              <div className="class-option-text">
-                <span className="class-form-subject">{course.name}</span>
-                <span className="class-form-sub">
-                  {course.curriculum_name} â€“ {course.grade_name}
-                </span>
-              </div>
-              <input
-                type="checkbox"
-                className="class-form-checkbox"
-                checked={selectedCourse.includes(course.id)}
-                onChange={() => onSelectCourse(course.id)}
-              />
-            </label>
-          ))}
+          .map(
+            (course: {
+              id?: string | null;
+              course_id?: string | null;
+              name?: string;
+              curriculum_name?: string;
+              grade_name?: string;
+            }) => {
+              const courseId = course.id ?? course.course_id;
+              if (!courseId) return null;
+              return (
+                <label key={courseId} className="class-form-multi-option">
+                  <div className="class-option-text">
+                    <span className="class-form-subject">{course.name}</span>
+                    <span className="class-form-sub">
+                      {course.curriculum_name} - {course.grade_name}
+                    </span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    className="class-form-checkbox"
+                    checked={selectedCourse.includes(courseId)}
+                    onChange={() => onSelectCourse(courseId)}
+                  />
+                </label>
+              );
+            },
+          )}
       </div>
     )}
   </div>

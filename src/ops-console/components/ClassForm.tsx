@@ -74,6 +74,21 @@ const ClassForm: React.FC<{
     setFormValues((prev: any) => ({ ...prev, [name]: value }));
   };
 
+  const placeholder =
+    selectedCourse.length > 0
+      ? `${selectedCourse.length} Subjects Selected`
+      : t('Select Courses');
+
+  const existingCourseIds = (
+    classData?.course_links ??
+    classData?.courses ??
+    classData?.Courses ??
+    []
+  ).map(
+    (course: { id?: string | null; course_id?: string | null }) =>
+      course.course_id ?? course.id,
+  );
+
   const isFormValid =
     formValues.grade.trim() !== '' &&
     selectedCourse.length > 0 &&
@@ -82,14 +97,8 @@ const ClassForm: React.FC<{
       classData?.name === formValues.grade + formValues.section &&
       formValues.whatsapp_invite_link.trim() ===
         classData?.whatsapp_invite_link?.trim() &&
-      JSON.stringify(classData?.courses?.map((c: any) => c.id)) ===
-        JSON.stringify(selectedCourse)
+      JSON.stringify(existingCourseIds) === JSON.stringify(selectedCourse)
     );
-
-  const placeholder =
-    selectedCourse.length > 0
-      ? `${selectedCourse.length} Subjects Selected`
-      : t('Select Courses');
 
   const didInviteLinkChange =
     mode === 'edit' &&
@@ -213,7 +222,7 @@ const ClassForm: React.FC<{
 
         classId = newClass.id;
       }
-      await api.updateClassCourses(classId, selectedCourse);
+      await api.updateClassCourseSelection(classId, selectedCourse);
     } catch (e) {
       logger.error('Error:', e);
     } finally {
