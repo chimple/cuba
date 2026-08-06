@@ -38,7 +38,7 @@ const MessagesPage: React.FC = () => {
   const [draft, setDraft] = useState<PushNotificationDraft>(emptyDraft);
   const [labelOptions, setLabelOptions] = useState<string[]>([]);
   const [loadingLabels, setLoadingLabels] = useState(false);
-  const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('recurring');
+  const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('send_now');
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [startDate, setStartDate] = useState(getCurrentLocalDateString());
   const [endDate, setEndDate] = useState(getCurrentLocalDateString());
