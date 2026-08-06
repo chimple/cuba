@@ -3,7 +3,6 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { useTranslation } from 'react-i18next';
 import logger from '../../utility/logger';
 import { useMessagesAudienceSelection } from '../hooks/useMessagesAudienceSelection';
-import MessagesPageView from './MessagesPageView';
 import {
   buildAudienceSummaryItems,
   buildCampaignNotificationPayload,
@@ -14,6 +13,10 @@ import {
   isScheduledTimeInPast,
 } from './messagesPage/MessagesPage.helpers';
 import { PushNotificationDraft } from './pushNotificationCompose/PushNotificationComposeComponents';
+import MessagesPageView from './MessagesPageView';
+import './MessagesPage.css';
+import './PushNotificationComposeForm.css';
+import './PushNotificationComposePreview.css';
 
 const emptyDraft: PushNotificationDraft = {
   label: '',
