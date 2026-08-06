@@ -36,55 +36,61 @@ export const useStudentPendingRequestDetails = () => {
       classId: string,
       page: number,
       size: number,
-      fetchAllPages = false,
+      search: string,
+      schoolId?: string,
     ) => {
       const fetchId = ++studentFetchIdRef.current;
       setLoading(true);
-      const response = await api.getStudentsAndParentsByClassId(
-        classId,
-        page,
-        size,
-      );
-      if (fetchId !== studentFetchIdRef.current) return;
-
-      let studentRows = response?.data || [];
-      const total = response?.total || 0;
-
-      if (fetchAllPages && total > studentRows.length) {
-        const totalPages = Math.ceil(total / size);
-        const remainingPages = await Promise.all(
-          Array.from({ length: totalPages - 1 }, (_, index) =>
-            api.getStudentsAndParentsByClassId(classId, index + 2, size),
-          ),
-        );
+      try {
+        const trimmedSearch = search.trim();
+        const response =
+          trimmedSearch && schoolId
+            ? await api.searchStudentsInSchool(
+                schoolId,
+                trimmedSearch,
+                page,
+                size,
+                classId,
+              )
+            : await api.getStudentsAndParentsByClassId(classId, page, size);
         if (fetchId !== studentFetchIdRef.current) return;
 
-        studentRows = remainingPages.reduce(
-          (allRows, pageResponse) => [
-            ...allRows,
-            ...(pageResponse?.data || []),
-          ],
-          studentRows,
-        );
-      }
+        const studentRows = response?.data || [];
+        const total = response?.total || 0;
 
-      if (requestData?.requested_by) {
-        const studentData = await api.getStudentAndParentByStudentId(
-          requestData.requested_by,
-        );
+        if (requestData?.requested_by) {
+          const studentData = await api.getStudentAndParentByStudentId(
+            requestData.requested_by,
+          );
+          if (fetchId !== studentFetchIdRef.current) return;
+
+          setStudentDetails(studentData);
+        } else {
+          logger.warn(
+            'requestData.requested_by was undefined when fetching student details.',
+          );
+        }
+        setStudents(studentRows);
+        setTotalStudents(total);
+      } catch (error) {
+        logger.error('Error fetching students:', error);
         if (fetchId !== studentFetchIdRef.current) return;
-
-        setStudentDetails(studentData);
-      } else {
-        logger.warn(
-          'requestData.requested_by was undefined when fetching student details.',
-        );
+        setStudents([]);
+        setTotalStudents(0);
+      } finally {
+        if (fetchId === studentFetchIdRef.current) {
+          setLoading(false);
+        }
       }
-      setStudents(studentRows);
-      setTotalStudents(total);
-      setLoading(false);
     },
     [api, requestData],
+  );
+
+  const getRequestSchoolId = useCallback(
+    () =>
+      String(requestData?.school?.id ?? requestData?.school_id ?? '').trim() ||
+      undefined,
+    [requestData],
   );
 
   useEffect(() => {
@@ -142,14 +148,22 @@ export const useStudentPendingRequestDetails = () => {
   }, [id, api, location.state]);
 
   useEffect(() => {
-    if (!requestData?.class_id || normalizedSearchTerm) return;
-    fetchStudents(requestData.class_id, currentPage, pageSize);
-  }, [requestData, currentPage, pageSize, fetchStudents, normalizedSearchTerm]);
-
-  useEffect(() => {
-    if (!requestData?.class_id || !normalizedSearchTerm) return;
-    fetchStudents(requestData.class_id, 1, 200, true);
-  }, [requestData, fetchStudents, normalizedSearchTerm]);
+    if (!requestData?.class_id) return;
+    fetchStudents(
+      requestData.class_id,
+      currentPage,
+      pageSize,
+      normalizedSearchTerm,
+      getRequestSchoolId(),
+    );
+  }, [
+    requestData,
+    currentPage,
+    pageSize,
+    fetchStudents,
+    normalizedSearchTerm,
+    getRequestSchoolId,
+  ]);
 
   const handleRadioChange = (studentId: string, checked: boolean) => {
     if (checked) {
@@ -229,8 +243,11 @@ export const useStudentPendingRequestDetails = () => {
   );
   const filteredTotalStudents =
     totalStudents - (students.length - filteredStudents.length);
+  const isServerSearchActive = Boolean(
+    normalizedSearchTerm && getRequestSchoolId(),
+  );
   const searchedStudents = filteredStudents.filter((stu) => {
-    if (!normalizedSearchTerm) return true;
+    if (!normalizedSearchTerm || isServerSearchActive) return true;
     const studentName = (stu.user?.name ?? '').toString().toLowerCase();
     const studentId = (stu.user?.student_id ?? '').toString().toLowerCase();
     const phoneNumber = (stu.parent?.phone ?? '').toString().toLowerCase();
@@ -240,15 +257,12 @@ export const useStudentPendingRequestDetails = () => {
       phoneNumber.includes(normalizedSearchTerm)
     );
   });
-  const displayedStudents = normalizedSearchTerm
-    ? searchedStudents.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize,
-      )
-    : searchedStudents;
-  const displayedTotalStudents = normalizedSearchTerm
-    ? searchedStudents.length
-    : filteredTotalStudents;
+  const displayedStudents = searchedStudents;
+  const displayedTotalStudents = !normalizedSearchTerm
+    ? filteredTotalStudents
+    : isServerSearchActive
+      ? filteredTotalStudents
+      : searchedStudents.length;
 
   return {
     currentPage,
