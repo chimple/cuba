@@ -329,7 +329,7 @@ const SchoolClasses: React.FC<Props> = ({
       {showForm && (
         <ClassForm
           mode={mode}
-          classData={editingClass}
+          classData={editingClass ?? undefined}
           schoolId={schoolId}
           whatspAppBotNumber={data.schoolData?.whatsapp_bot_number || ''}
           onSaved={refreshClasses}
