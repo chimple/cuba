@@ -876,11 +876,6 @@ body.ops-sidebar-open .messages-page .MuiOutlinedInput-root {
     flex-shrink: 0;
   }
 
-  .sidebar-hamburger-outside,
-  .sidebar-hamburger-inside {
-    display: none !important;
-  }
-
   .messages-page__mobile-back-button {
     display: inline-flex !important;
     position: absolute;
