@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './ClassForm.css';
+import type { TableTypes } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { t } from 'i18next';
 import logger from '../../utility/logger';
@@ -18,16 +19,27 @@ import {
   ClassFormTitle,
 } from './ClassFormFields';
 import { useClassFormCourses } from './useClassFormCourses';
+import type { ClassRow } from './SchoolDetailsComponents/SchoolClass.types';
+
+type ClassFormValues = {
+  grade: string;
+  section: string;
+  whatsapp_invite_link: string;
+};
+
+type ClassFormClassData = ClassRow & {
+  Courses?: TableTypes<'class_course'>[];
+};
 
 const ClassForm: React.FC<{
   onClose: () => void;
   mode: 'create' | 'edit';
-  classData?: any;
+  classData?: ClassFormClassData;
   schoolId?: string;
   whatspAppBotNumber?: string;
   onSaved?: () => void;
 }> = ({ onClose, mode, classData, schoolId, whatspAppBotNumber, onSaved }) => {
-  const [formValues, setFormValues] = useState<any>({
+  const [formValues, setFormValues] = useState<ClassFormValues>({
     grade: '',
     section: '',
     whatsapp_invite_link: '',
@@ -71,7 +83,7 @@ const ClassForm: React.FC<{
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
-    setFormValues((prev: any) => ({ ...prev, [name]: value }));
+    setFormValues((prev) => ({ ...prev, [name]: value }));
   };
 
   const isFormValid =
@@ -82,7 +94,7 @@ const ClassForm: React.FC<{
       classData?.name === formValues.grade + formValues.section &&
       formValues.whatsapp_invite_link.trim() ===
         classData?.whatsapp_invite_link?.trim() &&
-      JSON.stringify(classData?.courses?.map((c: any) => c.id)) ===
+      JSON.stringify(classData?.courses?.map((c) => c.id)) ===
         JSON.stringify(selectedCourse)
     );
 
@@ -94,7 +106,7 @@ const ClassForm: React.FC<{
   const didInviteLinkChange =
     mode === 'edit' &&
     normalizeWhatsAppInviteLink(formValues.whatsapp_invite_link) !==
-      (classData?.invite_link ?? '');
+      (classData?.whatsapp_invite_link ?? '');
 
   const handleSubmit = async () => {
     if (!isFormValid) return;
@@ -104,6 +116,7 @@ const ClassForm: React.FC<{
     try {
       let classId = classData?.id;
       const name = formValues.grade + formValues.section;
+      const originalClassName = classData?.name ?? '';
       const standard = getStandardFromClassName(name);
       const gradeName = getGradeNameFromStandard(standard);
       let gradeId: string | undefined;
@@ -125,9 +138,9 @@ const ClassForm: React.FC<{
           });
         }
       }
-      if (mode === 'create' || classData.name !== name) {
+      if (mode === 'create' || originalClassName !== name) {
         const classes = await api.getClassesBySchoolId(schoolId);
-        if (classes.find((c: any) => c.name === name)) {
+        if (classes.find((c) => c.name === name)) {
           setErrorMessage('Class name already exists.');
           setSaving(false);
           return;
@@ -168,7 +181,7 @@ const ClassForm: React.FC<{
 
         // 🔄 Update class with BOTH values
         await api.updateClass(
-          classId,
+          classId!,
           name,
           groupIdToStore, // 👈 group_id (new or reused)
           normalizedInviteLink, // 👈 invite_link (always canonical)
@@ -213,7 +226,7 @@ const ClassForm: React.FC<{
 
         classId = newClass.id;
       }
-      await api.updateClassCourses(classId, selectedCourse);
+      await api.updateClassCourses(classId!, selectedCourse);
     } catch (e) {
       logger.error('Error:', e);
     } finally {

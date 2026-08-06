@@ -1,9 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
+import type { TableTypes } from '../../common/constants';
+import type { ServiceApi } from '../../services/api/ServiceApi';
 import logger from '../../utility/logger';
 
+type EditClassData = {
+  id?: string;
+  courses?: TableTypes<'course'>[];
+  Courses?: TableTypes<'class_course'>[];
+};
+
+type CourseOption = TableTypes<'course'> & {
+  curriculum_name: string;
+  grade_name: string;
+};
+
 type UseClassFormCoursesProps = {
-  api: any;
-  classData?: any;
+  api: ServiceApi;
+  classData?: EditClassData;
   mode: 'create' | 'edit';
   schoolId?: string;
   setErrorMessage: (message: string) => void;
@@ -16,17 +29,62 @@ export const useClassFormCourses = ({
   schoolId,
   setErrorMessage,
 }: UseClassFormCoursesProps) => {
-  const [allCourses, setAllCourses] = useState<any[]>([]);
+  const [allCourses, setAllCourses] = useState<CourseOption[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (mode === 'edit' && classData) {
-      setSelectedCourse(classData.courses.map((course: any) => course.id));
-    }
-  }, [mode, classData]);
+    let cancelled = false;
+
+    const loadSelectedCourses = async () => {
+      if (mode !== 'edit' || !classData) {
+        setSelectedCourse([]);
+        return;
+      }
+
+      const fromCourses = Array.isArray(classData?.courses)
+        ? classData.courses
+            .map((course) => course.id)
+            .filter((id: unknown): id is string => typeof id === 'string')
+        : [];
+
+      const fromCoursesRelation = Array.isArray(classData?.Courses)
+        ? classData.Courses.map((course) => course.course_id).filter(
+            (id: unknown): id is string => typeof id === 'string',
+          )
+        : [];
+
+      let courseIds = [...fromCourses, ...fromCoursesRelation];
+
+      if (
+        courseIds.length === 0 &&
+        classData?.id &&
+        typeof api.getCoursesByClassId === 'function'
+      ) {
+        try {
+          const courseLinks =
+            (await api.getCoursesByClassId(classData.id)) ?? [];
+          courseIds = courseLinks
+            .map((link) => link.course_id)
+            .filter((id: unknown): id is string => typeof id === 'string');
+        } catch (error) {
+          logger.error('Error fetching class courses for edit mode:', error);
+        }
+      }
+
+      if (!cancelled) {
+        setSelectedCourse(courseIds);
+      }
+    };
+
+    void loadSelectedCourses();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, classData, api]);
 
   useEffect(() => {
     const fetchDropdownData = async () => {
@@ -39,39 +97,43 @@ export const useClassFormCourses = ({
           setLoading(false);
           return;
         }
-        const courseIds = schoolCourse.map((item: any) => item.course_id);
+        const courseIds = schoolCourse.map((item) => item.course_id);
         const courseDetails = await api.getCourses(courseIds);
         const curriculumIds = [
-          ...new Set(courseDetails.map((course: any) => course.curriculum_id)),
+          ...new Set(
+            courseDetails
+              .map((course) => course.curriculum_id)
+              .filter((id): id is string => typeof id === 'string'),
+          ),
         ];
         const gradeIds = [
-          ...new Set(courseDetails.map((course: any) => course.grade_id)),
+          ...new Set(
+            courseDetails
+              .map((course) => course.grade_id)
+              .filter((id): id is string => typeof id === 'string'),
+          ),
         ];
         const [curriculums, grades] = await Promise.all([
           api.getCurriculumsByIds(curriculumIds),
           api.getGradesByIds(gradeIds),
         ]);
         const curriculumMap = new Map(
-          curriculums.map((curriculum: any) => [
+          curriculums.map((curriculum) => [
             curriculum.id,
-            curriculum.name,
+            curriculum.name ?? '',
           ]),
         );
         const gradeMap = new Map(
-          grades.map((grade: any) => [grade.id, grade.name]),
+          grades.map((grade) => [grade.id, grade.name ?? '']),
         );
         setAllCourses(
-          courseDetails.map((course: any) => ({
+          courseDetails.map((course) => ({
             ...course,
-            curriculum_name: curriculumMap.get(course.curriculum_id) || '',
-            grade_name: gradeMap.get(course.grade_id) || '',
+            curriculum_name:
+              curriculumMap.get(course.curriculum_id ?? '') || '',
+            grade_name: gradeMap.get(course.grade_id ?? '') || '',
           })),
         );
-        if (mode === 'edit' && classData?.Courses) {
-          setSelectedCourse(
-            classData.Courses.map((course: any) => course.course_id),
-          );
-        }
         setErrorMessage('');
       } catch (error) {
         logger.error('Error fetching courses:', error);
@@ -81,11 +143,16 @@ export const useClassFormCourses = ({
     };
 
     fetchDropdownData();
-  }, [schoolId, mode]);
+  }, [schoolId, mode, api, setErrorMessage]);
 
   useEffect(() => {
-    const handleClickOutside = (event: any) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target;
+      if (
+        dropdownRef.current &&
+        target instanceof Node &&
+        !dropdownRef.current.contains(target)
+      ) {
         setDropdownOpen(false);
       }
     };
