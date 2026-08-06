@@ -1,5 +1,23 @@
+// - Copy/extract lesson ZIPs from local D:\chimple-zips first, then fall back to prod remote bundle URLs
+// - Add full-path mascot .riv input and copy it into bundled app assets
+// - Continue APK builds while reporting missing bundles unless --fail-on-missing is passed
+
+// Run locally:
+
+// npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output
+
+// npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output --zip-source=D:\chimple-zips
+
+// Optional flags:
+
+// --skip-build       Prepare bundles only, do not build APK
+// --dry-run          Resolve lessons and write manifest only
+// --zip-source=PATH  Override local ZIP folder, defaults to D:\chimple-zips
+// --fail-on-missing  Stop if any bundle cannot be found
+
 import JSZip from 'jszip';
 import { spawnSync } from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
@@ -20,6 +38,7 @@ type CourseRow = {
   id: string;
   code: string | null;
   name: string | null;
+  subject_id?: string | null;
 };
 
 type ChapterRow = {
@@ -77,6 +96,17 @@ type BundleManifestEntry = {
   error?: string;
 };
 
+type ImageManifestEntry = {
+  table: string;
+  rowId: string;
+  column: string;
+  originalUrl: string;
+  localPath?: string;
+  filePath?: string;
+  status: 'already-present' | 'downloaded' | 'missing' | 'dry-run';
+  error?: string;
+};
+
 type Manifest = {
   generatedAt: string;
   language: string;
@@ -89,6 +119,9 @@ type Manifest = {
   chapterLessonCount: number;
   lessonCount: number;
   bundleCount: number;
+  imageAssetCount: number;
+  imageAssets: ImageManifestEntry[];
+  importJsonRewrittenForBuild: boolean;
   bundles: BundleManifestEntry[];
 };
 
@@ -101,6 +134,12 @@ const lessonBundlesDir = path.join(
 );
 const tmpRoot = path.join(lessonBundlesDir, '.tmp-open-apk');
 const manifestPath = path.join(repoRoot, 'scripts', 'open-apk-manifest.json');
+const imageAssetsDir = path.join(
+  repoRoot,
+  'public',
+  'assets',
+  'open-apk-images',
+);
 const importJsonPath = path.join(
   repoRoot,
   'public',
@@ -116,14 +155,15 @@ const pathwayMascotPath = path.join(
 );
 
 const remoteBundleBaseUrls = [
-  'https://chimple-bundles.web.app/',
   'https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/',
+  'https://chimple-bundles.web.app/',
   'https://cuba-stage-zip-bundle.web.app/',
   'https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/',
   'https://raw.githubusercontent.com/chimple/chimple-zips/main/',
 ];
 
 const unique = <T>(items: T[]): T[] => Array.from(new Set(items));
+const imageColumnNames = new Set(['image', 'image_url', 'thumbnail', 'icon']);
 
 const parseArgs = (argv: string[]): CliOptions => {
   const raw: Record<string, string | boolean> = {};
@@ -217,6 +257,53 @@ const fileExists = async (filePath: string): Promise<boolean> => {
   }
 };
 
+const isRemoteUrl = (value: unknown): value is string =>
+  typeof value === 'string' && /^https?:\/\//i.test(value.trim());
+
+const getPublicImagePath = (url: string): string => {
+  const parsedUrl = new URL(url);
+  const extension = path.extname(parsedUrl.pathname).toLowerCase();
+  const safeExtension =
+    extension && extension.length <= 8
+      ? extension.replace(/[^a-z0-9.]/g, '')
+      : '';
+  const hash = crypto
+    .createHash('sha256')
+    .update(url)
+    .digest('hex')
+    .slice(0, 24);
+  return `/assets/open-apk-images/${hash}${safeExtension || '.bin'}`;
+};
+
+const downloadImageAsset = async (
+  url: string,
+): Promise<{
+  localPath: string;
+  filePath: string;
+  status: 'already-present' | 'downloaded';
+}> => {
+  const localPath = getPublicImagePath(url);
+  const filePath = path.join(repoRoot, 'public', localPath.replace(/^\//, ''));
+
+  if (await fileExists(filePath)) {
+    return { localPath, filePath, status: 'already-present' };
+  }
+
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) continue;
+      await fs.writeFile(filePath, Buffer.from(await response.arrayBuffer()));
+      return { localPath, filePath, status: 'downloaded' };
+    } catch {
+      // Try again; transient image CDN failures should not block the whole graph.
+    }
+  }
+
+  throw new Error(`Unable to download image: ${url}`);
+};
+
 const prepareAvatar = async (
   avatar: string,
 ): Promise<{ avatarPath: string; pathwayMascotPath: string }> => {
@@ -255,11 +342,6 @@ const isActiveRow = (row: { is_deleted?: unknown }): boolean =>
   row.is_deleted === 0 ||
   row.is_deleted === '0' ||
   row.is_deleted == null;
-
-const readImportJson = async (): Promise<ImportJson> => {
-  const content = await fs.readFile(importJsonPath, 'utf8');
-  return JSON.parse(content) as ImportJson;
-};
 
 const readRows = <T extends Record<string, unknown>>(
   importJson: ImportJson,
@@ -360,6 +442,99 @@ const resolveLessons = (
   ).filter((lesson) => lessonIds.includes(lesson.id) && isActiveRow(lesson));
 
   return { courses, chapters, chapterLessons, lessons };
+};
+
+const getSubjectRowsForCourses = (
+  importJson: ImportJson,
+  courses: CourseRow[],
+) => {
+  const subjectIds = new Set(
+    courses
+      .map((course) => course.subject_id)
+      .filter((subjectId): subjectId is string => !!subjectId),
+  );
+
+  if (subjectIds.size === 0) return [];
+
+  return readRows<{ id: string; is_deleted?: unknown }>(
+    importJson,
+    'subject',
+  ).filter((subject) => subjectIds.has(subject.id) && isActiveRow(subject));
+};
+
+const rewriteSelectedImageUrls = async (
+  importJson: ImportJson,
+  selectedRowsByTable: Map<string, Set<string>>,
+  dryRun: boolean,
+): Promise<ImageManifestEntry[]> => {
+  const imageAssets: ImageManifestEntry[] = [];
+  const downloadCache = new Map<
+    string,
+    Pick<ImageManifestEntry, 'localPath' | 'filePath' | 'status' | 'error'>
+  >();
+
+  for (const table of importJson.tables) {
+    const selectedIds = selectedRowsByTable.get(table.name);
+    if (!selectedIds || selectedIds.size === 0) continue;
+
+    const idIndex = table.schema.findIndex((column) => column.column === 'id');
+    if (idIndex < 0) continue;
+
+    const imageColumnIndexes = table.schema
+      .map((column, index) => ({ column: column.column, index }))
+      .filter(({ column }) => imageColumnNames.has(column));
+
+    if (imageColumnIndexes.length === 0) continue;
+
+    for (const row of table.values ?? []) {
+      const rowId = String(row[idIndex] ?? '');
+      if (!selectedIds.has(rowId)) continue;
+
+      for (const { column, index } of imageColumnIndexes) {
+        const originalUrl = row[index];
+        if (!isRemoteUrl(originalUrl)) continue;
+
+        if (dryRun) {
+          imageAssets.push({
+            table: table.name,
+            rowId,
+            column,
+            originalUrl,
+            localPath: getPublicImagePath(originalUrl),
+            status: 'dry-run',
+          });
+          continue;
+        }
+
+        let cached = downloadCache.get(originalUrl);
+        if (!cached) {
+          try {
+            cached = await downloadImageAsset(originalUrl);
+          } catch (error: any) {
+            cached = {
+              status: 'missing',
+              error: error?.message ?? String(error),
+            };
+          }
+          downloadCache.set(originalUrl, cached);
+        }
+
+        imageAssets.push({
+          table: table.name,
+          rowId,
+          column,
+          originalUrl,
+          ...cached,
+        });
+
+        if (cached.localPath) {
+          row[index] = cached.localPath;
+        }
+      }
+    }
+  }
+
+  return imageAssets;
 };
 
 const getBundleId = (lesson: LessonRow): string | null =>
@@ -594,7 +769,9 @@ const main = async (): Promise<void> => {
   const options = parseArgs(process.argv.slice(2));
 
   await fs.mkdir(lessonBundlesDir, { recursive: true });
-  const importJson = await readImportJson();
+  await fs.mkdir(imageAssetsDir, { recursive: true });
+  const originalImportJsonContent = await fs.readFile(importJsonPath, 'utf8');
+  const importJson = JSON.parse(originalImportJsonContent) as ImportJson;
   const avatar = await prepareAvatar(options.avatar);
 
   const language = resolveLanguage(importJson, options.language);
@@ -606,6 +783,24 @@ const main = async (): Promise<void> => {
     courseIds,
     language?.id ?? null,
   );
+  const subjects = getSubjectRowsForCourses(importJson, courses);
+
+  const selectedRowsByTable = new Map<string, Set<string>>([
+    ['subject', new Set(subjects.map((subject) => subject.id))],
+    ['course', new Set(courses.map((course) => course.id))],
+    ['chapter', new Set(chapters.map((chapter) => chapter.id))],
+    ['lesson', new Set(lessons.map((lesson) => lesson.id))],
+  ]);
+
+  const imageAssets = await rewriteSelectedImageUrls(
+    importJson,
+    selectedRowsByTable,
+    options.dryRun,
+  );
+  const importJsonNeedsRewrite =
+    !options.dryRun &&
+    !options.skipBuild &&
+    imageAssets.some((asset) => asset.localPath);
 
   const lessonsByBundle = new Map<string, string[]>();
   const bundleVersions = new Map<string, number>();
@@ -653,6 +848,9 @@ const main = async (): Promise<void> => {
     chapterLessonCount: chapterLessons.length,
     lessonCount: lessons.length,
     bundleCount: lessonsByBundle.size,
+    imageAssetCount: imageAssets.length,
+    imageAssets,
+    importJsonRewrittenForBuild: importJsonNeedsRewrite,
     bundles,
   };
 
@@ -681,8 +879,22 @@ const main = async (): Promise<void> => {
     );
   }
 
+  const missingImages = imageAssets.filter(
+    (asset) => asset.status === 'missing',
+  );
+  if (missingImages.length > 0) {
+    console.warn(
+      `Missing image assets: ${missingImages
+        .map((asset) => `${asset.table}.${asset.column}:${asset.rowId}`)
+        .join(', ')}`,
+    );
+  }
+
   console.log(
     `Prepared ${bundles.length} bundles: ${bundles.filter((bundle) => bundle.status === 'extracted').length} extracted, ${bundles.filter((bundle) => bundle.status === 'already-extracted').length} already present.`,
+  );
+  console.log(
+    `Prepared ${imageAssets.length} image assets: ${imageAssets.filter((asset) => asset.status === 'downloaded').length} downloaded, ${imageAssets.filter((asset) => asset.status === 'already-present').length} already present.`,
   );
 
   if (options.skipBuild || options.dryRun) {
@@ -690,7 +902,24 @@ const main = async (): Promise<void> => {
     return;
   }
 
-  await buildAndCopyApk(path.resolve(options.output));
+  try {
+    if (importJsonNeedsRewrite) {
+      await fs.writeFile(
+        importJsonPath,
+        `${JSON.stringify(importJson, null, 2)}\n`,
+      );
+      console.log(
+        'Temporarily rewrote public/databases/import.json with bundled image paths for this APK build.',
+      );
+    }
+
+    await buildAndCopyApk(path.resolve(options.output));
+  } finally {
+    if (importJsonNeedsRewrite) {
+      await fs.writeFile(importJsonPath, originalImportJsonContent);
+      console.log('Restored original public/databases/import.json.');
+    }
+  }
 };
 
 main().catch((error) => {
