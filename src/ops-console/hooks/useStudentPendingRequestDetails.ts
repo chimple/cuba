@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import {
@@ -29,6 +29,7 @@ export const useStudentPendingRequestDetails = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showRejectPopup, setShowRejectPopup] = useState(false);
   const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const studentFetchIdRef = useRef(0);
 
   const fetchStudents = useCallback(
     async (
@@ -37,12 +38,15 @@ export const useStudentPendingRequestDetails = () => {
       size: number,
       fetchAllPages = false,
     ) => {
+      const fetchId = ++studentFetchIdRef.current;
       setLoading(true);
       const response = await api.getStudentsAndParentsByClassId(
         classId,
         page,
         size,
       );
+      if (fetchId !== studentFetchIdRef.current) return;
+
       let studentRows = response?.data || [];
       const total = response?.total || 0;
 
@@ -53,6 +57,8 @@ export const useStudentPendingRequestDetails = () => {
             api.getStudentsAndParentsByClassId(classId, index + 2, size),
           ),
         );
+        if (fetchId !== studentFetchIdRef.current) return;
+
         studentRows = remainingPages.reduce(
           (allRows, pageResponse) => [
             ...allRows,
@@ -66,6 +72,8 @@ export const useStudentPendingRequestDetails = () => {
         const studentData = await api.getStudentAndParentByStudentId(
           requestData.requested_by,
         );
+        if (fetchId !== studentFetchIdRef.current) return;
+
         setStudentDetails(studentData);
       } else {
         logger.warn(
@@ -134,15 +142,14 @@ export const useStudentPendingRequestDetails = () => {
   }, [id, api, location.state]);
 
   useEffect(() => {
-    if (requestData?.class_id) {
-      fetchStudents(
-        requestData.class_id,
-        normalizedSearchTerm ? 1 : currentPage,
-        normalizedSearchTerm ? 200 : pageSize,
-        Boolean(normalizedSearchTerm),
-      );
-    }
+    if (!requestData?.class_id || normalizedSearchTerm) return;
+    fetchStudents(requestData.class_id, currentPage, pageSize);
   }, [requestData, currentPage, pageSize, fetchStudents, normalizedSearchTerm]);
+
+  useEffect(() => {
+    if (!requestData?.class_id || !normalizedSearchTerm) return;
+    fetchStudents(requestData.class_id, 1, 200, true);
+  }, [requestData, fetchStudents, normalizedSearchTerm]);
 
   const handleRadioChange = (studentId: string, checked: boolean) => {
     if (checked) {
