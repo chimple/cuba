@@ -1,10 +1,12 @@
 import type {
   CampaignAudienceOptions,
   CampaignAudienceSummary,
+  CampaignNotificationActivityRecency,
+  CampaignNotificationUserType,
 } from '../../services/api/ServiceApi';
 
-export type UserType = 'student' | 'teacher' | 'principal';
-export type ActivityRecency = 'all' | 'active_7d' | 'inactive_7d';
+export type UserType = CampaignNotificationUserType;
+export type ActivityRecency = CampaignNotificationActivityRecency;
 
 export const emptyAudienceOptions: CampaignAudienceOptions = {
   blocks: [],

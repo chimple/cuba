@@ -773,7 +773,9 @@ export type Database = {
           send_date: string | null;
           send_time: string | null;
           status: string;
+          target_type: Database['public']['Enums']['notification_target_type'];
           target_audience: string;
+          user_type: Database['public']['Enums']['role'] | null;
           title: string;
           updated_at: string;
         };
@@ -791,7 +793,11 @@ export type Database = {
           send_date?: string | null;
           send_time?: string | null;
           status?: string;
+          target_type?:
+            | Database['public']['Enums']['notification_target_type']
+            | null;
           target_audience: string;
+          user_type?: Database['public']['Enums']['role'] | null;
           title: string;
           updated_at?: string;
         };
@@ -809,7 +815,11 @@ export type Database = {
           send_date?: string | null;
           send_time?: string | null;
           status?: string;
+          target_type?:
+            | Database['public']['Enums']['notification_target_type']
+            | null;
           target_audience?: string;
+          user_type?: Database['public']['Enums']['role'] | null;
           title?: string;
           updated_at?: string;
         };
@@ -8262,6 +8272,7 @@ export type Database = {
         | 'completed'
         | 'assessment_terminated';
       rive_type: 'idle' | 'normal' | 'celebrating';
+      notification_target_type: 'all' | 'inactive_7days' | 'active_7days';
       role:
         | 'coordinator'
         | 'principal'
@@ -8512,6 +8523,7 @@ export const Constants = {
         'yellow_band',
       ],
       target_type: ['number_of_lessons', 'percentage_completion'],
+      notification_target_type: ['all', 'inactive_7days', 'active_7days'],
       wa_validate: ['yes', 'no'],
     },
   },

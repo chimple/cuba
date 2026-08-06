@@ -70,8 +70,8 @@ export const useMessagesRecipientCount = ({
           const nextCount = studentIds.filter((studentId) => {
             const timeSpent = activityByStudentId.get(studentId) ?? 0;
             const isActive = timeSpent > 0;
-            if (activityRecency === 'active_7d') return isActive;
-            if (activityRecency === 'inactive_7d') return !isActive;
+            if (activityRecency === 'active_7days') return isActive;
+            if (activityRecency === 'inactive_7days') return !isActive;
             return true;
           }).length;
           setRoleBasedRecipientCount(nextCount);
@@ -95,11 +95,11 @@ export const useMessagesRecipientCount = ({
               summaryGradeIds,
             );
           if (requestIdRef.current !== requestId) return;
-          if (activityRecency === 'active_7d') {
+          if (activityRecency === 'active_7days') {
             setRoleBasedRecipientCount(activeTeacherCount ?? teacherCount);
             return;
           }
-          if (activityRecency === 'inactive_7d') {
+          if (activityRecency === 'inactive_7days') {
             const inactiveCount =
               teacherCount - (activeTeacherCount ?? teacherCount);
             setRoleBasedRecipientCount(Math.max(inactiveCount, 0));

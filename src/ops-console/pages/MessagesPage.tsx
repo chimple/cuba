@@ -1,21 +1,19 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, IconButton, Typography } from '@mui/material';
-import { ArrowBack, Notifications } from '@mui/icons-material';
-import { useTranslation } from 'react-i18next';
 import { ServiceConfig } from '../../services/ServiceConfig';
-import MessagesTargetAudienceSection from '../components/campaignSetup/MessagesTargetAudienceSection';
+import { useTranslation } from 'react-i18next';
+import logger from '../../utility/logger';
 import { useMessagesAudienceSelection } from '../hooks/useMessagesAudienceSelection';
-import MessagesStepper, { MESSAGES_TABS } from './messagesPage/MessagesStepper';
+import MessagesPageView from './MessagesPageView';
 import {
-  PushNotificationLivePreview,
-  type PushNotificationDraft,
-} from './pushNotificationCompose/PushNotificationComposeComponents';
-import { PushNotificationFields } from './pushNotificationCompose/PushNotificationComposeForm';
-import './MessagesPage.css';
-import './PushNotificationComposeForm.css';
-import './PushNotificationComposePreview.css';
-
-const MESSAGES_BREADCRUMB = ['Messages', 'New Push Notification'] as const;
+  buildAudienceSummaryItems,
+  buildCampaignNotificationPayload,
+  buildNotificationSummaryItems,
+  DeliveryMode,
+  getCurrentLocalDateString,
+  getCurrentLocalTimePlusOneMinuteString,
+  isScheduledTimeInPast,
+} from './messagesPage/MessagesPage.helpers';
+import { PushNotificationDraft } from './pushNotificationCompose/PushNotificationComposeComponents';
 
 const emptyDraft: PushNotificationDraft = {
   label: '',
@@ -25,41 +23,80 @@ const emptyDraft: PushNotificationDraft = {
   imageUrl: '',
 };
 
+const RECURRENT_DAYS_ERROR = 'Please choose one or more delivery days.';
+
 const MessagesPage: React.FC = () => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [activeTab, setActiveTab] = useState<(typeof MESSAGES_TABS)[number]>(
-    MESSAGES_TABS[0],
-  );
+  const [activeTab, setActiveTab] = useState<
+    'Select Audience' | 'Compose Notification' | 'Review & Send'
+  >('Select Audience');
   const [isAudienceValid, setIsAudienceValid] = useState(false);
   const [draft, setDraft] = useState<PushNotificationDraft>(emptyDraft);
   const [labelOptions, setLabelOptions] = useState<string[]>([]);
   const [loadingLabels, setLoadingLabels] = useState(false);
+  const [deliveryMode, setDeliveryMode] = useState<DeliveryMode>('recurring');
+  const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [startDate, setStartDate] = useState(getCurrentLocalDateString());
+  const [endDate, setEndDate] = useState(getCurrentLocalDateString());
+  const [sendTime, setSendTime] = useState(
+    getCurrentLocalTimePlusOneMinuteString(),
+  );
+  const [neverEnds, setNeverEnds] = useState(true);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [sendSuccess, setSendSuccess] = useState(false);
   const audience = useMessagesAudienceSelection();
-  const activeStepIndex = MESSAGES_TABS.indexOf(activeTab);
+  const activeStepIndex = [
+    'Select Audience',
+    'Compose Notification',
+    'Review & Send',
+  ].indexOf(activeTab);
   const isFirstStep = activeStepIndex === 0;
-  const isLastStep = activeStepIndex === MESSAGES_TABS.length - 1;
+  const isLastStep = activeStepIndex === 2;
   const isComposeValid = Boolean(
     draft.label && draft.title.trim() && draft.body.trim(),
   );
   const previewTitle = draft.title.trim() || t('Notification Title');
   const previewBody =
     draft.body.trim() || t('Notification body text will appear here.');
-  const audienceSummaryText = useMemo(() => {
-    const schoolCount = audience.summarySchoolCount;
-    const blockCount = audience.summaryBlockCount;
-    const recipientCount = audience.displayRecipientCount;
-    return `${blockCount} blocks, ${schoolCount} schools, ${recipientCount} recipients`;
-  }, [
-    audience.displayRecipientCount,
-    audience.summaryBlockCount,
-    audience.summarySchoolCount,
-  ]);
+  const recurringEndDateError = useMemo(() => {
+    if (
+      deliveryMode === 'recurring' &&
+      !neverEnds &&
+      startDate &&
+      endDate &&
+      new Date(endDate).getTime() < new Date(startDate).getTime()
+    ) {
+      return 'End date must be on or after the start date.';
+    }
+    return null;
+  }, [deliveryMode, endDate, neverEnds, startDate]);
+  const recurringDaysError =
+    deliveryMode === 'recurring' && selectedDays.length === 0
+      ? RECURRENT_DAYS_ERROR
+      : null;
+  const todayLocalDate = getCurrentLocalDateString();
+  const scheduleTimeError =
+    deliveryMode === 'schedule' &&
+    startDate &&
+    sendTime &&
+    startDate === todayLocalDate &&
+    isScheduledTimeInPast(startDate, sendTime);
+  const audienceSummaryItems = useMemo(
+    () => buildAudienceSummaryItems(audience),
+    [audience],
+  );
+  const notificationSummaryItems = useMemo(
+    () => buildNotificationSummaryItems(draft),
+    [draft],
+  );
+  const deliveryDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   useEffect(() => {
     let active = true;
     setLoadingLabels(true);
-    // Labels are sourced from previously created campaign notifications.
     const loadLabels = async () => {
       try {
         const labels =
@@ -85,24 +122,55 @@ const MessagesPage: React.FC = () => {
   );
 
   const handleNext = () => {
-    if (!isLastStep) {
-      setActiveTab(MESSAGES_TABS[activeStepIndex + 1]);
-    }
+    if (!isLastStep)
+      setActiveTab(
+        (['Select Audience', 'Compose Notification', 'Review & Send'] as const)[
+          activeStepIndex + 1
+        ],
+      );
   };
 
   const handleBack = () => {
-    if (!isFirstStep) {
-      setActiveTab(MESSAGES_TABS[activeStepIndex - 1]);
-    }
+    if (!isFirstStep)
+      setActiveTab(
+        (['Select Audience', 'Compose Notification', 'Review & Send'] as const)[
+          activeStepIndex - 1
+        ],
+      );
   };
 
-  const handleSend = () => {
-    setActiveTab(MESSAGES_TABS[MESSAGES_TABS.length - 1]);
+  const handleDeliveryModeChange = (
+    _event: React.MouseEvent<HTMLElement>,
+    nextMode: DeliveryMode | null,
+  ) => {
+    if (!nextMode) return;
+    setDeliveryMode(nextMode);
+    if (nextMode === 'schedule') {
+      setSendTime(getCurrentLocalTimePlusOneMinuteString());
+      setStartDate((current) =>
+        current && current >= getCurrentLocalDateString()
+          ? current
+          : getCurrentLocalDateString(),
+      );
+    }
+    if (nextMode === 'recurring') {
+      setStartDate((current) =>
+        current && current >= getCurrentLocalDateString()
+          ? current
+          : getCurrentLocalDateString(),
+      );
+      setEndDate((current) =>
+        current && current >= getCurrentLocalDateString()
+          ? current
+          : getCurrentLocalDateString(),
+      );
+    }
   };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    setImageFile(file);
     const nextImageUrl = URL.createObjectURL(file);
     setDraft((current) => {
       if (current.imageUrl) URL.revokeObjectURL(current.imageUrl);
@@ -110,163 +178,85 @@ const MessagesPage: React.FC = () => {
     });
   };
 
+  const handleSendAction = async () => {
+    setSendError(null);
+    setSending(true);
+    try {
+      const payload = await buildCampaignNotificationPayload({
+        audience,
+        draft,
+        deliveryMode,
+        imageFile,
+        selectedDays,
+        startDate,
+        sendTime,
+        endDate,
+        neverEnds,
+        isComposeValid,
+        recurringEndDateError,
+        uploadPushNotificationImage:
+          ServiceConfig.getI().apiHandler.uploadPushNotificationImage.bind(
+            ServiceConfig.getI().apiHandler,
+          ),
+      });
+      await ServiceConfig.getI().apiHandler.sendCampaignNotification(payload);
+      setSendSuccess(true);
+    } catch (error) {
+      logger.error('Failed to send campaign notification:', error);
+      const message = error instanceof Error ? error.message : String(error);
+      if (message !== RECURRENT_DAYS_ERROR) setSendError(message);
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
-    <main
-      id="ops-messages-page"
-      className="ops-campaigns-overview messages-page"
-      aria-labelledby="ops-messages-page-title"
-    >
-      <header className="messages-page__header">
-        <IconButton
-          className="messages-page__mobile-back-button"
-          onClick={handleBack}
-          aria-label={String(t('Back'))}
-        >
-          <ArrowBack />
-        </IconButton>
-        <div className="messages-page__heading-block">
-          <h1 id="ops-messages-page-title">{t('New Push Notification')}</h1>
-          <div
-            className="messages-page__breadcrumb"
-            aria-label={String(t('Breadcrumb'))}
-          >
-            <span>{t(MESSAGES_BREADCRUMB[0])}</span>
-            <span
-              className="messages-page__breadcrumb-separator"
-              aria-hidden="true"
-            />
-            <strong>{t(MESSAGES_BREADCRUMB[1])}</strong>
-          </div>
-        </div>
-        <IconButton className="messages-page__notification-button">
-          <Notifications />
-        </IconButton>
-      </header>
-
-      <MessagesStepper
-        activeStepIndex={activeStepIndex}
-        onStepClick={setActiveTab}
-      />
-
-      <div className="ops-campaigns-overview-content messages-page__content">
-        <div className="messages-page__shell">
-          <section
-            className="messages-page__tab-panel"
-            aria-hidden={activeTab !== 'Select Audience'}
-            hidden={activeTab !== 'Select Audience'}
-          >
-            <MessagesTargetAudienceSection
-              audience={audience}
-              onValidityChange={setIsAudienceValid}
-            />
-          </section>
-
-          <section
-            className="messages-page__tab-panel"
-            aria-hidden={activeTab !== 'Compose Notification'}
-            hidden={activeTab !== 'Compose Notification'}
-          >
-            <div className="messages-page__compose-shell">
-              <div className="messages-page__compose-grid">
-                <PushNotificationFields
-                  draft={draft}
-                  fileInputRef={fileInputRef}
-                  labelOptions={labelOptions}
-                  loadingLabels={loadingLabels}
-                  onDraftChange={setDraft}
-                  onImageChange={handleImageChange}
-                />
-                <PushNotificationLivePreview
-                  title={previewTitle}
-                  body={previewBody}
-                  imageUrl={draft.imageUrl}
-                />
-              </div>
-            </div>
-          </section>
-
-          <section
-            className="messages-page__tab-panel"
-            aria-hidden={activeTab !== 'Review & Send'}
-            hidden={activeTab !== 'Review & Send'}
-          >
-            <div className="messages-page__review-card">
-              <Typography
-                variant="h2"
-                className="messages-page__section-heading"
-              >
-                {t('Review & Send')}
-              </Typography>
-              <Typography className="messages-page__section-copy">
-                {t(
-                  'Confirm the audience and content before sending the notification.',
-                )}
-              </Typography>
-
-              <div className="messages-page__review-grid">
-                <div className="messages-page__review-block">
-                  <Typography className="messages-page__review-label">
-                    {t('Audience')}
-                  </Typography>
-                  <Typography className="messages-page__review-value">
-                    {audience.selectedProgramName}
-                  </Typography>
-                  <Typography className="messages-page__review-meta">
-                    {audienceSummaryText}
-                  </Typography>
-                </div>
-
-                <div className="messages-page__review-block">
-                  <Typography className="messages-page__review-label">
-                    {t('Saved Target Group')}
-                  </Typography>
-                  <Typography className="messages-page__review-value">
-                    {audience.selectedSavedGroup?.name ||
-                      t('No saved group selected')}
-                  </Typography>
-                </div>
-
-                <div className="messages-page__review-block messages-page__review-block--message">
-                  <Typography className="messages-page__review-label">
-                    {t('Message')}
-                  </Typography>
-                  <Typography className="messages-page__review-value">
-                    {draft.title || t('Untitled notification')}
-                  </Typography>
-                  <Typography className="messages-page__review-copy">
-                    {draft.body || t('No message content added yet.')}
-                  </Typography>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-        <div className="messages-page__actions">
-          {!isFirstStep && (
-            <Button
-              type="button"
-              variant="outlined"
-              className="messages-page__back-button"
-              onClick={handleBack}
-            >
-              {t('Back')}
-            </Button>
-          )}
-          <Button
-            type="button"
-            variant="contained"
-            className="messages-page__next-button"
-            onClick={isLastStep ? handleSend : handleNext}
-            disabled={
-              (activeTab === 'Select Audience' && !isAudienceValid) ||
-              (activeTab === 'Compose Notification' && !isComposeValid)
-            }
-          >
-            {isLastStep ? t('Send') : t('Next')}
-          </Button>
-        </div>
-      </div>
-    </main>
+    <MessagesPageView
+      activeTab={activeTab}
+      audience={audience}
+      audienceSummaryItems={audienceSummaryItems}
+      deliveryDays={deliveryDays}
+      deliveryMode={deliveryMode}
+      draft={draft}
+      endDate={endDate}
+      endDateError={recurringEndDateError}
+      fileInputRef={fileInputRef}
+      imageFile={imageFile}
+      isAudienceValid={isAudienceValid}
+      isComposeValid={isComposeValid}
+      isFirstStep={isFirstStep}
+      isLastStep={isLastStep}
+      labelOptions={labelOptions}
+      loadingLabels={loadingLabels}
+      neverEnds={neverEnds}
+      notificationSummaryItems={notificationSummaryItems}
+      previewBody={previewBody}
+      previewTitle={previewTitle}
+      recurringDaysError={recurringDaysError}
+      selectedDays={selectedDays}
+      sendError={sendError}
+      sendSuccess={sendSuccess}
+      sendTime={sendTime}
+      sending={sending}
+      startDate={startDate}
+      canSubmitSchedule={!scheduleTimeError}
+      onBack={handleBack}
+      onDeliveryModeChange={handleDeliveryModeChange}
+      onDraftChange={setDraft}
+      onEditAudience={() => setActiveTab('Select Audience')}
+      onEditNotification={() => setActiveTab('Compose Notification')}
+      onEndDateChange={setEndDate}
+      onImageChange={handleImageChange}
+      onNext={handleNext}
+      onNeverEndsChange={setNeverEnds}
+      onScheduleSend={handleSendAction}
+      onSelectedDaysChange={setSelectedDays}
+      onSendNow={handleSendAction}
+      onSendTimeChange={setSendTime}
+      onStartDateChange={setStartDate}
+      onStepClick={setActiveTab}
+      onValidityChange={setIsAudienceValid}
+    />
   );
 };
 
