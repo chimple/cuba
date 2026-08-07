@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHistory, useLocation, useParams } from 'react-router-dom';
 import {
@@ -28,30 +28,69 @@ export const useStudentPendingRequestDetails = () => {
   const [studentDetails, setStudentDetails] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showRejectPopup, setShowRejectPopup] = useState(false);
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const studentFetchIdRef = useRef(0);
 
   const fetchStudents = useCallback(
-    async (classId: string, page: number, size: number) => {
+    async (
+      classId: string,
+      page: number,
+      size: number,
+      search: string,
+      schoolId?: string,
+    ) => {
+      const fetchId = ++studentFetchIdRef.current;
       setLoading(true);
-      const response = await api.getStudentsAndParentsByClassId(
-        classId,
-        page,
-        size,
-      );
-      if (requestData?.requested_by) {
-        const studentData = await api.getStudentAndParentByStudentId(
-          requestData.requested_by,
-        );
-        setStudentDetails(studentData);
-      } else {
-        logger.warn(
-          'requestData.requested_by was undefined when fetching student details.',
-        );
+      try {
+        const trimmedSearch = search.trim();
+        const response =
+          trimmedSearch && schoolId
+            ? await api.searchStudentsInSchool(
+                schoolId,
+                trimmedSearch,
+                page,
+                size,
+                classId,
+              )
+            : await api.getStudentsAndParentsByClassId(classId, page, size);
+        if (fetchId !== studentFetchIdRef.current) return;
+
+        const studentRows = response?.data || [];
+        const total = response?.total || 0;
+
+        if (requestData?.requested_by) {
+          const studentData = await api.getStudentAndParentByStudentId(
+            requestData.requested_by,
+          );
+          if (fetchId !== studentFetchIdRef.current) return;
+
+          setStudentDetails(studentData);
+        } else {
+          logger.warn(
+            'requestData.requested_by was undefined when fetching student details.',
+          );
+        }
+        setStudents(studentRows);
+        setTotalStudents(total);
+      } catch (error) {
+        logger.error('Error fetching students:', error);
+        if (fetchId !== studentFetchIdRef.current) return;
+        setStudents([]);
+        setTotalStudents(0);
+      } finally {
+        if (fetchId === studentFetchIdRef.current) {
+          setLoading(false);
+        }
       }
-      setStudents(response?.data || []);
-      setTotalStudents(response?.total || 0);
-      setLoading(false);
     },
     [api, requestData],
+  );
+
+  const getRequestSchoolId = useCallback(
+    () =>
+      String(requestData?.school?.id ?? requestData?.school_id ?? '').trim() ||
+      undefined,
+    [requestData],
   );
 
   useEffect(() => {
@@ -109,10 +148,22 @@ export const useStudentPendingRequestDetails = () => {
   }, [id, api, location.state]);
 
   useEffect(() => {
-    if (requestData?.class_id) {
-      fetchStudents(requestData.class_id, currentPage, pageSize);
-    }
-  }, [requestData, currentPage, pageSize, fetchStudents]);
+    if (!requestData?.class_id) return;
+    fetchStudents(
+      requestData.class_id,
+      currentPage,
+      pageSize,
+      normalizedSearchTerm,
+      getRequestSchoolId(),
+    );
+  }, [
+    requestData,
+    currentPage,
+    pageSize,
+    fetchStudents,
+    normalizedSearchTerm,
+    getRequestSchoolId,
+  ]);
 
   const handleRadioChange = (studentId: string, checked: boolean) => {
     if (checked) {
@@ -124,6 +175,11 @@ export const useStudentPendingRequestDetails = () => {
 
   const handlePageChange = (event: unknown, newPage: number) =>
     setCurrentPage(newPage + 1);
+
+  const handleSearchTermChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  }, []);
 
   const handleConfirmApprove = async () => {
     const currentRequestId = requestData?.id;
@@ -187,9 +243,11 @@ export const useStudentPendingRequestDetails = () => {
   );
   const filteredTotalStudents =
     totalStudents - (students.length - filteredStudents.length);
-  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
-  const displayedStudents = filteredStudents.filter((stu) => {
-    if (!normalizedSearchTerm) return true;
+  const isServerSearchActive = Boolean(
+    normalizedSearchTerm && getRequestSchoolId(),
+  );
+  const searchedStudents = filteredStudents.filter((stu) => {
+    if (!normalizedSearchTerm || isServerSearchActive) return true;
     const studentName = (stu.user?.name ?? '').toString().toLowerCase();
     const studentId = (stu.user?.student_id ?? '').toString().toLowerCase();
     const phoneNumber = (stu.parent?.phone ?? '').toString().toLowerCase();
@@ -199,11 +257,17 @@ export const useStudentPendingRequestDetails = () => {
       phoneNumber.includes(normalizedSearchTerm)
     );
   });
+  const displayedStudents = searchedStudents;
+  const displayedTotalStudents = !normalizedSearchTerm
+    ? filteredTotalStudents
+    : isServerSearchActive
+      ? filteredTotalStudents
+      : searchedStudents.length;
 
   return {
     currentPage,
     displayedStudents,
-    filteredTotalStudents,
+    filteredTotalStudents: displayedTotalStudents,
     handleConfirmApprove,
     handlePageChange,
     handleRadioChange,
@@ -214,7 +278,7 @@ export const useStudentPendingRequestDetails = () => {
     requestData,
     searchTerm,
     selectedStudent,
-    setSearchTerm,
+    setSearchTerm: handleSearchTermChange,
     setShowRejectPopup,
     showRejectPopup,
     studentDetails,
