@@ -27,6 +27,13 @@ const pendingColumns: Column<RequestRow>[] = [
     sortable: true,
     orderBy: 'requested_date',
   },
+  {
+    key: 'auto_approves_on',
+    label: t('Auto approves on'),
+    width: 'fit-content',
+    sortable: true,
+    orderBy: 'auto_approves_on',
+  },
 ];
 
 const approvedColumns: Column<RequestRow>[] = [

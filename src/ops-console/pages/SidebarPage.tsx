@@ -109,6 +109,13 @@ const SidebarPage: React.FC = () => {
   const canAccessCampaignPage = userRoles.some((role) =>
     CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
   );
+  const canAccessMessagesPage = userRoles.some((role) =>
+    [
+      RoleType.SUPER_ADMIN,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.PROGRAM_MANAGER,
+    ].includes(role as RoleType),
+  );
   const canAccessCoordinatorPages = userRoles.includes(
     RoleType.FIELD_COORDINATOR,
   );
@@ -122,8 +129,11 @@ const SidebarPage: React.FC = () => {
 
     const schoolListPath = `${path}${PAGES.SCHOOL_LIST}`;
     const schoolDetailsPrefix = `${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/`;
+    const activitiesPath = `${schoolListPath}${PAGES.ACTIVITIES_PAGE}`;
+    const schoolActivitiesPath = `${activitiesPath}${PAGES.SCHOOL_ACTIVITIES}`;
     const campaignsPath = `${path}${PAGES.ADMIN_CAMPAIGNS}`;
     const campaignDetailsPrefix = `${campaignsPath}/`;
+    const messagesPath = `${path}${PAGES.MESSAGES}`;
     const campaignCreatePath = `${path}${PAGES.ADMIN_CAMPAIGNS_NEW}`;
     const requestListPath = `${path}${PAGES.REQUEST_LIST}`;
     const requestDetailsPrefix = `${requestListPath}/`;
@@ -137,18 +147,22 @@ const SidebarPage: React.FC = () => {
         (location.pathname === campaignsPath ||
           location.pathname === campaignCreatePath ||
           location.pathname.startsWith(campaignDetailsPrefix))) ||
+      (canAccessMessagesPage && location.pathname === messagesPath) ||
       (canAccessCoordinatorPages &&
         (location.pathname === requestListPath ||
           location.pathname.startsWith(requestDetailsPrefix) ||
           location.pathname === devicesPath ||
           location.pathname === resourcesPath ||
-          location.pathname === dashboardPath));
+          location.pathname === dashboardPath ||
+          location.pathname === activitiesPath ||
+          location.pathname === schoolActivitiesPath));
 
     if (!isAllowedPath) {
       history.replace(schoolListPath);
     }
   }, [
     canAccessCampaignPage,
+    canAccessMessagesPage,
     canAccessProgramPage,
     canAccessCoordinatorPages,
     history,
@@ -194,6 +208,7 @@ const SidebarPage: React.FC = () => {
             ProgramDetailsRoute={ProgramDetailsRoute}
             SchoolDetailsRoute={SchoolDetailsRoute}
             canAccessCampaignPage={canAccessCampaignPage}
+            canAccessMessagesPage={canAccessMessagesPage}
             canAccessProgramPage={canAccessProgramPage}
             canCreateProgram={canCreateProgram}
             path={path}

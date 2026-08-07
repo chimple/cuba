@@ -108,6 +108,7 @@ export interface ServiceApiOpsUsers {
     limit?: number,
     sortBy?: keyof TableTypes<'user'>,
     sortOrder?: 'asc' | 'desc',
+    role?: RoleType,
   ): Promise<{
     data: { user: TableTypes<'user'>; role: string }[];
     totalCount: number;
@@ -156,7 +157,9 @@ export interface ServiceApiOpsUsers {
     searchTerm?: string,
   ): Promise<OpsRequestsResponse>;
 
-  getRequestFilterOptions(): Promise<RequestFilterOptions | null>;
+  getRequestFilterOptions(
+    requestStatus: EnumType<'ops_request_status'>,
+  ): Promise<RequestFilterOptions | null>;
 
   searchTeachersInSchool(
     schoolId: string,

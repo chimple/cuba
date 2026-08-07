@@ -11,10 +11,8 @@ type NewUserDialogsProps = {
   errorDialog: DialogState;
   handleSuccessOk: () => void;
   setErrorDialog: (state: DialogState) => void;
-  setShowAlert: (show: boolean) => void;
   setSuccessDialog: (state: DialogState) => void;
   setValidationDialog: (state: DialogState) => void;
-  showAlert: boolean;
   successDialog: DialogState;
   validationDialog: DialogState;
 };
@@ -23,26 +21,12 @@ export const NewUserDialogs = ({
   errorDialog,
   handleSuccessOk,
   setErrorDialog,
-  setShowAlert,
   setSuccessDialog,
   setValidationDialog,
-  showAlert,
   successDialog,
   validationDialog,
 }: NewUserDialogsProps) => (
   <>
-    <CommonDialogBox
-      showConfirmFlag={showAlert}
-      onDidDismiss={() => setShowAlert(false)}
-      header={t('Missing Contact Info!') ?? ''}
-      message={
-        t(
-          'Please input proper name and role with least a phone number or email address.',
-        ) ?? ''
-      }
-      rightButtonText={t('OK') ?? ''}
-      rightButtonHandler={() => setShowAlert(false)}
-    />
     <CommonDialogBox
       showConfirmFlag={validationDialog.open}
       onDidDismiss={() => setValidationDialog({ open: false, message: '' })}

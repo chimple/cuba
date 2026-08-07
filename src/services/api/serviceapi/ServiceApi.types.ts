@@ -111,6 +111,7 @@ export type OpsStudentPerformanceBandRow = {
   student_id: string;
   class_id: string | null;
   performance?: string | null;
+  time_spent_seconds_7d?: number | null;
 };
 
 export type AssignmentBatchGroupRow = {
@@ -183,6 +184,7 @@ export type FcUserFormSaveResult = {
 export type ActivitiesFilterOptions = {
   contactType: Array<string | null>;
   performance: Array<string | null>;
+  visitType?: Array<string | null>;
 };
 
 export type CampaignObjective =
@@ -197,6 +199,7 @@ export type CampaignFrequency = 'daily' | 'alternate_days' | 'alternate_week';
 export type CampaignOption = {
   id: string;
   name: string;
+  model?: string | null;
 };
 
 export type CampaignSchoolOption = CampaignOption & {

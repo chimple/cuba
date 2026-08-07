@@ -33,13 +33,13 @@ import { SupabaseApiCampaignMessaging } from './SupabaseApi.campaign.messaging';
 export interface SupabaseApiCampaignReports {}
 
 /**
- * Campaign school metrics are persisted with the campaign id in metric_window
- * so both 7-day and campaign-day views can resolve from the same row set later.
+ * Campaign-day metrics are persisted with the campaign id in metric_window,
+ * while 7-day metrics use the shared school-level 7d window.
  */
 const buildCampaignSchoolMetricWindow = (
   campaignId: string,
-  _metricWindow: '7d' | 'campaign_days',
-) => campaignId;
+  metricWindow: '7d' | 'campaign_days',
+) => (metricWindow === '7d' ? metricWindow : campaignId);
 
 export class SupabaseApiCampaignReports extends SupabaseApiCampaignMessaging {
   async getCampaignListingMetrics(
@@ -193,6 +193,7 @@ export class SupabaseApiCampaignReports extends SupabaseApiCampaignMessaging {
         .from(TABLES.SchoolMetrics)
         .select('parents_in_group')
         .in('school_id', context.schoolIds)
+        .is('grade_id', null)
         .eq('metric_window', CAMPAIGN_REACH_METRIC_WINDOW)
         .eq('is_deleted', false),
       this.supabase
@@ -416,15 +417,32 @@ export class SupabaseApiCampaignReports extends SupabaseApiCampaignMessaging {
     const metricWindow = params.metricWindow ?? '7d';
 
     try {
-      const { data, error } = await this.supabase
+      const campaignSchoolIds =
+        metricWindow === '7d'
+          ? (await this.getCampaignWhatsappReportContext(campaignId.trim()))
+              .schoolIds
+          : [];
+
+      if (metricWindow === '7d' && campaignSchoolIds.length === 0) {
+        return emptyResponse;
+      }
+
+      let query = this.supabase
         .from(TABLES.SchoolMetrics)
         .select('*')
         .eq(
           'metric_window',
           buildCampaignSchoolMetricWindow(campaignId.trim(), metricWindow),
         )
-        .eq('is_deleted', false)
-        .order('school_name', { ascending: true });
+        .eq('is_deleted', false);
+
+      if (metricWindow === '7d') {
+        query = query.is('grade_id', null).in('school_id', campaignSchoolIds);
+      }
+
+      const { data, error } = await query.order('school_name', {
+        ascending: true,
+      });
 
       if (error) {
         logger.error('Error fetching campaign school performance report:', {

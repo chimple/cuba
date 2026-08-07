@@ -31,11 +31,26 @@ import type {
   CampaignMessageReportParams,
   CampaignMessageReportResponse,
 } from '../ServiceApi';
+import type { CampaignNotificationPayload } from '../ServiceApi';
 import { PaginatedResponse } from '../../../interface/modelInterfaces';
 
 export class ApiHandlerCampaigns extends ApiHandlerPrograms {
   async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
     return await this.s.getCampaignSetupOptions();
+  }
+
+  async getCampaignNotificationLabels(): Promise<string[]> {
+    return await this.s.getCampaignNotificationLabels();
+  }
+
+  async uploadPushNotificationImage(file: File): Promise<string> {
+    return await this.s.uploadPushNotificationImage(file);
+  }
+
+  async sendCampaignNotification(
+    payload: CampaignNotificationPayload,
+  ): Promise<string> {
+    return await this.s.sendCampaignNotification(payload);
   }
 
   async getCampaignAudienceOptions(

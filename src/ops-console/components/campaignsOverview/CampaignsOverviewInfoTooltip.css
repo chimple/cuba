@@ -21,6 +21,7 @@
   top: 27px;
   left: -10px;
   display: none;
+  box-sizing: border-box;
   width: max-content;
   max-width: var(--ops-campaigns-info-tooltip-max-width, 405px);
   padding: 12px 18px;
@@ -96,7 +97,7 @@
     position: absolute;
     top: 24px;
     width: min(220px, calc(100vw - 32px));
-    max-width: calc(100vw - 32px);
+    max-width: var(--ops-campaigns-info-tooltip-max-width, calc(100vw - 32px));
     padding: 12px 14px;
     font-size: 12px;
     line-height: 1.4;
@@ -107,13 +108,13 @@
   .ops-campaigns-info-tooltip-left .ops-campaigns-info-tooltip-message {
     left: 0;
     right: auto;
-    transform: none;
+    transform: translateX(var(--ops-campaigns-info-tooltip-shift, 0px));
   }
 
   .ops-campaigns-info-tooltip-right .ops-campaigns-info-tooltip-message {
     left: auto;
     right: 0;
-    transform: none;
+    transform: translateX(var(--ops-campaigns-info-tooltip-shift, 0px));
   }
 
   .ops-campaigns-info-tooltip-left .ops-campaigns-info-tooltip-message::before {

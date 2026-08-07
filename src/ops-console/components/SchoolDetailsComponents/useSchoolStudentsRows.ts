@@ -179,6 +179,7 @@ export const useSchoolStudentsRows = ({
     hideFilterUI: isNoStudentsState,
     isDataPresent,
     isFilteringOrSearching,
+    processedStudents,
     studentsForCurrentPage,
     pageCount,
   };

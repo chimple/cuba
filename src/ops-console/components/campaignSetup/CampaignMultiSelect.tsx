@@ -23,6 +23,7 @@ type CampaignMultiSelectProps<T> = {
   helperText?: string;
   preventMobileKeyboard?: boolean;
   renderSelectedLabel?: (selected: T[]) => React.ReactNode;
+  selectAllLabel?: string;
   onChange: (value: T[]) => void;
 };
 
@@ -37,6 +38,7 @@ export const CampaignMultiSelect = <T,>({
   helperText,
   preventMobileKeyboard = false,
   renderSelectedLabel,
+  selectAllLabel,
   onChange,
 }: CampaignMultiSelectProps<T>) => {
   const isMobileView = useMediaQuery('(max-width:48rem)');
@@ -93,21 +95,35 @@ export const CampaignMultiSelect = <T,>({
             },
           }}
           ListboxProps={{
-            style: {
-              maxHeight: '16rem',
-              overflowY: 'auto',
-            },
+            className: 'campaign-setup-dropdown-listbox',
           }}
           renderOption={(props, option, { selected }) => {
             const { key, ...optionProps } = props as AutocompleteOptionProps;
             const label = getOptionLabel
               ? getOptionLabel(option)
               : String(option);
+            const showSelectAll =
+              selectAllLabel &&
+              option === options[0] &&
+              value.length < options.length;
             return (
-              <li key={key} {...optionProps}>
-                <Checkbox checked={selected} sx={{ marginRight: 1 }} />
-                {label}
-              </li>
+              <React.Fragment key={key}>
+                {showSelectAll && (
+                  <li
+                    role="option"
+                    aria-selected={false}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => onChange(options)}
+                  >
+                    <Checkbox checked={false} sx={{ marginRight: 1 }} />
+                    {selectAllLabel}
+                  </li>
+                )}
+                <li {...optionProps}>
+                  <Checkbox checked={selected} sx={{ marginRight: 1 }} />
+                  {label}
+                </li>
+              </React.Fragment>
             );
           }}
           onChange={(_, nextValue) => onChange(nextValue)}

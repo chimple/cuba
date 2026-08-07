@@ -19,6 +19,7 @@ type RewardsCardProps = {
 };
 
 type CommunicationCardProps = {
+  applicableMessageDayCount: number;
   campaignReach: CampaignReachSummary;
   configuredCommunicationDayCount: number;
   editStep: number;
@@ -78,6 +79,7 @@ export const CampaignReviewRewardsCard = ({
 };
 
 export const CampaignReviewCommunicationCard = ({
+  applicableMessageDayCount,
   campaignReach,
   configuredCommunicationDayCount,
   editStep,
@@ -96,7 +98,7 @@ export const CampaignReviewCommunicationCard = ({
 
   return (
     <ReviewCard
-      title="Communication"
+      title="Messages"
       editStep={editStep}
       onEditStep={onEditStep}
       className="campaign-review-communication-card"
@@ -117,7 +119,7 @@ export const CampaignReviewCommunicationCard = ({
       <ReviewRow label="Total Days" value={totalDays || 0} />
       <ReviewRow
         label="Days Configured"
-        value={`${configuredCommunicationDayCount} / ${totalDays || 0}`}
+        value={`${configuredCommunicationDayCount} / ${applicableMessageDayCount}`}
       />
       <ReviewRow label="Message Time" value={messageTime || emptyValue} />
       <ReviewRow label="Poll Time" value={pollTime || emptyValue} />
@@ -176,7 +178,7 @@ export const CampaignReviewCommunicationCard = ({
         )}
         {messagingRows.length === 0 && (
           <Typography className="campaign-review-empty">
-            {t('No configured communication days.')}
+            {t('No configured messages.')}
           </Typography>
         )}
       </Box>

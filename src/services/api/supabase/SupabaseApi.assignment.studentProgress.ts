@@ -283,7 +283,7 @@ export class SupabaseApiAssignmentStudentProgress extends SupabaseApiAssignmentT
 
     let query = this.supabase
       .from('student_performance_mv')
-      .select('student_id,class_id,performance');
+      .select('student_id,class_id,performance,time_spent_seconds_7d');
 
     if (classIds.length > 0) {
       query = query.in('class_id', classIds);

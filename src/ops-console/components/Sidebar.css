@@ -105,6 +105,22 @@
 .sidebar-icon {
   width: 24px;
   height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-nav-icon-image {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+  filter: brightness(0) saturate(100%);
+}
+
+.sidebar-item-list a.active .sidebar-nav-icon-image {
+  filter: brightness(0) saturate(100%) invert(31%) sepia(93%) saturate(2113%)
+    hue-rotate(198deg) brightness(98%) contrast(101%);
 }
 
 .sidebar-label {

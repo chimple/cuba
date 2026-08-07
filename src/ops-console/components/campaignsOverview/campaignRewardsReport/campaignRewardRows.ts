@@ -301,13 +301,13 @@ export const buildCampaignRewardSummaryCards = (
   ];
 };
 
-export const getLatestCalculatedAt = (rows: CampaignRewardRow[]) =>
-  rows.reduce<string | null>((latest, row) => {
-    if (!row.calculatedAt) return latest;
-    if (!latest) return row.calculatedAt;
-    return new Date(row.calculatedAt).getTime() > new Date(latest).getTime()
+export const getEarliestCalculatedAt = (rows: CampaignRewardRow[]) =>
+  rows.reduce<string | null>((earliest, row) => {
+    if (!row.calculatedAt) return earliest;
+    if (!earliest) return row.calculatedAt;
+    return new Date(row.calculatedAt).getTime() < new Date(earliest).getTime()
       ? row.calculatedAt
-      : latest;
+      : earliest;
   }, null);
 
 export const formatCampaignRewardLastUpdated = (value: string | null) => {

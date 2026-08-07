@@ -1022,6 +1022,54 @@ describe('CampaignSetupPage', () => {
     );
   });
 
+  it('restores all target audience options with Select All', async () => {
+    mockApiHandler.getCampaignAudienceOptions.mockResolvedValueOnce({
+      blocks: ['Block A', 'Block B'],
+      schools: [
+        { id: 'school-1', name: 'School One', block: 'Block A' },
+        { id: 'school-2', name: 'School Two', block: 'Block B' },
+      ],
+      grades: [{ id: 'grade-1', name: 'Grade 1' }],
+    });
+
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await openSelectAndChoose('Select Program', 'Early Learning');
+
+    const blockField = screen
+      .getByText('Block')
+      .closest('.campaign-setup-field') as HTMLElement;
+    fireEvent.mouseDown(within(blockField).getByRole('combobox'));
+    fireEvent.click(await screen.findByRole('option', { name: 'Block A' }));
+    expect(
+      await screen.findByRole('option', { name: 'Select All' }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('option', { name: 'Select All' }));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('option', { name: 'Select All' }),
+      ).not.toBeInTheDocument(),
+    );
+
+    const schoolField = screen
+      .getByText('School')
+      .closest('.campaign-setup-field') as HTMLElement;
+    fireEvent.mouseDown(within(schoolField).getByRole('combobox'));
+    fireEvent.click(await screen.findByRole('option', { name: 'School One' }));
+    expect(
+      await screen.findByRole('option', { name: 'Select All' }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('option', { name: 'Select All' }));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('option', { name: 'Select All' }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
   it('does not show audience helper copy before a program is selected', async () => {
     render(<CampaignSetupPage />);
 
@@ -1153,6 +1201,32 @@ describe('CampaignSetupPage', () => {
 
     expect(await screen.findByText('Objective & Goal')).toBeInTheDocument();
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('navigates backward through completed step headers only', async () => {
+    mockAssignmentComplete = true;
+    render(<CampaignSetupPage />);
+
+    await screen.findByRole('heading', { name: 'New Campaign' });
+    await completeSetupStep();
+    fireEvent.click(screen.getByRole('button', { name: 'Next' }));
+    await screen.findByText('Rewards Configuration');
+
+    const stepper = getCampaignStepper();
+    const [setupStep, assignmentsStep, rewardsStep, messagingStep] =
+      within(stepper).getAllByRole('button');
+    expect(setupStep).toBeEnabled();
+    expect(assignmentsStep).toBeEnabled();
+    expect(rewardsStep).toBeDisabled();
+    expect(messagingStep).toBeDisabled();
+
+    fireEvent.click(screen.getByText('Back'));
+    expect(
+      await screen.findByText('Assignment Configuration'),
+    ).toBeInTheDocument();
+
+    fireEvent.click(setupStep);
+    expect(await screen.findByText('Objective & Goal')).toBeInTheDocument();
   });
 
   it('builds rewards payload in the next-step format', () => {

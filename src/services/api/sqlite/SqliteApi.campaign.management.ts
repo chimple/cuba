@@ -41,6 +41,7 @@ import {
   CampaignRewardsReportResponse,
   CampaignWhatsappLabelData,
 } from '../ServiceApi';
+import type { CampaignNotificationPayload } from '../ServiceApi';
 
 export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments {
   [key: string]: any;
@@ -73,6 +74,20 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
 
   async getCampaignSetupOptions(): Promise<CampaignSetupOptions> {
     return await this._serverApi.getCampaignSetupOptions();
+  }
+
+  async getCampaignNotificationLabels(): Promise<string[]> {
+    return await this._serverApi.getCampaignNotificationLabels();
+  }
+
+  async uploadPushNotificationImage(file: File): Promise<string> {
+    return await this._serverApi.uploadPushNotificationImage(file);
+  }
+
+  async sendCampaignNotification(
+    payload: CampaignNotificationPayload,
+  ): Promise<string> {
+    return await this._serverApi.sendCampaignNotification(payload);
   }
 
   async getCampaignListing(

@@ -162,14 +162,22 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     try {
       if (!this.supabase) return null;
 
-      const { data, error } = await this.supabase
-        .from('fc_user_forms')
-        .select('contact_target, support_level')
-        .eq('is_deleted', false);
+      const [
+        { data: forms, error: formsError },
+        { data: visits, error: visitsError },
+      ] = await Promise.all([
+        this.supabase
+          .from('fc_user_forms')
+          .select('contact_target, support_level')
+          .eq('is_deleted', false),
+        this.supabase
+          .from('fc_school_visit')
+          .select('type')
+          .eq('is_deleted', false),
+      ]);
 
-      if (error) throw error;
-
-      const forms = data || [];
+      if (formsError) throw formsError;
+      if (visitsError) throw visitsError;
 
       const contactTypes = [
         ...new Set(forms.map((f) => f.contact_target).filter(Boolean)),
@@ -177,10 +185,14 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
       const performance = [
         ...new Set(forms.map((f) => f.support_level).filter(Boolean)),
       ];
+      const visitType = [
+        ...new Set(visits.map((visit) => visit.type).filter(Boolean)),
+      ];
 
       return {
         contactType: contactTypes,
         performance: performance,
+        visitType,
       };
     } catch (error) {
       logger.error('Error in getActivitiesFilterOptions:', error);
@@ -255,6 +267,41 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     });
 
     return counts;
+  }
+
+  async getActiveTeachersCountForProgram7d(
+    programId: string,
+    gradeIds?: string[],
+  ): Promise<number | null> {
+    if (!this.supabase || !programId) return null;
+
+    let query = this.supabase
+      .from(TABLES.SchoolMetrics)
+      .select('active_teachers')
+      .eq('program_id', programId)
+      .eq('metric_window', '7d')
+      .eq('is_deleted', false);
+
+    if (gradeIds && gradeIds.length > 0) {
+      query = query.in('grade_id', gradeIds);
+    } else {
+      query = query.is('grade_id', null);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      logger.error(
+        'Error fetching 7d active teachers from school metrics for program:',
+        error,
+      );
+      return null;
+    }
+
+    return (data ?? []).reduce(
+      (total, row) => total + (Number(row.active_teachers) || 0),
+      0,
+    );
   }
 
   async createNoteForSchool(params: {

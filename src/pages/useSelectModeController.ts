@@ -69,7 +69,7 @@ interface SchoolModeOption {
 
 interface SelectModeLocationState {
   fromKidsAppLocationSchool?: boolean;
-  fromSchoolModeSwitchProfile?: boolean;
+  fromSwitchProfileReturn?: boolean;
 }
 
 export const useSelectModeController = () => {
@@ -431,7 +431,12 @@ export const useSelectModeController = () => {
       school_ids: resolvedSchoolIds,
     });
     setGbUpdated(true);
-    history.replace(PAGES.HOME);
+    history.replace({
+      pathname: PAGES.HOME,
+      state: location.state?.fromSwitchProfileReturn
+        ? { fromSwitchProfileReturn: true }
+        : undefined,
+    });
   };
   const onClassSelect = async (
     selectedClass: TableTypes<'class'>,

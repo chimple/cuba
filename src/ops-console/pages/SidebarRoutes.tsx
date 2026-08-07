@@ -9,6 +9,7 @@ import AddSchoolPage from './AddSchoolPage';
 import CampaignListingPage from './CampaignListingPage';
 import CampaignSetupPage from './CampaignSetupPage';
 import MigrateSchoolsPage from './MigrateSchoolsPage';
+import MessagesPage from './MessagesPage';
 import NewUserPage from './NewUserPageOps';
 import OpsApprovedRequestDetails from './OpsApprovedRequestDetails';
 import OpsFlaggedRequestDetails from './OpsFlaggedRequestDetails';
@@ -33,6 +34,7 @@ type SidebarRoutesProps = {
   ProgramDetailsRoute: React.FC;
   SchoolDetailsRoute: React.FC;
   canAccessCampaignPage: boolean;
+  canAccessMessagesPage: boolean;
   canAccessProgramPage: boolean;
   canCreateProgram: boolean;
   path: string;
@@ -44,6 +46,7 @@ export const SidebarRoutes = ({
   ProgramDetailsRoute,
   SchoolDetailsRoute,
   canAccessCampaignPage,
+  canAccessMessagesPage,
   canAccessProgramPage,
   canCreateProgram,
   path,
@@ -77,6 +80,13 @@ export const SidebarRoutes = ({
     <ProtectedRoute path={`${path}${PAGES.ADMIN_CAMPAIGNS}`} exact>
       {canAccessCampaignPage ? (
         <CampaignListingPage />
+      ) : (
+        <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+      )}
+    </ProtectedRoute>
+    <ProtectedRoute path={`${path}${PAGES.MESSAGES}`} exact>
+      {canAccessMessagesPage ? (
+        <MessagesPage />
       ) : (
         <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
       )}

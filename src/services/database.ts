@@ -758,6 +758,130 @@ export type Database = {
           },
         ];
       };
+      campaign_notification: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          end_date: string | null;
+          id: string;
+          image_url: string | null;
+          is_deleted: boolean;
+          label: string;
+          message: string;
+          program_id: string;
+          recurring_days: number[] | null;
+          send_date: string | null;
+          send_time: string | null;
+          status: string;
+          target_type: Database['public']['Enums']['notification_target_type'];
+          target_audience: string;
+          user_type: Database['public']['Enums']['role'] | null;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          end_date?: string | null;
+          id?: string;
+          image_url?: string | null;
+          is_deleted?: boolean;
+          label: string;
+          message: string;
+          program_id: string;
+          recurring_days?: number[] | null;
+          send_date?: string | null;
+          send_time?: string | null;
+          status?: string;
+          target_type?:
+            | Database['public']['Enums']['notification_target_type']
+            | null;
+          target_audience: string;
+          user_type?: Database['public']['Enums']['role'] | null;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          end_date?: string | null;
+          id?: string;
+          image_url?: string | null;
+          is_deleted?: boolean;
+          label?: string;
+          message?: string;
+          program_id?: string;
+          recurring_days?: number[] | null;
+          send_date?: string | null;
+          send_time?: string | null;
+          status?: string;
+          target_type?:
+            | Database['public']['Enums']['notification_target_type']
+            | null;
+          target_audience?: string;
+          user_type?: Database['public']['Enums']['role'] | null;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_flat_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_performance_mv';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['parent_id_real'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'student_sorted_view1';
+            referencedColumns: ['student_id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'user';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'program';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'campaign_notification_target_audience_fkey';
+            columns: ['target_audience'];
+            isOneToOne: false;
+            referencedRelation: 'campaign_target_audience';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       campaign_student_performance: {
         Row: {
           calculated_at: string | null;
@@ -8148,6 +8272,7 @@ export type Database = {
         | 'completed'
         | 'assessment_terminated';
       rive_type: 'idle' | 'normal' | 'celebrating';
+      notification_target_type: 'all' | 'inactive_7days' | 'active_7days';
       role:
         | 'coordinator'
         | 'principal'
@@ -8165,7 +8290,8 @@ export type Database = {
         | 'teacher_training_meeting'
         | 'parents_teacher_meeting'
         | 'regular_visit'
-        | 'community_visit';
+        | 'community_visit'
+        | 'work_from_home';
       special_roles:
         | 'super_admin'
         | 'operational_director'
@@ -8380,6 +8506,7 @@ export const Constants = {
         'parents_teacher_meeting',
         'regular_visit',
         'community_visit',
+        'work_from_home',
       ],
       special_roles: [
         'super_admin',
@@ -8396,6 +8523,7 @@ export const Constants = {
         'yellow_band',
       ],
       target_type: ['number_of_lessons', 'percentage_completion'],
+      notification_target_type: ['all', 'inactive_7days', 'active_7days'],
       wa_validate: ['yes', 'no'],
     },
   },

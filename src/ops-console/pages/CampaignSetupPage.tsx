@@ -25,6 +25,7 @@ const CampaignSetupPage: React.FC = () => {
     handleAssignmentCompletionChange,
     handleBackStep,
     handleClearCommunicationRow,
+    handleCompletedStepClick,
     handleCommunicationContinue,
     handleCommunicationRowChange,
     handleHeaderBack,
@@ -76,6 +77,7 @@ const CampaignSetupPage: React.FC = () => {
           <CampaignSetupStepper
             activeStep={Math.max(0, stepperActiveStep)}
             steps={stepperSteps}
+            onStepClick={handleCompletedStepClick}
           />
 
           {campaignSetup.activeStep === 0 ? (
@@ -123,6 +125,7 @@ const CampaignSetupPage: React.FC = () => {
                 audienceSummary={campaignSetup.audienceSummary}
                 saveGroup={campaignSetup.saveGroup}
                 savingGroup={campaignSetup.savingGroup}
+                canSaveGroup={campaignSetup.canSaveGroup}
                 onSavedGroupChange={campaignSetup.handleSavedGroupChange}
                 onProgramChange={campaignSetup.handleProgramChange}
                 onBlocksChange={campaignSetup.handleBlocksChange}

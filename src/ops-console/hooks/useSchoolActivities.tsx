@@ -2,7 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Chip } from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { t } from 'i18next';
-import { PERFORMANCE_UI, PerformanceLevel } from '../../common/constants';
+import {
+  PERFORMANCE_UI,
+  PerformanceLevel,
+  SchoolVisitType,
+  SchoolVisitTypeLabels,
+} from '../../common/constants';
 import { Column } from '../components/DataTableBody';
 import { FcActivity } from '../../interface/modelInterfaces';
 import { ServiceConfig } from '../../services/ServiceConfig';
@@ -10,6 +15,7 @@ import logger from '../../utility/logger';
 import { OpsUtil } from '../OpsUtility/OpsUtil';
 
 const DEFAULT_PAGE_SIZE = 20;
+type VisitDetail = { type?: string | null };
 
 export const useSchoolActivities = (activityData: any) => {
   const api = ServiceConfig.getI().apiHandler;
@@ -63,14 +69,12 @@ export const useSchoolActivities = (activityData: any) => {
               : null,
           })),
         );
-
-        if (searchTerm) {
+        if (searchTerm)
           data = data.filter((item) =>
             (item.user?.name ?? '')
               .toLowerCase()
               .includes(searchTerm.toLowerCase()),
           );
-        }
         Object.entries(filters).forEach(([key, values]) => {
           if (!values.length) return;
           data = data.filter((item) => {
@@ -84,6 +88,25 @@ export const useSchoolActivities = (activityData: any) => {
                   PERFORMANCE_UI[item.raw.support_level as PerformanceLevel]
                     ?.label,
                 );
+              case 'visitType': {
+                const normalizedValues = values.map((value) =>
+                  value.toLowerCase(),
+                );
+                const visitDetails = activityData.visitDetails ?? [];
+                return Array.isArray(visitDetails)
+                  ? visitDetails.some((visit: VisitDetail) => {
+                      const visitType = String(visit?.type || '').toLowerCase();
+                      const visitLabel =
+                        SchoolVisitTypeLabels[
+                          visitType as SchoolVisitType
+                        ]?.toLowerCase() ?? '';
+                      return (
+                        normalizedValues.includes(visitType) ||
+                        normalizedValues.includes(visitLabel)
+                      );
+                    })
+                  : false;
+              }
               default:
                 return true;
             }
@@ -98,7 +121,6 @@ export const useSchoolActivities = (activityData: any) => {
               : right.localeCompare(left);
           });
         }
-
         setTotal(data.length);
         const start = (page - 1) * DEFAULT_PAGE_SIZE;
         setActivities(
@@ -154,7 +176,6 @@ export const useSchoolActivities = (activityData: any) => {
         setLoadingData(false);
       }
     };
-
     fetchActivitiesWithMeta();
   }, [filters, searchTerm, orderBy, orderDir, page, activityData.activities]);
 
@@ -165,6 +186,7 @@ export const useSchoolActivities = (activityData: any) => {
         const res = await api.getActivitiesFilterOptions();
         const performanceValues = res?.performance ?? [];
         const contactTypeValues = res?.contactType ?? [];
+        const visitTypeValues = res?.visitType ?? [];
         setFilterOptions({
           ...(res ?? {}),
           performance: performanceValues.map((value) =>
@@ -177,6 +199,12 @@ export const useSchoolActivities = (activityData: any) => {
               (value ?? '').charAt(0).toUpperCase() +
               (value ?? '').slice(1).toLowerCase(),
           ),
+          visitType: visitTypeValues.map(
+            (value) =>
+              SchoolVisitTypeLabels[(value ?? '') as SchoolVisitType] ??
+              value ??
+              '',
+          ),
         });
       } catch {
         setFilterOptions({});
@@ -184,7 +212,6 @@ export const useSchoolActivities = (activityData: any) => {
         setLoadingFilters(false);
       }
     };
-
     fetchFilterOptions();
   }, [api]);
 
@@ -197,7 +224,6 @@ export const useSchoolActivities = (activityData: any) => {
     { key: 'techIssues', label: t('Tech Issues'), sortable: false },
     { key: 'details', label: t('Details'), sortable: false },
   ];
-
   const filterConfigs = useMemo(
     () =>
       [
@@ -211,10 +237,14 @@ export const useSchoolActivities = (activityData: any) => {
           label: t('Contact Type'),
           placeholder: t('Contact Type'),
         },
+        {
+          key: 'visitType',
+          label: t('Type of Visit'),
+          placeholder: t('Type of Visit'),
+        },
       ].filter((filter) => (filterOptions[filter.key] || []).length > 1),
     [filterOptions],
   );
-
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     setPage(1);
@@ -237,7 +267,7 @@ export const useSchoolActivities = (activityData: any) => {
     setPage(1);
   };
   const handleCancelFilters = () => {
-    const reset = { performance: [], contactType: [] };
+    const reset = { performance: [], contactType: [], visitType: [] };
     setFilters(reset);
     setTempFilters(reset);
     setIsFilterOpen(false);
@@ -246,15 +276,14 @@ export const useSchoolActivities = (activityData: any) => {
   const handleSort = (colKey: string) => {
     const sortable = ['name', 'contactType', 'performance', 'class', 'time'];
     if (!sortable.includes(colKey)) return;
-    if (orderBy === colKey) {
+    if (orderBy === colKey)
       setOrderDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-    } else {
+    else {
       setOrderBy(colKey);
       setOrderDir('asc');
     }
     setPage(1);
   };
-
   return {
     activities,
     columns,

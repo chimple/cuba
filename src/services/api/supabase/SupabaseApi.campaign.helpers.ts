@@ -131,7 +131,10 @@ export const fetchRecord = async (
   return asRecord(payload) ?? {};
 };
 
-export type CampaignProgramRow = Pick<TableTypes<'program'>, 'id' | 'name'>;
+export type CampaignProgramRow = Pick<
+  TableTypes<'program'>,
+  'id' | 'name' | 'model'
+>;
 
 export type ProgramMetricsTableRow = Omit<
   ProgramListingProgramRow,
