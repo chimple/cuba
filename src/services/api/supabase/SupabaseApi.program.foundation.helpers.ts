@@ -3,24 +3,7 @@ import logger from '../../../utility/logger';
 import { TABLES, TableTypes, SchoolRoleMap } from '../../../common/constants';
 
 type SupabaseLike = {
-  from: (table: string) => {
-    select: (columns: string) => {
-      in: (
-        column: string,
-        values: string[],
-      ) => {
-        eq: (
-          column: string,
-          value: string | boolean,
-        ) => {
-          or?: (filter: string) => unknown;
-        } & PromiseLike<{
-          data: unknown;
-          error: unknown;
-        }>;
-      };
-    };
-  };
+  from: (table: string) => any;
 };
 
 export const getTeachersForSchoolsAndGradesImpl = async (
@@ -56,11 +39,10 @@ export const getTeachersForSchoolsAndGradesImpl = async (
     return schoolIds.map((id) => ({ schoolId: id, users: [] }));
   }
 
-  const classIds = (classes as Array<{ id: string; school_id: string }>).map(
-    (cls) => cls.id,
-  );
+  const classRows = classes as Array<{ id: string; school_id: string }>;
+  const classIds = classRows.map((cls) => cls.id);
   const classIdToSchoolId: Record<string, string> = {};
-  for (const cls of classes as Array<{ id: string; school_id: string }>) {
+  for (const cls of classRows) {
     classIdToSchoolId[cls.id] = cls.school_id;
   }
 
