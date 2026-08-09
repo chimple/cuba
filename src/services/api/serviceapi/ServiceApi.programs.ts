@@ -59,7 +59,22 @@ export interface ServiceApiPrograms {
 
   getTeachersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]>;
 
+  getTeachersForSchoolsAndGrades(
+    schoolIds: string[],
+    gradeIds: string[],
+  ): Promise<SchoolRoleMap[]>;
+
   getStudentsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]>;
+
+  getStudentsForSchoolsAndGrades(
+    schoolIds: string[],
+    gradeIds: string[],
+  ): Promise<SchoolRoleMap[]>;
+
+  getActiveStudentsForSchoolsAndGrades(
+    schoolIds: string[],
+    gradeIds: string[],
+  ): Promise<number>;
 
   getProgramManagersForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]>;
 

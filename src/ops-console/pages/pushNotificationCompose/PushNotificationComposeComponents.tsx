@@ -28,8 +28,8 @@ export const PushNotificationHeader = ({ onBack }: { onBack: () => void }) => (
   <Box className="push-notification-header">
     <Button
       className="push-notification-header-back"
-      startIcon={<ArrowBack />}
       onClick={onBack}
+      startIcon={<ArrowBack />}
     >
       {t('Campaigns')}
     </Button>

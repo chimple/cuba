@@ -36,6 +36,10 @@ export class ApiHandlerPrograms extends ApiHandlerSchoolOperations {
     return await this.s.getPrograms(params);
   }
 
+  async getProgramMetricsForProgram(programId: string, date_range?: string) {
+    return await this.s.getProgramMetricsForProgram(programId, date_range);
+  }
+
   async insertProgram(payload: any): Promise<boolean | null> {
     return await this.s.insertProgram(payload);
   }
@@ -77,8 +81,32 @@ export class ApiHandlerPrograms extends ApiHandlerSchoolOperations {
     return await this.s.getTeachersForSchools(schoolIds);
   }
 
+  async getTeachersForSchoolsAndGrades(
+    schoolIds: string[],
+    gradeIds: string[],
+  ): Promise<SchoolRoleMap[]> {
+    return await this.s.getTeachersForSchoolsAndGrades(schoolIds, gradeIds);
+  }
+
   async getStudentsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
     return await this.s.getStudentsForSchools(schoolIds);
+  }
+
+  async getStudentsForSchoolsAndGrades(
+    schoolIds: string[],
+    gradeIds: string[],
+  ): Promise<SchoolRoleMap[]> {
+    return await this.s.getStudentsForSchoolsAndGrades(schoolIds, gradeIds);
+  }
+
+  async getActiveStudentsForSchoolsAndGrades(
+    schoolIds: string[],
+    gradeIds: string[],
+  ): Promise<number> {
+    return await this.s.getActiveStudentsForSchoolsAndGrades(
+      schoolIds,
+      gradeIds,
+    );
   }
 
   async getProgramManagersForSchools(

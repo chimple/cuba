@@ -9,18 +9,20 @@ type Params = {
   programId: string;
   summarySchoolIds: string[];
   summaryGradeIds: string[];
+  isAllSchools: boolean;
+  isAllGrades: boolean;
   userType: UserType;
   activityRecency: ActivityRecency;
-  estimatedRecipientCount: number;
 };
 
 export const useMessagesRecipientCount = ({
   programId,
   summarySchoolIds,
   summaryGradeIds,
+  isAllSchools,
+  isAllGrades,
   userType,
   activityRecency,
-  estimatedRecipientCount,
 }: Params) => {
   const api = ServiceConfig.getI().apiHandler;
   const [roleBasedRecipientCount, setRoleBasedRecipientCount] = useState<
@@ -41,7 +43,31 @@ export const useMessagesRecipientCount = ({
       setLoadingRoleCount(true);
       try {
         if (userType === 'student') {
-          const studentMaps = await api.getStudentsForSchools(summarySchoolIds);
+          const isFullProgramSelection = isAllSchools && isAllGrades;
+          if (activityRecency === 'all' && isFullProgramSelection) {
+            const programMetrics =
+              await api.getProgramMetricsForProgram(programId);
+            if (requestIdRef.current !== requestId) return;
+
+            const programStudentCount = Number(
+              programMetrics?.onboarded_students ?? 0,
+            );
+            if (
+              Number.isFinite(programStudentCount) &&
+              programStudentCount > 0
+            ) {
+              setRoleBasedRecipientCount(programStudentCount);
+              return;
+            }
+          }
+
+          const studentMaps =
+            summaryGradeIds.length > 0
+              ? await api.getStudentsForSchoolsAndGrades(
+                  summarySchoolIds,
+                  summaryGradeIds,
+                )
+              : await api.getStudentsForSchools(summarySchoolIds);
           if (requestIdRef.current !== requestId) return;
           const studentIds = studentMaps.flatMap((school) =>
             (school.users ?? []).map((user) => user.id).filter(Boolean),
@@ -50,36 +76,59 @@ export const useMessagesRecipientCount = ({
             setRoleBasedRecipientCount(0);
             return;
           }
+
           if (activityRecency === 'all') {
             setRoleBasedRecipientCount(studentIds.length);
             return;
           }
-          const mvRows = await api.getOpsStudentPerformanceBands({
-            studentIds,
-          });
+
+          if (activityRecency === 'active_7days') {
+            const activeCount = await api.getActiveStudentsForSchoolsAndGrades(
+              summarySchoolIds,
+              summaryGradeIds,
+            );
+            if (requestIdRef.current !== requestId) return;
+            setRoleBasedRecipientCount(activeCount);
+            return;
+          }
+
+          const activeCount = await api.getActiveStudentsForSchoolsAndGrades(
+            summarySchoolIds,
+            summaryGradeIds,
+          );
           if (requestIdRef.current !== requestId) return;
-          const activityByStudentId = new Map<string, number>();
-          mvRows.forEach((row) => {
-            const studentId = String(row.student_id ?? '').trim();
-            if (!studentId) return;
-            const timeSpent = Number(row.time_spent_seconds_7d ?? 0);
-            const existing = activityByStudentId.get(studentId) ?? 0;
-            if (timeSpent > existing)
-              activityByStudentId.set(studentId, timeSpent);
-          });
-          const nextCount = studentIds.filter((studentId) => {
-            const timeSpent = activityByStudentId.get(studentId) ?? 0;
-            const isActive = timeSpent > 0;
-            if (activityRecency === 'active_7days') return isActive;
-            if (activityRecency === 'inactive_7days') return !isActive;
-            return true;
-          }).length;
-          setRoleBasedRecipientCount(nextCount);
+          const inactiveCount = Math.max(studentIds.length - activeCount, 0);
+          setRoleBasedRecipientCount(inactiveCount);
           return;
         }
 
         if (userType === 'teacher') {
-          const teacherMaps = await api.getTeachersForSchools(summarySchoolIds);
+          const isFullProgramSelection = isAllSchools && isAllGrades;
+          if (activityRecency === 'all' && isFullProgramSelection) {
+            const programMetrics =
+              await api.getProgramMetricsForProgram(programId);
+            if (requestIdRef.current !== requestId) return;
+
+            const programTeacherCount = Number(
+              programMetrics?.onboarded_teachers ?? 0,
+            );
+            if (
+              Number.isFinite(programTeacherCount) &&
+              programTeacherCount > 0
+            ) {
+              setRoleBasedRecipientCount(programTeacherCount);
+              return;
+            }
+          }
+
+          const hasGradeSelection = summaryGradeIds.length > 0;
+          const teacherMaps =
+            hasGradeSelection && api.getTeachersForSchoolsAndGrades
+              ? await api.getTeachersForSchoolsAndGrades(
+                  summarySchoolIds,
+                  summaryGradeIds,
+                )
+              : await api.getTeachersForSchools(summarySchoolIds);
           if (requestIdRef.current !== requestId) return;
           const teacherCount = teacherMaps.reduce(
             (total, school) => total + (school.users?.length ?? 0),
@@ -89,9 +138,11 @@ export const useMessagesRecipientCount = ({
             setRoleBasedRecipientCount(teacherCount);
             return;
           }
+
           const activeTeacherCount =
             await api.getActiveTeachersCountForProgram7d(
               programId,
+              summarySchoolIds,
               summaryGradeIds,
             );
           if (requestIdRef.current !== requestId) return;
@@ -136,15 +187,14 @@ export const useMessagesRecipientCount = ({
     programId,
     summaryGradeIds,
     summarySchoolIds,
+    isAllGrades,
+    isAllSchools,
     userType,
   ]);
 
-  const displayRecipientCount =
-    userType === 'student'
-      ? activityRecency === 'all'
-        ? estimatedRecipientCount
-        : roleBasedRecipientCount
-      : roleBasedRecipientCount;
-
-  return { displayRecipientCount, loadingRoleCount, roleBasedRecipientCount };
+  return {
+    displayRecipientCount: roleBasedRecipientCount,
+    loadingRoleCount,
+    roleBasedRecipientCount,
+  };
 };

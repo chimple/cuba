@@ -18,6 +18,12 @@ import {
   type ProgramMetricsDatabase,
   type ProgramMetricsTableRow,
 } from './SupabaseApi.program.helpers';
+import {
+  getProgramConfiguredTargetCount,
+  getProgramMetricNumber,
+  getProgramSchoolDivisionPercent,
+  mapProgramMetricsRow,
+} from './SupabaseApi.program.classMetrics.helpers';
 import { SupabaseApiProgramSchoolMetrics } from './SupabaseApi.program.schoolMetrics';
 
 export interface SupabaseApiProgramClassMetrics {
@@ -104,114 +110,6 @@ export class SupabaseApiProgramClassMetrics extends SupabaseApiProgramSchoolMetr
       search = '',
       date_range,
     } = params;
-
-    // Needed because program_metrics numeric columns can arrive as strings from Supabase.
-    const getProgramMetricNumber = (
-      value: number | string | null | undefined,
-    ): number => {
-      if (typeof value === 'number' && Number.isFinite(value)) return value;
-      if (typeof value === 'string' && value.trim() !== '') {
-        const parsedValue = Number(value);
-        return Number.isFinite(parsedValue) ? parsedValue : 0;
-      }
-      return 0;
-    };
-
-    // Needed so missing target counts show NA instead of an incorrect 0%.
-    const getProgramConfiguredTargetCount = (
-      value: number | string | null | undefined,
-    ): number | null => {
-      if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
-        return value;
-      }
-      if (typeof value === 'string' && value.trim() !== '') {
-        const parsedValue = Number(value);
-        return Number.isFinite(parsedValue) && parsedValue > 0
-          ? parsedValue
-          : null;
-      }
-      return null;
-    };
-
-    // Needed because school division is stored as counts but the UI consumes percentages.
-    const getProgramSchoolDivisionPercent = (
-      value: number | null | undefined,
-      totalSchools: number,
-    ): number => {
-      if (totalSchools <= 0) return 0;
-      return Math.round((getProgramMetricNumber(value) / totalSchools) * 100);
-    };
-
-    // Needed to keep the Program Listing response stable while reading from program_metrics.
-    const mapProgramMetricsRow = (
-      row: ProgramMetricsTableRow,
-    ): ProgramListingProgramRow => {
-      const onboardedStudents = getProgramMetricNumber(row.onboarded_students);
-      const targetStudentCount = getProgramConfiguredTargetCount(
-        row.target_student_count ?? row.program?.students_count,
-      );
-      const activatedStudents = getProgramMetricNumber(row.activated_students);
-      const activeStudents = getProgramMetricNumber(row.active_students);
-      const onboardedTeachers = getProgramMetricNumber(row.onboarded_teachers);
-      const targetTeachersCount = getProgramConfiguredTargetCount(
-        row.target_teacher_count ??
-          row.target_teachers_count ??
-          row.program?.teachers_count,
-      );
-      const activatedTeachers = getProgramMetricNumber(row.activated_teachers);
-      const activeTeachers = getProgramMetricNumber(row.active_teachers);
-      const totalSchools = getProgramMetricNumber(row.total_schools);
-
-      return {
-        ...row,
-        total_schools: totalSchools,
-        performing_well: getProgramSchoolDivisionPercent(
-          row.performing_well,
-          totalSchools,
-        ),
-        needs_attention: getProgramSchoolDivisionPercent(
-          row.needs_attention,
-          totalSchools,
-        ),
-        needs_support: getProgramSchoolDivisionPercent(
-          row.needs_support,
-          totalSchools,
-        ),
-        onboarded_students: onboardedStudents,
-        target_student_count: targetStudentCount,
-        onboarded_students_pct:
-          targetStudentCount !== null
-            ? (onboardedStudents / targetStudentCount) * 100
-            : null,
-        activated_students: activatedStudents,
-        activated_students_pct:
-          onboardedStudents > 0
-            ? (activatedStudents / onboardedStudents) * 100
-            : 0,
-        active_students: activeStudents,
-        active_students_pct:
-          activatedStudents > 0
-            ? (activeStudents / activatedStudents) * 100
-            : 0,
-        avg_time_spent: getProgramMetricNumber(row.avg_time_spent),
-        onboarded_teachers: onboardedTeachers,
-        target_teachers_count: targetTeachersCount,
-        onboarded_teachers_pct:
-          targetTeachersCount !== null
-            ? (onboardedTeachers / targetTeachersCount) * 100
-            : null,
-        activated_teachers: activatedTeachers,
-        activated_teachers_pct:
-          onboardedTeachers > 0
-            ? (activatedTeachers / onboardedTeachers) * 100
-            : 0,
-        active_teachers: activeTeachers,
-        active_teachers_pct:
-          activatedTeachers > 0
-            ? (activeTeachers / activatedTeachers) * 100
-            : 0,
-      };
-    };
 
     // Needed to decide whether the current user can see all programs or only linked programs.
     const specialRoles = await this.getUserSpecialRoles(currentUserId);
@@ -556,6 +454,47 @@ export class SupabaseApiProgramClassMetrics extends SupabaseApiProgramSchoolMetr
     } catch (err) {
       logger.error('Unexpected error in get_schools_with_program_access:', err);
       return fallbackResponse;
+    }
+  }
+
+  public async getProgramMetricsForProgram(
+    programId: string,
+    date_range?: string,
+  ): Promise<ProgramListingProgramRow | null> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized');
+      return null;
+    }
+
+    const trimmedProgramId = programId?.trim();
+    if (!trimmedProgramId) return null;
+
+    try {
+      const programMetricsClient = this
+        .supabase as SupabaseClient<ProgramMetricsDatabase>;
+      let query = programMetricsClient
+        .from('program_metrics')
+        .select('*, program:program_id(students_count, teachers_count)')
+        .eq('is_deleted', false)
+        .eq('program_id', trimmedProgramId)
+        .order('metric_window', { ascending: false })
+        .limit(1);
+
+      if (date_range && date_range !== 'all_time') {
+        query = query.eq('metric_window', date_range.trim().toLowerCase());
+      }
+
+      const { data, error } = await query.maybeSingle();
+
+      if (error) {
+        logger.error('Error fetching program metrics for program:', error);
+        return null;
+      }
+
+      return (data ?? null) as ProgramListingProgramRow | null;
+    } catch (error) {
+      logger.error('Unexpected error in getProgramMetricsForProgram:', error);
+      return null;
     }
   }
 }

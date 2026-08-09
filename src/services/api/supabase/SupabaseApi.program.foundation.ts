@@ -9,6 +9,7 @@ import { RoleType } from '../../../interface/modelInterfaces';
 import logger from '../../../utility/logger';
 import { ServiceConfig } from '../../ServiceConfig';
 import { SupabaseApiCampaignReports } from './SupabaseApi.campaign.reports';
+import { getTeachersForSchoolsAndGradesImpl } from './SupabaseApi.program.foundation.helpers';
 
 export interface SupabaseApiProgramFoundation {
   [key: string]: any;
@@ -226,6 +227,21 @@ export class SupabaseApiProgramFoundation extends SupabaseApiCampaignReports {
     }
     return result;
   }
+
+  async getTeachersForSchoolsAndGrades(
+    schoolIds: string[],
+    gradeIds: string[],
+  ): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized.');
+      return [];
+    }
+    return getTeachersForSchoolsAndGradesImpl(
+      this.supabase,
+      schoolIds,
+      gradeIds,
+    );
+  }
   async getStudentsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
     if (!this.supabase) {
       logger.error('Supabase client is not initialized.');
@@ -284,6 +300,144 @@ export class SupabaseApiProgramFoundation extends SupabaseApiCampaignReports {
       result.push({ schoolId, users: schoolMap.get(schoolId) ?? [] });
     }
     return result;
+  }
+
+  async getStudentsForSchoolsAndGrades(
+    schoolIds: string[],
+    gradeIds: string[],
+  ): Promise<SchoolRoleMap[]> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized.');
+      return [];
+    }
+
+    const normalizedGradeIds = Array.from(
+      new Set(gradeIds.map((gradeId) => gradeId.trim()).filter(Boolean)),
+    );
+
+    if (schoolIds.length === 0 || normalizedGradeIds.length === 0) {
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    let classQuery = this.supabase
+      .from(TABLES.Class)
+      .select('id, school_id')
+      .in('school_id', schoolIds)
+      .eq('is_deleted', false);
+
+    classQuery = classQuery.or(
+      `grade_id.in.(${normalizedGradeIds.join(',')}),grade_id.is.null`,
+    );
+
+    const { data: classes, error: classError } = await classQuery;
+
+    if (classError || !classes) {
+      logger.error('Error fetching grade-scoped classes:', classError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const classIds = classes.map((cls) => cls.id);
+    const classIdToSchoolId: Record<string, string> = {};
+    for (const cls of classes) {
+      classIdToSchoolId[cls.id] = cls.school_id;
+    }
+
+    const { data: classUsers, error: classUserError } = await this.supabase
+      .from(TABLES.ClassUser)
+      .select('user: user_id (*), class_id')
+      .in('class_id', classIds.length ? classIds : [''])
+      .eq('is_deleted', false)
+      .eq('role', RoleType.STUDENT);
+
+    if (classUserError || !classUsers) {
+      logger.error('Error fetching grade-scoped class users:', classUserError);
+      return schoolIds.map((id) => ({ schoolId: id, users: [] }));
+    }
+
+    const schoolMap: Map<string, TableTypes<'user'>[]> = new Map();
+    for (const schoolId of schoolIds) {
+      schoolMap.set(schoolId, []);
+    }
+
+    for (const entry of classUsers) {
+      const schoolId = classIdToSchoolId[entry.class_id];
+      const user = entry.user as unknown as TableTypes<'user'>;
+      if (!schoolId || !user) continue;
+
+      const existing = schoolMap.get(schoolId) || [];
+      if (!existing.some((current) => current.id === user.id)) {
+        existing.push(user);
+        schoolMap.set(schoolId, existing);
+      }
+    }
+
+    return schoolIds.map((schoolId) => ({
+      schoolId,
+      users: schoolMap.get(schoolId) ?? [],
+    }));
+  }
+
+  async getActiveStudentsForSchoolsAndGrades(
+    schoolIds: string[],
+    gradeIds: string[],
+  ): Promise<number> {
+    if (!this.supabase) {
+      logger.error('Supabase client is not initialized.');
+      return 0;
+    }
+
+    const normalizedSchoolIds = Array.from(
+      new Set(schoolIds.map((schoolId) => schoolId.trim()).filter(Boolean)),
+    );
+    const normalizedGradeIds = Array.from(
+      new Set(gradeIds.map((gradeId) => gradeId.trim()).filter(Boolean)),
+    );
+
+    if (normalizedSchoolIds.length === 0) {
+      return 0;
+    }
+
+    let classQuery = this.supabase
+      .from(TABLES.Class)
+      .select('id, school_id')
+      .in('school_id', normalizedSchoolIds)
+      .eq('is_deleted', false);
+
+    if (normalizedGradeIds.length > 0) {
+      classQuery = classQuery.or(
+        `grade_id.in.(${normalizedGradeIds.join(',')}),grade_id.is.null`,
+      );
+    }
+
+    const { data: classes, error: classError } = await classQuery;
+
+    if (classError || !classes) {
+      logger.error('Error fetching active-student classes:', classError);
+      return 0;
+    }
+
+    const classIds = classes.map((classRow) => classRow.id);
+    if (classIds.length === 0) return 0;
+
+    const { data: mvRows, error: mvError } = await this.supabase
+      .from('student_performance_mv')
+      .select('student_id,class_id,time_spent_seconds_7d')
+      .in('class_id', classIds);
+
+    if (mvError || !mvRows) {
+      logger.error(
+        'Error fetching active students from performance MV:',
+        mvError,
+      );
+      return 0;
+    }
+
+    return new Set(
+      mvRows
+        .filter((row) => Number(row.time_spent_seconds_7d ?? 0) > 0)
+        .map((row) => String(row.student_id ?? '').trim())
+        .filter(Boolean),
+    ).size;
   }
 
   async getProgramManagersForSchools(

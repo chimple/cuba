@@ -98,6 +98,7 @@ export interface ServiceApiFieldActivities {
 
   getActiveTeachersCountForProgram7d(
     programId: string,
+    schoolIds?: string[],
     gradeIds?: string[],
   ): Promise<number | null>;
 

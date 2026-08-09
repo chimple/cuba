@@ -271,6 +271,7 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
 
   async getActiveTeachersCountForProgram7d(
     programId: string,
+    schoolIds?: string[],
     gradeIds?: string[],
   ): Promise<number | null> {
     if (!this.supabase || !programId) return null;
@@ -281,6 +282,10 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
       .eq('program_id', programId)
       .eq('metric_window', '7d')
       .eq('is_deleted', false);
+
+    if (schoolIds && schoolIds.length > 0) {
+      query = query.in('school_id', schoolIds);
+    }
 
     if (gradeIds && gradeIds.length > 0) {
       query = query.in('grade_id', gradeIds);
