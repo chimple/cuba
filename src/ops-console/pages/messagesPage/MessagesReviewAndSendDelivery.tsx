@@ -260,7 +260,10 @@ const MessagesReviewAndSendDelivery: React.FC<
                 className="messages-review-send__time-button"
                 aria-label={String(t('Time'))}
                 aria-expanded={openTimePicker}
-                onClick={(event) => openTimeMenu(event.currentTarget)}
+                onClick={(event) => {
+                  setTimeAnchorEl(event.currentTarget);
+                  setOpenTimePicker(true);
+                }}
               >
                 <span>{displayTime}</span>
                 <AccessTimeOutlined fontSize="small" />
