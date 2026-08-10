@@ -48,7 +48,7 @@ export const ClassCourseSelector = ({
               <div className="class-option-text">
                 <span className="class-form-subject">{course.name}</span>
                 <span className="class-form-sub">
-                  {course.curriculum_name} â€“ {course.grade_name}
+                  {course.curriculum_name} - {course.grade_name}
                 </span>
               </div>
               <input

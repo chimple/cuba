@@ -2,10 +2,7 @@ import { t } from 'i18next';
 import { Capacitor } from '@capacitor/core';
 import { IoLocationOutline, IoTimeOutline } from 'react-icons/io5';
 import type { LatLng, TargetLocation } from './SchoolCheckInModal.types';
-import {
-  formatCheckInDate,
-  formatCheckInTime,
-} from './schoolCheckInUtils';
+import { formatCheckInDate, formatCheckInTime } from './schoolCheckInUtils';
 
 type SchoolCheckInCardsProps = {
   currentDate: Date;
@@ -35,7 +32,10 @@ export default function SchoolCheckInCards({
   return (
     <>
       <div id="check-in-location-card" className="check-in-card">
-        <div id="check-in-location-icon-wrapper" className="check-in-icon-wrapper">
+        <div
+          id="check-in-location-icon-wrapper"
+          className="check-in-icon-wrapper"
+        >
           <IoLocationOutline />
         </div>
         <div id="check-in-location-content" className="check-in-card-content">
@@ -56,7 +56,7 @@ export default function SchoolCheckInCards({
               <span className="location-coords-label">
                 {t('User Coordinates')}:{' '}
               </span>
-              {userLocation.lat.toFixed(4)}Â° N, {userLocation.lng.toFixed(4)}Â° E
+              {userLocation.lat.toFixed(4)}° N, {userLocation.lng.toFixed(4)}° E
             </div>
           )}
           {distance !== null && !isLoadingLocation && (
@@ -80,7 +80,10 @@ export default function SchoolCheckInCards({
               id="check-in-permission-denied-section"
               className="permission-denied-container"
             >
-              <div id="check-in-permission-error-msg" className="permission-error-text">
+              <div
+                id="check-in-permission-error-msg"
+                className="permission-error-text"
+              >
                 {isPermissionDenied
                   ? Capacitor.getPlatform() === 'web'
                     ? t('Please Enable Location Permission')
@@ -93,7 +96,9 @@ export default function SchoolCheckInCards({
                   className="retry-permission-btn"
                   onClick={handleRetryLocation}
                 >
-                  {isPermissionDenied ? t('Enable Location') : t('Retry Location')}
+                  {isPermissionDenied
+                    ? t('Enable Location')
+                    : t('Retry Location')}
                 </button>
               )}
             </div>

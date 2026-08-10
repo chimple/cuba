@@ -18,14 +18,8 @@ export default function FcInteractCameraModal({
       aria-modal="true"
     >
       <div className="fc-interact-popup-camera-modal" id="fc-camera-modal">
-        <div
-          className="fc-interact-popup-camera-header"
-          id="fc-camera-header"
-        >
-          <div
-            className="fc-interact-popup-camera-title"
-            id="fc-camera-title"
-          >
+        <div className="fc-interact-popup-camera-header" id="fc-camera-header">
+          <div className="fc-interact-popup-camera-title" id="fc-camera-title">
             {t('Capture') || 'Capture'}
           </div>
           <button
@@ -34,15 +28,12 @@ export default function FcInteractCameraModal({
             aria-label={t('Close') || 'Close'}
             onClick={media.cancelCamera}
           >
-            Ã—
+            ×
           </button>
         </div>
 
         {media.cameraError && (
-          <div
-            className="fc-interact-popup-camera-error"
-            id="fc-camera-error"
-          >
+          <div className="fc-interact-popup-camera-error" id="fc-camera-error">
             {media.cameraError}
           </div>
         )}
@@ -80,10 +71,7 @@ export default function FcInteractCameraModal({
         )}
 
         {media.cameraUiMode === 'mobile' && (
-          <div
-            className="fc-interact-popup-camera-hint"
-            id="fc-camera-hint"
-          >
+          <div className="fc-interact-popup-camera-hint" id="fc-camera-hint">
             {/* {t("Camera permission is required to use the in-app camera.") ||
               "Camera permission is required to use the in-app camera."} */}
           </div>
