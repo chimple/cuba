@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button, Typography } from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
 import {
   PushNotificationLivePreview,
@@ -87,6 +86,7 @@ const MessagesReviewAndSendStep: React.FC<MessagesReviewAndSendStepProps> = ({
         <MessagesReviewAndSendSummary
           audienceSummaryItems={audienceSummaryItems}
           notificationSummaryItems={notificationSummaryItems}
+          notificationImageUrl={draft.imageUrl}
           onEditAudience={onEditAudience}
           onEditNotification={onEditNotification}
         />
@@ -126,7 +126,6 @@ const MessagesReviewAndSendStep: React.FC<MessagesReviewAndSendStepProps> = ({
           <Button
             type="button"
             variant="outlined"
-            startIcon={<ArrowBack />}
             className="messages-review-send__back-button"
             onClick={onBack}
           >

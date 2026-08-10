@@ -7,6 +7,7 @@ type SummaryItem = { label: string; value: string };
 type MessagesReviewAndSendSummaryProps = {
   audienceSummaryItems: SummaryItem[];
   notificationSummaryItems: SummaryItem[];
+  notificationImageUrl: string;
   onEditAudience: () => void;
   onEditNotification: () => void;
 };
@@ -16,6 +17,7 @@ const MessagesReviewAndSendSummary: React.FC<
 > = ({
   audienceSummaryItems,
   notificationSummaryItems,
+  notificationImageUrl,
   onEditAudience,
   onEditNotification,
 }) => {
@@ -52,14 +54,14 @@ const MessagesReviewAndSendSummary: React.FC<
                   key={item.label}
                   className="messages-review-send__summary-estimated-row"
                 >
-                  <span>{t(item.label)}</span>
+                  <span>{`${t(item.label)}:`}</span>
                   <strong>{item.value}</strong>
                 </div>
               );
             }
             return (
               <React.Fragment key={item.label}>
-                <dt>{t(item.label)}</dt>
+                <dt>{`${t(item.label)}:`}</dt>
                 <dd>{item.value}</dd>
               </React.Fragment>
             );
@@ -101,15 +103,17 @@ const MessagesReviewAndSendSummary: React.FC<
                       : undefined
                   }
                 >
-                  {t(item.label)}
+                  {`${t(item.label)}:`}
                 </dt>
                 <dd>
                   <span
-                    className={
+                    className={[
                       isAttachedValue
                         ? 'messages-review-send__summary-value--attached'
-                        : undefined
-                    }
+                        : undefined,
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
                   >
                     {isAttachmentStatus
                       ? item.value === 'Attached'
