@@ -85,8 +85,38 @@ export class SqliteApiProgramFoundation extends SqliteApiCampaignManagement {
     return await this._serverApi.getTeachersForSchools(schoolIds);
   }
 
+  async getTeachersForSchoolsAndGrades(
+    schoolIds: string[],
+    gradeIds: string[],
+  ): Promise<SchoolRoleMap[]> {
+    return await this._serverApi.getTeachersForSchoolsAndGrades(
+      schoolIds,
+      gradeIds,
+    );
+  }
+
   async getStudentsForSchools(schoolIds: string[]): Promise<SchoolRoleMap[]> {
     return await this._serverApi.getStudentsForSchools(schoolIds);
+  }
+
+  async getStudentsForSchoolsAndGrades(
+    schoolIds: string[],
+    gradeIds: string[],
+  ): Promise<SchoolRoleMap[]> {
+    return await this._serverApi.getStudentsForSchoolsAndGrades(
+      schoolIds,
+      gradeIds,
+    );
+  }
+
+  async getActiveStudentsForSchoolsAndGrades(
+    schoolIds: string[],
+    gradeIds: string[],
+  ): Promise<number> {
+    return await this._serverApi.getActiveStudentsForSchoolsAndGrades(
+      schoolIds,
+      gradeIds,
+    );
   }
 
   async getProgramManagersForSchools(
@@ -113,6 +143,13 @@ export class SqliteApiProgramFoundation extends SqliteApiCampaignManagement {
     }[];
   } | null> {
     return await this._serverApi.getProgramData(programId);
+  }
+
+  async getProgramMetricsForProgram(programId: string, date_range?: string) {
+    return await this._serverApi.getProgramMetricsForProgram(
+      programId,
+      date_range,
+    );
   }
 
   async getSchoolFilterOptionsForSchoolListing(): Promise<

@@ -89,7 +89,7 @@ describe('PushNotificationComposeComponents', () => {
       />,
     );
 
-    expect(screen.getByText('9:41')).toBeInTheDocument();
+    expect(screen.queryByText('9:41')).not.toBeInTheDocument();
     expect(screen.getByText('Chimple')).toBeInTheDocument();
     expect(screen.getByText('Homework')).toBeInTheDocument();
     expect(screen.getByText('Complete your lesson.')).toBeInTheDocument();

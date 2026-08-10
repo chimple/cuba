@@ -28,8 +28,8 @@ export const PushNotificationHeader = ({ onBack }: { onBack: () => void }) => (
   <Box className="push-notification-header">
     <Button
       className="push-notification-header-back"
-      startIcon={<ArrowBack />}
       onClick={onBack}
+      startIcon={<ArrowBack />}
     >
       {t('Campaigns')}
     </Button>
@@ -57,12 +57,11 @@ export const PushNotificationLivePreview = ({
   title: string;
 }) => (
   <Box className="push-notification-preview-card">
+    <Typography className="push-notification-preview-title">
+      {t('Live Preview')}
+    </Typography>
     <Box className="push-notification-device">
       <Box className="push-notification-card">
-        <Box className="push-notification-device-status">
-          <span>9:41</span>
-          <span>••••</span>
-        </Box>
         <Box className="push-notification-content">
           <Box className="push-notification-app-row">
             <span className="push-notification-app-icon">
@@ -94,9 +93,6 @@ export const PushNotificationLivePreview = ({
         </Box>
       </Box>
     </Box>
-    <Typography className="push-notification-preview-title">
-      {t('Live Preview')}
-    </Typography>
     <Typography className="push-notification-preview-note">
       {t(
         'Preview is illustrative. Final appearance may vary depending on the device and operating system.',

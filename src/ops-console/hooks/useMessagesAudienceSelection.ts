@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SelectChangeEvent } from '@mui/material';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import {
@@ -180,7 +180,11 @@ export const useMessagesAudienceSelection = () => {
         ? current
         : nextSchools;
     });
-  }, [hasCustomSchoolSelection, schoolsForSelectedBlocks]);
+  }, [
+    audienceOptions.schools,
+    hasCustomSchoolSelection,
+    schoolsForSelectedBlocks,
+  ]);
 
   const allSchoolIds = useMemo(
     () => audienceOptions.schools.map((school) => school.id),
@@ -191,9 +195,9 @@ export const useMessagesAudienceSelection = () => {
     [selectedSchools],
   );
   const isAllSchools =
-    selectedSchoolIds.length === 0 ||
-    (allSchoolIds.length > 0 &&
-      selectedSchoolIds.length === allSchoolIds.length);
+    selectedSchoolIds.length > 0 &&
+    allSchoolIds.length > 0 &&
+    selectedSchoolIds.length === allSchoolIds.length;
 
   // Load available grades
   useEffect(() => {
@@ -239,13 +243,15 @@ export const useMessagesAudienceSelection = () => {
   useEffect(() => {
     if (loadingGrades) return;
     setSelectedGrades((current) => {
-      const availableGradeIds = new Set(availableGrades.map((g) => g.id));
-      const nextGrades = hasCustomGradeSelection
-        ? current.filter((grade) => availableGradeIds.has(grade.id))
-        : availableGrades;
+      const nextGrades = hasCustomGradeSelection ? current : availableGrades;
       return areOptionIdArraysEqual(current, nextGrades) ? current : nextGrades;
     });
-  }, [availableGrades, hasCustomGradeSelection, loadingGrades]);
+  }, [
+    audienceOptions.grades,
+    availableGrades,
+    hasCustomGradeSelection,
+    loadingGrades,
+  ]);
 
   const selectedGradeIds = useMemo(
     () => selectedGrades.map((grade) => grade.id),
@@ -259,7 +265,12 @@ export const useMessagesAudienceSelection = () => {
     programs.find((p) => p.id === programId)?.name || '-';
 
   const summarySchoolIds = useMemo(
-    () => (isAllSchools ? allSchoolIds : selectedSchoolIds),
+    () =>
+      selectedSchoolIds.length === 0
+        ? []
+        : isAllSchools
+          ? allSchoolIds
+          : selectedSchoolIds,
     [allSchoolIds, isAllSchools, selectedSchoolIds],
   );
   const summaryGradeIds = useMemo(
@@ -300,19 +311,11 @@ export const useMessagesAudienceSelection = () => {
     };
   }, [api, summarySchoolIds, summaryGradeIds]);
 
-  const estimatedRecipientCount = useMemo(
-    () =>
-      audienceSummary.grades.reduce(
-        (total, grade) => total + grade.studentCount,
-        0,
-      ),
-    [audienceSummary],
-  );
-
   const { displayRecipientCount, loadingRoleCount } = useMessagesRecipientCount(
     {
       activityRecency,
-      estimatedRecipientCount,
+      isAllGrades,
+      isAllSchools,
       programId,
       summaryGradeIds,
       summarySchoolIds,
@@ -500,7 +503,6 @@ export const useMessagesAudienceSelection = () => {
     loadingRoleCount,
     summaryBlockCount,
     summarySchoolCount,
-    estimatedRecipientCount,
     displayRecipientCount,
     isAllSchools,
     isAllGrades,
