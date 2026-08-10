@@ -1,5 +1,6 @@
 .push-notification-preview-card {
   align-items: stretch;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   padding: 1.25rem;
@@ -14,17 +15,8 @@
   width: 100%;
 }
 
-.push-notification-device-status {
-  color: var(--text);
-  display: flex;
-  font-size: 0.625rem;
-  justify-content: space-between;
-  margin-bottom: 0.625rem;
-}
-
 .push-notification-card {
   background: #fff;
-  border-radius: 0.5rem;
   padding: 0.625rem;
   text-align: left;
 }
@@ -74,6 +66,7 @@
   color: var(--text);
   font-size: 0.75rem;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .push-notification-card p {
@@ -101,6 +94,40 @@
 }
 
 .push-notification-preview-title.MuiTypography-root {
-  color: var(--muted);
-  font-style: italic;
+  color: #8d98a7;
+  margin-bottom: 0;
+  order: 2;
+}
+
+.push-notification-device {
+  order: 1;
+}
+
+.push-notification-preview-note.MuiTypography-root {
+  order: 3;
+}
+
+@media (max-width: 48rem) and (orientation: portrait) {
+  .push-notification-preview-card {
+    padding: 1rem;
+  }
+
+  .push-notification-preview-title.MuiTypography-root {
+    color: var(--muted);
+    font-size: 0.875rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    order: -1;
+    text-align: left;
+  }
+
+  .push-notification-device,
+  .push-notification-preview-note.MuiTypography-root {
+    order: 0;
+  }
+
+  .push-notification-preview-image,
+  .push-notification-preview-image-placeholder {
+    height: 6rem;
+  }
 }
