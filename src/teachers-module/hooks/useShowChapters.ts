@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
-import { useHistory } from 'react-router';
+import { useHistory, useLocation } from 'react-router';
 import Header from '../components/homePage/Header';
 import {
   AssignmentSource,
@@ -20,18 +20,22 @@ import {
 import logger from '../../utility/logger';
 import AssignedVisibilityToggle from '../components/AssignedVisibilityToggle';
 import { parsePath } from 'history';
+import { UtilFileStorage } from '../../utility/util.fileStorage';
 
 export const useShowChapters = () => {
   const [currentClass, setCurrentClass] = useState<TableTypes<'class'> | null>(
     null,
   );
   const history = useHistory();
-  const locationState = (history.location.state ?? {}) as {
-    course: TableTypes<'course'>;
+  const location = useLocation();
+  const locationState = (location.state ?? {}) as {
+    course?: TableTypes<'course'>;
     chapterId?: string;
     gradeName?: string;
   };
-  const course: TableTypes<'course'> = locationState.course;
+  const current_class = Util.getCurrentClass();
+  const course =
+    locationState.course ?? UtilFileStorage.getCurrentCourse(current_class?.id);
   const routeChapterId = locationState.chapterId;
   const [gradeName, setGradeName] = useState<string>(
     locationState.gradeName ?? '',
@@ -58,18 +62,18 @@ export const useShowChapters = () => {
     useState<boolean>(false);
   const [isLoadingAssignedLessons, setIsLoadingAssignedLessons] =
     useState<boolean>(false);
+  const locationKey = location.key;
 
   const chapterRefs = useRef<(HTMLDivElement | null)[]>([]); // Create an array of refs for each chapter
   const lastScrolledChapterIdRef = useRef<string | undefined>(undefined);
   const auth = ServiceConfig.getI().authHandler;
   const api = ServiceConfig.getI().apiHandler;
-  const current_class = Util.getCurrentClass();
   const selectedCourseName =
-    course.code === COURSES.ENGLISH
+    course?.code === COURSES.ENGLISH
       ? (course.name ?? '')
-      : t(course.name ?? '');
+      : t(course?.name ?? '');
   const selectedCourseGrade =
-    course.code === COURSES.ENGLISH ? gradeName : t(gradeName);
+    course?.code === COURSES.ENGLISH ? gradeName : t(gradeName);
 
   useEffect(() => {
     const fetchClassDetails = async () => {
@@ -86,12 +90,12 @@ export const useShowChapters = () => {
 
   useEffect(() => {
     const fetchGradeName = async () => {
-      if (gradeName || !course.grade_id) return;
+      if (gradeName || !course?.grade_id) return;
       const grade = await api.getGradeById(course.grade_id);
       setGradeName(grade?.name ?? '');
     };
     fetchGradeName();
-  }, [api, course.grade_id, gradeName]);
+  }, [api, course?.grade_id, gradeName]);
 
   const syncSelectedLesson = async (lesson: string): Promise<void> => {
     if (currentUser?.id)
@@ -99,6 +103,8 @@ export const useShowChapters = () => {
   };
 
   const init = useCallback(async () => {
+    if (!course?.id) return;
+
     const currUser = await auth.getCurrentUser();
     setCurrentUser(currUser);
     const classId = currentClass?.id ?? current_class?.id ?? '';
@@ -166,7 +172,7 @@ export const useShowChapters = () => {
   }, [
     api,
     auth,
-    course.id,
+    course?.id,
     currentClass?.id,
     current_class?.id,
     routeChapterId,
@@ -176,6 +182,8 @@ export const useShowChapters = () => {
     lesson: TableTypes<'lesson'>,
     chapter: TableTypes<'chapter'>,
   ) => {
+    if (!course) return;
+
     history.replace({
       ...parsePath(PAGES.LESSON_DETAILS),
       state: {
@@ -328,7 +336,7 @@ export const useShowChapters = () => {
 
   useEffect(() => {
     init();
-  }, [init]);
+  }, [init, locationKey]);
 
   useEffect(() => {
     if (!isShowAssigned) {
