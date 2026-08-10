@@ -84,6 +84,9 @@ export const MessagesSavedAudienceGroupFields: React.FC<
               type="button"
               className="messages-page__save-button messages-page__save-group-text-button"
               disabled={savingGroup}
+              disableRipple
+              disableFocusRipple
+              disableTouchRipple
               onClick={onSaveGroup}
             >
               {t('Save')}
@@ -91,9 +94,12 @@ export const MessagesSavedAudienceGroupFields: React.FC<
             <Button
               type="button"
               className="messages-page__cancel-button"
+              disableRipple
+              disableFocusRipple
+              disableTouchRipple
               onClick={onCancelSaveGroup}
             >
-              {t('Cancel')}
+              Cancel
             </Button>
           </Box>
         </Box>

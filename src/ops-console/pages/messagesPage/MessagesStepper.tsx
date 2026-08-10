@@ -10,11 +10,16 @@ export const MESSAGES_TABS = [
 type MessagesStepperProps = {
   activeStepIndex: number;
   onStepClick: (step: (typeof MESSAGES_TABS)[number]) => void;
+  isStepDisabled?: (
+    step: (typeof MESSAGES_TABS)[number],
+    index: number,
+  ) => boolean;
 };
 
 const MessagesStepper: React.FC<MessagesStepperProps> = ({
   activeStepIndex,
   onStepClick,
+  isStepDisabled,
 }) => {
   const { t } = useTranslation();
 
@@ -27,6 +32,7 @@ const MessagesStepper: React.FC<MessagesStepperProps> = ({
         {MESSAGES_TABS.map((step, index) => {
           const isActive = index === activeStepIndex;
           const isComplete = index < activeStepIndex;
+          const disabled = isStepDisabled?.(step, index) ?? false;
           return (
             <React.Fragment key={step}>
               <button
@@ -34,7 +40,10 @@ const MessagesStepper: React.FC<MessagesStepperProps> = ({
                 className={`messages-page__step ${
                   isActive ? 'messages-page__step--active' : ''
                 } ${isComplete ? 'messages-page__step--complete' : ''}`}
-                onClick={() => onStepClick(step)}
+                onClick={() => {
+                  if (!disabled) onStepClick(step);
+                }}
+                disabled={disabled}
                 aria-current={isActive ? 'step' : undefined}
               >
                 <span className="messages-page__step-index">{index + 1}</span>

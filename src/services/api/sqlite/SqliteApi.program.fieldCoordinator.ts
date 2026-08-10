@@ -101,6 +101,7 @@ export class SqliteApiProgramFieldCoordinator extends SqliteApiProgramClassManag
 
   async getActiveTeachersCountForProgram7d(
     programId: string,
+    schoolIds?: string[],
     gradeIds?: string[],
   ): Promise<number | null> {
     logger.warn(
@@ -108,6 +109,7 @@ export class SqliteApiProgramFieldCoordinator extends SqliteApiProgramClassManag
     );
     return this._serverApi.getActiveTeachersCountForProgram7d(
       programId,
+      schoolIds,
       gradeIds,
     );
   }

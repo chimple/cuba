@@ -3,6 +3,7 @@ import type {
   CampaignMessagingQueryParams,
   CampaignMessagingResponse,
   UpdateCampaignMessagingRowPayload,
+  ProgramListingProgramRow,
   CampaignOption,
   CampaignSavedAudienceGroup,
   CampaignSetupOptions,
@@ -60,6 +61,11 @@ export interface ServiceApiCampaigns {
   getCampaignAudienceOptions(
     programId: string,
   ): Promise<CampaignAudienceOptions>;
+
+  getProgramMetricsForProgram(
+    programId: string,
+    date_range?: string,
+  ): Promise<ProgramListingProgramRow | null>;
 
   getCampaignGradesForSchools(schoolIds: string[]): Promise<CampaignOption[]>;
 

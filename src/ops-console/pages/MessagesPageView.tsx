@@ -17,6 +17,9 @@ import './PushNotificationComposeForm.css';
 import './PushNotificationComposePreview.css';
 
 const MESSAGES_BREADCRUMB = ['Messages', 'New Push Notification'] as const;
+const dropdownMenuProps = {
+  PaperProps: { className: 'campaign-setup-dropdown-menu' },
+};
 
 type MessagesPageViewProps = {
   activeTab: (typeof MESSAGES_TABS)[number];
@@ -115,11 +118,17 @@ const MessagesPageView: React.FC<MessagesPageViewProps> = ({
   onValidityChange,
 }) => {
   const { t } = useTranslation();
+  const isStepDisabled = (
+    step: (typeof MESSAGES_TABS)[number],
+    index: number,
+  ) => (index > 0 && !isAudienceValid) || (index > 1 && !isComposeValid);
 
   return (
     <main
       id="ops-messages-page"
-      className="ops-campaigns-overview messages-page"
+      className={`ops-campaigns-overview messages-page ${
+        isFirstStep ? '' : 'messages-page-step-back-mode'
+      }`}
       aria-labelledby="ops-messages-page-title"
     >
       <header className="messages-page__header">
@@ -152,6 +161,7 @@ const MessagesPageView: React.FC<MessagesPageViewProps> = ({
       <MessagesStepper
         activeStepIndex={MESSAGES_TABS.indexOf(activeTab)}
         onStepClick={onStepClick}
+        isStepDisabled={isStepDisabled}
       />
 
       <div className="ops-campaigns-overview-content messages-page__content">
@@ -163,6 +173,7 @@ const MessagesPageView: React.FC<MessagesPageViewProps> = ({
           >
             <MessagesTargetAudienceSection
               audience={audience}
+              dropdownMenuProps={dropdownMenuProps}
               onValidityChange={onValidityChange}
             />
           </section>

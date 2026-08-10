@@ -1,63 +1,44 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { Box, FormControl, MenuItem, Select, Typography } from '@mui/material';
+import type { SelectProps } from '@mui/material/Select';
 import { useTranslation } from 'react-i18next';
 import { CampaignSelectPlaceholder } from './CampaignPlaceholder';
 import { requiredLabel } from './constants';
-import { CampaignMultiSelect } from './CampaignMultiSelect';
+import { MessagesMultiSelect } from './MessagesMultiSelect';
 import MessagesAudienceSummary from './MessagesAudienceSummary';
 import MessagesAudienceRefineSection from './MessagesAudienceRefineSection';
 import MessagesSavedAudienceGroupFields from './MessagesSavedAudienceGroupFields';
 import { useMessagesAudienceSelection } from '../../hooks/useMessagesAudienceSelection';
+import { useMessagesTargetAudienceDerivedState } from './MessagesTargetAudienceSection.helpers';
 import './TargetAudienceSection.css';
 
 type MessagesTargetAudienceSectionProps = {
   onValidityChange?: (isValid: boolean) => void;
   audience?: ReturnType<typeof useMessagesAudienceSelection>;
+  dropdownMenuProps?: SelectProps['MenuProps'];
 };
 export const MessagesTargetAudienceSection: React.FC<
   MessagesTargetAudienceSectionProps
-> = ({ onValidityChange, audience: audienceProp }) => {
+> = ({ onValidityChange, audience: audienceProp, dropdownMenuProps }) => {
   const { t } = useTranslation();
   const fallbackAudience = useMessagesAudienceSelection();
   const audience = audienceProp ?? fallbackAudience;
-
-  const savedGroupNameById = useMemo(
-    () => new Map(audience.savedGroups.map((group) => [group.id, group.name])),
-    [audience.savedGroups],
-  );
-  const programNameById = useMemo(
-    () =>
-      new Map(audience.programs.map((program) => [program.id, program.name])),
-    [audience.programs],
-  );
-  const gradeSelectScopeKey = useMemo(() => {
-    const schoolKey =
-      audience.selectedSchools.length ===
-      audience.audienceOptions.schools.length
-        ? 'all-schools'
-        : audience.selectedSchools
-            .map((school) => school.id)
-            .sort()
-            .join('|');
-    const gradeKey = audience.availableGrades
-      .map((grade) => grade.id)
-      .join('|');
-
-    return `${schoolKey}:${gradeKey}`;
-  }, [
-    audience.audienceOptions.schools.length,
+  const {
+    savedGroupNameById,
+    programNameById,
+    gradeSelectScopeKey,
+    scopedSelectedGrades,
+  } = useMessagesTargetAudienceDerivedState(
+    audience.savedGroups,
+    audience.programs,
     audience.availableGrades,
     audience.selectedSchools,
-  ]);
-  const scopedSelectedGrades = useMemo(() => {
-    const availableGradeIds = new Set(
-      audience.availableGrades.map((grade) => grade.id),
-    );
-
-    return audience.selectedGrades.filter((grade) =>
-      availableGradeIds.has(grade.id),
-    );
-  }, [audience.availableGrades, audience.selectedGrades]);
+    audience.selectedGrades,
+    audience.audienceOptions.schools.length,
+  );
+  const isProgramModelLocked =
+    audience.programModel.trim().length > 0 &&
+    audience.programModel !== 'Hybrid';
 
   useEffect(() => {
     const hasSelection =
@@ -105,6 +86,7 @@ export const MessagesTargetAudienceSection: React.FC<
                   )
                 }
                 size="small"
+                MenuProps={dropdownMenuProps}
               >
                 <MenuItem value="">{t('Select a saved group')}</MenuItem>
                 {audience.savedGroups.map((group) => (
@@ -118,7 +100,10 @@ export const MessagesTargetAudienceSection: React.FC<
 
           <Box className="campaign-setup-field">
             <Typography className="campaign-setup-label messages-page__program-label">
-              {requiredLabel('Program')}
+              <>
+                {t('Program')}{' '}
+                <span className="messages-page__required">*</span>
+              </>
             </Typography>
             <FormControl fullWidth error={!!audience.programError}>
               <Select
@@ -133,6 +118,7 @@ export const MessagesTargetAudienceSection: React.FC<
                   )
                 }
                 size="small"
+                MenuProps={dropdownMenuProps}
               >
                 <MenuItem value="" disabled>
                   {t('Select Program')}
@@ -159,58 +145,73 @@ export const MessagesTargetAudienceSection: React.FC<
             <Typography className="campaign-setup-label messages-page__program-label">
               {t('Program Model')}
             </Typography>
-            <FormControl fullWidth>
-              <Select
-                value={audience.programModel}
-                onChange={(event) =>
-                  audience.setProgramModel(event.target.value)
-                }
-                displayEmpty
-                renderValue={(value) =>
-                  CampaignSelectPlaceholder(
-                    value,
-                    t('Select Program Model'),
-                    value || undefined,
-                  )
-                }
-                size="small"
+            {isProgramModelLocked ? (
+              <Box
+                className="messages-page__program-model-readonly"
+                role="textbox"
+                aria-readonly="true"
               >
-                <MenuItem value="">{t('Select Program Model')}</MenuItem>
-                <MenuItem value="At School">{t('At School')}</MenuItem>
-                <MenuItem value="At Home">{t('At Home')}</MenuItem>
-                <MenuItem value="Hybrid">{t('Hybrid')}</MenuItem>
-              </Select>
-            </FormControl>
+                {audience.programModel}
+              </Box>
+            ) : (
+              <FormControl fullWidth>
+                <Select
+                  value={audience.programModel}
+                  onChange={(event) =>
+                    audience.setProgramModel(event.target.value)
+                  }
+                  displayEmpty
+                  renderValue={(value) =>
+                    CampaignSelectPlaceholder(
+                      value,
+                      t('Select Program Model'),
+                      value || undefined,
+                    )
+                  }
+                  size="small"
+                  MenuProps={dropdownMenuProps}
+                >
+                  <MenuItem value="">{t('Select Program Model')}</MenuItem>
+                  <MenuItem value="At School">{t('At School')}</MenuItem>
+                  <MenuItem value="At Home">{t('At Home')}</MenuItem>
+                  <MenuItem value="Hybrid">{t('Hybrid')}</MenuItem>
+                </Select>
+              </FormControl>
+            )}
           </Box>
 
           <Box className="campaign-setup-field">
             <Typography className="campaign-setup-label messages-page__program-label">
               {t('Block')}
             </Typography>
-            <CampaignMultiSelect
-              options={audience.audienceOptions.blocks}
-              value={audience.selectedBlocks}
-              loading={audience.loadingAudience}
-              placeholder={t('Select Blocks')}
-              preventMobileKeyboard
-              onChange={audience.handleBlocksChange}
-            />
+            <Box className="messages-page__multi-select-field">
+              <MessagesMultiSelect
+                options={audience.audienceOptions.blocks}
+                value={audience.selectedBlocks}
+                loading={audience.loadingAudience}
+                placeholder={t('Select Blocks')}
+                preventMobileKeyboard
+                onChange={audience.handleBlocksChange}
+              />
+            </Box>
           </Box>
 
           <Box className="campaign-setup-field">
             <Typography className="campaign-setup-label messages-page__program-label">
               {t('School')}
             </Typography>
-            <CampaignMultiSelect
-              options={audience.schoolsForSelectedBlocks}
-              value={audience.selectedSchools}
-              loading={audience.loadingAudience}
-              placeholder={t('Select Schools')}
-              preventMobileKeyboard
-              getOptionLabel={(option) => option.name}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              onChange={audience.handleSchoolsChange}
-            />
+            <Box className="messages-page__multi-select-field">
+              <MessagesMultiSelect
+                options={audience.schoolsForSelectedBlocks}
+                value={audience.selectedSchools}
+                loading={audience.loadingAudience}
+                placeholder={t('Select Schools')}
+                preventMobileKeyboard
+                getOptionLabel={(option) => option.name}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                onChange={audience.handleSchoolsChange}
+              />
+            </Box>
             <Typography className="target-audience-section-field-note messages-page__field-note">
               {t('All schools under selected blocks are included.')}
             </Typography>
@@ -220,17 +221,19 @@ export const MessagesTargetAudienceSection: React.FC<
             <Typography className="campaign-setup-label messages-page__program-label">
               {t('Grade')}
             </Typography>
-            <CampaignMultiSelect
-              key={gradeSelectScopeKey}
-              options={audience.availableGrades}
-              value={scopedSelectedGrades}
-              loading={audience.loadingAudience || audience.loadingGrades}
-              placeholder={t('Select Grade')}
-              preventMobileKeyboard
-              getOptionLabel={(option) => option.name}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              onChange={audience.handleGradesChange}
-            />
+            <Box className="messages-page__multi-select-field">
+              <MessagesMultiSelect
+                key={gradeSelectScopeKey}
+                options={audience.availableGrades}
+                value={scopedSelectedGrades}
+                loading={audience.loadingAudience || audience.loadingGrades}
+                placeholder={t('Select Grade')}
+                preventMobileKeyboard
+                getOptionLabel={(option) => option.name}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                onChange={audience.handleGradesChange}
+              />
+            </Box>
             <Typography className="target-audience-section-field-note messages-page__field-note">
               {t('All grades under selected schools are included.')}
             </Typography>
