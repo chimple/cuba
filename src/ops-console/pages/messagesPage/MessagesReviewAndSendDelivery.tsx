@@ -8,12 +8,16 @@ import {
 } from '@mui/material';
 import {
   Autorenew,
+  CalendarMonthOutlined,
   EventNote,
   AccessTimeOutlined,
   SendOutlined,
 } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-import type { DeliveryMode } from './MessagesPage.helpers';
+import {
+  formatLocalDisplayDate,
+  type DeliveryMode,
+} from './MessagesPage.helpers';
 import MessagesReviewAndSendTimePicker from './MessagesReviewAndSendTimePicker';
 
 type MessagesReviewAndSendDeliveryProps = {
@@ -53,6 +57,7 @@ const MessagesReviewAndSendDelivery: React.FC<
     if (!match) return ['09', 'AM'] as const;
     return [match[1].padStart(2, '0'), match[2].toUpperCase() as 'AM' | 'PM'];
   }, [props.sendTime]);
+  const displayTime = `${selectedHour.replace(/^0/, '')} ${selectedPeriod}`;
   const todayLocalDate = React.useMemo(() => {
     const now = new Date();
     const year = now.getFullYear();
@@ -66,15 +71,6 @@ const MessagesReviewAndSendDelivery: React.FC<
       : todayLocalDate;
   const timePickerDate =
     props.deliveryMode === 'schedule' ? scheduleDate : null;
-
-  const updateTime = (nextHour: string, nextPeriod: string) => {
-    props.onSendTimeChange(`${nextHour}:00 ${nextPeriod}`);
-  };
-
-  const openTimeMenu = (anchorElement: HTMLElement) => {
-    setTimeAnchorEl(anchorElement);
-    setOpenTimePicker(true);
-  };
 
   return (
     <section className="messages-review-send__delivery-section">
@@ -139,14 +135,24 @@ const MessagesReviewAndSendDelivery: React.FC<
             <div className="messages-review-send__schedule-grid">
               <label className="messages-review-send__schedule-field">
                 <span>{t('Start Date')}</span>
-                <input
-                  type="date"
-                  min={todayLocalDate}
-                  value={scheduleDate}
-                  onChange={(event) =>
-                    props.onStartDateChange(event.target.value)
-                  }
-                />
+                <div className="messages-review-send__date-field">
+                  <div className="messages-review-send__date-display">
+                    <span>{formatLocalDisplayDate(scheduleDate)}</span>
+                    <CalendarMonthOutlined
+                      className="messages-review-send__date-icon"
+                      fontSize="small"
+                    />
+                  </div>
+                  <input
+                    type="date"
+                    min={todayLocalDate}
+                    value={scheduleDate}
+                    onChange={(event) =>
+                      props.onStartDateChange(event.target.value)
+                    }
+                    aria-label={String(t('Start Date'))}
+                  />
+                </div>
               </label>
               <div className="messages-review-send__schedule-field">
                 <span>{t('Time')}</span>
@@ -155,9 +161,12 @@ const MessagesReviewAndSendDelivery: React.FC<
                   className="messages-review-send__time-button"
                   aria-label={String(t('Time'))}
                   aria-expanded={openTimePicker}
-                  onClick={(event) => openTimeMenu(event.currentTarget)}
+                  onClick={(event) => {
+                    setTimeAnchorEl(event.currentTarget);
+                    setOpenTimePicker(true);
+                  }}
                 >
-                  <span>{props.sendTime}</span>
+                  <span>{displayTime}</span>
                   <AccessTimeOutlined fontSize="small" />
                 </button>
               </div>
@@ -187,14 +196,24 @@ const MessagesReviewAndSendDelivery: React.FC<
               <div className="messages-review-send__end-date-row">
                 <label className="messages-review-send__schedule-field">
                   <span>{t('End on Date')}</span>
-                  <input
-                    type="date"
-                    min={todayLocalDate}
-                    value={props.endDate}
-                    onChange={(event) =>
-                      props.onEndDateChange(event.target.value)
-                    }
-                  />
+                  <div className="messages-review-send__date-field">
+                    <div className="messages-review-send__date-display">
+                      <span>{formatLocalDisplayDate(props.endDate)}</span>
+                      <CalendarMonthOutlined
+                        className="messages-review-send__date-icon"
+                        fontSize="small"
+                      />
+                    </div>
+                    <input
+                      type="date"
+                      min={todayLocalDate}
+                      value={props.endDate}
+                      onChange={(event) =>
+                        props.onEndDateChange(event.target.value)
+                      }
+                      aria-label={String(t('End on Date'))}
+                    />
+                  </div>
                 </label>
                 <Typography className="messages-review-send__end-date-hint">
                   {t(
@@ -215,14 +234,24 @@ const MessagesReviewAndSendDelivery: React.FC<
           <div className="messages-review-send__schedule-grid">
             <label className="messages-review-send__schedule-field">
               <span>{t('Date')}</span>
-              <input
-                type="date"
-                min={todayLocalDate}
-                value={scheduleDate}
-                onChange={(event) =>
-                  props.onStartDateChange(event.target.value)
-                }
-              />
+              <div className="messages-review-send__date-field">
+                <div className="messages-review-send__date-display">
+                  <span>{formatLocalDisplayDate(scheduleDate)}</span>
+                  <CalendarMonthOutlined
+                    className="messages-review-send__date-icon"
+                    fontSize="small"
+                  />
+                </div>
+                <input
+                  type="date"
+                  min={todayLocalDate}
+                  value={scheduleDate}
+                  onChange={(event) =>
+                    props.onStartDateChange(event.target.value)
+                  }
+                  aria-label={String(t('Date'))}
+                />
+              </div>
             </label>
             <div className="messages-review-send__schedule-field">
               <span>{t('Time')}</span>
@@ -233,7 +262,7 @@ const MessagesReviewAndSendDelivery: React.FC<
                 aria-expanded={openTimePicker}
                 onClick={(event) => openTimeMenu(event.currentTarget)}
               >
-                <span>{props.sendTime}</span>
+                <span>{displayTime}</span>
                 <AccessTimeOutlined fontSize="small" />
               </button>
             </div>
@@ -257,7 +286,7 @@ const MessagesReviewAndSendDelivery: React.FC<
         selectedPeriod={selectedPeriod}
         onClose={() => setOpenTimePicker(false)}
         onSelectTime={(hour, period) => {
-          updateTime(hour, period);
+          props.onSendTimeChange(`${hour}:00 ${period}`);
           setOpenTimePicker(false);
         }}
       />

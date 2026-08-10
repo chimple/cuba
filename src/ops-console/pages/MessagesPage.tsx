@@ -9,6 +9,7 @@ import {
   buildNotificationSummaryItems,
   DeliveryMode,
   getCurrentLocalDateString,
+  getCurrentLocalHourPlusOneString,
   getCurrentLocalTimePlusOneMinuteString,
   isScheduledTimeInPast,
 } from './messagesPage/MessagesPage.helpers';
@@ -42,9 +43,7 @@ const MessagesPage: React.FC = () => {
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [startDate, setStartDate] = useState(getCurrentLocalDateString());
   const [endDate, setEndDate] = useState(getCurrentLocalDateString());
-  const [sendTime, setSendTime] = useState(
-    getCurrentLocalTimePlusOneMinuteString(),
-  );
+  const [sendTime, setSendTime] = useState(getCurrentLocalHourPlusOneString());
   const [neverEnds, setNeverEnds] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
@@ -149,7 +148,7 @@ const MessagesPage: React.FC = () => {
     if (!nextMode) return;
     setDeliveryMode(nextMode);
     if (nextMode === 'schedule') {
-      setSendTime(getCurrentLocalTimePlusOneMinuteString());
+      setSendTime(getCurrentLocalHourPlusOneString());
       setStartDate((current) =>
         current && current >= getCurrentLocalDateString()
           ? current

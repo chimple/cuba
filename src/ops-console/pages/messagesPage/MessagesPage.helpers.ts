@@ -19,6 +19,22 @@ export const getCurrentLocalTimeString = () =>
     hour12: true,
   });
 
+export const getCurrentLocalHourString = () => {
+  const now = new Date();
+  const hour = now.getHours();
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const normalizedHour = hour % 12 === 0 ? 12 : hour % 12;
+  return `${String(normalizedHour).padStart(2, '0')}:00 ${period}`;
+};
+
+export const getCurrentLocalHourPlusOneString = () => {
+  const now = new Date();
+  const nextHour = (now.getHours() + 1) % 24;
+  const period = nextHour >= 12 ? 'PM' : 'AM';
+  const normalizedHour = nextHour % 12 === 0 ? 12 : nextHour % 12;
+  return `${String(normalizedHour).padStart(2, '0')}:00 ${period}`;
+};
+
 export const getCurrentLocalTimePlusOneMinuteString = () => {
   const nextMinute = new Date(Date.now() + 60 * 1000);
   return nextMinute.toLocaleTimeString('en-US', {
@@ -26,6 +42,16 @@ export const getCurrentLocalTimePlusOneMinuteString = () => {
     minute: '2-digit',
     hour12: true,
   });
+};
+
+export const formatLocalDisplayDate = (value: string) => {
+  if (!value) return '';
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = date.toLocaleString('en-US', { month: 'short' });
+  const year = date.getFullYear();
+  return `${day} ${month} ${year}`;
 };
 
 const parseLocalTimeToMinutes = (time: string) => {
