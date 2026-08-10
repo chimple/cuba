@@ -139,7 +139,7 @@ const FileUpload: React.FC<{ onCancleClick?: () => void }> = ({
                   onClick={() => setFile(null)}
                   className="file-upload-remove-btn"
                 >
-                  âœ•
+                  ×
                 </button>
               </div>
               <p className="file-upload-size">

@@ -213,7 +213,7 @@ const EditStudent = () => {
                         <ChimpleLogo
                           header={t('')}
                           msg={t(
-                            'Choose your child�s class details',
+                            "Choose your child's class details",
                           ).toString()}
                         />
                       </div>

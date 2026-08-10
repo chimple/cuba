@@ -173,7 +173,7 @@ export const useSchoolPrincipals = ({
       name: principal.name || 'N/A',
       gender: principal.gender || 'N/A',
       phoneNumber: principal.phone || '-',
-      emailDisplay: principal.email || 'â€”',
+      emailDisplay: principal.email || '—',
       phoneEmailDisplay: `${principal.phone?.trim() || '-'} / ${principal.email?.trim() || '-'}`,
       interact: '',
       interactPayload: principal,

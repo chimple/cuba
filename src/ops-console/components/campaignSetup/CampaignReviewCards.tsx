@@ -63,7 +63,7 @@ export const CampaignReviewRewardsCard = ({
                   {t('Threshold')}:{' '}
                   {formatRewardThreshold(rule.min, usesLessonCriteria)}
                 </span>{' '}
-                <span className="campaign-review-reward-separator">Â·</span>{' '}
+                <span className="campaign-review-reward-separator">·</span>{' '}
                 {rule.reward || emptyValue}
               </Typography>
               <Typography className="campaign-review-reward-threshold">
@@ -133,7 +133,7 @@ export const CampaignReviewCommunicationCard = ({
               <Typography className="campaign-review-message-day">
                 {t('Day {{day}}', { day: index + 1 })}
               </Typography>
-              <span className="campaign-review-reward-separator">Â·</span>{' '}
+              <span className="campaign-review-reward-separator">·</span>{' '}
               <Typography className="campaign-review-message-date">
                 {formatDate(row.scheduled_date)}
               </Typography>
