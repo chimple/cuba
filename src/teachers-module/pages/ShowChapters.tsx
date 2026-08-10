@@ -15,7 +15,9 @@ const ShowChapters = () => {
     assignmentCount,
     chapterRefs,
     classSelectedLesson,
+    course,
     courseCode,
+    gradeName,
     handleOnLessonClick,
     handleShowAssignedChange,
     history,
@@ -96,7 +98,14 @@ const ShowChapters = () => {
         <AssigmentCount
           assignments={assignmentCount}
           onClick={() => {
-            history.push(PAGES.TEACHER_ASSIGNMENT);
+            history.push({
+              ...parsePath(PAGES.TEACHER_ASSIGNMENT),
+              state: {
+                course,
+                gradeName,
+                fromPage: PAGES.SHOW_CHAPTERS,
+              },
+            });
           }}
         />
       </main>

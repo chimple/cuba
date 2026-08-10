@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router';
 import { Toast } from '@capacitor/toast';
 import { t } from 'i18next';
@@ -32,6 +32,12 @@ export interface AssignmentCourseGroup {
   lessons: AssignmentLessonItem[];
 }
 
+interface TeacherLibraryAssignmentsNavigationState {
+  course?: TableTypes<'course'>;
+  gradeName?: string;
+  fromPage?: string;
+}
+
 export const useTeacherLibraryAssignmentsLogic = () => {
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
@@ -39,11 +45,7 @@ export const useTeacherLibraryAssignmentsLogic = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [groups, setGroups] = useState<AssignmentCourseGroup[]>([]);
 
-  useEffect(() => {
-    void init();
-  }, []);
-
-  const init = async () => {
+  const init = useCallback(async () => {
     setLoading(true);
     try {
       const currentClass = Util.getCurrentClass();
@@ -154,7 +156,11 @@ export const useTeacherLibraryAssignmentsLogic = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [api, auth, history]);
+
+  useEffect(() => {
+    void init();
+  }, [init]);
 
   const assignmentCount = useMemo(
     () =>
@@ -229,13 +235,43 @@ export const useTeacherLibraryAssignmentsLogic = () => {
       return;
     }
 
+    const navigationState = (history.location.state ??
+      {}) as TeacherLibraryAssignmentsNavigationState;
+
     history.replace({
       ...parsePath(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE),
-      state: buildAssignmentPayload(),
+      state: {
+        ...buildAssignmentPayload(),
+        ...(navigationState.fromPage === PAGES.SHOW_CHAPTERS &&
+        navigationState.course
+          ? {
+              course: navigationState.course,
+              gradeName: navigationState.gradeName,
+              fromPage: navigationState.fromPage,
+            }
+          : {}),
+      },
     });
   };
 
   const handleBackButtonClick = () => {
+    const navigationState = (history.location.state ??
+      {}) as TeacherLibraryAssignmentsNavigationState;
+
+    if (
+      navigationState.fromPage === PAGES.SHOW_CHAPTERS &&
+      navigationState.course
+    ) {
+      history.replace({
+        ...parsePath(PAGES.SHOW_CHAPTERS),
+        state: {
+          course: navigationState.course,
+          gradeName: navigationState.gradeName,
+        },
+      });
+      return;
+    }
+
     if (history.length > 1) {
       history.goBack();
       return;

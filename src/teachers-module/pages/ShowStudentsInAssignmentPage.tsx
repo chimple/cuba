@@ -39,6 +39,8 @@ const ShowStudentsInAssignmentPage: React.FC = () => {
         selectedAssignments?: {};
         manualAssignments?: {};
         recommendedAssignments?: {};
+        course?: TableTypes<'course'>;
+        gradeName?: string;
         fromPage?: string;
         qrAssignmentNavigationState?: {
           chapterId: string;
@@ -65,6 +67,17 @@ const ShowStudentsInAssignmentPage: React.FC = () => {
       history.replace({
         ...parsePath(PAGES.QR_ASSIGNMENTS),
         state: qrAssignmentNavigationState,
+      });
+      return;
+    }
+    if (fromPage === PAGES.SHOW_CHAPTERS && navigationState?.course) {
+      history.replace({
+        ...parsePath(PAGES.TEACHER_ASSIGNMENT),
+        state: {
+          course: navigationState.course,
+          gradeName: navigationState.gradeName,
+          fromPage,
+        },
       });
       return;
     }

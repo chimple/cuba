@@ -58,6 +58,7 @@ export const useShowChapters = () => {
     useState<boolean>(false);
   const [isLoadingAssignedLessons, setIsLoadingAssignedLessons] =
     useState<boolean>(false);
+  const locationKey = history.location.key;
 
   const chapterRefs = useRef<(HTMLDivElement | null)[]>([]); // Create an array of refs for each chapter
   const lastScrolledChapterIdRef = useRef<string | undefined>(undefined);
@@ -327,8 +328,10 @@ export const useShowChapters = () => {
   ]);
 
   useEffect(() => {
-    init();
-  }, [init]);
+    setHasLoadedAssignedLessons(false);
+    setAssignedLessonIds(new Set());
+    void init();
+  }, [init, locationKey]);
 
   useEffect(() => {
     if (!isShowAssigned) {
@@ -395,7 +398,9 @@ export const useShowChapters = () => {
     assignmentCount,
     chapterRefs,
     classSelectedLesson,
+    course,
     courseCode,
+    gradeName,
     handleOnLessonClick,
     handleShowAssignedChange,
     history,
