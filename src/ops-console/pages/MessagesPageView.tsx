@@ -132,13 +132,15 @@ const MessagesPageView: React.FC<MessagesPageViewProps> = ({
       aria-labelledby="ops-messages-page-title"
     >
       <header className="messages-page__header">
-        <IconButton
-          className="messages-page__mobile-back-button"
-          onClick={onBack}
-          aria-label={String(t('Back'))}
-        >
-          <ArrowBack />
-        </IconButton>
+        <div className="messages-page__header-left">
+          <IconButton
+            className="messages-page__mobile-back-button"
+            onClick={onBack}
+            aria-label={String(t('Back'))}
+          >
+            <ArrowBack />
+          </IconButton>
+        </div>
         <div className="messages-page__heading-block">
           <h1 id="ops-messages-page-title">{t('New Push Notification')}</h1>
           <div
@@ -153,9 +155,11 @@ const MessagesPageView: React.FC<MessagesPageViewProps> = ({
             <strong>{t(MESSAGES_BREADCRUMB[1])}</strong>
           </div>
         </div>
-        <IconButton className="messages-page__notification-button">
-          <Notifications />
-        </IconButton>
+        <div className="messages-page__header-right">
+          <IconButton className="messages-page__notification-button">
+            <Notifications />
+          </IconButton>
+        </div>
       </header>
 
       <MessagesStepper
