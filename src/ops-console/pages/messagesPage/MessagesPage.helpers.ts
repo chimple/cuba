@@ -125,6 +125,7 @@ export const hasFutureTimesForPeriod = (
 
 export const buildAudienceSummaryItems = (audience: {
   selectedProgramName: string;
+  selectedProgramModel: string;
   selectedBlocks: string[];
   selectedGrades: Array<{ id: string; name: string }>;
   summarySchoolCount: number;
@@ -133,6 +134,7 @@ export const buildAudienceSummaryItems = (audience: {
   displayRecipientCount: number | null;
 }) => [
   { label: 'Program', value: audience.selectedProgramName || '-' },
+  { label: 'Program Model', value: audience.selectedProgramModel || '-' },
   {
     label: 'Selected Blocks',
     value:
@@ -190,6 +192,7 @@ export const buildCampaignNotificationPayload = async ({
 }: {
   audience: {
     programId: string;
+    programModel: string;
     userType: 'principal' | 'teacher' | 'student';
     activityRecency: 'all' | 'active_7days' | 'inactive_7days';
     isAllSchools: boolean;
@@ -210,6 +213,9 @@ export const buildCampaignNotificationPayload = async ({
   uploadPushNotificationImage: (file: File) => Promise<string>;
 }): Promise<CampaignNotificationPayload> => {
   if (!audience.programId) throw new Error('Program is required.');
+  if (!audience.programModel.trim()) {
+    throw new Error('Program model is required.');
+  }
   if (!isComposeValid) throw new Error('Notification content is incomplete.');
   if (deliveryMode === 'schedule' && !startDate) {
     throw new Error('Please choose a send date.');
@@ -236,6 +242,7 @@ export const buildCampaignNotificationPayload = async ({
     label: draft.label.trim(),
     title: draft.title.trim(),
     message: draft.body.trim(),
+    programModel: audience.programModel.trim(),
     userType: audience.userType,
     activityRecency: audience.activityRecency,
     imageUrl: uploadedImageUrl,

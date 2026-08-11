@@ -36,10 +36,6 @@ export const MessagesTargetAudienceSection: React.FC<
     audience.selectedGrades,
     audience.audienceOptions.schools.length,
   );
-  const isProgramModelLocked =
-    audience.programModel.trim().length > 0 &&
-    audience.programModel !== 'Hybrid';
-
   useEffect(() => {
     const hasSelection =
       audience.programId.trim().length > 0 &&
@@ -145,39 +141,27 @@ export const MessagesTargetAudienceSection: React.FC<
             <Typography className="campaign-setup-label messages-page__program-label">
               {t('Program Model')}
             </Typography>
-            {isProgramModelLocked ? (
-              <Box
-                className="messages-page__program-model-readonly"
-                role="textbox"
-                aria-readonly="true"
+            <FormControl fullWidth>
+              <Select
+                value={audience.programModel}
+                onChange={(event) => audience.setProgramModel(event.target.value)}
+                displayEmpty
+                renderValue={(value) =>
+                  CampaignSelectPlaceholder(
+                    value,
+                    t('Select Program Model'),
+                    value || undefined,
+                  )
+                }
+                size="small"
+                MenuProps={dropdownMenuProps}
               >
-                {audience.programModel}
-              </Box>
-            ) : (
-              <FormControl fullWidth>
-                <Select
-                  value={audience.programModel}
-                  onChange={(event) =>
-                    audience.setProgramModel(event.target.value)
-                  }
-                  displayEmpty
-                  renderValue={(value) =>
-                    CampaignSelectPlaceholder(
-                      value,
-                      t('Select Program Model'),
-                      value || undefined,
-                    )
-                  }
-                  size="small"
-                  MenuProps={dropdownMenuProps}
-                >
-                  <MenuItem value="">{t('Select Program Model')}</MenuItem>
-                  <MenuItem value="At School">{t('At School')}</MenuItem>
-                  <MenuItem value="At Home">{t('At Home')}</MenuItem>
-                  <MenuItem value="Hybrid">{t('Hybrid')}</MenuItem>
-                </Select>
-              </FormControl>
-            )}
+                <MenuItem value="">{t('Select Program Model')}</MenuItem>
+                <MenuItem value="At School">{t('At School')}</MenuItem>
+                <MenuItem value="At Home">{t('At Home')}</MenuItem>
+                <MenuItem value="Hybrid">{t('Hybrid')}</MenuItem>
+              </Select>
+            </FormControl>
           </Box>
 
           <Box className="campaign-setup-field">
@@ -266,6 +250,7 @@ export const MessagesTargetAudienceSection: React.FC<
         userType={
           audience.userType.charAt(0).toUpperCase() + audience.userType.slice(1)
         }
+        activityRecency={audience.activityRecency}
         summary={audience.audienceSummary}
         recipientCount={audience.displayRecipientCount}
       />

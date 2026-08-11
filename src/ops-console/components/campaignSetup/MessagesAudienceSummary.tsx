@@ -8,6 +8,7 @@ type MessagesAudienceSummaryProps = {
   blockCount: number;
   schoolCount: number;
   userType: string;
+  activityRecency: 'all' | 'active_7days' | 'inactive_7days';
   summary: CampaignAudienceSummary;
   recipientCount: number | null;
 };
@@ -33,10 +34,13 @@ export const MessagesAudienceSummary: React.FC<
   blockCount,
   schoolCount,
   userType,
+  activityRecency,
   summary,
   recipientCount,
 }) => {
   const { t } = useTranslation();
+  const isStudentOnboardedView =
+    userType.trim().toLowerCase() === 'student' && activityRecency === 'all';
   const hasNoStudents = recipientCount === 0;
   const emptyAudienceMessage = getEmptyAudienceMessage(userType);
   const gradeLabel =

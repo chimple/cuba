@@ -43,24 +43,6 @@ export const useMessagesRecipientCount = ({
       setLoadingRoleCount(true);
       try {
         if (userType === 'student') {
-          const isFullProgramSelection = isAllSchools && isAllGrades;
-          if (activityRecency === 'all' && isFullProgramSelection) {
-            const programMetrics =
-              await api.getProgramMetricsForProgram(programId);
-            if (requestIdRef.current !== requestId) return;
-
-            const programStudentCount = Number(
-              programMetrics?.onboarded_students ?? 0,
-            );
-            if (
-              Number.isFinite(programStudentCount) &&
-              programStudentCount > 0
-            ) {
-              setRoleBasedRecipientCount(programStudentCount);
-              return;
-            }
-          }
-
           const studentMaps =
             summaryGradeIds.length > 0
               ? await api.getStudentsForSchoolsAndGrades(
@@ -103,24 +85,6 @@ export const useMessagesRecipientCount = ({
         }
 
         if (userType === 'teacher') {
-          const isFullProgramSelection = isAllSchools && isAllGrades;
-          if (activityRecency === 'all' && isFullProgramSelection) {
-            const programMetrics =
-              await api.getProgramMetricsForProgram(programId);
-            if (requestIdRef.current !== requestId) return;
-
-            const programTeacherCount = Number(
-              programMetrics?.onboarded_teachers ?? 0,
-            );
-            if (
-              Number.isFinite(programTeacherCount) &&
-              programTeacherCount > 0
-            ) {
-              setRoleBasedRecipientCount(programTeacherCount);
-              return;
-            }
-          }
-
           const hasGradeSelection = summaryGradeIds.length > 0;
           const teacherMaps =
             hasGradeSelection && api.getTeachersForSchoolsAndGrades

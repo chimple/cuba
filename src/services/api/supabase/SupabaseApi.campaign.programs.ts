@@ -318,7 +318,6 @@ export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
 
     await this.ensurePushNotificationsBucket();
 
-    const bucket = SupabaseApiCampaignPrograms.PUSH_NOTIFICATIONS_BUCKET;
     const { data: authData } = await this.supabase.auth.getUser();
     const extension = file.name.split('.').pop() || 'png';
     const folder = authData.user?.id || 'anonymous';

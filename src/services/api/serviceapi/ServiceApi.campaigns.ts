@@ -60,6 +60,7 @@ export interface ServiceApiCampaigns {
 
   getCampaignAudienceOptions(
     programId: string,
+    programModel?: string,
   ): Promise<CampaignAudienceOptions>;
 
   getProgramMetricsForProgram(

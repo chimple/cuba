@@ -20,6 +20,7 @@ export type CampaignNotificationPayload = {
   label: string;
   title: string;
   message: string;
+  programModel: string;
   userType: CampaignNotificationUserType;
   activityRecency: CampaignNotificationActivityRecency;
   imageUrl?: string | null;

@@ -21,19 +21,46 @@ export interface SupabaseApiCampaignAudience {
   [key: string]: any;
 }
 export class SupabaseApiCampaignAudience extends SupabaseApiCampaignListing {
+  private normalizeProgramModel(model?: string) {
+    switch (model?.trim()) {
+      case 'At School':
+      case 'at_school':
+        return 'at_school';
+      case 'At Home':
+      case 'at_home':
+        return 'at_home';
+      case 'Hybrid':
+      case 'hybrid':
+        return 'hybrid';
+      default:
+        return '';
+    }
+  }
+
   async getCampaignAudienceOptions(
     programId: string,
+    programModel?: string,
   ): Promise<CampaignAudienceOptions> {
     if (!this.supabase || !programId) {
       return { blocks: [], schools: [], grades: [] };
     }
 
-    const { data: schoolRows, error: schoolError } = await this.supabase
+    const normalizedProgramModel = this.normalizeProgramModel(programModel);
+
+    let schoolQuery = this.supabase
       .from('school')
       .select('id, name, group3')
       .eq('program_id', programId)
-      .eq('is_deleted', false)
-      .order('name', { ascending: true });
+      .eq('is_deleted', false);
+
+    if (normalizedProgramModel) {
+      schoolQuery = schoolQuery.eq('model', normalizedProgramModel);
+    }
+
+    const { data: schoolRows, error: schoolError } = await schoolQuery.order(
+      'name',
+      { ascending: true },
+    );
 
     if (schoolError) {
       logger.error('Error fetching campaign audience schools:', schoolError);
