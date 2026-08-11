@@ -43,14 +43,14 @@ import { AvatarObj } from '../../components/animation/Avatar';
 import i18n from '../../i18n';
 import { Chapter } from '../../interface/curriculumInterfaces';
 import { RoleType } from '../../interface/modelInterfaces';
-import Assignment from '../../models/assignment';
-import Auth from '../../models/auth';
-import Class from '../../models/class';
-import Course from '../../models/course';
-import CurriculumController from '../../models/curriculumController';
-import Lesson from '../../models/lesson';
-import Result from '../../models/result';
-import User from '../../models/user';
+import Assignment from '../../models/Assignment';
+import Auth from '../../models/Auth';
+import Class from '../../models/Class';
+import Course from '../../models/Course';
+import CurriculumController from '../../models/CurriculumController';
+import Lesson from '../../models/Lesson';
+import Result from '../../models/Result';
+import User from '../../models/User';
 import { reinitializeTincan } from '../../tincan';
 import logger from '../../utility/logger';
 import { Util } from '../../utility/util';
@@ -1114,8 +1114,7 @@ export class OneRosterApi implements ServiceApi {
     orderDir: 'asc' | 'desc',
     filters?: {
       request_type?: string[];
-      school?: //   } //     } //       results.push(Result.fromJson(i));
-      //   console.log(
+      school?: //   console.log( //   } //     } //       results.push(Result.fromJson(i));
       //     "🚀 ~ file: OneRosterApi.ts:134 ~ OneRosterApi ~ getResultsForStudentForClass ~ results:",
       //     JSON.stringify(results)
       //   );

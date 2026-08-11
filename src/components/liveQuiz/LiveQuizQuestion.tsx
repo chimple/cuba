@@ -5,7 +5,7 @@ import LiveQuiz, {
   LIVE_QUIZ_QUESTION_TIME,
   LiveQuizOption,
   LiveQuizQuestion as LiveQuizQuestionType,
-} from '../../models/liveQuiz';
+} from '../../models/LiveQuiz';
 import './LiveQuizQuestion.css';
 import { Capacitor } from '@capacitor/core';
 import { Util } from '../../utility/util';

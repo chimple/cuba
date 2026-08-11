@@ -1,6 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { RoleType } from '../interface/modelInterfaces';
-import Auth from '../models/auth';
+import Auth from '../models/Auth';
 import { Constants, Database } from '../services/database';
 import SelectIconImage from '../teachers-module/assets/icons/all_subject_icon.png';
 export { IS_USER_LOGED_IN, USER_TOKEN } from './authStorage';

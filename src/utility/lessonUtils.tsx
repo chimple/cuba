@@ -1,6 +1,6 @@
 import { PAGES, CONTINUE, LIVE_QUIZ, PortPlugin } from '../common/constants';
-import Lesson from '../models/lesson';
-import Course from '../models/course';
+import Lesson from '../models/Lesson';
+import Course from '../models/Course';
 import { Util } from '../utility/util';
 import { useHistory } from 'react-router-dom';
 import { registerPlugin } from '@capacitor/core';
