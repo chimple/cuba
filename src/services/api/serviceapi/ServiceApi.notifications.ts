@@ -20,7 +20,7 @@ export type CampaignNotificationPayload = {
   label: string;
   title: string;
   message: string;
-  programModel: string;
+  programModel?: string | null;
   userType: CampaignNotificationUserType;
   activityRecency: CampaignNotificationActivityRecency;
   imageUrl?: string | null;
@@ -34,4 +34,5 @@ export type CampaignNotificationPayload = {
   sendTime?: string | null;
   endDate?: string | null;
   recurringDays?: string[];
+  savedAudienceGroupId?: string | null;
 };

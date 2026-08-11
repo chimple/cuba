@@ -192,7 +192,8 @@ export const buildCampaignNotificationPayload = async ({
 }: {
   audience: {
     programId: string;
-    programModel: string;
+    programModel?: string | null;
+    selectedSavedGroupId: string;
     userType: 'principal' | 'teacher' | 'student';
     activityRecency: 'all' | 'active_7days' | 'inactive_7days';
     isAllSchools: boolean;
@@ -213,9 +214,6 @@ export const buildCampaignNotificationPayload = async ({
   uploadPushNotificationImage: (file: File) => Promise<string>;
 }): Promise<CampaignNotificationPayload> => {
   if (!audience.programId) throw new Error('Program is required.');
-  if (!audience.programModel.trim()) {
-    throw new Error('Program model is required.');
-  }
   if (!isComposeValid) throw new Error('Notification content is incomplete.');
   if (deliveryMode === 'schedule' && !startDate) {
     throw new Error('Please choose a send date.');
@@ -242,7 +240,7 @@ export const buildCampaignNotificationPayload = async ({
     label: draft.label.trim(),
     title: draft.title.trim(),
     message: draft.body.trim(),
-    programModel: audience.programModel.trim(),
+    programModel: audience.programModel?.trim() || null,
     userType: audience.userType,
     activityRecency: audience.activityRecency,
     imageUrl: uploadedImageUrl,
@@ -266,5 +264,6 @@ export const buildCampaignNotificationPayload = async ({
           : sendTime,
     endDate: deliveryMode === 'recurring' && !neverEnds ? endDate : undefined,
     recurringDays: deliveryMode === 'recurring' ? selectedDays : undefined,
+    savedAudienceGroupId: audience.selectedSavedGroupId || null,
   };
 };

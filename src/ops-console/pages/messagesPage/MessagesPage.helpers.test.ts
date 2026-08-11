@@ -1,4 +1,5 @@
 import {
+  buildCampaignNotificationPayload,
   hasFutureTimesForPeriod,
   isScheduledTimeInPast,
   isTimeOptionInPast,
@@ -30,5 +31,75 @@ describe('MessagesPage time helpers', () => {
   it('does not block past checks for future dates', () => {
     expect(isTimeOptionInPast('2026-08-07', '01', 'AM')).toBe(false);
     expect(isScheduledTimeInPast('2026-08-07', '01:00 AM')).toBe(false);
+  });
+
+  it('passes through a selected saved audience group id', async () => {
+    const payload = await buildCampaignNotificationPayload({
+      audience: {
+        programId: 'program-1',
+        programModel: 'at_school',
+        selectedSavedGroupId: 'audience-1',
+        userType: 'student',
+        activityRecency: 'all',
+        isAllSchools: true,
+        selectedSchools: [],
+        isAllGrades: true,
+        selectedGrades: [],
+      },
+      draft: {
+        label: 'Notice',
+        title: 'Hello',
+        body: 'World',
+        imageName: '',
+        imageUrl: '',
+      },
+      deliveryMode: 'send_now',
+      imageFile: null,
+      selectedDays: [],
+      startDate: '2026-08-11',
+      sendTime: '01:00 PM',
+      endDate: '2026-08-11',
+      neverEnds: true,
+      isComposeValid: true,
+      recurringEndDateError: null,
+      uploadPushNotificationImage: jest.fn(),
+    });
+
+    expect(payload.savedAudienceGroupId).toBe('audience-1');
+  });
+
+  it('allows notification payloads without a program model', async () => {
+    const payload = await buildCampaignNotificationPayload({
+      audience: {
+        programId: 'program-1',
+        programModel: '',
+        selectedSavedGroupId: '',
+        userType: 'student',
+        activityRecency: 'all',
+        isAllSchools: true,
+        selectedSchools: [],
+        isAllGrades: true,
+        selectedGrades: [],
+      },
+      draft: {
+        label: 'Notice',
+        title: 'Hello',
+        body: 'World',
+        imageName: '',
+        imageUrl: '',
+      },
+      deliveryMode: 'send_now',
+      imageFile: null,
+      selectedDays: [],
+      startDate: '2026-08-11',
+      sendTime: '01:00 PM',
+      endDate: '2026-08-11',
+      neverEnds: true,
+      isComposeValid: true,
+      recurringEndDateError: null,
+      uploadPushNotificationImage: jest.fn(),
+    });
+
+    expect(payload.programModel).toBeNull();
   });
 });
