@@ -53,7 +53,7 @@ body.ops-sidebar-open .messages-review-send__layout {
 .messages-review-send__card-title-row {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1.5rem;
 }
 
 .messages-review-send__inline-edit-button.MuiButton-root {
@@ -91,42 +91,45 @@ body.ops-sidebar-open .messages-review-send__layout {
 .messages-review-send__summary-estimated-row {
   grid-column: span 2;
   display: grid;
-  grid-template-columns: minmax(9rem, 1fr) minmax(0, auto);
-  gap: 1rem;
+  grid-template-columns: auto auto;
+  justify-content: start;
+  gap: 0.35rem;
   align-items: center;
-  background: #d1d5db;
-  border-radius: 0.75rem;
-  padding: 0.75rem 1rem;
+  width: 100%;
+  background: #edf2ff;
+  border-radius: 0.5rem;
+  padding: 0.875rem 1.25rem;
+  box-sizing: border-box;
 }
 
 .messages-review-send__summary-estimated-row span {
-  color: #6b7280;
-  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: 1.2;
 }
 
 .messages-review-send__summary-estimated-row strong {
   color: #111827;
+  font-size: 0.875rem;
   font-weight: 700;
+  line-height: 1.2;
   text-align: right;
-}
-
-.messages-review-send__notification-summary-card
-  .messages-review-send__summary-list
-  dd {
-  text-align: left;
 }
 
 .messages-review-send__summary-value--attached {
   color: var(--messages-blue);
 }
 
+.messages-review-send__summary-attachment-text {
+  display: inline;
+}
+
+.messages-review-send__summary-label--attached {
+  color: var(--messages-muted) !important;
+  font-weight: 400;
+}
+
 .messages-review-send__attached-image-preview {
-  width: 100%;
-  max-height: 6.5rem;
-  object-fit: cover;
-  margin-top: 0.5rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--messages-divider);
+  display: none;
 }
 
 .messages-review-send__delivery-card {
@@ -254,6 +257,67 @@ body.ops-sidebar-open .messages-review-send__layout {
   border: 1px solid var(--messages-border);
   border-radius: 0.375rem;
   font: inherit;
+}
+
+.messages-review-send__date-field {
+  position: relative;
+}
+
+.messages-review-send__date-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--messages-border);
+  border-radius: 0.375rem;
+  background: #ffffff;
+  color: var(--messages-text);
+  font: inherit;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.messages-review-send__date-display span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.messages-review-send__date-field input[type='date'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.messages-review-send__date-icon {
+  color: #667085;
+  flex: 0 0 auto;
+}
+
+.messages-review-send__end-date-row {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  justify-items: stretch;
+  grid-column: 1 / -1;
+}
+
+.messages-review-send__end-date-row .messages-review-send__schedule-field {
+  max-width: 26rem;
+  width: 100%;
+  justify-self: stretch;
+}
+
+.messages-review-send__end-date-hint {
+  width: 100%;
+  margin: 0;
+  text-align: center !important;
+  justify-self: center;
 }
 
 .messages-review-send__time-button {
@@ -601,7 +665,7 @@ body:not(.ops-sidebar-open) .messages-review-send__preview-frame {
   position: relative;
   display: block;
   align-items: center;
-  margin-top: 1rem;
+  margin-top: 3rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--messages-divider);
   width: 100%;
@@ -644,9 +708,108 @@ body:not(.ops-sidebar-open) .messages-review-send__preview-frame {
 }
 
 @media (max-width: 48rem) and (orientation: portrait) {
+  .messages-review-send__delivery-section {
+    max-width: 100%;
+  }
+
   .messages-review-send__layout,
   .messages-review-send__schedule-grid {
     grid-template-columns: 1fr;
+    margin-top: 1.5rem;
+  }
+
+  .messages-review-send__inline-edit-button.MuiButton-root {
+    display: none;
+  }
+
+  .messages-review-send__summary-estimated-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    justify-content: space-between;
+    min-height: 3rem;
+    padding: 0.75rem 0.875rem;
+    border-radius: 0.5rem;
+  }
+
+  .messages-review-send__summary-estimated-row span,
+  .messages-review-send__summary-estimated-row strong {
+    font-size: 0.875rem;
+    line-height: 1.2;
+  }
+
+  .messages-review-send__summary-estimated-row span {
+    font-weight: 600;
+  }
+
+  .messages-review-send__summary-estimated-row strong {
+    color: #1a71f6;
+    font-size: 1.75rem;
+    font-weight: 700;
+  }
+
+  .messages-review-send__notification-summary-card {
+    min-height: auto;
+    padding: 0.75rem 0.75rem 0.875rem;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-list {
+    grid-template-columns: 1fr;
+    row-gap: 0.5rem;
+    column-gap: 0;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-list
+    dt {
+    font-size: 0.6875rem;
+    line-height: 0.875rem;
+    margin-bottom: 0.125rem;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-list
+    dd {
+    font-size: 0.8125rem;
+    line-height: 1rem;
+    text-align: left;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-list
+    dd:has(.messages-review-send__summary-value--attached) {
+    margin-top: 0.125rem;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-list
+    dd:has(.messages-review-send__summary-value--attached)
+    .messages-review-send__summary-value--attached {
+    display: inline-block;
+    margin-top: 0;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-list
+    dd
+    .messages-review-send__summary-value--attached {
+    font-size: 0.8125rem;
+    line-height: 1rem;
+  }
+
+  .messages-review-send__notification-summary-card
+    .messages-review-send__summary-label--attached {
+    color: #8d98a7 !important;
+    font-weight: 500;
+  }
+
+  .messages-review-send__end-date-row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .messages-review-send__end-date-hint {
+    text-align: center !important;
   }
 
   .messages-review-send__card-title-row {
@@ -658,7 +821,7 @@ body:not(.ops-sidebar-open) .messages-review-send__preview-frame {
     justify-content: space-between;
     align-items: center;
     gap: 0.5rem;
-    padding-bottom: 1rem;
+    padding-bottom: 3rem;
   }
 
   .messages-review-send__actions-left,

@@ -1038,6 +1038,7 @@ body.ops-sidebar-open .messages-page .MuiOutlinedInput-root {
     position: relative;
     z-index: 1;
     overflow: visible;
+    padding-top: 1.5rem;
   }
 
   .campaign-setup-section {
