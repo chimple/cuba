@@ -1,21 +1,21 @@
 //@ts-nocheck
 //@ts-nocheck
-import { Meta, StoryObj } from "@storybook/react";
-import DisplayClasses from "../pages/DisplayClasses";
+import { Meta, StoryObj } from '@storybook/react';
+import DisplayClasses from '../pages/DisplayClasses';
 
 const mockClasses = [
-  { id: "class1", name: "Mathematics" },
-  { id: "class2", name: "Science" },
-  { id: "class3", name: "History" },
+  { id: 'class1', name: 'Mathematics' },
+  { id: 'class2', name: 'Science' },
+  { id: 'class3', name: 'History' },
 ];
 
-const mockSchool = { id: "school1", name: "Bharatiya Vidya Mandir" };
+const mockSchool = { id: 'school1', name: 'Bharatiya Vidya Mandir' };
 
 const meta: Meta<typeof DisplayClasses> = {
-  title: "components/malta/DisplayClasses",
+  title: 'components/malta/DisplayClasses',
   component: DisplayClasses,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
   args: {
     allClasses: mockClasses,

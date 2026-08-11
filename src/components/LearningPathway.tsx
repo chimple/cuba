@@ -1,62 +1,177 @@
-import { useEffect, useState } from "react";
-import { Util } from "../utility/util";
-import ChapterLessonBox from "./learningPathway/chapterLessonBox";
-import PathwayStructure from "./learningPathway/PathwayStructure";
-import "./LearningPathway.css";
-import TressureBox from "./learningPathway/TressureBox";
-import DropdownMenu from "./Home/DropdownMenu";
-import { ServiceConfig } from "../services/ServiceConfig";
-import Loading from "./Loading";
-import { schoolUtil } from "../utility/schoolUtil";
-import { v4 as uuidv4 } from "uuid";
+import { useEffect, useState } from 'react';
+import { Util } from '../utility/util';
+import ChapterLessonBox from './learningPathway/chapterLessonBox';
+import PathwayStructure from './learningPathway/PathwayStructure';
+import './LearningPathway.css';
+import DropdownMenu from './Home/DropdownMenu';
+import Loading from './Loading';
+import { ServiceConfig } from '../services/ServiceConfig';
+import { schoolUtil } from '../utility/schoolUtil';
 import {
-  EVENTS,
   LATEST_STARS,
   STARS_COUNT,
   TableTypes,
-} from "../common/constants";
-import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+  LEARNING_PATHWAY_MODE,
+  CURRENT_PATHWAY_MODE,
+  EVENTS,
+} from '../common/constants';
+import { useGrowthBook } from '@growthbook/growthbook-react';
+import { v4 as uuidv4 } from 'uuid';
+import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
+import {
+  consolidatePalEnabledCourses,
+  sortCoursesByStudentLanguage,
+  useLearningPath,
+} from '../hooks/useLearningPath';
+import logger from '../utility/logger';
 
 const LearningPathway: React.FC = () => {
   const api = ServiceConfig.getI().apiHandler;
-  const [loading, setLoading] = useState<boolean>(false);
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
-  const currentStudent = Util.getCurrentStudent();
-  const [pathwayReady, setPathwayReady] = useState(false);
+  const gb = useGrowthBook();
   const { setGbUpdated } = useGbContext();
 
-  useEffect(() => {
-    if (!currentStudent?.id) return;
-    updateStarCount(currentStudent);
-    fetchLearningPathway(currentStudent);
-  }, []);
-  const updateStarCount = async (currentStudent: TableTypes<"user">) => {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [mode, setMode] = useState<string>(LEARNING_PATHWAY_MODE.DISABLED);
+  const [isModeResolved, setIsModeResolved] = useState(false);
+  const [courseCode, setCourseCode] = useState<string | undefined>(undefined);
 
+  let student = Util.getCurrentStudent();
+  const [pathwayReady, setPathwayReady] = useState(false);
+
+  const { getPath } = useLearningPath({
+    student,
+    gb,
+  });
+
+  const getPreferredStudent = (
+    localStudent: TableTypes<'user'>,
+    fetchedStudent?: TableTypes<'user'>,
+  ): TableTypes<'user'> => {
+    if (!fetchedStudent) return localStudent;
+
+    const localLearningPath =
+      Util.getLatestLearningPathByUpdatedAt(localStudent);
+    if (localLearningPath && !fetchedStudent.learning_path) {
+      return { ...fetchedStudent, learning_path: localLearningPath };
+    }
+
+    return fetchedStudent;
+  };
+
+  const updateCourseCodeFromSubject = async (subjectId?: string | null) => {
+    if (!subjectId) return;
+    const selectedCourse = await api.getCourse(subjectId);
+    setCourseCode(selectedCourse?.code ?? undefined);
+  };
+  /* -----------------------------------
+   * 2️⃣ Resolve mode from GrowthBook
+   * ----------------------------------- */
+  useEffect(() => {
+    if (!gb?.ready || !student?.id) return;
+
+    const currentClass = schoolUtil.getCurrentClass();
+    const existingAttributes = gb.getAttributes?.() ?? {};
+    // Always target the active student's current class school only.
+    const freshSchoolIds = currentClass?.school_id
+      ? [currentClass.school_id]
+      : [];
+    gb.setAttributes({
+      ...existingAttributes,
+      student_id: student.id,
+      school_ids: freshSchoolIds,
+    });
+    const resolvedMode = gb.getFeatureValue(
+      'learning-pathway-mode',
+      LEARNING_PATHWAY_MODE.DISABLED,
+    ) as string;
+    setMode(resolvedMode);
+    localStorage.setItem(CURRENT_PATHWAY_MODE, resolvedMode);
+    setIsModeResolved(true);
+  }, [gb?.ready, student?.id]);
+
+  /* -----------------------------------
+   * 3️⃣ Fetch path
+   * ----------------------------------- */
+  useEffect(() => {
+    if (!student?.id || !isModeResolved) return;
+
+    const init = async () => {
+      setLoading(true);
+
+      try {
+        if (!student?.id) return;
+        const isLinked = await api.isStudentLinked(student.id);
+        const currClass = isLinked ? schoolUtil.getCurrentClass() : null;
+
+        const latest = await api.getUserByDocId(student.id);
+        student = getPreferredStudent(student, latest);
+        await Util.setCurrentStudent(student);
+        const courses = currClass
+          ? await api.getCoursesForClassStudent(currClass.id)
+          : await api.getCoursesForPathway(student.id);
+
+        const sortedCourses = await sortCoursesByStudentLanguage(
+          courses,
+          student,
+        );
+        const learningPathMode = localStorage.getItem(CURRENT_PATHWAY_MODE);
+        const mode = learningPathMode ?? LEARNING_PATHWAY_MODE.DISABLED;
+        const pathwayCourses = await consolidatePalEnabledCourses(
+          sortedCourses,
+          mode,
+        );
+        const learningPath = student.learning_path
+          ? JSON.parse(student.learning_path)
+          : null;
+        const selectedCourseIndex = learningPath?.courses?.currentCourseIndex;
+        const selectedCourseId =
+          selectedCourseIndex !== undefined
+            ? learningPath?.courses?.courseList?.[selectedCourseIndex]
+                ?.course_id
+            : null;
+        await updateCourseCodeFromSubject(selectedCourseId);
+        updateStarCount(student);
+        await getPath({
+          courses: pathwayCourses,
+          mode,
+          classId: currClass?.id,
+        });
+      } catch (e) {
+        logger.error('Error in init() learningPathway', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, [student?.id, isModeResolved, mode]);
+
+  const updateStarCount = async (currentStudent: TableTypes<'user'>) => {
     if (Util.isRespectMode) {
-    await api.updateStudentStars(currentStudent.id, 0); // This will update LATEST_STARS
-    // Now read from LATEST_STARS
-    const latestStarsJson = localStorage.getItem(LATEST_STARS);
-    const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-    const totalStars = parseInt(latestStarsMap[currentStudent.id] || "0", 10);
-    setFrom(totalStars);
-    setTo(totalStars);
-    return totalStars;
-  }
+      await api.updateStudentStars(currentStudent.id, 0); // This will update LATEST_STARS
+      // Now read from LATEST_STARS
+      const latestStarsJson = localStorage.getItem(
+        LATEST_STARS(currentStudent.id),
+      );
+      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+      const totalStars = parseInt(latestStarsMap[currentStudent.id] || '0', 10);
+      setFrom(totalStars);
+      setTo(totalStars);
+      return totalStars;
+    }
 
     const storedStarsJson = localStorage.getItem(STARS_COUNT);
     const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
     const localStorageStars = parseInt(
-      storedStarsMap[currentStudent.id] || "0",
-      10
+      storedStarsMap[currentStudent.id] || '0',
+      10,
     );
 
-    const latestStarsJson = localStorage.getItem(LATEST_STARS);
-    const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-
     const latestLocalStars = parseInt(
-      latestStarsMap[currentStudent.id] || "0",
-      10
+      localStorage.getItem(LATEST_STARS(currentStudent.id)) || '0',
+      10,
     );
     const dbStars = currentStudent.stars || 0;
     const studentStars = Math.max(latestLocalStars, dbStars);
@@ -72,8 +187,7 @@ const LearningPathway: React.FC = () => {
     }
 
     if (latestLocalStars <= dbStars) {
-      latestStarsMap[currentStudent.id] = dbStars;
-      localStorage.setItem(LATEST_STARS, JSON.stringify(latestStarsMap));
+      localStorage.setItem(LATEST_STARS(currentStudent.id), dbStars.toString());
     } else {
       await api.updateStudentStars(currentStudent.id, latestLocalStars);
     }
@@ -103,20 +217,22 @@ const LearningPathway: React.FC = () => {
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
-          userCourses
+          userCourses,
         );
 
         let learning_path_completed: { [key: string]: number } = {};
-        learningPath.courses.courseList.forEach((course) => {
-          const { subject_id, currentIndex } = course;
-          if (subject_id && currentIndex !== undefined) {
-            learning_path_completed[`${subject_id}_path_completed`] =
-              currentIndex;
-          }
-        });
+        learningPath.courses.courseList.forEach(
+          (course: { subject_id: string | null; currentIndex?: number }) => {
+            const { subject_id, currentIndex } = course;
+            if (subject_id && currentIndex !== undefined) {
+              learning_path_completed[`${subject_id}_path_completed`] =
+                currentIndex;
+            }
+          },
+        );
         updateLocalAttributes({ learning_path_completed });
         setGbUpdated(true);
-        
+
         if (updated) {
           learningPath = await buildInitialLearningPath(userCourses);
           await saveLearningPath(student, learningPath);
@@ -124,13 +240,13 @@ const LearningPathway: React.FC = () => {
         if (Util.isRespectMode) setPathwayReady(true);
       }
     } catch (error) {
-      console.error("Error in Learning Pathway", error);
+      console.error('Error in Learning Pathway', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const buildInitialLearningPath = async (courses: any[]) => {
+  const buildInitialLearningPath = async (courses: TableTypes<'course'>[]) => {
     const courseList = await Promise.all(
       courses.map(async (course) => ({
         path_id: uuidv4(),
@@ -140,7 +256,7 @@ const LearningPathway: React.FC = () => {
         startIndex: 0,
         currentIndex: 0,
         pathEndIndex: 4,
-      }))
+      })),
     );
 
     return {
@@ -153,7 +269,7 @@ const LearningPathway: React.FC = () => {
 
   const updateLearningPathIfNeeded = async (
     learningPath: any,
-    userCourses: any[]
+    userCourses: TableTypes<'course'>[],
   ) => {
     const oldCourseList = learningPath.courses?.courseList || [];
 
@@ -161,11 +277,13 @@ const LearningPathway: React.FC = () => {
     const isSameLengthAndOrder =
       oldCourseList.length === userCourses.length &&
       userCourses.every(
-        (course, index) => course.id === oldCourseList[index]?.course_id
+        (course, index) => course.id === oldCourseList[index]?.course_id,
       );
 
     // Check if any course is missing path_id
-    const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
+    const isPathIdMissing = oldCourseList.some(
+      (course: { path_id?: string }) => !course.path_id,
+    );
 
     if (isSameLengthAndOrder && !isPathIdMissing) {
       return false; // No need to rebuild
@@ -176,8 +294,8 @@ const LearningPathway: React.FC = () => {
     learningPath.courses.courseList = newLearningPath.courses.courseList;
 
     // Dispatch event to notify that course has changed
-    const event = new CustomEvent("courseChanged", {
-      detail: { currentStudent },
+    const event = new CustomEvent('courseChanged', {
+      detail: { currentStudent: student },
     });
     window.dispatchEvent(event);
 
@@ -193,7 +311,7 @@ const LearningPathway: React.FC = () => {
           lesson_id: lesson.id,
           chapter_id: chapter.id,
         }));
-      })
+      }),
     );
     return lessons.flat();
   };
@@ -203,7 +321,7 @@ const LearningPathway: React.FC = () => {
     await api.updateLearningPath(student, pathStr);
     await Util.setCurrentStudent(
       { ...student, learning_path: pathStr },
-      undefined
+      undefined,
     );
 
     const currentCourse =
@@ -212,7 +330,7 @@ const LearningPathway: React.FC = () => {
 
     const LessonSlice = currentPath.slice(
       currentCourse.startIndex,
-      currentCourse.pathEndIndex + 1
+      currentCourse.pathEndIndex + 1,
     );
 
     // Extract lesson IDs
@@ -239,24 +357,24 @@ const LearningPathway: React.FC = () => {
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
-   if (loading || (Util.isRespectMode && !pathwayReady)) {
+  if (loading || (Util.isRespectMode && !pathwayReady)) {
     return <Loading isLoading={loading} msg="Loading Lessons" />;
   }
+  if (loading) return <Loading isLoading={true} />;
 
   return (
     <div className="learning-pathway-container">
       <div className="pathway_section">
-        <DropdownMenu />
+        <DropdownMenu
+          onSubjectChange={(subjectId) => {
+            updateCourseCodeFromSubject(subjectId);
+          }}
+        />
         <PathwayStructure />
       </div>
 
       <div className="chapter-egg-container">
-        <ChapterLessonBox
-          containerStyle={{
-            width: "35vw",
-          }}
-        />
-        <TressureBox startNumber={from} endNumber={to} />
+        <ChapterLessonBox courseCode={courseCode} />
       </div>
     </div>
   );

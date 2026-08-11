@@ -1,0 +1,512 @@
+.migrate-schools-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: white;
+  color: #1f2937;
+}
+
+.migrate-schools-header {
+  padding: 18px 18px 6px;
+  flex: 0 0 auto;
+}
+
+.migrate-schools-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.migrate-schools-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1f2937;
+}
+
+.migrate-schools-bell-icon {
+  color: #111827 !important;
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.migrate-schools-controls-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.migrate-schools-tabs {
+  min-height: 34px !important;
+}
+
+.migrate-schools-tab {
+  text-transform: none !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  min-height: 34px !important;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  color: #111827 !important;
+}
+
+.migrate-schools-tabs .MuiTab-root.Mui-selected {
+  color: #1a71f6 !important;
+  font-weight: 600 !important;
+}
+
+.migrate-schools-tabs .MuiTabs-indicator {
+  height: 2px !important;
+  background-color: #1a71f6 !important;
+}
+
+.migrate-schools-top-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.migrate-schools-top-right .search-filter-container-SearchAndFilter {
+  justify-content: flex-end;
+}
+
+.migrate-schools-top-right .search-input-SearchAndFilter {
+  width: 235px;
+}
+
+.migrate-schools-top-right .filter-button-SearchAndFilter {
+  min-width: 90px;
+  justify-content: center;
+}
+
+.migrate-schools-top-right
+  .filter-button-SearchAndFilter
+  .MuiButton-startIcon
+  img {
+  width: 14px !important;
+  height: 13px !important;
+  filter: saturate(1.25) contrast(1.2);
+}
+
+.migrate-schools-table-wrap {
+  flex: 1 1 auto;
+  padding: 0 18px;
+  min-height: 0;
+  overflow: hidden;
+  padding-bottom: 10px;
+}
+
+.migrate-schools-table-wrap .data-tablebody-container {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-gutter: stable;
+}
+
+.migrate-schools-table-wrap .data-tablebody-container .MuiTable-root {
+  width: 100% !important;
+  table-layout: fixed !important;
+}
+
+.migrate-schools-table-wrap .data-tablebody-container::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.migrate-schools-table-wrap .data-tablebody-container::-webkit-scrollbar-track {
+  background: #e5e7eb;
+  border-radius: 999px;
+}
+
+.migrate-schools-table-wrap .data-tablebody-container::-webkit-scrollbar-thumb {
+  background: #a9afb8;
+  border-radius: 999px;
+  border: 2px solid #e5e7eb;
+  min-height: 22px;
+}
+
+.migrate-schools-table-wrap table {
+  background: transparent;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.migrate-schools-table-wrap .MuiTable-root {
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+  background: transparent !important;
+}
+
+.migrate-schools-table-wrap .MuiTableCell-root {
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: 1px solid #d2d6dc !important;
+  background: #f3f4f6 !important;
+  color: #1f2937 !important;
+  font-size: 11.5px !important;
+  padding: 9px 12px !important;
+}
+
+.migrate-schools-table-wrap .MuiTableHead-root .MuiTableCell-root {
+  background-color: #e3e6ea !important;
+  color: #111827 !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  height: 38px !important;
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+  border-bottom: 1px solid #d4d8dd !important;
+}
+
+.migrate-schools-table-wrap .MuiTableBody-root .MuiTableCell-root {
+  height: 44px !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.migrate-schools-table-wrap
+  .MuiTableBody-root
+  .MuiTableRow-root
+  .MuiTableCell-root:nth-child(n + 3) {
+  font-size: 13.5px !important;
+}
+
+.migrate-schools-table-wrap .data-tablebody-head-cell {
+  background-color: #e3e6ea !important;
+  color: #111827;
+  font-size: 11px;
+  font-weight: 600;
+  padding-top: 9px !important;
+  padding-bottom: 9px !important;
+  height: 38px;
+  border-bottom: 1px solid #d4d8dd;
+}
+
+.migrate-schools-table-wrap .data-tablebody-cell {
+  font-size: 11px;
+  color: #1f2937;
+  border-bottom: 1px solid #d2d6dc;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  height: 44px;
+  background: #f3f4f6 !important;
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.migrate-schools-table-wrap .data-tablebody-cell > * {
+  min-width: 0;
+}
+
+.migrate-schools-table-wrap .data-tablebody-cell:first-child,
+.migrate-schools-table-wrap .data-tablebody-head-cell:first-child {
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  padding-left: 10px !important;
+}
+
+.migrate-schools-table-wrap .data-tablebody-head-cell:first-child {
+  background-color: #e3e6ea !important;
+}
+
+.migrate-schools-table-wrap .data-tablebody-cell:first-child {
+  background: #f3f4f6 !important;
+}
+
+.migrate-schools-table-wrap .MuiTableRow-root:hover {
+  background: transparent !important;
+}
+
+.migrate-schools-table-wrap .MuiCheckbox-root {
+  color: #b4bac3;
+  padding: 4px;
+}
+
+.migrate-schools-table-wrap .MuiCheckbox-root .MuiSvgIcon-root {
+  font-size: 21px;
+}
+
+.migrate-schools-table-wrap .MuiCheckbox-root.Mui-checked {
+  color: #1a71f6;
+}
+
+.migrate-schools-table-wrap-hide-selection
+  .data-tablebody-select-all-head-cell
+  .MuiCheckbox-root,
+.migrate-schools-table-wrap-hide-selection
+  .data-tablebody-selection-cell
+  .MuiCheckbox-root {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.migrate-schools-table-wrap-hide-selection .data-tablebody-row-disabled,
+.migrate-schools-table-wrap-hide-selection .data-tablebody-selection-cell {
+  cursor: default !important;
+}
+
+.migrate-schools-name {
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.25;
+  color: #111827;
+}
+
+.migrate-schools-subname {
+  display: block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  color: #6b7280 !important;
+}
+
+.migrate-schools-empty {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 18px;
+}
+
+.migrate-schools-footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  box-sizing: border-box;
+  background: white;
+  padding: 0 18px 10px;
+  margin-top: 10px !important;
+  margin-bottom: 15px;
+}
+
+.migrate-schools-footer .migrate-schools-footer-pagination {
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.migrate-schools-footer:not(.migrate-schools-footer-with-action)
+  .migrate-schools-footer-pagination {
+  justify-content: center;
+}
+
+.migrate-schools-footer .migrate-schools-footer-pagination > div {
+  width: 100%;
+  margin: 0 !important;
+}
+
+.migrate-schools-footer-with-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 10px;
+}
+
+.migrate-schools-footer-with-action .migrate-schools-footer-pagination {
+  width: 60%;
+  justify-content: flex-start;
+}
+
+.migrate-schools-footer-with-action .migrate-schools-footer-pagination > div {
+  justify-content: flex-start !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.migrate-schools-footer-with-action .MuiPagination-root {
+  padding-top: 0 !important;
+}
+
+.migrate-schools-footer-action {
+  width: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+  min-width: 0;
+}
+
+.migrate-schools-selected-count {
+  color: #1f2937;
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.migrate-schools-selected-count-number {
+  color: #000000;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.migrate-schools-action-button {
+  text-transform: none !important;
+  width: 90px !important;
+  height: 32px !important;
+  border-radius: 4px !important;
+  background-color: #1a71f6 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 0 14px !important;
+}
+
+.migrate-schools-action-button:hover {
+  background-color: #0f5fd9 !important;
+  box-shadow: none !important;
+}
+
+.migrate-schools-footer .MuiPagination-root {
+  padding-top: 0;
+}
+
+.migrate-schools-footer .MuiPagination-ul {
+  gap: 4px;
+}
+
+.migrate-schools-footer .MuiPaginationItem-root {
+  min-width: 22px;
+  height: 27px;
+  border-radius: 2px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a71f6;
+  margin: 0;
+  justify-content: center !important;
+}
+
+.migrate-schools-footer .MuiPaginationItem-root.Mui-selected {
+  background: #b9d4ff !important;
+  color: #1a71f6 !important;
+}
+
+.migrate-schools-footer .MuiPaginationItem-root.MuiPaginationItem-ellipsis {
+  color: #1a71f6;
+}
+
+.migrate-schools-footer .MuiPaginationItem-previousNext {
+  color: #6b7280 !important;
+  min-width: auto;
+  width: auto;
+  padding: 0 4px;
+}
+
+.migrate-schools-footer
+  .MuiPaginationItem-previousNext[aria-label='Go to previous page']::after {
+  content: 'Previous';
+  font-size: 14px;
+  margin-left: 4px;
+  color: #6b7280;
+}
+
+.migrate-schools-footer
+  .MuiPaginationItem-previousNext[aria-label='Go to next page']::before {
+  content: 'Next';
+  font-size: 14px;
+  margin-right: 4px;
+  color: #1a71f6;
+}
+
+.migrate-schools-header .selected-filters-container-SelectedFilters:empty {
+  display: none;
+}
+
+.migrate-schools-confirm-dialog .MuiPaper-root {
+  border-radius: 8px !important;
+  max-width: 500px !important;
+}
+
+.migrate-schools-confirm-content {
+  padding: 25px !important;
+}
+
+.migrate-schools-confirm-text {
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 10px !important;
+}
+
+.migrate-schools-confirm-warning {
+  border: 1px solid #f5b5b5;
+  background: #fff5f5;
+  color: #d42828;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.migrate-schools-confirm-actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 14px;
+}
+
+.migrate-schools-confirm-cancel {
+  text-transform: none !important;
+  color: #1a71f6 !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  min-width: 88px !important;
+}
+
+.migrate-schools-confirm-migrate {
+  text-transform: none !important;
+  min-width: 80px !important;
+  height: 36px !important;
+  border-radius: 4px !important;
+  background: #1a71f6 !important;
+  color: #ffffff !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+  padding: 0 16px !important;
+}
+
+.migrate-schools-confirm-migrate:hover {
+  background: #0f5fd9 !important;
+  box-shadow: none !important;
+}
+
+.migrate-schools-success-icon {
+  width: 52px;
+  height: 52px;
+  display: block;
+  object-fit: contain;
+}
+
+.migrate-schools-failure-icon {
+  width: 52px;
+  height: 52px;
+  display: block;
+  object-fit: contain;
+}

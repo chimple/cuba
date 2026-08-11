@@ -1,12 +1,12 @@
-import { ApiHandler } from "./api/ApiHandler";
-import { FirebaseApi } from "./api/FirebaseApi";
-import { OneRosterApi } from "./api/OneRosterApi";
-import { SqliteApi } from "./api/SqliteApi";
-import { AuthHandler } from "./auth/AuthHandler";
-import { FirebaseAuth } from "./auth/FirebaseAuth";
-import { OneRosterAuth } from "./auth/OneRosterAuth";
-import { SupabaseAuth } from "./auth/SupabaseAuth";
-import { SupabaseApi } from "./api/SupabaseApi";
+import { ApiHandler } from './api/ApiHandler';
+import { FirebaseApi } from './api/FirebaseApi';
+import { OneRosterApi } from './api/OneRosterApi';
+import { SqliteApi } from './api/SqliteApi';
+import { AuthHandler } from './auth/AuthHandler';
+import { FirebaseAuth } from './auth/FirebaseAuth';
+import { OneRosterAuth } from './auth/OneRosterAuth';
+import { SupabaseAuth } from './auth/SupabaseAuth';
+import { SupabaseApi } from './api/SupabaseApi';
 
 export enum APIMode {
   ONEROSTER,
@@ -24,7 +24,6 @@ export class ServiceConfig {
   private constructor() {}
 
   public static getInstance(mode: APIMode): ServiceConfig {
-  
     if (!ServiceConfig.instance) {
       ServiceConfig.instance = new ServiceConfig();
       ServiceConfig.instance.mode = mode;
@@ -50,12 +49,14 @@ export class ServiceConfig {
   }
 
   public static getI(): ServiceConfig {
-    console.debug("[ServiceConfig] getI called");
+    console.debug('[ServiceConfig] getI called');
     return ServiceConfig.instance;
   }
 
   public switchMode(newMode: APIMode) {
-    console.debug(`[ServiceConfig] switchMode called. Switching from ${APIMode[this._mode]} to ${APIMode[newMode]}`);
+    console.debug(
+      `[ServiceConfig] switchMode called. Switching from ${APIMode[this._mode]} to ${APIMode[newMode]}`,
+    );
     this.mode = newMode;
     switch (newMode) {
       case APIMode.FIREBASE:
@@ -76,15 +77,15 @@ export class ServiceConfig {
     }
   }
 
-  private initializeOneroster()  {
-    console.debug("[ServiceConfig] Initializing OneRoster API and Auth");
+  private initializeOneroster() {
+    console.debug('[ServiceConfig] Initializing OneRoster API and Auth');
     //@ts-ignore
     this._apiHandler = ApiHandler.getInstance(OneRosterApi.getInstance());
     this._authHandler = AuthHandler.getInstance(OneRosterAuth.getInstance());
   }
 
   private initializeFireBase() {
-    console.debug("[ServiceConfig] Initializing Firebase API and Auth");
+    console.debug('[ServiceConfig] Initializing Firebase API and Auth');
     //@ts-ignore
     this._apiHandler = ApiHandler.getInstance(FirebaseApi.getInstance());
     //@ts-ignore
@@ -97,7 +98,7 @@ export class ServiceConfig {
   }
 
   private initializeSupabase() {
-    console.debug("[ServiceConfig] Initializing Supabase API and Auth");
+    console.debug('[ServiceConfig] Initializing Supabase API and Auth');
     //@ts-ignore
     this._apiHandler = ApiHandler.getInstance(SupabaseApi.getInstance());
     //@ts-ignore

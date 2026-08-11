@@ -1,6 +1,6 @@
-import React, { FC, useState, useRef, useEffect } from "react";
-import { IonList, IonItem, IonPopover } from "@ionic/react";
-import "./CustomDropdown.css";
+import React, { FC, useState, useRef, useEffect } from 'react';
+import { IonList, IonItem, IonPopover } from '@ionic/react';
+import './CustomDropdown.css';
 
 const CustomDropdown: FC<{
   placeholder: string;
@@ -27,12 +27,12 @@ const CustomDropdown: FC<{
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, []);
 

@@ -1,6 +1,7 @@
 .user-details-page {
-  background-color: #FAFAFA;
-  padding: clamp(18px, 2vw, 32px) clamp(20px, 2vw, 32px);  display: flex;
+  background-color: #fafafa;
+  padding: clamp(18px, 2vw, 32px) clamp(20px, 2vw, 32px);
+  display: flex;
   flex-direction: column;
   width: 100vw;
   height: 100vh;
@@ -24,11 +25,11 @@
   padding: 20px 0;
 }
 
-
 .user-details-card {
   width: clamp(300px, 100%, 560px);
   /* height: clamp(400px, 100%, 730px); */
-  padding: clamp(20px, 2vw, 32px) clamp(5px, 2vw, 32px);  display: flex;
+  padding: clamp(20px, 2vw, 32px) clamp(5px, 2vw, 32px);
+  display: flex;
   border-radius: 12px;
   display: flex;
   justify-content: left;
@@ -55,7 +56,6 @@
   box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
   z-index: 1;
 }
-
 
 .user-details-profile-img {
   width: 100px;
@@ -84,8 +84,8 @@
   padding-top: 15px;
 }
 
-.user-details-form-section input, .user-details-form-section select
-{
+.user-details-form-section input,
+.user-details-form-section select {
   width: 100%;
   padding: 7px;
   font-size: 14px;
@@ -93,7 +93,7 @@
   font-weight: 500;
   border: 1px solid #ccc;
   background: #fff;
-  color: #3D3D3D;
+  color: #3d3d3d;
 }
 
 .user-details-button-row {
@@ -103,7 +103,8 @@
   gap: 30px;
 }
 
-.user-details-delete-btn, .user-details-cancel-btn {
+.user-details-delete-btn,
+.user-details-cancel-btn {
   background: none;
   border: none;
   color: red;
@@ -113,11 +114,12 @@
   padding: 8px 10px;
   border-radius: 6px;
 }
-.user-details-cancel-btn{
+.user-details-cancel-btn {
   color: #1976d2;
 }
 
-.user-details-edit-btn, .user-details-save-btn {
+.user-details-edit-btn,
+.user-details-save-btn {
   background-color: #1976d2;
   color: #fff;
   border: none;
@@ -130,19 +132,18 @@
 .user-details-edit-btn:disabled,
 .user-details-delete-btn:disabled,
 .user-details-save-btn:disabled {
-  background-color: #cccccc; 
-  color: #666666;    
-  cursor: not-allowed;  
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
   opacity: 0.7;
 }
-
 
 .user-details-custom-alert .alert-wrapper {
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   max-width: 400px;
-  background-color: #FAFAFA;
+  background-color: #fafafa;
 }
 
 .user-details-custom-alert .alert-title {

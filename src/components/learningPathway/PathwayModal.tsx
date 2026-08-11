@@ -1,12 +1,34 @@
-import React, { useEffect, useRef, useState } from "react";
-import "./PathwayModal.css";
-import { t } from "i18next";
+import React, { useEffect, useRef } from 'react';
+import './PathwayModal.css';
+import { t } from 'i18next';
+import AudioButton from '../common/AudioButton';
+import { AudioUtil } from '../../utility/AudioUtil';
+
+async function playPathwayModalAudio(
+  text: string,
+  audioFolder?: string,
+  audioClipName?: string,
+  delayMs: number = 0,
+) {
+  const audioUrl =
+    audioFolder && audioClipName
+      ? await AudioUtil.getLocalizedAudioUrl(audioFolder, audioClipName)
+      : undefined;
+
+  return AudioUtil.playAudioOrTts({
+    audioUrl,
+    text,
+    ...(delayMs > 0 ? { delayMs } : {}),
+  });
+}
 
 interface PathwayModalProps {
   text: string;
   onClose: () => void;
   animate?: boolean;
   onConfirm: () => void;
+  audioFolder?: string;
+  audioClipName?: string;
 }
 
 const PathwayModal: React.FC<PathwayModalProps> = ({
@@ -14,67 +36,61 @@ const PathwayModal: React.FC<PathwayModalProps> = ({
   onClose,
   animate = false,
   onConfirm,
+  audioFolder,
+  audioClipName,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
-  // const [isClosing, setIsClosing] = useState(false);
 
-  // const handleOutsideClick = (event: MouseEvent) => {
-  //   // clicked outside the modal
-  //   if (ref.current && !ref.current.contains(event.target as Node)) {
-  //     if (animate) {
-  //       // reward popup => slide out first
-  //       setIsClosing(true);
-  //     } else {
-  //       // inactive popup => close immediately
-  //       onClose();
-  //     }
-  //   }
-  // };
+  useEffect(() => {
+    void playPathwayModalAudio(text, audioFolder, audioClipName, 300);
 
-  // always attach the listener
-  // useEffect(() => {
-  //   document.addEventListener("mousedown", handleOutsideClick);
-  //   return () => {
-  //     document.removeEventListener("mousedown", handleOutsideClick);
-  //   };
-  // }, []);
+    return () => {
+      void AudioUtil.stopAudioUrlOrTtsPlayback();
+    };
+  }, [audioClipName, audioFolder, text]);
 
-  // when slide-out animation ends, finally close
-  // useEffect(() => {
-  //   if (!isClosing) return;
-  //   const node = ref.current!;
-  //   const onEnd = () => onClose();
-  //   node.addEventListener("animationend", onEnd);
-  //   return () => {
-  //     node.removeEventListener("animationend", onEnd);
-  //   };
-  // }, [isClosing, onClose, onConfirm]);
+  const handlePlayAudio = () => {
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    void playPathwayModalAudio(text, audioFolder, audioClipName);
+  };
 
-  // const cls =
-  //   "PathwayModal-content" +
-  //   (animate && !isClosing ? " slide-in" : "") +
-  //   (isClosing ? " slide-out" : "");
+  const handleClose = () => {
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    onClose();
+  };
 
-  // const modalHeight = animate ? "19.5vh" : "32vh";
+  const handleConfirm = () => {
+    void AudioUtil.stopAudioUrlOrTtsPlayback();
+    onConfirm();
+  };
 
   return (
     <div className="PathwayModal-overlay">
-      <div className='PathwayModal-content' ref={ref}>
-          <button className="PathwayModal-close" onClick={onClose}>
-            <img src='pathwayAssets/menuCross.svg' alt="close-icon" />
+      <div
+        className={`PathwayModal-content ${animate ? 'slide-in' : ''}`.trim()}
+        ref={ref}
+      >
+        <div className="PathwayModal-audio-button">
+          <AudioButton
+            backgroundColor="#fffdee"
+            onClick={handlePlayAudio}
+            size={44}
+          />
+        </div>
+        <button className="PathwayModal-close" onClick={handleClose}>
+          <img src="pathwayAssets/menuCross.svg" alt="close-icon" />
+        </button>
+
+        <div className="PathwayModal-body" id="PathwayModal-body">
+          <p className="PathwayModal-text">{text}</p>
+          <button
+            className="learning-pathway-OK-button"
+            onClick={handleConfirm}
+          >
+            <span className="learning-pathway-ok-text">{t('OK')}</span>
           </button>
-          
-          <div>
-            <p className="PathwayModal-text">{text}</p>
-            <button
-              className="learning-pathway-OK-button"
-              onClick={onConfirm}
-            >
-              <span className="learning-pathway-ok-text">{t("OK")}</span>
-            </button>
-          </div>
+        </div>
       </div>
-       
     </div>
   );
 };

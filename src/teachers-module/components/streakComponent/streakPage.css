@@ -1,0 +1,387 @@
+.streak-screen {
+  min-height: 100vh;
+}
+
+.streak-content-shell {
+  --background: #fff;
+}
+
+.streak-content-shell::part(scroll) {
+  scrollbar-gutter: stable;
+}
+
+.streak-page-screen {
+  background-color: #fff;
+}
+
+.streak-page-screen .streak-content-shell {
+  --background: #fff;
+}
+
+.streak-page-header-text {
+  font-style: normal;
+  font-size: var(--text-sizeXL);
+  margin-left: 25px;
+}
+
+.streak-page-layout {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-top: 18px;
+  padding-left: 8%;
+  padding-right: 8%;
+  padding-bottom: 96px;
+}
+
+.streak-coin-card {
+  background: #fff;
+  border: 2px solid #ff6b00;
+  border-radius: 14px;
+  width: max-content;
+  min-width: 22%;
+  min-height: 50px;
+  margin-left: auto;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-right: 4%;
+}
+
+.streak-coin-icon {
+  color: #d9a100;
+  font-size: 36px !important;
+}
+
+.streak-coin-value {
+  font-size: 25px;
+  font-weight: 800;
+  color: #2f3137;
+  line-height: 1;
+}
+
+.streak-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 26px;
+  margin-top: 18px;
+}
+
+.streak-summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.streak-summary-value {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #2f3137;
+  font-size: 58px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.streak-summary-fire {
+  width: 40px;
+  height: 50px;
+  object-fit: contain;
+  transform: translateY(-12%);
+}
+
+.streak-summary-coin {
+  width: 20px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.streak-summary-label {
+  margin-top: 6px;
+  color: #4f5054;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.streak-month-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  column-gap: 26px;
+  margin-top: 26px;
+  padding: 0 6px;
+  margin-left: 1.5vh;
+}
+
+.streak-month-title {
+  justify-self: center;
+  min-width: 0;
+  width: 100%;
+  white-space: nowrap;
+  margin: 0;
+  color: #4a4b50;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+}
+
+.streak-month-nav {
+  justify-self: center;
+  display: flex;
+  width: 117px;
+  justify-content: space-between;
+}
+
+.streak-month-btn {
+  border: none !important;
+  background: transparent;
+  color: #55575d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.streak-month-btn:focus,
+.streak-month-btn:active {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.streak-month-btn svg {
+  font-size: 31px !important;
+}
+
+.streak-weekdays {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.streak-weekday {
+  text-align: center;
+  color: #4d4f54;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.streak-calendar {
+  margin-top: 10px;
+  min-height: 288px;
+}
+
+.streak-calendar-row {
+  --streak-day-size: 36px;
+  --streak-day-radius: calc(var(--streak-day-size) / 2);
+  --streak-track-overhang: 12px;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+  min-height: 38px;
+}
+
+.streak-row-track {
+  display: none;
+}
+
+.streak-calendar-row.track-orange .streak-row-track,
+.streak-calendar-row.track-gray .streak-row-track {
+  display: block;
+  position: absolute;
+  top: 50%;
+  height: 6px;
+  border-radius: 8px;
+  transform: translateY(-50%);
+  z-index: 0;
+}
+
+.streak-calendar-row.track-orange .streak-row-track {
+  background: #ff6b00;
+}
+
+.streak-calendar-row.track-gray .streak-row-track {
+  background: #75777b;
+}
+
+.streak-day-empty {
+  height: 36px;
+}
+
+.streak-day {
+  position: relative;
+  z-index: 1;
+  border-radius: 50%;
+  width: var(--streak-day-size);
+  height: var(--streak-day-size);
+  margin: 0 auto;
+  font-size: 20px;
+  font-weight: 700;
+  font-style: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid #ff6b00;
+  background: #fff;
+  color: #4c4e53;
+}
+
+.streak-day-number {
+  line-height: 1;
+}
+
+.streak-day.assigned {
+  border-color: #5eb439;
+  background: #5eb439;
+  color: #fff;
+}
+
+.streak-day.unassigned {
+  border-color: #ff6b00;
+  background: #fff;
+  color: #4b4d52;
+}
+
+.streak-day.future {
+  border-color: #b8babd;
+  background: #d9dadc;
+  color: #5d5f64;
+}
+
+.streak-day-cross {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 113%;
+  height: 2px;
+  background: #ff6b00;
+  transform: translate(-50%, -50%) rotate(-42deg);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.streak-day.muted {
+  border-color: #b5b7ba;
+  background: #d6d7d9;
+  color: #4b4d52;
+}
+
+.streak-share-capture-shell {
+  position: fixed;
+  top: -10000px;
+  left: -10000px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.streak-share-card {
+  width: 886px;
+  height: 768px;
+  border-radius: 96px;
+  background: #eee5fa;
+  box-sizing: border-box;
+  padding: 246px 96px 86px 110px;
+  font-family: 'Nunito', sans-serif;
+  color: #5d5f64;
+  overflow: hidden;
+  position: relative;
+}
+
+.streak-share-logo {
+  position: absolute;
+  top: 68px;
+  right: 96px;
+  width: 260px;
+  height: 196px;
+  object-fit: contain;
+}
+
+.streak-share-title {
+  font-size: 74px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.streak-share-stats {
+  margin-top: 56px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 94px;
+}
+
+.streak-share-stat {
+  text-align: left;
+}
+
+.streak-share-value {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #35363d;
+  font-size: 104px;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.streak-share-flame {
+  width: 102px;
+  height: 102px;
+  object-fit: contain;
+}
+
+.streak-share-label {
+  margin-top: 8px;
+  font-size: 52px;
+  line-height: 1.1;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.streak-share-bottom {
+  margin-top: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.streak-share-cta {
+  font-size: 52px;
+  line-height: 1;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (max-width: 420px) {
+  .streak-page-layout {
+    max-width: 100%;
+  }
+
+  .streak-coin-value {
+    font-size: 20px;
+  }
+
+  .streak-summary-value {
+    font-size: 48px;
+  }
+
+  .streak-month-row {
+    column-gap: 26px;
+  }
+
+  .streak-month-title {
+    font-size: 36px;
+  }
+
+  .streak-month-nav {
+    width: 96px;
+  }
+}

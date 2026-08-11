@@ -48,15 +48,16 @@
   width: 8px;
 }
 
-.custom-alert-in-subject-selection-page .scrollable-alert::-webkit-scrollbar-thumb {
+.custom-alert-in-subject-selection-page
+  .scrollable-alert::-webkit-scrollbar-thumb {
   background: #d1d1d1;
   border-radius: 4px;
 }
 
-.custom-alert-in-subject-selection-page .scrollable-alert::-webkit-scrollbar-thumb:hover {
+.custom-alert-in-subject-selection-page
+  .scrollable-alert::-webkit-scrollbar-thumb:hover {
   background: #b0b0b0;
 }
-
 
 /* styles.css */
 .course-item {

@@ -18,6 +18,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1 1 auto;
+  min-width: 0;
   text-align: left;
 }
 
@@ -36,11 +37,14 @@
   }
   .school-header-title {
     font-size: x-large;
-    max-width: 80vw;
+    max-width: 70vw;
     text-align: center;
-    margin: 7px 0 0 0;
+    margin: 12px 0 0 13px;
     padding-bottom: 8px;
     flex: 1 1 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .school-header-bell {
     font-size: large;

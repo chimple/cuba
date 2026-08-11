@@ -1,0 +1,864 @@
+.campaign-communication-step {
+  --campaign-communication-table-columns: 1.05fr 3.4fr 1.9fr 2fr 0.9fr;
+  --campaign-communication-table-scrollbar-width: 0.375rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-bottom: none;
+  padding-top: 1.5rem;
+  padding-right: 0;
+  padding-bottom: 1.5rem;
+  padding-left: 0;
+}
+
+.campaign-communication-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1875rem;
+  align-items: flex-start;
+}
+
+.campaign-communication-section-title {
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  color: #202124;
+}
+
+.campaign-communication-helper-text {
+  font-size: 0.8125rem !important;
+  line-height: 1.125rem !important;
+  color: #5f6368;
+}
+
+.campaign-communication-widgets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.campaign-communication-widget {
+  width: 100%;
+  max-width: 25.5rem;
+  min-height: 2.25rem;
+  border: 0.0625rem solid #d7dbe0;
+  border-radius: 0.5rem;
+  background: #eef3f9;
+  padding: 0.625rem 0.875rem;
+  display: flex;
+  align-items: center;
+}
+
+.campaign-communication-widget-value {
+  font-size: 0.875rem !important;
+  line-height: 1.25rem !important;
+  color: #343a40;
+  white-space: nowrap;
+}
+
+.campaign-communication-widget-label {
+  font-weight: 500;
+}
+
+.campaign-communication-widget-strong {
+  font-weight: 700;
+}
+
+.campaign-communication-widget-days {
+  margin-left: 0.5rem;
+  font-weight: 700;
+}
+
+.campaign-communication-widget-arrow {
+  font-weight: 500;
+}
+
+.campaign-communication-widget-value,
+.campaign-communication-widget-label,
+.campaign-communication-widget-strong,
+.campaign-communication-widget-days {
+  line-height: 1.25rem !important;
+  color: #343a40;
+}
+
+.campaign-communication-widget-loading {
+  display: flex;
+  align-items: center;
+}
+
+.campaign-communication-visually-hidden {
+  position: absolute;
+  width: 0.0625rem;
+  height: 0.0625rem;
+  padding: 0;
+  margin: -0.0625rem;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.campaign-communication-validation,
+.campaign-communication-row-error {
+  border-radius: 0.5rem !important;
+  margin: 0 !important;
+}
+
+.campaign-communication-validation {
+  border: 0.0625rem solid #fca5a5 !important;
+  background: #fff5f5 !important;
+  padding: 0.125rem 0.75rem !important;
+}
+
+.campaign-communication-validation .MuiAlert-message,
+.campaign-communication-row-error .MuiAlert-message {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  width: 100%;
+}
+
+.campaign-communication-validation .MuiAlert-message {
+  color: #dc2626;
+}
+
+.campaign-communication-schedule {
+  border: 0.0625rem solid #d0d5dd;
+  border-radius: 0.625rem;
+  background: #ffffff;
+  padding: 0.875rem 0.875rem 0.75rem 0.875rem;
+}
+
+.campaign-communication-subtitle {
+  margin: 0 !important;
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  color: #202124;
+}
+
+.campaign-communication-schedule-heading {
+  align-self: center;
+  justify-self: start;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  margin-left: 0.5rem !important;
+}
+
+.campaign-communication-schedule-grid {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  align-items: center;
+  column-gap: 1rem;
+  row-gap: 0.75rem;
+}
+
+.campaign-communication-field-block {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.campaign-communication-schedule-grid
+  > .campaign-communication-field-block:nth-of-type(1) {
+  margin-left: -2.5rem;
+}
+
+.campaign-communication-schedule-grid
+  > .campaign-communication-field-block:nth-of-type(2) {
+  margin-left: -0.175rem;
+}
+
+.campaign-communication-field-label {
+  margin: 0 !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  color: #202124;
+  white-space: nowrap;
+}
+
+.campaign-communication-schedule-note {
+  font-size: 0.75rem !important;
+  line-height: 1.125rem !important;
+  color: #8a8f98;
+}
+
+.campaign-communication-schedule-note-desktop {
+  justify-self: start;
+}
+
+.campaign-communication-schedule .MuiOutlinedInput-root {
+  min-width: 7.375rem;
+}
+
+.campaign-communication-time-picker {
+  width: 9.625rem;
+  max-height: 14.375rem;
+  overflow: hidden;
+  border: 0.0625rem solid #b8c0cc;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.campaign-communication-time-picker [role='listbox'] {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+  padding: 0.25rem;
+}
+
+.campaign-communication-time-picker-column {
+  max-height: 13.875rem;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.campaign-communication-time-picker-column::-webkit-scrollbar {
+  display: none;
+}
+
+.campaign-communication-time-picker-option {
+  width: 100%;
+  min-height: 1.875rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #111827;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.campaign-communication-time-picker-option:hover {
+  background: #eef4ff;
+}
+
+.campaign-communication-time-picker-option[aria-selected='true'] {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.campaign-communication-schedule .MuiInputAdornment-root svg {
+  color: #667085;
+}
+
+.campaign-communication-schedule-note-mobile {
+  display: none;
+}
+
+@media (min-width: 64.0625rem) {
+  .campaign-communication-field-block {
+    width: 13.25rem;
+    grid-template-columns: auto 7.375rem;
+  }
+
+  .campaign-communication-schedule-grid
+    > .campaign-communication-field-block:nth-of-type(1),
+  .campaign-communication-schedule-grid
+    > .campaign-communication-field-block:nth-of-type(2) {
+    margin-left: 0;
+  }
+}
+
+.campaign-communication-table {
+  display: flex;
+  flex-direction: column;
+  border: 0.0625rem solid #d8dee8;
+  border-radius: 0.625rem;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.campaign-communication-table-body {
+  max-height: 102rem;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.campaign-communication-table-body::-webkit-scrollbar {
+  width: 0.375rem;
+}
+
+.campaign-communication-table-body::-webkit-scrollbar-thumb {
+  background: #c9d2de;
+  border-radius: 9999px;
+}
+
+.campaign-communication-table-head {
+  display: grid;
+  grid-template-columns: var(--campaign-communication-table-columns);
+  align-items: center;
+  background: #eff4f8;
+  border-bottom: 0.0625rem solid #d8dee8;
+  padding-right: var(--campaign-communication-table-scrollbar-width);
+  box-sizing: border-box;
+}
+
+.campaign-communication-table-head span {
+  padding: 0.625rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #77808b;
+  text-align: left;
+  border-right: 0.0625rem solid #d8dee8;
+}
+
+.campaign-communication-table-head span:last-child {
+  border-right: none;
+}
+
+.campaign-communication-table-head-empty {
+  min-height: 100%;
+}
+
+.campaign-communication-row {
+  display: grid;
+  grid-template-columns: var(--campaign-communication-table-columns);
+  background: #ffffff;
+}
+
+.campaign-communication-row-body {
+  display: contents;
+}
+
+.campaign-communication-row + .campaign-communication-row {
+  border-top: 0.0625rem solid #d8dee8;
+}
+
+.campaign-communication-row > .campaign-communication-date-cell,
+.campaign-communication-row-body > .campaign-communication-cell,
+.campaign-communication-row-body > .campaign-communication-poll-cell,
+.campaign-communication-row-body > .campaign-communication-clear-cell {
+  padding: 0.6rem 0.5rem;
+  border-right: 0.0625rem solid #d8dee8;
+}
+
+.campaign-communication-row-body > .campaign-communication-clear-cell {
+  border-right: none;
+}
+
+.campaign-communication-mobile-row-head,
+.campaign-communication-mobile-label {
+  display: none;
+}
+
+.campaign-communication-date-cell {
+  background: #f8f8f8;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100%;
+  padding-left: 1rem !important;
+}
+
+.campaign-communication-date-label {
+  font-size: 0.9375rem !important;
+  font-weight: 700 !important;
+  color: #202124;
+}
+
+.campaign-communication-date-subtext {
+  margin-top: 0.0625rem !important;
+  font-size: 0.75rem !important;
+  color: #667085;
+}
+
+.campaign-communication-cell,
+.campaign-communication-poll-cell,
+.campaign-communication-clear-cell {
+  min-width: 0;
+}
+
+.campaign-communication-poll-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+}
+
+.campaign-communication-option-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.campaign-communication-poll-question-field {
+  width: 100%;
+}
+
+.campaign-communication-poll-option-field {
+  max-width: 10.25rem;
+}
+
+.campaign-communication-add-option {
+  align-self: flex-start;
+  min-width: 0 !important;
+  padding: 0.125rem 0.5rem !important;
+  border: 0.0625rem solid #3b82f6 !important;
+  border-radius: 0.25rem !important;
+  color: #2563eb !important;
+  text-transform: none !important;
+  font-size: 0.625rem !important;
+  font-weight: 600 !important;
+}
+
+.campaign-communication-add-option .MuiButton-startIcon {
+  margin-right: 0.1875rem;
+  margin-left: 0;
+}
+
+.campaign-communication-add-option .MuiButton-startIcon > *:nth-of-type(1) {
+  font-size: 0.875rem;
+}
+
+.campaign-communication-remove-option {
+  min-width: 1.625rem !important;
+  width: 1.625rem;
+  height: 1.625rem;
+  padding: 0 !important;
+  border: 0.0625rem solid #f3b0ad !important;
+  color: #ea4335 !important;
+  align-self: center;
+}
+
+.campaign-communication-mobile-option-clear,
+.campaign-communication-media-link-adornment {
+  display: none !important;
+}
+
+.campaign-communication-clear-cell {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.campaign-communication-clear-cell button {
+  min-width: 4.625rem !important;
+  height: 1.75rem;
+  padding: 0.125rem 0.5rem !important;
+  border: 0.0625rem solid #e24b4a !important;
+  border-radius: 0.25rem !important;
+  color: #e24b4a !important;
+  text-transform: none !important;
+  font-size: 0.6875rem !important;
+  font-weight: 400 !important;
+  line-height: 1 !important;
+}
+
+.campaign-communication-empty-state {
+  padding: 1rem;
+  color: #667085;
+}
+
+.campaign-communication-step .MuiFormHelperText-root {
+  margin-left: 0;
+  font-size: 0.625rem;
+}
+
+.campaign-communication-step .MuiOutlinedInput-root {
+  border-radius: 0.375rem !important;
+}
+
+.campaign-communication-step .MuiInputBase-input,
+.campaign-communication-step .MuiSelect-select {
+  padding: 0.375rem 0.5rem !important;
+  font-size: 0.8125rem !important;
+}
+
+.campaign-communication-step .MuiInputBase-inputMultiline {
+  padding: 0.375rem 0.5rem !important;
+}
+
+.campaign-communication-step .MuiOutlinedInput-notchedOutline {
+  border-color: #d0d5dd !important;
+}
+
+.campaign-communication-step .MuiSelect-icon {
+  color: #667085;
+  width: 1rem;
+  height: 1rem;
+  right: 0.625rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.campaign-communication-step textarea::placeholder,
+.campaign-communication-step input::placeholder {
+  color: #9aa1aa;
+  opacity: 1;
+}
+
+.campaign-communication-message-field .MuiOutlinedInput-root {
+  background: transparent !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+.campaign-communication-message-field .MuiOutlinedInput-notchedOutline {
+  border: none !important;
+}
+
+.campaign-communication-message-field .MuiInputBase-inputMultiline {
+  min-height: 3rem;
+  padding: 0 !important;
+}
+
+@media (max-width: 48rem) and (orientation: portrait) {
+  .campaign-communication-step {
+    gap: 0.75rem;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .campaign-communication-header {
+    gap: 0.25rem;
+    align-items: flex-start;
+  }
+
+  .campaign-communication-section-title {
+    text-align: left !important;
+  }
+
+  .campaign-communication-helper-text {
+    font-size: 0.75rem !important;
+    line-height: 1.125rem !important;
+    color: #202124;
+    text-align: left !important;
+  }
+
+  .campaign-communication-widgets {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .campaign-communication-widget {
+    max-width: none;
+    min-height: 2.5rem;
+    padding: 0.625rem 0.75rem;
+  }
+
+  .campaign-communication-widget-value {
+    font-size: 0.8125rem !important;
+    line-height: 1.125rem !important;
+  }
+
+  .campaign-communication-validation {
+    padding: 0.375rem 0.875rem !important;
+  }
+
+  .campaign-communication-validation .MuiAlert-message {
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+  }
+
+  .campaign-communication-schedule {
+    border-radius: 0.75rem;
+    padding: 0.875rem;
+  }
+
+  .campaign-communication-schedule-grid {
+    grid-template-columns: 1fr;
+    gap: 0.625rem;
+  }
+
+  .campaign-communication-schedule-heading {
+    align-self: flex-start;
+    font-size: 0.9375rem !important;
+    text-align: left !important;
+  }
+
+  .campaign-communication-field-block {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 0.3125rem;
+    justify-items: start;
+  }
+
+  .campaign-communication-schedule-grid
+    > .campaign-communication-field-block:nth-of-type(1),
+  .campaign-communication-schedule-grid
+    > .campaign-communication-field-block:nth-of-type(2) {
+    margin-left: 0;
+  }
+
+  .campaign-communication-field-label {
+    margin-bottom: 0 !important;
+    font-size: 0.75rem !important;
+    text-align: left !important;
+    width: 100%;
+  }
+
+  .campaign-communication-schedule-note-desktop {
+    display: none;
+  }
+
+  .campaign-communication-schedule-note-mobile {
+    display: block;
+    text-align: left !important;
+    font-size: 0.75rem !important;
+    line-height: 1.125rem !important;
+    color: #202124 !important;
+  }
+
+  .campaign-communication-table {
+    gap: 0.75rem;
+    border: none;
+    background: transparent;
+    overflow: visible;
+  }
+
+  .campaign-communication-table-body {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .campaign-communication-table-head {
+    display: none;
+  }
+
+  .campaign-communication-row {
+    display: flex;
+    flex-direction: column;
+    border: 0.0625rem solid #d9e4f2;
+    border-radius: 0.875rem;
+    overflow: hidden;
+    background: #ffffff;
+    margin-bottom: 0.75rem;
+  }
+
+  .campaign-communication-row + .campaign-communication-row {
+    border-top: 0.0625rem solid #d9e4f2;
+  }
+
+  .campaign-communication-mobile-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem 0.6875rem;
+    background: #eff6ff;
+    border-bottom: 0.0625rem solid #d9e4f2;
+    width: 100%;
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+    text-align: left;
+  }
+
+  .campaign-communication-mobile-expand {
+    color: #6b7280;
+    transform: rotate(0deg);
+    transition: transform 0.2s ease;
+  }
+
+  .campaign-communication-mobile-expand-collapsed {
+    transform: rotate(180deg);
+  }
+
+  .campaign-communication-date-cell {
+    display: none;
+  }
+
+  .campaign-communication-row-body {
+    display: block;
+  }
+
+  .campaign-communication-row-body-collapsed {
+    display: none;
+  }
+
+  .campaign-communication-mobile-label {
+    display: block;
+    margin-bottom: 0.1875rem !important;
+    font-size: 0.8125rem !important;
+    font-weight: 700 !important;
+    color: #202124;
+    text-transform: none;
+    text-align: left !important;
+    width: 100%;
+  }
+
+  .campaign-communication-row > .campaign-communication-cell,
+  .campaign-communication-row-body > .campaign-communication-cell,
+  .campaign-communication-row-body > .campaign-communication-poll-cell,
+  .campaign-communication-row-body > .campaign-communication-clear-cell {
+    padding: 0.625rem 1rem;
+    border-right: none;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+  }
+
+  .campaign-communication-row-body > .campaign-communication-cell,
+  .campaign-communication-row-body > .campaign-communication-poll-cell {
+    border-bottom: none;
+  }
+
+  .campaign-communication-row-body > .campaign-communication-poll-cell {
+    gap: 0.375rem;
+  }
+
+  .campaign-communication-clear-cell {
+    justify-content: flex-end;
+  }
+
+  .campaign-communication-clear-cell button {
+    min-width: 5.5rem !important;
+    height: 2.5rem !important;
+    padding: 0.375rem 1rem !important;
+    border: 0.0625rem solid #e24b4a !important;
+    border-radius: 0.375rem !important;
+    color: #e24b4a !important;
+    background-color: #ffffff !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    align-self: flex-end;
+  }
+
+  .campaign-communication-poll-option-field {
+    width: 100%;
+    max-width: none;
+  }
+
+  .campaign-communication-option-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.25rem;
+    align-items: start;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .campaign-communication-mobile-option-clear {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem !important;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 !important;
+    border: 0.0625rem solid #fecaca !important;
+    border-radius: 0.3125rem !important;
+    color: #ef4444 !important;
+    background-color: #fef2f2 !important;
+    flex: 0 0 auto;
+  }
+
+  .campaign-communication-add-option {
+    align-self: flex-start;
+    min-width: 0 !important;
+    height: 2.5rem !important;
+    padding: 0.375rem 1rem !important;
+    border: 0.0625rem solid #bfdbfe !important;
+    border-radius: 0.375rem !important;
+    color: #2563eb !important;
+    background-color: #eff6ff !important;
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    text-transform: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  .campaign-communication-remove-option {
+    display: none !important;
+  }
+
+  .campaign-communication-media-link-adornment {
+    display: inline-flex !important;
+    color: #667085;
+  }
+
+  .campaign-communication-message-field .MuiOutlinedInput-root {
+    border-radius: 0.5rem !important;
+    align-items: flex-start !important;
+    padding: 0 !important;
+  }
+
+  .campaign-communication-message-field .MuiOutlinedInput-notchedOutline {
+    border: 0.0625rem solid #d0d5dd !important;
+  }
+
+  .campaign-communication-message-field .MuiInputBase-inputMultiline {
+    min-height: 1.125rem;
+    padding: 0.625rem 0.875rem !important;
+  }
+
+  .campaign-communication-message-field textarea {
+    height: 4.5rem !important;
+  }
+}
+
+@media (max-width: 64rem) and (orientation: landscape) {
+  .campaign-communication-step {
+    gap: 0.875rem;
+  }
+
+  .campaign-communication-schedule {
+    padding: 0.75rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .campaign-communication-schedule-grid {
+    grid-template-columns: auto auto auto minmax(10rem, 1fr);
+    column-gap: 0.625rem;
+    row-gap: 0.625rem;
+    min-width: 41rem;
+  }
+
+  .campaign-communication-schedule-heading {
+    margin-left: 0 !important;
+    font-size: 0.75rem !important;
+  }
+
+  .campaign-communication-field-block {
+    gap: 0.3125rem;
+  }
+
+  .campaign-communication-field-label {
+    font-size: 0.75rem !important;
+  }
+
+  .campaign-communication-schedule .MuiOutlinedInput-root {
+    min-width: 6.25rem;
+  }
+
+  .campaign-communication-schedule-note {
+    font-size: 0.6875rem !important;
+    line-height: 1rem !important;
+  }
+
+  .campaign-communication-schedule-grid
+    > .campaign-communication-field-block:nth-of-type(1),
+  .campaign-communication-schedule-grid
+    > .campaign-communication-field-block:nth-of-type(2) {
+    margin-left: 0;
+  }
+
+  .campaign-communication-table {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .campaign-communication-table-head,
+  .campaign-communication-table-body {
+    min-width: 48rem;
+  }
+
+  .campaign-communication-table-body {
+    overflow-x: visible;
+  }
+}

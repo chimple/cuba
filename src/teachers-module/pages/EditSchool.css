@@ -76,7 +76,6 @@
   color: #808080;
 }
 
-
 .edit-school-confirm-message {
   box-shadow: 0px 2px 4px 1px rgba(0, 0, 0, 0.25);
   padding: 10px;
@@ -92,13 +91,14 @@
   justify-content: center;
   max-width: 70%;
 }
-.edit-school-confirm-subtext p, .edit-school-confirm-message p{
+.edit-school-confirm-subtext p,
+.edit-school-confirm-message p {
   font-size: 16px;
   margin-top: 10px;
   color: #808080;
 }
 
-.edit-school-create-school-confirm-subtext p{
+.edit-school-create-school-confirm-subtext p {
   font-size: 16px;
   margin-top: 10px;
   font-weight: 600;
@@ -111,7 +111,8 @@
   color: #808080;
 }
 
-.edit-school-app-links, .edit-school-create-school-app-links {
+.edit-school-app-links,
+.edit-school-create-school-app-links {
   display: flex;
   justify-content: center;
   gap: 15px;
@@ -135,7 +136,7 @@
   width: 45%;
 }
 .edit-school-app-card {
-  background-color: #F4EEFE;
+  background-color: #f4eefe;
   padding: 10px;
   border-radius: 8px;
   text-align: center;
@@ -158,7 +159,6 @@
   align-items: center;
   gap: 2px;
 }
-
 
 .edit-school-app-subtext {
   color: #666;
@@ -193,9 +193,9 @@
 
 .edit-school-whatsapp-support {
   position: relative;
-  border: 1.5px solid #67D449;
+  border: 1.5px solid #67d449;
   border-radius: 10px;
-  padding: 10px 20px 10px 45px; 
+  padding: 10px 20px 10px 45px;
   display: flex;
   align-items: center;
   background: #fff;
@@ -206,9 +206,9 @@
 
 .edit-school-create-school-whatsapp-support {
   position: relative;
-  border: 1.5px solid #67D449;
+  border: 1.5px solid #67d449;
   border-radius: 10px;
-  padding: 0px; 
+  padding: 0px;
   display: flex;
   align-items: center;
   background: #fff;
@@ -222,7 +222,7 @@
   left: -15px;
   top: 50%;
   transform: translateY(-50%);
-  background: #25D366;
+  background: #25d366;
   border-radius: 50%;
   padding: 5px;
   display: flex;
@@ -232,7 +232,7 @@
 
 .edit-school-whatsapp-support-text {
   text-align: center;
-  margin: auto; 
+  margin: auto;
 }
 
 .edit-school-whatsapp-support-text p {
@@ -244,7 +244,7 @@
 
 .edit-school-create-school-whatsapp-support-text {
   text-align: center;
-  margin: auto; 
+  margin: auto;
 }
 .edit-school-create-school-whatsapp-support-text p {
   font-weight: 500;
@@ -273,12 +273,12 @@
   border: none;
 }
 
-.edit-school-span-text-whatsapp{
+.edit-school-span-text-whatsapp {
   font-size: 18px !important;
   font-weight: bold !important;
 }
 
-.edit-school-favicon-img{
+.edit-school-favicon-img {
   display: inline-block;
   width: 20px;
   height: 20px;

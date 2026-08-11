@@ -1,22 +1,22 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import { TableTypes } from "../../../common/constants";
-import UserDetail from "../../components/studentProfile/UserDetail";
+import type { Meta, StoryObj } from '@storybook/react';
+import { TableTypes } from '../../../common/constants';
+import UserDetail from '../../components/studentProfile/UserDetail';
 
-const mockStudent: TableTypes<"user"> = {
-  id: "student-1",
+const mockStudent: TableTypes<'user'> = {
+  id: 'student-1',
   age: null,
-  avatar: "donkey",
-  created_at: "2023-01-01T12:00:00Z",
+  avatar: 'donkey',
+  created_at: '2023-01-01T12:00:00Z',
   curriculum_id: null,
-  email: "john.doe@example.com",
+  email: 'john.doe@example.com',
   fcm_token: null,
-  gender: "male",
-  grade_id: "grade-1",
+  gender: 'male',
+  grade_id: 'grade-1',
   language_id: null,
-  name: "John Doe",
+  name: 'John Doe',
   phone: null,
-  updated_at: "2023-01-01T12:00:00Z",
+  updated_at: '2023-01-01T12:00:00Z',
   image: null,
   is_deleted: null,
   is_tc_accepted: null,
@@ -29,19 +29,19 @@ const mockStudent: TableTypes<"user"> = {
   learning_path: null,
   ops_created_by: null,
   stars: null,
-  reward: null
+  reward: null,
 };
 
 const meta: Meta<typeof UserDetail> = {
-  title: "components/studentProfile/StudentDetail",
+  title: 'components/studentProfile/StudentDetail',
   component: UserDetail,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {
     user: {
-      control: "object",
+      control: 'object',
     },
   },
 };
@@ -57,21 +57,21 @@ export const Default: Story = {
 
 export const test1: Story = {
   args: {
-    user: { ...mockStudent, avatar: "snake", name: "Jane Smith" },
+    user: { ...mockStudent, avatar: 'snake', name: 'Jane Smith' },
   },
 };
 
 export const test2: Story = {
   args: {
-    user: { ...mockStudent, avatar: "tiger", name: "Tommy" },
+    user: { ...mockStudent, avatar: 'tiger', name: 'Tommy' },
   },
 };
 export const test3: Story = {
   args: {
     user: {
       ...mockStudent,
-      avatar: "zebra",
-      name: "Hubert Blaine Wolfeschlegelsteinhausenbergerdorff Sr",
+      avatar: 'zebra',
+      name: 'Hubert Blaine Wolfeschlegelsteinhausenbergerdorff Sr',
     },
   },
 };

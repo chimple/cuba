@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import "./TableChoiceHeader.css";
+import React, { useEffect, useState } from 'react';
+import './TableChoiceHeader.css';
 import {
   addDays,
   addMonths,
@@ -7,21 +7,17 @@ import {
   isAfter,
   subDays,
   subMonths,
-} from "date-fns";
-import { t } from "i18next";
-import { funnel, personCircle } from "ionicons/icons";
-import { IonIcon } from "@ionic/react";
-import { TABLESORTBY } from "../../../common/constants";
-import CustomDropdown from "../CustomDropdown";
-import CalendarPicker from "../../../common/CalendarPicker";
+} from 'date-fns';
+import { t } from 'i18next';
+import { TABLESORTBY } from '../../../common/constants';
 
 interface TableChoiceHeaderProps {
-  onDateChange;
-  onIsAssignments;
-  isMonthly;
-  handleNameSort;
-  sortBy;
-  isAssignmentsOnlyProp;
+  onDateChange: (dateRange: { startDate: Date; endDate: Date }) => void;
+  onIsAssignments: (isAssignmentsOnly: boolean) => void;
+  isMonthly: boolean;
+  handleNameSort: (sortOption: { id: string; name: TABLESORTBY }) => void;
+  sortBy: TABLESORTBY;
+  isAssignmentsOnlyProp: boolean;
   dateRangeValue: {
     startDate: Date;
     endDate: Date;
@@ -40,10 +36,8 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
   isAssignmentReport,
 }) => {
   const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedValue, setSelectedValue] = useState<string | undefined>();
-
   const [isAssignmentsOnly, setIsAssignmentsOnly] = useState(
-    isAssignmentsOnlyProp
+    isAssignmentsOnlyProp,
   );
   const [dateRange, setDateRange] = useState(dateRangeValue);
 
@@ -111,8 +105,8 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
   };
   const isNextButtonDisabled = () => {
     const today = new Date();
-    const formattedEndDate = format(dateRange.endDate, "yyyy-MM-dd");
-    const formattedToday = format(today, "yyyy-MM-dd");
+    const formattedEndDate = format(dateRange.endDate, 'yyyy-MM-dd');
+    const formattedToday = format(today, 'yyyy-MM-dd');
     return (
       isAfter(dateRange.endDate, today) || formattedEndDate === formattedToday
     );
@@ -124,7 +118,7 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
         <div className="toggle-container">
           <div className="pill-toggle">
             <div
-              className={`pill-option ${isAssignmentsOnly ? "active" : ""}`}
+              className={`pill-option ${isAssignmentsOnly ? 'active' : ''}`}
               onClick={() => {
                 if (!isAssignmentsOnly) {
                   setIsAssignmentsOnly(true);
@@ -132,10 +126,10 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
                 }
               }}
             >
-              {t("Assignments")}
+              {t('Assignments')}
             </div>
             <div
-              className={`pill-option ${!isAssignmentsOnly ? "active" : ""}`}
+              className={`pill-option ${!isAssignmentsOnly ? 'active' : ''}`}
               onClick={() => {
                 if (isAssignmentsOnly) {
                   setIsAssignmentsOnly(false);
@@ -143,37 +137,37 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
                 }
               }}
             >
-              {t("All activities")}
+              {t('All activities')}
             </div>
           </div>
         </div>
       )}
       <div className="date-range-container">
         <p className="table-date-range-text">
-          {t("Click date to select Date Range")}
+          {t('Click date to select Date Range')}
         </p>
         <div className="date-range-controls">
           <button className="nav-btn" onClick={handlePrevDateRange}>
-            {"<"}
+            {'<'}
           </button>
           <div className="date-range" onClick={handleCalendarSelect}>
-            {`${dateRange.startDate.getDate().toString().padStart(2, "0")}/${(
+            {`${dateRange.startDate.getDate().toString().padStart(2, '0')}/${(
               dateRange.startDate.getMonth() + 1
             )
               .toString()
-              .padStart(2, "0")} - ${dateRange.endDate
+              .padStart(2, '0')} - ${dateRange.endDate
               .getDate()
               .toString()
-              .padStart(2, "0")}/${(dateRange.endDate.getMonth() + 1)
+              .padStart(2, '0')}/${(dateRange.endDate.getMonth() + 1)
               .toString()
-              .padStart(2, "0")}`}
+              .padStart(2, '0')}`}
           </div>
           <button
             className="nav-btn"
             onClick={handleNextDateRange}
             disabled={isNextButtonDisabled()}
           >
-            {">"}
+            {'>'}
           </button>
         </div>
       </div>
@@ -184,7 +178,7 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
           className="tablechoice-custom-dropdown-header"
           onClick={() => setDropdownOpen(!isDropdownOpen)}
         >
-          <span>{sortBy ? t(sortBy) : t("Sort By")}</span>
+          <span>{sortBy ? t(sortBy) : t('Sort By')}</span>
           <img src="assets/icons/filterArrow.svg" alt="Filter_icon" />
         </div>
 
@@ -195,7 +189,7 @@ const TableChoiceHeader: React.FC<TableChoiceHeaderProps> = ({
                 <div
                   key={key}
                   className={`tablechoice-custom-dropdown-item ${
-                    sortBy === value ? "selected" : ""
+                    sortBy === value ? 'selected' : ''
                   }`}
                   onClick={() => {
                     handleNameSort({ id: key, name: value });

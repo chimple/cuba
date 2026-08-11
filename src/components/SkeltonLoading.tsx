@@ -1,21 +1,22 @@
-import { IonCol, IonLoading, LoadingOptions } from "@ionic/react";
-import React, { useEffect, useState } from "react";
-import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
-import "react-loading-skeleton/dist/skeleton.css";
-import "./SkeltonLoading.css";
+import { IonCol } from '@ionic/react';
+import React, { useEffect, useState } from 'react';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+import './SkeltonLoading.css';
 import {
   HOMEHEADERLIST,
   IS_CONECTED,
   LEADERBOARDHEADERLIST,
   PAGES,
-} from "../common/constants";
-import { Util } from "../utility/util";
+} from '../common/constants';
+import { Util } from '../utility/util';
 
 interface SkeltonLoadingProps {
   isLoading: boolean;
   header?: string;
   isChapter?: boolean;
 }
+export const PATHWAY_STRUCTURE_SKELETON_HEADER = 'PATHWAY_STRUCTURE';
 
 const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   isLoading,
@@ -23,14 +24,14 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   isChapter,
 }) => {
   const [isLinked, setIsLinked] = useState(Boolean);
-  var width = "56.66vh";
-  var textWidth = "30vh";
-  var subjectTextWidth = "18vh";
-  var height = "40vh";
+  var width = '56.66vh';
+  var textWidth = '30vh';
+  var subjectTextWidth = '18vh';
+  var height = '40vh';
   const skeletonStyle = {
-    borderRadius: "7vh",
-    justifyContent: "center",
-    alignItems: "center",
+    borderRadius: '7vh',
+    justifyContent: 'center',
+    alignItems: 'center',
   };
   useEffect(() => {
     if (header == HOMEHEADERLIST.ASSIGNMENT) {
@@ -78,6 +79,8 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       return isLoading ? skeletonStudentProgress() : null;
     case PAGES.SCHOOL_LIST:
       return isLoading ? skeletonSchoolList() : null;
+    case PATHWAY_STRUCTURE_SKELETON_HEADER:
+      return isLoading ? skeletonPathwayStructure() : null;
     default:
       return isLoading ? skeltonSubjectCards() : null;
   }
@@ -92,9 +95,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
       <div className="skelton-body">
         <div className="skelton-body-cards">{skeltonLessonCards()}</div>
         {header == HOMEHEADERLIST.SUGGESTIONS ? (
-          <div className="skelton-home-page-app-ba-div">
-            {/* <Skeleton className="skelton-home-page-app-bar" /> */}
-          </div>
+          <div className="skelton-home-page-app-ba-div"></div>
         ) : null}
       </div>
     );
@@ -107,8 +108,8 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
             key={`skeleton-${index}`}
             className={
               header === HOMEHEADERLIST.SUBJECTS
-                ? "skelton-subject-card-size"
-                : "skelton-card-size"
+                ? 'skelton-subject-card-size'
+                : 'skelton-card-size'
             }
           >
             <div className="skelton-card-display">
@@ -117,8 +118,8 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
                 style={skeletonStyle}
                 className={
                   header === HOMEHEADERLIST.SUBJECTS
-                    ? "skelton-subject-card"
-                    : "skelton-size-card"
+                    ? 'skelton-subject-card'
+                    : 'skelton-size-card'
                 }
               />
               <Skeleton
@@ -173,20 +174,7 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
   }
 
   function skeltonHome() {
-    return (
-      <div className="skelton-home-screen">
-        {/* <div id="skelton-home-screen-div">
-          <img
-            id="skelton-home-screen-char"
-            src={"/assets/animation/chimple_avatar.png"}
-            loading="lazy"
-            alt=""
-          />
-        </div> */}
-        {/* <Skeleton className="skelton-home-screen-avatar" /> */}
-        {/* <Skeleton className="skelton-home-screen-diloag" /> */}
-      </div>
-    );
+    return <div className="skelton-home-screen"></div>;
   }
   function skeltonDisplayStudents() {
     return (
@@ -282,6 +270,124 @@ const SkeltonLoading: React.FC<SkeltonLoadingProps> = ({
         {[...Array(10)].map((_, i) => (
           <Skeleton key={i} className="skeleton-rectangle"></Skeleton>
         ))}
+      </div>
+    );
+  }
+  function skeletonPathwayStructure() {
+    const gradientId = 'pathwayFlowerSkeletonGradient';
+    const petalAngles = [0, 60, 120, 180, 240, 300];
+    // First flower transform is kept exactly as requested.
+    // Coordinates adjusted slightly to keep flowers centered when scale is reduced.
+    const flowerNodes = [
+      { x: 16.5, y: 41.35, scale: 0.85 },
+      { x: 166.1, y: 25.2, scale: 0.82 },
+      { x: 277.7, y: 45.9, scale: 0.82 },
+      { x: 390.8, y: 25.9, scale: 0.82 },
+      { x: 510.9, y: 45.5, scale: 0.82 },
+    ];
+
+    const pathData = [
+      'M70.8044 69.6535C101.195 69.6535 186.388 55.8228 200.836 54.9297',
+      'M200.833 54.9282C215.281 54.0351 289.514 86.6065 312.431 86.6065',
+      'M312.432 86.6051C335.35 86.6051 398.912 57.6055 420.543 57.6055',
+      'M420.542 57.6055C440.969 57.6055 510.718 85.2651 535.628 85.2651',
+      'M535.627 85.2676C560.537 85.2676 622.813 52.2534 640.25 55.3763',
+    ];
+
+    return (
+      <div className="skeleton-pathway-wrapper">
+        <svg
+          className="skeleton-pathway-svg"
+          width="95vw"
+          viewBox="0 0 770 250"
+          preserveAspectRatio="xMidYMid meet"
+          aria-hidden="true"
+        >
+          <defs>
+            <linearGradient
+              id={gradientId}
+              gradientUnits="userSpaceOnUse"
+              x1="0"
+              y1="0"
+              x2="250"
+              y2="0"
+            >
+              <stop offset="0%" stopColor="#cfd6db" />
+              <stop offset="50%" stopColor="#eceff2" />
+              <stop offset="100%" stopColor="#cfd6db" />
+              <animate
+                attributeName="x1"
+                values="-250;770"
+                dur="1.8s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="x2"
+                values="0;1020"
+                dur="1.8s"
+                repeatCount="indefinite"
+              />
+            </linearGradient>
+
+            <mask id="pathwayMask">
+              {/* Curved connection lines */}
+              {pathData.map((d, i) => (
+                <path
+                  key={`path-mask-${i}`}
+                  d={d}
+                  stroke="white"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              ))}
+
+              {flowerNodes.map((node, index) => (
+                <g
+                  key={`flower-mask-group-${index}`}
+                  transform={`translate(${node.x} ${node.y}) scale(${node.scale})`}
+                >
+                  {petalAngles.map((angle) => (
+                    <ellipse
+                      key={`petal-mask-${index}-${angle}`}
+                      cx="38"
+                      cy="12"
+                      rx="11"
+                      ry="18"
+                      transform={`rotate(${angle} 38 38)`}
+                      fill="white"
+                      opacity="0.9"
+                    />
+                  ))}
+                  <circle cx="38" cy="38" r="24" fill="white" />
+                  {/* Inner circle slightly less opaque for depth */}
+                  <circle cx="38" cy="38" r="17" fill="#cccccc" />
+                </g>
+              ))}
+
+              {/* Reward block mask */}
+              <g transform="translate(615 35)">
+                <rect
+                  width="60"
+                  height="46"
+                  rx="12"
+                  fill="white"
+                  stroke="white"
+                  strokeWidth="2"
+                />
+              </g>
+            </mask>
+          </defs>
+
+          {/* Single shimmer rect masked by the entire pathway structure */}
+          <rect
+            width="100%"
+            height="100%"
+            fill={`url(#${gradientId})`}
+            mask="url(#pathwayMask)"
+          />
+        </svg>
       </div>
     );
   }

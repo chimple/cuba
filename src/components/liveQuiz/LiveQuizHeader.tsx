@@ -1,17 +1,31 @@
-import { FC, useEffect, useState } from "react";
-import "./LiveQuizHeader.css";
-import { PAGES, TableTypes } from "../../common/constants";
-import { useHistory } from "react-router";
-import LiveQuizStudentAvatar from "./LiveQuizStudentAvatar";
+import { FC, useEffect, useState } from 'react';
+import './LiveQuizHeader.css';
+import { PAGES, TableTypes } from '../../common/constants';
+import { useHistory } from 'react-router';
+import LiveQuizStudentAvatar from './LiveQuizStudentAvatar';
 import {
   LIVE_QUIZ_QUESTION_TIME,
   LiveQuizQuestion,
-} from "../../models/liveQuiz";
-import { Util } from "../../utility/util";
-import { ServiceConfig } from "../../services/ServiceConfig";
+} from '../../models/liveQuiz';
+import { Util } from '../../utility/util';
+import { ServiceConfig } from '../../services/ServiceConfig';
+
+type LiveQuizQuestionResult = {
+  question_id: string;
+  score: number;
+};
+
+const toRoomResults = (
+  results: TableTypes<'live_quiz_room'>['results'],
+): Record<string, LiveQuizQuestionResult[]> => {
+  if (results && typeof results === 'object' && !Array.isArray(results)) {
+    return results as Record<string, LiveQuizQuestionResult[]>;
+  }
+  return {};
+};
 
 const LiveQuizHeader: FC<{
-  roomDoc: TableTypes<"live_quiz_room">;
+  roomDoc: TableTypes<'live_quiz_room'>;
   remainingTime: number | undefined;
   showAnswer: boolean;
   currentQuestion: LiveQuizQuestion | undefined;
@@ -24,11 +38,11 @@ const LiveQuizHeader: FC<{
   currentQuestionIndex,
 }) => {
   const [studentIdMap, setStudentIdMap] = useState<{
-    [id: string]: TableTypes<"user">;
+    [id: string]: TableTypes<'user'>;
   }>({});
   const [sortedStudents, setSortedStudents] = useState<
     {
-      student: TableTypes<"user">;
+      student: TableTypes<'user'>;
       score?: number;
       rank?: number;
     }[]
@@ -54,13 +68,13 @@ const LiveQuizHeader: FC<{
 
   const getStudents = async () => {
     if (roomDoc && roomDoc.participants && roomDoc.participants.length > 0) {
-      const tempStudentsMap: { [id: string]: TableTypes<"user"> } = {};
+      const tempStudentsMap: { [id: string]: TableTypes<'user'> } = {};
       const studentsData = await api.getStudentResultsByAssignmentId(
-        roomDoc.assignment_id
+        roomDoc.assignment_id,
       );
 
       if (studentsData) {
-        let userData: TableTypes<"user">[] = studentsData[0].user_data;
+        let userData: TableTypes<'user'>[] = studentsData[0].user_data;
         if (userData) {
           userData.forEach((user) => {
             if (roomDoc.participants) {
@@ -77,26 +91,27 @@ const LiveQuizHeader: FC<{
 
   const sortedStudentsWithScore = () => {
     const tempSortedStudents: {
-      student: TableTypes<"user">;
+      student: TableTypes<'user'>;
       score?: number;
       lastQuestionId?: string;
     }[] = [];
 
+    const roomResults = toRoomResults(roomDoc.results);
     roomDoc.participants?.forEach((studentId: string) => {
       if (studentIdMap[studentId]) {
-        const studentResult: any[] = roomDoc.results?.[studentId];
+        const studentResult = roomResults[studentId];
         if (studentResult && studentResult.length > 0) {
           const totalScore = studentResult.reduce(
             (acc: number, question) => acc + question.score,
-            0
+            0,
           );
           tempSortedStudents.push({
             student: studentIdMap[studentId],
             score: showAnswer
               ? Number(totalScore.toFixed(1))
-              : sortedStudents.find(
-                  (student) => student.student.id === studentId
-                )?.score ?? 0,
+              : (sortedStudents.find(
+                  (student) => student.student.id === studentId,
+                )?.score ?? 0),
             lastQuestionId:
               studentResult[studentResult.length - 1]?.question_id,
           });
@@ -116,7 +131,7 @@ const LiveQuizHeader: FC<{
 
     if (student) {
       const currentStudentIndex = rankedStudents.findIndex(
-        (stud) => stud.student.id === student.id
+        (stud) => stud.student.id === student.id,
       );
       if (currentStudentIndex !== -1) {
         const [currentStudent] = rankedStudents.splice(currentStudentIndex, 1);
@@ -132,13 +147,14 @@ const LiveQuizHeader: FC<{
       <div className="live-quiz-header">
         {sortedStudents &&
           sortedStudents.map((studentMap) => {
-            const studentResult = roomDoc.results
-              ? roomDoc.results[studentMap.student.id]
-              : undefined;
+            const studentResult = toRoomResults(roomDoc.results)[
+              studentMap.student.id
+            ];
             const lastAnswer = studentResult?.[studentResult.length - 1];
             const currentQuestionResult = currentQuestion
               ? studentResult?.find(
-                  (result) => result.question_id === currentQuestion.id
+                  (result: LiveQuizQuestionResult) =>
+                    result.question_id === currentQuestion.id,
                 )
               : null;
             return (

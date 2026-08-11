@@ -1,65 +1,77 @@
-import React, { useState, useEffect } from "react";
-import {
-  CLASS,
-  CLASSES,
-  IconType,
-  PAGES,
-  SCHOOL,
-  TableTypes,
-  USER_ROLE,
-} from "../../common/constants";
-import { useHistory } from "react-router-dom";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import Header from "../components/homePage/Header";
-import AddButton from "../../common/AddButton";
-import { t } from "i18next";
-import DetailList from "../components/schoolComponent/DetailList";
-import { RoleType } from "../../interface/modelInterfaces";
-import "./ManageClass.css";
-import { Util } from "../../utility/util";
+import React, { useState, useEffect } from 'react';
+import { CLASSES, IconType, PAGES, TableTypes } from '../../common/constants';
+import { useHistory } from 'react-router-dom';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import Header from '../components/homePage/Header';
+import AddButton from '../../common/AddButton';
+import { t } from 'i18next';
+import DetailList from '../components/schoolComponent/DetailList';
+import { RoleType } from '../../interface/modelInterfaces';
+import './ManageClass.css';
+import { Util } from '../../utility/util';
+import DetailListHeader from '../components/schoolComponent/DetailListHeader';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
+import logger from '../../utility/logger';
+
+const CLASS_CREATION_ROLES = [
+  RoleType.SUPER_ADMIN,
+  RoleType.OPERATIONAL_DIRECTOR,
+  RoleType.PROGRAM_MANAGER,
+  RoleType.FIELD_COORDINATOR,
+  RoleType.PRINCIPAL,
+  RoleType.COORDINATOR,
+];
 
 const ManageClass: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
-    null
-  );
   const [currentSchool, setCurrentSchool] = useState<
-    TableTypes<"school"> | undefined
+    TableTypes<'school'> | undefined
   >();
 
-  const [allClasses, setAllClasses] = useState<TableTypes<"class">[]>([]);
-  const [userRole, setUserRole] = useState<RoleType>();
+  const [allClasses, setAllClasses] = useState<TableTypes<'class'>[]>([]);
+  const [currentSchoolRole, setCurrentSchoolRole] = useState<RoleType>();
 
   const history = useHistory();
   const api = ServiceConfig.getI().apiHandler;
   const auth = ServiceConfig.getI().authHandler;
   const tempClass = Util.getCurrentClass();
 
-  const init = async () => {
-  try {
-    const user = await auth.getCurrentUser();
-    if (!user) return;
-    setCurrentUser(user);
-    const tempSchool = Util.getCurrentSchool();
-    if (tempSchool) {
-      setCurrentSchool(tempSchool);
-      const fetchedClasses = await api.getClassesForSchool(
-        tempSchool.id,
-        user.id
-      );
-      if (fetchedClasses) {
-        setAllClasses(fetchedClasses);
-        localStorage.setItem(CLASSES, JSON.stringify(fetchedClasses));
-      }
-    }
-  } catch (error) {
-    console.error("Error initializing data:", error);
-  }
-};
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
 
-function hasRole(...rolesToCheck: RoleType[]) {
-  const storedRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
-  return rolesToCheck.some((role) => storedRoles.includes(role));
-}
+  const init = async () => {
+    try {
+      const user = await auth.getCurrentUser();
+      if (!user) return;
+      const tempSchool = Util.getCurrentSchool();
+      if (tempSchool) {
+        setCurrentSchool(tempSchool);
+        const schoolRole = await api.getUserRoleForSchool(
+          user.id,
+          tempSchool.id,
+        );
+        setCurrentSchoolRole(schoolRole);
+        const fetchedClasses = await api.getClassesForSchool(
+          tempSchool.id,
+          user.id,
+        );
+        if (fetchedClasses) {
+          setAllClasses(fetchedClasses);
+          localStorage.setItem(CLASSES, JSON.stringify(fetchedClasses));
+        }
+      }
+    } catch (error) {
+      logger.error('Error initializing data:', error);
+    }
+  };
+
+  const canCreate =
+    !!currentSchoolRole && CLASS_CREATION_ROLES.includes(currentSchoolRole);
+
   const onBackButtonClick = () => {
     history.replace(PAGES.HOME_PAGE, {
       tabValue: 0,
@@ -76,8 +88,8 @@ function hasRole(...rolesToCheck: RoleType[]) {
       // Right after the fetch, overwrite the one you just edited
       const updated = Util.getCurrentClass();
       if (updated) {
-        setAllClasses(prev =>
-          prev.map(c => c.id === updated.id ? updated : c)
+        setAllClasses((prev) =>
+          prev.map((c) => (c.id === updated.id ? updated : c)),
         );
       }
     })();
@@ -93,7 +105,8 @@ function hasRole(...rolesToCheck: RoleType[]) {
           schoolName={currentSchool?.name}
         />
       </div>
-      <div className="school-div">{t("Classes")}</div>
+      <div className="school-div">{t('Classes')}</div>
+      {!(allClasses.length === 0) && <DetailListHeader />}
 
       <div className="school-list">
         <DetailList
@@ -102,10 +115,10 @@ function hasRole(...rolesToCheck: RoleType[]) {
           school={currentSchool}
         />
       </div>
-      {hasRole(RoleType.PRINCIPAL, RoleType.COORDINATOR) && (
+      {canCreate && !isExternalUser && (
         <AddButton
           onClick={() => {
-          history.replace(PAGES.ADD_CLASS, { origin: PAGES.MANAGE_CLASS });
+            history.replace(PAGES.ADD_CLASS, { origin: PAGES.MANAGE_CLASS });
           }}
         />
       )}

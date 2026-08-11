@@ -13,11 +13,14 @@
   overflow: hidden; /* Ensures that the content stays within the rounded corners */
 }
 
-.group-wise-header { /* Light pink background */
+.group-wise-header {
+  /* Light pink background */
   font-weight: bold;
-  padding-left: 10px;
+  padding-left: clamp(8px, 3vw, 20px);
+  padding-right: clamp(8px, 3vw, 20px);
   border-bottom: 1px solid #ddd; /* Divider line */
   display: flex;
+  justify-content: space-between;
   align-items: center;
   flex: 1;
   color: #707070;
@@ -25,14 +28,17 @@
   font-size: 1.9vh;
 }
 
+.group-wise-count {
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
 .group-wise-content {
   position: relative;
   display: flex;
-  /* align-items: center; */
   height: auto;
   overflow-x: scroll;
   flex: 5;
-  /* padding: 2px 0px; */
 }
 .student-avatar-container {
   display: flex;
@@ -40,14 +46,13 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  min-width: max-content; 
+  min-width: max-content;
   margin-right: 10px;
 }
 
-
 .student-avatar-container .avatar {
-  width: auto;  
-  height: 75%; 
+  width: auto;
+  height: 75%;
   border-radius: 50%;
   border: 1px solid #707070;
   aspect-ratio: 1;
@@ -55,28 +60,17 @@
 
 .avatar-name {
   color: #707070;
-  width: 100%; 
-  white-space: nowrap; 
+  width: 100%;
+  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; 
+  text-overflow: ellipsis;
   font-size: 1.8vh;
   font-weight: 600;
 }
 
 .avatars-wrapper {
   display: flex;
-  /* align-items: center; */
-  overflow-x: auto;         
-  padding-left: 6px;
-  width: 90%;
-}
 
-.expand-icon {
-  position: absolute;
-  top: 50%;
-  right: 10px;               
-  transform: translateY(-50%);
-  width: 16px;               
-  height: 16px;
-  flex-shrink: 0;           
+  overflow-x: auto;
+  padding-left: 6px;
 }

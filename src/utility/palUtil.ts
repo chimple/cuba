@@ -1,0 +1,783 @@
+import {
+  AbilityState,
+  BlendWeights,
+  DependencyGraph,
+  LearningRates,
+  OutcomeEvent,
+  RecommendationContext,
+  createEmptyAbilityState,
+  recommendNextSkill,
+  updateAbilities,
+} from '@chimple/palau-recommendation';
+import { PAL_LEARNING_RATES_CONFIG, TableTypes } from '../common/constants';
+import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
+import { COURSES } from '../common/constants';
+import { ServiceConfig } from '../services/ServiceConfig';
+
+type AbilityKeys = 'skill' | 'outcome' | 'competency' | 'domain' | 'subject';
+
+type ResultAbilityMap = {
+  [K in AbilityKeys]: Map<string, { ability: number; timestamp: number }>;
+};
+
+type PalConstants = {
+  blendWeights: PalLocalLayerConfig<BlendWeights>;
+  learningRates: PalLocalLayerConfig<LearningRates>;
+};
+
+// Local config mirrors GrowthBook so the same resolution logic works offline.
+type PalLocalLayerConfig<T> = {
+  default: T;
+  subjects: Record<string, T>;
+};
+
+type PalLayerConfig<T> = {
+  default?: Partial<T>;
+  subjects?: Record<string, Partial<T>>;
+};
+
+// GrowthBook stores both PAL knobs in one JSON feature, split by config type.
+type PalConfig = {
+  blendWeights?: PalLayerConfig<BlendWeights>;
+  learningRates?: PalLayerConfig<LearningRates>;
+};
+
+const BLEND_WEIGHT_KEYS: (keyof BlendWeights)[] = [
+  'skill',
+  'outcome',
+  'competency',
+  'domain',
+  'subject',
+];
+
+const LEARNING_RATE_KEYS: (keyof LearningRates)[] = [
+  'skill',
+  'outcome',
+  'competency',
+  'domain',
+  'subject',
+];
+
+const DEFAULT_BLEND_WEIGHTS: BlendWeights = {
+  skill: 0.1,
+  outcome: 0.1,
+  competency: 0.6,
+  domain: 0.1,
+  subject: 0.1,
+};
+
+const DEFAULT_LEARNING_RATES: LearningRates = {
+  skill: 0.5,
+  outcome: 0.8,
+  competency: 0.3,
+  domain: 0.5,
+  subject: 0.4,
+};
+
+const ENGLISH_SUBJECT_ID = '54abf22e-7102-4e14-915b-acd8eab47d56';
+const HINDI_SUBJECT_ID = 'c6e312bc-a832-4b81-964a-e0537cf7f18c';
+const MATHS_SUBJECT_ID = 'c5674cc5-48f8-40b8-8123-f5246ea0c5e8';
+
+const ENGLISH_AND_MATHS_BLEND_WEIGHTS: BlendWeights = {
+  skill: 0.55,
+  outcome: 0.25,
+  competency: 0.1,
+  domain: 0.05,
+  subject: 0.05,
+};
+
+const ENGLISH_LEARNING_RATES: LearningRates = {
+  skill: 0.10643810749,
+  outcome: 0.077417725939,
+  competency: 0.029020381551,
+  domain: 0.019376962837,
+  subject: 0.019376962837,
+};
+
+const HINDI_LEARNING_RATES: LearningRates = {
+  skill: 0.1583,
+  outcome: 0.1151,
+  competency: 0.0431,
+  domain: 0.0288,
+  subject: 0.0288,
+};
+
+const MATHS_LEARNING_RATES: LearningRates = {
+  skill: 0.7913,
+  outcome: 0.5755,
+  competency: 0.2157,
+  domain: 0.144,
+  subject: 0.144,
+};
+
+// Local PAL defaults keep recommendations working when GrowthBook is unavailable.
+const PAL_CONSTANTS: PalConstants = {
+  blendWeights: {
+    default: DEFAULT_BLEND_WEIGHTS,
+    subjects: {
+      // English and Maths use the same fallback blend weights.
+      [ENGLISH_SUBJECT_ID]: ENGLISH_AND_MATHS_BLEND_WEIGHTS,
+      [MATHS_SUBJECT_ID]: ENGLISH_AND_MATHS_BLEND_WEIGHTS,
+    },
+  },
+  learningRates: {
+    default: DEFAULT_LEARNING_RATES,
+    subjects: {
+      [ENGLISH_SUBJECT_ID]: ENGLISH_LEARNING_RATES,
+      [HINDI_SUBJECT_ID]: HINDI_LEARNING_RATES,
+      [MATHS_SUBJECT_ID]: MATHS_LEARNING_RATES,
+    },
+  },
+};
+
+const resolveRates = (
+  overrides: Partial<LearningRates> | undefined,
+  fallback: LearningRates,
+): LearningRates => {
+  const resolved = { ...fallback };
+
+  if (!overrides || typeof overrides !== 'object') return resolved;
+
+  LEARNING_RATE_KEYS.forEach((key) => {
+    const value = overrides[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      resolved[key] = value;
+    }
+  });
+
+  return resolved;
+};
+
+// GrowthBook can send partial blend weights; merge valid values over fallback.
+const resolveBlendWeights = (
+  overrides: Partial<BlendWeights> | undefined,
+  fallback: BlendWeights,
+): BlendWeights => {
+  const resolved = { ...fallback };
+
+  if (!overrides || typeof overrides !== 'object') return resolved;
+
+  BLEND_WEIGHT_KEYS.forEach((key) => {
+    const value = overrides[key];
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      resolved[key] = value;
+    }
+  });
+
+  return resolved;
+};
+
+// Merge only valid numeric keys so a bad GrowthBook value cannot break PAL.
+const resolvePalBlendWeightsForSubject = (
+  config: PalConfig | undefined,
+  subjectId: string,
+): BlendWeights => {
+  const localDefault = resolveBlendWeights(
+    subjectId ? PAL_CONSTANTS.blendWeights.subjects[subjectId] : undefined,
+    PAL_CONSTANTS.blendWeights.default,
+  );
+  const defaultWeights = resolveBlendWeights(
+    config?.blendWeights?.default,
+    localDefault,
+  );
+  const subjectWeights = subjectId
+    ? config?.blendWeights?.subjects?.[subjectId]
+    : undefined;
+
+  return resolveBlendWeights(subjectWeights, defaultWeights);
+};
+
+// Learning rates follow the same local/default/subject fallback order.
+const resolvePalLearningRatesForSubject = (
+  config: PalConfig | undefined,
+  subjectId: string,
+): LearningRates => {
+  const localDefault = resolveRates(
+    subjectId ? PAL_CONSTANTS.learningRates.subjects[subjectId] : undefined,
+    PAL_CONSTANTS.learningRates.default,
+  );
+  const defaultRates = resolveRates(
+    config?.learningRates?.default,
+    localDefault,
+  );
+  const subjectRates = subjectId
+    ? config?.learningRates?.subjects?.[subjectId]
+    : undefined;
+
+  return resolveRates(subjectRates, defaultRates);
+};
+
+export class palUtil {
+  private static abilityGraphCache: Map<
+    string,
+    { abilityState: AbilityState; graph: DependencyGraph | undefined }
+  > = new Map();
+
+  public static async getAbilityStateAndGraph(
+    studentId: string,
+    courseId: string,
+  ): Promise<{
+    abilityState: AbilityState;
+    graph: DependencyGraph | undefined;
+  }> {
+    const cacheKey = `${studentId}:${courseId}`;
+    const cached = this.abilityGraphCache.get(cacheKey);
+    if (cached) return cached;
+
+    const built = await this.buildAbilityStateAndGraphForCourse(
+      studentId,
+      courseId,
+    );
+    this.abilityGraphCache.set(cacheKey, built);
+    return built;
+  }
+
+  public static async buildAbilityStateAndGraphForCourse(
+    studentId: string,
+    courseId: string,
+  ): Promise<{
+    abilityState: AbilityState;
+    graph: DependencyGraph | undefined;
+  }> {
+    const api = ServiceConfig.getI().apiHandler;
+    const emptyState = createEmptyAbilityState();
+    const course = await api.getCourse(courseId);
+
+    if (!course?.subject_id || !course?.framework_id) {
+      return { abilityState: emptyState, graph: undefined };
+    }
+
+    const domains = await api.getDomainsBySubjectAndFramework(
+      course.subject_id,
+      course.framework_id,
+    );
+    if (!domains.length) return { abilityState: emptyState, graph: undefined };
+
+    const competencies = await api.getCompetenciesByDomainIds(
+      domains.map((domain) => domain.id),
+    );
+    if (!competencies.length) {
+      return { abilityState: emptyState, graph: undefined };
+    }
+
+    const outcomes = await api.getOutcomesByCompetencyIds(
+      competencies.map((competency) => competency.id),
+    );
+    if (!outcomes.length) {
+      return { abilityState: emptyState, graph: undefined };
+    }
+
+    const skills = await api.getSkillsByOutcomeIds(
+      outcomes.map((outcome) => outcome.id),
+    );
+    if (!skills.length) {
+      return { abilityState: emptyState, graph: undefined };
+    }
+
+    const skillRelations = await api.getSkillRelationsByTargetIds(
+      skills.map((skill) => skill.id),
+    );
+
+    const graph = this.composeGraph(
+      course.subject_id,
+      domains,
+      competencies,
+      outcomes,
+      skills,
+      skillRelations,
+    );
+
+    const results = await api.getResultsBySkillIds(
+      studentId,
+      skills.map((skill) => skill.id),
+    );
+
+    return {
+      abilityState: this.composeAbilityState(course.subject_id, results),
+      graph,
+    };
+  }
+
+  private static composeAbilityState(
+    fallbackSubjectId: string,
+    results: TableTypes<'result'>[],
+  ): AbilityState {
+    const state = createEmptyAbilityState();
+    if (!results || results.length === 0) return state;
+
+    const abilityMaps: ResultAbilityMap = {
+      skill: new Map(),
+      outcome: new Map(),
+      competency: new Map(),
+      domain: new Map(),
+      subject: new Map(),
+    };
+
+    for (const result of results) {
+      const timestamp = this.getTimestamp(result);
+      this.upsertAbility(
+        abilityMaps.skill,
+        result.skill_id,
+        result.skill_ability,
+        timestamp,
+      );
+      this.upsertAbility(
+        abilityMaps.outcome,
+        result.outcome_id,
+        result.outcome_ability,
+        timestamp,
+      );
+      this.upsertAbility(
+        abilityMaps.competency,
+        result.competency_id,
+        result.competency_ability,
+        timestamp,
+      );
+      this.upsertAbility(
+        abilityMaps.domain,
+        result.domain_id,
+        result.domain_ability,
+        timestamp,
+      );
+      this.upsertAbility(
+        abilityMaps.subject,
+        result.subject_id ?? fallbackSubjectId,
+        result.subject_ability,
+        timestamp,
+      );
+    }
+
+    state.skill = this.mapToRecord(abilityMaps.skill);
+    state.outcome = this.mapToRecord(abilityMaps.outcome);
+    state.competency = this.mapToRecord(abilityMaps.competency);
+    state.domain = this.mapToRecord(abilityMaps.domain);
+    state.subject = this.mapToRecord(abilityMaps.subject);
+
+    return state;
+  }
+
+  private static composeGraph(
+    subjectId: string,
+    domains: TableTypes<'domain'>[],
+    competencies: TableTypes<'competency'>[],
+    outcomes: TableTypes<'outcome'>[],
+    skills: TableTypes<'skill'>[],
+    relations: TableTypes<'skill_relation'>[],
+  ): DependencyGraph {
+    const domainMap = new Map(
+      domains.map((domain) => [
+        domain.id,
+        {
+          id: domain.id,
+          label: domain.name,
+          subjectId: domain.subject_id ?? subjectId,
+        },
+      ]),
+    );
+
+    const competencyMap = new Map(
+      competencies.map((competency) => {
+        const domain = domainMap.get(competency.domain_id);
+        return [
+          competency.id,
+          {
+            id: competency.id,
+            label: competency.name,
+            subjectId: domain?.subjectId ?? subjectId,
+            domainId: domain?.id ?? '',
+          },
+        ];
+      }),
+    );
+
+    const outcomeMap = new Map(
+      outcomes.map((outcome) => {
+        const competency = competencyMap.get(outcome.competency_id);
+        return [
+          outcome.id,
+          {
+            id: outcome.id,
+            label: outcome.name,
+            competencyId: competency?.id ?? '',
+            domainId: competency?.domainId ?? '',
+            subjectId,
+          },
+        ];
+      }),
+    );
+
+    const prerequisitesBySkill: Record<string, string[]> = {};
+    relations.forEach((rel) => {
+      if (!rel.target_skill_id || rel.is_deleted) return;
+      if (!prerequisitesBySkill[rel.target_skill_id]) {
+        prerequisitesBySkill[rel.target_skill_id] = [];
+      }
+      if (rel.source_skill_id) {
+        prerequisitesBySkill[rel.target_skill_id].push(rel.source_skill_id);
+      }
+    });
+
+    const skillList = skills.map((skill) => {
+      const outcome = outcomeMap.get(skill.outcome_id);
+      const competency = outcome
+        ? competencyMap.get(outcome.competencyId)
+        : undefined;
+      const domain = competency
+        ? domainMap.get(competency.domainId)
+        : undefined;
+      return {
+        id: skill.id,
+        label: skill.name,
+        outcomeId: outcome?.id ?? '',
+        competencyId: competency?.id ?? '',
+        domainId: domain?.id ?? '',
+        subjectId: domain?.subjectId ?? subjectId,
+        difficulty: skill.difficulty ?? 0,
+        prerequisites: prerequisitesBySkill[skill.id] ?? [],
+      };
+    });
+
+    return {
+      skills: skillList,
+      outcomes: Array.from(outcomeMap.values()),
+      competencies: Array.from(competencyMap.values()),
+      domains: Array.from(domainMap.values()),
+      subjects: [{ id: subjectId, label: subjectId }],
+      startSkillId: skillList[0]?.id ?? '',
+    };
+  }
+
+  public static async getRecommendedLessonForCourse(
+    studentId: string,
+    courseId: string,
+  ): Promise<{
+    lesson: TableTypes<'lesson'> | undefined;
+    skillId?: string;
+    chapterId?: string;
+    recommendation?: RecommendationContext;
+  }> {
+    const api = ServiceConfig.getI().apiHandler;
+    const { abilityState, graph } = await this.getAbilityStateAndGraph(
+      studentId,
+      courseId,
+    );
+    if (!graph) return { lesson: undefined, chapterId: undefined };
+
+    const subjectId = graph.subjects[0]?.id ?? '';
+    const blendWeights = this.getBlendWeightsForSubject(subjectId);
+    const recommendation = recommendNextSkill({
+      graph,
+      abilities: abilityState,
+      subjectId,
+      blendWeights,
+    });
+
+    const skillId = recommendation?.candidateId;
+    if (!skillId) {
+      return { lesson: undefined, chapterId: undefined, recommendation };
+    }
+
+    const courseLanguageCode =
+      await this.getSkillLessonLanguageCodeForCourse(courseId);
+    const skillLessons = await api.getSkillLessonsBySkillIds(
+      [skillId],
+      courseLanguageCode,
+    );
+    const sortedSkillLessons = [...skillLessons].sort((a, b) => {
+      const aIndex = a.sort_index ?? Number.MAX_SAFE_INTEGER;
+      const bIndex = b.sort_index ?? Number.MAX_SAFE_INTEGER;
+      return aIndex - bIndex;
+    });
+
+    const lessonIds = sortedSkillLessons
+      .map((sl) => sl.lesson_id)
+      .filter((id): id is string => !!id);
+
+    if (!lessonIds.length) {
+      return {
+        lesson: undefined,
+        skillId,
+        chapterId: undefined,
+        recommendation,
+      };
+    }
+
+    const lessonResultsMap = await api.getStudentResultInMap(studentId);
+    const lessonsData =
+      (await api.getLessonsBylessonIds(lessonIds))?.reduce(
+        (acc, lesson) => {
+          if (lesson?.id) acc[lesson.id] = lesson;
+          return acc;
+        },
+        {} as Record<string, TableTypes<'lesson'>>,
+      ) ?? {};
+
+    let nextLessonId: string | undefined;
+    for (const sl of sortedSkillLessons) {
+      if (sl.lesson_id && !lessonResultsMap[sl.lesson_id]) {
+        nextLessonId = sl.lesson_id;
+        break;
+      }
+    }
+
+    if (!nextLessonId) {
+      let earliestId: string | undefined;
+      let earliestTime = Number.POSITIVE_INFINITY;
+      for (const sl of sortedSkillLessons) {
+        const result = sl.lesson_id
+          ? lessonResultsMap[sl.lesson_id]
+          : undefined;
+        if (!result) continue;
+        const t = this.getTimestamp(result);
+        if (t < earliestTime) {
+          earliestTime = t;
+          earliestId = sl.lesson_id;
+        }
+      }
+      nextLessonId = earliestId ?? lessonIds[0];
+    }
+
+    const chapterId = nextLessonId
+      ? await this.getChapterIdForLessonInCourse(courseId, nextLessonId)
+      : undefined;
+
+    return {
+      lesson: nextLessonId ? lessonsData[nextLessonId] : undefined,
+      skillId,
+      chapterId,
+      recommendation,
+    };
+  }
+
+  public static async getPalLessonPathForCourse(
+    courseId: string,
+    studentId: string,
+  ): Promise<
+    { lesson_id: string; skill_id?: string; chapter_id?: string } | undefined
+  > {
+    const recommended = await this.getRecommendedLessonForCourse(
+      studentId,
+      courseId,
+    );
+    if (!recommended?.lesson?.id) return undefined;
+
+    const entry = {
+      lesson_id: recommended.lesson.id,
+      skill_id: recommended.skillId,
+      chapter_id: recommended.chapterId,
+    };
+
+    return entry;
+  }
+
+  private static async getChapterIdForLessonInCourse(
+    courseId: string,
+    lessonId: string,
+  ): Promise<string | undefined> {
+    const api = ServiceConfig.getI().apiHandler;
+    const chapters = await api.getChaptersForCourse(courseId);
+
+    for (const chapter of chapters) {
+      if (!chapter.id) continue;
+      const lessons = await api.getLessonsForChapter(chapter.id);
+      if (lessons.some((lesson) => lesson.id === lessonId)) {
+        return chapter.id;
+      }
+    }
+
+    return undefined;
+  }
+
+  private static async getSkillLessonLanguageCodeForCourse(
+    courseId: string,
+  ): Promise<string | undefined> {
+    const api = ServiceConfig.getI().apiHandler;
+    const course = await api.getCourse(courseId);
+    if (!course?.subject_id) return undefined;
+
+    const subject = await api.getSubject(course.subject_id);
+    const subjectName = subject?.name?.trim().toLowerCase();
+    if (subjectName !== COURSES.MATHS) {
+      return undefined;
+    }
+
+    const courseCode = course?.code?.trim().toLowerCase();
+
+    if (courseCode === COURSES.MATHS) return COURSES.ENGLISH;
+    if (courseCode?.startsWith(`${COURSES.MATHS}-`)) {
+      return courseCode.split('-').pop();
+    }
+
+    return undefined;
+  }
+
+  private static upsertAbility(
+    abilityMap: Map<string, { ability: number; timestamp: number }>,
+    id: string | null,
+    ability: number | null,
+    timestamp: number,
+  ) {
+    if (!id || ability === null || ability === undefined) return;
+    const existing = abilityMap.get(id);
+    if (!existing || timestamp > existing.timestamp) {
+      abilityMap.set(id, { ability, timestamp });
+    }
+  }
+
+  private static getTimestamp(result: TableTypes<'result'>): number {
+    const candidate = result.updated_at ?? result.created_at ?? '';
+    const parsed = Date.parse(candidate);
+    if (Number.isFinite(parsed)) return parsed;
+    return 0;
+  }
+
+  private static mapToRecord(
+    map: Map<string, { ability: number }>,
+  ): Record<string, number> {
+    const record: Record<string, number> = {};
+    map.forEach((value, key) => {
+      record[key] = value.ability;
+    });
+    return record;
+  }
+
+  private static getBlendWeightsForSubject(subjectId: string): BlendWeights {
+    // One GrowthBook JSON now owns both blend weights and learning rates.
+    const config = getCachedGrowthBookFeatureValue<PalConfig>(
+      PAL_LEARNING_RATES_CONFIG,
+      {},
+    );
+    return resolvePalBlendWeightsForSubject(config, subjectId);
+  }
+
+  private static getLearningRatesForSubject(subjectId: string): LearningRates {
+    // Read the same cached payload so both PAL knobs stay in sync by subject.
+    const config = getCachedGrowthBookFeatureValue<PalConfig>(
+      PAL_LEARNING_RATES_CONFIG,
+      {},
+    );
+    return resolvePalLearningRatesForSubject(config, subjectId);
+  }
+
+  public static async updateAndGetAbilities(params: {
+    studentId: string;
+    courseId: string;
+    skillId: string;
+    outcomes: boolean[];
+  }): Promise<{
+    skill_id?: string;
+    skill_ability?: number;
+    outcome_id?: string;
+    outcome_ability?: number;
+    competency_id?: string;
+    competency_ability?: number;
+    domain_id?: string;
+    domain_ability?: number;
+    subject_id?: string;
+    subject_ability?: number;
+  }> {
+    const { studentId, courseId, skillId, outcomes } = params;
+    const cacheKey = `${studentId}:${courseId}`;
+    const { abilityState, graph } = await this.getAbilityStateAndGraph(
+      studentId,
+      courseId,
+    );
+
+    if (!graph) {
+      return {};
+    }
+
+    const subjectId = graph.subjects[0]?.id ?? '';
+    let newAbilityState = abilityState;
+
+    if (outcomes && outcomes.length > 0) {
+      const outcomeEvents: OutcomeEvent[] = outcomes.map((correct) => ({
+        skillId,
+        correct,
+      }));
+      const blendWeights = this.getBlendWeightsForSubject(subjectId);
+      const learningRates = this.getLearningRatesForSubject(subjectId);
+      const updated = updateAbilities({
+        graph,
+        abilities: abilityState,
+        events: outcomeEvents,
+        blendWeights,
+        learningRates,
+      });
+
+      newAbilityState = updated?.abilities ?? abilityState;
+      this.abilityGraphCache.set(cacheKey, {
+        abilityState: newAbilityState,
+        graph,
+      });
+    }
+
+    const skillNode = graph.skills.find((s) => s.id === skillId);
+    const outcomeId = skillNode?.outcomeId;
+    const competencyId = skillNode?.competencyId;
+    const domainId = skillNode?.domainId;
+
+    return {
+      skill_id: skillId,
+      skill_ability: newAbilityState.skill?.[skillId],
+      outcome_id: outcomeId,
+      outcome_ability: outcomeId
+        ? newAbilityState.outcome?.[outcomeId]
+        : undefined,
+      competency_id: competencyId,
+      competency_ability: competencyId
+        ? newAbilityState.competency?.[competencyId]
+        : undefined,
+      domain_id: domainId,
+      domain_ability: domainId ? newAbilityState.domain?.[domainId] : undefined,
+      subject_id: subjectId,
+      subject_ability: subjectId
+        ? newAbilityState.subject?.[subjectId]
+        : undefined,
+    };
+  }
+  /**
+   * Section 1: Assessment Selection Logic (Cold Start)
+   * Triggered when a user has no history for a course.
+   */
+  public static async getInitialAssessmentLessons(
+    subjectId: string,
+  ): Promise<any[]> {
+    const api = ServiceConfig.getI().apiHandler;
+
+    // 1. Query subject_lesson for the subject_id
+    const allSubjectLessons = await api.getSubjectLessonsBySubjectId(subjectId);
+
+    // Safety check
+    if (
+      !allSubjectLessons ||
+      !Array.isArray(allSubjectLessons) ||
+      allSubjectLessons.length === 0
+    ) {
+      return [];
+    }
+
+    // 2. Identify all distinct set_number values
+    const distinctSets = [
+      ...new Set(
+        allSubjectLessons
+          .map((l: any) => l.set_number)
+          .filter((n: any) => n !== null),
+      ),
+    ];
+
+    if (distinctSets.length === 0) return [];
+
+    // 3. Randomly select one set_number
+    const selectedSet =
+      distinctSets[Math.floor(Math.random() * distinctSets.length)];
+
+    // 4. Fetch and return lessons matching that set_number (approx 5 lessons)
+    return allSubjectLessons
+      .filter((l: any) => l.set_number === selectedSet)
+      .sort((a: any, b: any) => (a.sort_index ?? 0) - (b.sort_index ?? 0))
+      .map((l: any) => ({
+        lesson_id: l.lesson_id,
+      }));
+  }
+}

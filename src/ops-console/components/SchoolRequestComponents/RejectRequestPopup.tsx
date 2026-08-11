@@ -1,10 +1,19 @@
-import React, { useState } from "react";
-import "./RejectRequestPopup.css";
-import ExclamationIcon from "../../assets/icons/Exclamation.svg";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import { PAGES, REQUEST_TABS, STATUS } from "../../../common/constants";
-import { useHistory } from "react-router-dom";
-import { t } from "i18next";
+import React, { useState } from 'react';
+import './RejectRequestPopup.css';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import {
+  PAGES,
+  REQUEST_TABS,
+  RequestTypes,
+  STATUS,
+} from '../../../common/constants';
+import { useHistory } from 'react-router-dom';
+import { t } from 'i18next';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { RootState } from '../../../redux/store';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import logger from '../../../utility/logger';
 
 interface RejectRequestPopupProps {
   requestData?: any;
@@ -15,50 +24,262 @@ const RejectRequestPopup: React.FC<RejectRequestPopupProps> = ({
   requestData,
   onClose,
 }) => {
-  const [reason, setReason] = useState("");
+  const requestType = String(
+    requestData?.type ?? requestData?.request_type ?? '',
+  ).toLowerCase();
+  const isStudentRequest = requestType === RequestTypes.STUDENT;
+  const isTeacherOrPrincipal =
+    requestType === RequestTypes.TEACHER ||
+    requestType === RequestTypes.PRINCIPAL;
+  const isSchoolRequest = requestType === RequestTypes.SCHOOL;
+  const [selectedReason, setSelectedReason] = useState<string>('');
+  const [customReason, setCustomReason] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+
+  const VERIFICATION_FAILED = t('Verification Failed');
+  const WRONG_SCHOOL_SELECTED = t('Wrong School Selected');
+  const OTHER = t('Other');
+
+  function getFinalReason() {
+    if (isTeacherOrPrincipal) {
+      if (selectedReason === OTHER) {
+        return customReason;
+      }
+      return selectedReason;
+    }
+
+    if (isStudentRequest || isSchoolRequest) {
+      return customReason;
+    }
+
+    return customReason;
+  }
+
+  const ctaLabel =
+    isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED
+      ? t('Flag for Review')
+      : t('Reject Request');
+
+  function isFormValid() {
+    if (isTeacherOrPrincipal) {
+      if (!selectedReason) return false;
+      if (selectedReason === OTHER && !customReason.trim()) return false;
+      return true;
+    }
+
+    if (isStudentRequest || isSchoolRequest) {
+      if (!customReason.trim()) return false;
+      return true;
+    }
+
+    if (!customReason.trim()) return false;
+    return true;
+  }
 
   async function handleReject() {
-    await api.respondToSchoolRequest(
-      requestData.id,
-      requestData.respondedBy.id,
-      STATUS.REJECTED,
-      reason
-    );
-    await api.updateSchoolStatus(requestData.school.id, STATUS.REJECTED);
-    history.push(
-      `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}?tab=${REQUEST_TABS.REJECTED}`
-    );
+    if (!isFormValid()) return;
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      if (!requestData || !requestData.id) {
+        setError(
+          t('Incomplete request data. Please try again.') ||
+            'Incomplete request data. Please try again.',
+        );
+        setIsLoading(false);
+        return;
+      }
+      const status =
+        isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED
+          ? STATUS.FLAGGED
+          : STATUS.REJECTED;
+      const finalReason = getFinalReason();
+      // Only Super Admin and Operational Director can see the Flagged tab
+      const canSeeFlaggedTab =
+        userRoles.includes(RoleType.SUPER_ADMIN) ||
+        userRoles.includes(RoleType.OPERATIONAL_DIRECTOR);
+
+      await api.respondToSchoolRequest(
+        requestData.id,
+        requestData.respondedBy.id,
+        status,
+        isTeacherOrPrincipal ? selectedReason : undefined,
+        finalReason,
+      );
+      if (isStudentRequest && status === STATUS.REJECTED) {
+        const studentId = requestData?.requested_by;
+        const classId = requestData?.class_id;
+
+        if (studentId && classId) {
+          const removed = await api.deleteUserFromClass(studentId, classId);
+          if (!removed) {
+            logger.error(
+              'Failed to remove student from class after request rejection.',
+            );
+          }
+        } else {
+          logger.error(
+            'Missing studentId or classId while rejecting student request.',
+          );
+        }
+      }
+      if (isSchoolRequest) {
+        await api.updateSchoolStatus(requestData.school.id, status);
+      }
+
+      const requestListPath = `${PAGES.SIDEBAR_PAGE}${PAGES.REQUEST_LIST}`;
+
+      // Rejected requests should always land on the Rejected tab.
+      if (status === STATUS.REJECTED) {
+        history.push(`${requestListPath}?tab=${REQUEST_TABS.REJECTED}`);
+      } else if (status === STATUS.FLAGGED && canSeeFlaggedTab) {
+        history.push(`${requestListPath}?tab=${REQUEST_TABS.FLAGGED}`);
+      } else {
+        // Fallback for roles that cannot access Flagged tab.
+        history.push(`${requestListPath}?tab=${REQUEST_TABS.PENDING}`);
+      }
+    } catch (err) {
+      logger.error('Error processing request:', err);
+      setError(
+        t('Failed to process request. Please try again.') ||
+          'Failed to process request. Please try again.',
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
   return (
-    <div className="reject-popup-overlay">
-      <div className="reject-popup-container">
+    <div className="reject-popup-overlay" onClick={onClose}>
+      <div
+        className="reject-popup-container"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="reject-popup-header">
           <div className="reject-popup-header-img">
-            <img src={ExclamationIcon} alt="error icon" />
+            <img src="/assets/icons/Exclamation.svg" alt="Exclamation Icon" />
           </div>
           <div className="reject-popup-header-content error">
-            <span>{t("Reject Request")} - {requestData.request_id}</span>
-            <p>{t("Please provide a reason for rejecting this request")}</p>
+            <span>
+              {t('Reject Request')} - {requestData.request_id}
+            </span>
+            <p>{t('Please provide a reason for rejecting this request')}</p>
           </div>
         </div>
 
         <div className="reject-popup-body">
-          <label>{t("Reason for Rejection")}</label>
-          <textarea
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            placeholder={t("Add any additional context or instructions...")||""}
-          ></textarea>
+          {error && <div className="reject-error-message">{error}</div>}
+          <label>{t('Reason for Rejection')}</label>
+          {isTeacherOrPrincipal ? (
+            <div className="reject-reason-section">
+              <div className="reject-reason-radio-group">
+                <label
+                  className={`reject-reason-radio${selectedReason === VERIFICATION_FAILED ? ' selected' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="reject-reason"
+                    value={VERIFICATION_FAILED}
+                    checked={selectedReason === VERIFICATION_FAILED}
+                    onChange={() => {
+                      setSelectedReason(VERIFICATION_FAILED);
+                      setCustomReason('');
+                    }}
+                  />
+                  <div>
+                    <span>{VERIFICATION_FAILED}</span>
+                    <div className="reject-reason-desc">
+                      {t('Unable to verify provided information')}
+                    </div>
+                  </div>
+                </label>
+                <label
+                  className={`reject-reason-radio${selectedReason === WRONG_SCHOOL_SELECTED ? ' selected' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="reject-reason"
+                    value={WRONG_SCHOOL_SELECTED}
+                    checked={selectedReason === WRONG_SCHOOL_SELECTED}
+                    onChange={() => {
+                      setSelectedReason(WRONG_SCHOOL_SELECTED);
+                      setCustomReason('');
+                    }}
+                  />
+                  <div>
+                    <span>{WRONG_SCHOOL_SELECTED}</span>
+                    <div className="reject-reason-desc">
+                      {t('Incorrect school name was selected for this request')}
+                    </div>
+                  </div>
+                </label>
+                <label
+                  className={`reject-reason-radio${selectedReason === OTHER ? ' selected' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="reject-reason"
+                    value={OTHER}
+                    checked={selectedReason === OTHER}
+                    onChange={() => setSelectedReason(OTHER)}
+                  />
+                  <div>
+                    <span>{OTHER}</span>
+                    <div className="reject-reason-desc">
+                      {t('Please specify the reason in the custom field')}
+                    </div>
+                  </div>
+                </label>
+              </div>
+              {selectedReason === OTHER && (
+                <div className="reject-popup-custom-field">
+                  <label>{t('Message to Admin')}</label>
+                  <textarea
+                    value={customReason}
+                    onChange={(e) => setCustomReason(e.target.value)}
+                    placeholder={
+                      t('Add any additional context or instructions...') || ''
+                    }
+                  ></textarea>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="reject-popup-custom-field">
+              <textarea
+                value={customReason}
+                onChange={(e) => setCustomReason(e.target.value)}
+                placeholder={
+                  t('Add any additional context or instructions...') || ''
+                }
+                required
+              ></textarea>
+            </div>
+          )}
         </div>
 
         <div className="reject-popup-footer">
           <button className="reject-popup-cancel-btn" onClick={onClose}>
-            {t("Cancel")}
+            {t('Cancel')}
           </button>
-          <button className="reject-popup-reject-btn" onClick={handleReject}>
-            {t("Reject Request")}
+          <button
+            className={
+              isTeacherOrPrincipal && selectedReason === WRONG_SCHOOL_SELECTED
+                ? 'reject-popup-flag-btn'
+                : 'reject-popup-reject-btn'
+            }
+            onClick={handleReject}
+            disabled={!isFormValid() || isLoading}
+          >
+            {isLoading ? t('Processing...') : ctaLabel}
           </button>
         </div>
       </div>

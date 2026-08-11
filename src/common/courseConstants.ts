@@ -1,5 +1,5 @@
-import { DocumentReference, Timestamp } from "firebase/firestore";
-import Lesson from "../models/lesson";
+import { DocumentReference, Timestamp } from 'firebase/firestore';
+import Lesson from '../models/lesson';
 
 export interface Chapter {
   id: string;
@@ -9,28 +9,28 @@ export interface Chapter {
 }
 
 export enum CollectionIds {
-  ASSIGNMENT = "Assignment",
-  AVATAR = "Avatar",
-  BADGE = "Badge",
-  CLASS = "Class",
-  CONNECTION = "Connection",
-  COURSE = "Course",
-  CURRICULUM = "Curriculum",
-  GRADE = "Grade",
-  LANGUAGE = "Language",
-  LESSON = "Lesson",
-  SCHOOL = "School",
-  SUBJECT = "Subject",
-  TOPIC = "Topic",
-  USER = "User",
-  STUDENT_PROFILE = "StudentProfile",
-  RESULT = "Result",
-  REWARDS = "Rewards",
-  LEADERBOARD = "Leaderboard",
-  CLASS_CONNECTION = "ClassConnection",
-  SCHOOL_CONNECTION = "SchoolConnection",
-  LIVE_QUIZ_ROOM = "LiveQuizRoom",
-  STICKER = "Sticker",
+  ASSIGNMENT = 'Assignment',
+  AVATAR = 'Avatar',
+  BADGE = 'Badge',
+  CLASS = 'Class',
+  CONNECTION = 'Connection',
+  COURSE = 'Course',
+  CURRICULUM = 'Curriculum',
+  GRADE = 'Grade',
+  LANGUAGE = 'Language',
+  LESSON = 'Lesson',
+  SCHOOL = 'School',
+  SUBJECT = 'Subject',
+  TOPIC = 'Topic',
+  USER = 'User',
+  STUDENT_PROFILE = 'StudentProfile',
+  RESULT = 'Result',
+  REWARDS = 'Rewards',
+  LEADERBOARD = 'Leaderboard',
+  CLASS_CONNECTION = 'ClassConnection',
+  SCHOOL_CONNECTION = 'SchoolConnection',
+  LIVE_QUIZ_ROOM = 'LiveQuizRoom',
+  STICKER = 'Sticker',
 }
 
 export interface StudentLessonResult {
@@ -72,4 +72,4 @@ export interface CocosLessonData {
   currentGameNumber: number | null;
 }
 
-export const ASSIGNMENT_COMPLETED_IDS = "assignmentCompletedIds";
+export const ASSIGNMENT_COMPLETED_IDS = 'assignmentCompletedIds';

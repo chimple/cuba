@@ -1,0 +1,179 @@
+/* === RESPONSIVE BOTTOM BANNER (NON-BLOCKING) === */
+.homework-completed-overlay {
+  position: fixed;
+  left: 50%;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 999999;
+
+  width: 100%;
+  max-width: 100%;
+  padding: 0 clamp(0.5rem, 4vw, 2rem);
+
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+
+  background: transparent;
+  pointer-events: none;
+}
+
+.homework-completed-mascot {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+
+  /* same transform as you had (this controls the exact visual position) */
+  transform: translateX(-46%) translateY(51%);
+
+  /* same size as before */
+  width: clamp(11rem, 30vw, 20rem);
+  max-width: none;
+  height: auto;
+
+  user-select: none;
+  pointer-events: none;
+  /* so clicks go through to card/buttons */
+  /* object-fit is not needed anymore, it was for <img> */
+}
+
+.homework-completed-banner {
+  width: 100%;
+  height: 100%;
+}
+
+/* === CARD === */
+.homework-completed-card {
+  pointer-events: auto;
+  background-color: #fffcee;
+  width: fit-content;
+  min-width: min(476px, 90vw);
+  max-width: 95vw;
+
+  border-radius: clamp(1.25rem, 2.5vw, 2rem);
+  padding: clamp(1.5rem, 2.5vw, 2.2rem);
+
+  box-shadow: 0 0.5rem 1.125rem rgba(0, 0, 0, 0.25);
+
+  background-origin: content-box;
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin: auto;
+}
+
+.homework-completed-audio-button {
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+}
+
+/* LAYOUT */
+.homework-completed-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4%;
+}
+
+/* Mascot column */
+.homework-completed-left {
+  flex: 0 0 clamp(4rem, 16vw, 9.5rem);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.homework-completed-mascot-rive {
+  width: clamp(9rem, 26vw, 18rem);
+  height: clamp(10rem, 30vw, 20rem);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.homework-completed-mascot-rive canvas,
+.homework-completed-mascot-rive svg,
+.homework-completed-mascot-rive > div {
+  width: 100%;
+  height: 100%;
+}
+
+/* Center text + button */
+.homework-completed-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: clamp(2.5rem, 6vh, 4.5rem);
+  min-width: 0;
+}
+
+.homework-completed-text {
+  font-size: clamp(1rem, 2vw, 1.375rem);
+  font-weight: 550;
+  color: #223255;
+  text-align: center;
+  margin-bottom: clamp(0.9rem, 4vh, 1rem);
+
+  white-space: normal;
+  word-break: break-word;
+
+  max-width: 100%;
+  line-height: 2.3;
+  margin-top: 6%;
+}
+
+/* CTA Button */
+.homework-completed-play-btn {
+  width: clamp(8rem, 27vw, 11rem);
+  height: clamp(3rem, 7vh, 3rem);
+
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: #f34d08;
+
+  border-bottom: 0.25rem solid #8a2901;
+  color: #fff;
+
+  font-size: clamp(1.1rem, 5vw, 1.3rem);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  transition:
+    transform 0.1s ease,
+    border-bottom-width 0.1s ease;
+}
+
+.homework-completed-play-btn:active {
+  border-bottom-width: 0.125rem;
+  transform: translateY(0.25rem);
+}
+
+.homework-completed-play-icon {
+  width: clamp(1.1rem, 3vw, 1.5rem);
+  height: 60%;
+}
+
+/* Right column audio */
+.homework-completed-right {
+  flex: 0 0 clamp(4rem, 12vw, 7rem);
+  position: relative;
+  align-self: stretch;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding-bottom: clamp(1rem, 2vh, 2rem);
+}
+
+/* Larger desktops */
+@media (min-width: 1200px) {
+  .homework-completed-card {
+    max-width: clamp(900px, 90vw, 1200px);
+  }
+}

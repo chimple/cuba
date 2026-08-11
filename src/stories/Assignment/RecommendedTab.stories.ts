@@ -1,22 +1,22 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import Lesson from "../../models/lesson";
-import RecommendedTab from "../../components/malta/assignment/RecommendedTab";
+import type { Meta, StoryObj } from '@storybook/react';
+import Lesson from '../../models/lesson';
+import RecommendedTab from '../../components/malta/assignment/RecommendedTab';
 
 const meta = {
-  title: "Component/malta/assignment/RecommendedTab",
+  title: 'Component/malta/assignment/RecommendedTab',
   component: RecommendedTab,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {
     lessons: {
       options: Object.values(Lesson),
       mapping: Object.values(Lesson),
       control: {
         type: Lesson,
-        labels: Object.keys(""),
+        labels: Object.keys(''),
       },
     },
   },

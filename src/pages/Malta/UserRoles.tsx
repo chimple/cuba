@@ -1,22 +1,22 @@
-import React, { useState } from "react";
-import { AppBar } from "@mui/material";
-import BackButton from "../../components/common/BackButton";
-import "./UserRoles.css";
-import { USERTYPES } from "../../common/constants";
-import UserTabs from "../../components/userRoles/UserTabs";
-import AddUserPopUp from "../../components/userRoles/AddUserPopUp";
-import { t } from "i18next";
-import CircularButton from "../../components/CircularButton";
-import User from "../../models/user";
-import UserImageWithName from "../../components/UserImageWithName";
-import { useHistory } from "react-router-dom";
+import React, { useState } from 'react';
+import { AppBar } from '@mui/material';
+import BackButton from '../../components/common/BackButton';
+import './UserRoles.css';
+import { USERTYPES } from '../../common/constants';
+import UserTabs from '../../components/userRoles/UserTabs';
+import AddUserPopUp from '../../components/userRoles/AddUserPopUp';
+import { t } from 'i18next';
+import CircularButton from '../../components/CircularButton';
+import User from '../../models/user';
+import UserImageWithName from '../../components/UserImageWithName';
+import { useHistory } from 'react-router-dom';
 interface UserRolesProps {}
 const UserRoles: React.FC<UserRolesProps> = () => {
   const history = useHistory();
   const [tabIndex, setTabIndex] = useState(USERTYPES.PRINCIAPAL);
   const [showPopUp, setShowPopUP] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
-  const onTabChange = (event, newValue) => {
+  const onTabChange = (event: React.SyntheticEvent, newValue: USERTYPES) => {
     setTabIndex(newValue);
   };
   return (
@@ -24,18 +24,18 @@ const UserRoles: React.FC<UserRolesProps> = () => {
       <AppBar
         position="static"
         sx={{
-          flexDirection: "inherit",
-          justifyContent: "space-evenly",
-          padding: "2vh 3vw 2vh 3vw",
-          backgroundColor: "#FFFBEC",
-          height: "10vh",
+          flexDirection: 'inherit',
+          justifyContent: 'space-evenly',
+          padding: '2vh 3vw 2vh 3vw',
+          backgroundColor: '#FFFBEC',
+          height: '10vh',
         }}
       >
         <div className="back-button">
           <BackButton onClicked={() => {}} />
         </div>
 
-        <p className="app-bar-title">{t("Add User")}</p>
+        <p className="app-bar-title">{t('Add User')}</p>
       </AppBar>
       <div>
         <UserTabs userType={tabIndex} onChange={onTabChange} />
@@ -44,7 +44,7 @@ const UserRoles: React.FC<UserRolesProps> = () => {
             <UserImageWithName
               userDocId={user.docId}
               userName={user.name}
-              userImgPath={"assets/avatars/armydog.png"}
+              userImgPath={'assets/avatars/armydog.png'}
             />
           ))}
         </div>

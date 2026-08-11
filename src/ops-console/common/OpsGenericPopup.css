@@ -1,0 +1,65 @@
+/* Fixed square popup */
+.ops-generic-popup-overlay .MuiPaper-root {
+  width: 350px !important;
+  height: 300px !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+}
+
+/* Container layout */
+.ops-generic-popup-container {
+  height: 100%;
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  text-align: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* Close button */
+.ops-generic-popup-close-btn {
+  position: absolute !important;
+  top: 8px;
+  right: 8px;
+}
+
+/* Icon */
+.ops-generic-popup-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+/* Image */
+.ops-generic-popup-image-wrapper {
+  margin-bottom: 16px;
+}
+
+.ops-generic-popup-image {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+/* Heading */
+.ops-generic-popup-heading {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* Text */
+.ops-generic-popup-text {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Button */
+.ops-generic-popup-primary-btn {
+  border-radius: 8px !important;
+}

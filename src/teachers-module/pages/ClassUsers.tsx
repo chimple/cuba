@@ -1,27 +1,47 @@
-import React, { useEffect, useState } from "react";
-import Tabs from "../../common/Tabs";
-import Header from "../components/homePage/Header";
-import AddButton from "../../common/AddButton";
-import "./ClassUsers.css";
+import React, { useEffect, useState } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
+import AddButton from '../../common/AddButton';
 import {
+  AUTO_USER_ACTION_TYPES,
   CLASS_USERS,
+  EVENTS,
   PAGES,
   TableTypes,
-  USER_ROLE,
-} from "../../common/constants";
-import { Util } from "../../utility/util";
-import { useHistory, useLocation } from "react-router-dom";
-import UserList from "../components/studentProfile/UserList";
-import { RoleType } from "../../interface/modelInterfaces";
+} from '../../common/constants';
+import Tabs from '../../common/Tabs';
+import { RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import { AuthState } from '../../redux/slices/auth/authSlice';
+import { RootState } from '../../redux/store';
+import { schoolUtil } from '../../utility/schoolUtil';
+import { Util } from '../../utility/util';
+import Header from '../components/homePage/Header';
+import UserList from '../components/studentProfile/UserList';
+import './ClassUsers.css';
 
 const ClassUsers: React.FC = () => {
   const history = useHistory();
   const location = useLocation();
   const [selectedTab, setSelectedTab] = useState(CLASS_USERS.STUDENTS);
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
-  const classData = (location.state as TableTypes<"class">) || {};
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
+  const classData = (location.state as TableTypes<'class'>) || {};
   const currentSchool = Util.getCurrentSchool();
-  const currentRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const currentRoles = roles || [];
+  const canAddTeacher = [
+    RoleType.PRINCIPAL,
+    RoleType.COORDINATOR,
+    RoleType.SPONSOR,
+    RoleType.SUPER_ADMIN,
+    RoleType.OPERATIONAL_DIRECTOR,
+    RoleType.PROGRAM_MANAGER,
+    RoleType.FIELD_COORDINATOR,
+  ].some((role) => currentRoles.includes(role));
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
   useEffect(() => {
     init();
   }, []);
@@ -31,7 +51,7 @@ const ClassUsers: React.FC = () => {
       setCurrentClass(classData);
     }
     const queryParams = new URLSearchParams(location.search);
-    const tab = queryParams.get("tab");
+    const tab = queryParams.get('tab');
 
     if (tab === CLASS_USERS.TEACHERS) {
       handleTabSelect(CLASS_USERS.TEACHERS);
@@ -40,10 +60,19 @@ const ClassUsers: React.FC = () => {
     }
   };
 
-  const handleTabSelect = (tab) => {
-    setSelectedTab(tab);
+  const handleTabSelect = (tab: string) => {
+    if (tab === CLASS_USERS.TEACHERS) {
+      setSelectedTab(CLASS_USERS.TEACHERS);
+      return;
+    }
+    setSelectedTab(CLASS_USERS.STUDENTS);
   };
-  const addStudent = () => {
+  const addStudent = async () => {
+    if (isTeacherSchoolMode) {
+      Util.logEvent(EVENTS.AUTO_USER_ACTION_ATTEMPTED, {
+        action_type: AUTO_USER_ACTION_TYPES.ADD_STUDENT,
+      });
+    }
     history.replace(PAGES.ADD_STUDENT, {
       classDoc: classData,
       school: currentSchool,
@@ -96,13 +125,13 @@ const ClassUsers: React.FC = () => {
               />
             )}
           </div>
-          {selectedTab === CLASS_USERS.STUDENTS && (
+          {selectedTab === CLASS_USERS.STUDENTS && !isExternalUser && (
             <AddButton onClick={addStudent} />
           )}
           {selectedTab === CLASS_USERS.TEACHERS &&
-            !currentRoles.includes(RoleType.TEACHER) && (
-            <AddButton onClick={addTeacher} />
-          )}
+            canAddTeacher &&
+            !isExternalUser &&
+            !isTeacherSchoolMode && <AddButton onClick={addTeacher} />}
         </div>
       )}
     </>

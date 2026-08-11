@@ -1,16 +1,14 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "@storybook/test";
-import { useState } from "react";
-import Dashboard from "../../pages/Malta/Dashboard";
+import type { Meta, StoryObj } from '@storybook/react';
+import Dashboard from '../../pages/Malta/Dashboard';
 
 const meta: Meta = {
-  title: "Pages/Malta/Dashboard",
+  title: 'Pages/Malta/Dashboard',
   component: Dashboard,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {},
 } satisfies Meta<typeof Dashboard>;
 

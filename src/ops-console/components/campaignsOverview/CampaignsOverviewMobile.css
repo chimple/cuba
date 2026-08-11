@@ -1,0 +1,257 @@
+@media (max-width: 768px) {
+  body.campaigns-overview-active .sidebar-hamburger-outside {
+    display: none !important;
+  }
+
+  body.campaigns-overview-active .sidebar-scroll-container {
+    flex: 0 0 0;
+    width: 0;
+    overflow: hidden;
+  }
+
+  body.campaigns-overview-active .nav-sidebar {
+    display: none;
+  }
+
+  body.campaigns-overview-active .sidebarpage-render {
+    flex: 1 1 100%;
+    width: 100vw;
+    background: #fff;
+  }
+
+  .ops-campaigns-overview {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    padding: 0;
+    background: #fff;
+    overflow: hidden;
+  }
+  .ops-campaigns-overview-content {
+    flex: 1 1 0;
+    min-height: 0;
+    height: 0;
+    padding: 0 0 32px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .ops-campaigns-overview-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px 27px 0;
+  }
+
+  .ops-campaigns-overview-card {
+    width: 100%;
+    min-height: auto;
+    box-sizing: border-box;
+    padding: 0;
+    overflow: visible;
+    border-color: #c1c7cd;
+    border-radius: 12px;
+  }
+
+  .ops-campaigns-overview-primary-column {
+    gap: 24px;
+    width: 100%;
+  }
+
+  .ops-campaigns-overview-cancellation {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 24px;
+    border-color: #fca5a5;
+    border-radius: 8px;
+    background: #fff1f2;
+  }
+
+  .ops-campaigns-overview-cancellation-title {
+    margin-bottom: 16px;
+    font-size: 18px;
+    line-height: 27px;
+  }
+
+  .ops-campaigns-overview-cancellation-divider {
+    margin-bottom: 24px;
+  }
+
+  .ops-campaigns-overview-cancellation-meta {
+    margin-bottom: 24px;
+  }
+
+  .ops-campaigns-overview-cancellation-message {
+    min-height: 118px;
+    padding: 18px;
+    font-size: 14px;
+    line-height: 18px;
+  }
+
+  .ops-campaigns-overview-card-title {
+    margin: 0;
+    padding: 15px 14px 14px;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .ops-campaigns-overview-summary .ops-campaigns-overview-card-title {
+    border-radius: 12px 12px 0 0;
+    background: #eff6ff;
+  }
+
+  .ops-campaigns-overview-divider {
+    display: none;
+  }
+
+  .ops-campaigns-overview-summary-grid {
+    display: block;
+    padding: 0 14px;
+  }
+
+  .ops-campaigns-overview-field {
+    padding: 14px 0;
+    border-bottom: 0.5px solid #c1c7cd;
+  }
+
+  .ops-campaigns-overview-field:last-child {
+    border-bottom: 0;
+  }
+
+  .ops-campaigns-overview-field dt {
+    margin: 0 0 5px;
+    color: #000;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    line-height: 1.2;
+  }
+
+  .ops-campaigns-overview-field dd {
+    color: #000;
+    font-size: 14px;
+    line-height: 21px;
+  }
+
+  .ops-campaigns-overview-status-value {
+    min-height: 26px;
+    padding: 0 12px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .ops-campaigns-overview-status-success {
+    background: #d1fae5;
+    color: #059669;
+  }
+
+  .ops-campaigns-overview-status-warning {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  .ops-campaigns-overview-status-danger {
+    background: #fef2f2;
+    color: #b91c1c;
+  }
+
+  .ops-campaigns-overview-status-neutral {
+    background: #f3f4f6;
+    color: #21272a;
+  }
+
+  .ops-campaigns-overview-performance {
+    padding-bottom: 14px;
+  }
+
+  .ops-campaigns-overview-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 24px 14px 14px;
+  }
+
+  .ops-campaigns-overview-metric {
+    display: flex;
+    position: relative;
+    flex-direction: column;
+    min-height: 76px;
+    padding: 14px;
+    border-radius: 12px;
+    background: #eff6ff;
+  }
+
+  .ops-campaigns-overview-metric:nth-child(3),
+  .ops-campaigns-overview-metric:nth-child(4) {
+    min-height: 92px;
+  }
+
+  .ops-campaigns-overview-metric dt {
+    display: block;
+    order: 2;
+    margin: 5px 0 0;
+    color: #000;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 15.4px;
+  }
+
+  .ops-campaigns-overview-metric dt span {
+    display: block;
+    max-width: 105px;
+  }
+
+  .ops-campaigns-overview-metric dd {
+    order: 1;
+    margin: 0;
+    color: #1d6cf6;
+    font-family: 'Baloo 2', 'BalooRegular', cursive;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .ops-campaigns-overview-metric .ops-campaigns-info-tooltip {
+    position: absolute;
+    top: 9px;
+    right: 10px;
+  }
+
+  .ops-campaigns-info-tooltip-left .ops-campaigns-info-tooltip-message,
+  .ops-campaigns-info-tooltip-center .ops-campaigns-info-tooltip-message,
+  .ops-campaigns-info-tooltip-right .ops-campaigns-info-tooltip-message {
+    top: 20px;
+    right: 0;
+    left: auto;
+    display: none !important;
+    width: min(220px, calc(100vw - 64px));
+    padding: 12px;
+    font-size: 14px;
+    transform: translateX(var(--ops-campaigns-info-tooltip-shift, 0px));
+  }
+
+  .ops-campaigns-info-tooltip-open .ops-campaigns-info-tooltip-message {
+    display: block !important;
+  }
+
+  .ops-campaigns-info-tooltip-left .ops-campaigns-info-tooltip-message::before,
+  .ops-campaigns-info-tooltip-center
+    .ops-campaigns-info-tooltip-message::before,
+  .ops-campaigns-info-tooltip-right
+    .ops-campaigns-info-tooltip-message::before {
+    right: 10px;
+    left: auto;
+    transform: translateX(
+        calc(0px - var(--ops-campaigns-info-tooltip-shift, 0px))
+      )
+      rotate(45deg);
+  }
+}

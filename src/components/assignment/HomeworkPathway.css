@@ -1,0 +1,14 @@
+.homeworkpathway-chapter-egg-container {
+  display: flex;
+  width: 100vw;
+  height: 20vh;
+  min-height: 64px;
+  max-height: 80px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.homeworkpathway-pathway_section {
+  display: flex;
+  align-items: center;
+}

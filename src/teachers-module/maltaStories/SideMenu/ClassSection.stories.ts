@@ -1,43 +1,43 @@
 //@ts-nocheck
 //@ts-nocheck
-import { Meta, StoryObj } from "@storybook/react";
-import ClassSection from "../../components/homePage/ClassSection";
+import { Meta, StoryObj } from '@storybook/react';
+import ClassSection from '../../components/homePage/ClassSection';
 
 const meta: Meta<typeof ClassSection> = {
-  title: "components/ClassSection",
+  title: 'components/ClassSection',
   component: ClassSection,
   parameters: {
-    layout: "centered",
+    layout: 'centered',
   },
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {
     classData: {
-      control: "object",
-      description: "Array of objects representing class data for the dropdown",
+      control: 'object',
+      description: 'Array of objects representing class data for the dropdown',
     },
     currentClassDetail: {
-      control: "object",
-      description: "The currently selected class object { id, name }",
+      control: 'object',
+      description: 'The currently selected class object { id, name }',
     },
     currentClassId: {
-      control: "text",
-      description: "The ID of the currently selected class",
+      control: 'text',
+      description: 'The ID of the currently selected class',
     },
     classCode: {
-      control: "number",
-      description: "The class code for the selected class",
+      control: 'number',
+      description: 'The class code for the selected class',
     },
     handleClassSelect: {
-      action: "classSelected",
-      description: "Callback function when a class is selected",
+      action: 'classSelected',
+      description: 'Callback function when a class is selected',
     },
     handleManageClassClick: {
-      action: "manageClassClicked",
+      action: 'manageClassClicked',
       description: "Callback function when 'Manage Class' button is clicked",
     },
     setClassCode: {
-      action: "classCodeSet",
-      description: "Callback function to set the class code",
+      action: 'classCodeSet',
+      description: 'Callback function to set the class code',
     },
   },
 };
@@ -49,12 +49,12 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     classData: [
-      { id: "1", name: "Mathematics" },
-      { id: "2", name: "Science" },
-      { id: "3", name: "History" },
+      { id: '1', name: 'Mathematics' },
+      { id: '2', name: 'Science' },
+      { id: '3', name: 'History' },
     ],
-    currentClassDetail: { id: "1", name: "Mathematics" },
-    currentClassId: "1",
+    currentClassDetail: { id: '1', name: 'Mathematics' },
+    currentClassId: '1',
     classCode: 12345,
   },
 };
@@ -62,12 +62,12 @@ export const Default: Story = {
 export const NoClassSelected: Story = {
   args: {
     classData: [
-      { id: "1", name: "Mathematics" },
-      { id: "2", name: "Science" },
-      { id: "3", name: "History" },
+      { id: '1', name: 'Mathematics' },
+      { id: '2', name: 'Science' },
+      { id: '3', name: 'History' },
     ],
-    currentClassDetail: { id: "", name: "" },
-    currentClassId: "",
+    currentClassDetail: { id: '', name: '' },
+    currentClassId: '',
     classCode: undefined,
   },
 };
@@ -75,12 +75,12 @@ export const NoClassSelected: Story = {
 export const SelectedScience: Story = {
   args: {
     classData: [
-      { id: "1", name: "Mathematics" },
-      { id: "2", name: "Science" },
-      { id: "3", name: "History" },
+      { id: '1', name: 'Mathematics' },
+      { id: '2', name: 'Science' },
+      { id: '3', name: 'History' },
     ],
-    currentClassDetail: { id: "2", name: "Science" },
-    currentClassId: "2",
+    currentClassDetail: { id: '2', name: 'Science' },
+    currentClassId: '2',
     classCode: 67890,
   },
 };
@@ -88,12 +88,12 @@ export const SelectedScience: Story = {
 export const SelectedHistory: Story = {
   args: {
     classData: [
-      { id: "1", name: "Mathematics" },
-      { id: "2", name: "Science" },
-      { id: "3", name: "History" },
+      { id: '1', name: 'Mathematics' },
+      { id: '2', name: 'Science' },
+      { id: '3', name: 'History' },
     ],
-    currentClassDetail: { id: "3", name: "History" },
-    currentClassId: "3",
+    currentClassDetail: { id: '3', name: 'History' },
+    currentClassId: '3',
     classCode: 54321,
   },
 };
@@ -101,8 +101,8 @@ export const SelectedHistory: Story = {
 export const EmptyDropdown: Story = {
   args: {
     classData: [],
-    currentClassDetail: { id: "", name: "" },
-    currentClassId: "",
+    currentClassDetail: { id: '', name: '' },
+    currentClassId: '',
     classCode: undefined,
   },
 };

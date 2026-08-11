@@ -1,10 +1,16 @@
-import React, { useEffect, useState } from "react";
-import { useHistory, useParams, useLocation } from "react-router-dom";
-import { Typography, Paper, Grid, Divider, Button } from "@mui/material";
-import { useTranslation } from "react-i18next";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { DEFAULT_PAGE_SIZE, PAGES, REQUEST_TABS } from "../../common/constants";
-import "./OpsApprovedRequestDetails.css";
+import React, { useEffect, useState } from 'react';
+import { useHistory, useParams, useLocation } from 'react-router-dom';
+import { Typography, Paper, Grid, Divider, Button } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import {
+  DEFAULT_PAGE_SIZE,
+  PAGES,
+  REQUEST_TABS,
+  RequestTypes,
+  TableTypes,
+} from '../../common/constants';
+import './OpsApprovedRequestDetails.css';
 
 const OpsApprovedRequestDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,12 +23,18 @@ const OpsApprovedRequestDetails = () => {
     school?: {
       name?: string;
       udise?: string;
-      group2?: string;
+      country?: string;
       group1?: string;
+      group2?: string;
       group3?: string;
     };
     respondedBy?: { name?: string };
-    requestedBy?: { name?: string; phone_number?: string; email?: string };
+    requestedBy?: {
+      id?: string;
+      name?: string;
+      phone?: string;
+      email?: string;
+    };
     request_id?: string;
     request_type?: string;
     created_at?: string;
@@ -30,10 +42,11 @@ const OpsApprovedRequestDetails = () => {
   };
 
   const [requestDetails, setRequestDetails] = useState<RequestDetails | null>(
-    null
+    null,
   );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [parent, setParent] = useState<TableTypes<'user'> | null>(null);
 
   useEffect(() => {
     const fetchRequestDetails = async () => {
@@ -41,20 +54,35 @@ const OpsApprovedRequestDetails = () => {
       setError(null);
       try {
         const state = location.state as { request?: any } | undefined;
+
+        let req: RequestDetails | null = null;
         if (state?.request && state.request.request_id === id) {
+          req = state.request;
           setRequestDetails(state.request);
         } else {
           const approvedRequest = await api.getOpsRequests(
-            "approved",
+            'approved',
             1,
-            DEFAULT_PAGE_SIZE
+            DEFAULT_PAGE_SIZE,
           );
-          const req = approvedRequest?.find((r) => r.request_id === id);
+          req =
+            (approvedRequest?.data?.find(
+              (r: TableTypes<'ops_requests'> | Record<string, unknown>) =>
+                'request_id' in r && r.request_id === id,
+            ) as RequestDetails | undefined) ?? null;
           if (req) setRequestDetails(req);
-          else setError(t("requestNotFound"));
+          else setError(t('requestNotFound'));
+        }
+
+        if (
+          req?.request_type === RequestTypes.STUDENT &&
+          req?.requestedBy?.id
+        ) {
+          const data = await api.getParentsByStudentId(req.requestedBy.id);
+          setParent(data?.[0]);
         }
       } catch {
-        setError(t("failedToLoadRequest"));
+        setError(t('failedToLoadRequest'));
       } finally {
         setIsLoading(false);
       }
@@ -65,33 +93,42 @@ const OpsApprovedRequestDetails = () => {
   if (isLoading)
     return (
       <div className="ops-approved-request-details-centered">
-        <Typography>{t("loadingRequestDetails")}</Typography>
+        <Typography>{t('loadingRequestDetails')}</Typography>
       </div>
     );
   if (error)
     return (
       <div className="ops-approved-request-details-centered">
         <Typography color="error">{error}</Typography>
-        <Button onClick={() => history.goBack()}>{t("goBack")}</Button>
+        <Button onClick={() => history.goBack()}>{t('goBack')}</Button>
       </div>
     );
   if (!requestDetails) return null;
 
   const formatDT = (d: string | undefined) =>
     d
-      ? new Date(d).toLocaleString("en-IN", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
+      ? new Date(d).toLocaleString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
           hour12: false,
         })
-      : "-";
+      : '-';
 
   const school = requestDetails.school || {};
   const approvedBy = requestDetails.respondedBy || {};
   const requestedBy = requestDetails.requestedBy || {};
+  const phone =
+    requestDetails?.request_type === RequestTypes.STUDENT
+      ? parent?.phone
+      : requestedBy?.phone;
+
+  const email =
+    requestDetails?.request_type === RequestTypes.STUDENT
+      ? parent?.email
+      : requestedBy?.email;
 
   return (
     <div className="ops-approved-request-details-layout">
@@ -99,16 +136,16 @@ const OpsApprovedRequestDetails = () => {
         variant="h4"
         className="ops-approved-request-details-page-title"
       >
-        {t("Requests")}
+        {t('Requests')}
       </Typography>
       <div className="ops-approved-request-details-breadcrumbs">
         <span
           onClick={() => history.push(PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST)}
-          className="ops-approved-request-details-link"
+          className="ops-approved-request-details-link icon-button"
         >
-          {t("Requests")}
+          {t('Requests')}
+          <span> &gt; </span>
         </span>
-        <span> &gt; </span>
         <span
           onClick={() =>
             history.push({
@@ -116,13 +153,13 @@ const OpsApprovedRequestDetails = () => {
               search: `?tab=${REQUEST_TABS.APPROVED}`,
             })
           }
-          className="ops-approved-request-details-link"
+          className="ops-approved-request-details-link icon-button"
         >
-          {t("Approved")}
+          {t('Approved')}
+          <span> &gt; </span>
         </span>
-        <span> &gt; </span>
         <span className="ops-approved-request-details-active">
-          {t("RequestId")} - {id}
+          {t('RequestId')} - {id}
         </span>
       </div>
       <Grid
@@ -139,63 +176,63 @@ const OpsApprovedRequestDetails = () => {
               variant="h6"
               className="ops-approved-request-details-card-title"
             >
-              {t("Request Id")} - {id}
+              {t('Request Id')} - {id}
             </Typography>
             <Divider className="ops-approved-request-details-divider" />
 
             <div className="ops-approved-request-details-field-stack">
               <div className="ops-approved-request-details-label">
-                {t("School Name")}
+                {t('School Name')}
               </div>
-              <div>{school.name || "-"}</div>
+              <div>{school.name || '-'}</div>
             </div>
             <div className="ops-approved-request-details-field-stack">
               <div className="ops-approved-request-details-label">
-                {t("School Id (UDISE)")}
+                {t('School Id (UDISE)')}
               </div>
-              <div>{school.udise || "N/A"}</div>
+              <div>{school.udise || 'N/A'}</div>
             </div>
             <Divider className="ops-approved-request-details-divider" />
 
             <div className="ops-approved-request-details-flex-row">
               <div className="ops-approved-request-details-field-stack ops-approved-request-details-mr">
                 <div className="ops-approved-request-details-label">
-                  {t("City")}
+                  {t('District')}
                 </div>
-                <div>{school.group2 || "N/A"}</div>
+                <div>{school.group2 || 'N/A'}</div>
               </div>
               <div className="ops-approved-request-details-field-stack">
                 <div className="ops-approved-request-details-label">
-                  {t("State")}
+                  {t('State')}
                 </div>
-                <div>{school.group1 || "N/A"}</div>
+                <div>{school.group1 || 'N/A'}</div>
               </div>
             </div>
             <div className="ops-approved-request-details-field-stack">
               <div className="ops-approved-request-details-label">
-                {t("District")}
+                {t('Country')}
               </div>
-              <div>{school.group3 || "N/A"}</div>
+              <div>{school.country || 'N/A'}</div>
             </div>
             <Divider className="ops-approved-request-details-divider" />
             <Typography
               variant="h6"
               className="ops-approved-request-details-card-title"
             >
-              {t("Request Details")}
+              {t('Request Details')}
             </Typography>
             <Grid container spacing={1}>
               <Grid size={{ xs: 6 }}>
                 <div className="ops-approved-request-details-label-sm">
-                  {t("Request For")}
+                  {t('Request For')}
+                  <div>{requestDetails.request_type || '-'}</div>
                 </div>
-                <div>{requestDetails.request_type || "-"}</div>
               </Grid>
               <Grid size={{ xs: 6 }}>
                 <div className="ops-approved-request-details-label-sm">
-                  {t("Requested On")}
+                  {t('Requested On')}
+                  <div>{formatDT(requestDetails.created_at)}</div>
                 </div>
-                <div>{formatDT(requestDetails.created_at)}</div>
               </Grid>
             </Grid>
           </Paper>
@@ -208,15 +245,15 @@ const OpsApprovedRequestDetails = () => {
               variant="h6"
               className="ops-approved-request-details-card-title"
             >
-              {t("Approved Details")}
+              {t('Approved Details')}
             </Typography>
             <Divider className="ops-approved-request-details-divider" />
             <div className="ops-approved-request-details-label-row">
-              <span>{t("Approved By")}</span>
-              <span>{approvedBy.name || "-"}</span>
+              <span>{t('Approved By')}</span>
+              <span>{approvedBy.name || '-'}</span>
             </div>
             <div className="ops-approved-request-details-label-row">
-              <span>{t("Approved On")}</span>
+              <span>{t('Approved On')}</span>
               <span>{formatDT(requestDetails.updated_at)}</span>
             </div>
           </Paper>
@@ -226,26 +263,26 @@ const OpsApprovedRequestDetails = () => {
               variant="h6"
               className="ops-approved-request-details-card-title"
             >
-              {t("Request From")}
+              {t('Request From')}
             </Typography>
             <Divider className="ops-approved-request-details-divider" />
             <div className="ops-approved-request-details-field-stack">
               <div className="ops-approved-request-details-label">
-                {t("Name")}
+                {t('Name')}
               </div>
-              <div>{requestedBy.name || "N/A"}</div>
+              <div>{requestedBy.name || 'N/A'}</div>
             </div>
             <div className="ops-approved-request-details-field-stack">
               <div className="ops-approved-request-details-label">
-                {t("Phone Number")}
+                {t('Phone Number')}
               </div>
-              <div>{requestedBy.phone_number || "N/A"}</div>
+              <div>{phone || 'N/A'}</div>
             </div>
             <div className="ops-approved-request-details-field-stack">
               <div className="ops-approved-request-details-label">
-                {t("Email Id")}
+                {t('Email Id')}
               </div>
-              <div>{requestedBy.email || "N/A"}</div>
+              <div>{email || 'N/A'}</div>
             </div>
           </Paper>
         </Grid>

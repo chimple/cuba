@@ -1,30 +1,30 @@
 //@ts-nocheck
-import type { Meta, StoryObj } from "@storybook/react";
-import TableRightHeader from "../../components/reports/TableRightHeader";
+import type { Meta, StoryObj } from '@storybook/react';
+import TableRightHeader from '../../components/reports/TableRightHeader';
 
 const meta = {
-  title: "teachers-module/report/TableRightHeader",
+  title: 'teachers-module/report/TableRightHeader',
   component: TableRightHeader,
-  tags: ["autodocs"],
+  tags: ['autodocs'],
   argTypes: {
     headerDetails: [
       new Map([
         [
-          "1",
+          '1',
           {
-            headerName: "Monday",
-            startAt: "08/12",
-            endAt: "09/12",
+            headerName: 'Monday',
+            startAt: '08/12',
+            endAt: '09/12',
           },
         ],
       ]),
       new Map([
         [
-          "2",
+          '2',
           {
-            headerName: "Tueseday",
-            startAt: "06/07",
-            endAt: "07/11",
+            headerName: 'Tueseday',
+            startAt: '06/07',
+            endAt: '07/11',
           },
         ],
       ]),
@@ -42,21 +42,21 @@ export const Test1: Story = {
     headerDetails: [
       new Map([
         [
-          "1",
+          '1',
           {
-            headerName: "Monday",
-            startAt: "08/12",
-            endAt: "09/12",
+            headerName: 'Monday',
+            startAt: '08/12',
+            endAt: '09/12',
           },
         ],
       ]),
       new Map([
         [
-          "2",
+          '2',
           {
-            headerName: "Tueseday",
-            startAt: "06/07",
-            endAt: "07/11",
+            headerName: 'Tueseday',
+            startAt: '06/07',
+            endAt: '07/11',
           },
         ],
       ]),
@@ -69,71 +69,71 @@ export const Assignment: Story = {
     headerDetails: [
       new Map([
         [
-          "1",
+          '1',
           {
-            headerName: "q",
-            startAt: "08/12",
-            endAt: "09/12",
+            headerName: 'q',
+            startAt: '08/12',
+            endAt: '09/12',
           },
         ],
       ]),
       new Map([
         [
-          "2",
+          '2',
           {
-            headerName: "a",
-            startAt: "06/07",
-            endAt: "07/11",
+            headerName: 'a',
+            startAt: '06/07',
+            endAt: '07/11',
           },
         ],
       ]),
       new Map([
         [
-          "3",
+          '3',
           {
-            headerName: "b",
-            startAt: "08/12",
-            endAt: "09/12",
+            headerName: 'b',
+            startAt: '08/12',
+            endAt: '09/12',
           },
         ],
       ]),
       new Map([
         [
-          "4",
+          '4',
           {
-            headerName: "c",
-            startAt: "06/07",
-            endAt: "07/11",
+            headerName: 'c',
+            startAt: '06/07',
+            endAt: '07/11',
           },
         ],
       ]),
       new Map([
         [
-          "5",
+          '5',
           {
-            headerName: "d",
-            startAt: "08/12",
-            endAt: "09/12",
+            headerName: 'd',
+            startAt: '08/12',
+            endAt: '09/12',
           },
         ],
       ]),
       new Map([
         [
-          "6",
+          '6',
           {
-            headerName: "t",
-            startAt: "06/07",
-            endAt: "07/11",
+            headerName: 't',
+            startAt: '06/07',
+            endAt: '07/11',
           },
         ],
       ]),
       new Map([
         [
-          "7",
+          '7',
           {
-            headerName: "f",
-            startAt: "08/12",
-            endAt: "09/12",
+            headerName: 'f',
+            startAt: '08/12',
+            endAt: '09/12',
           },
         ],
       ]),
@@ -141,154 +141,154 @@ export const Assignment: Story = {
   },
 };
 export const Weekly: Story = {
-    args: {
-      headerDetails: [
-        new Map([
-          [
-            "1",
-            {
-              headerName: "Monday",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-        new Map([
-          [
-            "2",
-            {
-              headerName: "Tueseday",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-        new Map([
-          [
-            "3",
-            {
-              headerName: "Wednesday",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-        new Map([
-          [
-            "4",
-            {
-              headerName: "Thursday",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-        new Map([
-          [
-            "5",
-            {
-              headerName: "Friday",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-        new Map([
-          [
-            "6",
-            {
-              headerName: "Saturday",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-        new Map([
-          [
-            "7",
-            {
-              headerName: "Sunday",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-      ],
-    },
-  };
-  export const Monthly: Story = {
-    args: {
-      headerDetails: [
-        new Map([
-          [
-            "1",
-            {
-              headerName: "January",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-        new Map([
-          [
-            "2",
-            {
-              headerName: "February",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-        new Map([
-          [
-            "3",
-            {
-              headerName: "March",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-        new Map([
-          [
-            "4",
-            {
-              headerName: "April",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-        new Map([
-          [
-            "5",
-            {
-              headerName: "May",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-        new Map([
-          [
-            "6",
-            {
-              headerName: "June",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-        new Map([
-          [
-            "7",
-            {
-              headerName: "July",
-              startAt: "",
-              endAt: "",
-            },
-          ],
-        ]),
-      ],
-    },
-  };
+  args: {
+    headerDetails: [
+      new Map([
+        [
+          '1',
+          {
+            headerName: 'Monday',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+      new Map([
+        [
+          '2',
+          {
+            headerName: 'Tueseday',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+      new Map([
+        [
+          '3',
+          {
+            headerName: 'Wednesday',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+      new Map([
+        [
+          '4',
+          {
+            headerName: 'Thursday',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+      new Map([
+        [
+          '5',
+          {
+            headerName: 'Friday',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+      new Map([
+        [
+          '6',
+          {
+            headerName: 'Saturday',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+      new Map([
+        [
+          '7',
+          {
+            headerName: 'Sunday',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+    ],
+  },
+};
+export const Monthly: Story = {
+  args: {
+    headerDetails: [
+      new Map([
+        [
+          '1',
+          {
+            headerName: 'January',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+      new Map([
+        [
+          '2',
+          {
+            headerName: 'February',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+      new Map([
+        [
+          '3',
+          {
+            headerName: 'March',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+      new Map([
+        [
+          '4',
+          {
+            headerName: 'April',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+      new Map([
+        [
+          '5',
+          {
+            headerName: 'May',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+      new Map([
+        [
+          '6',
+          {
+            headerName: 'June',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+      new Map([
+        [
+          '7',
+          {
+            headerName: 'July',
+            startAt: '',
+            endAt: '',
+          },
+        ],
+      ]),
+    ],
+  },
+};
