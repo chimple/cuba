@@ -47,8 +47,6 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     static String activity_id = "";
     static JSONObject deepLinkData = new JSONObject();
     static boolean isRespect = false;
-    private MyWebGLMonitor webGLMonitor;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->{
