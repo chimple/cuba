@@ -1,0 +1,234 @@
+@media (max-width: 1200px) {
+  .migrate-schools-top-right .search-input-SearchAndFilter {
+    width: 260px;
+  }
+}
+
+@media (max-width: 900px) {
+  .migrate-schools-title-row {
+    position: relative;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+
+  .migrate-schools-title {
+    width: 100%;
+    text-align: center;
+  }
+
+  .migrate-schools-bell-icon {
+    position: absolute !important;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .migrate-schools-table-wrap {
+    --migrate-sticky-select-col-width: 56px;
+    --migrate-sticky-school-col-width: 180px;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-container {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-container .MuiTable-root {
+    width: max-content !important;
+    min-width: 100% !important;
+    table-layout: fixed !important;
+  }
+
+  .migrate-schools-table-wrap .MuiTableHead-root .MuiTableCell-root,
+  .migrate-schools-table-wrap .MuiTableBody-root .MuiTableCell-root,
+  .migrate-schools-table-wrap .data-tablebody-head-cell,
+  .migrate-schools-table-wrap .data-tablebody-cell {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .migrate-schools-table-wrap .MuiTableHead-root .MuiTableCell-root,
+  .migrate-schools-table-wrap .data-tablebody-head-cell {
+    position: sticky;
+    top: 0;
+    z-index: 9 !important;
+    background-color: #e3e6ea !important;
+  }
+
+  .migrate-schools-table-wrap .MuiTableBody-root {
+    position: relative;
+    z-index: 1;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-cell:first-child,
+  .migrate-schools-table-wrap .data-tablebody-head-cell:first-child {
+    width: var(--migrate-sticky-select-col-width) !important;
+    min-width: var(--migrate-sticky-select-col-width) !important;
+    max-width: var(--migrate-sticky-select-col-width) !important;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-head-cell:first-child {
+    top: 0;
+    z-index: 20 !important;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-cell:first-child {
+    top: auto !important;
+    z-index: 6 !important;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-head-cell:nth-child(2),
+  .migrate-schools-table-wrap .data-tablebody-cell:nth-child(2) {
+    position: sticky;
+    left: var(--migrate-sticky-select-col-width);
+    width: var(--migrate-sticky-school-col-width) !important;
+    min-width: var(--migrate-sticky-school-col-width) !important;
+    max-width: var(--migrate-sticky-school-col-width) !important;
+    box-shadow: 2px 0 0 #d2d6dc;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-head-cell:nth-child(2) {
+    top: 0;
+    z-index: 19 !important;
+    box-shadow: 2px 0 0 #d4d8dd;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-cell:nth-child(2) {
+    top: auto !important;
+    z-index: 5 !important;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-head-cell:nth-child(3),
+  .migrate-schools-table-wrap .data-tablebody-cell:nth-child(3) {
+    min-width: 190px !important;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-head-cell:nth-child(4),
+  .migrate-schools-table-wrap .data-tablebody-cell:nth-child(4) {
+    min-width: 170px !important;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-head-cell:nth-child(5),
+  .migrate-schools-table-wrap .data-tablebody-cell:nth-child(5) {
+    min-width: 160px !important;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-head-cell:nth-child(6),
+  .migrate-schools-table-wrap .data-tablebody-cell:nth-child(6) {
+    min-width: 180px !important;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-head-cell:nth-child(7),
+  .migrate-schools-table-wrap .data-tablebody-cell:nth-child(7) {
+    min-width: 170px !important;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-head-cell:nth-child(8),
+  .migrate-schools-table-wrap .data-tablebody-cell:nth-child(8) {
+    min-width: 170px !important;
+  }
+
+  .migrate-schools-table-wrap .data-tablebody-cell .MuiBox-root {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .migrate-schools-name,
+  .migrate-schools-subname {
+    display: block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .migrate-schools-controls-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .migrate-schools-tabs .MuiTabs-flexContainer {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .migrate-schools-tab {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+  }
+
+  .migrate-schools-top-right {
+    min-width: 0;
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .migrate-schools-top-right
+    .search-filter-container-SearchAndFilter
+    button[aria-label='Open Filters'] {
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    padding: 6px !important;
+  }
+
+  .migrate-schools-top-right
+    .search-filter-container-SearchAndFilter
+    button[aria-label='Open Filters']:hover {
+    border-color: #1a71f6 !important;
+  }
+
+  .migrate-schools-top-right .search-input-SearchAndFilter {
+    width: 100%;
+  }
+
+  .migrate-schools-table-wrap {
+    order: 3;
+  }
+
+  .migrate-schools-footer {
+    order: 4;
+  }
+
+  .migrate-schools-footer-with-action {
+    display: contents;
+  }
+
+  .migrate-schools-footer-with-action .migrate-schools-footer-action {
+    order: 2;
+    width: auto;
+    margin: 0 18px 8px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .migrate-schools-footer-with-action .migrate-schools-footer-pagination {
+    order: 4;
+    display: flex;
+    width: 100%;
+    padding: 0 18px 10px;
+    justify-content: center;
+  }
+
+  .migrate-schools-footer-with-action .migrate-schools-footer-pagination > div {
+    width: 100%;
+    margin: 0 !important;
+    justify-content: center !important;
+  }
+
+  .migrate-schools-footer-action {
+    width: auto;
+    justify-content: flex-end;
+  }
+}

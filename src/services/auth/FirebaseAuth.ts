@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { ServiceAuth } from "./ServiceAuth";
+import { ServiceAuth } from './ServiceAuth';
 import {
   EmailAuthProvider,
   GoogleAuthProvider,
@@ -7,8 +7,8 @@ import {
   signInWithCredential,
   signInWithCustomToken,
   signInWithPhoneNumber,
-} from "firebase/auth";
-import User from "../../models/user";
+} from 'firebase/auth';
+import User from '../../models/User';
 import {
   Timestamp,
   doc,
@@ -16,6 +16,18 @@ import {
   getFirestore,
   setDoc,
   updateDoc,
+} from 'firebase/firestore';
+import { RoleType } from '../../interface/modelInterfaces';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+
+import { App } from '@capacitor/app';
+import { Util } from '../../utility/util';
+import { Capacitor } from '@capacitor/core';
+import { CollectionIds } from '../../common/courseConstants';
+import { ACTION, EVENTS, LANGUAGE, TableTypes } from '../../common/constants';
+import { ServiceConfig } from '../ServiceConfig';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { logAuthDebug } from '../../utility/authDebug';
 } from "firebase/firestore";
 import { RoleType } from "../../interface/modelInterfaces";
 import {
@@ -49,17 +61,6 @@ export class FirebaseAuth implements ServiceAuth {
     return FirebaseAuth.i;
   }
 
-  // public static whichAuth() {
-  //   let auth;
-  //   if (Capacitor.isNativePlatform()) {
-  //     auth = initializeAuth(getApp(), {
-  //       persistence: indexedDBLocalPersistence,
-  //     });
-  //   } else {
-  //     auth = getAuth(getApp());
-  //   }
-  //   return auth;
-  // }
   private async updateUserPreferenceLanguage() {
     if (!!this._currentUser) {
       const appLang = localStorage.getItem(LANGUAGE);
@@ -67,12 +68,12 @@ export class FirebaseAuth implements ServiceAuth {
         const languages =
           await ServiceConfig.getI().apiHandler.getAllLanguages();
         const langDocId = languages.find(
-          (lang) => lang.code === appLang
+          (lang) => lang.code === appLang,
         )?.docId;
         if (!!langDocId) {
           const langDoc = doc(
             this._db,
-            `${CollectionIds.LANGUAGE}/${langDocId}`
+            `${CollectionIds.LANGUAGE}/${langDocId}`,
           );
 
           if (!!langDoc && this._currentUser.language?.id != langDoc?.id) {
@@ -82,7 +83,7 @@ export class FirebaseAuth implements ServiceAuth {
               {
                 language: this._currentUser.language,
                 updatedAt: Timestamp.now(),
-              }
+              },
             );
           }
         }
@@ -96,14 +97,14 @@ export class FirebaseAuth implements ServiceAuth {
       const result = await FirebaseAuthentication.signInWithGoogle();
       // const result = await signInWithPopup(this._auth,this._provider)
       const credential = GoogleAuthProvider.credential(
-        result.credential?.idToken
+        result.credential?.idToken,
       );
       await signInWithCredential(this._auth, credential);
       const user = result.user;
       const additionalUserInfo = result.additionalUserInfo;
       // const additionalUserInfo = getAdditionalUserInfo(result)
       if (!user) return false;
-      const userRef = doc(this._db, "User", user.uid);
+      const userRef = doc(this._db, 'User', user.uid);
       if (additionalUserInfo?.isNewUser) {
         await this._createUserDoc(user);
       } else {
@@ -116,8 +117,8 @@ export class FirebaseAuth implements ServiceAuth {
           Util.subscribeToClassTopicForAllStudents(this._currentUser);
         }
       }
-      App.addListener("appStateChange", Util.onAppStateChange);
-      CapApp.addListener(APP_URL_OPEN, Util.onAppUrlOpen);
+      App.addListener('appStateChange', Util.onAppStateChange);
+      CapApp.addListener('appUrlOpen', Util.onAppUrlOpen);
       this.updateUserFcm(user.uid);
       const migrateRes = await Util.migrate();
       if (
@@ -139,11 +140,11 @@ export class FirebaseAuth implements ServiceAuth {
 
   async loginWithEmailAndPassword(
     email: string,
-    password: string
+    password: string,
   ): Promise<boolean> {
     try {
       if (!email || !password) {
-        throw new Error("Email and password are required.");
+        throw new Error('Email and password are required.');
       }
       const result = await FirebaseAuthentication.signInWithEmailAndPassword({
         email,
@@ -167,7 +168,7 @@ export class FirebaseAuth implements ServiceAuth {
           Util.subscribeToClassTopicForAllStudents(this._currentUser);
         }
       }
-      App.addListener("appStateChange", Util.onAppStateChange);
+      App.addListener('appStateChange', Util.onAppStateChange);
       this.updateUserFcm(user.uid);
       this.updateUserPreferenceLanguage();
       return true;
@@ -184,11 +185,11 @@ export class FirebaseAuth implements ServiceAuth {
     // const courseIds: DocumentReference[] = DEFAULT_COURSE_IDS.map((id) =>
     //   doc(this._db, `Course/${id}`)
     // );
-    const userRef = doc(this._db, "User", user.uid);
+    const userRef = doc(this._db, 'User', user.uid);
     const tempUser = new User(
       user.email ?? user.phoneNumber!,
       [],
-      user.displayName ?? "",
+      user.displayName ?? '',
       RoleType.PARENT,
       user.uid,
       [],
@@ -203,7 +204,7 @@ export class FirebaseAuth implements ServiceAuth {
       Timestamp.now(),
       user.uid,
       0,
-      0
+      0,
     );
     await setDoc(userRef, tempUser.toJson());
     this._currentUser = tempUser;
@@ -220,37 +221,13 @@ export class FirebaseAuth implements ServiceAuth {
     return this._currentUser;
   }
 
-  public async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
-    throw new Error("Method not implemented");
-    // try {
-    //   if (this._currentUser) return this._currentUser;
-    //   const currentUser = this._auth.currentUser;
-
-    //   // let currentUser: any = (await FirebaseAuthentication.getCurrentUser()).user;
-    //   
-
-    //   // if (!currentUser) {
-    //   //   currentUser = getAuth().currentUser;
-    //   
-    //   // }
-    //   if (!currentUser) return;
-    //   const tempUserDoc = await getDoc(doc(this._db, "User", currentUser.uid));
-    //   this.updateUserPreferenceLanguage();
-    //   this._currentUser = (tempUserDoc.data() || tempUserDoc) as User;
-
-    //   this._currentUser.docId = tempUserDoc.id;
-    //   return this._currentUser;
-    // } catch (error) {
-
-    // }
+  public async getCurrentUser(): Promise<TableTypes<'user'> | undefined> {
+    throw new Error('Method not implemented');
   }
 
   public set currentUser(value: User) {
     this._currentUser = value;
   }
-  // public set updatecurrentUser(user: TableTypes<"user">) {
-  //     this._currentUser = user;
-  // }
 
   public async phoneNumberSignIn(phoneNumber, recaptchaVerifier): Promise<any> {
     try {
@@ -269,15 +246,15 @@ export class FirebaseAuth implements ServiceAuth {
             return new Promise(async (resolve, reject) => {
               try {
                 var timeOut = setTimeout(() => {
-                  reject("Timed out waiting for SMS");
+                  reject('Timed out waiting for SMS');
                 }, 60000);
                 // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
                 await FirebaseAuthentication.addListener(
-                  "phoneCodeSent",
+                  'phoneCodeSent',
                   async (event) => {
                     clearTimeout(timeOut);
                     resolve(event);
-                  }
+                  },
                 );
 
                 // // Attach `phoneCodeSent` listener to be notified as soon as the SMS is sent
@@ -291,22 +268,20 @@ export class FirebaseAuth implements ServiceAuth {
                 // );
 
                 await FirebaseAuthentication.addListener(
-                  "phoneVerificationFailed",
+                  'phoneVerificationFailed',
                   async (event) => {
-
                     reject(event.message);
-                  }
+                  },
                 );
 
                 // Attach `phoneVerificationCompleted` listener to be notified if phone verification could be finished automatically
                 await FirebaseAuthentication.addListener(
-                  "phoneVerificationCompleted",
+                  'phoneVerificationCompleted',
                   async (event) => {
-
                     if (event.user) {
                       const user = event.user;
                       this.updateUserFcm(event.user.uid);
-                      const userRef = doc(this._db, "User", user.uid);
+                      const userRef = doc(this._db, 'User', user.uid);
                       const tempUserDoc = await getDoc(userRef);
                       if (tempUserDoc.exists() && !!tempUserDoc.data()) {
                         const userDoc = tempUserDoc.data() as User;
@@ -316,10 +291,9 @@ export class FirebaseAuth implements ServiceAuth {
                       await Util.migrate();
                       resolve(event);
                     } else {
-
                       reject(event);
                     }
-                  }
+                  },
                 );
 
                 // Start sign in with phone number and send the SMS
@@ -333,7 +307,7 @@ export class FirebaseAuth implements ServiceAuth {
           };
           result = await signInWithPhoneNumber();
 
-          App.addListener("appStateChange", Util.onAppStateChange);
+          App.addListener('appStateChange', Util.onAppStateChange);
           return result;
         } catch (error) {
           throw error;
@@ -342,7 +316,7 @@ export class FirebaseAuth implements ServiceAuth {
         result = await signInWithPhoneNumber(
           this._auth,
           phoneNumber,
-          recaptchaVerifier
+          recaptchaVerifier,
         );
         verificationId = result?.verificationId;
         return result;
@@ -359,76 +333,61 @@ export class FirebaseAuth implements ServiceAuth {
 
   public async generateOtp(
     phoneNumber: string,
-    appName: string
+    appName: string,
   ): Promise<boolean | undefined> {
     try {
       const functions = getFunctions();
-      const msg91Otp = httpsCallable(functions, "GenerateOtpWithMSG91");
+      const msg91Otp = httpsCallable(functions, 'GenerateOtpWithMSG91');
       const result = await msg91Otp({
         phoneNumber,
         appName,
       });
       const response = result.data as Map<string, boolean>;
-      return response["status"];
-    } catch (error) {
-    }
+      return response['status'];
+    } catch (error) {}
   }
   public async resendOtpMsg91(
-    phoneNumber: string
+    phoneNumber: string,
   ): Promise<boolean | undefined> {
     try {
       const functions = getFunctions();
-      const msg91Otp = httpsCallable(functions, "ResendOtpWithMSG91");
+      const msg91Otp = httpsCallable(functions, 'ResendOtpWithMSG91');
       const result = await msg91Otp({
         phoneNumber,
       });
       const response = result.data as Map<string, boolean>;
-      return response["status"];
-    } catch (error) {
-    }
+      return response['status'];
+    } catch (error) {}
   }
   public async proceedWithVerificationCode(
     phone_number,
-    verificationCode
+    verificationCode,
   ): Promise<{ user: any; isUserExist: boolean } | undefined> {
     try {
-      // const verificationCode = e.detail.data.values[0];
       if (!verificationCode || verificationCode.length < 6) {
         return;
       }
 
-      // Confirm the verification code
-      // const credential =
-      //   await FirebaseAuthentication.confirmVerificationCode({
-      //     verificationId: result.verificationId,
-      //     verificationCode,
-      //   });
-      // if (!confirmVerificationCredential.credential) {
-      //   return;
-      // }
       const functions = getFunctions();
       const generateCustomTocken = httpsCallable(
         functions,
-        "GenerateCustomToken"
+        'GenerateCustomToken',
       );
       const result = await generateCustomTocken({
         phoneNumber: phone_number,
         otp: verificationCode,
       });
       const response = result.data as Map<string, string>;
-      // const credential = PhoneAuthProvider.credential(
-      //   result.verificationId,
-      //   verificationCode
-      // );
+
       const auth = await getAuth();
-      if (response["error"] != null) {
-        throw Error(response["error"]);
+      if (response['error'] != null) {
+        throw Error(response['error']);
       }
       await FirebaseAuthentication.signInWithCustomToken({
-        token: response["customToken"],
+        token: response['customToken'],
       });
-      let res = await signInWithCustomToken(auth, response["customToken"]);
-      // let res = await signInWithCredential(auth, credential);
+      let res = await signInWithCustomToken(auth, response['customToken']);
+
       const u = await FirebaseAuthentication.getCurrentUser();
 
 
@@ -443,11 +402,11 @@ export class FirebaseAuth implements ServiceAuth {
 
 
       if (!res.user) {
-        throw Error("Verification Failed");
+        throw Error('Verification Failed');
       }
       const user = res.user;
       this.updateUserFcm(res.user.uid);
-      const userRef = doc(this._db, "User", user.uid);
+      const userRef = doc(this._db, 'User', user.uid);
       const tempUserDoc = await getDoc(userRef);
       if (tempUserDoc.exists() && !!tempUserDoc.data()) {
         const userDoc = tempUserDoc.data() as User;
@@ -468,7 +427,7 @@ export class FirebaseAuth implements ServiceAuth {
       // const additionalUserInfo = result.additionalUserInfo;
       // const additionalUserInfo = getAdditionalUserInfo(result)
       if (!userData) return false;
-      const userRef = doc(this._db, "User", userData.uid);
+      const userRef = doc(this._db, 'User', userData.uid);
       // if (additionalUserInfo?.isNewUser) {
       //   let u = await this._createUserDoc(userData);
 
@@ -533,6 +492,11 @@ export class FirebaseAuth implements ServiceAuth {
   }
 
   async logOut(): Promise<void> {
+    logAuthDebug('Executing firebase auth logout.', {
+      source: 'FirebaseAuth.logOut',
+      reason: 'explicit_or_upstream_logout',
+      has_current_user: !!this._currentUser,
+    });
     await FirebaseAuthentication.signOut();
     await this._auth.signOut();
     this._currentUser = undefined;

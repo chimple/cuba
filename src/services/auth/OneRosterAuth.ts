@@ -1,5 +1,8 @@
 import { OneRosterUser, ServiceAuth } from "./ServiceAuth";
+import { ServiceAuth } from './ServiceAuth';
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
+import { TableTypes } from '../../common/constants';
+import { UserAttributes } from '@supabase/supabase-js';
 import { CURRENT_STUDENT, CURRENT_USER, isRespectMode, LANGUAGE, TableTypes, LATEST_STARS, STUDENT_LESSON_SCORES } from "../../common/constants";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { Util } from "../../utility/util";
@@ -23,9 +26,9 @@ export class OneRosterAuth implements ServiceAuth {
   }
   loginWithEmailAndPassword(
     email: string,
-    password: string
+    password: string,
   ): Promise<{ success: boolean; isSpl: boolean }> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
     try {
@@ -123,22 +126,22 @@ export class OneRosterAuth implements ServiceAuth {
   }
 
   phoneNumberSignIn(phoneNumber: any, recaptchaVerifier: any): Promise<any> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   generateOtp(
     phoneNumber: string,
-    appName: string
+    appName: string,
   ): Promise<{ success: boolean; error?: any }> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   resendOtpMsg91(phoneNumber: string): Promise<boolean | undefined> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   proceedWithVerificationCode(
     verificationId: any,
-    verificationCode: any
+    verificationCode: any,
   ): Promise<{ user: any; isUserExist: boolean; isSpl: boolean } | undefined> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
@@ -184,20 +187,20 @@ export class OneRosterAuth implements ServiceAuth {
   }
 
   doRefreshSession(): Promise<void> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   signInWithEmail(
     email: string,
-    password: string
+    password: string,
   ): Promise<{ success: boolean; isSpl: boolean }> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   sendResetPasswordEmail(email: string): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   updateUser(attributes: UserAttributes): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 }

@@ -1,57 +1,131 @@
-import { ImgHTMLAttributes, useEffect, useState } from "react";
-import { Capacitor, CapacitorHttp } from "@capacitor/core";
-import { Filesystem, Directory } from "@capacitor/filesystem";
-import { CACHE_IMAGE } from "../../common/constants";
+import { ImgHTMLAttributes, useEffect, useState } from 'react';
+import { getCachedImageSrc, isLocalImageUrl } from '../../utility/imageCache';
+import { Capacitor } from '@capacitor/core';
 
-function CachedImage(props: ImgHTMLAttributes<HTMLImageElement>) {
-  const [imgSrc, setImgSrc] = useState<string>();
-
-  async function getCachedImage(url: string): Promise<string> {
-    if (!Capacitor.isNativePlatform()) return url;
-    try {
-      const result = await Filesystem.readFile({
-        path: CACHE_IMAGE + "/" + url.replaceAll("/", "-"),
-        directory: Directory.Cache,
-      });
-      return "data:image/png;base64," + result.data;
-    } catch (error) {
-      try {
-        // retrieve the image
-        const response = await CapacitorHttp.get({
-          url: url,
-          responseType: "blob",
-        });
-        const blob = await response.data;
-        await Filesystem.writeFile({
-          path: CACHE_IMAGE + "/" + url.replaceAll("/", "-"),
-          data: blob,
-          directory: Directory.Cache,
-        });
-        return "data:image/png;base64," + blob;
-      } catch (error) {
-        console.error(
-          "🚀 ~ file: util.ts:698 ~ getCachedImage ~ error:",
-          JSON.stringify(error)
-        );
-        return url;
-      }
-    }
+const shouldBypassCache = (src?: string): boolean => {
+  if (!src) {
+    return false;
   }
-  useEffect(() => {
-    if (!!props.src) {
-      getCachedImage(props.src)
-        .then((src) => {
-          setImgSrc(src);
-        })
-        .catch((error) => {
-          console.error(
-            "🚀 ~ file: CachedImage.tsx:14 ~ useEffect ~ error:",
-            JSON.stringify(error)
-          );
-          setImgSrc(props.src);
-        });
+
+  return !Capacitor.isNativePlatform() || isLocalImageUrl(src);
+};
+
+interface CachedImageProps extends ImgHTMLAttributes<HTMLImageElement> {
+  fallbackSrc?: string;
+}
+
+function CachedImage(props: CachedImageProps) {
+  const { src, alt, fallbackSrc, onError, ...imgProps } = props;
+  const resolvedSrc = src || fallbackSrc;
+  const bypassCache = resolvedSrc ? shouldBypassCache(resolvedSrc) : false;
+  const [localSrc, setLocalSrc] = useState<string | undefined>(() => {
+    if (!resolvedSrc) {
+      return undefined;
     }
-  }, [props]);
-  return !!imgSrc ? <img loading="lazy" {...props} src={imgSrc} alt={imgSrc} /> : <div></div>;
+
+    return bypassCache ? resolvedSrc : undefined;
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    if (!resolvedSrc) {
+      return false;
+    }
+
+    return !bypassCache;
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!resolvedSrc) {
+      setLocalSrc(undefined);
+      setIsLoading(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    if (bypassCache) {
+      setLocalSrc(resolvedSrc);
+      setIsLoading(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+
+    setIsLoading(true);
+    setLocalSrc(undefined);
+
+    void getCachedImageSrc(resolvedSrc)
+      .then((resolvedSrc) => {
+        if (!isMounted) {
+          return;
+        }
+
+        setLocalSrc(resolvedSrc);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        if (!isMounted) {
+          return;
+        }
+
+        setLocalSrc(resolvedSrc);
+        setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [resolvedSrc, src, fallbackSrc, bypassCache]);
+
+  if (!resolvedSrc) {
+    return <div />;
+  }
+
+  if (bypassCache) {
+    return (
+      <img
+        loading="lazy"
+        {...imgProps}
+        src={resolvedSrc}
+        alt={alt ?? resolvedSrc}
+        onError={(event) => {
+          const currentSrc = event.currentTarget.getAttribute('src');
+          if (fallbackSrc && currentSrc !== fallbackSrc) {
+            event.currentTarget.src = fallbackSrc;
+          }
+          onError?.(event);
+        }}
+      />
+    );
+  }
+
+  if (isLoading || !localSrc) {
+    return (
+      <div
+        className={imgProps.className}
+        style={imgProps.style}
+        aria-hidden="true"
+      />
+    );
+  }
+
+  return (
+    <img
+      loading="lazy"
+      {...imgProps}
+      src={localSrc}
+      alt={alt ?? resolvedSrc}
+      onError={(event) => {
+        const currentSrc = event.currentTarget.getAttribute('src');
+        if (fallbackSrc && currentSrc !== fallbackSrc) {
+          event.currentTarget.src = fallbackSrc;
+          setLocalSrc(fallbackSrc);
+          setIsLoading(false);
+        }
+        onError?.(event);
+      }}
+    />
+  );
 }
 export default CachedImage;

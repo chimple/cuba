@@ -1,39 +1,45 @@
-import React, { useEffect, useState } from "react";
-import { useHistory, useLocation } from "react-router-dom";
-import "./AddStudent.css";
-import Header from "../components/homePage/Header";
-import { AVATARS, PAGES, TableTypes } from "../../common/constants";
-import AddStudentSection from "../components/AddStudentSection";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import { t } from "i18next";
-import { Util } from "../../utility/util";
-import ProfileDetails from "../components/library/ProfileDetails";
-import Loading from "../../components/Loading";
-import { RoleType } from "../../interface/modelInterfaces";
+import React, { useEffect, useState } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
+import './AddStudent.css';
+import Header from '../components/homePage/Header';
+import {
+  AVATARS,
+  LATEST_TC_VERSION,
+  PAGES,
+  TableTypes,
+} from '../../common/constants';
+import AddStudentSection from '../components/AddStudentSection';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { t } from 'i18next';
+import ProfileDetails from '../components/library/ProfileDetails';
+import Loading from '../../components/Loading';
+import logger from '../../utility/logger';
+import { useFeatureValue } from '@growthbook/growthbook-react';
 
 const AddStudent: React.FC = () => {
   const history = useHistory();
   const location = useLocation<{
-    classDoc: TableTypes<"class">;
-    school: TableTypes<"school">;
+    classDoc: TableTypes<'class'>;
+    school: TableTypes<'school'>;
   }>();
   const [profilePic, setProfilePic] = useState<string | null>(null);
-  const [fullName, setFullName] = useState<string>("");
-  const [age, setAge] = useState<string>("");
-  const [gender, setGender] = useState<string>("");
-  const [studentId, setStudentId] = useState<string>("");
-  const [language, setLanguage] = useState<string>("");
+  const [fullName, setFullName] = useState<string>('');
+  const [age, setAge] = useState<string>('');
+  const [gender, setGender] = useState<string>('');
+  const [studentId, setStudentId] = useState<string>('');
+  const [language, setLanguage] = useState<string>('');
   const [languages, setLanguages] = useState<
     Array<{ label: string; value: string; id: string }>
   >([]);
-  const [currentClass, setCurrentClass] = useState<TableTypes<"class">>();
-  const [currentSchool, setCurrentSchool] = useState<TableTypes<"school">>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
+  const [currentSchool, setCurrentSchool] = useState<TableTypes<'school'>>();
   const api = ServiceConfig.getI()?.apiHandler;
   const [curriculumId, setCurriculumId] = useState<string | null>(null);
   const [gradeId, setGradeId] = useState<string | null>(null);
   const [isFormValid, setIsFormValid] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const { classDoc, school } = location.state || {};
+  const latestTcVersion = useFeatureValue<number>(LATEST_TC_VERSION, 0);
 
   useEffect(() => {
     fetchClassDetails();
@@ -45,9 +51,10 @@ const AddStudent: React.FC = () => {
 
   const fetchLanguages = async () => {
     try {
-      const fetchedLanguages: TableTypes<"language">[] =
+      const fetchedLanguages: TableTypes<'language'>[] =
         await api.getAllLanguages();
-      const sanitizedLanguages = fetchedLanguages
+      const sanitizedLanguages = [...fetchedLanguages]
+        .sort((left, right) => (left.sort_index ?? 0) - (right.sort_index ?? 0))
         .filter((lang) => lang.code && lang.name && lang.id)
         .map((lang) => ({
           label: lang.name,
@@ -57,7 +64,7 @@ const AddStudent: React.FC = () => {
 
       setLanguages(sanitizedLanguages);
     } catch (error) {
-      console.error("Error fetching languages:", error);
+      logger.error('Error fetching languages:', error);
     }
   };
 
@@ -69,15 +76,15 @@ const AddStudent: React.FC = () => {
       if (school) setCurrentSchool(school);
       if (classDoc) setCurrentClass(classDoc);
     } catch (error) {
-      console.error("Failed to load class details", error);
+      logger.error('Failed to load class details', error);
     }
   };
   if (!currentClass?.id) {
-    console.error("No current class selected.");
+    logger.error('No current class selected.');
     return null;
   }
   const getRandomAvatar = () => {
-    if (AVATARS.length === 0) return "";
+    if (AVATARS.length === 0) return '';
     const randomIndex = Math.floor(Math.random() * AVATARS.length);
     return AVATARS[randomIndex];
   };
@@ -89,19 +96,20 @@ const AddStudent: React.FC = () => {
     if (!isFormValid || loading) return;
     setLoading(true);
 
-    const finalProfilePic = profilePic || getRandomAvatar();
+    const finalAvatar = getRandomAvatar();
+    const finalImage = profilePic || null;
     const selectedLanguage = languages.find((lang) => lang.value === language);
-    const languageId = selectedLanguage?.id || "";
+    const languageId = selectedLanguage?.id || '';
 
     try {
       const courses = await api.getCoursesByClassId(currentClass.id);
       if (courses.length === 0) {
-        throw new Error("No courses found for the selected class.");
+        throw new Error('No courses found for the selected class.');
       }
       const firstCourseId = courses[0].course_id;
       const courseDetails = await api.getCourse(firstCourseId);
       if (!courseDetails) {
-        throw new Error("Failed to fetch course details.");
+        throw new Error('Failed to fetch course details.');
       }
       const curriculumId = courseDetails.curriculum_id;
       const gradeId = courseDetails.grade_id;
@@ -110,19 +118,20 @@ const AddStudent: React.FC = () => {
         fullName,
         parseInt(age, 10),
         gender,
-        finalProfilePic || "",
-        profilePic || "", // image
+        finalAvatar || '',
+        finalImage, // image
         curriculumId, // curriculum
         gradeId, // grade
         languageId,
         currentClass?.id,
-        "student",
-        studentId
+        'student',
+        studentId,
+        latestTcVersion,
       );
 
       handleBack();
     } catch (error) {
-      console.error("Error adding student:", error);
+      logger.error('Error adding student:', error);
     } finally {
       setLoading(false);
     }
@@ -131,7 +140,7 @@ const AddStudent: React.FC = () => {
     file: File,
     maxWidth: number,
     maxHeight: number,
-    callback: (result: string) => void
+    callback: (result: string) => void,
   ) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -141,8 +150,8 @@ const AddStudent: React.FC = () => {
       img.src = event.target?.result as string;
 
       img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
 
         let width = img.width;
         let height = img.height;
@@ -165,7 +174,7 @@ const AddStudent: React.FC = () => {
 
         ctx?.drawImage(img, 0, 0, width, height);
 
-        const resizedDataUrl = canvas.toDataURL("image/jpeg", 0.8); // Adjust quality to 0.8 (80%)
+        const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8); // Adjust quality to 0.8 (80%)
         // Log the estimated size of the base64 image
         const base64Length = resizedDataUrl.length * (3 / 4); // Base64 is approximately 33% larger
         const fileSizeInKB = base64Length / 1024; // Convert size to KB
@@ -174,11 +183,11 @@ const AddStudent: React.FC = () => {
     };
 
     reader.onerror = (error) => {
-      console.error("Error resizing image:", error);
+      logger.error('Error resizing image:', error);
     };
   };
   const handleProfilePicChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -212,55 +221,61 @@ const AddStudent: React.FC = () => {
 
   return (
     <div className="main-page">
-      <Header
-        isBackButton={true}
-        showSchool={true}
-        showClass={true}
-        className={currentClass?.name}
-        schoolName={currentSchool?.name}
-        onBackButtonClick={handleBack}
-      />
-      <div className="profile-details-centered">
-        <span className="add-student-text">{t("Add Student")}</span>
-        <ProfileDetails
-          imgSrc={profilePic || ""}
-          imgAlt="Profile Pic"
-          onImageChange={handleProfilePicChange}
-          isEditMode={true}
+      <div className="add-student-header">
+        <Header
+          isBackButton={true}
+          showSchool={true}
+          showClass={true}
+          className={currentClass?.name}
+          schoolName={currentSchool?.name}
+          onBackButtonClick={handleBack}
         />
       </div>
-      <AddStudentSection
-        languageOptions={languages}
-        fullName={fullName}
-        age={age}
-        gender={gender}
-        studentId={studentId}
-        language={language}
-        onFullNameChange={(value) => {
-          setFullName(value);
-        }}
-        onAgeChange={(value) => {
-          setAge(value);
-        }}
-        onGenderChange={(value) => {
-          setGender(value);
-        }}
-        onStudentIdChange={(value) => {
-          setStudentId(value);
-        }}
-        onLanguageChange={(selectedLanguageId) => {
-          setLanguage(selectedLanguageId);
-        }}
-      />
-      <div className="form-actions">
-        <button
-          className={`add-button ${!isFormValid ? "disabled" : ""}`}
-          type="button"
-          onClick={handleSave}
-          disabled={!isFormValid}
-        >
-          {t("Add")}
-        </button>
+      <div className="add-student-camera-header">
+        <div className="profile-details-centered">
+          <div className="add-student-title-text">{t('Add Student')}</div>
+          <div>
+            <ProfileDetails
+              imgSrc={profilePic || ''}
+              imgAlt="Profile Pic"
+              onImageChange={handleProfilePicChange}
+              isEditMode={true}
+            />
+          </div>
+        </div>
+        <AddStudentSection
+          languageOptions={languages}
+          fullName={fullName}
+          age={age}
+          gender={gender}
+          studentId={studentId}
+          language={language}
+          onFullNameChange={(value) => {
+            setFullName(value);
+          }}
+          onAgeChange={(value) => {
+            setAge(value);
+          }}
+          onGenderChange={(value) => {
+            setGender(value);
+          }}
+          onStudentIdChange={(value) => {
+            setStudentId(value);
+          }}
+          onLanguageChange={(selectedLanguageId) => {
+            setLanguage(selectedLanguageId);
+          }}
+        />
+        <div className="form-actions">
+          <button
+            className={`add-button ${!isFormValid ? 'disabled' : ''}`}
+            type="button"
+            onClick={handleSave}
+            disabled={!isFormValid}
+          >
+            {t('Add')}
+          </button>
+        </div>
       </div>
     </div>
   );

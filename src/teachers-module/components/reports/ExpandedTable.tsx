@@ -1,13 +1,31 @@
-import React, { useEffect, useState } from "react";
-import "./ExpandedTable.css";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import { ApiHandler } from "../../../services/api/ApiHandler";
-import { SCORECOLOR } from "../../../common/constants";
+import React, { useEffect, useState } from 'react';
+import './ExpandedTable.css';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import { ApiHandler } from '../../../services/api/ApiHandler';
+import { LIDO_ASSESSMENT, SCORECOLOR } from '../../../common/constants';
+
+type ExpandedResultRow = {
+  id: string;
+  lesson_id: string;
+  score: number | null;
+  assignment_id: string | null;
+};
+
+type LessonScoresByDay = Record<
+  string,
+  {
+    name: string;
+    resultId: string;
+    is_assignment: boolean;
+    scoresByDay: Record<string, number | null>;
+  }
+>;
+
 interface ExpandedTableProps {
-  expandedData;
+  expandedData: Record<string, ExpandedResultRow[]>;
 }
 
-function getColor(score) {
+function getColor(score: number | null) {
   if (score == null) {
     return SCORECOLOR.WHITE;
   } else if (score < 30) {
@@ -18,39 +36,61 @@ function getColor(score) {
     return SCORECOLOR.GREEN;
   }
 }
-async function getLessonScoresByDay(data, api: ApiHandler) {
+async function getLessonScoresByDay(
+  data: Record<string, ExpandedResultRow[]>,
+  api: ApiHandler,
+): Promise<LessonScoresByDay> {
   const orderedDays = Object.keys(data);
-  const result = {};
+  const result: LessonScoresByDay = {};
 
-  for (const key of orderedDays) {
-    for (const res of data[key]) {
-      const { id,lesson_id, score, assignment_id } = res;
+  for (const day of orderedDays) {
+    for (const res of data[day]) {
+      const { id, lesson_id, score, assignment_id } = res;
 
-      // Fetch lesson details
       const lesson = await api.getLesson(lesson_id);
-      const lessonName = lesson?.name ?? "";
+      const lessonName = lesson?.name ?? '';
 
-      if (!result[id]) {
-        result[id] = {
+      // Aggregate assessment lessons by lesson_id and keep other attempts separate.
+      const key = lesson?.plugin_type === LIDO_ASSESSMENT ? lesson_id : id;
+
+      if (!result[key]) {
+        result[key] = {
           name: lessonName,
-          resultId:id,
+          resultId: id,
           is_assignment: assignment_id != null,
-          scoresByDay: orderedDays.reduce((acc, day) => {
-            acc[day] = null;
-            return acc;
-          }, {}),
+          scoresByDay: orderedDays.reduce(
+            (acc: Record<string, number | null>, d: string) => {
+              acc[d] = null;
+              return acc;
+            },
+            {} as Record<string, number | null>,
+          ),
         };
       }
 
-      // Update score for the specific day
-      result[id].scoresByDay[key] = score;
+      if (lesson?.plugin_type === LIDO_ASSESSMENT) {
+        // Aggregate all LIDO results for the same lesson on this day
+        const allResultsForLessonOnDay = data[day].filter(
+          (r: ExpandedResultRow) => r.lesson_id === lesson_id,
+        );
+        const totalScore = allResultsForLessonOnDay.reduce(
+          (acc: number, r: ExpandedResultRow) => acc + (r.score ?? 0),
+          0,
+        );
+        const avgScore = totalScore / allResultsForLessonOnDay.length;
+
+        result[key].scoresByDay[day] = Math.round(avgScore);
+      } else {
+        // Non-assessment lessons keep each result separate.
+        result[key].scoresByDay[day] = score;
+      }
     }
   }
   return result;
 }
 
 const ExpandedTable: React.FC<ExpandedTableProps> = ({ expandedData }) => {
-  const [lessonIdsByDay, setLessonIdsByDay] = useState<{}>({});
+  const [lessonIdsByDay, setLessonIdsByDay] = useState<LessonScoresByDay>({});
   useEffect(() => {
     init();
   }, []);
@@ -61,17 +101,17 @@ const ExpandedTable: React.FC<ExpandedTableProps> = ({ expandedData }) => {
   };
   return (
     <>
-      {Object.values(lessonIdsByDay).map((lesson: any, lessonIndex) => (
+      {Object.values(lessonIdsByDay).map((lesson, lessonIndex) => (
         <tr key={lessonIndex}>
-          <td style={{backgroundColor: "#EFE8F8"}}>
+          <td style={{ backgroundColor: '#EFE8F8' }}>
             <div className="expanded-table-lesson-details">
               <span className="lesson-name-text">{lesson.name}</span>
               {
                 <img
                   src={
                     lesson.is_assignment
-                      ? "assets/icons/assignment.png"
-                      : "assets/icons/self_played.png"
+                      ? 'assets/icons/assignment.png'
+                      : 'assets/icons/self_played.png'
                   }
                   alt="assignment icon"
                   className="assignment-icon"
@@ -83,11 +123,14 @@ const ExpandedTable: React.FC<ExpandedTableProps> = ({ expandedData }) => {
             <td
               key={dayIndex}
               className="square-cell"
-              style={{ color: getColor(lesson.scoresByDay[day]), backgroundColor: "#EFE8F8" }}
+              style={{
+                color: getColor(lesson.scoresByDay[day]),
+                backgroundColor: '#EFE8F8',
+              }}
             >
               {lesson.scoresByDay[day] !== null
                 ? `${lesson.scoresByDay[day]}`
-                : "-"}
+                : '-'}
             </td>
           ))}
         </tr>

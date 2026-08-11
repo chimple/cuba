@@ -1,77 +1,227 @@
-import React, { useEffect, useState } from "react";
-import { PAGES, TableTypes, USER_ROLE } from "../../common/constants";
-import { IonPage } from "@ionic/react";
-import Sidebar from "../components/Sidebar";
-import Dashboard from "../components/Dashboard";
+import { IonPage } from '@ionic/react';
+import React, { useEffect, useState } from 'react';
 import {
-  BrowserRouter as Router,
-  Switch,
-  useRouteMatch,
-  Route,
   Redirect,
-} from "react-router-dom";
-import ProtectedRoute from "../../ProtectedRoute";
-import "./SidebarPage.css";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import ProgramsPage from "./ProgramPage";
-import SchoolList from "./SchoolList";
-import SchoolDetailsPage from "./SchoolDetailsPage";
-import ProgramDetailsPage from "./ProgramDetailsPage";
-import UsersPage from "./UsersPage";
-import NewProgram from "../components/NewProgram";
-import ProgramConnectedSchoolPage from "./ProgramConnectedSchoolPageOps";
-import NewUserPage from "./NewUserPageOps";
-import UserDetailsPage from "./UserDetailsPage";
-import { RoleType } from "../../interface/modelInterfaces";
-import RequestList from "./RequestList";
-import StudentPendingRequest from "./StudentPendingRequest";
-import SchoolPendingRequest from "./SchoolPendingRequest";
-import SchoolApprovedRequest from "./SchoolApprovedRequest";
-import SchoolRejectedRequest from "./SchoolRejectedRequest";
-import SchoolFormPage from "./SchoolFormPage";
-import StudentApprovedRequestDetails from "./OpsApprovedRequestDetails";
-import PrincipalTeacherPendingRequest from "./PrincipalTeacherPendingRequest";
-import OpsRejectedRequestDetails from "./OpsRejectedRequestDetails";
-import OpsApprovedRequestDetails from "./OpsApprovedRequestDetails";
+  Switch,
+  useParams,
+  useRouteMatch,
+  useHistory,
+  useLocation,
+} from 'react-router-dom';
+import {
+  CAMPAIGN_ACCESS_ROLES,
+  PAGES,
+  TableTypes,
+} from '../../common/constants';
+import ProtectedRoute from '../../ProtectedRoute';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import logger from '../../utility/logger';
+import NewProgram from '../components/NewProgram';
+import Sidebar from '../components/Sidebar';
+import ParentWhatsappInvitationPage from '../pages/Parentwhatsappinvite/ParentWhatsappInvitationPage';
+import ActivitiesPage from './ActivitiesPage';
+import AddSchoolPage from './AddSchoolPage';
+import CampaignListingPage from './CampaignListingPage';
+import CampaignSetupPage from './CampaignSetupPage';
+import MigrateSchoolsPage from './MigrateSchoolsPage';
+import NewUserPage from './NewUserPageOps';
+import OpsApprovedRequestDetails from './OpsApprovedRequestDetails';
+import OpsFlaggedRequestDetails from './OpsFlaggedRequestDetails';
+import OpsModulePage from './OpsModulePage';
+import OpsRejectedRequestDetails from './OpsRejectedRequestDetails';
+import PrincipalTeacherPendingRequest from './PrincipalTeacherPendingRequest';
+import ProgramConnectedSchoolPage from './ProgramConnectedSchoolPageOps';
+import ProgramDetailsPage from './ProgramDetailsPage';
+import ProgramsPage from './ProgramPage';
+import RequestList from './RequestList';
+import SchoolActivities from './SchoolActivities';
+import SchoolApprovedRequest from './SchoolApprovedRequest';
+import SchoolDetailsPage from './SchoolDetailsPage';
+import SchoolFormPage from './SchoolFormPage';
+import CampaignsOverview from '../components/campaignsOverview/CampaignsOverview';
+import { CampaignsOverviewApiResponse } from '../components/campaignsOverview/CampaignsOverviewLogic';
+import SchoolList from './SchoolList';
+import SchoolPendingRequest from './SchoolPendingRequest';
+import SchoolRejectedRequest from './SchoolRejectedRequest';
+import './SidebarPage.css';
+import StudentPendingRequest from './StudentPendingRequest';
+import UserDetailsPage from './UserDetailsPage';
+import UsersPage from './UsersPage';
+import { RoleType } from '../../interface/modelInterfaces';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
+
+const SchoolDetailsRoute: React.FC = () => {
+  const { school_id } = useParams<{ school_id: string }>();
+  return <SchoolDetailsPage id={school_id} />;
+};
+
+const ProgramDetailsRoute: React.FC = () => {
+  const { program_id } = useParams<{ program_id: string }>();
+  return <ProgramDetailsPage id={program_id} />;
+};
+
+const ProgramConnectedSchoolRoute: React.FC = () => {
+  const { program_id } = useParams<{ program_id: string }>();
+  return <ProgramConnectedSchoolPage id={program_id} />;
+};
+
+type CampaignOverviewRouteState = {
+  campaignOverviewData?: CampaignsOverviewApiResponse;
+  returnTo?: {
+    pathname: string;
+    search?: string;
+  };
+};
+
+const CampaignOverviewRoute: React.FC = () => {
+  const history = useHistory();
+  const location = useLocation<CampaignOverviewRouteState>();
+  const campaignOverviewData = location.state?.campaignOverviewData;
+  const returnTo = location.state?.returnTo;
+
+  const handleOpenCampaignListing = () => {
+    history.replace({
+      pathname:
+        returnTo?.pathname || `${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`,
+      search: returnTo?.search || '',
+    });
+  };
+
+  if (!campaignOverviewData) {
+    return <Redirect to={`${PAGES.SIDEBAR_PAGE}${PAGES.ADMIN_CAMPAIGNS}`} />;
+  }
+
+  return (
+    <CampaignsOverview
+      campaignOverviewData={campaignOverviewData}
+      onBackClick={handleOpenCampaignListing}
+      onBreadcrumbClick={(_, index) => {
+        if (index === 0) {
+          handleOpenCampaignListing();
+        }
+      }}
+    />
+  );
+};
 
 const SidebarPage: React.FC = () => {
   const { path } = useRouteMatch();
-
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
-    null
+  const history = useHistory();
+  const location = useLocation();
+  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
+    null,
   );
-  const userRole = localStorage.getItem(USER_ROLE) || "[]";
+
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const canAccessProgramPage = userRoles.some((role) =>
+    [
+      RoleType.SUPER_ADMIN,
+      RoleType.OPERATIONAL_DIRECTOR,
+      RoleType.PROGRAM_MANAGER,
+    ].includes(role as RoleType),
+  );
+  const canCreateProgram = userRoles.some((role) =>
+    [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(
+      role as RoleType,
+    ),
+  );
+  const canAccessCampaignPage = userRoles.some((role) =>
+    CAMPAIGN_ACCESS_ROLES.includes(role as RoleType),
+  );
+  const canAccessCoordinatorPages = userRoles.includes(
+    RoleType.FIELD_COORDINATOR,
+  );
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (canAccessProgramPage && !isExternalUser) return;
+
+    const schoolListPath = `${path}${PAGES.SCHOOL_LIST}`;
+    const schoolDetailsPrefix = `${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/`;
+    const campaignsPath = `${path}${PAGES.ADMIN_CAMPAIGNS}`;
+    const campaignDetailsPrefix = `${campaignsPath}/`;
+    const campaignCreatePath = `${path}${PAGES.ADMIN_CAMPAIGNS_NEW}`;
+    const requestListPath = `${path}${PAGES.REQUEST_LIST}`;
+    const requestDetailsPrefix = `${requestListPath}/`;
+    const devicesPath = `${path}${PAGES.ADMIN_DEVICES}`;
+    const resourcesPath = `${path}${PAGES.ADMIN_RESOURCES}`;
+    const dashboardPath = `${path}${PAGES.ADMIN_DASHBOARD}`;
+    const isAllowedPath =
+      location.pathname === schoolListPath ||
+      location.pathname.startsWith(schoolDetailsPrefix) ||
+      (canAccessCampaignPage &&
+        (location.pathname === campaignsPath ||
+          location.pathname === campaignCreatePath ||
+          location.pathname.startsWith(campaignDetailsPrefix))) ||
+      (canAccessCoordinatorPages &&
+        (location.pathname === requestListPath ||
+          location.pathname.startsWith(requestDetailsPrefix) ||
+          location.pathname === devicesPath ||
+          location.pathname === resourcesPath ||
+          location.pathname === dashboardPath));
+
+    if (!isAllowedPath) {
+      history.replace(schoolListPath);
+    }
+  }, [
+    canAccessCampaignPage,
+    canAccessProgramPage,
+    canAccessCoordinatorPages,
+    history,
+    isExternalUser,
+    location.pathname,
+    path,
+  ]);
+
   const fetchData = async () => {
     try {
       const user = await ServiceConfig.getI()?.authHandler.getCurrentUser();
       if (!user) {
-        console.error("No user is logged in.");
+        logger.error('No user is logged in.');
         return;
       }
 
       setCurrentUser(user);
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      logger.error('Error fetching user data:', error);
+    }
+  };
+
+  const preserveSelectedText = (event: React.MouseEvent<HTMLDivElement>) => {
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed) {
+      event.stopPropagation();
     }
   };
 
   return (
     <IonPage>
-      <div className="sidebarpage-rightSide">
+      <div className="sidebarpage-rightSide" onClick={preserveSelectedText}>
         <Sidebar
-          name={currentUser?.name || ""}
-          email={currentUser?.email || ""}
-          photo={currentUser?.image || ""}
+          name={currentUser?.name || ''}
+          email={currentUser?.email || ''}
+          photo={currentUser?.image || ''}
         />
         <div className="sidebarpage-render">
           <Switch>
             <ProtectedRoute exact path={path}>
-              <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+              <Redirect
+                to={`${
+                  path +
+                  (canAccessProgramPage
+                    ? PAGES.PROGRAM_PAGE
+                    : PAGES.SCHOOL_LIST)
+                }`}
+              />
             </ProtectedRoute>
             {/* <ProtectedRoute
               path={`${path}${PAGES.ADMIN_DASHBOARD}`}
@@ -85,8 +235,50 @@ const SidebarPage: React.FC = () => {
             <ProtectedRoute path={`${path}${PAGES.SCHOOL_LIST}`} exact={true}>
               <SchoolList />
             </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.ADMIN_CAMPAIGNS_NEW}`}
+              exact={true}
+            >
+              {canAccessCampaignPage ? (
+                <CampaignSetupPage />
+              ) : (
+                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+              )}
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.ADMIN_CAMPAIGNS}/:campaignId`}
+              exact={true}
+            >
+              {canAccessCampaignPage ? (
+                <CampaignOverviewRoute />
+              ) : (
+                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+              )}
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.ADMIN_CAMPAIGNS}`}
+              exact={true}
+            >
+              {canAccessCampaignPage ? (
+                <CampaignListingPage />
+              ) : (
+                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+              )}
+            </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.REQUEST_LIST}`} exact={true}>
               <RequestList />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.OPS_MODULE_PAGE}`}
+              exact={true}
+            >
+              <OpsModulePage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.OPS_MODULE_PAGE}${PAGES.PARENT_WHATSAPP_INVITATION}`}
+              exact={true}
+            >
+              <ParentWhatsappInvitationPage />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.REQUEST_LIST}${PAGES.SCHOOL_PENDING_REQUEST}/:id`}
@@ -131,6 +323,12 @@ const SidebarPage: React.FC = () => {
               <OpsRejectedRequestDetails />
             </ProtectedRoute>
             <ProtectedRoute
+              path={`${path}${PAGES.REQUEST_LIST}${PAGES.OPS_REJECTED_FLAGGED}/:id`}
+              exact={true}
+            >
+              <OpsFlaggedRequestDetails />
+            </ProtectedRoute>
+            <ProtectedRoute
               path={`${path}${PAGES.REQUEST_LIST}${PAGES.PRINCIPAL_TEACHER_PENDING_REQUEST}/:id`}
               exact={true}
             >
@@ -140,24 +338,20 @@ const SidebarPage: React.FC = () => {
               path={`${path}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/:school_id`}
               exact={true}
             >
-              {(routeProps) => {
-                return (
-                  <SchoolDetailsPage id={routeProps.match.params.school_id} />
-                );
-              }}
+              <SchoolDetailsRoute />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/:program_id`}
               exact={true}
             >
-              {(routeProps) => {
-                return (
-                  <ProgramDetailsPage id={routeProps.match.params.program_id} />
-                );
-              }}
+              <ProgramDetailsRoute />
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.NEW_PROGRAM}`} exact={true}>
-              <NewProgram />
+              {canCreateProgram ? (
+                <NewProgram />
+              ) : (
+                <Redirect to={`${path}${PAGES.PROGRAM_PAGE}`} />
+              )}
             </ProtectedRoute>
             <ProtectedRoute path={`${path}${PAGES.USERS}`} exact={true}>
               <UsersPage />
@@ -166,13 +360,7 @@ const SidebarPage: React.FC = () => {
               path={`${path}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}${PAGES.PROGRAM_CONNECTED_SCHOOL_LIST_PAGE_OPS}/:program_id`}
               exact={true}
             >
-              {(routeProps) => {
-                return (
-                  <ProgramConnectedSchoolPage
-                    id={routeProps.match.params.program_id}
-                  />
-                );
-              }}
+              <ProgramConnectedSchoolRoute />
             </ProtectedRoute>
             <ProtectedRoute
               path={`${path}${PAGES.USERS}${PAGES.NEW_USERS_OPS}`}
@@ -185,6 +373,30 @@ const SidebarPage: React.FC = () => {
               exact={true}
             >
               <UserDetailsPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ADD_SCHOOL_PAGE}`}
+              exact={true}
+            >
+              <AddSchoolPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.MIGRATE_SCHOOLS_PAGE}`}
+              exact={true}
+            >
+              <MigrateSchoolsPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}`}
+              exact={true}
+            >
+              <ActivitiesPage />
+            </ProtectedRoute>
+            <ProtectedRoute
+              path={`${path}${PAGES.SCHOOL_LIST}${PAGES.ACTIVITIES_PAGE}${PAGES.SCHOOL_ACTIVITIES}`}
+              exact={true}
+            >
+              <SchoolActivities />
             </ProtectedRoute>
           </Switch>
         </div>

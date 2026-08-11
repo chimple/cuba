@@ -1,0 +1,120 @@
+.campaign-assignment-step-loading {
+  min-height: 20rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.campaign-assignment-step {
+  border-bottom: 0.0625rem solid var(--campaign-divider);
+  padding: 2rem 0.25rem 1.5rem var(--campaign-section-left);
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.campaign-assignment-step-no-helper {
+  padding-top: 1.25rem;
+}
+
+.campaign-assignment-step-helper {
+  min-height: 2.125rem;
+  border: 0.0625rem solid #8bb7ff;
+  border-radius: 0.375rem;
+  background: #e8f1ff;
+  color: #285999;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.875rem;
+  box-sizing: border-box;
+}
+
+.campaign-assignment-step-helper svg {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  color: var(--campaign-blue);
+}
+
+.campaign-assignment-step-helper .MuiTypography-root {
+  color: inherit;
+  font-size: 0.8125rem;
+  line-height: 1rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.campaign-assignment-step-tabs {
+  height: 3.3125rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 1.875rem;
+  border-bottom: 0.0625rem solid var(--campaign-divider);
+  margin: 0.75rem 0 1.5rem;
+  overflow-x: auto;
+}
+
+.campaign-assignment-step-tabs-no-helper {
+  margin-top: 0;
+}
+
+.campaign-assignment-step-tab {
+  min-width: 6.875rem;
+  height: 3.3125rem;
+  border: none;
+  border-bottom: 0.1875rem solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--campaign-muted);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.campaign-assignment-step-tab-active {
+  border-color: var(--campaign-blue);
+  background: transparent;
+  color: var(--campaign-blue);
+}
+
+@media (max-width: 56.25rem) {
+  .campaign-assignment-step {
+    padding: 1.5rem 0;
+  }
+
+  .campaign-assignment-step-no-helper {
+    padding-top: 1rem;
+  }
+}
+
+@media (max-width: 48rem) {
+  .campaign-assignment-step {
+    border-bottom: none;
+    padding: 1rem 0 1.25rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .campaign-assignment-step-no-helper {
+    padding-top: 0.5rem;
+  }
+
+  .campaign-assignment-step-tabs {
+    margin: 0.75rem 0 1rem;
+  }
+
+  .campaign-assignment-step-tabs-no-helper {
+    margin-top: 0;
+  }
+
+  .campaign-assignment-step-tab {
+    min-width: 6.25rem;
+  }
+
+  .campaign-assignment-step-helper {
+    align-items: flex-start;
+    padding: 0.75rem;
+    width: 100%;
+  }
+}

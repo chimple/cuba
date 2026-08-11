@@ -1,40 +1,93 @@
-import React, { useEffect, useState } from "react";
-import "./SchoolUserList.css";
-import { ServiceConfig } from "../../../services/ServiceConfig";
-import { SCHOOL_USERS, TableTypes, USER_ROLE } from "../../../common/constants";
-import { IonIcon } from "@ionic/react";
-import { RoleType } from "../../../interface/modelInterfaces";
-import SchoolUserDetail from "./SchoolUserDetail";
-import { trashOutline } from "ionicons/icons";
-import CommonDialogBox from "../../../common/CommonDialogBox";
-import { t } from "i18next";
+import { IonIcon } from '@ionic/react';
+import { t } from 'i18next';
+import { trashOutline } from 'ionicons/icons';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import CommonDialogBox from '../../../common/CommonDialogBox';
+import { OPS_ROLES, SCHOOL_USERS, TableTypes } from '../../../common/constants';
+import { RoleType } from '../../../interface/modelInterfaces';
+import { useAppSelector } from '../../../redux/hooks';
+import { AuthState } from '../../../redux/slices/auth/authSlice';
+import { RootState } from '../../../redux/store';
+import { ServiceConfig } from '../../../services/ServiceConfig';
+import logger from '../../../utility/logger';
+import { schoolUtil } from '../../../utility/schoolUtil';
+import { Util } from '../../../utility/util';
+import SchoolUserDetail from './SchoolUserDetail';
+import './SchoolUserList.css';
 
 const SchoolUserList: React.FC<{
-  schoolDoc: TableTypes<"school">;
+  schoolDoc: TableTypes<'school'>;
   userType: SCHOOL_USERS;
-}> = ({ schoolDoc, userType }) => {
+  role: RoleType;
+}> = ({ schoolDoc, userType, role }) => {
   const api = ServiceConfig.getI()?.apiHandler;
-  const [allPrincipals, setAllPrincipals] = useState<TableTypes<"user">[]>();
+  const [allPrincipals, setAllPrincipals] = useState<TableTypes<'user'>[]>();
   const [allCoordinators, setAllCoordinators] =
-    useState<TableTypes<"user">[]>();
-  const [allSponsors, setAllSponsors] = useState<TableTypes<"user">[]>();
-  const [currentUser, setCurrentUser] = useState<TableTypes<"user"> | null>(
-    null
+    useState<TableTypes<'user'>[]>();
+  const [allSponsors, setAllSponsors] = useState<TableTypes<'user'>[]>();
+  const [currentUser, setCurrentUser] = useState<TableTypes<'user'> | null>(
+    null,
   );
   const [showSelfDeleteError, setShowSelfDeleteError] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<TableTypes<"user"> | null>(
-    null
+  const [selectedUser, setSelectedUser] = useState<TableTypes<'user'> | null>(
+    null,
   );
+  const previousSchoolRef = useRef<TableTypes<'school'> | null>(null);
+  const previousClassRef = useRef<TableTypes<'class'> | null>(null);
+  const previousRoleRef = useRef<RoleType | undefined>(undefined);
+  const hasBackedUpSelectionRef = useRef(false);
   const auth = ServiceConfig.getI()?.authHandler;
-  const currentUserRoles: string[] = JSON.parse(localStorage.getItem(USER_ROLE) ?? "[]");
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+  const isTeacherSchoolMode = schoolUtil.isTeacherSchoolMode();
+
   useEffect(() => {
     init();
+    return () => {
+      void restorePreviousSelection();
+    };
   }, []);
 
+  const restorePreviousSelection = async () => {
+    if (!hasBackedUpSelectionRef.current) return;
+
+    if (previousSchoolRef.current) {
+      await Util.setCurrentSchool(
+        previousSchoolRef.current,
+        previousRoleRef.current || role,
+      );
+    }
+
+    if (previousClassRef.current) {
+      await Util.setCurrentClass(previousClassRef.current);
+    }
+  };
+
   const init = async () => {
+    if (!hasBackedUpSelectionRef.current) {
+      previousSchoolRef.current = Util.getCurrentSchool() || null;
+      previousClassRef.current = Util.getCurrentClass() || null;
+      hasBackedUpSelectionRef.current = true;
+    }
+
     const user = await auth?.getCurrentUser();
     setCurrentUser(user!);
+
+    if (user && previousSchoolRef.current) {
+      const previousRole = await api?.getUserRoleForSchool(
+        user.id,
+        String(previousSchoolRef.current.id),
+      );
+      if (previousRole) {
+        previousRoleRef.current = previousRole;
+      }
+    }
+
+    Util.setCurrentSchool(schoolDoc, role);
     if (userType === SCHOOL_USERS.PRINCIPALS) {
       const principalDocs = await api?.getPrincipalsForSchool(schoolDoc.id);
       setAllPrincipals(principalDocs);
@@ -47,7 +100,7 @@ const SchoolUserList: React.FC<{
     }
   };
 
-  const handleDeleteClick = (user: TableTypes<"user">) => {
+  const handleDeleteClick = (user: TableTypes<'user'>) => {
     if (user.id === currentUser?.id) {
       setShowSelfDeleteError(true);
       return;
@@ -63,40 +116,47 @@ const SchoolUserList: React.FC<{
           await api?.deleteUserFromSchool(
             schoolDoc.id,
             selectedUser.id,
-            RoleType.PRINCIPAL
+            RoleType.PRINCIPAL,
           );
           setAllPrincipals((prev) =>
-            prev?.filter((principal) => principal.id !== selectedUser.id)
+            prev?.filter((principal) => principal.id !== selectedUser.id),
           );
         } else if (userType === SCHOOL_USERS.COORDINATORS) {
           await api?.deleteUserFromSchool(
             schoolDoc.id,
             selectedUser.id,
-            RoleType.COORDINATOR
+            RoleType.COORDINATOR,
           );
           setAllCoordinators((prev) =>
-            prev?.filter((coordinator) => coordinator.id !== selectedUser.id)
+            prev?.filter((coordinator) => coordinator.id !== selectedUser.id),
           );
         } else {
           await api?.deleteUserFromSchool(
             schoolDoc.id,
             selectedUser.id,
-            RoleType.SPONSOR
+            RoleType.SPONSOR,
           );
           setAllCoordinators((prev) =>
-            prev?.filter((coordinator) => coordinator.id !== selectedUser.id)
+            prev?.filter((coordinator) => coordinator.id !== selectedUser.id),
           );
         }
         setShowConfirm(false);
         setSelectedUser(null);
       } catch (error) {
-        console.error("Error deleting user:", error);
+        logger.error('Error deleting user:', error);
       }
       await api.updateSchoolLastModified(schoolDoc.id);
       await api.updateUserLastModified(selectedUser.id);
-
     }
   };
+
+  const canDelete = useMemo(
+    () =>
+      OPS_ROLES.includes(role) ||
+      role === RoleType.PRINCIPAL ||
+      role === RoleType.COORDINATOR,
+    [role],
+  );
 
   return (
     <div>
@@ -112,8 +172,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
-                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
+                {canDelete && !isExternalUser && !isTeacherSchoolMode && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(principal)}
@@ -126,7 +185,7 @@ const SchoolUserList: React.FC<{
             </div>
           ))
         ) : (
-          <div className="no-users-found">{t("No Principals Found")}</div>
+          <div className="no-users-found">{t('No Principals Found')}</div>
         ))}
 
       {userType === SCHOOL_USERS.COORDINATORS &&
@@ -141,8 +200,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
-                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
+                {canDelete && !isExternalUser && !isTeacherSchoolMode && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(coordinator)}
@@ -155,7 +213,7 @@ const SchoolUserList: React.FC<{
             </div>
           ))
         ) : (
-          <div className="no-users-found">{t("No Coordinators Found")}</div>
+          <div className="no-users-found">{t('No Coordinators Found')}</div>
         ))}
 
       {userType === SCHOOL_USERS.SPONSORS &&
@@ -170,8 +228,7 @@ const SchoolUserList: React.FC<{
                     userType={userType}
                   />
                 </div>
-                {(currentUserRoles.includes(RoleType.PRINCIPAL) ||
-                  currentUserRoles.includes(RoleType.COORDINATOR)) && (
+                {canDelete && !isExternalUser && !isTeacherSchoolMode && (
                   <div
                     className="delete-button"
                     onClick={() => handleDeleteClick(sponsor)}
@@ -184,7 +241,7 @@ const SchoolUserList: React.FC<{
             </div>
           ))
         ) : (
-          <div className="no-users-found">{t("No Sponsors Found")}</div>
+          <div className="no-users-found">{t('No Sponsors Found')}</div>
         ))}
 
       <CommonDialogBox

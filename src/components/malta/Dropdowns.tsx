@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 interface DropdownProps {
   options: { value: string; label: string }[];
@@ -19,24 +19,24 @@ const Dropdown: React.FC<DropdownProps> = ({ options, onChange }) => {
 
 const Dropdowns: React.FC = () => {
   const handleDropdownChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: React.ChangeEvent<HTMLSelectElement>,
   ) => {};
 
   return (
     <div className="dropdown-container">
       <Dropdown
         options={[
-          { value: "option1", label: "Option 1" },
-          { value: "option2", label: "Option 2" },
-          { value: "option3", label: "Option 3" },
+          { value: 'option1', label: 'Option 1' },
+          { value: 'option2', label: 'Option 2' },
+          { value: 'option3', label: 'Option 3' },
         ]}
         onChange={handleDropdownChange}
       />
       <Dropdown
         options={[
-          { value: "optionA", label: "Option A" },
-          { value: "optionB", label: "Option B" },
-          { value: "optionC", label: "Option C" },
+          { value: 'optionA', label: 'Option A' },
+          { value: 'optionB', label: 'Option B' },
+          { value: 'optionC', label: 'Option C' },
         ]}
         onChange={handleDropdownChange}
       />

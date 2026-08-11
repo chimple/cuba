@@ -1,5 +1,7 @@
-import React, { forwardRef } from "react";
 import {
+  Box,
+  Checkbox,
+  Skeleton,
   Table,
   TableBody,
   TableCell,
@@ -7,60 +9,119 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
-  Skeleton,
-} from "@mui/material";
-import "./DataTableBody.css";
-import { useHistory } from "react-router";
-import { PAGES } from "../../common/constants";
+} from '@mui/material';
+import React, { forwardRef } from 'react';
+import { useHistory } from 'react-router';
+import { PAGES } from '../../common/constants';
+import logger from '../../utility/logger';
+import './DataTableBody.css';
 
-export interface Column<T> {
-  key: keyof T;
-  label: string;
-  align?: "left" | "right" | "center" | "justify" | "inherit";
+export interface Column<T extends object> {
+  key: keyof T | string;
+  label: React.ReactNode;
+  align?: 'left' | 'right' | 'center' | 'justify' | 'inherit';
+  headerAlign?: 'left' | 'center' | 'right';
+  headerIcon?: 'sort' | 'filter' | 'none';
   render?: (row: T) => React.ReactNode;
   width?: string | number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
-interface Props {
-  columns: Record<string, any>[];
-  rows: Record<string, any>[];
+const getHeaderLabelSx = (
+  headerClampLines: number,
+  headerNoEllipsis = false,
+) => {
+  // SchoolList opts out of truncation so its labels can wrap cleanly.
+  if (headerNoEllipsis || headerClampLines <= 0) {
+    return {
+      display: 'block',
+      overflow: 'visible',
+      whiteSpace: 'pre-line',
+      lineHeight: 1.15,
+      fontWeight: 700,
+    } as const;
+  }
+
+  return {
+    display: '-webkit-box',
+    WebkitBoxOrient: 'vertical',
+    WebkitLineClamp: headerClampLines,
+    overflow: 'hidden',
+    whiteSpace: 'normal',
+    lineHeight: 1.15,
+    fontWeight: 700,
+  } as const;
+};
+
+interface Props<T extends object> {
+  columns: Column<T>[];
+  rows: T[];
   orderBy: string | null;
-  order: "asc" | "desc";
+  order: 'asc' | 'desc';
   onSort: (key: string) => void;
   detailPageRouteBase?: string;
-  onRowClick?: (id: string | number, row: any) => void;
+  onRowClick?: (id: string | number, row: T) => void;
   loading?: boolean;
+  selectableRows?: boolean;
+  selectedRowIds?: Array<string | number>;
+  onToggleRowSelection?: (id: string | number, row: T) => void;
+  onToggleSelectAll?: (checked: boolean, visibleRows: T[]) => void;
+  getRowId?: (row: T) => string | number;
+  isRowSelectable?: (row: T) => boolean;
+  disableRowNavigation?: boolean;
+  tableMinWidth?: string | number;
+  tableWidth?: string | number;
+  headerClampLines?: number;
+  headerNoEllipsis?: boolean;
+  headerAlign?: 'left' | 'center' | 'right';
+  renderHeaderActions?: (column: Column<T>) => React.ReactNode;
+  customHeaderIcons?: boolean;
+  activeHeaderFilterKey?: string | null;
+  onHeaderFilterClick?: (anchorEl: HTMLElement, key: string) => void;
 }
 
-function TableSkeleton({
+function TableSkeleton<T extends object>({
   columns,
   rows = 10,
+  showSelectionColumn = false,
 }: {
-  columns: Record<string, any>[];
+  columns: Column<T>[];
   rows?: number;
+  showSelectionColumn?: boolean;
 }) {
   return (
     <TableBody>
       {Array.from({ length: rows }).map((_, i) => (
         <TableRow key={i}>
+          {showSelectionColumn && (
+            <TableCell
+              id="data-tablebody-skeleton-selection-cell"
+              className="data-tablebody-skeleton-selection-cell"
+            >
+              <Skeleton
+                id="data-tablebody-skeleton-selection-icon"
+                variant="circular"
+                className="data-tablebody-skeleton-selection-icon"
+              />
+            </TableCell>
+          )}
           {columns.map((col) => (
             <TableCell
-              key={col.key}
+              key={String(col.key)}
               align="left"
               sx={{
                 py: 0.25,
                 px: 1,
                 height: 32,
-                transform: "none",
+                transform: 'none',
               }}
             >
-              <div style={{ width: "90%" }}>
+              <div style={{ width: '90%' }}>
                 <Skeleton
                   variant="rectangular"
                   height={24}
                   width="100%"
-                  sx={{ mx: 0, ml: 0, transform: "none" }}
+                  sx={{ mx: 0, ml: 0, transform: 'none' }}
                 />
               </div>
             </TableCell>
@@ -71,136 +132,488 @@ function TableSkeleton({
   );
 }
 
-const DataTableBody = forwardRef<HTMLDivElement, Props>(
-  (
-    {
-      columns,
-      rows,
-      orderBy,
-      order,
-      onSort,
-      detailPageRouteBase,
-      onRowClick,
-      loading,
-    },
-    ref
-  ) => {
-    const history = useHistory();
-    const handleRowClick = (row: any) => {
-      if (onRowClick) {
-        const id = row.request_id || row.id;
-        onRowClick(id, row);
-        return;
-      }
+function DataTableBodyInner<T extends object>(
+  {
+    columns,
+    rows,
+    orderBy,
+    order,
+    onSort,
+    detailPageRouteBase,
+    onRowClick,
+    loading,
+    selectableRows = false,
+    selectedRowIds = [],
+    onToggleRowSelection,
+    onToggleSelectAll,
+    getRowId,
+    isRowSelectable,
+    disableRowNavigation = false,
+    tableMinWidth,
+    tableWidth,
+    headerClampLines = 2,
+    headerNoEllipsis = false,
+    headerAlign = 'left',
+    renderHeaderActions,
+    customHeaderIcons = false,
+    activeHeaderFilterKey,
+    onHeaderFilterClick,
+  }: Props<T>,
+  ref: React.ForwardedRef<HTMLDivElement>,
+) {
+  const history = useHistory();
+  const resolveRowId = (row: T): string | number =>
+    getRowId
+      ? getRowId(row)
+      : (((row as Record<string, unknown>).request_id ??
+          (row as Record<string, unknown>).id ??
+          (row as Record<string, unknown>).sch_id ??
+          '') as string | number);
 
-      const id = row.id;
-      if (!id) {
-        console.warn("Row missing 'id' property");
-        return;
-      }
+  const isRowCurrentlySelected = (rowId: string | number): boolean =>
+    selectedRowIds.some((id) => String(id) === String(rowId));
 
-      if (detailPageRouteBase === "programs") {
-        history.push(
-          `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${row["id"]}`
-        );
-      } else if (detailPageRouteBase === "users") {
+  const handleRowClick = (row: T) => {
+    if (disableRowNavigation) return;
 
-        history.push({
-          pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.USER_DETAILS}`,
-          state: { userData: row },
-        });
-      } else {
-        history.push(
-          `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/${row["sch_id"]}`
-        );
-      }
-    };
+    if (onRowClick) {
+      const recordRow = row as Record<string, unknown>;
+      const id = (recordRow.request_id ??
+        recordRow.id ??
+        recordRow.sch_id ??
+        '') as string | number;
+      onRowClick(id, row);
+      return;
+    }
 
-    return (
-      <TableContainer ref={ref} className="data-tablebody-container">
-        <Table size="small" stickyHeader>
-          <TableHead>
-            <TableRow>
-              {columns.map((col) => (
-                <TableCell
-                  key={col.key}
-                  align={col.align || "left"}
-                  className="data-tablebody-head-cell"
-                  sx={{
-                    width: col.width ?? "auto",
-                    transform: "none",
-                    height: "auto",
-                    paddingTop: {
-                      xs: "4px !important",
-                      sm: "6px !important",
-                      md: "8px !important",
-                    },
-                    paddingBottom: {
-                      xs: "4px !important",
-                      sm: "6px !important",
-                      md: "8px !important",
-                    },
-                  }}
-                >
-                  {col.sortable === false ? (
-                    col.label
-                  ) : (
-                    <TableSortLabel
-                      active={orderBy === col.key}
-                      direction={orderBy === col.key ? order : "asc"}
-                      onClick={() => onSort(col.key)}
-                      sx={{
-                        "& .MuiTableSortLabel-icon": {
-                          opacity: 1,
-                        },
-                      }}
+    const recordRow = row as Record<string, unknown>;
+    const id = (recordRow.id ?? recordRow.sch_id) as
+      | string
+      | number
+      | undefined;
+    if (!id) {
+      logger.warn("Row missing 'id' property");
+      return;
+    }
+
+    if (detailPageRouteBase === 'programs') {
+      history.push(
+        `${PAGES.SIDEBAR_PAGE}${PAGES.PROGRAM_PAGE}${PAGES.PROGRAM_DETAIL_PAGE}/${String(
+          recordRow.id,
+        )}`,
+      );
+    } else if (detailPageRouteBase === 'users') {
+      history.push({
+        pathname: `${PAGES.SIDEBAR_PAGE}${PAGES.USERS}${PAGES.USER_DETAILS}`,
+        state: { userData: row },
+      });
+    } else {
+      history.push(
+        `${PAGES.SIDEBAR_PAGE}${PAGES.SCHOOL_LIST}${PAGES.SCHOOL_DETAILS}/${String(
+          (recordRow.sch_id ?? id) as string | number,
+        )}`,
+      );
+    }
+  };
+
+  const handleRowAction = (row: T) => {
+    if (selectableRows) {
+      const rowId = resolveRowId(row);
+      const canSelect = isRowSelectable ? isRowSelectable(row) : true;
+      if (!canSelect) return;
+      onToggleRowSelection?.(rowId, row);
+      return;
+    }
+
+    handleRowClick(row);
+  };
+
+  const selectableRowIds = rows
+    .filter((row) => (isRowSelectable ? isRowSelectable(row) : true))
+    .map((row) => resolveRowId(row));
+
+  const allRowsSelected =
+    selectableRowIds.length > 0 &&
+    selectableRowIds.every((id) => isRowCurrentlySelected(id));
+
+  const someRowsSelected =
+    selectableRowIds.some((id) => isRowCurrentlySelected(id)) &&
+    !allRowsSelected;
+
+  return (
+    <TableContainer ref={ref} className="data-tablebody-container">
+      <Table
+        size="small"
+        stickyHeader
+        sx={
+          tableMinWidth || tableWidth
+            ? { minWidth: tableMinWidth, width: tableWidth }
+            : undefined
+        }
+      >
+        <TableHead>
+          <TableRow>
+            {selectableRows && (
+              <TableCell
+                id="data-tablebody-select-all-head-cell"
+                className="data-tablebody-head-cell data-tablebody-select-all-head-cell"
+              >
+                <Checkbox
+                  size="small"
+                  indeterminate={someRowsSelected}
+                  checked={allRowsSelected}
+                  onChange={(event) =>
+                    onToggleSelectAll?.(event.target.checked, rows)
+                  }
+                  inputProps={{ 'aria-label': 'Select all rows' }}
+                />
+              </TableCell>
+            )}
+            {columns.map((col) => {
+              const resolvedHeaderAlign = col.headerAlign ?? headerAlign;
+              const headerActions = renderHeaderActions?.(col);
+              const columnKey = String(col.key);
+              const isSortedColumn = orderBy === columnKey;
+
+              const headerContent =
+                customHeaderIcons && col.headerIcon === 'filter' ? (
+                  <div
+                    className={`data-tablebody-head-button data-tablebody-head-button-${resolvedHeaderAlign}`}
+                  >
+                    <span
+                      className="data-tablebody-head-label"
+                      style={getHeaderLabelSx(
+                        headerClampLines,
+                        headerNoEllipsis,
+                      )}
                     >
                       {col.label}
-                    </TableSortLabel>
-                  )}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          {/* Show skeleton or actual rows */}
-          {loading ? (
-            <TableSkeleton columns={columns} rows={10} />
-          ) : (
-            <TableBody>
-              {rows.map((row, idx) => (
-                <TableRow
-                  key={idx}
-                  hover
-                  onClick={() => handleRowClick(row)}
-                  sx={{
-                    cursor: "pointer",
-                    height: "48px",
-                  }}
-                >
-                  {columns.map((col) => (
-                    <TableCell
-                      key={col.key}
-                      align={col.align || "left"}
-                      className="data-tablebody-cell"
-                      sx={{
-                        width: col.width ?? "auto",
-                        maxWidth: col.width,
+                    </span>
+                    {col.sortable !== false && (
+                      <button
+                        type="button"
+                        className="data-tablebody-head-sort-icon-trigger"
+                        aria-label={`Sort ${col.label}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onSort(columnKey);
+                        }}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`data-tablebody-head-icon data-tablebody-head-icon-sort ${
+                            isSortedColumn
+                              ? 'data-tablebody-head-icon-active'
+                              : ''
+                          } ${
+                            isSortedColumn && order === 'desc'
+                              ? 'data-tablebody-head-icon-desc'
+                              : ''
+                          }`}
+                        >
+                          <img
+                            alt=""
+                            aria-hidden="true"
+                            className="data-tablebody-head-sort-image"
+                            src={
+                              isSortedColumn
+                                ? '/assets/icons/Sorted.svg'
+                                : '/assets/icons/Sort.svg'
+                            }
+                          />
+                        </span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className={`data-tablebody-head-filter-trigger ${
+                        activeHeaderFilterKey === columnKey
+                          ? 'data-tablebody-head-filter-trigger-active'
+                          : ''
+                      }`}
+                      aria-label={`Filter ${col.label}`}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        const headerCell = event.currentTarget.closest('th');
+                        onHeaderFilterClick?.(
+                          headerCell ?? event.currentTarget,
+                          columnKey,
+                        );
                       }}
                     >
-                      {typeof row[col.key] === "object" &&
-                      row[col.key]?.render !== undefined
-                        ? row[col.key].render
-                        : row[col.key]}
+                      <img
+                        alt=""
+                        aria-hidden="true"
+                        className="data-tablebody-head-icon data-tablebody-head-icon-filter"
+                        src={
+                          activeHeaderFilterKey === columnKey
+                            ? '/assets/icons/tableFilterIconActive.svg'
+                            : '/assets/icons/tableFilterIcon.svg'
+                        }
+                      />
+                    </button>
+                  </div>
+                ) : col.sortable === false ? (
+                  <span
+                    className="data-tablebody-head-label"
+                    style={getHeaderLabelSx(headerClampLines, headerNoEllipsis)}
+                  >
+                    {col.label}
+                  </span>
+                ) : customHeaderIcons ? (
+                  <div
+                    className={`data-tablebody-head-button data-tablebody-head-button-${resolvedHeaderAlign}`}
+                  >
+                    <span
+                      className="data-tablebody-head-label"
+                      style={getHeaderLabelSx(
+                        headerClampLines,
+                        headerNoEllipsis,
+                      )}
+                    >
+                      {col.label}
+                    </span>
+                    {(col.headerIcon ?? 'sort') !== 'none' && (
+                      <button
+                        type="button"
+                        className="data-tablebody-head-sort-icon-trigger"
+                        aria-label={`Sort ${col.label}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onSort(columnKey);
+                        }}
+                      >
+                        {col.headerIcon === 'sort' ? (
+                          <span
+                            aria-hidden="true"
+                            className={`data-tablebody-head-icon data-tablebody-head-icon-sort ${
+                              isSortedColumn
+                                ? 'data-tablebody-head-icon-active'
+                                : ''
+                            } ${
+                              isSortedColumn && order === 'desc'
+                                ? 'data-tablebody-head-icon-desc'
+                                : ''
+                            }`}
+                          >
+                            <img
+                              alt=""
+                              aria-hidden="true"
+                              className="data-tablebody-head-sort-image"
+                              src={
+                                isSortedColumn
+                                  ? '/assets/icons/Sorted.svg'
+                                  : '/assets/icons/Sort.svg'
+                              }
+                            />
+                          </span>
+                        ) : null}
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <TableSortLabel
+                    active={isSortedColumn}
+                    direction={isSortedColumn ? order : 'asc'}
+                    onClick={() => onSort(columnKey)}
+                    sx={{
+                      color: '#121619 !important',
+                      fontWeight: 700,
+                      maxWidth: '100%',
+                      justifyContent:
+                        resolvedHeaderAlign === 'center'
+                          ? 'center'
+                          : resolvedHeaderAlign === 'right'
+                            ? 'flex-end'
+                            : 'flex-start',
+                      '&:hover': {
+                        color: '#121619 !important',
+                      },
+                      '& .MuiTableSortLabel-label': getHeaderLabelSx(
+                        headerClampLines,
+                        headerNoEllipsis,
+                      ),
+                      '& .MuiTableSortLabel-label, & .MuiTableSortLabel-icon': {
+                        color: '#121619 !important',
+                      },
+                      '& .MuiTableSortLabel-icon': {
+                        display: 'none',
+                      },
+                    }}
+                  >
+                    {col.label}
+                    <Box
+                      component="img"
+                      src={
+                        isSortedColumn
+                          ? 'assets/icons/Sorted.svg'
+                          : 'assets/icons/Sort.svg'
+                      }
+                      alt=""
+                      aria-hidden="true"
+                      sx={{
+                        width: isSortedColumn ? 7 : 4,
+                        height: isSortedColumn ? 7 : 10,
+                        objectFit: 'contain',
+                        marginLeft: '6px',
+                        transform:
+                          isSortedColumn && order === 'desc'
+                            ? 'rotate(180deg)'
+                            : 'none',
+                        transition: 'transform 0.2s ease',
+                      }}
+                    />
+                  </TableSortLabel>
+                );
+
+              return (
+                <TableCell
+                  key={columnKey}
+                  align={col.align || 'left'}
+                  className={`data-tablebody-head-cell data-tablebody-column-${columnKey}`}
+                  sx={{
+                    width: col.width ?? 'auto',
+                    textAlign: resolvedHeaderAlign,
+                    transform: 'none',
+                    height: 'auto',
+                    paddingTop: {
+                      xs: '4px !important',
+                      sm: '6px !important',
+                      md: '8px !important',
+                    },
+                    paddingBottom: {
+                      xs: '4px !important',
+                      sm: '6px !important',
+                      md: '8px !important',
+                    },
+                    fontWeight: 700,
+                  }}
+                >
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent={
+                      resolvedHeaderAlign === 'center'
+                        ? 'center'
+                        : resolvedHeaderAlign === 'right'
+                          ? 'flex-end'
+                          : 'flex-start'
+                    }
+                    gap={0.25}
+                    width="100%"
+                    minHeight={32}
+                  >
+                    <Box
+                      minWidth={0}
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="inherit"
+                      flex={headerActions ? '1 1 auto' : '0 1 auto'}
+                    >
+                      {headerContent}
+                    </Box>
+                    {headerActions ? (
+                      <Box display="flex" alignItems="center" flexShrink={0}>
+                        {headerActions}
+                      </Box>
+                    ) : null}
+                  </Box>
+                </TableCell>
+              );
+            })}
+          </TableRow>
+        </TableHead>
+        {loading ? (
+          <TableSkeleton
+            columns={columns}
+            rows={10}
+            showSelectionColumn={selectableRows}
+          />
+        ) : (
+          <TableBody>
+            {rows.map((row) => {
+              const rowId = resolveRowId(row);
+              const canSelect = isRowSelectable ? isRowSelectable(row) : true;
+              const selected = selectableRows
+                ? isRowCurrentlySelected(rowId)
+                : false;
+
+              return (
+                <TableRow
+                  id="data-tablebody-row"
+                  key={String(rowId)}
+                  hover
+                  onClick={() => {
+                    handleRowAction(row);
+                  }}
+                  className={`data-tablebody-row ${
+                    selectableRows && !canSelect
+                      ? 'data-tablebody-row-disabled'
+                      : 'data-tablebody-row-clickable'
+                  }`}
+                  selected={selected}
+                >
+                  {selectableRows && (
+                    <TableCell
+                      id="data-tablebody-selection-cell"
+                      className="data-tablebody-cell data-tablebody-selection-cell"
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <Checkbox
+                        size="small"
+                        checked={selected}
+                        disabled={!canSelect}
+                        onChange={() => onToggleRowSelection?.(rowId, row)}
+                        inputProps={{ 'aria-label': 'Select row' }}
+                      />
+                    </TableCell>
+                  )}
+
+                  {columns.map((col) => (
+                    <TableCell
+                      id="data-tablebody-content-cell"
+                      key={String(col.key)}
+                      align={col.align || 'left'}
+                      className={`data-tablebody-cell data-tablebody-column-${String(col.key)}`}
+                      sx={{
+                        width: col.width ?? 'auto',
+                        maxWidth: customHeaderIcons ? 'none' : col.width,
+                        textAlign: col.align || 'left',
+                      }}
+                    >
+                      {(() => {
+                        const cellValue = (row as Record<string, unknown>)[
+                          col.key as string
+                        ];
+                        if (col.render) return col.render(row);
+                        if (
+                          typeof cellValue === 'object' &&
+                          cellValue !== null &&
+                          'render' in cellValue &&
+                          typeof (cellValue as { render?: unknown }).render !==
+                            'undefined'
+                        ) {
+                          return (cellValue as { render: React.ReactNode })
+                            .render;
+                        }
+                        return cellValue as React.ReactNode;
+                      })()}
                     </TableCell>
                   ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          )}
-        </Table>
-      </TableContainer>
-    );
-  }
-);
+              );
+            })}
+          </TableBody>
+        )}
+      </Table>
+    </TableContainer>
+  );
+}
+
+const DataTableBody = forwardRef(DataTableBodyInner) as <
+  T extends object = Record<string, unknown>,
+>(
+  props: Props<T> & React.RefAttributes<HTMLDivElement>,
+) => React.ReactElement;
 
 export default DataTableBody;

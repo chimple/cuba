@@ -1,27 +1,9 @@
-/* .alert-wrapper.sc-ion-alert-md {
-  background-color: white;
-  color: black;
-  max-width: 40vw !important;
-  max-height: 60vh !important;
-  padding: 5vh 0vh;
-  border-radius: 2.5vw;
-}
-
-.alert-head.sc-ion-alert-md {
-  text-align: center;
-  padding-bottom: 15%;
-}
-
-.alert-button-group.sc-ion-alert-md {
-  justify-content: space-around;
-} */
-
 .dialog-box-button-style {
   color: white !important;
   border-radius: var(--border-radius) !important;
   padding: 2vh !important;
   width: 50%;
-  /* font-size: 4vh; */
+
   text-align: center;
   font-size: var(--text-size) !important;
 }
@@ -34,4 +16,234 @@
 #yes-button {
   background: #f72121 !important;
   opacity: 0.5;
+}
+
+.dialog-box-close-button {
+  position: absolute;
+  top: 15px;
+  right: 22px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.dialog-box-close-button img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.profile-card-manage-dialog {
+  position: relative;
+  width: min(688px, 92vw) !important;
+  min-width: min(688px, 92vw) !important;
+  max-width: min(688px, 92vw) !important;
+  border-radius: 22px !important;
+  background: #fffdee !important;
+  padding: 46px 48px 40px !important;
+}
+
+.profile-card-manage-dialog .MuiDialogContent-root {
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  padding: 14px 0 0 !important;
+}
+
+.profile-card-manage-dialog .MuiDialogContentText-root {
+  margin: 5px 0 0 !important;
+  color: #172a54 !important;
+  font-family: 'BalooRegular' !important;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600 !important;
+  line-height: normal;
+  text-align: center;
+}
+
+.profile-card-manage-dialog .MuiDialogActions-root {
+  display: flex;
+  justify-content: center !important;
+  gap: 46px;
+  margin: 28px 0 0 !important;
+  padding: 0;
+}
+
+.profile-card-manage-dialog .dialog-box-button-style {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: min(292px, 40vw);
+  height: 48px;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  color: #300d37 !important;
+  font-size: 24px !important;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  cursor: pointer;
+  opacity: 1 !important;
+  transition:
+    border-bottom-width 120ms ease,
+    filter 120ms ease;
+}
+
+.profile-card-manage-dialog .dialog-box-button-style:hover {
+  filter: brightness(1.02);
+}
+
+.profile-card-manage-dialog .dialog-box-button-style:active,
+.profile-card-manage-dialog .dialog-box-button-style-pressed {
+  border-bottom-width: 2px;
+  transform: translateY(3px);
+}
+
+.profile-card-manage-dialog #yes-button {
+  background: #c094ef !important;
+  border-bottom: 5px solid #300d37;
+  border-radius: 10px !important;
+}
+
+.profile-card-manage-dialog #yes-button:active,
+.profile-card-manage-dialog #yes-button.dialog-box-button-style-pressed,
+.profile-card-delete-dialog #yes-button:active,
+.profile-card-delete-dialog #yes-button.dialog-box-button-style-pressed {
+  background: #c094ef !important;
+  border-bottom: 2px solid #300d37;
+  border-radius: 10px !important;
+}
+
+.profile-card-manage-dialog #no-button {
+  background: #f34d08 !important;
+  border-bottom: 5px solid #8a2901;
+  border-radius: 10px !important;
+  color: #ffffff !important;
+}
+
+.profile-card-manage-dialog #no-button:active,
+.profile-card-manage-dialog #no-button.dialog-box-button-style-pressed,
+.profile-card-delete-dialog #no-button:active,
+.profile-card-delete-dialog #no-button.dialog-box-button-style-pressed {
+  background: #f34d08 !important;
+  border-bottom: 2px solid #8a2901;
+  border-radius: 10px !important;
+}
+
+.profile-card-dialog-button-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.profile-card-delete-dialog {
+  position: relative;
+  width: min(492px, 92vw) !important;
+  min-width: min(492px, 92vw) !important;
+  max-width: min(492px, 92vw) !important;
+  border-radius: 22px !important;
+  background: #fffdee !important;
+  padding: 70px 64px 42px !important;
+}
+
+.profile-card-delete-dialog .MuiDialogContent-root {
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  padding: 0 !important;
+}
+
+.profile-card-delete-dialog .MuiDialogContentText-root {
+  margin: 0 !important;
+  color: #172a54 !important;
+  font-family: 'BalooRegular' !important;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 600 !important;
+  line-height: normal;
+  text-align: center;
+}
+
+.profile-card-delete-dialog .MuiDialogActions-root {
+  display: flex;
+  justify-content: center !important;
+  gap: 54px;
+  margin: 34px 0 0 !important;
+  padding: 0;
+}
+
+.profile-card-delete-dialog .dialog-box-button-style {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 48px;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  font-size: 24px !important;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  cursor: pointer;
+  opacity: 1 !important;
+  transition:
+    border-bottom-width 120ms ease,
+    filter 120ms ease;
+}
+
+.profile-card-delete-dialog .dialog-box-button-style:hover {
+  filter: brightness(1.02);
+}
+
+.profile-card-delete-dialog .dialog-box-button-style:active,
+.profile-card-delete-dialog .dialog-box-button-style-pressed {
+  border-bottom-width: 2px;
+  transform: translateY(3px);
+}
+
+.profile-card-delete-dialog #yes-button {
+  background: #c094ef !important;
+  border-bottom: 5px solid #300d37;
+  border-radius: 10px !important;
+  color: #300d37 !important;
+}
+
+.profile-card-delete-dialog #no-button {
+  background: #f34d08 !important;
+  border-bottom: 5px solid #8a2901;
+  border-radius: 10px !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 680px) {
+  .profile-card-manage-dialog {
+    padding: 42px 28px 36px;
+  }
+
+  .profile-card-manage-dialog .MuiDialogActions-root {
+    gap: 18px;
+  }
+
+  .profile-card-manage-dialog .dialog-box-button-style {
+    width: min(240px, 38vw);
+    font-size: 18px !important;
+  }
+
+  .profile-card-delete-dialog {
+    padding: 64px 28px 36px !important;
+  }
+
+  .profile-card-delete-dialog .MuiDialogActions-root {
+    gap: 28px;
+  }
+
+  .profile-card-delete-dialog .dialog-box-button-style {
+    width: 112px;
+    font-size: 20px !important;
+  }
 }

@@ -1,5 +1,5 @@
-import { FC } from "react";
-import "./LiveQuizNavigationDots.css";
+import { FC } from 'react';
+import './LiveQuizNavigationDots.css';
 
 const LiveQuizNavigationDots: FC<{
   totalDots: number;
@@ -10,15 +10,15 @@ const LiveQuizNavigationDots: FC<{
   return (
     <div className="live-quiz-navigation-dots">
       {[...Array(totalDots).keys()].map((i) => {
-        let dotClass = "dot";
+        let dotClass = 'dot';
         if (i < currentDot) {
           if (correctAnswers[i] === selectedAnswers[i]) {
-            dotClass += " correct";
+            dotClass += ' correct';
           } else {
-            dotClass += " incorrect";
+            dotClass += ' incorrect';
           }
         } else if (i === currentDot) {
-          dotClass += " actived";
+          dotClass += ' actived';
         }
         return <div key={i} className={dotClass}></div>;
       })}

@@ -9,13 +9,13 @@
 }
 
 .manage-class-button {
-  border: 1px solid #7C5DB0;
+  border: 1px solid #7c5db0;
   border-radius: 5px;
   width: fit-content;
 }
 
 .class-divider {
-  background-color:#9473CB;
+  background-color: #9473cb;
   height: 0.5px;
   width: clamp(217px, 31vw, 217px);
 }

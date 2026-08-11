@@ -1,6 +1,6 @@
-import { t } from "i18next";
-import "./StudentNameBox.css";
-import TextField from "../common/TextField";
+import { t } from 'i18next';
+import './StudentNameBox.css';
+import TextField from '../common/TextField';
 
 const StudentNameBox: React.FC<{
   studentName: string;
@@ -10,7 +10,9 @@ const StudentNameBox: React.FC<{
   return (
     <div className="main-header">
       <div className="name-header">
-        <div className="title-student-creation-page">{t("What is your child’s name?")}</div>
+        <div className="title-student-creation-page">
+          {t('What is your child’s name?')}
+        </div>
         <TextField
           onChange={(evt) => onValueChange(evt.target.value)}
           value={studentName}

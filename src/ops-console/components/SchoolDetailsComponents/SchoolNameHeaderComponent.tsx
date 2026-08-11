@@ -1,6 +1,6 @@
-import React from "react";
-import { BsFillBellFill } from "react-icons/bs";
-import "./SchoolNameHeaderComponent.css";
+import React from 'react';
+import { BsFillBellFill } from 'react-icons/bs';
+import './SchoolNameHeaderComponent.css';
 
 interface SchoolNameHeaderComponentProps {
   schoolName: string;

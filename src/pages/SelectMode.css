@@ -1,3 +1,8 @@
+.select-mode-page {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .select-mode-main {
   display: flex;
   flex-direction: column;
@@ -6,7 +11,6 @@
   justify-content: center;
   gap: 3vh;
   color: var(--text-color);
-  background: var(--ion-background-color);
 }
 
 .select-mode-text {
@@ -22,12 +26,13 @@
   justify-content: center;
   gap: 3vh;
   color: var(--text-color);
-  background: var(--ion-background-color);
 }
+
 .select-school-text {
   margin-bottom: 3vh;
   font-size: clamp(10px, 4vh, 30px);
 }
+
 .okay-btn {
   color: white !important;
   border-radius: var(--border-radius) !important;
@@ -48,32 +53,382 @@
 .class-main {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background: #fffdee;
+  min-height: max-content;
 }
+
+.class-main-school-mode {
+  padding: 2.2vh 1vw 3vh;
+}
+
+.school-mode-student-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2vh;
+  width: 100%;
+}
+
 .class-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-direction: row;
   justify-content: space-between;
-  margin: var(--margin);
-  color: var(--text-color);
+  color: #1e3555;
+}
+
+.school-mode-header {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0.4vh 0.8vw;
+}
+
+.school-mode-welcome {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  column-gap: 0.6vw;
+  font-size: clamp(22px, 2.3vw, 36px);
+  font-weight: 600;
+  color: #1e3555;
+}
+
+.school-mode-brand-logo {
+  width: clamp(34px, 2.9vw, 44px);
+  height: clamp(34px, 2.9vw, 44px);
+  flex-shrink: 0;
+}
+
+.school-mode-role-badge {
+  grid-column: 3;
+  justify-self: end;
+  min-width: 108px;
+  height: 40px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1e3555;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 15px 0 14px;
+  font-size: 16px;
+  cursor: pointer;
+  font-style: normal;
+  font-weight: 400;
+}
+
+.school-mode-role-badge:focus-visible {
+  outline: 2px solid #1e3555;
+  outline-offset: 3px;
+}
+
+.school-mode-role-badge img {
+  width: 16px;
+  height: 16px;
+}
+
+.school-mode-back-button {
+  height: 40px;
+  width: 40px;
+  border: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+}
+
+.school-mode-back-button img {
+  width: 36px;
+  height: 36px;
+}
+
+.school-mode-class-strip {
+  width: max-content;
+  max-width: calc(100% - 240px);
+  box-sizing: border-box;
+  align-self: center;
+  border-radius: 12px;
+  background: #fffdee;
+  border: 0;
+  display: grid;
+  grid-template-columns: auto max-content auto;
+  align-items: stretch;
+  overflow: hidden;
+  height: 50px;
+  margin-top: -5px;
+}
+
+.school-mode-class-strip-static {
+  grid-template-columns: 1fr;
+  width: max-content;
+  max-width: calc(100% - 240px);
+}
+
+.school-mode-nav-button {
+  width: 64px;
+  border: 0;
+  background: #fffdee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 0;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.school-mode-nav-button:not(:disabled) .left-arrow-icon-mark {
+  opacity: 1;
+}
+
+.school-mode-nav-button:disabled {
+  cursor: default;
+}
+
+.school-mode-nav-button:disabled .left-arrow-icon-mark {
+  opacity: 0.35;
+}
+
+.school-mode-nav-button:last-child {
+  border-right: 0;
+}
+
+.school-mode-nav-arrow {
+  width: 56px;
+  height: 100%;
+  display: block;
+}
+
+.school-mode-nav-arrow-right {
+  transform: rotate(180deg);
+}
+
+.school-mode-class-tabs {
+  display: flex;
+  align-items: stretch;
+  overflow-x: hidden;
+  overflow-y: visible;
+  background: #fffdee;
+  width: max-content;
+  max-width: 100%;
+}
+
+.school-mode-class-strip-static .school-mode-class-tabs {
+  width: max-content;
+  max-width: 100%;
+  justify-content: center;
+}
+
+.school-mode-class-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.school-mode-class-tab {
+  box-sizing: border-box;
+  border: 0;
+  background: #ffffff;
+  color: #213960;
+  font-size: clamp(24px, 3.2vh, 34px);
+  font-weight: 600;
+  width: clamp(155px, 20vw, 220px);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.school-mode-class-tab + .school-mode-class-tab {
+  border-left: 2px solid #182a4f;
+}
+
+.school-mode-class-strip:not(.school-mode-class-strip-static)
+  .school-mode-class-tab:first-child {
+  border-left: 2px solid #182a4f;
+}
+
+.school-mode-class-strip:not(.school-mode-class-strip-static)
+  .school-mode-class-tab:last-child {
+  border-right: 2px solid #182a4f;
+}
+
+.school-mode-class-tab-active {
+  background: #fffdee;
+  border-bottom: 4px solid #182a4f;
+}
+
+.school-mode-empty-state {
+  align-self: center;
+  margin-top: 2vh;
+  color: #244167;
+  font-size: clamp(18px, 1.5vw, 24px);
+}
+
+.school-mode-class-profile-selection-text {
+  margin: -0.2vh 0 -5px 0;
+  color: #1d315d;
+  font-size: clamp(16px, 1vw, 14px);
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .class-container {
-  width: 90%;
-  height: 80vh;
-  margin: 0 auto;
-  justify-items: center;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  /* flex-wrap: wrap; */
+  --display-students-card-width: clamp(180px, min(20vw, 28vh), 188px);
+  --display-students-card-height: calc(
+    var(--display-students-card-width) * 0.92
+  );
+  position: relative;
+
+  display: flex;
+  flex-direction: row;
   justify-content: center;
-  overflow-y: scroll;
+  align-items: stretch;
+
+  width: 100%;
+  padding: 0;
+
+  box-sizing: border-box;
 }
+
 .class-container::-webkit-scrollbar {
   display: none;
+}
+
+.school-mode-students-grid {
+  width: 100%;
+  max-width: none;
+  margin-top: 0.2vh;
+  display: grid;
+  grid-template-columns: repeat(4, var(--display-students-card-width));
+  row-gap: clamp(12px, 0.8vw, 16px);
+  column-gap: clamp(22px, 2.2vw, 24px);
+
+  justify-content: center;
+  align-content: start;
+  /* max-height: calc(
+    (var(--display-students-card-height) * 2) + clamp(10px, 1.4vw, 16px)
+  ); */
+  padding: 0 clamp(14px, 3vw, 32px) 0.8vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.school-mode-students-grid-single {
+  grid-template-columns: repeat(
+    4,
+    var(--display-students-card-width)
+  ) !important;
+  justify-content: center;
+}
+
+.school-mode-students-grid-pair {
+  grid-template-columns: repeat(
+    4,
+    var(--display-students-card-width)
+  ) !important;
+  justify-content: center;
+}
+
+.school-mode-student-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  width: var(--display-students-card-width);
+  min-height: var(--display-students-card-height);
+  height: auto;
+  margin: 0;
+  padding: clamp(12px, 1.4vh, 16px) clamp(10px, 1.2vw, 14px)
+    clamp(10px, 1.2vh, 14px);
+
+  box-sizing: border-box;
+  justify-self: center;
+
+  border: 0;
+  border-radius: clamp(18px, 2.5vw, 24px);
+
+  background: #fffdee;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.school-mode-student-avatar {
+  width: clamp(55px, 4.4vw, 58px);
+  height: clamp(55px, 4.4vw, 58px);
+  margin-bottom: 6px;
+}
+
+.school-mode-student-name {
+  display: block;
+
+  width: 100%;
+  max-width: calc(var(--display-students-card-width) - 32px);
+  margin: 0 0 clamp(8px, 0.9vh, 10px);
+  overflow: hidden;
+
+  color: #182a4f;
+
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-weight: 400;
+  font-size: clamp(8px, 1vw, 13px);
+  line-height: normal;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.play-button-shadow {
+  position: relative;
+  display: inline-flex;
+}
+
+.play-button-shadow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #8a2901;
+  border-radius: 10px;
+  transform: translateY(4px);
+  z-index: 0;
+}
+
+.school-mode-play-button {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: clamp(90px, 6.8vw, 88px);
+  height: 45px;
+  padding: 8px clamp(14px, 1.8vw, 20px);
+  overflow: hidden;
+
+  box-sizing: border-box;
+
+  border: 0;
+  border-radius: 9px;
+
+  background: #f34d08;
+  color: #fff;
+
+  font-family: 'Baloo 2', 'BalooRegular', cursive;
+  font-weight: 700;
+  font-size: clamp(16px, 1vw, 13px);
+  font-style: normal;
+  line-height: 1;
+
+  cursor: pointer;
+  transition: transform 120ms ease;
+}
+
+.school-mode-play-button:active {
+  transform: translateY(3px);
 }
 
 .class-avatar-counter {
@@ -84,13 +439,12 @@
   color: var(--text-color);
   border: 2px solid #f34d08;
   box-sizing: border-box;
-  /* font-weight: bold; */
   font-size: clamp(36px, 10vh, 56px);
   display: flex;
-
   justify-content: center;
   align-items: center;
 }
+
 .class-avatar {
   display: flex;
   flex-direction: column;
@@ -101,10 +455,19 @@
   margin: 5% 5%;
 }
 
+.school-mode-class-tab.class-avatar,
+.school-mode-student-card.class-avatar {
+  margin: 0 !important;
+}
+
+.school-mode-student-card.class-avatar {
+  cursor: default;
+}
+
 .class-name {
   white-space: nowrap;
   display: block;
-  max-width: 20vh;
+  max-width: 20ch;
   text-overflow: ellipsis;
   overflow: hidden;
 }
@@ -116,4 +479,52 @@
 .selectmode-schoolname-header,
 .selectmode-schoolClassname-header {
   font-weight: bold;
+}
+
+@media (max-width: 1100px) {
+  .school-mode-class-strip {
+    max-width: calc(100% - 32px);
+  }
+
+  .school-mode-nav-button {
+    width: 54px;
+  }
+
+  .school-mode-nav-arrow {
+    width: 46px;
+  }
+
+  .school-mode-class-tab {
+    width: clamp(130px, calc((100vw - 300px) / 3), 165px);
+  }
+}
+
+@media (max-width: 900px) {
+  .school-mode-header {
+    gap: 2vw;
+  }
+
+  .school-mode-welcome {
+    justify-content: flex-start;
+    font-size: clamp(20px, 4.8vw, 28px);
+  }
+
+  .school-mode-role-badge {
+    min-width: 94px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .school-mode-class-strip {
+    height: 40px;
+  }
+
+  .school-mode-class-tab {
+    width: clamp(120px, calc((100vw - 280px) / 3), 155px);
+    font-size: clamp(20px, 3.2vh, 28px);
+  }
+
+  .school-mode-class-strip-static .school-mode-class-tab {
+    font-size: clamp(20px, 3.2vh, 28px);
+  }
 }

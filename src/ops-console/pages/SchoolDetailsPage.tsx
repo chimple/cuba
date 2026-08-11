@@ -1,13 +1,32 @@
-import React, { useEffect, useState } from "react";
-import "./SchoolDetailsPage.css";
-import { Box } from "@mui/material";
-import { t } from "i18next";
-import { CircularProgress } from "@mui/material";
-import { useHistory } from "react-router";
-import { ServiceConfig } from "../../services/ServiceConfig";
-import SchoolNameHeaderComponent from "../components/SchoolDetailsComponents/SchoolNameHeaderComponent";
-import Breadcrumb from "../components/Breadcrumb";
-import SchoolDetailsTabsComponent from "../components/SchoolDetailsComponents/SchoolDetailsTabsComponent";
+// SchoolDetailsPage.tsx
+import React, { useCallback, useEffect, useState } from 'react';
+import './SchoolDetailsPage.css';
+import { Toast } from '@capacitor/toast';
+import { Box } from '@mui/material';
+import { t } from 'i18next';
+import { CircularProgress } from '@mui/material';
+import { useHistory } from 'react-router';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import SchoolNameHeaderComponent from '../components/SchoolDetailsComponents/SchoolNameHeaderComponent';
+import Breadcrumb from '../components/Breadcrumb';
+import SchoolDetailsTabsComponent from '../components/SchoolDetailsComponents/SchoolDetailsTabsComponent';
+import { PAGES, TableTypes } from '../../common/constants';
+import SchoolCheckInModal from '../components/SchoolDetailsComponents/SchoolCheckInModal';
+import {
+  SchoolVisitAction,
+  SchoolVisitStatus,
+  SchoolVisitType,
+  SchoolVisitTypeLabels,
+} from '../../common/constants';
+import { Button, Menu, MenuItem, Divider } from '@mui/material';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import AddNoteModal from '../components/SchoolDetailsComponents/AddNoteModal';
+import { RoleType, SchoolTabs } from '../../interface/modelInterfaces';
+import { NOTES_UPDATED_EVENT } from '../../common/constants';
+import logger from '../../utility/logger';
+import { useAppSelector } from '../../redux/hooks';
+import { RootState } from '../../redux/store';
+import { AuthState } from '../../redux/slices/auth/authSlice';
 
 interface SchoolDetailComponentProps {
   id: string;
@@ -17,16 +36,53 @@ function useIsMobile() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 600);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
   return isMobile;
 }
 
-type SchoolStats = {
+export type SchoolStats = {
   active_student_percentage: number;
   active_teacher_percentage: number;
   avg_weekly_time_minutes: number;
+};
+
+export type FCSchoolStats = {
+  visits: number;
+  calls_made: number;
+  tech_issues: number;
+  parents_interacted: number;
+  parents_reached: number;
+  students_interacted: number;
+  teachers_interacted: number;
+};
+
+export type ClassWithDetails = TableTypes<'class'> & {
+  subjects?: TableTypes<'course'>[];
+  subjectsNames?: string;
+  curriculumNames?: string;
+  course_links?: TableTypes<'class_course'>[];
+  courses?: TableTypes<'course'>[];
+  curriculum?: TableTypes<'curriculum'>[];
+  studentCount?: number;
+};
+
+const mapSchoolVisitType = (
+  visitType: TableTypes<'fc_school_visit'>['type'],
+): SchoolVisitType | undefined => {
+  switch (visitType) {
+    case SchoolVisitType.Regular:
+      return SchoolVisitType.Regular;
+    case SchoolVisitType.ParentsTeacherMeeting:
+      return SchoolVisitType.ParentsTeacherMeeting;
+    case SchoolVisitType.TeacherTraining:
+      return SchoolVisitType.TeacherTraining;
+    case SchoolVisitType.Community:
+      return SchoolVisitType.Community;
+    default:
+      return undefined;
+  }
 };
 
 const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
@@ -43,59 +99,434 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
     totalTeacherCount?: number;
     totalStudentCount?: number;
     schoolStats?: SchoolStats;
+    classData?: ClassWithDetails[];
+    totalClassCount?: number;
+    interactionStats?: FCSchoolStats;
   }>({});
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const history = useHistory();
-  const [schoolStats, setSchoolStats] = useState<SchoolStats>({
-    active_student_percentage: 0,
-    active_teacher_percentage: 0,
-    avg_weekly_time_minutes: 0,
-  });
+  const { roles } = useAppSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
+  const userRoles = roles || [];
+  const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
+
+  const [goToClassesTab, setGoToClassesTab] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<SchoolTabs>(SchoolTabs.Overview);
+
+  // Handler moved INSIDE the component so it has access to id, setShowAddModal, setActiveTab
+  const handleAddNoteHeader = async (payload: {
+    text: string;
+    mediaLinks?: string[] | null;
+  }) => {
+    if (isExternalUser) {
+      setShowAddModal(false);
+      return;
+    }
+
+    try {
+      const api = ServiceConfig.getI().apiHandler;
+      // call the API you added; classId = null for school-level note
+      const created = await api.createNoteForSchool({
+        schoolId: id,
+        classId: null,
+        content: payload.text,
+        mediaLinks: payload.mediaLinks ?? null,
+      });
+
+      // close modal
+      setShowAddModal(false);
+
+      // dispatch event so Notes tab component can update if it listens to this
+      window.dispatchEvent(
+        new CustomEvent(NOTES_UPDATED_EVENT, { detail: created }),
+      );
+
+      // switch to Notes tab
+      setActiveTab(SchoolTabs.Notes);
+    } catch (err) {
+      logger.error('Failed to create note:', err);
+      // optional: show UI error (not added to keep changes minimal)
+    }
+  };
+
+  const [schoolLocation, setSchoolLocation] = useState<
+    { lat: number; lng: number } | undefined
+  >(undefined);
 
   useEffect(() => {
-    async function fetchAll() {
-      setLoading(true);
+    if (data.schoolData?.location_link) {
+      const url = data.schoolData.location_link;
+      let lat: number | null = null;
+      let lng: number | null = null;
+
+      // 1. Try "data=!3d...!4d..." format (Place specific coordinates)
+      // Example: ...!3d12.8917379!4d77.5486649...
+      const dataRegex = /!3d([+-]?\d+(\.\d+)?)!4d([+-]?\d+(\.\d+)?)/;
+      const dataMatch = url.match(dataRegex);
+      if (dataMatch) {
+        lat = parseFloat(dataMatch[1]);
+        lng = parseFloat(dataMatch[3]);
+      }
+
+      // 2. Try standard query params (q=lat,lng or ll=lat,lng)
+      if (lat === null || lng === null) {
+        const queryRegex =
+          /(?:q|query|ll)=([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)/;
+        const queryMatch = url.match(queryRegex);
+        if (queryMatch) {
+          lat = parseFloat(queryMatch[1]);
+          lng = parseFloat(queryMatch[3]);
+        }
+      }
+
+      // 3. Try "@lat,lng" format (Viewport center - Fallback)
+      // Example: .../@12.8917371,77.5311559...
+      if (lat === null || lng === null) {
+        const atRegex = /@([+-]?\d+(\.\d+)?),([+-]?\d+(\.\d+)?)/;
+        const atMatch = url.match(atRegex);
+        if (atMatch) {
+          lat = parseFloat(atMatch[1]);
+          lng = parseFloat(atMatch[3]);
+        }
+      }
+
+      if (lat !== null && lng !== null && !isNaN(lat) && !isNaN(lng)) {
+        setSchoolLocation({ lat, lng });
+      }
+    }
+  }, [data.schoolData]);
+
+  // Check-In Logic
+  const [checkInStatus, setCheckInStatus] = useState<SchoolVisitStatus>(
+    SchoolVisitStatus.CheckedOut,
+  );
+  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  const [isFirstTimeCheckIn, setIsFirstTimeCheckIn] = useState(false);
+
+  // Dropdown state
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [selectedVisitType, setSelectedVisitType] = useState<SchoolVisitType>(
+    SchoolVisitType.Regular,
+  );
+  const [activeVisitType, setActiveVisitType] = useState<
+    SchoolVisitType | undefined
+  >(undefined);
+  const openMenu = Boolean(anchorEl);
+
+  useEffect(() => {
+    if (isExternalUser) return;
+    const fetchVisitStatus = async () => {
       const api = ServiceConfig.getI().apiHandler;
+      const lastVisit = await api.getLastSchoolVisit(id);
+      if (lastVisit && !lastVisit.check_out_at) {
+        setCheckInStatus(SchoolVisitStatus.CheckedIn);
+        setActiveVisitType(mapSchoolVisitType(lastVisit.type));
+      } else {
+        setCheckInStatus(SchoolVisitStatus.CheckedOut);
+        setActiveVisitType(undefined);
+      }
+    };
+    fetchVisitStatus();
+  }, [id, isExternalUser]);
+
+  const handleOpenCheckInMenu = (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
+
+  const handleSelectVisitType = (type: SchoolVisitType) => {
+    setSelectedVisitType(type);
+    handleCloseMenu();
+    handleOpenCheckInModal();
+  };
+
+  const handleOpenCheckInModal = () => {
+    const hasCheckedInBefore = localStorage.getItem(
+      `has_checked_in_before_${id}`,
+    );
+    setIsFirstTimeCheckIn(!hasCheckedInBefore);
+    setIsCheckInModalOpen(true);
+  };
+
+  const handleConfirmCheckInAction = async (
+    lat?: number,
+    lng?: number,
+    distance?: number,
+    numberOfParents?: number,
+  ) => {
+    const api = ServiceConfig.getI().apiHandler;
+    try {
+      if (checkInStatus === SchoolVisitStatus.CheckedOut) {
+        // Perform Check In
+        if (lat && lng) {
+          const res = await api.recordSchoolVisit(
+            id,
+            lat,
+            lng,
+            SchoolVisitAction.CheckIn,
+            selectedVisitType,
+            distance,
+          );
+          if (res) {
+            setCheckInStatus(SchoolVisitStatus.CheckedIn);
+            setActiveVisitType(selectedVisitType);
+            setIsCheckInModalOpen(false);
+            await Toast.show({ text: t('Checked in successfully!') });
+          }
+        }
+      } else {
+        // Perform Check Out
+        if (lat && lng) {
+          const res = await api.recordSchoolVisit(
+            id,
+            lat,
+            lng,
+            SchoolVisitAction.CheckOut,
+            undefined,
+            distance,
+            numberOfParents,
+          );
+          if (res) {
+            setCheckInStatus(SchoolVisitStatus.CheckedOut);
+            setActiveVisitType(undefined);
+            setIsCheckInModalOpen(false);
+            await Toast.show({ text: t('Checked out successfully!') });
+          }
+        }
+      }
+    } catch (e) {
+      logger.error('Failed to record visit', e);
+      await Toast.show({
+        text: t('Failed to record visit. Please try again.'),
+        duration: 'long',
+      });
+    }
+  };
+
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    const api = ServiceConfig.getI().apiHandler;
+    const resolveSettled = <T,>(
+      label: string,
+      settled: PromiseSettledResult<T>,
+      fallback: T,
+    ): T => {
+      if (settled.status === 'fulfilled') {
+        return settled.value;
+      }
+      logger.error(`SchoolDetailsPage fetch failed: ${label}`, settled.reason);
+      return fallback;
+    };
+
+    const emptyPaged = { data: [], total: 0 };
+    const emptySchoolActivityStats: SchoolStats = {
+      active_student_percentage: 0,
+      active_teacher_percentage: 0,
+      avg_weekly_time_minutes: 0,
+    };
+    const emptyInteractionStats: FCSchoolStats = {
+      visits: 0,
+      calls_made: 0,
+      tech_issues: 0,
+      parents_interacted: 0,
+      parents_reached: 0,
+      students_interacted: 0,
+      teachers_interacted: 0,
+    };
+
+    try {
       const [
-        school,
-        program,
-        programManagers,
-        principalsResponse,
-        coordinatorsResponse,
-        teachersResponse,
-        studentsResponse,
-      ] = await Promise.all([
+        schoolSettled,
+        programSettled,
+        programManagersSettled,
+        principalsResponseSettled,
+        coordinatorsResponseSettled,
+        teachersResponseSettled,
+        studentsResponseSettled,
+        classResponseSettled,
+      ] = await Promise.allSettled([
         api.getSchoolById(id),
         api.getProgramForSchool(id),
         api.getProgramManagersForSchool(id),
-        api.getPrincipalsForSchoolPaginated(id, 1, 20),
+        isExternalUser
+          ? Promise.resolve(emptyPaged)
+          : api.getPrincipalsForSchoolPaginated(id, 1, 20),
         api.getCoordinatorsForSchoolPaginated(id, 1, 20),
         api.getTeacherInfoBySchoolId(id, 1, 20),
         api.getStudentInfoBySchoolId(id, 1, 20),
+        api.getClassesBySchoolId(id),
       ]);
-      const res = await api.school_activity_stats(id);
+
+      const school = resolveSettled('getSchoolById', schoolSettled, undefined);
+      const program = resolveSettled(
+        'getProgramForSchool',
+        programSettled,
+        undefined,
+      );
+      const programManagers = resolveSettled(
+        'getProgramManagersForSchool',
+        programManagersSettled,
+        [],
+      );
+      const principalsResponse = resolveSettled(
+        'getPrincipalsForSchoolPaginated',
+        principalsResponseSettled,
+        emptyPaged,
+      );
+      const coordinatorsResponse = resolveSettled(
+        'getCoordinatorsForSchoolPaginated',
+        coordinatorsResponseSettled,
+        emptyPaged,
+      );
+      const teachersResponse = resolveSettled(
+        'getTeacherInfoBySchoolId',
+        teachersResponseSettled,
+        emptyPaged,
+      );
+      const studentsResponse = resolveSettled(
+        'getStudentInfoBySchoolId',
+        studentsResponseSettled,
+        emptyPaged,
+      );
+      const classResponse = resolveSettled(
+        'getClassesBySchoolId',
+        classResponseSettled,
+        [],
+      );
+
+      const [schoolActivityStatsSettled, interactionStatsSettled] =
+        await Promise.allSettled([
+          api.school_activity_stats(id),
+          api.getSchoolStatsForSchool(id),
+        ]);
+
+      const res = resolveSettled(
+        'school_activity_stats',
+        schoolActivityStatsSettled,
+        emptySchoolActivityStats,
+      );
       const result = Array.isArray(res) ? res[0] : res;
       const newSchoolStats = {
-        active_student_percentage: result.active_student_percentage ?? 0,
-        active_teacher_percentage: result.active_teacher_percentage ?? 0,
-        avg_weekly_time_minutes: result.avg_weekly_time_minutes ?? 0,
+        active_student_percentage: result?.active_student_percentage ?? 0,
+        active_teacher_percentage: result?.active_teacher_percentage ?? 0,
+        avg_weekly_time_minutes: result?.avg_weekly_time_minutes ?? 0,
       };
-      setSchoolStats(newSchoolStats);
-      const studentsData = studentsResponse.data;
-      const totalStudentCount = studentsResponse.total;
-      const teachersData = teachersResponse.data;
-      const totalTeacherCount = teachersResponse.total;
-      const principalsData = principalsResponse.data;
-      const totalPrincipalCount = principalsResponse.total;
-      const coordinatorsData = coordinatorsResponse.data;
-      const totalCoordinatorCount = coordinatorsResponse.total;
 
-      console.log(
-        "School Stats students:",
-        teachersData,
-        "Total:",
-        totalTeacherCount
+      const interactionStat = resolveSettled(
+        'getSchoolStatsForSchool',
+        interactionStatsSettled,
+        emptyInteractionStats,
+      );
+      const stats = Array.isArray(interactionStat)
+        ? interactionStat[0]
+        : interactionStat;
+      const interStats: FCSchoolStats = {
+        visits: stats?.visits ?? 0,
+        calls_made: stats?.calls_made ?? 0,
+        tech_issues: stats?.tech_issues ?? stats?.tech_issues_reported ?? 0,
+        parents_interacted: stats?.parents_interacted ?? 0,
+        parents_reached: stats?.parents_reached ?? 0,
+        students_interacted: stats?.students_interacted ?? 0,
+        teachers_interacted: stats?.teachers_interacted ?? 0,
+      };
+
+      const studentsData = studentsResponse?.data ?? [];
+      const totalStudentCount = studentsResponse?.total ?? 0;
+      const teachersData = teachersResponse?.data ?? [];
+      const totalTeacherCount = teachersResponse?.total ?? 0;
+      const principalsData = principalsResponse?.data ?? [];
+      const totalPrincipalCount = principalsResponse?.total ?? 0;
+      const coordinatorsData = coordinatorsResponse?.data ?? [];
+      const totalCoordinatorCount = coordinatorsResponse?.total ?? 0;
+
+      const classData = Array.isArray(classResponse) ? classResponse : [];
+      const totalClassCount = classData.length;
+      const classDataWithDetails = await Promise.all(
+        classData.map(async (clasS) => {
+          try {
+            let classwiseTotal = 0;
+            try {
+              const raw = await api.getStudentsForClass(clasS.id);
+              const n = Number(raw.length);
+              classwiseTotal = Number.isFinite(n) ? n : 0;
+            } catch {
+              classwiseTotal = 0;
+            }
+            const links = (await api.getCoursesByClassId(clasS.id)) ?? [];
+            const detailArrays = await Promise.all(
+              links.map((ln) =>
+                api.getCourse((ln as { course_id: string }).course_id),
+              ),
+            );
+            const courses = detailArrays
+              .flatMap((arr) => (Array.isArray(arr) ? arr : [arr]))
+              .filter(Boolean);
+            const curIds = [
+              ...new Set(
+                courses
+                  .map((cd) => cd?.curriculum_id)
+                  .filter(
+                    (courseId): courseId is string =>
+                      typeof courseId === 'string' && courseId.length > 0,
+                  ),
+              ),
+            ];
+            let curriculum: TableTypes<'curriculum'>[] = [];
+            if (curIds.length > 0) {
+              const fetched = await api.getCurriculumsByIds(curIds);
+              const seen = new Set<string>();
+              for (const row of Array.isArray(fetched) ? fetched : []) {
+                const curriculumId = row?.id;
+                if (
+                  typeof curriculumId === 'string' &&
+                  !seen.has(curriculumId)
+                ) {
+                  seen.add(curriculumId);
+                  curriculum.push(row);
+                }
+              }
+            }
+            const subjects = courses;
+            const subjectsNames = [
+              ...new Set(
+                courses
+                  .map((cd) =>
+                    typeof cd?.name === 'string' ? cd.name.trim() : '',
+                  )
+                  .filter((s: string) => s.length > 0),
+              ),
+            ].join(', ');
+            const curriculumNames = [
+              ...new Set(
+                curriculum
+                  .map((x) =>
+                    typeof x?.name === 'string' ? x.name.trim() : '',
+                  )
+                  .filter((n: string) => n.length > 0),
+              ),
+            ].join(', ');
+            return {
+              ...clasS,
+              subjects,
+              subjectsNames,
+              curriculumNames: curriculumNames,
+              course_links: links,
+              courses,
+              curriculum,
+              studentCount: classwiseTotal,
+            };
+          } catch {
+            return { ...clasS };
+          }
+        }),
       );
 
       setData({
@@ -111,11 +542,18 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
         students: studentsData,
         totalStudentCount: totalStudentCount,
         schoolStats: newSchoolStats,
+        classData: classDataWithDetails,
+        totalClassCount: totalClassCount,
+        interactionStats: interStats,
       });
+    } finally {
       setLoading(false);
     }
-    fetchAll();
-  }, [id]);
+  }, [id, isExternalUser]);
+
+  useEffect(() => {
+    void fetchAll();
+  }, [fetchAll]);
 
   if (loading) {
     return (
@@ -133,32 +571,147 @@ const SchoolDetailsPage: React.FC<SchoolDetailComponentProps> = ({ id }) => {
   const schoolName = data.schoolData?.name;
 
   return (
-    <div className="school-detail-container">
+    <div className="schooldetailspage school-detail-container">
       {/* <div className="school-detail-gap" /> */}
       <div className="school-detail-header">
         {schoolName && <SchoolNameHeaderComponent schoolName={schoolName} />}
       </div>
+      {!isExternalUser && (
+        <SchoolCheckInModal
+          open={isCheckInModalOpen}
+          onClose={() => setIsCheckInModalOpen(false)}
+          onConfirm={handleConfirmCheckInAction}
+          status={
+            checkInStatus === SchoolVisitStatus.CheckedIn
+              ? SchoolVisitAction.CheckOut
+              : SchoolVisitAction.CheckIn
+          }
+          schoolName={schoolName || t('Unknown School')}
+          isFirstTime={isFirstTimeCheckIn}
+          schoolLocation={schoolLocation}
+          schoolAddress={data.schoolData?.address}
+          schoolId={id}
+          visitType={
+            checkInStatus === SchoolVisitStatus.CheckedIn
+              ? activeVisitType
+              : selectedVisitType
+          }
+          onLocationUpdated={fetchAll}
+        />
+      )}
       {!isMobile && schoolName && (
         <div className="school-detail-secondary-header">
+          {/* Left Side: Breadcrumb */}
           <Breadcrumb
             crumbs={[
               {
-                label: t("Schools"),
+                label: t('Schools'),
                 onClick: () => history.goBack(),
               },
               {
-                label: schoolName ?? "",
+                label: schoolName ?? '',
               },
             ]}
+            endActions={
+              isExternalUser ? null : (
+                <>
+                  {activeTab === SchoolTabs.Overview && (
+                    <Button
+                      variant="outlined"
+                      onClick={() => setShowAddModal(true)}
+                      className="btn-add-notes"
+                    >
+                      + {t('Add Notes')}
+                    </Button>
+                  )}
+                  {checkInStatus === SchoolVisitStatus.CheckedOut ? (
+                    <>
+                      <Button
+                        variant="contained"
+                        onClick={handleOpenCheckInMenu}
+                        endIcon={
+                          <ArrowDropDownIcon
+                            className={`check-in-icon ${openMenu ? 'check-in-icon-rotated' : ''}`}
+                          />
+                        }
+                        className="btn-check-in"
+                      >
+                        {t('Check In')}
+                      </Button>
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={openMenu}
+                        onClose={handleCloseMenu}
+                        anchorOrigin={{
+                          vertical: 'bottom',
+                          horizontal: 'right',
+                        }}
+                        transformOrigin={{
+                          vertical: 'top',
+                          horizontal: 'right',
+                        }}
+                        classes={{
+                          paper: 'schooldetailspage check-in-menu-paper',
+                        }}
+                      >
+                        {(
+                          Object.entries(SchoolVisitTypeLabels) as [
+                            SchoolVisitType,
+                            string,
+                          ][]
+                        ).map(([visitType, label], index, items) => (
+                          <React.Fragment key={visitType}>
+                            <MenuItem
+                              onClick={() => handleSelectVisitType(visitType)}
+                              className="check-in-menu-item"
+                            >
+                              {t(label)}
+                            </MenuItem>
+                            {index < items.length - 1 && (
+                              <Divider className="check-in-menu-divider" />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </Menu>
+                    </>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      onClick={handleOpenCheckInModal}
+                      className="btn-check-out"
+                    >
+                      {t('Check Out')}
+                    </Button>
+                  )}
+                </>
+              )
+            }
           />
         </div>
       )}
+      {/* Modal outside the header */}
+      {!isExternalUser && (
+        <AddNoteModal
+          isOpen={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onSave={handleAddNoteHeader}
+          source="school"
+          schoolId={id}
+        />
+      )}
+
       <div className="school-detail-tertiary-gap" />
       <div className="school-detail-tertiary-header">
         <SchoolDetailsTabsComponent
           data={data}
           isMobile={isMobile}
           schoolId={id}
+          refreshClasses={() => {
+            void fetchAll();
+            setGoToClassesTab(true);
+          }}
+          goToClassesTab={goToClassesTab}
+          onTabChange={(tab) => setActiveTab(tab)} // new prop
         />
       </div>
       <div className="school-detail-columns-gap" />

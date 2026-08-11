@@ -1,18 +1,17 @@
-import { FC, useEffect, useRef, useState } from "react";
-import "./SelectChapter.css";
-import SelectIconImage from "./SelectIconImage";
-import DownloadLesson from "../DownloadChapterAndLesson";
-import { t } from "i18next";
-import { COURSES, TableTypes } from "../../common/constants";
-import { Util } from "../../utility/util";
+import { FC, useEffect, useRef } from 'react';
+import './SelectChapter.css';
+import SelectIconImage from './SelectIconImage';
+import DownloadLesson from '../DownloadChapterAndLesson';
+import { t } from 'i18next';
+import { COURSES, TableTypes } from '../../common/constants';
 
 const SelectChapter: FC<{
-  chapters: TableTypes<"chapter">[];
-  onChapterChange: (chapter: TableTypes<"chapter">) => void;
-  grades: TableTypes<"grade">[];
-  course: TableTypes<"course">;
-  currentGrade: TableTypes<"grade">;
-  onGradeChange: (grade: TableTypes<"grade">) => void;
+  chapters: TableTypes<'chapter'>[];
+  onChapterChange: (chapter: TableTypes<'chapter'>) => void;
+  grades: TableTypes<'grade'>[];
+  course: TableTypes<'course'>;
+  currentGrade: TableTypes<'grade'>;
+  onGradeChange: (grade: TableTypes<'grade'>) => void;
   currentChapterId: string | undefined;
 }> = ({
   chapters,
@@ -24,9 +23,10 @@ const SelectChapter: FC<{
   currentChapterId,
 }) => {
   let currentChapterRef = useRef<any>(null);
+  const isMathCourse = course?.code?.toLowerCase().includes('math');
 
   useEffect(() => {
-    currentChapterRef.current?.scrollIntoView({ behavior: "instant" });
+    currentChapterRef.current?.scrollIntoView({ behavior: 'instant' });
   }, []);
 
   return (
@@ -55,16 +55,17 @@ const SelectChapter: FC<{
                       chapter.id +
                       (Util.isRespectMode ? ".png" : ".webp")
                     }
-                    defaultSrc={"assets/icons/DefaultIcon.png"}
-                    webSrc={chapter.image || "assets/icons/DefaultIcon.png"}
-                    imageWidth={"100%"}
-                    imageHeight={"auto"}
+                    defaultSrc={'assets/icons/DefaultIcon.png'}
+                    webSrc={chapter.image || 'assets/icons/DefaultIcon.png'}
+                    enableOfflineDownload={true}
+                    imageWidth={'100%'}
+                    imageHeight={'auto'}
                   />
                 </div>
-                <div>
-                  {course?.code === COURSES.ENGLISH
+                <div className="selectchapter-title">
+                  {course?.code === COURSES.ENGLISH || isMathCourse
                     ? chapter?.name
-                    : t(chapter?.name ?? "")}
+                    : t(chapter?.name ?? '')}
                 </div>
                 <div className="chapter-download">
                   <DownloadLesson chapter={chapter} />
