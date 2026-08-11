@@ -178,7 +178,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
     const current_class = Util.getCurrentClass();
     setCurrentClass(current_class ?? null);
     if (!chapterId && current_class) {
-      const fetched = await api.getChapterByLesson(lesson.id, current_class.id);
+      const fetched = await api.getChapterByLessonID(lesson.id);
       if (typeof fetched === 'string') {
         setChapterId(fetched);
       }

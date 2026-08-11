@@ -994,9 +994,9 @@ const LidoPlayer: FC = () => {
             assignmentId = result?.id;
           }
         }
-        chapter_id = await api.getChapterByLesson(lesson.id, classId);
+        chapter_id = await api.getChapterIDByLessonID(lesson.id, classId);
       } else {
-        chapter_id = await api.getChapterByLesson(
+        chapter_id = await api.getChapterIDByLessonID(
           lesson.id,
           undefined,
           currentStudent.id,

@@ -1011,6 +1011,26 @@ const PathwayStructure: React.FC = () => {
 
       sessionStorage.removeItem(AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY);
       openStickerCompletion(data);
+    };
+
+    window.addEventListener(
+      STICKER_BOOK_COMPLETION_READY_EVENT,
+      handleStickerCompletionReady as EventListener,
+    );
+
+    return () => {
+      window.removeEventListener(
+        STICKER_BOOK_COMPLETION_READY_EVENT,
+        handleStickerCompletionReady as EventListener,
+      );
+    };
+  }, [openStickerCompletion]);
+
+  /*
+   * Superseded pathway renderer. Rendering is handled by usePathwaySVG above;
+   * retaining a second renderer here caused unresolved legacy helper references.
+   */
+  /*
     const preloadAllLessonImages = async (lessons: any[]) => {
       await Promise.all(
         lessons.map((lesson) => {
@@ -1343,6 +1363,7 @@ const PathwayStructure: React.FC = () => {
       );
     };
   }, [openStickerCompletion]);
+  */
 
   return (
     <>

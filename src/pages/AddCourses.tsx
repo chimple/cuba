@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import Course from '../models/Course';
+import Course from '../models/course';
 import { useHistory } from 'react-router-dom';
 import { ServiceConfig } from '../services/ServiceConfig';
 import {
@@ -139,9 +139,9 @@ const AddCourses: React.FC = () => {
           header={HOMEHEADERLIST.SUBJECTS}
         />
         {!isLoading &&
-          stage === STAGES.SUBJECTS &&
-          courses &&
-          courses.length > 0 ? (
+        stage === STAGES.SUBJECTS &&
+        courses &&
+        courses.length > 0 ? (
           <div className="add-subjects-content">
             <AddCourse
               courses={courses}

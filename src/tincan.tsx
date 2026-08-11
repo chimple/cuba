@@ -16,14 +16,18 @@ interface IRecordStoreCfg {
 
 async function getDeeplinkParams(): Promise<IRecordStoreCfg> {
   const result = await Port.sendLaunchData();
-  let actor : Actor = {name:'',mbox:''};
+  let actor: Actor = { name: '', mbox: '' };
   try {
-    actor = result.actor ? JSON.parse(result.actor) : {name: '', mbox: ''};
+    actor = result.actor ? JSON.parse(result.actor) : { name: '', mbox: '' };
   } catch (error) {
-    actor = {name: '', mbox: ''};
+    actor = { name: '', mbox: '' };
   }
 
-  if (result.endpoint == undefined || result.endpoint == '' || result.endpoint == null) {
+  if (
+    result.endpoint == undefined ||
+    result.endpoint == '' ||
+    result.endpoint == null
+  ) {
     result.endpoint = 'https://chimple.lrs.io/xapi/';
   }
   if (result.auth == undefined || result.auth == '' || result.auth == null) {
@@ -46,14 +50,14 @@ export async function reinitializeTincan() {
     tincan = new TinCan({});
     tincan.addRecordStore(lrs);
     return tincan;
-  } catch (error){
-    console.error('Failed to reinitialize tincan',error);
+  } catch (error) {
+    console.error('Failed to reinitialize tincan', error);
     return null;
   }
 }
 
 (async () => {
- tincan = await reinitializeTincan();
+  tincan = await reinitializeTincan();
 })();
 
 export default tincan;

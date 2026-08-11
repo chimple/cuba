@@ -48,6 +48,8 @@ import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
 import { ClearCacheData } from '../components/parent/DataClear';
 import { logAuthDebug } from '../utility/authDebug';
+import DeleteParentAccount from '../components/parent/DeleteParentAccount';
+import ToggleButton from '../components/parent/ToggleButton';
 
 const parentHeaderIconList = [
   { header: 'profile', displayName: 'Profile' },
@@ -164,7 +166,9 @@ const Parent: React.FC = () => {
       userProfilePromise,
       storedMapStr,
     );
-    const max_students_allowed = Util.isRespectMode ? MAX_STUDENTS_ALLOWED_RESPECT : MAX_STUDENTS_ALLOWED;
+    const max_students_allowed = Util.isRespectMode
+      ? MAX_STUDENTS_ALLOWED_RESPECT
+      : MAX_STUDENTS_ALLOWED;
     for (let i = 0; i < max_students_allowed; i++) {
       finalUser.push(userProfilePromise[i]);
     }
@@ -585,7 +589,7 @@ const Parent: React.FC = () => {
                       Util.setCurrentSchool(schools[0].school, schools[0].role);
                       const tempClasses = await api.getClassesForSchool(
                         schools[0].school.id,
-                        currentUser?.id!
+                        currentUser?.id!,
                       );
                       if (tempClasses.length > 0) {
                         Util.setCurrentClass(tempClasses[0]);
@@ -606,7 +610,7 @@ const Parent: React.FC = () => {
               />
             )}
           </div>
-        </div>
+        </section>
       </div>
     );
   }

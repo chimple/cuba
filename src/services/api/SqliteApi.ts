@@ -10,6 +10,7 @@ import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 import { LiveUpdate } from '@capawesome/capacitor-live-update';
 import { v4 as uuidv4 } from 'uuid';
+import { getDailyRewardClaimedEvent } from '../../analytics/rewardEvents';
 import {
   AVATARS,
   BASE_NAME,
@@ -47,10 +48,11 @@ import {
   RESULT_STATUS,
   REWARD_LEARNING_PATH,
   REWARD_LESSON,
-  STUDENT_RESULT,
   RequestTypes,
   SCHOOL,
+  SOURCE,
   STATUS,
+  STUDENT_RESULT,
   SchoolRoleMap,
   SchoolVisitAction,
   SchoolVisitType,
@@ -59,7 +61,6 @@ import {
   StudentAPIResponse,
   StudentInfo,
   TABLES,
-  SOURCE,
   TabType,
   TableTypes,
   TeacherAPIResponse,
@@ -75,15 +76,15 @@ import {
   StickerMeta,
   UserStickerProgress,
 } from '../../interface/modelInterfaces';
-import Course from '../../models/Course';
-import Lesson from '../../models/Lesson';
+import Course from '../../models/course';
+import Lesson from '../../models/lesson';
 import {
   UserSchoolClassParams,
   UserSchoolClassResult,
 } from '../../ops-console/pages/NewUserPageOps';
 import { FCSchoolStats } from '../../ops-console/pages/SchoolDetailsPage';
-import { store } from '../../redux/store';
 import { setGlobalLoading } from '../../redux/slices/auth/authSlice';
+import { store } from '../../redux/store';
 import {
   readAssignmentCartFromStorage,
   writeAssignmentCartToStorage,
@@ -92,25 +93,30 @@ import logger from '../../utility/logger';
 import { isRecoverableStorageError } from '../../utility/recoverableStorageError';
 import { ensureLocalStickerBookSvgUri } from '../../utility/stickerBookAssets';
 import { Util } from '../../utility/util';
-import { getDailyRewardClaimedEvent } from '../../analytics/rewardEvents';
 import type { SqlStatement } from '../../workers/background.worker.types';
 import { runBackgroundWorkerStreamingSync } from '../../workers/backgroundWorkerClient';
 import { Json } from '../database';
 import { APIMode, ServiceConfig } from '../ServiceConfig';
+import ApiDataProcessor from './ApiDataProcessor';
 import {
   AssignmentBatchGroupRow,
   AssignmentCartData,
   AssignmentDateRangeData,
-  CampaignCancellationDetails,
+  CampaignAssignmentFilters,
   CampaignAssignmentOptions,
   CampaignAssignmentOptionsParams,
-  CampaignDashboardMetric,
-  CampaignListingItem,
-  CampaignListingParams,
+  CampaignAssignmentsResponse,
   CampaignAudienceOptions,
   CampaignAudiencePayload,
   CampaignAudienceSummary,
   CampaignAudienceSummaryParams,
+  CampaignCancellationDetails,
+  CampaignDashboardMetric,
+  CampaignListingItem,
+  CampaignListingParams,
+  CampaignMessagingQueryParams,
+  CampaignMessagingResponse,
+  CampaignOption,
   CampaignSavedAudienceGroup,
   CampaignSetupOptions,
   ClassMetricsForClassListingRow,
@@ -118,21 +124,15 @@ import {
   CreateCampaignSetupResult,
   GetSchoolsWithProgramAccessParams,
   JoinClassInviteLookupResult,
-  LeaderboardInfo,
   LaunchCampaignPayload,
+  LeaderboardInfo,
   OpsStudentPerformanceBandRow,
   OpsStudentPerformanceBandsParams,
   SchoolProgramAccessResponse,
   ServiceApi,
-  CampaignAssignmentsResponse,
-  CampaignOption,
-  CampaignAssignmentFilters,
-  CampaignMessagingQueryParams,
-  CampaignMessagingResponse,
   UpdateCampaignMessagingRowPayload,
 } from './ServiceApi';
 import { SupabaseApi } from './SupabaseApi';
-import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
 
 type ImportJsonTable = {
   name: string;
@@ -661,16 +661,16 @@ export class SqliteApi implements ServiceApi {
 
     // const config = ServiceConfig.getInstance(APIMode.ONEROSTER);
     const config = ServiceConfig.getInstance(
-      Util.isRespectMode ? APIMode.ONEROSTER : APIMode.SQLITE
+      Util.isRespectMode ? APIMode.ONEROSTER : APIMode.SQLITE,
     );
     const isUserLoggedIn = await config.authHandler.isUserLoggedIn();
     if (isUserLoggedIn) {
-      console.log("syncing");
+      console.log('syncing');
       let user;
       try {
         user = await config.authHandler.getCurrentUser();
       } catch (error) {
-        console.log("🚀 ~ SqliteApi ~ setUpDatabase ~ error:", error);
+        console.log('🚀 ~ SqliteApi ~ setUpDatabase ~ error:', error);
       }
       if (!user) {
         await this.syncDbNow();
@@ -5361,7 +5361,7 @@ export class SqliteApi implements ServiceApi {
     `;
     const res = await this._db?.query(query);
     return ApiDataProcessor.dataProcessorGetLessonFromChapter(
-      res?.values ?? []
+      res?.values ?? [],
     );
   }
 
@@ -5421,7 +5421,7 @@ export class SqliteApi implements ServiceApi {
     const handleDataChange = async (
       assignmet: TableTypes<'assignment'> | undefined,
     ) => {
-      if (assignment) {
+      if (assignmet) {
         await this.executeQuery(
           `
           INSERT INTO assignment (id, created_by, starts_at,ends_at,is_class_wise,class_id,school_id,lesson_id,type,created_at,updated_at,is_deleted,chapter_id,course_id, source)
@@ -5445,7 +5445,7 @@ export class SqliteApi implements ServiceApi {
             assignmet.source,
           ],
         );
-        onDataChange(assignment);
+        onDataChange(assignmet);
       }
     };
 
@@ -5908,7 +5908,7 @@ export class SqliteApi implements ServiceApi {
     );
 
     return ApiDataProcessor.dataProcessorGetStudentClassesAndSchools(
-      res?.values ?? []
+      res?.values ?? [],
     );
   }
 
@@ -6481,25 +6481,25 @@ order by
   async getChapterByLessonID(
     lessonId: string,
     classId?: string,
-    userId?: string
-  ): Promise<TableTypes<"chapter"> | undefined> {
+    userId?: string,
+  ): Promise<TableTypes<'chapter'> | undefined> {
     try {
       const class_course = classId
         ? await this.getCoursesForClassStudent(classId)
-        : await this.getCoursesForParentsStudent(userId ?? "");
+        : await this.getCoursesForParentsStudent(userId ?? '');
       const res = await this._db?.query(
         `SELECT c.id, c.name, c.image, c.course_id, c.created_at, c.updated_at, c.is_deleted, c.sort_index, c.sub_topics
          FROM ${TABLES.ChapterLesson} cl
          JOIN ${TABLES.Chapter} c ON cl.chapter_id = c.id
-         WHERE cl.lesson_id = "${lessonId}"`
+         WHERE cl.lesson_id = "${lessonId}"`,
       );
       if (res?.values && res.values.length > 0) {
-        const chapterData = res.values[0] as TableTypes<"chapter">;
+        const chapterData = res.values[0] as TableTypes<'chapter'>;
         return chapterData;
       }
       return undefined;
     } catch (error) {
-      console.error("Error fetching chapter by IDs:", error);
+      console.error('Error fetching chapter by IDs:', error);
       return undefined;
     }
   }
@@ -7134,7 +7134,7 @@ order by
     try {
       const res = await this._db?.query(query);
       return ApiDataProcessor.dataProcessorGetAssignedStudents(
-        res?.values ?? []
+        res?.values ?? [],
       );
     } catch (error) {
       logger.error('Error fetching user IDs:', error);
@@ -8227,7 +8227,7 @@ order by
     }
   }
   createDeeplinkUser(): void | PromiseLike<void> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   async getSchoolsForAdmin(
     limit: number = 10,

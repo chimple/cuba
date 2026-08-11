@@ -1,6 +1,6 @@
-import User from '../../models/User';
-import Course from '../../models/Course';
-import Lesson from '../../models/Lesson';
+import User from '../../models/user';
+import Course from '../../models/course';
+import Lesson from '../../models/lesson';
 import { StudentLessonResult } from '../../common/courseConstants';
 import {
   CACHETABLES,
@@ -1698,7 +1698,7 @@ export interface ServiceApi {
 
   getChapterByLessonID(
     lessonId: string,
-  ): Promise<TableTypes<"chapter"> | undefined>;
+  ): Promise<TableTypes<'chapter'> | undefined>;
 
   /**
    * Get Assignments by classId and datewise

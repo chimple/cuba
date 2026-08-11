@@ -2,10 +2,10 @@ import { ServiceAuth, OneRosterUser } from './ServiceAuth';
 import { TableTypes } from '../../common/constants';
 import { Session, User, UserAttributes } from '@supabase/supabase-js';
 import { logAuthDebug } from '../../utility/authDebug';
-import { APIMode } from "../ServiceConfig";
-import { FirebaseAuth } from "./FirebaseAuth";
-import { SupabaseAuth } from "./SupabaseAuth";
-import { OneRosterAuth } from "./OneRosterAuth";
+import { APIMode } from '../ServiceConfig';
+import { FirebaseAuth } from './FirebaseAuth';
+import { SupabaseAuth } from './SupabaseAuth';
+import { OneRosterAuth } from './OneRosterAuth';
 
 export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
@@ -16,7 +16,7 @@ export class AuthHandler implements ServiceAuth {
     this.s = service;
   }
   refreshSession(): Promise<void> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   public static getInstance(service: ServiceAuth): AuthHandler {
@@ -137,13 +137,15 @@ export class AuthHandler implements ServiceAuth {
   }
 
   public switchMode(newMode: APIMode) {
-    console.debug(`[AuthHandler] switchMode called. Switching to ${APIMode[newMode]}`);
+    console.debug(
+      `[AuthHandler] switchMode called. Switching to ${APIMode[newMode]}`,
+    );
     switch (newMode) {
       case APIMode.FIREBASE:
         // this.s = FirebaseAuth.getInstance();
         break;
       case APIMode.ONEROSTER:
-        this.s = OneRosterAuth.getInstance();
+        this.s = OneRosterAuth.getInstance() as unknown as ServiceAuth;
         break;
       case APIMode.SUPABASE:
         this.s = SupabaseAuth.getInstance();

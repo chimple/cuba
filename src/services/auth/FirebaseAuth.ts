@@ -8,7 +8,7 @@ import {
   signInWithCustomToken,
   signInWithPhoneNumber,
 } from 'firebase/auth';
-import User from '../../models/User';
+import User from '../../models/user';
 import {
   Timestamp,
   doc,
@@ -28,22 +28,6 @@ import { ACTION, EVENTS, LANGUAGE, TableTypes } from '../../common/constants';
 import { ServiceConfig } from '../ServiceConfig';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { logAuthDebug } from '../../utility/authDebug';
-} from "firebase/firestore";
-import { RoleType } from "../../interface/modelInterfaces";
-import {
-  FirebaseAuthentication,
-  // SignInWithPhoneNumberResult,
-} from "@capacitor-firebase/authentication";
-// import { cfaSignIn } from "capacitor-firebase-auth-x";
-// import { FirebaseAuthentication } from "@awesome-cordova-plugins/firebase-authentication";
-// import { getFirebaseAuth } from "../Firebase";
-import { App } from "@capacitor/app";
-import { Util } from "../../utility/util";
-import { Capacitor } from "@capacitor/core";
-import { CollectionIds } from "../../common/courseConstants";
-import { CURRENT_STUDENT, ACTION, APP_URL_OPEN, EVENTS, LANGUAGE, TableTypes } from "../../common/constants";
-import { ServiceConfig } from "../ServiceConfig";
-import { getFunctions, httpsCallable } from "firebase/functions";
 
 export class FirebaseAuth implements ServiceAuth {
   public static i: FirebaseAuth;
@@ -52,7 +36,7 @@ export class FirebaseAuth implements ServiceAuth {
   private _db = getFirestore();
   private _auth = getAuth(); //FirebaseAuth.whichAuth();
 
-  private constructor() { }
+  private constructor() {}
 
   public static getInstance(): FirebaseAuth {
     if (!FirebaseAuth.i) {
@@ -178,7 +162,7 @@ export class FirebaseAuth implements ServiceAuth {
   }
 
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   private async _createUserDoc(user): Promise<User> {
@@ -261,7 +245,6 @@ export class FirebaseAuth implements ServiceAuth {
                 // await FirebaseAuthentication.addListener(
                 //   "authStateChange",
                 //   async (event) => {
-
 
                 //     resolve(event);
                 //   }
@@ -390,16 +373,12 @@ export class FirebaseAuth implements ServiceAuth {
 
       const u = await FirebaseAuthentication.getCurrentUser();
 
-
       // Success!
 
       // await FirebaseAuthentication.confirmVerificationCode({
       //   verificationId: result.verificationId,
       //   verificationCode,
       // });
-
-
-
 
       if (!res.user) {
         throw Error('Verification Failed');
@@ -462,8 +441,7 @@ export class FirebaseAuth implements ServiceAuth {
   }
 
   async isUserLoggedIn(): Promise<boolean> {
-    throw new Error("Method not implemented");
-
+    throw new Error('Method not implemented');
 
     // const user = await this.getCurrentUser();
 
@@ -504,19 +482,19 @@ export class FirebaseAuth implements ServiceAuth {
   }
 
   async refreshSession(): Promise<void> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   async doRefreshSession(): Promise<void> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   async signInWithEmail(email: string, password: string): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   async sendResetPasswordEmail(email: string): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   async updateUser(attributes: any): Promise<boolean> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   private updateUserFcm = async (userId: string) => {

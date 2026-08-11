@@ -10,6 +10,7 @@ import {
   LANGUAGE,
   LeaderboardDropdownList,
   CURRENT_MODE,
+  CURRENT_STUDENT,
   STAGES,
 } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
@@ -77,33 +78,10 @@ const mergeLeaderboardInfo = (
       ? fetchedData.allTime
       : cachedData.allTime,
 });
-  APP_URL_OPEN,
-} from "../common/constants";
-import { ServiceConfig } from "../services/ServiceConfig";
-import BackButton from "../components/common/BackButton";
-import { useHistory } from "react-router-dom";
-import Loading from "../components/Loading";
-import { IonCol, IonPage, IonRow } from "@ionic/react";
-import User from "../models/user";
-import React from "react";
-import { LeaderboardInfo } from "../services/api/ServiceApi";
-import { AppBar, Box, Tab, Tabs } from "@mui/material";
-import StudentProfile from "../models/studentProfile";
-import { t } from "i18next";
-import { Util } from "../utility/util";
-import i18n from "../i18n";
-import IconButton from "../components/IconButton";
-import { schoolUtil } from "../utility/schoolUtil";
-import DropDown from "../components/DropDown";
-import LeaderboardRewards from "../components/leaderboard/LeaderboardRewards";
-import SkeltonLoading from "../components/SkeltonLoading";
-import { AvatarObj } from "../components/animation/Avatar";
-import { App } from "@capacitor/app";
-import { school } from "../stories/school/SchoolClassSubjectsTab.stories";
-import { updateLocalAttributes, useGbContext } from "../growthbook/Growthbook";
+/*
 import DialogBoxButtons from "../components/parent/DialogBoxButtons​";
-import DebugMode from "../teachers-module/components/DebugMode";
 
+*/
 const Leaderboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [currentStudent, setCurrentStudent] = useState<TableTypes<'user'>>();
@@ -714,7 +692,7 @@ const Leaderboard: React.FC = () => {
             <div
               id="leaderboard-switch-user-button"
               onClick={async () => {
-                if(!Util.isRespectMode) {
+                if (!Util.isRespectMode) {
                   Util.setCurrentStudent(null);
                   localStorage.removeItem(CURRENT_STUDENT);
                 }

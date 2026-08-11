@@ -1,53 +1,38 @@
-import { SupabaseApi } from '../api/SupabaseApi';
-import { OneRosterUser, ServiceAuth } from './ServiceAuth';
-import { Database } from '../database';
+import { Capacitor } from '@capacitor/core';
+import { SocialLogin } from '@capgo/capacitor-social-login';
 import {
+  AuthChangeEvent,
+  AuthSession,
+  Session,
+  SupabaseClient,
+  User,
+  UserAttributes,
+} from '@supabase/supabase-js';
+import {
+  CURRENT_STUDENT,
   REFRESH_TABLES_ON_LOGIN,
-  BASE_NAME,
-  PAGES,
   TABLES,
   TableTypes,
-  USER_DATA,
-  CURRENT_STUDENT,
-  CURRENT_SCHOOL,
-  MODES,
-  SCHOOL_LOGIN,
-  PAGES,
-  USER_ROLE,
-} from "../../common/constants";
-import { SupabaseClient, UserAttributes } from "@supabase/supabase-js";
-import { APIMode, ServiceConfig } from "../ServiceConfig";
-import { SocialLogin } from "@capgo/capacitor-social-login";
-import { Util } from "../../utility/util";
-import { useOnlineOfflineErrorMessageHandler } from "../../common/onlineOfflineErrorMessageHandler";
-import { schoolUtil } from "../../utility/schoolUtil";
-import { OneRosterAuth } from "./OneRosterAuth";
 } from '../../common/constants';
 import {
-  SupabaseClient,
-  UserAttributes,
-  Session,
-  AuthSession,
-  User,
-  AuthChangeEvent,
-} from '@supabase/supabase-js';
-import { APIMode, ServiceConfig } from '../ServiceConfig';
-import { SocialLogin } from '@capgo/capacitor-social-login';
-import { ensureSocialLoginInitialized } from './SocialLoginInit';
-import { Util } from '../../utility/util';
-import { schoolUtil } from '../../utility/schoolUtil';
-import { Capacitor } from '@capacitor/core';
-import { store } from '../../redux/store';
-import {
   logout,
-  setRefreshToken,
   setIsOpsUser,
+  setRefreshToken,
   setRoles,
 } from '../../redux/slices/auth/authSlice';
+import { store } from '../../redux/store';
+import { logAuthDebug } from '../../utility/authDebug';
 import logger from '../../utility/logger';
 import { isRecoverableStorageError } from '../../utility/recoverableStorageError';
-import { logAuthDebug } from '../../utility/authDebug';
+import { schoolUtil } from '../../utility/schoolUtil';
 import { normalizeTcVersion } from '../../utility/termsAndConditions';
+import { Util } from '../../utility/util';
+import { SupabaseApi } from '../api/SupabaseApi';
+import { Database } from '../database';
+import { APIMode, ServiceConfig } from '../ServiceConfig';
+import { OneRosterAuth } from './OneRosterAuth';
+import { OneRosterUser, ServiceAuth } from './ServiceAuth';
+import { ensureSocialLoginInitialized } from './SocialLoginInit';
 import {
   clearWebGoogleLoginPending,
   markWebGoogleLoginPending,
@@ -72,9 +57,9 @@ export class SupabaseAuth implements ServiceAuth {
     'Password login completed without a Supabase session.';
   // private _auth = getAuth();
 
-  private constructor() { }
+  private constructor() {}
   refreshSession(): Promise<void> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
 
   public static getInstance(): SupabaseAuth {
@@ -364,17 +349,15 @@ export class SupabaseAuth implements ServiceAuth {
   }
 
   async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
-
-
     const serviceInstance = ServiceConfig.getInstance(APIMode.ONEROSTER);
-    serviceInstance.switchMode(APIMode.ONEROSTER)
-    console.log("Supabase Auth Loginwithrespect ", serviceInstance);
+    serviceInstance.switchMode(APIMode.ONEROSTER);
+    console.log('Supabase Auth Loginwithrespect ', serviceInstance);
     // root.render(
     //   <BrowserRouter>
     //     <App />
     //   </BrowserRouter>
     // );
-    return await OneRosterAuth.i.loginWithRespect()
+    return await OneRosterAuth.i.loginWithRespect();
   }
 
   async getCurrentUser(): Promise<TableTypes<'user'> | undefined> {

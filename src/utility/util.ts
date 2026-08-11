@@ -1,130 +1,133 @@
+import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
+import { InAppReview } from '@capacitor-community/in-app-review';
+import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
+import { FirebaseMessaging } from '@capacitor-firebase/messaging';
+import { URLOpenListenerEvent } from '@capacitor/app';
 import { Capacitor, CapacitorHttp, registerPlugin } from '@capacitor/core';
 import { Device } from '@capacitor/device';
 import { Directory, Encoding, Filesystem } from '@capacitor/filesystem';
-import { Toast } from '@capacitor/toast';
-import { unzip } from 'zip2';
-import {
-  CURRENT_STUDENT,
-  COURSES,
-  CURRENT_LESSON_LEVEL,
-  EVENTS,
-  FCM_TOKENS,
-  LANG,
-  LANGUAGE,
-  LAST_PERMISSION_CHECKED,
-  TableTypes,
-  LAST_UPDATE_CHECKED,
-  PAGES,
-  PortPlugin,
-  PRE_QUIZ,
-  SELECTED_GRADE,
-  RESPECT_GRADES,
-  IS_MIGRATION_CHECKED,
-  SOUND,
-  MUSIC,
-  MODES,
-  CONTINUE,
-  DOWNLOADED_LESSON_ID,
-  LAST_FUNCTION_CALL,
-  LeaderboardRewardsType,
-  unlockedRewardsInfo,
-  DOWNLOAD_LESSON_BATCH_SIZE,
-  MAX_DOWNLOAD_LESSON_ATTEMPTS,
-  LESSON_DOWNLOAD_SUCCESS_EVENT,
-  ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
-  CHAPTER_ID_LESSON_ID_MAP,
-  DOWNLOADING_CHAPTER_ID,
-  SCHOOL,
-  CLASS,
-  CURRENT_COURSE,
-  CLASS_OR_SCHOOL_CHANGE_EVENT,
-  NAVIGATION_STATE,
-  GAME_URL,
-  LOCAL_BUNDLES_PATH,
-  School_Creation_Stages,
-  HOMEHEADERLIST,
-  ASSIGNMENT_TYPE,
-  ASSIGNMENT_POPUP_SHOWN,
-  QUIZ_POPUP_SHOWN,
-  SCHOOL_LOGIN,
-  isRespectMode,
-  SHOULD_SHOW_REMOTE_ASSETS,
-  CHIMPLE_RIVE_STATE_MACHINE_MAX,
-  LOCAL_LESSON_BUNDLES_PATH,
-  DAILY_USER_REWARD,
-  IS_REWARD_FEATURE_ON,
-  REWARD_LEARNING_PATH,
-  HOMEWORK_PATHWAY,
-  STARS_COUNT,
-  LATEST_STARS,
-  CURRENT_CLASS,
-  RECOMMENDATION_TYPE,
-  LIDO_COMMON_AUDIO_DIR,
-  LEARNING_PATHWAY_MODE,
-  CURRENT_PATHWAY_MODE,
-  HOT_UPDATE_STATE_KEY,
-  LIDO_ASSESSMENT,
-  LATEST_LEARNING_PATH,
-  AUTO_OPEN_STICKER_PREVIEW_KEY,
-  AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
-  PENDING_PATHWAY_STICKER_REWARD_KEY,
-  STICKER_BOOK_COMPLETION_READY_EVENT,
-  CURRENT_STUDENT_CHANGED_EVENT,
-  DOWNLOADED_LESSONS_SIZE,
-} from '../common/constants';
-import {
-  Chapter as curriculamInterfaceChapter,
-  Course as curriculamInterfaceCourse,
-  Lesson as curriculamInterfaceLesson,
-} from '../interface/curriculumInterfaces';
-import { GUIDRef, RoleType } from '../interface/modelInterfaces';
-import { OneRosterApi } from '../services/api/OneRosterApi';
-import { APIMode, ServiceConfig } from '../services/ServiceConfig';
-import i18n from '../i18n';
-import { FirebaseMessaging } from '@capacitor-firebase/messaging';
-import { FirebaseAnalytics } from '@capacitor-community/firebase-analytics';
 import { Keyboard } from '@capacitor/keyboard';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { Toast } from '@capacitor/toast';
 import {
   AppUpdate,
   AppUpdateAvailability,
   AppUpdateResultCode,
 } from '@capawesome/capacitor-app-update';
-import { LocalNotifications } from '@capacitor/local-notifications';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import {
-  getBundleZipUrlsForEnv,
-  getLidoBundleZipUrlsForEnv,
-  REMOTE_CONFIG_KEYS,
-} from '../services/RemoteConfig';
-import { schoolUtil } from './schoolUtil';
-import { URLOpenListenerEvent } from '@capacitor/app';
-import { t } from 'i18next';
-import { FirebaseCrashlytics } from '@capacitor-firebase/crashlytics';
 import CryptoJS from 'crypto-js';
-import { InAppReview } from '@capacitor-community/in-app-review';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { t } from 'i18next';
+import { v4 as uuidv4 } from 'uuid';
+import { unzip } from 'zip2';
+import {
+  ALL_LESSON_DOWNLOAD_SUCCESS_EVENT,
+  ASSIGNMENT_POPUP_SHOWN,
+  ASSIGNMENT_TYPE,
+  AUTO_OPEN_STICKER_COMPLETION_POPUP_KEY,
+  AUTO_OPEN_STICKER_PREVIEW_KEY,
+  CHAPTER_ID_LESSON_ID_MAP,
+  CHIMPLE_RIVE_STATE_MACHINE_MAX,
+  CLASS,
+  CLASS_OR_SCHOOL_CHANGE_EVENT,
+  CONTINUE,
+  COURSES,
+  CURRENT_CLASS,
+  CURRENT_COURSE,
+  CURRENT_LESSON_LEVEL,
+  CURRENT_PATHWAY_MODE,
+  CURRENT_STUDENT,
+  CURRENT_STUDENT_CHANGED_EVENT,
+  DAILY_USER_REWARD,
+  DOWNLOAD_LESSON_BATCH_SIZE,
+  DOWNLOADED_LESSON_ID,
+  DOWNLOADED_LESSONS_SIZE,
+  DOWNLOADING_CHAPTER_ID,
+  EVENTS,
+  FCM_TOKENS,
+  GAME_URL,
+  HOMEHEADERLIST,
+  HOMEWORK_PATHWAY,
+  HOT_UPDATE_STATE_KEY,
+  IS_MIGRATION_CHECKED,
+  IS_REWARD_FEATURE_ON,
+  LANG,
+  LANGUAGE,
+  LAST_FUNCTION_CALL,
+  LAST_PERMISSION_CHECKED,
+  LAST_UPDATE_CHECKED,
+  LATEST_LEARNING_PATH,
+  LATEST_STARS,
+  LeaderboardRewardsType,
+  LEARNING_PATHWAY_MODE,
+  LESSON_DOWNLOAD_SUCCESS_EVENT,
+  LIDO_ASSESSMENT,
+  LIDO_COMMON_AUDIO_DIR,
+  LOCAL_BUNDLES_PATH,
+  LOCAL_LESSON_BUNDLES_PATH,
+  MODES,
+  MUSIC,
+  NAVIGATION_STATE,
+  PAGES,
+  PENDING_PATHWAY_STICKER_REWARD_KEY,
+  PortPlugin,
+  PRE_QUIZ,
+  QUIZ_POPUP_SHOWN,
+  RECOMMENDATION_TYPE,
+  REWARD_LEARNING_PATH,
+  SCHOOL,
+  School_Creation_Stages,
+  SCHOOL_LOGIN,
+  SELECTED_GRADE,
+  SHOULD_SHOW_REMOTE_ASSETS,
+  SOUND,
+  STARS_COUNT,
+  STICKER_BOOK_COMPLETION_READY_EVENT,
+  TableTypes,
+  unlockedRewardsInfo,
+} from '../common/constants';
 import { ASSIGNMENT_COMPLETED_IDS } from '../common/courseConstants';
 import { buildGlobalEventBaseContext } from '../common/eventBaseContext';
-import { v4 as uuidv4 } from 'uuid';
-import { getCachedGrowthBookFeatureValue } from '../growthbook/Growthbook';
-import { updateLocalAttributes } from '../growthbook/Growthbook';
+import type { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
+import {
+  getCachedGrowthBookFeatureValue,
+  updateLocalAttributes,
+} from '../growthbook/Growthbook';
+import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
 import {
   CoursePath,
   LessonNode,
   recommendNextLesson,
   shouldUseAssessment,
 } from '../hooks/useLearningPath';
-import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
-import { store } from '../redux/store';
+import i18n from '../i18n';
+import {
+  Chapter as curriculamInterfaceChapter,
+  Course as curriculamInterfaceCourse,
+  Lesson as curriculamInterfaceLesson,
+} from '../interface/curriculumInterfaces';
+import { GUIDRef, RoleType } from '../interface/modelInterfaces';
 import {
   addRole,
   setIsOpsUser,
   setRefreshToken,
   setUser,
 } from '../redux/slices/auth/authSlice';
-import logger from './logger';
-import type { StickerBookModalData } from '../components/learningPathway/StickerBookPreviewModal';
+import { store } from '../redux/store';
+import { OneRosterApi } from '../services/api/OneRosterApi';
+import {
+  getBundleZipUrlsForEnv,
+  getLidoBundleZipUrlsForEnv,
+  REMOTE_CONFIG_KEYS,
+} from '../services/RemoteConfig';
+import { APIMode, ServiceConfig } from '../services/ServiceConfig';
+import { runBackgroundWorkerTask } from '../workers/backgroundWorkerClient';
 import { AudioUtil } from './AudioUtil';
-import { replaceWithNavigationTarget } from '../helper/navigation/NavigationHandler';
+import logger from './logger';
+import { schoolUtil } from './schoolUtil';
+
+// Flag indicating Respect mode. Defined here to ensure it's available where imported.
+// Set to true when Respect mode is active; default false to preserve existing behavior.
+export const isRespectMode = false;
 
 type LessonBundleDownloadOptions = {
   lessonId: string;
@@ -206,11 +209,11 @@ export interface HotUpdateState {
 export class Util {
   public static port: PortPlugin;
   static TIME_LIMIT = 25 * 60;
-  static LAST_MODAL_SHOWN_KEY = "lastModalShown";
+  static LAST_MODAL_SHOWN_KEY = 'lastModalShown';
   static isDeepLink: boolean = false;
   // Always get respect mode from localStorage
   static get isRespectMode(): boolean {
-    return localStorage.getItem("isRespectMode") === "true";
+    return localStorage.getItem('isRespectMode') === 'true';
   }
   static isDeepLinkPending: boolean = false;
 
@@ -229,7 +232,6 @@ export class Util {
   //   });
   //   return _courses;
   // }
-  static LAST_MODAL_SHOWN_KEY = 'lastModalShown';
   private static lessonBundleDownloadQueue: Promise<void> = Promise.resolve();
   // Normalize GrowthBook attributes that may come as a scalar or array into a consistent array.
   public static normalizeGrowthbookArrayAttribute<T>(
@@ -303,8 +305,10 @@ export class Util {
     }
   }
 
-  public static async groupResultsByCourse(studentResults: TableTypes<"result">[]): Promise<Map<string, TableTypes<"result">[]>> {
-    const playedLessonsByCourse = new Map<string, TableTypes<"result">[]>();
+  public static async groupResultsByCourse(
+    studentResults: TableTypes<'result'>[],
+  ): Promise<Map<string, TableTypes<'result'>[]>> {
+    const playedLessonsByCourse = new Map<string, TableTypes<'result'>[]>();
 
     for (const result of studentResults) {
       const courseId = result.course_id;
@@ -315,16 +319,23 @@ export class Util {
         playedLessonsByCourse.get(courseId)?.push(result);
         console.log(`Added result to course ID: ${courseId}`);
       } else {
-        console.warn("Result has no course ID:", result);
+        console.warn('Result has no course ID:', result);
       }
     }
 
     // Sort the courses based on their sort_index
     const sortedEntries = await Promise.all(
-      Array.from(playedLessonsByCourse.entries()).map(async ([courseId, lessons]) => {
-        const currentCourse = await ServiceConfig.getI().apiHandler.getCourse(courseId);
-        return [courseId, lessons, currentCourse?.sort_index ?? Number.MAX_SAFE_INTEGER];
-      })
+      Array.from(playedLessonsByCourse.entries()).map(
+        async ([courseId, lessons]) => {
+          const currentCourse =
+            await ServiceConfig.getI().apiHandler.getCourse(courseId);
+          return [
+            courseId,
+            lessons,
+            currentCourse?.sort_index ?? Number.MAX_SAFE_INTEGER,
+          ];
+        },
+      ),
     );
 
     // Sort by sort_index
@@ -335,20 +346,26 @@ export class Util {
     });
 
     // Create a new sorted map
-    const sortedMap = new Map<string, TableTypes<"result">[]>(
-      sortedEntries.map(([courseId, lessons]) => [courseId, lessons] as [string, TableTypes<"result">[]]) // Ensure correct tuple type
+    const sortedMap = new Map<string, TableTypes<'result'>[]>(
+      sortedEntries.map(
+        ([courseId, lessons]) =>
+          [courseId, lessons] as [string, TableTypes<'result'>[]],
+      ), // Ensure correct tuple type
     );
 
     return sortedMap;
   }
 
-
-  public static getMostRecentResult(results: TableTypes<"result">[]): TableTypes<"result"> | undefined {
+  public static getMostRecentResult(
+    results: TableTypes<'result'>[],
+  ): TableTypes<'result'> | undefined {
     if (results.length === 0) return undefined;
 
     // Sort results by date to get the most recently played lesson
-    const sortedResults = results.sort((a, b) =>
-      new Date(b.updated_at ?? "").getTime() - new Date(a.updated_at ?? "").getTime()
+    const sortedResults = results.sort(
+      (a, b) =>
+        new Date(b.updated_at ?? '').getTime() -
+        new Date(a.updated_at ?? '').getTime(),
     );
 
     return sortedResults[0];
@@ -356,9 +373,9 @@ export class Util {
 
   public static async getNextLessonsForCourse(
     courseId: string,
-    lastPlayedLesson: TableTypes<"result">
-  ): Promise<TableTypes<"lesson">[]> {
-    const recommendations: TableTypes<"lesson">[] = [];
+    lastPlayedLesson: TableTypes<'result'>,
+  ): Promise<TableTypes<'lesson'>[]> {
+    const recommendations: TableTypes<'lesson'>[] = [];
 
     // Get all chapters for this course
     const api = ServiceConfig.getI().apiHandler;
@@ -367,14 +384,16 @@ export class Util {
     // Find which chapter contains the last played lesson
     let foundChapterIndex = -1;
     let lastPlayedLessonIndex = -1;
-    let foundLessons: TableTypes<"lesson">[] | undefined;
+    let foundLessons: TableTypes<'lesson'>[] | undefined;
 
     // Search for the lesson in all chapters
     for (let i = 0; i < chapters.length; i++) {
       const api = ServiceConfig.getI().apiHandler;
       const lessons = await api.getLessonsForChapter(chapters[i].id);
       if (lessons) {
-        const lessonIndex = lessons.findIndex(l => l.id === lastPlayedLesson.lesson_id);
+        const lessonIndex = lessons.findIndex(
+          (l) => l.id === lastPlayedLesson.lesson_id,
+        );
         if (lessonIndex !== -1) {
           foundChapterIndex = i;
           lastPlayedLessonIndex = lessonIndex;
@@ -386,7 +405,6 @@ export class Util {
 
     // If we found the chapter and lesson
     if (foundChapterIndex !== -1 && foundLessons) {
-
       // If there's a next lesson in the same chapter
       if (lastPlayedLessonIndex + 1 < foundLessons.length) {
         recommendations.push(foundLessons[lastPlayedLessonIndex + 1]);
@@ -395,7 +413,9 @@ export class Util {
       else if (foundChapterIndex + 1 < chapters.length) {
         // Try to get the first lesson from the next chapter
         const api = ServiceConfig.getI().apiHandler;
-        const nextChapterLessons = await api.getLessonsForChapter(chapters[foundChapterIndex + 1].id);
+        const nextChapterLessons = await api.getLessonsForChapter(
+          chapters[foundChapterIndex + 1].id,
+        );
         if (nextChapterLessons && nextChapterLessons.length > 0) {
           recommendations.push(nextChapterLessons[0]);
         }
@@ -408,12 +428,11 @@ export class Util {
     return recommendations;
   }
 
-
   public static async getRecommendationsForUnplayedCourses(
-    allCourses: TableTypes<"course">[],
-    playedCourseIds: Set<string>
-  ): Promise<TableTypes<"lesson">[]> {
-    const recommendations: TableTypes<"lesson">[] = [];
+    allCourses: TableTypes<'course'>[],
+    playedCourseIds: Set<string>,
+  ): Promise<TableTypes<'lesson'>[]> {
+    const recommendations: TableTypes<'lesson'>[] = [];
 
     for (const course of allCourses) {
       if (!playedCourseIds.has(course.id)) {
@@ -428,9 +447,9 @@ export class Util {
   }
 
   public static async getFirstLessonsFromAllCourses(
-    courses: TableTypes<"course">[]
-  ): Promise<TableTypes<"lesson">[]> {
-    const recommendations: TableTypes<"lesson">[] = [];
+    courses: TableTypes<'course'>[],
+  ): Promise<TableTypes<'lesson'>[]> {
+    const recommendations: TableTypes<'lesson'>[] = [];
 
     for (const course of courses) {
       const firstLesson = await this.getFirstLessonForCourse(course.id);
@@ -442,11 +461,15 @@ export class Util {
     return recommendations;
   }
 
-  public static async getFirstLessonForCourse(courseId: string): Promise<TableTypes<"lesson"> | undefined> {
+  public static async getFirstLessonForCourse(
+    courseId: string,
+  ): Promise<TableTypes<'lesson'> | undefined> {
     const api = ServiceConfig.getI().apiHandler;
     const chapters = await api.getChaptersForCourse(courseId);
     if (chapters && chapters.length > 0) {
-      const firstChapterLessons = await api.getLessonsForChapter(chapters[0].id);
+      const firstChapterLessons = await api.getLessonsForChapter(
+        chapters[0].id,
+      );
       if (firstChapterLessons && firstChapterLessons.length > 0) {
         return firstChapterLessons[0];
       }
@@ -535,23 +558,21 @@ export class Util {
     id?: string;
     courseCode?: string;
   }) {
-
     switch (true) {
       case subjectCode !== undefined && lessonCode !== undefined:
         return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${subjectCode}/${subjectCode}/res/icons/${lessonCode}.png`;
 
       case id !== undefined:
-        const chapterCode1 = id?.replace(/_.*/, "");
-        const chapterCode2 = id?.replace(/_/g, "");
+        const chapterCode1 = id?.replace(/_.*/, '');
+        const chapterCode2 = id?.replace(/_/g, '');
         return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${chapterCode1}/${chapterCode1}/res/icons/${chapterCode2}.png`;
 
       case courseCode !== undefined:
-        const code = courseCode?.split("_")[0];
+        const code = courseCode?.split('_')[0];
         return `https://media.githubusercontent.com/media/chimple/bahama/refs/heads/master/assets/courses/${code}/${code}/res/icons/${code}.png`;
 
       default:
-        return "assets/icons/DefaultIcon.png";
-
+        return 'assets/icons/DefaultIcon.png';
     }
   }
 
@@ -1110,7 +1131,9 @@ export class Util {
     }
   }
 
-  public static async lessonExistsInLocal(folderName: string): Promise<boolean> {
+  public static async lessonExistsInLocal(
+    folderName: string,
+  ): Promise<boolean> {
     try {
       await Filesystem.readdir({
         path: folderName,
@@ -1118,13 +1141,16 @@ export class Util {
       });
       return true;
     } catch (error: any) {
-      if (error.message?.includes('does not exist') || error.message?.includes('NOT_FOUND')) {
+      if (
+        error.message?.includes('does not exist') ||
+        error.message?.includes('NOT_FOUND')
+      ) {
         return false;
       }
       console.error('Error checking folder:', error);
       throw error;
     }
-  };
+  }
 
   public static async checkDownloadedLessonsFromLocal() {
     const storedLastRendered = localStorage.getItem(LAST_FUNCTION_CALL);
@@ -1292,7 +1318,7 @@ export class Util {
   ) {
     try {
       if (Util.isRespectMode) {
-        console.log("Respect mode enabled, skipping logEvent");
+        console.log('Respect mode enabled, skipping logEvent');
         return;
       }
       const baseContext = buildGlobalEventBaseContext();
@@ -1456,7 +1482,9 @@ export class Util {
         languageCode = langDoc.code ?? undefined;
       }
     }
-    const tempLangCode = (Util.isRespectMode ? student?.language_id : languageCode) ?? LANG.ENGLISH;
+    const tempLangCode =
+      (Util.isRespectMode ? student?.language_id : languageCode) ??
+      LANG.ENGLISH;
     if (!!langFlag) localStorage.setItem(LANGUAGE, tempLangCode);
     if (!!isStudent) await i18n.changeLanguage(tempLangCode);
   };
@@ -1829,7 +1857,7 @@ export class Util {
 
       let student = await Util.getCurrentStudent();
 
-      if(!student) {
+      if (!student) {
         const auth = ServiceConfig.getI().authHandler;
         const currUser = await auth.getCurrentUser();
         student = currUser;
@@ -2446,40 +2474,44 @@ export class Util {
     localStorage.setItem(GAME_URL, path);
   }
 
-  public static async loadJson(jsonPath) {
+  public static async loadJson(jsonPath: string | URL | Request) {
     let response = await fetch(jsonPath);
     // Check if the request was successful
     if (!response.ok) {
       throw new Error(
-        `Failed to load JSON. Status: ${response.status} ${response.statusText}`
+        `Failed to load JSON. Status: ${response.status} ${response.statusText}`,
       );
     }
 
     // Ensure the response is JSON before parsing
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
       // Log the response body to see what is actually being returned
       const text = await response.text();
-      console.error("Received unexpected response:", text);
+      console.error('Received unexpected response:', text);
       throw new Error(`Expected JSON but received: ${contentType}`);
     }
     const courseJson = await response.json();
-    return courseJson
+    return courseJson;
   }
 
   public static async checkRespectApp(): Promise<boolean> {
     try {
-      console.log("if (!Capacitor.isNativePlatform) return true", !!Capacitor.isNativePlatform, Capacitor.isNativePlatform);
+      console.log(
+        'if (!Capacitor.isNativePlatform) return true',
+        !!Capacitor.isNativePlatform,
+        Capacitor.isNativePlatform,
+      );
 
       // return true
-      if (!!Capacitor.isNativePlatform) return true
-      const PortPlugin = registerPlugin<any>("Port");
+      if (!!Capacitor.isNativePlatform) return true;
+      const PortPlugin = registerPlugin<any>('Port');
       const data = await PortPlugin.isAppInstalledCheck();
-      console.log("data isRespect data--> ", JSON.stringify(data));
-      localStorage.setItem(isRespectMode, data.isRespect);
+      console.log('data isRespect data--> ', JSON.stringify(data));
+      localStorage.setItem('isRespectMode', String(data.isRespect));
       return data.isRespect;
     } catch (error) {
-      console.log("error isRespect data--> ", JSON.stringify(error));
+      console.log('error isRespect data--> ', JSON.stringify(error));
       return false;
     }
   }

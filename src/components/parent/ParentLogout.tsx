@@ -66,9 +66,11 @@ const ParentLogout: React.FC<{}> = ({}) => {
         }}
         onYesButtonClicked={() => {
           setShowDialogBox(false);
-          localStorage.setItem("isRespectMode", "false");
-          ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(APIMode.SUPABASE);
-          console.log("Switched to Supabase mode on logout");
+          localStorage.setItem('isRespectMode', 'false');
+          ServiceConfig.getInstance(APIMode.SUPABASE).switchMode(
+            APIMode.SUPABASE,
+          );
+          console.log('Switched to Supabase mode on logout');
         }}
         onNoButtonClicked={onSignOut}
       />

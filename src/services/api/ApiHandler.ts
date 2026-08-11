@@ -37,8 +37,8 @@ import {
   SchoolVisitType,
 } from '../../common/constants';
 import { StudentLessonResult } from '../../common/courseConstants';
-import Course from '../../models/Course';
-import Lesson from '../../models/Lesson';
+import Course from '../../models/course';
+import Lesson from '../../models/lesson';
 import {
   FilteredSchoolsForSchoolListingOps,
   LeaderboardDropdownList,
@@ -1099,8 +1099,8 @@ export class ApiHandler implements ServiceApi {
     return this.s.getChapterIDByLessonID(lessonId, classId, userId);
   }
   getChapterByLessonID(
-    lessonId: string
-  ): Promise<TableTypes<"chapter"> | undefined> {
+    lessonId: string,
+  ): Promise<TableTypes<'chapter'> | undefined> {
     return this.s.getChapterByLessonID(lessonId);
   }
   createClass(

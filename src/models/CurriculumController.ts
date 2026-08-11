@@ -1,7 +1,7 @@
 import { Chapter, Course, Lesson } from '../interface/curriculumInterfaces';
 import { Util } from '../utility/util';
 import { COURSES, EXAM, MIN_PASS, PRE_QUIZ } from '../common/constants';
-import Result from './Result';
+import Result from './result';
 
 export default class CurriculumController {
   private static instance: CurriculumController;

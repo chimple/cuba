@@ -1,7 +1,7 @@
 //@ts-nocheck
 import { FC, useEffect, useState } from 'react';
-import Course from '../models/Course';
-import Lesson from '../models/Lesson';
+import Course from '../models/course';
+import Lesson from '../models/lesson';
 
 import { Chapter } from '../common/courseConstants';
 import { useHistory, useLocation } from 'react-router';

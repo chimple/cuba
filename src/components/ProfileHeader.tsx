@@ -67,7 +67,7 @@ const ProfileHeader: React.FC = () => {
         name={t('Sign Out')}
         iconSrc="assets/icons/SignOutIcon.svg"
         onClick={async () => {
-          if(!Util.isRespectMode) {
+          if (!Util.isRespectMode) {
             localStorage.removeItem(CURRENT_STUDENT);
           }
           const user = await auth.getCurrentUser();

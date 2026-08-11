@@ -22,11 +22,13 @@ import {
 import './Home.css';
 import HomeHeader from '../components/HomeHeader';
 import { useHistory, useLocation } from 'react-router';
+import { Splide, SplideSlide } from '@splidejs/react-splide';
 // Default theme
 import '@splidejs/react-splide/css';
 // or only core styles
 import '@splidejs/react-splide/css/core';
 import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Timestamp } from 'firebase/firestore';
 import { App } from '@capacitor/app';
@@ -489,9 +491,9 @@ const Home: FC = () => {
   }
 
   async function getRecommendeds(
-    subjectCode: string
-  ): Promise<TableTypes<"lesson">[] | undefined> {
-    let recommendationResult: TableTypes<"lesson">[] = [];
+    subjectCode: string,
+  ): Promise<HomeworkPathwayLesson[] | undefined> {
+    let recommendationResult: HomeworkPathwayLesson[] = [];
     setIsLoading(true);
     const currentStudent = await Util.getCurrentStudent();
 
@@ -510,7 +512,7 @@ const Home: FC = () => {
           let tempAllCourses = await api.getAllCourses();
           localData.allCourses = tempAllCourses || [];
         } catch (error) {
-          console.error("Error fetching courses:", error);
+          console.error('Error fetching courses:', error);
           localData.allCourses = [];
         }
       }
@@ -520,13 +522,15 @@ const Home: FC = () => {
         recommendationResult = assignments;
 
         // Get course recommendations safely
-        let tempRecommendations: TableTypes<"lesson">[] = [];
+        let tempRecommendations: HomeworkPathwayLesson[] = [];
         try {
           tempRecommendations =
-            (await getCourseRecommendationLessons(currentStudent, currClass)) ||
-            [];
+            (await api.getRecommendedLessons(
+              currentStudent.id,
+              currClass?.id,
+            )) || [];
         } catch (recError) {
-          console.error("Error fetching course recommendations:", recError);
+          console.error('Error fetching course recommendations:', recError);
         }
 
         // Combine recommendations
@@ -535,15 +539,17 @@ const Home: FC = () => {
         const lessonCourseMap: { [lessonId: string]: { course_id: string } } =
           {}; // Initialize the object
 
-        recommendationResult.forEach(async (lesson: any) => {
-          lessonCourseMap[lesson.id] = { course_id: lesson.course_id };
-          setRecommendedLessonCourseMap(lessonCourseMap);
+        recommendationResult.forEach((lesson: HomeworkPathwayLesson) => {
+          if (lesson.id && lesson.course_id) {
+            lessonCourseMap[lesson.id] = { course_id: lesson.course_id };
+          }
         });
+        setLessonCourseMap(lessonCourseMap);
         setDataCourse(recommendationResult);
         setIsLoading(false);
         return recommendationResult;
       } catch (error) {
-        console.error("Error fetching recommendation:", error);
+        console.error('Error fetching recommendation:', error);
         setIsLoading(false);
         return [];
       }
@@ -609,17 +615,17 @@ const Home: FC = () => {
         break;
       case HOMEHEADERLIST.PROFILE:
         console.log(
-          "is respect ",
+          'is respect ',
           Util.isRespectMode,
-          Util.isRespectMode ? PAGES.DISPLAY_STUDENT : PAGES.LEADERBOARD
+          Util.isRespectMode ? PAGES.DISPLAY_STUDENT : PAGES.LEADERBOARD,
         );
 
         Util.setPathToBackButton(
           Util.isRespectMode ? PAGES.DISPLAY_STUDENT : PAGES.LEADERBOARD,
-          history
+          history,
         );
-        const body = document.querySelector("body");
-        body?.style.removeProperty("background-image");
+        const body = document.querySelector('body');
+        body?.style.removeProperty('background-image');
         break;
       default:
         break;

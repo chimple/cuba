@@ -465,10 +465,7 @@ const SearchLesson: React.FC = () => {
 
     await Promise.all(
       lessonList.map(async (lesson) => {
-        const rawChapterId = await api.getChapterByLesson(
-          lesson.id,
-          currentClass?.id,
-        );
+        const rawChapterId = await api.getChapterByLessonID(lesson.id);
         if (!rawChapterId) return;
 
         const chapterId = String(rawChapterId);

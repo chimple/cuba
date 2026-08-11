@@ -7,7 +7,7 @@ import TeacherHeader from '../../components/TeachersStudentDisplay/TeacherHeader
 import ClassTabs from '../../components/TeachersStudentDisplay/ClassTabs';
 import CircularButton from '../../components/CircularButton';
 import UserImageWithName from '../../components/UserImageWithName';
-import User from '../../models/User';
+import User from '../../models/user';
 interface TeachersStudentDisplayProps {}
 const TeachersStudentDisplay: React.FC<TeachersStudentDisplayProps> = () => {
   const [tabIndex, setTabIndex] = useState(USERTYPES.TEACHERS);

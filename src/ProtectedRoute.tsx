@@ -4,7 +4,7 @@ import { Redirect, Route, RouteProps } from 'react-router-dom';
 import { PAGES } from './common/constants';
 import Loading from './components/Loading';
 import { ServiceConfig } from './services/ServiceConfig';
-import { logAuthDebug, TRIGGER_DEEPLINK } from './utility/authDebug';
+import { logAuthDebug } from './utility/authDebug';
 import { isRecoverableStorageError } from './utility/recoverableStorageError';
 
 type ProtectedRouteProps = RouteProps & {
@@ -22,17 +22,15 @@ export default function ProtectedRoute({
       cancelled: false,
     };
     void checkAuth(lifecycle);
+    // Listen for the "sendLaunch" event triggered by Java
+    document.addEventListener('sendLaunch', sendLaunch);
+
     return () => {
       lifecycle.cancelled = true;
       if (lifecycle.timeoutId !== undefined) {
         window.clearTimeout(lifecycle.timeoutId);
       }
-    };
-    // Listen for the "sendLaunch" event triggered by Java
-    document.addEventListener(TRIGGER_DEEPLINK, sendLaunch);
-
-    return () => {
-      document.removeEventListener(TRIGGER_DEEPLINK, sendLaunch);
+      document.removeEventListener('sendLaunch', sendLaunch);
     };
   }, []);
 
@@ -92,7 +90,7 @@ export default function ProtectedRoute({
   };
 
   const sendLaunch = async (event?: Event) => {
-    console.log("Calling received from Java:", event);
+    console.log('Calling received from Java:', event);
   };
 
   if (isAuth == null) return <Loading isLoading />;

@@ -62,8 +62,8 @@ import {
 import { Constants } from '../database'; // adjust the path as per your project
 import { StudentLessonResult } from '../../common/courseConstants';
 import { AvatarObj } from '../../components/animation/Avatar';
-import Course from '../../models/Course';
-import Lesson from '../../models/Lesson';
+import Course from '../../models/course';
+import Lesson from '../../models/lesson';
 import { isAssessmentBatchClosed } from '../assessment/assessmentBatchStatus.service';
 import {
   AssignmentCartData,
@@ -546,13 +546,19 @@ const pushLeaderboardRow = (leaderBoardList: LeaderboardInfo, result: any) => {
 
 export class SupabaseApi implements ServiceApi {
   createDeeplinkUser(): void | PromiseLike<void> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
-  getChapterIDByLessonID(lessonId: string, classId?: string, userId?: string): Promise<String | undefined> {
-    throw new Error("Method not implemented.");
+  getChapterIDByLessonID(
+    lessonId: string,
+    classId?: string,
+    userId?: string,
+  ): Promise<String | undefined> {
+    throw new Error('Method not implemented.');
   }
-  getChapterByLessonID(lessonId: string): Promise<TableTypes<"chapter"> | undefined> {
-    throw new Error("Method not implemented.");
+  getChapterByLessonID(
+    lessonId: string,
+  ): Promise<TableTypes<'chapter'> | undefined> {
+    throw new Error('Method not implemented.');
   }
   private _assignmetRealTime?: RealtimeChannel;
   private _assignmentUserRealTime?: RealtimeChannel;

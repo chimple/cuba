@@ -115,32 +115,6 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       logger.error('Failed to load profile data:', error);
     }
   };
-  const onEdit = () => {
-    history.replace(PAGES.EDIT_STUDENT, { from: history.location.pathname });
-
-  const currentHeader = HOMEHEADERLIST.PROFILE;
-  let menuItems = [
-      { icon: "/assets/icons/Ranking.svg", label: "Leaderboard", onClick: () => onLeaderboard() },
-      { icon: "/assets/icons/TreasureChest.svg", label: "Rewards", onClick: () => onReward() },
-      { icon: "/assets/icons/Pencil.svg", label: "Edit Profile", onClick: () => onEdit() },
-      { icon: "/assets/icons/Account.svg", label: "Parents Section", onClick: () => setShowDialogBox(true) },
-      { icon: "/assets/icons/UserSwitch1.svg", label: "Switch Profile", onClick: () => onSwichUser() },
-    ];
-
-  const menuItemsForRespectMode = [
-    { icon: "/assets/icons/Account.svg", label: "Parents Section", onClick: () => setShowDialogBox(true) },
-    { icon: "/assets/icons/UserSwitch1.svg", label: "Switch Profile", onClick: () => onSwichUser() },
-  ];
-
-  const visibleMenuItems = Util.isRespectMode
-    ? menuItemsForRespectMode
-    : menuItems;
-
-  useEffect(() => {
-    const student = Util.getCurrentStudent();
-    setStudent(student);
-  }, []);
-
   const onEdit = async () => {
     if (Util.isRespectMode) return;
     history.replace(PAGES.EDIT_STUDENT, {
@@ -357,7 +331,7 @@ const ProfileMenu = ({ onClose }: ProfileMenuProps) => {
       </div>
 
       <div className="profile-menu-list">
-        {visibleMenuItems.map((item, index) => (
+        {menuItems.map((item, index) => (
           <div key={index} className="profile-menu-item" onClick={item.onClick}>
             <div className="profile-menu-item-row">
               <img

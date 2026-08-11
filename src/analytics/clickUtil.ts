@@ -2,7 +2,7 @@ import { Util } from '../utility/util';
 import { EVENTS, PAGES } from '../common/constants';
 import { RoleType } from '../interface/modelInterfaces';
 import { SupabaseAuth } from '../services/auth/SupabaseAuth';
-import { ServiceConfig } from "../services/ServiceConfig";
+import { ServiceConfig } from '../services/ServiceConfig';
 
 const storedStudent: {
   id?: string;

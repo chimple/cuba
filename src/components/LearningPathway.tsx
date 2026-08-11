@@ -13,8 +13,11 @@ import {
   TableTypes,
   LEARNING_PATHWAY_MODE,
   CURRENT_PATHWAY_MODE,
+  EVENTS,
 } from '../common/constants';
 import { useGrowthBook } from '@growthbook/growthbook-react';
+import { v4 as uuidv4 } from 'uuid';
+import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import {
   consolidatePalEnabledCourses,
   sortCoursesByStudentLanguage,
@@ -27,6 +30,7 @@ const LearningPathway: React.FC = () => {
   const [from, setFrom] = useState<number>(0);
   const [to, setTo] = useState<number>(0);
   const gb = useGrowthBook();
+  const { setGbUpdated } = useGbContext();
 
   const [loading, setLoading] = useState<boolean>(false);
   const [mode, setMode] = useState<string>(LEARNING_PATHWAY_MODE.DISABLED);
@@ -145,17 +149,18 @@ const LearningPathway: React.FC = () => {
   }, [student?.id, isModeResolved, mode]);
 
   const updateStarCount = async (currentStudent: TableTypes<'user'>) => {
-
     if (Util.isRespectMode) {
-    await api.updateStudentStars(currentStudent.id, 0); // This will update LATEST_STARS
-    // Now read from LATEST_STARS
-    const latestStarsJson = localStorage.getItem(LATEST_STARS);
-    const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
-    const totalStars = parseInt(latestStarsMap[currentStudent.id] || "0", 10);
-    setFrom(totalStars);
-    setTo(totalStars);
-    return totalStars;
-  }
+      await api.updateStudentStars(currentStudent.id, 0); // This will update LATEST_STARS
+      // Now read from LATEST_STARS
+      const latestStarsJson = localStorage.getItem(
+        LATEST_STARS(currentStudent.id),
+      );
+      const latestStarsMap = latestStarsJson ? JSON.parse(latestStarsJson) : {};
+      const totalStars = parseInt(latestStarsMap[currentStudent.id] || '0', 10);
+      setFrom(totalStars);
+      setTo(totalStars);
+      return totalStars;
+    }
 
     const storedStarsJson = localStorage.getItem(STARS_COUNT);
     const storedStarsMap = storedStarsJson ? JSON.parse(storedStarsJson) : {};
@@ -212,20 +217,22 @@ const LearningPathway: React.FC = () => {
       } else {
         const updated = await updateLearningPathIfNeeded(
           learningPath,
-          userCourses
+          userCourses,
         );
 
         let learning_path_completed: { [key: string]: number } = {};
-        learningPath.courses.courseList.forEach((course) => {
-          const { subject_id, currentIndex } = course;
-          if (subject_id && currentIndex !== undefined) {
-            learning_path_completed[`${subject_id}_path_completed`] =
-              currentIndex;
-          }
-        });
+        learningPath.courses.courseList.forEach(
+          (course: { subject_id: string | null; currentIndex?: number }) => {
+            const { subject_id, currentIndex } = course;
+            if (subject_id && currentIndex !== undefined) {
+              learning_path_completed[`${subject_id}_path_completed`] =
+                currentIndex;
+            }
+          },
+        );
         updateLocalAttributes({ learning_path_completed });
         setGbUpdated(true);
-        
+
         if (updated) {
           learningPath = await buildInitialLearningPath(userCourses);
           await saveLearningPath(student, learningPath);
@@ -233,13 +240,13 @@ const LearningPathway: React.FC = () => {
         if (Util.isRespectMode) setPathwayReady(true);
       }
     } catch (error) {
-      console.error("Error in Learning Pathway", error);
+      console.error('Error in Learning Pathway', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const buildInitialLearningPath = async (courses: any[]) => {
+  const buildInitialLearningPath = async (courses: TableTypes<'course'>[]) => {
     const courseList = await Promise.all(
       courses.map(async (course) => ({
         path_id: uuidv4(),
@@ -249,7 +256,7 @@ const LearningPathway: React.FC = () => {
         startIndex: 0,
         currentIndex: 0,
         pathEndIndex: 4,
-      }))
+      })),
     );
 
     return {
@@ -262,7 +269,7 @@ const LearningPathway: React.FC = () => {
 
   const updateLearningPathIfNeeded = async (
     learningPath: any,
-    userCourses: any[]
+    userCourses: TableTypes<'course'>[],
   ) => {
     const oldCourseList = learningPath.courses?.courseList || [];
 
@@ -270,11 +277,13 @@ const LearningPathway: React.FC = () => {
     const isSameLengthAndOrder =
       oldCourseList.length === userCourses.length &&
       userCourses.every(
-        (course, index) => course.id === oldCourseList[index]?.course_id
+        (course, index) => course.id === oldCourseList[index]?.course_id,
       );
 
     // Check if any course is missing path_id
-    const isPathIdMissing = oldCourseList.some((course) => !course.path_id);
+    const isPathIdMissing = oldCourseList.some(
+      (course: { path_id?: string }) => !course.path_id,
+    );
 
     if (isSameLengthAndOrder && !isPathIdMissing) {
       return false; // No need to rebuild
@@ -285,8 +294,8 @@ const LearningPathway: React.FC = () => {
     learningPath.courses.courseList = newLearningPath.courses.courseList;
 
     // Dispatch event to notify that course has changed
-    const event = new CustomEvent("courseChanged", {
-      detail: { currentStudent },
+    const event = new CustomEvent('courseChanged', {
+      detail: { currentStudent: student },
     });
     window.dispatchEvent(event);
 
@@ -302,7 +311,7 @@ const LearningPathway: React.FC = () => {
           lesson_id: lesson.id,
           chapter_id: chapter.id,
         }));
-      })
+      }),
     );
     return lessons.flat();
   };
@@ -312,7 +321,7 @@ const LearningPathway: React.FC = () => {
     await api.updateLearningPath(student, pathStr);
     await Util.setCurrentStudent(
       { ...student, learning_path: pathStr },
-      undefined
+      undefined,
     );
 
     const currentCourse =
@@ -321,7 +330,7 @@ const LearningPathway: React.FC = () => {
 
     const LessonSlice = currentPath.slice(
       currentCourse.startIndex,
-      currentCourse.pathEndIndex + 1
+      currentCourse.pathEndIndex + 1,
     );
 
     // Extract lesson IDs
@@ -348,7 +357,7 @@ const LearningPathway: React.FC = () => {
     };
     await Util.logEvent(EVENTS.PATHWAY_CREATED, eventData);
   };
-   if (loading || (Util.isRespectMode && !pathwayReady)) {
+  if (loading || (Util.isRespectMode && !pathwayReady)) {
     return <Loading isLoading={loading} msg="Loading Lessons" />;
   }
   if (loading) return <Loading isLoading={true} />;

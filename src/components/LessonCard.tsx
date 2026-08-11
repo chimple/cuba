@@ -285,7 +285,7 @@ const LessonCard: React.FC<{
                   lesson.cocos_subject_code +
                   '/icons/' +
                   (Util.isRespectMode ? lesson.cocos_lesson_id : lesson.id) +
-                  (Util.isRespectMode ? ".png" : '.webp')
+                  (Util.isRespectMode ? '.png' : '.webp')
                 }
                 defaultSrc={'assets/icons/DefaultIcon.png'}
                 webSrc={lesson.image || 'assets/icons/DefaultIcon.png'}

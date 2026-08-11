@@ -1,28 +1,30 @@
-import { OneRosterUser, ServiceAuth } from "./ServiceAuth";
-import { ServiceAuth } from './ServiceAuth';
+import { OneRosterUser, ServiceAuth } from './ServiceAuth';
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
-import { TableTypes } from '../../common/constants';
-import { UserAttributes } from '@supabase/supabase-js';
-import { CURRENT_STUDENT, CURRENT_USER, isRespectMode, LANGUAGE, TableTypes, LATEST_STARS, STUDENT_LESSON_SCORES } from "../../common/constants";
-import { Capacitor, registerPlugin } from "@capacitor/core";
-import { Util } from "../../utility/util";
-import i18n from "../../i18n";
-import { ConfirmationResult } from "@firebase/auth";
-import { Database } from "../database";
-import { UserAttributes } from "@supabase/supabase-js";
-import { ServiceConfig, APIMode } from "../ServiceConfig";
-import { SupabaseAuth } from "./SupabaseAuth";
-import { AuthHandler } from "./AuthHandler";
-import { SqliteApi } from "../api/SqliteApi";
+import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Session, User, UserAttributes } from '@supabase/supabase-js';
+import {
+  CURRENT_STUDENT,
+  LANGUAGE,
+  LATEST_STARS,
+  STUDENT_LESSON_SCORES,
+  TableTypes,
+  isRespectMode,
+} from '../../common/constants';
+import i18n from '../../i18n';
+import { Util } from '../../utility/util';
+import { SqliteApi } from '../api/SqliteApi';
+import { APIMode, ServiceConfig } from '../ServiceConfig';
+import { AuthHandler } from './AuthHandler';
+import { SupabaseAuth } from './SupabaseAuth';
 
 export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
-  private _currentUser: TableTypes<"user"> | undefined;
+  private _currentUser: TableTypes<'user'> | undefined;
 
-  private static NativeSSOPlugin = registerPlugin("NativeSSOPlugin");
-  private constructor() { }
+  private static NativeSSOPlugin = registerPlugin('NativeSSOPlugin');
+  private constructor() {}
   refreshSession(): Promise<void> {
-    throw new Error("Method not implemented.");
+    throw new Error('Method not implemented.');
   }
   loginWithEmailAndPassword(
     email: string,
@@ -41,7 +43,11 @@ export class OneRosterAuth implements ServiceAuth {
         }
         const urlObj = new URL(result.url);
         const params = new URLSearchParams(urlObj.search);
-        const json = {} as OneRosterUser;
+        const json = {} as OneRosterUser &
+          Record<
+            string,
+            string | number | OneRosterUser['auth'] | OneRosterUser['actor']
+          >;
 
         params.forEach((value, key) => {
           try {
@@ -57,18 +63,18 @@ export class OneRosterAuth implements ServiceAuth {
       } else {
         const mockWebResult = {
           respectLaunchVersion: 1.1,
-          auth: ["OAuth2", "SSO"],
-          given_name: "John Doe",
-          locale: "en-US",
-          http_proxy: "http://proxy.example.com",
-          endpoint_lti_ags: "https://lti.example.com/ags",
-          endpoint: "https://api.example.com",
+          auth: ['OAuth2', 'SSO'],
+          given_name: 'John Doe',
+          locale: 'en-US',
+          http_proxy: 'http://proxy.example.com',
+          endpoint_lti_ags: 'https://lti.example.com/ags',
+          endpoint: 'https://api.example.com',
           actor: {
-            name: ["John Doe"],
-            mbox: ["mailto:johndoe@example.com"],
+            name: ['John Doe'],
+            mbox: ['mailto:johndoe@example.com'],
           },
-          registration: "reg-12345",
-          activity_id: "activity-67890",
+          registration: 'reg-12345',
+          activity_id: 'activity-67890',
         };
 
         // this._currentUser = mockWebResult;
@@ -80,9 +86,10 @@ export class OneRosterAuth implements ServiceAuth {
   }
 
   async logOut(): Promise<void> {
-    localStorage.removeItem(CURRENT_USER)
     localStorage.removeItem(isRespectMode);
-    localStorage.removeItem(LATEST_STARS);
+    if (this._currentUser?.id) {
+      localStorage.removeItem(LATEST_STARS(this._currentUser.id));
+    }
     localStorage.removeItem(STUDENT_LESSON_SCORES);
     ServiceConfig.getI().switchMode(APIMode.SQLITE);
     this._currentUser = undefined;
@@ -91,11 +98,11 @@ export class OneRosterAuth implements ServiceAuth {
 
   async isUserLoggedIn(): Promise<boolean> {
     console.log(
-      "OneRosterAuth ~ isUserLoggedIn ~ this._currentUser",
-      this._currentUser
+      'OneRosterAuth ~ isUserLoggedIn ~ this._currentUser',
+      this._currentUser,
     );
     if (this._currentUser) return true;
-    const isUser = localStorage.getItem(CURRENT_USER);
+    const isUser = localStorage.getItem(CURRENT_STUDENT);
     return !!isUser;
   }
 
@@ -106,17 +113,17 @@ export class OneRosterAuth implements ServiceAuth {
     return OneRosterAuth.i;
   }
 
-  public set currentUser(user: TableTypes<"user">) {
+  public set currentUser(user: TableTypes<'user'>) {
     this._currentUser = user;
   }
 
   async googleSign(): Promise<any> {
-    localStorage.setItem("isRespectMode", "false");
+    localStorage.setItem(isRespectMode, 'false');
     AuthHandler.i.switchMode(APIMode.SUPABASE);
     await SqliteApi.getInstance();
     const serviceInstance = ServiceConfig.getInstance(APIMode.SQLITE);
-    serviceInstance.switchMode(APIMode.SQLITE)
-    console.log("Supabase Auth Loginwithrespect ", serviceInstance);
+    serviceInstance.switchMode(APIMode.SQLITE);
+    console.log('Supabase Auth Loginwithrespect ', serviceInstance);
     // root.render(
     //   <BrowserRouter>
     //     <App />
@@ -144,35 +151,35 @@ export class OneRosterAuth implements ServiceAuth {
     throw new Error('Method not implemented.');
   }
 
-  async getCurrentUser(): Promise<TableTypes<"user"> | undefined> {
-    const isUser = localStorage.getItem(CURRENT_USER);
+  async getCurrentUser(): Promise<TableTypes<'user'> | undefined> {
+    const isUser = localStorage.getItem(CURRENT_STUDENT);
     const {
-      actor = { mbox: ["mailto:johndoe@example.com"] },
-      registration = "reg-12345",
-      given_name = "John",
+      actor = { mbox: ['mailto:johndoe@example.com'] },
+      registration = 'reg-12345',
+      given_name = 'John',
     } = isUser ? JSON.parse(isUser) : {};
-    let appLang = localStorage.getItem(LANGUAGE) ?? 'en'
+    let appLang = localStorage.getItem(LANGUAGE) ?? 'en';
     await i18n.changeLanguage(appLang);
-    console.log("let appLang = ", LANGUAGE, appLang);
+    console.log('let appLang = ', LANGUAGE, appLang);
 
-    const user: TableTypes<"user"> = {
+    const user: TableTypes<'user'> = {
       age: null,
-      avatar: "Aligator",
-      created_at: "null",
-      curriculum_id: "7d560737-746a-4931-a49f-02de1ca526bd",
+      avatar: 'Aligator',
+      created_at: 'null',
+      curriculum_id: '7d560737-746a-4931-a49f-02de1ca526bd',
       email: actor.mbox[0],
       fcm_token: null,
-      gender: "male",
-      grade_id: "c802dce7-0840-4baf-b374-ef6cb4272a76",
+      gender: 'male',
+      grade_id: 'c802dce7-0840-4baf-b374-ef6cb4272a76',
       id: registration,
       image: null,
       is_deleted: null,
       is_tc_accepted: true,
       language_id: appLang,
-      music_off: (Util.getCurrentMusic() === 0),
+      music_off: Util.getCurrentMusic() === 0,
       name: given_name,
       phone: null,
-      sfx_off: (Util.getCurrentSound() === 0),
+      sfx_off: Util.getCurrentSound() === 0,
       student_id: registration,
       updated_at: null,
       learning_path: Util.getCurrentStudent()?.learning_path || null,
@@ -181,7 +188,10 @@ export class OneRosterAuth implements ServiceAuth {
       is_ops: null,
       ops_created_by: null,
       stars: null,
-      reward: null
+      reward: null,
+      is_wa_contact: null,
+      locale_id: null,
+      tc_agreed_version: 0,
     };
     return Promise.resolve(user);
   }
@@ -202,5 +212,16 @@ export class OneRosterAuth implements ServiceAuth {
 
   updateUser(attributes: UserAttributes): Promise<boolean> {
     throw new Error('Method not implemented.');
+  }
+
+  async getUser(): Promise<{ data: { user: User | null }; error: unknown }> {
+    return { data: { user: null }, error: null };
+  }
+
+  async getSession(): Promise<{
+    data: { session: Session | null };
+    error: unknown;
+  }> {
+    return { data: { session: null }, error: null };
   }
 }
