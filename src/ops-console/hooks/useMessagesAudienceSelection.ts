@@ -184,10 +184,7 @@ export const useMessagesAudienceSelection = () => {
         ? current
         : nextSchools;
     });
-  }, [
-    hasCustomSchoolSelection,
-    schoolsForSelectedBlocks,
-  ]);
+  }, [hasCustomSchoolSelection, schoolsForSelectedBlocks]);
 
   const allSchoolIds = useMemo(
     () => audienceOptions.schools.map((school) => school.id),

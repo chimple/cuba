@@ -144,7 +144,9 @@ export const MessagesTargetAudienceSection: React.FC<
             <FormControl fullWidth>
               <Select
                 value={audience.programModel}
-                onChange={(event) => audience.setProgramModel(event.target.value)}
+                onChange={(event) =>
+                  audience.setProgramModel(event.target.value)
+                }
                 displayEmpty
                 renderValue={(value) =>
                   CampaignSelectPlaceholder(
