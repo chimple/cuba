@@ -29,6 +29,7 @@ export type CampaignNotificationPayload = {
   gradeIds: string[];
   isAllSchools: boolean;
   isAllGrades: boolean;
+  savedAudienceGroupId?: string | null;
   deliveryMode: CampaignNotificationDeliveryMode;
   startDate?: string | null;
   sendTime?: string | null;

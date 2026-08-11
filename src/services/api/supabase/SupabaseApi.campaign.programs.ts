@@ -366,59 +366,75 @@ export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
       data: { user },
     } = await this.supabase.auth.getUser();
 
-    // Materialise the ad-hoc audience selection into a campaign_target_audience row.
-    const { data: audienceRow, error: audienceError } = await this.supabase
-      .from('campaign_target_audience')
-      .insert({
-        name: null,
-        program_id: payload.programId,
-        is_all_schools: payload.isAllSchools,
-        is_all_grades: payload.isAllGrades,
-        is_saved: false,
-        created_by: user?.id ?? null,
-      })
-      .select('id')
-      .single();
+    const targetAudienceId = String(payload.savedAudienceGroupId ?? '');
+    const shouldCreateAudience = targetAudienceId.length === 0;
 
-    if (audienceError) {
-      logger.error(
-        'Error creating campaign notification audience:',
-        audienceError,
-      );
-      throw audienceError;
+    let audienceId = targetAudienceId;
+    if (shouldCreateAudience) {
+      // Materialise only ad-hoc audiences into a campaign_target_audience row.
+      const { data: audienceRow, error: audienceError } = await this.supabase
+        .from('campaign_target_audience')
+        .insert({
+          name: null,
+          program_id: payload.programId,
+          is_all_schools: payload.isAllSchools,
+          is_all_grades: payload.isAllGrades,
+          is_saved: false,
+          created_by: user?.id ?? null,
+        })
+        .select('id')
+        .single();
+
+      if (audienceError) {
+        logger.error(
+          'Error creating campaign notification audience:',
+          audienceError,
+        );
+        throw audienceError;
+      }
+
+      audienceId = String(audienceRow.id);
     }
 
-    const targetAudienceId = String(audienceRow.id);
-
     try {
-      if (!payload.isAllSchools && payload.schoolIds.length > 0) {
+      if (
+        shouldCreateAudience &&
+        !payload.isAllSchools &&
+        payload.schoolIds.length > 0
+      ) {
         const { error: schoolError } = await this.supabase
           .from('campaign_target_audience_school')
           .insert(
             payload.schoolIds.map((schoolId) => ({
-              target_audience_id: targetAudienceId,
+              target_audience_id: audienceId,
               school_id: schoolId,
             })),
           );
         if (schoolError) throw schoolError;
       }
 
-      if (!payload.isAllGrades && payload.gradeIds.length > 0) {
+      if (
+        shouldCreateAudience &&
+        !payload.isAllGrades &&
+        payload.gradeIds.length > 0
+      ) {
         const { error: gradeError } = await this.supabase
           .from('campaign_target_audience_grade')
           .insert(
             payload.gradeIds.map((gradeId) => ({
-              target_audience_id: targetAudienceId,
+              target_audience_id: audienceId,
               grade_id: gradeId,
             })),
           );
         if (gradeError) throw gradeError;
       }
     } catch (error) {
-      await this.supabase
-        .from('campaign_target_audience')
-        .update({ is_deleted: true })
-        .eq('id', targetAudienceId);
+      if (shouldCreateAudience) {
+        await this.supabase
+          .from('campaign_target_audience')
+          .update({ is_deleted: true })
+          .eq('id', audienceId);
+      }
       throw error;
     }
 
@@ -450,7 +466,7 @@ export class SupabaseApiCampaignPrograms extends SupabaseApiOpsLearningPath {
       target_type: payload.activityRecency,
       image_url: payload.imageUrl?.trim() || null,
       program_id: payload.programId,
-      target_audience: targetAudienceId,
+      target_audience: audienceId,
       send_date: isSendNow ? currentDateString : (payload.startDate ?? null),
       send_time: isSendNow ? currentTimeString : (payload.sendTime ?? null),
       end_date:

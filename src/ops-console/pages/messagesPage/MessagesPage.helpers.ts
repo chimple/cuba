@@ -195,6 +195,7 @@ export const buildCampaignNotificationPayload = async ({
     programModel: string;
     userType: 'principal' | 'teacher' | 'student';
     activityRecency: 'all' | 'active_7days' | 'inactive_7days';
+    selectedSavedGroupId?: string;
     isAllSchools: boolean;
     selectedSchools: Array<{ id: string }>;
     isAllGrades: boolean;
@@ -247,6 +248,7 @@ export const buildCampaignNotificationPayload = async ({
     activityRecency: audience.activityRecency,
     imageUrl: uploadedImageUrl,
     programId: audience.programId,
+    savedAudienceGroupId: audience.selectedSavedGroupId ?? null,
     schoolIds: audience.isAllSchools
       ? []
       : audience.selectedSchools.map((school) => school.id),
