@@ -47,7 +47,7 @@ import {
   COURSE_LESSONS,
 } from '../../common/constants';
 import { RoleType } from '../../interface/modelInterfaces';
-import User from '../../models/user';
+import User from '../../models/User';
 import { ServiceConfig } from '../ServiceConfig';
 import Curriculum from '../../models/Curriculum';
 import Grade from '../../models/Grade';
@@ -57,15 +57,15 @@ import {
   CollectionIds,
   StudentLessonResult,
 } from '../../common/courseConstants';
-import Course from '../../models/course';
-import Lesson from '../../models/lesson';
-import Result from '../../models/result';
+import Course from '../../models/Course';
+import Lesson from '../../models/Lesson';
+import Result from '../../models/Result';
 import Subject from '../../models/Subject';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import StudentProfile from '../../models/StudentProfile';
-import Class from '../../models/class';
+import Class from '../../models/Class';
 import School from '../../models/School';
-import Assignment from '../../models/assignment';
+import Assignment from '../../models/Assignment';
 import { AvatarObj } from '../../components/animation/Avatar';
 import Badge from '../../models/Badge';
 import Rewards from '../../models/Rewards';

@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import LiveQuizHeader from './LiveQuizHeader';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
-import { LIVE_QUIZ_QUESTION_TIME } from '../../models/liveQuiz';
+import { LIVE_QUIZ_QUESTION_TIME } from '../../models/LiveQuiz';
 import { PAGES } from '../../common/constants';
 
 const mockReplace = jest.fn();
