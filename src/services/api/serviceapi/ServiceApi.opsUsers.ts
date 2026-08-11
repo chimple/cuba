@@ -47,6 +47,7 @@ export interface ServiceApiOpsUsers {
     classId: string,
     page: number,
     limit: number,
+    excludeStudentId?: string,
   ): Promise<StudentAPIResponse>;
 
   getStudentAndParentByStudentId(
@@ -176,6 +177,7 @@ export interface ServiceApiOpsUsers {
     limit?: number,
     classId?: string,
     classIds?: string[],
+    excludeStudentId?: string,
   ): Promise<StudentAPIResponse>;
 
   approveOpsRequest(

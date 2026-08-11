@@ -63,8 +63,14 @@ export class ApiHandlerOpsUsers extends ApiHandlerCampaigns {
     classId: string,
     page: number,
     limit: number,
+    excludeStudentId?: string,
   ): Promise<StudentAPIResponse> {
-    return await this.s.getStudentsAndParentsByClassId(classId, page, limit);
+    return await this.s.getStudentsAndParentsByClassId(
+      classId,
+      page,
+      limit,
+      excludeStudentId,
+    );
   }
 
   async getStudentAndParentByStudentId(
@@ -284,6 +290,7 @@ export class ApiHandlerOpsUsers extends ApiHandlerCampaigns {
     classId?: string,
     // Optional class scope keeps student search constrained to program classes.
     classIds?: string[],
+    excludeStudentId?: string,
   ): Promise<StudentAPIResponse> {
     return await this.s.searchStudentsInSchool(
       schoolId,
@@ -292,6 +299,7 @@ export class ApiHandlerOpsUsers extends ApiHandlerCampaigns {
       limit,
       classId,
       classIds,
+      excludeStudentId,
     );
   }
 

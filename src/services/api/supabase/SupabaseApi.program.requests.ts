@@ -139,6 +139,7 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
     limit: number,
     classId?: string,
     classIds?: string[],
+    excludeStudentId?: string,
   ): Promise<{ data: any[]; total: number }> {
     if (!this.supabase) {
       return { data: [], total: 0 };
@@ -354,7 +355,12 @@ export class SupabaseApiProgramRequests extends SupabaseApiProgramActivityStats 
             uniqueMap.set(row.user.id, row);
           });
 
-          const mergedRows = Array.from(uniqueMap.values());
+          const normalizedExcludeStudentId = String(
+            excludeStudentId ?? '',
+          ).trim();
+          const mergedRows = Array.from(uniqueMap.values()).filter(
+            (row) => row.user.id !== normalizedExcludeStudentId,
+          );
           // ✅ GET ALL STUDENT IDS
           const allStudentIds = mergedRows.map((r) => r.user.id);
 

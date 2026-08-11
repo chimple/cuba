@@ -312,6 +312,7 @@ export class SupabaseApiUserStudentLists extends SupabaseApiUserLookups {
     classId: string,
     page: number = 1,
     limit: number = 20,
+    excludeStudentId?: string,
   ): Promise<StudentAPIResponse> {
     if (!this.supabase) {
       logger.warn('Supabase not initialized.');
@@ -342,6 +343,10 @@ export class SupabaseApiUserStudentLists extends SupabaseApiUserLookups {
       .eq('role', 'student')
       .eq('is_deleted', false)
       .eq('class_id', classId); // Filter by classId
+
+    if (excludeStudentId) {
+      query = query.neq('user_id', excludeStudentId);
+    }
 
     const { data, error, count } = await query
       .order('user(name)', { ascending: true })
