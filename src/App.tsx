@@ -55,6 +55,7 @@ import { useOpsConsoleBodyClass } from './hooks/useOpsConsoleBodyClass';
 import { useRemoteAssetFlags } from './hooks/useRemoteAssetFlags';
 import { useRouteAudioCleanup } from './hooks/useRouteAudioCleanup';
 import { useUsageLimitModal } from './hooks/useUsageLimitModal';
+import { useRespectLessonLaunch } from './hooks/useRespectLessonLaunch';
 
 setupIonicReact();
 
@@ -62,6 +63,7 @@ const AppRouteEffects = () => {
   useNavigationHandler();
   useOpsConsoleBodyClass();
   useRouteAudioCleanup();
+  useRespectLessonLaunch();
   return null;
 };
 

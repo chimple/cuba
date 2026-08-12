@@ -51,7 +51,12 @@ import CurriculumController from '../../models/CurriculumController';
 import Lesson from '../../models/Lesson';
 import Result from '../../models/Result';
 import User from '../../models/User';
-import { reinitializeTincan } from '../../tincan';
+import {
+  getActorMbox,
+  getActorName,
+  getRespectLaunchData,
+  reinitializeTincan,
+} from '../../tincan';
 import logger from '../../utility/logger';
 import { Util } from '../../utility/util';
 import { ServiceConfig } from '../ServiceConfig';
@@ -2031,15 +2036,20 @@ export class OneRosterApi implements ServiceApi {
       }
     }
 
-    const loggedStudent =
-      await ServiceConfig.getI().authHandler.getCurrentUser();
-    const userEmail = `${loggedStudent?.name?.toLowerCase().replace(/\s+/g, '')}@example.com`;
-    const agentEmail = `mailto:${userEmail}`;
+    const launchData = await getRespectLaunchData();
+    if (!launchData) {
+      throw new Error('RESPECT launch data is missing or invalid.');
+    }
+
+    const agentEmail = getActorMbox(launchData.actor);
+    if (!agentEmail) {
+      throw new Error('RESPECT launch actor is missing an mbox.');
+    }
 
     const existingStatements = await this.getAllStatements(agentEmail, {
       agent: { mbox: agentEmail },
       verb: { id: 'http://adlnet.gov/expapi/verbs/completed' },
-      activity: { id: `http://example.com/activity/${lessonId}` },
+      activity: { id: launchData.activityId },
     });
 
     const filteredStatements = existingStatements.filter(
@@ -2066,7 +2076,7 @@ export class OneRosterApi implements ServiceApi {
       actor: {
         objectType: 'Agent',
         mbox: agentEmail,
-        name: loggedStudent?.name ?? 'John Doe',
+        name: getActorName(launchData.actor) || undefined,
       },
       verb: {
         id: 'http://adlnet.gov/expapi/verbs/completed',
@@ -2074,7 +2084,7 @@ export class OneRosterApi implements ServiceApi {
       },
       object: {
         objectType: 'Activity',
-        id: `http://example.com/activity/${lessonId}`,
+        id: launchData.activityId,
         definition: {
           name: { 'en-US': `${lessonId}` },
           extensions: {
@@ -2084,7 +2094,10 @@ export class OneRosterApi implements ServiceApi {
         },
       },
       result: {
-        score: { raw: score },
+        score: {
+          raw: score,
+          scaled: Math.max(0, Math.min(1, score / 100)),
+        },
         success: score > 35,
         completion: true,
         response: `Correct: ${correctMoves}, Wrong: ${wrongMoves}`,
@@ -2097,6 +2110,7 @@ export class OneRosterApi implements ServiceApi {
         },
       },
       context: {
+        registration: launchData.registration || undefined,
         extensions: {
           'http://example.com/xapi/studentId': studentId,
           'http://example.com/xapi/classId': classId,
@@ -2134,81 +2148,79 @@ export class OneRosterApi implements ServiceApi {
       timestamp: new Date().toISOString(),
     });
 
+    const newResult: TableTypes<'result'> = {
+      id: statement.id || '',
+      assignment_id:
+        statement.result?.extensions?.[
+          'http://example.com/xapi/assignmentId'
+        ] || null,
+      correct_moves:
+        statement.result?.extensions?.[
+          'http://example.com/xapi/correctMoves'
+        ] || 0,
+      lesson_id: (statement.object as Activity)?.id || '',
+      school_id:
+        statement.context?.extensions?.['http://example.com/xapi/schoolId'] ||
+        null,
+      score: statement.result?.score?.raw || 0,
+      student_id: statement.actor?.mbox || '',
+      time_spent:
+        statement.result?.extensions?.['http://example.com/xapi/timeSpent'] ||
+        0,
+      wrong_moves:
+        statement.result?.extensions?.['http://example.com/xapi/wrongMoves'] ||
+        0,
+      created_at:
+        statement.context?.extensions?.['http://example.com/xapi/createdAt'] ||
+        '',
+      updated_at:
+        statement.context?.extensions?.['http://example.com/xapi/updatedAt'] ||
+        '',
+      is_deleted:
+        statement.context?.extensions?.['http://example.com/xapi/isDeleted'] ||
+        false,
+      chapter_id:
+        statement.context?.extensions?.['http://example.com/xapi/chapterId'] ||
+        '',
+      course_id: (statement.object as Activity)?.id || '',
+      class_id: null,
+      activities_scores: null,
+      competency_ability: null,
+      competency_id: null,
+      domain_ability: null,
+      domain_id: null,
+      firebase_id: null,
+      is_firebase: null,
+      outcome_ability: null,
+      outcome_id: null,
+      skill_ability: null,
+      skill_id: null,
+      source: null,
+      status: null,
+      subject_ability: null,
+      subject_id: null,
+      user_id: null,
+    };
+
     try {
-      const tincanInstance = await reinitializeTincan();
+      const tincanInstance = await reinitializeTincan(launchData);
       if (!tincanInstance) {
         throw new Error('TinCan could not be initialized.');
       }
       await tincanInstance.sendStatement(statement);
-
-      const newResult: TableTypes<'result'> = {
-        id: statement.id || '',
-        assignment_id:
-          statement.result?.extensions?.[
-            'http://example.com/xapi/assignmentId'
-          ] || null,
-        correct_moves:
-          statement.result?.extensions?.[
-            'http://example.com/xapi/correctMoves'
-          ] || 0,
-        lesson_id: (statement.object as Activity)?.id || '',
-        school_id:
-          statement.context?.extensions?.['http://example.com/xapi/schoolId'] ||
-          null,
-        score: statement.result?.score?.raw || 0,
-        student_id: statement.actor?.mbox || '',
-        time_spent:
-          statement.result?.extensions?.['http://example.com/xapi/timeSpent'] ||
-          0,
-        wrong_moves:
-          statement.result?.extensions?.[
-            'http://example.com/xapi/wrongMoves'
-          ] || 0,
-        created_at:
-          statement.context?.extensions?.[
-            'http://example.com/xapi/createdAt'
-          ] || '',
-        updated_at:
-          statement.context?.extensions?.[
-            'http://example.com/xapi/updatedAt'
-          ] || '',
-        is_deleted:
-          statement.context?.extensions?.[
-            'http://example.com/xapi/isDeleted'
-          ] || false,
-        chapter_id:
-          statement.context?.extensions?.[
-            'http://example.com/xapi/chapterId'
-          ] || '',
-        course_id: (statement.object as Activity)?.id || '',
-        class_id: null,
-        activities_scores: null,
-        competency_ability: null,
-        competency_id: null,
-        domain_ability: null,
-        domain_id: null,
-        firebase_id: null,
-        is_firebase: null,
-        outcome_ability: null,
-        outcome_id: null,
-        skill_ability: null,
-        skill_id: null,
-        source: null,
-        status: null,
-        subject_ability: null,
-        subject_id: null,
-        user_id: null,
-      };
-
-      return newResult;
     } catch (error) {
-      console.error('Error sending update statement:', error);
-      throw new Error('Failed to update student result.');
+      logger.error('Unable to send RESPECT xAPI completion statement.', error);
     }
+
+    return newResult;
   }
 
   getLanguageWithId(id: string): Promise<TableTypes<'language'> | undefined> {
     return Promise.resolve(undefined);
+  }
+  async isSplUser(): Promise<boolean> {
+    // RESPECT learners are launch-scoped students, never Cuba operations users.
+    return false;
   }
   getAllCurriculums(): Promise<TableTypes<'curriculum'>[]> {
     let res: TableTypes<'curriculum'>[] = [];
@@ -2998,6 +3010,7 @@ export class OneRosterApi implements ServiceApi {
       const statements = result?.statements ?? [];
 
       const parsedStatements = statements.map((statement) => {
+        const statementActivity = statement.object as Activity;
         let parseStatement: TableTypes<'result'> = {
           id: statement.id || '',
           lesson_id:
@@ -3006,6 +3019,7 @@ export class OneRosterApi implements ServiceApi {
               statement.object.definition?.extensions?.[
                 'http://example.com/xapi/lessonId'
               ]) ||
+            statementActivity?.id ||
             null,
           assignment_id:
             statement.result?.extensions?.[
@@ -3217,9 +3231,18 @@ export class OneRosterApi implements ServiceApi {
     const actorObj =
       typeof data.actor === 'string' ? JSON.parse(data.actor) : data.actor;
 
-    const actorName = actorObj.name?.[0];
-    const actorMbox = actorObj.mbox?.[0];
-    const registration = data.registration;
+    const actorName =
+      typeof actorObj.name === 'string'
+        ? actorObj.name
+        : actorObj.name?.[0] ?? 'RESPECT learner';
+    const actorMbox =
+      typeof actorObj.mbox === 'string'
+        ? actorObj.mbox
+        : actorObj.mbox?.[0] ?? 'mailto:respect-learner@respect.local';
+    // RESPECT launches can omit registration. Its xAPI account name is the
+    // stable learner identifier, so use it before falling back to the actor.
+    const registration =
+      data.registration || actorObj.account?.name || actorMbox;
 
     const user: TableTypes<'user'> = {
       age: null,

@@ -1,63 +1,87 @@
-import { TinCan } from 'tincants';
 import { registerPlugin } from '@capacitor/core';
-const Port = registerPlugin<any>('Port');
+import { TinCan } from 'tincants';
+import { PortPlugin } from './common/constants';
+import logger from './utility/logger';
 
-interface Actor {
-  name: string | string[];
-  mbox: string | string[];
+export interface RespectActor {
+  objectType?: 'Agent';
+  name?: string | string[];
+  mbox?: string | string[];
 }
 
-interface IRecordStoreCfg {
+export interface RespectLaunchData {
   endpoint: string;
-  auth?: string;
-  actor?: Actor;
-  registration?: string;
+  auth: string;
+  actor: RespectActor;
+  activityId: string;
+  registration: string;
 }
 
-async function getDeeplinkParams(): Promise<IRecordStoreCfg> {
-  const result = await Port.sendLaunchData();
-  let actor: Actor = { name: '', mbox: '' };
-  try {
-    actor = result.actor ? JSON.parse(result.actor) : { name: '', mbox: '' };
-  } catch (error) {
-    actor = { name: '', mbox: '' };
-  }
+const portPlugin = registerPlugin<PortPlugin>('Port');
 
-  if (
-    result.endpoint == undefined ||
-    result.endpoint == '' ||
-    result.endpoint == null
-  ) {
-    result.endpoint = 'https://chimple.lrs.io/xapi/';
-  }
-  if (result.auth == undefined || result.auth == '' || result.auth == null) {
-    result.auth = 'Basic ' + btoa('chimp:chimpoo');
-  }
+const getActorMbox = (actor: RespectActor): string | null => {
+  const mbox = actor.mbox;
+  if (typeof mbox === 'string' && mbox.length > 0) return mbox;
+  if (Array.isArray(mbox) && typeof mbox[0] === 'string' && mbox[0].length > 0)
+    return mbox[0];
 
-  return {
-    endpoint: 'https://chimple.lrs.io/xapi/',
-    auth: 'Basic ' + btoa('chimp:chimpoo'),
-    actor: actor,
-    registration: result.registration ?? '',
+  return null;
+};
+
+const getActorName = (actor: RespectActor): string | null => {
+  const name = actor.name;
+  if (typeof name === 'string' && name.length > 0) return name;
+  if (Array.isArray(name) && typeof name[0] === 'string' && name[0].length > 0)
+    return name[0];
+
+  return null;
+};
+
+export const getRespectLaunchData =
+  async (): Promise<RespectLaunchData | null> => {
+    try {
+      const launchData = await portPlugin.sendLaunchData();
+      const actor = JSON.parse(launchData.actor) as RespectActor;
+
+      if (
+        !launchData.endpoint ||
+        !launchData.auth ||
+        !launchData.lessonId ||
+        !getActorMbox(actor)
+      ) {
+        return null;
+      }
+
+      return {
+        endpoint: launchData.endpoint,
+        auth: launchData.auth,
+        actor,
+        activityId: launchData.lessonId,
+        registration: launchData.registration,
+      };
+    } catch (error) {
+      logger.warn('RESPECT launch data is unavailable.', error);
+      return null;
+    }
   };
-}
 
-let tincan;
+export const reinitializeTincan = async (
+  launchData?: RespectLaunchData,
+): Promise<TinCan | null> => {
+  const activeLaunchData = launchData ?? (await getRespectLaunchData());
+  if (!activeLaunchData) return null;
 
-export async function reinitializeTincan() {
   try {
-    const lrs = await getDeeplinkParams();
-    tincan = new TinCan({});
-    tincan.addRecordStore(lrs);
+    const tincan = new TinCan({});
+    tincan.addRecordStore({
+      endpoint: activeLaunchData.endpoint,
+      auth: activeLaunchData.auth,
+    });
     return tincan;
   } catch (error) {
-    console.error('Failed to reinitialize tincan', error);
+    logger.error('Failed to initialize the RESPECT xAPI client.', error);
     return null;
   }
-}
+};
 
-(async () => {
-  tincan = await reinitializeTincan();
-})();
-
-export default tincan;
+export { getActorMbox, getActorName };

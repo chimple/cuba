@@ -793,7 +793,7 @@ export class Util {
 
               // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
               const localBundlePath =
-                LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/config.json`;
+                LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/index.xml`;
 
               try {
                 const response = await fetch(localBundlePath);

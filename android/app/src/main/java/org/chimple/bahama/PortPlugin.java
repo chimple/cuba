@@ -295,15 +295,6 @@ public class PortPlugin extends Plugin {
         String actor = deepLinkData.optString("actor", "");
         String registration = deepLinkData.optString("registration", "");
 
-        if(android.text.TextUtils.isEmpty(endpoint))
-            endpoint = "https://chimple.lrs.io/xapi/";
-        if(android.text.TextUtils.isEmpty(auth))
-            auth = "Basic Y2hpbXA6Y2hpbXBvbw";
-        if(android.text.TextUtils.isEmpty(actor))
-            actor = "{\"name\":[\"John Doe\"],\"mbox\":[\"mailto:tincan@scorm.com\"]}";
-        if(android.text.TextUtils.isEmpty(registration))
-            registration = "760e3480-ba55-4991-94b0-01820dbd23a";
-
         Log.d(TAG, "Received activity_id: " + activity_id);
         result.put("endpoint", endpoint);
         result.put("auth", auth);

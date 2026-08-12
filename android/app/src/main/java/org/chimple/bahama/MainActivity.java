@@ -6,8 +6,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.content.Intent;
 
@@ -150,8 +148,10 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
             return;
         }
 
-        // Delay launch to ensure Capacitor is ready
-        new Handler(Looper.getMainLooper()).postDelayed(() -> PortPlugin.sendLaunch(), 5000);
+        // The web app independently retries launch preparation until its data is ready.
+        // Do not delay this event: a warm Cuba activity otherwise briefly shows the
+        // previous student-selection screen before the RESPECT lesson is opened.
+        PortPlugin.sendLaunch();
     }
 
 

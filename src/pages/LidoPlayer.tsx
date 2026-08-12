@@ -47,6 +47,7 @@ import {
   getBundleZipUrlsForEnv,
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
+import { returnToRespectIfNeeded } from '../services/respect/RespectLessonLaunchService';
 
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
@@ -521,23 +522,28 @@ const LidoPlayer: FC = () => {
     if (isExitingRef.current) return;
     isExitingRef.current = true;
     localStorage.removeItem(LIDO_SCORES_KEY);
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromPath: string = state?.from ?? PAGES.HOME;
-    const returnState = {
-      ...(state?.returnState ?? state),
-      fromLido: true,
-    };
-    let targetPath = fromPath;
-    if (Capacitor.isNativePlatform() || !!urlParams.get('isReload')) {
-      const separator = fromPath.includes('?') ? '&' : '?';
-      targetPath = `${fromPath}${separator}isReload=true`;
-    }
 
-    history.replace(targetPath, returnState);
-    setIsLoading(false);
-    setTimeout(() => {
-      isExitingRef.current = false;
-    }, 300);
+    void returnToRespectIfNeeded().then((returnedToRespect) => {
+      if (returnedToRespect) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromPath: string = state?.from ?? PAGES.HOME;
+      const returnState = {
+        ...(state?.returnState ?? state),
+        fromLido: true,
+      };
+      let targetPath = fromPath;
+      if (Capacitor.isNativePlatform() || !!urlParams.get('isReload')) {
+        const separator = fromPath.includes('?') ? '&' : '?';
+        targetPath = `${fromPath}${separator}isReload=true`;
+      }
+
+      history.replace(targetPath, returnState);
+      setIsLoading(false);
+      setTimeout(() => {
+        isExitingRef.current = false;
+      }, 300);
+    });
   };
 
   const processStoredResults = async (

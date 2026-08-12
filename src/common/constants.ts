@@ -869,6 +869,7 @@ export interface PortPlugin {
     registration: string;
     lessonId: string;
   }>;
+  returnDataToRespect(): Promise<void>;
   saveProceesedXlsxFile(options: {
     fileData: string;
     fileName?: string;
