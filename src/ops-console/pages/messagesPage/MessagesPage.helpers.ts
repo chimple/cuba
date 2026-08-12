@@ -125,6 +125,7 @@ export const hasFutureTimesForPeriod = (
 
 export const buildAudienceSummaryItems = (audience: {
   selectedProgramName: string;
+  selectedProgramModel: string;
   selectedBlocks: string[];
   selectedGrades: Array<{ id: string; name: string }>;
   summarySchoolCount: number;
@@ -133,6 +134,7 @@ export const buildAudienceSummaryItems = (audience: {
   displayRecipientCount: number | null;
 }) => [
   { label: 'Program', value: audience.selectedProgramName || '-' },
+  { label: 'Program Model', value: audience.selectedProgramModel || '-' },
   {
     label: 'Selected Blocks',
     value:
@@ -190,6 +192,8 @@ export const buildCampaignNotificationPayload = async ({
 }: {
   audience: {
     programId: string;
+    programModel?: string | null;
+    selectedSavedGroupId: string;
     userType: 'principal' | 'teacher' | 'student';
     activityRecency: 'all' | 'active_7days' | 'inactive_7days';
     isAllSchools: boolean;
@@ -236,6 +240,7 @@ export const buildCampaignNotificationPayload = async ({
     label: draft.label.trim(),
     title: draft.title.trim(),
     message: draft.body.trim(),
+    programModel: audience.programModel?.trim() || null,
     userType: audience.userType,
     activityRecency: audience.activityRecency,
     imageUrl: uploadedImageUrl,
@@ -259,5 +264,6 @@ export const buildCampaignNotificationPayload = async ({
           : sendTime,
     endDate: deliveryMode === 'recurring' && !neverEnds ? endDate : undefined,
     recurringDays: deliveryMode === 'recurring' ? selectedDays : undefined,
+    savedAudienceGroupId: audience.selectedSavedGroupId || null,
   };
 };

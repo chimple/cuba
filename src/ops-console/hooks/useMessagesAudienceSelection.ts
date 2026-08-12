@@ -18,7 +18,6 @@ import {
   areStringArraysEqual,
   emptyAudienceOptions,
   emptyAudienceSummary,
-  formatProgramModel,
   type ActivityRecency,
   type UserType,
 } from './useMessagesAudienceSelection.helpers';
@@ -107,12 +106,10 @@ export const useMessagesAudienceSelection = () => {
   }, [api]);
 
   useEffect(() => {
-    const selectedProgram = programs.find(
-      (program) => program.id === programId,
-    );
-    const nextProgramModel = formatProgramModel(selectedProgram?.model);
-    setProgramModel(nextProgramModel);
-  }, [programId, programs]);
+    if (!programId) {
+      setProgramModel('');
+    }
+  }, [programId]);
 
   // Load audience options when program changes
   useEffect(() => {
@@ -128,7 +125,10 @@ export const useMessagesAudienceSelection = () => {
       }
       setLoadingAudience(true);
       try {
-        const options = await api.getCampaignAudienceOptions(programId);
+        const options = await api.getCampaignAudienceOptions(
+          programId,
+          programModel,
+        );
         if (isActive) setAudienceOptions(options);
       } catch (error) {
         logger.error('Failed to load audience options:', error);
@@ -141,7 +141,7 @@ export const useMessagesAudienceSelection = () => {
     return () => {
       isActive = false;
     };
-  }, [api, programId]);
+  }, [api, programId, programModel]);
 
   // Auto-select blocks when program changes and no custom selection
   useEffect(() => {
@@ -167,6 +167,10 @@ export const useMessagesAudienceSelection = () => {
       ),
     [audienceOptions.schools, selectedBlocks],
   );
+  const selectedGradeIds = useMemo(
+    () => selectedGrades.map((grade) => grade.id),
+    [selectedGrades],
+  );
 
   // Auto-select schools when blocks change
   useEffect(() => {
@@ -180,11 +184,7 @@ export const useMessagesAudienceSelection = () => {
         ? current
         : nextSchools;
     });
-  }, [
-    audienceOptions.schools,
-    hasCustomSchoolSelection,
-    schoolsForSelectedBlocks,
-  ]);
+  }, [hasCustomSchoolSelection, schoolsForSelectedBlocks]);
 
   const allSchoolIds = useMemo(
     () => audienceOptions.schools.map((school) => school.id),
@@ -253,10 +253,6 @@ export const useMessagesAudienceSelection = () => {
     loadingGrades,
   ]);
 
-  const selectedGradeIds = useMemo(
-    () => selectedGrades.map((grade) => grade.id),
-    [selectedGrades],
-  );
   const isAllGrades =
     availableGrades.length > 0 &&
     selectedGradeIds.length === availableGrades.length;
@@ -332,11 +328,7 @@ export const useMessagesAudienceSelection = () => {
     setHasCustomSchoolSelection(false);
     setHasCustomGradeSelection(false);
     setProgramId(event.target.value);
-    const selectedProgram = programs.find(
-      (program) => program.id === event.target.value,
-    );
-    const nextProgramModel = formatProgramModel(selectedProgram?.model);
-    setProgramModel(nextProgramModel);
+    setProgramModel('');
   };
 
   const handleBlocksChange = (blocks: string[]) => {
@@ -468,6 +460,7 @@ export const useMessagesAudienceSelection = () => {
     programs,
     programId,
     selectedProgramName,
+    selectedProgramModel: programModel,
     handleProgramChange,
 
     // Program Model

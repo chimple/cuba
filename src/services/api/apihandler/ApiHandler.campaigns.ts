@@ -55,8 +55,9 @@ export class ApiHandlerCampaigns extends ApiHandlerPrograms {
 
   async getCampaignAudienceOptions(
     programId: string,
+    programModel?: string,
   ): Promise<CampaignAudienceOptions> {
-    return await this.s.getCampaignAudienceOptions(programId);
+    return await this.s.getCampaignAudienceOptions(programId, programModel);
   }
 
   async getCampaignGradesForSchools(

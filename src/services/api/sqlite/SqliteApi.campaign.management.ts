@@ -108,8 +108,12 @@ export class SqliteApiCampaignManagement extends SqliteApiAssignmentAssessments 
 
   async getCampaignAudienceOptions(
     programId: string,
+    programModel?: string,
   ): Promise<CampaignAudienceOptions> {
-    return await this._serverApi.getCampaignAudienceOptions(programId);
+    return await this._serverApi.getCampaignAudienceOptions(
+      programId,
+      programModel,
+    );
   }
 
   async getCampaignAudienceSummary(
