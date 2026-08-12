@@ -466,12 +466,43 @@ export class Util {
     return null;
   }
 
+  public static async getLessonZipPath({
+    lessonId,
+  }: {
+    lessonId: string;
+  }): Promise<string | null> {
+    const gameUrl = localStorage.getItem(GAME_URL)?.trim();
+    const candidates = [
+      gameUrl
+        ? gameUrl + (gameUrl.endsWith("/") ? "" : "/") + lessonId + ".zip"
+        : null,
+      LOCAL_LESSON_BUNDLES_PATH + lessonId + ".zip",
+    ].filter(
+      (path, index, paths): path is string =>
+        Boolean(path) && paths.indexOf(path) === index,
+    );
+
+    for (const zipPath of candidates) {
+      try {
+        const response = await fetch(zipPath);
+        if (response.ok) {
+          logger.info("[LessonBundle] Local ZIP resolved", { lessonId, zipPath, gameUrl });
+          return zipPath;
+        }
+      } catch (error) {
+        logger.debug("[LessonBundle] Local ZIP not found", { lessonId, zipPath, error });
+      }
+    }
+
+    return null;
+  }
+
   public static getLessonBundleId(
     lesson?: Partial<
       Pick<TableTypes<'lesson'>, 'cocos_lesson_id' | 'lido_lesson_id'>
     >,
   ): string | null {
-    return lesson?.lido_lesson_id ?? lesson?.cocos_lesson_id ?? null;
+    return lesson?.cocos_lesson_id ?? null;
   }
 
   public static async downloadZipBundle(

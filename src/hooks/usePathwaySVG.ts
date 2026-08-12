@@ -8,6 +8,8 @@ import {
   REWARD_LEARNING_PATH,
   COURSE_CHANGED,
   COCOS,
+  LIDO,
+  LIDO_ASSESSMENT,
   LIVE_QUIZ,
   PAGES,
   SOURCE,
@@ -1953,7 +1955,7 @@ export function usePathwaySVG({
           source: source,
         },
       );
-    } else {
+    } else if (lesson.plugin_type === LIDO || lesson.plugin_type === LIDO_ASSESSMENT) {
       const playableLessonId = Util.getLessonBundleId(lesson);
       if (!playableLessonId) return;
       const p = "?courseid=" + lesson.cocos_subject_code + "&chapterid=" + lesson.cocos_chapter_code + "&lessonid=" + playableLessonId;

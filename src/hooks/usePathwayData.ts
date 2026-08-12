@@ -16,6 +16,8 @@ import {
   RewardBoxState,
   TableTypes,
   COCOS,
+  LIDO,
+  LIDO_ASSESSMENT,
   LIVE_QUIZ,
   PAGES,
   SOURCE,
@@ -413,7 +415,7 @@ export const usePathwayData = () => {
               source: pathItem?.source ?? SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
             },
           );
-        } else {
+        } else if (lesson.plugin_type === LIDO || lesson.plugin_type === LIDO_ASSESSMENT) {
           const playableLessonId = Util.getLessonBundleId(lesson);
           if (!playableLessonId) return;
           const params = "?courseid=" + lesson.cocos_subject_code + "&chapterid=" + lesson.cocos_chapter_code + "&lessonid=" + playableLessonId;

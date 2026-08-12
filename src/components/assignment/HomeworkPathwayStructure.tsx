@@ -19,6 +19,8 @@ import {
   CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
   HOMEWORK_REMOTE_ASSETS_ENABLED,
   COCOS,
+  LIDO,
+  LIDO_ASSESSMENT,
   CONTINUE,
   HOMEWORK_PATHWAY,
   IDLE_REWARD_ID,
@@ -2458,7 +2460,7 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
           },
         );
-      } else {
+      } else if (lesson.plugin_type === LIDO || lesson.plugin_type === LIDO_ASSESSMENT) {
         const playableLessonId = Util.getLessonBundleId(lesson);
         if (!playableLessonId) return;
         const params = "?courseid=" + lesson.cocos_subject_code + "&chapterid=" + lesson.cocos_chapter_code + "&lessonid=" + playableLessonId;

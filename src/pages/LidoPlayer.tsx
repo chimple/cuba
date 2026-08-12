@@ -508,8 +508,12 @@ const LidoPlayer: FC = () => {
     });
   };
 
-  const onNextContainer = (e: any) => logger.info('Next', e);
-  const gameCompleted = () => {
+  const onNextContainer = (e: any) => {
+    console.log('[LidoDebug] next container', e?.detail ?? e);
+    logger.info('Next', e);
+  };
+  const gameCompleted = (e: any) => {
+    console.log('[LidoDebug] game completed', e?.detail ?? e);
     const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
 
     if (popupConfig) {
@@ -518,6 +522,10 @@ const LidoPlayer: FC = () => {
   };
 
   const push = () => {
+    console.log("[LidoDebug] navigation exit requested", {
+      from: state?.from,
+      isExiting: isExitingRef.current,
+    });
     if (isExitingRef.current) return;
     isExitingRef.current = true;
     localStorage.removeItem(LIDO_SCORES_KEY);
@@ -544,6 +552,7 @@ const LidoPlayer: FC = () => {
     isAborted: boolean = false,
     isFullPathwayTerminated: boolean = false,
   ) => {
+    console.log("[LidoDebug] process results start", { isAborted, isFullPathwayTerminated });
     try {
       const scoresList = getStoredLidoScores();
       const {
@@ -551,6 +560,7 @@ const LidoPlayer: FC = () => {
         studentId,
         userId,
       } = await resolveStudentContext();
+      console.log("[LidoDebug] process results context", { scoreCount: scoresList.length, studentId });
       if (scoresList.length === 0) {
         logger.warn('⚠️ No stored data found.');
         return;
@@ -772,6 +782,7 @@ const LidoPlayer: FC = () => {
   };
 
   const onActivityEnd = async (e: any) => {
+    console.log('[LidoDebug] activity end', e?.detail ?? e);
     const { studentId, userId } = await resolveStudentContext();
     const detail = (e.detail ?? {}) as LidoEventDetail;
     const score = detail.score ?? 0;
@@ -798,7 +809,23 @@ const LidoPlayer: FC = () => {
         sessionStorage.setItem(assessmentKey, 'false'); // not yet awarded
       }
     }
-    if (!isAssessmentLesson) return;
+    if (!isAssessmentLesson) {
+      const currentIndex = Number(detail.currentIndex);
+      const totalIndex = Number(detail.totalIndex);
+      const isFinalActivity =
+        Number.isFinite(currentIndex) &&
+        Number.isFinite(totalIndex) &&
+        currentIndex >= totalIndex - 1;
+
+      if (isFinalActivity && !resultFinalizationStartedRef.current) {
+        console.log("[LidoDebug] final activity fallback", {
+          currentIndex,
+          totalIndex,
+        });
+        await onLessonEnd(e);
+      }
+      return;
+    }
     const courseKey = getAssessmentProgressKey();
     const failKey = `${ASSESSMENT_FAIL_KEY}_${studentId}`;
     const streakKey = `${FAIL_STREAK_KEY}_${studentId}`;
@@ -859,18 +886,24 @@ const LidoPlayer: FC = () => {
   };
 
   const onLessonEnd = async (e: any) => {
-    if (resultFinalizationStartedRef.current) return;
+    console.log("[LidoDebug] lesson end received", e?.detail ?? e);
+    if (resultFinalizationStartedRef.current) {
+      console.log("[LidoDebug] lesson end ignored: finalization already started");
+      return;
+    }
     const isLearningPathAssessment = isAssessmentLesson && state?.learning_path;
     if (!isLearningPathAssessment) {
       resultFinalizationStartedRef.current = true;
       setIsLoading(true);
     }
+    console.log("[LidoDebug] lesson end guard passed");
     const lessonData = (e?.detail ?? {}) as LidoEventDetail;
     const {
       student: currentStudent,
       studentId,
       userId,
     } = await resolveStudentContext();
+    console.log("[LidoDebug] lesson end student context", { studentId, hasStudent: Boolean(currentStudent), userId });
     try {
       if (!currentStudent?.id || !studentId) {
         throw new Error(
@@ -938,7 +971,6 @@ const LidoPlayer: FC = () => {
         const lessonIdentifiers = Array.from(
           new Set(
             [
-              lessonDetail?.lido_lesson_id,
               lessonId,
               lessonDetail?.cocos_lesson_id,
               lesson.id,
@@ -1229,6 +1261,7 @@ const LidoPlayer: FC = () => {
         ASSIGNMENT_COMPLETED_IDS,
         JSON.stringify(assignmentCompletedIds),
       );
+      console.log("[LidoDebug] showing completion score card");
       setIsLoading(false);
       setScoreCardProgressState({
         isAborted: false,
@@ -1315,6 +1348,7 @@ const LidoPlayer: FC = () => {
     window.addEventListener(LidoNextContainerKey, onNextContainer);
     window.addEventListener(LidoGameCompletedKey, gameCompleted);
     window.addEventListener(LidoLessonEndKey, onLessonEnd);
+    console.log("[LidoDebug] lesson-end listener registered", { event: LidoLessonEndKey });
     window.addEventListener(LidoActivityEndKey, onActivityEnd);
     return () => {
       window.removeEventListener(LidoGameExitKey, onGameExit);
@@ -1367,19 +1401,24 @@ const LidoPlayer: FC = () => {
     const urlSearchParams = new URLSearchParams(window.location.search);
     const lessonToDownload = lessonDetail;
     const lessonId =
-      Util.getLessonBundleId(lessonToDownload) ??
       urlSearchParams.get('lessonid') ??
-      state.lessonId;
+      state.lessonId ??
+      Util.getLessonBundleId(lessonToDownload);
     if (!lessonToDownload || !lessonId) {
       presentToast();
       push();
       return;
     }
-    const dow = await Util.downloadZipBundle(
-      [lessonToDownload],
-      undefined,
-      REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS,
-    );
+    const localPath = await Util.getLessonPath({ lessonId });
+    const localZipPath = await Util.getLessonZipPath({ lessonId });
+    console.log('[LidoDebug] bundle resolved', { lessonId, localPath, localZipPath, isNative: Capacitor.isNativePlatform() });
+    const dow = localPath || localZipPath
+      ? true
+      : await Util.downloadZipBundle(
+          [lessonToDownload],
+          undefined,
+          REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS,
+        );
     if (!dow) {
       presentToast();
       push();
@@ -1390,13 +1429,17 @@ const LidoPlayer: FC = () => {
     setPlayerLanguage(resolvedPlayerLanguage);
 
     if (Capacitor.isNativePlatform()) {
-      const path = await Util.getLessonPath({ lessonId: lessonId });
+      if (localZipPath) {
+        setZipUrl(localZipPath);
+      } else {
+        const path = await Util.getLessonPath({ lessonId: lessonId });
       if (path) {
         setBasePath(path);
       } else {
         presentToast();
         push();
         return;
+        }
       }
       try {
         const { student } = await resolveStudentContext();
@@ -1453,6 +1496,20 @@ const LidoPlayer: FC = () => {
         return;
       }
 
+      if (localZipPath) {
+        setZipUrl(localZipPath);
+        setIsLoading(false);
+        setIsReady(true);
+        return;
+      }
+
+      if (localPath) {
+        setBasePath(localPath);
+        setIsLoading(false);
+        setIsReady(true);
+        return;
+      }
+
       const bundleZipUrls = getCachedGrowthBookFeatureValue<string[]>(
         BUNDLE_ZIP_URLS,
         getBundleZipUrlsForEnv(),
@@ -1480,6 +1537,8 @@ const LidoPlayer: FC = () => {
     setIsLoading(false);
     setIsReady(true); // ONLY NOW allow the Web Component to mount
   }
+
+  console.log('[LidoDebug] player inputs', { lessonId, xmlPath, basePath, zipUrl, isReady });
 
   return (
     <IonPage>

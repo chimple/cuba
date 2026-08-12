@@ -9,6 +9,8 @@ import SelectIconImage from '../../components/displaySubjects/SelectIconImage';
 import {
   AssignmentSource,
   COCOS,
+  LIDO,
+  LIDO_ASSESSMENT,
   CONTINUE,
   CocosCourseIdentifier,
   LIVE_QUIZ,
@@ -172,7 +174,7 @@ const LessonDetails: React.FC<LessonDetailsProps> = ({}) => {
           source: SOURCE.TEACHER_MODE,
         },
       );
-    } else {
+    } else if (lesson.plugin_type === LIDO || lesson.plugin_type === LIDO_ASSESSMENT) {
       const playableLessonId = Util.getLessonBundleId(lesson);
       if (!playableLessonId) return;
       const parmas = "?courseid=" + lesson.cocos_subject_code + "&chapterid=" + lesson.cocos_chapter_code + "&lessonid=" + playableLessonId;
