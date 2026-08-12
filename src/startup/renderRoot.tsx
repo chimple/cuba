@@ -1,6 +1,4 @@
-import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
 import { GrowthBook, GrowthBookProvider } from '@growthbook/growthbook-react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
@@ -23,13 +21,11 @@ export const renderRoot = (
   root.render(
     <Provider store={store}>
       <PersistGate loading={<Loading isLoading={true} />} persistor={persistor}>
-        <BrowserRouter>
-          <GrowthBookProvider growthbook={growthbook}>
-            <GbProvider>
-              <App />
-            </GbProvider>
-          </GrowthBookProvider>
-        </BrowserRouter>
+        <GrowthBookProvider growthbook={growthbook}>
+          <GbProvider>
+            <App />
+          </GbProvider>
+        </GrowthBookProvider>
       </PersistGate>
     </Provider>,
   );

@@ -88,7 +88,6 @@ const CardListModal: React.FC<CardListModalProps> = ({
             classId,
           );
         }
-        // Ignore old responses
         if (currentRequest !== requestIdRef.current) return;
         if (res.data) {
           const found = res.data.find(
@@ -211,9 +210,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
                 <label
                   id="cardlist-label"
                   key={s.user.id}
-                  className={`cardlist-card ${
-                    selected ? 'cardlist-card-selected' : ''
-                  }`}
+                  className={`cardlist-card ${selected ? 'cardlist-card-selected' : ''}`}
                 >
                   <input
                     id="cardlist-input"
@@ -231,10 +228,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
                       {s.user.name || 'N/A'}
                     </span>
 
-                    <span
-                      id="cardlist-col-gender"
-                      className="cardlist-col-gender"
-                    >
+                    <span id="cardlist-col-gender" className="cardlist-col-gender">
                       {s.user.gender
                         ? s.user.gender.toLowerCase() === 'male'
                           ? 'Male'
@@ -243,10 +237,7 @@ const CardListModal: React.FC<CardListModalProps> = ({
                             : s.user.gender
                         : 'N/A'}
                     </span>
-                    <span
-                      id="cardlist-col-phone"
-                      className="cardlist-col-phone"
-                    >
+                    <span id="cardlist-col-phone" className="cardlist-col-phone">
                       {formatStudentContactList(s, 'N/A')}
                     </span>
                   </div>

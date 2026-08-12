@@ -210,15 +210,17 @@ describe('QRAssignments – full coverage', () => {
     await userEvent.click(button);
 
     expect(historyPush).toHaveBeenCalledWith(
-      PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE,
       expect.objectContaining({
-        fromPage: PAGES.QR_ASSIGNMENTS,
-        selectedAssignments: expect.any(Object),
-        manualAssignments: expect.any(Object),
-        recommendedAssignments: {},
-        qrAssignmentNavigationState: expect.objectContaining({
-          chapterId: 'chapter-1',
-          courseId: 'course-1',
+        pathname: PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE,
+        state: expect.objectContaining({
+          fromPage: PAGES.QR_ASSIGNMENTS,
+          selectedAssignments: expect.any(Object),
+          manualAssignments: expect.any(Object),
+          recommendedAssignments: {},
+          qrAssignmentNavigationState: expect.objectContaining({
+            chapterId: 'chapter-1',
+            courseId: 'course-1',
+          }),
         }),
       }),
     );
@@ -247,9 +249,12 @@ describe('QRAssignments – full coverage', () => {
     await screen.findByText('Lesson 2');
     await userEvent.click(screen.getByRole('button', { name: 'Header' }));
 
-    expect(historyReplace).toHaveBeenCalledWith(PAGES.HOME_PAGE, {
-      tabValue: 2,
-    });
+    expect(historyReplace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pathname: PAGES.HOME_PAGE,
+        state: { tabValue: 2 },
+      }),
+    );
   });
 
   test('back uses history.goBack when not opened from home page', async () => {
@@ -273,9 +278,12 @@ describe('QRAssignments – full coverage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Header' }));
 
     expect(historyGoBack).toHaveBeenCalled();
-    expect(historyReplace).not.toHaveBeenCalledWith(PAGES.HOME_PAGE, {
-      tabValue: 2,
-    });
+    expect(historyReplace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        pathname: PAGES.HOME_PAGE,
+        state: { tabValue: 2 },
+      }),
+    );
   });
 
   test('shows assigned badge only for assigned lessons', async () => {
@@ -318,7 +326,7 @@ describe('QRAssignments – full coverage', () => {
 
     await userEvent.click(screen.getByRole('button', { name: /Assign/i }));
 
-    const payload = historyPush.mock.calls[0][1];
+    const payload = historyPush.mock.calls[0][0].state;
     const selectedIds = payload.selectedAssignments.manual['course-1']
       .count as string[];
     const manualLessons = payload.manualAssignments['course-1']

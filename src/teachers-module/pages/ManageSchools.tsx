@@ -20,6 +20,7 @@ import logger from '../../utility/logger';
 import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { AuthState } from '../../redux/slices/auth/authSlice';
+import { parsePath } from 'history';
 
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 500;
@@ -123,8 +124,11 @@ const ManageSchools: React.FC = () => {
   };
 
   const onBackButtonClick = () => {
-    history.replace(PAGES.HOME_PAGE, {
-      tabValue: 0,
+    history.replace({
+      ...parsePath(PAGES.HOME_PAGE),
+      state: {
+        tabValue: 0,
+      },
     });
   };
 

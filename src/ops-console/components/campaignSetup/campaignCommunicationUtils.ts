@@ -148,16 +148,6 @@ export const formatTimelineDayLabel = (value: string, index: number) => {
 export const formatTimelineDateLabel = (value: string) =>
   formatDateValue(value);
 
-export const buildTimeOptions = (): string[] => {
-  const options: string[] = [];
-  for (let hour = 0; hour < 24; hour += 1) {
-    const suffix = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-    options.push(`${String(displayHour).padStart(2, '0')}:00 ${suffix}`);
-  }
-  return options;
-};
-
 const parseTimeOption = (
   value: string,
 ): { hour: number; minute: number } | null => {

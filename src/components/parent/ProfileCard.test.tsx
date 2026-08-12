@@ -86,9 +86,14 @@ describe('ProfileCard', () => {
         {},
       ),
     );
-    expect(mockHistoryPush).toHaveBeenCalledWith(PAGES.CREATE_STUDENT, {
-      isEdit: false,
-      from: '/parent',
-    });
+    expect(mockHistoryPush).toHaveBeenCalledWith(
+      expect.objectContaining({
+        pathname: PAGES.CREATE_STUDENT,
+        state: {
+          isEdit: false,
+          from: '/parent',
+        },
+      }),
+    );
   });
 });

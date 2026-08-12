@@ -37,10 +37,18 @@ const applyMobileWebBrowserClass = () => {
   const userAgentData = (navigator as NavigatorWithUserAgentData).userAgentData;
   const isMobileBrowser =
     userAgentData?.mobile === true || /\bMobile\b/i.test(userAgent);
+  const isSafariMobileBrowser =
+    isMobileBrowser &&
+    /Safari/i.test(userAgent) &&
+    !/CriOS|FxiOS|EdgiOS/i.test(userAgent);
 
   document.body.classList.toggle(
     'mobile-web-browser',
     !isNativePlatform && isMobileBrowser,
+  );
+  document.body.classList.toggle(
+    'safari-mobile-web-browser',
+    !isNativePlatform && isSafariMobileBrowser,
   );
 };
 

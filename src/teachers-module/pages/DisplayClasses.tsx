@@ -8,6 +8,7 @@ import { PAGES, TableTypes } from '../../common/constants';
 import BackButton from '../../components/common/BackButton';
 import './DisplayClasses.css';
 import logger from '../../utility/logger';
+import { parsePath } from 'history';
 
 const DisplayClasses: FC = () => {
   const history = useHistory();
@@ -40,10 +41,13 @@ const DisplayClasses: FC = () => {
 
       const schoolCourses = await api.getCoursesBySchoolId(tempSchool.id);
       if (schoolCourses.length === 0) {
-        history.replace(PAGES.SUBJECTS_PAGE, {
-          schoolId: tempSchool.id,
-          origin: PAGES.DISPLAY_CLASSES,
-          isSelect: true,
+        history.replace({
+          ...parsePath(PAGES.SUBJECTS_PAGE),
+          state: {
+            schoolId: tempSchool.id,
+            origin: PAGES.DISPLAY_CLASSES,
+            isSelect: true,
+          },
         });
         return;
       }
@@ -53,9 +57,12 @@ const DisplayClasses: FC = () => {
         user.id,
       );
       if (fetchedClasses.length === 0) {
-        history.replace(PAGES.ADD_CLASS, {
-          school: currentSchool,
-          origin: PAGES.DISPLAY_CLASSES,
+        history.replace({
+          ...parsePath(PAGES.ADD_CLASS),
+          state: {
+            school: currentSchool,
+            origin: PAGES.DISPLAY_CLASSES,
+          },
         });
         return;
       }
@@ -74,10 +81,13 @@ const DisplayClasses: FC = () => {
       );
 
       if (classWithoutSubjects) {
-        history.replace(PAGES.SUBJECTS_PAGE, {
-          classId: classWithoutSubjects.classId,
-          origin: PAGES.DISPLAY_CLASSES,
-          isSelect: true,
+        history.replace({
+          ...parsePath(PAGES.SUBJECTS_PAGE),
+          state: {
+            classId: classWithoutSubjects.classId,
+            origin: PAGES.DISPLAY_CLASSES,
+            isSelect: true,
+          },
         });
         Util.clearNavigationState();
         return;
@@ -90,7 +100,7 @@ const DisplayClasses: FC = () => {
 
   const handleClassSelection = (selectedClass: TableTypes<'class'>) => {
     Util.setCurrentClass(selectedClass);
-    history.replace(PAGES.HOME_PAGE, { tabValue: 0 });
+    history.replace({ ...parsePath(PAGES.HOME_PAGE), state: { tabValue: 0 } });
   };
 
   return (
