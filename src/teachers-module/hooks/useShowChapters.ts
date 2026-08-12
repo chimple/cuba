@@ -108,15 +108,19 @@ export const useShowChapters = () => {
     const currUser = await auth.getCurrentUser();
     setCurrentUser(currUser);
     const classId = currentClass?.id ?? current_class?.id ?? '';
-    const chapter_res = await api.getChaptersForCourse(course.id);
+    const [chapter_res, course_data] = await Promise.all([
+      api.getChaptersForCourse(course.id),
+      api.getCourse(course.id),
+    ]);
     const chapterOrder = chapter_res.map((chapter) => chapter.id);
     const validChapterIds = new Set(chapterOrder);
-    const course_data = await api.getCourse(course.id);
-    const lesson_map: Map<string, TableTypes<'lesson'>[]> = new Map();
-    for (const chapter of chapter_res) {
-      const lessons = await api.getLessonsForChapter(chapter.id);
-      lesson_map.set(chapter.id, lessons);
-    }
+    const lessonEntries = await Promise.all(
+      chapter_res.map(
+        async (chapter) =>
+          [chapter.id, await api.getLessonsForChapter(chapter.id)] as const,
+      ),
+    );
+    const lesson_map = new Map(lessonEntries);
     const previous_sync_lesson = currUser?.id
       ? await api.getUserAssignmentCart(currUser?.id)
       : null;
