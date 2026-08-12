@@ -18,6 +18,7 @@ import {
   CHIMPLE_MASCOT_STATE_MACHINE_NORMAL,
   CHIMPLE_MASCOT_STATE_MACHINE_REWARD,
   HOMEWORK_REMOTE_ASSETS_ENABLED,
+  COCOS,
   CONTINUE,
   HOMEWORK_PATHWAY,
   IDLE_REWARD_ID,
@@ -1423,10 +1424,33 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
             activeGroup.appendChild(pointer);
             activeGroup.setAttribute('style', 'cursor: pointer;');
 
-            activeGroup.addEventListener('click', () => {
+            activeGroup.addEventListener('click', async () => {
               const shouldMarkRewardLesson =
                 isRewardFeatureOn && hasTodayRewardRef.current;
-              if (lesson.plugin_type === LIVE_QUIZ) {
+              if (lesson.plugin_type === COCOS) {
+                const cocosLessonId = lesson.cocos_lesson_id;
+                if (!cocosLessonId) return;
+                const params =
+                  '?courseid=' +
+                  lesson.cocos_subject_code +
+                  '&chapterid=' +
+                  lesson.cocos_chapter_code +
+                  '&lessonid=' +
+                  cocosLessonId;
+                history.push(PAGES.GAME + params, {
+                  url: 'chimple-lib/index.html' + params,
+                  lessonId: cocosLessonId,
+                  courseDocId: fetchedCourse?.id,
+                  lesson: JSON.stringify(lesson),
+                  chapter: JSON.stringify(fetchedChapter),
+                  from: history.location.pathname + '?' + CONTINUE + '=true',
+                  course: JSON.stringify(fetchedCourse),
+                  isHomework: true,
+                  homeworkIndex: lessonIdx,
+                  reward: shouldMarkRewardLesson,
+                  source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
+                });
+              } else if (lesson.plugin_type === LIVE_QUIZ) {
                 history.push(
                   PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
                   {
@@ -1441,17 +1465,15 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
                 );
               } else {
                 const playableLessonId = Util.getLessonBundleId(lesson);
-                if (!playableLessonId) {
-                  return;
-                }
-                const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
+                if (!playableLessonId) return;
+                const params = "?courseid=" + lesson.cocos_subject_code + "&chapterid=" + lesson.cocos_chapter_code + "&lessonid=" + playableLessonId;
                 history.push(PAGES.LIDO_PLAYER + params, {
                   lessonId: playableLessonId,
                   courseDocId: fetchedCourse?.id,
                   course: JSON.stringify(fetchedCourse),
                   lesson: JSON.stringify(lesson),
                   chapter: JSON.stringify(fetchedChapter),
-                  from: history.location.pathname + `?${CONTINUE}=true`,
+                  from: history.location.pathname + "?" + CONTINUE + "=true",
                   isHomework: true,
                   homeworkIndex: lessonIdx,
                   reward: shouldMarkRewardLesson,
@@ -2400,7 +2422,30 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
           ? currentChapter
           : await api.getChapterById(chapterDocId).catch(() => currentChapter);
 
-      if (lesson.plugin_type === LIVE_QUIZ) {
+      if (lesson.plugin_type === COCOS) {
+        const cocosLessonId = lesson.cocos_lesson_id;
+        if (!cocosLessonId) return;
+        const params =
+          '?courseid=' +
+          lesson.cocos_subject_code +
+          '&chapterid=' +
+          lesson.cocos_chapter_code +
+          '&lessonid=' +
+          cocosLessonId;
+        history.push(PAGES.GAME + params, {
+          url: 'chimple-lib/index.html' + params,
+          lessonId: cocosLessonId,
+          courseDocId,
+          course: JSON.stringify(nextCourse),
+          lesson: JSON.stringify(lesson),
+          chapter: JSON.stringify(nextChapter),
+          from: history.location.pathname + '?' + CONTINUE + '=true',
+          isHomework: true,
+          homeworkIndex: homeworkPath.currentIndex,
+          reward: true,
+          source: SOURCE.LEARNING_PATHWAY_HOMEWORK,
+        });
+      } else if (lesson.plugin_type === LIVE_QUIZ) {
         history.push(
           PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
           {
@@ -2415,17 +2460,15 @@ const HomeworkPathwayStructure: React.FC<HomeworkPathwayStructureProps> = ({
         );
       } else {
         const playableLessonId = Util.getLessonBundleId(lesson);
-        if (!playableLessonId) {
-          return;
-        }
-        const params = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
+        if (!playableLessonId) return;
+        const params = "?courseid=" + lesson.cocos_subject_code + "&chapterid=" + lesson.cocos_chapter_code + "&lessonid=" + playableLessonId;
         history.push(PAGES.LIDO_PLAYER + params, {
           lessonId: playableLessonId,
           courseDocId,
           course: JSON.stringify(nextCourse),
           lesson: JSON.stringify(lesson),
           chapter: JSON.stringify(nextChapter),
-          from: history.location.pathname + `?${CONTINUE}=true`,
+          from: history.location.pathname + "?" + CONTINUE + "=true",
           isHomework: true,
           homeworkIndex: homeworkPath.currentIndex,
           reward: true,

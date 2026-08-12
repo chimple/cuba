@@ -7,6 +7,7 @@ import { ServiceConfig } from '../services/ServiceConfig';
 import {
   REWARD_LEARNING_PATH,
   COURSE_CHANGED,
+  COCOS,
   LIVE_QUIZ,
   PAGES,
   SOURCE,
@@ -1916,7 +1917,30 @@ export function usePathwaySVG({
     const currentCourse = (window as any).__currentCourseForPathway__;
     const currentChapter = (window as any).__currentChapterForPathway__;
 
-    if (lesson.plugin_type === LIVE_QUIZ) {
+    if (lesson.plugin_type === COCOS) {
+      const cocosLessonId = lesson.cocos_lesson_id;
+      if (!cocosLessonId) return;
+      const params =
+        '?courseid=' +
+        lesson.cocos_subject_code +
+        '&chapterid=' +
+        lesson.cocos_chapter_code +
+        '&lessonid=' +
+        cocosLessonId;
+      history.replace(PAGES.GAME + params, {
+        url: 'chimple-lib/index.html' + params,
+        lessonId: cocosLessonId,
+        courseDocId: course.course_id,
+        course: JSON.stringify(currentCourse),
+        lesson: JSON.stringify(lesson),
+        chapter: JSON.stringify(currentChapter),
+        from: history.location.pathname + '?' + CONTINUE + '=true',
+        learning_path: true,
+        skillId: skillId,
+        is_assessment: is_assessment,
+        source: source,
+      });
+    } else if (lesson.plugin_type === LIVE_QUIZ) {
       history.replace(
         PAGES.LIVE_QUIZ_GAME + `?lessonId=${lesson.cocos_lesson_id}`,
         {
@@ -1929,28 +1953,24 @@ export function usePathwaySVG({
           source: source,
         },
       );
-      return;
+    } else {
+      const playableLessonId = Util.getLessonBundleId(lesson);
+      if (!playableLessonId) return;
+      const p = "?courseid=" + lesson.cocos_subject_code + "&chapterid=" + lesson.cocos_chapter_code + "&lessonid=" + playableLessonId;
+      history.replace(PAGES.LIDO_PLAYER + p, {
+        lessonId: playableLessonId,
+        courseDocId: course.course_id,
+        course: JSON.stringify(currentCourse),
+        lesson: JSON.stringify(lesson),
+        chapter: JSON.stringify(currentChapter),
+        from: history.location.pathname + "?" + CONTINUE + "=true",
+        learning_path: true,
+        skillId: skillId,
+        is_assessment: is_assessment,
+        assessmentId: assessmentId,
+        source: source,
+      });
     }
-
-    const playableLessonId = Util.getLessonBundleId(lesson);
-    if (!playableLessonId) {
-      return;
-    }
-
-    const p = `?courseid=${lesson.cocos_subject_code}&chapterid=${lesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
-    history.replace(PAGES.LIDO_PLAYER + p, {
-      lessonId: playableLessonId,
-      courseDocId: course.course_id,
-      course: JSON.stringify(currentCourse),
-      lesson: JSON.stringify(lesson),
-      chapter: JSON.stringify(currentChapter),
-      from: history.location.pathname + `?${CONTINUE}=true`,
-      learning_path: true,
-      skillId: skillId,
-      is_assessment: is_assessment,
-      assessmentId: assessmentId,
-      source: source,
-    });
   }
 
   return {};

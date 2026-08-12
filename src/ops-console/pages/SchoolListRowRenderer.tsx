@@ -126,6 +126,8 @@ export const mapSchoolRowsToRenderRows = (
         onboardedStudents && activatedStudents
           ? (activatedStudents / onboardedStudents) * 100
           : null,
+        '',
+        { rounding: 'ceil' },
       ),
       activeStudents: renderMetricWithPercentCell(
         activeStudents,

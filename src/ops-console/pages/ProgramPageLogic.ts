@@ -396,8 +396,12 @@ const renderMetricWithPercent = (
   value: number | null | undefined,
   percent: number | null | undefined,
   nullPercentText = '--',
+  options?: { rounding?: 'ceil' },
 ): ProgramMetricCell => {
-  const valueText = formatProgramMetric(value);
+  const valueText =
+    options?.rounding === 'ceil' && value !== null && value !== undefined
+      ? formatCompactNumber(Math.ceil(value))
+      : formatProgramMetric(value);
   const percentText = formatNullablePercent(percent, nullPercentText) ?? '--';
   const numericPercent =
     typeof percent === 'number' && Number.isFinite(percent) ? percent : null;
@@ -557,6 +561,8 @@ export const mapProgramRowsToRenderRows = (
       activatedStudents: renderMetricWithPercent(
         program.activated_students,
         program.activated_students_pct,
+        '--',
+        { rounding: 'ceil' },
       ),
       activeStudents: renderMetricWithPercent(
         program.active_students,

@@ -50,18 +50,18 @@ const LessonComponent: React.FC<LessonComponentProps> = ({
           id="lessoncomponent-lesson-type"
           className="lessoncomponent-lesson-type"
         >
-          {lesson.plugin_type === 'liveQuiz' ? t('Live Quiz') : t('Assignment')}
+          {lesson.plugin_type === 'cocos' ? t('Assignment') : t('Live Quiz')}
         </div>
         <div
           id={
-            lesson.plugin_type === 'liveQuiz'
-              ? 'lessoncomponent-quiz-logo'
-              : 'lessoncomponent-assignment-logo'
+            lesson.plugin_type === 'cocos'
+              ? 'lessoncomponent-assignment-logo'
+              : 'lessoncomponent-quiz-logo'
           }
           className={
-            lesson.plugin_type === 'liveQuiz'
-              ? 'lessoncomponent-quiz-logo'
-              : 'lessoncomponent-assignment-logo'
+            lesson.plugin_type === 'cocos'
+              ? 'lessoncomponent-assignment-logo'
+              : 'lessoncomponent-quiz-logo'
           }
         ></div>
       </div>

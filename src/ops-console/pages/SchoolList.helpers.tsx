@@ -355,7 +355,7 @@ export const getSchoolListExportColumns = (): SchoolListExportColumn[] => [
 
 export const formatCompactNumber = (
   value: unknown,
-  options?: { maxFractionDigits?: number },
+  options?: { maxFractionDigits?: number; rounding?: 'ceil' },
 ) => {
   const numericValue =
     typeof value === 'number'
@@ -364,10 +364,12 @@ export const formatCompactNumber = (
         ? Number(value)
         : NaN;
   if (!Number.isFinite(numericValue)) return '--';
+  const displayValue =
+    options?.rounding === 'ceil' ? Math.ceil(numericValue) : numericValue;
   return new Intl.NumberFormat('en-IN', {
     maximumFractionDigits:
-      options?.maxFractionDigits ?? (numericValue % 1 === 0 ? 0 : 1),
-  }).format(numericValue);
+      options?.maxFractionDigits ?? (displayValue % 1 === 0 ? 0 : 1),
+  }).format(displayValue);
 };
 
 export const pickFirstNumber = (...values: unknown[]) => {
@@ -539,7 +541,7 @@ export const renderMetricWithPercentCell = (
   value: unknown,
   percent: number | null,
   suffix = '',
-  options?: { maxFractionDigits?: number },
+  options?: { maxFractionDigits?: number; rounding?: 'ceil' },
   showValue = true,
 ) => {
   const metricValue =

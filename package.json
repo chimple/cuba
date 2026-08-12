@@ -121,8 +121,8 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "tsc -p tsconfig.build.json && vite build && npx @capawesome/cli manifests:generate --path dist && npx cap sync && npm run build:storybook",
-    "build:android": "tsc -p tsconfig.build.json && vite build && npx @capawesome/cli manifests:generate --path dist && npx cap sync android",
+    "build": "tsc -p tsconfig.build.json && vite build && npm run copy-build && npx @capawesome/cli manifests:generate --path dist && npx cap sync && npm run build:storybook",
+    "build:android": "tsc -p tsconfig.build.json && vite build && npm run copy-build && npx @capawesome/cli manifests:generate --path dist && npx cap sync android",
     "build:storybook": "storybook build",
     "build:full": "npm run build",
     "create-check-sum": "node scripts/check_sum_generator.js",
@@ -136,7 +136,8 @@
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,json,md}\"",
     "fix-staged": "lint-staged -c .lintstagedrc-fix.json --no-stash",
     "check:new-any": "node scripts/check-new-explicit-any.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "copy-build": "shx cp chimple-lib/*.js dist/ && shx cp -r chimple-lib/src dist/src && shx cp -r chimple-lib/assets/* dist/assets/"
   },
   "eslintConfig": {
     "extends": [

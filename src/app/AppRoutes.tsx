@@ -20,6 +20,7 @@ import LiveQuizGame from '../pages/LiveQuizGame';
 import LiveQuizRoomResult from '../pages/LiveQuizRoomResult';
 import LiveQuizLeaderBoard from '../pages/LiveQuizLeaderBoard';
 import LidoPlayer from '../pages/LidoPlayer';
+import CocosGame from '../pages/CocosGame';
 import UploadPage from '../ops-console/pages/UploadPage';
 import SidebarPage from '../ops-console/pages/SidebarPage';
 import ResetPassword from '../pages/ResetPassword';
@@ -80,6 +81,9 @@ const AppRoutes = () => (
     <Route path={PAGES.LOGIN} exact={true}>
       <LoginScreen />
     </Route>
+    <ProtectedRoute path={PAGES.GAME} exact={true}>
+      <CocosGame />
+    </ProtectedRoute>
     <ProtectedRoute path={PAGES.LIDO_PLAYER} exact={true}>
       <LidoPlayer />
     </ProtectedRoute>
