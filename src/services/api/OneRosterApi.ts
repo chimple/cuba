@@ -632,6 +632,8 @@ export class OneRosterApi implements ServiceApi {
     page: number = 1,
     limit: number = 20,
     classId?: string,
+    classIds?: string[],
+    excludeStudentId?: string,
   ): Promise<StudentAPIResponse> {
     return Promise.resolve({ data: [], total: 0 });
   }
@@ -918,6 +920,7 @@ export class OneRosterApi implements ServiceApi {
     classId: string,
     page: number,
     limit: number,
+    excludeStudentId?: string,
   ): Promise<StudentAPIResponse> {
     throw new Error('Method not implemented.');
   }

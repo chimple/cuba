@@ -185,6 +185,7 @@ export class SqliteApiUserStudentLists extends SqliteApiUserLookups {
     classId: string,
     page: number = 1,
     limit: number = 20,
+    excludeStudentId?: string,
   ): Promise<StudentAPIResponse> {
     await this.ensureInitialized();
     if (!this._db) {
@@ -202,9 +203,13 @@ export class SqliteApiUserStudentLists extends SqliteApiUserLookups {
     WHERE cu.role = 'student'
       AND cu.is_deleted = false
       AND cu.class_id = ? -- Filter by class_id directly
+      ${excludeStudentId ? 'AND cu.user_id != ?' : ''}
       AND c.is_deleted = false;
   `;
-    const countRes = await this._db.query(countQuery, [classId]);
+    const countParams = excludeStudentId
+      ? [classId, excludeStudentId]
+      : [classId];
+    const countRes = await this._db.query(countQuery, countParams);
     const total = countRes?.values?.[0]?.total ?? 0;
 
     if (total === 0) {
@@ -229,6 +234,7 @@ export class SqliteApiUserStudentLists extends SqliteApiUserLookups {
     WHERE cu.role = 'student'
       AND cu.is_deleted = false
       AND cu.class_id = ? -- Filter by class_id directly
+      ${excludeStudentId ? 'AND cu.user_id != ?' : ''}
       AND c.is_deleted = false
       AND u.is_deleted = false
     -- Important to group by student to avoid duplicates if a student is in multiple classes (though less likely when filtering by specific class)
@@ -236,7 +242,7 @@ export class SqliteApiUserStudentLists extends SqliteApiUserLookups {
     ORDER BY u.name ASC
     LIMIT ? OFFSET ?;
   `;
-    const res = await this._db.query(query, [classId, limit, offset]);
+    const res = await this._db.query(query, [...countParams, limit, offset]);
     const rows = res?.values ?? [];
     const studentIds = rows
       .map((row: any) =>

@@ -51,8 +51,15 @@ export const useStudentPendingRequestDetails = () => {
                 page,
                 size,
                 classId,
+                undefined,
+                requestData?.requested_by,
               )
-            : await api.getStudentsAndParentsByClassId(classId, page, size);
+            : await api.getStudentsAndParentsByClassId(
+                classId,
+                page,
+                size,
+                requestData?.requested_by,
+              );
         if (fetchId !== studentFetchIdRef.current) return;
 
         const studentRows = response?.data || [];

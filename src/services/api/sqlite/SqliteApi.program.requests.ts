@@ -38,6 +38,7 @@ export class SqliteApiProgramRequests extends SqliteApiProgramActivityStats {
     limit: number,
     classId?: string,
     classIds?: string[],
+    excludeStudentId?: string,
   ): Promise<{ data: any[]; total: number }> {
     await this.ensureInitialized();
     if (!this._db) return { data: [], total: 0 };
@@ -59,6 +60,10 @@ export class SqliteApiProgramRequests extends SqliteApiProgramActivityStats {
       const classScopePlaceholders = classIds.map(() => '?').join(', ');
       whereClause += ` AND cu.class_id IN (${classScopePlaceholders})`;
       params.push(...classIds);
+    }
+    if (excludeStudentId) {
+      whereClause += ` AND cu.user_id != ?`;
+      params.push(excludeStudentId);
     }
     // ✅ SEARCH FILTER
     if (searchTerm && searchTerm.trim() !== '') {
