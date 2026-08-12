@@ -12,6 +12,7 @@ import { PAGES } from '../../../../common/constants';
 import { ServiceConfig } from '../../../../services/ServiceConfig';
 import { Toast } from '@capacitor/toast';
 import logger from '../../../../utility/logger';
+import { parsePath } from 'history';
 
 interface AssignScreenProps {
   onLibraryClick: () => void;
@@ -61,10 +62,13 @@ const AssignScreen: FC<AssignScreenProps> = ({
         return;
       }
       // ✅ Success → Navigate
-      history.replace(PAGES.QR_ASSIGNMENTS, {
-        chapterId: response.chapter_id,
-        courseId: response.course_id,
-        fromPage: PAGES.HOME_PAGE,
+      history.replace({
+        ...parsePath(PAGES.QR_ASSIGNMENTS),
+        state: {
+          chapterId: response.chapter_id,
+          courseId: response.course_id,
+          fromPage: PAGES.HOME_PAGE,
+        },
       });
     } catch (error) {
       logger.error('Scan failed:', error);

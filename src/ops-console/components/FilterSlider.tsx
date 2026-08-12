@@ -16,17 +16,19 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import './FilterSlider.css';
 import { t } from 'i18next';
+import type { SchoolFilterOption } from '../pages/SchoolList.helpers';
 
 interface FilterSliderProps {
   isOpen: boolean;
   onClose: () => void;
   filters: Record<string, string[]>;
-  filterOptions: Record<string, string[]>;
+  filterOptions: Record<string, SchoolFilterOption[]>;
   onFilterChange: (name: string, value: string[]) => void;
   onApply: () => void;
   onCancel: () => void;
   autocompleteStyles?: object;
   filterConfigs: { key: string; label: string; placeholder?: string }[];
+  singleSelectKeys?: string[];
 }
 
 const FilterSlider: React.FC<FilterSliderProps> = ({
@@ -39,9 +41,20 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
   onCancel,
   autocompleteStyles = {},
   filterConfigs,
+  singleSelectKeys = [],
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [schoolSearchValue, setSchoolSearchValue] = React.useState('');
+
+  React.useEffect(() => {
+    if (!isOpen) setSchoolSearchValue('');
+  }, [isOpen]);
+
+  const getOptionLabel = (option: SchoolFilterOption) =>
+    typeof option === 'string' ? option : option.name;
+  const getOptionValue = (option: SchoolFilterOption) =>
+    typeof option === 'string' ? option : option.id;
 
   return (
     <Drawer
@@ -74,14 +87,87 @@ const FilterSlider: React.FC<FilterSliderProps> = ({
             key={key}
             multiple
             options={filterOptions[key] || []}
+            filterOptions={
+              key === 'school'
+                ? (options, state) => {
+                    const query = state.inputValue.trim().toLowerCase();
+                    if (!query) return options;
+
+                    const rank = (name: string) => {
+                      const lower = name.toLowerCase();
+                      if (lower.startsWith(query)) return 0;
+                      if (lower.includes(` ${query}`)) return 1;
+                      if (lower.includes(query)) return 2;
+                      return 3;
+                    };
+
+                    return [...options]
+                      .filter((option) =>
+                        getOptionLabel(option).toLowerCase().includes(query),
+                      )
+                      .sort((a, b) => {
+                        const left = getOptionLabel(a);
+                        const right = getOptionLabel(b);
+                        return (
+                          rank(left) - rank(right) ||
+                          left.localeCompare(right, undefined, {
+                            sensitivity: 'base',
+                          })
+                        );
+                      });
+                  }
+                : undefined
+            }
             disableCloseOnSelect
-            getOptionLabel={(option) => option}
-            value={filters[key] ?? []}
-            onChange={(e, value) => onFilterChange(key, value)}
+            filterSelectedOptions={false}
+            getOptionLabel={getOptionLabel}
+            isOptionEqualToValue={(option, value) =>
+              getOptionValue(option) === getOptionValue(value)
+            }
+            value={
+              key === 'program'
+                ? (filterOptions[key] || []).filter((option) =>
+                    (filters[key] ?? []).includes(getOptionValue(option)),
+                  )
+                : (filters[key] ?? [])
+            }
+            inputValue={key === 'school' ? schoolSearchValue : undefined}
+            onInputChange={(_, newInputValue, reason) => {
+              if (key !== 'school') return;
+
+              if (reason === 'clear') {
+                setSchoolSearchValue('');
+                return;
+              }
+
+              if (reason === 'input') {
+                setSchoolSearchValue(newInputValue);
+                return;
+              }
+
+              // Keep the current search text after a selection so the filtered
+              // result set stays visible for additional picks.
+            }}
+            onChange={(e, value) => {
+              const nextValues = Array.isArray(value)
+                ? value.map(getOptionValue)
+                : [];
+              onFilterChange(
+                key,
+                key === 'program' || singleSelectKeys.includes(key)
+                  ? nextValues.slice(0, 1)
+                  : nextValues,
+              );
+            }}
+            getOptionDisabled={(option) =>
+              (key === 'program' || singleSelectKeys.includes(key)) &&
+              (filters[key]?.length ?? 0) > 0 &&
+              !(filters[key] ?? []).includes(getOptionValue(option))
+            }
             renderOption={(props, option, { selected }) => (
               <li {...props}>
                 <Checkbox checked={selected} sx={{ marginRight: 1 }} />
-                {option}
+                {getOptionLabel(option)}
               </li>
             )}
             renderTags={() => null}

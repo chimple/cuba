@@ -1320,7 +1320,7 @@ export class FirebaseApi implements ServiceApi {
         queryResult.docs.map(async (connectionDoc) => {
           const schoolId = connectionDoc.id.split('_')[1];
           const connectionId = connectionDoc.id.split('_')[0];
-          if (connectionId != 'PT') {
+          if (connectionId !== 'PT') {
             const schoolDoc = await getDoc(
               doc(this._db, CollectionIds.SCHOOL, schoolId),
             );
@@ -1643,7 +1643,6 @@ export class FirebaseApi implements ServiceApi {
   public async getUserByDocId(
     studentId: string,
   ): Promise<TableTypes<'user'> | undefined> {
-    throw new Error('Method not implemented.');
     try {
       const studentDocRef = doc(this._db, CollectionIds.USER, studentId);
       const studentDoc = await getDoc(studentDocRef);
@@ -1773,7 +1772,7 @@ export class FirebaseApi implements ServiceApi {
     let doc: DocumentSnapshot<DocumentData>;
     try {
       doc = await getDocFromCache(reference);
-      if (!doc.exists() || !doc.data()) throw 'not found in cache';
+      if (!doc.exists() || !doc.data()) throw new Error('not found in cache');
     } catch (error) {
       doc = await getDoc(reference);
     }
@@ -1784,8 +1783,8 @@ export class FirebaseApi implements ServiceApi {
     let querySnapshot: QuerySnapshot<DocumentData>;
     try {
       querySnapshot = await getDocsFromCache(query);
-      if (querySnapshot.empty) throw 'not found in cache';
-      getDocs(query);
+      if (querySnapshot.empty) throw new Error('not found in cache');
+      await getDocs(query);
     } catch (er) {
       querySnapshot = await getDocs(query);
     }
@@ -1800,9 +1799,10 @@ export class FirebaseApi implements ServiceApi {
     }
 
     const tmpCourse = this._allCourses?.find((course) => {
-      if (course.courseCode === lesson.cocosSubjectCode) {
-        return Util.checkLessonPresentInCourse(course, lesson.docId);
+      if (course.courseCode !== lesson.cocosSubjectCode) {
+        return false;
       }
+      return Util.checkLessonPresentInCourse(course, lesson.docId);
     });
     return tmpCourse;
   }
@@ -2028,7 +2028,7 @@ export class FirebaseApi implements ServiceApi {
     throw new Error('Method not implemented.');
   }
   async getSchoolFilterOptionsForSchoolListing(): Promise<
-    Record<string, string[]>
+    Record<string, unknown[]>
   > {
     throw new Error('getSchoolFilterOptions() is not implemented.');
   }

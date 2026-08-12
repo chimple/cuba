@@ -14,6 +14,7 @@ import { store } from '../redux/store';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { logAuthDebug } from './authDebug';
 import logger from './logger';
+import { getAppPathname, replaceAppUrl } from './routerLocation';
 import { Util } from './util';
 
 export class schoolUtil {
@@ -142,14 +143,10 @@ export class schoolUtil {
         logAuthDebug('School relogin succeeded, redirecting to select mode.', {
           source: 'schoolUtil.trySchoolRelogin',
           reason: 'school_relogin_success',
-          from_page: window.location.pathname,
+          from_page: getAppPathname(),
           to_page: PAGES.SELECT_MODE,
         });
-        window.history.replaceState(
-          window.history.state,
-          '',
-          PAGES.SELECT_MODE.toString(),
-        );
+        replaceAppUrl({ pathname: PAGES.SELECT_MODE, search: '', hash: '' });
 
         return true;
       } else {
@@ -157,14 +154,10 @@ export class schoolUtil {
         logAuthDebug('School relogin failed, redirecting to login.', {
           source: 'schoolUtil.trySchoolRelogin',
           reason: 'school_relogin_failed_user_not_found',
-          from_page: window.location.pathname,
+          from_page: getAppPathname(),
           to_page: PAGES.LOGIN,
         });
-        window.history.replaceState(
-          window.history.state,
-          '',
-          PAGES.LOGIN.toString(),
-        );
+        replaceAppUrl({ pathname: PAGES.LOGIN, search: '', hash: '' });
         return false;
       }
     } catch (error) {

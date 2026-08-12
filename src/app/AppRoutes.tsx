@@ -68,6 +68,9 @@ import KidsAppLocation from '../teachers-module/pages/KidsAppLocation';
 
 const AppRoutes = () => (
   <Switch>
+    <Route path={PAGES.ROOT} exact={true}>
+      <HotUpdate />
+    </Route>
     <Route path={PAGES.APP_UPDATE} exact={true}>
       <HotUpdate />
     </Route>

@@ -125,6 +125,7 @@ const mockSetSearchTerm = jest.fn();
 const mockSetFilters = jest.fn();
 const mockSetTempFilters = jest.fn();
 const mockSetIsFilterOpen = jest.fn();
+const mockHandleOpenFilters = jest.fn();
 const mockSetSelectedDateRange = jest.fn();
 const mockSetPage = jest.fn();
 const mockHandleClearFilters = jest.fn();
@@ -152,6 +153,7 @@ jest.mock('./ProgramPageLogic', () => ({
     filterOptions: {},
     isFilterOpen: false,
     setIsFilterOpen: mockSetIsFilterOpen,
+    handleOpenFilters: mockHandleOpenFilters,
     handleClearFilters: mockHandleClearFilters,
     selectedDateRange: '7d',
     setSelectedDateRange: mockSetSelectedDateRange,
@@ -210,7 +212,7 @@ it('renders the Program page and wires table actions to page logic', async () =>
   expect(mockSetPage).toHaveBeenCalledWith(1);
 
   await user.click(screen.getByRole('button', { name: 'open filters' }));
-  expect(mockSetIsFilterOpen).toHaveBeenCalledWith(true);
+  expect(mockHandleOpenFilters).toHaveBeenCalled();
 
   await user.click(screen.getByRole('button', { name: 'close filters' }));
   expect(mockSetIsFilterOpen).toHaveBeenCalledWith(false);

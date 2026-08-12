@@ -1,0 +1,474 @@
+import { FC, useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useHistory, useLocation } from 'react-router';
+import { ServiceConfig } from '../services/ServiceConfig';
+import {
+  CONTINUE,
+  COURSES,
+  CURRENT_SELECTED_CHAPTER,
+  CURRENT_SELECTED_COURSE,
+  CURRENT_SELECTED_GRADE,
+  CURRENT_STAGE,
+  GRADE_MAP,
+  MODES,
+  PAGES,
+  TableTypes,
+} from '../common/constants';
+import { IonItem, IonPage } from '@ionic/react';
+import { t } from 'i18next';
+import SelectChapter from '../components/displaySubjects/SelectChapter';
+import LessonSlider from '../components/LessonSlider';
+import BackButton from '../components/common/BackButton';
+import { Util } from '../utility/util';
+import { schoolUtil } from '../utility/schoolUtil';
+import DropDown from '../components/DropDown';
+import SkeltonLoading from '../components/SkeltonLoading';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { registerBackButtonHandler } from '../common/backButtonRegistry';
+import logger from '../utility/logger';
+
+const localData: any = {};
+// let localStorageData: any = {};
+export const useDisplayChapters = () => {
+  enum STAGES {
+    SUBJECTS,
+    CHAPTERS,
+    LESSONS,
+  }
+  const [stage, setStage] = useState(STAGES.SUBJECTS);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [courses, setCourses] = useState<TableTypes<'course'>[]>();
+  const [currentCourse, setCurrentCourse] = useState<TableTypes<'course'>>();
+  const [currentChapter, setCurrentChapter] = useState<TableTypes<'chapter'>>();
+  const [currentClass, setCurrentClass] = useState<TableTypes<'class'>>();
+  const [lessons, setLessons] = useState<TableTypes<'lesson'>[]>();
+  const [chapters, setChapters] = useState<TableTypes<'chapter'>[]>([]);
+
+  const [localGradeMap, setLocalGradeMap] = useState<{
+    grades: TableTypes<'grade'>[];
+    courses: TableTypes<'course'>[];
+  }>();
+  const [currentGrade, setCurrentGrade] = useState<TableTypes<'grade'>>();
+  const [lessonResultMap, setLessonResultMap] = useState<{
+    [lessonDocId: string]: TableTypes<'result'>;
+  }>({});
+  const history = useHistory();
+  const location = useLocation();
+  const lastBackPressAtRef = useRef<number>(0);
+  const blockIonRouterBackUntilRef = useRef<number>(0);
+
+  const stageRef = useRef<STAGES>(stage);
+  stageRef.current = stage;
+  const api = ServiceConfig.getI().apiHandler;
+
+  const searchParams = new URLSearchParams(location.search);
+  const courseDocId = searchParams.get('courseDocId');
+  const isMathCourse = currentCourse?.code?.toLowerCase().includes('math');
+  const shouldTranslateCourseText =
+    currentCourse?.code !== COURSES.ENGLISH && !isMathCourse;
+  const getCourseBasedName = (name?: string | null) => {
+    if (!name) return '';
+    return shouldTranslateCourseText ? t(name) : name;
+  };
+  const getCourseByUrl = useMemo(
+    () =>
+      localGradeMap?.courses.find((course) => courseDocId === course.id) ??
+      courses?.find((course) => courseDocId === course.id),
+    [localGradeMap, courses, courseDocId],
+  );
+  useEffect(() => {
+    Util.loadBackgroundImage();
+    init();
+    ScreenOrientation.lock({ orientation: 'landscape' });
+  }, []);
+  useEffect(() => {
+    const storedCourseByUrl = (() => {
+      if (getCourseByUrl || !courseDocId) return;
+
+      const selectedCourse = localStorage.getItem(CURRENT_SELECTED_COURSE);
+      if (!selectedCourse) return;
+
+      try {
+        const parsedCourse = JSON.parse(selectedCourse) as TableTypes<'course'>;
+        return parsedCourse?.id === courseDocId ? parsedCourse : undefined;
+      } catch (error) {
+        logger.error('Failed to parse stored course from localStorage', error);
+        return;
+      }
+    })();
+    const resolvedCourseByUrl = getCourseByUrl ?? storedCourseByUrl;
+
+    if (resolvedCourseByUrl && !currentCourse) {
+      //as url params change(course.id) and currentCourse empty they we are using this
+      onCourseChanges(resolvedCourseByUrl);
+    }
+
+    if (!localGradeMap || !localGradeMap.grades) {
+      if (currentCourse) {
+        setIsLoading(true);
+        const getLocalGradeMap = async () => {
+          const { grades } =
+            await api.getDifferentGradesForCourse(currentCourse);
+          localData.gradesMap = { grades, courses: [currentCourse] };
+
+          setLocalGradeMap({ grades, courses: [currentCourse] });
+          setIsLoading(false);
+        };
+        getLocalGradeMap();
+      }
+    }
+  }, [courseDocId, getCourseByUrl, localGradeMap, currentCourse]);
+
+  const init = async () => {
+    const urlParams = new URLSearchParams(location.search);
+    await getCourses();
+    if (
+      !!urlParams.get(CONTINUE) &&
+      !!localData.currentCourse &&
+      !!localData.currentGrade &&
+      !!localData.currentChapter
+    ) {
+      setCourses(localData.courses);
+      setLessons(localData.lessons);
+      setCurrentGrade(localData.currentGrade);
+      setCurrentCourse(localData.currentCourse);
+      const chapters = await api.getChaptersForCourse(
+        localData.currentCourse.id,
+      );
+      setChapters(chapters);
+      setCurrentChapter(localData.currentChapter);
+      if (localData.lessonResultMap) {
+        setLessonResultMap(localData.lessonResultMap);
+      } else {
+        const currentStudent = Util.getCurrentStudent();
+        if (currentStudent) {
+          //loading student result cache (seems like a new user)
+          const result = await api.getStudentResultInMap(currentStudent.id);
+          const lessons = result;
+          localData.lessonResultMap = lessons;
+          setLessonResultMap(lessons);
+        }
+      }
+
+      !!localData.localGradeMap && setLocalGradeMap(localData.localGradeMap);
+      setStage(STAGES.LESSONS);
+
+      addStateTolocalStorage(STAGES.LESSONS);
+      setIsLoading(false);
+    } else if (!!urlParams.get('isReload')) {
+      await getCourses();
+      setIsLoading(true);
+      const currentSelectedCourse = localStorage.getItem(
+        CURRENT_SELECTED_COURSE,
+      );
+
+      if (currentSelectedCourse) {
+        const currentCourse = JSON.parse(currentSelectedCourse);
+        setCurrentCourse(currentCourse);
+        const chapters = await api.getChaptersForCourse(currentCourse.id);
+        setChapters(chapters);
+        const currentSelectedChapter = localStorage.getItem(
+          CURRENT_SELECTED_CHAPTER,
+        );
+        if (currentSelectedChapter) {
+          let currentChapter = JSON.parse(currentSelectedChapter);
+          setCurrentChapter(currentChapter);
+          const lesson = await getLessonsForChapter(currentChapter);
+          setLessons(lesson);
+        } else setCurrentChapter(undefined);
+
+        const stage = localStorage.getItem(CURRENT_STAGE);
+        if (stage) {
+          setStage(JSON.parse(stage));
+        }
+        const grade = localStorage.getItem(CURRENT_SELECTED_GRADE);
+        if (grade) {
+          setCurrentGrade(JSON.parse(grade));
+        }
+      } else {
+        setCourses(undefined);
+      }
+    } else {
+      logger.warn('Course not found in local data.');
+    }
+    setIsLoading(false);
+    getLocalGradeMap();
+  };
+
+  function getLocalGradeMap():
+    | {
+        grades: TableTypes<'grade'>[];
+        courses: TableTypes<'course'>[];
+      }
+    | undefined {
+    let map = localStorage.getItem(GRADE_MAP);
+    if (!!map) {
+      let _localMap: {
+        grades: TableTypes<'grade'>[];
+        courses: TableTypes<'course'>[];
+      } = JSON.parse(map);
+      let convertedCourses = _localMap.courses;
+      _localMap.courses = convertedCourses;
+      setLocalGradeMap(_localMap);
+      return _localMap;
+    }
+  }
+
+  const getCourses = async (): Promise<TableTypes<'course'>[]> => {
+    setIsLoading(true);
+    const currentStudent = Util.getCurrentStudent();
+    if (!currentStudent) {
+      history.replace(PAGES.SELECT_MODE);
+      return [];
+    }
+
+    const currClass = schoolUtil.getCurrentClass();
+    if (!!currClass) setCurrentClass(currClass);
+
+    const res = await api.getStudentResultInMap(currentStudent.id);
+    localData.lessonResultMap = res;
+
+    setLessonResultMap(res);
+
+    const currMode = await schoolUtil.getCurrMode();
+
+    const courses = await (currMode === MODES.SCHOOL && !!currClass
+      ? api.getCoursesForClassStudent(currClass.id)
+      : api.getCoursesForParentsStudent(currentStudent.id));
+    localData.courses = courses;
+
+    setCourses(courses);
+
+    setIsLoading(false);
+    return courses;
+  };
+
+  const getLessonsForChapter = async (
+    chapter: TableTypes<'chapter'>,
+  ): Promise<TableTypes<'lesson'>[]> => {
+    setIsLoading(true);
+
+    if (!chapter) {
+      setIsLoading(false);
+      return [];
+    }
+
+    try {
+      const lessons = await api.getLessonsForChapter(chapter.id);
+      // Retrieve existing data from local storage
+      localData.lessons = lessons;
+      setLessons(lessons);
+      setIsLoading(false);
+      return lessons;
+    } catch (error) {
+      // Handle errors
+      logger.error('Error fetching lessons:', error);
+      setIsLoading(false);
+      return [];
+    }
+  };
+
+  const onBackButton = useCallback((): boolean => {
+    const now = Date.now();
+    if (now - lastBackPressAtRef.current < 150) return true;
+    lastBackPressAtRef.current = now;
+    switch (stage) {
+      case STAGES.CHAPTERS:
+        delete localData.currentChapter;
+
+        setCurrentChapter(undefined);
+
+        localStorage.removeItem(CURRENT_SELECTED_COURSE);
+        localStorage.removeItem(CURRENT_SELECTED_GRADE);
+        addStateTolocalStorage(STAGES.SUBJECTS);
+        Util.setPathToBackButton(PAGES.HOME, history);
+        return true;
+      case STAGES.LESSONS:
+        blockIonRouterBackUntilRef.current = Date.now() + 800;
+        delete localData.lessons;
+        setLessons(undefined);
+        setStage(STAGES.CHAPTERS);
+        addStateTolocalStorage(STAGES.CHAPTERS);
+        localStorage.removeItem(CURRENT_SELECTED_CHAPTER);
+
+        return true;
+      default:
+        return false;
+    }
+  }, [stage, history]);
+
+  useEffect(() => {
+    const handler = (ev: any) => {
+      if (location.pathname !== PAGES.DISPLAY_CHAPTERS) return;
+      const shouldBlockIonRouter =
+        stageRef.current === STAGES.LESSONS ||
+        Date.now() < blockIonRouterBackUntilRef.current;
+      if (!shouldBlockIonRouter) return;
+      ev?.detail?.register?.(1000, () => {
+        if (stageRef.current === STAGES.LESSONS) {
+          onBackButton();
+        }
+        blockIonRouterBackUntilRef.current = 0;
+      });
+    };
+
+    document.addEventListener('ionBackButton', handler as any);
+    return () => document.removeEventListener('ionBackButton', handler as any);
+  }, [location.pathname, onBackButton]);
+
+  useEffect(() => {
+    const unregister = registerBackButtonHandler(
+      () => {
+        if (location.pathname !== PAGES.DISPLAY_CHAPTERS) return false;
+        return onBackButton();
+      },
+      { path: PAGES.DISPLAY_CHAPTERS },
+    );
+    return unregister;
+  }, [location.pathname, onBackButton]);
+
+  useEffect(() => {
+    const unblock = history.block((_nextLocation, action) => {
+      if (action !== 'POP') return;
+      if (location.pathname !== PAGES.DISPLAY_CHAPTERS) return;
+      const handled = onBackButton();
+      if (handled) return false;
+    });
+
+    return () => {
+      unblock();
+    };
+  }, [history, location.pathname, onBackButton]);
+
+  const onCourseChanges = async (course: TableTypes<'course'>) => {
+    const gradesMap: {
+      grades: TableTypes<'grade'>[];
+      courses: TableTypes<'course'>[];
+    } = await api.getDifferentGradesForCourse(course);
+    let currentGrade = gradesMap.grades.find(
+      (grade) => grade.id === course.grade_id,
+    );
+
+    if (!gradesMap.courses.some((_course) => _course.id === course.id)) {
+      gradesMap.courses.unshift(course);
+    }
+
+    if (!currentGrade && course.grade_id) {
+      const courseGrade = await api.getGradeById(course.grade_id);
+      if (courseGrade) {
+        currentGrade = courseGrade;
+
+        if (!gradesMap.grades.some((grade) => grade.id === courseGrade.id)) {
+          gradesMap.grades.unshift(courseGrade);
+        }
+      }
+    }
+
+    const selectedGrade = currentGrade ?? gradesMap.grades[0];
+    localStorage.setItem(GRADE_MAP, JSON.stringify(gradesMap));
+    localData.currentGrade = selectedGrade;
+
+    localData.gradesMap = gradesMap;
+
+    localData.currentCourse = course;
+
+    setCurrentGrade(selectedGrade);
+    selectedGrade && addGradeToLocalStorage(selectedGrade);
+    setLocalGradeMap(gradesMap);
+    const chapters = await api.getChaptersForCourse(course.id);
+    setChapters(chapters);
+    setCurrentCourse(course);
+    localStorage.setItem(CURRENT_SELECTED_COURSE, JSON.stringify(course));
+    addStateTolocalStorage(STAGES.CHAPTERS);
+    setStage(STAGES.CHAPTERS);
+  };
+
+  const onGradeChanges = async (grade: TableTypes<'grade'>) => {
+    let _localMap = getLocalGradeMap();
+    const currentCourse = _localMap?.courses.find(
+      (course) => course.grade_id === grade.id,
+    );
+    localData.currentGrade = grade;
+    setCurrentGrade(grade);
+    addGradeToLocalStorage(grade);
+    const chapters = await api.getChaptersForCourse(currentCourse?.id ?? '');
+    setChapters(chapters);
+    setCurrentCourse(currentCourse);
+    localStorage.setItem(
+      CURRENT_SELECTED_COURSE,
+      JSON.stringify(currentCourse),
+    );
+    localData.currentCourse = currentCourse;
+  };
+
+  const onChapterChange = async (chapter: TableTypes<'chapter'>) => {
+    await getLessonsForChapter(chapter);
+    localData.currentChapter = chapter;
+
+    setCurrentChapter(chapter);
+    localStorage.setItem(CURRENT_SELECTED_CHAPTER, JSON.stringify(chapter));
+
+    setStage(STAGES.LESSONS);
+    addStateTolocalStorage(STAGES.LESSONS);
+  };
+
+  function getLastPlayedLessonIndex() {
+    let lastPlayedLessonDate: Date;
+    let startIndex = 0;
+    if (!!lessonResultMap)
+      lessons?.forEach((less: TableTypes<'lesson'>, i: number) => {
+        const studentResultOfLess = lessonResultMap[less.id];
+        if (!!studentResultOfLess) {
+          if (!lastPlayedLessonDate) {
+            lastPlayedLessonDate = lessonResultMap[less.id].updated_at
+              ? new Date(lessonResultMap[less.id].updated_at ?? '')
+              : new Date();
+            startIndex = i;
+          } else {
+            if (
+              new Date(lessonResultMap[less.id].updated_at ?? '') >
+              lastPlayedLessonDate
+            ) {
+              lastPlayedLessonDate = new Date(
+                studentResultOfLess.updated_at ?? '',
+              );
+              startIndex = i;
+            }
+          }
+        }
+      });
+
+    return startIndex;
+  }
+  function addStateTolocalStorage(stage: STAGES) {
+    localStorage.setItem(CURRENT_STAGE, JSON.stringify(stage));
+  }
+  function addGradeToLocalStorage(grade: TableTypes<'grade'>) {
+    localStorage.setItem(CURRENT_SELECTED_GRADE, JSON.stringify(grade));
+  }
+  return {
+    BackButton,
+    DropDown,
+    IonItem,
+    IonPage,
+    LessonSlider,
+    PAGES,
+    STAGES,
+    SelectChapter,
+    SkeltonLoading,
+    chapters,
+    currentChapter,
+    currentCourse,
+    currentGrade,
+    getCourseBasedName,
+    getLastPlayedLessonIndex,
+    isLoading,
+    lessonResultMap,
+    lessons,
+    localGradeMap,
+    onBackButton,
+    onChapterChange,
+    onGradeChanges,
+    stage,
+    t,
+  };
+};

@@ -2,6 +2,7 @@ import { Util } from '../utility/util';
 import { EVENTS } from '../common/constants';
 import { RoleType } from '../interface/modelInterfaces';
 import { ServiceConfig } from '../services/ServiceConfig';
+import { getAppHref, getAppPathname } from '../utility/routerLocation';
 
 const storedStudent: {
   id?: string;
@@ -92,9 +93,9 @@ export const logProfileClick = async (event: React.MouseEvent<HTMLElement>) => {
     user_gender: storedStudent.gender,
     user_type: storedStudent.type,
     click_identifier: id || className || 'null',
-    page_name: window.location.pathname.replace('/', ''),
-    page_path: window.location.pathname,
-    complete_path: window.location.href,
+    page_name: getAppPathname().replace('/', ''),
+    page_path: getAppPathname(),
+    complete_path: getAppHref(),
     action_type: event.type,
     click_value: textContent,
     input_value: (event.target as HTMLInputElement).value || 'null',
