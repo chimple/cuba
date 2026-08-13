@@ -21,6 +21,8 @@ const ShowChapters = () => {
     history,
     isLoadingAssignedLessons,
     isShowAssigned,
+    loadLessonsForChapter,
+    loadingLessonChapterIds,
     lessons,
     parsePath,
     resolvedActiveChapterId,
@@ -82,6 +84,8 @@ const ShowChapters = () => {
                   ] ?? []),
                 ]}
                 lessons={lessons?.get(chapter.id) ?? []}
+                loadLessonsForChapter={loadLessonsForChapter}
+                isLoadingLessons={loadingLessonChapterIds.has(chapter.id)}
                 chapterSelectedLessons={updateLessonSelection}
                 lessonClickCallBack={(lesson) => {
                   handleOnLessonClick(lesson, chapter);
