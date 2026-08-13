@@ -2495,27 +2495,6 @@ export class Util {
     return courseJson;
   }
 
-  public static async checkRespectApp(): Promise<boolean> {
-    try {
-      console.log(
-        'if (!Capacitor.isNativePlatform) return true',
-        !!Capacitor.isNativePlatform,
-        Capacitor.isNativePlatform,
-      );
-
-      // return true
-      if (!!Capacitor.isNativePlatform) return true;
-      const PortPlugin = registerPlugin<any>('Port');
-      const data = await PortPlugin.isAppInstalledCheck();
-      console.log('data isRespect data--> ', JSON.stringify(data));
-      localStorage.setItem('isRespectMode', String(data.isRespect));
-      return data.isRespect;
-    } catch (error) {
-      console.log('error isRespect data--> ', JSON.stringify(error));
-      return false;
-    }
-  }
-
   public static async triggerSaveProceesedXlsxFile(data: {
     fileData: string;
     fileName?: string;

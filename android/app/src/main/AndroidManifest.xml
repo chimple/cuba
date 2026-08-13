@@ -2,11 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <queries>
-        <package android:name="com.whatsapp" />
-        <!-- You can add additional packages here -->
-    </queries>
-
     <application
         android:allowBackup="false"
         android:icon="@mipmap/chimple_monkey_icon"
@@ -22,7 +17,6 @@
         <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@mipmap/chimple_monkey_icon" />
         <meta-data android:name="com.getcapacitor.plugin.PortPlugin" android:value="true" />
-        <meta-data android:name="com.getcapacitor.plugin.NativeSSOPlugin" android:value="true" />
 
         <!-- ✅ Main Activity: Handles Deep Linking -->
         <activity
@@ -139,8 +133,12 @@
         android:required="false" />
 
     <queries>
+        <package android:name="world.respect.app" />
         <intent>
             <action android:name="oneroster" />
+        </intent>
+        <intent>
+            <action android:name="org.openeel.action.xapioveripc" />
         </intent>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />

@@ -161,10 +161,6 @@ export class FirebaseAuth implements ServiceAuth {
     }
   }
 
-  async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
-    throw new Error('Method not implemented.');
-  }
-
   private async _createUserDoc(user): Promise<User> {
     // const courseIds: DocumentReference[] = DEFAULT_COURSE_IDS.map((id) =>
     //   doc(this._db, `Course/${id}`)

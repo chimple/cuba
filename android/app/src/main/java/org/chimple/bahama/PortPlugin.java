@@ -5,7 +5,6 @@ import static android.content.Intent.getIntentOld;
 
 import static org.chimple.bahama.MainActivity.activity_id;
 import static org.chimple.bahama.MainActivity.deepLinkData;
-import static org.chimple.bahama.MainActivity.isRespect;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -294,6 +293,7 @@ public class PortPlugin extends Plugin {
         String auth = deepLinkData.optString("auth", "");
         String actor = deepLinkData.optString("actor", "");
         String registration = deepLinkData.optString("registration", "");
+        String xapiIpcPackage = deepLinkData.optString("xapiIpcPackage", "");
 
         Log.d(TAG, "Received activity_id: " + activity_id);
         result.put("endpoint", endpoint);
@@ -301,6 +301,7 @@ public class PortPlugin extends Plugin {
         result.put("actor", actor);
         result.put("registration", registration);
         result.put("lessonId", activity_id);
+        result.put("xapiIpcPackage", xapiIpcPackage);
         call.resolve(result);
     }
 
@@ -311,16 +312,6 @@ public class PortPlugin extends Plugin {
             String jsonPayload = "{}"; // Empty JSON payload
             getInstance().bridge.triggerDocumentJSEvent("sendLaunch", jsonPayload);
         }
-    }
-
-    @PluginMethod
-    public void isAppInstalledCheck(PluginCall call) {
-        JSObject result = new JSObject();
-
-        Log.d(TAG, "Received isRespect_value: " + isRespect);
-
-        result.put("isRespect", isRespect);
-        call.resolve(result);
     }
 
     @PluginMethod
@@ -523,7 +514,6 @@ public class PortPlugin extends Plugin {
     @PluginMethod
     public void returnDataToRespect(PluginCall call) {
         // Clear deeplink state before finishing activity
-        isRespect = false;
         activity_id = "";
         deepLinkData = new JSONObject();
 

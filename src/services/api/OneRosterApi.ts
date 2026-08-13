@@ -52,10 +52,12 @@ import Lesson from '../../models/Lesson';
 import Result from '../../models/Result';
 import User from '../../models/User';
 import {
-  getActorMbox,
-  getActorName,
+  getActorIdentifier,
   getRespectLaunchData,
   reinitializeTincan,
+  sendRespectXapiStatement,
+  toXapiAgent,
+  usesRespectXapiIpc,
 } from '../../tincan';
 import logger from '../../utility/logger';
 import { Util } from '../../utility/util';
@@ -71,7 +73,13 @@ import {
 
 interface IGetStudentResultStatement {
   agent: {
-    mbox: string;
+    objectType?: 'Agent';
+    name?: string;
+    mbox?: string;
+    account?: {
+      homePage: string;
+      name: string;
+    };
   };
   verb?: {
     id: string;
@@ -2041,16 +2049,18 @@ export class OneRosterApi implements ServiceApi {
       throw new Error('RESPECT launch data is missing or invalid.');
     }
 
-    const agentEmail = getActorMbox(launchData.actor);
-    if (!agentEmail) {
-      throw new Error('RESPECT launch actor is missing an mbox.');
+    const actorIdentifier = getActorIdentifier(launchData.actor);
+    if (!actorIdentifier) {
+      throw new Error('RESPECT launch actor has no xAPI identifier.');
     }
 
-    const existingStatements = await this.getAllStatements(agentEmail, {
-      agent: { mbox: agentEmail },
-      verb: { id: 'http://adlnet.gov/expapi/verbs/completed' },
-      activity: { id: launchData.activityId },
-    });
+    const existingStatements = usesRespectXapiIpc(launchData)
+      ? []
+      : await this.getAllStatements(actorIdentifier, {
+          agent: toXapiAgent(launchData.actor),
+          verb: { id: 'http://adlnet.gov/expapi/verbs/completed' },
+          activity: { id: launchData.activityId },
+        });
 
     const filteredStatements = existingStatements.filter(
       (_statement) => _statement.lesson_id === lessonId,
@@ -2073,11 +2083,7 @@ export class OneRosterApi implements ServiceApi {
     // No existing statements for the lessonId yet, So creating a new one
     const statement = new Statement({
       id: uuidv4(),
-      actor: {
-        objectType: 'Agent',
-        mbox: agentEmail,
-        name: getActorName(launchData.actor) || undefined,
-      },
+      actor: toXapiAgent(launchData.actor),
       verb: {
         id: 'http://adlnet.gov/expapi/verbs/completed',
         display: { 'en-US': 'completed' },
@@ -2163,7 +2169,7 @@ export class OneRosterApi implements ServiceApi {
         statement.context?.extensions?.['http://example.com/xapi/schoolId'] ||
         null,
       score: statement.result?.score?.raw || 0,
-      student_id: statement.actor?.mbox || '',
+      student_id: actorIdentifier,
       time_spent:
         statement.result?.extensions?.['http://example.com/xapi/timeSpent'] ||
         0,
@@ -2203,11 +2209,15 @@ export class OneRosterApi implements ServiceApi {
     };
 
     try {
-      const tincanInstance = await reinitializeTincan(launchData);
-      if (!tincanInstance) {
-        throw new Error('TinCan could not be initialized.');
+      if (usesRespectXapiIpc(launchData)) {
+        await sendRespectXapiStatement(launchData, statement);
+      } else {
+        const tincanInstance = await reinitializeTincan(launchData);
+        if (!tincanInstance) {
+          throw new Error('TinCan could not be initialized.');
+        }
+        await tincanInstance.sendStatement(statement);
       }
-      await tincanInstance.sendStatement(statement);
     } catch (error) {
       logger.error('Unable to send RESPECT xAPI completion statement.', error);
     }
@@ -2996,7 +3006,9 @@ export class OneRosterApi implements ServiceApi {
     while (hasMore) {
       const query = {
         params: {
-          agent: new Agent({ mbox: agentEmail }),
+          agent: new Agent(queryStatement?.agent ?? { mbox: agentEmail }),
+          verb: queryStatement?.verb?.id,
+          activity: queryStatement?.activity?.id,
           ascending: true,
           limit: 100, // Fetch 100 entries per request
           since: since,

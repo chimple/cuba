@@ -1,6 +1,5 @@
-import { OneRosterUser, ServiceAuth } from './ServiceAuth';
+import { ServiceAuth } from './ServiceAuth';
 // import { SignInWithPhoneNumberResult } from "@capacitor-firebase/authentication";
-import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Session, User, UserAttributes } from '@supabase/supabase-js';
 import {
   CURRENT_STUDENT,
@@ -21,7 +20,6 @@ export class OneRosterAuth implements ServiceAuth {
   public static i: OneRosterAuth;
   private _currentUser: TableTypes<'user'> | undefined;
 
-  private static NativeSSOPlugin = registerPlugin('NativeSSOPlugin');
   private constructor() {}
   refreshSession(): Promise<void> {
     throw new Error('Method not implemented.');
@@ -32,59 +30,6 @@ export class OneRosterAuth implements ServiceAuth {
   ): Promise<{ success: boolean; isSpl: boolean }> {
     throw new Error('Method not implemented.');
   }
-  async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
-    try {
-      if (Capacitor.isNativePlatform()) {
-        const result = await (
-          OneRosterAuth.NativeSSOPlugin as any
-        ).requestLogin();
-        if (!result) {
-          return false;
-        }
-        const urlObj = new URL(result.url);
-        const params = new URLSearchParams(urlObj.search);
-        const json = {} as OneRosterUser &
-          Record<
-            string,
-            string | number | OneRosterUser['auth'] | OneRosterUser['actor']
-          >;
-
-        params.forEach((value, key) => {
-          try {
-            // Attempt to parse JSON values if applicable
-            json[key] = JSON.parse(value);
-          } catch {
-            json[key] = value;
-          }
-        });
-
-        // this._currentUser = json;
-        return json;
-      } else {
-        const mockWebResult = {
-          respectLaunchVersion: 1.1,
-          auth: ['OAuth2', 'SSO'],
-          given_name: 'John Doe',
-          locale: 'en-US',
-          http_proxy: 'http://proxy.example.com',
-          endpoint_lti_ags: 'https://lti.example.com/ags',
-          endpoint: 'https://api.example.com',
-          actor: {
-            name: ['John Doe'],
-            mbox: ['mailto:johndoe@example.com'],
-          },
-          registration: 'reg-12345',
-          activity_id: 'activity-67890',
-        };
-
-        // this._currentUser = mockWebResult;
-        return mockWebResult;
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
   async logOut(): Promise<void> {
     localStorage.removeItem(isRespectMode);
     if (this._currentUser?.id) {
