@@ -37,6 +37,17 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
     setIsExpanded(isOpened);
   }, [isOpened]);
 
+  useEffect(() => {
+    setSelectedLessons((previousSelectedLessons) => {
+      const hasSameSelections =
+        previousSelectedLessons.length === syncSelectedLessons.length &&
+        previousSelectedLessons.every((lessonId) =>
+          syncSelectedLessons.includes(lessonId),
+        );
+      return hasSameSelections ? previousSelectedLessons : syncSelectedLessons;
+    });
+  }, [syncSelectedLessons]);
+
   const visibleLessons = showAssignedBadge
     ? lessons
     : lessons.filter(
@@ -94,7 +105,7 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
         );
       }
 
-      visibleLessonIds.forEach((lessonId) => {
+      lessonIdsToSelect.forEach((lessonId) => {
         if (prevSet.has(lessonId)) {
           chapterSelectedLessons(chapter.id, lessonId, false);
         }
