@@ -80,6 +80,66 @@ describe('PushNotificationComposeComponents', () => {
     });
   });
 
+  it('filters and selects existing labels by search text', () => {
+    const fileInputRef = React.createRef<HTMLInputElement>();
+    const onDraftChange = jest.fn();
+    render(
+      <PushNotificationFields
+        draft={baseDraft}
+        fileInputRef={fileInputRef}
+        labelOptions={['Homework', 'Reminder']}
+        loadingLabels={false}
+        onDraftChange={onDraftChange}
+        onImageChange={jest.fn()}
+      />,
+    );
+
+    const labelInput = screen.getByPlaceholderText('Search or enter a label');
+    fireEvent.change(labelInput, { target: { value: 'home' } });
+
+    expect(
+      screen.getByRole('option', { name: 'Homework' }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Reminder')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('option', { name: 'Homework' }));
+
+    expect(onDraftChange).toHaveBeenCalledWith({
+      ...baseDraft,
+      label: 'Homework',
+    });
+  });
+
+  it('accepts a new label when no existing label matches', () => {
+    const fileInputRef = React.createRef<HTMLInputElement>();
+    const onDraftChange = jest.fn();
+    render(
+      <PushNotificationFields
+        draft={baseDraft}
+        fileInputRef={fileInputRef}
+        labelOptions={['Homework', 'Reminder']}
+        loadingLabels={false}
+        onDraftChange={onDraftChange}
+        onImageChange={jest.fn()}
+      />,
+    );
+
+    const labelInput = screen.getByPlaceholderText('Search or enter a label');
+    fireEvent.change(labelInput, { target: { value: 'Festival' } });
+
+    expect(screen.queryByText('Homework')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('option', { name: 'Festival' }),
+    ).toBeInTheDocument();
+
+    fireEvent.keyDown(labelInput, { key: 'Enter' });
+
+    expect(onDraftChange).toHaveBeenCalledWith({
+      ...baseDraft,
+      label: 'Festival',
+    });
+  });
+
   it('renders live preview content and image', () => {
     render(
       <PushNotificationLivePreview
