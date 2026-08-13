@@ -1,5 +1,12 @@
 import React from 'react';
-import { Box, Button, MenuItem, TextField, Typography } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  Button,
+  createFilterOptions,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { t } from 'i18next';
 import {
   BODY_LIMIT,
@@ -26,6 +33,8 @@ const RequiredLabel = ({ label }: { label: string }) => (
   </FieldLabel>
 );
 
+const filterLabelOptions = createFilterOptions<string>();
+
 export const PushNotificationFields: React.FC<PushNotificationFieldsProps> = ({
   draft,
   fileInputRef,
@@ -37,26 +46,37 @@ export const PushNotificationFields: React.FC<PushNotificationFieldsProps> = ({
   <Box className="push-notification-fields-card">
     <Box className="push-notification-field">
       <RequiredLabel label="Choose Label" />
-      <TextField
-        select
-        fullWidth
-        size="small"
+      <Autocomplete
+        autoSelect
+        freeSolo
+        options={labelOptions}
         value={draft.label}
+        loading={loadingLabels}
         disabled={loadingLabels}
-        SelectProps={{ displayEmpty: true }}
-        onChange={(event) =>
-          onDraftChange({ ...draft, label: event.target.value })
+        filterOptions={(options, params) => {
+          const filtered = filterLabelOptions(options, params);
+          const enteredLabel = params.inputValue.trim();
+
+          return filtered.length === 0 && enteredLabel
+            ? [enteredLabel]
+            : filtered;
+        }}
+        onChange={(_, label) =>
+          onDraftChange({ ...draft, label: label?.trim() ?? '' })
         }
-      >
-        <MenuItem value="" disabled>
-          {loadingLabels ? t('Loading labels...') : t('Select Label')}
-        </MenuItem>
-        {labelOptions.map((label) => (
-          <MenuItem key={label} value={label}>
-            {label}
-          </MenuItem>
-        ))}
-      </TextField>
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            fullWidth
+            size="small"
+            placeholder={String(
+              t(
+                loadingLabels ? 'Loading labels...' : 'Search or enter a label',
+              ),
+            )}
+          />
+        )}
+      />
     </Box>
     <Box className="push-notification-field">
       <RequiredLabel label="Notification Title" />
