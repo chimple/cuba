@@ -41,6 +41,13 @@ export const useShowChapters = () => {
     locationState.gradeName ?? '',
   );
   const [lessons, setLessons] = useState<Map<string, TableTypes<'lesson'>[]>>();
+  const lessonsRef = useRef(new Map<string, TableTypes<'lesson'>[]>());
+  const lessonRequestsRef = useRef(
+    new Map<string, Promise<TableTypes<'lesson'>[]>>(),
+  );
+  const [loadingLessonChapterIds, setLoadingLessonChapterIds] = useState<
+    Set<string>
+  >(new Set());
   const [chapters, setChapters] = useState<TableTypes<'chapter'>[]>();
   const [currentUser, setCurrentUser] = useState<TableTypes<'user'>>();
   const [courseCode, setCourseCode] = useState<string>();
@@ -102,21 +109,69 @@ export const useShowChapters = () => {
       await api.createOrUpdateAssignmentCart(currentUser?.id, lesson);
   };
 
+  const loadLessonsForChapter = useCallback(
+    async (chapterId: string): Promise<TableTypes<'lesson'>[]> => {
+      const cachedLessons = lessonsRef.current.get(chapterId);
+      if (cachedLessons !== undefined) return cachedLessons;
+
+      const existingRequest = lessonRequestsRef.current.get(chapterId);
+      if (existingRequest) return existingRequest;
+
+      setLoadingLessonChapterIds((previousIds) => {
+        const nextIds = new Set(previousIds);
+        nextIds.add(chapterId);
+        return nextIds;
+      });
+
+      const request = api
+        .getLessonsForChapter(chapterId)
+        .then((chapterLessons) => {
+          lessonsRef.current.set(chapterId, chapterLessons);
+          setLessons(new Map(lessonsRef.current));
+          return chapterLessons;
+        })
+        .catch((error) => {
+          logger.error(
+            `Failed to load lessons for chapter ${chapterId}:`,
+            error,
+          );
+          const emptyLessons: TableTypes<'lesson'>[] = [];
+          lessonsRef.current.set(chapterId, emptyLessons);
+          setLessons(new Map(lessonsRef.current));
+          return emptyLessons;
+        })
+        .finally(() => {
+          lessonRequestsRef.current.delete(chapterId);
+          setLoadingLessonChapterIds((previousIds) => {
+            const nextIds = new Set(previousIds);
+            nextIds.delete(chapterId);
+            return nextIds;
+          });
+        });
+
+      lessonRequestsRef.current.set(chapterId, request);
+      return request;
+    },
+    [api],
+  );
+
   const init = useCallback(async () => {
     if (!course?.id) return;
 
+    lessonsRef.current.clear();
+    lessonRequestsRef.current.clear();
+    setLessons(new Map());
     const currUser = await auth.getCurrentUser();
     setCurrentUser(currUser);
     const classId = currentClass?.id ?? current_class?.id ?? '';
-    const chapter_res = await api.getChaptersForCourse(course.id);
+    const [chapter_res, course_data] = await Promise.all([
+      api.getChaptersForCourse(course.id),
+      api.getCourse(course.id),
+    ]);
     const chapterOrder = chapter_res.map((chapter) => chapter.id);
     const validChapterIds = new Set(chapterOrder);
-    const course_data = await api.getCourse(course.id);
-    const lesson_map: Map<string, TableTypes<'lesson'>[]> = new Map();
-    for (const chapter of chapter_res) {
-      const lessons = await api.getLessonsForChapter(chapter.id);
-      lesson_map.set(chapter.id, lessons);
-    }
+    setChapters(chapter_res);
+    const lesson_map = new Map<string, TableTypes<'lesson'>[]>();
     const previous_sync_lesson = currUser?.id
       ? await api.getUserAssignmentCart(currUser?.id)
       : null;
@@ -157,6 +212,13 @@ export const useShowChapters = () => {
       );
     }
 
+    if (lastAssignmentForCourse?.chapter_id) {
+      const lastChapterLessons = await loadLessonsForChapter(
+        lastAssignmentForCourse.chapter_id,
+      );
+      lesson_map.set(lastAssignmentForCourse.chapter_id, lastChapterLessons);
+    }
+
     const resolvedChapterId = resolveInitialChapterId({
       routeChapterId,
       chapterOrder,
@@ -164,10 +226,11 @@ export const useShowChapters = () => {
       lastAssignmentForCourse,
       cartChapterIds: cartChapterIdsForCourse,
     });
+    if (resolvedChapterId && !lesson_map.has(resolvedChapterId)) {
+      const initialLessons = await loadLessonsForChapter(resolvedChapterId);
+      lesson_map.set(resolvedChapterId, initialLessons);
+    }
     setActiveChapterId(resolvedChapterId);
-
-    setChapters(chapter_res);
-    setLessons(lesson_map);
     setCourseCode(course_data?.code ?? '');
   }, [
     api,
@@ -175,6 +238,7 @@ export const useShowChapters = () => {
     course?.id,
     currentClass?.id,
     current_class?.id,
+    loadLessonsForChapter,
     routeChapterId,
   ]);
 
@@ -352,6 +416,8 @@ export const useShowChapters = () => {
   };
 
   const visibleChapters = (chapters ?? []).filter((chapter) => {
+    if (!lessons?.has(chapter.id)) return true;
+
     const chapterLessons = lessons?.get(chapter.id) ?? [];
     if (chapterLessons.length === 0) {
       return false;
@@ -408,6 +474,8 @@ export const useShowChapters = () => {
     handleShowAssignedChange,
     history,
     isLoadingAssignedLessons,
+    loadLessonsForChapter,
+    loadingLessonChapterIds,
     isShowAssigned,
     lessons,
     parsePath,

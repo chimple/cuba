@@ -13,6 +13,8 @@ interface ChapterContainerProps {
   courseCode?: string;
   showAssignedBadge?: boolean;
   assignedLessonIds?: Set<string>;
+  loadLessonsForChapter: (chapterId: string) => Promise<TableTypes<'lesson'>[]>;
+  isLoadingLessons: boolean;
 }
 const ChapterContainer: React.FC<ChapterContainerProps> = ({
   chapter,
@@ -24,6 +26,8 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
   courseCode,
   showAssignedBadge,
   assignedLessonIds,
+  loadLessonsForChapter,
+  isLoadingLessons,
 }) => {
   const [selectedLessons, setSelectedLessons] =
     useState<string[]>(syncSelectedLessons);
@@ -32,6 +36,17 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
   useEffect(() => {
     setIsExpanded(isOpened);
   }, [isOpened]);
+
+  useEffect(() => {
+    setSelectedLessons((previousSelectedLessons) => {
+      const hasSameSelections =
+        previousSelectedLessons.length === syncSelectedLessons.length &&
+        previousSelectedLessons.every((lessonId) =>
+          syncSelectedLessons.includes(lessonId),
+        );
+      return hasSameSelections ? previousSelectedLessons : syncSelectedLessons;
+    });
+  }, [syncSelectedLessons]);
 
   const visibleLessons = showAssignedBadge
     ? lessons
@@ -61,37 +76,50 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
     });
   };
 
-  const handleSelectAll = () => {
+  const handleSelectAll = async () => {
+    const chapterLessons =
+      lessons.length > 0 ? lessons : await loadLessonsForChapter(chapter.id);
+    const lessonsToSelect = showAssignedBadge
+      ? chapterLessons
+      : chapterLessons.filter(
+          (lesson) => !lesson.id || !assignedLessonIds?.has(lesson.id),
+        );
+    const lessonIdsToSelect = lessonsToSelect
+      .map((lesson) => lesson.id)
+      .filter((lessonId): lessonId is string => Boolean(lessonId));
+
     setSelectedLessons((prevSelectedLessons) => {
       const prevSet = new Set(prevSelectedLessons);
-      const shouldSelectAll = visibleLessonIds.some(
+      const shouldSelectAll = lessonIdsToSelect.some(
         (lessonId) => !prevSet.has(lessonId),
       );
 
       if (shouldSelectAll) {
-        visibleLessonIds.forEach((lessonId) => {
+        lessonIdsToSelect.forEach((lessonId) => {
           if (!prevSet.has(lessonId)) {
             chapterSelectedLessons(chapter.id, lessonId, true);
           }
         });
-        return [...prevSelectedLessons, ...visibleLessonIds].filter(
+        return [...prevSelectedLessons, ...lessonIdsToSelect].filter(
           (lessonId, index, self) => self.indexOf(lessonId) === index,
         );
       }
 
-      visibleLessonIds.forEach((lessonId) => {
+      lessonIdsToSelect.forEach((lessonId) => {
         if (prevSet.has(lessonId)) {
           chapterSelectedLessons(chapter.id, lessonId, false);
         }
       });
       return prevSelectedLessons.filter(
-        (lessonId) => !visibleLessonIds.includes(lessonId),
+        (lessonId) => !lessonIdsToSelect.includes(lessonId),
       );
     });
   };
 
-  const toggleChapter = () => {
-    setIsExpanded((prev) => !prev);
+  const toggleChapter = async () => {
+    const nextIsExpanded = !isExpanded;
+    setIsExpanded(nextIsExpanded);
+    if (nextIsExpanded) await loadLessonsForChapter(chapter.id);
   };
   return (
     <div
@@ -158,30 +186,28 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
                 }
               }}
             >
-              {visibleLessons.length > 0 ? (
-                <>
-                  <span
-                    id="chaptercontainer-chapter-select-all-text"
-                    className="chaptercontainer-chapter-select-all-text"
-                  >
-                    {t('Select All')}
-                  </span>
-                  <span
-                    id="chaptercontainer-chapter-select-all-icon"
-                    className="chaptercontainer-chapter-select-all-icon"
-                    aria-hidden="true"
-                  >
-                    {isAllSelected ? (
-                      <img
-                        src="/assets/icons/checkbox.png"
-                        alt=""
-                        id="chaptercontainer-chapter-select-all-icon-image"
-                        className="chaptercontainer-chapter-select-all-icon-image"
-                      />
-                    ) : null}
-                  </span>
-                </>
-              ) : null}
+              <>
+                <span
+                  id="chaptercontainer-chapter-select-all-text"
+                  className="chaptercontainer-chapter-select-all-text"
+                >
+                  {t('Select All')}
+                </span>
+                <span
+                  id="chaptercontainer-chapter-select-all-icon"
+                  className="chaptercontainer-chapter-select-all-icon"
+                  aria-hidden="true"
+                >
+                  {isAllSelected ? (
+                    <img
+                      src="/assets/icons/checkbox.png"
+                      alt=""
+                      id="chaptercontainer-chapter-select-all-icon-image"
+                      className="chaptercontainer-chapter-select-all-icon-image"
+                    />
+                  ) : null}
+                </span>
+              </>
             </div>
             <span
               id="chaptercontainer-expand-arrow"
@@ -193,7 +219,12 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
           </div>
         </div>
       </div>
-      {isExpanded && visibleLessons.length > 0 ? (
+      {isExpanded && isLoadingLessons ? (
+        <div className="chaptercontainer-loading-lessons">
+          {t('Loading...')}
+        </div>
+      ) : null}
+      {isExpanded && !isLoadingLessons && visibleLessons.length > 0 ? (
         <div
           id="chaptercontainer-grid-container"
           className="chaptercontainer-grid-container"
