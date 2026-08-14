@@ -43,6 +43,8 @@ interface SidebarProps {
   photo: string;
 }
 
+const DEFAULT_PROFILE_IMAGE = '/assets/profile.svg';
+
 const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
   const [isOpen, setIsOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -175,7 +177,15 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
         </button>
 
         <div className="sidebar-profile-details">
-          <img src={photo} alt="User" className="sidebar-avatar" />
+          <img
+            src={photo.trim() || DEFAULT_PROFILE_IMAGE}
+            alt="User"
+            className="sidebar-avatar"
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = DEFAULT_PROFILE_IMAGE;
+            }}
+          />
           <div className="sidebar-user-info">
             <h2>{name}</h2>
             <p>{email}</p>
