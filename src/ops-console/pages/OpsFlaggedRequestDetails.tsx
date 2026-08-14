@@ -10,13 +10,7 @@ import { useOpsFlaggedRequestDetails } from './useOpsFlaggedRequestDetails';
 const OpsFlaggedRequestDetails = () => {
   const { t } = useTranslation();
   const details = useOpsFlaggedRequestDetails();
-  const {
-    error,
-    history,
-    id,
-    isLoading,
-    requestDetails,
-  } = details;
+  const { error, history, id, isLoading, requestDetails } = details;
 
   const formatDT = (d: string | undefined) =>
     d
@@ -65,7 +59,12 @@ const OpsFlaggedRequestDetails = () => {
           className="ops-flagged-request-details-link icon-button"
         >
           {t('Requests')}
-          <span> &gt; </span>
+        </span>
+        <span
+          className="ops-flagged-request-details-separator"
+          aria-hidden="true"
+        >
+          {' > '}
         </span>
         <span
           onClick={() =>
@@ -77,7 +76,12 @@ const OpsFlaggedRequestDetails = () => {
           className="ops-flagged-request-details-link icon-button"
         >
           {t('Flagged')}
-          <span> &gt; </span>
+        </span>
+        <span
+          className="ops-flagged-request-details-separator"
+          aria-hidden="true"
+        >
+          {' > '}
         </span>
         <span className="ops-flagged-request-details-active">
           {t('Request ID - {{id}}', { id })}

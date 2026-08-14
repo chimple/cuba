@@ -123,7 +123,12 @@ const StudentRejectedRequestDetails = () => {
           className="ops-rejected-request-details-link icon-button"
         >
           {t('Requests')}
-          <span> &gt; </span>
+        </span>
+        <span
+          className="ops-rejected-request-details-separator"
+          aria-hidden="true"
+        >
+          {' > '}
         </span>
 
         <span
@@ -136,7 +141,12 @@ const StudentRejectedRequestDetails = () => {
           className="ops-rejected-request-details-link icon-button"
         >
           {t('Rejected')}
-          <span> &gt; </span>
+        </span>
+        <span
+          className="ops-rejected-request-details-separator"
+          aria-hidden="true"
+        >
+          {' > '}
         </span>
 
         <span className="ops-rejected-request-details-active">

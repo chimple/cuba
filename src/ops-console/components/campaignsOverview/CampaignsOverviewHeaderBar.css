@@ -56,11 +56,11 @@
 }
 
 .ops-campaigns-overview-breadcrumb-link {
-  color: #888;
+  color: #1a71f6;
 }
 
 .ops-campaigns-overview-breadcrumb-current {
-  color: #21272a;
+  color: #888;
   font-weight: 500;
 }
 
@@ -151,7 +151,7 @@
   }
 
   .ops-campaigns-overview-breadcrumb-link {
-    color: #000;
+    color: #1a71f6;
     font-weight: 400;
   }
 
@@ -163,7 +163,7 @@
   .ops-campaigns-overview-breadcrumb-current {
     max-width: 205px;
     overflow: hidden;
-    color: #000;
+    color: #888;
     font-weight: 500;
     text-overflow: ellipsis;
     white-space: nowrap;

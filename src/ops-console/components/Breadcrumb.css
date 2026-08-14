@@ -23,7 +23,7 @@
 .breadcrumb-link {
   font-weight: 500;
   text-decoration: none; /* override default link underline */
-  color: #757575; /* MUI text.secondary */
+  color: #1a71f6;
   cursor: pointer;
   font-size: 0.875rem; /* body2 font size */
   background: none;
@@ -38,7 +38,7 @@
 
 .breadcrumb-link-bold {
   font-weight: bold;
-  color: #000; /* or theme.palette.text.primary */
+  color: #1a71f6;
 }
 
 .breadcrumb-text {
@@ -49,7 +49,7 @@
 
 .breadcrumb-text-bold {
   font-weight: bold;
-  color: #000;
+  color: #757575;
 }
 
 .breadcrumb-separator {

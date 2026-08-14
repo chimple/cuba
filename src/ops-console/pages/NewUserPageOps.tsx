@@ -257,13 +257,13 @@ const NewUserPage: React.FC = () => {
           separator={<BiSolidRightArrow size={11} />}
         >
           <Link
+            className="ops-new-user-breadcrumb-link"
             underline="hover"
-            color="inherit"
             onClick={() => history.goBack()}
           >
             {t('Users')}
           </Link>
-          <Typography color="text.primary" fontWeight="bold">
+          <Typography className="ops-new-user-breadcrumb-current">
             {t('New User')}
           </Typography>
         </Breadcrumbs>
