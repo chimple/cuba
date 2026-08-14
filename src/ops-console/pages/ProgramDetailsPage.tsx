@@ -18,7 +18,7 @@ import {
   ProgramContactsColumn,
   ProgramData,
   ProgramInfoColumn,
-  ProgramPerformanceColumn,
+  ProgramStatisticsColumn,
   ProgramStats,
 } from './ProgramDetailsSections';
 
@@ -157,7 +157,7 @@ const ProgramDetailsPage: React.FC<ProgramDetailComponentProps> = ({ id }) => {
         <Grid container spacing={2}>
           <ProgramInfoColumn data={data} />
           <ProgramContactsColumn data={data} />
-          <ProgramPerformanceColumn history={history} id={id} stats={stats} />
+          <ProgramStatisticsColumn history={history} id={id} stats={stats} />
         </Grid>
       </Box>
     </div>

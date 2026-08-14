@@ -21,15 +21,18 @@
   font-size: 1.05rem;
 }
 .ops-rejected-request-details-breadcrumbs .link {
-  color: #3799fd;
+  color: #1a71f6 !important;
   cursor: pointer;
   text-decoration: underline;
   margin-right: 0.7vw;
 }
 .ops-rejected-request-details-breadcrumbs .active {
-  color: #232323;
+  color: #888;
   font-weight: 600;
   margin-left: 0.7vw;
+}
+.ops-rejected-request-details-separator {
+  color: #000;
 }
 
 .ops-rejected-request-details-main-content-row {
@@ -108,7 +111,7 @@
 }
 
 .ops-rejected-request-details-active {
-  color: #232323;
+  color: #888;
   font-weight: 600;
   margin-left: 0.7vw;
 }
@@ -189,7 +192,7 @@
   flex-direction: column;
 }
 .ops-rejected-request-details-link {
-  color: blue;
+  color: #1a71f6 !important;
   text-decoration: none;
   cursor: pointer;
 }
@@ -199,7 +202,7 @@
 }
 
 .ops-rejected-request-details-active {
-  color: #333; /* or your theme active color */
+  color: #888;
   font-weight: bold;
   cursor: default;
 }

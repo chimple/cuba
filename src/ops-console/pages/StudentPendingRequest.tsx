@@ -60,7 +60,12 @@ const StudentPendingRequestDetails = () => {
         className="student-pending-request-details-link icon-button"
       >
         {t('Pending')}
-        <span> &gt; </span>
+      </span>
+      <span
+        className="student-pending-request-details-separator"
+        aria-hidden="true"
+      >
+        {' > '}
       </span>
       <span className="student-pending-request-details-active">
         {t(`Request ID - ${id}`)}

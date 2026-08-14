@@ -144,7 +144,12 @@ const OpsApprovedRequestDetails = () => {
           className="ops-approved-request-details-link icon-button"
         >
           {t('Requests')}
-          <span> &gt; </span>
+        </span>
+        <span
+          className="ops-approved-request-details-separator"
+          aria-hidden="true"
+        >
+          {' > '}
         </span>
         <span
           onClick={() =>
@@ -156,7 +161,12 @@ const OpsApprovedRequestDetails = () => {
           className="ops-approved-request-details-link icon-button"
         >
           {t('Approved')}
-          <span> &gt; </span>
+        </span>
+        <span
+          className="ops-approved-request-details-separator"
+          aria-hidden="true"
+        >
+          {' > '}
         </span>
         <span className="ops-approved-request-details-active">
           {t('RequestId')} - {id}
@@ -169,7 +179,6 @@ const OpsApprovedRequestDetails = () => {
         alignItems="flex-start"
         justifyContent="flex-start"
       >
-        {/* LEFT SIDE */}
         <Grid size={{ xs: 12, md: 6, lg: 5 }}>
           <Paper className="ops-approved-request-details-card">
             <Typography
@@ -237,8 +246,6 @@ const OpsApprovedRequestDetails = () => {
             </Grid>
           </Paper>
         </Grid>
-
-        {/* RIGHT SIDE */}
         <Grid size={{ xs: 12, md: 6, lg: 4 }}>
           <Paper className="ops-approved-request-details-card">
             <Typography
@@ -290,5 +297,4 @@ const OpsApprovedRequestDetails = () => {
     </div>
   );
 };
-
 export default OpsApprovedRequestDetails;
