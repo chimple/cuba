@@ -47,6 +47,17 @@
                     android:pathPrefix="/" />
             </intent-filter>
 
+            <!-- RESPECT uses this app-specific route so Android launches Chimple directly. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="chimple"
+                    android:host="respect"
+                    android:pathPrefix="/launch" />
+            </intent-filter>
+
             <!-- ✅ Deep linking support for localhost:3000 (for local testing) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
