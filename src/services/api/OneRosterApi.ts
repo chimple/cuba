@@ -71,6 +71,9 @@ import {
   ServiceApi,
 } from './ServiceApi';
 
+const RESPECT_XAPI_MAX_ATTEMPTS = 3;
+const RESPECT_XAPI_RETRY_DELAY_MS = 750;
+
 interface IGetStudentResultStatement {
   agent: {
     objectType?: 'Agent';
@@ -2208,21 +2211,34 @@ export class OneRosterApi implements ServiceApi {
       user_id: null,
     };
 
-    try {
-      if (usesRespectXapiIpc(launchData)) {
-        await sendRespectXapiStatement(launchData, statement);
-      } else {
-        const tincanInstance = await reinitializeTincan(launchData);
-        if (!tincanInstance) {
-          throw new Error('TinCan could not be initialized.');
+    let lastError: Error | undefined;
+    for (let attempt = 1; attempt <= RESPECT_XAPI_MAX_ATTEMPTS; attempt += 1) {
+      try {
+        if (usesRespectXapiIpc(launchData)) {
+          await sendRespectXapiStatement(launchData, statement);
+        } else {
+          const tincanInstance = await reinitializeTincan(launchData);
+          if (!tincanInstance) {
+            throw new Error('TinCan could not be initialized.');
+          }
+          await tincanInstance.sendStatement(statement);
         }
-        await tincanInstance.sendStatement(statement);
+        return newResult;
+      } catch (error) {
+        lastError =
+          error instanceof Error
+            ? error
+            : new Error('Unable to send RESPECT xAPI completion statement.');
+        if (attempt < RESPECT_XAPI_MAX_ATTEMPTS) {
+          await new Promise<void>((resolve) => {
+            setTimeout(resolve, RESPECT_XAPI_RETRY_DELAY_MS);
+          });
+        }
       }
-    } catch (error) {
-      logger.error('Unable to send RESPECT xAPI completion statement.', error);
     }
 
-    return newResult;
+    logger.error('Unable to send RESPECT xAPI completion statement.', lastError);
+    throw lastError ?? new Error('Unable to send RESPECT xAPI completion statement.');
   }
 
   getLanguageWithId(id: string): Promise<TableTypes<'language'> | undefined> {

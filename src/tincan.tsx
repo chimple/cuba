@@ -30,7 +30,7 @@ interface RespectXapiPlugin {
     auth: string;
     ipcPackage: string;
     statement: XapiStatement;
-  }): Promise<{ status: number }>;
+  }): Promise<{ postedStatementIds: string }>;
 }
 
 const portPlugin = registerPlugin<PortPlugin>('Port');

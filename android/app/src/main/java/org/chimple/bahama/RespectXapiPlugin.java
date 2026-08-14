@@ -18,6 +18,7 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 
 /**
  * Sends RESPECT xAPI statements through the launcher-owned IPC service. This avoids making an
@@ -30,10 +31,10 @@ public class RespectXapiPlugin extends Plugin {
     private static final String KEY_BODY = "body";
     private static final String KEY_CLIENT_PACKAGE = "xapiIpcClientPackage";
     private static final String KEY_ENDPOINT = "endpoint";
-    private static final String KEY_STATUS_CODE = "status";
     private static final int POST_STATEMENTS = 3;
     private static final int WHAT_REQUEST = 1;
     private static final int WHAT_RESPONSE = 2;
+    private static final long RESPONSE_TIMEOUT_MS = 15_000L;
 
     @PluginMethod
     public void postStatement(PluginCall call) {
@@ -67,27 +68,39 @@ public class RespectXapiPlugin extends Plugin {
         private final String auth;
         private final JSObject statement;
         private boolean bound;
+        private boolean completed;
+        private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-        private final Messenger replyMessenger = new Messenger(new Handler(Looper.getMainLooper()) {
+        private final Runnable timeoutRunnable = () -> fail(
+            "Timed out waiting for RESPECT to save the xAPI statement.",
+            null
+        );
+
+        private final Handler replyHandler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message message) {
                 if (message.what != WHAT_RESPONSE) {
                     return;
                 }
 
-                Bundle response = message.getData();
-                int status = response.getInt(KEY_STATUS_CODE, 500);
-                release();
+                try {
+                    String responseBody = message.getData().getString(KEY_BODY);
+                    JSONArray postedStatementIds = new JSONArray(responseBody);
+                    if (postedStatementIds.length() != 1) {
+                        fail("RESPECT did not confirm the xAPI statement was saved.", null);
+                        return;
+                    }
 
-                if (status == 200) {
                     JSObject result = new JSObject();
-                    result.put("status", status);
-                    call.resolve(result);
-                } else {
-                    call.reject("RESPECT xAPI service returned status " + status + ".");
+                    result.put("postedStatementIds", postedStatementIds.toString());
+                    succeed(result);
+                } catch (JSONException | NullPointerException exception) {
+                    fail("RESPECT returned an invalid xAPI response.", exception);
                 }
             }
-        });
+        };
+
+        private final Messenger replyMessenger = new Messenger(replyHandler);
 
         IpcRequest(PluginCall call, String endpoint, String auth, JSObject statement) {
             this.call = call;
@@ -99,6 +112,11 @@ public class RespectXapiPlugin extends Plugin {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             bound = true;
+            if (completed) {
+                release();
+                return;
+            }
+
             try {
                 Bundle requestData = new Bundle();
                 requestData.putString(KEY_ENDPOINT, endpoint);
@@ -112,18 +130,41 @@ public class RespectXapiPlugin extends Plugin {
                 request.replyTo = replyMessenger;
                 request.setData(requestData);
                 new Messenger(service).send(request);
+                mainHandler.postDelayed(timeoutRunnable, RESPONSE_TIMEOUT_MS);
             } catch (Exception exception) {
-                release();
-                call.reject("Unable to send the RESPECT xAPI statement.", exception);
+                fail("Unable to send the RESPECT xAPI statement.", exception);
             }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            fail("RESPECT xAPI service disconnected before saving the statement.", null);
+        }
+
+        private void succeed(JSObject result) {
+            if (completed) {
+                return;
+            }
+            completed = true;
             release();
+            call.resolve(result);
+        }
+
+        private void fail(String message, Exception exception) {
+            if (completed) {
+                return;
+            }
+            completed = true;
+            release();
+            if (exception == null) {
+                call.reject(message);
+            } else {
+                call.reject(message, exception);
+            }
         }
 
         private void release() {
+            mainHandler.removeCallbacks(timeoutRunnable);
             if (bound) {
                 getContext().unbindService(this);
                 bound = false;

@@ -1244,6 +1244,8 @@ const LidoPlayer: FC = () => {
     } catch (error) {
       logger.error('❌ Failed to process lesson end', error);
       localStorage.removeItem(LIDO_SCORES_KEY);
+      setIsLoading(false);
+      await presentToast();
       push();
     }
   };
