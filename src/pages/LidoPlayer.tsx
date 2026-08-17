@@ -12,8 +12,6 @@ import {
   LidoGameExitKey,
   LidoLessonEndKey,
   LidoNextContainerKey,
-  CURRENT_MODE,
-  MODES,
   PAGES,
   REWARD_LESSON,
   ACTIVATION_REWARD_FLOW_KEY,
@@ -47,6 +45,7 @@ import {
   getBundleZipUrlsForEnv,
   REMOTE_CONFIG_KEYS,
 } from '../services/RemoteConfig';
+import { returnToRespectIfNeeded } from '../services/respect/RespectLessonLaunchService';
 
 const HOMEWORK_REWARD_COMPLETED_INDEX_KEY = 'homework_reward_completed_index';
 const PENDING_HOMEWORK_REWARD_TRANSITION_KEY =
@@ -521,23 +520,28 @@ const LidoPlayer: FC = () => {
     if (isExitingRef.current) return;
     isExitingRef.current = true;
     localStorage.removeItem(LIDO_SCORES_KEY);
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromPath: string = state?.from ?? PAGES.HOME;
-    const returnState = {
-      ...(state?.returnState ?? state),
-      fromLido: true,
-    };
-    let targetPath = fromPath;
-    if (Capacitor.isNativePlatform() || !!urlParams.get('isReload')) {
-      const separator = fromPath.includes('?') ? '&' : '?';
-      targetPath = `${fromPath}${separator}isReload=true`;
-    }
 
-    history.replace(targetPath, returnState);
-    setIsLoading(false);
-    setTimeout(() => {
-      isExitingRef.current = false;
-    }, 300);
+    void returnToRespectIfNeeded().then((returnedToRespect) => {
+      if (returnedToRespect) return;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const fromPath: string = state?.from ?? PAGES.HOME;
+      const returnState = {
+        ...(state?.returnState ?? state),
+        fromLido: true,
+      };
+      let targetPath = fromPath;
+      if (Capacitor.isNativePlatform() || !!urlParams.get('isReload')) {
+        const separator = fromPath.includes('?') ? '&' : '?';
+        targetPath = `${fromPath}${separator}isReload=true`;
+      }
+
+      history.replace(targetPath, returnState);
+      setIsLoading(false);
+      setTimeout(() => {
+        isExitingRef.current = false;
+      }, 300);
+    });
   };
 
   const processStoredResults = async (
@@ -1238,6 +1242,8 @@ const LidoPlayer: FC = () => {
     } catch (error) {
       logger.error('❌ Failed to process lesson end', error);
       localStorage.removeItem(LIDO_SCORES_KEY);
+      setIsLoading(false);
+      await presentToast();
       push();
     }
   };
@@ -1303,13 +1309,8 @@ const LidoPlayer: FC = () => {
   useEffect(() => {
     // localStorage.removeItem(LIDO_SCORES_KEY);
     init();
-    if (
-      Capacitor.isNativePlatform() &&
-      localStorage.getItem(CURRENT_MODE) === MODES.TEACHER
-    ) {
-      ScreenOrientation.lock({ orientation: 'landscape' }).catch((error) => {
-        logger.warn('[LidoPlayer] Failed to lock initial orientation', error);
-      });
+    if (Capacitor.isNativePlatform()) {
+      void ScreenOrientation.lock({ orientation: 'landscape' });
     }
     window.addEventListener(LidoGameExitKey, onGameExit);
     window.addEventListener(LidoNextContainerKey, onNextContainer);
@@ -1375,22 +1376,29 @@ const LidoPlayer: FC = () => {
       push();
       return;
     }
-    const dow = await Util.downloadZipBundle(
-      [lessonToDownload],
-      undefined,
-      REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS,
-    );
-    if (!dow) {
-      presentToast();
-      push();
-      return;
+    const existingBundlePath = Capacitor.isNativePlatform()
+      ? await Util.getLessonPath({ lessonId })
+      : null;
+    // RESPECT downloads the bundle before routing here. Do not repeat the
+    // download when that extracted bundle is already ready for the player.
+    if (!existingBundlePath) {
+      const dow = await Util.downloadZipBundle(
+        [lessonToDownload],
+        undefined,
+        REMOTE_CONFIG_KEYS.LIDO_BUNDLE_ZIP_URLS,
+      );
+      if (!dow) {
+        presentToast();
+        push();
+        return;
+      }
     }
 
     const resolvedPlayerLanguage = await resolveLidoPlayerLanguage();
     setPlayerLanguage(resolvedPlayerLanguage);
 
     if (Capacitor.isNativePlatform()) {
-      const path = await Util.getLessonPath({ lessonId: lessonId });
+      const path = existingBundlePath ?? (await Util.getLessonPath({ lessonId }));
       if (path) {
         setBasePath(path);
       } else {

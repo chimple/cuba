@@ -3,11 +3,9 @@ package org.chimple.bahama;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.content.Intent;
 
@@ -46,7 +44,6 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     public static MainActivity instance;
     static String activity_id = "";
     static JSONObject deepLinkData = new JSONObject();
-    static boolean isRespect = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->{
@@ -57,8 +54,9 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
             }
             FirebaseCrashlytics.getInstance().recordException(throwable);
         });
-         // Register plugins
+        // Register plugins
         registerPlugin(PortPlugin.class);
+        registerPlugin(RespectXapiPlugin.class);
 //        super.onCreate(savedInstanceState);
 //        var respectClientManager = RespectClientManager();
 //        respectClientManager.bindService(this);
@@ -73,8 +71,6 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         decorView.setSystemUiVisibility(uiOptions);
         // Handle deep linking on cold start
         handleDeepLink(getIntent());
-        isRespect = isAppInstalled("com.whatsapp");
-        Log.d("TAG ---> ", isRespect + " : " + "Respect is Installed");
         FirebaseApp.initializeApp(/*context=*/ this);
         initializeActivityLauncher();
     }
@@ -143,6 +139,9 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
                 if (key.equals("activity_id")) {
                     Toast.makeText(this, "Please Wait, We are launching the Lesson...", Toast.LENGTH_LONG).show();
                     activity_id = data.getQueryParameter(key);
+                    // RESPECT launches a full-screen Lido activity. Lock here,
+                    // before the web player initializes, to prevent portrait UI.
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                 }
                 deepLinkData.put(key, data.getQueryParameter(key));
             }
@@ -150,21 +149,12 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
             return;
         }
 
-        // Delay launch to ensure Capacitor is ready
-        new Handler(Looper.getMainLooper()).postDelayed(() -> PortPlugin.sendLaunch(), 5000);
+        // The web app independently retries launch preparation until its data is ready.
+        // Do not delay this event: a warm Cuba activity otherwise briefly shows the
+        // previous student-selection screen before the RESPECT lesson is opened.
+        PortPlugin.sendLaunch();
     }
 
-
-    public boolean isAppInstalled(String packageName) {
-        PackageManager pm = getPackageManager();
-        try {
-            // Attempt to get package info for the given package name.
-            pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
-            return true;
-        } catch (PackageManager.NameNotFoundException e) {
-            return false;
-        }
-    }
 
     public static Context getAppContext() {
         return appContext;

@@ -1,16 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import './LoginSwitch.css';
 import { t } from 'i18next';
 import { Trans } from 'react-i18next';
-import { useHistory } from 'react-router-dom';
-import {
-  CURRENT_USER,
-  LOGIN_TYPES,
-  PAGES,
-  isRespectMode,
-} from '../../common/constants';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import { Util } from '../../utility/util';
+import { LOGIN_TYPES } from '../../common/constants';
 
 interface LoginSwitchProps {
   loginType: LOGIN_TYPES;
@@ -39,48 +31,6 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
   counter,
   showResendOtp,
 }) => {
-  const history = useHistory();
-  const [isLoading, setIsLoading] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(false);
-  const [online, setOnline] = useState(navigator.onLine);
-  const [showRespectButton, setShowRespectButton] = useState(false);
-
-  useEffect(() => {
-    const checkRespectApp = async () => {
-      const isRespectApp = await Util.checkRespectApp();
-      console.log('isRespectApp', isRespectApp);
-      setShowRespectButton(isRespectApp);
-    };
-    checkRespectApp();
-  }, []);
-
-  const handleRespectLogin = async () => {
-    if (!online) {
-      // Handle offline state
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setIsInitialLoading(true);
-      localStorage.setItem(isRespectMode, 'true');
-
-      await ServiceConfig.getI().authHandler.loginWithRespect();
-      const auth = ServiceConfig.getI().authHandler;
-      const currUser = await auth.getCurrentUser();
-      const result: any = currUser;
-
-      if (!!result) {
-        localStorage.setItem(CURRENT_USER, JSON.stringify(result));
-        history.replace(PAGES.DISPLAY_STUDENT);
-      }
-    } catch (error) {
-      console.error('Login Failed:', error);
-    } finally {
-      setIsLoading(false);
-      setIsInitialLoading(false);
-    }
-  };
   if (loginType === LOGIN_TYPES.FORGET_PASS)
     return <div className="LoginSwitch-other-ways"></div>;
 
@@ -116,8 +66,8 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
           <div className="LoginSwitch-other-ways-options">
             {/* Google Login - Always show */}
             <div
-              className={`LoginSwitch-switch-option ${!checkbox || isLoading ? 'disabled' : ''}`}
-              onClick={!isLoading && checkbox ? onGoogleSignIn : undefined}
+              className={`LoginSwitch-switch-option ${!checkbox ? 'disabled' : ''}`}
+              onClick={checkbox ? onGoogleSignIn : undefined}
               style={{
                 opacity: checkbox ? 1 : 0.5,
                 cursor: checkbox ? 'pointer' : 'not-allowed',
@@ -130,23 +80,6 @@ const LoginSwitch: React.FC<LoginSwitchProps> = ({
               />
               <span>{t('Google')}</span>
             </div>
-
-            {/* Respect Login - Only show if checkRespectApp returns true */}
-            {showRespectButton && (
-              <div
-                className={`LoginSwitch-switch-option ${!checkbox || isLoading ? 'disabled' : ''}`}
-                onClick={
-                  !isLoading && checkbox ? handleRespectLogin : undefined
-                }
-                style={{
-                  opacity: checkbox ? 1 : 0.5,
-                  cursor: checkbox ? 'pointer' : 'not-allowed',
-                }}
-              >
-                <div className="LoginSwitch-respect-logo">R</div>
-                <span>{t('Respect')}</span>
-              </div>
-            )}
 
             {/* Student ID Login - only if not active */}
             {loginType !== LOGIN_TYPES.STUDENT && (

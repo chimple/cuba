@@ -71,12 +71,12 @@ jobs:
 
         run: npm run build
 
-      - name: Deploy to Firebase
-        uses: w9jds/firebase-action@v13.0.3
-        with:
-          args: deploy --only hosting:ibiza-stage-supabase-master-play
-        env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+      # - name: Deploy to Firebase
+      #   uses: w9jds/firebase-action@v13.0.3
+      #   with:
+      #     args: deploy --only hosting:ibiza-stage-supabase-master-play
+      #   env:
+      #     FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
 
       # - name: deploy web
       #   uses: peaceiris/actions-gh-pages@v3

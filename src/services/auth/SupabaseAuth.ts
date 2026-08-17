@@ -30,8 +30,7 @@ import { Util } from '../../utility/util';
 import { SupabaseApi } from '../api/SupabaseApi';
 import { Database } from '../database';
 import { APIMode, ServiceConfig } from '../ServiceConfig';
-import { OneRosterAuth } from './OneRosterAuth';
-import { OneRosterUser, ServiceAuth } from './ServiceAuth';
+import { ServiceAuth } from './ServiceAuth';
 import { ensureSocialLoginInitialized } from './SocialLoginInit';
 import {
   clearWebGoogleLoginPending,
@@ -346,18 +345,6 @@ export class SupabaseAuth implements ServiceAuth {
       );
       return { success: false, isSpl: false, userData: null };
     }
-  }
-
-  async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
-    const serviceInstance = ServiceConfig.getInstance(APIMode.ONEROSTER);
-    serviceInstance.switchMode(APIMode.ONEROSTER);
-    console.log('Supabase Auth Loginwithrespect ', serviceInstance);
-    // root.render(
-    //   <BrowserRouter>
-    //     <App />
-    //   </BrowserRouter>
-    // );
-    return await OneRosterAuth.i.loginWithRespect();
   }
 
   async getCurrentUser(): Promise<TableTypes<'user'> | undefined> {

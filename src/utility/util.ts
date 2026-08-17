@@ -689,7 +689,8 @@ export class Util {
       Pick<TableTypes<'lesson'>, 'cocos_lesson_id' | 'lido_lesson_id'>
     >,
   ): string | null {
-    return lesson?.lido_lesson_id ?? lesson?.cocos_lesson_id ?? null;
+    // Prefer the Cocos bundle when available; Lido is the compatibility fallback.
+    return lesson?.cocos_lesson_id ?? lesson?.lido_lesson_id ?? null;
   }
 
   public static async downloadZipBundle(
@@ -793,7 +794,7 @@ export class Util {
 
               // ✅ KEEP THIS (local bundle fallback — IMPORTANT)
               const localBundlePath =
-                LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/config.json`;
+                LOCAL_LESSON_BUNDLES_PATH + `${lessonId}/index.xml`;
 
               try {
                 const response = await fetch(localBundlePath);
@@ -2493,27 +2494,6 @@ export class Util {
     }
     const courseJson = await response.json();
     return courseJson;
-  }
-
-  public static async checkRespectApp(): Promise<boolean> {
-    try {
-      console.log(
-        'if (!Capacitor.isNativePlatform) return true',
-        !!Capacitor.isNativePlatform,
-        Capacitor.isNativePlatform,
-      );
-
-      // return true
-      if (!!Capacitor.isNativePlatform) return true;
-      const PortPlugin = registerPlugin<any>('Port');
-      const data = await PortPlugin.isAppInstalledCheck();
-      console.log('data isRespect data--> ', JSON.stringify(data));
-      localStorage.setItem('isRespectMode', String(data.isRespect));
-      return data.isRespect;
-    } catch (error) {
-      console.log('error isRespect data--> ', JSON.stringify(error));
-      return false;
-    }
   }
 
   public static async triggerSaveProceesedXlsxFile(data: {

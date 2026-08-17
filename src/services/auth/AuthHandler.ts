@@ -1,4 +1,4 @@
-import { ServiceAuth, OneRosterUser } from './ServiceAuth';
+import { ServiceAuth } from './ServiceAuth';
 import { TableTypes } from '../../common/constants';
 import { Session, User, UserAttributes } from '@supabase/supabase-js';
 import { logAuthDebug } from '../../utility/authDebug';
@@ -130,10 +130,6 @@ export class AuthHandler implements ServiceAuth {
   }
   public async updateUser(attributes: UserAttributes): Promise<boolean> {
     return await this.s.updateUser(attributes);
-  }
-
-  async loginWithRespect(): Promise<OneRosterUser | boolean | undefined> {
-    return await this.s.loginWithRespect();
   }
 
   public switchMode(newMode: APIMode) {
