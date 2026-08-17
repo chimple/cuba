@@ -832,6 +832,38 @@ describe('SchoolList percentage filters', () => {
     );
   });
 
+  it('restores the selected program filter name after returning to the school listing', async () => {
+    mockLocationSearch = '?filters=%7B%22program%22%3A%5B%22program-a%22%5D%7D';
+
+    mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
+      data: [
+        {
+          school_id: 'school-1',
+          school_name: 'Alpha School',
+          district: 'Pune',
+          udise: '1234567890',
+          program_id: 'program-a',
+          program_name: 'Program A',
+          program_managers: [],
+          field_coordinators: [],
+        },
+      ],
+      total: 1,
+    });
+
+    renderPage();
+
+    await waitFor(() =>
+      expect(
+        mockApiHandler.getSchoolFilterOptionsForSchoolListing,
+      ).toHaveBeenCalledTimes(1),
+    );
+
+    expect(screen.getByTestId('selected-filter-program')).toHaveTextContent(
+      'Program A',
+    );
+  });
+
   it('sends selected percentage bucket filters to the global listing request', async () => {
     const user = userEvent.setup();
     mockApiHandler.getSchoolMetricsForSchoolListing.mockResolvedValue({
