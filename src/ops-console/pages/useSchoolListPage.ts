@@ -114,6 +114,23 @@ export function useSchoolListPage() {
   const isActionsMenuOpen = Boolean(actionsAnchorEl);
   const pageSize = DEFAULT_PAGE_SIZE;
   const columns = useMemo(() => getSchoolListColumns(), []);
+  const loadSchoolFilterOptions = useCallback(async () => {
+    if (hasLoadedFilterOptionsRef.current) return;
+
+    setIsFilterLoading(true);
+    try {
+      const data = await api.getSchoolFilterOptionsForSchoolListing();
+      if (data) {
+        setFilterOptions(mapSchoolListFilterOptions(data));
+        hasLoadedFilterOptionsRef.current = true;
+      }
+    } catch (error) {
+      logger.error('Failed to fetch filter options', error);
+    } finally {
+      setIsFilterLoading(false);
+    }
+  }, [api]);
+
   const {
     schools,
     total,
@@ -155,6 +172,12 @@ export function useSchoolListPage() {
   useEffect(() => {
     setTempFilters(filters);
   }, [filters]);
+
+  useEffect(() => {
+    if (hasSchoolListFilters(filters)) {
+      void loadSchoolFilterOptions();
+    }
+  }, [filters, loadSchoolFilterOptions]);
 
   const triggerActionsButtonCloseShine = useCallback(() => {
     setIsActionsButtonCloseShine(false);
@@ -222,21 +245,8 @@ export function useSchoolListPage() {
 
   const handleOpenFilters = useCallback(async () => {
     setIsFilterOpen(true);
-    if (hasLoadedFilterOptionsRef.current) return;
-
-    setIsFilterLoading(true);
-    try {
-      const data = await api.getSchoolFilterOptionsForSchoolListing();
-      if (data) {
-        setFilterOptions(mapSchoolListFilterOptions(data));
-        hasLoadedFilterOptionsRef.current = true;
-      }
-    } catch (error) {
-      logger.error('Failed to fetch filter options', error);
-    } finally {
-      setIsFilterLoading(false);
-    }
-  }, [api]);
+    void loadSchoolFilterOptions();
+  }, [loadSchoolFilterOptions]);
 
   const handleSort = (colKey: string) => {
     const column = columns.find((col) => String(col.key) === colKey);

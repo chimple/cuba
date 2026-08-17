@@ -34,6 +34,9 @@ export const useSchoolTeachersList = ({
     programScopedClassIds,
   );
   const cachedInitialTeachers = teacherListCache.get(initialTeacherCacheKey);
+  const hasPrefetchedTeachers =
+    Array.isArray(data.teachers) &&
+    (data.teachers.length > 0 || data.totalTeacherCount === 0);
   const [teachers, setTeachers] = useState<TeacherInfo[]>(
     cachedInitialTeachers?.data ??
       (hasProgramClassScope ? [] : data.teachers || []),
@@ -43,7 +46,7 @@ export const useSchoolTeachersList = ({
       (hasProgramClassScope ? 0 : data.totalTeacherCount || 0),
   );
   const [isLoading, setIsLoading] = useState<boolean>(
-    hasProgramClassScope && !cachedInitialTeachers,
+    !cachedInitialTeachers && (hasProgramClassScope || !hasPrefetchedTeachers),
   );
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -141,6 +144,9 @@ export const useSchoolTeachersList = ({
       if (prefetchedTeachers.length > 0 || data.totalTeacherCount === 0) {
         setIsLoading(false);
       } else {
+        // The request is intentionally silent to avoid resetting the table,
+        // but the initial empty state must remain hidden until it completes.
+        setIsLoading(true);
         fetchTeachers(page, searchTerm, true);
       }
       return;

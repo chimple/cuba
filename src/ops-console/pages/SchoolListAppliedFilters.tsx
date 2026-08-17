@@ -62,6 +62,7 @@ export default function SchoolListAppliedFilters({
         if (programOption && typeof programOption !== 'string') {
           return programOption.name;
         }
+        return null;
       }
       return value;
     },
