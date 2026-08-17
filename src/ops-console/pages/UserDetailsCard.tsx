@@ -64,6 +64,10 @@ export const UserDetailsCard = ({
             : '/assets/profile.svg')
         }
         alt="Profile"
+        onError={(event) => {
+          event.currentTarget.onerror = null;
+          event.currentTarget.src = '/assets/profile.svg';
+        }}
       />
       {isEdit && <EditIcon className="user-details-pencil-icon" />}
       <input

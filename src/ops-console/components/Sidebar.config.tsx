@@ -31,6 +31,7 @@ export const sidebarNavItems = [
     route: PAGES.SIDEBAR_PAGE + PAGES.ADMIN_CAMPAIGNS,
     icon: <CampaignIcon />,
   },
+  /*
   {
     label: NavItems.MESSAGES,
     route: PAGES.SIDEBAR_PAGE + PAGES.MESSAGES,
@@ -43,6 +44,7 @@ export const sidebarNavItems = [
       />
     ),
   },
+  */
   {
     label: NavItems.REQUESTS,
     route: PAGES.SIDEBAR_PAGE + PAGES.REQUEST_LIST,
@@ -81,6 +83,7 @@ export const hasSidebarAccess = (roles: RoleType[]) => ({
   canAccessModulePage: roles.some((role) =>
     [RoleType.SUPER_ADMIN, RoleType.OPERATIONAL_DIRECTOR].includes(role),
   ),
+  /*
   canAccessMessagesPage: roles.some((role) =>
     [
       RoleType.SUPER_ADMIN,
@@ -88,6 +91,7 @@ export const hasSidebarAccess = (roles: RoleType[]) => ({
       RoleType.PROGRAM_MANAGER,
     ].includes(role),
   ),
+  */
   canAccessCampaignPage: roles.some((role) =>
     CAMPAIGN_ACCESS_ROLES.includes(role),
   ),

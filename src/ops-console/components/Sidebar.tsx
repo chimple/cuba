@@ -43,6 +43,8 @@ interface SidebarProps {
   photo: string;
 }
 
+const DEFAULT_PROFILE_IMAGE = '/assets/profile.svg';
+
 const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
   const [isOpen, setIsOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -63,12 +65,16 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
     (state: RootState) => state.auth as AuthState,
   );
   const userRoles = roles || [];
+  /*
   const {
     canAccessUsersPage,
     canAccessModulePage,
     canAccessMessagesPage,
     canAccessCampaignPage,
   } = hasSidebarAccess(userRoles as RoleType[]);
+  */
+  const { canAccessUsersPage, canAccessModulePage, canAccessCampaignPage } =
+    hasSidebarAccess(userRoles as RoleType[]);
   const isExternalUser = userRoles.includes(RoleType.EXTERNAL_USER);
   const localSchool = JSON.parse(localStorage.getItem(SCHOOL)!);
   const localClass = JSON.parse(localStorage.getItem(CLASS)!);
@@ -175,7 +181,15 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
         </button>
 
         <div className="sidebar-profile-details">
-          <img src={photo} alt="User" className="sidebar-avatar" />
+          <img
+            src={photo.trim() || DEFAULT_PROFILE_IMAGE}
+            alt="User"
+            className="sidebar-avatar"
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = DEFAULT_PROFILE_IMAGE;
+            }}
+          />
           <div className="sidebar-user-info">
             <h2>{name}</h2>
             <p>{email}</p>
@@ -190,8 +204,8 @@ const Sidebar: React.FC<SidebarProps> = ({ name, email, photo }) => {
               return null;
             if (item.label === NavItems.CAMPAIGNS && !canAccessCampaignPage)
               return null;
-            if (item.label === NavItems.MESSAGES && !canAccessMessagesPage)
-              return null;
+            // if (item.label === NavItems.MESSAGES && !canAccessMessagesPage)
+            //   return null;
             if (item.label === NavItems.USERS && !canAccessUsersPage)
               return null;
             if (item.label === NavItems.OpsMODULE && !canAccessModulePage)
