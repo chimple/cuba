@@ -689,7 +689,8 @@ export class Util {
       Pick<TableTypes<'lesson'>, 'cocos_lesson_id' | 'lido_lesson_id'>
     >,
   ): string | null {
-    return lesson?.lido_lesson_id ?? lesson?.cocos_lesson_id ?? null;
+    // Prefer the Cocos bundle when available; Lido is the compatibility fallback.
+    return lesson?.cocos_lesson_id ?? lesson?.lido_lesson_id ?? null;
   }
 
   public static async downloadZipBundle(

@@ -868,6 +868,7 @@ export interface PortPlugin {
     actor: string;
     registration: string;
     lessonId: string;
+    chimpleLessonId: string;
     xapiIpcPackage: string;
   }>;
   returnDataToRespect(): Promise<void>;

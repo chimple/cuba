@@ -3,6 +3,7 @@ package org.chimple.bahama;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -138,6 +139,9 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
                 if (key.equals("activity_id")) {
                     Toast.makeText(this, "Please Wait, We are launching the Lesson...", Toast.LENGTH_LONG).show();
                     activity_id = data.getQueryParameter(key);
+                    // RESPECT launches a full-screen Lido activity. Lock here,
+                    // before the web player initializes, to prevent portrait UI.
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                 }
                 deepLinkData.put(key, data.getQueryParameter(key));
             }

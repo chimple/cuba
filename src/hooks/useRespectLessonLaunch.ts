@@ -18,13 +18,21 @@ export const useRespectLessonLaunch = (): void => {
 
   useEffect(() => {
     const launchLesson = async (): Promise<void> => {
-      if (isLaunchingRef.current || history.location.pathname === PAGES.LIDO_PLAYER)
-        return;
+      if (isLaunchingRef.current) return;
 
       isLaunchingRef.current = true;
       let lessonLaunched = false;
+      let launch = await prepareRespectLessonLaunch();
+
+      // Cuba restores its last route on startup. A RESPECT deep link must still
+      // be prepared when that route is the Lido player, otherwise the player
+      // tries to open a bundle before the RESPECT launch has downloaded it.
+      if (!launch && !wasRespectLessonLaunchReceived()) {
+        isLaunchingRef.current = false;
+        return;
+      }
+
       for (let attempt = 0; attempt < RESPECT_LAUNCH_RETRY_COUNT; attempt += 1) {
-        const launch = await prepareRespectLessonLaunch();
         if (launch) {
           lessonLaunched = true;
           history.replace(launch.pathname + launch.search, launch.state);
@@ -50,6 +58,7 @@ export const useRespectLessonLaunch = (): void => {
         await new Promise<void>((resolve) => {
           window.setTimeout(resolve, RESPECT_LAUNCH_RETRY_DELAY_MS);
         });
+        launch = await prepareRespectLessonLaunch();
       }
       if (!lessonLaunched && wasRespectLessonLaunchReceived()) {
         const returnedToRespect = await returnToRespectIfNeeded();
