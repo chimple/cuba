@@ -85,6 +85,9 @@ const DisplayStudents: FC<{}> = () => {
     void Util.ensureLidoCommonAudioForStudent(student).catch((error) => {
       logger.warn('Failed to prefetch Lido common audio in background.', error);
     });
+    void Util.ensureLidoCodeFolderAvailable(true).catch((error) => {
+      logger.warn('Failed to preload Lido code folder in background.', error);
+    });
     let resolvedSchoolIds: string[] = [];
     if (linkedData?.classes && linkedData.classes.length > 0) {
       const firstClass = linkedData.classes[0];

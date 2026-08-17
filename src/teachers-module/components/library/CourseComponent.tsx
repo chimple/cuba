@@ -1,7 +1,7 @@
 import React from 'react';
 import { t } from 'i18next';
 import './CourseComponent.css';
-import { COURSES, TableTypes } from '../../../common/constants';
+import { TableTypes } from '../../../common/constants';
 import SelectIconImage from '../../../components/displaySubjects/SelectIconImage';
 
 interface CourseComponentProps {
@@ -25,11 +25,11 @@ const CourseComponent: React.FC<CourseComponentProps> = ({
           />
         </div>
         <div className="course-name">
-          {course.code === COURSES.ENGLISH ? course.name : t(course.name)}
+          {t(course.name)}
         </div>
 
         <div className="grade-name">
-          {course.code === COURSES.ENGLISH ? gradeName : t(gradeName ?? '')}
+          {t(gradeName ?? '')}
         </div>
       </div>
     </div>

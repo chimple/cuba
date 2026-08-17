@@ -71,7 +71,7 @@ const SelectCourse: FC<{
             >
               <div id="subject-card-subject-name">
                 <div>
-                  <p>{grade?.name}</p>
+                  <p>{t(grade?.name ?? '')}</p>
                 </div>
               </div>
               <div

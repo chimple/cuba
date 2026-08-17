@@ -110,7 +110,7 @@ const AddCourse: FC<{
           {allCourses.map((course) => {
             if (course.course.curriculum_id === curr) {
               const grade = gradesMap.get(course.course.grade_id!);
-              const gradeTitle = grade ? grade.name : '';
+              const gradeTitle = grade ? t(grade.name) : '';
 
               return (
                 <SplideSlide

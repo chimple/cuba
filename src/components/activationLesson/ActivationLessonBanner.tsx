@@ -13,7 +13,7 @@ const ACTIVATION_COUNTDOWN_SECONDS = 5;
 const ACTIVATION_ENTRY_DELAY_MS = 2100;
 const ACTIVATION_LAUNCH_DELAY_MS = 500;
 const ACTIVATION_SUN_STEP_DEGREES = 7;
-const ACTIVATION_CHAPTER_ID = '51468247-e4b9-4d8f-9e01-d46acdc4ffb5';
+const ACTIVATION_CHAPTER_ID = '2a95fc7a-b8f9-4f2d-9ea4-2278996fc843';
 
 interface ActivationLessonBannerProps {
   source: SOURCE;
@@ -119,7 +119,7 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
           return;
         }
 
-        const params = `?courseid=${randomLesson.cocos_subject_code}&chapterid=${randomLesson.cocos_chapter_code}&lessonid=${playableLessonId}`;
+        const params = `?courseid=${randomLesson.cocos_subject_code}&chapterid=${randomLesson.cocos_chapter_code}&lessonid=${"mz_math6_0000"}`;
         launchTimeoutRef.current = window.setTimeout(() => {
           history.push(PAGES.LIDO_PLAYER + params, {
             lessonId: playableLessonId,
@@ -166,10 +166,9 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
                 className="activation-lesson-banner__sun"
                 src="/assets/activationLesson/sunTimer.svg"
                 style={{
-                  transform: `rotate(${
-                    (ACTIVATION_COUNTDOWN_SECONDS - secondsLeft) *
+                  transform: `rotate(${(ACTIVATION_COUNTDOWN_SECONDS - secondsLeft) *
                     ACTIVATION_SUN_STEP_DEGREES
-                  }deg)`,
+                    }deg)`,
                 }}
               />
               <span

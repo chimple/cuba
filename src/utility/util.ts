@@ -70,6 +70,8 @@ import {
   STICKER_BOOK_COMPLETION_READY_EVENT,
   CURRENT_STUDENT_CHANGED_EVENT,
   DOWNLOADED_LESSONS_SIZE,
+  AVATARS,
+  WARM_CHIMPLE_RIVE_MASCOT_EVENT,
 } from '../common/constants';
 import {
   Chapter as curriculamInterfaceChapter,
@@ -1037,7 +1039,7 @@ export class Util {
   }
 
   private static restoreCocosCanvasSize(): void {
-    if (!window.cc?.sys.isBrowser) {
+    if (window.cc && !window.cc.sys.isBrowser) {
       return;
     }
 
@@ -1047,15 +1049,19 @@ export class Util {
       canvas.style.display = '';
       canvas.style.width = '100%';
       canvas.style.height = '100%';
-      canvas.style.pointerEvents = '';
+      canvas.style.pointerEvents = 'auto';
+      canvas.style.zIndex = '';
     }
 
     const container = document.getElementById('Cocos2dGameContainer');
     if (container) {
+      container.style.visibility = '';
       container.style.display = '';
       container.style.width = '100%';
       container.style.height = '100%';
       container.style.overflow = '';
+      container.style.pointerEvents = 'auto';
+      container.style.zIndex = '';
     }
   }
 
@@ -1067,14 +1073,18 @@ export class Util {
       canvas.style.width = '0px';
       canvas.style.height = '0px';
       canvas.style.pointerEvents = 'none';
+      canvas.style.zIndex = '-1';
     }
 
     const container = document.getElementById('Cocos2dGameContainer');
     if (container) {
+      container.style.visibility = 'hidden';
       container.style.display = 'none';
       container.style.width = '0px';
       container.style.height = '0px';
       container.style.overflow = 'hidden';
+      container.style.pointerEvents = 'none';
+      container.style.zIndex = '-1';
     }
   }
 
@@ -1129,6 +1139,8 @@ export class Util {
   }
 
   public static killCocosGame(): void {
+    Util.hideCocosCanvas();
+
     if (!window.cc) {
       return;
     }
@@ -1136,7 +1148,6 @@ export class Util {
     window.cc.director?.pause?.();
     window.cc.audioEngine.stopAll();
     window.cc.assetManager?.releaseUnusedAssets?.();
-    Util.hideCocosCanvas();
     logger.info('[ANRGuard] Cocos game killed');
   }
 
@@ -4181,6 +4192,248 @@ export class Util {
       return false;
     }
   }
+  private static preloadImage(src: string): Promise<void> {
+    return new Promise((resolve) => {
+      if (typeof Image === 'undefined' || !src) {
+        resolve();
+        return;
+      }
+
+      const image = new Image();
+      image.onload = () => resolve();
+      image.onerror = () => resolve();
+      image.src = src;
+    });
+  }
+
+  public static async preloadAvatarImagesForStudents(
+    students: TableTypes<'user'>[] = [],
+  ): Promise<void> {
+    const avatarUrls = new Set<string>();
+
+    AVATARS.forEach((avatar) => {
+      avatarUrls.add('assets/avatars/' + avatar + '.png');
+    });
+
+    students.forEach((student) => {
+      if (student.avatar) {
+        avatarUrls.add('assets/avatars/' + student.avatar + '.png');
+      }
+      if (student.image) {
+        avatarUrls.add(student.image);
+      }
+    });
+
+    await Promise.allSettled(
+      Array.from(avatarUrls).map((src) => Util.preloadImage(src)),
+    );
+  }
+
+  public static async preloadStudentAssetsAfterLogin(): Promise<void> {
+    try {
+      window.dispatchEvent(new CustomEvent(WARM_CHIMPLE_RIVE_MASCOT_EVENT));
+      const api = ServiceConfig.getI().apiHandler;
+      const auth = ServiceConfig.getI().authHandler;
+      const students = await api.getParentStudentProfiles();
+      const currentUser = await auth.getCurrentUser();
+      const studentsToPreload = [...students];
+
+      if (
+        currentUser?.id &&
+        !studentsToPreload.some((student) => student.id === currentUser.id)
+      ) {
+        studentsToPreload.push(currentUser);
+      }
+
+      await Promise.allSettled([
+        Util.ensureLidoCodeFolderAvailable(true),
+        Util.preloadAvatarImagesForStudents(studentsToPreload),
+        ...studentsToPreload.map((student) =>
+          Util.ensureLidoCommonAudioForStudent(student),
+        ),
+      ]);
+    } catch (error) {
+      logger.warn('[StudentAssets] preload after login failed', error);
+    }
+  }
+
+  public static preloadStudentAssetsAfterLoginInBackground(): void {
+    const startPreload = () => {
+      void Util.preloadStudentAssetsAfterLogin().catch((error) => {
+        logger.warn('Failed to preload student assets after login.', error);
+      });
+    };
+
+    if (
+      typeof window !== 'undefined' &&
+      'requestIdleCallback' in window &&
+      typeof window.requestIdleCallback === 'function'
+    ) {
+      window.requestIdleCallback(startPreload, { timeout: 3000 });
+      return;
+    }
+
+    window.setTimeout(startPreload, 1000);
+  }
+
+  public static async getLidoCodeFolderPath(): Promise<string> {
+    const codeFolderPath = 'Lido-player-code-versions';
+    const bundledPath = '/' + codeFolderPath;
+    const candidates = [bundledPath];
+    const gameUrl = localStorage.getItem(GAME_URL)?.trim();
+
+    if (gameUrl) {
+      candidates.push(
+        gameUrl.endsWith('/')
+          ? gameUrl + codeFolderPath
+          : gameUrl + '/' + codeFolderPath,
+      );
+    }
+
+    for (const candidate of candidates) {
+      try {
+        const response = await fetch(candidate + '/config.json', {
+          cache: 'no-store',
+        });
+        if (response.ok) return candidate;
+      } catch {
+        // Try the next candidate.
+      }
+    }
+
+    return bundledPath;
+  }
+
+  private static waitForCustomElement(
+    tagName: string,
+    timeoutMs = 10000,
+  ): Promise<void> {
+    if (
+      typeof window === 'undefined' ||
+      !window.customElements ||
+      window.customElements.get(tagName)
+    ) {
+      return Promise.resolve();
+    }
+
+    return Promise.race([
+      window.customElements.whenDefined(tagName).then(() => undefined),
+      new Promise<void>((resolve) => setTimeout(resolve, timeoutMs)),
+    ]);
+  }
+
+  private static async injectLidoCodeFolderScripts(
+    versionPath: string,
+  ): Promise<void> {
+    if (typeof document === 'undefined') return;
+
+    const moduleScriptSrc = versionPath + '/lido-player.esm.js';
+    const existingModuleScript = document.querySelector<HTMLScriptElement>(
+      'script[data-lido-code-folder-module="true"]',
+    );
+    const resolvedModuleScriptSrc = new URL(
+      moduleScriptSrc,
+      window.location.href,
+    ).href;
+
+    if (existingModuleScript?.src === resolvedModuleScriptSrc) {
+      await Util.waitForCustomElement('lido-home');
+      return;
+    }
+
+    if (window.customElements?.get('lido-home')) return;
+
+    const loadModuleScript = new Promise<void>((resolve, reject) => {
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = moduleScriptSrc;
+      script.dataset.lidoCodeFolderModule = 'true';
+      script.onload = () => resolve();
+      script.onerror = () =>
+        reject(new Error('[LidoCodeFolder] module script failed to load'));
+      document.head.appendChild(script);
+    });
+
+    if (
+      !document.querySelector(
+        'script[data-lido-code-folder-nomodule="true"]',
+      )
+    ) {
+      const nomoduleScript = document.createElement('script');
+      nomoduleScript.src = versionPath + '/lido-player.js';
+      nomoduleScript.setAttribute('nomodule', '');
+      nomoduleScript.dataset.lidoCodeFolderNomodule = 'true';
+      document.head.appendChild(nomoduleScript);
+    }
+
+    await loadModuleScript;
+    await Util.waitForCustomElement('lido-home');
+  }
+
+  public static async ensureLidoCodeFolderAvailable(
+    waitForAllFiles = false,
+  ): Promise<string> {
+    const codeFolderPath = await Util.getLidoCodeFolderPath();
+
+    try {
+      if (typeof fetch !== 'function') return codeFolderPath;
+
+      const configResponse = await fetch(codeFolderPath + '/config.json', {
+        cache: 'no-store',
+      });
+      if (!configResponse.ok) {
+        logger.warn('[LidoCodeFolder] config not reachable', {
+          codeFolderPath,
+          status: configResponse.status,
+        });
+        return codeFolderPath;
+      }
+
+      const config = await configResponse.json();
+      const versions = Array.isArray(config?.versions) ? config.versions : [];
+      const latestVersion = versions[versions.length - 1];
+      if (typeof latestVersion !== 'string' || !latestVersion.trim()) {
+        logger.warn('[LidoCodeFolder] no code versions found', {
+          codeFolderPath,
+        });
+        return codeFolderPath;
+      }
+
+      const versionPath = codeFolderPath + '/' + latestVersion;
+      const filesToPreload = [
+        'index.esm.js',
+        'lido-avatar.css',
+        'lido-avatar.tsx',
+        'lido-player.css',
+        'lido-player.esm.js',
+        'lido-player.js',
+        'p-2e1f0133.css',
+        'p-67ab32cd.entry.js',
+        'p-CCVEYOMG.js',
+        'p-Cb_rJ_ln.js',
+        'p-Dfj4noku.js',
+      ];
+
+      const preloadFiles = Promise.allSettled(
+        filesToPreload.map((fileName) =>
+          fetch(versionPath + '/' + fileName, { cache: 'force-cache' }),
+        ),
+      );
+
+      await Util.injectLidoCodeFolderScripts(versionPath);
+      if (waitForAllFiles) {
+        await preloadFiles;
+      }
+    } catch (error) {
+      logger.warn('[LidoCodeFolder] preload failed', {
+        codeFolderPath,
+        error,
+      });
+    }
+
+    return codeFolderPath;
+  }
+
   static async ensureLidoCommonAudioForStudent(student: TableTypes<'user'>) {
     try {
       if (!student?.language_id) {

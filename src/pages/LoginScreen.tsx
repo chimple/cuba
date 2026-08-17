@@ -591,6 +591,8 @@ const LoginScreen: React.FC = () => {
       schoolUtil.setCurrMode(MODES.OPS_CONSOLE);
       return history.replace(PAGES.SIDEBAR_PAGE);
     } else {
+      Util.preloadStudentAssetsAfterLoginInBackground();
+
       if (schools.length === 0) {
         schoolUtil.setCurrMode(MODES.PARENT);
         return history.replace(PAGES.DISPLAY_STUDENT);

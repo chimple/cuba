@@ -405,6 +405,12 @@ const ProfileDetails = () => {
         void Util.ensureLidoCommonAudioForStudent(student).catch((error) => {
           logger.error('Error preloading student audio in background:', error);
         });
+        void Util.ensureLidoCodeFolderAvailable(true).catch((error) => {
+          logger.error(
+            'Error preloading Lido code folder in background:',
+            error,
+          );
+        });
       } catch (err) {
         logger.error('Error saving profile:', err);
         setIsCreatingProfile(false);
@@ -455,9 +461,17 @@ const ProfileDetails = () => {
       });
       setGbUpdated(true);
 
-      await Util.ensureLidoCommonAudioForStudent(student);
       await normalizeModeBeforeHomeNavigation();
       history.replace(PAGES.HOME);
+      void Util.ensureLidoCommonAudioForStudent(student).catch((error) => {
+        logger.error('Error preloading student audio in background:', error);
+      });
+      void Util.ensureLidoCodeFolderAvailable(true).catch((error) => {
+        logger.error(
+          'Error preloading Lido code folder in background:',
+          error,
+        );
+      });
     } catch (err) {
       logger.error('Error saving profile:', err);
       setIsCreatingProfile(false);

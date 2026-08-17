@@ -5,7 +5,6 @@ import {
   COCOS,
   CONTINUE,
   CocosCourseIdentifier,
-  COURSES,
   LESSON_CARD_COLORS,
   LIDO,
   LIDO_ASSESSMENT,
@@ -109,8 +108,6 @@ const LessonCard: React.FC<{
   };
 
   const [lessonCardColor, setLessonCardColor] = useState('');
-  const isMathCourse = course?.code?.toLowerCase().includes('math');
-
   const COURSE_VALUES_SET = new Set(
     (Object.values(CocosCourseIdentifier) as string[]).map((v) =>
       v.toLowerCase(),
@@ -316,12 +313,10 @@ const LessonCard: React.FC<{
             {showSubjectName && currentCourse?.name ? (
               <div id="lesson-card-subject-name">
                 <p className="ignore">
-                  {course?.code === COURSES.ENGLISH
-                    ? lesson?.name
-                    : t(lesson?.name ?? '')}
+                  {t(lesson?.name ?? '')}
                 </p>
 
-                <p>{currentCourse?.name}</p>
+                <p>{t(currentCourse?.name ?? '')}</p>
               </div>
             ) : null}
             <div className="pattern">
@@ -397,16 +392,12 @@ const LessonCard: React.FC<{
         <div>
           {showText ? (
             <p id={`lesson-card-name${isLoved ? '-fav-icon' : ''}`}>
-              {course?.code === COURSES.ENGLISH || isMathCourse
-                ? lesson?.name
-                : t(lesson?.name ?? '')}
+              {t(lesson?.name ?? '')}
             </p>
           ) : null}
           {showChapterName && chapter?.name && (
             <div id={`chapter-title${isLoved ? '-fav-icon' : ''}`}>
-              {course?.code === COURSES.ENGLISH || isMathCourse
-                ? chapter?.name
-                : t(chapter?.name)}
+              {t(chapter?.name ?? '')}
             </div>
           )}
         </div>

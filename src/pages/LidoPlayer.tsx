@@ -145,6 +145,9 @@ const LidoPlayer: FC = () => {
   const [xmlPath, setXmlPath] = useState<string>();
   const [zipUrl, setZipUrl] = useState<string>();
   const [commonAudioPath, setCommonAudioPath] = useState<string>();
+  const [codeFolderPath, setCodeFolderPath] = useState<string>(
+    '/Lido-player-code-versions',
+  );
   const [playerLanguage, setPlayerLanguage] = useState<string>('en');
   const [showDialogBox, setShowDialogBox] = useState<boolean>(false);
   const [scoreCardProgressState, setScoreCardProgressState] = useState({
@@ -1427,6 +1430,7 @@ const LidoPlayer: FC = () => {
 
     const resolvedPlayerLanguage = await resolveLidoPlayerLanguage();
     setPlayerLanguage(resolvedPlayerLanguage);
+    setCodeFolderPath(await Util.ensureLidoCodeFolderAvailable());
 
     if (Capacitor.isNativePlatform()) {
       if (localZipPath) {
@@ -1595,7 +1599,7 @@ const LidoPlayer: FC = () => {
             'xml-path': xmlPath,
             'base-url': basePath,
             canplay: true,
-            'code-folder-path': '/Lido-player-code-versions',
+            'code-folder-path': codeFolderPath,
             'common-audio-path': commonAudioPath ?? '/Lido-CommonAudios',
             'zip-url': zipUrl ?? '',
             language: playerLanguage,

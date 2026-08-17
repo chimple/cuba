@@ -64,12 +64,8 @@ const ShowChapters: React.FC = () => {
   const auth = ServiceConfig.getI().authHandler;
   const api = ServiceConfig.getI().apiHandler;
   const current_class = Util.getCurrentClass();
-  const selectedCourseName =
-    course.code === COURSES.ENGLISH
-      ? (course.name ?? '')
-      : t(course.name ?? '');
-  const selectedCourseGrade =
-    course.code === COURSES.ENGLISH ? gradeName : t(gradeName);
+  const selectedCourseName = t(course.name ?? '');
+  const selectedCourseGrade = t(gradeName ?? '');
 
   useEffect(() => {
     const fetchClassDetails = async () => {

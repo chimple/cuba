@@ -38,8 +38,13 @@ import '@ionic/react/css/display.css';
 import './theme/variables.css';
 import './App.css';
 
-import React from 'react';
-import { BASE_NAME } from './common/constants';
+import React, { useEffect, useState } from 'react';
+import {
+  BASE_NAME,
+  CHIMPLE_MASCOT_INPUT_NORMAL,
+  CHIMPLE_MASCOT_STATE_MACHINE_NORMAL,
+  WARM_CHIMPLE_RIVE_MASCOT_EVENT,
+} from './common/constants';
 import TermsGate from './components/termsandconditons/TermsGate';
 import { HardwareBackButtonHandler } from './common/backButtonRegistry';
 import { useAppSelector } from './redux/hooks';
@@ -55,6 +60,7 @@ import { useOpsConsoleBodyClass } from './hooks/useOpsConsoleBodyClass';
 import { useRemoteAssetFlags } from './hooks/useRemoteAssetFlags';
 import { useRouteAudioCleanup } from './hooks/useRouteAudioCleanup';
 import { useUsageLimitModal } from './hooks/useUsageLimitModal';
+import ChimpleRiveMascot from './components/learningPathway/ChimpleRiveMascot';
 
 setupIonicReact();
 
@@ -63,6 +69,50 @@ const AppRouteEffects = () => {
   useOpsConsoleBodyClass();
   useRouteAudioCleanup();
   return null;
+};
+
+const ChimpleRiveMascotWarmup = () => {
+  const [shouldWarm, setShouldWarm] = useState(false);
+
+  useEffect(() => {
+    let timeoutId: number | undefined;
+
+    const warmMascot = () => {
+      setShouldWarm(true);
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => setShouldWarm(false), 8000);
+    };
+
+    window.addEventListener(WARM_CHIMPLE_RIVE_MASCOT_EVENT, warmMascot);
+    return () => {
+      window.removeEventListener(WARM_CHIMPLE_RIVE_MASCOT_EVENT, warmMascot);
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  if (!shouldWarm) return null;
+
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        position: 'fixed',
+        left: 0,
+        bottom: 0,
+        width: 1,
+        height: 1,
+        opacity: 0,
+        overflow: 'hidden',
+        pointerEvents: 'none',
+        zIndex: -1,
+      }}
+    >
+      <ChimpleRiveMascot
+        stateMachine={CHIMPLE_MASCOT_STATE_MACHINE_NORMAL}
+        inputName={CHIMPLE_MASCOT_INPUT_NORMAL}
+      />
+    </div>
+  );
 };
 
 const App: React.FC = () => {
@@ -81,6 +131,7 @@ const App: React.FC = () => {
       <IonReactRouter basename={BASE_NAME}>
         <AppRouteEffects />
         <TermsGate />
+        <ChimpleRiveMascotWarmup />
         <HardwareBackButtonHandler
           popupDataRef={popup.popupDataRef}
           setPopupData={popup.setPopupData}

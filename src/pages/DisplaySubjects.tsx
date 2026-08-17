@@ -277,14 +277,14 @@ const DisplaySubjects: FC<{}> = () => {
           {stage === STAGES.SUBJECTS
             ? t('Subjects')
             : stage === STAGES.CHAPTERS
-              ? currentCourse?.title
-              : currentChapter?.title}
+              ? t(currentCourse?.title ?? '')
+              : t(currentChapter?.title ?? '')}
         </div>
         {localGradeMap && currentGrade && stage === STAGES.CHAPTERS && (
           <DropDown
             currentValue={currentGrade?.docId}
             optionList={localGradeMap.grades.map((grade) => ({
-              displayName: grade.title,
+              displayName: t(grade.title ?? ''),
               id: grade.docId,
             }))}
             placeholder=""
