@@ -2,25 +2,23 @@
   "metadata": {
     "@type": "https://id.openeel.org/schema/launchable-app",
     "title": "Chimple Kids Learning",
+    "description": "Interactive learning units from Chimple.",
     "author": {
-      "name": "Chimple Learning",
-      "links": {
-        "href": "https://www.chimple.org/"
-      }
+      "name": "Chimple Learning"
     },
-    "identifier": "https://chimple.cc/",
+    "identifier": "https://chimple-respect.web.app/app",
     "language": "en",
-    "modified": "2026-08-13T00:00:00Z"
+    "modified": "2026-08-17T09:04:13.455793+00:00"
   },
   "links": [
     {
       "rel": "self",
-      "href": "https://chimple-respectify.web.app/launchable-app.json",
+      "href": "https://chimple-respect.web.app/launchable-app.json",
       "type": "application/opds-publication+json"
     },
     {
       "rel": "collection",
-      "href": "https://chimple-respectify.web.app/opds.json",
+      "href": "https://chimple-respect.web.app/opds.json",
       "type": "application/opds+json"
     },
     {
