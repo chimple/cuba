@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
+import android.util.Log;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -19,6 +20,7 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Sends RESPECT xAPI statements through the launcher-owned IPC service. This avoids making an
@@ -26,6 +28,7 @@ import org.json.JSONException;
  */
 @CapacitorPlugin(name = "RespectXapi")
 public class RespectXapiPlugin extends Plugin {
+    private static final String TAG = "RespectXapi";
     private static final String ACTION_XAPI_OVER_IPC = "org.openeel.action.xapioveripc";
     private static final String KEY_AUTH = "auth";
     private static final String KEY_BODY = "body";
@@ -53,6 +56,7 @@ public class RespectXapiPlugin extends Plugin {
         intent.putExtra(KEY_CLIENT_PACKAGE, getContext().getPackageName());
 
         IpcRequest request = new IpcRequest(call, endpoint, auth, statement);
+        Log.i(TAG, "Posting xAPI statement " + request.statementSummary());
         if (!getContext().bindService(intent, request, Context.BIND_AUTO_CREATE)) {
             call.reject("RESPECT xAPI service is unavailable.");
         }
@@ -93,6 +97,8 @@ public class RespectXapiPlugin extends Plugin {
 
                     JSObject result = new JSObject();
                     result.put("postedStatementIds", postedStatementIds.toString());
+                    Log.i(TAG, "RESPECT accepted xAPI statement " + statementSummary()
+                            + " acknowledgement=" + postedStatementIds);
                     succeed(result);
                 } catch (JSONException | NullPointerException exception) {
                     fail("RESPECT returned an invalid xAPI response.", exception);
@@ -157,10 +163,26 @@ public class RespectXapiPlugin extends Plugin {
             completed = true;
             release();
             if (exception == null) {
+                Log.e(TAG, message + " " + statementSummary());
+            } else {
+                Log.e(TAG, message + " " + statementSummary(), exception);
+            }
+            if (exception == null) {
                 call.reject(message);
             } else {
                 call.reject(message, exception);
             }
+        }
+
+        private String statementSummary() {
+            String statementId = statement.optString("id", "");
+            JSONObject verb = statement.optJSONObject("verb");
+            JSONObject activity = statement.optJSONObject("object");
+            String verbId = verb == null ? "" : verb.optString("id", "");
+            String activityId = activity == null ? "" : activity.optString("id", "");
+            return "statementId=" + statementId
+                    + " verb=" + verbId
+                    + " activityId=" + activityId;
         }
 
         private void release() {
