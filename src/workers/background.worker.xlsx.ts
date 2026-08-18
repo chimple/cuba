@@ -155,6 +155,7 @@ export const buildXlsxFile = async (
           },
           alignment: {
             ...(cell.s?.alignment ?? {}),
+            wrapText: true,
             vertical: 'center',
           },
         };
@@ -229,6 +230,7 @@ export const buildXlsxFile = async (
           ...cell.s,
           alignment: {
             ...(cell.s?.alignment ?? {}),
+            wrapText: true,
             horizontal: 'center',
             vertical: 'center',
           },

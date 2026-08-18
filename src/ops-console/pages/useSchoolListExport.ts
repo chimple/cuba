@@ -176,6 +176,7 @@ const applyHeaderRowFormatting = (
       },
       alignment: {
         ...(cell.s?.alignment ?? {}),
+        wrapText: true,
         vertical: 'center',
       },
     };
@@ -242,6 +243,7 @@ const applyMergedHeaderFormatting = (
       ...cell.s,
       alignment: {
         ...(cell.s?.alignment ?? {}),
+        wrapText: true,
         horizontal: 'center',
         vertical: 'center',
       },

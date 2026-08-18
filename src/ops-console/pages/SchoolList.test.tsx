@@ -546,13 +546,13 @@ describe('SchoolList export', () => {
               'Block',
               'School Performance',
               'Onboarded Students',
-              'Activated Students',
-              'Activated Students',
-              'Active Students',
-              'Active Students',
+              'Activated Students #',
+              'Activated Students %',
+              'Active Students #',
+              'Active Students %',
               'Avg Time Spent',
-              'Active Teachers',
-              'Active Teachers',
+              'Active Teachers #',
+              'Active Teachers %',
               'Activities Assigned',
               'Avg Assignments Completed',
               'Avg Activities Completed',
@@ -608,20 +608,7 @@ describe('SchoolList export', () => {
           },
         },
         sheetMerges: {
-          Schools: [
-            {
-              s: { r: 0, c: 6 },
-              e: { r: 0, c: 7 },
-            },
-            {
-              s: { r: 0, c: 8 },
-              e: { r: 0, c: 9 },
-            },
-            {
-              s: { r: 0, c: 11 },
-              e: { r: 0, c: 12 },
-            },
-          ],
+          Schools: [],
         },
       },
     );
