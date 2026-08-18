@@ -1,7 +1,7 @@
 import { HttpHeaders } from '@capacitor-community/http';
 import { registerPlugin } from '@capacitor/core';
 import { Timestamp } from '@firebase/firestore';
-import { Activity, Agent, Statement } from 'tincants';
+import { Activity, Agent, Score, Statement } from 'tincants';
 import { v4 as uuidv4 } from 'uuid';
 import {
   ACTIVE_HEADER_ICON_CONFIGS,
@@ -2084,6 +2084,11 @@ export class OneRosterApi implements ServiceApi {
     }
 
     // No existing statements for the lessonId yet, So creating a new one
+    // tincants initializes only the first configured score field. Set both values on its
+    // Score model so the serialized RESPECT statement includes raw and scaled scores.
+    const xapiScore = new Score({ raw: score });
+    xapiScore.scaled = Math.max(0, Math.min(1, score / 100));
+
     const statement = new Statement({
       id: uuidv4(),
       actor: toXapiAgent(launchData.actor),
@@ -2103,10 +2108,7 @@ export class OneRosterApi implements ServiceApi {
         },
       },
       result: {
-        score: {
-          raw: score,
-          scaled: Math.max(0, Math.min(1, score / 100)),
-        },
+        score: xapiScore,
         success: score > 35,
         completion: true,
         response: `Correct: ${correctMoves}, Wrong: ${wrongMoves}`,
@@ -2212,16 +2214,62 @@ export class OneRosterApi implements ServiceApi {
     };
 
     let lastError: Error | undefined;
+    const xapiStatementLog = {
+      statement: {
+        id: statement.id ?? '',
+        actor: {
+          objectType: 'Agent',
+          identifierType: launchData.actor.account ? 'account' : 'mbox',
+        },
+        verb: 'http://adlnet.gov/expapi/verbs/completed',
+        object: { id: launchData.activityId },
+        result: {
+          completion: true,
+          success: score > 35,
+          score: {
+            raw: score,
+            scaled: Math.max(0, Math.min(1, score / 100)),
+          },
+          duration: this.formatDuration(timeSpent),
+          response: `Correct: ${correctMoves}, Wrong: ${wrongMoves}`,
+          correctMoves,
+          wrongMoves,
+          timeSpent,
+        },
+      },
+    };
+
     for (let attempt = 1; attempt <= RESPECT_XAPI_MAX_ATTEMPTS; attempt += 1) {
       try {
         if (usesRespectXapiIpc(launchData)) {
-          await sendRespectXapiStatement(launchData, statement);
+          logger.info('[RESPECT xAPI] Sending completion statement.', {
+            ...xapiStatementLog,
+            transport: 'ipc',
+            attempt,
+          });
+          const acknowledgement = await sendRespectXapiStatement(
+            launchData,
+            statement,
+          );
+          logger.info('[RESPECT xAPI] Completion statement accepted.', {
+            ...xapiStatementLog,
+            acknowledgement: acknowledgement.postedStatementIds,
+          });
         } else {
+          logger.info('[RESPECT xAPI] Sending completion statement.', {
+            ...xapiStatementLog,
+            transport: 'http',
+            attempt,
+          });
           const tincanInstance = await reinitializeTincan(launchData);
           if (!tincanInstance) {
             throw new Error('TinCan could not be initialized.');
           }
           await tincanInstance.sendStatement(statement);
+          logger.info('[RESPECT xAPI] Completion statement accepted.', {
+            ...xapiStatementLog,
+            transport: 'http',
+          });
         }
         return newResult;
       } catch (error) {
@@ -2229,6 +2277,11 @@ export class OneRosterApi implements ServiceApi {
           error instanceof Error
             ? error
             : new Error('Unable to send RESPECT xAPI completion statement.');
+        logger.warn('[RESPECT xAPI] Completion statement was not accepted.', {
+          ...xapiStatementLog,
+          attempt,
+          error: lastError.message,
+        });
         if (attempt < RESPECT_XAPI_MAX_ATTEMPTS) {
           await new Promise<void>((resolve) => {
             setTimeout(resolve, RESPECT_XAPI_RETRY_DELAY_MS);

@@ -142,12 +142,12 @@ export const usesRespectXapiIpc = (launchData: RespectLaunchData): boolean =>
 export const sendRespectXapiStatement = async (
   launchData: RespectLaunchData,
   statement: Statement,
-): Promise<void> => {
+): Promise<{ postedStatementIds: string }> => {
   if (!usesRespectXapiIpc(launchData)) {
     throw new Error('RESPECT xAPI IPC service is unavailable.');
   }
 
-  await respectXapiPlugin.postStatement({
+  return respectXapiPlugin.postStatement({
     endpoint: launchData.endpoint,
     auth: launchData.auth,
     ipcPackage: launchData.xapiIpcPackage,
