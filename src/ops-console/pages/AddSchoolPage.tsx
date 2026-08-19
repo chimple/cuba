@@ -51,9 +51,21 @@ const AddSchoolPage: React.FC = () => {
       </div>
 
       <div className="add-school-container">
+        <AddSchoolProgramSection
+          fieldCoordinator={controller.fieldCoordinator}
+          fieldCoordinators={controller.fieldCoordinators}
+          lockDropdowns={controller.lockDropdowns}
+          program={controller.program}
+          programs={controller.programs}
+          setFieldCoordinator={controller.setFieldCoordinator}
+          setProgram={controller.setProgram}
+        />
+
         <AddSchoolDetailsSection
           errorMessage={controller.errorMessage}
           handleUdiseChange={controller.handleUdiseChange}
+          schoolModelDisabled={!controller.program?.id}
+          schoolModelOptions={controller.schoolModelOptions}
           schoolModel={controller.schoolModel}
           schoolName={controller.schoolName}
           setSchoolModel={controller.setSchoolModel}
@@ -76,16 +88,6 @@ const AddSchoolPage: React.FC = () => {
           title={t('Key Contacts')}
           fields={controller.contacts}
           onChange={controller.handleContactChange}
-        />
-
-        <AddSchoolProgramSection
-          fieldCoordinator={controller.fieldCoordinator}
-          fieldCoordinators={controller.fieldCoordinators}
-          lockDropdowns={controller.lockDropdowns}
-          program={controller.program}
-          programs={controller.programs}
-          setFieldCoordinator={controller.setFieldCoordinator}
-          setProgram={controller.setProgram}
         />
 
         <div className="add-school-button-row">
