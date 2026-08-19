@@ -103,25 +103,25 @@ jobs:
       #     user-email: prakash@sutara.org
       #     target-branch: main
 
-      - name: Make gradlew executable
-        working-directory: ./android/
-        run: chmod +x ./gradlew
-
-      - name: Generate the Android App bundleRelease
-        working-directory: ./android/
-        # android/app/build/outputs/bundle/release/app-release.aab
-        run: ./gradlew bundleRelease
-
-      - name: Generate the Android App apk
-        working-directory: ./android/
-        # android/app/build/outputs/apk/release/app-release.apk
-        run: ./gradlew assembleRelease
-
-      - name: Generate the Android App assembleDebug
-        working-directory: ./android/
-        # android/app/build/outputs/apk/debug/app-debug.apk
-        run: ./gradlew assembleDebug
-
-      - uses: ncipollo/release-action@v1
-        with:
-          artifacts: 'android/app/build/outputs/bundle/release/app-release.aab,android/app/build/outputs/apk/release/app-release.apk,android/app/build/outputs/apk/debug/app-debug.apk'
+#      - name: Make gradlew executable
+#        working-directory: ./android/
+#        run: chmod +x ./gradlew
+#
+#      - name: Generate the Android App bundleRelease
+#        working-directory: ./android/
+#        # android/app/build/outputs/bundle/release/app-release.aab
+#        run: ./gradlew bundleRelease
+#
+#      - name: Generate the Android App apk
+#        working-directory: ./android/
+#        # android/app/build/outputs/apk/release/app-release.apk
+#        run: ./gradlew assembleRelease
+#
+#      - name: Generate the Android App assembleDebug
+#        working-directory: ./android/
+#        # android/app/build/outputs/apk/debug/app-debug.apk
+#        run: ./gradlew assembleDebug
+#
+#      - uses: ncipollo/release-action@v1
+#        with:
+#          artifacts: 'android/app/build/outputs/bundle/release/app-release.aab,android/app/build/outputs/apk/release/app-release.apk,android/app/build/outputs/apk/debug/app-debug.apk'
