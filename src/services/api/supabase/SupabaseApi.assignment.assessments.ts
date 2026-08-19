@@ -161,6 +161,7 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
     /* ==========================================
      * STEP 1️⃣  Get latest valid batch for course
      * ========================================== */
+    // Condition 1: the newest pending batch overrides completed assessment flow.
     const { data: latestBatchData, error: batchError } = await this.supabase
       .from(TABLES.Assignment)
       .select(
@@ -254,8 +255,12 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
         return !!lessonId && latestBatchLessonIds.has(lessonId);
       },
     );
-
-    if (courseTerminationResults?.length && !isLatestBatchReassignment) {
+    // A valid latest batch overrides past termination; stop only without one.
+    if (
+      courseTerminationResults?.length &&
+      !isLatestBatchReassignment &&
+      latestBatchLessonIds.size === 0
+    ) {
       return [];
     }
 

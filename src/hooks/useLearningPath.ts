@@ -425,7 +425,31 @@ export const useLearningPath = (opts?: {
       const assessmentPath = toAssignedAssessmentPath(assignments);
 
       const coursePath = oldCourseList[courseIndex];
-      if (hasInProgressAssessmentPath(coursePath.path)) {
+      const currentAssessmentLessonIds = coursePath.path
+        .filter((node: LessonNode) => node.is_assessment === true)
+        .map((node: LessonNode) => node.lesson_id);
+      const assignedAssessmentLessonIds = assessmentPath.map(
+        (node) => node.lesson_id,
+      );
+      const hasSameAssessmentLessonSequence =
+        currentAssessmentLessonIds.length ===
+          assignedAssessmentLessonIds.length &&
+        assignedAssessmentLessonIds.every(
+          (lessonId, index) => currentAssessmentLessonIds[index] === lessonId,
+        );
+      const hasStoredAssessmentId = coursePath.path.some(
+        (node: LessonNode) =>
+          node.is_assessment === true && !!node.assignment_id,
+      );
+      // Condition 2: a different in-progress assignment falls through to reset.
+      // Condition 3: a different cold-start assessment falls through to reset.
+      if (
+        hasInProgressAssessmentPath(coursePath.path) &&
+        ((!hasStoredAssessmentId && hasSameAssessmentLessonSequence) ||
+          coursePath.path.some(
+            (node: LessonNode) => node.assignment_id === assignments[0].id,
+          ))
+      ) {
         const mergedPath = mergeAssignedAssessmentIdsIntoPath(
           coursePath.path,
           assessmentPath,
@@ -473,6 +497,7 @@ export const useLearningPath = (opts?: {
         activeAssessment?.assignment_id === assignments[0].id &&
         hasSamePendingAssessmentSequence
       ) {
+        // Keep the stored path when its pending sequence already matches.
         continue;
       }
 

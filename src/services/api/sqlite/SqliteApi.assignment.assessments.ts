@@ -18,6 +18,7 @@ export class SqliteApiAssignmentAssessments extends SqliteApiAssignmentStudentPr
     /* ==========================================
      * Get latest valid assessment batch
      * ========================================== */
+    // Condition 1: the newest pending batch overrides completed assessment flow.
     const latestBatchQuery = `
       SELECT a.batch_id
       FROM assignment a
@@ -123,7 +124,12 @@ export class SqliteApiAssignmentAssessments extends SqliteApiAssignmentStudentPr
       (result: any) =>
         !!result.lesson_id && latestBatchLessonIds.has(result.lesson_id),
     );
-    if (courseTerminationRows.length && !isLatestBatchReassignment) {
+    // A valid latest batch overrides past termination; stop only without one.
+    if (
+      courseTerminationRows.length &&
+      !isLatestBatchReassignment &&
+      latestBatchLessonIds.size === 0
+    ) {
       return [];
     }
 
