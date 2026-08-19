@@ -230,6 +230,7 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
           `
           lesson_id,
           status,
+          created_at,
           assignment!inner(class_id, course_id, type)
         `,
         )
@@ -239,6 +240,7 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
         .eq('assignment.class_id', classId)
         .eq('assignment.course_id', courseId)
         .eq('assignment.type', 'assessment')
+        .order('created_at', { ascending: false })
         .limit(1);
 
     if (courseTerminationError) {
@@ -249,18 +251,15 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
       return [];
     }
 
-    const isLatestBatchReassignment = (courseTerminationResults ?? []).some(
-      (result) => {
-        const lessonId = result.lesson_id;
-        return !!lessonId && latestBatchLessonIds.has(lessonId);
-      },
-    );
-    // A valid latest batch overrides past termination; stop only without one.
-    if (
-      courseTerminationResults?.length &&
-      !isLatestBatchReassignment &&
-      latestBatchLessonIds.size === 0
-    ) {
+    const latestTerminationAt = courseTerminationResults?.[0]?.created_at;
+    const isLatestBatchReassignment =
+      latestBatchLessonIds.size > 0 &&
+      !!latestAssignedBatch?.created_at &&
+      !!latestTerminationAt &&
+      Date.parse(latestAssignedBatch.created_at) >
+        Date.parse(latestTerminationAt);
+    // Preserve termination unless the selected batch was created afterwards.
+    if (courseTerminationResults?.length && !isLatestBatchReassignment) {
       return [];
     }
 
