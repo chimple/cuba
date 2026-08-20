@@ -7,6 +7,7 @@ import { ServiceConfig } from '../services/ServiceConfig';
 import { useHistory, useLocation } from 'react-router';
 import { CONTINUE, PAGES, SEARCH_TERM, TableTypes } from '../common/constants';
 import { Util } from '../utility/util';
+import { filterHiddenLessons } from '../utility/lessonFilters';
 import { IonSearchbar } from '@ionic/react';
 
 const dataToContinue: any = {};
@@ -26,7 +27,7 @@ function SearchLesson() {
     }
     // setSearchTerm(term);
     const api = ServiceConfig.getI().apiHandler;
-    const results = await api.searchLessons(term);
+    const results = filterHiddenLessons(await api.searchLessons(term));
     dataToContinue.lessons = results;
     dataToContinue.search = term;
     localStorage.setItem(SEARCH_TERM, dataToContinue.search);
@@ -60,7 +61,7 @@ function SearchLesson() {
 
     const urlParams = new URLSearchParams(location.search);
     if (!!urlParams.get(CONTINUE) && !!dataToContinue.lessons) {
-      setLessons(dataToContinue.lessons);
+      setLessons(filterHiddenLessons(dataToContinue.lessons));
       setSearchTerm(dataToContinue.search);
       setLessonResultMap(dataToContinue.lessonResultMap);
     }

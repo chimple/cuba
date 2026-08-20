@@ -5,10 +5,17 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { COURSE_CHANGED, EVENTS, LIVE_QUIZ } from '../../common/constants';
 import logger from '../../utility/logger';
-
 jest.mock('../displaySubjects/SelectIconImage', () => (props: any) => (
   <img alt="select-icon" src={props.defaultSrc || 'default.png'} />
 ));
+
+
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => (key === 'Maths' ? 'Matemática' : key),
+  }),
+  initReactI18next: { type: '3rdParty', init: () => {} },
+}));
 
 jest.mock('../../utility/util');
 
@@ -97,12 +104,29 @@ describe('DropdownMenu', () => {
     });
   };
 
+
   test('loads homework courses and shows selected label', async () => {
     primeHomeworkCourses();
     render(<DropdownMenu syncWithLearningPath={false} />);
 
     await waitFor(() => {
       expect(screen.getByText('Grade Math')).toBeInTheDocument();
+    });
+  });
+
+  test('translates selected course name', async () => {
+    mockApi.getCourse.mockImplementation((id: string) =>
+      Promise.resolve({
+        id,
+        name: id === 'c1' ? 'Maths' : 'Grade Science',
+        code: id,
+      }),
+    );
+
+    render(<DropdownMenu syncWithLearningPath={true} />);
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Matemática').length).toBeGreaterThan(0);
     });
   });
 

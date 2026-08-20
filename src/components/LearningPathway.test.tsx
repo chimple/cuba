@@ -188,7 +188,7 @@ describe('LearningPathway', () => {
     spy.mockRestore();
   });
 
-  test('uses growthbook-resolved mode when fetching path', async () => {
+  test('uses disabled mode when fetching path even if GrowthBook returns adaptive mode', async () => {
     (useGrowthBook as jest.Mock).mockReturnValue({
       ready: true,
       getAttributes: () => ({}),
@@ -199,7 +199,7 @@ describe('LearningPathway', () => {
 
     await waitFor(() => {
       expect(getPath).toHaveBeenCalledWith(
-        expect.objectContaining({ mode: LEARNING_PATHWAY_MODE.FULL_ADAPTIVE }),
+        expect.objectContaining({ mode: LEARNING_PATHWAY_MODE.DISABLED }),
       );
     });
   });
@@ -305,7 +305,7 @@ describe('LearningPathway', () => {
     });
   });
 
-  test('uses resolved growthbook mode during getPath even if localStorage was pre-set', async () => {
+  test('uses disabled mode during getPath even if localStorage and GrowthBook are adaptive', async () => {
     localStorage.setItem(
       CURRENT_PATHWAY_MODE,
       LEARNING_PATHWAY_MODE.FULL_ADAPTIVE,
@@ -320,7 +320,7 @@ describe('LearningPathway', () => {
     await waitFor(() => {
       expect(getPath).toHaveBeenCalledWith(
         expect.objectContaining({
-          mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+          mode: LEARNING_PATHWAY_MODE.DISABLED,
         }),
       );
     });

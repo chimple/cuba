@@ -19,6 +19,7 @@ import {
   resolveVisibleChapterId,
 } from './ShowChaptersLogic';
 import logger from '../../utility/logger';
+import { filterHiddenTeacherLessons } from '../utils/lessonFilters';
 import AssignedVisibilityToggle from '../components/AssignedVisibilityToggle';
 
 const ShowChapters: React.FC = () => {
@@ -67,6 +68,31 @@ const ShowChapters: React.FC = () => {
   const selectedCourseName = t(course.name ?? '');
   const selectedCourseGrade = t(gradeName ?? '');
 
+  const getVisibleSelectedLessonCount = (
+    selectedLessonMap: Map<string, Partial<Record<AssignmentSource, string[]>>>,
+    lessonLookup = lessons,
+  ): number => {
+    let count = 0;
+
+    selectedLessonMap.forEach((sourceMap, chapterId) => {
+      const visibleLessonIds = new Set(
+        (lessonLookup?.get(chapterId) ?? [])
+          .map((lesson) => lesson.id)
+          .filter((lessonId): lessonId is string => Boolean(lessonId)),
+      );
+      const manual = sourceMap[AssignmentSource.MANUAL] || [];
+      const qr = sourceMap[AssignmentSource.QR_CODE] || [];
+
+      [...manual, ...qr].forEach((lessonId) => {
+        if (visibleLessonIds.has(lessonId)) {
+          count++;
+        }
+      });
+    });
+
+    return count;
+  };
+
   useEffect(() => {
     const fetchClassDetails = async () => {
       try {
@@ -104,7 +130,9 @@ const ShowChapters: React.FC = () => {
     const course_data = await api.getCourse(course.id);
     const lesson_map: Map<string, TableTypes<'lesson'>[]> = new Map();
     for (const chapter of chapter_res) {
-      const lessons = await api.getLessonsForChapter(chapter.id);
+      const lessons = filterHiddenTeacherLessons(
+        await api.getLessonsForChapter(chapter.id),
+      );
       lesson_map.set(chapter.id, lessons);
     }
     const previous_sync_lesson = currUser?.id
@@ -123,13 +151,9 @@ const ShowChapters: React.FC = () => {
         Object.entries(sync_lesson_data ? JSON.parse(sync_lesson_data) : {}),
       );
       setClassSelectedLesson(class_sync_lesson);
-      let _assignmentCount = 0;
-      class_sync_lesson.forEach((sourceMap) => {
-        const manual = sourceMap[AssignmentSource.MANUAL] || [];
-        const qr = sourceMap[AssignmentSource.QR_CODE] || [];
-        _assignmentCount += manual.length + qr.length;
-      });
-      setAssignmentCount(_assignmentCount);
+      setAssignmentCount(
+        getVisibleSelectedLessonCount(class_sync_lesson, lesson_map),
+      );
     }
 
     const cartChapterIdsForCourse = getCartChapterIdsForCourse(
@@ -255,13 +279,7 @@ const ShowChapters: React.FC = () => {
         return newSelectedLesson;
       });
 
-      let _assignmentCount = 0;
-      for (const value of newClassSelectedLesson.values()) {
-        const manual = value[AssignmentSource.MANUAL] || [];
-        const qr = value[AssignmentSource.QR_CODE] || [];
-        _assignmentCount += manual.length + qr.length;
-      }
-      setAssignmentCount(_assignmentCount);
+      setAssignmentCount(getVisibleSelectedLessonCount(newClassSelectedLesson));
 
       return newClassSelectedLesson;
     });

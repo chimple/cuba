@@ -26,6 +26,7 @@ import { Util } from '../utility/util';
 import { schoolUtil } from '../utility/schoolUtil';
 import DropDown from '../components/DropDown';
 import { Timestamp } from 'firebase/firestore';
+import { filterHiddenLessons } from '../utility/lessonFilters';
 
 const localData: any = {};
 let localStorageData: any = {};
@@ -86,7 +87,7 @@ const DisplaySubjects: FC<{}> = () => {
       !!localData.currentChapter
     ) {
       setCourses(localData.courses);
-      setLessons(localData.lessons);
+      setLessons(filterHiddenLessons(localData.lessons));
       setCurrentGrade(localData.currentGrade);
       setCurrentCourse(localData.currentCourse);
       setCurrentChapter(localData.currentChapter);
@@ -170,7 +171,9 @@ const DisplaySubjects: FC<{}> = () => {
       setIsLoading(false);
       return [];
     }
-    const lessons = await api.getLessonsForChapter(chapter);
+    const lessons = filterHiddenLessons(
+      await api.getLessonsForChapter(chapter),
+    );
     localData.lessons = lessons;
     setLessons(lessons);
     setIsLoading(false);

@@ -75,9 +75,7 @@ const ChapterLessonBox: React.FC<ChapterLessonBoxProps> = ({
     rawLessonName: string | null,
     resolvedCourseCode: string | null,
   ) => {
-    const isEnglishSubject =
-      resolvedCourseCode === COURSES.ENGLISH ||
-      resolvedCourseCode === COURSES.MATHS;
+    const isEnglishSubject = resolvedCourseCode === COURSES.ENGLISH;
     const translatedChapterName = rawChapterName
       ? isEnglishSubject
         ? rawChapterName

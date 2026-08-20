@@ -1,4 +1,5 @@
 import { AssignmentSource, TableTypes } from '../../../../common/constants';
+import { filterHiddenTeacherLessons } from '../../../utils/lessonFilters';
 import { Lesson, RecommendedAssignmentsState } from './RecommendedAssignments';
 
 export const buildRecommendedPayload = (
@@ -79,7 +80,9 @@ export const getRecommendedLessons = async (
 
     // Fetch lessons from each chapter
     for (const chapter of allChapters) {
-      const lessons = await api.getLessonsForChapter(chapter.id);
+      const lessons = filterHiddenTeacherLessons(
+        await api.getLessonsForChapter(chapter.id),
+      );
 
       // Add lessons to allLessons list
       if (lessons?.length) {

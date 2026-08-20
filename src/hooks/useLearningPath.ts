@@ -264,11 +264,13 @@ export async function buildPath({
   const currClassId = isLinked ? schoolUtil.getCurrentClass()?.id : null;
   const courseList = await Promise.all(
     courses.map(async (course) => {
-      const assignedAssessmentPath = await getAssignedAssessmentPath({
-        student,
-        course,
-        classId: currClassId,
-      });
+      const assignedAssessmentPath = shouldUseAssessment(mode)
+        ? await getAssignedAssessmentPath({
+            student,
+            course,
+            classId: currClassId,
+          })
+        : [];
       const activeLesson = assignedAssessmentPath.length
         ? null
         : await recommendNextLesson({
@@ -352,7 +354,7 @@ export async function recommendNextLesson({
         !hasPendingAssessmentInPath &&
         (await api.isStudentPlayedPalLesson(student.id, course.id)))
     : false;
-  if (!skipAssessment && classId) {
+  if (shouldUseAssessment(mode) && !skipAssessment && classId) {
     const assessments = await api.getLatestAssessmentGroup(
       classId,
       student as TableTypes<'user'>,

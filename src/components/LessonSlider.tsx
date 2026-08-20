@@ -7,6 +7,7 @@ import { useEffect, useState, useRef } from 'react';
 import { TableTypes } from '../common/constants';
 import { ServiceConfig } from '../services/ServiceConfig';
 import { Util } from '../utility/util';
+import { filterHiddenLessons } from '../utility/lessonFilters';
 
 const LessonSlider: React.FC<{
   lessonData: TableTypes<'lesson'>[];
@@ -65,9 +66,9 @@ const LessonSlider: React.FC<{
     const newIndex = splide.index;
     setCurrentSlideIndex(newIndex);
 
-    if (newIndex >= lessonData.length - 1) {
+    if (newIndex >= visibleLessonData.length - 1) {
       const nextIndex = loadedLessons.length;
-      const nextTenLessons = lessonData.slice(nextIndex, nextIndex + 10);
+      const nextTenLessons = visibleLessonData.slice(nextIndex, nextIndex + 10);
       setLoadedLessons(nextTenLessons);
 
       if (onEndReached) {
@@ -93,6 +94,7 @@ const LessonSlider: React.FC<{
     });
   };
 
+  const visibleLessonData = filterHiddenLessons(lessonData);
   const assignmentMap: Record<string, string> = {};
   const assignmentLookup:
     | { [key: string]: TableTypes<'assignment'> }
@@ -113,7 +115,7 @@ const LessonSlider: React.FC<{
           pagination: false,
         }}
       >
-        {lessonData.map((m: TableTypes<'lesson'>, i: number) => {
+        {visibleLessonData.map((m: TableTypes<'lesson'>, i: number) => {
           if (!m) return;
           const isPlayed =
             !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score! > 0;
@@ -166,7 +168,7 @@ const LessonSlider: React.FC<{
           pagination: false,
         }}
       >
-        {lessonData.map((m: TableTypes<'lesson'>, i: number) => {
+        {visibleLessonData.map((m: TableTypes<'lesson'>, i: number) => {
           if (!m) return;
           const isPlayed =
             !!lessonsScoreMap[m.id] && lessonsScoreMap[m.id]?.score! > 0;

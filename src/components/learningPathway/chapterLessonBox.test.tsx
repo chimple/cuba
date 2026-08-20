@@ -3,7 +3,7 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import ChapterLessonBox from './chapterLessonBox';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
-import { COURSE_CHANGED } from '../../common/constants';
+import { COURSE_CHANGED, COURSES } from '../../common/constants';
 import logger from '../../utility/logger';
 
 const mockT = jest.fn((s: string) => `tr:${s}`);
@@ -104,6 +104,39 @@ describe('chapterLessonBox', () => {
     await waitFor(() => {
       expect(
         screen.getByText('tr:Chapter P : tr:Lesson P'),
+      ).toBeInTheDocument();
+    });
+  });
+
+
+  test('translates Maths chapter and lesson names', async () => {
+    render(
+      <ChapterLessonBox
+        chapterName="Skip Counting"
+        lessonName="Skip 2's Backward"
+        courseCode={COURSES.MATHS}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("tr:Skip Counting : tr:Skip 2's Backward"),
+      ).toBeInTheDocument();
+    });
+  });
+
+  test('keeps English course chapter and lesson names unmodified', async () => {
+    render(
+      <ChapterLessonBox
+        chapterName="Skip Counting"
+        lessonName="Skip 2's Backward"
+        courseCode={COURSES.ENGLISH}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Skip Counting : Skip 2's Backward"),
       ).toBeInTheDocument();
     });
   });

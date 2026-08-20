@@ -262,6 +262,51 @@ describe('LessonSlider', () => {
     expect(screen.getAllByTestId('splide-slide')).toHaveLength(3);
   });
 
+  it('does not render live_quiz_math lessons', async () => {
+    render(
+      <LessonSlider
+        lessonData={
+          [
+            { id: 'lesson-1', name: 'L1' },
+            {
+              id: 'lesson-live',
+              name: 'Math Game Day',
+              cocos_lesson_id: 'live_quiz_math_g1',
+            },
+            {
+              id: 'lesson-mz',
+              name: 'Hidden MZ Lesson',
+              cocos_lesson_id: 'mz_fc1_0000',
+            },
+            { id: 'lesson-2', name: 'L2' },
+            {
+              id: 'lesson-mz-visible',
+              name: 'Visible MZ Prefix Lesson',
+              cocos_lesson_id: 'mz_fc1_0000_extra',
+            },
+          ] as any
+        }
+        course={course}
+        isHome={true}
+        lessonsScoreMap={{}}
+        startIndex={0}
+        showSubjectName={false}
+        showChapterName={false}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(mockApiHandler.getFavouriteLessons).toHaveBeenCalledWith(
+        student.id,
+      );
+    });
+
+    expect(screen.queryByText('Math Game Day')).not.toBeInTheDocument();
+    expect(screen.queryByText('Hidden MZ Lesson')).not.toBeInTheDocument();
+    expect(screen.getByText('Visible MZ Prefix Lesson')).toBeInTheDocument();
+    expect(screen.getAllByTestId('lesson-card-name')).toHaveLength(3);
+  });
+
   it('renders long lesson text value fully inside slide card', async () => {
     const longName =
       'Very Long Lesson Name Used To Validate Text And Data Consistency';

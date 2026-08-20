@@ -12,6 +12,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { TeacherAssignmentPageType } from '../components/homePage/assignment/TeacherAssignment';
 import logger from '../../utility/logger';
+import { isHiddenTeacherLesson } from '../utils/lessonFilters';
 
 export interface AssignmentLessonItem {
   id: string;
@@ -101,7 +102,7 @@ export const useTeacherLibraryAssignmentsLogic = () => {
           );
           const lesson = lessonData.lesson?.[0];
           const course = lessonData.course?.[0];
-          if (!lesson?.id || !course?.id) {
+          if (!lesson?.id || !course?.id || isHiddenTeacherLesson(lesson)) {
             continue;
           }
 

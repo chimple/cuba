@@ -1,4 +1,5 @@
 import { FC, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './DropdownMenu.css';
 import {
   COURSE_CHANGED,
@@ -45,6 +46,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
   const [selected, setSelected] = useState<CourseDetails | null>(null);
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const api = ServiceConfig.getI().apiHandler;
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchLearningPathCourseDetails();
@@ -335,7 +337,7 @@ const DropdownMenu: FC<DropdownMenuProps> = ({
   };
 
   const getDisplayName = (detail: CourseDetails) =>
-    detail.displayName || detail.course.name;
+    t(detail.displayName || detail.course.name);
 
   const handleToggleExpand = () => {
     if (hideArrow) return;

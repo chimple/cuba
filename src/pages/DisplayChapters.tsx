@@ -25,6 +25,7 @@ import SkeltonLoading from '../components/SkeltonLoading';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { registerBackButtonHandler } from '../common/backButtonRegistry';
 import logger from '../utility/logger';
+import { filterHiddenLessons } from '../utility/lessonFilters';
 
 const localData: any = {};
 // let localStorageData: any = {};
@@ -125,7 +126,7 @@ const DisplayChapters: FC<{}> = () => {
       !!localData.currentChapter
     ) {
       setCourses(localData.courses);
-      setLessons(localData.lessons);
+      setLessons(filterHiddenLessons(localData.lessons));
       setCurrentGrade(localData.currentGrade);
       setCurrentCourse(localData.currentCourse);
       const chapters = await api.getChaptersForCourse(
@@ -250,7 +251,9 @@ const DisplayChapters: FC<{}> = () => {
     }
 
     try {
-      const lessons = await api.getLessonsForChapter(chapter.id);
+      const lessons = filterHiddenLessons(
+        await api.getLessonsForChapter(chapter.id),
+      );
       // Retrieve existing data from local storage
       localData.lessons = lessons;
       setLessons(lessons);

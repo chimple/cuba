@@ -22,6 +22,10 @@ import Loading from '../../../../components/Loading';
 import { checkmarkCircle, ellipseOutline } from 'ionicons/icons';
 import { IonIcon } from '@ionic/react';
 import logger from '../../../../utility/logger';
+import {
+  filterHiddenTeacherLessons,
+  isHiddenTeacherLesson,
+} from '../../../utils/lessonFilters';
 
 declare global {
   interface Window {
@@ -153,6 +157,11 @@ const TeacherAssignment: FC<{
             course: TableTypes<'course'>[];
           } = await api.getLessonFromChapter(chapterId, lessonId);
 
+          const lesson = l.lesson[0];
+          if (isHiddenTeacherLesson(lesson)) {
+            continue;
+          }
+
           const courseId = l.course[0].id;
 
           if (!tempLessons[courseId]) {
@@ -165,8 +174,8 @@ const TeacherAssignment: FC<{
             };
           }
 
-          l.lesson[0].selected = true;
-          tempLessons[courseId].lessons.push(l.lesson[0]);
+          lesson.selected = true;
+          tempLessons[courseId].lessons.push(lesson);
         }
       }
 
@@ -216,7 +225,9 @@ const TeacherAssignment: FC<{
         ? lastAssignment.chapter_id
         : (courseChapters[0]?.id ?? '');
       if (chapterId) {
-        const lessonList = await api.getLessonsForChapter(chapterId);
+        const lessonList = filterHiddenTeacherLessons(
+          await api.getLessonsForChapter(chapterId),
+        );
 
         if (lessonList && lessonList.length > 0) {
           const lessonIndex = lessonList.findIndex(
@@ -242,7 +253,9 @@ const TeacherAssignment: FC<{
             continue;
           }
 
-          const nextLessonList = await api.getLessonsForChapter(nextChapter.id);
+          const nextLessonList = filterHiddenTeacherLessons(
+            await api.getLessonsForChapter(nextChapter.id),
+          );
           if (nextLessonList.length > 0) {
             recommendedAssignments[course.id].lessons.push(nextLessonList[0]);
           }
@@ -565,7 +578,9 @@ const TeacherAssignment: FC<{
         onUnavailableQr();
         return;
       }
-      const lessonList = await api.getLessonsForChapter(result?.chapter_id);
+      const lessonList = filterHiddenTeacherLessons(
+        await api.getLessonsForChapter(result?.chapter_id),
+      );
       if (!lessonList || lessonList.length < 1) {
         Toast.show({ text: t('No lessons found for this chapter') });
         return;

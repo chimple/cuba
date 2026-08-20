@@ -13,6 +13,7 @@ import AssigmentCount from '../../library/AssignmentCount';
 import logger from '../../../../utility/logger';
 import AssignedVisibilityToggle from '../../AssignedVisibilityToggle';
 import AssignedBadgeIcon from '../../AssignedBadgeIcon';
+import { filterHiddenTeacherLessons } from '../../../utils/lessonFilters';
 
 type LessonUI = {
   id: string;
@@ -55,10 +56,11 @@ const QRAssignments: React.FC = () => {
       const currentClass = await Util.getCurrentClass();
       if (!currentUser || !currentClass) return;
       // 1️⃣ Fetch lessons
-      const [lessonList, chapter] = await Promise.all([
+      const [rawLessonList, chapter] = await Promise.all([
         api.getLessonsForChapter(chapterId),
         api.getChapterById(chapterId),
       ]);
+      const lessonList = filterHiddenTeacherLessons(rawLessonList);
       const chapterName = chapter?.name ?? '';
       if (!lessonList?.length) return;
       // 2️⃣ Fetch assigned lesson IDs

@@ -3,6 +3,7 @@ import './ChapterContainer.css';
 import LessonComponent from './LessonComponent';
 import { COURSES, TableTypes } from '../../../common/constants';
 import { t } from 'i18next';
+import { isHiddenTeacherLesson } from '../../utils/lessonFilters';
 interface ChapterContainerProps {
   chapter: TableTypes<'chapter'>;
   lessons: TableTypes<'lesson'>[];
@@ -33,9 +34,13 @@ const ChapterContainer: React.FC<ChapterContainerProps> = ({
     setIsExpanded(isOpened);
   }, [isOpened]);
 
+  const filteredLessons = lessons.filter(
+    (lesson) => !isHiddenTeacherLesson(lesson),
+  );
+
   const visibleLessons = showAssignedBadge
-    ? lessons
-    : lessons.filter(
+    ? filteredLessons
+    : filteredLessons.filter(
         (lesson) => !lesson.id || !assignedLessonIds?.has(lesson.id),
       );
 

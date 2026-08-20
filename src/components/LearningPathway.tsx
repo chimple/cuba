@@ -77,10 +77,7 @@ const LearningPathway: React.FC = () => {
       student_id: student.id,
       school_ids: freshSchoolIds,
     });
-    const resolvedMode = gb.getFeatureValue(
-      'learning-pathway-mode',
-      LEARNING_PATHWAY_MODE.DISABLED,
-    ) as string;
+    const resolvedMode = LEARNING_PATHWAY_MODE.DISABLED;
     setMode(resolvedMode);
     localStorage.setItem(CURRENT_PATHWAY_MODE, resolvedMode);
     setIsModeResolved(true);
