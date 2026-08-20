@@ -63,6 +63,7 @@ export interface FilteredSchoolsForSchoolListingOps {
   active_students?: number | null;
   avg_time_spent?: number | null;
   active_teachers?: number | null;
+  activated_teachers?: number | null;
   active_teacher_percentage?: number | null;
   activities_assigned?: number | null;
   avg_assignments_completed?: number | null;

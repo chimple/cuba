@@ -37,7 +37,7 @@ describe('mapSchoolRowsToRenderRows', () => {
     expect(mappedRow.parentsReached.exportValueText).toBe('27');
   });
 
-  it('calculates active teacher percentage from total teachers', () => {
+  it('calculates active teacher percentage from activated teachers', () => {
     const rows: SchoolListSourceRow[] = [
       {
         school_id: 'school-2',
@@ -48,6 +48,7 @@ describe('mapSchoolRowsToRenderRows', () => {
         num_students: 80,
         num_teachers: 10,
         active_teachers: 4,
+        activated_teachers: 5,
         total_teachers: 10,
         program_managers: [],
         field_coordinators: [],
@@ -56,7 +57,7 @@ describe('mapSchoolRowsToRenderRows', () => {
 
     const [mappedRow] = mapSchoolRowsToRenderRows(rows);
 
-    expect(mappedRow.activeTeachers.text).toBe('4 (40%)');
-    expect(mappedRow.activeTeachers.exportPercentText).toBe('40%');
+    expect(mappedRow.activeTeachers.text).toBe('4 (80%)');
+    expect(mappedRow.activeTeachers.exportPercentText).toBe('80%');
   });
 });

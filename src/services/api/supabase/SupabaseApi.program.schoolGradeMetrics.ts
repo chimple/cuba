@@ -103,6 +103,7 @@ export const aggregateSchoolGradeMetricRows = (
     const firstRow = schoolRows[0] ?? {};
     const activeStudents = sumMetric(schoolRows, 'active_students');
     const activeTeachers = sumMetric(schoolRows, 'active_teachers');
+    const activatedTeachers = sumMetric(schoolRows, 'activated_teachers');
     const totalTeachers = sumMetric(schoolRows, 'total_teachers');
 
     const aggregatedRow = {
@@ -117,9 +118,10 @@ export const aggregateSchoolGradeMetricRows = (
         'active_students',
       ),
       active_teachers: activeTeachers,
+      activated_teachers: activatedTeachers,
       total_teachers: totalTeachers,
       active_teacher_percentage:
-        totalTeachers > 0 ? (activeTeachers / totalTeachers) * 100 : null,
+        activatedTeachers > 0 ? (activeTeachers / activatedTeachers) * 100 : 0,
       activities_assigned: sumMetric(schoolRows, 'activities_assigned'),
       avg_assignments_completed: weightedAverage(
         schoolRows,

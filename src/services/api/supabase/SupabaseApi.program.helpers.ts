@@ -76,9 +76,11 @@ export const getActiveStudentsPercent = (row: Record<string, unknown>) => {
 
 export const getActiveTeachersPercent = (row: Record<string, unknown>) => {
   const activeTeachers = getNumericMetric(row.active_teachers);
-  const totalTeachers = getNumericMetric(row.total_teachers);
-  if (activeTeachers !== null && totalTeachers !== null && totalTeachers > 0) {
-    return (activeTeachers / totalTeachers) * 100;
+  const activatedTeachers = getNumericMetric(row.activated_teachers);
+  if (activeTeachers !== null && activatedTeachers !== null) {
+    return activatedTeachers > 0
+      ? (activeTeachers / activatedTeachers) * 100
+      : 0;
   }
   return null;
 };
