@@ -395,6 +395,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         'active_students',
         'avg_time_spent',
         'active_teachers',
+        'activated_teachers',
         'activities_assigned',
         'avg_assignments_completed',
         'avg_activities_completed',
@@ -527,6 +528,7 @@ export class SupabaseApiProgramSchoolMetrics extends SupabaseApiProgramCatalog {
         active_students: row.active_students ?? null,
         avg_time_spent: row.avg_time_spent ?? null,
         active_teachers: row.active_teachers ?? null,
+        activated_teachers: getNumericMetric(row.activated_teachers),
         active_teacher_percentage: getNumericMetric(
           row.active_teacher_percentage,
         ),
