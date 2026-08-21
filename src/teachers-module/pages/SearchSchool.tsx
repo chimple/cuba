@@ -54,6 +54,23 @@ const SearchSchool: FC = () => {
 
   const checkPendingRequests = async () => {
     const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+    if (!currentUser) return;
+
+    const activeSchools = await api.getSchoolsForUser(currentUser.id, {
+      page: 1,
+      page_size: 20,
+    });
+
+    if (activeSchools.length === 1) {
+      history.replace(PAGES.DISPLAY_SCHOOLS);
+      return;
+    }
+
+    if (activeSchools.length > 1) {
+      history.replace(PAGES.DISPLAY_SCHOOLS);
+      return;
+    }
+
     const existingRequest = await api.getExistingSchoolRequest(
       currentUser?.id as string,
     );
