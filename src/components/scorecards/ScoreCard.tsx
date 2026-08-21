@@ -1,3 +1,5 @@
+import { Dialog, DialogContentText } from '@mui/material';
+import { t } from 'i18next';
 import React, {
   MouseEventHandler,
   useCallback,
@@ -5,20 +7,18 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { EVENTS, TableTypes } from '../../common/constants';
+import i18n from '../../i18n';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { AudioUtil } from '../../utility/AudioUtil';
+import { Util } from '../../utility/util';
 import './ScoreCard.css';
-import { Dialog, DialogContentText } from '@mui/material';
-import ScoreCardStarIcons from './ScoreCardStarIcons';
-import ScoreCardTitle from './ScoreCardTitle';
+import { buildScoreCardProgressRows } from './scoreCardLogic';
 import ScoreCardProgressRows, {
   type ScoreCardProgressRowData,
 } from './ScoreCardProgressRows';
-import i18n from '../../i18n';
-import { t } from 'i18next';
-import { AudioUtil } from '../../utility/AudioUtil';
-import { EVENTS, TableTypes } from '../../common/constants';
-import { ServiceConfig } from '../../services/ServiceConfig';
-import { Util } from '../../utility/util';
-import { buildScoreCardProgressRows } from './scoreCardLogic';
+import ScoreCardStarIcons from './ScoreCardStarIcons';
+import ScoreCardTitle from './ScoreCardTitle';
 
 const SCORECARD_AUDIO_URL = '/assets/audios/scorecard/victory.mp3';
 const EMPTY_PROGRESS_ROWS: ScoreCardProgressRowData[] = [];
@@ -403,7 +403,7 @@ const ScoreCard: React.FC<{
                 className={`dialog-box-button-style-score-card ${progressRowCountClass} ${progressContinueStateClass} ${i18n.language === 'kn' ? 'scorecard-button-kn' : ''}`}
                 onClick={handleContinueClick}
               >
-                <span>{noText}</span>
+                <span>{t('Exit')}</span>
               </button>
             </div>
           </>
