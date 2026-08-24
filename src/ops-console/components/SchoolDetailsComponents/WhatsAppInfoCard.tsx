@@ -18,11 +18,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
   schoolData,
   onGroupLinked,
 }) => {
-  const card = useWhatsAppInfoCard({
-    classData,
-    schoolData,
-    onGroupLinked,
-  });
+  const card = useWhatsAppInfoCard({ classData, schoolData, onGroupLinked });
   const {
     cancelInviteEntry,
     classDoc,
@@ -135,6 +131,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
 
                         <Box display="flex" gap={2}>
                           <button
+                            type="button"
                             className="wa-info-save-btn"
                             onClick={handleSave}
                             disabled={isSaving || !editedGroupName.trim()}
@@ -143,6 +140,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                           </button>
 
                           <button
+                            type="button"
                             className="wa-info-cancel-btn"
                             onClick={handleCancel}
                             disabled={isSaving}
@@ -178,6 +176,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                       </Box>
 
                       <button
+                        type="button"
                         className="wa-change-btn"
                         onClick={openChangeGroupPopup}
                       >
@@ -229,6 +228,7 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
 
               <Box display="flex" gap={4} mt={3}>
                 <button
+                  type="button"
                   className="wa-info-save-btn"
                   onClick={() => {
                     resetPopup();
@@ -238,7 +238,11 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
                   {t('Yes')}
                 </button>
 
-                <button className="wa-info-cancel-btn" onClick={resetPopup}>
+                <button
+                  type="button"
+                  className="wa-info-cancel-btn"
+                  onClick={resetPopup}
+                >
                   {t('Cancel')}
                 </button>
               </Box>
@@ -265,14 +269,16 @@ const WhatsAppInfoCard: React.FC<WhatsAppInfoCardProps> = ({
 
               <Box display="flex" gap={1} mt={2}>
                 <button
+                  type="button"
                   className="wa-info-save-btn"
                   onClick={handleInviteSubmit}
-                  disabled={loading || !inviteInput.trim()}
+                  disabled={loading}
                 >
                   {loading ? t('Checking...') : t('Submit')}
                 </button>
                 {!groupId && (
                   <button
+                    type="button"
                     className="wa-info-cancel-btn"
                     onClick={resetPopup}
                     disabled={!groupId || loading}

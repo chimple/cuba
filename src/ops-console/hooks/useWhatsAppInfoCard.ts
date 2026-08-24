@@ -239,7 +239,10 @@ export const useWhatsAppInfoCard = ({
       setError(t('Please enter a valid WhatsApp invite link'));
       return;
     }
-    if (!bot) return;
+    if (!bot) {
+      setError(t('WhatsApp bot number is not configured for this school'));
+      return;
+    }
     setLoading(true);
     setError(null);
 

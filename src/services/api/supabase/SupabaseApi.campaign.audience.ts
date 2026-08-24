@@ -1,4 +1,4 @@
-import { CAMPAIGN_OBJECTIVE, TABLES } from '../../../common/constants';
+import { CAMPAIGN_OBJECTIVE } from '../../../common/constants';
 import logger from '../../../utility/logger';
 import {
   CampaignAudienceOptions,
@@ -11,11 +11,39 @@ import {
   CreateCampaignSetupResult,
   LaunchCampaignPayload,
 } from '../ServiceApi';
-import {
-  chunkArray,
-  type CampaignSchoolRow,
-} from './SupabaseApi.campaign.helpers';
+import { type CampaignSchoolRow } from './SupabaseApi.campaign.helpers';
 import { SupabaseApiCampaignListing } from './SupabaseApi.campaign.listing';
+
+export const CAMPAIGN_ASSIGNMENT_TARGETS_PER_FUNCTION_REQUEST = 500;
+export const CAMPAIGN_ASSIGNMENT_FUNCTION_CONCURRENCY = 4;
+
+type CampaignAssignmentDefinition =
+  LaunchCampaignPayload['assignments'][number];
+
+const chunkCampaignAssignmentTargets = (
+  assignments: LaunchCampaignPayload['assignments'],
+): CampaignAssignmentDefinition[][] => {
+  const targets = assignments.flatMap((assignment) =>
+    assignment.schoolIds.map((schoolId) => ({
+      ...assignment,
+      schoolIds: [schoolId],
+    })),
+  );
+  const chunks: CampaignAssignmentDefinition[][] = [];
+  for (
+    let index = 0;
+    index < targets.length;
+    index += CAMPAIGN_ASSIGNMENT_TARGETS_PER_FUNCTION_REQUEST
+  ) {
+    chunks.push(
+      targets.slice(
+        index,
+        index + CAMPAIGN_ASSIGNMENT_TARGETS_PER_FUNCTION_REQUEST,
+      ),
+    );
+  }
+  return chunks;
+};
 
 export interface SupabaseApiCampaignAudience {
   [key: string]: any;
@@ -177,6 +205,7 @@ export class SupabaseApiCampaignAudience extends SupabaseApiCampaignListing {
     if (!this.supabase) {
       throw new Error('Supabase client is not initialized.');
     }
+    const supabase = this.supabase;
     if (!payload.campaignId) {
       throw new Error('Campaign id is required.');
     }
@@ -197,106 +226,83 @@ export class SupabaseApiCampaignAudience extends SupabaseApiCampaignListing {
     }
 
     if (requiresAssignments) {
-      const schoolIds = Array.from(
-        new Set(
-          payload.assignments.flatMap((assignment) => assignment.schoolIds),
-        ),
-      );
-      const gradeIds = Array.from(
-        new Set(payload.assignments.map((assignment) => assignment.gradeId)),
-      );
-
-      if (schoolIds.length === 0 || gradeIds.length === 0) {
+      if (
+        payload.assignments.some(
+          (assignment) =>
+            !assignment.gradeId || assignment.schoolIds.length === 0,
+        )
+      ) {
         throw new Error('Campaign assignment schools and grades are required.');
       }
 
-      const { data: classRowsData, error: classRowsError } = await this.supabase
-        .from(TABLES.Class)
-        .select('id, school_id, grade_id')
-        .in('school_id', schoolIds)
-        .in('grade_id', gradeIds)
-        .eq('is_deleted', false);
+      const assignmentChunks = chunkCampaignAssignmentTargets(
+        payload.assignments,
+      );
+      const invokeAssignmentFunction = (body: Record<string, unknown>) =>
+        supabase.functions.invoke('create-campaign-assignments', {
+          body: { campaignId: payload.campaignId, ...body },
+        });
 
-      if (classRowsError) {
-        logger.error(
-          'Error resolving campaign assignment classes:',
-          classRowsError,
-        );
-        throw classRowsError;
+      const { error: resetError } = await invokeAssignmentFunction({
+        action: 'reset',
+      });
+      if (resetError) {
+        logger.error('Error resetting campaign assignments:', resetError);
+        throw resetError;
       }
 
-      const classRows = (classRowsData ?? []) as Array<{
-        id: string;
-        school_id: string;
-        grade_id: string;
-      }>;
-
-      const classesBySchoolAndGrade = new Map<
-        string,
-        Array<{ id: string; school_id: string; grade_id: string }>
-      >();
-      classRows.forEach((classRow) => {
-        const key = `${classRow.school_id}:${classRow.grade_id}`;
-        if (!classesBySchoolAndGrade.has(key)) {
-          classesBySchoolAndGrade.set(key, []);
-        }
-        classesBySchoolAndGrade.get(key)?.push(classRow);
-      });
-
-      const missingAssignmentTargets = new Set<string>();
-      const assignmentRows = payload.assignments.flatMap((assignment) =>
-        assignment.schoolIds.flatMap((schoolId) => {
-          const classes =
-            classesBySchoolAndGrade.get(`${schoolId}:${assignment.gradeId}`) ??
-            [];
-          if (classes.length === 0) {
-            missingAssignmentTargets.add(`${schoolId}:${assignment.gradeId}`);
+      const insertedCounts = Array<number>(assignmentChunks.length).fill(0);
+      const workerCount = Math.min(
+        CAMPAIGN_ASSIGNMENT_FUNCTION_CONCURRENCY,
+        assignmentChunks.length,
+      );
+      const workerResults = await Promise.allSettled(
+        Array.from({ length: workerCount }, async (_, workerIndex) => {
+          for (
+            let chunkIndex = workerIndex;
+            chunkIndex < assignmentChunks.length;
+            chunkIndex += workerCount
+          ) {
+            const { data, error } = await invokeAssignmentFunction({
+              action: 'insert',
+              assignments: assignmentChunks[chunkIndex],
+            });
+            if (error) throw error;
+            insertedCounts[chunkIndex] = Number(
+              (data as { insertedCount?: number } | null)?.insertedCount ?? 0,
+            );
           }
-          return classes.map((classRow) => ({
-            campaign_id: payload.campaignId,
-            batch_id: payload.campaignId,
-            class_id: classRow.id,
-            school_id: classRow.school_id,
-            lesson_id: assignment.lessonId,
-            chapter_id: assignment.chapterId,
-            course_id: assignment.courseId,
-            starts_at: assignment.startsAt,
-            ends_at: assignment.endsAt,
-            type: assignment.type,
-            source: assignment.source,
-            set_number: assignment.setNumber,
-            is_class_wise: true,
-            created_by: payload.currentUserId,
-            is_deleted: false,
-          }));
         }),
       );
-
-      if (missingAssignmentTargets.size > 0) {
-        logger.warn(
-          'Skipping campaign assignments for school/grade pairs without classes:',
-          Array.from(missingAssignmentTargets).map((target) => {
-            const [schoolId, gradeId] = target.split(':');
-            return { schoolId, gradeId };
-          }),
+      const failedWorker = workerResults.find(
+        (result): result is PromiseRejectedResult =>
+          result.status === 'rejected',
+      );
+      if (failedWorker) {
+        const { error: cleanupError } = await invokeAssignmentFunction({
+          action: 'cleanup',
+        });
+        if (cleanupError) {
+          logger.error(
+            'Failed to clean up incomplete campaign assignments:',
+            cleanupError,
+          );
+        }
+        logger.error(
+          'Error creating campaign assignments:',
+          failedWorker.reason,
         );
+        throw failedWorker.reason;
       }
 
-      if (assignmentRows.length === 0) {
+      const insertedCount = insertedCounts.reduce(
+        (total, count) => total + count,
+        0,
+      );
+      if (!insertedCount) {
         throw new Error(
           'No classes found for the selected campaign assignments.',
         );
-      }
-
-      for (const assignmentBatch of chunkArray(assignmentRows, 500)) {
-        const { error } = await this.supabase
-          .from(TABLES.Assignment)
-          .insert(assignmentBatch);
-
-        if (error) {
-          logger.error('Error inserting campaign assignments:', error);
-          throw error;
-        }
       }
     }
 
@@ -312,7 +318,7 @@ export class SupabaseApiCampaignAudience extends SupabaseApiCampaignListing {
       is_deleted: false,
     }));
 
-    const { error: messagingInsertError } = await this.supabase
+    const { error: messagingInsertError } = await supabase
       .from('campaign_messaging')
       .insert(messagingRows);
 
