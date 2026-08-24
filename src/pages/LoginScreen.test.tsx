@@ -355,6 +355,7 @@ jest.mock('../components/signup/LoginSwitch', () => ({
 
 const mockApiHandler = {
   getSchoolsForUser: jest.fn(),
+  getExistingSchoolRequest: jest.fn(),
   getUserSpecialRoles: jest.fn(),
   isSplUser: jest.fn(),
 };
@@ -444,6 +445,7 @@ describe('LoginScreen', () => {
     });
 
     mockApiHandler.getSchoolsForUser.mockResolvedValue([]);
+    mockApiHandler.getExistingSchoolRequest.mockResolvedValue(null);
     mockApiHandler.getUserSpecialRoles.mockResolvedValue([]);
     mockApiHandler.isSplUser.mockResolvedValue(false);
     mockPortPlugin.requestPermission.mockResolvedValue({});
@@ -499,6 +501,28 @@ describe('LoginScreen', () => {
       await renderReady();
       await eventually(() => {
         expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.DISPLAY_SCHOOLS);
+      });
+    });
+
+    it('redirects logged-in user with pending request to post success', async () => {
+      (mockAuthHandler.isUserLoggedIn as jest.Mock).mockResolvedValue(true);
+      (mockAuthHandler.getCurrentUser as jest.Mock).mockResolvedValue({
+        id: 'teacher-1',
+        name: 'Teacher User',
+      });
+      mockApiHandler.getSchoolsForUser.mockResolvedValue([]);
+      mockApiHandler.getExistingSchoolRequest.mockResolvedValue({
+        id: 'request-1',
+        request_status: 'requested',
+      });
+
+      await renderReady();
+
+      await eventually(() => {
+        expect(mockApiHandler.getExistingSchoolRequest).toHaveBeenCalledWith(
+          'teacher-1',
+        );
+        expect(mockHistoryReplace).toHaveBeenCalledWith(PAGES.POST_SUCCESS);
       });
     });
 
