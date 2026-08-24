@@ -46,7 +46,7 @@
 .LoginSwitch-switch-option {
   color: var(--text-color);
   width: 2vw;
-  min-width: 126px;
+  min-width: 25%;
   min-height: 60px;
   max-width: 135px;
   max-height: 65px;
@@ -66,6 +66,21 @@
   height: 29.5px;
   max-height: 29.5px;
   max-width: 29.5px;
+}
+
+.LoginSwitch-respect-logo {
+  width: 29.5px;
+  height: 29.5px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  color: rgb(31, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+  margin: 0 auto 4px auto;
+  border: 1px solid #747775;
 }
 
 .LoginSwitch-switch-option.disabled {
