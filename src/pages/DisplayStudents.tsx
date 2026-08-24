@@ -162,7 +162,11 @@ const DisplayStudents: FC<{}> = () => {
           <div className="avatar-container">
             {students.map((student) => (
               <article
-                key={student.id}
+                key={
+                  Util.isRespectMode
+                    ? (student as any).registration
+                    : student.id
+                }
                 className="display-students-card display-students-avatar"
               >
                 <img

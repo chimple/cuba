@@ -1964,6 +1964,9 @@ export class FirebaseApi implements ServiceApi {
     throw new Error('Method not implemented.');
   }
 
+  createDeeplinkUser(): void | PromiseLike<void> {
+    throw new Error('Method not implemented.');
+  }
   getProgramFilterOptions(): Promise<Record<string, string[]>> {
     throw new Error('Method not implemented.');
   }

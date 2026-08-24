@@ -45,12 +45,20 @@ import { useGrowthBookFeatureCache } from './hooks/useGrowthBookFeatureCache';
 import { useHotUpdate } from './hooks/useHotUpdate';
 import { useNativeAppListeners } from './hooks/useNativeAppListeners';
 import { useRemoteAssetFlags } from './hooks/useRemoteAssetFlags';
+import { useRespectLessonLaunch } from './hooks/useRespectLessonLaunch';
 import { normalizeInitialHashRouteEntry } from './utility/routerLocation';
 
 import AppContent from './app/AppContent';
 import { BASE_NAME } from './common/constants';
 
 setupIonicReact();
+
+const AppRouteEffects = () => {
+  // RESPECT navigation must run below the router so a native launch can
+  // replace the restored route after the app has mounted.
+  useRespectLessonLaunch();
+  return null;
+};
 
 const App: React.FC = () => {
   normalizeInitialHashRouteEntry();
@@ -63,6 +71,7 @@ const App: React.FC = () => {
   return (
     <IonApp>
       <IonReactHashRouter basename={BASE_NAME}>
+        <AppRouteEffects />
         <AppContent />
       </IonReactHashRouter>
     </IonApp>

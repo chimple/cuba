@@ -253,6 +253,11 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
           }
         : item,
     );
+  const visibleMenuItems = Util.isRespectMode
+    ? menuItems.filter(
+        (item) => item.label === 'Parents Section' || item.label === 'Switch Profile',
+      )
+    : menuItems;
   const hasDetails = !!(className || schoolName);
   return {
     AVATARS,
@@ -263,7 +268,7 @@ export const useProfileMenu = ({ onClose }: ProfileMenuProps) => {
     isClosing,
     isSchoolKidsMode,
     localStorage,
-    menuItems,
+    menuItems: visibleMenuItems,
     onClose,
     onEdit,
     schoolName,
