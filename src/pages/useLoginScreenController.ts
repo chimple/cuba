@@ -20,6 +20,7 @@ import {
   MODES,
   PAGES,
   LOGIN_TYPES,
+  STATUS,
   TC_HTML_URL,
 } from '../common/constants';
 import { APP_LANGUAGES } from '../common/constants';
@@ -259,6 +260,15 @@ export const useLoginScreenController = () => {
     return (await api.getSchoolsForUser(userId)) || [];
   };
 
+  const getExistingSchoolRequest = async (userId: string) => {
+    try {
+      return await api.getExistingSchoolRequest(userId);
+    } catch (error) {
+      logger.error('Error fetching existing school request:', error);
+      return null;
+    }
+  };
+
   const redirectAuthenticatedUser = async (): Promise<void> => {
     const currentUser = await authInstance.getCurrentUser();
     if (!currentUser?.id) {
@@ -281,6 +291,13 @@ export const useLoginScreenController = () => {
       return history.replace(PAGES.SIDEBAR_PAGE);
     } else {
       if (schools.length === 0) {
+        const currentUser = await authInstance.getCurrentUser();
+        const existingRequest = currentUser?.id
+          ? await getExistingSchoolRequest(currentUser.id)
+          : null;
+        if (existingRequest?.request_status === STATUS.REQUESTED) {
+          return history.replace(PAGES.POST_SUCCESS);
+        }
         schoolUtil.setCurrMode(MODES.PARENT);
         return history.replace(PAGES.DISPLAY_STUDENT);
       }

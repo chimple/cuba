@@ -1,14 +1,51 @@
 import { IonPage } from '@ionic/react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import Header from '../components/homePage/Header';
 import { t } from 'i18next';
 import './PostSuccess.css';
 import { PAGES, MODES } from '../../common/constants';
 import { useHistory } from 'react-router';
 import { schoolUtil } from '../../utility/schoolUtil';
+import { ServiceConfig } from '../../services/ServiceConfig';
+import { STATUS } from '../../common/constants';
 
 const PostSuccess: React.FC = () => {
   const history = useHistory();
+
+  useEffect(() => {
+    const redirectIfActiveSchoolExists = async () => {
+      const currentUser =
+        await ServiceConfig.getI().authHandler.getCurrentUser();
+      if (!currentUser) return;
+
+      const existingRequest =
+        await ServiceConfig.getI().apiHandler.getExistingSchoolRequest(
+          currentUser.id,
+        );
+
+      const activeSchools =
+        await ServiceConfig.getI().apiHandler.getSchoolsForUser(
+          currentUser.id,
+          {
+            page: 1,
+            page_size: 20,
+          },
+        );
+
+      if (activeSchools.length === 0) {
+        if (existingRequest?.request_status === STATUS.REQUESTED) {
+          return;
+        }
+
+        history.replace(PAGES.SEARCH_SCHOOL);
+        return;
+      }
+
+      history.replace(PAGES.DISPLAY_SCHOOLS);
+    };
+
+    void redirectIfActiveSchoolExists();
+  }, [history]);
 
   const onBackButtonClick = () => {
     schoolUtil.setCurrMode(MODES.PARENT);

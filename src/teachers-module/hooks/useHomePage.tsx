@@ -129,11 +129,30 @@ export const useHomePage = () => {
     const languageCode = localStorage.getItem(LANGUAGE);
     await Util.updateUserLanguage(languageCode!);
 
+    const activeSchools = await api.getSchoolsForUser(
+      currentUser?.id as string,
+      {
+        page: 1,
+        page_size: 20,
+      },
+    );
+
     const existingRequest = await api.getExistingSchoolRequest(
       currentUser?.id as string,
     );
-    if (existingRequest && existingRequest.request_status === STATUS.REQUESTED)
+
+    if (
+      activeSchools.length === 0 &&
+      existingRequest &&
+      existingRequest.request_status === STATUS.REQUESTED
+    ) {
       history.replace(PAGES.POST_SUCCESS);
+      return;
+    }
+    if (activeSchools.length === 0) {
+      history.replace(PAGES.SEARCH_SCHOOL);
+      return;
+    }
     await Util.handleClassAndSubjects(
       currentSchool?.id!,
       currentUser?.id!,
