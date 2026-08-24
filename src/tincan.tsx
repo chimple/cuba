@@ -33,8 +33,18 @@ interface RespectXapiPlugin {
   }): Promise<{ postedStatementIds: string }>;
 }
 
-const portPlugin = registerPlugin<PortPlugin>('Port');
-const respectXapiPlugin = registerPlugin<RespectXapiPlugin>('RespectXapi');
+function registerCapacitorPlugin<T>(name: string): T {
+  // Jest component mocks often provide Capacitor.isNativePlatform only. Keep
+  // importing the analytics layer harmless when native plugin registration is
+  // unavailable; native builds still use Capacitor's real registrar.
+  if (typeof registerPlugin !== 'function') return {} as T;
+  return registerPlugin<T>(name);
+}
+
+const portPlugin = registerCapacitorPlugin<PortPlugin>('Port');
+const respectXapiPlugin = registerCapacitorPlugin<RespectXapiPlugin>(
+  'RespectXapi',
+);
 
 interface RespectLaunchParameters {
   endpoint: string;
