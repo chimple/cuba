@@ -11,6 +11,13 @@ import {
 } from '../../../teachers-module/pages/AssignmentCartStorage';
 import { Util } from '../../../utility/util';
 import { Json } from '../../database';
+import { syncPendingFcTouchPoints } from '../../offline/fctouchpoints/fcTouchPointSync';
+
+type AssignmentCartPayload = {
+  lessons?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
 
 const TABLES_EXCLUDED_FROM_SYNC = new Set<TABLES>([
   TABLES.ProgramUser,
@@ -62,6 +69,10 @@ export class SupabaseApiCoreSync extends SupabaseApiCoreFoundation {
     return imageUrl || null;
   }
 
+  async syncPendingFcTouchPoints(): Promise<void> {
+    return syncPendingFcTouchPoints.call(this);
+  }
+
   async uploadSchoolVisitMediaFile(params: {
     schoolId: string;
     file: File;
@@ -94,7 +105,7 @@ export class SupabaseApiCoreSync extends SupabaseApiCoreFoundation {
     return publicUrl;
   }
 
-  async uploadData(payload: any): Promise<boolean | null> {
+  async uploadData(payload: Record<string, unknown>): Promise<boolean | null> {
     if (!this.supabase) return false;
 
     const supabase = this.supabase;
@@ -365,9 +376,9 @@ export class SupabaseApiCoreSync extends SupabaseApiCoreFoundation {
     tableNames: TABLES[] = Object.values(TABLES),
     tablesLastModifiedTime: Map<string, string> = new Map(),
     isInitialFetch = false,
-  ): Promise<Map<string, any[]>> {
+  ): Promise<Map<string, Json[]>> {
     try {
-      const data = new Map<string, any[]>();
+      const data = new Map<string, Json[]>();
       const DEFAULT_LAST_MODIFIED = '2024-01-01T00:00:00.000Z';
       const syncTableNames = tableNames.filter(
         (tableName) => !TABLES_EXCLUDED_FROM_SYNC.has(tableName),
@@ -388,7 +399,7 @@ export class SupabaseApiCoreSync extends SupabaseApiCoreFoundation {
         let parent_user;
         try {
           parent_user = await ServiceConfig.getI().authHandler.getCurrentUser();
-        } catch (error: any) {
+        } catch (error: unknown) {
           logger.error('User Error', error);
         }
         Util.logEvent(EVENTS.SYNCHING_ERROR, {
@@ -410,11 +421,11 @@ export class SupabaseApiCoreSync extends SupabaseApiCoreFoundation {
         data.set(tableName, (payload[tableName] as Json[]) ?? []);
       });
       return data;
-    } catch (err: any) {
+    } catch (err: unknown) {
       let parent_user;
       try {
         parent_user = await ServiceConfig.getI().authHandler.getCurrentUser();
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error('User Error', error);
       }
       Util.logEvent(EVENTS.SYNCHING_ERROR, {
@@ -432,16 +443,16 @@ export class SupabaseApiCoreSync extends SupabaseApiCoreFoundation {
   async mutate(
     mutateType: MUTATE_TYPES,
     tableName: TABLES,
-    data1: { [key: string]: any },
+    data1: Record<string, unknown>,
     id: string,
   ) {
     const data = { ...data1 };
     data.updated_at = new Date().toISOString();
-    if (tableName === TABLES.User && data.tc_agreed_version == null) {
-      data.tc_agreed_version = 0;
+    if (tableName === TABLES.User && data['tc_agreed_version'] == null) {
+      data['tc_agreed_version'] = 0;
     }
     if (!this.supabase) return;
-    let res: PostgrestSingleResponse<any> | undefined = undefined;
+    let res: PostgrestSingleResponse<unknown> | undefined = undefined;
     switch (mutateType) {
       case MUTATE_TYPES.INSERT:
         res = await this.supabase.from(tableName).insert(data);
@@ -463,7 +474,7 @@ export class SupabaseApiCoreSync extends SupabaseApiCoreFoundation {
     // return !!res && !res.error;
   }
 
-  async pushAssignmentCart(data: { [key: string]: any }, id: string) {
+  async pushAssignmentCart(data: AssignmentCartPayload, id: string) {
     const now = new Date().toISOString();
     const existing = readAssignmentCartFromStorage(id);
     writeAssignmentCartToStorage(id, {

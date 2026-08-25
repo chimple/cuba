@@ -1,15 +1,23 @@
 import { EnumType, TABLES, TableTypes } from '../../../common/constants';
 import logger from '../../../utility/logger';
-import { ServiceConfig } from '../../ServiceConfig';
+import { getQueuedOpenVisitId } from '../../offline/fcTouchPointOfflineQueue';
 import { SupabaseApiProgramClassManagement } from './SupabaseApi.program.classManagement';
 import type {
   TeacherAssignmentCountMap,
   TeacherAssignmentCountPair,
 } from '../serviceapi/ServiceApi.fieldActivities';
+import type { FcUserFormSaveResult } from '../serviceapi/ServiceApi.types';
+import {
+  createNoteForSchool as createFcTouchPointNote,
+  getNotesBySchoolId as getFcTouchPointNotesBySchoolId,
+  saveFcUserForm as saveFcTouchPointUserForm,
+  type CreatedFcNote,
+} from '../../offline/fctouchpoints/fcTouchPointNotes';
 
 export interface SupabaseApiProgramFieldCoordinator {
-  [key: string]: any;
+  [key: string]: unknown;
 }
+
 export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassManagement {
   async getFilteredFcQuestions(
     type: EnumType<'fc_support_level'> | null,
@@ -58,41 +66,19 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     comment?: string | null;
     techIssueComment?: string | null;
     mediaLinks?: string[] | null;
-  }) {
-    if (!this.supabase) {
-      return { data: null, error: new Error('Supabase not initialized') };
-    }
-
-    const { data, error } = await this.supabase
-      .from(TABLES.FcUserForms)
-      .insert({
-        visit_id: payload.visitId ?? null,
-        user_id: payload.userId,
-        school_id: payload.schoolId,
-        class_id: payload.classId ?? null,
-        contact_user_id: payload.contactUserId ?? null,
-        contact_target: payload.contactTarget,
-        contact_method: payload.contactMethod,
-        call_status: payload.callStatus ?? null,
-        support_level: payload.supportLevel ?? null,
-        question_response: JSON.stringify(payload.questionResponse),
-        tech_issues_reported: payload.techIssuesReported,
-        comment: payload.comment ?? null,
-        tech_issue_comment: payload.techIssueComment ?? null,
-        media_links:
-          payload.mediaLinks && payload.mediaLinks.length > 0
-            ? JSON.stringify(payload.mediaLinks)
-            : null,
-      })
-      .select()
-      .single();
-
-    return { data, error };
+  }): Promise<FcUserFormSaveResult> {
+    return saveFcTouchPointUserForm.call(this, payload);
   }
+
   async getTodayVisitId(
     userId: string,
     schoolId: string,
   ): Promise<string | null> {
+    const queuedVisitId = await getQueuedOpenVisitId(userId, schoolId);
+    if (queuedVisitId) {
+      return queuedVisitId;
+    }
+
     if (!this.supabase) {
       return null;
     }
@@ -118,6 +104,7 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
 
     return data.id;
   }
+
   async getActivitiesBySchoolId(
     schoolId: string,
   ): Promise<TableTypes<'fc_user_forms'>[]> {
@@ -138,6 +125,7 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
 
     return data ?? [];
   }
+
   async getSchoolVisitById(
     visitIds: string[],
   ): Promise<TableTypes<'fc_school_visit'>[]> {
@@ -314,138 +302,8 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     classId?: string | null;
     content: string;
     mediaLinks?: string[] | null;
-  }): Promise<any> {
-    if (!this.supabase) {
-      logger.error('Supabase client not initialized.');
-      return null;
-    }
-
-    const { schoolId, classId = null, content, mediaLinks = null } = params;
-
-    // ---- GET CURRENT USER ----
-    const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
-    const currentUserId = currentUser?.id;
-
-    if (!currentUserId) {
-      throw new Error('No authenticated user found for createNoteForSchool');
-    }
-
-    // ---- TODAY TIME WINDOW ----
-    const now = new Date();
-    const startOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      0,
-      0,
-      0,
-    ).toISOString();
-    const endOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + 1,
-      0,
-      0,
-      0,
-    ).toISOString();
-
-    let visitId: string | null = null;
-
-    // ---- 1) FIND TODAY'S OPEN VISIT ----
-    const visitQuery = await this.supabase
-      .from('fc_school_visit')
-      .select('id')
-      .eq('user_id', currentUserId)
-      .eq('school_id', schoolId)
-      .eq('is_deleted', false)
-      .gte('check_in_at', startOfDay)
-      .lt('check_in_at', endOfDay)
-      .is('check_out_at', null)
-      .limit(1);
-
-    if (!visitQuery.error && visitQuery.data?.length > 0) {
-      visitId = visitQuery.data[0].id;
-    }
-
-    // ---- REQUIRED FIELDS FOR INSERT ----
-    const insertPayload = {
-      visit_id: visitId,
-      user_id: currentUserId,
-      school_id: schoolId,
-      class_id: classId,
-      comment: content,
-      is_deleted: false,
-      media_links:
-        mediaLinks && mediaLinks.length > 0 ? JSON.stringify(mediaLinks) : null,
-
-      // Required NOT NULL:
-      contact_target: 'school' as any,
-      contact_method: 'in_person' as any,
-
-      // Optional:
-      call_status: null,
-      support_level: null,
-      question_response: null,
-      tech_issues_reported: false,
-      tech_issue_comment: null,
-    };
-
-    // ---- 2) INSERT ROW ----
-    const insertRes = await this.supabase
-      .from('fc_user_forms')
-      .insert([insertPayload]) // MUST be an array
-      .select('*')
-      .single();
-
-    if (insertRes.error) {
-      logger.error('Insert error:', insertRes.error);
-      throw insertRes.error;
-    }
-
-    const created = insertRes.data;
-
-    // ---- 3) FETCH USER NAME & ROLE ----
-    const userRes = await this.supabase
-      .from('user')
-      .select('name')
-      .eq('id', currentUserId)
-      .eq('is_deleted', false)
-      .single();
-
-    const roleRes = await this.supabase
-      .from('special_users')
-      .select('role')
-      .eq('user_id', currentUserId)
-      .eq('is_deleted', false)
-      .limit(1);
-
-    // ---- 4) FETCH CLASS NAME ----
-    let className: string | null = null;
-    if (classId) {
-      const cls = await this.supabase
-        .from('class')
-        .select('name')
-        .eq('id', classId)
-        .eq('is_deleted', false)
-        .single();
-      className = !cls.error && cls.data ? cls.data.name : null;
-    }
-
-    // ---- 5) RETURN STRUCTURED UI OBJECT ----
-    return {
-      id: created.id,
-      visitId: created.visit_id,
-      schoolId: created.school_id,
-      classId: created.class_id,
-      className,
-      content: created.comment,
-      createdAt: created.created_at,
-      createdBy: {
-        userId: currentUserId,
-        name: userRes.data?.name ?? 'Unknown',
-        role: roleRes.data?.[0]?.role ?? null,
-      },
-    };
+  }): Promise<CreatedFcNote | null> {
+    return createFcTouchPointNote.call(this, params);
   }
 
   async getNotesBySchoolId(
@@ -453,84 +311,13 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     limit = 10,
     offset = 0,
     sortBy: 'createdAt' | 'createdBy' = 'createdAt',
-  ): Promise<{ data: any[]; totalCount: number }> {
-    if (!this.supabase) {
-      logger.error('Supabase client not initialized.');
-      return { data: [], totalCount: 0 };
-    }
-
-    try {
-      let notesQ = this.supabase
-        .from('fc_user_forms')
-        .select(
-          `
-          id,
-          comment,
-          class_id,
-          visit_id,
-          created_at,
-          media_links,
-
-          class:class_id (
-            id,
-            name
-          ),
-
-          user:user!fc_user_forms_user_id_fkey (
-            id,
-            name,
-            special_users (
-              role
-            )
-          )
-        `,
-          { count: 'exact' },
-        )
-        .eq('school_id', schoolId)
-        .is('contact_user_id', null)
-        .eq('is_deleted', false);
-
-      if (sortBy === 'createdAt') {
-        notesQ = notesQ
-          .order('created_at', { ascending: false })
-          .order('id', { ascending: false });
-      }
-
-      if (sortBy === 'createdBy') {
-        notesQ = notesQ.order('name', {
-          foreignTable: 'user',
-          ascending: true,
-        });
-      }
-
-      const notesRes = await notesQ.range(offset, offset + limit - 1);
-
-      if (notesRes.error) {
-        logger.error('[API] Supabase error:', notesRes.error);
-        return { data: [], totalCount: 0 };
-      }
-
-      const rows = notesRes.data ?? [];
-      const totalCount = notesRes.count ?? 0;
-
-      const mapped = rows.map((r: any) => ({
-        id: r.id,
-        content: r.comment,
-        classId: r.class_id,
-        className: r.class?.name ?? null,
-        visitId: r.visit_id,
-        createdAt: r.created_at,
-        createdBy: {
-          name: r.user?.name ?? 'Unknown',
-          role: r.user?.special_users?.[0]?.role ?? null,
-        },
-        media_links: r.media_links ?? null,
-      }));
-
-      return { data: mapped, totalCount };
-    } catch (e) {
-      logger.error('getNotesBySchoolId error:', e);
-      return { data: [], totalCount: 0 };
-    }
+  ): Promise<{ data: CreatedFcNote[]; totalCount: number }> {
+    return getFcTouchPointNotesBySchoolId.call(
+      this,
+      schoolId,
+      limit,
+      offset,
+      sortBy,
+    );
   }
 }
