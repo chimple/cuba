@@ -1,6 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import { EVENTS, MUTATE_TYPES, TABLES } from '../../../common/constants';
 import logger from '../../../utility/logger';
+import {
+  createSyncPhaseTimer,
+  reportSyncError,
+} from '../../../utility/syncTelemetry';
 import { Util } from '../../../utility/util';
 import { ServiceConfig } from '../../ServiceConfig';
 import { SqliteApiCoreSync } from './SqliteApi.core.sync';
@@ -9,20 +13,31 @@ export class SqliteApiCorePushSync extends SqliteApiCoreSync {
   [key: string]: any;
   private async pushChanges(tableNames: TABLES[]) {
     if (!this._db) return false;
-    const tables = "'" + tableNames.join("', '") + "'";
-
     const tablePushSync = `SELECT * FROM push_sync_info ORDER BY created_at;`;
     let res: any[] = [];
+    const queueReadTimer = createSyncPhaseTimer('push_queue_read', {
+      requested_table_count: tableNames.length,
+    });
     try {
       res = (await this._db.query(tablePushSync)).values ?? [];
+      queueReadTimer.finish('success', {
+        queued_changes: res.length,
+      });
       logger.info('🚀 ~ syncDB ~ tablePushSync:', res);
 
       this.updateDebugInfo(res.length, 0, 0); //update debug info
     } catch (error) {
+      const durationMs = queueReadTimer.finish('error');
+      await reportSyncError('push_queue_read', error, {
+        duration_ms: durationMs,
+      });
       logger.error('🚀 ~ Api ~ syncDB ~ error:', error);
       await this.createSyncTables();
     }
     if (res && res.length) {
+      const pushTimer = createSyncPhaseTimer('push_results', {
+        queued_changes: res.length,
+      });
       for (const data of res) {
         const newData = JSON.parse(data.data);
         const mutate = await this._serverApi.mutate(
@@ -62,6 +77,22 @@ export class SqliteApiCorePushSync extends SqliteApiCoreSync {
             mutateMessage.includes('failed to fetch');
 
           if (networkError) {
+            const durationMs = pushTimer.finish('error', {
+              failed_table: data.table_name,
+              failed_change_type: data.change_type,
+            });
+            await reportSyncError(
+              'push_results',
+              mutate?.error ??
+                new Error('Push mutate failed with network error'),
+              {
+                duration_ms: durationMs,
+                failed_table: data.table_name,
+                failed_change_type: data.change_type,
+                queued_changes: res.length,
+                status: mutateStatus,
+              },
+            );
             logger.warn(
               '🔁 Network error during push, will retry in next sync',
               {
@@ -74,6 +105,21 @@ export class SqliteApiCorePushSync extends SqliteApiCoreSync {
           if (isDuplicateConflict || !isPermissionDenied) {
             logger.info('🟢 Duplicate key ignored (already exists on server)');
           } else {
+            const durationMs = pushTimer.finish('error', {
+              failed_table: data.table_name,
+              failed_change_type: data.change_type,
+            });
+            await reportSyncError(
+              'push_results',
+              mutate?.error ?? new Error('Push mutate failed'),
+              {
+                duration_ms: durationMs,
+                failed_table: data.table_name,
+                failed_change_type: data.change_type,
+                queued_changes: res.length,
+                status: mutateStatus,
+              },
+            );
             logger.info('🔴 Real push error:', mutate?.error);
             return false;
           }
@@ -90,6 +136,7 @@ export class SqliteApiCorePushSync extends SqliteApiCoreSync {
           [data.table_name, new Date().toISOString()],
         );
       }
+      pushTimer.finish('success');
     }
     return true;
   }
