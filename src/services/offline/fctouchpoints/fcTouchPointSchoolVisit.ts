@@ -156,6 +156,7 @@ export async function recordSchoolVisit(
     const visitId = queueEntry.visitId ?? backendSnapshot?.id;
     if (!visitId) {
       logger.warn('SupabaseApi: No local visit found to check out from.');
+      await markFcTouchPointSynced(queueEntry.id);
       return backendSnapshot;
     }
 

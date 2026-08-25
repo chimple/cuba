@@ -1,4 +1,5 @@
 import { TABLES } from '../../../common/constants';
+import { ServiceConfig } from '../../ServiceConfig';
 import {
   getPendingFcTouchPointQueue,
   getQueuedVisitSnapshot,
@@ -25,7 +26,12 @@ export async function syncPendingFcTouchPoints(
     return;
   }
 
-  const pendingQueue = await getPendingFcTouchPointQueue();
+  const currentUser = await ServiceConfig.getI().authHandler.getCurrentUser();
+  if (!currentUser) return;
+
+  const pendingQueue = (await getPendingFcTouchPointQueue()).filter(
+    (entry) => entry.userId === currentUser.id,
+  );
   if (pendingQueue.length === 0) return;
 
   for (const entry of pendingQueue) {

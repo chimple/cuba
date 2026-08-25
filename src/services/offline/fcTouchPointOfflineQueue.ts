@@ -437,10 +437,15 @@ const registerBrowserListeners = () => {
   });
 };
 
-export const registerFcTouchPointSyncRunner = (runner: SyncRunner) => {
+export const registerFcTouchPointSyncRunner = (
+  runner: SyncRunner,
+  options?: { scheduleImmediately?: boolean },
+) => {
   syncRunner = runner;
   registerBrowserListeners();
-  scheduleSync();
+  if (options?.scheduleImmediately) {
+    scheduleSync();
+  }
 };
 
 export const requestFcTouchPointSync = () => {
