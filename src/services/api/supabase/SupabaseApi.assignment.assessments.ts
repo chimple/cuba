@@ -240,6 +240,7 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
         .eq('assignment.class_id', classId)
         .eq('assignment.course_id', courseId)
         .eq('assignment.type', 'assessment')
+        .eq('assignment.batch_id', latestBatchId)
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -258,7 +259,7 @@ export class SupabaseApiAssignmentAssessments extends SupabaseApiAssignmentStude
       !!latestTerminationAt &&
       Date.parse(latestAssignedBatch.created_at) >
         Date.parse(latestTerminationAt);
-    // Preserve termination unless the selected batch was created afterwards.
+    // Only a termination from the selected batch can close this fresh assessment.
     if (courseTerminationResults?.length && !isLatestBatchReassignment) {
       return [];
     }

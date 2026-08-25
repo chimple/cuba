@@ -116,6 +116,7 @@ export class SqliteApiAssignmentAssessments extends SqliteApiAssignmentStudentPr
         AND a.class_id = ?
         AND a.course_id = ?
         AND a.type = 'assessment'
+        AND a.batch_id = ?
       ORDER BY r.created_at DESC
       LIMIT 1;
     `;
@@ -124,6 +125,7 @@ export class SqliteApiAssignmentAssessments extends SqliteApiAssignmentStudentPr
       studentId,
       classId,
       courseId,
+      latestBatchId,
     ]);
     const courseTerminationRows = (courseTerminationRes?.values ?? []) as {
       lesson_id?: string | null;
@@ -135,7 +137,7 @@ export class SqliteApiAssignmentAssessments extends SqliteApiAssignmentStudentPr
       !!latestBatch?.created_at &&
       !!latestTerminationAt &&
       Date.parse(latestBatch.created_at) > Date.parse(latestTerminationAt);
-    // Preserve termination unless the selected batch was created afterwards.
+    // Only a termination from the selected batch can close this fresh assessment.
     if (courseTerminationRows.length && !isLatestBatchReassignment) {
       return [];
     }

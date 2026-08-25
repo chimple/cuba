@@ -378,6 +378,7 @@ export const usePathwayData = () => {
 
         const isAssessment = pathItem?.is_assessment;
         const assessmentId = pathItem?.assignment_id;
+        const assessmentBatchId = pathItem?.assessment_batch_id;
 
         const lesson = await api.getLesson(pathItem.lesson_id);
         if (!lesson) return;
@@ -395,6 +396,7 @@ export const usePathwayData = () => {
               reward: true,
               skillId: pathItem?.skill_id,
               is_assessment: isAssessment,
+              assessmentBatchId,
               source: pathItem?.source ?? SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
             },
           });
@@ -417,6 +419,7 @@ export const usePathwayData = () => {
               reward: true,
               skillId: pathItem?.skill_id,
               is_assessment: isAssessment,
+              assessmentBatchId,
               assessmentId,
               source: pathItem?.source ?? SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
             },
