@@ -311,12 +311,10 @@ describe('useLearningPath features used by Home tab', () => {
     );
   });
 
-  test('continues assessment sequence in assessment-only mode after prior assessment history', async () => {
+  test('does not restart cold-start in assessment-only mode after assessment history', async () => {
     mockApi.isStudentPlayedPalLesson.mockResolvedValue(true);
-    mockApi.getSubjectLessonsBySubjectId.mockResolvedValue({
-      id: 'asmt-doc-2',
-      lesson_id: 'assessment-lesson-2',
-    });
+    mockApi.getChaptersForCourse.mockResolvedValue([{ id: 'chapter-1' }]);
+    mockApi.getLessonsForChapter.mockResolvedValue([{ id: 'normal-lesson-1' }]);
 
     const next = await recommendNextLesson({
       student: { id: 'stu-1' },
@@ -324,15 +322,14 @@ describe('useLearningPath features used by Home tab', () => {
       mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
     });
 
-    expect(next).toMatchObject({
-      lesson_id: 'assessment-lesson-2',
-      is_assessment: true,
+    expect(next).toEqual({
+      lesson_id: 'normal-lesson-1',
+      chapter_id: 'chapter-1',
+      source: SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
+      is_assessment: false,
+      isPlayed: false,
     });
-    expect(mockApi.getSubjectLessonsBySubjectId).toHaveBeenCalledWith(
-      's1',
-      { id: 'stu-1' },
-      'c1',
-    );
+    expect(mockApi.getSubjectLessonsBySubjectId).not.toHaveBeenCalled();
     expect(palUtil.getPalLessonPathForCourse).not.toHaveBeenCalled();
   });
 
@@ -460,7 +457,7 @@ describe('useLearningPath features used by Home tab', () => {
     expect(second?.assignment_id).toBe('assignment-11');
   });
 
-  test('puts newly assigned assessment at the beginning of an existing course path', async () => {
+  test('replaces an existing course path with a new assessment', async () => {
     const existingPath = {
       courses: {
         currentCourseIndex: 0,
@@ -512,7 +509,7 @@ describe('useLearningPath features used by Home tab', () => {
     const coursePath = parsed.courses.courseList[0];
 
     expect(parsed.courses.currentCourseIndex).toBe(0);
-    expect(coursePath.completedPath).toBe(2);
+    expect(coursePath.completedPath).toBe(0);
     expect(coursePath.path).toEqual([
       {
         lesson_id: 'teacher-asmt-11',
@@ -557,7 +554,7 @@ describe('useLearningPath features used by Home tab', () => {
     ]);
   });
 
-  test('does not rebuild an in-progress assessment path when matching assessments are assigned', async () => {
+  test('replaces an unidentified in-progress assessment with the new assignment', async () => {
     const existingPath = {
       courses: {
         currentCourseIndex: 0,
@@ -625,14 +622,14 @@ describe('useLearningPath features used by Home tab', () => {
     };
     const coursePath = parsed.courses.courseList[0];
 
-    expect(coursePath.path_id).toBe('assessment-path');
+    expect(coursePath.path_id).not.toBe('assessment-path');
     expect(coursePath.path).toEqual([
       {
         lesson_id: 'assessment-lesson-1',
         assignment_id: 'assignment-1',
         source: SOURCE.INITIAL_ASSESSMENT,
         is_assessment: true,
-        isPlayed: true,
+        isPlayed: false,
       },
       {
         lesson_id: 'assessment-lesson-2',
@@ -675,7 +672,13 @@ describe('useLearningPath features used by Home tab', () => {
                 isPlayed: false,
               },
             ],
-            completedPath: 0,
+            completedPath: 2,
+            lastPlayedLesson: {
+              lesson_id: 'math-assessment-1',
+              assignment_id: 'old-assignment-1',
+              is_assessment: true,
+              isPlayed: true,
+            },
           },
         ],
       },
@@ -722,6 +725,7 @@ describe('useLearningPath features used by Home tab', () => {
     const coursePath = parsed.courses.courseList[0];
 
     expect(coursePath.path_id).not.toBe('assigned-assessment-path');
+    expect(coursePath.completedPath).toBe(0);
     expect(coursePath.path).toEqual([
       {
         lesson_id: 'new-math-assessment-1',
@@ -739,6 +743,77 @@ describe('useLearningPath features used by Home tab', () => {
         is_assessment: true,
         isPlayed: false,
       },
+    ]);
+  });
+
+  test('replaces an unplayed cold-start assessment with a new assignment', async () => {
+    const coldStartPath = Array.from({ length: 5 }, (_value, index) => ({
+      lesson_id: `cold-start-${index + 1}`,
+      is_assessment: true,
+      isPlayed: false,
+    }));
+    const existingPath = {
+      courses: {
+        currentCourseIndex: 0,
+        courseList: [
+          {
+            path_id: 'cold-start-path',
+            course_id: 'math-course',
+            subject_id: 'math-subject',
+            type: 'chapter',
+            path: coldStartPath,
+            completedPath: 0,
+          },
+        ],
+      },
+      type: 'chapter',
+      pathMode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+    };
+    (Util.getCurrentStudent as jest.Mock).mockReturnValue({
+      id: 'stu-1',
+      learning_path: JSON.stringify(existingPath),
+    });
+    mockApi.getLatestAssessmentGroup.mockResolvedValue([
+      { id: 'assignment-w-1', lesson_id: 'assessment-w-1' },
+      { id: 'assignment-w-2', lesson_id: 'assessment-w-2' },
+    ]);
+
+    const { result } = renderHook(() => useLearningPath());
+    await act(async () => {
+      await result.current.getPath({
+        courses: [
+          {
+            id: 'math-course',
+            subject_id: 'math-subject',
+            framework_id: null,
+          },
+        ],
+        mode: LEARNING_PATHWAY_MODE.ASSESSMENT_ONLY,
+        classId: 'class-1',
+      });
+    });
+
+    const saved = mockApi.updateLearningPath.mock.calls[0][1];
+    const parsed = JSON.parse(saved) as {
+      courses: {
+        courseList: Array<{
+          path_id: string;
+          path: Array<{ assignment_id?: string; isPlayed: boolean }>;
+        }>;
+      };
+    };
+    const coursePath = parsed.courses.courseList[0];
+
+    expect(coursePath.path_id).not.toBe('cold-start-path');
+    expect(coursePath.path).toEqual([
+      expect.objectContaining({
+        assignment_id: 'assignment-w-1',
+        isPlayed: false,
+      }),
+      expect.objectContaining({
+        assignment_id: 'assignment-w-2',
+        isPlayed: false,
+      }),
     ]);
   });
 
