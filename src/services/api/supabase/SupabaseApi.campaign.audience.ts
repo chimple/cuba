@@ -16,6 +16,7 @@ import { SupabaseApiCampaignListing } from './SupabaseApi.campaign.listing';
 
 export const CAMPAIGN_ASSIGNMENT_TARGETS_PER_FUNCTION_REQUEST = 500;
 export const CAMPAIGN_ASSIGNMENT_FUNCTION_CONCURRENCY = 4;
+const CAMPAIGN_ASSIGNMENT_CLEANUP_ATTEMPTS = 3;
 
 type CampaignAssignmentDefinition =
   LaunchCampaignPayload['assignments'][number];
@@ -242,10 +243,27 @@ export class SupabaseApiCampaignAudience extends SupabaseApiCampaignListing {
         supabase.functions.invoke('create-campaign-assignments', {
           body: { campaignId: payload.campaignId, ...body },
         });
+      const invokeCleanupFunction = async (action: 'reset' | 'cleanup') => {
+        for (
+          let attempt = 1;
+          attempt <= CAMPAIGN_ASSIGNMENT_CLEANUP_ATTEMPTS;
+          attempt += 1
+        ) {
+          const response = await invokeAssignmentFunction({ action });
+          if (
+            !response.error ||
+            attempt === CAMPAIGN_ASSIGNMENT_CLEANUP_ATTEMPTS
+          ) {
+            return response;
+          }
+          await new Promise<void>((resolve) =>
+            setTimeout(resolve, 500 * 2 ** (attempt - 1)),
+          );
+        }
+        throw new Error('Campaign assignment cleanup retry failed.');
+      };
 
-      const { error: resetError } = await invokeAssignmentFunction({
-        action: 'reset',
-      });
+      const { error: resetError } = await invokeCleanupFunction('reset');
       if (resetError) {
         logger.error('Error resetting campaign assignments:', resetError);
         throw resetError;
@@ -279,9 +297,7 @@ export class SupabaseApiCampaignAudience extends SupabaseApiCampaignListing {
           result.status === 'rejected',
       );
       if (failedWorker) {
-        const { error: cleanupError } = await invokeAssignmentFunction({
-          action: 'cleanup',
-        });
+        const { error: cleanupError } = await invokeCleanupFunction('cleanup');
         if (cleanupError) {
           logger.error(
             'Failed to clean up incomplete campaign assignments:',
