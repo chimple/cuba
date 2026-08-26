@@ -1,8 +1,7 @@
-import { DBSQLiteValues } from '@capacitor-community/sqlite';
+import { Preferences } from '@capacitor/preferences';
 import { SchoolVisitType, TableTypes } from '../../common/constants';
 
 export type QueueStatus = 'pending' | 'failed';
-
 export type QueueRow = {
   id: string;
   kind: string;
@@ -16,7 +15,6 @@ export type QueueRow = {
   payload_json: string;
   last_error: string | null;
 };
-
 export type OpenVisitCacheRow = {
   user_id: string;
   school_id: string;
@@ -30,11 +28,35 @@ export type OpenVisitCacheRow = {
   updated_at: string;
 };
 
-const QUEUE_TABLE = 'fc_touch_point_offline_queue';
-const OPEN_VISIT_TABLE = 'fc_touch_point_open_visit_cache';
+const QUEUE_KEY = 'fc_touch_point_offline_queue';
+const OPEN_VISITS_KEY = 'fc_touch_point_open_visit_cache';
+let storageOperation: Promise<void> = Promise.resolve();
 
-let queueInitPromise: Promise<void> | null = null;
-let openVisitInitPromise: Promise<void> | null = null;
+const withStorageLock = async <T>(operation: () => Promise<T>): Promise<T> => {
+  const previous = storageOperation;
+  let release!: () => void;
+  storageOperation = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await previous;
+  try {
+    return await operation();
+  } finally {
+    release();
+  }
+};
+
+const readJson = async <T>(key: string, fallback: T): Promise<T> => {
+  const { value } = await Preferences.get({ key });
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+};
+const writeJson = async <T>(key: string, value: T) =>
+  Preferences.set({ key, value: JSON.stringify(value) });
 
 export const normalizeErrorMessage = (error: unknown): string => {
   if (error instanceof Error) return error.message;
@@ -46,72 +68,9 @@ export const normalizeErrorMessage = (error: unknown): string => {
   return String(error);
 };
 
-const getValuesFromResult = (result: DBSQLiteValues | undefined): unknown[] => {
-  const values = result?.values;
-  return Array.isArray(values) ? values : [];
-};
-
-const getSqliteApi = async () => {
-  const { SqliteApi } = await import('../api/SqliteApi');
-  return SqliteApi.getInstance();
-};
-
-const sqliteQuery = async (statement: string, values: unknown[] = []) => {
-  const sqlite = await getSqliteApi();
-  return sqlite.executeQuery(statement, values);
-};
-
-const ensureQueueTable = async () => {
-  if (!queueInitPromise) {
-    queueInitPromise = (async () => {
-      await sqliteQuery(
-        `CREATE TABLE IF NOT EXISTS ${QUEUE_TABLE} (
-          id TEXT NOT NULL PRIMARY KEY,
-          kind TEXT NOT NULL,
-          status TEXT NOT NULL,
-          attempts INTEGER NOT NULL DEFAULT 0,
-          occurred_at TEXT NOT NULL,
-          user_id TEXT NOT NULL,
-          school_id TEXT NOT NULL,
-          visit_id TEXT NULL,
-          phase TEXT NULL,
-          payload_json TEXT NOT NULL,
-          last_error TEXT NULL
-        )`,
-      );
-      await sqliteQuery(
-        `CREATE INDEX IF NOT EXISTS idx_${QUEUE_TABLE}_status_occurred
-         ON ${QUEUE_TABLE}(status, occurred_at)`,
-      );
-    })();
-  }
-
-  await queueInitPromise;
-};
-
-const ensureOpenVisitTable = async () => {
-  if (!openVisitInitPromise) {
-    openVisitInitPromise = (async () => {
-      await sqliteQuery(
-        `CREATE TABLE IF NOT EXISTS ${OPEN_VISIT_TABLE} (
-          user_id TEXT NOT NULL,
-          school_id TEXT NOT NULL,
-          visit_id TEXT NOT NULL,
-          visit_type TEXT NULL,
-          distance_from_school TEXT NULL,
-          number_of_parents INTEGER NULL,
-          check_in_at TEXT NOT NULL,
-          check_in_lat REAL NOT NULL,
-          check_in_lng REAL NOT NULL,
-          updated_at TEXT NOT NULL,
-          PRIMARY KEY (user_id, school_id)
-        )`,
-      );
-    })();
-  }
-
-  await openVisitInitPromise;
-};
+const readAllQueueRows = () => readJson<QueueRow[]>(QUEUE_KEY, []);
+const readAllOpenVisits = () =>
+  readJson<OpenVisitCacheRow[]>(OPEN_VISITS_KEY, []);
 
 const openVisitRowToSnapshot = (
   row: OpenVisitCacheRow,
@@ -135,34 +94,10 @@ const openVisitRowToSnapshot = (
   type: row.visit_type,
 });
 
-export const readQueueRows = async (): Promise<QueueRow[]> => {
-  await ensureQueueTable();
-  const result = await sqliteQuery(
-    `SELECT id, kind, status, attempts, occurred_at, user_id, school_id, visit_id, phase, payload_json, last_error
-     FROM ${QUEUE_TABLE}
-     ORDER BY occurred_at ASC, id ASC`,
-  );
-  return getValuesFromResult(result as DBSQLiteValues).filter(
-    (row): row is QueueRow => Boolean(row),
-  );
-};
-
-export const readQueueRowById = async (
-  id: string,
-): Promise<QueueRow | null> => {
-  await ensureQueueTable();
-  const result = await sqliteQuery(
-    `SELECT id, kind, status, attempts, occurred_at, user_id, school_id, visit_id, phase, payload_json, last_error
-     FROM ${QUEUE_TABLE}
-     WHERE id = ?
-     LIMIT 1`,
-    [id],
-  );
-  const row = getValuesFromResult(result as DBSQLiteValues)[0] as
-    | QueueRow
-    | undefined;
-  return row ?? null;
-};
+export const readQueueRows = async (): Promise<QueueRow[]> =>
+  readAllQueueRows();
+export const readQueueRowById = async (id: string): Promise<QueueRow | null> =>
+  (await readAllQueueRows()).find((row) => row.id === id) ?? null;
 
 export const writeQueueRow = async (row: {
   id: string;
@@ -176,59 +111,50 @@ export const writeQueueRow = async (row: {
   phase: string | null;
   payload: unknown;
   lastError?: string | null;
-}) => {
-  await ensureQueueTable();
-  await sqliteQuery(
-    `INSERT OR REPLACE INTO ${QUEUE_TABLE}
-      (id, kind, status, attempts, occurred_at, user_id, school_id, visit_id, phase, payload_json, last_error)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      row.id,
-      row.kind,
-      row.status,
-      row.attempts,
-      row.occurredAt,
-      row.userId,
-      row.schoolId,
-      row.visitId,
-      row.phase,
-      JSON.stringify(row.payload),
-      row.lastError ?? null,
-    ],
-  );
-};
+}) =>
+  withStorageLock(async () => {
+    const rows = await readAllQueueRows();
+    const next: QueueRow = {
+      id: row.id,
+      kind: row.kind,
+      status: row.status,
+      attempts: row.attempts,
+      occurred_at: row.occurredAt,
+      user_id: row.userId,
+      school_id: row.schoolId,
+      visit_id: row.visitId,
+      phase: row.phase,
+      payload_json: JSON.stringify(row.payload),
+      last_error: row.lastError ?? null,
+    };
+    const index = rows.findIndex((current) => current.id === row.id);
+    if (index >= 0) rows[index] = next;
+    else rows.push(next);
+    await writeJson(QUEUE_KEY, rows);
+  });
 
-export const deleteQueueRow = async (id: string) => {
-  await ensureQueueTable();
-  await sqliteQuery(`DELETE FROM ${QUEUE_TABLE} WHERE id = ?`, [id]);
-};
+export const deleteQueueRow = async (id: string) =>
+  withStorageLock(async () => {
+    const rows = await readAllQueueRows();
+    await writeJson(
+      QUEUE_KEY,
+      rows.filter((row) => row.id !== id),
+    );
+  });
 
 export const updateQueueRow = async (
   id: string,
   updater: (row: QueueRow) => QueueRow | null,
-) => {
-  const current = await readQueueRowById(id);
-  if (!current) return;
-  const next = updater(current);
-  if (!next) {
-    await deleteQueueRow(id);
-    return;
-  }
-
-  await writeQueueRow({
-    id: next.id,
-    kind: next.kind,
-    status: next.status,
-    attempts: next.attempts,
-    occurredAt: next.occurred_at,
-    userId: next.user_id,
-    schoolId: next.school_id,
-    visitId: next.visit_id,
-    phase: next.phase,
-    payload: JSON.parse(next.payload_json),
-    lastError: next.last_error ?? null,
+) =>
+  withStorageLock(async () => {
+    const rows = await readAllQueueRows();
+    const current = rows.find((row) => row.id === id);
+    if (!current) return;
+    const next = updater(current);
+    const remaining = rows.filter((row) => row.id !== id);
+    if (next) remaining.push(next);
+    await writeJson(QUEUE_KEY, remaining);
   });
-};
 
 export const saveCurrentOpenVisitSnapshot = async (params: {
   userId: string;
@@ -240,54 +166,52 @@ export const saveCurrentOpenVisitSnapshot = async (params: {
   checkInAt: string;
   checkInLat: number;
   checkInLng: number;
-}) => {
-  await ensureOpenVisitTable();
-  await sqliteQuery(
-    `INSERT OR REPLACE INTO ${OPEN_VISIT_TABLE}
-      (user_id, school_id, visit_id, visit_type, distance_from_school, number_of_parents, check_in_at, check_in_lat, check_in_lng, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      params.userId,
-      params.schoolId,
-      params.visitId,
-      params.visitType ?? null,
-      params.distanceFromSchool == null
-        ? null
-        : String(params.distanceFromSchool),
-      params.numberOfParents ?? null,
-      params.checkInAt,
-      params.checkInLat,
-      params.checkInLng,
-      new Date().toISOString(),
-    ],
-  );
-};
+}) =>
+  withStorageLock(async () => {
+    const rows = await readAllOpenVisits();
+    const next: OpenVisitCacheRow = {
+      user_id: params.userId,
+      school_id: params.schoolId,
+      visit_id: params.visitId,
+      visit_type: params.visitType ?? null,
+      distance_from_school:
+        params.distanceFromSchool == null
+          ? null
+          : String(params.distanceFromSchool),
+      number_of_parents: params.numberOfParents ?? null,
+      check_in_at: params.checkInAt,
+      check_in_lat: params.checkInLat,
+      check_in_lng: params.checkInLng,
+      updated_at: new Date().toISOString(),
+    };
+    const remaining = rows.filter(
+      (row) =>
+        !(row.user_id === params.userId && row.school_id === params.schoolId),
+    );
+    remaining.push(next);
+    await writeJson(OPEN_VISITS_KEY, remaining);
+  });
 
 export const getSavedOpenVisitSnapshot = async (
   userId: string,
   schoolId: string,
 ): Promise<TableTypes<'fc_school_visit'> | null> => {
-  await ensureOpenVisitTable();
-  const result = await sqliteQuery(
-    `SELECT user_id, school_id, visit_id, visit_type, distance_from_school, number_of_parents, check_in_at, check_in_lat, check_in_lng, updated_at
-     FROM ${OPEN_VISIT_TABLE}
-     WHERE user_id = ? AND school_id = ?
-     LIMIT 1`,
-    [userId, schoolId],
+  const row = (await readAllOpenVisits()).find(
+    (current) => current.user_id === userId && current.school_id === schoolId,
   );
-  const row = getValuesFromResult(result as DBSQLiteValues)[0] as
-    | OpenVisitCacheRow
-    | undefined;
   return row ? openVisitRowToSnapshot(row) : null;
 };
 
 export const clearSavedOpenVisitSnapshot = async (
   userId: string,
   schoolId: string,
-) => {
-  await ensureOpenVisitTable();
-  await sqliteQuery(
-    `DELETE FROM ${OPEN_VISIT_TABLE} WHERE user_id = ? AND school_id = ?`,
-    [userId, schoolId],
-  );
-};
+) =>
+  withStorageLock(async () => {
+    const rows = await readAllOpenVisits();
+    await writeJson(
+      OPEN_VISITS_KEY,
+      rows.filter(
+        (row) => !(row.user_id === userId && row.school_id === schoolId),
+      ),
+    );
+  });
