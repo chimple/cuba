@@ -445,10 +445,11 @@ export const useLearningPath = (opts?: {
       // Condition 3: a different cold-start assessment falls through to reset.
       if (
         hasInProgressAssessmentPath(coursePath.path) &&
-        ((!hasStoredAssessmentId && hasSameAssessmentLessonSequence) ||
-          coursePath.path.some(
-            (node: LessonNode) => node.assignment_id === assignments[0].id,
-          ))
+        hasStoredAssessmentId &&
+        hasSameAssessmentLessonSequence &&
+        coursePath.path.some(
+          (node: LessonNode) => node.assignment_id === assignments[0].id,
+        )
       ) {
         const mergedPath = mergeAssignedAssessmentIdsIntoPath(
           coursePath.path,
@@ -511,7 +512,8 @@ export const useLearningPath = (opts?: {
         ? RECOMMENDATION_TYPE.FRAMEWORK
         : RECOMMENDATION_TYPE.CHAPTER;
       coursePath.subject_id = course.subject_id ?? null;
-      coursePath.completedPath = coursePath.completedPath ?? 0;
+      coursePath.completedPath = 0;
+      coursePath.lastPlayedLesson = undefined;
 
       return { updated: true, currentCourseIndex: courseIndex };
     }
@@ -568,6 +570,7 @@ export const useLearningPath = (opts?: {
           chapter_id: l.chapter_id,
           skill_id: l.skill_id,
           assignment_id: l.assignment_id,
+          assessment_batch_id: l.assessment_batch_id,
           source: l.source,
           isPlayed: absIndex < activeAbsIndex,
           is_assessment: !!l.is_assessment,

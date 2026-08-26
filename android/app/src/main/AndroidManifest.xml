@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -17,7 +16,9 @@
 
         <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@mipmap/chimple_monkey_icon" />
+        <meta-data android:name="com.getcapacitor.plugin.PortPlugin" android:value="true" />
 
+        <!-- ✅ Main Activity: Handles Deep Linking -->
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode"
             tools:ignore="LockedOrientationActivity"
@@ -27,23 +28,81 @@
             android:launchMode="singleTask"
             android:exported="true">
 
+            <!-- ✅ App Launcher Intent -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- intent for chimple-prod.firebaseapp.com  -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!-- <data android:scheme="https" android:host="chimple.cc" android:path="/join-class" />
+
+                <!-- Ensure this matches your deep link -->
+                <data
+                    android:scheme="https"
+                    android:host="chimple.cc"
+                    android:pathPrefix="/" />
+            </intent-filter>
+
+            <!-- RESPECT downloads an HTTPS TinCan launch URL; this route opens it in Cuba. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="chimple-respect.web.app"
+                    android:pathPrefix="/respect/launch" />
+            </intent-filter>
+
+            <!-- RESPECT uses this app-specific route so Android launches Chimple directly. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="chimple"
+                    android:host="respect"
+                    android:pathPrefix="/launch" />
+            </intent-filter>
+
+            <!-- ✅ Deep linking support for localhost:3000 (for local testing) -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" android:host="localhost" android:port="3000"
+                    android:pathPrefix="/" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category
+                    android:name="android.intent.category.DEFAULT" />
+                <category
+                    android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https"
+                    android:host="chimple.cc" android:path="/join-class" />
+                <data
+                    android:scheme="https" android:host="chimple.cc" android:path="/assignment" />
+                <data
+                    android:scheme="https" android:host="chimple.cc" android:path="/live-quiz" />
+                ======= <!-- <data android:scheme="https" android:host="chimple.cc"
+                android:path="/join-class" />
                 <data android:scheme="https" android:host="chimple.cc" android:path="/assignment" />
                 <data android:scheme="https" android:host="chimple.cc" android:path="/live-quiz" /> -->
-                <data android:scheme="https" android:host="chimple.cc" android:pathPattern="/.*" />
+                <data android:scheme="https" android:host="chimple.cc"
+                    android:pathPattern="/.*" />
             </intent-filter>
+
 
         </activity>
 
+        <!-- ✅ File Provider -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -53,10 +112,24 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
-        <receiver android:name=".OTPReceiver" android:exported="true" android:permission="com.google.android.gms.auth.api.phone.permission.SEND">
-              <intent-filter>
-                 <action android:name="com.google.android.gms.auth.api.phone.SMS_RETRIEVED" />
-              </intent-filter>
+
+        <!--        <service-->
+        <!--            android:name="world.respect.librespect.clientdownloadservice"-->
+        <!--            android:enabled="true"-->
+        <!--            android:exported="true">-->
+
+        <!--            <intent-filter>-->
+        <!--                <action android:name="respect.world.librespect.ACTION_CLIENT_LU_DOWNLOAD" />-->
+        <!--                <action android:name="respect.world.librespect.ACTION_CLIENT_LU_RELEASE" />-->
+        <!--            </intent-filter>-->
+        <!--        </service>-->
+
+
+        <receiver android:name=".OTPReceiver" android:exported="true"
+            android:permission="com.google.android.gms.auth.api.phone.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.android.gms.auth.api.phone.SMS_RETRIEVED" />
+            </intent-filter>
         </receiver>
         <receiver android:name=".FileReceiver" android:exported="true">
             <intent-filter>
@@ -67,7 +140,6 @@
     </application>
 
     <!-- Permissions -->
-
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
@@ -83,8 +155,12 @@
         android:required="false" />
 
     <queries>
+        <package android:name="world.respect.app" />
         <intent>
             <action android:name="oneroster" />
+        </intent>
+        <intent>
+            <action android:name="org.openeel.action.xapioveripc" />
         </intent>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />

@@ -89,6 +89,7 @@ export const handleLidoActivityEnd = async (ctx: any, e: any) => {
     return;
   }
   if (failStreak >= 4) {
+    // Keep the first four-failure marker with this assignment's own streak.
     failMap[courseKey] = true;
     localStorage.setItem(failKey, JSON.stringify(failMap));
     streakMap[courseKey] = 0;

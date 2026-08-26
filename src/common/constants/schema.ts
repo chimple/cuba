@@ -25,6 +25,44 @@ export enum CocosCourseIdentifier {
   mr = 'mr',
 }
 
+// RESPECT launches use these stable catalogue grades when the local catalogue
+// has not been populated yet.
+export const RESPECT_GRADES = {
+  grade1: {
+    id: 'c802dce7-0840-4baf-b374-ef6cb4272a76',
+    name: 'Grade 1',
+    sort_index: 2,
+  },
+  grade2: {
+    id: '36e7ff1f-34d6-42ac-9294-3192433ace40',
+    name: 'Grade 2',
+    sort_index: 3,
+  },
+  belowGrade1: {
+    id: '30ecb762-8e63-45b3-a22a-62c1a9f71641',
+    name: 'Below Grade 1',
+    sort_index: 1,
+  },
+} as const;
+
+export const ALL_CURRICULUM = {
+  CHIMPLE_BOARD: {
+    id: '7d560737-746a-4931-a49f-02de1ca526bd',
+    name: 'Chimple',
+    sort_index: 1,
+  },
+  KARNATAKA_STATE_BOARD: {
+    id: 'feec6f59-b8bc-41e8-81aa-2b2689a9fc40',
+    name: 'Karnataka',
+    sort_index: 2,
+  },
+  NCERT_BOARD: {
+    id: 'e1629739-5421-4996-a1f7-61225443bd04',
+    name: 'NCERT',
+    sort_index: 3,
+  },
+} as const;
+
 export type TableTypes<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Row'];
 export type EnumType<K extends keyof (typeof Constants)['public']['Enums']> =

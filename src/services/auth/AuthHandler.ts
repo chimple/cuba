@@ -2,18 +2,27 @@ import { ServiceAuth } from './ServiceAuth';
 import { TableTypes } from '../../common/constants';
 import { Session, User, UserAttributes } from '@supabase/supabase-js';
 import { logAuthDebug } from '../../utility/authDebug';
+import { APIMode } from '../ServiceConfig';
+import { FirebaseAuth } from './FirebaseAuth';
+import { SupabaseAuth } from './SupabaseAuth';
+import { OneRosterAuth } from './OneRosterAuth';
 
 export class AuthHandler implements ServiceAuth {
   public static i: AuthHandler;
 
   private s: ServiceAuth;
 
-  private constructor() {}
+  private constructor(service: ServiceAuth) {
+    this.s = service;
+  }
+  refreshSession(): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
 
-  public static getInstance(s: ServiceAuth): AuthHandler {
-    if (!AuthHandler.i) {
-      AuthHandler.i = new AuthHandler();
-      AuthHandler.i.s = s;
+  public static getInstance(service: ServiceAuth): AuthHandler {
+    // Only create a new instance if the service has changed
+    if (!AuthHandler.i || AuthHandler.i.s !== service) {
+      AuthHandler.i = new AuthHandler(service);
     }
     return AuthHandler.i;
   }
@@ -93,7 +102,6 @@ export class AuthHandler implements ServiceAuth {
       tcAgreedVersion,
     );
   }
-
   async logOut(): Promise<void> {
     logAuthDebug('AuthHandler forwarding logout request to provider.', {
       source: 'AuthHandler.logOut',
@@ -122,6 +130,26 @@ export class AuthHandler implements ServiceAuth {
   }
   public async updateUser(attributes: UserAttributes): Promise<boolean> {
     return await this.s.updateUser(attributes);
+  }
+
+  public switchMode(newMode: APIMode) {
+    console.debug(
+      `[AuthHandler] switchMode called. Switching to ${APIMode[newMode]}`,
+    );
+    switch (newMode) {
+      case APIMode.FIREBASE:
+        // this.s = FirebaseAuth.getInstance();
+        break;
+      case APIMode.ONEROSTER:
+        this.s = OneRosterAuth.getInstance() as unknown as ServiceAuth;
+        break;
+      case APIMode.SUPABASE:
+        this.s = SupabaseAuth.getInstance();
+        break;
+      default:
+        // this.s = FirebaseAuth.getInstance();
+        break;
+    }
   }
   public async getUser(): Promise<{ data: { user: User | null }; error: any }> {
     return await this.s.getUser();

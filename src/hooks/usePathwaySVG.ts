@@ -571,9 +571,11 @@ export function usePathwaySVG({
     skillId?: string,
     is_assessment?: boolean,
     assessmentId?: string,
+    assessmentBatchId?: string | null,
     source: SOURCE = SOURCE.LEARNING_PATHWAY_HOME_NO_PAL,
   ) {
     navigateToPathwayLesson({
+      assessmentBatchId,
       assessmentId,
       course,
       history,
