@@ -89,6 +89,16 @@ export const BUNDLE_URL =
   'https://cdn.jsdelivr.net/gh/chimple/chimple-zips@main/';
 export interface PortPlugin {
   addListener(eventName: string, listenerFunc: (data: any) => void): void;
+  sendLaunchData(): Promise<{
+    endpoint: string;
+    auth: string;
+    actor: string;
+    registration: string;
+    lessonId: string;
+    chimpleLessonId: string;
+    xapiIpcPackage: string;
+  }>;
+  returnDataToRespect(): Promise<void>;
   getPort(): Promise<{ port: number }>;
   getMigrateUsers(): Promise<{ users: any }>;
   fetchNotificationData(): Promise<{
@@ -219,6 +229,8 @@ export const NUMBER_NAME = [
 ];
 
 export const MAX_STUDENTS_ALLOWED = 3;
+export const MAX_STUDENTS_ALLOWED_RESPECT = 1;
+export const isRespectMode = 'isRespectMode';
 export const INSTANT_SEARCH_INDEX_NAME =
   import.meta.env.VITE_ALGOLIA_INDEX_NAME ?? '';
 
@@ -246,6 +258,9 @@ export enum STAGES {
 }
 
 export const CURRENT_STUDENT = 'currentStudent';
+export const CURRENT_USER = 'currentUser';
+export const USER_COURSES = 'userCourses';
+export const STUDENT_LESSON_SCORES = 'studentLessonScores';
 export enum EVENTS {
   LESSON_END = 'lesson_end',
   LESSON_INCOMPLETE = 'lesson_incomplete',

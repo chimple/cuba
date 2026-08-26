@@ -1,0 +1,48 @@
+{
+  "metadata": {
+    "@type": "https://id.openeel.org/schema/launchable-app",
+    "title": "Chimple Kids Learning",
+    "description": "Interactive learning units from Chimple.",
+    "author": {
+      "name": "Chimple Learning"
+    },
+    "identifier": "https://chimple-respect.web.app/app",
+    "language": "en",
+    "modified": "2026-08-17T09:04:13.455793+00:00"
+  },
+  "links": [
+    {
+      "rel": "self",
+      "href": "https://chimple-respect.web.app/launchable-app.json",
+      "type": "application/opds-publication+json"
+    },
+    {
+      "rel": "collection",
+      "href": "https://chimple-respect.web.app/opds.json",
+      "type": "application/opds+json"
+    },
+    {
+      "rel": "https://id.openeel.org/rel/app-launch-uri",
+      "href": "https://chimple.cc/"
+    },
+    {
+      "rel": "https://id.openeel.org/rel/appstore-android",
+      "href": "https://play.google.com/store/apps/details?id=org.chimple.bahama",
+      "title": "Get it on Google Play"
+    },
+    {
+      "rel": "terms-of-service",
+      "href": "https://www.chimple.org/privacy-policy"
+    },
+    {
+      "rel": "license",
+      "href": "https://www.gnu.org/licenses/agpl-3.0.html"
+    }
+  ],
+  "images": [
+    {
+      "href": "https://raw.githubusercontent.com/chimple/cuba/RESPECTify/public/assets/icons/favicon.png",
+      "type": "image/png"
+    }
+  ]
+}
