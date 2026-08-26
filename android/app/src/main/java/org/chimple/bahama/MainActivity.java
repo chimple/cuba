@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.view.View;
 import android.content.Intent;
 
@@ -26,6 +27,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.splashscreen.SplashScreen;
 
 import com.google.android.gms.auth.api.identity.GetPhoneNumberHintIntentRequest;
 import com.google.android.gms.auth.api.identity.Identity;
@@ -46,6 +48,12 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     static JSONObject deepLinkData = new JSONObject();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        final long splashStartedAt = SystemClock.elapsedRealtime();
+        final int minSplashDurationMs = getResources().getInteger(R.integer.open_apk_splash_duration_ms);
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+        splashScreen.setKeepOnScreenCondition(
+                () -> minSplashDurationMs > 0 && SystemClock.elapsedRealtime() - splashStartedAt < minSplashDurationMs
+        );
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) ->{
             SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
             String userId = sharedPreferences.getString("userId", null);

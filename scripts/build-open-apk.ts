@@ -8,11 +8,16 @@
 
 // npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output --zip-source=D:\chimple-zips
 
+// npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --splash=C:\Users\LENOVO\Downloads\splash_screen.png --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output
+
+//adb install -r G:\open-apk-output\app-release.apk
+
 // Optional flags:
 
 // --skip-build       Prepare bundles only, do not build APK
 // --dry-run          Resolve lessons and write manifest only
 // --zip-source=PATH  Override local ZIP folder, defaults to D:\chimple-zips
+// --splash=PATH      Override android/app/src/main/res/drawable/new_splash.png for this APK build only
 // --fail-on-missing  Stop if any bundle cannot be found
 
 import JSZip from 'jszip';
@@ -25,6 +30,7 @@ import process from 'node:process';
 type CliOptions = {
   language: string;
   avatar: string;
+  splash?: string;
   courseIds: string[];
   output: string;
   zipSource: string;
@@ -113,6 +119,11 @@ type Manifest = {
   languageId: string | null;
   avatar: string;
   pathwayMascot: string;
+  splashSource: string | null;
+  splashResource: string;
+  splashReplacedForBuild: boolean;
+  splashDurationMs: number;
+  splashDurationResource: string;
   courseIds: string[];
   courses: CourseRow[];
   chapterCount: number;
@@ -153,6 +164,27 @@ const pathwayMascotPath = path.join(
   'pathwayAssets',
   'chimpleRive.riv',
 );
+const splashResourcePath = path.join(
+  repoRoot,
+  'android',
+  'app',
+  'src',
+  'main',
+  'res',
+  'drawable',
+  'new_splash.png',
+);
+const splashDurationResourcePath = path.join(
+  repoRoot,
+  'android',
+  'app',
+  'src',
+  'main',
+  'res',
+  'values',
+  'open_apk_config.xml',
+);
+const openApkSplashDurationMs = 1000;
 
 const remoteBundleBaseUrls = [
   'https://pub-9d27d46558f64e93a979827424d3e766.r2.dev/',
@@ -210,6 +242,7 @@ const parseArgs = (argv: string[]): CliOptions => {
   const options: CliOptions = {
     language: getString('language') ?? '',
     avatar: getString('avatar') ?? '',
+    splash: getString('splash'),
     courseIds,
     output: getString('output') ?? '',
     zipSource: getString('zip-source') ?? 'D:\\chimple-zips',
@@ -335,6 +368,33 @@ const prepareAvatar = async (
     avatarPath: animationAssetPath,
     pathwayMascotPath,
   };
+};
+
+const resolveSplashSource = async (splash?: string): Promise<string | null> => {
+  if (!splash) return null;
+
+  const sourcePath = path.isAbsolute(splash)
+    ? splash
+    : path.join(repoRoot, splash);
+
+  if (!(await fileExists(sourcePath))) {
+    throw new Error(`Splash asset not found: ${sourcePath}`);
+  }
+
+  if (path.extname(sourcePath).toLowerCase() !== '.png') {
+    throw new Error(`Splash asset must be a .png file: ${sourcePath}`);
+  }
+
+  return sourcePath;
+};
+
+const writeSplashDurationResource = async (
+  durationMs: number,
+): Promise<void> => {
+  await fs.writeFile(
+    splashDurationResourcePath,
+    `<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <integer name="open_apk_splash_duration_ms">${durationMs}</integer>\n</resources>\n`,
+  );
 };
 
 const isActiveRow = (row: { is_deleted?: unknown }): boolean =>
@@ -773,6 +833,13 @@ const main = async (): Promise<void> => {
   const originalImportJsonContent = await fs.readFile(importJsonPath, 'utf8');
   const importJson = JSON.parse(originalImportJsonContent) as ImportJson;
   const avatar = await prepareAvatar(options.avatar);
+  const splashSourcePath = await resolveSplashSource(options.splash);
+  const originalSplashContent = splashSourcePath
+    ? await fs.readFile(splashResourcePath)
+    : null;
+  const originalSplashDurationContent = splashSourcePath
+    ? await fs.readFile(splashDurationResourcePath, 'utf8')
+    : null;
 
   const language = resolveLanguage(importJson, options.language);
   const courseIds = options.courseIds;
@@ -842,6 +909,15 @@ const main = async (): Promise<void> => {
     languageId: language?.id ?? null,
     avatar: avatar.avatarPath,
     pathwayMascot: avatar.pathwayMascotPath,
+    splashSource: splashSourcePath,
+    splashResource: splashResourcePath,
+    splashReplacedForBuild:
+      !!splashSourcePath && !options.dryRun && !options.skipBuild,
+    splashDurationMs:
+      !!splashSourcePath && !options.dryRun && !options.skipBuild
+        ? openApkSplashDurationMs
+        : 0,
+    splashDurationResource: splashDurationResourcePath,
     courseIds,
     courses,
     chapterCount: chapters.length,
@@ -903,6 +979,17 @@ const main = async (): Promise<void> => {
   }
 
   try {
+    if (splashSourcePath) {
+      await fs.copyFile(splashSourcePath, splashResourcePath);
+      await writeSplashDurationResource(openApkSplashDurationMs);
+      console.log(
+        `Temporarily replaced Android splash resource with ${splashSourcePath}.`,
+      );
+      console.log(
+        `Temporarily set Open APK splash duration to ${openApkSplashDurationMs} ms.`,
+      );
+    }
+
     if (importJsonNeedsRewrite) {
       await fs.writeFile(
         importJsonPath,
@@ -918,6 +1005,17 @@ const main = async (): Promise<void> => {
     if (importJsonNeedsRewrite) {
       await fs.writeFile(importJsonPath, originalImportJsonContent);
       console.log('Restored original public/databases/import.json.');
+    }
+    if (originalSplashContent) {
+      await fs.writeFile(splashResourcePath, originalSplashContent);
+      console.log('Restored original Android splash resource.');
+    }
+    if (originalSplashDurationContent) {
+      await fs.writeFile(
+        splashDurationResourcePath,
+        originalSplashDurationContent,
+      );
+      console.log('Restored original Android splash duration resource.');
     }
   }
 };

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="open_apk_splash_duration_ms">0</integer>
+</resources>
