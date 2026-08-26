@@ -109,7 +109,7 @@ export interface ServiceApiFieldActivities {
     classId?: string | null;
     content: string;
     mediaLinks?: string[] | null;
-  }): Promise<CreateSchoolNoteInput>;
+  }): Promise<CreateSchoolNoteInput | null>;
 
   uploadSchoolVisitMediaFile(params: {
     schoolId: string;

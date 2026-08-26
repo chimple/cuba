@@ -23,6 +23,7 @@ export type CreatedFcNote = {
   classId: string | null;
   className: string | null;
   content: string;
+  text: string;
   createdAt: string;
   createdBy: {
     userId: string;
@@ -312,7 +313,8 @@ export async function createNoteForSchool(
     schoolId: created.school_id,
     classId: created.class_id,
     className,
-    content: created.comment,
+    content: created.comment ?? '',
+    text: created.comment ?? '',
     createdAt: created.created_at,
     createdBy: {
       userId: currentUserId,
@@ -392,6 +394,8 @@ export async function getNotesBySchoolId(
       (r): CreatedFcNote => ({
         id: r.id,
         content: r.comment ?? '',
+        text: r.comment ?? '',
+        schoolId,
         classId: r.class_id,
         className: r.class?.name ?? null,
         visitId: r.visit_id,
