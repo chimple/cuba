@@ -16,6 +16,7 @@ import {
   updateQueueRow,
   writeQueueRow,
 } from './fcTouchPointOfflineQueue.storage';
+import type { OfflineMediaFileRef } from './fctouchpoints/fcTouchPointOfflineMedia';
 
 type SyncRunner = () => Promise<void>;
 
@@ -34,6 +35,7 @@ type FcUserFormQueuePayload = {
   comment?: string | null;
   techIssueComment?: string | null;
   mediaLinks?: string[] | null;
+  offlineMediaFiles?: OfflineMediaFileRef[] | null;
 };
 
 type SchoolVisitQueuePayload = {
@@ -289,6 +291,7 @@ export const queueFcUserForm = async (params: {
   comment?: string | null;
   techIssueComment?: string | null;
   mediaLinks?: string[] | null;
+  offlineMediaFiles?: OfflineMediaFileRef[] | null;
   clientActionId?: string;
   occurredAt?: string;
 }): Promise<FcUserFormQueueEntry> => {
@@ -317,6 +320,7 @@ export const queueFcUserForm = async (params: {
       comment: params.comment ?? null,
       techIssueComment: params.techIssueComment ?? null,
       mediaLinks: params.mediaLinks ?? null,
+      offlineMediaFiles: params.offlineMediaFiles ?? null,
     },
   };
 

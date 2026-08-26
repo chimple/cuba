@@ -8,6 +8,10 @@ import {
 } from '../fcTouchPointOfflineQueue';
 import { clearSavedOpenVisitSnapshot } from '../fcTouchPointOfflineQueue.storage';
 import type { SupabaseApiCoreSync } from '../../api/supabase/SupabaseApi.core.sync';
+import {
+  deleteOfflineMediaFiles,
+  uploadOfflineMediaFiles,
+} from './fcTouchPointOfflineMedia';
 
 const getPostgrestErrorCode = (error: unknown): string | null => {
   if (!error || typeof error !== 'object' || !('code' in error)) {
@@ -130,6 +134,20 @@ export async function syncPendingFcTouchPoints(
         continue;
       }
 
+      const resolvedMediaLinks =
+        entry.payload.offlineMediaFiles &&
+        entry.payload.offlineMediaFiles.length > 0
+          ? await uploadOfflineMediaFiles({
+              schoolId: entry.schoolId,
+              refs: entry.payload.offlineMediaFiles,
+              uploadFn: (file) =>
+                this.uploadSchoolVisitMediaFile({
+                  schoolId: entry.schoolId,
+                  file,
+                }),
+            })
+          : (entry.payload.mediaLinks ?? null);
+
       const { data, error } = await this.supabase
         .from(TABLES.FcUserForms)
         .insert({
@@ -148,8 +166,8 @@ export async function syncPendingFcTouchPoints(
           comment: entry.payload.comment ?? null,
           tech_issue_comment: entry.payload.techIssueComment ?? null,
           media_links:
-            entry.payload.mediaLinks && entry.payload.mediaLinks.length > 0
-              ? JSON.stringify(entry.payload.mediaLinks)
+            resolvedMediaLinks && resolvedMediaLinks.length > 0
+              ? JSON.stringify(resolvedMediaLinks)
               : null,
           created_at: entry.occurredAt,
           updated_at: entry.occurredAt,
@@ -166,6 +184,12 @@ export async function syncPendingFcTouchPoints(
             .eq('id', entry.id)
             .maybeSingle();
           if (existing) {
+            if (
+              entry.payload.offlineMediaFiles &&
+              entry.payload.offlineMediaFiles.length > 0
+            ) {
+              await deleteOfflineMediaFiles(entry.payload.offlineMediaFiles);
+            }
             await markFcTouchPointSynced(entry.id);
             continue;
           }
@@ -174,6 +198,12 @@ export async function syncPendingFcTouchPoints(
       }
 
       if (data) {
+        if (
+          entry.payload.offlineMediaFiles &&
+          entry.payload.offlineMediaFiles.length > 0
+        ) {
+          await deleteOfflineMediaFiles(entry.payload.offlineMediaFiles);
+        }
         await markFcTouchPointSynced(entry.id);
       }
     } catch (error) {

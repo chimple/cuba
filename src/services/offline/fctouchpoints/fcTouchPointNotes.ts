@@ -10,6 +10,11 @@ import {
 } from '../fcTouchPointOfflineQueue';
 import type { SupabaseApiProgramFieldCoordinator } from '../../api/supabase/SupabaseApi.program.fieldCoordinator';
 import type { FcUserFormSaveResult } from '../../api/serviceapi/ServiceApi.types';
+import {
+  deleteOfflineMediaFiles,
+  type OfflineMediaFileRef,
+  uploadOfflineMediaFiles,
+} from './fcTouchPointOfflineMedia';
 
 export type CreatedFcNote = {
   id: string;
@@ -70,6 +75,7 @@ export async function saveFcUserForm(
     comment?: string | null;
     techIssueComment?: string | null;
     mediaLinks?: string[] | null;
+    offlineMediaFiles?: OfflineMediaFileRef[] | null;
   },
 ): Promise<FcUserFormSaveResult> {
   const queueEntry = await queueFcUserForm(payload);
@@ -103,6 +109,23 @@ export async function saveFcUserForm(
   }
 
   try {
+    let resolvedMediaLinks = payload.mediaLinks ?? null;
+    if (
+      (!resolvedMediaLinks || resolvedMediaLinks.length === 0) &&
+      payload.offlineMediaFiles &&
+      payload.offlineMediaFiles.length > 0
+    ) {
+      resolvedMediaLinks = await uploadOfflineMediaFiles({
+        schoolId: payload.schoolId,
+        refs: payload.offlineMediaFiles,
+        uploadFn: (file) =>
+          this.uploadSchoolVisitMediaFile({
+            schoolId: payload.schoolId,
+            file,
+          }),
+      });
+    }
+
     const { data, error } = await this.supabase
       .from(TABLES.FcUserForms)
       .insert({
@@ -121,8 +144,8 @@ export async function saveFcUserForm(
         comment: payload.comment ?? null,
         tech_issue_comment: payload.techIssueComment ?? null,
         media_links:
-          payload.mediaLinks && payload.mediaLinks.length > 0
-            ? JSON.stringify(payload.mediaLinks)
+          resolvedMediaLinks && resolvedMediaLinks.length > 0
+            ? JSON.stringify(resolvedMediaLinks)
             : null,
         created_at: occurredAt,
         updated_at: occurredAt,
@@ -139,6 +162,12 @@ export async function saveFcUserForm(
           .eq('id', queueEntry.id)
           .maybeSingle();
         if (existing) {
+          if (
+            payload.offlineMediaFiles &&
+            payload.offlineMediaFiles.length > 0
+          ) {
+            await deleteOfflineMediaFiles(payload.offlineMediaFiles);
+          }
           await markFcTouchPointSynced(queueEntry.id);
           return { data: existing, error: null };
         }
@@ -147,6 +176,9 @@ export async function saveFcUserForm(
     }
 
     await markFcTouchPointSynced(queueEntry.id);
+    if (payload.offlineMediaFiles && payload.offlineMediaFiles.length > 0) {
+      await deleteOfflineMediaFiles(payload.offlineMediaFiles);
+    }
     return { data, error: null };
   } catch (error) {
     await markFcTouchPointFailed(queueEntry.id, error);

@@ -13,6 +13,7 @@ import type {
   FcUserFormSaveResult,
   ActivitiesFilterOptions,
 } from './ServiceApi.types';
+import type { OfflineMediaFileRef } from '../../offline/fctouchpoints/fcTouchPointOfflineMedia';
 
 export type TeacherAssignmentCountPair = {
   teacherId: string;
@@ -78,6 +79,7 @@ export interface ServiceApiFieldActivities {
     comment?: string | null;
     techIssueComment?: string | null;
     mediaLinks?: string[] | null;
+    offlineMediaFiles?: OfflineMediaFileRef[] | null;
   }): Promise<FcUserFormSaveResult>;
 
   getTodayVisitId(userId: string, schoolId: string): Promise<string | null>;

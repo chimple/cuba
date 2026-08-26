@@ -19,7 +19,7 @@ import FcInteractContactCard from './FcInteractContactCard';
 import FcInteractFooter from './FcInteractFooter';
 import FcInteractQuestionsPanel from './FcInteractQuestionsPanel';
 import type { FcQuestion } from './fcInteractOptions';
-
+import { prepareFcUserFormMedia } from '../../../services/offline/fctouchpoints/fcTouchPointOfflineMedia';
 type FcInteractPopUpProps = {
   schoolId: string;
   studentData?: StudentInfo;
@@ -58,7 +58,6 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   const hasProcessingMedia = media.mediaUploads.some(
     (m) => m.status !== 'done',
   );
-
   const api = ServiceConfig.getI().apiHandler;
   const authHandler = ServiceConfig.getI().authHandler;
   const [localQuestions, setLocalQuestions] = useState<FcQuestion[]>([]);
@@ -95,7 +94,6 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     window.location.href =
       type === 'phone' ? `tel:${value}` : `mailto:${value}`;
   };
-
   useEffect(() => {
     let mounted = true;
 
@@ -194,10 +192,16 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
 
       const currentUser = await authHandler.getCurrentUser();
       const visitId = await api.getTodayVisitId(currentUser?.id!, schoolId);
-
-      const mediaLinks = await media.uploadAllMedia((file) =>
-        api.uploadSchoolVisitMediaFile({ schoolId, file }),
-      );
+      const isOffline =
+        typeof navigator !== 'undefined' && navigator.onLine === false;
+      const { mediaLinks, offlineMediaFiles } = await prepareFcUserFormMedia({
+        isOffline,
+        mediaUploads: media.mediaUploads,
+        userId: currentUser!.id,
+        schoolId,
+        uploadAllMedia: media.uploadAllMedia,
+        uploadFn: (file) => api.uploadSchoolVisitMediaFile({ schoolId, file }),
+      });
 
       const payload = {
         visitId: visitId ?? null,
@@ -214,7 +218,8 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
         techIssueComment:
           techIssueMarked === true ? techIssueDetails.trim() : null,
         techIssuesReported: techIssueMarked === true,
-        mediaLinks: mediaLinks.length > 0 ? mediaLinks : null,
+        mediaLinks,
+        offlineMediaFiles,
         activityType: mode === 'call' ? 'call' : 'in_person',
       };
       await api.saveFcUserForm(payload);
@@ -225,7 +230,6 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
       setIsSaving(false);
     }
   };
-
   return (
     <div className="fc-interact-popup-overlay" id="fc-popup-overlay">
       <div

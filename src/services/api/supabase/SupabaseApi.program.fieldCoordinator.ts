@@ -13,6 +13,7 @@ import {
   saveFcUserForm as saveFcTouchPointUserForm,
   type CreatedFcNote,
 } from '../../offline/fctouchpoints/fcTouchPointNotes';
+import type { OfflineMediaFileRef } from '../../offline/fctouchpoints/fcTouchPointOfflineMedia';
 
 export interface SupabaseApiProgramFieldCoordinator {
   [key: string]: unknown;
@@ -66,6 +67,7 @@ export class SupabaseApiProgramFieldCoordinator extends SupabaseApiProgramClassM
     comment?: string | null;
     techIssueComment?: string | null;
     mediaLinks?: string[] | null;
+    offlineMediaFiles?: OfflineMediaFileRef[] | null;
   }): Promise<FcUserFormSaveResult> {
     return saveFcTouchPointUserForm.call(this, payload);
   }
