@@ -140,8 +140,9 @@ describe('KidsAppLocation', () => {
       ),
     );
     expect(setCurrModeMock).toHaveBeenCalledWith(MODES.TEACHER_SCHOOL);
-    expect(mockReplace).toHaveBeenCalledWith(PAGES.SELECT_MODE, {
-      fromKidsAppLocationSchool: true,
+    expect(mockReplace).toHaveBeenCalledWith({
+      pathname: PAGES.SELECT_MODE,
+      search: '?schoolKids=true',
     });
   });
 

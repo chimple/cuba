@@ -72,7 +72,6 @@ jest.mock('./assets/leftArrowIcon.svg', () => ({
 const mockHistoryReplace = jest.fn();
 let mockLocationState:
   | {
-      fromKidsAppLocationSchool?: boolean;
       fromSwitchProfileReturn?: boolean;
     }
   | undefined;
@@ -323,6 +322,7 @@ describe('SelectMode page', () => {
     jest.clearAllMocks();
     localStorage.clear();
     sessionStorage.clear();
+    window.history.replaceState({}, '', 'http://localhost/');
     mockLocationState = undefined;
 
     // Mock Redux hooks
@@ -891,7 +891,11 @@ describe('SelectMode page', () => {
       name: 'Class 1',
       school_id: teacherSchool.id,
     };
-    mockLocationState = { fromKidsAppLocationSchool: true };
+    window.history.replaceState(
+      {},
+      '',
+      'http://localhost/#/select-mode?schoolKids=true',
+    );
     mockGetCurrMode.mockResolvedValue(MODES.TEACHER_SCHOOL);
     mockAuthHandler.getCurrentUser.mockResolvedValue({
       id: 'user-1',
