@@ -32,13 +32,13 @@ const subjectMap: Record<string, string> = {
   Maths: 'Maths',
   English: 'English',
   'Digital Skills': 'Digital Skills',
-  Kannada: '???????????????',
-  Hindi: '???????????????',
-  Marathi: '???????????????',
+  Kannada: 'ಕನ್ನಡ',
+  Hindi: 'हिंदी',
+  Marathi: 'मराठी',
 };
 
 const validateEmailOrPhone = (value: string): boolean => {
-  const emailRegex = /^[^s@]+@[^s@]+.[^s@]+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (emailRegex.test(value)) {
     return true;
   }
