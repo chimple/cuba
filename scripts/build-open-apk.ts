@@ -8,11 +8,16 @@
 
 // npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output --zip-source=D:\chimple-zips
 
+// npx ts-node scripts/build-open-apk.ts --language=pt --avatar=G:\mascot_with_accessories_sep_2025.riv --course_ids=0937c891-9bed-4fa2-b422-ad3bee7f4569 --output=G:\open-apk-output --splash="C:\Users\LENOVO\Downloads\splash_screen.png"
+
+// adb install -r G:\open-apk-output\app-release.apk
+
 // Optional flags:
 
 // --skip-build       Prepare bundles only, do not build APK
 // --dry-run          Resolve lessons and write manifest only
 // --zip-source=PATH  Override local ZIP folder, defaults to D:\chimple-zips
+// --splash=PATH      Show a custom startup splash for 1000 ms in this build
 // --fail-on-missing  Stop if any bundle cannot be found
 
 import JSZip from 'jszip';
@@ -28,6 +33,7 @@ type CliOptions = {
   courseIds: string[];
   output: string;
   zipSource: string;
+  splash?: string;
   skipBuild: boolean;
   dryRun: boolean;
   force: boolean;
@@ -113,6 +119,7 @@ type Manifest = {
   languageId: string | null;
   avatar: string;
   pathwayMascot: string;
+  splashScreen: string | null;
   courseIds: string[];
   courses: CourseRow[];
   chapterCount: number;
@@ -152,6 +159,12 @@ const pathwayMascotPath = path.join(
   'public',
   'pathwayAssets',
   'chimpleRive.riv',
+);
+const openApkSplashAssetPath = path.join(
+  repoRoot,
+  'public',
+  'assets',
+  'open-apk-splash.png',
 );
 
 const remoteBundleBaseUrls = [
@@ -213,6 +226,10 @@ const parseArgs = (argv: string[]): CliOptions => {
     courseIds,
     output: getString('output') ?? '',
     zipSource: getString('zip-source') ?? 'D:\\chimple-zips',
+    splash:
+      getString('splash') ??
+      getString('splash-screen') ??
+      getString('splash_screen'),
     skipBuild: raw['skip-build'] === true,
     dryRun: raw['dry-run'] === true,
     force: raw.force === true,
@@ -334,6 +351,45 @@ const prepareAvatar = async (
   return {
     avatarPath: animationAssetPath,
     pathwayMascotPath,
+  };
+};
+
+const validateSplashScreen = async (
+  splash?: string,
+): Promise<string | null> => {
+  if (!splash) return null;
+
+  const sourcePath = path.resolve(splash);
+  if (!(await fileExists(sourcePath))) {
+    throw new Error(`Splash screen asset not found: ${sourcePath}`);
+  }
+
+  if (path.extname(sourcePath).toLowerCase() !== '.png') {
+    throw new Error(`Splash screen must be a .png file: ${sourcePath}`);
+  }
+
+  return sourcePath;
+};
+
+const applySplashScreenOverride = async (
+  sourcePath: string,
+): Promise<() => Promise<void>> => {
+  const hadOriginalSplash = await fileExists(openApkSplashAssetPath);
+  const originalSplash = hadOriginalSplash
+    ? await fs.readFile(openApkSplashAssetPath)
+    : null;
+
+  await fs.copyFile(sourcePath, openApkSplashAssetPath);
+
+  console.log(`Prepared Open APK startup splash: ${openApkSplashAssetPath}`);
+
+  return async () => {
+    if (originalSplash) {
+      await fs.writeFile(openApkSplashAssetPath, originalSplash);
+    } else {
+      await fs.rm(openApkSplashAssetPath, { force: true });
+    }
+    console.log('Restored Open APK startup splash asset.');
   };
 };
 
@@ -708,10 +764,16 @@ const prepareBundle = async (
   };
 };
 
-const run = (command: string, args: string[], cwd: string): void => {
+const run = (
+  command: string,
+  args: string[],
+  cwd: string,
+  env?: NodeJS.ProcessEnv,
+): void => {
   console.log(`Running: ${command} ${args.join(' ')}`);
   const result = spawnSync(command, args, {
     cwd,
+    env: env ? { ...process.env, ...env } : process.env,
     stdio: 'inherit',
     shell: process.platform === 'win32',
   });
@@ -750,8 +812,11 @@ const findReleaseApk = async (): Promise<string> => {
   return apkStats[0].apkPath;
 };
 
-const buildAndCopyApk = async (outputDir: string): Promise<void> => {
-  run('npm', ['run', 'build:android'], repoRoot);
+const buildAndCopyApk = async (
+  outputDir: string,
+  buildEnv?: NodeJS.ProcessEnv,
+): Promise<void> => {
+  run('npm', ['run', 'build:android'], repoRoot, buildEnv);
   run(
     process.platform === 'win32' ? 'gradlew.bat' : './gradlew',
     ['assembleRelease'],
@@ -773,6 +838,7 @@ const main = async (): Promise<void> => {
   const originalImportJsonContent = await fs.readFile(importJsonPath, 'utf8');
   const importJson = JSON.parse(originalImportJsonContent) as ImportJson;
   const avatar = await prepareAvatar(options.avatar);
+  const splashScreen = await validateSplashScreen(options.splash);
 
   const language = resolveLanguage(importJson, options.language);
   const courseIds = options.courseIds;
@@ -842,6 +908,7 @@ const main = async (): Promise<void> => {
     languageId: language?.id ?? null,
     avatar: avatar.avatarPath,
     pathwayMascot: avatar.pathwayMascotPath,
+    splashScreen,
     courseIds,
     courses,
     chapterCount: chapters.length,
@@ -902,7 +969,13 @@ const main = async (): Promise<void> => {
     return;
   }
 
+  let restoreSplashScreen: (() => Promise<void>) | null = null;
+
   try {
+    if (splashScreen) {
+      restoreSplashScreen = await applySplashScreenOverride(splashScreen);
+    }
+
     if (importJsonNeedsRewrite) {
       await fs.writeFile(
         importJsonPath,
@@ -913,8 +986,15 @@ const main = async (): Promise<void> => {
       );
     }
 
-    await buildAndCopyApk(path.resolve(options.output));
+    await buildAndCopyApk(
+      path.resolve(options.output),
+      splashScreen ? { VITE_OPEN_APK_SPLASH: 'true' } : undefined,
+    );
   } finally {
+    if (restoreSplashScreen) {
+      await restoreSplashScreen();
+    }
+
     if (importJsonNeedsRewrite) {
       await fs.writeFile(importJsonPath, originalImportJsonContent);
       console.log('Restored original public/databases/import.json.');

@@ -27,6 +27,7 @@ interface ImportMetaEnv {
   readonly VITE_LOG_LEVEL?: string;
   readonly VITE_MEASUREMENT_ID?: string;
   readonly VITE_MESSAGING_SENDER_ID?: string;
+  readonly VITE_OPEN_APK_SPLASH?: string;
   readonly VITE_PROJECT_ID?: string;
   readonly VITE_RAPIDAPI_KEY?: string;
   readonly VITE_SENTRY_DSN?: string;
