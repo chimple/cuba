@@ -119,7 +119,7 @@ const ActivationLessonBanner: React.FC<ActivationLessonBannerProps> = ({
           return;
         }
 
-        const params = `?courseid=${randomLesson.cocos_subject_code}&chapterid=${randomLesson.cocos_chapter_code}&lessonid=${"mz_math6_0000"}`;
+        const params = `?courseid=${randomLesson.cocos_subject_code}&chapterid=${randomLesson.cocos_chapter_code}&lessonid=${"mz_basics_0000"}`;
         launchTimeoutRef.current = window.setTimeout(() => {
           history.push(PAGES.LIDO_PLAYER + params, {
             lessonId: playableLessonId,

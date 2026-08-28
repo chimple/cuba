@@ -1088,8 +1088,63 @@ export class Util {
     }
   }
 
+  private static createCocosCanvas(): HTMLCanvasElement {
+    let canvas = document.getElementById(
+      'GameCanvas',
+    ) as HTMLCanvasElement | null;
+
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'GameCanvas';
+      canvas.tabIndex = 0;
+      canvas.oncontextmenu = (event) => event.preventDefault();
+      document.body.appendChild(canvas);
+    }
+
+    canvas.style.display = 'none';
+    canvas.style.width = '0px';
+    canvas.style.height = '0px';
+
+    return canvas;
+  }
+
+  private static releaseCocosWebGlContext(canvas: HTMLCanvasElement): void {
+    try {
+      const context = (canvas.getContext('webgl') ??
+        canvas.getContext(
+          'experimental-webgl',
+        )) as WebGLRenderingContext | null;
+      const loseContext = context?.getExtension('WEBGL_lose_context');
+      loseContext?.loseContext();
+    } catch (error) {
+      logger.warn('Failed to release Cocos WebGL context', error);
+    }
+  }
+
+  private static removeCocosRuntimeDom(): void {
+    const container = document.getElementById('Cocos2dGameContainer');
+    if (container) {
+      container.querySelectorAll('canvas').forEach((canvas) => {
+        Util.releaseCocosWebGlContext(canvas as HTMLCanvasElement);
+      });
+      container.remove();
+    }
+
+    const canvas = document.getElementById(
+      'GameCanvas',
+    ) as HTMLCanvasElement | null;
+    if (canvas) {
+      Util.releaseCocosWebGlContext(canvas);
+      canvas.remove();
+    }
+
+    document.getElementById('GameDiv')?.remove();
+  }
+
   public static async launchCocosGame(): Promise<void> {
     try {
+      Util.createCocosCanvas();
+
       if (!window.cc) {
         return;
       }
@@ -1139,15 +1194,22 @@ export class Util {
   }
 
   public static killCocosGame(): void {
-    Util.hideCocosCanvas();
-
-    if (!window.cc) {
-      return;
+    try {
+      if (window.cc) {
+        window.cc.audioEngine?.stopAll?.();
+        window.cc.director?.getActionManager?.()?.removeAllActions?.();
+        window.cc.director?.getScene?.()?.destroy?.();
+        window.cc.Object?._deferredDestroy?.();
+        window.cc.assetManager?.releaseUnusedAssets?.();
+        window.cc.director?.pause?.();
+        window.cc.game?.pause?.();
+      }
+    } catch (error) {
+      logger.warn('[ANRGuard] Cocos game teardown failed', error);
+    } finally {
+      Util.removeCocosRuntimeDom();
     }
-    window.cc.game.pause();
-    window.cc.director?.pause?.();
-    window.cc.audioEngine.stopAll();
-    window.cc.assetManager?.releaseUnusedAssets?.();
+
     logger.info('[ANRGuard] Cocos game killed');
   }
 

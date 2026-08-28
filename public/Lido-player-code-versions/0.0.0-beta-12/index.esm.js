@@ -1,1 +1,1 @@
-export{$ as format}from"./p-CCVEYOMG.js";import"./p-Dfj4noku.js";
+export{$ as format}from"./p-DI6jhXHv.js";import"./p-Dfj4noku.js";
