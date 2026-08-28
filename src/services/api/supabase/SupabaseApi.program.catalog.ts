@@ -108,7 +108,7 @@ export class SupabaseApiProgramCatalog extends SupabaseApiProgramFoundation {
         },
         {
           id: 'institute_owner',
-          label: 'Institute Owner',
+          label: 'Institute Partner',
           value: program.institute_partner ?? '',
         },
       ];
