@@ -7,7 +7,10 @@ import { FirebaseAuth } from './auth/FirebaseAuth';
 import { OneRosterAuth } from './auth/OneRosterAuth';
 import { SupabaseAuth } from './auth/SupabaseAuth';
 import { SupabaseApi } from './api/SupabaseApi';
-import { registerFcTouchPointSyncRunner } from './offline/fcTouchPointOfflineQueue';
+import {
+  registerFcTouchPointSyncRunner,
+  requestFcTouchPointSync,
+} from './offline/fcTouchPointOfflineQueue';
 
 export enum APIMode {
   ONEROSTER,
@@ -100,6 +103,7 @@ export class ServiceConfig {
     registerFcTouchPointSyncRunner(() =>
       SupabaseApi.getInstance().syncPendingFcTouchPoints(),
     );
+    requestFcTouchPointSync();
   }
 
   get apiHandler(): ApiHandler {

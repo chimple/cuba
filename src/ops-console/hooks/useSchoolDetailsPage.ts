@@ -15,6 +15,12 @@ import { useAppSelector } from '../../redux/hooks';
 import { RootState } from '../../redux/store';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
+import {
+  clearQuestionsCache,
+  clearSchoolHeaderCache,
+  readSchoolHeaderCache,
+  writeSchoolHeaderCache,
+} from '../../services/offline/offlineCache';
 
 export type SchoolStats = {
   active_student_percentage: number;
@@ -303,6 +309,12 @@ export const useSchoolDetailsPage = (id: string) => {
     const api = ServiceConfig.getI().apiHandler;
 
     try {
+      const cachedSchool =
+        await readSchoolHeaderCache<Record<string, unknown>>(id);
+      if (cachedSchool) {
+        setData((prev) => ({ ...prev, schoolData: cachedSchool }));
+      }
+
       const [
         schoolSettled,
         programSettled,
@@ -320,6 +332,9 @@ export const useSchoolDetailsPage = (id: string) => {
       ]);
 
       const school = resolveSettled('getSchoolById', schoolSettled, undefined);
+      if (school) {
+        await writeSchoolHeaderCache(id, school);
+      }
       const program = resolveSettled(
         'getProgramForSchool',
         programSettled,
@@ -440,6 +455,13 @@ export const useSchoolDetailsPage = (id: string) => {
     loadedTabsRef.current.clear();
     loadingTabsRef.current.clear();
     setData({});
+  }, [id]);
+
+  useEffect(() => {
+    return () => {
+      void clearQuestionsCache();
+      void clearSchoolHeaderCache(id);
+    };
   }, [id]);
 
   useEffect(() => {

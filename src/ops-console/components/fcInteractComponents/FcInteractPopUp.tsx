@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { IoClose } from 'react-icons/io5';
 import './FcInteractPopUp.css';
 import {
@@ -20,6 +20,7 @@ import FcInteractFooter from './FcInteractFooter';
 import FcInteractQuestionsPanel from './FcInteractQuestionsPanel';
 import type { FcQuestion } from './fcInteractOptions';
 import { prepareFcUserFormMedia } from '../../../services/offline/fctouchpoints/fcTouchPointOfflineMedia';
+import { useFcInteractPopup } from './useFcInteractPopup';
 type FcInteractPopUpProps = {
   schoolId: string;
   studentData?: StudentInfo;
@@ -60,8 +61,6 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
   );
   const api = ServiceConfig.getI().apiHandler;
   const authHandler = ServiceConfig.getI().authHandler;
-  const [localQuestions, setLocalQuestions] = useState<FcQuestion[]>([]);
-  const [isQuestionsLoading, setIsQuestionsLoading] = useState(false);
   let userData: TableTypes<'user'> | null = null;
   let parentData: TableTypes<'user'> | null = null;
   let className = '';
@@ -81,6 +80,12 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     userData = principalData;
   }
 
+  const { isQuestionsLoading, localQuestions } = useFcInteractPopup({
+    status,
+    initialUserType,
+    spokeWith,
+  });
+
   const contactEntries = studentData
     ? getStudentContactEntries(studentData)
     : getStudentContactEntries({ user: userData, parent: parentData });
@@ -94,42 +99,6 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     window.location.href =
       type === 'phone' ? `tel:${value}` : `mailto:${value}`;
   };
-  useEffect(() => {
-    let mounted = true;
-
-    const load = async () => {
-      if (mounted) {
-        setIsQuestionsLoading(true);
-        setLocalQuestions([]);
-        setResponses({});
-      }
-      try {
-        const questions = await api.getFilteredFcQuestions(
-          status ?? null,
-          spokeWith ?? initialUserType,
-        );
-
-        const formattedQuestions =
-          questions?.map((q) => ({
-            id: q.id,
-            question: q.question_text,
-          })) ?? [];
-
-        if (mounted) {
-          setLocalQuestions(formattedQuestions);
-        }
-      } catch (err) {
-        logger.error('Question fetch error', err);
-      } finally {
-        if (mounted) setIsQuestionsLoading(false);
-      }
-    };
-
-    load();
-    return () => {
-      mounted = false;
-    };
-  }, [status, spokeWith, api]);
 
   const handleResponseChange = (id: string, value: string) => {
     setResponses((p) => ({ ...p, [id]: value }));
