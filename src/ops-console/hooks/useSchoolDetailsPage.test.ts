@@ -1,4 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
+import { Preferences } from '@capacitor/preferences';
 import { SchoolTabs } from '../../interface/modelInterfaces';
 import { useSchoolDetailsPage } from './useSchoolDetailsPage';
 
@@ -7,6 +8,8 @@ jest.mock('@capacitor/toast', () => ({
     show: jest.fn(),
   },
 }));
+
+jest.mock('@capacitor/preferences');
 
 jest.mock('i18next', () => ({
   t: (key: string) => key,
@@ -57,6 +60,12 @@ jest.mock('../../services/ServiceConfig', () => ({
 describe('useSchoolDetailsPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    (Preferences.keys as jest.Mock).mockResolvedValue({ keys: [] });
+    (Preferences.get as jest.Mock).mockResolvedValue({ value: null });
+    (Preferences.set as jest.Mock).mockResolvedValue(undefined);
+    (Preferences.remove as jest.Mock).mockResolvedValue(undefined);
+    (Preferences.clear as jest.Mock).mockResolvedValue(undefined);
 
     mockApiHandler.getSchoolById.mockResolvedValue({
       id: 'school-1',

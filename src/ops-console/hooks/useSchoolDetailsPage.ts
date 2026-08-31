@@ -16,8 +16,6 @@ import { RootState } from '../../redux/store';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
 import {
-  clearQuestionsCache,
-  clearSchoolHeaderCache,
   readSchoolHeaderCache,
   writeSchoolHeaderCache,
 } from '../../services/offline/offlineCache';
@@ -335,6 +333,7 @@ export const useSchoolDetailsPage = (id: string) => {
       if (school) {
         await writeSchoolHeaderCache(id, school);
       }
+      const schoolData = school ?? cachedSchool ?? undefined;
       const program = resolveSettled(
         'getProgramForSchool',
         programSettled,
@@ -378,7 +377,7 @@ export const useSchoolDetailsPage = (id: string) => {
 
       setData((prev) => ({
         ...prev,
-        schoolData: school,
+        schoolData,
         programData: program,
         programManagers,
         principals: principalsResponse?.data ?? [],
@@ -455,13 +454,6 @@ export const useSchoolDetailsPage = (id: string) => {
     loadedTabsRef.current.clear();
     loadingTabsRef.current.clear();
     setData({});
-  }, [id]);
-
-  useEffect(() => {
-    return () => {
-      void clearQuestionsCache();
-      void clearSchoolHeaderCache(id);
-    };
   }, [id]);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { IoClose } from 'react-icons/io5';
 import './FcInteractPopUp.css';
 import {
@@ -85,6 +85,14 @@ const FcInteractPopUp: React.FC<FcInteractPopUpProps> = ({
     initialUserType,
     spokeWith,
   });
+
+  useEffect(() => {
+    setResponses({});
+    setOtherComments('');
+    setTechIssueMarked(null);
+    setTechIssueDetails('');
+    setCallOutcome('');
+  }, [initialUserType, spokeWith, status]);
 
   const contactEntries = studentData
     ? getStudentContactEntries(studentData)

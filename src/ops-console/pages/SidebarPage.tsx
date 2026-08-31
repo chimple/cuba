@@ -1,5 +1,5 @@
 import { IonPage } from '@ionic/react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Redirect,
   useParams,
@@ -14,6 +14,7 @@ import {
 } from '../../common/constants';
 import { ServiceConfig } from '../../services/ServiceConfig';
 import logger from '../../utility/logger';
+import { clearAllSchoolHeaderCache } from '../../services/offline/offlineCache';
 import Sidebar from '../components/Sidebar';
 import ProgramConnectedSchoolPage from './ProgramConnectedSchoolPageOps';
 import ProgramDetailsPage from './ProgramDetailsPage';
@@ -119,6 +120,7 @@ const SidebarPage: React.FC = () => {
   const canAccessCoordinatorPages = userRoles.includes(
     RoleType.FIELD_COORDINATOR,
   );
+  const previousPathRef = useRef(location.pathname);
 
   useEffect(() => {
     fetchData();
@@ -170,6 +172,19 @@ const SidebarPage: React.FC = () => {
     location.pathname,
     path,
   ]);
+
+  useEffect(() => {
+    const schoolListPath = `${path}${PAGES.SCHOOL_LIST}`;
+    const previousPath = previousPathRef.current;
+    const wasInSchoolList = previousPath.startsWith(schoolListPath);
+    const isInSchoolList = location.pathname.startsWith(schoolListPath);
+
+    previousPathRef.current = location.pathname;
+
+    if (wasInSchoolList && !isInSchoolList) {
+      void clearAllSchoolHeaderCache();
+    }
+  }, [location.pathname, path]);
 
   const fetchData = async () => {
     try {
