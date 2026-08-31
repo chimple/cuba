@@ -26,6 +26,6 @@ type Story = StoryObj<{ number: number }>;
 
 export const Preview: Story = {
   args: {
-    number: 3000,
+    number: 1500,
   },
 };
