@@ -38,7 +38,7 @@
 .badges-decoration {
   z-index: 3;
   width: 164px;
-  height: 108px;
+  height: 112px;
 }
 
 .badges-decoration-top-3 {
@@ -68,12 +68,12 @@
   position: absolute;
   z-index: 5;
   right: 0;
-  bottom: 21px;
+  bottom: 20px;
   left: 0;
   color: #005757;
-  font-family: 'BalooRegular', sans-serif;
-  font-size: 2rem;
-  font-weight: 700;
+  font-family: 'Baloo2' !important;
+  font-size: 2rem !important;
+  font-weight: 600;
   line-height: 1;
   text-align: center;
 }

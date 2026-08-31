@@ -65,56 +65,22 @@ const centerIconSvgs = [
   volleyballSvg,
 ] as const;
 
-const BADGE_INCREMENT = 50;
-const DECORATION_ORDERS = [
-  [0, 3, 1, 5, 2, 4],
-  [4, 1, 5, 0, 3, 2],
-  [2, 5, 3, 1, 4, 0],
-  [1, 4, 0, 2, 5, 3],
-  [5, 2, 4, 3, 0, 1],
-  [3, 0, 2, 4, 1, 5],
-] as const;
-const ICON_COMBINATION_COUNT =
-  centerIconSvgs.length *
-  (centerIconSvgs.length - 1) *
-  (centerIconSvgs.length - 2);
+const getRandomIndex = (length: number): number =>
+  Math.floor(Math.random() * length);
 
-const getBadgeStep = (badgeNumber: number): number =>
-  Math.max(0, Math.floor(badgeNumber / BADGE_INCREMENT) - 1);
+const getIconSvgs = (): readonly [string, string, string] => {
+  const shuffledIcons = [...centerIconSvgs];
 
-const getDecorationIndex = (badgeStep: number): number => {
-  const decorationOrder =
-    DECORATION_ORDERS[
-      Math.floor(badgeStep / decorationSvgs.length) % DECORATION_ORDERS.length
+  // Shuffle first so three random choices cannot repeat or wait for a retry.
+  for (let index = shuffledIcons.length - 1; index > 0; index -= 1) {
+    const targetIndex = getRandomIndex(index + 1);
+    [shuffledIcons[index], shuffledIcons[targetIndex]] = [
+      shuffledIcons[targetIndex],
+      shuffledIcons[index],
     ];
+  }
 
-  // Each group contains all six shapes in a different order to avoid a visible loop.
-  return decorationOrder[badgeStep % decorationSvgs.length];
-};
-
-const getIconSvgs = (badgeStep: number): readonly [string, string, string] => {
-  const iconVariant =
-    (badgeStep * (ICON_COMBINATION_COUNT - 1)) % ICON_COMBINATION_COUNT;
-  const firstIndex = Math.floor(
-    iconVariant / ((centerIconSvgs.length - 1) * (centerIconSvgs.length - 2)),
-  );
-  const remainingIndexes = centerIconSvgs
-    .map((_, index) => index)
-    .filter((index) => index !== firstIndex);
-  const secondIndex =
-    remainingIndexes[
-      Math.floor(iconVariant / (centerIconSvgs.length - 2)) %
-        (centerIconSvgs.length - 1)
-    ];
-  const thirdIndex = remainingIndexes.filter((index) => index !== secondIndex)[
-    iconVariant % (centerIconSvgs.length - 2)
-  ];
-
-  return [
-    centerIconSvgs[firstIndex],
-    centerIconSvgs[secondIndex],
-    centerIconSvgs[thirdIndex],
-  ];
+  return [shuffledIcons[0], shuffledIcons[1], shuffledIcons[2]];
 };
 
 const createBadge = (
@@ -128,14 +94,13 @@ const createBadge = (
   ]: BadgeRule,
   badgeNumber: number,
 ): GeneratedBadge => {
-  const badgeStep = getBadgeStep(badgeNumber);
-  const iconSvgs = getIconSvgs(badgeStep);
+  const iconSvgs = getIconSvgs();
   return {
     badgeNumber,
     baseSvg: applyColor(baseSvg, baseColor),
     borderSvg: applyColor(borderSvg, borderColor),
     decorationSvg: applyColor(
-      decorationSvgs[getDecorationIndex(badgeStep)],
+      decorationSvgs[getRandomIndex(decorationSvgs.length)],
       decorationColor,
     ),
     decorationClassName:
