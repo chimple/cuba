@@ -1193,16 +1193,29 @@ export class Util {
     }
   }
 
-  public static killCocosGame(): void {
+  public static pauseCocosGame(): void {
     try {
       if (window.cc) {
         window.cc.audioEngine?.stopAll?.();
+        window.cc.director?.pause?.();
+        window.cc.game?.pause?.();
+      }
+    } catch (error) {
+      logger.warn('[ANRGuard] Cocos game pause failed', error);
+    } finally {
+      Util.hideCocosCanvas();
+    }
+  }
+
+  public static killCocosGame(): void {
+    Util.pauseCocosGame();
+
+    try {
+      if (window.cc) {
         window.cc.director?.getActionManager?.()?.removeAllActions?.();
         window.cc.director?.getScene?.()?.destroy?.();
         window.cc.Object?._deferredDestroy?.();
         window.cc.assetManager?.releaseUnusedAssets?.();
-        window.cc.director?.pause?.();
-        window.cc.game?.pause?.();
       }
     } catch (error) {
       logger.warn('[ANRGuard] Cocos game teardown failed', error);

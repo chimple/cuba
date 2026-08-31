@@ -294,6 +294,16 @@ const CocosGame: React.FC = () => {
   const handleLessonEndListner = (event: any) => {
     savingPromiseRef.current = saveTempData(event.detail); // Store the promise
     setGameResult(event);
+
+    // Cocos is still completing its own event sequence at this point. Pause and
+    // hide it for the score card, but defer destructive teardown until we leave
+    // this page so the scene cannot restart itself.
+    cleanupGameListeners();
+    Util.pauseCocosGame();
+    setShowDialogBox(true);
+    initialCount++;
+    localStorage.setItem(LESSONS_PLAYED_COUNT, initialCount.toString());
+
     const popupConfig = growthbook?.getFeatureValue('generic-pop-up', null);
 
     if (popupConfig) {
@@ -703,6 +713,7 @@ const CocosGame: React.FC = () => {
                   logger.error('Error saving data', error);
                 }
                 setShowDialogBox(false);
+                cleanupGameRuntime();
                 push();
               }}
             />
