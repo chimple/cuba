@@ -23,6 +23,7 @@ const curriculumMap: Record<string, string> = {
   NCERT: 'NCERT',
   Chimple: 'Chimple',
   Karnataka: 'Karnataka State Board',
+  'Karnataka State Board': 'Karnataka State Board',
   Haryana: 'Haryana',
   'Uttar Pradesh': 'Uttar Pradesh',
   Maharashtra: 'Maharashtra',
