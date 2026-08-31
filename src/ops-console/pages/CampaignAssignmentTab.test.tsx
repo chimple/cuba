@@ -143,6 +143,7 @@ describe('CampaignAssignmentTab', () => {
     );
 
     expect(api.getAllGrades).toHaveBeenCalledTimes(1);
+    expect(api.getCampaignAssignments).toHaveBeenCalledTimes(1);
     expect(await screen.findByTestId('data-table')).toBeInTheDocument();
     expect(screen.getByText('Lesson Alpha')).toBeInTheDocument();
   });

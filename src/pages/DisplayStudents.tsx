@@ -3,7 +3,7 @@ import { ScreenOrientation } from '../utility/screenOrientation';
 import { IonPage } from '@ionic/react';
 import { t } from 'i18next';
 import { FC, useEffect, useState } from 'react';
-import { useHistory } from 'react-router';
+import { useHistory, useLocation } from 'react-router';
 import {
   AVATARS,
   EDIT_STUDENTS_MAP,
@@ -18,10 +18,13 @@ import InlineSvg from '../components/InlineSvg';
 import { updateLocalAttributes, useGbContext } from '../growthbook/Growthbook';
 import { ServiceConfig } from '../services/ServiceConfig';
 import logger from '../utility/logger';
+import { getAppSearch } from '../utility/routerLocation';
 import { schoolUtil } from '../utility/schoolUtil';
 import { Util } from '../utility/util';
 import BrandLogoIcon from './assets/brandLogoIcon.svg?raw';
 import './DisplayStudents.css';
+import { parsePath } from 'history';
+
 const DisplayStudents: FC<{}> = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [students, setStudents] = useState<TableTypes<'user'>[]>();
@@ -29,6 +32,7 @@ const DisplayStudents: FC<{}> = () => {
   const [studentMode, setStudentMode] = useState<string | undefined>();
   const api = ServiceConfig.getI().apiHandler;
   const history = useHistory();
+  const location = useLocation<{ fromSwitchProfileReturn?: boolean }>();
   const { setGbUpdated } = useGbContext();
   const isWebPlatform = Capacitor.getPlatform() === 'web';
   const getProfileCardPlayActionParams = (
@@ -68,8 +72,11 @@ const DisplayStudents: FC<{}> = () => {
       storedMapStr,
     );
     if (!mergedStudents || mergedStudents.length < 1) {
-      history.replace(PAGES.CREATE_STUDENT, {
-        showBackButton: false,
+      history.replace({
+        ...parsePath(PAGES.CREATE_STUDENT),
+        state: {
+          showBackButton: false,
+        },
       });
       return;
     }
@@ -79,7 +86,8 @@ const DisplayStudents: FC<{}> = () => {
     setIsLoading(false);
   };
   const onStudentClick = async (student: TableTypes<'user'>) => {
-    schoolUtil.setCurrMode(MODES.PARENT);
+    if (studentMode !== MODES.SCHOOL && studentMode !== MODES.TEACHER_SCHOOL)
+      schoolUtil.setCurrMode(MODES.PARENT);
     await Util.setCurrentStudent(student, undefined, true);
     const linkedData = await api.getStudentClassesAndSchools(student.id);
     void Util.ensureLidoCommonAudioForStudent(student).catch((error) => {
@@ -107,11 +115,19 @@ const DisplayStudents: FC<{}> = () => {
     });
     setGbUpdated(true);
     if (!student.language_id) {
-      history.replace(PAGES.EDIT_STUDENT, {
-        from: history.location.pathname,
+      history.replace({
+        ...parsePath(PAGES.EDIT_STUDENT),
+        state: {
+          from: history.location.pathname,
+        },
       });
     } else {
-      history.replace(PAGES.HOME + window.location.search);
+      history.replace({
+        ...parsePath(PAGES.HOME),
+        state: location.state?.fromSwitchProfileReturn
+          ? { fromSwitchProfileReturn: true }
+          : undefined,
+      });
     }
   };
   return (

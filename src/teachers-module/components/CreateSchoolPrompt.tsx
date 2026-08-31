@@ -4,6 +4,7 @@ import { useHistory } from 'react-router';
 import { PAGES } from '../../common/constants';
 import './CreateSchoolPrompt.css';
 import { t } from 'i18next';
+import { parsePath } from 'history';
 
 interface CreateSchoolPromptProps {
   country?: string;
@@ -21,12 +22,15 @@ const CreateSchoolPrompt: FC<CreateSchoolPromptProps> = ({
   const history = useHistory();
 
   const handleCreateSchool = () => {
-    history.push(PAGES.CREATE_SCHOOL, {
-      origin: PAGES.SEARCH_SCHOOL,
-      country,
-      state,
-      district,
-      block,
+    history.push({
+      ...parsePath(PAGES.CREATE_SCHOOL),
+      state: {
+        origin: PAGES.SEARCH_SCHOOL,
+        country,
+        state,
+        district,
+        block,
+      },
     });
   };
 

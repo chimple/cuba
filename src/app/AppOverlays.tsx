@@ -55,7 +55,7 @@ const AppOverlays = ({
       </DialogTitle>
       <DialogContent sx={{ textAlign: 'center' }}>
         {t(
-          'Youâ€™ve used Chimple for 25 minutes today. Take a break to rest your eyes!',
+          "You've used Chimple for 25 minutes today. Take a break to rest your eyes!",
         ) || ''}
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center' }}>

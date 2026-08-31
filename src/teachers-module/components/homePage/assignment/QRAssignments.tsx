@@ -13,8 +13,7 @@ import AssigmentCount from '../../library/AssignmentCount';
 import logger from '../../../../utility/logger';
 import AssignedVisibilityToggle from '../../AssignedVisibilityToggle';
 import AssignedBadgeIcon from '../../AssignedBadgeIcon';
-import { filterHiddenTeacherLessons } from '../../../utils/lessonFilters';
-
+import { parsePath } from 'history';
 type LessonUI = {
   id: string;
   name: string;
@@ -24,7 +23,6 @@ type LessonUI = {
   isSelected: boolean;
   chapterName: string;
 };
-
 const QRAssignments: React.FC = () => {
   const history = useHistory();
   const location = useLocation<{
@@ -40,7 +38,6 @@ const QRAssignments: React.FC = () => {
   const [toggleCourseName, setToggleCourseName] = useState('');
   const chapterId = location.state?.chapterId;
   const ID_PREFIX = 'qrAssignments';
-
   useEffect(() => {
     if (!chapterId) {
       history.replace(PAGES.HOME_PAGE);
@@ -48,7 +45,6 @@ const QRAssignments: React.FC = () => {
     }
     init();
   }, []);
-
   const init = async () => {
     try {
       setLoading(true);
@@ -56,11 +52,10 @@ const QRAssignments: React.FC = () => {
       const currentClass = await Util.getCurrentClass();
       if (!currentUser || !currentClass) return;
       // 1️⃣ Fetch lessons
-      const [rawLessonList, chapter] = await Promise.all([
+      const [lessonList, chapter] = await Promise.all([
         api.getLessonsForChapter(chapterId),
         api.getChapterById(chapterId),
       ]);
-      const lessonList = filterHiddenTeacherLessons(rawLessonList);
       const chapterName = chapter?.name ?? '';
       if (!lessonList?.length) return;
       // 2️⃣ Fetch assigned lesson IDs
@@ -70,7 +65,6 @@ const QRAssignments: React.FC = () => {
           currentClass.id,
           lessonIds,
         );
-
       const assignedLessonIds = new Set<string>(assignedLessonIdsArr);
       // 3️⃣ Auto-select next 5 unassigned
       const unassignedLessons = lessonList.filter((l: any) => {
@@ -117,7 +111,6 @@ const QRAssignments: React.FC = () => {
     () => lessons.filter((l) => l.isSelected).length,
     [lessons],
   );
-
   return (
     <>
       {loading ? (
@@ -131,7 +124,10 @@ const QRAssignments: React.FC = () => {
             isBackButton={true}
             onBackButtonClick={() => {
               if (location.state?.fromPage === PAGES.HOME_PAGE) {
-                history.replace(PAGES.HOME_PAGE, { tabValue: 2 });
+                history.replace({
+                  ...parsePath(PAGES.HOME_PAGE),
+                  state: { tabValue: 2 },
+                });
                 return;
               }
               history.goBack();
@@ -140,7 +136,6 @@ const QRAssignments: React.FC = () => {
             customText="QR Assignments"
             showSearchIcon={false}
           />
-
           <div
             id={`${ID_PREFIX}-toggle-row`}
             className="qrAssignments-toggle-row"
@@ -150,7 +145,6 @@ const QRAssignments: React.FC = () => {
               onChange={setShowAssigned}
             />
           </div>
-
           {/* Subject + Count row */}
           <div
             id={`${ID_PREFIX}-subject-count-row`}
@@ -162,7 +156,6 @@ const QRAssignments: React.FC = () => {
             >
               {toggleCourseName}
             </span>
-
             <span
               id={`${ID_PREFIX}-count`}
               className="qrAssignments-count-inline"
@@ -170,7 +163,6 @@ const QRAssignments: React.FC = () => {
               {selectedCount}/{lessons.length}
             </span>
           </div>
-
           {/* Lesson List */}
           <div
             id={`${ID_PREFIX}-lesson-list`}
@@ -199,7 +191,6 @@ const QRAssignments: React.FC = () => {
                       imageWidth="80px"
                       imageHeight="80px"
                     />
-
                     {lesson.isAssigned && (
                       <AssignedBadgeIcon
                         id={`${ID_PREFIX}-assigned-badge-${lesson.id}`}
@@ -209,7 +200,6 @@ const QRAssignments: React.FC = () => {
                       />
                     )}
                   </div>
-
                   <div
                     id={`${ID_PREFIX}-lesson-copy-${lesson.id}`}
                     className="qrAssignments-lesson-copy"
@@ -220,7 +210,6 @@ const QRAssignments: React.FC = () => {
                     >
                       {t(lesson.name)}
                     </div>
-
                     <div
                       id={`${ID_PREFIX}-lesson-subtitle-${lesson.id}`}
                       className="qrAssignments-lesson-subtitle"
@@ -228,7 +217,6 @@ const QRAssignments: React.FC = () => {
                       {t(lesson.chapterName ?? '')}
                     </div>
                   </div>
-
                   <button
                     type="button"
                     id={`${ID_PREFIX}-lesson-toggle-${lesson.id}`}
@@ -256,17 +244,14 @@ const QRAssignments: React.FC = () => {
                 </div>
               ))}
           </div>
-
           <div id={`${ID_PREFIX}-assignment-count`}>
             <AssigmentCount
               assignments={selectedCount}
               onClick={() => {
                 if (selectedCount === 0) return;
-
                 const selectedLessonIds = lessons
                   .filter((l) => l.isSelected)
                   .map((l) => l.id);
-
                 const selectedAssignments = {
                   [TeacherAssignmentPageType.MANUAL]: {
                     [location.state.courseId]: {
@@ -274,25 +259,27 @@ const QRAssignments: React.FC = () => {
                     },
                   },
                 };
-
-                history.push(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE, {
-                  fromPage: PAGES.QR_ASSIGNMENTS,
-                  selectedAssignments,
-                  manualAssignments: {
-                    [location.state.courseId]: {
-                      lessons: lessons
-                        .filter((l) => selectedLessonIds.includes(l.id))
-                        .map((l) => ({
-                          ...l,
-                          source: AssignmentSource.QR_CODE,
-                        })),
+                history.push({
+                  ...parsePath(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE),
+                  state: {
+                    fromPage: PAGES.QR_ASSIGNMENTS,
+                    selectedAssignments,
+                    manualAssignments: {
+                      [location.state.courseId]: {
+                        lessons: lessons
+                          .filter((l) => selectedLessonIds.includes(l.id))
+                          .map((l) => ({
+                            ...l,
+                            source: AssignmentSource.QR_CODE,
+                          })),
+                      },
                     },
-                  },
-                  recommendedAssignments: {},
-                  qrAssignmentNavigationState: {
-                    chapterId: location.state.chapterId,
-                    courseId: location.state.courseId,
-                    fromPage: location.state.fromPage,
+                    recommendedAssignments: {},
+                    qrAssignmentNavigationState: {
+                      chapterId: location.state.chapterId,
+                      courseId: location.state.courseId,
+                      fromPage: location.state.fromPage,
+                    },
                   },
                 });
               }}

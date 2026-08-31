@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { useGrowthBook } from '@growthbook/growthbook-react';
+import { useFeatureValue } from '@growthbook/growthbook-react';
 import { GENERIC_POP_UP, SHOW_GENERIC_POPUP } from '../common/constants';
 import PopupManager from '../components/GenericPopUp/GenericPopUpManager';
 import { PopupConfig } from '../components/GenericPopUp/GenericPopUpType';
@@ -14,8 +14,8 @@ type PopupEventDetail = {
 };
 
 export const useGenericPopup = () => {
-  const growthbook = useGrowthBook();
   const location = useLocation();
+  const popupConfig = useFeatureValue<PopupConfig | null>(GENERIC_POP_UP, null);
   const [popupData, setPopupData] = useState<PopupEventDetail | null>(null);
   const popupDataRef = useRef<PopupEventDetail | null>(null);
 
@@ -37,12 +37,6 @@ export const useGenericPopup = () => {
   }, []);
 
   useEffect(() => {
-    if (!growthbook) return;
-
-    const popupConfig = growthbook.getFeatureValue<PopupConfig | null>(
-      GENERIC_POP_UP,
-      null,
-    );
     if (!popupConfig) return;
 
     const params = new URLSearchParams(location.search);
@@ -56,7 +50,7 @@ export const useGenericPopup = () => {
       PopupManager.onAppOpen(popupConfig);
       PopupManager.onTimeElapsed(popupConfig);
     }
-  }, [growthbook, location.search]);
+  }, [location.search, popupConfig]);
 
   const closePopup = () => {
     if (!popupData) return;

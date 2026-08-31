@@ -97,7 +97,7 @@ td:first-child {
   background-color: white;
   z-index: 2;
   font-weight: 400;
-  color: #4a4949;
+  /* color: #4a4949; */
 }
 
 table {

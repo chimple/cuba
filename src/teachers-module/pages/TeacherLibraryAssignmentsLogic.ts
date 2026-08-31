@@ -12,7 +12,7 @@ import { ServiceConfig } from '../../services/ServiceConfig';
 import { Util } from '../../utility/util';
 import { TeacherAssignmentPageType } from '../components/homePage/assignment/TeacherAssignment';
 import logger from '../../utility/logger';
-import { isHiddenTeacherLesson } from '../utils/lessonFilters';
+import { parsePath } from 'history';
 
 export interface AssignmentLessonItem {
   id: string;
@@ -50,7 +50,10 @@ export const useTeacherLibraryAssignmentsLogic = () => {
       const currUser = await auth.getCurrentUser();
 
       if (!currentClass?.id || !currUser?.id) {
-        history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
+        history.replace({
+          ...parsePath(PAGES.HOME_PAGE),
+          state: { tabValue: 1 },
+        });
         return;
       }
 
@@ -102,7 +105,7 @@ export const useTeacherLibraryAssignmentsLogic = () => {
           );
           const lesson = lessonData.lesson?.[0];
           const course = lessonData.course?.[0];
-          if (!lesson?.id || !course?.id || isHiddenTeacherLesson(lesson)) {
+          if (!lesson?.id || !course?.id) {
             continue;
           }
 
@@ -226,10 +229,10 @@ export const useTeacherLibraryAssignmentsLogic = () => {
       return;
     }
 
-    history.replace(
-      PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE,
-      buildAssignmentPayload(),
-    );
+    history.replace({
+      ...parsePath(PAGES.SHOW_STUDENTS_IN_ASSIGNED_PAGE),
+      state: buildAssignmentPayload(),
+    });
   };
 
   const handleBackButtonClick = () => {
@@ -237,7 +240,7 @@ export const useTeacherLibraryAssignmentsLogic = () => {
       history.goBack();
       return;
     }
-    history.replace(PAGES.HOME_PAGE, { tabValue: 1 });
+    history.replace({ ...parsePath(PAGES.HOME_PAGE), state: { tabValue: 1 } });
   };
 
   const getSelectedCount = (group: AssignmentCourseGroup): number =>
